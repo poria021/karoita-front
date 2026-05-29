@@ -14,7 +14,7 @@ export async function registerUser(
   if (!parsed.success) {
     return {
       success: null,
-      error: { reason: parsed.error.errors[0]?.message || "Invalid input" },
+      error: { reason: parsed.error.issues[0]?.message || "Invalid input" },
     };
   }
 
