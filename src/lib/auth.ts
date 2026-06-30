@@ -21,7 +21,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: false,
     resetPasswordTokenExpiresIn: 60 * 60, // 1 hour
   },
   emailVerification: {
