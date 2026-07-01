@@ -26,6 +26,19 @@ interface UserStoreState {
 }
 
 /**
+ * Removes fields that must never be persisted in client storage.
+ *
+ * Even if an upstream API mistakenly includes credential-like flags on the
+ * `User` payload, the store sanitizes before it reaches persisted state.
+ */
+function sanitizeUserForClientStore(user: User): User {
+  const sanitizedUser = { ...user };
+  delete sanitizedUser.password;
+  delete sanitizedUser.hasPassword;
+  return sanitizedUser;
+}
+
+/**
  * Global User Store - single source of truth for "who is logged in" on the
  * client, backed by `zustand/middleware`'s `persist` so a page reload (or a
  * new tab) rehydrates the session instantly from `localStorage` instead of
@@ -60,7 +73,7 @@ export const useUserStore = create<UserStoreState>()(
 
       setUser: (user) =>
         set({
-          currentUser: user,
+          currentUser: sanitizeUserForClientStore(user),
           isAuthenticated: true,
         }),
 
@@ -74,6 +87,15 @@ export const useUserStore = create<UserStoreState>()(
     }),
     {
       name: "karvita-session-storage",
+      // Persist only cross-session auth data.
+      // `isOnline` is an ephemeral runtime signal and must be recomputed from
+      // browser/network events after boot, not restored from a previous tab.
+      partialize: (state) => ({
+        currentUser: state.currentUser
+          ? sanitizeUserForClientStore(state.currentUser)
+          : null,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );
