@@ -1,16 +1,55 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Toaster } from "react-hot-toast";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
+import { Toaster } from "sonner";
+import Providers from "@/components/shared/Providers";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+const vazirmatn = localFont({
+  src: [
+    {
+      path: "../assets/fonts/Vazirmatn-Light.woff2",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/Vazirmatn-Regular.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/Vazirmatn-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/Vazirmatn-SemiBold.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/Vazirmatn-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/Vazirmatn-ExtraBold.woff2",
+      weight: "800",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/Vazirmatn-Black.woff2",
+      weight: "900",
+      style: "normal",
+    },
+  ],
+  variable: "--font-vazirmatn",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Zexa Better Auth",
-  description: "A Next.js boilerplate for building web applications",
+  title: "کارویتا | سامانه جامع آموزش نظری و مهارتی",
+  description:
+    "سامانه جامع آموزش نظری و مهارتی کارویتا - پلتفرم مدیریت یادگیری",
 };
 
 export default function RootLayout({
@@ -20,9 +59,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl">
-      <body className={`${inter.variable} antialiased bg-background`}>
-        {children}
-        <Toaster />
+      <body className={`${vazirmatn.variable} antialiased bg-background`}>
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );

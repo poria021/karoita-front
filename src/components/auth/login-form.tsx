@@ -1,54 +1,47 @@
 "use client";
 
-import { z } from "zod";
+import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import React, { useId, useState } from "react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginUser } from "../../app/auth/login/action";
-import { FormSuccess, FormError } from "../ui/form-messages";
-
-const schema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(1, { message: "Password is required" }),
-});
-
-type FormData = z.infer<typeof schema>;
+import { login } from "@/services/auth.service";
+import { loginSchema, type LoginSchema } from "@/lib/schemas";
 
 const LoginForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    formState: { errors },
+  } = useForm<LoginSchema>({
+    resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
   const [isVisible, setIsVisible] = useState(false);
-  const [formState, setFormState] = useState<{
-    success?: string;
-    error?: string;
-  }>({});
-
   const id = useId();
   const router = useRouter();
 
   const toggleVisibility = () => setIsVisible((prev) => !prev);
 
-  const onSubmit = async (data: FormData) => {
-    setFormState({});
-    const result = await loginUser(data);
-    if (result.success) {
-      setFormState({ success: result.success.reason });
+  const { mutate, isPending } = useMutation({
+    mutationFn: login,
+    onSuccess: () => {
+      toast.success("ورود با موفقیت انجام شد");
       router.push("/dashboard");
-    } else if (result.error) {
-      setFormState({ error: result.error.reason });
-    }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "ورود ناموفق بود. لطفاً دوباره تلاش کنید.");
+    },
+  });
+
+  const onSubmit = (data: LoginSchema) => {
+    mutate(data);
   };
 
   return (
@@ -56,15 +49,14 @@ const LoginForm = () => {
       onSubmit={handleSubmit(onSubmit)}
       className="flex w-full flex-col gap-5"
     >
-      <FormSuccess message={formState.success || ""} />
-      <FormError message={formState.error || ""} />
       <div className="flex flex-col gap-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">ایمیل</Label>
         <Input
           id="email"
           type="email"
           placeholder="you@example.com"
           autoComplete="email"
+          dir="ltr"
           {...register("email")}
         />
         {errors.email && (
@@ -72,21 +64,22 @@ const LoginForm = () => {
         )}
       </div>
       <div className="flex flex-col gap-2">
-        <Label htmlFor={id}>Password</Label>
+        <Label htmlFor={id}>رمز عبور</Label>
         <div className="relative">
           <Input
             id={id}
             type={isVisible ? "text" : "password"}
-            placeholder="Password"
+            placeholder="رمز عبور"
             autoComplete="current-password"
             className="pe-9"
+            dir="ltr"
             {...register("password")}
           />
           <button
             className="text-muted-foreground/80 hover:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 absolute inset-y-0 end-0 flex h-full w-9 items-center justify-center rounded-e-md transition-[color,box-shadow] outline-none focus:z-10 focus-visible:ring-[3px] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
             type="button"
             onClick={toggleVisibility}
-            aria-label={isVisible ? "Hide password" : "Show password"}
+            aria-label={isVisible ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
             aria-pressed={isVisible}
             aria-controls="password"
           >
@@ -103,8 +96,8 @@ const LoginForm = () => {
           </span>
         )}
       </div>
-      <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Logging in..." : "Login"}
+      <Button type="submit" className="mt-2 w-full" disabled={isPending}>
+        {isPending ? "در حال ورود..." : "ورود"}
       </Button>
     </form>
   );

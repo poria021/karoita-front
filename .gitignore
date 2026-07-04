@@ -45,10 +45,13 @@ yarn-error.log*
 next-env.d.ts
 
 # دیتا بیس لوکال و فایل های اضافی
-karvita.html
+karvitaa-Final Mock.html
 drizzle/
 drizzle.config.ts
 docker-compose.yml
 src/db/
 .env.local
+docs/
+
+
 
