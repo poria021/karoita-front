@@ -12,6 +12,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { login } from "@/services/auth.service";
 import { loginSchema, type LoginSchema } from "@/lib/schemas";
+import { useUserStore } from "@/store/useUserStore";
 
 const LoginForm = () => {
   const {
@@ -26,12 +27,14 @@ const LoginForm = () => {
   const [isVisible, setIsVisible] = useState(false);
   const id = useId();
   const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
 
   const toggleVisibility = () => setIsVisible((prev) => !prev);
 
   const { mutate, isPending } = useMutation({
     mutationFn: login,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      setUser(data.user);
       toast.success("ورود با موفقیت انجام شد");
       router.push("/dashboard");
     },
@@ -81,7 +84,7 @@ const LoginForm = () => {
             onClick={toggleVisibility}
             aria-label={isVisible ? "پنهان کردن رمز عبور" : "نمایش رمز عبور"}
             aria-pressed={isVisible}
-            aria-controls="password"
+            aria-controls={id}
           >
             {isVisible ? (
               <EyeOffIcon size={16} aria-hidden="true" />
