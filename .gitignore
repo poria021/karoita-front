@@ -47,4 +47,5 @@ MIGRATION_ROADMAP.md
 # Keep docker-compose.yml, src/db/, and drizzle/ 
 # UNLESS you strictly plan to remove them later.
 # DO NOT ignore .cursor/rules (These contain our architecture patterns)
-!src/.cursor/rules/
+# Ignore Cursor rules and settings for privacy
+.cursor/
