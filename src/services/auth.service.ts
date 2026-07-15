@@ -43,6 +43,34 @@ function isBrowser(): boolean {
   return typeof window !== 'undefined';
 }
 
+// ==========================================
+// توابع کمکی امنیتی برای کار با کوکی مرورگر
+// ==========================================
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const nameLenPlus = name.length + 1;
+  return (
+    document.cookie
+      .split(';')
+      .map((c) => c.trim())
+      .filter((cookie) => cookie.substring(0, nameLenPlus) === `${name}=`)
+      .map((cookie) => decodeURIComponent(cookie.substring(nameLenPlus)))[0] || null
+  );
+}
+
+function setCookie(name: string, value: string, expiresAt: string): void {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=${encodeURIComponent(
+    value
+  )}; path=/; expires=${new Date(expiresAt).toUTCString()}; samesite=strict; secure`;
+}
+
+function deleteCookie(name: string): void {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+}
+// ==========================================
+
 function readMockUsers(): MockAuthUserRecord[] {
   if (!isBrowser()) return AUTH_MOCK_USERS;
 
@@ -84,9 +112,10 @@ function toPublicUser(record: MockAuthUserRecord): User {
   };
 }
 
+// اصلاح این تابع برای خواندن توکن از کوکی
 function readSessionMeta(): SessionMeta | null {
   if (!isBrowser()) return null;
-  const stored = window.localStorage.getItem(SESSION_META_STORAGE_KEY);
+  const stored = getCookie(SESSION_META_STORAGE_KEY);
   if (!stored) return null;
   try {
     return JSON.parse(stored) as SessionMeta;
@@ -95,13 +124,14 @@ function readSessionMeta(): SessionMeta | null {
   }
 }
 
+// اصلاح این تابع برای نوشتن توکن در کوکی
 function writeSessionMeta(meta: SessionMeta | null): void {
   if (!isBrowser()) return;
   if (!meta) {
-    window.localStorage.removeItem(SESSION_META_STORAGE_KEY);
+    deleteCookie(SESSION_META_STORAGE_KEY);
     return;
   }
-  window.localStorage.setItem(SESSION_META_STORAGE_KEY, JSON.stringify(meta));
+  setCookie(SESSION_META_STORAGE_KEY, JSON.stringify(meta), meta.expiresAt);
 }
 
 /**
@@ -117,7 +147,7 @@ function setMarkerCookie(expiresAt: string): void {
 
 function clearMarkerCookie(): void {
   if (typeof document === 'undefined') return;
-  document.cookie = `${AUTH_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  document.cookie = `${AUTH_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 }
 
 function dispatchSessionToStore(session: Session | null): void {
@@ -297,6 +327,60 @@ export class AuthService {
       expiresAt: new Date(Date.now() + MOCK_SESSION_TTL_MS).toISOString(),
     });
     return user;
+  }
+
+  /** Step 1 of password recovery: verify the mobile is registered and dispatch/simulate the OTP. */
+  static async sendForgotPasswordOtp(mobile: string): Promise<void> {
+    if (IS_MOCK_MODE) {
+      const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
+      if (!record) {
+        throw new Error('کاربری با این شماره یافت نشد.');
+      }
+      return;
+    }
+
+    // TODO(NestJS migration): trigger the real SMS/OTP provider through the API.
+    throw new Error('بازیابی رمز عبور در حالت واقعی هنوز پیاده‌سازی نشده است.');
+  }
+
+  /** Step 2 of password recovery: verify the code (test code `12345` in mock mode) without signing in. */
+  static async verifyForgotPasswordOtp(mobile: string, otp: string): Promise<void> {
+    if (IS_MOCK_MODE) {
+      if (otp !== MOCK_OTP_CODE) {
+        throw new Error('کد تایید نادرست است (کد تست: ۱۲۳۴۵).');
+      }
+
+      const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
+      if (!record) {
+        throw new Error('کاربری با این شماره یافت نشد.');
+      }
+      return;
+    }
+
+    throw new Error('بازیابی رمز عبور در حالت واقعی هنوز پیاده‌سازی نشده است.');
+  }
+
+  /** Step 3 of password recovery: re-verify the OTP and persist the new password. */
+  static async resetPassword(mobile: string, otp: string, newPassword: string): Promise<void> {
+    if (IS_MOCK_MODE) {
+      if (otp !== MOCK_OTP_CODE) {
+        throw new Error('کد تایید نادرست است (کد تست: ۱۲۳۴۵).');
+      }
+
+      const users = readMockUsers();
+      const recordIndex = users.findIndex((candidate) => candidate.mobile === mobile);
+      if (recordIndex === -1) {
+        throw new Error('کاربری با این شماره یافت نشد.');
+      }
+
+      const updatedUsers = [...users];
+      updatedUsers[recordIndex] = { ...updatedUsers[recordIndex], password: newPassword };
+      writeMockUsers(updatedUsers);
+      return;
+    }
+
+    // TODO(NestJS migration): replace with a direct call to the external API's reset-password endpoint.
+    throw new Error('بازیابی رمز عبور در حالت واقعی هنوز پیاده‌سازی نشده است.');
   }
 
   /** Clears the active session everywhere: `useUserStore`, marker cookie, and Better-Auth (real mode). */

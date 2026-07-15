@@ -1,0 +1,23 @@
+'use client';
+
+import { useRegisterForm } from '../hooks/useRegisterForm';
+import { AuthFormMessage } from './fields/AuthFormMessage';
+import { RegisterDetailsStep } from './RegisterDetailsStep';
+import { RegisterOtpStep } from './RegisterOtpStep';
+
+/**
+ * Public registration wizard: mobile + role, then OTP verification,
+ * mirroring the "ثبت نام" tab of `original-karvita.html`.
+ */
+export function RegisterForm() {
+  const registerForm = useRegisterForm();
+
+  return (
+    <div className="space-y-4">
+      <AuthFormMessage message={registerForm.formMessage} onDismiss={registerForm.clearFormMessage} />
+
+      {registerForm.step === 1 && <RegisterDetailsStep registerForm={registerForm} />}
+      {registerForm.step === 2 && <RegisterOtpStep registerForm={registerForm} />}
+    </div>
+  );
+}
