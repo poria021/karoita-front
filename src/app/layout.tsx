@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "@/components/ui/sonner";
 import { Vazirmatn } from "next/font/google";
 
 import Providers from "@/components/shared/Providers";
@@ -27,8 +27,8 @@ export default function RootLayout({
       <body className={`${vazirmatn.variable} font-sans antialiased bg-background`}>
         <Providers>
           {children}
-          <Toaster />
-        </Providers>
+            <Toaster dir="rtl" richColors closeButton position="top-center" />
+            </Providers>
       </body>
     </html>
   );

@@ -157,14 +157,17 @@ const submitPassword = passwordForm.handleSubmit(
     setFormMessage(null);
     try {
       await AuthService.sendLoginOtp(pendingMobile);
+      
       otpCountdown.restart();
+
+      otpCodeForm.reset({ otp: '' }); 
       setFormMessage({ type: 'success', text: 'کد تایید جدید ارسال شد.' });
     } catch (error) {
       setFormMessage({ type: 'error', text: readErrorMessage(error, 'ارسال مجدد کد ناموفق بود.') });
     } finally {
       setIsResendingOtp(false);
     }
-  }, [isResendingOtp, otpCountdown, pendingMobile]);
+  }, [isResendingOtp, otpCountdown, pendingMobile, otpCodeForm]);
 
   /** Embeds the "فراموشی رمز عبور" wizard inside the login card instead of navigating away (no 404). */
   const switchToForgotMode = useCallback(() => {
@@ -219,13 +222,15 @@ const submitPassword = passwordForm.handleSubmit(
     try {
       await AuthService.sendForgotPasswordOtp(pendingForgotMobile);
       forgotCountdown.restart();
+      forgotOtpForm.reset({ otp: '' });
+
       setFormMessage({ type: 'success', text: 'کد تایید جدید ارسال شد.' });
     } catch (error) {
       setFormMessage({ type: 'error', text: readErrorMessage(error, 'ارسال مجدد کد ناموفق بود.') });
     } finally {
       setIsResendingForgotOtp(false);
     }
-  }, [forgotCountdown, isResendingForgotOtp, pendingForgotMobile]);
+  }, [forgotCountdown, isResendingForgotOtp, pendingForgotMobile, forgotOtpForm]);
 
   const submitResetPassword = forgotResetForm.handleSubmit(async (data) => {
     setFormMessage(null);
@@ -250,6 +255,16 @@ const submitPassword = passwordForm.handleSubmit(
   useEffect(() => {
     setFormMessage(null);
   }, [watchedPasswordMobile, watchedPasswordPass, watchedOtpMobile, watchedForgotMobile]);
+
+  // ==========================================
+  // [MIGRATION MOCK TO NESTJS]: فعال‌سازی Web OTP در موبایل
+  // به محض نهایی شدن دامنه و فرمت پیامک NestJS، کامنت‌های زیر را بردارید:
+  //
+  // useWebOtp((code) => {
+  //   otpCodeForm.setValue('otp', code, { shouldValidate: true });
+  //   verifyOtp(); // ورود خودکار به محض خواندن پیامک
+  // }, mode === 'otp' && otpStep === 2);
+  // ==========================================
 
   return {
     mode,
