@@ -52,7 +52,8 @@
     "swr": "^2.4.1",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.0",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",

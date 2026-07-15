@@ -1,8 +1,6 @@
-export type UserRole = 
-  | 'student' | 'skill_learner' | 'supervisor_professor' 
-  | 'mentor_teacher' | 'school_principal' | 'super_admin' 
-  | 'central_organization' | 'provincial_university' | 'faculty_role' 
-  | 'assistant_admin' | 'regional_edu_admin';
+import type { UserRole } from './auth';
+
+export type { UserRole };
 
 export interface User {
   id: string;
