@@ -1,0 +1,14 @@
+{
+    "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/recommended"],
+    "plugins": ["@typescript-eslint", "import", "react"],
+    "rules": {
+      "@typescript-eslint/no-explicit-any": "error",
+      "react/jsx-sort-props": ["error", { "callbacksLast": true, "shorthandFirst": true }],
+      "import/order": ["error", {
+        "groups": ["builtin", "external", "internal"],
+        "newlines-between": "always",
+        "alphabetize": { "order": "asc", "caseInsensitive": true }
+      }],
+      "no-console": ["warn", { "allow": ["warn", "error"] }]
+    }
+  }
