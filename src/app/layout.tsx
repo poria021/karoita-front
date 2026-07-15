@@ -1,16 +1,20 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Toaster } from "react-hot-toast";
-import { Inter } from "next/font/google";
+import { Vazirmatn } from "next/font/google";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+import Providers from "@/components/shared/Providers";
+
+// لود کردن و معرفی متغیر فونت خورشیدی وزیرمتن
+const vazirmatn = Vazirmatn({
+  variable: "--font-vazirmatn",
+  subsets: ["arabic"],
+  weight: ["100", "300", "400", "500", "700", "900"],
 });
 
 export const metadata: Metadata = {
-  title: "Zexa Better Auth",
-  description: "A Next.js boilerplate for building web applications",
+  title: "سامانه جامع آموزش نظری و مهارتی کارویتا",
+  description: "پورتال کارآموزی کارویتا",
 };
 
 export default function RootLayout({
@@ -20,9 +24,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl">
-      <body className={`${inter.variable} antialiased bg-background`}>
-        {children}
-        <Toaster />
+      <body className={`${vazirmatn.variable} font-sans antialiased bg-background`}>
+        <Providers>
+          {children}
+          <Toaster />
+        </Providers>
       </body>
     </html>
   );
