@@ -52,6 +52,10 @@ export const RouteService = {
     onboardingApprovals: (): string => '/karvita/onboarding-approvals',
     userPermissions: (): string => '/karvita/permissions',
     manageAds: (): string => '/karvita/ads',
+    internshipSelection: (): string => '/karvita/internships',
+    organizationalCapacities: (): string => '/karvita/capacities',
+    organizationalStructure: (): string => '/karvita/organizational-structure',
+    adminUserCreation: (): string => '/karvita/users/create',
     internshipDetail: (internshipId: string): string => `/karvita/internships/${internshipId}`,
   },
 } as const;
