@@ -16,7 +16,7 @@ interface RoleSelectFieldProps {
 export function RoleSelectField({ control, errorMessage, disabled }: RoleSelectFieldProps) {
   return (
     <div>
-      <Label htmlFor="register-role" className="mb-1.5 text-xs font-bold text-slate-600">
+      <Label htmlFor="register-role" className="mb-kv-field text-xs font-bold text-slate-600">
         نقش کاربری <span className="text-rose-500">*</span>
       </Label>
       <Controller
@@ -44,7 +44,7 @@ export function RoleSelectField({ control, errorMessage, disabled }: RoleSelectF
           </Select>
         )}
       />
-      {errorMessage && <p className="mt-1.5 text-[11px] font-bold text-rose-500">{errorMessage}</p>}
+      {errorMessage && <p className="mt-kv-field text-[11px] font-bold text-rose-500">{errorMessage}</p>}
     </div>
   );
 }

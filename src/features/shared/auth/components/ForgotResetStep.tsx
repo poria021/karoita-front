@@ -13,17 +13,14 @@ interface ForgotResetStepProps {
 /** Step 3 of password recovery: choose and confirm a brand-new password. */
 export function ForgotResetStep({ login }: ForgotResetStepProps) {
   const { forgotResetForm, submitResetPassword, isSubmittingResetPassword } = login;
-  const { register, watch, formState } = forgotResetForm;
-  const newPasswordValue = watch('newPassword');
-  const confirmPasswordValue = watch('confirmPassword');
+  const { register, formState } = forgotResetForm;
 
   return (
-    <form onSubmit={submitResetPassword} className="space-y-4" noValidate>
+    <form onSubmit={submitResetPassword} className="space-y-kv-group" noValidate>
       <PasswordField
         id="forgot-new-password"
         label="رمز عبور جدید"
         registration={register('newPassword')}
-        currentValue={newPasswordValue}
         errorMessage={formState.errors.newPassword?.message}
       />
 
@@ -31,7 +28,6 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
         id="forgot-confirm-password"
         label="تکرار رمز عبور جدید"
         registration={register('confirmPassword')}
-        currentValue={confirmPasswordValue}
         errorMessage={formState.errors.confirmPassword?.message}
       />
 

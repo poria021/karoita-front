@@ -16,7 +16,7 @@ export function DashboardMainViewport({ children }: DashboardMainViewportProps) 
   return (
     <main
       className={cn(
-        'flex min-h-[550px] min-w-0 flex-1 flex-col rounded-none border border-slate-300/80 bg-white p-5 text-start shadow-sm sm:p-8 md:rounded-3xl lg:min-h-[calc(100vh-112px)] lg:rounded-3xl'
+        'flex min-h-[550px] min-w-0 flex-1 flex-col rounded-none border border-slate-300/80 bg-white p-kv-inset text-start shadow-sm sm:p-kv-page md:rounded-3xl lg:min-h-[calc(100vh-112px)] lg:rounded-3xl'
       )}
     >
       <div className="flex min-h-0 flex-1 flex-col">{children}</div>

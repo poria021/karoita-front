@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -49,37 +49,37 @@ export function useLoginForm() {
 
   const passwordForm = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: { mobile: '', password: '', remember: false },
   });
 
   const otpMobileForm = useForm<MobileSchema>({
     resolver: zodResolver(mobileSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: { mobile: '' },
   });
 
   const otpCodeForm = useForm<OtpSchema>({
     resolver: zodResolver(otpSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: { otp: '' },
   });
 
   const forgotMobileForm = useForm<MobileSchema>({
     resolver: zodResolver(mobileSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: { mobile: '' },
   });
 
   const forgotOtpForm = useForm<OtpSchema>({
     resolver: zodResolver(otpSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: { otp: '' },
   });
 
   const forgotResetForm = useForm<ForgotResetSchema>({
     resolver: zodResolver(forgotResetSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: { newPassword: '', confirmPassword: '' },
   });
 
@@ -255,18 +255,6 @@ const submitPassword = passwordForm.handleSubmit(
       setFormMessage({ type: 'error', text: readErrorMessage(error, 'تغییر رمز عبور ناموفق بود.') });
     }
   });
-
-
-  // مانیتور کردن مقادیر فیلدها در لحظه تایپ کاربر
-  const watchedPasswordMobile = passwordForm.watch('mobile');
-  const watchedPasswordPass = passwordForm.watch('password');
-  const watchedOtpMobile = otpMobileForm.watch('mobile');
-  const watchedForgotMobile = forgotMobileForm.watch('mobile');
-
-  // به محض تایپ اولین کاراکتر جدید در هر فیلد، پیام خطای بالا فوراً غیب می‌شود
-  useEffect(() => {
-    setFormMessage(null);
-  }, [watchedPasswordMobile, watchedPasswordPass, watchedOtpMobile, watchedForgotMobile]);
 
   // ==========================================
   // [MIGRATION MOCK TO NESTJS]: فعال‌سازی Web OTP در موبایل

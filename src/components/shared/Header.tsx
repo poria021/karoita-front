@@ -47,7 +47,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 w-full border-b border-slate-200/60 bg-white">
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-6 xl:px-8 2xl:px-16">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-kv-group">
           <button
             type="button"
             onClick={openMobileSidebar}
@@ -57,7 +57,7 @@ export function Header() {
             <Menu className="size-4" aria-hidden="true" />
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-kv-inline">
             <div className="flex size-9 items-center justify-center rounded-xl bg-brand-500 text-white shadow-sm shadow-brand-500/20">
               <LayoutDashboard className="size-4" aria-hidden="true" />
             </div>
@@ -65,7 +65,7 @@ export function Header() {
               <KvTypography variant="title" as="h1">
                 پنل کاربری - {strategy.label}
               </KvTypography>
-              <div className="mt-0.5 sm:mt-1">
+              <div className="mt-kv-1">
                 <KvTypography variant="overline" tone="muted" as="p">
                   سامانه جامع آموزش نظری و مهارتی کارویتا
                 </KvTypography>
@@ -74,7 +74,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-kv-2 sm:gap-kv-inline">
           <div className="hidden flex-col items-end text-start md:flex">
             <KvTypography variant="overline" tone="muted" as="span">
               {getTodayJalaliFormatted()}

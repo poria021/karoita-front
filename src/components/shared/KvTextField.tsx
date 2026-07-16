@@ -165,7 +165,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
     return (
       <div className="w-full font-sans" data-slot="kv-text-field">
         {showLabel ? (
-          <div className="mb-1.5">
+          <div className="mb-kv-field">
             <KvTypography variant="label" as="label" htmlFor={id}>
               {label}
               {required ? (
@@ -226,13 +226,13 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
         </div>
 
         {error ? (
-          <div className="mt-1.5" id={`${id}-error`} role="alert">
+          <div className="mt-kv-field" id={`${id}-error`} role="alert">
             <KvTypography variant="error" tone="danger" as="span">
               {error}
             </KvTypography>
           </div>
         ) : hint ? (
-          <div className="mt-1.5" id={`${id}-hint`}>
+          <div className="mt-kv-field" id={`${id}-hint`}>
             <KvTypography variant="caption" tone="muted" as="span">
               {hint}
             </KvTypography>

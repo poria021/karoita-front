@@ -35,13 +35,13 @@ export function useRegisterForm() {
 
   const detailsForm = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: { mobile: '', role: undefined },
   });
 
   const otpForm = useForm<OtpSchema>({
     resolver: zodResolver(otpSchema),
-    mode: 'onChange',
+    mode: 'onTouched',
     defaultValues: { otp: '' },
   });
 
@@ -82,7 +82,7 @@ export function useRegisterForm() {
     setFormMessage(null);
     try {
       await AuthService.verifyRegistrationOtp(pendingMobile, data.otp, pendingRole);
-      router.push(RouteService.shared.profileIdentity());
+      router.push(RouteService.karvita.profile(pendingRole));
     } catch (error) {
       setFormMessage({ type: 'error', text: readErrorMessage(error, 'تایید کد ناموفق بود.') });
     }

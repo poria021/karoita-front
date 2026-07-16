@@ -19,6 +19,7 @@ export const MOCK_OTP_CODE = '12345';
 /** Internal-only mock record — never expose `password` outside this module. */
 export interface MockAuthUserRecord extends User {
   password: string;
+  hasPassword: boolean;
 }
 
 interface MockUserSeed {
@@ -83,5 +84,6 @@ export const AUTH_MOCK_USERS: MockAuthUserRecord[] = MOCK_USER_SEEDS.map((seed, 
     province: DEFAULT_PROVINCE,
     ...seed.extra,
     password: MOCK_USER_PASSWORD,
+    hasPassword: true,
   };
 });

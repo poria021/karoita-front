@@ -102,7 +102,10 @@ function toPublicUser(record: MockAuthUserRecord): User {
     role: record.role,
     approved: record.approved,
     docStatus: record.docStatus,
+    hasPassword: record.hasPassword,
+    adminRequestMessage: record.adminRequestMessage,
     province: record.province,
+    city: record.city,
     college: record.college,
     district: record.district,
     school: record.school,
@@ -293,6 +296,7 @@ export class AuthService {
         approved: false,
         docStatus: 'not_submitted',
         password: MOCK_USER_PASSWORD,
+        hasPassword: false,
       };
 
       writeMockUsers([...users, newRecord]);
@@ -374,13 +378,56 @@ export class AuthService {
       }
 
       const updatedUsers = [...users];
-      updatedUsers[recordIndex] = { ...updatedUsers[recordIndex], password: newPassword };
+      updatedUsers[recordIndex] = {
+        ...updatedUsers[recordIndex],
+        password: newPassword,
+        hasPassword: true,
+      };
       writeMockUsers(updatedUsers);
+
+      const activeUser = useUserStore.getState().activeUser;
+      if (activeUser?.mobile === mobile) {
+        useUserStore.getState().setUser({ ...activeUser, hasPassword: true });
+      }
       return;
     }
 
     // TODO(NestJS migration): replace with a direct call to the external API's reset-password endpoint.
     throw new Error('بازیابی رمز عبور در حالت واقعی هنوز پیاده‌سازی نشده است.');
+  }
+
+  /**
+   * First-time password registration for accounts created via OTP-only signup
+   * (profile security tab — mirrors `saveFirstTimePassword` in the legacy HTML).
+   */
+  static async setInitialPassword(mobile: string, newPassword: string): Promise<void> {
+    if (newPassword.trim().length < 8) {
+      throw new Error('رمز عبور باید حداقل ۸ کاراکتر باشد.');
+    }
+
+    if (IS_MOCK_MODE) {
+      const users = readMockUsers();
+      const recordIndex = users.findIndex((candidate) => candidate.mobile === mobile);
+      if (recordIndex === -1) {
+        throw new Error('کاربری با این شماره یافت نشد.');
+      }
+
+      const updatedUsers = [...users];
+      updatedUsers[recordIndex] = {
+        ...updatedUsers[recordIndex],
+        password: newPassword,
+        hasPassword: true,
+      };
+      writeMockUsers(updatedUsers);
+
+      const activeUser = useUserStore.getState().activeUser;
+      if (activeUser?.mobile === mobile) {
+        useUserStore.getState().setUser({ ...activeUser, hasPassword: true });
+      }
+      return;
+    }
+
+    throw new Error('ثبت رمز عبور اولیه در حالت واقعی هنوز پیاده‌سازی نشده است.');
   }
 
   /** Clears the active session everywhere: `useUserStore`, marker cookie, and Better-Auth (real mode). */

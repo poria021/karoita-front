@@ -31,6 +31,7 @@ export const RouteService = {
 
   /** Cross-domain features that live in `src/features/shared/`. */
   shared: {
+    /** @deprecated Prefer `RouteService.karvita.profile(role)` for role-scoped profile. */
     profileIdentity: (): string => '/profile/identity',
     profileSecurity: (): string => '/profile/security',
     notifications: (): string => '/notifications',
@@ -39,6 +40,8 @@ export const RouteService = {
   /** Karvita domain — `src/app/(app)/karvita/` route group. */
   karvita: {
     dashboard: (): string => '/karvita/dashboard',
+    /** Role-scoped profile & identity security workspace. */
+    profile: (role: string): string => `/karvita/${role}/profile`,
     dailyReports: (): string => '/karvita/daily-reports',
     dailyApprovals: (): string => '/karvita/daily-approvals',
     academicEvaluation: (): string => '/karvita/academic-evaluation',

@@ -53,6 +53,33 @@
   --color-brand-700: #093f9f;
   --color-brand-850: #073280;
   --color-brand-900: #031b44;
+
+  /*
+   * Karvita spacing scale (`kv-*`) — Gestalt proximity & separation.
+   * Numeric steps ≈ 4px grid. Semantic aliases encode intent:
+   * - field: label ↔ control (tight proximity)
+   * - inline: icon ↔ text within one unit
+   * - group: related siblings (form fields in a section)
+   * - stack: vertical rhythm inside page chrome
+   * - section: distinct content blocks (larger separation)
+   * - inset / page: container padding (common region)
+   */
+  --spacing-kv-1: 0.25rem; /* 4px */
+  --spacing-kv-2: 0.5rem; /* 8px */
+  --spacing-kv-3: 0.75rem; /* 12px */
+  --spacing-kv-4: 1rem; /* 16px */
+  --spacing-kv-5: 1.25rem; /* 20px */
+  --spacing-kv-6: 1.5rem; /* 24px */
+  --spacing-kv-8: 2rem; /* 32px */
+  --spacing-kv-10: 2.5rem; /* 40px */
+
+  --spacing-kv-field: 0.375rem; /* 6px — label → input */
+  --spacing-kv-inline: 0.75rem; /* 12px — icon ↔ copy */
+  --spacing-kv-group: 1rem; /* 16px — related fields */
+  --spacing-kv-stack: 1.25rem; /* 20px — chrome rhythm */
+  --spacing-kv-section: 1.5rem; /* 24px — section break */
+  --spacing-kv-inset: 1.25rem; /* 20px — card/viewport pad (sm) */
+  --spacing-kv-page: 2rem; /* 32px — page/card pad (lg) */
 }
 
 :root {

@@ -1,3 +1,5 @@
+import { KvTypography } from '@/components/shared/KvTypography';
+
 interface AuthLogoProps {
   subtitle: string;
 }
@@ -9,8 +11,8 @@ interface AuthLogoProps {
  */
 export function AuthLogo({ subtitle }: AuthLogoProps) {
   return (
-    <div className="mb-6 flex flex-col items-center text-center">
-      <div className="flex items-center gap-3">
+    <div className="mb-kv-section flex flex-col items-center text-center">
+      <div className="flex items-center gap-kv-inline">
         <svg className="h-10 w-auto rounded-xl shadow-sm" viewBox="0 0 45 45" fill="none" aria-hidden="true">
           <rect width="45" height="45" rx="12" fill="#0D5EEC" />
           <path
@@ -21,9 +23,15 @@ export function AuthLogo({ subtitle }: AuthLogoProps) {
             strokeLinejoin="round"
           />
         </svg>
-        <span className="text-3xl font-extrabold tracking-tight text-brand-500">کارویتا</span>
+        <KvTypography variant="display" tone="brand" as="span">
+          کارویتا
+        </KvTypography>
       </div>
-      <p className="mt-2.5 text-[11px] font-bold text-slate-400">{subtitle}</p>
+      <div className="mt-kv-3">
+        <KvTypography variant="caption" tone="muted" align="center">
+          {subtitle}
+        </KvTypography>
+      </div>
     </div>
   );
 }

@@ -12,12 +12,15 @@ interface RegisterOtpStepProps {
 /** Step 2 of registration: verify the 5-digit SMS code (test code `12345` in mock mode). */
 export function RegisterOtpStep({ registerForm }: RegisterOtpStepProps) {
   const { otpForm, verifyOtp, isVerifyingOtp, goBackToStep1, resendOtp, isResendingOtp, secondsUntilResend, canResendOtp } = registerForm;
-  const { register, watch, formState } = otpForm;
-  const otpValue = watch('otp');
+  const { register, formState } = otpForm;
 
   return (
-    <form onSubmit={verifyOtp} className="space-y-4" noValidate>
-      <OtpCodeField id="register-otp-code" registration={register('otp')} currentValue={otpValue} errorMessage={formState.errors.otp?.message} />
+    <form onSubmit={verifyOtp} className="space-y-kv-group" noValidate>
+      <OtpCodeField
+        id="register-otp-code"
+        registration={register('otp')}
+        errorMessage={formState.errors.otp?.message}
+      />
 
       <OtpResendFooter
         secondsUntilResend={secondsUntilResend}
