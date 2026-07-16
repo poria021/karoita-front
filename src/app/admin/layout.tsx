@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import DashboardLayout from "@/components/admin/dashboard-layout";
+import KarvitaDashboardLayout from "../(app)/karvita/(dashboard)/layout";
 
 export default async function AdminLayout({
   children,
@@ -16,5 +16,5 @@ export default async function AdminLayout({
     return notFound();
   }
 
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return <KarvitaDashboardLayout>{children}</KarvitaDashboardLayout>;
 }

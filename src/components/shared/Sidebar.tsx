@@ -50,7 +50,7 @@ export function Sidebar() {
 
 <aside
         className={cn(
-          'fixed inset-y-0 start-0 z-50 flex shrink-0 flex-col overflow-y-auto border-e border-slate-200/80 bg-white transition-transform duration-300',
+          'fixed inset-y-0 start-0 z-50 flex shrink-0 flex-col overflow-y-auto border-e border-slate-200/80 bg-white transition-all duration-300 ease-in-out',
           'lg:sticky lg:top-[88px] lg:z-0 lg:h-auto lg:translate-x-0 lg:self-start lg:overflow-y-visible lg:bg-white lg:border lg:border-slate-200/80 lg:rounded-3xl lg:shadow-sm',
           isMobileOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
           isCollapsed ? 'w-72 lg:w-20' : 'w-72 lg:w-60'
