@@ -16,18 +16,16 @@ interface KarvitaDashboardLayoutProps {
 }
 
 /**
- * Master shell for every `/karvita/*` dashboard page (rule 00, #6): `Header`
- * and `Sidebar` are rendered once, here, outside the nested `page.tsx`
- * routes — Next.js keeps this layout mounted across client-side navigations
- * within the group, so neither one flashes or remounts on route changes.
+ * Master shell for every `/karvita/*` dashboard page (rule 00, #6):
+ * Matches the exact grid spacings and outer paddings of original-karvita.html.
  */
-export default function KarvitaDashboardLayout({ children }: KarvitaDashboardLayoutProps) {
+export default function KarvitaDashboardLayout({ children }: { children: ReactNode }) {
   return (
     <HydrationSafe>
-      <div className="flex min-h-screen w-full flex-col bg-slate-50/50">
+      <div className="flex min-h-screen w-full flex-col bg-[#faf9f8]">
         <Header />
 
-        <div className="flex w-full flex-1 flex-col items-stretch gap-6 px-0 py-6 sm:px-6 lg:flex-row lg:px-6 xl:px-8 2xl:px-16">
+        <div className="w-full px-0 sm:px-6 lg:px-6 xl:px-8 2xl:px-16 py-6 lg:py-6 flex-1 flex flex-col lg:flex-row gap-6 items-stretch relative">
           <Sidebar />
           <DashboardMainViewport>{children}</DashboardMainViewport>
         </div>
