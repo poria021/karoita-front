@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { OtpCodeField } from './fields/OtpCodeField';
@@ -9,7 +11,7 @@ interface ForgotVerifyStepProps {
   login: UseLoginFormReturn;
 }
 
-/** Step 2 of password recovery: verify the 5-digit SMS code (test code `12345` in mock mode). */
+/** Step 2 of password recovery: verify the 5-digit SMS code. */
 export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
   const {
     forgotOtpForm,
@@ -44,13 +46,14 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
       />
 
       <div className="flex items-center gap-2">
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={cancelForgotMode}
-          className="flex-1 rounded-xl border border-slate-200 bg-slate-50 py-3 text-xs font-black text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+          className="h-auto flex-1 rounded-xl border-slate-200 bg-slate-50 py-3 text-xs font-black text-slate-500 hover:bg-slate-100 hover:text-slate-800"
         >
           انصراف
-        </button>
+        </Button>
         <div className="flex-1">
           <AuthSubmitButton isReady={formState.isValid} isLoading={isVerifyingForgotOtp} loadingLabel="در حال تایید...">
             تایید و ادامه

@@ -2,6 +2,8 @@
 
 import { LogIn, Smartphone } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { MobileNumberField } from './fields/MobileNumberField';
@@ -38,13 +40,14 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
       />
 
       <div className="flex items-center justify-between py-1">
-        <button
+        <Button
           type="button"
+          variant="link"
           onClick={switchToForgotMode}
-          className="text-[11px] font-bold text-slate-500 transition-colors hover:text-brand-500"
+          className="h-auto p-0 text-[11px] font-bold text-slate-500 hover:text-brand-500"
         >
           رمز خود را فراموش کردم
-        </button>
+        </Button>
 
         <label
           htmlFor="login-remember"
@@ -69,14 +72,15 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
         ورود به سامانه
       </AuthSubmitButton>
 
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={switchToOtpMode}
-        className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-[11px] font-bold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+        className="h-auto w-full gap-1.5 rounded-xl border-slate-200 bg-slate-50 py-2.5 text-[11px] font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
       >
         <Smartphone className="size-3.5" aria-hidden="true" />
         <span>ورود با رمز یکبار مصرف (OTP)</span>
-      </button>
+      </Button>
     </form>
   );
 }

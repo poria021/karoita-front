@@ -74,7 +74,7 @@ export function Sidebar() {
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white shadow-sm shadow-brand-500/20">
               <LayoutDashboard className="size-4" aria-hidden="true" />
             </div>
-            <div className="flex min-w-0 flex-col text-right">
+            <div className="flex min-w-0 flex-col text-start">
               <h2 className="truncate text-xs font-black leading-tight text-slate-900">پنل کاربری - {strategy.label}</h2>
               <p className="mt-0.5 truncate text-[9px] font-bold leading-tight text-slate-500">سامانه جامع کارویتا</p>
             </div>

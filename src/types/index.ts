@@ -1,38 +1,12 @@
-import type { UserRole } from './auth';
-
-export type { UserRole };
-
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  mobile: string;
-  role: UserRole;
-  approved: boolean;
-  docStatus: 'not_submitted' | 'pending_admin' | 'approved' | 'rejected';
-  province?: string;
-  college?: string;
-  district?: string;
-  school?: string;
-  major?: string;
-  personalCode?: string;
-  studentId?: string;
-  skillCode?: string;
-  hasPassword: boolean;
-  customScopes: {
-    provinces: string[];
-    cities: string[];
-    colleges: string[];
-    districts: string[];
-    schools: string[];
-  };
-  specialPermissions: {
-    readOnly: boolean;
-    managementReports: boolean;
-    crossFaculty: boolean;
-    manageAds: boolean;
-  };
-}
+/**
+ * Shared domain types barrel. Canonical `User` / `UserRole` live in `./auth`.
+ */
+export type { DocStatus, Session, User, UserRole } from './auth';
+export type {
+  AdminUserListItem,
+  ListAdminUsersOptions,
+  ListAdminUsersResult,
+} from './admin';
 
 export interface ReportWeek {
   id: string | number;

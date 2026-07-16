@@ -2,6 +2,7 @@ import type { ChangeEvent } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 import { CircleAlert, CircleCheck } from 'lucide-react';
 
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
@@ -14,11 +15,6 @@ interface MobileNumberFieldProps {
   disabled?: boolean;
 }
 
-/**
- * Normalizes Persian/Arabic digits to English, then strips anything that is
- * still not a plain digit (letters, symbols, RTL marks, …) so the field
- * always holds a clean numeric string before it ever reaches RHF state.
- */
 function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
 }
@@ -47,7 +43,7 @@ export function MobileNumberField({ id, registration, currentValue, errorMessage
         )}
       >
         <span className="border-e border-slate-200/70 bg-slate-100/60 px-4 py-2.5 text-xs font-semibold text-slate-400">+98</span>
-        <input
+        <Input
           id={id}
           type="tel"
           inputMode="numeric"
@@ -55,7 +51,7 @@ export function MobileNumberField({ id, registration, currentValue, errorMessage
           maxLength={10}
           placeholder="9123456789"
           disabled={disabled}
-          className="w-full bg-transparent px-3.5 py-2.5 text-sm font-bold text-slate-800 outline-none placeholder:font-normal placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-auto rounded-none border-0 bg-transparent px-3.5 py-2.5 text-sm font-bold text-slate-800 shadow-none focus-visible:ring-0"
           {...registration}
           onChange={handleChange}
         />

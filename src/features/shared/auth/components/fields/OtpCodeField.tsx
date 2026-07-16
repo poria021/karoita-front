@@ -1,6 +1,7 @@
 import type { UseFormRegisterReturn } from 'react-hook-form';
 import { CircleAlert, CircleCheck } from 'lucide-react';
 
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
@@ -29,13 +30,13 @@ export function OtpCodeField({ id, registration, currentValue, errorMessage }: O
           errorMessage && isTouched ? 'border-rose-300' : 'border-slate-300'
         )}
       >
-        <input
+        <Input
           id={id}
           type="tel"
           inputMode="numeric"
           maxLength={5}
           placeholder="• • • • •"
-          className="w-full bg-transparent px-3.5 py-2.5 text-center text-base font-black tracking-[0.5em] text-slate-800 outline-none placeholder:tracking-widest placeholder:text-slate-400"
+          className="h-auto rounded-none border-0 bg-transparent px-3.5 py-2.5 text-center text-base font-black tracking-[0.5em] text-slate-800 shadow-none focus-visible:ring-0"
           {...registration}
         />
       </div>

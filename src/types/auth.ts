@@ -42,6 +42,7 @@ export interface User {
   college?: string;
   district?: string;
   school?: string;
+  major?: string;
   personalCode?: string;
   studentId?: string;
   skillCode?: string;

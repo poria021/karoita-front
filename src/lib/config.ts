@@ -1,4 +1,10 @@
-const DEFAULT_LOGIN_REDIRECT = "/dashboard";
+import { RouteService } from '@/services/route.service';
+
+/**
+ * Post-auth landing path. Always resolve via RouteService so domain route
+ * changes stay centralized (rule 60, #17).
+ */
+const DEFAULT_LOGIN_REDIRECT = RouteService.karvita.dashboard();
 
 /**
  * Centralized authentication cookie name (rule 40, #3). Defaults to
@@ -6,6 +12,6 @@ const DEFAULT_LOGIN_REDIRECT = "/dashboard";
  * `NEXT_PUBLIC_AUTH_COOKIE_NAME` env var once NestJS issues its own
  * HTTP-only cookie. Never hardcode this literal name anywhere else.
  */
-const AUTH_COOKIE_NAME = process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || "better-auth.session_token";
+const AUTH_COOKIE_NAME = process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || 'better-auth.session_token';
 
 export { DEFAULT_LOGIN_REDIRECT, AUTH_COOKIE_NAME };

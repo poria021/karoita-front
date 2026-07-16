@@ -2,6 +2,8 @@
 
 import { KeyRound } from 'lucide-react';
 
+import { Button } from '@/components/ui/button';
+
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { MobileNumberField } from './fields/MobileNumberField';
@@ -30,14 +32,15 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
         ارسال کد تایید
       </AuthSubmitButton>
 
-      <button
+      <Button
         type="button"
+        variant="outline"
         onClick={switchToPasswordMode}
-        className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-[11px] font-bold text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+        className="h-auto w-full gap-1.5 rounded-xl border-slate-200 bg-slate-50 py-2.5 text-[11px] font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
       >
         <KeyRound className="size-3.5" aria-hidden="true" />
         <span>ورود با رمز عبور</span>
-      </button>
+      </Button>
     </form>
   );
 }

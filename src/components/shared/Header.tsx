@@ -68,7 +68,7 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden flex-col items-end text-right text-[9px] font-black leading-tight text-slate-400 md:flex sm:text-[10px]">
+          <div className="hidden flex-col items-end text-start text-[9px] font-black leading-tight text-slate-400 md:flex sm:text-[10px]">
             <span>{getTodayJalaliFormatted()}</span>
           </div>
 
@@ -114,7 +114,7 @@ export function Header() {
                       key={notification.id}
                       onClick={() => markAsRead(notification.id)}
                       className={cn(
-                        'w-full p-4 text-right transition-colors hover:bg-slate-50',
+                        'w-full p-4 text-start transition-colors hover:bg-slate-50',
                         !notification.read && 'bg-brand-50/20'
                       )}
                     >
