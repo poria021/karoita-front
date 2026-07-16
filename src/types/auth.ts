@@ -38,7 +38,12 @@ export interface User {
   role: UserRole;
   approved: boolean;
   docStatus: DocStatus;
+  /** False until the user sets a first-time password on the security tab. */
+  hasPassword?: boolean;
+  /** Admin rejection reason shown on the identity status alert. */
+  adminRequestMessage?: string;
   province?: string;
+  city?: string;
   college?: string;
   district?: string;
   school?: string;

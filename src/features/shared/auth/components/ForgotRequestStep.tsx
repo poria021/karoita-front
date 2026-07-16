@@ -15,15 +15,13 @@ interface ForgotRequestStepProps {
 /** Step 1 of password recovery: collect the mobile number and dispatch the SMS code. */
 export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
   const { forgotMobileForm, sendForgotOtp, isSendingForgotOtp, cancelForgotMode } = login;
-  const { register, watch, formState } = forgotMobileForm;
-  const mobileValue = watch('mobile');
+  const { register, formState } = forgotMobileForm;
 
   return (
     <form onSubmit={sendForgotOtp} className="space-y-4" noValidate>
       <MobileNumberField
         id="forgot-mobile"
         registration={register('mobile')}
-        currentValue={mobileValue}
         errorMessage={formState.errors.mobile?.message}
         disabled={isSendingForgotOtp}
       />

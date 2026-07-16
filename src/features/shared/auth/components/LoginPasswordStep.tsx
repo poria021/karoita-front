@@ -16,17 +16,13 @@ interface LoginPasswordStepProps {
 /** Rendered while `login.mode === 'password'`: mobile + password credential form. */
 export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
   const { passwordForm, submitPassword, isSubmittingPassword, switchToOtpMode, switchToForgotMode } = login;
-  const { register, watch, formState } = passwordForm;
-
-  const mobileValue = watch('mobile');
-  const passwordValue = watch('password');
+  const { register, formState } = passwordForm;
 
   return (
     <form onSubmit={submitPassword} className="space-y-4" noValidate>
       <MobileNumberField
         id="login-mobile"
         registration={register('mobile')}
-        currentValue={mobileValue}
         errorMessage={formState.errors.mobile?.message}
         disabled={isSubmittingPassword}
       />
@@ -35,7 +31,6 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
         id="login-password"
         label="رمز عبور"
         registration={register('password')}
-        currentValue={passwordValue}
         errorMessage={formState.errors.password?.message}
       />
 

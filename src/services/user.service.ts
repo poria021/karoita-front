@@ -15,7 +15,8 @@ export interface UpdateProfilePayload {
   role: UserRole;
   firstName: string;
   lastName: string;
-  province: string;
+  /** Optional for `super_admin` / `central_organization` / `assistant_admin`. */
+  province?: string;
   college?: string;
   major?: string;
   studentId?: string;
@@ -23,6 +24,7 @@ export interface UpdateProfilePayload {
   personalCode?: string;
   district?: string;
   school?: string;
+  city?: string;
   identityDoc?: File | null;
 }
 
@@ -31,7 +33,7 @@ function mergeProfileIntoUser(activeUser: User, data: UpdateProfilePayload): Use
     ...activeUser,
     firstName: data.firstName,
     lastName: data.lastName,
-    province: data.province,
+    province: data.province ?? activeUser.province,
     college: data.college ?? activeUser.college,
     major: data.major ?? activeUser.major,
     studentId: data.studentId ?? activeUser.studentId,

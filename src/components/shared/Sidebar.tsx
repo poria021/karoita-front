@@ -96,7 +96,7 @@ export function Sidebar() {
         </nav>
 
         <Link
-          href={RouteService.shared.profileIdentity()}
+          href={RouteService.karvita.profile(activeUser.role)}
           prefetch={false}
           onClick={closeMobileSidebar}
           className={cn('border-t border-slate-100 bg-white transition-colors hover:bg-slate-50 lg:rounded-b-3xl', isCollapsed ? 'p-4 lg:p-2' : 'p-4')}

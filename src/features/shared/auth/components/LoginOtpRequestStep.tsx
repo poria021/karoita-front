@@ -15,15 +15,13 @@ interface LoginOtpRequestStepProps {
 /** Step 1 of OTP login: collect the mobile number and dispatch the SMS code. */
 export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
   const { otpMobileForm, requestOtp, isRequestingOtp, switchToPasswordMode } = login;
-  const { register, watch, formState } = otpMobileForm;
-  const mobileValue = watch('mobile');
+  const { register, formState } = otpMobileForm;
 
   return (
     <form onSubmit={requestOtp} className="space-y-4" noValidate>
       <MobileNumberField
         id="login-otp-mobile"
         registration={register('mobile')}
-        currentValue={mobileValue}
         errorMessage={formState.errors.mobile?.message}
         disabled={isRequestingOtp}
       />
