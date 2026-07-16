@@ -56,12 +56,18 @@ export function useRegisterForm() {
   const submitDetails = detailsForm.handleSubmit(async (data) => {
     setFormMessage(null);
     try {
-      await AuthService.register({ mobile: data.mobile, role: data.role });
-      setPendingMobile(data.mobile);
-      setPendingRole(data.role);
+      // اگر شماره موبایل همان شماره قبلی ثبت‌نام باشد و زمان‌سنج هنوز تمام نشده باشد، فیلتر کن
+      const isSameNumber = data.mobile === pendingMobile && !otpCountdown.canResend;
+
+      if (!isSameNumber) {
+        await AuthService.register({ mobile: data.mobile, role: data.role });
+        setPendingMobile(data.mobile);
+        setPendingRole(data.role);
+        otpCountdown.restart();
+      }
+
       setStep(2);
       otpForm.reset({ otp: '' });
-      otpCountdown.restart();
     } catch (error) {
       setFormMessage({ type: 'error', text: readErrorMessage(error, 'ثبت‌نام ناموفق بود.') });
     }

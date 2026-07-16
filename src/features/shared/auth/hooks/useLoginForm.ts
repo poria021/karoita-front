@@ -130,11 +130,17 @@ const submitPassword = passwordForm.handleSubmit(
   const requestOtp = otpMobileForm.handleSubmit(async (data) => {
     setFormMessage(null);
     try {
-      await AuthService.sendLoginOtp(data.mobile);
-      setPendingMobile(data.mobile);
+      // اگر شماره موبایل همان شماره قبلی باشد و زمان‌سنج هنوز تمام نشده باشد، فیلتر کن
+      const isSameNumber = data.mobile === pendingMobile && !otpCountdown.canResend;
+
+      if (!isSameNumber) {
+        await AuthService.sendLoginOtp(data.mobile);
+        setPendingMobile(data.mobile);
+        otpCountdown.restart();
+      }
+
       setOtpStep(2);
       otpCodeForm.reset({ otp: '' });
-      otpCountdown.restart();
     } catch (error) {
       setFormMessage({ type: 'error', text: readErrorMessage(error, 'ارسال کد تایید ناموفق بود.') });
     }
@@ -193,11 +199,17 @@ const submitPassword = passwordForm.handleSubmit(
   const sendForgotOtp = forgotMobileForm.handleSubmit(async (data) => {
     setFormMessage(null);
     try {
-      await AuthService.sendForgotPasswordOtp(data.mobile);
-      setPendingForgotMobile(data.mobile);
+      // اگر شماره موبایل همان شماره قبلی بازیابی باشد و زمان‌سنج هنوز تمام نشده باشد، فیلتر کن
+      const isSameNumber = data.mobile === pendingForgotMobile && !forgotCountdown.canResend;
+
+      if (!isSameNumber) {
+        await AuthService.sendForgotPasswordOtp(data.mobile);
+        setPendingForgotMobile(data.mobile);
+        forgotCountdown.restart();
+      }
+
       setForgotStep(2);
       forgotOtpForm.reset({ otp: '' });
-      forgotCountdown.restart();
     } catch (error) {
       setFormMessage({ type: 'error', text: readErrorMessage(error, 'ارسال کد بازیابی ناموفق بود.') });
     }
