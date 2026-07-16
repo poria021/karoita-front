@@ -10,6 +10,7 @@ import { getRoleStrategy, type SidebarMenuItem } from '@/utils/RoleStrategyMap';
 import { iconMap } from '@/utils/iconMap';
 import { RouteService } from '@/services/route.service';
 import { cn } from '@/lib/utils';
+import { KvTypography } from '@/components/shared/KvTypography';
 
 /** Resolves a legacy `fa-*` icon key to its mapped Lucide component (falls back to a generic icon). */
 function resolveIcon(iconKey: string) {
@@ -75,8 +76,14 @@ export function Sidebar() {
               <LayoutDashboard className="size-4" aria-hidden="true" />
             </div>
             <div className="flex min-w-0 flex-col text-start">
-              <h2 className="truncate text-xs font-black leading-tight text-slate-900">پنل کاربری - {strategy.label}</h2>
-              <p className="mt-0.5 truncate text-[9px] font-bold leading-tight text-slate-500">سامانه جامع کارویتا</p>
+              <KvTypography variant="subtitle" as="h2" truncate>
+                پنل کاربری - {strategy.label}
+              </KvTypography>
+              <div className="mt-0.5">
+                <KvTypography variant="overline" tone="muted" as="p" truncate>
+                  سامانه جامع کارویتا
+                </KvTypography>
+              </div>
             </div>
           </div>
           <button
@@ -116,10 +123,14 @@ export function Sidebar() {
                 isCollapsed ? 'ms-3 max-w-[150px] opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0' : 'ms-3 max-w-[150px] opacity-100'
               )}
             >
-              <p className="truncate text-xs font-black text-slate-900">
+              <KvTypography variant="subtitle" as="p" truncate>
                 {activeUser.firstName} {activeUser.lastName}
-              </p>
-              <p className="mt-0.5 truncate text-[10px] font-bold text-slate-500">{strategy.label}</p>
+              </KvTypography>
+              <div className="mt-0.5">
+                <KvTypography variant="overline" tone="muted" as="p" truncate>
+                  {strategy.label}
+                </KvTypography>
+              </div>
             </div>
           </div>
         </Link>

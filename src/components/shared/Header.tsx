@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { KvTypography } from '@/components/shared/KvTypography';
 
 /**
  * Global authenticated top bar (rule 00, #6): rendered once by the domain's
@@ -61,15 +62,23 @@ export function Header() {
               <LayoutDashboard className="size-4" aria-hidden="true" />
             </div>
             <div className="hidden flex-col lg:flex">
-              <h1 className="text-xs font-black leading-tight text-slate-900 sm:text-sm">پنل کاربری - {strategy.label}</h1>
-              <p className="mt-0.5 text-[9px] font-bold leading-tight text-slate-500 sm:mt-1">سامانه جامع آموزش نظری و مهارتی کارویتا</p>
+              <KvTypography variant="title" as="h1">
+                پنل کاربری - {strategy.label}
+              </KvTypography>
+              <div className="mt-0.5 sm:mt-1">
+                <KvTypography variant="overline" tone="muted" as="p">
+                  سامانه جامع آموزش نظری و مهارتی کارویتا
+                </KvTypography>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden flex-col items-end text-start text-[9px] font-black leading-tight text-slate-400 md:flex sm:text-[10px]">
-            <span>{getTodayJalaliFormatted()}</span>
+          <div className="hidden flex-col items-end text-start md:flex">
+            <KvTypography variant="overline" tone="muted" as="span">
+              {getTodayJalaliFormatted()}
+            </KvTypography>
           </div>
 
           <span className="hidden h-4 w-px bg-slate-200/80 md:inline" aria-hidden="true" />
@@ -90,7 +99,9 @@ export function Header() {
 
             <DropdownMenuContent align="end" className="w-80 rounded-2xl border border-slate-300/80 p-0 shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                <span className="text-xs font-black text-slate-800">اعلان‌های سیستم</span>
+                <KvTypography variant="subtitle" as="span">
+                  اعلان‌های سیستم
+                </KvTypography>
                 {unreadCount > 0 && (
                   <button
                     type="button"
@@ -104,8 +115,10 @@ export function Header() {
 
               <div className="max-h-72 divide-y divide-slate-100 overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="px-6 py-10 text-center text-xs text-slate-400">
-                    <p className="mb-1 font-bold text-slate-700">صندوق اعلان‌ها خالی است</p>
+                  <div className="px-6 py-10 text-center">
+                    <KvTypography variant="subtitle" as="p">
+                      صندوق اعلان‌ها خالی است
+                    </KvTypography>
                   </div>
                 ) : (
                   notifications.map((notification) => (
