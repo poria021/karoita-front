@@ -9,8 +9,6 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/KvForm';
 import { AuthService } from '@/services/auth.service';
-import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
-import { toPersianDigits } from '@/utils/persianDigits';
 
 import {
   securityOtpSchema,
@@ -99,10 +97,7 @@ export function SecurityForm({
       await AuthService.sendForgotPasswordOtp(mobile);
       otpForm.reset({ otp: '' });
       setPasswordStep('otp_pending');
-      setFeedback({
-        type: 'info',
-        message: `کد تایید شبیه‌ساز ارسال شد: ${toPersianDigits(MOCK_OTP_CODE)}`,
-      });
+      // Inline step banner already shows OTP status — avoid duplicate bottom alert.
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -121,10 +116,7 @@ export function SecurityForm({
       await AuthService.verifyForgotPasswordOtp(mobile, data.otp);
       setPasswordStep('new_password_pending');
       resetPasswordFields();
-      setFeedback({
-        type: 'success',
-        message: 'احراز هویت پیامکی موفقیت‌آمیز بود.',
-      });
+      // Inline step banner already confirms OTP success — avoid duplicate bottom alert.
     } catch (error) {
       setFeedback({
         type: 'error',

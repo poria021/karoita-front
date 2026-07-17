@@ -93,7 +93,7 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
 
   if (uiStrategy.showSecurityTab) {
     return (
-      <div dir="rtl" className="w-full font-sans">
+      <div dir="rtl" className="mx-auto w-full max-w-3xl font-sans">
         <PageChrome
           mode="tabs"
           tabsModel="underline"
@@ -126,7 +126,7 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
   }
 
   return (
-    <div dir="rtl" className="w-full space-y-kv-section font-sans">
+    <div dir="rtl" className="mx-auto w-full max-w-3xl space-y-kv-section font-sans">
       {statusAlerts}
       {identityForm}
     </div>
@@ -138,11 +138,11 @@ export function ProfileContainerSkeleton() {
   return (
     <div
       dir="rtl"
-      className="w-full space-y-kv-stack font-sans"
+      className="mx-auto w-full max-w-3xl space-y-kv-stack font-sans"
       aria-busy="true"
       aria-live="polite"
     >
-      <div className="flex gap-kv-inline border-b border-slate-100 pb-3">
+      <div className="flex gap-kv-inline justify-center border-b border-slate-100 pb-3 sm:justify-start">
         <KvSkeleton className="h-11 w-32" />
         <KvSkeleton className="h-11 w-40" />
       </div>

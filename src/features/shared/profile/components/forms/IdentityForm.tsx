@@ -76,7 +76,7 @@ export function IdentityForm({
   const isDisabled = disabled || isBusy;
 
   return (
-    <KvCard dir="rtl" className="w-full max-w-3xl">
+    <KvCard dir="rtl" className="w-full">
       <KvCardContent className="pt-6">
         <KvForm {...form}>
           <form onSubmit={submit} noValidate className="space-y-kv-section">

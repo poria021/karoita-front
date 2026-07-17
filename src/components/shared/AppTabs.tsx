@@ -25,7 +25,7 @@ const appTabsListVariants = cva(
     variants: {
       model: {
         underline:
-          'w-full flex-wrap items-stretch justify-start gap-1 rounded-none border-b border-slate-200 bg-transparent p-0',
+          'w-full flex-wrap items-stretch justify-center gap-1 rounded-none border-b border-slate-200 bg-transparent p-0 sm:justify-start',
         capsule:
           'w-full justify-stretch gap-1 rounded-kv-control border border-slate-200 bg-slate-100 p-[3px]',
       },
