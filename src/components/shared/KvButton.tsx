@@ -43,7 +43,7 @@ const kvButtonVariants = cva(
         secondary:
           'rounded-kv-control border border-kv-border bg-kv-surface-muted text-kv-text-muted shadow-none hover:bg-kv-surface-subtle hover:text-kv-text-secondary',
         ghost: 'rounded-kv-control border',
-        text: 'h-auto rounded-md bg-transparent p-0 shadow-none hover:bg-transparent',
+        text: 'h-auto rounded-kv-control bg-transparent p-0 shadow-none hover:bg-transparent',
       },
       size: {
         sm: 'text-[11px]',
