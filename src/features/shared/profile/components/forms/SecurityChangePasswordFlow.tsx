@@ -93,8 +93,7 @@ export function SecurityChangePasswordFlow({
           <div className="flex gap-2">
             <KvButton
               type="button"
-              color="neutral"
-              appearance="ghost"
+              appearance="secondary"
               className="flex-1"
               disabled={isDisabled}
               onClick={onCancel}
@@ -106,7 +105,7 @@ export function SecurityChangePasswordFlow({
               color="cta"
               appearance="solid"
               className="flex-1"
-              disabled={isDisabled || !otpForm.formState.isValid}
+              disabled={isDisabled}
               icon={
                 isBusy ? (
                   <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -135,8 +134,7 @@ export function SecurityChangePasswordFlow({
         <div className="flex gap-2">
           <KvButton
             type="button"
-            color="neutral"
-            appearance="ghost"
+            appearance="secondary"
             className="flex-1"
             disabled={isDisabled}
             onClick={onCancel}
@@ -148,7 +146,7 @@ export function SecurityChangePasswordFlow({
             color="cta"
             appearance="solid"
             className="flex-1"
-            disabled={isDisabled || !passwordForm.formState.isValid}
+            disabled={isDisabled}
             icon={
               isBusy ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />

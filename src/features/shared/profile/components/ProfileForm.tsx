@@ -57,7 +57,7 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
   const isLocked = isApproved || isSaving;
   const {
     register,
-    formState: { errors, isValid },
+    formState: { errors },
   } = profileForm;
 
   return (
@@ -115,7 +115,13 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
             value={activeUser.mobile}
             locked
             showLockIcon
+            type="tel"
+            size="sm"
             dir="ltr"
+            inputMode="numeric"
+            autoComplete="tel-national"
+            maxLength={10}
+            placeholder="9123456789"
             startAddon={
               <span className="border-e border-slate-200/70 bg-slate-100/60 px-4 py-2.5 text-xs font-semibold text-slate-400">
                 +98
@@ -184,7 +190,7 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
         </div>
 
         <div className="border-t border-slate-100 pt-kv-group">
-          <div className="mb-2">
+          <div className="mb-kv-field">
             <KvTypography variant="subtitle" as="label">
               بارگذاری مدرک هویتی (کارت دانشجویی / گواهی اشتغال)
             </KvTypography>
@@ -207,7 +213,7 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
             type="submit"
             color="cta"
             appearance="solid"
-            disabled={isLocked || !isValid}
+            disabled={isLocked}
           >
             {isSaving ? 'در حال ارسال...' : 'ثبت و ارسال نهایی مشخصات'}
           </KvButton>

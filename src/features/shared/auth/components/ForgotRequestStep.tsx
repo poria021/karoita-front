@@ -32,7 +32,6 @@ export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
       />
 
       <AuthSubmitButton
-        isReady={formState.isValid}
         isLoading={isSendingForgotOtp}
         loadingLabel="در حال ارسال..."
       >
@@ -41,9 +40,8 @@ export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
 
       <KvButton
         type="button"
-        color="neutral"
-        appearance="ghost"
-        size="sm"
+        appearance="secondary"
+        size="lg"
         fullWidth
         icon={<ArrowRightToLine className="size-3.5" aria-hidden="true" />}
         onClick={cancelForgotMode}

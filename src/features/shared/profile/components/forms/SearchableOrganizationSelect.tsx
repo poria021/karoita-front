@@ -1,9 +1,8 @@
 'use client';
 
-import { Check, ChevronDown, Search } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { KvButton } from '@/components/shared/KvButton';
 import { KvTextField } from '@/components/shared/KvTextField';
 import { cn } from '@/lib/utils';
 
@@ -79,24 +78,17 @@ export function SearchableOrganizationSelect({
       />
 
       {open && !locked && (
-        <div className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+        <div className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto border border-slate-200 bg-white">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option) => (
-              <KvButton
+              <button
                 key={option}
                 type="button"
-                color="neutral"
-                appearance="ghost"
-                fullWidth
-                icon={
-                  <Check
-                    className={cn(
-                      'size-4 text-emerald-600',
-                      value === option ? 'opacity-100' : 'opacity-0'
-                    )}
-                    aria-hidden="true"
-                  />
-                }
+                className={cn(
+                  'w-full border-b border-slate-200 px-3.5 py-2.5 text-start text-xs font-bold text-slate-800 last:border-b-0',
+                  'hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none',
+                  value === option && 'bg-slate-50'
+                )}
                 onClick={() => {
                   setQuery(option);
                   onChange(option);
@@ -104,10 +96,10 @@ export function SearchableOrganizationSelect({
                 }}
               >
                 {option}
-              </KvButton>
+              </button>
             ))
           ) : (
-            <p className="py-4 text-center text-xs text-slate-500">
+            <p className="px-3.5 py-2.5 text-center text-xs text-slate-500">
               نتیجه‌ای یافت نشد.
             </p>
           )}

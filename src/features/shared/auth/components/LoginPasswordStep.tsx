@@ -66,7 +66,6 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
       </div>
 
       <AuthSubmitButton
-        isReady={formState.isValid}
         isLoading={isSubmittingPassword}
         loadingLabel="در حال ورود..."
         icon={<LogIn className="size-4" aria-hidden="true" />}
@@ -76,9 +75,8 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
 
       <KvButton
         type="button"
-        color="neutral"
-        appearance="ghost"
-        size="sm"
+        appearance="secondary"
+        size="lg"
         fullWidth
         icon={<Smartphone className="size-3.5" aria-hidden="true" />}
         onClick={switchToOtpMode}

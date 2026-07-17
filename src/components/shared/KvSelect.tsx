@@ -13,12 +13,12 @@ import { cn } from '@/lib/utils';
 
 export {
   Select as KvSelect,
-  SelectContent as KvSelectContent,
-  SelectItem as KvSelectItem,
   SelectValue as KvSelectValue,
 };
 
 export type KvSelectTriggerProps = React.ComponentProps<typeof SelectTrigger>;
+export type KvSelectContentProps = React.ComponentProps<typeof SelectContent>;
+export type KvSelectItemProps = React.ComponentProps<typeof SelectItem>;
 
 /** Karvita-styled select trigger (rounded-xl, bold xs). */
 export function KvSelectTrigger({
@@ -31,6 +31,39 @@ export function KvSelectTrigger({
       className={cn(
         'h-auto w-full rounded-xl border-slate-300 px-3.5 py-2.5 font-sans text-xs font-bold text-slate-800 shadow-none',
         'focus-visible:border-brand-500 focus-visible:ring-[3px] focus-visible:ring-brand-500/15',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+/** Plain dropdown panel — outer border only; options use separators. */
+export function KvSelectContent({
+  className,
+  ...props
+}: KvSelectContentProps) {
+  return (
+    <SelectContent
+      data-slot="kv-select-content"
+      className={cn(
+        'rounded-none border-slate-200 bg-white p-0 shadow-none',
+        'data-[state=open]:animate-none data-[state=closed]:animate-none',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+/** Option row with a bottom border separator (no accent chip styling). */
+export function KvSelectItem({ className, ...props }: KvSelectItemProps) {
+  return (
+    <SelectItem
+      data-slot="kv-select-item"
+      className={cn(
+        'rounded-none border-b border-slate-200 px-3.5 py-2.5 text-xs font-bold text-slate-800 last:border-b-0',
+        'focus:bg-slate-50 focus:text-slate-800',
         className
       )}
       {...props}

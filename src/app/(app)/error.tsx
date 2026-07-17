@@ -46,8 +46,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
         </KvButton>
         <KvButton
           type="button"
-          color="neutral"
-          appearance="ghost"
+          appearance="secondary"
           onClick={() => router.push(RouteService.karvita.dashboard())}
         >
           بازگشت به میز کار

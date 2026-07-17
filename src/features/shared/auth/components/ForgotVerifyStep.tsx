@@ -46,8 +46,7 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
       <div className="flex items-center gap-2">
         <KvButton
           type="button"
-          color="neutral"
-          appearance="ghost"
+          appearance="secondary"
           size="lg"
           className="flex-1"
           onClick={cancelForgotMode}
@@ -56,7 +55,6 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
         </KvButton>
         <div className="flex-1">
           <AuthSubmitButton
-            isReady={formState.isValid}
             isLoading={isVerifyingForgotOtp}
             loadingLabel="در حال تایید..."
           >

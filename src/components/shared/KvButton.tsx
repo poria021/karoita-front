@@ -12,7 +12,7 @@ export type KvButtonColor =
   | 'error'
   | 'neutral';
 
-export type KvButtonAppearance = 'solid' | 'ghost' | 'text';
+export type KvButtonAppearance = 'solid' | 'secondary' | 'ghost' | 'text';
 
 export type KvButtonIconPosition = 'start' | 'end';
 
@@ -38,6 +38,9 @@ const kvButtonVariants = cva(
       },
       appearance: {
         solid: 'rounded-xl shadow-sm',
+        /** OTP / cancel style — slate border + soft fill; sizes match solid */
+        secondary:
+          'rounded-xl border border-slate-200 bg-slate-50 text-slate-600 shadow-none hover:bg-slate-100 hover:text-slate-800',
         ghost: 'rounded-xl border',
         text: 'h-auto rounded-md bg-transparent p-0 shadow-none hover:bg-transparent',
       },
@@ -56,6 +59,9 @@ const kvButtonVariants = cva(
       { appearance: 'solid', size: 'sm', class: 'px-3 py-1.5' },
       { appearance: 'solid', size: 'md', class: 'px-4 py-2.5' },
       { appearance: 'solid', size: 'lg', class: 'px-6 py-3' },
+      { appearance: 'secondary', size: 'sm', class: 'px-3 py-1.5' },
+      { appearance: 'secondary', size: 'md', class: 'px-4 py-2.5' },
+      { appearance: 'secondary', size: 'lg', class: 'px-6 py-3' },
       { appearance: 'ghost', size: 'sm', class: 'px-3 py-1.5' },
       { appearance: 'ghost', size: 'md', class: 'px-4 py-2.5' },
       { appearance: 'ghost', size: 'lg', class: 'px-6 py-3' },
@@ -181,8 +187,9 @@ export type KvButtonProps = Omit<React.ComponentProps<'button'>, 'color'> &
   };
 
 /**
- * Shared Karvita button — CTA / semantic colors, solid | ghost | text,
- * optional icon, full-width. Prefer over raw Shadcn `Button` in app/feature UI.
+ * Shared Karvita button — CTA / semantic colors,
+ * solid | secondary | ghost | text, optional icon, full-width.
+ * Prefer over raw Shadcn `Button` in app/feature UI.
  */
 export function KvButton({
   className,

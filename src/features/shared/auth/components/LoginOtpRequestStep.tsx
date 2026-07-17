@@ -28,7 +28,6 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
       />
 
       <AuthSubmitButton
-        isReady={formState.isValid}
         isLoading={isRequestingOtp}
         loadingLabel="در حال ارسال..."
       >
@@ -37,9 +36,8 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
 
       <KvButton
         type="button"
-        color="neutral"
-        appearance="ghost"
-        size="sm"
+        appearance="secondary"
+        size="lg"
         fullWidth
         icon={<KeyRound className="size-3.5" aria-hidden="true" />}
         onClick={switchToPasswordMode}

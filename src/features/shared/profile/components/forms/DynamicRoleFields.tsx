@@ -1,5 +1,6 @@
 'use client';
 
+import { Lock } from 'lucide-react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import {
@@ -39,10 +40,6 @@ export function DynamicRoleFields({
   return (
     <>
       {strategy.organizationFields.map((name) => {
-        const parentDisabled =
-          disabled ||
-          (name !== 'province' && name !== 'major' && !province) ||
-          (name === 'school' && !district);
         const optional = isOptionalOrganizationField(role, name);
 
         return (
@@ -52,7 +49,16 @@ export function DynamicRoleFields({
             name={name}
             render={({ field, fieldState }) => (
               <KvFormItem>
-                <KvFormLabel className="font-sans text-xs font-bold text-slate-700">
+                <KvFormLabel
+                  className="inline-flex items-center gap-1.5"
+                  dir="rtl"
+                >
+                  {disabled ? (
+                    <Lock
+                      className="size-3.5 shrink-0 text-slate-400"
+                      aria-hidden="true"
+                    />
+                  ) : null}
                   {ORGANIZATION_LABELS[name]}
                   {optional ? (
                     <span className="ms-1 font-normal text-slate-400">
@@ -66,7 +72,7 @@ export function DynamicRoleFields({
                   value={typeof field.value === 'string' ? field.value : ''}
                   options={getOrganizationOptions(name, province, district)}
                   placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
-                  locked={parentDisabled}
+                  locked={disabled}
                   error={fieldState.error?.message}
                   onChange={(value) => {
                     field.onChange(value);
@@ -98,6 +104,7 @@ export function DynamicRoleFields({
             required
             inputMode="numeric"
             locked={disabled}
+            showLockIcon={disabled}
             placeholder={IDENTIFIER_META[name].placeholder}
             error={typeof error === 'string' ? error : undefined}
             {...form.register(name)}
