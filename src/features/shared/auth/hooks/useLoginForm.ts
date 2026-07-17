@@ -16,7 +16,6 @@ import {
   type MobileSchema,
   type OtpSchema,
 } from '../schemas/auth.schema';
-import type { AuthFormMessageState } from '../types';
 import { useOtpCountdown } from './useOtpCountdown';
 
 export type LoginMode = 'password' | 'otp' | 'forgot';
@@ -30,6 +29,8 @@ function readErrorMessage(error: unknown, fallback: string): string {
  * Encapsulates every state, resolver, and `AuthService` call needed by
  * `LoginForm.tsx`. UI components stay presentation-only (rule 40, #6): they
  * never call `AuthService` or manage validation state directly.
+ *
+ * Errors surface on the relevant field via `setError` — no top-level banner.
  */
 export function useLoginForm() {
   const router = useRouter();
@@ -38,7 +39,6 @@ export function useLoginForm() {
   const [otpStep, setOtpStep] = useState<1 | 2>(1);
   const [pendingMobile, setPendingMobile] = useState('');
   const [isResendingOtp, setIsResendingOtp] = useState(false);
-  const [formMessage, setFormMessage] = useState<AuthFormMessageState | null>(null);
 
   const [forgotStep, setForgotStep] = useState<ForgotStep>(1);
   const [pendingForgotMobile, setPendingForgotMobile] = useState('');
@@ -49,41 +49,45 @@ export function useLoginForm() {
 
   const passwordForm = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: { mobile: '', password: '', remember: false },
   });
 
   const otpMobileForm = useForm<MobileSchema>({
     resolver: zodResolver(mobileSchema),
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: { mobile: '' },
   });
 
   const otpCodeForm = useForm<OtpSchema>({
     resolver: zodResolver(otpSchema),
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: { otp: '' },
   });
 
   const forgotMobileForm = useForm<MobileSchema>({
     resolver: zodResolver(mobileSchema),
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: { mobile: '' },
   });
 
   const forgotOtpForm = useForm<OtpSchema>({
     resolver: zodResolver(otpSchema),
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: { otp: '' },
   });
 
   const forgotResetForm = useForm<ForgotResetSchema>({
     resolver: zodResolver(forgotResetSchema),
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: { newPassword: '', confirmPassword: '' },
   });
-
-  const clearFormMessage = useCallback(() => setFormMessage(null), []);
 
   const goToDashboard = useCallback(() => {
     router.push(RouteService.karvita.dashboard());
@@ -93,44 +97,30 @@ export function useLoginForm() {
     otpMobileForm.setValue('mobile', passwordForm.getValues('mobile'));
     setMode('otp');
     setOtpStep(1);
-    setFormMessage(null);
   }, [otpMobileForm, passwordForm]);
 
   const switchToPasswordMode = useCallback(() => {
     setMode('password');
-    setFormMessage(null);
   }, []);
 
   const goBackToPhoneStep = useCallback(() => {
     setOtpStep(1);
     otpCodeForm.reset({ otp: '' });
-    setFormMessage(null);
   }, [otpCodeForm]);
 
-const submitPassword = passwordForm.handleSubmit(
-    // ورودی اول: اگر فیلدها پر و درست بودند این اجرا می‌شود
-    async (data) => {
-      setFormMessage(null);
-      try {
-        await AuthService.loginWithCredentials(data.mobile, data.password);
-        goToDashboard();
-      } catch (error) {
-        setFormMessage({ type: 'error', text: readErrorMessage(error, 'ورود ناموفق بود.') });
-      }
-    },
-    // ورودی دوم (جدید): اگر فیلدها خالی یا نامعتبر بودند و کاربر کلیک کرد، این اجرا می‌شود
-    () => {
-      setFormMessage({
-        type: 'error',
-        text: 'لطفاً شماره موبایل و رمز عبور خود را به درستی وارد کنید.',
+  const submitPassword = passwordForm.handleSubmit(async (data) => {
+    try {
+      await AuthService.loginWithCredentials(data.mobile, data.password);
+      goToDashboard();
+    } catch (error) {
+      passwordForm.setError('password', {
+        message: readErrorMessage(error, 'ورود ناموفق بود.'),
       });
     }
-  );
+  });
 
   const requestOtp = otpMobileForm.handleSubmit(async (data) => {
-    setFormMessage(null);
     try {
-      // اگر شماره موبایل همان شماره قبلی باشد و زمان‌سنج هنوز تمام نشده باشد، فیلتر کن
       const isSameNumber = data.mobile === pendingMobile && !otpCountdown.canResend;
 
       if (!isSameNumber) {
@@ -142,17 +132,20 @@ const submitPassword = passwordForm.handleSubmit(
       setOtpStep(2);
       otpCodeForm.reset({ otp: '' });
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'ارسال کد تایید ناموفق بود.') });
+      otpMobileForm.setError('mobile', {
+        message: readErrorMessage(error, 'ارسال کد تایید ناموفق بود.'),
+      });
     }
   });
 
   const verifyOtp = otpCodeForm.handleSubmit(async (data) => {
-    setFormMessage(null);
     try {
       await AuthService.verifyLoginOtp(pendingMobile, data.otp);
       goToDashboard();
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'تایید کد ناموفق بود.') });
+      otpCodeForm.setError('otp', {
+        message: readErrorMessage(error, 'تایید کد ناموفق بود.'),
+      });
     }
   });
 
@@ -160,16 +153,14 @@ const submitPassword = passwordForm.handleSubmit(
     if (!otpCountdown.canResend || isResendingOtp) return;
 
     setIsResendingOtp(true);
-    setFormMessage(null);
     try {
       await AuthService.sendLoginOtp(pendingMobile);
-      
       otpCountdown.restart();
-
-      otpCodeForm.reset({ otp: '' }); 
-      setFormMessage({ type: 'success', text: 'کد تایید جدید ارسال شد.' });
+      otpCodeForm.reset({ otp: '' });
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'ارسال مجدد کد ناموفق بود.') });
+      otpCodeForm.setError('otp', {
+        message: readErrorMessage(error, 'ارسال مجدد کد ناموفق بود.'),
+      });
     } finally {
       setIsResendingOtp(false);
     }
@@ -182,25 +173,21 @@ const submitPassword = passwordForm.handleSubmit(
     forgotResetForm.reset({ newPassword: '', confirmPassword: '' });
     setMode('forgot');
     setForgotStep(1);
-    setFormMessage(null);
   }, [forgotMobileForm, forgotOtpForm, forgotResetForm, passwordForm]);
 
   const cancelForgotMode = useCallback(() => {
     setMode('password');
-    setFormMessage(null);
   }, []);
 
   const goBackToForgotStep1 = useCallback(() => {
     setForgotStep(1);
     forgotOtpForm.reset({ otp: '' });
-    setFormMessage(null);
   }, [forgotOtpForm]);
 
   const sendForgotOtp = forgotMobileForm.handleSubmit(async (data) => {
-    setFormMessage(null);
     try {
-      // اگر شماره موبایل همان شماره قبلی بازیابی باشد و زمان‌سنج هنوز تمام نشده باشد، فیلتر کن
-      const isSameNumber = data.mobile === pendingForgotMobile && !forgotCountdown.canResend;
+      const isSameNumber =
+        data.mobile === pendingForgotMobile && !forgotCountdown.canResend;
 
       if (!isSameNumber) {
         await AuthService.sendForgotPasswordOtp(data.mobile);
@@ -211,18 +198,21 @@ const submitPassword = passwordForm.handleSubmit(
       setForgotStep(2);
       forgotOtpForm.reset({ otp: '' });
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'ارسال کد بازیابی ناموفق بود.') });
+      forgotMobileForm.setError('mobile', {
+        message: readErrorMessage(error, 'ارسال کد بازیابی ناموفق بود.'),
+      });
     }
   });
 
   const verifyForgotOtp = forgotOtpForm.handleSubmit(async (data) => {
-    setFormMessage(null);
     try {
       await AuthService.verifyForgotPasswordOtp(pendingForgotMobile, data.otp);
       setForgotStep(3);
       forgotResetForm.reset({ newPassword: '', confirmPassword: '' });
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'تایید کد ناموفق بود.') });
+      forgotOtpForm.setError('otp', {
+        message: readErrorMessage(error, 'تایید کد ناموفق بود.'),
+      });
     }
   });
 
@@ -230,29 +220,36 @@ const submitPassword = passwordForm.handleSubmit(
     if (!forgotCountdown.canResend || isResendingForgotOtp) return;
 
     setIsResendingForgotOtp(true);
-    setFormMessage(null);
     try {
       await AuthService.sendForgotPasswordOtp(pendingForgotMobile);
       forgotCountdown.restart();
       forgotOtpForm.reset({ otp: '' });
-
-      setFormMessage({ type: 'success', text: 'کد تایید جدید ارسال شد.' });
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'ارسال مجدد کد ناموفق بود.') });
+      forgotOtpForm.setError('otp', {
+        message: readErrorMessage(error, 'ارسال مجدد کد ناموفق بود.'),
+      });
     } finally {
       setIsResendingForgotOtp(false);
     }
   }, [forgotCountdown, isResendingForgotOtp, pendingForgotMobile, forgotOtpForm]);
 
   const submitResetPassword = forgotResetForm.handleSubmit(async (data) => {
-    setFormMessage(null);
     try {
-      await AuthService.resetPassword(pendingForgotMobile, forgotOtpForm.getValues('otp'), data.newPassword);
-      passwordForm.reset({ mobile: pendingForgotMobile, password: '', remember: false });
+      await AuthService.resetPassword(
+        pendingForgotMobile,
+        forgotOtpForm.getValues('otp'),
+        data.newPassword
+      );
+      passwordForm.reset({
+        mobile: pendingForgotMobile,
+        password: '',
+        remember: false,
+      });
       setMode('password');
-      setFormMessage({ type: 'success', text: 'رمز عبور با موفقیت تغییر کرد. اکنون وارد شوید.' });
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'تغییر رمز عبور ناموفق بود.') });
+      forgotResetForm.setError('newPassword', {
+        message: readErrorMessage(error, 'تغییر رمز عبور ناموفق بود.'),
+      });
     }
   });
 
@@ -311,9 +308,6 @@ const submitPassword = passwordForm.handleSubmit(
     forgotResetForm,
     submitResetPassword,
     isSubmittingResetPassword: forgotResetForm.formState.isSubmitting,
-
-    formMessage,
-    clearFormMessage,
   };
 }
 

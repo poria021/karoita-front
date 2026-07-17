@@ -75,6 +75,10 @@ type KvTextFieldState = NonNullable<
 >;
 
 export type KvTextFieldProps = {
+  /**
+   * Label text as a string, or `false` to hide the label entirely.
+   * Pass the Persian/English copy here — do not render a separate `<label>`.
+   */
   label?: string | false;
   required?: boolean;
   optionalHint?: boolean;

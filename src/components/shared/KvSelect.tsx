@@ -47,7 +47,7 @@ export function KvSelectContent({
     <SelectContent
       data-slot="kv-select-content"
       className={cn(
-        'rounded-none border-slate-200 bg-white p-0 shadow-none',
+        'rounded-xl border-slate-200 bg-white p-0 shadow-none overflow-hidden',
         'data-[state=open]:animate-none data-[state=closed]:animate-none',
         className
       )}

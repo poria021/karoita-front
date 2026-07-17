@@ -2,6 +2,7 @@
 
 import { IdCard, Lock } from 'lucide-react';
 import { Controller, type FieldPath } from 'react-hook-form';
+import type { ChangeEvent } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
 import {
@@ -16,12 +17,17 @@ import { KvTextField } from '@/components/shared/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
+import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 import { useProfileForm } from '../hooks/useProfileForm';
 import type { ProfileSchema } from '../schemas/profile.schema';
 import { getProfileFieldsForRole } from '../utils/profileFieldStrategy';
 import { IdentityDocUploader } from './IdentityDocUploader';
 import { ProfileStatusBanners } from './ProfileStatusBanners';
+
+function filterDigits(rawValue: string): string {
+  return persianToEnglishDigits(rawValue).replace(/\D/g, '');
+}
 
 const PROVINCES = [
   'تهران',
@@ -161,6 +167,10 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
             const fieldError = (
               errors as Record<string, { message?: string } | undefined>
             )[field.key]?.message;
+            const registration = register(
+              field.key as FieldPath<ProfileSchema>
+            );
+            const digitsOnly = field.inputMode === 'numeric';
 
             return (
               <KvTextField
@@ -170,8 +180,19 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
                 error={fieldError}
                 locked={isLocked}
                 placeholder={field.placeholder}
+                type={digitsOnly ? 'tel' : 'text'}
                 inputMode={field.inputMode}
-                {...register(field.key as FieldPath<ProfileSchema>)}
+                name={registration.name}
+                onBlur={registration.onBlur}
+                ref={registration.ref}
+                onChange={
+                  digitsOnly
+                    ? (event: ChangeEvent<HTMLInputElement>) => {
+                        event.target.value = filterDigits(event.target.value);
+                        void registration.onChange(event);
+                      }
+                    : registration.onChange
+                }
               />
             );
           })}

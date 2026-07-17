@@ -7,20 +7,32 @@ import { KvTextField } from '@/components/shared/KvTextField';
 import { cn } from '@/lib/utils';
 
 interface SearchableOrganizationSelectProps {
+  /**
+   * Label text string, or `false` to hide the label.
+   * Same contract as {@link KvTextField}.
+   */
+  label?: string | false;
+  required?: boolean;
+  optionalHint?: boolean;
   value: string;
   options: string[];
   placeholder: string;
   locked?: boolean;
+  showLockIcon?: boolean;
   error?: string;
   onChange: (value: string) => void;
 }
 
-/** Accessible search-on-type selector used by profile organization fields. */
+/** Search-on-type select — shell + label via {@link KvTextField}. */
 export function SearchableOrganizationSelect({
+  label = false,
+  required = false,
+  optionalHint = false,
   value,
   options,
   placeholder,
   locked = false,
+  showLockIcon,
   error,
   onChange,
 }: SearchableOrganizationSelectProps) {
@@ -50,9 +62,12 @@ export function SearchableOrganizationSelect({
   return (
     <div ref={rootRef} className="relative">
       <KvTextField
-        label={false}
+        label={label}
+        required={required}
+        optionalHint={optionalHint}
         value={query}
         locked={locked}
+        showLockIcon={showLockIcon}
         error={error}
         placeholder={placeholder}
         autoComplete="off"
@@ -64,7 +79,7 @@ export function SearchableOrganizationSelect({
         endAddon={
           <span className="flex h-full items-center pe-3">
             <ChevronDown
-              className="size-3.5 text-slate-300 rtl:rotate-180"
+              className="size-3.5 text-slate-300"
               aria-hidden="true"
             />
           </span>
@@ -78,7 +93,7 @@ export function SearchableOrganizationSelect({
       />
 
       {open && !locked && (
-        <div className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto border border-slate-200 bg-white">
+        <div className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto overflow-x-hidden rounded-xl border border-slate-200 bg-white">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option) => (
               <button

@@ -1,15 +1,12 @@
 'use client';
 
-import { Lock } from 'lucide-react';
+import type { ChangeEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
-import {
-  KvFormField,
-  KvFormItem,
-  KvFormLabel,
-} from '@/components/shared/KvForm';
+import { KvFormField } from '@/components/shared/KvForm';
 import { KvTextField } from '@/components/shared/KvTextField';
 import type { UserRole } from '@/types/auth';
+import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 import type { ProfileSchema } from '../../schemas/profile.schema';
 import {
@@ -27,7 +24,11 @@ export interface DynamicRoleFieldsProps {
   disabled?: boolean;
 }
 
-/** Role-strategy-driven fields for the polymorphic profile schema. */
+function filterDigits(rawValue: string): string {
+  return persianToEnglishDigits(rawValue).replace(/\D/g, '');
+}
+
+/** Role-strategy-driven fields — all labeled via KvTextField / select shell. */
 export function DynamicRoleFields({
   role,
   disabled = false,
@@ -48,43 +49,26 @@ export function DynamicRoleFields({
             control={form.control}
             name={name}
             render={({ field, fieldState }) => (
-              <KvFormItem>
-                <KvFormLabel
-                  className="inline-flex items-center gap-1.5"
-                  dir="rtl"
-                >
-                  {disabled ? (
-                    <Lock
-                      className="size-3.5 shrink-0 text-slate-400"
-                      aria-hidden="true"
-                    />
-                  ) : null}
-                  {ORGANIZATION_LABELS[name]}
-                  {optional ? (
-                    <span className="ms-1 font-normal text-slate-400">
-                      (اختیاری)
-                    </span>
-                  ) : (
-                    <span className="ms-1 text-rose-500">*</span>
-                  )}
-                </KvFormLabel>
-                <SearchableOrganizationSelect
-                  value={typeof field.value === 'string' ? field.value : ''}
-                  options={getOrganizationOptions(name, province, district)}
-                  placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
-                  locked={disabled}
-                  error={fieldState.error?.message}
-                  onChange={(value) => {
-                    field.onChange(value);
-                    for (const dependent of DEPENDENCIES[name] ?? []) {
-                      form.setValue(dependent, '', {
-                        shouldDirty: true,
-                        shouldValidate: true,
-                      });
-                    }
-                  }}
-                />
-              </KvFormItem>
+              <SearchableOrganizationSelect
+                label={ORGANIZATION_LABELS[name]}
+                required={!optional}
+                optionalHint={optional}
+                value={typeof field.value === 'string' ? field.value : ''}
+                options={getOrganizationOptions(name, province, district)}
+                placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
+                locked={disabled}
+                showLockIcon={disabled}
+                error={fieldState.error?.message}
+                onChange={(value) => {
+                  field.onChange(value);
+                  for (const dependent of DEPENDENCIES[name] ?? []) {
+                    form.setValue(dependent, '', {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+              />
             )}
           />
         );
@@ -96,18 +80,28 @@ export function DynamicRoleFields({
           { message?: unknown } | undefined
         >;
         const error = errors[name]?.message;
+        const registration = form.register(name);
+
+        const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+          event.target.value = filterDigits(event.target.value);
+          void registration.onChange(event);
+        };
 
         return (
           <KvTextField
             key={name}
             label={IDENTIFIER_META[name].label}
             required
+            type="tel"
             inputMode="numeric"
             locked={disabled}
             showLockIcon={disabled}
             placeholder={IDENTIFIER_META[name].placeholder}
             error={typeof error === 'string' ? error : undefined}
-            {...form.register(name)}
+            name={registration.name}
+            onBlur={registration.onBlur}
+            ref={registration.ref}
+            onChange={handleChange}
           />
         );
       })}
