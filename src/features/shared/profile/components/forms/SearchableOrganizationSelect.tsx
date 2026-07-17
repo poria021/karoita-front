@@ -57,14 +57,14 @@ export function SearchableOrganizationSelect({
         placeholder={placeholder}
         autoComplete="off"
         startAddon={
-          <span className="ps-3">
-            <Search className="size-4" aria-hidden="true" />
+          <span className="flex h-full items-center ps-3">
+            <Search className="size-3.5" aria-hidden="true" />
           </span>
         }
         endAddon={
-          <span className="pe-3">
+          <span className="flex h-full items-center pe-3">
             <ChevronDown
-              className="size-4 text-slate-300 rtl:rotate-180"
+              className="size-3.5 text-slate-300 rtl:rotate-180"
               aria-hidden="true"
             />
           </span>

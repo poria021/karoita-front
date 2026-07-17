@@ -11,6 +11,7 @@ import {
   KvSelectTrigger,
   KvSelectValue,
 } from '@/components/shared/KvSelect';
+import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useUserStore } from '@/store/useUserStore';
@@ -110,23 +111,10 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
             {...register('lastName')}
           />
 
-          <KvTextField
-            label="شماره موبایل"
+          <KvMobileNumberField
             value={activeUser.mobile}
             locked
             showLockIcon
-            type="tel"
-            size="sm"
-            dir="ltr"
-            inputMode="numeric"
-            autoComplete="tel-national"
-            maxLength={10}
-            placeholder="9123456789"
-            startAddon={
-              <span className="border-e border-slate-200/70 bg-slate-100/60 px-4 py-2.5 text-xs font-semibold text-slate-400">
-                +98
-              </span>
-            }
           />
 
           <div>

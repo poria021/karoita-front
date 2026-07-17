@@ -1,8 +1,6 @@
-import type { ChangeEvent } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
-import { KvTextField } from '@/components/shared/KvTextField';
-import { persianToEnglishDigits } from '@/utils/persianDigits';
+import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
 
 interface MobileNumberFieldProps {
   id: string;
@@ -11,47 +9,23 @@ interface MobileNumberFieldProps {
   disabled?: boolean;
 }
 
-function filterDigits(rawValue: string): string {
-  return persianToEnglishDigits(rawValue).replace(/\D/g, '');
-}
-
-/** The "+98"-prefixed mobile input shared by the login and registration forms. */
+/** Auth-form adapter around the shared {@link KvMobileNumberField}. */
 export function MobileNumberField({
   id,
   registration,
   errorMessage,
   disabled,
 }: MobileNumberFieldProps) {
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    event.target.value = filterDigits(event.target.value);
-    registration.onChange(event);
-  };
-
   return (
-    <div>
-      <KvTextField
-        id={id}
-        label="شماره موبایل"
-        required
-        type="tel"
-        size="sm"
-        dir="ltr"
-        inputMode="numeric"
-        autoComplete="tel-national"
-        maxLength={10}
-        placeholder="9123456789"
-        locked={Boolean(disabled)}
-        name={registration.name}
-        onBlur={registration.onBlur}
-        ref={registration.ref}
-        onChange={handleChange}
-        error={errorMessage}
-        startAddon={
-          <span className="border-e border-slate-200/70 bg-slate-100/60 px-4 py-2.5 text-xs font-semibold text-slate-400">
-            +98
-          </span>
-        }
-      />
-    </div>
+    <KvMobileNumberField
+      id={id}
+      required
+      locked={Boolean(disabled)}
+      error={errorMessage}
+      name={registration.name}
+      onBlur={registration.onBlur}
+      ref={registration.ref}
+      onChange={registration.onChange}
+    />
   );
 }

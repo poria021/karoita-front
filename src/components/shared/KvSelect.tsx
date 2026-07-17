@@ -29,7 +29,7 @@ export function KvSelectTrigger({
     <SelectTrigger
       data-slot="kv-select-trigger"
       className={cn(
-        'h-auto w-full rounded-xl border-slate-300 px-3.5 py-2.5 font-sans text-xs font-bold text-slate-800 shadow-none',
+        'h-auto min-h-9 w-full rounded-xl border-slate-300 px-3 py-2 font-sans text-xs font-bold text-slate-800 shadow-none',
         'focus-visible:border-brand-500 focus-visible:ring-[3px] focus-visible:ring-brand-500/15',
         className
       )}

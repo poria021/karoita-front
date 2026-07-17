@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/KvForm';
+import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/KvTextField';
 import type { User } from '@/types/auth';
 import { compressImageToBase64 } from '@/utils/compressor';
@@ -97,23 +98,10 @@ export function IdentityForm({
                   error={form.formState.errors.lastName?.message}
                   {...form.register('lastName')}
                 />
-                <KvTextField
-                  label="شماره موبایل"
+                <KvMobileNumberField
                   value={activeUser.mobile}
                   locked
                   showLockIcon
-                  type="tel"
-                  size="sm"
-                  dir="ltr"
-                  inputMode="numeric"
-                  autoComplete="tel-national"
-                  maxLength={10}
-                  placeholder="9123456789"
-                  startAddon={
-                    <span className="border-e border-slate-200/70 bg-slate-100/60 px-4 py-2.5 text-xs font-semibold text-slate-400">
-                      +98
-                    </span>
-                  }
                 />
                 <KvTextField
                   label="نقش کاربری"

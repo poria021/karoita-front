@@ -32,7 +32,7 @@ const kvTextFieldWrapperVariants = cva(
       },
     },
     defaultVariants: {
-      size: 'md',
+      size: 'sm',
       state: 'default',
     },
   }
@@ -64,7 +64,7 @@ const kvTextFieldInputVariants = cva(
       },
     },
     defaultVariants: {
-      size: 'md',
+      size: 'sm',
       state: 'default',
       otpStyle: false,
     },
@@ -131,7 +131,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       required = false,
       optionalHint = false,
       type = 'text',
-      size = 'md',
+      size = 'sm',
       placeholder,
       error,
       hint,

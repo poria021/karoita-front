@@ -25,7 +25,7 @@ const appTabsListVariants = cva(
     variants: {
       model: {
         underline:
-          'w-full flex-wrap justify-start gap-1 rounded-none border-b border-slate-200 bg-transparent p-0',
+          'w-full flex-wrap items-stretch justify-start gap-1 rounded-none border-b border-slate-200 bg-transparent p-0',
         capsule:
           'w-full justify-stretch gap-1 rounded-lg border border-slate-200 bg-slate-100 p-[3px]',
       },
@@ -44,7 +44,7 @@ const appTabsListVariants = cva(
 
 const appTabsTriggerVariants = cva(
   [
-    'inline-flex items-center justify-center gap-kv-inline border-0 bg-transparent font-sans font-bold',
+    'inline-flex items-center justify-center gap-kv-inline bg-transparent font-sans font-bold',
     'text-slate-500 shadow-none outline-none transition-all',
     'hover:text-slate-900',
     'focus-visible:ring-[3px] focus-visible:ring-brand-500/20',
@@ -54,13 +54,14 @@ const appTabsTriggerVariants = cva(
   {
     variants: {
       model: {
+        /** Active border sits on the list's bottom rule (no floating gap). */
         underline: [
-          'relative flex-none rounded-none',
-          'after:absolute after:inset-x-0 after:bottom-[-1px] after:h-0.5 after:bg-brand-700 after:opacity-0 after:transition-opacity',
-          'data-[state=active]:bg-transparent data-[state=active]:text-brand-700 data-[state=active]:shadow-none data-[state=active]:after:opacity-100',
+          'relative -mb-px flex-none rounded-none border-b-2 border-transparent',
+          'data-[state=active]:border-brand-700 data-[state=active]:bg-transparent',
+          'data-[state=active]:text-brand-700 data-[state=active]:shadow-none',
         ].join(' '),
         capsule: [
-          'flex-1 rounded-md',
+          'flex-1 rounded-md border-0',
           'data-[state=active]:bg-brand-500 data-[state=active]:text-white',
           'data-[state=active]:shadow-[0_4px_10px_rgba(16,78,198,0.15)]',
         ].join(' '),
