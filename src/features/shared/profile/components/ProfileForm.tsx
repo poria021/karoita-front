@@ -5,13 +5,8 @@ import { Controller, type FieldPath } from 'react-hook-form';
 import type { ChangeEvent } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
-import {
-  KvSelect,
-  KvSelectContent,
-  KvSelectItem,
-  KvSelectTrigger,
-  KvSelectValue,
-} from '@/components/shared/KvSelect';
+import { KvSelectItem } from '@/components/shared/KvSelect';
+import { KvSelectField } from '@/components/shared/KvSelectField';
 import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
@@ -123,45 +118,28 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
             showLockIcon
           />
 
-          <div>
-            <div className="mb-kv-field">
-              <KvTypography variant="label" as="label">
-                استان{' '}
-                <span className="text-rose-500" aria-hidden="true">
-                  *
-                </span>
-              </KvTypography>
-            </div>
-            <Controller
-              control={profileForm.control}
-              name="province"
-              render={({ field }) => (
-                <KvSelect
-                  disabled={isLocked}
-                  value={field.value || undefined}
-                  onValueChange={field.onChange}
-                >
-                  <KvSelectTrigger>
-                    <KvSelectValue placeholder="انتخاب استان" />
-                  </KvSelectTrigger>
-                  <KvSelectContent>
-                    {PROVINCES.map((province) => (
-                      <KvSelectItem key={province} value={province}>
-                        {province}
-                      </KvSelectItem>
-                    ))}
-                  </KvSelectContent>
-                </KvSelect>
-              )}
-            />
-            {errors.province?.message && (
-              <div className="mt-kv-field">
-                <KvTypography variant="error" tone="danger" as="span">
-                  {errors.province.message}
-                </KvTypography>
-              </div>
+          <Controller
+            control={profileForm.control}
+            name="province"
+            render={({ field }) => (
+              <KvSelectField
+                label="استان"
+                required
+                locked={isLocked}
+                showLockIcon={isLocked}
+                error={errors.province?.message}
+                placeholder="انتخاب استان"
+                value={field.value || ''}
+                onValueChange={field.onChange}
+              >
+                {PROVINCES.map((province) => (
+                  <KvSelectItem key={province} value={province}>
+                    {province}
+                  </KvSelectItem>
+                ))}
+              </KvSelectField>
             )}
-          </div>
+          />
 
           {roleFields.map((field) => {
             const fieldError = (
@@ -198,16 +176,12 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
           })}
         </div>
 
-        <div className="border-t border-slate-100 pt-kv-group">
-          <div className="mb-kv-field">
-            <KvTypography variant="subtitle" as="label">
-              بارگذاری مدرک هویتی (کارت دانشجویی / گواهی اشتغال)
-            </KvTypography>
-          </div>
+          <div className="border-t border-slate-100 pt-kv-group">
           <IdentityDocUploader
             value={identityDoc}
             onChange={setIdentityDoc}
             disabled={isLocked}
+            label="بارگذاری مدرک هویتی (کارت دانشجویی / گواهی اشتغال)"
           />
         </div>
 

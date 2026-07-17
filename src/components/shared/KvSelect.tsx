@@ -31,6 +31,7 @@ export function KvSelectTrigger({
       className={cn(
         'h-auto min-h-9 w-full rounded-xl border-slate-300 px-3 py-2 font-sans text-xs font-bold text-slate-800 shadow-none',
         'focus-visible:border-brand-500 focus-visible:ring-[3px] focus-visible:ring-brand-500/15',
+        '[&_svg]:size-3.5 [&_svg]:opacity-100 [&_svg]:text-slate-300',
         className
       )}
       {...props}
