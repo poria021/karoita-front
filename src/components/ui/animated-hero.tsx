@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MoveRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
+import { FaIcon } from "@/components/shared/FaIcon";
 import { Button } from "@/components/ui/button";
 import { RouteService } from "@/services/route.service";
+import { faIcons } from "@/utils/iconMap";
 
 function Hero() {
   const [titleNumber, setTitleNumber] = useState(0);
@@ -45,13 +46,13 @@ function Hero() {
                   height={16}
                   className="w-4 h-4"
                 />
-                Built by Zexa <MoveRight className="w-4 h-4" />
+                Built by Zexa <FaIcon icon={faIcons.arrowRight} size="sm" />
               </a>
             </Button>
           </div>
           <div className="flex gap-4 flex-col">
             <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular">
-              <span className="text-primary font-medium">
+              <span className="text-kv-brand font-medium">
                 Authentication made
               </span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
@@ -80,7 +81,7 @@ function Hero() {
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center">
+            <p className="text-lg md:text-xl leading-relaxed tracking-tight text-kv-text-faint max-w-2xl text-center">
               Skip months of authentication setup. Get a complete Next.js
               boilerplate with Better Auth, admin dashboard, user management,
               and everything you need to launch your application with
@@ -99,7 +100,7 @@ function Hero() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Check GitHub Repo <MoveRight className="w-4 h-4" />
+                Check GitHub Repo <FaIcon icon={faIcons.arrowRight} size="sm" />
               </a>
             </Button>
           </div>

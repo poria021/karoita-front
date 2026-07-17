@@ -13,8 +13,11 @@ export function RegisterForm() {
   const registerForm = useRegisterForm();
 
   return (
-    <div className="space-y-4">
-      <AuthFormMessage message={registerForm.formMessage} onDismiss={registerForm.clearFormMessage} />
+    <div className="flex flex-col gap-kv-stack">
+      <AuthFormMessage
+        message={registerForm.formMessage}
+        onDismiss={registerForm.clearFormMessage}
+      />
 
       {registerForm.step === 1 && <RegisterDetailsStep registerForm={registerForm} />}
       {registerForm.step === 2 && <RegisterOtpStep registerForm={registerForm} />}

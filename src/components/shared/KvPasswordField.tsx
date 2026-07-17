@@ -1,13 +1,14 @@
 'use client';
 
-import { Eye, EyeOff } from 'lucide-react';
 import * as React from 'react';
 
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import {
   KvTextField,
   type KvTextFieldSize,
 } from '@/components/shared/KvTextField';
+import { faIcons } from '@/utils/iconMap';
 
 export type KvPasswordFieldProps = {
   id?: string;
@@ -44,7 +45,7 @@ export const KvPasswordField = React.forwardRef<
     hint,
     locked = false,
     showLockIcon,
-    size = 'sm',
+    size = 'md',
     placeholder = '********',
     autoComplete = 'current-password',
     name,
@@ -88,11 +89,10 @@ export const KvPasswordField = React.forwardRef<
             color="neutral"
             appearance="text"
             icon={
-              isVisible ? (
-                <EyeOff className="size-3.5" aria-hidden="true" />
-              ) : (
-                <Eye className="size-3.5" aria-hidden="true" />
-              )
+              <FaIcon
+                icon={isVisible ? faIcons.eyeSlash : faIcons.eye}
+                size="xs"
+              />
             }
             onClick={() => setIsVisible((current) => !current)}
             aria-label={isVisible ? 'پنهان کردن رمز عبور' : 'نمایش رمز عبور'}

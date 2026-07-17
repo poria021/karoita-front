@@ -1,7 +1,7 @@
-import { CircleAlert, CircleCheck, Info, X } from 'lucide-react';
-
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { cn } from '@/lib/utils';
+import { faIcons } from '@/utils/iconMap';
 
 import type { AuthFormMessageState } from '../../types';
 
@@ -12,22 +12,26 @@ interface AuthFormMessageProps {
 
 const MESSAGE_STYLES: Record<
   AuthFormMessageState['type'],
-  { container: string; icon: string; Icon: typeof CircleAlert }
+  {
+    container: string;
+    icon: string;
+    iconDef: (typeof faIcons)[keyof typeof faIcons];
+  }
 > = {
   error: {
     container: 'border-kv-danger-border bg-kv-danger-soft/60 text-kv-danger-soft-fg',
     icon: 'text-kv-danger',
-    Icon: CircleAlert,
+    iconDef: faIcons.circleExclamation,
   },
   success: {
     container: 'border-kv-success-border bg-kv-success-soft/60 text-kv-success-soft-fg',
     icon: 'text-kv-success',
-    Icon: CircleCheck,
+    iconDef: faIcons.circleCheck,
   },
   info: {
     container: 'border-kv-info-border bg-kv-info-soft/60 text-kv-info-soft-fg',
     icon: 'text-kv-info',
-    Icon: Info,
+    iconDef: faIcons.circleInfo,
   },
 };
 
@@ -35,22 +39,24 @@ const MESSAGE_STYLES: Record<
 export function AuthFormMessage({ message, onDismiss }: AuthFormMessageProps) {
   if (!message) return null;
 
-  const { container, icon, Icon } = MESSAGE_STYLES[message.type];
+  const { container, icon, iconDef } = MESSAGE_STYLES[message.type];
 
   return (
     <div
+      role={message.type === 'error' ? 'alert' : 'status'}
+      aria-live={message.type === 'error' ? 'assertive' : 'polite'}
       className={cn(
-        'mb-kv-group flex w-full items-start gap-kv-inline rounded-kv-panel border p-3 text-start transition-all',
+        'mb-kv-group flex w-full items-start gap-kv-inline rounded-kv-panel border p-kv-inline text-start transition-all',
         container
       )}
     >
-      <Icon className={cn('mt-0.5 size-4 shrink-0', icon)} aria-hidden="true" />
+      <FaIcon icon={iconDef} size="sm" className={cn('mt-kv-field shrink-0', icon)} />
       <p className="flex-1 text-xs font-semibold">{message.text}</p>
       <KvButton
         type="button"
         color="neutral"
         appearance="text"
-        icon={<X className="size-3.5" aria-hidden="true" />}
+        icon={<FaIcon icon={faIcons.xmark} size="xs" />}
         onClick={onDismiss}
         aria-label="بستن پیام"
         className="shrink-0"

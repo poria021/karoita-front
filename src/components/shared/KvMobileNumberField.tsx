@@ -7,15 +7,25 @@ import {
   KvTextField,
   type KvTextFieldSize,
 } from '@/components/shared/KvTextField';
-import { persianToEnglishDigits } from '@/utils/persianDigits';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
+/** English digits only — RHF / Zod / API. */
 function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
 }
 
 const plus98Addon = (
-  <span className="flex h-full items-center border-e border-slate-200/70 bg-slate-100/60 px-3 text-xs font-semibold leading-none text-slate-400">
-    +98
+  <span
+    className="flex h-full items-center gap-2 ps-3.5 text-xs font-bold leading-none text-kv-text-faint select-none"
+    aria-hidden="true"
+  >
+    <span>+{toPersianDigits('98')}</span>
+    <span className="text-kv-border-strong" aria-hidden="true">
+      |
+    </span>
   </span>
 );
 
@@ -27,6 +37,7 @@ export type KvMobileNumberFieldProps = {
   locked?: boolean;
   showLockIcon?: boolean;
   size?: KvTextFieldSize;
+  /** English or Persian digits — always shown as Persian; stored/emitted as English. */
   value?: string;
   defaultValue?: string;
   name?: string;
@@ -38,7 +49,7 @@ export type KvMobileNumberFieldProps = {
 
 /**
  * Shared +98 mobile field — same control for auth forms and profile.
- * Digits-only when editable; lock/read-only when `locked`.
+ * UI shows Persian digits; `onChange` / RHF always receive English `0-9`.
  */
 export const KvMobileNumberField = React.forwardRef<
   HTMLInputElement,
@@ -51,7 +62,7 @@ export const KvMobileNumberField = React.forwardRef<
     error,
     locked = false,
     showLockIcon,
-    size,
+    size = 'md',
     value,
     defaultValue,
     name,
@@ -62,10 +73,28 @@ export const KvMobileNumberField = React.forwardRef<
   },
   ref
 ) {
+  const isControlled = value !== undefined;
+  const [uncontrolledEnglish, setUncontrolledEnglish] = React.useState(() =>
+    filterDigits(defaultValue ?? '').slice(0, 10)
+  );
+
+  const englishValue = (
+    isControlled ? filterDigits(value ?? '') : uncontrolledEnglish
+  ).slice(0, 10);
+
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (!locked) {
-      event.target.value = filterDigits(event.target.value);
+    if (locked) {
+      onChange?.(event);
+      return;
     }
+
+    const next = filterDigits(event.target.value).slice(0, 10);
+    if (!isControlled) {
+      setUncontrolledEnglish(next);
+    }
+
+    // Emit English digits so register/Zod/API stay ASCII.
+    event.target.value = next;
     onChange?.(event);
   };
 
@@ -81,11 +110,10 @@ export const KvMobileNumberField = React.forwardRef<
       inputMode="numeric"
       autoComplete={autoComplete}
       maxLength={10}
-      placeholder="9123456789"
+      placeholder={toPersianDigits('9123456789')}
       locked={locked}
       showLockIcon={showLockIcon}
-      value={value}
-      defaultValue={defaultValue}
+      value={toPersianDigits(englishValue)}
       name={name}
       onBlur={onBlur}
       onFocus={onFocus}

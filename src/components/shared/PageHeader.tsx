@@ -22,14 +22,14 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'flex flex-col gap-kv-inline border-b border-slate-200 pb-kv-stack sm:flex-row sm:items-center sm:justify-between',
+        'flex flex-col gap-kv-inline border-b border-kv-border pb-kv-stack sm:flex-row sm:items-center sm:justify-between',
         className
       )}
     >
       <div className="flex min-w-0 items-start gap-kv-inline">
         {icon ? (
           <div
-            className="flex size-10 shrink-0 items-center justify-center rounded-kv-control bg-brand-500/10 text-brand-600"
+            className="flex size-10 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg"
             aria-hidden={typeof icon !== 'string'}
           >
             {icon}

@@ -1,14 +1,10 @@
 "use client"
 
-import {
-  CircleCheckIcon,
-  InfoIcon,
-  Loader2Icon,
-  OctagonXIcon,
-  TriangleAlertIcon,
-} from "lucide-react"
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
+
+import { FaIcon } from "@/components/shared/FaIcon"
+import { faIcons } from "@/utils/iconMap"
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
@@ -18,17 +14,17 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       icons={{
-        success: <CircleCheckIcon className="size-4" />,
-        info: <InfoIcon className="size-4" />,
-        warning: <TriangleAlertIcon className="size-4" />,
-        error: <OctagonXIcon className="size-4" />,
-        loading: <Loader2Icon className="size-4 animate-spin" />,
+        success: <FaIcon icon={faIcons.circleCheck} size="sm" />,
+        info: <FaIcon icon={faIcons.circleInfo} size="sm" />,
+        warning: <FaIcon icon={faIcons.triangleExclamation} size="sm" />,
+        error: <FaIcon icon={faIcons.circleXmark} size="sm" />,
+        loading: <FaIcon icon={faIcons.spinner} size="sm" spin />,
       }}
       style={
         {
-          "--normal-bg": "var(--popover)",
-          "--normal-text": "var(--popover-foreground)",
-          "--normal-border": "var(--border)",
+          "--normal-bg": "var(--kv-surface)",
+          "--normal-text": "var(--kv-text)",
+          "--normal-border": "var(--kv-border)",
           "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }

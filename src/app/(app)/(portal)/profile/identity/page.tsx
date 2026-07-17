@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 import HydrationSafe from '@/components/shared/HydrationSafe';
-import { ProfileContainerSkeleton } from '@/features/shared/profile/components/ProfileContainer';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 
@@ -31,5 +30,7 @@ function LegacyProfileRedirect() {
     router.replace(RouteService.karvita.profile(activeUser.role));
   }, [activeUser, router]);
 
-  return <ProfileContainerSkeleton />;
+  return (
+    <div className="min-h-40 w-full bg-transparent" aria-busy="true" />
+  );
 }

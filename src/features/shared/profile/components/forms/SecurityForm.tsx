@@ -1,14 +1,16 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { KeyRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { FaIcon } from '@/components/shared/FaIcon';
+import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/KvForm';
 import { AuthService } from '@/services/auth.service';
+import { faIcons } from '@/utils/iconMap';
 
 import {
   securityOtpSchema,
@@ -78,8 +80,7 @@ export function SecurityForm({
       setFeedback({ type: 'success', message: 'رمز عبور اولیه شما ثبت شد.' });
       onPasswordRegistered?.();
     } catch (error) {
-      setFeedback({
-        type: 'error',
+      passwordForm.setError('newPassword', {
         message:
           error instanceof Error
             ? error.message
@@ -118,8 +119,7 @@ export function SecurityForm({
       resetPasswordFields();
       // Inline step banner already confirms OTP success — avoid duplicate bottom alert.
     } catch (error) {
-      setFeedback({
-        type: 'error',
+      otpForm.setError('otp', {
         message:
           error instanceof Error ? error.message : 'کد تایید معتبر نیست.',
       });
@@ -145,8 +145,7 @@ export function SecurityForm({
         message: 'رمز عبور با موفقیت به‌روزرسانی شد.',
       });
     } catch (error) {
-      setFeedback({
-        type: 'error',
+      passwordForm.setError('newPassword', {
         message:
           error instanceof Error
             ? error.message
@@ -161,12 +160,15 @@ export function SecurityForm({
     setPasswordStep('initial');
     resetPasswordFields();
     otpForm.reset({ otp: '' });
-    setFeedback({ type: 'info', message: 'عملیات لغو شد.' });
+    setFeedback(null);
   };
 
   return (
-    <KvCard dir="rtl" className="mx-auto max-w-xl">
-      <KvCardContent className="space-y-kv-group pt-6">
+    <KvCard
+      dir="rtl"
+      className="mx-auto w-full max-w-4xl gap-0 rounded-kv-panel border-kv-border py-0 shadow-kv-raised"
+    >
+      <KvCardContent className="space-y-5 p-5 sm:p-6">
         {!hasExistingPassword ? (
           <KvForm {...passwordForm}>
             <form
@@ -174,22 +176,23 @@ export function SecurityForm({
               className="space-y-kv-group"
               noValidate
             >
-              <div className="rounded-kv-panel border border-brand-200 bg-brand-50 p-3 text-[11px] font-bold text-brand-900">
-                حساب شما فاقد رمز عبور است. لطفاً ابتدا رمز عبور خود را از کادر
-                زیر تأیید و ثبت فرمایید:
-              </div>
+              <KvAlert
+                variant="info"
+                title="برای حساب شما هنوز رمز عبور ثبت نشده است"
+                description="رمز عبور جدید را در کادرهای زیر وارد و ثبت کنید."
+              />
               <SecurityPasswordPairFields
                 form={passwordForm}
                 disabled={isDisabled}
               />
-              <div className="flex justify-end border-t border-slate-200 pt-kv-group">
+              <div className="flex justify-end border-t border-kv-border pt-kv-group">
                 <KvButton
                   type="submit"
                   color="cta"
                   appearance="solid"
                   loading={isBusy}
                   disabled={disabled}
-                  icon={<KeyRound className="size-4" aria-hidden="true" />}
+                  icon={<FaIcon icon={faIcons.key} size="sm" />}
                 >
                   تأیید و ثبت رمز عبور اولیه
                 </KvButton>
@@ -210,20 +213,9 @@ export function SecurityForm({
           />
         )}
 
-        {feedback && (
-          <p
-            role="status"
-            className={
-              feedback.type === 'success'
-                ? 'rounded-kv-panel border border-emerald-200 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-700'
-                : feedback.type === 'error'
-                  ? 'rounded-kv-panel border border-rose-200 bg-rose-50 p-3 text-[11px] font-bold text-rose-700'
-                  : 'rounded-kv-panel border border-blue-200 bg-blue-50 p-3 text-[11px] font-bold text-blue-700'
-            }
-          >
-            {feedback.message}
-          </p>
-        )}
+        {feedback ? (
+          <KvAlert variant={feedback.type} title={feedback.message} />
+        ) : null}
       </KvCardContent>
     </KvCard>
   );

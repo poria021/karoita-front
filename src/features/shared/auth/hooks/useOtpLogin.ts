@@ -4,12 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import { AuthService } from '@/services/auth.service';
 
-import {
-  mobileSchema,
-  otpSchema,
-  type MobileSchema,
-  type OtpSchema,
-} from '../schemas/auth.schema';
+import { mobileSchema, otpSchema, type MobileSchema, type OtpSchema } from '../schemas/auth.schema';
 import { readAuthErrorMessage } from './authError';
 import { useOtpCountdown } from './useOtpCountdown';
 
@@ -117,6 +112,7 @@ export function useOtpLogin({ onSuccess }: UseOtpLoginOptions) {
   return {
     start,
     otpStep,
+    pendingMobile,
     otpMobileForm,
     requestOtp,
     isRequestingOtp: otpMobileForm.formState.isSubmitting,

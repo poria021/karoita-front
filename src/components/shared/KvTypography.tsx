@@ -16,6 +16,7 @@ export type KvTypographyVariant =
 export type KvTypographyTone =
   | 'default'
   | 'muted'
+  | 'disabled'
   | 'brand'
   | 'success'
   | 'warning'
@@ -35,18 +36,26 @@ export type KvTypographyElement =
 const kvTypographyVariants = cva('font-sans', {
   variants: {
     variant: {
-      display: 'text-2xl font-black leading-tight sm:text-3xl',
-      title: 'text-sm font-black leading-tight',
-      subtitle: 'text-xs font-black leading-tight',
+      /** Brand wordmark / marketing heroes */
+      display: 'text-3xl font-black leading-[1.15] tracking-tight sm:text-4xl',
+      /** Section / page headings */
+      title: 'text-sm font-bold leading-snug tracking-tight sm:text-base',
+      /** Secondary headings inside cards/sections */
+      subtitle: 'text-xs font-bold leading-snug',
+      /** Supporting copy */
       body: 'text-xs font-medium leading-relaxed',
+      /** Field labels */
       label: 'text-xs font-bold leading-none',
-      caption: 'text-[11px] font-bold leading-normal',
-      overline: 'text-[10px] font-bold leading-normal',
-      error: 'text-[11px] font-bold leading-normal',
+      /** Helper / meta under titles */
+      caption: 'text-xs font-medium leading-normal',
+      /** Quiet chrome / footnotes */
+      overline: 'text-xs font-medium leading-normal tracking-wide',
+      error: 'text-xs font-bold leading-normal',
     },
     tone: {
       default: 'text-kv-text',
       muted: 'text-kv-text-faint',
+      disabled: 'text-kv-text-disabled',
       brand: 'text-kv-brand-soft-fg',
       success: 'text-kv-success',
       warning: 'text-kv-warning',

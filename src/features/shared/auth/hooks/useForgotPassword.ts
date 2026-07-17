@@ -74,10 +74,14 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
     forgotOtpForm.reset({ otp: '' });
   }, [forgotOtpForm]);
 
+  const goBackToForgotStep2 = useCallback(() => {
+    setForgotStep(2);
+    forgotResetForm.reset({ newPassword: '', confirmPassword: '' });
+  }, [forgotResetForm]);
+
   const sendForgotOtp = forgotMobileForm.handleSubmit(async (data) => {
     try {
-      const isSameNumber =
-        data.mobile === pendingForgotMobile && !countdown.canResend;
+      const isSameNumber = data.mobile === pendingForgotMobile && !countdown.canResend;
 
       if (!isSameNumber) {
         await AuthService.sendForgotPasswordOtp(data.mobile);
@@ -141,7 +145,9 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
   return {
     start,
     goBackToForgotStep1,
+    goBackToForgotStep2,
     forgotStep,
+    pendingForgotMobile,
     forgotMobileForm,
     sendForgotOtp,
     isSendingForgotOtp: forgotMobileForm.formState.isSubmitting,

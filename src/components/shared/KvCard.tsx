@@ -19,7 +19,7 @@ export function KvCard({ className, ...props }: KvCardProps) {
     <Card
       data-slot="kv-card"
       className={cn(
-        'overflow-visible rounded-kv-card border-slate-200 bg-white font-sans shadow-sm',
+        'overflow-visible rounded-kv-card border-kv-border bg-kv-surface font-sans shadow-kv-raised',
         className
       )}
       {...props}

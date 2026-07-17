@@ -1,8 +1,7 @@
 'use client';
 
-import { UserPlus } from 'lucide-react';
-
 import type { UseRegisterFormReturn } from '../hooks/useRegisterForm';
+import { AuthStepHeading } from './AuthStepHeading';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { MobileNumberField } from './fields/MobileNumberField';
 import { RoleSelectField } from './fields/RoleSelectField';
@@ -17,22 +16,25 @@ export function RegisterDetailsStep({ registerForm }: RegisterDetailsStepProps) 
   const { register, control, formState } = detailsForm;
 
   return (
-    <form onSubmit={submitDetails} className="space-y-kv-group" noValidate>
-      <MobileNumberField
-        id="register-mobile"
-        registration={register('mobile')}
-        errorMessage={formState.errors.mobile?.message}
-        disabled={isSubmittingDetails}
-      />
+    <form onSubmit={submitDetails} className="flex flex-col gap-kv-section" noValidate>
+      <AuthStepHeading step={1} totalSteps={2} />
 
-      <RoleSelectField control={control} errorMessage={formState.errors.role?.message} disabled={isSubmittingDetails} />
+      <div className="flex flex-col gap-kv-group">
+        <MobileNumberField
+          id="register-mobile"
+          registration={register('mobile')}
+          errorMessage={formState.errors.mobile?.message}
+          disabled={isSubmittingDetails}
+        />
 
-      <AuthSubmitButton
-        isReady={formState.isValid}
-        isLoading={isSubmittingDetails}
-        loadingLabel="در حال ارسال..."
-        icon={<UserPlus className="size-4" aria-hidden="true" />}
-      >
+        <RoleSelectField
+          control={control}
+          errorMessage={formState.errors.role?.message}
+          disabled={isSubmittingDetails}
+        />
+      </div>
+
+      <AuthSubmitButton isLoading={isSubmittingDetails} loadingLabel="در حال ارسال...">
         ارسال کد تایید و ثبت‌نام
       </AuthSubmitButton>
     </form>

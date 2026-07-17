@@ -1,18 +1,20 @@
 'use client';
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/KvForm';
 import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/KvTextField';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
 import { compressImageToBase64 } from '@/utils/compressor';
+import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 import {
@@ -28,23 +30,29 @@ export interface IdentityFormProps {
   activeUser: User;
   token?: string;
   disabled?: boolean;
+  /** Status alerts rendered inside the card (original-karvita.html). */
+  statusAlerts?: ReactNode;
   onSaved?: () => void;
 }
 
 /**
  * Matches `original-karvita.html` `isProfileLocked`:
- * locked when status is neither `not_submitted` nor `rejected` (e.g. pending_admin / approved).
+ * locked when status is neither `not_submitted` nor `rejected`.
  */
 function isIdentityProfileLocked(user: User): boolean {
   if (user.role === 'super_admin') return false;
   return user.docStatus !== 'not_submitted' && user.docStatus !== 'rejected';
 }
 
-/** Adaptive RTL identity form backed by the polymorphic profile schema. */
+/**
+ * Identity form — layout mirrors original-karvita.html:
+ * outer card → section header → alerts → fields box → upload box → submit.
+ */
 export function IdentityForm({
   activeUser,
   token,
   disabled = false,
+  statusAlerts,
   onSaved,
 }: IdentityFormProps) {
   const storeUser = useUserStore((state) => state.activeUser);
@@ -70,7 +78,6 @@ export function IdentityForm({
         await ProfileService.updateIdentityDocument(documentBase64, token);
       }
 
-      // Belt-and-suspenders lock: mirror original after successful submit.
       const current = useUserStore.getState().activeUser;
       if (current) {
         const isSuperAdmin = current.role === 'super_admin';
@@ -96,19 +103,57 @@ export function IdentityForm({
   const isBusy = form.formState.isSubmitting;
   const isProfileLocked = disabled || isIdentityProfileLocked(liveUser);
   const isDisabled = isProfileLocked || isBusy;
+  const showDocUploader = liveUser.role !== 'super_admin';
+  const submitLabel =
+    liveUser.role === 'super_admin'
+      ? 'ذخیره تغییرات مشخصات سیستم'
+      : 'ثبت و ارسال نهایی اطلاعات';
 
   return (
-    <KvCard dir="rtl" className="w-full">
-      <KvCardContent className="pt-6">
+    <KvCard
+      dir="rtl"
+      className="mx-auto w-full max-w-4xl gap-0 border-kv-border py-0 shadow-kv-raised"
+    >
+      <KvCardContent className="space-y-6 p-5 sm:p-7">
+        <div className="flex items-center justify-between border-b border-kv-border pb-3">
+          <div className="flex items-center gap-2">
+            <FaIcon
+              icon={faIcons.idCard}
+              size="sm"
+              className="shrink-0 text-kv-brand-soft-fg"
+            />
+            <div className="flex items-center gap-1.5">
+              <KvTypography variant="caption" tone="muted" weight="bold">
+                نقش کاربری: {roleStrategy.label}
+              </KvTypography>
+              {isProfileLocked ? (
+                <FaIcon
+                  icon={faIcons.lock}
+                  size="xs"
+                  className="text-kv-text-faint"
+                />
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {statusAlerts ? (
+          <div className="space-y-3">{statusAlerts}</div>
+        ) : null}
+
         <KvForm {...form}>
-          <form onSubmit={submit} noValidate className="space-y-kv-section">
-              <section className="space-y-kv-group">
-                <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
+          <form onSubmit={submit} noValidate className="space-y-6">
+            {/* Fields panel — no title (title lives on card header) */}
+            <div className="rounded-kv-panel border border-kv-border p-4 shadow-sm">
+              <fieldset
+                disabled={isDisabled}
+                className="min-w-0 border-0 p-0 disabled:opacity-100"
+              >
+                <div className="grid grid-cols-1 gap-4 text-start sm:grid-cols-2">
                   <KvTextField
                     label="نام"
                     required
                     locked={isDisabled}
-                    showLockIcon={isProfileLocked}
                     placeholder="مثال: امیرحسین"
                     error={form.formState.errors.firstName?.message}
                     {...form.register('firstName')}
@@ -117,7 +162,6 @@ export function IdentityForm({
                     label="نام خانوادگی"
                     required
                     locked={isDisabled}
-                    showLockIcon={isProfileLocked}
                     placeholder="مثال: کریمی"
                     error={form.formState.errors.lastName?.message}
                     {...form.register('lastName')}
@@ -125,61 +169,69 @@ export function IdentityForm({
                   <KvMobileNumberField
                     value={liveUser.mobile}
                     locked
-                    showLockIcon
+                    required
                   />
                   <KvTextField
-                    label="نقش کاربری"
+                    label="نقش کاربر جاری"
                     value={roleStrategy.label}
                     locked
-                    showLockIcon
+                    required
                   />
-                </div>
-              </section>
-
-              <section className="space-y-kv-group border-t border-slate-100 pt-kv-section">
-                <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
                   <DynamicRoleFields
                     role={liveUser.role}
                     disabled={isDisabled}
                   />
                 </div>
-              </section>
+              </fieldset>
+            </div>
 
-              <section className="border-t border-slate-100 pt-kv-section">
-                <IdentityDocUploader
-                  value={identityDocument}
-                  onChange={setIdentityDocument}
-                  disabled={isDisabled}
-                  helperText="JPEG یا PNG، حداکثر ۱۰ مگابایت؛ تبدیل خودکار به WebP"
-                />
-              </section>
+            {showDocUploader ? (
+              <IdentityDocUploader
+                value={identityDocument}
+                onChange={setIdentityDocument}
+                disabled={isDisabled}
+                helperText="PNG, JPG تا ۱۰ مگابایت"
+              />
+            ) : null}
 
             {submitError ? (
               <p
                 role="alert"
-                className="rounded-kv-panel border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700"
+                className="rounded-kv-panel border border-kv-danger-border bg-kv-danger-soft p-3 text-xs font-bold text-kv-danger-soft-fg"
               >
                 {submitError}
               </p>
             ) : null}
 
-            <div className="flex justify-end border-t border-slate-100 pt-kv-stack">
+            <div className="mt-4 flex flex-col items-end gap-2 border-t border-kv-border pt-4">
+              {isProfileLocked ? (
+                <div role="status">
+                  <KvTypography
+                    variant="caption"
+                    tone="muted"
+                    weight="medium"
+                  >
+                    اطلاعات شما در حال بررسی یا تأیید شده است؛ تا تعیین وضعیت
+                    پرونده امکان ویرایش و ارسال مجدد وجود ندارد.
+                  </KvTypography>
+                </div>
+              ) : null}
               <KvButton
                 type="submit"
                 color="cta"
                 appearance="solid"
-                size="lg"
                 loading={isBusy}
                 disabled={isProfileLocked}
                 icon={
-                  <ArrowLeft
-                    className="size-4 rtl:rotate-180"
-                    aria-hidden="true"
+                  <FaIcon
+                    icon={faIcons.arrowLeft}
+                    size="sm"
+                    className="rtl:rotate-180"
                   />
                 }
                 iconPosition="end"
               >
-                {isBusy ? 'در حال ذخیره...' : 'ثبت و ارسال اطلاعات'}
+                {isBusy ? 'در حال ارسال...' : submitLabel}
               </KvButton>
             </div>
           </form>

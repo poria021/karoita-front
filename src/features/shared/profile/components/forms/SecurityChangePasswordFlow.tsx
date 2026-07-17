@@ -1,13 +1,20 @@
 'use client';
 
-import { MessageSquareLock } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 
+import { FaIcon } from '@/components/shared/FaIcon';
+import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvForm } from '@/components/shared/KvForm';
 import { KvTextField } from '@/components/shared/KvTextField';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
-import { toPersianDigits } from '@/utils/persianDigits';
+import { faIcons } from '@/utils/iconMap';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
 import type {
   SecurityOtpSchema,
@@ -29,6 +36,11 @@ interface SecurityChangePasswordFlowProps {
   onCancel: () => void;
 }
 
+/** English digits-only for RHF / Zod / API. */
+function filterDigits(rawValue: string): string {
+  return persianToEnglishDigits(rawValue).replace(/\D/g, '');
+}
+
 export function SecurityChangePasswordFlow({
   passwordStep,
   passwordForm,
@@ -43,9 +55,9 @@ export function SecurityChangePasswordFlow({
   if (passwordStep === 'initial') {
     return (
       <div className="space-y-kv-group">
-        <p className="text-[11px] font-bold text-slate-600">
+        <KvTypography variant="caption" tone="muted" weight="bold">
           برای تغییر رمز، تقاضای ارسال پیامک حاوی رمز فعال‌سازی کنید.
-        </p>
+        </KvTypography>
         <KvButton
           type="button"
           color="cta"
@@ -54,7 +66,7 @@ export function SecurityChangePasswordFlow({
           loading={isBusy}
           disabled={isDisabled}
           onClick={onRequestOtp}
-          icon={<MessageSquareLock className="size-4" aria-hidden="true" />}
+          icon={<FaIcon icon={faIcons.commentDots} size="sm" />}
         >
           درخواست تغییر رمز عبور (ارسال پیامک تایید)
         </KvButton>
@@ -66,24 +78,35 @@ export function SecurityChangePasswordFlow({
     return (
       <KvForm {...otpForm}>
         <form onSubmit={onVerifyOtp} className="space-y-kv-group" noValidate>
-          <div className="flex items-center justify-between rounded-kv-panel border border-brand-200 bg-brand-50 p-3 text-[11px] font-bold text-brand-950">
-            <span>کد تایید ارسال شد.</span>
-            <span className="rounded bg-brand-700 px-2 py-0.5 text-[10px] text-white">
-              کد تستی شبیه‌ساز: {toPersianDigits(MOCK_OTP_CODE)}
-            </span>
-          </div>
-          <KvTextField
-            label="کد تایید ۵ رقمی"
-            required
-            type="tel"
-            inputMode="numeric"
-            maxLength={5}
-            locked={isDisabled}
-            placeholder="• • • • •"
-            otpStyle
-            dir="ltr"
-            error={otpForm.formState.errors.otp?.message}
-            {...otpForm.register('otp')}
+          <KvAlert
+            variant="info"
+            title="کد تأیید ارسال شد"
+            description={`کد تستی شبیه‌ساز: ${toPersianDigits(MOCK_OTP_CODE)}`}
+          />
+          <Controller
+            control={otpForm.control}
+            name="otp"
+            render={({ field, fieldState }) => (
+              <KvTextField
+                label="کد تایید ۵ رقمی"
+                required
+                type="tel"
+                inputMode="numeric"
+                maxLength={5}
+                locked={isDisabled}
+                placeholder="• • • • •"
+                otpStyle
+                dir="ltr"
+                error={fieldState.error?.message}
+                name={field.name}
+                ref={field.ref}
+                onBlur={field.onBlur}
+                value={toPersianDigits(field.value ?? '')}
+                onChange={(event) => {
+                  field.onChange(filterDigits(event.target.value).slice(0, 5));
+                }}
+              />
+            )}
           />
           <div className="flex gap-2">
             <KvButton
@@ -114,9 +137,11 @@ export function SecurityChangePasswordFlow({
   return (
     <KvForm {...passwordForm}>
       <form onSubmit={onSaveNewPassword} className="space-y-kv-group" noValidate>
-        <div className="rounded-kv-panel border border-emerald-200 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-900">
-          احراز هویت موفقیت‌آمیز بود. رمز جدید را وارد کنید:
-        </div>
+        <KvAlert
+          variant="success"
+          title="احراز هویت موفقیت‌آمیز بود"
+          description="رمز عبور جدید را در کادرهای زیر وارد کنید."
+        />
         <SecurityPasswordPairFields
           form={passwordForm}
           disabled={isDisabled}

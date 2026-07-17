@@ -2,18 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, LayoutDashboard, LogOut, Menu } from 'lucide-react';
 
-import { AuthService } from '@/services/auth.service';
-import { RouteService } from '@/services/route.service';
-import { useUserStore } from '@/store/useUserStore';
-import { useUIStore } from '@/store/useUIStore';
-import { useNotificationsStore } from '@/store/useNotificationsStore';
-import { getRoleStrategy } from '@/utils/RoleStrategyMap';
-import { getTodayJalaliFormatted } from '@/utils/formatJalaliDate';
-import { toPersianDigits } from '@/utils/persianDigits';
-import { cn } from '@/lib/utils';
-
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import {
@@ -22,6 +12,16 @@ import {
   KvDropdownMenuTrigger,
 } from '@/components/shared/KvDropdownMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { cn } from '@/lib/utils';
+import { AuthService } from '@/services/auth.service';
+import { RouteService } from '@/services/route.service';
+import { useNotificationsStore } from '@/store/useNotificationsStore';
+import { useUIStore } from '@/store/useUIStore';
+import { useUserStore } from '@/store/useUserStore';
+import { getTodayJalaliFormatted } from '@/utils/formatJalaliDate';
+import { faIcons } from '@/utils/iconMap';
+import { toPersianDigits } from '@/utils/persianDigits';
+import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 /**
  * Global authenticated top bar (rule 00, #6): rendered once by the domain's
@@ -49,28 +49,30 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface">
+    <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface shadow-kv-raised">
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-6 xl:px-8 2xl:px-16">
-        <div className="flex items-center gap-kv-group">
+        <div className="flex min-w-0 items-center gap-kv-group">
           <button
             type="button"
             onClick={openMobileSidebar}
             aria-label="باز کردن منو"
-            className="flex size-9 items-center justify-center rounded-kv-control bg-kv-surface-subtle text-kv-text-muted transition-all hover:bg-kv-neutral-hover/80 active:scale-95 lg:hidden"
+            aria-expanded={false}
+            aria-controls="karvita-sidebar"
+            className="flex size-11 shrink-0 items-center justify-center rounded-kv-control bg-kv-surface-subtle text-kv-text-muted transition-all hover:bg-kv-neutral-hover/80 focus-visible:ring-[3px] focus-visible:ring-kv-ring/20 active:scale-95 lg:hidden"
           >
-            <Menu className="size-4" aria-hidden="true" />
+            <FaIcon icon={faIcons.bars} size="sm" />
           </button>
 
-          <div className="flex items-center gap-kv-inline">
-            <div className="flex size-9 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-sm shadow-kv-brand/20">
-              <LayoutDashboard className="size-4" aria-hidden="true" />
+          <div className="flex min-w-0 items-center gap-kv-inline">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20">
+              <FaIcon icon={faIcons.tableColumns} size="sm" />
             </div>
-            <div className="hidden flex-col lg:flex">
-              <KvTypography variant="title" as="h1">
+            <div className="flex min-w-0 flex-col">
+              <KvTypography variant="title" as="h1" truncate>
                 پنل کاربری - {strategy.label}
               </KvTypography>
-              <div className="mt-1">
-                <KvTypography variant="overline" tone="muted" as="p">
+              <div className="mt-1 hidden sm:block">
+                <KvTypography variant="overline" tone="muted" as="p" truncate>
                   سامانه جامع آموزش نظری و مهارتی کارویتا
                 </KvTypography>
               </div>
@@ -78,7 +80,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-kv-inline">
+        <div className="flex shrink-0 items-center gap-kv-pair sm:gap-kv-inline">
           <div className="hidden flex-col items-end text-start md:flex">
             <KvTypography variant="overline" tone="muted" as="span">
               {getTodayJalaliFormatted()}
@@ -91,29 +93,38 @@ export function Header() {
             <KvDropdownMenuTrigger asChild>
               <button
                 type="button"
-                aria-label="اعلان‌ها"
-                className="relative flex size-9 items-center justify-center rounded-kv-control text-kv-text-subtle transition-colors hover:bg-kv-surface-subtle/60 hover:text-kv-text-secondary"
+                aria-label={
+                  unreadCount > 0
+                    ? `اعلان‌ها، ${toPersianDigits(unreadCount)} خوانده‌نشده`
+                    : 'اعلان‌ها'
+                }
+                className="relative flex size-11 items-center justify-center rounded-kv-control text-kv-text-subtle transition-colors hover:bg-kv-surface-subtle/60 hover:text-kv-text-secondary focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
               >
-                <Bell className="size-4" aria-hidden="true" />
+                <FaIcon icon={faIcons.bell} size="sm" />
                 {unreadCount > 0 && (
                   <span className="absolute top-2 start-2 size-2.5 rounded-full bg-kv-danger ring-2 ring-kv-surface" aria-hidden="true" />
                 )}
               </button>
             </KvDropdownMenuTrigger>
 
-            <KvDropdownMenuContent align="end" className="w-80 rounded-kv-panel border border-kv-border-strong/80 p-0 shadow-xl">
+            <KvDropdownMenuContent
+              align="end"
+              className="w-80 rounded-kv-panel border border-kv-border-strong/80 p-0 shadow-kv-overlay"
+            >
               <div className="flex items-center justify-between border-b border-kv-border-muted px-4 py-3">
                 <KvTypography variant="subtitle" as="span">
                   اعلان‌های سیستم
                 </KvTypography>
                 {unreadCount > 0 && (
-                  <button
+                  <KvButton
                     type="button"
+                    color="cta"
+                    appearance="text"
+                    size="sm"
                     onClick={markAllAsRead}
-                    className="text-[10px] font-bold text-kv-brand-soft-fg hover:text-kv-brand-soft-fg"
                   >
                     علامت‌گذاری همه
-                  </button>
+                  </KvButton>
                 )}
               </div>
 
@@ -131,13 +142,19 @@ export function Header() {
                       key={notification.id}
                       onClick={() => markAsRead(notification.id)}
                       className={cn(
-                        'w-full p-4 text-start transition-colors hover:bg-kv-surface-muted',
+                        'min-h-11 w-full p-4 text-start transition-colors hover:bg-kv-surface-muted focus-visible:bg-kv-surface-muted focus-visible:outline-none',
                         !notification.read && 'bg-kv-brand-soft/20'
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-xs font-bold text-kv-text-secondary">{notification.title}</p>
-                        <span className="shrink-0 text-[9px] text-kv-text-faint">{toPersianDigits(notification.time)}</span>
+                        <KvTypography variant="subtitle" as="p" truncate>
+                          {notification.title}
+                        </KvTypography>
+                        <span className="shrink-0">
+                          <KvTypography variant="overline" tone="muted" as="span">
+                            {toPersianDigits(notification.time)}
+                          </KvTypography>
+                        </span>
                       </div>
                     </button>
                   ))
@@ -152,9 +169,10 @@ export function Header() {
             type="button"
             color="error"
             appearance="text"
-            icon={<LogOut className="size-4" aria-hidden="true" />}
+            icon={<FaIcon icon={faIcons.rightFromBracket} size="sm" />}
             iconPosition="end"
             onClick={() => setIsLogoutDialogOpen(true)}
+            aria-label="خروج از حساب"
           >
             <span className="hidden sm:inline">خروج</span>
           </KvButton>

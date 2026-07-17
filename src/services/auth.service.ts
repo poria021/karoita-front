@@ -185,7 +185,10 @@ export class AuthService {
   static async loginWithCredentials(mobile: string, password: string): Promise<User> {
     if (IS_MOCK_MODE) {
       const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
-      if (!record || record.password !== password) {
+      if (!record) {
+        throw new Error('کاربری با این شماره یافت نشد.');
+      }
+      if (record.password !== password) {
         throw new Error('شماره موبایل یا رمز عبور اشتباه است.');
       }
 

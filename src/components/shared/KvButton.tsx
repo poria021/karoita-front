@@ -21,11 +21,11 @@ export type KvButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
 const kvButtonVariants = cva(
   [
-    'inline-flex shrink-0 items-center justify-center gap-2 font-sans font-black',
+    'inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 font-sans font-black',
     'whitespace-nowrap transition-all outline-none',
     'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
     'disabled:pointer-events-none disabled:opacity-50',
-    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+    '[&_svg]:pointer-events-none [&_svg]:shrink-0',
   ].join(' '),
   {
     variants: {
@@ -38,18 +38,20 @@ const kvButtonVariants = cva(
         neutral: '',
       },
       appearance: {
-        solid: 'rounded-kv-control shadow-sm',
+        solid: 'rounded-kv-control shadow-kv-raised',
         /** OTP / cancel style — slate border + soft fill; sizes match solid */
         secondary:
           'rounded-kv-control border border-kv-border bg-kv-surface-muted text-kv-text-muted shadow-none hover:bg-kv-surface-subtle hover:text-kv-text-secondary',
         ghost: 'rounded-kv-control border',
-        text: 'h-auto rounded-kv-control bg-transparent p-0 shadow-none hover:bg-transparent',
+        /** Text actions keep height for Fitts — min 44px hit area */
+        text: 'min-h-11 rounded-kv-control bg-transparent px-2 py-2 shadow-none hover:bg-transparent',
       },
       size: {
-        sm: 'text-[11px]',
-        md: 'text-xs',
-        lg: 'text-xs',
-        icon: 'size-8 p-0',
+        /** Fixed heights aligned with KvTextField / KvSelect (`sm|md|lg`) */
+        sm: 'h-9 px-3 text-xs',
+        md: 'h-11 px-4 text-xs',
+        lg: 'h-12 px-6 text-xs',
+        icon: 'size-11 p-0',
       },
       fullWidth: {
         true: 'w-full',
@@ -57,22 +59,16 @@ const kvButtonVariants = cva(
       },
     },
     compoundVariants: [
-      { appearance: 'solid', size: 'sm', class: 'px-3 py-1.5' },
-      { appearance: 'solid', size: 'md', class: 'px-4 py-2.5' },
-      { appearance: 'solid', size: 'lg', class: 'px-6 py-3' },
-      { appearance: 'secondary', size: 'sm', class: 'px-3 py-1.5' },
-      { appearance: 'secondary', size: 'md', class: 'px-4 py-2.5' },
-      { appearance: 'secondary', size: 'lg', class: 'px-6 py-3' },
-      { appearance: 'ghost', size: 'sm', class: 'px-3 py-1.5' },
-      { appearance: 'ghost', size: 'md', class: 'px-4 py-2.5' },
-      { appearance: 'ghost', size: 'lg', class: 'px-6 py-3' },
-      { appearance: 'text', size: 'icon', class: 'size-6' },
+      { appearance: 'text', size: 'sm', class: 'min-h-11 px-2' },
+      { appearance: 'text', size: 'md', class: 'min-h-11 px-2' },
+      { appearance: 'text', size: 'lg', class: 'min-h-11 px-2' },
+      { appearance: 'text', size: 'icon', class: 'size-11' },
 
       {
         appearance: 'solid',
         color: 'cta',
         class:
-          'bg-gradient-to-br from-kv-brand to-kv-brand-active text-kv-brand-fg shadow-md shadow-kv-brand/20 hover:from-kv-brand-hover hover:to-kv-brand-active',
+          'bg-gradient-to-br from-kv-brand to-kv-brand-active text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20 hover:from-kv-brand-hover hover:to-kv-brand-active',
       },
       {
         appearance: 'solid',

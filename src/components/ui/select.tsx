@@ -2,9 +2,10 @@
 
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
 
+import { FaIcon } from "@/components/shared/FaIcon"
 import { cn } from "@/lib/utils"
+import { faIcons } from "@/utils/iconMap"
 
 function Select({
   ...props
@@ -37,14 +38,14 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "border-kv-border-strong data-[placeholder]:text-kv-text-faint [&_svg:not([class*='text-'])]:text-kv-text-faint focus-visible:border-kv-ring focus-visible:ring-kv-ring/50 aria-invalid:ring-kv-ring-danger/20 dark:aria-invalid:ring-kv-ring-danger/40 aria-invalid:border-kv-danger dark:bg-kv-surface-muted/30 dark:hover:bg-kv-surface-muted/50 flex w-fit items-center justify-between gap-2 rounded-kv-control border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "border-kv-border-strong data-[placeholder]:text-kv-text-placeholder [&_svg:not([class*='text-'])]:text-kv-text-faint focus-visible:border-kv-ring focus-visible:ring-kv-ring/50 aria-invalid:ring-kv-ring-danger/20 dark:aria-invalid:ring-kv-ring-danger/40 aria-invalid:border-kv-danger dark:bg-kv-surface-muted/30 dark:hover:bg-kv-surface-muted/50 flex w-fit items-center justify-between gap-2 rounded-kv-control border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
+        <FaIcon icon={faIcons.chevronDown} size="sm" className="opacity-50" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )
@@ -114,7 +115,7 @@ function SelectItem({
     >
       <span className="absolute end-2 flex size-3.5 items-center justify-center">
         <SelectPrimitive.ItemIndicator>
-          <CheckIcon className="size-4" />
+          <FaIcon icon={faIcons.check} size="sm" />
         </SelectPrimitive.ItemIndicator>
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -148,7 +149,7 @@ function SelectScrollUpButton({
       )}
       {...props}
     >
-      <ChevronUpIcon className="size-4" />
+      <FaIcon icon={faIcons.chevronUp} size="sm" />
     </SelectPrimitive.ScrollUpButton>
   )
 }
@@ -166,7 +167,7 @@ function SelectScrollDownButton({
       )}
       {...props}
     >
-      <ChevronDownIcon className="size-4" />
+      <FaIcon icon={faIcons.chevronDown} size="sm" />
     </SelectPrimitive.ScrollDownButton>
   )
 }

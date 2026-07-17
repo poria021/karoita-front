@@ -24,7 +24,7 @@ interface LoginFormProps {
  */
 export function LoginForm({ login }: LoginFormProps) {
   return (
-    <div className="space-y-kv-group">
+    <div className="flex flex-col gap-kv-group">
       {login.mode === 'password' && <LoginPasswordStep login={login} />}
       {login.mode === 'otp' && login.otpStep === 1 && <LoginOtpRequestStep login={login} />}
       {login.mode === 'otp' && login.otpStep === 2 && <LoginOtpVerifyStep login={login} />}

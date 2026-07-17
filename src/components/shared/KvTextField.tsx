@@ -13,8 +13,8 @@ export type KvTextFieldSize = 'sm' | 'md' | 'lg';
 
 const kvTextFieldWrapperVariants = cva(
   [
-    'flex w-full items-stretch overflow-hidden rounded-kv-control border bg-kv-surface font-sans transition-colors',
-    'focus-within:border-kv-brand focus-within:ring-[3px] focus-within:ring-kv-ring/15',
+    'flex w-full items-stretch overflow-hidden rounded-kv-control border bg-kv-surface font-sans',
+    'transition-[color,background-color,border-color,box-shadow]',
   ].join(' '),
   {
     variants: {
@@ -25,15 +25,27 @@ const kvTextFieldWrapperVariants = cva(
         lg: 'h-12',
       },
       state: {
-        default: 'border-kv-border-strong',
-        error:
-          'border-kv-danger-border focus-within:border-kv-danger focus-within:ring-kv-ring-danger/15',
-        locked:
-          'cursor-not-allowed border-kv-border-strong bg-kv-surface-muted focus-within:border-kv-border-strong focus-within:ring-0',
+        default: [
+          'border-kv-border-strong',
+          'hover:border-kv-brand',
+          'focus-within:border-kv-brand focus-within:bg-kv-surface',
+          'focus-within:ring-[3px] focus-within:ring-kv-ring/15',
+        ].join(' '),
+        error: [
+          'border-kv-danger-border',
+          'hover:border-kv-danger',
+          'focus-within:border-kv-danger focus-within:bg-kv-surface',
+          'focus-within:ring-[3px] focus-within:ring-kv-ring-danger/15',
+        ].join(' '),
+        locked: [
+          'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled',
+          'hover:border-kv-border-disabled',
+          'focus-within:border-kv-border-disabled focus-within:ring-0',
+        ].join(' '),
       },
     },
     defaultVariants: {
-      size: 'sm',
+      size: 'md',
       state: 'default',
     },
   }
@@ -42,22 +54,22 @@ const kvTextFieldWrapperVariants = cva(
 const kvTextFieldInputVariants = cva(
   [
     'h-full w-full min-w-0 flex-1 rounded-none border-0 bg-transparent font-sans font-bold text-kv-text-secondary shadow-none',
-    'text-xs leading-none md:text-xs',
-    'placeholder:text-kv-text-faint',
+    'leading-none',
+    'placeholder:text-kv-text-placeholder',
     'focus-visible:border-0 focus-visible:ring-0',
     'disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-100',
   ].join(' '),
   {
     variants: {
       size: {
-        sm: 'px-3',
-        md: 'px-3.5',
-        lg: 'px-4',
+        sm: 'px-3 text-xs md:text-xs',
+        md: 'px-3.5 text-xs md:text-xs',
+        lg: 'px-4 text-sm md:text-sm',
       },
       state: {
         default: '',
         error: '',
-        locked: 'text-kv-text-faint',
+        locked: 'text-kv-text-disabled',
       },
       otpStyle: {
         true: 'text-center text-base font-black tracking-[0.5em] leading-normal',
@@ -65,7 +77,7 @@ const kvTextFieldInputVariants = cva(
       },
     },
     defaultVariants: {
-      size: 'sm',
+      size: 'md',
       state: 'default',
       otpStyle: false,
     },
@@ -123,7 +135,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       required = false,
       optionalHint = false,
       type = 'text',
-      size = 'sm',
+      size = 'md',
       placeholder,
       error,
       hint,

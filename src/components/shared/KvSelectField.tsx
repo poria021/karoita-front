@@ -33,15 +33,21 @@ export type KvSelectFieldProps = {
   children: React.ReactNode;
 };
 
+const SIZE_CLASS: Record<KvTextFieldSize, string> = {
+  sm: 'h-9 px-3 data-[size=default]:h-9',
+  md: 'h-11 px-3.5 data-[size=default]:h-11',
+  lg: 'h-12 px-4 data-[size=default]:h-12',
+};
+
 /**
  * Labeled select field — same chrome as {@link KvTextField}
- * (`label: string | false`, lock, error/hint, rounded-kv-control).
+ * (`label: string | false`, size scale, lock, error/hint, full-width control).
  */
 export function KvSelectField({
   label,
   required = false,
   optionalHint = false,
-  size = 'sm',
+  size = 'md',
   placeholder,
   error,
   hint,
@@ -80,12 +86,12 @@ export function KvSelectField({
             error ? `${id}-error` : hint ? `${id}-hint` : undefined
           }
           className={cn(
-            'h-9 px-3 py-0',
-            size === 'md' && 'h-11 px-3.5',
-            size === 'lg' && 'h-12 px-4',
+            SIZE_CLASS[size],
             locked &&
-              'cursor-not-allowed border-slate-300 bg-slate-50 text-slate-400',
-            error && !locked && 'border-rose-300'
+              'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled hover:border-kv-border-disabled',
+            error &&
+              !locked &&
+              'border-kv-danger-border hover:border-kv-danger focus-visible:border-kv-danger focus-visible:ring-kv-ring-danger/15 data-[state=open]:border-kv-danger data-[state=open]:ring-kv-ring-danger/15'
           )}
         >
           <KvSelectValue placeholder={placeholder} />

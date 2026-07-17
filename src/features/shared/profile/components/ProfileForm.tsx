@@ -1,6 +1,5 @@
 'use client';
 
-import { IdCard, Lock } from 'lucide-react';
 import { Controller, type FieldPath } from 'react-hook-form';
 import type { ChangeEvent } from 'react';
 
@@ -10,9 +9,14 @@ import { KvSelectField } from '@/components/shared/KvSelectField';
 import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { FaIcon } from '@/components/shared/FaIcon';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
-import { persianToEnglishDigits } from '@/utils/persianDigits';
+import { faIcons } from '@/utils/iconMap';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
 import { useProfileForm } from '../hooks/useProfileForm';
 import type { ProfileSchema } from '../schemas/profile.schema';
@@ -64,9 +68,9 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
 
   return (
     <div className="space-y-kv-section text-start" dir="rtl">
-      <div className="mb-kv-stack flex items-center gap-kv-inline border-b border-slate-200 pb-kv-stack">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-kv-control bg-brand-500/10 text-brand-600">
-          <IdCard className="size-5" />
+      <div className="mb-kv-stack flex items-center gap-kv-inline border-b border-kv-border pb-kv-stack">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
+          <FaIcon icon={faIcons.idCard} size="lg" />
         </div>
         <div className="flex flex-col">
           <KvTypography variant="title" as="h2">
@@ -84,14 +88,16 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
 
       <form
         onSubmit={submitProfile}
-        className="space-y-kv-section rounded-kv-card border border-slate-200/80 bg-white p-kv-inset shadow-sm sm:p-kv-page"
+        className="space-y-kv-section rounded-kv-card border border-kv-border/80 bg-kv-surface p-kv-inset shadow-sm sm:p-kv-page"
         noValidate
       >
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="flex items-center justify-between border-b border-kv-border-muted pb-3">
           <KvTypography variant="subtitle" as="h3">
             مشخصات پرسنلی، تحصیلی و مدارک هویتی
           </KvTypography>
-          {isApproved && <Lock className="size-4 text-slate-400" />}
+          {isApproved && (
+            <FaIcon icon={faIcons.lock} size="xs" className="text-kv-text-faint" />
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
@@ -145,38 +151,46 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
             const fieldError = (
               errors as Record<string, { message?: string } | undefined>
             )[field.key]?.message;
-            const registration = register(
-              field.key as FieldPath<ProfileSchema>
-            );
             const digitsOnly = field.inputMode === 'numeric';
 
             return (
-              <KvTextField
+              <Controller
                 key={field.key}
-                label={field.label}
-                required={field.required}
-                error={fieldError}
-                locked={isLocked}
-                placeholder={field.placeholder}
-                type={digitsOnly ? 'tel' : 'text'}
-                inputMode={field.inputMode}
-                name={registration.name}
-                onBlur={registration.onBlur}
-                ref={registration.ref}
-                onChange={
-                  digitsOnly
-                    ? (event: ChangeEvent<HTMLInputElement>) => {
-                        event.target.value = filterDigits(event.target.value);
-                        void registration.onChange(event);
-                      }
-                    : registration.onChange
-                }
+                control={profileForm.control}
+                name={field.key as FieldPath<ProfileSchema>}
+                render={({ field: rhfField }) => (
+                  <KvTextField
+                    label={field.label}
+                    required={field.required}
+                    error={fieldError}
+                    locked={isLocked}
+                    placeholder={field.placeholder}
+                    type={digitsOnly ? 'tel' : 'text'}
+                    inputMode={field.inputMode}
+                    dir={digitsOnly ? 'ltr' : undefined}
+                    name={rhfField.name}
+                    onBlur={rhfField.onBlur}
+                    ref={rhfField.ref}
+                    value={
+                      digitsOnly
+                        ? toPersianDigits(rhfField.value ?? '')
+                        : (rhfField.value ?? '')
+                    }
+                    onChange={
+                      digitsOnly
+                        ? (event: ChangeEvent<HTMLInputElement>) => {
+                            rhfField.onChange(filterDigits(event.target.value));
+                          }
+                        : rhfField.onChange
+                    }
+                  />
+                )}
               />
             );
           })}
         </div>
 
-          <div className="border-t border-slate-100 pt-kv-group">
+          <div className="border-t border-kv-border-muted pt-kv-group">
           <IdentityDocUploader
             value={identityDoc}
             onChange={setIdentityDoc}
@@ -191,7 +205,7 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
           </KvTypography>
         )}
 
-        <div className="flex justify-end border-t border-slate-100 pt-kv-group">
+        <div className="flex justify-end border-t border-kv-border-muted pt-kv-group">
           <KvButton
             type="submit"
             color="cta"

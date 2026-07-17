@@ -1,11 +1,12 @@
 'use client';
 
-import { ChevronDown, Search } from 'lucide-react';
 import { memo, useEffect, useRef, useState } from 'react';
 
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvTextField } from '@/components/shared/KvTextField';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
+import { faIcons } from '@/utils/iconMap';
 
 import type { OrganizationField } from '../../data/organization-catalog';
 import {
@@ -49,9 +50,9 @@ const OrganizationOptionRow = memo(function OrganizationOptionRow({
     <button
       type="button"
       className={cn(
-        'w-full border-b border-slate-200 px-3.5 py-2.5 text-start text-xs font-bold text-slate-800 last:border-b-0',
-        'hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none',
-        selected && 'bg-slate-50'
+        'w-full border-b border-kv-border px-3.5 py-2.5 text-start text-xs font-bold text-kv-text-secondary last:border-b-0',
+        'hover:bg-kv-surface-muted focus-visible:bg-kv-surface-muted focus-visible:outline-none',
+        selected && 'bg-kv-surface-muted'
       )}
       onClick={() => onSelect(option)}
     >
@@ -123,6 +124,8 @@ export function SearchableOrganizationSelect({
     setOpen(false);
   };
 
+  const showSearchIcon = query.trim().length === 0;
+
   return (
     <div ref={rootRef} className="relative">
       <KvTextField
@@ -136,16 +139,18 @@ export function SearchableOrganizationSelect({
         placeholder={placeholder}
         autoComplete="off"
         startAddon={
-          <span className="flex h-full w-9 items-center justify-center">
-            <Search className="size-3.5 shrink-0" aria-hidden="true" />
-          </span>
+          showSearchIcon ? (
+            <span className="flex h-full items-center ps-2.5 pe-0.5">
+              <FaIcon icon={faIcons.magnifyingGlass} size="xs" />
+            </span>
+          ) : undefined
         }
         endAddon={
-          <span className="flex h-full w-9 items-center justify-center">
-            <ChevronDown
-              className="size-3.5 shrink-0 text-slate-400"
-              strokeWidth={2}
-              aria-hidden="true"
+          <span className="flex h-full items-center pe-2.5 ps-0.5">
+            <FaIcon
+              icon={faIcons.chevronDown}
+              size="xs"
+              className="shrink-0 text-kv-text-faint"
             />
           </span>
         }
@@ -161,15 +166,15 @@ export function SearchableOrganizationSelect({
         <div
           ref={listRef}
           onScroll={handleListScroll}
-          className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto overflow-x-hidden rounded-kv-control border border-slate-200 bg-white"
+          className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto overflow-x-hidden rounded-kv-control border border-kv-border bg-kv-surface"
         >
           {isLoading ? (
-            <div className="flex items-center justify-center gap-2 px-3.5 py-3 text-xs text-slate-400">
+            <div className="flex items-center justify-center gap-2 px-3.5 py-3 text-xs text-kv-text-faint">
               <Spinner className="size-3.5" aria-hidden="true" />
               در حال بارگذاری...
             </div>
           ) : loadError ? (
-            <p className="px-3.5 py-2.5 text-center text-xs font-bold text-rose-600">
+            <p className="px-3.5 py-2.5 text-center text-xs font-bold text-kv-danger">
               خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
             </p>
           ) : items.length > 0 ? (
@@ -183,14 +188,14 @@ export function SearchableOrganizationSelect({
                 />
               ))}
               {isLoadingMore ? (
-                <div className="flex items-center justify-center gap-2 border-t border-slate-100 px-3.5 py-2.5 text-xs text-slate-400">
+                <div className="flex items-center justify-center gap-2 border-t border-kv-border-muted px-3.5 py-2.5 text-xs text-kv-text-faint">
                   <Spinner className="size-3.5" aria-hidden="true" />
                   در حال بارگذاری...
                 </div>
               ) : hasMore ? (
                 <button
                   type="button"
-                  className="w-full border-t border-slate-100 px-3.5 py-2.5 text-center text-xs font-bold text-brand-600 hover:bg-slate-50"
+                  className="w-full border-t border-kv-border-muted px-3.5 py-2.5 text-center text-xs font-bold text-kv-brand-soft-fg hover:bg-kv-surface-muted"
                   onClick={loadMore}
                 >
                   نمایش ۱۰ مورد بعدی
@@ -198,7 +203,7 @@ export function SearchableOrganizationSelect({
               ) : null}
             </>
           ) : (
-            <p className="px-3.5 py-2.5 text-center text-xs text-slate-500">
+            <p className="px-3.5 py-2.5 text-center text-xs text-kv-text-subtle">
               نتیجه‌ای یافت نشد.
             </p>
           )}

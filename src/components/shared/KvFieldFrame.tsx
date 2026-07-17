@@ -1,9 +1,10 @@
 'use client';
 
-import { CircleAlert, Info, Lock } from 'lucide-react';
-import * as React from 'react';
+import type { ReactNode } from 'react';
 
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { faIcons } from '@/utils/iconMap';
 
 export type KvFieldFrameProps = {
   id: string;
@@ -15,15 +16,18 @@ export type KvFieldFrameProps = {
   showLockIcon?: boolean;
   error?: string;
   hint?: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
 };
 
 /**
  * Label adornment modes are mutually exclusive (never combine):
- * - locked → lock icon only
+ * - locked → lock icon only (requires `showLockIcon`)
  * - required → red asterisk only
  * - optional → "(اختیاری)" only
+ *
+ * `locked` on the control still disables input; the label lock is opt-in via
+ * `showLockIcon` so section headers can own the lock instead of every field.
  */
 export type KvFieldLabelMode = 'locked' | 'required' | 'optional' | 'plain';
 
@@ -39,7 +43,7 @@ export function resolveFieldLabelMode(options: {
 }
 
 /**
- * Shared chrome for Karvita fields: label (+ lock), control slot, error/hint.
+ * Shared chrome for Karvita fields: label (+ optional lock), control slot, error/hint.
  * Used by KvTextField / KvTextArea so spacing and copy stay identical.
  */
 export function KvFieldFrame({
@@ -48,15 +52,19 @@ export function KvFieldFrame({
   required = false,
   optionalHint = false,
   locked = false,
-  showLockIcon,
+  showLockIcon = false,
   error,
   hint,
   children,
   footer,
 }: KvFieldFrameProps) {
   const showLabel = label !== undefined && label !== false && label !== '';
-  const labelMode = resolveFieldLabelMode({ locked, required, optionalHint });
-  const showLabelLock = labelMode === 'locked' && showLockIcon !== false;
+  const showLabelLock = Boolean(locked && showLockIcon);
+  const labelMode = resolveFieldLabelMode({
+    locked: showLabelLock,
+    required,
+    optionalHint,
+  });
 
   return (
     <div className="w-full font-sans" data-slot="kv-field-frame">
@@ -64,21 +72,22 @@ export function KvFieldFrame({
         <div className="mb-kv-field flex items-center gap-1.5" dir="rtl">
           <KvTypography variant="label" as="label" htmlFor={id}>
             {label}
+            {showLabelLock ? (
+              <FaIcon
+                icon={faIcons.lock}
+                size="xs"
+                className="ms-1 inline align-middle text-kv-text-faint"
+              />
+            ) : null}
             {labelMode === 'required' ? (
-              <span className="ms-1 text-rose-500" aria-hidden="true">
+              <span className="ms-1 text-kv-danger" aria-hidden="true">
                 *
               </span>
             ) : null}
             {labelMode === 'optional' ? (
-              <span className="ms-1 font-normal text-slate-400">(اختیاری)</span>
+              <span className="ms-1 font-normal text-kv-text-faint">(اختیاری)</span>
             ) : null}
           </KvTypography>
-          {showLabelLock ? (
-            <Lock
-              className="size-3.5 shrink-0 text-slate-400"
-              aria-hidden="true"
-            />
-          ) : null}
         </div>
       ) : null}
 
@@ -90,9 +99,10 @@ export function KvFieldFrame({
           id={`${id}-error`}
           role="alert"
         >
-          <CircleAlert
-            className="mt-0.5 size-3.5 shrink-0 text-rose-500"
-            aria-hidden="true"
+          <FaIcon
+            icon={faIcons.circleExclamation}
+            size="xs"
+            className="mt-0.5 shrink-0 text-kv-danger"
           />
           <KvTypography variant="error" tone="danger" as="span">
             {error}
@@ -100,9 +110,10 @@ export function KvFieldFrame({
         </div>
       ) : hint ? (
         <div className="mt-kv-field flex items-start gap-1.5" id={`${id}-hint`}>
-          <Info
-            className="mt-0.5 size-3.5 shrink-0 text-slate-400"
-            aria-hidden="true"
+          <FaIcon
+            icon={faIcons.circleInfo}
+            size="xs"
+            className="mt-0.5 shrink-0 text-kv-text-faint"
           />
           <KvTypography variant="caption" tone="muted" as="span">
             {hint}

@@ -36,7 +36,7 @@ const MAJOR_FIELD: ProfileFieldConfig = {
 const STUDENT_ID_FIELD: ProfileFieldConfig = {
   key: 'studentId',
   label: 'شماره دانشجویی',
-  placeholder: '140210345',
+  placeholder: '۱۴۰۲۱۰۳۴۵',
   required: true,
   inputMode: 'numeric',
 };
@@ -44,7 +44,7 @@ const STUDENT_ID_FIELD: ProfileFieldConfig = {
 const SKILL_CODE_FIELD: ProfileFieldConfig = {
   key: 'skillCode',
   label: 'کد مهارت‌آموزی',
-  placeholder: '99412',
+  placeholder: '۹۹۴۱۲',
   required: true,
   inputMode: 'numeric',
 };
@@ -52,7 +52,7 @@ const SKILL_CODE_FIELD: ProfileFieldConfig = {
 const PERSONAL_CODE_FIELD: ProfileFieldConfig = {
   key: 'personalCode',
   label: 'کد پرسنلی',
-  placeholder: '12345678',
+  placeholder: '۱۲۳۴۵۶۷۸',
   required: true,
   inputMode: 'numeric',
 };

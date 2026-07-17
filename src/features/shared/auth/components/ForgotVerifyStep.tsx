@@ -1,8 +1,7 @@
 'use client';
 
-import { KvButton } from '@/components/shared/KvButton';
-
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
+import { AuthStepHeading } from './AuthStepHeading';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { OtpCodeField } from './fields/OtpCodeField';
 import { OtpResendFooter } from './fields/OtpResendFooter';
@@ -22,46 +21,33 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
     isResendingForgotOtp,
     secondsUntilForgotResend,
     canResendForgotOtp,
-    cancelForgotMode,
   } = login;
   const { register, formState } = forgotOtpForm;
 
   return (
-    <form onSubmit={verifyForgotOtp} className="space-y-kv-group" noValidate>
-      <OtpCodeField
-        id="forgot-otp-code"
-        registration={register('otp')}
-        errorMessage={formState.errors.otp?.message}
-      />
+    <form onSubmit={verifyForgotOtp} className="flex flex-col gap-kv-section" noValidate>
+      <AuthStepHeading step={2} totalSteps={3} />
 
-      <OtpResendFooter
-        secondsUntilResend={secondsUntilForgotResend}
-        canResend={canResendForgotOtp}
-        isResending={isResendingForgotOtp}
-        onResend={resendForgotOtp}
-        onGoBack={goBackToForgotStep1}
-        goBackLabel="اصلاح شماره"
-      />
+      <div className="flex flex-col gap-kv-group">
+        <OtpCodeField
+          id="forgot-otp-code"
+          registration={register('otp')}
+          errorMessage={formState.errors.otp?.message}
+        />
 
-      <div className="flex items-center gap-2">
-        <KvButton
-          type="button"
-          appearance="secondary"
-          size="lg"
-          className="flex-1"
-          onClick={cancelForgotMode}
-        >
-          انصراف
-        </KvButton>
-        <div className="flex-1">
-          <AuthSubmitButton
-            isLoading={isVerifyingForgotOtp}
-            loadingLabel="در حال تایید..."
-          >
-            تایید و ادامه
-          </AuthSubmitButton>
-        </div>
+        <OtpResendFooter
+          secondsUntilResend={secondsUntilForgotResend}
+          canResend={canResendForgotOtp}
+          isResending={isResendingForgotOtp}
+          onResend={resendForgotOtp}
+          onGoBack={goBackToForgotStep1}
+          goBackLabel="اصلاح شماره"
+        />
       </div>
+
+      <AuthSubmitButton isLoading={isVerifyingForgotOtp} loadingLabel="در حال تایید...">
+        تایید و ادامه
+      </AuthSubmitButton>
     </form>
   );
 }

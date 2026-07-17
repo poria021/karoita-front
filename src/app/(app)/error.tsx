@@ -3,10 +3,11 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { TriangleAlert } from 'lucide-react';
 
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { RouteService } from '@/services/route.service';
+import { faIcons } from '@/utils/iconMap';
 
 interface AppErrorProps {
   error: Error & { digest?: string };
@@ -29,14 +30,14 @@ export default function AppError({ error, reset }: AppErrorProps) {
       className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center"
       dir="rtl"
     >
-      <div className="flex size-12 items-center justify-center rounded-kv-panel bg-rose-50 text-rose-600">
-        <TriangleAlert className="size-6" aria-hidden="true" />
+      <div className="flex size-12 items-center justify-center rounded-kv-panel bg-kv-danger-soft text-kv-danger">
+        <FaIcon icon={faIcons.triangleExclamation} size="lg" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-sm font-black text-slate-900">
+        <h2 className="text-sm font-black text-kv-text">
           خطایی در بارگذاری صفحه رخ داد
         </h2>
-        <p className="max-w-md text-xs font-bold text-slate-500">
+        <p className="max-w-md text-xs font-bold text-kv-text-subtle">
           لطفاً دوباره تلاش کنید. اگر مشکل ادامه داشت، به میز کار بازگردید.
         </p>
       </div>

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 
 import {
   ProfileContainer,
-  ProfileContainerSkeleton,
+  ProfileRoutePlaceholder,
 } from '@/features/shared/profile/components/ProfileContainer';
 import type { UserRole } from '@/types/auth';
 
@@ -33,7 +33,7 @@ interface ProfilePageProps {
 
 /**
  * Karvita profile route — RSC entry that awaits Next.js 15 async `params`
- * and streams the client ProfileContainer behind a skeleton Suspense boundary.
+ * and streams the client ProfileContainer behind a Suspense boundary.
  */
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { role } = await params;
@@ -43,7 +43,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   }
 
   return (
-    <Suspense fallback={<ProfileContainerSkeleton />}>
+    <Suspense fallback={<ProfileRoutePlaceholder />}>
       <ProfileContainer role={role} />
     </Suspense>
   );

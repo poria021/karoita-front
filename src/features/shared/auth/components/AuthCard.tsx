@@ -38,25 +38,19 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
   const isForgotMode = login.mode === 'forgot';
 
   return (
-    <div className="mt-8 w-full max-w-[450px] overflow-hidden rounded-kv-card border border-slate-200/80 bg-white shadow-md">
+    <div className="kv-auth-enter mt-kv-section w-full max-w-[450px] overflow-hidden rounded-kv-card border border-kv-border/80 bg-kv-surface shadow-kv-overlay">
       <div className="p-kv-inset sm:p-kv-page">
-        <AuthLogo
-          subtitle={
-            isForgotMode
-              ? 'بازیابی و تنظیم مجدد رمز عبور'
-              : 'سامانه هوشمند کارورزی و کارآموزی'
-          }
-        />
+        <AuthLogo subtitle="سامانه هوشمند کارورزی و کارآموزی" />
 
         {isForgotMode ? (
           <LoginForm login={login} />
         ) : (
           <AppTabs
-            model="capsule"
-            size="sm"
+            fullWidth
+            activeTone="surface"
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as AuthCardTab)}
-            className="gap-kv-group"
+            className="gap-kv-stack"
           >
             <AppTabsList>
               <AppTabsTrigger value="register">ثبت نام</AppTabsTrigger>
@@ -65,16 +59,16 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
               </AppTabsTrigger>
             </AppTabsList>
 
-            <AppTabsContent value="register">
+            <AppTabsContent value="register" className="mt-0 duration-300 animate-in fade-in">
               <RegisterForm />
             </AppTabsContent>
-            <AppTabsContent value="login">
+            <AppTabsContent value="login" className="mt-0 duration-300 animate-in fade-in">
               <LoginForm login={login} />
             </AppTabsContent>
           </AppTabs>
         )}
 
-        <div className="mt-8 border-t border-slate-100/80 pt-kv-stack text-center">
+        <div className="mt-kv-section border-t border-kv-border-muted/80 pt-kv-stack text-center">
           <KvTypography variant="overline" tone="muted" align="center">
             کارویتا - سامانه هوشمند کارورزی و کارآموزی
           </KvTypography>

@@ -1,158 +1,118 @@
 'use client';
 
+/**
+ * Tabs chrome is owned by AppTabs. Do not override list/trigger visuals at call sites.
+ *
+ * Width modes (only intentional layout fork — inactive chrome stays identical):
+ * - default: mobile full-width; md+ hugs content
+ * - `fullWidth`: track + equal triggers stay full-width at every breakpoint (auth card)
+ *
+ * Active tone (intentional color fork):
+ * - `brand` (default): active pill uses brand fill — profile and app chrome
+ * - `surface`: active pill uses white/surface fill; track is one shade darker — auth only
+ */
+
 import * as React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
 import { Tabs as TabsPrimitive } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
 
-/**
- * Visual models for the shared tab switcher.
- * - `underline`: page chrome line tabs (active text + bottom rule)
- * - `capsule`: auth-style segmented control (slate track + brand active chip)
- *
- * Built on Radix Tabs primitives directly so Shadcn default trigger styles
- * (active bg-kv-canvas, fixed h-9, line after:) cannot fight our models.
- */
-export type AppTabsModel = 'underline' | 'capsule';
+export type AppTabsActiveTone = 'brand' | 'surface';
 
-/** Density scale — `sm` matches AuthCard login/register tabs. */
-export type AppTabsSize = 'sm' | 'md' | 'lg';
+const LIST_BASE = [
+  'flex h-auto max-w-full items-center gap-1 overflow-x-auto whitespace-nowrap',
+  'rounded-kv-control border border-kv-border p-[3px]',
+  'font-sans text-kv-text-subtle',
+  '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+].join(' ');
 
-const appTabsListVariants = cva(
-  'inline-flex h-auto max-w-full items-center font-sans text-kv-text-subtle',
-  {
-    variants: {
-      model: {
-        underline:
-          'w-full flex-wrap items-stretch justify-center gap-1 rounded-none border-b border-kv-border bg-transparent p-0 sm:justify-start',
-        capsule:
-          'w-full justify-stretch gap-1 rounded-kv-control border border-kv-border bg-kv-surface-subtle p-[3px]',
-      },
-      size: {
-        sm: '',
-        md: '',
-        lg: '',
-      },
-    },
-    defaultVariants: {
-      model: 'underline',
-      size: 'md',
-    },
-  }
-);
+const LIST_TRACK_BRAND = 'bg-kv-surface-muted';
+/** One shade darker than default track — pairs with white active pill on auth. */
+const LIST_TRACK_SURFACE = 'bg-kv-surface-subtle';
 
-const appTabsTriggerVariants = cva(
-  [
-    'inline-flex items-center justify-center gap-kv-inline bg-transparent font-sans font-bold',
-    'text-kv-text-subtle shadow-none outline-none transition-all',
-    'hover:text-kv-text',
-    'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
-    'disabled:pointer-events-none disabled:opacity-50',
-    "[&_svg]:pointer-events-none [&_svg]:shrink-0",
-  ].join(' '),
-  {
-    variants: {
-      model: {
-        /** Active border sits on the list's bottom rule (no floating gap). */
-        underline: [
-          'relative -mb-px flex-none rounded-none border-b-2 border-transparent',
-          'data-[state=active]:border-kv-brand-active data-[state=active]:bg-transparent',
-          'data-[state=active]:text-kv-brand-soft-fg data-[state=active]:shadow-none',
-        ].join(' '),
-        capsule: [
-          'flex-1 rounded-kv-control border-0',
-          'data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
-          'data-[state=active]:shadow-md data-[state=active]:shadow-kv-brand/15',
-        ].join(' '),
-      },
-      size: {
-        sm: "px-3 py-1.5 text-xs [&_svg:not([class*='size-'])]:size-3",
-        md: "px-4 py-2 text-xs [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "px-5 py-2.5 text-sm [&_svg:not([class*='size-'])]:size-4",
-      },
-    },
-    compoundVariants: [
-      {
-        model: 'underline',
-        size: 'sm',
-        class: 'px-3 py-2 font-black',
-      },
-      {
-        model: 'underline',
-        size: 'md',
-        class: 'px-4 py-2.5 font-black',
-      },
-      {
-        model: 'underline',
-        size: 'lg',
-        class: 'px-5 py-3 text-sm font-black',
-      },
-      {
-        model: 'capsule',
-        size: 'sm',
-        class: 'px-3 py-1.5 text-xs',
-      },
-      {
-        model: 'capsule',
-        size: 'md',
-        class: 'px-4 py-2.5 text-[13px]',
-      },
-      {
-        model: 'capsule',
-        size: 'lg',
-        class: 'px-5 py-2.5 text-sm',
-      },
-    ],
-    defaultVariants: {
-      model: 'underline',
-      size: 'md',
-    },
-  }
-);
+const LIST_NORMAL = [
+  LIST_BASE,
+  'w-full self-stretch',
+  'md:inline-flex md:w-fit md:max-w-full md:self-start md:justify-start',
+].join(' ');
+
+const LIST_FULL = [LIST_BASE, 'w-full self-stretch justify-stretch'].join(' ');
+
+const TRIGGER_BASE = [
+  'inline-flex min-w-0 items-center justify-center rounded-kv-control border-0',
+  'bg-transparent font-sans font-bold text-kv-text-subtle shadow-none outline-none transition-all',
+  'hover:text-kv-text',
+  'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
+  'disabled:pointer-events-none disabled:opacity-50',
+  '[&_svg]:pointer-events-none [&_svg]:shrink-0',
+].join(' ');
+
+const TRIGGER_ACTIVE_BRAND = [
+  'data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
+  'data-[state=active]:shadow-kv-raised data-[state=active]:shadow-kv-brand/15',
+].join(' ');
+
+/** White/surface active pill on muted track — auth login/register. */
+const TRIGGER_ACTIVE_SURFACE = [
+  'data-[state=active]:bg-kv-surface data-[state=active]:text-kv-text',
+  'data-[state=active]:shadow-kv-raised',
+].join(' ');
+
+const TRIGGER_NORMAL_SIZE = [
+  'flex-1 gap-1.5 px-1.5 py-2.5 text-xs leading-none',
+  'md:w-auto md:flex-none md:grow-0 md:gap-2 md:px-5 md:py-2.5 md:text-[13px]',
+].join(' ');
+
+const TRIGGER_FULL_SIZE = [
+  'flex-1 gap-1.5 px-1.5 py-2.5 text-xs leading-none',
+].join(' ');
 
 type AppTabsContextValue = {
-  model: AppTabsModel;
-  size: AppTabsSize;
+  fullWidth: boolean;
+  activeTone: AppTabsActiveTone;
 };
 
 const AppTabsContext = React.createContext<AppTabsContextValue>({
-  model: 'underline',
-  size: 'md',
+  fullWidth: false,
+  activeTone: 'brand',
 });
 
 function useAppTabsContext() {
   return React.useContext(AppTabsContext);
 }
 
-export interface AppTabsProps
-  extends React.ComponentProps<typeof TabsPrimitive.Root>,
-    VariantProps<typeof appTabsListVariants> {
-  /** Visual model — `capsule` matches AuthCard login/register. */
-  model?: AppTabsModel;
-  /** Density — `sm` is the auth form default. */
-  size?: AppTabsSize;
-}
+export type AppTabsProps = React.ComponentProps<typeof TabsPrimitive.Root> & {
+  /**
+   * `true` — always full-width equal tabs (auth register/login).
+   * `false` (default) — normal: full on mobile, hug content on md+.
+   */
+  fullWidth?: boolean;
+  /**
+   * Active pill color. Default `brand` everywhere;
+   * use `surface` only on the auth login/register card.
+   */
+  activeTone?: AppTabsActiveTone;
+};
 
-/** Shared Radix-based tabs with interchangeable visual models and sizes. */
+/** Shared capsule tabs. Width via `fullWidth`; active fill via `activeTone`. */
 function AppTabs({
-  model = 'underline',
-  size = 'md',
   className,
   children,
   orientation = 'horizontal',
+  fullWidth = false,
+  activeTone = 'brand',
   ...props
 }: AppTabsProps) {
   return (
-    <AppTabsContext.Provider value={{ model, size }}>
+    <AppTabsContext.Provider value={{ fullWidth, activeTone }}>
       <TabsPrimitive.Root
         data-slot="app-tabs"
-        data-model={model}
-        data-size={size}
+        data-full-width={fullWidth || undefined}
+        data-active-tone={activeTone}
         data-orientation={orientation}
         orientation={orientation}
         className={cn(
-          'flex w-full gap-kv-stack font-sans data-[orientation=horizontal]:flex-col',
+          'flex w-full flex-col gap-kv-stack font-sans data-[orientation=horizontal]:flex-col',
           className
         )}
         {...props}
@@ -167,14 +127,16 @@ function AppTabsList({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List>) {
-  const { model, size } = useAppTabsContext();
+  const { fullWidth, activeTone } = useAppTabsContext();
 
   return (
     <TabsPrimitive.List
       data-slot="app-tabs-list"
-      data-model={model}
-      data-size={size}
-      className={cn(appTabsListVariants({ model, size }), className)}
+      className={cn(
+        fullWidth ? LIST_FULL : LIST_NORMAL,
+        activeTone === 'surface' ? LIST_TRACK_SURFACE : LIST_TRACK_BRAND,
+        className
+      )}
       {...props}
     />
   );
@@ -184,14 +146,17 @@ function AppTabsTrigger({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
-  const { model, size } = useAppTabsContext();
+  const { fullWidth, activeTone } = useAppTabsContext();
 
   return (
     <TabsPrimitive.Trigger
       data-slot="app-tabs-trigger"
-      data-model={model}
-      data-size={size}
-      className={cn(appTabsTriggerVariants({ model, size }), className)}
+      className={cn(
+        TRIGGER_BASE,
+        activeTone === 'surface' ? TRIGGER_ACTIVE_SURFACE : TRIGGER_ACTIVE_BRAND,
+        fullWidth ? TRIGGER_FULL_SIZE : TRIGGER_NORMAL_SIZE,
+        className
+      )}
       {...props}
     />
   );
@@ -210,11 +175,4 @@ function AppTabsContent({
   );
 }
 
-export {
-  AppTabs,
-  AppTabsList,
-  AppTabsTrigger,
-  AppTabsContent,
-  appTabsListVariants,
-  appTabsTriggerVariants,
-};
+export { AppTabs, AppTabsList, AppTabsTrigger, AppTabsContent };

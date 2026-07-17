@@ -1,9 +1,9 @@
 'use client';
 
-import { Hourglass } from 'lucide-react';
-
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import type { DocStatus } from '@/types/auth';
+import { faIcons } from '@/utils/iconMap';
 
 export interface ProfileStatusAlertProps {
   approved: boolean;
@@ -49,11 +49,11 @@ export function ProfileStatusAlert({
               مدیریت رد شده است. لطفاً دلیل اعلام‌شده را برطرف کرده، اطلاعات خود
               را ویرایش و مجدداً مدرک معتبر ارسال فرمایید:
             </p>
-            <div className="my-1 w-full rounded-kv-panel border border-rose-300 bg-white p-3 text-[11px] font-bold text-rose-950 shadow-sm">
-              <span className="mb-0.5 block text-[9px] font-bold text-rose-500">
+            <div className="my-1 w-full rounded-kv-panel border border-kv-danger-border bg-kv-surface p-3 text-xs font-bold text-kv-danger-soft-fg shadow-kv-raised">
+              <span className="mb-0.5 block text-xs font-bold text-kv-danger">
                 علت اعلام‌شده توسط مدیریت ارشد:
               </span>
-              <span className="font-extrabold text-slate-800">
+              <span className="font-extrabold text-kv-text-secondary">
                 {adminRequestMessage?.trim() || 'علتی ثبت نشده است.'}
               </span>
             </div>
@@ -69,7 +69,7 @@ export function ProfileStatusAlert({
         variant="info"
         title="اطلاعات در انتظار تأیید مدیریت است"
         description="پرونده شما با موفقیت برای مدیریت ارشد ارسال گردید. حساب کاربری شما بلافاصله پس از تایید مدارک توسط مدیر ارشد فعال خواهد شد."
-        icon={<Hourglass aria-hidden="true" />}
+        icon={<FaIcon icon={faIcons.hourglassHalf} size="sm" />}
       />
     );
   }

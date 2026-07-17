@@ -30,7 +30,7 @@ export function RoleSelectField({
           id="register-role"
           label="نقش کاربری"
           required
-          locked={Boolean(disabled)}
+          disabled={disabled}
           error={errorMessage}
           placeholder="انتخاب نقش..."
           value={field.value ?? ''}

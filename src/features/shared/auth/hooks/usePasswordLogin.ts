@@ -14,7 +14,7 @@ interface UsePasswordLoginOptions {
 /**
  * Credential (mobile + password) login flow. Owns only its own form and
  * submit lifecycle — mode switching lives in the `useLoginForm` coordinator.
- * Server errors surface on the `password` field (no top-level banner).
+ * Unknown mobile → error on `mobile` only; other auth failures mark both fields.
  */
 export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
   const passwordForm = useForm<LoginSchema>({
@@ -29,9 +29,19 @@ export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
       await AuthService.loginWithCredentials(data.mobile, data.password);
       onSuccess();
     } catch (error) {
-      passwordForm.setError('password', {
-        message: readAuthErrorMessage(error, 'ورود ناموفق بود.'),
-      });
+      const message = readAuthErrorMessage(
+        error,
+        'شماره موبایل یا رمز عبور نادرست است.'
+      );
+
+      if (message === 'کاربری با این شماره یافت نشد.') {
+        passwordForm.setError('mobile', { message });
+        passwordForm.clearErrors('password');
+        return;
+      }
+
+      passwordForm.setError('mobile', { message });
+      passwordForm.setError('password', { message });
     }
   });
 

@@ -1,24 +1,31 @@
 'use client';
 
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronLeft, LayoutDashboard, Lock, X } from 'lucide-react';
+import { useEffect, useId, useRef } from 'react';
 
-import { useUserStore } from '@/store/useUserStore';
+import { FaIcon } from '@/components/shared/FaIcon';
+import {
+  KvTooltip,
+  KvTooltipContent,
+  KvTooltipTrigger,
+} from '@/components/shared/KvTooltip';
+import { KvTypography } from '@/components/shared/KvTypography';
+import { cn } from '@/lib/utils';
+import { RouteService } from '@/services/route.service';
 import { useUIStore } from '@/store/useUIStore';
+import { useUserStore } from '@/store/useUserStore';
 import {
   areKarvitaModulesUnlocked,
   getRoleStrategy,
   type SidebarMenuItem,
 } from '@/utils/RoleStrategyMap';
-import { iconMap } from '@/utils/iconMap';
-import { RouteService } from '@/services/route.service';
-import { cn } from '@/lib/utils';
-import { KvTypography } from '@/components/shared/KvTypography';
+import { faIcons, iconMap } from '@/utils/iconMap';
 
-/** Resolves a legacy `fa-*` icon key to its mapped Lucide component (falls back to a generic icon). */
-function resolveIcon(iconKey: string) {
-  return iconMap[iconKey] ?? LayoutDashboard;
+/** Resolves a legacy `fa-*` icon key to its mapped Font Awesome icon. */
+function resolveIcon(iconKey: string): IconDefinition {
+  return iconMap[iconKey] ?? faIcons.tableColumns;
 }
 
 /**
@@ -35,20 +42,71 @@ export function Sidebar() {
   const toggleCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
   const closeMobileSidebar = useUIStore((state) => state.closeMobileSidebar);
   const pathname = usePathname();
+  const drawerTitleId = useId();
+  const drawerRef = useRef<HTMLElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isMobileOpen) return;
+
+    previouslyFocused.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+
+    const drawer = drawerRef.current;
+    const focusable = drawer?.querySelector<HTMLElement>(
+      'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+    );
+    focusable?.focus();
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMobileSidebar();
+        return;
+      }
+      if (event.key !== 'Tab' || !drawer) return;
+
+      const nodes = Array.from(
+        drawer.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((node) => !node.hasAttribute('disabled'));
+      if (nodes.length === 0) return;
+
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      previouslyFocused.current?.focus();
+    };
+  }, [isMobileOpen, closeMobileSidebar]);
 
   if (!activeUser) return null;
 
   const strategy = getRoleStrategy(activeUser.role);
-  const RoleIcon = resolveIcon(strategy.roleIcon);
+  const roleIcon = resolveIcon(strategy.roleIcon);
   const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
+  const profileHref = RouteService.karvita.profile(activeUser.role);
 
   return (
     <>
       <div
         onClick={closeMobileSidebar}
-        aria-hidden="true"
+        aria-hidden={!isMobileOpen}
         className={cn(
-          'fixed inset-0 z-40 bg-slate-950/40 transition-opacity lg:hidden',
+          'fixed inset-0 z-40 bg-kv-surface-inverse/40 transition-opacity lg:hidden',
           isMobileOpen
             ? 'pointer-events-auto opacity-100'
             : 'pointer-events-none opacity-0'
@@ -56,35 +114,43 @@ export function Sidebar() {
       />
 
       <aside
+        ref={drawerRef}
+        id="karvita-sidebar"
+        role={isMobileOpen ? 'dialog' : undefined}
+        aria-modal={isMobileOpen ? true : undefined}
+        aria-labelledby={isMobileOpen ? drawerTitleId : undefined}
         className={cn(
-          'fixed inset-y-0 start-0 z-50 flex shrink-0 flex-col overflow-y-auto border-e border-slate-200/80 bg-white transition-all duration-300 ease-in-out',
-          'lg:sticky lg:top-[88px] lg:z-0 lg:h-auto lg:translate-x-0 lg:self-start lg:overflow-y-visible lg:bg-white lg:border lg:border-slate-200/80 lg:rounded-kv-shell lg:shadow-sm',
+          'fixed inset-y-0 start-0 z-50 flex shrink-0 flex-col overflow-y-auto border-e border-kv-border/80 bg-kv-surface transition-all duration-300 ease-in-out',
+          /* Sticky offset = header h-16 + shell py-kv-group (same gap main gets from the parent). */
+          'lg:sticky lg:top-[calc(4rem+var(--spacing-kv-group))] lg:z-0 lg:h-auto lg:translate-x-0 lg:self-start lg:overflow-y-visible lg:pointer-events-auto lg:visible lg:bg-kv-surface lg:border lg:border-kv-border/80 lg:rounded-kv-shell lg:shadow-kv-raised',
           isMobileOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
+          !isMobileOpen && 'max-lg:pointer-events-none max-lg:invisible',
           isCollapsed ? 'w-72 lg:w-20' : 'w-72 lg:w-60'
         )}
       >
         <button
           type="button"
           onClick={toggleCollapsed}
-          aria-label="تغییر وضعیت نوار کناری"
-          className="absolute -end-3 top-6 z-20 hidden size-6 items-center justify-center rounded-full border border-slate-300/80 bg-white text-slate-500 shadow-sm transition-all hover:border-brand-500 hover:text-brand-500 hover:shadow-md lg:flex"
+          aria-label={isCollapsed ? 'باز کردن نوار کناری' : 'جمع کردن نوار کناری'}
+          className="absolute -end-3 top-6 z-20 hidden size-7 items-center justify-center rounded-full border border-kv-border-strong/80 bg-kv-surface text-kv-text-subtle shadow-kv-raised transition-all hover:border-kv-brand hover:text-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/20 lg:flex"
         >
-          <ChevronLeft
+          <FaIcon
+            icon={faIcons.chevronLeft}
+            size="xs"
             className={cn(
-              'size-3 transition-transform duration-300',
+              'transition-transform duration-300',
               isCollapsed ? 'rotate-180 rtl:rotate-0' : 'rotate-0 rtl:rotate-180'
             )}
-            aria-hidden="true"
           />
         </button>
 
-        <div className="flex items-center justify-between gap-kv-inline border-b border-slate-100 p-4 lg:hidden">
+        <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-compact lg:hidden">
           <div className="flex min-w-0 items-center gap-kv-inline">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-brand-500 text-white shadow-sm shadow-brand-500/20">
-              <LayoutDashboard className="size-4" aria-hidden="true" />
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20">
+              <FaIcon icon={faIcons.tableColumns} size="sm" />
             </div>
             <div className="flex min-w-0 flex-col text-start">
-              <KvTypography variant="subtitle" as="h2" truncate>
+              <KvTypography variant="subtitle" as="h2" id={drawerTitleId} truncate>
                 پنل کاربری - {strategy.label}
               </KvTypography>
               <div className="mt-1">
@@ -98,13 +164,13 @@ export function Sidebar() {
             type="button"
             onClick={closeMobileSidebar}
             aria-label="بستن منو"
-            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
+            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-kv-surface-subtle text-kv-text-subtle transition-colors hover:bg-kv-danger-soft hover:text-kv-danger focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
           >
-            <X className="size-4" aria-hidden="true" />
+            <FaIcon icon={faIcons.xmark} size="sm" />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-2 p-4 lg:p-3 lg:pt-kv-stack lg:pb-8">
+        <nav className="flex-1 space-y-kv-pair p-kv-compact lg:p-kv-compact lg:pt-kv-stack lg:pb-8" aria-label="منوی اصلی">
           {strategy.sidebarMenu.map((item) => (
             <SidebarNavLink
               key={item.path}
@@ -118,24 +184,25 @@ export function Sidebar() {
         </nav>
 
         <Link
-          href={RouteService.karvita.profile(activeUser.role)}
+          href={profileHref}
           prefetch={false}
           onClick={closeMobileSidebar}
+          aria-label={`پروفایل ${activeUser.firstName} ${activeUser.lastName}`}
           className={cn(
-            'border-t border-slate-100 bg-white transition-colors hover:bg-slate-50 lg:rounded-b-kv-shell',
-            isCollapsed ? 'p-4 lg:p-2' : 'p-4'
+            'border-t border-kv-border-muted bg-kv-surface transition-colors hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30 lg:rounded-b-kv-shell',
+            isCollapsed ? 'p-kv-compact lg:p-2' : 'p-kv-compact'
           )}
         >
           <div
             className={cn(
-              'flex items-center rounded-kv-control border border-slate-100 bg-slate-50 transition-all',
+              'flex items-center rounded-kv-control border border-kv-border-muted bg-kv-surface-muted transition-all',
               isCollapsed
-                ? 'justify-start p-3 lg:justify-center lg:p-2'
-                : 'p-3'
+                ? 'justify-start p-kv-compact lg:justify-center lg:p-2'
+                : 'p-kv-compact'
             )}
           >
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-brand-500/10 text-brand-600">
-              <RoleIcon className="size-4" aria-hidden="true" />
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
+              <FaIcon icon={roleIcon} size="sm" />
             </div>
             <div
               className={cn(
@@ -176,74 +243,79 @@ function SidebarNavLink({
   locked,
   onNavigate,
 }: SidebarNavLinkProps) {
-  const ItemIcon = resolveIcon(item.icon);
+  const itemIcon = resolveIcon(item.icon);
+  const iconTone = locked
+    ? 'text-kv-text-disabled'
+    : isActive
+      ? 'text-kv-brand-soft-fg'
+      : 'text-kv-text-faint';
 
   const content = (
-    <>
-      <div className="flex min-w-0 items-center">
-        <ItemIcon
-          className={cn(
-            'size-4 shrink-0 text-center',
-            locked
-              ? 'text-slate-400'
-              : isActive
-                ? 'text-brand-600'
-                : 'text-slate-400'
-          )}
-          aria-hidden="true"
-        />
-        <span
-          className={cn(
-            'inline-block max-w-[150px] overflow-hidden whitespace-nowrap opacity-100 transition-all',
-            isCollapsed ? 'ms-3 lg:ms-0 lg:max-w-0 lg:opacity-0' : 'ms-3'
-          )}
-        >
-          {item.title}
-        </span>
-      </div>
-      {locked && !isCollapsed ? (
-        <Lock className="size-3 shrink-0 text-slate-400" aria-hidden="true" />
-      ) : null}
-      {locked && isCollapsed ? (
-        <Lock
-          className="ms-2 size-3 shrink-0 text-slate-400 lg:ms-0 lg:hidden"
-          aria-hidden="true"
-        />
-      ) : null}
-    </>
-  );
-
-  if (locked) {
-    return (
-      <button
-        type="button"
-        disabled
-        aria-disabled="true"
-        title="پس از تایید مدارک توسط مدیریت فعال می‌شود"
+    <div className="flex min-w-0 items-center">
+      <FaIcon
+        icon={itemIcon}
+        size="sm"
+        className={cn('shrink-0 text-center', iconTone)}
+      />
+      <span
         className={cn(
-          'flex w-full cursor-default items-center rounded-kv-control bg-slate-100/40 px-3.5 py-2.5 text-xs font-bold text-slate-400 opacity-40',
-          isCollapsed ? 'justify-start lg:justify-center' : 'justify-between'
+          'inline-block max-w-[150px] overflow-hidden whitespace-nowrap opacity-100 transition-all',
+          isCollapsed ? 'ms-3 lg:ms-0 lg:max-w-0 lg:opacity-0' : 'ms-3'
         )}
       >
-        {content}
-      </button>
-    );
-  }
+        {item.title}
+      </span>
+    </div>
+  );
 
-  return (
+  const className = cn(
+    'flex min-h-11 w-full items-center rounded-kv-control px-3.5 py-2.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
+    isCollapsed ? 'justify-start lg:justify-center' : 'justify-start',
+    locked
+      ? 'cursor-default bg-transparent text-kv-text-disabled'
+      : isActive
+        ? 'border border-kv-brand-border/50 bg-kv-brand-soft text-kv-brand-soft-fg'
+        : 'text-kv-text-muted hover:bg-kv-surface-muted hover:text-kv-text-secondary'
+  );
+
+  const control = locked ? (
+    <button
+      type="button"
+      disabled
+      aria-disabled="true"
+      aria-label={`${item.title} — غیرفعال تا تأیید مدارک`}
+      className={className}
+    >
+      {content}
+    </button>
+  ) : (
     <Link
       href={item.path}
       prefetch={false}
       onClick={onNavigate}
-      className={cn(
-        'flex w-full items-center rounded-kv-control px-3.5 py-2.5 text-xs font-bold transition-colors',
-        isCollapsed ? 'justify-start lg:justify-center' : 'justify-between',
-        isActive
-          ? 'border border-brand-100/50 bg-brand-50 text-brand-700'
-          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
-      )}
+      aria-label={item.title}
+      aria-current={isActive ? 'page' : undefined}
+      className={className}
     >
       {content}
     </Link>
+  );
+
+  if (!isCollapsed) return control;
+
+  // Disabled buttons don't fire pointer events — wrap for tooltip.
+  const trigger = locked ? (
+    <span className="block w-full">{control}</span>
+  ) : (
+    control
+  );
+
+  return (
+    <KvTooltip>
+      <KvTooltipTrigger asChild>{trigger}</KvTooltipTrigger>
+      <KvTooltipContent side="left" sideOffset={8}>
+        {locked ? `${item.title} (غیرفعال)` : item.title}
+      </KvTooltipContent>
+    </KvTooltip>
   );
 }

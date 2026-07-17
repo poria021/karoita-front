@@ -20,7 +20,10 @@ export type KvSelectTriggerProps = React.ComponentProps<typeof SelectTrigger>;
 export type KvSelectContentProps = React.ComponentProps<typeof SelectContent>;
 export type KvSelectItemProps = React.ComponentProps<typeof SelectItem>;
 
-/** Karvita-styled select trigger (rounded-kv-control, bold xs). */
+/**
+ * Karvita select trigger — same chrome as {@link KvTextField} / {@link KvInput}
+ * (full width, h-11 default via field, bold xs; hover ≠ focus).
+ */
 export function KvSelectTrigger({
   className,
   ...props
@@ -29,9 +32,28 @@ export function KvSelectTrigger({
     <SelectTrigger
       data-slot="kv-select-trigger"
       className={cn(
-        'h-9 w-full rounded-kv-control border-kv-border-strong px-3 font-sans text-xs font-bold text-kv-text-secondary shadow-none md:text-xs',
-        'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
-        '[&_svg]:size-3.5 [&_svg]:shrink-0 [&_svg]:text-kv-text-faint [&_svg]:opacity-100',
+        /* Neutralize Shadcn SelectTrigger defaults that fight field alignment */
+        'flex w-full min-w-0 items-center justify-between gap-2 rounded-kv-control',
+        'h-11 data-[size=default]:h-11 data-[size=sm]:h-9',
+        'border border-kv-border-strong bg-kv-surface px-3.5 py-0',
+        'font-sans text-xs font-bold text-kv-text-secondary shadow-none md:text-xs',
+        'whitespace-nowrap outline-none',
+        'transition-[color,background-color,border-color,box-shadow]',
+        'data-[placeholder]:text-kv-text-placeholder',
+        /* Hover — border only (no fill change) */
+        'hover:border-kv-brand',
+        /* Focus / open — solid brand + ring (distinct from hover) */
+        'focus-visible:border-kv-brand focus-visible:bg-kv-surface',
+        'focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
+        'data-[state=open]:border-kv-brand data-[state=open]:bg-kv-surface',
+        'data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15',
+        'disabled:cursor-not-allowed disabled:opacity-100',
+        'disabled:hover:border-kv-border-strong',
+        'dark:bg-kv-surface dark:hover:bg-kv-surface',
+        '[&_svg]:pointer-events-none [&_svg]:shrink-0',
+        '[&_svg]:text-kv-text-faint [&_svg]:opacity-100',
+        '*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex',
+        '*:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2',
         className
       )}
       {...props}

@@ -11,9 +11,10 @@ import { cn } from '@/lib/utils';
 
 const kvTextAreaVariants = cva(
   [
-    'w-full resize-y rounded-kv-control border bg-kv-surface font-sans font-bold text-kv-text-secondary shadow-none transition-colors',
-    'placeholder:text-kv-text-faint',
-    'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15 focus-visible:outline-none',
+    'w-full resize-y rounded-kv-control border bg-kv-surface font-sans font-bold text-kv-text-secondary shadow-none',
+    'placeholder:text-kv-text-placeholder',
+    'transition-[color,background-color,border-color,box-shadow]',
+    'focus-visible:outline-none',
     'disabled:cursor-not-allowed disabled:opacity-100',
   ].join(' '),
   {
@@ -24,15 +25,27 @@ const kvTextAreaVariants = cva(
         lg: 'min-h-28 px-4 py-3 text-sm',
       },
       state: {
-        default: 'border-kv-border-strong',
-        error:
-          'border-kv-danger-border focus-visible:border-kv-danger focus-visible:ring-kv-ring-danger/15',
-        locked:
-          'cursor-not-allowed border-kv-border bg-kv-surface-muted text-kv-text-faint focus-visible:border-kv-border focus-visible:ring-0',
+        default: [
+          'border-kv-border-strong',
+          'hover:border-kv-brand',
+          'focus-visible:border-kv-brand focus-visible:bg-kv-surface',
+          'focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
+        ].join(' '),
+        error: [
+          'border-kv-danger-border',
+          'hover:border-kv-danger',
+          'focus-visible:border-kv-danger focus-visible:bg-kv-surface',
+          'focus-visible:ring-[3px] focus-visible:ring-kv-ring-danger/15',
+        ].join(' '),
+        locked: [
+          'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled',
+          'hover:border-kv-border-disabled',
+          'focus-visible:border-kv-border-disabled focus-visible:ring-0',
+        ].join(' '),
       },
     },
     defaultVariants: {
-      size: 'sm',
+      size: 'md',
       state: 'default',
     },
   }
@@ -74,7 +87,7 @@ export const KvTextArea = React.forwardRef<
     label,
     required = false,
     optionalHint = false,
-    size = 'sm',
+    size = 'md',
     placeholder,
     error,
     hint,

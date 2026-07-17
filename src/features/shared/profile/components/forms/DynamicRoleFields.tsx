@@ -1,12 +1,14 @@
 'use client';
 
-import type { ChangeEvent } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import { KvFormField } from '@/components/shared/KvForm';
 import { KvTextField } from '@/components/shared/KvTextField';
 import type { UserRole } from '@/types/auth';
-import { persianToEnglishDigits } from '@/utils/persianDigits';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
 import type { ProfileSchema } from '../../schemas/profile.schema';
 import {
@@ -23,6 +25,7 @@ export interface DynamicRoleFieldsProps {
   disabled?: boolean;
 }
 
+/** Normalize to English digits-only for RHF / Zod / API. */
 function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
 }
@@ -56,7 +59,6 @@ export function DynamicRoleFields({
                 value={typeof field.value === 'string' ? field.value : ''}
                 placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
                 locked={disabled}
-                showLockIcon={disabled}
                 error={fieldState.error?.message}
                 dependsOn={{
                   province:
@@ -79,37 +81,34 @@ export function DynamicRoleFields({
         );
       })}
 
-      {strategy.identifierFields.map((name) => {
-        const errors = form.formState.errors as Record<
-          string,
-          { message?: unknown } | undefined
-        >;
-        const error = errors[name]?.message;
-        const registration = form.register(name);
-
-        const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-          event.target.value = filterDigits(event.target.value);
-          void registration.onChange(event);
-        };
-
-        return (
-          <KvTextField
-            key={name}
-            label={IDENTIFIER_META[name].label}
-            required
-            type="tel"
-            inputMode="numeric"
-            locked={disabled}
-            showLockIcon={disabled}
-            placeholder={IDENTIFIER_META[name].placeholder}
-            error={typeof error === 'string' ? error : undefined}
-            name={registration.name}
-            onBlur={registration.onBlur}
-            ref={registration.ref}
-            onChange={handleChange}
-          />
-        );
-      })}
+      {strategy.identifierFields.map((name) => (
+        <KvFormField
+          key={name}
+          control={form.control}
+          name={name}
+          render={({ field, fieldState }) => (
+            <KvTextField
+              label={IDENTIFIER_META[name].label}
+              required
+              type="tel"
+              inputMode="numeric"
+              dir="ltr"
+              locked={disabled}
+              placeholder={IDENTIFIER_META[name].placeholder}
+              error={fieldState.error?.message}
+              name={field.name}
+              ref={field.ref}
+              onBlur={field.onBlur}
+              value={toPersianDigits(
+                typeof field.value === 'string' ? field.value : ''
+              )}
+              onChange={(event) => {
+                field.onChange(filterDigits(event.target.value));
+              }}
+            />
+          )}
+        />
+      ))}
     </>
   );
 }

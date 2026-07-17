@@ -44,15 +44,15 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   /* رنگ‌مایه برند کارویتا (پالت خام) — ترجیحاً از توکن‌های معنایی `kv-*` استفاده کنید */
-  --color-brand-50: #f0f6ff;
-  --color-brand-100: #e0edff;
-  --color-brand-200: #bfdbfe;
-  --color-brand-300: #93c5fd;
-  --color-brand-500: #104ec6;
-  --color-brand-600: #0b51cc;
-  --color-brand-700: #093f9f;
-  --color-brand-850: #073280;
-  --color-brand-900: #031b44;
+  --color-brand-50: hsl(216 100% 97.1%);
+  --color-brand-100: hsl(215 100% 93.9%);
+  --color-brand-200: hsl(213 96.9% 87.3%);
+  --color-brand-300: hsl(212 96.4% 78.4%);
+  --color-brand-500: hsl(220 85% 42%);
+  --color-brand-600: hsl(218 89.8% 42.2%);
+  --color-brand-700: hsl(218 89.3% 32.9%);
+  --color-brand-850: hsl(219 89.6% 26.5%);
+  --color-brand-900: hsl(218 91.5% 13.9%);
 
   /*
    * Karvita semantic colors (`kv-*`) — purpose tokens (WCAG-minded).
@@ -64,6 +64,7 @@
   --color-kv-surface-muted: var(--kv-surface-muted);
   --color-kv-surface-subtle: var(--kv-surface-subtle);
   --color-kv-surface-disabled: var(--kv-surface-disabled);
+  --color-kv-field-disabled: var(--kv-field-disabled);
   --color-kv-surface-inverse: var(--kv-surface-inverse);
 
   --color-kv-text: var(--kv-text);
@@ -80,6 +81,7 @@
   --color-kv-border: var(--kv-border);
   --color-kv-border-strong: var(--kv-border-strong);
   --color-kv-border-muted: var(--kv-border-muted);
+  --color-kv-border-disabled: var(--kv-border-disabled);
   --color-kv-ring: var(--kv-ring);
   --color-kv-ring-danger: var(--kv-ring-danger);
 
@@ -141,22 +143,51 @@
   --color-kv-accent-border: var(--kv-accent-border);
 
   /*
-   * Karvita semantic spacing (`kv-*`) — Gestalt proximity & separation.
-   * Intent-only tokens (no parallel numeric scale; use Tailwind gap/p for one-offs):
-   * - field: label ↔ control
-   * - inline: icon ↔ text within one unit
-   * - group: related siblings (form fields)
-   * - stack: page chrome vertical rhythm
-   * - section: distinct content blocks
-   * - inset / page: container padding
+   * ═══════════════════════════════════════════════════════════════════════════
+   * Karvita spacing (`kv-*`) — complete Gestalt scale
+   * ═══════════════════════════════════════════════════════════════════════════
+   *
+   * Intent-only tokens (no raw gap-2 / p-4 in app UI). Same rem may appear twice
+   * when gap-role ≠ pad-role (e.g. block gap vs page pad) — pick by *meaning*.
+   *
+   * ── Proximity ladder (gap / space-y / margin between elements) ────────────
+   *   micro    2px   hairline (badge stack, track chrome)
+   *   field    6px   label → control, hint under field
+   *   pair     8px   tight siblings inside one unit
+   *   inline  12px   icon ↔ text / meta in one row
+   *   group   16px   related siblings (fields, stacked CTAs)
+   *   stack   20px   cluster → next cluster (fields → actions, tabs → form)
+   *   section 24px   distinct blocks (logo ↔ tabs, form ↔ footer)
+   *   block   32px   major content blocks on a page
+   *   region  40px   page regions / hero ↔ body
+   *   layout  48px   module / layout gutters
+   *
+   * ── Container padding (p / px / py on surfaces) ───────────────────────────
+   *   cell     8px   dense cell / table / chip
+   *   compact 12px   compact panel / alert
+   *   inset   20px   card / viewport (sm)
+   *   page    32px   card / page (lg)
+   *   screen  48px   screen / shell edges
+   *
+   * Auth form recipe: fields = group · fields→CTAs = stack · CTAs = group ·
+   * tabs→form = stack · logo/footer = section · card pad = inset|page
    */
-  --spacing-kv-field: 0.375rem; /* 6px — label → input */
-  --spacing-kv-inline: 0.75rem; /* 12px — icon ↔ copy */
-  --spacing-kv-group: 1rem; /* 16px — related fields */
-  --spacing-kv-stack: 1.25rem; /* 20px — chrome rhythm */
-  --spacing-kv-section: 1.5rem; /* 24px — section break */
-  --spacing-kv-inset: 1.25rem; /* 20px — card/viewport pad (sm) */
-  --spacing-kv-page: 2rem; /* 32px — page/card pad (lg) */
+  --spacing-kv-micro: 0.125rem; /* 2px */
+  --spacing-kv-field: 0.375rem; /* 6px */
+  --spacing-kv-pair: 0.5rem; /* 8px */
+  --spacing-kv-inline: 0.75rem; /* 12px */
+  --spacing-kv-group: 1rem; /* 16px */
+  --spacing-kv-stack: 1.25rem; /* 20px */
+  --spacing-kv-section: 1.5rem; /* 24px */
+  --spacing-kv-block: 2rem; /* 32px */
+  --spacing-kv-region: 2.5rem; /* 40px */
+  --spacing-kv-layout: 3rem; /* 48px */
+
+  --spacing-kv-cell: 0.5rem; /* 8px */
+  --spacing-kv-compact: 0.75rem; /* 12px */
+  --spacing-kv-inset: 1.25rem; /* 20px */
+  --spacing-kv-page: 2rem; /* 32px */
+  --spacing-kv-screen: 3rem; /* 48px */
 
   /*
    * Karvita semantic radius (`rounded-kv-*`) — corner roles by surface type.
@@ -169,93 +200,109 @@
   --radius-kv-control: 0.75rem; /* 12px — was rounded-xl */
   --radius-kv-panel: 1rem; /* 16px — was rounded-2xl */
   --radius-kv-card: 1.5rem; /* 24px — was rounded-3xl (forms/cards) */
-  --radius-kv-shell: 1.5rem; /* 24px — large chrome (sidebar / main) */
+  --radius-kv-shell: 1.5rem; /* 24px — large layout surfaces (sidebar / main) */
+
+  /*
+   * Semantic elevation (`shadow-kv-*`) — use roles instead of raw shadow-sm/md/xl.
+   * - raised: cards, shell surfaces, nav chrome
+   * - overlay: dropdowns, popovers, auth card emphasis
+   * - floating: modals, mobile drawers, confirmation dialogs
+   * CTA solid actions use brand (`KvButton` color="cta" → kv-brand*).
+   */
+  --shadow-kv-raised: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
+  --shadow-kv-overlay: 0 8px 24px -4px hsl(222 47% 11% / 0.12), 0 2px 8px -2px hsl(222 47% 11% / 0.08);
+  --shadow-kv-floating: 0 16px 40px -8px hsl(222 47% 11% / 0.18), 0 4px 12px -2px hsl(222 47% 11% / 0.1);
 }
 
 :root {
   --radius: 0.625rem;
 
-  /* —— kv semantic palette (light) —— */
-  --kv-canvas: #f8fafc;
-  --kv-surface: #ffffff;
-  --kv-surface-muted: #f8fafc;
-  --kv-surface-subtle: #f1f5f9;
-  --kv-surface-disabled: #f1f5f9;
-  --kv-surface-inverse: #0f172a;
+  /* —— kv semantic palette (light) — HSL only (see rule 70-color-hsl-tokens) —— */
+  /* App canvas matches original-karvita.html `bg-[#faf9f8]` */
+  --kv-canvas: hsl(30 14.3% 97.6%);
+  --kv-surface: hsl(0 0% 100%);
+  --kv-surface-muted: hsl(210 40% 98%);
+  --kv-surface-subtle: hsl(210 40% 96.1%);
+  --kv-surface-disabled: hsl(210 40% 96.1%);
+  /* Disabled form control fill — use with text-disabled + border-disabled */
+  --kv-field-disabled: hsl(210 25% 96.5%);
+  --kv-surface-inverse: hsl(222 47.4% 11.2%);
 
-  --kv-text: #0f172a;
-  --kv-text-secondary: #1e293b;
-  --kv-text-muted: #334155;
-  --kv-text-subtle: #475569;
-  --kv-text-faint: #64748b;
-  --kv-text-disabled: #94a3b8;
-  --kv-text-inverse: #ffffff;
-  --kv-text-placeholder: #64748b;
-  --kv-text-link: #093f9f;
-  --kv-text-link-hover: #073280;
+  --kv-text: hsl(222 47.4% 11.2%);
+  --kv-text-secondary: hsl(217 32.6% 17.5%);
+  --kv-text-muted: hsl(215 25% 26.7%);
+  --kv-text-subtle: hsl(215 19.3% 34.5%);
+  --kv-text-faint: hsl(215 16.3% 46.9%);
+  --kv-text-disabled: hsl(215 14% 62%);
+  --kv-text-inverse: hsl(0 0% 100%);
+  /* Lighter than faint — low-contrast field placeholders only */
+  --kv-text-placeholder: hsl(215 16% 68%);
+  --kv-text-link: hsl(218 89.3% 32.9%);
+  --kv-text-link-hover: hsl(219 89.6% 26.5%);
 
-  --kv-border: #e2e8f0;
-  --kv-border-strong: #cbd5e1;
-  --kv-border-muted: #f1f5f9;
-  --kv-ring: #104ec6;
-  --kv-ring-danger: #e11d48;
+  --kv-border: hsl(214 31.8% 91.4%);
+  --kv-border-strong: hsl(213 26.8% 83.9%);
+  --kv-border-muted: hsl(210 40% 96.1%);
+  --kv-border-disabled: hsl(214 20% 88%);
+  --kv-ring: hsl(220 85% 42%);
+  --kv-ring-danger: hsl(347 77.2% 49.8%);
 
-  --kv-brand: #104ec6;
-  --kv-brand-hover: #0b51cc;
-  --kv-brand-active: #093f9f;
-  --kv-brand-fg: #ffffff;
-  --kv-brand-soft: #f0f6ff;
-  --kv-brand-soft-hover: #e0edff;
-  --kv-brand-soft-fg: #093f9f;
-  --kv-brand-border: #bfdbfe;
+  --kv-brand: hsl(220 85% 42%);
+  --kv-brand-hover: hsl(218 89.8% 42.2%);
+  --kv-brand-active: hsl(218 89.3% 32.9%);
+  --kv-brand-fg: hsl(0 0% 100%);
+  --kv-brand-soft: hsl(216 100% 97.1%);
+  --kv-brand-soft-hover: hsl(215 100% 93.9%);
+  --kv-brand-soft-fg: hsl(218 89.3% 32.9%);
+  --kv-brand-border: hsl(213 96.9% 87.3%);
 
-  --kv-success: #059669;
-  --kv-success-hover: #047857;
-  --kv-success-fg: #ffffff;
-  --kv-success-soft: #ecfdf5;
-  --kv-success-soft-hover: #d1fae5;
-  --kv-success-soft-fg: #065f46;
-  --kv-success-border: #a7f3d0;
+  --kv-success: hsl(161 93.5% 30.4%);
+  --kv-success-hover: hsl(163 93.5% 24.3%);
+  --kv-success-fg: hsl(0 0% 100%);
+  --kv-success-soft: hsl(152 81% 95.9%);
+  --kv-success-soft-hover: hsl(149 80.4% 90%);
+  --kv-success-soft-fg: hsl(163 88.1% 19.8%);
+  --kv-success-border: hsl(152 76% 80.4%);
 
-  --kv-warning: #d97706;
-  --kv-warning-hover: #b45309;
-  --kv-warning-fg: #ffffff;
-  --kv-warning-soft: #fffbeb;
-  --kv-warning-soft-hover: #fef3c7;
-  --kv-warning-soft-fg: #92400e;
-  --kv-warning-border: #fde68a;
+  --kv-warning: hsl(32 94.6% 43.7%);
+  --kv-warning-hover: hsl(26 90.5% 37.1%);
+  --kv-warning-fg: hsl(0 0% 100%);
+  --kv-warning-soft: hsl(48 100% 96.1%);
+  --kv-warning-soft-hover: hsl(48 96.5% 88.8%);
+  --kv-warning-soft-fg: hsl(23 82.5% 31.4%);
+  --kv-warning-border: hsl(48 96.6% 76.7%);
 
-  --kv-danger: #e11d48;
-  --kv-danger-hover: #be123c;
-  --kv-danger-fg: #ffffff;
-  --kv-danger-soft: #fff1f2;
-  --kv-danger-soft-hover: #ffe4e6;
-  --kv-danger-soft-fg: #9f1239;
-  --kv-danger-border: #fecdd3;
+  --kv-danger: hsl(347 77.2% 49.8%);
+  --kv-danger-hover: hsl(345 82.7% 40.8%);
+  --kv-danger-fg: hsl(0 0% 100%);
+  --kv-danger-soft: hsl(356 100% 97.3%);
+  --kv-danger-soft-hover: hsl(356 100% 94.7%);
+  --kv-danger-soft-fg: hsl(343 79.7% 34.7%);
+  --kv-danger-border: hsl(353 96.1% 90%);
 
-  --kv-info: #2563eb;
-  --kv-info-hover: #1d4ed8;
-  --kv-info-fg: #ffffff;
-  --kv-info-soft: #eff6ff;
-  --kv-info-soft-hover: #dbeafe;
-  --kv-info-soft-fg: #1e40af;
-  --kv-info-border: #bfdbfe;
+  --kv-info: hsl(221 83.2% 53.3%);
+  --kv-info-hover: hsl(224 76.3% 48%);
+  --kv-info-fg: hsl(0 0% 100%);
+  --kv-info-soft: hsl(214 100% 96.9%);
+  --kv-info-soft-hover: hsl(214 94.6% 92.7%);
+  --kv-info-soft-fg: hsl(226 70.7% 40.2%);
+  --kv-info-border: hsl(213 96.9% 87.3%);
 
-  --kv-neutral: #e2e8f0;
-  --kv-neutral-hover: #cbd5e1;
-  --kv-neutral-fg: #334155;
-  --kv-neutral-soft: #f8fafc;
-  --kv-neutral-soft-hover: #f1f5f9;
-  --kv-neutral-soft-fg: #475569;
-  --kv-neutral-border: #e2e8f0;
+  --kv-neutral: hsl(214 31.8% 91.4%);
+  --kv-neutral-hover: hsl(213 26.8% 83.9%);
+  --kv-neutral-fg: hsl(215 25% 26.7%);
+  --kv-neutral-soft: hsl(210 40% 98%);
+  --kv-neutral-soft-hover: hsl(210 40% 96.1%);
+  --kv-neutral-soft-fg: hsl(215 19.3% 34.5%);
+  --kv-neutral-border: hsl(214 31.8% 91.4%);
 
-  --kv-accent: #7c3aed;
-  --kv-accent-hover: #6d28d9;
-  --kv-accent-fg: #ffffff;
-  --kv-accent-soft: #f5f3ff;
-  --kv-accent-soft-hover: #ede9fe;
-  --kv-accent-soft-fg: #5b21b6;
-  --kv-accent-border: #ddd6fe;
+  --kv-accent: hsl(262 83.3% 57.8%);
+  --kv-accent-hover: hsl(263 70% 50.4%);
+  --kv-accent-fg: hsl(0 0% 100%);
+  --kv-accent-soft: hsl(250 100% 97.6%);
+  --kv-accent-soft-hover: hsl(251 91.3% 95.5%);
+  --kv-accent-soft-fg: hsl(263 69.3% 42.2%);
+  --kv-accent-border: hsl(251 95.2% 91.8%);
 
   /* Shadcn bridges → kv (so primitives stay on-brand) */
   --background: var(--kv-canvas);
@@ -293,86 +340,90 @@
 }
 
 .dark {
-  --kv-canvas: #0b1220;
-  --kv-surface: #111827;
-  --kv-surface-muted: #1e293b;
-  --kv-surface-subtle: #1e293b;
-  --kv-surface-disabled: #1e293b;
-  --kv-surface-inverse: #f8fafc;
+  /* —— kv semantic palette (dark) — HSL only —— */
+  --kv-canvas: hsl(220 48.8% 8.4%);
+  --kv-surface: hsl(221 39.3% 11%);
+  --kv-surface-muted: hsl(217 32.6% 17.5%);
+  --kv-surface-subtle: hsl(217 32.6% 17.5%);
+  --kv-surface-disabled: hsl(217 32.6% 17.5%);
+  --kv-field-disabled: hsl(217 28% 16%);
+  --kv-surface-inverse: hsl(210 40% 98%);
 
-  --kv-text: #f8fafc;
-  --kv-text-secondary: #e2e8f0;
-  --kv-text-muted: #cbd5e1;
-  --kv-text-subtle: #94a3b8;
-  --kv-text-faint: #94a3b8;
-  --kv-text-disabled: #64748b;
-  --kv-text-inverse: #0f172a;
-  --kv-text-placeholder: #94a3b8;
-  --kv-text-link: #93c5fd;
-  --kv-text-link-hover: #bfdbfe;
+  --kv-text: hsl(210 40% 98%);
+  --kv-text-secondary: hsl(214 31.8% 91.4%);
+  --kv-text-muted: hsl(213 26.8% 83.9%);
+  --kv-text-subtle: hsl(215 20.2% 65.1%);
+  --kv-text-faint: hsl(215 20.2% 65.1%);
+  --kv-text-disabled: hsl(215 14% 48%);
+  --kv-text-inverse: hsl(222 47.4% 11.2%);
+  /* Darker than faint — low-contrast field placeholders only */
+  --kv-text-placeholder: hsl(215 15% 52%);
+  --kv-text-link: hsl(212 96.4% 78.4%);
+  --kv-text-link-hover: hsl(213 96.9% 87.3%);
 
-  --kv-border: #334155;
-  --kv-border-strong: #475569;
-  --kv-border-muted: #1e293b;
-  --kv-ring: #60a5fa;
-  --kv-ring-danger: #fb7185;
+  --kv-border: hsl(215 25% 26.7%);
+  --kv-border-strong: hsl(215 19.3% 34.5%);
+  --kv-border-muted: hsl(217 32.6% 17.5%);
+  --kv-border-disabled: hsl(215 18% 30%);
+  --kv-ring: hsl(213 93.9% 67.8%);
+  --kv-ring-danger: hsl(351 94.5% 71.4%);
 
-  --kv-brand: #3b82f6;
-  --kv-brand-hover: #60a5fa;
-  --kv-brand-active: #93c5fd;
-  --kv-brand-fg: #0f172a;
-  --kv-brand-soft: #172554;
-  --kv-brand-soft-hover: #1e3a8a;
-  --kv-brand-soft-fg: #bfdbfe;
-  --kv-brand-border: #1e40af;
+  --kv-brand: hsl(217 91.2% 59.8%);
+  --kv-brand-hover: hsl(213 93.9% 67.8%);
+  --kv-brand-active: hsl(212 96.4% 78.4%);
+  --kv-brand-fg: hsl(222 47.4% 11.2%);
+  --kv-brand-soft: hsl(226 57% 21%);
+  --kv-brand-soft-hover: hsl(224 64.3% 32.9%);
+  --kv-brand-soft-fg: hsl(213 96.9% 87.3%);
+  --kv-brand-border: hsl(226 70.7% 40.2%);
 
-  --kv-success: #34d399;
-  --kv-success-hover: #6ee7b7;
-  --kv-success-fg: #022c22;
-  --kv-success-soft: #064e3b;
-  --kv-success-soft-hover: #065f46;
-  --kv-success-soft-fg: #a7f3d0;
-  --kv-success-border: #047857;
+  --kv-success: hsl(158 64.4% 51.6%);
+  --kv-success-hover: hsl(156 71.6% 66.9%);
+  --kv-success-fg: hsl(166 91.3% 9%);
+  --kv-success-soft: hsl(164 85.7% 16.5%);
+  --kv-success-soft-hover: hsl(163 88.1% 19.8%);
+  --kv-success-soft-fg: hsl(152 76% 80.4%);
+  --kv-success-border: hsl(163 93.5% 24.3%);
 
-  --kv-warning: #fbbf24;
-  --kv-warning-hover: #fcd34d;
-  --kv-warning-fg: #422006;
-  --kv-warning-soft: #78350f;
-  --kv-warning-soft-hover: #92400e;
-  --kv-warning-soft-fg: #fde68a;
-  --kv-warning-border: #b45309;
+  --kv-warning: hsl(43 96.4% 56.3%);
+  --kv-warning-hover: hsl(46 96.7% 64.5%);
+  --kv-warning-fg: hsl(26 83.3% 14.1%);
+  --kv-warning-soft: hsl(22 77.8% 26.5%);
+  --kv-warning-soft-hover: hsl(23 82.5% 31.4%);
+  --kv-warning-soft-fg: hsl(48 96.6% 76.7%);
+  --kv-warning-border: hsl(26 90.5% 37.1%);
 
-  --kv-danger: #fb7185;
-  --kv-danger-hover: #fda4af;
-  --kv-danger-fg: #4c0519;
-  --kv-danger-soft: #881337;
-  --kv-danger-soft-hover: #9f1239;
-  --kv-danger-soft-fg: #fecdd3;
-  --kv-danger-border: #be123c;
+  --kv-danger: hsl(351 94.5% 71.4%);
+  --kv-danger-hover: hsl(353 95.7% 81.8%);
+  --kv-danger-fg: hsl(343 87.7% 15.9%);
+  --kv-danger-soft: hsl(342 75.5% 30.4%);
+  --kv-danger-soft-hover: hsl(343 79.7% 34.7%);
+  --kv-danger-soft-fg: hsl(353 96.1% 90%);
+  --kv-danger-border: hsl(345 82.7% 40.8%);
 
-  --kv-info: #60a5fa;
-  --kv-info-hover: #93c5fd;
-  --kv-info-fg: #082f49;
-  --kv-info-soft: #1e3a8a;
-  --kv-info-soft-hover: #1e40af;
-  --kv-info-soft-fg: #bfdbfe;
-  --kv-info-border: #1d4ed8;
+  --kv-info: hsl(213 93.9% 67.8%);
+  --kv-info-hover: hsl(212 96.4% 78.4%);
+  --kv-info-fg: hsl(204 80.2% 15.9%);
+  --kv-info-soft: hsl(224 64.3% 32.9%);
+  --kv-info-soft-hover: hsl(226 70.7% 40.2%);
+  --kv-info-soft-fg: hsl(213 96.9% 87.3%);
+  --kv-info-border: hsl(224 76.3% 48%);
 
-  --kv-neutral: #334155;
-  --kv-neutral-hover: #475569;
-  --kv-neutral-fg: #e2e8f0;
-  --kv-neutral-soft: #1e293b;
-  --kv-neutral-soft-hover: #334155;
-  --kv-neutral-soft-fg: #cbd5e1;
-  --kv-neutral-border: #334155;
+  --kv-neutral: hsl(215 25% 26.7%);
+  --kv-neutral-hover: hsl(215 19.3% 34.5%);
+  --kv-neutral-fg: hsl(214 31.8% 91.4%);
+  --kv-neutral-soft: hsl(217 32.6% 17.5%);
+  --kv-neutral-soft-hover: hsl(215 25% 26.7%);
+  --kv-neutral-soft-fg: hsl(213 26.8% 83.9%);
+  --kv-neutral-border: hsl(215 25% 26.7%);
 
-  --kv-accent: #a78bfa;
-  --kv-accent-hover: #c4b5fd;
-  --kv-accent-fg: #2e1065;
-  --kv-accent-soft: #4c1d95;
-  --kv-accent-soft-hover: #5b21b6;
-  --kv-accent-soft-fg: #ddd6fe;
-  --kv-accent-border: #6d28d9;
+  --kv-accent: hsl(255 91.7% 76.3%);
+  --kv-accent-hover: hsl(252 94.7% 85.1%);
+  --kv-accent-fg: hsl(261 72.6% 22.9%);
+  --kv-accent-soft: hsl(264 67.4% 34.9%);
+  --kv-accent-soft-hover: hsl(263 69.3% 42.2%);
+  --kv-accent-soft-fg: hsl(251 95.2% 91.8%);
+  --kv-accent-border: hsl(263 70% 50.4%);
 
   --background: var(--kv-canvas);
   --foreground: var(--kv-text);
@@ -415,6 +466,9 @@
   body {
     @apply bg-kv-canvas text-kv-text;
   }
+  a {
+    @apply cursor-pointer;
+  }
 }
 
 /* اعمال فونت وزیرمتن بر روی کل بدنه سایت */
@@ -446,4 +500,36 @@ body {
 * {
   scrollbar-width: thin;
   scrollbar-color: var(--kv-border-strong) transparent;
+}
+/*
+ * Brand signature: soft institutional wash for auth + marketing canvases.
+ * Dashboard shells must NOT use this (stay quiet canvas). See rule 90.
+ */
+.kv-brand-atmosphere {
+  background-color: var(--kv-canvas);
+  background-image:
+    radial-gradient(ellipse 110% 75% at 50% -15%, var(--kv-brand-soft), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 100% 100%, var(--kv-brand-soft-hover), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 0% 85%, var(--kv-brand-soft), transparent 50%);
+}
+
+@keyframes kv-auth-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kv-auth-enter {
+  animation: kv-auth-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-auth-enter {
+    animation: none;
+  }
 }

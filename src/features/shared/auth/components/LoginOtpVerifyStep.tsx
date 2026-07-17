@@ -1,6 +1,7 @@
 'use client';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
+import { AuthStepHeading } from './AuthStepHeading';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { OtpCodeField } from './fields/OtpCodeField';
 import { OtpResendFooter } from './fields/OtpResendFooter';
@@ -11,27 +12,40 @@ interface LoginOtpVerifyStepProps {
 
 /** Step 2 of OTP login: verify the 5-digit SMS code (test code `12345` in mock mode). */
 export function LoginOtpVerifyStep({ login }: LoginOtpVerifyStepProps) {
-  const { otpCodeForm, verifyOtp, isVerifyingOtp, goBackToPhoneStep, resendOtp, isResendingOtp, secondsUntilResend, canResendOtp } = login;
+  const {
+    otpCodeForm,
+    verifyOtp,
+    isVerifyingOtp,
+    goBackToPhoneStep,
+    resendOtp,
+    isResendingOtp,
+    secondsUntilResend,
+    canResendOtp,
+  } = login;
   const { register, formState } = otpCodeForm;
 
   return (
-    <form onSubmit={verifyOtp} className="space-y-kv-group" noValidate>
-      <OtpCodeField
-        id="login-otp-code"
-        registration={register('otp')}
-        errorMessage={formState.errors.otp?.message}
-      />
+    <form onSubmit={verifyOtp} className="flex flex-col gap-kv-section" noValidate>
+      <AuthStepHeading step={2} totalSteps={2} />
 
-      <OtpResendFooter
-        secondsUntilResend={secondsUntilResend}
-        canResend={canResendOtp}
-        isResending={isResendingOtp}
-        onResend={resendOtp}
-        onGoBack={goBackToPhoneStep}
-        goBackLabel="اصلاح شماره"
-      />
+      <div className="flex flex-col gap-kv-group">
+        <OtpCodeField
+          id="login-otp-code"
+          registration={register('otp')}
+          errorMessage={formState.errors.otp?.message}
+        />
 
-      <AuthSubmitButton isReady={formState.isValid} isLoading={isVerifyingOtp} loadingLabel="در حال تایید...">
+        <OtpResendFooter
+          secondsUntilResend={secondsUntilResend}
+          canResend={canResendOtp}
+          isResending={isResendingOtp}
+          onResend={resendOtp}
+          onGoBack={goBackToPhoneStep}
+          goBackLabel="اصلاح شماره"
+        />
+      </div>
+
+      <AuthSubmitButton isLoading={isVerifyingOtp} loadingLabel="در حال تایید...">
         تایید کد و ورود
       </AuthSubmitButton>
     </form>

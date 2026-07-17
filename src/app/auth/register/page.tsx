@@ -3,7 +3,10 @@ import HydrationSafe from '@/components/shared/HydrationSafe';
 
 export default function RegisterPage() {
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-slate-50/50 p-4" dir="rtl">
+    <main
+      className="kv-brand-atmosphere flex min-h-dvh w-full items-center justify-center p-kv-inset"
+      dir="rtl"
+    >
       <HydrationSafe>
         <AuthCard defaultTab="register" />
       </HydrationSafe>

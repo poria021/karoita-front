@@ -6,7 +6,13 @@ import { useRouter } from 'next/navigation';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
 
-import { otpSchema, registerSchema, type OtpSchema, type RegisterSchema, type SelfRegisterableRole } from '../schemas/auth.schema';
+import {
+  otpSchema,
+  registerSchema,
+  type OtpSchema,
+  type RegisterSchema,
+  type SelfRegisterableRole,
+} from '../schemas/auth.schema';
 import type { AuthFormMessageState } from '../types';
 import { useOtpCountdown } from './useOtpCountdown';
 
@@ -35,13 +41,15 @@ export function useRegisterForm() {
 
   const detailsForm = useForm<RegisterSchema>({
     resolver: zodResolver(registerSchema),
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: { mobile: '', role: undefined },
   });
 
   const otpForm = useForm<OtpSchema>({
     resolver: zodResolver(otpSchema),
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
     defaultValues: { otp: '' },
   });
 
@@ -75,7 +83,9 @@ export function useRegisterForm() {
 
   const verifyOtp = otpForm.handleSubmit(async (data) => {
     if (!pendingRole) {
-      setFormMessage({ type: 'error', text: 'لطفاً ابتدا مرحله اول ثبت‌نام را کامل کنید.' });
+      otpForm.setError('otp', {
+        message: 'لطفاً ابتدا مرحله اول ثبت‌نام را کامل کنید.',
+      });
       return;
     }
 
@@ -84,7 +94,9 @@ export function useRegisterForm() {
       await AuthService.verifyRegistrationOtp(pendingMobile, data.otp, pendingRole);
       router.push(RouteService.karvita.profile(pendingRole));
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'تایید کد ناموفق بود.') });
+      otpForm.setError('otp', {
+        message: readErrorMessage(error, 'تایید کد ناموفق بود.'),
+      });
     }
   });
 
@@ -94,12 +106,17 @@ export function useRegisterForm() {
     setIsResendingOtp(true);
     setFormMessage(null);
     try {
-      await AuthService.register({ mobile: pendingMobile, role: pendingRole as SelfRegisterableRole });
+      await AuthService.register({
+        mobile: pendingMobile,
+        role: pendingRole as SelfRegisterableRole,
+      });
       otpCountdown.restart();
       otpForm.reset({ otp: '' });
-      setFormMessage({ type: 'success', text: 'کد تایید جدید ارسال شد.' });
+      setFormMessage({ type: 'success', text: 'کد تایید دوباره ارسال شد.' });
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'ارسال مجدد کد ناموفق بود.') });
+      otpForm.setError('otp', {
+        message: readErrorMessage(error, 'ارسال مجدد کد ناموفق بود.'),
+      });
     } finally {
       setIsResendingOtp(false);
     }
@@ -118,6 +135,7 @@ export function useRegisterForm() {
   return {
     step,
     goBackToStep1,
+    pendingMobile,
 
     detailsForm,
     submitDetails,

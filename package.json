@@ -14,13 +14,17 @@
     "dev": "docker-compose up -d && next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint && node scripts/check-hardcoded-colors.mjs",
+    "lint:colors": "node scripts/check-hardcoded-colors.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.3.1",
+    "@fortawesome/free-solid-svg-icons": "^7.3.1",
+    "@fortawesome/react-fontawesome": "^3.4.0",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -41,13 +45,13 @@
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "framer-motion": "^12.40.0",
-    "lucide-react": "^1.17.0",
     "next": "^16.2.6",
     "next-themes": "^0.4.6",
     "pg": "^8.21.0",
     "radix-ui": "^1.6.2",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
+    "react-dropzone": "^14.4.1",
     "react-hook-form": "^7.76.1",
     "resend": "^6.12.4",
     "sonner": "^2.0.7",
@@ -73,7 +77,6 @@
     "typescript": "^6.0.3"
   },
   "overrides": {
-    "esbuild": "0.25.12",
-    "postcss": "8.5.15"
+    "esbuild": "0.25.12"
   }
 }

@@ -1,6 +1,14 @@
+'use client';
+
+import * as React from 'react';
+import type { ChangeEvent } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
 import { KvTextField } from '@/components/shared/KvTextField';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
 interface OtpCodeFieldProps {
   id: string;
@@ -8,12 +16,25 @@ interface OtpCodeFieldProps {
   errorMessage?: string;
 }
 
-/** Centered, widely-tracked 5-digit SMS verification code input. */
+function filterDigits(rawValue: string): string {
+  return persianToEnglishDigits(rawValue).replace(/\D/g, '');
+}
+
+/** Centered 5-digit SMS code — Persian on screen, English in RHF. */
 export function OtpCodeField({
   id,
   registration,
   errorMessage,
 }: OtpCodeFieldProps) {
+  const [englishValue, setEnglishValue] = React.useState('');
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const next = filterDigits(event.target.value).slice(0, 5);
+    setEnglishValue(next);
+    event.target.value = next;
+    void registration.onChange(event);
+  };
+
   return (
     <div>
       <KvTextField
@@ -22,14 +43,16 @@ export function OtpCodeField({
         required
         type="tel"
         dir="ltr"
+        autoComplete="one-time-code"
         inputMode="numeric"
         maxLength={5}
         placeholder="• • • • •"
         otpStyle
         name={registration.name}
         onBlur={registration.onBlur}
-        onChange={registration.onChange}
+        onChange={handleChange}
         ref={registration.ref}
+        value={toPersianDigits(englishValue)}
         error={errorMessage}
       />
     </div>

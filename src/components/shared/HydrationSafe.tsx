@@ -1,20 +1,48 @@
 'use client';
 
-import { useState, useEffect, ReactNode } from 'react';
-import { useUserStore } from '@/store/useUserStore'; //  استور کاربر
+import { useEffect, useState, type ReactNode } from 'react';
 
-export default function HydrationSafe({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
+import { useUserStore } from '@/store/useUserStore';
+
+export type HydrationSafeProps = {
+  children: ReactNode;
+  /** Optional placeholder while rehydrating — prefer plain surface, not skeletons. */
+  fallback?: ReactNode;
+};
+
+/**
+ * Delays children until persisted user state rehydrates (avoids auth flash).
+ * Uses a plain canvas placeholder — no skeleton UI (product preference for now).
+ */
+export default function HydrationSafe({
+  children,
+  fallback,
+}: HydrationSafeProps) {
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // ۱.  استور کاربر را از لوکال بازخوانی و ری‌هیدرات می‌کنیم
-    useUserStore.persist.rehydrate();
-    
-    // ۲. پرچم لود کلاینت 
-    setMounted(true);
+    let cancelled = false;
+
+    void Promise.resolve(useUserStore.persist.rehydrate()).finally(() => {
+      if (!cancelled) setReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  if (!mounted) return null;
+  if (ready) return <>{children}</>;
 
-  return <>{children}</>;
+  return (
+    <>
+      {fallback ?? (
+        <div
+          className="min-h-dvh w-full bg-kv-canvas"
+          aria-busy="true"
+          aria-live="polite"
+        />
+      )}
+    </>
+  );
 }

@@ -13,7 +13,7 @@ export function KvLabel({ className, ...props }: KvLabelProps) {
     <Label
       data-slot="kv-label"
       className={cn(
-        'mb-kv-field font-sans text-xs font-bold text-slate-600',
+        'mb-kv-field font-sans text-xs font-bold text-kv-text-muted',
         className
       )}
       {...props}

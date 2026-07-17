@@ -70,6 +70,7 @@ export function useLoginForm() {
     isSubmittingPassword: password.isSubmittingPassword,
 
     otpStep: otp.otpStep,
+    otpPendingMobile: otp.pendingMobile,
     otpMobileForm: otp.otpMobileForm,
     requestOtp: otp.requestOtp,
     isRequestingOtp: otp.isRequestingOtp,
@@ -87,8 +88,10 @@ export function useLoginForm() {
     switchToForgotMode,
     cancelForgotMode,
     goBackToForgotStep1: forgot.goBackToForgotStep1,
+    goBackToForgotStep2: forgot.goBackToForgotStep2,
 
     forgotStep: forgot.forgotStep,
+    pendingForgotMobile: forgot.pendingForgotMobile,
     forgotMobileForm: forgot.forgotMobileForm,
     sendForgotOtp: forgot.sendForgotOtp,
     isSendingForgotOtp: forgot.isSendingForgotOtp,

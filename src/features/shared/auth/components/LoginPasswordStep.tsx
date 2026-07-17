@@ -1,8 +1,9 @@
 'use client';
 
-import { LogIn, Smartphone } from 'lucide-react';
+import { Controller } from 'react-hook-form';
 
 import { KvButton } from '@/components/shared/KvButton';
+import { KvCheckbox } from '@/components/shared/KvCheckbox';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
@@ -22,67 +23,70 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
     switchToOtpMode,
     switchToForgotMode,
   } = login;
-  const { register, formState } = passwordForm;
+  const { register, control, formState } = passwordForm;
 
   return (
-    <form onSubmit={submitPassword} className="space-y-kv-group" noValidate>
-      <MobileNumberField
-        id="login-mobile"
-        registration={register('mobile')}
-        errorMessage={formState.errors.mobile?.message}
-        disabled={isSubmittingPassword}
-      />
+    <form onSubmit={submitPassword} className="flex flex-col gap-kv-section" noValidate>
+      <div className="flex flex-col gap-kv-group">
+        <MobileNumberField
+          id="login-mobile"
+          registration={register('mobile')}
+          errorMessage={formState.errors.mobile?.message}
+          disabled={isSubmittingPassword}
+        />
 
-      <PasswordField
-        id="login-password"
-        label="رمز عبور"
-        registration={register('password')}
-        errorMessage={formState.errors.password?.message}
-      />
-
-      <div className="flex items-center justify-between py-1">
-        <KvButton
-          type="button"
-          color="neutral"
-          appearance="text"
-          size="sm"
-          onClick={switchToForgotMode}
-        >
-          رمز خود را فراموش کردم
-        </KvButton>
-
-        <label
-          htmlFor="login-remember"
-          className="flex items-center gap-1.5 text-[11px] font-bold text-kv-text-subtle select-none"
-        >
-          <span>مرا به خاطر بسپار</span>
-          <input
-            id="login-remember"
-            type="checkbox"
-            {...register('remember')}
-            className="size-4 cursor-pointer rounded border-kv-border-strong accent-kv-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kv-brand"
+        <div className="flex flex-col gap-kv-pair">
+          <PasswordField
+            id="login-password"
+            label="رمز عبور"
+            registration={register('password')}
+            errorMessage={formState.errors.password?.message}
           />
-        </label>
+
+          <div className="flex items-center justify-between">
+            <KvButton
+              type="button"
+              color="neutral"
+              appearance="text"
+              size="sm"
+              onClick={switchToForgotMode}
+            >
+              رمز خود را فراموش کردم
+            </KvButton>
+
+            <label
+              htmlFor="login-remember"
+              className="flex cursor-pointer items-center gap-kv-inline text-xs font-bold text-kv-text-subtle select-none"
+            >
+              <span>مرا به خاطر بسپار</span>
+              <Controller
+                name="remember"
+                control={control}
+                render={({ field }) => (
+                  <KvCheckbox
+                    id="login-remember"
+                    checked={field.value}
+                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                    onBlur={field.onBlur}
+                    ref={field.ref}
+                    name={field.name}
+                  />
+                )}
+              />
+            </label>
+          </div>
+        </div>
       </div>
 
-      <AuthSubmitButton
-        isLoading={isSubmittingPassword}
-        loadingLabel="در حال ورود..."
-        icon={<LogIn className="size-4" aria-hidden="true" />}
-      >
-        ورود به سامانه
-      </AuthSubmitButton>
+      <div className="flex flex-col gap-kv-group">
+        <AuthSubmitButton isLoading={isSubmittingPassword} loadingLabel="در حال ورود...">
+          ورود به سامانه
+        </AuthSubmitButton>
 
-      <KvButton
-        type="button"
-        appearance="secondary"
-        size="lg"
-        fullWidth
-        icon={<Smartphone className="size-3.5" aria-hidden="true" />}
-        onClick={switchToOtpMode}
-      >
-        ورود با رمز یکبار مصرف (OTP)
-      </KvButton>
+        <KvButton type="button" appearance="secondary" fullWidth onClick={switchToOtpMode}>
+          ورود با رمز یکبار مصرف (OTP)
+        </KvButton>
+      </div>
     </form>
   );
 }

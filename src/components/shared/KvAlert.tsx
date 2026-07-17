@@ -1,19 +1,14 @@
 'use client';
 
-import {
-  CircleAlert,
-  CircleCheck,
-  CircleX,
-  Info,
-  X,
-} from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import type { KvTypographyTone } from '@/components/shared/KvTypography';
+import { faIcons } from '@/utils/iconMap';
 
 export type KvAlertVariant = 'success' | 'info' | 'warning' | 'error';
 
@@ -43,10 +38,10 @@ const VARIANT_TO_TONE: Record<KvAlertVariant, KvTypographyTone> = {
 };
 
 const DEFAULT_ICONS: Record<KvAlertVariant, ReactNode> = {
-  success: <CircleCheck aria-hidden="true" />,
-  info: <Info aria-hidden="true" />,
-  warning: <CircleAlert aria-hidden="true" />,
-  error: <CircleX aria-hidden="true" />,
+  success: <FaIcon icon={faIcons.circleCheck} size="sm" />,
+  info: <FaIcon icon={faIcons.circleInfo} size="sm" />,
+  warning: <FaIcon icon={faIcons.circleExclamation} size="sm" />,
+  error: <FaIcon icon={faIcons.circleXmark} size="sm" />,
 };
 
 const DISMISS_BUTTON_COLOR: Record<
@@ -85,7 +80,7 @@ export function KvAlert({
   return (
     <Alert
       variant={VARIANT_TO_ALERT[variant]}
-      className={cn('relative font-sans shadow-sm', dismissible && 'pe-10')}
+      className={cn('relative font-sans shadow-kv-raised', dismissible && 'pe-10')}
     >
       {icon ?? DEFAULT_ICONS[variant]}
       <AlertTitle>
@@ -117,7 +112,7 @@ export function KvAlert({
           aria-label="بستن پیام"
           className="absolute end-3 top-3"
           onClick={handleDismiss}
-          icon={<X className="size-4" />}
+          icon={<FaIcon icon={faIcons.xmark} size="sm" />}
         />
       ) : null}
     </Alert>

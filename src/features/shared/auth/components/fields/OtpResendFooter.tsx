@@ -1,6 +1,6 @@
-import { Clock, RotateCw, SquarePen } from 'lucide-react';
-
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 interface OtpResendFooterProps {
@@ -22,30 +22,24 @@ export function OtpResendFooter({
   goBackLabel,
 }: OtpResendFooterProps) {
   return (
-    <div className="flex items-center justify-between border-b border-slate-100 pb-3 text-[10px] font-bold text-slate-400">
+    <div className="flex items-center justify-between gap-kv-pair text-xs font-bold text-kv-text-faint">
       {canResend ? (
         <KvButton
           type="button"
           color="cta"
           appearance="text"
           size="sm"
-          disabled={isResending}
+          loading={isResending}
           onClick={onResend}
-          icon={
-            <RotateCw
-              className={isResending ? 'size-3 animate-spin' : 'size-3'}
-              aria-hidden="true"
-            />
-          }
         >
-          {isResending ? 'در حال ارسال...' : 'ارسال پیامک جدید'}
+          ارسال پیامک جدید
         </KvButton>
       ) : (
-        <span className="flex items-center gap-1">
-          <Clock className="size-3 text-slate-400" aria-hidden="true" />
+        <span className="flex items-center gap-kv-field">
+          <FaIcon icon={faIcons.clock} size="xs" className="text-kv-text-faint" />
           <span>
             ارسال مجدد تا{' '}
-            <span className="font-mono text-slate-700">
+            <span className="font-mono text-kv-text-muted">
               {toPersianDigits(secondsUntilResend)}
             </span>{' '}
             ثانیه دیگر
@@ -57,9 +51,8 @@ export function OtpResendFooter({
         color="neutral"
         appearance="text"
         size="sm"
+        disabled={isResending}
         onClick={onGoBack}
-        icon={<SquarePen className="size-3" aria-hidden="true" />}
-        iconPosition="end"
       >
         {goBackLabel}
       </KvButton>

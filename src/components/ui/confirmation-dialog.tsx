@@ -61,7 +61,7 @@ export function ConfirmationDialog({
             onClick={handleConfirm}
             className={
               confirmVariant === "destructive"
-                ? "bg-destructive text-white hover:bg-destructive/90"
+                ? "bg-kv-danger text-kv-danger-fg hover:bg-kv-danger-hover"
                 : ""
             }
           >

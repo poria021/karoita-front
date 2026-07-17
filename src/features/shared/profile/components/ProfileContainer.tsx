@@ -1,16 +1,20 @@
 'use client';
 
-import { IdCard, ShieldHalf } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
-import { PageChrome } from '@/components/shared/PageChrome';
-import HydrationSafe from '@/components/shared/HydrationSafe';
-import { KvSkeleton } from '@/components/shared/KvSkeleton';
+import {
+  AppTabs,
+  AppTabsContent,
+  AppTabsList,
+  AppTabsTrigger,
+} from '@/components/shared/AppTabs';
+import { FaIcon } from '@/components/shared/FaIcon';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
+import { faIcons } from '@/utils/iconMap';
 
 import { ProfileStatusAlert } from './alerts/ProfileStatusAlert';
 import { IdentityForm } from './forms/IdentityForm';
@@ -43,19 +47,17 @@ export interface ProfileContainerProps {
   role: string;
 }
 
-/** Client master profile shell: Zustand boundary, status alerts, and tab switcher. */
+/** Client master profile shell — layout mirrors original-karvita.html. */
 export function ProfileContainer({ role }: ProfileContainerProps) {
-  return (
-    <HydrationSafe>
-      <ProfileContainerInner role={role} />
-    </HydrationSafe>
-  );
+  // App layout already gates with HydrationSafe — do not nest another gate.
+  return <ProfileContainerInner role={role} />;
 }
 
 function ProfileContainerInner({ role }: ProfileContainerProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const activeUser = useUserStore((state) => state.activeUser);
-  const [activeTab, setActiveTab] = useState<ProfileTab>('identity');
   const session = AuthService.getSession();
 
   useEffect(() => {
@@ -69,19 +71,30 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
   }, [activeUser, role, router]);
 
   if (!activeUser || activeUser.role !== role) {
-    return <ProfileContainerSkeleton />;
+    return <ProfileRoutePlaceholder />;
   }
 
   const uiStrategy = PROFILE_UI_STRATEGY[activeUser.role];
+  const requestedTab = searchParams.get('tab');
+  const activeTab: ProfileTab =
+    requestedTab === 'security' && uiStrategy.showSecurityTab
+      ? 'security'
+      : 'identity';
 
-  const statusAlerts =
-    uiStrategy.showStatusAlerts ? (
-      <ProfileStatusAlert
-        approved={activeUser.approved}
-        docStatus={activeUser.docStatus}
-        adminRequestMessage={activeUser.adminRequestMessage}
-      />
-    ) : null;
+  const handleTabChange = (value: string) => {
+    const nextTab: ProfileTab = value === 'security' ? 'security' : 'identity';
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', nextTab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const statusAlerts = uiStrategy.showStatusAlerts ? (
+    <ProfileStatusAlert
+      approved={activeUser.approved}
+      docStatus={activeUser.docStatus}
+      adminRequestMessage={activeUser.adminRequestMessage}
+    />
+  ) : null;
 
   const isProfileLocked =
     activeUser.role !== 'super_admin' &&
@@ -93,81 +106,61 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
       activeUser={activeUser}
       token={session?.token}
       disabled={isProfileLocked}
+      statusAlerts={statusAlerts}
     />
   );
 
-  if (uiStrategy.showSecurityTab) {
+  if (!uiStrategy.showSecurityTab) {
     return (
-      <div dir="rtl" className="mx-auto w-full max-w-3xl font-sans">
-        <PageChrome
-          mode="tabs"
-          tabsModel="underline"
-          tabsSize="lg"
-          value={activeTab}
-          onValueChange={(value) => setActiveTab(value as ProfileTab)}
-          banner={statusAlerts}
-          tabs={[
-            {
-              value: 'identity',
-              label: 'اطلاعات هویتی',
-              icon: <IdCard className="size-4" aria-hidden="true" />,
-              content: identityForm,
-            },
-            {
-              value: 'security',
-              label: 'تنظیم رمز عبور حساب',
-              icon: <ShieldHalf className="size-4" aria-hidden="true" />,
-              content: (
-                <SecurityForm
-                  mobile={activeUser.mobile}
-                  hasPassword={activeUser.hasPassword !== false}
-                />
-              ),
-            },
-          ]}
-        />
+      <div dir="rtl" className="w-full space-y-6 font-sans text-xs">
+        {identityForm}
       </div>
     );
   }
 
   return (
-    <div dir="rtl" className="mx-auto w-full max-w-3xl space-y-kv-section font-sans">
-      {statusAlerts}
-      {identityForm}
+    <div dir="rtl" className="w-full space-y-6 font-sans">
+      {/* Capsule tabs — matches original `.kv-tabs-container` */}
+      <div className="mb-4 pb-4 pt-1">
+        <AppTabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="gap-5"
+        >
+          <AppTabsList>
+            <AppTabsTrigger value="identity">
+              <FaIcon icon={faIcons.idCard} size="xs" />
+              <span>اطلاعات هویتی و مدارک</span>
+            </AppTabsTrigger>
+            <AppTabsTrigger value="security">
+              <FaIcon icon={faIcons.key} size="xs" />
+              <span>تنظیم رمز عبور حساب</span>
+            </AppTabsTrigger>
+          </AppTabsList>
+
+          <AppTabsContent value="identity">
+            {identityForm}
+          </AppTabsContent>
+
+          <AppTabsContent value="security">
+            <SecurityForm
+              mobile={activeUser.mobile}
+              hasPassword={activeUser.hasPassword !== false}
+            />
+          </AppTabsContent>
+        </AppTabs>
+      </div>
     </div>
   );
 }
 
-/** Smooth skeleton for Suspense / pre-hydration profile loading. */
-export function ProfileContainerSkeleton() {
+/** Plain placeholder while redirecting / resolving role — no skeleton UI. */
+export function ProfileRoutePlaceholder() {
   return (
     <div
-      dir="rtl"
-      className="mx-auto w-full max-w-3xl space-y-kv-stack font-sans"
+      className="min-h-40 w-full bg-transparent"
       aria-busy="true"
       aria-live="polite"
-    >
-      <div className="flex gap-kv-inline justify-center border-b border-slate-100 pb-3 sm:justify-start">
-        <KvSkeleton className="h-11 w-32" />
-        <KvSkeleton className="h-11 w-40" />
-      </div>
-
-      <KvSkeleton className="h-20 w-full rounded-kv-panel" />
-
-      <div className="space-y-kv-group rounded-kv-card border border-slate-200 bg-white p-kv-inset sm:p-kv-page">
-        <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="space-y-2">
-              <KvSkeleton className="h-3 w-24" />
-              <KvSkeleton className="h-11 w-full rounded-kv-control" />
-            </div>
-          ))}
-        </div>
-        <KvSkeleton className="mt-2 h-32 w-full rounded-kv-panel" />
-        <div className="flex justify-end pt-2">
-          <KvSkeleton className="h-10 w-40 rounded-kv-control" />
-        </div>
-      </div>
-    </div>
+    />
   );
 }
