@@ -1,3 +1,4 @@
+import { ApiClientError, apiClient } from '@/services/api-client';
 import { useUserStore } from '@/store/useUserStore';
 import type { DocStatus, User, UserRole } from '@/types/auth';
 
@@ -9,7 +10,6 @@ const CURRENT_USER_KEY = 'current_user';
 const USER_STORE_KEY = 'karvita-user-store';
 const AUTH_USERS_KEY = 'karvita_mock_auth_users';
 const API_MODE = process.env.NEXT_PUBLIC_API_MODE ?? 'mock';
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
 const MOCK_DELAY_MS = 350;
 
 type JsonRecord = Record<string, unknown>;
@@ -254,6 +254,10 @@ function extractApiPayload(payload: unknown): unknown {
   return payload;
 }
 
+function isPersianMessage(message: string): boolean {
+  return /[\u0600-\u06FF]/.test(message);
+}
+
 function extractApiMessage(payload: unknown): string | null {
   if (!isRecord(payload)) return null;
   if (typeof payload.message === 'string') return payload.message;
@@ -266,107 +270,55 @@ function extractApiMessage(payload: unknown): string | null {
   return typeof payload.error === 'string' ? payload.error : null;
 }
 
-function isPersianMessage(message: string): boolean {
-  return /[\u0600-\u06FF]/.test(message);
-}
-
-function defaultStatusMessage(status: number): string {
-  if (status === 400) return 'اطلاعات ارسال‌شده معتبر نیست. لطفاً فیلدها را بررسی کنید.';
-  if (status === 401) return 'نشست شما منقضی شده است. لطفاً دوباره وارد شوید.';
-  if (status === 403) return 'شما اجازه انجام این عملیات را ندارید.';
-  if (status === 404) return 'پروفایل کاربری یافت نشد.';
-  if (status === 409) return 'اطلاعات پروفایل با داده‌های موجود تداخل دارد.';
-  if (status === 413) return 'حجم فایل ارسالی بیش از حد مجاز است.';
-  if (status >= 500) return 'سرویس پروفایل موقتاً در دسترس نیست. لطفاً کمی بعد تلاش کنید.';
-  return 'انجام عملیات پروفایل با خطا مواجه شد.';
-}
-
-function localizedApiError(payload: unknown, status: number): string {
-  const serverMessage = extractApiMessage(payload);
-  return serverMessage && isPersianMessage(serverMessage)
-    ? serverMessage
-    : defaultStatusMessage(status);
-}
-
-async function readResponsePayload(response: Response): Promise<unknown> {
-  const contentType = response.headers.get('content-type') ?? '';
-  if (!contentType.includes('application/json')) return null;
-  try {
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
 async function requestProfile(
   method: 'GET' | 'PUT',
   token?: string,
   data?: ProfileDTO
 ): Promise<unknown> {
-  if (!API_URL) {
+  if (!apiClient.isConfigured) {
     throw new ProfileServiceError('آدرس سرویس پروفایل پیکربندی نشده است.');
   }
 
-  const headers = new Headers({ Accept: 'application/json' });
-  if (data) headers.set('Content-Type', 'application/json');
-  if (token) {
-    headers.set(
-      'Authorization',
-      token.startsWith('Bearer ') ? token : `Bearer ${token}`
-    );
+  try {
+    if (method === 'GET') {
+      return await apiClient.getJson<unknown>('profile', token);
+    }
+    return await apiClient.putJson<unknown>('profile', data, token);
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw new ProfileServiceError(error.message, error.status);
+    }
+    throw error;
   }
-
-  const response = await fetch(`${API_URL}/profile`, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-  });
-  const payload = await readResponsePayload(response);
-
-  if (!response.ok) {
-    throw new ProfileServiceError(
-      localizedApiError(payload, response.status),
-      response.status
-    );
-  }
-  return payload;
 }
 
 async function requestIdentityDocument(
   documentBase64: string,
   token?: string
 ): Promise<void> {
-  if (!API_URL) {
+  if (!apiClient.isConfigured) {
     throw new ProfileServiceError('آدرس سرویس پروفایل پیکربندی نشده است.');
   }
 
-  const headers = new Headers({
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-  });
-  if (token) {
-    headers.set(
-      'Authorization',
-      token.startsWith('Bearer ') ? token : `Bearer ${token}`
+  try {
+    await apiClient.putJson<unknown>(
+      'profile/identity-document',
+      { documentBase64 },
+      token
     );
-  }
-
-  const response = await fetch(`${API_URL}/profile/identity-document`, {
-    method: 'PUT',
-    headers,
-    body: JSON.stringify({ documentBase64 }),
-  });
-  const payload = await readResponsePayload(response);
-  if (!response.ok) {
-    throw new ProfileServiceError(
-      localizedApiError(payload, response.status),
-      response.status
-    );
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      throw new ProfileServiceError(error.message, error.status);
+    }
+    throw error;
   }
 }
 
 function friendlyError(error: unknown): Error {
   if (error instanceof ProfileServiceError) return error;
+  if (error instanceof ApiClientError) {
+    return new ProfileServiceError(error.message, error.status);
+  }
   if (error instanceof TypeError) {
     return new Error('ارتباط با سرویس پروفایل برقرار نشد. اتصال اینترنت را بررسی کنید.');
   }

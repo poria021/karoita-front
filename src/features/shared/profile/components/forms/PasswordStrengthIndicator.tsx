@@ -1,10 +1,16 @@
 'use client';
 
+import { useMemo } from 'react';
+import { ZxcvbnFactory } from '@zxcvbn-ts/core';
+import { adjacencyGraphs, dictionary as commonDictionary } from '@zxcvbn-ts/language-common';
+import { dictionary as enDictionary, translations } from '@zxcvbn-ts/language-en';
+
 import { cn } from '@/lib/utils';
 
 export type PasswordStrengthLevel = 'empty' | 'weak' | 'moderate' | 'strong';
 
 export interface PasswordStrengthResult {
+  /** 0–100 bar width derived from zxcvbn score (0–4). */
   score: number;
   level: PasswordStrengthLevel;
   label: string;
@@ -12,7 +18,19 @@ export interface PasswordStrengthResult {
   labelClassName: string;
 }
 
-/** Mirrors the legacy `passwordStrength` getter in `original-karvita.html`. */
+const zxcvbn = new ZxcvbnFactory({
+  translations,
+  graphs: adjacencyGraphs,
+  dictionary: {
+    ...commonDictionary,
+    ...enDictionary,
+  },
+});
+
+/**
+ * Maps zxcvbn score (0–4) onto the product's three visible strength bands.
+ * Empty input stays a dedicated level (UI hides the meter).
+ */
 export function evaluatePasswordStrength(password: string): PasswordStrengthResult {
   if (!password) {
     return {
@@ -24,15 +42,12 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
     };
   }
 
-  let score = 0;
-  if (password.length >= 6) score += 25;
-  if (password.length >= 10) score += 25;
-  if (/[A-Z]/i.test(password)) score += 25;
-  if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) score += 25;
+  const { score } = zxcvbn.check(password);
+  const percent = Math.round((score / 4) * 100);
 
-  if (score <= 50) {
+  if (score <= 1) {
     return {
-      score,
+      score: Math.max(percent, 25),
       level: 'weak',
       label: 'ضعیف',
       barClassName: 'bg-kv-danger',
@@ -40,9 +55,9 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
     };
   }
 
-  if (score <= 75) {
+  if (score === 2) {
     return {
-      score,
+      score: Math.max(percent, 50),
       level: 'moderate',
       label: 'متوسط',
       barClassName: 'bg-kv-warning',
@@ -51,7 +66,7 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
   }
 
   return {
-    score,
+    score: Math.max(percent, 75),
     level: 'strong',
     label: 'قوی',
     barClassName: 'bg-kv-success',
@@ -64,12 +79,15 @@ interface PasswordStrengthIndicatorProps {
   className?: string;
 }
 
-/** Color-coded Weak / Moderate / Strong password meter. */
+/** Color-coded Weak / Moderate / Strong password meter (zxcvbn engine). */
 export function PasswordStrengthIndicator({
   password,
   className,
 }: PasswordStrengthIndicatorProps) {
-  const strength = evaluatePasswordStrength(password);
+  const strength = useMemo(
+    () => evaluatePasswordStrength(password),
+    [password]
+  );
   if (!password) return null;
 
   return (

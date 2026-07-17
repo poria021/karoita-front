@@ -1,4 +1,6 @@
-/** Lightweight browser-only Canvas image compressor. */
+import imageCompression from 'browser-image-compression';
+
+/** Product compression contract — thin wrapper over browser-image-compression. */
 export interface CompressionOptions {
   maxWidth?: number;
   quality?: number;
@@ -7,15 +9,10 @@ export interface CompressionOptions {
 
 const DEFAULT_MAX_WIDTH = 1000;
 const DEFAULT_QUALITY = 0.7;
-const DEFAULT_FORMAT = 'image/webp';
+const DEFAULT_FORMAT = 'image/webp' as const;
 
-function ensureBrowserApis(): void {
-  if (
-    typeof window === 'undefined' ||
-    typeof document === 'undefined' ||
-    typeof FileReader === 'undefined' ||
-    typeof Image === 'undefined'
-  ) {
+function ensureBrowser(): void {
+  if (typeof window === 'undefined') {
     throw new Error('فشرده‌سازی تصویر فقط در مرورگر امکان‌پذیر است.');
   }
 }
@@ -29,7 +26,7 @@ function validateCompressionOptions(maxWidth: number, quality: number): void {
   }
 }
 
-function readFileAsDataUrl(file: File): Promise<string> {
+function readFileAsDataUrl(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error('خواندن فایل تصویر با خطا مواجه شد.'));
@@ -44,40 +41,11 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
-function loadImage(source: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.onerror = () => reject(new Error('فایل انتخاب‌شده تصویر معتبری نیست.'));
-    image.onload = () => resolve(image);
-    image.src = source;
-  });
-}
-
-function canvasToBlob(
-  canvas: HTMLCanvasElement,
-  format: CompressionOptions['format'],
-  quality: number
-): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(new Error('تبدیل تصویر به فرمت فشرده با خطا مواجه شد.'));
-          return;
-        }
-        resolve(blob);
-      },
-      format,
-      quality
-    );
-  });
-}
-
-async function compressToBlob(
+async function compressWithLibrary(
   file: File,
-  options: CompressionOptions = {}
-): Promise<Blob> {
-  ensureBrowserApis();
+  options: CompressionOptions & { allowJpegFallback?: boolean }
+): Promise<File> {
+  ensureBrowser();
 
   if (!file.type.startsWith('image/')) {
     throw new Error('لطفاً یک فایل تصویری معتبر انتخاب کنید.');
@@ -85,39 +53,41 @@ async function compressToBlob(
 
   const maxWidth = options.maxWidth ?? DEFAULT_MAX_WIDTH;
   const quality = options.quality ?? DEFAULT_QUALITY;
-  const format = options.format ?? DEFAULT_FORMAT;
+  const preferredFormat = options.format ?? DEFAULT_FORMAT;
+  const allowJpegFallback = options.allowJpegFallback ?? true;
   validateCompressionOptions(maxWidth, quality);
 
-  const source = await readFileAsDataUrl(file);
-  const image = await loadImage(source);
-  const scale = Math.min(1, maxWidth / image.naturalWidth);
-  const width = Math.max(1, Math.round(image.naturalWidth * scale));
-  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const run = (fileType: string) =>
+    imageCompression(file, {
+      maxWidthOrHeight: maxWidth,
+      initialQuality: quality,
+      fileType,
+      useWebWorker: true,
+      preserveExif: false,
+    });
 
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext('2d');
-  if (!context) {
-    throw new Error('مرورگر امکان پردازش تصویر را فراهم نکرده است.');
+  try {
+    return await run(preferredFormat);
+  } catch (error) {
+    if (allowJpegFallback && preferredFormat === 'image/webp') {
+      return run('image/jpeg');
+    }
+    throw error instanceof Error
+      ? error
+      : new Error('فشرده‌سازی تصویر با خطا مواجه شد.');
   }
-
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
-  context.drawImage(image, 0, 0, width, height);
-
-  return canvasToBlob(canvas, format, quality);
 }
 
 /** Compresses to max-width 1000px WebP at 0.7 quality and returns a base64 data URL. */
 export async function compressImageToBase64(file: File): Promise<string> {
-  const blob = await compressToBlob(file, {
+  // Identity API contract requires `data:image/webp;base64,...` — no JPEG fallback.
+  const compressed = await compressWithLibrary(file, {
     maxWidth: DEFAULT_MAX_WIDTH,
     quality: DEFAULT_QUALITY,
     format: DEFAULT_FORMAT,
+    allowJpegFallback: false,
   });
-  return readFileAsDataUrl(new File([blob], 'compressed.webp', { type: DEFAULT_FORMAT }));
+  return readFileAsDataUrl(compressed);
 }
 
 /** Backward-compatible File output used by the existing identity uploader. */
@@ -126,36 +96,21 @@ export async function compressImage(
   options: CompressionOptions = {}
 ): Promise<File> {
   const format = options.format ?? DEFAULT_FORMAT;
-  const blob = await compressToBlob(file, options);
-  const extension = format.split('/')[1];
+  const compressed = await compressWithLibrary(file, options);
+  const extension = (compressed.type || format).split('/')[1] ?? 'webp';
   const originalName = file.name.replace(/\.[^/.]+$/, '');
 
-  return new File([blob], `${originalName}.${extension}`, {
-    type: format,
+  return new File([compressed], `${originalName}.${extension}`, {
+    type: compressed.type || format,
     lastModified: Date.now(),
   });
 }
 
-/**
- * Validates if a file is an image and meets size requirements.
- *
- * @param file - File to validate
- * @param maxSizeMB - Maximum allowed file size in megabytes
- * @returns Object with validation result and error message
- *
- * @example
- * ```typescript
- * const { isValid, error } = validateImageFile(file, 10);
- * if (!isValid) {
- *   console.error(error);
- * }
- * ```
- */
+/** Validates if a file is an image and meets size requirements. */
 export function validateImageFile(
   file: File,
   maxSizeMB: number = 10
 ): { isValid: boolean; error?: string } {
-  // Check if file is an image
   if (!file.type.startsWith('image/')) {
     return {
       isValid: false,
@@ -163,7 +118,6 @@ export function validateImageFile(
     };
   }
 
-  // Check file size
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   if (file.size > maxSizeBytes) {
     return {
@@ -175,17 +129,7 @@ export function validateImageFile(
   return { isValid: true };
 }
 
-/**
- * Formats file size in bytes to human-readable string.
- *
- * @param bytes - File size in bytes
- * @returns Formatted string (e.g., "2.5 MB")
- *
- * @example
- * ```typescript
- * formatFileSize(1536000); // "1.5 MB"
- * ```
- */
+/** Formats file size in bytes to a human-readable Persian string. */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 بایت';
 

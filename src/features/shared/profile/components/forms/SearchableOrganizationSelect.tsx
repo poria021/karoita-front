@@ -1,6 +1,7 @@
 'use client';
 
-import { memo, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvTextField } from '@/components/shared/KvTextField';
@@ -35,35 +36,9 @@ interface SearchableOrganizationSelectProps {
   onChange: (value: string) => void;
 }
 
-type OptionRowProps = {
-  option: OrganizationOption;
-  selected: boolean;
-  onSelect: (option: OrganizationOption) => void;
-};
-
-const OrganizationOptionRow = memo(function OrganizationOptionRow({
-  option,
-  selected,
-  onSelect,
-}: OptionRowProps) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        'w-full border-b border-kv-border px-3.5 py-2.5 text-start text-xs font-bold text-kv-text-secondary last:border-b-0',
-        'hover:bg-kv-surface-muted focus-visible:bg-kv-surface-muted focus-visible:outline-none',
-        selected && 'bg-kv-surface-muted'
-      )}
-      onClick={() => onSelect(option)}
-    >
-      {option.label}
-    </button>
-  );
-});
-
 /**
- * Search-on-type organization select — fetches pages of 10 from
- * {@link useOrganizationOptions} only while open (production pagination pattern).
+ * Search-on-type organization select — cmdk list + KvTextField chrome.
+ * Fetches pages of 10 via {@link useOrganizationOptions} while open.
  */
 export function SearchableOrganizationSelect({
   type,
@@ -127,7 +102,13 @@ export function SearchableOrganizationSelect({
   const showSearchIcon = query.trim().length === 0;
 
   return (
-    <div ref={rootRef} className="relative">
+    <div
+      ref={rootRef}
+      className="relative"
+      role="combobox"
+      aria-expanded={open && !locked}
+      aria-controls={open ? `org-select-${type}` : undefined}
+    >
       <KvTextField
         label={label}
         required={required}
@@ -163,51 +144,64 @@ export function SearchableOrganizationSelect({
       />
 
       {open && !locked ? (
-        <div
-          ref={listRef}
-          onScroll={handleListScroll}
-          className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto overflow-x-hidden rounded-kv-control border border-kv-border bg-kv-surface"
+        <Command
+          id={`org-select-${type}`}
+          shouldFilter={false}
+          loop
+          className="absolute start-0 z-50 mt-1 w-full overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-overlay"
         >
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2 px-3.5 py-3 text-xs text-kv-text-faint">
-              <Spinner className="size-3.5" aria-hidden="true" />
-              در حال بارگذاری...
-            </div>
-          ) : loadError ? (
-            <p className="px-3.5 py-2.5 text-center text-xs font-bold text-kv-danger">
-              خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
-            </p>
-          ) : items.length > 0 ? (
-            <>
-              {items.map((option) => (
-                <OrganizationOptionRow
-                  key={option.id}
-                  option={option}
-                  selected={value === option.label}
-                  onSelect={handleSelect}
-                />
-              ))}
-              {isLoadingMore ? (
-                <div className="flex items-center justify-center gap-2 border-t border-kv-border-muted px-3.5 py-2.5 text-xs text-kv-text-faint">
-                  <Spinner className="size-3.5" aria-hidden="true" />
-                  در حال بارگذاری...
-                </div>
-              ) : hasMore ? (
-                <button
-                  type="button"
-                  className="w-full border-t border-kv-border-muted px-3.5 py-2.5 text-center text-xs font-bold text-kv-brand-soft-fg hover:bg-kv-surface-muted"
-                  onClick={loadMore}
-                >
-                  نمایش ۱۰ مورد بعدی
-                </button>
-              ) : null}
-            </>
-          ) : (
-            <p className="px-3.5 py-2.5 text-center text-xs text-kv-text-subtle">
-              نتیجه‌ای یافت نشد.
-            </p>
-          )}
-        </div>
+          <Command.List
+            ref={listRef}
+            onScroll={handleListScroll}
+            className="max-h-52 overflow-y-auto overflow-x-hidden outline-none"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2 px-3.5 py-3 text-xs text-kv-text-faint">
+                <Spinner className="size-3.5" aria-hidden="true" />
+                در حال بارگذاری...
+              </div>
+            ) : loadError ? (
+              <p className="px-3.5 py-2.5 text-center text-xs font-bold text-kv-danger">
+                خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
+              </p>
+            ) : items.length > 0 ? (
+              <>
+                {items.map((option) => (
+                  <Command.Item
+                    key={option.id}
+                    value={`${option.id}::${option.label}`}
+                    onSelect={() => handleSelect(option)}
+                    className={cn(
+                      'cursor-pointer border-b border-kv-border px-3.5 py-2.5 text-start text-xs font-bold text-kv-text-secondary last:border-b-0',
+                      'outline-none data-[selected=true]:bg-kv-surface-muted',
+                      value === option.label && 'bg-kv-surface-muted'
+                    )}
+                  >
+                    {option.label}
+                  </Command.Item>
+                ))}
+                {isLoadingMore ? (
+                  <div className="flex items-center justify-center gap-2 border-t border-kv-border-muted px-3.5 py-2.5 text-xs text-kv-text-faint">
+                    <Spinner className="size-3.5" aria-hidden="true" />
+                    در حال بارگذاری...
+                  </div>
+                ) : hasMore ? (
+                  <Command.Item
+                    value="__load-more__"
+                    onSelect={() => loadMore()}
+                    className="cursor-pointer border-t border-kv-border-muted px-3.5 py-2.5 text-center text-xs font-bold text-kv-brand-soft-fg outline-none data-[selected=true]:bg-kv-surface-muted"
+                  >
+                    نمایش ۱۰ مورد بعدی
+                  </Command.Item>
+                ) : null}
+              </>
+            ) : (
+              <Command.Empty className="px-3.5 py-2.5 text-center text-xs text-kv-text-subtle">
+                نتیجه‌ای یافت نشد.
+              </Command.Empty>
+            )}
+          </Command.List>
+        </Command>
       ) : null}
     </div>
   );

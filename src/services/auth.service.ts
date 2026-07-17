@@ -1,3 +1,5 @@
+import Cookies from 'js-cookie';
+
 import { authClient } from '@/lib/auth-client';
 import { AUTH_COOKIE_NAME } from '@/lib/config';
 import { useUserStore } from '@/store/useUserStore';
@@ -43,33 +45,25 @@ function isBrowser(): boolean {
   return typeof window !== 'undefined';
 }
 
-// ==========================================
-// توابع کمکی امنیتی برای کار با کوکی مرورگر
-// ==========================================
 function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  const nameLenPlus = name.length + 1;
-  return (
-    document.cookie
-      .split(';')
-      .map((c) => c.trim())
-      .filter((cookie) => cookie.substring(0, nameLenPlus) === `${name}=`)
-      .map((cookie) => decodeURIComponent(cookie.substring(nameLenPlus)))[0] || null
-  );
+  if (!isBrowser()) return null;
+  return Cookies.get(name) ?? null;
 }
 
 function setCookie(name: string, value: string, expiresAt: string): void {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${name}=${encodeURIComponent(
-    value
-  )}; path=/; expires=${new Date(expiresAt).toUTCString()}; samesite=strict; secure`;
+  if (!isBrowser()) return;
+  Cookies.set(name, value, {
+    path: '/',
+    expires: new Date(expiresAt),
+    sameSite: 'strict',
+    secure: true,
+  });
 }
 
 function deleteCookie(name: string): void {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+  if (!isBrowser()) return;
+  Cookies.remove(name, { path: '/' });
 }
-// ==========================================
 
 function readMockUsers(): MockAuthUserRecord[] {
   if (!isBrowser()) return AUTH_MOCK_USERS;
@@ -144,13 +138,17 @@ function writeSessionMeta(meta: SessionMeta | null): void {
  * plugin already issues its own HTTP-only session cookie server-side.
  */
 function setMarkerCookie(expiresAt: string): void {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${AUTH_COOKIE_NAME}=1; path=/; expires=${new Date(expiresAt).toUTCString()}; samesite=lax`;
+  if (!isBrowser()) return;
+  Cookies.set(AUTH_COOKIE_NAME, '1', {
+    path: '/',
+    expires: new Date(expiresAt),
+    sameSite: 'lax',
+  });
 }
 
 function clearMarkerCookie(): void {
-  if (typeof document === 'undefined') return;
-  document.cookie = `${AUTH_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+  if (!isBrowser()) return;
+  Cookies.remove(AUTH_COOKIE_NAME, { path: '/' });
 }
 
 function dispatchSessionToStore(session: Session | null): void {
