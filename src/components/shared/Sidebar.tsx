@@ -2,11 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronLeft, LayoutDashboard, X } from 'lucide-react';
+import { ChevronLeft, LayoutDashboard, Lock, X } from 'lucide-react';
 
 import { useUserStore } from '@/store/useUserStore';
 import { useUIStore } from '@/store/useUIStore';
-import { getRoleStrategy, type SidebarMenuItem } from '@/utils/RoleStrategyMap';
+import {
+  areKarvitaModulesUnlocked,
+  getRoleStrategy,
+  type SidebarMenuItem,
+} from '@/utils/RoleStrategyMap';
 import { iconMap } from '@/utils/iconMap';
 import { RouteService } from '@/services/route.service';
 import { cn } from '@/lib/utils';
@@ -21,8 +25,8 @@ function resolveIcon(iconKey: string) {
  * Responsive, role-driven navigation sidebar (rule 00, #9-#10): menu items
  * come exclusively from `RoleStrategyMap`, never from inline role checks.
  *
- * Reads only the individual `useUserStore`/`useUIStore` selectors it needs
- * (rule 50, #4) so unrelated store updates never re-render this component.
+ * Until identity is admin-approved, modules stay locked (original-karvita.html);
+ * the profile footer link remains the only navigation escape hatch.
  */
 export function Sidebar() {
   const activeUser = useUserStore((state) => state.activeUser);
@@ -36,20 +40,22 @@ export function Sidebar() {
 
   const strategy = getRoleStrategy(activeUser.role);
   const RoleIcon = resolveIcon(strategy.roleIcon);
+  const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
 
   return (
     <>
-      {/* Mobile overlay, dismisses the drawer on outside click. */}
       <div
         onClick={closeMobileSidebar}
         aria-hidden="true"
         className={cn(
           'fixed inset-0 z-40 bg-slate-950/40 transition-opacity lg:hidden',
-          isMobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          isMobileOpen
+            ? 'pointer-events-auto opacity-100'
+            : 'pointer-events-none opacity-0'
         )}
       />
 
-<aside
+      <aside
         className={cn(
           'fixed inset-y-0 start-0 z-50 flex shrink-0 flex-col overflow-y-auto border-e border-slate-200/80 bg-white transition-all duration-300 ease-in-out',
           'lg:sticky lg:top-[88px] lg:z-0 lg:h-auto lg:translate-x-0 lg:self-start lg:overflow-y-visible lg:bg-white lg:border lg:border-slate-200/80 lg:rounded-kv-shell lg:shadow-sm',
@@ -64,12 +70,14 @@ export function Sidebar() {
           className="absolute -end-3 top-6 z-20 hidden size-6 items-center justify-center rounded-full border border-slate-300/80 bg-white text-slate-500 shadow-sm transition-all hover:border-brand-500 hover:text-brand-500 hover:shadow-md lg:flex"
         >
           <ChevronLeft
-            className={cn('size-3 transition-transform duration-300', isCollapsed ? 'rotate-180 rtl:rotate-0' : 'rotate-0 rtl:rotate-180')}
+            className={cn(
+              'size-3 transition-transform duration-300',
+              isCollapsed ? 'rotate-180 rtl:rotate-0' : 'rotate-0 rtl:rotate-180'
+            )}
             aria-hidden="true"
           />
         </button>
 
-        {/* Mobile-only header inside the drawer. */}
         <div className="flex items-center justify-between gap-kv-inline border-b border-slate-100 p-4 lg:hidden">
           <div className="flex min-w-0 items-center gap-kv-inline">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-brand-500 text-white shadow-sm shadow-brand-500/20">
@@ -98,7 +106,14 @@ export function Sidebar() {
 
         <nav className="flex-1 space-y-2 p-4 lg:p-3 lg:pt-kv-stack lg:pb-8">
           {strategy.sidebarMenu.map((item) => (
-            <SidebarNavLink key={item.path} item={item} isActive={pathname === item.path} isCollapsed={isCollapsed} onNavigate={closeMobileSidebar} />
+            <SidebarNavLink
+              key={item.path}
+              item={item}
+              isActive={pathname === item.path}
+              isCollapsed={isCollapsed}
+              locked={!modulesUnlocked}
+              onNavigate={closeMobileSidebar}
+            />
           ))}
         </nav>
 
@@ -106,12 +121,17 @@ export function Sidebar() {
           href={RouteService.karvita.profile(activeUser.role)}
           prefetch={false}
           onClick={closeMobileSidebar}
-          className={cn('border-t border-slate-100 bg-white transition-colors hover:bg-slate-50 lg:rounded-b-kv-shell', isCollapsed ? 'p-4 lg:p-2' : 'p-4')}
+          className={cn(
+            'border-t border-slate-100 bg-white transition-colors hover:bg-slate-50 lg:rounded-b-kv-shell',
+            isCollapsed ? 'p-4 lg:p-2' : 'p-4'
+          )}
         >
           <div
             className={cn(
               'flex items-center rounded-kv-control border border-slate-100 bg-slate-50 transition-all',
-              isCollapsed ? 'justify-start p-3 lg:justify-center lg:p-2' : 'p-3'
+              isCollapsed
+                ? 'justify-start p-3 lg:justify-center lg:p-2'
+                : 'p-3'
             )}
           >
             <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-brand-500/10 text-brand-600">
@@ -120,7 +140,9 @@ export function Sidebar() {
             <div
               className={cn(
                 'flex min-w-0 flex-col overflow-hidden transition-all',
-                isCollapsed ? 'ms-3 max-w-[150px] opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0' : 'ms-3 max-w-[150px] opacity-100'
+                isCollapsed
+                  ? 'ms-3 max-w-[150px] opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0'
+                  : 'ms-3 max-w-[150px] opacity-100'
               )}
             >
               <KvTypography variant="subtitle" as="p" truncate>
@@ -143,25 +165,33 @@ interface SidebarNavLinkProps {
   item: SidebarMenuItem;
   isActive: boolean;
   isCollapsed: boolean;
+  locked: boolean;
   onNavigate: () => void;
 }
 
-function SidebarNavLink({ item, isActive, isCollapsed, onNavigate }: SidebarNavLinkProps) {
+function SidebarNavLink({
+  item,
+  isActive,
+  isCollapsed,
+  locked,
+  onNavigate,
+}: SidebarNavLinkProps) {
   const ItemIcon = resolveIcon(item.icon);
 
-  return (
-    <Link
-      href={item.path}
-      prefetch={false}
-      onClick={onNavigate}
-      className={cn(
-        'flex w-full items-center rounded-kv-control px-3.5 py-2.5 text-xs font-bold transition-colors',
-        isCollapsed ? 'justify-start lg:justify-center' : 'justify-between',
-        isActive ? 'border border-brand-100/50 bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
-      )}
-    >
-      <div className="flex items-center">
-        <ItemIcon className={cn('size-4 shrink-0 text-center', isActive ? 'text-brand-600' : 'text-slate-400')} aria-hidden="true" />
+  const content = (
+    <>
+      <div className="flex min-w-0 items-center">
+        <ItemIcon
+          className={cn(
+            'size-4 shrink-0 text-center',
+            locked
+              ? 'text-slate-400'
+              : isActive
+                ? 'text-brand-600'
+                : 'text-slate-400'
+          )}
+          aria-hidden="true"
+        />
         <span
           className={cn(
             'inline-block max-w-[150px] overflow-hidden whitespace-nowrap opacity-100 transition-all',
@@ -171,6 +201,49 @@ function SidebarNavLink({ item, isActive, isCollapsed, onNavigate }: SidebarNavL
           {item.title}
         </span>
       </div>
+      {locked && !isCollapsed ? (
+        <Lock className="size-3 shrink-0 text-slate-400" aria-hidden="true" />
+      ) : null}
+      {locked && isCollapsed ? (
+        <Lock
+          className="ms-2 size-3 shrink-0 text-slate-400 lg:ms-0 lg:hidden"
+          aria-hidden="true"
+        />
+      ) : null}
+    </>
+  );
+
+  if (locked) {
+    return (
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
+        title="پس از تایید مدارک توسط مدیریت فعال می‌شود"
+        className={cn(
+          'flex w-full cursor-default items-center rounded-kv-control bg-slate-100/40 px-3.5 py-2.5 text-xs font-bold text-slate-400 opacity-40',
+          isCollapsed ? 'justify-start lg:justify-center' : 'justify-between'
+        )}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={item.path}
+      prefetch={false}
+      onClick={onNavigate}
+      className={cn(
+        'flex w-full items-center rounded-kv-control px-3.5 py-2.5 text-xs font-bold transition-colors',
+        isCollapsed ? 'justify-start lg:justify-center' : 'justify-between',
+        isActive
+          ? 'border border-brand-100/50 bg-brand-50 text-brand-700'
+          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+      )}
+    >
+      {content}
     </Link>
   );
 }

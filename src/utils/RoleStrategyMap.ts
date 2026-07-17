@@ -23,13 +23,22 @@ export interface RoleStrategyConfig {
   roleIcon: string;
   /** Tailwind `max-w-*` logical width constraint applied to the `<main>` content viewport. */
   layoutWidthClass: string;
+  /**
+   * When true, sidebar modules stay locked until `user.approved`
+   * (mirrors original-karvita.html `!isApproved && role !== super_admin`).
+   */
+  gateModulesUntilApproved: boolean;
   /** Role-scoped navigation, in display order. */
   sidebarMenu: SidebarMenuItem[];
   /** PBAC permission strings granted to this role. */
   permissions: string[];
 }
 
-const DASHBOARD_ITEM: SidebarMenuItem = { title: 'میز کار', path: RouteService.karvita.dashboard(), icon: 'fa-home' };
+const DASHBOARD_ITEM: SidebarMenuItem = {
+  title: 'میز کار',
+  path: RouteService.karvita.dashboard(),
+  icon: 'fa-home',
+};
 
 const STANDARD_REPORTS_ITEM: SidebarMenuItem = {
   title: 'گزارش‌های استاندارد',
@@ -56,10 +65,19 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'آموزش علمی نظری',
     roleIcon: 'fa-graduation-cap',
     layoutWidthClass: 'max-w-5xl',
+    gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      { title: 'انتخاب واحد کارورزی', path: RouteService.karvita.internshipSelection(), icon: 'fa-graduation-cap' },
-      { title: 'گزارش روزانه', path: RouteService.karvita.dailyReports(), icon: 'fa-clipboard-list' },
+      {
+        title: 'انتخاب واحد کارورزی',
+        path: RouteService.karvita.internshipSelection(),
+        icon: 'fa-graduation-cap',
+      },
+      {
+        title: 'گزارش روزانه',
+        path: RouteService.karvita.dailyReports(),
+        icon: 'fa-clipboard-list',
+      },
     ],
     permissions: ['dashboard.view', 'internship.select', 'daily-report.submit'],
   },
@@ -69,10 +87,19 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'آموزش فنی و کارگاهی',
     roleIcon: 'fa-screwdriver-wrench',
     layoutWidthClass: 'max-w-5xl',
+    gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      { title: 'انتخاب واحد کارآموزی', path: RouteService.karvita.internshipSelection(), icon: 'fa-screwdriver-wrench' },
-      { title: 'گزارش روزانه', path: RouteService.karvita.dailyReports(), icon: 'fa-clipboard-list' },
+      {
+        title: 'انتخاب واحد کارآموزی',
+        path: RouteService.karvita.internshipSelection(),
+        icon: 'fa-screwdriver-wrench',
+      },
+      {
+        title: 'گزارش روزانه',
+        path: RouteService.karvita.dailyReports(),
+        icon: 'fa-clipboard-list',
+      },
     ],
     permissions: ['dashboard.view', 'internship.select', 'daily-report.submit'],
   },
@@ -82,14 +109,28 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'ارزیاب علمی دانشگاه',
     roleIcon: 'fa-user-tie',
     layoutWidthClass: 'max-w-6xl',
+    gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      { title: 'ارزیابی گزارش‌های فراگیران', path: RouteService.karvita.dailyApprovals(), icon: 'fa-clipboard-check' },
-      { title: 'پیکربندی ظرفیت‌ها', path: RouteService.karvita.organizationalCapacities(), icon: 'fa-chart-pie' },
+      {
+        title: 'ارزیابی گزارش‌های فراگیران',
+        path: RouteService.karvita.dailyApprovals(),
+        icon: 'fa-clipboard-check',
+      },
+      {
+        title: 'پیکربندی ظرفیت‌ها',
+        path: RouteService.karvita.organizationalCapacities(),
+        icon: 'fa-chart-pie',
+      },
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'daily-approval.review', 'capacity.configure', 'reports.view'],
+    permissions: [
+      'dashboard.view',
+      'daily-approval.review',
+      'capacity.configure',
+      'reports.view',
+    ],
   },
 
   mentor_teacher: {
@@ -97,9 +138,14 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'ناظر و هدایت‌گر مدرسه',
     roleIcon: 'fa-chalkboard-user',
     layoutWidthClass: 'max-w-6xl',
+    gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      { title: 'ارزیابی گزارش‌های فراگیران', path: RouteService.karvita.dailyApprovals(), icon: 'fa-clipboard-check' },
+      {
+        title: 'ارزیابی گزارش‌های فراگیران',
+        path: RouteService.karvita.dailyApprovals(),
+        icon: 'fa-clipboard-check',
+      },
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
@@ -111,14 +157,28 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'مدیریت کل واحد آموزشی',
     roleIcon: 'fa-school',
     layoutWidthClass: 'max-w-6xl',
+    gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      { title: 'مدیریت کارورزان', path: RouteService.karvita.traineesManagement(), icon: 'fa-id-card' },
-      { title: 'ثبت‌نام مهارت‌آموزان', path: RouteService.karvita.studentsList(), icon: 'fa-user-group' },
+      {
+        title: 'مدیریت کارورزان',
+        path: RouteService.karvita.traineesManagement(),
+        icon: 'fa-id-card',
+      },
+      {
+        title: 'ثبت‌نام مهارت‌آموزان',
+        path: RouteService.karvita.studentsList(),
+        icon: 'fa-user-group',
+      },
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'trainee.manage', 'student.manage', 'reports.view'],
+    permissions: [
+      'dashboard.view',
+      'trainee.manage',
+      'student.manage',
+      'reports.view',
+    ],
   },
 
   regional_edu_admin: {
@@ -126,9 +186,14 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'نظارت منطقه‌ای آموزش',
     roleIcon: 'fa-map-location-dot',
     layoutWidthClass: 'max-w-6xl',
+    gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      { title: 'مکان‌ها و مناطق', path: RouteService.karvita.locations(), icon: 'fa-map' },
+      {
+        title: 'مکان‌ها و مناطق',
+        path: RouteService.karvita.locations(),
+        icon: 'fa-map',
+      },
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
@@ -140,7 +205,13 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'مدیریت پردیس تابعه',
     roleIcon: 'fa-university',
     layoutWidthClass: 'max-w-6xl',
-    sidebarMenu: [DASHBOARD_ITEM, STANDARD_REPORTS_ITEM, COMPARATIVE_REPORTS_ITEM, MANAGE_ADS_ITEM],
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+      MANAGE_ADS_ITEM,
+    ],
     permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
   },
 
@@ -149,14 +220,24 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'امور پردیس‌های استانی',
     roleIcon: 'fa-university',
     layoutWidthClass: 'max-w-6xl',
+    gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      { title: 'مکان‌ها و پردیس‌ها', path: RouteService.karvita.locations(), icon: 'fa-map' },
+      {
+        title: 'مکان‌ها و پردیس‌ها',
+        path: RouteService.karvita.locations(),
+        icon: 'fa-map',
+      },
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
       MANAGE_ADS_ITEM,
     ],
-    permissions: ['dashboard.view', 'location.manage', 'reports.view', 'ads.manage'],
+    permissions: [
+      'dashboard.view',
+      'location.manage',
+      'reports.view',
+      'ads.manage',
+    ],
   },
 
   assistant_admin: {
@@ -164,7 +245,12 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'معاونت اجرایی و ستادی',
     roleIcon: 'fa-user-gear',
     layoutWidthClass: 'max-w-6xl',
-    sidebarMenu: [DASHBOARD_ITEM, STANDARD_REPORTS_ITEM, COMPARATIVE_REPORTS_ITEM],
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+    ],
     permissions: ['dashboard.view', 'reports.view'],
   },
 
@@ -173,7 +259,13 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'مدیریت کلان کشوری',
     roleIcon: 'fa-building-columns',
     layoutWidthClass: 'max-w-6xl',
-    sidebarMenu: [DASHBOARD_ITEM, STANDARD_REPORTS_ITEM, COMPARATIVE_REPORTS_ITEM, MANAGE_ADS_ITEM],
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+      MANAGE_ADS_ITEM,
+    ],
     permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
   },
 
@@ -182,13 +274,34 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     badge: 'مدیریت عالی و حاکمیتی',
     roleIcon: 'fa-user-shield',
     layoutWidthClass: 'max-w-7xl',
+    gateModulesUntilApproved: false,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      { title: 'بررسی مدارک هویتی', path: RouteService.karvita.onboardingApprovals(), icon: 'fa-id-card' },
-      { title: 'مدیریت دسترسی‌ها', path: RouteService.karvita.userPermissions(), icon: 'fa-user-gear' },
-      { title: 'ایجاد حساب‌های سازمانی', path: RouteService.karvita.adminUserCreation(), icon: 'fa-user-plus' },
-      { title: 'مدیریت ترم و سرفصل', path: RouteService.karvita.syllabusConfig(), icon: 'fa-rectangle-list' },
-      { title: 'ساختار سازمانی', path: RouteService.karvita.organizationalStructure(), icon: 'fa-network-wired' },
+      {
+        title: 'بررسی مدارک هویتی',
+        path: RouteService.karvita.onboardingApprovals(),
+        icon: 'fa-id-card',
+      },
+      {
+        title: 'مدیریت دسترسی‌ها',
+        path: RouteService.karvita.userPermissions(),
+        icon: 'fa-user-gear',
+      },
+      {
+        title: 'ایجاد حساب‌های سازمانی',
+        path: RouteService.karvita.adminUserCreation(),
+        icon: 'fa-user-plus',
+      },
+      {
+        title: 'مدیریت ترم و سرفصل',
+        path: RouteService.karvita.syllabusConfig(),
+        icon: 'fa-rectangle-list',
+      },
+      {
+        title: 'ساختار سازمانی',
+        path: RouteService.karvita.organizationalStructure(),
+        icon: 'fa-network-wired',
+      },
       MANAGE_ADS_ITEM,
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
@@ -209,4 +322,17 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
 /** Typed accessor — prefer this over indexing `ROLE_STRATEGY_MAP` directly. */
 export function getRoleStrategy(role: UserRole): RoleStrategyConfig {
   return ROLE_STRATEGY_MAP[role];
+}
+
+/**
+ * Whether domain modules (sidebar + routes) are unlocked for this user.
+ * Profile remains reachable even when this returns false.
+ */
+export function areKarvitaModulesUnlocked(user: {
+  role: UserRole;
+  approved: boolean;
+}): boolean {
+  const strategy = getRoleStrategy(user.role);
+  if (!strategy.gateModulesUntilApproved) return true;
+  return user.approved;
 }
