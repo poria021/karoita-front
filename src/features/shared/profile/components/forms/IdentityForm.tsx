@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -147,15 +147,12 @@ export function IdentityForm({
                 color="cta"
                 appearance="solid"
                 size="lg"
-                disabled={isDisabled}
+                loading={isBusy}
+                disabled={disabled}
                 icon={
-                  isBusy ? (
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
-                  )
+                  <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
                 }
-                iconPosition={isBusy ? 'start' : 'end'}
+                iconPosition="end"
               >
                 {isBusy ? 'در حال ذخیره...' : 'ثبت و ارسال اطلاعات'}
               </KvButton>

@@ -1,10 +1,8 @@
 import type { ReactNode } from 'react';
-import { Loader2 } from 'lucide-react';
 
 import { KvButton } from '@/components/shared/KvButton';
 
 interface AuthSubmitButtonProps {
-  isReady: boolean;
   isLoading: boolean;
   loadingLabel: string;
   icon?: ReactNode;
@@ -13,10 +11,10 @@ interface AuthSubmitButtonProps {
 
 /**
  * Full-width CTA button matching login primary actions.
- * Built on `KvButton` (`color="cta"`).
+ * Stays clickable until submit; only disables while a request is in flight.
+ * Validation errors surface via RHF `handleSubmit` + field UI.
  */
 export function AuthSubmitButton({
-  isReady,
   isLoading,
   loadingLabel,
   icon,
@@ -29,8 +27,8 @@ export function AuthSubmitButton({
       appearance="solid"
       size="lg"
       fullWidth
-      disabled={!isReady || isLoading}
-      icon={isLoading ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : icon}
+      loading={isLoading}
+      icon={icon}
       iconPosition="start"
     >
       {isLoading ? loadingLabel : children}

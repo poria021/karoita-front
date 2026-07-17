@@ -2,6 +2,7 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from 'radix-ui';
 
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
 export type KvButtonColor =
@@ -183,6 +184,8 @@ export type KvButtonProps = Omit<React.ComponentProps<'button'>, 'color'> &
     fullWidth?: boolean;
     icon?: React.ReactNode;
     iconPosition?: KvButtonIconPosition;
+    /** Shows Shadcn `Spinner` and disables the button while true. */
+    loading?: boolean;
     asChild?: boolean;
   };
 
@@ -199,23 +202,35 @@ export function KvButton({
   fullWidth = false,
   icon,
   iconPosition = 'start',
+  loading = false,
   asChild = false,
+  disabled,
   children,
   ...props
 }: KvButtonProps) {
   const Comp = asChild ? Slot.Root : 'button';
   const hasChildren =
     children !== undefined && children !== null && children !== false;
-  const isIconOnly = Boolean(icon) && !hasChildren;
+  const resolvedIcon = loading ? (
+    <Spinner data-icon="inline-start" aria-hidden="true" />
+  ) : (
+    icon
+  );
+  const isIconOnly = Boolean(resolvedIcon) && !hasChildren;
   const resolvedSize = isIconOnly ? 'icon' : size;
+  const resolvedIconPosition = loading ? 'start' : iconPosition;
 
   const content = asChild ? (
     children
   ) : (
     <>
-      {icon && (iconPosition === 'start' || isIconOnly) ? icon : null}
+      {resolvedIcon && (resolvedIconPosition === 'start' || isIconOnly)
+        ? resolvedIcon
+        : null}
       {hasChildren ? children : null}
-      {icon && iconPosition === 'end' && !isIconOnly ? icon : null}
+      {resolvedIcon && resolvedIconPosition === 'end' && !isIconOnly
+        ? resolvedIcon
+        : null}
     </>
   );
 
@@ -224,6 +239,9 @@ export function KvButton({
       data-slot="kv-button"
       data-color={color}
       data-appearance={appearance}
+      data-loading={loading || undefined}
+      aria-busy={loading || undefined}
+      disabled={disabled || loading}
       className={cn(
         kvButtonVariants({
           color,

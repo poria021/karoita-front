@@ -196,7 +196,8 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
             type="submit"
             color="cta"
             appearance="solid"
-            disabled={isLocked}
+            loading={isSaving}
+            disabled={isApproved}
           >
             {isSaving ? 'در حال ارسال...' : 'ثبت و ارسال نهایی مشخصات'}
           </KvButton>

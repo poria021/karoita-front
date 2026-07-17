@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, MessageSquareLock } from 'lucide-react';
+import { MessageSquareLock } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 
 import { KvButton } from '@/components/shared/KvButton';
@@ -51,15 +51,10 @@ export function SecurityChangePasswordFlow({
           color="cta"
           appearance="solid"
           fullWidth
+          loading={isBusy}
           disabled={isDisabled}
           onClick={onRequestOtp}
-          icon={
-            isBusy ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            ) : (
-              <MessageSquareLock className="size-4" aria-hidden="true" />
-            )
-          }
+          icon={<MessageSquareLock className="size-4" aria-hidden="true" />}
         >
           درخواست تغییر رمز عبور (ارسال پیامک تایید)
         </KvButton>
@@ -105,12 +100,8 @@ export function SecurityChangePasswordFlow({
               color="cta"
               appearance="solid"
               className="flex-1"
+              loading={isBusy}
               disabled={isDisabled}
-              icon={
-                isBusy ? (
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                ) : undefined
-              }
             >
               تایید کد و ادامه
             </KvButton>
@@ -146,12 +137,8 @@ export function SecurityChangePasswordFlow({
             color="cta"
             appearance="solid"
             className="flex-1"
+            loading={isBusy}
             disabled={isDisabled}
-            icon={
-              isBusy ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              ) : undefined
-            }
           >
             ثبت نهایی رمز جدید
           </KvButton>

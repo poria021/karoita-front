@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { KeyRound, Loader2 } from 'lucide-react';
+import { KeyRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -187,14 +187,9 @@ export function SecurityForm({
                   type="submit"
                   color="cta"
                   appearance="solid"
-                  disabled={isDisabled}
-                  icon={
-                    isBusy ? (
-                      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    ) : (
-                      <KeyRound className="size-4" aria-hidden="true" />
-                    )
-                  }
+                  loading={isBusy}
+                  disabled={disabled}
+                  icon={<KeyRound className="size-4" aria-hidden="true" />}
                 >
                   تأیید و ثبت رمز عبور اولیه
                 </KvButton>
