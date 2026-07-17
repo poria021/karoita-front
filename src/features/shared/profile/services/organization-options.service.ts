@@ -1,0 +1,186 @@
+import {
+  listOrganizationLabels,
+  type OrganizationField,
+} from '../data/organization-catalog';
+
+const API_MODE = process.env.NEXT_PUBLIC_API_MODE ?? 'mock';
+const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
+const DEFAULT_LIMIT = 10;
+const MOCK_DELAY_MS = 220;
+
+export type { OrganizationField };
+
+export type OrganizationOption = {
+  id: string;
+  label: string;
+};
+
+export type OrganizationOptionsResult = {
+  items: OrganizationOption[];
+  hasMore: boolean;
+  page: number;
+};
+
+export type OrganizationOptionsQuery = {
+  type: OrganizationField;
+  query?: string;
+  page?: number;
+  limit?: number;
+  /** Cascade parent — filters city/college/district/school. */
+  province?: string;
+  /** Cascade parent — filters school. */
+  district?: string;
+  signal?: AbortSignal;
+};
+
+class OrganizationOptionsServiceError extends Error {
+  constructor(
+    message: string,
+    readonly status?: number
+  ) {
+    super(message);
+    this.name = 'OrganizationOptionsServiceError';
+  }
+}
+
+function toOptions(labels: string[]): OrganizationOption[] {
+  return labels.map((label) => ({
+    id: label,
+    label,
+  }));
+}
+
+function filterByQuery(
+  items: OrganizationOption[],
+  query: string
+): OrganizationOption[] {
+  const normalized = query.trim();
+  if (!normalized) return items;
+  return items.filter((item) => item.label.includes(normalized));
+}
+
+function paginate(
+  items: OrganizationOption[],
+  page: number,
+  limit: number
+): OrganizationOptionsResult {
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, limit);
+  const start = (safePage - 1) * safeLimit;
+  const slice = items.slice(start, start + safeLimit);
+
+  return {
+    items: slice,
+    hasMore: start + slice.length < items.length,
+    page: safePage,
+  };
+}
+
+async function fetchFromApi(
+  params: Required<
+    Pick<OrganizationOptionsQuery, 'type' | 'page' | 'limit'>
+  > &
+    Pick<OrganizationOptionsQuery, 'query' | 'province' | 'district' | 'signal'>
+): Promise<OrganizationOptionsResult> {
+  if (!API_URL) {
+    throw new OrganizationOptionsServiceError(
+      'آدرس سرویس گزینه‌های سازمانی پیکربندی نشده است.'
+    );
+  }
+
+  const search = new URLSearchParams({
+    type: params.type,
+    page: String(params.page),
+    limit: String(params.limit),
+  });
+  if (params.query?.trim()) search.set('q', params.query.trim());
+  if (params.province) search.set('province', params.province);
+  if (params.district) search.set('district', params.district);
+
+  const response = await fetch(
+    `${API_URL}/organization-options?${search.toString()}`,
+    {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: params.signal,
+    }
+  );
+
+  if (!response.ok) {
+    throw new OrganizationOptionsServiceError(
+      'دریافت گزینه‌های سازمانی ناموفق بود.',
+      response.status
+    );
+  }
+
+  const payload = (await response.json()) as Partial<OrganizationOptionsResult>;
+  if (!Array.isArray(payload.items)) {
+    throw new OrganizationOptionsServiceError('پاسخ سرویس گزینه‌ها نامعتبر است.');
+  }
+
+  return {
+    items: payload.items.map((item) => ({
+      id: String(item.id),
+      label: String(item.label),
+    })),
+    hasMore: Boolean(payload.hasMore),
+    page: typeof payload.page === 'number' ? payload.page : params.page,
+  };
+}
+
+async function fetchFromMock(
+  params: Required<
+    Pick<OrganizationOptionsQuery, 'type' | 'page' | 'limit'>
+  > &
+    Pick<OrganizationOptionsQuery, 'query' | 'province' | 'district' | 'signal'>
+): Promise<OrganizationOptionsResult> {
+  await new Promise<void>((resolve, reject) => {
+    const timer = window.setTimeout(resolve, MOCK_DELAY_MS);
+    params.signal?.addEventListener(
+      'abort',
+      () => {
+        window.clearTimeout(timer);
+        reject(new DOMException('Aborted', 'AbortError'));
+      },
+      { once: true }
+    );
+  });
+
+  const labels = listOrganizationLabels(
+    params.type,
+    params.province ?? '',
+    params.district ?? ''
+  );
+  const filtered = filterByQuery(toOptions(labels), params.query ?? '');
+  return paginate(filtered, params.page, params.limit);
+}
+
+/**
+ * Facade for paginated organization select options (province, college, …).
+ * Mock filters/paginates locally; real mode hits NestJS `organization-options`.
+ */
+export class OrganizationOptionsService {
+  static async getOptions(
+    params: OrganizationOptionsQuery
+  ): Promise<OrganizationOptionsResult> {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? DEFAULT_LIMIT;
+    const request = {
+      type: params.type,
+      query: params.query,
+      page,
+      limit,
+      province: params.province,
+      district: params.district,
+      signal: params.signal,
+    };
+
+    if (API_MODE === 'real') {
+      return fetchFromApi(request);
+    }
+
+    return fetchFromMock(request);
+  }
+}
+
+export { DEFAULT_LIMIT as ORGANIZATION_OPTIONS_PAGE_SIZE };

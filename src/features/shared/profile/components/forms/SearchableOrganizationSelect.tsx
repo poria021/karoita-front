@@ -1,15 +1,21 @@
 'use client';
 
-import { ChevronDown, Loader2, Search } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronDown, Search } from 'lucide-react';
+import { memo, useEffect, useRef, useState } from 'react';
 
 import { KvTextField } from '@/components/shared/KvTextField';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
-/** Page size for list windowing (mirrors server-side page size). */
-const PAGE_SIZE = 10;
+import type { OrganizationField } from '../../data/organization-catalog';
+import {
+  useOrganizationOptions,
+  type OrganizationDependsOn,
+} from '../../hooks/useOrganizationOptions';
+import type { OrganizationOption } from '../../services/organization-options.service';
 
 interface SearchableOrganizationSelectProps {
+  type: OrganizationField;
   /**
    * Label text string, or `false` to hide the label.
    * Same contract as {@link KvTextField}.
@@ -17,40 +23,68 @@ interface SearchableOrganizationSelectProps {
   label?: string | false;
   required?: boolean;
   optionalHint?: boolean;
+  /** Selected label stored in the form (RHF value). */
   value: string;
-  options: string[];
   placeholder: string;
   locked?: boolean;
   showLockIcon?: boolean;
   error?: string;
+  dependsOn?: OrganizationDependsOn;
+  /** Called with option label on select, or `''` when the user clears via typing. */
   onChange: (value: string) => void;
 }
 
+type OptionRowProps = {
+  option: OrganizationOption;
+  selected: boolean;
+  onSelect: (option: OrganizationOption) => void;
+};
+
+const OrganizationOptionRow = memo(function OrganizationOptionRow({
+  option,
+  selected,
+  onSelect,
+}: OptionRowProps) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        'w-full border-b border-slate-200 px-3.5 py-2.5 text-start text-xs font-bold text-slate-800 last:border-b-0',
+        'hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none',
+        selected && 'bg-slate-50'
+      )}
+      onClick={() => onSelect(option)}
+    >
+      {option.label}
+    </button>
+  );
+});
+
 /**
- * Search-on-type select — shell + label via {@link KvTextField}.
- * Options render in pages of {@link PAGE_SIZE}; scrolling loads the next page
- * (client window over the filtered list — same UX as server-side pagination).
+ * Search-on-type organization select — fetches pages of 10 from
+ * {@link useOrganizationOptions} only while open (production pagination pattern).
  */
 export function SearchableOrganizationSelect({
+  type,
   label = false,
   required = false,
   optionalHint = false,
   value,
-  options,
   placeholder,
   locked = false,
   showLockIcon,
   error,
+  dependsOn,
   onChange,
 }: SearchableOrganizationSelectProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(value);
-  const [page, setPage] = useState(1);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  useEffect(() => setQuery(value), [value]);
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
 
   useEffect(() => {
     const close = (event: MouseEvent) => {
@@ -65,39 +99,28 @@ export function SearchableOrganizationSelect({
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
-  const filteredOptions = useMemo(
-    () => options.filter((option) => option.includes(query.trim())),
-    [options, query]
-  );
+  const listQuery = query === value ? '' : query;
 
-  /** Reset pagination when the filter set or open state changes. */
-  useEffect(() => {
-    setPage(1);
-    setIsLoadingMore(false);
-  }, [query, options, open]);
-
-  const visibleOptions = useMemo(
-    () => filteredOptions.slice(0, page * PAGE_SIZE),
-    [filteredOptions, page]
-  );
-  const hasMore = visibleOptions.length < filteredOptions.length;
-
-  const loadNextPage = () => {
-    if (!hasMore || isLoadingMore) return;
-    setIsLoadingMore(true);
-    // Mimic a server round-trip; swap for a real fetch when NestJS is wired.
-    window.setTimeout(() => {
-      setPage((current) => current + 1);
-      setIsLoadingMore(false);
-    }, 180);
-  };
+  const { items, hasMore, isLoading, isLoadingMore, loadMore, error: loadError } =
+    useOrganizationOptions({
+      type,
+      query: listQuery,
+      enabled: open && !locked,
+      dependsOn,
+    });
 
   const handleListScroll = () => {
     const list = listRef.current;
     if (!list || !hasMore || isLoadingMore) return;
     const nearBottom =
       list.scrollTop + list.clientHeight >= list.scrollHeight - 32;
-    if (nearBottom) loadNextPage();
+    if (nearBottom) loadMore();
+  };
+
+  const handleSelect = (option: OrganizationOption) => {
+    setQuery(option.label);
+    onChange(option.label);
+    setOpen(false);
   };
 
   return (
@@ -129,50 +152,46 @@ export function SearchableOrganizationSelect({
         onFocus={() => setOpen(true)}
         onChange={(event) => {
           setQuery(event.target.value);
-          onChange('');
+          if (value) onChange('');
           setOpen(true);
         }}
       />
 
-      {open && !locked && (
+      {open && !locked ? (
         <div
           ref={listRef}
           onScroll={handleListScroll}
           className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto overflow-x-hidden rounded-kv-control border border-slate-200 bg-white"
         >
-          {visibleOptions.length > 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 px-3.5 py-3 text-xs text-slate-400">
+              <Spinner className="size-3.5" aria-hidden="true" />
+              در حال بارگذاری...
+            </div>
+          ) : loadError ? (
+            <p className="px-3.5 py-2.5 text-center text-xs font-bold text-rose-600">
+              خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
+            </p>
+          ) : items.length > 0 ? (
             <>
-              {visibleOptions.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  className={cn(
-                    'w-full border-b border-slate-200 px-3.5 py-2.5 text-start text-xs font-bold text-slate-800 last:border-b-0',
-                    'hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none',
-                    value === option && 'bg-slate-50'
-                  )}
-                  onClick={() => {
-                    setQuery(option);
-                    onChange(option);
-                    setOpen(false);
-                  }}
-                >
-                  {option}
-                </button>
+              {items.map((option) => (
+                <OrganizationOptionRow
+                  key={option.id}
+                  option={option}
+                  selected={value === option.label}
+                  onSelect={handleSelect}
+                />
               ))}
               {isLoadingMore ? (
                 <div className="flex items-center justify-center gap-2 border-t border-slate-100 px-3.5 py-2.5 text-xs text-slate-400">
-                  <Loader2
-                    className="size-3.5 animate-spin"
-                    aria-hidden="true"
-                  />
+                  <Spinner className="size-3.5" aria-hidden="true" />
                   در حال بارگذاری...
                 </div>
               ) : hasMore ? (
                 <button
                   type="button"
                   className="w-full border-t border-slate-100 px-3.5 py-2.5 text-center text-xs font-bold text-brand-600 hover:bg-slate-50"
-                  onClick={loadNextPage}
+                  onClick={loadMore}
                 >
                   نمایش ۱۰ مورد بعدی
                 </button>
@@ -184,7 +203,7 @@ export function SearchableOrganizationSelect({
             </p>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

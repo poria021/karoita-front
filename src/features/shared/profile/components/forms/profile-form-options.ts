@@ -1,14 +1,10 @@
 import type { User, UserRole } from '@/types/auth';
 
+import type { OrganizationField } from '../../data/organization-catalog';
+import { listOrganizationLabels } from '../../data/organization-catalog';
 import type { ProfileSchema } from '../../schemas/profile.schema';
 
-export type OrganizationField =
-  | 'province'
-  | 'city'
-  | 'college'
-  | 'district'
-  | 'school'
-  | 'major';
+export type { OrganizationField };
 export type IdentifierField = 'studentId' | 'skillCode' | 'personalCode';
 
 interface RoleFieldStrategy {
@@ -54,51 +50,6 @@ export const ROLE_FIELD_STRATEGY: Record<UserRole, RoleFieldStrategy> = {
   super_admin: { organizationFields: [], identifierFields: [] },
 };
 
-interface OrganizationBranch {
-  province: string;
-  cities: string[];
-  colleges: string[];
-  districts: Array<{ name: string; schools: string[] }>;
-}
-
-const ORGANIZATION: OrganizationBranch[] = [
-  {
-    province: 'تهران',
-    cities: ['تهران', 'ری', 'شمیرانات'],
-    colleges: ['پردیس شهید باهنر تهران', 'دانشگاه فرهنگیان نسیبه تهران'],
-    districts: [
-      { name: 'ناحیه ۱ تهران', schools: ['دبیرستان ماندگار البرز', 'مدرسه فرهنگ'] },
-      { name: 'ناحیه ۲ تهران', schools: ['دبیرستان شهید بهشتی', 'هنرستان آزادی'] },
-    ],
-  },
-  {
-    province: 'اصفهان',
-    cities: ['اصفهان', 'کاشان', 'نجف‌آباد'],
-    colleges: ['پردیس شهید باهنر اصفهان', 'مرکز آموزش عالی کاشان'],
-    districts: [
-      { name: 'ناحیه ۱ اصفهان', schools: ['دبیرستان سعدی', 'هنرستان امیرکبیر'] },
-      { name: 'ناحیه ۲ اصفهان', schools: ['دبیرستان صارمیه', 'مدرسه ادب'] },
-    ],
-  },
-  {
-    province: 'فارس',
-    cities: ['شیراز', 'مرودشت', 'جهرم'],
-    colleges: ['پردیس شهید رجایی فارس', 'مرکز آموزش عالی شیراز'],
-    districts: [
-      { name: 'ناحیه ۱ شیراز', schools: ['دبیرستان نمازی', 'هنرستان دستغیب'] },
-      { name: 'ناحیه ۲ شیراز', schools: ['دبیرستان توحید', 'مدرسه ملاصدرا'] },
-    ],
-  },
-];
-
-const MAJORS = [
-  'آموزش ابتدایی',
-  'دبیری زبان و ادبیات فارسی',
-  'دبیری ریاضی',
-  'دبیری علوم تجربی',
-  'آموزش فنی و حرفه‌ای',
-];
-
 export const ORGANIZATION_LABELS: Record<OrganizationField, string> = {
   province: 'استان',
   city: 'شهر تابعه',
@@ -135,20 +86,13 @@ export function isOptionalOrganizationField(
   );
 }
 
+/** @deprecated Prefer OrganizationOptionsService — kept for local helpers/tests. */
 export function getOrganizationOptions(
   field: OrganizationField,
   province: string,
   district: string
 ): string[] {
-  if (field === 'province') return ORGANIZATION.map((item) => item.province);
-  if (field === 'major') return MAJORS;
-
-  const branch = ORGANIZATION.find((item) => item.province === province);
-  if (!branch) return [];
-  if (field === 'city') return branch.cities;
-  if (field === 'college') return branch.colleges;
-  if (field === 'district') return branch.districts.map((item) => item.name);
-  return branch.districts.find((item) => item.name === district)?.schools ?? [];
+  return listOrganizationLabels(field, province, district);
 }
 
 type DefaultValuesFactory = (user: User) => ProfileSchema;

@@ -11,7 +11,6 @@ import { persianToEnglishDigits } from '@/utils/persianDigits';
 import type { ProfileSchema } from '../../schemas/profile.schema';
 import {
   DEPENDENCIES,
-  getOrganizationOptions,
   IDENTIFIER_META,
   isOptionalOrganizationField,
   ORGANIZATION_LABELS,
@@ -50,15 +49,21 @@ export function DynamicRoleFields({
             name={name}
             render={({ field, fieldState }) => (
               <SearchableOrganizationSelect
+                type={name}
                 label={ORGANIZATION_LABELS[name]}
                 required={!optional}
                 optionalHint={optional}
                 value={typeof field.value === 'string' ? field.value : ''}
-                options={getOrganizationOptions(name, province, district)}
                 placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
                 locked={disabled}
                 showLockIcon={disabled}
                 error={fieldState.error?.message}
+                dependsOn={{
+                  province:
+                    typeof province === 'string' ? province : undefined,
+                  district:
+                    typeof district === 'string' ? district : undefined,
+                }}
                 onChange={(value) => {
                   field.onChange(value);
                   for (const dependent of DEPENDENCIES[name] ?? []) {
