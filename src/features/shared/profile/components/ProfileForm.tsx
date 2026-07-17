@@ -65,7 +65,7 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
   return (
     <div className="space-y-kv-section text-start" dir="rtl">
       <div className="mb-kv-stack flex items-center gap-kv-inline border-b border-slate-200 pb-kv-stack">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600">
+        <div className="flex size-10 shrink-0 items-center justify-center rounded-kv-control bg-brand-500/10 text-brand-600">
           <IdCard className="size-5" />
         </div>
         <div className="flex flex-col">
@@ -84,7 +84,7 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
 
       <form
         onSubmit={submitProfile}
-        className="space-y-kv-section rounded-3xl border border-slate-200/80 bg-white p-kv-inset shadow-sm sm:p-kv-page"
+        className="space-y-kv-section rounded-kv-card border border-slate-200/80 bg-white p-kv-inset shadow-sm sm:p-kv-page"
         noValidate
       >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">

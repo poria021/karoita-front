@@ -71,7 +71,7 @@ export function SecurityChangePasswordFlow({
     return (
       <KvForm {...otpForm}>
         <form onSubmit={onVerifyOtp} className="space-y-kv-group" noValidate>
-          <div className="flex items-center justify-between rounded-lg border border-brand-200 bg-brand-50 p-3 text-[11px] font-bold text-brand-950">
+          <div className="flex items-center justify-between rounded-kv-panel border border-brand-200 bg-brand-50 p-3 text-[11px] font-bold text-brand-950">
             <span>کد تایید ارسال شد.</span>
             <span className="rounded bg-brand-700 px-2 py-0.5 text-[10px] text-white">
               کد تستی شبیه‌ساز: {toPersianDigits(MOCK_OTP_CODE)}
@@ -123,7 +123,7 @@ export function SecurityChangePasswordFlow({
   return (
     <KvForm {...passwordForm}>
       <form onSubmit={onSaveNewPassword} className="space-y-kv-group" noValidate>
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-900">
+        <div className="rounded-kv-panel border border-emerald-200 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-900">
           احراز هویت موفقیت‌آمیز بود. رمز جدید را وارد کنید:
         </div>
         <SecurityPasswordPairFields

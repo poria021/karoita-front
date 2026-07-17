@@ -29,7 +29,7 @@ export function PageHeader({
       <div className="flex min-w-0 items-start gap-kv-inline">
         {icon ? (
           <div
-            className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600"
+            className="flex size-10 shrink-0 items-center justify-center rounded-kv-control bg-brand-500/10 text-brand-600"
             aria-hidden={typeof icon !== 'string'}
           >
             {icon}

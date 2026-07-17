@@ -27,7 +27,7 @@ const appTabsListVariants = cva(
         underline:
           'w-full flex-wrap items-stretch justify-start gap-1 rounded-none border-b border-slate-200 bg-transparent p-0',
         capsule:
-          'w-full justify-stretch gap-1 rounded-lg border border-slate-200 bg-slate-100 p-[3px]',
+          'w-full justify-stretch gap-1 rounded-kv-control border border-slate-200 bg-slate-100 p-[3px]',
       },
       size: {
         sm: '',
@@ -61,7 +61,7 @@ const appTabsTriggerVariants = cva(
           'data-[state=active]:text-brand-700 data-[state=active]:shadow-none',
         ].join(' '),
         capsule: [
-          'flex-1 rounded-md border-0',
+          'flex-1 rounded-kv-control border-0',
           'data-[state=active]:bg-brand-500 data-[state=active]:text-white',
           'data-[state=active]:shadow-[0_4px_10px_rgba(16,78,198,0.15)]',
         ].join(' '),

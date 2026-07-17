@@ -40,7 +40,7 @@ export function AuthFormMessage({ message, onDismiss }: AuthFormMessageProps) {
   return (
     <div
       className={cn(
-        'mb-kv-group flex w-full items-start gap-kv-inline rounded-xl border p-3 text-start transition-all',
+        'mb-kv-group flex w-full items-start gap-kv-inline rounded-kv-panel border p-3 text-start transition-all',
         container
       )}
     >

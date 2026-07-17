@@ -147,20 +147,20 @@ export function ProfileContainerSkeleton() {
         <KvSkeleton className="h-11 w-40" />
       </div>
 
-      <KvSkeleton className="h-20 w-full rounded-2xl" />
+      <KvSkeleton className="h-20 w-full rounded-kv-panel" />
 
-      <div className="space-y-kv-group rounded-3xl border border-slate-200 bg-white p-kv-inset sm:p-kv-page">
+      <div className="space-y-kv-group rounded-kv-card border border-slate-200 bg-white p-kv-inset sm:p-kv-page">
         <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
           {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="space-y-2">
               <KvSkeleton className="h-3 w-24" />
-              <KvSkeleton className="h-11 w-full rounded-xl" />
+              <KvSkeleton className="h-11 w-full rounded-kv-control" />
             </div>
           ))}
         </div>
-        <KvSkeleton className="mt-2 h-32 w-full rounded-2xl" />
+        <KvSkeleton className="mt-2 h-32 w-full rounded-kv-panel" />
         <div className="flex justify-end pt-2">
-          <KvSkeleton className="h-10 w-40 rounded-xl" />
+          <KvSkeleton className="h-10 w-40 rounded-kv-control" />
         </div>
       </div>
     </div>

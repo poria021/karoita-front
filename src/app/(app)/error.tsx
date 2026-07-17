@@ -29,7 +29,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
       className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center"
       dir="rtl"
     >
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+      <div className="flex size-12 items-center justify-center rounded-kv-panel bg-rose-50 text-rose-600">
         <TriangleAlert className="size-6" aria-hidden="true" />
       </div>
       <div className="space-y-2">

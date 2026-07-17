@@ -71,6 +71,19 @@
   --spacing-kv-section: 1.5rem; /* 24px — section break */
   --spacing-kv-inset: 1.25rem; /* 20px — card/viewport pad (sm) */
   --spacing-kv-page: 2rem; /* 32px — page/card pad (lg) */
+
+  /*
+   * Karvita semantic radius (`rounded-kv-*`) — corner roles by surface type.
+   * Use these instead of raw rounded-xl / 2xl / 3xl in app & shared UI:
+   * - control: fields, buttons, selects, icon buttons, nav items
+   * - panel: dropdowns, alerts, toasts, compact feedback boxes
+   * - card: form cards, auth card, content cards
+   * - shell: large layout surfaces (sidebar, main viewport)
+   */
+  --radius-kv-control: 0.75rem; /* 12px — was rounded-xl */
+  --radius-kv-panel: 1rem; /* 16px — was rounded-2xl */
+  --radius-kv-card: 1.5rem; /* 24px — was rounded-3xl (forms/cards) */
+  --radius-kv-shell: 1.5rem; /* 24px — large chrome (sidebar / main) */
 }
 
 :root {

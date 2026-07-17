@@ -52,7 +52,7 @@ export function Sidebar() {
 <aside
         className={cn(
           'fixed inset-y-0 start-0 z-50 flex shrink-0 flex-col overflow-y-auto border-e border-slate-200/80 bg-white transition-all duration-300 ease-in-out',
-          'lg:sticky lg:top-[88px] lg:z-0 lg:h-auto lg:translate-x-0 lg:self-start lg:overflow-y-visible lg:bg-white lg:border lg:border-slate-200/80 lg:rounded-3xl lg:shadow-sm',
+          'lg:sticky lg:top-[88px] lg:z-0 lg:h-auto lg:translate-x-0 lg:self-start lg:overflow-y-visible lg:bg-white lg:border lg:border-slate-200/80 lg:rounded-kv-shell lg:shadow-sm',
           isMobileOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
           isCollapsed ? 'w-72 lg:w-20' : 'w-72 lg:w-60'
         )}
@@ -72,7 +72,7 @@ export function Sidebar() {
         {/* Mobile-only header inside the drawer. */}
         <div className="flex items-center justify-between gap-kv-inline border-b border-slate-100 p-4 lg:hidden">
           <div className="flex min-w-0 items-center gap-kv-inline">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white shadow-sm shadow-brand-500/20">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-brand-500 text-white shadow-sm shadow-brand-500/20">
               <LayoutDashboard className="size-4" aria-hidden="true" />
             </div>
             <div className="flex min-w-0 flex-col text-start">
@@ -106,15 +106,15 @@ export function Sidebar() {
           href={RouteService.karvita.profile(activeUser.role)}
           prefetch={false}
           onClick={closeMobileSidebar}
-          className={cn('border-t border-slate-100 bg-white transition-colors hover:bg-slate-50 lg:rounded-b-3xl', isCollapsed ? 'p-4 lg:p-2' : 'p-4')}
+          className={cn('border-t border-slate-100 bg-white transition-colors hover:bg-slate-50 lg:rounded-b-kv-shell', isCollapsed ? 'p-4 lg:p-2' : 'p-4')}
         >
           <div
             className={cn(
-              'flex items-center rounded-xl border border-slate-100 bg-slate-50 transition-all',
+              'flex items-center rounded-kv-control border border-slate-100 bg-slate-50 transition-all',
               isCollapsed ? 'justify-start p-3 lg:justify-center lg:p-2' : 'p-3'
             )}
           >
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-600">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-brand-500/10 text-brand-600">
               <RoleIcon className="size-4" aria-hidden="true" />
             </div>
             <div
@@ -155,7 +155,7 @@ function SidebarNavLink({ item, isActive, isCollapsed, onNavigate }: SidebarNavL
       prefetch={false}
       onClick={onNavigate}
       className={cn(
-        'flex w-full items-center rounded-xl px-3.5 py-2.5 text-xs font-bold transition-colors',
+        'flex w-full items-center rounded-kv-control px-3.5 py-2.5 text-xs font-bold transition-colors',
         isCollapsed ? 'justify-start lg:justify-center' : 'justify-between',
         isActive ? 'border border-brand-100/50 bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-800'
       )}

@@ -13,7 +13,7 @@ export default function KarvitaDashboardPage() {
     <div className="flex w-full flex-col">
       <div className="mb-5 flex w-full flex-col items-start gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-3 text-start sm:items-center">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/10 text-brand-600">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-kv-control bg-brand-500/10 text-brand-600">
             <LayoutDashboard className="size-5" aria-hidden="true" />
           </div>
           <div className="flex min-w-0 flex-col">

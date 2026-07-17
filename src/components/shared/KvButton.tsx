@@ -37,11 +37,11 @@ const kvButtonVariants = cva(
         neutral: '',
       },
       appearance: {
-        solid: 'rounded-xl shadow-sm',
+        solid: 'rounded-kv-control shadow-sm',
         /** OTP / cancel style — slate border + soft fill; sizes match solid */
         secondary:
-          'rounded-xl border border-slate-200 bg-slate-50 text-slate-600 shadow-none hover:bg-slate-100 hover:text-slate-800',
-        ghost: 'rounded-xl border',
+          'rounded-kv-control border border-slate-200 bg-slate-50 text-slate-600 shadow-none hover:bg-slate-100 hover:text-slate-800',
+        ghost: 'rounded-kv-control border',
         text: 'h-auto rounded-md bg-transparent p-0 shadow-none hover:bg-transparent',
       },
       size: {

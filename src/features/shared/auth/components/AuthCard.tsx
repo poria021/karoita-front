@@ -38,7 +38,7 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
   const isForgotMode = login.mode === 'forgot';
 
   return (
-    <div className="mt-8 w-full max-w-[450px] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-md">
+    <div className="mt-8 w-full max-w-[450px] overflow-hidden rounded-kv-card border border-slate-200/80 bg-white shadow-md">
       <div className="p-kv-inset sm:p-kv-page">
         <AuthLogo
           subtitle={

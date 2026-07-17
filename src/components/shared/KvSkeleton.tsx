@@ -10,7 +10,7 @@ export function KvSkeleton({ className, ...props }: KvSkeletonProps) {
   return (
     <Skeleton
       data-slot="kv-skeleton"
-      className={cn('rounded-md bg-slate-100', className)}
+      className={cn('rounded-kv-control bg-slate-100', className)}
       {...props}
     />
   );

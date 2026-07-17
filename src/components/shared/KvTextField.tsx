@@ -13,7 +13,7 @@ export type KvTextFieldSize = 'sm' | 'md' | 'lg';
 
 const kvTextFieldWrapperVariants = cva(
   [
-    'flex w-full items-stretch overflow-hidden rounded-xl border bg-white font-sans transition-colors',
+    'flex w-full items-stretch overflow-hidden rounded-kv-control border bg-white font-sans transition-colors',
     'focus-within:border-brand-500 focus-within:ring-[3px] focus-within:ring-brand-500/15',
   ].join(' '),
   {

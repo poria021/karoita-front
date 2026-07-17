@@ -35,7 +35,7 @@ export type KvSelectFieldProps = {
 
 /**
  * Labeled select field — same chrome as {@link KvTextField}
- * (`label: string | false`, lock, error/hint, rounded-xl).
+ * (`label: string | false`, lock, error/hint, rounded-kv-control).
  */
 export function KvSelectField({
   label,

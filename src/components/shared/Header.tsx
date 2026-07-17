@@ -56,13 +56,13 @@ export function Header() {
             type="button"
             onClick={openMobileSidebar}
             aria-label="باز کردن منو"
-            className="flex size-9 items-center justify-center rounded-xl bg-slate-100 text-slate-700 transition-all hover:bg-slate-200/80 active:scale-95 lg:hidden"
+            className="flex size-9 items-center justify-center rounded-kv-control bg-slate-100 text-slate-700 transition-all hover:bg-slate-200/80 active:scale-95 lg:hidden"
           >
             <Menu className="size-4" aria-hidden="true" />
           </button>
 
           <div className="flex items-center gap-kv-inline">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-brand-500 text-white shadow-sm shadow-brand-500/20">
+            <div className="flex size-9 items-center justify-center rounded-kv-control bg-brand-500 text-white shadow-sm shadow-brand-500/20">
               <LayoutDashboard className="size-4" aria-hidden="true" />
             </div>
             <div className="hidden flex-col lg:flex">
@@ -92,7 +92,7 @@ export function Header() {
               <button
                 type="button"
                 aria-label="اعلان‌ها"
-                className="relative flex size-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-slate-100/60 hover:text-slate-800"
+                className="relative flex size-9 items-center justify-center rounded-kv-control text-slate-500 transition-colors hover:bg-slate-100/60 hover:text-slate-800"
               >
                 <Bell className="size-4" aria-hidden="true" />
                 {unreadCount > 0 && (
@@ -101,7 +101,7 @@ export function Header() {
               </button>
             </KvDropdownMenuTrigger>
 
-            <KvDropdownMenuContent align="end" className="w-80 rounded-2xl border border-slate-300/80 p-0 shadow-xl">
+            <KvDropdownMenuContent align="end" className="w-80 rounded-kv-panel border border-slate-300/80 p-0 shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                 <KvTypography variant="subtitle" as="span">
                   اعلان‌های سیستم

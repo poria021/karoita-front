@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 
 const kvTextAreaVariants = cva(
   [
-    'w-full resize-y rounded-xl border bg-white font-sans font-bold text-slate-800 shadow-none transition-colors',
+    'w-full resize-y rounded-kv-control border bg-white font-sans font-bold text-slate-800 shadow-none transition-colors',
     'placeholder:text-slate-400',
     'focus-visible:border-brand-500 focus-visible:ring-[3px] focus-visible:ring-brand-500/15 focus-visible:outline-none',
     'disabled:cursor-not-allowed disabled:opacity-100',

@@ -49,7 +49,7 @@ export function ProfileStatusAlert({
               مدیریت رد شده است. لطفاً دلیل اعلام‌شده را برطرف کرده، اطلاعات خود
               را ویرایش و مجدداً مدرک معتبر ارسال فرمایید:
             </p>
-            <div className="my-1 w-full rounded-xl border border-rose-300 bg-white p-3 text-[11px] font-bold text-rose-950 shadow-sm">
+            <div className="my-1 w-full rounded-kv-panel border border-rose-300 bg-white p-3 text-[11px] font-bold text-rose-950 shadow-sm">
               <span className="mb-0.5 block text-[9px] font-bold text-rose-500">
                 علت اعلام‌شده توسط مدیریت ارشد:
               </span>

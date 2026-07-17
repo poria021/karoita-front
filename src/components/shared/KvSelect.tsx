@@ -20,7 +20,7 @@ export type KvSelectTriggerProps = React.ComponentProps<typeof SelectTrigger>;
 export type KvSelectContentProps = React.ComponentProps<typeof SelectContent>;
 export type KvSelectItemProps = React.ComponentProps<typeof SelectItem>;
 
-/** Karvita-styled select trigger (rounded-xl, bold xs). */
+/** Karvita-styled select trigger (rounded-kv-control, bold xs). */
 export function KvSelectTrigger({
   className,
   ...props
@@ -29,7 +29,7 @@ export function KvSelectTrigger({
     <SelectTrigger
       data-slot="kv-select-trigger"
       className={cn(
-        'h-9 w-full rounded-xl border-slate-300 px-3 font-sans text-xs font-bold text-slate-800 shadow-none md:text-xs',
+        'h-9 w-full rounded-kv-control border-slate-300 px-3 font-sans text-xs font-bold text-slate-800 shadow-none md:text-xs',
         'focus-visible:border-brand-500 focus-visible:ring-[3px] focus-visible:ring-brand-500/15',
         '[&_svg]:size-3.5 [&_svg]:shrink-0 [&_svg]:text-slate-400 [&_svg]:opacity-100',
         className
@@ -48,7 +48,7 @@ export function KvSelectContent({
     <SelectContent
       data-slot="kv-select-content"
       className={cn(
-        'rounded-xl border-slate-200 bg-white p-0 shadow-none overflow-hidden',
+        'rounded-kv-control border-slate-200 bg-white p-0 shadow-none overflow-hidden',
         'data-[state=open]:animate-none data-[state=closed]:animate-none',
         className
       )}

@@ -76,7 +76,7 @@ export function IdentityForm({
   const isDisabled = disabled || isBusy;
 
   return (
-    <KvCard dir="rtl">
+    <KvCard dir="rtl" className="w-full max-w-3xl">
       <KvCardContent className="pt-6">
         <KvForm {...form}>
           <form onSubmit={submit} noValidate className="space-y-kv-section">
@@ -132,8 +132,8 @@ export function IdentityForm({
                 role="status"
                 className={
                   feedback.type === 'success'
-                    ? 'flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-bold text-emerald-700'
-                    : 'rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700'
+                    ? 'flex items-center gap-2 rounded-kv-panel border border-emerald-200 bg-emerald-50 p-3 text-xs font-bold text-emerald-700'
+                    : 'rounded-kv-panel border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700'
                 }
               >
                 {feedback.type === 'success' && <CheckCircle2 className="size-4" />}

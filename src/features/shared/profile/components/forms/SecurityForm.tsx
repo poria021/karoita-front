@@ -52,13 +52,15 @@ export function SecurityForm({
   const passwordForm = useForm<SecurityPasswordSchema>({
     resolver: zodResolver(securityPasswordSchema),
     defaultValues: { newPassword: '', confirmPassword: '' },
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
   });
 
   const otpForm = useForm<SecurityOtpSchema>({
     resolver: zodResolver(securityOtpSchema),
     defaultValues: { otp: '' },
-    mode: 'onTouched',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
   });
 
   const isDisabled = disabled || isBusy;
@@ -180,7 +182,7 @@ export function SecurityForm({
               className="space-y-kv-group"
               noValidate
             >
-              <div className="rounded-lg border border-brand-200 bg-brand-50 p-3 text-[11px] font-bold text-brand-900">
+              <div className="rounded-kv-panel border border-brand-200 bg-brand-50 p-3 text-[11px] font-bold text-brand-900">
                 حساب شما فاقد رمز عبور است. لطفاً ابتدا رمز عبور خود را از کادر
                 زیر تأیید و ثبت فرمایید:
               </div>
@@ -193,7 +195,7 @@ export function SecurityForm({
                   type="submit"
                   color="cta"
                   appearance="solid"
-                  disabled={isDisabled || !passwordForm.formState.isValid}
+                  disabled={isDisabled}
                   icon={
                     isBusy ? (
                       <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -226,10 +228,10 @@ export function SecurityForm({
             role="status"
             className={
               feedback.type === 'success'
-                ? 'rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-700'
+                ? 'rounded-kv-panel border border-emerald-200 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-700'
                 : feedback.type === 'error'
-                  ? 'rounded-xl border border-rose-200 bg-rose-50 p-3 text-[11px] font-bold text-rose-700'
-                  : 'rounded-xl border border-blue-200 bg-blue-50 p-3 text-[11px] font-bold text-blue-700'
+                  ? 'rounded-kv-panel border border-rose-200 bg-rose-50 p-3 text-[11px] font-bold text-rose-700'
+                  : 'rounded-kv-panel border border-blue-200 bg-blue-50 p-3 text-[11px] font-bold text-blue-700'
             }
           >
             {feedback.message}

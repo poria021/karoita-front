@@ -138,7 +138,7 @@ export function SearchableOrganizationSelect({
         <div
           ref={listRef}
           onScroll={handleListScroll}
-          className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto overflow-x-hidden rounded-xl border border-slate-200 bg-white"
+          className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto overflow-x-hidden rounded-kv-control border border-slate-200 bg-white"
         >
           {visibleOptions.length > 0 ? (
             <>
