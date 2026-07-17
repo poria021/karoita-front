@@ -14,7 +14,7 @@ function filterDigits(rawValue: string): string {
 }
 
 const plus98Addon = (
-  <span className="flex h-full items-center border-e border-slate-200/70 bg-slate-100/60 px-3 text-xs font-semibold text-slate-400">
+  <span className="flex h-full items-center border-e border-slate-200/70 bg-slate-100/60 px-3 text-xs font-semibold leading-none text-slate-400">
     +98
   </span>
 );

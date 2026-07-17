@@ -42,12 +42,6 @@ export function KvFieldFrame({
     <div className="w-full font-sans" data-slot="kv-field-frame">
       {showLabel ? (
         <div className="mb-kv-field flex items-center gap-1.5" dir="rtl">
-          {showLabelLock ? (
-            <Lock
-              className="size-3.5 shrink-0 text-slate-400"
-              aria-hidden="true"
-            />
-          ) : null}
           <KvTypography variant="label" as="label" htmlFor={id}>
             {label}
             {required ? (
@@ -59,6 +53,12 @@ export function KvFieldFrame({
               <span className="ms-1 font-normal text-slate-400">(اختیاری)</span>
             ) : null}
           </KvTypography>
+          {showLabelLock ? (
+            <Lock
+              className="size-3.5 shrink-0 text-slate-400"
+              aria-hidden="true"
+            />
+          ) : null}
         </div>
       ) : null}
 

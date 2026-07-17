@@ -29,9 +29,9 @@ export function KvSelectTrigger({
     <SelectTrigger
       data-slot="kv-select-trigger"
       className={cn(
-        'h-auto min-h-9 w-full rounded-xl border-slate-300 px-3 py-2 font-sans text-xs font-bold text-slate-800 shadow-none',
+        'h-9 w-full rounded-xl border-slate-300 px-3 font-sans text-xs font-bold text-slate-800 shadow-none md:text-xs',
         'focus-visible:border-brand-500 focus-visible:ring-[3px] focus-visible:ring-brand-500/15',
-        '[&_svg]:size-3.5 [&_svg]:opacity-100 [&_svg]:text-slate-300',
+        '[&_svg]:size-3.5 [&_svg]:shrink-0 [&_svg]:text-slate-400 [&_svg]:opacity-100',
         className
       )}
       {...props}

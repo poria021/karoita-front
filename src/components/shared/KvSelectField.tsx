@@ -80,11 +80,11 @@ export function KvSelectField({
             error ? `${id}-error` : hint ? `${id}-hint` : undefined
           }
           className={cn(
-            size === 'sm' && 'min-h-9 px-3 py-2',
-            size === 'md' && 'min-h-11 px-3.5 py-2.5',
-            size === 'lg' && 'min-h-12 px-4 py-3',
+            'h-9 px-3 py-0',
+            size === 'md' && 'h-11 px-3.5',
+            size === 'lg' && 'h-12 px-4',
             locked &&
-              'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400',
+              'cursor-not-allowed border-slate-300 bg-slate-50 text-slate-400',
             error && !locked && 'border-rose-300'
           )}
         >
