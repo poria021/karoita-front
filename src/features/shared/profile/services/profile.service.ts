@@ -412,6 +412,16 @@ export class ProfileService {
       if (API_MODE === 'real') {
         const payload = await requestProfile('PUT', token, validatedData);
         const serverMessage = extractApiMessage(payload);
+        const isSuperAdmin = validatedData.role === 'super_admin';
+        const activeUser = useUserStore.getState().activeUser;
+        if (activeUser) {
+          useUserStore.getState().setUser({
+            ...activeUser,
+            ...validatedData,
+            approved: isSuperAdmin,
+            docStatus: isSuperAdmin ? 'approved' : 'pending_admin',
+          });
+        }
         return {
           success: true,
           message:
@@ -424,24 +434,40 @@ export class ProfileService {
       await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
       const database = readDatabase();
       const currentUser = readCurrentUser();
+      const liveUser = useUserStore.getState().activeUser;
       const userIndex = database.users.findIndex((user) =>
         recordMatchesUser(user, currentUser, token)
       );
 
-      if (userIndex === -1) {
-        throw new ProfileServiceError('پروفایل کاربری یافت نشد.', 404);
-      }
-
       const isSuperAdmin = validatedData.role === 'super_admin';
+      const baseRecord: JsonRecord =
+        userIndex !== -1
+          ? database.users[userIndex]
+          : {
+              ...(currentUser ?? {}),
+              ...(liveUser ?? {}),
+              id:
+                liveUser?.id ??
+                asString(currentUser?.id) ??
+                `local-${Date.now()}`,
+              mobile:
+                liveUser?.mobile ?? asString(currentUser?.mobile) ?? '',
+            };
+
       const updatedRecord: JsonRecord = {
-        ...database.users[userIndex],
+        ...baseRecord,
         ...validatedData,
         approved: isSuperAdmin,
         docStatus: isSuperAdmin ? 'approved' : 'pending_admin',
         updatedAt: new Date().toISOString(),
       };
 
-      database.users[userIndex] = updatedRecord;
+      if (userIndex === -1) {
+        database.users.push(updatedRecord);
+      } else {
+        database.users[userIndex] = updatedRecord;
+      }
+
       writeDatabase(database);
       syncCurrentUser(updatedRecord);
 

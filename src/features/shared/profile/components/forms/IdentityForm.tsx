@@ -10,6 +10,7 @@ import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/KvForm';
 import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/KvTextField';
+import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
 import { compressImageToBase64 } from '@/utils/compressor';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
@@ -30,6 +31,15 @@ export interface IdentityFormProps {
   onSaved?: () => void;
 }
 
+/**
+ * Matches `original-karvita.html` `isProfileLocked`:
+ * locked when status is neither `not_submitted` nor `rejected` (e.g. pending_admin / approved).
+ */
+function isIdentityProfileLocked(user: User): boolean {
+  if (user.role === 'super_admin') return false;
+  return user.docStatus !== 'not_submitted' && user.docStatus !== 'rejected';
+}
+
 /** Adaptive RTL identity form backed by the polymorphic profile schema. */
 export function IdentityForm({
   activeUser,
@@ -37,12 +47,16 @@ export function IdentityForm({
   disabled = false,
   onSaved,
 }: IdentityFormProps) {
+  const storeUser = useUserStore((state) => state.activeUser);
+  const liveUser =
+    storeUser && storeUser.id === activeUser.id ? storeUser : activeUser;
+
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const roleStrategy = getRoleStrategy(activeUser.role);
+  const roleStrategy = getRoleStrategy(liveUser.role);
   const form = useForm<ProfileSchema>({
-    resolver: zodResolver(createProfileSchema(activeUser.role)),
-    defaultValues: getProfileDefaultValues(activeUser),
+    resolver: zodResolver(createProfileSchema(liveUser.role)),
+    defaultValues: getProfileDefaultValues(liveUser),
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   });
@@ -55,6 +69,19 @@ export function IdentityForm({
         const documentBase64 = await compressImageToBase64(identityDocument);
         await ProfileService.updateIdentityDocument(documentBase64, token);
       }
+
+      // Belt-and-suspenders lock: mirror original after successful submit.
+      const current = useUserStore.getState().activeUser;
+      if (current) {
+        const isSuperAdmin = current.role === 'super_admin';
+        useUserStore.getState().setUser({
+          ...current,
+          ...data,
+          approved: isSuperAdmin,
+          docStatus: isSuperAdmin ? 'approved' : 'pending_admin',
+        });
+      }
+
       form.reset(data);
       onSaved?.();
     } catch (error) {
@@ -67,59 +94,65 @@ export function IdentityForm({
   });
 
   const isBusy = form.formState.isSubmitting;
-  const isDisabled = disabled || isBusy;
+  const isProfileLocked = disabled || isIdentityProfileLocked(liveUser);
+  const isDisabled = isProfileLocked || isBusy;
 
   return (
     <KvCard dir="rtl" className="w-full">
       <KvCardContent className="pt-6">
         <KvForm {...form}>
           <form onSubmit={submit} noValidate className="space-y-kv-section">
-            <section className="space-y-kv-group">
-              <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
-                <KvTextField
-                  label="نام"
-                  required
-                  locked={isDisabled}
-                  placeholder="مثال: امیرحسین"
-                  error={form.formState.errors.firstName?.message}
-                  {...form.register('firstName')}
-                />
-                <KvTextField
-                  label="نام خانوادگی"
-                  required
-                  locked={isDisabled}
-                  placeholder="مثال: کریمی"
-                  error={form.formState.errors.lastName?.message}
-                  {...form.register('lastName')}
-                />
-                <KvMobileNumberField
-                  value={activeUser.mobile}
-                  locked
-                  showLockIcon
-                />
-                <KvTextField
-                  label="نقش کاربری"
-                  value={roleStrategy.label}
-                  locked
-                  showLockIcon
-                />
-              </div>
-            </section>
+              <section className="space-y-kv-group">
+                <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
+                  <KvTextField
+                    label="نام"
+                    required
+                    locked={isDisabled}
+                    showLockIcon={isProfileLocked}
+                    placeholder="مثال: امیرحسین"
+                    error={form.formState.errors.firstName?.message}
+                    {...form.register('firstName')}
+                  />
+                  <KvTextField
+                    label="نام خانوادگی"
+                    required
+                    locked={isDisabled}
+                    showLockIcon={isProfileLocked}
+                    placeholder="مثال: کریمی"
+                    error={form.formState.errors.lastName?.message}
+                    {...form.register('lastName')}
+                  />
+                  <KvMobileNumberField
+                    value={liveUser.mobile}
+                    locked
+                    showLockIcon
+                  />
+                  <KvTextField
+                    label="نقش کاربری"
+                    value={roleStrategy.label}
+                    locked
+                    showLockIcon
+                  />
+                </div>
+              </section>
 
-            <section className="space-y-kv-group border-t border-slate-100 pt-kv-section">
-              <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
-                <DynamicRoleFields role={activeUser.role} disabled={isDisabled} />
-              </div>
-            </section>
+              <section className="space-y-kv-group border-t border-slate-100 pt-kv-section">
+                <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
+                  <DynamicRoleFields
+                    role={liveUser.role}
+                    disabled={isDisabled}
+                  />
+                </div>
+              </section>
 
-            <section className="border-t border-slate-100 pt-kv-section">
-              <IdentityDocUploader
-                value={identityDocument}
-                onChange={setIdentityDocument}
-                disabled={isDisabled}
-                helperText="JPEG یا PNG، حداکثر ۱۰ مگابایت؛ تبدیل خودکار به WebP"
-              />
-            </section>
+              <section className="border-t border-slate-100 pt-kv-section">
+                <IdentityDocUploader
+                  value={identityDocument}
+                  onChange={setIdentityDocument}
+                  disabled={isDisabled}
+                  helperText="JPEG یا PNG، حداکثر ۱۰ مگابایت؛ تبدیل خودکار به WebP"
+                />
+              </section>
 
             {submitError ? (
               <p
@@ -137,9 +170,12 @@ export function IdentityForm({
                 appearance="solid"
                 size="lg"
                 loading={isBusy}
-                disabled={disabled}
+                disabled={isProfileLocked}
                 icon={
-                  <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
+                  <ArrowLeft
+                    className="size-4 rtl:rotate-180"
+                    aria-hidden="true"
+                  />
                 }
                 iconPosition="end"
               >
