@@ -20,6 +20,25 @@ export type KvFieldFrameProps = {
 };
 
 /**
+ * Label adornment modes are mutually exclusive (never combine):
+ * - locked → lock icon only
+ * - required → red asterisk only
+ * - optional → "(اختیاری)" only
+ */
+export type KvFieldLabelMode = 'locked' | 'required' | 'optional' | 'plain';
+
+export function resolveFieldLabelMode(options: {
+  locked?: boolean;
+  required?: boolean;
+  optionalHint?: boolean;
+}): KvFieldLabelMode {
+  if (options.locked) return 'locked';
+  if (options.required) return 'required';
+  if (options.optionalHint) return 'optional';
+  return 'plain';
+}
+
+/**
  * Shared chrome for Karvita fields: label (+ lock), control slot, error/hint.
  * Used by KvTextField / KvTextArea so spacing and copy stay identical.
  */
@@ -36,7 +55,8 @@ export function KvFieldFrame({
   footer,
 }: KvFieldFrameProps) {
   const showLabel = label !== undefined && label !== false && label !== '';
-  const showLabelLock = locked && showLockIcon !== false;
+  const labelMode = resolveFieldLabelMode({ locked, required, optionalHint });
+  const showLabelLock = labelMode === 'locked' && showLockIcon !== false;
 
   return (
     <div className="w-full font-sans" data-slot="kv-field-frame">
@@ -44,12 +64,12 @@ export function KvFieldFrame({
         <div className="mb-kv-field flex items-center gap-1.5" dir="rtl">
           <KvTypography variant="label" as="label" htmlFor={id}>
             {label}
-            {required ? (
+            {labelMode === 'required' ? (
               <span className="ms-1 text-rose-500" aria-hidden="true">
                 *
               </span>
             ) : null}
-            {optionalHint ? (
+            {labelMode === 'optional' ? (
               <span className="ms-1 font-normal text-slate-400">(اختیاری)</span>
             ) : null}
           </KvTypography>
