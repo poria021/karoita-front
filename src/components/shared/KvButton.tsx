@@ -23,7 +23,7 @@ const kvButtonVariants = cva(
   [
     'inline-flex shrink-0 items-center justify-center gap-2 font-sans font-black',
     'whitespace-nowrap transition-all outline-none',
-    'focus-visible:ring-[3px] focus-visible:ring-brand-500/20',
+    'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
     'disabled:pointer-events-none disabled:opacity-50',
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   ].join(' '),
@@ -41,7 +41,7 @@ const kvButtonVariants = cva(
         solid: 'rounded-kv-control shadow-sm',
         /** OTP / cancel style — slate border + soft fill; sizes match solid */
         secondary:
-          'rounded-kv-control border border-slate-200 bg-slate-50 text-slate-600 shadow-none hover:bg-slate-100 hover:text-slate-800',
+          'rounded-kv-control border border-kv-border bg-kv-surface-muted text-kv-text-muted shadow-none hover:bg-kv-surface-subtle hover:text-kv-text-secondary',
         ghost: 'rounded-kv-control border',
         text: 'h-auto rounded-md bg-transparent p-0 shadow-none hover:bg-transparent',
       },
@@ -72,99 +72,99 @@ const kvButtonVariants = cva(
         appearance: 'solid',
         color: 'cta',
         class:
-          'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/20 hover:opacity-95',
+          'bg-gradient-to-br from-kv-brand to-kv-brand-active text-kv-brand-fg shadow-md shadow-kv-brand/20 hover:from-kv-brand-hover hover:to-kv-brand-active',
       },
       {
         appearance: 'solid',
         color: 'success',
-        class: 'bg-emerald-600 text-white hover:bg-emerald-700',
+        class: 'bg-kv-success text-kv-success-fg hover:bg-kv-success-hover',
       },
       {
         appearance: 'solid',
         color: 'warning',
-        class: 'bg-amber-500 text-white hover:bg-amber-600',
+        class: 'bg-kv-warning text-kv-warning-fg hover:bg-kv-warning-hover',
       },
       {
         appearance: 'solid',
         color: 'purple',
-        class: 'bg-violet-600 text-white hover:bg-violet-700',
+        class: 'bg-kv-accent text-kv-accent-fg hover:bg-kv-accent-hover',
       },
       {
         appearance: 'solid',
         color: 'error',
-        class: 'bg-rose-600 text-white hover:bg-rose-700',
+        class: 'bg-kv-danger text-kv-danger-fg hover:bg-kv-danger-hover',
       },
       {
         appearance: 'solid',
         color: 'neutral',
         class:
-          'border border-slate-200 bg-slate-100 text-slate-700 shadow-none hover:bg-slate-200',
+          'border border-kv-border bg-kv-surface-subtle text-kv-text-muted shadow-none hover:bg-kv-neutral-hover',
       },
 
       {
         appearance: 'ghost',
         color: 'cta',
-        class: 'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100',
+        class: 'border-kv-brand-border bg-kv-brand-soft text-kv-brand-soft-fg hover:bg-kv-brand-soft-hover',
       },
       {
         appearance: 'ghost',
         color: 'success',
         class:
-          'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
+          'border-kv-success-border bg-kv-success-soft text-kv-success-soft-fg hover:bg-kv-success-soft-hover',
       },
       {
         appearance: 'ghost',
         color: 'warning',
         class:
-          'border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100',
+          'border-kv-warning-border bg-kv-warning-soft text-kv-warning-soft-fg hover:bg-kv-warning-soft-hover',
       },
       {
         appearance: 'ghost',
         color: 'purple',
         class:
-          'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100',
+          'border-kv-accent-border bg-kv-accent-soft text-kv-accent-soft-fg hover:bg-kv-accent-soft-hover',
       },
       {
         appearance: 'ghost',
         color: 'error',
-        class: 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100',
+        class: 'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg hover:bg-kv-danger-soft-hover',
       },
       {
         appearance: 'ghost',
         color: 'neutral',
         class:
-          'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-800',
+          'border-kv-border bg-kv-surface-muted text-kv-text-muted hover:bg-kv-surface-subtle hover:text-kv-text-secondary',
       },
 
       {
         appearance: 'text',
         color: 'cta',
-        class: 'text-brand-500 hover:text-brand-700',
+        class: 'text-kv-brand hover:text-kv-brand-soft-fg',
       },
       {
         appearance: 'text',
         color: 'success',
-        class: 'text-emerald-600 hover:text-emerald-800',
+        class: 'text-kv-success hover:text-kv-success-soft-fg',
       },
       {
         appearance: 'text',
         color: 'warning',
-        class: 'text-amber-600 hover:text-amber-800',
+        class: 'text-kv-warning hover:text-kv-warning-soft-fg',
       },
       {
         appearance: 'text',
         color: 'purple',
-        class: 'text-violet-600 hover:text-violet-800',
+        class: 'text-kv-accent hover:text-kv-accent-hover',
       },
       {
         appearance: 'text',
         color: 'error',
-        class: 'text-rose-600 hover:text-rose-700',
+        class: 'text-kv-danger hover:text-kv-danger-soft-fg',
       },
       {
         appearance: 'text',
         color: 'neutral',
-        class: 'text-slate-500 hover:text-slate-800',
+        class: 'text-kv-text-subtle hover:text-kv-text-secondary',
       },
     ],
     defaultVariants: {

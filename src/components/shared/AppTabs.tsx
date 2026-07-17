@@ -20,14 +20,14 @@ export type AppTabsModel = 'underline' | 'capsule';
 export type AppTabsSize = 'sm' | 'md' | 'lg';
 
 const appTabsListVariants = cva(
-  'inline-flex h-auto max-w-full items-center font-sans text-slate-500',
+  'inline-flex h-auto max-w-full items-center font-sans text-kv-text-subtle',
   {
     variants: {
       model: {
         underline:
-          'w-full flex-wrap items-stretch justify-center gap-1 rounded-none border-b border-slate-200 bg-transparent p-0 sm:justify-start',
+          'w-full flex-wrap items-stretch justify-center gap-1 rounded-none border-b border-kv-border bg-transparent p-0 sm:justify-start',
         capsule:
-          'w-full justify-stretch gap-1 rounded-kv-control border border-slate-200 bg-slate-100 p-[3px]',
+          'w-full justify-stretch gap-1 rounded-kv-control border border-kv-border bg-kv-surface-subtle p-[3px]',
       },
       size: {
         sm: '',
@@ -45,9 +45,9 @@ const appTabsListVariants = cva(
 const appTabsTriggerVariants = cva(
   [
     'inline-flex items-center justify-center gap-kv-inline bg-transparent font-sans font-bold',
-    'text-slate-500 shadow-none outline-none transition-all',
-    'hover:text-slate-900',
-    'focus-visible:ring-[3px] focus-visible:ring-brand-500/20',
+    'text-kv-text-subtle shadow-none outline-none transition-all',
+    'hover:text-kv-text',
+    'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
     'disabled:pointer-events-none disabled:opacity-50',
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
   ].join(' '),
@@ -57,12 +57,12 @@ const appTabsTriggerVariants = cva(
         /** Active border sits on the list's bottom rule (no floating gap). */
         underline: [
           'relative -mb-px flex-none rounded-none border-b-2 border-transparent',
-          'data-[state=active]:border-brand-700 data-[state=active]:bg-transparent',
-          'data-[state=active]:text-brand-700 data-[state=active]:shadow-none',
+          'data-[state=active]:border-kv-brand-active data-[state=active]:bg-transparent',
+          'data-[state=active]:text-kv-brand-soft-fg data-[state=active]:shadow-none',
         ].join(' '),
         capsule: [
           'flex-1 rounded-kv-control border-0',
-          'data-[state=active]:bg-brand-500 data-[state=active]:text-white',
+          'data-[state=active]:bg-kv-brand data-[state=active]:text-kv-text-inverse',
           'data-[state=active]:shadow-[0_4px_10px_rgba(16,78,198,0.15)]',
         ].join(' '),
       },

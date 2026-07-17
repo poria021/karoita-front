@@ -49,20 +49,20 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-slate-200/60 bg-white">
+    <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface">
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-6 xl:px-8 2xl:px-16">
         <div className="flex items-center gap-kv-group">
           <button
             type="button"
             onClick={openMobileSidebar}
             aria-label="باز کردن منو"
-            className="flex size-9 items-center justify-center rounded-kv-control bg-slate-100 text-slate-700 transition-all hover:bg-slate-200/80 active:scale-95 lg:hidden"
+            className="flex size-9 items-center justify-center rounded-kv-control bg-kv-surface-subtle text-kv-text-muted transition-all hover:bg-kv-neutral-hover/80 active:scale-95 lg:hidden"
           >
             <Menu className="size-4" aria-hidden="true" />
           </button>
 
           <div className="flex items-center gap-kv-inline">
-            <div className="flex size-9 items-center justify-center rounded-kv-control bg-brand-500 text-white shadow-sm shadow-brand-500/20">
+            <div className="flex size-9 items-center justify-center rounded-kv-control bg-kv-brand text-kv-text-inverse shadow-sm shadow-kv-brand/20">
               <LayoutDashboard className="size-4" aria-hidden="true" />
             </div>
             <div className="hidden flex-col lg:flex">
@@ -85,24 +85,24 @@ export function Header() {
             </KvTypography>
           </div>
 
-          <span className="hidden h-4 w-px bg-slate-200/80 md:inline" aria-hidden="true" />
+          <span className="hidden h-4 w-px bg-kv-neutral-hover/80 md:inline" aria-hidden="true" />
 
           <KvDropdownMenu>
             <KvDropdownMenuTrigger asChild>
               <button
                 type="button"
                 aria-label="اعلان‌ها"
-                className="relative flex size-9 items-center justify-center rounded-kv-control text-slate-500 transition-colors hover:bg-slate-100/60 hover:text-slate-800"
+                className="relative flex size-9 items-center justify-center rounded-kv-control text-kv-text-subtle transition-colors hover:bg-kv-surface-subtle/60 hover:text-kv-text-secondary"
               >
                 <Bell className="size-4" aria-hidden="true" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2 start-2 size-2.5 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden="true" />
+                  <span className="absolute top-2 start-2 size-2.5 rounded-full bg-kv-danger ring-2 ring-white" aria-hidden="true" />
                 )}
               </button>
             </KvDropdownMenuTrigger>
 
-            <KvDropdownMenuContent align="end" className="w-80 rounded-kv-panel border border-slate-300/80 p-0 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+            <KvDropdownMenuContent align="end" className="w-80 rounded-kv-panel border border-kv-border-strong/80 p-0 shadow-xl">
+              <div className="flex items-center justify-between border-b border-kv-border-muted px-4 py-3">
                 <KvTypography variant="subtitle" as="span">
                   اعلان‌های سیستم
                 </KvTypography>
@@ -110,14 +110,14 @@ export function Header() {
                   <button
                     type="button"
                     onClick={markAllAsRead}
-                    className="text-[10px] font-bold text-brand-600 hover:text-brand-700"
+                    className="text-[10px] font-bold text-kv-brand-soft-fg hover:text-kv-brand-soft-fg"
                   >
                     علامت‌گذاری همه
                   </button>
                 )}
               </div>
 
-              <div className="max-h-72 divide-y divide-slate-100 overflow-y-auto">
+              <div className="max-h-72 divide-y divide-kv-border-muted overflow-y-auto">
                 {notifications.length === 0 ? (
                   <div className="px-6 py-10 text-center">
                     <KvTypography variant="subtitle" as="p">
@@ -131,13 +131,13 @@ export function Header() {
                       key={notification.id}
                       onClick={() => markAsRead(notification.id)}
                       className={cn(
-                        'w-full p-4 text-start transition-colors hover:bg-slate-50',
-                        !notification.read && 'bg-brand-50/20'
+                        'w-full p-4 text-start transition-colors hover:bg-kv-surface-muted',
+                        !notification.read && 'bg-kv-brand-soft/20'
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-xs font-bold text-slate-800">{notification.title}</p>
-                        <span className="shrink-0 text-[9px] text-slate-400">{toPersianDigits(notification.time)}</span>
+                        <p className="truncate text-xs font-bold text-kv-text-secondary">{notification.title}</p>
+                        <span className="shrink-0 text-[9px] text-kv-text-faint">{toPersianDigits(notification.time)}</span>
                       </div>
                     </button>
                   ))
@@ -146,7 +146,7 @@ export function Header() {
             </KvDropdownMenuContent>
           </KvDropdownMenu>
 
-          <span className="h-4 w-px bg-slate-200/80" aria-hidden="true" />
+          <span className="h-4 w-px bg-kv-neutral-hover/80" aria-hidden="true" />
 
           <KvButton
             type="button"

@@ -3,7 +3,7 @@ import React from "react";
 export function FormSuccess({ message }: { message: string }) {
   if (!message) return null;
   return (
-    <div className="rounded bg-green-100 px-3 py-2 text-green-800 text-sm">
+    <div className="rounded-kv-control border border-kv-success-border bg-kv-success-soft px-3 py-2 text-sm text-kv-success-soft-fg">
       {message}
     </div>
   );
@@ -12,7 +12,7 @@ export function FormSuccess({ message }: { message: string }) {
 export function FormError({ message }: { message: string }) {
   if (!message) return null;
   return (
-    <div className="rounded bg-red-100 px-3 py-2 text-red-800 text-sm">
+    <div className="rounded-kv-control border border-kv-danger-border bg-kv-danger-soft px-3 py-2 text-sm text-kv-danger-soft-fg">
       {message}
     </div>
   );

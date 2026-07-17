@@ -15,18 +15,18 @@ const MESSAGE_STYLES: Record<
   { container: string; icon: string; Icon: typeof CircleAlert }
 > = {
   error: {
-    container: 'border-rose-100 bg-rose-50/60 text-rose-700',
-    icon: 'text-rose-500',
+    container: 'border-kv-danger-border bg-kv-danger-soft/60 text-kv-danger-soft-fg',
+    icon: 'text-kv-danger',
     Icon: CircleAlert,
   },
   success: {
-    container: 'border-emerald-100 bg-emerald-50/60 text-emerald-700',
-    icon: 'text-emerald-500',
+    container: 'border-kv-success-border bg-kv-success-soft/60 text-kv-success-soft-fg',
+    icon: 'text-kv-success',
     Icon: CircleCheck,
   },
   info: {
-    container: 'border-blue-100 bg-blue-50/60 text-blue-700',
-    icon: 'text-blue-500',
+    container: 'border-kv-info-border bg-kv-info-soft/60 text-kv-info-soft-fg',
+    icon: 'text-kv-info',
     Icon: Info,
   },
 };

@@ -19,8 +19,8 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
       score: 0,
       level: 'empty',
       label: 'خالی',
-      barClassName: 'bg-slate-200',
-      labelClassName: 'text-slate-400',
+      barClassName: 'bg-kv-border-strong',
+      labelClassName: 'text-kv-text-faint',
     };
   }
 
@@ -35,8 +35,8 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
       score,
       level: 'weak',
       label: 'ضعیف',
-      barClassName: 'bg-rose-500',
-      labelClassName: 'text-rose-600',
+      barClassName: 'bg-kv-danger',
+      labelClassName: 'text-kv-danger',
     };
   }
 
@@ -45,8 +45,8 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
       score,
       level: 'moderate',
       label: 'متوسط',
-      barClassName: 'bg-amber-500',
-      labelClassName: 'text-amber-600',
+      barClassName: 'bg-kv-warning',
+      labelClassName: 'text-kv-warning',
     };
   }
 
@@ -54,8 +54,8 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
     score,
     level: 'strong',
     label: 'قوی',
-    barClassName: 'bg-emerald-500',
-    labelClassName: 'text-emerald-600',
+    barClassName: 'bg-kv-success',
+    labelClassName: 'text-kv-success',
   };
 }
 
@@ -75,10 +75,10 @@ export function PasswordStrengthIndicator({
   return (
     <div className={cn('mt-kv-field space-y-1', className)}>
       <div className="flex items-center justify-between text-[10px] font-bold">
-        <span className="text-slate-500">امنیت رمز عبور:</span>
+        <span className="text-kv-text-subtle">امنیت رمز عبور:</span>
         <span className={strength.labelClassName}>{strength.label}</span>
       </div>
-      <div className="h-1 w-full overflow-hidden rounded-full bg-slate-200">
+      <div className="h-1 w-full overflow-hidden rounded-full bg-kv-border-strong">
         <div
           className={cn('h-full transition-all duration-300', strength.barClassName)}
           style={{ width: `${strength.score}%` }}

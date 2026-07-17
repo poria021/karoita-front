@@ -11,9 +11,9 @@ import { cn } from '@/lib/utils';
 
 const kvTextAreaVariants = cva(
   [
-    'w-full resize-y rounded-kv-control border bg-white font-sans font-bold text-slate-800 shadow-none transition-colors',
-    'placeholder:text-slate-400',
-    'focus-visible:border-brand-500 focus-visible:ring-[3px] focus-visible:ring-brand-500/15 focus-visible:outline-none',
+    'w-full resize-y rounded-kv-control border bg-kv-surface font-sans font-bold text-kv-text-secondary shadow-none transition-colors',
+    'placeholder:text-kv-text-faint',
+    'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15 focus-visible:outline-none',
     'disabled:cursor-not-allowed disabled:opacity-100',
   ].join(' '),
   {
@@ -24,11 +24,11 @@ const kvTextAreaVariants = cva(
         lg: 'min-h-28 px-4 py-3 text-sm',
       },
       state: {
-        default: 'border-slate-300',
+        default: 'border-kv-border-strong',
         error:
-          'border-rose-300 focus-visible:border-rose-400 focus-visible:ring-rose-500/15',
+          'border-kv-danger-border focus-visible:border-kv-danger focus-visible:ring-kv-ring-danger/15',
         locked:
-          'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 focus-visible:border-slate-200 focus-visible:ring-0',
+          'cursor-not-allowed border-kv-border bg-kv-surface-muted text-kv-text-faint focus-visible:border-kv-border focus-visible:ring-0',
       },
     },
     defaultVariants: {

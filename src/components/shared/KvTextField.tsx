@@ -13,8 +13,8 @@ export type KvTextFieldSize = 'sm' | 'md' | 'lg';
 
 const kvTextFieldWrapperVariants = cva(
   [
-    'flex w-full items-stretch overflow-hidden rounded-kv-control border bg-white font-sans transition-colors',
-    'focus-within:border-brand-500 focus-within:ring-[3px] focus-within:ring-brand-500/15',
+    'flex w-full items-stretch overflow-hidden rounded-kv-control border bg-kv-surface font-sans transition-colors',
+    'focus-within:border-kv-brand focus-within:ring-[3px] focus-within:ring-kv-ring/15',
   ].join(' '),
   {
     variants: {
@@ -25,11 +25,11 @@ const kvTextFieldWrapperVariants = cva(
         lg: 'h-12',
       },
       state: {
-        default: 'border-slate-300',
+        default: 'border-kv-border-strong',
         error:
-          'border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-500/15',
+          'border-kv-danger-border focus-within:border-kv-danger focus-within:ring-kv-ring-danger/15',
         locked:
-          'cursor-not-allowed border-slate-300 bg-slate-50 focus-within:border-slate-300 focus-within:ring-0',
+          'cursor-not-allowed border-kv-border-strong bg-kv-surface-muted focus-within:border-kv-border-strong focus-within:ring-0',
       },
     },
     defaultVariants: {
@@ -41,9 +41,9 @@ const kvTextFieldWrapperVariants = cva(
 
 const kvTextFieldInputVariants = cva(
   [
-    'h-full w-full min-w-0 flex-1 rounded-none border-0 bg-transparent font-sans font-bold text-slate-800 shadow-none',
+    'h-full w-full min-w-0 flex-1 rounded-none border-0 bg-transparent font-sans font-bold text-kv-text-secondary shadow-none',
     'text-xs leading-none md:text-xs',
-    'placeholder:text-slate-400',
+    'placeholder:text-kv-text-faint',
     'focus-visible:border-0 focus-visible:ring-0',
     'disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-100',
   ].join(' '),
@@ -57,7 +57,7 @@ const kvTextFieldInputVariants = cva(
       state: {
         default: '',
         error: '',
-        locked: 'text-slate-400',
+        locked: 'text-kv-text-faint',
       },
       otpStyle: {
         true: 'text-center text-base font-black tracking-[0.5em] leading-normal',
@@ -179,7 +179,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
           data-locked={locked || undefined}
         >
           {startAddon ? (
-            <div className="flex h-full shrink-0 items-center text-slate-400">
+            <div className="flex h-full shrink-0 items-center text-kv-text-faint">
               {startAddon}
             </div>
           ) : null}
@@ -204,7 +204,9 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
             onFocus={onFocus}
             className={cn(
               'h-full min-h-0',
-              kvTextFieldInputVariants({ size, state, otpStyle })
+              kvTextFieldInputVariants({ size, state, otpStyle }),
+              startAddon && 'ps-1.5',
+              endAddon && 'pe-1.5'
             )}
           />
 

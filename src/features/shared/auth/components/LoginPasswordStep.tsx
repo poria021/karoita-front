@@ -53,14 +53,14 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
 
         <label
           htmlFor="login-remember"
-          className="flex items-center gap-1.5 text-[11px] font-bold text-slate-500 select-none"
+          className="flex items-center gap-1.5 text-[11px] font-bold text-kv-text-subtle select-none"
         >
           <span>مرا به خاطر بسپار</span>
           <input
             id="login-remember"
             type="checkbox"
             {...register('remember')}
-            className="size-4 cursor-pointer rounded border-slate-300 accent-brand-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+            className="size-4 cursor-pointer rounded border-kv-border-strong accent-kv-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kv-brand"
           />
         </label>
       </div>

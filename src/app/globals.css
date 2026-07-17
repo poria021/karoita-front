@@ -43,7 +43,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* رنگ‌مایه برند کارویتا (منطبق با original-karvita.html) — استفاده در auth، هدر و سایدبار */
+  /* رنگ‌مایه برند کارویتا (پالت خام) — ترجیحاً از توکن‌های معنایی `kv-*` استفاده کنید */
   --color-brand-50: #f0f6ff;
   --color-brand-100: #e0edff;
   --color-brand-200: #bfdbfe;
@@ -53,6 +53,92 @@
   --color-brand-700: #093f9f;
   --color-brand-850: #073280;
   --color-brand-900: #031b44;
+
+  /*
+   * Karvita semantic colors (`kv-*`) — purpose tokens (WCAG-minded).
+   * Values live on :root / .dark; utilities resolve via these aliases.
+   * Pairings: soft + soft-fg; solid + *-fg; text-* on surface.
+   */
+  --color-kv-canvas: var(--kv-canvas);
+  --color-kv-surface: var(--kv-surface);
+  --color-kv-surface-muted: var(--kv-surface-muted);
+  --color-kv-surface-subtle: var(--kv-surface-subtle);
+  --color-kv-surface-disabled: var(--kv-surface-disabled);
+  --color-kv-surface-inverse: var(--kv-surface-inverse);
+
+  --color-kv-text: var(--kv-text);
+  --color-kv-text-secondary: var(--kv-text-secondary);
+  --color-kv-text-muted: var(--kv-text-muted);
+  --color-kv-text-subtle: var(--kv-text-subtle);
+  --color-kv-text-faint: var(--kv-text-faint);
+  --color-kv-text-disabled: var(--kv-text-disabled);
+  --color-kv-text-inverse: var(--kv-text-inverse);
+  --color-kv-text-placeholder: var(--kv-text-placeholder);
+  --color-kv-text-link: var(--kv-text-link);
+  --color-kv-text-link-hover: var(--kv-text-link-hover);
+
+  --color-kv-border: var(--kv-border);
+  --color-kv-border-strong: var(--kv-border-strong);
+  --color-kv-border-muted: var(--kv-border-muted);
+  --color-kv-ring: var(--kv-ring);
+  --color-kv-ring-danger: var(--kv-ring-danger);
+
+  --color-kv-brand: var(--kv-brand);
+  --color-kv-brand-hover: var(--kv-brand-hover);
+  --color-kv-brand-active: var(--kv-brand-active);
+  --color-kv-brand-fg: var(--kv-brand-fg);
+  --color-kv-brand-soft: var(--kv-brand-soft);
+  --color-kv-brand-soft-hover: var(--kv-brand-soft-hover);
+  --color-kv-brand-soft-fg: var(--kv-brand-soft-fg);
+  --color-kv-brand-border: var(--kv-brand-border);
+
+  --color-kv-success: var(--kv-success);
+  --color-kv-success-hover: var(--kv-success-hover);
+  --color-kv-success-fg: var(--kv-success-fg);
+  --color-kv-success-soft: var(--kv-success-soft);
+  --color-kv-success-soft-hover: var(--kv-success-soft-hover);
+  --color-kv-success-soft-fg: var(--kv-success-soft-fg);
+  --color-kv-success-border: var(--kv-success-border);
+
+  --color-kv-warning: var(--kv-warning);
+  --color-kv-warning-hover: var(--kv-warning-hover);
+  --color-kv-warning-fg: var(--kv-warning-fg);
+  --color-kv-warning-soft: var(--kv-warning-soft);
+  --color-kv-warning-soft-hover: var(--kv-warning-soft-hover);
+  --color-kv-warning-soft-fg: var(--kv-warning-soft-fg);
+  --color-kv-warning-border: var(--kv-warning-border);
+
+  --color-kv-danger: var(--kv-danger);
+  --color-kv-danger-hover: var(--kv-danger-hover);
+  --color-kv-danger-fg: var(--kv-danger-fg);
+  --color-kv-danger-soft: var(--kv-danger-soft);
+  --color-kv-danger-soft-hover: var(--kv-danger-soft-hover);
+  --color-kv-danger-soft-fg: var(--kv-danger-soft-fg);
+  --color-kv-danger-border: var(--kv-danger-border);
+
+  --color-kv-info: var(--kv-info);
+  --color-kv-info-hover: var(--kv-info-hover);
+  --color-kv-info-fg: var(--kv-info-fg);
+  --color-kv-info-soft: var(--kv-info-soft);
+  --color-kv-info-soft-hover: var(--kv-info-soft-hover);
+  --color-kv-info-soft-fg: var(--kv-info-soft-fg);
+  --color-kv-info-border: var(--kv-info-border);
+
+  --color-kv-neutral: var(--kv-neutral);
+  --color-kv-neutral-hover: var(--kv-neutral-hover);
+  --color-kv-neutral-fg: var(--kv-neutral-fg);
+  --color-kv-neutral-soft: var(--kv-neutral-soft);
+  --color-kv-neutral-soft-hover: var(--kv-neutral-soft-hover);
+  --color-kv-neutral-soft-fg: var(--kv-neutral-soft-fg);
+  --color-kv-neutral-border: var(--kv-neutral-border);
+
+  --color-kv-accent: var(--kv-accent);
+  --color-kv-accent-hover: var(--kv-accent-hover);
+  --color-kv-accent-fg: var(--kv-accent-fg);
+  --color-kv-accent-soft: var(--kv-accent-soft);
+  --color-kv-accent-soft-hover: var(--kv-accent-soft-hover);
+  --color-kv-accent-soft-fg: var(--kv-accent-soft-fg);
+  --color-kv-accent-border: var(--kv-accent-border);
 
   /*
    * Karvita semantic spacing (`kv-*`) — Gestalt proximity & separation.
@@ -88,73 +174,238 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.637 0.237 25.331);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.871 0.006 286.286);
-  --ring: oklch(0.871 0.006 286.286);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(98.5% 0 0);
-  --sidebar-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-primary: oklch(0.21 0.006 285.885);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.871 0.006 286.286);
+
+  /* —— kv semantic palette (light) —— */
+  --kv-canvas: #f8fafc;
+  --kv-surface: #ffffff;
+  --kv-surface-muted: #f8fafc;
+  --kv-surface-subtle: #f1f5f9;
+  --kv-surface-disabled: #f1f5f9;
+  --kv-surface-inverse: #0f172a;
+
+  --kv-text: #0f172a;
+  --kv-text-secondary: #1e293b;
+  --kv-text-muted: #334155;
+  --kv-text-subtle: #475569;
+  --kv-text-faint: #64748b;
+  --kv-text-disabled: #94a3b8;
+  --kv-text-inverse: #ffffff;
+  --kv-text-placeholder: #64748b;
+  --kv-text-link: #093f9f;
+  --kv-text-link-hover: #073280;
+
+  --kv-border: #e2e8f0;
+  --kv-border-strong: #cbd5e1;
+  --kv-border-muted: #f1f5f9;
+  --kv-ring: #104ec6;
+  --kv-ring-danger: #e11d48;
+
+  --kv-brand: #104ec6;
+  --kv-brand-hover: #0b51cc;
+  --kv-brand-active: #093f9f;
+  --kv-brand-fg: #ffffff;
+  --kv-brand-soft: #f0f6ff;
+  --kv-brand-soft-hover: #e0edff;
+  --kv-brand-soft-fg: #093f9f;
+  --kv-brand-border: #bfdbfe;
+
+  --kv-success: #059669;
+  --kv-success-hover: #047857;
+  --kv-success-fg: #ffffff;
+  --kv-success-soft: #ecfdf5;
+  --kv-success-soft-hover: #d1fae5;
+  --kv-success-soft-fg: #065f46;
+  --kv-success-border: #a7f3d0;
+
+  --kv-warning: #d97706;
+  --kv-warning-hover: #b45309;
+  --kv-warning-fg: #ffffff;
+  --kv-warning-soft: #fffbeb;
+  --kv-warning-soft-hover: #fef3c7;
+  --kv-warning-soft-fg: #92400e;
+  --kv-warning-border: #fde68a;
+
+  --kv-danger: #e11d48;
+  --kv-danger-hover: #be123c;
+  --kv-danger-fg: #ffffff;
+  --kv-danger-soft: #fff1f2;
+  --kv-danger-soft-hover: #ffe4e6;
+  --kv-danger-soft-fg: #9f1239;
+  --kv-danger-border: #fecdd3;
+
+  --kv-info: #2563eb;
+  --kv-info-hover: #1d4ed8;
+  --kv-info-fg: #ffffff;
+  --kv-info-soft: #eff6ff;
+  --kv-info-soft-hover: #dbeafe;
+  --kv-info-soft-fg: #1e40af;
+  --kv-info-border: #bfdbfe;
+
+  --kv-neutral: #e2e8f0;
+  --kv-neutral-hover: #cbd5e1;
+  --kv-neutral-fg: #334155;
+  --kv-neutral-soft: #f8fafc;
+  --kv-neutral-soft-hover: #f1f5f9;
+  --kv-neutral-soft-fg: #475569;
+  --kv-neutral-border: #e2e8f0;
+
+  --kv-accent: #7c3aed;
+  --kv-accent-hover: #6d28d9;
+  --kv-accent-fg: #ffffff;
+  --kv-accent-soft: #f5f3ff;
+  --kv-accent-soft-hover: #ede9fe;
+  --kv-accent-soft-fg: #5b21b6;
+  --kv-accent-border: #ddd6fe;
+
+  /* Shadcn bridges → kv (so primitives stay on-brand) */
+  --background: var(--kv-canvas);
+  --foreground: var(--kv-text);
+  --card: var(--kv-surface);
+  --card-foreground: var(--kv-text);
+  --popover: var(--kv-surface);
+  --popover-foreground: var(--kv-text);
+  --primary: var(--kv-brand);
+  --primary-foreground: var(--kv-brand-fg);
+  --secondary: var(--kv-surface-muted);
+  --secondary-foreground: var(--kv-text-muted);
+  --muted: var(--kv-surface-subtle);
+  --muted-foreground: var(--kv-text-faint);
+  --accent: var(--kv-brand-soft);
+  --accent-foreground: var(--kv-brand-soft-fg);
+  --destructive: var(--kv-danger);
+  --destructive-foreground: var(--kv-danger-fg);
+  --border: var(--kv-border);
+  --input: var(--kv-border-strong);
+  --ring: var(--kv-ring);
+  --chart-1: var(--kv-brand);
+  --chart-2: var(--kv-success);
+  --chart-3: var(--kv-info);
+  --chart-4: var(--kv-warning);
+  --chart-5: var(--kv-accent);
+  --sidebar: var(--kv-surface);
+  --sidebar-foreground: var(--kv-text);
+  --sidebar-primary: var(--kv-brand);
+  --sidebar-primary-foreground: var(--kv-brand-fg);
+  --sidebar-accent: var(--kv-brand-soft);
+  --sidebar-accent-foreground: var(--kv-brand-soft-fg);
+  --sidebar-border: var(--kv-border);
+  --sidebar-ring: var(--kv-ring);
 }
 
 .dark {
-  --background: #121212;
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.141 0.005 285.823);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.141 0.005 285.823);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.21 0.006 285.885);
-  --muted-foreground: oklch(0.65 0.01 286);
-  --accent: oklch(0.21 0.006 285.885);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.496 0.241 25.723);
-  --destructive-foreground: oklch(0.737 0.337 25.331);
-  --border: oklch(0.274 0.006 286.033);
-  --input: oklch(0.274 0.006 286.033);
-  --ring: oklch(0.442 0.017 285.786);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: #0f0f0f;
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.274 0.006 286.033);
-  --sidebar-ring: oklch(0.442 0.017 285.786);
+  --kv-canvas: #0b1220;
+  --kv-surface: #111827;
+  --kv-surface-muted: #1e293b;
+  --kv-surface-subtle: #1e293b;
+  --kv-surface-disabled: #1e293b;
+  --kv-surface-inverse: #f8fafc;
+
+  --kv-text: #f8fafc;
+  --kv-text-secondary: #e2e8f0;
+  --kv-text-muted: #cbd5e1;
+  --kv-text-subtle: #94a3b8;
+  --kv-text-faint: #94a3b8;
+  --kv-text-disabled: #64748b;
+  --kv-text-inverse: #0f172a;
+  --kv-text-placeholder: #94a3b8;
+  --kv-text-link: #93c5fd;
+  --kv-text-link-hover: #bfdbfe;
+
+  --kv-border: #334155;
+  --kv-border-strong: #475569;
+  --kv-border-muted: #1e293b;
+  --kv-ring: #60a5fa;
+  --kv-ring-danger: #fb7185;
+
+  --kv-brand: #3b82f6;
+  --kv-brand-hover: #60a5fa;
+  --kv-brand-active: #93c5fd;
+  --kv-brand-fg: #0f172a;
+  --kv-brand-soft: #172554;
+  --kv-brand-soft-hover: #1e3a8a;
+  --kv-brand-soft-fg: #bfdbfe;
+  --kv-brand-border: #1e40af;
+
+  --kv-success: #34d399;
+  --kv-success-hover: #6ee7b7;
+  --kv-success-fg: #022c22;
+  --kv-success-soft: #064e3b;
+  --kv-success-soft-hover: #065f46;
+  --kv-success-soft-fg: #a7f3d0;
+  --kv-success-border: #047857;
+
+  --kv-warning: #fbbf24;
+  --kv-warning-hover: #fcd34d;
+  --kv-warning-fg: #422006;
+  --kv-warning-soft: #78350f;
+  --kv-warning-soft-hover: #92400e;
+  --kv-warning-soft-fg: #fde68a;
+  --kv-warning-border: #b45309;
+
+  --kv-danger: #fb7185;
+  --kv-danger-hover: #fda4af;
+  --kv-danger-fg: #4c0519;
+  --kv-danger-soft: #881337;
+  --kv-danger-soft-hover: #9f1239;
+  --kv-danger-soft-fg: #fecdd3;
+  --kv-danger-border: #be123c;
+
+  --kv-info: #60a5fa;
+  --kv-info-hover: #93c5fd;
+  --kv-info-fg: #082f49;
+  --kv-info-soft: #1e3a8a;
+  --kv-info-soft-hover: #1e40af;
+  --kv-info-soft-fg: #bfdbfe;
+  --kv-info-border: #1d4ed8;
+
+  --kv-neutral: #334155;
+  --kv-neutral-hover: #475569;
+  --kv-neutral-fg: #e2e8f0;
+  --kv-neutral-soft: #1e293b;
+  --kv-neutral-soft-hover: #334155;
+  --kv-neutral-soft-fg: #cbd5e1;
+  --kv-neutral-border: #334155;
+
+  --kv-accent: #a78bfa;
+  --kv-accent-hover: #c4b5fd;
+  --kv-accent-fg: #2e1065;
+  --kv-accent-soft: #4c1d95;
+  --kv-accent-soft-hover: #5b21b6;
+  --kv-accent-soft-fg: #ddd6fe;
+  --kv-accent-border: #6d28d9;
+
+  --background: var(--kv-canvas);
+  --foreground: var(--kv-text);
+  --card: var(--kv-surface);
+  --card-foreground: var(--kv-text);
+  --popover: var(--kv-surface);
+  --popover-foreground: var(--kv-text);
+  --primary: var(--kv-brand);
+  --primary-foreground: var(--kv-brand-fg);
+  --secondary: var(--kv-surface-muted);
+  --secondary-foreground: var(--kv-text-muted);
+  --muted: var(--kv-surface-subtle);
+  --muted-foreground: var(--kv-text-faint);
+  --accent: var(--kv-brand-soft);
+  --accent-foreground: var(--kv-brand-soft-fg);
+  --destructive: var(--kv-danger);
+  --destructive-foreground: var(--kv-danger-fg);
+  --border: var(--kv-border);
+  --input: var(--kv-border-strong);
+  --ring: var(--kv-ring);
+  --chart-1: var(--kv-brand);
+  --chart-2: var(--kv-success);
+  --chart-3: var(--kv-info);
+  --chart-4: var(--kv-warning);
+  --chart-5: var(--kv-accent);
+  --sidebar: var(--kv-surface);
+  --sidebar-foreground: var(--kv-text);
+  --sidebar-primary: var(--kv-brand);
+  --sidebar-primary-foreground: var(--kv-brand-fg);
+  --sidebar-accent: var(--kv-brand-soft);
+  --sidebar-accent-foreground: var(--kv-brand-soft-fg);
+  --sidebar-border: var(--kv-border);
+  --sidebar-ring: var(--kv-ring);
 }
 
 @layer base {
@@ -162,7 +413,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-kv-canvas text-kv-text;
   }
 }
 
