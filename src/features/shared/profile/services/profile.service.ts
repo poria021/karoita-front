@@ -1,3 +1,6 @@
+import { useUserStore } from '@/store/useUserStore';
+import type { DocStatus, User, UserRole } from '@/types/auth';
+
 import { profileSchema } from '../schemas/profile.schema';
 import type { ProfileDTO } from '../types/profile.dto';
 
@@ -124,6 +127,71 @@ function parseProfile(value: unknown): ProfileDTO {
   return result.data;
 }
 
+function asString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function asBoolean(value: unknown): boolean | undefined {
+  return typeof value === 'boolean' ? value : undefined;
+}
+
+function asDocStatus(value: unknown): DocStatus | undefined {
+  if (
+    value === 'not_submitted' ||
+    value === 'pending_admin' ||
+    value === 'approved' ||
+    value === 'rejected'
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+function asUserRole(value: unknown): UserRole | undefined {
+  if (
+    value === 'student' ||
+    value === 'skill_learner' ||
+    value === 'supervisor_professor' ||
+    value === 'mentor_teacher' ||
+    value === 'school_principal' ||
+    value === 'regional_edu_admin' ||
+    value === 'faculty_role' ||
+    value === 'provincial_university' ||
+    value === 'assistant_admin' ||
+    value === 'central_organization' ||
+    value === 'super_admin'
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+/** Merge persisted profile mutation fields into the live Zustand user. */
+function mergeRecordIntoUser(activeUser: User, record: JsonRecord): User {
+  return {
+    ...activeUser,
+    id: asString(record.id) ?? activeUser.id,
+    firstName: asString(record.firstName) ?? activeUser.firstName,
+    lastName: asString(record.lastName) ?? activeUser.lastName,
+    mobile: asString(record.mobile) ?? activeUser.mobile,
+    role: asUserRole(record.role) ?? activeUser.role,
+    approved: asBoolean(record.approved) ?? activeUser.approved,
+    docStatus: asDocStatus(record.docStatus) ?? activeUser.docStatus,
+    hasPassword: asBoolean(record.hasPassword) ?? activeUser.hasPassword,
+    adminRequestMessage:
+      asString(record.adminRequestMessage) ?? activeUser.adminRequestMessage,
+    province: asString(record.province) ?? activeUser.province,
+    city: asString(record.city) ?? activeUser.city,
+    college: asString(record.college) ?? activeUser.college,
+    district: asString(record.district) ?? activeUser.district,
+    school: asString(record.school) ?? activeUser.school,
+    major: asString(record.major) ?? activeUser.major,
+    personalCode: asString(record.personalCode) ?? activeUser.personalCode,
+    studentId: asString(record.studentId) ?? activeUser.studentId,
+    skillCode: asString(record.skillCode) ?? activeUser.skillCode,
+  };
+}
+
 function syncCurrentUser(updatedRecord: JsonRecord): void {
   if (!isBrowser()) return;
 
@@ -172,6 +240,12 @@ function syncCurrentUser(updatedRecord: JsonRecord): void {
         : user
     );
     window.localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(synchronizedUsers));
+  }
+
+  // Live Zustand update so profile banners react immediately (yellow → blue).
+  const activeUser = useUserStore.getState().activeUser;
+  if (activeUser) {
+    useUserStore.getState().setUser(mergeRecordIntoUser(activeUser, updatedRecord));
   }
 }
 

@@ -83,11 +83,16 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
       />
     ) : null;
 
+  const isProfileLocked =
+    activeUser.role !== 'super_admin' &&
+    activeUser.docStatus !== 'not_submitted' &&
+    activeUser.docStatus !== 'rejected';
+
   const identityForm = (
     <IdentityForm
       activeUser={activeUser}
       token={session?.token}
-      disabled={activeUser.approved}
+      disabled={isProfileLocked}
     />
   );
 
