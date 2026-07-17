@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -38,10 +38,7 @@ export function IdentityForm({
   onSaved,
 }: IdentityFormProps) {
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
-  const [feedback, setFeedback] = useState<{
-    type: 'success' | 'error';
-    message: string;
-  } | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const roleStrategy = getRoleStrategy(activeUser.role);
   const form = useForm<ProfileSchema>({
     resolver: zodResolver(createProfileSchema(activeUser.role)),
@@ -51,24 +48,21 @@ export function IdentityForm({
   });
 
   const submit = form.handleSubmit(async (data) => {
-    setFeedback(null);
+    setSubmitError(null);
     try {
-      const result = await ProfileService.updateProfile(data, token);
+      await ProfileService.updateProfile(data, token);
       if (identityDocument) {
         const documentBase64 = await compressImageToBase64(identityDocument);
         await ProfileService.updateIdentityDocument(documentBase64, token);
       }
       form.reset(data);
-      setFeedback({ type: 'success', message: result.message });
       onSaved?.();
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
-          error instanceof Error
-            ? error.message
-            : 'ذخیره اطلاعات با خطا مواجه شد. لطفاً دوباره تلاش کنید.',
-      });
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'ذخیره اطلاعات با خطا مواجه شد. لطفاً دوباره تلاش کنید.'
+      );
     }
   });
 
@@ -127,19 +121,14 @@ export function IdentityForm({
               />
             </section>
 
-            {feedback && (
-              <div
-                role="status"
-                className={
-                  feedback.type === 'success'
-                    ? 'flex items-center gap-2 rounded-kv-panel border border-emerald-200 bg-emerald-50 p-3 text-xs font-bold text-emerald-700'
-                    : 'rounded-kv-panel border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700'
-                }
+            {submitError ? (
+              <p
+                role="alert"
+                className="rounded-kv-panel border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700"
               >
-                {feedback.type === 'success' && <CheckCircle2 className="size-4" />}
-                {feedback.message}
-              </div>
-            )}
+                {submitError}
+              </p>
+            ) : null}
 
             <div className="flex justify-end border-t border-slate-100 pt-kv-stack">
               <KvButton
