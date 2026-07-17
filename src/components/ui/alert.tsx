@@ -8,14 +8,14 @@ const alertVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-card text-card-foreground',
+        default: 'bg-kv-surface text-kv-text',
         destructive:
-          'border-rose-200 bg-rose-50/80 text-rose-900 [&>svg]:text-rose-600 *:data-[slot=alert-description]:text-rose-800/90',
+          'border-kv-danger-border bg-kv-danger-soft/80 text-kv-danger-soft-fg [&>svg]:text-kv-danger *:data-[slot=alert-description]:text-kv-danger-soft-fg/90',
         warning:
-          'border-amber-200 bg-amber-50/80 text-amber-900 [&>svg]:text-amber-600 *:data-[slot=alert-description]:text-amber-800/90',
-        info: 'border-blue-200 bg-blue-50/80 text-blue-900 [&>svg]:text-blue-600 *:data-[slot=alert-description]:text-blue-800/90',
+          'border-kv-warning-border bg-kv-warning-soft/80 text-kv-warning-soft-fg [&>svg]:text-kv-warning *:data-[slot=alert-description]:text-kv-warning-soft-fg/90',
+        info: 'border-kv-info-border bg-kv-info-soft/80 text-kv-info-soft-fg [&>svg]:text-kv-info *:data-[slot=alert-description]:text-kv-info-soft-fg/90',
         success:
-          'border-emerald-200 bg-emerald-50/80 text-emerald-900 [&>svg]:text-emerald-600 *:data-[slot=alert-description]:text-emerald-800/90',
+          'border-kv-success-border bg-kv-success-soft/80 text-kv-success-soft-fg [&>svg]:text-kv-success *:data-[slot=alert-description]:text-kv-success-soft-fg/90',
       },
     },
     defaultVariants: {

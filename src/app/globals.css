@@ -410,7 +410,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-kv-border outline-kv-ring/50;
   }
   body {
     @apply bg-kv-canvas text-kv-text;
@@ -433,17 +433,17 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--muted);
+  background: var(--kv-border-strong);
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: var(--kv-text-faint);
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--muted) transparent;
+  scrollbar-color: var(--kv-border-strong) transparent;
 }

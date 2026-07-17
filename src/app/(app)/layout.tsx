@@ -19,7 +19,7 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <HydrationSafe>
-      <div className="flex min-h-screen w-full flex-col bg-[#faf9f8]">
+      <div className="flex min-h-screen w-full flex-col bg-kv-canvas">
         <Header />
         <div className="relative flex w-full flex-1 flex-col items-stretch gap-6 px-0 py-6 sm:px-6 lg:flex-row lg:px-6 lg:py-6 xl:px-8 2xl:px-16">
           <Sidebar />

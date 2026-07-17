@@ -62,7 +62,7 @@ export function Header() {
           </button>
 
           <div className="flex items-center gap-kv-inline">
-            <div className="flex size-9 items-center justify-center rounded-kv-control bg-kv-brand text-kv-text-inverse shadow-sm shadow-kv-brand/20">
+            <div className="flex size-9 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-sm shadow-kv-brand/20">
               <LayoutDashboard className="size-4" aria-hidden="true" />
             </div>
             <div className="hidden flex-col lg:flex">
@@ -96,7 +96,7 @@ export function Header() {
               >
                 <Bell className="size-4" aria-hidden="true" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-2 start-2 size-2.5 rounded-full bg-kv-danger ring-2 ring-white" aria-hidden="true" />
+                  <span className="absolute top-2 start-2 size-2.5 rounded-full bg-kv-danger ring-2 ring-kv-surface" aria-hidden="true" />
                 )}
               </button>
             </KvDropdownMenuTrigger>

@@ -24,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl">
-      <body className={`${vazirmatn.variable} font-sans antialiased bg-background`}>
+      <body className={`${vazirmatn.variable} font-sans antialiased bg-kv-canvas`}>
         <Providers>
           {children}
             <KvToaster dir="rtl" richColors closeButton position="top-center" />

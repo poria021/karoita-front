@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
  * - `capsule`: auth-style segmented control (slate track + brand active chip)
  *
  * Built on Radix Tabs primitives directly so Shadcn default trigger styles
- * (active bg-background, fixed h-9, line after:) cannot fight our models.
+ * (active bg-kv-canvas, fixed h-9, line after:) cannot fight our models.
  */
 export type AppTabsModel = 'underline' | 'capsule';
 
@@ -62,8 +62,8 @@ const appTabsTriggerVariants = cva(
         ].join(' '),
         capsule: [
           'flex-1 rounded-kv-control border-0',
-          'data-[state=active]:bg-kv-brand data-[state=active]:text-kv-text-inverse',
-          'data-[state=active]:shadow-[0_4px_10px_rgba(16,78,198,0.15)]',
+          'data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
+          'data-[state=active]:shadow-md data-[state=active]:shadow-kv-brand/15',
         ].join(' '),
       },
       size: {
