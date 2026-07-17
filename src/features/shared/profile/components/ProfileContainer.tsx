@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { PageChrome } from '@/components/shared/PageChrome';
 import HydrationSafe from '@/components/shared/HydrationSafe';
-import { Skeleton } from '@/components/ui/skeleton';
+import { KvSkeleton } from '@/components/shared/KvSkeleton';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
@@ -143,24 +143,24 @@ export function ProfileContainerSkeleton() {
       aria-live="polite"
     >
       <div className="flex gap-kv-inline border-b border-slate-100 pb-3">
-        <Skeleton className="h-11 w-32 rounded-md" />
-        <Skeleton className="h-11 w-40 rounded-md" />
+        <KvSkeleton className="h-11 w-32" />
+        <KvSkeleton className="h-11 w-40" />
       </div>
 
-      <Skeleton className="h-20 w-full rounded-2xl" />
+      <KvSkeleton className="h-20 w-full rounded-2xl" />
 
       <div className="space-y-kv-group rounded-3xl border border-slate-200 bg-white p-kv-inset sm:p-kv-page">
         <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
           {Array.from({ length: 6 }).map((_, index) => (
             <div key={index} className="space-y-2">
-              <Skeleton className="h-3 w-24 rounded-md" />
-              <Skeleton className="h-11 w-full rounded-xl" />
+              <KvSkeleton className="h-3 w-24" />
+              <KvSkeleton className="h-11 w-full rounded-xl" />
             </div>
           ))}
         </div>
-        <Skeleton className="mt-2 h-32 w-full rounded-2xl" />
+        <KvSkeleton className="mt-2 h-32 w-full rounded-2xl" />
         <div className="flex justify-end pt-2">
-          <Skeleton className="h-10 w-40 rounded-xl" />
+          <KvSkeleton className="h-10 w-40 rounded-xl" />
         </div>
       </div>
     </div>

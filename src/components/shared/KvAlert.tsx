@@ -10,7 +10,7 @@ import {
 import { useState, type ReactNode } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import type { KvTypographyTone } from '@/components/shared/KvTypography';
@@ -49,11 +49,14 @@ const DEFAULT_ICONS: Record<KvAlertVariant, ReactNode> = {
   error: <CircleX aria-hidden="true" />,
 };
 
-const DISMISS_BUTTON_STYLES: Record<KvAlertVariant, string> = {
-  success: 'text-emerald-600 hover:bg-emerald-100 hover:text-emerald-800',
-  info: 'text-blue-600 hover:bg-blue-100 hover:text-blue-800',
-  warning: 'text-amber-600 hover:bg-amber-100 hover:text-amber-800',
-  error: 'text-rose-600 hover:bg-rose-100 hover:text-rose-800',
+const DISMISS_BUTTON_COLOR: Record<
+  KvAlertVariant,
+  'success' | 'cta' | 'warning' | 'error'
+> = {
+  success: 'success',
+  info: 'cta',
+  warning: 'warning',
+  error: 'error',
 };
 
 /**
@@ -107,19 +110,15 @@ export function KvAlert({
         </div>
       ) : null}
       {dismissible ? (
-        <Button
+        <KvButton
           type="button"
-          variant="ghost"
-          size="icon-xs"
+          color={DISMISS_BUTTON_COLOR[variant]}
+          appearance="text"
           aria-label="بستن پیام"
-          className={cn(
-            'absolute end-3 top-3',
-            DISMISS_BUTTON_STYLES[variant]
-          )}
+          className="absolute end-3 top-3"
           onClick={handleDismiss}
-        >
-          <X className="size-4" />
-        </Button>
+          icon={<X className="size-4" />}
+        />
       ) : null}
     </Alert>
   );

@@ -6,7 +6,7 @@ import type {
   FieldValues,
 } from 'react-hook-form';
 
-import { FormField } from '@/components/ui/form';
+import { KvFormField } from '@/components/shared/KvForm';
 
 import {
   KvTextField,
@@ -37,7 +37,7 @@ export function KvFormTextField<
   ...fieldProps
 }: KvFormTextFieldProps<TFieldValues, TName>) {
   return (
-    <FormField
+    <KvFormField
       control={control}
       name={name}
       render={({ field, fieldState }) => (

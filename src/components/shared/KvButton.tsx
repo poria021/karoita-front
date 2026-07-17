@@ -20,7 +20,7 @@ export type KvButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
 const kvButtonVariants = cva(
   [
-    'inline-flex shrink-0 items-center justify-center gap-kv-inline font-sans font-black',
+    'inline-flex shrink-0 items-center justify-center gap-2 font-sans font-black',
     'whitespace-nowrap transition-all outline-none',
     'focus-visible:ring-[3px] focus-visible:ring-brand-500/20',
     'disabled:pointer-events-none disabled:opacity-50',
@@ -39,12 +39,12 @@ const kvButtonVariants = cva(
       appearance: {
         solid: 'rounded-xl shadow-sm',
         ghost: 'rounded-xl border',
-        text: 'h-auto rounded-md bg-transparent p-0 shadow-none',
+        text: 'h-auto rounded-md bg-transparent p-0 shadow-none hover:bg-transparent',
       },
       size: {
-        sm: 'px-3 py-1.5 text-[11px]',
-        md: 'px-4 py-2.5 text-xs',
-        lg: 'px-6 py-3 text-xs',
+        sm: 'text-[11px]',
+        md: 'text-xs',
+        lg: 'text-xs',
         icon: 'size-8 p-0',
       },
       fullWidth: {
@@ -53,7 +53,14 @@ const kvButtonVariants = cva(
       },
     },
     compoundVariants: [
-      /* —— solid —— */
+      { appearance: 'solid', size: 'sm', class: 'px-3 py-1.5' },
+      { appearance: 'solid', size: 'md', class: 'px-4 py-2.5' },
+      { appearance: 'solid', size: 'lg', class: 'px-6 py-3' },
+      { appearance: 'ghost', size: 'sm', class: 'px-3 py-1.5' },
+      { appearance: 'ghost', size: 'md', class: 'px-4 py-2.5' },
+      { appearance: 'ghost', size: 'lg', class: 'px-6 py-3' },
+      { appearance: 'text', size: 'icon', class: 'size-6' },
+
       {
         appearance: 'solid',
         color: 'cta',
@@ -86,12 +93,11 @@ const kvButtonVariants = cva(
         class:
           'border border-slate-200 bg-slate-100 text-slate-700 shadow-none hover:bg-slate-200',
       },
-      /* —— ghost —— */
+
       {
         appearance: 'ghost',
         color: 'cta',
-        class:
-          'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100',
+        class: 'border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100',
       },
       {
         appearance: 'ghost',
@@ -122,7 +128,7 @@ const kvButtonVariants = cva(
         class:
           'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-800',
       },
-      /* —— text —— */
+
       {
         appearance: 'text',
         color: 'cta',
@@ -146,18 +152,12 @@ const kvButtonVariants = cva(
       {
         appearance: 'text',
         color: 'error',
-        class: 'text-rose-600 hover:bg-transparent hover:text-rose-700',
+        class: 'text-rose-600 hover:text-rose-700',
       },
       {
         appearance: 'text',
         color: 'neutral',
-        class: 'text-slate-500 hover:bg-transparent hover:text-slate-800',
-      },
-      /* text + icon size */
-      {
-        appearance: 'text',
-        size: 'icon',
-        class: 'size-6',
+        class: 'text-slate-500 hover:text-slate-800',
       },
     ],
     defaultVariants: {
@@ -169,18 +169,13 @@ const kvButtonVariants = cva(
   }
 );
 
-export type KvButtonProps = Omit<
-  React.ComponentProps<'button'>,
-  'color'
-> &
+export type KvButtonProps = Omit<React.ComponentProps<'button'>, 'color'> &
   VariantProps<typeof kvButtonVariants> & {
     color?: KvButtonColor;
     appearance?: KvButtonAppearance;
     size?: KvButtonSize;
     fullWidth?: boolean;
-    /** Optional leading/trailing icon (Lucide node). */
     icon?: React.ReactNode;
-    /** DOM order: `start` before label, `end` after (RTL-aware with flex). */
     iconPosition?: KvButtonIconPosition;
     asChild?: boolean;
   };
@@ -202,15 +197,18 @@ export function KvButton({
   ...props
 }: KvButtonProps) {
   const Comp = asChild ? Slot.Root : 'button';
-  const isIconOnly = Boolean(icon) && (children === undefined || children === null || children === false);
+  const hasChildren =
+    children !== undefined && children !== null && children !== false;
+  const isIconOnly = Boolean(icon) && !hasChildren;
+  const resolvedSize = isIconOnly ? 'icon' : size;
 
   const content = asChild ? (
     children
   ) : (
     <>
-      {icon && iconPosition === 'start' ? icon : null}
-      {children}
-      {icon && iconPosition === 'end' ? icon : null}
+      {icon && (iconPosition === 'start' || isIconOnly) ? icon : null}
+      {hasChildren ? children : null}
+      {icon && iconPosition === 'end' && !isIconOnly ? icon : null}
     </>
   );
 
@@ -223,10 +221,9 @@ export function KvButton({
         kvButtonVariants({
           color,
           appearance,
-          size: isIconOnly && appearance === 'text' ? 'icon' : size,
+          size: resolvedSize,
           fullWidth,
         }),
-        isIconOnly && appearance !== 'text' && size !== 'icon' && 'px-2.5',
         className
       )}
       {...props}

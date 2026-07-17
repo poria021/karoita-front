@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { KvButton } from '@/components/shared/KvButton';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
@@ -44,16 +44,22 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
       />
 
       <div className="flex items-center gap-2">
-        <Button
+        <KvButton
           type="button"
-          variant="outline"
+          color="neutral"
+          appearance="ghost"
+          size="lg"
+          className="flex-1"
           onClick={cancelForgotMode}
-          className="h-auto flex-1 rounded-xl border-slate-200 bg-slate-50 py-3 text-xs font-black text-slate-500 hover:bg-slate-100 hover:text-slate-800"
         >
           انصراف
-        </Button>
+        </KvButton>
         <div className="flex-1">
-          <AuthSubmitButton isReady={formState.isValid} isLoading={isVerifyingForgotOtp} loadingLabel="در حال تایید...">
+          <AuthSubmitButton
+            isReady={formState.isValid}
+            isLoading={isVerifyingForgotOtp}
+            loadingLabel="در حال تایید..."
+          >
             تایید و ادامه
           </AuthSubmitButton>
         </div>

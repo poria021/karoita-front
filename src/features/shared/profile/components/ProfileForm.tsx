@@ -3,17 +3,16 @@
 import { IdCard, Lock } from 'lucide-react';
 import { Controller, type FieldPath } from 'react-hook-form';
 
+import { KvButton } from '@/components/shared/KvButton';
+import {
+  KvSelect,
+  KvSelectContent,
+  KvSelectItem,
+  KvSelectTrigger,
+  KvSelectValue,
+} from '@/components/shared/KvSelect';
 import { KvTextField } from '@/components/shared/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
 
@@ -137,22 +136,22 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
               control={profileForm.control}
               name="province"
               render={({ field }) => (
-                <Select
+                <KvSelect
                   disabled={isLocked}
                   value={field.value || undefined}
                   onValueChange={field.onChange}
                 >
-                  <SelectTrigger className="h-auto w-full rounded-xl border-slate-300 px-3.5 py-2.5 text-xs font-bold text-slate-800">
-                    <SelectValue placeholder="انتخاب استان" />
-                  </SelectTrigger>
-                  <SelectContent>
+                  <KvSelectTrigger>
+                    <KvSelectValue placeholder="انتخاب استان" />
+                  </KvSelectTrigger>
+                  <KvSelectContent>
                     {PROVINCES.map((province) => (
-                      <SelectItem key={province} value={province}>
+                      <KvSelectItem key={province} value={province}>
                         {province}
-                      </SelectItem>
+                      </KvSelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </KvSelectContent>
+                </KvSelect>
               )}
             />
             {errors.province?.message && (
@@ -204,18 +203,14 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
         )}
 
         <div className="flex justify-end border-t border-slate-100 pt-kv-group">
-          <Button
+          <KvButton
             type="submit"
+            color="cta"
+            appearance="solid"
             disabled={isLocked || !isValid}
-            className={cn(
-              'h-auto rounded-xl px-6 py-2.5 text-xs font-black transition-all',
-              isValid && !isApproved
-                ? 'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md hover:opacity-95'
-                : 'cursor-not-allowed border border-slate-200 bg-slate-100 text-slate-400'
-            )}
           >
             {isSaving ? 'در حال ارسال...' : 'ثبت و ارسال نهایی مشخصات'}
-          </Button>
+          </KvButton>
         </div>
       </form>
     </div>

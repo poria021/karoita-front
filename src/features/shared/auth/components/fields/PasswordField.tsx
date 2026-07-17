@@ -5,7 +5,7 @@ import type { UseFormRegisterReturn } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react';
 
 import { KvTextField } from '@/components/shared/KvTextField';
-import { Button } from '@/components/ui/button';
+import { KvButton } from '@/components/shared/KvButton';
 
 interface PasswordFieldProps {
   id: string;
@@ -40,21 +40,22 @@ export function PasswordField({
         ref={registration.ref}
         error={errorMessage}
         endAddon={
-          <Button
+          <KvButton
             type="button"
-            variant="ghost"
-            size="icon-xs"
+            color="neutral"
+            appearance="text"
+            icon={
+              isVisible ? (
+                <EyeOff className="size-3.5" aria-hidden="true" />
+              ) : (
+                <Eye className="size-3.5" aria-hidden="true" />
+              )
+            }
             onClick={() => setIsVisible((current) => !current)}
             aria-label={isVisible ? 'پنهان کردن رمز عبور' : 'نمایش رمز عبور'}
             aria-pressed={isVisible}
-            className="me-2 text-slate-400 hover:bg-transparent hover:text-slate-600"
-          >
-            {isVisible ? (
-              <EyeOff className="size-3.5" aria-hidden="true" />
-            ) : (
-              <Eye className="size-3.5" aria-hidden="true" />
-            )}
-          </Button>
+            className="me-2"
+          />
         }
       />
     </div>

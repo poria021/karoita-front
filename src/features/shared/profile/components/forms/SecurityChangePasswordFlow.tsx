@@ -3,9 +3,9 @@
 import { Loader2, MessageSquareLock } from 'lucide-react';
 import type { UseFormReturn } from 'react-hook-form';
 
+import { KvButton } from '@/components/shared/KvButton';
+import { KvForm } from '@/components/shared/KvForm';
 import { KvTextField } from '@/components/shared/KvTextField';
-import { Button } from '@/components/ui/button';
-import { Form } from '@/components/ui/form';
 import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -46,26 +46,30 @@ export function SecurityChangePasswordFlow({
         <p className="text-[11px] font-bold text-slate-600">
           برای تغییر رمز، تقاضای ارسال پیامک حاوی رمز فعال‌سازی کنید.
         </p>
-        <Button
+        <KvButton
           type="button"
-          className="w-full rounded-xl text-xs font-black shadow-md"
+          color="cta"
+          appearance="solid"
+          fullWidth
           disabled={isDisabled}
           onClick={onRequestOtp}
+          icon={
+            isBusy ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <MessageSquareLock className="size-4" aria-hidden="true" />
+            )
+          }
         >
-          {isBusy ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <MessageSquareLock className="size-4" />
-          )}
           درخواست تغییر رمز عبور (ارسال پیامک تایید)
-        </Button>
+        </KvButton>
       </div>
     );
   }
 
   if (passwordStep === 'otp_pending') {
     return (
-      <Form {...otpForm}>
+      <KvForm {...otpForm}>
         <form onSubmit={onVerifyOtp} className="space-y-kv-group" noValidate>
           <div className="flex items-center justify-between rounded-lg border border-brand-200 bg-brand-50 p-3 text-[11px] font-bold text-brand-950">
             <span>کد تایید ارسال شد.</span>
@@ -87,31 +91,38 @@ export function SecurityChangePasswordFlow({
             {...otpForm.register('otp')}
           />
           <div className="flex gap-2">
-            <Button
+            <KvButton
               type="button"
-              variant="secondary"
-              className="flex-1 rounded-xl text-xs font-bold"
+              color="neutral"
+              appearance="ghost"
+              className="flex-1"
               disabled={isDisabled}
               onClick={onCancel}
             >
               انصراف
-            </Button>
-            <Button
+            </KvButton>
+            <KvButton
               type="submit"
-              className="flex-1 rounded-xl text-xs font-black"
+              color="cta"
+              appearance="solid"
+              className="flex-1"
               disabled={isDisabled || !otpForm.formState.isValid}
+              icon={
+                isBusy ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : undefined
+              }
             >
-              {isBusy && <Loader2 className="size-4 animate-spin" />}
               تایید کد و ادامه
-            </Button>
+            </KvButton>
           </div>
         </form>
-      </Form>
+      </KvForm>
     );
   }
 
   return (
-    <Form {...passwordForm}>
+    <KvForm {...passwordForm}>
       <form onSubmit={onSaveNewPassword} className="space-y-kv-group" noValidate>
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-900">
           احراز هویت موفقیت‌آمیز بود. رمز جدید را وارد کنید:
@@ -122,25 +133,32 @@ export function SecurityChangePasswordFlow({
           confirmLabel="تکرار رمز عبور جدید"
         />
         <div className="flex gap-2">
-          <Button
+          <KvButton
             type="button"
-            variant="secondary"
-            className="flex-1 rounded-xl text-xs font-bold"
+            color="neutral"
+            appearance="ghost"
+            className="flex-1"
             disabled={isDisabled}
             onClick={onCancel}
           >
             انصراف
-          </Button>
-          <Button
+          </KvButton>
+          <KvButton
             type="submit"
-            className="flex-1 rounded-xl text-xs font-bold"
+            color="cta"
+            appearance="solid"
+            className="flex-1"
             disabled={isDisabled || !passwordForm.formState.isValid}
+            icon={
+              isBusy ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : undefined
+            }
           >
-            {isBusy && <Loader2 className="size-4 animate-spin" />}
             ثبت نهایی رمز جدید
-          </Button>
+          </KvButton>
         </div>
       </form>
-    </Form>
+    </KvForm>
   );
 }

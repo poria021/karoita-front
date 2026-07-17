@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { Lock } from 'lucide-react';
 import * as React from 'react';
 
-import { Input } from '@/components/ui/input';
+import { KvInput } from '@/components/shared/KvInput';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 
@@ -191,7 +191,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
             </div>
           ) : null}
 
-          <Input
+          <KvInput
             ref={ref}
             id={id}
             name={name}

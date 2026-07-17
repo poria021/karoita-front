@@ -2,7 +2,7 @@
 
 import { KeyRound } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
+import { KvButton } from '@/components/shared/KvButton';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
@@ -14,7 +14,8 @@ interface LoginOtpRequestStepProps {
 
 /** Step 1 of OTP login: collect the mobile number and dispatch the SMS code. */
 export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
-  const { otpMobileForm, requestOtp, isRequestingOtp, switchToPasswordMode } = login;
+  const { otpMobileForm, requestOtp, isRequestingOtp, switchToPasswordMode } =
+    login;
   const { register, formState } = otpMobileForm;
 
   return (
@@ -26,19 +27,25 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
         disabled={isRequestingOtp}
       />
 
-      <AuthSubmitButton isReady={formState.isValid} isLoading={isRequestingOtp} loadingLabel="در حال ارسال...">
+      <AuthSubmitButton
+        isReady={formState.isValid}
+        isLoading={isRequestingOtp}
+        loadingLabel="در حال ارسال..."
+      >
         ارسال کد تایید
       </AuthSubmitButton>
 
-      <Button
+      <KvButton
         type="button"
-        variant="outline"
+        color="neutral"
+        appearance="ghost"
+        size="sm"
+        fullWidth
+        icon={<KeyRound className="size-3.5" aria-hidden="true" />}
         onClick={switchToPasswordMode}
-        className="h-auto w-full gap-1.5 rounded-xl border-slate-200 bg-slate-50 py-2.5 text-[11px] font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
       >
-        <KeyRound className="size-3.5" aria-hidden="true" />
-        <span>ورود با رمز عبور</span>
-      </Button>
+        ورود با رمز عبور
+      </KvButton>
     </form>
   );
 }

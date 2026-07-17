@@ -2,7 +2,7 @@
 
 import { LogIn, Smartphone } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
+import { KvButton } from '@/components/shared/KvButton';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
@@ -15,7 +15,13 @@ interface LoginPasswordStepProps {
 
 /** Rendered while `login.mode === 'password'`: mobile + password credential form. */
 export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
-  const { passwordForm, submitPassword, isSubmittingPassword, switchToOtpMode, switchToForgotMode } = login;
+  const {
+    passwordForm,
+    submitPassword,
+    isSubmittingPassword,
+    switchToOtpMode,
+    switchToForgotMode,
+  } = login;
   const { register, formState } = passwordForm;
 
   return (
@@ -35,14 +41,15 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
       />
 
       <div className="flex items-center justify-between py-1">
-        <Button
+        <KvButton
           type="button"
-          variant="link"
+          color="neutral"
+          appearance="text"
+          size="sm"
           onClick={switchToForgotMode}
-          className="h-auto p-0 text-[11px] font-bold text-slate-500 hover:text-brand-500"
         >
           رمز خود را فراموش کردم
-        </Button>
+        </KvButton>
 
         <label
           htmlFor="login-remember"
@@ -67,15 +74,17 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
         ورود به سامانه
       </AuthSubmitButton>
 
-      <Button
+      <KvButton
         type="button"
-        variant="outline"
+        color="neutral"
+        appearance="ghost"
+        size="sm"
+        fullWidth
+        icon={<Smartphone className="size-3.5" aria-hidden="true" />}
         onClick={switchToOtpMode}
-        className="h-auto w-full gap-1.5 rounded-xl border-slate-200 bg-slate-50 py-2.5 text-[11px] font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
       >
-        <Smartphone className="size-3.5" aria-hidden="true" />
-        <span>ورود با رمز یکبار مصرف (OTP)</span>
-      </Button>
+        ورود با رمز یکبار مصرف (OTP)
+      </KvButton>
     </form>
   );
 }

@@ -5,10 +5,10 @@ import { ArrowLeft, CheckCircle2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { KvButton } from '@/components/shared/KvButton';
+import { KvCard, KvCardContent } from '@/components/shared/KvCard';
+import { KvForm } from '@/components/shared/KvForm';
 import { KvTextField } from '@/components/shared/KvTextField';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Form } from '@/components/ui/form';
 import type { User } from '@/types/auth';
 import { compressImageToBase64 } from '@/utils/compressor';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
@@ -74,12 +74,9 @@ export function IdentityForm({
   const isDisabled = disabled || isBusy;
 
   return (
-    <Card
-      dir="rtl"
-      className="overflow-visible rounded-3xl border-slate-200 bg-white font-sans shadow-sm"
-    >
-      <CardContent className="pt-6">
-        <Form {...form}>
+    <KvCard dir="rtl">
+      <KvCardContent className="pt-6">
+        <KvForm {...form}>
           <form onSubmit={submit} noValidate className="space-y-kv-section">
             <section className="space-y-kv-group">
               <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
@@ -145,28 +142,27 @@ export function IdentityForm({
             )}
 
             <div className="flex justify-end border-t border-slate-100 pt-kv-stack">
-              <Button
+              <KvButton
                 type="submit"
+                color="cta"
+                appearance="solid"
                 size="lg"
                 disabled={isDisabled || !form.formState.isValid}
-                className="rounded-xl pe-6 ps-6 font-black"
+                icon={
+                  isBusy ? (
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" />
+                  )
+                }
+                iconPosition={isBusy ? 'start' : 'end'}
               >
-                {isBusy ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    در حال ذخیره...
-                  </>
-                ) : (
-                  <>
-                    ثبت و ارسال اطلاعات
-                    <ArrowLeft className="size-4 rtl:rotate-180" />
-                  </>
-                )}
-              </Button>
+                {isBusy ? 'در حال ذخیره...' : 'ثبت و ارسال اطلاعات'}
+              </KvButton>
             </div>
           </form>
-        </Form>
-      </CardContent>
-    </Card>
+        </KvForm>
+      </KvCardContent>
+    </KvCard>
   );
 }

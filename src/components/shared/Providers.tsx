@@ -1,8 +1,9 @@
 'use client';
 
 import { DirectionProvider } from '@radix-ui/react-direction';
-import { TooltipProvider } from '@/components/ui/tooltip'; // این خط را اضافه کنید
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+
+import { KvTooltipProvider } from '@/components/shared/KvTooltipProvider';
 
 /**
  * Root client-side provider tree for the app.
@@ -10,9 +11,7 @@ import { ReactNode } from 'react';
 export default function Providers({ children }: { children: ReactNode }) {
   return (
     <DirectionProvider dir="rtl">
-      <TooltipProvider> {/* و این خط را */}
-        {children}
-      </TooltipProvider>
+      <KvTooltipProvider>{children}</KvTooltipProvider>
     </DirectionProvider>
   );
 }

@@ -5,9 +5,9 @@ import { KeyRound, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Form } from '@/components/ui/form';
+import { KvButton } from '@/components/shared/KvButton';
+import { KvCard, KvCardContent } from '@/components/shared/KvCard';
+import { KvForm } from '@/components/shared/KvForm';
 import { AuthService } from '@/services/auth.service';
 import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -171,13 +171,10 @@ export function SecurityForm({
   };
 
   return (
-    <Card
-      dir="rtl"
-      className="mx-auto max-w-xl overflow-visible rounded-3xl border-slate-200 bg-white font-sans shadow-sm"
-    >
-      <CardContent className="space-y-kv-group pt-6">
+    <KvCard dir="rtl" className="mx-auto max-w-xl">
+      <KvCardContent className="space-y-kv-group pt-6">
         {!hasExistingPassword ? (
-          <Form {...passwordForm}>
+          <KvForm {...passwordForm}>
             <form
               onSubmit={saveFirstTimePassword}
               className="space-y-kv-group"
@@ -192,21 +189,24 @@ export function SecurityForm({
                 disabled={isDisabled}
               />
               <div className="flex justify-end border-t border-slate-200 pt-kv-group">
-                <Button
+                <KvButton
                   type="submit"
+                  color="cta"
+                  appearance="solid"
                   disabled={isDisabled || !passwordForm.formState.isValid}
-                  className="rounded-xl text-xs font-black"
+                  icon={
+                    isBusy ? (
+                      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <KeyRound className="size-4" aria-hidden="true" />
+                    )
+                  }
                 >
-                  {isBusy ? (
-                    <Loader2 className="size-4 animate-spin" />
-                  ) : (
-                    <KeyRound className="size-4" />
-                  )}
                   تأیید و ثبت رمز عبور اولیه
-                </Button>
+                </KvButton>
               </div>
             </form>
-          </Form>
+          </KvForm>
         ) : (
           <SecurityChangePasswordFlow
             passwordStep={passwordStep}
@@ -235,7 +235,7 @@ export function SecurityForm({
             {feedback.message}
           </p>
         )}
-      </CardContent>
-    </Card>
+      </KvCardContent>
+    </KvCard>
   );
 }

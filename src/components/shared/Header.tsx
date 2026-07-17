@@ -14,9 +14,13 @@ import { getTodayJalaliFormatted } from '@/utils/formatJalaliDate';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { cn } from '@/lib/utils';
 
-import { Button } from '@/components/ui/button';
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { KvButton } from '@/components/shared/KvButton';
+import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
+import {
+  KvDropdownMenu,
+  KvDropdownMenuContent,
+  KvDropdownMenuTrigger,
+} from '@/components/shared/KvDropdownMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
 
 /**
@@ -83,8 +87,8 @@ export function Header() {
 
           <span className="hidden h-4 w-px bg-slate-200/80 md:inline" aria-hidden="true" />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <KvDropdownMenu>
+            <KvDropdownMenuTrigger asChild>
               <button
                 type="button"
                 aria-label="اعلان‌ها"
@@ -95,9 +99,9 @@ export function Header() {
                   <span className="absolute top-2 start-2 size-2.5 rounded-full bg-rose-500 ring-2 ring-white" aria-hidden="true" />
                 )}
               </button>
-            </DropdownMenuTrigger>
+            </KvDropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-80 rounded-2xl border border-slate-300/80 p-0 shadow-xl">
+            <KvDropdownMenuContent align="end" className="w-80 rounded-2xl border border-slate-300/80 p-0 shadow-xl">
               <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
                 <KvTypography variant="subtitle" as="span">
                   اعلان‌های سیستم
@@ -139,24 +143,25 @@ export function Header() {
                   ))
                 )}
               </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </KvDropdownMenuContent>
+          </KvDropdownMenu>
 
           <span className="h-4 w-px bg-slate-200/80" aria-hidden="true" />
 
-          <Button
+          <KvButton
             type="button"
-            variant="ghost"
+            color="error"
+            appearance="text"
+            icon={<LogOut className="size-4" aria-hidden="true" />}
+            iconPosition="end"
             onClick={() => setIsLogoutDialogOpen(true)}
-            className="h-auto gap-1.5 rounded-lg px-2.5 py-1 text-xs font-bold text-rose-600 hover:bg-transparent hover:text-rose-700"
           >
             <span className="hidden sm:inline">خروج</span>
-            <LogOut className="size-4" aria-hidden="true" />
-          </Button>
+          </KvButton>
         </div>
       </div>
 
-      <ConfirmationDialog
+      <KvConfirmationDialog
         isOpen={isLogoutDialogOpen}
         onClose={() => setIsLogoutDialogOpen(false)}
         onConfirm={handleConfirmLogout}

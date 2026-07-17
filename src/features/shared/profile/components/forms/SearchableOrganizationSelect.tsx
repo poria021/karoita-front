@@ -3,8 +3,8 @@
 import { Check, ChevronDown, Search } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { KvButton } from '@/components/shared/KvButton';
 import { KvTextField } from '@/components/shared/KvTextField';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface SearchableOrganizationSelectProps {
@@ -82,25 +82,29 @@ export function SearchableOrganizationSelect({
         <div className="absolute start-0 z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
           {filteredOptions.length > 0 ? (
             filteredOptions.map((option) => (
-              <Button
+              <KvButton
                 key={option}
                 type="button"
-                variant="ghost"
-                className="h-auto w-full justify-start rounded-lg py-2 pe-3 ps-3 text-start text-xs"
+                color="neutral"
+                appearance="ghost"
+                fullWidth
+                icon={
+                  <Check
+                    className={cn(
+                      'size-4 text-emerald-600',
+                      value === option ? 'opacity-100' : 'opacity-0'
+                    )}
+                    aria-hidden="true"
+                  />
+                }
                 onClick={() => {
                   setQuery(option);
                   onChange(option);
                   setOpen(false);
                 }}
               >
-                <Check
-                  className={cn(
-                    'size-4 text-emerald-600',
-                    value === option ? 'opacity-100' : 'opacity-0'
-                  )}
-                />
                 {option}
-              </Button>
+              </KvButton>
             ))
           ) : (
             <p className="py-4 text-center text-xs text-slate-500">

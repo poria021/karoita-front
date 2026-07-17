@@ -2,12 +2,12 @@
 
 import { useFormContext, useWatch } from 'react-hook-form';
 
-import { KvTextField } from '@/components/shared/KvTextField';
 import {
-  FormField,
-  FormItem,
-  FormLabel,
-} from '@/components/ui/form';
+  KvFormField,
+  KvFormItem,
+  KvFormLabel,
+} from '@/components/shared/KvForm';
+import { KvTextField } from '@/components/shared/KvTextField';
 import type { UserRole } from '@/types/auth';
 
 import type { ProfileSchema } from '../../schemas/profile.schema';
@@ -46,13 +46,13 @@ export function DynamicRoleFields({
         const optional = isOptionalOrganizationField(role, name);
 
         return (
-          <FormField
+          <KvFormField
             key={name}
             control={form.control}
             name={name}
             render={({ field, fieldState }) => (
-              <FormItem>
-                <FormLabel className="font-sans text-xs font-bold text-slate-700">
+              <KvFormItem>
+                <KvFormLabel className="font-sans text-xs font-bold text-slate-700">
                   {ORGANIZATION_LABELS[name]}
                   {optional ? (
                     <span className="ms-1 font-normal text-slate-400">
@@ -61,7 +61,7 @@ export function DynamicRoleFields({
                   ) : (
                     <span className="ms-1 text-rose-500">*</span>
                   )}
-                </FormLabel>
+                </KvFormLabel>
                 <SearchableOrganizationSelect
                   value={typeof field.value === 'string' ? field.value : ''}
                   options={getOrganizationOptions(name, province, district)}
@@ -78,7 +78,7 @@ export function DynamicRoleFields({
                     }
                   }}
                 />
-              </FormItem>
+              </KvFormItem>
             )}
           />
         );

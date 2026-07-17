@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { KvButton } from '@/components/shared/KvButton';
 
 interface AuthSubmitButtonProps {
   isReady: boolean;
@@ -13,33 +12,28 @@ interface AuthSubmitButtonProps {
 }
 
 /**
- * Full-width CTA button matching `.btn-kv` / `.btn-kv-cta` / `.btn-kv-primary`
- * from the mockup: a solid brand-gradient once the form step is valid, a
- * muted brand fill otherwise.
+ * Full-width CTA button matching login primary actions.
+ * Built on `KvButton` (`color="cta"`).
  */
-export function AuthSubmitButton({ isReady, isLoading, loadingLabel, icon, children }: AuthSubmitButtonProps) {
+export function AuthSubmitButton({
+  isReady,
+  isLoading,
+  loadingLabel,
+  icon,
+  children,
+}: AuthSubmitButtonProps) {
   return (
-    <Button
+    <KvButton
       type="submit"
+      color="cta"
+      appearance="solid"
+      size="lg"
+      fullWidth
       disabled={!isReady || isLoading}
-      className={cn(
-        'h-auto w-full gap-2 rounded-xl py-3 text-xs font-black transition-all duration-200',
-        isReady
-          ? 'bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-md shadow-brand-500/20 hover:opacity-95'
-          : 'bg-brand-500 text-white'
-      )}
+      icon={isLoading ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : icon}
+      iconPosition="start"
     >
-      {isLoading ? (
-        <>
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          <span>{loadingLabel}</span>
-        </>
-      ) : (
-        <>
-          {icon}
-          <span>{children}</span>
-        </>
-      )}
-    </Button>
+      {isLoading ? loadingLabel : children}
+    </KvButton>
   );
 }
