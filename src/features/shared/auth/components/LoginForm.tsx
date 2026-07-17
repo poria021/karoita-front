@@ -1,7 +1,6 @@
 'use client';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
-import { AuthFormMessage } from './fields/AuthFormMessage';
 import { ForgotRequestStep } from './ForgotRequestStep';
 import { ForgotResetStep } from './ForgotResetStep';
 import { ForgotVerifyStep } from './ForgotVerifyStep';
@@ -20,12 +19,12 @@ interface LoginFormProps {
  * Owns no state of its own — `login` is produced once by `useLoginForm` in
  * `AuthCard.tsx` so the parent can also read the active mode for the dynamic
  * tab label (rule 00, #7: keep this component a thin presentation layer).
+ *
+ * Field errors render under each control — no top-level alert banner.
  */
 export function LoginForm({ login }: LoginFormProps) {
   return (
-    <div className="space-y-4">
-      <AuthFormMessage message={login.formMessage} onDismiss={login.clearFormMessage} />
-
+    <div className="space-y-kv-group">
       {login.mode === 'password' && <LoginPasswordStep login={login} />}
       {login.mode === 'otp' && login.otpStep === 1 && <LoginOtpRequestStep login={login} />}
       {login.mode === 'otp' && login.otpStep === 2 && <LoginOtpVerifyStep login={login} />}
