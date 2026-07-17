@@ -73,7 +73,7 @@ export function PasswordStrengthIndicator({
   if (!password) return null;
 
   return (
-    <div className={cn('mt-kv-field space-y-kv-1', className)}>
+    <div className={cn('mt-kv-field space-y-1', className)}>
       <div className="flex items-center justify-between text-[10px] font-bold">
         <span className="text-slate-500">امنیت رمز عبور:</span>
         <span className={strength.labelClassName}>{strength.label}</span>

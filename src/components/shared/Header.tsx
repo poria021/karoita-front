@@ -65,7 +65,7 @@ export function Header() {
               <KvTypography variant="title" as="h1">
                 پنل کاربری - {strategy.label}
               </KvTypography>
-              <div className="mt-kv-1">
+              <div className="mt-1">
                 <KvTypography variant="overline" tone="muted" as="p">
                   سامانه جامع آموزش نظری و مهارتی کارویتا
                 </KvTypography>
@@ -74,7 +74,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-kv-2 sm:gap-kv-inline">
+        <div className="flex items-center gap-2 sm:gap-kv-inline">
           <div className="hidden flex-col items-end text-start md:flex">
             <KvTypography variant="overline" tone="muted" as="span">
               {getTodayJalaliFormatted()}

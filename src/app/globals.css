@@ -55,24 +55,15 @@
   --color-brand-900: #031b44;
 
   /*
-   * Karvita spacing scale (`kv-*`) — Gestalt proximity & separation.
-   * Numeric steps ≈ 4px grid. Semantic aliases encode intent:
-   * - field: label ↔ control (tight proximity)
+   * Karvita semantic spacing (`kv-*`) — Gestalt proximity & separation.
+   * Intent-only tokens (no parallel numeric scale; use Tailwind gap/p for one-offs):
+   * - field: label ↔ control
    * - inline: icon ↔ text within one unit
-   * - group: related siblings (form fields in a section)
-   * - stack: vertical rhythm inside page chrome
-   * - section: distinct content blocks (larger separation)
-   * - inset / page: container padding (common region)
+   * - group: related siblings (form fields)
+   * - stack: page chrome vertical rhythm
+   * - section: distinct content blocks
+   * - inset / page: container padding
    */
-  --spacing-kv-1: 0.25rem; /* 4px */
-  --spacing-kv-2: 0.5rem; /* 8px */
-  --spacing-kv-3: 0.75rem; /* 12px */
-  --spacing-kv-4: 1rem; /* 16px */
-  --spacing-kv-5: 1.25rem; /* 20px */
-  --spacing-kv-6: 1.5rem; /* 24px */
-  --spacing-kv-8: 2rem; /* 32px */
-  --spacing-kv-10: 2.5rem; /* 40px */
-
   --spacing-kv-field: 0.375rem; /* 6px — label → input */
   --spacing-kv-inline: 0.75rem; /* 12px — icon ↔ copy */
   --spacing-kv-group: 1rem; /* 16px — related fields */

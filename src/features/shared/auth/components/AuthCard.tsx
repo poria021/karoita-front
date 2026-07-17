@@ -38,8 +38,8 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
   const isForgotMode = login.mode === 'forgot';
 
   return (
-    <div className="mt-kv-8 w-full max-w-[450px] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-md">
-      <div className="p-kv-section sm:p-kv-page">
+    <div className="mt-8 w-full max-w-[450px] overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-md">
+      <div className="p-kv-inset sm:p-kv-page">
         <AuthLogo
           subtitle={
             isForgotMode
@@ -74,7 +74,7 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
           </AppTabs>
         )}
 
-        <div className="mt-kv-8 border-t border-slate-100/80 pt-kv-stack text-center">
+        <div className="mt-8 border-t border-slate-100/80 pt-kv-stack text-center">
           <KvTypography variant="overline" tone="muted" align="center">
             کارویتا - سامانه هوشمند کارورزی و کارآموزی
           </KvTypography>

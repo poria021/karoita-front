@@ -42,7 +42,7 @@ export function SecurityChangePasswordFlow({
 }: SecurityChangePasswordFlowProps) {
   if (passwordStep === 'initial') {
     return (
-      <div className="space-y-kv-inline">
+      <div className="space-y-kv-group">
         <p className="text-[11px] font-bold text-slate-600">
           برای تغییر رمز، تقاضای ارسال پیامک حاوی رمز فعال‌سازی کنید.
         </p>
@@ -66,8 +66,8 @@ export function SecurityChangePasswordFlow({
   if (passwordStep === 'otp_pending') {
     return (
       <Form {...otpForm}>
-        <form onSubmit={onVerifyOtp} className="space-y-kv-inline" noValidate>
-          <div className="flex items-center justify-between rounded-lg border border-brand-200 bg-brand-50 p-kv-3 text-[11px] font-bold text-brand-950">
+        <form onSubmit={onVerifyOtp} className="space-y-kv-group" noValidate>
+          <div className="flex items-center justify-between rounded-lg border border-brand-200 bg-brand-50 p-3 text-[11px] font-bold text-brand-950">
             <span>کد تایید ارسال شد.</span>
             <span className="rounded bg-brand-700 px-2 py-0.5 text-[10px] text-white">
               کد تستی شبیه‌ساز: {toPersianDigits(MOCK_OTP_CODE)}
@@ -86,7 +86,7 @@ export function SecurityChangePasswordFlow({
             error={otpForm.formState.errors.otp?.message}
             {...otpForm.register('otp')}
           />
-          <div className="flex gap-kv-2">
+          <div className="flex gap-2">
             <Button
               type="button"
               variant="secondary"
@@ -112,8 +112,8 @@ export function SecurityChangePasswordFlow({
 
   return (
     <Form {...passwordForm}>
-      <form onSubmit={onSaveNewPassword} className="space-y-kv-inline" noValidate>
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-kv-3 text-[11px] font-bold text-emerald-900">
+      <form onSubmit={onSaveNewPassword} className="space-y-kv-group" noValidate>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-[11px] font-bold text-emerald-900">
           احراز هویت موفقیت‌آمیز بود. رمز جدید را وارد کنید:
         </div>
         <SecurityPasswordPairFields
@@ -121,7 +121,7 @@ export function SecurityChangePasswordFlow({
           disabled={isDisabled}
           confirmLabel="تکرار رمز عبور جدید"
         />
-        <div className="flex gap-kv-2">
+        <div className="flex gap-2">
           <Button
             type="button"
             variant="secondary"

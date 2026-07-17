@@ -20,14 +20,14 @@ export type AppTabsModel = 'underline' | 'capsule';
 export type AppTabsSize = 'sm' | 'md' | 'lg';
 
 const appTabsListVariants = cva(
-  'inline-flex h-auto max-w-full items-center overflow-x-auto whitespace-nowrap font-sans text-slate-500',
+  'inline-flex h-auto max-w-full items-center font-sans text-slate-500',
   {
     variants: {
       model: {
         underline:
-          'w-full justify-start gap-kv-1 rounded-none border-b border-slate-200 bg-transparent p-0',
+          'w-full flex-wrap justify-start gap-1 rounded-none border-b border-slate-200 bg-transparent p-0',
         capsule:
-          'w-full justify-stretch gap-kv-1 rounded-lg border border-slate-200 bg-slate-100 p-[3px]',
+          'w-full justify-stretch gap-1 rounded-lg border border-slate-200 bg-slate-100 p-[3px]',
       },
       size: {
         sm: '',
@@ -44,7 +44,7 @@ const appTabsListVariants = cva(
 
 const appTabsTriggerVariants = cva(
   [
-    'inline-flex items-center justify-center gap-kv-2 border-0 bg-transparent font-sans font-bold',
+    'inline-flex items-center justify-center gap-kv-inline border-0 bg-transparent font-sans font-bold',
     'text-slate-500 shadow-none outline-none transition-all',
     'hover:text-slate-900',
     'focus-visible:ring-[3px] focus-visible:ring-brand-500/20',
@@ -203,7 +203,7 @@ function AppTabsContent({
   return (
     <TabsPrimitive.Content
       data-slot="app-tabs-content"
-      className={cn('mt-kv-1 flex-1 outline-none', className)}
+      className={cn('mt-1 flex-1 outline-none', className)}
       {...props}
     />
   );

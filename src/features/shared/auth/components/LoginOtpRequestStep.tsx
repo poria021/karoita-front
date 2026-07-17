@@ -18,7 +18,7 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
   const { register, formState } = otpMobileForm;
 
   return (
-    <form onSubmit={requestOtp} className="space-y-4" noValidate>
+    <form onSubmit={requestOtp} className="space-y-kv-group" noValidate>
       <MobileNumberField
         id="login-otp-mobile"
         registration={register('mobile')}

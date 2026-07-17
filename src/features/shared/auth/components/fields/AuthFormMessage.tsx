@@ -26,7 +26,7 @@ export function AuthFormMessage({ message, onDismiss }: AuthFormMessageProps) {
   const { container, icon, Icon } = MESSAGE_STYLES[message.type];
 
   return (
-    <div className={cn('mb-kv-group flex w-full items-start gap-kv-inline rounded-xl border p-kv-3 text-start transition-all', container)}>
+    <div className={cn('mb-kv-group flex w-full items-start gap-kv-inline rounded-xl border p-3 text-start transition-all', container)}>
       <Icon className={cn('mt-0.5 size-4 shrink-0', icon)} aria-hidden="true" />
       <p className="flex-1 text-xs font-semibold">{message.text}</p>
       <Button

@@ -18,7 +18,7 @@ export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
   const { register, formState } = forgotMobileForm;
 
   return (
-    <form onSubmit={sendForgotOtp} className="space-y-4" noValidate>
+    <form onSubmit={sendForgotOtp} className="space-y-kv-group" noValidate>
       <MobileNumberField
         id="forgot-mobile"
         registration={register('mobile')}

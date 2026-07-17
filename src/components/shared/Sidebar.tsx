@@ -70,7 +70,7 @@ export function Sidebar() {
         </button>
 
         {/* Mobile-only header inside the drawer. */}
-        <div className="flex items-center justify-between gap-kv-inline border-b border-slate-100 p-kv-group lg:hidden">
+        <div className="flex items-center justify-between gap-kv-inline border-b border-slate-100 p-4 lg:hidden">
           <div className="flex min-w-0 items-center gap-kv-inline">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white shadow-sm shadow-brand-500/20">
               <LayoutDashboard className="size-4" aria-hidden="true" />
@@ -79,7 +79,7 @@ export function Sidebar() {
               <KvTypography variant="subtitle" as="h2" truncate>
                 پنل کاربری - {strategy.label}
               </KvTypography>
-              <div className="mt-kv-1">
+              <div className="mt-1">
                 <KvTypography variant="overline" tone="muted" as="p" truncate>
                   سامانه جامع کارویتا
                 </KvTypography>
@@ -96,7 +96,7 @@ export function Sidebar() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-kv-2 p-kv-group lg:p-kv-3 lg:pt-kv-stack lg:pb-kv-8">
+        <nav className="flex-1 space-y-2 p-4 lg:p-3 lg:pt-kv-stack lg:pb-8">
           {strategy.sidebarMenu.map((item) => (
             <SidebarNavLink key={item.path} item={item} isActive={pathname === item.path} isCollapsed={isCollapsed} onNavigate={closeMobileSidebar} />
           ))}

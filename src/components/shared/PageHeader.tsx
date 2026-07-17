@@ -40,7 +40,7 @@ export function PageHeader({
             {title}
           </KvTypography>
           {description ? (
-            <div className="mt-kv-1">
+            <div className="mt-1">
               <KvTypography variant="caption" tone="muted">
                 {description}
               </KvTypography>
@@ -49,7 +49,7 @@ export function PageHeader({
         </div>
       </div>
       {actions ? (
-        <div className="flex shrink-0 items-center gap-kv-2">{actions}</div>
+        <div className="flex shrink-0 items-center gap-2">{actions}</div>
       ) : null}
     </header>
   );

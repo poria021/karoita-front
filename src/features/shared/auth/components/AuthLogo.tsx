@@ -27,7 +27,7 @@ export function AuthLogo({ subtitle }: AuthLogoProps) {
           کارویتا
         </KvTypography>
       </div>
-      <div className="mt-kv-3">
+      <div className="mt-3">
         <KvTypography variant="caption" tone="muted" align="center">
           {subtitle}
         </KvTypography>

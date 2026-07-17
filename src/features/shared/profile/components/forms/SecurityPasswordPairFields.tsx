@@ -24,7 +24,7 @@ export function SecurityPasswordPairFields({
   });
 
   return (
-    <div className="grid grid-cols-1 gap-kv-inline sm:grid-cols-2">
+    <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
       <KvTextField
         label="رمز عبور جدید"
         required

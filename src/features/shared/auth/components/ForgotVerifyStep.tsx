@@ -27,7 +27,7 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
   const { register, formState } = forgotOtpForm;
 
   return (
-    <form onSubmit={verifyForgotOtp} className="space-y-4" noValidate>
+    <form onSubmit={verifyForgotOtp} className="space-y-kv-group" noValidate>
       <OtpCodeField
         id="forgot-otp-code"
         registration={register('otp')}

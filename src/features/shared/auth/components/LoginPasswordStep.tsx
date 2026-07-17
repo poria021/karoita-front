@@ -19,7 +19,7 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
   const { register, formState } = passwordForm;
 
   return (
-    <form onSubmit={submitPassword} className="space-y-4" noValidate>
+    <form onSubmit={submitPassword} className="space-y-kv-group" noValidate>
       <MobileNumberField
         id="login-mobile"
         registration={register('mobile')}

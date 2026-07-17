@@ -78,9 +78,9 @@ export function IdentityForm({
       dir="rtl"
       className="overflow-visible rounded-3xl border-slate-200 bg-white font-sans shadow-sm"
     >
-      <CardContent className="pt-kv-section">
+      <CardContent className="pt-6">
         <Form {...form}>
-          <form onSubmit={submit} noValidate className="space-y-kv-8">
+          <form onSubmit={submit} noValidate className="space-y-kv-section">
             <section className="space-y-kv-group">
               <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
                 <KvTextField
@@ -135,8 +135,8 @@ export function IdentityForm({
                 role="status"
                 className={
                   feedback.type === 'success'
-                    ? 'flex items-center gap-kv-2 rounded-xl border border-emerald-200 bg-emerald-50 p-kv-3 text-xs font-bold text-emerald-700'
-                    : 'rounded-xl border border-rose-200 bg-rose-50 p-kv-3 text-xs font-bold text-rose-700'
+                    ? 'flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-bold text-emerald-700'
+                    : 'rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700'
                 }
               >
                 {feedback.type === 'success' && <CheckCircle2 className="size-4" />}
