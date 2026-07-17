@@ -1,13 +1,13 @@
 'use client';
 
 import { cva, type VariantProps } from 'class-variance-authority';
-import { CircleAlert, Info, Lock } from 'lucide-react';
 import * as React from 'react';
 
+import { KvFieldFrame } from '@/components/shared/KvFieldFrame';
 import { KvInput } from '@/components/shared/KvInput';
-import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 
+/** HTML input types only — domain presets (mobile, password UI) are separate components. */
 export type KvTextFieldType = 'text' | 'email' | 'tel' | 'password' | 'number';
 export type KvTextFieldSize = 'sm' | 'md' | 'lg';
 
@@ -55,7 +55,6 @@ const kvTextFieldInputVariants = cva(
       state: {
         default: '',
         error: '',
-        /** Match placeholder color when locked */
         locked: 'text-slate-400',
       },
       otpStyle: {
@@ -76,27 +75,15 @@ type KvTextFieldState = NonNullable<
 >;
 
 export type KvTextFieldProps = {
-  /** Omit or pass `false` to hide label entirely */
   label?: string | false;
   required?: boolean;
-  /** Shows muted "(اختیاری)" next to label when true */
   optionalHint?: boolean;
   type?: KvTextFieldType;
   size?: KvTextFieldSize;
   placeholder?: string;
-  /** Error message under the field; also drives error border */
   error?: string;
-  /** Helper / hint text (not error) — rendered with an info icon */
   hint?: string;
-  /**
-   * Locked = visually obvious disabled/read-only:
-   * slate-50 bg, placeholder-colored text, lock icon beside the label
-   */
   locked?: boolean;
-  /**
-   * When true (default if `locked`), shows a lock icon next to the label.
-   * Never renders the lock inside the input.
-   */
   showLockIcon?: boolean;
   dir?: 'rtl' | 'ltr' | 'auto';
   id?: string;
@@ -109,20 +96,19 @@ export type KvTextFieldProps = {
   autoComplete?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
   maxLength?: number;
-  /** Optional leading/trailing slot (e.g. +98, eye toggle) */
   startAddon?: React.ReactNode;
   endAddon?: React.ReactNode;
   /** OTP density: centered + wide tracking */
   otpStyle?: boolean;
-  /** Extra content below the control (e.g. password strength) */
   footer?: React.ReactNode;
   /** @deprecated Forbidden — design-system consistency */
   className?: never;
 };
 
 /**
- * Karvita design-system text field.
- * Placeholder + locked value color: slate-400 (#94a3b8).
+ * Single-line field shell (label, size, lock, error/hint, addons).
+ * Domain presets: {@link KvMobileNumberField}, {@link KvPasswordField}.
+ * Multiline: {@link KvTextArea}.
  */
 export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
   function KvTextField(
@@ -157,13 +143,11 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
   ) {
     const generatedId = React.useId();
     const id = idProp ?? generatedId;
-    const showLabel = label !== undefined && label !== false && label !== '';
     const state: KvTextFieldState = locked
       ? 'locked'
       : error
         ? 'error'
         : 'default';
-    const showLabelLock = locked && showLockIcon !== false;
     const describedBy = error
       ? `${id}-error`
       : hint
@@ -171,34 +155,21 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
         : undefined;
 
     return (
-      <div className="w-full font-sans" data-slot="kv-text-field">
-        {showLabel ? (
-          <div className="mb-kv-field flex items-center gap-1.5" dir="rtl">
-            {showLabelLock ? (
-              <Lock
-                className="size-3.5 shrink-0 text-slate-400"
-                aria-hidden="true"
-              />
-            ) : null}
-            <KvTypography variant="label" as="label" htmlFor={id}>
-              {label}
-              {required ? (
-                <span className="ms-1 text-rose-500" aria-hidden="true">
-                  *
-                </span>
-              ) : null}
-              {optionalHint ? (
-                <span className="ms-1 font-normal text-slate-400">
-                  (اختیاری)
-                </span>
-              ) : null}
-            </KvTypography>
-          </div>
-        ) : null}
-
+      <KvFieldFrame
+        id={id}
+        label={label}
+        required={required}
+        optionalHint={optionalHint}
+        locked={locked}
+        showLockIcon={showLockIcon}
+        error={error}
+        hint={hint}
+        footer={footer}
+      >
         <div
           dir={dir}
           className={cn(kvTextFieldWrapperVariants({ size, state }))}
+          data-slot="kv-text-field"
           data-locked={locked || undefined}
         >
           {startAddon ? (
@@ -234,35 +205,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
             </div>
           ) : null}
         </div>
-
-        {error ? (
-          <div
-            className="mt-kv-field flex items-start gap-1.5"
-            id={`${id}-error`}
-            role="alert"
-          >
-            <CircleAlert
-              className="mt-0.5 size-3.5 shrink-0 text-rose-500"
-              aria-hidden="true"
-            />
-            <KvTypography variant="error" tone="danger" as="span">
-              {error}
-            </KvTypography>
-          </div>
-        ) : hint ? (
-          <div className="mt-kv-field flex items-start gap-1.5" id={`${id}-hint`}>
-            <Info
-              className="mt-0.5 size-3.5 shrink-0 text-slate-400"
-              aria-hidden="true"
-            />
-            <KvTypography variant="caption" tone="muted" as="span">
-              {hint}
-            </KvTypography>
-          </div>
-        ) : null}
-
-        {footer}
-      </div>
+      </KvFieldFrame>
     );
   }
 );

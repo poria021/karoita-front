@@ -51,7 +51,7 @@ export const KvMobileNumberField = React.forwardRef<
     error,
     locked = false,
     showLockIcon,
-    size = 'sm',
+    size,
     value,
     defaultValue,
     name,

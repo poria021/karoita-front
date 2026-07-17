@@ -21,7 +21,6 @@ export function OtpCodeField({
         label="کد تایید ۵ رقمی"
         required
         type="tel"
-        size="sm"
         dir="ltr"
         inputMode="numeric"
         maxLength={5}

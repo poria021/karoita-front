@@ -22,6 +22,7 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
         label="رمز عبور جدید"
         registration={register('newPassword')}
         errorMessage={formState.errors.newPassword?.message}
+        autoComplete="new-password"
       />
 
       <PasswordField
@@ -29,10 +30,10 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
         label="تکرار رمز عبور جدید"
         registration={register('confirmPassword')}
         errorMessage={formState.errors.confirmPassword?.message}
+        autoComplete="new-password"
       />
 
       <AuthSubmitButton
-        isReady={formState.isValid}
         isLoading={isSubmittingResetPassword}
         loadingLabel="در حال ثبت..."
         icon={<KeyRound className="size-4" aria-hidden="true" />}

@@ -2,7 +2,7 @@
 
 import { useWatch, type UseFormReturn } from 'react-hook-form';
 
-import { KvTextField } from '@/components/shared/KvTextField';
+import { KvPasswordField } from '@/components/shared/KvPasswordField';
 
 import type { SecurityPasswordSchema } from '../../schemas/security.schema';
 import { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
@@ -25,26 +25,20 @@ export function SecurityPasswordPairFields({
 
   return (
     <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
-      <KvTextField
+      <KvPasswordField
         label="رمز عبور جدید"
         required
-        type="password"
         autoComplete="new-password"
         locked={disabled}
-        placeholder="********"
-        dir="ltr"
         error={form.formState.errors.newPassword?.message}
         footer={<PasswordStrengthIndicator password={watchedPassword} />}
         {...form.register('newPassword')}
       />
-      <KvTextField
+      <KvPasswordField
         label={confirmLabel}
         required
-        type="password"
         autoComplete="new-password"
         locked={disabled}
-        placeholder="********"
-        dir="ltr"
         error={form.formState.errors.confirmPassword?.message}
         {...form.register('confirmPassword')}
       />
