@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvCard } from '@/components/shared/KvCard';
 import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
 import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
+import { getApprovalTabActions } from '../constants';
 import { useOnboardingApprovalsPage } from '../hooks/useOnboardingApprovalsPage';
 import { OnboardingApprovalsDetailPanel } from './OnboardingApprovalsDetailPanel';
 import { OnboardingApprovalsDocPreviewDialog } from './OnboardingApprovalsDocPreviewDialog';
@@ -39,7 +41,7 @@ export function OnboardingApprovalsPage() {
     );
   }
 
-  const canAct = page.tab === 'pending_admin';
+  const { canApprove, canReject } = getApprovalTabActions(page.tab);
 
   return (
     <div className="space-y-kv-section" dir="rtl">
@@ -93,7 +95,7 @@ export function OnboardingApprovalsPage() {
                 provinces={page.provinces}
               />
 
-              <div className="overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface shadow-kv-raised">
+              <KvCard className="overflow-hidden p-0">
                 <OnboardingApprovalsTable
                   users={page.users}
                   selectedId={page.selectedUser?.id ?? null}
@@ -107,13 +109,14 @@ export function OnboardingApprovalsPage() {
                     page.setShowRejectForm(true);
                   }}
                 />
-              </div>
+              </KvCard>
             </section>
 
             <section className="flex w-full flex-col lg:w-7/12">
               <OnboardingApprovalsDetailPanel
                 user={page.selectedUser}
-                canAct={canAct}
+                canApprove={canApprove}
+                canReject={canReject}
                 showRejectForm={page.showRejectForm}
                 rejectReason={page.rejectReason}
                 actionBusy={page.actionBusy}
@@ -148,7 +151,7 @@ export function OnboardingApprovalsPage() {
               actionBusy={page.actionBusy}
               showRejectForm={page.showRejectForm}
               rejectReason={page.rejectReason}
-              onToggle={page.toggleUser}
+              onSelect={page.selectUser}
               onApprove={(user) => void page.approveUser(user)}
               onShowRejectForm={() => page.setShowRejectForm(true)}
               onCancelReject={() => {

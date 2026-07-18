@@ -19,6 +19,8 @@ import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
+import { getApprovalTabActions } from '../constants';
+
 interface OnboardingApprovalsTableProps {
   users: OnboardingApprovalUser[];
   selectedId: string | null;
@@ -40,7 +42,8 @@ export function OnboardingApprovalsTable({
   onApprove,
   onStartReject,
 }: OnboardingApprovalsTableProps) {
-  const showActions = tab === 'pending_admin';
+  const { canApprove, canReject } = getApprovalTabActions(tab);
+  const showActions = canApprove || canReject;
 
   if (isLoading) {
     return (
@@ -117,26 +120,30 @@ export function OnboardingApprovalsTable({
                     onClick={(event) => event.stopPropagation()}
                   >
                     <div className="flex items-center justify-center gap-1.5">
-                      <KvButton
-                        type="button"
-                        color="error"
-                        appearance="ghost"
-                        size="icon-sm"
-                        aria-label="رد صلاحیت"
-                        disabled={actionBusy}
-                        onClick={() => onStartReject(user)}
-                        icon={<FaIcon icon={faIcons.xmark} size="xs" />}
-                      />
-                      <KvButton
-                        type="button"
-                        color="success"
-                        appearance="ghost"
-                        size="icon-sm"
-                        aria-label="تایید صلاحیت"
-                        disabled={actionBusy}
-                        onClick={() => onApprove(user)}
-                        icon={<FaIcon icon={faIcons.check} size="xs" />}
-                      />
+                      {canReject ? (
+                        <KvButton
+                          type="button"
+                          color="error"
+                          appearance="ghost"
+                          size="icon-sm"
+                          aria-label="رد صلاحیت"
+                          disabled={actionBusy}
+                          onClick={() => onStartReject(user)}
+                          icon={<FaIcon icon={faIcons.xmark} size="xs" />}
+                        />
+                      ) : null}
+                      {canApprove ? (
+                        <KvButton
+                          type="button"
+                          color="success"
+                          appearance="ghost"
+                          size="icon-sm"
+                          aria-label="تایید صلاحیت"
+                          disabled={actionBusy}
+                          onClick={() => onApprove(user)}
+                          icon={<FaIcon icon={faIcons.check} size="xs" />}
+                        />
+                      ) : null}
                     </div>
                   </KvTableCell>
                 ) : null}

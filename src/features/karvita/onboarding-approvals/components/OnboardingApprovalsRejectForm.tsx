@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
+import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvSelectField } from '@/components/shared/KvSelectField';
 import { KvSelectItem } from '@/components/shared/KvSelect';
 import { KvTextArea } from '@/components/shared/KvTextArea';
@@ -27,60 +28,62 @@ export function OnboardingApprovalsRejectForm({
   const [preset, setPreset] = useState<string | undefined>(undefined);
 
   return (
-    <div className="space-y-3 rounded-kv-panel border border-kv-danger-border bg-kv-danger-soft p-3 sm:p-4">
-      <KvSelectField
-        id="onboarding-reject-preset"
-        label={false}
-        size="sm"
-        value={preset}
-        placeholder="-- علت نقص مدارک --"
-        onValueChange={(value) => {
-          setPreset(value);
-          const match = DEFAULT_REJECT_REASONS.find(
-            (item) => item.value === value
-          );
-          if (match) onReasonChange(match.text);
-        }}
-      >
-        {DEFAULT_REJECT_REASONS.map((item) => (
-          <KvSelectItem key={item.value} value={item.value}>
-            {item.text}
-          </KvSelectItem>
-        ))}
-      </KvSelectField>
-
-      <KvTextArea
-        id="onboarding-reject-reason"
-        label={false}
-        size="sm"
-        rows={3}
-        value={reason}
-        placeholder="توضیحات تکمیلی..."
-        onChange={(event) => onReasonChange(event.target.value)}
-      />
-
-      <div className="flex justify-end gap-1.5">
-        <KvButton
-          type="button"
-          appearance="secondary"
+    <KvCard className="border-kv-danger-border bg-kv-danger-soft shadow-none">
+      <KvCardContent className="space-y-3 p-3 sm:p-4">
+        <KvSelectField
+          id="onboarding-reject-preset"
+          label={false}
           size="sm"
-          disabled={busy}
-          onClick={onCancel}
+          value={preset}
+          placeholder="-- علت نقص مدارک --"
+          onValueChange={(value) => {
+            setPreset(value);
+            const match = DEFAULT_REJECT_REASONS.find(
+              (item) => item.value === value
+            );
+            if (match) onReasonChange(match.text);
+          }}
         >
-          انصراف
-        </KvButton>
-        <KvButton
-          type="button"
-          color="error"
-          appearance="solid"
+          {DEFAULT_REJECT_REASONS.map((item) => (
+            <KvSelectItem key={item.value} value={item.value}>
+              {item.text}
+            </KvSelectItem>
+          ))}
+        </KvSelectField>
+
+        <KvTextArea
+          id="onboarding-reject-reason"
+          label={false}
           size="sm"
-          loading={busy}
-          disabled={!reason.trim()}
-          onClick={onSubmit}
-        >
-          ثبت رد صلاحیت
-        </KvButton>
-      </div>
-    </div>
+          rows={3}
+          value={reason}
+          placeholder="توضیحات تکمیلی..."
+          onChange={(event) => onReasonChange(event.target.value)}
+        />
+
+        <div className="flex justify-end gap-1.5">
+          <KvButton
+            type="button"
+            appearance="secondary"
+            size="sm"
+            disabled={busy}
+            onClick={onCancel}
+          >
+            انصراف
+          </KvButton>
+          <KvButton
+            type="button"
+            color="error"
+            appearance="solid"
+            size="sm"
+            loading={busy}
+            disabled={!reason.trim()}
+            onClick={onSubmit}
+          >
+            ثبت رد صلاحیت
+          </KvButton>
+        </div>
+      </KvCardContent>
+    </KvCard>
   );
 }

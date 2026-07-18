@@ -11,16 +11,35 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
-export type KvCardProps = React.ComponentProps<typeof Card>;
+export type KvCardTone = 'surface' | 'muted';
+
+export type KvCardProps = React.ComponentProps<typeof Card> & {
+  /**
+   * Surface role for nested admin panels.
+   * `muted` = outer well; `surface` = raised card (default).
+   */
+  tone?: KvCardTone;
+};
+
 export type KvCardContentProps = React.ComponentProps<typeof CardContent>;
 
+const TONE_CLASS: Record<KvCardTone, string> = {
+  surface: 'bg-kv-surface',
+  muted: 'bg-kv-surface-muted',
+};
+
 /** Karvita card shell — surface, card radius, raised elevation. */
-export function KvCard({ className, ...props }: KvCardProps) {
+export function KvCard({
+  className,
+  tone = 'surface',
+  ...props
+}: KvCardProps) {
   return (
     <Card
       data-slot="kv-card"
       className={cn(
-        'overflow-visible gap-0 border-kv-border bg-kv-surface font-sans text-kv-text shadow-kv-raised',
+        'overflow-visible gap-0 border-kv-border font-sans text-kv-text shadow-kv-raised',
+        TONE_CLASS[tone],
         className
       )}
       {...props}

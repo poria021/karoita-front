@@ -8,6 +8,7 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvCard } from '@/components/shared/KvCard';
 import { faIcons } from '@/utils/iconMap';
 
 import { isPdfDocUrl } from '../constants';
@@ -41,7 +42,9 @@ export function OnboardingApprovalsDocPreviewDialog({
 
         {url ? (
           isPdf ? (
-            <div className="flex min-h-64 flex-col items-center justify-center gap-3 rounded-kv-panel border border-kv-border bg-kv-danger-soft/30 p-8 text-kv-danger">
+            <KvCard
+              className="flex min-h-64 flex-col items-center justify-center gap-3 border-kv-border bg-kv-danger-soft/30 p-8 text-kv-danger shadow-none"
+            >
               <FaIcon icon={faIcons.filePdf} size="xl" />
               <p className="text-xs font-bold text-kv-text-secondary">
                 سند PDF — پیش‌نمایش درون‌برنامه‌ای در دسترس نیست.
@@ -54,7 +57,7 @@ export function OnboardingApprovalsDocPreviewDialog({
               >
                 باز کردن در تب جدید
               </a>
-            </div>
+            </KvCard>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element -- data-URI mock docs; not a remote asset pipeline
             <img

@@ -1,16 +1,12 @@
 'use client';
 
-import { FaIcon } from '@/components/shared/FaIcon';
-import { KvButton } from '@/components/shared/KvButton';
 import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
-import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 import {
   GENERAL_APPROVAL_FIELDS,
   ROLE_APPROVAL_FIELDS,
-  isPdfDocUrl,
   type ApprovalFieldDef,
 } from '../constants';
 
@@ -44,59 +40,8 @@ function FieldRow({
   );
 }
 
-export function DocThumbnailButton({
-  user,
-  onPreview,
-  className,
-}: {
-  user: OnboardingApprovalUser;
-  onPreview: (url: string) => void;
-  className?: string;
-}) {
-  if (!user.docUrl) {
-    return (
-      <div
-        className={`flex h-24 w-20 shrink-0 flex-col items-center justify-center rounded-kv-panel border border-dashed border-kv-border bg-kv-surface-muted p-2 text-center text-kv-text-faint ${className ?? ''}`}
-      >
-        <FaIcon icon={faIcons.eyeSlash} size="md" />
-        <span className="mt-1 text-xs font-bold leading-tight">
-          فاقد مدرک پیوست
-        </span>
-      </div>
-    );
-  }
-
-  const isPdf = isPdfDocUrl(user.docUrl);
-
-  return (
-    <KvButton
-      type="button"
-      appearance="secondary"
-      className={`h-24 w-20 shrink-0 overflow-hidden p-1 ${className ?? ''}`}
-      aria-label="پیش‌نمایش مدرک"
-      onClick={() => onPreview(user.docUrl!)}
-    >
-      {isPdf ? (
-        <span className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-kv-control bg-kv-danger-soft text-kv-danger">
-          <FaIcon icon={faIcons.filePdf} size="lg" />
-          <span className="text-xs font-bold">سند PDF</span>
-        </span>
-      ) : (
-        // eslint-disable-next-line @next/next/no-img-element -- data-URI mock docs
-        <img
-          src={user.docUrl}
-          alt=""
-          className="h-full w-full rounded-kv-control object-cover"
-        />
-      )}
-    </KvButton>
-  );
-}
-
 interface OnboardingApprovalsUserFieldsProps {
   user: OnboardingApprovalUser;
-  /** Compact rows for mobile accordion. */
-  dense?: boolean;
 }
 
 export function OnboardingApprovalsUserFields({
