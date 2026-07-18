@@ -22,7 +22,10 @@ export interface RoleStrategyConfig {
   badge: string;
   /** Icon key (see `iconMap.ts`) representing this role in the sidebar footer/header avatar. */
   roleIcon: string;
-  /** Tailwind `max-w-*` logical width constraint applied to the `<main>` content viewport. */
+  /**
+   * Legacy width token — dashboard main content is full-bleed (`max-w-none`).
+   * Kept on the strategy map so role layouts stay centralized (rule 00 #10).
+   */
   layoutWidthClass: string;
   /**
    * When true, sidebar modules stay locked until `user.approved`
@@ -71,7 +74,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'دانشجو',
     badge: 'آموزش علمی نظری',
     roleIcon: 'fa-graduation-cap',
-    layoutWidthClass: 'max-w-5xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -93,7 +96,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'مهارت‌آموز',
     badge: 'آموزش فنی و کارگاهی',
     roleIcon: 'fa-screwdriver-wrench',
-    layoutWidthClass: 'max-w-5xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -115,7 +118,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'استاد راهنما',
     badge: 'ارزیاب علمی دانشگاه',
     roleIcon: 'fa-user-tie',
-    layoutWidthClass: 'max-w-6xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -144,7 +147,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'معلم راهنما',
     badge: 'ناظر و هدایت‌گر مدرسه',
     roleIcon: 'fa-chalkboard-user',
-    layoutWidthClass: 'max-w-6xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -163,7 +166,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'مدیر مدرسه',
     badge: 'مدیریت کل واحد آموزشی',
     roleIcon: 'fa-school',
-    layoutWidthClass: 'max-w-6xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -192,7 +195,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'آموزش پرورش منطقه',
     badge: 'نظارت منطقه‌ای آموزش',
     roleIcon: 'fa-map-location-dot',
-    layoutWidthClass: 'max-w-6xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -211,7 +214,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'دانشکده',
     badge: 'مدیریت پردیس تابعه',
     roleIcon: 'fa-university',
-    layoutWidthClass: 'max-w-6xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -226,7 +229,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'دانشگاه استانی',
     badge: 'امور پردیس‌های استانی',
     roleIcon: 'fa-university',
-    layoutWidthClass: 'max-w-6xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -251,7 +254,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'دستیار مدیر',
     badge: 'معاونت اجرایی و ستادی',
     roleIcon: 'fa-user-gear',
-    layoutWidthClass: 'max-w-6xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -265,7 +268,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'سازمان مرکزی',
     badge: 'مدیریت کلان کشوری',
     roleIcon: 'fa-building-columns',
-    layoutWidthClass: 'max-w-6xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
@@ -280,7 +283,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     label: 'مدیر ارشد',
     badge: 'مدیریت عالی و حاکمیتی',
     roleIcon: 'fa-user-shield',
-    layoutWidthClass: 'max-w-7xl',
+    layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: false,
     sidebarMenu: [
       ADMIN_DASHBOARD_ITEM,
