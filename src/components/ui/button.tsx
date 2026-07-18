@@ -1,64 +1,200 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "radix-ui"
+import * as React from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { Slot } from 'radix-ui';
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
+/**
+ * Canonical Karvita button variants (Shadcn `ui/button` + product API).
+ * Features must use `KvButton`; other `ui/*` may import `buttonVariants` / `Button`.
+ */
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-kv-control text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-kv-ring focus-visible:ring-[3px] focus-visible:ring-kv-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-kv-danger aria-invalid:ring-kv-ring-danger/20 dark:aria-invalid:ring-kv-ring-danger/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  [
+    'inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 font-sans font-black',
+    'whitespace-nowrap transition-all outline-none',
+    'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
+    'disabled:pointer-events-none disabled:opacity-50',
+    '[&_svg]:pointer-events-none [&_svg]:shrink-0',
+  ].join(' '),
   {
     variants: {
-      variant: {
-        default: "bg-kv-brand text-kv-brand-fg hover:bg-kv-brand-hover",
-        destructive:
-          "bg-kv-danger text-kv-danger-fg hover:bg-kv-danger-hover focus-visible:ring-kv-ring-danger/20 dark:bg-kv-danger dark:focus-visible:ring-kv-ring-danger/40",
-        outline:
-          "border bg-kv-canvas shadow-xs hover:bg-kv-brand-soft hover:text-kv-brand-soft-fg dark:border-kv-border-strong dark:bg-kv-surface-muted/30 dark:hover:bg-kv-surface-muted/50",
+      color: {
+        cta: '',
+        success: '',
+        warning: '',
+        purple: '',
+        error: '',
+        neutral: '',
+      },
+      appearance: {
+        solid: 'rounded-kv-control shadow-kv-raised',
         secondary:
-          "bg-kv-surface-muted text-kv-text-muted hover:bg-kv-surface-subtle",
-        ghost:
-          "hover:bg-kv-brand-soft hover:text-kv-brand-soft-fg dark:hover:bg-kv-brand-soft/50",
-        link: "text-kv-brand underline-offset-4 hover:underline",
+          'rounded-kv-control border border-kv-border bg-kv-surface-muted text-kv-text-muted shadow-none hover:bg-kv-surface-subtle hover:text-kv-text-secondary',
+        ghost: 'rounded-kv-control border',
+        text: 'min-h-11 rounded-kv-control bg-transparent px-2 py-2 shadow-none hover:bg-transparent',
       },
       size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        xs: "h-6 gap-1 rounded-kv-control px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 gap-1.5 rounded-kv-control px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-kv-control px-6 has-[>svg]:px-4",
-        icon: "size-9",
-        "icon-xs": "size-6 rounded-kv-control [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-8",
-        "icon-lg": "size-10",
+        sm: 'h-9 px-3 text-xs',
+        md: 'h-11 px-4 text-xs',
+        lg: 'h-12 px-6 text-xs',
+        icon: 'size-11 p-0',
+      },
+      fullWidth: {
+        true: 'w-full',
+        false: '',
       },
     },
+    compoundVariants: [
+      { appearance: 'text', size: 'sm', class: 'min-h-11 px-2' },
+      { appearance: 'text', size: 'md', class: 'min-h-11 px-2' },
+      { appearance: 'text', size: 'lg', class: 'min-h-11 px-2' },
+      { appearance: 'text', size: 'icon', class: 'size-11' },
+
+      {
+        appearance: 'solid',
+        color: 'cta',
+        class:
+          'bg-gradient-to-br from-kv-brand to-kv-brand-active text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20 hover:from-kv-brand-hover hover:to-kv-brand-active',
+      },
+      {
+        appearance: 'solid',
+        color: 'success',
+        class: 'bg-kv-success text-kv-success-fg hover:bg-kv-success-hover',
+      },
+      {
+        appearance: 'solid',
+        color: 'warning',
+        class: 'bg-kv-warning text-kv-warning-fg hover:bg-kv-warning-hover',
+      },
+      {
+        appearance: 'solid',
+        color: 'purple',
+        class: 'bg-kv-accent text-kv-accent-fg hover:bg-kv-accent-hover',
+      },
+      {
+        appearance: 'solid',
+        color: 'error',
+        class: 'bg-kv-danger text-kv-danger-fg hover:bg-kv-danger-hover',
+      },
+      {
+        appearance: 'solid',
+        color: 'neutral',
+        class:
+          'border border-kv-border bg-kv-surface-subtle text-kv-text-muted shadow-none hover:bg-kv-neutral-hover',
+      },
+
+      {
+        appearance: 'ghost',
+        color: 'cta',
+        class:
+          'border-kv-brand-border bg-kv-brand-soft text-kv-brand-soft-fg hover:bg-kv-brand-soft-hover',
+      },
+      {
+        appearance: 'ghost',
+        color: 'success',
+        class:
+          'border-kv-success-border bg-kv-success-soft text-kv-success-soft-fg hover:bg-kv-success-soft-hover',
+      },
+      {
+        appearance: 'ghost',
+        color: 'warning',
+        class:
+          'border-kv-warning-border bg-kv-warning-soft text-kv-warning-soft-fg hover:bg-kv-warning-soft-hover',
+      },
+      {
+        appearance: 'ghost',
+        color: 'purple',
+        class:
+          'border-kv-accent-border bg-kv-accent-soft text-kv-accent-soft-fg hover:bg-kv-accent-soft-hover',
+      },
+      {
+        appearance: 'ghost',
+        color: 'error',
+        class:
+          'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg hover:bg-kv-danger-soft-hover',
+      },
+      {
+        appearance: 'ghost',
+        color: 'neutral',
+        class:
+          'border-kv-border bg-kv-surface-muted text-kv-text-muted hover:bg-kv-surface-subtle hover:text-kv-text-secondary',
+      },
+
+      {
+        appearance: 'text',
+        color: 'cta',
+        class: 'text-kv-brand hover:text-kv-brand-soft-fg',
+      },
+      {
+        appearance: 'text',
+        color: 'success',
+        class: 'text-kv-success hover:text-kv-success-soft-fg',
+      },
+      {
+        appearance: 'text',
+        color: 'warning',
+        class: 'text-kv-warning hover:text-kv-warning-soft-fg',
+      },
+      {
+        appearance: 'text',
+        color: 'purple',
+        class: 'text-kv-accent hover:text-kv-accent-hover',
+      },
+      {
+        appearance: 'text',
+        color: 'error',
+        class: 'text-kv-danger hover:text-kv-danger-soft-fg',
+      },
+      {
+        appearance: 'text',
+        color: 'neutral',
+        class: 'text-kv-text-subtle hover:text-kv-text-secondary',
+      },
+    ],
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      color: 'cta',
+      appearance: 'solid',
+      size: 'md',
+      fullWidth: false,
     },
   }
-)
+);
+
+export type ButtonColor = NonNullable<
+  VariantProps<typeof buttonVariants>['color']
+>;
+export type ButtonAppearance = NonNullable<
+  VariantProps<typeof buttonVariants>['appearance']
+>;
+export type ButtonSize = NonNullable<VariantProps<typeof buttonVariants>['size']>;
 
 function Button({
   className,
-  variant = "default",
-  size = "default",
+  color = 'cta',
+  appearance = 'solid',
+  size = 'md',
+  fullWidth = false,
   asChild = false,
   ...props
-}: React.ComponentProps<"button"> &
+}: Omit<React.ComponentProps<'button'>, 'color'> &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
+    asChild?: boolean;
   }) {
-  const Comp = asChild ? Slot.Root : "button"
+  const Comp = asChild ? Slot.Root : 'button';
 
   return (
     <Comp
       data-slot="button"
-      data-variant={variant}
+      data-color={color}
+      data-appearance={appearance}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(
+        buttonVariants({ color, appearance, size, fullWidth }),
+        className
+      )}
       {...props}
     />
-  )
+  );
 }
 
-export { Button, buttonVariants }
+export { Button, buttonVariants };

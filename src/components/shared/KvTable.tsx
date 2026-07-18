@@ -1,15 +1,24 @@
 import * as React from 'react';
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+  TableCaption,
+} from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
-export type KvTableProps = React.ComponentProps<'table'> & {
+export type KvTableProps = React.ComponentProps<typeof Table> & {
   /** Wrap table in horizontal scroll container. Default `true`. */
   scrollable?: boolean;
 };
 
 /**
- * Lightweight admin table primitives — name/actions and denser data grids.
- * Tokens only (`kv-*`); no feature-local table chrome.
+ * Product admin table — wraps Shadcn `ui/table` with Karvita tokens.
  */
 export function KvTable({
   className,
@@ -17,7 +26,7 @@ export function KvTable({
   ...props
 }: KvTableProps) {
   const table = (
-    <table
+    <Table
       data-slot="kv-table"
       className={cn(
         'w-full border-collapse text-right text-xs font-sans',
@@ -39,12 +48,12 @@ export function KvTable({
 export function KvTableHeader({
   className,
   ...props
-}: React.ComponentProps<'thead'>) {
+}: React.ComponentProps<typeof TableHeader>) {
   return (
-    <thead
+    <TableHeader
       data-slot="kv-table-header"
       className={cn(
-        'sticky top-0 z-10 border-b border-kv-border bg-kv-surface-muted font-bold text-kv-text-subtle',
+        'sticky top-0 z-10 border-b border-kv-border bg-kv-surface-muted font-bold text-kv-text-subtle [&_tr]:border-b-0',
         className
       )}
       {...props}
@@ -55,11 +64,24 @@ export function KvTableHeader({
 export function KvTableBody({
   className,
   ...props
-}: React.ComponentProps<'tbody'>) {
+}: React.ComponentProps<typeof TableBody>) {
   return (
-    <tbody
+    <TableBody
       data-slot="kv-table-body"
-      className={cn('divide-y divide-kv-border-muted', className)}
+      className={cn('divide-y divide-kv-border-muted [&_tr:last-child]:border-0', className)}
+      {...props}
+    />
+  );
+}
+
+export function KvTableFooter({
+  className,
+  ...props
+}: React.ComponentProps<typeof TableFooter>) {
+  return (
+    <TableFooter
+      data-slot="kv-table-footer"
+      className={className}
       {...props}
     />
   );
@@ -68,12 +90,12 @@ export function KvTableBody({
 export function KvTableRow({
   className,
   ...props
-}: React.ComponentProps<'tr'>) {
+}: React.ComponentProps<typeof TableRow>) {
   return (
-    <tr
+    <TableRow
       data-slot="kv-table-row"
       className={cn(
-        'font-bold text-kv-text hover:bg-kv-surface-muted/50',
+        'border-b-0 font-bold text-kv-text hover:bg-kv-surface-muted/50',
         className
       )}
       {...props}
@@ -84,11 +106,11 @@ export function KvTableRow({
 export function KvTableHead({
   className,
   ...props
-}: React.ComponentProps<'th'>) {
+}: React.ComponentProps<typeof TableHead>) {
   return (
-    <th
+    <TableHead
       data-slot="kv-table-head"
-      className={cn('p-3.5 text-right font-bold', className)}
+      className={cn('h-auto p-3.5 text-right font-bold', className)}
       {...props}
     />
   );
@@ -97,11 +119,24 @@ export function KvTableHead({
 export function KvTableCell({
   className,
   ...props
-}: React.ComponentProps<'td'>) {
+}: React.ComponentProps<typeof TableCell>) {
   return (
-    <td
+    <TableCell
       data-slot="kv-table-cell"
-      className={cn('p-3.5', className)}
+      className={cn('p-3.5 whitespace-normal', className)}
+      {...props}
+    />
+  );
+}
+
+export function KvTableCaption({
+  className,
+  ...props
+}: React.ComponentProps<typeof TableCaption>) {
+  return (
+    <TableCaption
+      data-slot="kv-table-caption"
+      className={className}
       {...props}
     />
   );

@@ -17,8 +17,13 @@
  */
 
 import * as React from 'react';
-import { Tabs as TabsPrimitive } from 'radix-ui';
 
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 export type AppTabsActiveTone = 'brand' | 'surface';
@@ -108,7 +113,7 @@ function useAppTabsContext() {
   return React.useContext(AppTabsContext);
 }
 
-export type AppTabsProps = React.ComponentProps<typeof TabsPrimitive.Root> & {
+export type AppTabsProps = React.ComponentProps<typeof Tabs> & {
   /**
    * `true` — always full-width equal tabs (auth register/login).
    * `false` (default) — normal: full on mobile, hug content on md+.
@@ -144,7 +149,7 @@ function AppTabs({
     <AppTabsContext.Provider
       value={{ fullWidth, activeTone, listLayout, gridCols }}
     >
-      <TabsPrimitive.Root
+      <Tabs
         data-slot="app-tabs"
         data-full-width={fullWidth || undefined}
         data-active-tone={activeTone}
@@ -158,7 +163,7 @@ function AppTabs({
         {...props}
       >
         {children}
-      </TabsPrimitive.Root>
+      </Tabs>
     </AppTabsContext.Provider>
   );
 }
@@ -166,12 +171,12 @@ function AppTabs({
 function AppTabsList({
   className,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
+}: React.ComponentProps<typeof TabsList>) {
   const { fullWidth, activeTone, listLayout, gridCols } = useAppTabsContext();
 
   if (listLayout === 'grid') {
     return (
-      <TabsPrimitive.List
+      <TabsList
         data-slot="app-tabs-list"
         data-list-layout="grid"
         className={cn(LIST_GRID_BASE, GRID_COLS_CLASS[gridCols], className)}
@@ -181,7 +186,7 @@ function AppTabsList({
   }
 
   return (
-    <TabsPrimitive.List
+    <TabsList
       data-slot="app-tabs-list"
       data-list-layout="row"
       className={cn(
@@ -197,7 +202,7 @@ function AppTabsList({
 function AppTabsTrigger({
   className,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+}: React.ComponentProps<typeof TabsTrigger>) {
   const { fullWidth, activeTone, listLayout } = useAppTabsContext();
 
   const sizeClass =
@@ -208,7 +213,7 @@ function AppTabsTrigger({
         : TRIGGER_NORMAL_SIZE;
 
   return (
-    <TabsPrimitive.Trigger
+    <TabsTrigger
       data-slot="app-tabs-trigger"
       className={cn(
         TRIGGER_BASE,
@@ -224,9 +229,9 @@ function AppTabsTrigger({
 function AppTabsContent({
   className,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Content>) {
+}: React.ComponentProps<typeof TabsContent>) {
   return (
-    <TabsPrimitive.Content
+    <TabsContent
       data-slot="app-tabs-content"
       className={cn('mt-1 flex-1 outline-none', className)}
       {...props}

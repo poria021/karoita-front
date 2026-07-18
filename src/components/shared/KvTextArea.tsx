@@ -4,9 +4,8 @@ import { cva } from 'class-variance-authority';
 import * as React from 'react';
 
 import { KvFieldFrame } from '@/components/shared/KvFieldFrame';
-import {
-  type KvTextFieldSize,
-} from '@/components/shared/KvTextField';
+import { type KvTextFieldSize } from '@/components/shared/KvTextField';
+import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
 const kvTextAreaVariants = cva(
@@ -77,7 +76,7 @@ export type KvTextAreaProps = {
 
 /**
  * Multiline field with the same chrome as {@link KvTextField}
- * (label spacing, lock, error/hint). Not an input `type` — separate element.
+ * (label spacing, lock, error/hint). Wraps Shadcn `ui/textarea`.
  */
 export const KvTextArea = React.forwardRef<
   HTMLTextAreaElement,
@@ -126,7 +125,7 @@ export const KvTextArea = React.forwardRef<
       error={error}
       hint={hint}
     >
-      <textarea
+      <Textarea
         ref={ref}
         id={id}
         name={name}
