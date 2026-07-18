@@ -3,6 +3,7 @@
 import * as React from 'react';
 import * as LabelPrimitive from '@radix-ui/react-label';
 
+import { KvLabel } from '@/components/shared/KvLabel';
 import {
   Form,
   FormControl,
@@ -12,7 +13,6 @@ import {
   FormMessage,
   useFormField,
 } from '@/components/ui/form';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 export {
@@ -41,7 +41,7 @@ export function KvFormItem({ className, ...props }: KvFormItemProps) {
 
 /**
  * Karvita form label — keeps slate color even when the field has an error.
- * (Shadcn FormLabel turns `text-kv-danger` on error; we never want that.)
+ * (Shadcn FormLabel turns danger on error; we never want that.)
  * No margin — spacing comes from KvFormItem gap.
  */
 export function KvFormLabel({
@@ -51,13 +51,10 @@ export function KvFormLabel({
   const { formItemId } = useFormField();
 
   return (
-    <Label
+    <KvLabel
       data-slot="kv-form-label"
       htmlFor={formItemId}
-      className={cn(
-        'font-sans text-xs font-bold text-kv-text-muted',
-        className
-      )}
+      className={cn('mb-0', className)}
       {...props}
     />
   );
