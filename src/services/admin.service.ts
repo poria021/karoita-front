@@ -1,4 +1,5 @@
 import { isMockApiMode } from '@/lib/api-mode';
+import { assertMockClientIsSuperAdmin } from '@/services/mock/mock-authz';
 import { AUTH_MOCK_USERS } from '@/services/mock/auth-mock-users';
 import type {
   AdminUserListItem,
@@ -10,6 +11,9 @@ import type {
  * Admin user listing facade (rule 40).
  * UI / API routes must call this — never import Drizzle or Better-Auth admin
  * helpers directly from `utils/` or feature code.
+ *
+ * Mock: requires super_admin on client store (UX sim — NOT Nest authz).
+ * Real: Better-Auth admin helpers (server must still enforce).
  */
 
 const IS_MOCK_MODE = isMockApiMode();
@@ -77,6 +81,7 @@ function applyListFilters(
 export const AdminService = {
   async listUsers(options: ListAdminUsersOptions = {}): Promise<ListAdminUsersResult> {
     if (IS_MOCK_MODE) {
+      assertMockClientIsSuperAdmin();
       const filtered = applyListFilters(mapMockUsersToAdminList(), options);
       const offset = options.offset ?? 0;
       const limit = options.limit ?? 10;

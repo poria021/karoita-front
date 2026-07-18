@@ -9,7 +9,7 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvForm } from '@/components/shared/KvForm';
 import { KvTextField } from '@/components/shared/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { isMockApiMode } from '@/lib/api-mode';
+import { isMockApiMode, MOCK_MODE_LABEL } from '@/lib/api-mode';
 import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
 import { faIcons } from '@/utils/iconMap';
 import {
@@ -84,7 +84,7 @@ export function SecurityChangePasswordFlow({
             title="کد تأیید ارسال شد"
             description={
               isMockApiMode()
-                ? `کد تستی شبیه‌ساز: ${toPersianDigits(MOCK_OTP_CODE)}`
+                ? `کد ${MOCK_MODE_LABEL} — نه Nest: ${toPersianDigits(MOCK_OTP_CODE)}`
                 : 'کد تأیید به شماره موبایل شما ارسال شد.'
             }
           />

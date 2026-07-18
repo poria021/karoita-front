@@ -10,7 +10,7 @@ interface LoginOtpVerifyStepProps {
   login: UseLoginFormReturn;
 }
 
-/** Step 2 of OTP login: verify the 5-digit SMS code (test code `12345` in mock mode). */
+/** Step 2 of OTP login: verify OTP (mock simulator accepts a fixed code — not Nest). */
 export function LoginOtpVerifyStep({ login }: LoginOtpVerifyStepProps) {
   const {
     otpCodeForm,

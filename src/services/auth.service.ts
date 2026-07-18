@@ -1,6 +1,11 @@
 import Cookies from 'js-cookie';
 
-import { isMockApiMode, REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
+import {
+  assertMockApiMode,
+  assertRealModeRejectsMockSecret,
+  isMockApiMode,
+  REAL_MODE_NOT_IMPLEMENTED,
+} from '@/lib/api-mode';
 import { authClient } from '@/lib/auth-client';
 import { MOCK_SESSION_MARKER } from '@/lib/config';
 import { useUserStore } from '@/store/useUserStore';
@@ -17,7 +22,7 @@ import {
 
 /**
  * Facade for every authentication interaction (rule 40).
- * Mock session meta stays JS-readable for local DX only.
+ * Mock session meta stays JS-readable for local DX only — NOT Nest auth.
  * Real mode relies on Better-Auth / Nest httpOnly cookies — no token in JS cookies.
  */
 
@@ -92,7 +97,8 @@ function readMockUsers(): MockAuthUserRecord[] {
 }
 
 function writeMockUsers(users: MockAuthUserRecord[]): void {
-  if (!isBrowser() || !IS_MOCK_MODE) return;
+  if (!isBrowser()) return;
+  assertMockApiMode();
   window.localStorage.setItem(MOCK_USERS_STORAGE_KEY, JSON.stringify(users));
   window.localStorage.setItem(MOCK_USERS_VERSION_KEY, MOCK_USERS_SEED_VERSION);
 }
@@ -192,10 +198,19 @@ function mapBetterAuthRole(rawRole: string | null | undefined): UserRole {
   return rawRole === 'admin' ? 'super_admin' : 'student';
 }
 
+/** Accepts {@link MOCK_OTP_CODE} only inside mock simulator — never in real. */
 function assertMockOtp(otp: string): void {
+  assertMockApiMode();
   if (otp !== MOCK_OTP_CODE) {
-    throw new Error('کد تایید نادرست است (کد تست: ۱۲۳۴۵).');
+    throw new Error(
+      'کد تایید نادرست است. (شبیه‌ساز محلی mock — این کد OTP سرور Nest نیست.)'
+    );
   }
+}
+
+/** Real OTP branches: refuse fixed mock secret before Nest / not-implemented. */
+function rejectMockOtpInReal(otp: string): void {
+  assertRealModeRejectsMockSecret(otp, MOCK_OTP_CODE, 'OTP');
 }
 
 export class AuthService {
@@ -269,6 +284,7 @@ export class AuthService {
       return user;
     }
 
+    rejectMockOtpInReal(otp);
     throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
@@ -301,6 +317,7 @@ export class AuthService {
       return user;
     }
 
+    rejectMockOtpInReal(otp);
     throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
@@ -355,6 +372,7 @@ export class AuthService {
     }
 
     // Real: OTP must come from Nest later — never accept MOCK_OTP_CODE here.
+    rejectMockOtpInReal(otp);
     throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
@@ -381,6 +399,7 @@ export class AuthService {
       return;
     }
 
+    rejectMockOtpInReal(otp);
     throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
@@ -413,6 +432,7 @@ export class AuthService {
       return;
     }
 
+    rejectMockOtpInReal(otp);
     throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 

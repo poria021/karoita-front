@@ -1,4 +1,5 @@
 import { isMockApiMode, REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
+import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import { buildOrgStructureSeed } from '@/services/mock/org-structure-seed';
 import type {
   OrgCity,
@@ -15,11 +16,22 @@ import type {
 
 /**
  * Facade for organizational structure CRUD (rule 40).
- * Mock: localStorage snapshot. Real: not wired yet.
+ * Mock: localStorage snapshot + client permission check (UX sim — NOT Nest authz).
+ * Real: not wired yet — callers get REAL_MODE_NOT_IMPLEMENTED.
  */
 
 const IS_MOCK_MODE = isMockApiMode();
-const STORAGE_KEY = 'karvita_org_structure_v1';
+/** Prefixed `mock_` so juniors do not confuse this key with a Nest/DB store. */
+const STORAGE_KEY = 'karvita_mock_org_structure_v1';
+
+/**
+ * Mock-only gate: simulator mode + `organization.manage` on activeUser.
+ * Browser role can be forged — Nest must re-check when real mode is wired.
+ */
+function requireMockOrgManage(): void {
+  if (!isMockApiMode()) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+  assertMockClientHasPermission('organization.manage');
+}
 
 export type OrgStructureListItem = {
   id: string;
@@ -89,7 +101,8 @@ function readSnapshot(): OrgStructureSnapshot {
 }
 
 function writeSnapshot(data: OrgStructureSnapshot): void {
-  if (!isBrowser() || !IS_MOCK_MODE) return;
+  if (!isBrowser()) return;
+  if (!isMockApiMode()) return;
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
@@ -169,7 +182,7 @@ function isMajorBlocked(_db: OrgStructureSnapshot, _id: string): boolean {
 
 export const OrgStructureService = {
   async getSnapshot(): Promise<OrgStructureSnapshot> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     return cloneSnapshot(readSnapshot());
   },
 
@@ -177,7 +190,7 @@ export const OrgStructureService = {
     tab: OrgStructureSubTab,
     query = ''
   ): Promise<OrgStructureListItem[]> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     const db = readSnapshot();
     const kind = kindFromTab(tab);
 
@@ -241,7 +254,7 @@ export const OrgStructureService = {
     | OrgMajor
     | null
   > {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     const db = readSnapshot();
     if (kind === 'province') return db.provinces.find((r) => r.id === id) ?? null;
     if (kind === 'city') return db.cities.find((r) => r.id === id) ?? null;
@@ -252,19 +265,19 @@ export const OrgStructureService = {
   },
 
   async listProvinces(): Promise<OrgProvince[]> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     return sortByNameFa(readSnapshot().provinces);
   },
 
   async listCities(provinceId: string): Promise<OrgCity[]> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     return sortByNameFa(
       readSnapshot().cities.filter((c) => c.provinceId === provinceId)
     );
   },
 
   async listDistricts(provinceId: string, cityId?: string): Promise<OrgDistrict[]> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     return sortByNameFa(
       readSnapshot().districts.filter(
         (d) =>
@@ -314,7 +327,7 @@ export const OrgStructureService = {
   },
 
   async upsertProvince(input: UpsertProvinceInput, editId?: string): Promise<void> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     const db = readSnapshot();
     const name = input.name.trim();
     if (!name) throw new Error('نام استان الزامی است.');
@@ -330,7 +343,7 @@ export const OrgStructureService = {
   },
 
   async upsertCity(input: UpsertCityInput, editId?: string): Promise<void> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     const db = readSnapshot();
     const name = input.name.trim();
     if (!name) throw new Error('نام شهر الزامی است.');
@@ -359,7 +372,7 @@ export const OrgStructureService = {
   },
 
   async upsertFaculty(input: UpsertFacultyInput, editId?: string): Promise<void> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     const db = readSnapshot();
     const name = input.name.trim();
     if (!name) throw new Error('نام پردیس الزامی است.');
@@ -387,7 +400,7 @@ export const OrgStructureService = {
   },
 
   async upsertDistrict(input: UpsertDistrictInput, editId?: string): Promise<void> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     const db = readSnapshot();
     const name = input.name.trim();
     if (!name) throw new Error('نام منطقه الزامی است.');
@@ -419,7 +432,7 @@ export const OrgStructureService = {
   },
 
   async upsertSchool(input: UpsertSchoolInput, editId?: string): Promise<void> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     const db = readSnapshot();
     const name = input.name.trim();
     if (!name) throw new Error('نام مدرسه الزامی است.');
@@ -455,7 +468,7 @@ export const OrgStructureService = {
   },
 
   async upsertMajor(input: UpsertMajorInput, editId?: string): Promise<void> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     const db = readSnapshot();
     const name = input.name.trim();
     if (!name) throw new Error('نام رشته الزامی است.');
@@ -471,7 +484,7 @@ export const OrgStructureService = {
   },
 
   async deleteEntity(kind: OrgStructureEntityKind, id: string): Promise<void> {
-    if (!IS_MOCK_MODE) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    requireMockOrgManage();
     const db = readSnapshot();
 
     if (kind === 'province') {

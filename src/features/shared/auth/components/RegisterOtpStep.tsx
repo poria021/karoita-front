@@ -10,7 +10,7 @@ interface RegisterOtpStepProps {
   registerForm: UseRegisterFormReturn;
 }
 
-/** Step 2 of registration: verify the 5-digit SMS code (test code `12345` in mock mode). */
+/** Step 2 of registration: verify OTP (mock simulator accepts a fixed code — not Nest). */
 export function RegisterOtpStep({ registerForm }: RegisterOtpStepProps) {
   const {
     otpForm,

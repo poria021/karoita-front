@@ -5,6 +5,7 @@ import type { User, UserRole } from '@/types/auth';
  * `original-karvita.html`. Used exclusively by `AuthService` when
  * `NEXT_PUBLIC_API_MODE === 'mock'` (never in production — fail-closed).
  *
+ * These are LOCAL SIMULATOR credentials — not Nest / SMS / production secrets.
  * Passwords in the seed / localStorage copy are mock-only DX credentials.
  * They must never be copied into Zustand or public User DTOs (`toPublicUser`).
  *
@@ -12,11 +13,14 @@ import type { User, UserRole } from '@/types/auth';
  * localStorage picks up the new list on next load.
  */
 
-/** Shared test password for every seeded mock account. */
-export const MOCK_USER_PASSWORD = '123456';
-
-/** Test OTP code accepted by every mock OTP flow (matches the legacy prototype). */
+/**
+ * Fixed OTP for local simulator only.
+ * Real mode rejects this via `assertRealModeRejectsMockSecret` — never Nest SMS.
+ */
 export const MOCK_OTP_CODE = '12345';
+
+/** Shared test password for seeded mock accounts — mock DX only; never in User DTO. */
+export const MOCK_USER_PASSWORD = '123456';
 
 /**
  * Memorable super_admin mobile (matches original admin-gate placeholder).
