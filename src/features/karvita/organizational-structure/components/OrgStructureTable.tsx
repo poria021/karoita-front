@@ -92,6 +92,7 @@ export function OrgStructureTable({
         onEndReached={onLoadMore}
         showEndMessage={items.length > 0 && !hasMore}
         endMessage={`همه موارد بارگذاری شد (${toPersianDigits(total)})`}
+        loadingMoreLabel="در حال بارگذاری ۱۰ سطر بعدی…"
       >
         <KvTable scrollable={false}>
           <KvTableHeader>

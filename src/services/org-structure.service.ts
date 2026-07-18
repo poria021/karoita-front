@@ -36,7 +36,7 @@ import {
 
 const IS_MOCK_MODE = isMockApiMode();
 /** Prefixed `mock_` so juniors do not confuse this key with a Nest/DB store. */
-const STORAGE_KEY = 'karvita_mock_org_structure_v1';
+const STORAGE_KEY = 'karvita_mock_org_structure_v2';
 
 /** Nest-aligned page size for org list tables. */
 export const ORG_STRUCTURE_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
@@ -248,6 +248,7 @@ export const OrgStructureService = {
   /**
    * Offset/limit page for infinite-scroll tables (Nest contract: limit=10).
    * Mock: filters full snapshot then slices — same DTO Nest will return.
+   * Brief delay on pages after the first so the load-more spinner is visible in DX.
    */
   async listPage(
     options: OrgStructureListPageOptions
@@ -256,6 +257,9 @@ export const OrgStructureService = {
     const offset = options.offset ?? 0;
     const limit = options.limit ?? ORG_STRUCTURE_PAGE_SIZE;
     const query = options.query ?? '';
+    if (offset > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 550));
+    }
     const all = collectListByTab(options.tab, query);
     return sliceOffsetLimitPage(all, offset, limit);
   },

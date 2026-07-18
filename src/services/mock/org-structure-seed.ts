@@ -58,15 +58,8 @@ const BRANCHES: Array<{
   },
 ];
 
-const MAJOR_NAMES = [
-  'آموزش ابتدایی',
-  'دبیری زبان و ادبیات فارسی',
-  'دبیری ریاضی',
-  'دبیری علوم تجربی',
-  'آموزش فنی و حرفه‌ای',
-  'مشاوره تحصیلی',
-  'آموزش زبان انگلیسی',
-  'تربیت بدنی',
+const MAJOR_NAMES: string[] = [
+  // Intentionally empty so the «رشته‌ها» tab shows KvEmptyState in mock DX.
 ];
 
 let seq = 1;

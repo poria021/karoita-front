@@ -24,14 +24,17 @@ export type KvTableViewportProps = {
   endMessage?: string;
   /** Show end message only when true (caller usually passes items.length > 0). */
   showEndMessage?: boolean;
+  /** Copy while the next page is in flight. */
+  loadingMoreLabel?: string;
 };
 
 const DEFAULT_HEIGHT = 'h-[min(28rem,55dvh)]';
 
 /**
  * Fixed-height scroll host for admin tables.
- * Place {@link KvTable} with `scrollable={false}` inside so thead sticky works
- * against this vertical scroller. Features must not hand-roll overflow shells.
+ * Scrollbar is forced to the physical right (ltr scroller + rtl content)
+ * so RTL pages still match Iranian admin chrome expectations.
+ * Place {@link KvTable} with `scrollable={false}` inside so thead sticky works.
  */
 export function KvTableViewport({
   children,
@@ -43,6 +46,7 @@ export function KvTableViewport({
   isBusy = false,
   endMessage = 'همه موارد بارگذاری شد',
   showEndMessage = false,
+  loadingMoreLabel = 'در حال بارگذاری ۱۰ مورد بعدی…',
 }: KvTableViewportProps) {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
@@ -70,6 +74,7 @@ export function KvTableViewport({
     <div
       ref={rootRef}
       data-slot="kv-table-viewport"
+      dir="ltr"
       className={cn(
         'max-w-full overflow-auto overscroll-contain',
         heightClassName,
@@ -77,35 +82,38 @@ export function KvTableViewport({
       )}
       aria-busy={isBusy || isLoadingMore || undefined}
     >
-      {children}
+      {/* Inner RTL restores Persian layout while outer ltr keeps scrollbar on the right. */}
+      <div dir="rtl" className="min-h-full">
+        {children}
 
-      <div
-        ref={sentinelRef}
-        data-slot="kv-table-end-sentinel"
-        className="h-px w-full shrink-0"
-        aria-hidden="true"
-      />
-
-      {isLoadingMore ? (
         <div
-          className="flex items-center justify-center gap-kv-pair py-kv-group"
-          role="status"
-          aria-live="polite"
-        >
-          <KvSpinner className="size-4 text-kv-brand" />
-          <KvTypography variant="caption" tone="muted" weight="bold">
-            در حال بارگذاری موارد بیشتر…
-          </KvTypography>
-        </div>
-      ) : null}
+          ref={sentinelRef}
+          data-slot="kv-table-end-sentinel"
+          className="h-px w-full shrink-0"
+          aria-hidden="true"
+        />
 
-      {!hasMore && showEndMessage && !isBusy && !isLoadingMore ? (
-        <div className="py-kv-group text-center">
-          <KvTypography variant="caption" tone="muted" weight="bold">
-            {endMessage}
-          </KvTypography>
-        </div>
-      ) : null}
+        {isLoadingMore ? (
+          <div
+            className="sticky bottom-0 z-10 flex items-center justify-center gap-kv-pair border-t border-kv-border bg-kv-surface/95 px-kv-group py-kv-stack backdrop-blur-sm"
+            role="status"
+            aria-live="polite"
+          >
+            <KvSpinner className="size-5 text-kv-brand" />
+            <KvTypography variant="caption" tone="muted" weight="bold">
+              {loadingMoreLabel}
+            </KvTypography>
+          </div>
+        ) : null}
+
+        {!hasMore && showEndMessage && !isBusy && !isLoadingMore ? (
+          <div className="py-kv-group text-center">
+            <KvTypography variant="caption" tone="muted" weight="bold">
+              {endMessage}
+            </KvTypography>
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }
