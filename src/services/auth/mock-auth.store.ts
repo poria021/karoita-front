@@ -150,9 +150,13 @@ export function toPublicUser(record: MockAuthUserRecord): User {
     college: record.college,
     district: record.district,
     school: record.school,
+    major: record.major,
     personalCode: record.personalCode,
     studentId: record.studentId,
     skillCode: record.skillCode,
+    docUrl: record.docUrl,
+    docType: record.docType,
+    lastChange: record.lastChange,
   };
 }
 

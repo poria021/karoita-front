@@ -65,7 +65,14 @@ export const RouteService = {
     termLifecycle: (): string => '/karvita/term-lifecycle',
     syllabusConfig: (): string => '/karvita/syllabus',
     locations: (): string => '/karvita/locations',
-    onboardingApprovals: (): string => '/karvita/onboarding-approvals',
+    /**
+     * Super-admin identity-doc review — under `/karvita/admin/` so
+     * control-plane guards apply by prefix.
+     */
+    onboardingApprovals: (): string =>
+      '/karvita/admin/onboarding-approvals',
+    /** @deprecated Bookmark redirect → `onboardingApprovals()`. */
+    onboardingApprovalsLegacy: (): string => '/karvita/onboarding-approvals',
     userPermissions: (): string => '/karvita/permissions',
     manageAds: (): string => '/karvita/ads',
     internshipSelection: (): string => '/karvita/internships',

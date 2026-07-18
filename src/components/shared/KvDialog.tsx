@@ -18,13 +18,15 @@ export type KvDialogProps = React.ComponentProps<typeof Dialog>;
 
 export type KvDialogContentProps = React.ComponentProps<typeof DialogContent> & {
   /** Max width token. Default `md` (`sm:max-w-md`). */
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 };
 
 const SIZE_CLASS: Record<NonNullable<KvDialogContentProps['size']>, string> = {
   sm: 'sm:max-w-sm',
   md: 'sm:max-w-md',
   lg: 'sm:max-w-lg',
+  /** Document / media preview panels. */
+  xl: 'sm:max-w-3xl',
 };
 
 /** Karvita dialog root — controlled via `open` / `onOpenChange`. */

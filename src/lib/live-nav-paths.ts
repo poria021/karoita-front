@@ -20,6 +20,7 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.dashboard(),
   RouteService.karvita.adminDashboard(),
   RouteService.karvita.organizationalStructure(),
+  RouteService.karvita.onboardingApprovals(),
   RouteService.shared.profileIdentity(),
   RouteService.shared.profileSecurity(),
 ];
@@ -27,6 +28,10 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
 /** Bookmark path that redirects to the admin org-structure page. */
 export const LEGACY_ORG_STRUCTURE_PATH =
   RouteService.karvita.organizationalStructureLegacy();
+
+/** Bookmark path that redirects to the admin onboarding-approvals page. */
+export const LEGACY_ONBOARDING_APPROVALS_PATH =
+  RouteService.karvita.onboardingApprovalsLegacy();
 
 export function isLiveStaticNavPath(pathname: string): boolean {
   return LIVE_STATIC_NAV_PATHS.includes(normalizePath(pathname));
@@ -38,7 +43,8 @@ export function isLiveSidebarPath(pathname: string): boolean {
   return (
     path === RouteService.karvita.dashboard() ||
     path === RouteService.karvita.adminDashboard() ||
-    path === RouteService.karvita.organizationalStructure()
+    path === RouteService.karvita.organizationalStructure() ||
+    path === RouteService.karvita.onboardingApprovals()
   );
 }
 
@@ -62,5 +68,6 @@ export function isNavigableAppPath(pathname: string): boolean {
   const path = normalizePath(pathname);
   if (isKarvitaProfilePath(path)) return true;
   if (path === LEGACY_ORG_STRUCTURE_PATH) return true;
+  if (path === LEGACY_ONBOARDING_APPROVALS_PATH) return true;
   return isLiveStaticNavPath(path);
 }

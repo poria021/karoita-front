@@ -51,6 +51,12 @@ export interface User {
   personalCode?: string;
   studentId?: string;
   skillCode?: string;
+  /** Identity document preview URL (data URI or remote). Mock may omit large payloads. */
+  docUrl?: string;
+  /** Human-readable document kind label (e.g. کارت دانشجویی). */
+  docType?: string;
+  /** Epoch ms — used to sort onboarding approval queues (newest first). */
+  lastChange?: number;
 }
 
 /** Active session envelope returned by `AuthService` on login/registration. */

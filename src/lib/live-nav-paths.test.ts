@@ -23,8 +23,18 @@ describe('live nav / admin plane', () => {
     ]);
     expect(getVisibleSidebarMenu('super_admin').map((i) => i.path)).toEqual([
       RouteService.karvita.adminDashboard(),
+      RouteService.karvita.onboardingApprovals(),
       RouteService.karvita.organizationalStructure(),
     ]);
     expect(isLiveSidebarPath(RouteService.karvita.dailyReports())).toBe(false);
+  });
+
+  it('treats onboarding approvals as admin control plane', () => {
+    expect(
+      isAdminControlPlanePath(RouteService.karvita.onboardingApprovals())
+    ).toBe(true);
+    expect(
+      isAdminControlPlanePath(RouteService.karvita.onboardingApprovalsLegacy())
+    ).toBe(false);
   });
 });
