@@ -67,6 +67,7 @@ export function OnboardingApprovalsTable({
   if (users.length === 0) {
     return (
       <KvEmptyState
+        tableViewport
         icon={<FaIcon icon={faIcons.idCard} size="lg" />}
         title="پرونده‌ای یافت نشد"
         description="با تغییر تب، جستجو یا فیلترها دوباره امتحان کنید."

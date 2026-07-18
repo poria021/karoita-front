@@ -4,6 +4,7 @@ import * as React from 'react';
 
 import { KvSpinner } from '@/components/shared/KvSpinner';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
 
 export type KvTableViewportProps = {
@@ -28,7 +29,7 @@ export type KvTableViewportProps = {
   loadingMoreLabel?: string;
 };
 
-const DEFAULT_HEIGHT = 'h-[min(28rem,55dvh)]';
+const DEFAULT_HEIGHT = KV_TABLE_VIEWPORT_HEIGHT;
 
 /**
  * Fixed-height scroll host for admin tables.

@@ -1,3 +1,4 @@
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
 
 export type KvBusySurfaceProps = {
@@ -18,7 +19,7 @@ export function KvBusySurface({
       data-slot="kv-busy-surface"
       className={cn(
         'w-full bg-kv-surface',
-        tableViewport ? 'h-[min(28rem,55dvh)]' : 'min-h-40 bg-kv-canvas',
+        tableViewport ? KV_TABLE_VIEWPORT_HEIGHT : 'min-h-40 bg-kv-canvas',
         className
       )}
       aria-busy="true"

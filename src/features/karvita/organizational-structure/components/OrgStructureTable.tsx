@@ -2,6 +2,7 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
+import { KvBusySurface } from '@/components/shared/KvBusySurface';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import {
@@ -48,17 +49,13 @@ export function OrgStructureTable({
   onDelete,
 }: OrgStructureTableProps) {
   if (isLoading) {
-    return (
-      <div
-        className="h-[min(28rem,55dvh)] w-full bg-kv-surface"
-        aria-busy="true"
-      />
-    );
+    return <KvBusySurface tableViewport />;
   }
 
   if (items.length === 0) {
     return (
       <KvEmptyState
+        tableViewport
         icon={<FaIcon icon={tabConfig.icon} size="lg" />}
         title="موردی یافت نشد"
         description="با جستجوی دیگر امتحان کنید یا مورد جدیدی اضافه کنید."

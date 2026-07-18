@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/kvTableViewportHeight';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +12,8 @@ export type KvEmptyStateProps = {
   description?: ReactNode;
   actions?: ReactNode;
   tone?: KvEmptyStateTone;
+  /** Match admin table viewport height when used as table empty. */
+  tableViewport?: boolean;
   className?: string;
 };
 
@@ -29,6 +32,7 @@ export function KvEmptyState({
   description,
   actions,
   tone = 'brand',
+  tableViewport = false,
   className,
 }: KvEmptyStateProps) {
   return (
@@ -36,6 +40,7 @@ export function KvEmptyState({
       data-slot="kv-empty-state"
       className={cn(
         'flex flex-col items-center justify-center gap-kv-group px-kv-inset py-kv-block text-center',
+        tableViewport && KV_TABLE_VIEWPORT_HEIGHT,
         className
       )}
       role="status"
