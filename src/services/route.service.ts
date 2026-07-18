@@ -40,6 +40,11 @@ export const RouteService = {
   /** Karvita domain — `src/app/(app)/karvita/` route group. */
   karvita: {
     dashboard: (): string => '/karvita/dashboard',
+    /**
+     * Super-admin control plane — must stay distinct from the shared
+     * user dashboard (`dashboard()`).
+     */
+    adminDashboard: (): string => '/karvita/admin/dashboard',
     /** Role-scoped profile & identity security workspace. */
     profile: (role: string): string => `/karvita/${role}/profile`,
     dailyReports: (): string => '/karvita/daily-reports',
@@ -59,6 +64,7 @@ export const RouteService = {
     organizationalCapacities: (): string => '/karvita/capacities',
     organizationalStructure: (): string => '/karvita/organizational-structure',
     adminUserCreation: (): string => '/karvita/users/create',
-    internshipDetail: (internshipId: string): string => `/karvita/internships/${internshipId}`,
+    internshipDetail: (internshipId: string): string =>
+      `/karvita/internships/${internshipId}`,
   },
 } as const;

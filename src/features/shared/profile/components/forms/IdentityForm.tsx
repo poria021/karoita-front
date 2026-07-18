@@ -13,7 +13,7 @@ import { KvTextField } from '@/components/shared/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
-import { compressImageToBase64 } from '@/utils/compressor';
+import { fileToDataUrl } from '@/utils/compressor';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
@@ -33,14 +33,18 @@ export interface IdentityFormProps {
   /** Status alerts rendered inside the card (original-karvita.html). */
   statusAlerts?: ReactNode;
   onSaved?: () => void;
+  showDocUploader?: boolean;
+  submitLabel?: string;
+  /** When true, save marks approved without pending_admin (e.g. super_admin UX). */
+  autoApproveOnSave?: boolean;
 }
 
 /**
- * Matches `original-karvita.html` `isProfileLocked`:
- * locked when status is neither `not_submitted` nor `rejected`.
+ * Matches `original-karvita.html` `isProfileLocked` for roles that lock after submit.
+ * Lock policy is passed from ProfileContainer strategy (no inline role checks).
  */
-function isIdentityProfileLocked(user: User): boolean {
-  if (user.role === 'super_admin') return false;
+function isIdentityProfileLocked(user: User, lockAfterSubmit: boolean): boolean {
+  if (!lockAfterSubmit) return false;
   return user.docStatus !== 'not_submitted' && user.docStatus !== 'rejected';
 }
 
@@ -54,6 +58,9 @@ export function IdentityForm({
   disabled = false,
   statusAlerts,
   onSaved,
+  showDocUploader = true,
+  submitLabel = 'ثبت و ارسال نهایی اطلاعات',
+  autoApproveOnSave = false,
 }: IdentityFormProps) {
   const storeUser = useUserStore((state) => state.activeUser);
   const liveUser =
@@ -74,18 +81,18 @@ export function IdentityForm({
     try {
       await ProfileService.updateProfile(data, token);
       if (identityDocument) {
-        const documentBase64 = await compressImageToBase64(identityDocument);
+        // Uploader already compressed to WebP — do not compress again.
+        const documentBase64 = await fileToDataUrl(identityDocument);
         await ProfileService.updateIdentityDocument(documentBase64, token);
       }
 
       const current = useUserStore.getState().activeUser;
       if (current) {
-        const isSuperAdmin = current.role === 'super_admin';
         useUserStore.getState().setUser({
           ...current,
           ...data,
-          approved: isSuperAdmin,
-          docStatus: isSuperAdmin ? 'approved' : 'pending_admin',
+          approved: autoApproveOnSave,
+          docStatus: autoApproveOnSave ? 'approved' : 'pending_admin',
         });
       }
 
@@ -101,13 +108,9 @@ export function IdentityForm({
   });
 
   const isBusy = form.formState.isSubmitting;
-  const isProfileLocked = disabled || isIdentityProfileLocked(liveUser);
+  const isProfileLocked =
+    disabled || isIdentityProfileLocked(liveUser, !autoApproveOnSave);
   const isDisabled = isProfileLocked || isBusy;
-  const showDocUploader = liveUser.role !== 'super_admin';
-  const submitLabel =
-    liveUser.role === 'super_admin'
-      ? 'ذخیره تغییرات مشخصات سیستم'
-      : 'ثبت و ارسال نهایی اطلاعات';
 
   return (
     <KvCard

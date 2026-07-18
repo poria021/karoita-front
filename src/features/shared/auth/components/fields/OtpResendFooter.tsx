@@ -7,6 +7,8 @@ interface OtpResendFooterProps {
   secondsUntilResend: number;
   canResend: boolean;
   isResending: boolean;
+  /** When verifying OTP, lock resend/back to prevent double-submit races. */
+  isBusy?: boolean;
   onResend: () => void;
   onGoBack: () => void;
   goBackLabel: string;
@@ -17,10 +19,13 @@ export function OtpResendFooter({
   secondsUntilResend,
   canResend,
   isResending,
+  isBusy = false,
   onResend,
   onGoBack,
   goBackLabel,
 }: OtpResendFooterProps) {
+  const locked = isResending || isBusy;
+
   return (
     <div className="flex items-center justify-between gap-kv-pair text-xs font-bold text-kv-text-faint">
       {canResend ? (
@@ -30,6 +35,7 @@ export function OtpResendFooter({
           appearance="text"
           size="sm"
           loading={isResending}
+          disabled={locked}
           onClick={onResend}
         >
           ارسال پیامک جدید
@@ -51,7 +57,7 @@ export function OtpResendFooter({
         color="neutral"
         appearance="text"
         size="sm"
-        disabled={isResending}
+        disabled={locked}
         onClick={onGoBack}
       >
         {goBackLabel}

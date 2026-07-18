@@ -79,13 +79,22 @@ let handlingUnauthorized = false;
 
 async function handleUnauthorized(): Promise<void> {
   if (handlingUnauthorized || typeof window === 'undefined') return;
+
+  // Soften race with an in-progress logout / already on auth pages.
+  if (window.location.pathname.startsWith('/auth/')) {
+    useUserStore.getState().setUser(null);
+    return;
+  }
+
   handlingUnauthorized = true;
   try {
     useUserStore.getState().setUser(null);
     const { AuthService } = await import('@/services/auth.service');
     await AuthService.logout().catch(() => undefined);
     // Hard recovery redirect from non-React interceptor (auth expiry).
-    window.location.assign(RouteService.auth.login());
+    if (!window.location.pathname.startsWith('/auth/')) {
+      window.location.assign(RouteService.auth.login());
+    }
   } finally {
     handlingUnauthorized = false;
   }

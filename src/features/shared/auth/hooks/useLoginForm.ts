@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { RouteService } from '@/services/route.service';
+import { getPostLoginPath } from '@/services/post-login-path';
+import { useUserStore } from '@/store/useUserStore';
 
 import { usePasswordLogin } from './usePasswordLogin';
 import { useOtpLogin } from './useOtpLogin';
@@ -24,12 +25,14 @@ export function useLoginForm() {
 
   const [mode, setMode] = useState<LoginMode>('password');
 
-  const goToDashboard = useCallback(() => {
-    router.push(RouteService.karvita.dashboard());
+  /** Role-aware landing: super_admin → admin panel; locked → profile; else user dashboard. */
+  const goAfterLogin = useCallback(() => {
+    const user = useUserStore.getState().activeUser;
+    router.replace(getPostLoginPath(user));
   }, [router]);
 
-  const password = usePasswordLogin({ onSuccess: goToDashboard });
-  const otp = useOtpLogin({ onSuccess: goToDashboard });
+  const password = usePasswordLogin({ onSuccess: goAfterLogin });
+  const otp = useOtpLogin({ onSuccess: goAfterLogin });
   const forgot = useForgotPassword({
     onComplete: (recoveredMobile) => {
       password.passwordForm.reset({

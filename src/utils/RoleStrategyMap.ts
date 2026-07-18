@@ -40,6 +40,12 @@ const DASHBOARD_ITEM: SidebarMenuItem = {
   icon: 'fa-home',
 };
 
+const ADMIN_DASHBOARD_ITEM: SidebarMenuItem = {
+  title: 'میز کار مدیریت',
+  path: RouteService.karvita.adminDashboard(),
+  icon: 'fa-home',
+};
+
 const STANDARD_REPORTS_ITEM: SidebarMenuItem = {
   title: 'گزارش‌های استاندارد',
   path: RouteService.karvita.standardReports(),
@@ -276,7 +282,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     layoutWidthClass: 'max-w-7xl',
     gateModulesUntilApproved: false,
     sidebarMenu: [
-      DASHBOARD_ITEM,
+      ADMIN_DASHBOARD_ITEM,
       {
         title: 'بررسی مدارک هویتی',
         path: RouteService.karvita.onboardingApprovals(),
@@ -319,14 +325,26 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
   },
 };
 
-/** Typed accessor — prefer this over indexing `ROLE_STRATEGY_MAP` directly. */
-export function getRoleStrategy(role: UserRole): RoleStrategyConfig {
-  return ROLE_STRATEGY_MAP[role];
+/** Typed accessor — unknown/invalid roles fall back to `student` (no throw). */
+export function getRoleStrategy(
+  role: UserRole | string | null | undefined
+): RoleStrategyConfig {
+  if (role && Object.prototype.hasOwnProperty.call(ROLE_STRATEGY_MAP, role)) {
+    return ROLE_STRATEGY_MAP[role as UserRole];
+  }
+  if (process.env.NODE_ENV !== 'production' && role) {
+    console.warn(
+      `[RoleStrategyMap] نقش ناشناخته «${String(role)}» — بازگشت به student.`
+    );
+  }
+  return ROLE_STRATEGY_MAP.student;
 }
 
 /**
  * Whether domain modules (sidebar + routes) are unlocked for this user.
  * Profile remains reachable even when this returns false.
+ *
+ * UX only — not API authorization (rule 45).
  */
 export function areKarvitaModulesUnlocked(user: {
   role: UserRole;
@@ -335,4 +353,23 @@ export function areKarvitaModulesUnlocked(user: {
   const strategy = getRoleStrategy(user.role);
   if (!strategy.gateModulesUntilApproved) return true;
   return user.approved;
+}
+
+/** UX helper — browser role can be forged; never treat as authz proof. */
+export function isSuperAdminRole(
+  role: UserRole | string | null | undefined
+): boolean {
+  return role === 'super_admin';
+}
+
+/**
+ * Whether `user.role` lists `permission` in RoleStrategyMap.
+ * Client-only gate for menus/buttons — Nest must re-check for real mutations.
+ */
+export function hasPermission(
+  user: { role: UserRole } | null | undefined,
+  permission: string
+): boolean {
+  if (!user) return false;
+  return getRoleStrategy(user.role).permissions.includes(permission);
 }

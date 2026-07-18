@@ -12,6 +12,10 @@ import {
 } from '../services/organization-options.service';
 
 const DEBOUNCE_MS = 300;
+/** Hard stop so a buggy hasMore=true cannot load forever. */
+const MAX_ORG_OPTION_PAGES = 20;
+/** Cap merged DOM list; ask user to refine search beyond this. */
+const MAX_ORG_OPTIONS_IN_DOM = 200;
 
 export type OrganizationDependsOn = {
   province?: string;
@@ -34,6 +38,8 @@ export type UseOrganizationOptionsResult = {
   isLoadingMore: boolean;
   loadMore: () => void;
   error: Error | undefined;
+  /** True when page/DOM caps stop further loading. */
+  reachedLimit: boolean;
 };
 
 function useDebouncedValue<T>(value: T, delayMs: number): T {
@@ -75,6 +81,7 @@ export function useOrganizationOptions({
     previousPageData: OrganizationOptionsResult | null
   ): OrgOptionsKey | null => {
     if (!enabled) return null;
+    if (pageIndex >= MAX_ORG_OPTION_PAGES) return null;
     if (previousPageData && !previousPageData.hasMore) return null;
 
     return [
@@ -111,8 +118,10 @@ export function useOrganizationOptions({
     void setSize(1);
   }, [debouncedQuery, type, province, district, setSize]);
 
-  const items = useMemo(() => {
-    if (!data) return [];
+  const { items, totalMerged, reachedLimit } = useMemo(() => {
+    if (!data) {
+      return { items: [] as OrganizationOption[], totalMerged: 0, reachedLimit: false };
+    }
     const seen = new Set<string>();
     const merged: OrganizationOption[] = [];
     for (const page of data) {
@@ -122,10 +131,17 @@ export function useOrganizationOptions({
         merged.push(item);
       }
     }
-    return merged;
-  }, [data]);
+    const hitDomCap = merged.length > MAX_ORG_OPTIONS_IN_DOM;
+    const hitPageCap = size >= MAX_ORG_OPTION_PAGES;
+    return {
+      items: merged.slice(0, MAX_ORG_OPTIONS_IN_DOM),
+      totalMerged: merged.length,
+      reachedLimit: hitDomCap || hitPageCap,
+    };
+  }, [data, size]);
 
-  const hasMore = Boolean(data?.[data.length - 1]?.hasMore);
+  const serverHasMore = Boolean(data?.[data.length - 1]?.hasMore);
+  const hasMore = serverHasMore && !reachedLimit && size < MAX_ORG_OPTION_PAGES;
   const isLoadingMore = isValidating && size > 1 && items.length > 0;
   const isInitialLoading = Boolean(enabled) && isLoading && items.length === 0;
 
@@ -141,5 +157,6 @@ export function useOrganizationOptions({
     isLoadingMore,
     loadMore,
     error: error ?? undefined,
+    reachedLimit: reachedLimit || totalMerged > MAX_ORG_OPTIONS_IN_DOM,
   };
 }

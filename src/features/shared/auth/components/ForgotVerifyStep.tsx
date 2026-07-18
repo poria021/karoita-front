@@ -39,6 +39,7 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
           secondsUntilResend={secondsUntilForgotResend}
           canResend={canResendForgotOtp}
           isResending={isResendingForgotOtp}
+          isBusy={isVerifyingForgotOtp}
           onResend={resendForgotOtp}
           onGoBack={goBackToForgotStep1}
           goBackLabel="اصلاح شماره"

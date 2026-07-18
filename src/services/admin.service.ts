@@ -1,3 +1,4 @@
+import { isMockApiMode } from '@/lib/api-mode';
 import { AUTH_MOCK_USERS } from '@/services/mock/auth-mock-users';
 import type {
   AdminUserListItem,
@@ -11,7 +12,7 @@ import type {
  * helpers directly from `utils/` or feature code.
  */
 
-const IS_MOCK_MODE = process.env.NEXT_PUBLIC_API_MODE !== 'real';
+const IS_MOCK_MODE = isMockApiMode();
 
 export type { AdminUserListItem, ListAdminUsersOptions, ListAdminUsersResult };
 

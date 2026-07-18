@@ -1,34 +1,34 @@
 import Cookies from 'js-cookie';
 
+import { isMockApiMode, REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
 import { authClient } from '@/lib/auth-client';
-import { AUTH_COOKIE_NAME } from '@/lib/config';
+import { MOCK_SESSION_MARKER } from '@/lib/config';
 import { useUserStore } from '@/store/useUserStore';
 import type { Session, User, UserRole } from '@/types/auth';
+import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
-import { AUTH_MOCK_USERS, MOCK_OTP_CODE, MOCK_USER_PASSWORD, type MockAuthUserRecord } from './mock/auth-mock-users';
+import {
+  AUTH_MOCK_USERS,
+  MOCK_OTP_CODE,
+  MOCK_USER_PASSWORD,
+  MOCK_USERS_SEED_VERSION,
+  type MockAuthUserRecord,
+} from './mock/auth-mock-users';
 
 /**
- * Facade for every authentication interaction in the app (rule 40, #1-#2).
- *
- * UI components and hooks must NEVER import `authClient` or Better-Auth
- * hooks directly — they call `AuthService` instead. This guarantees that
- * swapping the "real" branch below from Better-Auth to the external
- * NestJS API (see MIGRATION_CONTEXT.md) never requires touching a single
- * component.
+ * Facade for every authentication interaction (rule 40).
+ * Mock session meta stays JS-readable for local DX only.
+ * Real mode relies on Better-Auth / Nest httpOnly cookies — no token in JS cookies.
  */
 
-const IS_MOCK_MODE = process.env.NEXT_PUBLIC_API_MODE !== 'real';
+const IS_MOCK_MODE = isMockApiMode();
 
 const MOCK_USERS_STORAGE_KEY = 'karvita_mock_auth_users';
+const MOCK_USERS_VERSION_KEY = 'karvita_mock_auth_users_version';
+/** Mock-only: JSON `{ token, expiresAt }` — never used in real mode. */
 const SESSION_META_STORAGE_KEY = 'karvita_auth_session_meta';
 const MOCK_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
-/**
- * Placeholder password used only for the interim Better-Auth bridge (see
- * `register`/`verifyRegistrationOtp` "real" branches below), since the
- * legacy prototype's registration flow has no password step of its own.
- * Removed entirely once NestJS registration/OTP endpoints exist.
- */
 const INTERIM_BRIDGE_PASSWORD = 'karvita-otp-bridge-placeholder';
 
 export interface RegisterPayload {
@@ -52,11 +52,12 @@ function getCookie(name: string): string | null {
 
 function setCookie(name: string, value: string, expiresAt: string): void {
   if (!isBrowser()) return;
+  // Session meta is JS-readable (mock DX only). Prefer Strict + Secure in prod.
   Cookies.set(name, value, {
     path: '/',
     expires: new Date(expiresAt),
     sameSite: 'strict',
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
   });
 }
 
@@ -68,9 +69,17 @@ function deleteCookie(name: string): void {
 function readMockUsers(): MockAuthUserRecord[] {
   if (!isBrowser()) return AUTH_MOCK_USERS;
 
+  const version = window.localStorage.getItem(MOCK_USERS_VERSION_KEY);
+  if (version !== MOCK_USERS_SEED_VERSION) {
+    writeMockUsers(AUTH_MOCK_USERS);
+    window.localStorage.setItem(MOCK_USERS_VERSION_KEY, MOCK_USERS_SEED_VERSION);
+    return AUTH_MOCK_USERS;
+  }
+
   const stored = window.localStorage.getItem(MOCK_USERS_STORAGE_KEY);
   if (!stored) {
     writeMockUsers(AUTH_MOCK_USERS);
+    window.localStorage.setItem(MOCK_USERS_VERSION_KEY, MOCK_USERS_SEED_VERSION);
     return AUTH_MOCK_USERS;
   }
 
@@ -83,8 +92,9 @@ function readMockUsers(): MockAuthUserRecord[] {
 }
 
 function writeMockUsers(users: MockAuthUserRecord[]): void {
-  if (!isBrowser()) return;
+  if (!isBrowser() || !IS_MOCK_MODE) return;
   window.localStorage.setItem(MOCK_USERS_STORAGE_KEY, JSON.stringify(users));
+  window.localStorage.setItem(MOCK_USERS_VERSION_KEY, MOCK_USERS_SEED_VERSION);
 }
 
 function toPublicUser(record: MockAuthUserRecord): User {
@@ -109,9 +119,8 @@ function toPublicUser(record: MockAuthUserRecord): User {
   };
 }
 
-// اصلاح این تابع برای خواندن توکن از کوکی
 function readSessionMeta(): SessionMeta | null {
-  if (!isBrowser()) return null;
+  if (!isBrowser() || !IS_MOCK_MODE) return null;
   const stored = getCookie(SESSION_META_STORAGE_KEY);
   if (!stored) return null;
   try {
@@ -121,9 +130,8 @@ function readSessionMeta(): SessionMeta | null {
   }
 }
 
-// اصلاح این تابع برای نوشتن توکن در کوکی
 function writeSessionMeta(meta: SessionMeta | null): void {
-  if (!isBrowser()) return;
+  if (!isBrowser() || !IS_MOCK_MODE) return;
   if (!meta) {
     deleteCookie(SESSION_META_STORAGE_KEY);
     return;
@@ -131,33 +139,40 @@ function writeSessionMeta(meta: SessionMeta | null): void {
   setCookie(SESSION_META_STORAGE_KEY, JSON.stringify(meta), meta.expiresAt);
 }
 
-/**
- * Lightweight, non-secret marker cookie so a future `src/middleware.ts`
- * can cheaply check "is someone logged in" at the Edge (rule 40, #3).
- * Only used in mock mode — in real mode Better-Auth's `nextCookies()`
- * plugin already issues its own HTTP-only session cookie server-side.
- */
-function setMarkerCookie(expiresAt: string): void {
-  if (!isBrowser()) return;
-  Cookies.set(AUTH_COOKIE_NAME, '1', {
+function setMockMarkerCookie(expiresAt: string): void {
+  if (!isBrowser() || !IS_MOCK_MODE) return;
+  // Presence-only for Edge — NOT a secret / NOT a role claim (rule 45).
+  // Lax so navigations from external OTP links still carry the marker.
+  Cookies.set(MOCK_SESSION_MARKER, '1', {
     path: '/',
     expires: new Date(expiresAt),
     sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
   });
 }
 
-function clearMarkerCookie(): void {
+function clearMockMarkerCookie(): void {
   if (!isBrowser()) return;
-  Cookies.remove(AUTH_COOKIE_NAME, { path: '/' });
+  Cookies.remove(MOCK_SESSION_MARKER, { path: '/' });
+  deleteCookie(SESSION_META_STORAGE_KEY);
 }
 
 function dispatchSessionToStore(session: Session | null): void {
   useUserStore.getState().setUser(session?.user ?? null);
-  writeSessionMeta(session ? { token: session.token, expiresAt: session.expiresAt } : null);
+
+  if (!IS_MOCK_MODE) {
+    // Real: never persist bearer tokens in JS-readable cookies.
+    clearMockMarkerCookie();
+    return;
+  }
+
+  writeSessionMeta(
+    session ? { token: session.token, expiresAt: session.expiresAt } : null
+  );
   if (session) {
-    setMarkerCookie(session.expiresAt);
+    setMockMarkerCookie(session.expiresAt);
   } else {
-    clearMarkerCookie();
+    clearMockMarkerCookie();
   }
 }
 
@@ -169,7 +184,6 @@ function buildMockSession(user: User): Session {
   };
 }
 
-/** Best-effort bridge until the real Better-Auth `user` schema stores mobile numbers. */
 function toPseudoEmail(mobile: string): string {
   return `${mobile}@karvita.local`;
 }
@@ -178,8 +192,13 @@ function mapBetterAuthRole(rawRole: string | null | undefined): UserRole {
   return rawRole === 'admin' ? 'super_admin' : 'student';
 }
 
+function assertMockOtp(otp: string): void {
+  if (otp !== MOCK_OTP_CODE) {
+    throw new Error('کد تایید نادرست است (کد تست: ۱۲۳۴۵).');
+  }
+}
+
 export class AuthService {
-  /** Password + credential login. */
   static async loginWithCredentials(mobile: string, password: string): Promise<User> {
     if (IS_MOCK_MODE) {
       const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
@@ -195,36 +214,35 @@ export class AuthService {
       return user;
     }
 
-    // TODO(NestJS migration): replace with a direct call to the external API.
     const { data, error } = await authClient.signIn.email({
       email: toPseudoEmail(mobile),
       password,
     });
 
-    if (error || !data) {
+    if (error || !data?.user) {
       throw new Error(error?.message || 'ورود ناموفق بود.');
     }
 
-    const [firstName, ...lastNameParts] = data.user.name.split(' ');
     const user: User = {
       id: data.user.id,
-      firstName: firstName || 'کاربر',
-      lastName: lastNameParts.join(' ') || 'کارویتا',
+      firstName: data.user.name?.split(' ')[0] ?? '',
+      lastName: data.user.name?.split(' ').slice(1).join(' ') ?? '',
       mobile,
-      role: mapBetterAuthRole(data.user.role),
-      approved: true,
-      docStatus: 'approved',
+      role: mapBetterAuthRole(
+        (data.user as { role?: string | null }).role
+      ),
+      approved: false,
+      docStatus: 'not_submitted',
     };
 
     dispatchSessionToStore({
       user,
-      token: data.token ?? '',
+      token: '',
       expiresAt: new Date(Date.now() + MOCK_SESSION_TTL_MS).toISOString(),
     });
     return user;
   }
 
-  /** Step 1 of OTP login: dispatch (or simulate) the SMS code. */
   static async sendLoginOtp(mobile: string): Promise<void> {
     if (IS_MOCK_MODE) {
       const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
@@ -234,16 +252,12 @@ export class AuthService {
       return;
     }
 
-    // TODO(NestJS migration): trigger the real SMS/OTP provider through the API.
-    throw new Error('ورود با کد یکبار مصرف در حالت واقعی هنوز پیاده‌سازی نشده است.');
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
-  /** Step 2 of OTP login: verify the code (test code `12345` in mock mode) and sign in. */
   static async verifyLoginOtp(mobile: string, otp: string): Promise<User> {
     if (IS_MOCK_MODE) {
-      if (otp !== MOCK_OTP_CODE) {
-        throw new Error('کد تایید نادرست است (کد تست: ۱۲۳۴۵).');
-      }
+      assertMockOtp(otp);
 
       const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
       if (!record) {
@@ -255,20 +269,52 @@ export class AuthService {
       return user;
     }
 
-    throw new Error('ورود با کد یکبار مصرف در حالت واقعی هنوز پیاده‌سازی نشده است.');
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
-  /** Step 1 of registration: reserve the mobile number and dispatch/simulate the OTP. */
+  /**
+   * Admin gate — only `super_admin`. OTP-only entry (original-karvita.html).
+   */
+  static async sendAdminGateOtp(mobile: string): Promise<void> {
+    if (IS_MOCK_MODE) {
+      const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
+      if (!record || !isSuperAdminRole(record.role)) {
+        throw new Error('دسترسی این درگاه فقط برای مدیریت ارشد سامانه است.');
+      }
+      return;
+    }
+
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+  }
+
+  static async verifyAdminGateOtp(mobile: string, otp: string): Promise<User> {
+    if (IS_MOCK_MODE) {
+      assertMockOtp(otp);
+
+      const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
+      if (!record || !isSuperAdminRole(record.role)) {
+        throw new Error('دسترسی این درگاه فقط برای مدیریت ارشد سامانه است.');
+      }
+
+      const user = toPublicUser(record);
+      dispatchSessionToStore(buildMockSession(user));
+      return user;
+    }
+
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+  }
+
   static async register(payload: RegisterPayload): Promise<void> {
     if (IS_MOCK_MODE) {
-      const alreadyExists = readMockUsers().some((candidate) => candidate.mobile === payload.mobile);
+      const alreadyExists = readMockUsers().some(
+        (candidate) => candidate.mobile === payload.mobile
+      );
       if (alreadyExists) {
         throw new Error('کاربری با این شماره موبایل قبلاً ثبت‌نام کرده است.');
       }
       return;
     }
 
-    // TODO(NestJS migration): replace with a direct call to the external API.
     const { error } = await authClient.signUp.email({
       email: toPseudoEmail(payload.mobile),
       password: INTERIM_BRIDGE_PASSWORD,
@@ -280,13 +326,14 @@ export class AuthService {
     }
   }
 
-  /** Step 2 of registration: verify the OTP (test code `12345`) and create the account. */
-  static async verifyRegistrationOtp(mobile: string, otp: string, role: UserRole): Promise<User> {
-    if (otp !== MOCK_OTP_CODE) {
-      throw new Error('کد تایید نادرست است (کد تست: ۱۲۳۴۵).');
-    }
-
+  static async verifyRegistrationOtp(
+    mobile: string,
+    otp: string,
+    role: UserRole
+  ): Promise<User> {
     if (IS_MOCK_MODE) {
+      assertMockOtp(otp);
+
       const users = readMockUsers();
       const newRecord: MockAuthUserRecord = {
         id: `#U-${Date.now()}`,
@@ -307,34 +354,10 @@ export class AuthService {
       return user;
     }
 
-    const { data, error } = await authClient.signIn.email({
-      email: toPseudoEmail(mobile),
-      password: INTERIM_BRIDGE_PASSWORD,
-    });
-
-    if (error || !data) {
-      throw new Error(error?.message || 'تایید ثبت‌نام ناموفق بود.');
-    }
-
-    const user: User = {
-      id: data.user.id,
-      firstName: '',
-      lastName: '',
-      mobile,
-      role,
-      approved: false,
-      docStatus: 'not_submitted',
-    };
-
-    dispatchSessionToStore({
-      user,
-      token: data.token ?? '',
-      expiresAt: new Date(Date.now() + MOCK_SESSION_TTL_MS).toISOString(),
-    });
-    return user;
+    // Real: OTP must come from Nest later — never accept MOCK_OTP_CODE here.
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
-  /** Step 1 of password recovery: verify the mobile is registered and dispatch/simulate the OTP. */
   static async sendForgotPasswordOtp(mobile: string): Promise<void> {
     if (IS_MOCK_MODE) {
       const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
@@ -344,16 +367,12 @@ export class AuthService {
       return;
     }
 
-    // TODO(NestJS migration): trigger the real SMS/OTP provider through the API.
-    throw new Error('بازیابی رمز عبور در حالت واقعی هنوز پیاده‌سازی نشده است.');
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
-  /** Step 2 of password recovery: verify the code (test code `12345` in mock mode) without signing in. */
   static async verifyForgotPasswordOtp(mobile: string, otp: string): Promise<void> {
     if (IS_MOCK_MODE) {
-      if (otp !== MOCK_OTP_CODE) {
-        throw new Error('کد تایید نادرست است (کد تست: ۱۲۳۴۵).');
-      }
+      assertMockOtp(otp);
 
       const record = readMockUsers().find((candidate) => candidate.mobile === mobile);
       if (!record) {
@@ -362,15 +381,16 @@ export class AuthService {
       return;
     }
 
-    throw new Error('بازیابی رمز عبور در حالت واقعی هنوز پیاده‌سازی نشده است.');
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
-  /** Step 3 of password recovery: re-verify the OTP and persist the new password. */
-  static async resetPassword(mobile: string, otp: string, newPassword: string): Promise<void> {
+  static async resetPassword(
+    mobile: string,
+    otp: string,
+    newPassword: string
+  ): Promise<void> {
     if (IS_MOCK_MODE) {
-      if (otp !== MOCK_OTP_CODE) {
-        throw new Error('کد تایید نادرست است (کد تست: ۱۲۳۴۵).');
-      }
+      assertMockOtp(otp);
 
       const users = readMockUsers();
       const recordIndex = users.findIndex((candidate) => candidate.mobile === mobile);
@@ -393,14 +413,9 @@ export class AuthService {
       return;
     }
 
-    // TODO(NestJS migration): replace with a direct call to the external API's reset-password endpoint.
-    throw new Error('بازیابی رمز عبور در حالت واقعی هنوز پیاده‌سازی نشده است.');
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
-  /**
-   * First-time password registration for accounts created via OTP-only signup
-   * (profile security tab — mirrors `saveFirstTimePassword` in the legacy HTML).
-   */
   static async setInitialPassword(mobile: string, newPassword: string): Promise<void> {
     if (newPassword.trim().length < 8) {
       throw new Error('رمز عبور باید حداقل ۸ کاراکتر باشد.');
@@ -428,25 +443,69 @@ export class AuthService {
       return;
     }
 
-    throw new Error('ثبت رمز عبور اولیه در حالت واقعی هنوز پیاده‌سازی نشده است.');
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   }
 
-  /** Clears the active session everywhere: `useUserStore`, marker cookie, and Better-Auth (real mode). */
   static async logout(): Promise<void> {
     if (!IS_MOCK_MODE) {
-      // TODO(NestJS migration): call the external API's logout endpoint instead.
-      await authClient.signOut();
+      try {
+        await authClient.signOut();
+      } catch {
+        // Still clear local state below.
+      }
     }
 
     dispatchSessionToStore(null);
   }
 
-  /** Synchronous read of the currently active session, if any. */
-  static getSession(): Session | null {
+  /**
+   * Idempotent session read for render — never clears cookies/store.
+   * Prefer this (or {@link getSession}) inside React render paths.
+   */
+  static peekSession(): Session | null {
     const activeUser = useUserStore.getState().activeUser;
-    const meta = readSessionMeta();
-    if (!activeUser || !meta) return null;
+    if (!activeUser) return null;
 
-    return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
+    if (IS_MOCK_MODE) {
+      const meta = readSessionMeta();
+      if (!meta) return null;
+      if (new Date(meta.expiresAt).getTime() <= Date.now()) return null;
+      return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
+    }
+
+    // Real: bearer stays httpOnly; Zustand user is UX chrome only (rule 45).
+    return {
+      user: activeUser,
+      token: '',
+      expiresAt: new Date(Date.now() + MOCK_SESSION_TTL_MS).toISOString(),
+    };
+  }
+
+  /**
+   * Validate session and clear expired/missing mock meta. Call only from
+   * effects / event handlers — never during render (rule 45).
+   */
+  static validateSession(): Session | null {
+    const activeUser = useUserStore.getState().activeUser;
+    if (!activeUser) return null;
+
+    if (IS_MOCK_MODE) {
+      const meta = readSessionMeta();
+      if (!meta || new Date(meta.expiresAt).getTime() <= Date.now()) {
+        dispatchSessionToStore(null);
+        return null;
+      }
+      return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
+    }
+
+    return AuthService.peekSession();
+  }
+
+  /**
+   * Render-safe alias of {@link peekSession}. Does not mutate session state.
+   * Use {@link validateSession} in effects to clear expired mock sessions.
+   */
+  static getSession(): Session | null {
+    return AuthService.peekSession();
   }
 }

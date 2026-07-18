@@ -9,6 +9,7 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvForm } from '@/components/shared/KvForm';
 import { KvTextField } from '@/components/shared/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { isMockApiMode } from '@/lib/api-mode';
 import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
 import { faIcons } from '@/utils/iconMap';
 import {
@@ -81,7 +82,11 @@ export function SecurityChangePasswordFlow({
           <KvAlert
             variant="info"
             title="کد تأیید ارسال شد"
-            description={`کد تستی شبیه‌ساز: ${toPersianDigits(MOCK_OTP_CODE)}`}
+            description={
+              isMockApiMode()
+                ? `کد تستی شبیه‌ساز: ${toPersianDigits(MOCK_OTP_CODE)}`
+                : 'کد تأیید به شماره موبایل شما ارسال شد.'
+            }
           />
           <Controller
             control={otpForm.control}

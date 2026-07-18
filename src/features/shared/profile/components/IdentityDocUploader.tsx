@@ -95,6 +95,7 @@ export function IdentityDocUploader({
           maxWidth: 1000,
           quality: 0.7,
           format: 'image/webp',
+          allowJpegFallback: false,
         });
         onChange(compressedFile);
       } catch (err) {

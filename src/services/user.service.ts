@@ -1,3 +1,4 @@
+import { isMockApiMode, REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
 import { useUserStore } from '@/store/useUserStore';
 import type { DocStatus, User, UserRole } from '@/types/auth';
 
@@ -8,7 +9,7 @@ import type { DocStatus, User, UserRole } from '@/types/auth';
  * NestJS directly. Toggle mock vs real with `NEXT_PUBLIC_API_MODE`.
  */
 
-const IS_MOCK_MODE = process.env.NEXT_PUBLIC_API_MODE !== 'real';
+const IS_MOCK_MODE = isMockApiMode();
 
 /** Flat profile payload accepted by the service (mirrors NestJS DTO). */
 export interface UpdateProfilePayload {
@@ -68,8 +69,6 @@ export const UserService = {
       return updatedUser;
     }
 
-    throw new Error(
-      'اتصال به API واقعی هنوز پیکربندی نشده است. NEXT_PUBLIC_API_MODE را روی mock بگذارید.'
-    );
+    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
   },
 };

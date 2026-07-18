@@ -1,0 +1,40 @@
+---
+alwaysApply: true
+description: "Persian digits are display-only; English digits required for forms, Zod, services, and API."
+---
+
+# Karvita — Persian digits vs English data contracts
+
+Persian/Arabic numerals are a **presentation concern only**. System data stays ASCII English digits (`0-9`).
+
+## Source of truth (do not duplicate)
+- Display: `toPersianDigits` — `src/utils/persianDigits.ts`
+- Normalize: `persianToEnglishDigits` — same file
+- NEVER invent a second digit-conversion helper or inline digit maps.
+
+## Hard bans
+1. NEVER send Persian/Arabic digits to `AuthService`, `ProfileService`, Nest/API bodies, `fetch` payloads, or Zustand user fields.
+2. NEVER put `toPersianDigits(...)` into form `defaultValues`, service arguments, store writes, route params used as IDs, or mock DB keys.
+3. NEVER rely on the browser/DOM alone — RHF state must already be English before submit.
+
+## Editable numeric inputs (mobile, OTP, studentId, skillCode, personalCode, …)
+1. On change: normalize with `persianToEnglishDigits` (and strip non-digits when the field is digits-only).
+2. Emit/store **English** in React Hook Form.
+3. Controlled UI may show `toPersianDigits(englishValue)`.
+4. Prefer shared primitives that already enforce this (`KvMobileNumberField`, auth `OtpCodeField`, profile identifier Controllers). Extend those instead of one-off hacks.
+
+## Zod safety net
+Every numeric/identifier Zod field MUST `.transform((v) => persianToEnglishDigits(...))` (or equivalent) before regex/length checks. See also Digit Normalization in `.cursor/rules/10-typescript-schemas.mdc`.
+
+## Readonly displays
+Locked/read-only fields (e.g. profile mobile) may **display** Persian; the underlying user/store value stays English.
+
+## SMS / OTP / autofill
+Inputs MUST accept English and Persian typed, pasted, or autofilled digits. After normalize, validation and API stay English. Keep `autoComplete="one-time-code"` on OTP where already used.
+
+## Agent / PR checklist (before finishing)
+- [ ] UI can show Persian digits where appropriate
+- [ ] Form state is English `0-9`
+- [ ] Submit / service / API payload is English `0-9`
+- [ ] User can type both `۰-۹` and `0-9`
+- [ ] No new digit utility

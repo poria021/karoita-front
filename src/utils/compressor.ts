@@ -5,6 +5,8 @@ export interface CompressionOptions {
   maxWidth?: number;
   quality?: number;
   format?: 'image/webp' | 'image/jpeg' | 'image/png';
+  /** When false, WebP failure is not retried as JPEG (identity API needs WebP). */
+  allowJpegFallback?: boolean;
 }
 
 const DEFAULT_MAX_WIDTH = 1000;
@@ -78,7 +80,17 @@ async function compressWithLibrary(
   }
 }
 
-/** Compresses to max-width 1000px WebP at 0.7 quality and returns a base64 data URL. */
+/** Reads an already-prepared blob/file as a data URL (no second compression). */
+export async function fileToDataUrl(file: Blob): Promise<string> {
+  ensureBrowser();
+  return readFileAsDataUrl(file);
+}
+
+/**
+ * Compresses then returns a data URL.
+ * Prefer {@link compressImage} + {@link fileToDataUrl} when the uploader
+ * already compressed the file (avoids double compression).
+ */
 export async function compressImageToBase64(file: File): Promise<string> {
   // Identity API contract requires `data:image/webp;base64,...` — no JPEG fallback.
   const compressed = await compressWithLibrary(file, {

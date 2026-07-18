@@ -1,16 +1,21 @@
+import { isMockApiMode } from '@/lib/api-mode';
 import { ApiClientError, apiClient } from '@/services/api-client';
 import { useUserStore } from '@/store/useUserStore';
 import type { DocStatus, User, UserRole } from '@/types/auth';
+import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import { profileSchema } from '../schemas/profile.schema';
 import type { ProfileDTO } from '../types/profile.dto';
 
 const LOCAL_DB_KEY = 'karvita_local_db';
+/** Legacy parallel key — read for migration only; new writes prefer local_db + Zustand. */
 const CURRENT_USER_KEY = 'current_user';
 const USER_STORE_KEY = 'karvita-user-store';
 const AUTH_USERS_KEY = 'karvita_mock_auth_users';
-const API_MODE = process.env.NEXT_PUBLIC_API_MODE ?? 'mock';
+const IS_MOCK_MODE = isMockApiMode();
 const MOCK_DELAY_MS = 350;
+/** Real API: reject oversized data-URL payloads (~1.1MB chars ≈ ~800KB binary). */
+const MAX_IDENTITY_BASE64_CHARS = 1_100_000;
 
 type JsonRecord = Record<string, unknown>;
 
@@ -195,21 +200,9 @@ function mergeRecordIntoUser(activeUser: User, record: JsonRecord): User {
 function syncCurrentUser(updatedRecord: JsonRecord): void {
   if (!isBrowser()) return;
 
-  const legacyLocal = parseJson(window.localStorage.getItem(CURRENT_USER_KEY));
-  if (isRecord(legacyLocal)) {
-    window.localStorage.setItem(
-      CURRENT_USER_KEY,
-      JSON.stringify({ ...legacyLocal, ...updatedRecord })
-    );
-  }
-
-  const legacySession = parseJson(window.sessionStorage.getItem(CURRENT_USER_KEY));
-  if (isRecord(legacySession)) {
-    window.sessionStorage.setItem(
-      CURRENT_USER_KEY,
-      JSON.stringify({ ...legacySession, ...updatedRecord })
-    );
-  }
+  // Stop writing parallel `current_user` keys (reduces tab drift). Legacy reads still work.
+  window.localStorage.removeItem(CURRENT_USER_KEY);
+  window.sessionStorage.removeItem(CURRENT_USER_KEY);
 
   const persistedStore = parseJson(window.localStorage.getItem(USER_STORE_KEY));
   if (
@@ -333,7 +326,7 @@ function friendlyError(error: unknown): Error {
 export class ProfileService {
   static async getProfile(token?: string): Promise<ProfileDTO> {
     try {
-      if (API_MODE === 'real') {
+      if (!IS_MOCK_MODE) {
         const payload = await requestProfile('GET', token);
         return parseProfile(extractApiPayload(payload));
       }
@@ -361,10 +354,10 @@ export class ProfileService {
     try {
       const validatedData = parseProfile(data);
 
-      if (API_MODE === 'real') {
+      if (!IS_MOCK_MODE) {
         const payload = await requestProfile('PUT', token, validatedData);
         const serverMessage = extractApiMessage(payload);
-        const isSuperAdmin = validatedData.role === 'super_admin';
+        const isSuperAdmin = isSuperAdminRole(validatedData.role);
         const activeUser = useUserStore.getState().activeUser;
         if (activeUser) {
           useUserStore.getState().setUser({
@@ -391,7 +384,7 @@ export class ProfileService {
         recordMatchesUser(user, currentUser, token)
       );
 
-      const isSuperAdmin = validatedData.role === 'super_admin';
+      const isSuperAdmin = isSuperAdminRole(validatedData.role);
       const baseRecord: JsonRecord =
         userIndex !== -1
           ? database.users[userIndex]
@@ -442,11 +435,18 @@ export class ProfileService {
         throw new ProfileServiceError('فرمت تصویر مدرک هویتی معتبر نیست.');
       }
 
-      if (API_MODE === 'real') {
+      if (documentBase64.length > MAX_IDENTITY_BASE64_CHARS) {
+        throw new ProfileServiceError(
+          'حجم تصویر مدرک بیش از حد مجاز است. لطفاً تصویر کوچک‌تری انتخاب کنید.'
+        );
+      }
+
+      if (!IS_MOCK_MODE) {
         await requestIdentityDocument(documentBase64, token);
         return;
       }
 
+      // Mock: never persist large base64 in localStorage — metadata/flag only.
       const database = readDatabase();
       const currentUser = readCurrentUser();
       const userIndex = database.users.findIndex((user) =>
@@ -456,10 +456,18 @@ export class ProfileService {
         throw new ProfileServiceError('پروفایل کاربری یافت نشد.', 404);
       }
 
-      const updatedRecord = {
-        ...database.users[userIndex],
-        docUrl: documentBase64,
+      const previous = database.users[userIndex];
+      const { docUrl: _removedDocUrl, ...withoutDocUrl } = previous;
+      void _removedDocUrl;
+
+      const updatedRecord: JsonRecord = {
+        ...withoutDocUrl,
+        hasIdentityDocument: true,
         lastSubmittedFileName: 'identity-document.webp',
+        identityDocumentSubmittedAt: new Date().toISOString(),
+        identityDocumentByteHint: Math.floor(
+          (documentBase64.length * 3) / 4
+        ),
       };
       database.users[userIndex] = updatedRecord;
       writeDatabase(database);

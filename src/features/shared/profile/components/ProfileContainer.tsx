@@ -25,21 +25,91 @@ type ProfileTab = 'identity' | 'security';
 interface ProfileUiStrategy {
   showSecurityTab: boolean;
   showStatusAlerts: boolean;
+  /** When false, identity stays editable regardless of docStatus (e.g. super_admin). */
+  lockIdentityAfterSubmit: boolean;
+  showIdentityDocUploader: boolean;
+  identitySubmitLabel: string;
 }
 
 /** Role-driven profile chrome — never branch on `role === '...'` in JSX. */
 const PROFILE_UI_STRATEGY: Record<UserRole, ProfileUiStrategy> = {
-  student: { showSecurityTab: true, showStatusAlerts: true },
-  skill_learner: { showSecurityTab: true, showStatusAlerts: true },
-  supervisor_professor: { showSecurityTab: true, showStatusAlerts: true },
-  mentor_teacher: { showSecurityTab: true, showStatusAlerts: true },
-  school_principal: { showSecurityTab: true, showStatusAlerts: true },
-  regional_edu_admin: { showSecurityTab: true, showStatusAlerts: true },
-  faculty_role: { showSecurityTab: true, showStatusAlerts: false },
-  provincial_university: { showSecurityTab: true, showStatusAlerts: false },
-  assistant_admin: { showSecurityTab: true, showStatusAlerts: false },
-  central_organization: { showSecurityTab: true, showStatusAlerts: false },
-  super_admin: { showSecurityTab: false, showStatusAlerts: false },
+  student: {
+    showSecurityTab: true,
+    showStatusAlerts: true,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  skill_learner: {
+    showSecurityTab: true,
+    showStatusAlerts: true,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  supervisor_professor: {
+    showSecurityTab: true,
+    showStatusAlerts: true,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  mentor_teacher: {
+    showSecurityTab: true,
+    showStatusAlerts: true,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  school_principal: {
+    showSecurityTab: true,
+    showStatusAlerts: true,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  regional_edu_admin: {
+    showSecurityTab: true,
+    showStatusAlerts: true,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  faculty_role: {
+    showSecurityTab: true,
+    showStatusAlerts: false,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  provincial_university: {
+    showSecurityTab: true,
+    showStatusAlerts: false,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  assistant_admin: {
+    showSecurityTab: true,
+    showStatusAlerts: false,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  central_organization: {
+    showSecurityTab: true,
+    showStatusAlerts: false,
+    lockIdentityAfterSubmit: true,
+    showIdentityDocUploader: true,
+    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+  },
+  super_admin: {
+    showSecurityTab: false,
+    showStatusAlerts: false,
+    lockIdentityAfterSubmit: false,
+    showIdentityDocUploader: false,
+    identitySubmitLabel: 'ذخیره تغییرات مشخصات سیستم',
+  },
 };
 
 export interface ProfileContainerProps {
@@ -97,7 +167,7 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
   ) : null;
 
   const isProfileLocked =
-    activeUser.role !== 'super_admin' &&
+    uiStrategy.lockIdentityAfterSubmit &&
     activeUser.docStatus !== 'not_submitted' &&
     activeUser.docStatus !== 'rejected';
 
@@ -107,6 +177,9 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
       token={session?.token}
       disabled={isProfileLocked}
       statusAlerts={statusAlerts}
+      showDocUploader={uiStrategy.showIdentityDocUploader}
+      submitLabel={uiStrategy.identitySubmitLabel}
+      autoApproveOnSave={!uiStrategy.lockIdentityAfterSubmit}
     />
   );
 

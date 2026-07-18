@@ -10,7 +10,7 @@ interface AuthSubmitButtonProps {
 
 /**
  * Full-width CTA for auth forms — text only (no icons).
- * Stays clickable until submit; only disables while a request is in flight.
+ * `loading` disables the control (anti double-submit, rule 45).
  */
 export function AuthSubmitButton({
   isLoading,
@@ -24,6 +24,7 @@ export function AuthSubmitButton({
       appearance="solid"
       fullWidth
       loading={isLoading}
+      disabled={isLoading}
     >
       {isLoading ? loadingLabel : children}
     </KvButton>

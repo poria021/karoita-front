@@ -31,6 +31,8 @@ import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 export function Header() {
   const router = useRouter();
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
 
   const activeUser = useUserStore((state) => state.activeUser);
   const openMobileSidebar = useUIStore((state) => state.openMobileSidebar);
@@ -44,8 +46,24 @@ export function Header() {
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   const handleConfirmLogout = async () => {
-    await AuthService.logout();
-    router.push(RouteService.auth.login());
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    setLogoutError(null);
+    try {
+      await AuthService.logout();
+      setIsLogoutDialogOpen(false);
+      router.replace(RouteService.auth.login());
+    } catch {
+      setLogoutError('خروج با خطا مواجه شد. لطفاً دوباره تلاش کنید.');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
+  const handleCloseLogoutDialog = () => {
+    if (isLoggingOut) return;
+    setLogoutError(null);
+    setIsLogoutDialogOpen(false);
   };
 
   return (
@@ -181,14 +199,21 @@ export function Header() {
 
       <KvConfirmationDialog
         isOpen={isLogoutDialogOpen}
-        onClose={() => setIsLogoutDialogOpen(false)}
+        onClose={handleCloseLogoutDialog}
         onConfirm={handleConfirmLogout}
         title="خروج از حساب کاربری"
         description="آیا مایلید به طور کامل از حساب کاربری خود در سامانه کارویتا خارج شوید؟"
         confirmText="خروج از حساب"
         cancelText="انصراف"
         confirmVariant="destructive"
-      />
+        confirmDisabled={isLoggingOut}
+      >
+        {logoutError ? (
+          <p role="alert" className="text-xs font-bold text-kv-danger">
+            {logoutError}
+          </p>
+        ) : null}
+      </KvConfirmationDialog>
     </header>
   );
 }

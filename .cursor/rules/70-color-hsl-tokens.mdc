@@ -1,0 +1,26 @@
+---
+description: Color tokens must be HSL in CSS; TSX must use kv-* utilities only
+globs: src/**/*.{tsx,ts,css}
+alwaysApply: true
+---
+
+# Karvita Color Policy (HSL + semantic tokens)
+
+## CSS (`globals.css` and theme tokens)
+1. Raw color literals in design tokens MUST be written as modern CSS `hsl()` (space-separated), e.g. `hsl(221 85% 42%)`.
+2. Forbidden in token definitions: `#hex`, `rgb()`, `rgba()`, named colors (`white`, `black`, `red`, …), `oklch()` unless migrating the whole system.
+3. Semantic values live on `:root` / `.dark` as `--kv-*`. Tailwind `@theme` only aliases them as `--color-kv-*`.
+4. Dark mode overrides the same `--kv-*` variables — never invent parallel hex scales in components.
+
+## Application code (`src/**/*.{tsx,ts}`)
+1. NEVER hardcode `#hex`, `rgb()`, `rgba()`, or raw `hsl()` in JSX/className/style for product UI.
+2. ALWAYS use semantic utilities: `bg-kv-*`, `text-kv-*`, `border-kv-*`, `fill-kv-*`, `stroke-kv-*`, `ring-kv-*`.
+3. Prefer `currentColor` + a `text-kv-*` / `fill-kv-*` class on SVG instead of literal fills.
+4. Exceptions (document with `eslint-disable-next-line` + short reason):
+   - Third-party brand marks that require exact official colors (e.g. Google logo).
+   - Generated assets outside the design system (rare).
+
+## Enforcement
+- ESLint bans hardcoded hex/rgb/hsl color literals in `src/**/*.{ts,tsx}` (except allowed exception files).
+- New colors belong in `globals.css` as HSL `--kv-*` tokens first, then consumed via utilities.
+- Brand roles, CTA mapping, and atmospheric signature: see `.cursor/rules/90-brand-visual-system.mdc`.

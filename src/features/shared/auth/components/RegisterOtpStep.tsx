@@ -39,6 +39,7 @@ export function RegisterOtpStep({ registerForm }: RegisterOtpStepProps) {
           secondsUntilResend={secondsUntilResend}
           canResend={canResendOtp}
           isResending={isResendingOtp}
+          isBusy={isVerifyingOtp}
           onResend={resendOtp}
           onGoBack={goBackToStep1}
           goBackLabel="اصلاح شماره و نقش"

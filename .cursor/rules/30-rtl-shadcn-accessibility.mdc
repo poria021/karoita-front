@@ -1,0 +1,36 @@
+---
+alwaysApply: false
+globs: "src/app/**/*, src/components/**/*"
+description: "RTL layout, Vazirmatn typography, logical CSS properties, Radix direction providers, and Font Awesome solid iconography."
+---
+# RTL Alignment, Farsi Typography & Shadcn UI Adaptations
+
+## RTL & TYPOGRAPHY
+1. **RTL Direction:** The entire application layout must support RTL (`dir="rtl"`).
+2. **Typography Standard:** The global Persian font is Vazirmatn. Always use the Tailwind class `font-sans`. Do NOT import other foreign fonts, and prevent inline style font family declarations.
+3. **RTL Document Preservation (SSR Layout-Shift Prevent):** The root HTML markup rendered by Next.js inside `src/app/layout.tsx` must be statically generated with `dir="rtl"` and `lang="fa"`.
+
+## RADIX, SHADCN & MOTION DIRECTION ALIGNMENTS
+1. **RTL Provider Strategy:** Create a client wrapper `src/components/shared/Providers.tsx` that includes Radix's `<DirectionProvider dir="rtl">` and wrap children inside this inside the main `src/app/layout.tsx`.
+2. **Radix/Shadcn RTL Portal Mount:** Since Shadcn Popovers, Dialogs, Selects, and Dropdowns render through portals outside the root React tree, explicitly wrap portals with `<DirectionProvider dir="rtl">` or inherit the parent RTL text direction to prevent broken spacing or floating alignment offsets. Always configure `collisionPadding` in viewports.
+3. **Flicker-Free Layouts:** Global layout shells (Sidebar, Header) must rely on CSS logical properties exclusively to remain rendering-agnostic during SSR hydration, avoiding conditional classes.
+4. **RTL Icon Mirroring:** For all directional icons (e.g., Chevrons, Arrows), always apply `rtl:rotate-180` or `rtl:-scale-x-100` classes in Tailwind.
+5. **Tailwind Logical Properties Only:** Strictly forbid physical directional utilities (e.g., `mr-`, `pl-`, `left-`, `right-`, `border-l`, `border-r`). Force Cursor to use Tailwind logical properties:
+   * Use `ms-` / `me-` instead of `ml-` / `mr-`.
+   * Use `ps-` / `pe-` instead of `pl-` / `pr-`.
+   * Use `start-` / `end-` instead of `left-` / `right-`.
+   * Use `border-s-` / `border-e-` instead of `border-l-` / `border-r-`.
+   * Use `rounded-s-` / `rounded-e-` instead of left/right rounded corners.
+6. **Animation Motion Mirroring:** Any Framer Motion or Tailwind-based transform animation that moves horizontally (X-axis translation) must be conditionally mirrored in RTL mode. Invert animation coordinates from positive to negative where appropriate.
+7. **Shadcn UI RTL Auto-Adaptation:** Whenever a Shadcn UI component is generated, imported, or installed inside `src/components/ui/`, immediately rewrite any physical spacing, sizing, positioning, or border-radius classes into their equivalent Tailwind logical properties.
+
+## ICONOGRAPHY
+1. **Iconography Standard:** Strictly use Font Awesome solid via `@fortawesome/react-fontawesome` + `@fortawesome/free-solid-svg-icons`. Prefer the shared `<FaIcon>` wrapper from `src/components/shared/FaIcon.tsx` and the centralized map `src/utils/iconMap.ts` (`iconMap` for legacy `fa-*` keys, `faIcons` for named imports). Do **not** use `lucide-react` or custom Lucide fill hacks.
+2. **Legacy keys:** RoleStrategyMap / module meta may still store Font Awesome class stems (`fa-id-card`). Resolve them through `iconMap` and render with `<FaIcon icon={...} />`.
+3. **Sizing / color:** Size with the `FaIcon` `size` prop (`2xs` | `xs` | `sm` | `md` | `lg` | `xl`) — not Tailwind `size-*` on icons. Color with semantic `text-kv-*` / `currentColor` — never hardcode hex/hsl in JSX.
+
+8. Portal Z-Index Lock Constraints: Nested complex dialogs (e.g. Trainee Grading & Enrollment Modals) translated into Shadcn <Dialog> must actively calibrate inner nested `<Select>` portals by configuring appropriate `className="z-[150]"` explicitly injected onto portaled child layers.
+
+8. **Design System Primacy & Primitives:** Strictly forbid creating raw, unstyled `<button>`, `<input>`, or `<select>` elements inside features. Always consume customized Shadcn UI primitives from `src/components/ui/` to ensure absolute design system consistency.
+9. **Component Variance (CVA):** All shared primitives must support logical variants via `class-variance-authority`. For example, our custom `<Button>` primitive must accept strict props like `variant` ("primary" | "secondary" | "destructive"), `size` ("sm" | "md" | "lg"), and `fullWidth: boolean` rather than accepting chaotic inline Tailwind classes.
+10. **Design Tokens Source of Truth:** All global spacing, border-radius, shadows, and brand colors must be defined centrally inside `src/app/globals.css` (@theme block). Custom elements must strictly map to these Tailwind tokens to maintain layout harmony.

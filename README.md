@@ -156,6 +156,16 @@ For support and questions:
 
 ---
 
-**Built with ❤️ by Zexa**
+****Built with love by Zexa**
 
 Ready to build something amazing? Get started with Zexa Auth Starter today!
+
+## Karvita - API mode (this fork)
+
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_API_MODE` | `mock` (local DX) or `real` (Nest / Better-Auth). Unset defaults to mock in development, **real in production**. Explicit `mock` in production throws. |
+| `NEXT_PUBLIC_API_URL` | Nest API base URL when mode is `real` (no trailing slash). |
+| `NEXT_PUBLIC_AUTH_COOKIE_NAME` | Optional Edge proxy session cookie name (defaults to Better-Auth). |
+
+See `.env.example` and `src/lib/api-mode.ts`. Never deploy production with silent mock auth.

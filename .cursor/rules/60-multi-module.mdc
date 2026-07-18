@@ -1,0 +1,132 @@
+---
+alwaysApply: false
+globs: "src/features/**/*,src/app/**/*"
+description: "Multi-module isolation, cross-domain communication, shared services, and Route Service enforcement."
+---
+# Karvita CAOS - Multi-Module Isolation & Cross-Domain Communication
+
+## DOMAIN ISOLATION RULES
+
+1. **No Direct Imports Between Domains:**
+   - `src/features/karvita/` MUST NOT import from `src/features/hr/` or any other domain.
+   - If sharing is needed, move the logic to `src/services/` or `src/store/`.
+   - ❌ **Forbidden:** `import { Something } from '@/features/hr/components/EmployeeCard'`
+   - ✅ **Correct:** `import { EmployeeService } from '@/services/employee.service'`
+
+2. **Shared Types:**
+   - If two domains need the same TypeScript type, define it in `src/types/shared/`.
+   - ✅ **Correct:** `src/types/shared/user.ts` exported as `export interface User { ... }`
+   - ❌ **Forbidden:** Duplicating the same interface in two different domains.
+
+3. **Shared UI Components:**
+   - If a component is used in multiple domains, move it to `src/components/shared/`.
+   - ✅ **Correct:** `src/components/shared/Button.tsx`
+   - ❌ **Forbidden:** Copying the same Button component into multiple feature folders.
+
+## CROSS-DOMAIN COMMUNICATION
+
+4. **Use Services for Data:**
+   - For data that crosses domains (e.g., user profile, notifications), always use `src/services/`.
+   - ✅ **Correct:** `const user = await UserService.getProfile();` (in Server Component)
+   - ❌ **Forbidden:** Reading from another domain's Zustand store directly.
+
+5. **Use Store for Shared UI State:**
+   - For shared UI state (theme, language, sidebar state), always use `src/store/` (Zustand).
+   - ✅ **Correct:** `const theme = useUIStore((state) => state.theme);`
+   - ❌ **Forbidden:** Storing domain-specific data (like internship weeks) in shared stores.
+
+6. **Route Service for Navigation:**
+   - For navigation between domains, ALWAYS use `RouteService` from `src/services/route.service.ts`.
+   - ✅ **Correct:** `router.push(RouteService.karvita.dashboard());`
+   - ❌ **Forbidden:** `router.push('/karvita/dashboard');`
+
+## DOMAIN-SPECIFIC RULES
+
+7. **Domain Routes:**
+   - Each domain MUST have its own Route Group under `src/app/(app)/[domain]/`.
+   - ✅ **Correct:** `src/app/(app)/karvita/(dashboard)/page.tsx`
+   - ✅ **Correct:** `src/app/(app)/hr/(dashboard)/page.tsx`
+   - ❌ **Forbidden:** Mixing routes from different domains under the same directory.
+
+8. **Domain Store:**
+   - Each domain MAY have its own Zustand store inside its feature folder.
+   - ✅ **Correct:** `src/features/karvita/store/useInternshipStore.ts`
+   - ❌ **Forbidden:** Using a domain store from another domain.
+
+9. **Domain Schemas:**
+   - Each domain MAY have its own Zod schemas inside its feature folder.
+   - ✅ **Correct:** `src/features/karvita/schemas/internship.schema.ts`
+   - ❌ **Forbidden:** Sharing domain-specific schemas across domains.
+
+## LANDING PAGE RULES
+
+10. **Public Marketing Pages:**
+    - The root route (`/`) MUST be in `src/app/(marketing)/page.tsx`.
+    - This page MUST NOT require authentication.
+    - This page MUST provide navigation links to all available domains.
+
+11. **Marketing Pages Structure:**
+    - All marketing pages (About, Contact, Pricing) MUST live inside `src/app/(marketing)/`.
+    - ✅ **Correct:** `src/app/(marketing)/about/page.tsx`
+    - ❌ **Forbidden:** Adding marketing pages inside a domain route.
+
+## ENFORCEMENT GUIDELINES
+
+12. **Linting Rule (Mental Model):**
+    - Cursor MUST treat every `src/features/[domain]/` folder as a sealed package.
+    - If Cursor attempts to import from another domain, it MUST stop and suggest moving the logic to `src/services/` instead.
+
+13. **New Domain Checklist:**
+    When adding a new domain, Cursor MUST ensure the following files are created:
+    - `src/features/[new-domain]/` → Feature folder
+    - `src/app/(app)/[new-domain]/` → Route Group
+    - `src/services/[new-domain].service.ts` → Shared service (if needed)
+    - Update `RouteService` in `src/services/route.service.ts` to include new domain routes
+
+14. **Cross-Domain Audit:**
+    - Before finalizing any PR, Cursor MUST audit all `import` statements across `src/features/`.
+    - If any import crosses domain boundaries, Cursor MUST flag it and suggest moving to `src/services/`.
+
+## CODE EXAMPLE: CORRECT CROSS-DOMAIN COMMUNICATION (Next.js 15 + React 19 Compliant)
+
+### 1. Server Component (Data Fetching) – Runs on the Server
+```typescript
+// src/features/karvita/components/UserProfileWrapper.tsx
+import { UserService } from '@/services/user.service';
+import { UserProfileClient } from './UserProfileClient';
+
+export default async function UserProfileWrapper() {
+  // ✅ Data fetching happens on the server (allowed with `await`)
+  const user = await UserService.getProfile();
+  return <UserProfileClient user={user} />;
+}
+```
+
+### 2. Client Component (Interactivity) – Runs in the Browser
+```typescript
+// src/features/karvita/components/UserProfileClient.tsx
+'use client';
+
+import { RouteService } from '@/services/route.service';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/shared/Button';
+
+interface UserProfileClientProps {
+  user: { name: string };
+}
+
+export function UserProfileClient({ user }: UserProfileClientProps) {
+  const router = useRouter();
+
+  // ✅ Navigation and other interactions use hooks/callbacks — never top-level await
+  const goToHR = () => {
+    router.push(RouteService.hr.dashboard());
+  };
+
+  return (
+    <div>
+      <p>Name: {user.name}</p>
+      <Button onClick={goToHR}>Go to HR Module</Button>
+    </div>
+  );
+}

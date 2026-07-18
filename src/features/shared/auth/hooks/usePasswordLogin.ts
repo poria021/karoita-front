@@ -1,9 +1,15 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { AuthService } from '@/services/auth.service';
 
 import { loginSchema, type LoginSchema } from '../schemas/auth.schema';
+import {
+  clearRememberedMobile,
+  readRememberedMobile,
+  writeRememberedMobile,
+} from '../utils/rememberedMobile';
 import { readAuthErrorMessage } from './authError';
 
 interface UsePasswordLoginOptions {
@@ -12,9 +18,8 @@ interface UsePasswordLoginOptions {
 }
 
 /**
- * Credential (mobile + password) login flow. Owns only its own form and
- * submit lifecycle — mode switching lives in the `useLoginForm` coordinator.
- * Unknown mobile → error on `mobile` only; other auth failures mark both fields.
+ * Credential login. "مرا به خاطر بسپار" فقط شماره موبایل (انگلیسی در storage،
+ * فارسی در UI) را برای ورود بعدی نگه می‌دارد — هرگز رمز عبور.
  */
 export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
   const passwordForm = useForm<LoginSchema>({
@@ -24,9 +29,40 @@ export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
     defaultValues: { mobile: '', password: '', remember: false },
   });
 
+  // After client mount: restore remembered mobile into the field (SSR-safe).
+  useEffect(() => {
+    const mobile = readRememberedMobile();
+    if (!mobile) return;
+    passwordForm.reset({
+      mobile,
+      password: '',
+      remember: true,
+    });
+  }, [passwordForm]);
+
+  // Strip browser-injected password after mount / bfcache restore.
+  useEffect(() => {
+    passwordForm.setValue('password', '', {
+      shouldDirty: false,
+      shouldValidate: false,
+    });
+  }, [passwordForm]);
+
   const submitPassword = passwordForm.handleSubmit(async (data) => {
     try {
       await AuthService.loginWithCredentials(data.mobile, data.password);
+
+      if (data.remember) {
+        writeRememberedMobile(data.mobile);
+      } else {
+        clearRememberedMobile();
+      }
+
+      passwordForm.setValue('password', '', {
+        shouldDirty: false,
+        shouldValidate: false,
+      });
+
       onSuccess();
     } catch (error) {
       const message = readAuthErrorMessage(

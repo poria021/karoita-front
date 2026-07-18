@@ -6,7 +6,9 @@ import { useRouter } from 'next/navigation';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import { getPostLoginPath } from '@/services/post-login-path';
 import { RouteService } from '@/services/route.service';
+import { useUserStore } from '@/store/useUserStore';
 import { faIcons } from '@/utils/iconMap';
 
 interface AppErrorProps {
@@ -48,7 +50,9 @@ export default function AppError({ error, reset }: AppErrorProps) {
         <KvButton
           type="button"
           appearance="secondary"
-          onClick={() => router.push(RouteService.karvita.dashboard())}
+          onClick={() =>
+            router.push(getPostLoginPath(useUserStore.getState().activeUser))
+          }
         >
           بازگشت به میز کار
         </KvButton>

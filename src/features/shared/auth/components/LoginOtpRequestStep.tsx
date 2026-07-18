@@ -34,7 +34,13 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
           ارسال کد تایید
         </AuthSubmitButton>
 
-        <KvButton type="button" appearance="secondary" fullWidth onClick={switchToPasswordMode}>
+        <KvButton
+          type="button"
+          appearance="secondary"
+          fullWidth
+          disabled={isRequestingOtp}
+          onClick={switchToPasswordMode}
+        >
           ورود با رمز عبور
         </KvButton>
       </div>

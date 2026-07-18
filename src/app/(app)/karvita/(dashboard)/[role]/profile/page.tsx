@@ -7,8 +7,6 @@ import {
 } from '@/features/shared/profile/components/ProfileContainer';
 import type { UserRole } from '@/types/auth';
 
-export const dynamic = 'force-dynamic';
-
 const VALID_ROLES: readonly UserRole[] = [
   'student',
   'skill_learner',

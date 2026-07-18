@@ -2,9 +2,10 @@ import {
   listOrganizationLabels,
   type OrganizationField,
 } from '../data/organization-catalog';
+import { isMockApiMode } from '@/lib/api-mode';
 import { ApiClientError, apiClient } from '@/services/api-client';
 
-const API_MODE = process.env.NEXT_PUBLIC_API_MODE ?? 'mock';
+const IS_MOCK_MODE = isMockApiMode();
 const DEFAULT_LIMIT = 10;
 const MOCK_DELAY_MS = 220;
 
@@ -177,7 +178,7 @@ export class OrganizationOptionsService {
       signal: params.signal,
     };
 
-    if (API_MODE === 'real') {
+    if (!IS_MOCK_MODE) {
       return fetchFromApi(request);
     }
 

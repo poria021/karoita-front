@@ -9,6 +9,9 @@ import type { User } from '@/types/auth';
  *
  * Client-only by design (rule 50, #1): never import or subscribe to this
  * store inside a React Server Component.
+ *
+ * Persisted `activeUser.role` is UX chrome only and can be forged in the
+ * browser — never treat it as API authorization (rule 45 / 50 #5).
  */
 interface UserState {
   activeUser: User | null;

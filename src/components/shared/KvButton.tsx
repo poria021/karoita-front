@@ -1,9 +1,10 @@
-import * as React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from 'radix-ui';
+import { cva, type VariantProps } from 'class-variance-authority';
+import * as React from 'react';
 
-import { Spinner } from '@/components/ui/spinner';
+import { KvSpinner } from '@/components/shared/KvSpinner';
 import { cn } from '@/lib/utils';
+
 
 export type KvButtonColor =
   | 'cta'
@@ -208,7 +209,7 @@ export function KvButton({
   const hasChildren =
     children !== undefined && children !== null && children !== false;
   const resolvedIcon = loading ? (
-    <Spinner data-icon="inline-start" aria-hidden="true" />
+    <KvSpinner data-icon="inline-start" aria-hidden="true" />
   ) : (
     icon
   );

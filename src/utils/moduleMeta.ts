@@ -39,6 +39,12 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
     description: 'به پرتال آموزشی سامانه کارویتا خوش آمدید.',
     icon: 'fa-home',
   },
+  [RouteService.karvita.adminDashboard()]: {
+    title: 'میز کار مدیریت ارشد',
+    description:
+      'پنل حاکمیتی سامانه کارویتا — بررسی مدارک، دسترسی‌ها و پیکربندی سازمانی.',
+    icon: 'fa-user-shield',
+  },
   [RouteService.karvita.dailyReports()]: {
     title: 'ثبت و ارسال گزارش روزانه',
     description:

@@ -4,10 +4,9 @@ import { KarvitaModuleAccessGuard } from '@/components/shared/KarvitaModuleAcces
 
 /**
  * Karvita dashboard route group — shell comes from `/(app)/layout.tsx`.
- * Module access is gated until identity approval (except roles that opt out).
+ * Module + role-home gating is a single client guard (rule 45).
+ * Client-gated auth lives in AppAuthGuard; no force-dynamic required.
  */
-export const dynamic = 'force-dynamic';
-
 export default function KarvitaDashboardLayout({
   children,
 }: {

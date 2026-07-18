@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvSpinner } from '@/components/shared/KvSpinner';
 import { KvTextField } from '@/components/shared/KvTextField';
-import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
@@ -77,13 +77,20 @@ export function SearchableOrganizationSelect({
 
   const listQuery = query === value ? '' : query;
 
-  const { items, hasMore, isLoading, isLoadingMore, loadMore, error: loadError } =
-    useOrganizationOptions({
-      type,
-      query: listQuery,
-      enabled: open && !locked,
-      dependsOn,
-    });
+  const {
+    items,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    loadMore,
+    error: loadError,
+    reachedLimit,
+  } = useOrganizationOptions({
+    type,
+    query: listQuery,
+    enabled: open && !locked,
+    dependsOn,
+  });
 
   const handleListScroll = () => {
     const list = listRef.current;
@@ -157,7 +164,7 @@ export function SearchableOrganizationSelect({
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2 px-3.5 py-3 text-xs text-kv-text-faint">
-                <Spinner className="size-3.5" aria-hidden="true" />
+                <KvSpinner className="size-3.5" aria-hidden="true" />
                 در حال بارگذاری...
               </div>
             ) : loadError ? (
@@ -182,7 +189,7 @@ export function SearchableOrganizationSelect({
                 ))}
                 {isLoadingMore ? (
                   <div className="flex items-center justify-center gap-2 border-t border-kv-border-muted px-3.5 py-2.5 text-xs text-kv-text-faint">
-                    <Spinner className="size-3.5" aria-hidden="true" />
+                    <KvSpinner className="size-3.5" aria-hidden="true" />
                     در حال بارگذاری...
                   </div>
                 ) : hasMore ? (
@@ -193,6 +200,10 @@ export function SearchableOrganizationSelect({
                   >
                     نمایش ۱۰ مورد بعدی
                   </Command.Item>
+                ) : reachedLimit ? (
+                  <p className="border-t border-kv-border-muted px-3.5 py-2.5 text-center text-xs font-bold text-kv-text-subtle">
+                    نتایج زیاد است؛ جستجو را دقیق‌تر کنید.
+                  </p>
                 ) : null}
               </>
             ) : (

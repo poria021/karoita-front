@@ -39,6 +39,7 @@ export function LoginOtpVerifyStep({ login }: LoginOtpVerifyStepProps) {
           secondsUntilResend={secondsUntilResend}
           canResend={canResendOtp}
           isResending={isResendingOtp}
+          isBusy={isVerifyingOtp}
           onResend={resendOtp}
           onGoBack={goBackToPhoneStep}
           goBackLabel="اصلاح شماره"
