@@ -8,34 +8,72 @@ import type {
  * Kept outside the Facade so unit tests do not need localStorage / Zustand.
  */
 
+export type OrgDeleteBlockedSets = {
+  provinces: Set<string>;
+  cities: Set<string>;
+  districts: Set<string>;
+};
+
+/**
+ * Single-pass index: O(children) once, then O(1) lookup per list row.
+ */
+export function buildOrgDeleteBlockedSets(
+  db: OrgStructureSnapshot
+): OrgDeleteBlockedSets {
+  const provinces = new Set<string>();
+  const cities = new Set<string>();
+  const districts = new Set<string>();
+
+  for (const city of db.cities) {
+    provinces.add(city.provinceId);
+  }
+  for (const faculty of db.faculties) {
+    provinces.add(faculty.provinceId);
+    cities.add(faculty.cityId);
+  }
+  for (const district of db.districts) {
+    provinces.add(district.provinceId);
+    cities.add(district.cityId);
+  }
+  for (const school of db.schools) {
+    provinces.add(school.provinceId);
+    cities.add(school.cityId);
+    districts.add(school.districtId);
+  }
+
+  return { provinces, cities, districts };
+}
+
+export function isDeleteBlockedWithSets(
+  kind: OrgStructureEntityKind,
+  id: string,
+  sets: OrgDeleteBlockedSets
+): boolean {
+  if (kind === 'province') return sets.provinces.has(id);
+  if (kind === 'city') return sets.cities.has(id);
+  if (kind === 'district') return sets.districts.has(id);
+  return false;
+}
+
 export function isProvinceDeleteBlocked(
   db: OrgStructureSnapshot,
   id: string
 ): boolean {
-  return (
-    db.cities.some((c) => c.provinceId === id) ||
-    db.faculties.some((f) => f.provinceId === id) ||
-    db.districts.some((d) => d.provinceId === id) ||
-    db.schools.some((s) => s.provinceId === id)
-  );
+  return buildOrgDeleteBlockedSets(db).provinces.has(id);
 }
 
 export function isCityDeleteBlocked(
   db: OrgStructureSnapshot,
   id: string
 ): boolean {
-  return (
-    db.faculties.some((f) => f.cityId === id) ||
-    db.districts.some((d) => d.cityId === id) ||
-    db.schools.some((s) => s.cityId === id)
-  );
+  return buildOrgDeleteBlockedSets(db).cities.has(id);
 }
 
 export function isDistrictDeleteBlocked(
   db: OrgStructureSnapshot,
   id: string
 ): boolean {
-  return db.schools.some((s) => s.districtId === id);
+  return buildOrgDeleteBlockedSets(db).districts.has(id);
 }
 
 export function isFacultyDeleteBlocked(
@@ -65,10 +103,5 @@ export function isOrgEntityDeleteBlocked(
   db: OrgStructureSnapshot,
   id: string
 ): boolean {
-  if (kind === 'province') return isProvinceDeleteBlocked(db, id);
-  if (kind === 'city') return isCityDeleteBlocked(db, id);
-  if (kind === 'district') return isDistrictDeleteBlocked(db, id);
-  if (kind === 'faculty') return isFacultyDeleteBlocked(db, id);
-  if (kind === 'school') return isSchoolDeleteBlocked(db, id);
-  return isMajorDeleteBlocked(db, id);
+  return isDeleteBlockedWithSets(kind, id, buildOrgDeleteBlockedSets(db));
 }

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
 import {
   ORG_STRUCTURE_PAGE_SIZE,
@@ -14,6 +15,8 @@ import type {
 } from '@/types/org-structure';
 
 import { getOrgTabConfig } from '../constants';
+
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function entityKindFromTab(tab: OrgStructureSubTab): OrgStructureEntityKind {
   const map: Record<OrgStructureSubTab, OrgStructureEntityKind> = {
@@ -29,10 +32,12 @@ export function entityKindFromTab(tab: OrgStructureSubTab): OrgStructureEntityKi
 
 /**
  * Page state for org structure — paged via Facade (limit=10), owns tab/search/modals.
+ * Search input is immediate; Facade fetches use a debounced query.
  */
 export function useOrgStructurePage() {
   const [tab, setTab] = useState<OrgStructureSubTab>('provinces');
   const [query, setQuery] = useState('');
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -42,12 +47,17 @@ export function useOrgStructurePage() {
   );
 
   const tabConfig = useMemo(() => getOrgTabConfig(tab), [tab]);
-  const resetKey = `${tab}::${query}`;
+  const resetKey = `${tab}::${debouncedQuery}`;
 
   const fetchPage = useCallback(
     async ({ offset, limit }: { offset: number; limit: number }) =>
-      OrgStructureService.listPage({ tab, query, offset, limit }),
-    [tab, query]
+      OrgStructureService.listPage({
+        tab,
+        query: debouncedQuery,
+        offset,
+        limit,
+      }),
+    [tab, debouncedQuery]
   );
 
   const list = useOffsetLimitInfiniteList<OrgStructureListItem>({
