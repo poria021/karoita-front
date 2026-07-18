@@ -1,6 +1,11 @@
 'use client';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import {
+  KvFilterBar,
+  KvFilterBarControl,
+  KvFilterBarSearch,
+} from '@/components/shared/KvFilterBar';
 import { KvSelectField } from '@/components/shared/KvSelectField';
 import { KvSelectItem } from '@/components/shared/KvSelect';
 import { KvTextField } from '@/components/shared/KvTextField';
@@ -17,7 +22,6 @@ interface OnboardingApprovalsFiltersProps {
   role: ApprovalRoleFilter;
   onRoleChange: (value: ApprovalRoleFilter) => void;
   provinces: string[];
-  /** Wider search placeholder on mobile. */
   searchPlaceholder?: string;
 }
 
@@ -32,8 +36,8 @@ export function OnboardingApprovalsFilters({
   searchPlaceholder = 'جستجو...',
 }: OnboardingApprovalsFiltersProps) {
   return (
-    <div className="flex w-full flex-col items-stretch gap-2 sm:flex-row sm:items-center">
-      <div className="relative w-full flex-1">
+    <KvFilterBar>
+      <KvFilterBarSearch>
         <KvTextField
           id="onboarding-approvals-search"
           label={false}
@@ -41,15 +45,11 @@ export function OnboardingApprovalsFilters({
           value={query}
           placeholder={searchPlaceholder}
           onChange={(event) => onQueryChange(event.target.value)}
-          startAddon={
-            <span className="ps-3 text-kv-text-faint">
-              <FaIcon icon={faIcons.magnifyingGlass} size="xs" />
-            </span>
-          }
+          startIcon={<FaIcon icon={faIcons.magnifyingGlass} size="xs" />}
         />
-      </div>
+      </KvFilterBarSearch>
 
-      <div className="w-full shrink-0 sm:w-36">
+      <KvFilterBarControl>
         <KvSelectField
           id="onboarding-approvals-province"
           label={false}
@@ -65,9 +65,9 @@ export function OnboardingApprovalsFilters({
             </KvSelectItem>
           ))}
         </KvSelectField>
-      </div>
+      </KvFilterBarControl>
 
-      <div className="w-full shrink-0 sm:w-36">
+      <KvFilterBarControl>
         <KvSelectField
           id="onboarding-approvals-role"
           label={false}
@@ -82,7 +82,7 @@ export function OnboardingApprovalsFilters({
             </KvSelectItem>
           ))}
         </KvSelectField>
-      </div>
-    </div>
+      </KvFilterBarControl>
+    </KvFilterBar>
   );
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
-import { KvCard, KvCardContent } from '@/components/shared/KvCard';
+import { KvCard, KvCardContent, KvCardFooter } from '@/components/shared/KvCard';
 import { KvSelectField } from '@/components/shared/KvSelectField';
 import { KvSelectItem } from '@/components/shared/KvSelect';
 import { KvTextArea } from '@/components/shared/KvTextArea';
@@ -28,8 +28,8 @@ export function OnboardingApprovalsRejectForm({
   const [preset, setPreset] = useState<string | undefined>(undefined);
 
   return (
-    <KvCard className="border-kv-danger-border bg-kv-danger-soft shadow-none">
-      <KvCardContent className="space-y-3 p-3 sm:p-4">
+    <KvCard tone="danger">
+      <KvCardContent padding="sm" stacked>
         <KvSelectField
           id="onboarding-reject-preset"
           label={false}
@@ -61,7 +61,7 @@ export function OnboardingApprovalsRejectForm({
           onChange={(event) => onReasonChange(event.target.value)}
         />
 
-        <div className="flex justify-end gap-1.5">
+        <KvCardFooter>
           <KvButton
             type="button"
             appearance="secondary"
@@ -82,7 +82,7 @@ export function OnboardingApprovalsRejectForm({
           >
             ثبت رد صلاحیت
           </KvButton>
-        </div>
+        </KvCardFooter>
       </KvCardContent>
     </KvCard>
   );

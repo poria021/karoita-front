@@ -1,10 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import { OnboardingApprovalsService } from '@/services/onboarding-approvals.service';
+import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
+import {
+  ONBOARDING_APPROVALS_PAGE_SIZE,
+  OnboardingApprovalsService,
+} from '@/services/onboarding-approvals.service';
 import type {
   ApprovalFilterTab,
   ApprovalRoleFilter,
@@ -14,7 +18,8 @@ import type {
 const SEARCH_DEBOUNCE_MS = 300;
 
 /**
- * Page state for identity-doc review — filters, selection, approve/reject.
+ * Page state for identity-doc review — paged via Facade (limit=10), same
+ * infinite-list contract as org-structure admin tables.
  */
 export function useOnboardingApprovalsPage() {
   const [tab, setTab] = useState<ApprovalFilterTab>('pending_admin');
@@ -23,66 +28,57 @@ export function useOnboardingApprovalsPage() {
   const [role, setRole] = useState<ApprovalRoleFilter>('all');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
-  const [users, setUsers] = useState<OnboardingApprovalUser[]>([]);
   const [provinces, setProvinces] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [actionBusy, setActionBusy] = useState(false);
-  const [reloadToken, setReloadToken] = useState(0);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [docPreviewUrl, setDocPreviewUrl] = useState<string | null>(null);
 
+  const resetKey = `${tab}::${debouncedQuery}::${province}::${role}`;
+
+  const fetchPage = useCallback(
+    async ({ offset, limit }: { offset: number; limit: number }) => {
+      const page = await OnboardingApprovalsService.listPage({
+        status: tab,
+        query: debouncedQuery,
+        province,
+        role,
+        offset,
+        limit,
+      });
+      setProvinces(page.provinces);
+      return {
+        items: page.items,
+        total: page.total,
+        hasMore: page.hasMore,
+      };
+    },
+    [tab, debouncedQuery, province, role]
+  );
+
+  const list = useOffsetLimitInfiniteList<OnboardingApprovalUser>({
+    resetKey,
+    fetchPage,
+    pageSize: ONBOARDING_APPROVALS_PAGE_SIZE,
+  });
+
+  const {
+    items,
+    total,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    error,
+    loadMoreError,
+    loadMore,
+    reload,
+    clearLoadMoreError,
+  } = list;
+
   const selectedUser =
-    users.find((user) => user.id === selectedId) ?? null;
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      // Defer so setState is not synchronous in the effect body (React Compiler lint).
-      await Promise.resolve();
-      if (cancelled) return;
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const result = await OnboardingApprovalsService.listApprovals({
-          status: tab,
-          query: debouncedQuery,
-          province,
-          role,
-        });
-        if (cancelled) return;
-        setUsers(result.users);
-        setProvinces(result.provinces);
-        setSelectedId((prev) =>
-          prev && result.users.some((user) => user.id === prev) ? prev : null
-        );
-      } catch (err) {
-        if (cancelled) return;
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'بارگذاری فهرست پرونده‌ها ناموفق بود.'
-        );
-        setUsers([]);
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [tab, debouncedQuery, province, role, reloadToken]);
-
-  const reload = useCallback(() => {
-    setReloadToken((token) => token + 1);
-  }, []);
+    items.find((user) => user.id === selectedId) ?? null;
 
   const changeTab = useCallback((next: ApprovalFilterTab) => {
     setTab(next);
@@ -96,12 +92,6 @@ export function useOnboardingApprovalsPage() {
 
   const selectUser = useCallback((user: OnboardingApprovalUser | null) => {
     setSelectedId(user?.id ?? null);
-    setShowRejectForm(false);
-    setRejectReason('');
-  }, []);
-
-  const toggleUser = useCallback((user: OnboardingApprovalUser) => {
-    setSelectedId((prev) => (prev === user.id ? null : user.id));
     setShowRejectForm(false);
     setRejectReason('');
   }, []);
@@ -123,7 +113,7 @@ export function useOnboardingApprovalsPage() {
         setSelectedId(null);
         setShowRejectForm(false);
         setRejectReason('');
-        reload();
+        await reload();
       } catch (err) {
         toast.error(
           err instanceof Error ? err.message : 'تایید صلاحیت ناموفق بود.'
@@ -153,7 +143,7 @@ export function useOnboardingApprovalsPage() {
         setSelectedId(null);
         setShowRejectForm(false);
         setRejectReason('');
-        reload();
+        await reload();
       } catch (err) {
         toast.error(
           err instanceof Error ? err.message : 'رد صلاحیت ناموفق بود.'
@@ -175,14 +165,19 @@ export function useOnboardingApprovalsPage() {
     role,
     setRole,
     provinces,
-    users,
+    users: items,
+    total,
+    hasMore,
     isLoading,
+    isLoadingMore,
     error,
+    loadMoreError,
+    loadMore,
     reload,
+    clearLoadMoreError,
     actionBusy,
     selectedUser,
     selectUser,
-    toggleUser,
     showRejectForm,
     setShowRejectForm,
     rejectReason,

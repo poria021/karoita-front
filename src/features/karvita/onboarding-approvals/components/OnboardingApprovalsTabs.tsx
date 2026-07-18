@@ -38,7 +38,7 @@ export function OnboardingApprovalsTabs({
         </AppTabs>
       </div>
 
-      <div className="block w-full space-y-2 lg:hidden">
+      <div className="block w-full lg:hidden">
         <AppTabs
           value={active}
           onValueChange={handleChange}

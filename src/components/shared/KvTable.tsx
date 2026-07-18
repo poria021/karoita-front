@@ -12,9 +12,17 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
+export type KvTableAlign = 'start' | 'center' | 'end';
+
 export type KvTableProps = React.ComponentProps<typeof Table> & {
   /** Wrap table in horizontal scroll container. Default `true`. */
   scrollable?: boolean;
+};
+
+const ALIGN_CLASS: Record<KvTableAlign, string> = {
+  start: 'text-start',
+  center: 'text-center',
+  end: 'text-end',
 };
 
 /**
@@ -91,15 +99,27 @@ export function KvTableFooter({
   );
 }
 
+export type KvTableRowProps = React.ComponentProps<typeof TableRow> & {
+  /** Clickable row affordance (pointer + hover already present). */
+  interactive?: boolean;
+  /** Selected / focused row highlight (no border accent). */
+  selected?: boolean;
+};
+
 export function KvTableRow({
   className,
+  interactive = false,
+  selected = false,
   ...props
-}: React.ComponentProps<typeof TableRow>) {
+}: KvTableRowProps) {
   return (
     <TableRow
       data-slot="kv-table-row"
+      data-selected={selected || undefined}
       className={cn(
         'border-b border-kv-border font-bold text-kv-text hover:bg-kv-surface-muted/50',
+        interactive && 'cursor-pointer',
+        selected && 'bg-kv-brand-soft font-extrabold text-kv-brand',
         className
       )}
       {...props}
@@ -107,15 +127,24 @@ export function KvTableRow({
   );
 }
 
+export type KvTableHeadProps = Omit<
+  React.ComponentProps<typeof TableHead>,
+  'align'
+> & {
+  align?: KvTableAlign;
+};
+
 export function KvTableHead({
   className,
+  align = 'start',
   ...props
-}: React.ComponentProps<typeof TableHead>) {
+}: KvTableHeadProps) {
   return (
     <TableHead
       data-slot="kv-table-head"
       className={cn(
-        'h-auto p-3.5 text-right font-bold whitespace-nowrap',
+        'h-auto p-3.5 font-bold whitespace-nowrap',
+        ALIGN_CLASS[align],
         className
       )}
       {...props}
@@ -123,14 +152,34 @@ export function KvTableHead({
   );
 }
 
+export type KvTableCellProps = Omit<
+  React.ComponentProps<typeof TableCell>,
+  'align'
+> & {
+  align?: KvTableAlign;
+  /** Strong primary cell (e.g. entity name). */
+  emphasis?: boolean;
+  /** Monospace for identifiers / phones. */
+  mono?: boolean;
+};
+
 export function KvTableCell({
   className,
+  align = 'start',
+  emphasis = false,
+  mono = false,
   ...props
-}: React.ComponentProps<typeof TableCell>) {
+}: KvTableCellProps) {
   return (
     <TableCell
       data-slot="kv-table-cell"
-      className={cn('p-3.5 whitespace-normal', className)}
+      className={cn(
+        'p-3.5 whitespace-normal text-kv-text-secondary',
+        ALIGN_CLASS[align],
+        emphasis && 'font-extrabold text-kv-text',
+        mono && 'font-mono',
+        className
+      )}
       {...props}
     />
   );

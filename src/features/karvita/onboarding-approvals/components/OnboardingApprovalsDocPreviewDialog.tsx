@@ -8,7 +8,10 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KvCard } from '@/components/shared/KvCard';
+import { KvButton } from '@/components/shared/KvButton';
+import { KvCard, KvCardContent } from '@/components/shared/KvCard';
+import { KvEmptyState } from '@/components/shared/KvEmptyState';
+import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
 import { faIcons } from '@/utils/iconMap';
 
 import { isPdfDocUrl } from '../constants';
@@ -32,7 +35,7 @@ export function OnboardingApprovalsDocPreviewDialog({
         if (!next) onClose();
       }}
     >
-      <KvDialogContent size="xl" className="gap-kv-group">
+      <KvDialogContent size="xl">
         <KvDialogHeader>
           <KvDialogTitle>پیش‌نمایش مدرک هویتی</KvDialogTitle>
           <KvDialogDescription>
@@ -42,29 +45,30 @@ export function OnboardingApprovalsDocPreviewDialog({
 
         {url ? (
           isPdf ? (
-            <KvCard
-              className="flex min-h-64 flex-col items-center justify-center gap-3 border-kv-border bg-kv-danger-soft/30 p-8 text-kv-danger shadow-none"
-            >
-              <FaIcon icon={faIcons.filePdf} size="xl" />
-              <p className="text-xs font-bold text-kv-text-secondary">
-                سند PDF — پیش‌نمایش درون‌برنامه‌ای در دسترس نیست.
-              </p>
-              <a
-                href={url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-extrabold text-kv-brand underline-offset-2 hover:underline"
-              >
-                باز کردن در تب جدید
-              </a>
+            <KvCard tone="danger">
+              <KvCardContent padding="lg">
+                <KvEmptyState
+                  tone="danger"
+                  icon={<FaIcon icon={faIcons.filePdf} size="lg" />}
+                  title="پیش‌نمایش PDF در دسترس نیست"
+                  description="سند PDF — پیش‌نمایش درون‌برنامه‌ای در دسترس نیست."
+                  actions={
+                    <KvButton
+                      type="button"
+                      appearance="secondary"
+                      size="sm"
+                      onClick={() =>
+                        window.open(url, '_blank', 'noopener,noreferrer')
+                      }
+                    >
+                      باز کردن در تب جدید
+                    </KvButton>
+                  }
+                />
+              </KvCardContent>
             </KvCard>
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element -- data-URI mock docs; not a remote asset pipeline
-            <img
-              src={url}
-              alt="پیش‌نمایش مدرک هویتی"
-              className="mx-auto max-h-[70vh] w-auto max-w-full rounded-kv-panel border border-kv-border object-contain"
-            />
+            <KvMediaThumb src={url} variant="preview" alt="پیش‌نمایش مدرک هویتی" />
           )
         ) : null}
       </KvDialogContent>

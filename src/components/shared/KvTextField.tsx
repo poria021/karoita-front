@@ -115,6 +115,11 @@ export type KvTextFieldProps = {
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
   maxLength?: number;
   startAddon?: React.ReactNode;
+  /**
+   * Leading icon inside the shared addon chrome (color/padding owned by field).
+   * Prefer over wrapping icons in `startAddon` with feature token classes.
+   */
+  startIcon?: React.ReactNode;
   endAddon?: React.ReactNode;
   /** OTP density: centered + wide tracking */
   otpStyle?: boolean;
@@ -153,6 +158,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       inputMode,
       maxLength,
       startAddon,
+      startIcon,
       endAddon,
       otpStyle = false,
       footer,
@@ -171,6 +177,11 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       : hint
         ? `${id}-hint`
         : undefined;
+    const resolvedStartAddon =
+      startAddon ??
+      (startIcon ? (
+        <span className="flex h-full items-center ps-3">{startIcon}</span>
+      ) : null);
 
     return (
       <KvFieldFrame
@@ -190,9 +201,9 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
           data-slot="kv-text-field"
           data-locked={locked || undefined}
         >
-          {startAddon ? (
+          {resolvedStartAddon ? (
             <div className="flex h-full shrink-0 items-center text-kv-text-faint">
-              {startAddon}
+              {resolvedStartAddon}
             </div>
           ) : null}
 
@@ -217,7 +228,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
             className={cn(
               'h-full min-h-0',
               kvTextFieldInputVariants({ size, state, otpStyle }),
-              startAddon && 'ps-1.5',
+              resolvedStartAddon && 'ps-1.5',
               endAddon && 'pe-1.5'
             )}
           />

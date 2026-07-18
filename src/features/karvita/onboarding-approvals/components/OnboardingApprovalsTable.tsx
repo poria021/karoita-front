@@ -1,7 +1,11 @@
 'use client';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvAlert } from '@/components/shared/KvAlert';
+import { KvBadge } from '@/components/shared/KvBadge';
+import { KvBusySurface } from '@/components/shared/KvBusySurface';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import {
   KvTable,
@@ -11,6 +15,7 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/KvTable';
+import { KvTableViewport } from '@/components/shared/KvTableViewport';
 import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
@@ -19,46 +24,44 @@ import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
-import { getApprovalTabActions } from '../constants';
-
 interface OnboardingApprovalsTableProps {
   users: OnboardingApprovalUser[];
   selectedId: string | null;
   tab: ApprovalFilterTab;
+  total: number;
   isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  loadMoreError: string | null;
   actionBusy: boolean;
+  onLoadMore: () => void;
+  onRetryLoadMore: () => void;
   onSelect: (user: OnboardingApprovalUser) => void;
   onApprove: (user: OnboardingApprovalUser) => void;
   onStartReject: (user: OnboardingApprovalUser) => void;
 }
 
+/** Admin table — fixed viewport + infinite scroll (page size 10 via Facade). */
 export function OnboardingApprovalsTable({
   users,
   selectedId,
   tab,
+  total,
   isLoading,
+  isLoadingMore,
+  hasMore,
+  loadMoreError,
   actionBusy,
+  onLoadMore,
+  onRetryLoadMore,
   onSelect,
   onApprove,
   onStartReject,
 }: OnboardingApprovalsTableProps) {
-  const { canApprove, canReject } = getApprovalTabActions(tab);
-  const showActions = canApprove || canReject;
+  const showActions = tab === 'pending_admin';
 
   if (isLoading) {
-    return (
-      <div
-        className="flex h-[min(28rem,55dvh)] w-full items-center justify-center bg-kv-surface"
-        aria-busy="true"
-      >
-        <FaIcon
-          icon={faIcons.spinner}
-          size="md"
-          spin
-          className="text-kv-brand"
-        />
-      </div>
-    );
+    return <KvBusySurface tableViewport />;
   }
 
   if (users.length === 0) {
@@ -72,55 +75,69 @@ export function OnboardingApprovalsTable({
   }
 
   return (
-    <div className="max-h-[min(32rem,60dvh)] overflow-auto">
-      <KvTable scrollable={false}>
-        <KvTableHeader>
-          <KvTableRow>
-            <KvTableHead>مشخصات</KvTableHead>
-            <KvTableHead className="text-center">شماره تماس</KvTableHead>
-            <KvTableHead className="text-center">استان</KvTableHead>
-            <KvTableHead className="text-center">نقش</KvTableHead>
-            {showActions ? (
-              <KvTableHead className="text-center">عملیات</KvTableHead>
-            ) : null}
-          </KvTableRow>
-        </KvTableHeader>
-        <KvTableBody>
-          {users.map((user) => {
-            const selected = selectedId === user.id;
-            return (
-              <KvTableRow
-                key={user.id}
-                className={`cursor-pointer ${
-                  selected
-                    ? 'border-s-4 border-s-kv-brand bg-kv-brand-soft font-extrabold text-kv-brand'
-                    : 'hover:bg-kv-surface-muted/80'
-                }`}
-                onClick={() => onSelect(user)}
-              >
-                <KvTableCell className="text-right text-xs font-extrabold text-kv-text">
-                  {user.fullName}
-                </KvTableCell>
-                <KvTableCell className="text-center font-mono text-xs font-bold text-kv-text-secondary">
-                  {user.mobile
-                    ? toPersianDigits(`0${user.mobile}`)
-                    : '---'}
-                </KvTableCell>
-                <KvTableCell className="text-center text-xs font-bold text-kv-text-secondary">
-                  {user.province || '---'}
-                </KvTableCell>
-                <KvTableCell className="text-center">
-                  <span className="inline-flex items-center rounded-full bg-kv-surface-muted px-2.5 py-0.5 text-xs font-black text-kv-text-secondary">
-                    {getRoleStrategy(user.role).label}
-                  </span>
-                </KvTableCell>
-                {showActions ? (
-                  <KvTableCell
-                    className="text-center"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <div className="flex items-center justify-center gap-1.5">
-                      {canReject ? (
+    <div className="space-y-kv-group">
+      {loadMoreError ? (
+        <KvAlert
+          variant="error"
+          title="بارگذاری ادامه فهرست ناموفق بود"
+          description={loadMoreError}
+          actions={
+            <KvButton
+              type="button"
+              appearance="secondary"
+              size="sm"
+              onClick={onRetryLoadMore}
+            >
+              تلاش مجدد
+            </KvButton>
+          }
+        />
+      ) : null}
+
+      <KvTableViewport
+        hasMore={hasMore}
+        isLoadingMore={isLoadingMore}
+        onEndReached={onLoadMore}
+        showEndMessage={users.length > 0 && !hasMore}
+        endMessage={`همه موارد بارگذاری شد (${toPersianDigits(total)})`}
+        loadingMoreLabel="در حال بارگذاری ۱۰ سطر بعدی…"
+      >
+        <KvTable scrollable={false}>
+          <KvTableHeader>
+            <KvTableRow>
+              <KvTableHead>مشخصات</KvTableHead>
+              <KvTableHead align="center">استان</KvTableHead>
+              <KvTableHead align="center">نقش</KvTableHead>
+              {showActions ? (
+                <KvTableHead align="center">عملیات</KvTableHead>
+              ) : null}
+            </KvTableRow>
+          </KvTableHeader>
+          <KvTableBody>
+            {users.map((user) => {
+              const selected = selectedId === user.id;
+              return (
+                <KvTableRow
+                  key={user.id}
+                  interactive
+                  selected={selected}
+                  onClick={() => onSelect(user)}
+                >
+                  <KvTableCell emphasis>{user.fullName}</KvTableCell>
+                  <KvTableCell align="center">
+                    {user.province || '---'}
+                  </KvTableCell>
+                  <KvTableCell align="center">
+                    <KvBadge variant="default">
+                      {getRoleStrategy(user.role).label}
+                    </KvBadge>
+                  </KvTableCell>
+                  {showActions ? (
+                    <KvTableCell
+                      align="center"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <KvButtonGroup align="center">
                         <KvButton
                           type="button"
                           color="error"
@@ -131,8 +148,6 @@ export function OnboardingApprovalsTable({
                           onClick={() => onStartReject(user)}
                           icon={<FaIcon icon={faIcons.xmark} size="xs" />}
                         />
-                      ) : null}
-                      {canApprove ? (
                         <KvButton
                           type="button"
                           color="success"
@@ -143,15 +158,15 @@ export function OnboardingApprovalsTable({
                           onClick={() => onApprove(user)}
                           icon={<FaIcon icon={faIcons.check} size="xs" />}
                         />
-                      ) : null}
-                    </div>
-                  </KvTableCell>
-                ) : null}
-              </KvTableRow>
-            );
-          })}
-        </KvTableBody>
-      </KvTable>
+                      </KvButtonGroup>
+                    </KvTableCell>
+                  ) : null}
+                </KvTableRow>
+              );
+            })}
+          </KvTableBody>
+        </KvTable>
+      </KvTableViewport>
     </div>
   );
 }

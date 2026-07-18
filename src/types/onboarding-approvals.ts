@@ -1,4 +1,5 @@
 import type { DocStatus, User, UserRole } from '@/types/auth';
+import type { OffsetLimitPage } from '@/utils/offset-limit-page';
 
 /** Status tabs on the onboarding approvals workspace (excludes `not_submitted`). */
 export type ApprovalFilterTab = Extract<
@@ -29,10 +30,12 @@ export type ListOnboardingApprovalsFilters = {
   query?: string;
   province?: string;
   role?: ApprovalRoleFilter;
+  offset?: number;
+  limit?: number;
 };
 
-export type ListOnboardingApprovalsResult = {
-  users: OnboardingApprovalUser[];
-  provinces: string[];
-  total: number;
-};
+/** Nest-aligned page + province filter options for the toolbar. */
+export type ListOnboardingApprovalsPage =
+  OffsetLimitPage<OnboardingApprovalUser> & {
+    provinces: string[];
+  };

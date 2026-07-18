@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { KvAlert } from '@/components/shared/KvAlert';
+import { KvBusySurface } from '@/components/shared/KvBusySurface';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { getPostLoginPath } from '@/services/post-login-path';
@@ -36,9 +37,7 @@ export function OnboardingApprovalsPage() {
   }, [activeUser, router]);
 
   if (!activeUser || !isSuperAdminRole(activeUser.role)) {
-    return (
-      <div className="min-h-40 w-full bg-kv-canvas" aria-busy="true" />
-    );
+    return <KvBusySurface />;
   }
 
   const { canApprove, canReject } = getApprovalTabActions(page.tab);
@@ -50,7 +49,6 @@ export function OnboardingApprovalsPage() {
         onChange={page.changeTab}
       />
 
-      {/* Mobile / tablet filters */}
       <div className="lg:hidden">
         <OnboardingApprovalsFilters
           query={page.query}
@@ -82,9 +80,8 @@ export function OnboardingApprovalsPage() {
         />
       ) : (
         <>
-          {/* Desktop split */}
-          <div className="hidden w-full flex-row items-start gap-6 lg:flex">
-            <section className="flex w-full flex-col gap-4 text-right lg:w-5/12">
+          <div className="hidden w-full flex-row items-start gap-kv-section lg:flex">
+            <section className="flex w-full flex-col gap-kv-group text-right lg:w-5/12">
               <OnboardingApprovalsFilters
                 query={page.query}
                 onQueryChange={page.setQuery}
@@ -95,13 +92,22 @@ export function OnboardingApprovalsPage() {
                 provinces={page.provinces}
               />
 
-              <KvCard className="overflow-hidden p-0">
+              <KvCard>
                 <OnboardingApprovalsTable
                   users={page.users}
                   selectedId={page.selectedUser?.id ?? null}
                   tab={page.tab}
+                  total={page.total}
                   isLoading={page.isLoading}
+                  isLoadingMore={page.isLoadingMore}
+                  hasMore={page.hasMore}
+                  loadMoreError={page.loadMoreError}
                   actionBusy={page.actionBusy}
+                  onLoadMore={() => void page.loadMore()}
+                  onRetryLoadMore={() => {
+                    page.clearLoadMoreError();
+                    void page.loadMore();
+                  }}
                   onSelect={page.selectUser}
                   onApprove={(user) => void page.approveUser(user)}
                   onStartReject={(user) => {
@@ -141,13 +147,15 @@ export function OnboardingApprovalsPage() {
             </section>
           </div>
 
-          {/* Mobile accordion */}
           <div className="block lg:hidden">
             <OnboardingApprovalsMobileList
               users={page.users}
               selectedId={page.selectedUser?.id ?? null}
               tab={page.tab}
               isLoading={page.isLoading}
+              isLoadingMore={page.isLoadingMore}
+              hasMore={page.hasMore}
+              loadMoreError={page.loadMoreError}
               actionBusy={page.actionBusy}
               showRejectForm={page.showRejectForm}
               rejectReason={page.rejectReason}
@@ -161,6 +169,11 @@ export function OnboardingApprovalsPage() {
               onRejectReasonChange={page.setRejectReason}
               onSubmitReject={(user) => void page.submitReject(user)}
               onPreviewDoc={page.openDocPreview}
+              onLoadMore={() => void page.loadMore()}
+              onRetryLoadMore={() => {
+                page.clearLoadMoreError();
+                void page.loadMore();
+              }}
             />
           </div>
         </>

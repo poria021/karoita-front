@@ -8,6 +8,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 
 export type KvAccordionProps = React.ComponentProps<typeof Accordion>;
@@ -17,7 +18,10 @@ export type KvAccordionTriggerProps = React.ComponentProps<
 >;
 export type KvAccordionContentProps = React.ComponentProps<
   typeof AccordionContent
->;
+> & {
+  /** Stack children with section gap. */
+  stacked?: boolean;
+};
 
 /**
  * Product accordion root — controlled via `value` / `onValueChange`
@@ -63,8 +67,57 @@ export function KvAccordionTrigger({
   );
 }
 
+export type KvAccordionTriggerMetaProps = {
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  trailing?: React.ReactNode;
+};
+
+/**
+ * Title / meta / trailing badge cluster for accordion triggers.
+ * Owns truncation + spacing — pass strings or ready nodes.
+ */
+export function KvAccordionTriggerMeta({
+  title,
+  description,
+  trailing,
+}: KvAccordionTriggerMetaProps) {
+  return (
+    <div
+      data-slot="kv-accordion-trigger-meta"
+      className="flex min-w-0 flex-1 items-center justify-between gap-kv-group pe-kv-pair"
+    >
+      <div className="min-w-0 text-start">
+        {typeof title === 'string' ? (
+          <KvTypography
+            variant="subtitle"
+            weight="black"
+            truncate
+            as="span"
+          >
+            {title}
+          </KvTypography>
+        ) : (
+          title
+        )}
+        {description ? (
+          typeof description === 'string' ? (
+            <KvTypography variant="caption" tone="muted" truncate as="p">
+              {description}
+            </KvTypography>
+          ) : (
+            description
+          )
+        ) : null}
+      </div>
+      {trailing}
+    </div>
+  );
+}
+
 export function KvAccordionContent({
   className,
+  stacked = false,
   ...props
 }: KvAccordionContentProps) {
   return (
@@ -72,6 +125,7 @@ export function KvAccordionContent({
       data-slot="kv-accordion-content"
       className={cn(
         'border-t border-kv-border px-4 text-kv-text-secondary',
+        stacked && 'space-y-kv-group pt-kv-section',
         className
       )}
       {...props}

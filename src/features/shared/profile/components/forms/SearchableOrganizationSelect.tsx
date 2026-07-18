@@ -126,11 +126,9 @@ export function SearchableOrganizationSelect({
         error={error}
         placeholder={placeholder}
         autoComplete="off"
-        startAddon={
+        startIcon={
           showSearchIcon ? (
-            <span className="flex h-full items-center ps-2.5 pe-0.5">
-              <FaIcon icon={faIcons.magnifyingGlass} size="xs" />
-            </span>
+            <FaIcon icon={faIcons.magnifyingGlass} size="xs" />
           ) : undefined
         }
         endAddon={

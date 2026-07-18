@@ -1,8 +1,12 @@
 'use client';
 
-import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
+import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
+import {
+  KvDescriptionItem,
+  KvDescriptionList,
+} from '@/components/shared/KvDescriptionList';
 
 import {
   GENERAL_APPROVAL_FIELDS,
@@ -17,27 +21,6 @@ function readFieldValue(
   const record = user as unknown as Record<string, unknown>;
   const value = record[key];
   return typeof value === 'string' && value.trim() ? value : undefined;
-}
-
-function FieldRow({
-  label,
-  value,
-  numeric,
-}: {
-  label: string;
-  value: string;
-  numeric?: boolean;
-}) {
-  return (
-    <div className="flex justify-between gap-3 border-b border-kv-border pb-1.5 text-xs font-bold text-kv-text-muted">
-      <span>{label}:</span>
-      <span
-        className={`text-end text-kv-text ${numeric ? 'font-mono' : ''}`}
-      >
-        {numeric ? toPersianDigits(value) : value}
-      </span>
-    </div>
-  );
 }
 
 interface OnboardingApprovalsUserFieldsProps {
@@ -58,17 +41,19 @@ export function OnboardingApprovalsUserFields({
   }
 
   return (
-    <div className="space-y-3.5 text-xs font-bold text-kv-text-muted">
-      <FieldRow
+    <KvDescriptionList>
+      <KvDescriptionItem
         label="نام و نام خانوادگی"
         value={user.fullName || '---'}
       />
-      <FieldRow
+      <KvDescriptionItem
         label="شماره تماس"
-        value={user.mobile ? `0${user.mobile}` : '---'}
-        numeric
+        value={
+          user.mobile ? toPersianDigits(`0${user.mobile}`) : '---'
+        }
+        mono
       />
-      <FieldRow
+      <KvDescriptionItem
         label="نقش کاربری"
         value={getRoleStrategy(user.role).label}
       />
@@ -76,17 +61,17 @@ export function OnboardingApprovalsUserFields({
         const value = readFieldValue(user, field.key);
         if (!value) return null;
         return (
-          <FieldRow
+          <KvDescriptionItem
             key={field.key}
             label={field.label}
-            value={value}
-            numeric={field.numeric}
+            value={field.numeric ? toPersianDigits(value) : value}
+            mono={field.numeric}
           />
         );
       })}
       {user.docType ? (
-        <FieldRow label="نوع مدرک" value={user.docType} />
+        <KvDescriptionItem label="نوع مدرک" value={user.docType} />
       ) : null}
-    </div>
+    </KvDescriptionList>
   );
 }

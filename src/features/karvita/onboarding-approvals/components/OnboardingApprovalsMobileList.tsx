@@ -1,18 +1,22 @@
 'use client';
 
-import { KvBadge } from '@/components/shared/KvBadge';
-import type { KvBadgeVariant } from '@/components/shared/KvBadge';
-import { KvButton } from '@/components/shared/KvButton';
-import { KvCard } from '@/components/shared/KvCard';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
-import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
 import {
   KvAccordion,
   KvAccordionContent,
   KvAccordionItem,
   KvAccordionTrigger,
+  KvAccordionTriggerMeta,
 } from '@/components/shared/KvAccordion';
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvAlert } from '@/components/shared/KvAlert';
+import { KvBadge } from '@/components/shared/KvBadge';
+import type { KvBadgeVariant } from '@/components/shared/KvBadge';
+import { KvBusySurface } from '@/components/shared/KvBusySurface';
+import { KvButton } from '@/components/shared/KvButton';
+import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
+import { KvEmptyState } from '@/components/shared/KvEmptyState';
+import { KvMediaAside } from '@/components/shared/KvMediaAside';
+import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
 import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
@@ -42,6 +46,9 @@ interface OnboardingApprovalsMobileListProps {
   selectedId: string | null;
   tab: ApprovalFilterTab;
   isLoading: boolean;
+  isLoadingMore: boolean;
+  hasMore: boolean;
+  loadMoreError: string | null;
   actionBusy: boolean;
   showRejectForm: boolean;
   rejectReason: string;
@@ -52,6 +59,8 @@ interface OnboardingApprovalsMobileListProps {
   onRejectReasonChange: (value: string) => void;
   onSubmitReject: (user: OnboardingApprovalUser) => void;
   onPreviewDoc: (url: string) => void;
+  onLoadMore: () => void;
+  onRetryLoadMore: () => void;
 }
 
 export function OnboardingApprovalsMobileList({
@@ -59,6 +68,9 @@ export function OnboardingApprovalsMobileList({
   selectedId,
   tab,
   isLoading,
+  isLoadingMore,
+  hasMore,
+  loadMoreError,
   actionBusy,
   showRejectForm,
   rejectReason,
@@ -69,16 +81,13 @@ export function OnboardingApprovalsMobileList({
   onRejectReasonChange,
   onSubmitReject,
   onPreviewDoc,
+  onLoadMore,
+  onRetryLoadMore,
 }: OnboardingApprovalsMobileListProps) {
   const { canApprove, canReject } = getApprovalTabActions(tab);
 
   if (isLoading) {
-    return (
-      <KvCard className="flex items-center justify-center gap-2 p-6 text-xs font-bold text-kv-brand">
-        <FaIcon icon={faIcons.spinner} size="sm" spin />
-        در حال فراخوانی...
-      </KvCard>
-    );
+    return <KvBusySurface tableViewport />;
   }
 
   if (users.length === 0) {
@@ -92,58 +101,71 @@ export function OnboardingApprovalsMobileList({
   }
 
   return (
-    <KvAccordion
-      type="single"
-      collapsible
-      value={selectedId ?? ''}
-      onValueChange={(value) => {
-        if (!value) {
-          onSelect(null);
-          return;
-        }
-        const next = users.find((user) => user.id === value) ?? null;
-        onSelect(next);
-      }}
-      className="space-y-0"
-    >
-      {users.map((user) => {
-        const badge = statusBadge(user.docStatus);
+    <div className="space-y-kv-group">
+      {loadMoreError ? (
+        <KvAlert
+          variant="error"
+          title="بارگذاری ادامه فهرست ناموفق بود"
+          description={loadMoreError}
+          actions={
+            <KvButton
+              type="button"
+              appearance="secondary"
+              size="sm"
+              onClick={onRetryLoadMore}
+            >
+              تلاش مجدد
+            </KvButton>
+          }
+        />
+      ) : null}
 
-        return (
-          <KvAccordionItem key={user.id} value={user.id}>
-            <KvAccordionTrigger>
-              <div className="flex min-w-0 flex-1 items-center justify-between gap-3 pe-2">
-                <div className="flex min-w-0 flex-col gap-1 text-right">
-                  <span className="truncate text-xs font-black text-kv-text sm:text-sm">
-                    {user.fullName}
-                  </span>
-                  <span className="truncate text-xs font-bold leading-relaxed text-kv-text-faint">
-                    {getRoleStrategy(user.role).label} •{' '}
-                    {user.province || '---'}
-                  </span>
-                </div>
-                <KvBadge variant={badge.variant} className="shrink-0">
-                  {badge.label}
-                </KvBadge>
-              </div>
-            </KvAccordionTrigger>
+      <KvAccordion
+        type="single"
+        collapsible
+        value={selectedId ?? ''}
+        onValueChange={(value) => {
+          if (!value) {
+            onSelect(null);
+            return;
+          }
+          const next = users.find((user) => user.id === value) ?? null;
+          onSelect(next);
+        }}
+      >
+        {users.map((user) => {
+          const badge = statusBadge(user.docStatus);
+          const roleLabel = getRoleStrategy(user.role).label;
 
-            <KvAccordionContent>
-              <div className="space-y-4 pt-3">
-                <div className="flex flex-col items-center gap-3 sm:flex-row">
-                  <KvMediaThumb
-                    src={user.docUrl}
-                    onPreview={onPreviewDoc}
-                    className="h-28 w-full sm:w-24"
-                  />
-                  <div className="w-full flex-grow">
-                    <OnboardingApprovalsUserFields user={user} />
-                  </div>
-                </div>
+          return (
+            <KvAccordionItem key={user.id} value={user.id}>
+              <KvAccordionTrigger>
+                <KvAccordionTriggerMeta
+                  title={user.fullName}
+                  description={`${roleLabel} • ${user.province || '---'}`}
+                  trailing={
+                    <KvBadge variant={badge.variant}>{badge.label}</KvBadge>
+                  }
+                />
+              </KvAccordionTrigger>
+
+              <KvAccordionContent stacked>
+                <KvMediaAside
+                  media={
+                    <KvMediaThumb
+                      src={user.docUrl}
+                      onPreview={onPreviewDoc}
+                      size="lg"
+                      fluid
+                    />
+                  }
+                >
+                  <OnboardingApprovalsUserFields user={user} />
+                </KvMediaAside>
 
                 {canApprove || canReject ? (
-                  <div className="space-y-3 pt-2">
-                    <div className="flex w-full gap-2">
+                  <>
+                    <KvButtonGroup fullWidth>
                       {canReject ? (
                         <KvButton
                           type="button"
@@ -170,7 +192,7 @@ export function OnboardingApprovalsMobileList({
                           تایید صلاحیت
                         </KvButton>
                       ) : null}
-                    </div>
+                    </KvButtonGroup>
 
                     {canReject && showRejectForm ? (
                       <OnboardingApprovalsRejectForm
@@ -181,13 +203,26 @@ export function OnboardingApprovalsMobileList({
                         busy={actionBusy}
                       />
                     ) : null}
-                  </div>
+                  </>
                 ) : null}
-              </div>
-            </KvAccordionContent>
-          </KvAccordionItem>
-        );
-      })}
-    </KvAccordion>
+              </KvAccordionContent>
+            </KvAccordionItem>
+          );
+        })}
+      </KvAccordion>
+
+      {hasMore ? (
+        <KvButton
+          type="button"
+          appearance="secondary"
+          size="sm"
+          fullWidth
+          loading={isLoadingMore}
+          onClick={onLoadMore}
+        >
+          بارگذاری ۱۰ مورد بعدی
+        </KvButton>
+      ) : null}
+    </div>
   );
 }

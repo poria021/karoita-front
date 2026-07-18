@@ -10,9 +10,13 @@ import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
 import type {
   ListOnboardingApprovalsFilters,
-  ListOnboardingApprovalsResult,
+  ListOnboardingApprovalsPage,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
+import {
+  DEFAULT_PAGE_LIMIT,
+  sliceOffsetLimitPage,
+} from '@/utils/offset-limit-page';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 /**
@@ -22,6 +26,9 @@ import { persianToEnglishDigits } from '@/utils/persianDigits';
  */
 
 const IS_MOCK_MODE = isMockApiMode();
+
+/** Nest-aligned page size for admin tables (same as org-structure). */
+export const ONBOARDING_APPROVALS_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
 
 function requireOnboardingReview(): void {
   if (!isMockApiMode()) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
@@ -56,7 +63,7 @@ function matchesQuery(user: User, rawQuery: string): boolean {
 }
 
 function listFilteredUsers(
-  filters: ListOnboardingApprovalsFilters
+  filters: Omit<ListOnboardingApprovalsFilters, 'offset' | 'limit'>
 ): OnboardingApprovalUser[] {
   const province =
     filters.province && filters.province !== 'all' ? filters.province : null;
@@ -124,19 +131,28 @@ function patchUser(
 }
 
 export const OnboardingApprovalsService = {
-  async listApprovals(
+  /**
+   * Offset/limit page for infinite-scroll tables (Nest contract: limit=10).
+   */
+  async listPage(
     filters: ListOnboardingApprovalsFilters
-  ): Promise<ListOnboardingApprovalsResult> {
+  ): Promise<ListOnboardingApprovalsPage> {
     if (!IS_MOCK_MODE) {
       throw new Error(REAL_MODE_NOT_IMPLEMENTED);
     }
     requireOnboardingReview();
     await new Promise((resolve) => setTimeout(resolve, 200));
-    const users = listFilteredUsers(filters);
+
+    const all = listFilteredUsers(filters);
+    const page = sliceOffsetLimitPage(
+      all,
+      filters.offset ?? 0,
+      filters.limit ?? ONBOARDING_APPROVALS_PAGE_SIZE
+    );
+
     return {
-      users,
+      ...page,
       provinces: collectProvinces(),
-      total: users.length,
     };
   },
 
@@ -167,7 +183,9 @@ export const OnboardingApprovalsService = {
     requireOnboardingReview();
     const trimmed = reason.trim();
     if (!trimmed) {
-      throw new Error('لطفاً علت نقص یا عدم تایید مدارک را بنویسید یا انتخاب کنید.');
+      throw new Error(
+        'لطفاً علت نقص یا عدم تایید مدارک را بنویسید یا انتخاب کنید.'
+      );
     }
     const current = findMockUserById(userId);
     if (!current) {

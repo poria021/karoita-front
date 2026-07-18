@@ -3,12 +3,20 @@ import type { ReactNode } from 'react';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 
+export type KvEmptyStateTone = 'brand' | 'danger';
+
 export type KvEmptyStateProps = {
   icon?: ReactNode;
   title: string;
   description?: ReactNode;
   actions?: ReactNode;
+  tone?: KvEmptyStateTone;
   className?: string;
+};
+
+const ICON_TONE_CLASS: Record<KvEmptyStateTone, string> = {
+  brand: 'bg-kv-brand-soft text-kv-brand-soft-fg',
+  danger: 'bg-kv-danger-soft text-kv-danger',
 };
 
 /**
@@ -20,6 +28,7 @@ export function KvEmptyState({
   title,
   description,
   actions,
+  tone = 'brand',
   className,
 }: KvEmptyStateProps) {
   return (
@@ -32,7 +41,12 @@ export function KvEmptyState({
       role="status"
     >
       {icon ? (
-        <div className="flex size-12 items-center justify-center rounded-kv-panel bg-kv-brand-soft text-kv-brand-soft-fg shadow-kv-raised">
+        <div
+          className={cn(
+            'flex size-12 items-center justify-center rounded-kv-panel shadow-kv-raised',
+            ICON_TONE_CLASS[tone]
+          )}
+        >
           {icon}
         </div>
       ) : null}

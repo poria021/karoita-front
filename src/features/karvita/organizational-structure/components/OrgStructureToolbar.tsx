@@ -41,11 +41,7 @@ export function OrgStructureToolbar({
             value={query}
             placeholder={tabConfig.searchPlaceholder}
             onChange={(event) => onQueryChange(event.target.value)}
-            startAddon={
-              <span className="ps-3 text-kv-text-faint">
-                <FaIcon icon={faIcons.magnifyingGlass} size="xs" />
-              </span>
-            }
+            startIcon={<FaIcon icon={faIcons.magnifyingGlass} size="xs" />}
           />
         </div>
 
