@@ -30,7 +30,8 @@ export type KvConfirmationDialogProps = {
 };
 
 /**
- * Product confirmation — composes Shadcn `ui/alert-dialog` + `buttonVariants`.
+ * Product confirmation — `ui/alert-dialog` + product button variants.
+ * Panel chrome matches {@link KvDialogContent}.
  */
 export function KvConfirmationDialog({
   isOpen,
@@ -38,8 +39,8 @@ export function KvConfirmationDialog({
   onConfirm,
   title,
   description,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = 'تأیید',
+  cancelText = 'انصراف',
   confirmVariant = 'default',
   confirmDisabled = false,
   children,
@@ -66,13 +67,13 @@ export function KvConfirmationDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
+      <AlertDialogContent className="sm:max-w-md">
+        <AlertDialogHeader className="mb-kv-section gap-1">
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         {children}
-        <AlertDialogFooter>
+        <AlertDialogFooter className="mt-2 gap-2 sm:justify-stretch">
           <AlertDialogCancel onClick={onClose} disabled={busy}>
             {cancelText}
           </AlertDialogCancel>
