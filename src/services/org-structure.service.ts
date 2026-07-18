@@ -1,6 +1,15 @@
 import { isMockApiMode, REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import { buildOrgStructureSeed } from '@/services/mock/org-structure-seed';
+import {
+  isCityDeleteBlocked,
+  isDistrictDeleteBlocked,
+  isFacultyDeleteBlocked,
+  isMajorDeleteBlocked,
+  isOrgEntityDeleteBlocked,
+  isProvinceDeleteBlocked,
+  isSchoolDeleteBlocked,
+} from '@/services/org-structure-delete-rules';
 import type {
   OrgCity,
   OrgDistrict,
@@ -146,40 +155,6 @@ function kindFromTab(tab: OrgStructureSubTab): OrgStructureEntityKind {
   return map[tab];
 }
 
-function isProvinceBlocked(db: OrgStructureSnapshot, id: string): boolean {
-  return (
-    db.cities.some((c) => c.provinceId === id) ||
-    db.faculties.some((f) => f.provinceId === id) ||
-    db.districts.some((d) => d.provinceId === id) ||
-    db.schools.some((s) => s.provinceId === id)
-  );
-}
-
-function isCityBlocked(db: OrgStructureSnapshot, id: string): boolean {
-  return (
-    db.faculties.some((f) => f.cityId === id) ||
-    db.districts.some((d) => d.cityId === id) ||
-    db.schools.some((s) => s.cityId === id)
-  );
-}
-
-function isDistrictBlocked(db: OrgStructureSnapshot, id: string): boolean {
-  return db.schools.some((s) => s.districtId === id);
-}
-
-function isFacultyBlocked(_db: OrgStructureSnapshot, _id: string): boolean {
-  // Profile users may reference college by name — delete allowed in mock until Nest links ids.
-  return false;
-}
-
-function isSchoolBlocked(_db: OrgStructureSnapshot, _id: string): boolean {
-  return false;
-}
-
-function isMajorBlocked(_db: OrgStructureSnapshot, _id: string): boolean {
-  return false;
-}
-
 export const OrgStructureService = {
   async getSnapshot(): Promise<OrgStructureSnapshot> {
     requireMockOrgManage();
@@ -199,7 +174,7 @@ export const OrgStructureService = {
         id: row.id,
         name: row.name,
         kind,
-        deleteBlocked: isProvinceBlocked(db, row.id),
+        deleteBlocked: isProvinceDeleteBlocked(db, row.id),
       }));
     }
     if (tab === 'cities') {
@@ -207,7 +182,7 @@ export const OrgStructureService = {
         id: row.id,
         name: row.name,
         kind,
-        deleteBlocked: isCityBlocked(db, row.id),
+        deleteBlocked: isCityDeleteBlocked(db, row.id),
       }));
     }
     if (tab === 'faculties') {
@@ -215,7 +190,7 @@ export const OrgStructureService = {
         id: row.id,
         name: row.name,
         kind,
-        deleteBlocked: isFacultyBlocked(db, row.id),
+        deleteBlocked: isFacultyDeleteBlocked(db, row.id),
       }));
     }
     if (tab === 'districts') {
@@ -223,7 +198,7 @@ export const OrgStructureService = {
         id: row.id,
         name: row.name,
         kind,
-        deleteBlocked: isDistrictBlocked(db, row.id),
+        deleteBlocked: isDistrictDeleteBlocked(db, row.id),
       }));
     }
     if (tab === 'schools') {
@@ -231,14 +206,14 @@ export const OrgStructureService = {
         id: row.id,
         name: row.name,
         kind,
-        deleteBlocked: isSchoolBlocked(db, row.id),
+        deleteBlocked: isSchoolDeleteBlocked(db, row.id),
       }));
     }
     return sortByNameFa(filterByName(db.majors, query)).map((row) => ({
       id: row.id,
       name: row.name,
       kind,
-      deleteBlocked: isMajorBlocked(db, row.id),
+      deleteBlocked: isMajorDeleteBlocked(db, row.id),
     }));
   },
 
@@ -488,27 +463,27 @@ export const OrgStructureService = {
     const db = readSnapshot();
 
     if (kind === 'province') {
-      if (isProvinceBlocked(db, id)) {
+      if (isOrgEntityDeleteBlocked(kind, db, id)) {
         throw new Error('این استان به سایر واحدهای سازمانی متصل است و قابل حذف نیست.');
       }
       db.provinces = db.provinces.filter((p) => p.id !== id);
     } else if (kind === 'city') {
-      if (isCityBlocked(db, id)) {
+      if (isOrgEntityDeleteBlocked(kind, db, id)) {
         throw new Error('این شهر به سایر واحدهای سازمانی متصل است و قابل حذف نیست.');
       }
       db.cities = db.cities.filter((c) => c.id !== id);
     } else if (kind === 'faculty') {
-      if (isFacultyBlocked(db, id)) {
+      if (isOrgEntityDeleteBlocked(kind, db, id)) {
         throw new Error('این پردیس قابل حذف نیست.');
       }
       db.faculties = db.faculties.filter((f) => f.id !== id);
     } else if (kind === 'district') {
-      if (isDistrictBlocked(db, id)) {
+      if (isOrgEntityDeleteBlocked(kind, db, id)) {
         throw new Error('این منطقه به مدارس متصل است و قابل حذف نیست.');
       }
       db.districts = db.districts.filter((d) => d.id !== id);
     } else if (kind === 'school') {
-      if (isSchoolBlocked(db, id)) {
+      if (isOrgEntityDeleteBlocked(kind, db, id)) {
         throw new Error('این مدرسه قابل حذف نیست.');
       }
       db.schools = db.schools.filter((s) => s.id !== id);

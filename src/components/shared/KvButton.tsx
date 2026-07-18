@@ -34,7 +34,10 @@ export type KvButtonProps = Omit<React.ComponentProps<'button'>, 'color'> &
  * without ignoring the caller's density intent (`sm` stays compact).
  * Explicit `icon` / `icon-sm` / `icon-lg` pass through unchanged.
  */
-function resolveSize(size: ButtonSize, isIconOnly: boolean): ButtonSize {
+export function resolveKvButtonSize(
+  size: ButtonSize,
+  isIconOnly: boolean
+): ButtonSize {
   if (!isIconOnly) return size;
   if (size === 'sm') return 'icon-sm';
   if (size === 'md') return 'icon';
@@ -71,7 +74,7 @@ export function KvButton({
     icon
   );
   const isIconOnly = Boolean(resolvedIcon) && !hasChildren;
-  const resolvedSize = resolveSize(size, isIconOnly);
+  const resolvedSize = resolveKvButtonSize(size, isIconOnly);
   const resolvedIconPosition = loading ? 'start' : iconPosition;
 
   const content = asChild ? (

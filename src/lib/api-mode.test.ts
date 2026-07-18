@@ -1,0 +1,82 @@
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import {
+  assertMockApiMode,
+  assertRealModeRejectsMockSecret,
+  isMockApiMode,
+  isRealApiMode,
+  MOCK_MODE_LABEL,
+  resolveApiMode,
+} from '@/lib/api-mode';
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
+describe('resolveApiMode', () => {
+  it('defaults to mock in development when unset', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('VERCEL_ENV', '');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', '');
+    expect(resolveApiMode()).toBe('mock');
+    expect(isMockApiMode()).toBe(true);
+  });
+
+  it('defaults to real in production when unset', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('VERCEL_ENV', '');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', '');
+    expect(resolveApiMode()).toBe('real');
+    expect(isRealApiMode()).toBe(true);
+  });
+
+  it('respects explicit real in development', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    expect(resolveApiMode()).toBe('real');
+  });
+
+  it('fail-closes when mock is set in production (NODE_ENV)', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('VERCEL_ENV', '');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
+    expect(() => resolveApiMode()).toThrow(MOCK_MODE_LABEL);
+  });
+
+  it('fail-closes when mock is set under VERCEL_ENV=production', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('VERCEL_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
+    expect(() => resolveApiMode()).toThrow(MOCK_MODE_LABEL);
+  });
+
+  it('rejects invalid NEXT_PUBLIC_API_MODE values', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'staging');
+    expect(() => resolveApiMode()).toThrow(/نامعتبر/);
+  });
+});
+
+describe('assertMockApiMode / mock secrets in real', () => {
+  it('assertMockApiMode throws outside mock', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    expect(() => assertMockApiMode()).toThrow(MOCK_MODE_LABEL);
+  });
+
+  it('assertRealModeRejectsMockSecret rejects fixed mock OTP in real', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    expect(() =>
+      assertRealModeRejectsMockSecret('12345', '12345', 'OTP')
+    ).toThrow(/real/);
+  });
+
+  it('assertRealModeRejectsMockSecret is a no-op in mock', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
+    expect(() =>
+      assertRealModeRejectsMockSecret('12345', '12345', 'OTP')
+    ).not.toThrow();
+  });
+});
