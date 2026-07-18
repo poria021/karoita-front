@@ -51,7 +51,7 @@ export function OnboardingApprovalsDetailPanel({
 }: OnboardingApprovalsDetailPanelProps) {
   if (!user) {
     return (
-      <KvCard tone="muted" fillMin>
+      <KvCard tone="muted" fill className="justify-center">
         <KvCardContent padding="md">
           <KvEmptyState
             icon={<FaIcon icon={faIcons.idCard} size="lg" />}
@@ -66,7 +66,7 @@ export function OnboardingApprovalsDetailPanel({
   const showActions = canApprove || canReject;
 
   return (
-    <KvCard padding="md">
+    <KvCard padding="md" fill>
       <KvCardHeader toolbar bordered>
         <KvCardIdentity
           leading={
@@ -109,7 +109,11 @@ export function OnboardingApprovalsDetailPanel({
         ) : null}
       </KvCardHeader>
 
-      <KvCardContent padding="none" stacked>
+      <KvCardContent
+        padding="none"
+        stacked
+        className="min-h-0 flex-1 overflow-y-auto"
+      >
         {canReject && showRejectForm ? (
           <OnboardingApprovalsRejectForm
             reason={rejectReason}

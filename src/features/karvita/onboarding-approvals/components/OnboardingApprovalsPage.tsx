@@ -80,7 +80,7 @@ export function OnboardingApprovalsPage() {
         />
       ) : (
         <>
-          <div className="hidden w-full flex-row items-start gap-kv-section lg:flex">
+          <div className="hidden w-full flex-row items-stretch gap-kv-section lg:flex">
             <section className="flex w-full flex-col gap-kv-group text-right lg:w-5/12">
               <OnboardingApprovalsFilters
                 query={page.query}
@@ -118,7 +118,7 @@ export function OnboardingApprovalsPage() {
               </KvCard>
             </section>
 
-            <section className="flex w-full flex-col lg:w-7/12">
+            <section className="flex w-full min-h-0 flex-col lg:w-7/12">
               <OnboardingApprovalsDetailPanel
                 user={page.selectedUser}
                 canApprove={canApprove}

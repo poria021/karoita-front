@@ -2,7 +2,6 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
-import { KvBadge } from '@/components/shared/KvBadge';
 import { KvBusySurface } from '@/components/shared/KvBusySurface';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
@@ -129,9 +128,7 @@ export function OnboardingApprovalsTable({
                     {user.province || '---'}
                   </KvTableCell>
                   <KvTableCell align="center">
-                    <KvBadge variant="default">
-                      {getRoleStrategy(user.role).label}
-                    </KvBadge>
+                    {getRoleStrategy(user.role).label}
                   </KvTableCell>
                   {showActions ? (
                     <KvTableCell

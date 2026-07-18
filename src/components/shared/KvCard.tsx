@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
 
 export type KvCardTone = 'surface' | 'muted' | 'danger';
@@ -22,8 +23,10 @@ export type KvCardProps = React.ComponentProps<typeof Card> & {
   tone?: KvCardTone;
   /** Built-in padding — prefer over feature className. */
   padding?: KvCardPadding;
-  /** Stretch to fill a split-pane minimum height. */
+  /** Fixed admin table viewport height. */
   fillMin?: boolean;
+  /** Stretch to full parent height (split-pane companion column). */
+  fill?: boolean;
 };
 
 export type KvCardContentProps = React.ComponentProps<typeof CardContent> & {
@@ -58,6 +61,7 @@ export function KvCard({
   tone = 'surface',
   padding = 'none',
   fillMin = false,
+  fill = false,
   ...props
 }: KvCardProps) {
   return (
@@ -67,7 +71,9 @@ export function KvCard({
         'overflow-hidden gap-0 font-sans text-kv-text',
         TONE_CLASS[tone],
         PADDING_CLASS[padding],
-        fillMin && 'flex min-h-[28rem] flex-col justify-center',
+        fillMin &&
+          cn('flex flex-col overflow-hidden', KV_TABLE_VIEWPORT_HEIGHT),
+        fill && 'flex h-full min-h-0 flex-col overflow-hidden',
         className
       )}
       {...props}
