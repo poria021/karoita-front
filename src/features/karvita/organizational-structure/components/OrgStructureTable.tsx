@@ -49,10 +49,10 @@ export function OrgStructureTable({
   return (
     <KvTable>
       <KvTableHeader>
-        <tr>
+        <KvTableRow>
           <KvTableHead>{tabConfig.nameColumnLabel}</KvTableHead>
           <KvTableHead className="text-center">عملیات</KvTableHead>
-        </tr>
+        </KvTableRow>
       </KvTableHeader>
       <KvTableBody>
         {items.map((row) => (

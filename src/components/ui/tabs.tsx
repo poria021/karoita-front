@@ -28,10 +28,7 @@ function TabsList({
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn(
-        'inline-flex w-fit items-center justify-center rounded-kv-control',
-        className
-      )}
+      className={cn('inline-flex items-center justify-center', className)}
       {...props}
     />
   );

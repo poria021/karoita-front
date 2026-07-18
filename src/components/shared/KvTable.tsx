@@ -19,6 +19,7 @@ export type KvTableProps = React.ComponentProps<typeof Table> & {
 
 /**
  * Product admin table — wraps Shadcn `ui/table` with Karvita tokens.
+ * Features must compose these exports, not raw `ui/table`.
  */
 export function KvTable({
   className,
@@ -81,7 +82,10 @@ export function KvTableFooter({
   return (
     <TableFooter
       data-slot="kv-table-footer"
-      className={className}
+      className={cn(
+        'border-t border-kv-border bg-kv-surface-muted/50 font-bold text-kv-text-subtle',
+        className
+      )}
       {...props}
     />
   );
@@ -110,7 +114,10 @@ export function KvTableHead({
   return (
     <TableHead
       data-slot="kv-table-head"
-      className={cn('h-auto p-3.5 text-right font-bold', className)}
+      className={cn(
+        'h-auto p-3.5 text-right font-bold whitespace-nowrap',
+        className
+      )}
       {...props}
     />
   );
@@ -136,7 +143,7 @@ export function KvTableCaption({
   return (
     <TableCaption
       data-slot="kv-table-caption"
-      className={className}
+      className={cn('text-xs text-kv-text-faint', className)}
       {...props}
     />
   );
