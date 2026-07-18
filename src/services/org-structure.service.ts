@@ -22,6 +22,11 @@ import type {
   OrgStructureSnapshot,
   OrgStructureSubTab,
 } from '@/types/org-structure';
+import {
+  DEFAULT_PAGE_LIMIT,
+  sliceOffsetLimitPage,
+  type OffsetLimitPage,
+} from '@/utils/offset-limit-page';
 
 /**
  * Facade for organizational structure CRUD (rule 40).
@@ -32,6 +37,9 @@ import type {
 const IS_MOCK_MODE = isMockApiMode();
 /** Prefixed `mock_` so juniors do not confuse this key with a Nest/DB store. */
 const STORAGE_KEY = 'karvita_mock_org_structure_v1';
+
+/** Nest-aligned page size for org list tables. */
+export const ORG_STRUCTURE_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
 
 /**
  * Mock-only gate: simulator mode + `organization.manage` on activeUser.
@@ -49,6 +57,15 @@ export type OrgStructureListItem = {
   /** When true, delete control must stay disabled. */
   deleteBlocked: boolean;
 };
+
+export type OrgStructureListPageOptions = {
+  tab: OrgStructureSubTab;
+  offset?: number;
+  limit?: number;
+  query?: string;
+};
+
+export type OrgStructureListPage = OffsetLimitPage<OrgStructureListItem>;
 
 export type UpsertProvinceInput = { name: string };
 export type UpsertCityInput = { name: string; provinceId: string };
@@ -155,66 +172,92 @@ function kindFromTab(tab: OrgStructureSubTab): OrgStructureEntityKind {
   return map[tab];
 }
 
+/** Full filtered list for a tab (mock reads snapshot; Nest will page server-side). */
+function collectListByTab(
+  tab: OrgStructureSubTab,
+  query: string
+): OrgStructureListItem[] {
+  const db = readSnapshot();
+  const kind = kindFromTab(tab);
+
+  if (tab === 'provinces') {
+    return sortByNameFa(filterByName(db.provinces, query)).map((row) => ({
+      id: row.id,
+      name: row.name,
+      kind,
+      deleteBlocked: isProvinceDeleteBlocked(db, row.id),
+    }));
+  }
+  if (tab === 'cities') {
+    return sortByNameFa(filterByName(db.cities, query)).map((row) => ({
+      id: row.id,
+      name: row.name,
+      kind,
+      deleteBlocked: isCityDeleteBlocked(db, row.id),
+    }));
+  }
+  if (tab === 'faculties') {
+    return sortByNameFa(filterByName(db.faculties, query)).map((row) => ({
+      id: row.id,
+      name: row.name,
+      kind,
+      deleteBlocked: isFacultyDeleteBlocked(db, row.id),
+    }));
+  }
+  if (tab === 'districts') {
+    return sortByNameFa(filterByName(db.districts, query)).map((row) => ({
+      id: row.id,
+      name: row.name,
+      kind,
+      deleteBlocked: isDistrictDeleteBlocked(db, row.id),
+    }));
+  }
+  if (tab === 'schools') {
+    return sortByNameFa(filterByName(db.schools, query)).map((row) => ({
+      id: row.id,
+      name: row.name,
+      kind,
+      deleteBlocked: isSchoolDeleteBlocked(db, row.id),
+    }));
+  }
+  return sortByNameFa(filterByName(db.majors, query)).map((row) => ({
+    id: row.id,
+    name: row.name,
+    kind,
+    deleteBlocked: isMajorDeleteBlocked(db, row.id),
+  }));
+}
+
 export const OrgStructureService = {
   async getSnapshot(): Promise<OrgStructureSnapshot> {
     requireMockOrgManage();
     return cloneSnapshot(readSnapshot());
   },
 
+  /**
+   * Full list (legacy helpers). Prefer {@link listPage} for admin tables.
+   */
   async listByTab(
     tab: OrgStructureSubTab,
     query = ''
   ): Promise<OrgStructureListItem[]> {
     requireMockOrgManage();
-    const db = readSnapshot();
-    const kind = kindFromTab(tab);
+    return collectListByTab(tab, query);
+  },
 
-    if (tab === 'provinces') {
-      return sortByNameFa(filterByName(db.provinces, query)).map((row) => ({
-        id: row.id,
-        name: row.name,
-        kind,
-        deleteBlocked: isProvinceDeleteBlocked(db, row.id),
-      }));
-    }
-    if (tab === 'cities') {
-      return sortByNameFa(filterByName(db.cities, query)).map((row) => ({
-        id: row.id,
-        name: row.name,
-        kind,
-        deleteBlocked: isCityDeleteBlocked(db, row.id),
-      }));
-    }
-    if (tab === 'faculties') {
-      return sortByNameFa(filterByName(db.faculties, query)).map((row) => ({
-        id: row.id,
-        name: row.name,
-        kind,
-        deleteBlocked: isFacultyDeleteBlocked(db, row.id),
-      }));
-    }
-    if (tab === 'districts') {
-      return sortByNameFa(filterByName(db.districts, query)).map((row) => ({
-        id: row.id,
-        name: row.name,
-        kind,
-        deleteBlocked: isDistrictDeleteBlocked(db, row.id),
-      }));
-    }
-    if (tab === 'schools') {
-      return sortByNameFa(filterByName(db.schools, query)).map((row) => ({
-        id: row.id,
-        name: row.name,
-        kind,
-        deleteBlocked: isSchoolDeleteBlocked(db, row.id),
-      }));
-    }
-    return sortByNameFa(filterByName(db.majors, query)).map((row) => ({
-      id: row.id,
-      name: row.name,
-      kind,
-      deleteBlocked: isMajorDeleteBlocked(db, row.id),
-    }));
+  /**
+   * Offset/limit page for infinite-scroll tables (Nest contract: limit=10).
+   * Mock: filters full snapshot then slices — same DTO Nest will return.
+   */
+  async listPage(
+    options: OrgStructureListPageOptions
+  ): Promise<OrgStructureListPage> {
+    requireMockOrgManage();
+    const offset = options.offset ?? 0;
+    const limit = options.limit ?? ORG_STRUCTURE_PAGE_SIZE;
+    const query = options.query ?? '';
+    const all = collectListByTab(options.tab, query);
+    return sliceOffsetLimitPage(all, offset, limit);
   },
 
   async getEntity(

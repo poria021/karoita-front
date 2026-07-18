@@ -3,6 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { KvAlert } from '@/components/shared/KvAlert';
+import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
@@ -49,20 +51,41 @@ export function OrgStructurePage() {
         />
 
         {page.error ? (
-          <p role="alert" className="text-xs font-bold text-kv-danger">
-            {page.error}
-          </p>
-        ) : null}
-
-        <div className="overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface shadow-kv-raised">
-          <OrgStructureTable
-            tabConfig={page.tabConfig}
-            items={page.items}
-            isLoading={page.isLoading}
-            onEdit={page.openEdit}
-            onDelete={page.requestDelete}
+          <KvAlert
+            variant="error"
+            title="بارگذاری ساختار سازمانی ناموفق بود"
+            description={page.error}
+            actions={
+              <KvButton
+                type="button"
+                appearance="secondary"
+                size="sm"
+                onClick={() => void page.reload()}
+              >
+                تلاش مجدد
+              </KvButton>
+            }
           />
-        </div>
+        ) : (
+          <div className="overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface shadow-kv-raised">
+            <OrgStructureTable
+              tabConfig={page.tabConfig}
+              items={page.items}
+              total={page.total}
+              isLoading={page.isLoading}
+              isLoadingMore={page.isLoadingMore}
+              hasMore={page.hasMore}
+              loadMoreError={page.loadMoreError}
+              onLoadMore={() => void page.loadMore()}
+              onRetryLoadMore={() => {
+                page.clearLoadMoreError();
+                void page.loadMore();
+              }}
+              onEdit={page.openEdit}
+              onDelete={page.requestDelete}
+            />
+          </div>
+        )}
       </div>
 
       <OrgStructureEntityModal

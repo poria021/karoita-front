@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
 import {
+  ORG_STRUCTURE_PAGE_SIZE,
   OrgStructureService,
   type OrgStructureListItem,
 } from '@/services/org-structure.service';
@@ -26,14 +28,11 @@ export function entityKindFromTab(tab: OrgStructureSubTab): OrgStructureEntityKi
 }
 
 /**
- * Page state for org structure — loads via Facade, owns tab/search/modals.
+ * Page state for org structure — paged via Facade (limit=10), owns tab/search/modals.
  */
 export function useOrgStructurePage() {
   const [tab, setTab] = useState<OrgStructureSubTab>('provinces');
   const [query, setQuery] = useState('');
-  const [items, setItems] = useState<OrgStructureListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -43,26 +42,19 @@ export function useOrgStructurePage() {
   );
 
   const tabConfig = useMemo(() => getOrgTabConfig(tab), [tab]);
+  const resetKey = `${tab}::${query}`;
 
-  const reload = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const rows = await OrgStructureService.listByTab(tab, query);
-      setItems(rows);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'بارگذاری ساختار سازمانی ناموفق بود.'
-      );
-      setItems([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [tab, query]);
+  const fetchPage = useCallback(
+    async ({ offset, limit }: { offset: number; limit: number }) =>
+      OrgStructureService.listPage({ tab, query, offset, limit }),
+    [tab, query]
+  );
 
-  useEffect(() => {
-    void reload();
-  }, [reload]);
+  const list = useOffsetLimitInfiniteList<OrgStructureListItem>({
+    resetKey,
+    fetchPage,
+    pageSize: ORG_STRUCTURE_PAGE_SIZE,
+  });
 
   useEffect(() => {
     setQuery('');
@@ -96,8 +88,8 @@ export function useOrgStructurePage() {
     if (!deleteTarget) return;
     await OrgStructureService.deleteEntity(deleteTarget.kind, deleteTarget.id);
     setDeleteTarget(null);
-    await reload();
-  }, [deleteTarget, reload]);
+    await list.reload();
+  }, [deleteTarget, list.reload]);
 
   return {
     tab,
@@ -105,10 +97,16 @@ export function useOrgStructurePage() {
     tabConfig,
     query,
     setQuery,
-    items,
-    isLoading,
-    error,
-    reload,
+    items: list.items,
+    total: list.total,
+    hasMore: list.hasMore,
+    isLoading: list.isLoading,
+    isLoadingMore: list.isLoadingMore,
+    error: list.error,
+    loadMoreError: list.loadMoreError,
+    loadMore: list.loadMore,
+    reload: list.reload,
+    clearLoadMoreError: list.clearLoadMoreError,
     editorOpen,
     editId,
     openCreate,
