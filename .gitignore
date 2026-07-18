@@ -46,10 +46,8 @@ MIGRATION_ROADMAP.md
 # IMPORTANT:
 # Keep docker-compose.yml, src/db/, and drizzle/
 # UNLESS you strictly plan to remove them later.
-# Track architecture rules; ignore the rest of Cursor metadata for privacy.
-.cursor/*
-!.cursor/rules/
-!.cursor/rules/**
+# Cursor IDE metadata/rules stay local only — never push to GitHub.
+.cursor/
 
 playground/
 docs/
