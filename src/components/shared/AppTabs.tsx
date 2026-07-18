@@ -10,6 +10,10 @@
  * Active tone (intentional color fork):
  * - `brand` (default): active pill uses brand fill — profile and app chrome
  * - `surface`: active pill uses white/surface fill; track is one shade darker — auth only
+ *
+ * List layout:
+ * - `row` (default): capsule track (profile, auth, desktop admin)
+ * - `grid`: equal cells (e.g. mobile 3×2) — same active tokens, no parallel feature chrome
  */
 
 import * as React from 'react';
@@ -18,6 +22,8 @@ import { Tabs as TabsPrimitive } from 'radix-ui';
 import { cn } from '@/lib/utils';
 
 export type AppTabsActiveTone = 'brand' | 'surface';
+export type AppTabsListLayout = 'row' | 'grid';
+export type AppTabsGridCols = 2 | 3 | 4;
 
 const LIST_BASE = [
   'flex h-auto max-w-full items-center gap-1 overflow-x-auto whitespace-nowrap',
@@ -37,6 +43,15 @@ const LIST_NORMAL = [
 ].join(' ');
 
 const LIST_FULL = [LIST_BASE, 'w-full self-stretch justify-stretch'].join(' ');
+
+const LIST_GRID_BASE =
+  'grid w-full gap-2 border-0 bg-transparent p-0 font-sans text-kv-text-subtle';
+
+const GRID_COLS_CLASS: Record<AppTabsGridCols, string> = {
+  2: 'grid-cols-2',
+  3: 'grid-cols-3',
+  4: 'grid-cols-4',
+};
 
 const TRIGGER_BASE = [
   'inline-flex min-w-0 items-center justify-center rounded-kv-control border-0',
@@ -67,14 +82,26 @@ const TRIGGER_FULL_SIZE = [
   'flex-1 gap-1.5 px-1.5 py-2.5 text-xs leading-none',
 ].join(' ');
 
+/** Grid cells — same active fill tokens as capsule; bordered idle surface. */
+const TRIGGER_GRID_SIZE = [
+  'w-full gap-1.5 rounded-kv-panel border border-kv-border bg-kv-surface',
+  'px-2 py-4 text-xs leading-none',
+  'hover:bg-kv-surface-muted',
+  'data-[state=active]:border-kv-brand',
+].join(' ');
+
 type AppTabsContextValue = {
   fullWidth: boolean;
   activeTone: AppTabsActiveTone;
+  listLayout: AppTabsListLayout;
+  gridCols: AppTabsGridCols;
 };
 
 const AppTabsContext = React.createContext<AppTabsContextValue>({
   fullWidth: false,
   activeTone: 'brand',
+  listLayout: 'row',
+  gridCols: 3,
 });
 
 function useAppTabsContext() {
@@ -85,6 +112,7 @@ export type AppTabsProps = React.ComponentProps<typeof TabsPrimitive.Root> & {
   /**
    * `true` — always full-width equal tabs (auth register/login).
    * `false` (default) — normal: full on mobile, hug content on md+.
+   * Ignored when `listLayout="grid"`.
    */
   fullWidth?: boolean;
   /**
@@ -92,23 +120,35 @@ export type AppTabsProps = React.ComponentProps<typeof TabsPrimitive.Root> & {
    * use `surface` only on the auth login/register card.
    */
   activeTone?: AppTabsActiveTone;
+  /**
+   * `row` (default) — capsule track.
+   * `grid` — equal cells for dense mobile pickers (e.g. 3×2). Uses AppTabs tokens only.
+   */
+  listLayout?: AppTabsListLayout;
+  /** Column count when `listLayout="grid"`. Default `3`. */
+  gridCols?: AppTabsGridCols;
 };
 
-/** Shared capsule tabs. Width via `fullWidth`; active fill via `activeTone`. */
+/** Shared capsule / grid tabs. Width via `fullWidth`; active fill via `activeTone`. */
 function AppTabs({
   className,
   children,
   orientation = 'horizontal',
   fullWidth = false,
   activeTone = 'brand',
+  listLayout = 'row',
+  gridCols = 3,
   ...props
 }: AppTabsProps) {
   return (
-    <AppTabsContext.Provider value={{ fullWidth, activeTone }}>
+    <AppTabsContext.Provider
+      value={{ fullWidth, activeTone, listLayout, gridCols }}
+    >
       <TabsPrimitive.Root
         data-slot="app-tabs"
         data-full-width={fullWidth || undefined}
         data-active-tone={activeTone}
+        data-list-layout={listLayout}
         data-orientation={orientation}
         orientation={orientation}
         className={cn(
@@ -127,11 +167,23 @@ function AppTabsList({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List>) {
-  const { fullWidth, activeTone } = useAppTabsContext();
+  const { fullWidth, activeTone, listLayout, gridCols } = useAppTabsContext();
+
+  if (listLayout === 'grid') {
+    return (
+      <TabsPrimitive.List
+        data-slot="app-tabs-list"
+        data-list-layout="grid"
+        className={cn(LIST_GRID_BASE, GRID_COLS_CLASS[gridCols], className)}
+        {...props}
+      />
+    );
+  }
 
   return (
     <TabsPrimitive.List
       data-slot="app-tabs-list"
+      data-list-layout="row"
       className={cn(
         fullWidth ? LIST_FULL : LIST_NORMAL,
         activeTone === 'surface' ? LIST_TRACK_SURFACE : LIST_TRACK_BRAND,
@@ -146,7 +198,14 @@ function AppTabsTrigger({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
-  const { fullWidth, activeTone } = useAppTabsContext();
+  const { fullWidth, activeTone, listLayout } = useAppTabsContext();
+
+  const sizeClass =
+    listLayout === 'grid'
+      ? TRIGGER_GRID_SIZE
+      : fullWidth
+        ? TRIGGER_FULL_SIZE
+        : TRIGGER_NORMAL_SIZE;
 
   return (
     <TabsPrimitive.Trigger
@@ -154,7 +213,7 @@ function AppTabsTrigger({
       className={cn(
         TRIGGER_BASE,
         activeTone === 'surface' ? TRIGGER_ACTIVE_SURFACE : TRIGGER_ACTIVE_BRAND,
-        fullWidth ? TRIGGER_FULL_SIZE : TRIGGER_NORMAL_SIZE,
+        sizeClass,
         className
       )}
       {...props}

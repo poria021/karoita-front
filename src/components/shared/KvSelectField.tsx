@@ -30,6 +30,8 @@ export type KvSelectFieldProps = {
   value?: string;
   onValueChange?: (value: string) => void;
   disabled?: boolean;
+  /** Passed to portaled {@link KvSelectContent} (e.g. `z-[150]` inside dialogs). */
+  contentClassName?: string;
   children: React.ReactNode;
 };
 
@@ -57,6 +59,7 @@ export function KvSelectField({
   value,
   onValueChange,
   disabled,
+  contentClassName,
   children,
 }: KvSelectFieldProps) {
   const generatedId = React.useId();
@@ -96,7 +99,7 @@ export function KvSelectField({
         >
           <KvSelectValue placeholder={placeholder} />
         </KvSelectTrigger>
-        <KvSelectContent>{children}</KvSelectContent>
+        <KvSelectContent className={contentClassName}>{children}</KvSelectContent>
       </KvSelect>
     </KvFieldFrame>
   );

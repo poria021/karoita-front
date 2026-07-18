@@ -1,9 +1,7 @@
-import {
-  listOrganizationLabels,
-  type OrganizationField,
-} from '../data/organization-catalog';
+import { type OrganizationField } from '../data/organization-catalog';
 import { isMockApiMode } from '@/lib/api-mode';
 import { ApiClientError, apiClient } from '@/services/api-client';
+import { OrgStructureService } from '@/services/org-structure.service';
 
 const IS_MOCK_MODE = isMockApiMode();
 const DEFAULT_LIMIT = 10;
@@ -149,7 +147,7 @@ async function fetchFromMock(
     );
   });
 
-  const labels = listOrganizationLabels(
+  const labels = OrgStructureService.listLabelsForField(
     params.type,
     params.province ?? '',
     params.district ?? ''
