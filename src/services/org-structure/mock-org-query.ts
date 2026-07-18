@@ -1,8 +1,12 @@
+import { isDeleteBlockedWithSets } from '@/services/org-structure-delete-rules';
 import {
-  buildOrgDeleteBlockedSets,
-  isDeleteBlockedWithSets,
-} from '@/services/org-structure-delete-rules';
-import { readOrgSnapshot } from '@/services/org-structure/mock-org-store';
+  buildOrgRuntimeIndex,
+  clearOrgListFilterCache,
+  getOrgListFilterCache,
+  getOrgRuntime,
+  setOrgListFilterCache,
+  type OrgRuntimeIndex,
+} from '@/services/org-structure/mock-org-store';
 import type {
   OrgStructureEntityKind,
   OrgStructureSnapshot,
@@ -62,20 +66,46 @@ function rawRowsForTab(
 }
 
 /**
- * Filter + sort once; attach deleteBlocked only for the requested page slice
- * using a single-pass blocked-id index (not per-row child scans).
+ * Filter+sort once per (revision, tab, query). loadMore only slices.
+ * Uses snapshot-scoped deleteBlocked Sets — never rebuilds graph per page.
  */
-export function pageOrgRows(
-  db: OrgStructureSnapshot,
+export function getFilteredSortedRows(
+  runtime: OrgRuntimeIndex,
+  tab: OrgStructureSubTab,
+  query: string
+): NamedRow[] {
+  const queryKey = query.trim().toLowerCase();
+  const cached = getOrgListFilterCache();
+  if (
+    cached &&
+    cached.revision === runtime.revision &&
+    cached.tab === tab &&
+    cached.queryKey === queryKey
+  ) {
+    return cached.rows;
+  }
+
+  const rows = sortByNameFa(
+    filterByName(rawRowsForTab(runtime.snapshot, tab), query)
+  );
+  setOrgListFilterCache({
+    revision: runtime.revision,
+    tab,
+    queryKey,
+    rows,
+  });
+  return rows;
+}
+
+export function pageOrgRowsFromRuntime(
+  runtime: OrgRuntimeIndex,
   tab: OrgStructureSubTab,
   query: string,
   offset: number,
   limit: number = DEFAULT_PAGE_LIMIT
 ): OrgStructureListPage {
   const kind = kindFromTab(tab);
-  const blocked = buildOrgDeleteBlockedSets(db);
-
-  const filtered = sortByNameFa(filterByName(rawRowsForTab(db, tab), query));
+  const filtered = getFilteredSortedRows(runtime, tab, query);
   const total = filtered.length;
   const safeOffset = Math.max(0, Math.floor(offset));
   const safeLimit = Math.max(1, Math.floor(limit));
@@ -85,7 +115,7 @@ export function pageOrgRows(
     id: row.id,
     name: row.name,
     kind,
-    deleteBlocked: isDeleteBlockedWithSets(kind, row.id, blocked),
+    deleteBlocked: isDeleteBlockedWithSets(kind, row.id, runtime.deleteBlocked),
   }));
 
   return {
@@ -95,13 +125,26 @@ export function pageOrgRows(
   };
 }
 
+/** Pure-ish helper for unit tests (ephemeral runtime from a snapshot). */
+export function pageOrgRows(
+  db: OrgStructureSnapshot,
+  tab: OrgStructureSubTab,
+  query: string,
+  offset: number,
+  limit: number = DEFAULT_PAGE_LIMIT
+): OrgStructureListPage {
+  clearOrgListFilterCache();
+  const runtime = buildOrgRuntimeIndex(db);
+  return pageOrgRowsFromRuntime(runtime, tab, query, offset, limit);
+}
+
 export function queryOrgListPage(
   tab: OrgStructureSubTab,
   query: string,
   offset: number,
   limit: number = DEFAULT_PAGE_LIMIT
 ): OrgStructureListPage {
-  return pageOrgRows(readOrgSnapshot(), tab, query, offset, limit);
+  return pageOrgRowsFromRuntime(getOrgRuntime(), tab, query, offset, limit);
 }
 
 /** Full list for legacy callers — still uses indexed deleteBlocked. */
@@ -118,7 +161,8 @@ export function listLabelsForField(
   provinceName = '',
   districtName = ''
 ): string[] {
-  const db = readOrgSnapshot();
+  const runtime = getOrgRuntime();
+  const db = runtime.snapshot;
   if (field === 'province') return sortByNameFa(db.provinces).map((p) => p.name);
   if (field === 'major') return sortByNameFa(db.majors).map((m) => m.name);
 
@@ -127,24 +171,24 @@ export function listLabelsForField(
 
   if (field === 'city') {
     return sortByNameFa(
-      db.cities.filter((c) => c.provinceId === province.id)
+      runtime.parents.citiesByProvince.get(province.id) ?? []
     ).map((c) => c.name);
   }
   if (field === 'college') {
     return sortByNameFa(
-      db.faculties.filter((f) => f.provinceId === province.id)
+      runtime.parents.facultiesByProvince.get(province.id) ?? []
     ).map((f) => f.name);
   }
   if (field === 'district') {
     return sortByNameFa(
-      db.districts.filter((d) => d.provinceId === province.id)
+      runtime.parents.districtsByProvince.get(province.id) ?? []
     ).map((d) => d.name);
   }
-  const district = db.districts.find(
-    (d) => d.name === districtName && d.provinceId === province.id
+  const district = (runtime.parents.districtsByProvince.get(province.id) ?? []).find(
+    (d) => d.name === districtName
   );
   if (!district) return [];
   return sortByNameFa(
-    db.schools.filter((s) => s.districtId === district.id)
+    runtime.parents.schoolsByDistrict.get(district.id) ?? []
   ).map((s) => s.name);
 }

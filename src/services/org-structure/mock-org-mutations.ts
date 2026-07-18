@@ -1,5 +1,7 @@
-import { isOrgEntityDeleteBlocked } from '@/services/org-structure-delete-rules';
+import { isDeleteBlockedWithSets } from '@/services/org-structure-delete-rules';
 import {
+  getEntityById,
+  getOrgRuntime,
   readOrgSnapshot,
   writeOrgSnapshot,
 } from '@/services/org-structure/mock-org-store';
@@ -65,13 +67,7 @@ export function mockGetEntity(
   | OrgSchool
   | OrgMajor
   | null {
-  const db = readOrgSnapshot();
-  if (kind === 'province') return db.provinces.find((r) => r.id === id) ?? null;
-  if (kind === 'city') return db.cities.find((r) => r.id === id) ?? null;
-  if (kind === 'faculty') return db.faculties.find((r) => r.id === id) ?? null;
-  if (kind === 'district') return db.districts.find((r) => r.id === id) ?? null;
-  if (kind === 'school') return db.schools.find((r) => r.id === id) ?? null;
-  return db.majors.find((r) => r.id === id) ?? null;
+  return getEntityById(kind, id) ?? null;
 }
 
 export function mockListProvinces(): OrgProvince[] {
@@ -80,7 +76,7 @@ export function mockListProvinces(): OrgProvince[] {
 
 export function mockListCities(provinceId: string): OrgCity[] {
   return sortByNameFa(
-    readOrgSnapshot().cities.filter((c) => c.provinceId === provinceId)
+    getOrgRuntime().parents.citiesByProvince.get(provinceId) ?? []
   );
 }
 
@@ -88,10 +84,16 @@ export function mockListDistricts(
   provinceId: string,
   cityId?: string
 ): OrgDistrict[] {
+  const runtime = getOrgRuntime();
+  if (cityId) {
+    return sortByNameFa(
+      (runtime.parents.districtsByCity.get(cityId) ?? []).filter(
+        (d) => d.provinceId === provinceId
+      )
+    );
+  }
   return sortByNameFa(
-    readOrgSnapshot().districts.filter(
-      (d) => d.provinceId === provinceId && (!cityId || d.cityId === cityId)
-    )
+    runtime.parents.districtsByProvince.get(provinceId) ?? []
   );
 }
 
@@ -260,34 +262,36 @@ export function mockDeleteEntity(
   kind: OrgStructureEntityKind,
   id: string
 ): void {
-  const db = readOrgSnapshot();
+  const runtime = getOrgRuntime();
+  const db = runtime.snapshot;
+  const blocked = isDeleteBlockedWithSets(kind, id, runtime.deleteBlocked);
 
   if (kind === 'province') {
-    if (isOrgEntityDeleteBlocked(kind, db, id)) {
+    if (blocked) {
       throw new Error(
         'این استان به سایر واحدهای سازمانی متصل است و قابل حذف نیست.'
       );
     }
     db.provinces = db.provinces.filter((p) => p.id !== id);
   } else if (kind === 'city') {
-    if (isOrgEntityDeleteBlocked(kind, db, id)) {
+    if (blocked) {
       throw new Error(
         'این شهر به سایر واحدهای سازمانی متصل است و قابل حذف نیست.'
       );
     }
     db.cities = db.cities.filter((c) => c.id !== id);
   } else if (kind === 'faculty') {
-    if (isOrgEntityDeleteBlocked(kind, db, id)) {
+    if (blocked) {
       throw new Error('این پردیس قابل حذف نیست.');
     }
     db.faculties = db.faculties.filter((f) => f.id !== id);
   } else if (kind === 'district') {
-    if (isOrgEntityDeleteBlocked(kind, db, id)) {
+    if (blocked) {
       throw new Error('این منطقه به مدارس متصل است و قابل حذف نیست.');
     }
     db.districts = db.districts.filter((d) => d.id !== id);
   } else if (kind === 'school') {
-    if (isOrgEntityDeleteBlocked(kind, db, id)) {
+    if (blocked) {
       throw new Error('این مدرسه قابل حذف نیست.');
     }
     db.schools = db.schools.filter((s) => s.id !== id);

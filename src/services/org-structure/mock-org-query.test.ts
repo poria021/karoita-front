@@ -4,7 +4,16 @@ import {
   buildOrgDeleteBlockedSets,
   isDeleteBlockedWithSets,
 } from '@/services/org-structure-delete-rules';
-import { pageOrgRows } from '@/services/org-structure/mock-org-query';
+import {
+  getFilteredSortedRows,
+  pageOrgRows,
+  pageOrgRowsFromRuntime,
+} from '@/services/org-structure/mock-org-query';
+import {
+  buildOrgRuntimeIndex,
+  clearOrgListFilterCache,
+  getOrgListFilterCache,
+} from '@/services/org-structure/mock-org-store';
 import type { OrgStructureSnapshot } from '@/types/org-structure';
 
 const sampleDb: OrgStructureSnapshot = {
@@ -55,11 +64,45 @@ describe('pageOrgRows', () => {
     expect(last.hasMore).toBe(false);
   });
 
-  it('sets deleteBlocked from index for province page rows', () => {
+  it('page 1 and page 2 for same query do not overlap and hasMore is correct', () => {
+    clearOrgListFilterCache();
+    const runtime = buildOrgRuntimeIndex(sampleDb);
+    const page1 = pageOrgRowsFromRuntime(runtime, 'majors', '', 0, 10);
+    const page2 = pageOrgRowsFromRuntime(runtime, 'majors', '', 10, 10);
+
+    expect(page1.hasMore).toBe(true);
+    expect(page2.hasMore).toBe(true);
+    expect(page1.total).toBe(25);
+    expect(page2.total).toBe(25);
+
+    const ids1 = new Set(page1.items.map((r) => r.id));
+    const ids2 = new Set(page2.items.map((r) => r.id));
+    for (const id of ids2) {
+      expect(ids1.has(id)).toBe(false);
+    }
+
+    // Same (tab, query) reused filter cache — revision match, no rebuild needed.
+    const cache = getOrgListFilterCache();
+    expect(cache?.revision).toBe(runtime.revision);
+    expect(cache?.tab).toBe('majors');
+    expect(cache?.rows).toHaveLength(25);
+  });
+
+  it('sets deleteBlocked from snapshot index for province with children', () => {
     const page = pageOrgRows(sampleDb, 'provinces', '', 0, 10);
     const tehran = page.items.find((r) => r.id === 'p1');
     const ilam = page.items.find((r) => r.id === 'p2');
     expect(tehran?.deleteBlocked).toBe(true);
     expect(ilam?.deleteBlocked).toBe(false);
+  });
+
+  it('reuses filtered rows across offsets without rebuilding cache entry', () => {
+    clearOrgListFilterCache();
+    const runtime = buildOrgRuntimeIndex(sampleDb);
+    getFilteredSortedRows(runtime, 'majors', '');
+    const firstCache = getOrgListFilterCache();
+    getFilteredSortedRows(runtime, 'majors', '');
+    const secondCache = getOrgListFilterCache();
+    expect(secondCache).toBe(firstCache);
   });
 });
