@@ -50,4 +50,10 @@ MIGRATION_ROADMAP.md
 .cursor/
 
 playground/
-docs/
+
+# Personal / interview notes under docs — keep local.
+# Engineering docs (design-system, adr, checklists) are tracked.
+docs/INTERVIEW_QUICK_REF.md
+docs/KARVITA_MASTERY_PATH.md
+docs/MY_KARVITA_ARCHITECTURE.md
+docs/README.md
