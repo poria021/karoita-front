@@ -148,11 +148,6 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
   },
   [RouteService.shared.profileIdentity()]: PROFILE_META,
   [RouteService.shared.profileSecurity()]: PROFILE_META,
-  [RouteService.shared.notifications()]: {
-    title: 'اعلان‌های سیستم',
-    description: 'مشاهده و مدیریت اعلان‌های سامانه.',
-    icon: 'fa-bell',
-  },
 };
 
 /** Role-aware dashboard titles (original `*_dashboard` tabData entries). */

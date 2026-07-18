@@ -1,9 +1,10 @@
-import { OrgStructurePage } from '@/features/karvita/organizational-structure/components/OrgStructurePage';
+import { redirect } from 'next/navigation';
+
+import { RouteService } from '@/services/route.service';
 
 /**
- * Thin route for super-admin organizational structure.
- * Module title comes from ModulePageHeader / moduleMeta.
+ * Legacy bookmark `/karvita/organizational-structure` → admin control-plane path.
  */
-export default function OrganizationalStructureRoutePage() {
-  return <OrgStructurePage />;
+export default function LegacyOrganizationalStructureRedirect() {
+  redirect(RouteService.karvita.organizationalStructure());
 }

@@ -1,3 +1,9 @@
+import {
+  isAdminControlPlanePath,
+  isKarvitaProfilePath,
+  isNavigableAppPath,
+} from '@/lib/live-nav-paths';
+import { parseSafeReturnUrl } from '@/lib/return-url';
 import { RouteService } from '@/services/route.service';
 import type { User } from '@/types/auth';
 import {
@@ -25,4 +31,60 @@ export function getPostLoginPath(user: User | null | undefined): string {
   }
 
   return RouteService.karvita.dashboard();
+}
+
+/**
+ * Whether `path` is an allowed returnUrl target for this user (UX only).
+ */
+export function canAccessReturnPath(
+  user: User,
+  path: string
+): boolean {
+  const pathname = (path.split('?')[0] ?? path).replace(/\/+$/, '') || '/';
+
+  if (!isNavigableAppPath(pathname)) {
+    return false;
+  }
+
+  if (isKarvitaProfilePath(pathname)) {
+    return true;
+  }
+
+  if (!areKarvitaModulesUnlocked(user)) {
+    return (
+      pathname === RouteService.shared.profileIdentity() ||
+      pathname === RouteService.shared.profileSecurity()
+    );
+  }
+
+  // Unlocked users continue below; profile already allowed above.
+
+  if (isAdminControlPlanePath(pathname) && !isSuperAdminRole(user.role)) {
+    return false;
+  }
+
+  if (
+    isSuperAdminRole(user.role) &&
+    pathname === RouteService.karvita.dashboard()
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Prefer a validated returnUrl when the user may access it; otherwise role home.
+ */
+export function resolvePostAuthPath(
+  user: User | null | undefined,
+  rawReturnUrl?: string | null
+): string {
+  const home = getPostLoginPath(user);
+  if (!user) return home;
+
+  const safe = parseSafeReturnUrl(rawReturnUrl);
+  if (!safe) return home;
+  if (!canAccessReturnPath(user, safe)) return home;
+  return safe;
 }

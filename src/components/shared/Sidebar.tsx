@@ -19,6 +19,7 @@ import { useUserStore } from '@/store/useUserStore';
 import {
   areKarvitaModulesUnlocked,
   getRoleStrategy,
+  getVisibleSidebarMenu,
   type SidebarMenuItem,
 } from '@/utils/RoleStrategyMap';
 import { faIcons, iconMap } from '@/utils/iconMap';
@@ -96,6 +97,7 @@ export function Sidebar() {
   if (!activeUser) return null;
 
   const strategy = getRoleStrategy(activeUser.role);
+  const visibleMenu = getVisibleSidebarMenu(activeUser.role);
   const roleIcon = resolveIcon(strategy.roleIcon);
   const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
   const profileHref = RouteService.karvita.profile(activeUser.role);
@@ -171,7 +173,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 space-y-kv-pair p-kv-compact lg:p-kv-compact lg:pt-kv-stack lg:pb-8" aria-label="منوی اصلی">
-          {strategy.sidebarMenu.map((item) => (
+          {visibleMenu.map((item) => (
             <SidebarNavLink
               key={item.path}
               item={item}

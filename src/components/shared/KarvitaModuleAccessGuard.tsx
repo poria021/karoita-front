@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
+import { isAdminControlPlanePath } from '@/lib/live-nav-paths';
 import { getPostLoginPath, isSuperAdminRole } from '@/services/post-login-path';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
@@ -12,11 +13,6 @@ import { areKarvitaModulesUnlocked } from '@/utils/RoleStrategyMap';
 function isProfilePath(pathname: string, role: string): boolean {
   const profilePath = RouteService.karvita.profile(role);
   return pathname === profilePath || pathname.startsWith(`${profilePath}/`);
-}
-
-function isAdminControlPlanePath(pathname: string): boolean {
-  const adminHome = RouteService.karvita.adminDashboard();
-  return pathname === adminHome || pathname.startsWith('/karvita/admin/');
 }
 
 /**
@@ -54,6 +50,7 @@ function GatePlaceholder() {
 
 /**
  * Keeps unapproved users on profile and super_admin on the admin plane.
+ * Admin modules live under `/karvita/admin/*` so this prefix gate covers them.
  * Replaces the former RoleHome + ModuleAccess stack (one redirect hop).
  */
 export function KarvitaModuleAccessGuard({

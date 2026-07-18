@@ -1,3 +1,4 @@
+import { isLiveSidebarPath } from '@/lib/live-nav-paths';
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 
@@ -338,6 +339,18 @@ export function getRoleStrategy(
     );
   }
   return ROLE_STRATEGY_MAP.student;
+}
+
+/**
+ * Sidebar entries that currently have a live page.
+ * Full IA remains in `sidebarMenu`; unfinished modules stay hidden (no 404 links).
+ */
+export function getVisibleSidebarMenu(
+  role: UserRole | string | null | undefined
+): SidebarMenuItem[] {
+  return getRoleStrategy(role).sidebarMenu.filter((item) =>
+    isLiveSidebarPath(item.path)
+  );
 }
 
 /**

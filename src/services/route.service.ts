@@ -9,32 +9,35 @@
  *
  * When a new domain is added (checklist item 13, rule 60), add its route
  * group here as a new top-level key so every consumer stays in sync.
+ *
+ * Catalog hygiene: prefer only paths that are `live` (page exists) or
+ * intentional redirects. Future module paths stay here for IA when a page
+ * ships — until then hide them from sidebars via `isLiveSidebarPath`.
  */
 
 export const RouteService = {
   /** Public, unauthenticated pages living under `src/app/(marketing)/`. */
   marketing: {
     home: (): string => '/',
-    about: (): string => '/about',
-    contact: (): string => '/contact',
-    pricing: (): string => '/pricing',
   },
 
   /** Authentication flows shared across every domain. */
   auth: {
     login: (): string => '/auth/login',
     register: (): string => '/auth/register',
-    forgotPassword: (): string => '/auth/forgot-password',
     /** Independent, gated entry point for senior/organization administrators. */
     adminGate: (): string => '/auth/admin-gate',
   },
 
   /** Cross-domain features that live in `src/features/shared/`. */
   shared: {
-    /** @deprecated Prefer `RouteService.karvita.profile(role)` for role-scoped profile. */
+    /** @deprecated Prefer `RouteService.karvita.profile(role)` — redirect page only. */
     profileIdentity: (): string => '/profile/identity',
+    /**
+     * @deprecated Prefer `RouteService.karvita.profile(role)?tab=security`.
+     * Redirect page only — do not link from new UI.
+     */
     profileSecurity: (): string => '/profile/security',
-    notifications: (): string => '/notifications',
   },
 
   /** Karvita domain — `src/app/(app)/karvita/` route group. */
@@ -47,6 +50,11 @@ export const RouteService = {
     adminDashboard: (): string => '/karvita/admin/dashboard',
     /** Role-scoped profile & identity security workspace. */
     profile: (role: string): string => `/karvita/${role}/profile`,
+    /** Canonical profile security deep link. */
+    profileSecurity: (role: string): string =>
+      `/karvita/${role}/profile?tab=security`,
+
+    // --- Future modules (IA reserved; hide from nav until page + LIVE list) ---
     dailyReports: (): string => '/karvita/daily-reports',
     dailyApprovals: (): string => '/karvita/daily-approvals',
     academicEvaluation: (): string => '/karvita/academic-evaluation',
@@ -62,9 +70,18 @@ export const RouteService = {
     manageAds: (): string => '/karvita/ads',
     internshipSelection: (): string => '/karvita/internships',
     organizationalCapacities: (): string => '/karvita/capacities',
-    organizationalStructure: (): string => '/karvita/organizational-structure',
     adminUserCreation: (): string => '/karvita/users/create',
     internshipDetail: (internshipId: string): string =>
       `/karvita/internships/${internshipId}`,
+
+    /**
+     * Super-admin org structure — under `/karvita/admin/` so control-plane
+     * guards apply by prefix.
+     */
+    organizationalStructure: (): string =>
+      '/karvita/admin/organizational-structure',
+    /** @deprecated Bookmark redirect → `organizationalStructure()`. */
+    organizationalStructureLegacy: (): string =>
+      '/karvita/organizational-structure',
   },
 } as const;

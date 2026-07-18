@@ -3,10 +3,11 @@
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
+import { RETURN_URL_PARAM } from '@/lib/return-url';
 import { AuthService } from '@/services/auth.service';
-import { getPostLoginPath } from '@/services/post-login-path';
+import { resolvePostAuthPath } from '@/services/post-login-path';
 
 import { mobileSchema, otpSchema, type MobileSchema, type OtpSchema } from '../schemas/auth.schema';
 import { readAuthErrorMessage } from './authError';
@@ -20,6 +21,7 @@ export type AdminGateStep = 1 | 2;
  */
 export function useAdminGate() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<AdminGateStep>(1);
   const [pendingMobile, setPendingMobile] = useState('');
   const [isResending, setIsResending] = useState(false);
@@ -66,7 +68,9 @@ export function useAdminGate() {
   const verifyOtp = otpForm.handleSubmit(async (data) => {
     try {
       const user = await AuthService.verifyAdminGateOtp(pendingMobile, data.otp);
-      router.replace(getPostLoginPath(user));
+      router.replace(
+        resolvePostAuthPath(user, searchParams.get(RETURN_URL_PARAM))
+      );
     } catch (error) {
       otpForm.setError('otp', {
         message: readAuthErrorMessage(error, 'تایید کد ناموفق بود.'),

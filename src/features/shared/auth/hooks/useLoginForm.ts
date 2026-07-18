@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-import { getPostLoginPath } from '@/services/post-login-path';
+import { RETURN_URL_PARAM } from '@/lib/return-url';
+import { resolvePostAuthPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
 
 import { usePasswordLogin } from './usePasswordLogin';
@@ -22,14 +23,16 @@ export type { ForgotStep };
  */
 export function useLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [mode, setMode] = useState<LoginMode>('password');
 
-  /** Role-aware landing: super_admin → admin panel; locked → profile; else user dashboard. */
+  /** Prefer safe returnUrl when allowed; else role-aware home. */
   const goAfterLogin = useCallback(() => {
     const user = useUserStore.getState().activeUser;
-    router.replace(getPostLoginPath(user));
-  }, [router]);
+    const rawReturn = searchParams.get(RETURN_URL_PARAM);
+    router.replace(resolvePostAuthPath(user, rawReturn));
+  }, [router, searchParams]);
 
   const password = usePasswordLogin({ onSuccess: goAfterLogin });
   const otp = useOtpLogin({ onSuccess: goAfterLogin });
