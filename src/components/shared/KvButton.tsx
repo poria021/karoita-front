@@ -30,8 +30,24 @@ export type KvButtonProps = Omit<React.ComponentProps<'button'>, 'color'> &
   };
 
 /**
+ * Maps text sizes → square icon sizes so icon-only stays proportional
+ * without ignoring the caller's density intent (`sm` stays compact).
+ * Explicit `icon` / `icon-sm` / `icon-lg` pass through unchanged.
+ */
+function resolveSize(size: ButtonSize, isIconOnly: boolean): ButtonSize {
+  if (!isIconOnly) return size;
+  if (size === 'sm') return 'icon-sm';
+  if (size === 'md') return 'icon';
+  if (size === 'lg') return 'icon-lg';
+  return size;
+}
+
+/**
  * Product button — wraps Shadcn `ui/button` with loading / icon helpers.
  * Prefer over raw `Button` in app/feature UI.
+ *
+ * Icon-only: pass `size="sm"|"md"|"lg"` for density, or `icon-sm`|`icon`|`icon-lg`
+ * explicitly. Size is never forced to a single square.
  */
 export function KvButton({
   className,
@@ -55,7 +71,7 @@ export function KvButton({
     icon
   );
   const isIconOnly = Boolean(resolvedIcon) && !hasChildren;
-  const resolvedSize = isIconOnly ? 'icon' : size;
+  const resolvedSize = resolveSize(size, isIconOnly);
   const resolvedIconPosition = loading ? 'start' : iconPosition;
 
   const content = asChild ? (

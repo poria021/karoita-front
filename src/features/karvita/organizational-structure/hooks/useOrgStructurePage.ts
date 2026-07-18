@@ -11,7 +11,7 @@ import type {
   OrgStructureSubTab,
 } from '@/types/org-structure';
 
-import { getOrgTabConfig, ORG_MOBILE_PAGE_SIZE } from '../constants';
+import { getOrgTabConfig } from '../constants';
 
 export function entityKindFromTab(tab: OrgStructureSubTab): OrgStructureEntityKind {
   const map: Record<OrgStructureSubTab, OrgStructureEntityKind> = {
@@ -34,7 +34,6 @@ export function useOrgStructurePage() {
   const [items, setItems] = useState<OrgStructureListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [mobileLimit, setMobileLimit] = useState(ORG_MOBILE_PAGE_SIZE);
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -66,7 +65,6 @@ export function useOrgStructurePage() {
   }, [reload]);
 
   useEffect(() => {
-    setMobileLimit(ORG_MOBILE_PAGE_SIZE);
     setQuery('');
   }, [tab]);
 
@@ -101,13 +99,6 @@ export function useOrgStructurePage() {
     await reload();
   }, [deleteTarget, reload]);
 
-  const mobileItems = useMemo(
-    () => items.slice(0, mobileLimit),
-    [items, mobileLimit]
-  );
-
-  const canLoadMore = mobileItems.length < items.length;
-
   return {
     tab,
     changeTab,
@@ -115,9 +106,6 @@ export function useOrgStructurePage() {
     query,
     setQuery,
     items,
-    mobileItems,
-    canLoadMore,
-    loadMore: () => setMobileLimit((n) => n + ORG_MOBILE_PAGE_SIZE),
     isLoading,
     error,
     reload,

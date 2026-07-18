@@ -10,7 +10,6 @@ import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import { useOrgStructurePage } from '../hooks/useOrgStructurePage';
 import { OrgStructureEntityModal } from './OrgStructureEntityModal';
-import { OrgStructureMobileList } from './OrgStructureMobileList';
 import { OrgStructureSubTabs } from './OrgStructureSubTabs';
 import { OrgStructureTable } from './OrgStructureTable';
 import { OrgStructureToolbar } from './OrgStructureToolbar';
@@ -60,15 +59,6 @@ export function OrgStructurePage() {
             tabConfig={page.tabConfig}
             items={page.items}
             isLoading={page.isLoading}
-            onEdit={page.openEdit}
-            onDelete={page.requestDelete}
-          />
-          <OrgStructureMobileList
-            tabConfig={page.tabConfig}
-            items={page.mobileItems}
-            isLoading={page.isLoading}
-            canLoadMore={page.canLoadMore}
-            onLoadMore={page.loadMore}
             onEdit={page.openEdit}
             onDelete={page.requestDelete}
           />

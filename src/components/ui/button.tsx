@@ -37,7 +37,12 @@ const buttonVariants = cva(
         sm: 'h-9 px-3 text-xs',
         md: 'h-11 px-4 text-xs',
         lg: 'h-12 px-6 text-xs',
+        /** Dense square — table row actions, tight chrome (36px). */
+        'icon-sm': 'size-9 p-0',
+        /** Default touch square (44px). */
         icon: 'size-11 p-0',
+        /** Large square control (48px). */
+        'icon-lg': 'size-12 p-0',
       },
       fullWidth: {
         true: 'w-full',
@@ -48,7 +53,9 @@ const buttonVariants = cva(
       { appearance: 'text', size: 'sm', class: 'min-h-11 px-2' },
       { appearance: 'text', size: 'md', class: 'min-h-11 px-2' },
       { appearance: 'text', size: 'lg', class: 'min-h-11 px-2' },
+      { appearance: 'text', size: 'icon-sm', class: 'size-9' },
       { appearance: 'text', size: 'icon', class: 'size-11' },
+      { appearance: 'text', size: 'icon-lg', class: 'size-12' },
 
       {
         appearance: 'solid',

@@ -76,8 +76,6 @@ export function getOrgTabConfig(tab: OrgStructureSubTab): OrgStructureTabConfig 
   );
 }
 
-export const ORG_MOBILE_PAGE_SIZE = 8;
-
 export const SCHOOL_GENDER_OPTIONS = [
   { value: 'male', label: 'پسرانه' },
   { value: 'female', label: 'دخترانه' },

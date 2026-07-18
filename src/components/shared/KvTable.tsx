@@ -68,7 +68,7 @@ export function KvTableBody({
   return (
     <TableBody
       data-slot="kv-table-body"
-      className={cn('divide-y divide-kv-border-muted [&_tr:last-child]:border-0', className)}
+      className={cn('[&_tr:last-child]:border-b-0', className)}
       {...props}
     />
   );
@@ -95,7 +95,7 @@ export function KvTableRow({
     <TableRow
       data-slot="kv-table-row"
       className={cn(
-        'border-b-0 font-bold text-kv-text hover:bg-kv-surface-muted/50',
+        'border-b border-kv-border font-bold text-kv-text hover:bg-kv-surface-muted/50',
         className
       )}
       {...props}
