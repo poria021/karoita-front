@@ -97,7 +97,6 @@ export function OnboardingApprovalsPage() {
                   users={page.users}
                   selectedId={page.selectedUser?.id ?? null}
                   tab={page.tab}
-                  total={page.total}
                   isLoading={page.isLoading}
                   isLoadingMore={page.isLoadingMore}
                   hasMore={page.hasMore}

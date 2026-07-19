@@ -3,13 +3,9 @@
  * Used by {@link OrganizationOptionsService} in mock mode only.
  */
 
-export type OrganizationField =
-  | 'province'
-  | 'city'
-  | 'college'
-  | 'district'
-  | 'school'
-  | 'major';
+import type { OrganizationField } from '@/utils/roleFieldStrategy';
+
+export type { OrganizationField };
 
 interface OrganizationBranch {
   province: string;

@@ -6,7 +6,6 @@ import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
 import { cn } from '@/lib/utils';
 import { getRoleProfileDisplayFields } from '@/utils/roleFieldStrategy';
 import { toPersianDigits } from '@/utils/persianDigits';
-import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 function readFieldValue(
   user: OnboardingApprovalUser,
@@ -46,8 +45,8 @@ interface OnboardingApprovalsUserFieldsProps {
 }
 
 /**
- * Detail fields mirror the user's profile form for their role
- * ({@link getRoleProfileDisplayFields} / ROLE_FIELD_STRATEGY).
+ * Detail fields mirror the role profile form only
+ * ({@link getRoleProfileDisplayFields} / ROLE_FIELD_STRATEGY) — no extra rows.
  */
 export function OnboardingApprovalsUserFields({
   user,
@@ -56,13 +55,6 @@ export function OnboardingApprovalsUserFields({
 
   return (
     <dl className="space-y-3.5">
-      <FieldRow label="نام و نام خانوادگی" value={user.fullName || '---'} />
-      <FieldRow
-        label="شماره تماس"
-        value={user.mobile ? toPersianDigits(`0${user.mobile}`) : '---'}
-        mono
-      />
-      <FieldRow label="نقش کاربری" value={getRoleStrategy(user.role).label} />
       {roleFields.map((field) => {
         const raw = readFieldValue(user, field.key);
         const display = raw
@@ -79,9 +71,6 @@ export function OnboardingApprovalsUserFields({
           />
         );
       })}
-      {user.docType ? (
-        <FieldRow label="نوع مدرک" value={user.docType} />
-      ) : null}
     </dl>
   );
 }

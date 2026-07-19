@@ -71,7 +71,6 @@ export function OrgStructurePage() {
             <OrgStructureTable
               tabConfig={page.tabConfig}
               items={page.items}
-              total={page.total}
               isLoading={page.isLoading}
               isLoadingMore={page.isLoadingMore}
               hasMore={page.hasMore}

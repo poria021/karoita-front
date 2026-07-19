@@ -14,20 +14,19 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 import { faIcons } from '@/utils/iconMap';
-import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 interface OnboardingApprovalsTableProps {
   users: OnboardingApprovalUser[];
   selectedId: string | null;
   tab: ApprovalFilterTab;
-  total: number;
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
@@ -45,7 +44,6 @@ export function OnboardingApprovalsTable({
   users,
   selectedId,
   tab,
-  total,
   isLoading,
   isLoadingMore,
   hasMore,
@@ -58,20 +56,11 @@ export function OnboardingApprovalsTable({
   onStartReject,
 }: OnboardingApprovalsTableProps) {
   const showActions = tab === 'pending_admin';
+  const columnCount = showActions ? 4 : 3;
+  const isEmpty = !isLoading && users.length === 0;
 
   if (isLoading) {
     return <KvBusySurface tableViewport />;
-  }
-
-  if (users.length === 0) {
-    return (
-      <KvEmptyState
-        tableViewport
-        icon={<FaIcon icon={faIcons.idCard} size="lg" />}
-        title="پرونده‌ای یافت نشد"
-        description="با تغییر تب، جستجو یا فیلترها دوباره امتحان کنید."
-      />
-    );
   }
 
   return (
@@ -95,11 +84,9 @@ export function OnboardingApprovalsTable({
       ) : null}
 
       <KvTableViewport
-        hasMore={hasMore}
+        hasMore={!isEmpty && hasMore}
         isLoadingMore={isLoadingMore}
         onEndReached={onLoadMore}
-        showEndMessage={users.length > 0 && !hasMore}
-        endMessage={`همه موارد بارگذاری شد (${toPersianDigits(total)})`}
         loadingMoreLabel="در حال بارگذاری ۱۰ سطر بعدی…"
       >
         <KvTable scrollable={false}>
@@ -114,54 +101,64 @@ export function OnboardingApprovalsTable({
             </KvTableRow>
           </KvTableHeader>
           <KvTableBody>
-            {users.map((user) => {
-              const selected = selectedId === user.id;
-              return (
-                <KvTableRow
-                  key={user.id}
-                  interactive
-                  selected={selected}
-                  onClick={() => onSelect(user)}
-                >
-                  <KvTableCell emphasis>{user.fullName}</KvTableCell>
-                  <KvTableCell align="center">
-                    {user.province || '---'}
-                  </KvTableCell>
-                  <KvTableCell align="center">
-                    {getRoleStrategy(user.role).label}
-                  </KvTableCell>
-                  {showActions ? (
-                    <KvTableCell
-                      align="center"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      <KvButtonGroup align="center">
-                        <KvButton
-                          type="button"
-                          color="error"
-                          appearance="ghost"
-                          size="icon-sm"
-                          aria-label="رد صلاحیت"
-                          disabled={actionBusy}
-                          onClick={() => onStartReject(user)}
-                          icon={<FaIcon icon={faIcons.xmark} size="xs" />}
-                        />
-                        <KvButton
-                          type="button"
-                          color="success"
-                          appearance="ghost"
-                          size="icon-sm"
-                          aria-label="تایید صلاحیت"
-                          disabled={actionBusy}
-                          onClick={() => onApprove(user)}
-                          icon={<FaIcon icon={faIcons.check} size="xs" />}
-                        />
-                      </KvButtonGroup>
+            {isEmpty ? (
+              <KvTableEmpty colSpan={columnCount}>
+                <KvEmptyState
+                  icon={<FaIcon icon={faIcons.idCard} size="lg" />}
+                  title="پرونده‌ای یافت نشد"
+                  description="با تغییر تب، جستجو یا فیلترها دوباره امتحان کنید."
+                />
+              </KvTableEmpty>
+            ) : (
+              users.map((user) => {
+                const selected = selectedId === user.id;
+                return (
+                  <KvTableRow
+                    key={user.id}
+                    interactive
+                    selected={selected}
+                    onClick={() => onSelect(user)}
+                  >
+                    <KvTableCell emphasis>{user.fullName}</KvTableCell>
+                    <KvTableCell align="center">
+                      {user.province || '---'}
                     </KvTableCell>
-                  ) : null}
-                </KvTableRow>
-              );
-            })}
+                    <KvTableCell align="center">
+                      {getRoleStrategy(user.role).label}
+                    </KvTableCell>
+                    {showActions ? (
+                      <KvTableCell
+                        align="center"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <KvButtonGroup align="center">
+                          <KvButton
+                            type="button"
+                            color="error"
+                            appearance="ghost"
+                            size="icon-sm"
+                            aria-label="رد صلاحیت"
+                            disabled={actionBusy}
+                            onClick={() => onStartReject(user)}
+                            icon={<FaIcon icon={faIcons.xmark} size="xs" />}
+                          />
+                          <KvButton
+                            type="button"
+                            color="success"
+                            appearance="ghost"
+                            size="icon-sm"
+                            aria-label="تایید صلاحیت"
+                            disabled={actionBusy}
+                            onClick={() => onApprove(user)}
+                            icon={<FaIcon icon={faIcons.check} size="xs" />}
+                          />
+                        </KvButtonGroup>
+                      </KvTableCell>
+                    ) : null}
+                  </KvTableRow>
+                );
+              })
+            )}
           </KvTableBody>
         </KvTable>
       </KvTableViewport>

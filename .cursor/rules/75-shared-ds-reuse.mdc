@@ -27,11 +27,17 @@ description: "Shared Design System reuse — prefer Kv*/App* primitives; extend 
 4. Do **not** put domain logic inside shared category folders — hooks/services stay in `features/` / `services/`.
 5. Prefer importing from the category path, e.g. `@/components/shared/fields/KvSearchField`.
 
+## Admin table empty state
+1. Keep table header chrome; put empty messaging **inside the table body** via `KvTableEmpty` (not a bare `KvEmptyState` replacing the whole table).
+2. Wrap with `KvTableViewport` so empty/loaded heights stay aligned; loading stays `KvBusySurface tableViewport`.
+3. Domain title/description/icon stay in the feature; shared owns the empty row chrome only.
+
 ## Agent checklist (UI work)
 - [ ] Is there an existing `Kv*` / `App*` / shell primitive for this?
 - [ ] If not: can we extend shared without breaking current callers?
 - [ ] Are we avoiding feature-local duplicates of modal/table/tabs/alerts?
 - [ ] Is the import from the correct shared category path (`fields/` / `table/` / `shell/` / root atom)?
+- [ ] Admin table empty uses `KvTableEmpty` inside body (header kept)?
 - [ ] Only `kv-*` tokens (rule 70); UX density (rule 80); brand volume (rule 90)?
 
 ## Examples

@@ -13,17 +13,16 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
 import { faIcons } from '@/utils/iconMap';
-import { toPersianDigits } from '@/utils/persianDigits';
 
 import type { OrgStructureTabConfig } from '../constants';
 
 interface OrgStructureTableProps {
   tabConfig: OrgStructureTabConfig;
   items: OrgStructureListItem[];
-  total: number;
   isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
@@ -38,7 +37,6 @@ interface OrgStructureTableProps {
 export function OrgStructureTable({
   tabConfig,
   items,
-  total,
   isLoading,
   isLoadingMore,
   hasMore,
@@ -48,19 +46,10 @@ export function OrgStructureTable({
   onEdit,
   onDelete,
 }: OrgStructureTableProps) {
+  const isEmpty = !isLoading && items.length === 0;
+
   if (isLoading) {
     return <KvBusySurface tableViewport />;
-  }
-
-  if (items.length === 0) {
-    return (
-      <KvEmptyState
-        tableViewport
-        icon={<FaIcon icon={tabConfig.icon} size="lg" />}
-        title="موردی یافت نشد"
-        description="با جستجوی دیگر امتحان کنید یا مورد جدیدی اضافه کنید."
-      />
-    );
   }
 
   return (
@@ -84,50 +73,56 @@ export function OrgStructureTable({
       ) : null}
 
       <KvTableViewport
-        hasMore={hasMore}
+        hasMore={!isEmpty && hasMore}
         isLoadingMore={isLoadingMore}
         onEndReached={onLoadMore}
-        showEndMessage={items.length > 0 && !hasMore}
-        endMessage={`همه موارد بارگذاری شد (${toPersianDigits(total)})`}
         loadingMoreLabel="در حال بارگذاری ۱۰ سطر بعدی…"
       >
         <KvTable scrollable={false}>
           <KvTableHeader>
             <KvTableRow>
               <KvTableHead>{tabConfig.nameColumnLabel}</KvTableHead>
-              <KvTableHead className="text-center">عملیات</KvTableHead>
+              <KvTableHead align="center">عملیات</KvTableHead>
             </KvTableRow>
           </KvTableHeader>
           <KvTableBody>
-            {items.map((row) => (
-              <KvTableRow key={row.id}>
-                <KvTableCell className="text-right font-extrabold text-kv-text">
-                  {row.name}
-                </KvTableCell>
-                <KvTableCell>
-                  <div className="flex items-center justify-center gap-1.5">
-                    <KvButton
-                      type="button"
-                      appearance="secondary"
-                      size="icon-sm"
-                      aria-label="ویرایش"
-                      onClick={() => onEdit(row)}
-                      icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
-                    />
-                    <KvButton
-                      type="button"
-                      color="error"
-                      appearance="ghost"
-                      size="icon-sm"
-                      aria-label="حذف"
-                      disabled={row.deleteBlocked}
-                      onClick={() => onDelete(row)}
-                      icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
-                    />
-                  </div>
-                </KvTableCell>
-              </KvTableRow>
-            ))}
+            {isEmpty ? (
+              <KvTableEmpty colSpan={2}>
+                <KvEmptyState
+                  icon={<FaIcon icon={tabConfig.icon} size="lg" />}
+                  title="موردی یافت نشد"
+                  description="با جستجوی دیگر امتحان کنید یا مورد جدیدی اضافه کنید."
+                />
+              </KvTableEmpty>
+            ) : (
+              items.map((row) => (
+                <KvTableRow key={row.id}>
+                  <KvTableCell emphasis>{row.name}</KvTableCell>
+                  <KvTableCell align="center">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <KvButton
+                        type="button"
+                        appearance="secondary"
+                        size="icon-sm"
+                        aria-label="ویرایش"
+                        onClick={() => onEdit(row)}
+                        icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
+                      />
+                      <KvButton
+                        type="button"
+                        color="error"
+                        appearance="ghost"
+                        size="icon-sm"
+                        aria-label="حذف"
+                        disabled={row.deleteBlocked}
+                        onClick={() => onDelete(row)}
+                        icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+                      />
+                    </div>
+                  </KvTableCell>
+                </KvTableRow>
+              ))
+            )}
           </KvTableBody>
         </KvTable>
       </KvTableViewport>
