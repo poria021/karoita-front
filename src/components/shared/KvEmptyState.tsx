@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/kvTableViewportHeight';
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 

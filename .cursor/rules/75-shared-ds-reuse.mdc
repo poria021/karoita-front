@@ -1,0 +1,52 @@
+---
+alwaysApply: true
+description: "Shared Design System reuse — prefer Kv*/App* primitives; extend shared when missing; forbid parallel one-off UI in features."
+---
+
+# Shared Design System Reuse (Mandatory)
+
+## Law
+1. **Prefer shared.** Features MUST compose existing primitives from `src/components/shared/` (`Kv*`, `AppTabs`, shell, fields, alerts, empty states, etc.) and `src/components/ui/` under them — not invent parallel chrome.
+2. **Extend shared when missing.** If a pattern is needed (dialog, table chrome, tab layout, field wrapper) and shared is incomplete or wrong, **change/extend the shared component** with a backward-compatible API so the whole app stays consistent. Do **not** leave a one-off overlay/table/tabs styling only inside a feature.
+3. **Feature = domain composition.** Feature folders own business layout, domain fields, and hooks. Generic chrome (modal shell, table shell, tab track, button/input look) belongs in shared.
+4. **Promote on repeat.** If the same visual/interaction pattern appears twice across features/domains, extract or extend shared before the second copy ships.
+5. **No parallel visual systems.** Forbidden: hand-rolled `fixed inset-0` modals, raw unstyled control stacks, fork copies of AppTabs/Kv* styles, or feature-local “almost Kv” wrappers that diverge from DS tokens.
+
+## Placement
+- Shared reusable UI → `src/components/shared/`
+- Domain-only widgets (e.g. org-structure row actions wired to facade) → `src/features/[domain]/...`
+- Cross-domain feature logic → `src/features/shared/` (not a second button library)
+
+## Shared folder layout (category folders)
+1. `src/components/ui/` stays **flat** (shadcn primitives) — do not nest by component.
+2. Inside `src/components/shared/`, group by category — **not** one folder per atom:
+   - `fields/` — inputs, selects, form chrome, filter bar, search field
+   - `table/` — table, viewport, busy surface tied to viewport height
+   - `shell/` — header, sidebar, dashboard viewport, guards, providers
+3. Atoms may stay flat at `shared/` root (`KvButton`, `KvCard`, `AppTabs`, `FaIcon`, …).
+4. Do **not** put domain logic inside shared category folders — hooks/services stay in `features/` / `services/`.
+5. Prefer importing from the category path, e.g. `@/components/shared/fields/KvSearchField`.
+
+## Agent checklist (UI work)
+- [ ] Is there an existing `Kv*` / `App*` / shell primitive for this?
+- [ ] If not: can we extend shared without breaking current callers?
+- [ ] Are we avoiding feature-local duplicates of modal/table/tabs/alerts?
+- [ ] Is the import from the correct shared category path (`fields/` / `table/` / `shell/` / root atom)?
+- [ ] Only `kv-*` tokens (rule 70); UX density (rule 80); brand volume (rule 90)?
+
+## Examples
+```tsx
+// ❌ BAD — parallel modal in a feature
+<div className="fixed inset-0 z-50 bg-black/40">...</div>
+
+// ✅ GOOD — extend/add KvDialog (or Dialog wrapper) in shared, consume it
+<KvDialog open={open} onOpenChange={setOpen} title="...">...</KvDialog>
+```
+
+```tsx
+// ❌ BAD — copy AppTabs styles into a feature for one page
+<nav className="rounded-full bg-kv-muted p-1">...</nav>
+
+// ✅ GOOD — use AppTabs; if layout needs (e.g. mobile grid), add an optional prop/variant on AppTabs
+<AppTabs items={items} value={value} onValueChange={onChange} />
+```
