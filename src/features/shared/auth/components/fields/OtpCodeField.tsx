@@ -4,7 +4,7 @@ import * as React from 'react';
 import type { ChangeEvent } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
-import { KvTextField } from '@/components/shared/KvTextField';
+import { KvTextField } from '@/components/shared/fields/KvTextField';
 import {
   persianToEnglishDigits,
   toPersianDigits,

@@ -1,18 +1,12 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
+import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
+import { cn } from '@/lib/utils';
+import { getRoleProfileDisplayFields } from '@/utils/roleFieldStrategy';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
-import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
-import {
-  KvDescriptionItem,
-  KvDescriptionList,
-} from '@/components/shared/KvDescriptionList';
-
-import {
-  GENERAL_APPROVAL_FIELDS,
-  ROLE_APPROVAL_FIELDS,
-  type ApprovalFieldDef,
-} from '../constants';
 
 function readFieldValue(
   user: OnboardingApprovalUser,
@@ -23,55 +17,71 @@ function readFieldValue(
   return typeof value === 'string' && value.trim() ? value : undefined;
 }
 
+function FieldRow({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value: ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex justify-between gap-kv-group border-b border-kv-border pb-1.5">
+      <dt className="font-sans text-xs font-bold text-kv-text-muted">{label}:</dt>
+      <dd
+        className={cn(
+          'text-end font-sans text-xs font-bold text-kv-text',
+          mono && 'font-mono'
+        )}
+      >
+        {value}
+      </dd>
+    </div>
+  );
+}
+
 interface OnboardingApprovalsUserFieldsProps {
   user: OnboardingApprovalUser;
 }
 
+/**
+ * Detail fields mirror the user's profile form for their role
+ * ({@link getRoleProfileDisplayFields} / ROLE_FIELD_STRATEGY).
+ */
 export function OnboardingApprovalsUserFields({
   user,
 }: OnboardingApprovalsUserFieldsProps) {
-  const roleFields = ROLE_APPROVAL_FIELDS[user.role] ?? [];
-  const seen = new Set<string>();
-  const rows: ApprovalFieldDef[] = [];
-
-  for (const field of [...GENERAL_APPROVAL_FIELDS, ...roleFields]) {
-    if (seen.has(field.key)) continue;
-    seen.add(field.key);
-    if (readFieldValue(user, field.key)) rows.push(field);
-  }
+  const roleFields = getRoleProfileDisplayFields(user.role);
 
   return (
-    <KvDescriptionList>
-      <KvDescriptionItem
-        label="نام و نام خانوادگی"
-        value={user.fullName || '---'}
-      />
-      <KvDescriptionItem
+    <dl className="space-y-3.5">
+      <FieldRow label="نام و نام خانوادگی" value={user.fullName || '---'} />
+      <FieldRow
         label="شماره تماس"
-        value={
-          user.mobile ? toPersianDigits(`0${user.mobile}`) : '---'
-        }
+        value={user.mobile ? toPersianDigits(`0${user.mobile}`) : '---'}
         mono
       />
-      <KvDescriptionItem
-        label="نقش کاربری"
-        value={getRoleStrategy(user.role).label}
-      />
-      {rows.map((field) => {
-        const value = readFieldValue(user, field.key);
-        if (!value) return null;
+      <FieldRow label="نقش کاربری" value={getRoleStrategy(user.role).label} />
+      {roleFields.map((field) => {
+        const raw = readFieldValue(user, field.key);
+        const display = raw
+          ? field.numeric
+            ? toPersianDigits(raw)
+            : raw
+          : '---';
         return (
-          <KvDescriptionItem
+          <FieldRow
             key={field.key}
             label={field.label}
-            value={field.numeric ? toPersianDigits(value) : value}
+            value={display}
             mono={field.numeric}
           />
         );
       })}
       {user.docType ? (
-        <KvDescriptionItem label="نوع مدرک" value={user.docType} />
+        <FieldRow label="نوع مدرک" value={user.docType} />
       ) : null}
-    </KvDescriptionList>
+    </dl>
   );
 }

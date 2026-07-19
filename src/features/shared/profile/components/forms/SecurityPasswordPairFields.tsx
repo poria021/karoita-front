@@ -2,7 +2,7 @@
 
 import { useWatch, type UseFormReturn } from 'react-hook-form';
 
-import { KvPasswordField } from '@/components/shared/KvPasswordField';
+import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
 
 import type { SecurityPasswordSchema } from '../../schemas/security.schema';
 import { PasswordStrengthIndicator } from './PasswordStrengthIndicator';

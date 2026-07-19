@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { KvAlert } from '@/components/shared/KvAlert';
-import { KvBusySurface } from '@/components/shared/KvBusySurface';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { getPostLoginPath } from '@/services/post-login-path';
@@ -37,7 +36,12 @@ export function OnboardingApprovalsPage() {
   }, [activeUser, router]);
 
   if (!activeUser || !isSuperAdminRole(activeUser.role)) {
-    return <KvBusySurface />;
+    return (
+      <div
+        className="min-h-40 w-full bg-kv-surface bg-kv-canvas"
+        aria-busy="true"
+      />
+    );
   }
 
   const { canApprove, canReject } = getApprovalTabActions(page.tab);
@@ -55,8 +59,6 @@ export function OnboardingApprovalsPage() {
           onQueryChange={page.setQuery}
           province={page.province}
           onProvinceChange={page.setProvince}
-          role={page.role}
-          onRoleChange={page.setRole}
           provinces={page.provinces}
           searchPlaceholder="جستجوی نام یا کد ملی..."
         />
@@ -87,8 +89,6 @@ export function OnboardingApprovalsPage() {
                 onQueryChange={page.setQuery}
                 province={page.province}
                 onProvinceChange={page.setProvince}
-                role={page.role}
-                onRoleChange={page.setRole}
                 provinces={page.provinces}
               />
 

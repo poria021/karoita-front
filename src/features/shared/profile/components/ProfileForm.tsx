@@ -4,10 +4,10 @@ import { Controller, type FieldPath } from 'react-hook-form';
 import type { ChangeEvent } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
-import { KvSelectItem } from '@/components/shared/KvSelect';
-import { KvSelectField } from '@/components/shared/KvSelectField';
-import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
-import { KvTextField } from '@/components/shared/KvTextField';
+import { KvSelectItem } from '@/components/shared/fields/KvSelect';
+import { KvSelectField } from '@/components/shared/fields/KvSelectField';
+import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
+import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { useUserStore } from '@/store/useUserStore';

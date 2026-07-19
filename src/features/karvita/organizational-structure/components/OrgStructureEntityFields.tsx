@@ -8,9 +8,9 @@ import type {
 } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 
-import { KvSelectField } from '@/components/shared/KvSelectField';
-import { KvSelectItem } from '@/components/shared/KvSelect';
-import { KvTextField } from '@/components/shared/KvTextField';
+import { KvSelectField } from '@/components/shared/fields/KvSelectField';
+import { KvSelectItem } from '@/components/shared/fields/KvSelect';
+import { KvTextField } from '@/components/shared/fields/KvTextField';
 import type { OrgCity, OrgDistrict, OrgProvince } from '@/types/org-structure';
 import type { OrgStructureSubTab } from '@/types/org-structure';
 

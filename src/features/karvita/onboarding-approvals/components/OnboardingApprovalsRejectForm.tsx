@@ -4,9 +4,9 @@ import { useState } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent, KvCardFooter } from '@/components/shared/KvCard';
-import { KvSelectField } from '@/components/shared/KvSelectField';
-import { KvSelectItem } from '@/components/shared/KvSelect';
-import { KvTextArea } from '@/components/shared/KvTextArea';
+import { KvSelectField } from '@/components/shared/fields/KvSelectField';
+import { KvSelectItem } from '@/components/shared/fields/KvSelect';
+import { KvTextArea } from '@/components/shared/fields/KvTextArea';
 
 import { DEFAULT_REJECT_REASONS } from '../constants';
 

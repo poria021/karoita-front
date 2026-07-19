@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { KvToaster } from "@/components/shared/KvToaster";
 import { Vazirmatn } from "next/font/google";
 
-import Providers from "@/components/shared/Providers";
+import Providers from "@/components/shared/shell/Providers";
 
 // لود کردن و معرفی متغیر فونت خورشیدی وزیرمتن
 const vazirmatn = Vazirmatn({

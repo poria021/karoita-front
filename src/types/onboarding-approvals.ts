@@ -1,4 +1,4 @@
-import type { DocStatus, User, UserRole } from '@/types/auth';
+import type { DocStatus, User } from '@/types/auth';
 import type { OffsetLimitPage } from '@/utils/offset-limit-page';
 
 /** Status tabs on the onboarding approvals workspace (excludes `not_submitted`). */
@@ -6,18 +6,6 @@ export type ApprovalFilterTab = Extract<
   DocStatus,
   'pending_admin' | 'approved' | 'rejected'
 >;
-
-/** Roles shown in the approvals role filter (parity with original HTML). */
-export type ApprovalRoleFilter =
-  | 'all'
-  | Extract<
-      UserRole,
-      | 'student'
-      | 'skill_learner'
-      | 'supervisor_professor'
-      | 'mentor_teacher'
-      | 'school_principal'
-    >;
 
 /** List/detail DTO for identity-doc review — flat User + review metadata. */
 export type OnboardingApprovalUser = User & {
@@ -29,7 +17,6 @@ export type ListOnboardingApprovalsFilters = {
   status: ApprovalFilterTab;
   query?: string;
   province?: string;
-  role?: ApprovalRoleFilter;
   offset?: number;
   limit?: number;
 };

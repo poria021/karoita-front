@@ -8,7 +8,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
-import { KvForm } from '@/components/shared/KvForm';
+import { KvForm } from '@/components/shared/fields/KvForm';
 import { AuthService } from '@/services/auth.service';
 import { faIcons } from '@/utils/iconMap';
 

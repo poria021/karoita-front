@@ -67,8 +67,6 @@ function listFilteredUsers(
 ): OnboardingApprovalUser[] {
   const province =
     filters.province && filters.province !== 'all' ? filters.province : null;
-  const role =
-    filters.role && filters.role !== 'all' ? filters.role : null;
   const query = filters.query ?? '';
 
   return readMockUsers()
@@ -78,7 +76,6 @@ function listFilteredUsers(
     )
     .filter((user) => user.docStatus === filters.status)
     .filter((user) => (province ? user.province === province : true))
-    .filter((user) => (role ? user.role === role : true))
     .filter((user) => matchesQuery(user, query))
     .sort((a, b) => (b.lastChange ?? 0) - (a.lastChange ?? 0))
     .map((record) => toApprovalUser(toPublicUser(record)));

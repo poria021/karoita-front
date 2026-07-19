@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 
-import HydrationSafe from '@/components/shared/HydrationSafe';
+import HydrationSafe from '@/components/shared/shell/HydrationSafe';
 import { AuthCard } from '@/features/shared/auth/components/AuthCard';
 import { RETURN_URL_PARAM, parseSafeReturnUrl } from '@/lib/return-url';
 import { RouteService } from '@/services/route.service';

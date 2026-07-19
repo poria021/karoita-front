@@ -1,7 +1,7 @@
 import { Controller, type Control } from 'react-hook-form';
 
-import { KvSelectField } from '@/components/shared/KvSelectField';
-import { KvSelectItem } from '@/components/shared/KvSelect';
+import { KvSelectField } from '@/components/shared/fields/KvSelectField';
+import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 
 import {
   REGISTER_ROLE_LABELS,

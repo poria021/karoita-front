@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { KarvitaModuleAccessGuard } from '@/components/shared/KarvitaModuleAccessGuard';
+import { KarvitaModuleAccessGuard } from '@/components/shared/shell/KarvitaModuleAccessGuard';
 
 /**
  * Karvita dashboard route group — shell comes from `/(app)/layout.tsx`.

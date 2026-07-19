@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvSearchField } from '@/components/shared/fields/KvSearchField';
 import { KvSpinner } from '@/components/shared/KvSpinner';
-import { KvTextField } from '@/components/shared/KvTextField';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
@@ -116,21 +116,17 @@ export function SearchableOrganizationSelect({
       aria-expanded={open && !locked}
       aria-controls={open ? `org-select-${type}` : undefined}
     >
-      <KvTextField
+      <KvSearchField
         label={label}
         required={required}
         optionalHint={optionalHint}
+        size="md"
         value={query}
         locked={locked}
         showLockIcon={showLockIcon}
         error={error}
         placeholder={placeholder}
-        autoComplete="off"
-        startIcon={
-          showSearchIcon ? (
-            <FaIcon icon={faIcons.magnifyingGlass} size="xs" />
-          ) : undefined
-        }
+        showIcon={showSearchIcon}
         endAddon={
           <span className="flex h-full items-center pe-2.5 ps-0.5">
             <FaIcon

@@ -1,26 +1,19 @@
 'use client';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import {
   KvFilterBar,
   KvFilterBarControl,
   KvFilterBarSearch,
-} from '@/components/shared/KvFilterBar';
-import { KvSelectField } from '@/components/shared/KvSelectField';
-import { KvSelectItem } from '@/components/shared/KvSelect';
-import { KvTextField } from '@/components/shared/KvTextField';
-import type { ApprovalRoleFilter } from '@/types/onboarding-approvals';
-import { faIcons } from '@/utils/iconMap';
-
-import { APPROVAL_ROLE_FILTER_OPTIONS } from '../constants';
+} from '@/components/shared/fields/KvFilterBar';
+import { KvSearchField } from '@/components/shared/fields/KvSearchField';
+import { KvSelectField } from '@/components/shared/fields/KvSelectField';
+import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 
 interface OnboardingApprovalsFiltersProps {
   query: string;
   onQueryChange: (value: string) => void;
   province: string;
   onProvinceChange: (value: string) => void;
-  role: ApprovalRoleFilter;
-  onRoleChange: (value: ApprovalRoleFilter) => void;
   provinces: string[];
   searchPlaceholder?: string;
 }
@@ -30,22 +23,17 @@ export function OnboardingApprovalsFilters({
   onQueryChange,
   province,
   onProvinceChange,
-  role,
-  onRoleChange,
   provinces,
   searchPlaceholder = 'جستجو...',
 }: OnboardingApprovalsFiltersProps) {
   return (
     <KvFilterBar>
       <KvFilterBarSearch>
-        <KvTextField
+        <KvSearchField
           id="onboarding-approvals-search"
-          label={false}
-          size="sm"
           value={query}
           placeholder={searchPlaceholder}
           onChange={(event) => onQueryChange(event.target.value)}
-          startIcon={<FaIcon icon={faIcons.magnifyingGlass} size="xs" />}
         />
       </KvFilterBarSearch>
 
@@ -62,23 +50,6 @@ export function OnboardingApprovalsFilters({
           {provinces.map((name) => (
             <KvSelectItem key={name} value={name}>
               {name}
-            </KvSelectItem>
-          ))}
-        </KvSelectField>
-      </KvFilterBarControl>
-
-      <KvFilterBarControl>
-        <KvSelectField
-          id="onboarding-approvals-role"
-          label={false}
-          size="sm"
-          value={role}
-          onValueChange={(value) => onRoleChange(value as ApprovalRoleFilter)}
-          placeholder="همه نقش‌ها"
-        >
-          {APPROVAL_ROLE_FILTER_OPTIONS.map((option) => (
-            <KvSelectItem key={option.value} value={option.value}>
-              {option.label}
             </KvSelectItem>
           ))}
         </KvSelectField>

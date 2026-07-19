@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import { Controller } from 'react-hook-form';
 
 import { KvButton } from '@/components/shared/KvButton';
-import { KvCheckbox } from '@/components/shared/KvCheckbox';
-import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
+import { KvCheckbox } from '@/components/shared/fields/KvCheckbox';
+import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';

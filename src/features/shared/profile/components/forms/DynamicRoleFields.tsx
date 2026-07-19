@@ -2,8 +2,8 @@
 
 import { useFormContext, useWatch } from 'react-hook-form';
 
-import { KvFormField } from '@/components/shared/KvForm';
-import { KvTextField } from '@/components/shared/KvTextField';
+import { KvFormField } from '@/components/shared/fields/KvForm';
+import { KvTextField } from '@/components/shared/fields/KvTextField';
 import type { UserRole } from '@/types/auth';
 import {
   persianToEnglishDigits,

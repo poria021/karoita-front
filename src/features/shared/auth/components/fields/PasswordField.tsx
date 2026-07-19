@@ -1,6 +1,6 @@
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
-import { KvPasswordField } from '@/components/shared/KvPasswordField';
+import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
 
 interface PasswordFieldProps {
   id: string;

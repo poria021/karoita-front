@@ -11,7 +11,6 @@ import {
 } from '@/services/onboarding-approvals.service';
 import type {
   ApprovalFilterTab,
-  ApprovalRoleFilter,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 
@@ -25,7 +24,6 @@ export function useOnboardingApprovalsPage() {
   const [tab, setTab] = useState<ApprovalFilterTab>('pending_admin');
   const [query, setQuery] = useState('');
   const [province, setProvince] = useState('all');
-  const [role, setRole] = useState<ApprovalRoleFilter>('all');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
   const [provinces, setProvinces] = useState<string[]>([]);
@@ -36,7 +34,7 @@ export function useOnboardingApprovalsPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [docPreviewUrl, setDocPreviewUrl] = useState<string | null>(null);
 
-  const resetKey = `${tab}::${debouncedQuery}::${province}::${role}`;
+  const resetKey = `${tab}::${debouncedQuery}::${province}`;
 
   const fetchPage = useCallback(
     async ({ offset, limit }: { offset: number; limit: number }) => {
@@ -44,7 +42,6 @@ export function useOnboardingApprovalsPage() {
         status: tab,
         query: debouncedQuery,
         province,
-        role,
         offset,
         limit,
       });
@@ -55,7 +52,7 @@ export function useOnboardingApprovalsPage() {
         hasMore: page.hasMore,
       };
     },
-    [tab, debouncedQuery, province, role]
+    [tab, debouncedQuery, province]
   );
 
   const list = useOffsetLimitInfiniteList<OnboardingApprovalUser>({
@@ -84,7 +81,6 @@ export function useOnboardingApprovalsPage() {
     setTab(next);
     setQuery('');
     setProvince('all');
-    setRole('all');
     setSelectedId(null);
     setShowRejectForm(false);
     setRejectReason('');
@@ -162,8 +158,6 @@ export function useOnboardingApprovalsPage() {
     setQuery,
     province,
     setProvince,
-    role,
-    setRole,
     provinces,
     users: items,
     total,

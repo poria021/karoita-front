@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react';
 import { Suspense } from 'react';
 
-import { AppAuthGuard } from '@/components/shared/AppAuthGuard';
-import { DashboardMainViewport } from '@/components/shared/DashboardMainViewport';
-import { Header } from '@/components/shared/Header';
-import HydrationSafe from '@/components/shared/HydrationSafe';
-import { Sidebar } from '@/components/shared/Sidebar';
+import { AppAuthGuard } from '@/components/shared/shell/AppAuthGuard';
+import { DashboardMainViewport } from '@/components/shared/shell/DashboardMainViewport';
+import { Header } from '@/components/shared/shell/Header';
+import HydrationSafe from '@/components/shared/shell/HydrationSafe';
+import { Sidebar } from '@/components/shared/shell/Sidebar';
 
 /**
  * Shared authenticated shell for every route under `/(app)/*`.

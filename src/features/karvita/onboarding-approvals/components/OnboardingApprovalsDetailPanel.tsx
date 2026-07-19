@@ -1,6 +1,5 @@
 'use client';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import {
   KvCard,
@@ -11,10 +10,8 @@ import {
   KvCardIdentity,
   KvCardTitle,
 } from '@/components/shared/KvCard';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
 import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
-import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 import { OnboardingApprovalsRejectForm } from './OnboardingApprovalsRejectForm';
@@ -50,17 +47,8 @@ export function OnboardingApprovalsDetailPanel({
   onPreviewDoc,
 }: OnboardingApprovalsDetailPanelProps) {
   if (!user) {
-    return (
-      <KvCard tone="muted" fill className="justify-center">
-        <KvCardContent padding="md">
-          <KvEmptyState
-            icon={<FaIcon icon={faIcons.idCard} size="lg" />}
-            title="کاربری انتخاب نشده"
-            description="از جدول یک پرونده را برای مشاهده جزئیات و اقدام انتخاب کنید."
-          />
-        </KvCardContent>
-      </KvCard>
-    );
+    // Quiet well — list empty/no-selection copy lives on the table, not here.
+    return <KvCard tone="muted" fill aria-hidden="true" />;
   }
 
   const showActions = canApprove || canReject;

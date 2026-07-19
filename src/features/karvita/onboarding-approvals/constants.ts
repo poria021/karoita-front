@@ -1,9 +1,6 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
-import type {
-  ApprovalFilterTab,
-  ApprovalRoleFilter,
-} from '@/types/onboarding-approvals';
+import type { ApprovalFilterTab } from '@/types/onboarding-approvals';
 import type { UserRole } from '@/types/auth';
 import { faIcons, iconMap } from '@/utils/iconMap';
 
@@ -159,18 +156,6 @@ export const ROLE_APPROVAL_FIELDS: Partial<
     },
   ],
 };
-
-export const APPROVAL_ROLE_FILTER_OPTIONS: {
-  value: ApprovalRoleFilter;
-  label: string;
-}[] = [
-  { value: 'all', label: 'همه نقش‌ها' },
-  { value: 'student', label: 'دانشجو' },
-  { value: 'skill_learner', label: 'مهارت‌آموز' },
-  { value: 'supervisor_professor', label: 'استاد راهنما' },
-  { value: 'mentor_teacher', label: 'معلم راهنما' },
-  { value: 'school_principal', label: 'مدیر مدرسه' },
-];
 
 export function isPdfDocUrl(url: string | undefined): boolean {
   return Boolean(url?.startsWith('data:application/pdf'));

@@ -2,8 +2,7 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
-import { KvTextField } from '@/components/shared/KvTextField';
-import { KvTypography } from '@/components/shared/KvTypography';
+import { KvSearchField } from '@/components/shared/fields/KvSearchField';
 import { faIcons } from '@/utils/iconMap';
 
 import type { OrgStructureTabConfig } from '../constants';
@@ -34,14 +33,11 @@ export function OrgStructureToolbar({
 
       <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:w-auto">
         <div className="w-full sm:w-64">
-          <KvTextField
+          <KvSearchField
             id="org-structure-search"
-            label={false}
-            size="sm"
             value={query}
             placeholder={tabConfig.searchPlaceholder}
             onChange={(event) => onQueryChange(event.target.value)}
-            startIcon={<FaIcon icon={faIcons.magnifyingGlass} size="xs" />}
           />
         </div>
 

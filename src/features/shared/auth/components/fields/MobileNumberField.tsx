@@ -1,6 +1,6 @@
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
-import { KvMobileNumberField } from '@/components/shared/KvMobileNumberField';
+import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 
 interface MobileNumberFieldProps {
   id: string;

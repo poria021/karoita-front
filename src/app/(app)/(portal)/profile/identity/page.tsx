@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-import HydrationSafe from '@/components/shared/HydrationSafe';
+import HydrationSafe from '@/components/shared/shell/HydrationSafe';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 

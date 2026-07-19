@@ -2,7 +2,7 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
-import { KvBusySurface } from '@/components/shared/KvBusySurface';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import {
@@ -12,8 +12,8 @@ import {
   KvTableHead,
   KvTableHeader,
   KvTableRow,
-} from '@/components/shared/KvTable';
-import { KvTableViewport } from '@/components/shared/KvTableViewport';
+} from '@/components/shared/table/KvTable';
+import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
