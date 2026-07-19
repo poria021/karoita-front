@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 
-import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 
@@ -12,8 +11,6 @@ export type KvEmptyStateProps = {
   description?: ReactNode;
   actions?: ReactNode;
   tone?: KvEmptyStateTone;
-  /** Match admin table viewport height when used as table empty. */
-  tableViewport?: boolean;
   className?: string;
 };
 
@@ -23,8 +20,8 @@ const ICON_TONE_CLASS: Record<KvEmptyStateTone, string> = {
 };
 
 /**
- * Shared empty / coming-soon surface for dashboards and unfinished modules.
- * Presentation only — callers supply copy and optional actions.
+ * Shared empty / coming-soon surface.
+ * Always fills the parent (`h-full` + `flex-1`) — parent must establish height.
  */
 export function KvEmptyState({
   icon,
@@ -32,15 +29,13 @@ export function KvEmptyState({
   description,
   actions,
   tone = 'brand',
-  tableViewport = false,
   className,
 }: KvEmptyStateProps) {
   return (
     <div
       data-slot="kv-empty-state"
       className={cn(
-        'flex flex-col items-center justify-center gap-kv-group px-kv-inset py-kv-block text-center',
-        tableViewport && KV_TABLE_VIEWPORT_HEIGHT,
+        'flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center gap-kv-group px-kv-inset py-kv-block text-center',
         className
       )}
       role="status"
@@ -48,7 +43,7 @@ export function KvEmptyState({
       {icon ? (
         <div
           className={cn(
-            'flex size-12 items-center justify-center rounded-kv-panel shadow-kv-raised',
+            'flex size-12 shrink-0 items-center justify-center rounded-kv-panel shadow-kv-raised',
             ICON_TONE_CLASS[tone]
           )}
         >

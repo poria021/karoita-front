@@ -113,7 +113,7 @@ export function SecurityChangePasswordFlow({
               />
             )}
           />
-          <div className="flex gap-2">
+          <div className="flex gap-kv-pair">
             <KvButton
               type="button"
               appearance="secondary"
@@ -152,7 +152,7 @@ export function SecurityChangePasswordFlow({
           disabled={isDisabled}
           confirmLabel="تکرار رمز عبور جدید"
         />
-        <div className="flex gap-2">
+        <div className="flex gap-kv-pair">
           <KvButton
             type="button"
             appearance="secondary"

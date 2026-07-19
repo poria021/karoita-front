@@ -17,6 +17,8 @@ import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvMediaAside } from '@/components/shared/KvMediaAside';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
+import { cn } from '@/lib/utils';
 import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
@@ -92,11 +94,13 @@ export function OnboardingApprovalsMobileList({
 
   if (users.length === 0) {
     return (
-      <KvEmptyState
-        icon={<FaIcon icon={faIcons.idCard} size="lg" />}
-        title="پرونده‌ای یافت نشد"
-        description="با تغییر تب، جستجو یا فیلترها دوباره امتحان کنید."
-      />
+      <div className={cn('flex w-full flex-col', KV_TABLE_VIEWPORT_HEIGHT)}>
+        <KvEmptyState
+          icon={<FaIcon icon={faIcons.idCard} size="lg" />}
+          title="پرونده‌ای یافت نشد"
+          description="با تغییر تب، جستجو یا فیلترها دوباره امتحان کنید."
+        />
+      </div>
     );
   }
 
@@ -165,6 +169,16 @@ export function OnboardingApprovalsMobileList({
 
                 {canApprove || canReject ? (
                   <>
+                    {canReject && showRejectForm ? (
+                      <OnboardingApprovalsRejectForm
+                        reason={rejectReason}
+                        onReasonChange={onRejectReasonChange}
+                        onCancel={onCancelReject}
+                        onSubmit={() => onSubmitReject(user)}
+                        busy={actionBusy}
+                      />
+                    ) : null}
+
                     <KvButtonGroup fullWidth>
                       {canReject ? (
                         <KvButton
@@ -193,16 +207,6 @@ export function OnboardingApprovalsMobileList({
                         </KvButton>
                       ) : null}
                     </KvButtonGroup>
-
-                    {canReject && showRejectForm ? (
-                      <OnboardingApprovalsRejectForm
-                        reason={rejectReason}
-                        onReasonChange={onRejectReasonChange}
-                        onCancel={onCancelReject}
-                        onSubmit={() => onSubmitReject(user)}
-                        busy={actionBusy}
-                      />
-                    ) : null}
                   </>
                 ) : null}
               </KvAccordionContent>

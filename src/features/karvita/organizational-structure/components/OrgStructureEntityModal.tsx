@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { KvButton } from '@/components/shared/KvButton';
@@ -48,7 +48,7 @@ export type OrgEntityFormValues = {
   provinceId?: string;
   cityId?: string;
   districtId?: string;
-  gender?: 'male' | 'female' | 'mixed';
+  gender?: 'male' | 'female';
 };
 
 function defaultValuesForTab(tab: OrgStructureSubTab): OrgEntityFormValues {
@@ -60,19 +60,32 @@ function defaultValuesForTab(tab: OrgStructureSubTab): OrgEntityFormValues {
       provinceId: '',
       cityId: '',
       districtId: '',
-      gender: 'mixed',
+      gender: undefined,
     };
   }
   return { name: '', provinceId: '', cityId: '' };
 }
 
-function resolverForTab(tab: OrgStructureSubTab) {
-  if (tab === 'provinces') return zodResolver(provinceFormSchema);
-  if (tab === 'cities') return zodResolver(cityFormSchema);
-  if (tab === 'faculties') return zodResolver(facultyFormSchema);
-  if (tab === 'districts') return zodResolver(districtFormSchema);
-  if (tab === 'schools') return zodResolver(schoolFormSchema);
-  return zodResolver(majorFormSchema);
+function resolverForTab(
+  tab: OrgStructureSubTab
+): Resolver<OrgEntityFormValues> {
+  // Per-tab Zod schemas are structural subsets of OrgEntityFormValues.
+  if (tab === 'provinces') {
+    return zodResolver(provinceFormSchema) as Resolver<OrgEntityFormValues>;
+  }
+  if (tab === 'cities') {
+    return zodResolver(cityFormSchema) as Resolver<OrgEntityFormValues>;
+  }
+  if (tab === 'faculties') {
+    return zodResolver(facultyFormSchema) as Resolver<OrgEntityFormValues>;
+  }
+  if (tab === 'districts') {
+    return zodResolver(districtFormSchema) as Resolver<OrgEntityFormValues>;
+  }
+  if (tab === 'schools') {
+    return zodResolver(schoolFormSchema) as Resolver<OrgEntityFormValues>;
+  }
+  return zodResolver(majorFormSchema) as Resolver<OrgEntityFormValues>;
 }
 
 export function OrgStructureEntityModal({
@@ -91,8 +104,7 @@ export function OrgStructureEntityModal({
   const [formError, setFormError] = useState<string | null>(null);
 
   const form = useForm<OrgEntityFormValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: resolverForTab(tab) as any,
+    resolver: resolverForTab(tab),
     defaultValues: defaultValuesForTab(tab),
     mode: 'onSubmit',
   });
@@ -247,8 +259,7 @@ export function OrgStructureEntityModal({
             provinces={provinces}
             cities={cities}
             districts={districts}
-            provinceId={provinceId}
-            cityId={cityId}
+            namePlaceholder={tabConfig.namePlaceholder}
           />
 
           {formError ? (
@@ -257,11 +268,11 @@ export function OrgStructureEntityModal({
             </p>
           ) : null}
 
-          <KvDialogFooter className="flex-row sm:flex-row">
+          <KvDialogFooter>
             <KvButton
               type="button"
               appearance="secondary"
-              className="flex-1"
+              size="md"
               onClick={onClose}
               disabled={form.formState.isSubmitting}
             >
@@ -270,7 +281,8 @@ export function OrgStructureEntityModal({
             <KvButton
               type="submit"
               color="cta"
-              className="flex-1"
+              appearance="solid"
+              size="md"
               loading={form.formState.isSubmitting}
             >
               ذخیره

@@ -1,6 +1,7 @@
 /**
- * Mock organization catalog for profile selects.
- * Used by {@link OrganizationOptionsService} in mock mode only.
+ * Mock organization catalog for profile helpers / seed story.
+ * Runtime typeahead options come from {@link OrganizationOptionsService}
+ * (`src/services/organization-options.service.ts`) via OrgStructureService.
  */
 
 import type { OrganizationField } from '@/utils/roleFieldStrategy';

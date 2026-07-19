@@ -38,7 +38,7 @@ export function KvTable({
     <Table
       data-slot="kv-table"
       className={cn(
-        'w-full border-collapse text-right text-xs font-sans',
+        'w-full border-separate border-spacing-0 text-right text-xs font-sans',
         className
       )}
       {...props}
@@ -62,7 +62,7 @@ export function KvTableHeader({
     <TableHeader
       data-slot="kv-table-header"
       className={cn(
-        'sticky top-0 z-10 border-b border-kv-border bg-kv-surface-muted font-bold text-kv-text-subtle [&_tr]:border-b-0',
+        'sticky top-0 z-10 bg-kv-surface-muted font-bold text-kv-text-subtle',
         className
       )}
       {...props}
@@ -77,7 +77,7 @@ export function KvTableBody({
   return (
     <TableBody
       data-slot="kv-table-body"
-      className={cn('[&_tr:last-child]:border-b-0', className)}
+      className={cn('[&_tr:last-child>td]:border-b-0', className)}
       {...props}
     />
   );
@@ -117,7 +117,7 @@ export function KvTableRow({
       data-slot="kv-table-row"
       data-selected={selected || undefined}
       className={cn(
-        'border-b border-kv-border font-bold text-kv-text hover:bg-kv-surface-muted/50',
+        'font-bold text-kv-text hover:bg-kv-surface-muted/50',
         interactive && 'cursor-pointer',
         selected && 'bg-kv-brand-soft font-extrabold text-kv-brand',
         className
@@ -143,7 +143,7 @@ export function KvTableHead({
     <TableHead
       data-slot="kv-table-head"
       className={cn(
-        'h-auto p-3.5 font-bold whitespace-nowrap',
+        'h-auto border-b border-kv-border p-3.5 font-bold whitespace-nowrap',
         ALIGN_CLASS[align],
         className
       )}
@@ -174,7 +174,7 @@ export function KvTableCell({
     <TableCell
       data-slot="kv-table-cell"
       className={cn(
-        'p-3.5 whitespace-normal text-kv-text-secondary',
+        'border-b border-kv-border p-3.5 whitespace-normal text-kv-text-secondary',
         ALIGN_CLASS[align],
         emphasis && 'font-extrabold text-kv-text',
         mono && 'font-mono',

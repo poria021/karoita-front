@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -38,6 +38,7 @@ export function SecurityForm({
   onPasswordRegistered,
 }: SecurityFormProps) {
   const [hasExistingPassword, setHasExistingPassword] = useState(hasPassword);
+  const [syncedHasPassword, setSyncedHasPassword] = useState(hasPassword);
   const [passwordStep, setPasswordStep] = useState<PasswordStep>('initial');
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error' | 'info';
@@ -45,9 +46,10 @@ export function SecurityForm({
   } | null>(null);
   const [isBusy, setIsBusy] = useState(false);
 
-  useEffect(() => {
+  if (hasPassword !== syncedHasPassword) {
+    setSyncedHasPassword(hasPassword);
     setHasExistingPassword(hasPassword);
-  }, [hasPassword]);
+  }
 
   const passwordForm = useForm<SecurityPasswordSchema>({
     resolver: zodResolver(securityPasswordSchema),
@@ -168,7 +170,7 @@ export function SecurityForm({
       dir="rtl"
       className="mx-auto w-full max-w-4xl gap-0 rounded-kv-panel border-kv-border py-0 shadow-kv-raised"
     >
-      <KvCardContent className="space-y-5 p-5 sm:p-6">
+      <KvCardContent className="space-y-kv-stack p-kv-inset sm:p-kv-section">
         {!hasExistingPassword ? (
           <KvForm {...passwordForm}>
             <form

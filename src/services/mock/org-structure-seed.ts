@@ -114,7 +114,7 @@ export function buildOrgStructureSeed(): OrgStructureSnapshot {
           provinceId,
           cityId,
           districtId,
-          gender: 'mixed',
+          gender: 'male',
         });
       }
     });

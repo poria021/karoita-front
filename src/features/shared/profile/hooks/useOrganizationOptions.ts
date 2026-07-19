@@ -1,21 +1,27 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import useSWRInfinite from 'swr/infinite';
 
-import type { OrganizationField } from '../data/organization-catalog';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
   ORGANIZATION_OPTIONS_PAGE_SIZE,
   OrganizationOptionsService,
   type OrganizationOption,
   type OrganizationOptionsResult,
-} from '../services/organization-options.service';
+} from '@/services/organization-options.service';
+import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
 const DEBOUNCE_MS = 300;
 /** Hard stop so a buggy hasMore=true cannot load forever. */
 const MAX_ORG_OPTION_PAGES = 20;
 /** Cap merged DOM list; ask user to refine search beyond this. */
 const MAX_ORG_OPTIONS_IN_DOM = 200;
+
+/**
+ * Org typeahead options use SWR infinite (dependent select cache), not the
+ * admin-table `useOffsetLimitInfiniteList` stack — see rule 40 + ADR-007.
+ */
 
 export type OrganizationDependsOn = {
   province?: string;
@@ -41,17 +47,6 @@ export type UseOrganizationOptionsResult = {
   /** True when page/DOM caps stop further loading. */
   reachedLimit: boolean;
 };
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(timer);
-  }, [value, delayMs]);
-
-  return debounced;
-}
 
 type OrgOptionsKey = readonly [
   'org-options',

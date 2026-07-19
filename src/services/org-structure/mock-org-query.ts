@@ -7,10 +7,11 @@ import {
   setOrgListFilterCache,
   type OrgRuntimeIndex,
 } from '@/services/org-structure/mock-org-store';
-import type {
-  OrgStructureEntityKind,
-  OrgStructureSnapshot,
-  OrgStructureSubTab,
+import {
+  orgEntityKindFromTab,
+  type OrgStructureEntityKind,
+  type OrgStructureSnapshot,
+  type OrgStructureSubTab,
 } from '@/types/org-structure';
 import {
   DEFAULT_PAGE_LIMIT,
@@ -39,17 +40,8 @@ export function filterByName<T extends { name: string }>(
   return items.filter((item) => item.name.toLowerCase().includes(q));
 }
 
-export function kindFromTab(tab: OrgStructureSubTab): OrgStructureEntityKind {
-  const map: Record<OrgStructureSubTab, OrgStructureEntityKind> = {
-    provinces: 'province',
-    cities: 'city',
-    districts: 'district',
-    schools: 'school',
-    majors: 'major',
-    faculties: 'faculty',
-  };
-  return map[tab];
-}
+/** @deprecated Prefer `orgEntityKindFromTab` from `@/types/org-structure`. */
+export const kindFromTab = orgEntityKindFromTab;
 
 type NamedRow = { id: string; name: string };
 
@@ -145,15 +137,6 @@ export function queryOrgListPage(
   limit: number = DEFAULT_PAGE_LIMIT
 ): OrgStructureListPage {
   return pageOrgRowsFromRuntime(getOrgRuntime(), tab, query, offset, limit);
-}
-
-/** Full list for legacy callers — still uses indexed deleteBlocked. */
-export function queryOrgListAll(
-  tab: OrgStructureSubTab,
-  query = ''
-): OrgStructureListItem[] {
-  const page = queryOrgListPage(tab, query, 0, Number.MAX_SAFE_INTEGER);
-  return page.items;
 }
 
 export function listLabelsForField(

@@ -1,4 +1,4 @@
-import { isMockApiMode, REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
+import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   cloneSnapshot,
@@ -6,7 +6,6 @@ import {
 } from '@/services/org-structure/mock-org-store';
 import {
   listLabelsForField as queryLabelsForField,
-  queryOrgListAll,
   queryOrgListPage,
   type OrgStructureListItem,
   type OrgStructureListPage,
@@ -46,7 +45,7 @@ import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 /**
  * Facade for organizational structure CRUD (rule 40).
  * Mock: localStorage snapshot + client permission check (UX sim — NOT Nest authz).
- * Real: not wired yet — callers get REAL_MODE_NOT_IMPLEMENTED.
+ * Real: Nest stub via throwRealModeNotImplemented until wired.
  */
 
 const IS_MOCK_MODE = isMockApiMode();
@@ -73,7 +72,9 @@ export type OrgStructureListPageOptions = {
 };
 
 function requireMockOrgManage(): void {
-  if (!isMockApiMode()) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+  if (!isMockApiMode()) {
+    throwRealModeNotImplemented('OrgStructureService');
+  }
   assertMockClientHasPermission('organization.manage');
 }
 
@@ -83,18 +84,10 @@ export const OrgStructureService = {
     return cloneSnapshot(readOrgSnapshot());
   },
 
-  /** Full list (legacy). Prefer {@link listPage} for admin tables. */
-  async listByTab(
-    tab: OrgStructureSubTab,
-    query = ''
-  ): Promise<OrgStructureListItem[]> {
-    requireMockOrgManage();
-    return queryOrgListAll(tab, query);
-  },
-
   /**
    * Offset/limit page for infinite-scroll tables (Nest contract: limit=10).
    * Mock: filter/sort tab rows, slice page, then O(1) deleteBlocked via index.
+   * Prefer this over any full-scan helper — Nest will page server-side.
    */
   async listPage(
     options: OrgStructureListPageOptions
@@ -103,9 +96,6 @@ export const OrgStructureService = {
     const offset = options.offset ?? 0;
     const limit = options.limit ?? ORG_STRUCTURE_PAGE_SIZE;
     const query = options.query ?? '';
-    if (offset > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 550));
-    }
     return queryOrgListPage(options.tab, query, offset, limit);
   },
 

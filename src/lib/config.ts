@@ -8,17 +8,15 @@ import { RouteService } from '@/services/route.service';
 const DEFAULT_LOGIN_REDIRECT = RouteService.karvita.dashboard();
 
 /**
- * Centralized authentication cookie name (rule 40, #3). Defaults to
- * Better-Auth's own session cookie during the migration phase; swap the
- * `NEXT_PUBLIC_AUTH_COOKIE_NAME` env var once NestJS issues its own
- * HTTP-only cookie. Never hardcode this literal name anywhere else.
+ * Nest httpOnly session cookie name (rule 40, #3).
+ * Override with `NEXT_PUBLIC_AUTH_COOKIE_NAME` when the API issues a different name.
  */
 const AUTH_COOKIE_NAME =
-  process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || 'better-auth.session_token';
+  process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || 'karvita_session';
 
 /**
  * Mock-only non-httpOnly marker for Edge `proxy.ts` (never a secret).
- * Real mode uses Better-Auth / Nest httpOnly cookies instead.
+ * Real mode uses Nest httpOnly cookies instead.
  */
 const MOCK_SESSION_MARKER = 'karvita_mock_session';
 

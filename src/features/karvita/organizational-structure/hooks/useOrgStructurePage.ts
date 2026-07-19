@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
@@ -9,26 +9,17 @@ import {
   OrgStructureService,
   type OrgStructureListItem,
 } from '@/services/org-structure.service';
-import type {
-  OrgStructureEntityKind,
-  OrgStructureSubTab,
+import {
+  orgEntityKindFromTab,
+  type OrgStructureSubTab,
 } from '@/types/org-structure';
 
 import { getOrgTabConfig } from '../constants';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
-export function entityKindFromTab(tab: OrgStructureSubTab): OrgStructureEntityKind {
-  const map: Record<OrgStructureSubTab, OrgStructureEntityKind> = {
-    provinces: 'province',
-    cities: 'city',
-    districts: 'district',
-    schools: 'school',
-    majors: 'major',
-    faculties: 'faculty',
-  };
-  return map[tab];
-}
+/** @deprecated Prefer `orgEntityKindFromTab` from `@/types/org-structure`. */
+export const entityKindFromTab = orgEntityKindFromTab;
 
 /**
  * Page state for org structure — paged via Facade (limit=10), owns tab/search/modals.
@@ -66,12 +57,9 @@ export function useOrgStructurePage() {
     pageSize: ORG_STRUCTURE_PAGE_SIZE,
   });
 
-  useEffect(() => {
-    setQuery('');
-  }, [tab]);
-
   const changeTab = useCallback((next: OrgStructureSubTab) => {
     setTab(next);
+    setQuery('');
   }, []);
 
   const openCreate = useCallback(() => {
@@ -94,12 +82,14 @@ export function useOrgStructurePage() {
     setDeleteTarget(row);
   }, []);
 
+  const reload = list.reload;
+
   const confirmDelete = useCallback(async () => {
     if (!deleteTarget) return;
     await OrgStructureService.deleteEntity(deleteTarget.kind, deleteTarget.id);
     setDeleteTarget(null);
-    await list.reload();
-  }, [deleteTarget, list.reload]);
+    await reload();
+  }, [deleteTarget, reload]);
 
   return {
     tab,

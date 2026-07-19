@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/fields/KvForm';
@@ -21,7 +22,7 @@ import {
   createProfileSchema,
   type ProfileSchema,
 } from '../../schemas/profile.schema';
-import { ProfileService } from '../../services/profile.service';
+import { ProfileService } from '@/services/profile.service';
 import { IdentityDocUploader } from '../IdentityDocUploader';
 import { DynamicRoleFields } from './DynamicRoleFields';
 import { getProfileDefaultValues } from './profile-form-options';
@@ -79,21 +80,12 @@ export function IdentityForm({
   const submit = form.handleSubmit(async (data) => {
     setSubmitError(null);
     try {
+      // Facade owns mock store + Zustand sync — do not double-write here.
       await ProfileService.updateProfile(data, token);
       if (identityDocument) {
         // Uploader already compressed to WebP — do not compress again.
         const documentBase64 = await fileToDataUrl(identityDocument);
         await ProfileService.updateIdentityDocument(documentBase64, token);
-      }
-
-      const current = useUserStore.getState().activeUser;
-      if (current) {
-        useUserStore.getState().setUser({
-          ...current,
-          ...data,
-          approved: autoApproveOnSave,
-          docStatus: autoApproveOnSave ? 'approved' : 'pending_admin',
-        });
       }
 
       form.reset(data);
@@ -117,15 +109,15 @@ export function IdentityForm({
       dir="rtl"
       className="mx-auto w-full max-w-4xl gap-0 border-kv-border py-0 shadow-kv-raised"
     >
-      <KvCardContent className="space-y-6 p-5 sm:p-7">
-        <div className="flex items-center justify-between border-b border-kv-border pb-3">
-          <div className="flex items-center gap-2">
+      <KvCardContent className="space-y-kv-section p-kv-inset sm:p-kv-block">
+        <div className="flex items-center justify-between border-b border-kv-border pb-kv-inline">
+          <div className="flex items-center gap-kv-pair">
             <FaIcon
               icon={faIcons.idCard}
               size="sm"
               className="shrink-0 text-kv-brand-soft-fg"
             />
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-kv-field">
               <KvTypography variant="caption" tone="muted" weight="bold">
                 نقش کاربری: {roleStrategy.label}
               </KvTypography>
@@ -141,18 +133,18 @@ export function IdentityForm({
         </div>
 
         {statusAlerts ? (
-          <div className="space-y-3">{statusAlerts}</div>
+          <div className="space-y-kv-inline">{statusAlerts}</div>
         ) : null}
 
         <KvForm {...form}>
-          <form onSubmit={submit} noValidate className="space-y-6">
+          <form onSubmit={submit} noValidate className="space-y-kv-section">
             {/* Fields panel — no title (title lives on card header) */}
-            <div className="rounded-kv-panel border border-kv-border p-4 shadow-sm">
+            <div className="rounded-kv-panel border border-kv-border p-kv-group shadow-kv-raised">
               <fieldset
                 disabled={isDisabled}
                 className="min-w-0 border-0 p-0 disabled:opacity-100"
               >
-                <div className="grid grid-cols-1 gap-4 text-start sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-kv-group text-start sm:grid-cols-2">
                   <KvTextField
                     label="نام"
                     required
@@ -198,15 +190,10 @@ export function IdentityForm({
             ) : null}
 
             {submitError ? (
-              <p
-                role="alert"
-                className="rounded-kv-panel border border-kv-danger-border bg-kv-danger-soft p-3 text-xs font-bold text-kv-danger-soft-fg"
-              >
-                {submitError}
-              </p>
+              <KvAlert variant="error" title={submitError} />
             ) : null}
 
-            <div className="mt-4 flex flex-col items-end gap-2 border-t border-kv-border pt-4">
+            <div className="mt-kv-group flex flex-col items-end gap-kv-pair border-t border-kv-border pt-kv-group">
               {isProfileLocked ? (
                 <div role="status">
                   <KvTypography

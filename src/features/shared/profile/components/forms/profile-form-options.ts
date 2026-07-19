@@ -2,6 +2,7 @@ import type { User, UserRole } from '@/types/auth';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 import {
   IDENTIFIER_META,
+  getIdentifierMeta,
   isOptionalOrganizationField,
   ORGANIZATION_LABELS,
   ROLE_FIELD_STRATEGY,
@@ -13,6 +14,7 @@ import type { ProfileSchema } from '../../schemas/profile.schema';
 export type { OrganizationField, IdentifierField } from '@/utils/roleFieldStrategy';
 export {
   IDENTIFIER_META,
+  getIdentifierMeta,
   isOptionalOrganizationField,
   ORGANIZATION_LABELS,
   ROLE_FIELD_STRATEGY,

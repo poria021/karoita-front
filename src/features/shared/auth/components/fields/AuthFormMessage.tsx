@@ -1,7 +1,4 @@
-import { FaIcon } from '@/components/shared/FaIcon';
-import { KvButton } from '@/components/shared/KvButton';
-import { cn } from '@/lib/utils';
-import { faIcons } from '@/utils/iconMap';
+import { KvAlert } from '@/components/shared/KvAlert';
 
 import type { AuthFormMessageState } from '../../types';
 
@@ -10,56 +7,28 @@ interface AuthFormMessageProps {
   onDismiss: () => void;
 }
 
-const MESSAGE_STYLES: Record<
+const TYPE_TO_VARIANT = {
+  error: 'error',
+  success: 'success',
+  info: 'info',
+} as const satisfies Record<
   AuthFormMessageState['type'],
-  {
-    container: string;
-    icon: string;
-    iconDef: (typeof faIcons)[keyof typeof faIcons];
-  }
-> = {
-  error: {
-    container: 'border-kv-danger-border bg-kv-danger-soft/60 text-kv-danger-soft-fg',
-    icon: 'text-kv-danger',
-    iconDef: faIcons.circleExclamation,
-  },
-  success: {
-    container: 'border-kv-success-border bg-kv-success-soft/60 text-kv-success-soft-fg',
-    icon: 'text-kv-success',
-    iconDef: faIcons.circleCheck,
-  },
-  info: {
-    container: 'border-kv-info-border bg-kv-info-soft/60 text-kv-info-soft-fg',
-    icon: 'text-kv-info',
-    iconDef: faIcons.circleInfo,
-  },
-};
+  'error' | 'success' | 'info'
+>;
 
-/** Dismissible feedback banner shown above the auth forms. */
+/**
+ * Auth form banner — thin wrapper over KvAlert (single alert chrome, rule 75).
+ */
 export function AuthFormMessage({ message, onDismiss }: AuthFormMessageProps) {
   if (!message) return null;
 
-  const { container, icon, iconDef } = MESSAGE_STYLES[message.type];
-
   return (
-    <div
-      role={message.type === 'error' ? 'alert' : 'status'}
-      aria-live={message.type === 'error' ? 'assertive' : 'polite'}
-      className={cn(
-        'mb-kv-group flex w-full items-start gap-kv-inline rounded-kv-panel border p-kv-inline text-start transition-all',
-        container
-      )}
-    >
-      <FaIcon icon={iconDef} size="sm" className={cn('mt-kv-field shrink-0', icon)} />
-      <p className="flex-1 text-xs font-semibold">{message.text}</p>
-      <KvButton
-        type="button"
-        color="neutral"
-        appearance="text"
-        icon={<FaIcon icon={faIcons.xmark} size="xs" />}
-        onClick={onDismiss}
-        aria-label="بستن پیام"
-        className="shrink-0"
+    <div className="mb-kv-group w-full">
+      <KvAlert
+        variant={TYPE_TO_VARIANT[message.type]}
+        title={message.text}
+        dismissible
+        onDismiss={onDismiss}
       />
     </div>
   );

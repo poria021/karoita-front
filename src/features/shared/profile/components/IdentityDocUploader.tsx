@@ -1,6 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState, type MouseEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type MouseEvent,
+} from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -44,24 +50,19 @@ export function IdentityDocUploader({
   error,
 }: IdentityDocUploaderProps) {
   const [isCompressing, setIsCompressing] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
+  // Data-URI / blob preview — object URL derived from File; cleanup on change.
+  const previewUrl = useMemo(
+    () => (value ? URL.createObjectURL(value) : null),
+    [value]
+  );
+
   useEffect(() => {
-    if (!value) {
-      setPreviewUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
-      });
-      return;
-    }
-    const url = URL.createObjectURL(value);
-    setPreviewUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return url;
-    });
-    return () => URL.revokeObjectURL(url);
-  }, [value]);
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const onDrop = useCallback(
     async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -166,7 +167,7 @@ export function IdentityDocUploader({
           <div
             {...getRootProps()}
             className={cn(
-              'group mx-auto flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-kv-control border-2 border-dashed bg-kv-surface p-4 text-center transition-all',
+              'group mx-auto flex min-h-32 w-full flex-col items-center justify-center gap-kv-pair rounded-kv-control border-2 border-dashed bg-kv-surface p-kv-group text-center transition-all',
               disabled
                 ? 'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled'
                 : isDragActive
@@ -195,7 +196,7 @@ export function IdentityDocUploader({
 
         {/* Compressing */}
         {isCompressing ? (
-          <div className="mx-auto flex min-h-32 w-full flex-col items-center justify-center gap-2 rounded-kv-control border-2 border-dashed border-kv-border-strong bg-kv-surface p-4">
+          <div className="mx-auto flex min-h-32 w-full flex-col items-center justify-center gap-kv-pair rounded-kv-control border-2 border-dashed border-kv-border-strong bg-kv-surface p-kv-group">
             <FaIcon
               icon={faIcons.spinner}
               size="sm"
@@ -211,7 +212,7 @@ export function IdentityDocUploader({
         {value && !isCompressing ? (
           <div className="relative mx-auto flex min-h-48 w-full flex-col items-center justify-center gap-3 rounded-kv-control border-2 border-solid border-kv-border bg-kv-surface p-4 text-center transition-all">
             {previewUrl ? (
-              <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface p-1 shadow-sm">
+              <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface p-1 shadow-kv-raised">
                 {/* eslint-disable-next-line @next/next/no-img-element -- blob preview URL */}
                 <img
                   src={previewUrl}

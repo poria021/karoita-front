@@ -76,6 +76,20 @@ export const IDENTIFIER_META: Record<
   personalCode: { label: 'کد پرسنلی', placeholder: 'مثال: ۱۰۰۰۲۳۴۵' },
 };
 
+/** Role-aware identifier copy (e.g. professor panel uses «کد استادی»). */
+export function getIdentifierMeta(
+  role: UserRole,
+  field: IdentifierField
+): { label: string; placeholder: string } {
+  if (field === 'personalCode' && role === 'supervisor_professor') {
+    return {
+      label: 'کد استادی',
+      placeholder: IDENTIFIER_META.personalCode.placeholder,
+    };
+  }
+  return IDENTIFIER_META[field];
+}
+
 /** City is optional only for mentor/principal; required for regional admin. */
 export function isOptionalOrganizationField(
   role: UserRole,
@@ -105,7 +119,7 @@ export function getRoleProfileDisplayFields(
     })),
     ...strategy.identifierFields.map((key) => ({
       key,
-      label: IDENTIFIER_META[key].label,
+      label: getIdentifierMeta(role, key).label,
       numeric: true as const,
     })),
   ];

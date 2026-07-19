@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
+import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
 import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
@@ -39,17 +40,20 @@ export function OrgStructurePage() {
   }
 
   return (
-    <div className="space-y-kv-section" dir="rtl">
-      <OrgStructureSubTabs active={page.tab} onChange={page.changeTab} />
-
-      <div className="space-y-5 rounded-kv-panel border border-kv-border bg-kv-surface p-4 sm:p-6">
-        <OrgStructureToolbar
-          tabConfig={page.tabConfig}
-          query={page.query}
-          onQueryChange={page.setQuery}
-          onAdd={page.openCreate}
-        />
-
+    <>
+      <KvWorkspace
+        tabs={
+          <OrgStructureSubTabs active={page.tab} onChange={page.changeTab} />
+        }
+        toolbar={
+          <OrgStructureToolbar
+            tabConfig={page.tabConfig}
+            query={page.query}
+            onQueryChange={page.setQuery}
+            onAdd={page.openCreate}
+          />
+        }
+      >
         {page.error ? (
           <KvAlert
             variant="error"
@@ -67,25 +71,23 @@ export function OrgStructurePage() {
             }
           />
         ) : (
-          <div className="overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface shadow-kv-raised">
-            <OrgStructureTable
-              tabConfig={page.tabConfig}
-              items={page.items}
-              isLoading={page.isLoading}
-              isLoadingMore={page.isLoadingMore}
-              hasMore={page.hasMore}
-              loadMoreError={page.loadMoreError}
-              onLoadMore={() => void page.loadMore()}
-              onRetryLoadMore={() => {
-                page.clearLoadMoreError();
-                void page.loadMore();
-              }}
-              onEdit={page.openEdit}
-              onDelete={page.requestDelete}
-            />
-          </div>
+          <OrgStructureTable
+            tabConfig={page.tabConfig}
+            items={page.items}
+            isLoading={page.isLoading}
+            isLoadingMore={page.isLoadingMore}
+            hasMore={page.hasMore}
+            loadMoreError={page.loadMoreError}
+            onLoadMore={() => void page.loadMore()}
+            onRetryLoadMore={() => {
+              page.clearLoadMoreError();
+              void page.loadMore();
+            }}
+            onEdit={page.openEdit}
+            onDelete={page.requestDelete}
+          />
         )}
-      </div>
+      </KvWorkspace>
 
       <OrgStructureEntityModal
         open={page.editorOpen}
@@ -110,6 +112,6 @@ export function OrgStructurePage() {
         cancelText="انصراف"
         confirmVariant="destructive"
       />
-    </div>
+    </>
   );
 }

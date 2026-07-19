@@ -29,8 +29,7 @@ interface OrgStructureEntityFieldsProps {
   provinces: OrgProvince[];
   cities: OrgCity[];
   districts: OrgDistrict[];
-  provinceId?: string;
-  cityId?: string;
+  namePlaceholder: string;
 }
 
 export function OrgStructureEntityFields({
@@ -42,8 +41,7 @@ export function OrgStructureEntityFields({
   provinces,
   cities,
   districts,
-  provinceId,
-  cityId,
+  namePlaceholder,
 }: OrgStructureEntityFieldsProps) {
   const needsProvince =
     tab === 'cities' ||
@@ -59,6 +57,7 @@ export function OrgStructureEntityFields({
         id="org-entity-name"
         label="نام"
         required
+        placeholder={namePlaceholder}
         error={errors.name?.message}
         {...register('name')}
       />
@@ -107,7 +106,6 @@ export function OrgStructureEntityFields({
                 field.onChange(value);
                 setValue('districtId', '');
               }}
-              disabled={!provinceId}
               error={errors.cityId?.message}
               contentClassName={SELECT_IN_DIALOG_Z}
             >
@@ -134,7 +132,6 @@ export function OrgStructureEntityFields({
                 placeholder="انتخاب منطقه"
                 value={field.value || ''}
                 onValueChange={field.onChange}
-                disabled={!cityId}
                 error={errors.districtId?.message}
                 contentClassName={SELECT_IN_DIALOG_Z}
               >

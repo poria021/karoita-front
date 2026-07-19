@@ -2,11 +2,6 @@
  * Shared domain types barrel. Canonical `User` / `UserRole` live in `./auth`.
  */
 export type { DocStatus, Session, User, UserRole } from './auth';
-export type {
-  AdminUserListItem,
-  ListAdminUsersOptions,
-  ListAdminUsersResult,
-} from './admin';
 
 export interface ReportWeek {
   id: string | number;

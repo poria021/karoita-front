@@ -23,17 +23,21 @@ const eslintConfig = [
   ...nextVitals,
   ...nextTs,
   {
+    // Prefer typed DTOs; allow outside product cores during migration.
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
       'no-explicit-any': 'off',
     },
   },
   {
+    files: ['src/features/**/*.{ts,tsx}', 'src/services/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+    },
+  },
+  {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: [
-      // Official Google palette — not Karvita product tokens.
-      '**/components/ui/icons.tsx',
-    ],
+    ignores: [],
     rules: {
       'no-restricted-syntax': [
         'error',

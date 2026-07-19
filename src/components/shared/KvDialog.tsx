@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { FaIcon } from '@/components/shared/FaIcon';
 import {
   Dialog,
   DialogClose,
@@ -13,20 +14,23 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { faIcons } from '@/utils/iconMap';
 
 export type KvDialogProps = React.ComponentProps<typeof Dialog>;
 
 export type KvDialogContentProps = React.ComponentProps<typeof DialogContent> & {
   /** Max width token. Default `md` (`sm:max-w-md`). */
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Show × control (original-karvita form modals). Default `true`. */
+  showCloseButton?: boolean;
 };
 
 const SIZE_CLASS: Record<NonNullable<KvDialogContentProps['size']>, string> = {
-  sm: 'sm:max-w-sm',
-  md: 'sm:max-w-md',
-  lg: 'sm:max-w-lg',
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
   /** Document / media preview panels. */
-  xl: 'sm:max-w-3xl',
+  xl: 'max-w-3xl',
 };
 
 /** Karvita dialog root — controlled via `open` / `onOpenChange`. */
@@ -34,10 +38,16 @@ export function KvDialog(props: KvDialogProps) {
   return <Dialog data-slot="kv-dialog" {...props} />;
 }
 
-/** Panel chrome: surface, card radius, floating elevation. */
+/**
+ * Panel chrome aligned with original-karvita modals:
+ * scrim + blur, rounded-3xl card, floating shadow, optional ×.
+ * No asymmetric `pe-12` on the panel (that broke mobile alignment).
+ */
 export function KvDialogContent({
   className,
   size = 'md',
+  showCloseButton = true,
+  children,
   ...props
 }: KvDialogContentProps) {
   return (
@@ -45,10 +55,22 @@ export function KvDialogContent({
       data-slot="kv-dialog-content"
       className={cn(SIZE_CLASS[size], className)}
       {...props}
-    />
+    >
+      {showCloseButton ? (
+        <DialogClose
+          type="button"
+          aria-label="بستن"
+          className="absolute end-3 top-3 z-10 flex size-8 items-center justify-center rounded-kv-control text-kv-text-faint transition-colors hover:bg-kv-surface-muted hover:text-kv-text focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
+        >
+          <FaIcon icon={faIcons.xmark} size="sm" />
+        </DialogClose>
+      ) : null}
+      {children}
+    </DialogContent>
   );
 }
 
+/** Title row with bottom rule — original modal header strip. */
 export function KvDialogHeader({
   className,
   ...props
@@ -56,12 +78,16 @@ export function KvDialogHeader({
   return (
     <DialogHeader
       data-slot="kv-dialog-header"
-      className={cn('mb-kv-section gap-1', className)}
+      className={cn(
+        'mb-5 border-b border-kv-border-muted pe-10 pb-3.5',
+        className
+      )}
       {...props}
     />
   );
 }
 
+/** Action row with top rule — original modal footer strip. */
 export function KvDialogFooter({
   className,
   ...props
@@ -69,7 +95,7 @@ export function KvDialogFooter({
   return (
     <DialogFooter
       data-slot="kv-dialog-footer"
-      className={cn('mt-2 gap-2 sm:justify-stretch', className)}
+      className={cn('border-t border-kv-border-muted pt-4', className)}
       {...props}
     />
   );
@@ -82,7 +108,7 @@ export function KvDialogTitle({
   return (
     <DialogTitle
       data-slot="kv-dialog-title"
-      className={cn('text-base font-extrabold sm:text-lg', className)}
+      className={cn('text-xs font-black text-kv-text', className)}
       {...props}
     />
   );
@@ -95,7 +121,10 @@ export function KvDialogDescription({
   return (
     <DialogDescription
       data-slot="kv-dialog-description"
-      className={className}
+      className={cn(
+        'mt-1 text-xs font-bold leading-relaxed text-kv-text-faint',
+        className
+      )}
       {...props}
     />
   );

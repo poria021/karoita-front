@@ -27,12 +27,13 @@ export function OtpCodeField({
   errorMessage,
 }: OtpCodeFieldProps) {
   const [englishValue, setEnglishValue] = React.useState('');
+  const { name, onBlur, onChange, ref } = registration;
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const next = filterDigits(event.target.value).slice(0, 5);
     setEnglishValue(next);
     event.target.value = next;
-    void registration.onChange(event);
+    void onChange(event);
   };
 
   return (
@@ -48,10 +49,10 @@ export function OtpCodeField({
         maxLength={5}
         placeholder="• • • • •"
         otpStyle
-        name={registration.name}
-        onBlur={registration.onBlur}
+        name={name}
+        onBlur={onBlur}
         onChange={handleChange}
-        ref={registration.ref}
+        ref={ref}
         value={toPersianDigits(englishValue)}
         error={errorMessage}
       />

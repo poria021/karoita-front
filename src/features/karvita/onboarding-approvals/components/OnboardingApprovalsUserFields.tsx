@@ -1,9 +1,10 @@
 'use client';
 
-import type { ReactNode } from 'react';
-
 import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
-import { cn } from '@/lib/utils';
+import {
+  KvDescriptionItem,
+  KvDescriptionList,
+} from '@/components/shared/KvDescriptionList';
 import { getRoleProfileDisplayFields } from '@/utils/roleFieldStrategy';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -11,33 +12,9 @@ function readFieldValue(
   user: OnboardingApprovalUser,
   key: string
 ): string | undefined {
-  const record = user as unknown as Record<string, unknown>;
-  const value = record[key];
+  if (!(key in user)) return undefined;
+  const value = user[key as keyof OnboardingApprovalUser];
   return typeof value === 'string' && value.trim() ? value : undefined;
-}
-
-function FieldRow({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: ReactNode;
-  mono?: boolean;
-}) {
-  return (
-    <div className="flex justify-between gap-kv-group border-b border-kv-border pb-1.5">
-      <dt className="font-sans text-xs font-bold text-kv-text-muted">{label}:</dt>
-      <dd
-        className={cn(
-          'text-end font-sans text-xs font-bold text-kv-text',
-          mono && 'font-mono'
-        )}
-      >
-        {value}
-      </dd>
-    </div>
-  );
 }
 
 interface OnboardingApprovalsUserFieldsProps {
@@ -54,7 +31,7 @@ export function OnboardingApprovalsUserFields({
   const roleFields = getRoleProfileDisplayFields(user.role);
 
   return (
-    <dl className="space-y-3.5">
+    <KvDescriptionList>
       {roleFields.map((field) => {
         const raw = readFieldValue(user, field.key);
         const display = raw
@@ -63,7 +40,7 @@ export function OnboardingApprovalsUserFields({
             : raw
           : '---';
         return (
-          <FieldRow
+          <KvDescriptionItem
             key={field.key}
             label={field.label}
             value={display}
@@ -71,6 +48,6 @@ export function OnboardingApprovalsUserFields({
           />
         );
       })}
-    </dl>
+    </KvDescriptionList>
   );
 }

@@ -29,6 +29,7 @@ function DialogClose({
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
+/** Scrim — matches original-karvita modal overlay (`slate-950/40` + blur). */
 function DialogOverlay({
   className,
   ...props
@@ -37,7 +38,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-kv-surface-inverse/50',
+        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-kv-surface-inverse/40 backdrop-blur-sm',
         className
       )}
       {...props}
@@ -45,6 +46,10 @@ function DialogOverlay({
   );
 }
 
+/**
+ * Panel chrome — original-karvita modal card.
+ * Flex-centered viewport (stable on mobile RTL) with equal side padding.
+ */
 function DialogContent({
   className,
   children,
@@ -53,16 +58,21 @@ function DialogContent({
   return (
     <DialogPortal>
       <DialogOverlay />
-      <DialogPrimitive.Content
-        data-slot="dialog-content"
-        className={cn(
-          'bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-kv-card border border-kv-border p-kv-inset shadow-kv-floating duration-200 sm:max-w-lg',
-          className
-        )}
-        {...props}
+      <div
+        data-slot="dialog-center"
+        className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4"
       >
-        {children}
-      </DialogPrimitive.Content>
+        <DialogPrimitive.Content
+          data-slot="dialog-content"
+          className={cn(
+            'bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-auto relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col gap-0 overflow-y-auto rounded-kv-card border border-kv-border p-5 text-start shadow-kv-floating duration-200 sm:p-6',
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </DialogPrimitive.Content>
+      </div>
     </DialogPortal>
   );
 }
@@ -71,7 +81,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn('flex flex-col gap-2 text-center sm:text-start', className)}
+      className={cn('flex flex-col gap-1 text-start', className)}
       {...props}
     />
   );
@@ -82,7 +92,7 @@ function DialogFooter({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot="dialog-footer"
       className={cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
+        'flex flex-row flex-wrap items-center justify-end gap-2.5',
         className
       )}
       {...props}
@@ -98,7 +108,7 @@ function DialogTitle({
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        'font-sans text-lg font-semibold leading-none text-kv-text',
+        'font-sans text-xs font-black leading-none text-kv-text',
         className
       )}
       {...props}
@@ -113,7 +123,10 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn('text-sm text-kv-text-faint', className)}
+      className={cn(
+        'text-xs font-bold leading-relaxed text-kv-text-faint',
+        className
+      )}
       {...props}
     />
   );

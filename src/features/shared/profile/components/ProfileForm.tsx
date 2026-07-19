@@ -88,7 +88,7 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
 
       <form
         onSubmit={submitProfile}
-        className="space-y-kv-section rounded-kv-card border border-kv-border/80 bg-kv-surface p-kv-inset shadow-sm sm:p-kv-page"
+        className="space-y-kv-section rounded-kv-card border border-kv-border/80 bg-kv-surface p-kv-inset shadow-kv-raised sm:p-kv-page"
         noValidate
       >
         <div className="flex items-center justify-between border-b border-kv-border-muted pb-3">

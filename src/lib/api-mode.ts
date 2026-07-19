@@ -3,7 +3,7 @@
  *
  * Contract for juniors:
  * - `mock` = local simulator (localStorage + fixed OTP). NOT Nest.
- * - `real` = Nest / Better-Auth path. Mock secrets must never succeed here.
+ * - `real` = Nest API path. Mock secrets must never succeed here.
  * - Production never silently runs mock (fail closed).
  */
 
@@ -98,3 +98,14 @@ export function assertRealModeRejectsMockSecret(
 /** Persian message for features not yet wired to Nest. */
 export const REAL_MODE_NOT_IMPLEMENTED =
   'این قابلیت هنوز به API واقعی متصل نشده است. (حالت real — شبیه‌ساز mock نیست.)';
+
+/**
+ * Shared real-mode stub — use instead of ad-hoc `throw new Error(REAL_MODE_…)`.
+ * `surface` is for logs/tests (e.g. `AuthService.sendOtp`); message stays user-facing Persian.
+ */
+export function throwRealModeNotImplemented(surface?: string): never {
+  if (surface && process.env.NODE_ENV !== 'production') {
+    console.warn(`[real-mode stub] ${surface}`);
+  }
+  throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+}

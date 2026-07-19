@@ -19,6 +19,22 @@ export type OrgStructureSubTab =
   | 'majors'
   | 'faculties';
 
+/** Single source for admin tab → entity kind (hooks + mock query). */
+const ORG_TAB_TO_KIND: Record<OrgStructureSubTab, OrgStructureEntityKind> = {
+  provinces: 'province',
+  cities: 'city',
+  districts: 'district',
+  schools: 'school',
+  majors: 'major',
+  faculties: 'faculty',
+};
+
+export function orgEntityKindFromTab(
+  tab: OrgStructureSubTab
+): OrgStructureEntityKind {
+  return ORG_TAB_TO_KIND[tab];
+}
+
 export interface OrgProvince {
   id: string;
   name: string;
@@ -44,7 +60,7 @@ export interface OrgDistrict {
   cityId: string;
 }
 
-export type OrgSchoolGender = 'male' | 'female' | 'mixed';
+export type OrgSchoolGender = 'male' | 'female';
 
 export interface OrgSchool {
   id: string;

@@ -6,7 +6,6 @@ import {
   AppTabsTrigger,
 } from '@/components/shared/AppTabs';
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KvTypography } from '@/components/shared/KvTypography';
 import type { OrgStructureSubTab } from '@/types/org-structure';
 
 import { ORG_STRUCTURE_TABS } from '../constants';
@@ -44,15 +43,6 @@ export function OrgStructureSubTabs({
       </div>
 
       <div className="block w-full space-y-2 lg:hidden">
-        <KvTypography
-          variant="caption"
-          tone="muted"
-          as="p"
-          weight="black"
-          align="end"
-        >
-          انتخاب تقسیمات ساختاری:
-        </KvTypography>
         <AppTabs
           value={active}
           onValueChange={handleChange}

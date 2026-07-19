@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useId, useRef } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvButton } from '@/components/shared/KvButton';
 import {
   KvTooltip,
   KvTooltipContent,
@@ -130,21 +131,25 @@ export function Sidebar() {
           isCollapsed ? 'w-72 lg:w-20' : 'w-72 lg:w-60'
         )}
       >
-        <button
+        <KvButton
           type="button"
+          color="neutral"
+          appearance="ghost"
+          size="sm"
           onClick={toggleCollapsed}
           aria-label={isCollapsed ? 'باز کردن نوار کناری' : 'جمع کردن نوار کناری'}
-          className="absolute -end-3 top-6 z-20 hidden size-7 items-center justify-center rounded-full border border-kv-border-strong/80 bg-kv-surface text-kv-text-subtle shadow-kv-raised transition-all hover:border-kv-brand hover:text-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/20 lg:flex"
-        >
-          <FaIcon
-            icon={faIcons.chevronLeft}
-            size="xs"
-            className={cn(
-              'transition-transform duration-300',
-              isCollapsed ? 'rotate-180 rtl:rotate-0' : 'rotate-0 rtl:rotate-180'
-            )}
-          />
-        </button>
+          className="absolute -end-3 top-6 z-20 hidden size-7 min-h-0 rounded-full border border-kv-border-strong/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-raised hover:border-kv-brand hover:text-kv-brand lg:flex"
+          icon={
+            <FaIcon
+              icon={faIcons.chevronLeft}
+              size="xs"
+              className={cn(
+                'transition-transform duration-300',
+                isCollapsed ? 'rotate-180 rtl:rotate-0' : 'rotate-0 rtl:rotate-180'
+              )}
+            />
+          }
+        />
 
         <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-compact lg:hidden">
           <div className="flex min-w-0 items-center gap-kv-inline">
@@ -162,14 +167,16 @@ export function Sidebar() {
               </div>
             </div>
           </div>
-          <button
+          <KvButton
             type="button"
+            color="neutral"
+            appearance="ghost"
+            size="md"
             onClick={closeMobileSidebar}
             aria-label="بستن منو"
-            className="flex size-11 shrink-0 items-center justify-center rounded-full bg-kv-surface-subtle text-kv-text-subtle transition-colors hover:bg-kv-danger-soft hover:text-kv-danger focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
-          >
-            <FaIcon icon={faIcons.xmark} size="sm" />
-          </button>
+            className="shrink-0 rounded-full bg-kv-surface-subtle text-kv-text-subtle hover:bg-kv-danger-soft hover:text-kv-danger"
+            icon={<FaIcon icon={faIcons.xmark} size="sm" />}
+          />
         </div>
 
         <nav className="flex-1 space-y-kv-pair p-kv-compact lg:p-kv-compact lg:pt-kv-stack lg:pb-8" aria-label="منوی اصلی">

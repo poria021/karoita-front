@@ -71,9 +71,13 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 /**
- * Global Font Awesome solid icon mapper (Rule 30).
+ * Global Font Awesome solid icon mapper (Rule 30 / 82).
  * Keys mirror legacy `fa-*` strings from original-karvita.html / RoleStrategyMap.
  * Render with FaIcon from `@/components/shared/FaIcon`.
+ *
+ * Bundle: each icon is a named import from `@fortawesome/free-solid-svg-icons`
+ * (tree-shakeable). Prefer `faIcons.*` for new code; `iconMap['fa-*']` stays for
+ * legacy stems. Do not import the entire FA solid pack or add Lucide.
  */
 export const iconMap: Record<string, IconDefinition> = {
   'fa-graduation-cap': faGraduationCap,

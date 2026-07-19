@@ -54,7 +54,7 @@ export function OnboardingApprovalsDetailPanel({
       <KvCard tone="muted" fill>
         <KvCardContent
           padding="md"
-          className="flex flex-1 items-center justify-center"
+          className="flex h-full min-h-0 flex-1 flex-col items-center justify-center"
         >
           <KvEmptyState
             icon={<FaIcon icon={faIcons.idCard} size="lg" />}

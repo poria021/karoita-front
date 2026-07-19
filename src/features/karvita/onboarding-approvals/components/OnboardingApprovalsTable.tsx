@@ -84,6 +84,7 @@ export function OnboardingApprovalsTable({
       ) : null}
 
       <KvTableViewport
+        resetKey={tab}
         hasMore={!isEmpty && hasMore}
         isLoadingMore={isLoadingMore}
         onEndReached={onLoadMore}

@@ -1,0 +1,84 @@
+import type { ProfileDTO } from '@/types/profile';
+import type { MockAuthUserRecord } from '@/services/mock/auth-mock-users';
+import {
+  findMockUserById,
+  findMockUserByMobile,
+  patchMockAuthUser,
+  toPublicUser,
+} from '@/services/auth/mock-auth.store';
+import { useUserStore } from '@/store/useUserStore';
+import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
+
+import {
+  parseProfile,
+  ProfileServiceError,
+  userIdFromToken,
+} from './profile.mappers';
+
+function resolveMockUser(token?: string): MockAuthUserRecord {
+  const tokenUserId = userIdFromToken(token);
+  if (tokenUserId) {
+    const byToken = findMockUserById(tokenUserId);
+    if (byToken) return byToken;
+  }
+
+  const activeUser = useUserStore.getState().activeUser;
+  if (activeUser?.id) {
+    const byId = findMockUserById(activeUser.id);
+    if (byId) return byId;
+  }
+  if (activeUser?.mobile) {
+    const byMobile = findMockUserByMobile(activeUser.mobile);
+    if (byMobile) return byMobile;
+  }
+
+  throw new ProfileServiceError('پروفایل کاربری یافت نشد.', 404);
+}
+
+export function getMockProfile(token?: string): ProfileDTO {
+  return parseProfile(toPublicUser(resolveMockUser(token)));
+}
+
+export function updateMockProfile(
+  data: ProfileDTO,
+  token?: string
+): { success: boolean; message: string } {
+  const validatedData = parseProfile(data);
+  const current = resolveMockUser(token);
+  const isSuperAdmin = isSuperAdminRole(validatedData.role);
+
+  patchMockAuthUser(
+    { id: current.id },
+    {
+      ...validatedData,
+      approved: isSuperAdmin,
+      docStatus: isSuperAdmin ? 'approved' : 'pending_admin',
+      lastChange: Date.now(),
+    }
+  );
+
+  return {
+    success: true,
+    message: 'اطلاعات پروفایل شما با موفقیت ذخیره شد.',
+  };
+}
+
+/** Mock: metadata only — never persist large base64 in localStorage. */
+export function updateMockIdentityDocument(
+  documentBase64: string,
+  token?: string
+): void {
+  void documentBase64;
+  const current = resolveMockUser(token);
+
+  patchMockAuthUser(
+    { id: current.id },
+    {
+      docUrl: undefined,
+      docType: 'webp',
+      docStatus: 'pending_admin',
+      approved: false,
+      lastChange: Date.now(),
+    }
+  );
+}

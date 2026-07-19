@@ -57,6 +57,11 @@ const PERSONAL_CODE_FIELD: ProfileFieldConfig = {
   inputMode: 'numeric',
 };
 
+const PROFESSOR_CODE_FIELD: ProfileFieldConfig = {
+  ...PERSONAL_CODE_FIELD,
+  label: 'کد استادی',
+};
+
 const PROFILE_FIELDS_BY_ROLE: Record<UserRole, ProfileFieldConfig[]> = {
   student: [STUDENT_ID_FIELD, { ...MAJOR_FIELD, label: 'رشته تحصیلی' }, COLLEGE_FIELD],
   skill_learner: [
@@ -64,7 +69,7 @@ const PROFILE_FIELDS_BY_ROLE: Record<UserRole, ProfileFieldConfig[]> = {
     { ...MAJOR_FIELD, label: 'رشته مهارتی', placeholder: 'مثال: آموزش فنی و حرفه‌ای' },
     COLLEGE_FIELD,
   ],
-  supervisor_professor: [PERSONAL_CODE_FIELD],
+  supervisor_professor: [PROFESSOR_CODE_FIELD],
   mentor_teacher: [PERSONAL_CODE_FIELD],
   school_principal: [PERSONAL_CODE_FIELD],
   regional_edu_admin: [PERSONAL_CODE_FIELD],

@@ -30,8 +30,8 @@ export type KvConfirmationDialogProps = {
 };
 
 /**
- * Product confirmation — `ui/alert-dialog` + product button variants.
- * Panel chrome matches {@link KvDialogContent}.
+ * Confirm dialog — original-karvita «دیالوگ تاملی» chrome
+ * (scrim + blur, rounded card, compact black title, end-aligned actions).
  */
 export function KvConfirmationDialog({
   isOpen,
@@ -67,13 +67,15 @@ export function KvConfirmationDialog({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="sm:max-w-md">
-        <AlertDialogHeader className="mb-kv-section gap-1">
+      <AlertDialogContent>
+        <AlertDialogHeader className="mb-4 border-b border-kv-border-muted pb-3">
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
+        <AlertDialogDescription className="mb-6">
+          {description}
+        </AlertDialogDescription>
         {children}
-        <AlertDialogFooter className="mt-2 gap-2 sm:justify-stretch">
+        <AlertDialogFooter className="gap-2 sm:justify-end">
           <AlertDialogCancel onClick={onClose} disabled={busy}>
             {cancelText}
           </AlertDialogCancel>

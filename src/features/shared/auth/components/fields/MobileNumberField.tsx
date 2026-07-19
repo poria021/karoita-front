@@ -28,6 +28,8 @@ export function MobileNumberField({
   label,
   autoComplete,
 }: MobileNumberFieldProps) {
+  const { name, onBlur, onChange, ref } = registration;
+
   return (
     <KvMobileNumberField
       id={id}
@@ -35,12 +37,12 @@ export function MobileNumberField({
       required
       locked={Boolean(disabled)}
       error={errorMessage}
-      name={registration.name}
+      name={name}
       defaultValue={defaultValue}
       autoComplete={autoComplete}
-      onBlur={registration.onBlur}
-      ref={registration.ref}
-      onChange={registration.onChange}
+      onBlur={onBlur}
+      ref={ref}
+      onChange={onChange}
     />
   );
 }

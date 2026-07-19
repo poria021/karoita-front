@@ -13,7 +13,7 @@ import {
 import type { ProfileSchema } from '../../schemas/profile.schema';
 import {
   DEPENDENCIES,
-  IDENTIFIER_META,
+  getIdentifierMeta,
   isOptionalOrganizationField,
   ORGANIZATION_LABELS,
   ROLE_FIELD_STRATEGY,
@@ -81,34 +81,37 @@ export function DynamicRoleFields({
         );
       })}
 
-      {strategy.identifierFields.map((name) => (
-        <KvFormField
-          key={name}
-          control={form.control}
-          name={name}
-          render={({ field, fieldState }) => (
-            <KvTextField
-              label={IDENTIFIER_META[name].label}
-              required
-              type="tel"
-              inputMode="numeric"
-              dir="ltr"
-              locked={disabled}
-              placeholder={IDENTIFIER_META[name].placeholder}
-              error={fieldState.error?.message}
-              name={field.name}
-              ref={field.ref}
-              onBlur={field.onBlur}
-              value={toPersianDigits(
-                typeof field.value === 'string' ? field.value : ''
-              )}
-              onChange={(event) => {
-                field.onChange(filterDigits(event.target.value));
-              }}
-            />
-          )}
-        />
-      ))}
+      {strategy.identifierFields.map((name) => {
+        const meta = getIdentifierMeta(role, name);
+        return (
+          <KvFormField
+            key={name}
+            control={form.control}
+            name={name}
+            render={({ field, fieldState }) => (
+              <KvTextField
+                label={meta.label}
+                required
+                type="tel"
+                inputMode="numeric"
+                dir="ltr"
+                locked={disabled}
+                placeholder={meta.placeholder}
+                error={fieldState.error?.message}
+                name={field.name}
+                ref={field.ref}
+                onBlur={field.onBlur}
+                value={toPersianDigits(
+                  typeof field.value === 'string' ? field.value : ''
+                )}
+                onChange={(event) => {
+                  field.onChange(filterDigits(event.target.value));
+                }}
+              />
+            )}
+          />
+        );
+      })}
     </>
   );
 }

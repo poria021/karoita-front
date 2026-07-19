@@ -1,12 +1,11 @@
-import { isMockApiMode, REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
+import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import {
   findMockUserById,
+  patchMockAuthUser,
   readMockUsers,
   toPublicUser,
-  writeMockUsers,
 } from '@/services/auth/mock-auth.store';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
-import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
 import type {
   ListOnboardingApprovalsFilters,
@@ -31,7 +30,9 @@ const IS_MOCK_MODE = isMockApiMode();
 export const ONBOARDING_APPROVALS_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
 
 function requireOnboardingReview(): void {
-  if (!isMockApiMode()) throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+  if (!isMockApiMode()) {
+    throwRealModeNotImplemented('OnboardingApprovalsService');
+  }
   assertMockClientHasPermission('onboarding.review');
 }
 
@@ -100,31 +101,19 @@ function patchUser(
   userId: string,
   patch: Partial<User>
 ): OnboardingApprovalUser {
-  const users = readMockUsers();
-  const index = users.findIndex((candidate) => candidate.id === userId);
-  if (index === -1) {
-    throw new Error('کاربر موردنظر یافت نشد.');
-  }
+  // Single writer — same path as ProfileService (ADR-006).
+  const updated = patchMockAuthUser(
+    { id: userId },
+    {
+      ...patch,
+      lastChange: Date.now(),
+      ...(patch.docStatus === 'approved'
+        ? { adminRequestMessage: undefined }
+        : {}),
+    }
+  );
 
-  const updated = {
-    ...users[index]!,
-    ...patch,
-    lastChange: Date.now(),
-  };
-  if (patch.docStatus === 'approved') {
-    delete updated.adminRequestMessage;
-  }
-  const nextUsers = [...users];
-  nextUsers[index] = updated;
-  writeMockUsers(nextUsers);
-
-  const publicUser = toPublicUser(updated);
-  const activeUser = useUserStore.getState().activeUser;
-  if (activeUser?.id === userId) {
-    useUserStore.getState().setUser({ ...activeUser, ...publicUser });
-  }
-
-  return toApprovalUser(publicUser);
+  return toApprovalUser(toPublicUser(updated));
 }
 
 export const OnboardingApprovalsService = {
@@ -135,7 +124,7 @@ export const OnboardingApprovalsService = {
     filters: ListOnboardingApprovalsFilters
   ): Promise<ListOnboardingApprovalsPage> {
     if (!IS_MOCK_MODE) {
-      throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+      throwRealModeNotImplemented('OnboardingApprovalsService.listPage');
     }
     requireOnboardingReview();
     await new Promise((resolve) => setTimeout(resolve, 200));
@@ -155,7 +144,7 @@ export const OnboardingApprovalsService = {
 
   async approveIdentityDoc(userId: string): Promise<OnboardingApprovalUser> {
     if (!IS_MOCK_MODE) {
-      throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+      throwRealModeNotImplemented('OnboardingApprovalsService.approveIdentityDoc');
     }
     requireOnboardingReview();
     const current = findMockUserById(userId);
@@ -175,7 +164,7 @@ export const OnboardingApprovalsService = {
     reason: string
   ): Promise<OnboardingApprovalUser> {
     if (!IS_MOCK_MODE) {
-      throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+      throwRealModeNotImplemented('OnboardingApprovalsService.rejectIdentityDoc');
     }
     requireOnboardingReview();
     const trimmed = reason.trim();

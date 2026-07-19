@@ -185,20 +185,20 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
 
   if (!uiStrategy.showSecurityTab) {
     return (
-      <div dir="rtl" className="w-full space-y-6 font-sans text-xs">
+      <div dir="rtl" className="w-full space-y-kv-section font-sans text-xs">
         {identityForm}
       </div>
     );
   }
 
   return (
-    <div dir="rtl" className="w-full space-y-6 font-sans">
+    <div dir="rtl" className="w-full space-y-kv-section font-sans">
       {/* Capsule tabs — matches original `.kv-tabs-container` */}
-      <div className="mb-4 pb-4 pt-1">
+      <div className="mb-kv-group pb-kv-group pt-kv-micro">
         <AppTabs
           value={activeTab}
           onValueChange={handleTabChange}
-          className="gap-5"
+          className="gap-kv-stack"
         >
           <AppTabsList>
             <AppTabsTrigger value="identity">

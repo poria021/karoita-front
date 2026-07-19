@@ -1,7 +1,7 @@
 import {
   assertRealModeRejectsMockSecret,
   isMockApiMode,
-  REAL_MODE_NOT_IMPLEMENTED,
+  throwRealModeNotImplemented,
 } from '@/lib/api-mode';
 import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
 import type { Session, User, UserRole } from '@/types/auth';
@@ -34,7 +34,8 @@ import {
 /**
  * Facade for every authentication interaction (rule 40).
  * Mock session meta stays JS-readable for local DX only — NOT Nest auth.
- * Real mode relies on Better-Auth / Nest httpOnly cookies — no token in JS cookies.
+ * Real mode: Nest httpOnly cookies via `apiClient` (`credentials: 'include'`).
+ * Zustand `activeUser` is UX chrome only — never authorization (rule 45 / ADR 004).
  */
 
 const IS_MOCK_MODE = isMockApiMode();
@@ -64,7 +65,7 @@ export class AuthService {
       mockSendLoginOtp(mobile);
       return;
     }
-    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    throwRealModeNotImplemented('AuthService');
   }
 
   static async verifyLoginOtp(mobile: string, otp: string): Promise<User> {
@@ -72,7 +73,7 @@ export class AuthService {
       return mockVerifyLoginOtp(mobile, otp);
     }
     rejectMockOtpInReal(otp);
-    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    throwRealModeNotImplemented('AuthService');
   }
 
   /** Admin gate — only `super_admin`. OTP-only entry. */
@@ -81,7 +82,7 @@ export class AuthService {
       mockSendAdminGateOtp(mobile);
       return;
     }
-    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    throwRealModeNotImplemented('AuthService');
   }
 
   static async verifyAdminGateOtp(mobile: string, otp: string): Promise<User> {
@@ -89,7 +90,7 @@ export class AuthService {
       return mockVerifyAdminGateOtp(mobile, otp);
     }
     rejectMockOtpInReal(otp);
-    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    throwRealModeNotImplemented('AuthService');
   }
 
   static async register(payload: RegisterPayload): Promise<void> {
@@ -109,7 +110,7 @@ export class AuthService {
       return mockVerifyRegistrationOtp(mobile, otp, role);
     }
     rejectMockOtpInReal(otp);
-    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    throwRealModeNotImplemented('AuthService');
   }
 
   static async sendForgotPasswordOtp(mobile: string): Promise<void> {
@@ -117,7 +118,7 @@ export class AuthService {
       mockSendForgotPasswordOtp(mobile);
       return;
     }
-    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    throwRealModeNotImplemented('AuthService');
   }
 
   static async verifyForgotPasswordOtp(
@@ -129,7 +130,7 @@ export class AuthService {
       return;
     }
     rejectMockOtpInReal(otp);
-    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    throwRealModeNotImplemented('AuthService');
   }
 
   static async resetPassword(
@@ -142,7 +143,7 @@ export class AuthService {
       return;
     }
     rejectMockOtpInReal(otp);
-    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    throwRealModeNotImplemented('AuthService');
   }
 
   static async setInitialPassword(
@@ -156,12 +157,16 @@ export class AuthService {
       mockSetInitialPassword(mobile, newPassword);
       return;
     }
-    throw new Error(REAL_MODE_NOT_IMPLEMENTED);
+    throwRealModeNotImplemented('AuthService');
   }
 
   static async logout(): Promise<void> {
     if (!IS_MOCK_MODE) {
-      await realSignOut();
+      try {
+        await realSignOut();
+      } catch {
+        // Real Nest sign-out not wired yet — still clear local session.
+      }
     }
     dispatchSessionToStore(null);
   }
@@ -169,6 +174,9 @@ export class AuthService {
   /**
    * Idempotent session read for render — never clears cookies/store.
    * Prefer this (or {@link getSession}) inside React render paths.
+   *
+   * Real mode: returns Zustand chrome only (token empty). Nest httpOnly
+   * session is authoritative — do not treat this as proof of privilege.
    */
   static peekSession(): Session | null {
     const activeUser = useUserStore.getState().activeUser;
@@ -181,6 +189,8 @@ export class AuthService {
       return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
 
+    // TODO(Nest): optional soft hint from last successful GET auth/session;
+    // never invent a JS-readable Nest token here.
     return {
       user: activeUser,
       token: '',
@@ -191,6 +201,10 @@ export class AuthService {
   /**
    * Validate session and clear expired/missing mock meta. Call only from
    * effects / event handlers — never during render (rule 45).
+   *
+   * Real mode: does not trust Zustand alone. Until Nest is wired, leaves
+   * local chrome intact (logout / 401 interceptor clear the store). Prefer
+   * `realFetchSession` from `real-auth.bridge` when Nest session lands.
    */
   static validateSession(): Session | null {
     const activeUser = useUserStore.getState().activeUser;
@@ -205,6 +219,8 @@ export class AuthService {
       return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
 
+    // TODO(Nest): await realFetchSession(); on null → dispatchSessionToStore(null).
+    // Sync stub keeps peek semantics so guards do not forge Nest auth from Zustand.
     return AuthService.peekSession();
   }
 

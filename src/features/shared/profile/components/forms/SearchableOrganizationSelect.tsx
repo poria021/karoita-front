@@ -9,12 +9,12 @@ import { KvSpinner } from '@/components/shared/KvSpinner';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
-import type { OrganizationField } from '../../data/organization-catalog';
+import type { OrganizationField } from '@/utils/roleFieldStrategy';
+import type { OrganizationOption } from '@/services/organization-options.service';
 import {
   useOrganizationOptions,
   type OrganizationDependsOn,
 } from '../../hooks/useOrganizationOptions';
-import type { OrganizationOption } from '../../services/organization-options.service';
 
 interface SearchableOrganizationSelectProps {
   type: OrganizationField;
@@ -57,10 +57,12 @@ export function SearchableOrganizationSelect({
   const listRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(value);
+  const [syncedValue, setSyncedValue] = useState(value);
 
-  useEffect(() => {
+  if (value !== syncedValue) {
+    setSyncedValue(value);
     setQuery(value);
-  }, [value]);
+  }
 
   useEffect(() => {
     const close = (event: MouseEvent) => {

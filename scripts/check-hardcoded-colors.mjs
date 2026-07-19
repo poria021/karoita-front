@@ -9,7 +9,7 @@ import path from 'path';
 
 const ROOT = path.join(process.cwd(), 'src');
 const ALLOW_FILES = new Set([
-  path.normalize('components/ui/icons.tsx'), // Google brand palette
+  // Reserved for rare third-party brand SVG exceptions.
 ]);
 
 const COLOR_RE =

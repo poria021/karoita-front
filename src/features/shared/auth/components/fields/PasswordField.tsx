@@ -18,6 +18,8 @@ export function PasswordField({
   errorMessage,
   autoComplete = 'current-password',
 }: PasswordFieldProps) {
+  const { name, onBlur, onChange, ref } = registration;
+
   return (
     <KvPasswordField
       id={id}
@@ -25,10 +27,10 @@ export function PasswordField({
       required
       autoComplete={autoComplete}
       error={errorMessage}
-      name={registration.name}
-      onBlur={registration.onBlur}
-      onChange={registration.onChange}
-      ref={registration.ref}
+      name={name}
+      onBlur={onBlur}
+      onChange={onChange}
+      ref={ref}
     />
   );
 }

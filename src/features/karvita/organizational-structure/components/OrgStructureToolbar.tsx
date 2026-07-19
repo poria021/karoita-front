@@ -2,6 +2,7 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
 import { faIcons } from '@/utils/iconMap';
 
@@ -21,17 +22,17 @@ export function OrgStructureToolbar({
   onAdd,
 }: OrgStructureToolbarProps) {
   return (
-    <div className="flex flex-col justify-between gap-4 border-b border-kv-border pb-4 lg:flex-row lg:items-center">
-      <div className="text-right">
-        <h3 className="font-sans text-xs font-extrabold text-kv-text sm:text-sm">
+    <div className="flex flex-col justify-between gap-kv-group border-b border-kv-border pb-kv-group lg:flex-row lg:items-center">
+      <div className="space-y-kv-field text-end">
+        <KvTypography variant="subtitle" weight="bold" as="h3">
           مدیریت ساختار {tabConfig.label}
-        </h3>
-        <p className="mt-1 text-[10px] font-bold text-kv-text-faint">
+        </KvTypography>
+        <KvTypography variant="caption" tone="muted">
           امکان تعریف، ویرایش و پایش تقسیمات آموزشی و پردیس‌های تابعه دانشگاه
-        </p>
+        </KvTypography>
       </div>
 
-      <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center lg:w-auto">
+      <div className="flex w-full flex-col items-stretch gap-kv-inline sm:flex-row sm:items-center lg:w-auto">
         <div className="w-full sm:w-64">
           <KvSearchField
             id="org-structure-search"

@@ -20,12 +20,13 @@ description: "Shared Design System reuse — prefer Kv*/App* primitives; extend 
 ## Shared folder layout (category folders)
 1. `src/components/ui/` stays **flat** (shadcn primitives) — do not nest by component.
 2. Inside `src/components/shared/`, group by category — **not** one folder per atom:
-   - `fields/` — inputs, selects, form chrome, filter bar, search field
-   - `table/` — table, viewport, busy surface tied to viewport height
-   - `shell/` — header, sidebar, dashboard viewport, guards, providers
+ - `fields/` — inputs, selects, form chrome, filter bar, search field
+ - `table/` — table, viewport, busy surface tied to viewport height
+ - `shell/` — header, sidebar, dashboard viewport, guards, providers
 3. Atoms may stay flat at `shared/` root (`KvButton`, `KvCard`, `AppTabs`, `FaIcon`, …).
 4. Do **not** put domain logic inside shared category folders — hooks/services stay in `features/` / `services/`.
-5. Prefer importing from the category path, e.g. `@/components/shared/fields/KvSearchField`.
+5. **Canonical imports only:** import from the category path, e.g. `@/components/shared/fields/KvSearchField`, `@/components/shared/shell/Header`. Do **not** add new root-level re-export shims for files that already live under `shell/` / `fields/` / `table/`.
+6. If a public path must stay stable temporarily, use **one** barrel per category — never a maze of dual paths.
 
 ## Admin table empty state
 1. Keep table header chrome; put empty messaging **inside the table body** via `KvTableEmpty` (not a bare `KvEmptyState` replacing the whole table).

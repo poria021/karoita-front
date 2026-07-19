@@ -5,7 +5,11 @@ import { useUserStore } from '@/store/useUserStore';
 
 /**
  * Shared HTTP client (ky) for NestJS REST calls (rule 40).
- * Mock branches in feature services must not use this client.
+ * Mock branches in Facades must not use this client.
+ *
+ * Session: `credentials: 'include'` for Nest httpOnly cookies.
+ * Optional Bearer via per-call `token` (rule 40/45) — never invent a second
+ * client-writable “auth cookie” parallel to Nest.
  */
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
@@ -114,6 +118,7 @@ function createClient() {
 
   return ky.create({
     prefix: API_URL,
+    credentials: 'include',
     hooks: {
       afterResponse: [
         async ({ response }) => {

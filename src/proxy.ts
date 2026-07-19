@@ -1,16 +1,16 @@
 import { isPublicPath } from '@/lib/public-paths';
-import { DEFAULT_LOGIN_REDIRECT } from '@/lib/config';
+import { AUTH_COOKIE_NAME, DEFAULT_LOGIN_REDIRECT } from '@/lib/config';
 import { MOCK_SESSION_MARKER } from '@/lib/config';
 import {
   RETURN_URL_PARAM,
   parseSafeReturnUrl,
 } from '@/lib/return-url';
 import { RouteService } from '@/services/route.service';
-import { getSessionCookie } from 'better-auth/cookies';
 import { NextRequest, NextResponse } from 'next/server';
 
 function hasClientSession(request: NextRequest): boolean {
-  if (getSessionCookie(request)) return true;
+  // Nest (or future) httpOnly session cookie — plain cookie read, no Better-Auth.
+  if (request.cookies.get(AUTH_COOKIE_NAME)?.value) return true;
   // Mock DX: non-httpOnly presence marker — NOT identity/role (rule 45 / 20 #5).
   return request.cookies.get(MOCK_SESSION_MARKER)?.value === '1';
 }
@@ -64,5 +64,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: ['/((?!.*\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
 };

@@ -119,7 +119,7 @@ export const ROLE_APPROVAL_FIELDS: Partial<
   supervisor_professor: [
     {
       key: 'personalCode',
-      label: 'کد پرسنلی',
+      label: 'کد استادی',
       icon: faIcons.idCard,
       numeric: true,
     },

@@ -35,6 +35,7 @@ export function Header() {
   const [logoutError, setLogoutError] = useState<string | null>(null);
 
   const activeUser = useUserStore((state) => state.activeUser);
+  const isMobileSidebarOpen = useUIStore((state) => state.isMobileSidebarOpen);
   const openMobileSidebar = useUIStore((state) => state.openMobileSidebar);
   const notifications = useNotificationsStore((state) => state.notifications);
   const markAsRead = useNotificationsStore((state) => state.markAsRead);
@@ -70,16 +71,18 @@ export function Header() {
     <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface shadow-kv-raised">
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-6 xl:px-8 2xl:px-16">
         <div className="flex min-w-0 items-center gap-kv-group">
-          <button
+          <KvButton
             type="button"
+            color="neutral"
+            appearance="ghost"
+            size="md"
             onClick={openMobileSidebar}
             aria-label="باز کردن منو"
-            aria-expanded={false}
+            aria-expanded={isMobileSidebarOpen}
             aria-controls="karvita-sidebar"
-            className="flex size-11 shrink-0 items-center justify-center rounded-kv-control bg-kv-surface-subtle text-kv-text-muted transition-all hover:bg-kv-neutral-hover/80 focus-visible:ring-[3px] focus-visible:ring-kv-ring/20 active:scale-95 lg:hidden"
-          >
-            <FaIcon icon={faIcons.bars} size="sm" />
-          </button>
+            className="shrink-0 bg-kv-surface-subtle text-kv-text-muted hover:bg-kv-neutral-hover/80 lg:hidden"
+            icon={<FaIcon icon={faIcons.bars} size="sm" />}
+          />
 
           <div className="flex min-w-0 items-center gap-kv-inline">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20">
@@ -119,9 +122,12 @@ export function Header() {
                 className="relative flex size-11 items-center justify-center rounded-kv-control text-kv-text-subtle transition-colors hover:bg-kv-surface-subtle/60 hover:text-kv-text-secondary focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
               >
                 <FaIcon icon={faIcons.bell} size="sm" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-2 start-2 size-2.5 rounded-full bg-kv-danger ring-2 ring-kv-surface" aria-hidden="true" />
-                )}
+                {unreadCount > 0 ? (
+                  <span
+                    className="absolute top-2 start-2 size-2.5 rounded-full bg-kv-danger ring-2 ring-kv-surface"
+                    aria-hidden="true"
+                  />
+                ) : null}
               </button>
             </KvDropdownMenuTrigger>
 

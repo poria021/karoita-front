@@ -6,7 +6,9 @@ import {
   isMockApiMode,
   isRealApiMode,
   MOCK_MODE_LABEL,
+  REAL_MODE_NOT_IMPLEMENTED,
   resolveApiMode,
+  throwRealModeNotImplemented,
 } from '@/lib/api-mode';
 
 afterEach(() => {
@@ -78,5 +80,11 @@ describe('assertMockApiMode / mock secrets in real', () => {
     expect(() =>
       assertRealModeRejectsMockSecret('12345', '12345', 'OTP')
     ).not.toThrow();
+  });
+
+  it('throwRealModeNotImplemented uses the shared Persian message', () => {
+    expect(() => throwRealModeNotImplemented('TestFacade.method')).toThrow(
+      REAL_MODE_NOT_IMPLEMENTED
+    );
   });
 });

@@ -1,9 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
-import { ZxcvbnFactory } from '@zxcvbn-ts/core';
-import { adjacencyGraphs, dictionary as commonDictionary } from '@zxcvbn-ts/language-common';
-import { dictionary as enDictionary, translations } from '@zxcvbn-ts/language-en';
+import { useEffect, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -18,31 +15,36 @@ export interface PasswordStrengthResult {
   labelClassName: string;
 }
 
-const zxcvbn = new ZxcvbnFactory({
-  translations,
-  graphs: adjacencyGraphs,
-  dictionary: {
-    ...commonDictionary,
-    ...enDictionary,
-  },
-});
+type ZxcvbnChecker = { check: (password: string) => { score: number } };
+
+let zxcvbnPromise: Promise<ZxcvbnChecker> | null = null;
+
+/** Lazy-load zxcvbn (+ dictionaries) only when the password meter mounts. */
+function loadZxcvbn(): Promise<ZxcvbnChecker> {
+  if (!zxcvbnPromise) {
+    zxcvbnPromise = Promise.all([
+      import('@zxcvbn-ts/core'),
+      import('@zxcvbn-ts/language-common'),
+      import('@zxcvbn-ts/language-en'),
+    ]).then(([core, common, en]) => {
+      return new core.ZxcvbnFactory({
+        translations: en.translations,
+        graphs: common.adjacencyGraphs,
+        dictionary: {
+          ...common.dictionary,
+          ...en.dictionary,
+        },
+      });
+    });
+  }
+  return zxcvbnPromise;
+}
 
 /**
  * Maps zxcvbn score (0–4) onto the product's three visible strength bands.
  * Empty input stays a dedicated level (UI hides the meter).
  */
-export function evaluatePasswordStrength(password: string): PasswordStrengthResult {
-  if (!password) {
-    return {
-      score: 0,
-      level: 'empty',
-      label: 'خالی',
-      barClassName: 'bg-kv-border-strong',
-      labelClassName: 'text-kv-text-faint',
-    };
-  }
-
-  const { score } = zxcvbn.check(password);
+export function scoreToStrengthResult(score: number): PasswordStrengthResult {
   const percent = Math.round((score / 4) * 100);
 
   if (score <= 1) {
@@ -74,21 +76,66 @@ export function evaluatePasswordStrength(password: string): PasswordStrengthResu
   };
 }
 
+/** Async helper for tests — loads zxcvbn on demand. */
+export async function evaluatePasswordStrength(
+  password: string
+): Promise<PasswordStrengthResult> {
+  if (!password) {
+    return {
+      score: 0,
+      level: 'empty',
+      label: 'خالی',
+      barClassName: 'bg-kv-border-strong',
+      labelClassName: 'text-kv-text-faint',
+    };
+  }
+  const zxcvbn = await loadZxcvbn();
+  return scoreToStrengthResult(zxcvbn.check(password).score);
+}
+
 interface PasswordStrengthIndicatorProps {
   password: string;
   className?: string;
 }
+
+const PENDING_STRENGTH: PasswordStrengthResult = {
+  score: 0,
+  level: 'weak',
+  label: '…',
+  barClassName: 'bg-kv-border-strong',
+  labelClassName: 'text-kv-text-faint',
+};
 
 /** Color-coded Weak / Moderate / Strong password meter (zxcvbn engine). */
 export function PasswordStrengthIndicator({
   password,
   className,
 }: PasswordStrengthIndicatorProps) {
-  const strength = useMemo(
-    () => evaluatePasswordStrength(password),
-    [password]
-  );
+  const [engineScore, setEngineScore] = useState<{
+    password: string;
+    score: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!password) return;
+
+    let cancelled = false;
+    void loadZxcvbn().then((zxcvbn) => {
+      if (cancelled) return;
+      setEngineScore({ password, score: zxcvbn.check(password).score });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [password]);
+
   if (!password) return null;
+
+  const strength =
+    engineScore?.password === password
+      ? scoreToStrengthResult(engineScore.score)
+      : PENDING_STRENGTH;
 
   return (
     <div className={cn('mt-kv-field space-y-1', className)}>

@@ -127,6 +127,57 @@ export function mockMobileExists(mobile: string): boolean {
   return Boolean(findMockUserByMobile(mobile));
 }
 
+export type MockAuthUserMatch = {
+  id?: string;
+  mobile?: string;
+};
+
+/**
+ * Single write path for mock profile / onboarding field patches.
+ * Updates `karvita_mock_auth_users` and syncs Zustand when the active user matches.
+ * Never invent a parallel localStorage user DB.
+ */
+export function patchMockAuthUser(
+  match: MockAuthUserMatch,
+  patch: Partial<MockAuthUserRecord>
+): MockAuthUserRecord {
+  assertMockApiMode();
+  const users = readMockUsers();
+  const index = users.findIndex(
+    (user) =>
+      (typeof match.id === 'string' && user.id === match.id) ||
+      (typeof match.mobile === 'string' && user.mobile === match.mobile)
+  );
+  if (index === -1) {
+    throw new Error('کاربری برای به‌روزرسانی یافت نشد.');
+  }
+
+  const previous = users[index];
+  const updated: MockAuthUserRecord = {
+    ...previous,
+    ...patch,
+    // Never drop credentials via a partial profile patch.
+    password: patch.password ?? previous.password,
+    hasPassword: patch.hasPassword ?? previous.hasPassword,
+    id: previous.id,
+    mobile: patch.mobile ?? previous.mobile,
+  };
+
+  const next = [...users];
+  next[index] = updated;
+  writeMockUsers(next);
+
+  const activeUser = useUserStore.getState().activeUser;
+  if (
+    activeUser &&
+    (activeUser.id === updated.id || activeUser.mobile === updated.mobile)
+  ) {
+    useUserStore.getState().setUser(toPublicUser(updated));
+  }
+
+  return updated;
+}
+
 /** Test helper — resets in-memory cache (and optional users). */
 export function resetMockAuthStoreForTests(
   users: MockAuthUserRecord[] = AUTH_MOCK_USERS

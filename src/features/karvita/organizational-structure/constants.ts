@@ -11,6 +11,8 @@ export type OrgStructureTabConfig = {
   searchPlaceholder: string;
   addLabel: string;
   nameColumnLabel: string;
+  /** Placeholder for the name field in create/edit dialog. */
+  namePlaceholder: string;
 };
 
 export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
@@ -22,6 +24,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     searchPlaceholder: 'جستجوی استان...',
     addLabel: 'استان',
     nameColumnLabel: 'نام استان',
+    namePlaceholder: 'مثال: اصفهان',
   },
   {
     key: 'cities',
@@ -31,6 +34,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     searchPlaceholder: 'جستجوی شهر...',
     addLabel: 'شهر',
     nameColumnLabel: 'نام شهر',
+    namePlaceholder: 'مثال: کاشان',
   },
   {
     key: 'districts',
@@ -40,6 +44,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     searchPlaceholder: 'جستجوی منطقه...',
     addLabel: 'منطقه',
     nameColumnLabel: 'نام منطقه',
+    namePlaceholder: 'مثال: منطقه ۱',
   },
   {
     key: 'schools',
@@ -49,6 +54,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     searchPlaceholder: 'جستجوی مدرسه...',
     addLabel: 'مدرسه',
     nameColumnLabel: 'نام مدرسه',
+    namePlaceholder: 'مثال: دبستان نمونه',
   },
   {
     key: 'majors',
@@ -58,6 +64,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     searchPlaceholder: 'جستجوی رشته...',
     addLabel: 'رشته',
     nameColumnLabel: 'نام رشته',
+    namePlaceholder: 'مثال: آموزش ابتدایی',
   },
   {
     key: 'faculties',
@@ -67,6 +74,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     searchPlaceholder: 'جستجوی پردیس...',
     addLabel: 'پردیس',
     nameColumnLabel: 'نام پردیس',
+    namePlaceholder: 'مثال: پردیس البرز',
   },
 ];
 
@@ -79,5 +87,4 @@ export function getOrgTabConfig(tab: OrgStructureSubTab): OrgStructureTabConfig 
 export const SCHOOL_GENDER_OPTIONS = [
   { value: 'male', label: 'پسرانه' },
   { value: 'female', label: 'دخترانه' },
-  { value: 'mixed', label: 'مختلط' },
 ] as const;

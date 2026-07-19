@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm, type UseFormReturn } from 'react-hook-form';
 
+import { ProfileService } from '@/services/profile.service';
 import { getPostLoginPath } from '@/services/post-login-path';
 import { RouteService } from '@/services/route.service';
-import { UserService } from '@/services/user.service';
 import { useUserStore } from '@/store/useUserStore';
+import { fileToDataUrl } from '@/utils/compressor';
 
 import {
   createProfileSchema,
@@ -19,6 +20,7 @@ import {
  * Profile form hook — Step 5.2 onboarding lifecycle.
  * Client-only. Never invoke inside a React Server Component.
  * Without activeUser: redirects to login; does not throw during render.
+ * Persistence: ProfileService only (single mock writer / Nest facade).
  */
 export function useProfileForm() {
   const router = useRouter();
@@ -66,10 +68,16 @@ export function useProfileForm() {
       setIsSubmitting(true);
       setSubmitError(null);
 
-      await UserService.updateProfile({
+      await ProfileService.updateOnboardingProfile({
         ...data,
         identityDoc,
       });
+
+      if (identityDoc) {
+        // Uploader already compressed to WebP — do not compress again.
+        const documentBase64 = await fileToDataUrl(identityDoc);
+        await ProfileService.updateIdentityDocument(documentBase64);
+      }
 
       const user = useUserStore.getState().activeUser;
       router.push(getPostLoginPath(user));

@@ -31,7 +31,7 @@ const sampleDb: OrgStructureSnapshot = {
       provinceId: 'p1',
       cityId: 'c1',
       districtId: 'd1',
-      gender: 'mixed',
+      gender: 'male',
     },
   ],
   majors: Array.from({ length: 25 }, (_, i) => ({

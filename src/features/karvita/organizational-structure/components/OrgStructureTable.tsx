@@ -73,6 +73,7 @@ export function OrgStructureTable({
       ) : null}
 
       <KvTableViewport
+        resetKey={tabConfig.key}
         hasMore={!isEmpty && hasMore}
         isLoadingMore={isLoadingMore}
         onEndReached={onLoadMore}

@@ -15,6 +15,11 @@ export type KvTableViewportProps = {
    * without growing the page indefinitely.
    */
   heightClassName?: string;
+  /**
+   * When this changes (tab, filters, …), scroll position resets to top.
+   * Keeps each list's viewport independent without remounting the page shell.
+   */
+  resetKey?: string | number;
   /** Called when the end sentinel enters the scroll viewport. */
   onEndReached?: () => void;
   hasMore?: boolean;
@@ -41,6 +46,7 @@ export function KvTableViewport({
   children,
   className,
   heightClassName = DEFAULT_HEIGHT,
+  resetKey,
   onEndReached,
   hasMore = false,
   isLoadingMore = false,
@@ -51,6 +57,12 @@ export function KvTableViewport({
 }: KvTableViewportProps) {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
+
+  React.useLayoutEffect(() => {
+    if (resetKey === undefined) return;
+    const root = rootRef.current;
+    if (root) root.scrollTop = 0;
+  }, [resetKey]);
 
   React.useEffect(() => {
     if (!onEndReached || !hasMore || isLoadingMore || isBusy) return;
@@ -69,7 +81,7 @@ export function KvTableViewport({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [onEndReached, hasMore, isLoadingMore, isBusy]);
+  }, [onEndReached, hasMore, isLoadingMore, isBusy, resetKey]);
 
   return (
     <div
