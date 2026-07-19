@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 
+import { KvCard } from '@/components/shared/KvCard';
 import { cn } from '@/lib/utils';
 
 export type KvWorkspaceProps = {
   /** Module sub-nav (tabs, segment control, …). */
   tabs?: ReactNode;
-  /** Filters / actions above the main content. */
+  /** Filters / actions above the main content (outside the table card). */
   toolbar?: ReactNode;
   /** Main body (table, list, form, alert, …). */
   children: ReactNode;
@@ -14,7 +15,8 @@ export type KvWorkspaceProps = {
 
 /**
  * Single-column module workspace skeleton.
- * Tabs + optional toolbar + panel chrome — no domain UI.
+ * Toolbar sits above a raised surface card — same table chrome as
+ * onboarding (`KvCard` + `KvTable`), so admin tables stay visually unified.
  */
 export function KvWorkspace({
   tabs,
@@ -29,13 +31,10 @@ export function KvWorkspace({
       data-slot="kv-workspace"
     >
       {tabs}
-      <div
-        className="space-y-kv-stack rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group sm:p-kv-section"
-        data-slot="kv-workspace-panel"
-      >
-        {toolbar}
-        {children}
-      </div>
+      {toolbar ? (
+        <div data-slot="kv-workspace-toolbar">{toolbar}</div>
+      ) : null}
+      <KvCard data-slot="kv-workspace-panel">{children}</KvCard>
     </div>
   );
 }

@@ -22,8 +22,8 @@ export function OrgStructureToolbar({
   onAdd,
 }: OrgStructureToolbarProps) {
   return (
-    <div className="flex flex-col justify-between gap-kv-group border-b border-kv-border pb-kv-group lg:flex-row lg:items-center">
-      <div className="space-y-kv-field text-end">
+    <div className="flex flex-col justify-start gap-kv-group lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex min-w-0 flex-col items-start justify-start gap-kv-field text-start">
         <KvTypography variant="subtitle" weight="bold" as="h3">
           مدیریت ساختار {tabConfig.label}
         </KvTypography>
@@ -32,7 +32,7 @@ export function OrgStructureToolbar({
         </KvTypography>
       </div>
 
-      <div className="flex w-full flex-col items-stretch gap-kv-inline sm:flex-row sm:items-center lg:w-auto">
+      <div className="flex w-full flex-col items-stretch gap-kv-inline sm:flex-row sm:items-center lg:w-auto lg:justify-end">
         <div className="w-full sm:w-64">
           <KvSearchField
             id="org-structure-search"
