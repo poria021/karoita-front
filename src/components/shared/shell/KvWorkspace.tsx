@@ -4,25 +4,23 @@ import { KvCard } from '@/components/shared/KvCard';
 import { cn } from '@/lib/utils';
 
 export type KvWorkspaceProps = {
-  /** Module sub-nav (tabs, segment control, …). */
   tabs?: ReactNode;
-  /** Filters / actions above the main content (outside the table card). */
   toolbar?: ReactNode;
-  /** Main body (table, list, form, alert, …). */
   children: ReactNode;
   className?: string;
+  /** پنل کارت دور محتوا؛ برای صفحات چندکارته بدون بردر بیرونی خاموش کنید. */
+  panel?: boolean;
 };
 
 /**
- * Single-column module workspace skeleton.
- * Toolbar sits above a raised surface card — same table chrome as
- * onboarding (`KvCard` + `KvTable`), so admin tables stay visually unified.
+ * اسکلت ورک‌اسپیس تک‌ستونهٔ ماژول ادمین — تب / تولبار / کارت جدول.
  */
 export function KvWorkspace({
   tabs,
   toolbar,
   children,
   className,
+  panel = true,
 }: KvWorkspaceProps) {
   return (
     <div
@@ -34,7 +32,11 @@ export function KvWorkspace({
       {toolbar ? (
         <div data-slot="kv-workspace-toolbar">{toolbar}</div>
       ) : null}
-      <KvCard data-slot="kv-workspace-panel">{children}</KvCard>
+      {panel ? (
+        <KvCard data-slot="kv-workspace-panel">{children}</KvCard>
+      ) : (
+        <div data-slot="kv-workspace-panel">{children}</div>
+      )}
     </div>
   );
 }
