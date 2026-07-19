@@ -25,7 +25,6 @@ export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
           label="شماره موبایل مدیریت"
           registration={register('mobile')}
           errorMessage={formState.errors.mobile?.message}
-          disabled={isRequestingOtp}
           autoComplete="off"
         />
       </div>

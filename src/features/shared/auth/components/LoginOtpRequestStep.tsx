@@ -25,7 +25,6 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
           id="login-otp-mobile"
           registration={register('mobile')}
           errorMessage={formState.errors.mobile?.message}
-          disabled={isRequestingOtp}
         />
       </div>
 

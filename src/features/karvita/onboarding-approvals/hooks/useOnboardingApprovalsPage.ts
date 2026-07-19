@@ -34,13 +34,15 @@ export function useOnboardingApprovalsPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [docPreviewUrl, setDocPreviewUrl] = useState<string | null>(null);
 
-  const resetKey = `${tab}::${debouncedQuery}::${province}`;
+  /** Clearing search must reload immediately — only debounce typing. */
+  const listQuery = query.trim() === '' ? '' : debouncedQuery;
+  const resetKey = `${tab}::${listQuery}::${province}`;
 
   const fetchPage = useCallback(
     async ({ offset, limit }: { offset: number; limit: number }) => {
       const page = await OnboardingApprovalsService.listPage({
         status: tab,
-        query: debouncedQuery,
+        query: listQuery,
         province,
         offset,
         limit,
@@ -52,7 +54,7 @@ export function useOnboardingApprovalsPage() {
         hasMore: page.hasMore,
       };
     },
-    [tab, debouncedQuery, province]
+    [tab, listQuery, province]
   );
 
   const list = useOffsetLimitInfiniteList<OnboardingApprovalUser>({

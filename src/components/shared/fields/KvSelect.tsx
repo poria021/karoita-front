@@ -40,16 +40,19 @@ export function KvSelectTrigger({
         'whitespace-nowrap outline-none',
         'transition-[color,background-color,border-color,box-shadow]',
         'data-[placeholder]:text-kv-text-placeholder',
-        /* Hover — border only (no fill change) */
-        'hover:border-kv-brand',
-        /* Focus / open — solid brand + ring (distinct from hover) */
+        /* Hover — same border family + slightly darker wash; not brand. */
+        'hover:border-kv-border-strong hover:bg-kv-border-strong/25',
+        /* Focus / open — brand chrome; hover must not shift away. */
         'focus-visible:border-kv-brand focus-visible:bg-kv-surface',
+        'focus-visible:hover:border-kv-brand focus-visible:hover:bg-kv-surface',
         'focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
         'data-[state=open]:border-kv-brand data-[state=open]:bg-kv-surface',
+        'data-[state=open]:hover:border-kv-brand data-[state=open]:hover:bg-kv-surface',
         'data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15',
+        'cursor-pointer',
         'disabled:cursor-not-allowed disabled:opacity-100',
-        'disabled:hover:border-kv-border-strong',
-        'dark:bg-kv-surface dark:hover:bg-kv-surface',
+        'disabled:hover:border-kv-border-strong disabled:hover:bg-kv-surface',
+        'dark:bg-kv-surface',
         '[&_svg]:pointer-events-none [&_svg]:shrink-0',
         '[&_svg]:text-kv-text-faint [&_svg]:opacity-100',
         '*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex',

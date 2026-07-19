@@ -127,7 +127,6 @@ export const OnboardingApprovalsService = {
       throwRealModeNotImplemented('OnboardingApprovalsService.listPage');
     }
     requireOnboardingReview();
-    await new Promise((resolve) => setTimeout(resolve, 200));
 
     const all = listFilteredUsers(filters);
     const page = sliceOffsetLimitPage(

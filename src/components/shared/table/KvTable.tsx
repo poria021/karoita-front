@@ -116,10 +116,14 @@ export function KvTableRow({
     <TableRow
       data-slot="kv-table-row"
       data-selected={selected || undefined}
+      data-interactive={interactive || undefined}
       className={cn(
-        'font-bold text-kv-text hover:bg-kv-surface-muted/50',
+        'font-bold text-kv-text transition-colors',
+        /* Unselected hover: softer brand wash. Selected: solid brand-soft, no hover shift. */
+        'hover:bg-kv-brand-soft/45 hover:text-kv-brand',
+        'data-[selected]:bg-kv-brand-soft data-[selected]:font-extrabold data-[selected]:text-kv-brand',
+        'data-[selected]:hover:bg-kv-brand-soft',
         interactive && 'cursor-pointer',
-        selected && 'bg-kv-brand-soft font-extrabold text-kv-brand',
         className
       )}
       {...props}

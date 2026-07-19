@@ -9,6 +9,11 @@ import type { User, UserRole } from '@/types/auth';
 import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import {
+  AUTH_ERR_ADMIN_GATE_ONLY,
+  AUTH_ERR_PUBLIC_AUTH_ADMIN_BLOCKED,
+  AUTH_ERR_USER_NOT_FOUND,
+} from '@/services/auth/auth-error-messages';
+import {
   buildMockSession,
   dispatchSessionToStore,
   findMockUserByMobile,
@@ -31,8 +36,24 @@ export function assertMockOtp(otp: string): void {
 function requireUserByMobile(mobile: string): MockAuthUserRecord {
   const record = findMockUserByMobile(mobile);
   if (!record) {
-    throw new Error('کاربری با این شماره یافت نشد.');
+    throw new Error(AUTH_ERR_USER_NOT_FOUND);
   }
+  return record;
+}
+
+/**
+ * Public auth audience (login / OTP / forgot on `/auth/login`).
+ * Nest must enforce the same rule — UI must not invent role gates (rule 45).
+ */
+export function assertPublicAuthAudience(record: MockAuthUserRecord): void {
+  if (isSuperAdminRole(record.role)) {
+    throw new Error(AUTH_ERR_PUBLIC_AUTH_ADMIN_BLOCKED);
+  }
+}
+
+function requirePublicUserByMobile(mobile: string): MockAuthUserRecord {
+  const record = requireUserByMobile(mobile);
+  assertPublicAuthAudience(record);
   return record;
 }
 
@@ -40,7 +61,7 @@ function updateUserPassword(mobile: string, newPassword: string): void {
   const users = readMockUsers();
   const current = findMockUserByMobile(mobile);
   if (!current) {
-    throw new Error('کاربری با این شماره یافت نشد.');
+    throw new Error(AUTH_ERR_USER_NOT_FOUND);
   }
   const updatedUsers = users.map((candidate) =>
     candidate.mobile === mobile
@@ -59,7 +80,7 @@ export function mockLoginWithCredentials(
   mobile: string,
   password: string
 ): User {
-  const record = requireUserByMobile(mobile);
+  const record = requirePublicUserByMobile(mobile);
   if (record.password !== password) {
     throw new Error('شماره موبایل یا رمز عبور اشتباه است.');
   }
@@ -69,12 +90,12 @@ export function mockLoginWithCredentials(
 }
 
 export function mockSendLoginOtp(mobile: string): void {
-  requireUserByMobile(mobile);
+  requirePublicUserByMobile(mobile);
 }
 
 export function mockVerifyLoginOtp(mobile: string, otp: string): User {
   assertMockOtp(otp);
-  const user = toPublicUser(requireUserByMobile(mobile));
+  const user = toPublicUser(requirePublicUserByMobile(mobile));
   dispatchSessionToStore(buildMockSession(user));
   return user;
 }
@@ -82,7 +103,7 @@ export function mockVerifyLoginOtp(mobile: string, otp: string): User {
 export function mockSendAdminGateOtp(mobile: string): void {
   const record = findMockUserByMobile(mobile);
   if (!record || !isSuperAdminRole(record.role)) {
-    throw new Error('دسترسی این درگاه فقط برای مدیریت ارشد سامانه است.');
+    throw new Error(AUTH_ERR_ADMIN_GATE_ONLY);
   }
 }
 
@@ -90,7 +111,7 @@ export function mockVerifyAdminGateOtp(mobile: string, otp: string): User {
   assertMockOtp(otp);
   const record = findMockUserByMobile(mobile);
   if (!record || !isSuperAdminRole(record.role)) {
-    throw new Error('دسترسی این درگاه فقط برای مدیریت ارشد سامانه است.');
+    throw new Error(AUTH_ERR_ADMIN_GATE_ONLY);
   }
   const user = toPublicUser(record);
   dispatchSessionToStore(buildMockSession(user));
@@ -109,6 +130,9 @@ export function mockVerifyRegistrationOtp(
   role: UserRole
 ): User {
   assertMockOtp(otp);
+  if (isSuperAdminRole(role)) {
+    throw new Error(AUTH_ERR_PUBLIC_AUTH_ADMIN_BLOCKED);
+  }
   const users = readMockUsers();
   const newRecord: MockAuthUserRecord = {
     id: `#U-${Date.now()}`,
@@ -128,12 +152,12 @@ export function mockVerifyRegistrationOtp(
 }
 
 export function mockSendForgotPasswordOtp(mobile: string): void {
-  requireUserByMobile(mobile);
+  requirePublicUserByMobile(mobile);
 }
 
 export function mockVerifyForgotPasswordOtp(mobile: string, otp: string): void {
   assertMockOtp(otp);
-  requireUserByMobile(mobile);
+  requirePublicUserByMobile(mobile);
 }
 
 export function mockResetPassword(
@@ -142,6 +166,7 @@ export function mockResetPassword(
   newPassword: string
 ): void {
   assertMockOtp(otp);
+  requirePublicUserByMobile(mobile);
   updateUserPassword(mobile, newPassword);
 }
 

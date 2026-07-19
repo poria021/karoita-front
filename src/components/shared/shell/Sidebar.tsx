@@ -111,7 +111,7 @@ export function Sidebar() {
         className={cn(
           'fixed inset-0 z-40 bg-kv-surface-inverse/40 transition-opacity lg:hidden',
           isMobileOpen
-            ? 'pointer-events-auto opacity-100'
+            ? 'pointer-events-auto cursor-pointer opacity-100'
             : 'pointer-events-none opacity-0'
         )}
       />
@@ -283,8 +283,8 @@ function SidebarNavLink({
     locked
       ? 'cursor-default bg-transparent text-kv-text-disabled'
       : isActive
-        ? 'border border-kv-brand-border/50 bg-kv-brand-soft text-kv-brand-soft-fg'
-        : 'text-kv-text-muted hover:bg-kv-surface-muted hover:text-kv-text-secondary'
+        ? 'cursor-pointer border border-kv-brand-border/50 bg-kv-brand-soft text-kv-brand-soft-fg'
+        : 'cursor-pointer text-kv-text-muted hover:bg-kv-surface-muted hover:text-kv-text-secondary'
   );
 
   const control = locked ? (

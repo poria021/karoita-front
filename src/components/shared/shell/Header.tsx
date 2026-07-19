@@ -68,7 +68,7 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface shadow-kv-raised">
+    <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface/80 shadow-kv-raised backdrop-blur-md supports-[backdrop-filter]:bg-kv-surface/70">
       <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-6 xl:px-8 2xl:px-16">
         <div className="flex min-w-0 items-center gap-kv-group">
           <KvButton

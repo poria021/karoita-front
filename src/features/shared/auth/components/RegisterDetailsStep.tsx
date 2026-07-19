@@ -24,13 +24,11 @@ export function RegisterDetailsStep({ registerForm }: RegisterDetailsStepProps) 
           id="register-mobile"
           registration={register('mobile')}
           errorMessage={formState.errors.mobile?.message}
-          disabled={isSubmittingDetails}
         />
 
         <RoleSelectField
           control={control}
           errorMessage={formState.errors.role?.message}
-          disabled={isSubmittingDetails}
         />
       </div>
 

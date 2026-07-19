@@ -38,7 +38,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-fit items-center justify-between gap-2 rounded-kv-control border bg-transparent px-3 py-2 text-sm whitespace-nowrap outline-none",
+        "flex w-fit cursor-pointer items-center justify-between gap-2 rounded-kv-control border bg-transparent px-3 py-2 text-sm whitespace-nowrap outline-none",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "data-[size=default]:h-9 data-[size=sm]:h-8",
         "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
@@ -112,7 +112,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "focus:bg-kv-brand-soft focus:text-kv-brand-soft-fg [&_svg:not([class*='text-'])]:text-kv-text-faint relative flex w-full cursor-default items-center gap-2 rounded-kv-control py-1.5 pe-8 ps-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
+        "focus:bg-kv-brand-soft focus:text-kv-brand-soft-fg [&_svg:not([class*='text-'])]:text-kv-text-faint relative flex w-full cursor-pointer items-center gap-2 rounded-kv-control py-1.5 pe-8 ps-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
         className
       )}
       {...props}
@@ -148,7 +148,7 @@ function SelectScrollUpButton({
     <SelectPrimitive.ScrollUpButton
       data-slot="select-scroll-up-button"
       className={cn(
-        "flex cursor-default items-center justify-center py-1",
+        "flex cursor-pointer items-center justify-center py-1",
         className
       )}
       {...props}
@@ -166,7 +166,7 @@ function SelectScrollDownButton({
     <SelectPrimitive.ScrollDownButton
       data-slot="select-scroll-down-button"
       className={cn(
-        "flex cursor-default items-center justify-center py-1",
+        "flex cursor-pointer items-center justify-center py-1",
         className
       )}
       {...props}

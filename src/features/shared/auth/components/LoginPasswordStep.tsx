@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
 import { Controller } from 'react-hook-form';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCheckbox } from '@/components/shared/fields/KvCheckbox';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
+import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
-import { PasswordField } from './fields/PasswordField';
 
 interface LoginPasswordStepProps {
   login: UseLoginFormReturn;
@@ -17,7 +16,8 @@ interface LoginPasswordStepProps {
 
 /**
  * Credential login: remember-me fills only the mobile field next visit.
- * Password stays empty; autocomplete=off avoids browser vault refill.
+ * Password stays empty; browser autofill is blocked until the user focuses
+ * the field (no flash-then-clear).
  */
 export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
   const {
@@ -27,22 +27,7 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
     switchToOtpMode,
     switchToForgotMode,
   } = login;
-  const { register, control, formState, setValue } = passwordForm;
-
-  useEffect(() => {
-    const clearInjectedPassword = () => {
-      setValue('password', '', { shouldDirty: false, shouldValidate: false });
-    };
-    clearInjectedPassword();
-    const t0 = window.setTimeout(clearInjectedPassword, 0);
-    const t1 = window.setTimeout(clearInjectedPassword, 50);
-    const t2 = window.setTimeout(clearInjectedPassword, 200);
-    return () => {
-      window.clearTimeout(t0);
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-    };
-  }, [setValue]);
+  const { control, formState } = passwordForm;
 
   return (
     <form
@@ -51,6 +36,17 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
       noValidate
       autoComplete="off"
     >
+      {/* Decoy absorbs credential-manager fills meant for login. */}
+      <input
+        type="password"
+        tabIndex={-1}
+        aria-hidden="true"
+        autoComplete="current-password"
+        defaultValue=""
+        readOnly
+        className="pointer-events-none absolute h-0 w-0 opacity-0"
+      />
+
       <div className="flex flex-col gap-kv-group">
         <Controller
           name="mobile"
@@ -59,7 +55,6 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
             <KvMobileNumberField
               id="login-mobile"
               required
-              locked={isSubmittingPassword}
               error={formState.errors.mobile?.message}
               name={field.name}
               value={field.value}
@@ -72,12 +67,23 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
         />
 
         <div className="flex flex-col gap-kv-pair">
-          <PasswordField
-            id="login-password"
-            label="رمز عبور"
-            registration={register('password')}
-            errorMessage={formState.errors.password?.message}
-            autoComplete="off"
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <KvPasswordField
+                id="login-password"
+                label="رمز عبور"
+                required
+                suppressBrowserAutofill
+                error={formState.errors.password?.message}
+                name={field.name}
+                value={field.value}
+                onBlur={field.onBlur}
+                ref={field.ref}
+                onChange={field.onChange}
+              />
+            )}
           />
 
           <div className="flex items-center justify-between">
@@ -104,7 +110,9 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
                   <KvCheckbox
                     id="login-remember"
                     checked={field.value}
-                    onCheckedChange={(checked) => field.onChange(checked === true)}
+                    onCheckedChange={(checked) =>
+                      field.onChange(checked === true)
+                    }
                     onBlur={field.onBlur}
                     ref={field.ref}
                     name={field.name}
@@ -117,7 +125,10 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
       </div>
 
       <div className="flex flex-col gap-kv-group">
-        <AuthSubmitButton isLoading={isSubmittingPassword} loadingLabel="در حال ورود...">
+        <AuthSubmitButton
+          isLoading={isSubmittingPassword}
+          loadingLabel="در حال ورود..."
+        >
           ورود به سامانه
         </AuthSubmitButton>
 

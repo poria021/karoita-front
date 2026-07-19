@@ -1,7 +1,6 @@
 import {
   assertRealModeRejectsMockSecret,
   isMockApiMode,
-  throwRealModeNotImplemented,
 } from '@/lib/api-mode';
 import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
 import type { Session, User, UserRole } from '@/types/auth';
@@ -28,7 +27,16 @@ import {
 import {
   realLoginWithCredentials,
   realRegister,
+  realResetPassword,
+  realSendAdminGateOtp,
+  realSendForgotPasswordOtp,
+  realSendLoginOtp,
+  realSetInitialPassword,
   realSignOut,
+  realVerifyAdminGateOtp,
+  realVerifyForgotPasswordOtp,
+  realVerifyLoginOtp,
+  realVerifyRegistrationOtp,
 } from '@/services/auth/real-auth.bridge';
 
 /**
@@ -36,6 +44,9 @@ import {
  * Mock session meta stays JS-readable for local DX only — NOT Nest auth.
  * Real mode: Nest httpOnly cookies via `apiClient` (`credentials: 'include'`).
  * Zustand `activeUser` is UX chrome only — never authorization (rule 45 / ADR 004).
+ *
+ * Public paths (`login` / OTP / forgot) must reject `super_admin` — Nest + mock.
+ * Admin gate is the only senior-admin entry (future admin subdomain).
  */
 
 const IS_MOCK_MODE = isMockApiMode();
@@ -65,7 +76,7 @@ export class AuthService {
       mockSendLoginOtp(mobile);
       return;
     }
-    throwRealModeNotImplemented('AuthService');
+    return realSendLoginOtp(mobile);
   }
 
   static async verifyLoginOtp(mobile: string, otp: string): Promise<User> {
@@ -73,7 +84,7 @@ export class AuthService {
       return mockVerifyLoginOtp(mobile, otp);
     }
     rejectMockOtpInReal(otp);
-    throwRealModeNotImplemented('AuthService');
+    return realVerifyLoginOtp(mobile, otp);
   }
 
   /** Admin gate — only `super_admin`. OTP-only entry. */
@@ -82,7 +93,7 @@ export class AuthService {
       mockSendAdminGateOtp(mobile);
       return;
     }
-    throwRealModeNotImplemented('AuthService');
+    return realSendAdminGateOtp(mobile);
   }
 
   static async verifyAdminGateOtp(mobile: string, otp: string): Promise<User> {
@@ -90,7 +101,7 @@ export class AuthService {
       return mockVerifyAdminGateOtp(mobile, otp);
     }
     rejectMockOtpInReal(otp);
-    throwRealModeNotImplemented('AuthService');
+    return realVerifyAdminGateOtp(mobile, otp);
   }
 
   static async register(payload: RegisterPayload): Promise<void> {
@@ -110,7 +121,7 @@ export class AuthService {
       return mockVerifyRegistrationOtp(mobile, otp, role);
     }
     rejectMockOtpInReal(otp);
-    throwRealModeNotImplemented('AuthService');
+    return realVerifyRegistrationOtp(mobile, otp, role);
   }
 
   static async sendForgotPasswordOtp(mobile: string): Promise<void> {
@@ -118,7 +129,7 @@ export class AuthService {
       mockSendForgotPasswordOtp(mobile);
       return;
     }
-    throwRealModeNotImplemented('AuthService');
+    return realSendForgotPasswordOtp(mobile);
   }
 
   static async verifyForgotPasswordOtp(
@@ -130,7 +141,7 @@ export class AuthService {
       return;
     }
     rejectMockOtpInReal(otp);
-    throwRealModeNotImplemented('AuthService');
+    return realVerifyForgotPasswordOtp(mobile, otp);
   }
 
   static async resetPassword(
@@ -143,7 +154,7 @@ export class AuthService {
       return;
     }
     rejectMockOtpInReal(otp);
-    throwRealModeNotImplemented('AuthService');
+    return realResetPassword(mobile, otp, newPassword);
   }
 
   static async setInitialPassword(
@@ -157,7 +168,7 @@ export class AuthService {
       mockSetInitialPassword(mobile, newPassword);
       return;
     }
-    throwRealModeNotImplemented('AuthService');
+    return realSetInitialPassword(mobile, newPassword);
   }
 
   static async logout(): Promise<void> {

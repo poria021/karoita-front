@@ -30,6 +30,7 @@ export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
   });
 
   // After client mount: restore remembered mobile into the field (SSR-safe).
+  // Password stays empty — never restore credentials from storage/browser vault.
   useEffect(() => {
     const mobile = readRememberedMobile();
     if (!mobile) return;
@@ -37,14 +38,6 @@ export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
       mobile,
       password: '',
       remember: true,
-    });
-  }, [passwordForm]);
-
-  // Strip browser-injected password after mount / bfcache restore.
-  useEffect(() => {
-    passwordForm.setValue('password', '', {
-      shouldDirty: false,
-      shouldValidate: false,
     });
   }, [passwordForm]);
 
@@ -71,12 +64,12 @@ export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
       );
 
       if (message === 'کاربری با این شماره یافت نشد.') {
-        passwordForm.setError('mobile', { message });
+        passwordForm.setError('mobile', { message }, { shouldFocus: true });
         passwordForm.clearErrors('password');
         return;
       }
 
-      passwordForm.setError('mobile', { message });
+      passwordForm.setError('mobile', { message }, { shouldFocus: true });
       passwordForm.setError('password', { message });
     }
   });

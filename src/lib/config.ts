@@ -20,4 +20,32 @@ const AUTH_COOKIE_NAME =
  */
 const MOCK_SESSION_MARKER = 'karvita_mock_session';
 
-export { DEFAULT_LOGIN_REDIRECT, AUTH_COOKIE_NAME, MOCK_SESSION_MARKER };
+/**
+ * Deploy surface for future split hostnames (user app vs admin subdomain).
+ * - `user` (default): public login at `/auth/login`; admin-gate stays reachable
+ * - `admin`: primary entry is `/auth/admin-gate`; `/auth/login` redirects there
+ *
+ * Unset / invalid → `user` so local DX matches today’s dual-route behavior.
+ * Nest still authorizes — this only picks the entry chrome (rule 45).
+ */
+export type AppSurface = 'user' | 'admin';
+
+function resolveAppSurface(): AppSurface {
+  const raw = process.env.NEXT_PUBLIC_APP_SURFACE?.trim().toLowerCase();
+  if (raw === 'admin') return 'admin';
+  return 'user';
+}
+
+const APP_SURFACE: AppSurface = resolveAppSurface();
+
+function isAdminAppSurface(): boolean {
+  return APP_SURFACE === 'admin';
+}
+
+export {
+  DEFAULT_LOGIN_REDIRECT,
+  AUTH_COOKIE_NAME,
+  MOCK_SESSION_MARKER,
+  APP_SURFACE,
+  isAdminAppSurface,
+};

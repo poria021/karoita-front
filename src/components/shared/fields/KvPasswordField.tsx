@@ -28,6 +28,11 @@ export type KvPasswordFieldProps = {
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
   footer?: React.ReactNode;
+  /**
+   * Block browser/password-manager inject until the user focuses the field.
+   * Prevents the login flash where a saved password appears then gets cleared.
+   */
+  suppressBrowserAutofill?: boolean;
 };
 
 /**
@@ -55,10 +60,21 @@ export const KvPasswordField = React.forwardRef<
     onBlur,
     onFocus,
     footer,
+    suppressBrowserAutofill = false,
   },
   ref
 ) {
   const [isVisible, setIsVisible] = React.useState(false);
+  const [autofillUnlocked, setAutofillUnlocked] = React.useState(
+    !suppressBrowserAutofill
+  );
+
+  const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+    if (suppressBrowserAutofill && !autofillUnlocked) {
+      setAutofillUnlocked(true);
+    }
+    onFocus?.(event);
+  };
 
   return (
     <KvTextField
@@ -69,15 +85,18 @@ export const KvPasswordField = React.forwardRef<
       type={isVisible ? 'text' : 'password'}
       size={size}
       dir="ltr"
-      autoComplete={autoComplete}
+      autoComplete={
+        suppressBrowserAutofill ? 'new-password' : autoComplete
+      }
       placeholder={placeholder}
       locked={locked}
       showLockIcon={showLockIcon}
+      readOnly={!autofillUnlocked}
       value={value}
       defaultValue={defaultValue}
       name={name}
       onBlur={onBlur}
-      onFocus={onFocus}
+      onFocus={handleFocus}
       onChange={onChange}
       error={error}
       hint={hint}

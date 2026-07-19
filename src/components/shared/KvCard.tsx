@@ -103,6 +103,11 @@ export function KvCardContent({
 export type KvCardHeaderProps = React.ComponentProps<typeof CardHeader> & {
   /** Toolbar-style header: title cluster + actions on one row. */
   toolbar?: boolean;
+  /**
+   * Bottom rule under the header.
+   * Prefer inset (default when bordered) so mobile/admin cards do not get a
+   * full-bleed edge-to-edge line — padding stays on the card/DS tokens.
+   */
   bordered?: boolean;
 };
 

@@ -25,7 +25,6 @@ export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
           id="forgot-mobile"
           registration={register('mobile')}
           errorMessage={formState.errors.mobile?.message}
-          disabled={isSendingForgotOtp}
         />
       </div>
 

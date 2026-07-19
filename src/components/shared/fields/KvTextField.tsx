@@ -27,19 +27,21 @@ const kvTextFieldWrapperVariants = cva(
       state: {
         default: [
           'border-kv-border-strong',
-          'hover:border-kv-brand',
+          'hover:border-kv-border-strong hover:bg-kv-border-strong/25',
           'focus-within:border-kv-brand focus-within:bg-kv-surface',
+          'focus-within:hover:border-kv-brand focus-within:hover:bg-kv-surface',
           'focus-within:ring-[3px] focus-within:ring-kv-ring/15',
         ].join(' '),
         error: [
           'border-kv-danger-border',
-          'hover:border-kv-danger',
+          'hover:border-kv-danger-border hover:bg-kv-danger-border/20',
           'focus-within:border-kv-danger focus-within:bg-kv-surface',
+          'focus-within:hover:border-kv-danger focus-within:hover:bg-kv-surface',
           'focus-within:ring-[3px] focus-within:ring-kv-ring-danger/15',
         ].join(' '),
         locked: [
           'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled',
-          'hover:border-kv-border-disabled',
+          'hover:border-kv-border-disabled hover:bg-kv-field-disabled',
           'focus-within:border-kv-border-disabled focus-within:ring-0',
         ].join(' '),
       },
@@ -53,10 +55,13 @@ const kvTextFieldWrapperVariants = cva(
 
 const kvTextFieldInputVariants = cva(
   [
+    /* Nested in wrapper border — kill KvInput chrome in every state (incl. aria-invalid). */
     'h-full w-full min-w-0 flex-1 rounded-none border-0 bg-transparent font-sans font-bold text-kv-text-secondary shadow-none',
     'leading-none',
     'placeholder:text-kv-text-placeholder',
+    'hover:border-0',
     'focus-visible:border-0 focus-visible:ring-0',
+    'aria-invalid:border-0 aria-invalid:ring-0',
     'disabled:cursor-not-allowed disabled:bg-transparent disabled:opacity-100',
   ].join(' '),
   {
@@ -102,6 +107,11 @@ export type KvTextFieldProps = {
   error?: string;
   hint?: string;
   locked?: boolean;
+  /**
+   * Native read-only without locked chrome — used to block browser password
+   * managers until the user focuses the field.
+   */
+  readOnly?: boolean;
   showLockIcon?: boolean;
   dir?: 'rtl' | 'ltr' | 'auto';
   id?: string;
@@ -145,6 +155,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       error,
       hint,
       locked = false,
+      readOnly = false,
       showLockIcon,
       dir,
       id: idProp,
@@ -219,7 +230,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
             inputMode={inputMode}
             maxLength={maxLength}
             disabled={locked}
-            readOnly={locked}
+            readOnly={locked || readOnly}
             aria-invalid={error ? true : undefined}
             aria-describedby={describedBy}
             onChange={onChange}

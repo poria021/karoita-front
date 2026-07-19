@@ -61,7 +61,12 @@ export function KvAccordionTrigger({
   return (
     <AccordionTrigger
       data-slot="kv-accordion-trigger"
-      className={cn('px-4 hover:no-underline', className)}
+      className={cn(
+        'px-kv-inset py-kv-group hover:bg-kv-surface-muted/50 hover:no-underline',
+        'data-[state=open]:bg-kv-brand-soft data-[state=open]:text-kv-brand',
+        'data-[state=open]:hover:bg-kv-brand-soft-hover',
+        className
+      )}
       {...props}
     />
   );
@@ -124,7 +129,8 @@ export function KvAccordionContent({
     <AccordionContent
       data-slot="kv-accordion-content"
       className={cn(
-        'border-t border-kv-border px-4 text-kv-text-secondary',
+        /* No full-bleed header rule — inset separator + DS horizontal padding. */
+        'mx-kv-inset border-t border-kv-border px-0 pb-kv-inset text-kv-text-secondary',
         stacked && 'space-y-kv-group pt-kv-section',
         className
       )}

@@ -1,15 +1,28 @@
 import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { apiClient, ApiClientError } from '@/services/api-client';
-import type { Session, User } from '@/types/auth';
+import type { Session, User, UserRole } from '@/types/auth';
 
 /**
  * Nest auth HTTP surface (rule 40 / 45).
  *
  * Contract (cookie session preferred — `apiClient` uses `credentials: 'include'`):
- * - `POST auth/login`     body `{ mobile, password }` → session + user
- * - `POST auth/register`  body `{ mobile }` → void / pending OTP
- * - `POST auth/logout`    → void
- * - `GET  auth/session`   → current session or 401
+ *
+ * ### Public audience (`/auth/login` — Nest must reject `super_admin`)
+ * - `POST auth/login`                    `{ mobile, password }` → session + user
+ * - `POST auth/otp/login/send`           `{ mobile }` → void
+ * - `POST auth/otp/login/verify`         `{ mobile, otp }` → session + user
+ * - `POST auth/register`                 `{ mobile }` → void / pending OTP
+ * - `POST auth/otp/register/verify`      `{ mobile, otp, role }` → session + user
+ * - `POST auth/password/forgot/send`     `{ mobile }` → void (reject super_admin)
+ * - `POST auth/password/forgot/verify`   `{ mobile, otp }` → void
+ * - `POST auth/password/forgot/reset`    `{ mobile, otp, newPassword }` → void
+ * - `POST auth/password/initial`         `{ mobile, newPassword }` → void
+ * - `POST auth/logout`                   → void
+ * - `GET  auth/session`                  → current session or 401
+ *
+ * ### Admin audience (`/auth/admin-gate` — Nest must allow only senior admin)
+ * - `POST auth/admin/otp/send`           `{ mobile }` → void
+ * - `POST auth/admin/otp/verify`         `{ mobile, otp }` → session + user
  *
  * Flip {@link NEST_AUTH_LIVE} when Nest routes exist. Until then every method
  * throws `REAL_MODE_NOT_IMPLEMENTED` after the API-URL guard.
@@ -21,9 +34,18 @@ const NEST_AUTH_LIVE = false;
 
 export const REAL_AUTH_PATHS = {
   login: 'auth/login',
+  loginOtpSend: 'auth/otp/login/send',
+  loginOtpVerify: 'auth/otp/login/verify',
   register: 'auth/register',
+  registerOtpVerify: 'auth/otp/register/verify',
+  forgotSend: 'auth/password/forgot/send',
+  forgotVerify: 'auth/password/forgot/verify',
+  forgotReset: 'auth/password/forgot/reset',
+  initialPassword: 'auth/password/initial',
   logout: 'auth/logout',
   session: 'auth/session',
+  adminOtpSend: 'auth/admin/otp/send',
+  adminOtpVerify: 'auth/admin/otp/verify',
 } as const;
 
 type NestAuthUserPayload = {
@@ -52,6 +74,11 @@ function assertNestLive(surface: string): void {
   if (!NEST_AUTH_LIVE) {
     throwRealModeNotImplemented(surface);
   }
+}
+
+function guard(surface: string): void {
+  requireApiConfigured(surface);
+  assertNestLive(surface);
 }
 
 function mapNestUser(payload: NestAuthUserPayload): User {
@@ -93,14 +120,13 @@ function extractSessionPayload(raw: unknown): NestSessionPayload {
 
 /**
  * POST login — Nest sets httpOnly session cookie.
- * Throws `REAL_MODE_NOT_IMPLEMENTED` until Nest auth is marked live.
+ * Nest must reject `super_admin` on this public path (use admin OTP gate).
  */
 export async function realLoginWithCredentials(
   mobile: string,
   password: string
 ): Promise<User> {
-  requireApiConfigured('real-auth.bridge.login');
-  assertNestLive('real-auth.bridge.login');
+  guard('real-auth.bridge.login');
   const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.login, {
     mobile,
     password,
@@ -108,15 +134,99 @@ export async function realLoginWithCredentials(
   return mapNestUser(extractSessionPayload(raw).user);
 }
 
+export async function realSendLoginOtp(mobile: string): Promise<void> {
+  guard('real-auth.bridge.loginOtpSend');
+  await apiClient.postJson(REAL_AUTH_PATHS.loginOtpSend, { mobile });
+}
+
+export async function realVerifyLoginOtp(
+  mobile: string,
+  otp: string
+): Promise<User> {
+  guard('real-auth.bridge.loginOtpVerify');
+  const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.loginOtpVerify, {
+    mobile,
+    otp,
+  });
+  return mapNestUser(extractSessionPayload(raw).user);
+}
+
 export async function realRegister(mobile: string): Promise<void> {
-  requireApiConfigured('real-auth.bridge.register');
-  assertNestLive('real-auth.bridge.register');
+  guard('real-auth.bridge.register');
   await apiClient.postJson(REAL_AUTH_PATHS.register, { mobile });
 }
 
+export async function realVerifyRegistrationOtp(
+  mobile: string,
+  otp: string,
+  role: UserRole
+): Promise<User> {
+  guard('real-auth.bridge.registerOtpVerify');
+  const raw = await apiClient.postJson<unknown>(
+    REAL_AUTH_PATHS.registerOtpVerify,
+    { mobile, otp, role }
+  );
+  return mapNestUser(extractSessionPayload(raw).user);
+}
+
+/** Nest must reject `super_admin` — public recovery only. */
+export async function realSendForgotPasswordOtp(mobile: string): Promise<void> {
+  guard('real-auth.bridge.forgotSend');
+  await apiClient.postJson(REAL_AUTH_PATHS.forgotSend, { mobile });
+}
+
+export async function realVerifyForgotPasswordOtp(
+  mobile: string,
+  otp: string
+): Promise<void> {
+  guard('real-auth.bridge.forgotVerify');
+  await apiClient.postJson(REAL_AUTH_PATHS.forgotVerify, { mobile, otp });
+}
+
+export async function realResetPassword(
+  mobile: string,
+  otp: string,
+  newPassword: string
+): Promise<void> {
+  guard('real-auth.bridge.forgotReset');
+  await apiClient.postJson(REAL_AUTH_PATHS.forgotReset, {
+    mobile,
+    otp,
+    newPassword,
+  });
+}
+
+export async function realSetInitialPassword(
+  mobile: string,
+  newPassword: string
+): Promise<void> {
+  guard('real-auth.bridge.initialPassword');
+  await apiClient.postJson(REAL_AUTH_PATHS.initialPassword, {
+    mobile,
+    newPassword,
+  });
+}
+
+/** Nest must allow only senior-admin roles. */
+export async function realSendAdminGateOtp(mobile: string): Promise<void> {
+  guard('real-auth.bridge.adminOtpSend');
+  await apiClient.postJson(REAL_AUTH_PATHS.adminOtpSend, { mobile });
+}
+
+export async function realVerifyAdminGateOtp(
+  mobile: string,
+  otp: string
+): Promise<User> {
+  guard('real-auth.bridge.adminOtpVerify');
+  const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.adminOtpVerify, {
+    mobile,
+    otp,
+  });
+  return mapNestUser(extractSessionPayload(raw).user);
+}
+
 export async function realSignOut(): Promise<void> {
-  requireApiConfigured('real-auth.bridge.logout');
-  assertNestLive('real-auth.bridge.logout');
+  guard('real-auth.bridge.logout');
   await apiClient.postJson(REAL_AUTH_PATHS.logout, {});
 }
 
@@ -125,8 +235,7 @@ export async function realSignOut(): Promise<void> {
  * Returns null on 401; throws on other errors / unwired Nest.
  */
 export async function realFetchSession(): Promise<Session | null> {
-  requireApiConfigured('real-auth.bridge.session');
-  assertNestLive('real-auth.bridge.session');
+  guard('real-auth.bridge.session');
   try {
     const raw = await apiClient.getJson<unknown>(REAL_AUTH_PATHS.session);
     const session = extractSessionPayload(raw);

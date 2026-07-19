@@ -38,17 +38,19 @@ export function useOrgStructurePage() {
   );
 
   const tabConfig = useMemo(() => getOrgTabConfig(tab), [tab]);
-  const resetKey = `${tab}::${debouncedQuery}`;
+  /** Clearing search must reload immediately (tab change / clear) — only debounce typing. */
+  const listQuery = query.trim() === '' ? '' : debouncedQuery;
+  const resetKey = `${tab}::${listQuery}`;
 
   const fetchPage = useCallback(
     async ({ offset, limit }: { offset: number; limit: number }) =>
       OrgStructureService.listPage({
         tab,
-        query: debouncedQuery,
+        query: listQuery,
         offset,
         limit,
       }),
-    [tab, debouncedQuery]
+    [tab, listQuery]
   );
 
   const list = useOffsetLimitInfiniteList<OrgStructureListItem>({
