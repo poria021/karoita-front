@@ -32,8 +32,7 @@ interface OnboardingApprovalsDetailPanelProps {
   onCancelReject: () => void;
   onSubmitReject: () => void;
   onApprove: () => void;
-  onPreviewDoc: (url: string) => void;
-}
+};
 
 export function OnboardingApprovalsDetailPanel({
   user,
@@ -47,7 +46,6 @@ export function OnboardingApprovalsDetailPanel({
   onCancelReject,
   onSubmitReject,
   onApprove,
-  onPreviewDoc,
 }: OnboardingApprovalsDetailPanelProps) {
   if (!user) {
     return (
@@ -73,7 +71,7 @@ export function OnboardingApprovalsDetailPanel({
       <KvCardHeader toolbar bordered>
         <KvCardIdentity
           leading={
-            <KvMediaThumb src={user.docUrl} onPreview={onPreviewDoc} />
+            <KvMediaThumb src={user.docUrl} openInNewTab />
           }
         >
           <KvCardTitle>{user.fullName || 'کاربر جدید'}</KvCardTitle>

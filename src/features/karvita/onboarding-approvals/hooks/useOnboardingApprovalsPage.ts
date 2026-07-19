@@ -32,7 +32,6 @@ export function useOnboardingApprovalsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
-  const [docPreviewUrl, setDocPreviewUrl] = useState<string | null>(null);
 
   /** Clearing search must reload immediately — only debounce typing. */
   const listQuery = query.trim() === '' ? '' : debouncedQuery;
@@ -92,14 +91,6 @@ export function useOnboardingApprovalsPage() {
     setSelectedId(user?.id ?? null);
     setShowRejectForm(false);
     setRejectReason('');
-  }, []);
-
-  const openDocPreview = useCallback((url: string) => {
-    setDocPreviewUrl(url);
-  }, []);
-
-  const closeDocPreview = useCallback(() => {
-    setDocPreviewUrl(null);
   }, []);
 
   const approveUser = useCallback(
@@ -178,9 +169,6 @@ export function useOnboardingApprovalsPage() {
     setShowRejectForm,
     rejectReason,
     setRejectReason,
-    docPreviewUrl,
-    openDocPreview,
-    closeDocPreview,
     approveUser,
     submitReject,
   };

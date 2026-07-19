@@ -15,8 +15,8 @@ export type KvWorkspaceProps = {
 
 /**
  * Single-column module workspace skeleton.
- * Toolbar + table share one raised card. Mobile uses DS inset padding and
- * no full-bleed header rule; desktop table can still flush to the card edge.
+ * Toolbar sits above a raised surface card — same table chrome as
+ * onboarding (`KvCard` + `KvTable`), so admin tables stay visually unified.
  */
 export function KvWorkspace({
   tabs,
@@ -31,22 +31,10 @@ export function KvWorkspace({
       data-slot="kv-workspace"
     >
       {tabs}
-      <KvCard data-slot="kv-workspace-panel">
-        {toolbar ? (
-          <div
-            data-slot="kv-workspace-toolbar"
-            className="px-kv-inset pt-kv-inset pb-kv-group"
-          >
-            {toolbar}
-          </div>
-        ) : null}
-        <div
-          data-slot="kv-workspace-body"
-          className="max-lg:px-kv-inset max-lg:pb-kv-inset"
-        >
-          {children}
-        </div>
-      </KvCard>
+      {toolbar ? (
+        <div data-slot="kv-workspace-toolbar">{toolbar}</div>
+      ) : null}
+      <KvCard data-slot="kv-workspace-panel">{children}</KvCard>
     </div>
   );
 }

@@ -39,6 +39,8 @@ export type KvSplitWorkspaceProps = {
 /**
  * Two-column module workspace (desktop) + mobile slot.
  * Layout only — no tables, filters, or domain actions.
+ * Secondary (detail) cards use `rounded-kv-card` so the companion pane
+ * reads rounder than the table panel.
  */
 export function KvSplitWorkspace({
   tabs,
@@ -80,6 +82,8 @@ export function KvSplitWorkspace({
           <section
             className={cn(
               'flex w-full min-h-0 flex-col',
+              /* Detail companion: rounder than table panel (kv-card vs kv-panel). */
+              '[&_[data-slot=kv-card]]:rounded-kv-card',
               widths.secondary
             )}
             data-slot="kv-split-workspace-secondary"

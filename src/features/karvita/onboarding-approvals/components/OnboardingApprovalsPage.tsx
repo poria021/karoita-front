@@ -14,7 +14,6 @@ import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 import { getApprovalTabActions } from '../constants';
 import { useOnboardingApprovalsPage } from '../hooks/useOnboardingApprovalsPage';
 import { OnboardingApprovalsDetailPanel } from './OnboardingApprovalsDetailPanel';
-import { OnboardingApprovalsDocPreviewDialog } from './OnboardingApprovalsDocPreviewDialog';
 import { OnboardingApprovalsFilters } from './OnboardingApprovalsFilters';
 import { OnboardingApprovalsMobileList } from './OnboardingApprovalsMobileList';
 import { OnboardingApprovalsTable } from './OnboardingApprovalsTable';
@@ -148,7 +147,6 @@ export function OnboardingApprovalsPage() {
                   void page.approveUser(page.selectedUser);
                 }
               }}
-              onPreviewDoc={page.openDocPreview}
             />
           )
         }
@@ -174,7 +172,6 @@ export function OnboardingApprovalsPage() {
               }}
               onRejectReasonChange={page.setRejectReason}
               onSubmitReject={(user) => void page.submitReject(user)}
-              onPreviewDoc={page.openDocPreview}
               onLoadMore={() => void page.loadMore()}
               onRetryLoadMore={() => {
                 page.clearLoadMoreError();
@@ -183,11 +180,6 @@ export function OnboardingApprovalsPage() {
             />
           )
         }
-      />
-
-      <OnboardingApprovalsDocPreviewDialog
-        url={page.docPreviewUrl}
-        onClose={page.closeDocPreview}
       />
     </>
   );

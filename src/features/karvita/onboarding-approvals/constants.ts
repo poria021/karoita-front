@@ -157,10 +157,6 @@ export const ROLE_APPROVAL_FIELDS: Partial<
   ],
 };
 
-export function isPdfDocUrl(url: string | undefined): boolean {
-  return Boolean(url?.startsWith('data:application/pdf'));
-}
-
 /** Which review actions are available on each status tab. */
 export function getApprovalTabActions(tab: ApprovalFilterTab): {
   canApprove: boolean;

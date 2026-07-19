@@ -59,7 +59,6 @@ interface OnboardingApprovalsMobileListProps {
   onCancelReject: () => void;
   onRejectReasonChange: (value: string) => void;
   onSubmitReject: (user: OnboardingApprovalUser) => void;
-  onPreviewDoc: (url: string) => void;
   onLoadMore: () => void;
   onRetryLoadMore: () => void;
 }
@@ -81,7 +80,6 @@ export function OnboardingApprovalsMobileList({
   onCancelReject,
   onRejectReasonChange,
   onSubmitReject,
-  onPreviewDoc,
   onLoadMore,
   onRetryLoadMore,
 }: OnboardingApprovalsMobileListProps) {
@@ -162,7 +160,7 @@ export function OnboardingApprovalsMobileList({
                   media={
                     <KvMediaThumb
                       src={user.docUrl}
-                      onPreview={onPreviewDoc}
+                      openInNewTab
                       size="lg"
                       fluid
                     />

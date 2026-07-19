@@ -21,8 +21,9 @@ export function OrgStructureToolbar({
   onQueryChange,
   onAdd,
 }: OrgStructureToolbarProps) {
+
   return (
-    <div className="flex flex-col justify-start gap-kv-group lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col justify-start gap-kv-group border-t border-kv-border px-0 pt-kv-section sm:px-kv-group lg:flex-row lg:items-center lg:justify-between">
       <div className="flex min-w-0 flex-col items-start justify-start gap-kv-field text-start">
         <KvTypography variant="subtitle" weight="bold" as="h3">
           مدیریت ساختار {tabConfig.label}

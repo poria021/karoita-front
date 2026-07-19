@@ -3,7 +3,6 @@
 import * as React from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
@@ -24,8 +23,11 @@ export type KvMediaThumbProps = {
   alt?: string;
   emptyLabel?: string;
   pdfLabel?: string;
-  /** When set, thumb is an interactive control that opens preview. */
-  onPreview?: (src: string) => void;
+  /**
+   * When true and `src` is set, the thumb opens the media in a new browser tab
+   * (no in-app modal). Uses `<a target="_blank" rel="noopener noreferrer">`.
+   */
+  openInNewTab?: boolean;
   'aria-label'?: string;
 };
 
@@ -47,7 +49,7 @@ const SIZE_CLASS: Record<KvMediaThumbSize, string> = {
 
 /**
  * Compact image / PDF / empty media thumbnail for admin review panels.
- * Interactive when `onPreview` + `src` are provided.
+ * Interactive thumbs open the file in a new tab — never an in-app dialog.
  */
 export function KvMediaThumb({
   src,
@@ -58,7 +60,7 @@ export function KvMediaThumb({
   alt = '',
   emptyLabel = 'فاقد مدرک پیوست',
   pdfLabel = 'سند PDF',
-  onPreview,
+  openInNewTab = false,
   'aria-label': ariaLabel,
 }: KvMediaThumbProps) {
   const kind = resolveKind(src, kindProp);
@@ -97,8 +99,6 @@ export function KvMediaThumb({
     );
   }
 
-  const preview = () => onPreview?.(src);
-
   const body =
     kind === 'pdf' ? (
       <span className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-kv-control bg-kv-danger-soft text-kv-danger">
@@ -116,7 +116,7 @@ export function KvMediaThumb({
       />
     );
 
-  if (!onPreview) {
+  if (!openInNewTab) {
     return (
       <div
         data-slot="kv-media-thumb"
@@ -128,15 +128,20 @@ export function KvMediaThumb({
   }
 
   return (
-    <KvButton
-      type="button"
-      appearance="secondary"
+    <a
+      href={src}
+      target="_blank"
+      rel="noopener noreferrer"
       data-slot="kv-media-thumb"
-      className={cn(frame, 'p-1')}
-      aria-label={ariaLabel ?? 'پیش‌نمایش مدرک'}
-      onClick={preview}
+      className={cn(
+        frame,
+        'cursor-pointer border border-kv-border bg-kv-surface-muted transition-colors',
+        'hover:border-kv-brand hover:bg-kv-brand-soft/30',
+        'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20'
+      )}
+      aria-label={ariaLabel ?? 'باز کردن مدرک در تب جدید'}
     >
       {body}
-    </KvButton>
+    </a>
   );
 }
