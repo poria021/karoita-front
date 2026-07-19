@@ -89,7 +89,7 @@ const TRIGGER_FULL_SIZE = [
 
 /** Grid cells — same active fill tokens as capsule; bordered idle surface. */
 const TRIGGER_GRID_SIZE = [
-  'w-full gap-1.5 rounded-kv-panel border border-kv-border bg-kv-surface',
+  'w-full gap-1.5 rounded-kv-control border border-kv-border bg-kv-surface',
   'px-2 py-4 text-xs leading-none',
   'hover:bg-kv-surface-muted',
   'data-[state=active]:border-kv-brand',

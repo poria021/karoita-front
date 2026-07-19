@@ -34,7 +34,9 @@ export function KvWorkspace({
       {toolbar ? (
         <div data-slot="kv-workspace-toolbar">{toolbar}</div>
       ) : null}
-      <KvCard data-slot="kv-workspace-panel">{children}</KvCard>
+      <KvCard data-slot="kv-workspace-panel">
+        {children}
+      </KvCard>
     </div>
   );
 }

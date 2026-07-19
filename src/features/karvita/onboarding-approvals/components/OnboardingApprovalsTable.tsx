@@ -2,7 +2,6 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
-import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
@@ -39,7 +38,9 @@ interface OnboardingApprovalsTableProps {
   onStartReject: (user: OnboardingApprovalUser) => void;
 }
 
-/** Admin table — fixed viewport + infinite scroll (page size 10 via Facade). */
+/** Admin table — fixed viewport + infinite scroll (page size 10 via Facade).
+ * Header chrome stays mounted while loading (rule 75 / 80) — only body is empty.
+ */
 export function OnboardingApprovalsTable({
   users,
   selectedId,
@@ -58,10 +59,6 @@ export function OnboardingApprovalsTable({
   const showActions = tab === 'pending_admin';
   const columnCount = showActions ? 4 : 3;
   const isEmpty = !isLoading && users.length === 0;
-
-  if (isLoading) {
-    return <KvBusySurface tableViewport />;
-  }
 
   return (
     <div className="space-y-kv-group">
@@ -87,6 +84,7 @@ export function OnboardingApprovalsTable({
         resetKey={tab}
         hasMore={!isEmpty && hasMore}
         isLoadingMore={isLoadingMore}
+        isBusy={isLoading}
         onEndReached={onLoadMore}
         loadingMoreLabel="در حال بارگذاری ۱۰ سطر بعدی…"
       >
@@ -102,7 +100,7 @@ export function OnboardingApprovalsTable({
             </KvTableRow>
           </KvTableHeader>
           <KvTableBody>
-            {isEmpty ? (
+            {isLoading ? null : isEmpty ? (
               <KvTableEmpty colSpan={columnCount}>
                 <KvEmptyState
                   icon={<FaIcon icon={faIcons.idCard} size="lg" />}

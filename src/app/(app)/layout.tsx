@@ -32,7 +32,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <AppAuthGuard>
           <div className="flex min-h-dvh w-full flex-col bg-kv-canvas">
             <Header />
-            <div className="relative flex w-full flex-1 flex-col items-stretch gap-kv-group px-0 py-kv-group sm:px-6 lg:flex-row lg:px-6 lg:py-kv-group xl:px-8 2xl:px-16">
+            <div className="relative flex w-full flex-1 flex-col items-stretch gap-kv-group px-kv-inset py-kv-group sm:px-6 lg:flex-row lg:px-6 lg:py-kv-group xl:px-8 2xl:px-16">
               <Sidebar />
               <DashboardMainViewport>{children}</DashboardMainViewport>
             </div>

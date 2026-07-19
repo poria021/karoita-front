@@ -138,7 +138,7 @@ export function Sidebar() {
           size="sm"
           onClick={toggleCollapsed}
           aria-label={isCollapsed ? 'باز کردن نوار کناری' : 'جمع کردن نوار کناری'}
-          className="absolute -end-3 top-6 z-20 hidden size-7 min-h-0 rounded-full border border-kv-border-strong/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-raised hover:border-kv-brand hover:text-kv-brand lg:flex"
+          className="absolute -end-3 top-6 z-20 hidden size-7 min-h-0 rounded-kv-control border border-kv-border-strong/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-raised hover:border-kv-brand hover:text-kv-brand lg:flex"
           icon={
             <FaIcon
               icon={faIcons.chevronLeft}

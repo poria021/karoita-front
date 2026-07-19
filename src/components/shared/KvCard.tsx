@@ -55,7 +55,7 @@ const CONTENT_PADDING_CLASS: Record<KvCardPadding, string> = {
   lg: 'p-6',
 };
 
-/** Karvita card shell — surface, card radius, elevation via `tone`. */
+/** Karvita card shell — panel radius (`--radius-kv-panel` → `--radius-kv-base`). */
 export function KvCard({
   className,
   tone = 'surface',
@@ -68,7 +68,7 @@ export function KvCard({
     <Card
       data-slot="kv-card"
       className={cn(
-        'overflow-hidden gap-0 font-sans text-kv-text',
+        'overflow-hidden gap-0 rounded-kv-panel font-sans text-kv-text',
         TONE_CLASS[tone],
         PADDING_CLASS[padding],
         fillMin &&

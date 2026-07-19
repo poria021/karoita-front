@@ -190,17 +190,16 @@
   --spacing-kv-screen: 3rem; /* 48px */
 
   /*
-   * Karvita semantic radius (`rounded-kv-*`) — corner roles by surface type.
-   * Use these instead of raw rounded-xl / 2xl / 3xl in app & shared UI:
-   * - control: fields, buttons, selects, icon buttons, nav items
-   * - panel: dropdowns, alerts, toasts, compact feedback boxes
-   * - card: form cards, auth card, content cards
+   * Karvita semantic radius (`rounded-kv-*`) — pick by *role*, not one vague name.
+   * - control / panel: share `--radius-kv-base` (admin chrome: buttons, fields, tabs, tables)
+   * - card: larger radius for auth / marketing content cards (original look)
    * - shell: large layout surfaces (sidebar, main viewport)
    */
-  --radius-kv-control: 0.75rem; /* 12px — was rounded-xl */
-  --radius-kv-panel: 1rem; /* 16px — was rounded-2xl */
-  --radius-kv-card: 1.5rem; /* 24px — was rounded-3xl (forms/cards) */
-  --radius-kv-shell: 1.5rem; /* 24px — large layout surfaces (sidebar / main) */
+  --radius-kv-base: 0.75rem; /* 12px — control + panel */
+  --radius-kv-control: var(--radius-kv-base);
+  --radius-kv-panel: var(--radius-kv-base);
+  --radius-kv-card: 1.5rem; /* 24px — auth / form cards */
+  --radius-kv-shell: 1.5rem; /* 24px — layout only */
 
   /*
    * Semantic elevation (`shadow-kv-*`) — use roles instead of raw shadow-sm/md/xl.

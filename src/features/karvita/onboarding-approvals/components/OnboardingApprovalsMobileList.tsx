@@ -11,7 +11,6 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvBadge } from '@/components/shared/KvBadge';
 import type { KvBadgeVariant } from '@/components/shared/KvBadge';
-import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
@@ -89,7 +88,12 @@ export function OnboardingApprovalsMobileList({
   const { canApprove, canReject } = getApprovalTabActions(tab);
 
   if (isLoading) {
-    return <KvBusySurface tableViewport />;
+    return (
+      <div
+        className={cn('w-full bg-kv-surface', KV_TABLE_VIEWPORT_HEIGHT)}
+        aria-busy="true"
+      />
+    );
   }
 
   if (users.length === 0) {
