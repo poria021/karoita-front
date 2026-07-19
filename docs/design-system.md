@@ -57,6 +57,10 @@ Primary product CTA: `color="cta"` + `appearance="solid"` (brand solid — do no
 2. Keep Shadcn details inside `ui` + the shared wrapper.
 3. Re-export product API from shared only.
 
+## For the next developer
+
+Product UI imports only from `src/components/shared/` (`Kv*` / `App*` / `FaIcon` / `shell` / `fields` / `table`). `src/components/ui/` is internal to shared wrappers — do not import it from features or app. Colors and chrome use semantic `kv-*` tokens. If a pattern is missing, extend shared with a backward-compatible API; do not ship a one-off modal/table/tabs in a feature.
+
 ## Related
 
 - Color tokens: `.cursor/rules/70-color-hsl-tokens.mdc`

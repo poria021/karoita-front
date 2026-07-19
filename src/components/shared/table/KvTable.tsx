@@ -15,7 +15,6 @@ import { cn } from '@/lib/utils';
 export type KvTableAlign = 'start' | 'center' | 'end';
 
 export type KvTableProps = React.ComponentProps<typeof Table> & {
-  /** Wrap table in horizontal scroll container. Default `true`. */
   scrollable?: boolean;
 };
 
@@ -25,10 +24,6 @@ const ALIGN_CLASS: Record<KvTableAlign, string> = {
   end: 'text-end',
 };
 
-/**
- * Product admin table — wraps Shadcn `ui/table` with Karvita tokens.
- * Features must compose these exports, not raw `ui/table`.
- */
 export function KvTable({
   className,
   scrollable = true,
@@ -38,7 +33,7 @@ export function KvTable({
     <Table
       data-slot="kv-table"
       className={cn(
-        'w-full border-separate border-spacing-0 text-right text-xs font-sans',
+        'w-full border-separate border-spacing-0 text-start text-xs font-sans',
         className
       )}
       {...props}
@@ -100,9 +95,7 @@ export function KvTableFooter({
 }
 
 export type KvTableRowProps = React.ComponentProps<typeof TableRow> & {
-  /** Clickable row affordance (pointer + hover already present). */
   interactive?: boolean;
-  /** Selected / focused row highlight (no border accent). */
   selected?: boolean;
 };
 
@@ -119,7 +112,6 @@ export function KvTableRow({
       data-interactive={interactive || undefined}
       className={cn(
         'font-bold text-kv-text transition-colors',
-        /* Unselected hover: softer brand wash. Selected: solid brand-soft, no hover shift. */
         'hover:bg-kv-brand-soft/45 hover:text-kv-brand',
         'data-[selected]:bg-kv-brand-soft data-[selected]:font-extrabold data-[selected]:text-kv-brand',
         'data-[selected]:hover:bg-kv-brand-soft',
@@ -161,9 +153,7 @@ export type KvTableCellProps = Omit<
   'align'
 > & {
   align?: KvTableAlign;
-  /** Strong primary cell (e.g. entity name). */
   emphasis?: boolean;
-  /** Monospace for identifiers / phones. */
   mono?: boolean;
 };
 
