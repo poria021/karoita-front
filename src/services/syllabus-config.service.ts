@@ -10,6 +10,7 @@ import {
   getCoursesForTermType,
   getTodayJalaliSlash,
   isCourseOfferedInSnapshot,
+  isTermGateActive,
   mutateSyllabusSnapshot,
   offeringStorageKey,
   readSyllabusSnapshot,
@@ -228,4 +229,4 @@ function deleteOfferingsForTerm(
   }
 }
 
-export { DEFAULT_WEEK_WEIGHT, getAcademicYearOptions };
+export { DEFAULT_WEEK_WEIGHT, getAcademicYearOptions, isTermGateActive };

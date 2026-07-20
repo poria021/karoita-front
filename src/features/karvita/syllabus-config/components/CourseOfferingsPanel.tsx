@@ -44,7 +44,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
         onToggleTermOpen={(open) => void props.toggleTermOpen(open)}
       />
 
-      <div className="grid grid-cols-1 items-start gap-kv-group lg:grid-cols-12">
+      <div className="grid grid-cols-1 items-start gap-kv-section lg:grid-cols-12 lg:gap-kv-group">
         <KvCard className="lg:col-span-4">
           <CourseOfferingsTable
             courses={props.courses}
@@ -52,7 +52,9 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
             offeredTitles={props.offeredTitles}
             isLoading={props.isLoading}
             onSelectCourse={(course) => void props.selectCourse(course)}
-            onToggleOffering={(course) => void props.toggleCourseOffering(course)}
+            onToggleOffering={(course) =>
+              void props.toggleCourseOffering(course)
+            }
           />
         </KvCard>
 

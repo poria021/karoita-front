@@ -205,7 +205,50 @@ export function useSyllabusConfigPage() {
     [selectedTermTitle]
   );
 
-  const toggleCourseOffering = useCallback(
+  const [gateCloseTarget, setGateCloseTarget] = useState<
+    'enroll' | 'term' | null
+  >(null);
+
+  const requestToggleEnroll = useCallback(
+    (open: boolean) => {
+      if (open) {
+        void toggleEnroll(true);
+        return;
+      }
+      setGateCloseTarget('enroll');
+    },
+    [toggleEnroll]
+  );
+
+  const requestToggleTermOpen = useCallback(
+    (open: boolean) => {
+      if (open) {
+        void toggleTermOpen(true);
+        return;
+      }
+      setGateCloseTarget('term');
+    },
+    [toggleTermOpen]
+  );
+
+  const clearGateClose = useCallback(() => {
+    setGateCloseTarget(null);
+  }, []);
+
+  const confirmGateClose = useCallback(async () => {
+    if (gateCloseTarget === 'enroll') {
+      await toggleEnroll(false);
+    } else if (gateCloseTarget === 'term') {
+      await toggleTermOpen(false);
+    }
+    setGateCloseTarget(null);
+  }, [gateCloseTarget, toggleEnroll, toggleTermOpen]);
+
+
+  const [deactivateCourseTarget, setDeactivateCourseTarget] =
+    useState<CourseOfferingCatalogItem | null>(null);
+
+  const applyToggleCourseOffering = useCallback(
     async (course: CourseOfferingCatalogItem) => {
       if (!selectedTermTitle) return;
       try {
@@ -240,6 +283,28 @@ export function useSyllabusConfigPage() {
     },
     [offeredTitles, selectedCourse, selectedTerm, selectedTermTitle]
   );
+
+  const requestToggleCourseOffering = useCallback(
+    (course: CourseOfferingCatalogItem) => {
+      if (offeredTitles.has(course.title)) {
+        setDeactivateCourseTarget(course);
+        return;
+      }
+      void applyToggleCourseOffering(course);
+    },
+    [applyToggleCourseOffering, offeredTitles]
+  );
+
+  const clearDeactivateCourse = useCallback(() => {
+    setDeactivateCourseTarget(null);
+  }, []);
+
+  const confirmDeactivateCourse = useCallback(async () => {
+    if (!deactivateCourseTarget) return;
+    const course = deactivateCourseTarget;
+    setDeactivateCourseTarget(null);
+    await applyToggleCourseOffering(course);
+  }, [applyToggleCourseOffering, deactivateCourseTarget]);
 
   const weeksEditor = useSyllabusWeeksEditor({
     selectedTermTitle,
@@ -283,9 +348,15 @@ export function useSyllabusConfigPage() {
     isSaving,
     error,
     reload,
-    toggleEnroll,
-    toggleTermOpen,
-    toggleCourseOffering,
+    toggleEnroll: requestToggleEnroll,
+    toggleTermOpen: requestToggleTermOpen,
+    gateCloseTarget,
+    clearGateClose,
+    confirmGateClose,
+    toggleCourseOffering: requestToggleCourseOffering,
+    deactivateCourseTarget,
+    clearDeactivateCourse,
+    confirmDeactivateCourse,
     isSelectedCourseOffered,
     professorCapacity,
     setProfessorCapacity,

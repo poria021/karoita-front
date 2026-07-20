@@ -141,12 +141,13 @@ export function TermFormCard({
           </KvSelectField>
         </div>
 
-        <div className="flex flex-wrap justify-end gap-2 border-t border-kv-border-muted pt-kv-group">
+        <div className="flex flex-col gap-2 border-t border-kv-border-muted pt-kv-group sm:flex-row sm:flex-wrap sm:justify-end">
           {isEditing ? (
             <KvButton
               type="button"
               color="error"
               size="md"
+              className="w-full sm:w-auto"
               onClick={onRequestDelete}
               icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
             >
@@ -157,6 +158,7 @@ export function TermFormCard({
               type="button"
               color="cta"
               size="md"
+              className="w-full sm:w-auto"
               loading={isSaving}
               onClick={onSave}
             >

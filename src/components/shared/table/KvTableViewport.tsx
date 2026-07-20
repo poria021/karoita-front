@@ -10,37 +10,30 @@ import { cn } from '@/lib/utils';
 export type KvTableViewportProps = {
   children: React.ReactNode;
   className?: string;
-  /**
-   * Fixed viewport height (Tailwind). Default fills a typical admin panel
-   * without growing the page indefinitely.
-   */
   heightClassName?: string;
-  /**
-   * When this changes (tab, filters, …), scroll position resets to top.
-   * Keeps each list's viewport independent without remounting the page shell.
-   */
   resetKey?: string | number;
-  /** Called when the end sentinel enters the scroll viewport. */
   onEndReached?: () => void;
   hasMore?: boolean;
   isLoadingMore?: boolean;
-  /** First-page / container busy state. */
+  /**
+   * Marks the viewport busy for a11y. Does not replace table chrome —
+   * callers keep the header and use `KvTableBusy` / rows / `KvTableEmpty`
+   * in the body via `getAdminTableBodyPhase`.
+   */
   isBusy?: boolean;
-  /** Quiet end-of-list copy when `hasMore` is false and there is content. */
   endMessage?: string;
-  /** Show end message only when true (caller usually passes items.length > 0). */
   showEndMessage?: boolean;
-  /** Copy while the next page is in flight. */
   loadingMoreLabel?: string;
 };
 
 const DEFAULT_HEIGHT = KV_TABLE_VIEWPORT_HEIGHT;
 
 /**
- * Fixed-height scroll host for admin tables.
- * Scrollbar is forced to the physical right (ltr scroller + rtl content)
- * so RTL pages still match Iranian admin chrome expectations.
- * Place {@link KvTable} with `scrollable={false}` inside so thead sticky works.
+ * هاست اسکرول با ارتفاع ثابت برای جداول ادمین.
+ * اسکرولر بیرونی `ltr` است تا اسکرولبار سمت راست فیزیکی بماند؛ محتوا `rtl` است.
+ *
+ * Loading contract (rule 80): always render `children` (table structure).
+ * Body phases live in the caller — never swap the whole table for a blank surface.
  */
 export function KvTableViewport({
   children,
@@ -95,7 +88,6 @@ export function KvTableViewport({
       )}
       aria-busy={isBusy || isLoadingMore || undefined}
     >
-      {/* Inner RTL restores Persian layout while outer ltr keeps scrollbar on the right. */}
       <div dir="rtl" className="min-h-full">
         {children}
 

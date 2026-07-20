@@ -5,17 +5,11 @@ import { KV_TABLE_EMPTY_FILL_HEIGHT } from '@/components/shared/table/kvTableVie
 import { cn } from '@/lib/utils';
 
 export type KvTableEmptyProps = {
-  /** Must match the visible header column count. */
   colSpan: number;
-  /** Usually a {@link KvEmptyState} — domain copy stays in the feature. */
   children: ReactNode;
   className?: string;
 };
 
-/**
- * Empty placeholder row inside an admin table body.
- * Keep the table header; host establishes height so {@link KvEmptyState} can fill.
- */
 export function KvTableEmpty({
   colSpan,
   children,

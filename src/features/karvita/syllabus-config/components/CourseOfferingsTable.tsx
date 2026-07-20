@@ -1,9 +1,8 @@
 'use client';
 
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KvBadge } from '@/components/shared/KvBadge';
+import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
-import { KvSwitch } from '@/components/shared/fields/KvSwitch';
 import {
   KvTable,
   KvTableBody,
@@ -12,6 +11,8 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
+import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { CourseOfferingCatalogItem } from '@/types/syllabus-config';
@@ -34,13 +35,14 @@ export function CourseOfferingsTable({
   onSelectCourse,
   onToggleOffering,
 }: CourseOfferingsTableProps) {
-  const isEmpty = !isLoading && courses.length === 0;
+  const bodyPhase = getAdminTableBodyPhase(isLoading, courses.length);
 
   return (
     <KvTableViewport
       resetKey="course-offerings"
       isBusy={isLoading}
       hasMore={false}
+      heightClassName="h-auto"
     >
       <KvTable scrollable={false}>
         <KvTableHeader>
@@ -50,7 +52,9 @@ export function CourseOfferingsTable({
           </KvTableRow>
         </KvTableHeader>
         <KvTableBody>
-          {isLoading ? null : isEmpty ? (
+          {bodyPhase === 'busy' ? (
+            <KvTableBusy colSpan={2} />
+          ) : bodyPhase === 'empty' ? (
             <KvTableEmpty colSpan={2}>
               <KvEmptyState
                 icon={<FaIcon icon={faIcons.rectangleList} size="lg" />}
@@ -70,18 +74,21 @@ export function CourseOfferingsTable({
                   onClick={() => onSelectCourse(course)}
                 >
                   <KvTableCell emphasis={selected}>{course.title}</KvTableCell>
-                  <KvTableCell align="center" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-center gap-2">
-                      <KvBadge variant={offered ? 'success' : 'default'}>
-                        {offered ? 'باز' : 'بسته'}
-                      </KvBadge>
-                      <KvSwitch
-                        size="sm"
-                        checked={offered}
-                        aria-label={`وضعیت ارائه ${course.title}`}
-                        onCheckedChange={() => onToggleOffering(course)}
-                      />
-                    </div>
+                  <KvTableCell
+                    align="center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <KvButton
+                      type="button"
+                      color={offered ? 'success' : 'error'}
+                      size="sm"
+                      className="h-7 min-h-7 px-2.5"
+                      aria-pressed={offered}
+                      aria-label={`وضعیت ارائه ${course.title}: ${offered ? 'فعال' : 'غیرفعال'}`}
+                      onClick={() => onToggleOffering(course)}
+                    >
+                      {offered ? 'فعال' : 'غیرفعال'}
+                    </KvButton>
                   </KvTableCell>
                 </KvTableRow>
               );

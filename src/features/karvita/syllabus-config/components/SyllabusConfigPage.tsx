@@ -46,74 +46,68 @@ export function SyllabusConfigPage() {
         }
       >
         {page.error ? (
-          <div className="p-kv-group">
-            <KvAlert
-              variant="error"
-              title="بارگذاری مدیریت ترم و سرفصل ناموفق بود"
-              description={page.error}
-              actions={
-                <KvButton
-                  type="button"
-                  appearance="secondary"
-                  size="sm"
-                  onClick={() => void page.reload()}
-                >
-                  تلاش مجدد
-                </KvButton>
-              }
-            />
-          </div>
+          <KvAlert
+            variant="error"
+            title="بارگذاری مدیریت ترم و سرفصل ناموفق بود"
+            description={page.error}
+            actions={
+              <KvButton
+                type="button"
+                appearance="secondary"
+                size="sm"
+                onClick={() => void page.reload()}
+              >
+                تلاش مجدد
+              </KvButton>
+            }
+          />
         ) : page.tab === 'course_offerings' ? (
-          <div className="p-kv-group">
-            <CourseOfferingsPanel
-              terms={page.terms}
-              selectedTerm={page.selectedTerm}
-              selectTerm={page.selectTerm}
-              toggleEnroll={page.toggleEnroll}
-              toggleTermOpen={page.toggleTermOpen}
-              courses={page.courses}
-              selectedCourse={page.selectedCourse}
-              selectCourse={page.selectCourse}
-              offeredTitles={page.offeredTitles}
-              toggleCourseOffering={page.toggleCourseOffering}
-              weeks={page.weeks}
-              isLoading={page.isLoading}
-              isSelectedCourseOffered={page.isSelectedCourseOffered}
-              hasUnsavedChanges={page.hasUnsavedChanges}
-              isSaving={page.isSaving}
-              updateWeekWeight={page.updateWeekWeight}
-              openWeekEdit={page.openWeekEdit}
-              restoreWeek={page.restoreWeek}
-              archiveWeek={page.archiveWeek}
-              addWeek={page.addWeek}
-              requestDeleteWeek={page.requestDeleteWeek}
-              saveSyllabus={page.saveSyllabus}
-            />
-          </div>
+          <CourseOfferingsPanel
+            terms={page.terms}
+            selectedTerm={page.selectedTerm}
+            selectTerm={page.selectTerm}
+            toggleEnroll={page.toggleEnroll}
+            toggleTermOpen={page.toggleTermOpen}
+            courses={page.courses}
+            selectedCourse={page.selectedCourse}
+            selectCourse={page.selectCourse}
+            offeredTitles={page.offeredTitles}
+            toggleCourseOffering={page.toggleCourseOffering}
+            weeks={page.weeks}
+            isLoading={page.isLoading}
+            isSelectedCourseOffered={page.isSelectedCourseOffered}
+            hasUnsavedChanges={page.hasUnsavedChanges}
+            isSaving={page.isSaving}
+            updateWeekWeight={page.updateWeekWeight}
+            openWeekEdit={page.openWeekEdit}
+            restoreWeek={page.restoreWeek}
+            archiveWeek={page.archiveWeek}
+            addWeek={page.addWeek}
+            requestDeleteWeek={page.requestDeleteWeek}
+            saveSyllabus={page.saveSyllabus}
+          />
         ) : (
-          <div className="p-kv-group">
-            <TermSettingsPanel
-              terms={page.terms}
-              editTermId={page.editTermId}
-              selectEditTerm={page.selectEditTerm}
-              termType={page.termType}
-              onTermTypeChange={page.onTermTypeChange}
-              termPrefix={page.termPrefix}
-              setTermPrefix={page.setTermPrefix}
-              termYear={page.termYear}
-              setTermYear={page.setTermYear}
-              academicYears={page.academicYears}
-              isSaving={page.isSaving}
-              saveTerm={page.saveTerm}
-              requestDeleteTerm={page.requestDeleteTerm}
-              professorCapacity={page.professorCapacity}
-              setProfessorCapacity={page.setProfessorCapacity}
-              saveProfessorCapacity={page.saveProfessorCapacity}
-              passingThreshold={page.passingThreshold}
-              setPassingThreshold={page.setPassingThreshold}
-              savePassingThreshold={page.savePassingThreshold}
-            />
-          </div>
+          <TermSettingsPanel
+            terms={page.terms}
+            editTermId={page.editTermId}
+            selectEditTerm={page.selectEditTerm}
+            termType={page.termType}
+            onTermTypeChange={page.onTermTypeChange}
+            termPrefix={page.termPrefix}
+            setTermPrefix={page.setTermPrefix}
+            termYear={page.termYear}
+            setTermYear={page.setTermYear}
+            academicYears={page.academicYears}
+            isSaving={page.isSaving}
+            saveTerm={page.saveTerm}
+            requestDeleteTerm={page.requestDeleteTerm}
+            professorCapacity={page.professorCapacity}
+            setProfessorCapacity={page.setProfessorCapacity}
+            saveProfessorCapacity={page.saveProfessorCapacity}
+            passingThreshold={page.passingThreshold}
+            setPassingThreshold={page.setPassingThreshold}
+            savePassingThreshold={page.savePassingThreshold}
+          />
         )}
       </KvWorkspace>
 
@@ -123,6 +117,40 @@ export function SyllabusConfigPage() {
         onTitleChange={page.setWeekEditTitle}
         onClose={page.closeWeekEdit}
         onSave={page.saveWeekEdit}
+      />
+
+      <KvConfirmationDialog
+        isOpen={Boolean(page.gateCloseTarget)}
+        onClose={page.clearGateClose}
+        onConfirm={page.confirmGateClose}
+        title={
+          page.gateCloseTarget === 'enroll'
+            ? 'بستن انتخاب واحد'
+            : 'غیرفعال‌سازی برگزاری کلاس‌ها'
+        }
+        description={
+          page.gateCloseTarget === 'enroll'
+            ? 'با بستن انتخاب واحد، دسترسی دانشجویان به ثبت‌نام در پورتال قطع می‌شود. آیا ادامه می‌دهید؟'
+            : 'با غیرفعال‌سازی برگزاری کلاس‌ها، ترم برای کاربران بسته می‌شود. آیا ادامه می‌دهید؟'
+        }
+        confirmText="بستن"
+        cancelText="انصراف"
+        confirmVariant="destructive"
+      />
+
+      <KvConfirmationDialog
+        isOpen={Boolean(page.deactivateCourseTarget)}
+        onClose={page.clearDeactivateCourse}
+        onConfirm={page.confirmDeactivateCourse}
+        title="غیرفعال‌سازی ارائه درس"
+        description={
+          page.deactivateCourseTarget
+            ? `با غیرفعال کردن «${page.deactivateCourseTarget.title}»، ارائه این درس در نیم‌سال جاری متوقف می‌شود. آیا ادامه می‌دهید؟`
+            : ''
+        }
+        confirmText="غیرفعال کردن"
+        cancelText="انصراف"
+        confirmVariant="destructive"
       />
 
       <KvConfirmationDialog

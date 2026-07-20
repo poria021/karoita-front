@@ -13,6 +13,8 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
+import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type {
@@ -38,9 +40,6 @@ interface OnboardingApprovalsTableProps {
   onStartReject: (user: OnboardingApprovalUser) => void;
 }
 
-/** Admin table — fixed viewport + infinite scroll (page size 10 via Facade).
- * Header chrome stays mounted while loading (rule 75 / 80) — only body is empty.
- */
 export function OnboardingApprovalsTable({
   users,
   selectedId,
@@ -58,7 +57,7 @@ export function OnboardingApprovalsTable({
 }: OnboardingApprovalsTableProps) {
   const showActions = tab === 'pending_admin';
   const columnCount = showActions ? 4 : 3;
-  const isEmpty = !isLoading && users.length === 0;
+  const bodyPhase = getAdminTableBodyPhase(isLoading, users.length);
 
   return (
     <div className="space-y-kv-group">
@@ -82,7 +81,7 @@ export function OnboardingApprovalsTable({
 
       <KvTableViewport
         resetKey={tab}
-        hasMore={!isEmpty && hasMore}
+        hasMore={bodyPhase === 'rows' && hasMore}
         isLoadingMore={isLoadingMore}
         isBusy={isLoading}
         onEndReached={onLoadMore}
@@ -100,7 +99,9 @@ export function OnboardingApprovalsTable({
             </KvTableRow>
           </KvTableHeader>
           <KvTableBody>
-            {isLoading ? null : isEmpty ? (
+            {bodyPhase === 'busy' ? (
+              <KvTableBusy colSpan={columnCount} />
+            ) : bodyPhase === 'empty' ? (
               <KvTableEmpty colSpan={columnCount}>
                 <KvEmptyState
                   icon={<FaIcon icon={faIcons.idCard} size="lg" />}

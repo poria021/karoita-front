@@ -2,14 +2,10 @@ import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewp
 import { cn } from '@/lib/utils';
 
 export type KvBusySurfaceProps = {
-  /** Match admin table viewport height. */
   tableViewport?: boolean;
   className?: string;
 };
 
-/**
- * Plain busy placeholder — no skeleton shapes (rule 80).
- */
 export function KvBusySurface({
   tableViewport = false,
   className,

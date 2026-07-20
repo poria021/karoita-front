@@ -12,6 +12,8 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
+import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
@@ -32,9 +34,6 @@ interface OrgStructureTableProps {
   onDelete: (row: OrgStructureListItem) => void;
 }
 
-/** Admin table — fixed viewport + infinite scroll (page size 10 via Facade).
- * Header chrome stays mounted while loading (rule 75 / 80) — only body is empty.
- */
 export function OrgStructureTable({
   tabConfig,
   items,
@@ -47,7 +46,7 @@ export function OrgStructureTable({
   onEdit,
   onDelete,
 }: OrgStructureTableProps) {
-  const isEmpty = !isLoading && items.length === 0;
+  const bodyPhase = getAdminTableBodyPhase(isLoading, items.length);
 
   return (
     <div className="space-y-kv-group">
@@ -71,7 +70,7 @@ export function OrgStructureTable({
 
       <KvTableViewport
         resetKey={tabConfig.key}
-        hasMore={!isEmpty && hasMore}
+        hasMore={bodyPhase === 'rows' && hasMore}
         isLoadingMore={isLoadingMore}
         isBusy={isLoading}
         onEndReached={onLoadMore}
@@ -85,7 +84,9 @@ export function OrgStructureTable({
             </KvTableRow>
           </KvTableHeader>
           <KvTableBody>
-            {isLoading ? null : isEmpty ? (
+            {bodyPhase === 'busy' ? (
+              <KvTableBusy colSpan={2} />
+            ) : bodyPhase === 'empty' ? (
               <KvTableEmpty colSpan={2}>
                 <KvEmptyState
                   icon={<FaIcon icon={tabConfig.icon} size="lg" />}

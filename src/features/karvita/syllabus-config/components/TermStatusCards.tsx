@@ -1,10 +1,12 @@
 'use client';
 
-import { KvButton } from '@/components/shared/KvButton';
+import { KvBadge } from '@/components/shared/KvBadge';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
+import { KvSwitch } from '@/components/shared/fields/KvSwitch';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { isTermGateActive } from '@/services/syllabus-config.service';
 import type { AcademicTerm } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -23,6 +25,15 @@ export function TermStatusCards({
   onToggleEnroll,
   onToggleTermOpen,
 }: TermStatusCardsProps) {
+  const enrollActive = isTermGateActive(
+    Boolean(selectedTerm?.isEnrollOpen),
+    selectedTerm?.enrollStart ?? ''
+  );
+  const termActive = isTermGateActive(
+    Boolean(selectedTerm?.isTermOpen),
+    selectedTerm?.termStart ?? ''
+  );
+
   return (
     <div className="grid grid-cols-1 items-stretch gap-kv-group md:grid-cols-3">
       <KvCard>
@@ -61,9 +72,12 @@ export function TermStatusCards({
         subtitle={
           selectedTerm?.enrollStart
             ? `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
-            : 'غیرفعال'
+            : 'تاریخ شروع ثبت نشده'
         }
-        open={Boolean(selectedTerm?.isEnrollOpen)}
+        switchOn={Boolean(selectedTerm?.isEnrollOpen)}
+        active={enrollActive}
+        openLabel="باز"
+        closedLabel="بسته"
         onToggle={onToggleEnroll}
         disabled={!selectedTerm}
       />
@@ -73,9 +87,12 @@ export function TermStatusCards({
         subtitle={
           selectedTerm?.termStart
             ? `شروع: ${toPersianDigits(selectedTerm.termStart)}`
-            : 'غیرفعال'
+            : 'تاریخ شروع ثبت نشده'
         }
-        open={Boolean(selectedTerm?.isTermOpen)}
+        switchOn={Boolean(selectedTerm?.isTermOpen)}
+        active={termActive}
+        openLabel="فعال"
+        closedLabel="بسته"
         onToggle={onToggleTermOpen}
         disabled={!selectedTerm}
       />
@@ -86,18 +103,28 @@ export function TermStatusCards({
 function StatusGateCard({
   title,
   subtitle,
-  open,
+  switchOn,
+  active,
+  openLabel,
+  closedLabel,
   onToggle,
   disabled,
 }: {
   title: string;
   subtitle: string;
-  open: boolean;
+  switchOn: boolean;
+  active: boolean;
+  openLabel: string;
+  closedLabel: string;
   onToggle: (open: boolean) => void;
   disabled?: boolean;
 }) {
   return (
-    <KvCard>
+    <KvCard
+      className={
+        active ? 'border-kv-success-border bg-kv-success-soft/30' : undefined
+      }
+    >
       <KvCardContent
         padding="md"
         className="flex min-h-[82px] items-center justify-between gap-kv-group"
@@ -110,17 +137,18 @@ function StatusGateCard({
             {subtitle}
           </KvTypography>
         </div>
-        <KvButton
-          type="button"
-          color={open ? 'success' : 'error'}
-          size="sm"
-          disabled={disabled}
-          aria-pressed={open}
-          aria-label={`${title}: ${open ? 'فعال' : 'غیرفعال'}`}
-          onClick={() => onToggle(!open)}
-        >
-          {open ? 'فعال' : 'غیرفعال'}
-        </KvButton>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <KvBadge variant={active ? 'success' : 'default'}>
+            {active ? openLabel : closedLabel}
+          </KvBadge>
+          <KvSwitch
+            size="md"
+            checked={switchOn}
+            disabled={disabled}
+            onCheckedChange={onToggle}
+            aria-label={title}
+          />
+        </div>
       </KvCardContent>
     </KvCard>
   );

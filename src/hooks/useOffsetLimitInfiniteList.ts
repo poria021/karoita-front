@@ -13,7 +13,6 @@ export type FetchOffsetLimitPage<T> = (args: {
 }) => Promise<OffsetLimitPage<T>>;
 
 export type UseOffsetLimitInfiniteListOptions<T> = {
-  /** Reset + reload when this key changes (tab, query, …). */
   resetKey: string;
   fetchPage: FetchOffsetLimitPage<T>;
   pageSize?: number;
@@ -42,16 +41,8 @@ function initialListState<T>(): ListState<T> {
 }
 
 /**
- * Domain-agnostic infinite list: offset/limit pages with append + race guard.
- * Debounce search in the page hook; this hook only loads pages.
- *
- * Contract (ADR-007): admin tables use this primitive. Dependent typeahead
- * (org option selects) may use `useSWRInfinite` instead — do not fork a third
- * paging machine.
- *
- * Keyed reset adjusts state during render (React “adjust state when prop
- * changes”), then the effect only fetches — setState happens in the async
- * callback, not synchronously at effect start.
+ * لیست بی‌نهایت ادمین روی قرارداد offset/limit.
+ * جستجو یک‌بار در هوک صفحه debounce شود؛ این هوک فقط صفحه‌ها را جمع می‌کند.
  */
 export function useOffsetLimitInfiniteList<T>({
   resetKey,
@@ -164,7 +155,14 @@ export function useOffsetLimitInfiniteList<T>({
   const reload = useCallback(async () => {
     const requestId = ++requestIdRef.current;
     inFlightRef.current = true;
-    setList(initialListState());
+    // Keep previous rows during soft refresh (rule 80); first paint still uses empty+busy.
+    setList((prev) => ({
+      ...prev,
+      isLoading: true,
+      isLoadingMore: false,
+      error: null,
+      loadMoreError: null,
+    }));
 
     try {
       const page = await fetchPage({ offset: 0, limit: pageSize });
@@ -180,12 +178,13 @@ export function useOffsetLimitInfiniteList<T>({
       });
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
-      setList({
-        ...initialListState(),
+      setList((prev) => ({
+        ...prev,
         isLoading: false,
+        isLoadingMore: false,
         error:
           err instanceof Error ? err.message : 'بارگذاری فهرست ناموفق بود.',
-      });
+      }));
     } finally {
       if (requestId === requestIdRef.current) {
         inFlightRef.current = false;

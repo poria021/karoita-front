@@ -16,6 +16,7 @@ import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvMediaAside } from '@/components/shared/KvMediaAside';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
 import type {
@@ -85,16 +86,11 @@ export function OnboardingApprovalsMobileList({
 }: OnboardingApprovalsMobileListProps) {
   const { canApprove, canReject } = getApprovalTabActions(tab);
 
-  if (isLoading) {
-    return (
-      <div
-        className={cn('w-full bg-kv-surface', KV_TABLE_VIEWPORT_HEIGHT)}
-        aria-busy="true"
-      />
-    );
+  if (isLoading && users.length === 0) {
+    return <KvBusySurface tableViewport />;
   }
 
-  if (users.length === 0) {
+  if (!isLoading && users.length === 0) {
     return (
       <div className={cn('flex w-full flex-col', KV_TABLE_VIEWPORT_HEIGHT)}>
         <KvEmptyState

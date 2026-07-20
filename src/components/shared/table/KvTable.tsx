@@ -112,9 +112,10 @@ export function KvTableRow({
       data-interactive={interactive || undefined}
       className={cn(
         'font-bold text-kv-text transition-colors',
-        'hover:bg-kv-brand-soft/45 hover:text-kv-brand',
+        /* هاور فقط در بدنه — هدر جدول نباید هاور بگیرد */
+        'in-[data-slot=kv-table-body]:hover:bg-kv-brand-soft/45 in-[data-slot=kv-table-body]:hover:text-kv-brand',
         'data-[selected]:bg-kv-brand-soft data-[selected]:font-extrabold data-[selected]:text-kv-brand',
-        'data-[selected]:hover:bg-kv-brand-soft',
+        'data-[selected]:in-[data-slot=kv-table-body]:hover:bg-kv-brand-soft',
         interactive && 'cursor-pointer',
         className
       )}

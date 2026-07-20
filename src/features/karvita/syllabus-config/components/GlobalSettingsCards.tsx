@@ -109,10 +109,11 @@ function SettingsMetricCard({
               </KvTypography>
             </div>
           </div>
-          <div className="w-20 shrink-0">
+          <div className="w-28 shrink-0">
             <KvTextField
               label={false}
-              size="md"
+              size="lg"
+              emphasis="metric"
               inputMode="numeric"
               dir="ltr"
               value={displayValue}
@@ -122,12 +123,13 @@ function SettingsMetricCard({
           </div>
         </div>
 
-        <div className="flex justify-end border-t border-kv-border-muted pt-kv-group">
+        <div className="flex flex-col border-t border-kv-border-muted pt-kv-group sm:flex-row sm:justify-end">
           <KvButton
             type="button"
             color="cta"
             appearance="solid"
             size="sm"
+            className="w-full sm:w-auto"
             disabled={disabled}
             onClick={onSave}
             icon={<FaIcon icon={faIcons.check} size="xs" />}
