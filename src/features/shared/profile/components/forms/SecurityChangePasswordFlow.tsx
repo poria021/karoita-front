@@ -37,7 +37,6 @@ interface SecurityChangePasswordFlowProps {
   onCancel: () => void;
 }
 
-/** English digits-only for RHF / Zod / API. */
 function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
 }

@@ -7,9 +7,6 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
-/**
- * Shadcn-style Accordion primitives (Radix). Product chrome lives in `KvAccordion`.
- */
 function Accordion({
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Root>) {

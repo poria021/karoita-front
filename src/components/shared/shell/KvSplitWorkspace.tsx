@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
-/** Desktop primary/secondary width pair (twelfths). Default matches onboarding. */
 export type KvSplitWorkspaceRatio = '5/7' | '6/6' | '4/8';
 
 const RATIO_CLASS: Record<
@@ -15,32 +14,17 @@ const RATIO_CLASS: Record<
 };
 
 export type KvSplitWorkspaceProps = {
-  /** Module sub-nav (tabs, segment control, …). */
   tabs?: ReactNode;
-  /**
-   * Full-width chrome between tabs and columns (e.g. mobile-only filter strip).
-   * Column-scoped filters belong inside `primary` / `mobile`, not here.
-   */
   toolbar?: ReactNode;
-  /** List/table column — visible from `lg` up. Pass `null` to omit. */
   primary: ReactNode;
-  /** Detail column — visible from `lg` up. Pass `null` to omit. */
   secondary: ReactNode;
-  /**
-   * Below `lg`: accordion/card UI.
-   * Omitted → fall back to `primary`. Pass `null` to hide mobile entirely.
-   */
   mobile?: ReactNode;
-  /** @default '5/7' → primary `lg:w-5/12`, secondary `lg:w-7/12` */
   ratio?: KvSplitWorkspaceRatio;
   className?: string;
 };
 
 /**
- * Two-column module workspace (desktop) + mobile slot.
- * Layout only — no tables, filters, or domain actions.
- * Secondary (detail) cards use `rounded-kv-card` so the companion pane
- * reads rounder than the table panel.
+ * ورک‌اسپیس دو ستونه (دسکتاپ) + اسلات موبایل — فقط لایوت، بدون منطق دامنه.
  */
 export function KvSplitWorkspace({
   tabs,
@@ -82,7 +66,6 @@ export function KvSplitWorkspace({
           <section
             className={cn(
               'flex w-full min-h-0 flex-col',
-              /* Detail companion: rounder than table panel (kv-card vs kv-panel). */
               '[&_[data-slot=kv-card]]:rounded-kv-card',
               widths.secondary
             )}

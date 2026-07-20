@@ -1,8 +1,3 @@
-/**
- * Mock organization catalog for profile helpers / seed story.
- * Runtime typeahead options come from {@link OrganizationOptionsService}
- * (`src/services/organization-options.service.ts`) via OrgStructureService.
- */
 
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
@@ -132,7 +127,6 @@ const MAJORS = [
   'جغرافیا',
 ];
 
-/** Full label list for a field, optionally scoped by cascade parents. */
 export function listOrganizationLabels(
   field: OrganizationField,
   province: string,

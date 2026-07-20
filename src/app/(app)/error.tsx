@@ -16,10 +16,6 @@ interface AppErrorProps {
   reset: () => void;
 }
 
-/**
- * Dashboard-root error boundary (rule 20). Intercepts client/server render
- * crashes under `/(app)` and offers a localized recovery path.
- */
 export default function AppError({ error, reset }: AppErrorProps) {
   const router = useRouter();
 

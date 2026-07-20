@@ -13,7 +13,6 @@ interface MarketingErrorProps {
   reset: () => void;
 }
 
-/** Error boundary for public marketing routes. */
 export default function MarketingError({ error, reset }: MarketingErrorProps) {
   useEffect(() => {
     console.error('Marketing route error:', error);

@@ -5,9 +5,6 @@ import { Label as LabelPrimitive } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
 
-/**
- * Shadcn-style Label primitive. Product typography lives in `KvLabel` / `KvFormLabel`.
- */
 function Label({
   className,
   ...props

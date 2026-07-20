@@ -13,10 +13,6 @@ import type { KvTextFieldSize } from '@/components/shared/fields/KvTextField';
 import { cn } from '@/lib/utils';
 
 export type KvSelectFieldProps = {
-  /**
-   * Label text as a string, or `false` to hide.
-   * Same contract as {@link KvTextField}.
-   */
   label?: string | false;
   required?: boolean;
   optionalHint?: boolean;
@@ -30,7 +26,6 @@ export type KvSelectFieldProps = {
   value?: string;
   onValueChange?: (value: string) => void;
   disabled?: boolean;
-  /** Passed to portaled {@link KvSelectContent} (e.g. `z-[150]` inside dialogs). */
   contentClassName?: string;
   children: React.ReactNode;
 };
@@ -41,10 +36,6 @@ const SIZE_CLASS: Record<KvTextFieldSize, string> = {
   lg: 'h-12 px-4 data-[size=default]:h-12',
 };
 
-/**
- * Labeled select field — same chrome as {@link KvTextField}
- * (`label: string | false`, size scale, lock, error/hint, full-width control).
- */
 export function KvSelectField({
   label,
   required = false,
@@ -78,7 +69,8 @@ export function KvSelectField({
       hint={hint}
     >
       <KvSelect
-        value={value || undefined}
+        // Keep '' as controlled empty — do not coerce with `value || undefined`.
+        value={value}
         onValueChange={onValueChange}
         disabled={isDisabled}
       >

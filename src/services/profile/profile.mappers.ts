@@ -66,7 +66,6 @@ function asUserRole(value: unknown): UserRole | undefined {
   return undefined;
 }
 
-/** Merge a loose record into the live Zustand user (real-mode / migrate). */
 export function mergeRecordIntoUser(
   activeUser: User,
   record: Record<string, unknown>

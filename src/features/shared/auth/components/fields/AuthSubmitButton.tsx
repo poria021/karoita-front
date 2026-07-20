@@ -8,10 +8,6 @@ interface AuthSubmitButtonProps {
   children: ReactNode;
 }
 
-/**
- * Full-width CTA for auth forms — text only (no icons).
- * `loading` disables the control (anti double-submit, rule 45).
- */
 export function AuthSubmitButton({
   isLoading,
   loadingLabel,

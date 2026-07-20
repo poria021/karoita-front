@@ -5,10 +5,6 @@ import { AuthFormMessage } from './fields/AuthFormMessage';
 import { RegisterDetailsStep } from './RegisterDetailsStep';
 import { RegisterOtpStep } from './RegisterOtpStep';
 
-/**
- * Public registration wizard: mobile + role, then OTP verification,
- * mirroring the "ثبت نام" tab of `original-karvita.html`.
- */
 export function RegisterForm() {
   const registerForm = useRegisterForm();
 

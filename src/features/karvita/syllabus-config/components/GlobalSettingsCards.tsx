@@ -11,6 +11,11 @@ import {
   toPersianDigits,
 } from '@/utils/persianDigits';
 
+import {
+  professorCapacitySchema,
+  passingThresholdSchema,
+} from '../schemas/syllabus-config.schema';
+
 interface GlobalSettingsCardsProps {
   professorCapacity: string;
   onProfessorCapacityChange: (value: string) => void;
@@ -32,11 +37,12 @@ export function GlobalSettingsCards({
   onPassingThresholdChange,
   onSavePassingThreshold,
 }: GlobalSettingsCardsProps) {
-  const capacityNum = Number.parseInt(professorCapacity, 10);
-  const thresholdNum = Number.parseInt(passingThreshold, 10);
-  const capacityInvalid = !Number.isFinite(capacityNum) || capacityNum < 0;
-  const thresholdInvalid =
-    !Number.isFinite(thresholdNum) || thresholdNum < 0 || thresholdNum > 100;
+  const capacityInvalid = !professorCapacitySchema.safeParse({
+    capacity: professorCapacity,
+  }).success;
+  const thresholdInvalid = !passingThresholdSchema.safeParse({
+    threshold: passingThreshold,
+  }).success;
 
   return (
     <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2 lg:grid-cols-1">
@@ -109,10 +115,10 @@ function SettingsMetricCard({
               </KvTypography>
             </div>
           </div>
-          <div className="w-28 shrink-0">
+          <div className="w-24 shrink-0">
             <KvTextField
               label={false}
-              size="lg"
+              size="md"
               emphasis="metric"
               inputMode="numeric"
               dir="ltr"

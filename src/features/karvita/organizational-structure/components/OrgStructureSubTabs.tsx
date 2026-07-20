@@ -15,10 +15,6 @@ interface OrgStructureSubTabsProps {
   onChange: (tab: OrgStructureSubTab) => void;
 }
 
-/**
- * Desktop: AppTabs capsule row.
- * Mobile: AppTabs `listLayout="grid"` (3 cols) — same tokens, no parallel chrome.
- */
 export function OrgStructureSubTabs({
   active,
   onChange,

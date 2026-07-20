@@ -1,20 +1,11 @@
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 
-/**
- * Module page chrome metadata — mirrors `tabData` / `currentTabData`
- * from `original-karvita.html` (title + description + icon key).
- *
- * Pages under `/(app)` render this via `ModulePageHeader`; do not hardcode
- * duplicate module titles inside individual page bodies.
- */
 
 export interface ModuleMeta {
   title: string;
   description: string;
-  /** Key that exists in `src/utils/iconMap.ts`. */
   icon: string;
-  /** When true, semester switcher may be shown beside the header (future). */
   showSemester?: boolean;
 }
 
@@ -32,7 +23,6 @@ const PROFILE_META: ModuleMeta = {
   showSemester: false,
 };
 
-/** Static path → meta (paths from RouteService). */
 const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
   [RouteService.karvita.dashboard()]: {
     title: 'میز کار',
@@ -150,7 +140,6 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
   [RouteService.shared.profileSecurity()]: PROFILE_META,
 };
 
-/** Role-aware dashboard titles (original `*_dashboard` tabData entries). */
 const DASHBOARD_META_BY_ROLE: Partial<Record<UserRole, ModuleMeta>> = {
   student: {
     title: 'میز کار دانشجو',
@@ -184,7 +173,6 @@ const DASHBOARD_META_BY_ROLE: Partial<Record<UserRole, ModuleMeta>> = {
   },
 };
 
-/** Role-aware description overrides for standard reports (original currentTabData). */
 const STANDARD_REPORTS_DESC_BY_ROLE: Partial<Record<UserRole, string>> = {
   regional_edu_admin:
     'سامانه نظارت بر عملکرد مدارس تابعه، توزیع ظرفیت‌های آموزشی، پایش معلمان راهنما و آمار کارورزان منطقه.',
@@ -206,10 +194,6 @@ function isProfilePath(path: string): boolean {
   return /^\/karvita\/[^/]+\/profile$/.test(path);
 }
 
-/**
- * Resolve module chrome for the current route.
- * Prefer exact RouteService paths; fall back to longest prefix / profile pattern.
- */
 export function getModuleMeta(
   pathname: string,
   role?: UserRole | null
@@ -241,7 +225,6 @@ export function getModuleMeta(
   const exact = MODULE_META_BY_PATH[path];
   if (exact) return exact;
 
-  // Nested routes (e.g. /karvita/internships/:id)
   const sortedPrefixes = Object.keys(MODULE_META_BY_PATH).sort(
     (a, b) => b.length - a.length
   );

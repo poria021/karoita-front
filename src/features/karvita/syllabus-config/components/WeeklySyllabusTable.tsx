@@ -22,8 +22,6 @@ import { faIcons } from '@/utils/iconMap';
 
 import { WeeklySyllabusWeekRow } from './WeeklySyllabusWeekRow';
 
-export { isWeekRowActionable } from './weeklySyllabusRowUtils';
-
 interface WeeklySyllabusTableProps {
   courseTitle: string | null;
   weeks: SyllabusWeek[];

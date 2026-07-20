@@ -4,10 +4,6 @@ interface AuthLogoProps {
   subtitle: string;
 }
 
-/**
- * Brand mark + wordmark — hero lockup for auth (rule 90 brand-loud surfaces).
- * Mark is raw SVG from original-karvita.html (not FA).
- */
 export function AuthLogo({ subtitle }: AuthLogoProps) {
   return (
     <div className="mb-kv-section flex flex-col items-center text-center">

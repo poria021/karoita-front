@@ -8,10 +8,6 @@ import { useUserStore } from '@/store/useUserStore';
 import { faIcons, iconMap } from '@/utils/iconMap';
 import { getModuleMeta } from '@/utils/moduleMeta';
 
-/**
- * Dynamic module title bar — mirrors `currentTabData` in original-karvita.html.
- * Reads pathname (+ role for dashboard / reports variants) from a shared meta map.
- */
 export function ModulePageHeader() {
   const pathname = usePathname();
   const role = useUserStore((state) => state.activeUser?.role);

@@ -2,10 +2,6 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { faIcons } from '@/utils/iconMap';
 
-/**
- * Super-admin control-plane landing — distinct from the shared user dashboard.
- * Module title/description come from `ModulePageHeader`.
- */
 export default function KarvitaAdminDashboardPage() {
   return (
     <KvEmptyState

@@ -4,10 +4,6 @@ import { Slot } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
 
-/**
- * Canonical Karvita button variants (Shadcn `ui/button` + product API).
- * Features must use `KvButton`; other `ui/*` may import `buttonVariants` / `Button`.
- */
 const buttonVariants = cva(
   [
     'inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 font-sans font-black',
@@ -37,11 +33,8 @@ const buttonVariants = cva(
         sm: 'h-9 px-3 text-xs',
         md: 'h-11 px-4 text-xs',
         lg: 'h-12 px-6 text-xs',
-        /** Dense square — table row actions, tight chrome (36px). */
         'icon-sm': 'size-9 p-0',
-        /** Default touch square (44px). */
         icon: 'size-11 p-0',
-        /** Large square control (48px). */
         'icon-lg': 'size-12 p-0',
       },
       fullWidth: {

@@ -1,6 +1,5 @@
 import type { UserRole } from '@/types/auth';
 
-/** Org selects shared by profile + admin review UIs. */
 export type OrganizationField =
   | 'province'
   | 'city'
@@ -16,10 +15,6 @@ export type RoleFieldStrategy = {
   identifierFields: IdentifierField[];
 };
 
-/**
- * Single source of truth: which profile fields each role collects.
- * Used by profile forms and onboarding-approvals detail panels.
- */
 export const ROLE_FIELD_STRATEGY: Record<UserRole, RoleFieldStrategy> = {
   student: {
     organizationFields: ['province', 'college', 'major'],
@@ -76,7 +71,6 @@ export const IDENTIFIER_META: Record<
   personalCode: { label: 'کد پرسنلی', placeholder: 'مثال: ۱۰۰۰۲۳۴۵' },
 };
 
-/** Role-aware identifier copy (e.g. professor panel uses «کد استادی»). */
 export function getIdentifierMeta(
   role: UserRole,
   field: IdentifierField
@@ -90,7 +84,6 @@ export function getIdentifierMeta(
   return IDENTIFIER_META[field];
 }
 
-/** City is optional only for mentor/principal; required for regional admin. */
 export function isOptionalOrganizationField(
   role: UserRole,
   field: OrganizationField
@@ -107,7 +100,6 @@ export type RoleProfileDisplayField = {
   numeric?: boolean;
 };
 
-/** Ordered profile fields for a role — org first, then identifiers. */
 export function getRoleProfileDisplayFields(
   role: UserRole
 ): RoleProfileDisplayField[] {

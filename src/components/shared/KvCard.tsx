@@ -16,22 +16,14 @@ export type KvCardTone = 'surface' | 'muted' | 'danger';
 export type KvCardPadding = 'none' | 'sm' | 'md' | 'lg';
 
 export type KvCardProps = React.ComponentProps<typeof Card> & {
-  /**
-   * Surface role for nested admin panels.
-   * `muted` = outer well; `surface` = raised card; `danger` = soft reject wells.
-   */
   tone?: KvCardTone;
-  /** Built-in padding — prefer over feature className. */
   padding?: KvCardPadding;
-  /** Fixed admin table viewport height. */
   fillMin?: boolean;
-  /** Stretch to full parent height (split-pane companion column). */
   fill?: boolean;
 };
 
 export type KvCardContentProps = React.ComponentProps<typeof CardContent> & {
   padding?: KvCardPadding;
-  /** Stack children with section gap. */
   stacked?: boolean;
 };
 
@@ -55,7 +47,6 @@ const CONTENT_PADDING_CLASS: Record<KvCardPadding, string> = {
   lg: 'p-6',
 };
 
-/** Karvita card shell — panel radius (`--radius-kv-panel` → `--radius-kv-base`). */
 export function KvCard({
   className,
   tone = 'surface',
@@ -101,13 +92,7 @@ export function KvCardContent({
 }
 
 export type KvCardHeaderProps = React.ComponentProps<typeof CardHeader> & {
-  /** Toolbar-style header: title cluster + actions on one row. */
   toolbar?: boolean;
-  /**
-   * Bottom rule under the header.
-   * Prefer inset (default when bordered) so mobile/admin cards do not get a
-   * full-bleed edge-to-edge line — padding stays on the card/DS tokens.
-   */
   bordered?: boolean;
 };
 
@@ -191,9 +176,6 @@ export type KvCardIdentityProps = {
   children: React.ReactNode;
 };
 
-/**
- * Leading media + title/description cluster for toolbar card headers.
- */
 export function KvCardIdentity({ leading, children }: KvCardIdentityProps) {
   return (
     <div

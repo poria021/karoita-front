@@ -13,15 +13,9 @@ import {
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
 const DEBOUNCE_MS = 300;
-/** Hard stop so a buggy hasMore=true cannot load forever. */
 const MAX_ORG_OPTION_PAGES = 20;
-/** Cap merged DOM list; ask user to refine search beyond this. */
 const MAX_ORG_OPTIONS_IN_DOM = 200;
 
-/**
- * Org typeahead options use SWR infinite (dependent select cache), not the
- * admin-table `useOffsetLimitInfiniteList` stack — see rule 40 + ADR-007.
- */
 
 export type OrganizationDependsOn = {
   province?: string;
@@ -30,9 +24,7 @@ export type OrganizationDependsOn = {
 
 export type UseOrganizationOptionsArgs = {
   type: OrganizationField;
-  /** Local search text (not yet debounced). */
   query: string;
-  /** When false, no network/SWR request is made. */
   enabled: boolean;
   dependsOn?: OrganizationDependsOn;
 };
@@ -44,7 +36,6 @@ export type UseOrganizationOptionsResult = {
   isLoadingMore: boolean;
   loadMore: () => void;
   error: Error | undefined;
-  /** True when page/DOM caps stop further loading. */
   reachedLimit: boolean;
 };
 
@@ -57,10 +48,6 @@ type OrgOptionsKey = readonly [
   string,
 ];
 
-/**
- * Paginated organization options — fetch-on-open, debounced search, SWR cache.
- * Pages append via `useSWRInfinite`; page 1 replaces when the key root changes.
- */
 export function useOrganizationOptions({
   type,
   query,

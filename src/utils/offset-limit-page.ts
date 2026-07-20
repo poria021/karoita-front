@@ -1,6 +1,3 @@
-/**
- * Pure offset/limit page slice — matches Nest-style list pages (limit=10).
- */
 
 export const DEFAULT_PAGE_LIMIT = 10;
 

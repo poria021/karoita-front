@@ -7,14 +7,12 @@ interface OtpResendFooterProps {
   secondsUntilResend: number;
   canResend: boolean;
   isResending: boolean;
-  /** When verifying OTP, lock resend/back to prevent double-submit races. */
   isBusy?: boolean;
   onResend: () => void;
   onGoBack: () => void;
   goBackLabel: string;
 }
 
-/** Resend countdown + "edit number" row shared by every OTP verification step. */
 export function OtpResendFooter({
   secondsUntilResend,
   canResend,

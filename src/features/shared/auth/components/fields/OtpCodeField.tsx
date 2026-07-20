@@ -20,7 +20,6 @@ function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
 }
 
-/** Centered 5-digit SMS code — Persian on screen, English in RHF. */
 export function OtpCodeField({
   id,
   registration,

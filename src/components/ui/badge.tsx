@@ -4,9 +4,6 @@ import { Slot } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
 
-/**
- * Shadcn-style Badge primitives. Product chrome lives in `KvBadge`.
- */
 const badgeVariants = cva(
   [
     'inline-flex w-fit shrink-0 items-center justify-center gap-1',

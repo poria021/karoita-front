@@ -3,17 +3,7 @@ import { z } from 'zod';
 import type { UserRole } from '@/types/auth';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
-/**
- * Polymorphic profile onboarding schemas (Phase 1).
- *
- * Field requirements mirror the identity tab of `original-karvita.html`
- * and are expressed as a `z.discriminatedUnion('role', ...)`.
- *
- * Numeric identifiers go through `.transform().pipe()` so Persian/Arabic
- * digits are normalized before length/digit checks (rule 10).
- */
 
-/** Non-empty trimmed text field with a polite Persian required-message. */
 function requiredTextField(requiredMessage: string) {
   return z
     .string(requiredMessage)
@@ -21,11 +11,6 @@ function requiredTextField(requiredMessage: string) {
     .min(1, requiredMessage);
 }
 
-/**
- * Strictly numeric identifier (student ID / skill code / personal code).
- * Accepts Persian/Arabic digits, normalizes to English, then enforces
- * "at least 4 digits, digits only".
- */
 function requiredNumericIdField(options: {
   requiredMessage: string;
   invalidMessage: string;
@@ -59,7 +44,6 @@ const schoolField = requiredTextField(
 );
 const cityField = requiredTextField('لطفاً شهر تابعه خود را انتخاب کنید.');
 
-/** Optional city — empty string from the form is accepted as unset. */
 const optionalCityField = z.string().trim().optional();
 
 const studentIdField = requiredNumericIdField({
@@ -82,23 +66,16 @@ const professorCodeField = requiredNumericIdField({
   invalidMessage: 'کد استادی باید حداقل ۴ رقم عددی باشد.',
 });
 
-/** Shared personal-name fields present on every profile form. */
 const identityNameSchema = z.object({
   firstName: firstNameField,
   lastName: lastNameField,
 });
 
-/**
- * Roles that do not require province:
- * `super_admin`, `central_organization`, `assistant_admin`.
- * Province stays optional so the form can still bind the field safely.
- */
 const adminOnlyProfileSchema = identityNameSchema.extend({
   role: z.enum(['super_admin', 'central_organization', 'assistant_admin']),
   province: z.string().trim().optional(),
 });
 
-/** `student` — province + college + major + studentId */
 export const studentProfileSchema = identityNameSchema.extend({
   role: z.literal('student'),
   province: provinceField,
@@ -107,7 +84,6 @@ export const studentProfileSchema = identityNameSchema.extend({
   studentId: studentIdField,
 });
 
-/** `skill_learner` — province + college + major + skillCode */
 export const skillLearnerProfileSchema = identityNameSchema.extend({
   role: z.literal('skill_learner'),
   province: provinceField,
@@ -116,7 +92,6 @@ export const skillLearnerProfileSchema = identityNameSchema.extend({
   skillCode: skillCodeField,
 });
 
-/** `supervisor_professor` — province + college + major + personalCode (کد استادی) */
 export const supervisorProfessorProfileSchema = identityNameSchema.extend({
   role: z.literal('supervisor_professor'),
   province: provinceField,
@@ -125,7 +100,6 @@ export const supervisorProfessorProfileSchema = identityNameSchema.extend({
   personalCode: professorCodeField,
 });
 
-/** `mentor_teacher` — province + district + school + personalCode (+ optional city) */
 export const mentorTeacherProfileSchema = identityNameSchema.extend({
   role: z.literal('mentor_teacher'),
   province: provinceField,
@@ -135,7 +109,6 @@ export const mentorTeacherProfileSchema = identityNameSchema.extend({
   city: optionalCityField,
 });
 
-/** `school_principal` — province + district + school + personalCode (+ optional city) */
 export const schoolPrincipalProfileSchema = identityNameSchema.extend({
   role: z.literal('school_principal'),
   province: provinceField,
@@ -145,7 +118,6 @@ export const schoolPrincipalProfileSchema = identityNameSchema.extend({
   city: optionalCityField,
 });
 
-/** `regional_edu_admin` — province + district + city + personalCode */
 export const regionalEduAdminProfileSchema = identityNameSchema.extend({
   role: z.literal('regional_edu_admin'),
   province: provinceField,
@@ -154,23 +126,17 @@ export const regionalEduAdminProfileSchema = identityNameSchema.extend({
   personalCode: personalCodeField,
 });
 
-/** `faculty_role` — province + college */
 export const facultyRoleProfileSchema = identityNameSchema.extend({
   role: z.literal('faculty_role'),
   province: provinceField,
   college: collegeField,
 });
 
-/** `provincial_university` — province only (beyond name fields) */
 export const provincialUniversityProfileSchema = identityNameSchema.extend({
   role: z.literal('provincial_university'),
   province: provinceField,
 });
 
-/**
- * Unified, role-conditional profile schema.
- * Discriminates on `role` so TypeScript narrows required fields per branch.
- */
 export const profileSchema = z.discriminatedUnion('role', [
   studentProfileSchema,
   skillLearnerProfileSchema,
@@ -185,10 +151,6 @@ export const profileSchema = z.discriminatedUnion('role', [
 
 export type ProfileSchema = z.infer<typeof profileSchema>;
 
-/**
- * Builds a role-locked schema for forms that already know the active user's
- * role from `useUserStore` (so the form does not need a free-form `role` input).
- */
 export function createProfileSchema(role: UserRole) {
   switch (role) {
     case 'student':

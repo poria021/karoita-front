@@ -19,9 +19,7 @@ import { faIcons } from '@/utils/iconMap';
 export type KvDialogProps = React.ComponentProps<typeof Dialog>;
 
 export type KvDialogContentProps = React.ComponentProps<typeof DialogContent> & {
-  /** Max width token. Default `md` (`sm:max-w-md`). */
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  /** Show × control (original-karvita form modals). Default `true`. */
   showCloseButton?: boolean;
 };
 
@@ -29,20 +27,13 @@ const SIZE_CLASS: Record<NonNullable<KvDialogContentProps['size']>, string> = {
   sm: 'max-w-sm',
   md: 'max-w-md',
   lg: 'max-w-lg',
-  /** Document / media preview panels. */
   xl: 'max-w-3xl',
 };
 
-/** Karvita dialog root — controlled via `open` / `onOpenChange`. */
 export function KvDialog(props: KvDialogProps) {
   return <Dialog data-slot="kv-dialog" {...props} />;
 }
 
-/**
- * Panel chrome aligned with original-karvita modals:
- * scrim + blur, rounded-3xl card, floating shadow, optional ×.
- * No asymmetric `pe-12` on the panel (that broke mobile alignment).
- */
 export function KvDialogContent({
   className,
   size = 'md',
@@ -70,7 +61,6 @@ export function KvDialogContent({
   );
 }
 
-/** Title row with bottom rule — original modal header strip. */
 export function KvDialogHeader({
   className,
   ...props
@@ -87,7 +77,6 @@ export function KvDialogHeader({
   );
 }
 
-/** Action row with top rule — original modal footer strip. */
 export function KvDialogFooter({
   className,
   ...props

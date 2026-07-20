@@ -14,11 +14,6 @@ interface LoginPasswordStepProps {
   login: UseLoginFormReturn;
 }
 
-/**
- * Credential login: remember-me fills only the mobile field next visit.
- * Password stays empty; browser autofill is blocked until the user focuses
- * the field (no flash-then-clear).
- */
 export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
   const {
     passwordForm,
@@ -36,7 +31,6 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
       noValidate
       autoComplete="off"
     >
-      {/* Decoy absorbs credential-manager fills meant for login. */}
       <input
         type="password"
         tabIndex={-1}

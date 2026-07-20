@@ -4,70 +4,202 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
+import { delayDashboardColdSkeletonPreview } from '@/lib/dashboard-cold-skeleton-preview';
+import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
   AcademicTerm,
-  CourseOfferingCatalogItem,
+  CourseCatalogItem,
   SyllabusConfigSubTab,
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
-import { computeOfferedTitles, errorMessage } from './syllabusPageUtils';
+import { errorMessage, offeredCatalogIdsFromList } from './syllabusPageUtils';
 import { useSyllabusOfferingGates } from './useSyllabusOfferingGates';
 import { useSyllabusTermSettings } from './useSyllabusTermSettings';
 import { useSyllabusWeeksEditor } from './useSyllabusWeeksEditor';
 
+const CACHE_KEY = 'syllabus-config::page';
+
+type PendingNavigation =
+  | { kind: 'term'; termId: string }
+  | { kind: 'course'; course: CourseCatalogItem }
+  | { kind: 'tab'; tab: SyllabusConfigSubTab }
+  | null;
+
+type SyllabusPageCache = {
+  tab: SyllabusConfigSubTab;
+  terms: AcademicTerm[];
+  selectedTermId: string;
+  selectedCourse: CourseCatalogItem | null;
+  courses: CourseCatalogItem[];
+  weeks: SyllabusWeek[];
+  offeredCatalogIds: string[];
+  professorCapacity: string;
+  passingThreshold: string;
+};
+
 export function useSyllabusConfigPage() {
-  const [tab, setTab] = useState<SyllabusConfigSubTab>('course_offerings');
-  const [terms, setTerms] = useState<AcademicTerm[]>([]);
-  const [selectedTermTitle, setSelectedTermTitle] = useState('');
+  const getData = useDashboardModuleCache((s) => s.getData);
+  const setData = useDashboardModuleCache((s) => s.setData);
+  const cached = getData<SyllabusPageCache>(CACHE_KEY);
+  const hasCache = Boolean(cached && cached.terms.length > 0);
+
+  const [tab, setTab] = useState<SyllabusConfigSubTab>(
+    () => cached?.tab ?? 'course_offerings'
+  );
+  const [terms, setTerms] = useState<AcademicTerm[]>(() => cached?.terms ?? []);
+  const [selectedTermId, setSelectedTermId] = useState(
+    () => cached?.selectedTermId ?? ''
+  );
   const [selectedCourse, setSelectedCourse] =
-    useState<CourseOfferingCatalogItem | null>(null);
-  const [weeks, setWeeks] = useState<SyllabusWeek[]>([]);
+    useState<CourseCatalogItem | null>(() => cached?.selectedCourse ?? null);
+  const [courses, setCourses] = useState<CourseCatalogItem[]>(
+    () => cached?.courses ?? []
+  );
+  const [weeks, setWeeks] = useState<SyllabusWeek[]>(() => cached?.weeks ?? []);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [offeredTitles, setOfferedTitles] = useState<Set<string>>(new Set());
-  const [professorCapacity, setProfessorCapacity] = useState('15');
-  const [passingThreshold, setPassingThreshold] = useState('70');
-  const [isLoading, setIsLoading] = useState(true);
+  const [offeredCatalogIds, setOfferedCatalogIds] = useState<Set<string>>(
+    () => new Set(cached?.offeredCatalogIds ?? [])
+  );
+  const [professorCapacity, setProfessorCapacity] = useState(
+    () => cached?.professorCapacity ?? '15'
+  );
+  const [passingThreshold, setPassingThreshold] = useState(
+    () => cached?.passingThreshold ?? '70'
+  );
+  const [isCold, setIsCold] = useState(!hasCache);
+  const [isLoading, setIsLoading] = useState(!hasCache);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingNavigation, setPendingNavigation] =
+    useState<PendingNavigation>(null);
   const loadRequestIdRef = useRef(0);
 
   const selectedTerm =
-    terms.find((t) => t.title === selectedTermTitle) ?? null;
-  const courses = SyllabusConfigService.getCoursesForTerm(selectedTerm);
+    terms.find((t) => t.id === selectedTermId) ?? null;
   const isSelectedCourseOffered = Boolean(
-    selectedCourse && offeredTitles.has(selectedCourse.title)
+    selectedCourse && offeredCatalogIds.has(selectedCourse.id)
   );
+
+  function persistCache(next: {
+    tab?: SyllabusConfigSubTab;
+    terms: AcademicTerm[];
+    selectedTermId: string;
+    selectedCourse?: CourseCatalogItem | null;
+    courses?: CourseCatalogItem[];
+    weeks?: SyllabusWeek[];
+    offeredCatalogIds: Set<string>;
+    professorCapacity?: string;
+    passingThreshold?: string;
+  }) {
+    setData<SyllabusPageCache>(CACHE_KEY, {
+      tab: next.tab ?? tab,
+      terms: next.terms,
+      selectedTermId: next.selectedTermId,
+      selectedCourse:
+        next.selectedCourse !== undefined
+          ? next.selectedCourse
+          : selectedCourse,
+      courses: next.courses ?? courses,
+      weeks: next.weeks ?? weeks,
+      offeredCatalogIds: [...next.offeredCatalogIds],
+      professorCapacity: next.professorCapacity ?? professorCapacity,
+      passingThreshold: next.passingThreshold ?? passingThreshold,
+    });
+  }
+
+  async function loadTermContext(termId: string, preferredCourseId?: string) {
+    setIsLoading(true);
+    try {
+      const [courseList, offerings] = await Promise.all([
+        SyllabusConfigService.listCoursesForTerm(termId),
+        SyllabusConfigService.listOfferings(termId),
+      ]);
+      setCourses(courseList);
+      const offered = offeredCatalogIdsFromList(offerings);
+      setOfferedCatalogIds(offered);
+
+      const nextCourse =
+        courseList.find((c) => c.id === preferredCourseId) ??
+        courseList[0] ??
+        null;
+      setSelectedCourse(nextCourse);
+
+      let nextWeeks: SyllabusWeek[] = [];
+      if (nextCourse) {
+        nextWeeks = await SyllabusConfigService.getWeeks(
+          termId,
+          nextCourse.id
+        );
+        setWeeks(nextWeeks);
+      } else {
+        setWeeks([]);
+      }
+      setHasUnsavedChanges(false);
+      return {
+        courses: courseList,
+        selectedCourse: nextCourse,
+        weeks: nextWeeks,
+        offeredCatalogIds: offered,
+      };
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function applySnapshotTerms(
+    snapshot: Awaited<ReturnType<typeof SyllabusConfigService.getSnapshot>>
+  ): string {
+    setTerms(snapshot.terms);
+    setProfessorCapacity(String(snapshot.globalProfessorCapacity));
+    setPassingThreshold(String(snapshot.passingScoreThreshold));
+
+    const term = snapshot.terms[0]
+      ? snapshot.terms.find((t) => t.id === selectedTermId) ??
+        snapshot.terms[snapshot.terms.length > 1 ? 1 : 0] ??
+        snapshot.terms[0]
+      : null;
+
+    const termId = term?.id ?? '';
+    setSelectedTermId(termId);
+    return termId;
+  }
 
   async function applySnapshot(
     snapshot: Awaited<ReturnType<typeof SyllabusConfigService.getSnapshot>>
   ) {
-    setTerms(snapshot.terms);
-    setSelectedTermTitle(snapshot.selectedTermTitle);
-    setProfessorCapacity(String(snapshot.globalProfessorCapacity));
-    setPassingThreshold(String(snapshot.passingScoreThreshold));
-
-    const term =
-      snapshot.terms.find((t) => t.title === snapshot.selectedTermTitle) ??
-      snapshot.terms[0] ??
-      null;
-    const courseList = SyllabusConfigService.getCoursesForTerm(term);
-    const firstCourse = courseList[0] ?? null;
-    setSelectedCourse(firstCourse);
-
-    if (term && firstCourse) {
-      const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
-        term.title,
-        firstCourse.title,
-        firstCourse.type
-      );
-      setWeeks(nextWeeks);
-      setOfferedTitles(computeOfferedTitles(term.title, courseList));
+    const termId = applySnapshotTerms(snapshot);
+    if (termId) {
+      const ctx = await loadTermContext(termId, selectedCourse?.id);
+      persistCache({
+        terms: snapshot.terms,
+        selectedTermId: termId,
+        selectedCourse: ctx.selectedCourse,
+        courses: ctx.courses,
+        weeks: ctx.weeks,
+        offeredCatalogIds: ctx.offeredCatalogIds,
+        professorCapacity: String(snapshot.globalProfessorCapacity),
+        passingThreshold: String(snapshot.passingScoreThreshold),
+      });
     } else {
+      setCourses([]);
+      setSelectedCourse(null);
       setWeeks([]);
-      setOfferedTitles(new Set());
+      setOfferedCatalogIds(new Set());
+      setHasUnsavedChanges(false);
+      setIsLoading(false);
+      persistCache({
+        terms: snapshot.terms,
+        selectedTermId: '',
+        selectedCourse: null,
+        courses: [],
+        weeks: [],
+        offeredCatalogIds: new Set(),
+        professorCapacity: String(snapshot.globalProfessorCapacity),
+        passingThreshold: String(snapshot.passingScoreThreshold),
+      });
     }
-    setHasUnsavedChanges(false);
+    setIsCold(false);
   }
 
   async function reload() {
@@ -81,10 +213,8 @@ export function useSyllabusConfigPage() {
     } catch (err) {
       if (requestId !== loadRequestIdRef.current) return;
       setError(errorMessage(err, 'بارگذاری تنظیمات ترم ناموفق بود.'));
-    } finally {
-      if (requestId === loadRequestIdRef.current) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
+      if (!hasCache && terms.length === 0) setIsCold(true);
     }
   }
 
@@ -92,54 +222,75 @@ export function useSyllabusConfigPage() {
     const requestId = ++loadRequestIdRef.current;
     void (async () => {
       try {
+        await delayDashboardColdSkeletonPreview(!hasCache);
+        if (requestId !== loadRequestIdRef.current) return;
         const snapshot = await SyllabusConfigService.getSnapshot();
         if (requestId !== loadRequestIdRef.current) return;
         await applySnapshot(snapshot);
       } catch (err) {
         if (requestId !== loadRequestIdRef.current) return;
         setError(errorMessage(err, 'بارگذاری تنظیمات ترم ناموفق بود.'));
-      } finally {
-        if (requestId === loadRequestIdRef.current) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
+        if (!hasCache) setIsCold(true);
       }
     })();
+    // initial mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount bootstrap
   }, []);
 
-  async function selectTerm(termTitle: string) {
+  useEffect(() => {
+    function onBeforeUnload(event: BeforeUnloadEvent) {
+      if (!hasUnsavedChanges) return;
+      event.preventDefault();
+      event.returnValue = '';
+    }
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  useEffect(() => {
+    if (isCold || terms.length === 0) return;
+    setData<SyllabusPageCache>(CACHE_KEY, {
+      tab,
+      terms,
+      selectedTermId,
+      selectedCourse,
+      courses,
+      weeks,
+      offeredCatalogIds: [...offeredCatalogIds],
+      professorCapacity,
+      passingThreshold,
+    });
+  }, [
+    tab,
+    terms,
+    selectedTermId,
+    selectedCourse,
+    courses,
+    weeks,
+    offeredCatalogIds,
+    professorCapacity,
+    passingThreshold,
+    isCold,
+    setData,
+  ]);
+
+  async function commitSelectTerm(termId: string) {
     try {
-      await SyllabusConfigService.selectTerm(termTitle);
-      setSelectedTermTitle(termTitle);
-      const term = terms.find((t) => t.title === termTitle) ?? null;
-      const courseList = SyllabusConfigService.getCoursesForTerm(term);
-      const first = courseList[0] ?? null;
-      setSelectedCourse(first);
-      if (term && first) {
-        const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
-          term.title,
-          first.title,
-          first.type
-        );
-        setWeeks(nextWeeks);
-        setOfferedTitles(computeOfferedTitles(term.title, courseList));
-      } else {
-        setWeeks([]);
-        setOfferedTitles(new Set());
-      }
-      setHasUnsavedChanges(false);
+      setSelectedTermId(termId);
+      await loadTermContext(termId);
     } catch (err) {
       toast.error(errorMessage(err, 'انتخاب ترم ناموفق بود.'));
     }
   }
 
-  async function selectCourse(course: CourseOfferingCatalogItem) {
-    if (!selectedTermTitle) return;
+  async function commitSelectCourse(course: CourseCatalogItem) {
+    if (!selectedTermId) return;
     setSelectedCourse(course);
     try {
-      const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
-        selectedTermTitle,
-        course.title,
-        course.type
+      const nextWeeks = await SyllabusConfigService.getWeeks(
+        selectedTermId,
+        course.id
       );
       setWeeks(nextWeeks);
       setHasUnsavedChanges(false);
@@ -148,35 +299,88 @@ export function useSyllabusConfigPage() {
     }
   }
 
+  function requestSelectTerm(termId: string) {
+    if (termId === selectedTermId) return;
+    if (hasUnsavedChanges) {
+      setPendingNavigation({ kind: 'term', termId });
+      return;
+    }
+    void commitSelectTerm(termId);
+  }
+
+  function requestSelectCourse(course: CourseCatalogItem) {
+    if (selectedCourse?.id === course.id) return;
+    if (hasUnsavedChanges) {
+      setPendingNavigation({ kind: 'course', course });
+      return;
+    }
+    void commitSelectCourse(course);
+  }
+
+  function requestChangeTab(next: SyllabusConfigSubTab) {
+    if (next === tab) return;
+    if (hasUnsavedChanges) {
+      setPendingNavigation({ kind: 'tab', tab: next });
+      return;
+    }
+    setTab(next);
+  }
+
+  function clearPendingNavigation() {
+    setPendingNavigation(null);
+  }
+
+  async function confirmDiscardAndNavigate() {
+    const pending = pendingNavigation;
+    setPendingNavigation(null);
+    if (!pending) return;
+
+    if (pending.kind === 'term') {
+      await commitSelectTerm(pending.termId);
+      return;
+    }
+    if (pending.kind === 'course') {
+      await commitSelectCourse(pending.course);
+      return;
+    }
+    setHasUnsavedChanges(false);
+    setTab(pending.tab);
+  }
+
   const offeringGates = useSyllabusOfferingGates({
-    selectedTermTitle,
+    selectedTermId,
     selectedTerm,
     selectedCourse,
-    offeredTitles,
+    offeredCatalogIds,
     setTerms,
     setWeeks,
-    setOfferedTitles,
+    setOfferedCatalogIds,
     setHasUnsavedChanges,
   });
 
   const weeksEditor = useSyllabusWeeksEditor({
-    selectedTermTitle,
+    selectedTermId,
     selectedCourse,
-    courses,
     weeks,
     setWeeks,
     hasUnsavedChanges,
     setHasUnsavedChanges,
-    setOfferedTitles,
     isSelectedCourseOffered,
     setIsSaving,
   });
 
+  async function loadTermContextForUi(
+    termId: string,
+    preferredCourseId?: string
+  ): Promise<void> {
+    await loadTermContext(termId, preferredCourseId);
+  }
+
   const termSettings = useSyllabusTermSettings({
     terms,
     setTerms,
-    setSelectedTermTitle,
-    selectTerm,
+    setSelectedTermId,
+    loadTermContext: loadTermContextForUi,
     setIsSaving,
     professorCapacity,
     setProfessorCapacity,
@@ -186,17 +390,18 @@ export function useSyllabusConfigPage() {
 
   return {
     tab,
-    changeTab: (next: SyllabusConfigSubTab) => setTab(next),
+    changeTab: requestChangeTab,
     terms,
     selectedTerm,
-    selectedTermTitle,
-    selectTerm,
+    selectedTermId,
+    selectTerm: requestSelectTerm,
     courses,
     selectedCourse,
-    selectCourse,
-    offeredTitles,
+    selectCourse: requestSelectCourse,
+    offeredCatalogIds,
     weeks,
     hasUnsavedChanges,
+    isCold,
     isLoading,
     isSaving,
     error,
@@ -206,6 +411,9 @@ export function useSyllabusConfigPage() {
     setProfessorCapacity,
     passingThreshold,
     setPassingThreshold,
+    pendingNavigation,
+    clearPendingNavigation,
+    confirmDiscardAndNavigate,
     ...offeringGates,
     ...weeksEditor,
     ...termSettings,

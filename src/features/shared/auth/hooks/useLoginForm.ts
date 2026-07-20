@@ -12,22 +12,12 @@ import { useForgotPassword, type ForgotStep } from './useForgotPassword';
 export type LoginMode = 'password' | 'otp' | 'forgot';
 export type { ForgotStep };
 
-/**
- * Coordinator for the public login card. Composes three single-responsibility
- * flow hooks — {@link usePasswordLogin}, {@link useOtpLogin},
- * {@link useForgotPassword} — and owns only the active `mode` plus the
- * cross-flow transitions between them (rule 40, #6: UI stays presentation-only).
- *
- * The return value is intentionally flattened so consuming components keep the
- * same API surface; errors still surface on the relevant field, never a banner.
- */
 export function useLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [mode, setMode] = useState<LoginMode>('password');
 
-  /** Prefer safe returnUrl when allowed; else role-aware home. */
   const goAfterLogin = useCallback(() => {
     const user = useUserStore.getState().activeUser;
     const rawReturn = searchParams.get(RETURN_URL_PARAM);
@@ -56,7 +46,6 @@ export function useLoginForm() {
     setMode('otp');
   }, [otp, password.passwordForm]);
 
-  /** Embeds the "فراموشی رمز عبور" wizard inside the login card instead of navigating away (no 404). */
   const switchToForgotMode = useCallback(() => {
     forgot.start(password.passwordForm.getValues('mobile'));
     setMode('forgot');

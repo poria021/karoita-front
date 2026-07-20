@@ -24,13 +24,27 @@ export type SyllabusWeek = {
   status: SyllabusWeekStatus;
 };
 
-export type CourseOfferingCatalogItem = {
+/** آیتم کاتالوگ درس — هویت پایدار `id`؛ عنوان فقط نمایش. */
+export type CourseCatalogItem = {
+  id: string;
   title: string;
   type: CourseOfferingKind;
 };
 
-export type CourseSyllabusConfig = {
+/** ارائهٔ درس در یک ترم (Nest: courseOfferingId). */
+export type CourseOfferingRecord = {
+  id: string;
+  termId: string;
+  courseCatalogId: string;
   weeks: SyllabusWeek[];
+};
+
+export type CourseOfferingListItem = {
+  courseOfferingId: string | null;
+  courseCatalogId: string;
+  title: string;
+  type: CourseOfferingKind;
+  isOffered: boolean;
 };
 
 export type MockInternshipRecord = {
@@ -39,25 +53,40 @@ export type MockInternshipRecord = {
   title: string;
 };
 
+/**
+ * Snapshot دامنه — بدون selectedTerm (انتخاب ترم فقط state کلاینت است).
+ * offerings با کلید `courseOfferingId`.
+ */
 export type SyllabusConfigSnapshot = {
   terms: AcademicTerm[];
-  /** کلید: `C::${termTitle}::${normalizedCourseTitle}` */
-  offerings: Record<string, CourseSyllabusConfig>;
+  offerings: Record<string, CourseOfferingRecord>;
   internships: MockInternshipRecord[];
   globalProfessorCapacity: number;
   passingScoreThreshold: number;
-  selectedTermTitle: string;
-};
-
-export type TermGateState = {
-  isEnrollOpen: boolean;
-  isTermOpen: boolean;
-  enrollStart: string;
-  termStart: string;
 };
 
 export type UpsertTermInput = {
   type: AcademicTermType;
   titlePrefix: string;
   academicYear: string;
+};
+
+export type ActivateOfferingInput = {
+  termId: string;
+  courseCatalogId: string;
+};
+
+export type DeactivateOfferingInput = {
+  courseOfferingId: string;
+};
+
+export type SaveSyllabusWeeksInput = {
+  courseOfferingId: string;
+  weeks: SyllabusWeek[];
+};
+
+export type UpdateTermGatesInput = {
+  termId: string;
+  isEnrollOpen?: boolean;
+  isTermOpen?: boolean;
 };

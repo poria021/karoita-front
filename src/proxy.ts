@@ -9,9 +9,7 @@ import { RouteService } from '@/services/route.service';
 import { NextRequest, NextResponse } from 'next/server';
 
 function hasClientSession(request: NextRequest): boolean {
-  // Nest (or future) httpOnly session cookie — plain cookie read, no Better-Auth.
   if (request.cookies.get(AUTH_COOKIE_NAME)?.value) return true;
-  // Mock DX: non-httpOnly presence marker — NOT identity/role (rule 45 / 20 #5).
   return request.cookies.get(MOCK_SESSION_MARKER)?.value === '1';
 }
 
@@ -25,12 +23,8 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
 }
 
 /**
- * Edge auth is presence-only. Role-based landing (e.g. super_admin admin
- * dashboard) is corrected on the client via getPostLoginPath / karvita guards.
- * Do not invent role claims from client-writable cookies.
- *
- * When a logged-in user hits `/auth/*` with a safe `returnUrl`, Edge may send
- * them there without role checks — client guards still enforce UX boundaries.
+ * Edge Proxy — فقط حضور نشست (کوکی/مارکر)، نه نقش یا مجوز.
+ * کاربر بدون نشست به لاگین با `returnUrl` امن هدایت می‌شود.
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

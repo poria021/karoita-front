@@ -13,7 +13,6 @@ interface AuthErrorProps {
   reset: () => void;
 }
 
-/** Error boundary for `/auth/*` routes. */
 export default function AuthError({ error, reset }: AuthErrorProps) {
   useEffect(() => {
     console.error('Auth route error:', error);

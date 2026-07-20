@@ -11,13 +11,18 @@ import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { defaultPrefixForType, parseTermTitleParts } from '../constants';
+import {
+  professorCapacitySchema,
+  passingThresholdSchema,
+  termFormSchema,
+} from '../schemas/syllabus-config.schema';
 import { errorMessage } from './syllabusPageUtils';
 
 type UseSyllabusTermSettingsArgs = {
   terms: AcademicTerm[];
   setTerms: Dispatch<SetStateAction<AcademicTerm[]>>;
-  setSelectedTermTitle: Dispatch<SetStateAction<string>>;
-  selectTerm: (termTitle: string) => Promise<void>;
+  setSelectedTermId: Dispatch<SetStateAction<string>>;
+  loadTermContext: (termId: string) => Promise<void>;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
   professorCapacity: string;
   setProfessorCapacity: Dispatch<SetStateAction<string>>;
@@ -28,8 +33,8 @@ type UseSyllabusTermSettingsArgs = {
 export function useSyllabusTermSettings({
   terms,
   setTerms,
-  setSelectedTermTitle,
-  selectTerm,
+  setSelectedTermId,
+  loadTermContext,
   setIsSaving,
   professorCapacity,
   setProfessorCapacity,
@@ -46,6 +51,7 @@ export function useSyllabusTermSettings({
   const [deleteTermTarget, setDeleteTermTarget] = useState<AcademicTerm | null>(
     null
   );
+  const [termFormError, setTermFormError] = useState<string | null>(null);
 
   const editingTerm = terms.find((t) => t.id === editTermId) ?? null;
 
@@ -54,6 +60,7 @@ export function useSyllabusTermSettings({
     setTermType('semester');
     setTermPrefix(defaultPrefixForType('semester'));
     setTermYear(academicYears[1] ?? academicYears[0] ?? '');
+    setTermFormError(null);
   }
 
   function selectEditTerm(termId: string) {
@@ -68,6 +75,7 @@ export function useSyllabusTermSettings({
     const parts = parseTermTitleParts(match.title);
     setTermPrefix(parts.prefix);
     setTermYear(parts.academicYear);
+    setTermFormError(null);
   }
 
   function onTermTypeChange(type: AcademicTermType) {
@@ -80,18 +88,35 @@ export function useSyllabusTermSettings({
       toast.message('برای دوره موجود فقط حذف مجاز است؛ فیلدهای عنوان قفل‌اند.');
       return;
     }
+    const parsed = termFormSchema.safeParse({
+      type: termType,
+      titlePrefix: termPrefix,
+      academicYear: termYear,
+    });
+    if (!parsed.success) {
+      setTermFormError(
+        parsed.error.issues[0]?.message ?? 'فرم دوره معتبر نیست.'
+      );
+      return;
+    }
+    setTermFormError(null);
     setIsSaving(true);
     try {
-      const snapshot = await SyllabusConfigService.createTerm({
-        type: termType,
-        titlePrefix: termPrefix,
-        academicYear: termYear,
-      });
+      const snapshot = await SyllabusConfigService.createTerm(parsed.data);
       setTerms(snapshot.terms);
+      const created = snapshot.terms.find(
+        (t) =>
+          t.title.includes(parsed.data.titlePrefix) &&
+          t.title.includes(parsed.data.academicYear)
+      );
       resetTermForm();
       toast.success(
-        `دوره تحصیلی «${toPersianDigits(`${termPrefix} ${termYear}`)}» با موفقیت ایجاد شد.`
+        `دوره تحصیلی «${toPersianDigits(`${parsed.data.titlePrefix} ${parsed.data.academicYear}`)}» با موفقیت ایجاد شد.`
       );
+      if (created) {
+        setSelectedTermId(created.id);
+        await loadTermContext(created.id);
+      }
     } catch (err) {
       toast.error(errorMessage(err, 'ایجاد دوره تحصیلی ناموفق بود.'));
     } finally {
@@ -111,13 +136,12 @@ export function useSyllabusTermSettings({
         deleteTermTarget.id
       );
       setTerms(snapshot.terms);
-      setSelectedTermTitle(snapshot.selectedTermTitle);
       resetTermForm();
       setDeleteTermTarget(null);
       toast.success('دوره تحصیلی با موفقیت حذف گردید.');
-      if (snapshot.selectedTermTitle) {
-        await selectTerm(snapshot.selectedTermTitle);
-      }
+      const nextId = snapshot.terms[0]?.id ?? '';
+      setSelectedTermId(nextId);
+      if (nextId) await loadTermContext(nextId);
     } catch (err) {
       toast.error(errorMessage(err, 'حذف دوره تحصیلی ناموفق بود.'));
       setDeleteTermTarget(null);
@@ -125,16 +149,22 @@ export function useSyllabusTermSettings({
   }
 
   async function saveProfessorCapacity() {
-    const n = Number.parseInt(professorCapacity, 10);
-    if (!Number.isFinite(n) || n < 0) {
-      toast.error('ظرفیت معتبر نیست.');
+    const parsed = professorCapacitySchema.safeParse({
+      capacity: professorCapacity,
+    });
+    if (!parsed.success) {
+      toast.error(
+        parsed.error.issues[0]?.message ?? 'ظرفیت معتبر نیست.'
+      );
       return;
     }
     try {
-      const snapshot = await SyllabusConfigService.setProfessorCapacity(n);
+      const snapshot = await SyllabusConfigService.setProfessorCapacity(
+        parsed.data.capacity
+      );
       setProfessorCapacity(String(snapshot.globalProfessorCapacity));
       toast.success(
-        `ظرفیت پیش‌فرض تمامی اساتید به ${toPersianDigits(n)} نفر تغییر یافت.`
+        `ظرفیت پیش‌فرض تمامی اساتید به ${toPersianDigits(parsed.data.capacity)} نفر تغییر یافت.`
       );
     } catch (err) {
       toast.error(errorMessage(err, 'ذخیره ظرفیت ناموفق بود.'));
@@ -142,13 +172,19 @@ export function useSyllabusTermSettings({
   }
 
   async function savePassingThreshold() {
-    const n = Number.parseInt(passingThreshold, 10);
-    if (!Number.isFinite(n) || n < 0 || n > 100) {
-      toast.error('حدنصاب باید بین ۰ تا ۱۰۰ باشد.');
+    const parsed = passingThresholdSchema.safeParse({
+      threshold: passingThreshold,
+    });
+    if (!parsed.success) {
+      toast.error(
+        parsed.error.issues[0]?.message ?? 'حدنصاب باید بین ۰ تا ۱۰۰ باشد.'
+      );
       return;
     }
     try {
-      const snapshot = await SyllabusConfigService.setPassingThreshold(n);
+      const snapshot = await SyllabusConfigService.setPassingThreshold(
+        parsed.data.threshold
+      );
       setPassingThreshold(String(snapshot.passingScoreThreshold));
       toast.success('حدنصاب قبولی کل سیستم با موفقیت ثبت نهایی شد.');
     } catch (err) {
@@ -166,6 +202,7 @@ export function useSyllabusTermSettings({
     setTermPrefix,
     termYear,
     setTermYear,
+    termFormError,
     saveTerm,
     editingTerm,
     requestDeleteTerm,

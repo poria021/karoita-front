@@ -10,10 +10,6 @@ interface ProfileStatusBannersProps {
   adminRequestMessage?: string;
 }
 
-/**
- * @deprecated Use `ProfileStatusAlert` directly.
- * Thin compatibility wrapper for legacy `ProfileForm`.
- */
 export function ProfileStatusBanners({
   isApproved,
   docStatus,

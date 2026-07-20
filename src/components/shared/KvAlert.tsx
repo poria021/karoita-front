@@ -54,10 +54,6 @@ const DISMISS_BUTTON_COLOR: Record<
   error: 'error',
 };
 
-/**
- * Shared Karvita alert — use across domains.
- * Profile/auth/etc. only choose variant + copy; they do not own alert chrome.
- */
 export function KvAlert({
   variant,
   title,

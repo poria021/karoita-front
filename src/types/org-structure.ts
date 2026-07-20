@@ -1,7 +1,3 @@
-/**
- * Organizational structure domain types (karvita admin).
- * Shapes mirror original-karvita.html `db.orgStructure` for Nest handover.
- */
 
 export type OrgStructureEntityKind =
   | 'province'
@@ -19,7 +15,6 @@ export type OrgStructureSubTab =
   | 'majors'
   | 'faculties';
 
-/** Single source for admin tab → entity kind (hooks + mock query). */
 const ORG_TAB_TO_KIND: Record<OrgStructureSubTab, OrgStructureEntityKind> = {
   provinces: 'province',
   cities: 'city',

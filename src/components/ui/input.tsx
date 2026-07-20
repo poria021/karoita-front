@@ -2,9 +2,6 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-/**
- * Shadcn-style Input primitive. Product field chrome lives in `KvInput` / `KvTextField`.
- */
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
   return (
     <input

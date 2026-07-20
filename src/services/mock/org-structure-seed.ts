@@ -1,9 +1,5 @@
 import type { OrgStructureSnapshot } from '@/types/org-structure';
 
-/**
- * Initial mock org tree — kept aligned with profile
- * `organization-catalog` labels so selects and this module share one seed story.
- */
 
 const BRANCHES: Array<{
   province: string;
@@ -58,9 +54,7 @@ const BRANCHES: Array<{
   },
 ];
 
-const MAJOR_NAMES: string[] = [
-  // Intentionally empty so the «رشته‌ها» tab shows KvEmptyState in mock DX.
-];
+const MAJOR_NAMES: string[] = [];
 
 let seq = 1;
 function nextId(prefix: string): string {
@@ -68,7 +62,6 @@ function nextId(prefix: string): string {
   return `${prefix}-${seq}`;
 }
 
-/** Build hierarchical mock snapshot (string ids). */
 export function buildOrgStructureSeed(): OrgStructureSnapshot {
   seq = 1000;
   const provinces: OrgStructureSnapshot['provinces'] = [];

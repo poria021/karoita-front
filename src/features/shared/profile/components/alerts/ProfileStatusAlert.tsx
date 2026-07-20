@@ -10,16 +10,10 @@ export interface ProfileStatusAlertProps {
   docStatus:
     | Extract<DocStatus, 'not_submitted' | 'pending_admin' | 'rejected'>
     | DocStatus;
-  /** Admin rejection reason shown only when `docStatus === 'rejected'`. */
   adminRequestMessage?: string;
-  /** When true, hides the success banner after the user dismisses it. */
   dismissibleApproved?: boolean;
 }
 
-/**
- * Profile status → KvAlert mapper.
- * Owns copy/status logic only; visual chrome lives in shared `KvAlert`.
- */
 export function ProfileStatusAlert({
   approved,
   docStatus,

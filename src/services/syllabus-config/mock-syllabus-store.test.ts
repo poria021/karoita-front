@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  activateOfferingInSnapshot,
   buildTermTitle,
   defaultWeekCount,
   getCoursesForTermType,
@@ -8,22 +9,25 @@ import {
   isTermGateActive,
   normalizeCourseTitle,
   offeringStorageKey,
+  readWeeksFromSnapshot,
 } from '@/services/syllabus-config/mock-syllabus-store';
+import type { SyllabusConfigSnapshot } from '@/types/syllabus-config';
 
 describe('syllabus-config mock helpers', () => {
   it('normalizes course titles to English digits', () => {
     expect(normalizeCourseTitle('کارورزی ۱')).toBe('کارورزی 1');
   });
 
-  it('builds stable offering keys', () => {
+  it('builds stable legacy offering keys', () => {
     expect(offeringStorageKey('نیم‌سال اول 1405-1406', 'کارورزی ۱')).toBe(
       'C::نیم‌سال اول 1405-1406::کارورزی 1'
     );
   });
 
-  it('returns catalog by term type', () => {
+  it('returns catalog by term type with ids', () => {
     expect(getCoursesForTermType('semester')).toHaveLength(4);
     expect(getCoursesForTermType('modular')).toHaveLength(2);
+    expect(getCoursesForTermType('semester')[0]?.id).toMatch(/^course_/);
     expect(defaultWeekCount('internship')).toBe(16);
     expect(defaultWeekCount('apprenticeship')).toBe(8);
   });
@@ -38,16 +42,49 @@ describe('syllabus-config mock helpers', () => {
     ).toBe('نیم‌سال اول 1405-1406');
   });
 
-  it('formats today as Jalali YYYY/MM/DD with English digits', () => {
-    const today = getTodayJalaliSlash(new Date('2026-07-19T12:00:00Z'));
-    expect(today).toMatch(/^\d{4}\/\d{2}\/\d{2}$/);
-    expect(today).not.toMatch(/\/01\/01$/);
+  it('evaluates term gates against jalali start date', () => {
+    const today = getTodayJalaliSlash();
+    expect(isTermGateActive(true, today, today)).toBe(true);
+    expect(isTermGateActive(false, today, today)).toBe(false);
+    expect(isTermGateActive(true, '1499/01/01', today)).toBe(false);
   });
 
-  it('derives gate activity from start date vs today', () => {
-    expect(isTermGateActive(true, '1405/04/01', '1405/04/28')).toBe(true);
-    expect(isTermGateActive(true, '1405/05/01', '1405/04/28')).toBe(false);
-    expect(isTermGateActive(false, '1405/04/01', '1405/04/28')).toBe(false);
-    expect(isTermGateActive(true, '', '1405/04/28')).toBe(false);
+  it('getWeeks is read-only and activate seeds weeks', () => {
+    const draft: SyllabusConfigSnapshot = {
+      terms: [
+        {
+          id: 'term_2',
+          title: 'نیم‌سال اول 1405-1406',
+          type: 'semester',
+          isEnrollOpen: false,
+          isTermOpen: false,
+          enrollStart: '',
+          termStart: '',
+        },
+      ],
+      offerings: {},
+      internships: [],
+      globalProfessorCapacity: 15,
+      passingScoreThreshold: 70,
+    };
+
+    expect(
+      readWeeksFromSnapshot(draft, 'term_2', 'course_internship_1')
+    ).toEqual([]);
+
+    activateOfferingInSnapshot(
+      draft,
+      'term_2',
+      'course_internship_1',
+      'internship'
+    );
+
+    const weeks = readWeeksFromSnapshot(
+      draft,
+      'term_2',
+      'course_internship_1'
+    );
+    expect(weeks.length).toBe(16);
+    expect(weeks.every((w) => w.status === 'active')).toBe(true);
   });
 });

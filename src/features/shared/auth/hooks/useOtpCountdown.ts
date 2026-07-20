@@ -3,12 +3,9 @@ import { useCallback, useEffect, useState } from 'react';
 const DEFAULT_OTP_COUNTDOWN_SECONDS = 60;
 
 /**
- * Drives the "ارسال مجدد تا XX ثانیه دیگر" resend countdown shown on every
- * OTP step. Starts idle (`0`); callers must `restart()` only after a successful send.
- * Shared by login, register, forgot-password, and admin-gate wizards.
+ * شمارش‌معکوس ارسال مجدد OTP — تا قبل از ارسال اول، در حالت idle می‌ماند.
  */
 export function useOtpCountdown(durationInSeconds: number = DEFAULT_OTP_COUNTDOWN_SECONDS) {
-  // Idle until `restart()` after a real OTP send — do not start counting on mount.
   const [secondsLeft, setSecondsLeft] = useState(0);
 
   useEffect(() => {

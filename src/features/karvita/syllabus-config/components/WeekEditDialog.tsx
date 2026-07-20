@@ -14,6 +14,7 @@ import { KvTextField } from '@/components/shared/fields/KvTextField';
 interface WeekEditDialogProps {
   open: boolean;
   title: string;
+  error?: string | null;
   onTitleChange: (value: string) => void;
   onClose: () => void;
   onSave: () => void;
@@ -22,6 +23,7 @@ interface WeekEditDialogProps {
 export function WeekEditDialog({
   open,
   title,
+  error,
   onTitleChange,
   onClose,
   onSave,
@@ -45,6 +47,7 @@ export function WeekEditDialog({
           label="عنوان سرفصل"
           size="md"
           value={title}
+          error={error ?? undefined}
           onChange={(event) => onTitleChange(event.target.value)}
         />
 

@@ -26,9 +26,6 @@ export {
 
 export type KvFormItemProps = React.ComponentProps<typeof FormItem>;
 
-/**
- * Form field stack — label → control uses `gap-kv-field` (same as KvTextField / KvLabel).
- */
 export function KvFormItem({ className, ...props }: KvFormItemProps) {
   return (
     <FormItem
@@ -39,11 +36,6 @@ export function KvFormItem({ className, ...props }: KvFormItemProps) {
   );
 }
 
-/**
- * Karvita form label — keeps slate color even when the field has an error.
- * (Shadcn FormLabel turns danger on error; we never want that.)
- * No margin — spacing comes from KvFormItem gap.
- */
 export function KvFormLabel({
   className,
   ...props

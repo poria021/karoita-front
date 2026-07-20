@@ -22,12 +22,6 @@ function readErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 
-/**
- * Encapsulates the two-step registration wizard (details -> OTP) consumed by
- * `RegisterForm.tsx`. Per rule 11, each wizard step is rendered by its own
- * `.tsx` component; this hook only owns state, validation, and `AuthService`
- * calls — never JSX.
- */
 export function useRegisterForm() {
   const router = useRouter();
 
@@ -64,7 +58,6 @@ export function useRegisterForm() {
   const submitDetails = detailsForm.handleSubmit(async (data) => {
     setFormMessage(null);
     try {
-      // اگر شماره موبایل همان شماره قبلی ثبت‌نام باشد و زمان‌سنج هنوز تمام نشده باشد، فیلتر کن
       const isSameNumber = data.mobile === pendingMobile && !otpCountdown.canResend;
 
       if (!isSameNumber) {
@@ -122,15 +115,6 @@ export function useRegisterForm() {
     }
   }, [isResendingOtp, otpCountdown, pendingMobile, pendingRole, otpForm]);
 
-  // ==========================================
-  // [MIGRATION MOCK TO NESTJS]: فعال‌سازی Web OTP در ثبت‌نام موبایل
-  // به محض نهایی شدن دامنه و فرمت پیامک NestJS، کامنت‌های زیر را بردارید:
-  //
-  // useWebOtp((code) => {
-  //   otpForm.setValue('otp', code, { shouldValidate: true });
-  //   verifyOtp(); // تایید و ثبت‌نام خودکار به محض خواندن پیامک
-  // }, step === 2);
-  // ==========================================
 
   return {
     step,

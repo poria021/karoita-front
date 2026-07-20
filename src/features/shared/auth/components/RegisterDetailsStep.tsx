@@ -10,7 +10,6 @@ interface RegisterDetailsStepProps {
   registerForm: UseRegisterFormReturn;
 }
 
-/** Step 1 of registration: mobile number + self-service role selection. */
 export function RegisterDetailsStep({ registerForm }: RegisterDetailsStepProps) {
   const { detailsForm, submitDetails, isSubmittingDetails } = registerForm;
   const { register, control, formState } = detailsForm;

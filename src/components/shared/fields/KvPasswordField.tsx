@@ -28,16 +28,9 @@ export type KvPasswordFieldProps = {
   onBlur?: React.FocusEventHandler<HTMLInputElement>;
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
   footer?: React.ReactNode;
-  /**
-   * Block browser/password-manager inject until the user focuses the field.
-   * Prevents the login flash where a saved password appears then gets cleared.
-   */
   suppressBrowserAutofill?: boolean;
 };
 
-/**
- * Password preset on {@link KvTextField} with visibility toggle.
- */
 export const KvPasswordField = React.forwardRef<
   HTMLInputElement,
   KvPasswordFieldProps

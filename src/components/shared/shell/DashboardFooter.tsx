@@ -1,9 +1,5 @@
 import { KvTypography } from '@/components/shared/KvTypography';
 
-/**
- * Persistent footer inside the authenticated main viewport.
- * Mirrors the copyright + version strip from `original-karvita.html`.
- */
 export function DashboardFooter() {
   return (
     <footer className="mt-10 flex flex-col items-center justify-between gap-kv-inline border-t border-kv-border-muted pt-kv-stack sm:flex-row">

@@ -12,21 +12,14 @@ export type KvMediaThumbSize = 'sm' | 'md' | 'lg';
 export type KvMediaThumbVariant = 'thumb' | 'preview';
 
 export type KvMediaThumbProps = {
-  /** Media URL (data URI or remote). Omit / empty → empty state. */
   src?: string | null;
-  /** Override auto-detection from `src`. */
   kind?: KvMediaThumbKind;
   size?: KvMediaThumbSize;
   variant?: KvMediaThumbVariant;
-  /** Stretch to full width of parent (mobile accordion). */
   fluid?: boolean;
   alt?: string;
   emptyLabel?: string;
   pdfLabel?: string;
-  /**
-   * When true and `src` is set, the thumb opens the media in a new browser tab
-   * (no in-app modal). Uses `<a target="_blank" rel="noopener noreferrer">`.
-   */
   openInNewTab?: boolean;
   'aria-label'?: string;
 };
@@ -48,8 +41,8 @@ const SIZE_CLASS: Record<KvMediaThumbSize, string> = {
 };
 
 /**
- * Compact image / PDF / empty media thumbnail for admin review panels.
- * Interactive thumbs open the file in a new tab — never an in-app dialog.
+ * بندانگشتی مدرک (تصویر/PDF/خالی) برای پنل‌های بررسی ادمین.
+ * با `openInNewTab` فایل در تب جدید باز می‌شود؛ دیالوگ درون‌برنامه‌ای ندارد.
  */
 export function KvMediaThumb({
   src,

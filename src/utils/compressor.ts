@@ -1,11 +1,9 @@
 import imageCompression from 'browser-image-compression';
 
-/** Product compression contract — thin wrapper over browser-image-compression. */
 export interface CompressionOptions {
   maxWidth?: number;
   quality?: number;
   format?: 'image/webp' | 'image/jpeg' | 'image/png';
-  /** When false, WebP failure is not retried as JPEG (identity API needs WebP). */
   allowJpegFallback?: boolean;
 }
 
@@ -80,19 +78,12 @@ async function compressWithLibrary(
   }
 }
 
-/** Reads an already-prepared blob/file as a data URL (no second compression). */
 export async function fileToDataUrl(file: Blob): Promise<string> {
   ensureBrowser();
   return readFileAsDataUrl(file);
 }
 
-/**
- * Compresses then returns a data URL.
- * Prefer {@link compressImage} + {@link fileToDataUrl} when the uploader
- * already compressed the file (avoids double compression).
- */
 export async function compressImageToBase64(file: File): Promise<string> {
-  // Identity API contract requires `data:image/webp;base64,...` — no JPEG fallback.
   const compressed = await compressWithLibrary(file, {
     maxWidth: DEFAULT_MAX_WIDTH,
     quality: DEFAULT_QUALITY,
@@ -102,7 +93,9 @@ export async function compressImageToBase64(file: File): Promise<string> {
   return readFileAsDataUrl(compressed);
 }
 
-/** Backward-compatible File output used by the existing identity uploader. */
+/**
+ * فشرده‌سازی تصویر سمت کلاینت قبل از آپلود Facade (عرض حداکثر ۱۰۰۰، WebP ~۰٫۷).
+ */
 export async function compressImage(
   file: File,
   options: CompressionOptions = {}
@@ -118,7 +111,6 @@ export async function compressImage(
   });
 }
 
-/** Validates if a file is an image and meets size requirements. */
 export function validateImageFile(
   file: File,
   maxSizeMB: number = 10
@@ -141,7 +133,6 @@ export function validateImageFile(
   return { isValid: true };
 }
 
-/** Formats file size in bytes to a human-readable Persian string. */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 بایت';
 

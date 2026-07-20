@@ -5,10 +5,6 @@ import { cn } from '@/lib/utils';
 
 export type KvInputProps = React.ComponentProps<'input'>;
 
-/**
- * Karvita bare input — same focus/hover tokens as {@link KvTextField} / {@link KvSelectTrigger}.
- * Prefer `KvTextField` for labeled form fields.
- */
 export function KvInput({ className, ...props }: KvInputProps) {
   return (
     <Input

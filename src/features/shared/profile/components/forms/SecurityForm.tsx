@@ -30,7 +30,6 @@ export interface SecurityFormProps {
   onPasswordRegistered?: () => void;
 }
 
-/** Profile security tab: first-time password + OTP change-password workflow. */
 export function SecurityForm({
   mobile,
   hasPassword = true,
@@ -100,7 +99,6 @@ export function SecurityForm({
       await AuthService.sendForgotPasswordOtp(mobile);
       otpForm.reset({ otp: '' });
       setPasswordStep('otp_pending');
-      // Inline step banner already shows OTP status — avoid duplicate bottom alert.
     } catch (error) {
       setFeedback({
         type: 'error',
@@ -119,7 +117,6 @@ export function SecurityForm({
       await AuthService.verifyForgotPasswordOtp(mobile, data.otp);
       setPasswordStep('new_password_pending');
       resetPasswordFields();
-      // Inline step banner already confirms OTP success — avoid duplicate bottom alert.
     } catch (error) {
       otpForm.setError('otp', {
         message:

@@ -7,7 +7,6 @@ import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
 import { KvInput } from '@/components/shared/fields/KvInput';
 import { cn } from '@/lib/utils';
 
-/** HTML input types only — domain presets (mobile, password UI) are separate components. */
 export type KvTextFieldType = 'text' | 'email' | 'tel' | 'password' | 'number';
 export type KvTextFieldSize = 'sm' | 'md' | 'lg';
 
@@ -19,7 +18,6 @@ const kvTextFieldWrapperVariants = cva(
   {
     variants: {
       size: {
-        /** Fixed heights so text / select / locked shells stay aligned in grids */
         sm: 'h-9',
         md: 'h-11',
         lg: 'h-12',
@@ -55,7 +53,6 @@ const kvTextFieldWrapperVariants = cva(
 
 const kvTextFieldInputVariants = cva(
   [
-    /* Nested in wrapper border — kill KvInput chrome in every state (incl. aria-invalid). */
     'h-full w-full min-w-0 flex-1 rounded-none border-0 bg-transparent font-sans font-bold text-kv-text-secondary shadow-none',
     'leading-none',
     'placeholder:text-kv-text-placeholder',
@@ -94,10 +91,6 @@ type KvTextFieldState = NonNullable<
 >;
 
 export type KvTextFieldProps = {
-  /**
-   * Label text as a string, or `false` to hide the label entirely.
-   * Pass the Persian/English copy here — do not render a separate `<label>`.
-   */
   label?: string | false;
   required?: boolean;
   optionalHint?: boolean;
@@ -107,10 +100,6 @@ export type KvTextFieldProps = {
   error?: string;
   hint?: string;
   locked?: boolean;
-  /**
-   * Native read-only without locked chrome — used to block browser password
-   * managers until the user focuses the field.
-   */
   readOnly?: boolean;
   showLockIcon?: boolean;
   dir?: 'rtl' | 'ltr' | 'auto';
@@ -125,24 +114,15 @@ export type KvTextFieldProps = {
   inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
   maxLength?: number;
   startAddon?: React.ReactNode;
-  /**
-   * Leading icon inside the shared addon chrome (color/padding owned by field).
-   * Prefer over wrapping icons in `startAddon` with feature token classes.
-   */
   startIcon?: React.ReactNode;
   endAddon?: React.ReactNode;
-  /** OTP density: centered + wide tracking */
   otpStyle?: boolean;
+  /** عدد متریک ادمین — کمی درشت‌تر، وسط‌چین، بدون اسکیل نمایشی افراطی */
+  emphasis?: 'metric';
   footer?: React.ReactNode;
-  /** @deprecated Forbidden — design-system consistency */
   className?: never;
 };
 
-/**
- * Single-line field shell (label, size, lock, error/hint, addons).
- * Domain presets: {@link KvMobileNumberField}, {@link KvPasswordField}.
- * Multiline: {@link KvTextArea}.
- */
 export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
   function KvTextField(
     {
@@ -172,6 +152,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       startIcon,
       endAddon,
       otpStyle = false,
+      emphasis,
       footer,
     },
     ref
@@ -208,7 +189,10 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       >
         <div
           dir={dir}
-          className={cn(kvTextFieldWrapperVariants({ size, state }))}
+          className={cn(
+            kvTextFieldWrapperVariants({ size, state }),
+            emphasis === 'metric' && 'h-12'
+          )}
           data-slot="kv-text-field"
           data-locked={locked || undefined}
         >
@@ -239,6 +223,8 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
             className={cn(
               'h-full min-h-0',
               kvTextFieldInputVariants({ size, state, otpStyle }),
+              emphasis === 'metric' &&
+                'px-2 text-center text-base font-bold tabular-nums text-kv-text md:text-base',
               resolvedStartAddon && 'ps-1.5',
               endAddon && 'pe-1.5'
             )}

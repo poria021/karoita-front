@@ -13,9 +13,6 @@ interface GlobalErrorProps {
   reset: () => void;
 }
 
-/**
- * Root error boundary — must render its own html/body (Next.js requirement).
- */
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
     console.error('Global application error:', error);

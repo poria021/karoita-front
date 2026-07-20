@@ -15,10 +15,6 @@ function isProfilePath(pathname: string, role: string): boolean {
   return pathname === profilePath || pathname.startsWith(`${profilePath}/`);
 }
 
-/**
- * Single karvita client gate: approval lock + role home (rule 45 flash budget).
- * UX only — forged Zustand roles are not authorization.
- */
 function resolveKarvitaRedirect(
   user: User,
   pathname: string
@@ -48,11 +44,6 @@ function GatePlaceholder() {
   );
 }
 
-/**
- * Keeps unapproved users on profile and super_admin on the admin plane.
- * Admin modules live under `/karvita/admin/*` so this prefix gate covers them.
- * Replaces the former RoleHome + ModuleAccess stack (one redirect hop).
- */
 export function KarvitaModuleAccessGuard({
   children,
 }: {

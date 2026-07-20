@@ -15,7 +15,6 @@ import type {
   OrgStructureSnapshot,
 } from '@/types/org-structure';
 
-/** Prefixed `mock_` so juniors do not confuse this key with a Nest/DB store. */
 const STORAGE_KEY = 'karvita_mock_org_structure_v2';
 
 export type OrgEntityIdMaps = {
@@ -35,11 +34,6 @@ export type OrgParentIndexes = {
   schoolsByDistrict: Map<string, OrgSchool[]>;
 };
 
-/**
- * In-memory runtime for one snapshot revision:
- * deleteBlocked sets + id maps + parent→children indexes.
- * Rebuilt only when the snapshot is written / seed-loaded.
- */
 export type OrgRuntimeIndex = {
   revision: number;
   snapshot: OrgStructureSnapshot;
@@ -134,7 +128,6 @@ function loadSnapshotFromStorage(): OrgStructureSnapshot {
   }
 }
 
-/** Active runtime — builds once per snapshot write / cold read. */
 export function getOrgRuntime(): OrgRuntimeIndex {
   if (runtime) return runtime;
   runtime = buildOrgRuntimeIndex(loadSnapshotFromStorage());
@@ -173,7 +166,6 @@ export function getEntityById(
   return byId.major.get(id);
 }
 
-/** Filter/sort cache for listPage loadMore — invalidated on write / revision bump. */
 type OrgListFilterCache = {
   revision: number;
   tab: string;
@@ -195,7 +187,6 @@ export function clearOrgListFilterCache(): void {
   listFilterCache = null;
 }
 
-/** Test helper — inject a snapshot and rebuild indexes. */
 export function resetOrgRuntimeForTests(snapshot?: OrgStructureSnapshot): void {
   clearOrgListFilterCache();
   runtime = buildOrgRuntimeIndex(

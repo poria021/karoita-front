@@ -1,17 +1,24 @@
 import { isMockApiMode } from '@/lib/api-mode';
 import type {
   AcademicTerm,
-  AcademicTermType,
-  CourseOfferingCatalogItem,
   CourseOfferingKind,
-  CourseSyllabusConfig,
+  CourseOfferingRecord,
   SyllabusConfigSnapshot,
   SyllabusWeek,
   UpsertTermInput,
 } from '@/types/syllabus-config';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
-const STORAGE_KEY = 'karvita_mock_syllabus_config_v1';
+import {
+  buildCourseOfferingId,
+  findCatalogByTitle,
+  getCatalogForTermType,
+  legacyOfferingStorageKey,
+  normalizeCourseTitle,
+} from './syllabus-mappers';
+
+const STORAGE_KEY = 'karvita_mock_syllabus_config_v2';
+const LEGACY_STORAGE_KEY = 'karvita_mock_syllabus_config_v1';
 
 export const INTERNSHIP_DEFAULT_WEEKS = 16;
 export const APPRENTICESHIP_DEFAULT_WEEKS = 8;
@@ -27,34 +34,6 @@ export function cloneSnapshot(
   data: SyllabusConfigSnapshot
 ): SyllabusConfigSnapshot {
   return structuredClone(data);
-}
-
-export function normalizeCourseTitle(title: string): string {
-  return persianToEnglishDigits(title).trim();
-}
-
-export function offeringStorageKey(
-  termTitle: string,
-  courseTitle: string
-): string {
-  return `C::${termTitle}::${normalizeCourseTitle(courseTitle)}`;
-}
-
-export function getCoursesForTermType(
-  type: AcademicTermType
-): CourseOfferingCatalogItem[] {
-  if (type === 'semester') {
-    return [
-      { title: 'کارورزی ۱', type: 'internship' },
-      { title: 'کارورزی ۲', type: 'internship' },
-      { title: 'کارورزی ۳', type: 'internship' },
-      { title: 'کارورزی ۴', type: 'internship' },
-    ];
-  }
-  return [
-    { title: 'کارآموزی ۱', type: 'apprenticeship' },
-    { title: 'کارآموزی ۲', type: 'apprenticeship' },
-  ];
 }
 
 export function defaultWeekCount(kind: CourseOfferingKind): number {
@@ -109,7 +88,62 @@ function buildSeedSnapshot(): SyllabusConfigSnapshot {
     internships: [],
     globalProfessorCapacity: 15,
     passingScoreThreshold: 70,
-    selectedTermTitle: terms[1]?.title ?? terms[0]?.title ?? '',
+  };
+}
+
+type LegacyOffering = { weeks: SyllabusWeek[] };
+
+type LegacySnapshot = {
+  terms: AcademicTerm[];
+  offerings: Record<string, LegacyOffering | CourseOfferingRecord>;
+  internships: SyllabusConfigSnapshot['internships'];
+  globalProfessorCapacity: number;
+  passingScoreThreshold: number;
+  selectedTermTitle?: string;
+};
+
+function isCourseOfferingRecord(
+  value: LegacyOffering | CourseOfferingRecord
+): value is CourseOfferingRecord {
+  return 'termId' in value && 'courseCatalogId' in value && 'id' in value;
+}
+
+/** مهاجرت v1 (کلید title) → v2 (courseOfferingId). */
+export function migrateLegacySnapshot(
+  raw: LegacySnapshot
+): SyllabusConfigSnapshot {
+  const offerings: Record<string, CourseOfferingRecord> = {};
+
+  for (const [key, value] of Object.entries(raw.offerings ?? {})) {
+    if (isCourseOfferingRecord(value)) {
+      offerings[value.id] = value;
+      continue;
+    }
+
+    if (!key.startsWith('C::')) continue;
+    const parts = key.slice(3).split('::');
+    if (parts.length < 2) continue;
+    const termTitle = parts[0] ?? '';
+    const courseTitle = parts.slice(1).join('::');
+    const term = raw.terms.find((t) => t.title === termTitle);
+    if (!term) continue;
+    const catalog = findCatalogByTitle(term.type, courseTitle);
+    if (!catalog) continue;
+    const id = buildCourseOfferingId(term.id, catalog.id);
+    offerings[id] = {
+      id,
+      termId: term.id,
+      courseCatalogId: catalog.id,
+      weeks: structuredClone(value.weeks ?? []),
+    };
+  }
+
+  return {
+    terms: raw.terms ?? [],
+    offerings,
+    internships: raw.internships ?? [],
+    globalProfessorCapacity: raw.globalProfessorCapacity ?? 15,
+    passingScoreThreshold: raw.passingScoreThreshold ?? 70,
   };
 }
 
@@ -124,9 +158,19 @@ export function readSyllabusSnapshot(): SyllabusConfigSnapshot {
 
   if (isBrowser() && isMockApiMode()) {
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        memorySnapshot = JSON.parse(raw) as SyllabusConfigSnapshot;
+      const v2 = window.localStorage.getItem(STORAGE_KEY);
+      if (v2) {
+        memorySnapshot = migrateLegacySnapshot(
+          JSON.parse(v2) as LegacySnapshot
+        );
+        return memorySnapshot;
+      }
+      const v1 = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (v1) {
+        memorySnapshot = migrateLegacySnapshot(
+          JSON.parse(v1) as LegacySnapshot
+        );
+        persist(memorySnapshot);
         return memorySnapshot;
       }
     } catch {
@@ -154,37 +198,69 @@ export function mutateSyllabusSnapshot(
   return writeSyllabusSnapshot(draft);
 }
 
-export function isCourseOfferedInSnapshot(
+export function readWeeksFromSnapshot(
   snapshot: SyllabusConfigSnapshot,
-  termTitle: string,
-  courseTitle: string
-): boolean {
-  const key = offeringStorageKey(termTitle, courseTitle);
-  const config = snapshot.offerings[key];
-  return Boolean(config?.weeks.some((w) => w.status === 'active'));
+  termId: string,
+  courseCatalogId: string
+): SyllabusWeek[] {
+  const id = buildCourseOfferingId(termId, courseCatalogId);
+  const record = snapshot.offerings[id];
+  return record ? structuredClone(record.weeks) : [];
 }
 
-/** اگر پیکربندی هفته‌ها نباشد، با وضعیت آرشیو seed می‌کند. */
-export function ensureSyllabusWeeksLoaded(
-  snapshot: SyllabusConfigSnapshot,
-  termTitle: string,
-  courseTitle: string,
+export function activateOfferingInSnapshot(
+  draft: SyllabusConfigSnapshot,
+  termId: string,
+  courseCatalogId: string,
   kind: CourseOfferingKind
-): SyllabusWeek[] {
-  const key = offeringStorageKey(termTitle, courseTitle);
-  const existing = snapshot.offerings[key];
-  if (existing?.weeks.length) {
-    return existing.weeks;
+): CourseOfferingRecord {
+  const id = buildCourseOfferingId(termId, courseCatalogId);
+  const existing = draft.offerings[id];
+  if (existing) {
+    existing.weeks = existing.weeks.map((week) => ({
+      ...week,
+      status: 'active' as const,
+    }));
+    if (existing.weeks.length === 0) {
+      existing.weeks = buildSeedWeeks(defaultWeekCount(kind), 'active');
+    }
+    return existing;
   }
 
-  const weeks = buildSeedWeeks(defaultWeekCount(kind), 'archived');
-  snapshot.offerings[key] = { weeks };
-  return weeks;
+  const record: CourseOfferingRecord = {
+    id,
+    termId,
+    courseCatalogId,
+    weeks: buildSeedWeeks(defaultWeekCount(kind), 'active'),
+  };
+  draft.offerings[id] = record;
+  return record;
 }
 
-export function buildTermTitle(
-  input: UpsertTermInput
-): string {
+export function deactivateOfferingInSnapshot(
+  draft: SyllabusConfigSnapshot,
+  courseOfferingId: string
+): void {
+  const existing = draft.offerings[courseOfferingId];
+  if (!existing) return;
+  existing.weeks = existing.weeks.map((week) => ({
+    ...week,
+    status: 'archived' as const,
+  }));
+}
+
+export function deleteOfferingsForTermId(
+  draft: SyllabusConfigSnapshot,
+  termId: string
+): void {
+  for (const key of Object.keys(draft.offerings)) {
+    if (draft.offerings[key]?.termId === termId) {
+      delete draft.offerings[key];
+    }
+  }
+}
+
+export function buildTermTitle(input: UpsertTermInput): string {
   return `${input.titlePrefix} ${persianToEnglishDigits(input.academicYear)}`.trim();
 }
 
@@ -223,7 +299,6 @@ export function getTodayJalaliSlash(date: Date = new Date()): string {
   return `${year}/${month}/${day}`;
 }
 
-/** مقایسهٔ تاریخ‌های `YYYY/MM/DD` (انگلیسی یا فارسی ارقام) */
 export function isJalaliSlashOnOrBefore(
   candidate: string,
   reference: string
@@ -234,7 +309,6 @@ export function isJalaliSlashOnOrBefore(
   return left <= right;
 }
 
-/** درگاه فعال است اگر سوییچ باز باشد و تاریخ شروع ≤ امروز */
 export function isTermGateActive(
   isOpen: boolean,
   startDate: string,
@@ -242,3 +316,9 @@ export function isTermGateActive(
 ): boolean {
   return isOpen && isJalaliSlashOnOrBefore(startDate, today);
 }
+
+export {
+  getCatalogForTermType as getCoursesForTermType,
+  legacyOfferingStorageKey as offeringStorageKey,
+  normalizeCourseTitle,
+};

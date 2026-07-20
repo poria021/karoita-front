@@ -12,7 +12,6 @@ import {
   toPersianDigits,
 } from '@/utils/persianDigits';
 
-/** English digits only — RHF / Zod / API. */
 function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
 }
@@ -37,7 +36,6 @@ export type KvMobileNumberFieldProps = {
   locked?: boolean;
   showLockIcon?: boolean;
   size?: KvTextFieldSize;
-  /** English or Persian digits — always shown as Persian; stored/emitted as English. */
   value?: string;
   defaultValue?: string;
   name?: string;
@@ -47,10 +45,6 @@ export type KvMobileNumberFieldProps = {
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
 };
 
-/**
- * Shared +98 mobile field — same control for auth forms and profile.
- * UI shows Persian digits; `onChange` / RHF always receive English `0-9`.
- */
 export const KvMobileNumberField = React.forwardRef<
   HTMLInputElement,
   KvMobileNumberFieldProps
@@ -93,7 +87,6 @@ export const KvMobileNumberField = React.forwardRef<
       setUncontrolledEnglish(next);
     }
 
-    // Emit English digits so register/Zod/API stay ASCII.
     event.target.value = next;
     onChange?.(event);
   };

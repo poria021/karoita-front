@@ -16,13 +16,10 @@ import { useOnboardingApprovalsPage } from '../hooks/useOnboardingApprovalsPage'
 import { OnboardingApprovalsDetailPanel } from './OnboardingApprovalsDetailPanel';
 import { OnboardingApprovalsFilters } from './OnboardingApprovalsFilters';
 import { OnboardingApprovalsMobileList } from './OnboardingApprovalsMobileList';
+import { OnboardingApprovalsPageSkeleton } from '../skeletons/OnboardingApprovalsPageSkeleton';
 import { OnboardingApprovalsTable } from './OnboardingApprovalsTable';
 import { OnboardingApprovalsTabs } from './OnboardingApprovalsTabs';
 
-/**
- * Super-admin identity-document review workspace.
- * UX gate only — Nest must enforce authorization later (rule 45).
- */
 export function OnboardingApprovalsPage() {
   const router = useRouter();
   const activeUser = useUserStore((state) => state.activeUser);
@@ -42,6 +39,10 @@ export function OnboardingApprovalsPage() {
         aria-busy="true"
       />
     );
+  }
+
+  if (page.isCold) {
+    return <OnboardingApprovalsPageSkeleton />;
   }
 
   const { canApprove, canReject } = getApprovalTabActions(page.tab);

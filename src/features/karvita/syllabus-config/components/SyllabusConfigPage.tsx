@@ -14,6 +14,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useSyllabusConfigPage } from '../hooks/useSyllabusConfigPage';
 import { CourseOfferingsPanel } from './CourseOfferingsPanel';
+import { SyllabusConfigPageSkeleton } from '../skeletons/SyllabusConfigPageSkeleton';
 import { SyllabusConfigSubTabs } from './SyllabusConfigSubTabs';
 import { TermSettingsPanel } from './TermSettingsPanel';
 import { WeekEditDialog } from './WeekEditDialog';
@@ -32,6 +33,10 @@ export function SyllabusConfigPage() {
 
   if (!activeUser || !isSuperAdminRole(activeUser.role)) {
     return <div className="min-h-40 w-full bg-kv-canvas" aria-busy="true" />;
+  }
+
+  if (page.isCold && !page.error) {
+    return <SyllabusConfigPageSkeleton />;
   }
 
   return (
@@ -71,7 +76,7 @@ export function SyllabusConfigPage() {
             courses={page.courses}
             selectedCourse={page.selectedCourse}
             selectCourse={page.selectCourse}
-            offeredTitles={page.offeredTitles}
+            offeredCatalogIds={page.offeredCatalogIds}
             toggleCourseOffering={page.toggleCourseOffering}
             weeks={page.weeks}
             isLoading={page.isLoading}
@@ -99,6 +104,7 @@ export function SyllabusConfigPage() {
             setTermYear={page.setTermYear}
             academicYears={page.academicYears}
             isSaving={page.isSaving}
+            termFormError={page.termFormError}
             saveTerm={page.saveTerm}
             requestDeleteTerm={page.requestDeleteTerm}
             professorCapacity={page.professorCapacity}
@@ -114,9 +120,21 @@ export function SyllabusConfigPage() {
       <WeekEditDialog
         open={Boolean(page.weekEditId)}
         title={page.weekEditTitle}
+        error={page.weekEditError}
         onTitleChange={page.setWeekEditTitle}
         onClose={page.closeWeekEdit}
         onSave={page.saveWeekEdit}
+      />
+
+      <KvConfirmationDialog
+        isOpen={Boolean(page.pendingNavigation)}
+        onClose={page.clearPendingNavigation}
+        onConfirm={page.confirmDiscardAndNavigate}
+        title="تغییرات ذخیره‌نشده"
+        description="تغییرات سرفصل هفتگی هنوز ثبت نهایی نشده‌اند. با ادامه، این تغییرات از بین می‌روند. آیا ادامه می‌دهید؟"
+        confirmText="دور انداختن و ادامه"
+        cancelText="ماندن"
+        confirmVariant="destructive"
       />
 
       <KvConfirmationDialog

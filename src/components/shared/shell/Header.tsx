@@ -23,11 +23,6 @@ import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
-/**
- * Global authenticated top bar (rule 00, #6): rendered once by the domain's
- * `(dashboard)` layout, never re-mounted per page. Owns the mobile sidebar
- * toggle, the notifications dropdown, and the logout action.
- */
 export function Header() {
   const router = useRouter();
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);

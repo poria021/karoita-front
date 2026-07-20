@@ -1,61 +1,55 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
-  buildSeedWeeks,
+  activateOfferingInSnapshot,
   buildTermTitle,
   cloneSnapshot,
-  defaultWeekCount,
-  ensureSyllabusWeeksLoaded,
+  deactivateOfferingInSnapshot,
+  deleteOfferingsForTermId,
   getAcademicYearOptions,
-  getCoursesForTermType,
   getTodayJalaliSlash,
-  isCourseOfferedInSnapshot,
   isTermGateActive,
   mutateSyllabusSnapshot,
-  offeringStorageKey,
   readSyllabusSnapshot,
+  readWeeksFromSnapshot,
   DEFAULT_WEEK_WEIGHT,
 } from '@/services/syllabus-config/mock-syllabus-store';
+import {
+  buildCourseOfferingId,
+  findCatalogById,
+  getCatalogForTermType,
+  listOfferingsForTerm,
+} from '@/services/syllabus-config/syllabus-mappers';
 import type {
-  AcademicTerm,
-  CourseOfferingCatalogItem,
-  CourseOfferingKind,
+  ActivateOfferingInput,
+  CourseCatalogItem,
+  CourseOfferingListItem,
+  DeactivateOfferingInput,
+  SaveSyllabusWeeksInput,
   SyllabusConfigSnapshot,
   SyllabusWeek,
+  UpdateTermGatesInput,
   UpsertTermInput,
 } from '@/types/syllabus-config';
 
-function requireSyllabusManage(): void {
+function gateSyllabus(): 'mock' | never {
   if (!isMockApiMode()) {
     throwRealModeNotImplemented('SyllabusConfigService');
   }
   assertMockClientHasPermission('syllabus.manage');
+  return 'mock';
 }
-
-export type ToggleCourseOfferingInput = {
-  termTitle: string;
-  course: CourseOfferingCatalogItem;
-};
-
-export type SaveSyllabusWeeksInput = {
-  termTitle: string;
-  courseTitle: string;
-  weeks: SyllabusWeek[];
-};
-
-export type UpdateTermGatesInput = {
-  termTitle: string;
-  isEnrollOpen?: boolean;
-  isTermOpen?: boolean;
-};
 
 /**
  * Facade مدیریت ترم و سرفصل هفتگی.
- * TODO(Nest): همگام‌سازی واقعی هفته‌های internship دانشجو پس از saveSyllabusWeeks.
+ *
+ * Nest-blocked:
+ * - همگام‌سازی هفته‌های internship دانشجو پس از saveSyllabusWeeks
+ * - شاخهٔ real: fail-closed تا endpoint Nest وصل شود
  */
 export const SyllabusConfigService = {
   async getSnapshot(): Promise<SyllabusConfigSnapshot> {
-    requireSyllabusManage();
+    gateSyllabus();
     return cloneSnapshot(readSyllabusSnapshot());
   },
 
@@ -63,33 +57,73 @@ export const SyllabusConfigService = {
     return getAcademicYearOptions();
   },
 
-  getCoursesForTerm(term: AcademicTerm | null): CourseOfferingCatalogItem[] {
+  /** کاتالوگ دروس ترم — Nest: GET /terms/:termId/courses */
+  async listCoursesForTerm(termId: string): Promise<CourseCatalogItem[]> {
+    gateSyllabus();
+    const snapshot = readSyllabusSnapshot();
+    const term = snapshot.terms.find((t) => t.id === termId) ?? null;
     if (!term) return [];
-    return getCoursesForTermType(term.type);
+    return getCatalogForTermType(term.type);
   },
 
-  isCourseOffered(termTitle: string, courseTitle: string): boolean {
-    requireSyllabusManage();
-    return isCourseOfferedInSnapshot(
+  /** لیست ارائه با پرچم isOffered — Nest: GET /terms/:termId/offerings */
+  async listOfferings(termId: string): Promise<CourseOfferingListItem[]> {
+    gateSyllabus();
+    return listOfferingsForTerm(readSyllabusSnapshot(), termId);
+  },
+
+  /**
+   * خواندن هفته‌ها — بدون side-effect / بدون seed.
+   * اگر ارائه ساخته نشده باشد `[]`.
+   */
+  async getWeeks(
+    termId: string,
+    courseCatalogId: string
+  ): Promise<SyllabusWeek[]> {
+    gateSyllabus();
+    return readWeeksFromSnapshot(
       readSyllabusSnapshot(),
-      termTitle,
-      courseTitle
+      termId,
+      courseCatalogId
     );
   },
 
-  async selectTerm(termTitle: string): Promise<SyllabusConfigSnapshot> {
-    requireSyllabusManage();
+  async activateOffering(
+    input: ActivateOfferingInput
+  ): Promise<SyllabusConfigSnapshot> {
+    gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {
-      draft.selectedTermTitle = termTitle;
+      const term = draft.terms.find((t) => t.id === input.termId);
+      if (!term) throw new Error('ترم انتخاب‌شده یافت نشد.');
+      const catalog = findCatalogById(term.type, input.courseCatalogId);
+      if (!catalog) throw new Error('درس کاتالوگ یافت نشد.');
+      activateOfferingInSnapshot(
+        draft,
+        input.termId,
+        input.courseCatalogId,
+        catalog.type
+      );
+    });
+  },
+
+  async deactivateOffering(
+    input: DeactivateOfferingInput
+  ): Promise<SyllabusConfigSnapshot> {
+    gateSyllabus();
+    return mutateSyllabusSnapshot((draft) => {
+      if (!draft.offerings[input.courseOfferingId]) {
+        throw new Error('ارائهٔ درس یافت نشد.');
+      }
+      deactivateOfferingInSnapshot(draft, input.courseOfferingId);
     });
   },
 
   async updateTermGates(
     input: UpdateTermGatesInput
   ): Promise<SyllabusConfigSnapshot> {
-    requireSyllabusManage();
+    gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {
-      const term = draft.terms.find((t) => t.title === input.termTitle);
+      const term = draft.terms.find((t) => t.id === input.termId);
       if (!term) throw new Error('ترم انتخاب‌شده یافت نشد.');
       if (input.isEnrollOpen !== undefined) {
         term.isEnrollOpen = input.isEnrollOpen;
@@ -102,63 +136,22 @@ export const SyllabusConfigService = {
     });
   },
 
-  async getOrSeedWeeks(
-    termTitle: string,
-    courseTitle: string,
-    kind: CourseOfferingKind
-  ): Promise<SyllabusWeek[]> {
-    requireSyllabusManage();
-    const snapshot = mutateSyllabusSnapshot((draft) => {
-      ensureSyllabusWeeksLoaded(draft, termTitle, courseTitle, kind);
-    });
-    const key = offeringStorageKey(termTitle, courseTitle);
-    return structuredClone(snapshot.offerings[key]?.weeks ?? []);
-  },
-
-  async toggleCourseOffering(
-    input: ToggleCourseOfferingInput
-  ): Promise<SyllabusConfigSnapshot> {
-    requireSyllabusManage();
-    return mutateSyllabusSnapshot((draft) => {
-      const key = offeringStorageKey(input.termTitle, input.course.title);
-      const offered = isCourseOfferedInSnapshot(
-        draft,
-        input.termTitle,
-        input.course.title
-      );
-
-      if (offered) {
-        const existing = draft.offerings[key];
-        if (existing) {
-          existing.weeks = existing.weeks.map((week) => ({
-            ...week,
-            status: 'archived' as const,
-          }));
-        }
-        return;
-      }
-
-      draft.offerings[key] = {
-        weeks: buildSeedWeeks(defaultWeekCount(input.course.type), 'active'),
-      };
-    });
-  },
-
   async saveSyllabusWeeks(
     input: SaveSyllabusWeeksInput
   ): Promise<SyllabusConfigSnapshot> {
-    requireSyllabusManage();
+    gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {
-      const key = offeringStorageKey(input.termTitle, input.courseTitle);
-      draft.offerings[key] = { weeks: structuredClone(input.weeks) };
+      const existing = draft.offerings[input.courseOfferingId];
+      if (!existing) throw new Error('ارائهٔ درس یافت نشد.');
+      existing.weeks = structuredClone(input.weeks);
 
-      // TODO(Nest): syncStudentWeeksWithSyllabus — وقتی دامنه internship دانشجو آماده شد.
+      // Nest-blocked: syncStudentWeeksWithSyllabus
       void draft.internships;
     });
   },
 
   async createTerm(input: UpsertTermInput): Promise<SyllabusConfigSnapshot> {
-    requireSyllabusManage();
+    gateSyllabus();
     const title = buildTermTitle(input);
     return mutateSyllabusSnapshot((draft) => {
       if (draft.terms.some((t) => t.title === title)) {
@@ -173,14 +166,11 @@ export const SyllabusConfigService = {
         enrollStart: '',
         termStart: '',
       });
-      if (!draft.selectedTermTitle) {
-        draft.selectedTermTitle = title;
-      }
     });
   },
 
   async deleteTerm(termId: string): Promise<SyllabusConfigSnapshot> {
-    requireSyllabusManage();
+    gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {
       const term = draft.terms.find((t) => t.id === termId);
       if (!term) throw new Error('دوره تحصیلی یافت نشد.');
@@ -195,38 +185,27 @@ export const SyllabusConfigService = {
       }
 
       draft.terms = draft.terms.filter((t) => t.id !== termId);
-      deleteOfferingsForTerm(draft, term.title);
-      if (draft.selectedTermTitle === term.title) {
-        draft.selectedTermTitle = draft.terms[0]?.title ?? '';
-      }
+      deleteOfferingsForTermId(draft, termId);
     });
   },
 
   async setProfessorCapacity(capacity: number): Promise<SyllabusConfigSnapshot> {
-    requireSyllabusManage();
+    gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {
       draft.globalProfessorCapacity = capacity;
     });
   },
 
   async setPassingThreshold(threshold: number): Promise<SyllabusConfigSnapshot> {
-    requireSyllabusManage();
+    gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {
       draft.passingScoreThreshold = threshold;
     });
   },
-};
 
-function deleteOfferingsForTerm(
-  draft: SyllabusConfigSnapshot,
-  termTitle: string
-): void {
-  const prefix = `C::${termTitle}::`;
-  for (const key of Object.keys(draft.offerings)) {
-    if (key.startsWith(prefix)) {
-      delete draft.offerings[key];
-    }
-  }
-}
+  resolveOfferingId(termId: string, courseCatalogId: string): string {
+    return buildCourseOfferingId(termId, courseCatalogId);
+  },
+};
 
 export { DEFAULT_WEEK_WEIGHT, getAcademicYearOptions, isTermGateActive };

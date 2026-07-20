@@ -55,7 +55,6 @@ export type ApprovalFieldDef = {
   key: string;
   label: string;
   icon: IconDefinition;
-  /** When true, render value with Persian digits. */
   numeric?: boolean;
 };
 
@@ -157,7 +156,6 @@ export const ROLE_APPROVAL_FIELDS: Partial<
   ],
 };
 
-/** Which review actions are available on each status tab. */
 export function getApprovalTabActions(tab: ApprovalFilterTab): {
   canApprove: boolean;
   canReject: boolean;

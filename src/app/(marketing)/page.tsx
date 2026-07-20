@@ -6,9 +6,6 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { RouteService } from '@/services/route.service';
 import { faIcons } from '@/utils/iconMap';
 
-/**
- * Public marketing landing — brand-loud (rule 90). RSC, no client state.
- */
 export default function MarketingHomePage() {
   return (
     <div

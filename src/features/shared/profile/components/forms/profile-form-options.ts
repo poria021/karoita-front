@@ -27,7 +27,6 @@ export const DEPENDENCIES: Partial<
   district: ['school'],
 };
 
-/** @deprecated Prefer OrganizationOptionsService — kept for local helpers/tests. */
 export function getOrganizationOptions(
   field: OrganizationField,
   province: string,

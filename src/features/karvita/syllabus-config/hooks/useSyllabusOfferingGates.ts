@@ -6,47 +6,58 @@ import { toast } from 'sonner';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type {
   AcademicTerm,
-  CourseOfferingCatalogItem,
+  CourseCatalogItem,
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
-import { computeOfferedTitles, errorMessage } from './syllabusPageUtils';
+import { errorMessage, offeredCatalogIdsFromList } from './syllabusPageUtils';
 
 type UseSyllabusOfferingGatesArgs = {
-  selectedTermTitle: string;
+  selectedTermId: string;
   selectedTerm: AcademicTerm | null;
-  selectedCourse: CourseOfferingCatalogItem | null;
-  offeredTitles: Set<string>;
+  selectedCourse: CourseCatalogItem | null;
+  offeredCatalogIds: Set<string>;
   setTerms: Dispatch<SetStateAction<AcademicTerm[]>>;
   setWeeks: Dispatch<SetStateAction<SyllabusWeek[]>>;
-  setOfferedTitles: Dispatch<SetStateAction<Set<string>>>;
+  setOfferedCatalogIds: Dispatch<SetStateAction<Set<string>>>;
   setHasUnsavedChanges: Dispatch<SetStateAction<boolean>>;
 };
 
-/**
- * Term enroll/class gates + course offering activate/deactivate confirms.
- */
 export function useSyllabusOfferingGates({
-  selectedTermTitle,
+  selectedTermId,
   selectedTerm,
   selectedCourse,
-  offeredTitles,
+  offeredCatalogIds,
   setTerms,
   setWeeks,
-  setOfferedTitles,
+  setOfferedCatalogIds,
   setHasUnsavedChanges,
 }: UseSyllabusOfferingGatesArgs) {
   const [gateCloseTarget, setGateCloseTarget] = useState<
     'enroll' | 'term' | null
   >(null);
   const [deactivateCourseTarget, setDeactivateCourseTarget] =
-    useState<CourseOfferingCatalogItem | null>(null);
+    useState<CourseCatalogItem | null>(null);
+
+  async function refreshOfferingsAndWeeks(course: CourseCatalogItem) {
+    if (!selectedTermId) return;
+    const offerings = await SyllabusConfigService.listOfferings(selectedTermId);
+    setOfferedCatalogIds(offeredCatalogIdsFromList(offerings));
+    if (selectedCourse?.id === course.id) {
+      const nextWeeks = await SyllabusConfigService.getWeeks(
+        selectedTermId,
+        course.id
+      );
+      setWeeks(nextWeeks);
+      setHasUnsavedChanges(false);
+    }
+  }
 
   async function toggleEnroll(open: boolean) {
-    if (!selectedTermTitle) return;
+    if (!selectedTermId) return;
     try {
       const snapshot = await SyllabusConfigService.updateTermGates({
-        termTitle: selectedTermTitle,
+        termId: selectedTermId,
         isEnrollOpen: open,
       });
       setTerms(snapshot.terms);
@@ -61,10 +72,10 @@ export function useSyllabusOfferingGates({
   }
 
   async function toggleTermOpen(open: boolean) {
-    if (!selectedTermTitle) return;
+    if (!selectedTermId) return;
     try {
       const snapshot = await SyllabusConfigService.updateTermGates({
-        termTitle: selectedTermTitle,
+        termId: selectedTermId,
         isTermOpen: open,
       });
       setTerms(snapshot.terms);
@@ -103,52 +114,52 @@ export function useSyllabusOfferingGates({
     setGateCloseTarget(null);
   }
 
-  async function applyToggleCourseOffering(course: CourseOfferingCatalogItem) {
-    if (!selectedTermTitle) return;
+  async function applyActivateCourse(course: CourseCatalogItem) {
+    if (!selectedTermId || !selectedTerm) return;
     try {
-      await SyllabusConfigService.toggleCourseOffering({
-        termTitle: selectedTermTitle,
-        course,
+      await SyllabusConfigService.activateOffering({
+        termId: selectedTermId,
+        courseCatalogId: course.id,
       });
-      const wasOffered = offeredTitles.has(course.title);
-      setOfferedTitles(
-        computeOfferedTitles(
-          selectedTermTitle,
-          SyllabusConfigService.getCoursesForTerm(selectedTerm)
-        )
-      );
-      if (selectedCourse?.title === course.title) {
-        const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
-          selectedTermTitle,
-          course.title,
-          course.type
-        );
-        setWeeks(nextWeeks);
-        setHasUnsavedChanges(false);
-      }
-      toast[wasOffered ? 'warning' : 'success'](
-        wasOffered
-          ? `ارائه درس «${course.title}» در این نیم‌سال متوقف شد.`
-          : `درس «${course.title}» با موفقیت برای این نیم‌سال ارائه شد.`
+      await refreshOfferingsAndWeeks(course);
+      toast.success(
+        `درس «${course.title}» با موفقیت برای این نیم‌سال ارائه شد.`
       );
     } catch (err) {
-      toast.error(errorMessage(err, 'تغییر وضعیت ارائه درس ناموفق بود.'));
+      toast.error(errorMessage(err, 'فعال‌سازی ارائه درس ناموفق بود.'));
     }
   }
 
-  function requestToggleCourseOffering(course: CourseOfferingCatalogItem) {
-    if (offeredTitles.has(course.title)) {
+  async function applyDeactivateCourse(course: CourseCatalogItem) {
+    if (!selectedTermId) return;
+    try {
+      const courseOfferingId = SyllabusConfigService.resolveOfferingId(
+        selectedTermId,
+        course.id
+      );
+      await SyllabusConfigService.deactivateOffering({ courseOfferingId });
+      await refreshOfferingsAndWeeks(course);
+      toast.warning(
+        `ارائه درس «${course.title}» در این نیم‌سال متوقف شد.`
+      );
+    } catch (err) {
+      toast.error(errorMessage(err, 'غیرفعال‌سازی ارائه درس ناموفق بود.'));
+    }
+  }
+
+  function requestToggleCourseOffering(course: CourseCatalogItem) {
+    if (offeredCatalogIds.has(course.id)) {
       setDeactivateCourseTarget(course);
       return;
     }
-    void applyToggleCourseOffering(course);
+    void applyActivateCourse(course);
   }
 
   async function confirmDeactivateCourse() {
     if (!deactivateCourseTarget) return;
     const course = deactivateCourseTarget;
     setDeactivateCourseTarget(null);
-    await applyToggleCourseOffering(course);
+    await applyDeactivateCourse(course);
   }
 
   return {

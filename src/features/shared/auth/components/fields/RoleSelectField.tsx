@@ -15,7 +15,6 @@ interface RoleSelectFieldProps {
   disabled?: boolean;
 }
 
-/** Self-service role selector — labeled via {@link KvSelectField}. */
 export function RoleSelectField({
   control,
   errorMessage,

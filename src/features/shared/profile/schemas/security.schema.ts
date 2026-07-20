@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
-/** Profile security passwords require at least 8 characters (legacy HTML). */
 const securityPasswordField = z
   .string('رمز عبور الزامی است.')
   .min(1, 'رمز عبور الزامی است.')

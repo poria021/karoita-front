@@ -9,9 +9,6 @@ import { KvTooltipProvider } from '@/components/shared/KvTooltipProvider';
 
 config.autoAddCss = false;
 
-/**
- * Root client-side provider tree for the app.
- */
 export default function Providers({ children }: { children: ReactNode }) {
   return (
     <DirectionProvider dir="rtl">

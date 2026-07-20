@@ -39,15 +39,6 @@ import {
   realVerifyRegistrationOtp,
 } from '@/services/auth/real-auth.bridge';
 
-/**
- * Facade for every authentication interaction (rule 40).
- * Mock session meta stays JS-readable for local DX only — NOT Nest auth.
- * Real mode: Nest httpOnly cookies via `apiClient` (`credentials: 'include'`).
- * Zustand `activeUser` is UX chrome only — never authorization (rule 45 / ADR 004).
- *
- * Public paths (`login` / OTP / forgot) must reject `super_admin` — Nest + mock.
- * Admin gate is the only senior-admin entry (future admin subdomain).
- */
 
 const IS_MOCK_MODE = isMockApiMode();
 
@@ -60,6 +51,10 @@ function rejectMockOtpInReal(otp: string): void {
   assertRealModeRejectsMockSecret(otp, MOCK_OTP_CODE, 'OTP');
 }
 
+/**
+ * Facade احراز هویت — ورود، ثبت‌نام، OTP و نشست.
+ * UI فقط از این لایه صدا می‌زند؛ مسیر mock/real داخل همین کلاس جدا می‌شود.
+ */
 export class AuthService {
   static async loginWithCredentials(
     mobile: string,
@@ -87,7 +82,6 @@ export class AuthService {
     return realVerifyLoginOtp(mobile, otp);
   }
 
-  /** Admin gate — only `super_admin`. OTP-only entry. */
   static async sendAdminGateOtp(mobile: string): Promise<void> {
     if (IS_MOCK_MODE) {
       mockSendAdminGateOtp(mobile);
@@ -175,20 +169,11 @@ export class AuthService {
     if (!IS_MOCK_MODE) {
       try {
         await realSignOut();
-      } catch {
-        // Real Nest sign-out not wired yet — still clear local session.
-      }
+      } catch {}
     }
     dispatchSessionToStore(null);
   }
 
-  /**
-   * Idempotent session read for render — never clears cookies/store.
-   * Prefer this (or {@link getSession}) inside React render paths.
-   *
-   * Real mode: returns Zustand chrome only (token empty). Nest httpOnly
-   * session is authoritative — do not treat this as proof of privilege.
-   */
   static peekSession(): Session | null {
     const activeUser = useUserStore.getState().activeUser;
     if (!activeUser) return null;
@@ -200,8 +185,6 @@ export class AuthService {
       return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
 
-    // TODO(Nest): optional soft hint from last successful GET auth/session;
-    // never invent a JS-readable Nest token here.
     return {
       user: activeUser,
       token: '',
@@ -209,14 +192,6 @@ export class AuthService {
     };
   }
 
-  /**
-   * Validate session and clear expired/missing mock meta. Call only from
-   * effects / event handlers — never during render (rule 45).
-   *
-   * Real mode: does not trust Zustand alone. Until Nest is wired, leaves
-   * local chrome intact (logout / 401 interceptor clear the store). Prefer
-   * `realFetchSession` from `real-auth.bridge` when Nest session lands.
-   */
   static validateSession(): Session | null {
     const activeUser = useUserStore.getState().activeUser;
     if (!activeUser) return null;
@@ -230,12 +205,9 @@ export class AuthService {
       return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
 
-    // TODO(Nest): await realFetchSession(); on null → dispatchSessionToStore(null).
-    // Sync stub keeps peek semantics so guards do not forge Nest auth from Zustand.
     return AuthService.peekSession();
   }
 
-  /** Render-safe alias of {@link peekSession}. */
   static getSession(): Session | null {
     return AuthService.peekSession();
   }

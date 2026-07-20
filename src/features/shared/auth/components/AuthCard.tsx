@@ -21,7 +21,6 @@ interface AuthCardProps {
 
 type AuthCardTab = 'register' | 'login';
 
-/** Farsi label for the login tab trigger, matching the active login sub-mode from `useLoginForm`. */
 function getLoginTabLabel(
   activeTab: AuthCardTab,
   loginMode: 'password' | 'otp' | 'forgot'

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -9,33 +9,54 @@ import {
   ONBOARDING_APPROVALS_PAGE_SIZE,
   OnboardingApprovalsService,
 } from '@/services/onboarding-approvals.service';
+import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 
 const SEARCH_DEBOUNCE_MS = 300;
+const CACHE_NAMESPACE = 'onboarding-approvals';
+const CHROME_ID = 'onboarding-approvals';
+const PROVINCES_KEY = 'onboarding-approvals::provinces';
 
-/**
- * Page state for identity-doc review — paged via Facade (limit=10), same
- * infinite-list contract as org-structure admin tables.
- */
+type OnboardingChrome = {
+  tab: ApprovalFilterTab;
+  query: string;
+  province: string;
+};
+
 export function useOnboardingApprovalsPage() {
-  const [tab, setTab] = useState<ApprovalFilterTab>('pending_admin');
-  const [query, setQuery] = useState('');
-  const [province, setProvince] = useState('all');
+  const getChrome = useDashboardModuleCache((s) => s.getChrome);
+  const setChrome = useDashboardModuleCache((s) => s.setChrome);
+  const getData = useDashboardModuleCache((s) => s.getData);
+  const setData = useDashboardModuleCache((s) => s.setData);
+  const cachedChrome = getChrome<OnboardingChrome>(CHROME_ID);
+
+  const [tab, setTab] = useState<ApprovalFilterTab>(
+    () => cachedChrome?.tab ?? 'pending_admin'
+  );
+  const [query, setQuery] = useState(() => cachedChrome?.query ?? '');
+  const [province, setProvince] = useState(
+    () => cachedChrome?.province ?? 'all'
+  );
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
-  const [provinces, setProvinces] = useState<string[]>([]);
+  const [provinces, setProvinces] = useState<string[]>(
+    () => getData<string[]>(PROVINCES_KEY) ?? []
+  );
   const [actionBusy, setActionBusy] = useState(false);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
-  /** Clearing search must reload immediately — only debounce typing. */
   const listQuery = query.trim() === '' ? '' : debouncedQuery;
   const resetKey = `${tab}::${listQuery}::${province}`;
+
+  useEffect(() => {
+    setChrome<OnboardingChrome>(CHROME_ID, { tab, query, province });
+  }, [tab, query, province, setChrome]);
 
   const fetchPage = useCallback(
     async ({ offset, limit }: { offset: number; limit: number }) => {
@@ -47,19 +68,21 @@ export function useOnboardingApprovalsPage() {
         limit,
       });
       setProvinces(page.provinces);
+      setData(PROVINCES_KEY, page.provinces);
       return {
         items: page.items,
         total: page.total,
         hasMore: page.hasMore,
       };
     },
-    [tab, listQuery, province]
+    [tab, listQuery, province, setData]
   );
 
   const list = useOffsetLimitInfiniteList<OnboardingApprovalUser>({
     resetKey,
     fetchPage,
     pageSize: ONBOARDING_APPROVALS_PAGE_SIZE,
+    cacheNamespace: CACHE_NAMESPACE,
   });
 
   const {
@@ -68,6 +91,7 @@ export function useOnboardingApprovalsPage() {
     hasMore,
     isLoading,
     isLoadingMore,
+    isCold,
     error,
     loadMoreError,
     loadMore,
@@ -157,6 +181,7 @@ export function useOnboardingApprovalsPage() {
     hasMore,
     isLoading,
     isLoadingMore,
+    isCold,
     error,
     loadMoreError,
     loadMore,

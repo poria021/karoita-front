@@ -16,12 +16,6 @@ import {
   type ProfileSchema,
 } from '../schemas/profile.schema';
 
-/**
- * Profile form hook — Step 5.2 onboarding lifecycle.
- * Client-only. Never invoke inside a React Server Component.
- * Without activeUser: redirects to login; does not throw during render.
- * Persistence: ProfileService only (single mock writer / Nest facade).
- */
 export function useProfileForm() {
   const router = useRouter();
   const activeUser = useUserStore((state) => state.activeUser);
@@ -74,7 +68,6 @@ export function useProfileForm() {
       });
 
       if (identityDoc) {
-        // Uploader already compressed to WebP — do not compress again.
         const documentBase64 = await fileToDataUrl(identityDoc);
         await ProfileService.updateIdentityDocument(documentBase64);
       }

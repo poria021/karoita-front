@@ -27,13 +27,8 @@ import {
 } from './profile/profile.mock';
 
 const MOCK_DELAY_MS = 350;
-/** Real API: reject oversized data-URL payloads (~1.1MB chars ≈ ~800KB binary). */
 const MAX_IDENTITY_BASE64_CHARS = 1_100_000;
 
-/**
- * Flat onboarding payload (Step 5.2). Same field set as ProfileDTO + optional File.
- * Identity binary stays in the UI until compressed to WebP data-URL.
- */
 export interface UpdateOnboardingProfilePayload {
   role: UserRole;
   firstName: string;
@@ -47,7 +42,6 @@ export interface UpdateOnboardingProfilePayload {
   district?: string;
   school?: string;
   city?: string;
-  /** Collected by ProfileForm; upload via {@link ProfileService.updateIdentityDocument}. */
   identityDoc?: File | null;
 }
 
@@ -80,11 +74,8 @@ function friendlyError(error: unknown): Error {
 }
 
 /**
- * Canonical Nest-ready profile Facade (rule 40).
- * Mock: single writer `patchMockAuthUser` (auth mock store + Zustand sync).
- * Real: `apiClient` profile endpoints.
- *
- * Prefer this over `UserService` — onboarding + portal identity share one path.
+ * Facade پروفایل کاربر — خواندن/به‌روزرسانی هویت و امنیت.
+ * شکل خروجی mock و real باید یکسان بماند.
  */
 export class ProfileService {
   static async getProfile(token?: string): Promise<ProfileDTO> {
@@ -135,11 +126,6 @@ export class ProfileService {
     }
   }
 
-  /**
-   * Onboarding Step 5.2 — persists fields and returns the public User.
-   * Callers that also upload a document should compress then call
-   * {@link updateIdentityDocument} separately (same as IdentityForm).
-   */
   static async updateOnboardingProfile(
     payload: UpdateOnboardingProfilePayload
   ): Promise<User> {
@@ -177,7 +163,6 @@ export class ProfileService {
     return toPublicUser(updated);
   }
 
-  /** Saves the already-compressed WebP identity document through the facade. */
   static async updateIdentityDocument(
     documentBase64: string,
     token?: string

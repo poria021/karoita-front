@@ -13,14 +13,9 @@ import {
 import { readAuthErrorMessage } from './authError';
 
 interface UsePasswordLoginOptions {
-  /** Called after a successful credential login (e.g. redirect to dashboard). */
   onSuccess: () => void;
 }
 
-/**
- * Credential login. "مرا به خاطر بسپار" فقط شماره موبایل (انگلیسی در storage،
- * فارسی در UI) را برای ورود بعدی نگه می‌دارد — هرگز رمز عبور.
- */
 export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
   const passwordForm = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -29,8 +24,6 @@ export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
     defaultValues: { mobile: '', password: '', remember: false },
   });
 
-  // After client mount: restore remembered mobile into the field (SSR-safe).
-  // Password stays empty — never restore credentials from storage/browser vault.
   useEffect(() => {
     const mobile = readRememberedMobile();
     if (!mobile) return;

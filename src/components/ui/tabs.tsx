@@ -5,9 +5,6 @@ import { Tabs as TabsPrimitive } from 'radix-ui';
 
 import { cn } from '@/lib/utils';
 
-/**
- * Shadcn-style Tabs primitives (Radix). Product chrome lives in `AppTabs`.
- */
 function Tabs({
   className,
   ...props

@@ -19,23 +19,11 @@ import {
 } from '@/utils/compressor';
 import { faIcons } from '@/utils/iconMap';
 
-/**
- * Identity document dropzone — layout/chrome matches `original-karvita.html`
- * (nested muted panel + compact centered dashed zone). Compression behavior unchanged.
- */
 
 interface IdentityDocUploaderProps {
   value?: File | null;
   onChange: (file: File | null) => void;
-  /**
-   * Title above the dropzone.
-   * @default "بارگذاری مدرک هویتی (اختیاری)"
-   */
   label?: string | false;
-  /**
-   * Small format line under the drop prompt.
-   * @default "PNG, JPG تا ۱۰ مگابایت"
-   */
   helperText?: string;
   disabled?: boolean;
   error?: string;
@@ -52,7 +40,6 @@ export function IdentityDocUploader({
   const [isCompressing, setIsCompressing] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Data-URI / blob preview — object URL derived from File; cleanup on change.
   const previewUrl = useMemo(
     () => (value ? URL.createObjectURL(value) : null),
     [value]
@@ -194,7 +181,6 @@ export function IdentityDocUploader({
           </div>
         ) : null}
 
-        {/* Compressing */}
         {isCompressing ? (
           <div className="mx-auto flex min-h-32 w-full flex-col items-center justify-center gap-kv-pair rounded-kv-control border-2 border-dashed border-kv-border-strong bg-kv-surface p-kv-group">
             <FaIcon

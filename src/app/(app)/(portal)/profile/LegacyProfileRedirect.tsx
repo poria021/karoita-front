@@ -6,10 +6,6 @@ import { useEffect } from 'react';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 
-/**
- * Client redirect leaf for legacy `/profile/*` bookmarks.
- * Parent `(app)` layout already gates with HydrationSafe — do not nest another.
- */
 export function LegacyProfileRedirect({
   target,
 }: {

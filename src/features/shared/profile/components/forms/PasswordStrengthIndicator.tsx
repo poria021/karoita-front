@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 export type PasswordStrengthLevel = 'empty' | 'weak' | 'moderate' | 'strong';
 
 export interface PasswordStrengthResult {
-  /** 0–100 bar width derived from zxcvbn score (0–4). */
   score: number;
   level: PasswordStrengthLevel;
   label: string;
@@ -19,7 +18,6 @@ type ZxcvbnChecker = { check: (password: string) => { score: number } };
 
 let zxcvbnPromise: Promise<ZxcvbnChecker> | null = null;
 
-/** Lazy-load zxcvbn (+ dictionaries) only when the password meter mounts. */
 function loadZxcvbn(): Promise<ZxcvbnChecker> {
   if (!zxcvbnPromise) {
     zxcvbnPromise = Promise.all([
@@ -40,10 +38,6 @@ function loadZxcvbn(): Promise<ZxcvbnChecker> {
   return zxcvbnPromise;
 }
 
-/**
- * Maps zxcvbn score (0–4) onto the product's three visible strength bands.
- * Empty input stays a dedicated level (UI hides the meter).
- */
 export function scoreToStrengthResult(score: number): PasswordStrengthResult {
   const percent = Math.round((score / 4) * 100);
 
@@ -76,7 +70,6 @@ export function scoreToStrengthResult(score: number): PasswordStrengthResult {
   };
 }
 
-/** Async helper for tests — loads zxcvbn on demand. */
 export async function evaluatePasswordStrength(
   password: string
 ): Promise<PasswordStrengthResult> {
@@ -106,7 +99,6 @@ const PENDING_STRENGTH: PasswordStrengthResult = {
   labelClassName: 'text-kv-text-faint',
 };
 
-/** Color-coded Weak / Moderate / Strong password meter (zxcvbn engine). */
 export function PasswordStrengthIndicator({
   password,
   className,

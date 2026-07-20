@@ -9,14 +9,9 @@ export type KvBadgeVariant = NonNullable<
 >;
 
 export type KvBadgeProps = Omit<React.ComponentProps<typeof Badge>, 'variant'> & {
-  /** Semantic status colors — only for status, never decorative (rule 90). */
   variant?: KvBadgeVariant;
 };
 
-/**
- * Product badge — wraps `ui/badge` with `kv-*` status variants.
- * Features must use this, not raw `Badge`.
- */
 export function KvBadge({
   className,
   variant = 'default',

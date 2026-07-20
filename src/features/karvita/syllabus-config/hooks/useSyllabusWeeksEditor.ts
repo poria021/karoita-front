@@ -7,41 +7,39 @@ import {
   DEFAULT_WEEK_WEIGHT,
   SyllabusConfigService,
 } from '@/services/syllabus-config.service';
-import type {
-  CourseOfferingCatalogItem,
-  SyllabusWeek,
-} from '@/types/syllabus-config';
+import type { CourseCatalogItem, SyllabusWeek } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-import { computeOfferedTitles, errorMessage } from './syllabusPageUtils';
+import {
+  weekTitleSchema,
+  weekWeightSchema,
+} from '../schemas/syllabus-config.schema';
+import { errorMessage } from './syllabusPageUtils';
 
 type UseSyllabusWeeksEditorArgs = {
-  selectedTermTitle: string;
-  selectedCourse: CourseOfferingCatalogItem | null;
-  courses: CourseOfferingCatalogItem[];
+  selectedTermId: string;
+  selectedCourse: CourseCatalogItem | null;
   weeks: SyllabusWeek[];
   setWeeks: Dispatch<SetStateAction<SyllabusWeek[]>>;
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: Dispatch<SetStateAction<boolean>>;
-  setOfferedTitles: Dispatch<SetStateAction<Set<string>>>;
   isSelectedCourseOffered: boolean;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
 };
 
 export function useSyllabusWeeksEditor({
-  selectedTermTitle,
+  selectedTermId,
   selectedCourse,
-  courses,
   weeks,
   setWeeks,
   hasUnsavedChanges,
   setHasUnsavedChanges,
-  setOfferedTitles,
   isSelectedCourseOffered,
   setIsSaving,
 }: UseSyllabusWeeksEditorArgs) {
   const [weekEditId, setWeekEditId] = useState<string | null>(null);
   const [weekEditTitle, setWeekEditTitle] = useState('');
+  const [weekEditError, setWeekEditError] = useState<string | null>(null);
   const [deleteWeekTarget, setDeleteWeekTarget] = useState<SyllabusWeek | null>(
     null
   );
@@ -55,8 +53,15 @@ export function useSyllabusWeeksEditor({
   }
 
   function updateWeekWeight(weekId: string, weight: number) {
+    const parsed = weekWeightSchema.safeParse(weight);
+    if (!parsed.success) {
+      toast.error('ضریب اهمیت معتبر نیست.');
+      return;
+    }
     setWeeks((prev) =>
-      prev.map((week) => (week.id === weekId ? { ...week, weight } : week))
+      prev.map((week) =>
+        week.id === weekId ? { ...week, weight: parsed.data } : week
+      )
     );
     setHasUnsavedChanges(true);
   }
@@ -125,19 +130,26 @@ export function useSyllabusWeeksEditor({
     if (week.status === 'archived') return;
     setWeekEditId(week.id);
     setWeekEditTitle(week.title || week.suffix);
+    setWeekEditError(null);
   }
 
   function closeWeekEdit() {
     setWeekEditId(null);
     setWeekEditTitle('');
+    setWeekEditError(null);
   }
 
   function saveWeekEdit() {
-    const title = weekEditTitle.trim();
-    if (!weekEditId || !title) {
-      toast.error('عنوان سرفصل الزامی است.');
+    const parsed = weekTitleSchema.safeParse({ title: weekEditTitle });
+    if (!weekEditId || !parsed.success) {
+      setWeekEditError(
+        parsed.success
+          ? 'عنوان سرفصل الزامی است.'
+          : (parsed.error.issues[0]?.message ?? 'عنوان سرفصل الزامی است.')
+      );
       return;
     }
+    const title = parsed.data.title;
     setWeeks((prev) =>
       prev.map((week) =>
         week.id === weekEditId ? { ...week, title, suffix: title } : week
@@ -149,16 +161,18 @@ export function useSyllabusWeeksEditor({
   }
 
   async function saveSyllabus() {
-    if (!selectedTermTitle || !selectedCourse || !hasUnsavedChanges) return;
+    if (!selectedTermId || !selectedCourse || !hasUnsavedChanges) return;
     setIsSaving(true);
     try {
+      const courseOfferingId = SyllabusConfigService.resolveOfferingId(
+        selectedTermId,
+        selectedCourse.id
+      );
       await SyllabusConfigService.saveSyllabusWeeks({
-        termTitle: selectedTermTitle,
-        courseTitle: selectedCourse.title,
+        courseOfferingId,
         weeks,
       });
       setHasUnsavedChanges(false);
-      setOfferedTitles(computeOfferedTitles(selectedTermTitle, courses));
       toast.success('برنامه سرفصل‌های هفتگی با موفقیت ثبت نهایی شد.');
     } catch (err) {
       toast.error(errorMessage(err, 'ثبت نهایی سرفصل ناموفق بود.'));
@@ -180,6 +194,7 @@ export function useSyllabusWeeksEditor({
     weekEditId,
     weekEditTitle,
     setWeekEditTitle,
+    weekEditError,
     openWeekEdit,
     closeWeekEdit,
     saveWeekEdit,

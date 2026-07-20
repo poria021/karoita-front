@@ -29,7 +29,6 @@ function DialogClose({
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
-/** Scrim — matches original-karvita modal overlay (`slate-950/40` + blur). */
 function DialogOverlay({
   className,
   ...props
@@ -46,10 +45,6 @@ function DialogOverlay({
   );
 }
 
-/**
- * Panel chrome — original-karvita modal card.
- * Flex-centered viewport (stable on mobile RTL) with equal side padding.
- */
 function DialogContent({
   className,
   children,

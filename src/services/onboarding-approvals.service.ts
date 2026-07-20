@@ -18,15 +18,9 @@ import {
 } from '@/utils/offset-limit-page';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
-/**
- * Facade for identity-document onboarding review (rule 40).
- * Mock: mutates `karvita_mock_auth_users` + syncs Zustand if the target is
- * the active session. Real: Nest must authorize `onboarding.review`.
- */
 
 const IS_MOCK_MODE = isMockApiMode();
 
-/** Nest-aligned page size for admin tables (same as org-structure). */
 export const ONBOARDING_APPROVALS_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
 
 function requireOnboardingReview(): void {
@@ -101,7 +95,6 @@ function patchUser(
   userId: string,
   patch: Partial<User>
 ): OnboardingApprovalUser {
-  // Single writer — same path as ProfileService (ADR-006).
   const updated = patchMockAuthUser(
     { id: userId },
     {
@@ -116,10 +109,10 @@ function patchUser(
   return toApprovalUser(toPublicUser(updated));
 }
 
+/**
+ * Facade تأیید ثبت‌نام — صفحه‌بندی، تأیید و رد درخواست‌های آنبوردینگ.
+ */
 export const OnboardingApprovalsService = {
-  /**
-   * Offset/limit page for infinite-scroll tables (Nest contract: limit=10).
-   */
   async listPage(
     filters: ListOnboardingApprovalsFilters
   ): Promise<ListOnboardingApprovalsPage> {

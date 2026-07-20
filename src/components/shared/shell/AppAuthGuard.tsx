@@ -8,11 +8,6 @@ import { RouteService } from '@/services/route.service';
 import { buildLoginHref } from '@/lib/return-url';
 import { useUserStore } from '@/store/useUserStore';
 
-/**
- * Client guard under HydrationSafe: no valid session → login (+ safe returnUrl).
- * Render uses peek-only session; clearing happens in validateSession (rule 45).
- * UI gate only — not API authorization.
- */
 export function AppAuthGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();

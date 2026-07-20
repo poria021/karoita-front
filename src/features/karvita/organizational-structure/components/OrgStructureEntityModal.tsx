@@ -69,7 +69,6 @@ function defaultValuesForTab(tab: OrgStructureSubTab): OrgEntityFormValues {
 function resolverForTab(
   tab: OrgStructureSubTab
 ): Resolver<OrgEntityFormValues> {
-  // Per-tab Zod schemas are structural subsets of OrgEntityFormValues.
   if (tab === 'provinces') {
     return zodResolver(provinceFormSchema) as Resolver<OrgEntityFormValues>;
   }

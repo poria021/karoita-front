@@ -1,9 +1,3 @@
-/**
- * Public paths configuration
- *
- * - exactPaths: Array of specific paths that are public (e.g., "/", "/about")
- * - prefixes: Array of path prefixes that make all their children public (e.g., "/docs/", "/auth/")
- */
 
 export const publicPathsConfig = {
   exactPaths: ['/'],

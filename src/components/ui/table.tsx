@@ -2,9 +2,6 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-/**
- * Shadcn-style Table primitives. Product admin chrome + scroll live in `KvTable`.
- */
 function Table({ className, ...props }: React.ComponentProps<'table'>) {
   return (
     <table

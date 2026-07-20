@@ -19,14 +19,9 @@ export type KvAccordionTriggerProps = React.ComponentProps<
 export type KvAccordionContentProps = React.ComponentProps<
   typeof AccordionContent
 > & {
-  /** Stack children with section gap. */
   stacked?: boolean;
 };
 
-/**
- * Product accordion root — controlled via `value` / `onValueChange`
- * (`type="single"` + `collapsible` for exclusive panels).
- */
 export function KvAccordion({ className, ...props }: KvAccordionProps) {
   return (
     <Accordion
@@ -37,7 +32,6 @@ export function KvAccordion({ className, ...props }: KvAccordionProps) {
   );
 }
 
-/** One accordion row — panel chrome when used as a card stack. */
 export function KvAccordionItem({
   className,
   ...props
@@ -78,10 +72,6 @@ export type KvAccordionTriggerMetaProps = {
   trailing?: React.ReactNode;
 };
 
-/**
- * Title / meta / trailing badge cluster for accordion triggers.
- * Owns truncation + spacing — pass strings or ready nodes.
- */
 export function KvAccordionTriggerMeta({
   title,
   description,
@@ -129,7 +119,6 @@ export function KvAccordionContent({
     <AccordionContent
       data-slot="kv-accordion-content"
       className={cn(
-        /* No full-bleed header rule — inset separator + DS horizontal padding. */
         'mx-kv-inset border-t border-kv-border px-0 pb-kv-inset text-kv-text-secondary',
         stacked && 'space-y-kv-group pt-kv-section',
         className

@@ -12,16 +12,6 @@ interface LoginFormProps {
   login: UseLoginFormReturn;
 }
 
-/**
- * Public login form: credential (mobile + password), OTP, or the embedded
- * password-recovery wizard, mirroring the "ورود" tab of `original-karvita.html`.
- *
- * Owns no state of its own — `login` is produced once by `useLoginForm` in
- * `AuthCard.tsx` so the parent can also read the active mode for the dynamic
- * tab label (rule 00, #7: keep this component a thin presentation layer).
- *
- * Field errors render under each control — no top-level alert banner.
- */
 export function LoginForm({ login }: LoginFormProps) {
   return (
     <div className="flex flex-col gap-kv-group">

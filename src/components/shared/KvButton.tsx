@@ -24,16 +24,10 @@ export type KvButtonProps = Omit<React.ComponentProps<'button'>, 'color'> &
     fullWidth?: boolean;
     icon?: React.ReactNode;
     iconPosition?: KvButtonIconPosition;
-    /** Shows spinner and disables the button while true. */
     loading?: boolean;
     asChild?: boolean;
   };
 
-/**
- * Maps text sizes → square icon sizes so icon-only stays proportional
- * without ignoring the caller's density intent (`sm` stays compact).
- * Explicit `icon` / `icon-sm` / `icon-lg` pass through unchanged.
- */
 export function resolveKvButtonSize(
   size: ButtonSize,
   isIconOnly: boolean
@@ -45,13 +39,6 @@ export function resolveKvButtonSize(
   return size;
 }
 
-/**
- * Product button — wraps Shadcn `ui/button` with loading / icon helpers.
- * Prefer over raw `Button` in app/feature UI.
- *
- * Icon-only: pass `size="sm"|"md"|"lg"` for density, or `icon-sm`|`icon`|`icon-lg`
- * explicitly. Size is never forced to a single square.
- */
 export function KvButton({
   className,
   color = 'cta',

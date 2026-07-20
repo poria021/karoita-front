@@ -40,7 +40,6 @@ export function filterByName<T extends { name: string }>(
   return items.filter((item) => item.name.toLowerCase().includes(q));
 }
 
-/** @deprecated Prefer `orgEntityKindFromTab` from `@/types/org-structure`. */
 export const kindFromTab = orgEntityKindFromTab;
 
 type NamedRow = { id: string; name: string };
@@ -57,10 +56,6 @@ function rawRowsForTab(
   return db.majors;
 }
 
-/**
- * Filter+sort once per (revision, tab, query). loadMore only slices.
- * Uses snapshot-scoped deleteBlocked Sets — never rebuilds graph per page.
- */
 export function getFilteredSortedRows(
   runtime: OrgRuntimeIndex,
   tab: OrgStructureSubTab,
@@ -117,7 +112,6 @@ export function pageOrgRowsFromRuntime(
   };
 }
 
-/** Pure-ish helper for unit tests (ephemeral runtime from a snapshot). */
 export function pageOrgRows(
   db: OrgStructureSnapshot,
   tab: OrgStructureSubTab,

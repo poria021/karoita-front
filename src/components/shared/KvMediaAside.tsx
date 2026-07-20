@@ -7,9 +7,6 @@ export type KvMediaAsideProps = {
   children: ReactNode;
 };
 
-/**
- * Media + fields split used in review / detail panels (mobile + desktop).
- */
 export function KvMediaAside({ media, children }: KvMediaAsideProps) {
   return (
     <div

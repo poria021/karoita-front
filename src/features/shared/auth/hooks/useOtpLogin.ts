@@ -9,15 +9,9 @@ import { readAuthErrorMessage } from './authError';
 import { useOtpCountdown } from './useOtpCountdown';
 
 interface UseOtpLoginOptions {
-  /** Called after a successful OTP verification (e.g. redirect to dashboard). */
   onSuccess: () => void;
 }
 
-/**
- * Passwordless (SMS OTP) login flow: request the code (step 1) then verify it
- * (step 2). Owns its own two forms, resend countdown, and step state. Mode
- * switching is delegated to the `useLoginForm` coordinator via {@link start}.
- */
 export function useOtpLogin({ onSuccess }: UseOtpLoginOptions) {
   const [otpStep, setOtpStep] = useState<1 | 2>(1);
   const [pendingMobile, setPendingMobile] = useState('');
@@ -38,7 +32,6 @@ export function useOtpLogin({ onSuccess }: UseOtpLoginOptions) {
     defaultValues: { otp: '' },
   });
 
-  /** Prefill the mobile number and reset to step 1 when entering OTP mode. */
   const start = useCallback(
     (prefillMobile: string) => {
       otpMobileForm.setValue('mobile', prefillMobile);
@@ -99,15 +92,6 @@ export function useOtpLogin({ onSuccess }: UseOtpLoginOptions) {
     }
   }, [isResendingOtp, countdown, pendingMobile, otpCodeForm]);
 
-  // ==========================================
-  // [MIGRATION MOCK TO NESTJS]: فعال‌سازی Web OTP در موبایل
-  // به محض نهایی شدن دامنه و فرمت پیامک NestJS، کامنت‌های زیر را بردارید:
-  //
-  // useWebOtp((code) => {
-  //   otpCodeForm.setValue('otp', code, { shouldValidate: true });
-  //   verifyOtp(); // ورود خودکار به محض خواندن پیامک
-  // }, otpStep === 2);
-  // ==========================================
 
   return {
     start,

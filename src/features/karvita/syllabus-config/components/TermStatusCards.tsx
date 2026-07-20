@@ -13,7 +13,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 interface TermStatusCardsProps {
   terms: AcademicTerm[];
   selectedTerm: AcademicTerm | null;
-  onSelectTerm: (termTitle: string) => void;
+  onSelectTerm: (termId: string) => void;
   onToggleEnroll: (open: boolean) => void;
   onToggleTermOpen: (open: boolean) => void;
 }
@@ -53,12 +53,12 @@ export function TermStatusCards({
             <KvSelectField
               label={false}
               size="sm"
-              value={selectedTerm?.title ?? ''}
+              value={selectedTerm?.id ?? ''}
               onValueChange={onSelectTerm}
               placeholder="انتخاب ترم"
             >
               {terms.map((term) => (
-                <KvSelectItem key={term.id} value={term.title}>
+                <KvSelectItem key={term.id} value={term.id}>
                   {toPersianDigits(term.title)}
                 </KvSelectItem>
               ))}

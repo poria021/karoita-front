@@ -23,7 +23,6 @@ import {
   writeMockUsers,
 } from '@/services/auth/mock-auth.store';
 
-/** Accepts {@link MOCK_OTP_CODE} only inside mock simulator — never in real. */
 export function assertMockOtp(otp: string): void {
   assertMockApiMode();
   if (otp !== MOCK_OTP_CODE) {
@@ -41,10 +40,6 @@ function requireUserByMobile(mobile: string): MockAuthUserRecord {
   return record;
 }
 
-/**
- * Public auth audience (login / OTP / forgot on `/auth/login`).
- * Nest must enforce the same rule — UI must not invent role gates (rule 45).
- */
 export function assertPublicAuthAudience(record: MockAuthUserRecord): void {
   if (isSuperAdminRole(record.role)) {
     throw new Error(AUTH_ERR_PUBLIC_AUTH_ADMIN_BLOCKED);

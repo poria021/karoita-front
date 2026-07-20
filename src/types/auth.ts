@@ -1,14 +1,4 @@
-/**
- * Auth domain types — single source of truth for user roles, the flat
- * (MongoDB-compatible) `User` DTO, and the `Session` shape returned by
- * `AuthService`.
- *
- * Per rule 40 (#4, Mock DB to MongoDB Schema Mapping), mock data produced
- * inside `src/services/` must return this exact shape so nothing needs to
- * change once the real NestJS API is wired in.
- */
 
-/** All 11 roles supported by the Karvita platform (see original-karvita.html). */
 export type UserRole =
   | 'student'
   | 'skill_learner'
@@ -22,14 +12,8 @@ export type UserRole =
   | 'central_organization'
   | 'super_admin';
 
-/** Identity document review state, driving the profile approval banners. */
 export type DocStatus = 'not_submitted' | 'pending_admin' | 'approved' | 'rejected';
 
-/**
- * Flat, MongoDB-compatible user record. Never include secrets (password
- * hashes, OTP codes) on this type — it is the exact shape returned to the
- * client and stored inside `useUserStore`.
- */
 export interface User {
   id: string;
   firstName: string;
@@ -38,9 +22,7 @@ export interface User {
   role: UserRole;
   approved: boolean;
   docStatus: DocStatus;
-  /** False until the user sets a first-time password on the security tab. */
   hasPassword?: boolean;
-  /** Admin rejection reason shown on the identity status alert. */
   adminRequestMessage?: string;
   province?: string;
   city?: string;
@@ -51,15 +33,11 @@ export interface User {
   personalCode?: string;
   studentId?: string;
   skillCode?: string;
-  /** Identity document preview URL (data URI or remote). Mock may omit large payloads. */
   docUrl?: string;
-  /** Human-readable document kind label (e.g. کارت دانشجویی). */
   docType?: string;
-  /** Epoch ms — used to sort onboarding approval queues (newest first). */
   lastChange?: number;
 }
 
-/** Active session envelope returned by `AuthService` on login/registration. */
 export interface Session {
   user: User;
   token: string;

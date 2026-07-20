@@ -72,14 +72,9 @@ export type KvTextAreaProps = {
   onChange?: React.ChangeEventHandler<HTMLTextAreaElement>;
   onBlur?: React.FocusEventHandler<HTMLTextAreaElement>;
   onFocus?: React.FocusEventHandler<HTMLTextAreaElement>;
-  /** @deprecated Forbidden — design-system consistency */
   className?: never;
 };
 
-/**
- * Multiline field with the same chrome as {@link KvTextField}
- * (label spacing, lock, error/hint). Wraps Shadcn `ui/textarea`.
- */
 export const KvTextArea = React.forwardRef<
   HTMLTextAreaElement,
   KvTextAreaProps

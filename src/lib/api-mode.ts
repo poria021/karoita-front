@@ -1,15 +1,10 @@
 /**
- * Central API mode resolution (mock vs real).
- *
- * Contract for juniors:
- * - `mock` = local simulator (localStorage + fixed OTP). NOT Nest.
- * - `real` = Nest API path. Mock secrets must never succeed here.
- * - Production never silently runs mock (fail closed).
+ * تعیین حالت API (`mock` | `real`) از روی env.
+ * در production حالت mock صریحاً ممنوع است (fail-closed).
  */
 
 export type ApiMode = 'mock' | 'real';
 
-/** Shown in errors/UI so mock is never confused with Nest. */
 export const MOCK_MODE_LABEL = 'شبیه‌ساز محلی (mock)';
 
 function readRawMode(): string | undefined {
@@ -17,7 +12,6 @@ function readRawMode(): string | undefined {
   return raw || undefined;
 }
 
-/** NODE_ENV or Vercel production — either means mock is forbidden. */
 function isProductionRuntime(): boolean {
   return (
     process.env.NODE_ENV === 'production' ||
@@ -25,13 +19,6 @@ function isProductionRuntime(): boolean {
   );
 }
 
-/**
- * Resolves mock/real for the current build.
- * - Explicit `mock` | `real` respected in development.
- * - Unset in production → `real`.
- * - Explicit `mock` in production → throws (fail closed).
- * - Unset in development → `mock` for local DX.
- */
 export function resolveApiMode(): ApiMode {
   const raw = readRawMode();
   const isProd = isProductionRuntime();
@@ -66,10 +53,6 @@ export function isRealApiMode(): boolean {
   return resolveApiMode() === 'real';
 }
 
-/**
- * Call at the top of every mock-only code path.
- * Prefer over trusting a module-level `IS_MOCK_MODE` alone when accepting secrets.
- */
 export function assertMockApiMode(): void {
   if (!isMockApiMode()) {
     throw new Error(
@@ -78,10 +61,6 @@ export function assertMockApiMode(): void {
   }
 }
 
-/**
- * Defense-in-depth for OTP / credential paths that will later call Nest.
- * Ensures the fixed mock OTP can never be treated as a real credential.
- */
 export function assertRealModeRejectsMockSecret(
   value: string,
   mockSecret: string,
@@ -95,14 +74,9 @@ export function assertRealModeRejectsMockSecret(
   }
 }
 
-/** Persian message for features not yet wired to Nest. */
 export const REAL_MODE_NOT_IMPLEMENTED =
   'این قابلیت هنوز به API واقعی متصل نشده است. (حالت real — شبیه‌ساز mock نیست.)';
 
-/**
- * Shared real-mode stub — use instead of ad-hoc `throw new Error(REAL_MODE_…)`.
- * `surface` is for logs/tests (e.g. `AuthService.sendOtp`); message stays user-facing Persian.
- */
 export function throwRealModeNotImplemented(surface?: string): never {
   if (surface && process.env.NODE_ENV !== 'production') {
     console.warn(`[real-mode stub] ${surface}`);

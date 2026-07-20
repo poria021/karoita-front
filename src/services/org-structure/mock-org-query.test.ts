@@ -81,7 +81,6 @@ describe('pageOrgRows', () => {
       expect(ids1.has(id)).toBe(false);
     }
 
-    // Same (tab, query) reused filter cache — revision match, no rebuild needed.
     const cache = getOrgListFilterCache();
     expect(cache?.revision).toBe(runtime.revision);
     expect(cache?.tab).toBe('majors');

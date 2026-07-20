@@ -3,14 +3,6 @@ import ky, { HTTPError, type Options as KyOptions } from 'ky';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 
-/**
- * Shared HTTP client (ky) for NestJS REST calls (rule 40).
- * Mock branches in Facades must not use this client.
- *
- * Session: `credentials: 'include'` for Nest httpOnly cookies.
- * Optional Bearer via per-call `token` (rule 40/45) — never invent a second
- * client-writable “auth cookie” parallel to Nest.
- */
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
 
@@ -84,7 +76,6 @@ let handlingUnauthorized = false;
 async function handleUnauthorized(): Promise<void> {
   if (handlingUnauthorized || typeof window === 'undefined') return;
 
-  // Soften race with an in-progress logout / already on auth pages.
   if (window.location.pathname.startsWith('/auth/')) {
     useUserStore.getState().setUser(null);
     return;
@@ -95,7 +86,6 @@ async function handleUnauthorized(): Promise<void> {
     useUserStore.getState().setUser(null);
     const { AuthService } = await import('@/services/auth.service');
     await AuthService.logout().catch(() => undefined);
-    // Hard recovery redirect from non-React interceptor (auth expiry).
     if (!window.location.pathname.startsWith('/auth/')) {
       window.location.assign(RouteService.auth.login());
     }
@@ -175,8 +165,7 @@ async function request<T>(
 }
 
 /**
- * Environment-agnostic NestJS JSON client.
- * Pass bearer `token` when the endpoint requires auth.
+ * کلاینت HTTP مشترک (ky) — اتصال به Nest، نگاشت خطا و هندل یکپارچهٔ ۴۰۱.
  */
 export const apiClient = {
   getJson<T>(path: string, token?: string, options?: KyOptions): Promise<T> {
@@ -212,7 +201,6 @@ export const apiClient = {
     });
   },
 
-  /** GET that may return empty body — returns parsed JSON or null. */
   async getMaybeJson<T>(
     path: string,
     token?: string,

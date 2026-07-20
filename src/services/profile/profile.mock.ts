@@ -63,7 +63,6 @@ export function updateMockProfile(
   };
 }
 
-/** Mock: metadata only — never persist large base64 in localStorage. */
 export function updateMockIdentityDocument(
   documentBase64: string,
   token?: string

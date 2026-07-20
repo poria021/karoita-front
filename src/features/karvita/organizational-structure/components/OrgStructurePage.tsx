@@ -13,14 +13,11 @@ import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import { useOrgStructurePage } from '../hooks/useOrgStructurePage';
 import { OrgStructureEntityModal } from './OrgStructureEntityModal';
+import { OrgStructurePageSkeleton } from '../skeletons/OrgStructurePageSkeleton';
 import { OrgStructureSubTabs } from './OrgStructureSubTabs';
 import { OrgStructureTable } from './OrgStructureTable';
 import { OrgStructureToolbar } from './OrgStructureToolbar';
 
-/**
- * Super-admin organizational structure workspace.
- * UX gate only — Nest must enforce authorization later (rule 45).
- */
 export function OrgStructurePage() {
   const router = useRouter();
   const activeUser = useUserStore((state) => state.activeUser);
@@ -37,6 +34,10 @@ export function OrgStructurePage() {
     return (
       <div className="min-h-40 w-full bg-kv-canvas" aria-busy="true" />
     );
+  }
+
+  if (page.isCold) {
+    return <OrgStructurePageSkeleton />;
   }
 
   return (

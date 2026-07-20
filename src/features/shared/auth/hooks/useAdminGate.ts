@@ -15,10 +15,6 @@ import { useOtpCountdown } from './useOtpCountdown';
 
 export type AdminGateStep = 1 | 2;
 
-/**
- * Super-admin OTP gate (original-karvita.html). Calls only
- * {@link AuthService.sendAdminGateOtp} / {@link AuthService.verifyAdminGateOtp}.
- */
 export function useAdminGate() {
   const router = useRouter();
   const searchParams = useSearchParams();

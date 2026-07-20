@@ -64,8 +64,6 @@ export const WEEK_WEIGHT_OPTIONS = [
   { value: 5, label: '۵ - خیلی زیاد' },
 ] as const;
 
-export const DEFAULT_WEEK_WEIGHT = 3;
-
 export function defaultPrefixForType(type: AcademicTermType): string {
   return type === 'modular' ? MODULAR_PREFIX_OPTIONS[0] : SEMESTER_PREFIX_OPTIONS[0];
 }

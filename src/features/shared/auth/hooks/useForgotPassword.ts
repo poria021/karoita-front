@@ -18,19 +18,9 @@ import { useOtpCountdown } from './useOtpCountdown';
 export type ForgotStep = 1 | 2 | 3;
 
 interface UseForgotPasswordOptions {
-  /**
-   * Called after the password is successfully reset. Receives the recovered
-   * mobile so the coordinator can prefill the credential form and return the
-   * card to password-login mode.
-   */
   onComplete: (recoveredMobile: string) => void;
 }
 
-/**
- * Self-service password-recovery wizard embedded inside the login card
- * (mobile → OTP → new password) so recovery never navigates away. Owns its
- * three forms, resend countdown, and step state.
- */
 export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
   const [forgotStep, setForgotStep] = useState<ForgotStep>(1);
   const [pendingForgotMobile, setPendingForgotMobile] = useState('');
@@ -58,7 +48,6 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
     defaultValues: { newPassword: '', confirmPassword: '' },
   });
 
-  /** Reset every recovery form (prefilling the mobile) and go to step 1. */
   const start = useCallback(
     (prefillMobile: string) => {
       forgotMobileForm.reset({ mobile: prefillMobile });

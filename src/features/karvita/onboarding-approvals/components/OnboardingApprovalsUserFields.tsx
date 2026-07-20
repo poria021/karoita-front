@@ -21,10 +21,6 @@ interface OnboardingApprovalsUserFieldsProps {
   user: OnboardingApprovalUser;
 }
 
-/**
- * Detail fields mirror the role profile form only
- * ({@link getRoleProfileDisplayFields} / ROLE_FIELD_STRATEGY) — no extra rows.
- */
 export function OnboardingApprovalsUserFields({
   user,
 }: OnboardingApprovalsUserFieldsProps) {

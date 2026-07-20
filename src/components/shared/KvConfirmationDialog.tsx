@@ -24,15 +24,10 @@ export type KvConfirmationDialogProps = {
   confirmText?: string;
   cancelText?: string;
   confirmVariant?: 'default' | 'destructive';
-  /** When true, confirm is disabled (e.g. parent-driven loading). */
   confirmDisabled?: boolean;
   children?: ReactNode;
 };
 
-/**
- * Confirm dialog — original-karvita «دیالوگ تاملی» chrome
- * (scrim + blur, rounded card, compact black title, end-aligned actions).
- */
 export function KvConfirmationDialog({
   isOpen,
   onClose,

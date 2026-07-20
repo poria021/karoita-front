@@ -4,7 +4,6 @@ import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 interface AuthStepHeadingProps {
-  /** 1-based current step */
   step: number;
   totalSteps: number;
 }
@@ -24,10 +23,6 @@ function bulletLabel(index: number, state: BulletState): string {
   return `گام ${toPersianDigits(index + 1)} در انتظار`;
 }
 
-/**
- * Progressive step dots:
- * completed = solid brand + check · active = brand ring + center dot · pending = light ring.
- */
 function AuthStepBullet({ state }: { state: BulletState }) {
   return (
     <span
@@ -47,10 +42,6 @@ function AuthStepBullet({ state }: { state: BulletState }) {
   );
 }
 
-/**
- * Multi-step auth chrome only — RTL: «گام X از Y» on the right, progressive bullets on the left.
- * Single-step forms must not render this component.
- */
 export function AuthStepHeading({ step, totalSteps }: AuthStepHeadingProps) {
   if (totalSteps <= 1 || step < 1 || step > totalSteps) {
     return null;

@@ -42,15 +42,9 @@ import type {
 } from '@/types/org-structure';
 import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
-/**
- * Facade for organizational structure CRUD (rule 40).
- * Mock: localStorage snapshot + client permission check (UX sim — NOT Nest authz).
- * Real: Nest stub via throwRealModeNotImplemented until wired.
- */
 
 const IS_MOCK_MODE = isMockApiMode();
 
-/** Nest-aligned page size for org list tables. */
 export const ORG_STRUCTURE_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
 
 export type {
@@ -78,17 +72,15 @@ function requireMockOrgManage(): void {
   assertMockClientHasPermission('organization.manage');
 }
 
+/**
+ * Facade ساختار سازمانی — لیست صفحه‌بندی‌شده و عملیات CRUD (mock/real).
+ */
 export const OrgStructureService = {
   async getSnapshot(): Promise<OrgStructureSnapshot> {
     requireMockOrgManage();
     return cloneSnapshot(readOrgSnapshot());
   },
 
-  /**
-   * Offset/limit page for infinite-scroll tables (Nest contract: limit=10).
-   * Mock: filter/sort tab rows, slice page, then O(1) deleteBlocked via index.
-   * Prefer this over any full-scan helper — Nest will page server-side.
-   */
   async listPage(
     options: OrgStructureListPageOptions
   ): Promise<OrgStructureListPage> {

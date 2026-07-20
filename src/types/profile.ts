@@ -12,14 +12,8 @@ import {
   supervisorProfessorProfileSchema,
 } from '@/services/profile/profile.schema';
 
-/**
- * Profile DTOs — inferred from the polymorphic Zod schemas in
- * `src/services/profile/profile.schema.ts` (services must not import features).
- */
 
-/** Full discriminated profile payload (any role). */
 export type ProfileDto = z.infer<typeof profileSchema>;
-/** REST-facing alias retained for the NestJS DTO naming convention. */
 export type ProfileDTO = ProfileDto;
 
 export type StudentProfileDto = z.infer<typeof studentProfileSchema>;
@@ -39,16 +33,11 @@ export type ProvincialUniversityProfileDto = z.infer<
   typeof provincialUniversityProfileSchema
 >;
 
-/**
- * Admin-tier roles (`super_admin` | `central_organization` | `assistant_admin`)
- * share one schema branch; narrow with `Extract` when a single role is needed.
- */
 export type AdminOnlyProfileDto = Extract<
   ProfileDto,
   { role: 'super_admin' | 'central_organization' | 'assistant_admin' }
 >;
 
-/** Profile form submit payload including optional identity document upload. */
 export type UpdateProfileDto = ProfileDto & {
   identityDoc?: File | null;
 };

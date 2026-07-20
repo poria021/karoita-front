@@ -24,10 +24,6 @@ type KvFormTextFieldProps<
   'name' | 'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'error' | 'id'
 >;
 
-/**
- * React Hook Form adapter for {@link KvTextField}.
- * Wires `control` + `name` and surfaces field errors automatically.
- */
 export function KvFormTextField<
   TFieldValues extends FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,

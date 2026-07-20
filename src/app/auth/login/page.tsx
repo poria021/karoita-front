@@ -32,11 +32,6 @@ function redirectToAdminGate(returnUrl?: string): never {
   redirect(adminGate);
 }
 
-/**
- * Public login. `?gate=admin` mirrors original-karvita.html discovery and
- * redirects to the standalone admin OTP gate (preserves safe returnUrl).
- * On `NEXT_PUBLIC_APP_SURFACE=admin`, always redirect to the admin gate.
- */
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
 

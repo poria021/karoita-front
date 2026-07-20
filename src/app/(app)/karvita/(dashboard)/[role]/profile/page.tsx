@@ -29,10 +29,6 @@ interface ProfilePageProps {
   params: Promise<{ role: string }>;
 }
 
-/**
- * Karvita profile route — RSC entry that awaits Next.js 15 async `params`
- * and streams the client ProfileContainer behind a Suspense boundary.
- */
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { role } = await params;
 

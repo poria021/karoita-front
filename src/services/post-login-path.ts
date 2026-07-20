@@ -14,8 +14,7 @@ import {
 export { isSuperAdminRole };
 
 /**
- * Post-auth landing path (rule 60 + 45). Super-admin never lands on the shared
- * user dashboard. Client UX only — not API authorization.
+ * مسیر فرود بعد از لاگین بر اساس نقش و وضعیت تأیید پروفایل.
  */
 export function getPostLoginPath(user: User | null | undefined): string {
   if (!user) {
@@ -33,9 +32,6 @@ export function getPostLoginPath(user: User | null | undefined): string {
   return RouteService.karvita.dashboard();
 }
 
-/**
- * Whether `path` is an allowed returnUrl target for this user (UX only).
- */
 export function canAccessReturnPath(
   user: User,
   path: string
@@ -57,7 +53,6 @@ export function canAccessReturnPath(
     );
   }
 
-  // Unlocked users continue below; profile already allowed above.
 
   if (isAdminControlPlanePath(pathname) && !isSuperAdminRole(user.role)) {
     return false;
@@ -74,7 +69,7 @@ export function canAccessReturnPath(
 }
 
 /**
- * Prefer a validated returnUrl when the user may access it; otherwise role home.
+ * اولویت با `returnUrl` امن و مجاز؛ در غیر این صورت `getPostLoginPath`.
  */
 export function resolvePostAuthPath(
   user: User | null | undefined,

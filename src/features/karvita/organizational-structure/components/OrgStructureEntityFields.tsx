@@ -17,7 +17,6 @@ import type { OrgStructureSubTab } from '@/types/org-structure';
 import { SCHOOL_GENDER_OPTIONS } from '../constants';
 import type { OrgEntityFormValues } from './OrgStructureEntityModal';
 
-/** Select portal above dialog overlay (rule 30 nested portals). */
 const SELECT_IN_DIALOG_Z = 'z-[150]';
 
 interface OrgStructureEntityFieldsProps {

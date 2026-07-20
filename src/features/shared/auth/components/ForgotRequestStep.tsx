@@ -11,7 +11,6 @@ interface ForgotRequestStepProps {
   login: UseLoginFormReturn;
 }
 
-/** Step 1 of password recovery: collect the mobile number and dispatch the SMS code. */
 export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
   const { forgotMobileForm, sendForgotOtp, isSendingForgotOtp, cancelForgotMode } = login;
   const { register, formState } = forgotMobileForm;

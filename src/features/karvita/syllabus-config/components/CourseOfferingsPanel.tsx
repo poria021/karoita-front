@@ -17,7 +17,7 @@ type CourseOfferingsPanelProps = Pick<
   | 'courses'
   | 'selectedCourse'
   | 'selectCourse'
-  | 'offeredTitles'
+  | 'offeredCatalogIds'
   | 'toggleCourseOffering'
   | 'weeks'
   | 'isLoading'
@@ -39,7 +39,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
       <TermStatusCards
         terms={props.terms}
         selectedTerm={props.selectedTerm}
-        onSelectTerm={(title) => void props.selectTerm(title)}
+        onSelectTerm={(termId) => props.selectTerm(termId)}
         onToggleEnroll={(open) => void props.toggleEnroll(open)}
         onToggleTermOpen={(open) => void props.toggleTermOpen(open)}
       />
@@ -48,8 +48,8 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
         <KvCard className="lg:col-span-4">
           <CourseOfferingsTable
             courses={props.courses}
-            selectedCourseTitle={props.selectedCourse?.title ?? null}
-            offeredTitles={props.offeredTitles}
+            selectedCourseId={props.selectedCourse?.id ?? null}
+            offeredCatalogIds={props.offeredCatalogIds}
             isLoading={props.isLoading}
             onSelectCourse={(course) => void props.selectCourse(course)}
             onToggleOffering={(course) =>

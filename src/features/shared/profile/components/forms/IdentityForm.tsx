@@ -31,28 +31,18 @@ export interface IdentityFormProps {
   activeUser: User;
   token?: string;
   disabled?: boolean;
-  /** Status alerts rendered inside the card (original-karvita.html). */
   statusAlerts?: ReactNode;
   onSaved?: () => void;
   showDocUploader?: boolean;
   submitLabel?: string;
-  /** When true, save marks approved without pending_admin (e.g. super_admin UX). */
   autoApproveOnSave?: boolean;
 }
 
-/**
- * Matches `original-karvita.html` `isProfileLocked` for roles that lock after submit.
- * Lock policy is passed from ProfileContainer strategy (no inline role checks).
- */
 function isIdentityProfileLocked(user: User, lockAfterSubmit: boolean): boolean {
   if (!lockAfterSubmit) return false;
   return user.docStatus !== 'not_submitted' && user.docStatus !== 'rejected';
 }
 
-/**
- * Identity form — layout mirrors original-karvita.html:
- * outer card → section header → alerts → fields box → upload box → submit.
- */
 export function IdentityForm({
   activeUser,
   token,
@@ -80,10 +70,8 @@ export function IdentityForm({
   const submit = form.handleSubmit(async (data) => {
     setSubmitError(null);
     try {
-      // Facade owns mock store + Zustand sync — do not double-write here.
       await ProfileService.updateProfile(data, token);
       if (identityDocument) {
-        // Uploader already compressed to WebP — do not compress again.
         const documentBase64 = await fileToDataUrl(identityDocument);
         await ProfileService.updateIdentityDocument(documentBase64, token);
       }
@@ -138,7 +126,6 @@ export function IdentityForm({
 
         <KvForm {...form}>
           <form onSubmit={submit} noValidate className="space-y-kv-section">
-            {/* Fields panel — no title (title lives on card header) */}
             <div className="rounded-kv-panel border border-kv-border p-kv-group shadow-kv-raised">
               <fieldset
                 disabled={isDisabled}

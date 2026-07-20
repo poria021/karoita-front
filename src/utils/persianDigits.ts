@@ -1,8 +1,6 @@
 /**
- * English <-> Persian/Arabic digit conversion utilities.
- *
- * Per rule 10 (TypeScript & Schema Standards), any numeric/identifier string
- * fed into a Zod schema must first be normalized via `persianToEnglishDigits`.
+ * تبدیل ارقام فارسی/عربی ↔ انگلیسی.
+ * نمایش می‌تواند فارسی باشد؛ state فرم، Zustand و payload API همیشه English (`0-9`) است.
  */
 
 const ENGLISH_TO_PERSIAN_DIGIT_MAP: Record<string, string> = {
@@ -41,10 +39,6 @@ const PERSIAN_AND_ARABIC_TO_ENGLISH_DIGIT_MAP: Record<string, string> = {
   '٩': '9',
 };
 
-/**
- * Safely converts English digits inside `value` to their Persian equivalents.
- * Returns an empty string for `null`/`undefined` input rather than throwing.
- */
 export function toPersianDigits(value: string | number | undefined | null): string {
   if (value === undefined || value === null) {
     return '';
@@ -55,11 +49,6 @@ export function toPersianDigits(value: string | number | undefined | null): stri
   return stringValue.replace(/[0-9]/g, (digit) => ENGLISH_TO_PERSIAN_DIGIT_MAP[digit] ?? digit);
 }
 
-/**
- * Converts Persian and Arabic digits inside `value` to English digits.
- * Intended to run as a Zod `z.preprocess` step before numeric/identifier
- * parsing so user-typed Persian numerals never fail validation.
- */
 export function persianToEnglishDigits(value: string | undefined | null): string {
   if (value === undefined || value === null) {
     return '';

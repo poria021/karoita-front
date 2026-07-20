@@ -18,28 +18,18 @@ import {
 
 interface SearchableOrganizationSelectProps {
   type: OrganizationField;
-  /**
-   * Label text string, or `false` to hide the label.
-   * Same contract as {@link KvTextField}.
-   */
   label?: string | false;
   required?: boolean;
   optionalHint?: boolean;
-  /** Selected label stored in the form (RHF value). */
   value: string;
   placeholder: string;
   locked?: boolean;
   showLockIcon?: boolean;
   error?: string;
   dependsOn?: OrganizationDependsOn;
-  /** Called with option label on select, or `''` when the user clears via typing. */
   onChange: (value: string) => void;
 }
 
-/**
- * Search-on-type organization select — cmdk list + KvTextField chrome.
- * Fetches pages of 10 via {@link useOrganizationOptions} while open.
- */
 export function SearchableOrganizationSelect({
   type,
   label = false,

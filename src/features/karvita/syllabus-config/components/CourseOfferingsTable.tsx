@@ -15,22 +15,22 @@ import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBody
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
-import type { CourseOfferingCatalogItem } from '@/types/syllabus-config';
+import type { CourseCatalogItem } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
 
 interface CourseOfferingsTableProps {
-  courses: CourseOfferingCatalogItem[];
-  selectedCourseTitle: string | null;
-  offeredTitles: Set<string>;
+  courses: CourseCatalogItem[];
+  selectedCourseId: string | null;
+  offeredCatalogIds: Set<string>;
   isLoading: boolean;
-  onSelectCourse: (course: CourseOfferingCatalogItem) => void;
-  onToggleOffering: (course: CourseOfferingCatalogItem) => void;
+  onSelectCourse: (course: CourseCatalogItem) => void;
+  onToggleOffering: (course: CourseCatalogItem) => void;
 }
 
 export function CourseOfferingsTable({
   courses,
-  selectedCourseTitle,
-  offeredTitles,
+  selectedCourseId,
+  offeredCatalogIds,
   isLoading,
   onSelectCourse,
   onToggleOffering,
@@ -64,11 +64,11 @@ export function CourseOfferingsTable({
             </KvTableEmpty>
           ) : (
             courses.map((course) => {
-              const offered = offeredTitles.has(course.title);
-              const selected = selectedCourseTitle === course.title;
+              const offered = offeredCatalogIds.has(course.id);
+              const selected = selectedCourseId === course.id;
               return (
                 <KvTableRow
-                  key={course.title}
+                  key={course.id}
                   interactive
                   selected={selected}
                   onClick={() => onSelectCourse(course)}

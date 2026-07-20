@@ -6,14 +6,9 @@ import { useUserStore } from '@/store/useUserStore';
 
 export type HydrationSafeProps = {
   children: ReactNode;
-  /** Optional placeholder while rehydrating — prefer plain surface, not skeletons. */
   fallback?: ReactNode;
 };
 
-/**
- * Delays children until persisted user state rehydrates (avoids auth flash).
- * Uses a plain canvas placeholder — no skeleton UI (product preference for now).
- */
 export default function HydrationSafe({
   children,
   fallback,

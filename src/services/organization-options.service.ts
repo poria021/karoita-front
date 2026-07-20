@@ -3,11 +3,6 @@ import { ApiClientError, apiClient } from '@/services/api-client';
 import { OrgStructureService } from '@/services/org-structure.service';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
-/**
- * Paginated org typeahead Facade (province/college/…).
- * Consumed by profile selects via SWR infinite — not the admin-table
- * `useOffsetLimitInfiniteList` stack (rule 40 / ADR-007).
- */
 
 const IS_MOCK_MODE = isMockApiMode();
 const DEFAULT_LIMIT = 10;
@@ -31,9 +26,7 @@ export type OrganizationOptionsQuery = {
   query?: string;
   page?: number;
   limit?: number;
-  /** Cascade parent — filters city/college/district/school. */
   province?: string;
-  /** Cascade parent — filters school. */
   district?: string;
   signal?: AbortSignal;
 };
@@ -162,10 +155,6 @@ async function fetchFromMock(
   return paginate(filtered, params.page, params.limit);
 }
 
-/**
- * Facade for paginated organization select options (province, college, …).
- * Mock filters/paginates locally; real mode hits NestJS `organization-options`.
- */
 export class OrganizationOptionsService {
   static async getOptions(
     params: OrganizationOptionsQuery

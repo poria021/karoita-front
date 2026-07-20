@@ -3,10 +3,6 @@ import type {
   OrgStructureSnapshot,
 } from '@/types/org-structure';
 
-/**
- * Pure domain rules: when delete must stay blocked in org-structure mock/real.
- * Kept outside the Facade so unit tests do not need localStorage / Zustand.
- */
 
 export type OrgDeleteBlockedSets = {
   provinces: Set<string>;
@@ -14,9 +10,6 @@ export type OrgDeleteBlockedSets = {
   districts: Set<string>;
 };
 
-/**
- * Single-pass index: O(children) once, then O(1) lookup per list row.
- */
 export function buildOrgDeleteBlockedSets(
   db: OrgStructureSnapshot
 ): OrgDeleteBlockedSets {
@@ -80,7 +73,6 @@ export function isFacultyDeleteBlocked(
   _db: OrgStructureSnapshot,
   _id: string
 ): boolean {
-  // Profile users may reference college by name — delete allowed until Nest links ids.
   return false;
 }
 

@@ -19,10 +19,6 @@ const ICON_TONE_CLASS: Record<KvEmptyStateTone, string> = {
   danger: 'bg-kv-danger-soft text-kv-danger',
 };
 
-/**
- * Shared empty / coming-soon surface.
- * Always fills the parent (`h-full` + `flex-1`) — parent must establish height.
- */
 export function KvEmptyState({
   icon,
   title,

@@ -6,7 +6,6 @@ export type KvDescriptionListProps = {
   children: ReactNode;
 };
 
-/** Labeled value list for admin detail panels (profile / review fields). */
 export function KvDescriptionList({ children }: KvDescriptionListProps) {
   return (
     <dl data-slot="kv-description-list" className="space-y-3.5">
@@ -18,7 +17,6 @@ export function KvDescriptionList({ children }: KvDescriptionListProps) {
 export type KvDescriptionItemProps = {
   label: string;
   value: ReactNode;
-  /** Monospace value (phones, codes). */
   mono?: boolean;
 };
 

@@ -36,19 +36,12 @@ export type KvTypographyElement =
 const kvTypographyVariants = cva('font-sans', {
   variants: {
     variant: {
-      /** Brand wordmark / marketing heroes */
       display: 'text-3xl font-black leading-[1.15] tracking-tight sm:text-4xl',
-      /** Section / page headings */
       title: 'text-sm font-bold leading-snug tracking-tight sm:text-base',
-      /** Secondary headings inside cards/sections */
       subtitle: 'text-xs font-bold leading-snug',
-      /** Supporting copy */
       body: 'text-xs font-medium leading-relaxed',
-      /** Field labels */
       label: 'text-xs font-bold leading-none',
-      /** Helper / meta under titles */
       caption: 'text-xs font-medium leading-normal',
-      /** Quiet chrome / footnotes */
       overline: 'text-xs font-medium leading-normal tracking-wide',
       error: 'text-xs font-bold leading-normal',
     },
@@ -112,17 +105,12 @@ export type KvTypographyProps = {
   htmlFor?: string;
   id?: string;
   children: React.ReactNode;
-  /** Forbidden — force design-system consistency */
   className?: never;
 } & Omit<
   VariantProps<typeof kvTypographyVariants>,
   'variant' | 'tone' | 'weight' | 'align' | 'truncate'
 >;
 
-/**
- * Shared Karvita content typography.
- * Prefer this for page/section copy — not for text baked into Button/Tabs/Select.
- */
 export function KvTypography({
   variant,
   tone = 'default',

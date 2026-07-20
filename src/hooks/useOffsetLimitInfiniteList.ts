@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
+  dashboardListCacheKey,
+  useDashboardModuleCache,
+} from '@/store/useDashboardModuleCache';
+import { delayDashboardColdSkeletonPreview } from '@/lib/dashboard-cold-skeleton-preview';
+import { computeDashboardListIsCold } from '@/lib/dashboard-list-cold';
+import {
   DEFAULT_PAGE_LIMIT,
   type OffsetLimitPage,
 } from '@/utils/offset-limit-page';
@@ -16,6 +22,8 @@ export type UseOffsetLimitInfiniteListOptions<T> = {
   resetKey: string;
   fetchPage: FetchOffsetLimitPage<T>;
   pageSize?: number;
+  /** When set, list pages are cached in memory for SPA revisits (rule 83). */
+  cacheNamespace?: string;
 };
 
 type ListState<T> = {
@@ -26,6 +34,12 @@ type ListState<T> = {
   isLoadingMore: boolean;
   error: string | null;
   loadMoreError: string | null;
+};
+
+type ListCachePayload<T> = {
+  items: T[];
+  total: number;
+  hasMore: boolean;
 };
 
 function initialListState<T>(): ListState<T> {
@@ -40,6 +54,18 @@ function initialListState<T>(): ListState<T> {
   };
 }
 
+function stateFromCache<T>(cached: ListCachePayload<T>): ListState<T> {
+  return {
+    items: cached.items,
+    total: cached.total,
+    hasMore: cached.hasMore,
+    isLoading: false,
+    isLoadingMore: false,
+    error: null,
+    loadMoreError: null,
+  };
+}
+
 /**
  * لیست بی‌نهایت ادمین روی قرارداد offset/limit.
  * جستجو یک‌بار در هوک صفحه debounce شود؛ این هوک فقط صفحه‌ها را جمع می‌کند.
@@ -48,13 +74,43 @@ export function useOffsetLimitInfiniteList<T>({
   resetKey,
   fetchPage,
   pageSize = DEFAULT_PAGE_LIMIT,
+  cacheNamespace,
 }: UseOffsetLimitInfiniteListOptions<T>) {
-  const [list, setList] = useState<ListState<T>>(initialListState);
+  const cacheKey = cacheNamespace
+    ? dashboardListCacheKey(cacheNamespace, resetKey)
+    : null;
+
+  const readCache = useDashboardModuleCache((s) => s.getData);
+  const writeCache = useDashboardModuleCache((s) => s.setData);
+
+  /** After first ready paint in this mount, never show page-level cold skeleton (tab switches stay local-busy). */
+  const hasEverReadyRef = useRef(false);
+
   const [activeKey, setActiveKey] = useState(resetKey);
+  const [list, setList] = useState<ListState<T>>(() => {
+    if (!cacheKey) return initialListState();
+    const cached = readCache<ListCachePayload<T>>(cacheKey);
+    if (cached) {
+      hasEverReadyRef.current = true;
+      return stateFromCache(cached);
+    }
+    return initialListState();
+  });
 
   if (resetKey !== activeKey) {
     setActiveKey(resetKey);
-    setList(initialListState());
+    const nextKey = cacheNamespace
+      ? dashboardListCacheKey(cacheNamespace, resetKey)
+      : null;
+    const cached = nextKey
+      ? readCache<ListCachePayload<T>>(nextKey)
+      : undefined;
+    if (cached) {
+      hasEverReadyRef.current = true;
+      setList(stateFromCache(cached));
+    } else {
+      setList(initialListState());
+    }
   }
 
   const requestIdRef = useRef(0);
@@ -63,12 +119,31 @@ export function useOffsetLimitInfiniteList<T>({
   useEffect(() => {
     const requestId = ++requestIdRef.current;
     inFlightRef.current = true;
+    const key = cacheNamespace
+      ? dashboardListCacheKey(cacheNamespace, resetKey)
+      : null;
+    const hadCacheEntry =
+      key != null && readCache<ListCachePayload<T>>(key) !== undefined;
+    const isModuleColdMiss =
+      !hadCacheEntry && !hasEverReadyRef.current;
+
+    setList((prev) => ({
+      ...prev,
+      // Soft refresh when cache/rows exist; tab changes stay local-busy (isCold gated by hasEverReady).
+      isLoading: !(hadCacheEntry || prev.items.length > 0),
+      isLoadingMore: false,
+      error: null,
+      loadMoreError: null,
+    }));
 
     void (async () => {
       try {
+        await delayDashboardColdSkeletonPreview(isModuleColdMiss);
+        if (requestId !== requestIdRef.current) return;
         const page = await fetchPage({ offset: 0, limit: pageSize });
         if (requestId !== requestIdRef.current) return;
-        setList({
+        hasEverReadyRef.current = true;
+        const next: ListState<T> = {
           items: page.items,
           total: page.total,
           hasMore: page.hasMore,
@@ -76,15 +151,26 @@ export function useOffsetLimitInfiniteList<T>({
           isLoadingMore: false,
           error: null,
           loadMoreError: null,
-        });
+        };
+        setList(next);
+        if (key) {
+          writeCache<ListCachePayload<T>>(key, {
+            items: page.items,
+            total: page.total,
+            hasMore: page.hasMore,
+          });
+        }
       } catch (err) {
         if (requestId !== requestIdRef.current) return;
-        setList({
+        setList((prev) => ({
           ...initialListState(),
+          items: prev.items,
+          total: prev.total,
+          hasMore: prev.hasMore,
           isLoading: false,
           error:
             err instanceof Error ? err.message : 'بارگذاری فهرست ناموفق بود.',
-        });
+        }));
       } finally {
         if (requestId === requestIdRef.current) {
           inFlightRef.current = false;
@@ -96,7 +182,7 @@ export function useOffsetLimitInfiniteList<T>({
       requestIdRef.current += 1;
       inFlightRef.current = false;
     };
-  }, [resetKey, pageSize, fetchPage]);
+  }, [resetKey, pageSize, fetchPage, cacheNamespace, writeCache, readCache]);
 
   const loadMore = useCallback(async () => {
     if (
@@ -111,6 +197,9 @@ export function useOffsetLimitInfiniteList<T>({
     const requestId = ++requestIdRef.current;
     inFlightRef.current = true;
     const offset = list.items.length;
+    const key = cacheNamespace
+      ? dashboardListCacheKey(cacheNamespace, resetKey)
+      : null;
 
     setList((prev) => ({
       ...prev,
@@ -121,13 +210,21 @@ export function useOffsetLimitInfiniteList<T>({
     try {
       const page = await fetchPage({ offset, limit: pageSize });
       if (requestId !== requestIdRef.current) return;
+      const items = [...list.items, ...page.items];
       setList((prev) => ({
         ...prev,
-        items: [...prev.items, ...page.items],
+        items,
         total: page.total,
         hasMore: page.hasMore,
         isLoadingMore: false,
       }));
+      if (key) {
+        writeCache<ListCachePayload<T>>(key, {
+          items,
+          total: page.total,
+          hasMore: page.hasMore,
+        });
+      }
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
       setList((prev) => ({
@@ -148,14 +245,19 @@ export function useOffsetLimitInfiniteList<T>({
     list.hasMore,
     list.isLoading,
     list.isLoadingMore,
-    list.items.length,
+    list.items,
     pageSize,
+    cacheNamespace,
+    resetKey,
+    writeCache,
   ]);
 
   const reload = useCallback(async () => {
     const requestId = ++requestIdRef.current;
     inFlightRef.current = true;
-    // Keep previous rows during soft refresh (rule 80); first paint still uses empty+busy.
+    const key = cacheNamespace
+      ? dashboardListCacheKey(cacheNamespace, resetKey)
+      : null;
     setList((prev) => ({
       ...prev,
       isLoading: true,
@@ -167,7 +269,8 @@ export function useOffsetLimitInfiniteList<T>({
     try {
       const page = await fetchPage({ offset: 0, limit: pageSize });
       if (requestId !== requestIdRef.current) return;
-      setList({
+      hasEverReadyRef.current = true;
+      const next: ListState<T> = {
         items: page.items,
         total: page.total,
         hasMore: page.hasMore,
@@ -175,7 +278,15 @@ export function useOffsetLimitInfiniteList<T>({
         isLoadingMore: false,
         error: null,
         loadMoreError: null,
-      });
+      };
+      setList(next);
+      if (key) {
+        writeCache<ListCachePayload<T>>(key, {
+          items: page.items,
+          total: page.total,
+          hasMore: page.hasMore,
+        });
+      }
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
       setList((prev) => ({
@@ -190,7 +301,19 @@ export function useOffsetLimitInfiniteList<T>({
         inFlightRef.current = false;
       }
     }
-  }, [fetchPage, pageSize]);
+  }, [fetchPage, pageSize, cacheNamespace, resetKey, writeCache]);
+
+  // Page skeleton: only before this mount has ever been ready (not on tab/search resetKey).
+  const cacheHit =
+    cacheKey != null &&
+    readCache<ListCachePayload<T>>(cacheKey) !== undefined;
+  const isCold = computeDashboardListIsCold({
+    isLoading: list.isLoading,
+    itemCount: list.items.length,
+    hasError: Boolean(list.error),
+    cacheHit,
+    hasEverReady: hasEverReadyRef.current,
+  });
 
   return {
     items: list.items,
@@ -198,6 +321,7 @@ export function useOffsetLimitInfiniteList<T>({
     hasMore: list.hasMore,
     isLoading: list.isLoading,
     isLoadingMore: list.isLoadingMore,
+    isCold,
     error: list.error,
     loadMoreError: list.loadMoreError,
     loadMore,

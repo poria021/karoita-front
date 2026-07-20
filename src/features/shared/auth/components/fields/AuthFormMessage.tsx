@@ -16,9 +16,6 @@ const TYPE_TO_VARIANT = {
   'error' | 'success' | 'info'
 >;
 
-/**
- * Auth form banner — thin wrapper over KvAlert (single alert chrome, rule 75).
- */
 export function AuthFormMessage({ message, onDismiss }: AuthFormMessageProps) {
   if (!message) return null;
 

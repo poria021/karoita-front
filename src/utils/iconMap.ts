@@ -70,15 +70,6 @@ import {
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 
-/**
- * Global Font Awesome solid icon mapper (Rule 30 / 82).
- * Keys mirror legacy `fa-*` strings from original-karvita.html / RoleStrategyMap.
- * Render with FaIcon from `@/components/shared/FaIcon`.
- *
- * Bundle: each icon is a named import from `@fortawesome/free-solid-svg-icons`
- * (tree-shakeable). Prefer `faIcons.*` for new code; `iconMap['fa-*']` stays for
- * legacy stems. Do not import the entire FA solid pack or add Lucide.
- */
 export const iconMap: Record<string, IconDefinition> = {
   'fa-graduation-cap': faGraduationCap,
   'fa-clipboard-check': faClipboardCheck,
@@ -124,7 +115,6 @@ export const iconMap: Record<string, IconDefinition> = {
   'fa-briefcase': faBriefcase,
 };
 
-/** Named solid icons for direct imports (avoid ad-hoc FA imports in features). */
 export const faIcons = {
   arrowLeft: faArrowLeft,
   arrowRight: faArrowRight,

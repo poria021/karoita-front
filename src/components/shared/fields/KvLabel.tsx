@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 
 export type KvLabelProps = React.ComponentProps<typeof Label>;
 
-/** Karvita form label — bold xs slate, used with selects outside KvTextField. */
 export function KvLabel({ className, ...props }: KvLabelProps) {
   return (
     <Label

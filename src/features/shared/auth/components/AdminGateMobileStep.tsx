@@ -9,7 +9,6 @@ interface AdminGateMobileStepProps {
   gate: UseAdminGateReturn;
 }
 
-/** Admin gate step 1 — management mobile only. */
 export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
   const { mobileForm, requestOtp, isRequestingOtp, secondsUntilResend } = gate;
   const { register, formState } = mobileForm;

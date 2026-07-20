@@ -8,9 +8,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . && node scripts/check-hardcoded-colors.mjs && node scripts/check-no-ui-imports.mjs",
+    "lint": "eslint . && node scripts/check-hardcoded-colors.mjs && node scripts/check-no-ui-imports.mjs && node scripts/check-skeleton-tokens.mjs",
     "lint:colors": "node scripts/check-hardcoded-colors.mjs",
     "lint:ds": "node scripts/check-no-ui-imports.mjs",
+    "lint:skeleton": "node scripts/check-skeleton-tokens.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },

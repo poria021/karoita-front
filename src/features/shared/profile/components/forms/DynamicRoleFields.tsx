@@ -25,12 +25,10 @@ export interface DynamicRoleFieldsProps {
   disabled?: boolean;
 }
 
-/** Normalize to English digits-only for RHF / Zod / API. */
 function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
 }
 
-/** Role-strategy-driven fields — all labeled via KvTextField / select shell. */
 export function DynamicRoleFields({
   role,
   disabled = false,

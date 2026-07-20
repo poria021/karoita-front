@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
@@ -9,6 +9,7 @@ import {
   OrgStructureService,
   type OrgStructureListItem,
 } from '@/services/org-structure.service';
+import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import {
   orgEntityKindFromTab,
   type OrgStructureSubTab,
@@ -17,17 +18,25 @@ import {
 import { getOrgTabConfig } from '../constants';
 
 const SEARCH_DEBOUNCE_MS = 300;
+const CACHE_NAMESPACE = 'org-structure';
+const CHROME_ID = 'org-structure';
 
-/** @deprecated Prefer `orgEntityKindFromTab` from `@/types/org-structure`. */
+type OrgChrome = {
+  tab: OrgStructureSubTab;
+  query: string;
+};
+
 export const entityKindFromTab = orgEntityKindFromTab;
 
-/**
- * Page state for org structure — paged via Facade (limit=10), owns tab/search/modals.
- * Search input is immediate; Facade fetches use a debounced query.
- */
 export function useOrgStructurePage() {
-  const [tab, setTab] = useState<OrgStructureSubTab>('provinces');
-  const [query, setQuery] = useState('');
+  const getChrome = useDashboardModuleCache((s) => s.getChrome);
+  const setChrome = useDashboardModuleCache((s) => s.setChrome);
+  const cachedChrome = getChrome<OrgChrome>(CHROME_ID);
+
+  const [tab, setTab] = useState<OrgStructureSubTab>(
+    () => cachedChrome?.tab ?? 'provinces'
+  );
+  const [query, setQuery] = useState(() => cachedChrome?.query ?? '');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
   const [editorOpen, setEditorOpen] = useState(false);
@@ -38,9 +47,12 @@ export function useOrgStructurePage() {
   );
 
   const tabConfig = useMemo(() => getOrgTabConfig(tab), [tab]);
-  /** Clearing search must reload immediately (tab change / clear) — only debounce typing. */
   const listQuery = query.trim() === '' ? '' : debouncedQuery;
   const resetKey = `${tab}::${listQuery}`;
+
+  useEffect(() => {
+    setChrome<OrgChrome>(CHROME_ID, { tab, query });
+  }, [tab, query, setChrome]);
 
   const fetchPage = useCallback(
     async ({ offset, limit }: { offset: number; limit: number }) =>
@@ -57,6 +69,7 @@ export function useOrgStructurePage() {
     resetKey,
     fetchPage,
     pageSize: ORG_STRUCTURE_PAGE_SIZE,
+    cacheNamespace: CACHE_NAMESPACE,
   });
 
   const changeTab = useCallback((next: OrgStructureSubTab) => {
@@ -104,6 +117,7 @@ export function useOrgStructurePage() {
     hasMore: list.hasMore,
     isLoading: list.isLoading,
     isLoadingMore: list.isLoadingMore,
+    isCold: list.isCold,
     error: list.error,
     loadMoreError: list.loadMoreError,
     loadMore: list.loadMore,

@@ -19,7 +19,6 @@ import {
 
 const MOCK_USERS_STORAGE_KEY = 'karvita_mock_auth_users';
 const MOCK_USERS_VERSION_KEY = 'karvita_mock_auth_users_version';
-/** Mock-only: JSON `{ token, expiresAt }` — never used in real mode. */
 const SESSION_META_STORAGE_KEY = 'karvita_auth_session_meta';
 
 export const MOCK_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
@@ -87,7 +86,10 @@ function readUsersFromStorage(): MockAuthUserRecord[] {
   }
 }
 
-/** Persist users + rebuild mobile/id indexes. */
+/**
+ * تنها نویسندهٔ لیست کاربران mock در localStorage.
+ * پروفایل/تأییدها باید از همین مسیر patch کنند؛ DB موازی ساخته نشود.
+ */
 export function writeMockUsers(users: MockAuthUserRecord[]): void {
   if (isBrowser()) {
     assertMockApiMode();
@@ -132,11 +134,6 @@ export type MockAuthUserMatch = {
   mobile?: string;
 };
 
-/**
- * Single write path for mock profile / onboarding field patches.
- * Updates `karvita_mock_auth_users` and syncs Zustand when the active user matches.
- * Never invent a parallel localStorage user DB.
- */
 export function patchMockAuthUser(
   match: MockAuthUserMatch,
   patch: Partial<MockAuthUserRecord>
@@ -156,7 +153,6 @@ export function patchMockAuthUser(
   const updated: MockAuthUserRecord = {
     ...previous,
     ...patch,
-    // Never drop credentials via a partial profile patch.
     password: patch.password ?? previous.password,
     hasPassword: patch.hasPassword ?? previous.hasPassword,
     id: previous.id,
@@ -178,7 +174,6 @@ export function patchMockAuthUser(
   return updated;
 }
 
-/** Test helper — resets in-memory cache (and optional users). */
 export function resetMockAuthStoreForTests(
   users: MockAuthUserRecord[] = AUTH_MOCK_USERS
 ): void {

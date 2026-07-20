@@ -20,10 +20,6 @@ export type KvSelectTriggerProps = React.ComponentProps<typeof SelectTrigger>;
 export type KvSelectContentProps = React.ComponentProps<typeof SelectContent>;
 export type KvSelectItemProps = React.ComponentProps<typeof SelectItem>;
 
-/**
- * Karvita select trigger — same chrome as {@link KvTextField} / {@link KvInput}
- * (full width, h-11 default via field, bold xs; hover ≠ focus).
- */
 export function KvSelectTrigger({
   className,
   ...props
@@ -32,7 +28,6 @@ export function KvSelectTrigger({
     <SelectTrigger
       data-slot="kv-select-trigger"
       className={cn(
-        /* Neutralize Shadcn SelectTrigger defaults that fight field alignment */
         'flex w-full min-w-0 items-center justify-between gap-2 rounded-kv-control',
         'h-11 data-[size=default]:h-11 data-[size=sm]:h-9',
         'border border-kv-border-strong bg-kv-surface px-3.5 py-0',
@@ -40,9 +35,7 @@ export function KvSelectTrigger({
         'whitespace-nowrap outline-none',
         'transition-[color,background-color,border-color,box-shadow]',
         'data-[placeholder]:text-kv-text-placeholder',
-        /* Hover — same border family + slightly darker wash; not brand. */
         'hover:border-kv-border-strong hover:bg-kv-border-strong/25',
-        /* Focus / open — brand chrome; hover must not shift away. */
         'focus-visible:border-kv-brand focus-visible:bg-kv-surface',
         'focus-visible:hover:border-kv-brand focus-visible:hover:bg-kv-surface',
         'focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
@@ -64,7 +57,6 @@ export function KvSelectTrigger({
   );
 }
 
-/** Plain dropdown panel — outer border only; options use separators. */
 export function KvSelectContent({
   className,
   ...props
@@ -82,7 +74,6 @@ export function KvSelectContent({
   );
 }
 
-/** Option row with a bottom border separator (no accent chip styling). */
 export function KvSelectItem({ className, ...props }: KvSelectItemProps) {
   return (
     <SelectItem

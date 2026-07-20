@@ -11,7 +11,6 @@ interface LoginOtpRequestStepProps {
   login: UseLoginFormReturn;
 }
 
-/** Step 1 of OTP login: collect the mobile number and dispatch the SMS code. */
 export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
   const { otpMobileForm, requestOtp, isRequestingOtp, switchToPasswordMode } = login;
   const { register, formState } = otpMobileForm;

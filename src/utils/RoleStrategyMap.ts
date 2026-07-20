@@ -2,13 +2,7 @@ import { isLiveSidebarPath } from '@/lib/live-nav-paths';
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 
-/**
- * Role Strategy Pattern (rule 00, #10): every role-driven decision about
- * sidebar menus, badges, layout width, or permissions MUST be read from this
- * map — never branch on `role === '...'` inline inside components.
- */
 
-/** One sidebar entry. `icon` MUST be a key that exists in `src/utils/iconMap.ts`. */
 export interface SidebarMenuItem {
   title: string;
   path: string;
@@ -16,25 +10,12 @@ export interface SidebarMenuItem {
 }
 
 export interface RoleStrategyConfig {
-  /** Farsi role label, e.g. "دانشجو". */
   label: string;
-  /** Farsi badge shown under the role label, e.g. "آموزش علمی نظری". */
   badge: string;
-  /** Icon key (see `iconMap.ts`) representing this role in the sidebar footer/header avatar. */
   roleIcon: string;
-  /**
-   * Legacy width token — dashboard main content is full-bleed (`max-w-none`).
-   * Kept on the strategy map so role layouts stay centralized (rule 00 #10).
-   */
   layoutWidthClass: string;
-  /**
-   * When true, sidebar modules stay locked until `user.approved`
-   * (mirrors original-karvita.html `!isApproved && role !== super_admin`).
-   */
   gateModulesUntilApproved: boolean;
-  /** Role-scoped navigation, in display order. */
   sidebarMenu: SidebarMenuItem[];
-  /** PBAC permission strings granted to this role. */
   permissions: string[];
 }
 
@@ -68,7 +49,10 @@ const MANAGE_ADS_ITEM: SidebarMenuItem = {
   icon: 'fa-bullhorn',
 };
 
-/** Single source of truth for every role's sidebar, badge, and PBAC permissions. */
+/**
+ * استراتژی نقش‌ها — لیبل، منوی سایدبار، عرض لایوت و permissions.
+ * شرط‌های نقش در UI از این نقشه خوانده شود؛ `role === '...'` پراکنده ممنوع است.
+ */
 export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
   student: {
     label: 'دانشجو',
@@ -329,7 +313,6 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
   },
 };
 
-/** Typed accessor — unknown/invalid roles fall back to `student` (no throw). */
 export function getRoleStrategy(
   role: UserRole | string | null | undefined
 ): RoleStrategyConfig {
@@ -344,10 +327,6 @@ export function getRoleStrategy(
   return ROLE_STRATEGY_MAP.student;
 }
 
-/**
- * Sidebar entries that currently have a live page.
- * Full IA remains in `sidebarMenu`; unfinished modules stay hidden (no 404 links).
- */
 export function getVisibleSidebarMenu(
   role: UserRole | string | null | undefined
 ): SidebarMenuItem[] {
@@ -356,12 +335,6 @@ export function getVisibleSidebarMenu(
   );
 }
 
-/**
- * Whether domain modules (sidebar + routes) are unlocked for this user.
- * Profile remains reachable even when this returns false.
- *
- * UX only — not API authorization (rule 45).
- */
 export function areKarvitaModulesUnlocked(user: {
   role: UserRole;
   approved: boolean;
@@ -371,17 +344,12 @@ export function areKarvitaModulesUnlocked(user: {
   return user.approved;
 }
 
-/** UX helper — browser role can be forged; never treat as authz proof. */
 export function isSuperAdminRole(
   role: UserRole | string | null | undefined
 ): boolean {
   return role === 'super_admin';
 }
 
-/**
- * Whether `user.role` lists `permission` in RoleStrategyMap.
- * Client-only gate for menus/buttons — Nest must re-check for real mutations.
- */
 export function hasPermission(
   user: { role: UserRole } | null | undefined,
   permission: string

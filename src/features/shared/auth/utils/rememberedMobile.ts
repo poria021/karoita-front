@@ -1,17 +1,11 @@
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
-/**
- * Login "مرا به خاطر بسپار" persists only the mobile number (English digits).
- * Never store passwords — browsers must not be asked to save credentials either
- * (login form uses autocomplete=off; see LoginPasswordStep).
- */
 const REMEMBERED_MOBILE_KEY = 'karvita_remembered_mobile';
 
 function isBrowser(): boolean {
   return typeof window !== 'undefined';
 }
 
-/** Normalize to 10 English digits starting with 9, or empty if invalid shape. */
 export function normalizeRememberedMobile(raw: string): string {
   const digits = persianToEnglishDigits(raw).replace(/\D/g, '').slice(0, 10);
   if (digits.length === 10 && digits.startsWith('9')) return digits;
@@ -38,16 +32,12 @@ export function writeRememberedMobile(mobile: string): void {
   }
   try {
     window.localStorage.setItem(REMEMBERED_MOBILE_KEY, normalized);
-  } catch {
-    // ignore quota / private mode
-  }
+  } catch {}
 }
 
 export function clearRememberedMobile(): void {
   if (!isBrowser()) return;
   try {
     window.localStorage.removeItem(REMEMBERED_MOBILE_KEY);
-  } catch {
-    // ignore
-  }
+  } catch {}
 }

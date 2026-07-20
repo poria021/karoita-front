@@ -21,7 +21,6 @@ export {
   DropdownMenuTrigger as KvDropdownMenuTrigger,
 };
 
-/** Product menu panel — same elevation language as overlays (`shadow-kv-overlay`). */
 export function KvDropdownMenuContent({
   className,
   ...props
@@ -35,7 +34,6 @@ export function KvDropdownMenuContent({
   );
 }
 
-/** Product menu row — prefer over raw ui item in features. */
 export function KvDropdownMenuItem({
   className,
   ...props

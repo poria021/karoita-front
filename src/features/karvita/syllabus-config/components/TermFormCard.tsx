@@ -29,6 +29,7 @@ interface TermFormCardProps {
   onTermYearChange: (year: string) => void;
   academicYears: string[];
   isSaving: boolean;
+  formError?: string | null;
   onSave: () => void;
   onRequestDelete: () => void;
 }
@@ -45,6 +46,7 @@ export function TermFormCard({
   onTermYearChange,
   academicYears,
   isSaving,
+  formError,
   onSave,
   onRequestDelete,
 }: TermFormCardProps) {
@@ -140,6 +142,12 @@ export function TermFormCard({
             ))}
           </KvSelectField>
         </div>
+
+        {formError ? (
+          <KvTypography variant="caption" tone="danger">
+            {formError}
+          </KvTypography>
+        ) : null}
 
         <div className="flex flex-col gap-2 border-t border-kv-border-muted pt-kv-group sm:flex-row sm:flex-wrap sm:justify-end">
           {isEditing ? (

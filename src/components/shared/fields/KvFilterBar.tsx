@@ -22,9 +22,6 @@ const CONTROL_WIDTH_CLASS: Record<KvFilterBarControlWidth, string> = {
   md: 'sm:w-44',
 };
 
-/**
- * Shared admin filter strip — search grows, selects stay fixed width.
- */
 export function KvFilterBar({ children }: KvFilterBarProps) {
   return (
     <div

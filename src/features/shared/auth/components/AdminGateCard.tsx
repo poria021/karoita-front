@@ -7,9 +7,6 @@ import { AdminGateMobileStep } from './AdminGateMobileStep';
 import { AdminGateOtpStep } from './AdminGateOtpStep';
 import { AuthLogo } from './AuthLogo';
 
-/**
- * Standalone super-admin OTP card — no register tab (original-karvita.html).
- */
 export function AdminGateCard() {
   const gate = useAdminGate();
 

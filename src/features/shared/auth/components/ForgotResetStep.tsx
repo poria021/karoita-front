@@ -11,7 +11,6 @@ interface ForgotResetStepProps {
   login: UseLoginFormReturn;
 }
 
-/** Step 3 of password recovery: choose and confirm a brand-new password. */
 export function ForgotResetStep({ login }: ForgotResetStepProps) {
   const { forgotResetForm, submitResetPassword, isSubmittingResetPassword, goBackToForgotStep2 } =
     login;

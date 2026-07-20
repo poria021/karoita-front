@@ -13,10 +13,6 @@ function AdminGateFallback() {
   );
 }
 
-/**
- * Thin public route for senior-admin OTP gate.
- * Discoverable via `/auth/admin-gate` or `/auth/login?gate=admin`.
- */
 export default function AdminGatePage() {
   return (
     <main

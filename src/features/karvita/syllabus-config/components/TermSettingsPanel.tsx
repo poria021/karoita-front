@@ -17,6 +17,7 @@ type TermSettingsPanelProps = Pick<
   | 'setTermYear'
   | 'academicYears'
   | 'isSaving'
+  | 'termFormError'
   | 'saveTerm'
   | 'requestDeleteTerm'
   | 'professorCapacity'
@@ -43,6 +44,7 @@ export function TermSettingsPanel(props: TermSettingsPanelProps) {
           onTermYearChange={props.setTermYear}
           academicYears={props.academicYears}
           isSaving={props.isSaving}
+          formError={props.termFormError}
           onSave={() => void props.saveTerm()}
           onRequestDelete={props.requestDeleteTerm}
         />

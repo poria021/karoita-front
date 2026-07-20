@@ -7,18 +7,11 @@ interface MobileNumberFieldProps {
   registration: UseFormRegisterReturn<'mobile'>;
   errorMessage?: string;
   disabled?: boolean;
-  /** Seed English digits (e.g. remembered mobile). */
   defaultValue?: string;
-  /** Override default label («شماره موبایل»). */
   label?: string;
-  /**
-   * Login uses `off` so the browser vault does not store Persian+English
-   * duplicates; remembered mobile is handled by the app (English only).
-   */
   autoComplete?: string;
 }
 
-/** Auth-form adapter around the shared {@link KvMobileNumberField}. */
 export function MobileNumberField({
   id,
   registration,

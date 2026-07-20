@@ -25,13 +25,11 @@ type ProfileTab = 'identity' | 'security';
 interface ProfileUiStrategy {
   showSecurityTab: boolean;
   showStatusAlerts: boolean;
-  /** When false, identity stays editable regardless of docStatus (e.g. super_admin). */
   lockIdentityAfterSubmit: boolean;
   showIdentityDocUploader: boolean;
   identitySubmitLabel: string;
 }
 
-/** Role-driven profile chrome — never branch on `role === '...'` in JSX. */
 const PROFILE_UI_STRATEGY: Record<UserRole, ProfileUiStrategy> = {
   student: {
     showSecurityTab: true,
@@ -113,13 +111,10 @@ const PROFILE_UI_STRATEGY: Record<UserRole, ProfileUiStrategy> = {
 };
 
 export interface ProfileContainerProps {
-  /** Role segment from the Next.js `[role]` route param. */
   role: string;
 }
 
-/** Client master profile shell — layout mirrors original-karvita.html. */
 export function ProfileContainer({ role }: ProfileContainerProps) {
-  // App layout already gates with HydrationSafe — do not nest another gate.
   return <ProfileContainerInner role={role} />;
 }
 
@@ -193,7 +188,6 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
 
   return (
     <div dir="rtl" className="w-full space-y-kv-section font-sans">
-      {/* Capsule tabs — matches original `.kv-tabs-container` */}
       <div className="mb-kv-group pb-kv-group pt-kv-micro">
         <AppTabs
           value={activeTab}
@@ -227,7 +221,6 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
   );
 }
 
-/** Plain placeholder while redirecting / resolving role — no skeleton UI. */
 export function ProfileRoutePlaceholder() {
   return (
     <div

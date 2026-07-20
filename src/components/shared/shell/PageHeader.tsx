@@ -11,7 +11,6 @@ export interface PageHeaderProps {
   className?: string;
 }
 
-/** Eyebrow row: icon, title, optional description, and trailing actions. */
 export function PageHeader({
   title,
   description,

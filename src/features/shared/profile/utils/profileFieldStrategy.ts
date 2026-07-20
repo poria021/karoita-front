@@ -1,9 +1,5 @@
 import type { UserRole } from '@/types/auth';
 
-/**
- * Role-driven profile field visibility (rule 00, #10).
- * Components read this map instead of branching on `role === '...'`.
- */
 export type ProfileFieldKey =
   | 'college'
   | 'major'

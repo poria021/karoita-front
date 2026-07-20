@@ -10,7 +10,6 @@ interface ForgotVerifyStepProps {
   login: UseLoginFormReturn;
 }
 
-/** Step 2 of password recovery: verify the 5-digit SMS code. */
 export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
   const {
     forgotOtpForm,

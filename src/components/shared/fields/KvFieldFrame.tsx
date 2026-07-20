@@ -8,7 +8,6 @@ import { faIcons } from '@/utils/iconMap';
 
 export type KvFieldFrameProps = {
   id: string;
-  /** Omit or pass `false` to hide label entirely */
   label?: string | false;
   required?: boolean;
   optionalHint?: boolean;
@@ -20,15 +19,6 @@ export type KvFieldFrameProps = {
   footer?: ReactNode;
 };
 
-/**
- * Label adornment modes are mutually exclusive (never combine):
- * - locked → lock icon only (requires `showLockIcon`)
- * - required → red asterisk only
- * - optional → "(اختیاری)" only
- *
- * `locked` on the control still disables input; the label lock is opt-in via
- * `showLockIcon` so section headers can own the lock instead of every field.
- */
 export type KvFieldLabelMode = 'locked' | 'required' | 'optional' | 'plain';
 
 export function resolveFieldLabelMode(options: {
@@ -42,10 +32,6 @@ export function resolveFieldLabelMode(options: {
   return 'plain';
 }
 
-/**
- * Shared chrome for Karvita fields: label (+ optional lock), control slot, error/hint.
- * Used by KvTextField / KvTextArea so spacing and copy stay identical.
- */
 export function KvFieldFrame({
   id,
   label,

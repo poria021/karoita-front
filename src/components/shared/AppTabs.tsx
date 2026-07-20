@@ -1,20 +1,5 @@
 'use client';
 
-/**
- * Tabs chrome is owned by AppTabs. Do not override list/trigger visuals at call sites.
- *
- * Width modes (only intentional layout fork — inactive chrome stays identical):
- * - default: mobile full-width; md+ hugs content
- * - `fullWidth`: track + equal triggers stay full-width at every breakpoint (auth card)
- *
- * Active tone (intentional color fork):
- * - `brand` (default): active pill uses brand fill — profile and app chrome
- * - `surface`: active pill uses white/surface fill; track is one shade darker — auth only
- *
- * List layout:
- * - `row` (default): capsule track (profile, auth, desktop admin)
- * - `grid`: equal cells (e.g. mobile 3×2) — same active tokens, no parallel feature chrome
- */
 
 import * as React from 'react';
 
@@ -38,7 +23,6 @@ const LIST_BASE = [
 ].join(' ');
 
 const LIST_TRACK_BRAND = 'bg-kv-surface-muted';
-/** One shade darker than default track — pairs with white active pill on auth. */
 const LIST_TRACK_SURFACE = 'bg-kv-surface-subtle';
 
 const LIST_NORMAL = [
@@ -72,7 +56,6 @@ const TRIGGER_ACTIVE_BRAND = [
   'data-[state=active]:shadow-kv-raised data-[state=active]:shadow-kv-brand/15',
 ].join(' ');
 
-/** White/surface active pill on muted track — auth login/register. */
 const TRIGGER_ACTIVE_SURFACE = [
   'data-[state=active]:bg-kv-surface data-[state=active]:text-kv-text',
   'data-[state=active]:shadow-kv-raised',
@@ -87,7 +70,6 @@ const TRIGGER_FULL_SIZE = [
   'flex-1 gap-1.5 px-1.5 py-2.5 text-xs leading-none',
 ].join(' ');
 
-/** Grid cells — same active fill tokens as capsule; bordered idle surface. */
 const TRIGGER_GRID_SIZE = [
   'w-full gap-1.5 rounded-kv-control border border-kv-border bg-kv-surface',
   'px-2 py-4 text-xs leading-none',
@@ -114,27 +96,12 @@ function useAppTabsContext() {
 }
 
 export type AppTabsProps = React.ComponentProps<typeof Tabs> & {
-  /**
-   * `true` — always full-width equal tabs (auth register/login).
-   * `false` (default) — normal: full on mobile, hug content on md+.
-   * Ignored when `listLayout="grid"`.
-   */
   fullWidth?: boolean;
-  /**
-   * Active pill color. Default `brand` everywhere;
-   * use `surface` only on the auth login/register card.
-   */
   activeTone?: AppTabsActiveTone;
-  /**
-   * `row` (default) — capsule track.
-   * `grid` — equal cells for dense mobile pickers (e.g. 3×2). Uses AppTabs tokens only.
-   */
   listLayout?: AppTabsListLayout;
-  /** Column count when `listLayout="grid"`. Default `3`. */
   gridCols?: AppTabsGridCols;
 };
 
-/** Shared capsule / grid tabs. Width via `fullWidth`; active fill via `activeTone`. */
 function AppTabs({
   className,
   children,

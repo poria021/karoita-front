@@ -11,7 +11,6 @@ export type OrgStructureTabConfig = {
   searchPlaceholder: string;
   addLabel: string;
   nameColumnLabel: string;
-  /** Placeholder for the name field in create/edit dialog. */
   namePlaceholder: string;
 };
 

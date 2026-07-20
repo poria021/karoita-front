@@ -10,7 +10,6 @@ interface AdminGateOtpStepProps {
   gate: UseAdminGateReturn;
 }
 
-/** Admin gate step 2 — 5-digit OTP → management panel. */
 export function AdminGateOtpStep({ gate }: AdminGateOtpStepProps) {
   const {
     otpForm,

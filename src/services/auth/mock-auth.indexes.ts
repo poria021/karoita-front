@@ -5,7 +5,6 @@ export type MockAuthIndexes = {
   byId: Map<string, MockAuthUserRecord>;
 };
 
-/** O(n) rebuild — call after every successful users write. */
 export function buildMockAuthIndexes(
   users: readonly MockAuthUserRecord[]
 ): MockAuthIndexes {

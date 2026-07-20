@@ -1,37 +1,14 @@
 import type { DocStatus, User, UserRole } from '@/types/auth';
 
-/**
- * Seed data ported from `mockUsersList` / `buildMockUserRecord` inside
- * `original-karvita.html`. Used exclusively by `AuthService` when
- * `NEXT_PUBLIC_API_MODE === 'mock'` (never in production — fail-closed).
- *
- * These are LOCAL SIMULATOR credentials — not Nest / SMS / production secrets.
- * Passwords in the seed / localStorage copy are mock-only DX credentials.
- * They must never be copied into Zustand or public User DTOs (`toPublicUser`).
- *
- * Bump {@link MOCK_USERS_SEED_VERSION} when seed mobiles/roles change so
- * localStorage picks up the new list on next load.
- */
 
-/**
- * Fixed OTP for local simulator only.
- * Real mode rejects this via `assertRealModeRejectsMockSecret` — never Nest SMS.
- */
 export const MOCK_OTP_CODE = '12345';
 
-/** Shared test password for seeded mock accounts — mock DX only; never in User DTO. */
 export const MOCK_USER_PASSWORD = '123456';
 
-/**
- * Memorable super_admin mobile (matches original admin-gate placeholder).
- * Must not collide with sequential seed mobiles below.
- */
 export const MOCK_SUPER_ADMIN_MOBILE = '9123456786';
 
-/** Bump when seed list changes — AuthService rewrites localStorage. */
 export const MOCK_USERS_SEED_VERSION = '4';
 
-/** Internal-only mock record — never expose `password` outside this module. */
 export interface MockAuthUserRecord extends User {
   password: string;
   hasPassword: boolean;
@@ -41,7 +18,6 @@ interface MockUserSeed {
   id: string;
   name: string;
   role: UserRole;
-  /** Override generated mobile (required for super_admin). */
   mobile?: string;
   docStatus?: DocStatus;
   approved?: boolean;
@@ -70,7 +46,6 @@ const DEFAULT_COLLEGE = 'پردیس شهید باهنر تهران';
 const DEFAULT_DISTRICT = 'ناحیه ۱ تهران';
 const DEFAULT_SCHOOL = 'دبیرستان ماندگار البرز';
 
-/** Tiny SVG sample ID card — no color literals (rule 70); mock preview only. */
 const MOCK_DOC_IMAGE_URL =
   'data:image/svg+xml;charset=utf-8,' +
   encodeURIComponent(
@@ -81,7 +56,6 @@ const MOCK_DOC_IMAGE_URL =
       '</svg>'
   );
 
-/** PDF marker only — UI detects `data:application/pdf` prefix. */
 const MOCK_DOC_PDF_URL = 'data:application/pdf;base64,JVBERi0xLjAK';
 
 const NOW = Date.UTC(2026, 6, 18, 12, 0, 0);
@@ -217,7 +191,6 @@ function splitFullName(fullName: string): { firstName: string; lastName: string 
   return { firstName, lastName: rest.join(' ') || 'نمونه' };
 }
 
-/** Sequential mock mobiles for non-admin seeds: 9120000001 … */
 function buildMockMobile(indexInList: number): string {
   const positionalSuffix = String(indexInList + 1).padStart(2, '0');
   return `91200000${positionalSuffix}`.slice(0, 10);

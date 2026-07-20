@@ -8,13 +8,10 @@ interface PasswordFieldProps {
   registration: UseFormRegisterReturn<string>;
   errorMessage?: string;
   autoComplete?: string;
-  /** Block browser vault inject until focus (login credential step). */
   suppressBrowserAutofill?: boolean;
-  /** Controlled value when the parent owns the field via Controller. */
   value?: string;
 }
 
-/** Auth-form adapter around the shared {@link KvPasswordField}. */
 export function PasswordField({
   id,
   label,
