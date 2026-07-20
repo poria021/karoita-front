@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
@@ -12,6 +12,7 @@ import type {
 } from '@/types/syllabus-config';
 
 import { computeOfferedTitles, errorMessage } from './syllabusPageUtils';
+import { useSyllabusOfferingGates } from './useSyllabusOfferingGates';
 import { useSyllabusTermSettings } from './useSyllabusTermSettings';
 import { useSyllabusWeeksEditor } from './useSyllabusWeeksEditor';
 
@@ -31,55 +32,45 @@ export function useSyllabusConfigPage() {
   const [error, setError] = useState<string | null>(null);
   const loadRequestIdRef = useRef(0);
 
-  const selectedTerm = useMemo(
-    () => terms.find((t) => t.title === selectedTermTitle) ?? null,
-    [terms, selectedTermTitle]
-  );
-
-  const courses = useMemo(
-    () => SyllabusConfigService.getCoursesForTerm(selectedTerm),
-    [selectedTerm]
-  );
-
+  const selectedTerm =
+    terms.find((t) => t.title === selectedTermTitle) ?? null;
+  const courses = SyllabusConfigService.getCoursesForTerm(selectedTerm);
   const isSelectedCourseOffered = Boolean(
     selectedCourse && offeredTitles.has(selectedCourse.title)
   );
 
-  const applySnapshot = useCallback(
-    async (
-      snapshot: Awaited<ReturnType<typeof SyllabusConfigService.getSnapshot>>
-    ) => {
-      setTerms(snapshot.terms);
-      setSelectedTermTitle(snapshot.selectedTermTitle);
-      setProfessorCapacity(String(snapshot.globalProfessorCapacity));
-      setPassingThreshold(String(snapshot.passingScoreThreshold));
+  async function applySnapshot(
+    snapshot: Awaited<ReturnType<typeof SyllabusConfigService.getSnapshot>>
+  ) {
+    setTerms(snapshot.terms);
+    setSelectedTermTitle(snapshot.selectedTermTitle);
+    setProfessorCapacity(String(snapshot.globalProfessorCapacity));
+    setPassingThreshold(String(snapshot.passingScoreThreshold));
 
-      const term =
-        snapshot.terms.find((t) => t.title === snapshot.selectedTermTitle) ??
-        snapshot.terms[0] ??
-        null;
-      const courseList = SyllabusConfigService.getCoursesForTerm(term);
-      const firstCourse = courseList[0] ?? null;
-      setSelectedCourse(firstCourse);
+    const term =
+      snapshot.terms.find((t) => t.title === snapshot.selectedTermTitle) ??
+      snapshot.terms[0] ??
+      null;
+    const courseList = SyllabusConfigService.getCoursesForTerm(term);
+    const firstCourse = courseList[0] ?? null;
+    setSelectedCourse(firstCourse);
 
-      if (term && firstCourse) {
-        const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
-          term.title,
-          firstCourse.title,
-          firstCourse.type
-        );
-        setWeeks(nextWeeks);
-        setOfferedTitles(computeOfferedTitles(term.title, courseList));
-      } else {
-        setWeeks([]);
-        setOfferedTitles(new Set());
-      }
-      setHasUnsavedChanges(false);
-    },
-    []
-  );
+    if (term && firstCourse) {
+      const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
+        term.title,
+        firstCourse.title,
+        firstCourse.type
+      );
+      setWeeks(nextWeeks);
+      setOfferedTitles(computeOfferedTitles(term.title, courseList));
+    } else {
+      setWeeks([]);
+      setOfferedTitles(new Set());
+    }
+    setHasUnsavedChanges(false);
+  }
 
-  const reload = useCallback(async () => {
+  async function reload() {
     const requestId = ++loadRequestIdRef.current;
     setIsLoading(true);
     setError(null);
@@ -95,7 +86,7 @@ export function useSyllabusConfigPage() {
         setIsLoading(false);
       }
     }
-  }, [applySnapshot]);
+  }
 
   useEffect(() => {
     const requestId = ++loadRequestIdRef.current;
@@ -113,198 +104,60 @@ export function useSyllabusConfigPage() {
         }
       }
     })();
-  }, [applySnapshot]);
+  }, []);
 
-  const selectTerm = useCallback(
-    async (termTitle: string) => {
-      try {
-        await SyllabusConfigService.selectTerm(termTitle);
-        setSelectedTermTitle(termTitle);
-        const term = terms.find((t) => t.title === termTitle) ?? null;
-        const courseList = SyllabusConfigService.getCoursesForTerm(term);
-        const first = courseList[0] ?? null;
-        setSelectedCourse(first);
-        if (term && first) {
-          const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
-            term.title,
-            first.title,
-            first.type
-          );
-          setWeeks(nextWeeks);
-          setOfferedTitles(computeOfferedTitles(term.title, courseList));
-        } else {
-          setWeeks([]);
-          setOfferedTitles(new Set());
-        }
-        setHasUnsavedChanges(false);
-      } catch (err) {
-        toast.error(errorMessage(err, 'انتخاب ترم ناموفق بود.'));
-      }
-    },
-    [terms]
-  );
-
-  const selectCourse = useCallback(
-    async (course: CourseOfferingCatalogItem) => {
-      if (!selectedTermTitle) return;
-      setSelectedCourse(course);
-      try {
+  async function selectTerm(termTitle: string) {
+    try {
+      await SyllabusConfigService.selectTerm(termTitle);
+      setSelectedTermTitle(termTitle);
+      const term = terms.find((t) => t.title === termTitle) ?? null;
+      const courseList = SyllabusConfigService.getCoursesForTerm(term);
+      const first = courseList[0] ?? null;
+      setSelectedCourse(first);
+      if (term && first) {
         const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
-          selectedTermTitle,
-          course.title,
-          course.type
+          term.title,
+          first.title,
+          first.type
         );
         setWeeks(nextWeeks);
-        setHasUnsavedChanges(false);
-      } catch (err) {
-        toast.error(errorMessage(err, 'بارگذاری سرفصل ناموفق بود.'));
+        setOfferedTitles(computeOfferedTitles(term.title, courseList));
+      } else {
+        setWeeks([]);
+        setOfferedTitles(new Set());
       }
-    },
-    [selectedTermTitle]
-  );
-
-  const toggleEnroll = useCallback(
-    async (open: boolean) => {
-      if (!selectedTermTitle) return;
-      try {
-        const snapshot = await SyllabusConfigService.updateTermGates({
-          termTitle: selectedTermTitle,
-          isEnrollOpen: open,
-        });
-        setTerms(snapshot.terms);
-        toast.success(
-          open
-            ? 'فرآیند انتخاب واحد پورتال فعال گردید.'
-            : 'فرآیند انتخاب واحد موقتاً مسدود شد.'
-        );
-      } catch (err) {
-        toast.error(errorMessage(err, 'تغییر وضعیت انتخاب واحد ناموفق بود.'));
-      }
-    },
-    [selectedTermTitle]
-  );
-
-  const toggleTermOpen = useCallback(
-    async (open: boolean) => {
-      if (!selectedTermTitle) return;
-      try {
-        const snapshot = await SyllabusConfigService.updateTermGates({
-          termTitle: selectedTermTitle,
-          isTermOpen: open,
-        });
-        setTerms(snapshot.terms);
-        toast.success(
-          open
-            ? 'برگزاری کلاس‌های ترم فعال شد.'
-            : 'برگزاری کلاس‌های ترم موقتاً غیرفعال شد.'
-        );
-      } catch (err) {
-        toast.error(errorMessage(err, 'تغییر وضعیت برگزاری کلاس ناموفق بود.'));
-      }
-    },
-    [selectedTermTitle]
-  );
-
-  const [gateCloseTarget, setGateCloseTarget] = useState<
-    'enroll' | 'term' | null
-  >(null);
-
-  const requestToggleEnroll = useCallback(
-    (open: boolean) => {
-      if (open) {
-        void toggleEnroll(true);
-        return;
-      }
-      setGateCloseTarget('enroll');
-    },
-    [toggleEnroll]
-  );
-
-  const requestToggleTermOpen = useCallback(
-    (open: boolean) => {
-      if (open) {
-        void toggleTermOpen(true);
-        return;
-      }
-      setGateCloseTarget('term');
-    },
-    [toggleTermOpen]
-  );
-
-  const clearGateClose = useCallback(() => {
-    setGateCloseTarget(null);
-  }, []);
-
-  const confirmGateClose = useCallback(async () => {
-    if (gateCloseTarget === 'enroll') {
-      await toggleEnroll(false);
-    } else if (gateCloseTarget === 'term') {
-      await toggleTermOpen(false);
+      setHasUnsavedChanges(false);
+    } catch (err) {
+      toast.error(errorMessage(err, 'انتخاب ترم ناموفق بود.'));
     }
-    setGateCloseTarget(null);
-  }, [gateCloseTarget, toggleEnroll, toggleTermOpen]);
+  }
 
+  async function selectCourse(course: CourseOfferingCatalogItem) {
+    if (!selectedTermTitle) return;
+    setSelectedCourse(course);
+    try {
+      const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
+        selectedTermTitle,
+        course.title,
+        course.type
+      );
+      setWeeks(nextWeeks);
+      setHasUnsavedChanges(false);
+    } catch (err) {
+      toast.error(errorMessage(err, 'بارگذاری سرفصل ناموفق بود.'));
+    }
+  }
 
-  const [deactivateCourseTarget, setDeactivateCourseTarget] =
-    useState<CourseOfferingCatalogItem | null>(null);
-
-  const applyToggleCourseOffering = useCallback(
-    async (course: CourseOfferingCatalogItem) => {
-      if (!selectedTermTitle) return;
-      try {
-        await SyllabusConfigService.toggleCourseOffering({
-          termTitle: selectedTermTitle,
-          course,
-        });
-        const wasOffered = offeredTitles.has(course.title);
-        setOfferedTitles(
-          computeOfferedTitles(
-            selectedTermTitle,
-            SyllabusConfigService.getCoursesForTerm(selectedTerm)
-          )
-        );
-        if (selectedCourse?.title === course.title) {
-          const nextWeeks = await SyllabusConfigService.getOrSeedWeeks(
-            selectedTermTitle,
-            course.title,
-            course.type
-          );
-          setWeeks(nextWeeks);
-          setHasUnsavedChanges(false);
-        }
-        toast[wasOffered ? 'warning' : 'success'](
-          wasOffered
-            ? `ارائه درس «${course.title}» در این نیم‌سال متوقف شد.`
-            : `درس «${course.title}» با موفقیت برای این نیم‌سال ارائه شد.`
-        );
-      } catch (err) {
-        toast.error(errorMessage(err, 'تغییر وضعیت ارائه درس ناموفق بود.'));
-      }
-    },
-    [offeredTitles, selectedCourse, selectedTerm, selectedTermTitle]
-  );
-
-  const requestToggleCourseOffering = useCallback(
-    (course: CourseOfferingCatalogItem) => {
-      if (offeredTitles.has(course.title)) {
-        setDeactivateCourseTarget(course);
-        return;
-      }
-      void applyToggleCourseOffering(course);
-    },
-    [applyToggleCourseOffering, offeredTitles]
-  );
-
-  const clearDeactivateCourse = useCallback(() => {
-    setDeactivateCourseTarget(null);
-  }, []);
-
-  const confirmDeactivateCourse = useCallback(async () => {
-    if (!deactivateCourseTarget) return;
-    const course = deactivateCourseTarget;
-    setDeactivateCourseTarget(null);
-    await applyToggleCourseOffering(course);
-  }, [applyToggleCourseOffering, deactivateCourseTarget]);
+  const offeringGates = useSyllabusOfferingGates({
+    selectedTermTitle,
+    selectedTerm,
+    selectedCourse,
+    offeredTitles,
+    setTerms,
+    setWeeks,
+    setOfferedTitles,
+    setHasUnsavedChanges,
+  });
 
   const weeksEditor = useSyllabusWeeksEditor({
     selectedTermTitle,
@@ -348,20 +201,12 @@ export function useSyllabusConfigPage() {
     isSaving,
     error,
     reload,
-    toggleEnroll: requestToggleEnroll,
-    toggleTermOpen: requestToggleTermOpen,
-    gateCloseTarget,
-    clearGateClose,
-    confirmGateClose,
-    toggleCourseOffering: requestToggleCourseOffering,
-    deactivateCourseTarget,
-    clearDeactivateCourse,
-    confirmDeactivateCourse,
     isSelectedCourseOffered,
     professorCapacity,
     setProfessorCapacity,
     passingThreshold,
     setPassingThreshold,
+    ...offeringGates,
     ...weeksEditor,
     ...termSettings,
   };

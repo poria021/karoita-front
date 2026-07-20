@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, type Dispatch, type SetStateAction } from 'react';
+import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -46,59 +46,46 @@ export function useSyllabusWeeksEditor({
     null
   );
 
-  const ensureCourseOffered = useCallback(() => {
+  function ensureCourseOffered() {
     if (!selectedCourse || !isSelectedCourseOffered) {
       toast.error('ابتدا این درس را ارائه دهید.');
       return false;
     }
     return true;
-  }, [isSelectedCourseOffered, selectedCourse]);
+  }
 
-  const updateWeekWeight = useCallback(
-    (weekId: string, weight: number) => {
-      setWeeks((prev) =>
-        prev.map((week) => (week.id === weekId ? { ...week, weight } : week))
-      );
-      setHasUnsavedChanges(true);
-    },
-    [setHasUnsavedChanges, setWeeks]
-  );
+  function updateWeekWeight(weekId: string, weight: number) {
+    setWeeks((prev) =>
+      prev.map((week) => (week.id === weekId ? { ...week, weight } : week))
+    );
+    setHasUnsavedChanges(true);
+  }
 
-  const restoreWeek = useCallback(
-    (target: SyllabusWeek) => {
-      if (!ensureCourseOffered()) return;
-      setWeeks((prev) =>
-        prev.map((week) =>
-          week.id === target.id
-            ? { ...week, status: 'active' as const }
-            : week
-        )
-      );
-      setHasUnsavedChanges(true);
-      toast.success(
-        `جلسه ${target.suffix} مجدداً به کارتابل فراگیران بازگشت.`
-      );
-    },
-    [ensureCourseOffered, setHasUnsavedChanges, setWeeks]
-  );
+  function restoreWeek(target: SyllabusWeek) {
+    if (!ensureCourseOffered()) return;
+    setWeeks((prev) =>
+      prev.map((week) =>
+        week.id === target.id ? { ...week, status: 'active' as const } : week
+      )
+    );
+    setHasUnsavedChanges(true);
+    toast.success(`جلسه ${target.suffix} مجدداً به کارتابل فراگیران بازگشت.`);
+  }
 
-  const archiveWeek = useCallback(
-    (target: SyllabusWeek) => {
-      if (!ensureCourseOffered()) return;
-      setWeeks((prev) =>
-        prev.map((week) =>
-          week.id === target.id
-            ? { ...week, status: 'archived' as const }
-            : week
-        )
-      );
-      setHasUnsavedChanges(true);
-      toast.warning(`جلسه (${target.suffix}) موقتاً آرشیو گردید.`);
-    },
-    [ensureCourseOffered, setHasUnsavedChanges, setWeeks]
-  );
+  function archiveWeek(target: SyllabusWeek) {
+    if (!ensureCourseOffered()) return;
+    setWeeks((prev) =>
+      prev.map((week) =>
+        week.id === target.id
+          ? { ...week, status: 'archived' as const }
+          : week
+      )
+    );
+    setHasUnsavedChanges(true);
+    toast.warning(`جلسه (${target.suffix}) موقتاً آرشیو گردید.`);
+  }
 
-  const addWeek = useCallback(() => {
+  function addWeek() {
     if (!ensureCourseOffered()) return;
     setWeeks((prev) => {
       const n = prev.length + 1;
@@ -114,17 +101,14 @@ export function useSyllabusWeeksEditor({
       toast.success(`هفته ${toPersianDigits(n)} افزوده شد.`);
       return [...prev, next];
     });
-  }, [ensureCourseOffered, setHasUnsavedChanges, setWeeks]);
+  }
 
-  const requestDeleteWeek = useCallback(
-    (target: SyllabusWeek) => {
-      if (!ensureCourseOffered()) return;
-      setDeleteWeekTarget(target);
-    },
-    [ensureCourseOffered]
-  );
+  function requestDeleteWeek(target: SyllabusWeek) {
+    if (!ensureCourseOffered()) return;
+    setDeleteWeekTarget(target);
+  }
 
-  const confirmDeleteWeek = useCallback(() => {
+  function confirmDeleteWeek() {
     if (!deleteWeekTarget) return;
     setWeeks((prev) => {
       const next = prev.filter((week) => week.id !== deleteWeekTarget.id);
@@ -135,20 +119,20 @@ export function useSyllabusWeeksEditor({
       return next;
     });
     setDeleteWeekTarget(null);
-  }, [deleteWeekTarget, setHasUnsavedChanges, setWeeks]);
+  }
 
-  const openWeekEdit = useCallback((week: SyllabusWeek) => {
+  function openWeekEdit(week: SyllabusWeek) {
     if (week.status === 'archived') return;
     setWeekEditId(week.id);
     setWeekEditTitle(week.title || week.suffix);
-  }, []);
+  }
 
-  const closeWeekEdit = useCallback(() => {
+  function closeWeekEdit() {
     setWeekEditId(null);
     setWeekEditTitle('');
-  }, []);
+  }
 
-  const saveWeekEdit = useCallback(() => {
+  function saveWeekEdit() {
     const title = weekEditTitle.trim();
     if (!weekEditId || !title) {
       toast.error('عنوان سرفصل الزامی است.');
@@ -162,15 +146,9 @@ export function useSyllabusWeeksEditor({
     setHasUnsavedChanges(true);
     toast.warning('تغییرات در جدول اعمال شد. لطفاً ثبت نهایی کنید.');
     closeWeekEdit();
-  }, [
-    closeWeekEdit,
-    setHasUnsavedChanges,
-    setWeeks,
-    weekEditId,
-    weekEditTitle,
-  ]);
+  }
 
-  const saveSyllabus = useCallback(async () => {
+  async function saveSyllabus() {
     if (!selectedTermTitle || !selectedCourse || !hasUnsavedChanges) return;
     setIsSaving(true);
     try {
@@ -187,16 +165,7 @@ export function useSyllabusWeeksEditor({
     } finally {
       setIsSaving(false);
     }
-  }, [
-    courses,
-    hasUnsavedChanges,
-    selectedCourse,
-    selectedTermTitle,
-    setHasUnsavedChanges,
-    setIsSaving,
-    setOfferedTitles,
-    weeks,
-  ]);
+  }
 
   return {
     updateWeekWeight,
