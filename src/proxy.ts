@@ -5,7 +5,7 @@ import {
   RETURN_URL_PARAM,
   parseSafeReturnUrl,
 } from '@/lib/return-url';
-import { RouteService } from '@/services/route.service';
+import { isAuthPath, RouteService } from '@/services/route.service';
 import { NextRequest, NextResponse } from 'next/server';
 
 function hasClientSession(request: NextRequest): boolean {
@@ -31,7 +31,7 @@ export async function proxy(request: NextRequest) {
   const loggedIn = hasClientSession(request);
   const loginPath = RouteService.auth.login();
 
-  if (loggedIn && pathname.startsWith('/auth/')) {
+  if (loggedIn && isAuthPath(pathname)) {
     const rawReturn = request.nextUrl.searchParams.get(RETURN_URL_PARAM);
     const safeReturn = parseSafeReturnUrl(rawReturn);
     const destination = safeReturn ?? DEFAULT_LOGIN_REDIRECT;

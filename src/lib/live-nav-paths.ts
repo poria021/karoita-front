@@ -1,4 +1,8 @@
-import { RouteService } from '@/services/route.service';
+import {
+  isAdminControlPlanePath,
+  LEGACY_ORGANIZATION_BOOKMARK_PATHS,
+  RouteService,
+} from '@/services/route.service';
 
 function normalizePath(pathname: string): string {
   if (!pathname) return '/';
@@ -27,9 +31,7 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
 
 /** Temporary bookmarks from brief tabbed IAs (org + syllabus) */
 const LEGACY_TABBED_MODULE_PATHS: readonly string[] = [
-  '/karvita/admin/organization',
-  '/karvita/admin/organization/structure',
-  '/karvita/admin/organization/accounts',
+  ...LEGACY_ORGANIZATION_BOOKMARK_PATHS,
   RouteService.karvita.syllabusConfig(),
 ];
 
@@ -54,11 +56,7 @@ export function isKarvitaProfilePath(pathname: string): boolean {
   return /^\/karvita\/[^/]+\/profile$/.test(normalizePath(pathname));
 }
 
-export function isAdminControlPlanePath(pathname: string): boolean {
-  const path = normalizePath(pathname);
-  const adminHome = RouteService.karvita.adminDashboard();
-  return path === adminHome || path.startsWith('/karvita/admin/');
-}
+export { isAdminControlPlanePath };
 
 export function isNavigableAppPath(pathname: string): boolean {
   const path = normalizePath(pathname);

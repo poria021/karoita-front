@@ -1,6 +1,6 @@
 import ky, { HTTPError, type Options as KyOptions } from 'ky';
 
-import { RouteService } from '@/services/route.service';
+import { isAuthPath, RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 
 
@@ -76,7 +76,7 @@ let handlingUnauthorized = false;
 async function handleUnauthorized(): Promise<void> {
   if (handlingUnauthorized || typeof window === 'undefined') return;
 
-  if (window.location.pathname.startsWith('/auth/')) {
+  if (isAuthPath(window.location.pathname)) {
     useUserStore.getState().setUser(null);
     return;
   }
@@ -86,7 +86,7 @@ async function handleUnauthorized(): Promise<void> {
     useUserStore.getState().setUser(null);
     const { AuthService } = await import('@/services/auth.service');
     await AuthService.logout().catch(() => undefined);
-    if (!window.location.pathname.startsWith('/auth/')) {
+    if (!isAuthPath(window.location.pathname)) {
       window.location.assign(RouteService.auth.login());
     }
   } finally {

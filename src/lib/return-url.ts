@@ -3,6 +3,8 @@
  * فقط مسیر نسبی هم‌مبدأ (`/...`) پذیرفته می‌شود؛ `/auth/*` رد می‌شود.
  */
 
+import { isAuthPath } from '@/services/route.service';
+
 export const RETURN_URL_PARAM = 'returnUrl';
 
 const MAX_RETURN_URL_LENGTH = 512;
@@ -38,7 +40,7 @@ export function parseSafeReturnUrl(
   if (url.origin !== 'http://karvita.local') return null;
 
   const pathWithSearch = `${url.pathname}${url.search}`;
-  if (pathWithSearch.startsWith('/auth')) return null;
+  if (isAuthPath(pathWithSearch)) return null;
 
   return pathWithSearch;
 }
