@@ -14,7 +14,15 @@ import type { SyllabusWeek } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
 
 import { WEEK_WEIGHT_OPTIONS } from '../constants';
-import { isWeekRowActionable } from './weeklySyllabusRowUtils';
+
+/** آخرین سطر همیشه؛ اگر آخرین آرشیو باشد، سطر قبلی هم فعال است. */
+function isWeekRowActionable(index: number, weeks: SyllabusWeek[]): boolean {
+  if (weeks.length === 0) return false;
+  const lastIndex = weeks.length - 1;
+  if (index === lastIndex) return true;
+  const lastWeek = weeks[lastIndex];
+  return lastWeek?.status === 'archived' && index === lastIndex - 1;
+}
 
 type WeeklySyllabusWeekRowProps = {
   week: SyllabusWeek;

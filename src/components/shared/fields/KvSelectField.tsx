@@ -83,16 +83,13 @@ export function KvSelectField({
           className={cn(
             SIZE_CLASS[size],
             locked &&
-              'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled hover:border-kv-border-disabled hover:bg-kv-field-disabled',
+              'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled',
             error &&
               !locked &&
               [
                 'border-kv-danger-border',
-                'hover:border-kv-danger-border hover:bg-kv-danger-border/20',
-                'focus-visible:border-kv-danger focus-visible:hover:border-kv-danger',
-                'focus-visible:hover:bg-kv-surface focus-visible:ring-kv-ring-danger/15',
-                'data-[state=open]:border-kv-danger data-[state=open]:hover:border-kv-danger',
-                'data-[state=open]:hover:bg-kv-surface data-[state=open]:ring-kv-ring-danger/15',
+                'focus-visible:border-kv-danger focus-visible:ring-kv-ring-danger/15',
+                'data-[state=open]:border-kv-danger data-[state=open]:ring-kv-ring-danger/15',
               ].join(' ')
           )}
         >

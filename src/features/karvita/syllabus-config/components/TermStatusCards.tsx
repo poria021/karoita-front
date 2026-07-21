@@ -1,13 +1,15 @@
 'use client';
 
-import { KvBadge } from '@/components/shared/KvBadge';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
+import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvSwitch } from '@/components/shared/fields/KvSwitch';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { isTermGateActive } from '@/services/syllabus-config.service';
 import type { AcademicTerm } from '@/types/syllabus-config';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 interface TermStatusCardsProps {
@@ -37,6 +39,7 @@ export function TermStatusCards({
   return (
     <div className="grid grid-cols-1 items-stretch gap-kv-group md:grid-cols-3">
       <StatusGateCard
+        icon={faIcons.clipboardList}
         title="انتخاب واحد"
         subtitle={
           selectedTerm?.enrollStart
@@ -45,13 +48,12 @@ export function TermStatusCards({
         }
         switchOn={Boolean(selectedTerm?.isEnrollOpen)}
         active={enrollActive}
-        openLabel="باز"
-        closedLabel="بسته"
         onToggle={onToggleEnroll}
         disabled={!selectedTerm}
       />
 
       <StatusGateCard
+        icon={faIcons.chalkboardUser}
         title="برگزاری کلاس‌ها"
         subtitle={
           selectedTerm?.termStart
@@ -60,8 +62,6 @@ export function TermStatusCards({
         }
         switchOn={Boolean(selectedTerm?.isTermOpen)}
         active={termActive}
-        openLabel="فعال"
-        closedLabel="بسته"
         onToggle={onToggleTermOpen}
         disabled={!selectedTerm}
       />
@@ -69,12 +69,23 @@ export function TermStatusCards({
       <KvCard>
         <KvCardContent
           padding="md"
-          className="flex min-h-[82px] items-center justify-center"
+          className="flex min-h-[82px] items-center justify-between gap-kv-group"
         >
-          <div className="w-full max-w-64">
+          <div className="flex min-w-0 items-center gap-kv-pair">
+            <KvCardTitleIcon icon={faIcons.graduationCap} />
+            <div className="min-w-0">
+              <KvTypography variant="subtitle" as="h4">
+                نیم‌سال
+              </KvTypography>
+              <KvTypography variant="caption" tone="muted">
+                انتخاب ترم برای مدیریت ارائه و سرفصل
+              </KvTypography>
+            </div>
+          </div>
+          <div className="w-full max-w-44 shrink-0">
             <KvSelectField
               label={false}
-              size="md"
+              size="sm"
               value={selectedTerm?.id ?? ''}
               onValueChange={onSelectTerm}
               placeholder="انتخاب ترم"
@@ -93,54 +104,53 @@ export function TermStatusCards({
 }
 
 function StatusGateCard({
+  icon,
   title,
   subtitle,
   switchOn,
   active,
-  openLabel,
-  closedLabel,
   onToggle,
   disabled,
 }: {
+  icon: IconDefinition;
   title: string;
   subtitle: string;
   switchOn: boolean;
   active: boolean;
-  openLabel: string;
-  closedLabel: string;
   onToggle: (open: boolean) => void;
   disabled?: boolean;
 }) {
   return (
     <KvCard
       className={
-        active ? 'border-kv-success-border bg-kv-success-soft/30' : undefined
+        active
+          ? 'border-kv-success-border bg-kv-success-soft/30'
+          : 'border-kv-danger-border bg-kv-danger-soft/30'
       }
     >
       <KvCardContent
         padding="md"
         className="flex min-h-[82px] items-center justify-between gap-kv-group"
       >
-        <div className="min-w-0">
-          <KvTypography variant="subtitle" as="h4">
-            {title}
-          </KvTypography>
-          <KvTypography variant="caption" tone="muted">
-            {subtitle}
-          </KvTypography>
+        <div className="flex min-w-0 items-center gap-kv-pair">
+          <KvCardTitleIcon icon={icon} />
+          <div className="min-w-0">
+            <KvTypography variant="subtitle" as="h4">
+              {title}
+            </KvTypography>
+            <KvTypography variant="caption" tone="muted">
+              {subtitle}
+            </KvTypography>
+          </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2.5">
-          <KvBadge variant={active ? 'success' : 'default'}>
-            {active ? openLabel : closedLabel}
-          </KvBadge>
-          <KvSwitch
-            size="md"
-            checked={switchOn}
-            disabled={disabled}
-            onCheckedChange={onToggle}
-            aria-label={title}
-          />
-        </div>
+        <KvSwitch
+          size="md"
+          checked={switchOn}
+          disabled={disabled}
+          onCheckedChange={onToggle}
+          aria-label={title}
+          className="data-[state=unchecked]:bg-kv-danger/35"
+        />
       </KvCardContent>
     </KvCard>
   );

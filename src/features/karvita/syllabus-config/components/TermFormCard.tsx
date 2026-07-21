@@ -3,6 +3,7 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
+import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvTypography } from '@/components/shared/KvTypography';
@@ -57,11 +58,9 @@ export function TermFormCard({
   return (
     <KvCard>
       <KvCardContent padding="md" className="space-y-kv-group">
-        <div className="flex items-center gap-2.5 border-b border-kv-border pb-kv-pair">
-          <div className="flex size-9 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
-            <FaIcon icon={faIcons.plus} size="sm" />
-          </div>
-          <div>
+        <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-pair">
+          <KvCardTitleIcon icon={faIcons.plus} />
+          <div className="min-w-0">
             <KvTypography variant="subtitle" as="h4">
               تعریف و ساختارسازی ترم جدید
             </KvTypography>

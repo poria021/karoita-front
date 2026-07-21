@@ -1,6 +1,7 @@
 /**
- * Fails if features/ or app/ import @/components/ui/*.
- * Product UI must use Kv / App primitives from shared (docs/design-system.md).
+ * Fails if features/ or app/ import product-bypass ui paths.
+ * Plain atoms (@/components/ui/button, badge, spinner, …) are allowed.
+ * Forbidden: ui/table, ui/skeleton — use shared KvTable stack / shared/skeleton.
  *
  * Run: node scripts/check-no-ui-imports.mjs
  */
@@ -13,8 +14,9 @@ const TARGETS = [
   path.join(ROOT, 'src', 'app'),
 ];
 
-const IMPORT_RE =
-  /from\s+['"]@\/components\/ui(?:\/[^'"]*)?['"]|require\(\s*['"]@\/components\/ui(?:\/[^'"]*)?['"]\s*\)/;
+/** Product stacks that must stay behind shared wrappers. */
+const FORBIDDEN_RE =
+  /from\s+['"]@\/components\/ui\/(?:table|skeleton)(?:\/[^'"]*)?['"]|require\(\s*['"]@\/components\/ui\/(?:table|skeleton)(?:\/[^'"]*)?['"]\s*\)/;
 
 function walk(dir, out = []) {
   if (!fs.existsSync(dir)) return out;
@@ -38,7 +40,7 @@ for (const target of TARGETS) {
     lines.forEach((line, index) => {
       const trimmed = line.trim();
       if (trimmed.startsWith('//') || trimmed.startsWith('*')) return;
-      if (IMPORT_RE.test(line)) {
+      if (FORBIDDEN_RE.test(line)) {
         violations.push(
           `${path.relative(ROOT, file).split(path.sep).join('/')}:${index + 1}: ${trimmed}`
         );
@@ -49,10 +51,12 @@ for (const target of TARGETS) {
 
 if (violations.length) {
   console.error(
-    'Forbidden @/components/ui imports in features/app (use Kv/App from shared):\n'
+    'Forbidden product-bypass @/components/ui imports in features/app (use shared table/skeleton):\n'
   );
   for (const v of violations) console.error(`  ${v}`);
   process.exit(1);
 }
 
-console.log('OK: no @/components/ui imports in src/features or src/app.');
+console.log(
+  'OK: no forbidden ui/table or ui/skeleton imports in src/features or src/app.'
+);

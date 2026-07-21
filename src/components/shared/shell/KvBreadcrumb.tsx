@@ -35,7 +35,7 @@ export function KvBreadcrumb({ items, className }: KvBreadcrumbProps) {
               {showLink ? (
                 <Link
                   href={item.href!}
-                  className="min-w-0 truncate rounded-sm transition-colors hover:text-kv-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring"
+                  className="min-w-0 truncate rounded-kv-tight transition-colors hover:text-kv-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring"
                 >
                   <KvTypography variant="caption" tone="muted" as="span" truncate>
                     {item.label}

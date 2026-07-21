@@ -1,8 +1,8 @@
 'use client';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
+import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
@@ -102,10 +102,8 @@ function SettingsMetricCard({
     <KvCard>
       <KvCardContent padding="md" className="space-y-kv-group">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-kv-panel bg-kv-brand-soft text-kv-brand">
-              <FaIcon icon={icon} size="md" />
-            </div>
+          <div className="flex min-w-0 items-center gap-kv-pair">
+            <KvCardTitleIcon icon={icon} />
             <div className="min-w-0">
               <KvTypography variant="subtitle" as="h4">
                 {title}
@@ -115,11 +113,10 @@ function SettingsMetricCard({
               </KvTypography>
             </div>
           </div>
-          <div className="w-24 shrink-0">
+          <div className="w-28 shrink-0">
             <KvTextField
               label={false}
               size="md"
-              emphasis="metric"
               inputMode="numeric"
               dir="ltr"
               value={displayValue}
@@ -138,7 +135,6 @@ function SettingsMetricCard({
             className="w-full sm:w-auto"
             disabled={disabled}
             onClick={onSave}
-            icon={<FaIcon icon={faIcons.check} size="xs" />}
           >
             {saveLabel}
           </KvButton>

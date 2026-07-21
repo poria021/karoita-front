@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { KvToaster } from "@/components/shared/KvToaster";
+import { Toaster } from "@/components/ui/sonner";
 import { Vazirmatn } from "next/font/google";
 
 import Providers from "@/components/shared/shell/Providers";
@@ -26,7 +26,7 @@ export default function RootLayout({
       <body className={`${vazirmatn.variable} font-sans antialiased bg-kv-canvas`}>
         <Providers>
           {children}
-            <KvToaster dir="rtl" richColors closeButton position="top-center" />
+            <Toaster dir="rtl" richColors closeButton position="top-center" />
             </Providers>
       </body>
     </html>

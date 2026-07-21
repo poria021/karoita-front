@@ -6,6 +6,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
+import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
@@ -43,11 +44,9 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
     >
       <KvCardContent className="space-y-kv-section p-kv-inset sm:p-kv-block">
         <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-inline">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
-            <FaIcon icon={faIcons.userPlus} size="sm" />
-          </div>
-          <div className="min-w-0 space-y-kv-micro">
-            <KvTypography variant="subtitle" as="h3">
+          <KvCardTitleIcon icon={faIcons.userPlus} />
+          <div className="min-w-0">
+            <KvTypography variant="subtitle" as="h4">
               ایجاد حساب کاربری جدید
             </KvTypography>
             <KvTypography variant="caption" tone="muted">

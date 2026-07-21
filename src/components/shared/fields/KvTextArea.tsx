@@ -26,21 +26,16 @@ const kvTextAreaVariants = cva(
       state: {
         default: [
           'border-kv-border-strong',
-          'hover:border-kv-border-strong hover:bg-kv-border-strong/25',
           'focus-visible:border-kv-brand focus-visible:bg-kv-surface',
-          'focus-visible:hover:border-kv-brand focus-visible:hover:bg-kv-surface',
           'focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
         ].join(' '),
         error: [
           'border-kv-danger-border',
-          'hover:border-kv-danger-border hover:bg-kv-danger-border/20',
           'focus-visible:border-kv-danger focus-visible:bg-kv-surface',
-          'focus-visible:hover:border-kv-danger focus-visible:hover:bg-kv-surface',
           'focus-visible:ring-[3px] focus-visible:ring-kv-ring-danger/15',
         ].join(' '),
         locked: [
           'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled',
-          'hover:border-kv-border-disabled hover:bg-kv-field-disabled',
           'focus-visible:border-kv-border-disabled focus-visible:ring-0',
         ].join(' '),
       },

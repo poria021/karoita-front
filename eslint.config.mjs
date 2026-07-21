@@ -9,8 +9,8 @@ import nextTs from 'eslint-config-next/typescript';
 const COLOR_LITERAL_MESSAGE =
   'Hardcoded colors (#hex / rgb() / hsl()) are forbidden in TS/TSX. Add HSL `--kv-*` tokens in globals.css and use bg-kv-*/text-kv-*/border-kv-*/fill-kv-* utilities. See .cursor/rules/70-color-hsl-tokens.mdc.';
 
-const UI_LAYER_MESSAGE =
-  'Import Kv/App primitives from @/components/shared (or extend shared). Do not import @/components/ui/* from features/app — ui is the Shadcn base layer for shared only. See docs/design-system.md.';
+const UI_PRODUCT_BYPASS_MESSAGE =
+  'Product composition belongs in shared: use KvTable stack, shared/skeleton wrappers, domain *Field / FieldFrame, EmptyState, ConfirmationDialog, and shell — not raw ui/table or ui/skeleton from features/app. Plain atoms (Button, Badge, Spinner, Checkbox, Tooltip, …) MAY come from @/components/ui/*. See docs/design-system.md.';
 
 /**
  * Next 16 ships flat configs — do not use FlatCompat for `next/*` extends
@@ -64,8 +64,8 @@ const eslintConfig = [
     },
   },
   /**
-   * Layer law: features + app consume shared Kv / App primitives only.
-   * `src/components/shared` and `src/components/ui` may import ui primitives.
+   * Layer law: features/app MAY import plain ui atoms.
+   * Forbidden: bypass product stacks (admin table, cold skeletons) via raw ui.
    */
   {
     files: ['src/features/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
@@ -75,8 +75,12 @@ const eslintConfig = [
         {
           patterns: [
             {
-              group: ['@/components/ui', '@/components/ui/*'],
-              message: UI_LAYER_MESSAGE,
+              group: ['@/components/ui/table', '@/components/ui/table/*'],
+              message: UI_PRODUCT_BYPASS_MESSAGE,
+            },
+            {
+              group: ['@/components/ui/skeleton', '@/components/ui/skeleton/*'],
+              message: UI_PRODUCT_BYPASS_MESSAGE,
             },
           ],
         },

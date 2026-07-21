@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getAdminTableBodyPhase } from './adminTableBodyPhase';
+import { getAdminTableBodyPhase } from '@/components/shared/table/KvTable';
 
 describe('getAdminTableBodyPhase', () => {
   it('keeps rows during soft refresh when content already exists', () => {

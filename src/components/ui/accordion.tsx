@@ -39,7 +39,7 @@ function AccordionTrigger({
           'flex flex-1 cursor-pointer items-center justify-between gap-3 py-3 text-start',
           'font-sans text-xs font-extrabold text-kv-text outline-none transition-all',
           'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
-          'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
+          'disabled:cursor-not-allowed disabled:opacity-50',
           '[&[data-state=open]>svg]:rotate-180 [&[data-state=open]>svg]:text-kv-brand',
           className
         )}

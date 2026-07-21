@@ -19,9 +19,9 @@ export function KvSkeletonField({
 }: KvSkeletonFieldProps) {
   return (
     <div className={cn('w-full space-y-kv-field', className)} aria-hidden>
-      <KvSkeleton className={cn('h-3.5 w-24 rounded-md', labelClassName)} />
+      <KvSkeleton className={cn('h-3.5 w-24 rounded-kv-control', labelClassName)} />
       <KvSkeleton
-        className={cn('h-11 w-full rounded-xl', controlClassName)}
+        className={cn('h-11 w-full rounded-kv-control', controlClassName)}
       />
     </div>
   );

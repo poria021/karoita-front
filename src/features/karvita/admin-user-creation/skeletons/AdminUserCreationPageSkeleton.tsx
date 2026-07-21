@@ -47,7 +47,7 @@ export function AdminUserCreationPageSkeleton() {
             </div>
 
             <div className="mt-kv-group flex justify-end border-t border-kv-border pt-kv-group">
-              <KvSkeleton className="h-11 w-52 rounded-xl" />
+              <KvSkeleton className="h-11 w-52 rounded-kv-control" />
             </div>
           </div>
         </KvCardContent>

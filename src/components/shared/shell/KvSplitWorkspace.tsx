@@ -70,7 +70,6 @@ export function KvSplitWorkspace({
             <section
               className={cn(
                 'flex w-full min-h-0 flex-col',
-                '[&_[data-slot=kv-card]]:rounded-kv-card',
                 widths.secondary
               )}
               data-slot="kv-split-workspace-secondary"

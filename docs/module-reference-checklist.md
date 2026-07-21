@@ -10,8 +10,8 @@ One-page guide for adding or reviewing a Karvita feature. Keep layers separate.
 | Domain UI + hooks + schemas | `src/features/[domain]/…` |
 | Cross-domain UI (auth, profile) | `src/features/shared/…` |
 | HTTP / mock / Nest | `src/services/[name].service.ts` (Facade) |
-| Shared chrome | `src/components/shared/` (`Kv*`, `AppTabs`, shell) |
-| Shadcn base | `src/components/ui/` — **shared only** |
+| Shared chrome | `src/components/shared/` (shell, fields, KvTable, EmptyState, …) |
+| Shadcn atoms | `src/components/ui/` — features may import plain atoms; not `ui/table` / `ui/skeleton` |
 | Types / DTOs | `src/types/` |
 | Role menus / permissions | `RoleStrategyMap` |
 | Paths | `RouteService` only — no hardcoded `/karvita/…` |
@@ -22,7 +22,7 @@ One-page guide for adding or reviewing a Karvita feature. Keep layers separate.
 - [ ] **Facade:** all reads/writes through `*Service` — no `fetch` in the feature
 - [ ] **Mock/real:** same return types; real paths throw `REAL_MODE_NOT_IMPLEMENTED` or call Nest — never accept mock OTP/secrets
 - [ ] **Authz:** UI may hide actions; sensitive Facade methods re-check permission in mock (`mock-authz`) and will call Nest in real — do not trust Zustand role alone
-- [ ] **UI:** only `Kv*` / `App*` / `FaIcon` — no `@/components/ui/*` (see `docs/design-system.md`)
+- [ ] **UI:** shared for product composition; plain `@/components/ui/*` atoms OK; no `ui/table` / `ui/skeleton` (see `docs/design-system.md`)
 - [ ] **Forms:** RHF + Zod; numeric fields normalize with `persianToEnglishDigits` before validate/submit
 - [ ] **Roles:** menus/widths/permissions from `RoleStrategyMap` — no `if (role === …)` for chrome
 - [ ] **RTL / a11y:** logical spacing; labels; `FaIcon` sizes via prop

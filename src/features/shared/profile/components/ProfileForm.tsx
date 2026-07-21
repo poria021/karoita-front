@@ -10,6 +10,7 @@ import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberFi
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
 import { faIcons } from '@/utils/iconMap';
@@ -68,19 +69,15 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
 
   return (
     <div className="space-y-kv-section text-start" dir="rtl">
-      <div className="mb-kv-stack flex items-center gap-kv-inline border-b border-kv-border pb-kv-stack">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
-          <FaIcon icon={faIcons.idCard} size="lg" />
-        </div>
-        <div className="flex flex-col">
-          <KvTypography variant="title" as="h2">
+      <div className="mb-kv-stack flex items-center gap-kv-pair border-b border-kv-border pb-kv-stack">
+        <KvCardTitleIcon icon={faIcons.idCard} />
+        <div className="min-w-0">
+          <KvTypography variant="subtitle" as="h2">
             پروفایل و اسناد هویتی
           </KvTypography>
-          <div className="mt-1">
-            <KvTypography variant="caption" tone="muted">
-              مدیریت مشخصات پرسنلی، مدارک تحصیلی و وضعیت فعال‌سازی حساب کاربری
-            </KvTypography>
-          </div>
+          <KvTypography variant="caption" tone="muted">
+            مدیریت مشخصات پرسنلی، مدارک تحصیلی و وضعیت فعال‌سازی حساب کاربری
+          </KvTypography>
         </div>
       </div>
 

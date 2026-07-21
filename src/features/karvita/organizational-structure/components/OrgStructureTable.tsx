@@ -5,17 +5,17 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import {
+  getAdminTableBodyPhase,
   KvTable,
   KvTableBody,
+  KvTableBusy,
   KvTableCell,
+  KvTableEmpty,
   KvTableHead,
   KvTableHeader,
   KvTableRow,
+  KvTableViewport,
 } from '@/components/shared/table/KvTable';
-import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
-import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
-import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
-import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
 import { faIcons } from '@/utils/iconMap';
 

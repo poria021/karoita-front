@@ -5,7 +5,7 @@ import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
-import { KvSpinner } from '@/components/shared/KvSpinner';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
@@ -150,7 +150,7 @@ export function SearchableOrganizationSelect({
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2 px-3.5 py-3 text-xs text-kv-text-faint">
-                <KvSpinner className="size-3.5" aria-hidden="true" />
+                <Spinner className="size-3.5" aria-hidden="true" />
                 در حال بارگذاری...
               </div>
             ) : loadError ? (
@@ -175,7 +175,7 @@ export function SearchableOrganizationSelect({
                 ))}
                 {isLoadingMore ? (
                   <div className="flex items-center justify-center gap-2 border-t border-kv-border-muted px-3.5 py-2.5 text-xs text-kv-text-faint">
-                    <KvSpinner className="size-3.5" aria-hidden="true" />
+                    <Spinner className="size-3.5" aria-hidden="true" />
                     در حال بارگذاری...
                   </div>
                 ) : hasMore ? (

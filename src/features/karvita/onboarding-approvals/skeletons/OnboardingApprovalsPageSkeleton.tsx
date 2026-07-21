@@ -3,10 +3,12 @@
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
 import { KvSkeletonTabTrack } from '@/components/shared/skeleton/KvSkeletonChrome';
-import { KvSkeletonListRow } from '@/components/shared/skeleton/KvSkeletonCard';
-import { KvSkeletonTablePanel } from '@/components/shared/skeleton/KvSkeletonTablePanel';
+import {
+  KvSkeletonListRow,
+  KvSkeletonTablePanel,
+} from '@/components/shared/skeleton/KvSkeletonCard';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
-import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/KvTable';
 import { cn } from '@/lib/utils';
 
 function FiltersSkeleton({
@@ -22,10 +24,10 @@ function FiltersSkeleton({
       aria-label={searchPlaceholderLabel}
     >
       <div className="w-full flex-1">
-        <KvSkeleton className="h-11 w-full rounded-xl" />
+        <KvSkeleton className="h-11 w-full rounded-kv-control" />
       </div>
       <div className="w-full shrink-0 sm:w-36">
-        <KvSkeleton className="h-9 w-full rounded-xl" />
+        <KvSkeleton className="h-9 w-full rounded-kv-control" />
       </div>
     </div>
   );
@@ -70,8 +72,8 @@ export function OnboardingApprovalsPageSkeleton() {
             )}
           >
             <KvSkeleton className="size-12 rounded-full" />
-            <KvSkeleton className="h-4 w-40 rounded-md" />
-            <KvSkeleton className="h-3 w-56 max-w-full rounded-md" />
+            <KvSkeleton className="h-4 w-40 rounded-kv-control" />
+            <KvSkeleton className="h-3 w-56 max-w-full rounded-kv-control" />
           </KvCardContent>
         </KvCard>
       }

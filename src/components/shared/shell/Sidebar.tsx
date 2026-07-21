@@ -8,10 +8,10 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import {
-  KvTooltip,
-  KvTooltipContent,
-  KvTooltipTrigger,
-} from '@/components/shared/KvTooltip';
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import { RouteService } from '@/services/route.service';
@@ -144,7 +144,7 @@ export function Sidebar() {
           }
         />
 
-        <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-compact lg:hidden">
+        <div className="flex items-center justify-between gap-3 border-b border-kv-border-muted p-4 lg:hidden">
           <div className="flex min-w-0 items-center gap-kv-inline">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20">
               <FaIcon icon={faIcons.tableColumns} size="sm" />
@@ -173,7 +173,7 @@ export function Sidebar() {
         </div>
 
         <nav
-          className="flex-1 space-y-kv-pair p-kv-compact lg:p-kv-compact lg:pt-kv-stack lg:pb-8"
+          className="flex-1 space-y-3 overflow-y-auto p-4 lg:overflow-y-visible lg:p-3 lg:pt-5 lg:pb-8"
           aria-label="منوی اصلی"
         >
           {visibleMenu.map((entry) =>
@@ -206,18 +206,18 @@ export function Sidebar() {
           aria-label={`پروفایل ${activeUser.firstName} ${activeUser.lastName}`}
           className={cn(
             'border-t border-kv-border-muted bg-kv-surface transition-colors hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30 lg:rounded-b-kv-shell',
-            isCollapsed ? 'p-kv-compact lg:p-2' : 'p-kv-compact'
+            isCollapsed ? 'p-4 lg:p-2' : 'p-4'
           )}
         >
           <div
             className={cn(
               'flex items-center rounded-kv-control border border-kv-border-muted bg-kv-surface-muted transition-all',
               isCollapsed
-                ? 'justify-start p-kv-compact lg:justify-center lg:p-2'
-                : 'p-kv-compact'
+                ? 'justify-start p-3 lg:justify-center lg:p-2'
+                : 'p-3'
             )}
           >
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
+            <div className="relative flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
               <FaIcon icon={roleIcon} size="sm" />
             </div>
             <div
@@ -232,7 +232,7 @@ export function Sidebar() {
                 {activeUser.firstName} {activeUser.lastName}
               </KvTypography>
               <div className="mt-0.5">
-                <KvTypography variant="overline" tone="muted" as="p" truncate>
+                <KvTypography variant="caption" tone="muted" as="p" truncate>
                   {strategy.label}
                 </KvTypography>
               </div>
@@ -272,7 +272,7 @@ function SidebarNavGroup({
   // Collapsed rail: expose children as icon links so both modules stay reachable.
   if (isCollapsed) {
     return (
-      <div className="space-y-kv-pair max-lg:contents lg:block">
+      <div className="space-y-3 max-lg:contents lg:block">
         <div className="hidden lg:contents">
           {group.children.map((child) => (
             <SidebarNavLink
@@ -285,7 +285,7 @@ function SidebarNavGroup({
             />
           ))}
         </div>
-        <div className="space-y-kv-pair lg:hidden">
+        <div className="space-y-1 lg:hidden">
           <ExpandedGroupChrome
             group={group}
             groupIcon={groupIcon}
@@ -341,7 +341,8 @@ function ExpandedGroupChrome({
   const childActive = group.children.some((child) => child.path === pathname);
 
   return (
-    <div className="space-y-kv-pair">
+    <div className="space-y-1">
+      {/* L1 — group label: darkest text, medium-strong weight; icon quieter than label */}
       <button
         type="button"
         id={groupId}
@@ -349,10 +350,11 @@ function ExpandedGroupChrome({
         aria-controls={`${groupId}-panel`}
         onClick={onToggle}
         className={cn(
-          'flex min-h-11 w-full items-center justify-between gap-2 rounded-kv-control px-3.5 py-2.5 text-xs font-bold transition-colors',
-          'text-kv-text-muted hover:bg-kv-surface-muted hover:text-kv-text-secondary',
+          'group flex w-full items-center justify-between rounded-kv-control px-3.5 py-2.5 text-xs font-semibold leading-snug transition-colors',
           'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
-          childActive && 'text-kv-brand-soft-fg'
+          childActive
+            ? 'text-kv-text hover:bg-kv-surface-muted'
+            : 'text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
         )}
       >
         <span className="flex min-w-0 items-center">
@@ -360,17 +362,19 @@ function ExpandedGroupChrome({
             icon={groupIcon}
             size="sm"
             className={cn(
-              'shrink-0',
-              childActive ? 'text-kv-brand-soft-fg' : 'text-kv-text-faint'
+              'w-5 shrink-0 text-center transition-colors',
+              childActive
+                ? 'text-kv-brand'
+                : 'text-kv-text-faint group-hover:text-kv-text-subtle'
             )}
           />
-          <span className="ms-3 truncate">{group.title}</span>
+          <span className="ms-3 max-w-[150px] truncate">{group.title}</span>
         </span>
         <FaIcon
           icon={faIcons.chevronDown}
           size="2xs"
           className={cn(
-            'shrink-0 text-kv-text-faint transition-transform',
+            'shrink-0 text-kv-text-faint/80 transition-transform group-hover:text-kv-text-faint',
             open && 'rotate-180'
           )}
         />
@@ -381,7 +385,7 @@ function ExpandedGroupChrome({
           id={`${groupId}-panel`}
           role="group"
           aria-labelledby={groupId}
-          className="space-y-kv-pair border-s border-kv-border-muted ms-3 ps-2"
+          className="ms-4 mt-1.5 space-y-1 overflow-hidden border-s border-kv-border-muted ps-3"
         >
           {group.children.map((child) => (
             <SidebarNavLink
@@ -391,6 +395,7 @@ function ExpandedGroupChrome({
               isCollapsed={isCollapsed}
               locked={locked}
               onNavigate={onNavigate}
+              nested
             />
           ))}
         </div>
@@ -405,6 +410,8 @@ interface SidebarNavLinkProps {
   isCollapsed: boolean;
   locked: boolean;
   onNavigate: () => void;
+  /** L2 under a group — quieter than L1; hierarchy via color/weight, not size. */
+  nested?: boolean;
 }
 
 function SidebarNavLink({
@@ -413,25 +420,48 @@ function SidebarNavLink({
   isCollapsed,
   locked,
   onNavigate,
+  nested = false,
 }: SidebarNavLinkProps) {
   const itemIcon = resolveIcon(item.icon);
+  const useBullet = nested && !isCollapsed;
+
   const iconTone = locked
-    ? 'text-kv-text-disabled'
+    ? 'text-kv-text-faint'
     : isActive
-      ? 'text-kv-brand-soft-fg'
-      : 'text-kv-text-faint';
+      ? 'text-kv-brand'
+      : 'text-kv-text-faint group-hover:text-kv-text-subtle';
+
+  const bulletTone = locked
+    ? 'bg-kv-border-strong'
+    : isActive
+      ? 'bg-kv-brand'
+      : 'bg-kv-border-strong group-hover:bg-kv-text-faint';
 
   const content = (
-    <div className="flex min-w-0 items-center">
-      <FaIcon
-        icon={itemIcon}
-        size="sm"
-        className={cn('shrink-0 text-center', iconTone)}
-      />
+    <div className={cn('flex min-w-0 items-center', useBullet && 'gap-2')}>
+      {useBullet ? (
+        <span
+          aria-hidden
+          className={cn(
+            'size-1.5 shrink-0 rounded-full transition-colors',
+            bulletTone
+          )}
+        />
+      ) : (
+        <FaIcon
+          icon={itemIcon}
+          size="sm"
+          className={cn('w-5 shrink-0 text-center transition-colors', iconTone)}
+        />
+      )}
       <span
         className={cn(
-          'inline-block max-w-[150px] overflow-hidden whitespace-nowrap opacity-100 transition-all',
-          isCollapsed ? 'ms-3 lg:ms-0 lg:max-w-0 lg:opacity-0' : 'ms-3'
+          'inline-block max-w-[150px] overflow-hidden whitespace-nowrap transition-all',
+          useBullet
+            ? 'opacity-100'
+            : isCollapsed
+              ? 'ms-3 opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0'
+              : 'ms-3 opacity-100'
         )}
       >
         {item.title}
@@ -440,13 +470,23 @@ function SidebarNavLink({
   );
 
   const className = cn(
-    'flex min-h-11 w-full items-center rounded-kv-control px-3.5 py-2.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
-    isCollapsed ? 'justify-start lg:justify-center' : 'justify-start',
+    'group flex w-full items-center rounded-kv-control text-xs leading-snug transition-colors',
+    'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
+    useBullet ? 'px-3 py-2' : 'py-2.5',
+    !useBullet && (isCollapsed ? 'px-3.5 lg:px-0' : 'px-3.5'),
+    isCollapsed ? 'justify-start lg:justify-center' : 'justify-start text-start',
     locked
-      ? 'cursor-default bg-transparent text-kv-text-disabled'
+      ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
       : isActive
-        ? 'cursor-pointer border border-kv-brand-border/50 bg-kv-brand-soft text-kv-brand-soft-fg'
-        : 'cursor-pointer text-kv-text-muted hover:bg-kv-surface-muted hover:text-kv-text-secondary'
+        ? /* Focus of the tree — strongest signal */
+          useBullet
+            ? 'cursor-pointer bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
+            : 'cursor-pointer border border-kv-brand-border/50 bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
+        : useBullet
+          ? /* L2 idle — recedes under L1 */
+            'cursor-pointer font-medium text-kv-text-faint hover:bg-kv-surface-muted hover:text-kv-text-secondary'
+          : /* L1 leaf idle */
+            'cursor-pointer font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
   );
 
   const control = locked ? (
@@ -481,11 +521,11 @@ function SidebarNavLink({
   );
 
   return (
-    <KvTooltip>
-      <KvTooltipTrigger asChild>{trigger}</KvTooltipTrigger>
-      <KvTooltipContent side="left" sideOffset={8}>
+    <Tooltip>
+      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+      <TooltipContent side="left" sideOffset={8}>
         {locked ? `${item.title} (غیرفعال)` : item.title}
-      </KvTooltipContent>
-    </KvTooltip>
+      </TooltipContent>
+    </Tooltip>
   );
 }

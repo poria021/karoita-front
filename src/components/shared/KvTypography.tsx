@@ -7,6 +7,7 @@ export type KvTypographyVariant =
   | 'display'
   | 'title'
   | 'subtitle'
+  | 'nav'
   | 'body'
   | 'label'
   | 'caption'
@@ -39,6 +40,8 @@ const kvTypographyVariants = cva('font-sans', {
       display: 'text-3xl font-black leading-[1.15] tracking-tight sm:text-4xl',
       title: 'text-sm font-bold leading-snug tracking-tight sm:text-base',
       subtitle: 'text-xs font-bold leading-snug',
+      /* 12px medium — shell/sidebar nav (dense admin; hierarchy via weight/color) */
+      nav: 'text-xs font-medium leading-snug',
       body: 'text-xs font-medium leading-relaxed',
       label: 'text-xs font-bold leading-none',
       caption: 'text-xs font-medium leading-normal',
@@ -71,6 +74,7 @@ const kvTypographyVariants = cva('font-sans', {
     },
   },
   compoundVariants: [
+    { variant: 'nav', tone: 'default', class: 'text-kv-text-muted' },
     { variant: 'body', tone: 'default', class: 'text-kv-text-secondary' },
     { variant: 'label', tone: 'default', class: 'text-kv-text-muted' },
     { variant: 'error', tone: 'default', class: 'text-kv-danger' },
@@ -88,6 +92,7 @@ const DEFAULT_ELEMENT: Record<KvTypographyVariant, KvTypographyElement> = {
   display: 'h1',
   title: 'h1',
   subtitle: 'h3',
+  nav: 'span',
   body: 'p',
   label: 'label',
   caption: 'p',

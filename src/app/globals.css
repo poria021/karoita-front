@@ -7,10 +7,10 @@
   /* معرفی فونت وزیرمتن به عنوان فونت بدون‌سریف پیش‌فرض Tailwind v4 */
   --font-sans: var(--font-vazirmatn), sans-serif;
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: var(--radius-kv-tight);
+  --radius-md: var(--radius-kv-control);
+  --radius-lg: var(--radius-kv-panel);
+  --radius-xl: var(--radius-kv-shell);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -190,17 +190,30 @@
   --spacing-kv-page: 2rem; /* 32px */
   --spacing-kv-screen: 3rem; /* 48px */
 
+  /* Sidebar rhythm (original-karvita.html nav) */
+  --spacing-kv-nav: 0.625rem; /* 10px — module stack / top-level py */
+  --spacing-kv-nav-tight: 0.25rem; /* 4px — group internal / submenu offset */
+  --spacing-kv-nav-sub: 0.375rem; /* 6px — submenu item stack */
+
   /*
-   * Karvita semantic radius (`rounded-kv-*`) — pick by *role*, not one vague name.
-   * - control / panel: share `--radius-kv-base` (admin chrome: buttons, fields, tabs, tables)
-   * - card: larger radius for auth / marketing content cards (original look)
-   * - shell: large layout surfaces (sidebar, main viewport)
+   * Karvita semantic radius (`rounded-kv-*`) — nested shape law (MD3 / enterprise):
+   * each nesting level steps down ~4px so the child never matches or exceeds the parent.
+   *
+   *   tight   4px  — micro (checkbox)
+   *   control 8px  — buttons, inputs, selects, tab triggers, badges
+   *   panel  12px  — cards, alerts, dropdowns, tab tracks, table chrome
+   *   shell  16px  — layout wells (sidebar, main viewport)
+   *   card   20px  — auth / marketing / modal overlays (outside dashboard shell)
+   *
+   * Exception: `rounded-full` only for true circles/pills (avatar, switch, dots).
    */
-  --radius-kv-base: 0.75rem; /* 12px — control + panel */
-  --radius-kv-control: var(--radius-kv-base);
-  --radius-kv-panel: var(--radius-kv-base);
-  --radius-kv-card: 1.5rem; /* 24px — auth / form cards */
-  --radius-kv-shell: 1.5rem; /* 24px — layout only */
+  --radius-kv-tight: 0.25rem; /* 4px */
+  --radius-kv-control: 0.5rem; /* 8px */
+  --radius-kv-panel: 0.75rem; /* 12px */
+  --radius-kv-shell: 1rem; /* 16px */
+  --radius-kv-card: 1.25rem; /* 20px */
+  /* @deprecated alias — prefer control or panel by role */
+  --radius-kv-base: var(--radius-kv-panel);
 
   /*
    * Semantic elevation (`shadow-kv-*`) — use roles instead of raw shadow-sm/md/xl.
@@ -215,14 +228,15 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  /* Align legacy shadcn radius ladder to kv nested scale (prefer rounded-kv-*) */
+  --radius: 0.5rem; /* = control */
 
   /* —— kv semantic palette (light) — HSL only (see rule 70-color-hsl-tokens) —— */
-  /* App canvas matches original-karvita.html `bg-[#faf9f8]` */
+  /* App canvas — warm stage behind shell (one soft veil under pure white) */
   --kv-canvas: hsl(30 14.3% 97.6%);
   --kv-surface: hsl(0 0% 100%);
-  /* Dashboard <main> well only — nearer white than muted; do not reuse for chrome */
-  --kv-main: hsl(210 30% 98.7%);
+  /* Dashboard <main> well — one neutral veil under white; edge via border, not tint stacks */
+  --kv-main: hsl(0 0% 99%);
   --kv-surface-muted: hsl(210 40% 98%);
   --kv-surface-subtle: hsl(210 40% 96.1%);
   --kv-surface-disabled: hsl(210 40% 96.1%);

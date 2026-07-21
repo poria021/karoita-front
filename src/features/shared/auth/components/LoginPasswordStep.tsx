@@ -3,9 +3,9 @@
 import { Controller } from 'react-hook-form';
 
 import { KvButton } from '@/components/shared/KvButton';
-import { KvCheckbox } from '@/components/shared/fields/KvCheckbox';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
+import { Checkbox } from '@/components/ui/checkbox';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
@@ -101,7 +101,7 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
                 name="remember"
                 control={control}
                 render={({ field }) => (
-                  <KvCheckbox
+                  <Checkbox
                     id="login-remember"
                     checked={field.value}
                     onCheckedChange={(checked) =>

@@ -5,24 +5,29 @@ Short engineering contract for product UI. Not a brand redesign brief.
 ## Layer law (do not collapse)
 
 ```
-features / app  →  Kv* / App* / FaIcon / shell  →  components/ui (Shadcn)
+features / app  →  shared (product composition) + ui atoms (plain primitives)
+                      ↓
+                 components/ui (themed Shadcn)
 ```
 
 | Layer | Path | Who imports |
 |-------|------|-------------|
-| Product chrome | `src/components/shared/` | `src/features/**`, `src/app/**` |
-| Shadcn base | `src/components/ui/` | **Only** `shared` (and other `ui` internals) |
-| Domain UI | `src/features/[domain]/` | Compose shared + domain fields/hooks |
+| Product composition | `src/components/shared/` (shell, fields, KvTable, EmptyState, ConfirmationDialog, product skeletons, …) | `src/features/**`, `src/app/**` |
+| Plain atoms | `src/components/ui/` (Button, Badge, Spinner, Checkbox, Tooltip, Toaster, …) | `shared` **and** features/app when no product API is needed |
+| Domain UI | `src/features/[domain]/` | Compose shared + ui atoms + domain fields/hooks |
 
-**Forbidden in `features` and `app`:** `import … from '@/components/ui/…'`.  
-ESLint enforces this (`no-restricted-imports`). If a pattern is missing, **extend shared** — do not fork a one-off modal/table/tabs in the feature.
+**Allowed in `features` and `app`:** plain `@/components/ui/*` atoms.  
+**Forbidden bypass:** `@/components/ui/table` and `@/components/ui/skeleton` — use `shared/table` (KvTable stack) and `shared/skeleton` instead. ESLint + `pnpm lint:ds` enforce those two.  
+**Do not** create new pass-through `KvX` files that only re-export `ui/X`. Prefer brand classes on `ui/*` itself.
+
+If a **product** pattern is missing (dialog shell, field chrome, admin table behavior), **extend shared** — do not fork a one-off modal/table/tabs in the feature.
 
 ## Prefer these primitives
 
-- **Actions:** `KvButton` (not raw `Button` / `<button>`)
-- **Fields:** `KvTextField`, `KvPasswordField`, `KvMobileNumberField`, `KvSelect` / `KvSelectField`, `KvCheckbox`, `KvForm`
+- **Actions:** `KvButton` while it owns loading/icon API (or `ui/button` once that API lives there)
+- **Fields:** `KvTextField`, `KvPasswordField`, `KvMobileNumberField`, `KvSelect` / `KvSelectField`, `KvForm` + `ui/checkbox` when needed
 - **Surfaces:** `KvCard`, `KvDialog`, `KvConfirmationDialog`, `KvTable`, `AppTabs`
-- **Feedback:** `KvAlert`, `KvEmptyState`, `KvSpinner`, `KvToaster`
+- **Feedback:** `KvAlert`, `KvEmptyState`, `ui/spinner`, `ui/sonner` (`Toaster`)
 - **Type:** `KvTypography` variants (`title`, `subtitle`, `body`, `caption`, …)
 - **Icons:** `FaIcon` + `faIcons` / `iconMap` — size via `size` prop, color via `text-kv-*`
 
@@ -48,18 +53,20 @@ Primary product CTA: `color="cta"` + `appearance="solid"` (brand solid — do no
 - Raw `<button>` / `<input>` / `<select>` for product controls
 - Hardcoded `#hex` / `rgb()` / `hsl()` in JSX (use `kv-*` tokens)
 - Physical spacing (`ml`/`mr`/`left`/`right`) — use logical `ms`/`me`/`ps`/`pe`/`start`/`end`
-- Skeleton loaders (current product preference: control spinner / keep previous UI)
+- Direct `ui/skeleton` or `ui/table` (use shared product stacks)
 - Persian digits in form state / API payloads (display-only via `toPersianDigits`; store English)
 
 ## When shared is incomplete
 
-1. Add or extend a `Kv*` / `App*` in `src/components/shared/` with a backward-compatible API.
-2. Keep Shadcn details inside `ui` + the shared wrapper.
-3. Re-export product API from shared only.
+1. Add or extend a product `Kv*` / `App*` in `src/components/shared/` with a backward-compatible API.
+2. Put atom look/tokens on `ui/*`; keep multi-part product API in shared.
+3. Do not add shared files that only re-export ui.
 
 ## For the next developer
 
-Product UI imports only from `src/components/shared/` (`Kv*` / `App*` / `FaIcon` / `shell` / `fields` / `table`). `src/components/ui/` is internal to shared wrappers — do not import it from features or app. Colors and chrome use semantic `kv-*` tokens. If a pattern is missing, extend shared with a backward-compatible API; do not ship a one-off modal/table/tabs in a feature.
+- **Atoms** = themed shadcn in `src/components/ui/*` — features may import them directly.
+- **Shared** = product composition only (shell, domain fields, admin table behavior, empty/confirm, cold skeletons).
+- Colors use semantic `kv-*` tokens. Missing product patterns → extend shared; do not ship one-off chrome in a feature.
 
 ## Related
 

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { VariantProps } from 'class-variance-authority';
 
-import { KvSpinner } from '@/components/shared/KvSpinner';
 import {
   Button,
   buttonVariants,
@@ -9,6 +8,7 @@ import {
   type ButtonColor,
   type ButtonSize,
 } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
 export type KvButtonColor = ButtonColor;
@@ -57,7 +57,7 @@ export function KvButton({
   const hasChildren =
     children !== undefined && children !== null && children !== false;
   const resolvedIcon = loading ? (
-    <KvSpinner data-icon="inline-start" aria-hidden="true" />
+    <Spinner data-icon="inline-start" aria-hidden="true" />
   ) : (
     icon
   );

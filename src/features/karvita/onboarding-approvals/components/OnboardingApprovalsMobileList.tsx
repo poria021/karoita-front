@@ -9,15 +9,15 @@ import {
 } from '@/components/shared/KvAccordion';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
-import { KvBadge } from '@/components/shared/KvBadge';
-import type { KvBadgeVariant } from '@/components/shared/KvBadge';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
-import { KvMediaAside } from '@/components/shared/KvMediaAside';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
-import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
-import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
+import {
+  KvBusySurface,
+  KV_TABLE_VIEWPORT_HEIGHT,
+} from '@/components/shared/table/KvTable';
+import { Badge, badgeVariants } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type {
   ApprovalFilterTab,
@@ -25,14 +25,17 @@ import type {
 } from '@/types/onboarding-approvals';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
+import type { VariantProps } from 'class-variance-authority';
 
 import { getApprovalTabActions } from '../constants';
 import { OnboardingApprovalsRejectForm } from './OnboardingApprovalsRejectForm';
 import { OnboardingApprovalsUserFields } from './OnboardingApprovalsUserFields';
 
+type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>['variant']>;
+
 function statusBadge(status: OnboardingApprovalUser['docStatus']): {
   label: string;
-  variant: KvBadgeVariant;
+  variant: BadgeVariant;
 } {
   if (status === 'approved') {
     return { label: 'تایید شده', variant: 'success' };
@@ -146,24 +149,23 @@ export function OnboardingApprovalsMobileList({
                   title={user.fullName}
                   description={`${roleLabel} • ${user.province || '---'}`}
                   trailing={
-                    <KvBadge variant={badge.variant}>{badge.label}</KvBadge>
+                    <Badge variant={badge.variant}>{badge.label}</Badge>
                   }
                 />
               </KvAccordionTrigger>
 
               <KvAccordionContent stacked>
-                <KvMediaAside
-                  media={
-                    <KvMediaThumb
-                      src={user.docUrl}
-                      openInNewTab
-                      size="lg"
-                      fluid
-                    />
-                  }
-                >
-                  <OnboardingApprovalsUserFields user={user} />
-                </KvMediaAside>
+                <div className="flex flex-col items-center gap-kv-group sm:flex-row sm:items-start">
+                  <KvMediaThumb
+                    src={user.docUrl}
+                    openInNewTab
+                    size="lg"
+                    fluid
+                  />
+                  <div className="w-full min-w-0 grow">
+                    <OnboardingApprovalsUserFields user={user} />
+                  </div>
+                </div>
 
                 {canApprove || canReject ? (
                   <>

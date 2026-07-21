@@ -6,7 +6,7 @@ import {
   KvSkeletonGateCard,
   KvSkeletonTermSelectCard,
 } from '@/components/shared/skeleton/KvSkeletonCard';
-import { KvSkeletonTablePanel } from '@/components/shared/skeleton/KvSkeletonTablePanel';
+import { KvSkeletonTablePanel } from '@/components/shared/skeleton/KvSkeletonCard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { cn } from '@/lib/utils';
 
@@ -47,8 +47,8 @@ export function CourseOfferingsPageSkeleton() {
             )}
           >
             <div className="flex flex-col gap-kv-group sm:flex-row sm:items-center sm:justify-between">
-              <KvSkeleton className="h-4 w-56 max-w-full rounded-md" />
-              <KvSkeleton className="h-9 w-full rounded-xl sm:w-32" />
+              <KvSkeleton className="h-4 w-56 max-w-full rounded-kv-control" />
+              <KvSkeleton className="h-9 w-full rounded-kv-control sm:w-32" />
             </div>
 
             <KvCard>
@@ -61,7 +61,7 @@ export function CourseOfferingsPageSkeleton() {
             </KvCard>
 
             <div className="flex flex-col sm:flex-row sm:justify-end">
-              <KvSkeleton className="h-11 w-full rounded-xl sm:w-72" />
+              <KvSkeleton className="h-11 w-full rounded-kv-control sm:w-72" />
             </div>
           </KvCard>
         </div>

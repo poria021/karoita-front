@@ -40,7 +40,7 @@ export function TermSettingsPageSkeleton() {
               </div>
 
               <div className="flex flex-col gap-2 border-t border-kv-border-muted pt-kv-group sm:flex-row sm:justify-end">
-                <KvSkeleton className="h-11 w-full rounded-xl sm:w-44" />
+                <KvSkeleton className="h-11 w-full rounded-kv-control sm:w-44" />
               </div>
             </KvCardContent>
           </KvCard>

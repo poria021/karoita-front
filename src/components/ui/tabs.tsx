@@ -40,7 +40,7 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       className={cn(
         'inline-flex items-center justify-center whitespace-nowrap outline-none',
-        'cursor-pointer disabled:pointer-events-none disabled:opacity-50',
+        'cursor-pointer disabled:cursor-not-allowed disabled:opacity-50',
         'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
         className
       )}

@@ -1,27 +1,30 @@
-# ADR-002: ui → Kv / App product layer
+# ADR-002: ui atoms + shared product composition
 
 ## Status
-Accepted
+Accepted (amended)
 
 ## Context
-Shadcn lives in `src/components/ui/`. If features import it directly, product chrome forks (modals, tables, tabs) and brand tokens drift. Rule 75 requires shared reuse.
+Shadcn lives in `src/components/ui/`. Pure pass-through `KvX` wrappers added indirection without product value. Features still must not fork admin table, field chrome, shell, or cold skeletons.
 
 ## Decision
-Layer law (do not collapse):
+Layer law:
 
 ```
-features / app  →  Kv* / App* / FaIcon / shell  →  ui (Shadcn)
+features / app  →  shared (product) + ui (plain atoms)
 ```
 
-1. `src/features/**` and `src/app/**` MUST NOT import `@/components/ui/*`.
-2. Product API is `src/components/shared/` (`KvButton`, `KvDialog`, `AppTabs`, …).
-3. Missing patterns: extend shared with a backward-compatible API — do not hand-roll overlays in a feature.
-4. Enforcement: ESLint `no-restricted-imports` + `pnpm lint:ds` (`scripts/check-no-ui-imports.mjs`).
+1. `src/features/**` and `src/app/**` MAY import plain `@/components/ui/*` atoms (Button, Badge, Spinner, Checkbox, Tooltip, Toaster, …).
+2. They MUST use `src/components/shared/` for product composition: shell, `*Field` / FieldFrame, KvTable stack, EmptyState, ConfirmationDialog, product skeletons.
+3. Forbidden bypass: `@/components/ui/table`, `@/components/ui/skeleton` from features/app.
+4. Do not create new pass-through `KvX` re-exports; put brand classes on `ui/*` when thinning wrappers.
+5. Missing **product** patterns: extend shared — do not hand-roll overlays/tables/tabs in a feature.
+6. Enforcement: ESLint `no-restricted-imports` (table + skeleton) + `pnpm lint:ds` (`scripts/check-no-ui-imports.mjs`).
 
 ## Consequences
-- One visual system; Shadcn upgrades stay behind shared wrappers.
-- Features compose domain UI only; generic chrome stays shared.
+- Less indirection for atoms; product stacks stay single-sourced in shared.
+- Shadcn upgrades for atoms are direct; table/skeleton still go through shared APIs.
 
 ## See also
 - `docs/design-system.md`
 - `.cursor/rules/75-shared-ds-reuse.mdc`
+- `.cursor/rules/95-senior-frontend-bar.mdc`

@@ -6,16 +6,16 @@ import { KvCard } from '@/components/shared/KvCard';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import {
+  getAdminTableBodyPhase,
   KvTable,
   KvTableBody,
+  KvTableBusy,
+  KvTableEmpty,
   KvTableHead,
   KvTableHeader,
   KvTableRow,
+  KvTableViewport,
 } from '@/components/shared/table/KvTable';
-import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
-import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
-import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
-import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { cn } from '@/lib/utils';
 import type { SyllabusWeek } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
@@ -88,77 +88,86 @@ export function WeeklySyllabusTable({
         </KvButton>
       </div>
 
-      <KvCard
+      <div
         className={cn(
-          'w-full',
-          !courseOffered && 'border-kv-border bg-kv-surface-muted/40'
+          'border-t border-kv-border-muted pt-kv-group',
+          !courseOffered && 'cursor-not-allowed'
         )}
-        aria-disabled={!courseOffered}
       >
-        <KvTableViewport
-          resetKey={courseTitle ?? 'weeks'}
-          isBusy={isLoading}
-          hasMore={false}
-          heightClassName="max-h-[400px] min-h-[200px]"
-          className={cn(!courseOffered && 'pointer-events-none opacity-55')}
+        <KvCard
+          className={cn(
+            'w-full',
+            !courseOffered && 'border-kv-border bg-kv-surface-muted/40'
+          )}
+          aria-disabled={!courseOffered}
         >
-          <KvTable
-            scrollable={false}
+          <KvTableViewport
+            resetKey={courseTitle ?? 'weeks'}
+            isBusy={isLoading}
+            hasMore={false}
+            heightClassName="max-h-[400px] min-h-[200px]"
             className={cn(
-              'w-full table-fixed',
-              !courseOffered &&
-                'text-kv-text-faint [&_[data-slot=kv-table-cell]]:text-kv-text-faint [&_[data-slot=kv-table-head]]:text-kv-text-faint [&_tr]:font-normal [&_tr]:in-[data-slot=kv-table-body]:hover:bg-transparent [&_tr]:hover:text-kv-text-faint'
+              !courseOffered && 'pointer-events-none opacity-55'
             )}
           >
-            <KvTableHeader>
-              <KvTableRow
-                className={cn(
-                  !courseOffered &&
-                    'in-[data-slot=kv-table-body]:hover:bg-transparent'
-                )}
-              >
-                <KvTableHead>عنوان جلسه آموزشی</KvTableHead>
-                <KvTableHead align="center" className="w-24 sm:w-36">
-                  ضریب اهمیت
-                </KvTableHead>
-                <KvTableHead align="center" className="w-28 sm:w-32">
-                  عملیات
-                </KvTableHead>
-              </KvTableRow>
-            </KvTableHeader>
-            <KvTableBody>
-              {bodyPhase === 'busy' ? (
-                <KvTableBusy colSpan={3} />
-              ) : bodyPhase === 'empty' ? (
-                <KvTableEmpty colSpan={3}>
-                  <KvEmptyState
-                    icon={<FaIcon icon={faIcons.rectangleList} size="lg" />}
-                    title="سرفصلی تعریف نشده"
-                    description="با ارائه درس، هفته‌های پیش‌فرض ساخته می‌شوند."
-                  />
-                </KvTableEmpty>
-              ) : (
-                weeks.map((week, index) => (
-                  <WeeklySyllabusWeekRow
-                    key={week.id}
-                    week={week}
-                    index={index}
-                    weeks={weeks}
-                    courseOffered={courseOffered}
-                    onWeightChange={onWeightChange}
-                    onEditWeek={onEditWeek}
-                    onArchiveWeek={onArchiveWeek}
-                    onRestoreWeek={onRestoreWeek}
-                    onDeleteWeek={onDeleteWeek}
-                  />
-                ))
+            <KvTable
+              scrollable={false}
+              className={cn(
+                'w-full table-fixed',
+                !courseOffered &&
+                  'text-kv-text-faint [&_[data-slot=kv-table-cell]]:text-kv-text-faint [&_[data-slot=kv-table-head]]:text-kv-text-faint [&_tr]:font-normal [&_tr]:in-[data-slot=kv-table-body]:hover:bg-transparent [&_tr]:hover:text-kv-text-faint'
               )}
-            </KvTableBody>
-          </KvTable>
-        </KvTableViewport>
-      </KvCard>
+            >
+              <KvTableHeader>
+                <KvTableRow
+                  className={cn(
+                    !courseOffered &&
+                      'in-[data-slot=kv-table-body]:hover:bg-transparent'
+                  )}
+                >
+                  <KvTableHead>عنوان جلسه آموزشی</KvTableHead>
+                  <KvTableHead align="center" className="w-24 sm:w-36">
+                    ضریب اهمیت
+                  </KvTableHead>
+                  <KvTableHead align="center" className="w-28 sm:w-32">
+                    عملیات
+                  </KvTableHead>
+                </KvTableRow>
+              </KvTableHeader>
+              <KvTableBody>
+                {bodyPhase === 'busy' ? (
+                  <KvTableBusy colSpan={3} />
+                ) : bodyPhase === 'empty' ? (
+                  <KvTableEmpty colSpan={3}>
+                    <KvEmptyState
+                      icon={<FaIcon icon={faIcons.rectangleList} size="lg" />}
+                      title="سرفصلی تعریف نشده"
+                      description="با ارائه درس، هفته‌های پیش‌فرض ساخته می‌شوند."
+                    />
+                  </KvTableEmpty>
+                ) : (
+                  weeks.map((week, index) => (
+                    <WeeklySyllabusWeekRow
+                      key={week.id}
+                      week={week}
+                      index={index}
+                      weeks={weeks}
+                      courseOffered={courseOffered}
+                      onWeightChange={onWeightChange}
+                      onEditWeek={onEditWeek}
+                      onArchiveWeek={onArchiveWeek}
+                      onRestoreWeek={onRestoreWeek}
+                      onDeleteWeek={onDeleteWeek}
+                    />
+                  ))
+                )}
+              </KvTableBody>
+            </KvTable>
+          </KvTableViewport>
+        </KvCard>
+      </div>
 
-      <div className="flex flex-col sm:flex-row sm:justify-end">
+      <div className="flex flex-col border-t border-kv-border-muted pt-kv-group sm:flex-row sm:justify-end">
         <KvButton
           type="button"
           color="cta"
