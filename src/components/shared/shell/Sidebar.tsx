@@ -1,17 +1,11 @@
 'use client';
 
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useRef } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import { RouteService } from '@/services/route.service';
@@ -22,14 +16,13 @@ import {
   getRoleStrategy,
   getVisibleSidebarMenu,
   isSidebarMenuGroup,
-  type SidebarMenuGroup,
-  type SidebarMenuItem,
 } from '@/utils/RoleStrategyMap';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 
-function resolveIcon(iconKey: string): IconDefinition {
-  return iconMap[iconKey] ?? faIcons.tableColumns;
-}
+import { resolveSidebarIcon } from './resolveSidebarIcon';
+import { SidebarNavGroup } from './SidebarNavGroup';
+import { SidebarNavLink } from './SidebarNavLink';
+import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
 
 export function Sidebar() {
   const activeUser = useUserStore((state) => state.activeUser);
@@ -40,60 +33,18 @@ export function Sidebar() {
   const pathname = usePathname();
   const drawerTitleId = useId();
   const drawerRef = useRef<HTMLElement>(null);
-  const previouslyFocused = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    if (!isMobileOpen) return;
-
-    previouslyFocused.current =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : null;
-
-    const drawer = drawerRef.current;
-    const focusable = drawer?.querySelector<HTMLElement>(
-      'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
-    );
-    focusable?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        closeMobileSidebar();
-        return;
-      }
-      if (event.key !== 'Tab' || !drawer) return;
-
-      const nodes = Array.from(
-        drawer.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
-        )
-      ).filter((node) => !node.hasAttribute('disabled'));
-      if (nodes.length === 0) return;
-
-      const first = nodes[0];
-      const last = nodes[nodes.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      previouslyFocused.current?.focus();
-    };
-  }, [isMobileOpen, closeMobileSidebar]);
+  useSidebarMobileDrawer({
+    isMobileOpen,
+    drawerRef,
+    onClose: closeMobileSidebar,
+  });
 
   if (!activeUser) return null;
 
   const strategy = getRoleStrategy(activeUser.role);
   const visibleMenu = getVisibleSidebarMenu(activeUser.role);
-  const roleIcon = resolveIcon(strategy.roleIcon);
+  const roleIcon = resolveSidebarIcon(strategy.roleIcon);
   const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
   const profileHref = RouteService.karvita.profile(activeUser.role);
 
@@ -241,291 +192,5 @@ export function Sidebar() {
         </Link>
       </aside>
     </>
-  );
-}
-
-interface SidebarNavGroupProps {
-  group: SidebarMenuGroup;
-  pathname: string;
-  isCollapsed: boolean;
-  locked: boolean;
-  onNavigate: () => void;
-}
-
-function SidebarNavGroup({
-  group,
-  pathname,
-  isCollapsed,
-  locked,
-  onNavigate,
-}: SidebarNavGroupProps) {
-  const childActive = group.children.some((child) => child.path === pathname);
-  const [open, setOpen] = useState(childActive);
-  const groupId = useId();
-
-  useEffect(() => {
-    if (childActive) setOpen(true);
-  }, [childActive]);
-
-  const groupIcon = resolveIcon(group.icon);
-
-  // Collapsed rail: expose children as icon links so both modules stay reachable.
-  if (isCollapsed) {
-    return (
-      <div className="space-y-3 max-lg:contents lg:block">
-        <div className="hidden lg:contents">
-          {group.children.map((child) => (
-            <SidebarNavLink
-              key={child.path}
-              item={child}
-              isActive={pathname === child.path}
-              isCollapsed
-              locked={locked}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
-        <div className="space-y-1 lg:hidden">
-          <ExpandedGroupChrome
-            group={group}
-            groupIcon={groupIcon}
-            groupId={groupId}
-            open={open}
-            onToggle={() => setOpen((value) => !value)}
-            pathname={pathname}
-            locked={locked}
-            onNavigate={onNavigate}
-            isCollapsed={false}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ExpandedGroupChrome
-      group={group}
-      groupIcon={groupIcon}
-      groupId={groupId}
-      open={open}
-      onToggle={() => setOpen((value) => !value)}
-      pathname={pathname}
-      locked={locked}
-      onNavigate={onNavigate}
-      isCollapsed={false}
-    />
-  );
-}
-
-function ExpandedGroupChrome({
-  group,
-  groupIcon,
-  groupId,
-  open,
-  onToggle,
-  pathname,
-  locked,
-  onNavigate,
-  isCollapsed,
-}: {
-  group: SidebarMenuGroup;
-  groupIcon: IconDefinition;
-  groupId: string;
-  open: boolean;
-  onToggle: () => void;
-  pathname: string;
-  locked: boolean;
-  onNavigate: () => void;
-  isCollapsed: boolean;
-}) {
-  const childActive = group.children.some((child) => child.path === pathname);
-
-  return (
-    <div className="space-y-1">
-      {/* L1 — group label: darkest text, medium-strong weight; icon quieter than label */}
-      <button
-        type="button"
-        id={groupId}
-        aria-expanded={open}
-        aria-controls={`${groupId}-panel`}
-        onClick={onToggle}
-        className={cn(
-          'group flex w-full items-center justify-between rounded-kv-control px-3.5 py-2.5 text-xs font-semibold leading-snug transition-colors',
-          'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
-          childActive
-            ? 'text-kv-text hover:bg-kv-surface-muted'
-            : 'text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
-        )}
-      >
-        <span className="flex min-w-0 items-center">
-          <FaIcon
-            icon={groupIcon}
-            size="sm"
-            className={cn(
-              'w-5 shrink-0 text-center transition-colors',
-              childActive
-                ? 'text-kv-brand'
-                : 'text-kv-text-faint group-hover:text-kv-text-subtle'
-            )}
-          />
-          <span className="ms-3 max-w-[150px] truncate">{group.title}</span>
-        </span>
-        <FaIcon
-          icon={faIcons.chevronDown}
-          size="2xs"
-          className={cn(
-            'shrink-0 text-kv-text-faint/80 transition-transform group-hover:text-kv-text-faint',
-            open && 'rotate-180'
-          )}
-        />
-      </button>
-
-      {open ? (
-        <div
-          id={`${groupId}-panel`}
-          role="group"
-          aria-labelledby={groupId}
-          className="ms-4 mt-1.5 space-y-1 overflow-hidden border-s border-kv-border-muted ps-3"
-        >
-          {group.children.map((child) => (
-            <SidebarNavLink
-              key={child.path}
-              item={child}
-              isActive={pathname === child.path}
-              isCollapsed={isCollapsed}
-              locked={locked}
-              onNavigate={onNavigate}
-              nested
-            />
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-interface SidebarNavLinkProps {
-  item: SidebarMenuItem;
-  isActive: boolean;
-  isCollapsed: boolean;
-  locked: boolean;
-  onNavigate: () => void;
-  /** L2 under a group — quieter than L1; hierarchy via color/weight, not size. */
-  nested?: boolean;
-}
-
-function SidebarNavLink({
-  item,
-  isActive,
-  isCollapsed,
-  locked,
-  onNavigate,
-  nested = false,
-}: SidebarNavLinkProps) {
-  const itemIcon = resolveIcon(item.icon);
-  const useBullet = nested && !isCollapsed;
-
-  const iconTone = locked
-    ? 'text-kv-text-faint'
-    : isActive
-      ? 'text-kv-brand'
-      : 'text-kv-text-faint group-hover:text-kv-text-subtle';
-
-  const bulletTone = locked
-    ? 'bg-kv-border-strong'
-    : isActive
-      ? 'bg-kv-brand'
-      : 'bg-kv-border-strong group-hover:bg-kv-text-faint';
-
-  const content = (
-    <div className={cn('flex min-w-0 items-center', useBullet && 'gap-2')}>
-      {useBullet ? (
-        <span
-          aria-hidden
-          className={cn(
-            'size-1.5 shrink-0 rounded-full transition-colors',
-            bulletTone
-          )}
-        />
-      ) : (
-        <FaIcon
-          icon={itemIcon}
-          size="sm"
-          className={cn('w-5 shrink-0 text-center transition-colors', iconTone)}
-        />
-      )}
-      <span
-        className={cn(
-          'inline-block max-w-[150px] overflow-hidden whitespace-nowrap transition-all',
-          useBullet
-            ? 'opacity-100'
-            : isCollapsed
-              ? 'ms-3 opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0'
-              : 'ms-3 opacity-100'
-        )}
-      >
-        {item.title}
-      </span>
-    </div>
-  );
-
-  const className = cn(
-    'group flex w-full items-center rounded-kv-control text-xs leading-snug transition-colors',
-    'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
-    useBullet ? 'px-3 py-2' : 'py-2.5',
-    !useBullet && (isCollapsed ? 'px-3.5 lg:px-0' : 'px-3.5'),
-    isCollapsed ? 'justify-start lg:justify-center' : 'justify-start text-start',
-    locked
-      ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
-      : isActive
-        ? /* Focus of the tree — strongest signal */
-          useBullet
-            ? 'cursor-pointer bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
-            : 'cursor-pointer border border-kv-brand-border/50 bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
-        : useBullet
-          ? /* L2 idle — recedes under L1 */
-            'cursor-pointer font-medium text-kv-text-faint hover:bg-kv-surface-muted hover:text-kv-text-secondary'
-          : /* L1 leaf idle */
-            'cursor-pointer font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
-  );
-
-  const control = locked ? (
-    <button
-      type="button"
-      disabled
-      aria-disabled="true"
-      aria-label={`${item.title} — غیرفعال تا تأیید مدارک`}
-      className={className}
-    >
-      {content}
-    </button>
-  ) : (
-    <Link
-      href={item.path}
-      prefetch={false}
-      onClick={onNavigate}
-      aria-label={item.title}
-      aria-current={isActive ? 'page' : undefined}
-      className={className}
-    >
-      {content}
-    </Link>
-  );
-
-  if (!isCollapsed) return control;
-
-  const trigger = locked ? (
-    <span className="block w-full">{control}</span>
-  ) : (
-    control
-  );
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-      <TooltipContent side="left" sideOffset={8}>
-        {locked ? `${item.title} (غیرفعال)` : item.title}
-      </TooltipContent>
-    </Tooltip>
   );
 }
