@@ -15,60 +15,38 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
 
 import { ORG_ACCOUNT_ROLE_OPTIONS } from '../constants';
-import { useAdminUserCreationForm } from '../hooks/useAdminUserCreationForm';
+import type { useAdminUserCreationForm } from '../hooks/useAdminUserCreationForm';
 import { AdminUserCreationOrgFields } from './AdminUserCreationOrgFields';
 
-function mobileHint(args: {
-  mobile: string;
-  mobileComplete: boolean;
-  mobileDuplicate: boolean;
-  checkingMobile: boolean;
-}): { hint?: string; error?: string } {
-  if (!args.mobile) {
-    return { hint: 'لطفاً شماره ۱۰ رقمی بدون صفر اول را وارد کنید.' };
-  }
-  if (args.checkingMobile) {
-    return { hint: 'در حال بررسی تکراری نبودن شماره…' };
-  }
-  if (args.mobileDuplicate) {
-    return {
-      error: 'خطا: این شماره موبایل قبلاً در سیستم ثبت شده است!',
-    };
-  }
-  if (args.mobileComplete) {
-    return { hint: 'شماره موبایل معتبر است.' };
-  }
-  return { hint: 'لطفاً شماره ۱۰ رقمی بدون صفر اول را وارد کنید.' };
-}
+const MOBILE_DUPLICATE_ERROR =
+  'این شماره موبایل قبلاً در سیستم ثبت شده است.';
 
-export function AdminUserCreationForm() {
-  const page = useAdminUserCreationForm();
+type AdminUserCreationFormProps = {
+  page: ReturnType<typeof useAdminUserCreationForm>;
+};
+
+export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
   const {
     register,
     control,
     formState: { errors },
   } = page.form;
 
-  const mobileFeedback = mobileHint({
-    mobile: page.mobile,
-    mobileComplete: page.mobileComplete,
-    mobileDuplicate: page.mobileDuplicate,
-    checkingMobile: page.checkingMobile,
-  });
-
-  const passwordHint =
-    page.password.trim().length >= 4
-      ? 'رمز عبور معتبر است.'
-      : 'رمز عبور الزامی است (حداقل ۴ کاراکتر).';
+  const mobileError =
+    errors.mobile?.message ??
+    (page.mobileDuplicate ? MOBILE_DUPLICATE_ERROR : undefined);
 
   return (
-    <KvCard className="mx-auto w-full max-w-xl">
-      <KvCardContent padding="md" className="space-y-kv-group">
-        <div className="flex items-center gap-2.5 border-b border-kv-border pb-kv-pair">
-          <div className="flex size-9 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
+    <KvCard
+      dir="rtl"
+      className="mx-auto w-full max-w-xl gap-0 border-kv-border py-0 shadow-kv-raised"
+    >
+      <KvCardContent className="space-y-kv-section p-kv-inset sm:p-kv-block">
+        <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-inline">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
             <FaIcon icon={faIcons.userPlus} size="sm" />
           </div>
-          <div>
+          <div className="min-w-0 space-y-kv-micro">
             <KvTypography variant="subtitle" as="h3">
               ایجاد حساب کاربری جدید
             </KvTypography>
@@ -86,8 +64,12 @@ export function AdminUserCreationForm() {
           />
         ) : null}
 
-        <form className="space-y-kv-group" onSubmit={page.onSubmit} noValidate>
-          <div className="grid grid-cols-1 gap-x-kv-group gap-y-kv-field sm:grid-cols-2">
+        <form
+          className="space-y-kv-section"
+          onSubmit={page.onSubmit}
+          noValidate
+        >
+          <div className="grid grid-cols-1 gap-kv-group text-start sm:grid-cols-2">
             <KvTextField
               id="admin-user-first-name"
               label="نام کارشناس"
@@ -101,7 +83,6 @@ export function AdminUserCreationForm() {
               id="admin-user-last-name"
               label="نام خانوادگی کارشناس"
               required
-              locked={!page.canEditLastName}
               placeholder="مثال: رضایی"
               error={errors.lastName?.message}
               {...register('lastName')}
@@ -116,30 +97,16 @@ export function AdminUserCreationForm() {
                     id="admin-user-mobile"
                     label="شماره موبایل حساب"
                     required
-                    locked={!page.canEditMobile}
                     value={field.value}
                     onChange={(event) => {
                       field.onChange(event.target.value);
                     }}
                     onBlur={field.onBlur}
                     name={field.name}
-                    error={errors.mobile?.message ?? mobileFeedback.error}
+                    error={mobileError}
                   />
                 )}
               />
-              {!errors.mobile?.message && !mobileFeedback.error ? (
-                <KvTypography
-                  variant="caption"
-                  tone={
-                    page.mobileComplete && !page.mobileDuplicate
-                      ? 'success'
-                      : 'muted'
-                  }
-                  className="mt-1.5"
-                >
-                  {mobileFeedback.hint}
-                </KvTypography>
-              ) : null}
             </div>
 
             <div className="sm:col-span-2">
@@ -151,7 +118,6 @@ export function AdminUserCreationForm() {
                     id="admin-user-password"
                     label="رمز عبور حساب کاربری"
                     required
-                    locked={!page.canEditPassword}
                     placeholder="رمز عبور دلخواه را وارد کنید (حداقل ۴ کاراکتر)"
                     autoComplete="new-password"
                     value={field.value}
@@ -159,9 +125,6 @@ export function AdminUserCreationForm() {
                     onBlur={field.onBlur}
                     name={field.name}
                     error={errors.password?.message}
-                    hint={
-                      errors.password?.message ? undefined : passwordHint
-                    }
                   />
                 )}
               />
@@ -176,7 +139,6 @@ export function AdminUserCreationForm() {
                     id="admin-user-role"
                     label="نقش سازمانی کاربر"
                     required
-                    disabled={!page.canEditRole}
                     placeholder="-- انتخاب نقش سازمانی حساب --"
                     value={field.value || ''}
                     onValueChange={page.onRoleChange}
@@ -198,9 +160,6 @@ export function AdminUserCreationForm() {
               needsRegional={page.needsRegional}
               needsCollege={page.needsCollege}
               needsProvinceRole={page.needsProvinceRole}
-              province={page.province}
-              city={page.city}
-              loadingProvinces={page.loadingProvinces}
               provinces={page.provinces}
               cities={page.cities}
               colleges={page.colleges}
@@ -210,7 +169,7 @@ export function AdminUserCreationForm() {
             />
           </div>
 
-          <div className="flex justify-end border-t border-kv-border pt-kv-pair">
+          <div className="mt-kv-group flex justify-end border-t border-kv-border pt-kv-group">
             <KvButton
               type="submit"
               color="cta"

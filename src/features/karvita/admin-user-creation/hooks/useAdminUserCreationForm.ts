@@ -5,9 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { delayDashboardColdSkeletonPreview } from '@/lib/dashboard-cold-skeleton-preview';
 import { AdminUserCreationService } from '@/services/admin-user-creation.service';
 import { OrganizationOptionsService } from '@/services/organization-options.service';
 import type { OrganizationOption } from '@/services/organization-options.service';
+import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type { CreateOrganizationalUserInput } from '@/types/admin-user-creation';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
@@ -20,6 +22,12 @@ import {
   type AdminUserCreationFormInput,
   type AdminUserCreationFormValues,
 } from '../schemas/admin-user-creation.schema';
+
+const CACHE_KEY = 'admin-user-creation::page';
+
+type AdminUserCreationPageCache = {
+  provinces: OrganizationOption[];
+};
 
 function normalizeMobile(value: string): string {
   return persianToEnglishDigits(value).replace(/\D/g, '').slice(0, 10);
@@ -39,6 +47,11 @@ async function fetchOrgOptions(
 }
 
 export function useAdminUserCreationForm() {
+  const getData = useDashboardModuleCache((s) => s.getData);
+  const setData = useDashboardModuleCache((s) => s.setData);
+  const cached = getData<AdminUserCreationPageCache>(CACHE_KEY);
+  const hasCache = Boolean(cached && cached.provinces.length > 0);
+
   const form = useForm<AdminUserCreationFormInput>({
     resolver: zodResolver(
       adminUserCreationSchema
@@ -49,10 +62,7 @@ export function useAdminUserCreationForm() {
 
   const { watch, setValue, reset, handleSubmit, formState } = form;
 
-  const firstName = watch('firstName');
-  const lastName = watch('lastName');
   const mobile = watch('mobile');
-  const password = watch('password');
   const role = watch('role');
   const province = watch('province');
   const city = watch('city');
@@ -61,21 +71,17 @@ export function useAdminUserCreationForm() {
   const [checkingMobile, setCheckingMobile] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const [provinces, setProvinces] = useState<OrganizationOption[]>([]);
+  const [provinces, setProvinces] = useState<OrganizationOption[]>(
+    () => cached?.provinces ?? []
+  );
   const [cities, setCities] = useState<OrganizationOption[]>([]);
   const [colleges, setColleges] = useState<OrganizationOption[]>([]);
   const [districts, setDistricts] = useState<OrganizationOption[]>([]);
   const [optionsError, setOptionsError] = useState<string | null>(null);
-  const [loadingProvinces, setLoadingProvinces] = useState(false);
+  const [isCold, setIsCold] = useState(!hasCache);
 
-  const canEditLastName = firstName.trim().length > 0;
-  const canEditMobile = lastName.trim().length > 0;
   const mobileNormalized = normalizeMobile(mobile);
   const mobileComplete = /^9\d{9}$/.test(mobileNormalized);
-  const canEditPassword =
-    canEditMobile && mobileComplete && !mobileDuplicate && !checkingMobile;
-  const canEditRole =
-    canEditPassword && password.trim().length >= 4;
   const needsProvinceRole =
     role === 'provincial_university' ||
     role === 'faculty_role' ||
@@ -84,20 +90,18 @@ export function useAdminUserCreationForm() {
   const needsRegional = role === 'regional_edu_admin';
 
   useEffect(() => {
-    if (!needsProvinceRole) {
-      setProvinces([]);
-      return;
-    }
-
     let cancelled = false;
-    setLoadingProvinces(true);
-    setOptionsError(null);
+    const coldMiss = !hasCache;
 
-    void fetchOrgOptions('province')
-      .then((items) => {
-        if (!cancelled) setProvinces(items);
-      })
-      .catch((error: unknown) => {
+    async function loadProvinces() {
+      try {
+        await delayDashboardColdSkeletonPreview(coldMiss);
+        const items = await fetchOrgOptions('province');
+        if (cancelled) return;
+        setProvinces(items);
+        setData(CACHE_KEY, { provinces: items });
+        setOptionsError(null);
+      } catch (error: unknown) {
         if (!cancelled) {
           setOptionsError(
             error instanceof Error
@@ -105,15 +109,16 @@ export function useAdminUserCreationForm() {
               : 'بارگذاری فهرست استان‌ها ناموفق بود.'
           );
         }
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingProvinces(false);
-      });
+      } finally {
+        if (!cancelled) setIsCold(false);
+      }
+    }
 
+    void loadProvinces();
     return () => {
       cancelled = true;
     };
-  }, [needsProvinceRole]);
+  }, [hasCache, setData]);
 
   useEffect(() => {
     if (!needsCollege && !needsRegional) {
@@ -234,7 +239,9 @@ export function useAdminUserCreationForm() {
 
     const parsed = adminUserCreationSchema.safeParse(raw);
     if (!parsed.success) {
-      toast.error('لطفاً مشخصات حساب کاربری را طبق ترتیب الزامی فرم تکمیل فرمایید.');
+      toast.error(
+        'لطفاً مشخصات حساب کاربری را طبق ترتیب الزامی فرم تکمیل فرمایید.'
+      );
       return;
     }
 
@@ -274,17 +281,10 @@ export function useAdminUserCreationForm() {
   return {
     form,
     formState,
-    firstName,
-    lastName,
     mobile,
-    password,
     role,
     province,
     city,
-    canEditLastName,
-    canEditMobile,
-    canEditPassword,
-    canEditRole,
     needsProvinceRole,
     needsCollege,
     needsRegional,
@@ -296,8 +296,8 @@ export function useAdminUserCreationForm() {
     cities,
     colleges,
     districts,
-    loadingProvinces,
     optionsError,
+    isCold,
     onRoleChange,
     onProvinceChange,
     onCityChange,

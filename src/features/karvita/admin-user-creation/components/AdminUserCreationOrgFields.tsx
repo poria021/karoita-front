@@ -15,9 +15,6 @@ type AdminUserCreationOrgFieldsProps = {
   needsRegional: boolean;
   needsCollege: boolean;
   needsProvinceRole: boolean;
-  province: string;
-  city: string;
-  loadingProvinces: boolean;
   provinces: OrganizationOption[];
   cities: OrganizationOption[];
   colleges: OrganizationOption[];
@@ -32,9 +29,6 @@ export function AdminUserCreationOrgFields({
   needsRegional,
   needsCollege,
   needsProvinceRole,
-  province,
-  city,
-  loadingProvinces,
   provinces,
   cities,
   colleges,
@@ -44,7 +38,7 @@ export function AdminUserCreationOrgFields({
 }: AdminUserCreationOrgFieldsProps) {
   if (needsRegional) {
     return (
-      <div className="grid grid-cols-1 gap-kv-field sm:col-span-2 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-kv-group sm:col-span-2 sm:grid-cols-3">
         <Controller
           name="province"
           control={control}
@@ -53,7 +47,6 @@ export function AdminUserCreationOrgFields({
               id="admin-user-province-regional"
               label="استان تابعه"
               required
-              disabled={loadingProvinces}
               placeholder="انتخاب استان..."
               value={field.value || ''}
               onValueChange={onProvinceChange}
@@ -76,7 +69,6 @@ export function AdminUserCreationOrgFields({
               id="admin-user-city"
               label="شهر تابعه"
               required
-              locked={!province}
               placeholder="انتخاب شهر..."
               value={field.value || ''}
               onValueChange={onCityChange}
@@ -99,7 +91,6 @@ export function AdminUserCreationOrgFields({
               id="admin-user-district"
               label="منطقه آموزشی متصل"
               required
-              locked={!city}
               placeholder="انتخاب منطقه..."
               value={field.value || ''}
               onValueChange={field.onChange}
@@ -123,7 +114,7 @@ export function AdminUserCreationOrgFields({
     <div
       className={
         needsCollege
-          ? 'grid grid-cols-1 gap-kv-field sm:col-span-2 sm:grid-cols-2'
+          ? 'grid grid-cols-1 gap-kv-group sm:col-span-2 sm:grid-cols-2'
           : 'sm:col-span-2'
       }
     >
@@ -135,7 +126,6 @@ export function AdminUserCreationOrgFields({
             id="admin-user-province"
             label="استان مربوطه"
             required
-            disabled={loadingProvinces}
             placeholder="انتخاب استان..."
             value={field.value || ''}
             onValueChange={onProvinceChange}
@@ -159,7 +149,6 @@ export function AdminUserCreationOrgFields({
               id="admin-user-college"
               label="دانشکده / پردیس متصل"
               required
-              locked={!province}
               placeholder="انتخاب پردیس..."
               value={field.value || ''}
               onValueChange={field.onChange}

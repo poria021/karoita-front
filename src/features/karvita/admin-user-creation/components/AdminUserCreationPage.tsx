@@ -8,11 +8,14 @@ import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
 import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
+import { useAdminUserCreationForm } from '../hooks/useAdminUserCreationForm';
+import { AdminUserCreationPageSkeleton } from '../skeletons/AdminUserCreationPageSkeleton';
 import { AdminUserCreationForm } from './AdminUserCreationForm';
 
 export function AdminUserCreationPage() {
   const router = useRouter();
   const activeUser = useUserStore((state) => state.activeUser);
+  const page = useAdminUserCreationForm();
 
   useEffect(() => {
     if (!activeUser) return;
@@ -25,9 +28,13 @@ export function AdminUserCreationPage() {
     return <div className="min-h-40 w-full bg-kv-canvas" aria-busy="true" />;
   }
 
+  if (page.isCold && !page.optionsError) {
+    return <AdminUserCreationPageSkeleton />;
+  }
+
   return (
     <KvWorkspace panel={false}>
-      <AdminUserCreationForm />
+      <AdminUserCreationForm page={page} />
     </KvWorkspace>
   );
 }
