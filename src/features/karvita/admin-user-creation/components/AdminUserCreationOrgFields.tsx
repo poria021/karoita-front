@@ -1,11 +1,9 @@
 'use client';
 
 import type { Control, FieldErrors } from 'react-hook-form';
-import { Controller } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
 
-import { KvSelectItem } from '@/components/shared/fields/KvSelect';
-import { KvSelectField } from '@/components/shared/fields/KvSelectField';
-import type { OrganizationOption } from '@/services/organization-options.service';
+import { KvSearchableOrganizationSelect } from '@/components/shared/fields/KvSearchableOrganizationSelect';
 
 import type { AdminUserCreationFormInput } from '../schemas/admin-user-creation.schema';
 
@@ -15,10 +13,6 @@ type AdminUserCreationOrgFieldsProps = {
   needsRegional: boolean;
   needsCollege: boolean;
   needsProvinceRole: boolean;
-  provinces: OrganizationOption[];
-  cities: OrganizationOption[];
-  colleges: OrganizationOption[];
-  districts: OrganizationOption[];
   onProvinceChange: (value: string) => void;
   onCityChange: (value: string) => void;
 };
@@ -29,13 +23,11 @@ export function AdminUserCreationOrgFields({
   needsRegional,
   needsCollege,
   needsProvinceRole,
-  provinces,
-  cities,
-  colleges,
-  districts,
   onProvinceChange,
   onCityChange,
 }: AdminUserCreationOrgFieldsProps) {
+  const province = useWatch({ control, name: 'province' }) ?? '';
+
   if (needsRegional) {
     return (
       <div className="grid grid-cols-1 gap-kv-group sm:col-span-2 sm:grid-cols-3">
@@ -43,21 +35,15 @@ export function AdminUserCreationOrgFields({
           name="province"
           control={control}
           render={({ field }) => (
-            <KvSelectField
-              id="admin-user-province-regional"
+            <KvSearchableOrganizationSelect
+              type="province"
               label="استان تابعه"
               required
-              placeholder="انتخاب استان..."
+              placeholder="جستجو و انتخاب استان..."
               value={field.value || ''}
-              onValueChange={onProvinceChange}
+              onChange={onProvinceChange}
               error={errors.province?.message}
-            >
-              {provinces.map((item) => (
-                <KvSelectItem key={item.id} value={item.label}>
-                  {item.label}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
+            />
           )}
         />
 
@@ -65,21 +51,17 @@ export function AdminUserCreationOrgFields({
           name="city"
           control={control}
           render={({ field }) => (
-            <KvSelectField
-              id="admin-user-city"
+            <KvSearchableOrganizationSelect
+              type="city"
               label="شهر تابعه"
               required
-              placeholder="انتخاب شهر..."
+              placeholder="جستجو و انتخاب شهر..."
               value={field.value || ''}
-              onValueChange={onCityChange}
+              locked={!province}
+              dependsOn={{ province }}
+              onChange={onCityChange}
               error={errors.city?.message}
-            >
-              {cities.map((item) => (
-                <KvSelectItem key={item.id} value={item.label}>
-                  {item.label}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
+            />
           )}
         />
 
@@ -87,21 +69,17 @@ export function AdminUserCreationOrgFields({
           name="district"
           control={control}
           render={({ field }) => (
-            <KvSelectField
-              id="admin-user-district"
+            <KvSearchableOrganizationSelect
+              type="district"
               label="منطقه آموزشی متصل"
               required
-              placeholder="انتخاب منطقه..."
+              placeholder="جستجو و انتخاب منطقه..."
               value={field.value || ''}
-              onValueChange={field.onChange}
+              locked={!province}
+              dependsOn={{ province }}
+              onChange={field.onChange}
               error={errors.district?.message}
-            >
-              {districts.map((item) => (
-                <KvSelectItem key={item.id} value={item.label}>
-                  {item.label}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
+            />
           )}
         />
       </div>
@@ -122,21 +100,15 @@ export function AdminUserCreationOrgFields({
         name="province"
         control={control}
         render={({ field }) => (
-          <KvSelectField
-            id="admin-user-province"
+          <KvSearchableOrganizationSelect
+            type="province"
             label="استان مربوطه"
             required
-            placeholder="انتخاب استان..."
+            placeholder="جستجو و انتخاب استان..."
             value={field.value || ''}
-            onValueChange={onProvinceChange}
+            onChange={onProvinceChange}
             error={errors.province?.message}
-          >
-            {provinces.map((item) => (
-              <KvSelectItem key={item.id} value={item.label}>
-                {item.label}
-              </KvSelectItem>
-            ))}
-          </KvSelectField>
+          />
         )}
       />
 
@@ -145,21 +117,17 @@ export function AdminUserCreationOrgFields({
           name="college"
           control={control}
           render={({ field }) => (
-            <KvSelectField
-              id="admin-user-college"
+            <KvSearchableOrganizationSelect
+              type="college"
               label="دانشکده / پردیس متصل"
               required
-              placeholder="انتخاب پردیس..."
+              placeholder="جستجو و انتخاب پردیس..."
               value={field.value || ''}
-              onValueChange={field.onChange}
+              locked={!province}
+              dependsOn={{ province }}
+              onChange={field.onChange}
               error={errors.college?.message}
-            >
-              {colleges.map((item) => (
-                <KvSelectItem key={item.id} value={item.label}>
-                  {item.label}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
+            />
           )}
         />
       ) : null}

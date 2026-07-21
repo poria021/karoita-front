@@ -3,7 +3,6 @@
 import { Controller } from 'react-hook-form';
 
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
@@ -54,14 +53,6 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
             </KvTypography>
           </div>
         </div>
-
-        {page.optionsError ? (
-          <KvAlert
-            variant="error"
-            title="بارگذاری گزینه‌های سازمانی ناموفق بود"
-            description={page.optionsError}
-          />
-        ) : null}
 
         <form
           className="space-y-kv-section"
@@ -159,10 +150,6 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
               needsRegional={page.needsRegional}
               needsCollege={page.needsCollege}
               needsProvinceRole={page.needsProvinceRole}
-              provinces={page.provinces}
-              cities={page.cities}
-              colleges={page.colleges}
-              districts={page.districts}
               onProvinceChange={page.onProvinceChange}
               onCityChange={page.onCityChange}
             />

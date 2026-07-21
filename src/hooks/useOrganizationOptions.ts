@@ -16,7 +16,6 @@ const DEBOUNCE_MS = 300;
 const MAX_ORG_OPTION_PAGES = 20;
 const MAX_ORG_OPTIONS_IN_DOM = 200;
 
-
 export type OrganizationDependsOn = {
   province?: string;
   district?: string;
@@ -48,6 +47,10 @@ type OrgOptionsKey = readonly [
   string,
 ];
 
+/**
+ * Paginated typeahead options for organization fields.
+ * Uses SWR infinite + OrganizationOptionsService (not the admin-table list stack).
+ */
 export function useOrganizationOptions({
   type,
   query,

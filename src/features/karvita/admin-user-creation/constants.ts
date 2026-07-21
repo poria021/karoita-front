@@ -29,5 +29,3 @@ export const ADMIN_USER_CREATION_DEFAULTS = {
   college: '',
   district: '',
 };
-
-export const ORG_OPTIONS_FETCH_LIMIT = 200;

@@ -3,6 +3,7 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import { KvFormField } from '@/components/shared/fields/KvForm';
+import { KvSearchableOrganizationSelect } from '@/components/shared/fields/KvSearchableOrganizationSelect';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import type { UserRole } from '@/types/auth';
 import {
@@ -18,7 +19,6 @@ import {
   ORGANIZATION_LABELS,
   ROLE_FIELD_STRATEGY,
 } from './profile-form-options';
-import { SearchableOrganizationSelect } from './SearchableOrganizationSelect';
 
 export interface DynamicRoleFieldsProps {
   role: UserRole;
@@ -49,7 +49,7 @@ export function DynamicRoleFields({
             control={form.control}
             name={name}
             render={({ field, fieldState }) => (
-              <SearchableOrganizationSelect
+              <KvSearchableOrganizationSelect
                 type={name}
                 label={ORGANIZATION_LABELS[name]}
                 required={!optional}

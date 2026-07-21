@@ -9,7 +9,6 @@ import { useUserStore } from '@/store/useUserStore';
 import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import { useAdminUserCreationForm } from '../hooks/useAdminUserCreationForm';
-import { AdminUserCreationPageSkeleton } from '../skeletons/AdminUserCreationPageSkeleton';
 import { AdminUserCreationForm } from './AdminUserCreationForm';
 
 export function AdminUserCreationPage() {
@@ -26,10 +25,6 @@ export function AdminUserCreationPage() {
 
   if (!activeUser || !isSuperAdminRole(activeUser.role)) {
     return <div className="min-h-40 w-full bg-kv-canvas" aria-busy="true" />;
-  }
-
-  if (page.isCold && !page.optionsError) {
-    return <AdminUserCreationPageSkeleton />;
   }
 
   return (

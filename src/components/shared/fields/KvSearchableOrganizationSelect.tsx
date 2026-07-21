@@ -7,17 +7,16 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
-import { cn } from '@/lib/utils';
-import { faIcons } from '@/utils/iconMap';
-
-import type { OrganizationField } from '@/utils/roleFieldStrategy';
-import type { OrganizationOption } from '@/services/organization-options.service';
 import {
   useOrganizationOptions,
   type OrganizationDependsOn,
-} from '../../hooks/useOrganizationOptions';
+} from '@/hooks/useOrganizationOptions';
+import { cn } from '@/lib/utils';
+import type { OrganizationOption } from '@/services/organization-options.service';
+import type { OrganizationField } from '@/utils/roleFieldStrategy';
+import { faIcons } from '@/utils/iconMap';
 
-interface SearchableOrganizationSelectProps {
+export type KvSearchableOrganizationSelectProps = {
   type: OrganizationField;
   label?: string | false;
   required?: boolean;
@@ -29,9 +28,9 @@ interface SearchableOrganizationSelectProps {
   error?: string;
   dependsOn?: OrganizationDependsOn;
   onChange: (value: string) => void;
-}
+};
 
-export function SearchableOrganizationSelect({
+export function KvSearchableOrganizationSelect({
   type,
   label = false,
   required = false,
@@ -43,7 +42,7 @@ export function SearchableOrganizationSelect({
   error,
   dependsOn,
   onChange,
-}: SearchableOrganizationSelectProps) {
+}: KvSearchableOrganizationSelectProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
