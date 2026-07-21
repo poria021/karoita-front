@@ -364,16 +364,18 @@ export function getRoleStrategy(
 export function getVisibleSidebarMenu(
   role: UserRole | string | null | undefined
 ): SidebarMenuEntry[] {
-  return getRoleStrategy(role).sidebarMenu.flatMap((entry) => {
-    if (isSidebarMenuGroup(entry)) {
-      const children = entry.children.filter((child) =>
-        isLiveSidebarPath(child.path)
-      );
-      if (children.length === 0) return [];
-      return [{ ...entry, children }];
+  return getRoleStrategy(role).sidebarMenu.flatMap(
+    (entry): SidebarMenuEntry[] => {
+      if (isSidebarMenuGroup(entry)) {
+        const children = entry.children.filter((child) =>
+          isLiveSidebarPath(child.path)
+        );
+        if (children.length === 0) return [];
+        return [{ ...entry, children }];
+      }
+      return isLiveSidebarPath(entry.path) ? [entry] : [];
     }
-    return isLiveSidebarPath(entry.path) ? [entry] : [];
-  });
+  );
 }
 
 export function areKarvitaModulesUnlocked(user: {

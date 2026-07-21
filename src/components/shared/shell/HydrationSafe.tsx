@@ -9,6 +9,10 @@ export type HydrationSafeProps = {
   fallback?: ReactNode;
 };
 
+/**
+ * Gates chrome until Zustand persist has rehydrated (skipHydration: true).
+ * Persist API is client-only — never touch it during SSR render.
+ */
 export default function HydrationSafe({
   children,
   fallback,
@@ -17,8 +21,14 @@ export default function HydrationSafe({
 
   useEffect(() => {
     let cancelled = false;
+    const persistApi = useUserStore.persist;
 
-    void Promise.resolve(useUserStore.persist.rehydrate()).finally(() => {
+    if (!persistApi?.rehydrate) {
+      setReady(true);
+      return;
+    }
+
+    void Promise.resolve(persistApi.rehydrate()).finally(() => {
       if (!cancelled) setReady(true);
     });
 
