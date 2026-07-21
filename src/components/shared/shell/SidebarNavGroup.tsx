@@ -1,7 +1,7 @@
 'use client';
 
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { cn } from '@/lib/utils';
@@ -28,11 +28,13 @@ export function SidebarNavGroup({
 }: SidebarNavGroupProps) {
   const childActive = group.children.some((child) => child.path === pathname);
   const [open, setOpen] = useState(childActive);
+  const [prevChildActive, setPrevChildActive] = useState(childActive);
   const groupId = useId();
 
-  useEffect(() => {
+  if (childActive !== prevChildActive) {
+    setPrevChildActive(childActive);
     if (childActive) setOpen(true);
-  }, [childActive]);
+  }
 
   const groupIcon = resolveSidebarIcon(group.icon);
 

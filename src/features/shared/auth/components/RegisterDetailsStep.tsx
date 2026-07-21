@@ -1,5 +1,7 @@
 'use client';
 
+import { Controller } from 'react-hook-form';
+
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 
 import type { UseRegisterFormReturn } from '../hooks/useRegisterForm';
@@ -13,22 +15,28 @@ interface RegisterDetailsStepProps {
 
 export function RegisterDetailsStep({ registerForm }: RegisterDetailsStepProps) {
   const { detailsForm, submitDetails, isSubmittingDetails } = registerForm;
-  const { register, control, formState } = detailsForm;
-  const mobileField = register('mobile');
+  const { control, formState } = detailsForm;
 
   return (
     <form onSubmit={submitDetails} className="flex flex-col gap-kv-section" noValidate>
       <AuthStepHeading step={1} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
-        <KvMobileNumberField
-          id="register-mobile"
-          required
-          error={formState.errors.mobile?.message}
-          name={mobileField.name}
-          onBlur={mobileField.onBlur}
-          ref={mobileField.ref}
-          onChange={mobileField.onChange}
+        <Controller
+          name="mobile"
+          control={control}
+          render={({ field }) => (
+            <KvMobileNumberField
+              id="register-mobile"
+              required
+              error={formState.errors.mobile?.message}
+              name={field.name}
+              value={field.value}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              onChange={field.onChange}
+            />
+          )}
         />
 
         <RoleSelectField

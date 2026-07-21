@@ -5,8 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { delayDashboardColdSkeletonPreview } from '@/lib/dashboard-cold-skeleton-preview';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type {
-  AcademicTerm,
-  CourseCatalogItem,
   SyllabusConfigSubTab,
   SyllabusWeek,
 } from '@/types/syllabus-config';

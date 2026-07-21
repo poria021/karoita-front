@@ -1,5 +1,7 @@
 'use client';
 
+import { Controller } from 'react-hook-form';
+
 import { KvButton } from '@/components/shared/KvButton';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 
@@ -13,22 +15,28 @@ interface ForgotRequestStepProps {
 
 export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
   const { forgotMobileForm, sendForgotOtp, isSendingForgotOtp, cancelForgotMode } = login;
-  const { register, formState } = forgotMobileForm;
-  const mobileField = register('mobile');
+  const { control, formState } = forgotMobileForm;
 
   return (
     <form onSubmit={sendForgotOtp} className="flex flex-col gap-kv-section" noValidate>
       <AuthStepHeading step={1} totalSteps={3} />
 
       <div className="flex flex-col gap-kv-group">
-        <KvMobileNumberField
-          id="forgot-mobile"
-          required
-          error={formState.errors.mobile?.message}
-          name={mobileField.name}
-          onBlur={mobileField.onBlur}
-          ref={mobileField.ref}
-          onChange={mobileField.onChange}
+        <Controller
+          name="mobile"
+          control={control}
+          render={({ field }) => (
+            <KvMobileNumberField
+              id="forgot-mobile"
+              required
+              error={formState.errors.mobile?.message}
+              name={field.name}
+              value={field.value}
+              onBlur={field.onBlur}
+              ref={field.ref}
+              onChange={field.onChange}
+            />
+          )}
         />
       </div>
 
