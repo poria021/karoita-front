@@ -41,7 +41,7 @@ export function SidebarNavGroup({
   // Collapsed rail: expose children as icon links so both modules stay reachable.
   if (isCollapsed) {
     return (
-      <div className="space-y-3 max-lg:contents lg:block">
+      <div className="space-y-kv-inline max-lg:contents lg:block">
         <div className="hidden lg:contents">
           {group.children.map((child) => (
             <SidebarNavLink
@@ -54,7 +54,7 @@ export function SidebarNavGroup({
             />
           ))}
         </div>
-        <div className="space-y-1 lg:hidden">
+        <div className="space-y-kv-nav-tight lg:hidden">
           <ExpandedGroupChrome
             group={group}
             groupIcon={groupIcon}
@@ -110,7 +110,7 @@ function ExpandedGroupChrome({
   const childActive = group.children.some((child) => child.path === pathname);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-kv-nav-tight">
       {/* L1 — group label: darkest text, medium-strong weight; icon quieter than label */}
       <button
         type="button"
@@ -137,7 +137,7 @@ function ExpandedGroupChrome({
                 : 'text-kv-text-faint group-hover:text-kv-text-subtle'
             )}
           />
-          <span className="ms-3 max-w-[150px] truncate">{group.title}</span>
+          <span className="ms-kv-inline max-w-[150px] truncate">{group.title}</span>
         </span>
         <FaIcon
           icon={faIcons.chevronDown}
@@ -154,7 +154,7 @@ function ExpandedGroupChrome({
           id={`${groupId}-panel`}
           role="group"
           aria-labelledby={groupId}
-          className="ms-4 mt-1.5 space-y-1 overflow-hidden border-s border-kv-border-muted ps-3"
+          className="ms-kv-group mt-kv-field space-y-kv-nav-tight overflow-hidden border-s border-kv-border-muted ps-kv-inline"
         >
           {group.children.map((child) => (
             <SidebarNavLink

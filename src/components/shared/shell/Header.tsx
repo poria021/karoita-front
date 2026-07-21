@@ -64,7 +64,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface/80 shadow-kv-raised backdrop-blur-md supports-[backdrop-filter]:bg-kv-surface/70">
-      <div className="flex h-16 w-full items-center justify-between px-4 sm:px-6 lg:px-6 xl:px-8 2xl:px-16">
+      <div className="flex h-16 w-full items-center justify-between px-kv-group sm:px-kv-section lg:px-kv-section xl:px-kv-page 2xl:px-kv-screen">
         <div className="flex min-w-0 items-center gap-kv-group">
           <KvButton
             type="button"
@@ -87,7 +87,7 @@ export function Header() {
               <KvTypography variant="title" as="h1" truncate>
                 پنل کاربری - {strategy.label}
               </KvTypography>
-              <div className="mt-1 hidden sm:block">
+              <div className="mt-kv-nav-tight hidden sm:block">
                 <KvTypography variant="overline" tone="muted" as="p" truncate>
                   سامانه جامع آموزش نظری و مهارتی کارویتا
                 </KvTypography>
@@ -130,7 +130,7 @@ export function Header() {
               align="end"
               className="w-80 rounded-kv-panel border border-kv-border-strong/80 p-0 shadow-kv-overlay"
             >
-              <div className="flex items-center justify-between border-b border-kv-border-muted px-4 py-3">
+              <div className="flex items-center justify-between border-b border-kv-border-muted px-kv-group py-kv-inline">
                 <KvTypography variant="subtitle" as="span">
                   اعلان‌های سیستم
                 </KvTypography>
@@ -149,7 +149,7 @@ export function Header() {
 
               <div className="max-h-72 divide-y divide-kv-border-muted overflow-y-auto">
                 {notifications.length === 0 ? (
-                  <div className="px-6 py-10 text-center">
+                  <div className="px-kv-section py-kv-region text-center">
                     <KvTypography variant="subtitle" as="p">
                       صندوق اعلان‌ها خالی است
                     </KvTypography>
@@ -161,11 +161,11 @@ export function Header() {
                       key={notification.id}
                       onClick={() => markAsRead(notification.id)}
                       className={cn(
-                        'min-h-11 w-full p-4 text-start transition-colors hover:bg-kv-surface-muted focus-visible:bg-kv-surface-muted focus-visible:outline-none',
+                        'min-h-11 w-full p-kv-group text-start transition-colors hover:bg-kv-surface-muted focus-visible:bg-kv-surface-muted focus-visible:outline-none',
                         !notification.read && 'bg-kv-brand-soft/20'
                       )}
                     >
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center justify-between gap-kv-pair">
                         <KvTypography variant="subtitle" as="p" truncate>
                           {notification.title}
                         </KvTypography>

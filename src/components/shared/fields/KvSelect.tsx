@@ -28,7 +28,7 @@ export function KvSelectTrigger({
     <SelectTrigger
       data-slot="kv-select-trigger"
       className={cn(
-        'flex w-full min-w-0 items-center justify-between gap-2 rounded-kv-control',
+        'flex w-full min-w-0 items-center justify-between gap-kv-pair rounded-kv-control',
         'h-11 data-[size=default]:h-11 data-[size=sm]:h-9',
         'border border-kv-border-strong bg-kv-surface px-3.5 py-0',
         'font-sans text-xs font-bold text-kv-text-secondary shadow-none md:text-xs',
@@ -45,7 +45,7 @@ export function KvSelectTrigger({
         '[&_svg]:pointer-events-none [&_svg]:shrink-0',
         '[&_svg]:text-kv-text-faint [&_svg]:opacity-100',
         '*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex',
-        '*:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2',
+        '*:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-kv-pair',
         className
       )}
       {...props}

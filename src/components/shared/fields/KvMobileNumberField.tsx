@@ -18,7 +18,7 @@ function filterDigits(rawValue: string): string {
 
 const plus98Addon = (
   <span
-    className="flex h-full items-center gap-2 ps-3.5 text-xs font-bold leading-none text-kv-text-faint select-none"
+    className="flex h-full items-center gap-kv-pair ps-3.5 text-xs font-bold leading-none text-kv-text-faint select-none"
     aria-hidden="true"
   >
     <span>+{toPersianDigits('98')}</span>

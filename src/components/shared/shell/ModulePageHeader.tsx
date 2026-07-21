@@ -23,7 +23,7 @@ export function ModulePageHeader() {
       description={meta.description}
       breadcrumb={<KvBreadcrumb items={crumbs} />}
       icon={<FaIcon icon={icon} size="lg" />}
-      className="mb-5 shrink-0"
+      className="mb-kv-stack shrink-0"
     />
   );
 }

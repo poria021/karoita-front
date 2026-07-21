@@ -59,7 +59,7 @@ export function AuthStepHeading({ step, totalSteps }: AuthStepHeadingProps) {
       </div>
 
       <div
-        className="flex shrink-0 items-center gap-1.5"
+        className="flex shrink-0 items-center gap-kv-field"
         dir="ltr"
         role="list"
         aria-label={label}

@@ -95,7 +95,7 @@ export function Sidebar() {
           }
         />
 
-        <div className="flex items-center justify-between gap-3 border-b border-kv-border-muted p-4 lg:hidden">
+        <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">
           <div className="flex min-w-0 items-center gap-kv-inline">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20">
               <FaIcon icon={faIcons.tableColumns} size="sm" />
@@ -104,7 +104,7 @@ export function Sidebar() {
               <KvTypography variant="subtitle" as="h2" id={drawerTitleId} truncate>
                 پنل کاربری - {strategy.label}
               </KvTypography>
-              <div className="mt-1">
+              <div className="mt-kv-nav-tight">
                 <KvTypography variant="overline" tone="muted" as="p" truncate>
                   سامانه جامع کارویتا
                 </KvTypography>
@@ -124,7 +124,7 @@ export function Sidebar() {
         </div>
 
         <nav
-          className="flex-1 space-y-3 overflow-y-auto p-4 lg:overflow-y-visible lg:p-3 lg:pt-5 lg:pb-8"
+          className="flex-1 space-y-kv-inline overflow-y-auto p-kv-group lg:overflow-y-visible lg:p-kv-inline lg:pt-kv-stack lg:pb-kv-page"
           aria-label="منوی اصلی"
         >
           {visibleMenu.map((entry) =>
@@ -157,15 +157,15 @@ export function Sidebar() {
           aria-label={`پروفایل ${activeUser.firstName} ${activeUser.lastName}`}
           className={cn(
             'border-t border-kv-border-muted bg-kv-surface transition-colors hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30 lg:rounded-b-kv-shell',
-            isCollapsed ? 'p-4 lg:p-2' : 'p-4'
+            isCollapsed ? 'p-kv-group lg:p-kv-pair' : 'p-kv-group'
           )}
         >
           <div
             className={cn(
               'flex items-center rounded-kv-control border border-kv-border-muted bg-kv-surface-muted transition-all',
               isCollapsed
-                ? 'justify-start p-3 lg:justify-center lg:p-2'
-                : 'p-3'
+                ? 'justify-start p-kv-inline lg:justify-center lg:p-kv-pair'
+                : 'p-kv-inline'
             )}
           >
             <div className="relative flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
@@ -175,14 +175,14 @@ export function Sidebar() {
               className={cn(
                 'flex min-w-0 flex-col overflow-hidden transition-all',
                 isCollapsed
-                  ? 'ms-3 max-w-[150px] opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0'
-                  : 'ms-3 max-w-[150px] opacity-100'
+                  ? 'ms-kv-inline max-w-[150px] opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0'
+                  : 'ms-kv-inline max-w-[150px] opacity-100'
               )}
             >
               <KvTypography variant="subtitle" as="p" truncate>
                 {activeUser.firstName} {activeUser.lastName}
               </KvTypography>
-              <div className="mt-0.5">
+              <div className="mt-kv-micro">
                 <KvTypography variant="caption" tone="muted" as="p" truncate>
                   {strategy.label}
                 </KvTypography>

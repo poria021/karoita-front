@@ -30,7 +30,13 @@ const UI_RESTRICTED_IMPORT_PATTERNS = [
 ];
 
 /** Domains under src/features/ — keep in sync when adding a new slice. */
-const FEATURE_DOMAINS = ['karvita', 'shared', 'reporting', 'forms-wizard'];
+const FEATURE_DOMAINS = [
+  'karvita',
+  'shared',
+  'reporting',
+  'forms-wizard',
+  'ad-engine',
+];
 
 function otherFeatureImportPatterns(selfDomain) {
   return FEATURE_DOMAINS.filter((domain) => domain !== selfDomain).flatMap(

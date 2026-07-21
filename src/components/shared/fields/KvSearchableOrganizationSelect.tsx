@@ -149,7 +149,7 @@ export function KvSearchableOrganizationSelect({
             className="max-h-52 overflow-y-auto overflow-x-hidden outline-none"
           >
             {isLoading ? (
-              <div className="flex items-center justify-center gap-2 px-3.5 py-3">
+              <div className="flex items-center justify-center gap-kv-pair px-3.5 py-3">
                 <Spinner className="size-3.5" aria-hidden="true" />
                 <KvTypography variant="caption" as="span">
                   در حال بارگذاری...
@@ -169,16 +169,18 @@ export function KvSearchableOrganizationSelect({
                     value={`${option.id}::${option.label}`}
                     onSelect={() => handleSelect(option)}
                     className={cn(
-                      'cursor-pointer border-b border-kv-border px-3.5 py-2.5 text-start text-xs font-bold text-kv-text-secondary last:border-b-0',
+                      'cursor-pointer border-b border-kv-border px-3.5 py-2.5 text-start last:border-b-0',
                       'outline-none data-[selected=true]:bg-kv-surface-muted',
                       value === option.label && 'bg-kv-surface-muted'
                     )}
                   >
-                    {option.label}
+                    <KvTypography variant="label" as="span">
+                      {option.label}
+                    </KvTypography>
                   </Command.Item>
                 ))}
                 {isLoadingMore ? (
-                  <div className="flex items-center justify-center gap-2 border-t border-kv-border-muted px-3.5 py-2.5">
+                  <div className="flex items-center justify-center gap-kv-pair border-t border-kv-border-muted px-3.5 py-2.5">
                     <Spinner className="size-3.5" aria-hidden="true" />
                     <KvTypography variant="caption" as="span">
                       در حال بارگذاری...
@@ -188,9 +190,11 @@ export function KvSearchableOrganizationSelect({
                   <Command.Item
                     value="__load-more__"
                     onSelect={() => loadMore()}
-                    className="cursor-pointer border-t border-kv-border-muted px-3.5 py-2.5 text-center text-xs font-bold text-kv-brand-soft-fg outline-none data-[selected=true]:bg-kv-surface-muted"
+                    className="cursor-pointer border-t border-kv-border-muted px-3.5 py-2.5 text-center outline-none data-[selected=true]:bg-kv-surface-muted"
                   >
-                    نمایش ۱۰ مورد بعدی
+                    <KvTypography variant="label" tone="brand" as="span">
+                      نمایش ۱۰ مورد بعدی
+                    </KvTypography>
                   </Command.Item>
                 ) : reachedLimit ? (
                   <div className="border-t border-kv-border-muted px-3.5 py-2.5 text-center">
