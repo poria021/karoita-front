@@ -3,7 +3,7 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -21,6 +21,8 @@ import {
   areKarvitaModulesUnlocked,
   getRoleStrategy,
   getVisibleSidebarMenu,
+  isSidebarMenuGroup,
+  type SidebarMenuGroup,
   type SidebarMenuItem,
 } from '@/utils/RoleStrategyMap';
 import { faIcons, iconMap } from '@/utils/iconMap';
@@ -170,17 +172,31 @@ export function Sidebar() {
           />
         </div>
 
-        <nav className="flex-1 space-y-kv-pair p-kv-compact lg:p-kv-compact lg:pt-kv-stack lg:pb-8" aria-label="منوی اصلی">
-          {visibleMenu.map((item) => (
-            <SidebarNavLink
-              key={item.path}
-              item={item}
-              isActive={pathname === item.path}
-              isCollapsed={isCollapsed}
-              locked={!modulesUnlocked}
-              onNavigate={closeMobileSidebar}
-            />
-          ))}
+        <nav
+          className="flex-1 space-y-kv-pair p-kv-compact lg:p-kv-compact lg:pt-kv-stack lg:pb-8"
+          aria-label="منوی اصلی"
+        >
+          {visibleMenu.map((entry) =>
+            isSidebarMenuGroup(entry) ? (
+              <SidebarNavGroup
+                key={`group:${entry.title}`}
+                group={entry}
+                pathname={pathname}
+                isCollapsed={isCollapsed}
+                locked={!modulesUnlocked}
+                onNavigate={closeMobileSidebar}
+              />
+            ) : (
+              <SidebarNavLink
+                key={entry.path}
+                item={entry}
+                isActive={pathname === entry.path}
+                isCollapsed={isCollapsed}
+                locked={!modulesUnlocked}
+                onNavigate={closeMobileSidebar}
+              />
+            )
+          )}
         </nav>
 
         <Link
@@ -225,6 +241,161 @@ export function Sidebar() {
         </Link>
       </aside>
     </>
+  );
+}
+
+interface SidebarNavGroupProps {
+  group: SidebarMenuGroup;
+  pathname: string;
+  isCollapsed: boolean;
+  locked: boolean;
+  onNavigate: () => void;
+}
+
+function SidebarNavGroup({
+  group,
+  pathname,
+  isCollapsed,
+  locked,
+  onNavigate,
+}: SidebarNavGroupProps) {
+  const childActive = group.children.some((child) => child.path === pathname);
+  const [open, setOpen] = useState(childActive);
+  const groupId = useId();
+
+  useEffect(() => {
+    if (childActive) setOpen(true);
+  }, [childActive]);
+
+  const groupIcon = resolveIcon(group.icon);
+
+  // Collapsed rail: expose children as icon links so both modules stay reachable.
+  if (isCollapsed) {
+    return (
+      <div className="space-y-kv-pair max-lg:contents lg:block">
+        <div className="hidden lg:contents">
+          {group.children.map((child) => (
+            <SidebarNavLink
+              key={child.path}
+              item={child}
+              isActive={pathname === child.path}
+              isCollapsed
+              locked={locked}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+        <div className="space-y-kv-pair lg:hidden">
+          <ExpandedGroupChrome
+            group={group}
+            groupIcon={groupIcon}
+            groupId={groupId}
+            open={open}
+            onToggle={() => setOpen((value) => !value)}
+            pathname={pathname}
+            locked={locked}
+            onNavigate={onNavigate}
+            isCollapsed={false}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ExpandedGroupChrome
+      group={group}
+      groupIcon={groupIcon}
+      groupId={groupId}
+      open={open}
+      onToggle={() => setOpen((value) => !value)}
+      pathname={pathname}
+      locked={locked}
+      onNavigate={onNavigate}
+      isCollapsed={false}
+    />
+  );
+}
+
+function ExpandedGroupChrome({
+  group,
+  groupIcon,
+  groupId,
+  open,
+  onToggle,
+  pathname,
+  locked,
+  onNavigate,
+  isCollapsed,
+}: {
+  group: SidebarMenuGroup;
+  groupIcon: IconDefinition;
+  groupId: string;
+  open: boolean;
+  onToggle: () => void;
+  pathname: string;
+  locked: boolean;
+  onNavigate: () => void;
+  isCollapsed: boolean;
+}) {
+  const childActive = group.children.some((child) => child.path === pathname);
+
+  return (
+    <div className="space-y-kv-pair">
+      <button
+        type="button"
+        id={groupId}
+        aria-expanded={open}
+        aria-controls={`${groupId}-panel`}
+        onClick={onToggle}
+        className={cn(
+          'flex min-h-11 w-full items-center justify-between gap-2 rounded-kv-control px-3.5 py-2.5 text-xs font-bold transition-colors',
+          'text-kv-text-muted hover:bg-kv-surface-muted hover:text-kv-text-secondary',
+          'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
+          childActive && 'text-kv-brand-soft-fg'
+        )}
+      >
+        <span className="flex min-w-0 items-center">
+          <FaIcon
+            icon={groupIcon}
+            size="sm"
+            className={cn(
+              'shrink-0',
+              childActive ? 'text-kv-brand-soft-fg' : 'text-kv-text-faint'
+            )}
+          />
+          <span className="ms-3 truncate">{group.title}</span>
+        </span>
+        <FaIcon
+          icon={faIcons.chevronDown}
+          size="2xs"
+          className={cn(
+            'shrink-0 text-kv-text-faint transition-transform',
+            open && 'rotate-180'
+          )}
+        />
+      </button>
+
+      {open ? (
+        <div
+          id={`${groupId}-panel`}
+          role="group"
+          aria-labelledby={groupId}
+          className="space-y-kv-pair border-s border-kv-border-muted ms-3 ps-2"
+        >
+          {group.children.map((child) => (
+            <SidebarNavLink
+              key={child.path}
+              item={child}
+              isActive={pathname === child.path}
+              isCollapsed={isCollapsed}
+              locked={locked}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

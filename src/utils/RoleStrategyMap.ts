@@ -2,11 +2,26 @@ import { isLiveSidebarPath } from '@/lib/live-nav-paths';
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 
-
 export interface SidebarMenuItem {
+  kind?: 'item';
   title: string;
   path: string;
   icon: string;
+}
+
+export interface SidebarMenuGroup {
+  kind: 'group';
+  title: string;
+  icon: string;
+  children: SidebarMenuItem[];
+}
+
+export type SidebarMenuEntry = SidebarMenuItem | SidebarMenuGroup;
+
+export function isSidebarMenuGroup(
+  entry: SidebarMenuEntry
+): entry is SidebarMenuGroup {
+  return entry.kind === 'group';
 }
 
 export interface RoleStrategyConfig {
@@ -15,7 +30,7 @@ export interface RoleStrategyConfig {
   roleIcon: string;
   layoutWidthClass: string;
   gateModulesUntilApproved: boolean;
-  sidebarMenu: SidebarMenuItem[];
+  sidebarMenu: SidebarMenuEntry[];
   permissions: string[];
 }
 
@@ -282,19 +297,26 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
         icon: 'fa-user-gear',
       },
       {
-        title: 'ایجاد حساب‌های سازمانی',
-        path: RouteService.karvita.adminUserCreation(),
-        icon: 'fa-user-plus',
+        kind: 'group',
+        title: 'مدیریت سازمانی',
+        icon: 'fa-network-wired',
+        children: [
+          {
+            title: 'ساختار سازمانی',
+            path: RouteService.karvita.organizationalStructure(),
+            icon: 'fa-network-wired',
+          },
+          {
+            title: 'ایجاد حساب‌های سازمانی',
+            path: RouteService.karvita.adminUserCreation(),
+            icon: 'fa-user-plus',
+          },
+        ],
       },
       {
         title: 'مدیریت ترم و سرفصل',
         path: RouteService.karvita.syllabusConfig(),
         icon: 'fa-rectangle-list',
-      },
-      {
-        title: 'ساختار سازمانی',
-        path: RouteService.karvita.organizationalStructure(),
-        icon: 'fa-network-wired',
       },
       MANAGE_ADS_ITEM,
       STANDARD_REPORTS_ITEM,
@@ -329,10 +351,17 @@ export function getRoleStrategy(
 
 export function getVisibleSidebarMenu(
   role: UserRole | string | null | undefined
-): SidebarMenuItem[] {
-  return getRoleStrategy(role).sidebarMenu.filter((item) =>
-    isLiveSidebarPath(item.path)
-  );
+): SidebarMenuEntry[] {
+  return getRoleStrategy(role).sidebarMenu.flatMap((entry) => {
+    if (isSidebarMenuGroup(entry)) {
+      const children = entry.children.filter((child) =>
+        isLiveSidebarPath(child.path)
+      );
+      if (children.length === 0) return [];
+      return [{ ...entry, children }];
+    }
+    return isLiveSidebarPath(entry.path) ? [entry] : [];
+  });
 }
 
 export function areKarvitaModulesUnlocked(user: {

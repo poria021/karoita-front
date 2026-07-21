@@ -61,6 +61,7 @@
    */
   --color-kv-canvas: var(--kv-canvas);
   --color-kv-surface: var(--kv-surface);
+  --color-kv-main: var(--kv-main);
   --color-kv-surface-muted: var(--kv-surface-muted);
   --color-kv-surface-subtle: var(--kv-surface-subtle);
   --color-kv-surface-disabled: var(--kv-surface-disabled);
@@ -220,6 +221,8 @@
   /* App canvas matches original-karvita.html `bg-[#faf9f8]` */
   --kv-canvas: hsl(30 14.3% 97.6%);
   --kv-surface: hsl(0 0% 100%);
+  /* Dashboard <main> well only — nearer white than muted; do not reuse for chrome */
+  --kv-main: hsl(210 30% 98.7%);
   --kv-surface-muted: hsl(210 40% 98%);
   --kv-surface-subtle: hsl(210 40% 96.1%);
   --kv-surface-disabled: hsl(210 40% 96.1%);
@@ -342,6 +345,7 @@
   /* —— kv semantic palette (dark) — HSL only —— */
   --kv-canvas: hsl(220 48.8% 8.4%);
   --kv-surface: hsl(221 39.3% 11%);
+  --kv-main: hsl(221 36% 12.2%);
   --kv-surface-muted: hsl(217 32.6% 17.5%);
   --kv-surface-subtle: hsl(217 32.6% 17.5%);
   --kv-surface-disabled: hsl(217 32.6% 17.5%);
@@ -456,6 +460,11 @@
   --sidebar-accent-foreground: var(--kv-brand-soft-fg);
   --sidebar-border: var(--kv-border);
   --sidebar-ring: var(--kv-ring);
+}
+
+/* Dashboard main well — ensure utility exists even if @theme HMR skips new colors */
+@utility bg-kv-main {
+  background-color: var(--kv-main);
 }
 
 @layer base {

@@ -50,71 +50,73 @@ export function SyllabusConfigPage() {
           />
         }
       >
-        {page.error ? (
-          <KvAlert
-            variant="error"
-            title="بارگذاری مدیریت ترم و سرفصل ناموفق بود"
-            description={page.error}
-            actions={
-              <KvButton
-                type="button"
-                appearance="secondary"
-                size="sm"
-                onClick={() => void page.reload()}
-              >
-                تلاش مجدد
-              </KvButton>
-            }
-          />
-        ) : page.tab === 'course_offerings' ? (
-          <CourseOfferingsPanel
-            terms={page.terms}
-            selectedTerm={page.selectedTerm}
-            selectTerm={page.selectTerm}
-            toggleEnroll={page.toggleEnroll}
-            toggleTermOpen={page.toggleTermOpen}
-            courses={page.courses}
-            selectedCourse={page.selectedCourse}
-            selectCourse={page.selectCourse}
-            offeredCatalogIds={page.offeredCatalogIds}
-            toggleCourseOffering={page.toggleCourseOffering}
-            weeks={page.weeks}
-            isLoading={page.isLoading}
-            isSelectedCourseOffered={page.isSelectedCourseOffered}
-            hasUnsavedChanges={page.hasUnsavedChanges}
-            isSaving={page.isSaving}
-            updateWeekWeight={page.updateWeekWeight}
-            openWeekEdit={page.openWeekEdit}
-            restoreWeek={page.restoreWeek}
-            archiveWeek={page.archiveWeek}
-            addWeek={page.addWeek}
-            requestDeleteWeek={page.requestDeleteWeek}
-            saveSyllabus={page.saveSyllabus}
-          />
-        ) : (
-          <TermSettingsPanel
-            terms={page.terms}
-            editTermId={page.editTermId}
-            selectEditTerm={page.selectEditTerm}
-            termType={page.termType}
-            onTermTypeChange={page.onTermTypeChange}
-            termPrefix={page.termPrefix}
-            setTermPrefix={page.setTermPrefix}
-            termYear={page.termYear}
-            setTermYear={page.setTermYear}
-            academicYears={page.academicYears}
-            isSaving={page.isSaving}
-            termFormError={page.termFormError}
-            saveTerm={page.saveTerm}
-            requestDeleteTerm={page.requestDeleteTerm}
-            professorCapacity={page.professorCapacity}
-            setProfessorCapacity={page.setProfessorCapacity}
-            saveProfessorCapacity={page.saveProfessorCapacity}
-            passingThreshold={page.passingThreshold}
-            setPassingThreshold={page.setPassingThreshold}
-            savePassingThreshold={page.savePassingThreshold}
-          />
-        )}
+        <div className="space-y-kv-section border-t border-kv-border-muted pt-kv-section">
+          {page.error ? (
+            <KvAlert
+              variant="error"
+              title="بارگذاری مدیریت ترم و سرفصل ناموفق بود"
+              description={page.error}
+              actions={
+                <KvButton
+                  type="button"
+                  appearance="secondary"
+                  size="sm"
+                  onClick={() => void page.reload()}
+                >
+                  تلاش مجدد
+                </KvButton>
+              }
+            />
+          ) : page.tab === 'course_offerings' ? (
+            <CourseOfferingsPanel
+              terms={page.terms}
+              selectedTerm={page.selectedTerm}
+              selectTerm={page.selectTerm}
+              toggleEnroll={page.toggleEnroll}
+              toggleTermOpen={page.toggleTermOpen}
+              courses={page.courses}
+              selectedCourse={page.selectedCourse}
+              selectCourse={page.selectCourse}
+              offeredCatalogIds={page.offeredCatalogIds}
+              toggleCourseOffering={page.toggleCourseOffering}
+              weeks={page.weeks}
+              isLoading={page.isLoading}
+              isSelectedCourseOffered={page.isSelectedCourseOffered}
+              hasUnsavedChanges={page.hasUnsavedChanges}
+              isSaving={page.isSaving}
+              updateWeekWeight={page.updateWeekWeight}
+              openWeekEdit={page.openWeekEdit}
+              restoreWeek={page.restoreWeek}
+              archiveWeek={page.archiveWeek}
+              addWeek={page.addWeek}
+              requestDeleteWeek={page.requestDeleteWeek}
+              saveSyllabus={page.saveSyllabus}
+            />
+          ) : (
+            <TermSettingsPanel
+              terms={page.terms}
+              editTermId={page.editTermId}
+              selectEditTerm={page.selectEditTerm}
+              termType={page.termType}
+              onTermTypeChange={page.onTermTypeChange}
+              termPrefix={page.termPrefix}
+              setTermPrefix={page.setTermPrefix}
+              termYear={page.termYear}
+              setTermYear={page.setTermYear}
+              academicYears={page.academicYears}
+              isSaving={page.isSaving}
+              termFormError={page.termFormError}
+              saveTerm={page.saveTerm}
+              requestDeleteTerm={page.requestDeleteTerm}
+              professorCapacity={page.professorCapacity}
+              setProfessorCapacity={page.setProfessorCapacity}
+              saveProfessorCapacity={page.saveProfessorCapacity}
+              passingThreshold={page.passingThreshold}
+              setPassingThreshold={page.setPassingThreshold}
+              savePassingThreshold={page.savePassingThreshold}
+            />
+          )}
+        </div>
       </KvWorkspace>
 
       <WeekEditDialog

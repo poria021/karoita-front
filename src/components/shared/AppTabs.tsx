@@ -17,12 +17,13 @@ export type AppTabsGridCols = 2 | 3 | 4;
 
 const LIST_BASE = [
   'flex h-auto max-w-full items-center gap-1 overflow-x-auto whitespace-nowrap',
-  'rounded-kv-control border border-kv-border p-[3px]',
+  'rounded-md border border-kv-border p-[3px]',
   'font-sans text-kv-text-subtle',
   '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
 ].join(' ');
 
-const LIST_TRACK_BRAND = 'bg-kv-surface-muted';
+/* Same track as auth login/register (`activeTone="surface"`) */
+const LIST_TRACK_BRAND = 'bg-kv-surface-subtle';
 const LIST_TRACK_SURFACE = 'bg-kv-surface-subtle';
 
 const LIST_NORMAL = [
@@ -43,7 +44,7 @@ const GRID_COLS_CLASS: Record<AppTabsGridCols, string> = {
 };
 
 const TRIGGER_BASE = [
-  'inline-flex min-w-0 items-center justify-center rounded-kv-control border-0',
+  'inline-flex min-w-0 items-center justify-center rounded-md border-0',
   'bg-transparent font-sans font-bold text-kv-text-subtle shadow-none outline-none transition-all',
   'hover:text-kv-text',
   'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
@@ -62,17 +63,17 @@ const TRIGGER_ACTIVE_SURFACE = [
 ].join(' ');
 
 const TRIGGER_NORMAL_SIZE = [
-  'flex-1 gap-1.5 px-1.5 py-2.5 text-xs leading-none',
-  'md:w-auto md:flex-none md:grow-0 md:gap-2 md:px-5 md:py-2.5 md:text-[13px]',
+  'flex-1 gap-1.5 px-1.5 py-2 text-sm leading-none',
+  'md:w-auto md:flex-none md:grow-0 md:gap-2 md:px-4 md:py-2 md:text-sm',
 ].join(' ');
 
 const TRIGGER_FULL_SIZE = [
-  'flex-1 gap-1.5 px-1.5 py-2.5 text-xs leading-none',
+  'flex-1 gap-1.5 px-1.5 py-2 text-sm leading-none',
 ].join(' ');
 
 const TRIGGER_GRID_SIZE = [
-  'w-full gap-1.5 rounded-kv-control border border-kv-border bg-kv-surface',
-  'px-2 py-4 text-xs leading-none',
+  'w-full gap-1.5 rounded-md border border-kv-border bg-kv-surface',
+  'px-2 py-3 text-sm leading-none',
   'hover:bg-kv-surface-muted',
   'data-[state=active]:border-kv-brand',
 ].join(' ');

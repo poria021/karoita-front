@@ -47,40 +47,45 @@ export function KvSplitWorkspace({
       data-slot="kv-split-workspace"
     >
       {tabs}
-      {toolbar}
+      <div
+        className="space-y-kv-section border-t border-kv-border-muted pt-kv-section"
+        data-slot="kv-split-workspace-body"
+      >
+        {toolbar}
 
-      {showDesktop ? (
-        <div
-          className="hidden w-full flex-row items-stretch gap-kv-section lg:flex"
-          data-slot="kv-split-workspace-desktop"
-        >
-          <section
-            className={cn(
-              'flex w-full flex-col gap-kv-group text-start',
-              widths.primary
-            )}
-            data-slot="kv-split-workspace-primary"
+        {showDesktop ? (
+          <div
+            className="hidden w-full flex-row items-stretch gap-kv-section lg:flex"
+            data-slot="kv-split-workspace-desktop"
           >
-            {primary}
-          </section>
-          <section
-            className={cn(
-              'flex w-full min-h-0 flex-col',
-              '[&_[data-slot=kv-card]]:rounded-kv-card',
-              widths.secondary
-            )}
-            data-slot="kv-split-workspace-secondary"
-          >
-            {secondary}
-          </section>
-        </div>
-      ) : null}
+            <section
+              className={cn(
+                'flex w-full flex-col gap-kv-group text-start',
+                widths.primary
+              )}
+              data-slot="kv-split-workspace-primary"
+            >
+              {primary}
+            </section>
+            <section
+              className={cn(
+                'flex w-full min-h-0 flex-col',
+                '[&_[data-slot=kv-card]]:rounded-kv-card',
+                widths.secondary
+              )}
+              data-slot="kv-split-workspace-secondary"
+            >
+              {secondary}
+            </section>
+          </div>
+        ) : null}
 
-      {showMobile ? (
-        <div className="block lg:hidden" data-slot="kv-split-workspace-mobile">
-          {mobileContent}
-        </div>
-      ) : null}
+        {showMobile ? (
+          <div className="block lg:hidden" data-slot="kv-split-workspace-mobile">
+            {mobileContent}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

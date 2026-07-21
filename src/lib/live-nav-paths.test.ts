@@ -6,7 +6,10 @@ import {
   isNavigableAppPath,
 } from '@/lib/live-nav-paths';
 import { RouteService } from '@/services/route.service';
-import { getVisibleSidebarMenu } from '@/utils/RoleStrategyMap';
+import {
+  getVisibleSidebarMenu,
+  isSidebarMenuGroup,
+} from '@/utils/RoleStrategyMap';
 
 describe('live nav / admin plane', () => {
   it('treats org structure as admin control plane', () => {
@@ -19,16 +22,24 @@ describe('live nav / admin plane', () => {
   });
 
   it('only exposes live sidebar links for student and super_admin', () => {
-    expect(getVisibleSidebarMenu('student').map((i) => i.path)).toEqual([
+    expect(getVisibleSidebarMenu('student').map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
     ]);
-    expect(getVisibleSidebarMenu('super_admin').map((i) => i.path)).toEqual([
-      RouteService.karvita.adminDashboard(),
-      RouteService.karvita.onboardingApprovals(),
-      RouteService.karvita.adminUserCreation(),
-      RouteService.karvita.syllabusConfig(),
-      RouteService.karvita.organizationalStructure(),
+
+    const adminMenu = getVisibleSidebarMenu('super_admin');
+    expect(adminMenu.map((entry) => entry.title)).toEqual([
+      'میز کار مدیریت',
+      'بررسی مدارک هویتی',
+      'مدیریت سازمانی',
+      'مدیریت ترم و سرفصل',
     ]);
+
+    const orgGroup = adminMenu.find(isSidebarMenuGroup);
+    expect(orgGroup?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.organizationalStructure(),
+      RouteService.karvita.adminUserCreation(),
+    ]);
+
     expect(isLiveSidebarPath(RouteService.karvita.dailyReports())).toBe(false);
   });
 

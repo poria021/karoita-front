@@ -23,7 +23,7 @@ export function SyllabusConfigPageSkeleton() {
       }
     >
       <div
-        className="space-y-kv-section"
+        className="space-y-kv-section border-t border-kv-border-muted pt-kv-section"
         role="status"
         aria-busy="true"
         aria-label="در حال بارگذاری مدیریت ترم و سرفصل"

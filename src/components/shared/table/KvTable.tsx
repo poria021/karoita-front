@@ -57,7 +57,7 @@ export function KvTableHeader({
     <TableHeader
       data-slot="kv-table-header"
       className={cn(
-        'sticky top-0 z-10 bg-kv-surface-muted font-bold text-kv-text-subtle',
+        'sticky top-0 z-10 bg-kv-surface-subtle font-bold text-kv-text-subtle',
         className
       )}
       {...props}
@@ -86,7 +86,7 @@ export function KvTableFooter({
     <TableFooter
       data-slot="kv-table-footer"
       className={cn(
-        'border-t border-kv-border bg-kv-surface-muted/50 font-bold text-kv-text-subtle',
+        'border-t border-kv-border bg-kv-surface-subtle/50 font-bold text-kv-text-subtle',
         className
       )}
       {...props}

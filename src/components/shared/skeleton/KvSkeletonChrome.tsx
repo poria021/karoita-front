@@ -7,7 +7,7 @@ export type KvSkeletonTabTrackProps = {
   className?: string;
   /**
    * Desktop track width — should approximate real `AppTabsList` (`md:w-fit` / `lg:w-fit`).
-   * Height/radius match AppTabs: ~42px, `rounded-kv-control` (not pill / not w-full on desktop).
+   * Height/radius match AppTabs: ~42px, `rounded-md` (not pill / not w-full on desktop).
    */
   trackClassName?: string;
   label?: string;
@@ -46,14 +46,14 @@ export function KvSkeletonTabTrack({
       <KvSkeleton
         label={label}
         className={cn(
-          'h-[42px] max-w-full rounded-kv-control',
+          'h-[42px] max-w-full rounded-md',
           desktopVisible,
           trackClassName
         )}
       />
       <KvSkeleton
         aria-hidden
-        className={cn('h-[42px] w-full rounded-kv-control', mobileVisible)}
+        className={cn('h-[42px] w-full rounded-md', mobileVisible)}
       />
     </div>
   );
