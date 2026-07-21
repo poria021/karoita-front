@@ -22,7 +22,7 @@ import {
 import { useProfileForm } from '../hooks/useProfileForm';
 import type { ProfileSchema } from '../schemas/profile.schema';
 import { getProfileFieldsForRole } from '../utils/profileFieldStrategy';
-import { IdentityDocUploader } from './IdentityDocUploader';
+import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { ProfileStatusBanners } from './ProfileStatusBanners';
 
 function filterDigits(rawValue: string): string {
@@ -188,11 +188,15 @@ function ProfileFormFields({ activeUser }: { activeUser: User }) {
         </div>
 
           <div className="border-t border-kv-border-muted pt-kv-group">
-          <IdentityDocUploader
+          <KvImageDocUploader
             value={identityDoc}
             onChange={setIdentityDoc}
             disabled={isLocked}
+            optionalHint
             label="بارگذاری مدرک هویتی (کارت دانشجویی / گواهی اشتغال)"
+            description="بارگذاری مدرک اختیاری است و مانع ثبت اطلاعات هویتی نمی‌شود."
+            helperText="PNG, JPG تا ۱۰ مگابایت"
+            previewAlt="پیش‌نمایش مدرک ارسالی"
           />
         </div>
 

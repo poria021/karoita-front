@@ -9,6 +9,7 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/fields/KvForm';
+import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
@@ -23,7 +24,6 @@ import {
   type ProfileSchema,
 } from '../../schemas/profile.schema';
 import { ProfileService } from '@/services/profile.service';
-import { IdentityDocUploader } from '../IdentityDocUploader';
 import { DynamicRoleFields } from './DynamicRoleFields';
 import { getProfileDefaultValues } from './profile-form-options';
 
@@ -168,11 +168,15 @@ export function IdentityForm({
             </div>
 
             {showDocUploader ? (
-              <IdentityDocUploader
+              <KvImageDocUploader
                 value={identityDocument}
                 onChange={setIdentityDocument}
                 disabled={isDisabled}
+                optionalHint
+                label="بارگذاری مدرک هویتی"
+                description="بارگذاری مدرک اختیاری است و مانع ثبت اطلاعات هویتی نمی‌شود."
                 helperText="PNG, JPG تا ۱۰ مگابایت"
+                previewAlt="پیش‌نمایش مدرک ارسالی"
               />
             ) : null}
 
