@@ -22,18 +22,7 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.onboardingApprovals(),
   RouteService.karvita.syllabusConfig(),
   RouteService.karvita.adminUserCreation(),
-  RouteService.shared.profileIdentity(),
-  RouteService.shared.profileSecurity(),
 ];
-
-export const LEGACY_ORG_STRUCTURE_PATH =
-  RouteService.karvita.organizationalStructureLegacy();
-
-export const LEGACY_ONBOARDING_APPROVALS_PATH =
-  RouteService.karvita.onboardingApprovalsLegacy();
-
-export const LEGACY_SYLLABUS_CONFIG_PATH =
-  RouteService.karvita.syllabusConfigLegacy();
 
 export function isLiveStaticNavPath(pathname: string): boolean {
   return LIVE_STATIC_NAV_PATHS.includes(normalizePath(pathname));
@@ -64,8 +53,5 @@ export function isAdminControlPlanePath(pathname: string): boolean {
 export function isNavigableAppPath(pathname: string): boolean {
   const path = normalizePath(pathname);
   if (isKarvitaProfilePath(path)) return true;
-  if (path === LEGACY_ORG_STRUCTURE_PATH) return true;
-  if (path === LEGACY_ONBOARDING_APPROVALS_PATH) return true;
-  if (path === LEGACY_SYLLABUS_CONFIG_PATH) return true;
   return isLiveStaticNavPath(path);
 }

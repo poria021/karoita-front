@@ -13,11 +13,6 @@ export const RouteService = {
     adminGate: (): string => '/auth/admin-gate',
   },
 
-  shared: {
-    profileIdentity: (): string => '/profile/identity',
-    profileSecurity: (): string => '/profile/security',
-  },
-
   karvita: {
     dashboard: (): string => '/karvita/dashboard',
     adminDashboard: (): string => '/karvita/admin/dashboard',
@@ -34,11 +29,9 @@ export const RouteService = {
     comparativeReports: (): string => '/karvita/reports/comparative',
     termLifecycle: (): string => '/karvita/term-lifecycle',
     syllabusConfig: (): string => '/karvita/admin/syllabus',
-    syllabusConfigLegacy: (): string => '/karvita/syllabus',
     locations: (): string => '/karvita/locations',
     onboardingApprovals: (): string =>
       '/karvita/admin/onboarding-approvals',
-    onboardingApprovalsLegacy: (): string => '/karvita/onboarding-approvals',
     userPermissions: (): string => '/karvita/permissions',
     manageAds: (): string => '/karvita/ads',
     internshipSelection: (): string => '/karvita/internships',
@@ -49,7 +42,5 @@ export const RouteService = {
 
     organizationalStructure: (): string =>
       '/karvita/admin/organizational-structure',
-    organizationalStructureLegacy: (): string =>
-      '/karvita/organizational-structure',
   },
 } as const;

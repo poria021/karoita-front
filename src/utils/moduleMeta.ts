@@ -136,8 +136,6 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
     description: 'صفحه مدیریت و پایش فرآیندهای ارزیابی علمی.',
     icon: 'fa-clipboard-check',
   },
-  [RouteService.shared.profileIdentity()]: PROFILE_META,
-  [RouteService.shared.profileSecurity()]: PROFILE_META,
 };
 
 const DASHBOARD_META_BY_ROLE: Partial<Record<UserRole, ModuleMeta>> = {
@@ -189,8 +187,6 @@ function normalizePath(pathname: string): string {
 }
 
 function isProfilePath(path: string): boolean {
-  if (path === RouteService.shared.profileIdentity()) return true;
-  if (path === RouteService.shared.profileSecurity()) return true;
   return /^\/karvita\/[^/]+\/profile$/.test(path);
 }
 

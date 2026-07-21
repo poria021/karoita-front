@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   isAdminControlPlanePath,
   isLiveSidebarPath,
+  isNavigableAppPath,
 } from '@/lib/live-nav-paths';
 import { RouteService } from '@/services/route.service';
 import { getVisibleSidebarMenu } from '@/utils/RoleStrategyMap';
@@ -12,9 +13,9 @@ describe('live nav / admin plane', () => {
     expect(
       isAdminControlPlanePath(RouteService.karvita.organizationalStructure())
     ).toBe(true);
-    expect(
-      isAdminControlPlanePath(RouteService.karvita.organizationalStructureLegacy())
-    ).toBe(false);
+    expect(isNavigableAppPath('/karvita/organizational-structure')).toBe(
+      false
+    );
   });
 
   it('only exposes live sidebar links for student and super_admin', () => {
@@ -35,18 +36,14 @@ describe('live nav / admin plane', () => {
     expect(
       isAdminControlPlanePath(RouteService.karvita.onboardingApprovals())
     ).toBe(true);
-    expect(
-      isAdminControlPlanePath(RouteService.karvita.onboardingApprovalsLegacy())
-    ).toBe(false);
+    expect(isNavigableAppPath('/karvita/onboarding-approvals')).toBe(false);
   });
 
   it('treats syllabus config as admin control plane', () => {
     expect(
       isAdminControlPlanePath(RouteService.karvita.syllabusConfig())
     ).toBe(true);
-    expect(
-      isAdminControlPlanePath(RouteService.karvita.syllabusConfigLegacy())
-    ).toBe(false);
+    expect(isNavigableAppPath('/karvita/syllabus')).toBe(false);
     expect(isLiveSidebarPath(RouteService.karvita.syllabusConfig())).toBe(true);
   });
 

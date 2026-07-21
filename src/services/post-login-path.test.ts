@@ -88,4 +88,25 @@ describe('resolvePostAuthPath / canAccessReturnPath', () => {
       resolvePostAuthPath(student, RouteService.karvita.dailyReports())
     ).toBe(RouteService.karvita.dashboard());
   });
+
+  it('allows locked student only their canonical profile returnUrl', () => {
+    const locked = user({ role: 'student', approved: false });
+    expect(
+      canAccessReturnPath(locked, RouteService.karvita.profile('student'))
+    ).toBe(true);
+    expect(
+      canAccessReturnPath(
+        locked,
+        RouteService.karvita.profileSecurity('student')
+      )
+    ).toBe(true);
+    expect(
+      canAccessReturnPath(locked, RouteService.karvita.profile('skill_learner'))
+    ).toBe(false);
+    expect(canAccessReturnPath(locked, '/profile/identity')).toBe(false);
+    expect(canAccessReturnPath(locked, '/profile/security')).toBe(false);
+    expect(
+      resolvePostAuthPath(locked, '/profile/identity')
+    ).toBe(RouteService.karvita.profile('student'));
+  });
 });

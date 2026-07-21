@@ -42,17 +42,14 @@ export function canAccessReturnPath(
     return false;
   }
 
+  // Locked users: fail-closed — only their own canonical profile (incl. ?tab=security).
+  if (!areKarvitaModulesUnlocked(user)) {
+    return pathname === RouteService.karvita.profile(user.role);
+  }
+
   if (isKarvitaProfilePath(pathname)) {
     return true;
   }
-
-  if (!areKarvitaModulesUnlocked(user)) {
-    return (
-      pathname === RouteService.shared.profileIdentity() ||
-      pathname === RouteService.shared.profileSecurity()
-    );
-  }
-
 
   if (isAdminControlPlanePath(pathname) && !isSuperAdminRole(user.role)) {
     return false;
