@@ -8,7 +8,7 @@ import Providers from "@/components/shared/shell/Providers";
 const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",
   subsets: ["arabic"],
-  weight: ["400", "500", "700", "900"],
+  weight: ["400", "500", "600", "700", "900"],
 });
 
 export const metadata: Metadata = {
