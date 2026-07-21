@@ -7,7 +7,8 @@ export const MOCK_USER_PASSWORD = '123456';
 
 export const MOCK_SUPER_ADMIN_MOBILE = '9123456786';
 
-export const MOCK_USERS_SEED_VERSION = '4';
+/** Bump when seed shape changes so mock localStorage rehydrates. */
+export const MOCK_USERS_SEED_VERSION = '5';
 
 export interface MockAuthUserRecord extends User {
   password: string;
@@ -60,7 +61,42 @@ const MOCK_DOC_PDF_URL = 'data:application/pdf;base64,JVBERi0xLjAK';
 
 const NOW = Date.UTC(2026, 6, 18, 12, 0, 0);
 
-const MOCK_USER_SEEDS: MockUserSeed[] = [
+const PROVINCES_FOR_BULK = [
+  'تهران',
+  'اصفهان',
+  'فارس',
+  'خراسان رضوی',
+  'آذربایجان شرقی',
+  'خوزستان',
+] as const;
+
+const FIRST_NAMES = [
+  'علی',
+  'محمد',
+  'حسین',
+  'رضا',
+  'مهدی',
+  'سارا',
+  'زهرا',
+  'مریم',
+  'فاطمه',
+  'نرگس',
+] as const;
+
+const LAST_NAMES = [
+  'احمدی',
+  'محمدی',
+  'حسینی',
+  'کریمی',
+  'رضایی',
+  'موسوی',
+  'جعفری',
+  'نوری',
+  'صادقی',
+  'اکبری',
+] as const;
+
+const CORE_SEEDS: MockUserSeed[] = [
   {
     id: '#MOCK-T1',
     name: 'رضا احمدی',
@@ -186,14 +222,97 @@ const MOCK_USER_SEEDS: MockUserSeed[] = [
   },
 ];
 
+function buildBulkSeeds(
+  status: DocStatus,
+  count: number,
+  idPrefix: string,
+  roles: UserRole[]
+): MockUserSeed[] {
+  const seeds: MockUserSeed[] = [];
+  for (let i = 0; i < count; i += 1) {
+    const role = roles[i % roles.length]!;
+    const first = FIRST_NAMES[i % FIRST_NAMES.length]!;
+    const last = LAST_NAMES[Math.floor(i / FIRST_NAMES.length) % LAST_NAMES.length]!;
+    const province = PROVINCES_FOR_BULK[i % PROVINCES_FOR_BULK.length]!;
+    const approved = status === 'approved';
+    seeds.push({
+      id: `${idPrefix}-${String(i + 1).padStart(2, '0')}`,
+      name: `${first} ${last}`,
+      role,
+      docStatus: status,
+      approved,
+      lastChange: NOW - 1000 * 60 * (i + 1) * 17,
+      docUrl: i % 2 === 0 ? MOCK_DOC_IMAGE_URL : MOCK_DOC_PDF_URL,
+      docType: role === 'student' ? 'کارت دانشجویی' : 'مدارک هویتی',
+      province,
+      city: province,
+      adminRequestMessage:
+        status === 'rejected' ? 'نقص مدارک بارگذاری‌شده' : undefined,
+      extra:
+        role === 'student'
+          ? {
+              college: DEFAULT_COLLEGE,
+              studentId: `1401${String(i + 1).padStart(3, '0')}`,
+            }
+          : role === 'skill_learner'
+            ? { skillCode: `SK-${2000 + i}` }
+            : role === 'mentor_teacher' || role === 'school_principal'
+              ? {
+                  district: DEFAULT_DISTRICT,
+                  school: DEFAULT_SCHOOL,
+                  personalCode: `${6000 + i}`,
+                }
+              : role === 'supervisor_professor'
+                ? {
+                    college: DEFAULT_COLLEGE,
+                    personalCode: `${3000 + i}`,
+                  }
+                : undefined,
+    });
+  }
+  return seeds;
+}
+
+/** Enough rows per onboarding tab to exercise DEFAULT_PAGE_LIMIT=10 paging. */
+const BULK_PENDING = buildBulkSeeds(
+  'pending_admin',
+  14,
+  '#MOCK-PEND',
+  ['student', 'skill_learner', 'mentor_teacher', 'school_principal']
+);
+const BULK_APPROVED = buildBulkSeeds(
+  'approved',
+  12,
+  '#MOCK-APPR',
+  [
+    'student',
+    'skill_learner',
+    'mentor_teacher',
+    'supervisor_professor',
+    'school_principal',
+  ]
+);
+const BULK_REJECTED = buildBulkSeeds(
+  'rejected',
+  12,
+  '#MOCK-REJ',
+  ['student', 'skill_learner', 'supervisor_professor', 'mentor_teacher']
+);
+
+const MOCK_USER_SEEDS: MockUserSeed[] = [
+  ...CORE_SEEDS,
+  ...BULK_PENDING,
+  ...BULK_APPROVED,
+  ...BULK_REJECTED,
+];
+
 function splitFullName(fullName: string): { firstName: string; lastName: string } {
   const [firstName = 'کاربر', ...rest] = fullName.split(' ');
   return { firstName, lastName: rest.join(' ') || 'نمونه' };
 }
 
 function buildMockMobile(indexInList: number): string {
-  const positionalSuffix = String(indexInList + 1).padStart(2, '0');
-  return `91200000${positionalSuffix}`.slice(0, 10);
+  return `912${String(indexInList + 1).padStart(7, '0')}`;
 }
 
 export const AUTH_MOCK_USERS: MockAuthUserRecord[] = MOCK_USER_SEEDS.map(

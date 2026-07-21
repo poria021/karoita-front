@@ -1,4 +1,5 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   cloneSnapshot,
@@ -85,6 +86,7 @@ export const OrgStructureService = {
     options: OrgStructureListPageOptions
   ): Promise<OrgStructureListPage> {
     requireMockOrgManage();
+    await delayMockAdminListPage();
     const offset = options.offset ?? 0;
     const limit = options.limit ?? ORG_STRUCTURE_PAGE_SIZE;
     const query = options.query ?? '';

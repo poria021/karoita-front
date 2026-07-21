@@ -1,4 +1,5 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import {
   findMockUserById,
   patchMockAuthUser,
@@ -120,6 +121,8 @@ export const OnboardingApprovalsService = {
       throwRealModeNotImplemented('OnboardingApprovalsService.listPage');
     }
     requireOnboardingReview();
+
+    await delayMockAdminListPage();
 
     const all = listFilteredUsers(filters);
     const page = sliceOffsetLimitPage(

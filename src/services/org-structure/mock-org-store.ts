@@ -15,7 +15,7 @@ import type {
   OrgStructureSnapshot,
 } from '@/types/org-structure';
 
-const STORAGE_KEY = 'karvita_mock_org_structure_v2';
+const STORAGE_KEY = 'karvita_mock_org_structure_v3';
 
 export type OrgEntityIdMaps = {
   province: Map<string, OrgProvince>;
