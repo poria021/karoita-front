@@ -8,7 +8,7 @@ import {
   KvSkeletonTablePanel,
 } from '@/components/shared/skeleton/KvSkeletonCard';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
-import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/KvTable';
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
 
 function FiltersSkeleton({

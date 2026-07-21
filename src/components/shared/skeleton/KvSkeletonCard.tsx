@@ -2,7 +2,7 @@ import type * as React from 'react';
 
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
-import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/KvTable';
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
 
 export type KvSkeletonBlockProps = {

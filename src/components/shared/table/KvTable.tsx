@@ -1,10 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import type { ReactNode } from 'react';
 
-import { KvTypography } from '@/components/shared/KvTypography';
-import { Spinner } from '@/components/ui/spinner';
 import {
   Table,
   TableBody,
@@ -17,13 +14,6 @@ import {
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 
-/** ارتفاع ویوپورت اسکرول جداول ادمین. */
-export const KV_TABLE_VIEWPORT_HEIGHT = 'h-[min(28rem,55dvh)]';
-
-/** پر کردن بدنهٔ خالی/busy هم‌ارتفاع با ویوپورت منهای هدر. */
-export const KV_TABLE_EMPTY_FILL_HEIGHT =
-  'min-h-[calc(min(28rem,55dvh)-3.5rem)]';
-
 const ROW_HEIGHT = 'h-12';
 
 const ALIGN_CLASS = {
@@ -33,21 +23,6 @@ const ALIGN_CLASS = {
 } as const;
 
 export type KvTableAlign = keyof typeof ALIGN_CLASS;
-
-/* —— body phase (rule 80) —— */
-
-export type AdminTableBodyPhase = 'busy' | 'empty' | 'rows';
-
-export function getAdminTableBodyPhase(
-  isLoading: boolean,
-  itemCount: number
-): AdminTableBodyPhase {
-  if (itemCount > 0) return 'rows';
-  if (isLoading) return 'busy';
-  return 'empty';
-}
-
-/* —— table primitives —— */
 
 export type KvTableProps = React.ComponentProps<typeof Table> & {
   scrollable?: boolean;
@@ -220,179 +195,5 @@ export function KvTableCaption({
       className={cn('text-xs text-kv-text-faint', className)}
       {...props}
     />
-  );
-}
-
-/* —— empty / busy —— */
-
-export type KvTableEmptyProps = {
-  colSpan: number;
-  children: ReactNode;
-  className?: string;
-};
-
-export function KvTableEmpty({
-  colSpan,
-  children,
-  className,
-}: KvTableEmptyProps) {
-  return (
-    <KvTableRow className="in-[data-slot=kv-table-body]:hover:bg-transparent">
-      <KvTableCell
-        colSpan={colSpan}
-        align="center"
-        className={cn('h-auto min-h-0 p-0', className)}
-      >
-        <div
-          className={cn('flex w-full flex-col', KV_TABLE_EMPTY_FILL_HEIGHT)}
-        >
-          {children}
-        </div>
-      </KvTableCell>
-    </KvTableRow>
-  );
-}
-
-export type KvBusySurfaceProps = {
-  tableViewport?: boolean;
-  className?: string;
-};
-
-export function KvBusySurface({
-  tableViewport = false,
-  className,
-}: KvBusySurfaceProps) {
-  return (
-    <div
-      data-slot="kv-busy-surface"
-      className={cn(
-        'w-full bg-kv-surface',
-        tableViewport ? KV_TABLE_VIEWPORT_HEIGHT : 'min-h-40 bg-kv-canvas',
-        className
-      )}
-      aria-busy="true"
-    />
-  );
-}
-
-export type KvTableBusyProps = {
-  colSpan: number;
-  className?: string;
-};
-
-/** First-load busy row — keeps header; plain surface in body. */
-export function KvTableBusy({ colSpan, className }: KvTableBusyProps) {
-  return (
-    <KvTableEmpty colSpan={colSpan} className={className}>
-      <KvBusySurface className="min-h-full flex-1 bg-kv-surface" />
-    </KvTableEmpty>
-  );
-}
-
-/* —— scroll viewport + infinite load —— */
-
-export type KvTableViewportProps = {
-  children: React.ReactNode;
-  className?: string;
-  heightClassName?: string;
-  resetKey?: string | number;
-  onEndReached?: () => void;
-  hasMore?: boolean;
-  isLoadingMore?: boolean;
-  isBusy?: boolean;
-  endMessage?: string;
-  showEndMessage?: boolean;
-  loadingMoreLabel?: string;
-};
-
-/**
- * هاست اسکرول با ارتفاع ثابت.
- * اسکرولر بیرونی `ltr` (اسکرولبار راست فیزیکی)؛ محتوا `rtl`.
- */
-export function KvTableViewport({
-  children,
-  className,
-  heightClassName = KV_TABLE_VIEWPORT_HEIGHT,
-  resetKey,
-  onEndReached,
-  hasMore = false,
-  isLoadingMore = false,
-  isBusy = false,
-  endMessage = 'همه موارد بارگذاری شد',
-  showEndMessage = false,
-  loadingMoreLabel = 'در حال بارگذاری ۱۰ مورد بعدی…',
-}: KvTableViewportProps) {
-  const rootRef = React.useRef<HTMLDivElement>(null);
-  const sentinelRef = React.useRef<HTMLDivElement>(null);
-
-  React.useLayoutEffect(() => {
-    if (resetKey === undefined) return;
-    const root = rootRef.current;
-    if (root) root.scrollTop = 0;
-  }, [resetKey]);
-
-  React.useEffect(() => {
-    if (!onEndReached || !hasMore || isLoadingMore || isBusy) return;
-    const root = rootRef.current;
-    const sentinel = sentinelRef.current;
-    if (!root || !sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          onEndReached();
-        }
-      },
-      { root, rootMargin: '96px', threshold: 0 }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [onEndReached, hasMore, isLoadingMore, isBusy, resetKey]);
-
-  return (
-    <div
-      ref={rootRef}
-      data-slot="kv-table-viewport"
-      dir="ltr"
-      className={cn(
-        'max-w-full overflow-auto overscroll-contain',
-        heightClassName,
-        className
-      )}
-      aria-busy={isBusy || isLoadingMore || undefined}
-    >
-      <div dir="rtl" className="min-h-full">
-        {children}
-
-        <div
-          ref={sentinelRef}
-          data-slot="kv-table-end-sentinel"
-          className="h-px w-full shrink-0"
-          aria-hidden="true"
-        />
-
-        {isLoadingMore ? (
-          <div
-            className="sticky bottom-0 z-10 flex items-center justify-center gap-kv-pair border-t border-kv-border bg-kv-surface/95 px-kv-group py-kv-stack backdrop-blur-sm"
-            role="status"
-            aria-live="polite"
-          >
-            <Spinner className="size-5 text-kv-brand" />
-            <KvTypography variant="caption" tone="muted" weight="bold">
-              {loadingMoreLabel}
-            </KvTypography>
-          </div>
-        ) : null}
-
-        {!hasMore && showEndMessage && !isBusy && !isLoadingMore ? (
-          <div className="py-kv-group text-center">
-            <KvTypography variant="caption" tone="muted" weight="bold">
-              {endMessage}
-            </KvTypography>
-          </div>
-        ) : null}
-      </div>
-    </div>
   );
 }

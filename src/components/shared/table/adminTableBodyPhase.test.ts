@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
 
-import { getAdminTableBodyPhase } from '@/components/shared/table/KvTable';
+import { getAdminTableBodyPhase } from './adminTableBodyPhase';
 
 describe('getAdminTableBodyPhase', () => {
-  it('keeps rows during soft refresh when content already exists', () => {
+  it('prefers rows when items exist even if loading', () => {
     expect(getAdminTableBodyPhase(true, 3)).toBe('rows');
   });
 
-  it('uses busy on first load with no rows', () => {
+  it('is busy on first load with no items', () => {
     expect(getAdminTableBodyPhase(true, 0)).toBe('busy');
   });
 
-  it('uses empty only when idle and no rows', () => {
+  it('is empty when idle with no items', () => {
     expect(getAdminTableBodyPhase(false, 0)).toBe('empty');
   });
 
-  it('uses rows when idle with data', () => {
+  it('is rows when idle with items', () => {
     expect(getAdminTableBodyPhase(false, 2)).toBe('rows');
   });
 });

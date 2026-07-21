@@ -13,10 +13,8 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
-import {
-  KvBusySurface,
-  KV_TABLE_VIEWPORT_HEIGHT,
-} from '@/components/shared/table/KvTable';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { Badge, badgeVariants } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type {

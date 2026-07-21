@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/KvTable';
+import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
 
 export type KvCardTone = 'surface' | 'muted' | 'danger';
