@@ -69,7 +69,7 @@ export function KvTableViewport({
           onEndReached();
         }
       },
-      { root, rootMargin: '96px', threshold: 0 }
+      { root, rootMargin: '0px', threshold: 0 }
     );
 
     observer.observe(sentinel);

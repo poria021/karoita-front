@@ -4,42 +4,58 @@ import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
 import { KvSkeletonTabTrack } from '@/components/shared/skeleton/KvSkeletonChrome';
 import { KvSkeletonListRow } from '@/components/shared/skeleton/KvSkeletonCard';
+import { KvSkeletonTablePanel } from '@/components/shared/skeleton/KvSkeletonTablePanel';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
 
+function FiltersSkeleton({
+  searchPlaceholderLabel,
+}: {
+  searchPlaceholderLabel: string;
+}) {
+  return (
+    <div
+      className="flex w-full flex-col items-stretch gap-kv-pair sm:flex-row sm:items-center"
+      role="status"
+      aria-busy="true"
+      aria-label={searchPlaceholderLabel}
+    >
+      <div className="w-full flex-1">
+        <KvSkeleton className="h-11 w-full rounded-xl" />
+      </div>
+      <div className="w-full shrink-0 sm:w-36">
+        <KvSkeleton className="h-9 w-full rounded-xl" />
+      </div>
+    </div>
+  );
+}
+
 /**
  * Cold skeleton — آینهٔ OnboardingApprovalsPage:
- * tabs (lg) | فیلتر موبایل در toolbar | primary: FilterBar + KvCard/table | secondary: پنل جزئیات | mobile: ردیف‌ها
+ * tabs | فیلتر موبایل در toolbar | primary: FilterBar + جدول | secondary: پنل خالی | mobile: ردیف‌ها
  */
 export function OnboardingApprovalsPageSkeleton() {
   return (
     <KvSplitWorkspace
       tabs={
-        <KvSkeletonTabTrack breakpoint="lg" trackClassName="w-[28rem]" />
+        <div className="mb-kv-section space-y-kv-group">
+          <KvSkeletonTabTrack breakpoint="lg" trackClassName="w-[28rem]" />
+        </div>
       }
       toolbar={
         <div className="lg:hidden">
-          <div className="flex w-full flex-col items-stretch gap-kv-pair">
-            <KvSkeleton className="h-11 w-full rounded-xl" />
-            <KvSkeleton className="h-9 w-full rounded-xl" />
-          </div>
+          <FiltersSkeleton searchPlaceholderLabel="در حال بارگذاری فیلترها" />
         </div>
       }
       primary={
         <>
-          <div
-            className="flex w-full flex-col items-stretch gap-kv-pair sm:flex-row sm:items-center"
-            role="status"
-            aria-busy="true"
-            aria-label="در حال بارگذاری فهرست پرونده‌ها"
-          >
-            <KvSkeleton className="h-11 w-full flex-1 rounded-xl" />
-            <KvSkeleton className="h-9 w-full shrink-0 rounded-xl sm:w-36" />
-          </div>
+          <FiltersSkeleton searchPlaceholderLabel="در حال بارگذاری فهرست پرونده‌ها" />
           <KvCard>
-            <KvSkeleton
-              className={cn('w-full rounded-none', KV_TABLE_VIEWPORT_HEIGHT)}
+            <KvSkeletonTablePanel
+              rows={7}
+              headerCols={['w-28', 'w-20', 'w-24', 'w-16']}
+              label="در حال بارگذاری جدول پرونده‌ها"
             />
           </KvCard>
         </>

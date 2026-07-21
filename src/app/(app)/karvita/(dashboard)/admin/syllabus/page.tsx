@@ -1,5 +1,7 @@
-import { SyllabusConfigPage } from '@/features/karvita/syllabus-config/components/SyllabusConfigPage';
+import { redirect } from 'next/navigation';
 
-export default function SyllabusConfigRoutePage() {
-  return <SyllabusConfigPage />;
+import { RouteService } from '@/services/route.service';
+
+export default function SyllabusConfigIndexPage() {
+  redirect(RouteService.karvita.syllabusCourseOfferings());
 }

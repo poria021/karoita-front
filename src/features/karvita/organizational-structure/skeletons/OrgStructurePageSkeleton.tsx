@@ -2,28 +2,28 @@
 
 import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
 import { KvSkeletonTabTrack } from '@/components/shared/skeleton/KvSkeletonChrome';
+import { KvSkeletonTablePanel } from '@/components/shared/skeleton/KvSkeletonTablePanel';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
-import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
-import { cn } from '@/lib/utils';
 
 /**
  * Cold skeleton — هم‌تراز با OrgStructurePage:
- * tabs (lg) → toolbar (border-t + title/search/add) → table viewport.
+ * tabs (lg) → toolbar (border-t + title/search/add) → پنل کارت + جدول.
  */
 export function OrgStructurePageSkeleton() {
   return (
     <KvWorkspace
-      panel={false}
       tabs={
-        <KvSkeletonTabTrack
-          breakpoint="lg"
-          trackClassName="w-[42rem]"
-        />
+        <div className="mb-kv-section space-y-kv-group">
+          <KvSkeletonTabTrack
+            breakpoint="lg"
+            trackClassName="w-[42rem]"
+          />
+        </div>
       }
       toolbar={
         <div className="flex flex-col justify-start gap-kv-group border-t border-kv-border-muted px-0 pt-kv-section sm:px-kv-group lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-col items-start justify-start gap-kv-field text-start">
-            <KvSkeleton className="h-5 w-48 rounded-md" />
+            <KvSkeleton className="h-4 w-48 rounded-md" />
             <KvSkeleton className="h-3 w-72 max-w-full rounded-md" />
           </div>
 
@@ -42,8 +42,10 @@ export function OrgStructurePageSkeleton() {
         aria-busy="true"
         aria-label="در حال بارگذاری ساختار سازمانی"
       >
-        <KvSkeleton
-          className={cn('w-full rounded-xl', KV_TABLE_VIEWPORT_HEIGHT)}
+        <KvSkeletonTablePanel
+          rows={8}
+          headerCols={['w-40', 'w-16']}
+          label="در حال بارگذاری جدول ساختار سازمانی"
         />
       </div>
     </KvWorkspace>

@@ -136,7 +136,7 @@ export function OnboardingApprovalsTable({
                             type="button"
                             color="error"
                             appearance="ghost"
-                            size="icon-sm"
+                            size="icon-xs"
                             aria-label="رد صلاحیت"
                             disabled={actionBusy}
                             onClick={() => onStartReject(user)}
@@ -146,7 +146,7 @@ export function OnboardingApprovalsTable({
                             type="button"
                             color="success"
                             appearance="ghost"
-                            size="icon-sm"
+                            size="icon-xs"
                             aria-label="تایید صلاحیت"
                             disabled={actionBusy}
                             onClick={() => onApprove(user)}

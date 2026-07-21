@@ -29,6 +29,10 @@ export const RouteService = {
     comparativeReports: (): string => '/karvita/reports/comparative',
     termLifecycle: (): string => '/karvita/term-lifecycle',
     syllabusConfig: (): string => '/karvita/admin/syllabus',
+    syllabusCourseOfferings: (): string =>
+      '/karvita/admin/syllabus/course-offerings',
+    syllabusTermSettings: (): string =>
+      '/karvita/admin/syllabus/term-settings',
     locations: (): string => '/karvita/locations',
     onboardingApprovals: (): string =>
       '/karvita/admin/onboarding-approvals',

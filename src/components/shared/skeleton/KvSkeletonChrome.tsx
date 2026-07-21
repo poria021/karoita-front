@@ -12,8 +12,8 @@ export type KvSkeletonTabTrackProps = {
   trackClassName?: string;
   label?: string;
   /**
-   * Match the real tabs breakpoint (`SyllabusConfigSubTabs` = sm,
-   * `OrgStructureSubTabs` / onboarding = lg). Default `md`.
+   * Match the real tabs breakpoint (`OrgStructureSubTabs` / onboarding = lg).
+   * Default `md`.
    */
   breakpoint?: KvSkeletonTabTrackBreakpoint;
 };

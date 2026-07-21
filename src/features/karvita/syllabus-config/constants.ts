@@ -1,33 +1,5 @@
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-
-import type {
-  AcademicTermType,
-  SyllabusConfigSubTab,
-} from '@/types/syllabus-config';
-import { faIcons } from '@/utils/iconMap';
+import type { AcademicTermType } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
-
-export type SyllabusTabConfig = {
-  key: SyllabusConfigSubTab;
-  label: string;
-  shortLabel: string;
-  icon: IconDefinition;
-};
-
-export const SYLLABUS_CONFIG_TABS: SyllabusTabConfig[] = [
-  {
-    key: 'course_offerings',
-    label: 'ارائه و سرفصل دروس',
-    shortLabel: 'ارائه دروس',
-    icon: faIcons.sliders,
-  },
-  {
-    key: 'term_settings',
-    label: 'تنظیمات عمومی ترم‌ها',
-    shortLabel: 'تنظیمات ترم',
-    icon: faIcons.clockRotateLeft,
-  },
-];
 
 export const SEMESTER_PREFIX_OPTIONS = [
   'نیم‌سال اول',

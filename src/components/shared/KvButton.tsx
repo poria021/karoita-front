@@ -33,6 +33,7 @@ export function resolveKvButtonSize(
   isIconOnly: boolean
 ): ButtonSize {
   if (!isIconOnly) return size;
+  if (size === 'xs') return 'icon-xs';
   if (size === 'sm') return 'icon-sm';
   if (size === 'md') return 'icon';
   if (size === 'lg') return 'icon-lg';

@@ -2,6 +2,7 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import {
@@ -47,7 +48,8 @@ export function WeeklySyllabusWeekRow({
   return (
     <KvTableRow
       className={cn(
-        !courseOffered && 'hover:bg-transparent hover:text-kv-text-faint'
+        !courseOffered &&
+          'in-[data-slot=kv-table-body]:hover:bg-transparent hover:text-kv-text-faint'
       )}
     >
       <KvTableCell
@@ -76,11 +78,12 @@ export function WeeklySyllabusWeekRow({
         </div>
       </KvTableCell>
       <KvTableCell align="center" className="w-28 whitespace-nowrap sm:w-32">
-        <div className="flex items-center justify-center gap-1">
+        <KvButtonGroup align="center">
           <KvButton
             type="button"
-            appearance="secondary"
-            size="icon-sm"
+            color="neutral"
+            appearance="ghost"
+            size="icon-xs"
             aria-label="ویرایش عنوان هفته"
             disabled={!contentEditable}
             onClick={() => onEditWeek(week)}
@@ -89,8 +92,9 @@ export function WeeklySyllabusWeekRow({
           {archived ? (
             <KvButton
               type="button"
-              appearance="secondary"
-              size="icon-sm"
+              color="neutral"
+              appearance="ghost"
+              size="icon-xs"
               aria-label="بازیابی هفته"
               disabled={!structureActionable}
               onClick={() => onRestoreWeek(week)}
@@ -101,7 +105,7 @@ export function WeeklySyllabusWeekRow({
               type="button"
               color="warning"
               appearance="ghost"
-              size="icon-sm"
+              size="icon-xs"
               aria-label="آرشیو هفته"
               disabled={!structureActionable}
               onClick={() => onArchiveWeek(week)}
@@ -112,13 +116,13 @@ export function WeeklySyllabusWeekRow({
             type="button"
             color="error"
             appearance="ghost"
-            size="icon-sm"
+            size="icon-xs"
             aria-label="حذف هفته"
             disabled={!structureActionable}
             onClick={() => onDeleteWeek(week)}
             icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
           />
-        </div>
+        </KvButtonGroup>
       </KvTableCell>
     </KvTableRow>
   );

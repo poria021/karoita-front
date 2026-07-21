@@ -314,9 +314,21 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
         ],
       },
       {
+        kind: 'group',
         title: 'مدیریت ترم و سرفصل',
-        path: RouteService.karvita.syllabusConfig(),
         icon: 'fa-rectangle-list',
+        children: [
+          {
+            title: 'ارائه و سرفصل دروس',
+            path: RouteService.karvita.syllabusCourseOfferings(),
+            icon: 'fa-sliders',
+          },
+          {
+            title: 'تنظیمات عمومی ترم‌ها',
+            path: RouteService.karvita.syllabusTermSettings(),
+            icon: 'fa-clock-rotate-left',
+          },
+        ],
       },
       MANAGE_ADS_ITEM,
       STANDARD_REPORTS_ITEM,

@@ -81,8 +81,8 @@ export function CourseOfferingsTable({
                     <KvButton
                       type="button"
                       color={offered ? 'success' : 'error'}
-                      size="sm"
-                      className="h-7 min-h-7 px-2.5"
+                      appearance="ghost"
+                      size="xs"
                       aria-pressed={offered}
                       aria-label={`وضعیت ارائه ${course.title}: ${offered ? 'فعال' : 'غیرفعال'}`}
                       onClick={() => onToggleOffering(course)}

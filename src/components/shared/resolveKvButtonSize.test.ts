@@ -4,18 +4,21 @@ import { resolveKvButtonSize } from '@/components/shared/KvButton';
 
 describe('resolveKvButtonSize', () => {
   it('passes text sizes through when not icon-only', () => {
+    expect(resolveKvButtonSize('xs', false)).toBe('xs');
     expect(resolveKvButtonSize('sm', false)).toBe('sm');
     expect(resolveKvButtonSize('md', false)).toBe('md');
     expect(resolveKvButtonSize('lg', false)).toBe('lg');
   });
 
   it('maps text density to square icon sizes when icon-only', () => {
+    expect(resolveKvButtonSize('xs', true)).toBe('icon-xs');
     expect(resolveKvButtonSize('sm', true)).toBe('icon-sm');
     expect(resolveKvButtonSize('md', true)).toBe('icon');
     expect(resolveKvButtonSize('lg', true)).toBe('icon-lg');
   });
 
   it('keeps explicit icon sizes unchanged', () => {
+    expect(resolveKvButtonSize('icon-xs', true)).toBe('icon-xs');
     expect(resolveKvButtonSize('icon-sm', true)).toBe('icon-sm');
     expect(resolveKvButtonSize('icon', true)).toBe('icon');
     expect(resolveKvButtonSize('icon-lg', true)).toBe('icon-lg');

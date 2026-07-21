@@ -16,11 +16,11 @@ export function KvTableEmpty({
   className,
 }: KvTableEmptyProps) {
   return (
-    <KvTableRow className="hover:bg-transparent">
+    <KvTableRow className="in-[data-slot=kv-table-body]:hover:bg-transparent">
       <KvTableCell
         colSpan={colSpan}
         align="center"
-        className={cn('p-0 hover:bg-transparent', className)}
+        className={cn('h-auto min-h-0 p-0', className)}
       >
         <div
           className={cn(

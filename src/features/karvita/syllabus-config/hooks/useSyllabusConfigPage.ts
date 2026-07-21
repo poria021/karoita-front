@@ -18,16 +18,16 @@ import { useSyllabusOfferingGates } from './useSyllabusOfferingGates';
 import { useSyllabusTermSettings } from './useSyllabusTermSettings';
 import { useSyllabusWeeksEditor } from './useSyllabusWeeksEditor';
 
-const CACHE_KEY = 'syllabus-config::page';
+function cacheKeyFor(section: SyllabusConfigSubTab): string {
+  return `syllabus-config::${section}`;
+}
 
 type PendingNavigation =
   | { kind: 'term'; termId: string }
   | { kind: 'course'; course: CourseCatalogItem }
-  | { kind: 'tab'; tab: SyllabusConfigSubTab }
   | null;
 
 type SyllabusPageCache = {
-  tab: SyllabusConfigSubTab;
   terms: AcademicTerm[];
   selectedTermId: string;
   selectedCourse: CourseCatalogItem | null;
@@ -38,15 +38,13 @@ type SyllabusPageCache = {
   passingThreshold: string;
 };
 
-export function useSyllabusConfigPage() {
+export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
+  const cacheKey = cacheKeyFor(section);
   const getData = useDashboardModuleCache((s) => s.getData);
   const setData = useDashboardModuleCache((s) => s.setData);
-  const cached = getData<SyllabusPageCache>(CACHE_KEY);
+  const cached = getData<SyllabusPageCache>(cacheKey);
   const hasCache = Boolean(cached && cached.terms.length > 0);
 
-  const [tab, setTab] = useState<SyllabusConfigSubTab>(
-    () => cached?.tab ?? 'course_offerings'
-  );
   const [terms, setTerms] = useState<AcademicTerm[]>(() => cached?.terms ?? []);
   const [selectedTermId, setSelectedTermId] = useState(
     () => cached?.selectedTermId ?? ''
@@ -82,7 +80,6 @@ export function useSyllabusConfigPage() {
   );
 
   function persistCache(next: {
-    tab?: SyllabusConfigSubTab;
     terms: AcademicTerm[];
     selectedTermId: string;
     selectedCourse?: CourseCatalogItem | null;
@@ -92,8 +89,7 @@ export function useSyllabusConfigPage() {
     professorCapacity?: string;
     passingThreshold?: string;
   }) {
-    setData<SyllabusPageCache>(CACHE_KEY, {
-      tab: next.tab ?? tab,
+    setData<SyllabusPageCache>(cacheKey, {
       terms: next.terms,
       selectedTermId: next.selectedTermId,
       selectedCourse:
@@ -169,6 +165,22 @@ export function useSyllabusConfigPage() {
     snapshot: Awaited<ReturnType<typeof SyllabusConfigService.getSnapshot>>
   ) {
     const termId = applySnapshotTerms(snapshot);
+    if (section === 'term_settings') {
+      setIsLoading(false);
+      persistCache({
+        terms: snapshot.terms,
+        selectedTermId: termId,
+        selectedCourse: null,
+        courses: [],
+        weeks: [],
+        offeredCatalogIds: new Set(),
+        professorCapacity: String(snapshot.globalProfessorCapacity),
+        passingThreshold: String(snapshot.passingScoreThreshold),
+      });
+      setIsCold(false);
+      return;
+    }
+
     if (termId) {
       const ctx = await loadTermContext(termId, selectedCourse?.id);
       persistCache({
@@ -250,8 +262,7 @@ export function useSyllabusConfigPage() {
 
   useEffect(() => {
     if (isCold || terms.length === 0) return;
-    setData<SyllabusPageCache>(CACHE_KEY, {
-      tab,
+    setData<SyllabusPageCache>(cacheKey, {
       terms,
       selectedTermId,
       selectedCourse,
@@ -262,7 +273,7 @@ export function useSyllabusConfigPage() {
       passingThreshold,
     });
   }, [
-    tab,
+    cacheKey,
     terms,
     selectedTermId,
     selectedCourse,
@@ -317,15 +328,6 @@ export function useSyllabusConfigPage() {
     void commitSelectCourse(course);
   }
 
-  function requestChangeTab(next: SyllabusConfigSubTab) {
-    if (next === tab) return;
-    if (hasUnsavedChanges) {
-      setPendingNavigation({ kind: 'tab', tab: next });
-      return;
-    }
-    setTab(next);
-  }
-
   function clearPendingNavigation() {
     setPendingNavigation(null);
   }
@@ -339,12 +341,7 @@ export function useSyllabusConfigPage() {
       await commitSelectTerm(pending.termId);
       return;
     }
-    if (pending.kind === 'course') {
-      await commitSelectCourse(pending.course);
-      return;
-    }
-    setHasUnsavedChanges(false);
-    setTab(pending.tab);
+    await commitSelectCourse(pending.course);
   }
 
   const offeringGates = useSyllabusOfferingGates({
@@ -373,6 +370,10 @@ export function useSyllabusConfigPage() {
     termId: string,
     preferredCourseId?: string
   ): Promise<void> {
+    if (section === 'term_settings') {
+      setSelectedTermId(termId);
+      return;
+    }
     await loadTermContext(termId, preferredCourseId);
   }
 
@@ -389,8 +390,7 @@ export function useSyllabusConfigPage() {
   });
 
   return {
-    tab,
-    changeTab: requestChangeTab,
+    section,
     terms,
     selectedTerm,
     selectedTermId,

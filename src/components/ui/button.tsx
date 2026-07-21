@@ -30,9 +30,11 @@ const buttonVariants = cva(
         text: 'min-h-11 rounded-kv-control bg-transparent px-2 py-2 shadow-none hover:bg-transparent',
       },
       size: {
+        xs: 'h-8 px-2.5 text-xs font-medium',
         sm: 'h-9 px-3 text-xs',
         md: 'h-11 px-4 text-xs',
         lg: 'h-12 px-6 text-xs',
+        'icon-xs': 'size-8 p-0',
         'icon-sm': 'size-9 p-0',
         icon: 'size-11 p-0',
         'icon-lg': 'size-12 p-0',
@@ -43,9 +45,11 @@ const buttonVariants = cva(
       },
     },
     compoundVariants: [
+      { appearance: 'text', size: 'xs', class: 'min-h-8 px-2' },
       { appearance: 'text', size: 'sm', class: 'min-h-11 px-2' },
       { appearance: 'text', size: 'md', class: 'min-h-11 px-2' },
       { appearance: 'text', size: 'lg', class: 'min-h-11 px-2' },
+      { appearance: 'text', size: 'icon-xs', class: 'size-8' },
       { appearance: 'text', size: 'icon-sm', class: 'size-9' },
       { appearance: 'text', size: 'icon', class: 'size-11' },
       { appearance: 'text', size: 'icon-lg', class: 'size-12' },

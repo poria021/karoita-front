@@ -34,10 +34,19 @@ describe('live nav / admin plane', () => {
       'مدیریت ترم و سرفصل',
     ]);
 
-    const orgGroup = adminMenu.find(isSidebarMenuGroup);
+    const groups = adminMenu.filter(isSidebarMenuGroup);
+    expect(groups).toHaveLength(2);
+
+    const orgGroup = groups.find((g) => g.title === 'مدیریت سازمانی');
     expect(orgGroup?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.organizationalStructure(),
       RouteService.karvita.adminUserCreation(),
+    ]);
+
+    const syllabusGroup = groups.find((g) => g.title === 'مدیریت ترم و سرفصل');
+    expect(syllabusGroup?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.syllabusCourseOfferings(),
+      RouteService.karvita.syllabusTermSettings(),
     ]);
 
     expect(isLiveSidebarPath(RouteService.karvita.dailyReports())).toBe(false);
@@ -50,12 +59,26 @@ describe('live nav / admin plane', () => {
     expect(isNavigableAppPath('/karvita/onboarding-approvals')).toBe(false);
   });
 
-  it('treats syllabus config as admin control plane', () => {
+  it('treats syllabus modules as admin control plane', () => {
     expect(
-      isAdminControlPlanePath(RouteService.karvita.syllabusConfig())
+      isAdminControlPlanePath(RouteService.karvita.syllabusCourseOfferings())
+    ).toBe(true);
+    expect(
+      isAdminControlPlanePath(RouteService.karvita.syllabusTermSettings())
     ).toBe(true);
     expect(isNavigableAppPath('/karvita/syllabus')).toBe(false);
-    expect(isLiveSidebarPath(RouteService.karvita.syllabusConfig())).toBe(true);
+    expect(
+      isLiveSidebarPath(RouteService.karvita.syllabusCourseOfferings())
+    ).toBe(true);
+    expect(
+      isLiveSidebarPath(RouteService.karvita.syllabusTermSettings())
+    ).toBe(true);
+    expect(isLiveSidebarPath(RouteService.karvita.syllabusConfig())).toBe(
+      false
+    );
+    expect(isNavigableAppPath(RouteService.karvita.syllabusConfig())).toBe(
+      true
+    );
   });
 
   it('treats admin user creation as admin control plane', () => {

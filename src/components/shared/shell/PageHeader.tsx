@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 export interface PageHeaderProps {
   title: string;
   description?: string;
+  breadcrumb?: ReactNode;
   icon?: ReactNode;
   actions?: ReactNode;
   className?: string;
@@ -14,10 +15,19 @@ export interface PageHeaderProps {
 export function PageHeader({
   title,
   description,
+  breadcrumb,
   icon,
   actions,
   className,
 }: PageHeaderProps) {
+  const endSlot =
+    breadcrumb || actions ? (
+      <div className="flex shrink-0 flex-wrap items-center justify-start gap-kv-inline sm:justify-end">
+        {breadcrumb}
+        {actions}
+      </div>
+    ) : null;
+
   return (
     <header
       className={cn(
@@ -39,7 +49,7 @@ export function PageHeader({
             {title}
           </KvTypography>
           {description ? (
-            <div className="mt-1">
+            <div className="mt-1 min-w-0">
               <KvTypography variant="caption" tone="muted">
                 {description}
               </KvTypography>
@@ -47,9 +57,7 @@ export function PageHeader({
           ) : null}
         </div>
       </div>
-      {actions ? (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
-      ) : null}
+      {endSlot}
     </header>
   );
 }

@@ -21,14 +21,16 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.organizationalStructure(),
   RouteService.karvita.adminUserCreation(),
   RouteService.karvita.onboardingApprovals(),
-  RouteService.karvita.syllabusConfig(),
+  RouteService.karvita.syllabusCourseOfferings(),
+  RouteService.karvita.syllabusTermSettings(),
 ];
 
-/** Temporary bookmarks from the brief tabbed organization IA */
-const LEGACY_ORGANIZATION_TAB_PATHS: readonly string[] = [
+/** Temporary bookmarks from brief tabbed IAs (org + syllabus) */
+const LEGACY_TABBED_MODULE_PATHS: readonly string[] = [
   '/karvita/admin/organization',
   '/karvita/admin/organization/structure',
   '/karvita/admin/organization/accounts',
+  RouteService.karvita.syllabusConfig(),
 ];
 
 export function isLiveStaticNavPath(pathname: string): boolean {
@@ -43,7 +45,8 @@ export function isLiveSidebarPath(pathname: string): boolean {
     path === RouteService.karvita.organizationalStructure() ||
     path === RouteService.karvita.adminUserCreation() ||
     path === RouteService.karvita.onboardingApprovals() ||
-    path === RouteService.karvita.syllabusConfig()
+    path === RouteService.karvita.syllabusCourseOfferings() ||
+    path === RouteService.karvita.syllabusTermSettings()
   );
 }
 
@@ -60,6 +63,6 @@ export function isAdminControlPlanePath(pathname: string): boolean {
 export function isNavigableAppPath(pathname: string): boolean {
   const path = normalizePath(pathname);
   if (isKarvitaProfilePath(path)) return true;
-  if (LEGACY_ORGANIZATION_TAB_PATHS.includes(path)) return true;
+  if (LEGACY_TABBED_MODULE_PATHS.includes(path)) return true;
   return isLiveStaticNavPath(path);
 }

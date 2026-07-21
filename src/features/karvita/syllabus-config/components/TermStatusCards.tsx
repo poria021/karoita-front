@@ -36,37 +36,6 @@ export function TermStatusCards({
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-kv-group md:grid-cols-3">
-      <KvCard>
-        <KvCardContent
-          padding="md"
-          className="flex min-h-[82px] items-center justify-between gap-kv-group"
-        >
-          <div className="min-w-0">
-            <KvTypography variant="subtitle" as="h4">
-              نیم‌سال فعال
-            </KvTypography>
-            <KvTypography variant="caption" tone="muted">
-              بازه جاری سامانه
-            </KvTypography>
-          </div>
-          <div className="w-40 shrink-0">
-            <KvSelectField
-              label={false}
-              size="sm"
-              value={selectedTerm?.id ?? ''}
-              onValueChange={onSelectTerm}
-              placeholder="انتخاب ترم"
-            >
-              {terms.map((term) => (
-                <KvSelectItem key={term.id} value={term.id}>
-                  {toPersianDigits(term.title)}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
-          </div>
-        </KvCardContent>
-      </KvCard>
-
       <StatusGateCard
         title="انتخاب واحد"
         subtitle={
@@ -96,6 +65,29 @@ export function TermStatusCards({
         onToggle={onToggleTermOpen}
         disabled={!selectedTerm}
       />
+
+      <KvCard>
+        <KvCardContent
+          padding="md"
+          className="flex min-h-[82px] items-center justify-center"
+        >
+          <div className="w-full max-w-64">
+            <KvSelectField
+              label={false}
+              size="md"
+              value={selectedTerm?.id ?? ''}
+              onValueChange={onSelectTerm}
+              placeholder="انتخاب ترم"
+            >
+              {terms.map((term) => (
+                <KvSelectItem key={term.id} value={term.id}>
+                  {toPersianDigits(term.title)}
+                </KvSelectItem>
+              ))}
+            </KvSelectField>
+          </div>
+        </KvCardContent>
+      </KvCard>
     </div>
   );
 }

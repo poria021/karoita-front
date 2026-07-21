@@ -10,6 +10,7 @@ import {
   TableRow,
   TableCaption,
 } from '@/components/ui/table';
+import { KV_TABLE_ROW_HEIGHT_CLASS } from '@/components/shared/table/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
 
 export type KvTableAlign = 'start' | 'center' | 'end';
@@ -57,7 +58,8 @@ export function KvTableHeader({
     <TableHeader
       data-slot="kv-table-header"
       className={cn(
-        'sticky top-0 z-10 bg-kv-surface-subtle font-bold text-kv-text-subtle',
+        /* روشن‌تر از subtle؛ همچنان متمایز از surface سفید جدول */
+        'sticky top-0 z-10 bg-kv-surface-muted font-bold text-kv-text-faint',
         className
       )}
       {...props}
@@ -86,7 +88,7 @@ export function KvTableFooter({
     <TableFooter
       data-slot="kv-table-footer"
       className={cn(
-        'border-t border-kv-border bg-kv-surface-subtle/50 font-bold text-kv-text-subtle',
+        'border-t border-kv-border bg-kv-surface-muted/50 font-bold text-kv-text-faint',
         className
       )}
       {...props}
@@ -112,8 +114,8 @@ export function KvTableRow({
       data-interactive={interactive || undefined}
       className={cn(
         'font-bold text-kv-text transition-colors',
-        /* هاور فقط در بدنه — هدر جدول نباید هاور بگیرد */
-        'in-[data-slot=kv-table-body]:hover:bg-kv-brand-soft/45 in-[data-slot=kv-table-body]:hover:text-kv-brand',
+        /* هاور آرام روی همه سطرهای بدنه — بدون تغییر رنگ متن */
+        'in-[data-slot=kv-table-body]:hover:bg-kv-surface-muted',
         'data-[selected]:bg-kv-brand-soft data-[selected]:font-extrabold data-[selected]:text-kv-brand',
         'data-[selected]:in-[data-slot=kv-table-body]:hover:bg-kv-brand-soft',
         interactive && 'cursor-pointer',
@@ -140,7 +142,8 @@ export function KvTableHead({
     <TableHead
       data-slot="kv-table-head"
       className={cn(
-        'h-auto border-b border-kv-border p-3.5 font-bold whitespace-nowrap',
+        KV_TABLE_ROW_HEIGHT_CLASS,
+        'border-b border-kv-border px-3.5 py-0 font-bold whitespace-nowrap',
         ALIGN_CLASS[align],
         className
       )}
@@ -169,7 +172,8 @@ export function KvTableCell({
     <TableCell
       data-slot="kv-table-cell"
       className={cn(
-        'border-b border-kv-border p-3.5 whitespace-normal text-kv-text-secondary',
+        KV_TABLE_ROW_HEIGHT_CLASS,
+        'border-b border-kv-border px-3.5 py-0 whitespace-normal text-kv-text-secondary',
         ALIGN_CLASS[align],
         emphasis && 'font-extrabold text-kv-text',
         mono && 'font-mono',

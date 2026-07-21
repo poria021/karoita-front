@@ -107,12 +107,15 @@ export function WeeklySyllabusTable({
             className={cn(
               'w-full table-fixed',
               !courseOffered &&
-                'text-kv-text-faint [&_[data-slot=kv-table-cell]]:text-kv-text-faint [&_[data-slot=kv-table-head]]:text-kv-text-faint [&_tr]:font-normal [&_tr]:hover:bg-transparent [&_tr]:hover:text-kv-text-faint'
+                'text-kv-text-faint [&_[data-slot=kv-table-cell]]:text-kv-text-faint [&_[data-slot=kv-table-head]]:text-kv-text-faint [&_tr]:font-normal [&_tr]:in-[data-slot=kv-table-body]:hover:bg-transparent [&_tr]:hover:text-kv-text-faint'
             )}
           >
             <KvTableHeader>
               <KvTableRow
-                className={cn(!courseOffered && 'hover:bg-transparent')}
+                className={cn(
+                  !courseOffered &&
+                    'in-[data-slot=kv-table-body]:hover:bg-transparent'
+                )}
               >
                 <KvTableHead>عنوان جلسه آموزشی</KvTableHead>
                 <KvTableHead align="center" className="w-24 sm:w-36">

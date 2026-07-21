@@ -79,10 +79,17 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'تعیین زمان‌بندی دقیق، مهلت‌های انتخاب واحد و فعال‌سازی دستی دسترسی‌ها برای نیم‌سال جاری.',
     icon: 'fa-clock-rotate-left',
   },
-  [RouteService.karvita.syllabusConfig()]: {
-    title: 'مدیریت برنامه و سرفصل هفتگی',
-    description: 'صفحه مدیریت و پایش فرآیندهای مدیریت برنامه و سرفصل هفتگی.',
-    icon: 'fa-rectangle-list',
+  [RouteService.karvita.syllabusCourseOfferings()]: {
+    title: 'ارائه و سرفصل دروس',
+    description:
+      'فعال‌سازی ارائه دروس ترم و ویرایش سرفصل هفتگی هر درس در نیم‌سال جاری.',
+    icon: 'fa-sliders',
+  },
+  [RouteService.karvita.syllabusTermSettings()]: {
+    title: 'تنظیمات عمومی ترم‌ها',
+    description:
+      'تعریف دوره‌های تحصیلی، ظرفیت استاد و آستانه نمره قبولی در سطح سامانه.',
+    icon: 'fa-clock-rotate-left',
   },
   [RouteService.karvita.locations()]: {
     title: 'مکان‌ها و مناطق',

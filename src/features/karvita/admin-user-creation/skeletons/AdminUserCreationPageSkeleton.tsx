@@ -2,6 +2,7 @@
 
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
+import { KvSkeletonCardHeader } from '@/components/shared/skeleton/KvSkeletonCard';
 import { KvSkeletonField } from '@/components/shared/skeleton/KvSkeletonField';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 
@@ -22,13 +23,10 @@ export function AdminUserCreationPageSkeleton() {
           aria-busy="true"
           aria-label="در حال بارگذاری ایجاد حساب‌های سازمانی"
         >
-          <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-inline">
-            <KvSkeleton className="size-9 shrink-0 rounded-kv-control" />
-            <div className="min-w-0 space-y-kv-micro">
-              <KvSkeleton className="h-4 w-44 rounded-md" />
-              <KvSkeleton className="h-3 w-64 max-w-full rounded-md" />
-            </div>
-          </div>
+          <KvSkeletonCardHeader
+            titleClassName="w-44"
+            captionClassName="w-64"
+          />
 
           <div className="space-y-kv-section">
             <div className="grid grid-cols-1 gap-kv-group text-start sm:grid-cols-2">

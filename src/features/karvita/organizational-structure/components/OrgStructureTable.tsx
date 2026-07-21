@@ -102,8 +102,9 @@ export function OrgStructureTable({
                     <div className="flex items-center justify-center gap-1.5">
                       <KvButton
                         type="button"
-                        appearance="secondary"
-                        size="icon-sm"
+                        color="neutral"
+                        appearance="ghost"
+                        size="icon-xs"
                         aria-label="ویرایش"
                         onClick={() => onEdit(row)}
                         icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
@@ -112,7 +113,7 @@ export function OrgStructureTable({
                         type="button"
                         color="error"
                         appearance="ghost"
-                        size="icon-sm"
+                        size="icon-xs"
                         aria-label="حذف"
                         disabled={row.deleteBlocked}
                         onClick={() => onDelete(row)}
