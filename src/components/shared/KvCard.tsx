@@ -35,16 +35,16 @@ const TONE_CLASS: Record<KvCardTone, string> = {
 
 const PADDING_CLASS: Record<KvCardPadding, string> = {
   none: 'p-0',
-  sm: 'p-3 sm:p-4',
-  md: 'p-5 sm:p-6',
-  lg: 'p-6 sm:p-8',
+  sm: 'p-kv-compact sm:p-kv-group',
+  md: 'p-kv-inset sm:p-kv-section',
+  lg: 'p-kv-section sm:p-kv-page',
 };
 
 const CONTENT_PADDING_CLASS: Record<KvCardPadding, string> = {
   none: 'p-0',
-  sm: 'p-3 sm:p-4',
-  md: 'px-6 py-4',
-  lg: 'p-6',
+  sm: 'p-kv-compact sm:p-kv-group',
+  md: 'px-kv-section py-kv-group',
+  lg: 'p-kv-section',
 };
 
 export function KvCard({
