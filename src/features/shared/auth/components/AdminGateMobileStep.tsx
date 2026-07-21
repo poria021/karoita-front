@@ -1,9 +1,10 @@
 'use client';
 
+import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
+
 import type { UseAdminGateReturn } from '../hooks/useAdminGate';
 import { AuthStepHeading } from './AuthStepHeading';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
-import { MobileNumberField } from './fields/MobileNumberField';
 
 interface AdminGateMobileStepProps {
   gate: UseAdminGateReturn;
@@ -12,6 +13,7 @@ interface AdminGateMobileStepProps {
 export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
   const { mobileForm, requestOtp, isRequestingOtp, secondsUntilResend } = gate;
   const { register, formState } = mobileForm;
+  const mobileField = register('mobile');
   const hasActiveCountdown = secondsUntilResend > 0;
 
   return (
@@ -19,12 +21,16 @@ export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
       <AuthStepHeading step={1} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
-        <MobileNumberField
+        <KvMobileNumberField
           id="admin-gate-mobile"
           label="شماره موبایل مدیریت"
-          registration={register('mobile')}
-          errorMessage={formState.errors.mobile?.message}
+          required
+          error={formState.errors.mobile?.message}
+          name={mobileField.name}
           autoComplete="off"
+          onBlur={mobileField.onBlur}
+          ref={mobileField.ref}
+          onChange={mobileField.onChange}
         />
       </div>
 

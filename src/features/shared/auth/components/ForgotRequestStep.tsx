@@ -1,11 +1,11 @@
 'use client';
 
 import { KvButton } from '@/components/shared/KvButton';
+import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthStepHeading } from './AuthStepHeading';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
-import { MobileNumberField } from './fields/MobileNumberField';
 
 interface ForgotRequestStepProps {
   login: UseLoginFormReturn;
@@ -14,16 +14,21 @@ interface ForgotRequestStepProps {
 export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
   const { forgotMobileForm, sendForgotOtp, isSendingForgotOtp, cancelForgotMode } = login;
   const { register, formState } = forgotMobileForm;
+  const mobileField = register('mobile');
 
   return (
     <form onSubmit={sendForgotOtp} className="flex flex-col gap-kv-section" noValidate>
       <AuthStepHeading step={1} totalSteps={3} />
 
       <div className="flex flex-col gap-kv-group">
-        <MobileNumberField
+        <KvMobileNumberField
           id="forgot-mobile"
-          registration={register('mobile')}
-          errorMessage={formState.errors.mobile?.message}
+          required
+          error={formState.errors.mobile?.message}
+          name={mobileField.name}
+          onBlur={mobileField.onBlur}
+          ref={mobileField.ref}
+          onChange={mobileField.onChange}
         />
       </div>
 
