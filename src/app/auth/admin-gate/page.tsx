@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 
-import HydrationSafe from '@/components/shared/shell/HydrationSafe';
+import { HydrationSafe } from '@/components/shared/shell/HydrationSafe';
 import { AdminGateCard } from '@/features/shared/auth/components/AdminGateCard';
 
 function AdminGateFallback() {

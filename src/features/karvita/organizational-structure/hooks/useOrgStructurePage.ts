@@ -20,7 +20,7 @@ import {
   ORG_STRUCTURE_CACHE_NAMESPACE,
   ORG_STRUCTURE_CHROME_ID,
   orgStructureListResetKey,
-} from './orgStructureListKeys';
+} from '../lib/orgStructureListKeys';
 
 const SEARCH_DEBOUNCE_MS = 300;
 

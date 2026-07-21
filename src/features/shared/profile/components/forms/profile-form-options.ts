@@ -9,7 +9,7 @@ import {
 } from '@/utils/roleFieldStrategy';
 
 import { listOrganizationLabels } from '../../data/organization-catalog';
-import type { ProfileSchema } from '../../schemas/profile.schema';
+import type { ProfileSchema } from '@/services/profile/profile.schema';
 
 export type { OrganizationField, IdentifierField } from '@/utils/roleFieldStrategy';
 export {

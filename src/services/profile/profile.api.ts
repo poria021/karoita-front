@@ -1,12 +1,12 @@
 import { ApiClientError, apiClient } from '@/services/api-client';
-import type { ProfileDTO } from '@/types/profile';
+import type { ProfileDto } from '@/types/profile';
 
 import { ProfileServiceError } from './profile.mappers';
 
 export async function requestProfile(
   method: 'GET' | 'PUT',
   token?: string,
-  data?: ProfileDTO
+  data?: ProfileDto
 ): Promise<unknown> {
   if (!apiClient.isConfigured) {
     throw new ProfileServiceError('آدرس سرویس پروفایل پیکربندی نشده است.');

@@ -82,4 +82,25 @@ test.describe('mock smoke', () => {
     await expect(page.getByRole('table')).toBeVisible();
     await expect(page.getByText('نام استان').first()).toBeVisible();
   });
+
+  test('admin-gate session can open user-creation and onboarding', async ({
+    page,
+  }) => {
+    await loginAsMockSuperAdminViaGate(page);
+
+    await page.goto(RouteService.karvita.adminUserCreation());
+    await expect(page).not.toHaveURL(/404|not-found/i);
+    await expect(
+      page.getByRole('heading', { name: /ایجاد حساب کاربری جدید/ })
+    ).toBeVisible({ timeout: 30_000 });
+    await expect(
+      page.getByRole('button', { name: /ثبت و ایجاد حساب کاربری/ })
+    ).toBeVisible();
+
+    await page.goto(RouteService.karvita.onboardingApprovals());
+    await expect(page).not.toHaveURL(/404|not-found/i);
+    await expect(
+      page.getByRole('heading', { name: /بررسی مدارک هویتی/ })
+    ).toBeVisible({ timeout: 30_000 });
+  });
 });

@@ -14,6 +14,12 @@ import type {
   OrgAccountRole,
 } from '@/types/admin-user-creation';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
+import {
+  orgAccountRequiresCity,
+  orgAccountRequiresCollege,
+  orgAccountRequiresDistrict,
+  orgAccountRequiresProvince,
+} from '@/utils/roleFieldStrategy';
 
 /**
  * Facade ایجاد حساب‌های سازمانی (مدیر ارشد).
@@ -43,17 +49,17 @@ function buildOrgFields(
   MockAuthUserRecord,
   'province' | 'city' | 'college' | 'district' | 'school' | 'major'
 > {
-  const needsProvince =
-    role === 'provincial_university' ||
-    role === 'faculty_role' ||
-    role === 'regional_edu_admin';
-
   return {
-    province: needsProvince ? (input.province?.trim() ?? '') : '',
-    city: role === 'regional_edu_admin' ? (input.city?.trim() ?? '') : '',
-    college: role === 'faculty_role' ? (input.college?.trim() ?? '') : '',
-    district:
-      role === 'regional_edu_admin' ? (input.district?.trim() ?? '') : '',
+    province: orgAccountRequiresProvince(role)
+      ? (input.province?.trim() ?? '')
+      : '',
+    city: orgAccountRequiresCity(role) ? (input.city?.trim() ?? '') : '',
+    college: orgAccountRequiresCollege(role)
+      ? (input.college?.trim() ?? '')
+      : '',
+    district: orgAccountRequiresDistrict(role)
+      ? (input.district?.trim() ?? '')
+      : '',
     school: '',
     major: '',
   };
@@ -76,18 +82,16 @@ function mockCreateOrganizationalUser(
   }
 
   const org = buildOrgFields(input.role, input);
-  if (
-    (input.role === 'provincial_university' ||
-      input.role === 'faculty_role' ||
-      input.role === 'regional_edu_admin') &&
-    !org.province
-  ) {
+  if (orgAccountRequiresProvince(input.role) && !org.province) {
     throw new Error('انتخاب استان الزامی است.');
   }
-  if (input.role === 'faculty_role' && !org.college) {
+  if (orgAccountRequiresCollege(input.role) && !org.college) {
     throw new Error('انتخاب دانشکده / پردیس الزامی است.');
   }
-  if (input.role === 'regional_edu_admin' && (!org.city || !org.district)) {
+  if (
+    (orgAccountRequiresCity(input.role) && !org.city) ||
+    (orgAccountRequiresDistrict(input.role) && !org.district)
+  ) {
     throw new Error('انتخاب شهر و منطقه آموزشی الزامی است.');
   }
 

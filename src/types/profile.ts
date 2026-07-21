@@ -14,7 +14,6 @@ import {
 
 
 export type ProfileDto = z.infer<typeof profileSchema>;
-export type ProfileDTO = ProfileDto;
 
 export type StudentProfileDto = z.infer<typeof studentProfileSchema>;
 export type SkillLearnerProfileDto = z.infer<typeof skillLearnerProfileSchema>;

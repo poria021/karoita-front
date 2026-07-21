@@ -13,7 +13,7 @@ export type HydrationSafeProps = {
  * Gates chrome until Zustand persist has rehydrated (skipHydration: true).
  * Persist API is client-only — never touch it during SSR render.
  */
-export default function HydrationSafe({
+export function HydrationSafe({
   children,
   fallback,
 }: HydrationSafeProps) {

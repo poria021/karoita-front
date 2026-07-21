@@ -13,7 +13,7 @@ import type {
 import {
   cacheKeyFor,
   type SyllabusPageCache,
-} from './syllabusPageCache';
+} from '../lib/syllabusPageCache';
 
 /**
  * Hydrate syllabus page domain state from the dashboard module cache

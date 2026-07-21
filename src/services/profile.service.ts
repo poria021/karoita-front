@@ -4,7 +4,7 @@ import {
   patchMockAuthUser,
   toPublicUser,
 } from '@/services/auth/mock-auth.store';
-import type { ProfileDTO } from '@/types/profile';
+import type { ProfileDto } from '@/types/profile';
 import { useUserStore } from '@/store/useUserStore';
 import type { DocStatus, User, UserRole } from '@/types/auth';
 import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
@@ -78,7 +78,7 @@ function friendlyError(error: unknown): Error {
  * شکل خروجی mock و real باید یکسان بماند.
  */
 export class ProfileService {
-  static async getProfile(token?: string): Promise<ProfileDTO> {
+  static async getProfile(token?: string): Promise<ProfileDto> {
     try {
       if (!isMockApiMode()) {
         const payload = await requestProfile('GET', token);
@@ -93,7 +93,7 @@ export class ProfileService {
   }
 
   static async updateProfile(
-    data: ProfileDTO,
+    data: ProfileDto,
     token?: string
   ): Promise<{ success: boolean; message: string }> {
     try {

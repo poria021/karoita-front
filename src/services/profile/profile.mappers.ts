@@ -1,6 +1,6 @@
 import type { DocStatus, User, UserRole } from '@/types/auth';
 import { profileSchema } from '@/services/profile/profile.schema';
-import type { ProfileDTO } from '@/types/profile';
+import type { ProfileDto } from '@/types/profile';
 
 export class ProfileServiceError extends Error {
   constructor(
@@ -16,7 +16,7 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function parseProfile(value: unknown): ProfileDTO {
+export function parseProfile(value: unknown): ProfileDto {
   const result = profileSchema.safeParse(value);
   if (!result.success) {
     const firstMessage = result.error.issues[0]?.message;

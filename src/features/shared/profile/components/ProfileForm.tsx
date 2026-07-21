@@ -20,7 +20,7 @@ import {
 } from '@/utils/persianDigits';
 
 import { useProfileForm } from '../hooks/useProfileForm';
-import type { ProfileSchema } from '../schemas/profile.schema';
+import type { ProfileSchema } from '@/services/profile/profile.schema';
 import { getProfileFieldsForRole } from '../utils/profileFieldStrategy';
 import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { ProfileStatusBanners } from './ProfileStatusBanners';

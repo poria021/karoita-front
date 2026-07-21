@@ -29,7 +29,11 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.syllabusTermSettings(),
 ];
 
-/** Temporary bookmarks from brief tabbed IAs (org + syllabus) */
+/**
+ * Navigable legacy bookmarks (redirect-only). Not sidebar live targets.
+ * Org paths come from LEGACY_ORGANIZATION_BOOKMARK_PATHS; syllabus index
+ * redirects into live syllabus subpages.
+ */
 const LEGACY_TABBED_MODULE_PATHS: readonly string[] = [
   ...LEGACY_ORGANIZATION_BOOKMARK_PATHS,
   RouteService.karvita.syllabusConfig(),

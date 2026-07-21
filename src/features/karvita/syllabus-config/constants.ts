@@ -1,3 +1,8 @@
+/**
+ * Syllabus-config feature constants.
+ * Live routes under `/karvita/admin/syllabus/*` via RouteService
+ * (`syllabusConfig`, `syllabusCourseOfferings`, `syllabusTermSettings`).
+ */
 import type { AcademicTermType } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
 

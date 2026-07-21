@@ -22,7 +22,7 @@ import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import {
   createProfileSchema,
   type ProfileSchema,
-} from '../../schemas/profile.schema';
+} from '@/services/profile/profile.schema';
 import { ProfileService } from '@/services/profile.service';
 import { DynamicRoleFields } from './DynamicRoleFields';
 import { getProfileDefaultValues } from './profile-form-options';

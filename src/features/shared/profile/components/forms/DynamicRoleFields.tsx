@@ -11,7 +11,7 @@ import {
   toPersianDigits,
 } from '@/utils/persianDigits';
 
-import type { ProfileSchema } from '../../schemas/profile.schema';
+import type { ProfileSchema } from '@/services/profile/profile.schema';
 import {
   DEPENDENCIES,
   getIdentifierMeta,

@@ -94,6 +94,31 @@ export function isOptionalOrganizationField(
   );
 }
 
+/** Org-account create form — field requirements from ROLE_FIELD_STRATEGY. */
+export function orgAccountRequiresField(
+  role: UserRole | '',
+  field: OrganizationField
+): boolean {
+  if (!role) return false;
+  return ROLE_FIELD_STRATEGY[role].organizationFields.includes(field);
+}
+
+export function orgAccountRequiresProvince(role: UserRole | ''): boolean {
+  return orgAccountRequiresField(role, 'province');
+}
+
+export function orgAccountRequiresCollege(role: UserRole | ''): boolean {
+  return orgAccountRequiresField(role, 'college');
+}
+
+export function orgAccountRequiresCity(role: UserRole | ''): boolean {
+  return orgAccountRequiresField(role, 'city');
+}
+
+export function orgAccountRequiresDistrict(role: UserRole | ''): boolean {
+  return orgAccountRequiresField(role, 'district');
+}
+
 export type RoleProfileDisplayField = {
   key: OrganizationField | IdentifierField;
   label: string;

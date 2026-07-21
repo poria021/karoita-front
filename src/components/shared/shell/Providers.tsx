@@ -9,7 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 
 config.autoAddCss = false;
 
-export default function Providers({ children }: { children: ReactNode }) {
+export function Providers({ children }: { children: ReactNode }) {
   return (
     <DirectionProvider dir="rtl">
       <TooltipProvider>{children}</TooltipProvider>

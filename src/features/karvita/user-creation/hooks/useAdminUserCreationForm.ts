@@ -8,6 +8,12 @@ import { toast } from 'sonner';
 import { AdminUserCreationService } from '@/services/admin-user-creation.service';
 import type { CreateOrganizationalUserInput } from '@/types/admin-user-creation';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
+import {
+  orgAccountRequiresCity,
+  orgAccountRequiresCollege,
+  orgAccountRequiresDistrict,
+  orgAccountRequiresProvince,
+} from '@/utils/roleFieldStrategy';
 
 import { ADMIN_USER_CREATION_DEFAULTS } from '../constants';
 import {
@@ -40,12 +46,10 @@ export function useAdminUserCreationForm() {
 
   const mobileNormalized = normalizeMobile(mobile);
   const mobileComplete = /^9\d{9}$/.test(mobileNormalized);
-  const needsProvinceRole =
-    role === 'provincial_university' ||
-    role === 'faculty_role' ||
-    role === 'regional_edu_admin';
-  const needsCollege = role === 'faculty_role';
-  const needsRegional = role === 'regional_edu_admin';
+  const needsProvinceRole = orgAccountRequiresProvince(role);
+  const needsCollege = orgAccountRequiresCollege(role);
+  const needsRegional =
+    orgAccountRequiresCity(role) && orgAccountRequiresDistrict(role);
 
   useEffect(() => {
     if (!mobileComplete) {

@@ -10,7 +10,7 @@ import type {
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
-import { errorMessage, offeredCatalogIdsFromList } from './syllabusPageUtils';
+import { errorMessage, offeredCatalogIdsFromList } from '../lib/syllabusPageUtils';
 
 type UseSyllabusOfferingGatesArgs = {
   selectedTermId: string;

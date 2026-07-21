@@ -16,7 +16,7 @@ import {
   passingThresholdSchema,
   termFormSchema,
 } from '../schemas/syllabus-config.schema';
-import { errorMessage } from './syllabusPageUtils';
+import { errorMessage } from '../lib/syllabusPageUtils';
 
 type UseSyllabusTermSettingsArgs = {
   terms: AcademicTerm[];

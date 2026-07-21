@@ -14,7 +14,7 @@ import {
   weekTitleSchema,
   weekWeightSchema,
 } from '../schemas/syllabus-config.schema';
-import { errorMessage } from './syllabusPageUtils';
+import { errorMessage } from '../lib/syllabusPageUtils';
 
 type UseSyllabusWeeksEditorArgs = {
   selectedTermId: string;

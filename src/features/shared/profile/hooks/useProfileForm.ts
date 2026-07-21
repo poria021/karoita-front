@@ -14,7 +14,7 @@ import { fileToDataUrl } from '@/utils/compressor';
 import {
   createProfileSchema,
   type ProfileSchema,
-} from '../schemas/profile.schema';
+} from '@/services/profile/profile.schema';
 
 export function useProfileForm() {
   const router = useRouter();

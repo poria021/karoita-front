@@ -9,7 +9,7 @@ import type {
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
-import { offeredCatalogIdsFromList, errorMessage } from './syllabusPageUtils';
+import { offeredCatalogIdsFromList, errorMessage } from '../lib/syllabusPageUtils';
 import type { UseSyllabusPageStateReturn } from './useSyllabusPageState';
 
 type UseSyllabusPageLoaderArgs = {

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner";
 import { Vazirmatn } from "next/font/google";
 
-import Providers from "@/components/shared/shell/Providers";
+import { Providers } from "@/components/shared/shell/Providers";
 
 const vazirmatn = Vazirmatn({
   variable: "--font-vazirmatn",

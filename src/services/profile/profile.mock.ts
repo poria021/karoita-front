@@ -1,5 +1,4 @@
-import type { ProfileDTO } from '@/types/profile';
-import type { MockAuthUserRecord } from '@/services/mock/auth-mock-users';
+import type { ProfileDto } from '@/types/profile';import type { MockAuthUserRecord } from '@/services/mock/auth-mock-users';
 import {
   findMockUserById,
   findMockUserByMobile,
@@ -35,12 +34,12 @@ function resolveMockUser(token?: string): MockAuthUserRecord {
   throw new ProfileServiceError('پروفایل کاربری یافت نشد.', 404);
 }
 
-export function getMockProfile(token?: string): ProfileDTO {
+export function getMockProfile(token?: string): ProfileDto {
   return parseProfile(toPublicUser(resolveMockUser(token)));
 }
 
 export function updateMockProfile(
-  data: ProfileDTO,
+  data: ProfileDto,
   token?: string
 ): { success: boolean; message: string } {
   const validatedData = parseProfile(data);

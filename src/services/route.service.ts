@@ -35,7 +35,10 @@ export function isAdminControlPlanePath(pathname: string): boolean {
 }
 
 /**
- * Temporary bookmarks from the brief tabbed org IA (navigable / redirect only).
+ * Legacy org bookmarks only — redirect pages, not canonical modules.
+ * Sole source for `/karvita/admin/organization/*` paths.
+ * Live sidebar/menus must link to `organizationalStructure` / `adminUserCreation`,
+ * never these bookmark URLs.
  */
 export const LEGACY_ORGANIZATION_BOOKMARK_PATHS = [
   `${KARVITA_ADMIN_BASE}/organization`,
@@ -70,9 +73,16 @@ export const RouteService = {
     standardReports: (): string => '/karvita/reports',
     comparativeReports: (): string => '/karvita/reports/comparative',
     termLifecycle: (): string => '/karvita/term-lifecycle',
+    /**
+     * Syllabus module index (bookmark/redirect). Feature UI lives in
+     * `src/features/karvita/syllabus-config`; live pages under
+     * `/karvita/admin/syllabus/*` below.
+     */
     syllabusConfig: (): string => `${KARVITA_ADMIN_BASE}/syllabus`,
+    /** Live course-offerings page — feature: `syllabus-config`. */
     syllabusCourseOfferings: (): string =>
       `${KARVITA_ADMIN_BASE}/syllabus/course-offerings`,
+    /** Live term-settings page — feature: `syllabus-config`. */
     syllabusTermSettings: (): string =>
       `${KARVITA_ADMIN_BASE}/syllabus/term-settings`,
     locations: (): string => '/karvita/locations',
@@ -82,10 +92,12 @@ export const RouteService = {
     manageAds: (): string => '/karvita/ads',
     internshipSelection: (): string => '/karvita/internships',
     organizationalCapacities: (): string => '/karvita/capacities',
+    /** Live URL `/karvita/admin/user-creation` — feature: `user-creation`. */
     adminUserCreation: (): string => `${KARVITA_ADMIN_BASE}/user-creation`,
     internshipDetail: (internshipId: string): string =>
       `/karvita/internships/${internshipId}`,
 
+    /** Canonical org tree module — not the legacy `/organization/*` bookmarks. */
     organizationalStructure: (): string =>
       `${KARVITA_ADMIN_BASE}/organizational-structure`,
 

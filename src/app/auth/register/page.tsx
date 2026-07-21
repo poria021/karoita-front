@@ -1,5 +1,5 @@
 import { AuthCard } from '@/features/shared/auth/components/AuthCard';
-import HydrationSafe from '@/components/shared/shell/HydrationSafe';
+import { HydrationSafe } from '@/components/shared/shell/HydrationSafe';
 
 export default function RegisterPage() {
   return (

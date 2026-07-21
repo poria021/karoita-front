@@ -2,6 +2,12 @@ import { z } from 'zod';
 
 import { ORG_ACCOUNT_ROLES } from '@/types/admin-user-creation';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
+import {
+  orgAccountRequiresCity,
+  orgAccountRequiresCollege,
+  orgAccountRequiresDistrict,
+  orgAccountRequiresProvince,
+} from '@/utils/roleFieldStrategy';
 
 const mobileField = z
   .string('شماره موبایل الزامی است.')
@@ -37,12 +43,7 @@ export const adminUserCreationSchema = z
     district: z.string(),
   })
   .superRefine((data, ctx) => {
-    const needsProvince =
-      data.role === 'provincial_university' ||
-      data.role === 'faculty_role' ||
-      data.role === 'regional_edu_admin';
-
-    if (needsProvince && !data.province.trim()) {
+    if (orgAccountRequiresProvince(data.role) && !data.province.trim()) {
       ctx.addIssue({
         code: 'custom',
         path: ['province'],
@@ -50,7 +51,7 @@ export const adminUserCreationSchema = z
       });
     }
 
-    if (data.role === 'faculty_role' && !data.college.trim()) {
+    if (orgAccountRequiresCollege(data.role) && !data.college.trim()) {
       ctx.addIssue({
         code: 'custom',
         path: ['college'],
@@ -58,21 +59,20 @@ export const adminUserCreationSchema = z
       });
     }
 
-    if (data.role === 'regional_edu_admin') {
-      if (!data.city.trim()) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['city'],
-          message: 'انتخاب شهر تابعه الزامی است.',
-        });
-      }
-      if (!data.district.trim()) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['district'],
-          message: 'انتخاب منطقه آموزشی الزامی است.',
-        });
-      }
+    if (orgAccountRequiresCity(data.role) && !data.city.trim()) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['city'],
+        message: 'انتخاب شهر تابعه الزامی است.',
+      });
+    }
+
+    if (orgAccountRequiresDistrict(data.role) && !data.district.trim()) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['district'],
+        message: 'انتخاب منطقه آموزشی الزامی است.',
+      });
     }
   });
 

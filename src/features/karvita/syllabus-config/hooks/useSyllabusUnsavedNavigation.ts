@@ -6,14 +6,14 @@ import { toast } from 'sonner';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type { CourseCatalogItem, SyllabusWeek } from '@/types/syllabus-config';
 
-import type { PendingNavigation } from './syllabusPageCache';
+import type { PendingNavigation } from '../lib/syllabusPageCache';
 import {
   decideUnsavedCourseSelect,
   decideUnsavedTermSelect,
   pendingCourseNavigation,
   pendingTermNavigation,
-} from './syllabusUnsavedNav';
-import { errorMessage } from './syllabusPageUtils';
+} from '../lib/syllabusUnsavedNav';
+import { errorMessage } from '../lib/syllabusPageUtils';
 
 type UseSyllabusUnsavedNavigationArgs = {
   hasUnsavedChanges: boolean;

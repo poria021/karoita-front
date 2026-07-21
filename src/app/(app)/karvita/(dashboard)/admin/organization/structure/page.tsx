@@ -2,6 +2,11 @@ import { redirect } from 'next/navigation';
 
 import { RouteService } from '@/services/route.service';
 
+/**
+ * Legacy bookmark only (`LEGACY_ORGANIZATION_BOOKMARK_PATHS`).
+ * Not a canonical module — redirects to organizational-structure.
+ * Live nav must not link here.
+ */
 export default function OrganizationStructureBookmarkRedirect() {
   redirect(RouteService.karvita.organizationalStructure());
 }

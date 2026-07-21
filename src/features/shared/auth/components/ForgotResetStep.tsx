@@ -1,11 +1,11 @@
 'use client';
 
 import { KvButton } from '@/components/shared/KvButton';
+import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthStepHeading } from './AuthStepHeading';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
-import { PasswordField } from './fields/PasswordField';
 
 interface ForgotResetStepProps {
   login: UseLoginFormReturn;
@@ -16,25 +16,36 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
     login;
   const { register, formState } = forgotResetForm;
 
+  const newPasswordRegistration = register('newPassword');
+  const confirmPasswordRegistration = register('confirmPassword');
+
   return (
     <form onSubmit={submitResetPassword} className="flex flex-col gap-kv-section" noValidate>
       <AuthStepHeading step={3} totalSteps={3} />
 
       <div className="flex flex-col gap-kv-group">
-        <PasswordField
+        <KvPasswordField
           id="forgot-new-password"
           label="رمز عبور جدید"
-          registration={register('newPassword')}
-          errorMessage={formState.errors.newPassword?.message}
+          required
           autoComplete="new-password"
+          error={formState.errors.newPassword?.message}
+          name={newPasswordRegistration.name}
+          onBlur={newPasswordRegistration.onBlur}
+          onChange={newPasswordRegistration.onChange}
+          ref={newPasswordRegistration.ref}
         />
 
-        <PasswordField
+        <KvPasswordField
           id="forgot-confirm-password"
           label="تکرار رمز عبور جدید"
-          registration={register('confirmPassword')}
-          errorMessage={formState.errors.confirmPassword?.message}
+          required
           autoComplete="new-password"
+          error={formState.errors.confirmPassword?.message}
+          name={confirmPasswordRegistration.name}
+          onBlur={confirmPasswordRegistration.onBlur}
+          onChange={confirmPasswordRegistration.onChange}
+          ref={confirmPasswordRegistration.ref}
         />
       </div>
 

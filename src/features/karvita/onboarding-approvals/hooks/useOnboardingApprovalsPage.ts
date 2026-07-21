@@ -20,7 +20,7 @@ import {
   ONBOARDING_APPROVALS_CHROME_ID,
   ONBOARDING_APPROVALS_PROVINCES_KEY,
   onboardingApprovalsListResetKey,
-} from './onboardingApprovalsListKeys';
+} from '../lib/onboardingApprovalsListKeys';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
