@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 
+import {
+  KvTypography,
+  type KvTypographyTone,
+} from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 
 export type PasswordStrengthLevel = 'empty' | 'weak' | 'moderate' | 'strong';
@@ -11,7 +15,6 @@ export interface PasswordStrengthResult {
   level: PasswordStrengthLevel;
   label: string;
   barClassName: string;
-  labelClassName: string;
 }
 
 type ZxcvbnChecker = { check: (password: string) => { score: number } };
@@ -38,6 +41,13 @@ function loadZxcvbn(): Promise<ZxcvbnChecker> {
   return zxcvbnPromise;
 }
 
+function strengthTone(level: PasswordStrengthLevel): KvTypographyTone {
+  if (level === 'weak') return 'danger';
+  if (level === 'moderate') return 'warning';
+  if (level === 'strong') return 'success';
+  return 'muted';
+}
+
 export function scoreToStrengthResult(score: number): PasswordStrengthResult {
   const percent = Math.round((score / 4) * 100);
 
@@ -47,7 +57,6 @@ export function scoreToStrengthResult(score: number): PasswordStrengthResult {
       level: 'weak',
       label: 'ضعیف',
       barClassName: 'bg-kv-danger',
-      labelClassName: 'text-kv-danger',
     };
   }
 
@@ -57,7 +66,6 @@ export function scoreToStrengthResult(score: number): PasswordStrengthResult {
       level: 'moderate',
       label: 'متوسط',
       barClassName: 'bg-kv-warning',
-      labelClassName: 'text-kv-warning',
     };
   }
 
@@ -66,7 +74,6 @@ export function scoreToStrengthResult(score: number): PasswordStrengthResult {
     level: 'strong',
     label: 'قوی',
     barClassName: 'bg-kv-success',
-    labelClassName: 'text-kv-success',
   };
 }
 
@@ -79,7 +86,6 @@ export async function evaluatePasswordStrength(
       level: 'empty',
       label: 'خالی',
       barClassName: 'bg-kv-border-strong',
-      labelClassName: 'text-kv-text-faint',
     };
   }
   const zxcvbn = await loadZxcvbn();
@@ -93,10 +99,9 @@ interface PasswordStrengthIndicatorProps {
 
 const PENDING_STRENGTH: PasswordStrengthResult = {
   score: 0,
-  level: 'weak',
+  level: 'empty',
   label: '…',
   barClassName: 'bg-kv-border-strong',
-  labelClassName: 'text-kv-text-faint',
 };
 
 export function PasswordStrengthIndicator({
@@ -131,9 +136,18 @@ export function PasswordStrengthIndicator({
 
   return (
     <div className={cn('mt-kv-field space-y-1', className)}>
-      <div className="flex items-center justify-between text-xs font-bold">
-        <span className="text-kv-text-subtle">امنیت رمز عبور:</span>
-        <span className={strength.labelClassName}>{strength.label}</span>
+      <div className="flex items-center justify-between">
+        <KvTypography variant="caption" as="span">
+          امنیت رمز عبور:
+        </KvTypography>
+        <KvTypography
+          variant="caption"
+          as="span"
+          tone={strengthTone(strength.level)}
+          weight="bold"
+        >
+          {strength.label}
+        </KvTypography>
       </div>
       <div className="h-1 w-full overflow-hidden rounded-full bg-kv-border-strong">
         <div

@@ -1,5 +1,6 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -25,7 +26,7 @@ export function OtpResendFooter({
   const locked = isResending || isBusy;
 
   return (
-    <div className="flex items-center justify-between gap-kv-pair text-xs font-bold text-kv-text-faint">
+    <div className="flex items-center justify-between gap-kv-pair">
       {canResend ? (
         <KvButton
           type="button"
@@ -41,13 +42,13 @@ export function OtpResendFooter({
       ) : (
         <span className="flex items-center gap-kv-field">
           <FaIcon icon={faIcons.clock} size="xs" className="text-kv-text-faint" />
-          <span>
+          <KvTypography variant="caption" as="span">
             ارسال مجدد تا{' '}
             <span className="font-mono text-kv-text-muted">
               {toPersianDigits(secondsUntilResend)}
             </span>{' '}
             ثانیه دیگر
-          </span>
+          </KvTypography>
         </span>
       )}
       <KvButton

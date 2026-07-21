@@ -13,6 +13,7 @@ import {
   KvDialogHeader,
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { OrgStructureService } from '@/services/org-structure.service';
 import type {
   OrgCity,
@@ -262,9 +263,9 @@ export function OrgStructureEntityModal({
           />
 
           {formError ? (
-            <p role="alert" className="text-xs font-bold text-kv-danger">
-              {formError}
-            </p>
+            <div role="alert">
+              <KvTypography variant="error">{formError}</KvTypography>
+            </div>
           ) : null}
 
           <KvDialogFooter>

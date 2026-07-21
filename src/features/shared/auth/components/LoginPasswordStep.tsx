@@ -5,6 +5,7 @@ import { Controller } from 'react-hook-form';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
@@ -94,9 +95,11 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
 
             <label
               htmlFor="login-remember"
-              className="flex cursor-pointer items-center gap-kv-inline text-xs font-bold text-kv-text-subtle select-none"
+              className="flex cursor-pointer items-center gap-kv-inline select-none"
             >
-              <span>مرا به خاطر بسپار</span>
+              <KvTypography variant="label" as="span">
+                مرا به خاطر بسپار
+              </KvTypography>
               <Controller
                 name="remember"
                 control={control}

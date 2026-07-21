@@ -1,4 +1,5 @@
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -51,9 +52,11 @@ export function AuthStepHeading({ step, totalSteps }: AuthStepHeadingProps) {
 
   return (
     <div className="flex items-center justify-between gap-kv-inline">
-      <h2 className="min-w-0 font-sans text-sm font-bold leading-tight text-kv-brand">
-        {label}
-      </h2>
+      <div className="min-w-0">
+        <KvTypography variant="title" tone="brand" as="h2">
+          {label}
+        </KvTypography>
+      </div>
 
       <div
         className="flex shrink-0 items-center gap-1.5"

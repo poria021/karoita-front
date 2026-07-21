@@ -11,6 +11,7 @@ import { useDropzone, type FileRejection } from 'react-dropzone';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import {
   compressImage,
@@ -18,7 +19,6 @@ import {
   validateImageFile,
 } from '@/utils/compressor';
 import { faIcons } from '@/utils/iconMap';
-
 
 interface IdentityDocUploaderProps {
   value?: File | null;
@@ -128,13 +128,15 @@ export function IdentityDocUploader({
     <div className="space-y-3 rounded-kv-panel border border-kv-border bg-kv-surface-muted/60 p-4">
       {label !== false ? (
         <div className="space-y-1">
-          <span className="flex items-center gap-1.5 text-xs font-black text-kv-text">
+          <span className="flex items-center gap-1.5">
             <FaIcon
               icon={faIcons.shield}
               size="xs"
               className="shrink-0 text-kv-brand-soft-fg"
             />
-            {label}
+            <KvTypography variant="subtitle" weight="black" as="span">
+              {label}
+            </KvTypography>
             {disabled ? (
               <FaIcon
                 icon={faIcons.lock}
@@ -143,9 +145,9 @@ export function IdentityDocUploader({
               />
             ) : null}
           </span>
-          <p className="text-xs font-medium text-kv-text-muted">
+          <KvTypography variant="body" as="p">
             بارگذاری مدرک اختیاری است و مانع ثبت اطلاعات هویتی نمی‌شود.
-          </p>
+          </KvTypography>
         </div>
       ) : null}
 
@@ -172,12 +174,17 @@ export function IdentityDocUploader({
             >
               <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
             </div>
-            <p className="text-xs font-black text-kv-text-secondary">
+            <KvTypography variant="subtitle" weight="black" as="p" align="center">
               {isDragActive ? 'فایل را اینجا رها کنید' : 'کلیک یا رها کردن مدرک'}
-            </p>
-            <span className={cn('text-xs font-bold', disabled ? 'text-kv-text-disabled' : 'text-kv-text-faint')}>
+            </KvTypography>
+            <KvTypography
+              variant="caption"
+              as="span"
+              tone={disabled ? 'disabled' : 'muted'}
+              align="center"
+            >
               {helperText}
-            </span>
+            </KvTypography>
           </div>
         ) : null}
 
@@ -189,9 +196,9 @@ export function IdentityDocUploader({
               spin
               className="text-kv-brand-soft-fg"
             />
-            <p className="text-xs font-black text-kv-text-muted">
+            <KvTypography variant="subtitle" weight="black" tone="muted" as="p" align="center">
               در حال بهینه‌سازی و آماده‌سازی تصویر...
-            </p>
+            </KvTypography>
           </div>
         ) : null}
 
@@ -208,12 +215,14 @@ export function IdentityDocUploader({
               </div>
             ) : null}
             <div className="max-w-full px-1 text-center">
-              <p className="max-w-72 truncate text-xs font-black text-kv-text">
-                {value.name}
-              </p>
-              <p className="text-xs font-bold text-kv-text-faint">
+              <div className="mx-auto max-w-72">
+                <KvTypography variant="subtitle" weight="black" as="p" truncate align="center">
+                  {value.name}
+                </KvTypography>
+              </div>
+              <KvTypography variant="caption" as="p" align="center">
                 {formatFileSize(value.size)}
-              </p>
+              </KvTypography>
             </div>
             {!disabled ? (
               <KvButton
@@ -232,9 +241,9 @@ export function IdentityDocUploader({
       </div>
 
       {displayError ? (
-        <p role="alert" className="text-xs font-bold text-kv-danger">
-          {displayError}
-        </p>
+        <div role="alert">
+          <KvTypography variant="error">{displayError}</KvTypography>
+        </div>
       ) : null}
     </div>
   );

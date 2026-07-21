@@ -5,6 +5,7 @@ import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
@@ -149,14 +150,18 @@ export function SearchableOrganizationSelect({
             className="max-h-52 overflow-y-auto overflow-x-hidden outline-none"
           >
             {isLoading ? (
-              <div className="flex items-center justify-center gap-2 px-3.5 py-3 text-xs text-kv-text-faint">
+              <div className="flex items-center justify-center gap-2 px-3.5 py-3">
                 <Spinner className="size-3.5" aria-hidden="true" />
-                در حال بارگذاری...
+                <KvTypography variant="caption" as="span">
+                  در حال بارگذاری...
+                </KvTypography>
               </div>
             ) : loadError ? (
-              <p className="px-3.5 py-2.5 text-center text-xs font-bold text-kv-danger">
-                خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
-              </p>
+              <div className="px-3.5 py-2.5 text-center">
+                <KvTypography variant="error" align="center">
+                  خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
+                </KvTypography>
+              </div>
             ) : items.length > 0 ? (
               <>
                 {items.map((option) => (
@@ -174,9 +179,11 @@ export function SearchableOrganizationSelect({
                   </Command.Item>
                 ))}
                 {isLoadingMore ? (
-                  <div className="flex items-center justify-center gap-2 border-t border-kv-border-muted px-3.5 py-2.5 text-xs text-kv-text-faint">
+                  <div className="flex items-center justify-center gap-2 border-t border-kv-border-muted px-3.5 py-2.5">
                     <Spinner className="size-3.5" aria-hidden="true" />
-                    در حال بارگذاری...
+                    <KvTypography variant="caption" as="span">
+                      در حال بارگذاری...
+                    </KvTypography>
                   </div>
                 ) : hasMore ? (
                   <Command.Item
@@ -187,14 +194,18 @@ export function SearchableOrganizationSelect({
                     نمایش ۱۰ مورد بعدی
                   </Command.Item>
                 ) : reachedLimit ? (
-                  <p className="border-t border-kv-border-muted px-3.5 py-2.5 text-center text-xs font-bold text-kv-text-subtle">
-                    نتایج زیاد است؛ جستجو را دقیق‌تر کنید.
-                  </p>
+                  <div className="border-t border-kv-border-muted px-3.5 py-2.5 text-center">
+                    <KvTypography variant="caption" align="center">
+                      نتایج زیاد است؛ جستجو را دقیق‌تر کنید.
+                    </KvTypography>
+                  </div>
                 ) : null}
               </>
             ) : (
-              <Command.Empty className="px-3.5 py-2.5 text-center text-xs text-kv-text-subtle">
-                نتیجه‌ای یافت نشد.
+              <Command.Empty className="px-3.5 py-2.5 text-center">
+                <KvTypography variant="caption" align="center">
+                  نتیجه‌ای یافت نشد.
+                </KvTypography>
               </Command.Empty>
             )}
           </Command.List>

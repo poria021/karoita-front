@@ -2,6 +2,7 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
+import { KvTypography } from '@/components/shared/KvTypography';
 import type { DocStatus } from '@/types/auth';
 import { faIcons } from '@/utils/iconMap';
 
@@ -43,13 +44,13 @@ export function ProfileStatusAlert({
               مدیریت رد شده است. لطفاً دلیل اعلام‌شده را برطرف کرده، اطلاعات خود
               را ویرایش و مجدداً مدرک معتبر ارسال فرمایید:
             </p>
-            <div className="my-1 w-full rounded-kv-panel border border-kv-danger-border bg-kv-surface p-3 text-xs font-bold text-kv-danger-soft-fg shadow-kv-raised">
-              <span className="mb-0.5 block text-xs font-bold text-kv-danger">
+            <div className="my-1 w-full space-y-0.5 rounded-kv-panel border border-kv-danger-border bg-kv-surface p-3 shadow-kv-raised">
+              <KvTypography variant="label" tone="danger" as="span">
                 علت اعلام‌شده توسط مدیریت ارشد:
-              </span>
-              <span className="font-extrabold text-kv-text-secondary">
+              </KvTypography>
+              <KvTypography variant="body" weight="black" as="span">
                 {adminRequestMessage?.trim() || 'علتی ثبت نشده است.'}
-              </span>
+              </KvTypography>
             </div>
           </div>
         }
