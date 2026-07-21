@@ -21,6 +21,7 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.organizationalStructure(),
   RouteService.karvita.onboardingApprovals(),
   RouteService.karvita.syllabusConfig(),
+  RouteService.karvita.adminUserCreation(),
   RouteService.shared.profileIdentity(),
   RouteService.shared.profileSecurity(),
 ];
@@ -45,7 +46,8 @@ export function isLiveSidebarPath(pathname: string): boolean {
     path === RouteService.karvita.adminDashboard() ||
     path === RouteService.karvita.organizationalStructure() ||
     path === RouteService.karvita.onboardingApprovals() ||
-    path === RouteService.karvita.syllabusConfig()
+    path === RouteService.karvita.syllabusConfig() ||
+    path === RouteService.karvita.adminUserCreation()
   );
 }
 

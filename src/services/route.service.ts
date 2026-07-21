@@ -43,7 +43,7 @@ export const RouteService = {
     manageAds: (): string => '/karvita/ads',
     internshipSelection: (): string => '/karvita/internships',
     organizationalCapacities: (): string => '/karvita/capacities',
-    adminUserCreation: (): string => '/karvita/users/create',
+    adminUserCreation: (): string => '/karvita/admin/user-creation',
     internshipDetail: (internshipId: string): string =>
       `/karvita/internships/${internshipId}`,
 

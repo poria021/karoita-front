@@ -24,6 +24,7 @@ describe('live nav / admin plane', () => {
     expect(getVisibleSidebarMenu('super_admin').map((i) => i.path)).toEqual([
       RouteService.karvita.adminDashboard(),
       RouteService.karvita.onboardingApprovals(),
+      RouteService.karvita.adminUserCreation(),
       RouteService.karvita.syllabusConfig(),
       RouteService.karvita.organizationalStructure(),
     ]);
@@ -47,5 +48,14 @@ describe('live nav / admin plane', () => {
       isAdminControlPlanePath(RouteService.karvita.syllabusConfigLegacy())
     ).toBe(false);
     expect(isLiveSidebarPath(RouteService.karvita.syllabusConfig())).toBe(true);
+  });
+
+  it('treats admin user creation as admin control plane', () => {
+    expect(
+      isAdminControlPlanePath(RouteService.karvita.adminUserCreation())
+    ).toBe(true);
+    expect(
+      isLiveSidebarPath(RouteService.karvita.adminUserCreation())
+    ).toBe(true);
   });
 });
