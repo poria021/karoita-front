@@ -1,39 +1,41 @@
 import { create } from 'zustand';
 
-export interface AppNotification {
-  id: string;
-  title: string;
-  time: string;
-  read: boolean;
-}
+import { NotificationsService } from '@/services/notifications.service';
+import type { AppNotification } from '@/types/notifications';
 
 interface NotificationsState {
   notifications: AppNotification[];
 }
 
 interface NotificationsActions {
-  markAsRead: (notificationId: string) => void;
-  markAllAsRead: () => void;
+  refresh: () => Promise<void>;
+  markAsRead: (notificationId: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
 }
 
 type NotificationsStore = NotificationsState & NotificationsActions;
 
-const MOCK_NOTIFICATIONS: AppNotification[] = [
-  { id: 'ntf-1', title: 'گزارش روزانه شما توسط ناظر تایید شد.', time: '۵ دقیقه پیش', read: false },
-  { id: 'ntf-2', title: 'مهلت انتخاب واحد کارورزی نیم‌سال جاری تمدید شد.', time: '۲ ساعت پیش', read: false },
-  { id: 'ntf-3', title: 'مدارک هویتی شما با موفقیت تایید شد.', time: 'دیروز', read: true },
-];
+function clientSnapshot(): AppNotification[] {
+  if (typeof window === 'undefined') return [];
+  return NotificationsService.getSnapshot();
+}
 
+/**
+ * Cache نازک اعلان‌ها برای chrome هدر — منبع حقیقت Facade است، نه seed داخل store.
+ */
 export const useNotificationsStore = create<NotificationsStore>()((set) => ({
-  notifications: MOCK_NOTIFICATIONS,
-  markAsRead: (notificationId) =>
-    set((state) => ({
-      notifications: state.notifications.map((notification) =>
-        notification.id === notificationId ? { ...notification, read: true } : notification
-      ),
-    })),
-  markAllAsRead: () =>
-    set((state) => ({
-      notifications: state.notifications.map((notification) => ({ ...notification, read: true })),
-    })),
+  notifications: clientSnapshot(),
+  refresh: async () => {
+    const notifications = await NotificationsService.list();
+    set({ notifications });
+  },
+  markAsRead: async (notificationId) => {
+    const notifications =
+      await NotificationsService.markAsRead(notificationId);
+    set({ notifications });
+  },
+  markAllAsRead: async () => {
+    const notifications = await NotificationsService.markAllAsRead();
+    set({ notifications });
+  },
 }));

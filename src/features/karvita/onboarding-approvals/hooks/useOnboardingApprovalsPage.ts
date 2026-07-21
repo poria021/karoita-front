@@ -15,10 +15,14 @@ import type {
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 
+import {
+  ONBOARDING_APPROVALS_CACHE_NAMESPACE,
+  ONBOARDING_APPROVALS_CHROME_ID,
+  ONBOARDING_APPROVALS_PROVINCES_KEY,
+  onboardingApprovalsListResetKey,
+} from './onboardingApprovalsListKeys';
+
 const SEARCH_DEBOUNCE_MS = 300;
-const CACHE_NAMESPACE = 'onboarding-approvals';
-const CHROME_ID = 'onboarding-approvals';
-const PROVINCES_KEY = 'onboarding-approvals::provinces';
 
 type OnboardingChrome = {
   tab: ApprovalFilterTab;
@@ -31,7 +35,9 @@ export function useOnboardingApprovalsPage() {
   const setChrome = useDashboardModuleCache((s) => s.setChrome);
   const getData = useDashboardModuleCache((s) => s.getData);
   const setData = useDashboardModuleCache((s) => s.setData);
-  const cachedChrome = getChrome<OnboardingChrome>(CHROME_ID);
+  const cachedChrome = getChrome<OnboardingChrome>(
+    ONBOARDING_APPROVALS_CHROME_ID
+  );
 
   const [tab, setTab] = useState<ApprovalFilterTab>(
     () => cachedChrome?.tab ?? 'pending_admin'
@@ -43,7 +49,7 @@ export function useOnboardingApprovalsPage() {
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
   const [provinces, setProvinces] = useState<string[]>(
-    () => getData<string[]>(PROVINCES_KEY) ?? []
+    () => getData<string[]>(ONBOARDING_APPROVALS_PROVINCES_KEY) ?? []
   );
   const [actionBusy, setActionBusy] = useState(false);
 
@@ -52,10 +58,14 @@ export function useOnboardingApprovalsPage() {
   const [rejectReason, setRejectReason] = useState('');
 
   const listQuery = query.trim() === '' ? '' : debouncedQuery;
-  const resetKey = `${tab}::${listQuery}::${province}`;
+  const resetKey = onboardingApprovalsListResetKey(tab, listQuery, province);
 
   useEffect(() => {
-    setChrome<OnboardingChrome>(CHROME_ID, { tab, query, province });
+    setChrome<OnboardingChrome>(ONBOARDING_APPROVALS_CHROME_ID, {
+      tab,
+      query,
+      province,
+    });
   }, [tab, query, province, setChrome]);
 
   const fetchPage = useCallback(
@@ -68,7 +78,7 @@ export function useOnboardingApprovalsPage() {
         limit,
       });
       setProvinces(page.provinces);
-      setData(PROVINCES_KEY, page.provinces);
+      setData(ONBOARDING_APPROVALS_PROVINCES_KEY, page.provinces);
       return {
         items: page.items,
         total: page.total,
@@ -82,7 +92,7 @@ export function useOnboardingApprovalsPage() {
     resetKey,
     fetchPage,
     pageSize: ONBOARDING_APPROVALS_PAGE_SIZE,
-    cacheNamespace: CACHE_NAMESPACE,
+    cacheNamespace: ONBOARDING_APPROVALS_CACHE_NAMESPACE,
   });
 
   const {

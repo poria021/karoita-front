@@ -16,10 +16,13 @@ import {
 } from '@/types/org-structure';
 
 import { getOrgTabConfig } from '../constants';
+import {
+  ORG_STRUCTURE_CACHE_NAMESPACE,
+  ORG_STRUCTURE_CHROME_ID,
+  orgStructureListResetKey,
+} from './orgStructureListKeys';
 
 const SEARCH_DEBOUNCE_MS = 300;
-const CACHE_NAMESPACE = 'org-structure';
-const CHROME_ID = 'org-structure';
 
 type OrgChrome = {
   tab: OrgStructureSubTab;
@@ -31,7 +34,7 @@ export const entityKindFromTab = orgEntityKindFromTab;
 export function useOrgStructurePage() {
   const getChrome = useDashboardModuleCache((s) => s.getChrome);
   const setChrome = useDashboardModuleCache((s) => s.setChrome);
-  const cachedChrome = getChrome<OrgChrome>(CHROME_ID);
+  const cachedChrome = getChrome<OrgChrome>(ORG_STRUCTURE_CHROME_ID);
 
   const [tab, setTab] = useState<OrgStructureSubTab>(
     () => cachedChrome?.tab ?? 'provinces'
@@ -48,10 +51,10 @@ export function useOrgStructurePage() {
 
   const tabConfig = useMemo(() => getOrgTabConfig(tab), [tab]);
   const listQuery = query.trim() === '' ? '' : debouncedQuery;
-  const resetKey = `${tab}::${listQuery}`;
+  const resetKey = orgStructureListResetKey(tab, listQuery);
 
   useEffect(() => {
-    setChrome<OrgChrome>(CHROME_ID, { tab, query });
+    setChrome<OrgChrome>(ORG_STRUCTURE_CHROME_ID, { tab, query });
   }, [tab, query, setChrome]);
 
   const fetchPage = useCallback(
@@ -69,7 +72,7 @@ export function useOrgStructurePage() {
     resetKey,
     fetchPage,
     pageSize: ORG_STRUCTURE_PAGE_SIZE,
-    cacheNamespace: CACHE_NAMESPACE,
+    cacheNamespace: ORG_STRUCTURE_CACHE_NAMESPACE,
   });
 
   const changeTab = useCallback((next: OrgStructureSubTab) => {

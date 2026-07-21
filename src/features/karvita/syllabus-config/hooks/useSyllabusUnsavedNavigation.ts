@@ -7,6 +7,12 @@ import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type { CourseCatalogItem, SyllabusWeek } from '@/types/syllabus-config';
 
 import type { PendingNavigation } from './syllabusPageCache';
+import {
+  decideUnsavedCourseSelect,
+  decideUnsavedTermSelect,
+  pendingCourseNavigation,
+  pendingTermNavigation,
+} from './syllabusUnsavedNav';
 import { errorMessage } from './syllabusPageUtils';
 
 type UseSyllabusUnsavedNavigationArgs = {
@@ -71,18 +77,28 @@ export function useSyllabusUnsavedNavigation({
   }
 
   function requestSelectTerm(termId: string) {
-    if (termId === selectedTermId) return;
-    if (hasUnsavedChanges) {
-      setPendingNavigation({ kind: 'term', termId });
+    const decision = decideUnsavedTermSelect(
+      termId,
+      selectedTermId,
+      hasUnsavedChanges
+    );
+    if (decision === 'noop') return;
+    if (decision === 'defer') {
+      setPendingNavigation(pendingTermNavigation(termId));
       return;
     }
     void commitSelectTerm(termId);
   }
 
   function requestSelectCourse(course: CourseCatalogItem) {
-    if (selectedCourse?.id === course.id) return;
-    if (hasUnsavedChanges) {
-      setPendingNavigation({ kind: 'course', course });
+    const decision = decideUnsavedCourseSelect(
+      course.id,
+      selectedCourse?.id,
+      hasUnsavedChanges
+    );
+    if (decision === 'noop') return;
+    if (decision === 'defer') {
+      setPendingNavigation(pendingCourseNavigation(course));
       return;
     }
     void commitSelectCourse(course);

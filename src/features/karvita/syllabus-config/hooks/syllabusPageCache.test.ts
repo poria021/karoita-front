@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { cacheKeyFor } from './syllabusPageCache';
+import { cacheKeyFor, type PendingNavigation } from './syllabusPageCache';
+import type { CourseCatalogItem } from '@/types/syllabus-config';
 
 describe('cacheKeyFor', () => {
   it('scopes cache by syllabus section', () => {
@@ -8,5 +9,25 @@ describe('cacheKeyFor', () => {
     expect(cacheKeyFor('course_offerings')).toBe(
       'syllabus-config::course_offerings'
     );
+  });
+});
+
+describe('PendingNavigation hydrate shape', () => {
+  it('accepts term and course variants used by unsaved guard', () => {
+    const termPending: PendingNavigation = {
+      kind: 'term',
+      termId: 'term-1',
+    };
+    const course: CourseCatalogItem = {
+      id: 'c1',
+      title: 'کارورزی',
+      type: 'internship',
+    };
+    const coursePending: PendingNavigation = {
+      kind: 'course',
+      course,
+    };
+    expect(termPending.kind).toBe('term');
+    expect(coursePending.kind).toBe('course');
   });
 });

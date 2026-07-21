@@ -9,6 +9,16 @@ import {
 import { delayDashboardColdSkeletonPreview } from '@/lib/dashboard-cold-skeleton-preview';
 import { computeDashboardListIsCold } from '@/lib/dashboard-list-cold';
 import {
+  canLoadMoreOffsetLimitList,
+  initialOffsetLimitListState,
+  mapOffsetLimitListError,
+  mergeOffsetLimitPageItems,
+  offsetLimitListStateFromCache,
+  toOffsetLimitListCachePayload,
+  type OffsetLimitListCachePayload,
+  type OffsetLimitListState,
+} from '@/hooks/offsetLimitInfiniteList.helpers';
+import {
   DEFAULT_PAGE_LIMIT,
   type OffsetLimitPage,
 } from '@/utils/offset-limit-page';
@@ -25,46 +35,6 @@ export type UseOffsetLimitInfiniteListOptions<T> = {
   /** When set, list pages are cached in memory for SPA revisits (rule 83). */
   cacheNamespace?: string;
 };
-
-type ListState<T> = {
-  items: T[];
-  total: number;
-  hasMore: boolean;
-  isLoading: boolean;
-  isLoadingMore: boolean;
-  error: string | null;
-  loadMoreError: string | null;
-};
-
-type ListCachePayload<T> = {
-  items: T[];
-  total: number;
-  hasMore: boolean;
-};
-
-function initialListState<T>(): ListState<T> {
-  return {
-    items: [],
-    total: 0,
-    hasMore: false,
-    isLoading: true,
-    isLoadingMore: false,
-    error: null,
-    loadMoreError: null,
-  };
-}
-
-function stateFromCache<T>(cached: ListCachePayload<T>): ListState<T> {
-  return {
-    items: cached.items,
-    total: cached.total,
-    hasMore: cached.hasMore,
-    isLoading: false,
-    isLoadingMore: false,
-    error: null,
-    loadMoreError: null,
-  };
-}
 
 /**
  * لیست بی‌نهایت ادمین روی قرارداد offset/limit.
@@ -87,14 +57,14 @@ export function useOffsetLimitInfiniteList<T>({
   const hasEverReadyRef = useRef(false);
 
   const [activeKey, setActiveKey] = useState(resetKey);
-  const [list, setList] = useState<ListState<T>>(() => {
-    if (!cacheKey) return initialListState();
-    const cached = readCache<ListCachePayload<T>>(cacheKey);
+  const [list, setList] = useState<OffsetLimitListState<T>>(() => {
+    if (!cacheKey) return initialOffsetLimitListState();
+    const cached = readCache<OffsetLimitListCachePayload<T>>(cacheKey);
     if (cached) {
       hasEverReadyRef.current = true;
-      return stateFromCache(cached);
+      return offsetLimitListStateFromCache(cached);
     }
-    return initialListState();
+    return initialOffsetLimitListState();
   });
 
   if (resetKey !== activeKey) {
@@ -103,13 +73,13 @@ export function useOffsetLimitInfiniteList<T>({
       ? dashboardListCacheKey(cacheNamespace, resetKey)
       : null;
     const cached = nextKey
-      ? readCache<ListCachePayload<T>>(nextKey)
+      ? readCache<OffsetLimitListCachePayload<T>>(nextKey)
       : undefined;
     if (cached) {
       hasEverReadyRef.current = true;
-      setList(stateFromCache(cached));
+      setList(offsetLimitListStateFromCache(cached));
     } else {
-      setList(initialListState());
+      setList(initialOffsetLimitListState());
     }
   }
 
@@ -123,7 +93,8 @@ export function useOffsetLimitInfiniteList<T>({
       ? dashboardListCacheKey(cacheNamespace, resetKey)
       : null;
     const hadCacheEntry =
-      key != null && readCache<ListCachePayload<T>>(key) !== undefined;
+      key != null &&
+      readCache<OffsetLimitListCachePayload<T>>(key) !== undefined;
     const isModuleColdMiss =
       !hadCacheEntry && !hasEverReadyRef.current;
 
@@ -143,7 +114,7 @@ export function useOffsetLimitInfiniteList<T>({
         const page = await fetchPage({ offset: 0, limit: pageSize });
         if (requestId !== requestIdRef.current) return;
         hasEverReadyRef.current = true;
-        const next: ListState<T> = {
+        const next: OffsetLimitListState<T> = {
           items: page.items,
           total: page.total,
           hasMore: page.hasMore,
@@ -154,22 +125,20 @@ export function useOffsetLimitInfiniteList<T>({
         };
         setList(next);
         if (key) {
-          writeCache<ListCachePayload<T>>(key, {
-            items: page.items,
-            total: page.total,
-            hasMore: page.hasMore,
-          });
+          writeCache(key, toOffsetLimitListCachePayload(next));
         }
       } catch (err) {
         if (requestId !== requestIdRef.current) return;
         setList((prev) => ({
-          ...initialListState(),
+          ...initialOffsetLimitListState(),
           items: prev.items,
           total: prev.total,
           hasMore: prev.hasMore,
           isLoading: false,
-          error:
-            err instanceof Error ? err.message : 'بارگذاری فهرست ناموفق بود.',
+          error: mapOffsetLimitListError(
+            err,
+            'بارگذاری فهرست ناموفق بود.'
+          ),
         }));
       } finally {
         if (requestId === requestIdRef.current) {
@@ -186,10 +155,12 @@ export function useOffsetLimitInfiniteList<T>({
 
   const loadMore = useCallback(async () => {
     if (
-      inFlightRef.current ||
-      list.isLoading ||
-      list.isLoadingMore ||
-      !list.hasMore
+      !canLoadMoreOffsetLimitList({
+        inFlight: inFlightRef.current,
+        isLoading: list.isLoading,
+        isLoadingMore: list.isLoadingMore,
+        hasMore: list.hasMore,
+      })
     ) {
       return;
     }
@@ -210,7 +181,7 @@ export function useOffsetLimitInfiniteList<T>({
     try {
       const page = await fetchPage({ offset, limit: pageSize });
       if (requestId !== requestIdRef.current) return;
-      const items = [...list.items, ...page.items];
+      const items = mergeOffsetLimitPageItems(list.items, page);
       setList((prev) => ({
         ...prev,
         items,
@@ -219,21 +190,24 @@ export function useOffsetLimitInfiniteList<T>({
         isLoadingMore: false,
       }));
       if (key) {
-        writeCache<ListCachePayload<T>>(key, {
-          items,
-          total: page.total,
-          hasMore: page.hasMore,
-        });
+        writeCache(
+          key,
+          toOffsetLimitListCachePayload({
+            items,
+            total: page.total,
+            hasMore: page.hasMore,
+          })
+        );
       }
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
       setList((prev) => ({
         ...prev,
         isLoadingMore: false,
-        loadMoreError:
-          err instanceof Error
-            ? err.message
-            : 'بارگذاری موارد بیشتر ناموفق بود.',
+        loadMoreError: mapOffsetLimitListError(
+          err,
+          'بارگذاری موارد بیشتر ناموفق بود.'
+        ),
       }));
     } finally {
       if (requestId === requestIdRef.current) {
@@ -270,7 +244,7 @@ export function useOffsetLimitInfiniteList<T>({
       const page = await fetchPage({ offset: 0, limit: pageSize });
       if (requestId !== requestIdRef.current) return;
       hasEverReadyRef.current = true;
-      const next: ListState<T> = {
+      const next: OffsetLimitListState<T> = {
         items: page.items,
         total: page.total,
         hasMore: page.hasMore,
@@ -281,11 +255,7 @@ export function useOffsetLimitInfiniteList<T>({
       };
       setList(next);
       if (key) {
-        writeCache<ListCachePayload<T>>(key, {
-          items: page.items,
-          total: page.total,
-          hasMore: page.hasMore,
-        });
+        writeCache(key, toOffsetLimitListCachePayload(next));
       }
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
@@ -293,8 +263,10 @@ export function useOffsetLimitInfiniteList<T>({
         ...prev,
         isLoading: false,
         isLoadingMore: false,
-        error:
-          err instanceof Error ? err.message : 'بارگذاری فهرست ناموفق بود.',
+        error: mapOffsetLimitListError(
+          err,
+          'بارگذاری فهرست ناموفق بود.'
+        ),
       }));
     } finally {
       if (requestId === requestIdRef.current) {
@@ -306,7 +278,7 @@ export function useOffsetLimitInfiniteList<T>({
   // Page skeleton: only before this mount has ever been ready (not on tab/search resetKey).
   const cacheHit =
     cacheKey != null &&
-    readCache<ListCachePayload<T>>(cacheKey) !== undefined;
+    readCache<OffsetLimitListCachePayload<T>>(cacheKey) !== undefined;
   const isCold = computeDashboardListIsCold({
     isLoading: list.isLoading,
     itemCount: list.items.length,
