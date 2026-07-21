@@ -13,7 +13,7 @@ export type KvSkeletonBlockProps = {
  */
 export function KvSkeletonBlock({ className, children }: KvSkeletonBlockProps) {
   return (
-    <div className={cn('space-y-3', className)} aria-hidden>
+    <div className={cn('space-y-kv-group', className)} aria-hidden>
       {children}
     </div>
   );
@@ -42,8 +42,8 @@ export function KvSkeletonFormPanel({ className }: { className?: string }) {
   return (
     <KvSkeletonBlock className={className}>
       <KvSkeleton className="h-4 w-28 rounded-md" />
-      <KvSkeleton className="h-11 w-full rounded-lg" />
-      <KvSkeleton className="h-11 w-full rounded-lg" />
+      <KvSkeleton className="h-11 w-full rounded-xl" />
+      <KvSkeleton className="h-11 w-full rounded-xl" />
       <KvSkeleton className="h-3 w-20 rounded-md" />
       <KvSkeleton className="h-24 w-full rounded-xl" />
     </KvSkeletonBlock>

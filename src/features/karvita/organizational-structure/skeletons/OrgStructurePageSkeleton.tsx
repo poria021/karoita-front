@@ -7,16 +7,18 @@ import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewp
 import { cn } from '@/lib/utils';
 
 /**
- * Cold skeleton — هم‌تراز با OrgStructurePage واقعی:
- * tabs (AppTabsList w-fit) → toolbar (فقط border-t) → جدول؛ بدون بردر کارت دور محتوا.
+ * Cold skeleton — هم‌تراز با OrgStructurePage:
+ * tabs (lg) → toolbar (border-t + title/search/add) → table viewport.
  */
 export function OrgStructurePageSkeleton() {
   return (
     <KvWorkspace
       panel={false}
       tabs={
-        // ~۶ تب دسکتاپ AppTabsList (md:w-fit)
-        <KvSkeletonTabTrack trackClassName="w-[42rem]" />
+        <KvSkeletonTabTrack
+          breakpoint="lg"
+          trackClassName="w-[42rem]"
+        />
       }
       toolbar={
         <div className="flex flex-col justify-start gap-kv-group border-t border-kv-border px-0 pt-kv-section sm:px-kv-group lg:flex-row lg:items-center lg:justify-between">
@@ -29,12 +31,13 @@ export function OrgStructurePageSkeleton() {
             <div className="w-full sm:w-64">
               <KvSkeleton className="h-11 w-full rounded-xl" />
             </div>
-            <KvSkeleton className="h-11 w-full rounded-xl sm:w-36" />
+            <KvSkeleton className="h-11 w-full shrink-0 rounded-xl sm:w-36" />
           </div>
         </div>
       }
     >
       <div
+        className="space-y-kv-group"
         role="status"
         aria-busy="true"
         aria-label="در حال بارگذاری ساختار سازمانی"
