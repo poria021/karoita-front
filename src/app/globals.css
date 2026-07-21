@@ -135,14 +135,6 @@
   --color-kv-neutral-soft-fg: var(--kv-neutral-soft-fg);
   --color-kv-neutral-border: var(--kv-neutral-border);
 
-  --color-kv-accent: var(--kv-accent);
-  --color-kv-accent-hover: var(--kv-accent-hover);
-  --color-kv-accent-fg: var(--kv-accent-fg);
-  --color-kv-accent-soft: var(--kv-accent-soft);
-  --color-kv-accent-soft-hover: var(--kv-accent-soft-hover);
-  --color-kv-accent-soft-fg: var(--kv-accent-soft-fg);
-  --color-kv-accent-border: var(--kv-accent-border);
-
   /*
    * ═══════════════════════════════════════════════════════════════════════════
    * Karvita spacing (`kv-*`) — complete Gestalt scale
@@ -312,14 +304,6 @@
   --kv-neutral-soft-fg: hsl(215 19.3% 34.5%);
   --kv-neutral-border: hsl(214 31.8% 91.4%);
 
-  --kv-accent: hsl(262 83.3% 57.8%);
-  --kv-accent-hover: hsl(263 70% 50.4%);
-  --kv-accent-fg: hsl(0 0% 100%);
-  --kv-accent-soft: hsl(250 100% 97.6%);
-  --kv-accent-soft-hover: hsl(251 91.3% 95.5%);
-  --kv-accent-soft-fg: hsl(263 69.3% 42.2%);
-  --kv-accent-border: hsl(251 95.2% 91.8%);
-
   /* Shadcn bridges → kv (so primitives stay on-brand) */
   --background: var(--kv-canvas);
   --foreground: var(--kv-text);
@@ -344,7 +328,8 @@
   --chart-2: var(--kv-success);
   --chart-3: var(--kv-info);
   --chart-4: var(--kv-warning);
-  --chart-5: var(--kv-accent);
+  /* chart-5: brand-active (not purple) — avoids AI-purple look; shadcn chart slot kept */
+  --chart-5: var(--kv-brand-active);
   --sidebar: var(--kv-surface);
   --sidebar-foreground: var(--kv-text);
   --sidebar-primary: var(--kv-brand);
@@ -434,14 +419,6 @@
   --kv-neutral-soft-fg: hsl(213 26.8% 83.9%);
   --kv-neutral-border: hsl(215 25% 26.7%);
 
-  --kv-accent: hsl(255 91.7% 76.3%);
-  --kv-accent-hover: hsl(252 94.7% 85.1%);
-  --kv-accent-fg: hsl(261 72.6% 22.9%);
-  --kv-accent-soft: hsl(264 67.4% 34.9%);
-  --kv-accent-soft-hover: hsl(263 69.3% 42.2%);
-  --kv-accent-soft-fg: hsl(251 95.2% 91.8%);
-  --kv-accent-border: hsl(263 70% 50.4%);
-
   --background: var(--kv-canvas);
   --foreground: var(--kv-text);
   --card: var(--kv-surface);
@@ -465,7 +442,8 @@
   --chart-2: var(--kv-success);
   --chart-3: var(--kv-info);
   --chart-4: var(--kv-warning);
-  --chart-5: var(--kv-accent);
+  /* chart-5: brand-active (not purple) — avoids AI-purple look; shadcn chart slot kept */
+  --chart-5: var(--kv-brand-active);
   --sidebar: var(--kv-surface);
   --sidebar-foreground: var(--kv-text);
   --sidebar-primary: var(--kv-brand);

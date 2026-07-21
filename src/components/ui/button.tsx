@@ -18,7 +18,6 @@ const buttonVariants = cva(
         cta: '',
         success: '',
         warning: '',
-        purple: '',
         error: '',
         neutral: '',
       },
@@ -72,11 +71,6 @@ const buttonVariants = cva(
       },
       {
         appearance: 'solid',
-        color: 'purple',
-        class: 'bg-kv-accent text-kv-accent-fg hover:bg-kv-accent-hover',
-      },
-      {
-        appearance: 'solid',
         color: 'error',
         class: 'bg-kv-danger text-kv-danger-fg hover:bg-kv-danger-hover',
       },
@@ -107,12 +101,6 @@ const buttonVariants = cva(
       },
       {
         appearance: 'ghost',
-        color: 'purple',
-        class:
-          'border-kv-accent-border bg-kv-accent-soft text-kv-accent-soft-fg hover:bg-kv-accent-soft-hover',
-      },
-      {
-        appearance: 'ghost',
         color: 'error',
         class:
           'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg hover:bg-kv-danger-soft-hover',
@@ -138,11 +126,6 @@ const buttonVariants = cva(
         appearance: 'text',
         color: 'warning',
         class: 'text-kv-warning hover:text-kv-warning-soft-fg',
-      },
-      {
-        appearance: 'text',
-        color: 'purple',
-        class: 'text-kv-accent hover:text-kv-accent-hover',
       },
       {
         appearance: 'text',
