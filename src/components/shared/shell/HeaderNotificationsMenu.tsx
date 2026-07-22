@@ -11,7 +11,6 @@ import {
 } from '@/components/shared/KvDropdownMenu';
 import {
   kvOverlayItemDividerClassName,
-  kvOverlaySectionDividerClassName,
 } from '@/components/shared/kvOverlayMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
@@ -73,8 +72,7 @@ export function HeaderNotificationsMenu() {
       <KvDropdownMenuContent align="end" className="w-80">
         <div
           className={cn(
-            'flex items-center justify-between gap-kv-pair px-3.5 py-2.5',
-            kvOverlaySectionDividerClassName
+            'flex items-center justify-between gap-kv-pair border-b border-kv-border/70 px-3.5 py-2.5'
           )}
         >
           <span className="origin-start scale-90">
@@ -140,30 +138,34 @@ export function HeaderNotificationsMenu() {
                       !expandable && 'cursor-default'
                     )}
                   >
-                    <span className="flex w-full items-center gap-kv-pair">
+                    <span className="flex w-full items-start gap-kv-inline">
                       {isUnread ? (
                         <span
-                          className="size-1.5 shrink-0 rounded-full bg-kv-danger"
+                          className="mt-1.5 size-1.5 shrink-0 rounded-full bg-kv-danger"
                           aria-hidden="true"
                         />
                       ) : (
                         <span
-                          className="size-1.5 shrink-0"
+                          className="mt-1.5 size-1.5 shrink-0"
                           aria-hidden="true"
                         />
                       )}
-                      <span className="min-w-0 flex-1">
-                        <KvTypography
-                          variant="caption"
-                          tone="muted"
-                          weight="bold"
-                          as="span"
-                          truncate
-                        >
-                          {notification.title}
-                        </KvTypography>
+                      <span className="min-w-0 flex-1 break-words pe-kv-pair">
+                        <span className="block w-full">
+                          <KvTypography
+                            variant="caption"
+                            tone="muted"
+                            weight="bold"
+                            as="span"
+                          >
+                            {notification.title}
+                          </KvTypography>
+                        </span>
                       </span>
-                      <span className="origin-top-end shrink-0 scale-[0.85]" dir="rtl">
+                      <span
+                        className="origin-top-end shrink-0 scale-[0.85] whitespace-nowrap opacity-70"
+                        dir="rtl"
+                      >
                         <KvTypography
                           variant="overline"
                           tone="disabled"
@@ -177,7 +179,7 @@ export function HeaderNotificationsMenu() {
                           icon={faIcons.chevronDown}
                           size="2xs"
                           className={cn(
-                            'shrink-0 text-kv-text-faint transition-transform',
+                            'mt-1 shrink-0 text-kv-text-faint transition-transform',
                             expanded && 'rotate-180'
                           )}
                           aria-hidden
@@ -189,7 +191,7 @@ export function HeaderNotificationsMenu() {
                       <span className="w-full origin-start scale-[0.92] ps-3.5 [&_span]:leading-snug">
                         <KvTypography
                           variant="overline"
-                          tone="disabled"
+                          tone="muted"
                           weight="medium"
                           as="span"
                         >
