@@ -180,15 +180,21 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
 
   if (!uiStrategy.showSecurityTab) {
     return (
-      <div dir="rtl" className="w-full space-y-kv-section font-sans text-xs">
+      <div
+        dir="rtl"
+        className="mx-auto w-full max-w-4xl space-y-kv-section font-sans text-xs"
+      >
         {identityForm}
       </div>
     );
   }
 
   return (
-    <div dir="rtl" className="w-full space-y-kv-section font-sans">
-      <div className="mb-kv-group pb-kv-group pt-kv-micro">
+    <div
+      dir="rtl"
+      className="mx-auto w-full max-w-4xl space-y-kv-section font-sans"
+    >
+      <div className="space-y-kv-stack pt-kv-micro">
         <AppTabs
           value={activeTab}
           onValueChange={handleTabChange}
@@ -205,9 +211,7 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
             </AppTabsTrigger>
           </AppTabsList>
 
-          <AppTabsContent value="identity">
-            {identityForm}
-          </AppTabsContent>
+          <AppTabsContent value="identity">{identityForm}</AppTabsContent>
 
           <AppTabsContent value="security">
             <SecurityForm

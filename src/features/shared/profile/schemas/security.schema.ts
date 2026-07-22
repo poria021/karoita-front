@@ -1,11 +1,18 @@
 import { z } from 'zod';
 
 import { persianToEnglishDigits } from '@/utils/persianDigits';
+import {
+  PASSWORD_LATIN_ONLY_HINT,
+  containsPersianOrArabicScript,
+} from '@/utils/passwordInput';
 
 const securityPasswordField = z
   .string('رمز عبور الزامی است.')
   .min(1, 'رمز عبور الزامی است.')
-  .min(8, 'رمز عبور باید حداقل ۸ کاراکتر باشد.');
+  .min(8, 'رمز عبور باید حداقل ۸ کاراکتر باشد.')
+  .refine((value) => !containsPersianOrArabicScript(value), {
+    message: PASSWORD_LATIN_ONLY_HINT,
+  });
 
 export const securityPasswordSchema = z
   .object({

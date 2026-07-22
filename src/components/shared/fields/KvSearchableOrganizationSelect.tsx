@@ -6,6 +6,11 @@ import { Command } from 'cmdk';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
 import { KvTypography } from '@/components/shared/KvTypography';
+import {
+  kvOverlayItemClassName,
+  kvOverlayPanelClassName,
+  kvOverlaySectionTopDividerClassName,
+} from '@/components/shared/kvOverlayMenu';
 import { Spinner } from '@/components/ui/spinner';
 import {
   useOrganizationOptions,
@@ -120,11 +125,14 @@ export function KvSearchableOrganizationSelect({
         placeholder={placeholder}
         showIcon={showSearchIcon}
         endAddon={
-          <span className="flex h-full items-center pe-2.5 ps-0.5">
+          <span className="flex h-full items-center pe-1.5">
             <FaIcon
               icon={faIcons.chevronDown}
               size="xs"
-              className="shrink-0 text-kv-text-faint"
+              className={cn(
+                'shrink-0 text-kv-text-faint opacity-50',
+                locked && 'text-kv-text-disabled opacity-35'
+              )}
             />
           </span>
         }
@@ -141,7 +149,7 @@ export function KvSearchableOrganizationSelect({
           id={`org-select-${type}`}
           shouldFilter={false}
           loop
-          className="absolute start-0 z-50 mt-1 w-full overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-overlay"
+          className={cn(kvOverlayPanelClassName, 'absolute start-0 z-50 mt-1 w-full')}
         >
           <Command.List
             ref={listRef}
@@ -169,9 +177,11 @@ export function KvSearchableOrganizationSelect({
                     value={`${option.id}::${option.label}`}
                     onSelect={() => handleSelect(option)}
                     className={cn(
-                      'cursor-pointer border-b border-kv-border px-3.5 py-2.5 text-start last:border-b-0',
-                      'outline-none data-[selected=true]:bg-kv-surface-muted',
-                      value === option.label && 'bg-kv-surface-muted'
+                      kvOverlayItemClassName(
+                        'cursor-pointer text-start outline-none',
+                        'data-[selected=true]:bg-kv-surface-muted',
+                        value === option.label && 'bg-kv-surface-muted'
+                      )
                     )}
                   >
                     <KvTypography variant="label" as="span">
@@ -180,7 +190,12 @@ export function KvSearchableOrganizationSelect({
                   </Command.Item>
                 ))}
                 {isLoadingMore ? (
-                  <div className="flex items-center justify-center gap-kv-pair border-t border-kv-border-muted px-3.5 py-2.5">
+                  <div
+                    className={cn(
+                      'flex items-center justify-center gap-kv-pair px-3.5 py-2.5',
+                      kvOverlaySectionTopDividerClassName
+                    )}
+                  >
                     <Spinner className="size-3.5" aria-hidden="true" />
                     <KvTypography variant="caption" as="span">
                       در حال بارگذاری...
@@ -190,14 +205,22 @@ export function KvSearchableOrganizationSelect({
                   <Command.Item
                     value="__load-more__"
                     onSelect={() => loadMore()}
-                    className="cursor-pointer border-t border-kv-border-muted px-3.5 py-2.5 text-center outline-none data-[selected=true]:bg-kv-surface-muted"
+                    className={cn(
+                      'cursor-pointer px-3.5 py-2.5 text-center outline-none data-[selected=true]:bg-kv-surface-muted',
+                      kvOverlaySectionTopDividerClassName
+                    )}
                   >
                     <KvTypography variant="label" tone="brand" as="span">
                       نمایش ۱۰ مورد بعدی
                     </KvTypography>
                   </Command.Item>
                 ) : reachedLimit ? (
-                  <div className="border-t border-kv-border-muted px-3.5 py-2.5 text-center">
+                  <div
+                    className={cn(
+                      'px-3.5 py-2.5 text-center',
+                      kvOverlaySectionTopDividerClassName
+                    )}
+                  >
                     <KvTypography variant="caption" align="center">
                       نتایج زیاد است؛ جستجو را دقیق‌تر کنید.
                     </KvTypography>

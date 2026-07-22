@@ -3,7 +3,6 @@
 import type { UseFormReturn } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvForm } from '@/components/shared/fields/KvForm';
@@ -11,7 +10,6 @@ import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { isMockApiMode, MOCK_MODE_LABEL } from '@/lib/api-mode';
 import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
-import { faIcons } from '@/utils/iconMap';
 import {
   persianToEnglishDigits,
   toPersianDigits,
@@ -66,7 +64,6 @@ export function SecurityChangePasswordFlow({
           loading={isBusy}
           disabled={isDisabled}
           onClick={onRequestOtp}
-          icon={<FaIcon icon={faIcons.commentDots} size="sm" />}
         >
           درخواست تغییر رمز عبور (ارسال پیامک تایید)
         </KvButton>

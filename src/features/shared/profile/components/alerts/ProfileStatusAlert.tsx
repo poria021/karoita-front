@@ -64,7 +64,7 @@ export function ProfileStatusAlert({
         variant="info"
         title="اطلاعات در انتظار تأیید مدیریت است"
         description="پرونده شما با موفقیت برای مدیریت ارشد ارسال گردید. حساب کاربری شما بلافاصله پس از تایید مدارک توسط مدیر ارشد فعال خواهد شد."
-        icon={<FaIcon icon={faIcons.hourglassHalf} size="sm" />}
+        icon={<FaIcon icon={faIcons.circleExclamation} size="sm" />}
       />
     );
   }

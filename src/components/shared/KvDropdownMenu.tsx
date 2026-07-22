@@ -11,13 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { kvOverlayPanelClassName } from '@/components/shared/kvOverlayMenu';
 import { cn } from '@/lib/utils';
 
 export {
   DropdownMenu as KvDropdownMenu,
   DropdownMenuGroup as KvDropdownMenuGroup,
   DropdownMenuLabel as KvDropdownMenuLabel,
-  DropdownMenuSeparator as KvDropdownMenuSeparator,
   DropdownMenuTrigger as KvDropdownMenuTrigger,
 };
 
@@ -28,7 +28,7 @@ export function KvDropdownMenuContent({
   return (
     <DropdownMenuContent
       data-slot="kv-dropdown-menu-content"
-      className={cn(className)}
+      className={cn(kvOverlayPanelClassName, className)}
       {...props}
     />
   );
@@ -41,7 +41,24 @@ export function KvDropdownMenuItem({
   return (
     <DropdownMenuItem
       data-slot="kv-dropdown-menu-item"
-      className={cn('font-sans text-xs font-bold', className)}
+      className={cn(
+        'rounded-none px-3.5 py-2.5 font-sans text-xs font-bold',
+        'focus:bg-kv-surface-muted focus:text-kv-text-secondary',
+        className
+      )}
+      {...props}
+    />
+  );
+}
+
+export function KvDropdownMenuSeparator({
+  className,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuSeparator>) {
+  return (
+    <DropdownMenuSeparator
+      data-slot="kv-dropdown-menu-separator"
+      className={cn('mx-0 my-0 bg-kv-border/40', className)}
       {...props}
     />
   );

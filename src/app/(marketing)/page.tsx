@@ -50,8 +50,7 @@ export default function MarketingHomePage() {
 
           <KvButton asChild size="lg" color="cta">
             <Link href={RouteService.auth.login()} prefetch={false}>
-              <FaIcon icon={faIcons.tableColumns} size="sm" />
-              <span>ورود به میز کار</span>
+              ورود به میز کار
             </Link>
           </KvButton>
         </section>

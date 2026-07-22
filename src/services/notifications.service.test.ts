@@ -12,7 +12,15 @@ describe('NotificationsService (mock)', () => {
 
   it('lists seed notifications with English ids', async () => {
     const list = await NotificationsService.list();
-    expect(list.map((item) => item.id)).toEqual(['ntf-1', 'ntf-2', 'ntf-3']);
+    expect(list.map((item) => item.id)).toEqual([
+      'ntf-1',
+      'ntf-2',
+      'ntf-3',
+      'ntf-4',
+    ]);
+    expect(list.find((item) => item.id === 'ntf-1')?.kind).toBe('message');
+    expect(list.find((item) => item.id === 'ntf-1')?.body).toBeTruthy();
+    expect(list.find((item) => item.id === 'ntf-2')?.kind).toBe('system');
     expect(list.find((item) => item.id === 'ntf-1')?.read).toBe(false);
     expect(list.find((item) => item.id === 'ntf-3')?.read).toBe(true);
   });

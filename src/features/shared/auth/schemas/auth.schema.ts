@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 import { persianToEnglishDigits } from '@/utils/persianDigits';
+import {
+  PASSWORD_LATIN_ONLY_HINT,
+  containsPersianOrArabicScript,
+} from '@/utils/passwordInput';
 
 
 const mobileFieldSchema = z
@@ -16,7 +20,10 @@ const mobileFieldSchema = z
 const passwordFieldSchema = z
   .string('رمز عبور الزامی است.')
   .min(1, 'رمز عبور الزامی است.')
-  .min(6, 'رمز عبور باید حداقل ۶ کاراکتر باشد.');
+  .min(6, 'رمز عبور باید حداقل ۶ کاراکتر باشد.')
+  .refine((value) => !containsPersianOrArabicScript(value), {
+    message: PASSWORD_LATIN_ONLY_HINT,
+  });
 
 export const otpSchema = z.object({
   otp: z

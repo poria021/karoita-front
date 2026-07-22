@@ -9,6 +9,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  kvOverlayItemClassName,
+  kvOverlayPanelClassName,
+} from '@/components/shared/kvOverlayMenu';
 import { cn } from '@/lib/utils';
 
 export {
@@ -30,7 +34,7 @@ export function KvSelectTrigger({
       className={cn(
         'flex w-full min-w-0 items-center justify-between gap-kv-pair rounded-kv-control',
         'h-11 data-[size=default]:h-11 data-[size=sm]:h-9',
-        'border border-kv-border-strong bg-kv-surface px-3.5 py-0',
+        'border border-kv-border-strong bg-kv-surface ps-3.5 pe-2 py-0',
         'font-sans text-xs font-bold text-kv-text-secondary shadow-none md:text-xs',
         'whitespace-nowrap outline-none',
         'transition-[color,background-color,border-color,box-shadow]',
@@ -43,7 +47,8 @@ export function KvSelectTrigger({
         'disabled:cursor-not-allowed disabled:opacity-100',
         'dark:bg-kv-surface',
         '[&_svg]:pointer-events-none [&_svg]:shrink-0',
-        '[&_svg]:text-kv-text-faint [&_svg]:opacity-100',
+        '[&_svg]:text-kv-text-faint [&_svg]:opacity-50',
+        'disabled:[&_svg]:text-kv-text-disabled disabled:[&_svg]:opacity-35',
         '*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex',
         '*:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-kv-pair',
         className
@@ -61,8 +66,9 @@ export function KvSelectContent({
     <SelectContent
       data-slot="kv-select-content"
       className={cn(
-        'rounded-kv-control border-kv-border bg-kv-surface p-0 shadow-none overflow-hidden',
+        kvOverlayPanelClassName,
         'data-[state=open]:animate-none data-[state=closed]:animate-none',
+        '[&_[data-slot=select-viewport]]:p-0',
         className
       )}
       {...props}
@@ -75,8 +81,10 @@ export function KvSelectItem({ className, ...props }: KvSelectItemProps) {
     <SelectItem
       data-slot="kv-select-item"
       className={cn(
-        'rounded-none border-b border-kv-border px-3.5 py-2.5 text-xs font-bold text-kv-text-secondary last:border-b-0',
-        'focus:bg-kv-surface-muted focus:text-kv-text-secondary',
+        kvOverlayItemClassName(
+          'text-xs font-bold text-kv-text-secondary',
+          'focus:bg-kv-surface-muted focus:text-kv-text-secondary'
+        ),
         className
       )}
       {...props}

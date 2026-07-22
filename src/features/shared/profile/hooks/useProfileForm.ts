@@ -64,6 +64,7 @@ export function useProfileForm() {
 
       await ProfileService.updateOnboardingProfile({
         ...data,
+        role,
         identityDoc,
       });
 

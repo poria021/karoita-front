@@ -1,14 +1,13 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useId, useRef } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
 import { cn } from '@/lib/utils';
-import { RouteService } from '@/services/route.service';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
 import {
@@ -19,7 +18,6 @@ import {
 } from '@/utils/RoleStrategyMap';
 import { faIcons } from '@/utils/iconMap';
 
-import { resolveSidebarIcon } from './resolveSidebarIcon';
 import { SidebarNavGroup } from './SidebarNavGroup';
 import { SidebarNavLink } from './SidebarNavLink';
 import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
@@ -44,9 +42,7 @@ export function Sidebar() {
 
   const strategy = getRoleStrategy(activeUser.role);
   const visibleMenu = getVisibleSidebarMenu(activeUser.role);
-  const roleIcon = resolveSidebarIcon(strategy.roleIcon);
   const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
-  const profileHref = RouteService.karvita.profile(activeUser.role);
 
   return (
     <>
@@ -81,7 +77,9 @@ export function Sidebar() {
           appearance="ghost"
           size="sm"
           onClick={toggleCollapsed}
-          aria-label={isCollapsed ? 'باز کردن نوار کناری' : 'جمع کردن نوار کناری'}
+          aria-label={
+            isCollapsed ? 'باز کردن نوار کناری' : 'جمع کردن نوار کناری'
+          }
           className="absolute -end-3 top-6 z-20 hidden size-7 min-h-0 rounded-kv-control border border-kv-border-strong/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-raised hover:border-kv-brand hover:text-kv-brand lg:flex"
           icon={
             <FaIcon
@@ -89,7 +87,9 @@ export function Sidebar() {
               size="xs"
               className={cn(
                 'transition-transform duration-300',
-                isCollapsed ? 'rotate-180 rtl:rotate-0' : 'rotate-0 rtl:rotate-180'
+                isCollapsed
+                  ? 'rotate-180 rtl:rotate-0'
+                  : 'rotate-0 rtl:rotate-180'
               )}
             />
           }
@@ -101,7 +101,12 @@ export function Sidebar() {
               <FaIcon icon={faIcons.tableColumns} size="sm" />
             </div>
             <div className="flex min-w-0 flex-col text-start">
-              <KvTypography variant="subtitle" as="h2" id={drawerTitleId} truncate>
+              <KvTypography
+                variant="subtitle"
+                as="h2"
+                id={drawerTitleId}
+                truncate
+              >
                 پنل کاربری - {strategy.label}
               </KvTypography>
               <div className="mt-kv-nav-tight">
@@ -150,46 +155,11 @@ export function Sidebar() {
           )}
         </nav>
 
-        <Link
-          href={profileHref}
-          prefetch={false}
-          onClick={closeMobileSidebar}
-          aria-label={`پروفایل ${activeUser.firstName} ${activeUser.lastName}`}
-          className={cn(
-            'border-t border-kv-border-muted bg-kv-surface transition-colors hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30 lg:rounded-b-kv-shell',
-            isCollapsed ? 'p-kv-group lg:p-kv-pair' : 'p-kv-group'
-          )}
-        >
-          <div
-            className={cn(
-              'flex items-center rounded-kv-control border border-kv-border-muted bg-kv-surface-muted transition-all',
-              isCollapsed
-                ? 'justify-start p-kv-inline lg:justify-center lg:p-kv-pair'
-                : 'p-kv-inline'
-            )}
-          >
-            <div className="relative flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
-              <FaIcon icon={roleIcon} size="sm" />
-            </div>
-            <div
-              className={cn(
-                'flex min-w-0 flex-col overflow-hidden transition-all',
-                isCollapsed
-                  ? 'ms-kv-inline max-w-[150px] opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0'
-                  : 'ms-kv-inline max-w-[150px] opacity-100'
-              )}
-            >
-              <KvTypography variant="subtitle" as="p" truncate>
-                {activeUser.firstName} {activeUser.lastName}
-              </KvTypography>
-              <div className="mt-kv-micro">
-                <KvTypography variant="caption" tone="muted" as="p" truncate>
-                  {strategy.label}
-                </KvTypography>
-              </div>
-            </div>
-          </div>
-        </Link>
+        <UserAccountMenu
+          variant="sidebar"
+          isCollapsed={isCollapsed}
+          onNavigate={closeMobileSidebar}
+        />
       </aside>
     </>
   );

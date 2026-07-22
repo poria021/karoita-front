@@ -9,6 +9,8 @@ import { faIcons } from '@/utils/iconMap';
 export type KvFieldFrameProps = {
   id: string;
   label?: string | false;
+  /** آیکن کنار برچسب (مثلاً بخش بارگذاری مدرک). */
+  labelIcon?: ReactNode;
   required?: boolean;
   optionalHint?: boolean;
   locked?: boolean;
@@ -35,6 +37,7 @@ export function resolveFieldLabelMode(options: {
 export function KvFieldFrame({
   id,
   label,
+  labelIcon,
   required = false,
   optionalHint = false,
   locked = false,
@@ -56,6 +59,11 @@ export function KvFieldFrame({
     <div className="w-full font-sans" data-slot="kv-field-frame">
       {showLabel ? (
         <div className="mb-kv-field flex items-center gap-1.5" dir="rtl">
+          {labelIcon ? (
+            <span className="shrink-0 text-kv-brand-soft-fg" aria-hidden="true">
+              {labelIcon}
+            </span>
+          ) : null}
           <KvTypography variant="label" as="label" htmlFor={id}>
             {label}
             {showLabelLock ? (

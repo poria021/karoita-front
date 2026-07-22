@@ -17,7 +17,7 @@ import {
   type MockAuthIndexes,
 } from '@/services/auth/mock-auth.indexes';
 
-const MOCK_USERS_STORAGE_KEY = 'karvita_mock_auth_users';
+export const MOCK_USERS_STORAGE_KEY = 'karvita_mock_auth_users';
 const MOCK_USERS_VERSION_KEY = 'karvita_mock_auth_users_version';
 const SESSION_META_STORAGE_KEY = 'karvita_auth_session_meta';
 
@@ -30,9 +30,19 @@ export interface SessionMeta {
 
 let memoryUsers: MockAuthUserRecord[] | null = null;
 let memoryIndexes: MockAuthIndexes | null = null;
+let storageListenerBound = false;
+
+type MockAuthUsersListener = () => void;
+const mockAuthUsersListeners = new Set<MockAuthUsersListener>();
 
 function isBrowser(): boolean {
   return typeof window !== 'undefined';
+}
+
+function cloneUsers(
+  users: readonly MockAuthUserRecord[]
+): MockAuthUserRecord[] {
+  return users.map((user) => ({ ...user }));
 }
 
 function getCookie(name: string): string | null {
@@ -55,34 +65,61 @@ function deleteCookie(name: string): void {
   Cookies.remove(name, { path: '/' });
 }
 
+function notifyMockAuthUsersListeners(): void {
+  for (const listener of mockAuthUsersListeners) {
+    listener();
+  }
+}
+
+function bindCrossTabStorageListener(): void {
+  if (!isBrowser() || storageListenerBound) return;
+  storageListenerBound = true;
+  window.addEventListener('storage', (event) => {
+    if (
+      event.key !== MOCK_USERS_STORAGE_KEY &&
+      event.key !== MOCK_USERS_VERSION_KEY
+    ) {
+      return;
+    }
+    memoryUsers = null;
+    memoryIndexes = null;
+    notifyMockAuthUsersListeners();
+  });
+}
+
 function syncMemory(users: MockAuthUserRecord[]): MockAuthIndexes {
   memoryUsers = users;
   memoryIndexes = buildMockAuthIndexes(users);
   return memoryIndexes;
 }
 
+function persistUsersToStorage(users: MockAuthUserRecord[]): void {
+  window.localStorage.setItem(MOCK_USERS_STORAGE_KEY, JSON.stringify(users));
+  window.localStorage.setItem(MOCK_USERS_VERSION_KEY, MOCK_USERS_SEED_VERSION);
+}
+
 function readUsersFromStorage(): MockAuthUserRecord[] {
-  if (!isBrowser()) {
-    return memoryUsers ?? AUTH_MOCK_USERS;
-  }
+  bindCrossTabStorageListener();
 
   const version = window.localStorage.getItem(MOCK_USERS_VERSION_KEY);
   if (version !== MOCK_USERS_SEED_VERSION) {
-    writeMockUsers(AUTH_MOCK_USERS);
-    return AUTH_MOCK_USERS;
+    const seed = cloneUsers(AUTH_MOCK_USERS);
+    persistUsersToStorage(seed);
+    return seed;
   }
 
   const stored = window.localStorage.getItem(MOCK_USERS_STORAGE_KEY);
   if (!stored) {
-    writeMockUsers(AUTH_MOCK_USERS);
-    return AUTH_MOCK_USERS;
+    const seed = cloneUsers(AUTH_MOCK_USERS);
+    persistUsersToStorage(seed);
+    return seed;
   }
 
   try {
     const parsed = JSON.parse(stored) as MockAuthUserRecord[];
-    return Array.isArray(parsed) ? parsed : AUTH_MOCK_USERS;
+    return Array.isArray(parsed) ? parsed : cloneUsers(AUTH_MOCK_USERS);
   } catch {
-    return AUTH_MOCK_USERS;
+    return cloneUsers(AUTH_MOCK_USERS);
   }
 }
 
@@ -93,17 +130,39 @@ function readUsersFromStorage(): MockAuthUserRecord[] {
 export function writeMockUsers(users: MockAuthUserRecord[]): void {
   if (isBrowser()) {
     assertMockApiMode();
-    window.localStorage.setItem(MOCK_USERS_STORAGE_KEY, JSON.stringify(users));
-    window.localStorage.setItem(MOCK_USERS_VERSION_KEY, MOCK_USERS_SEED_VERSION);
+    bindCrossTabStorageListener();
+    persistUsersToStorage(users);
   }
   syncMemory(users);
+  notifyMockAuthUsersListeners();
 }
 
+/**
+ * در مرورگر همیشه localStorage منبع حقیقت است تا تب/HMR با حافظهٔ کهنه
+ * کاربر تازه‌ثبت‌نام‌شده را از لیست تأیید صلاحیت حذف نکند.
+ */
 export function readMockUsers(): MockAuthUserRecord[] {
-  if (memoryUsers) return memoryUsers;
+  if (!isBrowser()) {
+    if (!memoryUsers) {
+      syncMemory(cloneUsers(AUTH_MOCK_USERS));
+    }
+    return memoryUsers!;
+  }
+
   const users = readUsersFromStorage();
   syncMemory(users);
-  return users;
+  return memoryUsers!;
+}
+
+/** برای رفرش لیست ادمین وقتی دایرکتوری mock عوض می‌شود (همین تب یا تب دیگر). */
+export function subscribeMockAuthUsers(
+  listener: MockAuthUsersListener
+): () => void {
+  mockAuthUsersListeners.add(listener);
+  bindCrossTabStorageListener();
+  return () => {
+    mockAuthUsersListeners.delete(listener);
+  };
 }
 
 function indexes(): MockAuthIndexes {

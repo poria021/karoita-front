@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
+import { isMockApiMode } from '@/lib/api-mode';
+import { subscribeMockAuthUsers } from '@/services/auth/mock-auth.store';
 import {
   ONBOARDING_APPROVALS_PAGE_SIZE,
   OnboardingApprovalsService,
@@ -108,6 +110,13 @@ export function useOnboardingApprovalsPage() {
     reload,
     clearLoadMoreError,
   } = list;
+
+  useEffect(() => {
+    if (!isMockApiMode()) return;
+    return subscribeMockAuthUsers(() => {
+      void reload();
+    });
+  }, [reload]);
 
   const selectedUser =
     items.find((user) => user.id === selectedId) ?? null;

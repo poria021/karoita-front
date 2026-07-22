@@ -9,6 +9,11 @@ import {
   type KvTextFieldSize,
 } from '@/components/shared/fields/KvTextField';
 import { faIcons } from '@/utils/iconMap';
+import {
+  PASSWORD_LATIN_ONLY_HINT,
+  containsPersianOrArabicScript,
+  stripPersianOrArabicScript,
+} from '@/utils/passwordInput';
 
 export type KvPasswordFieldProps = {
   id?: string;
@@ -61,12 +66,25 @@ export const KvPasswordField = React.forwardRef<
   const [autofillUnlocked, setAutofillUnlocked] = React.useState(
     !suppressBrowserAutofill
   );
+  const [latinOnlyHint, setLatinOnlyHint] = React.useState<string | undefined>();
 
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     if (suppressBrowserAutofill && !autofillUnlocked) {
       setAutofillUnlocked(true);
     }
     onFocus?.(event);
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = event.target.value;
+    if (containsPersianOrArabicScript(raw)) {
+      const cleaned = stripPersianOrArabicScript(raw);
+      event.target.value = cleaned;
+      setLatinOnlyHint(PASSWORD_LATIN_ONLY_HINT);
+    } else if (latinOnlyHint) {
+      setLatinOnlyHint(undefined);
+    }
+    onChange?.(event);
   };
 
   return (
@@ -90,9 +108,9 @@ export const KvPasswordField = React.forwardRef<
       name={name}
       onBlur={onBlur}
       onFocus={handleFocus}
-      onChange={onChange}
+      onChange={handleChange}
       error={error}
-      hint={hint}
+      hint={latinOnlyHint ?? hint}
       footer={footer}
       endAddon={
         locked ? undefined : (
@@ -100,16 +118,17 @@ export const KvPasswordField = React.forwardRef<
             type="button"
             color="neutral"
             appearance="text"
+            size="xs"
             icon={
               <FaIcon
                 icon={isVisible ? faIcons.eyeSlash : faIcons.eye}
-                size="xs"
+                size="md"
               />
             }
             onClick={() => setIsVisible((current) => !current)}
             aria-label={isVisible ? 'پنهان کردن رمز عبور' : 'نمایش رمز عبور'}
             aria-pressed={isVisible}
-            className="me-2"
+            className="me-0.5"
           />
         )
       }

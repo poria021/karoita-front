@@ -9,6 +9,7 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/fields/KvForm';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { AuthService } from '@/services/auth.service';
 import { faIcons } from '@/utils/iconMap';
 
@@ -165,9 +166,20 @@ export function SecurityForm({
   return (
     <KvCard
       dir="rtl"
-      className="mx-auto w-full max-w-4xl gap-0 rounded-kv-panel border-kv-border py-0 shadow-kv-raised"
+      className="w-full gap-0 rounded-kv-panel border-kv-border py-0 shadow-kv-raised"
     >
-      <KvCardContent className="space-y-kv-stack p-kv-inset sm:p-kv-section">
+      <KvCardContent className="space-y-kv-section p-kv-inset sm:p-kv-block">
+        <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-inline">
+          <FaIcon
+            icon={faIcons.key}
+            size="sm"
+            className="shrink-0 text-kv-brand-soft-fg"
+          />
+          <KvTypography variant="label">
+            تنظیم رمز عبور حساب
+          </KvTypography>
+        </div>
+
         {!hasExistingPassword ? (
           <KvForm {...passwordForm}>
             <form
@@ -176,7 +188,7 @@ export function SecurityForm({
               noValidate
             >
               <KvAlert
-                variant="info"
+                variant="warning"
                 title="برای حساب شما هنوز رمز عبور ثبت نشده است"
                 description="رمز عبور جدید را در کادرهای زیر وارد و ثبت کنید."
               />
@@ -191,7 +203,6 @@ export function SecurityForm({
                   appearance="solid"
                   loading={isBusy}
                   disabled={disabled}
-                  icon={<FaIcon icon={faIcons.key} size="sm" />}
                 >
                   تأیید و ثبت رمز عبور اولیه
                 </KvButton>

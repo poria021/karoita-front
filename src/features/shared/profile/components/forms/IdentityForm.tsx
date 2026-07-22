@@ -70,13 +70,15 @@ export function IdentityForm({
   const submit = form.handleSubmit(async (data) => {
     setSubmitError(null);
     try {
-      await ProfileService.updateProfile(data, token);
+      // role فقط در defaultValues است؛ صریحاً از liveUser می‌آید تا در submit گم نشود.
+      const payload = { ...data, role: liveUser.role };
+      await ProfileService.updateProfile(payload, token);
       if (identityDocument) {
         const documentBase64 = await fileToDataUrl(identityDocument);
         await ProfileService.updateIdentityDocument(documentBase64, token);
       }
 
-      form.reset(data);
+      form.reset(payload);
       onSaved?.();
     } catch (error) {
       setSubmitError(
@@ -95,29 +97,18 @@ export function IdentityForm({
   return (
     <KvCard
       dir="rtl"
-      className="mx-auto w-full max-w-4xl gap-0 border-kv-border py-0 shadow-kv-raised"
+      className="w-full gap-0 border-kv-border py-0 shadow-kv-raised"
     >
       <KvCardContent className="space-y-kv-section p-kv-inset sm:p-kv-block">
-        <div className="flex items-center justify-between border-b border-kv-border pb-kv-inline">
-          <div className="flex items-center gap-kv-pair">
-            <FaIcon
-              icon={faIcons.idCard}
-              size="sm"
-              className="shrink-0 text-kv-brand-soft-fg"
-            />
-            <div className="flex items-center gap-kv-field">
-              <KvTypography variant="caption" tone="muted" weight="bold">
-                نقش کاربری: {roleStrategy.label}
-              </KvTypography>
-              {isProfileLocked ? (
-                <FaIcon
-                  icon={faIcons.lock}
-                  size="xs"
-                  className="text-kv-text-faint"
-                />
-              ) : null}
-            </div>
-          </div>
+        <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-inline">
+          <FaIcon
+            icon={faIcons.idCard}
+            size="sm"
+            className="shrink-0 text-kv-brand-soft-fg"
+          />
+          <KvTypography variant="label">
+            مشخصات کاربر
+          </KvTypography>
         </div>
 
         {statusAlerts ? (
@@ -174,7 +165,9 @@ export function IdentityForm({
                 disabled={isDisabled}
                 optionalHint
                 label="بارگذاری مدرک هویتی"
-                description="بارگذاری مدرک اختیاری است و مانع ثبت اطلاعات هویتی نمی‌شود."
+                labelIcon={
+                  <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
+                }
                 helperText="PNG, JPG تا ۱۰ مگابایت"
                 previewAlt="پیش‌نمایش مدرک ارسالی"
               />
@@ -184,33 +177,42 @@ export function IdentityForm({
               <KvAlert variant="error" title={submitError} />
             ) : null}
 
-            <div className="mt-kv-group flex flex-col items-end gap-kv-pair border-t border-kv-border pt-kv-group">
+            <div className="mt-kv-group flex flex-col gap-kv-pair border-t border-kv-border pt-kv-group sm:flex-row sm:items-center sm:justify-between sm:gap-kv-group">
               {isProfileLocked ? (
-                <div role="status">
+                <div
+                  role="status"
+                  className="flex min-w-0 flex-1 items-start gap-kv-pair text-start"
+                >
+                  <FaIcon
+                    icon={
+                      liveUser.docStatus === 'approved'
+                        ? faIcons.circleCheck
+                        : faIcons.circleExclamation
+                    }
+                    size="sm"
+                    className="mt-0.5 shrink-0 text-kv-text-faint"
+                    aria-hidden
+                  />
                   <KvTypography
                     variant="caption"
                     tone="muted"
                     weight="medium"
                   >
-                    اطلاعات شما در حال بررسی یا تأیید شده است؛ تا تعیین وضعیت
-                    پرونده امکان ویرایش و ارسال مجدد وجود ندارد.
+                    {liveUser.docStatus === 'approved'
+                      ? 'اطلاعات شما توسط مدیریت تأیید شده است؛ امکان ویرایش و ارسال مجدد وجود ندارد.'
+                      : 'اطلاعات شما ارسال شده و در انتظار تأیید مدیریت است؛ تا تعیین وضعیت پرونده امکان ویرایش و ارسال مجدد وجود ندارد.'}
                   </KvTypography>
                 </div>
-              ) : null}
+              ) : (
+                <div className="min-w-0 flex-1" aria-hidden="true" />
+              )}
               <KvButton
                 type="submit"
                 color="cta"
                 appearance="solid"
                 loading={isBusy}
                 disabled={isProfileLocked}
-                icon={
-                  <FaIcon
-                    icon={faIcons.arrowLeft}
-                    size="sm"
-                    className="rtl:rotate-180"
-                  />
-                }
-                iconPosition="end"
+                className="shrink-0 self-end sm:self-auto"
               >
                 {isBusy ? 'در حال ارسال...' : submitLabel}
               </KvButton>

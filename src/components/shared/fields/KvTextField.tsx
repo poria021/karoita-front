@@ -166,7 +166,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
     const resolvedStartAddon =
       startAddon ??
       (startIcon ? (
-        <span className="flex h-full items-center ps-3">{startIcon}</span>
+        <span className="flex h-full items-center ps-1.5">{startIcon}</span>
       ) : null);
 
     return (

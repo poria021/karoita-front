@@ -2,7 +2,6 @@
 
 import { Controller } from 'react-hook-form';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
@@ -162,7 +161,6 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
               size="md"
               loading={page.submitting}
               disabled={page.mobileDuplicate || page.checkingMobile}
-              icon={<FaIcon icon={faIcons.userPlus} size="xs" />}
             >
               ثبت و ایجاد حساب کاربری
             </KvButton>

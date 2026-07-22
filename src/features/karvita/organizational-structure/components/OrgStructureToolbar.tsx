@@ -1,10 +1,8 @@
 'use client';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
-import { faIcons } from '@/utils/iconMap';
 
 import type { OrgStructureTabConfig } from '../constants';
 
@@ -49,7 +47,6 @@ export function OrgStructureToolbar({
           appearance="solid"
           className="w-full shrink-0 sm:w-auto"
           onClick={onAdd}
-          icon={<FaIcon icon={faIcons.plus} size="xs" />}
         >
           افزودن {tabConfig.addLabel}
         </KvButton>

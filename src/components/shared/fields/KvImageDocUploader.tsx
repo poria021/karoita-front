@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
   type MouseEvent,
+  type ReactNode,
 } from 'react';
 import { useDropzone, type FileRejection } from 'react-dropzone';
 
@@ -30,6 +31,7 @@ export type KvImageDocUploaderProps = {
   value?: File | null;
   onChange: (file: File | null) => void;
   label?: string | false;
+  labelIcon?: ReactNode;
   description?: string;
   helperText?: string;
   disabled?: boolean;
@@ -44,6 +46,7 @@ export function KvImageDocUploader({
   value,
   onChange,
   label = 'بارگذاری تصویر',
+  labelIcon,
   description,
   helperText = 'PNG, JPG تا ۱۰ مگابایت',
   disabled = false,
@@ -147,6 +150,7 @@ export function KvImageDocUploader({
       <KvFieldFrame
         id={id}
         label={label}
+        labelIcon={labelIcon}
         optionalHint={optionalHint}
         locked={disabled}
         showLockIcon={disabled}
