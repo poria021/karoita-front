@@ -122,13 +122,13 @@ export const KvPasswordField = React.forwardRef<
             icon={
               <FaIcon
                 icon={isVisible ? faIcons.eyeSlash : faIcons.eye}
-                size="md"
+                size="sm"
               />
             }
             onClick={() => setIsVisible((current) => !current)}
             aria-label={isVisible ? 'پنهان کردن رمز عبور' : 'نمایش رمز عبور'}
             aria-pressed={isVisible}
-            className="me-0.5"
+            className="me-0.5 text-kv-text-placeholder hover:text-kv-text-placeholder"
           />
         )
       }

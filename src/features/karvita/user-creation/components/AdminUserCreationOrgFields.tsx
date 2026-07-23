@@ -36,6 +36,7 @@ export function AdminUserCreationOrgFields({
           control={control}
           render={({ field }) => (
             <KvSearchableOrganizationSelect
+              ref={field.ref}
               type="province"
               label="استان تابعه"
               required
@@ -52,6 +53,7 @@ export function AdminUserCreationOrgFields({
           control={control}
           render={({ field }) => (
             <KvSearchableOrganizationSelect
+              ref={field.ref}
               type="city"
               label="شهر تابعه"
               required
@@ -70,6 +72,7 @@ export function AdminUserCreationOrgFields({
           control={control}
           render={({ field }) => (
             <KvSearchableOrganizationSelect
+              ref={field.ref}
               type="district"
               label="منطقه آموزشی متصل"
               required
@@ -101,6 +104,7 @@ export function AdminUserCreationOrgFields({
         control={control}
         render={({ field }) => (
           <KvSearchableOrganizationSelect
+            ref={field.ref}
             type="province"
             label="استان مربوطه"
             required
@@ -118,6 +122,7 @@ export function AdminUserCreationOrgFields({
           control={control}
           render={({ field }) => (
             <KvSearchableOrganizationSelect
+              ref={field.ref}
               type="college"
               label="دانشکده / پردیس متصل"
               required

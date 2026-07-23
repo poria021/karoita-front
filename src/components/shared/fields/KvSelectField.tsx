@@ -36,23 +36,29 @@ const SIZE_CLASS: Record<KvTextFieldSize, string> = {
   lg: 'h-12 px-4 data-[size=default]:h-12',
 };
 
-export function KvSelectField({
-  label,
-  required = false,
-  optionalHint = false,
-  size = 'md',
-  placeholder,
-  error,
-  hint,
-  locked = false,
-  showLockIcon,
-  id: idProp,
-  value,
-  onValueChange,
-  disabled,
-  contentClassName,
-  children,
-}: KvSelectFieldProps) {
+export const KvSelectField = React.forwardRef<
+  HTMLButtonElement,
+  KvSelectFieldProps
+>(function KvSelectField(
+  {
+    label,
+    required = false,
+    optionalHint = false,
+    size = 'md',
+    placeholder,
+    error,
+    hint,
+    locked = false,
+    showLockIcon,
+    id: idProp,
+    value,
+    onValueChange,
+    disabled,
+    contentClassName,
+    children,
+  },
+  ref
+) {
   const generatedId = React.useId();
   const id = idProp ?? generatedId;
   const isDisabled = locked || disabled;
@@ -75,6 +81,7 @@ export function KvSelectField({
         disabled={isDisabled}
       >
         <KvSelectTrigger
+          ref={ref}
           id={id}
           aria-invalid={error ? true : undefined}
           aria-describedby={
@@ -99,4 +106,6 @@ export function KvSelectField({
       </KvSelect>
     </KvFieldFrame>
   );
-}
+});
+
+KvSelectField.displayName = 'KvSelectField';

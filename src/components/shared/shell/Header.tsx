@@ -3,6 +3,7 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { HeaderNotificationsMenu } from '@/components/shared/shell/HeaderNotificationsMenu';
+import { ThemeModeToggle } from '@/components/shared/shell/ThemeModeToggle';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useUIStore } from '@/store/useUIStore';
@@ -65,6 +66,10 @@ export function Header() {
             className="hidden h-4 w-px bg-kv-neutral-hover/80 md:inline"
             aria-hidden="true"
           />
+
+          <ThemeModeToggle />
+
+          <span className="h-4 w-px bg-kv-neutral-hover/80" aria-hidden="true" />
 
           <HeaderNotificationsMenu />
 

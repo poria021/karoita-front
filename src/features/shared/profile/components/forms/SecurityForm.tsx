@@ -4,14 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/fields/KvForm';
-import { KvTypography } from '@/components/shared/KvTypography';
 import { AuthService } from '@/services/auth.service';
-import { faIcons } from '@/utils/iconMap';
 
 import {
   securityOtpSchema,
@@ -169,17 +166,6 @@ export function SecurityForm({
       className="w-full gap-0 rounded-kv-panel border-kv-border py-0 shadow-kv-raised"
     >
       <KvCardContent className="space-y-kv-section p-kv-inset sm:p-kv-block">
-        <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-inline">
-          <FaIcon
-            icon={faIcons.key}
-            size="sm"
-            className="shrink-0 text-kv-brand-soft-fg"
-          />
-          <KvTypography variant="label">
-            تنظیم رمز عبور حساب
-          </KvTypography>
-        </div>
-
         {!hasExistingPassword ? (
           <KvForm {...passwordForm}>
             <form

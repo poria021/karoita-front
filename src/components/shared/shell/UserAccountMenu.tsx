@@ -214,7 +214,7 @@ export function UserAccountMenu({
               )}
             >
               <div className="relative flex shrink-0 items-center justify-center text-kv-text-faint">
-                <FaIcon icon={roleIcon} size="md" />
+                <FaIcon icon={roleIcon} size="lg" />
               </div>
               <div
                 className={cn(
@@ -226,6 +226,9 @@ export function UserAccountMenu({
               >
                 <KvTypography variant="subtitle" as="p" truncate>
                   {name}
+                </KvTypography>
+                <KvTypography variant="caption" as="p" truncate>
+                  {strategy.label}
                 </KvTypography>
               </div>
             </div>

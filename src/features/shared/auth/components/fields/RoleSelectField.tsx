@@ -34,6 +34,7 @@ export function RoleSelectField({
           placeholder="انتخاب نقش..."
           value={field.value ?? ''}
           onValueChange={field.onChange}
+          ref={field.ref}
         >
           {SELF_REGISTERABLE_ROLES.map((role) => (
             <KvSelectItem key={role} value={role}>

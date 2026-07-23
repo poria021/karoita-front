@@ -5,9 +5,10 @@ import { cn } from '@/lib/utils';
 
 export type KvInputProps = React.ComponentProps<'input'>;
 
-export function KvInput({ className, ...props }: KvInputProps) {
+export function KvInput({ className, ref, ...props }: KvInputProps) {
   return (
     <Input
+      ref={ref}
       data-slot="kv-input"
       className={cn(
         'h-11 w-full min-w-0 rounded-kv-control border border-kv-border-strong bg-kv-surface',

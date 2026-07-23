@@ -73,6 +73,7 @@ export function KvImageDocUploader({
 
   const onDrop = useCallback(
     async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+      if (disabled) return;
       setLocalError(null);
 
       if (rejectedFiles.length > 0) {
@@ -118,7 +119,7 @@ export function KvImageDocUploader({
         setIsCompressing(false);
       }
     },
-    [maxSizeMb, onChange]
+    [disabled, maxSizeMb, onChange]
   );
 
   const handleRemove = useCallback(
@@ -139,11 +140,14 @@ export function KvImageDocUploader({
     maxSize: maxSizeMb * 1024 * 1024,
     maxFiles: 1,
     disabled: disabled || isCompressing,
-    noClick: !!value || isCompressing,
-    noDrag: !!value || isCompressing,
+    noClick: disabled || !!value || isCompressing,
+    noDrag: disabled || !!value || isCompressing,
+    noKeyboard: disabled || !!value || isCompressing,
   });
 
   const displayError = error || localError || undefined;
+  const isLocked = disabled;
+  const showOptionalHint = optionalHint || isLocked;
 
   return (
     <div className="space-y-kv-inline rounded-kv-panel border border-kv-border bg-kv-surface-muted/60 p-kv-group">
@@ -151,9 +155,9 @@ export function KvImageDocUploader({
         id={id}
         label={label}
         labelIcon={labelIcon}
-        optionalHint={optionalHint}
-        locked={disabled}
-        showLockIcon={disabled}
+        optionalHint={showOptionalHint}
+        locked={isLocked}
+        showLockIcon={false}
         error={displayError}
       >
         {description ? (
@@ -181,7 +185,7 @@ export function KvImageDocUploader({
               <input {...getInputProps()} id={id} />
               <div
                 className={cn(
-                  disabled ? 'text-kv-text-disabled' : 'text-kv-text-faint',
+                  disabled ? 'text-kv-text-disabled' : 'text-kv-text-placeholder',
                   isDragActive && !disabled && 'text-kv-brand-soft-fg'
                 )}
               >
@@ -190,6 +194,7 @@ export function KvImageDocUploader({
               <KvTypography
                 variant="subtitle"
                 weight="black"
+                tone={disabled ? 'disabled' : 'default'}
                 as="p"
                 align="center"
               >

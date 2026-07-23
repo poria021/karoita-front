@@ -92,6 +92,7 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
                     }}
                     onBlur={field.onBlur}
                     name={field.name}
+                    ref={field.ref}
                     error={mobileError}
                   />
                 )}
@@ -113,6 +114,7 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
+                    ref={field.ref}
                     error={errors.password?.message}
                   />
                 )}
@@ -131,6 +133,7 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
                     placeholder="-- انتخاب نقش سازمانی حساب --"
                     value={field.value || ''}
                     onValueChange={page.onRoleChange}
+                    ref={field.ref}
                     error={errors.role?.message}
                   >
                     {ORG_ACCOUNT_ROLE_OPTIONS.map((option) => (

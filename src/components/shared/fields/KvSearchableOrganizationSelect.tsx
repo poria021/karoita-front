@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, forwardRef } from 'react';
 import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -35,19 +35,25 @@ export type KvSearchableOrganizationSelectProps = {
   onChange: (value: string) => void;
 };
 
-export function KvSearchableOrganizationSelect({
-  type,
-  label = false,
-  required = false,
-  optionalHint = false,
-  value,
-  placeholder,
-  locked = false,
-  showLockIcon,
-  error,
-  dependsOn,
-  onChange,
-}: KvSearchableOrganizationSelectProps) {
+export const KvSearchableOrganizationSelect = forwardRef<
+  HTMLInputElement,
+  KvSearchableOrganizationSelectProps
+>(function KvSearchableOrganizationSelect(
+  {
+    type,
+    label = false,
+    required = false,
+    optionalHint = false,
+    value,
+    placeholder,
+    locked = false,
+    showLockIcon,
+    error,
+    dependsOn,
+    onChange,
+  },
+  ref
+) {
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
@@ -114,6 +120,7 @@ export function KvSearchableOrganizationSelect({
       aria-controls={open ? `org-select-${type}` : undefined}
     >
       <KvSearchField
+        ref={ref}
         label={label}
         required={required}
         optionalHint={optionalHint}
@@ -128,10 +135,10 @@ export function KvSearchableOrganizationSelect({
           <span className="flex h-full items-center pe-1.5">
             <FaIcon
               icon={faIcons.chevronDown}
-              size="xs"
+              size="sm"
               className={cn(
-                'shrink-0 text-kv-text-faint opacity-50',
-                locked && 'text-kv-text-disabled opacity-35'
+                'shrink-0 text-kv-text-placeholder',
+                locked && 'text-kv-text-disabled'
               )}
             />
           </span>
@@ -239,4 +246,6 @@ export function KvSearchableOrganizationSelect({
       ) : null}
     </div>
   );
-}
+});
+
+KvSearchableOrganizationSelect.displayName = 'KvSearchableOrganizationSelect';

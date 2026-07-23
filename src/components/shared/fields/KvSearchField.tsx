@@ -38,7 +38,7 @@ export const KvSearchField = React.forwardRef<
       autoComplete={autoComplete}
       startIcon={
         showIcon ? (
-          <FaIcon icon={faIcons.magnifyingGlass} size="md" />
+          <FaIcon icon={faIcons.magnifyingGlass} size="sm" />
         ) : undefined
       }
       {...props}

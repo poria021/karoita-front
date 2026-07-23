@@ -50,6 +50,7 @@ export function DynamicRoleFields({
             name={name}
             render={({ field, fieldState }) => (
               <KvSearchableOrganizationSelect
+                ref={field.ref}
                 type={name}
                 label={ORGANIZATION_LABELS[name]}
                 required={!optional}

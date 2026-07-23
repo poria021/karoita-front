@@ -58,25 +58,18 @@ export function IdentityForm({
     storeUser && storeUser.id === activeUser.id ? storeUser : activeUser;
 
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
-  const [docError, setDocError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const roleStrategy = getRoleStrategy(liveUser.role);
-  const requireIdentityDoc = showDocUploader && !autoApproveOnSave;
   const form = useForm<ProfileSchema>({
     resolver: zodResolver(createProfileSchema(liveUser.role)),
     defaultValues: getProfileDefaultValues(liveUser),
     mode: 'onSubmit',
     reValidateMode: 'onChange',
+    shouldFocusError: true,
   });
 
   const submit = form.handleSubmit(async (data) => {
     setSubmitError(null);
-    setDocError(null);
-
-    if (requireIdentityDoc && !identityDocument) {
-      setDocError('بارگذاری مدرک هویتی برای ارسال به تأیید مدیریت الزامی است.');
-      return;
-    }
 
     try {
       let documentBase64: string | undefined;
@@ -105,7 +98,8 @@ export function IdentityForm({
   const isBusy = form.formState.isSubmitting;
   const isProfileLocked =
     disabled || isIdentityProfileLocked(liveUser, !autoApproveOnSave);
-  const isDisabled = isProfileLocked || isBusy;
+  // Do not lock fields while submitting — RHF cannot focus disabled inputs on validation error.
+  const isDisabled = isProfileLocked;
 
   return (
     <KvCard
@@ -113,17 +107,6 @@ export function IdentityForm({
       className="w-full gap-0 border-kv-border py-0 shadow-kv-raised"
     >
       <KvCardContent className="space-y-kv-section p-kv-inset sm:p-kv-block">
-        <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-inline">
-          <FaIcon
-            icon={faIcons.idCard}
-            size="sm"
-            className="shrink-0 text-kv-brand-soft-fg"
-          />
-          <KvTypography variant="label">
-            مشخصات کاربر
-          </KvTypography>
-        </div>
-
         {statusAlerts ? (
           <div className="space-y-kv-inline">{statusAlerts}</div>
         ) : null}
@@ -174,19 +157,15 @@ export function IdentityForm({
             {showDocUploader ? (
               <KvImageDocUploader
                 value={identityDocument}
-                onChange={(file) => {
-                  setIdentityDocument(file);
-                  if (file) setDocError(null);
-                }}
+                onChange={setIdentityDocument}
                 disabled={isDisabled}
-                optionalHint={!requireIdentityDoc}
+                optionalHint
                 label="بارگذاری مدرک هویتی"
                 labelIcon={
                   <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
                 }
                 helperText="PNG, JPG تا ۱۰ مگابایت"
                 previewAlt="پیش‌نمایش مدرک ارسالی"
-                error={docError ?? undefined}
               />
             ) : null}
 
@@ -228,7 +207,7 @@ export function IdentityForm({
                 color="cta"
                 appearance="solid"
                 loading={isBusy}
-                disabled={isProfileLocked}
+                disabled={isProfileLocked || isBusy}
                 className="shrink-0 self-end sm:self-auto"
               >
                 {isBusy ? 'در حال ارسال...' : submitLabel}

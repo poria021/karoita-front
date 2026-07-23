@@ -209,19 +209,26 @@
 
   /*
    * Semantic elevation (`shadow-kv-*`) — use roles instead of raw shadow-sm/md/xl.
-   * - raised: cards, shell surfaces, nav chrome
-   * - overlay: dropdowns, popovers, auth card emphasis
-   * - floating: modals, mobile drawers, confirmation dialogs
-   * CTA solid actions use brand (`KvButton` color="cta" → kv-brand*).
+   * Values overridden on :root / .dark via --kv-shadow-* (Fluent light depth / dark glow).
    */
-  --shadow-kv-raised: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
-  --shadow-kv-overlay: 0 8px 24px -4px hsl(222 47% 11% / 0.12), 0 2px 8px -2px hsl(222 47% 11% / 0.08);
-  --shadow-kv-floating: 0 16px 40px -8px hsl(222 47% 11% / 0.18), 0 4px 12px -2px hsl(222 47% 11% / 0.1);
+  --shadow-kv-raised: var(--kv-shadow-raised);
+  --shadow-kv-overlay: var(--kv-shadow-overlay);
+  --shadow-kv-floating: var(--kv-shadow-floating);
 }
 
 :root {
   /* Align legacy shadcn radius ladder to kv nested scale (prefer rounded-kv-*) */
   --radius: 0.5rem; /* = control */
+
+  /*
+   * Elevation — light: soft ambient (Fluent card depth).
+   * - raised: cards, shell surfaces, nav chrome
+   * - overlay: dropdowns, popovers, auth card emphasis
+   * - floating: modals, mobile drawers, confirmation dialogs
+   */
+  --kv-shadow-raised: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
+  --kv-shadow-overlay: 0 8px 24px -4px hsl(222 47% 11% / 0.12), 0 2px 8px -2px hsl(222 47% 11% / 0.08);
+  --kv-shadow-floating: 0 16px 40px -8px hsl(222 47% 11% / 0.18), 0 4px 12px -2px hsl(222 47% 11% / 0.1);
 
   /* —— kv semantic palette (light) — HSL only (see rule 70-color-hsl-tokens) —— */
   /* App canvas — warm stage behind shell (one soft veil under pure white) */
@@ -341,83 +348,105 @@
 }
 
 .dark {
+  /*
+   * Dark — Fluent-inspired layering (Smoke / Mica feel) + Karvita brand.
+   * Layer 0 canvas → Layer 1 surface → Layer 2 muted/subtle (flyout / chrome).
+   * Prefer hairline borders + soft glow over heavy drop shadows.
+   */
+  --kv-shadow-raised:
+    0 0 0 1px hsl(0 0% 100% / 0.04),
+    0 1px 2px hsl(0 0% 0% / 0.35);
+  --kv-shadow-overlay:
+    0 0 0 1px hsl(0 0% 100% / 0.06),
+    0 8px 28px hsl(0 0% 0% / 0.45),
+    0 2px 8px hsl(0 0% 0% / 0.3);
+  --kv-shadow-floating:
+    0 0 0 1px hsl(0 0% 100% / 0.07),
+    0 16px 48px hsl(0 0% 0% / 0.55),
+    0 4px 14px hsl(0 0% 0% / 0.35);
+
   /* —— kv semantic palette (dark) — HSL only —— */
-  --kv-canvas: hsl(220 48.8% 8.4%);
-  --kv-surface: hsl(221 39.3% 11%);
-  --kv-main: hsl(221 36% 12.2%);
-  --kv-surface-muted: hsl(217 32.6% 17.5%);
-  --kv-surface-subtle: hsl(217 32.6% 17.5%);
-  --kv-surface-disabled: hsl(217 32.6% 17.5%);
-  --kv-field-disabled: hsl(217 28% 16%);
+  /* Layer 0 — app stage (Fluent smoke / charcoal-blue) */
+  --kv-canvas: hsl(220 22% 9%);
+  /* Layer 1 — cards / shell panels */
+  --kv-surface: hsl(220 18% 12.5%);
+  /* Dashboard main well — between canvas and surface */
+  --kv-main: hsl(220 20% 10.5%);
+  /* Layer 2 — chrome, hover wells, secondary panels */
+  --kv-surface-muted: hsl(220 14% 16%);
+  --kv-surface-subtle: hsl(220 12% 18.5%);
+  --kv-surface-disabled: hsl(220 12% 15%);
+  --kv-field-disabled: hsl(220 14% 14%);
   --kv-surface-inverse: hsl(210 40% 98%);
 
   --kv-text: hsl(210 40% 98%);
-  --kv-text-secondary: hsl(214 31.8% 91.4%);
-  --kv-text-muted: hsl(213 26.8% 83.9%);
-  --kv-text-subtle: hsl(215 20.2% 65.1%);
-  --kv-text-faint: hsl(215 20.2% 65.1%);
-  --kv-text-disabled: hsl(215 14% 48%);
+  --kv-text-secondary: hsl(214 25% 92%);
+  --kv-text-muted: hsl(214 18% 82%);
+  --kv-text-subtle: hsl(215 14% 68%);
+  --kv-text-faint: hsl(215 12% 58%);
+  --kv-text-disabled: hsl(215 10% 42%);
   --kv-text-inverse: hsl(222 47.4% 11.2%);
-  /* Darker than faint — low-contrast field placeholders only */
-  --kv-text-placeholder: hsl(215 15% 52%);
-  --kv-text-link: hsl(212 96.4% 78.4%);
-  --kv-text-link-hover: hsl(213 96.9% 87.3%);
+  --kv-text-placeholder: hsl(215 10% 48%);
+  --kv-text-link: hsl(213 96% 78%);
+  --kv-text-link-hover: hsl(213 96% 86%);
 
-  --kv-border: hsl(215 25% 26.7%);
-  --kv-border-strong: hsl(215 19.3% 34.5%);
-  --kv-border-muted: hsl(217 32.6% 17.5%);
-  --kv-border-disabled: hsl(215 18% 30%);
-  --kv-ring: hsl(213 93.9% 67.8%);
+  /* Fluent hairline separators — low contrast, not chalky */
+  --kv-border: hsl(220 12% 22%);
+  --kv-border-strong: hsl(220 10% 30%);
+  --kv-border-muted: hsl(220 14% 16%);
+  --kv-border-disabled: hsl(220 10% 24%);
+  --kv-ring: hsl(213 94% 68%);
   --kv-ring-danger: hsl(351 94.5% 71.4%);
 
-  --kv-brand: hsl(217 91.2% 59.8%);
-  --kv-brand-hover: hsl(213 93.9% 67.8%);
-  --kv-brand-active: hsl(212 96.4% 78.4%);
-  --kv-brand-fg: hsl(222 47.4% 11.2%);
-  --kv-brand-soft: hsl(226 57% 21%);
-  --kv-brand-soft-hover: hsl(224 64.3% 32.9%);
-  --kv-brand-soft-fg: hsl(213 96.9% 87.3%);
-  --kv-brand-border: hsl(226 70.7% 40.2%);
+  /* Brand stays Karvita blue — lifted for dark contrast (Fluent accent pattern) */
+  --kv-brand: hsl(217 91% 60%);
+  --kv-brand-hover: hsl(213 94% 68%);
+  --kv-brand-active: hsl(212 96% 76%);
+  --kv-brand-fg: hsl(222 47% 11%);
+  --kv-brand-soft: hsl(224 42% 18%);
+  --kv-brand-soft-hover: hsl(224 48% 24%);
+  --kv-brand-soft-fg: hsl(213 96% 86%);
+  --kv-brand-border: hsl(224 50% 32%);
 
   --kv-success: hsl(158 64.4% 51.6%);
   --kv-success-hover: hsl(156 71.6% 66.9%);
   --kv-success-fg: hsl(166 91.3% 9%);
-  --kv-success-soft: hsl(164 85.7% 16.5%);
-  --kv-success-soft-hover: hsl(163 88.1% 19.8%);
+  --kv-success-soft: hsl(164 50% 14%);
+  --kv-success-soft-hover: hsl(163 55% 18%);
   --kv-success-soft-fg: hsl(152 76% 80.4%);
-  --kv-success-border: hsl(163 93.5% 24.3%);
+  --kv-success-border: hsl(163 60% 22%);
 
   --kv-warning: hsl(43 96.4% 56.3%);
   --kv-warning-hover: hsl(46 96.7% 64.5%);
   --kv-warning-fg: hsl(26 83.3% 14.1%);
-  --kv-warning-soft: hsl(22 77.8% 26.5%);
-  --kv-warning-soft-hover: hsl(23 82.5% 31.4%);
+  --kv-warning-soft: hsl(28 45% 16%);
+  --kv-warning-soft-hover: hsl(28 50% 20%);
   --kv-warning-soft-fg: hsl(48 96.6% 76.7%);
-  --kv-warning-border: hsl(26 90.5% 37.1%);
+  --kv-warning-border: hsl(32 55% 28%);
 
   --kv-danger: hsl(351 94.5% 71.4%);
   --kv-danger-hover: hsl(353 95.7% 81.8%);
   --kv-danger-fg: hsl(343 87.7% 15.9%);
-  --kv-danger-soft: hsl(342 75.5% 30.4%);
-  --kv-danger-soft-hover: hsl(343 79.7% 34.7%);
+  --kv-danger-soft: hsl(345 45% 18%);
+  --kv-danger-soft-hover: hsl(345 50% 22%);
   --kv-danger-soft-fg: hsl(353 96.1% 90%);
-  --kv-danger-border: hsl(345 82.7% 40.8%);
+  --kv-danger-border: hsl(345 55% 32%);
 
   --kv-info: hsl(213 93.9% 67.8%);
   --kv-info-hover: hsl(212 96.4% 78.4%);
   --kv-info-fg: hsl(204 80.2% 15.9%);
-  --kv-info-soft: hsl(224 64.3% 32.9%);
-  --kv-info-soft-hover: hsl(226 70.7% 40.2%);
+  --kv-info-soft: hsl(224 42% 18%);
+  --kv-info-soft-hover: hsl(224 48% 24%);
   --kv-info-soft-fg: hsl(213 96.9% 87.3%);
-  --kv-info-border: hsl(224 76.3% 48%);
+  --kv-info-border: hsl(224 50% 32%);
 
-  --kv-neutral: hsl(215 25% 26.7%);
-  --kv-neutral-hover: hsl(215 19.3% 34.5%);
-  --kv-neutral-fg: hsl(214 31.8% 91.4%);
-  --kv-neutral-soft: hsl(217 32.6% 17.5%);
-  --kv-neutral-soft-hover: hsl(215 25% 26.7%);
-  --kv-neutral-soft-fg: hsl(213 26.8% 83.9%);
-  --kv-neutral-border: hsl(215 25% 26.7%);
+  --kv-neutral: hsl(220 10% 26%);
+  --kv-neutral-hover: hsl(220 10% 32%);
+  --kv-neutral-fg: hsl(214 25% 92%);
+  --kv-neutral-soft: hsl(220 14% 16%);
+  --kv-neutral-soft-hover: hsl(220 12% 20%);
+  --kv-neutral-soft-fg: hsl(214 18% 82%);
+  --kv-neutral-border: hsl(220 10% 26%);
 
   --background: var(--kv-canvas);
   --foreground: var(--kv-text);
@@ -442,7 +471,6 @@
   --chart-2: var(--kv-success);
   --chart-3: var(--kv-info);
   --chart-4: var(--kv-warning);
-  /* chart-5: brand-active (not purple) — avoids AI-purple look; shadcn chart slot kept */
   --chart-5: var(--kv-brand-active);
   --sidebar: var(--kv-surface);
   --sidebar-foreground: var(--kv-text);

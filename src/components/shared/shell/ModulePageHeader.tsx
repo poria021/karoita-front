@@ -20,7 +20,6 @@ export function ModulePageHeader() {
   return (
     <PageHeader
       title={meta.title}
-      description={meta.description}
       breadcrumb={<KvBreadcrumb items={crumbs} />}
       icon={<FaIcon icon={icon} size="lg" />}
       className="mb-kv-stack shrink-0"

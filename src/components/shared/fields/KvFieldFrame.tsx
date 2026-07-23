@@ -64,13 +64,17 @@ export function KvFieldFrame({
               {labelIcon}
             </span>
           ) : null}
-          <KvTypography variant="label" as="label" htmlFor={id}>
+          <KvTypography
+            variant="label"
+            as={locked ? 'span' : 'label'}
+            htmlFor={locked ? undefined : id}
+          >
             {label}
             {showLabelLock ? (
               <FaIcon
                 icon={faIcons.lock}
-                size="xs"
-                className="ms-1 inline align-middle text-kv-text-faint"
+                size="sm"
+                className="ms-1 inline align-middle text-kv-text-placeholder"
               />
             ) : null}
             {labelMode === 'required' ? (
@@ -95,7 +99,7 @@ export function KvFieldFrame({
         >
           <FaIcon
             icon={faIcons.circleExclamation}
-            size="xs"
+            size="sm"
             className="mt-0.5 shrink-0 text-kv-danger"
           />
           <KvTypography variant="error" tone="danger" as="span">
@@ -106,8 +110,8 @@ export function KvFieldFrame({
         <div className="mt-kv-field flex items-start gap-1.5" id={`${id}-hint`}>
           <FaIcon
             icon={faIcons.circleInfo}
-            size="xs"
-            className="mt-0.5 shrink-0 text-kv-text-faint"
+            size="sm"
+            className="mt-0.5 shrink-0 text-kv-text-placeholder"
           />
           <KvTypography variant="caption" tone="muted" as="span">
             {hint}

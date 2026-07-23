@@ -1,14 +1,13 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import useSWRInfinite from 'swr/infinite';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
   ORGANIZATION_OPTIONS_PAGE_SIZE,
   OrganizationOptionsService,
   type OrganizationOption,
-  type OrganizationOptionsResult,
 } from '@/services/organization-options.service';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
@@ -38,18 +37,9 @@ export type UseOrganizationOptionsResult = {
   reachedLimit: boolean;
 };
 
-type OrgOptionsKey = readonly [
-  'org-options',
-  OrganizationField,
-  string,
-  number,
-  string,
-  string,
-];
-
 /**
  * Paginated typeahead options for organization fields.
- * Uses SWR infinite + OrganizationOptionsService (not the admin-table list stack).
+ * TanStack `useInfiniteQuery` + OrganizationOptionsService (not the admin-table list stack).
  */
 export function useOrganizationOptions({
   type,
@@ -61,55 +51,47 @@ export function useOrganizationOptions({
   const province = dependsOn?.province ?? '';
   const district = dependsOn?.district ?? '';
 
-  const getKey = (
-    pageIndex: number,
-    previousPageData: OrganizationOptionsResult | null
-  ): OrgOptionsKey | null => {
-    if (!enabled) return null;
-    if (pageIndex >= MAX_ORG_OPTION_PAGES) return null;
-    if (previousPageData && !previousPageData.hasMore) return null;
+  const {
+    data,
+    error,
+    isPending,
+    isFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['org-options', type, debouncedQuery, province, district],
+    enabled,
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }) =>
+      OrganizationOptionsService.getOptions({
+        type,
+        query: debouncedQuery,
+        page: pageParam,
+        limit: ORGANIZATION_OPTIONS_PAGE_SIZE,
+        province: province || undefined,
+        district: district || undefined,
+      }),
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage.hasMore) return undefined;
+      if (allPages.length >= MAX_ORG_OPTION_PAGES) return undefined;
+      return allPages.length + 1;
+    },
+  });
 
-    return [
-      'org-options',
-      type,
-      debouncedQuery,
-      pageIndex + 1,
-      province,
-      district,
-    ] as const;
-  };
-
-  const { data, error, size, setSize, isLoading, isValidating } =
-    useSWRInfinite<OrganizationOptionsResult, Error, typeof getKey>(
-      getKey,
-      async (key) => {
-        const page = key[3];
-        return OrganizationOptionsService.getOptions({
-          type: key[1],
-          query: key[2],
-          page,
-          limit: ORGANIZATION_OPTIONS_PAGE_SIZE,
-          province: key[4] || undefined,
-          district: key[5] || undefined,
-        });
-      },
-      {
-        revalidateOnFocus: false,
-        revalidateFirstPage: false,
-      }
-    );
-
-  useEffect(() => {
-    void setSize(1);
-  }, [debouncedQuery, type, province, district, setSize]);
+  const pageCount = data?.pages.length ?? 0;
 
   const { items, totalMerged, reachedLimit } = useMemo(() => {
     if (!data) {
-      return { items: [] as OrganizationOption[], totalMerged: 0, reachedLimit: false };
+      return {
+        items: [] as OrganizationOption[],
+        totalMerged: 0,
+        reachedLimit: false,
+      };
     }
     const seen = new Set<string>();
     const merged: OrganizationOption[] = [];
-    for (const page of data) {
+    for (const page of data.pages) {
       for (const item of page.items) {
         if (seen.has(item.id)) continue;
         seen.add(item.id);
@@ -117,22 +99,23 @@ export function useOrganizationOptions({
       }
     }
     const hitDomCap = merged.length > MAX_ORG_OPTIONS_IN_DOM;
-    const hitPageCap = size >= MAX_ORG_OPTION_PAGES;
+    const hitPageCap = pageCount >= MAX_ORG_OPTION_PAGES;
     return {
       items: merged.slice(0, MAX_ORG_OPTIONS_IN_DOM),
       totalMerged: merged.length,
       reachedLimit: hitDomCap || hitPageCap,
     };
-  }, [data, size]);
+  }, [data, pageCount]);
 
-  const serverHasMore = Boolean(data?.[data.length - 1]?.hasMore);
-  const hasMore = serverHasMore && !reachedLimit && size < MAX_ORG_OPTION_PAGES;
-  const isLoadingMore = isValidating && size > 1 && items.length > 0;
-  const isInitialLoading = Boolean(enabled) && isLoading && items.length === 0;
+  const hasMore =
+    Boolean(hasNextPage) && !reachedLimit && pageCount < MAX_ORG_OPTION_PAGES;
+  const isLoadingMore = isFetchingNextPage && items.length > 0;
+  const isInitialLoading =
+    Boolean(enabled) && isPending && items.length === 0;
 
   const loadMore = () => {
-    if (!hasMore || isValidating) return;
-    void setSize(size + 1);
+    if (!hasMore || isFetching || isFetchingNextPage) return;
+    void fetchNextPage();
   };
 
   return {
@@ -141,7 +124,7 @@ export function useOrganizationOptions({
     isLoading: isInitialLoading,
     isLoadingMore,
     loadMore,
-    error: error ?? undefined,
+    error: error instanceof Error ? error : error ? new Error(String(error)) : undefined,
     reachedLimit: reachedLimit || totalMerged > MAX_ORG_OPTIONS_IN_DOM,
   };
 }

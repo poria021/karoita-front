@@ -29,12 +29,14 @@ function SelectTrigger({
   className,
   size = "default",
   children,
+  ref,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "default"
 }) {
   return (
     <SelectPrimitive.Trigger
+      ref={ref}
       data-slot="select-trigger"
       data-size={size}
       className={cn(
@@ -49,7 +51,11 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <FaIcon icon={faIcons.chevronDown} size="xs" className="opacity-50" />
+        <FaIcon
+          icon={faIcons.chevronDown}
+          size="sm"
+          className="text-kv-text-placeholder"
+        />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )

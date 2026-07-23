@@ -191,7 +191,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
           data-locked={locked || undefined}
         >
           {resolvedStartAddon ? (
-            <div className="flex h-full shrink-0 items-center text-kv-text-faint">
+            <div className="flex h-full shrink-0 items-center text-kv-text-placeholder">
               {resolvedStartAddon}
             </div>
           ) : null}
@@ -225,7 +225,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
           />
 
           {endAddon ? (
-            <div className="flex h-full shrink-0 items-center">
+            <div className="flex h-full shrink-0 items-center text-kv-text-placeholder">
               {endAddon}
             </div>
           ) : null}

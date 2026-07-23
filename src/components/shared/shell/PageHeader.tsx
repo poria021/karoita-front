@@ -4,7 +4,7 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 
 export interface PageHeaderProps {
-  title: string;
+  title?: string;
   description?: string;
   breadcrumb?: ReactNode;
   icon?: ReactNode;
@@ -20,22 +20,9 @@ export function PageHeader({
   actions,
   className,
 }: PageHeaderProps) {
-  const endSlot =
-    breadcrumb || actions ? (
-      <div className="flex shrink-0 flex-wrap items-center justify-start gap-kv-inline sm:justify-end">
-        {breadcrumb}
-        {actions}
-      </div>
-    ) : null;
-
-  return (
-    <header
-      className={cn(
-        'flex flex-col items-stretch justify-start gap-kv-inline border-b border-kv-border pb-kv-stack sm:flex-row sm:items-center sm:justify-between',
-        className
-      )}
-    >
-      <div className="flex min-w-0 items-start justify-start gap-kv-inline text-start">
+  const startSlot =
+    title || description || icon ? (
+      <div className="flex min-w-0 items-center justify-start gap-kv-inline text-start">
         {icon ? (
           <div
             className="flex size-10 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg"
@@ -44,19 +31,43 @@ export function PageHeader({
             {icon}
           </div>
         ) : null}
-        <div className="flex min-w-0 flex-col items-start justify-start text-start">
-          <KvTypography variant="title" truncate>
-            {title}
-          </KvTypography>
-          {description ? (
-            <div className="mt-1 min-w-0">
-              <KvTypography variant="caption" tone="muted">
-                {description}
+        {title || description ? (
+          <div className="flex min-w-0 flex-col items-start justify-center text-start">
+            {title ? (
+              <KvTypography variant="title" truncate>
+                {title}
               </KvTypography>
-            </div>
-          ) : null}
-        </div>
+            ) : null}
+            {description ? (
+              <div className={cn('min-w-0', title && 'mt-1')}>
+                <KvTypography variant="caption" tone="muted">
+                  {description}
+                </KvTypography>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
+    ) : null;
+
+  const endSlot =
+    breadcrumb || actions ? (
+      <div className="flex min-w-0 shrink-0 items-center justify-end gap-kv-inline">
+        {breadcrumb}
+        {actions}
+      </div>
+    ) : null;
+
+  if (!startSlot && !endSlot) return null;
+
+  return (
+    <header
+      className={cn(
+        'flex flex-row items-center justify-between gap-kv-inline border-b border-kv-border pb-kv-stack',
+        className
+      )}
+    >
+      {startSlot}
       {endSlot}
     </header>
   );
