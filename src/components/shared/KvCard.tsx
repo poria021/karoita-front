@@ -28,8 +28,8 @@ export type KvCardContentProps = React.ComponentProps<typeof CardContent> & {
 };
 
 const TONE_CLASS: Record<KvCardTone, string> = {
-  surface: 'border-kv-border bg-kv-surface',
-  muted: 'border-kv-border bg-kv-surface-muted',
+  surface: 'border-kv-border bg-kv-surface shadow-kv-raised',
+  muted: 'border-kv-border bg-kv-surface-muted shadow-kv-raised',
   danger: 'border-kv-danger-border bg-kv-danger-soft shadow-none',
 };
 

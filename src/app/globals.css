@@ -225,16 +225,20 @@
 
   /*
    * Light — Fluent 2 layering (base → content cards) + Karvita brand.
-   * Prefer hairline contour over multi-blur shadows (cheaper paint / scroll).
-   * Body canvas stays LinkedIn stage; main is a warm step above it.
+   * Body canvas is locked (LinkedIn stage). Surfaces elevate with contour + soft shadow.
    */
-  --kv-shadow-raised: 0 0 0 1px hsl(220 14% 20% / 0.06);
+  --kv-shadow-raised:
+    0 0 0 1px hsl(220 16% 18% / 0.06),
+    0 1px 2px hsl(220 20% 20% / 0.05),
+    0 2px 6px hsl(220 22% 22% / 0.06);
   --kv-shadow-overlay:
-    0 0 0 1px hsl(220 14% 20% / 0.08),
-    0 4px 12px hsl(220 20% 20% / 0.08);
+    0 0 0 1px hsl(220 16% 18% / 0.07),
+    0 8px 24px -4px hsl(220 25% 20% / 0.14),
+    0 2px 8px -2px hsl(220 25% 20% / 0.07);
   --kv-shadow-floating:
-    0 0 0 1px hsl(220 14% 20% / 0.09),
-    0 8px 24px hsl(220 22% 18% / 0.12);
+    0 0 0 1px hsl(220 16% 18% / 0.08),
+    0 16px 40px -8px hsl(220 25% 18% / 0.18),
+    0 4px 12px -2px hsl(220 25% 18% / 0.09);
 
   /* —— kv semantic palette (light) — HSL only (see rule 70-color-hsl-tokens) —— */
   /* Layer 0 — body/app stage ONLY (do not reuse for cards) */
@@ -366,16 +370,21 @@
 
 .dark {
   /*
-   * Dark — Fluent-inspired layering + Karvita brand.
-   * Contour-first elevation; keep blur only for overlay/floating (menus/modals).
+   * Dark — Fluent-inspired layering (Smoke / Mica feel) + Karvita brand.
+   * Layer 0 canvas → Layer 1 surface → Layer 2 muted/subtle (flyout / chrome).
+   * Prefer hairline borders + soft glow over heavy drop shadows.
    */
-  --kv-shadow-raised: 0 0 0 1px hsl(0 0% 100% / 0.06);
+  --kv-shadow-raised:
+    0 0 0 1px hsl(0 0% 100% / 0.04),
+    0 1px 2px hsl(0 0% 0% / 0.35);
   --kv-shadow-overlay:
-    0 0 0 1px hsl(0 0% 100% / 0.08),
-    0 4px 14px hsl(0 0% 0% / 0.4);
+    0 0 0 1px hsl(0 0% 100% / 0.06),
+    0 8px 28px hsl(0 0% 0% / 0.45),
+    0 2px 8px hsl(0 0% 0% / 0.3);
   --kv-shadow-floating:
-    0 0 0 1px hsl(0 0% 100% / 0.09),
-    0 8px 28px hsl(0 0% 0% / 0.5);
+    0 0 0 1px hsl(0 0% 100% / 0.07),
+    0 16px 48px hsl(0 0% 0% / 0.55),
+    0 4px 14px hsl(0 0% 0% / 0.35);
 
   /* —— kv semantic palette (dark) — HSL only —— */
   /* Layer 0 — app stage (charcoal-blue) */

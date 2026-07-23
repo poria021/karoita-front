@@ -30,7 +30,7 @@ export function CourseOfferingsPageSkeleton() {
         </div>
 
         <div className="grid grid-cols-1 items-start gap-kv-section lg:grid-cols-12 lg:gap-kv-group">
-          <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface lg:col-span-4">
+          <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-raised lg:col-span-4">
             <KvSkeletonTablePanel
               rows={8}
               heightClassName="h-auto min-h-[18rem]"
@@ -43,7 +43,7 @@ export function CourseOfferingsPageSkeleton() {
             className={cn(
               'flex flex-col gap-kv-group lg:col-span-8',
               'rounded-none border-0 bg-transparent p-0 shadow-none',
-              'md:rounded-kv-control md:border md:border-kv-border md:bg-kv-surface md:p-kv-group'
+              'md:rounded-kv-control md:border md:border-kv-border md:bg-kv-surface md:p-kv-group md:shadow-kv-raised'
             )}
           >
             <div className="flex flex-col gap-kv-group sm:flex-row sm:items-center sm:justify-between">
@@ -51,7 +51,7 @@ export function CourseOfferingsPageSkeleton() {
               <KvSkeleton className="h-9 w-full rounded-kv-control sm:w-32" />
             </div>
 
-            <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface">
+            <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-raised">
               <KvSkeletonTablePanel
                 rows={6}
                 heightClassName="max-h-[400px] min-h-[200px]"

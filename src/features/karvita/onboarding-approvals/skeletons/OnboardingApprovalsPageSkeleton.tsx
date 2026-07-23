@@ -53,7 +53,7 @@ export function OnboardingApprovalsPageSkeleton() {
       primary={
         <>
           <FiltersSkeleton searchPlaceholderLabel="در حال بارگذاری فهرست پرونده‌ها" />
-          <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface">
+          <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-raised">
             <KvSkeletonTablePanel
               rows={7}
               headerCols={['w-28', 'w-20', 'w-24', 'w-16']}

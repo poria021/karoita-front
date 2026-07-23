@@ -54,10 +54,12 @@ const TRIGGER_BASE = [
 /** Only active fill differs: brand (dashboard) vs white/surface (auth). */
 const TRIGGER_ACTIVE_BRAND = [
   'data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
+  'data-[state=active]:shadow-kv-raised data-[state=active]:shadow-kv-brand/15',
 ].join(' ');
 
 const TRIGGER_ACTIVE_SURFACE = [
   'data-[state=active]:bg-kv-surface data-[state=active]:text-kv-text',
+  'data-[state=active]:shadow-kv-raised',
 ].join(' ');
 
 /** One size recipe for all row tabs (auth + dashboard). */

@@ -64,7 +64,7 @@ export function WeeklySyllabusTable({
       className={cn(
         'flex flex-col gap-kv-group',
         'rounded-none border-0 bg-transparent p-0 shadow-none',
-        'md:rounded-kv-control md:border md:border-kv-border md:bg-kv-surface md:p-kv-group',
+        'md:rounded-kv-control md:border md:border-kv-border md:bg-kv-surface md:p-kv-group md:shadow-kv-raised',
         className
       )}
     >
