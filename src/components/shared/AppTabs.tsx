@@ -48,19 +48,19 @@ const LIST_RESPONSIVE_GRID = (cols: AppTabsGridCols) =>
     'lg:[-ms-overflow-style:none] lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden',
   ].join(' ');
 
-/** Dashboard: hug content on md+. Auth (`fullWidth`): always stretch. */
+/** Dashboard: full width through tablet; hug content from lg. Auth (`fullWidth`): always stretch. */
 const LIST_HUG = [
   'w-full self-stretch',
-  'md:inline-flex md:w-fit md:max-w-full md:self-start md:justify-start',
+  'lg:inline-flex lg:w-fit lg:max-w-full lg:self-start lg:justify-start',
 ].join(' ');
 
 const LIST_STRETCH = 'w-full self-stretch justify-stretch';
 
 const TRIGGER_BASE = [
   'inline-flex min-w-0 items-center justify-center rounded-kv-control',
-  // Same hairline as org-structure pills — all AppTabs stay visually uniform.
+  // Idle hairline — much fainter in dark so inactive pills stay quiet.
   'border border-kv-border-muted bg-transparent',
-  'dark:border-kv-border-strong/55',
+  'dark:border-kv-border/25',
   // Match page chrome (label/nav/body = text-xs); weight steps up when active.
   'font-sans text-xs font-medium leading-none text-kv-text-subtle shadow-none outline-none transition-all',
   'hover:text-kv-text',
@@ -95,7 +95,7 @@ const TRIGGER_ROW_SIZE_COMPACT = [
   'md:gap-1.5 md:px-2 md:py-1.5 md:min-h-9',
 ].join(' ');
 
-const TRIGGER_HUG = 'md:w-auto md:flex-none md:grow-0';
+const TRIGGER_HUG = 'lg:w-auto lg:flex-none lg:grow-0';
 /** Grid cells fill; desktop row hugs. */
 const TRIGGER_GRID = 'w-full min-w-0 lg:w-auto lg:flex-none lg:grow-0';
 
@@ -207,7 +207,7 @@ function AppTabsTrigger({
         fullWidth ? TRIGGER_ROW_SIZE_COMPACT : TRIGGER_ROW_SIZE,
         gridCols ? TRIGGER_GRID : !fullWidth && TRIGGER_HUG,
         !gridCols && fullWidth && 'flex-1',
-        !gridCols && !fullWidth && 'flex-1 md:flex-none',
+        !gridCols && !fullWidth && 'flex-1 lg:flex-none',
         className
       )}
       {...props}

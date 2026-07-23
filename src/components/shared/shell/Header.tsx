@@ -54,12 +54,12 @@ export function Header() {
             </div>
             {/* Title/subtitle only from lg — logo mark alone on mobile/tablet. */}
             <div className="hidden min-w-0 flex-col lg:flex">
-              <KvTypography variant="subtitle" weight="black" as="h1" truncate>
+              <KvTypography variant="display" as="h1" truncate>
                 کارویتا
               </KvTypography>
               <div className="mt-kv-nav-tight">
-                <KvTypography variant="caption" tone="muted" as="p" truncate>
-                  سامانه جامع آموزش نظری و مهارتی
+                <KvTypography variant="overline" tone="muted" as="p" truncate>
+                  سامانه آموزشی مهارتی
                 </KvTypography>
               </div>
             </div>

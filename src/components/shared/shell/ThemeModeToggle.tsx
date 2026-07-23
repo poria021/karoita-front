@@ -6,12 +6,13 @@ import { useEffect, useState } from 'react';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvSwitch } from '@/components/shared/fields/KvSwitch';
+import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
 /**
  * سوییچ تم روشن/تاریک — هدر داشبورد.
- * موبایل: فقط آیکن قابل‌کلیک. دسکتاپ/تبلت: سوییچ + آیکن‌های خورشید/ماه.
- * تا mount شدن next-themes رندر نمی‌شود تا mismatch هیدریشن نداشته باشیم.
+ * موبایل: سگمنت خورشید|ماه (هر دو دیده می‌شوند تا سوییچ واضح باشد).
+ * md+: سوییچ کلاسیک با آیکن‌های کناری.
  */
 export function ThemeModeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -25,7 +26,7 @@ export function ThemeModeToggle() {
     return (
       <>
         <span
-          className="inline-flex size-11 items-center justify-center md:hidden"
+          className="inline-flex h-9 w-[4.5rem] items-center justify-center md:hidden"
           aria-hidden
         />
         <span
@@ -37,28 +38,45 @@ export function ThemeModeToggle() {
   }
 
   const isDark = resolvedTheme === 'dark';
-  const toggleTheme = () => {
-    setTheme(isDark ? 'light' : 'dark');
-  };
 
   return (
     <>
-      <KvButton
-        type="button"
-        color="neutral"
-        appearance="ghost"
-        size="icon-sm"
-        className="md:hidden"
-        aria-label={isDark ? 'فعال کردن حالت روشن' : 'فعال کردن حالت تاریک'}
-        onClick={toggleTheme}
-        icon={
-          <FaIcon
-            icon={isDark ? faIcons.sun : faIcons.moon}
-            size="sm"
-            className="text-kv-brand-soft-fg"
-          />
-        }
-      />
+      <div
+        role="group"
+        aria-label="حالت نمایش"
+        className="inline-flex h-9 items-center gap-0.5 md:hidden"
+      >
+        <KvButton
+          type="button"
+          color="neutral"
+          appearance="ghost"
+          size="icon-xs"
+          aria-label="حالت روشن"
+          aria-pressed={!isDark}
+          onClick={() => setTheme('light')}
+          className={cn(
+            !isDark
+              ? 'bg-kv-surface text-kv-brand-soft-fg shadow-kv-raised'
+              : 'text-kv-text-faint'
+          )}
+          icon={<FaIcon icon={faIcons.sun} size="sm" />}
+        />
+        <KvButton
+          type="button"
+          color="neutral"
+          appearance="ghost"
+          size="icon-xs"
+          aria-label="حالت تاریک"
+          aria-pressed={isDark}
+          onClick={() => setTheme('dark')}
+          className={cn(
+            isDark
+              ? 'bg-kv-surface text-kv-brand-soft-fg shadow-kv-raised'
+              : 'text-kv-text-faint'
+          )}
+          icon={<FaIcon icon={faIcons.moon} size="sm" />}
+        />
+      </div>
 
       <div className="hidden items-center gap-kv-pair md:flex">
         <FaIcon

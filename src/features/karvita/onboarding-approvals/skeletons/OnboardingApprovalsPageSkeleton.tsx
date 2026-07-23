@@ -42,7 +42,7 @@ export function OnboardingApprovalsPageSkeleton() {
     <KvSplitWorkspace
       tabs={
         <div className="mb-kv-pair space-y-kv-group">
-          <KvSkeletonTabTrack trackClassName="w-full sm:w-[28rem]" />
+          <KvSkeletonTabTrack trackClassName="w-full lg:w-fit lg:min-w-[28rem]" />
         </div>
       }
       toolbar={
