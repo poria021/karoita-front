@@ -48,7 +48,7 @@ export function KvSplitWorkspace({
     >
       {tabs}
       <div
-        className="space-y-kv-section border-t border-kv-border-muted pt-kv-section"
+        className="space-y-kv-section pt-kv-section"
         data-slot="kv-split-workspace-body"
       >
         {toolbar}

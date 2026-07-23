@@ -14,10 +14,10 @@ export type AppTabsActiveTone = 'brand' | 'surface';
 export type AppTabsListLayout = 'row' | 'grid';
 export type AppTabsGridCols = 2 | 3 | 4;
 
-/** Shared row track chrome — identical for dashboard + auth. */
+/** Shared row track chrome — identical for dashboard + auth. Uses radius tokens. */
 const LIST_BASE = [
   'flex h-auto max-w-full items-center gap-1 overflow-x-auto whitespace-nowrap',
-  'rounded-kv-panel border border-kv-border bg-kv-surface-subtle p-[3px]',
+  'overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface-subtle p-[3px]',
   'font-sans text-kv-text-subtle',
   '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
 ].join(' ');
@@ -54,12 +54,10 @@ const TRIGGER_BASE = [
 /** Only active fill differs: brand (dashboard) vs white/surface (auth). */
 const TRIGGER_ACTIVE_BRAND = [
   'data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
-  'data-[state=active]:shadow-kv-raised data-[state=active]:shadow-kv-brand/15',
 ].join(' ');
 
 const TRIGGER_ACTIVE_SURFACE = [
   'data-[state=active]:bg-kv-surface data-[state=active]:text-kv-text',
-  'data-[state=active]:shadow-kv-raised',
 ].join(' ');
 
 /** One size recipe for all row tabs (auth + dashboard). */

@@ -5,7 +5,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 import { cn } from '@/lib/utils';
 
-export type FaIconSize = '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export type FaIconSize = '2xs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
 
 const SIZE_PX: Record<FaIconSize, number> = {
   '2xs': 10,
@@ -14,6 +14,8 @@ const SIZE_PX: Record<FaIconSize, number> = {
   md: 16,
   lg: 18,
   xl: 22,
+  '2xl': 40,
+  '3xl': 56,
 };
 
 export type FaIconProps = {

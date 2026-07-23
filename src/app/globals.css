@@ -78,6 +78,7 @@
   --color-kv-text-placeholder: var(--kv-text-placeholder);
   --color-kv-text-link: var(--kv-text-link);
   --color-kv-text-link-hover: var(--kv-text-link-hover);
+  --color-kv-empty-icon: var(--kv-empty-icon);
 
   --color-kv-border: var(--kv-border);
   --color-kv-border-strong: var(--kv-border-strong);
@@ -191,19 +192,21 @@
    * Karvita semantic radius (`rounded-kv-*`) — nested shape law (MD3 / enterprise):
    * each nesting level steps down so the child never exceeds the parent.
    *
-   *   tight   4px  — micro (checkbox)
-   *   control 8px  — buttons, inputs, selects, tab triggers, badges
-   *   panel  16px  — cards, alerts, dropdowns, tab tracks, table chrome
-   *   shell  16px  — layout wells (sidebar, main viewport)
-   *   card   20px  — auth / marketing / modal overlays (outside dashboard shell)
+   *   tight   2px  — micro (checkbox)
+   *   control 4px  — fields, buttons, selects, badges, tabs, table frames, KvCard
+   *   table   = control (alias — keep class name stable for table chrome)
+   *   panel  12px  — alerts, dropdowns (surfaces larger than form chrome)
+   *   shell  12px  — layout wells (sidebar, main viewport)
+   *   card   16px  — auth / marketing / modal overlays (outside dashboard shell)
    *
    * Exception: `rounded-full` only for true circles/pills (avatar, switch, dots).
    */
-  --radius-kv-tight: 0.25rem; /* 4px */
-  --radius-kv-control: 0.5rem; /* 8px */
-  --radius-kv-panel: 1rem; /* 16px — cards softer than former 12px */
-  --radius-kv-shell: 1rem; /* 16px */
-  --radius-kv-card: 1.25rem; /* 20px */
+  --radius-kv-tight: 0.125rem; /* 2px */
+  --radius-kv-control: 0.25rem; /* 4px — shared form + dashboard chrome */
+  --radius-kv-table: var(--radius-kv-control);
+  --radius-kv-panel: 0.75rem; /* 12px */
+  --radius-kv-shell: 0.75rem; /* 12px */
+  --radius-kv-card: 1rem; /* 16px */
   /* @deprecated alias — prefer control or panel by role */
   --radius-kv-base: var(--radius-kv-panel);
 
@@ -218,36 +221,38 @@
 
 :root {
   /* Align legacy shadcn radius ladder to kv nested scale (prefer rounded-kv-*) */
-  --radius: 0.5rem; /* = control */
+  --radius: 0.25rem; /* = control */
 
   /*
-   * Light — Fluent-inspired layering (Solid / Card fills) + Karvita brand.
-   * Layer 0 canvas → Layer 1 surface → Layer 2 muted/subtle (chrome / hover).
-   * Cool neutrals (not warm cream); hairline borders + soft ambient depth.
+   * Light — Fluent 2 layering (base → content cards) + Karvita brand.
+   * Prefer hairline contour over multi-blur shadows (cheaper paint / scroll).
+   * Body canvas stays LinkedIn stage; main is a warm step above it.
    */
-  --kv-shadow-raised:
-    0 0 0 1px hsl(0 0% 0% / 0.05),
-    0 1px 2px hsl(220 20% 20% / 0.04);
+  --kv-shadow-raised: 0 0 0 1px hsl(220 14% 20% / 0.06);
   --kv-shadow-overlay:
-    0 0 0 1px hsl(0 0% 0% / 0.06),
-    0 8px 24px -4px hsl(220 25% 20% / 0.12),
-    0 2px 8px -2px hsl(220 25% 20% / 0.06);
+    0 0 0 1px hsl(220 14% 20% / 0.08),
+    0 4px 12px hsl(220 20% 20% / 0.08);
   --kv-shadow-floating:
-    0 0 0 1px hsl(0 0% 0% / 0.07),
-    0 16px 40px -8px hsl(220 25% 18% / 0.16),
-    0 4px 12px -2px hsl(220 25% 18% / 0.08);
+    0 0 0 1px hsl(220 14% 20% / 0.09),
+    0 8px 24px hsl(220 22% 18% / 0.12);
 
   /* —— kv semantic palette (light) — HSL only (see rule 70-color-hsl-tokens) —— */
-  /* Layer 0 — app stage (LinkedIn feed canvas #F3F2EF) */
+  /* Layer 0 — body/app stage ONLY (do not reuse for cards) */
   --kv-canvas: hsl(45 14% 94.5%);
-  /* Layer 1 — cards / shell panels */
+  /* Layer 1 — elevated content (cards, sidebar, header, tables) */
   --kv-surface: hsl(0 0% 100%);
-  /* Dashboard <main> well — white (same as surface) */
-  --kv-main: hsl(0 0% 100%);
-  /* Layer 2 — chrome, hover wells, secondary panels */
-  --kv-surface-muted: hsl(220 14% 96.5%);
-  --kv-surface-subtle: hsl(220 12% 94%);
-  --kv-surface-disabled: hsl(220 10% 94.5%);
+  /*
+   * Dashboard <main> — Fluent step above body canvas (same LinkedIn hue family).
+   * Lighter / quieter than canvas so white cards still elevate; not identical.
+   */
+  --kv-main: hsl(45 11% 96.4%);
+  /*
+   * Soft fills (ascending L%): main < subtle < muted < surface
+   * subtle = tab tracks / quiet chrome; muted = secondary panels / wells
+   */
+  --kv-surface-subtle: hsl(220 14% 96%);
+  --kv-surface-muted: hsl(220 16% 97.5%);
+  --kv-surface-disabled: hsl(220 10% 94%);
   --kv-field-disabled: hsl(220 12% 95%);
   --kv-surface-inverse: hsl(222 22% 14%);
 
@@ -263,10 +268,12 @@
   --kv-text-placeholder: hsl(220 8% 50%);
   --kv-text-link: hsl(218 89.3% 32.9%);
   --kv-text-link-hover: hsl(219 89.6% 26.5%);
+  /* Empty-state hero icons — muted slate (~#94a3b8), not brand soft wells */
+  --kv-empty-icon: hsl(215 20% 65%);
 
-  /* Fluent hairline separators */
-  --kv-border: hsl(220 12% 88%);
-  --kv-border-strong: hsl(220 10% 80%);
+  /* Fluent hairline separators — low-contrast contour on white */
+  --kv-border: hsl(220 13% 89%);
+  --kv-border-strong: hsl(220 11% 81%);
   --kv-border-muted: hsl(220 14% 93%);
   --kv-border-disabled: hsl(220 10% 86%);
   --kv-ring: hsl(220 85% 42%);
@@ -317,8 +324,8 @@
   --kv-neutral: hsl(220 12% 88%);
   --kv-neutral-hover: hsl(220 10% 82%);
   --kv-neutral-fg: hsl(220 12% 32%);
-  --kv-neutral-soft: hsl(220 14% 96.5%);
-  --kv-neutral-soft-hover: hsl(220 12% 94%);
+  --kv-neutral-soft: hsl(220 16% 97.5%);
+  --kv-neutral-soft-hover: hsl(220 14% 96%);
   --kv-neutral-soft-fg: hsl(220 10% 40%);
   --kv-neutral-border: hsl(220 12% 88%);
 
@@ -359,34 +366,29 @@
 
 .dark {
   /*
-   * Dark — Fluent-inspired layering (Smoke / Mica feel) + Karvita brand.
-   * Layer 0 canvas → Layer 1 surface → Layer 2 muted/subtle (flyout / chrome).
-   * Prefer hairline borders + soft glow over heavy drop shadows.
+   * Dark — Fluent-inspired layering + Karvita brand.
+   * Contour-first elevation; keep blur only for overlay/floating (menus/modals).
    */
-  --kv-shadow-raised:
-    0 0 0 1px hsl(0 0% 100% / 0.04),
-    0 1px 2px hsl(0 0% 0% / 0.35);
+  --kv-shadow-raised: 0 0 0 1px hsl(0 0% 100% / 0.06);
   --kv-shadow-overlay:
-    0 0 0 1px hsl(0 0% 100% / 0.06),
-    0 8px 28px hsl(0 0% 0% / 0.45),
-    0 2px 8px hsl(0 0% 0% / 0.3);
+    0 0 0 1px hsl(0 0% 100% / 0.08),
+    0 4px 14px hsl(0 0% 0% / 0.4);
   --kv-shadow-floating:
-    0 0 0 1px hsl(0 0% 100% / 0.07),
-    0 16px 48px hsl(0 0% 0% / 0.55),
-    0 4px 14px hsl(0 0% 0% / 0.35);
+    0 0 0 1px hsl(0 0% 100% / 0.09),
+    0 8px 28px hsl(0 0% 0% / 0.5);
 
   /* —— kv semantic palette (dark) — HSL only —— */
-  /* Layer 0 — app stage (Fluent smoke / charcoal-blue) */
+  /* Layer 0 — app stage (charcoal-blue) */
   --kv-canvas: hsl(220 22% 9%);
-  /* Layer 1 — cards / shell panels */
-  --kv-surface: hsl(220 18% 12.5%);
-  /* Dashboard main well — between canvas and surface */
+  /* Layer 1 — elevated cards / shell (lighter = raised in dark) */
+  --kv-surface: hsl(220 18% 14%);
+  /* Dashboard main well — base under elevated cards */
   --kv-main: hsl(220 20% 10.5%);
-  /* Layer 2 — chrome, hover wells, secondary panels */
-  --kv-surface-muted: hsl(220 14% 16%);
-  --kv-surface-subtle: hsl(220 12% 18.5%);
-  --kv-surface-disabled: hsl(220 12% 15%);
-  --kv-field-disabled: hsl(220 14% 14%);
+  /* Soft fills: main < muted < subtle < (inverse) — hover wells step up */
+  --kv-surface-muted: hsl(220 16% 16%);
+  --kv-surface-subtle: hsl(220 14% 17.5%);
+  --kv-surface-disabled: hsl(220 12% 13%);
+  --kv-field-disabled: hsl(220 14% 12.5%);
   --kv-surface-inverse: hsl(210 40% 98%);
 
   --kv-text: hsl(210 40% 98%);
@@ -400,6 +402,8 @@
   --kv-text-placeholder: hsl(215 12% 58%);
   --kv-text-link: hsl(213 96% 78%);
   --kv-text-link-hover: hsl(213 96% 86%);
+  /* Empty-state hero icons — muted slate on dark canvas */
+  --kv-empty-icon: hsl(215 14% 55%);
 
   /* Fluent hairline separators — low contrast, not chalky */
   --kv-border: hsl(220 12% 22%);
@@ -454,8 +458,8 @@
   --kv-neutral: hsl(220 10% 26%);
   --kv-neutral-hover: hsl(220 10% 32%);
   --kv-neutral-fg: hsl(214 25% 92%);
-  --kv-neutral-soft: hsl(220 14% 16%);
-  --kv-neutral-soft-hover: hsl(220 12% 20%);
+  --kv-neutral-soft: hsl(220 16% 16%);
+  --kv-neutral-soft-hover: hsl(220 14% 17.5%);
   --kv-neutral-soft-fg: hsl(214 18% 82%);
   --kv-neutral-border: hsl(220 10% 26%);
 
@@ -549,7 +553,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--kv-border-strong);
-  border-radius: 4px;
+  border-radius: 0.25rem; /* sync with --radius-kv-control */
   transition: background 0.2s ease;
 }
 

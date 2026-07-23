@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
-import { KvCard } from '@/components/shared/KvCard';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
@@ -103,8 +102,7 @@ export function OnboardingApprovalsPage() {
                 onProvinceChange={page.setProvince}
                 provinces={page.provinces}
               />
-              <KvCard>
-                <OnboardingApprovalsTable
+              <OnboardingApprovalsTable
                   users={page.users}
                   selectedId={page.selectedUser?.id ?? null}
                   tab={page.tab}
@@ -127,7 +125,6 @@ export function OnboardingApprovalsPage() {
                   hasActiveFilters={hasActiveFilters}
                   onClearFilters={clearFilters}
                 />
-              </KvCard>
             </>
           )
         }

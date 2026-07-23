@@ -64,7 +64,7 @@ export function WeeklySyllabusTable({
       className={cn(
         'flex flex-col gap-kv-group',
         'rounded-none border-0 bg-transparent p-0 shadow-none',
-        'md:rounded-kv-panel md:border md:border-kv-border md:bg-kv-surface md:p-kv-group md:shadow-kv-raised',
+        'md:rounded-kv-control md:border md:border-kv-border md:bg-kv-surface md:p-kv-group',
         className
       )}
     >
@@ -96,22 +96,16 @@ export function WeeklySyllabusTable({
           !courseOffered && 'cursor-not-allowed'
         )}
       >
-        <KvCard
+        <KvTableViewport
+          resetKey={courseTitle ?? 'weeks'}
+          isBusy={isLoading}
+          hasMore={false}
+          heightClassName="max-h-[400px] min-h-[200px]"
           className={cn(
-            'w-full',
-            !courseOffered && 'border-kv-border bg-kv-surface-muted/40'
+            !courseOffered &&
+              'pointer-events-none border-kv-border bg-kv-surface-muted/40 opacity-55'
           )}
-          aria-disabled={!courseOffered}
         >
-          <KvTableViewport
-            resetKey={courseTitle ?? 'weeks'}
-            isBusy={isLoading}
-            hasMore={false}
-            heightClassName="max-h-[400px] min-h-[200px]"
-            className={cn(
-              !courseOffered && 'pointer-events-none opacity-55'
-            )}
-          >
             <KvTable
               scrollable={false}
               className={cn(
@@ -142,7 +136,6 @@ export function WeeklySyllabusTable({
                 ) : bodyPhase === 'empty' ? (
                   <KvTableEmpty colSpan={3}>
                     <KvEmptyState
-                      icon={<FaIcon icon={faIcons.rectangleList} size="lg" />}
                       title={emptyCopy.title}
                       description={
                         courseOffered
@@ -183,7 +176,6 @@ export function WeeklySyllabusTable({
               </KvTableBody>
             </KvTable>
           </KvTableViewport>
-        </KvCard>
       </div>
 
       <div className="flex flex-col border-t border-kv-border-muted pt-kv-group sm:flex-row sm:justify-end">

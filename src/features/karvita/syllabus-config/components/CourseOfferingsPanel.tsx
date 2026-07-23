@@ -1,7 +1,5 @@
 'use client';
 
-import { KvCard } from '@/components/shared/KvCard';
-
 import type { UseSyllabusConfigPageReturn } from '../hooks/useSyllabusConfigPage';
 import { CourseOfferingsTable } from './CourseOfferingsTable';
 import { TermStatusCards } from './TermStatusCards';
@@ -45,7 +43,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
       />
 
       <div className="grid grid-cols-1 items-start gap-kv-section lg:grid-cols-12 lg:gap-kv-group">
-        <KvCard className="lg:col-span-4">
+        <div className="lg:col-span-4">
           <CourseOfferingsTable
             courses={props.courses}
             selectedCourseId={props.selectedCourse?.id ?? null}
@@ -56,7 +54,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
               void props.toggleCourseOffering(course)
             }
           />
-        </KvCard>
+        </div>
 
         <WeeklySyllabusTable
           className="lg:col-span-8"
@@ -73,11 +71,6 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
           onAddWeek={props.addWeek}
           onDeleteWeek={props.requestDeleteWeek}
           onSave={() => void props.saveSyllabus()}
-          onEnableOffering={
-            props.selectedCourse && !props.isSelectedCourseOffered
-              ? () => void props.toggleCourseOffering(props.selectedCourse!)
-              : undefined
-          }
         />
       </div>
     </div>

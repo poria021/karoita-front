@@ -30,20 +30,20 @@ export function CourseOfferingsPageSkeleton() {
         </div>
 
         <div className="grid grid-cols-1 items-start gap-kv-section lg:grid-cols-12 lg:gap-kv-group">
-          <KvCard className="lg:col-span-4">
+          <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface lg:col-span-4">
             <KvSkeletonTablePanel
               rows={8}
               heightClassName="h-auto min-h-[18rem]"
               headerCols={['w-28', 'w-20']}
               label="در حال بارگذاری لیست دروس"
             />
-          </KvCard>
+          </div>
 
           <KvCard
             className={cn(
               'flex flex-col gap-kv-group lg:col-span-8',
               'rounded-none border-0 bg-transparent p-0 shadow-none',
-              'md:rounded-kv-panel md:border md:border-kv-border md:bg-kv-surface md:p-kv-group md:shadow-kv-raised'
+              'md:rounded-kv-control md:border md:border-kv-border md:bg-kv-surface md:p-kv-group'
             )}
           >
             <div className="flex flex-col gap-kv-group sm:flex-row sm:items-center sm:justify-between">
@@ -51,14 +51,14 @@ export function CourseOfferingsPageSkeleton() {
               <KvSkeleton className="h-9 w-full rounded-kv-control sm:w-32" />
             </div>
 
-            <KvCard>
+            <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface">
               <KvSkeletonTablePanel
                 rows={6}
                 heightClassName="max-h-[400px] min-h-[200px]"
                 headerCols={['w-36', 'w-24', 'w-20']}
                 label="در حال بارگذاری سرفصل هفتگی"
               />
-            </KvCard>
+            </div>
 
             <div className="flex flex-col sm:flex-row sm:justify-end">
               <KvSkeleton className="h-11 w-full rounded-kv-control sm:w-72" />

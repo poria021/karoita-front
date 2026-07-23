@@ -24,7 +24,7 @@ export function Header() {
   const strategy = getRoleStrategy(activeUser.role);
 
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface/80 shadow-kv-raised backdrop-blur-md supports-[backdrop-filter]:bg-kv-surface/70">
+    <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface/80 backdrop-blur-md supports-[backdrop-filter]:bg-kv-surface/70">
       <div
         className={cn(
           'flex h-16 w-full items-center justify-between',

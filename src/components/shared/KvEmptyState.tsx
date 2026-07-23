@@ -1,12 +1,15 @@
+'use client';
+
 import type { ReactNode } from 'react';
 
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
+import { faIcons } from '@/utils/iconMap';
 
-export type KvEmptyStateTone = 'brand' | 'danger';
+export type KvEmptyStateTone = 'muted' | 'danger';
 
 export type KvEmptyStateProps = {
-  icon?: ReactNode;
   title: string;
   description?: ReactNode;
   actions?: ReactNode;
@@ -14,17 +17,17 @@ export type KvEmptyStateProps = {
   className?: string;
 };
 
+/** Flat hero × — muted slate by default; danger only for destructive empties. */
 const ICON_TONE_CLASS: Record<KvEmptyStateTone, string> = {
-  brand: 'bg-kv-brand-soft text-kv-brand-soft-fg',
-  danger: 'bg-kv-danger-soft text-kv-danger',
+  muted: 'text-kv-empty-icon',
+  danger: 'text-kv-danger',
 };
 
 export function KvEmptyState({
-  icon,
   title,
   description,
   actions,
-  tone = 'brand',
+  tone = 'muted',
   className,
 }: KvEmptyStateProps) {
   return (
@@ -36,16 +39,15 @@ export function KvEmptyState({
       )}
       role="status"
     >
-      {icon ? (
-        <div
-          className={cn(
-            'flex size-12 shrink-0 items-center justify-center rounded-kv-panel shadow-kv-raised',
-            ICON_TONE_CLASS[tone]
-          )}
-        >
-          {icon}
-        </div>
-      ) : null}
+      <div
+        className={cn(
+          'flex shrink-0 items-center justify-center',
+          ICON_TONE_CLASS[tone]
+        )}
+        aria-hidden
+      >
+        <FaIcon icon={faIcons.xmark} size="xl" />
+      </div>
       <div className="max-w-md space-y-kv-pair">
         <KvTypography variant="title" as="h2">
           {title}

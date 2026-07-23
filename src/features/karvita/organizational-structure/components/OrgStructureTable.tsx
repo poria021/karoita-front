@@ -98,7 +98,6 @@ export function OrgStructureTable({
             ) : bodyPhase === 'empty' ? (
               <KvTableEmpty colSpan={2}>
                 <KvEmptyState
-                  icon={<FaIcon icon={tabConfig.icon} size="lg" />}
                   title={emptyCopy.title}
                   description={
                     hasQuery

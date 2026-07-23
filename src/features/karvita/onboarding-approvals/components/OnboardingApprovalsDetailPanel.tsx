@@ -1,6 +1,5 @@
 'use client';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import {
   KvCard,
@@ -15,7 +14,6 @@ import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
 import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
 import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
-import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 import { OnboardingApprovalsRejectForm } from './OnboardingApprovalsRejectForm';
@@ -57,7 +55,6 @@ export function OnboardingApprovalsDetailPanel({
           className="flex h-full min-h-0 flex-1 flex-col items-center justify-center"
         >
           <KvEmptyState
-            icon={<FaIcon icon={faIcons.idCard} size="lg" />}
             title={emptyCopy.title}
             description={emptyCopy.description}
           />

@@ -28,8 +28,8 @@ export type KvCardContentProps = React.ComponentProps<typeof CardContent> & {
 };
 
 const TONE_CLASS: Record<KvCardTone, string> = {
-  surface: 'border-kv-border bg-kv-surface shadow-kv-raised',
-  muted: 'border-kv-border bg-kv-surface-muted shadow-kv-raised',
+  surface: 'border-kv-border bg-kv-surface',
+  muted: 'border-kv-border bg-kv-surface-muted',
   danger: 'border-kv-danger-border bg-kv-danger-soft shadow-none',
 };
 
@@ -59,7 +59,7 @@ export function KvCard({
     <Card
       data-slot="kv-card"
       className={cn(
-        'overflow-hidden gap-0 rounded-kv-panel font-sans text-kv-text',
+        'overflow-hidden gap-0 rounded-kv-control font-sans text-kv-text',
         TONE_CLASS[tone],
         PADDING_CLASS[padding],
         fillMin &&

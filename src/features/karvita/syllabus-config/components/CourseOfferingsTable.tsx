@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
@@ -22,7 +21,6 @@ import {
   getModuleEmptyCopy,
   getSyllabusTermSettingsHref,
 } from '@/utils/moduleDiscoverability';
-import { faIcons } from '@/utils/iconMap';
 
 interface CourseOfferingsTableProps {
   courses: CourseCatalogItem[];
@@ -64,7 +62,6 @@ export function CourseOfferingsTable({
           ) : bodyPhase === 'empty' ? (
             <KvTableEmpty colSpan={2}>
               <KvEmptyState
-                icon={<FaIcon icon={faIcons.rectangleList} size="lg" />}
                 title={emptyCopy.title}
                 description={emptyCopy.description}
                 actions={

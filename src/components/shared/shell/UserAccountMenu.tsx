@@ -201,7 +201,7 @@ export function UserAccountMenu({
             className={cn(
               'w-full border-t border-kv-border-muted bg-kv-surface text-start transition-colors',
               'hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30',
-              'data-[state=open]:bg-kv-surface-muted lg:rounded-b-kv-panel',
+              'data-[state=open]:bg-kv-surface-muted lg:rounded-b-kv-control',
               isCollapsed ? 'p-kv-group lg:p-kv-pair' : 'p-kv-group'
             )}
           >

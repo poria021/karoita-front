@@ -21,6 +21,11 @@ export type KvTableViewportProps = {
    * in the body via `getAdminTableBodyPhase`.
    */
   isBusy?: boolean;
+  /**
+   * Panel chrome via radius/border tokens (`rounded-kv-control`).
+   * Set false only when a parent already owns the frame (rare).
+   */
+  framed?: boolean;
   endMessage?: string;
   showEndMessage?: boolean;
   loadingMoreLabel?: string;
@@ -39,6 +44,7 @@ export function KvTableViewport({
   hasMore = false,
   isLoadingMore = false,
   isBusy = false,
+  framed = true,
   endMessage = 'همه موارد بارگذاری شد',
   showEndMessage = false,
   loadingMoreLabel = 'در حال بارگذاری ۱۰ مورد بعدی…',
@@ -78,6 +84,8 @@ export function KvTableViewport({
       dir="ltr"
       className={cn(
         'max-w-full overflow-auto overscroll-contain',
+        framed &&
+          'rounded-kv-control border border-kv-border bg-kv-surface',
         heightClassName,
         className
       )}

@@ -7,7 +7,7 @@ import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 
 /**
  * Cold skeleton — هم‌تراز با OrgStructurePage:
- * tabs (lg) → toolbar (border-t + title/search/add) → پنل کارت + جدول.
+ * tabs (lg) → toolbar (title/search/add) → پنل کارت + جدول.
  */
 export function OrgStructurePageSkeleton() {
   return (
@@ -21,7 +21,7 @@ export function OrgStructurePageSkeleton() {
         </div>
       }
       toolbar={
-        <div className="flex flex-col justify-start gap-kv-group border-t border-kv-border-muted px-0 pt-kv-section sm:px-kv-group lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col justify-start gap-kv-group px-0 pt-kv-section sm:px-kv-group lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-col items-start justify-start gap-kv-field text-start">
             <KvSkeleton className="h-4 w-48 rounded-kv-control" />
             <KvSkeleton className="h-3 w-72 max-w-full rounded-kv-control" />

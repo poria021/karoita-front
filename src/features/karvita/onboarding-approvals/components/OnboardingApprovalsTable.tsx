@@ -110,7 +110,6 @@ export function OnboardingApprovalsTable({
             ) : bodyPhase === 'empty' ? (
               <KvTableEmpty colSpan={columnCount}>
                 <KvEmptyState
-                  icon={<FaIcon icon={faIcons.idCard} size="lg" />}
                   title={emptyCopy.title}
                   description={emptyCopy.description}
                   actions={

@@ -7,7 +7,6 @@ import {
   KvAccordionTrigger,
   KvAccordionTriggerMeta,
 } from '@/components/shared/KvAccordion';
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
@@ -22,7 +21,6 @@ import type {
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
-import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import type { VariantProps } from 'class-variance-authority';
 
@@ -101,7 +99,6 @@ export function OnboardingApprovalsMobileList({
     return (
       <div className={cn('flex w-full flex-col', KV_TABLE_VIEWPORT_HEIGHT)}>
         <KvEmptyState
-          icon={<FaIcon icon={faIcons.idCard} size="lg" />}
           title={emptyCopy.title}
           description={emptyCopy.description}
           actions={
