@@ -189,11 +189,11 @@
 
   /*
    * Karvita semantic radius (`rounded-kv-*`) — nested shape law (MD3 / enterprise):
-   * each nesting level steps down ~4px so the child never matches or exceeds the parent.
+   * each nesting level steps down so the child never exceeds the parent.
    *
    *   tight   4px  — micro (checkbox)
    *   control 8px  — buttons, inputs, selects, tab triggers, badges
-   *   panel  12px  — cards, alerts, dropdowns, tab tracks, table chrome
+   *   panel  16px  — cards, alerts, dropdowns, tab tracks, table chrome
    *   shell  16px  — layout wells (sidebar, main viewport)
    *   card   20px  — auth / marketing / modal overlays (outside dashboard shell)
    *
@@ -201,7 +201,7 @@
    */
   --radius-kv-tight: 0.25rem; /* 4px */
   --radius-kv-control: 0.5rem; /* 8px */
-  --radius-kv-panel: 0.75rem; /* 12px */
+  --radius-kv-panel: 1rem; /* 16px — cards softer than former 12px */
   --radius-kv-shell: 1rem; /* 16px */
   --radius-kv-card: 1.25rem; /* 20px */
   /* @deprecated alias — prefer control or panel by role */
@@ -238,12 +238,12 @@
     0 4px 12px -2px hsl(220 25% 18% / 0.08);
 
   /* —— kv semantic palette (light) — HSL only (see rule 70-color-hsl-tokens) —— */
-  /* Layer 0 — app stage (~Fluent #F3F3F3 cool smoke, not warm cream) */
-  --kv-canvas: hsl(220 14% 95.5%);
+  /* Layer 0 — app stage (LinkedIn feed canvas #F3F2EF) */
+  --kv-canvas: hsl(45 14% 94.5%);
   /* Layer 1 — cards / shell panels */
   --kv-surface: hsl(0 0% 100%);
-  /* Dashboard <main> well — between canvas and surface */
-  --kv-main: hsl(220 16% 97%);
+  /* Dashboard <main> well — white (same as surface) */
+  --kv-main: hsl(0 0% 100%);
   /* Layer 2 — chrome, hover wells, secondary panels */
   --kv-surface-muted: hsl(220 14% 96.5%);
   --kv-surface-subtle: hsl(220 12% 94%);
@@ -254,11 +254,13 @@
   --kv-text: hsl(220 22% 14%);
   --kv-text-secondary: hsl(220 16% 22%);
   --kv-text-muted: hsl(220 12% 32%);
-  --kv-text-subtle: hsl(220 10% 40%);
-  --kv-text-faint: hsl(220 8% 48%);
-  --kv-text-disabled: hsl(220 8% 62%);
+  --kv-text-subtle: hsl(220 10% 38%);
+  /* ≥ ~4.5:1 on white surface for caption/meta (WCAG AA body text) */
+  --kv-text-faint: hsl(220 10% 40%);
+  --kv-text-disabled: hsl(220 8% 58%);
   --kv-text-inverse: hsl(0 0% 100%);
-  --kv-text-placeholder: hsl(220 8% 62%);
+  /* Placeholders may be quieter than body; still readable on surface */
+  --kv-text-placeholder: hsl(220 8% 50%);
   --kv-text-link: hsl(218 89.3% 32.9%);
   --kv-text-link-hover: hsl(219 89.6% 26.5%);
 
@@ -390,11 +392,12 @@
   --kv-text: hsl(210 40% 98%);
   --kv-text-secondary: hsl(214 25% 92%);
   --kv-text-muted: hsl(214 18% 82%);
-  --kv-text-subtle: hsl(215 14% 68%);
-  --kv-text-faint: hsl(215 12% 58%);
-  --kv-text-disabled: hsl(215 10% 42%);
+  --kv-text-subtle: hsl(215 14% 72%);
+  /* Lifted for AA on dark surfaces */
+  --kv-text-faint: hsl(215 14% 70%);
+  --kv-text-disabled: hsl(215 10% 48%);
   --kv-text-inverse: hsl(222 47.4% 11.2%);
-  --kv-text-placeholder: hsl(215 10% 48%);
+  --kv-text-placeholder: hsl(215 12% 58%);
   --kv-text-link: hsl(213 96% 78%);
   --kv-text-link-hover: hsl(213 96% 86%);
 

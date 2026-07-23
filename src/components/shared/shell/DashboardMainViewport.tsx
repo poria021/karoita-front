@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { DashboardFooter } from '@/components/shared/shell/DashboardFooter';
 import { ModulePageHeader } from '@/components/shared/shell/ModulePageHeader';
+import { DASHBOARD_MAIN_ID } from '@/components/shared/shell/SkipToMainContent';
 
 interface DashboardMainViewportProps {
   children: ReactNode;
@@ -11,9 +12,13 @@ interface DashboardMainViewportProps {
 
 export function DashboardMainViewport({ children }: DashboardMainViewportProps) {
   return (
-    <main className="flex min-h-[550px] min-w-0 flex-1 flex-col rounded-none border border-kv-border/80 bg-kv-main p-kv-inset text-start shadow-kv-raised sm:rounded-kv-shell sm:p-kv-page lg:min-h-[calc(100dvh-4rem-2*var(--spacing-kv-group))]">
+    <main
+      id={DASHBOARD_MAIN_ID}
+      tabIndex={-1}
+      className="flex min-h-[550px] min-w-0 flex-1 flex-col rounded-none bg-kv-main px-kv-inset py-kv-group text-start shadow-kv-raised outline-none sm:px-kv-page sm:py-kv-section lg:min-h-[calc(100dvh-4rem)]"
+    >
       <ModulePageHeader />
-      <div className="flex min-h-0 w-full flex-1 flex-col py-kv-pair">
+      <div className="flex min-h-0 w-full flex-1 flex-col pt-kv-pair">
         {children}
       </div>
       <DashboardFooter />

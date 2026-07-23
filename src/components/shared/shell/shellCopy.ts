@@ -3,6 +3,9 @@
  * Keep short, institutional Persian — not a full i18n layer.
  */
 export const shellCopy = {
+  a11y: {
+    skipToMain: 'پرش به محتوای اصلی',
+  },
   notifications: {
     title: 'اعلان‌های سیستم',
     empty: 'اعلانی وجود ندارد',

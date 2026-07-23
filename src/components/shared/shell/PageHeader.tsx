@@ -63,7 +63,7 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'flex flex-row items-center justify-between gap-kv-inline border-b border-kv-border pb-kv-stack',
+        'flex flex-row items-center justify-between gap-kv-inline pb-kv-group',
         className
       )}
     >

@@ -98,6 +98,15 @@ const eslintConfig = [
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-explicit-any': 'off',
+      /* Tighten a11y beyond Next defaults without blocking unrelated files. */
+      'jsx-a11y/alt-text': 'error',
+      'jsx-a11y/aria-props': 'error',
+      'jsx-a11y/aria-proptypes': 'error',
+      'jsx-a11y/aria-unsupported-elements': 'error',
+      'jsx-a11y/role-has-required-aria-props': 'error',
+      'jsx-a11y/role-supports-aria-props': 'error',
+      'jsx-a11y/tabindex-no-positive': 'error',
+      'jsx-a11y/iframe-has-title': 'error',
     },
   },
   {

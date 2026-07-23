@@ -6,6 +6,9 @@ import { DashboardMainViewport } from '@/components/shared/shell/DashboardMainVi
 import { Header } from '@/components/shared/shell/Header';
 import { HydrationSafe } from '@/components/shared/shell/HydrationSafe';
 import { Sidebar } from '@/components/shared/shell/Sidebar';
+import { SkipToMainContent } from '@/components/shared/shell/SkipToMainContent';
+import { kvShellContentPadXClassName } from '@/components/shared/shell/shellChrome';
+import { cn } from '@/lib/utils';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -27,8 +30,14 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <Suspense fallback={<AuthShellPlaceholder />}>
         <AppAuthGuard>
           <div className="flex min-h-dvh w-full flex-col bg-kv-canvas">
+            <SkipToMainContent />
             <Header />
-            <div className="relative flex w-full flex-1 flex-col items-stretch gap-kv-group px-0 py-kv-group sm:px-6 lg:flex-row lg:py-kv-group xl:px-8 2xl:px-16">
+            <div
+              className={cn(
+                'relative flex w-full flex-1 flex-col items-stretch gap-kv-group lg:flex-row',
+                kvShellContentPadXClassName
+              )}
+            >
               <Sidebar />
               <DashboardMainViewport>{children}</DashboardMainViewport>
             </div>

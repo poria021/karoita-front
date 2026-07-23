@@ -169,7 +169,7 @@ export function UserAccountMenu({
                 'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20'
               )}
             >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-kv-brand/10 text-kv-brand-soft-fg">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={roleIcon} size="sm" />
               </span>
               <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start sm:text-start">
@@ -201,7 +201,7 @@ export function UserAccountMenu({
             className={cn(
               'w-full border-t border-kv-border-muted bg-kv-surface text-start transition-colors',
               'hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30',
-              'data-[state=open]:bg-kv-surface-muted lg:rounded-b-kv-shell',
+              'data-[state=open]:bg-kv-surface-muted lg:rounded-b-kv-panel',
               isCollapsed ? 'p-kv-group lg:p-kv-pair' : 'p-kv-group'
             )}
           >
@@ -213,7 +213,7 @@ export function UserAccountMenu({
                   : 'p-kv-inline'
               )}
             >
-              <div className="relative flex shrink-0 items-center justify-center text-kv-text-faint">
+              <div className="relative flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={roleIcon} size="lg" />
               </div>
               <div

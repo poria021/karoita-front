@@ -5,7 +5,9 @@ import { KvButton } from '@/components/shared/KvButton';
 import { HeaderNotificationsMenu } from '@/components/shared/shell/HeaderNotificationsMenu';
 import { ThemeModeToggle } from '@/components/shared/shell/ThemeModeToggle';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
+import { kvShellContentPadXClassName } from '@/components/shared/shell/shellChrome';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
 import { getTodayJalaliFormatted } from '@/utils/formatJalaliDate';
@@ -23,7 +25,12 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface/80 shadow-kv-raised backdrop-blur-md supports-[backdrop-filter]:bg-kv-surface/70">
-      <div className="flex h-16 w-full items-center justify-between px-kv-group sm:px-kv-section lg:px-kv-section xl:px-kv-page 2xl:px-kv-screen">
+      <div
+        className={cn(
+          'flex h-16 w-full items-center justify-between',
+          kvShellContentPadXClassName
+        )}
+      >
         <div className="flex min-w-0 items-center gap-kv-group">
           <KvButton
             type="button"

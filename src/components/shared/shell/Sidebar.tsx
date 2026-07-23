@@ -65,7 +65,7 @@ export function Sidebar() {
         aria-labelledby={isMobileOpen ? drawerTitleId : undefined}
         className={cn(
           'fixed inset-y-0 start-0 z-50 flex shrink-0 flex-col overflow-y-auto border-e border-kv-border/80 bg-kv-surface transition-all duration-300 ease-in-out',
-          'lg:sticky lg:top-[calc(4rem+var(--spacing-kv-group))] lg:z-0 lg:h-auto lg:translate-x-0 lg:self-start lg:overflow-y-visible lg:pointer-events-auto lg:visible lg:bg-kv-surface lg:border lg:border-kv-border/80 lg:rounded-kv-shell lg:shadow-kv-raised',
+          'lg:sticky lg:top-[calc(4rem+var(--spacing-kv-group))] lg:z-0 lg:mt-kv-group lg:h-auto lg:translate-x-0 lg:self-start lg:overflow-y-visible lg:pointer-events-auto lg:visible lg:bg-kv-surface lg:border lg:border-kv-border/80 lg:rounded-kv-panel lg:shadow-kv-raised',
           isMobileOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
           !isMobileOpen && 'max-lg:pointer-events-none max-lg:invisible',
           isCollapsed ? 'w-72 lg:w-20' : 'w-72 lg:w-60'
