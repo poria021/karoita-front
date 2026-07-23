@@ -1,6 +1,5 @@
 'use client';
 
-
 import * as React from 'react';
 
 import {
@@ -15,24 +14,24 @@ export type AppTabsActiveTone = 'brand' | 'surface';
 export type AppTabsListLayout = 'row' | 'grid';
 export type AppTabsGridCols = 2 | 3 | 4;
 
+/** Shared row track chrome — identical for dashboard + auth. */
 const LIST_BASE = [
   'flex h-auto max-w-full items-center gap-1 overflow-x-auto whitespace-nowrap',
-  'rounded-kv-panel border border-kv-border p-[3px]',
+  'rounded-kv-panel border border-kv-border bg-kv-surface-subtle p-[3px]',
   'font-sans text-kv-text-subtle',
   '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
 ].join(' ');
 
-/* Same track as auth login/register (`activeTone="surface"`) */
-const LIST_TRACK_BRAND = 'bg-kv-surface-subtle';
-const LIST_TRACK_SURFACE = 'bg-kv-surface-subtle';
-
-const LIST_NORMAL = [
+/** Dashboard: hug content on md+. Auth (`fullWidth`): always stretch. */
+const LIST_HUG = [
   LIST_BASE,
   'w-full self-stretch',
   'md:inline-flex md:w-fit md:max-w-full md:self-start md:justify-start',
 ].join(' ');
 
-const LIST_FULL = [LIST_BASE, 'w-full self-stretch justify-stretch'].join(' ');
+const LIST_STRETCH = [LIST_BASE, 'w-full self-stretch justify-stretch'].join(
+  ' '
+);
 
 const LIST_GRID_BASE =
   'grid w-full gap-2 border-0 bg-transparent p-0 font-sans text-kv-text-subtle';
@@ -52,6 +51,7 @@ const TRIGGER_BASE = [
   '[&_svg]:pointer-events-none [&_svg]:shrink-0',
 ].join(' ');
 
+/** Only active fill differs: brand (dashboard) vs white/surface (auth). */
 const TRIGGER_ACTIVE_BRAND = [
   'data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
   'data-[state=active]:shadow-kv-raised data-[state=active]:shadow-kv-brand/15',
@@ -62,18 +62,18 @@ const TRIGGER_ACTIVE_SURFACE = [
   'data-[state=active]:shadow-kv-raised',
 ].join(' ');
 
-const TRIGGER_NORMAL_SIZE = [
-  'flex-1 gap-1.5 px-1.5 py-2 text-sm leading-none',
-  'md:w-auto md:flex-none md:grow-0 md:gap-2 md:px-4 md:py-2 md:text-sm',
+/** One size recipe for all row tabs (auth + dashboard). */
+const TRIGGER_ROW_SIZE = [
+  'flex-1 gap-1.5 px-1.5 py-1.5 text-sm leading-none',
+  'md:gap-2 md:px-4 md:py-2.5 md:text-sm',
 ].join(' ');
 
-const TRIGGER_FULL_SIZE = [
-  'flex-1 gap-1.5 px-1.5 py-2 text-sm leading-none',
-].join(' ');
+/** When list hugs content, triggers stop growing on md+. */
+const TRIGGER_ROW_HUG = 'md:w-auto md:flex-none md:grow-0';
 
 const TRIGGER_GRID_SIZE = [
   'w-full gap-1.5 rounded-kv-control border border-kv-border bg-kv-surface',
-  'px-2 py-3 text-sm leading-none',
+  'px-2 py-2 text-sm leading-none',
   'hover:bg-kv-surface-muted',
   'data-[state=active]:border-kv-brand',
 ].join(' ');
@@ -97,7 +97,9 @@ function useAppTabsContext() {
 }
 
 export type AppTabsProps = React.ComponentProps<typeof Tabs> & {
+  /** Stretch track + equal-width triggers (auth card). Style tokens stay identical. */
   fullWidth?: boolean;
+  /** `brand` = dashboard active; `surface` = auth active (white). */
   activeTone?: AppTabsActiveTone;
   listLayout?: AppTabsListLayout;
   gridCols?: AppTabsGridCols;
@@ -140,7 +142,7 @@ function AppTabsList({
   className,
   ...props
 }: React.ComponentProps<typeof TabsList>) {
-  const { fullWidth, activeTone, listLayout, gridCols } = useAppTabsContext();
+  const { fullWidth, listLayout, gridCols } = useAppTabsContext();
 
   if (listLayout === 'grid') {
     return (
@@ -157,11 +159,7 @@ function AppTabsList({
     <TabsList
       data-slot="app-tabs-list"
       data-list-layout="row"
-      className={cn(
-        fullWidth ? LIST_FULL : LIST_NORMAL,
-        activeTone === 'surface' ? LIST_TRACK_SURFACE : LIST_TRACK_BRAND,
-        className
-      )}
+      className={cn(fullWidth ? LIST_STRETCH : LIST_HUG, className)}
       {...props}
     />
   );
@@ -173,20 +171,33 @@ function AppTabsTrigger({
 }: React.ComponentProps<typeof TabsTrigger>) {
   const { fullWidth, activeTone, listLayout } = useAppTabsContext();
 
-  const sizeClass =
-    listLayout === 'grid'
-      ? TRIGGER_GRID_SIZE
-      : fullWidth
-        ? TRIGGER_FULL_SIZE
-        : TRIGGER_NORMAL_SIZE;
+  if (listLayout === 'grid') {
+    return (
+      <TabsTrigger
+        data-slot="app-tabs-trigger"
+        className={cn(
+          TRIGGER_BASE,
+          activeTone === 'surface'
+            ? TRIGGER_ACTIVE_SURFACE
+            : TRIGGER_ACTIVE_BRAND,
+          TRIGGER_GRID_SIZE,
+          className
+        )}
+        {...props}
+      />
+    );
+  }
 
   return (
     <TabsTrigger
       data-slot="app-tabs-trigger"
       className={cn(
         TRIGGER_BASE,
-        activeTone === 'surface' ? TRIGGER_ACTIVE_SURFACE : TRIGGER_ACTIVE_BRAND,
-        sizeClass,
+        activeTone === 'surface'
+          ? TRIGGER_ACTIVE_SURFACE
+          : TRIGGER_ACTIVE_BRAND,
+        TRIGGER_ROW_SIZE,
+        !fullWidth && TRIGGER_ROW_HUG,
         className
       )}
       {...props}

@@ -58,8 +58,10 @@ export function IdentityForm({
     storeUser && storeUser.id === activeUser.id ? storeUser : activeUser;
 
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
+  const [docError, setDocError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const roleStrategy = getRoleStrategy(liveUser.role);
+  const requireIdentityDoc = showDocUploader && !autoApproveOnSave;
   const form = useForm<ProfileSchema>({
     resolver: zodResolver(createProfileSchema(liveUser.role)),
     defaultValues: getProfileDefaultValues(liveUser),
@@ -69,16 +71,27 @@ export function IdentityForm({
 
   const submit = form.handleSubmit(async (data) => {
     setSubmitError(null);
+    setDocError(null);
+
+    if (requireIdentityDoc && !identityDocument) {
+      setDocError('بارگذاری مدرک هویتی برای ارسال به تأیید مدیریت الزامی است.');
+      return;
+    }
+
     try {
-      // role فقط در defaultValues است؛ صریحاً از liveUser می‌آید تا در submit گم نشود.
-      const payload = { ...data, role: liveUser.role };
-      await ProfileService.updateProfile(payload, token);
+      let documentBase64: string | undefined;
       if (identityDocument) {
-        const documentBase64 = await fileToDataUrl(identityDocument);
+        documentBase64 = await fileToDataUrl(identityDocument);
+      }
+
+      // Form is created with createProfileSchema(liveUser.role); role stays on `data`.
+      await ProfileService.updateProfile(data, token);
+      if (documentBase64) {
         await ProfileService.updateIdentityDocument(documentBase64, token);
       }
 
-      form.reset(payload);
+      form.reset(data);
+      setIdentityDocument(null);
       onSaved?.();
     } catch (error) {
       setSubmitError(
@@ -161,15 +174,19 @@ export function IdentityForm({
             {showDocUploader ? (
               <KvImageDocUploader
                 value={identityDocument}
-                onChange={setIdentityDocument}
+                onChange={(file) => {
+                  setIdentityDocument(file);
+                  if (file) setDocError(null);
+                }}
                 disabled={isDisabled}
-                optionalHint
+                optionalHint={!requireIdentityDoc}
                 label="بارگذاری مدرک هویتی"
                 labelIcon={
                   <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
                 }
                 helperText="PNG, JPG تا ۱۰ مگابایت"
                 previewAlt="پیش‌نمایش مدرک ارسالی"
+                error={docError ?? undefined}
               />
             ) : null}
 

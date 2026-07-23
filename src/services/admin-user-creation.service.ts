@@ -15,6 +15,10 @@ import type {
 } from '@/types/admin-user-creation';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MIN_LENGTH_MESSAGE,
+} from '@/utils/passwordInput';
+import {
   orgAccountRequiresCity,
   orgAccountRequiresCollege,
   orgAccountRequiresDistrict,
@@ -77,8 +81,8 @@ function mockCreateOrganizationalUser(
   }
 
   const password = input.password.trim();
-  if (password.length < 4) {
-    throw new Error('رمز عبور باید حداقل ۴ کاراکتر باشد.');
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    throw new Error(PASSWORD_MIN_LENGTH_MESSAGE);
   }
 
   const org = buildOrgFields(input.role, input);

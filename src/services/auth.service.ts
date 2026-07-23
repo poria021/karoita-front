@@ -5,6 +5,10 @@ import {
 import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
 import type { Session, User, UserRole } from '@/types/auth';
 import { useUserStore } from '@/store/useUserStore';
+import {
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MIN_LENGTH_MESSAGE,
+} from '@/utils/passwordInput';
 
 import {
   mockLoginWithCredentials,
@@ -155,8 +159,8 @@ export class AuthService {
     mobile: string,
     newPassword: string
   ): Promise<void> {
-    if (newPassword.trim().length < 8) {
-      throw new Error('رمز عبور باید حداقل ۸ کاراکتر باشد.');
+    if (newPassword.trim().length < PASSWORD_MIN_LENGTH) {
+      throw new Error(PASSWORD_MIN_LENGTH_MESSAGE);
     }
     if (IS_MOCK_MODE) {
       mockSetInitialPassword(mobile, newPassword);

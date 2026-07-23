@@ -21,6 +21,7 @@ import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
+import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import type { VariantProps } from 'class-variance-authority';
@@ -63,6 +64,8 @@ interface OnboardingApprovalsMobileListProps {
   onSubmitReject: (user: OnboardingApprovalUser) => void;
   onLoadMore: () => void;
   onRetryLoadMore: () => void;
+  hasActiveFilters?: boolean;
+  onClearFilters?: () => void;
 }
 
 export function OnboardingApprovalsMobileList({
@@ -84,8 +87,11 @@ export function OnboardingApprovalsMobileList({
   onSubmitReject,
   onLoadMore,
   onRetryLoadMore,
+  hasActiveFilters = false,
+  onClearFilters,
 }: OnboardingApprovalsMobileListProps) {
   const { canApprove, canReject } = getApprovalTabActions(tab);
+  const emptyCopy = getModuleEmptyCopy('onboarding_list');
 
   if (isLoading && users.length === 0) {
     return <KvBusySurface tableViewport />;
@@ -96,8 +102,31 @@ export function OnboardingApprovalsMobileList({
       <div className={cn('flex w-full flex-col', KV_TABLE_VIEWPORT_HEIGHT)}>
         <KvEmptyState
           icon={<FaIcon icon={faIcons.idCard} size="lg" />}
-          title="پرونده‌ای یافت نشد"
-          description="با تغییر تب، جستجو یا فیلترها دوباره امتحان کنید."
+          title={emptyCopy.title}
+          description={emptyCopy.description}
+          actions={
+            hasActiveFilters && onClearFilters ? (
+              <KvButton
+                type="button"
+                color="cta"
+                appearance="solid"
+                size="sm"
+                onClick={onClearFilters}
+              >
+                {emptyCopy.actionLabel}
+              </KvButton>
+            ) : (
+              <KvButton
+                type="button"
+                color="neutral"
+                appearance="secondary"
+                size="sm"
+                onClick={onRetryLoadMore}
+              >
+                تلاش مجدد
+              </KvButton>
+            )
+          }
         />
       </div>
     );

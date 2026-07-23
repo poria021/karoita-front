@@ -66,4 +66,22 @@ describe('ProfileService mock persistence', () => {
     expect(useUserStore.getState().activeUser?.approved).toBe(true);
     expect(useUserStore.getState().activeUser?.docStatus).toBe('approved');
   });
+
+  it('updateIdentityDocument persists docUrl for admin review', async () => {
+    const seed = AUTH_MOCK_USERS.find((u) => u.role === 'student');
+    expect(seed).toBeTruthy();
+    if (!seed) return;
+
+    useUserStore.getState().setUser(toPublicUser(seed));
+    const dataUrl =
+      'data:image/webp;base64,UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAwA0JaQAA3AA/vuUAAA=';
+
+    await ProfileService.updateIdentityDocument(dataUrl, `mock.${seed.id}.1`);
+
+    const stored = findMockUserById(seed.id);
+    expect(stored?.docUrl).toBe(dataUrl);
+    expect(stored?.docType).toBe('webp');
+    expect(stored?.docStatus).toBe('pending_admin');
+    expect(useUserStore.getState().activeUser?.docUrl).toBe(dataUrl);
+  });
 });

@@ -4,6 +4,8 @@ import { ORG_ACCOUNT_ROLES } from '@/types/admin-user-creation';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
   PASSWORD_LATIN_ONLY_HINT,
+  PASSWORD_MIN_LENGTH,
+  PASSWORD_MIN_LENGTH_MESSAGE,
   containsPersianOrArabicScript,
 } from '@/utils/passwordInput';
 import {
@@ -37,7 +39,8 @@ export const adminUserCreationSchema = z
     password: z
       .string('رمز عبور الزامی است.')
       .trim()
-      .min(4, 'رمز عبور الزامی است (حداقل ۴ کاراکتر).')
+      .min(1, 'رمز عبور الزامی است.')
+      .min(PASSWORD_MIN_LENGTH, PASSWORD_MIN_LENGTH_MESSAGE)
       .refine((value) => !containsPersianOrArabicScript(value), {
         message: PASSWORD_LATIN_ONLY_HINT,
       }),

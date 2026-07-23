@@ -21,7 +21,7 @@ export function AdminGateOtpStep({ gate }: AdminGateOtpStepProps) {
     secondsUntilResend,
     canResend,
   } = gate;
-  const { register, formState } = otpForm;
+  const { register, formState, watch } = otpForm;
 
   return (
     <form onSubmit={verifyOtp} className="flex flex-col gap-kv-section" noValidate>
@@ -31,6 +31,7 @@ export function AdminGateOtpStep({ gate }: AdminGateOtpStepProps) {
         <OtpCodeField
           id="admin-gate-otp"
           registration={register('otp')}
+          value={watch('otp')}
           errorMessage={formState.errors.otp?.message}
         />
 

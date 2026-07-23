@@ -50,6 +50,7 @@ describe('live nav / admin plane', () => {
     ]);
 
     expect(isLiveSidebarPath(RouteService.karvita.dailyReports())).toBe(false);
+    expect(isLiveSidebarPath(RouteService.karvita.entry())).toBe(false);
   });
 
   it('treats onboarding approvals as admin control plane', () => {

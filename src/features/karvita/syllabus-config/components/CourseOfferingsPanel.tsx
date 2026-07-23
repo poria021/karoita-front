@@ -73,6 +73,11 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
           onAddWeek={props.addWeek}
           onDeleteWeek={props.requestDeleteWeek}
           onSave={() => void props.saveSyllabus()}
+          onEnableOffering={
+            props.selectedCourse && !props.isSelectedCourseOffered
+              ? () => void props.toggleCourseOffering(props.selectedCourse!)
+              : undefined
+          }
         />
       </div>
     </div>

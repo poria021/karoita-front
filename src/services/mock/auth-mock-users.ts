@@ -3,12 +3,12 @@ import type { DocStatus, User, UserRole } from '@/types/auth';
 
 export const MOCK_OTP_CODE = '12345';
 
-export const MOCK_USER_PASSWORD = '123456';
+export const MOCK_USER_PASSWORD = '12345678';
 
 export const MOCK_SUPER_ADMIN_MOBILE = '9123456786';
 
 /** Bump when seed shape changes so mock localStorage rehydrates. */
-export const MOCK_USERS_SEED_VERSION = '5';
+export const MOCK_USERS_SEED_VERSION = '6';
 
 export interface MockAuthUserRecord extends User {
   password: string;

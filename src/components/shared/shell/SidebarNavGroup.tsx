@@ -4,6 +4,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { useId, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { kvShellFocusRingClassName } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 import type { SidebarMenuGroup } from '@/utils/RoleStrategyMap';
 import { faIcons } from '@/utils/iconMap';
@@ -26,7 +27,8 @@ export function SidebarNavGroup({
   locked,
   onNavigate,
 }: SidebarNavGroupProps) {
-  const childActive = group.children.some((child) => child.path === pathname);
+  const childActive =
+    !locked && group.children.some((child) => child.path === pathname);
   const [open, setOpen] = useState(childActive);
   const [prevChildActive, setPrevChildActive] = useState(childActive);
   const groupId = useId();
@@ -47,7 +49,7 @@ export function SidebarNavGroup({
             <SidebarNavLink
               key={child.path}
               item={child}
-              isActive={pathname === child.path}
+              isActive={!locked && pathname === child.path}
               isCollapsed
               locked={locked}
               onNavigate={onNavigate}
@@ -107,11 +109,15 @@ function ExpandedGroupChrome({
   onNavigate: () => void;
   isCollapsed: boolean;
 }) {
-  const childActive = group.children.some((child) => child.path === pathname);
+  const childActive =
+    !locked && group.children.some((child) => child.path === pathname);
 
   return (
     <div className="space-y-kv-nav-tight">
-      {/* L1 — group label: darkest text, medium-strong weight; icon quieter than label */}
+      {/*
+        L1 group disclosure — native button (accordion chrome, not a CTA).
+        Focus ring matches KvButton / shell recipe.
+      */}
       <button
         type="button"
         id={groupId}
@@ -119,8 +125,8 @@ function ExpandedGroupChrome({
         aria-controls={`${groupId}-panel`}
         onClick={onToggle}
         className={cn(
-          'group flex w-full items-center justify-between rounded-kv-control px-3.5 py-2.5 text-xs font-semibold leading-snug transition-colors',
-          'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
+          'group flex w-full items-center justify-between rounded-kv-control px-kv-inline py-kv-nav text-xs font-semibold leading-snug transition-colors',
+          kvShellFocusRingClassName,
           childActive
             ? 'text-kv-text hover:bg-kv-surface-muted'
             : 'text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
@@ -160,7 +166,7 @@ function ExpandedGroupChrome({
             <SidebarNavLink
               key={child.path}
               item={child}
-              isActive={pathname === child.path}
+              isActive={!locked && pathname === child.path}
               isCollapsed={isCollapsed}
               locked={locked}
               onNavigate={onNavigate}

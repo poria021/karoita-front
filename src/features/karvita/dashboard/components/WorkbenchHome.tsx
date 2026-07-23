@@ -3,9 +3,14 @@
 import Link from 'next/link';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { OnboardingChecklist } from '@/components/shared/shell/OnboardingChecklist';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useUserStore } from '@/store/useUserStore';
 import { faIcons, iconMap } from '@/utils/iconMap';
+import {
+  getOnboardingProgress,
+  shouldShowOnboardingChecklist,
+} from '@/utils/onboardingProgress';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import { getLiveWorkbenchShortcuts } from '@/utils/workbenchShortcuts';
 
@@ -30,6 +35,14 @@ export function WorkbenchHome({
   const displayName =
     [activeUser.firstName, activeUser.lastName].filter(Boolean).join(' ') ||
     strategy.label;
+  const showChecklist = shouldShowOnboardingChecklist(activeUser);
+  const progress = showChecklist
+    ? getOnboardingProgress({
+        role: activeUser.role,
+        approved: activeUser.approved,
+        docStatus: activeUser.docStatus,
+      })
+    : null;
 
   return (
     <div className="flex w-full flex-col gap-kv-section">
@@ -41,6 +54,8 @@ export function WorkbenchHome({
           {subtitle}
         </KvTypography>
       </header>
+
+      {progress ? <OnboardingChecklist progress={progress} /> : null}
 
       {shortcuts.length === 0 ? (
         <div className="rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section">

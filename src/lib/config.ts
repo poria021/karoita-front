@@ -1,6 +1,7 @@
 import { RouteService } from '@/services/route.service';
 
-const DEFAULT_LOGIN_REDIRECT = RouteService.karvita.dashboard();
+/** Edge presence-only default; client `/karvita/entry` resolves role home. */
+const DEFAULT_LOGIN_REDIRECT = RouteService.karvita.entry();
 
 const AUTH_COOKIE_NAME =
   process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || 'karvita_session';

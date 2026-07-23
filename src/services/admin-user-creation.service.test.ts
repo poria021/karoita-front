@@ -40,7 +40,7 @@ describe('AdminUserCreationService (mock)', () => {
       firstName: 'سارا',
       lastName: 'محمدی',
       mobile: '9111111111',
-      password: 'pass',
+      password: '12345678',
       role: 'central_organization',
     });
 
@@ -57,7 +57,7 @@ describe('AdminUserCreationService (mock)', () => {
         firstName: 'سارا',
         lastName: 'محمدی',
         mobile: MOCK_SUPER_ADMIN_MOBILE,
-        password: 'pass',
+        password: '12345678',
         role: 'assistant_admin',
       })
     ).rejects.toThrow(/موبایل/);

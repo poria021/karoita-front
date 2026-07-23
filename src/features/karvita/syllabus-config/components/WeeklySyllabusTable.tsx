@@ -18,6 +18,7 @@ import {
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { cn } from '@/lib/utils';
 import type { SyllabusWeek } from '@/types/syllabus-config';
+import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 
 import { WeeklySyllabusWeekRow } from './WeeklySyllabusWeekRow';
@@ -56,6 +57,7 @@ export function WeeklySyllabusTable({
   onSave,
 }: WeeklySyllabusTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, weeks.length);
+  const emptyCopy = getModuleEmptyCopy('syllabus_weeks');
 
   return (
     <KvCard
@@ -141,8 +143,25 @@ export function WeeklySyllabusTable({
                   <KvTableEmpty colSpan={3}>
                     <KvEmptyState
                       icon={<FaIcon icon={faIcons.rectangleList} size="lg" />}
-                      title="سرفصلی تعریف نشده"
-                      description="با ارائه درس، هفته‌های پیش‌فرض ساخته می‌شوند."
+                      title={emptyCopy.title}
+                      description={
+                        courseOffered
+                          ? 'هنوز هفته‌ای برای این درس ثبت نشده است.'
+                          : emptyCopy.description
+                      }
+                      actions={
+                        courseOffered ? (
+                          <KvButton
+                            type="button"
+                            color="cta"
+                            appearance="solid"
+                            size="sm"
+                            onClick={onAddWeek}
+                          >
+                            افزودن هفته
+                          </KvButton>
+                        ) : undefined
+                      }
                     />
                   </KvTableEmpty>
                 ) : (

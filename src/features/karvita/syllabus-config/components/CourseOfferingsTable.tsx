@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
@@ -16,6 +18,10 @@ import {
 } from '@/components/shared/table/KvTable';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { CourseCatalogItem } from '@/types/syllabus-config';
+import {
+  getModuleEmptyCopy,
+  getSyllabusTermSettingsHref,
+} from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 
 interface CourseOfferingsTableProps {
@@ -36,6 +42,7 @@ export function CourseOfferingsTable({
   onToggleOffering,
 }: CourseOfferingsTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, courses.length);
+  const emptyCopy = getModuleEmptyCopy('syllabus_courses');
 
   return (
     <KvTableViewport
@@ -58,8 +65,23 @@ export function CourseOfferingsTable({
             <KvTableEmpty colSpan={2}>
               <KvEmptyState
                 icon={<FaIcon icon={faIcons.rectangleList} size="lg" />}
-                title="درسی برای این ترم تعریف نشده"
-                description="ابتدا نوع ترم و دوره تحصیلی را در تنظیمات عمومی مشخص کنید."
+                title={emptyCopy.title}
+                description={emptyCopy.description}
+                actions={
+                  <KvButton
+                    asChild
+                    color="cta"
+                    appearance="solid"
+                    size="sm"
+                  >
+                    <Link
+                      href={getSyllabusTermSettingsHref()}
+                      prefetch={false}
+                    >
+                      {emptyCopy.actionLabel}
+                    </Link>
+                  </KvButton>
+                }
               />
             </KvTableEmpty>
           ) : (

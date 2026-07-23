@@ -79,11 +79,14 @@ export function OrgStructurePage() {
             isLoadingMore={page.isLoadingMore}
             hasMore={page.hasMore}
             loadMoreError={page.loadMoreError}
+            query={page.query}
             onLoadMore={() => void page.loadMore()}
             onRetryLoadMore={() => {
               page.clearLoadMoreError();
               void page.loadMore();
             }}
+            onClearQuery={() => page.setQuery('')}
+            onAdd={page.openCreate}
             onEdit={page.openEdit}
             onDelete={page.requestDelete}
           />

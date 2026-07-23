@@ -21,7 +21,7 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
     secondsUntilForgotResend,
     canResendForgotOtp,
   } = login;
-  const { register, formState } = forgotOtpForm;
+  const { register, formState, watch } = forgotOtpForm;
 
   return (
     <form onSubmit={verifyForgotOtp} className="flex flex-col gap-kv-section" noValidate>
@@ -31,6 +31,7 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
         <OtpCodeField
           id="forgot-otp-code"
           registration={register('otp')}
+          value={watch('otp')}
           errorMessage={formState.errors.otp?.message}
         />
 

@@ -46,6 +46,12 @@ export function OnboardingApprovalsPage() {
   }
 
   const { canApprove, canReject } = getApprovalTabActions(page.tab);
+  const hasActiveFilters =
+    page.query.trim().length > 0 || page.province !== 'all';
+  const clearFilters = () => {
+    page.setQuery('');
+    page.setProvince('all');
+  };
 
   return (
     <>
@@ -118,6 +124,8 @@ export function OnboardingApprovalsPage() {
                     page.selectUser(user);
                     page.setShowRejectForm(true);
                   }}
+                  hasActiveFilters={hasActiveFilters}
+                  onClearFilters={clearFilters}
                 />
               </KvCard>
             </>
@@ -178,6 +186,8 @@ export function OnboardingApprovalsPage() {
                 page.clearLoadMoreError();
                 void page.loadMore();
               }}
+              hasActiveFilters={hasActiveFilters}
+              onClearFilters={clearFilters}
             />
           )
         }

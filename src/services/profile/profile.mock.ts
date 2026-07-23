@@ -66,14 +66,20 @@ export function updateMockIdentityDocument(
   documentBase64: string,
   token?: string
 ): void {
-  void documentBase64;
   const current = resolveMockUser(token);
+  const trimmed = documentBase64.trim();
+  if (!trimmed.startsWith('data:image/')) {
+    throw new ProfileServiceError('فرمت تصویر مدرک هویتی معتبر نیست.');
+  }
+
+  const mimeMatch = /^data:image\/([a-z0-9.+-]+);base64,/i.exec(trimmed);
+  const docType = mimeMatch?.[1]?.toLowerCase() ?? 'webp';
 
   patchMockAuthUser(
     { id: current.id },
     {
-      docUrl: undefined,
-      docType: 'webp',
+      docUrl: trimmed,
+      docType,
       docStatus: 'pending_admin',
       approved: false,
       lastChange: Date.now(),

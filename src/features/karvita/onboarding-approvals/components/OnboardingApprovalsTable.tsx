@@ -21,6 +21,7 @@ import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
+import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
@@ -38,6 +39,8 @@ interface OnboardingApprovalsTableProps {
   onSelect: (user: OnboardingApprovalUser) => void;
   onApprove: (user: OnboardingApprovalUser) => void;
   onStartReject: (user: OnboardingApprovalUser) => void;
+  hasActiveFilters?: boolean;
+  onClearFilters?: () => void;
 }
 
 export function OnboardingApprovalsTable({
@@ -54,10 +57,13 @@ export function OnboardingApprovalsTable({
   onSelect,
   onApprove,
   onStartReject,
+  hasActiveFilters = false,
+  onClearFilters,
 }: OnboardingApprovalsTableProps) {
   const showActions = tab === 'pending_admin';
   const columnCount = showActions ? 4 : 3;
   const bodyPhase = getAdminTableBodyPhase(isLoading, users.length);
+  const emptyCopy = getModuleEmptyCopy('onboarding_list');
 
   return (
     <div className="space-y-kv-group">
@@ -105,8 +111,31 @@ export function OnboardingApprovalsTable({
               <KvTableEmpty colSpan={columnCount}>
                 <KvEmptyState
                   icon={<FaIcon icon={faIcons.idCard} size="lg" />}
-                  title="پرونده‌ای یافت نشد"
-                  description="با تغییر تب، جستجو یا فیلترها دوباره امتحان کنید."
+                  title={emptyCopy.title}
+                  description={emptyCopy.description}
+                  actions={
+                    hasActiveFilters && onClearFilters ? (
+                      <KvButton
+                        type="button"
+                        color="cta"
+                        appearance="solid"
+                        size="sm"
+                        onClick={onClearFilters}
+                      >
+                        {emptyCopy.actionLabel}
+                      </KvButton>
+                    ) : (
+                      <KvButton
+                        type="button"
+                        color="neutral"
+                        appearance="secondary"
+                        size="sm"
+                        onClick={onRetryLoadMore}
+                      >
+                        تلاش مجدد
+                      </KvButton>
+                    )
+                  }
                 />
               </KvTableEmpty>
             ) : (

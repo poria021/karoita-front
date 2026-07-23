@@ -17,6 +17,7 @@ import {
 } from '@/components/shared/table/KvTable';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
+import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 
 import type { OrgStructureTabConfig } from '../constants';
@@ -28,8 +29,11 @@ interface OrgStructureTableProps {
   isLoadingMore: boolean;
   hasMore: boolean;
   loadMoreError: string | null;
+  query: string;
   onLoadMore: () => void;
   onRetryLoadMore: () => void;
+  onClearQuery: () => void;
+  onAdd: () => void;
   onEdit: (row: OrgStructureListItem) => void;
   onDelete: (row: OrgStructureListItem) => void;
 }
@@ -41,12 +45,17 @@ export function OrgStructureTable({
   isLoadingMore,
   hasMore,
   loadMoreError,
+  query,
   onLoadMore,
   onRetryLoadMore,
+  onClearQuery,
+  onAdd,
   onEdit,
   onDelete,
 }: OrgStructureTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, items.length);
+  const emptyCopy = getModuleEmptyCopy('org_structure');
+  const hasQuery = query.trim().length > 0;
 
   return (
     <div className="space-y-kv-group">
@@ -90,8 +99,23 @@ export function OrgStructureTable({
               <KvTableEmpty colSpan={2}>
                 <KvEmptyState
                   icon={<FaIcon icon={tabConfig.icon} size="lg" />}
-                  title="موردی یافت نشد"
-                  description="با جستجوی دیگر امتحان کنید یا مورد جدیدی اضافه کنید."
+                  title={emptyCopy.title}
+                  description={
+                    hasQuery
+                      ? 'جستجوی فعلی نتیجه‌ای نداشت. عبارت را پاک کنید یا مورد جدیدی اضافه کنید.'
+                      : emptyCopy.description
+                  }
+                  actions={
+                    <KvButton
+                      type="button"
+                      color="cta"
+                      appearance="solid"
+                      size="sm"
+                      onClick={hasQuery ? onClearQuery : onAdd}
+                    >
+                      {hasQuery ? 'پاک کردن جستجو' : emptyCopy.actionLabel}
+                    </KvButton>
+                  }
                 />
               </KvTableEmpty>
             ) : (

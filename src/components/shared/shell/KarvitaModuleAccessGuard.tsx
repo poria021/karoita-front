@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useLayoutEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { isAdminControlPlanePath } from '@/lib/live-nav-paths';
@@ -57,7 +57,7 @@ export function KarvitaModuleAccessGuard({
     ? resolveKarvitaRedirect(activeUser, pathname)
     : null;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!redirectTo) return;
     router.replace(redirectTo);
   }, [redirectTo, router]);

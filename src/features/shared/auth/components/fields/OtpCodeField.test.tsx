@@ -75,4 +75,22 @@ describe('OtpCodeField', () => {
       'کد تایید نامعتبر است'
     );
   });
+
+  it('clears display when controlled value resets to empty', () => {
+    const registration = mockOtpRegistration();
+    const { rerender } = render(
+      <OtpCodeField
+        id="otp-reset"
+        registration={registration}
+        value="12345"
+      />
+    );
+    const input = document.getElementById('otp-reset') as HTMLInputElement;
+    expect(input.value).toBe(toPersianDigits('12345'));
+
+    rerender(
+      <OtpCodeField id="otp-reset" registration={registration} value="" />
+    );
+    expect(input.value).toBe('');
+  });
 });

@@ -14,6 +14,7 @@ import {
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
 import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
+import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
@@ -48,6 +49,7 @@ export function OnboardingApprovalsDetailPanel({
   onApprove,
 }: OnboardingApprovalsDetailPanelProps) {
   if (!user) {
+    const emptyCopy = getModuleEmptyCopy('onboarding_detail');
     return (
       <KvCard tone="muted" fill>
         <KvCardContent
@@ -56,8 +58,8 @@ export function OnboardingApprovalsDetailPanel({
         >
           <KvEmptyState
             icon={<FaIcon icon={faIcons.idCard} size="lg" />}
-            title="کاربری انتخاب نشده"
-            description="از جدول یک پرونده را برای مشاهده جزئیات و اقدام انتخاب کنید."
+            title={emptyCopy.title}
+            description={emptyCopy.description}
           />
         </KvCardContent>
       </KvCard>

@@ -3,11 +3,6 @@
 import Link from 'next/link';
 
 import { FaIcon } from '@/components/shared/FaIcon';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import type { SidebarMenuItem } from '@/utils/RoleStrategyMap';
 
@@ -33,6 +28,11 @@ export function SidebarNavLink({
 }: SidebarNavLinkProps) {
   const itemIcon = resolveSidebarIcon(item.icon);
   const useBullet = nested && !isCollapsed;
+  const hoverTitle = isCollapsed
+    ? locked
+      ? `${item.title} (غیرفعال)`
+      : item.title
+    : undefined;
 
   const iconTone = locked
     ? 'text-kv-text-faint'
@@ -98,43 +98,32 @@ export function SidebarNavLink({
             'cursor-pointer font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
   );
 
-  const control = locked ? (
-    <button
-      type="button"
-      disabled
-      aria-disabled="true"
-      aria-label={`${item.title} — غیرفعال تا تأیید مدارک`}
-      className={className}
-    >
-      {content}
-    </button>
-  ) : (
+  if (locked) {
+    return (
+      <button
+        type="button"
+        disabled
+        aria-disabled="true"
+        aria-label={`${item.title} — غیرفعال تا تأیید مدارک`}
+        title={hoverTitle}
+        className={className}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
     <Link
       href={item.path}
       prefetch={false}
       onClick={onNavigate}
       aria-label={item.title}
       aria-current={isActive ? 'page' : undefined}
+      title={hoverTitle}
       className={className}
     >
       {content}
     </Link>
-  );
-
-  if (!isCollapsed) return control;
-
-  const trigger = locked ? (
-    <span className="block w-full">{control}</span>
-  ) : (
-    control
-  );
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-      <TooltipContent side="left" sideOffset={8}>
-        {locked ? `${item.title} (غیرفعال)` : item.title}
-      </TooltipContent>
-    </Tooltip>
   );
 }

@@ -13,6 +13,8 @@ import {
 interface OtpCodeFieldProps {
   id: string;
   registration: UseFormRegisterReturn<'otp'>;
+  /** Controlled RHF value — keeps display in sync after `reset({ otp: '' })`. */
+  value?: string;
   errorMessage?: string;
 }
 
@@ -23,10 +25,18 @@ function filterDigits(rawValue: string): string {
 export function OtpCodeField({
   id,
   registration,
+  value,
   errorMessage,
 }: OtpCodeFieldProps) {
-  const [englishValue, setEnglishValue] = React.useState('');
+  const [englishValue, setEnglishValue] = React.useState(() =>
+    filterDigits(value ?? '').slice(0, 5)
+  );
   const { name, onBlur, onChange, ref } = registration;
+
+  React.useEffect(() => {
+    if (value === undefined) return;
+    setEnglishValue(filterDigits(value).slice(0, 5));
+  }, [value]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const next = filterDigits(event.target.value).slice(0, 5);

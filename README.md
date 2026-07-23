@@ -6,6 +6,11 @@ Pure Next.js (App Router) frontend for the Karvita education platform.
 - **real**: NestJS API consumer via `NEXT_PUBLIC_API_URL`. Auth/domain facades throw until Nest is wired.
 - No in-repo product ORM / Better-Auth / Drizzle. Database lives on Nest later.
 
+## Learn this codebase
+
+→ Open [`docs/learning/karvita-complete-course.html`](docs/learning/karvita-complete-course.html) in a browser (RTL sidebar course, all sessions)  
+→ Markdown lessons: [`docs/learning/README.md`](docs/learning/README.md)
+
 ## Quick start
 
 ```bash

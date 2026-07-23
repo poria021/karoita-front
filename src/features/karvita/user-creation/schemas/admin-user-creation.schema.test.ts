@@ -7,7 +7,7 @@ describe('adminUserCreationSchema', () => {
     firstName: 'علی',
     lastName: 'رضایی',
     mobile: '9123456780',
-    password: '1234',
+    password: '12345678',
   };
 
   it('accepts central_organization without geo fields', () => {

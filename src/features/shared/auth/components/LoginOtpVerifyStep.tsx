@@ -21,7 +21,7 @@ export function LoginOtpVerifyStep({ login }: LoginOtpVerifyStepProps) {
     secondsUntilResend,
     canResendOtp,
   } = login;
-  const { register, formState } = otpCodeForm;
+  const { register, formState, watch } = otpCodeForm;
 
   return (
     <form onSubmit={verifyOtp} className="flex flex-col gap-kv-section" noValidate>
@@ -31,6 +31,7 @@ export function LoginOtpVerifyStep({ login }: LoginOtpVerifyStepProps) {
         <OtpCodeField
           id="login-otp-code"
           registration={register('otp')}
+          value={watch('otp')}
           errorMessage={formState.errors.otp?.message}
         />
 
