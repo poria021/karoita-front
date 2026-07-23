@@ -221,47 +221,56 @@
   --radius: 0.5rem; /* = control */
 
   /*
-   * Elevation — light: soft ambient (Fluent card depth).
-   * - raised: cards, shell surfaces, nav chrome
-   * - overlay: dropdowns, popovers, auth card emphasis
-   * - floating: modals, mobile drawers, confirmation dialogs
+   * Light — Fluent-inspired layering (Solid / Card fills) + Karvita brand.
+   * Layer 0 canvas → Layer 1 surface → Layer 2 muted/subtle (chrome / hover).
+   * Cool neutrals (not warm cream); hairline borders + soft ambient depth.
    */
-  --kv-shadow-raised: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
-  --kv-shadow-overlay: 0 8px 24px -4px hsl(222 47% 11% / 0.12), 0 2px 8px -2px hsl(222 47% 11% / 0.08);
-  --kv-shadow-floating: 0 16px 40px -8px hsl(222 47% 11% / 0.18), 0 4px 12px -2px hsl(222 47% 11% / 0.1);
+  --kv-shadow-raised:
+    0 0 0 1px hsl(0 0% 0% / 0.05),
+    0 1px 2px hsl(220 20% 20% / 0.04);
+  --kv-shadow-overlay:
+    0 0 0 1px hsl(0 0% 0% / 0.06),
+    0 8px 24px -4px hsl(220 25% 20% / 0.12),
+    0 2px 8px -2px hsl(220 25% 20% / 0.06);
+  --kv-shadow-floating:
+    0 0 0 1px hsl(0 0% 0% / 0.07),
+    0 16px 40px -8px hsl(220 25% 18% / 0.16),
+    0 4px 12px -2px hsl(220 25% 18% / 0.08);
 
   /* —— kv semantic palette (light) — HSL only (see rule 70-color-hsl-tokens) —— */
-  /* App canvas — warm stage behind shell (one soft veil under pure white) */
-  --kv-canvas: hsl(30 14.3% 97.6%);
+  /* Layer 0 — app stage (~Fluent #F3F3F3 cool smoke, not warm cream) */
+  --kv-canvas: hsl(220 14% 95.5%);
+  /* Layer 1 — cards / shell panels */
   --kv-surface: hsl(0 0% 100%);
-  /* Dashboard <main> well — one neutral veil under white; edge via border, not tint stacks */
-  --kv-main: hsl(0 0% 99%);
-  --kv-surface-muted: hsl(210 40% 98%);
-  --kv-surface-subtle: hsl(210 40% 96.1%);
-  --kv-surface-disabled: hsl(210 40% 96.1%);
-  /* Disabled form control fill — use with text-disabled + border-disabled */
-  --kv-field-disabled: hsl(210 25% 96.5%);
-  --kv-surface-inverse: hsl(222 47.4% 11.2%);
+  /* Dashboard <main> well — between canvas and surface */
+  --kv-main: hsl(220 16% 97%);
+  /* Layer 2 — chrome, hover wells, secondary panels */
+  --kv-surface-muted: hsl(220 14% 96.5%);
+  --kv-surface-subtle: hsl(220 12% 94%);
+  --kv-surface-disabled: hsl(220 10% 94.5%);
+  --kv-field-disabled: hsl(220 12% 95%);
+  --kv-surface-inverse: hsl(222 22% 14%);
 
-  --kv-text: hsl(222 47.4% 11.2%);
-  --kv-text-secondary: hsl(217 32.6% 17.5%);
-  --kv-text-muted: hsl(215 25% 26.7%);
-  --kv-text-subtle: hsl(215 19.3% 34.5%);
-  --kv-text-faint: hsl(215 16.3% 46.9%);
-  --kv-text-disabled: hsl(215 14% 62%);
+  --kv-text: hsl(220 22% 14%);
+  --kv-text-secondary: hsl(220 16% 22%);
+  --kv-text-muted: hsl(220 12% 32%);
+  --kv-text-subtle: hsl(220 10% 40%);
+  --kv-text-faint: hsl(220 8% 48%);
+  --kv-text-disabled: hsl(220 8% 62%);
   --kv-text-inverse: hsl(0 0% 100%);
-  /* Lighter than faint — low-contrast field placeholders only */
-  --kv-text-placeholder: hsl(215 16% 68%);
+  --kv-text-placeholder: hsl(220 8% 62%);
   --kv-text-link: hsl(218 89.3% 32.9%);
   --kv-text-link-hover: hsl(219 89.6% 26.5%);
 
-  --kv-border: hsl(214 31.8% 91.4%);
-  --kv-border-strong: hsl(213 26.8% 83.9%);
-  --kv-border-muted: hsl(210 40% 96.1%);
-  --kv-border-disabled: hsl(214 20% 88%);
+  /* Fluent hairline separators */
+  --kv-border: hsl(220 12% 88%);
+  --kv-border-strong: hsl(220 10% 80%);
+  --kv-border-muted: hsl(220 14% 93%);
+  --kv-border-disabled: hsl(220 10% 86%);
   --kv-ring: hsl(220 85% 42%);
   --kv-ring-danger: hsl(347 77.2% 49.8%);
 
+  /* Brand stays Karvita blue (Fluent accent pattern) */
   --kv-brand: hsl(220 85% 42%);
   --kv-brand-hover: hsl(218 89.8% 42.2%);
   --kv-brand-active: hsl(218 89.3% 32.9%);
@@ -303,13 +312,13 @@
   --kv-info-soft-fg: hsl(226 70.7% 40.2%);
   --kv-info-border: hsl(213 96.9% 87.3%);
 
-  --kv-neutral: hsl(214 31.8% 91.4%);
-  --kv-neutral-hover: hsl(213 26.8% 83.9%);
-  --kv-neutral-fg: hsl(215 25% 26.7%);
-  --kv-neutral-soft: hsl(210 40% 98%);
-  --kv-neutral-soft-hover: hsl(210 40% 96.1%);
-  --kv-neutral-soft-fg: hsl(215 19.3% 34.5%);
-  --kv-neutral-border: hsl(214 31.8% 91.4%);
+  --kv-neutral: hsl(220 12% 88%);
+  --kv-neutral-hover: hsl(220 10% 82%);
+  --kv-neutral-fg: hsl(220 12% 32%);
+  --kv-neutral-soft: hsl(220 14% 96.5%);
+  --kv-neutral-soft-hover: hsl(220 12% 94%);
+  --kv-neutral-soft-fg: hsl(220 10% 40%);
+  --kv-neutral-border: hsl(220 12% 88%);
 
   /* Shadcn bridges → kv (so primitives stay on-brand) */
   --background: var(--kv-canvas);
@@ -335,7 +344,6 @@
   --chart-2: var(--kv-success);
   --chart-3: var(--kv-info);
   --chart-4: var(--kv-warning);
-  /* chart-5: brand-active (not purple) — avoids AI-purple look; shadcn chart slot kept */
   --chart-5: var(--kv-brand-active);
   --sidebar: var(--kv-surface);
   --sidebar-foreground: var(--kv-text);
