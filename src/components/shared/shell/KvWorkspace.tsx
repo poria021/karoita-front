@@ -24,7 +24,7 @@ export function KvWorkspace({
 }: KvWorkspaceProps) {
   return (
     <div
-      className={cn('space-y-kv-section', className)}
+      className={cn('space-y-kv-group', className)}
       dir="rtl"
       data-slot="kv-workspace"
     >

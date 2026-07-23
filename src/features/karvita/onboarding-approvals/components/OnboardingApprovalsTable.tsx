@@ -38,7 +38,6 @@ interface OnboardingApprovalsTableProps {
   onRetryLoadMore: () => void;
   onSelect: (user: OnboardingApprovalUser) => void;
   onApprove: (user: OnboardingApprovalUser) => void;
-  onStartReject: (user: OnboardingApprovalUser) => void;
   hasActiveFilters?: boolean;
   onClearFilters?: () => void;
 }
@@ -56,7 +55,6 @@ export function OnboardingApprovalsTable({
   onRetryLoadMore,
   onSelect,
   onApprove,
-  onStartReject,
   hasActiveFilters = false,
   onClearFilters,
 }: OnboardingApprovalsTableProps) {
@@ -148,10 +146,10 @@ export function OnboardingApprovalsTable({
                     onClick={() => onSelect(user)}
                   >
                     <KvTableCell emphasis>{user.fullName}</KvTableCell>
-                    <KvTableCell align="center">
+                    <KvTableCell align="center" className="text-kv-text-muted">
                       {user.province || '---'}
                     </KvTableCell>
-                    <KvTableCell align="center">
+                    <KvTableCell align="center" className="text-kv-text-muted">
                       {getRoleStrategy(user.role).label}
                     </KvTableCell>
                     {showActions ? (
@@ -160,16 +158,6 @@ export function OnboardingApprovalsTable({
                         onClick={(event) => event.stopPropagation()}
                       >
                         <KvButtonGroup align="center">
-                          <KvButton
-                            type="button"
-                            color="error"
-                            appearance="ghost"
-                            size="icon-xs"
-                            aria-label="رد صلاحیت"
-                            disabled={actionBusy}
-                            onClick={() => onStartReject(user)}
-                            icon={<FaIcon icon={faIcons.xmark} size="xs" />}
-                          />
                           <KvButton
                             type="button"
                             color="success"

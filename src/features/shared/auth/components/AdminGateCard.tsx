@@ -1,6 +1,10 @@
 'use client';
 
 import { KvTypography } from '@/components/shared/KvTypography';
+import {
+  kvProductFooterBorderClassName,
+} from '@/components/shared/shell/shellChrome';
+import { cn } from '@/lib/utils';
 
 import { useAdminGate } from '../hooks/useAdminGate';
 import { AdminGateMobileStep } from './AdminGateMobileStep';
@@ -21,8 +25,13 @@ export function AdminGateCard() {
           <AdminGateOtpStep gate={gate} />
         )}
 
-        <div className="mt-kv-section border-t border-kv-border-muted/80 pt-kv-stack text-center">
-          <KvTypography variant="overline" tone="muted" align="center">
+        <div
+          className={cn(
+            'mt-kv-section pt-kv-stack text-center',
+            kvProductFooterBorderClassName
+          )}
+        >
+          <KvTypography variant="overline" tone="disabled" align="center">
             نسخه امنیتی ستاد • دسترسی محدود
           </KvTypography>
         </div>

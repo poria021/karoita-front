@@ -122,7 +122,10 @@ export function WeeklySyllabusTable({
                   )}
                 >
                   <KvTableHead>عنوان جلسه آموزشی</KvTableHead>
-                  <KvTableHead align="center" className="w-24 sm:w-36">
+                  <KvTableHead
+                    align="center"
+                    className="w-[9.5rem] sm:w-40 lg:w-44"
+                  >
                     ضریب اهمیت
                   </KvTableHead>
                   <KvTableHead align="center" className="w-28 sm:w-32">
@@ -150,6 +153,7 @@ export function WeeklySyllabusTable({
                             appearance="solid"
                             size="sm"
                             onClick={onAddWeek}
+                            icon={<FaIcon icon={faIcons.plus} size="xs" />}
                           >
                             افزودن هفته
                           </KvButton>

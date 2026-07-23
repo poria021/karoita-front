@@ -85,7 +85,7 @@ export function KvTableViewport({
       className={cn(
         'max-w-full overflow-auto overscroll-contain',
         framed &&
-          'rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-raised',
+          'rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-soft',
         heightClassName,
         className
       )}

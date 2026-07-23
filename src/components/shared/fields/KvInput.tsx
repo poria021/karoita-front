@@ -11,11 +11,11 @@ export function KvInput({ className, ref, ...props }: KvInputProps) {
       ref={ref}
       data-slot="kv-input"
       className={cn(
-        'h-11 w-full min-w-0 rounded-kv-control border border-kv-border-strong bg-kv-surface',
+        'h-11 w-full min-w-0 rounded-kv-control border border-kv-border bg-kv-field',
         'px-3.5 font-sans text-xs font-bold text-kv-text-secondary shadow-none md:text-xs',
         'placeholder:text-kv-text-placeholder',
         'transition-[color,background-color,border-color,box-shadow]',
-        'focus-visible:border-kv-brand focus-visible:bg-kv-surface',
+        'focus-visible:border-kv-brand focus-visible:bg-kv-field',
         'focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
         'aria-invalid:border-kv-danger-border aria-invalid:ring-[3px] aria-invalid:ring-kv-ring-danger/15',
         'aria-invalid:focus-visible:border-kv-danger',

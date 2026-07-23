@@ -28,7 +28,7 @@ export function KvDescriptionItem({
   return (
     <div
       data-slot="kv-description-item"
-      className="flex justify-between gap-kv-group border-b border-kv-border pb-1.5"
+      className="flex justify-between gap-kv-group border-b border-kv-border-muted pb-1.5 last:border-b-0"
     >
       <dt className="font-sans text-xs font-bold text-kv-text-muted">{label}:</dt>
       <dd

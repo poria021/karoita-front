@@ -13,10 +13,8 @@ export const SEMESTER_PREFIX_OPTIONS = [
 ] as const;
 
 export const MODULAR_PREFIX_OPTIONS = [
-  'پودمان اول',
-  'پودمان دوم',
-  'پودمان پاییزه',
-  'پودمان بهاره',
+  'کارآموزی 1',
+  'کارآموزی 2',
 ] as const;
 
 export const TERM_TYPE_OPTIONS: {
@@ -25,11 +23,11 @@ export const TERM_TYPE_OPTIONS: {
 }[] = [
   {
     value: 'semester',
-    label: 'دانشجویی (نیم‌سالی - ۴ مرحله کارورزی)',
+    label: 'ترمی',
   },
   {
     value: 'modular',
-    label: 'مهارت‌آموزی (پودمانی - ۲ مرحله کارآموزی)',
+    label: 'پودمانی',
   },
 ];
 

@@ -104,7 +104,12 @@ export function UserAccountMenu({
       align="end"
       side={variant === 'sidebar' ? 'left' : 'bottom'}
       sideOffset={variant === 'sidebar' ? 8 : 4}
-      className="min-w-44"
+      className={
+        variant === 'header'
+          ? // Match header chip width (avoid fixed min-w wider/narrower than trigger).
+            'w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)]'
+          : 'min-w-44'
+      }
     >
       <KvDropdownMenuItem asChild>
         <Link
@@ -201,7 +206,7 @@ export function UserAccountMenu({
             className={cn(
               'w-full border-t border-kv-border-muted bg-kv-surface text-start transition-colors',
               'hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30',
-              'data-[state=open]:bg-kv-surface-muted lg:rounded-b-kv-control',
+              'data-[state=open]:bg-kv-surface-muted lg:rounded-b-kv-shell',
               isCollapsed ? 'p-kv-group lg:p-kv-pair' : 'p-kv-group'
             )}
           >

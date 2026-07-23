@@ -1,7 +1,7 @@
 /**
  * Admin table body phase (rule 80 / 83 soft refresh):
  * - rows: keep previous/current rows visible
- * - busy: first load — keep table chrome; body uses KvTableBusy
+ * - busy: first load — keep table chrome; body uses KvTableBusy (row skeletons)
  * - empty: idle and no rows — KvTableEmpty + empty state
  */
 export type AdminTableBodyPhase = 'busy' | 'empty' | 'rows';

@@ -39,7 +39,7 @@ export function KvSkeletonTermSelectCard({ className }: { className?: string }) 
             <KvSkeleton className="h-3 w-40 max-w-full rounded-kv-control" />
           </div>
         </div>
-        <KvSkeleton className="h-9 w-full max-w-44 shrink-0 rounded-kv-control" />
+        <KvSkeleton className="h-11 w-full max-w-44 shrink-0 rounded-kv-control" />
       </KvCardContent>
     </KvCard>
   );
@@ -99,7 +99,7 @@ export function KvSkeletonMetricCard({ className }: { className?: string }) {
           <KvSkeleton className="h-11 w-28 shrink-0 rounded-kv-control" />
         </div>
         <div className="flex flex-col border-t border-kv-border-muted pt-kv-group sm:flex-row sm:justify-end">
-          <KvSkeleton className="h-9 w-full rounded-kv-control sm:w-28" />
+          <KvSkeleton className="h-11 w-full rounded-kv-control sm:w-28" />
         </div>
       </KvCardContent>
     </KvCard>

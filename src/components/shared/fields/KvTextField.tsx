@@ -12,25 +12,26 @@ export type KvTextFieldSize = 'sm' | 'md' | 'lg';
 
 const kvTextFieldWrapperVariants = cva(
   [
-    'flex w-full items-stretch overflow-hidden rounded-kv-control border bg-kv-surface font-sans',
+    'flex w-full items-stretch overflow-hidden rounded-kv-control border bg-kv-field font-sans',
     'transition-[color,background-color,border-color,box-shadow]',
   ].join(' '),
   {
     variants: {
       size: {
-        sm: 'h-9',
+        /* Product control height is locked to 44px (rule 80 md) for all sizes. */
+        sm: 'h-11',
         md: 'h-11',
-        lg: 'h-12',
+        lg: 'h-11',
       },
       state: {
         default: [
-          'border-kv-border-strong',
-          'focus-within:border-kv-brand focus-within:bg-kv-surface',
+          'border-kv-border',
+          'focus-within:border-kv-brand focus-within:bg-kv-field',
           'focus-within:ring-[3px] focus-within:ring-kv-ring/15',
         ].join(' '),
         error: [
           'border-kv-danger-border',
-          'focus-within:border-kv-danger focus-within:bg-kv-surface',
+          'focus-within:border-kv-danger focus-within:bg-kv-field',
           'focus-within:ring-[3px] focus-within:ring-kv-ring-danger/15',
         ].join(' '),
         locked: [
@@ -58,9 +59,10 @@ const kvTextFieldInputVariants = cva(
   {
     variants: {
       size: {
-        sm: 'px-3 text-xs md:text-xs',
+        /* Padding + type locked with control height (md). */
+        sm: 'px-3.5 text-xs md:text-xs',
         md: 'px-3.5 text-xs md:text-xs',
-        lg: 'px-4 text-sm md:text-sm',
+        lg: 'px-3.5 text-xs md:text-xs',
       },
       state: {
         default: '',

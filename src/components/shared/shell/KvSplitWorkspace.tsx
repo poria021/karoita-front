@@ -42,13 +42,13 @@ export function KvSplitWorkspace({
 
   return (
     <div
-      className={cn('space-y-kv-section', className)}
+      className={cn('space-y-kv-group', className)}
       dir="rtl"
       data-slot="kv-split-workspace"
     >
       {tabs}
       <div
-        className="space-y-kv-section pt-kv-section"
+        className="space-y-kv-group pt-kv-pair"
         data-slot="kv-split-workspace-body"
       >
         {toolbar}

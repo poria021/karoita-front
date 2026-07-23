@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 
 const kvTextAreaVariants = cva(
   [
-    'w-full resize-y rounded-kv-control border bg-kv-surface font-sans font-bold text-kv-text-secondary shadow-none',
+    'w-full resize-y rounded-kv-control border bg-kv-field font-sans font-bold text-kv-text-secondary shadow-none',
     'placeholder:text-kv-text-placeholder',
     'transition-[color,background-color,border-color,box-shadow]',
     'focus-visible:outline-none',
@@ -25,13 +25,13 @@ const kvTextAreaVariants = cva(
       },
       state: {
         default: [
-          'border-kv-border-strong',
-          'focus-visible:border-kv-brand focus-visible:bg-kv-surface',
+          'border-kv-border',
+          'focus-visible:border-kv-brand focus-visible:bg-kv-field',
           'focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
         ].join(' '),
         error: [
           'border-kv-danger-border',
-          'focus-visible:border-kv-danger focus-visible:bg-kv-surface',
+          'focus-visible:border-kv-danger focus-visible:bg-kv-field',
           'focus-visible:ring-[3px] focus-visible:ring-kv-ring-danger/15',
         ].join(' '),
         locked: [

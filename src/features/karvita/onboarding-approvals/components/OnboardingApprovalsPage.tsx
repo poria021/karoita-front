@@ -118,10 +118,6 @@ export function OnboardingApprovalsPage() {
                   }}
                   onSelect={page.selectUser}
                   onApprove={(user) => void page.approveUser(user)}
-                  onStartReject={(user) => {
-                    page.selectUser(user);
-                    page.setShowRejectForm(true);
-                  }}
                   hasActiveFilters={hasActiveFilters}
                   onClearFilters={clearFilters}
                 />

@@ -27,13 +27,15 @@ export type KvSelectFieldProps = {
   onValueChange?: (value: string) => void;
   disabled?: boolean;
   contentClassName?: string;
+  /** Extra classes on the trigger (e.g. denser height beside icon buttons). */
+  triggerClassName?: string;
   children: React.ReactNode;
 };
 
 const SIZE_CLASS: Record<KvTextFieldSize, string> = {
-  sm: 'h-9 px-3 data-[size=default]:h-9',
+  sm: 'h-11 px-3.5 data-[size=default]:h-11',
   md: 'h-11 px-3.5 data-[size=default]:h-11',
-  lg: 'h-12 px-4 data-[size=default]:h-12',
+  lg: 'h-11 px-3.5 data-[size=default]:h-11',
 };
 
 export const KvSelectField = React.forwardRef<
@@ -55,6 +57,7 @@ export const KvSelectField = React.forwardRef<
     onValueChange,
     disabled,
     contentClassName,
+    triggerClassName,
     children,
   },
   ref
@@ -97,7 +100,8 @@ export const KvSelectField = React.forwardRef<
                 'border-kv-danger-border',
                 'focus-visible:border-kv-danger focus-visible:ring-kv-ring-danger/15',
                 'data-[state=open]:border-kv-danger data-[state=open]:ring-kv-ring-danger/15',
-              ].join(' ')
+              ].join(' '),
+            triggerClassName
           )}
         >
           <KvSelectValue placeholder={placeholder} />

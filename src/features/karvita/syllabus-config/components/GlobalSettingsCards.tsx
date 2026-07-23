@@ -4,7 +4,6 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
-import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
 import {
   persianToEnglishDigits,
@@ -15,6 +14,7 @@ import {
   professorCapacitySchema,
   passingThresholdSchema,
 } from '../schemas/syllabus-config.schema';
+import { TermSettingsCardTitle } from './TermSettingsCardTitle';
 
 interface GlobalSettingsCardsProps {
   professorCapacity: string;
@@ -49,7 +49,6 @@ export function GlobalSettingsCards({
       <SettingsMetricCard
         icon={faIcons.userGroup}
         title="سقف عمومی ظرفیت اساتید"
-        description="سهمیه عددی پایه تخصیص‌یافته به دروس"
         value={professorCapacity}
         displayValue={toPersianDigits(professorCapacity)}
         onValueChange={(raw) =>
@@ -63,7 +62,6 @@ export function GlobalSettingsCards({
       <SettingsMetricCard
         icon={faIcons.graduationCap}
         title="حد نصاب قبولی سیستم (از ۱۰۰)"
-        description="تعیین حداقل نمره عددی لازم برای قبولی در گزارش‌ها"
         value={passingThreshold}
         displayValue={toPersianDigits(passingThreshold)}
         onValueChange={(raw) =>
@@ -80,7 +78,6 @@ export function GlobalSettingsCards({
 function SettingsMetricCard({
   icon,
   title,
-  description,
   value,
   displayValue,
   onValueChange,
@@ -90,7 +87,6 @@ function SettingsMetricCard({
 }: {
   icon: typeof faIcons.userGroup;
   title: string;
-  description: string;
   value: string;
   displayValue: string;
   onValueChange: (raw: string) => void;
@@ -102,15 +98,10 @@ function SettingsMetricCard({
     <KvCard>
       <KvCardContent padding="md" className="space-y-kv-group">
         <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-kv-pair">
+          <div className="flex min-w-0 flex-1 items-center gap-kv-pair">
             <KvCardTitleIcon icon={icon} />
             <div className="min-w-0">
-              <KvTypography variant="subtitle" as="h4">
-                {title}
-              </KvTypography>
-              <KvTypography variant="caption" tone="muted">
-                {description}
-              </KvTypography>
+              <TermSettingsCardTitle>{title}</TermSettingsCardTitle>
             </div>
           </div>
           <div className="w-28 shrink-0">

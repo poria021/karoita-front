@@ -9,8 +9,19 @@ export const kvShellFocusRingClassName =
 export const kvShellOverlayRowPadClassName = 'px-kv-inline py-kv-nav';
 
 /**
- * Horizontal inset shared by sticky header content and the dashboard body row
- * (sidebar + main). Keeps column edges aligned with header chrome — not full-bleed.
+ * Horizontal inset for the dashboard body row (sidebar + main).
+ * Mobile: full-bleed (`px-0`) so main spans the viewport.
+ * Tablet+: start/end margins aligned with the shell scale.
  */
 export const kvShellContentPadXClassName =
-  'px-kv-group sm:px-kv-section lg:px-kv-section xl:px-kv-page 2xl:px-kv-screen';
+  'px-0 sm:px-kv-section lg:px-kv-section xl:px-kv-page 2xl:px-kv-screen';
+
+/**
+ * Header content inset — slight mobile pad so controls are not flush to the edge;
+ * from `sm` matches the body row margins.
+ */
+export const kvShellHeaderPadXClassName =
+  'px-kv-inline sm:px-kv-section lg:px-kv-section xl:px-kv-page 2xl:px-kv-screen';
+
+/** Shared product footer hairline — dashboard main + auth cards. */
+export const kvProductFooterBorderClassName = 'border-t border-kv-border';

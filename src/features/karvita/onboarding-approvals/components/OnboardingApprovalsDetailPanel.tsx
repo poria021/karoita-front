@@ -10,9 +10,11 @@ import {
   KvCardIdentity,
   KvCardTitle,
 } from '@/components/shared/KvCard';
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
 import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
+import { faIcons } from '@/utils/iconMap';
 import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
@@ -89,6 +91,8 @@ export function OnboardingApprovalsDetailPanel({
                 size="sm"
                 disabled={actionBusy}
                 onClick={onShowRejectForm}
+                icon={<FaIcon icon={faIcons.xmark} size="xs" />}
+                iconPosition="start"
               >
                 رد صلاحیت
               </KvButton>
@@ -101,6 +105,8 @@ export function OnboardingApprovalsDetailPanel({
                 size="sm"
                 loading={actionBusy}
                 onClick={onApprove}
+                icon={<FaIcon icon={faIcons.check} size="xs" />}
+                iconPosition="start"
               >
                 تایید صلاحیت
               </KvButton>

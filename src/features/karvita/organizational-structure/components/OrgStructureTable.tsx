@@ -58,23 +58,25 @@ export function OrgStructureTable({
   const hasQuery = query.trim().length > 0;
 
   return (
-    <div className="space-y-kv-group">
+    <>
       {loadMoreError ? (
-        <KvAlert
-          variant="error"
-          title="بارگذاری ادامه فهرست ناموفق بود"
-          description={loadMoreError}
-          actions={
-            <KvButton
-              type="button"
-              appearance="secondary"
-              size="sm"
-              onClick={onRetryLoadMore}
-            >
-              تلاش مجدد
-            </KvButton>
-          }
-        />
+        <div className="mb-kv-group">
+          <KvAlert
+            variant="error"
+            title="بارگذاری ادامه فهرست ناموفق بود"
+            description={loadMoreError}
+            actions={
+              <KvButton
+                type="button"
+                appearance="secondary"
+                size="sm"
+                onClick={onRetryLoadMore}
+              >
+                تلاش مجدد
+              </KvButton>
+            }
+          />
+        </div>
       ) : null}
 
       <KvTableViewport
@@ -111,6 +113,13 @@ export function OrgStructureTable({
                       appearance="solid"
                       size="sm"
                       onClick={hasQuery ? onClearQuery : onAdd}
+                      icon={
+                        <FaIcon
+                          icon={hasQuery ? faIcons.xmark : faIcons.plus}
+                          size="xs"
+                        />
+                      }
+                      iconPosition="start"
                     >
                       {hasQuery ? 'پاک کردن جستجو' : emptyCopy.actionLabel}
                     </KvButton>
@@ -150,6 +159,6 @@ export function OrgStructureTable({
           </KvTableBody>
         </KvTable>
       </KvTableViewport>
-    </div>
+    </>
   );
 }

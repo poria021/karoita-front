@@ -81,11 +81,16 @@ export function KvMediaThumb({
         data-slot="kv-media-thumb"
         className={cn(
           frame,
-          'border border-dashed border-kv-border bg-kv-surface-muted text-center text-kv-text-faint'
+          'border border-dashed border-kv-border bg-kv-surface-muted px-kv-pair text-center'
         )}
       >
-        <FaIcon icon={faIcons.eyeSlash} size="md" />
-        <KvTypography variant="caption" weight="bold" as="span">
+        <KvTypography
+          variant="overline"
+          tone="disabled"
+          weight="medium"
+          align="center"
+          as="span"
+        >
           {emptyLabel}
         </KvTypography>
       </div>

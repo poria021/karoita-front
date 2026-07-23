@@ -5,7 +5,7 @@ import { KvButton } from '@/components/shared/KvButton';
 import { HeaderNotificationsMenu } from '@/components/shared/shell/HeaderNotificationsMenu';
 import { ThemeModeToggle } from '@/components/shared/shell/ThemeModeToggle';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
-import { kvShellContentPadXClassName } from '@/components/shared/shell/shellChrome';
+import { kvShellHeaderPadXClassName } from '@/components/shared/shell/shellChrome';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
@@ -28,7 +28,7 @@ export function Header() {
       <div
         className={cn(
           'flex h-16 w-full items-center justify-between',
-          kvShellContentPadXClassName
+          kvShellHeaderPadXClassName
         )}
       >
         <div className="flex min-w-0 items-center gap-kv-group">
@@ -46,19 +46,26 @@ export function Header() {
           />
 
           <div className="flex min-w-0 items-center gap-kv-inline">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20">
+            <div
+              className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20"
+              aria-hidden="true"
+            >
               <FaIcon icon={faIcons.tableColumns} size="sm" />
             </div>
-            <div className="flex min-w-0 flex-col">
-              <KvTypography variant="title" as="h1" truncate>
-                پنل کاربری - {strategy.label}
+            {/* Title/subtitle only from lg — logo mark alone on mobile/tablet. */}
+            <div className="hidden min-w-0 flex-col lg:flex">
+              <KvTypography variant="subtitle" weight="black" as="h1" truncate>
+                کارویتا
               </KvTypography>
-              <div className="mt-kv-nav-tight hidden sm:block">
-                <KvTypography variant="overline" tone="muted" as="p" truncate>
-                  سامانه جامع آموزش نظری و مهارتی کارویتا
+              <div className="mt-kv-nav-tight">
+                <KvTypography variant="caption" tone="muted" as="p" truncate>
+                  سامانه جامع آموزش نظری و مهارتی
                 </KvTypography>
               </div>
             </div>
+            <h1 className="sr-only lg:hidden">
+              کارویتا — پنل کاربری - {strategy.label}
+            </h1>
           </div>
         </div>
 

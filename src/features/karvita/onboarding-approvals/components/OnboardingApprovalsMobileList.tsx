@@ -12,7 +12,7 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
-import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
+import { KvSkeletonListRow } from '@/components/shared/skeleton/KvSkeletonCard';
 import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { Badge, badgeVariants } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -92,7 +92,21 @@ export function OnboardingApprovalsMobileList({
   const emptyCopy = getModuleEmptyCopy('onboarding_list');
 
   if (isLoading && users.length === 0) {
-    return <KvBusySurface tableViewport />;
+    return (
+      <div
+        className={cn('flex w-full flex-col gap-kv-group', KV_TABLE_VIEWPORT_HEIGHT)}
+        role="status"
+        aria-busy="true"
+        aria-label="در حال بارگذاری فهرست پرونده‌ها"
+      >
+        <KvSkeletonListRow />
+        <KvSkeletonListRow />
+        <KvSkeletonListRow />
+        <KvSkeletonListRow />
+        <KvSkeletonListRow />
+        <KvSkeletonListRow />
+      </div>
+    );
   }
 
   if (!isLoading && users.length === 0) {

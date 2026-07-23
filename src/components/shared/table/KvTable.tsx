@@ -116,10 +116,11 @@ export function KvTableRow({
       data-interactive={interactive || undefined}
       className={cn(
         'font-bold text-kv-text transition-colors',
-        'in-[data-slot=kv-table-body]:hover:bg-kv-surface-muted',
+        // Desktop hover only on non-selected body rows — selected stays put.
+        'can-hover:in-[data-slot=kv-table-body]:not-data-[selected]:hover:bg-kv-surface-muted',
         'data-[selected]:bg-kv-brand-soft data-[selected]:font-extrabold data-[selected]:text-kv-brand',
-        'data-[selected]:in-[data-slot=kv-table-body]:hover:bg-kv-brand-soft',
-        interactive && 'cursor-pointer',
+        interactive &&
+          'cursor-pointer active:not-data-[selected]:bg-kv-surface-muted',
         className
       )}
       {...props}

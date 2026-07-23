@@ -40,7 +40,9 @@ export function KvAccordionItem({
     <AccordionItem
       data-slot="kv-accordion-item"
       className={cn(
-        'mb-3 overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface shadow-kv-raised last:mb-0',
+        'mb-3 overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-raised last:mb-0',
+        // Open = border only — no background shift on select/press.
+        'data-[state=open]:border-kv-brand-border',
         className
       )}
       {...props}
@@ -56,9 +58,9 @@ export function KvAccordionTrigger({
     <AccordionTrigger
       data-slot="kv-accordion-trigger"
       className={cn(
-        'px-kv-inset py-kv-group hover:bg-kv-surface-muted/50 hover:no-underline',
-        'data-[state=open]:bg-kv-brand-soft data-[state=open]:text-kv-brand',
-        'data-[state=open]:hover:bg-kv-brand-soft-hover',
+        'px-kv-inset py-kv-group hover:no-underline',
+        // No hover / press / open background changes on card triggers.
+        'data-[state=open]:text-kv-brand',
         className
       )}
       {...props}

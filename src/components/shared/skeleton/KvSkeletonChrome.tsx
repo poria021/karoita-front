@@ -1,59 +1,32 @@
 import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
 import { cn } from '@/lib/utils';
 
-export type KvSkeletonTabTrackBreakpoint = 'sm' | 'md' | 'lg';
-
 export type KvSkeletonTabTrackProps = {
   className?: string;
   /**
-   * Desktop track width — should approximate real `AppTabsList` (`md:w-fit` / `lg:w-fit`).
-   * Height/radius match AppTabs: ~42px, `rounded-kv-control` track (not pill / not w-full on desktop).
+   * Track width — approximate real `AppTabsList` (`w-fit` or full for wrap).
+   * Height/radius match AppTabs: ~50px (field h-11 + track pad), `rounded-kv-control`.
    */
   trackClassName?: string;
   label?: string;
-  /**
-   * Match the real tabs breakpoint (`OrgStructureSubTabs` / onboarding = lg).
-   * Default `md`.
-   */
-  breakpoint?: KvSkeletonTabTrackBreakpoint;
 };
 
 /**
- * Mirrors desktop `AppTabsList` track (radius/height/w-fit),
- * not a full-width rounded-full bar.
+ * Mirrors `AppTabsList` track on all breakpoints (same chrome as desktop).
  */
 export function KvSkeletonTabTrack({
   className,
   trackClassName,
   label = 'در حال بارگذاری تب‌ها',
-  breakpoint = 'md',
 }: KvSkeletonTabTrackProps) {
-  const desktopVisible =
-    breakpoint === 'sm'
-      ? 'hidden sm:block'
-      : breakpoint === 'lg'
-        ? 'hidden lg:block'
-        : 'hidden md:block';
-  const mobileVisible =
-    breakpoint === 'sm'
-      ? 'block sm:hidden'
-      : breakpoint === 'lg'
-        ? 'block lg:hidden'
-        : 'block md:hidden';
-
   return (
-    <div className={cn('mb-kv-section space-y-kv-group', className)}>
+    <div className={cn('mb-kv-pair', className)}>
       <KvSkeleton
         label={label}
         className={cn(
-          'h-[42px] max-w-full rounded-kv-control',
-          desktopVisible,
-          trackClassName
+          'h-12 max-w-full rounded-kv-control',
+          trackClassName ?? 'w-full sm:w-[28rem]'
         )}
-      />
-      <KvSkeleton
-        aria-hidden
-        className={cn('h-[42px] w-full rounded-kv-control', mobileVisible)}
       />
     </div>
   );

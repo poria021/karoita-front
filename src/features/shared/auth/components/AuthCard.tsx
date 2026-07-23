@@ -9,6 +9,10 @@ import {
   AppTabsTrigger,
 } from '@/components/shared/AppTabs';
 import { KvTypography } from '@/components/shared/KvTypography';
+import {
+  kvProductFooterBorderClassName,
+} from '@/components/shared/shell/shellChrome';
+import { cn } from '@/lib/utils';
 
 import { useLoginForm } from '../hooks/useLoginForm';
 import { AuthLogo } from './AuthLogo';
@@ -38,7 +42,7 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
 
   return (
     <div className="kv-auth-enter mt-kv-section w-full max-w-[450px] overflow-hidden rounded-kv-card border border-kv-border/80 bg-kv-surface shadow-kv-overlay">
-      <div className="p-kv-inset sm:p-kv-page">
+      <div className="px-kv-inset py-kv-group sm:px-kv-page sm:py-kv-section">
         <AuthLogo subtitle="سامانه هوشمند کارورزی و کارآموزی" />
 
         {isForgotMode ? (
@@ -67,8 +71,13 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
           </AppTabs>
         )}
 
-        <div className="mt-kv-section border-t border-kv-border-muted/80 pt-kv-stack text-center">
-          <KvTypography variant="overline" tone="muted" align="center">
+        <div
+          className={cn(
+            'mt-kv-section pt-kv-stack text-center',
+            kvProductFooterBorderClassName
+          )}
+        >
+          <KvTypography variant="overline" tone="disabled" align="center">
             کارویتا - سامانه هوشمند کارورزی و کارآموزی
           </KvTypography>
         </div>

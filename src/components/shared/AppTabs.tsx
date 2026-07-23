@@ -11,30 +11,22 @@ import {
 import { cn } from '@/lib/utils';
 
 export type AppTabsActiveTone = 'brand' | 'surface';
-export type AppTabsListLayout = 'row' | 'grid';
 export type AppTabsGridCols = 2 | 3 | 4;
 
-/** Shared row track chrome — identical for dashboard + auth. Uses radius tokens. */
+/** Shared track chrome — identical pill style on all breakpoints. */
 const LIST_BASE = [
-  'flex h-auto max-w-full items-center gap-1 overflow-x-auto whitespace-nowrap',
+  'flex h-auto max-w-full items-center gap-1',
   'overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface-subtle p-[3px]',
+  'dark:bg-kv-surface',
   'font-sans text-kv-text-subtle',
+].join(' ');
+
+/** Single-line track; scrolls horizontally if needed. */
+const LIST_ROW = [
+  LIST_BASE,
+  'overflow-x-auto whitespace-nowrap',
   '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
 ].join(' ');
-
-/** Dashboard: hug content on md+. Auth (`fullWidth`): always stretch. */
-const LIST_HUG = [
-  LIST_BASE,
-  'w-full self-stretch',
-  'md:inline-flex md:w-fit md:max-w-full md:self-start md:justify-start',
-].join(' ');
-
-const LIST_STRETCH = [LIST_BASE, 'w-full self-stretch justify-stretch'].join(
-  ' '
-);
-
-const LIST_GRID_BASE =
-  'grid w-full gap-2 border-0 bg-transparent p-0 font-sans text-kv-text-subtle';
 
 const GRID_COLS_CLASS: Record<AppTabsGridCols, string> = {
   2: 'grid-cols-2',
@@ -42,54 +34,82 @@ const GRID_COLS_CLASS: Record<AppTabsGridCols, string> = {
   4: 'grid-cols-4',
 };
 
+/**
+ * Mobile/tablet: N-col grid inside the same track.
+ * Desktop (lg+): hug-content row like default dashboard tabs.
+ */
+const LIST_RESPONSIVE_GRID = (cols: AppTabsGridCols) =>
+  [
+    LIST_BASE,
+    'grid w-full gap-1',
+    GRID_COLS_CLASS[cols],
+    'lg:flex lg:w-fit lg:max-w-full lg:flex-nowrap lg:justify-start',
+    'lg:overflow-x-auto lg:whitespace-nowrap',
+    'lg:[-ms-overflow-style:none] lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden',
+  ].join(' ');
+
+/** Dashboard: hug content on md+. Auth (`fullWidth`): always stretch. */
+const LIST_HUG = [
+  'w-full self-stretch',
+  'md:inline-flex md:w-fit md:max-w-full md:self-start md:justify-start',
+].join(' ');
+
+const LIST_STRETCH = 'w-full self-stretch justify-stretch';
+
 const TRIGGER_BASE = [
-  'inline-flex min-w-0 items-center justify-center rounded-kv-control border-0',
-  'bg-transparent font-sans font-bold text-kv-text-subtle shadow-none outline-none transition-all',
+  'inline-flex min-w-0 items-center justify-center rounded-kv-control',
+  // Same hairline as org-structure pills — all AppTabs stay visually uniform.
+  'border border-kv-border-muted bg-transparent',
+  'dark:border-kv-border-strong/55',
+  // Match page chrome (label/nav/body = text-xs); weight steps up when active.
+  'font-sans text-xs font-medium leading-none text-kv-text-subtle shadow-none outline-none transition-all',
   'hover:text-kv-text',
+  'data-[state=active]:font-bold',
   'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
   'disabled:cursor-not-allowed disabled:opacity-50',
   '[&_svg]:pointer-events-none [&_svg]:shrink-0',
 ].join(' ');
 
-/** Only active fill differs: brand (dashboard) vs white/surface (auth). */
-const TRIGGER_ACTIVE_BRAND = [
-  'data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
-  'data-[state=active]:shadow-kv-raised data-[state=active]:shadow-kv-brand/15',
-].join(' ');
-
+/** Active fill — light: surface; dark: subtle + pure white ink (tabs exception). */
 const TRIGGER_ACTIVE_SURFACE = [
-  'data-[state=active]:bg-kv-surface data-[state=active]:text-kv-text',
+  'data-[state=active]:border-kv-border data-[state=active]:bg-kv-surface data-[state=active]:text-kv-text',
+  'dark:data-[state=active]:border-kv-border-strong dark:data-[state=active]:bg-kv-surface-subtle dark:data-[state=active]:text-kv-text-bright',
   'data-[state=active]:shadow-kv-raised',
 ].join(' ');
 
-/** One size recipe for all row tabs (auth + dashboard). */
+/** @deprecated Prefer surface — kept for rare brand-emphasis call sites. */
+const TRIGGER_ACTIVE_BRAND = [
+  'data-[state=active]:border-kv-brand data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
+  'data-[state=active]:shadow-kv-raised data-[state=active]:shadow-kv-brand/15',
+].join(' ');
+
+/** Dashboard — same type size as labels/body; below page title (sm/base). */
 const TRIGGER_ROW_SIZE = [
-  'flex-1 gap-1.5 px-1.5 py-1.5 text-sm leading-none',
-  'md:gap-2 md:px-4 md:py-2.5 md:text-sm',
+  'gap-1.5 px-2.5 py-2 min-h-10',
+  'md:gap-2 md:px-3.5 md:py-2 md:min-h-10',
 ].join(' ');
 
-/** When list hugs content, triggers stop growing on md+. */
-const TRIGGER_ROW_HUG = 'md:w-auto md:flex-none md:grow-0';
-
-const TRIGGER_GRID_SIZE = [
-  'w-full gap-1.5 rounded-kv-control border border-kv-border bg-kv-surface',
-  'px-2 py-2 text-sm leading-none',
-  'hover:bg-kv-surface-muted',
-  'data-[state=active]:border-kv-brand',
+/** Auth fullWidth — denser pad, same type size as dashboard. */
+const TRIGGER_ROW_SIZE_COMPACT = [
+  'flex-1 gap-1 px-1.5 py-1.5 min-h-9',
+  'md:gap-1.5 md:px-2 md:py-1.5 md:min-h-9',
 ].join(' ');
+
+const TRIGGER_HUG = 'md:w-auto md:flex-none md:grow-0';
+/** Grid cells fill; desktop row hugs. */
+const TRIGGER_GRID = 'w-full min-w-0 lg:w-auto lg:flex-none lg:grow-0';
+
 
 type AppTabsContextValue = {
   fullWidth: boolean;
   activeTone: AppTabsActiveTone;
-  listLayout: AppTabsListLayout;
-  gridCols: AppTabsGridCols;
+  gridCols: AppTabsGridCols | null;
 };
 
 const AppTabsContext = React.createContext<AppTabsContextValue>({
   fullWidth: false,
-  activeTone: 'brand',
-  listLayout: 'row',
-  gridCols: 3,
+  activeTone: 'surface',
+  gridCols: null,
 });
 
 function useAppTabsContext() {
@@ -99,9 +119,12 @@ function useAppTabsContext() {
 export type AppTabsProps = React.ComponentProps<typeof Tabs> & {
   /** Stretch track + equal-width triggers (auth card). Style tokens stay identical. */
   fullWidth?: boolean;
-  /** `brand` = dashboard active; `surface` = auth active (white). */
+  /** Active pill: `surface` (default, matches auth) or `brand`. */
   activeTone?: AppTabsActiveTone;
-  listLayout?: AppTabsListLayout;
+  /**
+   * Below `lg`: N-column grid inside the shared track (org structure).
+   * `lg+`: hug-content row — never forced full width.
+   */
   gridCols?: AppTabsGridCols;
 };
 
@@ -110,20 +133,19 @@ function AppTabs({
   children,
   orientation = 'horizontal',
   fullWidth = false,
-  activeTone = 'brand',
-  listLayout = 'row',
-  gridCols = 3,
+  activeTone = 'surface',
+  gridCols,
   ...props
 }: AppTabsProps) {
   return (
     <AppTabsContext.Provider
-      value={{ fullWidth, activeTone, listLayout, gridCols }}
+      value={{ fullWidth, activeTone, gridCols: gridCols ?? null }}
     >
       <Tabs
         data-slot="app-tabs"
         data-full-width={fullWidth || undefined}
         data-active-tone={activeTone}
-        data-list-layout={listLayout}
+        data-grid-cols={gridCols || undefined}
         data-orientation={orientation}
         orientation={orientation}
         className={cn(
@@ -142,14 +164,14 @@ function AppTabsList({
   className,
   ...props
 }: React.ComponentProps<typeof TabsList>) {
-  const { fullWidth, listLayout, gridCols } = useAppTabsContext();
+  const { fullWidth, gridCols } = useAppTabsContext();
 
-  if (listLayout === 'grid') {
+  if (gridCols) {
     return (
       <TabsList
         data-slot="app-tabs-list"
-        data-list-layout="grid"
-        className={cn(LIST_GRID_BASE, GRID_COLS_CLASS[gridCols], className)}
+        data-grid-cols={gridCols}
+        className={cn(LIST_RESPONSIVE_GRID(gridCols), className)}
         {...props}
       />
     );
@@ -158,8 +180,11 @@ function AppTabsList({
   return (
     <TabsList
       data-slot="app-tabs-list"
-      data-list-layout="row"
-      className={cn(fullWidth ? LIST_STRETCH : LIST_HUG, className)}
+      className={cn(
+        LIST_ROW,
+        fullWidth ? LIST_STRETCH : LIST_HUG,
+        className
+      )}
       {...props}
     />
   );
@@ -169,24 +194,7 @@ function AppTabsTrigger({
   className,
   ...props
 }: React.ComponentProps<typeof TabsTrigger>) {
-  const { fullWidth, activeTone, listLayout } = useAppTabsContext();
-
-  if (listLayout === 'grid') {
-    return (
-      <TabsTrigger
-        data-slot="app-tabs-trigger"
-        className={cn(
-          TRIGGER_BASE,
-          activeTone === 'surface'
-            ? TRIGGER_ACTIVE_SURFACE
-            : TRIGGER_ACTIVE_BRAND,
-          TRIGGER_GRID_SIZE,
-          className
-        )}
-        {...props}
-      />
-    );
-  }
+  const { fullWidth, activeTone, gridCols } = useAppTabsContext();
 
   return (
     <TabsTrigger
@@ -196,8 +204,10 @@ function AppTabsTrigger({
         activeTone === 'surface'
           ? TRIGGER_ACTIVE_SURFACE
           : TRIGGER_ACTIVE_BRAND,
-        TRIGGER_ROW_SIZE,
-        !fullWidth && TRIGGER_ROW_HUG,
+        fullWidth ? TRIGGER_ROW_SIZE_COMPACT : TRIGGER_ROW_SIZE,
+        gridCols ? TRIGGER_GRID : !fullWidth && TRIGGER_HUG,
+        !gridCols && fullWidth && 'flex-1',
+        !gridCols && !fullWidth && 'flex-1 md:flex-none',
         className
       )}
       {...props}

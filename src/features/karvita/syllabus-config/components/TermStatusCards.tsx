@@ -6,6 +6,7 @@ import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvSwitch } from '@/components/shared/fields/KvSwitch';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { cn } from '@/lib/utils';
 import { isTermGateActive } from '@/services/syllabus-config.service';
 import type { AcademicTerm } from '@/types/syllabus-config';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -19,6 +20,9 @@ interface TermStatusCardsProps {
   onToggleEnroll: (open: boolean) => void;
   onToggleTermOpen: (open: boolean) => void;
 }
+
+const CARD_CONTENT_CLASS =
+  'flex min-h-[82px] items-center justify-between gap-kv-group';
 
 export function TermStatusCards({
   terms,
@@ -37,40 +41,10 @@ export function TermStatusCards({
   );
 
   return (
-    <div className="grid grid-cols-1 items-stretch gap-kv-group md:grid-cols-3">
-      <StatusGateCard
-        icon={faIcons.clipboardList}
-        title="انتخاب واحد"
-        subtitle={
-          selectedTerm?.enrollStart
-            ? `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
-            : 'تاریخ شروع ثبت نشده'
-        }
-        switchOn={Boolean(selectedTerm?.isEnrollOpen)}
-        active={enrollActive}
-        onToggle={onToggleEnroll}
-        disabled={!selectedTerm}
-      />
-
-      <StatusGateCard
-        icon={faIcons.chalkboardUser}
-        title="برگزاری کلاس‌ها"
-        subtitle={
-          selectedTerm?.termStart
-            ? `شروع: ${toPersianDigits(selectedTerm.termStart)}`
-            : 'تاریخ شروع ثبت نشده'
-        }
-        switchOn={Boolean(selectedTerm?.isTermOpen)}
-        active={termActive}
-        onToggle={onToggleTermOpen}
-        disabled={!selectedTerm}
-      />
-
-      <KvCard>
-        <KvCardContent
-          padding="md"
-          className="flex min-h-[82px] items-center justify-between gap-kv-group"
-        >
+    <div className="grid grid-cols-1 items-stretch gap-kv-group lg:grid-cols-3">
+      {/* Mobile/tablet: after gates. Desktop (RTL): first from the right. */}
+      <KvCard className="order-3 lg:order-1">
+        <KvCardContent padding="md" className={CARD_CONTENT_CLASS}>
           <div className="flex min-w-0 items-center gap-kv-pair">
             <KvCardTitleIcon icon={faIcons.graduationCap} />
             <div className="min-w-0">
@@ -99,11 +73,42 @@ export function TermStatusCards({
           </div>
         </KvCardContent>
       </KvCard>
+
+      <StatusGateCard
+        className="order-1 lg:order-2"
+        icon={faIcons.clipboardList}
+        title="انتخاب واحد"
+        subtitle={
+          selectedTerm?.enrollStart
+            ? `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
+            : 'تاریخ شروع ثبت نشده'
+        }
+        switchOn={Boolean(selectedTerm?.isEnrollOpen)}
+        active={enrollActive}
+        onToggle={onToggleEnroll}
+        disabled={!selectedTerm}
+      />
+
+      <StatusGateCard
+        className="order-2 lg:order-3"
+        icon={faIcons.chalkboardUser}
+        title="برگزاری کلاس‌ها"
+        subtitle={
+          selectedTerm?.termStart
+            ? `شروع: ${toPersianDigits(selectedTerm.termStart)}`
+            : 'تاریخ شروع ثبت نشده'
+        }
+        switchOn={Boolean(selectedTerm?.isTermOpen)}
+        active={termActive}
+        onToggle={onToggleTermOpen}
+        disabled={!selectedTerm}
+      />
     </div>
   );
 }
 
 function StatusGateCard({
+  className,
   icon,
   title,
   subtitle,
@@ -112,6 +117,7 @@ function StatusGateCard({
   onToggle,
   disabled,
 }: {
+  className?: string;
   icon: IconDefinition;
   title: string;
   subtitle: string;
@@ -122,16 +128,14 @@ function StatusGateCard({
 }) {
   return (
     <KvCard
-      className={
+      className={cn(
         active
           ? 'border-kv-success-border bg-kv-success-soft/30'
-          : 'border-kv-danger-border bg-kv-danger-soft/30'
-      }
+          : 'border-kv-danger-border bg-kv-danger-soft/30',
+        className
+      )}
     >
-      <KvCardContent
-        padding="md"
-        className="flex min-h-[82px] items-center justify-between gap-kv-group"
-      >
+      <KvCardContent padding="md" className={CARD_CONTENT_CLASS}>
         <div className="flex min-w-0 items-center gap-kv-pair">
           <KvCardTitleIcon icon={icon} />
           <div className="min-w-0">
@@ -149,7 +153,7 @@ function StatusGateCard({
           disabled={disabled}
           onCheckedChange={onToggle}
           aria-label={title}
-          className="data-[state=unchecked]:bg-kv-danger/35"
+          className="shrink-0 data-[state=unchecked]:bg-kv-danger/35"
         />
       </KvCardContent>
     </KvCard>

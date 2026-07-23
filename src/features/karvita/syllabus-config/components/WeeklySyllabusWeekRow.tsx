@@ -66,8 +66,11 @@ export function WeeklySyllabusWeekRow({
       >
         {week.title || week.suffix}
       </KvTableCell>
-      <KvTableCell align="center" className="w-24 sm:w-36">
-        <div className="mx-auto w-full max-w-[5.75rem] sm:max-w-32">
+      <KvTableCell
+        align="center"
+        className="w-[9.5rem] sm:w-40 lg:w-44"
+      >
+        <div className="mx-auto flex w-full min-w-0 items-center justify-center">
           <KvSelectField
             label={false}
             size="sm"
@@ -76,6 +79,7 @@ export function WeeklySyllabusWeekRow({
             onValueChange={(value) =>
               onWeightChange(week.id, Number.parseInt(value, 10))
             }
+            triggerClassName="h-8 min-h-8 px-2.5 data-[size=default]:h-8 data-[size=sm]:h-8"
           >
             {WEEK_WEIGHT_OPTIONS.map((option) => (
               <KvSelectItem key={option.value} value={String(option.value)}>
@@ -86,51 +90,53 @@ export function WeeklySyllabusWeekRow({
         </div>
       </KvTableCell>
       <KvTableCell align="center" className="w-28 whitespace-nowrap sm:w-32">
-        <KvButtonGroup align="center">
-          <KvButton
-            type="button"
-            color="neutral"
-            appearance="ghost"
-            size="icon-xs"
-            aria-label="ویرایش عنوان هفته"
-            disabled={!contentEditable}
-            onClick={() => onEditWeek(week)}
-            icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
-          />
-          {archived ? (
+        <div className="flex h-8 items-center justify-center">
+          <KvButtonGroup align="center">
             <KvButton
               type="button"
               color="neutral"
               appearance="ghost"
               size="icon-xs"
-              aria-label="بازیابی هفته"
-              disabled={!structureActionable}
-              onClick={() => onRestoreWeek(week)}
-              icon={<FaIcon icon={faIcons.clockRotateLeft} size="xs" />}
+              aria-label="ویرایش عنوان هفته"
+              disabled={!contentEditable}
+              onClick={() => onEditWeek(week)}
+              icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
             />
-          ) : (
+            {archived ? (
+              <KvButton
+                type="button"
+                color="neutral"
+                appearance="ghost"
+                size="icon-xs"
+                aria-label="بازیابی هفته"
+                disabled={!structureActionable}
+                onClick={() => onRestoreWeek(week)}
+                icon={<FaIcon icon={faIcons.clockRotateLeft} size="xs" />}
+              />
+            ) : (
+              <KvButton
+                type="button"
+                color="warning"
+                appearance="ghost"
+                size="icon-xs"
+                aria-label="آرشیو هفته"
+                disabled={!structureActionable}
+                onClick={() => onArchiveWeek(week)}
+                icon={<FaIcon icon={faIcons.folderOpen} size="xs" />}
+              />
+            )}
             <KvButton
               type="button"
-              color="warning"
+              color="error"
               appearance="ghost"
               size="icon-xs"
-              aria-label="آرشیو هفته"
+              aria-label="حذف هفته"
               disabled={!structureActionable}
-              onClick={() => onArchiveWeek(week)}
-              icon={<FaIcon icon={faIcons.folderOpen} size="xs" />}
+              onClick={() => onDeleteWeek(week)}
+              icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
             />
-          )}
-          <KvButton
-            type="button"
-            color="error"
-            appearance="ghost"
-            size="icon-xs"
-            aria-label="حذف هفته"
-            disabled={!structureActionable}
-            onClick={() => onDeleteWeek(week)}
-            icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
-          />
-        </KvButtonGroup>
+          </KvButtonGroup>
+        </div>
       </KvTableCell>
     </KvTableRow>
   );

@@ -23,10 +23,10 @@ export function CourseOfferingsPageSkeleton() {
         aria-busy="true"
         aria-label="در حال بارگذاری ارائه و سرفصل دروس"
       >
-        <div className="grid grid-cols-1 items-stretch gap-kv-group md:grid-cols-3">
-          <KvSkeletonGateCard />
-          <KvSkeletonGateCard />
-          <KvSkeletonTermSelectCard />
+        <div className="grid grid-cols-1 items-stretch gap-kv-group lg:grid-cols-3">
+          <KvSkeletonGateCard className="order-1 lg:order-2" />
+          <KvSkeletonGateCard className="order-2 lg:order-3" />
+          <KvSkeletonTermSelectCard className="order-3 lg:order-1" />
         </div>
 
         <div className="grid grid-cols-1 items-start gap-kv-section lg:grid-cols-12 lg:gap-kv-group">

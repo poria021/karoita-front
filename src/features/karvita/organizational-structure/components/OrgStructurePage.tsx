@@ -43,6 +43,7 @@ export function OrgStructurePage() {
   return (
     <>
       <KvWorkspace
+        panel={false}
         tabs={
           <OrgStructureSubTabs active={page.tab} onChange={page.changeTab} />
         }

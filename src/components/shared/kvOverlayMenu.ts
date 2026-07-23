@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
  * همهٔ دراپ‌باکس‌های محصول باید از همین توکن‌ها استفاده کنند.
  */
 export const kvOverlayPanelClassName = [
-  'overflow-hidden rounded-kv-panel border border-kv-border/70 bg-kv-surface p-0',
+  'overflow-hidden rounded-kv-control border border-kv-border/70 bg-kv-surface p-0',
   'shadow-kv-overlay',
 ].join(' ');
 

@@ -113,46 +113,44 @@ export function IdentityForm({
 
         <KvForm {...form}>
           <form onSubmit={submit} noValidate className="space-y-kv-section">
-            <div className="rounded-kv-panel border border-kv-border p-kv-group shadow-kv-raised">
-              <fieldset
-                disabled={isDisabled}
-                className="min-w-0 border-0 p-0 disabled:opacity-100"
-              >
-                <div className="grid grid-cols-1 gap-kv-group text-start sm:grid-cols-2">
-                  <KvTextField
-                    label="نام"
-                    required
-                    locked={isDisabled}
-                    placeholder="مثال: امیرحسین"
-                    error={form.formState.errors.firstName?.message}
-                    {...form.register('firstName')}
-                  />
-                  <KvTextField
-                    label="نام خانوادگی"
-                    required
-                    locked={isDisabled}
-                    placeholder="مثال: کریمی"
-                    error={form.formState.errors.lastName?.message}
-                    {...form.register('lastName')}
-                  />
-                  <KvMobileNumberField
-                    value={liveUser.mobile}
-                    locked
-                    required
-                  />
-                  <KvTextField
-                    label="نقش کاربر جاری"
-                    value={roleStrategy.label}
-                    locked
-                    required
-                  />
-                  <DynamicRoleFields
-                    role={liveUser.role}
-                    disabled={isDisabled}
-                  />
-                </div>
-              </fieldset>
-            </div>
+            <fieldset
+              disabled={isDisabled}
+              className="min-w-0 border-0 p-0 disabled:opacity-100"
+            >
+              <div className="grid grid-cols-1 gap-kv-group text-start sm:grid-cols-2">
+                <KvTextField
+                  label="نام"
+                  required
+                  locked={isDisabled}
+                  placeholder="مثال: امیرحسین"
+                  error={form.formState.errors.firstName?.message}
+                  {...form.register('firstName')}
+                />
+                <KvTextField
+                  label="نام خانوادگی"
+                  required
+                  locked={isDisabled}
+                  placeholder="مثال: کریمی"
+                  error={form.formState.errors.lastName?.message}
+                  {...form.register('lastName')}
+                />
+                <KvMobileNumberField
+                  value={liveUser.mobile}
+                  locked
+                  required
+                />
+                <KvTextField
+                  label="نقش کاربر جاری"
+                  value={roleStrategy.label}
+                  locked
+                  required
+                />
+                <DynamicRoleFields
+                  role={liveUser.role}
+                  disabled={isDisabled}
+                />
+              </div>
+            </fieldset>
 
             {showDocUploader ? (
               <KvImageDocUploader

@@ -15,7 +15,7 @@ export function DashboardMainViewport({ children }: DashboardMainViewportProps) 
     <main
       id={DASHBOARD_MAIN_ID}
       tabIndex={-1}
-      className="flex min-h-[550px] min-w-0 flex-1 flex-col rounded-none bg-kv-main px-kv-inset py-kv-group text-start outline-none sm:px-kv-page sm:py-kv-section lg:min-h-[calc(100dvh-4rem)]"
+      className="flex min-h-[550px] min-w-0 flex-1 flex-col rounded-none bg-kv-main px-kv-group py-kv-group text-start outline-none sm:px-kv-page sm:py-kv-section lg:min-h-[calc(100dvh-4rem)]"
     >
       <ModulePageHeader />
       <div className="flex min-h-0 w-full flex-1 flex-col pt-kv-pair">

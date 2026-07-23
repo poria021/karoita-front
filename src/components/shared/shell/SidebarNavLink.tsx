@@ -87,15 +87,13 @@ export function SidebarNavLink({
     locked
       ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
       : isActive
-        ? /* Focus of the tree — strongest signal */
-          useBullet
-            ? 'cursor-pointer bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
-            : 'cursor-pointer border border-kv-brand-border/50 bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
+        ? /* Focus of the tree — soft fill + inner border on every active module */
+          'cursor-pointer border border-kv-brand-border bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
         : useBullet
           ? /* L2 idle — recedes under L1 */
-            'cursor-pointer font-medium text-kv-text-faint hover:bg-kv-surface-muted hover:text-kv-text-secondary'
+            'cursor-pointer border border-transparent font-medium text-kv-text-faint hover:bg-kv-surface-muted hover:text-kv-text-secondary'
           : /* L1 leaf idle */
-            'cursor-pointer font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
+            'cursor-pointer border border-transparent font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
   );
 
   if (locked) {

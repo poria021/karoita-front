@@ -22,7 +22,7 @@ export const KvSearchField = React.forwardRef<
 >(function KvSearchField(
   {
     label = false,
-    size = 'sm',
+    size = 'md',
     showIcon = true,
     autoComplete = 'off',
     ...props

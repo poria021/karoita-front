@@ -27,7 +27,7 @@ function FiltersSkeleton({
         <KvSkeleton className="h-11 w-full rounded-kv-control" />
       </div>
       <div className="w-full shrink-0 sm:w-36">
-        <KvSkeleton className="h-9 w-full rounded-kv-control" />
+        <KvSkeleton className="h-11 w-full rounded-kv-control" />
       </div>
     </div>
   );
@@ -41,8 +41,8 @@ export function OnboardingApprovalsPageSkeleton() {
   return (
     <KvSplitWorkspace
       tabs={
-        <div className="mb-kv-section space-y-kv-group">
-          <KvSkeletonTabTrack breakpoint="lg" trackClassName="w-[28rem]" />
+        <div className="mb-kv-pair space-y-kv-group">
+          <KvSkeletonTabTrack trackClassName="w-full sm:w-[28rem]" />
         </div>
       }
       toolbar={
@@ -53,7 +53,7 @@ export function OnboardingApprovalsPageSkeleton() {
       primary={
         <>
           <FiltersSkeleton searchPlaceholderLabel="در حال بارگذاری فهرست پرونده‌ها" />
-          <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-raised">
+          <div className="overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-soft">
             <KvSkeletonTablePanel
               rows={7}
               headerCols={['w-28', 'w-20', 'w-24', 'w-16']}

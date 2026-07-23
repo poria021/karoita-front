@@ -56,13 +56,11 @@ export function KvButton({
 }: KvButtonProps) {
   const hasChildren =
     children !== undefined && children !== null && children !== false;
-  /** Primary CTA solid never shows decorative icons (loading spinner OK). */
-  const allowIcon = !(color === 'cta' && appearance === 'solid') || loading;
   const resolvedIcon = loading ? (
     <Spinner data-icon="inline-start" aria-hidden="true" />
-  ) : allowIcon ? (
+  ) : (
     icon
-  ) : undefined;
+  );
   const isIconOnly = Boolean(resolvedIcon) && !hasChildren;
   const resolvedSize = resolveKvButtonSize(size, isIconOnly);
   const resolvedIconPosition = loading ? 'start' : iconPosition;

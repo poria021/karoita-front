@@ -316,7 +316,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
       {
         kind: 'group',
         title: 'مدیریت ترم و سرفصل',
-        icon: 'fa-rectangle-list',
+        icon: 'fa-screwdriver-wrench',
         children: [
           {
             title: 'ارائه و سرفصل دروس',

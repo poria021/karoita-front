@@ -17,6 +17,7 @@ import {
   TERM_TYPE_OPTIONS,
   displayAcademicYear,
 } from '../constants';
+import { TermSettingsCardTitle } from './TermSettingsCardTitle';
 
 interface TermFormCardProps {
   terms: AcademicTerm[];
@@ -61,12 +62,9 @@ export function TermFormCard({
         <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-pair">
           <KvCardTitleIcon icon={faIcons.plus} />
           <div className="min-w-0">
-            <KvTypography variant="subtitle" as="h4">
+            <TermSettingsCardTitle>
               تعریف و ساختارسازی ترم جدید
-            </KvTypography>
-            <KvTypography variant="caption" tone="muted">
-              مدیریت دوره‌های تحصیلی و چرخه‌های فعال سیستم
-            </KvTypography>
+            </TermSettingsCardTitle>
           </div>
         </div>
 
@@ -121,7 +119,7 @@ export function TermFormCard({
           >
             {prefixOptions.map((prefix) => (
               <KvSelectItem key={prefix} value={prefix}>
-                {prefix}
+                {toPersianDigits(prefix)}
               </KvSelectItem>
             ))}
           </KvSelectField>

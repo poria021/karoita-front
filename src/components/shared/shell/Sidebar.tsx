@@ -5,7 +5,6 @@ import { useId, useRef } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
-import { KvTypography } from '@/components/shared/KvTypography';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
@@ -57,20 +56,88 @@ export function Sidebar() {
         )}
       />
 
-      <aside
-        ref={drawerRef}
-        id="karvita-sidebar"
-        role={isMobileOpen ? 'dialog' : undefined}
-        aria-modal={isMobileOpen ? true : undefined}
-        aria-labelledby={isMobileOpen ? drawerTitleId : undefined}
+      {/*
+        Wrapper owns sticky + collapse-btn overflow; panel clips to shell radius
+        so the account footer cannot square-off the bottom corners.
+      */}
+      <div
         className={cn(
-          'fixed inset-y-0 start-0 z-50 flex shrink-0 flex-col overflow-y-auto border-e border-kv-border/80 bg-kv-surface transition-all duration-300 ease-in-out',
-          'lg:sticky lg:top-[calc(4rem+var(--spacing-kv-group))] lg:z-0 lg:mt-kv-group lg:h-auto lg:translate-x-0 lg:self-start lg:overflow-y-visible lg:pointer-events-auto lg:visible lg:bg-kv-surface lg:border lg:border-kv-border/80 lg:rounded-kv-control lg:shadow-kv-raised',
+          'fixed inset-y-0 start-0 z-50 transition-all duration-300 ease-in-out',
+          'lg:sticky lg:top-[calc(4rem+var(--spacing-kv-group))] lg:z-0 lg:mt-kv-group lg:h-auto lg:translate-x-0 lg:self-start lg:pointer-events-auto lg:visible',
           isMobileOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
           !isMobileOpen && 'max-lg:pointer-events-none max-lg:invisible',
           isCollapsed ? 'w-72 lg:w-20' : 'w-72 lg:w-60'
         )}
       >
+        <aside
+          ref={drawerRef}
+          id="karvita-sidebar"
+          role={isMobileOpen ? 'dialog' : undefined}
+          aria-modal={isMobileOpen ? true : undefined}
+          aria-labelledby={isMobileOpen ? drawerTitleId : undefined}
+          className={cn(
+            'flex h-full min-h-0 w-full shrink-0 flex-col overflow-y-auto border-e border-kv-border/80 bg-kv-surface',
+            'lg:h-auto lg:overflow-hidden lg:border lg:border-kv-border/80 lg:rounded-kv-shell'
+          )}
+        >
+          <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">
+            <div className="flex min-w-0 items-center gap-kv-inline">
+              <div
+                className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20"
+                aria-hidden="true"
+              >
+                <FaIcon icon={faIcons.tableColumns} size="sm" />
+              </div>
+              <h2 id={drawerTitleId} className="sr-only">
+                کارویتا — پنل کاربری - {strategy.label}
+              </h2>
+            </div>
+            <KvButton
+              type="button"
+              color="neutral"
+              appearance="ghost"
+              size="md"
+              onClick={closeMobileSidebar}
+              aria-label="بستن منو"
+              className="shrink-0 rounded-full bg-kv-surface-subtle text-kv-text-subtle hover:bg-kv-danger-soft hover:text-kv-danger"
+              icon={<FaIcon icon={faIcons.xmark} size="sm" />}
+            />
+          </div>
+
+          <nav
+            className="flex-1 space-y-kv-inline overflow-y-auto p-kv-group lg:overflow-y-visible lg:p-kv-inline lg:pt-kv-stack lg:pb-kv-page"
+            aria-label="منوی اصلی"
+          >
+            {visibleMenu.map((entry) =>
+              isSidebarMenuGroup(entry) ? (
+                <SidebarNavGroup
+                  key={`group:${entry.title}`}
+                  group={entry}
+                  pathname={pathname}
+                  isCollapsed={isCollapsed}
+                  locked={!modulesUnlocked}
+                  onNavigate={closeMobileSidebar}
+                />
+              ) : (
+                <SidebarNavLink
+                  key={entry.path}
+                  item={entry}
+                  isActive={pathname === entry.path}
+                  isCollapsed={isCollapsed}
+                  locked={!modulesUnlocked}
+                  onNavigate={closeMobileSidebar}
+                />
+              )
+            )}
+          </nav>
+
+          <UserAccountMenu
+            variant="sidebar"
+            isCollapsed={isCollapsed}
+            onNavigate={closeMobileSidebar}
+          />
+        </aside>
+
         <KvButton
           type="button"
           color="neutral"
@@ -80,7 +147,7 @@ export function Sidebar() {
           aria-label={
             isCollapsed ? 'باز کردن نوار کناری' : 'جمع کردن نوار کناری'
           }
-          className="absolute -end-3 top-6 z-20 hidden size-7 min-h-0 rounded-kv-control border border-kv-border-strong/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-raised hover:border-kv-brand hover:text-kv-brand lg:flex"
+          className="absolute -end-2.5 top-3 z-20 hidden size-6 min-h-0 rounded-kv-control border border-kv-border/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-soft hover:border-kv-brand hover:text-kv-brand lg:flex"
           icon={
             <FaIcon
               icon={faIcons.chevronLeft}
@@ -94,73 +161,7 @@ export function Sidebar() {
             />
           }
         />
-
-        <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">
-          <div className="flex min-w-0 items-center gap-kv-inline">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20">
-              <FaIcon icon={faIcons.tableColumns} size="sm" />
-            </div>
-            <div className="flex min-w-0 flex-col text-start">
-              <KvTypography
-                variant="subtitle"
-                as="h2"
-                id={drawerTitleId}
-                truncate
-              >
-                پنل کاربری - {strategy.label}
-              </KvTypography>
-              <div className="mt-kv-nav-tight">
-                <KvTypography variant="overline" tone="muted" as="p" truncate>
-                  سامانه جامع کارویتا
-                </KvTypography>
-              </div>
-            </div>
-          </div>
-          <KvButton
-            type="button"
-            color="neutral"
-            appearance="ghost"
-            size="md"
-            onClick={closeMobileSidebar}
-            aria-label="بستن منو"
-            className="shrink-0 rounded-full bg-kv-surface-subtle text-kv-text-subtle hover:bg-kv-danger-soft hover:text-kv-danger"
-            icon={<FaIcon icon={faIcons.xmark} size="sm" />}
-          />
-        </div>
-
-        <nav
-          className="flex-1 space-y-kv-inline overflow-y-auto p-kv-group lg:overflow-y-visible lg:p-kv-inline lg:pt-kv-stack lg:pb-kv-page"
-          aria-label="منوی اصلی"
-        >
-          {visibleMenu.map((entry) =>
-            isSidebarMenuGroup(entry) ? (
-              <SidebarNavGroup
-                key={`group:${entry.title}`}
-                group={entry}
-                pathname={pathname}
-                isCollapsed={isCollapsed}
-                locked={!modulesUnlocked}
-                onNavigate={closeMobileSidebar}
-              />
-            ) : (
-              <SidebarNavLink
-                key={entry.path}
-                item={entry}
-                isActive={pathname === entry.path}
-                isCollapsed={isCollapsed}
-                locked={!modulesUnlocked}
-                onNavigate={closeMobileSidebar}
-              />
-            )
-          )}
-        </nav>
-
-        <UserAccountMenu
-          variant="sidebar"
-          isCollapsed={isCollapsed}
-          onNavigate={closeMobileSidebar}
-        />
-      </aside>
+      </div>
     </>
   );
 }

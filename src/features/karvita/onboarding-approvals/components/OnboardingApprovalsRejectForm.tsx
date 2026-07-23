@@ -62,26 +62,30 @@ export function OnboardingApprovalsRejectForm({
         />
 
         <KvCardFooter>
-          <KvButton
-            type="button"
-            appearance="secondary"
-            size="sm"
-            disabled={busy}
-            onClick={onCancel}
-          >
-            انصراف
-          </KvButton>
-          <KvButton
-            type="button"
-            color="error"
-            appearance="solid"
-            size="sm"
-            loading={busy}
-            disabled={!reason.trim()}
-            onClick={onSubmit}
-          >
-            ثبت رد صلاحیت
-          </KvButton>
+          <div className="grid grid-cols-2 gap-kv-pair">
+            <KvButton
+              type="button"
+              appearance="secondary"
+              size="sm"
+              fullWidth
+              disabled={busy}
+              onClick={onCancel}
+            >
+              انصراف
+            </KvButton>
+            <KvButton
+              type="button"
+              color="error"
+              appearance="solid"
+              size="sm"
+              fullWidth
+              loading={busy}
+              disabled={!reason.trim()}
+              onClick={onSubmit}
+            >
+              ثبت رد صلاحیت
+            </KvButton>
+          </div>
         </KvCardFooter>
       </KvCardContent>
     </KvCard>
