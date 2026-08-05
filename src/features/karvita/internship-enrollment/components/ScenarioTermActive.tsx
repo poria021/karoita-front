@@ -168,7 +168,7 @@ export function ScenarioTermActive({
           )}
 
           <div className="flex shrink-0 items-center justify-end">
-            <div className="flex w-full flex-row items-center justify-between gap-kv-group rounded-kv-panel border border-kv-border bg-kv-surface px-kv-group py-kv-field text-start shadow-kv-raised lg:w-auto lg:min-w-[260px]">
+            <div className="flex w-full flex-row items-center justify-between gap-kv-group rounded-kv-control border border-kv-border bg-kv-surface px-kv-group py-kv-field text-start shadow-kv-raised lg:w-auto lg:min-w-[260px]">
               <div className="flex flex-col gap-0.5 ps-kv-pair pe-kv-pair">
                 <KvTypography
                   variant="caption"

@@ -60,12 +60,13 @@ function DialogContent({
         <DialogPrimitive.Content
           data-slot="dialog-content"
           className={cn(
-            'bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-auto relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col gap-0 overflow-y-auto rounded-kv-card border border-kv-border p-5 text-start shadow-kv-floating duration-200 sm:p-6',
+            // LTR scroll container → physical-right scrollbar in RTL product UI.
+            'bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-auto relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col gap-0 overflow-y-auto rounded-kv-card border border-kv-border p-5 text-start shadow-kv-floating duration-200 [direction:ltr] sm:p-6',
             className
           )}
           {...props}
         >
-          {children}
+          <div className="contents [direction:rtl]">{children}</div>
         </DialogPrimitive.Content>
       </div>
     </DialogPortal>

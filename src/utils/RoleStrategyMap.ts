@@ -85,22 +85,22 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
           {
             title: 'کارورزی ۱',
             path: RouteService.karvita.internshipSelection(1),
-            icon: 'fa-graduation-cap',
+            icon: 'fa-1',
           },
           {
             title: 'کارورزی ۲',
             path: RouteService.karvita.internshipSelection(2),
-            icon: 'fa-graduation-cap',
+            icon: 'fa-2',
           },
           {
             title: 'کارورزی ۳',
             path: RouteService.karvita.internshipSelection(3),
-            icon: 'fa-graduation-cap',
+            icon: 'fa-3',
           },
           {
             title: 'کارورزی ۴',
             path: RouteService.karvita.internshipSelection(4),
-            icon: 'fa-graduation-cap',
+            icon: 'fa-4',
           },
         ],
       },
@@ -129,12 +129,12 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
           {
             title: 'کارآموزی ۱',
             path: RouteService.karvita.internshipSelection(1),
-            icon: 'fa-screwdriver-wrench',
+            icon: 'fa-1',
           },
           {
             title: 'کارآموزی ۲',
             path: RouteService.karvita.internshipSelection(2),
-            icon: 'fa-screwdriver-wrench',
+            icon: 'fa-2',
           },
         ],
       },

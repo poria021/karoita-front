@@ -27,7 +27,9 @@ export function SidebarNavLink({
   nested = false,
 }: SidebarNavLinkProps) {
   const itemIcon = resolveSidebarIcon(item.icon);
-  const useBullet = nested && !isCollapsed;
+  /** Digit course icons (fa-1…) stay visible under groups; other L2 use a quiet bullet. */
+  const isDigitIcon = /^fa-[1-9]$/.test(item.icon);
+  const useBullet = nested && !isCollapsed && !isDigitIcon;
   const hoverTitle = isCollapsed
     ? locked
       ? `${item.title} (غیرفعال)`
