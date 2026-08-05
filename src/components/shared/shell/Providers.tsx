@@ -8,7 +8,6 @@ import { ThemeProvider } from 'next-themes';
 import { useState, type ReactNode } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { NetworkStatusWatcher } from '@/components/shared/shell/NetworkStatusWatcher';
 import { makeQueryClient } from '@/lib/query-client';
 
 config.autoAddCss = false;
@@ -26,10 +25,7 @@ export function Providers({ children }: { children: ReactNode }) {
     >
       <QueryClientProvider client={queryClient}>
         <DirectionProvider dir="rtl">
-          <TooltipProvider>
-            {children}
-            <NetworkStatusWatcher />
-          </TooltipProvider>
+          <TooltipProvider>{children}</TooltipProvider>
         </DirectionProvider>
       </QueryClientProvider>
     </ThemeProvider>

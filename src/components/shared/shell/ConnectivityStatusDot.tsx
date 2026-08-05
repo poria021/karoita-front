@@ -1,29 +1,31 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { useNetworkStore } from '@/store/useNetworkStore';
 
 export type ConnectivityStatusDotProps = {
-  online: boolean;
   className?: string;
 };
 
 /**
- * Circular online/offline lamp — same scale as notification unread bullet,
- * anchored bottom-start (physical bottom-right in RTL) on account avatars.
+ * Online/offline lamp on account avatars — reference: Alpine `isOnline` emerald/rose pill.
  */
-export function ConnectivityStatusDot({
-  online,
-  className,
-}: ConnectivityStatusDotProps) {
+export function ConnectivityStatusDot({ className }: ConnectivityStatusDotProps) {
+  const isOnline = useNetworkStore((state) => state.isOnline);
+
   return (
     <span
       className={cn(
-        'absolute start-0 bottom-0 size-2 rounded-full ring-1 ring-kv-surface',
-        online ? 'bg-kv-success' : 'bg-kv-danger',
+        'absolute -bottom-0.5 -start-0.5 size-3 rounded-full border-2 border-kv-surface shadow-kv-soft transition-colors duration-300',
+        isOnline ? 'bg-kv-success' : 'bg-kv-danger',
         className
       )}
-      title={online ? 'اتصال اینترنت برقرار است' : 'اتصال اینترنت قطع است'}
-      aria-label={online ? 'آنلاین' : 'آفلاین'}
+      title={
+        isOnline
+          ? 'اتصال برقرار است (آنلاین)'
+          : 'ارتباط قطع شده (آفلاین)'
+      }
+      aria-label={isOnline ? 'آنلاین' : 'آفلاین'}
       role="status"
     />
   );
