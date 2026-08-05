@@ -14,6 +14,14 @@ export type UserRole =
 
 export type DocStatus = 'not_submitted' | 'pending_admin' | 'approved' | 'rejected';
 
+/**
+ * مجوزهای نمایشی mock؛ مجوز واقعی همچنان باید در Nest اعمال شود.
+ */
+export type UserSpecialPermissions = {
+  crossFaculty?: boolean;
+  readOnly?: boolean;
+};
+
 export interface User {
   id: string;
   firstName: string;
@@ -36,6 +44,7 @@ export interface User {
   docUrl?: string;
   docType?: string;
   lastChange?: number;
+  specialPermissions?: UserSpecialPermissions;
 }
 
 export interface Session {

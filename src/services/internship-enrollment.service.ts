@@ -1,11 +1,17 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
+  enrollWithSupervisor,
+  listEligibleSupervisors,
   resolveEnrollmentPageState,
 } from '@/services/internship-enrollment/mock-enrollment-store';
 import type {
+  EnrollWithSupervisorInput,
   GetEnrollmentPageStateInput,
   InternshipEnrollmentPageState,
+  InternshipEnrollmentRecord,
+  InternshipSupervisor,
+  ListEligibleSupervisorsInput,
 } from '@/types/internship-enrollment';
 
 function gateEnrollment(): 'mock' | never {
@@ -17,11 +23,11 @@ function gateEnrollment(): 'mock' | never {
 }
 
 /**
- * Facade انتخاب واحد کارورزی / کارآموزی (Phase 1 — gate shell).
+ * Facade انتخاب واحد کارورزی / کارآموزی.
  *
  * Nest-blocked:
  * - شاخهٔ real: fail-closed تا endpoint Nest وصل شود
- * - Phase 2+: supervisor picker, submitFinal, school/mentor, week editor, PDF
+ * - تخصیص مدرسه/مربی، editor هفته و PDF در فازهای بعدی
  */
 export const InternshipEnrollmentService = {
   /**
@@ -33,5 +39,19 @@ export const InternshipEnrollmentService = {
   ): Promise<InternshipEnrollmentPageState> {
     gateEnrollment();
     return resolveEnrollmentPageState(input);
+  },
+
+  async listEligibleSupervisors(
+    input: ListEligibleSupervisorsInput
+  ): Promise<InternshipSupervisor[]> {
+    gateEnrollment();
+    return listEligibleSupervisors(input);
+  },
+
+  async enrollWithSupervisor(
+    input: EnrollWithSupervisorInput
+  ): Promise<InternshipEnrollmentRecord> {
+    gateEnrollment();
+    return enrollWithSupervisor(input);
   },
 };

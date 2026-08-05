@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
@@ -12,6 +12,7 @@ import {
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import type {
+  InternshipEnrollmentActor,
   InternshipEnrollmentLevel,
   InternshipEnrollmentPageState,
   InternshipEnrollmentRole,
@@ -27,6 +28,21 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
   const router = useRouter();
   const activeUser = useUserStore((s) => s.activeUser);
   const role = isEnrollmentRole(activeUser?.role) ? activeUser.role : null;
+  const actor = useMemo<InternshipEnrollmentActor | null>(
+    () =>
+      activeUser && role
+        ? {
+            id: activeUser.id,
+            role,
+            approved: activeUser.approved,
+            province: activeUser.province,
+            college: activeUser.college,
+            district: activeUser.district,
+            specialPermissions: activeUser.specialPermissions,
+          }
+        : null,
+    [activeUser, role]
+  );
 
   const [state, setState] = useState<InternshipEnrollmentPageState | null>(
     null
@@ -44,14 +60,14 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
   }, [role, level, router]);
 
   const load = useCallback(async () => {
-    if (!role) {
+    if (!actor) {
       setState(null);
       setIsLoading(false);
       setError(null);
       return;
     }
 
-    const kind = kindForRole(role);
+    const kind = kindForRole(actor.role);
     if (level > maxLevelForKind(kind)) {
       return;
     }
@@ -60,7 +76,7 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
     setError(null);
     try {
       const next = await InternshipEnrollmentService.getEnrollmentPageState({
-        role,
+        actor,
         level: clampLevel(kind, level),
       });
       setState(next);
@@ -74,14 +90,18 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
     } finally {
       setIsLoading(false);
     }
-  }, [role, level]);
+  }, [actor, level]);
 
   useEffect(() => {
-    void load();
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [load]);
 
   return {
     role,
+    actor,
     level,
     state,
     isLoading,

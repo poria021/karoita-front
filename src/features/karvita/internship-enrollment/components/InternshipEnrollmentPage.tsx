@@ -42,8 +42,10 @@ export function InternshipEnrollmentPage({
           />
         ) : (
           <InternshipEnrollmentGate
+            actor={page.actor}
             state={page.state}
             isLoading={page.isLoading}
+            onEnrollmentComplete={page.reload}
           />
         )}
       </KvWorkspace>

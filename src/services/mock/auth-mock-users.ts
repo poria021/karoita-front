@@ -8,7 +8,7 @@ export const MOCK_USER_PASSWORD = '12345678';
 export const MOCK_SUPER_ADMIN_MOBILE = '9123456786';
 
 /** Bump when seed shape changes so mock localStorage rehydrates. */
-export const MOCK_USERS_SEED_VERSION = '6';
+export const MOCK_USERS_SEED_VERSION = '7';
 
 export interface MockAuthUserRecord extends User {
   password: string;
@@ -38,6 +38,7 @@ interface MockUserSeed {
       | 'personalCode'
       | 'studentId'
       | 'skillCode'
+      | 'specialPermissions'
     >
   >;
 }
@@ -253,6 +254,8 @@ function buildBulkSeeds(
           ? {
               college: DEFAULT_COLLEGE,
               studentId: `1401${String(i + 1).padStart(3, '0')}`,
+              specialPermissions:
+                i === 0 ? { crossFaculty: true } : undefined,
             }
           : role === 'skill_learner'
             ? { skillCode: `SK-${2000 + i}` }
