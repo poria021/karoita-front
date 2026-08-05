@@ -60,6 +60,7 @@ describe('live nav / admin plane', () => {
     expect(adminMenu.map((entry) => entry.title)).toEqual([
       'میز کار مدیریت',
       'بررسی مدارک هویتی',
+      'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
     ]);
@@ -119,5 +120,25 @@ describe('live nav / admin plane', () => {
     expect(
       isLiveSidebarPath(RouteService.karvita.adminUserCreation())
     ).toBe(true);
+  });
+
+  it('treats landing CMS as admin control plane and live sidebar path', () => {
+    expect(isAdminControlPlanePath(RouteService.karvita.landingCms())).toBe(
+      true
+    );
+    expect(isLiveSidebarPath(RouteService.karvita.landingCms())).toBe(true);
+    expect(isNavigableAppPath('/karvita/landing-cms')).toBe(false);
+    expect(RouteService.karvita.landingCms()).toBe(
+      '/karvita/admin/landing-cms'
+    );
+  });
+
+  it('exposes marketing path helpers without inventing sidebar links', () => {
+    expect(RouteService.marketing.home()).toBe('/');
+    expect(RouteService.marketing.benefits()).toBe('/benefits');
+    expect(RouteService.marketing.about()).toBe('/about');
+    expect(RouteService.marketing.internship()).toBe('/internship');
+    expect(RouteService.marketing.advantages()).toBe('/advantages');
+    expect(isLiveSidebarPath(RouteService.marketing.benefits())).toBe(false);
   });
 });

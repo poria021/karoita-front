@@ -49,6 +49,10 @@ export const LEGACY_ORGANIZATION_BOOKMARK_PATHS = [
 export const RouteService = {
   marketing: {
     home: (): string => '/',
+    benefits: (): string => '/benefits',
+    about: (): string => '/about',
+    internship: (): string => '/internship',
+    advantages: (): string => '/advantages',
   },
 
   auth: {
@@ -113,6 +117,9 @@ export const RouteService = {
     /** Canonical org tree module — not the legacy `/organization/*` bookmarks. */
     organizationalStructure: (): string =>
       `${KARVITA_ADMIN_BASE}/organizational-structure`,
+
+    /** Live URL `/karvita/admin/landing-cms` — feature: `landing-cms`. */
+    landingCms: (): string => `${KARVITA_ADMIN_BASE}/landing-cms`,
 
     isAdminControlPlanePath,
     legacyOrganizationBookmarks: (): readonly string[] =>

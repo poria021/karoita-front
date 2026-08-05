@@ -334,6 +334,11 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
         icon: 'fa-id-card',
       },
       {
+        title: 'مدیریت محتوای لندینگ',
+        path: RouteService.karvita.landingCms(),
+        icon: 'fa-bullhorn',
+      },
+      {
         title: 'مدیریت دسترسی‌ها',
         path: RouteService.karvita.userPermissions(),
         icon: 'fa-user-gear',
