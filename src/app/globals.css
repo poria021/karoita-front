@@ -766,28 +766,6 @@ input[readonly]:-webkit-autofill {
  * Marketing navigation link hover effect — underline slide-in animation.
  * Strict: ONLY for marketing nav; do not apply to dashboard chrome.
  */
-.kv-nav-link {
-  position: relative;
-  cursor: pointer;
-}
-
-.kv-nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 0;
-  height: 2px;
-  background-color: var(--kv-brand);
-  transition: width 0.3s ease-in-out;
-  border-radius: 9999px;
-}
-
-.kv-nav-link:hover::after,
-.kv-nav-link:focus-visible::after {
-  width: 100%;
-}
-
 /*
  * Blueprint background overlay pattern — STRICTLY FOR LANDING ONLY.
  * Applied over kv-brand-atmosphere for institutional technical aesthetic.

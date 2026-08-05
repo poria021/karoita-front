@@ -80,7 +80,7 @@ function MarketingShellInner({
         className={`fixed inset-x-0 top-0 z-50 flex flex-col transition-all duration-300 ${
           headerShouldBeTransparent
             ? 'bg-gradient-to-b from-black/90 via-black/60 to-black/10 text-white'
-            : 'border-b border-kv-border-muted bg-kv-surface shadow-md text-kv-text'
+            : 'border-b border-kv-border/60 bg-kv-surface/80 text-kv-text shadow-kv-raised backdrop-blur-md supports-[backdrop-filter]:bg-kv-surface/70'
         }`}
       >
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-kv-group border-none px-kv-inset sm:px-kv-page lg:h-16">
@@ -115,11 +115,15 @@ function MarketingShellInner({
                 <button
                   key={item.label}
                   type="button"
-                  className={`kv-nav-link relative pb-1 transition-colors ${
+                  className={`pb-0.5 transition-colors ${
                     headerShouldBeTransparent
                       ? 'hover:text-white hover:drop-shadow'
                       : 'hover:text-kv-brand'
-                  } ${isActive ? 'font-extrabold' : ''}`}
+                  } ${
+                    isActive
+                      ? 'font-extrabold underline decoration-2 underline-offset-4'
+                      : 'hover:underline hover:decoration-1 hover:underline-offset-4'
+                  }`}
                   onClick={() => openPanel(item.id)}
                 >
                   {item.label}
