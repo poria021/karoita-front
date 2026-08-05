@@ -6,8 +6,11 @@ import { toast } from 'sonner';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import {
+  kvDropzoneIconClass,
+  kvDropzoneSurfaceClass,
+} from '@/components/shared/fields/kvDropzoneSurface';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -141,31 +144,46 @@ export function KvMultiFileDropzone({
   });
 
   return (
-    <div className="space-y-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group">
-      {!disabled ? (
-        <div
-          {...getRootProps()}
-          className={cn(
-            'flex flex-col items-center justify-center gap-kv-pair rounded-kv-panel border-2 border-dashed p-kv-section text-center transition-all',
-            isDragActive
-              ? 'cursor-pointer border-kv-brand bg-kv-brand-soft/40'
-              : 'cursor-pointer border-kv-border bg-kv-surface-muted/50 hover:bg-kv-surface-muted'
-          )}
+    <div className="space-y-kv-inline rounded-kv-panel border border-kv-border bg-kv-surface-muted/60 p-kv-group">
+      <div
+        {...getRootProps()}
+        className={kvDropzoneSurfaceClass({
+          disabled,
+          isDragActive: disabled ? false : isDragActive,
+          error: Boolean(localError),
+        })}
+      >
+        <input {...getInputProps()} id={id} />
+        <span
+          className={kvDropzoneIconClass({
+            disabled,
+            isDragActive: disabled ? false : isDragActive,
+          })}
         >
-          <input {...getInputProps()} id={id} />
-          <span className="text-kv-text-faint">
-            <FaIcon icon={faIcons.cloudArrowUp} size="lg" />
-          </span>
-          <KvTypography variant="subtitle" weight="black" as="p" align="center">
-            {isDragActive
+          <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
+        </span>
+        <KvTypography
+          variant="subtitle"
+          weight="black"
+          tone={disabled ? 'disabled' : 'default'}
+          as="p"
+          align="center"
+        >
+          {disabled
+            ? 'ضمیمه فایل در این وضعیت فقط قابل مشاهده است'
+            : isDragActive
               ? 'فایل را اینجا رها کنید'
               : 'کشیدن و رها کردن فایل‌ها یا کلیک جهت انتخاب'}
-          </KvTypography>
-          <KvTypography variant="caption" tone="muted" as="span" align="center">
-            {acceptLabel}
-          </KvTypography>
-        </div>
-      ) : null}
+        </KvTypography>
+        <KvTypography
+          variant="caption"
+          tone={disabled ? 'disabled' : 'muted'}
+          as="span"
+          align="center"
+        >
+          {acceptLabel}
+        </KvTypography>
+      </div>
 
       {localError ? (
         <p role="alert" className="text-xs font-bold text-kv-danger">

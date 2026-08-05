@@ -138,6 +138,15 @@
   --color-kv-info-soft-fg: var(--kv-info-soft-fg);
   --color-kv-info-border: var(--kv-info-border);
 
+  /* Extended-opportunity / reopened week status (reference violet). */
+  --color-kv-violet: var(--kv-violet);
+  --color-kv-violet-hover: var(--kv-violet-hover);
+  --color-kv-violet-fg: var(--kv-violet-fg);
+  --color-kv-violet-soft: var(--kv-violet-soft);
+  --color-kv-violet-soft-hover: var(--kv-violet-soft-hover);
+  --color-kv-violet-soft-fg: var(--kv-violet-soft-fg);
+  --color-kv-violet-border: var(--kv-violet-border);
+
   --color-kv-neutral: var(--kv-neutral);
   --color-kv-neutral-hover: var(--kv-neutral-hover);
   --color-kv-neutral-fg: var(--kv-neutral-fg);
@@ -347,6 +356,14 @@
   --kv-info-soft-fg: hsl(226 70.7% 40.2%);
   --kv-info-border: hsl(213 96.9% 87.3%);
 
+  --kv-violet: hsl(271 81% 46%);
+  --kv-violet-hover: hsl(272 72% 40%);
+  --kv-violet-fg: hsl(0 0% 100%);
+  --kv-violet-soft: hsl(270 100% 97%);
+  --kv-violet-soft-hover: hsl(269 100% 94%);
+  --kv-violet-soft-fg: hsl(273 67% 35%);
+  --kv-violet-border: hsl(270 67% 75%);
+
   --kv-neutral: hsl(40 10% 88%);
   --kv-neutral-hover: hsl(40 9% 82%);
   --kv-neutral-fg: hsl(220 12% 32%);
@@ -491,6 +508,14 @@
   --kv-info-soft-hover: hsl(224 48% 24%);
   --kv-info-soft-fg: hsl(213 96.9% 87.3%);
   --kv-info-border: hsl(224 50% 32%);
+
+  --kv-violet: hsl(270 95% 75%);
+  --kv-violet-hover: hsl(270 95% 82%);
+  --kv-violet-fg: hsl(273 67% 15%);
+  --kv-violet-soft: hsl(270 40% 18%);
+  --kv-violet-soft-hover: hsl(270 42% 22%);
+  --kv-violet-soft-fg: hsl(270 100% 88%);
+  --kv-violet-border: hsl(270 40% 36%);
 
   --kv-neutral: hsl(220 10% 26%);
   --kv-neutral-hover: hsl(220 10% 32%);

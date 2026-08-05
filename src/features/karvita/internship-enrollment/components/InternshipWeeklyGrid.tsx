@@ -27,7 +27,7 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
     className:
       'border-kv-border bg-kv-surface-muted text-kv-text-faint shadow-none opacity-70',
     hoverClassName:
-      'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-text-faint',
+      'pointer-events-none cursor-not-allowed enabled:hover:bg-inherit enabled:hover:text-inherit',
     icon: faIcons.lock,
   },
   overdue: {
@@ -42,16 +42,19 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
   extended: {
     label: 'فرصت مجدد',
     legendLabel: 'فرصت مجدد',
-    className: 'border-kv-brand-border bg-kv-brand-soft text-kv-brand-soft-fg',
+    className:
+      'border-kv-violet-border bg-kv-violet-soft text-kv-violet-soft-fg',
     hoverClassName:
-      'enabled:hover:bg-kv-brand-soft-hover enabled:hover:text-kv-brand-soft-fg',
-    icon: faIcons.clockRotateLeft,
+      'enabled:hover:bg-kv-violet-soft-hover enabled:hover:text-kv-violet-soft-fg',
+    icon: faIcons.unlockKeyhole,
   },
   draft: {
-    label: 'آینده / ارسال‌نشده',
-    className: 'border-kv-border bg-kv-surface-muted text-kv-text-faint',
+    label: 'پیش‌نویس',
+    legendLabel: 'پیش‌نویس',
+    className:
+      'border-kv-border bg-kv-surface-muted text-kv-text-secondary',
     hoverClassName:
-      'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-text-faint',
+      'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-text-secondary',
     icon: faIcons.clipboardList,
   },
   pending: {
@@ -93,7 +96,7 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
     label: 'بایگانی شده',
     className: 'border-kv-border bg-kv-surface-muted text-kv-text-faint',
     hoverClassName:
-      'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-text-faint',
+      'enabled:hover:bg-inherit enabled:hover:text-inherit',
     icon: faIcons.folderOpen,
   },
   locked_dropped: {
@@ -101,10 +104,16 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
     className:
       'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
     hoverClassName:
-      'enabled:hover:bg-kv-danger-soft-hover enabled:hover:text-kv-danger-soft-fg',
+      'enabled:hover:bg-inherit enabled:hover:text-inherit',
     icon: faIcons.lock,
   },
 };
+
+function draftCardLabel(week: InternshipWeeklySession): string {
+  const hasText = Boolean(week.text?.trim());
+  const hasFiles = (week.files?.length ?? 0) > 0;
+  return hasText || hasFiles ? 'پیش‌نویس' : 'ثبت نشده';
+}
 
 type InternshipWeeklyGridProps = {
   weeks: InternshipWeeklySession[];
@@ -124,6 +133,8 @@ export function InternshipWeeklyGrid({
           const status = effectiveWeeklySessionState(week, enrollmentStatus);
           const visual = SESSION_VISUALS[status];
           const score = status === 'graded' ? (week.score ?? 92) : null;
+          const label =
+            status === 'draft' ? draftCardLabel(week) : visual.label;
 
           return (
             <KvButton
@@ -132,9 +143,13 @@ export function InternshipWeeklyGrid({
               color="neutral"
               appearance="secondary"
               size="md"
-              className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-panel border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName}`}
+              className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-none border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName}`}
               aria-label={`نمایش گزارش هفته ${toPersianDigits(index + 1)}`}
-              onClick={() => onWeekSelect?.(week)}
+              disabled={status === 'locked_future'}
+              onClick={() => {
+                if (status === 'locked_future') return;
+                onWeekSelect?.(week);
+              }}
             >
               <span className="flex w-full items-center justify-between gap-kv-inline">
                 <span className="text-xs font-black leading-none">
@@ -144,7 +159,7 @@ export function InternshipWeeklyGrid({
               </span>
               <span className="flex w-full flex-col items-start justify-end gap-1 pt-kv-pair text-start">
                 <span className="block w-full text-xs font-bold leading-snug">
-                  {visual.label}
+                  {label}
                 </span>
                 {score !== null ? (
                   <span className="block w-full text-xs font-black leading-snug">

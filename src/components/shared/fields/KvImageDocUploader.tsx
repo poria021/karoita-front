@@ -14,8 +14,11 @@ import { useDropzone, type FileRejection } from 'react-dropzone';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
+import {
+  kvDropzoneIconClass,
+  kvDropzoneSurfaceClass,
+} from '@/components/shared/fields/kvDropzoneSurface';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { cn } from '@/lib/utils';
 import {
   compressImage,
   formatFileSize,
@@ -172,22 +175,15 @@ export function KvImageDocUploader({
           {!value && !isCompressing ? (
             <div
               {...getRootProps()}
-              className={cn(
-                'group mx-auto flex min-h-32 w-full flex-col items-center justify-center gap-kv-pair rounded-kv-control border-2 border-dashed bg-kv-surface p-kv-group text-center transition-all',
-                disabled
-                  ? 'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled'
-                  : isDragActive
-                    ? 'cursor-pointer border-kv-brand bg-kv-brand-soft/50'
-                    : 'cursor-pointer border-kv-border-strong hover:bg-kv-surface-muted',
-                displayError && 'border-kv-danger'
-              )}
+              className={kvDropzoneSurfaceClass({
+                disabled,
+                isDragActive,
+                error: Boolean(displayError),
+              })}
             >
               <input {...getInputProps()} id={id} />
               <div
-                className={cn(
-                  disabled ? 'text-kv-text-disabled' : 'text-kv-text-placeholder',
-                  isDragActive && !disabled && 'text-kv-brand-soft-fg'
-                )}
+                className={kvDropzoneIconClass({ disabled, isDragActive })}
               >
                 <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
               </div>
