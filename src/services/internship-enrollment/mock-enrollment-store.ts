@@ -3,6 +3,7 @@ import {
   filterEligibleSupervisors,
   hasAvailableCapacity,
   hasStudentTermEnrollmentConflict,
+  findConflictingActiveTermEnrollment,
   normalizeEnrollmentCourseTitle,
 } from '@/features/karvita/internship-enrollment/lib/enrollment-eligibility';
 import {
@@ -634,15 +635,26 @@ export function resolveEnrollmentPageState(
     termId: context.termId,
     userId: input.actor.id,
   });
-  const scenario = resolveEnrollmentScenario({
-    syllabusConfigured: context.syllabusConfigured,
-    enrollOpen: context.enrollOpen,
-    termOpen: context.termOpen,
-    registered,
-    status: record?.status,
-    removalPending: record?.removalPending,
-    termArchived: isArchivedTerm(context.termTitle),
-  });
+  const conflictRecord = !registered
+    ? findConflictingActiveTermEnrollment({
+        records: snapshot.records,
+        actor: input.actor,
+        kind,
+        level,
+        termId: context.termId,
+      })
+    : null;
+  const scenario: InternshipEnrollmentScenario = conflictRecord
+    ? 'S6_already_enrolled_elsewhere'
+    : resolveEnrollmentScenario({
+        syllabusConfigured: context.syllabusConfigured,
+        enrollOpen: context.enrollOpen,
+        termOpen: context.termOpen,
+        registered,
+        status: record?.status,
+        removalPending: record?.removalPending,
+        termArchived: isArchivedTerm(context.termTitle),
+      });
 
   return {
     scenario,
@@ -670,6 +682,12 @@ export function resolveEnrollmentPageState(
             droppedSupervisorName: record?.droppedSupervisorName ?? null,
           }
         : null,
+    conflictEnrollment: conflictRecord
+      ? {
+          level: conflictRecord.level,
+          courseTitle: conflictRecord.title,
+        }
+      : null,
   };
 }
 

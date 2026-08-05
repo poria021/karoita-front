@@ -7,6 +7,7 @@ import type {
   InternshipEnrollmentPageState,
 } from '@/types/internship-enrollment';
 
+import { ScenarioAlreadyEnrolled } from './ScenarioAlreadyEnrolled';
 import { ScenarioEnrollClosed } from './ScenarioEnrollClosed';
 import { ScenarioEnrollOpen } from './ScenarioEnrollOpen';
 import { ScenarioRegisteredWaiting } from './ScenarioRegisteredWaiting';
@@ -85,6 +86,19 @@ export function InternshipEnrollmentGate({
           variant="error"
           title="حساب کاربری در دسترس نیست"
           description="لطفاً صفحه را دوباره بارگذاری کنید."
+        />
+      );
+    case 'S6_already_enrolled_elsewhere':
+      return state.conflictEnrollment ? (
+        <ScenarioAlreadyEnrolled
+          courseTitle={state.conflictEnrollment.courseTitle}
+          termTitle={state.termTitle}
+        />
+      ) : (
+        <KvAlert
+          variant="info"
+          title="در درس دیگری انتخاب واحد کرده‌اید"
+          description="امکان شروع فعالیت در این ماژول وجود ندارد."
         />
       );
     default:

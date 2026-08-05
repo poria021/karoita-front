@@ -71,6 +71,30 @@ export function filterEligibleSupervisors(input: {
   });
 }
 
+export function findConflictingActiveTermEnrollment(input: {
+  records: InternshipEnrollmentRecord[];
+  actor: InternshipEnrollmentActor;
+  kind: 'internship' | 'apprenticeship';
+  level: InternshipEnrollmentLevel;
+  termId: string;
+}): InternshipEnrollmentRecord | null {
+  if (input.actor.role !== 'student' || input.kind !== 'internship') {
+    return null;
+  }
+
+  return (
+    input.records.find(
+      (record) =>
+        record.userId === input.actor.id &&
+        record.termId === input.termId &&
+        record.kind === 'internship' &&
+        record.level !== input.level &&
+        record.supervisorId !== null &&
+        (record.status === undefined || record.status === 'active')
+    ) ?? null
+  );
+}
+
 export function hasStudentTermEnrollmentConflict(input: {
   records: InternshipEnrollmentRecord[];
   actor: InternshipEnrollmentActor;
@@ -78,14 +102,5 @@ export function hasStudentTermEnrollmentConflict(input: {
   level: InternshipEnrollmentLevel;
   termId: string;
 }): boolean {
-  if (input.actor.role !== 'student' || input.kind !== 'internship') return false;
-
-  return input.records.some(
-    (record) =>
-      record.userId === input.actor.id &&
-      record.termId === input.termId &&
-      record.kind === 'internship' &&
-      record.level !== input.level &&
-      record.supervisorId !== null
-  );
+  return findConflictingActiveTermEnrollment(input) !== null;
 }

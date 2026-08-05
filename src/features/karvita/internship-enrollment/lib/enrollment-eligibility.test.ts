@@ -159,4 +159,32 @@ describe('enrollment eligibility', () => {
       })
     ).toBe(false);
   });
+
+  it('ignores completed enrollments when checking student conflicts', () => {
+    expect(
+      hasStudentTermEnrollmentConflict({
+        records: [
+          {
+            id: 'record-1',
+            userId: student.id,
+            role: 'student',
+            kind: 'internship',
+            level: 1,
+            termId: 'term-1',
+            termTitle: 'نیم‌سال',
+            title: 'کارورزی ۱',
+            supervisorId: 'sup-1',
+            supervisorName: 'دکتر نمونه',
+            schoolName: null,
+            mentorName: null,
+            status: 'completed',
+          },
+        ],
+        actor: student,
+        kind: 'internship',
+        level: 2,
+        termId: 'term-1',
+      })
+    ).toBe(false);
+  });
 });

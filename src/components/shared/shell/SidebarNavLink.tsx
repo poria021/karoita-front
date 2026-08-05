@@ -29,8 +29,8 @@ export function SidebarNavLink({
 }: SidebarNavLinkProps) {
   const itemIcon = resolveSidebarIcon(item.icon);
   const hasCourseBadge = typeof item.iconBadge === 'number';
-  /** Numbered course rows keep the composed icon; other L2 use a quiet bullet. */
-  const useBullet = nested && !isCollapsed && !hasCourseBadge;
+  /** Expanded sidebar: L2 children use a quiet bullet. Collapsed rail: show course icons. */
+  const useBullet = nested && !isCollapsed;
   const hoverTitle = isCollapsed
     ? locked
       ? `${item.title} (غیرفعال)`

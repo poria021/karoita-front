@@ -18,7 +18,7 @@ export function ConnectivityStatusDot({
   return (
     <span
       className={cn(
-        'absolute start-0 bottom-0 size-1.5 rounded-full ring-1 ring-kv-surface',
+        'absolute start-0 bottom-0 size-2 rounded-full ring-1 ring-kv-surface',
         online ? 'bg-kv-success' : 'bg-kv-danger',
         className
       )}

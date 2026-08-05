@@ -11,18 +11,21 @@ export type InternshipCourseKind = 'internship' | 'apprenticeship';
 export type InternshipEnrollmentLevel = 1 | 2 | 3 | 4;
 
 /**
- * سناریوهای Phase 1 (امپتی‌استیت؛ بدون جدول گزارش هفتگی):
+ * سناریوهای Phase 1–2:
  * - S1: سرفصل فعال نشده + ثبت‌نام نشده
  * - S2: مهلت ثبت‌نام بسته / ترم در جریان بدون ثبت‌نام
  * - S3: مهلت ثبت‌نام باز + هنوز ثبت‌نام نشده
  * - S4: ثبت‌نام شده + ترم هنوز شروع نشده
+ * - S5: ثبت‌نام شده + ترم فعال / گزارش‌نویسی
+ * - S6: در درس دیگری از همین نیم‌سال انتخاب واحد شده (جلوگیری از بن‌بست اخذ مجدد)
  */
 export type InternshipEnrollmentScenario =
   | 'S1_syllabus_blocked'
   | 'S2_enroll_closed'
   | 'S3_enroll_open'
   | 'S4_registered_waiting'
-  | 'S5_term_active';
+  | 'S5_term_active'
+  | 'S6_already_enrolled_elsewhere';
 
 export type InternshipEnrollmentRole = 'student' | 'skill_learner';
 
@@ -183,6 +186,11 @@ export type InternshipEnrollmentPageState = {
     scope: InternshipSelectionScope;
     wasDropped: boolean;
     droppedSupervisorName: string | null;
+  } | null;
+  /** Present on S6 — the other active course the trainee already holds this term. */
+  conflictEnrollment: {
+    level: InternshipEnrollmentLevel;
+    courseTitle: string;
   } | null;
 };
 
