@@ -819,3 +819,39 @@ input[readonly]:-webkit-autofill {
   animation: kv-data-flow 2s linear infinite;
   will-change: stroke-dashoffset;
 }
+
+/*
+ * Marketing floating dock — per-item LTR title expand (left → right).
+ * Hover/focus is scoped to `.kv-dock-item` only (never a parent group).
+ */
+.kv-dock-item {
+  display: grid;
+  width: max-content;
+  max-width: min(100%, 20rem);
+  grid-template-columns: 2rem 0fr;
+  transition:
+    grid-template-columns 0.32s ease-out,
+    filter 0.3s ease-out;
+}
+
+.kv-dock-item:hover,
+.kv-dock-item:focus-within {
+  grid-template-columns: 2rem 1fr;
+}
+
+.kv-dock-item-label {
+  overflow: hidden;
+  min-width: 0;
+}
+
+.kv-dock-item-label > span {
+  display: block;
+  width: max-content;
+  opacity: 0;
+  transition: opacity 0.28s ease-out;
+}
+
+.kv-dock-item:hover .kv-dock-item-label > span,
+.kv-dock-item:focus-within .kv-dock-item-label > span {
+  opacity: 1;
+}
