@@ -38,11 +38,12 @@ export function resolveMarketingNavTarget(link: string): MarketingNavTarget {
 }
 
 /**
- * Header «ورود» CTA: when CMS has more than one floating product,
- * route to the product picker; otherwise go straight to auth login.
+ * Header «ورود» CTA:
+ * - 2+ CMS products → login-select portal
+ * - fewer than 2 → straight to auth login
  */
 export function resolveMarketingLoginHref(productCount: number): string {
-  return productCount > 1
+  return productCount >= 2
     ? RouteService.marketing.loginSelect()
     : RouteService.auth.login();
 }

@@ -7,8 +7,8 @@ import { resolveMarketingLoginHref } from '@/features/shared/marketing/lib/marke
 export default async function MarketingLoginSelectPage() {
   const { products } = await loadMarketingChrome();
 
-  // Single (or zero) product → skip picker and go straight to auth login.
-  if (products.length <= 1) {
+  // Fewer than two portals → skip picker and go straight to auth login.
+  if (products.length < 2) {
     redirect(resolveMarketingLoginHref(products.length));
   }
 

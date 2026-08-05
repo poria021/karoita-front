@@ -30,7 +30,7 @@ describe('resolveMarketingNavTarget', () => {
 });
 
 describe('resolveMarketingLoginHref', () => {
-  it('sends multi-product dock traffic to login-select', () => {
+  it('routes to login-select when two or more products exist', () => {
     expect(resolveMarketingLoginHref(2)).toBe(
       RouteService.marketing.loginSelect()
     );
@@ -39,7 +39,7 @@ describe('resolveMarketingLoginHref', () => {
     );
   });
 
-  it('sends zero/one product traffic straight to auth login', () => {
+  it('skips login-select when fewer than two products exist', () => {
     expect(resolveMarketingLoginHref(0)).toBe(RouteService.auth.login());
     expect(resolveMarketingLoginHref(1)).toBe(RouteService.auth.login());
   });

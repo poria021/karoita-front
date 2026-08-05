@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
 import { RouteService } from '@/services/route.service';
 import type { LandingProduct } from '@/types/landing-cms';
@@ -38,8 +37,8 @@ function ProductMark({ product }: { product: LandingProduct }) {
       <Image
         src={product.logoImageUrl}
         alt=""
-        width={64}
-        height={64}
+        width={48}
+        height={48}
         className="size-full object-cover"
       />
     );
@@ -53,48 +52,29 @@ function ProductMark({ product }: { product: LandingProduct }) {
   );
 }
 
+/**
+ * Portal picker → auth login (Nest role simulator from HTML is not ported).
+ * Absolute product URLs stay external; everything else enters the auth gate.
+ */
 function resolveProductLoginHref(product: LandingProduct): {
   kind: 'external' | 'internal';
   href: string;
 } {
   const target = resolveMarketingNavTarget(product.link);
-  if (target.kind === 'external' || target.kind === 'internal') {
+  if (target.kind === 'external') {
     return target;
   }
   return { kind: 'internal', href: RouteService.auth.login() };
 }
 
 export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
-  const homeHref = RouteService.marketing.home();
   const loginFallback = RouteService.auth.login();
 
   return (
     <div
-      className="kv-brand-atmosphere relative flex min-h-dvh w-full flex-col justify-between overflow-hidden bg-kv-canvas p-6 text-kv-text sm:p-12"
+      className="kv-brand-atmosphere kv-blueprint-bg relative flex min-h-dvh w-full flex-col justify-between overflow-hidden bg-kv-canvas p-6 text-kv-text sm:p-12"
       dir="rtl"
     >
-      <div className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between border-b border-kv-border-muted pb-4">
-        <Link
-          href={homeHref}
-          prefetch={false}
-          className="flex items-center gap-2.5"
-        >
-          <div className="flex size-9 items-center justify-center rounded-xl bg-kv-brand text-kv-brand-fg shadow-md shadow-kv-brand/30">
-            <KarvitaBrandMark className="h-5 w-auto p-0.5" />
-          </div>
-          <span className="text-xl font-black tracking-tight text-kv-text">
-            کارویتا
-          </span>
-        </Link>
-
-        <KvButton asChild color="neutral" appearance="secondary" size="sm">
-          <Link href={homeHref} prefetch={false}>
-            <FaIcon icon={faIcons.arrowRight} size="xs" />
-            <span>بازگشت به صفحه اصلی</span>
-          </Link>
-        </KvButton>
-      </div>
-
       <div className="relative z-10 mx-auto my-auto w-full max-w-6xl space-y-8 py-10 text-center">
         <div className="space-y-3">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-kv-brand-border bg-kv-brand-soft px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider text-kv-brand-soft-fg shadow-sm">
@@ -131,17 +111,17 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
             {products.map((product) => {
               const target = resolveProductLoginHref(product);
               const cardClass =
-                'group flex min-h-[220px] cursor-pointer flex-col items-center justify-between rounded-3xl border border-kv-border-muted bg-kv-surface p-6 text-center shadow-sm transition-all duration-200 hover:border-kv-brand hover:shadow-md';
+                'group flex min-h-[168px] cursor-pointer flex-col items-center justify-between rounded-3xl border border-kv-border-muted bg-kv-surface p-4 text-center shadow-sm transition-all duration-200 hover:border-kv-brand hover:shadow-md sm:min-h-[180px] sm:p-5';
 
               const inner = (
                 <>
-                  <div className="mb-4 flex size-16 items-center justify-center overflow-hidden rounded-2xl bg-kv-brand text-2xl text-kv-brand-fg shadow-sm">
+                  <div className="mb-3 flex size-12 items-center justify-center overflow-hidden rounded-2xl bg-kv-brand text-xl text-kv-brand-fg shadow-sm">
                     <ProductMark product={product} />
                   </div>
                   <h2 className="mb-2 text-sm font-black leading-snug text-kv-text transition-colors">
                     {product.title}
                   </h2>
-                  <span className="mt-auto inline-flex items-center gap-1.5 rounded-xl border border-kv-border bg-kv-surface-subtle px-3.5 py-1.5 text-[10px] font-black text-kv-text-secondary transition-colors group-hover:border-kv-brand group-hover:bg-kv-brand group-hover:text-kv-brand-fg">
+                  <span className="mt-auto inline-flex items-center gap-1.5 rounded-xl border border-kv-border bg-kv-surface-subtle px-3 py-1.5 text-[10px] font-black text-kv-text-secondary transition-colors group-hover:border-kv-brand group-hover:bg-kv-brand group-hover:text-kv-brand-fg">
                     <span>ورود به سامانه</span>
                     <FaIcon
                       icon={faIcons.arrowLeft}
