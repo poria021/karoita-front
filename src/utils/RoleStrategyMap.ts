@@ -15,8 +15,6 @@ export interface SidebarMenuGroup {
   kind: 'group';
   title: string;
   icon: string;
-  /** Compose parent icon with a group mark (same family as numbered children). */
-  iconGroupMark?: boolean;
   children: SidebarMenuItem[];
 }
 
@@ -85,7 +83,6 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
         kind: 'group',
         title: 'انتخاب واحد کارورزی',
         icon: 'fa-graduation-cap',
-        iconGroupMark: true,
         children: [
           {
             title: 'کارورزی ۱',
@@ -134,7 +131,6 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
         kind: 'group',
         title: 'انتخاب واحد کارآموزی',
         icon: 'fa-screwdriver-wrench',
-        iconGroupMark: true,
         children: [
           {
             title: 'کارآموزی ۱',
