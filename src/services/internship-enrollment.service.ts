@@ -1,16 +1,24 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
+  assignDelayedSchoolMentor,
   enrollWithSupervisor,
+  listDelayedMentors,
+  listDelayedSchools,
   listEligibleSupervisors,
   resolveEnrollmentPageState,
 } from '@/services/internship-enrollment/mock-enrollment-store';
 import type {
+  AssignDelayedSchoolMentorInput,
   EnrollWithSupervisorInput,
   GetEnrollmentPageStateInput,
   InternshipEnrollmentPageState,
   InternshipEnrollmentRecord,
+  InternshipMentorCapacity,
+  InternshipSchoolCapacity,
   InternshipSupervisor,
+  ListDelayedMentorsInput,
+  ListDelayedSchoolsInput,
   ListEligibleSupervisorsInput,
 } from '@/types/internship-enrollment';
 
@@ -27,7 +35,7 @@ function gateEnrollment(): 'mock' | never {
  *
  * Nest-blocked:
  * - شاخهٔ real: fail-closed تا endpoint Nest وصل شود
- * - تخصیص مدرسه/مربی، editor هفته و PDF در فازهای بعدی
+ * - editor هفته و PDF در فازهای بعدی
  */
 export const InternshipEnrollmentService = {
   /**
@@ -53,5 +61,26 @@ export const InternshipEnrollmentService = {
   ): Promise<InternshipEnrollmentRecord> {
     gateEnrollment();
     return enrollWithSupervisor(input);
+  },
+
+  async listDelayedSchools(
+    input: ListDelayedSchoolsInput
+  ): Promise<InternshipSchoolCapacity[]> {
+    gateEnrollment();
+    return listDelayedSchools(input);
+  },
+
+  async listDelayedMentors(
+    input: ListDelayedMentorsInput
+  ): Promise<InternshipMentorCapacity[]> {
+    gateEnrollment();
+    return listDelayedMentors(input);
+  },
+
+  async assignDelayedSchoolMentor(
+    input: AssignDelayedSchoolMentorInput
+  ): Promise<InternshipEnrollmentRecord> {
+    gateEnrollment();
+    return assignDelayedSchoolMentor(input);
   },
 };

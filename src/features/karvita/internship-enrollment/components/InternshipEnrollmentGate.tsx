@@ -11,6 +11,7 @@ import { ScenarioEnrollClosed } from './ScenarioEnrollClosed';
 import { ScenarioEnrollOpen } from './ScenarioEnrollOpen';
 import { ScenarioRegisteredWaiting } from './ScenarioRegisteredWaiting';
 import { ScenarioSyllabusBlocked } from './ScenarioSyllabusBlocked';
+import { ScenarioTermActive } from './ScenarioTermActive';
 
 type InternshipEnrollmentGateProps = {
   actor: InternshipEnrollmentActor | null;
@@ -72,6 +73,20 @@ export function InternshipEnrollmentGate({
         );
       }
       return <ScenarioRegisteredWaiting enrollment={state.enrollment} />;
+    case 'S5_term_active':
+      return actor ? (
+        <ScenarioTermActive
+          actor={actor}
+          state={state}
+          onAssignmentComplete={onEnrollmentComplete}
+        />
+      ) : (
+        <KvAlert
+          variant="error"
+          title="حساب کاربری در دسترس نیست"
+          description="لطفاً صفحه را دوباره بارگذاری کنید."
+        />
+      );
     default:
       return (
         <KvAlert

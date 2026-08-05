@@ -21,7 +21,8 @@ export type InternshipEnrollmentScenario =
   | 'S1_syllabus_blocked'
   | 'S2_enroll_closed'
   | 'S3_enroll_open'
-  | 'S4_registered_waiting';
+  | 'S4_registered_waiting'
+  | 'S5_term_active';
 
 export type InternshipEnrollmentRole = 'student' | 'skill_learner';
 
@@ -64,6 +65,36 @@ export type InternshipMentorCapacity = {
   capacities: Partial<Record<InternshipEnrollmentLevel, InternshipCapacity>>;
 };
 
+export type InternshipEnrollmentRecordStatus =
+  | 'active'
+  | 'dropped'
+  | 'completed';
+
+export type InternshipWeeklySessionState =
+  | 'draft'
+  | 'pending'
+  | 'needs_edit'
+  | 'approved'
+  | 'graded'
+  | 'archived'
+  | 'locked_future'
+  | 'overdue'
+  | 'extended'
+  | 'locked_dropped';
+
+export type InternshipWeeklySession = {
+  id: string;
+  title: string;
+  status: InternshipWeeklySessionState;
+  score: number | null;
+  isExtended?: boolean;
+};
+
+export type InternshipProgressiveGrade = {
+  gradedCount: number;
+  final20: number | null;
+};
+
 export type InternshipEnrollmentRecord = {
   id: string;
   userId: string;
@@ -75,8 +106,13 @@ export type InternshipEnrollmentRecord = {
   title: string;
   supervisorId: string | null;
   supervisorName: string | null;
+  schoolId?: string | null;
   schoolName: string | null;
+  mentorId?: string | null;
   mentorName: string | null;
+  attendanceDaysLabel?: string;
+  status?: InternshipEnrollmentRecordStatus;
+  removalPending?: boolean;
   wasDropped?: boolean;
   droppedSupervisorName?: string;
 };
@@ -93,10 +129,17 @@ export type InternshipSelectionScope = {
 export type InternshipEnrollmentSummary = {
   supervisorName: string | null;
   attendanceDaysLabel: string;
+  schoolId: string | null;
   schoolName: string | null;
+  mentorId: string | null;
   mentorName: string | null;
   courseTitle: string;
   termTitle: string;
+  status: InternshipEnrollmentRecordStatus;
+  removalPending: boolean;
+  isTermArchived: boolean;
+  weeks: InternshipWeeklySession[];
+  progressiveGrade: InternshipProgressiveGrade;
 };
 
 export type InternshipEnrollmentPageState = {
@@ -134,4 +177,26 @@ export type EnrollWithSupervisorInput = {
   level: InternshipEnrollmentLevel;
   termId: string;
   supervisorId: string;
+};
+
+export type ListDelayedSchoolsInput = {
+  actor: InternshipEnrollmentActor;
+  level: InternshipEnrollmentLevel;
+  query: string;
+};
+
+export type ListDelayedMentorsInput = {
+  actor: InternshipEnrollmentActor;
+  level: InternshipEnrollmentLevel;
+  schoolId: string;
+  query: string;
+};
+
+export type AssignDelayedSchoolMentorInput = {
+  actor: InternshipEnrollmentActor;
+  kind: InternshipCourseKind;
+  level: InternshipEnrollmentLevel;
+  termId: string;
+  schoolId: string;
+  mentorId: string;
 };

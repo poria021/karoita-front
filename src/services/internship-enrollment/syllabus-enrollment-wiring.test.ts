@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import {
+  assignDelayedSchoolMentor,
   enrollWithSupervisor,
+  listDelayedMentors,
+  listDelayedSchools,
   resetEnrollmentSnapshotForTests,
   resolveEnrollmentPageState,
   resolveEnrollmentScenario,
@@ -153,6 +156,83 @@ describe('syllabus → enrollment wiring', () => {
     expect(state.enrollment?.supervisorName).toBe('دکتر سارا احمدی');
     expect(state.enrollment?.schoolName).toBeNull();
     expect(state.enrollment?.mentorName).toBeNull();
+  });
+
+  it('persists delayed school and mentor assignment, then shows S5 after term opens', () => {
+    const draft = baseSnapshot();
+    const today = getTodayJalaliSlash();
+    draft.terms[0]!.isEnrollOpen = true;
+    draft.terms[0]!.enrollStart = today;
+    activateOfferingInSnapshot(
+      draft,
+      'term_sem',
+      'course_internship_1',
+      'internship'
+    );
+    writeSyllabusSnapshot(draft);
+    enrollWithSupervisor({
+      actor: student,
+      kind: 'internship',
+      level: 1,
+      termId: 'term_sem',
+      supervisorId: 'sup-ahmadi',
+    });
+
+    const school = listDelayedSchools({
+      actor: student,
+      level: 1,
+      query: 'البرز',
+    })[0];
+    expect(school?.id).toBe('school-tehran-1');
+    const mentor = listDelayedMentors({
+      actor: student,
+      level: 1,
+      schoolId: school!.id,
+      query: 'ملکی',
+    })[0];
+    expect(mentor?.id).toBe('mentor-tehran-1');
+
+    const assigned = assignDelayedSchoolMentor({
+      actor: student,
+      kind: 'internship',
+      level: 1,
+      termId: 'term_sem',
+      schoolId: school!.id,
+      mentorId: mentor!.id,
+    });
+    expect(assigned.schoolName).toBe('دبیرستان ماندگار البرز');
+    expect(assigned.mentorName).toBe('آقای مرتضی ملکی');
+    expect(assigned.attendanceDaysLabel).toBe('شنبه');
+
+    draft.terms[0]!.isTermOpen = true;
+    draft.terms[0]!.termStart = today;
+    writeSyllabusSnapshot(draft);
+    const state = resolveEnrollmentPageState({ actor: student, level: 1 });
+    expect(state.scenario).toBe('S5_term_active');
+    expect(state.enrollment?.schoolName).toBe('دبیرستان ماندگار البرز');
+    expect(state.enrollment?.mentorName).toBe('آقای مرتضی ملکی');
+    expect(state.enrollment?.weeks).toHaveLength(16);
+  });
+
+  it('uses S5 for completed and removal-pending records outside the open term', () => {
+    expect(
+      resolveEnrollmentScenario({
+        syllabusConfigured: true,
+        enrollOpen: false,
+        termOpen: false,
+        registered: true,
+        status: 'completed',
+      })
+    ).toBe('S5_term_active');
+    expect(
+      resolveEnrollmentScenario({
+        syllabusConfigured: true,
+        enrollOpen: false,
+        termOpen: false,
+        registered: true,
+        removalPending: true,
+      })
+    ).toBe('S5_term_active');
   });
 
   it('uses modular term for skill learner offerings', () => {

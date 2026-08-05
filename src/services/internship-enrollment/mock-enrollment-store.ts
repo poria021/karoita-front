@@ -1,15 +1,24 @@
 import { isMockApiMode } from '@/lib/api-mode';
 import {
   filterEligibleSupervisors,
+  hasAvailableCapacity,
   hasStudentTermEnrollmentConflict,
   normalizeEnrollmentCourseTitle,
 } from '@/features/karvita/internship-enrollment/lib/enrollment-eligibility';
-import { readSyllabusSnapshot } from '@/services/syllabus-config/mock-syllabus-store';
+import {
+  INTERNSHIP_DEFAULT_WEEKS,
+  readSyllabusSnapshot,
+} from '@/services/syllabus-config/mock-syllabus-store';
 import {
   pickActiveTermForKind,
   resolveEnrollmentSyllabusContext,
 } from '@/services/syllabus-config/syllabus-enrollment-reads';
+import {
+  buildCourseOfferingId,
+  catalogIdForKind,
+} from '@/services/syllabus-config/syllabus-mappers';
 import type {
+  AssignDelayedSchoolMentorInput,
   EnrollWithSupervisorInput,
   GetEnrollmentPageStateInput,
   InternshipCourseKind,
@@ -17,13 +26,19 @@ import type {
   InternshipEnrollmentLevel,
   InternshipEnrollmentPageState,
   InternshipEnrollmentRecord,
+  InternshipEnrollmentRecordStatus,
   InternshipEnrollmentRole,
   InternshipEnrollmentScenario,
   InternshipEnrollmentSummary,
   InternshipMentorCapacity,
+  InternshipProgressiveGrade,
   InternshipSchoolCapacity,
   InternshipSelectionScope,
   InternshipSupervisor,
+  InternshipWeeklySession,
+  InternshipWeeklySessionState,
+  ListDelayedMentorsInput,
+  ListDelayedSchoolsInput,
   ListEligibleSupervisorsInput,
 } from '@/types/internship-enrollment';
 
@@ -259,24 +274,102 @@ function findRecord(input: {
   );
 }
 
+function statusForWeek(index: number): InternshipWeeklySessionState {
+  const seededStates: InternshipWeeklySessionState[] = [
+    'graded',
+    'approved',
+    'pending',
+    'needs_edit',
+    'extended',
+    'overdue',
+  ];
+  return seededStates[index] ?? 'locked_future';
+}
+
+function buildWeeklySessions(input: {
+  kind: InternshipCourseKind;
+  level: InternshipEnrollmentLevel;
+  termId: string;
+}): InternshipWeeklySession[] {
+  const syllabus = readSyllabusSnapshot();
+  const offeringId = buildCourseOfferingId(
+    input.termId,
+    catalogIdForKind(input.kind, input.level)
+  );
+  const syllabusWeeks = syllabus.offerings[offeringId]?.weeks ?? [];
+  const weeks =
+    syllabusWeeks.length > 0
+      ? syllabusWeeks
+      : Array.from({ length: INTERNSHIP_DEFAULT_WEEKS }, (_, index) => ({
+          id: `week-${index + 1}`,
+          title: `هفته ${index + 1}`,
+          suffix: String(index + 1),
+          weight: 1,
+          status: 'active' as const,
+        }));
+
+  return weeks.map((week, index) => {
+    const status: InternshipWeeklySessionState =
+      week.status === 'archived' ? 'archived' : statusForWeek(index);
+    return {
+      id: week.id,
+      title: week.title || week.suffix || `هفته ${index + 1}`,
+      status,
+      score: status === 'graded' ? 92 : null,
+      isExtended: status === 'extended',
+    };
+  });
+}
+
+function buildProgressiveGrade(
+  weeks: InternshipWeeklySession[]
+): InternshipProgressiveGrade {
+  const scoredWeeks = weeks.filter(
+    (week) => week.status === 'graded' && week.score !== null
+  );
+  if (scoredWeeks.length === 0) {
+    return { gradedCount: 0, final20: null };
+  }
+
+  const average =
+    scoredWeeks.reduce((sum, week) => sum + (week.score ?? 0), 0) /
+    scoredWeeks.length;
+  return {
+    gradedCount: scoredWeeks.length,
+    final20: Number(((average / 100) * 20).toFixed(2)),
+  };
+}
+
+function isArchivedTerm(termTitle: string): boolean {
+  return termTitle.includes('(بایگانی)') || termTitle.includes('بایگانی');
+}
+
 function buildEnrollmentSummary(input: {
   kind: InternshipCourseKind;
   level: InternshipEnrollmentLevel;
   termTitle: string;
   supervisorName: string | null;
-  schoolName?: string | null;
-  mentorName?: string | null;
+  record: InternshipEnrollmentRecord | undefined;
+  weeks: InternshipWeeklySession[];
 }): InternshipEnrollmentSummary {
+  const record = input.record;
   return {
     supervisorName: input.supervisorName,
-    attendanceDaysLabel: PLACEHOLDER_UNSET,
-    schoolName: input.schoolName ?? null,
-    mentorName: input.mentorName ?? null,
+    attendanceDaysLabel: record?.attendanceDaysLabel ?? PLACEHOLDER_UNSET,
+    schoolId: record?.schoolId ?? null,
+    schoolName: record?.schoolName ?? null,
+    mentorId: record?.mentorId ?? null,
+    mentorName: record?.mentorName ?? null,
     courseTitle: normalizeEnrollmentCourseTitle(
       courseNameForKind(input.kind),
       input.level
     ),
     termTitle: input.termTitle,
+    status: record?.status ?? 'active',
+    removalPending: Boolean(record?.removalPending),
+    isTermArchived: isArchivedTerm(input.termTitle),
+    weeks: input.weeks,
+    progressiveGrade: buildProgressiveGrade(input.weeks),
   };
 }
 
@@ -309,7 +402,20 @@ export function resolveEnrollmentScenario(input: {
   enrollOpen: boolean;
   termOpen: boolean;
   registered: boolean;
+  status?: InternshipEnrollmentRecordStatus;
+  removalPending?: boolean;
+  termArchived?: boolean;
 }): InternshipEnrollmentScenario {
+  if (
+    input.registered &&
+    (input.termOpen ||
+      input.status === 'dropped' ||
+      input.status === 'completed' ||
+      input.removalPending ||
+      input.termArchived)
+  ) {
+    return 'S5_term_active';
+  }
   if (input.registered) return 'S4_registered_waiting';
   if (!input.syllabusConfigured) return 'S1_syllabus_blocked';
   if (input.enrollOpen && !input.termOpen) return 'S3_enroll_open';
@@ -332,11 +438,19 @@ export function resolveEnrollmentPageState(
     level,
   });
   const registered = Boolean(record?.supervisorId);
+  const weeks = buildWeeklySessions({
+    kind,
+    level,
+    termId: context.termId,
+  });
   const scenario = resolveEnrollmentScenario({
     syllabusConfigured: context.syllabusConfigured,
     enrollOpen: context.enrollOpen,
     termOpen: context.termOpen,
     registered,
+    status: record?.status,
+    removalPending: record?.removalPending,
+    termArchived: isArchivedTerm(context.termTitle),
   });
 
   return {
@@ -347,14 +461,14 @@ export function resolveEnrollmentPageState(
     termTitle: context.termTitle,
     termId: context.termId,
     enrollment:
-      scenario === 'S4_registered_waiting'
+      scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'
         ? buildEnrollmentSummary({
             kind,
             level,
             termTitle: context.termTitle,
             supervisorName: record?.supervisorName ?? null,
-            schoolName: record?.schoolName,
-            mentorName: record?.mentorName,
+            record,
+            weeks,
           })
         : null,
     selection:
@@ -399,6 +513,61 @@ export function listEligibleSupervisors(
     schools: SCHOOLS,
     mentors: MENTORS,
   });
+}
+
+function matchesDelayedSearch(name: string, query: string): boolean {
+  const normalizedQuery = query.trim().toLocaleLowerCase('fa-IR');
+  return (
+    normalizedQuery.length === 0 ||
+    name.toLocaleLowerCase('fa-IR').includes(normalizedQuery)
+  );
+}
+
+function isSchoolInActorScope(
+  school: InternshipSchoolCapacity,
+  actor: InternshipEnrollmentActor
+): boolean {
+  if (actor.specialPermissions?.crossFaculty) return true;
+  return (
+    school.province === (actor.province ?? 'تهران') &&
+    (!actor.district || school.district === actor.district)
+  );
+}
+
+export function listDelayedSchools(
+  input: ListDelayedSchoolsInput
+): InternshipSchoolCapacity[] {
+  return SCHOOLS.filter(
+    (school) =>
+      isSchoolInActorScope(school, input.actor) &&
+      hasAvailableCapacity(school.capacities[input.level]) &&
+      matchesDelayedSearch(school.name, input.query) &&
+      MENTORS.some(
+        (mentor) =>
+          mentor.schoolId === school.id &&
+          hasAvailableCapacity(mentor.capacities[input.level])
+      )
+  );
+}
+
+export function listDelayedMentors(
+  input: ListDelayedMentorsInput
+): InternshipMentorCapacity[] {
+  const school = SCHOOLS.find((item) => item.id === input.schoolId);
+  if (
+    !school ||
+    !isSchoolInActorScope(school, input.actor) ||
+    !hasAvailableCapacity(school.capacities[input.level])
+  ) {
+    return [];
+  }
+
+  return MENTORS.filter(
+    (mentor) =>
+      mentor.schoolId === school.id &&
+      hasAvailableCapacity(mentor.capacities[input.level]) &&
+      matchesDelayedSearch(mentor.name, input.query)
+  );
 }
 
 export function enrollWithSupervisor(
@@ -494,8 +663,12 @@ export function enrollWithSupervisor(
     title: normalizeEnrollmentCourseTitle(courseNameForKind(kind), level),
     supervisorId: supervisor.id,
     supervisorName: supervisor.name,
+    schoolId: null,
     schoolName: null,
+    mentorId: null,
     mentorName: null,
+    attendanceDaysLabel: PLACEHOLDER_UNSET,
+    status: 'active',
   };
 
   const next: EnrollmentSnapshot = {
@@ -509,4 +682,80 @@ export function enrollWithSupervisor(
   next.confirmedCapacity[key] = (next.confirmedCapacity[key] ?? 0) + 1;
   writeSnapshot(next);
   return record;
+}
+
+export function assignDelayedSchoolMentor(
+  input: AssignDelayedSchoolMentorInput
+): InternshipEnrollmentRecord {
+  const kind = input.kind;
+  const level = clampLevel(kind, input.level);
+  const context = resolveEnrollmentSyllabusContext(
+    readSyllabusSnapshot(),
+    kind,
+    level
+  );
+  if (context.termId !== input.termId) {
+    throw new Error('ترم انتخاب واحد تغییر کرده است. لطفاً دوباره تلاش کنید.');
+  }
+  if (!input.actor.approved) {
+    throw new Error('حساب شما فعال نیست.');
+  }
+  if (input.actor.specialPermissions?.readOnly) {
+    throw new Error(
+      'حساب شما در حالت فقط‌خواندنی قرار دارد و امکان تخصیص مدرسه ندارید.'
+    );
+  }
+
+  const snapshot = readSnapshot();
+  const record = findRecord({
+    snapshot,
+    userId: input.actor.id,
+    termId: input.termId,
+    kind,
+    level,
+  });
+  if (!record?.supervisorId) {
+    throw new Error('رکورد ثبت‌نام برای تخصیص مدرسه یافت نشد.');
+  }
+  if (record.status === 'dropped' || record.removalPending) {
+    throw new Error('امکان تغییر تخصیص این دوره وجود ندارد.');
+  }
+
+  const school = listDelayedSchools({
+    actor: input.actor,
+    level,
+    query: '',
+  }).find((item) => item.id === input.schoolId);
+  if (!school) {
+    throw new Error('مدرسه انتخاب‌شده در دسترس نیست.');
+  }
+
+  const mentor = listDelayedMentors({
+    actor: input.actor,
+    level,
+    schoolId: school.id,
+    query: '',
+  }).find((item) => item.id === input.mentorId);
+  if (!mentor) {
+    throw new Error('معلم ناظر انتخاب‌شده در دسترس نیست.');
+  }
+
+  const supervisorDay =
+    SUPERVISOR_SEEDS.find((item) => item.id === record.supervisorId)?.day ??
+    PLACEHOLDER_UNSET;
+  const updatedRecord: InternshipEnrollmentRecord = {
+    ...record,
+    schoolId: school.id,
+    schoolName: school.name,
+    mentorId: mentor.id,
+    mentorName: mentor.name,
+    attendanceDaysLabel: supervisorDay,
+  };
+  writeSnapshot({
+    ...snapshot,
+    records: snapshot.records.map((item) =>
+      item.id === updatedRecord.id ? updatedRecord : item
+    ),
+  });
+  return updatedRecord;
 }

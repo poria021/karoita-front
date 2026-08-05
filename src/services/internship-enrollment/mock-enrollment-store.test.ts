@@ -55,5 +55,24 @@ describe('internship-enrollment mock helpers', () => {
         registered: true,
       })
     ).toBe('S4_registered_waiting');
+
+    expect(
+      resolveEnrollmentScenario({
+        syllabusConfigured: true,
+        enrollOpen: false,
+        termOpen: true,
+        registered: true,
+      })
+    ).toBe('S5_term_active');
+
+    expect(
+      resolveEnrollmentScenario({
+        syllabusConfigured: true,
+        enrollOpen: false,
+        termOpen: false,
+        registered: true,
+        status: 'dropped',
+      })
+    ).toBe('S5_term_active');
   });
 });
