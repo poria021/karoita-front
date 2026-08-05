@@ -1,5 +1,6 @@
 'use client';
 
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -99,15 +100,36 @@ export function UserAccountMenu({
     onNavigate?.();
   };
 
+  const isHeader = variant === 'header';
+  /** Header chip is icon-only on mobile — denser menu items so labels fit. */
+  const menuItemClass = isHeader
+    ? 'gap-1 px-2 py-1.5 text-xs leading-none sm:gap-kv-pair sm:px-3.5 sm:py-2.5'
+    : 'gap-kv-pair';
+
+  const renderMenuIcon = (icon: IconDefinition) =>
+    isHeader ? (
+      <>
+        <FaIcon icon={icon} size="2xs" fixedWidth className="sm:hidden" />
+        <FaIcon
+          icon={icon}
+          size="sm"
+          fixedWidth
+          className="hidden sm:inline-block"
+        />
+      </>
+    ) : (
+      <FaIcon icon={icon} size="sm" fixedWidth />
+    );
+
   const menu = (
     <KvDropdownMenuContent
       align="end"
       side={variant === 'sidebar' ? 'left' : 'bottom'}
       sideOffset={variant === 'sidebar' ? 8 : 4}
       className={
-        variant === 'header'
-          ? // Match header chip width (avoid fixed min-w wider/narrower than trigger).
-            'w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)]'
+        isHeader
+          ? // Desktop: match chip width. Mobile: icon-only trigger is too narrow for labels.
+            'w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] max-sm:w-auto max-sm:min-w-[7.5rem]'
           : 'min-w-44'
       }
     >
@@ -116,9 +138,9 @@ export function UserAccountMenu({
           href={profileHref}
           prefetch={false}
           onClick={handleProfileClick}
-          className="flex cursor-pointer items-center gap-kv-pair"
+          className={cn('flex cursor-pointer items-center', menuItemClass)}
         >
-          <FaIcon icon={faIcons.user} size="sm" fixedWidth />
+          {renderMenuIcon(faIcons.user)}
           <span>پروفایل</span>
         </Link>
       </KvDropdownMenuItem>
@@ -132,9 +154,9 @@ export function UserAccountMenu({
           setLogoutError(null);
           setIsLogoutDialogOpen(true);
         }}
-        className="flex items-center gap-kv-pair"
+        className={cn('flex items-center', menuItemClass)}
       >
-        <FaIcon icon={faIcons.powerOff} size="sm" fixedWidth />
+        {renderMenuIcon(faIcons.powerOff)}
         <span>خروج</span>
       </KvDropdownMenuItem>
     </KvDropdownMenuContent>
