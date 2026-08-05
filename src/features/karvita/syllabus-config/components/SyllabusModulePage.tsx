@@ -1,21 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
+import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
-import { getPostLoginPath } from '@/services/post-login-path';
-import { useUserStore } from '@/store/useUserStore';
 import type { SyllabusConfigSubTab } from '@/types/syllabus-config';
-import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useSyllabusConfigPage } from '../hooks/useSyllabusConfigPage';
-import { CourseOfferingsPageSkeleton } from '../skeletons/CourseOfferingsPageSkeleton';
-import { TermSettingsPageSkeleton } from '../skeletons/TermSettingsPageSkeleton';
 import { CourseOfferingsPanel } from './CourseOfferingsPanel';
 import { TermSettingsPanel } from './TermSettingsPanel';
 import { WeekEditDialog } from './WeekEditDialog';
@@ -25,28 +18,7 @@ type SyllabusModulePageProps = {
 };
 
 function SyllabusModulePage({ section }: SyllabusModulePageProps) {
-  const router = useRouter();
-  const activeUser = useUserStore((state) => state.activeUser);
   const page = useSyllabusConfigPage(section);
-
-  useEffect(() => {
-    if (!activeUser) return;
-    if (!isSuperAdminRole(activeUser.role)) {
-      router.replace(getPostLoginPath(activeUser));
-    }
-  }, [activeUser, router]);
-
-  if (!activeUser || !isSuperAdminRole(activeUser.role)) {
-    return <div className="min-h-40 w-full bg-kv-canvas" aria-busy="true" />;
-  }
-
-  if (page.isCold && !page.error) {
-    return section === 'course_offerings' ? (
-      <CourseOfferingsPageSkeleton />
-    ) : (
-      <TermSettingsPageSkeleton />
-    );
-  }
 
   const errorTitle =
     section === 'course_offerings'
@@ -54,7 +26,7 @@ function SyllabusModulePage({ section }: SyllabusModulePageProps) {
       : 'بارگذاری تنظیمات عمومی ترم‌ها ناموفق بود';
 
   return (
-    <>
+    <SuperAdminModuleGuard>
       <KvWorkspace panel={false}>
         <div className="space-y-kv-section">
           {page.error ? (
@@ -110,6 +82,7 @@ function SyllabusModulePage({ section }: SyllabusModulePageProps) {
               termYear={page.termYear}
               setTermYear={page.setTermYear}
               academicYears={page.academicYears}
+              isLoading={page.isLoading}
               isSaving={page.isSaving}
               termFormError={page.termFormError}
               saveTerm={page.saveTerm}
@@ -212,7 +185,7 @@ function SyllabusModulePage({ section }: SyllabusModulePageProps) {
           confirmVariant="destructive"
         />
       )}
-    </>
+    </SuperAdminModuleGuard>
   );
 }
 

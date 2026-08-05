@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
+import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
 import { buildLoginHref } from '@/lib/return-url';
@@ -26,24 +27,8 @@ export function AppAuthGuard({ children }: { children: ReactNode }) {
     }
   }, [hasHydrated, isAuthenticated, pathname, router, searchParams]);
 
-  if (!hasHydrated) {
-    return (
-      <div
-        className="min-h-dvh w-full bg-kv-canvas"
-        aria-busy="true"
-        aria-live="polite"
-      />
-    );
-  }
-
-  if (!session) {
-    return (
-      <div
-        className="min-h-dvh w-full bg-kv-canvas"
-        aria-busy="true"
-        aria-live="polite"
-      />
-    );
+  if (!hasHydrated || !session) {
+    return <DashboardAccessPlaceholder fullViewport />;
   }
 
   return <>{children}</>;

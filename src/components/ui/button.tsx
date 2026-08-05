@@ -59,7 +59,7 @@ const buttonVariants = cva(
         appearance: 'solid',
         color: 'cta',
         class:
-          'bg-gradient-to-br from-kv-brand to-kv-brand-active text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20 enabled:hover:from-kv-brand-hover enabled:hover:to-kv-brand-active dark:bg-none dark:bg-kv-brand dark:enabled:hover:bg-none dark:enabled:hover:bg-kv-brand-hover',
+          'bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20 enabled:hover:bg-kv-brand-hover',
       },
       {
         appearance: 'solid',

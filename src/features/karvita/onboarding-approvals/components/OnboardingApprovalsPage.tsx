@@ -1,48 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
-import { getPostLoginPath } from '@/services/post-login-path';
-import { useUserStore } from '@/store/useUserStore';
-import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import { getApprovalTabActions } from '../constants';
 import { useOnboardingApprovalsPage } from '../hooks/useOnboardingApprovalsPage';
 import { OnboardingApprovalsDetailPanel } from './OnboardingApprovalsDetailPanel';
 import { OnboardingApprovalsFilters } from './OnboardingApprovalsFilters';
 import { OnboardingApprovalsMobileList } from './OnboardingApprovalsMobileList';
-import { OnboardingApprovalsPageSkeleton } from '../skeletons/OnboardingApprovalsPageSkeleton';
 import { OnboardingApprovalsTable } from './OnboardingApprovalsTable';
 import { OnboardingApprovalsTabs } from './OnboardingApprovalsTabs';
 
 export function OnboardingApprovalsPage() {
-  const router = useRouter();
-  const activeUser = useUserStore((state) => state.activeUser);
   const page = useOnboardingApprovalsPage();
-
-  useEffect(() => {
-    if (!activeUser) return;
-    if (!isSuperAdminRole(activeUser.role)) {
-      router.replace(getPostLoginPath(activeUser));
-    }
-  }, [activeUser, router]);
-
-  if (!activeUser || !isSuperAdminRole(activeUser.role)) {
-    return (
-      <div
-        className="min-h-40 w-full bg-kv-canvas"
-        aria-busy="true"
-      />
-    );
-  }
-
-  if (page.isCold) {
-    return <OnboardingApprovalsPageSkeleton />;
-  }
 
   const { canApprove, canReject } = getApprovalTabActions(page.tab);
   const hasActiveFilters =
@@ -53,7 +25,7 @@ export function OnboardingApprovalsPage() {
   };
 
   return (
-    <>
+    <SuperAdminModuleGuard>
       <KvSplitWorkspace
         tabs={
           <OnboardingApprovalsTabs
@@ -83,7 +55,7 @@ export function OnboardingApprovalsPage() {
                     type="button"
                     appearance="secondary"
                     size="sm"
-                    onClick={() => void page.reload()}
+                    onClick={page.reload}
                   >
                     تلاش مجدد
                   </KvButton>
@@ -102,7 +74,7 @@ export function OnboardingApprovalsPage() {
                 onProvinceChange={page.setProvince}
                 provinces={page.provinces}
               />
-              <OnboardingApprovalsTable
+                <OnboardingApprovalsTable
                   users={page.users}
                   selectedId={page.selectedUser?.id ?? null}
                   tab={page.tab}
@@ -111,11 +83,8 @@ export function OnboardingApprovalsPage() {
                   hasMore={page.hasMore}
                   loadMoreError={page.loadMoreError}
                   actionBusy={page.actionBusy}
-                  onLoadMore={() => void page.loadMore()}
-                  onRetryLoadMore={() => {
-                    page.clearLoadMoreError();
-                    void page.loadMore();
-                  }}
+                  onLoadMore={page.loadMore}
+                  onRetryLoadMore={page.retryLoadMore}
                   onSelect={page.selectUser}
                   onApprove={(user) => void page.approveUser(user)}
                   hasActiveFilters={hasActiveFilters}
@@ -174,17 +143,14 @@ export function OnboardingApprovalsPage() {
               }}
               onRejectReasonChange={page.setRejectReason}
               onSubmitReject={(user) => void page.submitReject(user)}
-              onLoadMore={() => void page.loadMore()}
-              onRetryLoadMore={() => {
-                page.clearLoadMoreError();
-                void page.loadMore();
-              }}
+              onLoadMore={page.loadMore}
+              onRetryLoadMore={page.retryLoadMore}
               hasActiveFilters={hasActiveFilters}
               onClearFilters={clearFilters}
             />
           )
         }
       />
-    </>
+    </SuperAdminModuleGuard>
   );
 }

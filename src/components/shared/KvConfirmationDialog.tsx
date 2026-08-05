@@ -80,6 +80,7 @@ export function KvConfirmationDialog({
               void handleConfirm();
             }}
             disabled={busy}
+            aria-busy={isSubmitting}
             className={cn(
               confirmVariant === 'destructive' &&
                 buttonVariants({

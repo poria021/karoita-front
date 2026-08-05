@@ -219,7 +219,7 @@ function DropdownMenuSubTrigger({
       {...props}
     >
       {children}
-      <FaIcon icon={faIcons.chevronRight} size="sm" className="ms-auto" />
+      <FaIcon icon={faIcons.chevronRight} size="sm" className="ms-auto rtl:rotate-180" />
     </DropdownMenuPrimitive.SubTrigger>
   )
 }

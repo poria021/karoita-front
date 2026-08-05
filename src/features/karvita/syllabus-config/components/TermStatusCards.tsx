@@ -6,6 +6,7 @@ import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvSwitch } from '@/components/shared/fields/KvSwitch';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
 import { cn } from '@/lib/utils';
 import { isTermGateActive } from '@/services/syllabus-config.service';
 import type { AcademicTerm } from '@/types/syllabus-config';
@@ -16,6 +17,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 interface TermStatusCardsProps {
   terms: AcademicTerm[];
   selectedTerm: AcademicTerm | null;
+  isLoading?: boolean;
   onSelectTerm: (termId: string) => void;
   onToggleEnroll: (open: boolean) => void;
   onToggleTermOpen: (open: boolean) => void;
@@ -27,6 +29,7 @@ const CARD_CONTENT_CLASS =
 export function TermStatusCards({
   terms,
   selectedTerm,
+  isLoading = false,
   onSelectTerm,
   onToggleEnroll,
   onToggleTermOpen,
@@ -39,6 +42,8 @@ export function TermStatusCards({
     Boolean(selectedTerm?.isTermOpen),
     selectedTerm?.termStart ?? ''
   );
+
+  const isDataLoading = isLoading && terms.length === 0;
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-kv-group lg:grid-cols-3">
@@ -57,19 +62,23 @@ export function TermStatusCards({
             </div>
           </div>
           <div className="w-full max-w-44 shrink-0">
-            <KvSelectField
-              label={false}
-              size="sm"
-              value={selectedTerm?.id ?? ''}
-              onValueChange={onSelectTerm}
-              placeholder="انتخاب ترم"
-            >
-              {terms.map((term) => (
-                <KvSelectItem key={term.id} value={term.id}>
-                  {toPersianDigits(term.title)}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
+            {isDataLoading ? (
+              <KvSkeleton className="h-9 w-full rounded-kv-control" />
+            ) : (
+              <KvSelectField
+                label={false}
+                size="sm"
+                value={selectedTerm?.id ?? ''}
+                onValueChange={onSelectTerm}
+                placeholder="انتخاب ترم"
+              >
+                {terms.map((term) => (
+                  <KvSelectItem key={term.id} value={term.id}>
+                    {toPersianDigits(term.title)}
+                  </KvSelectItem>
+                ))}
+              </KvSelectField>
+            )}
           </div>
         </KvCardContent>
       </KvCard>
@@ -79,14 +88,19 @@ export function TermStatusCards({
         icon={faIcons.clipboardList}
         title="انتخاب واحد"
         subtitle={
-          selectedTerm?.enrollStart
-            ? `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
-            : 'تاریخ شروع ثبت نشده'
+          isDataLoading ? (
+            <KvSkeleton className="h-3.5 w-36 bg-kv-border" />
+          ) : selectedTerm?.enrollStart ? (
+            `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
+          ) : (
+            'تاریخ شروع ثبت نشده'
+          )
         }
         switchOn={Boolean(selectedTerm?.isEnrollOpen)}
         active={enrollActive}
         onToggle={onToggleEnroll}
-        disabled={!selectedTerm}
+        disabled={!selectedTerm || isDataLoading}
+        isLoading={isDataLoading}
       />
 
       <StatusGateCard
@@ -94,14 +108,19 @@ export function TermStatusCards({
         icon={faIcons.chalkboardUser}
         title="برگزاری کلاس‌ها"
         subtitle={
-          selectedTerm?.termStart
-            ? `شروع: ${toPersianDigits(selectedTerm.termStart)}`
-            : 'تاریخ شروع ثبت نشده'
+          isDataLoading ? (
+            <KvSkeleton className="h-3.5 w-36 bg-kv-border" />
+          ) : selectedTerm?.termStart ? (
+            `شروع: ${toPersianDigits(selectedTerm.termStart)}`
+          ) : (
+            'تاریخ شروع ثبت نشده'
+          )
         }
         switchOn={Boolean(selectedTerm?.isTermOpen)}
         active={termActive}
         onToggle={onToggleTermOpen}
-        disabled={!selectedTerm}
+        disabled={!selectedTerm || isDataLoading}
+        isLoading={isDataLoading}
       />
     </div>
   );
@@ -116,15 +135,17 @@ function StatusGateCard({
   active,
   onToggle,
   disabled,
+  isLoading,
 }: {
   className?: string;
   icon: IconDefinition;
   title: string;
-  subtitle: string;
+  subtitle: React.ReactNode;
   switchOn: boolean;
   active: boolean;
   onToggle: (open: boolean) => void;
   disabled?: boolean;
+  isLoading?: boolean;
 }) {
   return (
     <KvCard
@@ -142,19 +163,27 @@ function StatusGateCard({
             <KvTypography variant="subtitle" as="h4">
               {title}
             </KvTypography>
-            <KvTypography variant="caption" tone="muted">
-              {subtitle}
-            </KvTypography>
+            {typeof subtitle === 'string' ? (
+              <KvTypography variant="caption" tone="muted">
+                {subtitle}
+              </KvTypography>
+            ) : (
+              <div className="flex items-center py-0.5">{subtitle}</div>
+            )}
           </div>
         </div>
-        <KvSwitch
-          size="md"
-          checked={switchOn}
-          disabled={disabled}
-          onCheckedChange={onToggle}
-          aria-label={title}
-          className="shrink-0 data-[state=unchecked]:bg-kv-danger/35"
-        />
+        {isLoading ? (
+          <KvSkeleton className="h-9 w-14 shrink-0 rounded-full bg-kv-border" />
+        ) : (
+          <KvSwitch
+            size="md"
+            checked={switchOn}
+            disabled={disabled}
+            onCheckedChange={onToggle}
+            aria-label={title}
+            className="shrink-0 data-[state=unchecked]:bg-kv-danger/35"
+          />
+        )}
       </KvCardContent>
     </KvCard>
   );

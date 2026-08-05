@@ -79,18 +79,20 @@ export function useOnboardingApprovalsPage() {
         offset,
         limit,
       });
-      setProvinces(page.provinces);
-      setData(ONBOARDING_APPROVALS_PROVINCES_KEY, page.provinces);
       return {
         items: page.items,
         total: page.total,
         hasMore: page.hasMore,
+        provinces: page.provinces,
       };
     },
-    [tab, listQuery, province, setData]
+    [tab, listQuery, province]
   );
 
-  const list = useOffsetLimitInfiniteList<OnboardingApprovalUser>({
+  const list = useOffsetLimitInfiniteList<
+    OnboardingApprovalUser,
+    { provinces: string[] }
+  >({
     resetKey,
     fetchPage,
     pageSize: ONBOARDING_APPROVALS_PAGE_SIZE,
@@ -103,13 +105,29 @@ export function useOnboardingApprovalsPage() {
     hasMore,
     isLoading,
     isLoadingMore,
-    isCold,
     error,
     loadMoreError,
     loadMore,
     reload,
     clearLoadMoreError,
   } = list;
+
+  // Extract provinces from first page
+  useEffect(() => {
+    const firstPage = list.data?.pages[0];
+    if (firstPage?.provinces && firstPage.provinces.length > 0) {
+      // Only update if different to avoid unnecessary setState
+      setProvinces((prev) => {
+        const isSame =
+          prev.length === firstPage.provinces.length &&
+          prev.every((p, i) => p === firstPage.provinces[i]);
+        if (isSame) return prev;
+        setData(ONBOARDING_APPROVALS_PROVINCES_KEY, firstPage.provinces);
+        return firstPage.provinces;
+      });
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing query result metadata to UI state
+  }, [list.data, setData]);
 
   useEffect(() => {
     if (!isMockApiMode()) return;
@@ -187,6 +205,19 @@ export function useOnboardingApprovalsPage() {
     [rejectReason, reload]
   );
 
+  const handleLoadMore = useCallback(() => {
+    void loadMore();
+  }, [loadMore]);
+
+  const handleRetryLoadMore = useCallback(() => {
+    clearLoadMoreError();
+    void loadMore();
+  }, [clearLoadMoreError, loadMore]);
+
+  const handleReload = useCallback(() => {
+    void reload();
+  }, [reload]);
+
   return {
     tab,
     changeTab,
@@ -200,11 +231,11 @@ export function useOnboardingApprovalsPage() {
     hasMore,
     isLoading,
     isLoadingMore,
-    isCold,
     error,
     loadMoreError,
-    loadMore,
-    reload,
+    loadMore: handleLoadMore,
+    retryLoadMore: handleRetryLoadMore,
+    reload: handleReload,
     clearLoadMoreError,
     actionBusy,
     selectedUser,

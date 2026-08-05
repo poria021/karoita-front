@@ -14,8 +14,8 @@ import { KvTextField } from '@/components/shared/fields/KvTextField';
 import type { OrgCity, OrgDistrict, OrgProvince } from '@/types/org-structure';
 import type { OrgStructureSubTab } from '@/types/org-structure';
 
-import { SCHOOL_GENDER_OPTIONS } from '../constants';
-import type { OrgEntityFormValues } from './OrgStructureEntityModal';
+import { MAJOR_AUDIENCE_OPTIONS, SCHOOL_GENDER_OPTIONS } from '../constants';
+import type { OrgEntityFormValues } from '../schemas/org-structure.schema';
 
 const SELECT_IN_DIALOG_Z = 'z-[150]';
 
@@ -165,6 +165,31 @@ export function OrgStructureEntityFields({
             )}
           />
         </>
+      ) : null}
+
+      {tab === 'majors' ? (
+        <Controller
+          name="audience"
+          control={control}
+          render={({ field }) => (
+            <KvSelectField
+              id="org-entity-major-audience"
+              label="مخاطب رشته"
+              required
+              placeholder="انتخاب مخاطب"
+              value={field.value || ''}
+              onValueChange={field.onChange}
+              error={errors.audience?.message}
+              contentClassName={SELECT_IN_DIALOG_Z}
+            >
+              {MAJOR_AUDIENCE_OPTIONS.map((opt) => (
+                <KvSelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </KvSelectItem>
+              ))}
+            </KvSelectField>
+          )}
+        />
       ) : null}
     </>
   );

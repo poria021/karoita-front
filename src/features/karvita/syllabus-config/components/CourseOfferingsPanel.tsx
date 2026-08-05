@@ -37,6 +37,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
       <TermStatusCards
         terms={props.terms}
         selectedTerm={props.selectedTerm}
+        isLoading={props.isLoading}
         onSelectTerm={(termId) => props.selectTerm(termId)}
         onToggleEnroll={(open) => void props.toggleEnroll(open)}
         onToggleTermOpen={(open) => void props.toggleTermOpen(open)}

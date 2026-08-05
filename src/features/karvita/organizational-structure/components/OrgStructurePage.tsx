@@ -1,47 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
+import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
-import { getPostLoginPath } from '@/services/post-login-path';
-import { useUserStore } from '@/store/useUserStore';
-import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import { useOrgStructurePage } from '../hooks/useOrgStructurePage';
 import { OrgStructureEntityModal } from './OrgStructureEntityModal';
-import { OrgStructurePageSkeleton } from '../skeletons/OrgStructurePageSkeleton';
 import { OrgStructureSubTabs } from './OrgStructureSubTabs';
 import { OrgStructureTable } from './OrgStructureTable';
 import { OrgStructureToolbar } from './OrgStructureToolbar';
 
 export function OrgStructurePage() {
-  const router = useRouter();
-  const activeUser = useUserStore((state) => state.activeUser);
   const page = useOrgStructurePage();
 
-  useEffect(() => {
-    if (!activeUser) return;
-    if (!isSuperAdminRole(activeUser.role)) {
-      router.replace(getPostLoginPath(activeUser));
-    }
-  }, [activeUser, router]);
-
-  if (!activeUser || !isSuperAdminRole(activeUser.role)) {
-    return (
-      <div className="min-h-40 w-full bg-kv-canvas" aria-busy="true" />
-    );
-  }
-
-  if (page.isCold) {
-    return <OrgStructurePageSkeleton />;
-  }
-
   return (
-    <>
+    <SuperAdminModuleGuard>
       <KvWorkspace
         panel={false}
         tabs={
@@ -66,7 +41,7 @@ export function OrgStructurePage() {
                 type="button"
                 appearance="secondary"
                 size="sm"
-                onClick={() => void page.reload()}
+                onClick={page.reload}
               >
                 تلاش مجدد
               </KvButton>
@@ -81,11 +56,8 @@ export function OrgStructurePage() {
             hasMore={page.hasMore}
             loadMoreError={page.loadMoreError}
             query={page.query}
-            onLoadMore={() => void page.loadMore()}
-            onRetryLoadMore={() => {
-              page.clearLoadMoreError();
-              void page.loadMore();
-            }}
+            onLoadMore={page.loadMore}
+            onRetryLoadMore={page.retryLoadMore}
             onClearQuery={() => page.setQuery('')}
             onAdd={page.openCreate}
             onEdit={page.openEdit}
@@ -94,14 +66,16 @@ export function OrgStructurePage() {
         )}
       </KvWorkspace>
 
-      <OrgStructureEntityModal
-        open={page.editorOpen}
-        tab={page.tab}
-        entityKind={page.entityKind}
-        editId={page.editId}
-        onClose={page.closeEditor}
-        onSaved={() => void page.reload()}
-      />
+      {page.editorOpen ? (
+        <OrgStructureEntityModal
+          open={page.editorOpen}
+          tab={page.tab}
+          entityKind={page.entityKind}
+          editId={page.editId}
+          onClose={page.closeEditor}
+          onSaved={page.reload}
+        />
+      ) : null}
 
       <KvConfirmationDialog
         isOpen={Boolean(page.deleteTarget)}
@@ -117,6 +91,6 @@ export function OrgStructurePage() {
         cancelText="انصراف"
         confirmVariant="destructive"
       />
-    </>
+    </SuperAdminModuleGuard>
   );
 }

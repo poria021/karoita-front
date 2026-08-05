@@ -109,6 +109,19 @@ export function useOrgStructurePage() {
     await reload();
   }, [deleteTarget, reload]);
 
+  const handleLoadMore = useCallback(() => {
+    void list.loadMore();
+  }, [list]);
+
+  const handleRetryLoadMore = useCallback(() => {
+    list.clearLoadMoreError();
+    void list.loadMore();
+  }, [list]);
+
+  const handleReload = useCallback(() => {
+    void list.reload();
+  }, [list]);
+
   return {
     tab,
     changeTab,
@@ -120,11 +133,11 @@ export function useOrgStructurePage() {
     hasMore: list.hasMore,
     isLoading: list.isLoading,
     isLoadingMore: list.isLoadingMore,
-    isCold: list.isCold,
     error: list.error,
     loadMoreError: list.loadMoreError,
-    loadMore: list.loadMore,
-    reload: list.reload,
+    loadMore: handleLoadMore,
+    reload: handleReload,
+    retryLoadMore: handleRetryLoadMore,
     clearLoadMoreError: list.clearLoadMoreError,
     editorOpen,
     editId,

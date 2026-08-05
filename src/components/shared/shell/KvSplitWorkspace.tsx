@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -40,6 +40,22 @@ export function KvSplitWorkspace({
   const showDesktop = primary != null || secondary != null;
   const showMobile = mobileContent != null;
 
+  // Track viewport for true unmount (not just CSS hide)
+  const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // SSR/first paint: render both; hydration syncs with actual viewport
+  const shouldRenderDesktop = isDesktop === null || isDesktop === true;
+  const shouldRenderMobile = isDesktop === null || isDesktop === false;
+
   return (
     <div
       className={cn('space-y-kv-group', className)}
@@ -53,7 +69,7 @@ export function KvSplitWorkspace({
       >
         {toolbar}
 
-        {showDesktop ? (
+        {showDesktop && shouldRenderDesktop ? (
           <div
             className="hidden w-full flex-row items-stretch gap-kv-section lg:flex"
             data-slot="kv-split-workspace-desktop"
@@ -79,7 +95,7 @@ export function KvSplitWorkspace({
           </div>
         ) : null}
 
-        {showMobile ? (
+        {showMobile && shouldRenderMobile ? (
           <div className="block lg:hidden" data-slot="kv-split-workspace-mobile">
             {mobileContent}
           </div>

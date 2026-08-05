@@ -20,7 +20,7 @@ import type { OrgStructureListItem } from '@/services/org-structure.service';
 import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 
-import type { OrgStructureTabConfig } from '../constants';
+import { getMajorAudienceLabel, type OrgStructureTabConfig } from '../constants';
 
 interface OrgStructureTableProps {
   tabConfig: OrgStructureTabConfig;
@@ -56,6 +56,8 @@ export function OrgStructureTable({
   const bodyPhase = getAdminTableBodyPhase(isLoading, items.length);
   const emptyCopy = getModuleEmptyCopy('org_structure');
   const hasQuery = query.trim().length > 0;
+  const showAudience = tabConfig.key === 'majors';
+  const colSpan = showAudience ? 3 : 2;
 
   return (
     <>
@@ -91,14 +93,15 @@ export function OrgStructureTable({
           <KvTableHeader>
             <KvTableRow>
               <KvTableHead>{tabConfig.nameColumnLabel}</KvTableHead>
+              {showAudience ? <KvTableHead>مخاطب</KvTableHead> : null}
               <KvTableHead align="center">عملیات</KvTableHead>
             </KvTableRow>
           </KvTableHeader>
           <KvTableBody>
             {bodyPhase === 'busy' ? (
-              <KvTableBusy colSpan={2} />
+              <KvTableBusy colSpan={colSpan} />
             ) : bodyPhase === 'empty' ? (
-              <KvTableEmpty colSpan={2}>
+              <KvTableEmpty colSpan={colSpan}>
                 <KvEmptyState
                   title={emptyCopy.title}
                   description={
@@ -130,6 +133,13 @@ export function OrgStructureTable({
               items.map((row) => (
                 <KvTableRow key={row.id}>
                   <KvTableCell emphasis>{row.name}</KvTableCell>
+                  {showAudience ? (
+                    <KvTableCell>
+                      {row.audience
+                        ? getMajorAudienceLabel(row.audience)
+                        : '—'}
+                    </KvTableCell>
+                  ) : null}
                   <KvTableCell align="center">
                     <div className="flex items-center justify-center gap-1.5">
                       <KvButton

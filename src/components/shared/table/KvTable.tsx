@@ -107,20 +107,35 @@ export function KvTableRow({
   className,
   interactive = false,
   selected = false,
+  onClick,
+  onKeyDown,
   ...props
 }: KvTableRowProps) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>) => {
+    if (interactive && onClick && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      onClick(event as unknown as React.MouseEvent<HTMLTableRowElement>);
+    }
+    onKeyDown?.(event);
+  };
+
   return (
     <TableRow
       data-slot="kv-table-row"
       data-selected={selected || undefined}
       data-interactive={interactive || undefined}
+      tabIndex={interactive ? 0 : undefined}
+      role={interactive ? 'button' : undefined}
+      aria-selected={interactive ? selected : undefined}
+      onClick={onClick}
+      onKeyDown={handleKeyDown}
       className={cn(
         'font-bold text-kv-text transition-colors',
         // Desktop hover only on non-selected body rows — selected stays put.
         'can-hover:in-[data-slot=kv-table-body]:not-data-[selected]:hover:bg-kv-surface-muted',
         'data-[selected]:bg-kv-brand-soft data-[selected]:font-extrabold data-[selected]:text-kv-brand',
         interactive &&
-          'cursor-pointer active:not-data-[selected]:bg-kv-surface-muted',
+          'cursor-pointer active:not-data-[selected]:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring',
         className
       )}
       {...props}

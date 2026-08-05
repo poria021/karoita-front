@@ -1,6 +1,6 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
-import type { OrgStructureSubTab } from '@/types/org-structure';
+import type { OrgMajorAudience, OrgStructureSubTab } from '@/types/org-structure';
 import { faIcons, iconMap } from '@/utils/iconMap';
 
 export type OrgStructureTabConfig = {
@@ -87,3 +87,16 @@ export const SCHOOL_GENDER_OPTIONS = [
   { value: 'male', label: 'پسرانه' },
   { value: 'female', label: 'دخترانه' },
 ] as const;
+
+export const MAJOR_AUDIENCE_OPTIONS = [
+  { value: 'student', label: 'دانشجو' },
+  { value: 'skill_learner', label: 'مهارت‌آموز' },
+  { value: 'supervisor_professor', label: 'استاد راهنما' },
+] as const;
+
+export function getMajorAudienceLabel(audience: OrgMajorAudience): string {
+  return (
+    MAJOR_AUDIENCE_OPTIONS.find((opt) => opt.value === audience)?.label ??
+    audience
+  );
+}

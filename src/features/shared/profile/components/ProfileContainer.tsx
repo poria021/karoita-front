@@ -10,6 +10,7 @@ import {
   AppTabsTrigger,
 } from '@/components/shared/AppTabs';
 import { FaIcon } from '@/components/shared/FaIcon';
+import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
@@ -226,11 +227,5 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
 }
 
 export function ProfileRoutePlaceholder() {
-  return (
-    <div
-      className="min-h-40 w-full bg-transparent"
-      aria-busy="true"
-      aria-live="polite"
-    />
-  );
+  return <DashboardAccessPlaceholder />;
 }

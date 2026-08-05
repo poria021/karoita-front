@@ -3,6 +3,7 @@
 import { useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
 
@@ -18,11 +19,5 @@ export default function KarvitaEntryPage() {
     router.replace(getPostLoginPath(activeUser));
   }, [activeUser, router]);
 
-  return (
-    <div
-      className="min-h-dvh w-full bg-kv-canvas"
-      aria-busy="true"
-      aria-live="polite"
-    />
-  );
+  return <DashboardAccessPlaceholder fullViewport />;
 }

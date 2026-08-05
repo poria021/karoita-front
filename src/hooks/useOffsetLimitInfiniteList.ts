@@ -12,7 +12,6 @@ import {
   offsetLimitListQueryKey,
 } from '@/hooks/offsetLimitInfiniteList.helpers';
 import { delayDashboardColdSkeletonPreview } from '@/lib/dashboard-cold-skeleton-preview';
-import { computeDashboardListIsCold } from '@/lib/dashboard-list-cold';
 import {
   DEFAULT_PAGE_LIMIT,
   type OffsetLimitPage,
@@ -36,6 +35,7 @@ export { offsetLimitListQueryKey };
 /**
  * لیست بی‌نهایت ادمین روی قرارداد offset/limit — TanStack `useInfiniteQuery`.
  * جستجو یک‌بار در هوک صفحه debounce شود؛ این هوک فقط صفحه‌ها را جمع می‌کند.
+ * صفحه همیشه کروم را نگه می‌دارد؛ busy فقط از `isLoading` روی ناحیهٔ داده (rule 84).
  */
 export function useOffsetLimitInfiniteList<T>({
   resetKey,
@@ -48,7 +48,7 @@ export function useOffsetLimitInfiniteList<T>({
   const fetchPageRef = useRef(fetchPage);
   fetchPageRef.current = fetchPage;
 
-  /** After first ready paint in this mount, never show page-level cold skeleton. */
+  /** After first ready paint in this mount, skip QA cold-delay on later keys. */
   const hasEverReadyRef = useRef(false);
   const [loadMoreErrorDismissed, setLoadMoreErrorDismissed] = useState(false);
 
@@ -76,8 +76,8 @@ export function useOffsetLimitInfiniteList<T>({
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
       const hadCache = queryClient.getQueryData(queryKey) != null;
-      const isModuleColdMiss = !hadCache && !hasEverReadyRef.current;
-      await delayDashboardColdSkeletonPreview(isModuleColdMiss);
+      const isFirstDataMiss = !hadCache && !hasEverReadyRef.current;
+      await delayDashboardColdSkeletonPreview(isFirstDataMiss);
       return fetchPageRef.current({ offset: pageParam, limit: pageSize });
     },
     getNextPageParam: (lastPage, allPages) => {
@@ -111,7 +111,6 @@ export function useOffsetLimitInfiniteList<T>({
     (isPending || (isFetching && !isFetchingNextPage)) &&
     !isFetchNextPageError;
 
-  const cacheHit = data != null || queryClient.getQueryData(queryKey) != null;
   const listError =
     error && !isFetchNextPageError
       ? mapOffsetLimitListError(error, 'بارگذاری فهرست ناموفق بود.')
@@ -120,14 +119,6 @@ export function useOffsetLimitInfiniteList<T>({
     isFetchNextPageError && !loadMoreErrorDismissed
       ? mapOffsetLimitListError(error, 'بارگذاری موارد بیشتر ناموفق بود.')
       : null;
-
-  const isCold = computeDashboardListIsCold({
-    isLoading,
-    itemCount: items.length,
-    hasError: Boolean(listError),
-    cacheHit,
-    hasEverReady: hasEverReadyRef.current,
-  });
 
   const loadMore = useCallback(async () => {
     if (!hasNextPage || isFetchingNextPage || isLoading) return;
@@ -146,7 +137,6 @@ export function useOffsetLimitInfiniteList<T>({
     hasMore: Boolean(hasNextPage),
     isLoading,
     isLoadingMore: isFetchingNextPage,
-    isCold,
     error: listError,
     loadMoreError,
     loadMore,

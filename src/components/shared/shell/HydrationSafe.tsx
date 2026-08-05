@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 
+import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { useUserStore } from '@/store/useUserStore';
 
 export type HydrationSafeProps = {
@@ -12,6 +13,7 @@ export type HydrationSafeProps = {
 /**
  * Gates chrome until Zustand persist has rehydrated (skipHydration: true).
  * Persist API is client-only — never touch it during SSR render.
+ * Fallback is a plain canvas (not skeleton bones) — rule 80 / 84.
  */
 export function HydrationSafe({
   children,
@@ -39,15 +41,5 @@ export function HydrationSafe({
 
   if (ready) return <>{children}</>;
 
-  return (
-    <>
-      {fallback ?? (
-        <div
-          className="min-h-dvh w-full bg-kv-canvas"
-          aria-busy="true"
-          aria-live="polite"
-        />
-      )}
-    </>
-  );
+  return <>{fallback ?? <DashboardAccessPlaceholder fullViewport />}</>;
 }

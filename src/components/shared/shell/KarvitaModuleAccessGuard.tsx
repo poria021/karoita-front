@@ -3,6 +3,7 @@
 import { useLayoutEffect, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
+import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { isAdminControlPlanePath } from '@/lib/live-nav-paths';
 import { getPostLoginPath, isSuperAdminRole } from '@/services/post-login-path';
 import { RouteService } from '@/services/route.service';
@@ -34,16 +35,6 @@ function resolveKarvitaRedirect(
   return null;
 }
 
-function GatePlaceholder() {
-  return (
-    <div
-      className="min-h-dvh w-full bg-kv-canvas"
-      aria-busy="true"
-      aria-live="polite"
-    />
-  );
-}
-
 export function KarvitaModuleAccessGuard({
   children,
 }: {
@@ -63,7 +54,8 @@ export function KarvitaModuleAccessGuard({
   }, [redirectTo, router]);
 
   if (!activeUser || redirectTo) {
-    return <GatePlaceholder />;
+    // Header/Sidebar already mounted by app layout — only blank main slot.
+    return <DashboardAccessPlaceholder />;
   }
 
   return <>{children}</>;

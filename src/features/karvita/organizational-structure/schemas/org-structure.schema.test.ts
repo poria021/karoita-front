@@ -46,9 +46,21 @@ describe('org-structure form schemas', () => {
     expect(ok.success).toBe(true);
   });
 
-  it('accepts major with name only', () => {
+  it('requires major audience', () => {
     expect(majorFormSchema.safeParse({ name: 'علوم تربیتی' }).success).toBe(
-      true
+      false
     );
+    expect(
+      majorFormSchema.safeParse({
+        name: 'علوم تربیتی',
+        audience: 'student',
+      }).success
+    ).toBe(true);
+    expect(
+      majorFormSchema.safeParse({
+        name: 'الکترونیک صنعتی',
+        audience: 'skill_learner',
+      }).success
+    ).toBe(true);
   });
 });
