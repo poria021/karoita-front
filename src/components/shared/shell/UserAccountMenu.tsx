@@ -14,7 +14,9 @@ import {
   KvDropdownMenuTrigger,
 } from '@/components/shared/KvDropdownMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { ConnectivityStatusDot } from '@/components/shared/shell/ConnectivityStatusDot';
 import { resolveSidebarIcon } from '@/components/shared/shell/resolveSidebarIcon';
+import { useNetworkOnline } from '@/hooks/useNetworkOnline';
 import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
@@ -54,6 +56,7 @@ export function UserAccountMenu({
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
+  const isOnline = useNetworkOnline();
 
   if (!activeUser) return null;
 
@@ -183,8 +186,9 @@ export function UserAccountMenu({
                 'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20'
               )}
             >
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
+              <span className="relative flex size-8 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={roleIcon} size="sm" />
+                <ConnectivityStatusDot online={isOnline} size="sm" />
               </span>
               <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start sm:text-start">
                 <KvTypography variant="subtitle" as="span" truncate>
@@ -229,6 +233,7 @@ export function UserAccountMenu({
             >
               <div className="relative flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={roleIcon} size="lg" />
+                <ConnectivityStatusDot online={isOnline} size="md" />
               </div>
               <div
                 className={cn(
