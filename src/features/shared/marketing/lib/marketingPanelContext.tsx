@@ -17,7 +17,7 @@ export type MarketingPanelId =
   | 'advantages';
 
 /** Auto-hide open nav panels after this idle window (no interaction on the panel). */
-const PANEL_IDLE_MS = 20_000;
+const PANEL_IDLE_MS = 60_000;
 
 type MarketingPanelContextValue = {
   activePanel: MarketingPanelId | null;

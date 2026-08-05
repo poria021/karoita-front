@@ -121,8 +121,10 @@ function MarketingShellInner({
                       : 'hover:text-kv-brand'
                   } ${
                     isActive
-                      ? 'font-extrabold underline decoration-2 underline-offset-4'
-                      : 'hover:underline hover:decoration-1 hover:underline-offset-4'
+                      ? headerShouldBeTransparent
+                        ? 'font-extrabold text-white underline decoration-white decoration-2 underline-offset-8'
+                        : 'font-extrabold text-kv-brand underline decoration-kv-brand decoration-2 underline-offset-8'
+                      : ''
                   }`}
                   onClick={() => openPanel(item.id)}
                 >

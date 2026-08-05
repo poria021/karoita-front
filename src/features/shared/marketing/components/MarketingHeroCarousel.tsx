@@ -74,7 +74,7 @@ export function MarketingHeroCarousel({
           <img
             src={slide.imageUrl}
             alt={slide.title || 'بنر اطلاع‌رسانی کارویتا'}
-            className="size-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
+            className="size-full object-cover object-center"
           />
         ) : (
           <Image
@@ -82,7 +82,7 @@ export function MarketingHeroCarousel({
             alt={slide.title || 'بنر اطلاع‌رسانی کارویتا'}
             fill
             priority={index === 0}
-            className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
+            className="object-cover object-center"
             sizes="100vw"
           />
         );
