@@ -5,26 +5,27 @@
 
 export type InternshipCourseKind = 'internship' | 'apprenticeship';
 
-/** سطح درس — ASCII؛ نمایش با `toPersianDigits`. */
+/** سطح درس فعال برای رکورد ثبت‌نام — ASCII؛ نمایش با `toPersianDigits`. */
 export type InternshipEnrollmentLevel = 1 | 2 | 3 | 4;
 
 /**
- * سناریوهای Phase 1 (از original-karvita.html):
+ * سناریوهای Phase 1 (امپتی‌استیت؛ بدون جدول گزارش هفتگی):
  * - S1: سرفصل فعال نشده + ثبت‌نام نشده
- * - S2: ارائه شده + مهلت ثبت‌نام بسته + ثبت‌نام نشده
- * - S4: ثبت‌نام شده + ترم هنوز باز نشده
+ * - S2: مهلت ثبت‌نام بسته / ترم در جریان بدون ثبت‌نام
+ * - S3: مهلت ثبت‌نام باز + هنوز ثبت‌نام نشده (شروع انتخاب واحد)
+ * - S4: ثبت‌نام شده + ترم هنوز شروع نشده
  */
 export type InternshipEnrollmentScenario =
   | 'S1_syllabus_blocked'
   | 'S2_enroll_closed'
+  | 'S3_enroll_open'
   | 'S4_registered_waiting';
 
 export type InternshipEnrollmentRole = 'student' | 'skill_learner';
 
-/** خلاصهٔ ثبت‌نام برای کارت جزئیات S4 — فیلدهای تأخیری Phase 2 هنوز placeholder. */
+/** خلاصهٔ ثبت‌نام برای S4 — فیلدهای تأخیری Phase 2 هنوز placeholder. */
 export type InternshipEnrollmentSummary = {
   supervisorName: string | null;
-  /** نمایش: «مشخص نشده» تا تعیین روز حضور در Phase 2 */
   attendanceDaysLabel: string;
   schoolName: string | null;
   mentorName: string | null;
@@ -35,16 +36,13 @@ export type InternshipEnrollmentSummary = {
 export type InternshipEnrollmentPageState = {
   scenario: InternshipEnrollmentScenario;
   kind: InternshipCourseKind;
+  /** سطح فعال دوره (بدون تب UI — فقط دادهٔ دامنه) */
   level: InternshipEnrollmentLevel;
-  /** نام دوره: کارورزی | کارآموزی */
   courseName: string;
   termTitle: string;
-  /** تعداد سلول‌های پیش‌نمایش هفته برای S2 */
-  weekPreviewCount: number;
   enrollment: InternshipEnrollmentSummary | null;
 };
 
 export type GetEnrollmentPageStateInput = {
   role: InternshipEnrollmentRole;
-  level: InternshipEnrollmentLevel;
 };

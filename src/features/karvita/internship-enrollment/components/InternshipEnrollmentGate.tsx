@@ -5,6 +5,7 @@ import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import type { InternshipEnrollmentPageState } from '@/types/internship-enrollment';
 
 import { ScenarioEnrollClosed } from './ScenarioEnrollClosed';
+import { ScenarioEnrollOpen } from './ScenarioEnrollOpen';
 import { ScenarioRegisteredWaiting } from './ScenarioRegisteredWaiting';
 import { ScenarioSyllabusBlocked } from './ScenarioSyllabusBlocked';
 
@@ -13,7 +14,7 @@ type InternshipEnrollmentGateProps = {
   isLoading: boolean;
 };
 
-/** ناحیهٔ داده — فقط اینجا busy می‌شود؛ تب‌ها بیرون می‌مانند. */
+/** ناحیهٔ داده — فقط اینجا busy می‌شود. */
 export function InternshipEnrollmentGate({
   state,
   isLoading,
@@ -27,7 +28,7 @@ export function InternshipEnrollmentGate({
       <KvAlert
         variant="info"
         title="وضعیتی برای نمایش نیست"
-        description="لطفاً سطح درس را دوباره انتخاب کنید."
+        description="لطفاً دوباره تلاش کنید."
       />
     );
   }
@@ -36,18 +37,11 @@ export function InternshipEnrollmentGate({
     case 'S1_syllabus_blocked':
       return <ScenarioSyllabusBlocked />;
     case 'S2_enroll_closed':
-      return <ScenarioEnrollClosed weekCount={state.weekPreviewCount} />;
+      return <ScenarioEnrollClosed />;
+    case 'S3_enroll_open':
+      return <ScenarioEnrollOpen />;
     case 'S4_registered_waiting':
-      if (!state.enrollment) {
-        return (
-          <KvAlert
-            variant="error"
-            title="جزئیات ثبت‌نام در دسترس نیست"
-            description="رکورد ثبت‌نام برای این سطح یافت نشد."
-          />
-        );
-      }
-      return <ScenarioRegisteredWaiting enrollment={state.enrollment} />;
+      return <ScenarioRegisteredWaiting />;
     default:
       return (
         <KvAlert

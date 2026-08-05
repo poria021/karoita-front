@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  clampLevel,
   courseNameForKind,
   kindForRole,
-  maxLevelForKind,
   resolveEnrollmentScenario,
 } from '@/services/internship-enrollment/mock-enrollment-store';
 
@@ -14,16 +12,9 @@ describe('internship-enrollment mock helpers', () => {
     expect(kindForRole('skill_learner')).toBe('apprenticeship');
     expect(courseNameForKind('internship')).toBe('کارورزی');
     expect(courseNameForKind('apprenticeship')).toBe('کارآموزی');
-    expect(maxLevelForKind('internship')).toBe(4);
-    expect(maxLevelForKind('apprenticeship')).toBe(2);
   });
 
-  it('clamps level to role max', () => {
-    expect(clampLevel('apprenticeship', 4)).toBe(2);
-    expect(clampLevel('internship', 3)).toBe(3);
-  });
-
-  it('resolves Phase 1 gate scenarios', () => {
+  it('resolves Phase 1 gate empty scenarios', () => {
     expect(
       resolveEnrollmentScenario({
         syllabusConfigured: false,
@@ -41,6 +32,24 @@ describe('internship-enrollment mock helpers', () => {
         registered: false,
       })
     ).toBe('S2_enroll_closed');
+
+    expect(
+      resolveEnrollmentScenario({
+        syllabusConfigured: true,
+        enrollOpen: false,
+        termOpen: true,
+        registered: false,
+      })
+    ).toBe('S2_enroll_closed');
+
+    expect(
+      resolveEnrollmentScenario({
+        syllabusConfigured: true,
+        enrollOpen: true,
+        termOpen: false,
+        registered: false,
+      })
+    ).toBe('S3_enroll_open');
 
     expect(
       resolveEnrollmentScenario({

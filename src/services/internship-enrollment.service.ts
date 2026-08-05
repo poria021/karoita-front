@@ -25,8 +25,8 @@ function gateEnrollment(): 'mock' | never {
  */
 export const InternshipEnrollmentService = {
   /**
-   * وضعیت صفحهٔ انتخاب واحد برای نقش + سطح فعال.
-   * ترم / درگاه ثبت‌نام / ترم از snapshot سرفصل خوانده می‌شود.
+   * وضعیت صفحهٔ انتخاب واحد برای نقش (ماژول تک‌صفحه‌ای).
+   * ترم / درگاه ثبت‌نام از snapshot سرفصل خوانده می‌شود.
    */
   async getEnrollmentPageState(
     input: GetEnrollmentPageStateInput
