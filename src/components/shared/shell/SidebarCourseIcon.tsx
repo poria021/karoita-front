@@ -16,7 +16,8 @@ export type SidebarCourseIconProps = {
 };
 
 /**
- * Domain icon (کارورزی/کارآموزی) optionally composed with a Persian level digit.
+ * Domain icon (کارورزی/کارآموزی) optionally composed with a Persian level digit
+ * on the physical right of the glyph (LTR cluster).
  */
 export function SidebarCourseIcon({
   icon,
@@ -30,9 +31,10 @@ export function SidebarCourseIcon({
   return (
     <span
       className={cn(
-        'relative inline-flex size-5 shrink-0 items-center justify-center',
+        'inline-flex min-w-5 shrink-0 items-center justify-start gap-0.5',
         className
       )}
+      dir="ltr"
       aria-hidden
     >
       <FaIcon
@@ -43,9 +45,7 @@ export function SidebarCourseIcon({
       {showBadge ? (
         <span
           className={cn(
-            'absolute -end-1 -bottom-1 flex min-w-3.5 items-center justify-center',
-            'rounded-full bg-kv-surface px-0.5 text-xs font-black leading-none',
-            'ring-1 ring-kv-border',
+            'text-xs font-black leading-none transition-colors',
             iconClassName
           )}
         >
@@ -53,15 +53,11 @@ export function SidebarCourseIcon({
         </span>
       ) : null}
       {groupMark && !showBadge ? (
-        <span
-          className={cn(
-            'absolute -end-1 -bottom-1 flex size-3 items-center justify-center',
-            'rounded-full bg-kv-surface ring-1 ring-kv-border',
-            iconClassName
-          )}
-        >
-          <FaIcon icon={faIcons.rectangleList} size="2xs" />
-        </span>
+        <FaIcon
+          icon={faIcons.rectangleList}
+          size="2xs"
+          className={cn('transition-colors', iconClassName)}
+        />
       ) : null}
     </span>
   );
