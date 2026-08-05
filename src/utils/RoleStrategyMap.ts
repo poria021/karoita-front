@@ -7,12 +7,16 @@ export interface SidebarMenuItem {
   title: string;
   path: string;
   icon: string;
+  /** Persian course-level badge composed onto `icon` (کارورزی/کارآموزی ۱…). */
+  iconBadge?: number;
 }
 
 export interface SidebarMenuGroup {
   kind: 'group';
   title: string;
   icon: string;
+  /** Compose parent icon with a group mark (same family as numbered children). */
+  iconGroupMark?: boolean;
   children: SidebarMenuItem[];
 }
 
@@ -81,26 +85,31 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
         kind: 'group',
         title: 'انتخاب واحد کارورزی',
         icon: 'fa-graduation-cap',
+        iconGroupMark: true,
         children: [
           {
             title: 'کارورزی ۱',
             path: RouteService.karvita.internshipSelection(1),
-            icon: 'fa-1',
+            icon: 'fa-graduation-cap',
+            iconBadge: 1,
           },
           {
             title: 'کارورزی ۲',
             path: RouteService.karvita.internshipSelection(2),
-            icon: 'fa-2',
+            icon: 'fa-graduation-cap',
+            iconBadge: 2,
           },
           {
             title: 'کارورزی ۳',
             path: RouteService.karvita.internshipSelection(3),
-            icon: 'fa-3',
+            icon: 'fa-graduation-cap',
+            iconBadge: 3,
           },
           {
             title: 'کارورزی ۴',
             path: RouteService.karvita.internshipSelection(4),
-            icon: 'fa-4',
+            icon: 'fa-graduation-cap',
+            iconBadge: 4,
           },
         ],
       },
@@ -125,16 +134,19 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
         kind: 'group',
         title: 'انتخاب واحد کارآموزی',
         icon: 'fa-screwdriver-wrench',
+        iconGroupMark: true,
         children: [
           {
             title: 'کارآموزی ۱',
             path: RouteService.karvita.internshipSelection(1),
-            icon: 'fa-1',
+            icon: 'fa-screwdriver-wrench',
+            iconBadge: 1,
           },
           {
             title: 'کارآموزی ۲',
             path: RouteService.karvita.internshipSelection(2),
-            icon: 'fa-2',
+            icon: 'fa-screwdriver-wrench',
+            iconBadge: 2,
           },
         ],
       },

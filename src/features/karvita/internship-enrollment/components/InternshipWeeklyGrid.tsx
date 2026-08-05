@@ -27,7 +27,7 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
     className:
       'border-kv-border bg-kv-surface-muted text-kv-text-faint shadow-none opacity-70',
     hoverClassName:
-      'pointer-events-none cursor-not-allowed enabled:hover:bg-inherit enabled:hover:text-inherit',
+      'cursor-not-allowed enabled:hover:bg-inherit enabled:hover:text-inherit',
     icon: faIcons.lock,
   },
   overdue: {

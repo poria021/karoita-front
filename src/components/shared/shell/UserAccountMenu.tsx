@@ -1,6 +1,5 @@
 'use client';
 
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -67,6 +66,7 @@ export function UserAccountMenu({
   );
   const profileHref = RouteService.karvita.profile(activeUser.role);
   const isMenuOpen = accountMenuOwner === variant;
+  const isHeader = variant === 'header';
 
   const handleMenuOpenChange = (open: boolean) => {
     setAccountMenuOwner(open ? variant : null);
@@ -100,26 +100,9 @@ export function UserAccountMenu({
     onNavigate?.();
   };
 
-  const isHeader = variant === 'header';
-  /** Header chip is icon-only on mobile — denser menu items so labels fit. */
   const menuItemClass = isHeader
-    ? 'gap-1 px-2 py-1.5 text-xs leading-none sm:gap-kv-pair sm:px-3.5 sm:py-2.5'
+    ? 'justify-center px-2 py-1.5 text-xs leading-none sm:justify-start sm:px-3.5 sm:py-2.5'
     : 'gap-kv-pair';
-
-  const renderMenuIcon = (icon: IconDefinition) =>
-    isHeader ? (
-      <>
-        <FaIcon icon={icon} size="2xs" fixedWidth className="sm:hidden" />
-        <FaIcon
-          icon={icon}
-          size="sm"
-          fixedWidth
-          className="hidden sm:inline-block"
-        />
-      </>
-    ) : (
-      <FaIcon icon={icon} size="sm" fixedWidth />
-    );
 
   const menu = (
     <KvDropdownMenuContent
@@ -140,7 +123,9 @@ export function UserAccountMenu({
           onClick={handleProfileClick}
           className={cn('flex cursor-pointer items-center', menuItemClass)}
         >
-          {renderMenuIcon(faIcons.user)}
+          {isHeader ? null : (
+            <FaIcon icon={faIcons.user} size="sm" fixedWidth />
+          )}
           <span>پروفایل</span>
         </Link>
       </KvDropdownMenuItem>
@@ -156,7 +141,9 @@ export function UserAccountMenu({
         }}
         className={cn('flex items-center', menuItemClass)}
       >
-        {renderMenuIcon(faIcons.powerOff)}
+        {isHeader ? null : (
+          <FaIcon icon={faIcons.powerOff} size="sm" fixedWidth />
+        )}
         <span>خروج</span>
       </KvDropdownMenuItem>
     </KvDropdownMenuContent>

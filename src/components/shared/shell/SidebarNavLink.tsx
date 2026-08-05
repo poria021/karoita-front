@@ -3,6 +3,7 @@
 import Link from 'next/link';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { SidebarCourseIcon } from '@/components/shared/shell/SidebarCourseIcon';
 import { cn } from '@/lib/utils';
 import type { SidebarMenuItem } from '@/utils/RoleStrategyMap';
 
@@ -27,9 +28,9 @@ export function SidebarNavLink({
   nested = false,
 }: SidebarNavLinkProps) {
   const itemIcon = resolveSidebarIcon(item.icon);
-  /** Digit course icons (fa-1…) stay visible under groups; other L2 use a quiet bullet. */
-  const isDigitIcon = /^fa-[1-9]$/.test(item.icon);
-  const useBullet = nested && !isCollapsed && !isDigitIcon;
+  const hasCourseBadge = typeof item.iconBadge === 'number';
+  /** Numbered course rows keep the composed icon; other L2 use a quiet bullet. */
+  const useBullet = nested && !isCollapsed && !hasCourseBadge;
   const hoverTitle = isCollapsed
     ? locked
       ? `${item.title} (غیرفعال)`
@@ -57,6 +58,12 @@ export function SidebarNavLink({
             'size-1.5 shrink-0 rounded-full transition-colors',
             bulletTone
           )}
+        />
+      ) : hasCourseBadge ? (
+        <SidebarCourseIcon
+          icon={itemIcon}
+          badge={item.iconBadge}
+          iconClassName={iconTone}
         />
       ) : (
         <FaIcon

@@ -9,6 +9,7 @@ import {
   lockedNavTitle,
 } from '@/components/shared/shell/shellCopy';
 import { kvShellFocusRingClassName } from '@/components/shared/shell/shellChrome';
+import { SidebarCourseIcon } from '@/components/shared/shell/SidebarCourseIcon';
 import { cn } from '@/lib/utils';
 import type { SidebarMenuGroup } from '@/utils/RoleStrategyMap';
 import { faIcons } from '@/utils/iconMap';
@@ -150,18 +151,33 @@ function ExpandedGroupChrome({
         )}
       >
         <span className="flex min-w-0 items-center">
-          <FaIcon
-            icon={groupIcon}
-            size="sm"
-            className={cn(
-              'w-5 shrink-0 text-center transition-colors',
-              locked
-                ? 'text-kv-text-faint'
-                : childActive
-                  ? 'text-kv-brand'
-                  : 'text-kv-text-faint group-hover:text-kv-text-subtle'
-            )}
-          />
+          {group.iconGroupMark ? (
+            <SidebarCourseIcon
+              icon={groupIcon}
+              groupMark
+              iconClassName={cn(
+                'transition-colors',
+                locked
+                  ? 'text-kv-text-faint'
+                  : childActive
+                    ? 'text-kv-brand'
+                    : 'text-kv-text-faint group-hover:text-kv-text-subtle'
+              )}
+            />
+          ) : (
+            <FaIcon
+              icon={groupIcon}
+              size="sm"
+              className={cn(
+                'w-5 shrink-0 text-center transition-colors',
+                locked
+                  ? 'text-kv-text-faint'
+                  : childActive
+                    ? 'text-kv-brand'
+                    : 'text-kv-text-faint group-hover:text-kv-text-subtle'
+              )}
+            />
+          )}
           <span className="ms-kv-inline max-w-[150px] truncate">{group.title}</span>
         </span>
         {!locked ? (

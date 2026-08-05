@@ -604,6 +604,13 @@
   [data-disabled] {
     @apply cursor-not-allowed;
   }
+
+  :disabled *,
+  [disabled] *,
+  [aria-disabled='true'] *,
+  [data-disabled] * {
+    @apply cursor-not-allowed;
+  }
 }
 
 /* اعمال فونت وزیرمتن بر روی کل بدنه سایت */
