@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
@@ -41,16 +41,20 @@ export function useWeeklyReportModal({
   onSaved,
 }: UseWeeklyReportModalInput) {
   const enrollment = state.enrollment;
+  const [editorWeekId, setEditorWeekId] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [files, setFiles] = useState<InternshipWeeklyReportFile[]>([]);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!open || !week) return;
+  if (open && week && week.id !== editorWeekId) {
+    setEditorWeekId(week.id);
     setText(week.text ?? '');
     setFiles(cloneFiles(week.files));
-  }, [open, week]);
+  }
+  if (!open && editorWeekId !== null) {
+    setEditorWeekId(null);
+  }
 
   const lockContext = useMemo(() => {
     if (!week || !enrollment) return null;

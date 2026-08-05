@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -11,12 +12,14 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
+  InternshipWeeklySession,
 } from '@/types/internship-enrollment';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { faIcons } from '@/utils/iconMap';
 
 import { DelayedSchoolMentorAssignment } from './DelayedSchoolMentorAssignment';
 import { InternshipWeeklyGrid } from './InternshipWeeklyGrid';
+import { WeeklyReportModal } from './WeeklyReportModal';
 
 type ScenarioTermActiveProps = {
   actor: InternshipEnrollmentActor;
@@ -109,6 +112,10 @@ export function ScenarioTermActive({
   onAssignmentComplete,
 }: ScenarioTermActiveProps) {
   const enrollment = state.enrollment;
+  const [activeWeek, setActiveWeek] = useState<InternshipWeeklySession | null>(
+    null
+  );
+
   if (!enrollment) {
     return (
       <KvAlert
@@ -215,8 +222,18 @@ export function ScenarioTermActive({
         <InternshipWeeklyGrid
           weeks={enrollment.weeks}
           enrollmentStatus={enrollment.status}
+          onWeekSelect={setActiveWeek}
         />
       </KvCard>
+
+      <WeeklyReportModal
+        open={Boolean(activeWeek)}
+        week={activeWeek}
+        actor={actor}
+        state={state}
+        onClose={() => setActiveWeek(null)}
+        onSaved={onAssignmentComplete}
+      />
     </div>
   );
 }
