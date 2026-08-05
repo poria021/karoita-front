@@ -80,8 +80,37 @@ export function useLandingCmsPage() {
   }, []);
 
   useEffect(() => {
-    void reload();
-  }, [reload]);
+    const requestId = ++loadRequestIdRef.current;
+    let cancelled = false;
+
+    // Initial `isLoading` is true; resolve after Facade (setState only post-await).
+    void (async () => {
+      try {
+        const [nextBanners, nextSocials, nextProducts] = await Promise.all([
+          LandingCmsService.listBanners(),
+          LandingCmsService.listSocials(),
+          LandingCmsService.listProducts(),
+        ]);
+        if (cancelled || requestId !== loadRequestIdRef.current) return;
+        setBanners(nextBanners);
+        setSocials(nextSocials);
+        setProducts(nextProducts);
+        hasDataRef.current = true;
+        setError(null);
+      } catch (err) {
+        if (cancelled || requestId !== loadRequestIdRef.current) return;
+        setError(errorMessage(err, 'بارگذاری محتوای لندینگ ناموفق بود.'));
+      } finally {
+        if (!cancelled && requestId === loadRequestIdRef.current) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const changeTab = useCallback((next: LandingCmsTab) => {
     setTab(next);

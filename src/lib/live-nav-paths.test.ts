@@ -5,7 +5,7 @@ import {
   isLiveSidebarPath,
   isNavigableAppPath,
 } from '@/lib/live-nav-paths';
-import { RouteService } from '@/services/route.service';
+import { isAppShellPath, RouteService } from '@/services/route.service';
 import {
   getVisibleSidebarMenu,
   isSidebarMenuGroup,
@@ -133,12 +133,27 @@ describe('live nav / admin plane', () => {
     );
   });
 
-  it('exposes marketing path helpers without inventing sidebar links', () => {
+  it('exposes live marketing paths without inventing sidebar links', () => {
     expect(RouteService.marketing.home()).toBe('/');
     expect(RouteService.marketing.benefits()).toBe('/benefits');
     expect(RouteService.marketing.about()).toBe('/about');
     expect(RouteService.marketing.internship()).toBe('/internship');
     expect(RouteService.marketing.advantages()).toBe('/advantages');
+    expect(RouteService.marketing.loginSelect()).toBe('/login-select');
+    expect(isNavigableAppPath(RouteService.marketing.benefits())).toBe(true);
+    expect(isNavigableAppPath(RouteService.marketing.about())).toBe(true);
+    expect(isNavigableAppPath(RouteService.marketing.internship())).toBe(true);
+    expect(isNavigableAppPath(RouteService.marketing.advantages())).toBe(true);
+    expect(isNavigableAppPath(RouteService.marketing.loginSelect())).toBe(true);
     expect(isLiveSidebarPath(RouteService.marketing.benefits())).toBe(false);
   });
+
+  it('scopes app shell (theme/connectivity) to dashboards, not marketing/auth', () => {
+    expect(isAppShellPath(RouteService.karvita.dashboard())).toBe(true);
+    expect(isAppShellPath(RouteService.karvita.landingCms())).toBe(true);
+    expect(isAppShellPath(RouteService.marketing.home())).toBe(false);
+    expect(isAppShellPath(RouteService.marketing.about())).toBe(false);
+    expect(isAppShellPath(RouteService.auth.login())).toBe(false);
+  });
 });
+

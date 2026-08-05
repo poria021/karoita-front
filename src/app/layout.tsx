@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 
-import { NetworkStatusWatcher } from "@/components/shared/shell/NetworkStatusWatcher";
 import { Providers } from "@/components/shared/shell/Providers";
 
 /**
@@ -94,7 +93,6 @@ export default function RootLayout({
               closeButton: true,
             }}
           />
-          <NetworkStatusWatcher />
         </Providers>
       </body>
     </html>

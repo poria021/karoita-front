@@ -3,58 +3,45 @@
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { useNetworkStore } from '@/store/useNetworkStore';
-
-const OFFLINE_TOAST_ID = 'karvita-network-offline';
+import {
+  NETWORK_OFFLINE_TOAST_ID,
+  NETWORK_ONLINE_TOAST_ID,
+  clearNetworkToastHandlers,
+  ensureNetworkMonitoring,
+} from '@/lib/network-status';
 
 /**
- * Single owner of browser online/offline listeners (reference: setupNetworkAndDraftListeners).
- * Updates Zustand `isOnline` and surfaces sticky offline toast + recovery toast.
+ * Boots online/offline monitor + sticky offline toast.
+ * Mount only inside the dashboard/(app) shell — not marketing or auth.
  */
 export function NetworkStatusWatcher() {
-  const setOnline = useNetworkStore((state) => state.setOnline);
-
   useEffect(() => {
-    const syncFromNavigator = () => {
-      setOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
-    };
-
-    syncFromNavigator();
-
-    const handleOnline = () => {
-      setOnline(true);
-      toast.dismiss(OFFLINE_TOAST_ID);
-      toast.success('اتصال به اینترنت برقرار شد.', {
-        id: 'karvita-network-online',
-        position: 'bottom-center',
-      });
-    };
-
-    const handleOffline = () => {
-      setOnline(false);
-      toast.dismiss('karvita-network-online');
-      toast.error('اتصال اینترنت شما قطع است.', {
-        id: OFFLINE_TOAST_ID,
-        duration: Number.POSITIVE_INFINITY,
-        position: 'bottom-center',
-        closeButton: true,
-        dismissible: true,
-      });
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // If we landed already offline (e.g. DevTools Offline before load).
-    if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      handleOffline();
-    }
+    ensureNetworkMonitoring({
+      onOffline: () => {
+        toast.dismiss(NETWORK_ONLINE_TOAST_ID);
+        toast.error('اتصال اینترنت شما قطع است.', {
+          id: NETWORK_OFFLINE_TOAST_ID,
+          duration: Number.POSITIVE_INFINITY,
+          position: 'top-center',
+          closeButton: true,
+          dismissible: true,
+        });
+      },
+      onOnline: () => {
+        toast.dismiss(NETWORK_OFFLINE_TOAST_ID);
+        toast.success('اتصال به اینترنت برقرار شد.', {
+          id: NETWORK_ONLINE_TOAST_ID,
+          position: 'top-center',
+        });
+      },
+    });
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      clearNetworkToastHandlers();
+      toast.dismiss(NETWORK_OFFLINE_TOAST_ID);
+      toast.dismiss(NETWORK_ONLINE_TOAST_ID);
     };
-  }, [setOnline]);
+  }, []);
 
   return null;
 }

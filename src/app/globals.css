@@ -761,3 +761,61 @@ input[readonly]:-webkit-autofill {
     animation: none;
   }
 }
+
+/*
+ * Marketing navigation link hover effect — underline slide-in animation.
+ * Strict: ONLY for marketing nav; do not apply to dashboard chrome.
+ */
+.kv-nav-link {
+  position: relative;
+  cursor: pointer;
+}
+
+.kv-nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--kv-brand);
+  transition: width 0.3s ease-in-out;
+  border-radius: 9999px;
+}
+
+.kv-nav-link:hover::after,
+.kv-nav-link:focus-visible::after {
+  width: 100%;
+}
+
+/*
+ * Blueprint background overlay pattern — STRICTLY FOR LANDING ONLY.
+ * Applied over kv-brand-atmosphere for institutional technical aesthetic.
+ * Dashboard shells must NOT use this (stay quiet canvas — see rule 90).
+ */
+.kv-blueprint-bg {
+  background-image: 
+    radial-gradient(circle, rgba(16, 78, 198, 0.05) 1px, transparent 1px),
+    linear-gradient(to right, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(203, 213, 225, 0.22) 1px, transparent 1px);
+  background-size: 24px 24px, 72px 72px, 72px 72px;
+  background-position: center top;
+}
+
+/*
+ * Data flow animation for About section SVG lines.
+ */
+@keyframes kv-data-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+.kv-data-flow {
+  stroke-dasharray: 4 16;
+  animation: kv-data-flow 2s linear infinite;
+  will-change: stroke-dashoffset;
+}

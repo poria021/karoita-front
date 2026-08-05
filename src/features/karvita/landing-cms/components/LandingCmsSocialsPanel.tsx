@@ -76,7 +76,7 @@ export function LandingCmsSocialsPanel({
         className="flex flex-col gap-kv-group rounded-kv-panel border border-kv-border bg-kv-surface-muted/40 p-kv-group lg:col-span-5"
       >
         <div className="flex items-center gap-kv-inline">
-          <FaIcon icon={faIcons.plus} size="xs" className="text-kv-brand" />
+          <FaIcon icon={faIcons.plus} size="xs" className="text-kv-text-muted" />
           <KvTypography variant="subtitle" as="h2">
             افزودن شبکه اجتماعی جدید
           </KvTypography>
@@ -158,7 +158,7 @@ export function LandingCmsSocialsPanel({
               </KvTableCell>
               <KvTableCell emphasis>{row.name}</KvTableCell>
               <KvTableCell
-                className="max-w-[12rem] truncate font-mono text-xs text-kv-brand"
+                className="max-w-[12rem] truncate font-mono text-xs text-kv-text-muted"
                 dir="ltr"
               >
                 {row.link}

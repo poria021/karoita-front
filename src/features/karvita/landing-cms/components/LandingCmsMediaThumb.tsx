@@ -34,7 +34,7 @@ export function LandingCmsMediaThumb({
   }
 
   return (
-    <span className="mx-auto flex size-8 items-center justify-center rounded-kv-control border border-kv-border bg-kv-surface-muted text-kv-brand">
+    <span className="mx-auto flex size-8 items-center justify-center rounded-kv-control border border-kv-border bg-kv-surface-muted text-kv-text-muted">
       <FaIcon icon={resolveLandingIcon(iconStem)} size="xs" />
       <span className="sr-only">{alt}</span>
     </span>

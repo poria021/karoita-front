@@ -6,7 +6,8 @@
  */
 
 const AUTH_BASE = '/auth';
-const KARVITA_ADMIN_BASE = '/karvita/admin';
+const KARVITA_BASE = '/karvita';
+const KARVITA_ADMIN_BASE = `${KARVITA_BASE}/admin`;
 const KARVITA_ADMIN_DASHBOARD = `${KARVITA_ADMIN_BASE}/dashboard`;
 
 function normalizeAppPath(pathname: string): string {
@@ -20,6 +21,15 @@ function normalizeAppPath(pathname: string): string {
 export function isAuthPath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
   return path === AUTH_BASE || path.startsWith(`${AUTH_BASE}/`);
+}
+
+/**
+ * Authenticated app/dashboard shell (`/(app)/…`).
+ * Theme toggle + online/offline monitoring apply here only — not marketing/auth.
+ */
+export function isAppShellPath(pathname: string): boolean {
+  const path = normalizeAppPath(pathname);
+  return path === KARVITA_BASE || path.startsWith(`${KARVITA_BASE}/`);
 }
 
 /**
@@ -53,6 +63,8 @@ export const RouteService = {
     about: (): string => '/about',
     internship: (): string => '/internship',
     advantages: (): string => '/advantages',
+    /** Product picker when CMS floating dock has more than one product. */
+    loginSelect: (): string => '/login-select',
   },
 
   auth: {
@@ -122,6 +134,7 @@ export const RouteService = {
     landingCms: (): string => `${KARVITA_ADMIN_BASE}/landing-cms`,
 
     isAdminControlPlanePath,
+    isAppShellPath,
     legacyOrganizationBookmarks: (): readonly string[] =>
       LEGACY_ORGANIZATION_BOOKMARK_PATHS,
   },

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 type NetworkStore = {
-  /** Mirror of browser connectivity — same role as Alpine `isOnline` in reference HTML. */
+  /** Client connectivity (events + WAN/API probe). Driven by `network-status` monitor. */
   isOnline: boolean;
   setOnline: (isOnline: boolean) => void;
 };

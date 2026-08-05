@@ -24,6 +24,11 @@ const INTERNSHIP_LEVEL_PATHS: readonly string[] = [
  */
 export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.marketing.home(),
+  RouteService.marketing.benefits(),
+  RouteService.marketing.about(),
+  RouteService.marketing.internship(),
+  RouteService.marketing.advantages(),
+  RouteService.marketing.loginSelect(),
   RouteService.auth.login(),
   RouteService.auth.register(),
   RouteService.auth.adminGate(),

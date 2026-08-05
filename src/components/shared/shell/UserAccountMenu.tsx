@@ -184,7 +184,7 @@ export function UserAccountMenu({
                 'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20'
               )}
             >
-              <span className="relative flex size-8 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
+              <span className="relative flex size-8 shrink-0 items-center justify-center overflow-visible rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={roleIcon} size="sm" />
                 <ConnectivityStatusDot />
               </span>
@@ -229,7 +229,7 @@ export function UserAccountMenu({
                   : 'p-kv-inline'
               )}
             >
-              <div className="relative flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
+              <div className="relative flex size-9 shrink-0 items-center justify-center overflow-visible rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={roleIcon} size="lg" />
                 <ConnectivityStatusDot />
               </div>
