@@ -43,7 +43,16 @@ export function InternshipEnrollmentGate({
     case 'S3_enroll_open':
       return <ScenarioEnrollOpen />;
     case 'S4_registered_waiting':
-      return <ScenarioRegisteredWaiting />;
+      if (!state.enrollment) {
+        return (
+          <KvAlert
+            variant="error"
+            title="جزئیات ثبت‌نام در دسترس نیست"
+            description="رکورد ثبت‌نام برای این سطح یافت نشد."
+          />
+        );
+      }
+      return <ScenarioRegisteredWaiting enrollment={state.enrollment} />;
     default:
       return (
         <KvAlert
