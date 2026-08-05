@@ -1,7 +1,5 @@
 'use client';
 
-import { toast } from 'sonner';
-
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import type {
@@ -11,6 +9,8 @@ import type {
 } from '@/types/internship-enrollment';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { faIcons } from '@/utils/iconMap';
+
+import { effectiveWeeklySessionState } from '../lib/weekly-report-lock';
 
 type SessionVisual = {
   label: string;
@@ -106,23 +106,16 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
   },
 };
 
-export function effectiveWeeklySessionState(
-  week: InternshipWeeklySession,
-  enrollmentStatus: InternshipEnrollmentRecordStatus
-): InternshipWeeklySessionState {
-  if (enrollmentStatus === 'completed') return 'graded';
-  if (enrollmentStatus === 'dropped') return 'locked_dropped';
-  return week.status;
-}
-
 type InternshipWeeklyGridProps = {
   weeks: InternshipWeeklySession[];
   enrollmentStatus: InternshipEnrollmentRecordStatus;
+  onWeekSelect?: (week: InternshipWeeklySession) => void;
 };
 
 export function InternshipWeeklyGrid({
   weeks,
   enrollmentStatus,
+  onWeekSelect,
 }: InternshipWeeklyGridProps) {
   return (
     <div className="space-y-kv-field">
@@ -141,9 +134,7 @@ export function InternshipWeeklyGrid({
               size="md"
               className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-panel border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName}`}
               aria-label={`نمایش گزارش هفته ${toPersianDigits(index + 1)}`}
-              onClick={() =>
-                toast.message('ویرایش گزارش هفتگی در نسخهٔ فعلی در دسترس نیست.')
-              }
+              onClick={() => onWeekSelect?.(week)}
             >
               <span className="flex w-full items-center justify-between gap-kv-inline">
                 <span className="text-xs font-black leading-none">
