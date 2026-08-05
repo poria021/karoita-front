@@ -1,10 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
+import {
+  clampLevel,
+  kindForRole,
+  maxLevelForKind,
+} from '@/services/internship-enrollment/mock-enrollment-store';
+import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import type {
+  InternshipEnrollmentLevel,
   InternshipEnrollmentPageState,
   InternshipEnrollmentRole,
 } from '@/types/internship-enrollment';
@@ -15,7 +23,8 @@ function isEnrollmentRole(
   return role === 'student' || role === 'skill_learner';
 }
 
-export function useInternshipEnrollmentPage() {
+export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
+  const router = useRouter();
   const activeUser = useUserStore((s) => s.activeUser);
   const role = isEnrollmentRole(activeUser?.role) ? activeUser.role : null;
 
@@ -25,6 +34,15 @@ export function useInternshipEnrollmentPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  useLayoutEffect(() => {
+    if (!role) return;
+    const kind = kindForRole(role);
+    const max = maxLevelForKind(kind);
+    if (level > max) {
+      router.replace(RouteService.karvita.internshipSelection(max));
+    }
+  }, [role, level, router]);
+
   const load = useCallback(async () => {
     if (!role) {
       setState(null);
@@ -33,11 +51,17 @@ export function useInternshipEnrollmentPage() {
       return;
     }
 
+    const kind = kindForRole(role);
+    if (level > maxLevelForKind(kind)) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
       const next = await InternshipEnrollmentService.getEnrollmentPageState({
         role,
+        level: clampLevel(kind, level),
       });
       setState(next);
     } catch (err) {
@@ -50,7 +74,7 @@ export function useInternshipEnrollmentPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [role]);
+  }, [role, level]);
 
   useEffect(() => {
     void load();
@@ -58,6 +82,7 @@ export function useInternshipEnrollmentPage() {
 
   return {
     role,
+    level,
     state,
     isLoading,
     error,

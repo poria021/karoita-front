@@ -14,13 +14,15 @@ type InternshipEnrollmentGateProps = {
   isLoading: boolean;
 };
 
-/** ناحیهٔ داده — فقط اینجا busy می‌شود. */
+/** ناحیهٔ داده — پرکنندهٔ ارتفاع مین تا قبل از فوتر. */
 export function InternshipEnrollmentGate({
   state,
   isLoading,
 }: InternshipEnrollmentGateProps) {
   if (isLoading) {
-    return <KvBusySurface className="min-h-48 rounded-kv-card" />;
+    return (
+      <KvBusySurface className="min-h-0 flex-1 rounded-kv-card bg-kv-surface-subtle" />
+    );
   }
 
   if (!state) {

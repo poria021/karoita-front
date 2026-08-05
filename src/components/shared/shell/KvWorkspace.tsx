@@ -35,7 +35,12 @@ export function KvWorkspace({
       {panel ? (
         <KvCard data-slot="kv-workspace-panel">{children}</KvCard>
       ) : (
-        <div data-slot="kv-workspace-panel">{children}</div>
+        <div
+          data-slot="kv-workspace-panel"
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          {children}
+        </div>
       )}
     </div>
   );

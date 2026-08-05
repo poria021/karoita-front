@@ -120,6 +120,30 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'انتخاب استاد راهنما علمی، مدرسه تابعه و مربی آموزشی کلاس جهت آغاز دوره رسمی.',
     icon: 'fa-graduation-cap',
   },
+  [RouteService.karvita.internshipSelection(1)]: {
+    title: 'کارورزی / کارآموزی ۱',
+    description:
+      'انتخاب استاد راهنما علمی، مدرسه تابعه و مربی آموزشی کلاس جهت آغاز دوره رسمی.',
+    icon: 'fa-graduation-cap',
+  },
+  [RouteService.karvita.internshipSelection(2)]: {
+    title: 'کارورزی / کارآموزی ۲',
+    description:
+      'انتخاب استاد راهنما علمی، مدرسه تابعه و مربی آموزشی کلاس جهت آغاز دوره رسمی.',
+    icon: 'fa-graduation-cap',
+  },
+  [RouteService.karvita.internshipSelection(3)]: {
+    title: 'کارورزی ۳',
+    description:
+      'انتخاب استاد راهنما علمی، مدرسه تابعه و مربی آموزشی کلاس جهت آغاز دوره رسمی.',
+    icon: 'fa-graduation-cap',
+  },
+  [RouteService.karvita.internshipSelection(4)]: {
+    title: 'کارورزی ۴',
+    description:
+      'انتخاب استاد راهنما علمی، مدرسه تابعه و مربی آموزشی کلاس جهت آغاز دوره رسمی.',
+    icon: 'fa-graduation-cap',
+  },
   [RouteService.karvita.organizationalCapacities()]: {
     title: 'پیکربندی ظرفیت پذیرش کارورزی و کارآموزی',
     description:

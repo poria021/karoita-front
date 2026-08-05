@@ -22,19 +22,37 @@ describe('live nav / admin plane', () => {
   });
 
   it('only exposes live sidebar links for student and super_admin', () => {
-    expect(getVisibleSidebarMenu('student').map((i) => ('path' in i ? i.path : i.title))).toEqual([
+    const studentMenu = getVisibleSidebarMenu('student');
+    expect(studentMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
-      RouteService.karvita.internshipSelection(),
+      'انتخاب واحد کارورزی',
     ]);
+    const studentGroup = studentMenu.find(isSidebarMenuGroup);
+    expect(studentGroup?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.internshipSelection(1),
+      RouteService.karvita.internshipSelection(2),
+      RouteService.karvita.internshipSelection(3),
+      RouteService.karvita.internshipSelection(4),
+    ]);
+
+    const learnerMenu = getVisibleSidebarMenu('skill_learner');
+    expect(learnerMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
+      RouteService.karvita.dashboard(),
+      'انتخاب واحد کارآموزی',
+    ]);
+    const learnerGroup = learnerMenu.find(isSidebarMenuGroup);
+    expect(learnerGroup?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.internshipSelection(1),
+      RouteService.karvita.internshipSelection(2),
+    ]);
+
     expect(
-      getVisibleSidebarMenu('skill_learner').map((i) =>
-        'path' in i ? i.path : i.title
-      )
-    ).toEqual([
-      RouteService.karvita.dashboard(),
-      RouteService.karvita.internshipSelection(),
-    ]);
+      isLiveSidebarPath(RouteService.karvita.internshipSelection(1))
+    ).toBe(true);
     expect(isLiveSidebarPath(RouteService.karvita.internshipSelection())).toBe(
+      false
+    );
+    expect(isNavigableAppPath(RouteService.karvita.internshipSelection())).toBe(
       true
     );
 

@@ -96,7 +96,14 @@ export const RouteService = {
       `${KARVITA_ADMIN_BASE}/onboarding-approvals`,
     userPermissions: (): string => '/karvita/permissions',
     manageAds: (): string => '/karvita/ads',
-    internshipSelection: (): string => '/karvita/internships',
+    /**
+     * انتخاب واحد کارورزی/کارآموزی.
+     * بدون level → ایندکس (redirect به سطح ۱)؛ با level → زیرماژول سایدبار.
+     */
+    internshipSelection: (level?: number): string =>
+      level == null
+        ? '/karvita/internships'
+        : `/karvita/internships/${level}`,
     organizationalCapacities: (): string => '/karvita/capacities',
     /** Live URL `/karvita/admin/user-creation` — feature: `user-creation`. */
     adminUserCreation: (): string => `${KARVITA_ADMIN_BASE}/user-creation`,

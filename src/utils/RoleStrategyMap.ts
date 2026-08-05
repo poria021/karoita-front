@@ -78,9 +78,31 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     sidebarMenu: [
       DASHBOARD_ITEM,
       {
+        kind: 'group',
         title: 'انتخاب واحد کارورزی',
-        path: RouteService.karvita.internshipSelection(),
         icon: 'fa-graduation-cap',
+        children: [
+          {
+            title: 'کارورزی ۱',
+            path: RouteService.karvita.internshipSelection(1),
+            icon: 'fa-graduation-cap',
+          },
+          {
+            title: 'کارورزی ۲',
+            path: RouteService.karvita.internshipSelection(2),
+            icon: 'fa-graduation-cap',
+          },
+          {
+            title: 'کارورزی ۳',
+            path: RouteService.karvita.internshipSelection(3),
+            icon: 'fa-graduation-cap',
+          },
+          {
+            title: 'کارورزی ۴',
+            path: RouteService.karvita.internshipSelection(4),
+            icon: 'fa-graduation-cap',
+          },
+        ],
       },
       {
         title: 'گزارش روزانه',
@@ -100,9 +122,21 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     sidebarMenu: [
       DASHBOARD_ITEM,
       {
+        kind: 'group',
         title: 'انتخاب واحد کارآموزی',
-        path: RouteService.karvita.internshipSelection(),
         icon: 'fa-screwdriver-wrench',
+        children: [
+          {
+            title: 'کارآموزی ۱',
+            path: RouteService.karvita.internshipSelection(1),
+            icon: 'fa-screwdriver-wrench',
+          },
+          {
+            title: 'کارآموزی ۲',
+            path: RouteService.karvita.internshipSelection(2),
+            icon: 'fa-screwdriver-wrench',
+          },
+        ],
       },
       {
         title: 'گزارش روزانه',

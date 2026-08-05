@@ -6,11 +6,11 @@ import { faIcons } from '@/utils/iconMap';
 
 /**
  * سناریوی ۴ — ثبت‌نام موفق؛ انتظار شروع رسمی ترم.
- * فقط امپتی‌استیت (بدون جدول گزارش).
+ * امپتی‌استیت تمام‌ارتفاع (بدون جدول گزارش).
  */
 export function ScenarioRegisteredWaiting() {
   return (
-    <div className="rounded-kv-card border-2 border-dashed border-kv-success-border bg-kv-success-soft/30">
+    <div className="flex min-h-0 flex-1 flex-col rounded-kv-card border-2 border-dashed border-kv-success-border bg-kv-success-soft/30">
       <div
         className="flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center gap-kv-group px-kv-inset py-kv-block text-center"
         role="status"

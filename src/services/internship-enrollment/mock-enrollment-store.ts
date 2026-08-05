@@ -18,33 +18,39 @@ import type {
 import type { AcademicTerm, SyllabusConfigSnapshot } from '@/types/syllabus-config';
 
 const PLACEHOLDER_UNSET = 'مشخص نشده';
-/** سطح پیش‌فرض دامنه تا Phase 2 چندسطحی واقعی. */
-const ACTIVE_LEVEL: InternshipEnrollmentLevel = 1;
 
-type DemoRoleState = {
+type DemoLevelState = {
   configured: boolean;
   registered: boolean;
   supervisorName: string | null;
 };
 
 /**
- * Seed دمو تک‌صفحه‌ای (بدون تب سطح):
- * دانشجو → مهلت بسته + ثبت‌نام نشده (S2)
- * مهارت‌آموز → ثبت‌نام شده + انتظار ترم (S4)
+ * Seed دمو بر اساس زیرماژول سطح (سایدبار):
+ * دانشجو: L1→S1، L2→S2، L3→S4، L4→S2
+ * مهارت‌آموز: L1→S1، L2→S4
  */
-const DEMO_BY_ROLE: Record<
-  GetEnrollmentPageStateInput['role'],
-  DemoRoleState
+const DEMO_LEVELS: Record<
+  InternshipCourseKind,
+  Partial<Record<InternshipEnrollmentLevel, DemoLevelState>>
 > = {
-  student: {
-    configured: true,
-    registered: false,
-    supervisorName: null,
+  internship: {
+    1: { configured: false, registered: false, supervisorName: null },
+    2: { configured: true, registered: false, supervisorName: null },
+    3: {
+      configured: true,
+      registered: true,
+      supervisorName: 'دکتر سارا احمدی',
+    },
+    4: { configured: true, registered: false, supervisorName: null },
   },
-  skill_learner: {
-    configured: true,
-    registered: true,
-    supervisorName: 'مهندس رضا کریمی',
+  apprenticeship: {
+    1: { configured: false, registered: false, supervisorName: null },
+    2: {
+      configured: true,
+      registered: true,
+      supervisorName: 'مهندس رضا کریمی',
+    },
   },
 };
 
@@ -56,6 +62,20 @@ export function kindForRole(
 
 export function courseNameForKind(kind: InternshipCourseKind): string {
   return kind === 'apprenticeship' ? 'کارآموزی' : 'کارورزی';
+}
+
+export function maxLevelForKind(kind: InternshipCourseKind): 2 | 4 {
+  return kind === 'apprenticeship' ? 2 : 4;
+}
+
+export function clampLevel(
+  kind: InternshipCourseKind,
+  level: InternshipEnrollmentLevel
+): InternshipEnrollmentLevel {
+  const max = maxLevelForKind(kind);
+  if (level < 1) return 1;
+  if (level > max) return max as InternshipEnrollmentLevel;
+  return level;
 }
 
 function pickActiveTerm(
@@ -88,6 +108,19 @@ function isOfferingConfiguredInSyllabus(
   return isOfferingActive(record.weeks);
 }
 
+function demoStateFor(
+  kind: InternshipCourseKind,
+  level: InternshipEnrollmentLevel
+): DemoLevelState {
+  return (
+    DEMO_LEVELS[kind][level] ?? {
+      configured: false,
+      registered: false,
+      supervisorName: null,
+    }
+  );
+}
+
 export function resolveEnrollmentScenario(input: {
   syllabusConfigured: boolean;
   enrollOpen: boolean;
@@ -100,7 +133,6 @@ export function resolveEnrollmentScenario(input: {
     return 'S4_registered_waiting';
   }
   if (registered && termOpen) {
-    // Phase 1: ترم فعال + ثبت‌نام → هنوز کارتابل گزارش نیست؛ مثل انتظار نگه می‌داریم.
     return 'S4_registered_waiting';
   }
   if (!syllabusConfigured && !registered) {
@@ -132,16 +164,12 @@ function buildEnrollmentSummary(input: {
   };
 }
 
-/**
- * Resolve page gate state from syllabus snapshot + demo enrollment flags.
- * Single module page — no per-level tabs.
- */
 export function resolveEnrollmentPageState(
   input: GetEnrollmentPageStateInput
 ): InternshipEnrollmentPageState {
   const kind = kindForRole(input.role);
-  const level = ACTIVE_LEVEL;
-  const demo = DEMO_BY_ROLE[input.role];
+  const level = clampLevel(kind, input.level);
+  const demo = demoStateFor(kind, level);
   const snapshot = readSyllabusSnapshot();
   const term = pickActiveTerm(snapshot, kind);
   const termTitle = term?.title ?? 'نیم‌سال جاری';
