@@ -1,5 +1,9 @@
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
+import {
+  getRoleStrategy,
+  isSidebarMenuGroup,
+} from '@/utils/RoleStrategyMap';
 
 
 export interface ModuleMeta {
@@ -22,6 +26,25 @@ const PROFILE_META: ModuleMeta = {
   icon: 'fa-file-shield',
   showSemester: false,
 };
+
+/** عنوان/آیکون از سایدبار نقش — منبع واحد با زیرماژول‌ها. */
+function resolveSidebarNavMeta(
+  path: string,
+  role?: UserRole | null
+): Pick<ModuleMeta, 'title' | 'icon'> | null {
+  if (!role) return null;
+  for (const entry of getRoleStrategy(role).sidebarMenu) {
+    if (isSidebarMenuGroup(entry)) {
+      const child = entry.children.find((item) => item.path === path);
+      if (child) return { title: child.title, icon: child.icon };
+      continue;
+    }
+    if (entry.path === path) {
+      return { title: entry.title, icon: entry.icon };
+    }
+  }
+  return null;
+}
 
 const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
   [RouteService.karvita.dashboard()]: {
@@ -121,13 +144,13 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
     icon: 'fa-graduation-cap',
   },
   [RouteService.karvita.internshipSelection(1)]: {
-    title: 'کارورزی / کارآموزی ۱',
+    title: 'کارورزی ۱',
     description:
       'انتخاب استاد راهنما علمی، مدرسه تابعه و مربی آموزشی کلاس جهت آغاز دوره رسمی.',
     icon: 'fa-graduation-cap',
   },
   [RouteService.karvita.internshipSelection(2)]: {
-    title: 'کارورزی / کارآموزی ۲',
+    title: 'کارورزی ۲',
     description:
       'انتخاب استاد راهنما علمی، مدرسه تابعه و مربی آموزشی کلاس جهت آغاز دوره رسمی.',
     icon: 'fa-graduation-cap',
@@ -250,16 +273,29 @@ export function getModuleMeta(
   }
 
   const exact = MODULE_META_BY_PATH[path];
-  if (exact) return exact;
+  let base: ModuleMeta | undefined = exact;
 
-  const sortedPrefixes = Object.keys(MODULE_META_BY_PATH).sort(
-    (a, b) => b.length - a.length
-  );
-  for (const prefix of sortedPrefixes) {
-    if (path.startsWith(`${prefix}/`)) {
-      return MODULE_META_BY_PATH[prefix]!;
+  if (!base) {
+    const sortedPrefixes = Object.keys(MODULE_META_BY_PATH).sort(
+      (a, b) => b.length - a.length
+    );
+    for (const prefix of sortedPrefixes) {
+      if (path.startsWith(`${prefix}/`)) {
+        base = MODULE_META_BY_PATH[prefix]!;
+        break;
+      }
     }
   }
 
-  return FALLBACK_META;
+  const resolved = base ?? FALLBACK_META;
+  const fromSidebar = resolveSidebarNavMeta(path, role);
+  if (fromSidebar) {
+    return {
+      ...resolved,
+      title: fromSidebar.title,
+      icon: fromSidebar.icon,
+    };
+  }
+
+  return resolved;
 }

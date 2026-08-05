@@ -69,4 +69,25 @@ describe('getModuleBreadcrumb', () => {
       { label: 'پروفایل و اسناد هویتی' },
     ]);
   });
+
+  it('uses sidebar group + child for internship submodules', () => {
+    expect(
+      getModuleBreadcrumb(
+        RouteService.karvita.internshipSelection(2),
+        'student'
+      )
+    ).toEqual([
+      { label: 'انتخاب واحد کارورزی' },
+      { label: 'کارورزی ۲' },
+    ]);
+    expect(
+      getModuleBreadcrumb(
+        RouteService.karvita.internshipSelection(1),
+        'skill_learner'
+      )
+    ).toEqual([
+      { label: 'انتخاب واحد کارآموزی' },
+      { label: 'کارآموزی ۱' },
+    ]);
+  });
 });
