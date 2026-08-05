@@ -11,19 +11,20 @@ export function buildLandingCmsSeed(): LandingCmsSnapshot {
         id: 'bnr-1',
         title: 'سامانه مدیریت کارورزی',
         imageUrl: '/marketing/dashboard-hero.svg',
-        link: '#internship',
+        // Link only when CMS admin sets one — empty = not clickable.
+        link: '',
       },
       {
         id: 'bnr-2',
         title: 'ارزش‌های عملیاتی و دسترسی‌ها',
         imageUrl: '/marketing/onboarding-flow.svg',
-        link: '#benefits',
+        link: '',
       },
       {
         id: 'bnr-3',
         title: 'بیانیه اکوسیستم کارویتا',
         imageUrl: '/marketing/dashboard-hero.svg',
-        link: '#about',
+        link: '',
       },
     ],
     socials: [

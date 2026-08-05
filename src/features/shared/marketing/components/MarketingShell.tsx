@@ -115,16 +115,12 @@ function MarketingShellInner({
                 <button
                   key={item.label}
                   type="button"
-                  className={`pb-0.5 transition-colors ${
-                    headerShouldBeTransparent
-                      ? 'hover:text-white hover:drop-shadow'
-                      : 'hover:text-kv-brand'
-                  } ${
+                  className={`transition-colors hover:text-kv-brand ${
                     isActive
-                      ? headerShouldBeTransparent
-                        ? 'font-extrabold text-white underline decoration-white decoration-2 underline-offset-8'
-                        : 'font-extrabold text-kv-brand underline decoration-kv-brand decoration-2 underline-offset-8'
-                      : ''
+                      ? 'font-extrabold text-kv-brand underline decoration-kv-brand decoration-2 underline-offset-8'
+                      : headerShouldBeTransparent
+                        ? 'text-white/90'
+                        : 'text-kv-text-secondary'
                   }`}
                   onClick={() => openPanel(item.id)}
                 >

@@ -66,7 +66,10 @@ export function MarketingHeroCarousel({
       </h1>
 
       {slides.map((slide, index) => {
-        const target = resolveMarketingNavTarget(slide.link);
+        // Only clickable when CMS admin set a link on upload.
+        const target = slide.link.trim()
+          ? resolveMarketingNavTarget(slide.link)
+          : ({ kind: 'none' } as const);
         const isActive = currentSlide === index;
         const isDataUrl = slide.imageUrl.startsWith('data:');
 
@@ -143,7 +146,7 @@ export function MarketingHeroCarousel({
       {/* Slide indicators */}
       {slides.length > 1 && (
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex items-center justify-center gap-2.5 sm:bottom-6"
+          className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex items-center justify-center gap-1.5 sm:bottom-6"
           role="tablist"
           aria-label="انتخاب اسلاید"
         >
@@ -156,23 +159,23 @@ export function MarketingHeroCarousel({
               >
                 <button
                   onClick={() => handleSlideClick(index)}
-                  className={`block rounded-full backdrop-blur-sm transition-all ${
+                  className={`block rounded-kv-tight backdrop-blur-sm transition-all ${
                     isActive
-                      ? 'relative h-2 w-10 overflow-hidden border border-kv-border-strong bg-kv-surface/80 shadow-kv-raised sm:h-2.5 sm:w-14'
-                      : 'size-2 bg-kv-border-strong/60 shadow-sm hover:bg-kv-brand sm:size-2.5'
+                      ? 'relative h-1 w-6 overflow-hidden bg-white/50 shadow-sm sm:h-1.5 sm:w-8'
+                      : 'size-1 bg-white/50 shadow-sm hover:bg-white sm:size-1.5'
                   }`}
                   role="tab"
                   aria-selected={isActive}
                   aria-label={`رفتن به اسلاید ${index + 1}`}
                   title={`رفتن به اسلاید ${index + 1}`}
                 >
-                  {isActive && (
+                  {isActive ? (
                     <div
-                      className="h-full rounded-full bg-kv-brand transition-all duration-75"
+                      className="h-full rounded-kv-tight bg-white transition-all duration-75"
                       style={{ width: `${progress}%` }}
                       aria-hidden
                     />
-                  )}
+                  ) : null}
                 </button>
               </div>
             );
