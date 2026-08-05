@@ -4,6 +4,10 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { useId, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import {
+  lockedNavAriaLabel,
+  lockedNavTitle,
+} from '@/components/shared/shell/shellCopy';
 import { kvShellFocusRingClassName } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 import type { SidebarMenuGroup } from '@/utils/RoleStrategyMap';
@@ -39,6 +43,7 @@ export function SidebarNavGroup({
   }
 
   const groupIcon = resolveSidebarIcon(group.icon);
+  const disclosureOpen = locked ? false : open;
 
   // Collapsed rail: expose children as icon links so both modules stay reachable.
   if (isCollapsed) {
@@ -61,8 +66,11 @@ export function SidebarNavGroup({
             group={group}
             groupIcon={groupIcon}
             groupId={groupId}
-            open={open}
-            onToggle={() => setOpen((value) => !value)}
+            open={disclosureOpen}
+            onToggle={() => {
+              if (locked) return;
+              setOpen((value) => !value);
+            }}
             pathname={pathname}
             locked={locked}
             onNavigate={onNavigate}
@@ -78,8 +86,11 @@ export function SidebarNavGroup({
       group={group}
       groupIcon={groupIcon}
       groupId={groupId}
-      open={open}
-      onToggle={() => setOpen((value) => !value)}
+      open={disclosureOpen}
+      onToggle={() => {
+        if (locked) return;
+        setOpen((value) => !value);
+      }}
       pathname={pathname}
       locked={locked}
       onNavigate={onNavigate}
@@ -116,20 +127,26 @@ function ExpandedGroupChrome({
     <div className="space-y-kv-nav-tight">
       {/*
         L1 group disclosure — native button (accordion chrome, not a CTA).
-        Focus ring matches KvButton / shell recipe.
+        When modules are gated, the parent itself looks locked like leaf panels.
       */}
       <button
         type="button"
         id={groupId}
-        aria-expanded={open}
-        aria-controls={`${groupId}-panel`}
+        aria-expanded={locked ? undefined : open}
+        aria-controls={locked ? undefined : `${groupId}-panel`}
+        aria-disabled={locked || undefined}
+        disabled={locked}
+        aria-label={locked ? lockedNavAriaLabel(group.title) : undefined}
+        title={locked ? lockedNavTitle(group.title) : undefined}
         onClick={onToggle}
         className={cn(
           'group flex w-full items-center justify-between rounded-kv-control px-kv-inline py-kv-nav text-xs font-semibold leading-snug transition-colors',
           kvShellFocusRingClassName,
-          childActive
-            ? 'text-kv-text hover:bg-kv-surface-muted'
-            : 'text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
+          locked
+            ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
+            : childActive
+              ? 'text-kv-text hover:bg-kv-surface-muted'
+              : 'text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
         )}
       >
         <span className="flex min-w-0 items-center">
@@ -138,24 +155,28 @@ function ExpandedGroupChrome({
             size="sm"
             className={cn(
               'w-5 shrink-0 text-center transition-colors',
-              childActive
-                ? 'text-kv-brand'
-                : 'text-kv-text-faint group-hover:text-kv-text-subtle'
+              locked
+                ? 'text-kv-text-faint'
+                : childActive
+                  ? 'text-kv-brand'
+                  : 'text-kv-text-faint group-hover:text-kv-text-subtle'
             )}
           />
           <span className="ms-kv-inline max-w-[150px] truncate">{group.title}</span>
         </span>
-        <FaIcon
-          icon={faIcons.chevronDown}
-          size="2xs"
-          className={cn(
-            'shrink-0 text-kv-text-faint/80 transition-transform group-hover:text-kv-text-faint',
-            open && 'rotate-180'
-          )}
-        />
+        {!locked ? (
+          <FaIcon
+            icon={faIcons.chevronDown}
+            size="2xs"
+            className={cn(
+              'shrink-0 text-kv-text-faint/80 transition-transform group-hover:text-kv-text-faint',
+              open && 'rotate-180'
+            )}
+          />
+        ) : null}
       </button>
 
-      {open ? (
+      {!locked && open ? (
         <div
           id={`${groupId}-panel`}
           role="group"
