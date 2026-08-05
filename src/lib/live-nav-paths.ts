@@ -27,6 +27,7 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.onboardingApprovals(),
   RouteService.karvita.syllabusCourseOfferings(),
   RouteService.karvita.syllabusTermSettings(),
+  RouteService.karvita.internshipSelection(),
 ];
 
 /**
@@ -52,7 +53,8 @@ export function isLiveSidebarPath(pathname: string): boolean {
     path === RouteService.karvita.adminUserCreation() ||
     path === RouteService.karvita.onboardingApprovals() ||
     path === RouteService.karvita.syllabusCourseOfferings() ||
-    path === RouteService.karvita.syllabusTermSettings()
+    path === RouteService.karvita.syllabusTermSettings() ||
+    path === RouteService.karvita.internshipSelection()
   );
 }
 

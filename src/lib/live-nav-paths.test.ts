@@ -24,7 +24,19 @@ describe('live nav / admin plane', () => {
   it('only exposes live sidebar links for student and super_admin', () => {
     expect(getVisibleSidebarMenu('student').map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
+      RouteService.karvita.internshipSelection(),
     ]);
+    expect(
+      getVisibleSidebarMenu('skill_learner').map((i) =>
+        'path' in i ? i.path : i.title
+      )
+    ).toEqual([
+      RouteService.karvita.dashboard(),
+      RouteService.karvita.internshipSelection(),
+    ]);
+    expect(isLiveSidebarPath(RouteService.karvita.internshipSelection())).toBe(
+      true
+    );
 
     const adminMenu = getVisibleSidebarMenu('super_admin');
     expect(adminMenu.map((entry) => entry.title)).toEqual([
