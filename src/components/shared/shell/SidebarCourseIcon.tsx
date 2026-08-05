@@ -40,7 +40,8 @@ export function SidebarCourseIcon({
       {showBadge ? (
         <span
           className={cn(
-            'absolute -start-0.5 -bottom-0.5 text-xs font-black leading-none',
+            'absolute -start-0.5 -bottom-0.5 flex min-w-3.5 items-center justify-center',
+            'rounded-full bg-kv-surface px-0.5 text-xs font-black leading-none',
             'transition-colors',
             iconClassName
           )}

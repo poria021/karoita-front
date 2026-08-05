@@ -191,7 +191,6 @@ export function ScenarioTermActive({
                     ? 'success'
                     : 'default'
                 }
-                className="font-mono font-bold"
               >
                 نمره: {grade}
               </Badge>
