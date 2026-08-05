@@ -4,13 +4,16 @@ import { isPublicPath } from '@/lib/public-paths';
 import { RouteService } from '@/services/route.service';
 
 describe('isPublicPath', () => {
-  it('allows marketing home, leaves, and login-select', () => {
+  it('allows marketing home and login-select', () => {
     expect(isPublicPath(RouteService.marketing.home())).toBe(true);
-    expect(isPublicPath(RouteService.marketing.about())).toBe(true);
-    expect(isPublicPath(RouteService.marketing.benefits())).toBe(true);
-    expect(isPublicPath(RouteService.marketing.internship())).toBe(true);
-    expect(isPublicPath(RouteService.marketing.advantages())).toBe(true);
     expect(isPublicPath(RouteService.marketing.loginSelect())).toBe(true);
+  });
+
+  it('does not treat removed marketing leaves as public', () => {
+    expect(isPublicPath('/about')).toBe(false);
+    expect(isPublicPath('/benefits')).toBe(false);
+    expect(isPublicPath('/internship')).toBe(false);
+    expect(isPublicPath('/advantages')).toBe(false);
   });
 
   it('allows auth tree and docs prefix', () => {

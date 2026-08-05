@@ -135,24 +135,19 @@ describe('live nav / admin plane', () => {
 
   it('exposes live marketing paths without inventing sidebar links', () => {
     expect(RouteService.marketing.home()).toBe('/');
-    expect(RouteService.marketing.benefits()).toBe('/benefits');
-    expect(RouteService.marketing.about()).toBe('/about');
-    expect(RouteService.marketing.internship()).toBe('/internship');
-    expect(RouteService.marketing.advantages()).toBe('/advantages');
     expect(RouteService.marketing.loginSelect()).toBe('/login-select');
-    expect(isNavigableAppPath(RouteService.marketing.benefits())).toBe(true);
-    expect(isNavigableAppPath(RouteService.marketing.about())).toBe(true);
-    expect(isNavigableAppPath(RouteService.marketing.internship())).toBe(true);
-    expect(isNavigableAppPath(RouteService.marketing.advantages())).toBe(true);
+    expect(isNavigableAppPath(RouteService.marketing.home())).toBe(true);
     expect(isNavigableAppPath(RouteService.marketing.loginSelect())).toBe(true);
-    expect(isLiveSidebarPath(RouteService.marketing.benefits())).toBe(false);
+    expect(isNavigableAppPath('/about')).toBe(false);
+    expect(isNavigableAppPath('/benefits')).toBe(false);
+    expect(isLiveSidebarPath(RouteService.marketing.loginSelect())).toBe(false);
   });
 
   it('scopes app shell (theme/connectivity) to dashboards, not marketing/auth', () => {
     expect(isAppShellPath(RouteService.karvita.dashboard())).toBe(true);
     expect(isAppShellPath(RouteService.karvita.landingCms())).toBe(true);
     expect(isAppShellPath(RouteService.marketing.home())).toBe(false);
-    expect(isAppShellPath(RouteService.marketing.about())).toBe(false);
+    expect(isAppShellPath(RouteService.marketing.loginSelect())).toBe(false);
     expect(isAppShellPath(RouteService.auth.login())).toBe(false);
   });
 });

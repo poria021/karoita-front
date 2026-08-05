@@ -1,26 +1,29 @@
+import { RouteService } from '@/services/route.service';
 import type { LandingCmsSnapshot } from '@/types/landing-cms';
 
 /** Persian sample content; image URLs prefer `/public/marketing/*`. */
 export function buildLandingCmsSeed(): LandingCmsSnapshot {
+  const authLogin = RouteService.auth.login();
+
   return {
     banners: [
       {
         id: 'bnr-1',
         title: 'سامانه مدیریت کارورزی',
         imageUrl: '/marketing/dashboard-hero.svg',
-        link: '/internship',
+        link: '#internship',
       },
       {
         id: 'bnr-2',
         title: 'ارزش‌های عملیاتی و دسترسی‌ها',
         imageUrl: '/marketing/onboarding-flow.svg',
-        link: '/benefits',
+        link: '#benefits',
       },
       {
         id: 'bnr-3',
         title: 'بیانیه اکوسیستم کارویتا',
         imageUrl: '/marketing/dashboard-hero.svg',
-        link: '/about',
+        link: '#about',
       },
     ],
     socials: [
@@ -50,28 +53,28 @@ export function buildLandingCmsSeed(): LandingCmsSnapshot {
       {
         id: 'prd-1',
         title: 'سامانه مدیریت کارورزی',
-        link: '/internship',
+        link: authLogin,
         logoImageUrl: '',
         icon: 'fa-graduation-cap',
       },
       {
         id: 'prd-2',
         title: 'پرتال انتشارات علمی',
-        link: '/about',
+        link: authLogin,
         logoImageUrl: '',
         icon: 'fa-book-open',
       },
       {
         id: 'prd-3',
         title: 'باشگاه آزمون آنلاین',
-        link: '/benefits',
+        link: authLogin,
         logoImageUrl: '',
         icon: 'fa-clipboard-check',
       },
       {
         id: 'prd-4',
         title: 'سامانه پایش مهارتی',
-        link: '/advantages',
+        link: authLogin,
         logoImageUrl: '',
         icon: 'fa-sliders',
       },

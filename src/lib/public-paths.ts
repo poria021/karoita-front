@@ -7,13 +7,9 @@ function normalizePath(pathname: string): string {
   return trimmed.length > 0 ? trimmed : '/';
 }
 
-/** Exact public routes (marketing home + leaf pages). */
+/** Exact public routes (marketing home + login-select portal). */
 const MARKETING_PUBLIC_EXACT = [
   RouteService.marketing.home(),
-  RouteService.marketing.benefits(),
-  RouteService.marketing.about(),
-  RouteService.marketing.internship(),
-  RouteService.marketing.advantages(),
   RouteService.marketing.loginSelect(),
 ] as const;
 

@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 import type { LandingBanner } from '@/types/landing-cms';
 
+import { useMarketingPanel } from '../lib/marketingPanelContext';
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
 const SLIDE_DURATION = 6000; // 6 seconds per slide
@@ -26,6 +27,7 @@ export function MarketingHeroCarousel({
   const slides = banners.length > 0 ? banners : [FALLBACK_BANNER];
   const [currentSlide, setCurrentSlide] = useState(0);
   const [progress, setProgress] = useState(0);
+  const { openPanel } = useMarketingPanel();
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -33,7 +35,7 @@ export function MarketingHeroCarousel({
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) return 0;
-        return prev + (100 / (SLIDE_DURATION / 50));
+        return prev + 100 / (SLIDE_DURATION / 50);
       });
     }, 50);
 
@@ -97,6 +99,8 @@ export function MarketingHeroCarousel({
           </>
         );
 
+        const frameClass = 'relative block size-full overflow-hidden';
+
         return (
           <div
             key={slide.id ?? index}
@@ -109,21 +113,29 @@ export function MarketingHeroCarousel({
                 href={target.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group relative block size-full overflow-hidden"
+                className={frameClass}
               >
                 {content}
               </a>
-            ) : target.kind === 'internal' ? (
-              <Link
-                href={target.href}
-                prefetch={false}
-                className="group relative block size-full overflow-hidden"
-              >
+            ) : null}
+            {target.kind === 'internal' ? (
+              <Link href={target.href} prefetch={false} className={frameClass}>
                 {content}
               </Link>
-            ) : (
-              <div className="relative size-full overflow-hidden">{content}</div>
-            )}
+            ) : null}
+            {target.kind === 'panel' ? (
+              <button
+                type="button"
+                onClick={() => openPanel(target.id)}
+                className={`${frameClass} cursor-pointer text-start`}
+                aria-label={slide.title || 'باز کردن بخش مرتبط'}
+              >
+                {content}
+              </button>
+            ) : null}
+            {target.kind === 'none' ? (
+              <div className={frameClass}>{content}</div>
+            ) : null}
           </div>
         );
       })}

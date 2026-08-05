@@ -7,6 +7,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import type { LandingProduct } from '@/types/landing-cms';
 import { faIcons, iconMap } from '@/utils/iconMap';
 
+import { useMarketingPanel } from '../lib/marketingPanelContext';
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
 type MarketingProductsDockProps = {
@@ -57,6 +58,8 @@ function DockMark({ product }: { product: LandingProduct }) {
  * Each item expands its own title LTR on hover (siblings stay collapsed).
  */
 export function MarketingProductsDock({ products }: MarketingProductsDockProps) {
+  const { openPanel } = useMarketingPanel();
+
   if (products.length === 0) return null;
 
   return (
@@ -70,11 +73,11 @@ export function MarketingProductsDock({ products }: MarketingProductsDockProps) 
           const target = resolveMarketingNavTarget(product.link);
           const label = product.title;
           const itemClass =
-            'kv-dock-item items-center overflow-hidden rounded-xl border border-kv-border bg-kv-surface/90 p-0 shadow-md backdrop-blur-md grayscale hover:grayscale-0 focus-within:grayscale-0';
+            'kv-dock-item items-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface/90 p-0 shadow-md backdrop-blur-md grayscale hover:grayscale-0 focus-within:grayscale-0';
 
           const inner = (
             <>
-              <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-kv-brand text-kv-brand-fg shadow-sm">
+              <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-sm">
                 <DockMark product={product} />
               </span>
               <span className="kv-dock-item-label">
@@ -110,6 +113,16 @@ export function MarketingProductsDock({ products }: MarketingProductsDockProps) 
                 >
                   {inner}
                 </Link>
+              ) : null}
+              {target.kind === 'panel' ? (
+                <button
+                  type="button"
+                  onClick={() => openPanel(target.id)}
+                  className={itemClass}
+                  aria-label={label}
+                >
+                  {inner}
+                </button>
               ) : null}
               {target.kind === 'none' ? (
                 <span className={itemClass} aria-label={label}>

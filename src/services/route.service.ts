@@ -59,11 +59,7 @@ export const LEGACY_ORGANIZATION_BOOKMARK_PATHS = [
 export const RouteService = {
   marketing: {
     home: (): string => '/',
-    benefits: (): string => '/benefits',
-    about: (): string => '/about',
-    internship: (): string => '/internship',
-    advantages: (): string => '/advantages',
-    /** Product picker when CMS floating dock has more than one product. */
+    /** Product picker when CMS has two or more products. */
     loginSelect: (): string => '/login-select',
   },
 

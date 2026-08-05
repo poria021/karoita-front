@@ -15,12 +15,27 @@ describe('resolveMarketingNavTarget', () => {
     });
   });
 
-  it('classifies marketing paths as internal', () => {
+  it('maps legacy marketing leaves to SPA panels', () => {
+    expect(resolveMarketingNavTarget('/about')).toEqual({
+      kind: 'panel',
+      id: 'about',
+    });
+    expect(resolveMarketingNavTarget('/benefits')).toEqual({
+      kind: 'panel',
+      id: 'benefits',
+    });
+    expect(resolveMarketingNavTarget('#internship')).toEqual({
+      kind: 'panel',
+      id: 'internship',
+    });
+  });
+
+  it('classifies login-select and auth as internal', () => {
     expect(
-      resolveMarketingNavTarget(RouteService.marketing.about())
+      resolveMarketingNavTarget(RouteService.marketing.loginSelect())
     ).toEqual({
       kind: 'internal',
-      href: '/about',
+      href: '/login-select',
     });
   });
 

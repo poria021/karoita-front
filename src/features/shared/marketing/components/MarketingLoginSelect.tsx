@@ -47,7 +47,7 @@ function ProductMark({ product }: { product: LandingProduct }) {
   return (
     <FaIcon
       icon={iconMap[product.icon] ?? faIcons.link}
-      className="text-2xl text-kv-brand-fg"
+      className="text-xl text-kv-brand-fg"
     />
   );
 }
@@ -111,17 +111,17 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
             {products.map((product) => {
               const target = resolveProductLoginHref(product);
               const cardClass =
-                'group flex min-h-[168px] cursor-pointer flex-col items-center justify-between rounded-3xl border border-kv-border-muted bg-kv-surface p-4 text-center shadow-sm transition-all duration-200 hover:border-kv-brand hover:shadow-md sm:min-h-[180px] sm:p-5';
+                'group flex min-h-[168px] cursor-pointer flex-col items-center gap-kv-group rounded-kv-panel border border-kv-border-muted bg-kv-surface p-kv-group text-center shadow-kv-raised transition-all duration-200 hover:border-kv-brand sm:min-h-[180px]';
 
               const inner = (
                 <>
-                  <div className="mb-3 flex size-12 items-center justify-center overflow-hidden rounded-2xl bg-kv-brand text-xl text-kv-brand-fg shadow-sm">
+                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-kv-control bg-kv-brand text-xl text-kv-brand-fg shadow-sm">
                     <ProductMark product={product} />
                   </div>
-                  <h2 className="mb-2 text-sm font-black leading-snug text-kv-text transition-colors">
+                  <h2 className="text-sm font-black leading-snug text-kv-text transition-colors">
                     {product.title}
                   </h2>
-                  <span className="mt-auto inline-flex items-center gap-1.5 rounded-xl border border-kv-border bg-kv-surface-subtle px-3 py-1.5 text-[10px] font-black text-kv-text-secondary transition-colors group-hover:border-kv-brand group-hover:bg-kv-brand group-hover:text-kv-brand-fg">
+                  <span className="inline-flex items-center gap-1.5 rounded-kv-control border border-kv-border bg-kv-surface-subtle px-3 py-1.5 text-[10px] font-black text-kv-text-secondary transition-colors group-hover:border-kv-brand group-hover:bg-kv-brand group-hover:text-kv-brand-fg">
                     <span>ورود به سامانه</span>
                     <FaIcon
                       icon={faIcons.arrowLeft}

@@ -111,7 +111,7 @@ export function LandingCmsProductsPanel({
           label="لینک هدایت هنگام کلیک"
           required
           dir="ltr"
-          placeholder="مثال: /internship یا https://..."
+          placeholder="مثال: /auth/login یا https://..."
           error={form.formState.errors.link?.message}
           {...form.register('link')}
         />
