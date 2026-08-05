@@ -17,7 +17,8 @@ import {
   normalizeCourseTitle,
 } from './syllabus-mappers';
 
-const STORAGE_KEY = 'karvita_mock_syllabus_config_v2';
+const STORAGE_KEY = 'karvita_mock_syllabus_config_v3';
+const LEGACY_STORAGE_KEY_V2 = 'karvita_mock_syllabus_config_v2';
 const LEGACY_STORAGE_KEY = 'karvita_mock_syllabus_config_v1';
 
 export const INTERNSHIP_DEFAULT_WEEKS = 16;
@@ -75,6 +76,15 @@ function buildSeedSnapshot(): SyllabusConfigSnapshot {
       id: 'term_2',
       title: 'نیم‌سال اول 1405-1406',
       type: 'semester',
+      isEnrollOpen: false,
+      isTermOpen: false,
+      enrollStart: '',
+      termStart: '',
+    },
+    {
+      id: 'term_modular_1',
+      title: 'دوره مهارتی 1405-1406',
+      type: 'modular',
       isEnrollOpen: false,
       isTermOpen: false,
       enrollStart: '',
@@ -158,11 +168,20 @@ export function readSyllabusSnapshot(): SyllabusConfigSnapshot {
 
   if (isBrowser() && isMockApiMode()) {
     try {
-      const v2 = window.localStorage.getItem(STORAGE_KEY);
+      const v3 = window.localStorage.getItem(STORAGE_KEY);
+      if (v3) {
+        memorySnapshot = migrateLegacySnapshot(
+          JSON.parse(v3) as LegacySnapshot
+        );
+        return memorySnapshot;
+      }
+      const v2 = window.localStorage.getItem(LEGACY_STORAGE_KEY_V2);
       if (v2) {
         memorySnapshot = migrateLegacySnapshot(
           JSON.parse(v2) as LegacySnapshot
         );
+        ensureModularTerm(memorySnapshot);
+        persist(memorySnapshot);
         return memorySnapshot;
       }
       const v1 = window.localStorage.getItem(LEGACY_STORAGE_KEY);
@@ -170,6 +189,7 @@ export function readSyllabusSnapshot(): SyllabusConfigSnapshot {
         memorySnapshot = migrateLegacySnapshot(
           JSON.parse(v1) as LegacySnapshot
         );
+        ensureModularTerm(memorySnapshot);
         persist(memorySnapshot);
         return memorySnapshot;
       }
@@ -180,6 +200,27 @@ export function readSyllabusSnapshot(): SyllabusConfigSnapshot {
 
   memorySnapshot = buildSeedSnapshot();
   return memorySnapshot;
+}
+
+/** Ensure apprenticeship consumers always have a modular term pool. */
+function ensureModularTerm(snapshot: SyllabusConfigSnapshot): void {
+  if (snapshot.terms.some((term) => term.type === 'modular')) return;
+  snapshot.terms.push({
+    id: 'term_modular_1',
+    title: 'دوره مهارتی 1405-1406',
+    type: 'modular',
+    isEnrollOpen: false,
+    isTermOpen: false,
+    enrollStart: '',
+    termStart: '',
+  });
+}
+
+/** Test helper — replace or clear in-memory syllabus snapshot. */
+export function resetSyllabusSnapshotForTests(
+  snapshot?: SyllabusConfigSnapshot | null
+): void {
+  memorySnapshot = snapshot ? cloneSnapshot(snapshot) : null;
 }
 
 export function writeSyllabusSnapshot(

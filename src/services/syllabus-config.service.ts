@@ -15,6 +15,10 @@ import {
   DEFAULT_WEEK_WEIGHT,
 } from '@/services/syllabus-config/mock-syllabus-store';
 import {
+  resolveEnrollmentSyllabusContext,
+  type EnrollmentSyllabusContext,
+} from '@/services/syllabus-config/syllabus-enrollment-reads';
+import {
   buildCourseOfferingId,
   findCatalogById,
   getCatalogForTermType,
@@ -23,6 +27,7 @@ import {
 import type {
   ActivateOfferingInput,
   CourseCatalogItem,
+  CourseOfferingKind,
   CourseOfferingListItem,
   DeactivateOfferingInput,
   SaveSyllabusWeeksInput,
@@ -37,6 +42,14 @@ function gateSyllabus(): 'mock' | never {
     throwRealModeNotImplemented('SyllabusConfigService');
   }
   assertMockClientHasPermission('syllabus.manage');
+  return 'mock';
+}
+
+/** Consumer reads (enrollment) — mock mode only; Nest will authorize separately. */
+function gateSyllabusConsumerRead(): 'mock' | never {
+  if (!isMockApiMode()) {
+    throwRealModeNotImplemented('SyllabusConfigService');
+  }
   return 'mock';
 }
 
@@ -55,6 +68,22 @@ export const SyllabusConfigService = {
 
   getAcademicYears(): string[] {
     return getAcademicYearOptions();
+  },
+
+  /**
+   * Context ترم فعال برای انتخاب واحد — Nest: GET /syllabus/enrollment-context
+   * بدون نیاز به syllabus.manage (مصرف‌کننده enrollment).
+   */
+  async getEnrollmentSyllabusContext(
+    kind: CourseOfferingKind,
+    level: number
+  ): Promise<EnrollmentSyllabusContext> {
+    gateSyllabusConsumerRead();
+    return resolveEnrollmentSyllabusContext(
+      readSyllabusSnapshot(),
+      kind,
+      level
+    );
   },
 
   /** کاتالوگ دروس ترم — Nest: GET /terms/:termId/courses */
@@ -209,3 +238,4 @@ export const SyllabusConfigService = {
 };
 
 export { DEFAULT_WEEK_WEIGHT, getAcademicYearOptions, isTermGateActive };
+export type { EnrollmentSyllabusContext };

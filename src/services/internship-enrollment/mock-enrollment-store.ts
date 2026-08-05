@@ -4,19 +4,11 @@ import {
   hasStudentTermEnrollmentConflict,
   normalizeEnrollmentCourseTitle,
 } from '@/features/karvita/internship-enrollment/lib/enrollment-eligibility';
+import { readSyllabusSnapshot } from '@/services/syllabus-config/mock-syllabus-store';
 import {
-  isTermGateActive,
-  readSyllabusSnapshot,
-} from '@/services/syllabus-config/mock-syllabus-store';
-import {
-  buildCourseOfferingId,
-  catalogIdForKind,
-  isOfferingActive,
-} from '@/services/syllabus-config/syllabus-mappers';
-import type {
-  AcademicTerm,
-  SyllabusConfigSnapshot,
-} from '@/types/syllabus-config';
+  pickActiveTermForKind,
+  resolveEnrollmentSyllabusContext,
+} from '@/services/syllabus-config/syllabus-enrollment-reads';
 import type {
   EnrollWithSupervisorInput,
   GetEnrollmentPageStateInput,
@@ -37,12 +29,6 @@ import type {
 
 const STORAGE_KEY = 'karvita_mock_internship_enrollments_v1';
 const PLACEHOLDER_UNSET = 'مشخص نشده';
-
-type DemoLevelState = {
-  configured: boolean;
-  registered: boolean;
-  supervisorName: string | null;
-};
 
 type EnrollmentSnapshot = {
   records: InternshipEnrollmentRecord[];
@@ -142,34 +128,6 @@ const MENTORS: InternshipMentorCapacity[] = [
   },
 ];
 
-/**
- * Seed دمو برای حفظ سناریوهای Phase 1 در مسیرهای سایدبار.
- * ثبت‌های Phase 2 در snapshot پایدار نوشته می‌شوند.
- */
-const DEMO_LEVELS: Record<
-  InternshipCourseKind,
-  Partial<Record<InternshipEnrollmentLevel, DemoLevelState>>
-> = {
-  internship: {
-    1: { configured: false, registered: false, supervisorName: null },
-    2: { configured: true, registered: false, supervisorName: null },
-    3: {
-      configured: true,
-      registered: true,
-      supervisorName: 'دکتر سارا احمدی',
-    },
-    4: { configured: true, registered: false, supervisorName: null },
-  },
-  apprenticeship: {
-    1: { configured: false, registered: false, supervisorName: null },
-    2: {
-      configured: true,
-      registered: true,
-      supervisorName: 'مهندس رضا کریمی',
-    },
-  },
-};
-
 let memorySnapshot: EnrollmentSnapshot | null = null;
 
 function isBrowser(): boolean {
@@ -211,48 +169,11 @@ function writeSnapshot(snapshot: EnrollmentSnapshot): EnrollmentSnapshot {
   return memorySnapshot;
 }
 
-function pickActiveTerm(
-  snapshot: SyllabusConfigSnapshot,
-  kind: InternshipCourseKind
-): AcademicTerm | null {
-  const preferredType = kind === 'apprenticeship' ? 'modular' : 'semester';
-  const preferred = snapshot.terms.filter((term) => term.type === preferredType);
-  const pool = preferred.length > 0 ? preferred : snapshot.terms;
-  if (pool.length === 0) return null;
-
-  return (
-    pool.find(
-      (term) =>
-        isTermGateActive(term.isEnrollOpen, term.enrollStart) ||
-        isTermGateActive(term.isTermOpen, term.termStart)
-    ) ??
-    pool[pool.length - 1] ??
-    null
-  );
-}
-
-function isOfferingConfiguredInSyllabus(
-  snapshot: SyllabusConfigSnapshot,
-  term: AcademicTerm,
-  kind: InternshipCourseKind,
-  level: InternshipEnrollmentLevel
-): boolean {
-  const offeringId = buildCourseOfferingId(term.id, catalogIdForKind(kind, level));
-  const offering = snapshot.offerings[offeringId];
-  return Boolean(offering && isOfferingActive(offering.weeks));
-}
-
-function demoStateFor(
-  kind: InternshipCourseKind,
-  level: InternshipEnrollmentLevel
-): DemoLevelState {
-  return (
-    DEMO_LEVELS[kind][level] ?? {
-      configured: false,
-      registered: false,
-      supervisorName: null,
-    }
-  );
+/** Test helper — replace or clear enrollment mock persistence. */
+export function resetEnrollmentSnapshotForTests(
+  snapshot?: EnrollmentSnapshot | null
+): void {
+  memorySnapshot = snapshot ? structuredClone(snapshot) : null;
 }
 
 function capacityKey(
@@ -310,11 +231,10 @@ function getScope(actor: InternshipEnrollmentActor): InternshipSelectionScope {
     ])
   );
 
-  const selectedProvince = canChangeScope ? profileProvince : profileProvince;
-  const scopedColleges = collegesByProvince[selectedProvince] ?? [];
+  const scopedColleges = collegesByProvince[profileProvince] ?? [];
 
   return {
-    province: selectedProvince,
+    province: profileProvince,
     college: profileCollege,
     provinces: canChangeScope ? provinces : [profileProvince],
     colleges: canChangeScope ? scopedColleges : [profileCollege],
@@ -352,7 +272,10 @@ function buildEnrollmentSummary(input: {
     attendanceDaysLabel: PLACEHOLDER_UNSET,
     schoolName: input.schoolName ?? null,
     mentorName: input.mentorName ?? null,
-    courseTitle: normalizeEnrollmentCourseTitle(courseNameForKind(input.kind), input.level),
+    courseTitle: normalizeEnrollmentCourseTitle(
+      courseNameForKind(input.kind),
+      input.level
+    ),
     termTitle: input.termTitle,
   };
 }
@@ -398,31 +321,21 @@ export function resolveEnrollmentPageState(
 ): InternshipEnrollmentPageState {
   const kind = kindForRole(input.actor.role);
   const level = clampLevel(kind, input.level);
-  const demo = demoStateFor(kind, level);
   const syllabus = readSyllabusSnapshot();
-  const term = pickActiveTerm(syllabus, kind);
-  const termId = term?.id ?? `mock-term-${kind}`;
-  const termTitle = term?.title ?? 'نیم‌سال جاری';
+  const context = resolveEnrollmentSyllabusContext(syllabus, kind, level);
   const snapshot = readSnapshot();
   const record = findRecord({
     snapshot,
     userId: input.actor.id,
-    termId,
+    termId: context.termId,
     kind,
     level,
   });
-  const configured =
-    (term ? isOfferingConfiguredInSyllabus(syllabus, term, kind, level) : false) ||
-    demo.configured;
-  const enrollOpen = term
-    ? isTermGateActive(term.isEnrollOpen, term.enrollStart)
-    : false;
-  const termOpen = term ? isTermGateActive(term.isTermOpen, term.termStart) : false;
-  const registered = Boolean(record?.supervisorId) || demo.registered;
+  const registered = Boolean(record?.supervisorId);
   const scenario = resolveEnrollmentScenario({
-    syllabusConfigured: configured,
-    enrollOpen,
-    termOpen,
+    syllabusConfigured: context.syllabusConfigured,
+    enrollOpen: context.enrollOpen,
+    termOpen: context.termOpen,
     registered,
   });
 
@@ -431,15 +344,15 @@ export function resolveEnrollmentPageState(
     kind,
     level,
     courseName: courseNameForKind(kind),
-    termTitle,
-    termId,
+    termTitle: context.termTitle,
+    termId: context.termId,
     enrollment:
       scenario === 'S4_registered_waiting'
         ? buildEnrollmentSummary({
             kind,
             level,
-            termTitle,
-            supervisorName: record?.supervisorName ?? demo.supervisorName,
+            termTitle: context.termTitle,
+            supervisorName: record?.supervisorName ?? null,
             schoolName: record?.schoolName,
             mentorName: record?.mentorName,
           })
@@ -470,7 +383,7 @@ export function listEligibleSupervisors(
     return [];
   }
 
-  const term = pickActiveTerm(readSyllabusSnapshot(), input.kind);
+  const term = pickActiveTermForKind(readSyllabusSnapshot(), input.kind);
   return filterEligibleSupervisors({
     supervisors: getSupervisorList({
       snapshot,
@@ -494,11 +407,19 @@ export function enrollWithSupervisor(
   const kind = input.kind;
   const level = clampLevel(kind, input.level);
   const syllabus = readSyllabusSnapshot();
-  const term = pickActiveTerm(syllabus, kind);
-  const termId = term?.id ?? `mock-term-${kind}`;
+  const context = resolveEnrollmentSyllabusContext(syllabus, kind, level);
+  const termId = context.termId;
 
   if (termId !== input.termId) {
     throw new Error('ترم انتخاب واحد تغییر کرده است. لطفاً دوباره تلاش کنید.');
+  }
+
+  if (!context.syllabusConfigured) {
+    throw new Error('سرفصل این درس هنوز برای ترم جاری فعال نشده است.');
+  }
+
+  if (!context.enrollOpen || context.termOpen) {
+    throw new Error('درگاه انتخاب واحد برای این ترم فعال نیست.');
   }
 
   const snapshot = readSnapshot();
@@ -569,7 +490,7 @@ export function enrollWithSupervisor(
     kind,
     level,
     termId,
-    termTitle: term?.title ?? 'نیم‌سال جاری',
+    termTitle: context.termTitle,
     title: normalizeEnrollmentCourseTitle(courseNameForKind(kind), level),
     supervisorId: supervisor.id,
     supervisorName: supervisor.name,
