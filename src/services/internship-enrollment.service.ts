@@ -7,6 +7,8 @@ import {
   listDelayedSchools,
   listEligibleSupervisors,
   resolveEnrollmentPageState,
+  saveWeeklyReportDraft,
+  submitWeeklyReport,
 } from '@/services/internship-enrollment/mock-enrollment-store';
 import type {
   AssignDelayedSchoolMentorInput,
@@ -17,9 +19,12 @@ import type {
   InternshipMentorCapacity,
   InternshipSchoolCapacity,
   InternshipSupervisor,
+  InternshipWeeklySession,
   ListDelayedMentorsInput,
   ListDelayedSchoolsInput,
   ListEligibleSupervisorsInput,
+  SaveWeeklyReportDraftInput,
+  SubmitWeeklyReportInput,
 } from '@/types/internship-enrollment';
 
 function gateEnrollment(): 'mock' | never {
@@ -35,7 +40,7 @@ function gateEnrollment(): 'mock' | never {
  *
  * Nest-blocked:
  * - شاخهٔ real: fail-closed تا endpoint Nest وصل شود
- * - editor هفته و PDF در فازهای بعدی
+ * - editor هفته و PDF در فازهای بعدی (mock draft/submit همین فاز)
  */
 export const InternshipEnrollmentService = {
   /**
@@ -82,5 +87,19 @@ export const InternshipEnrollmentService = {
   ): Promise<InternshipEnrollmentRecord> {
     gateEnrollment();
     return assignDelayedSchoolMentor(input);
+  },
+
+  async saveWeeklyReportDraft(
+    input: SaveWeeklyReportDraftInput
+  ): Promise<InternshipWeeklySession> {
+    gateEnrollment();
+    return saveWeeklyReportDraft(input);
+  },
+
+  async submitWeeklyReport(
+    input: SubmitWeeklyReportInput
+  ): Promise<InternshipWeeklySession> {
+    gateEnrollment();
+    return submitWeeklyReport(input);
   },
 };

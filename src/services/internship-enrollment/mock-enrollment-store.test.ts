@@ -6,6 +6,7 @@ import {
   kindForRole,
   maxLevelForKind,
   resolveEnrollmentScenario,
+  saveWeeklyReportDraft,
 } from '@/services/internship-enrollment/mock-enrollment-store';
 
 describe('internship-enrollment mock helpers', () => {
@@ -17,6 +18,27 @@ describe('internship-enrollment mock helpers', () => {
     expect(maxLevelForKind('internship')).toBe(4);
     expect(maxLevelForKind('apprenticeship')).toBe(2);
     expect(clampLevel('apprenticeship', 4)).toBe(2);
+  });
+
+  it('rejects empty weekly report payloads', () => {
+    expect(() =>
+      saveWeeklyReportDraft({
+        actor: {
+          id: 'student-empty',
+          role: 'student',
+          approved: true,
+          province: 'تهران',
+          college: 'پردیس شهید باهنر تهران',
+          district: 'ناحیه ۱ تهران',
+        },
+        kind: 'internship',
+        level: 1,
+        termId: 'term_sem',
+        weekId: 'week-1',
+        text: '   ',
+        files: [],
+      })
+    ).toThrow(/گزارش خالی/);
   });
 
   it('resolves Phase 1 gate empty scenarios', () => {

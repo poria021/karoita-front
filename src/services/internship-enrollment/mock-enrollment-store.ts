@@ -35,19 +35,35 @@ import type {
   InternshipSchoolCapacity,
   InternshipSelectionScope,
   InternshipSupervisor,
+  InternshipWeeklyReportFeedback,
+  InternshipWeeklyReportFile,
   InternshipWeeklySession,
   InternshipWeeklySessionState,
   ListDelayedMentorsInput,
   ListDelayedSchoolsInput,
   ListEligibleSupervisorsInput,
+  SaveWeeklyReportDraftInput,
+  SubmitWeeklyReportInput,
 } from '@/types/internship-enrollment';
 
 const STORAGE_KEY = 'karvita_mock_internship_enrollments_v1';
 const PLACEHOLDER_UNSET = 'مشخص نشده';
+const MAX_ATTACHMENT_TOTAL_MB = 100;
+
+type WeekReportOverride = {
+  text: string;
+  files: InternshipWeeklyReportFile[];
+  status: Extract<
+    InternshipWeeklySessionState,
+    'draft' | 'pending' | 'needs_edit'
+  >;
+  feedback?: InternshipWeeklyReportFeedback;
+};
 
 type EnrollmentSnapshot = {
   records: InternshipEnrollmentRecord[];
   confirmedCapacity: Record<string, number>;
+  weekReports: Record<string, WeekReportOverride>;
 };
 
 type SupervisorSeed = Omit<InternshipSupervisor, 'capacity'> & {
@@ -150,11 +166,18 @@ function isBrowser(): boolean {
 }
 
 function emptySnapshot(): EnrollmentSnapshot {
-  return { records: [], confirmedCapacity: {} };
+  return { records: [], confirmedCapacity: {}, weekReports: {} };
 }
 
 function readSnapshot(): EnrollmentSnapshot {
-  if (memorySnapshot) return memorySnapshot;
+  if (memorySnapshot) {
+    memorySnapshot = {
+      records: memorySnapshot.records ?? [],
+      confirmedCapacity: memorySnapshot.confirmedCapacity ?? {},
+      weekReports: memorySnapshot.weekReports ?? {},
+    };
+    return memorySnapshot;
+  }
 
   if (isBrowser() && isMockApiMode()) {
     try {
@@ -164,6 +187,7 @@ function readSnapshot(): EnrollmentSnapshot {
         memorySnapshot = {
           records: parsed.records ?? [],
           confirmedCapacity: parsed.confirmedCapacity ?? {},
+          weekReports: parsed.weekReports ?? {},
         };
         return memorySnapshot;
       }
@@ -286,10 +310,47 @@ function statusForWeek(index: number): InternshipWeeklySessionState {
   return seededStates[index] ?? 'locked_future';
 }
 
+function weekReportKey(input: {
+  userId: string;
+  termId: string;
+  kind: InternshipCourseKind;
+  level: InternshipEnrollmentLevel;
+  weekId: string;
+}): string {
+  return `${input.userId}:${input.termId}:${input.kind}:${input.level}:${input.weekId}`;
+}
+
+function seededFeedbackForStatus(
+  status: InternshipWeeklySessionState
+): InternshipWeeklyReportFeedback | undefined {
+  if (status !== 'needs_edit' && status !== 'approved' && status !== 'graded') {
+    return undefined;
+  }
+  return {
+    advisor:
+      status === 'needs_edit'
+        ? 'لطفاً بخش فعالیت کلاسی را با جزئیات بیشتری تکمیل کنید و نمونه‌کار دانش‌آموزان را ضمیمه نمایید.'
+        : 'گزارش شما بررسی شد و از نظر علمی قابل قبول است.',
+    mentor:
+      status === 'needs_edit'
+        ? 'حضور در مدرسه ثبت شده؛ توضیحات بازخورد دانش‌آموزان را کامل‌تر بنویسید.'
+        : undefined,
+  };
+}
+
+function seededTextForStatus(status: InternshipWeeklySessionState): string {
+  if (status === 'locked_future' || status === 'overdue' || status === 'extended') {
+    return '';
+  }
+  if (status === 'draft') return '';
+  return 'گزارش نمونهٔ هفته برای نمایش وضعیت در شبیه‌ساز mock.';
+}
+
 function buildWeeklySessions(input: {
   kind: InternshipCourseKind;
   level: InternshipEnrollmentLevel;
   termId: string;
+  userId: string;
 }): InternshipWeeklySession[] {
   const syllabus = readSyllabusSnapshot();
   const offeringId = buildCourseOfferingId(
@@ -308,17 +369,145 @@ function buildWeeklySessions(input: {
           status: 'active' as const,
         }));
 
+  const snapshot = readSnapshot();
+
   return weeks.map((week, index) => {
-    const status: InternshipWeeklySessionState =
+    const seededStatus: InternshipWeeklySessionState =
       week.status === 'archived' ? 'archived' : statusForWeek(index);
+    const override =
+      (snapshot.weekReports ?? {})[
+        weekReportKey({
+          userId: input.userId,
+          termId: input.termId,
+          kind: input.kind,
+          level: input.level,
+          weekId: week.id,
+        })
+      ];
+    const status = override?.status ?? seededStatus;
+    const feedback = override?.feedback ?? seededFeedbackForStatus(status);
+    const text = override?.text ?? seededTextForStatus(status);
+    const files = override?.files ?? [];
+
     return {
       id: week.id,
       title: week.title || week.suffix || `هفته ${index + 1}`,
       status,
       score: status === 'graded' ? 92 : null,
-      isExtended: status === 'extended',
+      isExtended: status === 'extended' || seededStatus === 'extended',
+      text,
+      files,
+      feedback,
     };
   });
+}
+
+function assertReportPayload(input: {
+  text: string;
+  files: InternshipWeeklyReportFile[];
+}): void {
+  const hasText = input.text.trim().length > 0;
+  const hasFiles = input.files.length > 0;
+  if (!hasText && !hasFiles) {
+    throw new Error(
+      'امکان ثبت گزارش خالی وجود ندارد. لطفاً متنی وارد کنید یا فایلی ضمیمه نمایید.'
+    );
+  }
+
+  let totalMb = 0;
+  for (const file of input.files) {
+    if (!(file.sizeMb > 0) || file.sizeMb > 2) {
+      throw new Error(
+        `خطا: حجم فایل "${file.name}" فراتر از سقف مجاز ۲ مگابایت است.`
+      );
+    }
+    totalMb += file.sizeMb;
+  }
+  if (totalMb > MAX_ATTACHMENT_TOTAL_MB) {
+    throw new Error(
+      'خطا: مجموع حجم فایل‌های ضمیمه شده از سقف مجاز ۱۰۰ مگابایت عبور می‌کند.'
+    );
+  }
+}
+
+function writeWeekReport(
+  input: SaveWeeklyReportDraftInput,
+  nextStatus: WeekReportOverride['status']
+): InternshipWeeklySession {
+  const kind = kindForRole(input.actor.role);
+  const level = clampLevel(kind, input.level);
+  assertReportPayload(input);
+
+  const snapshot = readSnapshot();
+  const record = findRecord({
+    snapshot,
+    userId: input.actor.id,
+    termId: input.termId,
+    kind,
+    level,
+  });
+  if (!record?.supervisorId) {
+    throw new Error('رکورد ثبت‌نام برای ویرایش گزارش یافت نشد.');
+  }
+  if (
+    record.status === 'dropped' ||
+    record.status === 'completed' ||
+    record.removalPending
+  ) {
+    throw new Error('امکان ویرایش گزارش این دوره وجود ندارد.');
+  }
+
+  const key = weekReportKey({
+    userId: input.actor.id,
+    termId: input.termId,
+    kind,
+    level,
+    weekId: input.weekId,
+  });
+  const previous = snapshot.weekReports[key];
+  const files = input.files.map((file) => ({
+    id: file.id,
+    name: file.name,
+    sizeMb: Number(file.sizeMb.toFixed(2)),
+    mimeType: file.mimeType,
+  }));
+
+  writeSnapshot({
+    ...snapshot,
+    weekReports: {
+      ...snapshot.weekReports,
+      [key]: {
+        text: input.text,
+        files,
+        status: nextStatus,
+        feedback: previous?.feedback,
+      },
+    },
+  });
+
+  const weeks = buildWeeklySessions({
+    kind,
+    level,
+    termId: input.termId,
+    userId: input.actor.id,
+  });
+  const week = weeks.find((item) => item.id === input.weekId);
+  if (!week) {
+    throw new Error('هفتهٔ گزارش یافت نشد.');
+  }
+  return week;
+}
+
+export function saveWeeklyReportDraft(
+  input: SaveWeeklyReportDraftInput
+): InternshipWeeklySession {
+  return writeWeekReport(input, 'draft');
+}
+
+export function submitWeeklyReport(
+  input: SubmitWeeklyReportInput
+): InternshipWeeklySession {
+  return writeWeekReport(input, 'pending');
 }
 
 function buildProgressiveGrade(
@@ -443,6 +632,7 @@ export function resolveEnrollmentPageState(
     kind,
     level,
     termId: context.termId,
+    userId: input.actor.id,
   });
   const scenario = resolveEnrollmentScenario({
     syllabusConfigured: context.syllabusConfigured,
@@ -678,6 +868,7 @@ export function enrollWithSupervisor(
       record,
     ],
     confirmedCapacity: { ...snapshot.confirmedCapacity },
+    weekReports: { ...snapshot.weekReports },
   };
   const key = capacityKey(termId, kind, level, supervisor.id);
   next.confirmedCapacity[key] = (next.confirmedCapacity[key] ?? 0) + 1;
