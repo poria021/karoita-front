@@ -1,0 +1,172 @@
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+
+import { FaIcon } from '@/components/shared/FaIcon';
+import { KvButton } from '@/components/shared/KvButton';
+import { KvTypography } from '@/components/shared/KvTypography';
+import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
+import { KvTextField } from '@/components/shared/fields/KvTextField';
+import { KvTableCell } from '@/components/shared/table/KvTable';
+import { LandingCmsService } from '@/services/landing-cms.service';
+import type { LandingSocial } from '@/types/landing-cms';
+import { faIcons } from '@/utils/iconMap';
+import { toPersianDigits } from '@/utils/persianDigits';
+
+import { getLandingCmsTabConfig } from '../constants';
+import type { LandingCmsDeleteTarget } from '../hooks/useLandingCmsPage';
+import {
+  socialFormSchema,
+  type SocialFormInput,
+  type SocialFormValues,
+} from '../schemas/landing-cms.schema';
+import { LandingCmsEntityTable } from './LandingCmsEntityTable';
+import { LandingCmsMediaThumb } from './LandingCmsMediaThumb';
+
+const SOCIAL_COLUMNS = [
+  { key: 'icon', label: 'آیکون', align: 'center' as const, className: 'w-20' },
+  { key: 'name', label: 'نام شبکه' },
+  { key: 'link', label: 'لینک اختصاصی' },
+] as const;
+
+type LandingCmsSocialsPanelProps = {
+  items: LandingSocial[];
+  isLoading: boolean;
+  onSoftReload: () => Promise<void>;
+  onRequestDelete: (target: LandingCmsDeleteTarget) => void;
+};
+
+export function LandingCmsSocialsPanel({
+  items,
+  isLoading,
+  onSoftReload,
+  onRequestDelete,
+}: LandingCmsSocialsPanelProps) {
+  const tabConfig = getLandingCmsTabConfig('socials');
+  const form = useForm<SocialFormInput, unknown, SocialFormValues>({
+    resolver: zodResolver(socialFormSchema),
+    defaultValues: { name: '', link: '', iconImage: null },
+    mode: 'onSubmit',
+  });
+
+  const submit = form.handleSubmit(async (values) => {
+    try {
+      await LandingCmsService.createSocial({
+        name: values.name,
+        link: values.link,
+        iconImage: values.iconImage ?? null,
+      });
+      toast.success('شبکه اجتماعی جدید با موفقیت اضافه شد.');
+      form.reset({ name: '', link: '', iconImage: null });
+      await onSoftReload();
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'افزودن شبکه اجتماعی ناموفق بود.'
+      );
+    }
+  });
+
+  return (
+    <div className="grid grid-cols-1 gap-kv-section lg:grid-cols-12 lg:items-start">
+      <form
+        onSubmit={submit}
+        noValidate
+        className="flex flex-col gap-kv-group rounded-kv-panel border border-kv-border bg-kv-surface-muted/40 p-kv-group lg:col-span-5"
+      >
+        <div className="flex items-center gap-kv-inline">
+          <FaIcon icon={faIcons.plus} size="xs" className="text-kv-brand" />
+          <KvTypography variant="subtitle" as="h2">
+            افزودن شبکه اجتماعی جدید
+          </KvTypography>
+        </div>
+
+        <Controller
+          name="iconImage"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <KvImageDocUploader
+              value={field.value ?? null}
+              onChange={field.onChange}
+              label="عکس / آیکون شبکه اجتماعی"
+              optionalHint
+              error={fieldState.error?.message}
+              helperText="اختیاری — PNG یا JPG شفاف"
+              previewAlt="پیش‌نمایش آیکون شبکه"
+            />
+          )}
+        />
+
+        <KvTextField
+          id="landing-social-name"
+          label="نام شبکه اجتماعی"
+          required
+          placeholder="مثال: روبیکا / بله / ایتا"
+          error={form.formState.errors.name?.message}
+          {...form.register('name')}
+        />
+
+        <KvTextField
+          id="landing-social-link"
+          label="لینک شبکه اجتماعی"
+          required
+          dir="ltr"
+          placeholder="مثال: https://eitaa.com/..."
+          error={form.formState.errors.link?.message}
+          {...form.register('link')}
+        />
+
+        <KvButton
+          type="submit"
+          color="cta"
+          loading={form.formState.isSubmitting}
+          className="w-full"
+        >
+          ثبت شبکه اجتماعی
+        </KvButton>
+      </form>
+
+      <div className="flex flex-col gap-kv-group lg:col-span-7">
+        <KvTypography variant="subtitle" as="h2">
+          جدول شبکه‌های اجتماعی در فوتر (
+          {toPersianDigits(String(items.length))})
+        </KvTypography>
+        <LandingCmsEntityTable
+          resetKey="socials"
+          columns={SOCIAL_COLUMNS}
+          items={items}
+          isLoading={isLoading}
+          emptyTitle={tabConfig.emptyTitle}
+          emptyDescription={tabConfig.emptyDescription}
+          deleteAriaLabel={(row) => `حذف شبکه ${row.name}`}
+          onDelete={(row) =>
+            onRequestDelete({
+              kind: 'socials',
+              id: row.id,
+              label: row.name,
+            })
+          }
+          renderCells={(row) => (
+            <>
+              <KvTableCell align="center">
+                <LandingCmsMediaThumb
+                  imageUrl={row.iconImageUrl || undefined}
+                  iconStem={row.icon}
+                  alt={row.name}
+                />
+              </KvTableCell>
+              <KvTableCell emphasis>{row.name}</KvTableCell>
+              <KvTableCell
+                className="max-w-[12rem] truncate font-mono text-xs text-kv-brand"
+                dir="ltr"
+              >
+                {row.link}
+              </KvTableCell>
+            </>
+          )}
+        />
+      </div>
+    </div>
+  );
+}

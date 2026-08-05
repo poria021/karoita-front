@@ -120,6 +120,7 @@ export const iconMap: Record<string, IconDefinition> = {
   'fa-lock': faLock,
   'fa-key': faKey,
   'fa-briefcase': faBriefcase,
+  'fa-link': faLink,
 };
 
 export const faIcons = {
