@@ -188,7 +188,7 @@ export function UserAccountMenu({
             >
               <span className="relative flex size-8 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={roleIcon} size="sm" />
-                <ConnectivityStatusDot online={isOnline} size="sm" />
+                <ConnectivityStatusDot online={isOnline} />
               </span>
               <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start sm:text-start">
                 <KvTypography variant="subtitle" as="span" truncate>
@@ -233,7 +233,7 @@ export function UserAccountMenu({
             >
               <div className="relative flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={roleIcon} size="lg" />
-                <ConnectivityStatusDot online={isOnline} size="md" />
+                <ConnectivityStatusDot online={isOnline} />
               </div>
               <div
                 className={cn(

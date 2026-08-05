@@ -201,7 +201,7 @@ export function ScenarioTermActive({
       </KvCard>
 
       <KvCard padding="md" className="space-y-kv-group">
-        <div className="flex flex-col justify-between gap-kv-field border-b border-kv-border pb-kv-field sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-kv-field border-b border-kv-border pb-kv-group sm:flex-row sm:items-center">
           <KvTypography
             variant="title"
             weight="bold"

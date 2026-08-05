@@ -127,8 +127,8 @@ export function InternshipWeeklyGrid({
   onWeekSelect,
 }: InternshipWeeklyGridProps) {
   return (
-    <div className="space-y-kv-field">
-      <div className="grid grid-cols-2 gap-kv-group sm:grid-cols-4">
+    <div className="space-y-kv-group">
+      <div className="grid grid-cols-2 gap-kv-inline sm:grid-cols-4">
         {weeks.map((week, index) => {
           const status = effectiveWeeklySessionState(week, enrollmentStatus);
           const visual = SESSION_VISUALS[status];
@@ -172,7 +172,7 @@ export function InternshipWeeklyGrid({
         })}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-kv-group gap-y-kv-pair border-t border-kv-border pt-kv-field text-xs font-bold text-kv-text-faint">
+      <div className="flex flex-wrap items-center gap-x-kv-group gap-y-kv-pair border-t border-kv-border pt-kv-group text-xs font-bold text-kv-text-faint">
         {Object.entries(SESSION_VISUALS)
           .filter(([, visual]) => visual.legendLabel)
           .map(([status, visual]) => (

@@ -4,24 +4,21 @@ import { cn } from '@/lib/utils';
 
 export type ConnectivityStatusDotProps = {
   online: boolean;
-  /** Slightly larger for the sidebar avatar. */
-  size?: 'sm' | 'md';
   className?: string;
 };
 
 /**
- * Circular online/offline lamp for account avatars (header + sidebar).
+ * Circular online/offline lamp — same scale as notification unread bullet,
+ * anchored bottom-start (physical bottom-right in RTL) on account avatars.
  */
 export function ConnectivityStatusDot({
   online,
-  size = 'sm',
   className,
 }: ConnectivityStatusDotProps) {
   return (
     <span
       className={cn(
-        'absolute end-0 top-0 rounded-full ring-2 ring-kv-surface',
-        size === 'sm' ? 'size-2.5' : 'size-3',
+        'absolute start-0 bottom-0 size-1.5 rounded-full ring-1 ring-kv-surface',
         online ? 'bg-kv-success' : 'bg-kv-danger',
         className
       )}
