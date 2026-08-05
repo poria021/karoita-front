@@ -55,6 +55,8 @@ export type OrgParentIndexes = {
   facultiesByProvince: Map<string, OrgFaculty[]>;
   districtsByProvince: Map<string, OrgDistrict[]>;
   districtsByCity: Map<string, OrgDistrict[]>;
+  schoolsByProvince: Map<string, OrgSchool[]>;
+  schoolsByCity: Map<string, OrgSchool[]>;
   schoolsByDistrict: Map<string, OrgSchool[]>;
 };
 
@@ -117,6 +119,8 @@ export function buildOrgRuntimeIndex(
       facultiesByProvince: groupBy(snapshot.faculties, (f) => f.provinceId),
       districtsByProvince: groupBy(snapshot.districts, (d) => d.provinceId),
       districtsByCity: groupBy(snapshot.districts, (d) => d.cityId),
+      schoolsByProvince: groupBy(snapshot.schools, (s) => s.provinceId),
+      schoolsByCity: groupBy(snapshot.schools, (s) => s.cityId),
       schoolsByDistrict: groupBy(snapshot.schools, (s) => s.districtId),
     },
   };

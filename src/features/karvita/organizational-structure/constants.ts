@@ -42,7 +42,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     icon: faIcons.mapLocationDot,
     searchPlaceholder: 'جستجوی منطقه...',
     addLabel: 'منطقه',
-    nameColumnLabel: 'نام منطقه',
+    nameColumnLabel: 'عنوان منطقه یا ناحیه',
     namePlaceholder: 'مثال: منطقه ۱',
   },
   {
@@ -62,7 +62,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     icon: faIcons.graduationCap,
     searchPlaceholder: 'جستجوی رشته...',
     addLabel: 'رشته',
-    nameColumnLabel: 'نام رشته',
+    nameColumnLabel: 'عنوان رشته تحصیلی',
     namePlaceholder: 'مثال: آموزش ابتدایی',
   },
   {
@@ -72,7 +72,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     icon: faIcons.university,
     searchPlaceholder: 'جستجوی پردیس...',
     addLabel: 'پردیس',
-    nameColumnLabel: 'نام پردیس',
+    nameColumnLabel: 'نام پردیس / دانشکده',
     namePlaceholder: 'مثال: پردیس البرز',
   },
 ];
@@ -93,6 +93,13 @@ export const MAJOR_AUDIENCE_OPTIONS = [
   { value: 'skill_learner', label: 'مهارت‌آموز' },
   { value: 'supervisor_professor', label: 'استاد راهنما' },
 ] as const;
+
+export function getSchoolGenderLabel(
+  gender: (typeof SCHOOL_GENDER_OPTIONS)[number]['value'] | undefined
+): string {
+  if (!gender) return '—';
+  return SCHOOL_GENDER_OPTIONS.find((opt) => opt.value === gender)?.label ?? '—';
+}
 
 export function getMajorAudienceLabel(audience: OrgMajorAudience): string {
   return (

@@ -1,3 +1,4 @@
+import { readMockUsers } from '@/services/auth/mock-auth.store';
 import { isDeleteBlockedWithSets } from '@/services/org-structure-delete-rules';
 import {
   buildOrgRuntimeIndex,
@@ -10,6 +11,7 @@ import {
 import {
   orgEntityKindFromTab,
   type OrgMajorAudience,
+  type OrgSchoolGender,
   type OrgStructureEntityKind,
   type OrgStructureSnapshot,
   type OrgStructureSubTab,
@@ -25,6 +27,14 @@ export type OrgStructureListItem = {
   kind: OrgStructureEntityKind;
   deleteBlocked: boolean;
   audience?: OrgMajorAudience;
+  gender?: OrgSchoolGender;
+  provinceName?: string;
+  cityName?: string;
+  districtName?: string;
+  campusesCount?: number;
+  districtsCount?: number;
+  schoolsCount?: number;
+  usersCount?: number;
 };
 
 export type OrgStructureListPage = OffsetLimitPage<OrgStructureListItem>;
@@ -49,6 +59,54 @@ type NamedRow = {
   name: string;
   audience?: OrgMajorAudience;
 };
+
+type UserCountIndexes = {
+  byProvince: Map<string, number>;
+  byCity: Map<string, number>;
+  byCollege: Map<string, number>;
+  byDistrict: Map<string, number>;
+  bySchool: Map<string, number>;
+  byMajor: Map<string, number>;
+};
+
+function bumpCount(map: Map<string, number>, key: string | undefined): void {
+  if (!key) return;
+  map.set(key, (map.get(key) ?? 0) + 1);
+}
+
+export function buildOrgUserCountIndexes(
+  users: ReadonlyArray<{
+    province?: string;
+    city?: string;
+    college?: string;
+    district?: string;
+    school?: string;
+    major?: string;
+  }>
+): UserCountIndexes {
+  const indexes: UserCountIndexes = {
+    byProvince: new Map(),
+    byCity: new Map(),
+    byCollege: new Map(),
+    byDistrict: new Map(),
+    bySchool: new Map(),
+    byMajor: new Map(),
+  };
+  for (const user of users) {
+    bumpCount(indexes.byProvince, user.province);
+    bumpCount(indexes.byCity, user.city);
+    bumpCount(indexes.byCollege, user.college);
+    bumpCount(indexes.byDistrict, user.district);
+    bumpCount(indexes.bySchool, user.school);
+    bumpCount(indexes.byMajor, user.major);
+  }
+  return indexes;
+}
+
+function countOf(map: Map<string, number>, key: string | undefined): number {
+  if (!key) return 0;
+  return map.get(key) ?? 0;
+}
 
 function rawRowsForTab(
   db: OrgStructureSnapshot,
@@ -90,27 +148,114 @@ export function getFilteredSortedRows(
   return rows;
 }
 
+function enrichListItem(
+  runtime: OrgRuntimeIndex,
+  tab: OrgStructureSubTab,
+  row: NamedRow,
+  users: UserCountIndexes
+): OrgStructureListItem {
+  const kind = kindFromTab(tab);
+  const base: OrgStructureListItem = {
+    id: row.id,
+    name: row.name,
+    kind,
+    deleteBlocked: isDeleteBlockedWithSets(kind, row.id, runtime.deleteBlocked),
+  };
+
+  if (tab === 'provinces') {
+    return {
+      ...base,
+      campusesCount: runtime.parents.facultiesByProvince.get(row.id)?.length ?? 0,
+      districtsCount: runtime.parents.districtsByProvince.get(row.id)?.length ?? 0,
+      schoolsCount: runtime.parents.schoolsByProvince.get(row.id)?.length ?? 0,
+      usersCount: countOf(users.byProvince, row.name),
+    };
+  }
+
+  if (tab === 'cities') {
+    const city = runtime.byId.city.get(row.id);
+    const provinceName = city
+      ? runtime.byId.province.get(city.provinceId)?.name
+      : undefined;
+    return {
+      ...base,
+      provinceName: provinceName ?? '—',
+      schoolsCount: runtime.parents.schoolsByCity.get(row.id)?.length ?? 0,
+      usersCount: countOf(users.byCity, row.name),
+    };
+  }
+
+  if (tab === 'faculties') {
+    const faculty = runtime.byId.faculty.get(row.id);
+    return {
+      ...base,
+      cityName: faculty
+        ? (runtime.byId.city.get(faculty.cityId)?.name ?? '—')
+        : '—',
+      provinceName: faculty
+        ? (runtime.byId.province.get(faculty.provinceId)?.name ?? '—')
+        : '—',
+      usersCount: countOf(users.byCollege, row.name),
+    };
+  }
+
+  if (tab === 'districts') {
+    const district = runtime.byId.district.get(row.id);
+    return {
+      ...base,
+      cityName: district
+        ? (runtime.byId.city.get(district.cityId)?.name ?? '—')
+        : '—',
+      provinceName: district
+        ? (runtime.byId.province.get(district.provinceId)?.name ?? '—')
+        : '—',
+      schoolsCount: runtime.parents.schoolsByDistrict.get(row.id)?.length ?? 0,
+      usersCount: countOf(users.byDistrict, row.name),
+    };
+  }
+
+  if (tab === 'schools') {
+    const school = runtime.byId.school.get(row.id);
+    return {
+      ...base,
+      gender: school?.gender,
+      districtName: school
+        ? (runtime.byId.district.get(school.districtId)?.name ?? '—')
+        : '—',
+      cityName: school
+        ? (runtime.byId.city.get(school.cityId)?.name ?? '—')
+        : '—',
+      provinceName: school
+        ? (runtime.byId.province.get(school.provinceId)?.name ?? '—')
+        : '—',
+      usersCount: countOf(users.bySchool, row.name),
+    };
+  }
+
+  return {
+    ...base,
+    ...(row.audience ? { audience: row.audience } : {}),
+    usersCount: countOf(users.byMajor, row.name),
+  };
+}
+
 export function pageOrgRowsFromRuntime(
   runtime: OrgRuntimeIndex,
   tab: OrgStructureSubTab,
   query: string,
   offset: number,
-  limit: number = DEFAULT_PAGE_LIMIT
+  limit: number = DEFAULT_PAGE_LIMIT,
+  userCounts: UserCountIndexes = buildOrgUserCountIndexes(readMockUsers())
 ): OrgStructureListPage {
-  const kind = kindFromTab(tab);
   const filtered = getFilteredSortedRows(runtime, tab, query);
   const total = filtered.length;
   const safeOffset = Math.max(0, Math.floor(offset));
   const safeLimit = Math.max(1, Math.floor(limit));
   const pageRows = filtered.slice(safeOffset, safeOffset + safeLimit);
 
-  const items: OrgStructureListItem[] = pageRows.map((row) => ({
-    id: row.id,
-    name: row.name,
-    kind,
-    deleteBlocked: isDeleteBlockedWithSets(kind, row.id, runtime.deleteBlocked),
-    ...(row.audience ? { audience: row.audience } : {}),
-  }));
+  const items: OrgStructureListItem[] = pageRows.map((row) =>
+    enrichListItem(runtime, tab, row, userCounts)
+  );
 
   return {
     items,
@@ -124,11 +269,19 @@ export function pageOrgRows(
   tab: OrgStructureSubTab,
   query: string,
   offset: number,
-  limit: number = DEFAULT_PAGE_LIMIT
+  limit: number = DEFAULT_PAGE_LIMIT,
+  userCounts?: UserCountIndexes
 ): OrgStructureListPage {
   clearOrgListFilterCache();
   const runtime = buildOrgRuntimeIndex(db);
-  return pageOrgRowsFromRuntime(runtime, tab, query, offset, limit);
+  return pageOrgRowsFromRuntime(
+    runtime,
+    tab,
+    query,
+    offset,
+    limit,
+    userCounts ?? buildOrgUserCountIndexes([])
+  );
 }
 
 export function queryOrgListPage(

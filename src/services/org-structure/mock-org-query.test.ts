@@ -65,6 +65,45 @@ describe('pageOrgRows', () => {
     expect(last.hasMore).toBe(false);
   });
 
+  it('enriches province rows with connected structure counts', () => {
+    const page = pageOrgRows(sampleDb, 'provinces', '', 0, 10);
+    const tehran = page.items.find((r) => r.id === 'p1');
+    const ilam = page.items.find((r) => r.id === 'p2');
+    expect(tehran).toMatchObject({
+      campusesCount: 0,
+      districtsCount: 1,
+      schoolsCount: 1,
+      usersCount: 0,
+    });
+    expect(ilam).toMatchObject({
+      campusesCount: 0,
+      districtsCount: 0,
+      schoolsCount: 0,
+      usersCount: 0,
+    });
+  });
+
+  it('enriches school rows with parent names and gender', () => {
+    const page = pageOrgRows(sampleDb, 'schools', '', 0, 10);
+    expect(page.items[0]).toMatchObject({
+      id: 's1',
+      gender: 'male',
+      districtName: 'ناحیه ۱',
+      cityName: 'تهران',
+      provinceName: 'تهران',
+      usersCount: 0,
+    });
+  });
+
+  it('enriches city rows with province name and school counts', () => {
+    const page = pageOrgRows(sampleDb, 'cities', '', 0, 10);
+    expect(page.items[0]).toMatchObject({
+      id: 'c1',
+      provinceName: 'تهران',
+      schoolsCount: 1,
+    });
+  });
+
   it('page 1 and page 2 for same query do not overlap and hasMore is correct', () => {
     clearOrgListFilterCache();
     const runtime = buildOrgRuntimeIndex(sampleDb);
