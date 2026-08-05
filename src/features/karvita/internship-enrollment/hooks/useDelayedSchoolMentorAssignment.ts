@@ -117,6 +117,14 @@ export function useDelayedSchoolMentorAssignment({
     setIsLoadingMentors(false);
   }, []);
 
+  /** Match original: focus opens picker and clears confirmed school/mentor, keeps typed school text. */
+  const beginSchoolPick = useCallback(() => {
+    setSelectedSchool(null);
+    setSelectedMentor(null);
+    setMentorQuery('');
+    setMentors([]);
+  }, []);
+
   const selectMentor = useCallback((mentor: InternshipMentorCapacity) => {
     setSelectedMentor(mentor);
     setMentorQuery(mentor.name);
@@ -127,6 +135,29 @@ export function useDelayedSchoolMentorAssignment({
     setSelectedMentor(null);
     setIsLoadingMentors(true);
   }, []);
+
+  const validateSchoolSelection = useCallback(() => {
+    if (selectedSchool) return;
+    if (!schoolQuery.trim()) return;
+    const exact = schools.find((school) => school.name === schoolQuery.trim());
+    if (exact) {
+      setSelectedSchool(exact);
+      setIsLoadingMentors(true);
+      return;
+    }
+    setSchoolQuery('');
+  }, [schoolQuery, schools, selectedSchool]);
+
+  const validateMentorSelection = useCallback(() => {
+    if (selectedMentor) return;
+    if (!mentorQuery.trim()) return;
+    const exact = mentors.find((mentor) => mentor.name === mentorQuery.trim());
+    if (exact) {
+      setSelectedMentor(exact);
+      return;
+    }
+    setMentorQuery('');
+  }, [mentorQuery, mentors, selectedMentor]);
 
   const submit = useCallback(async () => {
     if (!selectedSchool || !selectedMentor) {
@@ -177,8 +208,11 @@ export function useDelayedSchoolMentorAssignment({
     isSubmitting,
     setSchoolSearch,
     setMentorSearch,
+    beginSchoolPick,
     selectSchool,
     selectMentor,
+    validateSchoolSelection,
+    validateMentorSelection,
     submit,
   };
 }

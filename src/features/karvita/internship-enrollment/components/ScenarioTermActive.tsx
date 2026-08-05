@@ -61,25 +61,45 @@ function EnrollmentMeta({
   if (!enrollment) return null;
 
   return (
-    <KvCard padding="md" className="space-y-kv-field">
-      <div className="flex flex-wrap items-center justify-between gap-kv-pair">
-        <KvTypography variant="subtitle" as="h2">
-          اطلاعات دوره
-        </KvTypography>
-        <KvTypography variant="caption" tone="muted" as="span">
-          {enrollment.termTitle}
-        </KvTypography>
-      </div>
-      <div className="flex flex-wrap items-center gap-kv-pair">
-        <Badge variant="brand">استاد راهنما: {enrollment.supervisorName ?? 'نامشخص'}</Badge>
+    <div className="flex min-w-0 flex-grow flex-col gap-kv-pair text-start text-xs font-medium text-kv-text-secondary">
+      <div className="flex flex-wrap items-center gap-x-kv-group gap-y-kv-pair">
+        <span className="flex w-full items-center justify-between gap-kv-inline sm:w-auto sm:justify-start">
+          <span>استاد راهنما:</span>
+          <strong className="rounded-kv-control border border-kv-border bg-kv-surface-muted px-2 py-0.5 text-xs font-bold text-kv-text">
+            {enrollment.supervisorName ?? 'نامشخص'}
+          </strong>
+        </span>
         {enrollment.schoolName ? (
-          <Badge variant="info">مدرسه همکار: {enrollment.schoolName}</Badge>
+          <>
+            <span className="hidden text-kv-text-faint md:inline">|</span>
+            <span className="flex w-full items-center justify-between gap-kv-inline sm:w-auto sm:justify-start">
+              <span>مدرسه همکار:</span>
+              <strong className="rounded-kv-control border border-kv-border bg-kv-surface-muted px-2 py-0.5 text-xs font-bold text-kv-text">
+                {enrollment.schoolName}
+              </strong>
+            </span>
+          </>
         ) : null}
         {enrollment.mentorName ? (
-          <Badge variant="info">معلم ناظر: {enrollment.mentorName}</Badge>
+          <>
+            <span className="hidden text-kv-text-faint md:inline">|</span>
+            <span className="flex w-full items-center justify-between gap-kv-inline sm:w-auto sm:justify-start">
+              <span>معلم ناظر:</span>
+              <strong className="rounded-kv-control border border-kv-border bg-kv-surface-muted px-2 py-0.5 text-xs font-bold text-kv-text">
+                {enrollment.mentorName}
+              </strong>
+            </span>
+          </>
         ) : null}
+        <span className="hidden text-kv-text-faint md:inline">|</span>
+        <span className="flex w-full items-center justify-between gap-kv-inline sm:w-auto sm:justify-start">
+          <span>نیم‌سال:</span>
+          <strong className="rounded-kv-control border border-kv-border bg-kv-surface-muted px-2 py-0.5 text-xs font-bold text-kv-text">
+            {enrollment.termTitle}
+          </strong>
+        </span>
       </div>
-    </KvCard>
+    </div>
   );
 }
 
@@ -126,47 +146,62 @@ export function ScenarioTermActive({
         />
       ) : null}
 
-      <EnrollmentMeta state={state} />
+      <KvCard padding="md" className="pb-kv-group">
+        <div className="flex flex-col items-stretch justify-between gap-kv-group pb-kv-pair lg:flex-row lg:items-center">
+          {showAssignment ? (
+            <DelayedSchoolMentorAssignment
+              actor={actor}
+              state={state}
+              supervisorName={enrollment.supervisorName ?? 'نامشخص'}
+              disabled={enrollment.removalPending}
+              onAssignmentComplete={onAssignmentComplete}
+            />
+          ) : (
+            <EnrollmentMeta state={state} />
+          )}
 
-      {showAssignment ? (
-        <DelayedSchoolMentorAssignment
-          actor={actor}
-          state={state}
-          supervisorName={enrollment.supervisorName ?? 'نامشخص'}
-          disabled={enrollment.removalPending}
-          onAssignmentComplete={onAssignmentComplete}
-        />
-      ) : null}
+          <div className="flex shrink-0 items-center justify-end">
+            <div className="flex w-full flex-row items-center justify-between gap-kv-group rounded-kv-panel border border-kv-border bg-kv-surface px-kv-group py-kv-field text-start shadow-kv-raised lg:w-auto lg:min-w-[260px]">
+              <div className="flex flex-col gap-0.5 ps-kv-pair pe-kv-pair">
+                <KvTypography
+                  variant="caption"
+                  tone="muted"
+                  as="span"
+                  weight="bold"
+                >
+                  کارنامه تحصیلی جاری
+                </KvTypography>
+                <KvTypography variant="caption" tone="muted" as="p">
+                  وضعیت:{' '}
+                  <span className="font-bold text-kv-text-secondary">
+                    {enrollment.isTermArchived ? 'پایان‌یافته' : 'در جریان'}
+                  </span>
+                </KvTypography>
+              </div>
+              <Badge
+                variant={
+                  enrollment.progressiveGrade.gradedCount > 0
+                    ? 'success'
+                    : 'default'
+                }
+                className="font-mono font-bold"
+              >
+                نمره: {grade}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </KvCard>
 
       <KvCard padding="md" className="space-y-kv-group">
-        <div className="flex flex-col justify-between gap-kv-field sm:flex-row sm:items-center">
-          <div className="space-y-1">
-            <KvTypography variant="subtitle" as="h3">
-              کارنامه تحصیلی جاری
-            </KvTypography>
-            <KvTypography variant="caption" tone="muted" as="p">
-              وضعیت: {enrollment.isTermArchived ? 'پایان‌یافته' : 'در جریان'}
-            </KvTypography>
-          </div>
-          <Badge
-            variant={
-              enrollment.progressiveGrade.gradedCount > 0
-                ? 'success'
-                : 'default'
-            }
-          >
-            نمره: {grade}
-          </Badge>
-        </div>
-
-        <div className="flex flex-col justify-between gap-kv-field border-y border-kv-border py-kv-field sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-kv-field border-b border-kv-border pb-kv-field sm:flex-row sm:items-center">
           <KvTypography variant="label" as="h3">
             {reportTitle}
           </KvTypography>
           <KvButton
             type="button"
-            color="neutral"
-            appearance="secondary"
+            color="error"
+            appearance="solid"
             size="sm"
             icon={<FaIcon icon={faIcons.filePdf} size="sm" />}
             onClick={() =>

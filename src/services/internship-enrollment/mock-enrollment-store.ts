@@ -418,7 +418,8 @@ export function resolveEnrollmentScenario(input: {
   }
   if (input.registered) return 'S4_registered_waiting';
   if (!input.syllabusConfigured) return 'S1_syllabus_blocked';
-  if (input.enrollOpen && !input.termOpen) return 'S3_enroll_open';
+  // انتخاب واحد و برگزاری ترم مستقل‌اند؛ termOpen فقط مسیر بعد از ثبت‌نام را عوض می‌کند.
+  if (input.enrollOpen) return 'S3_enroll_open';
   return 'S2_enroll_closed';
 }
 
@@ -587,7 +588,7 @@ export function enrollWithSupervisor(
     throw new Error('سرفصل این درس هنوز برای ترم جاری فعال نشده است.');
   }
 
-  if (!context.enrollOpen || context.termOpen) {
+  if (!context.enrollOpen) {
     throw new Error('درگاه انتخاب واحد برای این ترم فعال نیست.');
   }
 

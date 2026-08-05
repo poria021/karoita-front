@@ -3,7 +3,7 @@
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 
 /**
- * سناریوی ۲ — مهلت انتخاب واحد گذشته / ترم در جریان بدون ثبت‌نام.
+ * سناریوی ۲ — درگاه انتخاب واحد بسته و کاربر ثبت‌نام نکرده.
  * امپتی خطر (قرمز کمرنگ)؛ بدون جدول گزارش هفتگی.
  */
 export function ScenarioEnrollClosed() {

@@ -47,6 +47,16 @@ describe('internship-enrollment mock helpers', () => {
       })
     ).toBe('S3_enroll_open');
 
+    // ترم باز هم انتخاب واحد را نمی‌بندد — فقط بعد از ثبت‌نام به S5 می‌رود.
+    expect(
+      resolveEnrollmentScenario({
+        syllabusConfigured: true,
+        enrollOpen: true,
+        termOpen: true,
+        registered: false,
+      })
+    ).toBe('S3_enroll_open');
+
     expect(
       resolveEnrollmentScenario({
         syllabusConfigured: true,

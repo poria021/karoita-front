@@ -116,6 +116,36 @@ describe('syllabus → enrollment wiring', () => {
     expect(state.termId).toBe('term_sem');
   });
 
+  it('keeps S3 when enroll and term gates are both open (gates are independent)', () => {
+    const draft = baseSnapshot();
+    const today = getTodayJalaliSlash();
+    draft.terms[0]!.isEnrollOpen = true;
+    draft.terms[0]!.enrollStart = today;
+    draft.terms[0]!.isTermOpen = true;
+    draft.terms[0]!.termStart = today;
+    activateOfferingInSnapshot(
+      draft,
+      'term_sem',
+      'course_internship_1',
+      'internship'
+    );
+    writeSyllabusSnapshot(draft);
+
+    const before = resolveEnrollmentPageState({ actor: student, level: 1 });
+    expect(before.scenario).toBe('S3_enroll_open');
+
+    enrollWithSupervisor({
+      actor: student,
+      kind: 'internship',
+      level: 1,
+      termId: 'term_sem',
+      supervisorId: 'sup-ahmadi',
+    });
+
+    const after = resolveEnrollmentPageState({ actor: student, level: 1 });
+    expect(after.scenario).toBe('S5_term_active');
+  });
+
   it('shows S2 when offering is active but enroll is closed', () => {
     const draft = baseSnapshot();
     activateOfferingInSnapshot(

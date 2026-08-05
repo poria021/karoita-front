@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
-import { KvTypography } from '@/components/shared/KvTypography';
 import type {
   InternshipEnrollmentRecordStatus,
   InternshipWeeklySession,
@@ -17,44 +16,60 @@ type SessionVisual = {
   label: string;
   legendLabel?: string;
   className: string;
+  hoverClassName: string;
   icon: (typeof faIcons)[keyof typeof faIcons];
 };
 
 const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
   locked_future: {
-    label: 'هفته آینده',
-    legendLabel: 'هفته‌های آینده',
-    className: 'border-kv-info-border bg-kv-info-soft text-kv-info-soft-fg',
+    label: 'آینده / ارسال‌نشده',
+    legendLabel: 'آینده / ارسال‌نشده',
+    className:
+      'border-kv-border bg-kv-surface-muted text-kv-text-faint shadow-none opacity-70',
+    hoverClassName:
+      'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-text-faint',
     icon: faIcons.lock,
   },
   overdue: {
     label: 'منقضی شده',
-    legendLabel: 'منقضی شده',
-    className: 'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
+    legendLabel: 'منقضی شده (فرصت سوخته)',
+    className:
+      'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
+    hoverClassName:
+      'enabled:hover:bg-kv-danger-soft-hover enabled:hover:text-kv-danger-soft-fg',
     icon: faIcons.clockRotateLeft,
   },
   extended: {
     label: 'فرصت مجدد',
     legendLabel: 'فرصت مجدد',
-    className: 'border-kv-info-border bg-kv-info-soft text-kv-info-soft-fg',
+    className: 'border-kv-brand-border bg-kv-brand-soft text-kv-brand-soft-fg',
+    hoverClassName:
+      'enabled:hover:bg-kv-brand-soft-hover enabled:hover:text-kv-brand-soft-fg',
     icon: faIcons.clockRotateLeft,
   },
   draft: {
-    label: 'ثبت نشده',
-    className: 'border-kv-border bg-kv-surface-muted text-kv-text-secondary',
+    label: 'آینده / ارسال‌نشده',
+    className: 'border-kv-border bg-kv-surface-muted text-kv-text-faint',
+    hoverClassName:
+      'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-text-faint',
     icon: faIcons.clipboardList,
   },
   pending: {
-    label: 'منتظر بازخورد',
+    label: 'منتظر بازخورد مدرسه',
     legendLabel: 'ارسال‌شده',
     className:
       'border-kv-warning-border bg-kv-warning-soft text-kv-warning-soft-fg',
+    hoverClassName:
+      'enabled:hover:bg-kv-warning-soft-hover enabled:hover:text-kv-warning-soft-fg',
     icon: faIcons.clock,
   },
   needs_edit: {
     label: 'نیازمند ویرایش',
     legendLabel: 'نیازمند ویرایش',
-    className: 'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
+    className:
+      'border-kv-warning-border bg-kv-warning-soft text-kv-warning-soft-fg',
+    hoverClassName:
+      'enabled:hover:bg-kv-warning-soft-hover enabled:hover:text-kv-warning-soft-fg',
     icon: faIcons.triangleExclamation,
   },
   approved: {
@@ -62,23 +77,31 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
     legendLabel: 'تاییدشده',
     className:
       'border-kv-success-border bg-kv-success-soft text-kv-success-soft-fg',
+    hoverClassName:
+      'enabled:hover:bg-kv-success-soft-hover enabled:hover:text-kv-success-soft-fg',
     icon: faIcons.check,
   },
   graded: {
-    label: 'نمره‌دهی شده',
+    label: 'نمره نهایی',
     legendLabel: 'نمره نهایی',
-    className:
-      'border-kv-success-border bg-kv-success text-kv-success-fg',
+    className: 'border-kv-success-border bg-kv-success text-kv-success-fg',
+    hoverClassName:
+      'enabled:hover:bg-kv-success-hover enabled:hover:text-kv-success-fg',
     icon: faIcons.circleCheck,
   },
   archived: {
     label: 'بایگانی شده',
     className: 'border-kv-border bg-kv-surface-muted text-kv-text-faint',
+    hoverClassName:
+      'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-text-faint',
     icon: faIcons.folderOpen,
   },
   locked_dropped: {
     label: 'حذف',
-    className: 'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
+    className:
+      'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
+    hoverClassName:
+      'enabled:hover:bg-kv-danger-soft-hover enabled:hover:text-kv-danger-soft-fg',
     icon: faIcons.lock,
   },
 };
@@ -102,13 +125,12 @@ export function InternshipWeeklyGrid({
   enrollmentStatus,
 }: InternshipWeeklyGridProps) {
   return (
-    <div className="space-y-kv-group">
-      <div className="grid grid-cols-2 gap-kv-pair sm:grid-cols-4">
+    <div className="space-y-kv-field">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {weeks.map((week, index) => {
           const status = effectiveWeeklySessionState(week, enrollmentStatus);
           const visual = SESSION_VISUALS[status];
-          const score =
-            status === 'graded' ? week.score ?? 92 : null;
+          const score = status === 'graded' ? (week.score ?? 92) : null;
 
           return (
             <KvButton
@@ -117,26 +139,26 @@ export function InternshipWeeklyGrid({
               color="neutral"
               appearance="secondary"
               size="md"
-              className={`h-auto min-h-28 flex-col items-stretch justify-between gap-kv-pair rounded-kv-panel p-kv-field text-start ${visual.className}`}
+              className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-panel border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName}`}
               aria-label={`نمایش گزارش هفته ${toPersianDigits(index + 1)}`}
               onClick={() =>
                 toast.message('ویرایش گزارش هفتگی در نسخهٔ فعلی در دسترس نیست.')
               }
             >
               <span className="flex w-full items-center justify-between gap-kv-inline">
-                <KvTypography variant="label" as="span" weight="black">
+                <span className="text-xs font-black leading-none">
                   هفته {toPersianDigits(index + 1)}
-                </KvTypography>
-                <FaIcon icon={visual.icon} size="sm" />
+                </span>
+                <FaIcon icon={visual.icon} size="xs" />
               </span>
-              <span className="space-y-1 text-start">
-                <KvTypography variant="caption" as="span" weight="bold">
+              <span className="flex w-full flex-col items-start justify-end gap-1 pt-kv-pair text-start">
+                <span className="block w-full text-xs font-bold leading-snug">
                   {visual.label}
-                </KvTypography>
+                </span>
                 {score !== null ? (
-                  <KvTypography variant="caption" as="span" weight="black">
+                  <span className="block w-full text-xs font-black leading-snug">
                     {toPersianDigits(score)}/۱۰۰
-                  </KvTypography>
+                  </span>
                 ) : null}
               </span>
             </KvButton>
@@ -144,18 +166,15 @@ export function InternshipWeeklyGrid({
         })}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-kv-group gap-y-kv-pair border-t border-kv-border pt-kv-field">
+      <div className="flex flex-wrap items-center gap-x-kv-group gap-y-kv-pair border-t border-kv-border pt-kv-field text-xs font-bold text-kv-text-faint">
         {Object.entries(SESSION_VISUALS)
           .filter(([, visual]) => visual.legendLabel)
           .map(([status, visual]) => (
-            <span
-              key={status}
-              className="flex items-center gap-kv-pair text-xs text-kv-text-secondary"
-            >
+            <span key={status} className="flex items-center gap-kv-pair">
               <span
-                className={`flex size-6 items-center justify-center rounded-kv-control border ${visual.className}`}
+                className={`flex size-5 items-center justify-center rounded-kv-control border shadow-kv-raised ${visual.className}`}
               >
-                <FaIcon icon={visual.icon} size="xs" />
+                <FaIcon icon={visual.icon} size="2xs" />
               </span>
               {visual.legendLabel}
             </span>
