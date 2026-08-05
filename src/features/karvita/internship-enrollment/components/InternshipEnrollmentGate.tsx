@@ -18,7 +18,7 @@ export function InternshipEnrollmentGate({
   state,
   isLoading,
 }: InternshipEnrollmentGateProps) {
-  if (isLoading && !state) {
+  if (isLoading) {
     return <KvBusySurface className="min-h-48 rounded-kv-card" />;
   }
 
