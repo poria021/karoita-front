@@ -82,13 +82,42 @@ export type InternshipWeeklySessionState =
   | 'extended'
   | 'locked_dropped';
 
+export type InternshipWeeklyReportFile = {
+  id: string;
+  name: string;
+  /** English decimal megabytes in data contracts; display with `toPersianDigits`. */
+  sizeMb: number;
+  mimeType?: string;
+};
+
+export type InternshipWeeklyReportFeedback = {
+  advisor?: string;
+  mentor?: string;
+  principal?: string;
+};
+
 export type InternshipWeeklySession = {
   id: string;
   title: string;
   status: InternshipWeeklySessionState;
   score: number | null;
   isExtended?: boolean;
+  text?: string;
+  files?: InternshipWeeklyReportFile[];
+  feedback?: InternshipWeeklyReportFeedback;
 };
+
+export type SaveWeeklyReportDraftInput = {
+  actor: InternshipEnrollmentActor;
+  kind: InternshipCourseKind;
+  level: InternshipEnrollmentLevel;
+  termId: string;
+  weekId: string;
+  text: string;
+  files: InternshipWeeklyReportFile[];
+};
+
+export type SubmitWeeklyReportInput = SaveWeeklyReportDraftInput;
 
 export type InternshipProgressiveGrade = {
   gradedCount: number;
