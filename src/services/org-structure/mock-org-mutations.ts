@@ -11,6 +11,7 @@ import type {
   OrgDistrict,
   OrgFaculty,
   OrgMajor,
+  OrgMajorAudience,
   OrgProvince,
   OrgSchool,
   OrgSchoolGender,
@@ -36,7 +37,7 @@ export type UpsertSchoolInput = {
   districtId: string;
   gender: OrgSchoolGender;
 };
-export type UpsertMajorInput = { name: string };
+export type UpsertMajorInput = { name: string; audience: OrgMajorAudience };
 
 function newId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -53,6 +54,24 @@ function assertUniqueName(
   );
   if (clash) {
     throw new Error('این نام قبلاً در سامانه ثبت شده است.');
+  }
+}
+
+function assertUniqueMajorNameForAudience(
+  items: OrgMajor[],
+  name: string,
+  audience: OrgMajorAudience,
+  excludeId?: string
+): void {
+  const clean = name.trim();
+  const clash = items.some(
+    (item) =>
+      item.name === clean &&
+      item.audience === audience &&
+      item.id !== excludeId
+  );
+  if (clash) {
+    throw new Error('این رشته برای این مخاطب قبلاً ثبت شده است.');
   }
 }
 
@@ -247,13 +266,14 @@ export function mockUpsertMajor(input: UpsertMajorInput, editId?: string): void 
   const db = readOrgSnapshot();
   const name = input.name.trim();
   if (!name) throw new Error('نام رشته الزامی است.');
-  assertUniqueName(db.majors, name, editId);
+  if (!input.audience) throw new Error('انتخاب مخاطب رشته الزامی است.');
+  assertUniqueMajorNameForAudience(db.majors, name, input.audience, editId);
   if (editId) {
     db.majors = db.majors.map((m) =>
-      m.id === editId ? { ...m, name } : m
+      m.id === editId ? { ...m, name, audience: input.audience } : m
     );
   } else {
-    db.majors.push({ id: newId('maj'), name });
+    db.majors.push({ id: newId('maj'), name, audience: input.audience });
   }
   writeOrgSnapshot(db);
 }

@@ -5,6 +5,7 @@ import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
 import { faIcons } from '@/utils/iconMap';
 import {
   persianToEnglishDigits,
@@ -23,6 +24,7 @@ interface GlobalSettingsCardsProps {
   passingThreshold: string;
   onPassingThresholdChange: (value: string) => void;
   onSavePassingThreshold: () => void;
+  isLoading?: boolean;
 }
 
 function normalizeDigitsOnly(raw: string): string {
@@ -36,6 +38,7 @@ export function GlobalSettingsCards({
   passingThreshold,
   onPassingThresholdChange,
   onSavePassingThreshold,
+  isLoading = false,
 }: GlobalSettingsCardsProps) {
   const capacityInvalid = !professorCapacitySchema.safeParse({
     capacity: professorCapacity,
@@ -57,6 +60,7 @@ export function GlobalSettingsCards({
         onSave={onSaveProfessorCapacity}
         saveLabel="ذخیره ظرفیت"
         disabled={capacityInvalid}
+        isLoading={isLoading}
       />
 
       <SettingsMetricCard
@@ -70,6 +74,7 @@ export function GlobalSettingsCards({
         onSave={onSavePassingThreshold}
         saveLabel="ذخیره نمره"
         disabled={thresholdInvalid}
+        isLoading={isLoading}
       />
     </div>
   );
@@ -84,6 +89,7 @@ function SettingsMetricCard({
   onSave,
   saveLabel,
   disabled,
+  isLoading,
 }: {
   icon: typeof faIcons.userGroup;
   title: string;
@@ -93,6 +99,7 @@ function SettingsMetricCard({
   onSave: () => void;
   saveLabel: string;
   disabled: boolean;
+  isLoading?: boolean;
 }) {
   return (
     <KvCard>
@@ -107,15 +114,21 @@ function SettingsMetricCard({
             </div>
           </div>
           <div className="w-28 shrink-0">
-            <KvTextField
-              label={false}
-              size="md"
-              inputMode="numeric"
-              dir="ltr"
-              value={displayValue}
-              onChange={(event) => onValueChange(event.target.value)}
-            />
-            <span className="sr-only">{value}</span>
+            {isLoading ? (
+              <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
+            ) : (
+              <>
+                <KvTextField
+                  label={false}
+                  size="md"
+                  inputMode="numeric"
+                  dir="ltr"
+                  value={displayValue}
+                  onChange={(event) => onValueChange(event.target.value)}
+                />
+                <span className="sr-only">{value}</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -126,7 +139,7 @@ function SettingsMetricCard({
             appearance="solid"
             size="sm"
             className="w-full sm:w-auto"
-            disabled={disabled}
+            disabled={disabled || isLoading}
             onClick={onSave}
           >
             {saveLabel}

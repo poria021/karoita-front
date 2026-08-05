@@ -37,6 +37,7 @@ const sampleDb: OrgStructureSnapshot = {
   majors: Array.from({ length: 25 }, (_, i) => ({
     id: `m${i + 1}`,
     name: `رشته ${String(i + 1).padStart(2, '0')}`,
+    audience: 'student' as const,
   })),
 };
 

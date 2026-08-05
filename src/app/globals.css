@@ -8,6 +8,12 @@
 @theme inline {
   /* معرفی فونت وزیرمتن به عنوان فونت بدون‌سریف پیش‌فرض Tailwind v4 */
   --font-sans: var(--font-vazirmatn), sans-serif;
+  /* Header brand wordmark — same family as UI, heavy weight (institutional) */
+  --font-kv-wordmark: var(--font-vazirmatn), sans-serif;
+  /* Official typography wordmark «کارویتا» — tint with currentColor */
+  --kv-brand-wordmark: url("/brand/karvita-wordmark.png?v=9");
+  /* Official geometric mark (monochrome, no bg) — tint with currentColor */
+  --kv-brand-mark: url("/brand/karvita-mark.png");
 
   --radius-sm: var(--radius-kv-tight);
   --radius-md: var(--radius-kv-control);
@@ -664,6 +670,41 @@ input[readonly]:-webkit-autofill {
 
 .kv-auth-enter {
   animation: kv-auth-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * Official Karvita mark — transparent silhouette; color via currentColor
+ * (e.g. text-kv-brand). No baked background.
+ */
+.kv-brand-mark {
+  display: block;
+  flex-shrink: 0;
+  aspect-ratio: 906 / 688;
+  background-color: currentColor;
+  -webkit-mask-image: var(--kv-brand-mark);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+  mask-image: var(--kv-brand-mark);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+}
+
+/* Official typography «کارویتا» — transparent ink, tint via currentColor */
+.kv-brand-wordmark {
+  display: block;
+  flex-shrink: 0;
+  aspect-ratio: 1235 / 323;
+  background-color: currentColor;
+  -webkit-mask-image: var(--kv-brand-wordmark);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center right;
+  -webkit-mask-size: contain;
+  mask-image: var(--kv-brand-wordmark);
+  mask-repeat: no-repeat;
+  mask-position: center right;
+  mask-size: contain;
 }
 
 /* Soft stagger for marketing hero visual (same motion, delayed). */

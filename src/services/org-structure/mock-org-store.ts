@@ -9,6 +9,7 @@ import type {
   OrgDistrict,
   OrgFaculty,
   OrgMajor,
+  OrgMajorAudience,
   OrgProvince,
   OrgSchool,
   OrgStructureEntityKind,
@@ -16,6 +17,29 @@ import type {
 } from '@/types/org-structure';
 
 const STORAGE_KEY = 'karvita_mock_org_structure_v3';
+
+const VALID_MAJOR_AUDIENCES = new Set<OrgMajorAudience>([
+  'student',
+  'skill_learner',
+  'supervisor_professor',
+]);
+
+function normalizeMajors(
+  majors: Array<Partial<OrgMajor> & { id?: string; name?: string }> | undefined
+): OrgMajor[] {
+  if (!Array.isArray(majors)) return [];
+  return majors
+    .filter((row): row is Partial<OrgMajor> & { id: string; name: string } =>
+      Boolean(row?.id && row?.name)
+    )
+    .map((row) => ({
+      id: row.id,
+      name: row.name,
+      audience: VALID_MAJOR_AUDIENCES.has(row.audience as OrgMajorAudience)
+        ? (row.audience as OrgMajorAudience)
+        : 'student',
+    }));
+}
 
 export type OrgEntityIdMaps = {
   province: Map<string, OrgProvince>;
@@ -119,7 +143,7 @@ function loadSnapshotFromStorage(): OrgStructureSnapshot {
       faculties: parsed.faculties ?? [],
       districts: parsed.districts ?? [],
       schools: parsed.schools ?? [],
-      majors: parsed.majors ?? [],
+      majors: normalizeMajors(parsed.majors),
     };
   } catch {
     const seed = buildOrgStructureSeed();
@@ -170,7 +194,7 @@ type OrgListFilterCache = {
   revision: number;
   tab: string;
   queryKey: string;
-  rows: Array<{ id: string; name: string }>;
+  rows: Array<{ id: string; name: string; audience?: OrgMajorAudience }>;
 };
 
 let listFilterCache: OrgListFilterCache | null = null;

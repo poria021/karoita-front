@@ -17,7 +17,7 @@ import {
 
 /**
  * Hydrate syllabus page domain state from the dashboard module cache
- * and keep a soft-refresh snapshot in memory (rule 83).
+ * and keep a soft-refresh snapshot in memory (rule 83 / 84).
  */
 export function useSyllabusPageState(section: SyllabusConfigSubTab) {
   const cacheKey = cacheKeyFor(section);
@@ -46,7 +46,6 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
   const [passingThreshold, setPassingThreshold] = useState(
     () => cached?.passingThreshold ?? '70'
   );
-  const [isCold, setIsCold] = useState(!hasCache);
 
   function persistCache(next: {
     terms: AcademicTerm[];
@@ -74,7 +73,7 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
   }
 
   useEffect(() => {
-    if (isCold || terms.length === 0) return;
+    if (terms.length === 0) return;
     setData<SyllabusPageCache>(cacheKey, {
       terms,
       selectedTermId,
@@ -95,7 +94,6 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     offeredCatalogIds,
     professorCapacity,
     passingThreshold,
-    isCold,
     setData,
   ]);
 
@@ -119,8 +117,6 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     setProfessorCapacity,
     passingThreshold,
     setPassingThreshold,
-    isCold,
-    setIsCold,
     persistCache,
   };
 }

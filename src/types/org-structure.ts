@@ -66,9 +66,16 @@ export interface OrgSchool {
   gender: OrgSchoolGender;
 }
 
+/** Roles that pick a major in profile / onboarding. */
+export type OrgMajorAudience =
+  | 'student'
+  | 'skill_learner'
+  | 'supervisor_professor';
+
 export interface OrgMajor {
   id: string;
   name: string;
+  audience: OrgMajorAudience;
 }
 
 export interface OrgStructureSnapshot {

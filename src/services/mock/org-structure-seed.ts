@@ -1,4 +1,7 @@
-import type { OrgStructureSnapshot } from '@/types/org-structure';
+import type {
+  OrgMajorAudience,
+  OrgStructureSnapshot,
+} from '@/types/org-structure';
 
 /**
  * Seed بزرگ‌تر از یک صفحه (DEFAULT_PAGE_LIMIT=10) تا paging جدول‌های ادمین
@@ -208,25 +211,28 @@ const BRANCHES: Array<{
   },
 ];
 
-const MAJOR_NAMES: string[] = [
-  'آموزش ابتدایی',
-  'آموزش ریاضی',
-  'آموزش فیزیک',
-  'آموزش شیمی',
-  'آموزش زیست‌شناسی',
-  'آموزش زبان انگلیسی',
-  'آموزش زبان و ادبیات فارسی',
-  'آموزش علوم اجتماعی',
-  'آموزش تاریخ',
-  'آموزش جغرافیا',
-  'آموزش تربیت بدنی',
-  'آموزش هنر',
-  'مشاوره تحصیلی',
-  'روان‌شناسی تربیتی',
-  'تکنولوژی آموزشی',
-  'مدیریت آموزشی',
-  'الکترونیک صنعتی',
-  'مهندسی کامپیوتر',
+const MAJOR_SEED: Array<{
+  name: string;
+  audience: OrgMajorAudience;
+}> = [
+  { name: 'آموزش ابتدایی', audience: 'student' },
+  { name: 'آموزش ریاضی', audience: 'student' },
+  { name: 'آموزش فیزیک', audience: 'student' },
+  { name: 'آموزش شیمی', audience: 'student' },
+  { name: 'آموزش زیست‌شناسی', audience: 'student' },
+  { name: 'آموزش زبان انگلیسی', audience: 'student' },
+  { name: 'آموزش زبان و ادبیات فارسی', audience: 'student' },
+  { name: 'آموزش علوم اجتماعی', audience: 'student' },
+  { name: 'آموزش تاریخ', audience: 'student' },
+  { name: 'آموزش جغرافیا', audience: 'student' },
+  { name: 'آموزش تربیت بدنی', audience: 'student' },
+  { name: 'آموزش هنر', audience: 'student' },
+  { name: 'مشاوره تحصیلی', audience: 'supervisor_professor' },
+  { name: 'روان‌شناسی تربیتی', audience: 'supervisor_professor' },
+  { name: 'تکنولوژی آموزشی', audience: 'skill_learner' },
+  { name: 'مدیریت آموزشی', audience: 'supervisor_professor' },
+  { name: 'الکترونیک صنعتی', audience: 'skill_learner' },
+  { name: 'مهندسی کامپیوتر', audience: 'skill_learner' },
 ];
 
 let seq = 1;
@@ -286,9 +292,10 @@ export function buildOrgStructureSeed(): OrgStructureSnapshot {
     });
   }
 
-  const majors = MAJOR_NAMES.map((name) => ({
+  const majors = MAJOR_SEED.map((major) => ({
     id: nextId('maj'),
-    name,
+    name: major.name,
+    audience: major.audience,
   }));
 
   return { provinces, cities, faculties, districts, schools, majors };

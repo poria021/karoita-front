@@ -3,6 +3,7 @@ import Link from 'next/link';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
+import { KarvitaWordmarkText } from '@/components/shared/KarvitaWordmarkText';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { RouteService } from '@/services/route.service';
@@ -45,10 +46,8 @@ export default function MarketingHomePage() {
     >
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-kv-group px-kv-inset pt-kv-inset sm:px-kv-page sm:pt-kv-page">
         <div className="flex items-center gap-kv-inline">
-          <KarvitaBrandMark className="h-8 shadow-none sm:h-9" />
-          <KvTypography variant="subtitle" as="p" tone="brand">
-            کارویتا
-          </KvTypography>
+          <KarvitaBrandMark className="size-9 p-0.5 shadow-none sm:size-10" />
+          <KarvitaWordmarkText className="w-28 text-kv-brand-soft-fg sm:w-32" />
         </div>
 
         <KvButton asChild color="neutral" appearance="ghost" size="sm">
@@ -74,16 +73,10 @@ export default function MarketingHomePage() {
         >
           <div className="kv-auth-enter mx-auto flex w-full max-w-3xl flex-col items-center gap-kv-section px-kv-inset pt-kv-region pb-kv-block text-center sm:px-kv-page sm:pt-kv-layout sm:pb-kv-region">
             <div className="flex flex-col items-center gap-kv-stack">
-              <KarvitaBrandMark className="h-16 sm:h-20" />
-              <KvTypography
-                variant="display"
-                tone="brand"
-                as="h1"
-                id="marketing-hero-brand"
-                align="center"
-              >
-                کارویتا
-              </KvTypography>
+              <KarvitaBrandMark className="size-16 p-1 sm:size-20 sm:p-1.5" />
+              <h1 id="marketing-hero-brand" className="flex justify-center">
+                <KarvitaWordmarkText className="w-56 text-kv-brand-soft-fg sm:w-64" />
+              </h1>
             </div>
 
             <div className="flex max-w-xl flex-col gap-kv-group">

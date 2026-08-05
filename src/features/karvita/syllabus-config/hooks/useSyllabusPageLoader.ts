@@ -18,7 +18,8 @@ type UseSyllabusPageLoaderArgs = {
 };
 
 /**
- * Snapshot + term-context loading with race guards and cold-first paint (rule 83).
+ * Snapshot + term-context loading with race guards.
+ * Chrome stays mounted; only data regions use `isLoading` busy (rule 84).
  */
 export function useSyllabusPageLoader({
   section,
@@ -26,7 +27,6 @@ export function useSyllabusPageLoader({
 }: UseSyllabusPageLoaderArgs) {
   const {
     hasCache,
-    terms,
     selectedTermId,
     selectedCourse,
     setTerms,
@@ -38,7 +38,6 @@ export function useSyllabusPageLoader({
     setOfferedCatalogIds,
     setProfessorCapacity,
     setPassingThreshold,
-    setIsCold,
     persistCache,
   } = state;
 
@@ -119,7 +118,6 @@ export function useSyllabusPageLoader({
         professorCapacity: String(snapshot.globalProfessorCapacity),
         passingThreshold: String(snapshot.passingScoreThreshold),
       });
-      setIsCold(false);
       return;
     }
 
@@ -153,7 +151,6 @@ export function useSyllabusPageLoader({
         passingThreshold: String(snapshot.passingScoreThreshold),
       });
     }
-    setIsCold(false);
   }
 
   async function reload() {
@@ -168,7 +165,6 @@ export function useSyllabusPageLoader({
       if (requestId !== loadRequestIdRef.current) return;
       setError(errorMessage(err, 'بارگذاری تنظیمات ترم ناموفق بود.'));
       setIsLoading(false);
-      if (!hasCache && terms.length === 0) setIsCold(true);
     }
   }
 
@@ -185,7 +181,6 @@ export function useSyllabusPageLoader({
         if (requestId !== loadRequestIdRef.current) return;
         setError(errorMessage(err, 'بارگذاری تنظیمات ترم ناموفق بود.'));
         setIsLoading(false);
-        if (!hasCache) setIsCold(true);
       }
     })();
     // initial mount only

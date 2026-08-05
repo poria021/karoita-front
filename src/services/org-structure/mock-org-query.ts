@@ -9,6 +9,7 @@ import {
 } from '@/services/org-structure/mock-org-store';
 import {
   orgEntityKindFromTab,
+  type OrgMajorAudience,
   type OrgStructureEntityKind,
   type OrgStructureSnapshot,
   type OrgStructureSubTab,
@@ -23,6 +24,7 @@ export type OrgStructureListItem = {
   name: string;
   kind: OrgStructureEntityKind;
   deleteBlocked: boolean;
+  audience?: OrgMajorAudience;
 };
 
 export type OrgStructureListPage = OffsetLimitPage<OrgStructureListItem>;
@@ -42,7 +44,11 @@ export function filterByName<T extends { name: string }>(
 
 export const kindFromTab = orgEntityKindFromTab;
 
-type NamedRow = { id: string; name: string };
+type NamedRow = {
+  id: string;
+  name: string;
+  audience?: OrgMajorAudience;
+};
 
 function rawRowsForTab(
   db: OrgStructureSnapshot,
@@ -103,6 +109,7 @@ export function pageOrgRowsFromRuntime(
     name: row.name,
     kind,
     deleteBlocked: isDeleteBlockedWithSets(kind, row.id, runtime.deleteBlocked),
+    ...(row.audience ? { audience: row.audience } : {}),
   }));
 
   return {

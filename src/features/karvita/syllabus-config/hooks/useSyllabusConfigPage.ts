@@ -31,7 +31,6 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     setProfessorCapacity,
     passingThreshold,
     setPassingThreshold,
-    isCold,
   } = state;
 
   const [isSaving, setIsSaving] = useState(false);
@@ -102,7 +101,6 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     offeredCatalogIds,
     weeks,
     hasUnsavedChanges,
-    isCold,
     isLoading,
     isSaving,
     error,

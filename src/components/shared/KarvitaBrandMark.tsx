@@ -4,27 +4,22 @@ interface KarvitaBrandMarkProps {
   className?: string;
 }
 
-/** Official Karvita mark — brand solid + inverse stroke (auth + marketing). */
+/**
+ * Official Karvita mark — compact brand well, glyph fills most of the box.
+ */
 export function KarvitaBrandMark({ className }: KarvitaBrandMarkProps) {
   return (
-    <svg
+    <span
+      role="img"
+      aria-hidden="true"
       className={cn(
-        'h-11 w-auto shrink-0 rounded-kv-control shadow-kv-raised sm:h-12',
+        'inline-flex shrink-0 items-center justify-center rounded-kv-control',
+        'bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20',
+        'size-8 p-0.5 sm:size-9',
         className
       )}
-      viewBox="0 0 45 45"
-      fill="none"
-      aria-hidden="true"
     >
-      <rect width="45" height="45" rx="12" className="fill-kv-brand" />
-      <path
-        d="M14 12V33M14 22.5L28 12M20.5 22.5L28.5 33"
-        className="stroke-kv-text-inverse"
-        stroke="currentColor"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+      <span className="kv-brand-mark size-full" />
+    </span>
   );
 }

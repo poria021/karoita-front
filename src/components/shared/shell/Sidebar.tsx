@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useId, useRef } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
 import { cn } from '@/lib/utils';
@@ -82,12 +83,7 @@ export function Sidebar() {
         >
           <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">
             <div className="flex min-w-0 items-center gap-kv-inline">
-              <div
-                className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20"
-                aria-hidden="true"
-              >
-                <FaIcon icon={faIcons.tableColumns} size="sm" />
-              </div>
+              <KarvitaBrandMark />
               <h2 id={drawerTitleId} className="sr-only">
                 کارویتا — پنل کاربری - {strategy.label}
               </h2>
