@@ -4,6 +4,7 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
 import {
   persianToEnglishDigits,
@@ -14,7 +15,6 @@ import {
   professorCapacitySchema,
   passingThresholdSchema,
 } from '../schemas/syllabus-config.schema';
-import { TermSettingsCardTitle } from './TermSettingsCardTitle';
 
 interface GlobalSettingsCardsProps {
   professorCapacity: string;
@@ -101,7 +101,9 @@ function SettingsMetricCard({
           <div className="flex min-w-0 flex-1 items-center gap-kv-pair">
             <KvCardTitleIcon icon={icon} />
             <div className="min-w-0">
-              <TermSettingsCardTitle>{title}</TermSettingsCardTitle>
+              <KvTypography variant="subtitle" weight="black" as="h4">
+                {title}
+              </KvTypography>
             </div>
           </div>
           <div className="w-28 shrink-0">
