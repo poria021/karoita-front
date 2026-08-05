@@ -1,22 +1,160 @@
 import Link from 'next/link';
 
-import { KvButton } from '@/components/shared/KvButton';
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvButton } from '@/components/shared/KvButton';
 import { RouteService } from '@/services/route.service';
 import { faIcons } from '@/utils/iconMap';
+
+import { MarketingInternshipMockup } from './MarketingInternshipMockup';
+
+function InternshipBlueprintArt() {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-0 size-full select-none overflow-hidden"
+      aria-hidden
+    >
+      <div className="absolute left-1/4 top-12 size-[500px] rounded-full bg-kv-brand-soft/20 blur-[120px]" />
+      <div className="absolute bottom-12 right-1/4 size-[400px] rounded-full bg-kv-success-soft/15 blur-[100px]" />
+
+      <svg
+        className="absolute left-1/2 top-1/2 h-[900px] w-[1440px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.28]"
+        viewBox="0 0 1440 900"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient id="kvInternNeonBrand" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--kv-brand)" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="var(--kv-info)" stopOpacity="0.1" />
+          </linearGradient>
+          <linearGradient id="kvInternNeonSuccess" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="var(--kv-success)" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="var(--kv-success)" stopOpacity="0.1" />
+          </linearGradient>
+          <linearGradient id="kvInternNeonViolet" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--kv-violet)" stopOpacity="0.75" />
+            <stop offset="100%" stopColor="var(--kv-violet)" stopOpacity="0.05" />
+          </linearGradient>
+          <linearGradient id="kvInternGrid" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="var(--kv-border)" stopOpacity="0.6" />
+            <stop offset="50%" stopColor="var(--kv-border)" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="var(--kv-border)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        <g stroke="url(#kvInternGrid)" strokeWidth="0.5">
+          <line x1="80" y1="0" x2="80" y2="900" />
+          <line x1="280" y1="0" x2="280" y2="900" />
+          <line x1="480" y1="0" x2="480" y2="900" strokeDasharray="4 8" />
+          <line x1="720" y1="0" x2="720" y2="900" />
+          <line x1="960" y1="0" x2="960" y2="900" strokeDasharray="4 8" />
+          <line x1="1160" y1="0" x2="1160" y2="900" />
+          <line x1="1360" y1="0" x2="1360" y2="900" />
+        </g>
+
+        <path
+          d="M1200,220 C950,120 750,520 480,420 C320,360 200,580 80,480"
+          stroke="url(#kvInternNeonBrand)"
+          strokeWidth="1.5"
+          strokeDasharray="3 6"
+          fill="none"
+        />
+        <path
+          d="M1200,220 C950,120 750,520 480,420 C320,360 200,580 80,480"
+          stroke="url(#kvInternNeonBrand)"
+          strokeWidth="0.75"
+          fill="none"
+        />
+        <path
+          d="M720,680 C500,720 380,320 280,220"
+          stroke="url(#kvInternNeonSuccess)"
+          strokeWidth="1.25"
+          fill="none"
+        />
+
+        <g transform="translate(1080, 160)">
+          <circle
+            cx="80"
+            cy="80"
+            r="75"
+            stroke="url(#kvInternNeonBrand)"
+            strokeWidth="0.75"
+            strokeDasharray="8 4"
+          />
+          <ellipse
+            cx="80"
+            cy="80"
+            rx="55"
+            ry="25"
+            stroke="url(#kvInternNeonBrand)"
+            strokeWidth="1"
+            transform="rotate(-30 80 80)"
+          />
+          <ellipse
+            cx="80"
+            cy="80"
+            rx="55"
+            ry="25"
+            stroke="url(#kvInternNeonBrand)"
+            strokeWidth="1"
+            transform="rotate(30 80 80)"
+          />
+          <circle
+            cx="80"
+            cy="80"
+            r="16"
+            fill="url(#kvInternNeonBrand)"
+            fillOpacity="0.15"
+            stroke="url(#kvInternNeonBrand)"
+            strokeWidth="1.5"
+          />
+          <circle cx="80" cy="80" r="4" fill="var(--kv-brand)" />
+        </g>
+
+        <g transform="translate(620, 480)">
+          <g stroke="url(#kvInternNeonViolet)" strokeWidth="1">
+            <polygon
+              points="100,20 150,45 100,70 50,45"
+              fill="var(--kv-violet-soft)"
+              fillOpacity="0.25"
+            />
+            <line x1="50" y1="45" x2="50" y2="95" />
+            <line x1="100" y1="70" x2="100" y2="120" />
+            <line x1="150" y1="45" x2="150" y2="95" />
+          </g>
+        </g>
+
+        <g transform="translate(180, 260)">
+          <g stroke="url(#kvInternNeonSuccess)" strokeWidth="1">
+            <polygon
+              points="40,120 110,85 110,135 40,170"
+              fill="var(--kv-success-soft)"
+              fillOpacity="0.2"
+            />
+            <path
+              d="M60,150 L210,40 M210,40 L170,40 M210,40 L210,80"
+              stroke="var(--kv-success)"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </g>
+        </g>
+      </svg>
+    </div>
+  );
+}
 
 export function MarketingInternshipSection() {
   const loginHref = RouteService.auth.login();
 
   return (
-    <section className="relative w-full">
-      <div className="pointer-events-none absolute inset-0 size-full select-none overflow-hidden" aria-hidden="true">
-        <div className="absolute left-1/4 top-12 size-[500px] rounded-full bg-kv-brand-soft/20 blur-[120px]" />
-        <div className="absolute bottom-12 right-1/4 size-[400px] rounded-full bg-kv-success-soft/15 blur-[100px]" />
-      </div>
+    <section id="internship" className="relative w-full">
+      <InternshipBlueprintArt />
 
       <div className="relative z-10 mx-auto max-w-7xl px-kv-inset sm:px-kv-page">
-        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12 lg:gap-16">
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
           <div className="space-y-6 text-right lg:col-span-5">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-kv-border-muted bg-kv-surface/80 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-kv-text-secondary shadow-sm">
               <span className="size-1.5 rounded-full bg-kv-brand" /> سامانه جامع
@@ -75,122 +213,15 @@ export function MarketingInternshipSection() {
             <div className="pt-3">
               <KvButton asChild size="lg" color="cta" className="shadow-lg">
                 <Link href={loginHref} prefetch={false}>
-                  <FaIcon icon={faIcons.arrowLeft} size="sm" className="rtl:rotate-180" />
+                  <FaIcon icon={faIcons.rightToBracket} size="sm" />
                   <span>ورود به سامانه مدیریت کارورزی</span>
                 </Link>
               </KvButton>
             </div>
           </div>
 
-          <div className="relative mt-8 flex h-[300px] w-full items-center justify-center sm:h-[340px] lg:col-span-7 lg:mt-0 lg:h-[360px]">
-            <div className="absolute size-[200px] rounded-full bg-gradient-to-tr from-kv-brand/10 to-kv-violet/5 blur-[60px] sm:size-[260px]" />
-
-            <div className="relative z-10 h-[210px] w-[75%] overflow-hidden rounded-2xl border border-kv-border-muted bg-kv-surface shadow-xl sm:h-[240px] sm:w-[70%] lg:h-[260px] lg:w-[72%]">
-              <div className="flex h-10 items-center justify-between border-b border-kv-border-muted bg-kv-surface px-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex size-6 select-none items-center justify-center rounded-md bg-kv-brand text-[11px] font-black text-kv-brand-fg">
-                    K
-                  </div>
-                  <span className="text-[9px] font-black text-kv-text">
-                    مدیریت کارورزی کارویتا
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="flex flex-col gap-0.5 text-left text-[8px] font-bold text-kv-text-muted">
-                    <div className="h-1.5 w-12 rounded bg-kv-border" />
-                    <div className="h-1 w-8 rounded bg-kv-border-muted" />
-                  </div>
-                  <span className="text-xs text-kv-border">|</span>
-                  <button className="text-kv-text-subtle hover:text-kv-text">
-                    <FaIcon icon={faIcons.bell} size="xs" />
-                  </button>
-                  <span className="text-xs text-kv-border">|</span>
-                  <button className="flex items-center gap-1 text-[9px] font-black text-kv-danger hover:text-kv-danger-hover">
-                    <div className="h-1.5 w-3 rounded bg-kv-danger-soft" />
-                    <FaIcon icon={faIcons.powerOff} size="2xs" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex h-[calc(100%-40px)] w-full gap-2.5 bg-kv-surface-subtle p-2.5">
-                <div className="flex w-[18%] shrink-0 flex-col gap-2.5 rounded-lg bg-kv-surface p-1.5">
-                  <div className="h-px bg-kv-border-muted" />
-                  <nav className="space-y-2">
-                    <div className="flex items-center gap-1 text-kv-brand">
-                      <FaIcon icon={faIcons.chartLine} size="2xs" className="w-3 text-center" />
-                      <div className="h-1 w-1/2 rounded bg-kv-brand-soft" />
-                    </div>
-                    <div className="flex items-center gap-1 text-kv-text-subtle">
-                      <FaIcon icon={faIcons.graduationCap} size="2xs" className="w-3 text-center" />
-                      <div className="h-1 w-2/3 rounded bg-kv-border-muted" />
-                    </div>
-                    <div className="flex items-center gap-1 text-kv-text-subtle">
-                      <FaIcon icon={faIcons.fileInvoice} size="2xs" className="w-3 text-center" />
-                      <div className="h-1 w-1/3 rounded bg-kv-border-muted" />
-                    </div>
-                  </nav>
-                </div>
-
-                <div className="flex w-[82%] flex-col gap-2.5 overflow-hidden">
-                  <div className="grid shrink-0 grid-cols-3 gap-2">
-                    <div className="flex flex-col gap-1 rounded-lg border border-kv-border-muted bg-kv-surface p-2">
-                      <div className="flex items-center gap-1 text-kv-brand">
-                        <FaIcon icon={faIcons.clipboardCheck} size="2xs" />
-                        <div className="text-[9px] font-black text-kv-text">۲۴ گزارش</div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 rounded-lg border border-kv-border-muted bg-kv-surface p-2">
-                      <div className="flex items-center gap-1 text-kv-success">
-                        <FaIcon icon={faIcons.circleCheck} size="2xs" />
-                        <div className="text-[9px] font-black text-kv-text">۱۸ تایید</div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 rounded-lg border border-kv-border-muted bg-kv-surface p-2">
-                      <div className="flex items-center gap-1 text-kv-warning">
-                        <FaIcon icon={faIcons.clock} size="2xs" />
-                        <div className="text-[9px] font-black text-kv-text">۶ اصلاح</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-grow flex-col gap-1.5 overflow-hidden rounded-lg border border-kv-border-muted bg-kv-surface p-2.5">
-                    <div className="flex shrink-0 items-center justify-between border-b border-kv-border-muted pb-1">
-                      <div className="flex w-1/3 items-center gap-1">
-                        <FaIcon icon={faIcons.clipboardList} size="2xs" className="text-kv-brand" />
-                        <div className="h-1.5 w-1/2 rounded bg-kv-border" />
-                      </div>
-                      <span className="text-[8px] font-bold text-kv-text-subtle">
-                        آخرین وضعیت
-                      </span>
-                    </div>
-
-                    <div className="flex-grow overflow-auto">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 border-b border-kv-border-muted py-1">
-                          <span className="text-[8px] font-mono text-kv-text-subtle">۱</span>
-                          <div className="h-1 w-12 rounded bg-kv-border" />
-                          <div className="h-1 w-16 rounded bg-kv-border-muted" />
-                          <span className="inline-block rounded bg-kv-success-soft px-1 py-0.5 text-[7px] font-black text-kv-success">
-                            تایید
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 py-1">
-                          <span className="text-[8px] font-mono text-kv-text-subtle">۲</span>
-                          <div className="h-1 w-14 rounded bg-kv-border" />
-                          <div className="h-1 w-12 rounded bg-kv-border-muted" />
-                          <span className="inline-block rounded bg-kv-warning-soft px-1 py-0.5 text-[7px] font-black text-kv-warning">
-                            انتظار
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="lg:col-span-7">
+            <MarketingInternshipMockup />
           </div>
         </div>
       </div>
