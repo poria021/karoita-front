@@ -10,6 +10,10 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
 interface WeekEditDialogProps {
   open: boolean;
@@ -46,9 +50,11 @@ export function WeekEditDialog({
         <KvTextField
           label="عنوان سرفصل"
           size="md"
-          value={title}
+          value={toPersianDigits(title)}
           error={error ?? undefined}
-          onChange={(event) => onTitleChange(event.target.value)}
+          onChange={(event) =>
+            onTitleChange(persianToEnglishDigits(event.target.value))
+          }
         />
 
         <KvDialogFooter>

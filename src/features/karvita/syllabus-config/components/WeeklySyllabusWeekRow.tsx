@@ -12,6 +12,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { SyllabusWeek } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
+import { toPersianDigits } from '@/utils/persianDigits';
 
 import { WEEK_WEIGHT_OPTIONS } from '../constants';
 
@@ -64,7 +65,7 @@ export function WeeklySyllabusWeekRow({
         emphasis={!muted}
         className={cn('max-w-0 truncate', muted && 'text-kv-text-faint')}
       >
-        {week.title || week.suffix}
+        {toPersianDigits(week.title || week.suffix)}
       </KvTableCell>
       <KvTableCell
         align="center"
@@ -75,6 +76,10 @@ export function WeeklySyllabusWeekRow({
             label={false}
             size="sm"
             value={String(week.weight)}
+            displayValue={
+              WEEK_WEIGHT_OPTIONS.find((option) => option.value === week.weight)
+                ?.label
+            }
             disabled={!contentEditable}
             onValueChange={(value) =>
               onWeightChange(week.id, Number.parseInt(value, 10))

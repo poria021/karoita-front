@@ -74,7 +74,9 @@ export function useSyllabusWeeksEditor({
       )
     );
     setHasUnsavedChanges(true);
-    toast.success(`جلسه ${target.suffix} مجدداً به کارتابل فراگیران بازگشت.`);
+    toast.success(
+      `جلسه ${toPersianDigits(target.suffix)} مجدداً به کارتابل فراگیران بازگشت.`
+    );
   }
 
   function archiveWeek(target: SyllabusWeek) {
@@ -87,7 +89,7 @@ export function useSyllabusWeeksEditor({
       )
     );
     setHasUnsavedChanges(true);
-    toast.warning(`جلسه (${target.suffix}) موقتاً آرشیو گردید.`);
+    toast.warning(`جلسه (${toPersianDigits(target.suffix)}) موقتاً آرشیو گردید.`);
   }
 
   function addWeek() {
@@ -118,7 +120,7 @@ export function useSyllabusWeeksEditor({
     setWeeks((prev) => {
       const next = prev.filter((week) => week.id !== deleteWeekTarget.id);
       toast.warning(
-        `هفته «${deleteWeekTarget.title || deleteWeekTarget.suffix}» حذف شد.`
+        `هفته «${toPersianDigits(deleteWeekTarget.title || deleteWeekTarget.suffix)}» حذف شد.`
       );
       setHasUnsavedChanges(true);
       return next;

@@ -107,6 +107,13 @@ export function TermFormCard({
               required
               size="md"
               value={editTermId || '__new__'}
+              displayValue={
+                editTermId
+                  ? `ویرایش دوره: ${toPersianDigits(
+                      terms.find((term) => term.id === editTermId)?.title ?? ''
+                    )}`
+                  : '-- ایجاد و تعریف دوره تحصیلی جدید --'
+              }
               onValueChange={(value) =>
                 onSelectEditTerm(value === '__new__' ? '' : value)
               }
@@ -148,6 +155,7 @@ export function TermFormCard({
                 required
                 size="md"
                 value={termPrefix}
+                displayValue={toPersianDigits(termPrefix)}
                 disabled={isEditing}
                 onValueChange={onTermPrefixChange}
               >
@@ -163,6 +171,7 @@ export function TermFormCard({
                 required
                 size="md"
                 value={termYear}
+                displayValue={displayAcademicYear(termYear)}
                 disabled={isEditing}
                 onValueChange={onTermYearChange}
               >

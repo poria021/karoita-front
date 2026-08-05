@@ -43,7 +43,7 @@ function SuccessNotice({
       ? '---'
       : toPersianDigits(enrollment.progressiveGrade.final20);
   const description = isCompleted
-    ? `این درس در نیم‌سال ${enrollment.termTitle} با نمره نهایی ${grade} از ۲۰ با موفقیت ثبت قطعی شده است.`
+    ? `این درس در نیم‌سال ${toPersianDigits(enrollment.termTitle)} با نمره نهایی ${grade} از ۲۰ با موفقیت ثبت قطعی شده است.`
     : 'این نیم‌سال تحصیلی خاتمه یافته و پرونده دوره با موفقیت ثبت نهایی گردیده است. گزارش‌ها و نمرات ثبت‌شده شما در ادامه قابل دسترسی است.';
 
   return (
@@ -98,7 +98,7 @@ function EnrollmentMeta({
         <span className="flex w-full items-center justify-between gap-kv-inline sm:w-auto sm:justify-start">
           <span>نیم‌سال:</span>
           <strong className="rounded-kv-control border border-kv-border bg-kv-surface-muted px-2 py-0.5 text-xs font-bold text-kv-text">
-            {enrollment.termTitle}
+            {toPersianDigits(enrollment.termTitle)}
           </strong>
         </span>
       </div>

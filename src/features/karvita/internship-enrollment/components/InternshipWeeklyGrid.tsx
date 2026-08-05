@@ -128,7 +128,7 @@ export function InternshipWeeklyGrid({
 }: InternshipWeeklyGridProps) {
   return (
     <div className="space-y-kv-field">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-kv-group sm:grid-cols-4">
         {weeks.map((week, index) => {
           const status = effectiveWeeklySessionState(week, enrollmentStatus);
           const visual = SESSION_VISUALS[status];

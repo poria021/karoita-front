@@ -161,7 +161,7 @@ function SyllabusModulePage({ section }: SyllabusModulePageProps) {
             title="حذف هفته"
             description={
               page.deleteWeekTarget
-                ? `آیا از حذف هفته «${page.deleteWeekTarget.title || page.deleteWeekTarget.suffix}» اطمینان دارید؟`
+                ? `آیا از حذف هفته «${toPersianDigits(page.deleteWeekTarget.title || page.deleteWeekTarget.suffix)}» اطمینان دارید؟`
                 : ''
             }
             confirmText="حذف هفته"

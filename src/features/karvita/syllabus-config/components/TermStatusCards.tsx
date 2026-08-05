@@ -69,6 +69,11 @@ export function TermStatusCards({
                 label={false}
                 size="sm"
                 value={selectedTerm?.id ?? ''}
+                displayValue={
+                  selectedTerm
+                    ? toPersianDigits(selectedTerm.title)
+                    : undefined
+                }
                 onValueChange={onSelectTerm}
                 placeholder="انتخاب ترم"
               >

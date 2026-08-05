@@ -29,6 +29,11 @@ export type KvSelectFieldProps = {
   contentClassName?: string;
   /** Extra classes on the trigger (e.g. denser height beside icon buttons). */
   triggerClassName?: string;
+  /**
+   * Force trigger label (e.g. Persian digits). When set, overrides ItemText
+   * in the closed trigger so raw English `value` never leaks into the UI.
+   */
+  displayValue?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -58,6 +63,7 @@ export const KvSelectField = React.forwardRef<
     disabled,
     contentClassName,
     triggerClassName,
+    displayValue,
     children,
   },
   ref
@@ -104,7 +110,13 @@ export const KvSelectField = React.forwardRef<
             triggerClassName
           )}
         >
-          <KvSelectValue placeholder={placeholder} />
+          {displayValue != null && displayValue !== '' ? (
+            <KvSelectValue placeholder={placeholder}>
+              {displayValue}
+            </KvSelectValue>
+          ) : (
+            <KvSelectValue placeholder={placeholder} />
+          )}
         </KvSelectTrigger>
         <KvSelectContent className={contentClassName}>{children}</KvSelectContent>
       </KvSelect>

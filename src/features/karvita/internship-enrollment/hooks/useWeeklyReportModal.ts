@@ -10,6 +10,7 @@ import type {
   InternshipWeeklyReportFile,
   InternshipWeeklySession,
 } from '@/types/internship-enrollment';
+import { toPersianDigits } from '@/utils/persianDigits';
 
 import {
   getWeeklyReportLockNotice,
@@ -72,9 +73,9 @@ export function useWeeklyReportModal({
     locked && lockContext ? getWeeklyReportLockNotice(lockContext) : null;
 
   const title = week?.title?.trim()
-    ? week.title
+    ? toPersianDigits(week.title)
     : week
-      ? `گزارش هفته`
+      ? 'گزارش هفته'
       : 'ویرایش گزارش';
 
   const busy = isSavingDraft || isSubmitting;
