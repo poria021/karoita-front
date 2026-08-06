@@ -21,7 +21,7 @@ describe('live nav / admin plane', () => {
     );
   });
 
-  it('only exposes live sidebar links for student and super_admin', () => {
+  it('only exposes implemented links in each role sidebar', () => {
     const studentMenu = getVisibleSidebarMenu('student');
     expect(studentMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
@@ -46,9 +46,21 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.internshipSelection(2),
     ]);
 
+    const supervisorMenu = getVisibleSidebarMenu('supervisor_professor');
+    expect(
+      supervisorMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
+    ).toEqual([
+      RouteService.karvita.dashboard(),
+      RouteService.karvita.dailyApprovals(),
+    ]);
+
+    const mentorMenu = getVisibleSidebarMenu('mentor_teacher');
+    expect(mentorMenu.map((entry) => entry.title)).toEqual(['میز کار']);
+
     expect(
       isLiveSidebarPath(RouteService.karvita.internshipSelection(1))
     ).toBe(true);
+    expect(isLiveSidebarPath(RouteService.karvita.dailyApprovals())).toBe(true);
     expect(isLiveSidebarPath(RouteService.karvita.internshipSelection())).toBe(
       false
     );

@@ -36,6 +36,7 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.landingCms(),
   RouteService.karvita.syllabusCourseOfferings(),
   RouteService.karvita.syllabusTermSettings(),
+  RouteService.karvita.dailyApprovals(),
   ...INTERNSHIP_LEVEL_PATHS,
 ];
 
@@ -65,6 +66,7 @@ export function isLiveSidebarPath(pathname: string): boolean {
     path === RouteService.karvita.landingCms() ||
     path === RouteService.karvita.syllabusCourseOfferings() ||
     path === RouteService.karvita.syllabusTermSettings() ||
+    path === RouteService.karvita.dailyApprovals() ||
     INTERNSHIP_LEVEL_PATHS.includes(path)
   );
 }

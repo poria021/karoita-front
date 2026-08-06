@@ -192,15 +192,10 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      {
-        title: 'ارزیابی گزارش‌های فراگیران',
-        path: RouteService.karvita.dailyApprovals(),
-        icon: 'fa-clipboard-check',
-      },
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'daily-approval.review', 'reports.view'],
+    permissions: ['dashboard.view', 'reports.view'],
   },
 
   school_principal: {
