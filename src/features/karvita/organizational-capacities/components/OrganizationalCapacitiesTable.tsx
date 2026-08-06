@@ -22,7 +22,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 import { OrganizationalCapacitiesDayToggles } from './OrganizationalCapacitiesDayToggles';
 import {
-  CAPACITY_METRIC_BOX,
+  CAPACITY_CONFIRMED_VALUE,
   OrganizationalCapacitiesTotalField,
 } from './OrganizationalCapacitiesTotalField';
 
@@ -74,7 +74,7 @@ export function OrganizationalCapacitiesTable({
                 />
               </KvTableCell>
               <KvTableCell align="center">
-                <span className={cn(CAPACITY_METRIC_BOX, 'mx-auto')}>
+                <span className={cn(CAPACITY_CONFIRMED_VALUE, 'mx-auto')}>
                   {toPersianDigits(course.confirmed)} نفر
                 </span>
               </KvTableCell>

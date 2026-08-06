@@ -128,7 +128,7 @@ export function MarketingInternshipMockup() {
                 <table className="w-full text-right text-xs">
                   <thead>
                     <tr className="border-b border-kv-border-muted text-kv-text-subtle">
-                      <th className="w-10 pb-1 font-bold">ردیف</th>
+                      <th className="w-10 pb-1 font-bold">#</th>
                       <th className="pb-1 font-bold">نام کارورز</th>
                       <th className="pb-1 font-bold">موضوع گزارش</th>
                       <th className="w-16 pb-1 text-center font-bold">وضعیت</th>

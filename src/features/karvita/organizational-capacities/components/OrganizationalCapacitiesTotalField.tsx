@@ -4,10 +4,17 @@ import { KvInput } from '@/components/shared/fields/KvInput';
 import { cn } from '@/lib/utils';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-/** Shared metric chip for ظرفیت پذیرش / ثبت‌نام قطعی. */
+/** Editable chip for ظرفیت پذیرش. */
 export const CAPACITY_METRIC_BOX = [
   'inline-flex h-8 w-24 shrink-0 items-center justify-center',
   'rounded-kv-control border border-kv-border bg-kv-surface-muted',
+  'text-xs font-bold text-kv-text-secondary',
+].join(' ');
+
+/** Readonly confirmed count — border only, no filled box. */
+export const CAPACITY_CONFIRMED_VALUE = [
+  'inline-flex h-8 w-24 shrink-0 items-center justify-center',
+  'rounded-kv-control border border-kv-border bg-transparent',
   'text-xs font-bold text-kv-text-secondary',
 ].join(' ');
 

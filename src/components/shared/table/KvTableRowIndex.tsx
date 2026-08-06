@@ -24,7 +24,7 @@ export function KvTableRowIndexHead({
       className={cn(INDEX_COL_CLASS, className)}
       {...props}
     >
-      ردیف
+      #
     </KvTableHead>
   );
 }
