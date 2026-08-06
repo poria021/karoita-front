@@ -69,7 +69,7 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
               restoreWeek={page.restoreWeek}
               archiveWeek={page.archiveWeek}
               addWeek={page.addWeek}
-              requestDeleteWeek={page.requestDeleteWeek}
+              deleteWeek={page.deleteWeek}
               saveSyllabus={page.saveSyllabus}
             />
           ) : (
@@ -151,21 +151,6 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
                 : ''
             }
             confirmText="غیرفعال کردن"
-            cancelText="انصراف"
-            confirmVariant="destructive"
-          />
-
-          <KvConfirmationDialog
-            isOpen={page.deleteWeekConfirmOpen}
-            onClose={page.clearDeleteWeek}
-            onConfirm={page.confirmDeleteWeek}
-            title="حذف هفته"
-            description={
-              page.deleteWeekTarget
-                ? `آیا از حذف هفته «${toPersianDigits(page.deleteWeekTarget.title || page.deleteWeekTarget.suffix)}» اطمینان دارید؟`
-                : ''
-            }
-            confirmText="حذف هفته"
             cancelText="انصراف"
             confirmVariant="destructive"
           />

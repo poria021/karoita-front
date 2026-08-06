@@ -5,7 +5,8 @@ const { toastMock } = vi.hoisted(() => {
   return {
     toastMock: Object.assign(toastFn, {
       message: vi.fn(),
-      error: vi.fn(),
+      error: vi.fn(() => 'toast-error'),
+      warning: vi.fn(() => 'toast-warning'),
       success: vi.fn(),
       dismiss: vi.fn(),
     }),
@@ -16,7 +17,10 @@ vi.mock('sonner', () => ({
   toast: toastMock,
 }));
 
-import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
+import {
+  scheduleUndoableLocalChange,
+  scheduleUndoableMutation,
+} from '@/lib/undoable-mutation';
 
 describe('scheduleUndoableMutation', () => {
   beforeEach(() => {
@@ -75,5 +79,32 @@ describe('scheduleUndoableMutation', () => {
 
     expect(commit).not.toHaveBeenCalled();
     expect(toastMock.message).toHaveBeenCalled();
+  });
+});
+
+describe('scheduleUndoableLocalChange', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('applies immediately and reverts on undo with error tone', () => {
+    const apply = vi.fn();
+    const revert = vi.fn();
+
+    scheduleUndoableLocalChange({
+      tone: 'error',
+      message: 'حذف شد',
+      apply,
+      revert,
+    });
+
+    expect(apply).toHaveBeenCalledTimes(1);
+    expect(toastMock.error).toHaveBeenCalled();
+
+    const opts = toastMock.error.mock.calls[0]?.[1] as {
+      action?: { onClick: () => void };
+    };
+    opts.action?.onClick();
+    expect(revert).toHaveBeenCalledTimes(1);
   });
 });

@@ -29,7 +29,7 @@ type CourseOfferingsPanelProps = Pick<
   | 'restoreWeek'
   | 'archiveWeek'
   | 'addWeek'
-  | 'requestDeleteWeek'
+  | 'deleteWeek'
   | 'saveSyllabus'
 >;
 
@@ -80,7 +80,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
           onRestoreWeek={props.restoreWeek}
           onArchiveWeek={props.archiveWeek}
           onAddWeek={props.addWeek}
-          onDeleteWeek={props.requestDeleteWeek}
+          onDeleteWeek={props.deleteWeek}
           onSave={() => void props.saveSyllabus()}
         />
       </div>

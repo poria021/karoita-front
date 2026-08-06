@@ -11,10 +11,13 @@ import {
 } from '@/services/internship-enrollment/mock-enrollment-store';
 import {
   activateOfferingInSnapshot,
+  buildSeedWeeks,
   getTodayJalaliSlash,
+  INTERNSHIP_DEFAULT_WEEKS,
   resetSyllabusSnapshotForTests,
   writeSyllabusSnapshot,
 } from '@/services/syllabus-config/mock-syllabus-store';
+import { buildCourseOfferingId } from '@/services/syllabus-config/syllabus-mappers';
 import type { InternshipEnrollmentActor } from '@/types/internship-enrollment';
 import type { SyllabusConfigSnapshot } from '@/types/syllabus-config';
 
@@ -199,6 +202,14 @@ describe('syllabus → enrollment wiring', () => {
       'course_internship_1',
       'internship'
     );
+    const offeringId = buildCourseOfferingId(
+      'term_sem',
+      'course_internship_1'
+    );
+    draft.offerings[offeringId]!.weeks = buildSeedWeeks(
+      INTERNSHIP_DEFAULT_WEEKS,
+      'active'
+    );
     writeSyllabusSnapshot(draft);
     enrollWithSupervisor({
       actor: student,
@@ -241,7 +252,7 @@ describe('syllabus → enrollment wiring', () => {
     expect(state.scenario).toBe('S5_term_active');
     expect(state.enrollment?.schoolName).toBe('دبیرستان ماندگار البرز');
     expect(state.enrollment?.mentorName).toBe('آقای مرتضی ملکی');
-    expect(state.enrollment?.weeks).toHaveLength(16);
+    expect(state.enrollment?.weeks).toHaveLength(INTERNSHIP_DEFAULT_WEEKS);
   });
 
   it('uses S5 for completed and removal-pending records outside the open term', () => {

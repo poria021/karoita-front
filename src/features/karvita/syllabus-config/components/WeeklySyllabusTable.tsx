@@ -93,7 +93,7 @@ export function WeeklySyllabusTable({
             <KvButton
               type="button"
               color="neutral"
-              appearance="secondary"
+              appearance="ghost"
               size="sm"
               className="w-full sm:w-auto"
               disabled={!canEdit || !hasLastWeek}
@@ -109,15 +109,21 @@ export function WeeklySyllabusTable({
             <KvButton
               type="button"
               color="warning"
-              appearance="secondary"
+              appearance="ghost"
               size="sm"
-              className="w-full sm:w-auto"
+              className="w-full text-kv-warning sm:w-auto"
               disabled={!canEdit || !hasLastWeek}
               aria-label="آرشیو آخرین هفته"
               onClick={() => {
                 if (lastWeek) onArchiveWeek(lastWeek);
               }}
-              icon={<FaIcon icon={faIcons.folderOpen} size="xs" />}
+              icon={
+                <FaIcon
+                  icon={faIcons.folderOpen}
+                  size="xs"
+                  className="text-kv-warning"
+                />
+              }
             >
               آخرین هفته
             </KvButton>
@@ -126,15 +132,21 @@ export function WeeklySyllabusTable({
           <KvButton
             type="button"
             color="error"
-            appearance="secondary"
+            appearance="ghost"
             size="sm"
-            className="w-full sm:w-auto"
+            className="w-full text-kv-danger sm:w-auto"
             disabled={!canEdit || !hasLastWeek}
             aria-label="حذف آخرین هفته"
             onClick={() => {
               if (lastWeek) onDeleteWeek(lastWeek);
             }}
-            icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+            icon={
+              <FaIcon
+                icon={faIcons.trashCan}
+                size="xs"
+                className="text-kv-danger"
+              />
+            }
           >
             آخرین هفته
           </KvButton>

@@ -3,6 +3,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
+import { scheduleUndoableLocalChange } from '@/lib/undoable-mutation';
 import {
   DEFAULT_WEEK_WEIGHT,
   SyllabusConfigService,
@@ -38,9 +39,6 @@ export function useSyllabusWeeksEditor({
   const [weekEditId, setWeekEditId] = useState<string | null>(null);
   const [weekEditTitle, setWeekEditTitle] = useState('');
   const [weekEditError, setWeekEditError] = useState<string | null>(null);
-  const [deleteWeekTarget, setDeleteWeekTarget] = useState<SyllabusWeek | null>(
-    null
-  );
 
   function ensureCourseSelected() {
     if (!selectedTermId || !selectedCourse) {
@@ -79,15 +77,26 @@ export function useSyllabusWeeksEditor({
 
   function archiveWeek(target: SyllabusWeek) {
     if (!ensureCourseSelected()) return;
-    setWeeks((prev) =>
-      prev.map((week) =>
-        week.id === target.id
-          ? { ...week, status: 'archived' as const }
-          : week
-      )
-    );
-    setHasUnsavedChanges(true);
-    toast.warning(`جلسه (${toPersianDigits(target.suffix)}) موقتاً آرشیو گردید.`);
+    const previous = weeks;
+    const label = toPersianDigits(target.title || target.suffix);
+
+    scheduleUndoableLocalChange({
+      tone: 'warning',
+      message: `جلسه «${label}» آرشیو شد.`,
+      apply: () => {
+        setWeeks((prev) =>
+          prev.map((week) =>
+            week.id === target.id
+              ? { ...week, status: 'archived' as const }
+              : week
+          )
+        );
+        setHasUnsavedChanges(true);
+      },
+      revert: () => {
+        setWeeks(previous);
+      },
+    });
   }
 
   function addWeek() {
@@ -108,22 +117,22 @@ export function useSyllabusWeeksEditor({
     });
   }
 
-  function requestDeleteWeek(target: SyllabusWeek) {
+  function deleteWeek(target: SyllabusWeek) {
     if (!ensureCourseSelected()) return;
-    setDeleteWeekTarget(target);
-  }
+    const previous = weeks;
+    const label = toPersianDigits(target.title || target.suffix);
 
-  function confirmDeleteWeek() {
-    if (!deleteWeekTarget) return;
-    setWeeks((prev) => {
-      const next = prev.filter((week) => week.id !== deleteWeekTarget.id);
-      toast.warning(
-        `هفته «${toPersianDigits(deleteWeekTarget.title || deleteWeekTarget.suffix)}» حذف شد.`
-      );
-      setHasUnsavedChanges(true);
-      return next;
+    scheduleUndoableLocalChange({
+      tone: 'error',
+      message: `هفته «${label}» حذف شد.`,
+      apply: () => {
+        setWeeks((prev) => prev.filter((week) => week.id !== target.id));
+        setHasUnsavedChanges(true);
+      },
+      revert: () => {
+        setWeeks(previous);
+      },
     });
-    setDeleteWeekTarget(null);
   }
 
   function openWeekEdit(week: SyllabusWeek) {
@@ -187,11 +196,7 @@ export function useSyllabusWeeksEditor({
     restoreWeek,
     archiveWeek,
     addWeek,
-    requestDeleteWeek,
-    deleteWeekTarget,
-    deleteWeekConfirmOpen: Boolean(deleteWeekTarget),
-    clearDeleteWeek: () => setDeleteWeekTarget(null),
-    confirmDeleteWeek,
+    deleteWeek,
     weekEditId,
     weekEditTitle,
     setWeekEditTitle,

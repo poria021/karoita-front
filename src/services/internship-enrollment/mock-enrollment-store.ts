@@ -1,4 +1,3 @@
-import { isMockApiMode } from '@/lib/api-mode';
 import {
   filterEligibleSupervisors,
   hasAvailableCapacity,
@@ -18,6 +17,24 @@ import {
   buildCourseOfferingId,
   catalogIdForKind,
 } from '@/services/syllabus-config/syllabus-mappers';
+import {
+  clampLevel,
+  courseNameForKind,
+  kindForRole,
+  maxLevelForKind,
+  resolveEnrollmentScenario,
+} from '@/services/internship-enrollment/enrollment-mappers';
+import {
+  type EnrollmentSnapshot,
+  type WeekReportOverride,
+  readSnapshot,
+  writeSnapshot,
+} from '@/services/internship-enrollment/mock-enrollment-persistence';
+import {
+  MENTORS,
+  SCHOOLS,
+  SUPERVISOR_SEEDS,
+} from '@/services/internship-enrollment/mock-enrollment-seeds';
 import type {
   AssignDelayedSchoolMentorInput,
   EnrollWithSupervisorInput,
@@ -27,8 +44,6 @@ import type {
   InternshipEnrollmentLevel,
   InternshipEnrollmentPageState,
   InternshipEnrollmentRecord,
-  InternshipEnrollmentRecordStatus,
-  InternshipEnrollmentRole,
   InternshipEnrollmentScenario,
   InternshipEnrollmentSummary,
   InternshipMentorCapacity,
@@ -47,174 +62,17 @@ import type {
   SubmitWeeklyReportInput,
 } from '@/types/internship-enrollment';
 
-const STORAGE_KEY = 'karvita_mock_internship_enrollments_v1';
+export {
+  clampLevel,
+  courseNameForKind,
+  kindForRole,
+  maxLevelForKind,
+  resolveEnrollmentScenario,
+} from '@/services/internship-enrollment/enrollment-mappers';
+export { resetEnrollmentSnapshotForTests } from '@/services/internship-enrollment/mock-enrollment-persistence';
+
 const PLACEHOLDER_UNSET = 'مشخص نشده';
 const MAX_ATTACHMENT_TOTAL_MB = 100;
-
-type WeekReportOverride = {
-  text: string;
-  files: InternshipWeeklyReportFile[];
-  status: Extract<
-    InternshipWeeklySessionState,
-    'draft' | 'pending' | 'needs_edit'
-  >;
-  feedback?: InternshipWeeklyReportFeedback;
-};
-
-type EnrollmentSnapshot = {
-  records: InternshipEnrollmentRecord[];
-  confirmedCapacity: Record<string, number>;
-  weekReports: Record<string, WeekReportOverride>;
-};
-
-type SupervisorSeed = Omit<InternshipSupervisor, 'capacity'> & {
-  totalCapacity: number | null;
-};
-
-const SUPERVISOR_SEEDS: SupervisorSeed[] = [
-  {
-    id: 'sup-ahmadi',
-    name: 'دکتر سارا احمدی',
-    college: 'پردیس شهید باهنر تهران',
-    province: 'تهران',
-    day: 'شنبه',
-    totalCapacity: 3,
-  },
-  {
-    id: 'sup-rahimi',
-    name: 'دکتر نادر رحیمی',
-    college: 'پردیس شهید باهنر تهران',
-    province: 'تهران',
-    day: 'دوشنبه',
-    totalCapacity: null,
-  },
-  {
-    id: 'sup-farhadi',
-    name: 'دکتر لیلا فرهادی',
-    college: 'پردیس شهید باهنر اصفهان',
-    province: 'اصفهان',
-    day: 'سه‌شنبه',
-    totalCapacity: 2,
-  },
-  {
-    id: 'sup-readonly',
-    name: 'دکتر مینا حیدری',
-    college: 'پردیس شهید باهنر تهران',
-    province: 'تهران',
-    day: 'چهارشنبه',
-    totalCapacity: 5,
-    readOnly: true,
-  },
-  {
-    id: 'sup-full',
-    name: 'دکتر کامران حسینی',
-    college: 'پردیس شهید باهنر تهران',
-    province: 'تهران',
-    day: 'پنج‌شنبه',
-    totalCapacity: 0,
-  },
-];
-
-const SCHOOLS: InternshipSchoolCapacity[] = [
-  {
-    id: 'school-tehran-1',
-    name: 'دبیرستان ماندگار البرز',
-    province: 'تهران',
-    district: 'ناحیه ۱ تهران',
-    capacities: { 1: 4, 2: 4, 3: 4, 4: 4 },
-  },
-  {
-    id: 'school-tehran-2',
-    name: 'مدرسه فرهنگ',
-    province: 'تهران',
-    district: 'ناحیه ۲ تهران',
-    capacities: { 1: null, 2: null, 3: null, 4: null },
-  },
-  {
-    id: 'school-isfahan-1',
-    name: 'دبیرستان سعدی',
-    province: 'اصفهان',
-    district: 'ناحیه ۱ اصفهان',
-    capacities: { 1: 2, 2: 2, 3: 2, 4: 2 },
-  },
-];
-
-const MENTORS: InternshipMentorCapacity[] = [
-  {
-    id: 'mentor-tehran-1',
-    name: 'آقای مرتضی ملکی',
-    schoolId: 'school-tehran-1',
-    capacities: { 1: 3, 2: 3, 3: 3, 4: 3 },
-  },
-  {
-    id: 'mentor-tehran-2',
-    name: 'خانم الهام جعفری',
-    schoolId: 'school-tehran-2',
-    capacities: { 1: null, 2: null, 3: null, 4: null },
-  },
-  {
-    id: 'mentor-isfahan-1',
-    name: 'آقای سعید نوری',
-    schoolId: 'school-isfahan-1',
-    capacities: { 1: 2, 2: 2, 3: 2, 4: 2 },
-  },
-];
-
-let memorySnapshot: EnrollmentSnapshot | null = null;
-
-function isBrowser(): boolean {
-  return typeof window !== 'undefined';
-}
-
-function emptySnapshot(): EnrollmentSnapshot {
-  return { records: [], confirmedCapacity: {}, weekReports: {} };
-}
-
-function readSnapshot(): EnrollmentSnapshot {
-  if (memorySnapshot) {
-    memorySnapshot = {
-      records: memorySnapshot.records ?? [],
-      confirmedCapacity: memorySnapshot.confirmedCapacity ?? {},
-      weekReports: memorySnapshot.weekReports ?? {},
-    };
-    return memorySnapshot;
-  }
-
-  if (isBrowser() && isMockApiMode()) {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<EnrollmentSnapshot>;
-        memorySnapshot = {
-          records: parsed.records ?? [],
-          confirmedCapacity: parsed.confirmedCapacity ?? {},
-          weekReports: parsed.weekReports ?? {},
-        };
-        return memorySnapshot;
-      }
-    } catch {
-      // A damaged mock value must not prevent the enrollment route from loading.
-    }
-  }
-
-  memorySnapshot = emptySnapshot();
-  return memorySnapshot;
-}
-
-function writeSnapshot(snapshot: EnrollmentSnapshot): EnrollmentSnapshot {
-  memorySnapshot = structuredClone(snapshot);
-  if (isBrowser() && isMockApiMode()) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(memorySnapshot));
-  }
-  return memorySnapshot;
-}
-
-/** Test helper — replace or clear enrollment mock persistence. */
-export function resetEnrollmentSnapshotForTests(
-  snapshot?: EnrollmentSnapshot | null
-): void {
-  memorySnapshot = snapshot ? structuredClone(snapshot) : null;
-}
 
 function capacityKey(
   termId: string,
@@ -358,34 +216,34 @@ function buildWeeklySessions(input: {
     input.termId,
     catalogIdForKind(input.kind, input.level)
   );
-  const syllabusWeeks = syllabus.offerings[offeringId]?.weeks ?? [];
-  const weeks =
-    syllabusWeeks.length > 0
-      ? syllabusWeeks
-      : Array.from({ length: INTERNSHIP_DEFAULT_WEEKS }, (_, index) => ({
-          id: `week-${index + 1}`,
-          title: `هفته ${index + 1}`,
-          suffix: String(index + 1),
-          weight: 1,
-          status: 'active' as const,
-        }));
+  const offering = syllabus.offerings[offeringId];
+  /** After syllabus save: card count = rows of that course offering. */
+  const weeks = offering
+    ? offering.weeks
+    : Array.from({ length: INTERNSHIP_DEFAULT_WEEKS }, (_, index) => ({
+        id: `week-${index + 1}`,
+        title: `هفته ${index + 1}`,
+        suffix: String(index + 1),
+        weight: 1,
+        status: 'active' as const,
+      }));
 
   const snapshot = readSnapshot();
 
   return weeks.map((week, index) => {
     const seededStatus: InternshipWeeklySessionState =
       week.status === 'archived' ? 'archived' : statusForWeek(index);
-    const override =
-      (snapshot.weekReports ?? {})[
-        weekReportKey({
-          userId: input.userId,
-          termId: input.termId,
-          kind: input.kind,
-          level: input.level,
-          weekId: week.id,
-        })
-      ];
-    const status = override?.status ?? seededStatus;
+    const reportKey = weekReportKey({
+      userId: input.userId,
+      termId: input.termId,
+      kind: input.kind,
+      level: input.level,
+      weekId: week.id,
+    });
+    const reports = snapshot.weekReports ?? {};
+    const override = reportKey in reports ? reports[reportKey] : undefined;
+    const status: InternshipWeeklySessionState =
+      override?.status ?? seededStatus;
     const feedback = override?.feedback ?? seededFeedbackForStatus(status);
     const text = override?.text ?? seededTextForStatus(status);
     const files = override?.files ?? [];
@@ -561,56 +419,6 @@ function buildEnrollmentSummary(input: {
     weeks: input.weeks,
     progressiveGrade: buildProgressiveGrade(input.weeks),
   };
-}
-
-export function kindForRole(
-  role: InternshipEnrollmentRole
-): InternshipCourseKind {
-  return role === 'skill_learner' ? 'apprenticeship' : 'internship';
-}
-
-export function courseNameForKind(kind: InternshipCourseKind): string {
-  return kind === 'apprenticeship' ? 'کارآموزی' : 'کارورزی';
-}
-
-export function maxLevelForKind(kind: InternshipCourseKind): 2 | 4 {
-  return kind === 'apprenticeship' ? 2 : 4;
-}
-
-export function clampLevel(
-  kind: InternshipCourseKind,
-  level: InternshipEnrollmentLevel
-): InternshipEnrollmentLevel {
-  const max = maxLevelForKind(kind);
-  if (level < 1) return 1;
-  if (level > max) return max as InternshipEnrollmentLevel;
-  return level;
-}
-
-export function resolveEnrollmentScenario(input: {
-  syllabusConfigured: boolean;
-  enrollOpen: boolean;
-  termOpen: boolean;
-  registered: boolean;
-  status?: InternshipEnrollmentRecordStatus;
-  removalPending?: boolean;
-  termArchived?: boolean;
-}): InternshipEnrollmentScenario {
-  if (
-    input.registered &&
-    (input.termOpen ||
-      input.status === 'dropped' ||
-      input.status === 'completed' ||
-      input.removalPending ||
-      input.termArchived)
-  ) {
-    return 'S5_term_active';
-  }
-  if (input.registered) return 'S4_registered_waiting';
-  if (!input.syllabusConfigured) return 'S1_syllabus_blocked';
-  // انتخاب واحد و برگزاری ترم مستقل‌اند؛ termOpen فقط مسیر بعد از ثبت‌نام را عوض می‌کند.
-  if (input.enrollOpen) return 'S3_enroll_open';
-  return 'S2_enroll_closed';
 }
 
 export function resolveEnrollmentPageState(
