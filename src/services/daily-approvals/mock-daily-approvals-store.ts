@@ -1,4 +1,5 @@
 import { isMockApiMode } from '@/lib/api-mode';
+import { readSyllabusSnapshot } from '@/services/syllabus-config/mock-syllabus-store';
 import type {
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
@@ -11,15 +12,35 @@ import type {
   ListDailyApprovalsPage,
   UpdateDailyApprovalWeekInput,
 } from '@/types/daily-approvals';
+import type { AcademicTermType } from '@/types/syllabus-config';
 import { sliceOffsetLimitPage } from '@/utils/offset-limit-page';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
-const STORAGE_KEY = 'karvita_mock_daily_approvals_v2';
+const STORAGE_KEY = 'karvita_mock_daily_approvals_v3';
 
-const TERMS = [
-  { id: 'term-1404-2', title: 'نیم‌سال دوم 1404-1405' },
-  { id: 'term-1404-1', title: 'نیم‌سال اول 1404-1405' },
-] as const;
+function termTypeForKind(kind: DailyApprovalCourseKind): AcademicTermType {
+  return kind === 'apprenticeship' ? 'modular' : 'semester';
+}
+
+export function listTermsForDailyApprovalKind(
+  kind: DailyApprovalCourseKind
+): Array<{ id: string; title: string }> {
+  const preferredType = termTypeForKind(kind);
+  return readSyllabusSnapshot()
+    .terms.filter((term) => term.type === preferredType)
+    .map((term) => ({ id: term.id, title: term.title }));
+}
+
+function defaultTermForKind(kind: DailyApprovalCourseKind): {
+  id: string;
+  title: string;
+} {
+  const terms = listTermsForDailyApprovalKind(kind);
+  if (terms[0]) return terms[0];
+  return kind === 'apprenticeship'
+    ? { id: 'term_modular_1', title: 'دوره مهارتی' }
+    : { id: 'term_2', title: 'نیم‌سال تحصیلی' };
+}
 
 const TRAINEE_SEEDS = [
   { name: 'مریم احمدی', major: 'آموزش ابتدایی', school: 'دبیرستان ماندگار البرز' },
@@ -196,6 +217,7 @@ function buildSeedTrainee(index: number): DailyApprovalTrainee {
     buildWeek(index, weekIndex + 1, weekCount)
   );
   const status = index === 10 ? 'dropped' : 'active';
+  const term = defaultTermForKind(kind);
 
   return withDerived({
     id: `trainee-course-${index + 1}`,
@@ -207,8 +229,8 @@ function buildSeedTrainee(index: number): DailyApprovalTrainee {
     level,
     courseKey: meta.courseKey,
     courseTitle: meta.courseTitle,
-    termId: TERMS[0].id,
-    termTitle: TERMS[0].title,
+    termId: term.id,
+    termTitle: term.title,
     status,
     unreadCount: 0,
     hasSubmitted: false,
@@ -306,7 +328,7 @@ export function listMockDailyApprovals(
     ...structuredClone(
       sliceOffsetLimitPage(filtered, input.offset, input.limit)
     ),
-    terms: TERMS.map((term) => ({ ...term })),
+    terms: listTermsForDailyApprovalKind(input.kind),
   };
 }
 

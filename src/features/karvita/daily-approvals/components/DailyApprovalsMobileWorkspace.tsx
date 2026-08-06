@@ -10,13 +10,11 @@ import {
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KvTypography } from '@/components/shared/KvTypography';
-import type { DailyApprovalWeek } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import type { UseDailyApprovalsPageReturn } from '../hooks/useDailyApprovalsPage';
 import { DailyApprovalUnreadBadge } from './DailyApprovalUnreadBadge';
-import { DailyApprovalWeekEvaluation } from './DailyApprovalWeekEvaluation';
 import { DailyApprovalWeekGrid } from './DailyApprovalWeekGrid';
 import { DailyApprovalWeekLegend } from './DailyApprovalWeekLegend';
 import { DailyApprovalsFilters } from './DailyApprovalsFilters';
@@ -98,8 +96,8 @@ export function DailyApprovalsMobileWorkspace({
                     <KvButton
                       type="button"
                       color="error"
-                      appearance="secondary"
-                      size="icon-sm"
+                      appearance="ghost"
+                      size="icon-xs"
                       aria-label="حذف کارورز از کلاس"
                       disabled={
                         page.actionBusy || trainee.status === 'dropped'
@@ -108,7 +106,7 @@ export function DailyApprovalsMobileWorkspace({
                         event.stopPropagation();
                         void page.dropTrainee(trainee);
                       }}
-                      icon={<FaIcon icon={faIcons.userMinus} size="xs" />}
+                      icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
                     />
                     <FaIcon
                       icon={faIcons.chevronDown}
@@ -124,29 +122,7 @@ export function DailyApprovalsMobileWorkspace({
 
                 {expanded ? (
                   <div className="space-y-kv-group border-t border-kv-border pt-kv-group">
-                    {page.selectedWeek ? (
-                      <DailyApprovalWeekEvaluation
-                        trainee={trainee}
-                        week={page.selectedWeek}
-                        advisorFeedback={page.advisorFeedback}
-                        scoreInput={page.scoreInput}
-                        actionBusy={page.actionBusy}
-                        onAdvisorFeedbackChange={page.setAdvisorFeedback}
-                        onScoreInputChange={page.setScoreInput}
-                        onSave={() => void page.saveEvaluation()}
-                        onExtend={() => void page.extendDeadline()}
-                        onClose={page.closeWeekEvaluation}
-                      />
-                    ) : (
-                      <DailyApprovalWeekGrid
-                        trainee={trainee}
-                        selectedWeekId={null}
-                        compact
-                        onSelectWeek={(week: DailyApprovalWeek) =>
-                          void page.selectWeek(trainee, week)
-                        }
-                      />
-                    )}
+                    <DailyApprovalWeekGrid trainee={trainee} compact />
                   </div>
                 ) : null}
               </KvCardContent>

@@ -40,7 +40,7 @@ export function DailyApprovalsFilters({
     <div
       className={
         mobile
-          ? 'space-y-kv-group rounded-kv-panel border border-kv-border bg-kv-surface-muted/50 p-kv-group'
+          ? 'space-y-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group'
           : 'flex w-full flex-col items-stretch gap-kv-pair lg:flex-row lg:items-center'
       }
     >
@@ -50,7 +50,7 @@ export function DailyApprovalsFilters({
         </span>
       ) : null}
 
-      <div className="w-full flex-1">
+      <div className={mobile ? 'w-full' : 'w-full min-w-0 flex-[2]'}>
         <KvSearchField
           label={false}
           value={query}
@@ -63,10 +63,10 @@ export function DailyApprovalsFilters({
         className={
           mobile
             ? 'grid grid-cols-2 gap-kv-pair'
-            : 'flex w-full shrink-0 flex-row items-center gap-kv-pair lg:w-auto'
+            : 'flex w-full min-w-0 flex-1 flex-row items-center gap-kv-pair'
         }
       >
-        <div className={mobile ? 'w-full' : 'w-full flex-1 lg:w-28 lg:flex-none'}>
+        <div className="min-w-0 flex-1">
           <KvSelect
             value={readFilter}
             onValueChange={(value) => {
@@ -89,7 +89,7 @@ export function DailyApprovalsFilters({
           </KvSelect>
         </div>
 
-        <div className={mobile ? 'w-full' : 'w-full flex-1 lg:w-44 lg:flex-none'}>
+        <div className="min-w-0 flex-1">
           <KvSelect
             value={course}
             onValueChange={(value) => {

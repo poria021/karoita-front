@@ -1,7 +1,7 @@
 'use client';
 
 import { FaIcon } from '@/components/shared/FaIcon';
-import { cn } from '@/lib/utils';
+import { KvButton } from '@/components/shared/KvButton';
 import type {
   DailyApprovalTrainee,
   DailyApprovalWeek,
@@ -12,50 +12,74 @@ import { getWeekVisual } from '../constants';
 
 type DailyApprovalWeekGridProps = {
   trainee: DailyApprovalTrainee;
-  selectedWeekId: string | null;
+  selectedWeekId?: string | null;
   compact?: boolean;
-  onSelectWeek: (week: DailyApprovalWeek) => void;
+  onSelectWeek?: (week: DailyApprovalWeek) => void;
 };
+
+function draftCardLabel(week: DailyApprovalWeek): string {
+  const hasText = Boolean(week.text?.trim());
+  const hasFiles = week.files.length > 0;
+  return hasText || hasFiles ? 'پیش‌نویس' : 'ثبت نشده';
+}
 
 export function DailyApprovalWeekGrid({
   trainee,
-  selectedWeekId,
+  selectedWeekId = null,
   compact = false,
   onSelectWeek,
 }: DailyApprovalWeekGridProps) {
   return (
-    <div className="grid grid-cols-4 gap-kv-group">
+    <div
+      className={
+        compact
+          ? 'grid grid-cols-2 gap-kv-inline sm:grid-cols-4'
+          : 'grid grid-cols-2 gap-kv-inline sm:grid-cols-4'
+      }
+    >
       {trainee.weeks.map((week) => {
         const visual = getWeekVisual(week.status);
+        const score =
+          week.status === 'graded' && week.score !== null ? week.score : null;
+        const label =
+          week.status === 'draft' ? draftCardLabel(week) : visual.label;
+        const locked = week.status === 'locked_future';
         const selected = selectedWeekId === week.id;
+
         return (
-          <button
+          <KvButton
             key={week.id}
             type="button"
-            onClick={() => onSelectWeek(week)}
-            className={cn(
-              'flex min-h-[90px] flex-col justify-between rounded-kv-panel border p-kv-group text-start shadow-kv-soft transition-colors',
-              'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
-              visual.chipClass,
-              selected && 'ring-[3px] ring-kv-ring/25',
-              compact && 'min-h-[72px] p-kv-pair'
-            )}
+            color="neutral"
+            appearance="secondary"
+            size="md"
+            className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-control border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName} ${
+              selected ? 'ring-[3px] ring-kv-ring/25' : ''
+            } ${compact ? 'min-h-[72px]' : ''}`}
+            aria-label={`هفته ${toPersianDigits(week.weekNumber)}`}
+            disabled={locked}
+            onClick={() => {
+              if (locked) return;
+              onSelectWeek?.(week);
+            }}
           >
-            <div className="flex w-full items-center justify-between">
-              <span className="text-xs font-black">
+            <span className="flex w-full items-center justify-between gap-kv-inline">
+              <span className="text-xs font-black leading-none">
                 هفته {toPersianDigits(week.weekNumber)}
               </span>
-              <FaIcon icon={visual.icon} size="2xs" />
-            </div>
-            <div className="mt-kv-pair space-y-kv-micro">
-              <span className="block text-xs font-bold">{visual.label}</span>
-              {week.status === 'graded' && week.score !== null ? (
-                <span className="block text-xs font-black">
-                  {toPersianDigits(week.score)}/۱۰۰
+              <FaIcon icon={visual.icon} size="xs" />
+            </span>
+            <span className="flex w-full flex-col items-start justify-end gap-1 pt-kv-pair text-start">
+              <span className="block w-full text-xs font-bold leading-snug">
+                {label}
+              </span>
+              {score !== null ? (
+                <span className="block w-full text-xs font-black leading-snug">
+                  {toPersianDigits(score)}/۱۰۰
                 </span>
               ) : null}
-            </div>
-          </button>
+            </span>
+          </KvButton>
         );
       })}
     </div>

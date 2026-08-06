@@ -4,6 +4,7 @@ import {
   dropMockDailyApprovalTrainee,
   extendMockDailyApprovalWeek,
   listMockDailyApprovals,
+  listTermsForDailyApprovalKind,
   markMockWeekRead,
   updateMockDailyApprovalWeek,
 } from '@/services/daily-approvals/mock-daily-approvals-store';
@@ -13,6 +14,7 @@ import {
 } from '@/services/mock/mock-authz';
 import { useUserStore } from '@/store/useUserStore';
 import type {
+  DailyApprovalCourseKind,
   DailyApprovalTrainee,
   DropDailyApprovalTraineeInput,
   ExtendDailyApprovalWeekInput,
@@ -45,6 +47,20 @@ function requireSupervisorReview(): void {
  * - POST  /daily-approvals/:traineeId/drop
  */
 export const DailyApprovalsService = {
+  /**
+   * ترم‌های قابل انتخاب بر اساس تب:
+   * internship → ترمی (semester)، apprenticeship → پودمانی (modular).
+   */
+  async listTerms(
+    kind: DailyApprovalCourseKind
+  ): Promise<Array<{ id: string; title: string }>> {
+    if (!isMockApiMode()) {
+      throwRealModeNotImplemented('DailyApprovalsService.listTerms');
+    }
+    requireSupervisorReview();
+    return listTermsForDailyApprovalKind(kind);
+  },
+
   async listPage(
     input: ListDailyApprovalsInput
   ): Promise<ListDailyApprovalsPage> {

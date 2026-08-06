@@ -13,17 +13,13 @@ describe('daily approvals list contracts', () => {
       'internship',
       'unread',
       'intern1',
-      'term-1404-2',
+      'term_2',
       'مریم'
     );
 
-    expect(resetKey).toBe(
-      'internship::unread::intern1::term-1404-2::مریم'
-    );
+    expect(resetKey).toBe('internship::unread::intern1::term_2::مریم');
     expect(
       dashboardListCacheKey(DAILY_APPROVALS_CACHE_NAMESPACE, resetKey)
-    ).toBe(
-      'daily-approvals::internship::unread::intern1::term-1404-2::مریم'
-    );
+    ).toBe('daily-approvals::internship::unread::intern1::term_2::مریم');
   });
 });

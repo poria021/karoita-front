@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
   listMockDailyApprovals,
+  listTermsForDailyApprovalKind,
   resetMockDailyApprovalsForTests,
   updateMockDailyApprovalWeek,
 } from './mock-daily-approvals-store';
@@ -10,16 +11,32 @@ afterEach(() => {
   resetMockDailyApprovalsForTests();
 });
 
-const baseInput = {
-  query: '',
-  readFilter: 'all' as const,
-  course: 'all' as const,
-  termId: 'term-1404-2',
-  kind: 'internship' as const,
-};
-
 describe('mock daily approvals paging', () => {
+  it('lists semester terms for internship and modular for apprenticeship', () => {
+    const semesterTerms = listTermsForDailyApprovalKind('internship');
+    const modularTerms = listTermsForDailyApprovalKind('apprenticeship');
+
+    expect(semesterTerms.length).toBeGreaterThan(0);
+    expect(modularTerms.length).toBeGreaterThan(0);
+    expect(semesterTerms.some((term) => term.id.startsWith('term_modular'))).toBe(
+      false
+    );
+    expect(modularTerms.every((term) => term.id.includes('modular'))).toBe(true);
+  });
+
   it('returns stable offset/limit pages and read filters', () => {
+    const termId = listTermsForDailyApprovalKind('internship')[0]?.id;
+    expect(termId).toBeTruthy();
+    if (!termId) return;
+
+    const baseInput = {
+      query: '',
+      readFilter: 'all' as const,
+      course: 'all' as const,
+      termId,
+      kind: 'internship' as const,
+    };
+
     const first = listMockDailyApprovals({
       ...baseInput,
       offset: 0,
@@ -48,8 +65,15 @@ describe('mock daily approvals paging', () => {
   });
 
   it('normalizes Persian digits when searching identifiers', () => {
+    const termId = listTermsForDailyApprovalKind('apprenticeship')[0]?.id;
+    expect(termId).toBeTruthy();
+    if (!termId) return;
+
     const sample = listMockDailyApprovals({
-      ...baseInput,
+      query: '',
+      readFilter: 'all',
+      course: 'all',
+      termId,
       kind: 'apprenticeship',
       offset: 0,
       limit: 1,
@@ -62,9 +86,11 @@ describe('mock daily approvals paging', () => {
     );
 
     const page = listMockDailyApprovals({
-      ...baseInput,
-      kind: 'apprenticeship',
       query: persianQuery,
+      readFilter: 'all',
+      course: 'all',
+      termId,
+      kind: 'apprenticeship',
       offset: 0,
       limit: 10,
     });
@@ -76,8 +102,16 @@ describe('mock daily approvals paging', () => {
   });
 
   it('persists an advisor evaluation on a week in the mock snapshot', () => {
+    const termId = listTermsForDailyApprovalKind('internship')[0]?.id;
+    expect(termId).toBeTruthy();
+    if (!termId) return;
+
     const trainee = listMockDailyApprovals({
-      ...baseInput,
+      query: '',
+      readFilter: 'all',
+      course: 'all',
+      termId,
+      kind: 'internship',
       offset: 0,
       limit: 20,
     }).items.find((row) =>

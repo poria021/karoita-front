@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -15,11 +15,9 @@ import type {
   DailyApprovalCourseKind,
   DailyApprovalReadFilter,
   DailyApprovalTrainee,
-  DailyApprovalWeek,
 } from '@/types/daily-approvals';
 
 import { getDailyApprovalCourseOptions } from '../constants';
-import { normalizeDailyApprovalScoreInput } from '../lib/dailyApprovalScore';
 import {
   DAILY_APPROVALS_CACHE_NAMESPACE,
   DAILY_APPROVALS_CHROME_ID,
@@ -27,7 +25,6 @@ import {
 } from '../lib/dailyApprovalsListKeys';
 
 const SEARCH_DEBOUNCE_MS = 300;
-const DEFAULT_TERM_ID = 'term-1404-2';
 
 type DailyApprovalsChrome = {
   kind: DailyApprovalCourseKind;
@@ -54,13 +51,9 @@ export function useDailyApprovalsPage() {
   const [course, setCourse] = useState<DailyApprovalCourseFilter>(
     () => cachedChrome?.course ?? 'all'
   );
-  const [termId, setTermId] = useState(
-    () => cachedChrome?.termId ?? DEFAULT_TERM_ID
-  );
-  const [terms, setTerms] = useState<Array<{ id: string; title: string }>>([
-    { id: 'term-1404-2', title: 'نیم‌سال دوم 1404-1405' },
-    { id: 'term-1404-1', title: 'نیم‌سال اول 1404-1405' },
-  ]);
+  const [termId, setTermId] = useState(() => cachedChrome?.termId ?? '');
+  const [terms, setTerms] = useState<Array<{ id: string; title: string }>>([]);
+  const [termsReady, setTermsReady] = useState(false);
 
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const listQuery = query.trim() === '' ? '' : debouncedQuery;
@@ -75,9 +68,6 @@ export function useDailyApprovalsPage() {
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(
     null
   );
-  const [selectedWeekId, setSelectedWeekId] = useState<string | null>(null);
-  const [advisorFeedback, setAdvisorFeedback] = useState('');
-  const [scoreInput, setScoreInputState] = useState('');
   const [actionBusy, setActionBusy] = useState(false);
 
   useEffect(() => {
@@ -90,8 +80,40 @@ export function useDailyApprovalsPage() {
     });
   }, [course, kind, query, readFilter, setChrome, termId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setTermsReady(false);
+    void DailyApprovalsService.listTerms(kind)
+      .then((nextTerms) => {
+        if (cancelled) return;
+        setTerms(nextTerms);
+        setTermId((current) => {
+          if (nextTerms.some((term) => term.id === current)) return current;
+          return nextTerms[0]?.id ?? '';
+        });
+        setTermsReady(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTerms([]);
+        setTermId('');
+        setTermsReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [kind]);
+
   const fetchPage = useCallback(
     async ({ offset, limit }: { offset: number; limit: number }) => {
+      if (!termsReady || !termId) {
+        return {
+          items: [] as DailyApprovalTrainee[],
+          total: 0,
+          hasMore: false,
+          terms,
+        };
+      }
       const page = await DailyApprovalsService.listPage({
         kind,
         query: listQuery,
@@ -106,11 +128,11 @@ export function useDailyApprovalsPage() {
       }
       return page;
     },
-    [course, kind, listQuery, readFilter, termId]
+    [course, kind, listQuery, readFilter, termId, terms, termsReady]
   );
 
   const list = useOffsetLimitInfiniteList<DailyApprovalTrainee>({
-    resetKey,
+    resetKey: termsReady ? resetKey : `pending-terms::${kind}`,
     fetchPage,
     pageSize: DAILY_APPROVALS_PAGE_SIZE,
     cacheNamespace: DAILY_APPROVALS_CACHE_NAMESPACE,
@@ -119,124 +141,32 @@ export function useDailyApprovalsPage() {
   const selectedTrainee =
     list.items.find((row) => row.id === selectedTraineeId) ?? null;
 
-  const selectedWeek: DailyApprovalWeek | null = useMemo(() => {
-    if (!selectedTrainee || !selectedWeekId) return null;
-    return (
-      selectedTrainee.weeks.find((week) => week.id === selectedWeekId) ?? null
-    );
-  }, [selectedTrainee, selectedWeekId]);
-
   const courseOptions = getDailyApprovalCourseOptions(kind);
 
   const selectTrainee = useCallback((trainee: DailyApprovalTrainee | null) => {
     setSelectedTraineeId(trainee?.id ?? null);
-    setSelectedWeekId(null);
-    setAdvisorFeedback('');
-    setScoreInputState('');
   }, []);
-
-  const selectWeek = useCallback(
-    async (trainee: DailyApprovalTrainee, week: DailyApprovalWeek) => {
-      setSelectedTraineeId(trainee.id);
-      setSelectedWeekId(week.id);
-      setAdvisorFeedback(week.feedback.advisor ?? '');
-      setScoreInputState(week.score === null ? '' : String(week.score));
-      try {
-        await DailyApprovalsService.openWeek({
-          traineeId: trainee.id,
-          weekId: week.id,
-        });
-        await list.reload();
-      } catch {
-        // Opening still shows the week even if read-mark fails in mock edge cases.
-      }
-    },
-    [list]
-  );
 
   const changeKind = useCallback((next: DailyApprovalCourseKind) => {
     setKind(next);
     setCourse('all');
     setSelectedTraineeId(null);
-    setSelectedWeekId(null);
   }, []);
 
   const changeReadFilter = useCallback((next: DailyApprovalReadFilter) => {
     setReadFilter(next);
     setSelectedTraineeId(null);
-    setSelectedWeekId(null);
   }, []);
 
   const changeCourse = useCallback((next: DailyApprovalCourseFilter) => {
     setCourse(next);
     setSelectedTraineeId(null);
-    setSelectedWeekId(null);
   }, []);
 
   const changeTerm = useCallback((nextTermId: string) => {
     setTermId(nextTermId);
     setSelectedTraineeId(null);
-    setSelectedWeekId(null);
   }, []);
-
-  const setScoreInput = useCallback((value: string) => {
-    setScoreInputState(normalizeDailyApprovalScoreInput(value));
-  }, []);
-
-  const closeWeekEvaluation = useCallback(() => {
-    setSelectedWeekId(null);
-    setAdvisorFeedback('');
-    setScoreInputState('');
-  }, []);
-
-  const saveEvaluation = useCallback(async () => {
-    if (!selectedTrainee || !selectedWeek) return;
-    const score =
-      scoreInput.trim() === '' ? null : Number(scoreInput);
-    setActionBusy(true);
-    try {
-      const updated = await DailyApprovalsService.updateWeekEvaluation({
-        traineeId: selectedTrainee.id,
-        weekId: selectedWeek.id,
-        advisorFeedback,
-        score,
-      });
-      toast.success(
-        score === null
-          ? 'بازخورد اصلاحی ثبت شد.'
-          : 'نمره نهایی با موفقیت ثبت شد.'
-      );
-      setSelectedTraineeId(updated.id);
-      setSelectedWeekId(null);
-      await list.reload();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'ثبت ارزیابی ناموفق بود.'
-      );
-    } finally {
-      setActionBusy(false);
-    }
-  }, [advisorFeedback, list, scoreInput, selectedTrainee, selectedWeek]);
-
-  const extendDeadline = useCallback(async () => {
-    if (!selectedTrainee || !selectedWeek) return;
-    setActionBusy(true);
-    try {
-      await DailyApprovalsService.extendWeek({
-        traineeId: selectedTrainee.id,
-        weekId: selectedWeek.id,
-      });
-      toast.success('مهلت هفته برای فراگیر تمدید شد.');
-      setSelectedWeekId(null);
-      await list.reload();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : 'تمدید مهلت ناموفق بود.'
-      );
-    } finally {
-      setActionBusy(false);
-    }
-  }, [list, selectedTrainee, selectedWeek]);
 
   const dropTrainee = useCallback(
     async (trainee: DailyApprovalTrainee) => {
@@ -246,7 +176,6 @@ export function useDailyApprovalsPage() {
         toast.success('وضعیت کارورز به حذف تغییر یافت.');
         if (selectedTraineeId === trainee.id) {
           setSelectedTraineeId(null);
-          setSelectedWeekId(null);
         }
         await list.reload();
       } catch (error) {
@@ -275,7 +204,7 @@ export function useDailyApprovalsPage() {
     terms,
     resetKey,
     trainees: list.items,
-    isLoading: list.isLoading,
+    isLoading: !termsReady || list.isLoading,
     isLoadingMore: list.isLoadingMore,
     hasMore: list.hasMore,
     error: list.error,
@@ -288,16 +217,7 @@ export function useDailyApprovalsPage() {
     reload: () => void list.reload(),
     selectedTrainee,
     selectTrainee,
-    selectedWeek,
-    selectWeek,
-    closeWeekEvaluation,
-    advisorFeedback,
-    setAdvisorFeedback,
-    scoreInput,
-    setScoreInput,
     actionBusy,
-    saveEvaluation,
-    extendDeadline,
     dropTrainee,
   };
 }

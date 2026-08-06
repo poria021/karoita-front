@@ -13,7 +13,7 @@ export function DailyApprovalWeekLegend({
     <div
       className={cn(
         titled &&
-          'space-y-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-soft'
+          'space-y-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised'
       )}
     >
       {titled ? (
@@ -28,17 +28,17 @@ export function DailyApprovalWeekLegend({
         )}
       >
         {WEEK_LEGEND_ITEMS.map((item) => (
-          <div key={item.label} className="flex items-center gap-kv-pair">
+          <span key={item.label} className="flex items-center gap-kv-pair">
             <span
               className={cn(
-                'flex size-5 shrink-0 items-center justify-center rounded-kv-control border shadow-kv-soft',
+                'flex size-5 items-center justify-center rounded-kv-control border shadow-kv-raised',
                 item.wellClass
               )}
             >
               <FaIcon icon={item.icon} size="2xs" />
             </span>
-            <span>{item.label}</span>
-          </div>
+            {item.label}
+          </span>
         ))}
       </div>
     </div>

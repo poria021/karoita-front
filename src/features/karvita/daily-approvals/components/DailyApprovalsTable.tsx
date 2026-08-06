@@ -139,12 +139,12 @@ export function DailyApprovalsTable({
                     <KvButton
                       type="button"
                       color="error"
-                      appearance="secondary"
-                      size="icon-sm"
+                      appearance="ghost"
+                      size="icon-xs"
                       aria-label="حذف کارورز از کلاس"
                       disabled={actionBusy || trainee.status === 'dropped'}
                       onClick={() => onDrop(trainee)}
-                      icon={<FaIcon icon={faIcons.userMinus} size="xs" />}
+                      icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
                     />
                   </KvTableCell>
                 </KvTableRow>
