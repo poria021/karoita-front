@@ -10,6 +10,8 @@ import { useMarketingPanel } from '../lib/marketingPanelContext';
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
 const SLIDE_DURATION = 6000; // 6 seconds per slide
+/** Progress ticks — keep UI smooth without 20Hz state churn. */
+const PROGRESS_TICK_MS = 200;
 
 type MarketingHeroCarouselProps = {
   banners: LandingBanner[];
@@ -31,9 +33,9 @@ export function MarketingHeroCarousel({
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) return 0;
-        return prev + 100 / (SLIDE_DURATION / 50);
+        return prev + 100 / (SLIDE_DURATION / PROGRESS_TICK_MS);
       });
-    }, 50);
+    }, PROGRESS_TICK_MS);
 
     const slideInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);

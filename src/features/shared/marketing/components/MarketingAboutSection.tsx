@@ -62,7 +62,7 @@ export function MarketingAboutSection() {
               </div>
 
               <div className="absolute right-2 top-[63%] flex -translate-x-2 flex-col items-center">
-                <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-violet-border bg-kv-surface text-xl text-kv-violet shadow-kv-raised transition hover:scale-110">
+                <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-info-border bg-kv-surface text-xl text-kv-info shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.graduationCap} />
                 </div>
                 <span className="mt-1 rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">
@@ -117,7 +117,7 @@ export function MarketingAboutSection() {
               </div>
 
               <div className="flex items-start gap-4 rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle p-4 transition hover:border-kv-border hover:bg-kv-surface hover:shadow-kv-soft">
-                <div className="mt-1 flex size-10 shrink-0 items-center justify-center rounded-kv-control border border-kv-violet-border bg-kv-violet-soft text-kv-violet">
+                <div className="mt-1 flex size-10 shrink-0 items-center justify-center rounded-kv-control border border-kv-info-border bg-kv-info-soft text-kv-info">
                   <FaIcon icon={faIcons.chartPie} size="sm" />
                 </div>
                 <div>

@@ -2,17 +2,12 @@
 
 import { useEffect, useState } from 'react';
 
-import {
-  invalidateLandingCmsMemory,
-  LANDING_CMS_UPDATED_EVENT,
-} from '@/services/landing-cms/mock-landing-cms.store';
+import { LandingCmsService } from '@/services/landing-cms.service';
 
 import {
   loadMarketingChrome,
   type MarketingChromeData,
 } from '../lib/loadMarketingChrome';
-
-export { LANDING_CMS_UPDATED_EVENT };
 
 const EMPTY_CHROME: MarketingChromeData = {
   banners: [],
@@ -55,23 +50,13 @@ export function useMarketingChrome(
 
     void refresh();
 
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === 'karvita_mock_landing_cms_v1' || event.key === null) {
-        invalidateLandingCmsMemory();
-        void refresh();
-      }
-    };
-    const onCmsUpdated = () => {
+    const unsubscribe = LandingCmsService.subscribeChromeChanges(() => {
       void refresh();
-    };
-
-    window.addEventListener('storage', onStorage);
-    window.addEventListener(LANDING_CMS_UPDATED_EVENT, onCmsUpdated);
+    });
 
     return () => {
       cancelled = true;
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener(LANDING_CMS_UPDATED_EVENT, onCmsUpdated);
+      unsubscribe();
     };
   }, []);
 

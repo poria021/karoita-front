@@ -18,6 +18,15 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  /**
+   * Turbopack on Next <16.3 kept unbounded in-memory route caches and could OOM
+   * long `next dev` sessions. 16.3+ can evict after FS snapshots — prefer full
+   * reclaim on this large app so Windows/dev agents stay under pressure.
+   * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopackMemoryEviction
+   */
+  experimental: {
+    turbopackMemoryEviction: 'full',
+  },
   async headers() {
     return [
       {

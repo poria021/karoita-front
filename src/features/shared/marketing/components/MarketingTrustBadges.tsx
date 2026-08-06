@@ -30,7 +30,7 @@ const TRUST_STATS = [
 
 /**
  * Trust & capacity badges strip — immediately below hero (rule 90: trust strip below fold).
- * Mobile: 2 cols with card chrome; desktop: flex row, transparent.
+ * Flat items on all breakpoints (no per-item card chrome).
  */
 export function MarketingTrustBadges() {
   return (
@@ -43,9 +43,9 @@ export function MarketingTrustBadges() {
           {TRUST_STATS.map((stat) => (
             <div
               key={stat.id}
-              className="flex items-stretch gap-kv-inline rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle p-kv-pair md:border-none md:bg-transparent md:p-0"
+              className="flex items-stretch gap-kv-inline"
             >
-              <span className="flex w-10 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand sm:w-11">
+              <span className="flex w-10 shrink-0 items-center justify-center rounded-kv-control border border-kv-border bg-kv-surface text-kv-text shadow-kv-soft sm:w-11">
                 <FaIcon icon={stat.icon} size="lg" className="sm:text-xl" />
               </span>
               <div className="flex flex-col justify-center text-right">

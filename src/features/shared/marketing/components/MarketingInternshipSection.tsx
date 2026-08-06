@@ -28,9 +28,9 @@ function InternshipBlueprintArt() {
             <stop offset="0%" stopColor="var(--kv-success)" stopOpacity="0.85" />
             <stop offset="100%" stopColor="var(--kv-success)" stopOpacity="0.1" />
           </linearGradient>
-          <linearGradient id="kvInternNeonViolet" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--kv-violet)" stopOpacity="0.75" />
-            <stop offset="100%" stopColor="var(--kv-violet)" stopOpacity="0.05" />
+          <linearGradient id="kvInternNeonInfo" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="var(--kv-info)" stopOpacity="0.75" />
+            <stop offset="100%" stopColor="var(--kv-info)" stopOpacity="0.05" />
           </linearGradient>
           <linearGradient id="kvInternGrid" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="var(--kv-border)" stopOpacity="0.6" />
@@ -109,10 +109,10 @@ function InternshipBlueprintArt() {
         </g>
 
         <g transform="translate(620, 480)">
-          <g stroke="url(#kvInternNeonViolet)" strokeWidth="1">
+          <g stroke="url(#kvInternNeonInfo)" strokeWidth="1">
             <polygon
               points="100,20 150,45 100,70 50,45"
-              fill="var(--kv-violet-soft)"
+              fill="var(--kv-info-soft)"
               fillOpacity="0.25"
             />
             <line x1="50" y1="45" x2="50" y2="95" />
