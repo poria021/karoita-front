@@ -69,7 +69,7 @@ export function KvDialogHeader({
     <DialogHeader
       data-slot="kv-dialog-header"
       className={cn(
-        'mb-5 border-b border-kv-border-muted pe-10 pb-3.5',
+        'border-b border-kv-border-muted pe-kv-region pb-kv-inline',
         className
       )}
       {...props}
@@ -84,7 +84,7 @@ export function KvDialogFooter({
   return (
     <DialogFooter
       data-slot="kv-dialog-footer"
-      className={cn('border-t border-kv-border-muted pt-4', className)}
+      className={cn('border-t border-kv-border-muted pt-kv-group', className)}
       {...props}
     />
   );
