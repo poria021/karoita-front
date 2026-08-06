@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { KvButton } from '@/components/shared/KvButton';
 import {
@@ -12,6 +13,7 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import type {
   OrgStructureEntityKind,
   OrgStructureSubTab,
@@ -52,13 +54,35 @@ export function OrgStructureEntityModal({
 
   const submit = form.handleSubmit(async (values) => {
     setFormError(null);
-    try {
-      await submitOrgEntity(tab, values, editId);
-      onSaved();
-      onClose();
-    } catch (err) {
-      setFormError(err instanceof Error ? err.message : 'ذخیره ناموفق بود.');
+    const label = values.name.trim();
+
+    if (isEdit) {
+      try {
+        await submitOrgEntity(tab, values, editId);
+        toast.success(`${tabConfig.addLabel} «${label}» به‌روزرسانی شد.`);
+        onSaved();
+        onClose();
+      } catch (err) {
+        setFormError(err instanceof Error ? err.message : 'ذخیره ناموفق بود.');
+      }
+      return;
     }
+
+    onClose();
+    scheduleUndoableMutation({
+      message: `${tabConfig.addLabel} «${label}» تا چند ثانیه دیگر افزوده می‌شود…`,
+      undoLabel: 'لغو',
+      commit: () => submitOrgEntity(tab, values, null),
+      onCommitted: async () => {
+        toast.success(`${tabConfig.addLabel} «${label}» با موفقیت افزوده شد.`);
+        onSaved();
+      },
+      onError: (error) => {
+        toast.error(
+          error instanceof Error ? error.message : 'افزودن ساختار ناموفق بود.'
+        );
+      },
+    });
   });
 
   return (

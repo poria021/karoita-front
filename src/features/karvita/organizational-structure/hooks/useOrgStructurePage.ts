@@ -1,9 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
+import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import {
   ORG_STRUCTURE_PAGE_SIZE,
   OrgStructureService,
@@ -44,10 +46,6 @@ export function useOrgStructurePage() {
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-
-  const [deleteTarget, setDeleteTarget] = useState<OrgStructureListItem | null>(
-    null
-  );
 
   const tabConfig = useMemo(() => getOrgTabConfig(tab), [tab]);
   const listQuery = query.trim() === '' ? '' : debouncedQuery;
@@ -95,19 +93,32 @@ export function useOrgStructurePage() {
     setEditId(null);
   }, []);
 
-  const requestDelete = useCallback((row: OrgStructureListItem) => {
-    if (row.deleteBlocked) return;
-    setDeleteTarget(row);
-  }, []);
-
   const reload = list.reload;
 
-  const confirmDelete = useCallback(async () => {
-    if (!deleteTarget) return;
-    await OrgStructureService.deleteEntity(deleteTarget.kind, deleteTarget.id);
-    setDeleteTarget(null);
-    await reload();
-  }, [deleteTarget, reload]);
+  const requestDelete = useCallback(
+    (row: OrgStructureListItem) => {
+      if (row.deleteBlocked) return;
+
+      scheduleUndoableMutation({
+        tone: 'error',
+        message: `«${row.name}» تا چند ثانیه دیگر از ساختار سازمانی حذف می‌شود…`,
+        undoLabel: 'لغو',
+        commit: () => OrgStructureService.deleteEntity(row.kind, row.id),
+        onCommitted: async () => {
+          toast.success(`«${row.name}» از ساختار سازمانی حذف شد.`);
+          await reload();
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : 'حذف از ساختار سازمانی ناموفق بود.'
+          );
+        },
+      });
+    },
+    [reload]
+  );
 
   const handleLoadMore = useCallback(() => {
     void list.loadMore();
@@ -144,10 +155,7 @@ export function useOrgStructurePage() {
     openCreate,
     openEdit,
     closeEditor,
-    deleteTarget,
     requestDelete,
-    clearDelete: () => setDeleteTarget(null),
-    confirmDelete,
     entityKind: entityKindFromTab(tab),
   };
 }
