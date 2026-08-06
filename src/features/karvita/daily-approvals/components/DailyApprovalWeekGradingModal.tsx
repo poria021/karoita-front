@@ -90,8 +90,8 @@ export function DailyApprovalWeekGradingModal({
       }}
     >
       <KvDialogContent
-        size="xl"
-        className="max-w-[820px]"
+        size="lg"
+        className="max-w-[640px]"
         showCloseButton
         onPointerDownOutside={(event) => {
           if (actionBusy) event.preventDefault();

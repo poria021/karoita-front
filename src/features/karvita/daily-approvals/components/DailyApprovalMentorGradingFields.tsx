@@ -28,40 +28,34 @@ export function DailyApprovalMentorGradingFields({
   return (
     <div className="space-y-kv-group rounded-kv-panel border-2 border-kv-brand/25 bg-kv-brand-soft/40 p-kv-section shadow-kv-soft">
       <div className="flex items-center gap-kv-pair border-b border-kv-brand/20 pb-kv-pair">
-        <span className="h-4 w-2 rounded-full bg-kv-brand" aria-hidden />
         <KvTypography variant="subtitle" as="h4" tone="brand">
           ثبت بازخورد و ارزیابی شایستگی عملکرد (مربی)
         </KvTypography>
       </div>
 
-      <div className="grid grid-cols-1 items-center gap-kv-group sm:grid-cols-2">
-        <KvSelectField
-          label="سطح شایستگی کارورز:"
-          value={mentorRating}
-          displayValue={competencyRatingLabel(mentorRating)}
-          contentClassName="z-[150]"
-          onValueChange={(value) => {
-            if (
-              value === '1' ||
-              value === '2' ||
-              value === '3' ||
-              value === '4' ||
-              value === '5'
-            ) {
-              onMentorRatingChange(value);
-            }
-          }}
-        >
-          {DAILY_APPROVAL_COMPETENCY_OPTIONS.map((option) => (
-            <KvSelectItem key={option.value} value={option.value}>
-              {option.label}
-            </KvSelectItem>
-          ))}
-        </KvSelectField>
-        <KvTypography variant="caption" tone="muted" as="p">
-          امتیاز مربی به میزان شایستگی دانشجو در این هفته کلاسی.
-        </KvTypography>
-      </div>
+      <KvSelectField
+        label="سطح شایستگی کارورز:"
+        value={mentorRating}
+        displayValue={competencyRatingLabel(mentorRating)}
+        contentClassName="z-[150]"
+        onValueChange={(value) => {
+          if (
+            value === '1' ||
+            value === '2' ||
+            value === '3' ||
+            value === '4' ||
+            value === '5'
+          ) {
+            onMentorRatingChange(value);
+          }
+        }}
+      >
+        {DAILY_APPROVAL_COMPETENCY_OPTIONS.map((option) => (
+          <KvSelectItem key={option.value} value={option.value}>
+            {option.label}
+          </KvSelectItem>
+        ))}
+      </KvSelectField>
 
       <div className="space-y-kv-pair">
         <div className="flex items-center justify-between gap-kv-pair">

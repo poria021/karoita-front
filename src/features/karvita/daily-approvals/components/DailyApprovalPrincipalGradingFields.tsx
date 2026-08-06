@@ -32,34 +32,29 @@ export function DailyApprovalPrincipalGradingFields({
         </KvTypography>
       </div>
 
-      <div className="grid grid-cols-1 items-center gap-kv-group sm:grid-cols-2">
-        <KvSelectField
-          label="سطح شایستگی کارورز:"
-          value={principalRating}
-          displayValue={competencyRatingLabel(principalRating)}
-          contentClassName="z-[150]"
-          onValueChange={(value) => {
-            if (
-              value === '1' ||
-              value === '2' ||
-              value === '3' ||
-              value === '4' ||
-              value === '5'
-            ) {
-              onPrincipalRatingChange(value);
-            }
-          }}
-        >
-          {DAILY_APPROVAL_COMPETENCY_OPTIONS.map((option) => (
-            <KvSelectItem key={option.value} value={option.value}>
-              {option.label}
-            </KvSelectItem>
-          ))}
-        </KvSelectField>
-        <KvTypography variant="caption" tone="muted" as="p">
-          ارزیابی حضور، انضباط و همیاری کارورز با مدیریت واحد آموزشی.
-        </KvTypography>
-      </div>
+      <KvSelectField
+        label="سطح شایستگی کارورز:"
+        value={principalRating}
+        displayValue={competencyRatingLabel(principalRating)}
+        contentClassName="z-[150]"
+        onValueChange={(value) => {
+          if (
+            value === '1' ||
+            value === '2' ||
+            value === '3' ||
+            value === '4' ||
+            value === '5'
+          ) {
+            onPrincipalRatingChange(value);
+          }
+        }}
+      >
+        {DAILY_APPROVAL_COMPETENCY_OPTIONS.map((option) => (
+          <KvSelectItem key={option.value} value={option.value}>
+            {option.label}
+          </KvSelectItem>
+        ))}
+      </KvSelectField>
 
       <KvTextArea
         label="توضیحات و بازخورد کتبی مدیریت مدرسه (اختیاری):"

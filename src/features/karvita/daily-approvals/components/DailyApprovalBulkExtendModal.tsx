@@ -12,9 +12,7 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import { KvCheckboxMultiSelect } from '@/components/shared/fields/KvCheckboxMultiSelect';
-import { KvTypography } from '@/components/shared/KvTypography';
 import type { DailyApprovalCourseKind } from '@/types/daily-approvals';
-import { toPersianDigits } from '@/utils/persianDigits';
 
 import { getDailyApprovalWeekOptions } from '../constants';
 
@@ -42,9 +40,6 @@ export function DailyApprovalBulkExtendModal({
     setSelectedValues([]);
     setError(undefined);
   }, [open, kind]);
-
-  const kindLabel = kind === 'internship' ? 'کارورزی' : 'کارآموزی';
-  const weekCountLabel = toPersianDigits(options.length);
 
   const submit = async () => {
     if (selectedValues.length === 0) {
@@ -78,32 +73,25 @@ export function DailyApprovalBulkExtendModal({
       >
         <KvDialogHeader>
           <KvDialogTitle>تمدید گروهی مهلت ارسال گزارش</KvDialogTitle>
-          <KvDialogDescription>
-            هفته‌های موردنظر را برای گروه {kindLabel} ({weekCountLabel} هفته)
-            انتخاب کنید. تمدید برای همه کارورزان فعال همین نیم‌سال اعمال می‌شود.
+          <KvDialogDescription className="sr-only">
+            انتخاب هفته‌ها برای تمدید گروهی مهلت ارسال گزارش
           </KvDialogDescription>
         </KvDialogHeader>
 
-        <div className="flex flex-col gap-kv-group">
-          <KvCheckboxMultiSelect
-            id="daily-approval-bulk-extend-weeks"
-            label="هفته‌های قابل تمدید"
-            required
-            options={options}
-            values={selectedValues}
-            onValuesChange={(next) => {
-              setSelectedValues(next);
-              if (next.length > 0) setError(undefined);
-            }}
-            placeholder="انتخاب هفته‌ها"
-            disabled={busy}
-            error={error}
-          />
-          <KvTypography variant="caption" tone="muted">
-            هفته‌های نمره‌گذاری‌شده و کارورزان حذف‌شده در تمدید گروهی نادیده
-            گرفته می‌شوند.
-          </KvTypography>
-        </div>
+        <KvCheckboxMultiSelect
+          id="daily-approval-bulk-extend-weeks"
+          label="هفته‌های قابل تمدید"
+          required
+          options={options}
+          values={selectedValues}
+          onValuesChange={(next) => {
+            setSelectedValues(next);
+            if (next.length > 0) setError(undefined);
+          }}
+          placeholder="انتخاب هفته‌ها"
+          disabled={busy}
+          error={error}
+        />
 
         <KvDialogFooter>
           <KvButton
