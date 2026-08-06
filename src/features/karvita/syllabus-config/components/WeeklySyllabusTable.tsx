@@ -58,6 +58,9 @@ export function WeeklySyllabusTable({
   const bodyPhase = getAdminTableBodyPhase(isLoading, weeks.length);
   const emptyCopy = getModuleEmptyCopy('syllabus_weeks');
   const canEdit = Boolean(courseTitle);
+  const lastWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
+  const lastWeekArchived = lastWeek?.status === 'archived';
+  const hasLastWeek = Boolean(lastWeek);
 
   return (
     <KvCard
@@ -73,17 +76,69 @@ export function WeeklySyllabusTable({
           پیکربندی سرفصل: {courseTitle ?? 'بدون عنوان'}
         </KvTypography>
 
-        <KvButton
-          type="button"
-          color="success"
-          size="sm"
-          className="w-full sm:w-auto"
-          disabled={!canEdit}
-          onClick={onAddWeek}
-          icon={<FaIcon icon={faIcons.plus} size="xs" />}
-        >
-          افزودن هفته
-        </KvButton>
+        <div className="flex flex-col gap-kv-pair sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+          <KvButton
+            type="button"
+            color="success"
+            size="sm"
+            className="w-full sm:w-auto"
+            disabled={!canEdit}
+            onClick={onAddWeek}
+            icon={<FaIcon icon={faIcons.plus} size="xs" />}
+          >
+            افزودن
+          </KvButton>
+
+          {lastWeekArchived ? (
+            <KvButton
+              type="button"
+              color="neutral"
+              appearance="secondary"
+              size="sm"
+              className="w-full sm:w-auto"
+              disabled={!canEdit || !hasLastWeek}
+              aria-label="بازیابی آخرین هفته"
+              onClick={() => {
+                if (lastWeek) onRestoreWeek(lastWeek);
+              }}
+              icon={<FaIcon icon={faIcons.clockRotateLeft} size="xs" />}
+            >
+              آخرین هفته
+            </KvButton>
+          ) : (
+            <KvButton
+              type="button"
+              color="warning"
+              appearance="secondary"
+              size="sm"
+              className="w-full sm:w-auto"
+              disabled={!canEdit || !hasLastWeek}
+              aria-label="آرشیو آخرین هفته"
+              onClick={() => {
+                if (lastWeek) onArchiveWeek(lastWeek);
+              }}
+              icon={<FaIcon icon={faIcons.folderOpen} size="xs" />}
+            >
+              آخرین هفته
+            </KvButton>
+          )}
+
+          <KvButton
+            type="button"
+            color="error"
+            appearance="secondary"
+            size="sm"
+            className="w-full sm:w-auto"
+            disabled={!canEdit || !hasLastWeek}
+            aria-label="حذف آخرین هفته"
+            onClick={() => {
+              if (lastWeek) onDeleteWeek(lastWeek);
+            }}
+            icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+          >
+            آخرین هفته
+          </KvButton>
+        </div>
       </div>
 
       <div className="border-t border-kv-border-muted pt-kv-group">
@@ -104,7 +159,7 @@ export function WeeklySyllabusTable({
                 >
                   ضریب اهمیت
                 </KvTableHead>
-                <KvTableHead align="center" className="w-28 sm:w-32">
+                <KvTableHead align="center" className="w-16 sm:w-20">
                   عملیات
                 </KvTableHead>
               </KvTableRow>
@@ -131,7 +186,7 @@ export function WeeklySyllabusTable({
                           onClick={onAddWeek}
                           icon={<FaIcon icon={faIcons.plus} size="xs" />}
                         >
-                          افزودن هفته
+                          افزودن
                         </KvButton>
                       ) : undefined
                     }
@@ -143,12 +198,8 @@ export function WeeklySyllabusTable({
                     key={week.id}
                     week={week}
                     index={index}
-                    weeks={weeks}
                     onWeightChange={onWeightChange}
                     onEditWeek={onEditWeek}
-                    onArchiveWeek={onArchiveWeek}
-                    onRestoreWeek={onRestoreWeek}
-                    onDeleteWeek={onDeleteWeek}
                   />
                 ))
               )}

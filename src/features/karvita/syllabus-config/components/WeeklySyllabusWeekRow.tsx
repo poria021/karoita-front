@@ -2,7 +2,6 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
-import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import {
@@ -16,39 +15,19 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 import { WEEK_WEIGHT_OPTIONS } from '../constants';
 
-/** آخرین سطر همیشه؛ اگر آخرین آرشیو باشد، سطر قبلی هم فعال است. */
-function isWeekRowActionable(index: number, weeks: SyllabusWeek[]): boolean {
-  if (weeks.length === 0) return false;
-  const lastIndex = weeks.length - 1;
-  if (index === lastIndex) return true;
-  const lastWeek = weeks[lastIndex];
-  return lastWeek?.status === 'archived' && index === lastIndex - 1;
-}
-
 type WeeklySyllabusWeekRowProps = {
   week: SyllabusWeek;
   index: number;
-  weeks: SyllabusWeek[];
   onWeightChange: (weekId: string, weight: number) => void;
   onEditWeek: (week: SyllabusWeek) => void;
-  onArchiveWeek: (week: SyllabusWeek) => void;
-  onRestoreWeek: (week: SyllabusWeek) => void;
-  onDeleteWeek: (week: SyllabusWeek) => void;
 };
 
 export function WeeklySyllabusWeekRow({
   week,
   index,
-  weeks,
   onWeightChange,
   onEditWeek,
-  onArchiveWeek,
-  onRestoreWeek,
-  onDeleteWeek,
 }: WeeklySyllabusWeekRowProps) {
-  const archived = week.status === 'archived';
-  const structureActionable = isWeekRowActionable(index, weeks);
-
   return (
     <KvTableRow>
       <KvTableRowIndexCell index={index} />
@@ -81,52 +60,17 @@ export function WeeklySyllabusWeekRow({
           </KvSelectField>
         </div>
       </KvTableCell>
-      <KvTableCell align="center" className="w-28 whitespace-nowrap sm:w-32">
+      <KvTableCell align="center" className="w-16 sm:w-20">
         <div className="flex h-8 items-center justify-center">
-          <KvButtonGroup align="center">
-            <KvButton
-              type="button"
-              color="neutral"
-              appearance="ghost"
-              size="icon-xs"
-              aria-label="ویرایش عنوان هفته"
-              onClick={() => onEditWeek(week)}
-              icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
-            />
-            {archived ? (
-              <KvButton
-                type="button"
-                color="neutral"
-                appearance="ghost"
-                size="icon-xs"
-                aria-label="بازیابی هفته"
-                disabled={!structureActionable}
-                onClick={() => onRestoreWeek(week)}
-                icon={<FaIcon icon={faIcons.clockRotateLeft} size="xs" />}
-              />
-            ) : (
-              <KvButton
-                type="button"
-                color="warning"
-                appearance="ghost"
-                size="icon-xs"
-                aria-label="آرشیو هفته"
-                disabled={!structureActionable}
-                onClick={() => onArchiveWeek(week)}
-                icon={<FaIcon icon={faIcons.folderOpen} size="xs" />}
-              />
-            )}
-            <KvButton
-              type="button"
-              color="error"
-              appearance="ghost"
-              size="icon-xs"
-              aria-label="حذف هفته"
-              disabled={!structureActionable}
-              onClick={() => onDeleteWeek(week)}
-              icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
-            />
-          </KvButtonGroup>
+          <KvButton
+            type="button"
+            color="neutral"
+            appearance="ghost"
+            size="icon-xs"
+            aria-label="ویرایش عنوان هفته"
+            onClick={() => onEditWeek(week)}
+            icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
+          />
         </div>
       </KvTableCell>
     </KvTableRow>
