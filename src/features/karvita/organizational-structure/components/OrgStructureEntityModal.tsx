@@ -13,7 +13,6 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import type {
   OrgStructureEntityKind,
   OrgStructureSubTab,
@@ -22,6 +21,7 @@ import type {
 import { getOrgTabConfig } from '../constants';
 import { useOrgEntityForm } from '../hooks/useOrgEntityForm';
 import { submitOrgEntity } from '../lib/orgEntitySubmitHandlers';
+import type { OrgEntityFormValues } from '../schemas/org-structure.schema';
 import { OrgStructureEntityFields } from './OrgStructureEntityFields';
 
 interface OrgStructureEntityModalProps {
@@ -31,6 +31,7 @@ interface OrgStructureEntityModalProps {
   editId: string | null;
   onClose: () => void;
   onSaved: () => void;
+  onCreate: (values: OrgEntityFormValues) => void;
 }
 
 export function OrgStructureEntityModal({
@@ -40,6 +41,7 @@ export function OrgStructureEntityModal({
   editId,
   onClose,
   onSaved,
+  onCreate,
 }: OrgStructureEntityModalProps) {
   const tabConfig = getOrgTabConfig(tab);
   const isEdit = Boolean(editId);
@@ -69,20 +71,7 @@ export function OrgStructureEntityModal({
     }
 
     onClose();
-    scheduleUndoableMutation({
-      message: `${tabConfig.addLabel} «${label}» تا چند ثانیه دیگر افزوده می‌شود…`,
-      undoLabel: 'لغو',
-      commit: () => submitOrgEntity(tab, values, null),
-      onCommitted: async () => {
-        toast.success(`${tabConfig.addLabel} «${label}» با موفقیت افزوده شد.`);
-        onSaved();
-      },
-      onError: (error) => {
-        toast.error(
-          error instanceof Error ? error.message : 'افزودن ساختار ناموفق بود.'
-        );
-      },
-    });
+    onCreate(values);
   });
 
   return (

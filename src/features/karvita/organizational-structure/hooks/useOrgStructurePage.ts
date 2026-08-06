@@ -18,11 +18,13 @@ import {
 } from '@/types/org-structure';
 
 import { getOrgTabConfig } from '../constants';
+import { submitOrgEntity } from '../lib/orgEntitySubmitHandlers';
 import {
   ORG_STRUCTURE_CACHE_NAMESPACE,
   ORG_STRUCTURE_CHROME_ID,
   orgStructureListResetKey,
 } from '../lib/orgStructureListKeys';
+import type { OrgEntityFormValues } from '../schemas/org-structure.schema';
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -32,6 +34,21 @@ type OrgChrome = {
 };
 
 export const entityKindFromTab = orgEntityKindFromTab;
+
+function buildOptimisticRow(
+  tab: OrgStructureSubTab,
+  values: OrgEntityFormValues,
+  tempId: string
+): OrgStructureListItem {
+  return {
+    id: tempId,
+    name: values.name.trim(),
+    kind: orgEntityKindFromTab(tab),
+    deleteBlocked: false,
+    audience: values.audience,
+    gender: values.gender,
+  };
+}
 
 export function useOrgStructurePage() {
   const getChrome = useDashboardModuleCache((s) => s.getChrome);
@@ -94,18 +111,76 @@ export function useOrgStructurePage() {
   }, []);
 
   const reload = list.reload;
+  const patchItems = list.patchItems;
+
+  const scheduleCreate = useCallback(
+    (values: OrgEntityFormValues) => {
+      const label = values.name.trim();
+      const tempId = `temp-org-${Date.now()}`;
+      const optimistic = buildOptimisticRow(tab, values, tempId);
+      let snapshot: OrgStructureListItem[] = [];
+      let snapshotTotal = 0;
+
+      scheduleUndoableMutation({
+        message: `${tabConfig.addLabel} «${label}» افزوده شد.`,
+        undoLabel: 'لغو',
+        apply: () => {
+          patchItems(
+            (prev) => {
+              snapshot = prev;
+              return [optimistic, ...prev];
+            },
+            (prevTotal) => {
+              snapshotTotal = prevTotal;
+              return prevTotal + 1;
+            }
+          );
+        },
+        revert: () => {
+          patchItems(() => snapshot, () => snapshotTotal);
+        },
+        commit: () => submitOrgEntity(tab, values, null),
+        onCommitted: async () => {
+          await reload();
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error ? error.message : 'افزودن ساختار ناموفق بود.'
+          );
+        },
+      });
+    },
+    [patchItems, reload, tab, tabConfig.addLabel]
+  );
 
   const requestDelete = useCallback(
     (row: OrgStructureListItem) => {
       if (row.deleteBlocked) return;
 
+      let snapshot: OrgStructureListItem[] = [];
+      let snapshotTotal = 0;
+
       scheduleUndoableMutation({
         tone: 'error',
-        message: `«${row.name}» تا چند ثانیه دیگر از ساختار سازمانی حذف می‌شود…`,
+        message: `«${row.name}» از ساختار سازمانی حذف شد.`,
         undoLabel: 'لغو',
+        apply: () => {
+          patchItems(
+            (prev) => {
+              snapshot = prev;
+              return prev.filter((item) => item.id !== row.id);
+            },
+            (prevTotal) => {
+              snapshotTotal = prevTotal;
+              return Math.max(0, prevTotal - 1);
+            }
+          );
+        },
+        revert: () => {
+          patchItems(() => snapshot, () => snapshotTotal);
+        },
         commit: () => OrgStructureService.deleteEntity(row.kind, row.id),
         onCommitted: async () => {
-          toast.success(`«${row.name}» از ساختار سازمانی حذف شد.`);
           await reload();
         },
         onError: (error) => {
@@ -117,7 +192,7 @@ export function useOrgStructurePage() {
         },
       });
     },
-    [reload]
+    [patchItems, reload]
   );
 
   const handleLoadMore = useCallback(() => {
@@ -155,6 +230,7 @@ export function useOrgStructurePage() {
     openCreate,
     openEdit,
     closeEditor,
+    scheduleCreate,
     requestDelete,
     entityKind: entityKindFromTab(tab),
   };

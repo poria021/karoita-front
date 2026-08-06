@@ -5,12 +5,16 @@ export const UNDOABLE_MUTATION_DEFAULT_MS = 5_000;
 export type UndoableToastTone = 'default' | 'error' | 'warning';
 
 export type UndoableMutationOptions<T> = {
-  /** Pending copy shown while waiting for undo window. */
+  /** Past-tense result copy (shown immediately; single toast, no follow-up success). */
   message: string;
   description?: string;
   undoLabel?: string;
   durationMs?: number;
   tone?: UndoableToastTone;
+  /** Apply optimistic UI immediately so the user sees the change. */
+  apply: () => void;
+  /** Restore UI when the user presses Undo (and on commit failure). */
+  revert: () => void;
   /** Runs only if the user does not undo before the toast closes. */
   commit: () => Promise<T>;
   onCommitted?: (result: T) => void | Promise<void>;
@@ -40,9 +44,14 @@ function showUndoableToast(
   return toast(message, options);
 }
 
+function defaultUndoDescription(undoLabel: string): string {
+  return `برای لغو، قبل از پایان زمان روی «${undoLabel}» بزنید.`;
+}
+
 /**
- * Show a toast with Undo; defer the Facade/API `commit` until the toast
- * auto-closes (or is dismissed without undo). Undo cancels the send.
+ * Optimistic undoable Facade write: UI updates immediately, API commits after
+ * the toast window unless Undo restores the previous UI and cancels the send.
+ * One toast only — do not call toast.success in onCommitted.
  */
 export function scheduleUndoableMutation<T>(
   options: UndoableMutationOptions<T>
@@ -51,11 +60,12 @@ export function scheduleUndoableMutation<T>(
   let settled = false;
 
   const durationMs = options.durationMs ?? UNDOABLE_MUTATION_DEFAULT_MS;
-  const undoLabel = options.undoLabel ?? 'بازگردانی';
+  const undoLabel = options.undoLabel ?? 'لغو';
   const description =
-    options.description ??
-    'برای لغو، قبل از پایان زمان روی بازگردانی بزنید.';
+    options.description ?? defaultUndoDescription(undoLabel);
   const tone = options.tone ?? 'default';
+
+  options.apply();
 
   const runCommit = () => {
     if (cancelled || settled) return;
@@ -66,6 +76,7 @@ export function scheduleUndoableMutation<T>(
         const result = await options.commit();
         await options.onCommitted?.(result);
       } catch (error) {
+        options.revert();
         if (options.onError) {
           options.onError(error);
           return;
@@ -87,8 +98,8 @@ export function scheduleUndoableMutation<T>(
         if (settled) return;
         cancelled = true;
         settled = true;
+        options.revert();
         options.onUndone?.();
-        toast.message('عملیات لغو شد.');
       },
     },
     onAutoClose: () => {
@@ -109,10 +120,9 @@ export function scheduleUndoableLocalChange(
 ): string | number {
   let undone = false;
   const durationMs = options.durationMs ?? UNDOABLE_MUTATION_DEFAULT_MS;
-  const undoLabel = options.undoLabel ?? 'بازگردانی';
+  const undoLabel = options.undoLabel ?? 'لغو';
   const description =
-    options.description ??
-    'برای لغو، قبل از پایان زمان روی بازگردانی بزنید.';
+    options.description ?? defaultUndoDescription(undoLabel);
   const tone = options.tone ?? 'default';
 
   options.apply();

@@ -237,6 +237,7 @@ export function ScenarioTermActive({
         actor={actor}
         state={state}
         onClose={() => setActiveWeek(null)}
+        onReopen={setActiveWeek}
         onSaved={onAssignmentComplete}
       />
     </div>

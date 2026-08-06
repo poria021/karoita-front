@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { LandingCmsService } from '@/services/landing-cms.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
@@ -42,9 +43,6 @@ export function useLandingCmsPage() {
   const [products, setProducts] = useState<LandingProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] =
-    useState<LandingCmsDeleteTarget | null>(null);
-
   const loadRequestIdRef = useRef(0);
   const hasDataRef = useRef(false);
 
@@ -116,33 +114,56 @@ export function useLandingCmsPage() {
     setTab(next);
   }, []);
 
-  const requestDelete = useCallback((target: LandingCmsDeleteTarget) => {
-    setDeleteTarget(target);
-  }, []);
+  const requestDelete = useCallback(
+    (target: LandingCmsDeleteTarget) => {
+      const bannersSnapshot = banners;
+      const socialsSnapshot = socials;
+      const productsSnapshot = products;
 
-  const clearDelete = useCallback(() => {
-    setDeleteTarget(null);
-  }, []);
+      const message =
+        target.kind === 'banners'
+          ? 'بنر مورد نظر حذف شد.'
+          : target.kind === 'socials'
+            ? 'شبکه اجتماعی حذف شد.'
+            : 'محصول از داک شناور حذف شد.';
 
-  const confirmDelete = useCallback(async () => {
-    if (!deleteTarget) return;
-    try {
-      if (deleteTarget.kind === 'banners') {
-        await LandingCmsService.deleteBanner(deleteTarget.id);
-        toast.success('بنر مورد نظر حذف شد.');
-      } else if (deleteTarget.kind === 'socials') {
-        await LandingCmsService.deleteSocial(deleteTarget.id);
-        toast.success('شبکه اجتماعی حذف شد.');
-      } else {
-        await LandingCmsService.deleteProduct(deleteTarget.id);
-        toast.success('محصول از داک شناور حذف شد.');
-      }
-      setDeleteTarget(null);
-      await reload({ soft: true });
-    } catch (err) {
-      toast.error(errorMessage(err, 'حذف ناموفق بود.'));
-    }
-  }, [deleteTarget, reload]);
+      scheduleUndoableMutation({
+        tone: 'error',
+        message,
+        undoLabel: 'لغو',
+        apply: () => {
+          if (target.kind === 'banners') {
+            setBanners((prev) => prev.filter((item) => item.id !== target.id));
+          } else if (target.kind === 'socials') {
+            setSocials((prev) => prev.filter((item) => item.id !== target.id));
+          } else {
+            setProducts((prev) => prev.filter((item) => item.id !== target.id));
+          }
+        },
+        revert: () => {
+          setBanners(bannersSnapshot);
+          setSocials(socialsSnapshot);
+          setProducts(productsSnapshot);
+        },
+        commit: async () => {
+          if (target.kind === 'banners') {
+            await LandingCmsService.deleteBanner(target.id);
+          } else if (target.kind === 'socials') {
+            await LandingCmsService.deleteSocial(target.id);
+          } else {
+            await LandingCmsService.deleteProduct(target.id);
+          }
+        },
+        onCommitted: async () => {
+          await reload({ soft: true });
+        },
+        onError: (err) => {
+          toast.error(errorMessage(err, 'حذف ناموفق بود.'));
+        },
+      });
+    },
+    [banners, products, reload, socials]
+  );
 
   const softReload = useCallback(
     () => reload({ soft: true }),
@@ -159,9 +180,6 @@ export function useLandingCmsPage() {
     error,
     reload,
     softReload,
-    deleteTarget,
     requestDelete,
-    clearDelete,
-    confirmDelete,
   };
 }

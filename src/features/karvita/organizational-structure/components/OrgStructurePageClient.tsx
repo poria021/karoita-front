@@ -73,6 +73,7 @@ export function OrgStructurePageClient() {
           editId={page.editId}
           onClose={page.closeEditor}
           onSaved={page.reload}
+          onCreate={page.scheduleCreate}
         />
       ) : null}
     </SuperAdminModuleGuard>

@@ -28,6 +28,7 @@ type WeeklyReportModalProps = {
   actor: InternshipEnrollmentActor;
   state: InternshipEnrollmentPageState;
   onClose: () => void;
+  onReopen: (week: InternshipWeeklySession) => void;
   onSaved: () => Promise<void>;
 };
 
@@ -60,6 +61,7 @@ export function WeeklyReportModal({
   actor,
   state,
   onClose,
+  onReopen,
   onSaved,
 }: WeeklyReportModalProps) {
   const modal = useWeeklyReportModal({
@@ -68,6 +70,7 @@ export function WeeklyReportModal({
     week,
     open,
     onClose,
+    onReopen,
     onSaved,
   });
 

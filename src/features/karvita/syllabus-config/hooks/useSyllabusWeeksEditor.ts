@@ -101,19 +101,26 @@ export function useSyllabusWeeksEditor({
 
   function addWeek() {
     if (!ensureCourseSelected()) return;
-    setWeeks((prev) => {
-      const n = prev.length + 1;
-      const label = `هفته ${n}`;
-      const next: SyllabusWeek = {
-        id: `week_${Date.now()}_${n}`,
-        suffix: label,
-        title: label,
-        weight: DEFAULT_WEEK_WEIGHT,
-        status: 'active',
-      };
-      setHasUnsavedChanges(true);
-      toast.success(`هفته ${toPersianDigits(n)} افزوده شد.`);
-      return [...prev, next];
+    const previous = weeks;
+    const n = weeks.length + 1;
+    const label = `هفته ${n}`;
+    const next: SyllabusWeek = {
+      id: `week_${Date.now()}_${n}`,
+      suffix: label,
+      title: label,
+      weight: DEFAULT_WEEK_WEIGHT,
+      status: 'active',
+    };
+
+    scheduleUndoableLocalChange({
+      message: `هفته ${toPersianDigits(n)} افزوده شد.`,
+      apply: () => {
+        setWeeks((prev) => [...prev, next]);
+        setHasUnsavedChanges(true);
+      },
+      revert: () => {
+        setWeeks(previous);
+      },
     });
   }
 

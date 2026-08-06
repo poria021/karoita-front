@@ -261,13 +261,18 @@ export function useDailyApprovalsPage() {
     async (input: { score: number | null; advisorFeedback: string }) => {
       if (!gradingTarget) return;
       const target = gradingTarget;
-      setGradingTarget(null);
 
       scheduleUndoableMutation({
         message:
           input.score === null
-            ? 'بازخورد اصلاحی تا چند ثانیه دیگر ثبت می‌شود…'
-            : 'نمره نهایی تا چند ثانیه دیگر ثبت می‌شود…',
+            ? 'بازخورد ذخیره شد؛ گزارش به وضعیت «نیازمند ویرایش» تغییر یافت.'
+            : 'نمره نهایی گزارش با موفقیت ثبت شد.',
+        apply: () => {
+          setGradingTarget(null);
+        },
+        revert: () => {
+          setGradingTarget(target);
+        },
         commit: () =>
           DailyApprovalsService.updateWeekEvaluation({
             traineeId: target.traineeId,
@@ -276,11 +281,6 @@ export function useDailyApprovalsPage() {
             advisorFeedback: input.advisorFeedback,
           }),
         onCommitted: async () => {
-          toast.success(
-            input.score === null
-              ? 'بازخورد ذخیره شد؛ گزارش به وضعیت «نیازمند ویرایش» تغییر یافت.'
-              : 'نمره نهایی گزارش با موفقیت ثبت شد.'
-          );
           await list.reload();
         },
         onError: (error) => {
@@ -302,10 +302,16 @@ export function useDailyApprovalsPage() {
     }) => {
       if (!gradingTarget) return;
       const target = gradingTarget;
-      setGradingTarget(null);
 
       scheduleUndoableMutation({
-        message: 'ارزیابی معلم راهنما تا چند ثانیه دیگر ثبت می‌شود…',
+        message:
+          'ارزیابی با موفقیت ثبت نهایی شد و گزارش در وضعیت تایید قرار گرفت.',
+        apply: () => {
+          setGradingTarget(null);
+        },
+        revert: () => {
+          setGradingTarget(target);
+        },
         commit: () =>
           DailyApprovalsService.updateMentorWeekEvaluation({
             traineeId: target.traineeId,
@@ -314,9 +320,6 @@ export function useDailyApprovalsPage() {
             mentorRating: input.mentorRating,
           }),
         onCommitted: async () => {
-          toast.success(
-            'ارزیابی با موفقیت ثبت نهایی شد و گزارش در وضعیت تایید قرار گرفت.'
-          );
           await list.reload();
         },
         onError: (error) => {
@@ -338,10 +341,15 @@ export function useDailyApprovalsPage() {
     }) => {
       if (!gradingTarget) return;
       const target = gradingTarget;
-      setGradingTarget(null);
 
       scheduleUndoableMutation({
-        message: 'ارزیابی مدیر مدرسه تا چند ثانیه دیگر ثبت می‌شود…',
+        message: 'ارزیابی توصیفی مدیر مدرسه با موفقیت ثبت نهایی شد.',
+        apply: () => {
+          setGradingTarget(null);
+        },
+        revert: () => {
+          setGradingTarget(target);
+        },
         commit: () =>
           DailyApprovalsService.updatePrincipalWeekEvaluation({
             traineeId: target.traineeId,
@@ -350,7 +358,6 @@ export function useDailyApprovalsPage() {
             principalRating: input.principalRating,
           }),
         onCommitted: async () => {
-          toast.success('ارزیابی توصیفی مدیر مدرسه با موفقیت ثبت نهایی شد.');
           await list.reload();
         },
         onError: (error) => {

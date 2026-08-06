@@ -7,9 +7,12 @@ import {
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
+  flattenOffsetLimitPages,
   mapOffsetLimitListError,
   mergeOffsetLimitPageItems,
   offsetLimitListQueryKey,
+  replaceOffsetLimitListItems,
+  type OffsetLimitInfiniteData,
 } from '@/hooks/offsetLimitInfiniteList.helpers';
 import { delayDashboardColdSkeletonPreview } from '@/lib/dashboard-cold-skeleton-preview';
 import {
@@ -131,6 +134,23 @@ export function useOffsetLimitInfiniteList<T>({
     await refetch();
   }, [refetch]);
 
+  const patchItems = useCallback(
+    (
+      updater: (prev: T[]) => T[],
+      totalUpdater?: (prevTotal: number, nextItems: T[]) => number
+    ) => {
+      queryClient.setQueryData<OffsetLimitInfiniteData<T>>(queryKey, (old) => {
+        const prevItems = flattenOffsetLimitPages(old);
+        const prevTotal = old?.pages.at(-1)?.total ?? prevItems.length;
+        const nextItems = updater(prevItems);
+        const nextTotal =
+          totalUpdater?.(prevTotal, nextItems) ?? prevTotal;
+        return replaceOffsetLimitListItems(old, nextItems, nextTotal);
+      });
+    },
+    [queryClient, queryKey]
+  );
+
   return {
     items,
     total,
@@ -141,6 +161,7 @@ export function useOffsetLimitInfiniteList<T>({
     loadMoreError,
     loadMore,
     reload,
+    patchItems,
     clearLoadMoreError: () => setLoadMoreErrorDismissed(true),
     pageSize,
   };

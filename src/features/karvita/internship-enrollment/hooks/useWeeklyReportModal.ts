@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
@@ -25,6 +25,8 @@ type UseWeeklyReportModalInput = {
   week: InternshipWeeklySession | null;
   open: boolean;
   onClose: () => void;
+  /** Re-open the same week editor when submit undo is pressed. */
+  onReopen: (week: InternshipWeeklySession) => void;
   onSaved: () => Promise<void>;
 };
 
@@ -40,6 +42,7 @@ export function useWeeklyReportModal({
   week,
   open,
   onClose,
+  onReopen,
   onSaved,
 }: UseWeeklyReportModalInput) {
   const enrollment = state.enrollment;
@@ -48,11 +51,23 @@ export function useWeeklyReportModal({
   const [files, setFiles] = useState<InternshipWeeklyReportFile[]>([]);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const undoDraftRef = useRef<{
+    weekId: string;
+    text: string;
+    files: InternshipWeeklyReportFile[];
+  } | null>(null);
 
   if (open && week && week.id !== editorWeekId) {
+    const draft = undoDraftRef.current;
     setEditorWeekId(week.id);
-    setText(week.text ?? '');
-    setFiles(cloneFiles(week.files));
+    if (draft && draft.weekId === week.id) {
+      setText(draft.text);
+      setFiles(cloneFiles(draft.files));
+      undoDraftRef.current = null;
+    } else {
+      setText(week.text ?? '');
+      setFiles(cloneFiles(week.files));
+    }
   }
   if (!open && editorWeekId !== null) {
     setEditorWeekId(null);
@@ -162,13 +177,24 @@ export function useWeeklyReportModal({
       files: cloneFiles(files),
     };
 
-    onClose();
+    const reopenWeek = week;
 
     scheduleUndoableMutation({
-      message: 'گزارش تا چند ثانیه دیگر برای معلم ارسال می‌شود…',
+      message: 'گزارش نهایی شده و جهت دریافت بازخورد ارسال گردید.',
+      apply: () => {
+        undoDraftRef.current = {
+          weekId: week.id,
+          text,
+          files: cloneFiles(files),
+        };
+        onClose();
+      },
+      revert: () => {
+        onReopen(reopenWeek);
+      },
       commit: () => InternshipEnrollmentService.submitWeeklyReport(payload),
       onCommitted: async () => {
-        toast.success('گزارش نهایی شده و جهت دریافت بازخورد ارسال گردید.');
+        undoDraftRef.current = null;
         await onSaved();
       },
       onError: (error) => {
@@ -186,6 +212,7 @@ export function useWeeklyReportModal({
     files,
     locked,
     onClose,
+    onReopen,
     onSaved,
     state.kind,
     state.level,
