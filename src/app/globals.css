@@ -831,3 +831,14 @@ input[readonly]:-webkit-autofill {
 .kv-dock-item:focus-within .kv-dock-item-label > span {
   opacity: 1;
 }
+
+/* Dock mark: white glyph on dark well → original logo colors on hover */
+.kv-dock-mark img {
+  filter: brightness(0) invert(1);
+  transition: filter 0.2s ease-out;
+}
+
+.kv-dock-item:hover .kv-dock-mark img,
+.kv-dock-item:focus-within .kv-dock-mark img {
+  filter: none;
+}

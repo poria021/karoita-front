@@ -48,7 +48,7 @@ function DockMark({ product }: { product: LandingProduct }) {
     <FaIcon
       icon={iconMap[product.icon] ?? faIcons.link}
       size="xs"
-      className="text-kv-brand"
+      className="text-current"
     />
   );
 }
@@ -73,11 +73,11 @@ export function MarketingProductsDock({ products }: MarketingProductsDockProps) 
           const target = resolveMarketingNavTarget(product.link);
           const label = product.title;
           const itemClass =
-            'kv-dock-item items-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface/90 p-0 shadow-kv-raised backdrop-blur-md grayscale hover:grayscale-0 focus-within:grayscale-0';
+            'kv-dock-item group/dock items-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface/90 p-0 shadow-kv-raised backdrop-blur-md';
 
           const inner = (
             <>
-              <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface text-kv-brand shadow-kv-soft">
+              <span className="kv-dock-mark flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-text text-kv-canvas shadow-kv-soft transition-colors duration-200 group-hover/dock:border-kv-border group-hover/dock:bg-kv-surface group-hover/dock:text-kv-brand group-focus-within/dock:bg-kv-surface group-focus-within/dock:text-kv-brand">
                 <DockMark product={product} />
               </span>
               <span className="kv-dock-item-label">
