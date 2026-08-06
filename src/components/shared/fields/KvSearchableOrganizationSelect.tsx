@@ -16,6 +16,10 @@ import {
   useOrganizationOptions,
   type OrganizationDependsOn,
 } from '@/hooks/useOrganizationOptions';
+import {
+  mergeEdgeAutoScrollRef,
+  useEdgeAutoScroll,
+} from '@/hooks/useEdgeAutoScroll';
 import { cn } from '@/lib/utils';
 import type { OrganizationOption } from '@/services/organization-options.service';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
@@ -56,6 +60,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
 ) {
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const edgeScroll = useEdgeAutoScroll<HTMLDivElement>();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(value);
   const [syncedValue, setSyncedValue] = useState(value);
@@ -159,8 +164,11 @@ export const KvSearchableOrganizationSelect = forwardRef<
           className={cn(kvOverlayPanelClassName, 'absolute start-0 z-50 mt-1 w-full')}
         >
           <Command.List
-            ref={listRef}
+            ref={mergeEdgeAutoScrollRef(edgeScroll.ref, listRef)}
+            data-edge-auto-scroll=""
             onScroll={handleListScroll}
+            onPointerMove={edgeScroll.onPointerMove}
+            onPointerLeave={edgeScroll.onPointerLeave}
             className="max-h-52 overflow-y-auto overflow-x-hidden outline-none"
           >
             {isLoading ? (

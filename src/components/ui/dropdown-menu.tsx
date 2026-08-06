@@ -1,9 +1,13 @@
 "use client"
 
 import * as React from "react"
-import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
+import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 
 import { FaIcon } from "@/components/shared/FaIcon"
+import {
+  mergeEdgeAutoScrollRef,
+  useEdgeAutoScroll,
+} from "@/hooks/useEdgeAutoScroll"
 import { cn } from "@/lib/utils"
 import { faIcons } from "@/utils/iconMap"
 
@@ -35,14 +39,28 @@ function DropdownMenuTrigger({
 function DropdownMenuContent({
   className,
   sideOffset = 4,
+  ref,
+  onPointerMove,
+  onPointerLeave,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+  const edgeScroll = useEdgeAutoScroll<HTMLDivElement>()
+
   return (
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
-        dir="rtl"
+        data-edge-auto-scroll=""
+        ref={mergeEdgeAutoScrollRef(edgeScroll.ref, ref)}
         sideOffset={sideOffset}
+        onPointerMove={(event) => {
+          edgeScroll.onPointerMove(event)
+          onPointerMove?.(event)
+        }}
+        onPointerLeave={(event) => {
+          edgeScroll.onPointerLeave()
+          onPointerLeave?.(event)
+        }}
         className={cn(
           "bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-kv-control border border-kv-border p-1 shadow-kv-overlay",
           className
