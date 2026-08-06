@@ -35,7 +35,7 @@ describe('syllabus-mappers', () => {
     expect(getCatalogForTermType('modular')).toHaveLength(2);
   });
 
-  it('maps offerings isOffered from active weeks', () => {
+  it('maps offerings isOffered from offering flag', () => {
     const snapshot: SyllabusConfigSnapshot = {
       terms: [
         {
@@ -53,6 +53,7 @@ describe('syllabus-mappers', () => {
           id: 'off_term_2_course_internship_1',
           termId: 'term_2',
           courseCatalogId: 'course_internship_1',
+          isOffered: true,
           weeks: [
             {
               id: 'w1',

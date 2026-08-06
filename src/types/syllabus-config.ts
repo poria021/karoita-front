@@ -36,6 +36,8 @@ export type CourseOfferingRecord = {
   id: string;
   termId: string;
   courseCatalogId: string;
+  /** وضعیت ارائه برای کاربران — مستقل از سطرهای سرفصل. */
+  isOffered: boolean;
   weeks: SyllabusWeek[];
 };
 

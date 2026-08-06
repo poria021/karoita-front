@@ -36,7 +36,8 @@ type CourseOfferingsPanelProps = Pick<
 export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
   return (
     <div className="grid grid-cols-1 items-start gap-kv-section lg:grid-cols-12 lg:gap-kv-group">
-      <div className="flex flex-col gap-kv-group lg:col-span-4">
+      {/* Desktop RTL right column; mobile/tablet below gates. */}
+      <div className="order-2 flex flex-col gap-kv-group lg:order-1 lg:col-span-4 lg:row-span-2">
         <TermSemesterCard
           terms={props.audienceTerms}
           selectedTerm={props.selectedAudienceTerm}
@@ -58,14 +59,16 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
         />
       </div>
 
-      <div className="flex flex-col gap-kv-group lg:col-span-8">
+      <div className="order-1 lg:order-2 lg:col-span-8">
         <TermGateCards
           selectedTerm={props.selectedTerm}
           isLoading={props.isLoading}
           onToggleEnroll={(open) => void props.toggleEnroll(open)}
           onToggleTermOpen={(open) => void props.toggleTermOpen(open)}
         />
+      </div>
 
+      <div className="order-3 lg:order-3 lg:col-span-8">
         <WeeklySyllabusTable
           courseTitle={props.selectedCourse?.title ?? null}
           weeks={props.weeks}

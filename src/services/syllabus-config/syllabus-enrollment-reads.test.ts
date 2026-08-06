@@ -59,7 +59,7 @@ describe('syllabus enrollment reads', () => {
     );
   });
 
-  it('reports course offered only after active weeks exist', () => {
+  it('reports course offered after activate even with empty weeks', () => {
     const draft = emptySnapshot();
     const term = draft.terms[0]!;
     expect(isCourseOfferedInTerm(draft, term, 'internship', 1)).toBe(false);

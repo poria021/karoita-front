@@ -4,7 +4,6 @@ import {
 import {
   buildCourseOfferingId,
   catalogIdForKind,
-  isOfferingActive,
 } from '@/services/syllabus-config/syllabus-mappers';
 import type {
   AcademicTerm,
@@ -48,7 +47,7 @@ export function isCourseOfferedInTerm(
     catalogIdForKind(kind, level)
   );
   const offering = snapshot.offerings[offeringId];
-  return Boolean(offering && isOfferingActive(offering.weeks));
+  return Boolean(offering?.isOffered);
 }
 
 export function getTermGateFlags(term: AcademicTerm | null): {

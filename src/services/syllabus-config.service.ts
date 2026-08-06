@@ -194,6 +194,7 @@ export const SyllabusConfigService = {
           id: input.courseOfferingId,
           termId: input.termId,
           courseCatalogId: input.courseCatalogId,
+          isOffered: false,
           weeks: structuredClone(input.weeks),
         };
       } else {

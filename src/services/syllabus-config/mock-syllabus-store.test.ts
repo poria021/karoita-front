@@ -49,7 +49,7 @@ describe('syllabus-config mock helpers', () => {
     expect(isTermGateActive(true, '1499/01/01', today)).toBe(false);
   });
 
-  it('getWeeks is read-only and activate seeds weeks', () => {
+  it('getWeeks is read-only and activate leaves weeks empty for manual setup', () => {
     const draft: SyllabusConfigSnapshot = {
       terms: [
         {
@@ -84,7 +84,9 @@ describe('syllabus-config mock helpers', () => {
       'term_2',
       'course_internship_1'
     );
-    expect(weeks.length).toBe(16);
-    expect(weeks.every((w) => w.status === 'active')).toBe(true);
+    expect(weeks).toEqual([]);
+    expect(
+      draft.offerings.off_term_2_course_internship_1?.isOffered
+    ).toBe(true);
   });
 });

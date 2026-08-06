@@ -10,7 +10,6 @@ import {
   KvTableRow,
 } from '@/components/shared/table/KvTable';
 import { KvTableRowIndexCell } from '@/components/shared/table/KvTableRowIndex';
-import { cn } from '@/lib/utils';
 import type { SyllabusWeek } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -53,10 +52,7 @@ export function WeeklySyllabusWeekRow({
   return (
     <KvTableRow>
       <KvTableRowIndexCell index={index} />
-      <KvTableCell
-        emphasis
-        className={cn('max-w-0 truncate', archived && 'text-kv-text-faint')}
-      >
+      <KvTableCell emphasis className="max-w-0 truncate">
         {toPersianDigits(week.title || week.suffix)}
       </KvTableCell>
       <KvTableCell

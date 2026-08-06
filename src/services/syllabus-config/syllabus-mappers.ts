@@ -97,7 +97,7 @@ export function listOfferingsForTerm(
       courseCatalogId: course.id,
       title: course.title,
       type: course.type,
-      isOffered: record ? isOfferingActive(record.weeks) : false,
+      isOffered: Boolean(record?.isOffered),
     };
   });
 }

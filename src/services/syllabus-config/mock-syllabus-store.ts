@@ -126,7 +126,15 @@ export function migrateLegacySnapshot(
 
   for (const [key, value] of Object.entries(raw.offerings ?? {})) {
     if (isCourseOfferingRecord(value)) {
-      offerings[value.id] = value;
+      const weeks = structuredClone(value.weeks ?? []);
+      offerings[value.id] = {
+        ...value,
+        weeks,
+        isOffered:
+          'isOffered' in value && typeof value.isOffered === 'boolean'
+            ? value.isOffered
+            : weeks.some((week) => week.status === 'active'),
+      };
       continue;
     }
 
@@ -140,11 +148,13 @@ export function migrateLegacySnapshot(
     const catalog = findCatalogByTitle(term.type, courseTitle);
     if (!catalog) continue;
     const id = buildCourseOfferingId(term.id, catalog.id);
+    const weeks = structuredClone(value.weeks ?? []);
     offerings[id] = {
       id,
       termId: term.id,
       courseCatalogId: catalog.id,
-      weeks: structuredClone(value.weeks ?? []),
+      isOffered: weeks.some((week) => week.status === 'active'),
+      weeks,
     };
   }
 
@@ -253,18 +263,12 @@ export function activateOfferingInSnapshot(
   draft: SyllabusConfigSnapshot,
   termId: string,
   courseCatalogId: string,
-  kind: CourseOfferingKind
+  _kind: CourseOfferingKind
 ): CourseOfferingRecord {
   const id = buildCourseOfferingId(termId, courseCatalogId);
   const existing = draft.offerings[id];
   if (existing) {
-    existing.weeks = existing.weeks.map((week) => ({
-      ...week,
-      status: 'active' as const,
-    }));
-    if (existing.weeks.length === 0) {
-      existing.weeks = buildSeedWeeks(defaultWeekCount(kind), 'active');
-    }
+    existing.isOffered = true;
     return existing;
   }
 
@@ -272,7 +276,8 @@ export function activateOfferingInSnapshot(
     id,
     termId,
     courseCatalogId,
-    weeks: buildSeedWeeks(defaultWeekCount(kind), 'active'),
+    isOffered: true,
+    weeks: [],
   };
   draft.offerings[id] = record;
   return record;
@@ -284,10 +289,7 @@ export function deactivateOfferingInSnapshot(
 ): void {
   const existing = draft.offerings[courseOfferingId];
   if (!existing) return;
-  existing.weeks = existing.weeks.map((week) => ({
-    ...week,
-    status: 'archived' as const,
-  }));
+  existing.isOffered = false;
 }
 
 export function deleteOfferingsForTermId(
