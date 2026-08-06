@@ -26,11 +26,11 @@ export function DailyApprovalsPageClient() {
   const canDrop = canDropDailyApprovalTrainee(role);
   const canBulkExtend = canBulkExtendDailyApprovalWeeks(role);
   const hasActiveFilters =
-    page.query.trim().length > 0 || page.readFilter !== 'all';
+    page.query.trim().length > 0 || page.course !== 'all';
 
   const clearFilters = () => {
     page.setQuery('');
-    page.changeReadFilter('all');
+    page.changeCourse('all');
   };
 
   const detail = (
@@ -52,9 +52,10 @@ export function DailyApprovalsPageClient() {
     <div className="space-y-kv-group">
       <DailyApprovalsFilters
         query={page.query}
-        readFilter={page.readFilter}
+        course={page.course}
+        courseOptions={page.courseOptions}
         onQueryChange={page.setQuery}
-        onReadFilterChange={page.changeReadFilter}
+        onCourseChange={page.changeCourse}
       />
       {page.error ? (
         <KvAlert

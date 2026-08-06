@@ -8,23 +8,26 @@ import {
   KvSelectTrigger,
   KvSelectValue,
 } from '@/components/shared/fields/KvSelect';
-import type { DailyApprovalReadFilter } from '@/types/daily-approvals';
-
-import { DAILY_APPROVAL_READ_FILTER_OPTIONS } from '../constants';
+import type { DailyApprovalCourseFilter } from '@/types/daily-approvals';
 
 type DailyApprovalsFiltersProps = {
   query: string;
-  readFilter: DailyApprovalReadFilter;
+  course: DailyApprovalCourseFilter;
+  courseOptions: readonly {
+    value: DailyApprovalCourseFilter;
+    label: string;
+  }[];
   onQueryChange: (value: string) => void;
-  onReadFilterChange: (value: DailyApprovalReadFilter) => void;
+  onCourseChange: (value: DailyApprovalCourseFilter) => void;
   mobile?: boolean;
 };
 
 export function DailyApprovalsFilters({
   query,
-  readFilter,
+  course,
+  courseOptions,
   onQueryChange,
-  onReadFilterChange,
+  onCourseChange,
   mobile = false,
 }: DailyApprovalsFiltersProps) {
   return (
@@ -52,21 +55,19 @@ export function DailyApprovalsFilters({
 
       <div className={mobile ? 'w-full' : 'w-full min-w-0 flex-1'}>
         <KvSelect
-          value={readFilter}
+          value={course}
           onValueChange={(value) => {
-            const option = DAILY_APPROVAL_READ_FILTER_OPTIONS.find(
-              (item) => item.value === value
-            );
-            if (option) onReadFilterChange(option.value);
+            const option = courseOptions.find((item) => item.value === value);
+            if (option) onCourseChange(option.value);
           }}
         >
-          <KvSelectTrigger aria-label="فیلتر خوانده شدن">
+          <KvSelectTrigger aria-label="فیلتر درس">
             <KvSelectValue />
           </KvSelectTrigger>
           <KvSelectContent>
-            {DAILY_APPROVAL_READ_FILTER_OPTIONS.map((option) => (
+            {courseOptions.map((option) => (
               <KvSelectItem key={option.value} value={option.value}>
-                {mobile ? option.mobileLabel : option.label}
+                {option.label}
               </KvSelectItem>
             ))}
           </KvSelectContent>

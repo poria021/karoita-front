@@ -22,6 +22,7 @@ import {
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { DailyApprovalTrainee } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
+import { toPersianDigits } from '@/utils/persianDigits';
 
 import { DailyApprovalUnreadBadge } from './DailyApprovalUnreadBadge';
 
@@ -61,7 +62,7 @@ export function DailyApprovalsTable({
   onClearFilters,
 }: DailyApprovalsTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, trainees.length);
-  const colSpan = (canDrop ? 3 : 2) + 1;
+  const colSpan = (canDrop ? 4 : 3) + 1;
 
   return (
     <div className="space-y-kv-group">
@@ -96,6 +97,7 @@ export function DailyApprovalsTable({
             <KvTableRow>
               <KvTableRowIndexHead />
               <KvTableHead>مشخصات کارورز</KvTableHead>
+              <KvTableHead>درس</KvTableHead>
               <KvTableHead align="center">خوانده نشده</KvTableHead>
               {canDrop ? (
                 <KvTableHead align="center">عملیات</KvTableHead>
@@ -135,6 +137,9 @@ export function DailyApprovalsTable({
                 >
                   <KvTableRowIndexCell index={index} />
                   <KvTableCell emphasis>{trainee.traineeName}</KvTableCell>
+                  <KvTableCell>
+                    {toPersianDigits(trainee.courseTitle)}
+                  </KvTableCell>
                   <KvTableCell align="center">
                     <DailyApprovalUnreadBadge trainee={trainee} />
                   </KvTableCell>

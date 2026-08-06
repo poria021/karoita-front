@@ -4,10 +4,8 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 export function DailyApprovalUnreadBadge({
   trainee,
-  compact = false,
 }: {
   trainee: DailyApprovalTrainee;
-  compact?: boolean;
 }) {
   if (trainee.status === 'dropped') {
     return <Badge variant="danger">اخراج شده</Badge>;
@@ -18,9 +16,7 @@ export function DailyApprovalUnreadBadge({
   if (trainee.unreadCount > 0) {
     return (
       <Badge variant="warning">
-        {compact
-          ? `${toPersianDigits(trainee.unreadCount)} جدید`
-          : `${toPersianDigits(trainee.unreadCount)} خوانده نشده`}
+        {`${toPersianDigits(trainee.unreadCount)} گزارش`}
       </Badge>
     );
   }

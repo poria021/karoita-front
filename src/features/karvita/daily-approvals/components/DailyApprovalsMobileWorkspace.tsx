@@ -37,9 +37,10 @@ export function DailyApprovalsMobileWorkspace({
       <DailyApprovalsFilters
         mobile
         query={page.query}
-        readFilter={page.readFilter}
+        course={page.course}
+        courseOptions={page.courseOptions}
         onQueryChange={page.setQuery}
-        onReadFilterChange={page.changeReadFilter}
+        onCourseChange={page.changeCourse}
       />
 
       {page.isLoading ? (
@@ -91,7 +92,7 @@ export function DailyApprovalsMobileWorkspace({
                     </KvTypography>
                   </button>
                   <div className="flex shrink-0 items-center gap-kv-pair">
-                    <DailyApprovalUnreadBadge trainee={trainee} compact />
+                    <DailyApprovalUnreadBadge trainee={trainee} />
                     {canDrop ? (
                       <KvButton
                         type="button"
