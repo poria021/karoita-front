@@ -14,8 +14,9 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MIN_LENGTH_MESSAGE =
   'رمز عبور باید حداقل ۸ کاراکتر باشد.';
 
+/** Live + schema error when Persian/Arabic letters are entered. */
 export const PASSWORD_LATIN_ONLY_HINT =
-  'رمز عبور فقط با حروف و اعداد انگلیسی مجاز است.';
+  'استفاده از حروف فارسی در رمز عبور مجاز نیست؛ فقط حروف و اعداد انگلیسی وارد کنید.';
 
 export function containsPersianOrArabicScript(value: string): boolean {
   return PERSIAN_ARABIC_SCRIPT_CHAR.test(value);

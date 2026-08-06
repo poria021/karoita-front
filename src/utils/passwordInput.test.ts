@@ -11,9 +11,11 @@ describe('passwordInput', () => {
     expect(PASSWORD_MIN_LENGTH).toBe(8);
   });
 
-  it('detects Persian letters', () => {
+  it('detects Persian letters and allows latin password characters', () => {
     expect(containsPersianOrArabicScript('سلام')).toBe(true);
     expect(containsPersianOrArabicScript('pass')).toBe(false);
+    expect(containsPersianOrArabicScript('P@ssw0rd!')).toBe(false);
+    expect(containsPersianOrArabicScript('abسلامcd')).toBe(true);
   });
 
   it('strips Persian/Arabic script and keeps latin', () => {

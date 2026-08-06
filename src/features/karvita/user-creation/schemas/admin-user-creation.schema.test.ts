@@ -83,4 +83,28 @@ describe('adminUserCreationSchema', () => {
       expect(result.data.mobile).toBe('9123456780');
     }
   });
+
+  it('accepts latin letters in password and rejects Persian letters', () => {
+    const withLatin = adminUserCreationSchema.safeParse({
+      ...base,
+      password: 'Abcd1234',
+      role: 'central_organization',
+      province: '',
+      city: '',
+      college: '',
+      district: '',
+    });
+    expect(withLatin.success).toBe(true);
+
+    const withPersian = adminUserCreationSchema.safeParse({
+      ...base,
+      password: 'سلام1234',
+      role: 'central_organization',
+      province: '',
+      city: '',
+      college: '',
+      district: '',
+    });
+    expect(withPersian.success).toBe(false);
+  });
 });

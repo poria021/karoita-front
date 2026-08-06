@@ -76,7 +76,7 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
                 value={field.value}
                 onBlur={field.onBlur}
                 ref={field.ref}
-                onChange={field.onChange}
+                onChange={(event) => field.onChange(event.target.value)}
               />
             )}
           />

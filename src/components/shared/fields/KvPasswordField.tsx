@@ -66,7 +66,9 @@ export const KvPasswordField = React.forwardRef<
   const [autofillUnlocked, setAutofillUnlocked] = React.useState(
     !suppressBrowserAutofill
   );
-  const [latinOnlyHint, setLatinOnlyHint] = React.useState<string | undefined>();
+  const [persianScriptError, setPersianScriptError] = React.useState<
+    string | undefined
+  >();
 
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     if (suppressBrowserAutofill && !autofillUnlocked) {
@@ -78,11 +80,10 @@ export const KvPasswordField = React.forwardRef<
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const raw = event.target.value;
     if (containsPersianOrArabicScript(raw)) {
-      const cleaned = stripPersianOrArabicScript(raw);
-      event.target.value = cleaned;
-      setLatinOnlyHint(PASSWORD_LATIN_ONLY_HINT);
-    } else if (latinOnlyHint) {
-      setLatinOnlyHint(undefined);
+      event.target.value = stripPersianOrArabicScript(raw);
+      setPersianScriptError(PASSWORD_LATIN_ONLY_HINT);
+    } else if (persianScriptError) {
+      setPersianScriptError(undefined);
     }
     onChange?.(event);
   };
@@ -109,8 +110,8 @@ export const KvPasswordField = React.forwardRef<
       onBlur={onBlur}
       onFocus={handleFocus}
       onChange={handleChange}
-      error={error}
-      hint={latinOnlyHint ?? hint}
+      error={persianScriptError ?? error}
+      hint={persianScriptError ? undefined : hint}
       footer={footer}
       endAddon={
         locked ? undefined : (

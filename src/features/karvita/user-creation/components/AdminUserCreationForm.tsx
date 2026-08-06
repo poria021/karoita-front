@@ -111,7 +111,7 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
                     placeholder="رمز عبور دلخواه را وارد کنید (حداقل ۸ کاراکتر)"
                     autoComplete="new-password"
                     value={field.value}
-                    onChange={field.onChange}
+                    onChange={(event) => field.onChange(event.target.value)}
                     onBlur={field.onBlur}
                     name={field.name}
                     ref={field.ref}
