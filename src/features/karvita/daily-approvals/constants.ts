@@ -1,10 +1,57 @@
 import type {
+  DailyApprovalCompetencyRating,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
   DailyApprovalReadFilter,
   DailyApprovalWeekState,
 } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
+import { toPersianDigits } from '@/utils/persianDigits';
+
+/** حدنصاب قبولی گزارش روی مقیاس ۰–۱۰۰ (مرجع mock). */
+export const DAILY_APPROVAL_PASSING_SCORE = 70;
+
+/** تعداد هفته‌های قابل تمدید گروهی — کارورزی ۱۶، کارآموزی ۸. */
+export const DAILY_APPROVAL_WEEK_COUNT: Record<
+  DailyApprovalCourseKind,
+  number
+> = {
+  internship: 16,
+  apprenticeship: 8,
+};
+
+export function getDailyApprovalWeekOptions(kind: DailyApprovalCourseKind) {
+  const count = DAILY_APPROVAL_WEEK_COUNT[kind];
+  return Array.from({ length: count }, (_, index) => {
+    const weekNumber = index + 1;
+    return {
+      value: String(weekNumber),
+      label: `هفته ${toPersianDigits(weekNumber)}`,
+      weekNumber,
+    };
+  });
+}
+
+export const DAILY_APPROVAL_COMPETENCY_OPTIONS: readonly {
+  value: DailyApprovalCompetencyRating;
+  label: string;
+}[] = [
+  { value: '5', label: `${toPersianDigits(5)} - بسیار عالی` },
+  { value: '4', label: `${toPersianDigits(4)} - خیلی خوب` },
+  { value: '3', label: `${toPersianDigits(3)} - خوب` },
+  { value: '2', label: `${toPersianDigits(2)} - متوسط` },
+  { value: '1', label: `${toPersianDigits(1)} - ضعیف` },
+];
+
+export function competencyRatingLabel(
+  rating: DailyApprovalCompetencyRating | undefined
+): string {
+  if (!rating) return '';
+  return (
+    DAILY_APPROVAL_COMPETENCY_OPTIONS.find((option) => option.value === rating)
+      ?.label ?? toPersianDigits(rating)
+  );
+}
 
 export const DAILY_APPROVAL_READ_FILTER_OPTIONS: readonly {
   value: Exclude<DailyApprovalReadFilter, 'dropped'>;

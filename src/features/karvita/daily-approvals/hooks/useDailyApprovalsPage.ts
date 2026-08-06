@@ -11,11 +11,14 @@ import {
 } from '@/services/daily-approvals.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
+  DailyApprovalCompetencyRating,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
   DailyApprovalReadFilter,
   DailyApprovalTrainee,
+  DailyApprovalWeek,
 } from '@/types/daily-approvals';
+import { toPersianDigits } from '@/utils/persianDigits';
 
 import { getDailyApprovalCourseOptions } from '../constants';
 import {
@@ -69,6 +72,11 @@ export function useDailyApprovalsPage() {
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(
     null
   );
+  const [gradingTarget, setGradingTarget] = useState<{
+    traineeId: string;
+    weekId: string;
+  } | null>(null);
+  const [bulkExtendOpen, setBulkExtendOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
 
   useEffect(() => {
@@ -143,6 +151,11 @@ export function useDailyApprovalsPage() {
 
   const selectedTrainee =
     list.items.find((row) => row.id === selectedTraineeId) ?? null;
+  const gradingTrainee =
+    list.items.find((row) => row.id === gradingTarget?.traineeId) ?? null;
+  const gradingWeek =
+    gradingTrainee?.weeks.find((week) => week.id === gradingTarget?.weekId) ??
+    null;
 
   const courseOptions = getDailyApprovalCourseOptions(kind);
 
@@ -154,22 +167,58 @@ export function useDailyApprovalsPage() {
     setKind(next);
     setCourse('all');
     setSelectedTraineeId(null);
+    setGradingTarget(null);
   }, []);
 
   const changeReadFilter = useCallback((next: DailyApprovalReadFilter) => {
     setReadFilter(next);
     setSelectedTraineeId(null);
+    setGradingTarget(null);
   }, []);
 
   const changeCourse = useCallback((next: DailyApprovalCourseFilter) => {
     setCourse(next);
     setSelectedTraineeId(null);
+    setGradingTarget(null);
   }, []);
 
   const changeTerm = useCallback((nextTermId: string) => {
     setTermId(nextTermId);
     setSelectedTraineeId(null);
+    setGradingTarget(null);
   }, []);
+
+  const closeWeekGrading = useCallback(() => {
+    setGradingTarget(null);
+  }, []);
+
+  const openWeekGrading = useCallback(
+    async (trainee: DailyApprovalTrainee, week: DailyApprovalWeek) => {
+      if (
+        week.status === 'locked_future' ||
+        week.status === 'locked_dropped' ||
+        week.status === 'archived'
+      ) {
+        return;
+      }
+      setSelectedTraineeId(trainee.id);
+      setGradingTarget({ traineeId: trainee.id, weekId: week.id });
+      try {
+        await DailyApprovalsService.openWeek({
+          traineeId: trainee.id,
+          weekId: week.id,
+        });
+        await list.reload();
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'باز کردن گزارش هفته ناموفق بود.'
+        );
+      }
+    },
+    [list]
+  );
 
   const dropTrainee = useCallback(
     async (trainee: DailyApprovalTrainee) => {
@@ -180,6 +229,9 @@ export function useDailyApprovalsPage() {
         if (selectedTraineeId === trainee.id) {
           setSelectedTraineeId(null);
         }
+        if (gradingTarget?.traineeId === trainee.id) {
+          setGradingTarget(null);
+        }
         await list.reload();
       } catch (error) {
         toast.error(
@@ -189,7 +241,137 @@ export function useDailyApprovalsPage() {
         setActionBusy(false);
       }
     },
-    [list, selectedTraineeId]
+    [gradingTarget?.traineeId, list, selectedTraineeId]
+  );
+
+  const saveSupervisorWeek = useCallback(
+    async (input: { score: number | null; advisorFeedback: string }) => {
+      if (!gradingTarget) return;
+      setActionBusy(true);
+      try {
+        await DailyApprovalsService.updateWeekEvaluation({
+          traineeId: gradingTarget.traineeId,
+          weekId: gradingTarget.weekId,
+          score: input.score,
+          advisorFeedback: input.advisorFeedback,
+        });
+        toast.success(
+          input.score === null
+            ? 'بازخورد ذخیره شد؛ گزارش به وضعیت «نیازمند ویرایش» تغییر یافت.'
+            : 'نمره نهایی گزارش با موفقیت ثبت شد.'
+        );
+        setGradingTarget(null);
+        await list.reload();
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : 'ثبت ارزیابی استاد ناموفق بود.'
+        );
+      } finally {
+        setActionBusy(false);
+      }
+    },
+    [gradingTarget, list]
+  );
+
+  const saveMentorWeek = useCallback(
+    async (input: {
+      mentorFeedback: string;
+      mentorRating: DailyApprovalCompetencyRating;
+    }) => {
+      if (!gradingTarget) return;
+      setActionBusy(true);
+      try {
+        await DailyApprovalsService.updateMentorWeekEvaluation({
+          traineeId: gradingTarget.traineeId,
+          weekId: gradingTarget.weekId,
+          mentorFeedback: input.mentorFeedback,
+          mentorRating: input.mentorRating,
+        });
+        toast.success(
+          'ارزیابی با موفقیت ثبت نهایی شد و گزارش در وضعیت تایید قرار گرفت.'
+        );
+        setGradingTarget(null);
+        await list.reload();
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'ثبت ارزیابی معلم راهنما ناموفق بود.'
+        );
+      } finally {
+        setActionBusy(false);
+      }
+    },
+    [gradingTarget, list]
+  );
+
+  const savePrincipalWeek = useCallback(
+    async (input: {
+      principalFeedback: string;
+      principalRating: DailyApprovalCompetencyRating;
+    }) => {
+      if (!gradingTarget) return;
+      setActionBusy(true);
+      try {
+        await DailyApprovalsService.updatePrincipalWeekEvaluation({
+          traineeId: gradingTarget.traineeId,
+          weekId: gradingTarget.weekId,
+          principalFeedback: input.principalFeedback,
+          principalRating: input.principalRating,
+        });
+        toast.success('ارزیابی توصیفی مدیر مدرسه با موفقیت ثبت نهایی شد.');
+        setGradingTarget(null);
+        await list.reload();
+      } catch (error) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'ثبت ارزیابی مدیر مدرسه ناموفق بود.'
+        );
+      } finally {
+        setActionBusy(false);
+      }
+    },
+    [gradingTarget, list]
+  );
+
+  const openBulkExtend = useCallback(() => {
+    setBulkExtendOpen(true);
+  }, []);
+
+  const closeBulkExtend = useCallback(() => {
+    if (actionBusy) return;
+    setBulkExtendOpen(false);
+  }, [actionBusy]);
+
+  const bulkExtendWeeks = useCallback(
+    async (weekNumbers: number[]) => {
+      if (!termId) {
+        toast.error('نیم‌سال تحصیلی مشخص نشده است.');
+        return;
+      }
+      setActionBusy(true);
+      try {
+        const result = await DailyApprovalsService.bulkExtendWeeks({
+          kind,
+          termId,
+          course,
+          weekNumbers,
+        });
+        toast.success(
+          `مهلت ${toPersianDigits(result.extendedPairCount)} گزارش برای ${toPersianDigits(result.affectedTraineeCount)} کارورز تمدید شد.`
+        );
+        setBulkExtendOpen(false);
+        await list.reload();
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : 'تمدید گروهی ناموفق بود.'
+        );
+      } finally {
+        setActionBusy(false);
+      }
+    },
+    [course, kind, list, termId]
   );
 
   return {
@@ -222,6 +404,18 @@ export function useDailyApprovalsPage() {
     selectTrainee,
     actionBusy,
     dropTrainee,
+    gradingOpen: gradingTarget !== null,
+    gradingTrainee,
+    gradingWeek,
+    openWeekGrading,
+    closeWeekGrading,
+    saveSupervisorWeek,
+    saveMentorWeek,
+    savePrincipalWeek,
+    bulkExtendOpen,
+    openBulkExtend,
+    closeBulkExtend,
+    bulkExtendWeeks,
   };
 }
 

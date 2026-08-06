@@ -7,7 +7,10 @@ import {
 } from '@/components/shared/KvCard';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
-import type { DailyApprovalTrainee } from '@/types/daily-approvals';
+import type {
+  DailyApprovalTrainee,
+  DailyApprovalWeek,
+} from '@/types/daily-approvals';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { DailyApprovalWeekGrid } from './DailyApprovalWeekGrid';
@@ -15,10 +18,14 @@ import { DailyApprovalWeekLegend } from './DailyApprovalWeekLegend';
 
 type DailyApprovalDetailPanelProps = {
   trainee: DailyApprovalTrainee | null;
+  selectedWeekId?: string | null;
+  onSelectWeek?: (week: DailyApprovalWeek) => void;
 };
 
 export function DailyApprovalDetailPanel({
   trainee,
+  selectedWeekId = null,
+  onSelectWeek,
 }: DailyApprovalDetailPanelProps) {
   if (!trainee) {
     return (
@@ -90,7 +97,11 @@ export function DailyApprovalDetailPanel({
           </div>
         </div>
 
-        <DailyApprovalWeekGrid trainee={trainee} />
+        <DailyApprovalWeekGrid
+          trainee={trainee}
+          selectedWeekId={selectedWeekId}
+          onSelectWeek={onSelectWeek}
+        />
         <DailyApprovalWeekLegend />
       </KvCardContent>
     </KvCard>

@@ -22,6 +22,8 @@ const buttonVariants = cva(
         warning: '',
         error: '',
         neutral: '',
+        /** Status action — reopen / extended opportunity (kv-violet). */
+        violet: '',
       },
       appearance: {
         solid: 'rounded-kv-control shadow-kv-raised',
@@ -84,6 +86,12 @@ const buttonVariants = cva(
         class:
           'border border-kv-border bg-kv-surface-subtle text-kv-text-muted shadow-none enabled:hover:bg-kv-neutral-hover',
       },
+      {
+        appearance: 'solid',
+        color: 'violet',
+        class:
+          'bg-kv-violet text-kv-violet-fg enabled:hover:bg-kv-violet-hover',
+      },
 
       {
         appearance: 'ghost',
@@ -115,6 +123,12 @@ const buttonVariants = cva(
         class:
           'border-kv-border bg-kv-surface-muted text-kv-text-muted enabled:hover:bg-kv-surface-subtle enabled:hover:text-kv-text-secondary',
       },
+      {
+        appearance: 'ghost',
+        color: 'violet',
+        class:
+          'border-kv-violet-border bg-kv-violet-soft text-kv-violet-soft-fg enabled:hover:bg-kv-violet-soft-hover enabled:hover:text-kv-violet-soft-fg',
+      },
 
       {
         appearance: 'text',
@@ -140,6 +154,17 @@ const buttonVariants = cva(
         appearance: 'text',
         color: 'neutral',
         class: 'text-kv-text-subtle enabled:hover:text-kv-text-secondary',
+      },
+      {
+        appearance: 'text',
+        color: 'violet',
+        class: 'text-kv-violet-soft-fg enabled:hover:text-kv-violet',
+      },
+      {
+        appearance: 'secondary',
+        color: 'violet',
+        class:
+          'border-kv-violet-border bg-kv-violet-soft text-kv-violet-soft-fg enabled:hover:bg-kv-violet-soft-hover enabled:hover:text-kv-violet-soft-fg',
       },
     ],
     defaultVariants: {

@@ -129,7 +129,18 @@ export function DailyApprovalsMobileWorkspace({
 
                 {expanded ? (
                   <div className="space-y-kv-group border-t border-kv-border pt-kv-group">
-                    <DailyApprovalWeekGrid trainee={trainee} compact />
+                    <DailyApprovalWeekGrid
+                      trainee={trainee}
+                      compact
+                      selectedWeekId={
+                        page.gradingTrainee?.id === trainee.id
+                          ? page.gradingWeek?.id ?? null
+                          : null
+                      }
+                      onSelectWeek={(week) => {
+                        void page.openWeekGrading(trainee, week);
+                      }}
+                    />
                   </div>
                 ) : null}
               </KvCardContent>

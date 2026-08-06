@@ -1,10 +1,13 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  bulkExtendMockDailyApprovalWeeks,
   listMockDailyApprovals,
   listTermsForDailyApprovalKind,
   resetMockDailyApprovalsForTests,
   updateMockDailyApprovalWeek,
+  updateMockMentorDailyApprovalWeek,
+  updateMockPrincipalDailyApprovalWeek,
 } from './mock-daily-approvals-store';
 
 afterEach(() => {
@@ -144,5 +147,104 @@ describe('mock daily approvals paging', () => {
     expect(nextWeek?.status).toBe('graded');
     expect(nextWeek?.score).toBe(87.5);
     expect(nextWeek?.feedback.advisor).toBe('ارزیابی علمی تکمیل شد.');
+  });
+
+  it('persists mentor and principal evaluations with competency ratings', () => {
+    const termId = listTermsForDailyApprovalKind('internship')[0]?.id;
+    expect(termId).toBeTruthy();
+    if (!termId) return;
+
+    const trainee = listMockDailyApprovals({
+      query: '',
+      readFilter: 'all',
+      course: 'all',
+      termId,
+      kind: 'internship',
+      offset: 0,
+      limit: 20,
+    }).items.find((row) => row.status === 'active');
+
+    expect(trainee).toBeDefined();
+    if (!trainee) return;
+
+    const week =
+      trainee.weeks.find((item) => item.status === 'pending') ??
+      trainee.weeks.find((item) => item.status === 'draft');
+    expect(week).toBeDefined();
+    if (!week) return;
+
+    const mentored = updateMockMentorDailyApprovalWeek({
+      traineeId: trainee.id,
+      weekId: week.id,
+      mentorFeedback: 'عملکرد کلاسی مطلوب بود.',
+      mentorRating: '4',
+    });
+    const mentoredWeek = mentored.weeks.find((item) => item.id === week.id);
+    expect(mentoredWeek?.status).toBe('approved');
+    expect(mentoredWeek?.feedback.mentor).toBe('عملکرد کلاسی مطلوب بود.');
+    expect(mentoredWeek?.feedback.mentorRating).toBe('4');
+
+    const principaled = updateMockPrincipalDailyApprovalWeek({
+      traineeId: trainee.id,
+      weekId: week.id,
+      principalFeedback: 'حضور منظم تأیید می‌شود.',
+      principalRating: '5',
+    });
+    const principaledWeek = principaled.weeks.find(
+      (item) => item.id === week.id
+    );
+    expect(principaledWeek?.feedback.principal).toBe(
+      'حضور منظم تأیید می‌شود.'
+    );
+    expect(principaledWeek?.feedback.principalRating).toBe('5');
+  });
+
+  it('bulk-extends selected week numbers for active trainees in the group', () => {
+    const termId = listTermsForDailyApprovalKind('internship')[0]?.id;
+    expect(termId).toBeTruthy();
+    if (!termId) return;
+
+    const before = listMockDailyApprovals({
+      query: '',
+      readFilter: 'all',
+      course: 'all',
+      termId,
+      kind: 'internship',
+      offset: 0,
+      limit: 50,
+    });
+
+    const result = bulkExtendMockDailyApprovalWeeks({
+      kind: 'internship',
+      termId,
+      course: 'all',
+      weekNumbers: [2, 3],
+    });
+
+    expect(result.extendedPairCount).toBeGreaterThan(0);
+    expect(result.affectedTraineeCount).toBeGreaterThan(0);
+
+    const after = listMockDailyApprovals({
+      query: '',
+      readFilter: 'all',
+      course: 'all',
+      termId,
+      kind: 'internship',
+      offset: 0,
+      limit: 50,
+    });
+
+    const activeBefore = before.items.filter((row) => row.status === 'active');
+    expect(activeBefore.length).toBeGreaterThan(0);
+
+    for (const trainee of after.items) {
+      if (trainee.status !== 'active') continue;
+      for (const weekNumber of [2, 3]) {
+        const week = trainee.weeks.find((item) => item.weekNumber === weekNumber);
+        if (!week || week.status === 'graded') continue;
+        expect(week.status).toBe('extended');
+        expect(week.isExtended).toBe(true);
+      }
+    }
   });
 });

@@ -24,3 +24,10 @@ export function canDropDailyApprovalTrainee(
 ): boolean {
   return role === 'supervisor_professor';
 }
+
+/** تمدید گروهی مهلت ارسال گزارش — فقط استاد راهنما. */
+export function canBulkExtendDailyApprovalWeeks(
+  role: UserRole | null | undefined
+): boolean {
+  return role === 'supervisor_professor';
+}

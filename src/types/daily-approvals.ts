@@ -1,4 +1,5 @@
 import type {
+  InternshipCompetencyRating,
   InternshipCourseKind,
   InternshipEnrollmentLevel,
   InternshipWeeklyReportFeedback,
@@ -6,6 +7,8 @@ import type {
   InternshipWeeklySessionState,
 } from '@/types/internship-enrollment';
 import type { OffsetLimitPage } from '@/utils/offset-limit-page';
+
+export type DailyApprovalCompetencyRating = InternshipCompetencyRating;
 
 export type DailyApprovalCourseKind = InternshipCourseKind;
 
@@ -92,9 +95,37 @@ export type UpdateDailyApprovalWeekInput = {
   advisorFeedback: string;
 };
 
+export type UpdateMentorDailyApprovalWeekInput = {
+  traineeId: string;
+  weekId: string;
+  mentorFeedback: string;
+  mentorRating: DailyApprovalCompetencyRating;
+};
+
+export type UpdatePrincipalDailyApprovalWeekInput = {
+  traineeId: string;
+  weekId: string;
+  principalFeedback: string;
+  principalRating: DailyApprovalCompetencyRating;
+};
+
 export type ExtendDailyApprovalWeekInput = {
   traineeId: string;
   weekId: string;
+};
+
+/** Bulk reopen by week numbers for the active kind/term/course group. */
+export type BulkExtendDailyApprovalWeeksInput = {
+  kind: DailyApprovalCourseKind;
+  termId: string;
+  course: DailyApprovalCourseFilter;
+  /** English week numbers (`1…N`). */
+  weekNumbers: number[];
+};
+
+export type BulkExtendDailyApprovalWeeksResult = {
+  affectedTraineeCount: number;
+  extendedPairCount: number;
 };
 
 export type DropDailyApprovalTraineeInput = {

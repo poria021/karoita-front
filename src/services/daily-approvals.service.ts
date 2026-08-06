@@ -1,19 +1,25 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import {
+  bulkExtendMockDailyApprovalWeeks,
   dropMockDailyApprovalTrainee,
   extendMockDailyApprovalWeek,
   listMockDailyApprovals,
   listTermsForDailyApprovalKind,
   markMockWeekRead,
   updateMockDailyApprovalWeek,
+  updateMockMentorDailyApprovalWeek,
+  updateMockPrincipalDailyApprovalWeek,
 } from '@/services/daily-approvals/mock-daily-approvals-store';
 import {
   assertMockClientHasPermission,
   MOCK_AUTHZ_DENIED,
 } from '@/services/mock/mock-authz';
 import { useUserStore } from '@/store/useUserStore';
+import type { UserRole } from '@/types/auth';
 import type {
+  BulkExtendDailyApprovalWeeksInput,
+  BulkExtendDailyApprovalWeeksResult,
   DailyApprovalCourseKind,
   DailyApprovalTrainee,
   DropDailyApprovalTraineeInput,
@@ -21,12 +27,14 @@ import type {
   ListDailyApprovalsInput,
   ListDailyApprovalsPage,
   UpdateDailyApprovalWeekInput,
+  UpdateMentorDailyApprovalWeekInput,
+  UpdatePrincipalDailyApprovalWeekInput,
 } from '@/types/daily-approvals';
 import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
 export const DAILY_APPROVALS_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
 
-const REVIEW_ROLES = new Set([
+const REVIEW_ROLES = new Set<UserRole>([
   'supervisor_professor',
   'mentor_teacher',
   'school_principal',
@@ -43,10 +51,10 @@ function requireDailyApprovalsReview(): void {
   }
 }
 
-function requireSupervisorDrop(): void {
+function requireReviewRole(role: UserRole): void {
   requireDailyApprovalsReview();
   const actor = useUserStore.getState().activeUser;
-  if (!actor || actor.role !== 'supervisor_professor') {
+  if (!actor || actor.role !== role) {
     throw new Error(MOCK_AUTHZ_DENIED);
   }
 }
@@ -57,7 +65,10 @@ function requireSupervisorDrop(): void {
  * Nest-blocked:
  * - GET /daily-approvals?kind&query&readFilter&course&termId&offset&limit
  * - PATCH /daily-approvals/:traineeId/weeks/:weekId
+ * - PATCH /daily-approvals/:traineeId/weeks/:weekId/mentor
+ * - PATCH /daily-approvals/:traineeId/weeks/:weekId/principal
  * - POST  /daily-approvals/:traineeId/weeks/:weekId/extend
+ * - POST  /daily-approvals/weeks/bulk-extend
  * - POST  /daily-approvals/:traineeId/drop
  */
 export const DailyApprovalsService = {
@@ -103,11 +114,43 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.updateWeekEvaluation');
     }
-    requireDailyApprovalsReview();
+    requireReviewRole('supervisor_professor');
     await new Promise((resolve) => setTimeout(resolve, 250));
     return updateMockDailyApprovalWeek({
       ...input,
       advisorFeedback: input.advisorFeedback.trim(),
+    });
+  },
+
+  async updateMentorWeekEvaluation(
+    input: UpdateMentorDailyApprovalWeekInput
+  ): Promise<DailyApprovalTrainee> {
+    if (!isMockApiMode()) {
+      throwRealModeNotImplemented(
+        'DailyApprovalsService.updateMentorWeekEvaluation'
+      );
+    }
+    requireReviewRole('mentor_teacher');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return updateMockMentorDailyApprovalWeek({
+      ...input,
+      mentorFeedback: input.mentorFeedback.trim(),
+    });
+  },
+
+  async updatePrincipalWeekEvaluation(
+    input: UpdatePrincipalDailyApprovalWeekInput
+  ): Promise<DailyApprovalTrainee> {
+    if (!isMockApiMode()) {
+      throwRealModeNotImplemented(
+        'DailyApprovalsService.updatePrincipalWeekEvaluation'
+      );
+    }
+    requireReviewRole('school_principal');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return updateMockPrincipalDailyApprovalWeek({
+      ...input,
+      principalFeedback: input.principalFeedback.trim(),
     });
   },
 
@@ -117,9 +160,25 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.extendWeek');
     }
-    requireDailyApprovalsReview();
+    requireReviewRole('supervisor_professor');
     await new Promise((resolve) => setTimeout(resolve, 200));
     return extendMockDailyApprovalWeek(input);
+  },
+
+  async bulkExtendWeeks(
+    input: BulkExtendDailyApprovalWeeksInput
+  ): Promise<BulkExtendDailyApprovalWeeksResult> {
+    if (!isMockApiMode()) {
+      throwRealModeNotImplemented('DailyApprovalsService.bulkExtendWeeks');
+    }
+    requireReviewRole('supervisor_professor');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return bulkExtendMockDailyApprovalWeeks({
+      ...input,
+      weekNumbers: input.weekNumbers.map((weekNumber) =>
+        Number(String(weekNumber))
+      ),
+    });
   },
 
   async dropTrainee(
@@ -128,7 +187,7 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.dropTrainee');
     }
-    requireSupervisorDrop();
+    requireReviewRole('supervisor_professor');
     await new Promise((resolve) => setTimeout(resolve, 200));
     return dropMockDailyApprovalTrainee(input.traineeId);
   },
