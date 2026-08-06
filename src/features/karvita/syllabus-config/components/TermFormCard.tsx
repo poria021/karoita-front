@@ -155,7 +155,7 @@ export function TermFormCard({
               <KvSelectField
                 label={
                   termType === 'modular'
-                    ? 'انتخاب پودمان مهارتی'
+                    ? 'عنوان بازه پودمان'
                     : 'عنوان بازه نیم‌سال'
                 }
                 required

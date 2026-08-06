@@ -13,8 +13,8 @@ export const SEMESTER_PREFIX_OPTIONS = [
 ] as const;
 
 export const MODULAR_PREFIX_OPTIONS = [
-  'کارآموزی 1',
-  'کارآموزی 2',
+  'پودمان اول',
+  'پودمان دوم',
 ] as const;
 
 export const TERM_TYPE_OPTIONS: {

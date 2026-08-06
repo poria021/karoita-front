@@ -14,8 +14,8 @@ describe('syllabus-config term title helpers', () => {
     expect(formatTermOptionLabel('نیم‌سال اول 1405-1406')).toBe(
       'نیم‌سال اول · ۱۴۰۵-۱۴۰۶'
     );
-    expect(formatTermOptionLabel('کارآموزی 1 1404-1405')).toBe(
-      'کارآموزی ۱ · ۱۴۰۴-۱۴۰۵'
+    expect(formatTermOptionLabel('پودمان اول 1404-1405')).toBe(
+      'پودمان اول · ۱۴۰۴-۱۴۰۵'
     );
   });
 });
