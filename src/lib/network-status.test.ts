@@ -21,6 +21,7 @@ describe('network-status monitor', () => {
     __resetNetworkMonitoringForTests();
     useNetworkStore.setState({ isOnline: true });
     vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -50,7 +51,27 @@ describe('network-status monitor', () => {
     expect(onOffline).toHaveBeenCalledTimes(1);
   });
 
-  it('confirms online via probe after window online event', async () => {
+  it('in mock mode trusts navigator and does not fetch public probes', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
+    stubNavigatorOnline(true);
+    const fetchMock = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const onOffline = vi.fn();
+    const onOnline = vi.fn();
+    ensureNetworkMonitoring({ onOffline, onOnline });
+
+    await vi.waitFor(() => {
+      expect(useNetworkStore.getState().isOnline).toBe(true);
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(onOffline).not.toHaveBeenCalled();
+  });
+
+  it('confirms online via API probe after window online event (real mode)', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.com');
+
     let online = false;
     Object.defineProperty(window.navigator, 'onLine', {
       configurable: true,
@@ -74,8 +95,10 @@ describe('network-status monitor', () => {
     expect(fetchMock).toHaveBeenCalled();
   });
 
-  it('marks offline after two failed probe rounds (hysteresis)', async () => {
+  it('marks offline after two failed API probe rounds (hysteresis, real mode)', async () => {
     vi.useFakeTimers();
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.com');
     stubNavigatorOnline(true);
     vi.stubGlobal(
       'fetch',
@@ -104,6 +127,8 @@ describe('network-status monitor', () => {
 
   it('pauses polling while the document is hidden', async () => {
     vi.useFakeTimers();
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.com');
     stubNavigatorOnline(true);
     const fetchMock = vi.fn().mockResolvedValue(new Response());
     vi.stubGlobal('fetch', fetchMock);

@@ -3,8 +3,9 @@
  *
  * Strategy:
  * - Trust `offline` immediately (navigator is reliable for hard disconnect).
- * - Confirm `online` / WAN via probe (navigator alone is not enough).
- * - Prefer Karvita API host when configured & non-loopback; else public NCSI probes.
+ * - In mock / without a real API host: trust `navigator.onLine` only.
+ *   Do NOT hit public NCSI hosts (often blocked/flaky → false offline toasts).
+ * - In real mode with a non-loopback API URL: confirm WAN via API probe.
  * - Hysteresis: 2 probe failures → offline, 1 success → online.
  * - Adaptive schedule: fast while offline / verifying; slow while stably online; pause when tab hidden.
  * - Drive TanStack Query `onlineManager` from the same source of truth.
@@ -12,6 +13,7 @@
 
 import { onlineManager } from '@tanstack/react-query';
 
+import { isMockApiMode } from '@/lib/api-mode';
 import { useNetworkStore } from '@/store/useNetworkStore';
 
 export const NETWORK_OFFLINE_TOAST_ID = 'karvita-network-offline';
@@ -21,12 +23,6 @@ type NetworkToastHandlers = {
   onOffline: () => void;
   onOnline: () => void;
 };
-
-/** Public NCSI-style fallbacks when no production API URL is configured. */
-const PUBLIC_PROBE_URLS = [
-  'https://www.msftconnecttest.com/connecttest.txt',
-  'https://captive.apple.com/hotspot-detect.html',
-] as const;
 
 const PROBE_TIMEOUT_MS = 2500;
 /** While offline — retry often so reconnect feels snappy. */
@@ -62,13 +58,18 @@ function isLoopbackUrl(url: string): boolean {
   }
 }
 
-function resolveProbeUrls(): readonly string[] {
+/**
+ * Probe targets only when we have a real Nest host to reach.
+ * Returns null → navigator-only mode (mock / missing API URL).
+ */
+function resolveProbeUrls(): readonly string[] | null {
+  if (isMockApiMode()) return null;
+
   const api = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
-  if (api && !isLoopbackUrl(api)) {
-    // Any HTTP response (incl. 404) proves reachability; `/health` is conventional.
-    return [`${api}/health`, api];
-  }
-  return PUBLIC_PROBE_URLS;
+  if (!api || isLoopbackUrl(api)) return null;
+
+  // Any HTTP response (incl. 404) proves reachability; `/health` is conventional.
+  return [`${api}/health`, api];
 }
 
 function applyOnline(next: boolean, announce: boolean) {
@@ -122,12 +123,14 @@ async function probeUrl(url: string): Promise<boolean> {
   }
 }
 
-/** True when at least one probe target is reachable. */
+/** True when at least one probe target is reachable (or navigator-only + online). */
 export async function probeInternetReachable(): Promise<boolean> {
   if (typeof window === 'undefined') return true;
   if (!readNavigatorOnline()) return false;
 
   const urls = resolveProbeUrls();
+  if (!urls) return true;
+
   const results = await Promise.all(urls.map((url) => probeUrl(url)));
   return results.some(Boolean);
 }
@@ -137,6 +140,15 @@ async function syncConnectivity(announce: boolean): Promise<void> {
     failStreak = FAIL_STREAK_TO_OFFLINE;
     applyOnline(false, announce);
     scheduleNextPoll(OFFLINE_POLL_MS);
+    return;
+  }
+
+  const urls = resolveProbeUrls();
+  if (!urls) {
+    // Mock / no Nest host: browser link status is enough — avoid false offline.
+    failStreak = 0;
+    applyOnline(true, announce);
+    scheduleNextPoll(ONLINE_POLL_MS);
     return;
   }
 
