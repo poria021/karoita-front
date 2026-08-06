@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
 import type {
   InternshipEnrollmentActor,
@@ -151,29 +152,33 @@ export function useWeeklyReportModal({
     if (!week || !enrollment || locked) return;
     if (!assertNonEmpty()) return;
 
-    setIsSubmitting(true);
-    try {
-      await InternshipEnrollmentService.submitWeeklyReport({
-        actor,
-        kind: state.kind,
-        level: state.level,
-        termId: state.termId,
-        weekId: week.id,
-        text,
-        files,
-      });
-      toast.success('گزارش نهایی شده و جهت دریافت بازخورد ارسال گردید.');
-      await onSaved();
-      onClose();
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'ارسال گزارش برای بازخورد ناموفق بود.'
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    const payload = {
+      actor,
+      kind: state.kind,
+      level: state.level,
+      termId: state.termId,
+      weekId: week.id,
+      text,
+      files: cloneFiles(files),
+    };
+
+    onClose();
+
+    scheduleUndoableMutation({
+      message: 'گزارش تا چند ثانیه دیگر برای معلم ارسال می‌شود…',
+      commit: () => InternshipEnrollmentService.submitWeeklyReport(payload),
+      onCommitted: async () => {
+        toast.success('گزارش نهایی شده و جهت دریافت بازخورد ارسال گردید.');
+        await onSaved();
+      },
+      onError: (error) => {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'ارسال گزارش برای بازخورد ناموفق بود.'
+        );
+      },
+    });
   }, [
     actor,
     assertNonEmpty,

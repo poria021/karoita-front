@@ -25,9 +25,13 @@ export function OnboardingApprovalsUserFields({
   user,
 }: OnboardingApprovalsUserFieldsProps) {
   const roleFields = getRoleProfileDisplayFields(user.role);
+  const mobile = user.mobile?.trim()
+    ? toPersianDigits(user.mobile.trim())
+    : '---';
 
   return (
     <KvDescriptionList>
+      <KvDescriptionItem label="شماره موبایل" value={mobile} mono />
       {roleFields.map((field) => {
         const raw = readFieldValue(user, field.key);
         const display = raw

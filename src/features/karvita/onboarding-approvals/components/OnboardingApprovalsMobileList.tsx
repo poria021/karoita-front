@@ -7,20 +7,17 @@ import {
   KvAccordionTrigger,
   KvAccordionTriggerMeta,
 } from '@/components/shared/KvAccordion';
-import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
-import { KvSkeletonListRow } from '@/components/shared/skeleton/KvSkeletonCard';
-import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
+import { KvMobileListShell } from '@/components/shared/table/KvMobileListShell';
 import { Badge, badgeVariants } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
+import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import type { VariantProps } from 'class-variance-authority';
 
@@ -91,78 +88,44 @@ export function OnboardingApprovalsMobileList({
   const { canApprove, canReject } = getApprovalTabActions(tab);
   const emptyCopy = getModuleEmptyCopy('onboarding_list');
 
-  if (isLoading && users.length === 0) {
-    return (
-      <div
-        className={cn('flex w-full flex-col gap-kv-group', KV_TABLE_VIEWPORT_HEIGHT)}
-        role="status"
-        aria-busy="true"
-        aria-label="در حال بارگذاری فهرست پرونده‌ها"
-      >
-        <KvSkeletonListRow />
-        <KvSkeletonListRow />
-        <KvSkeletonListRow />
-        <KvSkeletonListRow />
-        <KvSkeletonListRow />
-        <KvSkeletonListRow />
-      </div>
-    );
-  }
-
-  if (!isLoading && users.length === 0) {
-    return (
-      <div className={cn('flex w-full flex-col', KV_TABLE_VIEWPORT_HEIGHT)}>
-        <KvEmptyState
-          title={emptyCopy.title}
-          description={emptyCopy.description}
-          actions={
-            hasActiveFilters && onClearFilters ? (
-              <KvButton
-                type="button"
-                color="cta"
-                appearance="solid"
-                size="sm"
-                onClick={onClearFilters}
-              >
-                {emptyCopy.actionLabel}
-              </KvButton>
-            ) : (
-              <KvButton
-                type="button"
-                color="neutral"
-                appearance="secondary"
-                size="sm"
-                onClick={onRetryLoadMore}
-              >
-                تلاش مجدد
-              </KvButton>
-            )
-          }
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-kv-group">
-      {loadMoreError ? (
-        <KvAlert
-          variant="error"
-          title="بارگذاری ادامه فهرست ناموفق بود"
-          description={loadMoreError}
-          actions={
-            <KvButton
-              type="button"
-              appearance="secondary"
-              size="sm"
-              onClick={onRetryLoadMore}
-            >
-              تلاش مجدد
-            </KvButton>
-          }
-        />
-      ) : null}
-
+    <KvMobileListShell
+      isLoading={isLoading}
+      isEmpty={users.length === 0}
+      hasItems={users.length > 0}
+      matchTableViewport
+      emptyTitle={emptyCopy.title}
+      emptyDescription={emptyCopy.description}
+      emptyActions={
+        hasActiveFilters && onClearFilters ? (
+          <KvButton
+            type="button"
+            color="cta"
+            appearance="solid"
+            size="sm"
+            onClick={onClearFilters}
+          >
+            {emptyCopy.actionLabel}
+          </KvButton>
+        ) : (
+          <KvButton
+            type="button"
+            color="neutral"
+            appearance="secondary"
+            size="sm"
+            onClick={onRetryLoadMore}
+          >
+            تلاش مجدد
+          </KvButton>
+        )
+      }
+      loadMoreError={loadMoreError}
+      onRetryLoadMore={onRetryLoadMore}
+      hasMore={hasMore}
+      isLoadingMore={isLoadingMore}
+      onLoadMore={onLoadMore}
+      loadMoreLabel="بارگذاری ۱۰ مورد بعدی"
+    >
       <KvAccordion
         type="single"
         collapsible
@@ -179,13 +142,16 @@ export function OnboardingApprovalsMobileList({
         {users.map((user) => {
           const badge = statusBadge(user.docStatus);
           const roleLabel = getRoleStrategy(user.role).label;
+          const mobile = user.mobile?.trim()
+            ? toPersianDigits(user.mobile.trim())
+            : '---';
 
           return (
             <KvAccordionItem key={user.id} value={user.id}>
               <KvAccordionTrigger>
                 <KvAccordionTriggerMeta
                   title={user.fullName}
-                  description={`${roleLabel} • ${user.province || '---'}`}
+                  description={`${roleLabel} • ${mobile} • ${user.province || '---'}`}
                   trailing={
                     <Badge variant={badge.variant}>{badge.label}</Badge>
                   }
@@ -252,19 +218,6 @@ export function OnboardingApprovalsMobileList({
           );
         })}
       </KvAccordion>
-
-      {hasMore ? (
-        <KvButton
-          type="button"
-          appearance="secondary"
-          size="sm"
-          fullWidth
-          loading={isLoadingMore}
-          onClick={onLoadMore}
-        >
-          بارگذاری ۱۰ مورد بعدی
-        </KvButton>
-      ) : null}
-    </div>
+    </KvMobileListShell>
   );
 }

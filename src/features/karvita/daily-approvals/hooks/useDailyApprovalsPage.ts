@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
+import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import {
   DAILY_APPROVALS_PAGE_SIZE,
   DailyApprovalsService,
@@ -247,28 +248,37 @@ export function useDailyApprovalsPage() {
   const saveSupervisorWeek = useCallback(
     async (input: { score: number | null; advisorFeedback: string }) => {
       if (!gradingTarget) return;
-      setActionBusy(true);
-      try {
-        await DailyApprovalsService.updateWeekEvaluation({
-          traineeId: gradingTarget.traineeId,
-          weekId: gradingTarget.weekId,
-          score: input.score,
-          advisorFeedback: input.advisorFeedback,
-        });
-        toast.success(
+      const target = gradingTarget;
+      setGradingTarget(null);
+
+      scheduleUndoableMutation({
+        message:
           input.score === null
-            ? 'بازخورد ذخیره شد؛ گزارش به وضعیت «نیازمند ویرایش» تغییر یافت.'
-            : 'نمره نهایی گزارش با موفقیت ثبت شد.'
-        );
-        setGradingTarget(null);
-        await list.reload();
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : 'ثبت ارزیابی استاد ناموفق بود.'
-        );
-      } finally {
-        setActionBusy(false);
-      }
+            ? 'بازخورد اصلاحی تا چند ثانیه دیگر ثبت می‌شود…'
+            : 'نمره نهایی تا چند ثانیه دیگر ثبت می‌شود…',
+        commit: () =>
+          DailyApprovalsService.updateWeekEvaluation({
+            traineeId: target.traineeId,
+            weekId: target.weekId,
+            score: input.score,
+            advisorFeedback: input.advisorFeedback,
+          }),
+        onCommitted: async () => {
+          toast.success(
+            input.score === null
+              ? 'بازخورد ذخیره شد؛ گزارش به وضعیت «نیازمند ویرایش» تغییر یافت.'
+              : 'نمره نهایی گزارش با موفقیت ثبت شد.'
+          );
+          await list.reload();
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : 'ثبت ارزیابی استاد ناموفق بود.'
+          );
+        },
+      });
     },
     [gradingTarget, list]
   );
@@ -279,28 +289,32 @@ export function useDailyApprovalsPage() {
       mentorRating: DailyApprovalCompetencyRating;
     }) => {
       if (!gradingTarget) return;
-      setActionBusy(true);
-      try {
-        await DailyApprovalsService.updateMentorWeekEvaluation({
-          traineeId: gradingTarget.traineeId,
-          weekId: gradingTarget.weekId,
-          mentorFeedback: input.mentorFeedback,
-          mentorRating: input.mentorRating,
-        });
-        toast.success(
-          'ارزیابی با موفقیت ثبت نهایی شد و گزارش در وضعیت تایید قرار گرفت.'
-        );
-        setGradingTarget(null);
-        await list.reload();
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : 'ثبت ارزیابی معلم راهنما ناموفق بود.'
-        );
-      } finally {
-        setActionBusy(false);
-      }
+      const target = gradingTarget;
+      setGradingTarget(null);
+
+      scheduleUndoableMutation({
+        message: 'ارزیابی معلم راهنما تا چند ثانیه دیگر ثبت می‌شود…',
+        commit: () =>
+          DailyApprovalsService.updateMentorWeekEvaluation({
+            traineeId: target.traineeId,
+            weekId: target.weekId,
+            mentorFeedback: input.mentorFeedback,
+            mentorRating: input.mentorRating,
+          }),
+        onCommitted: async () => {
+          toast.success(
+            'ارزیابی با موفقیت ثبت نهایی شد و گزارش در وضعیت تایید قرار گرفت.'
+          );
+          await list.reload();
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : 'ثبت ارزیابی معلم راهنما ناموفق بود.'
+          );
+        },
+      });
     },
     [gradingTarget, list]
   );
@@ -311,26 +325,30 @@ export function useDailyApprovalsPage() {
       principalRating: DailyApprovalCompetencyRating;
     }) => {
       if (!gradingTarget) return;
-      setActionBusy(true);
-      try {
-        await DailyApprovalsService.updatePrincipalWeekEvaluation({
-          traineeId: gradingTarget.traineeId,
-          weekId: gradingTarget.weekId,
-          principalFeedback: input.principalFeedback,
-          principalRating: input.principalRating,
-        });
-        toast.success('ارزیابی توصیفی مدیر مدرسه با موفقیت ثبت نهایی شد.');
-        setGradingTarget(null);
-        await list.reload();
-      } catch (error) {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : 'ثبت ارزیابی مدیر مدرسه ناموفق بود.'
-        );
-      } finally {
-        setActionBusy(false);
-      }
+      const target = gradingTarget;
+      setGradingTarget(null);
+
+      scheduleUndoableMutation({
+        message: 'ارزیابی مدیر مدرسه تا چند ثانیه دیگر ثبت می‌شود…',
+        commit: () =>
+          DailyApprovalsService.updatePrincipalWeekEvaluation({
+            traineeId: target.traineeId,
+            weekId: target.weekId,
+            principalFeedback: input.principalFeedback,
+            principalRating: input.principalRating,
+          }),
+        onCommitted: async () => {
+          toast.success('ارزیابی توصیفی مدیر مدرسه با موفقیت ثبت نهایی شد.');
+          await list.reload();
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : 'ثبت ارزیابی مدیر مدرسه ناموفق بود.'
+          );
+        },
+      });
     },
     [gradingTarget, list]
   );

@@ -27,6 +27,7 @@ import type {
 } from '@/types/onboarding-approvals';
 import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
+import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 interface OnboardingApprovalsTableProps {
@@ -63,7 +64,7 @@ export function OnboardingApprovalsTable({
   onClearFilters,
 }: OnboardingApprovalsTableProps) {
   const showActions = tab === 'pending_admin';
-  const columnCount = (showActions ? 4 : 3) + 1;
+  const columnCount = (showActions ? 5 : 4) + 1;
   const bodyPhase = getAdminTableBodyPhase(isLoading, users.length);
   const emptyCopy = getModuleEmptyCopy('onboarding_list');
 
@@ -100,6 +101,7 @@ export function OnboardingApprovalsTable({
             <KvTableRow>
               <KvTableRowIndexHead />
               <KvTableHead>مشخصات</KvTableHead>
+              <KvTableHead align="center">موبایل</KvTableHead>
               <KvTableHead align="center">استان</KvTableHead>
               <KvTableHead align="center">نقش</KvTableHead>
               {showActions ? (
@@ -152,6 +154,15 @@ export function OnboardingApprovalsTable({
                   >
                     <KvTableRowIndexCell index={index} />
                     <KvTableCell emphasis>{user.fullName}</KvTableCell>
+                    <KvTableCell
+                      align="center"
+                      className="font-mono text-kv-text-muted"
+                      dir="ltr"
+                    >
+                      {user.mobile?.trim()
+                        ? toPersianDigits(user.mobile.trim())
+                        : '---'}
+                    </KvTableCell>
                     <KvTableCell align="center" className="text-kv-text-muted">
                       {user.province || '---'}
                     </KvTableCell>
