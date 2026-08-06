@@ -9,6 +9,7 @@ import {
   KvTableCell,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import { KvTableRowIndexCell } from '@/components/shared/table/KvTableRowIndex';
 import { cn } from '@/lib/utils';
 import type { SyllabusWeek } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
@@ -61,6 +62,7 @@ export function WeeklySyllabusWeekRow({
           'in-[data-slot=kv-table-body]:hover:bg-transparent hover:text-kv-text-faint'
       )}
     >
+      <KvTableRowIndexCell index={index} />
       <KvTableCell
         emphasis={!muted}
         className={cn('max-w-0 truncate', muted && 'text-kv-text-faint')}

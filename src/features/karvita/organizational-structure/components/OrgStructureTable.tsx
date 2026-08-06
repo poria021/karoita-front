@@ -15,6 +15,10 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import {
+  KvTableRowIndexCell,
+  KvTableRowIndexHead,
+} from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { Badge } from '@/components/ui/badge';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
@@ -147,7 +151,7 @@ export function OrgStructureTable({
   const emptyCopy = getModuleEmptyCopy('org_structure');
   const hasQuery = query.trim().length > 0;
   const columns = getOrgStructureColumns(tabConfig.key);
-  const colSpan = columns.length;
+  const colSpan = columns.length + 1;
 
   return (
     <>
@@ -182,6 +186,7 @@ export function OrgStructureTable({
         <KvTable scrollable>
           <KvTableHeader>
             <KvTableRow>
+              <KvTableRowIndexHead />
               {columns.map((column) => (
                 <KvTableHead key={column.key} align={column.align}>
                   {column.label}
@@ -222,8 +227,9 @@ export function OrgStructureTable({
                 />
               </KvTableEmpty>
             ) : (
-              items.map((row) => (
+              items.map((row, index) => (
                 <KvTableRow key={row.id}>
+                  <KvTableRowIndexCell index={index} />
                   {columns.map((column) => {
                     if (column.key === 'actions') {
                       return (

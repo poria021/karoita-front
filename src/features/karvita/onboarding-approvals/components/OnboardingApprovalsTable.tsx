@@ -16,6 +16,10 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import {
+  KvTableRowIndexCell,
+  KvTableRowIndexHead,
+} from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type {
   ApprovalFilterTab,
@@ -59,7 +63,7 @@ export function OnboardingApprovalsTable({
   onClearFilters,
 }: OnboardingApprovalsTableProps) {
   const showActions = tab === 'pending_admin';
-  const columnCount = showActions ? 4 : 3;
+  const columnCount = (showActions ? 4 : 3) + 1;
   const bodyPhase = getAdminTableBodyPhase(isLoading, users.length);
   const emptyCopy = getModuleEmptyCopy('onboarding_list');
 
@@ -94,6 +98,7 @@ export function OnboardingApprovalsTable({
         <KvTable scrollable={false}>
           <KvTableHeader>
             <KvTableRow>
+              <KvTableRowIndexHead />
               <KvTableHead>مشخصات</KvTableHead>
               <KvTableHead align="center">استان</KvTableHead>
               <KvTableHead align="center">نقش</KvTableHead>
@@ -136,7 +141,7 @@ export function OnboardingApprovalsTable({
                 />
               </KvTableEmpty>
             ) : (
-              users.map((user) => {
+              users.map((user, index) => {
                 const selected = selectedId === user.id;
                 return (
                   <KvTableRow
@@ -145,6 +150,7 @@ export function OnboardingApprovalsTable({
                     selected={selected}
                     onClick={() => onSelect(user)}
                   >
+                    <KvTableRowIndexCell index={index} />
                     <KvTableCell emphasis>{user.fullName}</KvTableCell>
                     <KvTableCell align="center" className="text-kv-text-muted">
                       {user.province || '---'}

@@ -13,6 +13,10 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import {
+  KvTableRowIndexCell,
+  KvTableRowIndexHead,
+} from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { Badge } from '@/components/ui/badge';
 import type { InternshipSupervisor } from '@/types/internship-enrollment';
@@ -42,6 +46,7 @@ export function SupervisorSelectionTable({
         <KvTable scrollable>
           <KvTableHeader>
             <KvTableRow>
+              <KvTableRowIndexHead />
               <KvTableHead>نام کامل استاد</KvTableHead>
               <KvTableHead>پردیس محل استقرار</KvTableHead>
               <KvTableHead align="center">استان</KvTableHead>
@@ -52,17 +57,18 @@ export function SupervisorSelectionTable({
           </KvTableHeader>
           <KvTableBody>
             {isLoading ? (
-              <KvTableBusy colSpan={6} />
+              <KvTableBusy colSpan={7} />
             ) : supervisors.length === 0 ? (
-              <KvTableEmpty colSpan={6}>
+              <KvTableEmpty colSpan={7}>
                 <KvEmptyState
                   title="استاد راهنمای در دسترس یافت نشد"
                   description="هیچ استادی دارای ظرفیت مجاز در حوزه انتخابی شما یافت نشد."
                 />
               </KvTableEmpty>
             ) : (
-              supervisors.map((supervisor) => (
+              supervisors.map((supervisor, index) => (
                 <KvTableRow key={supervisor.id}>
+                  <KvTableRowIndexCell index={index} />
                   <KvTableCell emphasis>{supervisor.name}</KvTableCell>
                   <KvTableCell>{supervisor.college}</KvTableCell>
                   <KvTableCell align="center">{supervisor.province}</KvTableCell>

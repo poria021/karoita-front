@@ -15,6 +15,10 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import {
+  KvTableRowIndexCell,
+  KvTableRowIndexHead,
+} from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { CourseCatalogItem } from '@/types/syllabus-config';
 import {
@@ -52,15 +56,16 @@ export function CourseOfferingsTable({
       <KvTable scrollable={false}>
         <KvTableHeader>
           <KvTableRow>
+            <KvTableRowIndexHead />
             <KvTableHead>لیست دروس مجاز</KvTableHead>
             <KvTableHead align="center">وضعیت ارائه</KvTableHead>
           </KvTableRow>
         </KvTableHeader>
         <KvTableBody>
           {bodyPhase === 'busy' ? (
-            <KvTableBusy colSpan={2} />
+            <KvTableBusy colSpan={3} />
           ) : bodyPhase === 'empty' ? (
-            <KvTableEmpty colSpan={2}>
+            <KvTableEmpty colSpan={3}>
               <KvEmptyState
                 title={emptyCopy.title}
                 description={emptyCopy.description}
@@ -82,7 +87,7 @@ export function CourseOfferingsTable({
               />
             </KvTableEmpty>
           ) : (
-            courses.map((course) => {
+            courses.map((course, index) => {
               const offered = offeredCatalogIds.has(course.id);
               const selected = selectedCourseId === course.id;
               return (
@@ -92,6 +97,7 @@ export function CourseOfferingsTable({
                   selected={selected}
                   onClick={() => onSelectCourse(course)}
                 >
+                  <KvTableRowIndexCell index={index} />
                   <KvTableCell emphasis={selected}>{course.title}</KvTableCell>
                   <KvTableCell
                     align="center"

@@ -16,6 +16,10 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import {
+  KvTableRowIndexCell,
+  KvTableRowIndexHead,
+} from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { faIcons } from '@/utils/iconMap';
 
@@ -50,7 +54,7 @@ export function LandingCmsEntityTable<T extends { id: string }>({
   deleteAriaLabel,
 }: LandingCmsEntityTableProps<T>) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, items.length);
-  const colSpan = columns.length + 1;
+  const colSpan = columns.length + 2;
 
   return (
     <KvTableViewport
@@ -62,6 +66,7 @@ export function LandingCmsEntityTable<T extends { id: string }>({
       <KvTable scrollable={false}>
         <KvTableHeader>
           <KvTableRow>
+            <KvTableRowIndexHead />
             {columns.map((column) => (
               <KvTableHead
                 key={column.key}
@@ -89,6 +94,7 @@ export function LandingCmsEntityTable<T extends { id: string }>({
           {bodyPhase === 'rows'
             ? items.map((item, index) => (
                 <KvTableRow key={item.id}>
+                  <KvTableRowIndexCell index={index} />
                   {renderCells(item, index)}
                   <KvTableCell align="center">
                     <KvButton

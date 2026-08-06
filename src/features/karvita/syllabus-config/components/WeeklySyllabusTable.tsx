@@ -15,6 +15,7 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import { KvTableRowIndexHead } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { cn } from '@/lib/utils';
 import type { SyllabusWeek } from '@/types/syllabus-config';
@@ -121,6 +122,7 @@ export function WeeklySyllabusTable({
                       'in-[data-slot=kv-table-body]:hover:bg-transparent'
                   )}
                 >
+                  <KvTableRowIndexHead />
                   <KvTableHead>عنوان جلسه آموزشی</KvTableHead>
                   <KvTableHead
                     align="center"
@@ -135,9 +137,9 @@ export function WeeklySyllabusTable({
               </KvTableHeader>
               <KvTableBody>
                 {bodyPhase === 'busy' ? (
-                  <KvTableBusy colSpan={3} />
+                  <KvTableBusy colSpan={4} />
                 ) : bodyPhase === 'empty' ? (
-                  <KvTableEmpty colSpan={3}>
+                  <KvTableEmpty colSpan={4}>
                     <KvEmptyState
                       title={emptyCopy.title}
                       description={

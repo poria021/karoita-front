@@ -15,6 +15,10 @@ import {
 } from '@/components/shared/table/KvTable';
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
+import {
+  KvTableRowIndexCell,
+  KvTableRowIndexHead,
+} from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { DailyApprovalTrainee } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
@@ -57,7 +61,7 @@ export function DailyApprovalsTable({
   onClearFilters,
 }: DailyApprovalsTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, trainees.length);
-  const colSpan = canDrop ? 3 : 2;
+  const colSpan = (canDrop ? 3 : 2) + 1;
 
   return (
     <div className="space-y-kv-group">
@@ -90,6 +94,7 @@ export function DailyApprovalsTable({
         <KvTable scrollable={false}>
           <KvTableHeader>
             <KvTableRow>
+              <KvTableRowIndexHead />
               <KvTableHead>مشخصات کارورز</KvTableHead>
               <KvTableHead align="center">خوانده نشده</KvTableHead>
               {canDrop ? (
@@ -121,13 +126,14 @@ export function DailyApprovalsTable({
                 />
               </KvTableEmpty>
             ) : (
-              trainees.map((trainee) => (
+              trainees.map((trainee, index) => (
                 <KvTableRow
                   key={trainee.id}
                   interactive
                   selected={selectedId === trainee.id}
                   onClick={() => onSelect(trainee)}
                 >
+                  <KvTableRowIndexCell index={index} />
                   <KvTableCell emphasis>{trainee.traineeName}</KvTableCell>
                   <KvTableCell align="center">
                     <DailyApprovalUnreadBadge trainee={trainee} />

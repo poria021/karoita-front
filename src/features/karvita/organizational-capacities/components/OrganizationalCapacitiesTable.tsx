@@ -8,6 +8,10 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import {
+  KvTableRowIndexCell,
+  KvTableRowIndexHead,
+} from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { cn } from '@/lib/utils';
 import type {
@@ -49,6 +53,7 @@ export function OrganizationalCapacitiesTable({
       <KvTable scrollable={false}>
         <KvTableHeader>
           <KvTableRow>
+            <KvTableRowIndexHead />
             <KvTableHead>عنوان درس مجاز</KvTableHead>
             <KvTableHead align="center">ظرفیت پذیرش</KvTableHead>
             <KvTableHead align="center">ثبت‌نام قطعی</KvTableHead>
@@ -56,8 +61,9 @@ export function OrganizationalCapacitiesTable({
           </KvTableRow>
         </KvTableHeader>
         <KvTableBody>
-          {courses.map((course) => (
+          {courses.map((course, index) => (
             <KvTableRow key={course.id}>
+              <KvTableRowIndexCell index={index} />
               <KvTableCell emphasis>{course.title}</KvTableCell>
               <KvTableCell align="center">
                 <OrganizationalCapacitiesTotalField
