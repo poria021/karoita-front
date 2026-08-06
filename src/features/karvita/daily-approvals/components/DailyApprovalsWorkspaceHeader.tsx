@@ -36,43 +36,48 @@ export function DailyApprovalsWorkspaceHeader({
     : terms[0]?.id;
 
   return (
-    <div className="flex flex-col items-stretch justify-between gap-kv-group sm:flex-row sm:items-center">
-      <KvTypography variant="title" weight="bold" as="h2">
-        {title}
-      </KvTypography>
-      <div className="flex w-full flex-col items-stretch gap-kv-pair sm:w-auto sm:flex-row sm:items-center">
-        {showBulkExtend ? (
-          <KvButton
-            type="button"
-            color="violet"
-            appearance="ghost"
-            size="md"
-            disabled={bulkExtendDisabled}
-            icon={<FaIcon icon={faIcons.unlockKeyhole} size="xs" />}
-            onClick={onBulkExtendClick}
-          >
-            تمدید گروهی مهلت ارسال گزارش
-          </KvButton>
-        ) : null}
-        <div className="w-full shrink-0 sm:w-52">
-          {selectedTermId ? (
-            <KvSelect value={selectedTermId} onValueChange={onTermChange}>
-              <KvSelectTrigger aria-label="نیم‌سال تحصیلی">
-                <KvSelectValue placeholder="نیم‌سال تحصیلی" />
-              </KvSelectTrigger>
-              <KvSelectContent>
-                {terms.map((term) => (
-                  <KvSelectItem key={term.id} value={term.id}>
-                    {term.title}
-                  </KvSelectItem>
-                ))}
-              </KvSelectContent>
-            </KvSelect>
-          ) : (
-            <div className="flex h-11 items-center rounded-kv-control border border-kv-border bg-kv-surface-muted px-kv-group text-xs font-bold text-kv-text-faint">
-              در حال بارگذاری نیم‌سال...
-            </div>
-          )}
+    <div
+      data-slot="daily-approvals-workspace-header"
+      className="rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised"
+    >
+      <div className="flex flex-col items-stretch justify-between gap-kv-group sm:flex-row sm:items-center">
+        <KvTypography variant="title" weight="bold" as="h2">
+          {title}
+        </KvTypography>
+        <div className="flex w-full flex-col items-stretch gap-kv-pair sm:w-auto sm:flex-row sm:items-center">
+          {showBulkExtend ? (
+            <KvButton
+              type="button"
+              color="violet"
+              appearance="ghost"
+              size="md"
+              disabled={bulkExtendDisabled}
+              icon={<FaIcon icon={faIcons.unlockKeyhole} size="xs" />}
+              onClick={onBulkExtendClick}
+            >
+              تمدید گروهی مهلت ارسال گزارش
+            </KvButton>
+          ) : null}
+          <div className="w-full shrink-0 sm:w-52">
+            {selectedTermId ? (
+              <KvSelect value={selectedTermId} onValueChange={onTermChange}>
+                <KvSelectTrigger aria-label="نیم‌سال تحصیلی">
+                  <KvSelectValue placeholder="نیم‌سال تحصیلی" />
+                </KvSelectTrigger>
+                <KvSelectContent>
+                  {terms.map((term) => (
+                    <KvSelectItem key={term.id} value={term.id}>
+                      {term.title}
+                    </KvSelectItem>
+                  ))}
+                </KvSelectContent>
+              </KvSelect>
+            ) : (
+              <div className="flex h-11 items-center rounded-kv-control border border-kv-border bg-kv-surface-muted px-kv-group text-xs font-bold text-kv-text-faint">
+                در حال بارگذاری نیم‌سال...
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
