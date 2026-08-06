@@ -18,7 +18,6 @@ import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { DailyApprovalTrainee } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
-import { toPersianDigits } from '@/utils/persianDigits';
 
 import { DailyApprovalUnreadBadge } from './DailyApprovalUnreadBadge';
 
@@ -89,16 +88,15 @@ export function DailyApprovalsTable({
           <KvTableHeader>
             <KvTableRow>
               <KvTableHead>مشخصات کارورز</KvTableHead>
-              <KvTableHead align="center">رشته</KvTableHead>
               <KvTableHead align="center">خوانده نشده</KvTableHead>
               <KvTableHead align="center">عملیات</KvTableHead>
             </KvTableRow>
           </KvTableHeader>
           <KvTableBody>
             {bodyPhase === 'busy' ? (
-              <KvTableBusy colSpan={4} />
+              <KvTableBusy colSpan={3} />
             ) : bodyPhase === 'empty' ? (
-              <KvTableEmpty colSpan={4}>
+              <KvTableEmpty colSpan={3}>
                 <KvEmptyState
                   title="کارورزی مطابق فیلترها پیدا نشد"
                   description="عبارت جستجو یا فیلترهای پایش را تغییر دهید."
@@ -126,9 +124,6 @@ export function DailyApprovalsTable({
                   onClick={() => onSelect(trainee)}
                 >
                   <KvTableCell emphasis>{trainee.traineeName}</KvTableCell>
-                  <KvTableCell align="center" className="text-kv-text-muted">
-                    {toPersianDigits(trainee.courseTitle)}
-                  </KvTableCell>
                   <KvTableCell align="center">
                     <DailyApprovalUnreadBadge trainee={trainee} />
                   </KvTableCell>

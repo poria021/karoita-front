@@ -36,11 +36,8 @@ export function DailyApprovalsMobileWorkspace({
         mobile
         query={page.query}
         readFilter={page.readFilter}
-        course={page.course}
-        courseOptions={page.courseOptions}
         onQueryChange={page.setQuery}
         onReadFilterChange={page.changeReadFilter}
-        onCourseChange={page.changeCourse}
       />
 
       {page.isLoading ? (
@@ -73,14 +70,14 @@ export function DailyApprovalsMobileWorkspace({
           return (
             <KvCard key={trainee.id} padding="sm">
               <KvCardContent padding="none" className="space-y-kv-group">
-                <button
-                  type="button"
-                  className="flex w-full items-center justify-between gap-kv-group text-start"
-                  onClick={() =>
-                    page.selectTrainee(expanded ? null : trainee)
-                  }
-                >
-                  <div className="min-w-0">
+                <div className="flex w-full items-center justify-between gap-kv-group text-start">
+                  <button
+                    type="button"
+                    className="min-w-0 flex-1 text-start"
+                    onClick={() =>
+                      page.selectTrainee(expanded ? null : trainee)
+                    }
+                  >
                     <KvTypography variant="subtitle" as="h4" truncate>
                       {trainee.traineeName}
                     </KvTypography>
@@ -90,7 +87,7 @@ export function DailyApprovalsMobileWorkspace({
                         ? ` • ${trainee.schoolName}`
                         : ''}
                     </KvTypography>
-                  </div>
+                  </button>
                   <div className="flex shrink-0 items-center gap-kv-pair">
                     <DailyApprovalUnreadBadge trainee={trainee} compact />
                     <KvButton
@@ -102,23 +99,29 @@ export function DailyApprovalsMobileWorkspace({
                       disabled={
                         page.actionBusy || trainee.status === 'dropped'
                       }
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        void page.dropTrainee(trainee);
-                      }}
+                      onClick={() => void page.dropTrainee(trainee)}
                       icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
                     />
-                    <FaIcon
-                      icon={faIcons.chevronDown}
-                      size="2xs"
-                      className={
-                        expanded
-                          ? 'rotate-180 text-kv-brand'
-                          : 'text-kv-text-faint'
+                    <button
+                      type="button"
+                      className="inline-flex size-8 items-center justify-center"
+                      aria-label={expanded ? 'بستن جزئیات' : 'باز کردن جزئیات'}
+                      onClick={() =>
+                        page.selectTrainee(expanded ? null : trainee)
                       }
-                    />
+                    >
+                      <FaIcon
+                        icon={faIcons.chevronDown}
+                        size="2xs"
+                        className={
+                          expanded
+                            ? 'rotate-180 text-kv-brand'
+                            : 'text-kv-text-faint'
+                        }
+                      />
+                    </button>
                   </div>
-                </button>
+                </div>
 
                 {expanded ? (
                   <div className="space-y-kv-group border-t border-kv-border pt-kv-group">

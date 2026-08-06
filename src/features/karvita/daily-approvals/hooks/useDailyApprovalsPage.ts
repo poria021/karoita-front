@@ -54,6 +54,7 @@ export function useDailyApprovalsPage() {
   const [termId, setTermId] = useState(() => cachedChrome?.termId ?? '');
   const [terms, setTerms] = useState<Array<{ id: string; title: string }>>([]);
   const [termsReady, setTermsReady] = useState(false);
+  const [termsError, setTermsError] = useState<string | null>(null);
 
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const listQuery = query.trim() === '' ? '' : debouncedQuery;
@@ -83,6 +84,7 @@ export function useDailyApprovalsPage() {
   useEffect(() => {
     let cancelled = false;
     setTermsReady(false);
+    setTermsError(null);
     void DailyApprovalsService.listTerms(kind)
       .then((nextTerms) => {
         if (cancelled) return;
@@ -93,10 +95,15 @@ export function useDailyApprovalsPage() {
         });
         setTermsReady(true);
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (cancelled) return;
         setTerms([]);
         setTermId('');
+        setTermsError(
+          error instanceof Error
+            ? error.message
+            : 'بارگذاری نیم‌سال‌ها ناموفق بود.'
+        );
         setTermsReady(true);
       });
     return () => {
@@ -111,10 +118,10 @@ export function useDailyApprovalsPage() {
           items: [] as DailyApprovalTrainee[],
           total: 0,
           hasMore: false,
-          terms,
+          terms: [] as Array<{ id: string; title: string }>,
         };
       }
-      const page = await DailyApprovalsService.listPage({
+      return DailyApprovalsService.listPage({
         kind,
         query: listQuery,
         readFilter,
@@ -123,12 +130,8 @@ export function useDailyApprovalsPage() {
         offset,
         limit,
       });
-      if (page.terms.length > 0) {
-        setTerms(page.terms);
-      }
-      return page;
     },
-    [course, kind, listQuery, readFilter, termId, terms, termsReady]
+    [course, kind, listQuery, readFilter, termId, termsReady]
   );
 
   const list = useOffsetLimitInfiniteList<DailyApprovalTrainee>({
@@ -207,7 +210,7 @@ export function useDailyApprovalsPage() {
     isLoading: !termsReady || list.isLoading,
     isLoadingMore: list.isLoadingMore,
     hasMore: list.hasMore,
-    error: list.error,
+    error: termsError ?? list.error,
     loadMoreError: list.loadMoreError,
     loadMore: () => void list.loadMore(),
     retryLoadMore: () => {
