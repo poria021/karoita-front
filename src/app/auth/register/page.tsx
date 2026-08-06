@@ -4,7 +4,7 @@ import { HydrationSafe } from '@/components/shared/shell/HydrationSafe';
 export default function RegisterPage() {
   return (
     <main
-      className="kv-brand-atmosphere flex min-h-dvh w-full items-center justify-center p-kv-inset"
+      className="kv-brand-atmosphere kv-blueprint-bg flex min-h-dvh w-full items-center justify-center p-kv-inset"
       dir="rtl"
     >
       <HydrationSafe>

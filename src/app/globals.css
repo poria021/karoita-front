@@ -584,16 +584,16 @@
   summary,
   label[for],
   select:not(:disabled),
-  [role='button']:not([aria-disabled='true']):not([data-disabled]),
+  [role='button']:not([aria-disabled='true']):is(:not([data-disabled]), [data-disabled='false']),
   [role='tab']:not([disabled]):not([aria-disabled='true']),
-  [role='menuitem']:not([data-disabled]),
-  [role='menuitemcheckbox']:not([data-disabled]),
-  [role='menuitemradio']:not([data-disabled]),
-  [role='option']:not([data-disabled]),
-  [role='checkbox']:not([aria-disabled='true']):not([data-disabled]),
-  [role='radio']:not([aria-disabled='true']):not([data-disabled]),
-  [role='switch']:not([aria-disabled='true']):not([data-disabled]),
-  [role='combobox']:not([aria-disabled='true']):not([data-disabled]),
+  [role='menuitem']:is(:not([data-disabled]), [data-disabled='false']),
+  [role='menuitemcheckbox']:is(:not([data-disabled]), [data-disabled='false']),
+  [role='menuitemradio']:is(:not([data-disabled]), [data-disabled='false']),
+  [role='option']:is(:not([data-disabled]), [data-disabled='false']),
+  [role='checkbox']:not([aria-disabled='true']):is(:not([data-disabled]), [data-disabled='false']),
+  [role='radio']:not([aria-disabled='true']):is(:not([data-disabled]), [data-disabled='false']),
+  [role='switch']:not([aria-disabled='true']):is(:not([data-disabled]), [data-disabled='false']),
+  [role='combobox']:not([aria-disabled='true']):is(:not([data-disabled]), [data-disabled='false']),
   [data-slot='accordion-trigger']:not(:disabled),
   [data-slot='kv-accordion-trigger']:not(:disabled),
   [data-slot='tabs-trigger']:not(:disabled),
@@ -604,18 +604,22 @@
     @apply cursor-pointer;
   }
 
-  /* One disabled cursor everywhere — not-allowed (must keep pointer-events). */
+  /*
+   * Disabled cursor — ignore data-disabled="false" (Sonner close sets that
+   * while still interactive; bare [data-disabled] was forcing not-allowed on
+   * the X icon and other children).
+   */
   :disabled,
   [disabled],
   [aria-disabled='true'],
-  [data-disabled] {
+  [data-disabled]:not([data-disabled='false']) {
     @apply cursor-not-allowed;
   }
 
   :disabled *,
   [disabled] *,
   [aria-disabled='true'] *,
-  [data-disabled] * {
+  [data-disabled]:not([data-disabled='false']) * {
     @apply cursor-not-allowed;
   }
 }
@@ -749,6 +753,11 @@ input[readonly]:-webkit-autofill {
 /* Sonner close control — square (not circular) to match kv-control chrome */
 [data-sonner-toast][data-styled='true'] [data-close-button] {
   border-radius: var(--radius-kv-control);
+  cursor: pointer;
+}
+
+[data-sonner-toast][data-styled='true'] [data-close-button] * {
+  cursor: pointer;
 }
 
 /* Soft stagger for marketing hero visual (same motion, delayed). */
@@ -774,16 +783,18 @@ input[readonly]:-webkit-autofill {
  * Strict: ONLY for marketing nav; do not apply to dashboard chrome.
  */
 /*
- * Blueprint background overlay pattern — STRICTLY FOR LANDING ONLY.
- * Applied over kv-brand-atmosphere for institutional technical aesthetic.
- * Dashboard shells must NOT use this (stay quiet canvas — see rule 90).
+ * Blueprint grid overlay — auth + marketing canvases (brand-loud).
+ * Pair with .kv-brand-atmosphere. Dashboard shells must NOT use this (rule 90).
  */
 .kv-blueprint-bg {
-  background-image: 
+  background-image:
     radial-gradient(circle, rgba(16, 78, 198, 0.05) 1px, transparent 1px),
     linear-gradient(to right, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(203, 213, 225, 0.22) 1px, transparent 1px);
-  background-size: 24px 24px, 72px 72px, 72px 72px;
+    linear-gradient(to bottom, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
+    radial-gradient(ellipse 110% 75% at 50% -15%, var(--kv-brand-soft), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 100% 100%, var(--kv-brand-soft-hover), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 0% 85%, var(--kv-brand-soft), transparent 50%);
+  background-size: 24px 24px, 72px 72px, 72px 72px, auto, auto, auto;
   background-position: center top;
 }
 
