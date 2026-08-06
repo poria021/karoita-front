@@ -20,6 +20,9 @@ export const shellCopy = {
   },
   account: {
     profile: 'پروفایل',
+    /** Placeholder until PWA install prompt is wired. */
+    installApp: 'نصب نسخه اپ',
+    installAppSoon: 'نصب نسخه اپ به‌زودی فعال می‌شود.',
     logout: 'خروج',
     logoutConfirmTitle: 'خروج از حساب کاربری',
     logoutConfirmDescription:

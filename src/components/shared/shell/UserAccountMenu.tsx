@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
@@ -15,6 +16,7 @@ import {
 } from '@/components/shared/KvDropdownMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { ConnectivityStatusDot } from '@/components/shared/shell/ConnectivityStatusDot';
+import { shellCopy } from '@/components/shared/shell/shellCopy';
 import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
@@ -39,7 +41,7 @@ function displayName(firstName: string, lastName: string, mobile: string): strin
 }
 
 /**
- * منوی حساب کاربر — تریگر نام + آیکن کاربر؛ گزینه‌های پروفایل و خروج.
+ * منوی حساب کاربر — تریگر نام + آیکن کاربر؛ پروفایل، نصب اپ (stub)، خروج.
  * در هدر و فوتر سایدبار مشترک است؛ هم‌زمان فقط یکی باز می‌ماند.
  */
 export function UserAccountMenu({
@@ -99,6 +101,13 @@ export function UserAccountMenu({
     onNavigate?.();
   };
 
+  /** Stub until PWA `beforeinstallprompt` is wired. */
+  const handleInstallAppClick = () => {
+    setAccountMenuOwner(null);
+    onNavigate?.();
+    toast.message(shellCopy.account.installAppSoon);
+  };
+
   const menuItemClass = isHeader
     ? 'gap-kv-pair justify-center px-2 py-1.5 text-xs leading-none sm:justify-start sm:px-3.5 sm:py-2.5'
     : 'gap-kv-pair';
@@ -118,13 +127,21 @@ export function UserAccountMenu({
       <KvDropdownMenuItem asChild>
         <Link
           href={profileHref}
-          prefetch={false}
+          prefetch
           onClick={handleProfileClick}
           className={cn('flex cursor-pointer items-center', menuItemClass)}
         >
           <FaIcon icon={faIcons.user} size="sm" fixedWidth />
-          <span>پروفایل</span>
+          <span>{shellCopy.account.profile}</span>
         </Link>
+      </KvDropdownMenuItem>
+
+      <KvDropdownMenuItem
+        onSelect={handleInstallAppClick}
+        className={cn('flex items-center', menuItemClass)}
+      >
+        <FaIcon icon={faIcons.download} size="sm" fixedWidth />
+        <span>{shellCopy.account.installApp}</span>
       </KvDropdownMenuItem>
 
       <KvDropdownMenuSeparator />
@@ -139,7 +156,7 @@ export function UserAccountMenu({
         className={cn('flex items-center', menuItemClass)}
       >
         <FaIcon icon={faIcons.powerOff} size="sm" fixedWidth />
-        <span>خروج</span>
+        <span>{shellCopy.account.logout}</span>
       </KvDropdownMenuItem>
     </KvDropdownMenuContent>
   );
