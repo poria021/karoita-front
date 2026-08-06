@@ -53,7 +53,7 @@ export function DailyApprovalWeekGrid({
             color="neutral"
             appearance="secondary"
             size="md"
-            className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-control border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName} ${
+            className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-control border px-kv-group pb-kv-field pt-kv-inline text-start shadow-none ${visual.className} ${visual.hoverClassName} ${
               selected ? 'ring-[3px] ring-kv-ring/25' : ''
             } ${compact ? 'min-h-[72px]' : ''}`}
             aria-label={`هفته ${toPersianDigits(week.weekNumber)}`}

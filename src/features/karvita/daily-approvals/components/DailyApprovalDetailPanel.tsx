@@ -29,7 +29,7 @@ export function DailyApprovalDetailPanel({
 }: DailyApprovalDetailPanelProps) {
   if (!trainee) {
     return (
-      <KvCard tone="muted" fill className="min-h-[450px]">
+      <KvCard tone="muted" fill className="min-h-[450px] shadow-none">
         <KvCardContent
           padding="md"
           className="flex h-full min-h-0 flex-1 flex-col items-center justify-center"
@@ -49,7 +49,7 @@ export function DailyApprovalDetailPanel({
       : `${toPersianDigits(trainee.progressiveGrade.final20)}/۲۰`;
 
   return (
-    <KvCard tone="surface" fill className="min-h-[450px]" padding="md">
+    <KvCard tone="surface" fill className="min-h-[450px] shadow-none" padding="md">
       <KvCardContent
         padding="none"
         stacked
@@ -66,7 +66,7 @@ export function DailyApprovalDetailPanel({
           </div>
 
           <div className="flex shrink-0 items-center justify-end">
-            <div className="flex w-full flex-row items-center justify-between gap-kv-group rounded-kv-control border border-kv-border bg-kv-surface px-kv-group py-kv-field text-start shadow-kv-raised lg:w-auto lg:min-w-[260px]">
+            <div className="flex w-full flex-row items-center justify-between gap-kv-group rounded-kv-control border border-kv-border bg-kv-surface px-kv-group py-kv-field text-start lg:w-auto lg:min-w-[260px]">
               <div className="flex flex-col gap-0.5 pe-kv-pair ps-kv-pair">
                 <KvTypography
                   variant="caption"

@@ -15,7 +15,6 @@ import {
 } from '@/components/shared/KvDropdownMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { ConnectivityStatusDot } from '@/components/shared/shell/ConnectivityStatusDot';
-import { resolveSidebarIcon } from '@/components/shared/shell/resolveSidebarIcon';
 import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
@@ -40,7 +39,7 @@ function displayName(firstName: string, lastName: string, mobile: string): strin
 }
 
 /**
- * منوی حساب کاربر — تریگر نام + آیکن نقش؛ گزینه‌های پروفایل و خروج.
+ * منوی حساب کاربر — تریگر نام + آیکن کاربر؛ گزینه‌های پروفایل و خروج.
  * در هدر و فوتر سایدبار مشترک است؛ هم‌زمان فقط یکی باز می‌ماند.
  */
 export function UserAccountMenu({
@@ -59,7 +58,6 @@ export function UserAccountMenu({
   if (!activeUser) return null;
 
   const strategy = getRoleStrategy(activeUser.role);
-  const roleIcon = resolveSidebarIcon(strategy.roleIcon);
   const name = displayName(
     activeUser.firstName,
     activeUser.lastName,
@@ -181,7 +179,7 @@ export function UserAccountMenu({
               )}
             >
               <span className="relative flex size-8 shrink-0 items-center justify-center overflow-visible rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
-                <FaIcon icon={roleIcon} size="sm" />
+                <FaIcon icon={faIcons.user} size="sm" />
                 <ConnectivityStatusDot />
               </span>
               <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start sm:text-start">
@@ -226,7 +224,7 @@ export function UserAccountMenu({
               )}
             >
               <div className="relative flex size-9 shrink-0 items-center justify-center overflow-visible rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
-                <FaIcon icon={roleIcon} size="lg" />
+                <FaIcon icon={faIcons.user} size="lg" />
                 <ConnectivityStatusDot />
               </div>
               <div

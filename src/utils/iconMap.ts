@@ -93,6 +93,7 @@ export const iconMap: Record<string, IconDefinition> = {
   'fa-graduation-cap': faGraduationCap,
   'fa-clipboard-check': faClipboardCheck,
   'fa-clipboard-list': faClipboardList,
+  'fa-user': faUser,
   'fa-user-group': faUserGroup,
   'fa-school': faSchool,
   'fa-map': faMap,

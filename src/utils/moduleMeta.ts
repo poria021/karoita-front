@@ -23,7 +23,7 @@ const PROFILE_META: ModuleMeta = {
   title: 'پروفایل و اسناد هویتی',
   description:
     'مدیریت اطلاعات پرسنلی، احراز هویت، بارگذاری مستندات و تنظیم رمز عبور حساب.',
-  icon: 'fa-file-shield',
+  icon: 'fa-user',
   showSemester: false,
 };
 

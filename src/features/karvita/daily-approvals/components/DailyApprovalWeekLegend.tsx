@@ -13,7 +13,7 @@ export function DailyApprovalWeekLegend({
     <div
       className={cn(
         titled &&
-          'space-y-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised'
+          'space-y-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group'
       )}
     >
       {titled ? (
@@ -31,7 +31,7 @@ export function DailyApprovalWeekLegend({
           <span key={item.label} className="flex items-center gap-kv-pair">
             <span
               className={cn(
-                'flex size-5 items-center justify-center rounded-kv-control border shadow-kv-raised',
+                'flex size-5 items-center justify-center rounded-kv-control border',
                 item.wellClass
               )}
             >
