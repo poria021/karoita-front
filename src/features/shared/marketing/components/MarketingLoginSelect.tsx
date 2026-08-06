@@ -47,7 +47,7 @@ function ProductMark({ product }: { product: LandingProduct }) {
   return (
     <FaIcon
       icon={iconMap[product.icon] ?? faIcons.link}
-      className="text-xl text-kv-brand-fg"
+      className="text-xl text-kv-brand"
     />
   );
 }
@@ -107,15 +107,15 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
             </KvButton>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 pt-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-wrap justify-center gap-6 pt-4">
             {products.map((product) => {
               const target = resolveProductLoginHref(product);
               const cardClass =
-                'group flex min-h-[168px] cursor-pointer flex-col items-center gap-kv-group rounded-kv-panel border border-kv-border-muted bg-kv-surface p-kv-group text-center shadow-kv-raised transition-all duration-200 hover:border-kv-brand sm:min-h-[180px]';
+                'group flex min-h-[168px] w-full cursor-pointer flex-col items-center gap-kv-group rounded-kv-panel border border-kv-border-muted bg-kv-surface p-kv-group text-center shadow-kv-raised transition-all duration-200 hover:border-kv-brand sm:min-h-[180px]';
 
               const inner = (
                 <>
-                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-kv-control bg-kv-brand text-xl text-kv-brand-fg shadow-kv-soft">
+                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface text-xl text-kv-brand shadow-kv-soft">
                     <ProductMark product={product} />
                   </div>
                   <h2 className="text-sm font-black leading-snug text-kv-text transition-colors">
@@ -133,7 +133,7 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
               );
 
               return (
-                <div key={product.id}>
+                <div key={product.id} className="w-full max-w-[16rem]">
                   {target.kind === 'external' ? (
                     <a
                       href={target.href}
