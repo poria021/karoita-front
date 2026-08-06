@@ -2,7 +2,6 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -10,8 +9,10 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTableCell } from '@/components/shared/table/KvTable';
-import { LandingCmsService } from '@/services/landing-cms.service';
-import type { LandingProduct } from '@/types/landing-cms';
+import type {
+  CreateLandingProductInput,
+  LandingProduct,
+} from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
 
 import { getLandingCmsTabConfig } from '../constants';
@@ -33,14 +34,14 @@ const PRODUCT_COLUMNS = [
 type LandingCmsProductsPanelProps = {
   items: LandingProduct[];
   isLoading: boolean;
-  onSoftReload: () => Promise<void>;
+  onCreate: (input: CreateLandingProductInput) => void;
   onRequestDelete: (target: LandingCmsDeleteTarget) => void;
 };
 
 export function LandingCmsProductsPanel({
   items,
   isLoading,
-  onSoftReload,
+  onCreate,
   onRequestDelete,
 }: LandingCmsProductsPanelProps) {
   const tabConfig = getLandingCmsTabConfig('products');
@@ -50,21 +51,13 @@ export function LandingCmsProductsPanel({
     mode: 'onSubmit',
   });
 
-  const submit = form.handleSubmit(async (values) => {
-    try {
-      await LandingCmsService.createProduct({
-        title: values.title,
-        link: values.link,
-        logoImage: values.logoImage,
-      });
-      toast.success('محصول جدید با موفقیت به داک شناور اضافه شد.');
-      form.reset({ title: '', link: '', logoImage: null });
-      await onSoftReload();
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'افزودن محصول ناموفق بود.'
-      );
-    }
+  const submit = form.handleSubmit((values) => {
+    onCreate({
+      title: values.title,
+      link: values.link,
+      logoImage: values.logoImage,
+    });
+    form.reset({ title: '', link: '', logoImage: null });
   });
 
   return (

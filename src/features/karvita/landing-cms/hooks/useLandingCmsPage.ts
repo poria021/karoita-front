@@ -7,6 +7,9 @@ import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { LandingCmsService } from '@/services/landing-cms.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
+  CreateLandingBannerInput,
+  CreateLandingProductInput,
+  CreateLandingSocialInput,
   LandingBanner,
   LandingProduct,
   LandingSocial,
@@ -28,6 +31,10 @@ export type LandingCmsDeleteTarget = {
 
 function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
+}
+
+function revokeIfBlob(url: string): void {
+  if (url.startsWith('blob:')) URL.revokeObjectURL(url);
 }
 
 export function useLandingCmsPage() {
@@ -81,7 +88,6 @@ export function useLandingCmsPage() {
     const requestId = ++loadRequestIdRef.current;
     let cancelled = false;
 
-    // Initial `isLoading` is true; resolve after Facade (setState only post-await).
     void (async () => {
       try {
         const [nextBanners, nextSocials, nextProducts] = await Promise.all([
@@ -114,11 +120,129 @@ export function useLandingCmsPage() {
     setTab(next);
   }, []);
 
+  const scheduleCreateBanner = useCallback(
+    (input: CreateLandingBannerInput) => {
+      const tempId = `temp-banner-${Date.now()}`;
+      const imageUrl = URL.createObjectURL(input.image);
+      const optimistic: LandingBanner = {
+        id: tempId,
+        title: input.title.trim(),
+        link: input.link?.trim() ?? '',
+        imageUrl,
+      };
+      let snapshot: LandingBanner[] = [];
+
+      scheduleUndoableMutation({
+        message: 'بنر جدید به اسلایدر اضافه شد.',
+        undoLabel: 'لغو',
+        apply: () => {
+          setBanners((prev) => {
+            snapshot = prev;
+            return [optimistic, ...prev];
+          });
+        },
+        revert: () => {
+          revokeIfBlob(imageUrl);
+          setBanners(snapshot);
+        },
+        commit: () => LandingCmsService.createBanner(input),
+        onCommitted: async () => {
+          revokeIfBlob(imageUrl);
+          await reload({ soft: true });
+        },
+        onError: (err) => {
+          toast.error(errorMessage(err, 'افزودن بنر ناموفق بود.'));
+        },
+      });
+    },
+    [reload]
+  );
+
+  const scheduleCreateSocial = useCallback(
+    (input: CreateLandingSocialInput) => {
+      const tempId = `temp-social-${Date.now()}`;
+      const iconImageUrl = input.iconImage
+        ? URL.createObjectURL(input.iconImage)
+        : '';
+      const optimistic: LandingSocial = {
+        id: tempId,
+        name: input.name.trim(),
+        link: input.link.trim(),
+        iconImageUrl,
+        icon: input.icon ?? 'fa-share-nodes',
+      };
+      let snapshot: LandingSocial[] = [];
+
+      scheduleUndoableMutation({
+        message: 'شبکه اجتماعی جدید اضافه شد.',
+        undoLabel: 'لغو',
+        apply: () => {
+          setSocials((prev) => {
+            snapshot = prev;
+            return [optimistic, ...prev];
+          });
+        },
+        revert: () => {
+          revokeIfBlob(iconImageUrl);
+          setSocials(snapshot);
+        },
+        commit: () => LandingCmsService.createSocial(input),
+        onCommitted: async () => {
+          revokeIfBlob(iconImageUrl);
+          await reload({ soft: true });
+        },
+        onError: (err) => {
+          toast.error(errorMessage(err, 'افزودن شبکه اجتماعی ناموفق بود.'));
+        },
+      });
+    },
+    [reload]
+  );
+
+  const scheduleCreateProduct = useCallback(
+    (input: CreateLandingProductInput) => {
+      const tempId = `temp-product-${Date.now()}`;
+      const logoImageUrl = URL.createObjectURL(input.logoImage);
+      const optimistic: LandingProduct = {
+        id: tempId,
+        title: input.title.trim(),
+        link: input.link.trim(),
+        logoImageUrl,
+        icon: input.icon ?? 'fa-cube',
+      };
+      let snapshot: LandingProduct[] = [];
+
+      scheduleUndoableMutation({
+        message: 'محصول جدید به داک شناور اضافه شد.',
+        undoLabel: 'لغو',
+        apply: () => {
+          setProducts((prev) => {
+            snapshot = prev;
+            return [optimistic, ...prev];
+          });
+        },
+        revert: () => {
+          revokeIfBlob(logoImageUrl);
+          setProducts(snapshot);
+        },
+        commit: () => LandingCmsService.createProduct(input),
+        onCommitted: async () => {
+          revokeIfBlob(logoImageUrl);
+          await reload({ soft: true });
+        },
+        onError: (err) => {
+          toast.error(errorMessage(err, 'افزودن محصول ناموفق بود.'));
+        },
+      });
+    },
+    [reload]
+  );
+
   const requestDelete = useCallback(
     (target: LandingCmsDeleteTarget) => {
-      const bannersSnapshot = banners;
-      const socialsSnapshot = socials;
-      const productsSnapshot = products;
+      let bannersSnapshot: LandingBanner[] = [];
+      let socialsSnapshot: LandingSocial[] = [];
+      let productsSnapshot: LandingProduct[] = [];
 
       const message =
         target.kind === 'banners'
@@ -133,17 +257,26 @@ export function useLandingCmsPage() {
         undoLabel: 'لغو',
         apply: () => {
           if (target.kind === 'banners') {
-            setBanners((prev) => prev.filter((item) => item.id !== target.id));
+            setBanners((prev) => {
+              bannersSnapshot = prev;
+              return prev.filter((item) => item.id !== target.id);
+            });
           } else if (target.kind === 'socials') {
-            setSocials((prev) => prev.filter((item) => item.id !== target.id));
+            setSocials((prev) => {
+              socialsSnapshot = prev;
+              return prev.filter((item) => item.id !== target.id);
+            });
           } else {
-            setProducts((prev) => prev.filter((item) => item.id !== target.id));
+            setProducts((prev) => {
+              productsSnapshot = prev;
+              return prev.filter((item) => item.id !== target.id);
+            });
           }
         },
         revert: () => {
-          setBanners(bannersSnapshot);
-          setSocials(socialsSnapshot);
-          setProducts(productsSnapshot);
+          if (target.kind === 'banners') setBanners(bannersSnapshot);
+          else if (target.kind === 'socials') setSocials(socialsSnapshot);
+          else setProducts(productsSnapshot);
         },
         commit: async () => {
           if (target.kind === 'banners') {
@@ -162,11 +295,6 @@ export function useLandingCmsPage() {
         },
       });
     },
-    [banners, products, reload, socials]
-  );
-
-  const softReload = useCallback(
-    () => reload({ soft: true }),
     [reload]
   );
 
@@ -179,7 +307,9 @@ export function useLandingCmsPage() {
     isLoading,
     error,
     reload,
-    softReload,
+    scheduleCreateBanner,
+    scheduleCreateSocial,
+    scheduleCreateProduct,
     requestDelete,
   };
 }

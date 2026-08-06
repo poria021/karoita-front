@@ -2,7 +2,6 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -10,17 +9,19 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTableCell } from '@/components/shared/table/KvTable';
-import { LandingCmsService } from '@/services/landing-cms.service';
-import type { LandingBanner } from '@/types/landing-cms';
+import type {
+  CreateLandingBannerInput,
+  LandingBanner,
+} from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
 
 import { getLandingCmsTabConfig } from '../constants';
+import type { LandingCmsDeleteTarget } from '../hooks/useLandingCmsPage';
 import {
   bannerFormSchema,
   type BannerFormInput,
   type BannerFormValues,
 } from '../schemas/landing-cms.schema';
-import type { LandingCmsDeleteTarget } from '../hooks/useLandingCmsPage';
 import { LandingCmsEntityTable } from './LandingCmsEntityTable';
 import { LandingCmsMediaThumb } from './LandingCmsMediaThumb';
 
@@ -33,14 +34,14 @@ const BANNER_COLUMNS = [
 type LandingCmsBannersPanelProps = {
   items: LandingBanner[];
   isLoading: boolean;
-  onSoftReload: () => Promise<void>;
+  onCreate: (input: CreateLandingBannerInput) => void;
   onRequestDelete: (target: LandingCmsDeleteTarget) => void;
 };
 
 export function LandingCmsBannersPanel({
   items,
   isLoading,
-  onSoftReload,
+  onCreate,
   onRequestDelete,
 }: LandingCmsBannersPanelProps) {
   const tabConfig = getLandingCmsTabConfig('banners');
@@ -50,21 +51,13 @@ export function LandingCmsBannersPanel({
     mode: 'onSubmit',
   });
 
-  const submit = form.handleSubmit(async (values) => {
-    try {
-      await LandingCmsService.createBanner({
-        title: values.title,
-        link: values.link || undefined,
-        image: values.image,
-      });
-      toast.success('بنر جدید با موفقیت به اسلایدر اضافه شد.');
-      form.reset({ title: '', link: '', image: null });
-      await onSoftReload();
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'افزودن بنر ناموفق بود.'
-      );
-    }
+  const submit = form.handleSubmit((values) => {
+    onCreate({
+      title: values.title,
+      link: values.link || undefined,
+      image: values.image,
+    });
+    form.reset({ title: '', link: '', image: null });
   });
 
   return (

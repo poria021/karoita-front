@@ -2,7 +2,6 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -10,8 +9,10 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTableCell } from '@/components/shared/table/KvTable';
-import { LandingCmsService } from '@/services/landing-cms.service';
-import type { LandingSocial } from '@/types/landing-cms';
+import type {
+  CreateLandingSocialInput,
+  LandingSocial,
+} from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
 
 import { getLandingCmsTabConfig } from '../constants';
@@ -33,14 +34,14 @@ const SOCIAL_COLUMNS = [
 type LandingCmsSocialsPanelProps = {
   items: LandingSocial[];
   isLoading: boolean;
-  onSoftReload: () => Promise<void>;
+  onCreate: (input: CreateLandingSocialInput) => void;
   onRequestDelete: (target: LandingCmsDeleteTarget) => void;
 };
 
 export function LandingCmsSocialsPanel({
   items,
   isLoading,
-  onSoftReload,
+  onCreate,
   onRequestDelete,
 }: LandingCmsSocialsPanelProps) {
   const tabConfig = getLandingCmsTabConfig('socials');
@@ -50,21 +51,13 @@ export function LandingCmsSocialsPanel({
     mode: 'onSubmit',
   });
 
-  const submit = form.handleSubmit(async (values) => {
-    try {
-      await LandingCmsService.createSocial({
-        name: values.name,
-        link: values.link,
-        iconImage: values.iconImage ?? null,
-      });
-      toast.success('شبکه اجتماعی جدید با موفقیت اضافه شد.');
-      form.reset({ name: '', link: '', iconImage: null });
-      await onSoftReload();
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'افزودن شبکه اجتماعی ناموفق بود.'
-      );
-    }
+  const submit = form.handleSubmit((values) => {
+    onCreate({
+      name: values.name,
+      link: values.link,
+      iconImage: values.iconImage ?? null,
+    });
+    form.reset({ name: '', link: '', iconImage: null });
   });
 
   return (

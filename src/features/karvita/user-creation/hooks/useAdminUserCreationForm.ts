@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { AdminUserCreationService } from '@/services/admin-user-creation.service';
 import type { CreateOrganizationalUserInput } from '@/types/admin-user-creation';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
@@ -42,7 +43,6 @@ export function useAdminUserCreationForm() {
 
   const [mobileDuplicate, setMobileDuplicate] = useState(false);
   const [checkingMobile, setCheckingMobile] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const mobileNormalized = normalizeMobile(mobile);
   const mobileComplete = /^9\d{9}$/.test(mobileNormalized);
@@ -140,21 +140,30 @@ export function useAdminUserCreationForm() {
       district: values.district || undefined,
     };
 
-    setSubmitting(true);
-    try {
-      await AdminUserCreationService.createOrganizationalUser(payload);
-      toast.success('حساب کاربری سازمانی جدید با موفقیت ایجاد و فعال گردید.');
-      reset({ ...ADMIN_USER_CREATION_DEFAULTS });
-      setMobileDuplicate(false);
-    } catch (error: unknown) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'ایجاد حساب کاربری ناموفق بود.'
-      );
-    } finally {
-      setSubmitting(false);
-    }
+    const formSnapshot = { ...raw };
+    const mobileDuplicateSnapshot = mobileDuplicate;
+
+    scheduleUndoableMutation({
+      message: 'حساب کاربری سازمانی جدید ایجاد و فعال گردید.',
+      undoLabel: 'لغو',
+      apply: () => {
+        reset({ ...ADMIN_USER_CREATION_DEFAULTS });
+        setMobileDuplicate(false);
+      },
+      revert: () => {
+        reset(formSnapshot);
+        setMobileDuplicate(mobileDuplicateSnapshot);
+      },
+      commit: () =>
+        AdminUserCreationService.createOrganizationalUser(payload),
+      onError: (error: unknown) => {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : 'ایجاد حساب کاربری ناموفق بود.'
+        );
+      },
+    });
   });
 
   return {
@@ -168,7 +177,7 @@ export function useAdminUserCreationForm() {
     mobileComplete,
     mobileDuplicate,
     checkingMobile,
-    submitting,
+    submitting: false,
     onRoleChange,
     onProvinceChange,
     onCityChange,

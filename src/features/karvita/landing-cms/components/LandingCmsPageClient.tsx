@@ -45,7 +45,7 @@ export function LandingCmsPageClient() {
           <LandingCmsBannersPanel
             items={page.banners}
             isLoading={page.isLoading}
-            onSoftReload={page.softReload}
+            onCreate={page.scheduleCreateBanner}
             onRequestDelete={page.requestDelete}
           />
         ) : null}
@@ -54,7 +54,7 @@ export function LandingCmsPageClient() {
           <LandingCmsSocialsPanel
             items={page.socials}
             isLoading={page.isLoading}
-            onSoftReload={page.softReload}
+            onCreate={page.scheduleCreateSocial}
             onRequestDelete={page.requestDelete}
           />
         ) : null}
@@ -63,7 +63,7 @@ export function LandingCmsPageClient() {
           <LandingCmsProductsPanel
             items={page.products}
             isLoading={page.isLoading}
-            onSoftReload={page.softReload}
+            onCreate={page.scheduleCreateProduct}
             onRequestDelete={page.requestDelete}
           />
         ) : null}

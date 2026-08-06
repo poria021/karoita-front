@@ -3,7 +3,10 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
+import {
+  scheduleUndoableLocalChange,
+  scheduleUndoableMutation,
+} from '@/lib/undoable-mutation';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
 import type {
   InternshipEnrollmentActor,
@@ -107,8 +110,21 @@ export function useWeeklyReportModal({
   const removeFile = useCallback(
     (fileId: string) => {
       if (locked) return;
-      setFiles((prev) => prev.filter((file) => file.id !== fileId));
-      toast.success('ضمیمه مورد نظر با موفقیت حذف شد.');
+      let snapshot: InternshipWeeklyReportFile[] = [];
+      scheduleUndoableLocalChange({
+        tone: 'error',
+        message: 'ضمیمه مورد نظر حذف شد.',
+        undoLabel: 'لغو',
+        apply: () => {
+          setFiles((prev) => {
+            snapshot = prev;
+            return prev.filter((file) => file.id !== fileId);
+          });
+        },
+        revert: () => {
+          setFiles(snapshot);
+        },
+      });
     },
     [locked]
   );

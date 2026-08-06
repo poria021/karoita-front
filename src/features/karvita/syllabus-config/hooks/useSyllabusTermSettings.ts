@@ -3,9 +3,10 @@
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
+import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
-import { toPersianDigits } from '@/utils/persianDigits';
+import { persianToEnglishDigits, toPersianDigits } from '@/utils/persianDigits';
 
 import { defaultPrefixForType, parseTermTitleParts } from '../constants';
 import {
@@ -20,6 +21,7 @@ type UseSyllabusTermSettingsArgs = {
   setTerms: Dispatch<SetStateAction<AcademicTerm[]>>;
   setSelectedTermId: Dispatch<SetStateAction<string>>;
   loadTermContext: (termId: string) => Promise<void>;
+  /** Kept for page wiring; create/delete use undoable toast instead of busy lock. */
   setIsSaving: Dispatch<SetStateAction<boolean>>;
   professorCapacity: string;
   setProfessorCapacity: Dispatch<SetStateAction<string>>;
@@ -32,7 +34,7 @@ export function useSyllabusTermSettings({
   setTerms,
   setSelectedTermId,
   loadTermContext,
-  setIsSaving,
+  setIsSaving: _setIsSaving,
   professorCapacity,
   setProfessorCapacity,
   passingThreshold,
@@ -43,9 +45,6 @@ export function useSyllabusTermSettings({
   const [termType, setTermType] = useState<AcademicTermType>('semester');
   const [termPrefix, setTermPrefix] = useState(defaultPrefixForType('semester'));
   const [termYear, setTermYear] = useState(defaultAcademicYear);
-  const [deleteTermTarget, setDeleteTermTarget] = useState<AcademicTerm | null>(
-    null
-  );
   const [termFormError, setTermFormError] = useState<string | null>(null);
 
   const editingTerm = terms.find((t) => t.id === editTermId) ?? null;
@@ -78,7 +77,7 @@ export function useSyllabusTermSettings({
     setTermPrefix(defaultPrefixForType(type));
   }
 
-  async function saveTerm() {
+  function saveTerm() {
     if (editTermId) {
       toast.message('برای دوره موجود فقط حذف مجاز است؛ فیلدهای عنوان قفل‌اند.');
       return;
@@ -95,52 +94,86 @@ export function useSyllabusTermSettings({
       return;
     }
     setTermFormError(null);
-    setIsSaving(true);
-    try {
-      const snapshot = await SyllabusConfigService.createTerm(parsed.data);
-      setTerms(snapshot.terms);
-      const created = snapshot.terms.find(
-        (t) =>
-          t.title.includes(parsed.data.titlePrefix) &&
-          t.title.includes(parsed.data.academicYear)
-      );
-      resetTermForm();
-      toast.success(
-        `دوره تحصیلی «${toPersianDigits(`${parsed.data.titlePrefix} ${parsed.data.academicYear}`)}» با موفقیت ایجاد شد.`
-      );
-      if (created) {
-        setSelectedTermId(created.id);
-        await loadTermContext(created.id);
-      }
-    } catch (err) {
-      toast.error(errorMessage(err, 'ایجاد دوره تحصیلی ناموفق بود.'));
-    } finally {
-      setIsSaving(false);
-    }
+
+    const title =
+      `${parsed.data.titlePrefix} ${persianToEnglishDigits(parsed.data.academicYear)}`.trim();
+    const tempId = `temp_term_${Date.now()}`;
+    const optimistic: AcademicTerm = {
+      id: tempId,
+      title,
+      type: parsed.data.type,
+      isEnrollOpen: false,
+      isTermOpen: false,
+      enrollStart: '',
+      termStart: '',
+    };
+    let snapshot = terms;
+
+    scheduleUndoableMutation({
+      message: `دوره تحصیلی «${toPersianDigits(`${parsed.data.titlePrefix} ${parsed.data.academicYear}`)}» ایجاد شد.`,
+      undoLabel: 'لغو',
+      apply: () => {
+        snapshot = terms;
+        setTerms((prev) => [...prev, optimistic]);
+        resetTermForm();
+        setSelectedTermId(tempId);
+      },
+      revert: () => {
+        setTerms(snapshot);
+        setSelectedTermId(snapshot[0]?.id ?? '');
+      },
+      commit: () => SyllabusConfigService.createTerm(parsed.data),
+      onCommitted: async (result) => {
+        setTerms(result.terms);
+        const created = result.terms.find((t) => t.title === title);
+        const nextId = created?.id ?? result.terms[0]?.id ?? '';
+        setSelectedTermId(nextId);
+        if (nextId) await loadTermContext(nextId);
+      },
+      onError: (err) => {
+        toast.error(errorMessage(err, 'ایجاد دوره تحصیلی ناموفق بود.'));
+      },
+    });
   }
 
   function requestDeleteTerm() {
     if (!editingTerm) return;
-    setDeleteTermTarget(editingTerm);
-  }
 
-  async function confirmDeleteTerm() {
-    if (!deleteTermTarget) return;
-    try {
-      const snapshot = await SyllabusConfigService.deleteTerm(
-        deleteTermTarget.id
-      );
-      setTerms(snapshot.terms);
-      resetTermForm();
-      setDeleteTermTarget(null);
-      toast.success('دوره تحصیلی با موفقیت حذف گردید.');
-      const nextId = snapshot.terms[0]?.id ?? '';
-      setSelectedTermId(nextId);
-      if (nextId) await loadTermContext(nextId);
-    } catch (err) {
-      toast.error(errorMessage(err, 'حذف دوره تحصیلی ناموفق بود.'));
-      setDeleteTermTarget(null);
-    }
+    const target = editingTerm;
+    let snapshot = terms;
+
+    scheduleUndoableMutation({
+      tone: 'error',
+      message: `دوره تحصیلی «${toPersianDigits(target.title)}» حذف شد.`,
+      undoLabel: 'لغو',
+      apply: () => {
+        snapshot = terms;
+        setTerms((prev) => prev.filter((term) => term.id !== target.id));
+        resetTermForm();
+        const nextId =
+          snapshot.find((term) => term.id !== target.id)?.id ?? '';
+        setSelectedTermId(nextId);
+      },
+      revert: () => {
+        setTerms(snapshot);
+        setEditTermId(target.id);
+        setTermType(target.type);
+        const parts = parseTermTitleParts(target.title);
+        setTermPrefix(parts.prefix);
+        setTermYear(parts.academicYear);
+        setSelectedTermId(target.id);
+      },
+      commit: () => SyllabusConfigService.deleteTerm(target.id),
+      onCommitted: async (result) => {
+        setTerms(result.terms);
+        const nextId = result.terms[0]?.id ?? '';
+        setSelectedTermId(nextId);
+        if (nextId) await loadTermContext(nextId);
+      },
+      onError: (err) => {
+        toast.error(errorMessage(err, 'حذف دوره تحصیلی ناموفق بود.'));
+      },
+    });
   }
 
   async function saveProfessorCapacity() {
@@ -200,9 +233,6 @@ export function useSyllabusTermSettings({
     saveTerm,
     editingTerm,
     requestDeleteTerm,
-    deleteTermTarget,
-    clearDeleteTerm: () => setDeleteTermTarget(null),
-    confirmDeleteTerm,
     saveProfessorCapacity,
     savePassingThreshold,
   };

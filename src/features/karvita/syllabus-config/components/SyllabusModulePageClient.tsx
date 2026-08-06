@@ -6,7 +6,6 @@ import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import type { SyllabusConfigSubTab } from '@/types/syllabus-config';
-import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useSyllabusConfigPage } from '../hooks/useSyllabusConfigPage';
 import { CourseOfferingsPanel } from './CourseOfferingsPanel';
@@ -155,22 +154,7 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
             confirmVariant="destructive"
           />
         </>
-      ) : (
-        <KvConfirmationDialog
-          isOpen={Boolean(page.deleteTermTarget)}
-          onClose={page.clearDeleteTerm}
-          onConfirm={page.confirmDeleteTerm}
-          title="حذف دوره تحصیلی"
-          description={
-            page.deleteTermTarget
-              ? `آیا مایل به حذف کامل «${toPersianDigits(page.deleteTermTarget.title)}» و سرفصل‌های آن هستید؟ این عملیات غیرقابل بازگشت است.`
-              : ''
-          }
-          confirmText="حذف"
-          cancelText="انصراف"
-          confirmVariant="destructive"
-        />
-      )}
+      ) : null}
     </SuperAdminModuleGuard>
   );
 }
