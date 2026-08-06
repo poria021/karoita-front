@@ -31,6 +31,15 @@ export const TERM_TYPE_OPTIONS: {
   },
 ];
 
+/** تب فیلتر ارائه سرفصل: دانشجویان (ترمی) در برابر مهارت‌آموزان (پودمانی). */
+export const COURSE_OFFERING_AUDIENCE_TABS: {
+  value: AcademicTermType;
+  label: string;
+}[] = [
+  { value: 'semester', label: 'دانشجویان' },
+  { value: 'modular', label: 'مهارت‌آموزان' },
+];
+
 export const WEEK_WEIGHT_OPTIONS = [
   { value: 1, label: '۱ - خیلی کم' },
   { value: 2, label: '۲ - کم' },

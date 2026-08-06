@@ -51,7 +51,7 @@ export function CourseOfferingsTable({
       resetKey="course-offerings"
       isBusy={isLoading}
       hasMore={false}
-      heightClassName="h-auto"
+      heightClassName="h-full min-h-[240px]"
     >
       <KvTable scrollable={false}>
         <KvTableHeader>

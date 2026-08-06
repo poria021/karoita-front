@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import type { SyllabusConfigSubTab } from '@/types/syllabus-config';
+import type {
+  AcademicTermType,
+  SyllabusConfigSubTab,
+} from '@/types/syllabus-config';
 
 import { useSyllabusOfferingGates } from './useSyllabusOfferingGates';
 import { useSyllabusPageLoader } from './useSyllabusPageLoader';
@@ -18,9 +21,12 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     setTerms,
     selectedTermId,
     setSelectedTermId,
+    audience,
+    setAudience,
     selectedCourse,
     setSelectedCourse,
     courses,
+    setCourses,
     weeks,
     setWeeks,
     hasUnsavedChanges,
@@ -38,8 +44,17 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
   const { isLoading, reload, loadTermContext, loadTermContextForUi, error } =
     useSyllabusPageLoader({ section, state });
 
+  const audienceTerms = useMemo(
+    () => terms.filter((term) => term.type === audience),
+    [audience, terms]
+  );
+
+  /** Gate cards (انتخاب واحد / برگزاری) follow the live selection even across tabs. */
   const selectedTerm =
     terms.find((t) => t.id === selectedTermId) ?? null;
+  /** Semester picker only shows a term when it belongs to the active audience tab. */
+  const selectedAudienceTerm =
+    audienceTerms.find((t) => t.id === selectedTermId) ?? null;
   const isSelectedCourseOffered = Boolean(
     selectedCourse && offeredCatalogIds.has(selectedCourse.id)
   );
@@ -54,6 +69,24 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     setHasUnsavedChanges,
     loadTermContext,
   });
+
+  function changeAudience(next: AcademicTermType) {
+    if (next === audience) return;
+    setAudience(next);
+    const match = terms.filter((term) => term.type === next);
+    if (match.some((term) => term.id === selectedTermId)) return;
+    const first = match[0];
+    if (first) {
+      navigation.selectTerm(first.id);
+      return;
+    }
+    setSelectedTermId('');
+    setSelectedCourse(null);
+    setCourses([]);
+    setWeeks([]);
+    setOfferedCatalogIds(new Set());
+    setHasUnsavedChanges(false);
+  }
 
   const offeringGates = useSyllabusOfferingGates({
     selectedTermId,
@@ -92,7 +125,11 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
   return {
     section,
     terms,
+    audienceTerms,
+    audience,
+    changeAudience,
     selectedTerm,
+    selectedAudienceTerm,
     selectedTermId,
     selectTerm: navigation.selectTerm,
     courses,

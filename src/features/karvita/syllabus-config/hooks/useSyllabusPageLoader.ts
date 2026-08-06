@@ -28,6 +28,7 @@ export function useSyllabusPageLoader({
   const {
     hasCache,
     selectedTermId,
+    audience,
     selectedCourse,
     setTerms,
     setSelectedTermId,
@@ -91,10 +92,14 @@ export function useSyllabusPageLoader({
     setProfessorCapacity(String(snapshot.globalProfessorCapacity));
     setPassingThreshold(String(snapshot.passingScoreThreshold));
 
-    const term = snapshot.terms[0]
-      ? snapshot.terms.find((t) => t.id === selectedTermId) ??
-        snapshot.terms[snapshot.terms.length > 1 ? 1 : 0] ??
-        snapshot.terms[0]
+    const preferredPool =
+      section === 'course_offerings'
+        ? snapshot.terms.filter((term) => term.type === audience)
+        : snapshot.terms;
+    const pool = preferredPool.length > 0 ? preferredPool : snapshot.terms;
+
+    const term = pool[0]
+      ? pool.find((t) => t.id === selectedTermId) ?? pool[0]
       : null;
 
     const termId = term?.id ?? '';
@@ -111,6 +116,7 @@ export function useSyllabusPageLoader({
       persistCache({
         terms: snapshot.terms,
         selectedTermId: termId,
+        audience,
         selectedCourse: null,
         courses: [],
         weeks: [],
@@ -126,6 +132,7 @@ export function useSyllabusPageLoader({
       persistCache({
         terms: snapshot.terms,
         selectedTermId: termId,
+        audience,
         selectedCourse: ctx.selectedCourse,
         courses: ctx.courses,
         weeks: ctx.weeks,
@@ -143,6 +150,7 @@ export function useSyllabusPageLoader({
       persistCache({
         terms: snapshot.terms,
         selectedTermId: '',
+        audience,
         selectedCourse: null,
         courses: [],
         weeks: [],

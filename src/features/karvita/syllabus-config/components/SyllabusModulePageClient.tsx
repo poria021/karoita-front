@@ -47,8 +47,11 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
             />
           ) : section === 'course_offerings' ? (
             <CourseOfferingsPanel
-              terms={page.terms}
+              audienceTerms={page.audienceTerms}
+              audience={page.audience}
+              changeAudience={page.changeAudience}
               selectedTerm={page.selectedTerm}
+              selectedAudienceTerm={page.selectedAudienceTerm}
               selectTerm={page.selectTerm}
               toggleEnroll={page.toggleEnroll}
               toggleTermOpen={page.toggleTermOpen}

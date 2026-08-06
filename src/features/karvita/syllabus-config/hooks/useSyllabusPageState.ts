@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
   AcademicTerm,
+  AcademicTermType,
   CourseCatalogItem,
   SyllabusConfigSubTab,
   SyllabusWeek,
@@ -30,6 +31,9 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
   const [selectedTermId, setSelectedTermId] = useState(
     () => cached?.selectedTermId ?? ''
   );
+  const [audience, setAudience] = useState<AcademicTermType>(
+    () => cached?.audience ?? 'semester'
+  );
   const [selectedCourse, setSelectedCourse] =
     useState<CourseCatalogItem | null>(() => cached?.selectedCourse ?? null);
   const [courses, setCourses] = useState<CourseCatalogItem[]>(
@@ -50,6 +54,7 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
   function persistCache(next: {
     terms: AcademicTerm[];
     selectedTermId: string;
+    audience?: AcademicTermType;
     selectedCourse?: CourseCatalogItem | null;
     courses?: CourseCatalogItem[];
     weeks?: SyllabusWeek[];
@@ -60,6 +65,7 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     setData<SyllabusPageCache>(cacheKey, {
       terms: next.terms,
       selectedTermId: next.selectedTermId,
+      audience: next.audience ?? audience,
       selectedCourse:
         next.selectedCourse !== undefined
           ? next.selectedCourse
@@ -77,6 +83,7 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     setData<SyllabusPageCache>(cacheKey, {
       terms,
       selectedTermId,
+      audience,
       selectedCourse,
       courses,
       weeks,
@@ -88,6 +95,7 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     cacheKey,
     terms,
     selectedTermId,
+    audience,
     selectedCourse,
     courses,
     weeks,
@@ -103,6 +111,8 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     setTerms,
     selectedTermId,
     setSelectedTermId,
+    audience,
+    setAudience,
     selectedCourse,
     setSelectedCourse,
     courses,

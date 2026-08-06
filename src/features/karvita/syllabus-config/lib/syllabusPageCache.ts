@@ -1,5 +1,6 @@
 import type {
   AcademicTerm,
+  AcademicTermType,
   CourseCatalogItem,
   SyllabusConfigSubTab,
   SyllabusWeek,
@@ -17,6 +18,8 @@ export type PendingNavigation =
 export type SyllabusPageCache = {
   terms: AcademicTerm[];
   selectedTermId: string;
+  /** مخاطب فیلتر ارائه سرفصل: ترمی=دانشجو، پودمانی=مهارت‌آموز. */
+  audience?: AcademicTermType;
   selectedCourse: CourseCatalogItem | null;
   courses: CourseCatalogItem[];
   weeks: SyllabusWeek[];

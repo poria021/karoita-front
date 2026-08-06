@@ -1,5 +1,10 @@
 'use client';
 
+import {
+  AppTabs,
+  AppTabsList,
+  AppTabsTrigger,
+} from '@/components/shared/AppTabs';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
@@ -9,33 +14,33 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
 import { cn } from '@/lib/utils';
 import { isTermGateActive } from '@/services/syllabus-config.service';
-import type { AcademicTerm } from '@/types/syllabus-config';
+import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-import { formatTermOptionLabel } from '../constants';
+import {
+  COURSE_OFFERING_AUDIENCE_TABS,
+  formatTermOptionLabel,
+} from '../constants';
 
-interface TermStatusCardsProps {
-  terms: AcademicTerm[];
-  selectedTerm: AcademicTerm | null;
-  isLoading?: boolean;
-  onSelectTerm: (termId: string) => void;
-  onToggleEnroll: (open: boolean) => void;
-  onToggleTermOpen: (open: boolean) => void;
-}
-
-const CARD_CONTENT_CLASS =
+const GATE_CONTENT_CLASS =
   'flex min-h-[82px] items-center justify-between gap-kv-group';
 
-export function TermStatusCards({
-  terms,
+type TermGateCardsProps = {
+  selectedTerm: AcademicTerm | null;
+  isLoading?: boolean;
+  onToggleEnroll: (open: boolean) => void;
+  onToggleTermOpen: (open: boolean) => void;
+};
+
+/** انتخاب واحد / برگزاری کلاس — خارج از فیلتر تب مخاطب. */
+export function TermGateCards({
   selectedTerm,
   isLoading = false,
-  onSelectTerm,
   onToggleEnroll,
   onToggleTermOpen,
-}: TermStatusCardsProps) {
+}: TermGateCardsProps) {
   const enrollActive = isTermGateActive(
     Boolean(selectedTerm?.isEnrollOpen),
     selectedTerm?.enrollStart ?? ''
@@ -44,54 +49,11 @@ export function TermStatusCards({
     Boolean(selectedTerm?.isTermOpen),
     selectedTerm?.termStart ?? ''
   );
-
-  const isDataLoading = isLoading && terms.length === 0;
+  const isDataLoading = isLoading && !selectedTerm;
 
   return (
-    <div className="grid grid-cols-1 items-stretch gap-kv-group lg:grid-cols-3">
-      {/* Mobile/tablet: after gates. Desktop (RTL): first from the right. */}
-      <KvCard className="order-3 lg:order-1">
-        <KvCardContent padding="md" className={CARD_CONTENT_CLASS}>
-          <div className="flex min-w-0 items-center gap-kv-pair">
-            <KvCardTitleIcon icon={faIcons.graduationCap} />
-            <div className="min-w-0">
-              <KvTypography variant="subtitle" as="h4">
-                نیم‌سال
-              </KvTypography>
-              <KvTypography variant="caption" tone="muted">
-                انتخاب ترم برای مدیریت ارائه و سرفصل
-              </KvTypography>
-            </div>
-          </div>
-          <div className="w-full max-w-56 shrink-0 sm:max-w-64">
-            {isDataLoading ? (
-              <KvSkeleton className="h-9 w-full rounded-kv-control" />
-            ) : (
-              <KvSelectField
-                label={false}
-                size="sm"
-                value={selectedTerm?.id ?? ''}
-                displayValue={
-                  selectedTerm
-                    ? formatTermOptionLabel(selectedTerm.title)
-                    : undefined
-                }
-                onValueChange={onSelectTerm}
-                placeholder="انتخاب ترم"
-              >
-                {terms.map((term) => (
-                  <KvSelectItem key={term.id} value={term.id}>
-                    {formatTermOptionLabel(term.title)}
-                  </KvSelectItem>
-                ))}
-              </KvSelectField>
-            )}
-          </div>
-        </KvCardContent>
-      </KvCard>
-
+    <div className="grid grid-cols-1 items-stretch gap-kv-group sm:grid-cols-2">
       <StatusGateCard
-        className="order-1 lg:order-2"
         icon={faIcons.clipboardList}
         title="انتخاب واحد"
         subtitle={
@@ -106,12 +68,11 @@ export function TermStatusCards({
         switchOn={Boolean(selectedTerm?.isEnrollOpen)}
         active={enrollActive}
         onToggle={onToggleEnroll}
-        disabled={!selectedTerm || isDataLoading}
+        disabled={!selectedTerm || isLoading}
         isLoading={isDataLoading}
       />
 
       <StatusGateCard
-        className="order-2 lg:order-3"
         icon={faIcons.chalkboardUser}
         title="برگزاری کلاس‌ها"
         subtitle={
@@ -126,10 +87,92 @@ export function TermStatusCards({
         switchOn={Boolean(selectedTerm?.isTermOpen)}
         active={termActive}
         onToggle={onToggleTermOpen}
-        disabled={!selectedTerm || isDataLoading}
+        disabled={!selectedTerm || isLoading}
         isLoading={isDataLoading}
       />
     </div>
+  );
+}
+
+type TermSemesterCardProps = {
+  terms: AcademicTerm[];
+  selectedTerm: AcademicTerm | null;
+  audience: AcademicTermType;
+  isLoading?: boolean;
+  onAudienceChange: (audience: AcademicTermType) => void;
+  onSelectTerm: (termId: string) => void;
+};
+
+/** نیم‌سال + تب مخاطب (دانشجو / مهارت‌آموز). */
+export function TermSemesterCard({
+  terms,
+  selectedTerm,
+  audience,
+  isLoading = false,
+  onAudienceChange,
+  onSelectTerm,
+}: TermSemesterCardProps) {
+  const isDataLoading = isLoading && terms.length === 0;
+
+  return (
+    <KvCard className="h-full min-h-[240px]">
+      <KvCardContent
+        padding="md"
+        className="flex h-full min-h-[240px] flex-col gap-kv-group"
+      >
+        <div className="flex items-center gap-kv-pair">
+          <KvCardTitleIcon icon={faIcons.graduationCap} />
+          <div className="min-w-0">
+            <KvTypography variant="subtitle" as="h4">
+              نیم‌سال
+            </KvTypography>
+            <KvTypography variant="caption" tone="muted">
+              انتخاب ترم برای مدیریت ارائه و سرفصل
+            </KvTypography>
+          </div>
+        </div>
+
+        <AppTabs
+          value={audience}
+          onValueChange={(value) => onAudienceChange(value as AcademicTermType)}
+          gridCols={2}
+          fullWidth
+        >
+          <AppTabsList aria-label="فیلتر مخاطب نیم‌سال">
+            {COURSE_OFFERING_AUDIENCE_TABS.map((tab) => (
+              <AppTabsTrigger key={tab.value} value={tab.value}>
+                {tab.label}
+              </AppTabsTrigger>
+            ))}
+          </AppTabsList>
+        </AppTabs>
+
+        <div className="mt-auto w-full">
+          {isDataLoading ? (
+            <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
+          ) : (
+            <KvSelectField
+              label={false}
+              size="md"
+              value={selectedTerm?.id ?? ''}
+              displayValue={
+                selectedTerm
+                  ? formatTermOptionLabel(selectedTerm.title)
+                  : undefined
+              }
+              onValueChange={onSelectTerm}
+              placeholder="انتخاب ترم"
+            >
+              {terms.map((term) => (
+                <KvSelectItem key={term.id} value={term.id}>
+                  {formatTermOptionLabel(term.title)}
+                </KvSelectItem>
+              ))}
+            </KvSelectField>
+          )}
+        </div>
+      </KvCardContent>
+    </KvCard>
   );
 }
 
@@ -163,7 +206,7 @@ function StatusGateCard({
         className
       )}
     >
-      <KvCardContent padding="md" className={CARD_CONTENT_CLASS}>
+      <KvCardContent padding="md" className={GATE_CONTENT_CLASS}>
         <div className="flex min-w-0 items-center gap-kv-pair">
           <KvCardTitleIcon icon={icon} />
           <div className="min-w-0">
