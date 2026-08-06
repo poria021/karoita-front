@@ -66,7 +66,7 @@ function MarketingShellInner({
 
   const headerShouldBeTransparent = overlayHeader && isHomePage && !isScrolled;
   const headerTextClass = headerShouldBeTransparent
-    ? 'text-white drop-shadow-md'
+    ? 'text-white'
     : 'text-kv-text';
 
   return (
@@ -90,7 +90,7 @@ function MarketingShellInner({
             className="group flex items-center gap-kv-inline focus:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring"
             aria-label="صفحه اصلی کارویتا"
           >
-            <div className="flex size-8 items-center justify-center rounded-lg bg-kv-brand text-white shadow-md shadow-kv-raised">
+            <div className="flex size-8 items-center justify-center rounded-kv-control bg-kv-brand text-white shadow-kv-raised">
               <KarvitaBrandMark className="h-5 w-auto p-0.5" />
             </div>
             <div className="flex flex-col">
@@ -135,7 +135,7 @@ function MarketingShellInner({
           </nav>
 
           <div className="flex items-center gap-kv-pair">
-            <KvButton asChild color="cta" size="sm" className="shadow-md">
+            <KvButton asChild color="cta" size="sm" className="shadow-kv-raised">
               <Link href={loginHref} prefetch={false}>
                 <FaIcon
                   icon={faIcons.arrowLeft}
@@ -166,7 +166,7 @@ function MarketingShellInner({
                 onClick={() => openPanel(null)}
                 className="flex items-center gap-3.5 transition-opacity hover:opacity-80"
               >
-                <div className="flex size-12 items-center justify-center rounded-2xl bg-kv-brand font-black text-xl text-kv-brand-fg shadow-md shadow-kv-brand/20">
+                <div className="flex size-12 items-center justify-center rounded-kv-card bg-kv-brand font-black text-xl text-kv-brand-fg shadow-kv-raised shadow-kv-brand/20">
                   K
                 </div>
                 <span className="text-3xl font-black leading-none tracking-tight text-kv-text">
@@ -219,21 +219,21 @@ function MarketingShellInner({
               <div className="grid w-auto grid-cols-3 gap-2.5">
                 <button
                   onClick={(e) => e.preventDefault()}
-                  className="flex h-32 w-28 cursor-pointer select-none items-center justify-center rounded-xl border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-[10px] font-black leading-snug text-kv-text shadow-sm transition-all duration-300 hover:border-kv-brand hover:bg-kv-surface hover:text-kv-brand"
+                  className="flex h-32 w-28 cursor-pointer select-none items-center justify-center rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-xs font-black leading-snug text-kv-text shadow-kv-soft transition-all duration-300 hover:border-kv-brand hover:bg-kv-surface hover:text-kv-brand"
                 >
                   نماد اعتماد الکترونیکی
                 </button>
 
                 <button
                   onClick={(e) => e.preventDefault()}
-                  className="flex h-32 w-28 cursor-pointer select-none items-center justify-center rounded-xl border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-[10px] font-black leading-snug text-kv-text shadow-sm transition-all duration-300 hover:border-kv-success hover:bg-kv-surface hover:text-kv-success"
+                  className="flex h-32 w-28 cursor-pointer select-none items-center justify-center rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-xs font-black leading-snug text-kv-text shadow-kv-soft transition-all duration-300 hover:border-kv-success hover:bg-kv-surface hover:text-kv-success"
                 >
                   نشان ملی ساماندهی
                 </button>
 
                 <button
                   onClick={(e) => e.preventDefault()}
-                  className="flex h-32 w-28 cursor-pointer select-none items-center justify-center rounded-xl border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-[10px] font-black leading-snug text-kv-text shadow-sm transition-all duration-300 hover:border-kv-violet hover:bg-kv-surface hover:text-kv-violet"
+                  className="flex h-32 w-28 cursor-pointer select-none items-center justify-center rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-xs font-black leading-snug text-kv-text shadow-kv-soft transition-all duration-300 hover:border-kv-violet hover:bg-kv-surface hover:text-kv-violet"
                 >
                   تاییدیه دانش‌بنیان
                 </button>
@@ -243,7 +243,7 @@ function MarketingShellInner({
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl px-kv-inset sm:px-kv-page">
-          <div className="flex flex-col items-center justify-between gap-4 border-t border-kv-border-muted pt-4 text-[11px] font-bold text-kv-text-muted sm:flex-row">
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-kv-border-muted pt-4 text-xs font-bold text-kv-text-muted sm:flex-row">
             <MarketingFooterSocials socials={socials} />
 
             <p>تمامی حقوق مادی و معنوی این سامانه متعلق به شرکت کارویتا می‌باشد. © ۱۴۰۵</p>

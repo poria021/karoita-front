@@ -5,7 +5,7 @@ import {
   hasStudentTermEnrollmentConflict,
   findConflictingActiveTermEnrollment,
   normalizeEnrollmentCourseTitle,
-} from '@/features/karvita/internship-enrollment/lib/enrollment-eligibility';
+} from '@/utils/enrollment-eligibility';
 import {
   INTERNSHIP_DEFAULT_WEEKS,
   readSyllabusSnapshot,

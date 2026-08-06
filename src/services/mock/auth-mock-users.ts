@@ -7,8 +7,11 @@ export const MOCK_USER_PASSWORD = '12345678';
 
 export const MOCK_SUPER_ADMIN_MOBILE = '9123456786';
 
+/** Approved supervisor for mock smoke / module e2e (capacities, daily-approvals). */
+export const MOCK_SUPERVISOR_MOBILE = '9123456787';
+
 /** Bump when seed shape changes so mock localStorage rehydrates. */
-export const MOCK_USERS_SEED_VERSION = '7';
+export const MOCK_USERS_SEED_VERSION = '8';
 
 export interface MockAuthUserRecord extends User {
   password: string;
@@ -152,6 +155,19 @@ const CORE_SEEDS: MockUserSeed[] = [
     docType: 'کارت هیئت علمی',
     city: 'تهران',
     extra: { college: DEFAULT_COLLEGE, personalCode: '2001' },
+  },
+  {
+    id: '#MOCK-P2',
+    name: 'دکتر سارا موسوی',
+    role: 'supervisor_professor',
+    mobile: MOCK_SUPERVISOR_MOBILE,
+    docStatus: 'approved',
+    approved: true,
+    lastChange: NOW - 1000 * 60 * 60 * 24 * 2,
+    docUrl: MOCK_DOC_IMAGE_URL,
+    docType: 'کارت هیئت علمی',
+    city: 'تهران',
+    extra: { college: DEFAULT_COLLEGE, personalCode: '2002' },
   },
   {
     id: '#MOCK-PR1',

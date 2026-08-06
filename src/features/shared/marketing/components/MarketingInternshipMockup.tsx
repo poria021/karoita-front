@@ -5,24 +5,22 @@ import { faIcons } from '@/utils/iconMap';
 export function MarketingInternshipMockup() {
   return (
     <div className="relative mt-8 flex h-[300px] w-full items-center justify-center sm:h-[340px] lg:mt-0 lg:h-[360px]">
-      <div className="absolute -z-10 size-[200px] rounded-full bg-gradient-to-tr from-kv-brand/10 to-kv-violet/5 blur-[60px] sm:size-[260px]" />
-
-      <div className="relative z-10 h-[210px] w-[75%] overflow-hidden rounded-2xl border border-kv-border-muted bg-kv-surface shadow-xl sm:h-[240px] sm:w-[70%] lg:h-[260px] lg:w-[72%]">
+      <div className="relative z-10 h-[210px] w-[75%] overflow-hidden rounded-kv-card border border-kv-border-muted bg-kv-surface shadow-kv-floating sm:h-[240px] sm:w-[70%] lg:h-[260px] lg:w-[72%]">
         <div
           className="flex h-10 items-center justify-between border-b border-kv-border-muted bg-kv-surface px-3"
           dir="rtl"
         >
           <div className="flex items-center gap-2">
-            <div className="flex size-6 select-none items-center justify-center rounded-md bg-kv-brand text-[11px] font-black text-kv-brand-fg">
+            <div className="flex size-6 select-none items-center justify-center rounded-kv-control bg-kv-brand text-xs font-black text-kv-brand-fg">
               K
             </div>
-            <span className="text-[9px] font-black text-kv-text">
+            <span className="text-xs font-black text-kv-text">
               مدیریت کارورزی کارویتا
             </span>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex flex-col gap-0.5 text-left text-[8px] font-bold text-kv-text-muted">
+            <div className="flex flex-col gap-0.5 text-start text-xs font-bold text-kv-text-muted">
               <div className="h-1.5 w-12 rounded bg-kv-border" />
               <div className="h-1 w-8 rounded bg-kv-border-muted" />
             </div>
@@ -32,7 +30,7 @@ export function MarketingInternshipMockup() {
             </span>
             <span className="text-xs text-kv-border">|</span>
             <span
-              className="flex items-center gap-1 text-[9px] font-black text-kv-danger"
+              className="flex items-center gap-1 text-xs font-black text-kv-danger"
               aria-hidden
             >
               <div className="h-1.5 w-3 rounded bg-kv-danger-soft" />
@@ -45,7 +43,7 @@ export function MarketingInternshipMockup() {
           className="flex h-[calc(100%-40px)] w-full gap-2.5 bg-kv-surface-subtle p-2.5"
           dir="rtl"
         >
-          <div className="flex w-[18%] shrink-0 flex-col gap-2.5 rounded-lg bg-kv-surface p-1.5">
+          <div className="flex w-[18%] shrink-0 flex-col gap-2.5 rounded-kv-control bg-kv-surface p-1.5">
             <div className="h-px bg-kv-border-muted" />
             <nav className="space-y-2" aria-hidden>
               <div className="flex items-center gap-1 text-kv-brand">
@@ -85,33 +83,33 @@ export function MarketingInternshipMockup() {
 
           <div className="flex w-[82%] flex-col gap-2.5 overflow-hidden">
             <div className="grid shrink-0 grid-cols-3 gap-2">
-              <div className="flex flex-col gap-1 rounded-lg border border-kv-border-muted bg-kv-surface p-2">
+              <div className="flex flex-col gap-1 rounded-kv-control border border-kv-border-muted bg-kv-surface p-2">
                 <div className="flex items-center gap-1 text-kv-brand">
                   <FaIcon icon={faIcons.paperPlane} size="2xs" />
-                  <div className="text-[9px] font-black text-kv-text">
+                  <div className="text-xs font-black text-kv-text">
                     ۲۴ گزارش ارسالی
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-1 rounded-lg border border-kv-border-muted bg-kv-surface p-2">
+              <div className="flex flex-col gap-1 rounded-kv-control border border-kv-border-muted bg-kv-surface p-2">
                 <div className="flex items-center gap-1 text-kv-success">
                   <FaIcon icon={faIcons.circleCheck} size="2xs" />
-                  <div className="text-[9px] font-black text-kv-text">
+                  <div className="text-xs font-black text-kv-text">
                     ۱۸ تایید شده
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-1 rounded-lg border border-kv-border-muted bg-kv-surface p-2">
+              <div className="flex flex-col gap-1 rounded-kv-control border border-kv-border-muted bg-kv-surface p-2">
                 <div className="flex items-center gap-1 text-kv-warning">
                   <FaIcon icon={faIcons.clock} size="2xs" />
-                  <div className="text-[9px] font-black text-kv-text">
+                  <div className="text-xs font-black text-kv-text">
                     ۶ نیاز به اصلاح
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-grow flex-col gap-1.5 overflow-hidden rounded-lg border border-kv-border-muted bg-kv-surface p-2.5">
+            <div className="flex flex-grow flex-col gap-1.5 overflow-hidden rounded-kv-control border border-kv-border-muted bg-kv-surface p-2.5">
               <div className="flex shrink-0 items-center justify-between border-b border-kv-border-muted pb-1">
                 <div className="flex w-1/3 items-center gap-1">
                   <FaIcon
@@ -121,20 +119,20 @@ export function MarketingInternshipMockup() {
                   />
                   <div className="h-1.5 w-1/2 rounded bg-kv-border" />
                 </div>
-                <span className="text-[8px] font-bold text-kv-text-subtle">
+                <span className="text-xs font-bold text-kv-text-subtle">
                   آخرین وضعیت
                 </span>
               </div>
 
               <div className="flex-grow overflow-auto">
-                <table className="w-full text-right text-[8px]">
+                <table className="w-full text-right text-xs">
                   <thead>
                     <tr className="border-b border-kv-border-muted text-kv-text-subtle">
                       <th className="w-10 pb-1 font-bold">ردیف</th>
                       <th className="pb-1 font-bold">نام کارورز</th>
                       <th className="pb-1 font-bold">موضوع گزارش</th>
                       <th className="w-16 pb-1 text-center font-bold">وضعیت</th>
-                      <th className="w-12 pb-1 text-left font-bold">تاریخ</th>
+                      <th className="w-12 pb-1 text-start font-bold">تاریخ</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-kv-border-muted text-kv-text-secondary">
@@ -147,11 +145,11 @@ export function MarketingInternshipMockup() {
                         <div className="h-1 w-16 rounded bg-kv-border-muted" />
                       </td>
                       <td className="py-1 text-center">
-                        <span className="inline-block rounded bg-kv-success-soft px-1 text-[7px] font-black text-kv-success">
+                        <span className="inline-block rounded-kv-control bg-kv-success-soft px-1 text-xs font-black text-kv-success">
                           تایید شده
                         </span>
                       </td>
-                      <td className="py-1 text-left font-mono text-kv-text-subtle">
+                      <td className="py-1 text-start font-mono text-kv-text-subtle">
                         ۰۲/۱۵
                       </td>
                     </tr>
@@ -164,11 +162,11 @@ export function MarketingInternshipMockup() {
                         <div className="h-1 w-12 rounded bg-kv-border-muted" />
                       </td>
                       <td className="py-1 text-center">
-                        <span className="inline-block rounded bg-kv-warning-soft px-1 text-[7px] font-black text-kv-warning">
+                        <span className="inline-block rounded-kv-control bg-kv-warning-soft px-1 text-xs font-black text-kv-warning">
                           در انتظار
                         </span>
                       </td>
-                      <td className="py-1 text-left font-mono text-kv-text-subtle">
+                      <td className="py-1 text-start font-mono text-kv-text-subtle">
                         ۰۲/۱۸
                       </td>
                     </tr>
@@ -180,12 +178,12 @@ export function MarketingInternshipMockup() {
         </div>
       </div>
 
-      <div className="absolute bottom-5 start-[2%] z-20 w-[190px] cursor-default rounded-xl border border-kv-border-muted bg-kv-surface/95 p-4 shadow-lg backdrop-blur-md transition-transform duration-300 hover:scale-105 sm:w-[210px] lg:start-[4%]">
+      <div className="absolute bottom-5 start-[2%] z-20 w-[190px] cursor-default rounded-kv-card border border-kv-border-muted bg-kv-surface/95 p-4 shadow-kv-overlay backdrop-blur-md transition-transform duration-300 hover:scale-105 sm:w-[210px] lg:start-[4%]">
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-[10px] font-black text-kv-text">
+          <span className="text-xs font-black text-kv-text">
             پیشرفت مهارت تدریس
           </span>
-          <span className="rounded bg-kv-success-soft px-1.5 py-0.5 text-[10px] font-bold text-kv-success">
+          <span className="rounded-kv-control bg-kv-success-soft px-1.5 py-0.5 text-xs font-bold text-kv-success">
             ۸۸٪ عالی
           </span>
         </div>
@@ -197,14 +195,14 @@ export function MarketingInternshipMockup() {
         </div>
       </div>
 
-      <div className="absolute -top-8 end-[1%] z-20 w-[210px] cursor-default rounded-xl bg-kv-text/95 p-4 text-kv-canvas shadow-lg backdrop-blur-md transition-transform duration-300 hover:scale-105 sm:w-[230px] lg:end-[2%]">
+      <div className="absolute -top-8 end-[1%] z-20 w-[210px] cursor-default rounded-kv-card bg-kv-text/95 p-4 text-kv-canvas shadow-kv-overlay backdrop-blur-md transition-transform duration-300 hover:scale-105 sm:w-[230px] lg:end-[2%]">
         <div className="mb-2 flex items-center gap-2.5">
           <div>
-            <h4 className="text-[10px] font-black">مربی راهنما (مدرسه)</h4>
-            <p className="text-[8px] text-kv-canvas/50">ارزیابی عملکرد کلاسی</p>
+            <h4 className="text-xs font-black">مربی راهنما (مدرسه)</h4>
+            <p className="text-xs text-kv-canvas/50">ارزیابی عملکرد کلاسی</p>
           </div>
         </div>
-        <p className="text-[9px] font-semibold leading-relaxed text-kv-canvas/80">
+        <p className="text-xs font-semibold leading-relaxed text-kv-canvas/80">
           «طرح درس اجرا شده با تسلط بالا و مدیریت عالی کلاس همراه بود.»
         </p>
       </div>

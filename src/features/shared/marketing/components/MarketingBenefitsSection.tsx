@@ -14,7 +14,7 @@ export function MarketingBenefitsSection() {
     <section className="relative">
       <div className="relative z-10 mx-auto max-w-7xl px-kv-inset sm:px-kv-page">
         <div className="mx-auto mb-8 max-w-3xl space-y-3 text-center md:mb-10">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-kv-border-muted bg-kv-surface/80 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-kv-text-secondary shadow-sm">
+          <span className="inline-flex items-center gap-1.5 rounded-kv-control border border-kv-border-muted bg-kv-surface/80 px-3 py-1 text-xs font-black uppercase tracking-wider text-kv-text-secondary shadow-kv-soft">
             <span className="size-1.5 rounded-full bg-kv-brand" /> ارزش آفرینی
             نقش محور
           </span>
@@ -30,48 +30,48 @@ export function MarketingBenefitsSection() {
         <div className="mb-10 flex w-full flex-wrap items-center justify-center gap-2 px-2">
           <button
             onClick={() => setRoleTab('hq')}
-            className={`flex-1 text-center rounded-xl px-3 py-2.5 text-[11px] font-black transition-all sm:flex-initial sm:px-5 sm:text-xs ${
+            className={`flex-1 text-center rounded-kv-control px-3 py-2.5 text-xs font-black transition-all sm:flex-initial sm:px-5 ${
               roleTab === 'hq'
-                ? 'bg-kv-brand text-kv-brand-fg shadow-md'
+                ? 'bg-kv-brand text-kv-brand-fg shadow-kv-raised'
                 : 'bg-kv-surface-subtle text-kv-text-secondary hover:bg-kv-surface-muted'
             }`}
           >
             <FaIcon
               icon={faIcons.buildingColumns}
               size="sm"
-              className="ml-1.5"
+              className="me-1.5"
             />{' '}
             سازمان مرکزی و دانشگاه‌ها
           </button>
           <button
             onClick={() => setRoleTab('region')}
-            className={`flex-1 text-center rounded-xl px-3 py-2.5 text-[11px] font-black transition-all sm:flex-initial sm:px-5 sm:text-xs ${
+            className={`flex-1 text-center rounded-kv-control px-3 py-2.5 text-xs font-black transition-all sm:flex-initial sm:px-5 ${
               roleTab === 'region'
-                ? 'bg-kv-success text-kv-success-fg shadow-md'
+                ? 'bg-kv-success text-kv-success-fg shadow-kv-raised'
                 : 'bg-kv-surface-subtle text-kv-text-secondary hover:bg-kv-surface-muted'
             }`}
           >
-            <FaIcon icon={faIcons.school} size="sm" className="ml-1.5" /> ادارات
+            <FaIcon icon={faIcons.school} size="sm" className="me-1.5" /> ادارات
             مناطق و مدارس
           </button>
           <button
             onClick={() => setRoleTab('exec')}
-            className={`w-full text-center rounded-xl px-3 py-2.5 text-[11px] font-black transition-all sm:w-auto sm:px-5 sm:text-xs ${
+            className={`w-full text-center rounded-kv-control px-3 py-2.5 text-xs font-black transition-all sm:w-auto sm:px-5 ${
               roleTab === 'exec'
-                ? 'bg-kv-violet text-kv-violet-fg shadow-md'
+                ? 'bg-kv-violet text-kv-violet-fg shadow-kv-raised'
                 : 'bg-kv-surface-subtle text-kv-text-secondary hover:bg-kv-surface-muted'
             }`}
           >
-            <FaIcon icon={faIcons.chalkboardUser} size="sm" className="ml-1.5" />{' '}
+            <FaIcon icon={faIcons.chalkboardUser} size="sm" className="me-1.5" />{' '}
             اساتید، مربیان و دانشجویان
           </button>
         </div>
 
-        <div className="rounded-3xl border border-kv-border-muted bg-kv-surface-subtle p-6 shadow-sm sm:p-10">
+        <div className="rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle p-6 shadow-kv-soft sm:p-10">
           {roleTab === 'hq' && (
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
               <div className="space-y-4 text-right lg:col-span-6">
-                <span className="inline-block rounded-md bg-kv-brand-soft px-3 py-1 text-[10px] font-extrabold text-kv-brand-soft-fg">
+                <span className="inline-block rounded-kv-control bg-kv-brand-soft px-3 py-1 text-xs font-extrabold text-kv-brand-soft-fg">
                   مدیریت کلان و سیاست‌گذاری
                 </span>
                 <h3 className="text-xl font-black text-kv-text">
@@ -110,21 +110,21 @@ export function MarketingBenefitsSection() {
                   </li>
                 </ul>
               </div>
-              <div className="space-y-3 rounded-2xl border border-kv-border-muted bg-kv-surface p-5 shadow-sm lg:col-span-6">
+              <div className="space-y-3 rounded-kv-card border border-kv-border-muted bg-kv-surface p-5 shadow-kv-soft lg:col-span-6">
                 <div className="flex items-center justify-between border-b border-kv-border-muted pb-2 text-xs font-black text-kv-text">
                   <span>کنسول مدیریت سازمان مرکزی</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-right">
-                  <div className="rounded-xl border border-kv-brand-border bg-kv-brand-soft/50 p-3">
-                    <span className="block text-[10px] font-extrabold text-kv-text-subtle">
+                  <div className="rounded-kv-control border border-kv-brand-border bg-kv-brand-soft/50 p-3">
+                    <span className="block text-xs font-extrabold text-kv-text-subtle">
                       پردیس‌های فعال
                     </span>
                     <span className="mt-0.5 block text-base font-black text-kv-brand-soft-fg">
                       ۳۱ در استان
                     </span>
                   </div>
-                  <div className="rounded-xl border border-kv-success-border bg-kv-success-soft/50 p-3">
-                    <span className="block text-[10px] font-extrabold text-kv-text-subtle">
+                  <div className="rounded-kv-control border border-kv-success-border bg-kv-success-soft/50 p-3">
+                    <span className="block text-xs font-extrabold text-kv-text-subtle">
                       نرخ تکمیل ارزیابی
                     </span>
                     <span className="mt-0.5 block text-base font-black text-kv-success-soft-fg">
@@ -139,7 +139,7 @@ export function MarketingBenefitsSection() {
           {roleTab === 'region' && (
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
               <div className="space-y-4 text-right lg:col-span-6">
-                <span className="inline-block rounded-md bg-kv-success-soft px-3 py-1 text-[10px] font-extrabold text-kv-success-soft-fg">
+                <span className="inline-block rounded-kv-control bg-kv-success-soft px-3 py-1 text-xs font-extrabold text-kv-success-soft-fg">
                   نظارت میدانی و پذیرش مدارس
                 </span>
                 <h3 className="text-xl font-black text-kv-text">
@@ -177,11 +177,11 @@ export function MarketingBenefitsSection() {
                   </li>
                 </ul>
               </div>
-              <div className="space-y-3 rounded-2xl border border-kv-border-muted bg-kv-surface p-5 shadow-sm lg:col-span-6">
+              <div className="space-y-3 rounded-kv-card border border-kv-border-muted bg-kv-surface p-5 shadow-kv-soft lg:col-span-6">
                 <div className="flex items-center justify-between border-b border-kv-border-muted pb-2 text-xs font-black text-kv-text">
                   <span>پنل مانیتورینگ مدارس منطقه</span>
                 </div>
-                <div className="space-y-2 rounded-xl bg-kv-surface-subtle p-3 text-xs font-bold text-kv-text-secondary">
+                <div className="space-y-2 rounded-kv-control bg-kv-surface-subtle p-3 text-xs font-bold text-kv-text-secondary">
                   <div className="flex items-center justify-between">
                     <span>مدارس همکار فعال:</span>
                     <span className="font-black text-kv-text">۴۸ مدرسه</span>
@@ -198,7 +198,7 @@ export function MarketingBenefitsSection() {
           {roleTab === 'exec' && (
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
               <div className="space-y-4 text-right lg:col-span-6">
-                <span className="inline-block rounded-md bg-kv-violet-soft px-3 py-1 text-[10px] font-extrabold text-kv-violet-soft-fg">
+                <span className="inline-block rounded-kv-control bg-kv-violet-soft px-3 py-1 text-xs font-extrabold text-kv-violet-soft-fg">
                   اجرایی، آموزشی و مهارتی
                 </span>
                 <h3 className="text-xl font-black text-kv-text">
@@ -240,11 +240,11 @@ export function MarketingBenefitsSection() {
                   </li>
                 </ul>
               </div>
-              <div className="space-y-3 rounded-2xl border border-kv-border-muted bg-kv-surface p-5 shadow-sm lg:col-span-6">
+              <div className="space-y-3 rounded-kv-card border border-kv-border-muted bg-kv-surface p-5 shadow-kv-soft lg:col-span-6">
                 <div className="flex items-center justify-between border-b border-kv-border-muted pb-2 text-xs font-black text-kv-text">
                   <span>کادر ارزیابی و بازخورد کلاسی</span>
                 </div>
-                <div className="space-y-2 rounded-xl border border-kv-violet-border bg-kv-violet-soft/50 p-3 text-xs font-bold text-kv-text-secondary">
+                <div className="space-y-2 rounded-kv-control border border-kv-violet-border bg-kv-violet-soft/50 p-3 text-xs font-bold text-kv-text-secondary">
                   <div className="flex items-center justify-between">
                     <span>نمره علمی استاد (از ۱۰۰):</span>
                     <span className="font-black text-kv-violet">۹۲ (عالی)</span>

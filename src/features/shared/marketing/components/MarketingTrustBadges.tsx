@@ -43,7 +43,7 @@ export function MarketingTrustBadges() {
           {TRUST_STATS.map((stat) => (
             <div
               key={stat.id}
-              className="flex items-stretch gap-kv-inline rounded-xl border border-kv-border-muted bg-kv-surface-subtle p-kv-pair md:border-none md:bg-transparent md:p-0"
+              className="flex items-stretch gap-kv-inline rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle p-kv-pair md:border-none md:bg-transparent md:p-0"
             >
               <span className="flex w-10 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand sm:w-11">
                 <FaIcon icon={stat.icon} size="lg" className="sm:text-xl" />
@@ -52,7 +52,7 @@ export function MarketingTrustBadges() {
                 <span className="text-xs font-black leading-tight text-kv-text">
                   {stat.title}
                 </span>
-                <span className="mt-0.5 text-[9px] font-bold uppercase leading-tight tracking-wider text-kv-text-muted">
+                <span className="mt-0.5 text-xs font-bold uppercase leading-tight tracking-wider text-kv-text-muted">
                   {stat.subtitle}
                 </span>
               </div>

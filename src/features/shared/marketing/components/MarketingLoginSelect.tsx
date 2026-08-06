@@ -77,7 +77,7 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
     >
       <div className="relative z-10 mx-auto my-auto w-full max-w-6xl space-y-8 py-10 text-center">
         <div className="space-y-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-kv-brand-border bg-kv-brand-soft px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider text-kv-brand-soft-fg shadow-sm">
+          <span className="inline-flex items-center gap-1.5 rounded-kv-control border border-kv-brand-border bg-kv-brand-soft px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-kv-brand-soft-fg shadow-kv-soft">
             <span className="size-1.5 rounded-full bg-kv-brand" /> درگاه ورود
             یکپارچه
           </span>
@@ -115,13 +115,13 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
 
               const inner = (
                 <>
-                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-kv-control bg-kv-brand text-xl text-kv-brand-fg shadow-sm">
+                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-kv-control bg-kv-brand text-xl text-kv-brand-fg shadow-kv-soft">
                     <ProductMark product={product} />
                   </div>
                   <h2 className="text-sm font-black leading-snug text-kv-text transition-colors">
                     {product.title}
                   </h2>
-                  <span className="inline-flex items-center gap-1.5 rounded-kv-control border border-kv-border bg-kv-surface-subtle px-3 py-1.5 text-[10px] font-black text-kv-text-secondary transition-colors group-hover:border-kv-brand group-hover:bg-kv-brand group-hover:text-kv-brand-fg">
+                  <span className="inline-flex items-center gap-1.5 rounded-kv-control border border-kv-border bg-kv-surface-subtle px-3 py-1.5 text-xs font-black text-kv-text-secondary transition-colors group-hover:border-kv-brand group-hover:bg-kv-brand group-hover:text-kv-brand-fg">
                     <span>ورود به سامانه</span>
                     <FaIcon
                       icon={faIcons.arrowLeft}
@@ -159,7 +159,7 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
         )}
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-6xl border-t border-kv-border-muted pt-6 text-center text-[11px] font-bold text-kv-text-muted">
+      <div className="relative z-10 mx-auto w-full max-w-6xl border-t border-kv-border-muted pt-6 text-center text-xs font-bold text-kv-text-muted">
         سامانه جامع آموزش نظری، مهارتی و مدیریت دسترسی‌های کارویتا © ۱۴۰۵
       </div>
     </div>

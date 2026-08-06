@@ -13,11 +13,8 @@ function InternshipBlueprintArt() {
       className="pointer-events-none absolute inset-0 z-0 size-full select-none overflow-hidden"
       aria-hidden
     >
-      <div className="absolute left-1/4 top-12 size-[500px] rounded-full bg-kv-brand-soft/20 blur-[120px]" />
-      <div className="absolute bottom-12 right-1/4 size-[400px] rounded-full bg-kv-success-soft/15 blur-[100px]" />
-
       <svg
-        className="absolute left-1/2 top-1/2 h-[900px] w-[1440px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.28]"
+        className="absolute left-1/2 top-1/2 h-[900px] w-[1440px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.18]"
         viewBox="0 0 1440 900"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -156,7 +153,7 @@ export function MarketingInternshipSection() {
       <div className="relative z-10 mx-auto max-w-7xl px-kv-inset sm:px-kv-page">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
           <div className="space-y-6 text-right lg:col-span-5">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-kv-border-muted bg-kv-surface/80 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-kv-text-secondary shadow-sm">
+            <span className="inline-flex items-center gap-1.5 rounded-kv-control border border-kv-border-muted bg-kv-surface/80 px-3 py-1 text-xs font-black uppercase tracking-wider text-kv-text-secondary shadow-kv-soft">
               <span className="size-1.5 rounded-full bg-kv-brand" /> سامانه جامع
               کارآموزی و کارورزی
             </span>
@@ -174,7 +171,7 @@ export function MarketingInternshipSection() {
                   <h3 className="text-xs font-black text-kv-text">
                     اتصال علمی تحصیل و کارآموزی
                   </h3>
-                  <p className="mt-0.5 text-[11px] font-semibold leading-normal text-kv-text-muted">
+                  <p className="mt-0.5 text-xs font-semibold leading-normal text-kv-text-muted">
                     تخصیص هوشمند سهمیه‌ها متناسب با نیازسنجی دقیق مدارس و مربیان.
                   </p>
                 </div>
@@ -188,7 +185,7 @@ export function MarketingInternshipSection() {
                   <h3 className="text-xs font-black text-kv-text">
                     ارزشیابی کیفی و پیوسته عملکرد
                   </h3>
-                  <p className="mt-0.5 text-[11px] font-semibold leading-normal text-kv-text-muted">
+                  <p className="mt-0.5 text-xs font-semibold leading-normal text-kv-text-muted">
                     پایش مستمر و ثبت مستقیم بازخوردهای هفتگی مربیان و مدیران مدرسه.
                   </p>
                 </div>
@@ -202,7 +199,7 @@ export function MarketingInternshipSection() {
                   <h3 className="text-xs font-black text-kv-text">
                     داشبورد یکپارچه ارزیابی صلاحیت
                   </h3>
-                  <p className="mt-0.5 text-[11px] font-semibold leading-normal text-kv-text-muted">
+                  <p className="mt-0.5 text-xs font-semibold leading-normal text-kv-text-muted">
                     ارائه آمار دقیق گزارش‌ها، وضعیت تایید کلاسی و کارنامه‌های مهارتی
                     متمرکز.
                   </p>
@@ -211,7 +208,7 @@ export function MarketingInternshipSection() {
             </div>
 
             <div className="pt-3">
-              <KvButton asChild size="lg" color="cta" className="shadow-lg">
+              <KvButton asChild size="lg" color="cta" className="shadow-kv-raised">
                 <Link href={loginHref} prefetch={false}>
                   <FaIcon icon={faIcons.rightToBracket} size="sm" />
                   <span>ورود به سامانه مدیریت کارورزی</span>

@@ -37,12 +37,17 @@ export type KvTypographyElement =
 const kvTypographyVariants = cva('font-sans', {
   variants: {
     variant: {
+      /* Brand / marketing heroes */
       display: 'text-3xl font-black leading-[1.15] tracking-tight sm:text-4xl',
-      title: 'text-sm font-bold leading-snug tracking-tight sm:text-base',
-      subtitle: 'text-xs font-bold leading-snug',
-      /* 12px medium — shell/sidebar nav (dense admin; hierarchy via weight/color) */
+      /* Page / module headings — clearly above dense chrome */
+      title: 'text-base font-bold leading-snug tracking-tight sm:text-lg',
+      /* Section headings inside modules */
+      subtitle: 'text-sm font-bold leading-snug',
+      /* Shell/sidebar nav stays dense */
       nav: 'text-xs font-medium leading-snug',
-      body: 'text-xs font-medium leading-relaxed',
+      /* Readable supporting copy (not chrome-compressed) */
+      body: 'text-sm font-medium leading-relaxed',
+      /* Field labels + meta chrome remain 12px floor */
       label: 'text-xs font-bold leading-none',
       caption: 'text-xs font-medium leading-normal',
       overline: 'text-xs font-medium leading-normal tracking-wide',
