@@ -129,10 +129,7 @@ export function LandingCmsProductsPanel({
         </KvButton>
       </form>
 
-      <div className="flex flex-col gap-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group lg:col-span-8">
-        <KvTypography variant="subtitle" as="h2">
-          جدول محصولات شناور داک
-        </KvTypography>
+      <div className="lg:col-span-8">
         <LandingCmsEntityTable
           resetKey="products"
           columns={PRODUCT_COLUMNS}
