@@ -100,8 +100,8 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
   switch (status) {
     case 'locked_future':
       return {
-        label: 'آینده / ارسال‌نشده',
-        legendLabel: 'آینده / ارسال‌نشده',
+        label: 'قفل',
+        legendLabel: 'قفل',
         className:
           'border-kv-border bg-kv-surface-muted text-kv-text-faint shadow-none opacity-70',
         hoverClassName:
@@ -111,7 +111,7 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
     case 'overdue':
       return {
         label: 'منقضی شده',
-        legendLabel: 'منقضی شده (فرصت سوخته)',
+        legendLabel: 'منقضی شده',
         className:
           'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
         hoverClassName:
@@ -120,8 +120,8 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
       };
     case 'extended':
       return {
-        label: 'فرصت مجدد',
-        legendLabel: 'فرصت مجدد',
+        label: 'تمدید',
+        legendLabel: 'تمدید',
         className:
           'border-kv-violet-border bg-kv-violet-soft text-kv-violet-soft-fg',
         hoverClassName:
@@ -140,8 +140,8 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
       };
     case 'pending':
       return {
-        label: 'منتظر بازخورد مدرسه',
-        legendLabel: 'ارسال‌شده',
+        label: 'ارسال شده',
+        legendLabel: 'ارسال شده',
         className:
           'border-kv-info-border bg-kv-info-soft text-kv-info-soft-fg',
         hoverClassName:
@@ -161,7 +161,7 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
     case 'approved':
       return {
         label: 'تایید معلم',
-        legendLabel: 'تاییدشده',
+        legendLabel: 'تایید معلم',
         className:
           'border-kv-success-border bg-kv-success-soft text-kv-success-soft-fg',
         hoverClassName:

@@ -22,8 +22,8 @@ type SessionVisual = {
 
 const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
   locked_future: {
-    label: 'آینده / ارسال‌نشده',
-    legendLabel: 'آینده / ارسال‌نشده',
+    label: 'قفل',
+    legendLabel: 'قفل',
     className:
       'border-kv-border bg-kv-surface-muted text-kv-text-faint shadow-none opacity-70',
     hoverClassName:
@@ -32,7 +32,7 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
   },
   overdue: {
     label: 'منقضی شده',
-    legendLabel: 'منقضی شده (فرصت سوخته)',
+    legendLabel: 'منقضی شده',
     className:
       'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
     hoverClassName:
@@ -40,8 +40,8 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
     icon: faIcons.clockRotateLeft,
   },
   extended: {
-    label: 'فرصت مجدد',
-    legendLabel: 'فرصت مجدد',
+    label: 'تمدید',
+    legendLabel: 'تمدید',
     className:
       'border-kv-violet-border bg-kv-violet-soft text-kv-violet-soft-fg',
     hoverClassName:
@@ -58,8 +58,8 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
     icon: faIcons.clipboardList,
   },
   pending: {
-    label: 'منتظر بازخورد مدرسه',
-    legendLabel: 'ارسال‌شده',
+    label: 'ارسال شده',
+    legendLabel: 'ارسال شده',
     className:
       'border-kv-info-border bg-kv-info-soft text-kv-info-soft-fg',
     hoverClassName:
@@ -77,7 +77,7 @@ const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
   },
   approved: {
     label: 'تایید معلم',
-    legendLabel: 'تاییدشده',
+    legendLabel: 'تایید معلم',
     className:
       'border-kv-success-border bg-kv-success-soft text-kv-success-soft-fg',
     hoverClassName:
