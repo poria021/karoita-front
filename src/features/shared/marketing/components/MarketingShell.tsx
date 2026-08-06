@@ -1,7 +1,12 @@
+'use client';
+
 import type { ReactNode } from 'react';
 
-import type { LandingProduct, LandingSocial } from '@/types/landing-cms';
-
+import {
+  MarketingChromeProvider,
+  useMarketingChromeData,
+} from '../lib/marketingChromeContext';
+import type { MarketingChromeData } from '../lib/loadMarketingChrome';
 import { MarketingPanelProvider } from '../lib/marketingPanelContext';
 import { resolveMarketingLoginHref } from '../lib/marketingLinks';
 import { MarketingFooter } from './MarketingFooter';
@@ -9,23 +14,21 @@ import { MarketingHeader } from './MarketingHeader';
 import { MarketingProductsDock } from './MarketingProductsDock';
 
 type MarketingShellProps = {
-  products: LandingProduct[];
-  socials: LandingSocial[];
+  /** SSR chrome seed — client rehydrates from Landing CMS (mock localStorage). */
+  initialChrome: MarketingChromeData;
   children: ReactNode;
   /** When true, header sits over the hero composition. */
   overlayHeader?: boolean;
 };
 
-/**
- * Public marketing chrome — RSC composition.
- * Interactive leaves: panel provider, dock, overlay header.
- */
-export function MarketingShell({
-  products,
-  socials,
+function MarketingShellChrome({
   children,
-  overlayHeader = false,
-}: MarketingShellProps) {
+  overlayHeader,
+}: {
+  children: ReactNode;
+  overlayHeader: boolean;
+}) {
+  const { products, socials } = useMarketingChromeData();
   const loginHref = resolveMarketingLoginHref(products.length);
 
   return (
@@ -48,5 +51,23 @@ export function MarketingShell({
         <MarketingFooter socials={socials} />
       </div>
     </MarketingPanelProvider>
+  );
+}
+
+/**
+ * Public marketing chrome — client leaf so dock / footer / login CTA
+ * track Landing CMS after admin edits (RSC seed alone is server-seed only).
+ */
+export function MarketingShell({
+  initialChrome,
+  children,
+  overlayHeader = false,
+}: MarketingShellProps) {
+  return (
+    <MarketingChromeProvider initialChrome={initialChrome}>
+      <MarketingShellChrome overlayHeader={overlayHeader}>
+        {children}
+      </MarketingShellChrome>
+    </MarketingChromeProvider>
   );
 }

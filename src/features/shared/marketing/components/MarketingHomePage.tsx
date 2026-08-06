@@ -1,7 +1,7 @@
 import { MarketingAboutSection } from '@/features/shared/marketing/components/MarketingAboutSection';
 import { MarketingAdvantagesSection } from '@/features/shared/marketing/components/MarketingAdvantagesSection';
 import { MarketingBenefitsSection } from '@/features/shared/marketing/components/MarketingBenefitsSection';
-import { MarketingHeroCarousel } from '@/features/shared/marketing/components/MarketingHeroCarousel';
+import { MarketingHomeHero } from '@/features/shared/marketing/components/MarketingHomeHero';
 import { MarketingInternshipSection } from '@/features/shared/marketing/components/MarketingInternshipSection';
 import { MarketingShell } from '@/features/shared/marketing/components/MarketingShell';
 import { MarketingTrustBadges } from '@/features/shared/marketing/components/MarketingTrustBadges';
@@ -18,11 +18,9 @@ type MarketingHomePageProps = {
  * Client leaves: hero carousel, nav panels, dock (via shell), benefits tabs.
  */
 export function MarketingHomePage({ initialChrome }: MarketingHomePageProps) {
-  const { banners, products, socials } = initialChrome;
-
   return (
-    <MarketingShell products={products} socials={socials} overlayHeader>
-      <MarketingHeroCarousel banners={banners} />
+    <MarketingShell initialChrome={initialChrome} overlayHeader>
+      <MarketingHomeHero />
       <MarketingTrustBadges />
 
       <MarketingPanel id="benefits">

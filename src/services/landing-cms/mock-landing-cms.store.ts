@@ -9,6 +9,9 @@ import type {
 
 const STORAGE_KEY = 'karvita_mock_landing_cms_v1';
 
+/** Cross-tab `storage` event key — public for Facade chrome subscription. */
+export const LANDING_CMS_STORAGE_KEY = STORAGE_KEY;
+
 /** Browser event after mock CMS snapshot writes — marketing chrome refreshes. */
 export const LANDING_CMS_UPDATED_EVENT = 'karvita-landing-cms-updated';
 
@@ -66,13 +69,14 @@ function persistSnapshot(data: LandingCmsSnapshot): void {
 }
 
 function loadSnapshot(): LandingCmsSnapshot {
-  // Server / RSC has no access to admin localStorage — never stick seed in memory
-  // here; public marketing must read chrome on the client after hydration.
+  // Prefer an explicit in-memory write (tests / same-process mock mutations).
+  // On RSC without a write, return a fresh seed and do not stick it in the
+  // module singleton — public marketing rehydrates on the client.
+  if (memory) return memory;
+
   if (!isBrowser()) {
     return cloneSnapshot(buildLandingCmsSeed());
   }
-
-  if (memory) return memory;
 
   const raw = window.localStorage.getItem(STORAGE_KEY);
   if (!raw) {

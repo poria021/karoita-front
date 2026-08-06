@@ -9,6 +9,9 @@ import {
   mockDeleteSocial,
 } from '@/services/landing-cms/mock-landing-cms.mutations';
 import {
+  invalidateLandingCmsMemory,
+  LANDING_CMS_STORAGE_KEY,
+  LANDING_CMS_UPDATED_EVENT,
   readLandingBanners,
   readLandingProducts,
   readLandingSocials,
@@ -97,5 +100,42 @@ export const LandingCmsService = {
   async deleteProduct(id: string): Promise<void> {
     gateAdminWrite('LandingCmsService.deleteProduct');
     mockDeleteProduct(id);
+  },
+
+  /** Same-tab CustomEvent name after CMS writes (Facade-public; no store import). */
+  LANDING_CMS_UPDATED_EVENT,
+
+  /** Drop in-memory CMS snapshot so the next list* rehydrates (mock-only). */
+  invalidateClientCache(): void {
+    if (!isMockApiMode()) return;
+    invalidateLandingCmsMemory();
+  },
+
+  /**
+   * Subscribe to marketing chrome changes (same-tab event + cross-tab storage).
+   * Mock: invalidates memory then notifies. Real: no-op until Nest push.
+   */
+  subscribeChromeChanges(listener: () => void): () => void {
+    if (typeof window === 'undefined' || !isMockApiMode()) {
+      return () => {};
+    }
+
+    const notify = () => {
+      invalidateLandingCmsMemory();
+      listener();
+    };
+
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === LANDING_CMS_STORAGE_KEY || event.key === null) {
+        notify();
+      }
+    };
+
+    window.addEventListener('storage', onStorage);
+    window.addEventListener(LANDING_CMS_UPDATED_EVENT, notify);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener(LANDING_CMS_UPDATED_EVENT, notify);
+    };
   },
 };
