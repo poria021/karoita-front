@@ -76,6 +76,8 @@
   --color-kv-field: var(--kv-field);
   --color-kv-field-disabled: var(--kv-field-disabled);
   --color-kv-surface-inverse: var(--kv-surface-inverse);
+  /* Modal / drawer dim — always dark; do not flip with surface-inverse */
+  --color-kv-scrim: var(--kv-scrim);
 
   --color-kv-text: var(--kv-text);
   --color-kv-text-secondary: var(--kv-text-secondary);
@@ -138,7 +140,7 @@
   --color-kv-info-soft-fg: var(--kv-info-soft-fg);
   --color-kv-info-border: var(--kv-info-border);
 
-  /* Extended-opportunity / reopened week status (reference violet). */
+  /* Status only: extended / reopen opportunity (`extended` week chips). Not a brand accent. */
   --color-kv-violet: var(--kv-violet);
   --color-kv-violet-hover: var(--kv-violet-hover);
   --color-kv-violet-fg: var(--kv-violet-fg);
@@ -287,6 +289,8 @@
   --kv-field: hsl(45 8% 99% / 0.5);
   --kv-field-disabled: hsl(45 11% 93.5%);
   --kv-surface-inverse: hsl(222 22% 14%);
+  /* Dialog/drawer backdrop — stays charcoal in both themes */
+  --kv-scrim: hsl(222 22% 14%);
 
   --kv-text: hsl(220 22% 14%);
   --kv-text-secondary: hsl(220 16% 22%);
@@ -442,6 +446,8 @@
   --kv-field: hsl(220 16% 11% / 0.5);
   --kv-field-disabled: hsl(220 14% 15.5%);
   --kv-surface-inverse: hsl(210 40% 98%);
+  /* Same role as light: dim the page — never use surface-inverse (near-white) */
+  --kv-scrim: hsl(220 25% 4%);
 
   /* Body ink — soft off-white, never chalk pure white (tabs use --kv-text-bright). */
   --kv-text: hsl(220 18% 90%);

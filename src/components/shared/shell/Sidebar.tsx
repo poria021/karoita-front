@@ -50,7 +50,7 @@ export function Sidebar() {
         onClick={closeMobileSidebar}
         aria-hidden={!isMobileOpen}
         className={cn(
-          'fixed inset-0 z-40 bg-kv-surface-inverse/40 transition-opacity lg:hidden',
+          'fixed inset-0 z-40 bg-kv-scrim/50 transition-opacity lg:hidden',
           isMobileOpen
             ? 'pointer-events-auto cursor-pointer opacity-100'
             : 'pointer-events-none opacity-0'
