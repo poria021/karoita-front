@@ -19,6 +19,7 @@ export function LandingCmsPage() {
     <SuperAdminModuleGuard>
       <KvWorkspace
         panel={false}
+        className="gap-kv-section"
         tabs={
           <LandingCmsSubTabs active={page.tab} onChange={page.changeTab} />
         }

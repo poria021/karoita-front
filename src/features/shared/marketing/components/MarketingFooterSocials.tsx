@@ -62,7 +62,7 @@ export function MarketingFooterSocials({
         {socials.map((social) => {
           const target = resolveMarketingNavTarget(social.link);
           const className =
-            'inline-flex size-10 items-center justify-center rounded-kv-control border border-kv-border bg-kv-surface text-kv-text shadow-kv-soft transition-colors hover:border-kv-border-strong hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring';
+            'inline-flex size-8 items-center justify-center overflow-hidden rounded-kv-control bg-kv-surface-subtle text-xs text-kv-brand transition hover:scale-110 hover:bg-kv-brand-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring';
 
           const content = (
             <>

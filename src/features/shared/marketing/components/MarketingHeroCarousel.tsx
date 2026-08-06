@@ -10,12 +10,6 @@ import { useMarketingPanel } from '../lib/marketingPanelContext';
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
 const SLIDE_DURATION = 6000; // 6 seconds per slide
-const FALLBACK_BANNER: LandingBanner = {
-  id: 'fallback',
-  title: 'سامانه جامع آموزش نظری و مهارتی',
-  imageUrl: '/marketing/dashboard-hero.svg',
-  link: '',
-};
 
 type MarketingHeroCarouselProps = {
   banners: LandingBanner[];
@@ -24,10 +18,12 @@ type MarketingHeroCarouselProps = {
 export function MarketingHeroCarousel({
   banners,
 }: MarketingHeroCarouselProps) {
-  const slides = banners.length > 0 ? banners : [FALLBACK_BANNER];
+  const slides = banners;
   const [currentSlide, setCurrentSlide] = useState(0);
   const [progress, setProgress] = useState(0);
   const { openPanel } = useMarketingPanel();
+  const activeIndex =
+    slides.length === 0 ? 0 : Math.min(currentSlide, slides.length - 1);
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -55,6 +51,20 @@ export function MarketingHeroCarousel({
     setProgress(0);
   };
 
+  if (slides.length === 0) {
+    return (
+      <section
+        id="hero"
+        className="relative flex h-[260px] w-full items-center justify-center overflow-hidden bg-kv-canvas sm:h-[360px] md:h-[460px] lg:h-[calc(100vh-4rem)] lg:max-h-[850px]"
+        aria-label="بنرهای اطلاع‌رسانی اصلی"
+      >
+        <h1 className="sr-only">
+          کارویتا · سامانه جامع آموزش نظری، مهارتی و مدیریت کارورزی کشور
+        </h1>
+      </section>
+    );
+  }
+
   return (
     <section
       id="hero"
@@ -70,7 +80,7 @@ export function MarketingHeroCarousel({
         const target = slide.link.trim()
           ? resolveMarketingNavTarget(slide.link)
           : ({ kind: 'none' } as const);
-        const isActive = currentSlide === index;
+        const isActive = activeIndex === index;
         const isDataUrl = slide.imageUrl.startsWith('data:');
 
         const imageEl = isDataUrl ? (
@@ -151,7 +161,7 @@ export function MarketingHeroCarousel({
           aria-label="انتخاب اسلاید"
         >
           {slides.map((slide, index) => {
-            const isActive = currentSlide === index;
+            const isActive = activeIndex === index;
             return (
               <div
                 key={slide.id ?? index}

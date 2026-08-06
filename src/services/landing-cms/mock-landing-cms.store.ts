@@ -9,6 +9,9 @@ import type {
 
 const STORAGE_KEY = 'karvita_mock_landing_cms_v1';
 
+/** Browser event after mock CMS snapshot writes — marketing chrome refreshes. */
+export const LANDING_CMS_UPDATED_EVENT = 'karvita-landing-cms-updated';
+
 export const LANDING_CMS_STORAGE_QUOTA_ERROR =
   'حجم تصاویر آپلود شده زیاد است و در حافظه مرورگر ذخیره نشد.';
 
@@ -63,12 +66,13 @@ function persistSnapshot(data: LandingCmsSnapshot): void {
 }
 
 function loadSnapshot(): LandingCmsSnapshot {
-  if (memory) return memory;
-
+  // Server / RSC has no access to admin localStorage — never stick seed in memory
+  // here; public marketing must read chrome on the client after hydration.
   if (!isBrowser()) {
-    memory = cloneSnapshot(buildLandingCmsSeed());
-    return memory;
+    return cloneSnapshot(buildLandingCmsSeed());
   }
+
+  if (memory) return memory;
 
   const raw = window.localStorage.getItem(STORAGE_KEY);
   if (!raw) {
@@ -96,6 +100,11 @@ function loadSnapshot(): LandingCmsSnapshot {
   }
 }
 
+/** Drop in-memory cache so the next read rehydrates from localStorage. */
+export function invalidateLandingCmsMemory(): void {
+  memory = null;
+}
+
 export function readLandingCmsSnapshot(): LandingCmsSnapshot {
   return cloneSnapshot(loadSnapshot());
 }
@@ -104,6 +113,9 @@ export function writeLandingCmsSnapshot(data: LandingCmsSnapshot): void {
   const next = cloneSnapshot(data);
   persistSnapshot(next);
   memory = next;
+  if (isBrowser()) {
+    window.dispatchEvent(new Event(LANDING_CMS_UPDATED_EVENT));
+  }
 }
 
 export function readLandingBanners(): LandingBanner[] {

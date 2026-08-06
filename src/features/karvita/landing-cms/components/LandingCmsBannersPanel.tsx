@@ -13,7 +13,6 @@ import { KvTableCell } from '@/components/shared/table/KvTable';
 import { LandingCmsService } from '@/services/landing-cms.service';
 import type { LandingBanner } from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
-import { toPersianDigits } from '@/utils/persianDigits';
 
 import { getLandingCmsTabConfig } from '../constants';
 import {
@@ -73,10 +72,12 @@ export function LandingCmsBannersPanel({
       <form
         onSubmit={submit}
         noValidate
-        className="flex flex-col gap-kv-group rounded-kv-panel border border-kv-border bg-kv-surface-muted/40 p-kv-group lg:col-span-5"
+        className="flex flex-col gap-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group lg:col-span-4"
       >
-        <div className="flex items-center gap-kv-inline">
-          <FaIcon icon={faIcons.plus} size="xs" className="text-kv-text-muted" />
+        <div className="flex items-center gap-kv-inline border-b border-kv-border-muted pb-kv-group">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
+            <FaIcon icon={faIcons.plus} size="xs" />
+          </span>
           <KvTypography variant="subtitle" as="h2">
             افزودن بنر جدید
           </KvTypography>
@@ -89,7 +90,8 @@ export function LandingCmsBannersPanel({
             <KvImageDocUploader
               value={field.value}
               onChange={field.onChange}
-              label="تصویر بنر"
+              label={false}
+              framed={false}
               error={fieldState.error?.message}
               helperText="PNG، JPG تا ۱۰ مگابایت"
               previewAlt="پیش‌نمایش بنر"
@@ -119,17 +121,17 @@ export function LandingCmsBannersPanel({
         <KvButton
           type="submit"
           color="cta"
+          size="md"
           loading={form.formState.isSubmitting}
-          className="w-full"
+          className="self-end"
         >
           افزودن بنر به اسلایدر
         </KvButton>
       </form>
 
-      <div className="flex flex-col gap-kv-group lg:col-span-7">
+      <div className="flex flex-col gap-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group lg:col-span-8">
         <KvTypography variant="subtitle" as="h2">
-          جدول بنرهای فعال اسلایدر اصلی (
-          {toPersianDigits(String(items.length))})
+          جدول بنرهای فعال اسلایدر اصلی
         </KvTypography>
         <LandingCmsEntityTable
           resetKey="banners"

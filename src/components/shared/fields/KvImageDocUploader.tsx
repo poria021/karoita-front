@@ -42,6 +42,11 @@ export type KvImageDocUploaderProps = {
   optionalHint?: boolean;
   maxSizeMb?: number;
   previewAlt?: string;
+  /**
+   * When false, omit the muted panel chrome around the dropzone
+   * (label can still be shown via KvFieldFrame).
+   */
+  framed?: boolean;
 };
 
 export function KvImageDocUploader({
@@ -57,6 +62,7 @@ export function KvImageDocUploader({
   optionalHint = false,
   maxSizeMb = DEFAULT_MAX_SIZE_MB,
   previewAlt = 'پیش‌نمایش تصویر بارگذاری‌شده',
+  framed = true,
 }: KvImageDocUploaderProps) {
   const generatedId = useId();
   const id = idProp ?? generatedId;
@@ -152,125 +158,131 @@ export function KvImageDocUploader({
   const isLocked = disabled;
   const showOptionalHint = optionalHint || isLocked;
 
-  return (
-    <div className="space-y-kv-inline rounded-kv-panel border border-kv-border bg-kv-surface-muted/60 p-kv-group">
-      <KvFieldFrame
-        id={id}
-        label={label}
-        labelIcon={labelIcon}
-        optionalHint={showOptionalHint}
-        locked={isLocked}
-        showLockIcon={false}
-        error={displayError}
-      >
-        {description ? (
-          <div className="mb-kv-inline">
-            <KvTypography variant="body" as="p">
-              {description}
+  const body = (
+    <KvFieldFrame
+      id={id}
+      label={label}
+      labelIcon={labelIcon}
+      optionalHint={showOptionalHint}
+      locked={isLocked}
+      showLockIcon={false}
+      error={displayError}
+    >
+      {description ? (
+        <div className="mb-kv-inline">
+          <KvTypography variant="body" as="p">
+            {description}
+          </KvTypography>
+        </div>
+      ) : null}
+
+      <div className="w-full shrink-0">
+        {!value && !isCompressing ? (
+          <div
+            {...getRootProps()}
+            className={kvDropzoneSurfaceClass({
+              disabled,
+              isDragActive,
+              error: Boolean(displayError),
+            })}
+          >
+            <input {...getInputProps()} id={id} />
+            <div className={kvDropzoneIconClass({ disabled, isDragActive })}>
+              <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
+            </div>
+            <KvTypography
+              variant="subtitle"
+              weight="black"
+              tone={disabled ? 'disabled' : 'default'}
+              as="p"
+              align="center"
+            >
+              {isDragActive ? 'فایل را اینجا رها کنید' : 'کلیک یا رها کردن تصویر'}
+            </KvTypography>
+            <KvTypography
+              variant="caption"
+              as="span"
+              tone={disabled ? 'disabled' : 'muted'}
+              align="center"
+            >
+              {helperText}
             </KvTypography>
           </div>
         ) : null}
 
-        <div className="w-full shrink-0">
-          {!value && !isCompressing ? (
-            <div
-              {...getRootProps()}
-              className={kvDropzoneSurfaceClass({
-                disabled,
-                isDragActive,
-                error: Boolean(displayError),
-              })}
+        {isCompressing ? (
+          <div className="mx-auto flex min-h-32 w-full flex-col items-center justify-center gap-kv-pair rounded-kv-control border-2 border-dashed border-kv-border-strong bg-kv-surface p-kv-group">
+            <FaIcon
+              icon={faIcons.spinner}
+              size="sm"
+              spin
+              className="text-kv-brand-soft-fg"
+            />
+            <KvTypography
+              variant="subtitle"
+              weight="black"
+              tone="muted"
+              as="p"
+              align="center"
             >
-              <input {...getInputProps()} id={id} />
-              <div
-                className={kvDropzoneIconClass({ disabled, isDragActive })}
-              >
-                <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
+              در حال بهینه‌سازی و آماده‌سازی تصویر...
+            </KvTypography>
+          </div>
+        ) : null}
+
+        {value && !isCompressing ? (
+          <div className="relative mx-auto flex min-h-48 w-full flex-col items-center justify-center gap-kv-inline rounded-kv-control border-2 border-solid border-kv-border bg-kv-surface p-kv-group text-center transition-all">
+            {previewUrl ? (
+              <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface p-kv-micro shadow-kv-raised">
+                {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
+                <img
+                  src={previewUrl}
+                  alt={previewAlt}
+                  className="h-full w-full rounded object-contain"
+                />
               </div>
-              <KvTypography
-                variant="subtitle"
-                weight="black"
-                tone={disabled ? 'disabled' : 'default'}
-                as="p"
-                align="center"
-              >
-                {isDragActive ? 'فایل را اینجا رها کنید' : 'کلیک یا رها کردن تصویر'}
-              </KvTypography>
-              <KvTypography
-                variant="caption"
-                as="span"
-                tone={disabled ? 'disabled' : 'muted'}
-                align="center"
-              >
-                {helperText}
-              </KvTypography>
-            </div>
-          ) : null}
-
-          {isCompressing ? (
-            <div className="mx-auto flex min-h-32 w-full flex-col items-center justify-center gap-kv-pair rounded-kv-control border-2 border-dashed border-kv-border-strong bg-kv-surface p-kv-group">
-              <FaIcon
-                icon={faIcons.spinner}
-                size="sm"
-                spin
-                className="text-kv-brand-soft-fg"
-              />
-              <KvTypography
-                variant="subtitle"
-                weight="black"
-                tone="muted"
-                as="p"
-                align="center"
-              >
-                در حال بهینه‌سازی و آماده‌سازی تصویر...
-              </KvTypography>
-            </div>
-          ) : null}
-
-          {value && !isCompressing ? (
-            <div className="relative mx-auto flex min-h-48 w-full flex-col items-center justify-center gap-kv-inline rounded-kv-control border-2 border-solid border-kv-border bg-kv-surface p-kv-group text-center transition-all">
-              {previewUrl ? (
-                <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface p-kv-micro shadow-kv-raised">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
-                  <img
-                    src={previewUrl}
-                    alt={previewAlt}
-                    className="h-full w-full rounded object-contain"
-                  />
-                </div>
-              ) : null}
-              <div className="max-w-full px-kv-micro text-center">
-                <div className="mx-auto max-w-72">
-                  <KvTypography
-                    variant="subtitle"
-                    weight="black"
-                    as="p"
-                    truncate
-                    align="center"
-                  >
-                    {value.name}
-                  </KvTypography>
-                </div>
-                <KvTypography variant="caption" as="p" align="center">
-                  {formatFileSize(value.size)}
+            ) : null}
+            <div className="max-w-full px-kv-micro text-center">
+              <div className="mx-auto max-w-72">
+                <KvTypography
+                  variant="subtitle"
+                  weight="black"
+                  as="p"
+                  truncate
+                  align="center"
+                >
+                  {value.name}
                 </KvTypography>
               </div>
-              {!disabled ? (
-                <KvButton
-                  type="button"
-                  onClick={handleRemove}
-                  color="error"
-                  appearance="ghost"
-                  size="sm"
-                  icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
-                >
-                  حذف تصویر
-                </KvButton>
-              ) : null}
+              <KvTypography variant="caption" as="p" align="center">
+                {formatFileSize(value.size)}
+              </KvTypography>
             </div>
-          ) : null}
-        </div>
-      </KvFieldFrame>
+            {!disabled ? (
+              <KvButton
+                type="button"
+                onClick={handleRemove}
+                color="error"
+                appearance="ghost"
+                size="sm"
+                icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+              >
+                حذف تصویر
+              </KvButton>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </KvFieldFrame>
+  );
+
+  if (!framed) {
+    return <div className="space-y-kv-inline">{body}</div>;
+  }
+
+  return (
+    <div className="space-y-kv-inline rounded-kv-panel border border-kv-border bg-kv-surface-muted/60 p-kv-group">
+      {body}
     </div>
   );
 }

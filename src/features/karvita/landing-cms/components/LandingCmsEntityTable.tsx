@@ -18,7 +18,6 @@ import {
 } from '@/components/shared/table/KvTable';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { faIcons } from '@/utils/iconMap';
-import { toPersianDigits } from '@/utils/persianDigits';
 
 export type LandingCmsTableColumn = {
   key: string;
@@ -51,7 +50,7 @@ export function LandingCmsEntityTable<T extends { id: string }>({
   deleteAriaLabel,
 }: LandingCmsEntityTableProps<T>) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, items.length);
-  const colSpan = columns.length + 2;
+  const colSpan = columns.length + 1;
 
   return (
     <KvTableViewport
@@ -63,9 +62,6 @@ export function LandingCmsEntityTable<T extends { id: string }>({
       <KvTable scrollable={false}>
         <KvTableHeader>
           <KvTableRow>
-            <KvTableHead align="center" className="w-12">
-              ردیف
-            </KvTableHead>
             {columns.map((column) => (
               <KvTableHead
                 key={column.key}
@@ -93,9 +89,6 @@ export function LandingCmsEntityTable<T extends { id: string }>({
           {bodyPhase === 'rows'
             ? items.map((item, index) => (
                 <KvTableRow key={item.id}>
-                  <KvTableCell align="center" className="text-kv-text-muted">
-                    {toPersianDigits(String(index + 1))}
-                  </KvTableCell>
                   {renderCells(item, index)}
                   <KvTableCell align="center">
                     <KvButton

@@ -102,7 +102,7 @@ export function UserAccountMenu({
   };
 
   const menuItemClass = isHeader
-    ? 'justify-center px-2 py-1.5 text-xs leading-none sm:justify-start sm:px-3.5 sm:py-2.5'
+    ? 'gap-kv-pair justify-center px-2 py-1.5 text-xs leading-none sm:justify-start sm:px-3.5 sm:py-2.5'
     : 'gap-kv-pair';
 
   const menu = (
@@ -124,9 +124,7 @@ export function UserAccountMenu({
           onClick={handleProfileClick}
           className={cn('flex cursor-pointer items-center', menuItemClass)}
         >
-          {isHeader ? null : (
-            <FaIcon icon={faIcons.user} size="sm" fixedWidth />
-          )}
+          <FaIcon icon={faIcons.user} size="sm" fixedWidth />
           <span>پروفایل</span>
         </Link>
       </KvDropdownMenuItem>
@@ -142,9 +140,7 @@ export function UserAccountMenu({
         }}
         className={cn('flex items-center', menuItemClass)}
       >
-        {isHeader ? null : (
-          <FaIcon icon={faIcons.powerOff} size="sm" fixedWidth />
-        )}
+        <FaIcon icon={faIcons.powerOff} size="sm" fixedWidth />
         <span>خروج</span>
       </KvDropdownMenuItem>
     </KvDropdownMenuContent>

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
 
@@ -11,7 +10,7 @@ import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
 import { RouteService } from '@/services/route.service';
 import type { LandingProduct, LandingSocial } from '@/types/landing-cms';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 
 import {
   MarketingPanelProvider,
@@ -19,6 +18,7 @@ import {
   type MarketingPanelId,
 } from '../lib/marketingPanelContext';
 import { resolveMarketingLoginHref } from '../lib/marketingLinks';
+import { MarketingFooterSocials } from './MarketingFooterSocials';
 import { MarketingProductsDock } from './MarketingProductsDock';
 
 const NAV_ITEMS: ReadonlyArray<{
@@ -187,7 +187,7 @@ function MarketingShellInner({
               <div className="pt-1">
                 <a
                   href="#"
-                  className="group inline-flex items-center gap-3 rounded-xl border-2 border-kv-brand-border bg-kv-surface px-4 py-2.5"
+                  className="group inline-flex items-center gap-3 rounded-kv-control border-2 border-kv-brand-border bg-kv-surface px-4 py-2.5"
                   onClick={(e) => e.preventDefault()}
                 >
                   <div className="flex items-center gap-1.5 rounded-sm bg-kv-brand-soft px-2.5 py-1.5 text-xs font-black text-kv-brand">
@@ -238,41 +238,7 @@ function MarketingShellInner({
 
         <div className="relative z-10 mx-auto max-w-7xl px-kv-inset sm:px-kv-page">
           <div className="flex flex-col items-center justify-between gap-4 border-t border-kv-border-muted pt-4 text-[11px] font-bold text-kv-text-muted sm:flex-row">
-            <div className="flex items-center gap-2">
-              {socials.map((soc) => (
-                <a
-                  key={soc.id}
-                  href={soc.link || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex size-8 items-center justify-center overflow-hidden rounded-lg bg-kv-surface-subtle text-xs text-kv-brand transition hover:scale-110 hover:bg-kv-brand-soft"
-                  title={soc.name}
-                  aria-label={soc.name}
-                >
-                  {soc.iconImageUrl ? (
-                    soc.iconImageUrl.startsWith('data:') ||
-                    soc.iconImageUrl.startsWith('http') ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={soc.iconImageUrl}
-                        alt=""
-                        className="size-4 object-contain"
-                      />
-                    ) : (
-                      <Image
-                        src={soc.iconImageUrl}
-                        alt=""
-                        width={16}
-                        height={16}
-                        className="size-4 object-contain"
-                      />
-                    )
-                  ) : (
-                    <FaIcon icon={iconMap[soc.icon] ?? faIcons.link} />
-                  )}
-                </a>
-              ))}
-            </div>
+            <MarketingFooterSocials socials={socials} />
 
             <p>تمامی حقوق مادی و معنوی این سامانه متعلق به شرکت کارویتا می‌باشد. © ۱۴۰۵</p>
           </div>
