@@ -192,10 +192,15 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      {
+        title: 'ارزیابی گزارش‌های فراگیران',
+        path: RouteService.karvita.dailyApprovals(),
+        icon: 'fa-clipboard-check',
+      },
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'reports.view'],
+    permissions: ['dashboard.view', 'daily-approval.review', 'reports.view'],
   },
 
   school_principal: {
@@ -206,6 +211,11 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      {
+        title: 'ارزیابی گزارش‌های فراگیران',
+        path: RouteService.karvita.dailyApprovals(),
+        icon: 'fa-clipboard-check',
+      },
       {
         title: 'مدیریت کارورزان',
         path: RouteService.karvita.traineesManagement(),
@@ -221,6 +231,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
     ],
     permissions: [
       'dashboard.view',
+      'daily-approval.review',
       'trainee.manage',
       'student.manage',
       'reports.view',

@@ -8,24 +8,20 @@ import { MarketingInternshipSection } from '@/features/shared/marketing/componen
 import { MarketingShell } from '@/features/shared/marketing/components/MarketingShell';
 import { MarketingTrustBadges } from '@/features/shared/marketing/components/MarketingTrustBadges';
 import { useMarketingChrome } from '@/features/shared/marketing/hooks/useMarketingChrome';
+import type { MarketingChromeData } from '@/features/shared/marketing/lib/loadMarketingChrome';
 import { MarketingPanel } from '@/features/shared/marketing/lib/marketingPanelContext';
 
-/**
- * Public landing — chrome (banners / dock / socials) from Landing CMS client store.
- * Plain canvas while the first mock LS read resolves (no marketing skeletons).
- */
-export function MarketingHomePage() {
-  const { data, isReady } = useMarketingChrome();
+type MarketingHomePageProps = {
+  /** SSR seed / Nest chrome so crawlers see content on first HTML. */
+  initialChrome: MarketingChromeData;
+};
 
-  if (!isReady) {
-    return (
-      <div
-        className="kv-brand-atmosphere kv-blueprint-bg min-h-dvh bg-kv-canvas"
-        aria-busy="true"
-        aria-live="polite"
-      />
-    );
-  }
+/**
+ * Public landing — sections stay in the document for SEO; nav scrolls to them.
+ * Chrome (banners / dock / socials) hydrates from Landing CMS after mount.
+ */
+export function MarketingHomePage({ initialChrome }: MarketingHomePageProps) {
+  const { data } = useMarketingChrome(initialChrome);
 
   return (
     <MarketingShell

@@ -5,14 +5,21 @@ import { useRouter } from 'next/navigation';
 
 import { MarketingLoginSelect } from '@/features/shared/marketing/components/MarketingLoginSelect';
 import { useMarketingChrome } from '@/features/shared/marketing/hooks/useMarketingChrome';
+import type { MarketingChromeData } from '@/features/shared/marketing/lib/loadMarketingChrome';
 import { resolveMarketingLoginHref } from '@/features/shared/marketing/lib/marketingLinks';
+
+type MarketingLoginSelectPageProps = {
+  initialChrome: MarketingChromeData;
+};
 
 /**
  * Login portal — product count from Landing CMS. Fewer than two → auth login.
  */
-export function MarketingLoginSelectPage() {
+export function MarketingLoginSelectPage({
+  initialChrome,
+}: MarketingLoginSelectPageProps) {
   const router = useRouter();
-  const { data, isReady } = useMarketingChrome();
+  const { data, isReady } = useMarketingChrome(initialChrome);
   const products = data.products;
 
   useEffect(() => {

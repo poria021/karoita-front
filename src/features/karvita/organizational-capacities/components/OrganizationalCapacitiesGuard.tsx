@@ -7,12 +7,14 @@ import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardA
 import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
 
-import { isDailyApprovalsRole } from '../lib/dailyApprovalsAccess';
-
-export function DailyApprovalsGuard({ children }: { children: ReactNode }) {
+export function OrganizationalCapacitiesGuard({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const router = useRouter();
   const activeUser = useUserStore((state) => state.activeUser);
-  const allowed = isDailyApprovalsRole(activeUser?.role);
+  const allowed = activeUser?.role === 'supervisor_professor';
   const shouldRedirect = Boolean(activeUser && !allowed);
 
   useLayoutEffect(() => {

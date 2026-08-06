@@ -4,6 +4,13 @@ import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 
 import { Providers } from "@/components/shared/shell/Providers";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_OG_IMAGE,
+  SITE_TITLE,
+  getSiteUrl,
+} from "@/lib/site-seo";
 
 /**
  * Local Vazirmatn (arabic subset) — avoids next/font/google download at compile time
@@ -68,8 +75,71 @@ const vazirmatn = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "سامانه جامع آموزش نظری و مهارتی کارویتا",
-  description: "پورتال کارآموزی کارویتا",
+  metadataBase: getSiteUrl(),
+  title: {
+    default: SITE_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  keywords: [
+    'کارویتا',
+    'کارورزی',
+    'کارآموزی',
+    'آموزش مهارتی',
+    'آموزش نظری',
+    'سامانه آموزش',
+    'مدیریت کارورزی',
+    'دانشگاه',
+    'آموزش و پرورش',
+  ],
+  alternates: {
+    canonical: '/',
+    languages: {
+      'fa-IR': '/',
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'fa_IR',
+    url: '/',
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [
+      {
+        url: SITE_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: SITE_NAME,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [SITE_OG_IMAGE],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+  icons: {
+    icon: [{ url: '/brand/karvita-mark.png', type: 'image/png' }],
+    apple: [{ url: '/brand/karvita-mark.png', type: 'image/png' }],
+  },
+  category: 'education',
 };
 
 export default function RootLayout({

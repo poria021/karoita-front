@@ -26,11 +26,25 @@ import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
 export const DAILY_APPROVALS_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
 
-function requireSupervisorReview(): void {
+const REVIEW_ROLES = new Set([
+  'supervisor_professor',
+  'mentor_teacher',
+  'school_principal',
+]);
+
+function requireDailyApprovalsReview(): void {
   if (!isMockApiMode()) {
     throwRealModeNotImplemented('DailyApprovalsService');
   }
   assertMockClientHasPermission('daily-approval.review');
+  const actor = useUserStore.getState().activeUser;
+  if (!actor || !REVIEW_ROLES.has(actor.role)) {
+    throw new Error(MOCK_AUTHZ_DENIED);
+  }
+}
+
+function requireSupervisorDrop(): void {
+  requireDailyApprovalsReview();
   const actor = useUserStore.getState().activeUser;
   if (!actor || actor.role !== 'supervisor_professor') {
     throw new Error(MOCK_AUTHZ_DENIED);
@@ -57,7 +71,7 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.listTerms');
     }
-    requireSupervisorReview();
+    requireDailyApprovalsReview();
     return listTermsForDailyApprovalKind(kind);
   },
 
@@ -67,7 +81,7 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.listPage');
     }
-    requireSupervisorReview();
+    requireDailyApprovalsReview();
     await delayMockAdminListPage();
     return listMockDailyApprovals(input);
   },
@@ -79,7 +93,7 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.openWeek');
     }
-    requireSupervisorReview();
+    requireDailyApprovalsReview();
     return markMockWeekRead(input);
   },
 
@@ -89,7 +103,7 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.updateWeekEvaluation');
     }
-    requireSupervisorReview();
+    requireDailyApprovalsReview();
     await new Promise((resolve) => setTimeout(resolve, 250));
     return updateMockDailyApprovalWeek({
       ...input,
@@ -103,7 +117,7 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.extendWeek');
     }
-    requireSupervisorReview();
+    requireDailyApprovalsReview();
     await new Promise((resolve) => setTimeout(resolve, 200));
     return extendMockDailyApprovalWeek(input);
   },
@@ -114,7 +128,7 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.dropTrainee');
     }
-    requireSupervisorReview();
+    requireSupervisorDrop();
     await new Promise((resolve) => setTimeout(resolve, 200));
     return dropMockDailyApprovalTrainee(input.traineeId);
   },

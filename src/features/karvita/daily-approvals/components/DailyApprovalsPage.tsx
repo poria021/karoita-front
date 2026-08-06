@@ -3,8 +3,10 @@
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
+import { useUserStore } from '@/store/useUserStore';
 
 import { useDailyApprovalsPage } from '../hooks/useDailyApprovalsPage';
+import { canDropDailyApprovalTrainee } from '../lib/dailyApprovalsAccess';
 import { DailyApprovalDetailPanel } from './DailyApprovalDetailPanel';
 import { DailyApprovalsCourseTabs } from './DailyApprovalsCourseTabs';
 import { DailyApprovalsFilters } from './DailyApprovalsFilters';
@@ -15,6 +17,8 @@ import { DailyApprovalsWorkspaceHeader } from './DailyApprovalsWorkspaceHeader';
 
 export function DailyApprovalsPage() {
   const page = useDailyApprovalsPage();
+  const role = useUserStore((state) => state.activeUser?.role);
+  const canDrop = canDropDailyApprovalTrainee(role);
   const hasActiveFilters =
     page.query.trim().length > 0 || page.readFilter !== 'all';
 
@@ -72,7 +76,7 @@ export function DailyApprovalsPage() {
           />
         }
         primary={
-          <div className="space-y-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised">
+          <div className="space-y-kv-group">
             {listChrome}
             {page.error ? null : (
               <DailyApprovalsTable
@@ -84,6 +88,7 @@ export function DailyApprovalsPage() {
                 hasMore={page.hasMore}
                 loadMoreError={page.loadMoreError}
                 actionBusy={page.actionBusy}
+                canDrop={canDrop}
                 hasActiveFilters={hasActiveFilters}
                 onSelect={page.selectTrainee}
                 onDrop={(trainee) => void page.dropTrainee(trainee)}
@@ -101,6 +106,7 @@ export function DailyApprovalsPage() {
           ) : (
             <DailyApprovalsMobileWorkspace
               page={page}
+              canDrop={canDrop}
               hasActiveFilters={hasActiveFilters}
               onClearFilters={clearFilters}
             />

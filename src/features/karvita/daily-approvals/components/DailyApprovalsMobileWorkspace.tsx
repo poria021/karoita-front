@@ -21,12 +21,14 @@ import { DailyApprovalsFilters } from './DailyApprovalsFilters';
 
 type DailyApprovalsMobileWorkspaceProps = {
   page: UseDailyApprovalsPageReturn;
+  canDrop: boolean;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
 };
 
 export function DailyApprovalsMobileWorkspace({
   page,
+  canDrop,
   hasActiveFilters,
   onClearFilters,
 }: DailyApprovalsMobileWorkspaceProps) {
@@ -90,18 +92,20 @@ export function DailyApprovalsMobileWorkspace({
                   </button>
                   <div className="flex shrink-0 items-center gap-kv-pair">
                     <DailyApprovalUnreadBadge trainee={trainee} compact />
-                    <KvButton
-                      type="button"
-                      color="error"
-                      appearance="ghost"
-                      size="icon-xs"
-                      aria-label="حذف کارورز از کلاس"
-                      disabled={
-                        page.actionBusy || trainee.status === 'dropped'
-                      }
-                      onClick={() => void page.dropTrainee(trainee)}
-                      icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
-                    />
+                    {canDrop ? (
+                      <KvButton
+                        type="button"
+                        color="error"
+                        appearance="ghost"
+                        size="icon-xs"
+                        aria-label="حذف کارورز از کلاس"
+                        disabled={
+                          page.actionBusy || trainee.status === 'dropped'
+                        }
+                        onClick={() => void page.dropTrainee(trainee)}
+                        icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
+                      />
+                    ) : null}
                     <button
                       type="button"
                       className="inline-flex size-8 items-center justify-center"

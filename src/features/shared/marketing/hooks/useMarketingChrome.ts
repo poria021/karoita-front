@@ -22,19 +22,26 @@ const EMPTY_CHROME: MarketingChromeData = {
 
 type MarketingChromeState = {
   data: MarketingChromeData;
-  /** False until the first client read of Landing CMS completes. */
+  /**
+   * False only when no SSR seed was provided and the first client read
+   * has not finished yet.
+   */
   isReady: boolean;
 };
 
 /**
- * Client-side marketing chrome from LandingCmsService (mock → localStorage).
- * RSC cannot see admin uploads; this is the public read path in mock mode.
+ * Marketing chrome from LandingCmsService.
+ * Prefer `initialChrome` from RSC so first HTML is crawlable; client refresh
+ * picks up mock localStorage admin edits after mount.
  */
-export function useMarketingChrome(): MarketingChromeState {
-  const [state, setState] = useState<MarketingChromeState>({
-    data: EMPTY_CHROME,
-    isReady: false,
-  });
+export function useMarketingChrome(
+  initialChrome?: MarketingChromeData
+): MarketingChromeState {
+  const [state, setState] = useState<MarketingChromeState>(() =>
+    initialChrome
+      ? { data: initialChrome, isReady: true }
+      : { data: EMPTY_CHROME, isReady: false }
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +62,6 @@ export function useMarketingChrome(): MarketingChromeState {
       }
     };
     const onCmsUpdated = () => {
-      // Same-tab write already updated memory; still re-list for consumers.
       void refresh();
     };
 

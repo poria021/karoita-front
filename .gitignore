@@ -49,9 +49,6 @@ next-env.d.ts
 original-karvita.html
 MIGRATION_ROADMAP.md
 
-# IMPORTANT:
-# Keep docker-compose.yml, src/db/, and drizzle/
-# UNLESS you strictly plan to remove them later.
 # Cursor IDE metadata/rules stay local only — never push to GitHub.
 .cursor/
 

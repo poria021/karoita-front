@@ -30,6 +30,7 @@ type DailyApprovalsTableProps = {
   hasMore: boolean;
   loadMoreError: string | null;
   actionBusy: boolean;
+  canDrop: boolean;
   hasActiveFilters: boolean;
   onSelect: (trainee: DailyApprovalTrainee) => void;
   onDrop: (trainee: DailyApprovalTrainee) => void;
@@ -47,6 +48,7 @@ export function DailyApprovalsTable({
   hasMore,
   loadMoreError,
   actionBusy,
+  canDrop,
   hasActiveFilters,
   onSelect,
   onDrop,
@@ -55,6 +57,7 @@ export function DailyApprovalsTable({
   onClearFilters,
 }: DailyApprovalsTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, trainees.length);
+  const colSpan = canDrop ? 3 : 2;
 
   return (
     <div className="space-y-kv-group">
@@ -89,14 +92,16 @@ export function DailyApprovalsTable({
             <KvTableRow>
               <KvTableHead>مشخصات کارورز</KvTableHead>
               <KvTableHead align="center">خوانده نشده</KvTableHead>
-              <KvTableHead align="center">عملیات</KvTableHead>
+              {canDrop ? (
+                <KvTableHead align="center">عملیات</KvTableHead>
+              ) : null}
             </KvTableRow>
           </KvTableHeader>
           <KvTableBody>
             {bodyPhase === 'busy' ? (
-              <KvTableBusy colSpan={3} />
+              <KvTableBusy colSpan={colSpan} />
             ) : bodyPhase === 'empty' ? (
-              <KvTableEmpty colSpan={3}>
+              <KvTableEmpty colSpan={colSpan}>
                 <KvEmptyState
                   title="کارورزی مطابق فیلترها پیدا نشد"
                   description="عبارت جستجو یا فیلترهای پایش را تغییر دهید."
@@ -127,21 +132,23 @@ export function DailyApprovalsTable({
                   <KvTableCell align="center">
                     <DailyApprovalUnreadBadge trainee={trainee} />
                   </KvTableCell>
-                  <KvTableCell
-                    align="center"
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <KvButton
-                      type="button"
-                      color="error"
-                      appearance="ghost"
-                      size="icon-xs"
-                      aria-label="حذف کارورز از کلاس"
-                      disabled={actionBusy || trainee.status === 'dropped'}
-                      onClick={() => onDrop(trainee)}
-                      icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
-                    />
-                  </KvTableCell>
+                  {canDrop ? (
+                    <KvTableCell
+                      align="center"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <KvButton
+                        type="button"
+                        color="error"
+                        appearance="ghost"
+                        size="icon-xs"
+                        aria-label="حذف کارورز از کلاس"
+                        disabled={actionBusy || trainee.status === 'dropped'}
+                        onClick={() => onDrop(trainee)}
+                        icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
+                      />
+                    </KvTableCell>
+                  ) : null}
                 </KvTableRow>
               ))
             )}

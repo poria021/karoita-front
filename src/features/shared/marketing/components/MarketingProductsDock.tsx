@@ -27,7 +27,7 @@ function DockMark({ product }: { product: LandingProduct }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={product.logoImageUrl}
-          alt=""
+          alt={product.title}
           className="size-full object-cover"
         />
       );
@@ -36,7 +36,7 @@ function DockMark({ product }: { product: LandingProduct }) {
     return (
       <Image
         src={product.logoImageUrl}
-        alt=""
+        alt={product.title}
         width={32}
         height={32}
         className="size-full object-cover"

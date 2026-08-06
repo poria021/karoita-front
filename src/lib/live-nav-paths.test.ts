@@ -52,15 +52,32 @@ describe('live nav / admin plane', () => {
     ).toEqual([
       RouteService.karvita.dashboard(),
       RouteService.karvita.dailyApprovals(),
+      RouteService.karvita.organizationalCapacities(),
     ]);
 
     const mentorMenu = getVisibleSidebarMenu('mentor_teacher');
-    expect(mentorMenu.map((entry) => entry.title)).toEqual(['میز کار']);
+    expect(
+      mentorMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
+    ).toEqual([
+      RouteService.karvita.dashboard(),
+      RouteService.karvita.dailyApprovals(),
+    ]);
+
+    const principalMenu = getVisibleSidebarMenu('school_principal');
+    expect(
+      principalMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
+    ).toEqual([
+      RouteService.karvita.dashboard(),
+      RouteService.karvita.dailyApprovals(),
+    ]);
 
     expect(
       isLiveSidebarPath(RouteService.karvita.internshipSelection(1))
     ).toBe(true);
     expect(isLiveSidebarPath(RouteService.karvita.dailyApprovals())).toBe(true);
+    expect(
+      isLiveSidebarPath(RouteService.karvita.organizationalCapacities())
+    ).toBe(true);
     expect(isLiveSidebarPath(RouteService.karvita.internshipSelection())).toBe(
       false
     );

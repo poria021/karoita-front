@@ -84,13 +84,13 @@ function MarketingShellInner({
         }`}
       >
         <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-kv-group border-none px-kv-inset sm:px-kv-page lg:h-16">
-          <button
-            type="button"
+          <Link
+            href={RouteService.marketing.home()}
             onClick={() => openPanel(null)}
-            className="group flex items-center gap-kv-inline focus:outline-none"
+            className="group flex items-center gap-kv-inline focus:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring"
             aria-label="صفحه اصلی کارویتا"
           >
-            <div className="flex size-8 items-center justify-center rounded-lg bg-kv-brand text-white shadow-md shadow-brand-500/20">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-kv-brand text-white shadow-md shadow-kv-raised">
               <KarvitaBrandMark className="h-5 w-auto p-0.5" />
             </div>
             <div className="flex flex-col">
@@ -100,7 +100,7 @@ function MarketingShellInner({
                 کارویتا
               </span>
             </div>
-          </button>
+          </Link>
 
           <nav
             aria-label="منوی اصلی دسکتاپ"
@@ -111,10 +111,11 @@ function MarketingShellInner({
             {NAV_ITEMS.map((item) => {
               const isActive =
                 item.id === null ? activePanel === null : activePanel === item.id;
+              const href = item.id ? `#${item.id}` : '#hero';
               return (
-                <button
+                <a
                   key={item.label}
-                  type="button"
+                  href={href}
                   className={`transition-colors hover:text-kv-brand ${
                     isActive
                       ? 'font-extrabold text-kv-brand underline decoration-kv-brand decoration-2 underline-offset-8'
@@ -122,10 +123,13 @@ function MarketingShellInner({
                         ? 'text-white/90'
                         : 'text-kv-text-secondary'
                   }`}
-                  onClick={() => openPanel(item.id)}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    openPanel(item.id);
+                  }}
                 >
                   {item.label}
-                </button>
+                </a>
               );
             })}
           </nav>
@@ -157,10 +161,10 @@ function MarketingShellInner({
         <div className="relative z-10 mx-auto max-w-7xl px-8 sm:px-12 lg:px-16">
           <div className="grid grid-cols-1 gap-8 pb-8 lg:grid-cols-12">
             <div className="space-y-5 lg:col-span-7">
-              <button
-                type="button"
+              <Link
+                href={RouteService.marketing.home()}
                 onClick={() => openPanel(null)}
-                className="flex cursor-pointer items-center gap-3.5 transition-opacity hover:opacity-80"
+                className="flex items-center gap-3.5 transition-opacity hover:opacity-80"
               >
                 <div className="flex size-12 items-center justify-center rounded-2xl bg-kv-brand font-black text-xl text-kv-brand-fg shadow-md shadow-kv-brand/20">
                   K
@@ -168,28 +172,30 @@ function MarketingShellInner({
                 <span className="text-3xl font-black leading-none tracking-tight text-kv-text">
                   کارویتا
                 </span>
-              </button>
+              </Link>
 
               <div className="max-w-xl space-y-2 text-xs font-semibold text-kv-text-secondary">
                 <p className="max-w-lg text-xs font-bold leading-relaxed text-kv-text-muted">
                   شرکت کارویتا؛ مجری زیرساخت‌های هوشمند آموزش نظری، مهارتی و
                   مدیریت دسترسی‌های سازمانی کشور.
                 </p>
-                <p className="flex items-center gap-2 text-xs font-bold text-kv-text-secondary">
+                <address className="flex flex-wrap items-center gap-2 text-xs font-bold not-italic text-kv-text-secondary">
                   <FaIcon icon={faIcons.mapLocationDot} className="text-kv-brand" />
                   <span>
-                    تهران، خیابان انقلاب، شرکت کارویتا (کد پستی: ۱۴۱۷۷۵۳۱۱۱) |
-                    تلفن: ۰۲۱-۹۱۲۲۲۰۷۹
+                    تهران، خیابان انقلاب، شرکت کارویتا (کد پستی: ۱۴۱۷۷۵۳۱۱۱)
                   </span>
-                </p>
+                  <span aria-hidden>|</span>
+                  <a
+                    href="tel:+982191222079"
+                    className="text-kv-brand underline-offset-2 transition-colors hover:underline"
+                  >
+                    تلفن: ۰۲۱-۹۱۲۲۲۰۷۹
+                  </a>
+                </address>
               </div>
 
               <div className="pt-1">
-                <a
-                  href="#"
-                  className="group inline-flex items-center gap-3 rounded-kv-control border-2 border-kv-brand-border bg-kv-surface px-4 py-2.5"
-                  onClick={(e) => e.preventDefault()}
-                >
+                <div className="group inline-flex items-center gap-3 rounded-kv-control border-2 border-kv-brand-border bg-kv-surface px-4 py-2.5">
                   <div className="flex items-center gap-1.5 rounded-sm bg-kv-brand-soft px-2.5 py-1.5 text-xs font-black text-kv-brand">
                     <FaIcon icon={faIcons.mobileScreen} size="xs" />
                     <FaIcon icon={faIcons.tabletScreenButton} size="xs" />
@@ -203,9 +209,9 @@ function MarketingShellInner({
                   <FaIcon
                     icon={faIcons.arrowLeft}
                     size="xs"
-                    className="mr-2 text-kv-brand"
+                    className="me-0 ms-2 text-kv-brand"
                   />
-                </a>
+                </div>
               </div>
             </div>
 

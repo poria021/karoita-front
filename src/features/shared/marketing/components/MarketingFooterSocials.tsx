@@ -24,7 +24,7 @@ function SocialMark({ social }: { social: LandingSocial }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={social.iconImageUrl}
-          alt=""
+          alt={social.name}
           className="size-4 object-contain"
         />
       );
@@ -33,7 +33,7 @@ function SocialMark({ social }: { social: LandingSocial }) {
     return (
       <Image
         src={social.iconImageUrl}
-        alt=""
+        alt={social.name}
         width={16}
         height={16}
         className="size-4 object-contain"

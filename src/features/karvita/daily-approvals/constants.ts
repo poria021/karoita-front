@@ -7,14 +7,13 @@ import type {
 import { faIcons } from '@/utils/iconMap';
 
 export const DAILY_APPROVAL_READ_FILTER_OPTIONS: readonly {
-  value: DailyApprovalReadFilter;
+  value: Exclude<DailyApprovalReadFilter, 'dropped'>;
   label: string;
   mobileLabel: string;
 }[] = [
-  { value: 'all', label: 'همه', mobileLabel: 'همه وضعیت‌ها' },
+  { value: 'all', label: 'همه گزارش‌ها', mobileLabel: 'همه گزارش‌ها' },
   { value: 'read', label: 'خوانده شده', mobileLabel: 'خوانده شده' },
   { value: 'unread', label: 'خوانده نشده', mobileLabel: 'خوانده نشده' },
-  { value: 'dropped', label: 'حذف', mobileLabel: 'حذف' },
 ];
 
 const INTERNSHIP_COURSES: readonly {

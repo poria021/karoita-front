@@ -10,9 +10,9 @@ export function MarketingAdvantagesSection() {
             <span className="size-1.5 rounded-full bg-kv-brand" /> تغییر پارادایم
             مدیریت آموزشی
           </span>
-          <h2 className="text-2xl font-black leading-tight tracking-tighter text-kv-text drop-shadow-sm sm:text-2xl lg:text-2xl">
+          <p className="text-2xl font-black leading-tight tracking-tighter text-kv-text drop-shadow-sm sm:text-2xl lg:text-2xl">
             گذر از بروکراسیِ پر دردسر سنتی
-          </h2>
+          </p>
           <h2 className="text-3xl font-black leading-tight tracking-tighter text-kv-text drop-shadow-sm sm:text-4xl lg:text-4xl">
             تسریع فرایند ها به صورت آنلاین
           </h2>

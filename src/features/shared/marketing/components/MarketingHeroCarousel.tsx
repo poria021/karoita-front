@@ -59,7 +59,7 @@ export function MarketingHeroCarousel({
         aria-label="بنرهای اطلاع‌رسانی اصلی"
       >
         <h1 className="sr-only">
-          کارویتا · سامانه جامع آموزش نظری، مهارتی و مدیریت کارورزی کشور
+          کارویتا | سامانه جامع آموزش نظری، مهارتی و مدیریت کارورزی
         </h1>
       </section>
     );
@@ -72,7 +72,7 @@ export function MarketingHeroCarousel({
       aria-label="بنرهای اطلاع‌رسانی اصلی"
     >
       <h1 className="sr-only">
-        کارویتا · سامانه جامع آموزش نظری، مهارتی و مدیریت کارورزی کشور
+        کارویتا | سامانه جامع آموزش نظری، مهارتی و مدیریت کارورزی
       </h1>
 
       {slides.map((slide, index) => {
