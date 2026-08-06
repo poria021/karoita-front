@@ -6,11 +6,15 @@ import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
+import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
 import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
-import { toPersianDigits } from '@/utils/persianDigits';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
 import {
   MODULAR_PREFIX_OPTIONS,
@@ -18,6 +22,7 @@ import {
   TERM_TYPE_OPTIONS,
   displayAcademicYear,
 } from '../constants';
+
 interface TermFormCardProps {
   terms: AcademicTerm[];
   editTermId: string;
@@ -28,7 +33,6 @@ interface TermFormCardProps {
   onTermPrefixChange: (prefix: string) => void;
   termYear: string;
   onTermYearChange: (year: string) => void;
-  academicYears: string[];
   isSaving: boolean;
   formError?: string | null;
   onSave: () => void;
@@ -46,7 +50,6 @@ export function TermFormCard({
   onTermPrefixChange,
   termYear,
   onTermYearChange,
-  academicYears,
   isSaving,
   formError,
   onSave,
@@ -65,6 +68,9 @@ export function TermFormCard({
           <div className="min-w-0">
             <KvTypography variant="subtitle" weight="black" as="h4">
               تعریف و ساختارسازی ترم جدید
+            </KvTypography>
+            <KvTypography variant="caption" tone="muted" as="p">
+              ساختار ترمی برای دانشجویان و پودمانی برای مهارت‌آموزان اعمال می‌شود.
             </KvTypography>
           </div>
         </div>
@@ -88,13 +94,13 @@ export function TermFormCard({
             <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
               <div className="space-y-kv-pair">
                 <KvTypography variant="label" as="label">
-                  انتخاب پودمان مهارتی <span className="text-kv-danger">*</span>
+                  عنوان بازه <span className="text-kv-danger">*</span>
                 </KvTypography>
                 <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
               </div>
               <div className="space-y-kv-pair">
                 <KvTypography variant="label" as="label">
-                  سال تحصیلی خورشیدی <span className="text-kv-danger">*</span>
+                  سال تحصیلی <span className="text-kv-danger">*</span>
                 </KvTypography>
                 <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
               </div>
@@ -166,21 +172,19 @@ export function TermFormCard({
                 ))}
               </KvSelectField>
 
-              <KvSelectField
-                label="سال تحصیلی خورشیدی"
+              <KvTextField
+                id="syllabus-term-academic-year"
+                label="سال تحصیلی"
                 required
                 size="md"
-                value={termYear}
-                displayValue={displayAcademicYear(termYear)}
+                dir="ltr"
                 disabled={isEditing}
-                onValueChange={onTermYearChange}
-              >
-                {academicYears.map((year) => (
-                  <KvSelectItem key={year} value={year}>
-                    {displayAcademicYear(year)}
-                  </KvSelectItem>
-                ))}
-              </KvSelectField>
+                value={displayAcademicYear(termYear)}
+                placeholder="۱۴۰۵-۱۴۰۶"
+                onChange={(event) =>
+                  onTermYearChange(persianToEnglishDigits(event.target.value))
+                }
+              />
             </div>
           </>
         )}

@@ -21,7 +21,10 @@ import type {
 } from '@/types/daily-approvals';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-import { getDailyApprovalCourseOptions } from '../constants';
+import {
+  DAILY_APPROVAL_PASSING_SCORE,
+  getDailyApprovalCourseOptions,
+} from '../constants';
 import {
   DAILY_APPROVALS_CACHE_NAMESPACE,
   DAILY_APPROVALS_CHROME_ID,
@@ -59,6 +62,9 @@ export function useDailyApprovalsPage() {
   const [terms, setTerms] = useState<Array<{ id: string; title: string }>>([]);
   const [termsReady, setTermsReady] = useState(false);
   const [termsError, setTermsError] = useState<string | null>(null);
+  const [passingScoreThreshold, setPassingScoreThreshold] = useState(
+    DAILY_APPROVAL_PASSING_SCORE
+  );
 
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const listQuery = query.trim() === '' ? '' : debouncedQuery;
@@ -94,10 +100,16 @@ export function useDailyApprovalsPage() {
     let cancelled = false;
     setTermsReady(false);
     setTermsError(null);
-    void DailyApprovalsService.listTerms(kind)
-      .then((nextTerms) => {
+    void Promise.all([
+      DailyApprovalsService.listTerms(kind),
+      DailyApprovalsService.getPassingScoreThreshold(),
+    ])
+      .then(([nextTerms, threshold]) => {
         if (cancelled) return;
         setTerms(nextTerms);
+        setPassingScoreThreshold(
+          Number.isFinite(threshold) ? threshold : DAILY_APPROVAL_PASSING_SCORE
+        );
         setTermId((current) => {
           if (nextTerms.some((term) => term.id === current)) return current;
           return nextTerms[0]?.id ?? '';
@@ -425,6 +437,7 @@ export function useDailyApprovalsPage() {
     gradingOpen: gradingTarget !== null,
     gradingTrainee,
     gradingWeek,
+    passingScoreThreshold,
     openWeekGrading,
     closeWeekGrading,
     saveSupervisorWeek,

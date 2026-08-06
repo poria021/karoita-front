@@ -151,6 +151,11 @@ function buildWeek(
   };
 }
 
+function passingScoreThreshold(): number {
+  const value = readSyllabusSnapshot().passingScoreThreshold;
+  return Number.isFinite(value) ? value : 70;
+}
+
 function computeProgressive(
   weeks: DailyApprovalWeek[],
   traineeStatus: DailyApprovalTrainee['status']
@@ -165,10 +170,11 @@ function computeProgressive(
   const avg100 =
     graded.reduce((sum, week) => sum + (week.score ?? 0), 0) / graded.length;
   const final20 = Number(((avg100 / 100) * 20).toFixed(2));
+  const threshold = passingScoreThreshold();
   return {
     gradedCount: graded.length,
     final20,
-    statusLabel: final20 >= 14 ? 'قبول' : 'مردود',
+    statusLabel: avg100 >= threshold ? 'قبول' : 'مردود',
   };
 }
 

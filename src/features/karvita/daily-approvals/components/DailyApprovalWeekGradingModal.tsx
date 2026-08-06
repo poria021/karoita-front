@@ -29,6 +29,8 @@ type DailyApprovalWeekGradingModalProps = {
   trainee: DailyApprovalTrainee | null;
   week: DailyApprovalWeek | null;
   actionBusy: boolean;
+  /** حد نصاب قبولی سیستم (۰–۱۰۰) از تنظیمات عمومی ترم‌ها. */
+  passingScoreThreshold?: number;
   onClose: () => void;
   onSaveSupervisor: (input: {
     score: number | null;
@@ -50,6 +52,7 @@ export function DailyApprovalWeekGradingModal({
   trainee,
   week,
   actionBusy,
+  passingScoreThreshold,
   onClose,
   onSaveSupervisor,
   onSaveMentor,
@@ -127,6 +130,7 @@ export function DailyApprovalWeekGradingModal({
                   schoolName={trainee.schoolName}
                   advisorFeedback={modal.advisorFeedback}
                   scoreInput={modal.scoreInput}
+                  passingScoreThreshold={passingScoreThreshold}
                   onAdvisorFeedbackChange={modal.setAdvisorFeedback}
                   onScoreInputChange={modal.handleScoreInputChange}
                 />

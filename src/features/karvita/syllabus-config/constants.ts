@@ -23,11 +23,11 @@ export const TERM_TYPE_OPTIONS: {
 }[] = [
   {
     value: 'semester',
-    label: 'ترمی',
+    label: 'ترمی (دانشجو / کارورزی)',
   },
   {
     value: 'modular',
-    label: 'پودمانی',
+    label: 'پودمانی (مهارت‌آموز / کارآموزی)',
   },
 ];
 
@@ -59,4 +59,11 @@ export function parseTermTitleParts(title: string): {
     prefix: parts.slice(0, -1).join(' '),
     academicYear: parts[parts.length - 1] ?? '',
   };
+}
+
+/** Option label for course-offerings / term pickers: «عنوان بازه · سال تحصیلی». */
+export function formatTermOptionLabel(title: string): string {
+  const { prefix, academicYear } = parseTermTitleParts(title);
+  if (!academicYear) return toPersianDigits(title);
+  return `${toPersianDigits(prefix)} · ${toPersianDigits(academicYear)}`;
 }

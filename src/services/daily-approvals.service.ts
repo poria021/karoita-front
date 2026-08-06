@@ -11,6 +11,7 @@ import {
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,
 } from '@/services/daily-approvals/mock-daily-approvals-store';
+import { readSyllabusSnapshot } from '@/services/syllabus-config/mock-syllabus-store';
 import {
   assertMockClientHasPermission,
   MOCK_AUTHZ_DENIED,
@@ -84,6 +85,21 @@ export const DailyApprovalsService = {
     }
     requireDailyApprovalsReview();
     return listTermsForDailyApprovalKind(kind);
+  },
+
+  /**
+   * حد نصاب قبولی سیستم (۰–۱۰۰) از تنظیمات عمومی ترم‌ها.
+   * Nest: GET /syllabus/passing-threshold
+   */
+  async getPassingScoreThreshold(): Promise<number> {
+    if (!isMockApiMode()) {
+      throwRealModeNotImplemented(
+        'DailyApprovalsService.getPassingScoreThreshold'
+      );
+    }
+    requireDailyApprovalsReview();
+    const value = readSyllabusSnapshot().passingScoreThreshold;
+    return Number.isFinite(value) ? value : 70;
   },
 
   async listPage(

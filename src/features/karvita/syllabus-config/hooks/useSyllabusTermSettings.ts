@@ -3,10 +3,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
-import {
-  SyllabusConfigService,
-  getAcademicYearOptions,
-} from '@/services/syllabus-config.service';
+import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -41,13 +38,11 @@ export function useSyllabusTermSettings({
   passingThreshold,
   setPassingThreshold,
 }: UseSyllabusTermSettingsArgs) {
-  const academicYears = getAcademicYearOptions();
+  const defaultAcademicYear = SyllabusConfigService.getDefaultAcademicYear();
   const [editTermId, setEditTermId] = useState('');
   const [termType, setTermType] = useState<AcademicTermType>('semester');
   const [termPrefix, setTermPrefix] = useState(defaultPrefixForType('semester'));
-  const [termYear, setTermYear] = useState(
-    () => academicYears[1] ?? academicYears[0] ?? ''
-  );
+  const [termYear, setTermYear] = useState(defaultAcademicYear);
   const [deleteTermTarget, setDeleteTermTarget] = useState<AcademicTerm | null>(
     null
   );
@@ -59,7 +54,7 @@ export function useSyllabusTermSettings({
     setEditTermId('');
     setTermType('semester');
     setTermPrefix(defaultPrefixForType('semester'));
-    setTermYear(academicYears[1] ?? academicYears[0] ?? '');
+    setTermYear(SyllabusConfigService.getDefaultAcademicYear());
     setTermFormError(null);
   }
 
@@ -193,7 +188,6 @@ export function useSyllabusTermSettings({
   }
 
   return {
-    academicYears,
     editTermId,
     selectEditTerm,
     termType,

@@ -14,6 +14,8 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
+import { formatTermOptionLabel } from '../constants';
+
 interface TermStatusCardsProps {
   terms: AcademicTerm[];
   selectedTerm: AcademicTerm | null;
@@ -61,7 +63,7 @@ export function TermStatusCards({
               </KvTypography>
             </div>
           </div>
-          <div className="w-full max-w-44 shrink-0">
+          <div className="w-full max-w-56 shrink-0 sm:max-w-64">
             {isDataLoading ? (
               <KvSkeleton className="h-9 w-full rounded-kv-control" />
             ) : (
@@ -71,7 +73,7 @@ export function TermStatusCards({
                 value={selectedTerm?.id ?? ''}
                 displayValue={
                   selectedTerm
-                    ? toPersianDigits(selectedTerm.title)
+                    ? formatTermOptionLabel(selectedTerm.title)
                     : undefined
                 }
                 onValueChange={onSelectTerm}
@@ -79,7 +81,7 @@ export function TermStatusCards({
               >
                 {terms.map((term) => (
                   <KvSelectItem key={term.id} value={term.id}>
-                    {toPersianDigits(term.title)}
+                    {formatTermOptionLabel(term.title)}
                   </KvSelectItem>
                 ))}
               </KvSelectField>

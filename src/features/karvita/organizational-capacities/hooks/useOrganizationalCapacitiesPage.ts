@@ -11,8 +11,11 @@ import type {
   OrganizationalCapacityKind,
   OrganizationalCapacityWeekday,
 } from '@/types/organizational-capacities';
-import { persianToEnglishDigits } from '@/utils/persianDigits';
 import { normalizeCapacityTotalInput } from '@/utils/organizational-capacity-math';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
 const CHROME_ID = 'organizational-capacities';
 
@@ -113,10 +116,19 @@ export function useOrganizationalCapacitiesPage() {
   const updateCourseTotal = useCallback(
     async (courseId: string, rawValue: string) => {
       if (!snapshot || snapshot.status !== 'draft') return;
-      const total = normalizeCapacityTotalInput(
-        persianToEnglishDigits(rawValue),
-        snapshot.maxCapacity
-      );
+      const english = persianToEnglishDigits(rawValue);
+      const digits = english.replace(/[^\d]/g, '');
+      const attempted = digits === '' ? 0 : Number(digits);
+      if (
+        digits !== '' &&
+        Number.isFinite(attempted) &&
+        attempted > snapshot.maxCapacity
+      ) {
+        toast.message(
+          `ظرفیت هر درس نمی‌تواند از سقف عمومی ${toPersianDigits(snapshot.maxCapacity)} بیشتر باشد.`
+        );
+      }
+      const total = normalizeCapacityTotalInput(english, snapshot.maxCapacity);
       patchLocalCourse(courseId, { total });
       try {
         const course = snapshot.courses.find((row) => row.id === courseId);

@@ -20,6 +20,8 @@ type DailyApprovalSupervisorGradingFieldsProps = {
   schoolName: string | null;
   advisorFeedback: string;
   scoreInput: string;
+  /** حد نصاب قبولی سیستم از تنظیمات ترم (۰–۱۰۰). */
+  passingScoreThreshold?: number;
   onAdvisorFeedbackChange: (value: string) => void;
   onScoreInputChange: (value: string) => void;
 };
@@ -29,15 +31,19 @@ export function DailyApprovalSupervisorGradingFields({
   schoolName,
   advisorFeedback,
   scoreInput,
+  passingScoreThreshold = DAILY_APPROVAL_PASSING_SCORE,
   onAdvisorFeedbackChange,
   onScoreInputChange,
 }: DailyApprovalSupervisorGradingFieldsProps) {
+  const threshold = Number.isFinite(passingScoreThreshold)
+    ? passingScoreThreshold
+    : DAILY_APPROVAL_PASSING_SCORE;
   const scoreNumber =
     scoreInput.trim() === '' ? null : Number(scoreInput.trim());
   const hasScore = scoreNumber !== null && Number.isFinite(scoreNumber);
   const scoreTone = !hasScore
     ? 'neutral'
-    : scoreNumber! >= DAILY_APPROVAL_PASSING_SCORE
+    : scoreNumber! >= threshold
       ? 'success'
       : 'danger';
 
@@ -126,20 +132,30 @@ export function DailyApprovalSupervisorGradingFields({
       <div
         className={`mt-kv-pair flex flex-col items-stretch justify-between gap-kv-group rounded-kv-panel border p-kv-group sm:flex-row sm:items-center ${scorePanelClass}`}
       >
-        <KvTypography
-          variant="subtitle"
-          as="h4"
-          tone={
-            scoreTone === 'success'
-              ? 'success'
-              : scoreTone === 'danger'
-                ? 'danger'
-                : 'default'
-          }
-        >
-          ثبت نمره نهایی گزارش ({toPersianDigits(0)} تا{' '}
-          {toPersianDigits(100)})
-        </KvTypography>
+        <div className="min-w-0 space-y-1">
+          <KvTypography
+            variant="subtitle"
+            as="h4"
+            tone={
+              scoreTone === 'success'
+                ? 'success'
+                : scoreTone === 'danger'
+                  ? 'danger'
+                  : 'default'
+            }
+          >
+            ثبت نمره نهایی گزارش ({toPersianDigits(0)} تا{' '}
+            {toPersianDigits(100)})
+          </KvTypography>
+          <KvTypography variant="caption" tone="muted" as="p">
+            حد نصاب قبولی: {toPersianDigits(threshold)}
+            {hasScore
+              ? scoreTone === 'success'
+                ? ' — قبول'
+                : ' — کمتر از حد نصاب (مردود)'
+              : null}
+          </KvTypography>
+        </div>
         <div className="sm:w-32">
           <KvTextField
             label={false}

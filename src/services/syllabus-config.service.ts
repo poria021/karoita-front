@@ -70,6 +70,11 @@ export const SyllabusConfigService = {
     return getAcademicYearOptions();
   },
 
+  /** مقدار پیش‌فرض سال تحصیلی برای فرم تعریف ترم (سال جاری جلالی). */
+  getDefaultAcademicYear(): string {
+    return getAcademicYearOptions()[1] ?? getAcademicYearOptions()[0] ?? '';
+  },
+
   /**
    * Context ترم فعال برای انتخاب واحد — Nest: GET /syllabus/enrollment-context
    * بدون نیاز به syllabus.manage (مصرف‌کننده enrollment).
@@ -84,6 +89,15 @@ export const SyllabusConfigService = {
       kind,
       level
     );
+  },
+
+  /**
+   * حد نصاب قبولی سیستم (۰–۱۰۰) برای ارزیابی گزارش — Nest: GET /syllabus/passing-threshold
+   * مصرف‌کننده daily-approvals / progressive؛ بدون syllabus.manage.
+   */
+  async getPassingScoreThreshold(): Promise<number> {
+    gateSyllabusConsumerRead();
+    return readSyllabusSnapshot().passingScoreThreshold;
   },
 
   /** کاتالوگ دروس ترم — Nest: GET /terms/:termId/courses */

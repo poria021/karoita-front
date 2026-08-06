@@ -143,6 +143,7 @@ export function DailyApprovalsPageClient() {
           trainee={page.gradingTrainee}
           week={page.gradingWeek}
           actionBusy={page.actionBusy}
+          passingScoreThreshold={page.passingScoreThreshold}
           onClose={page.closeWeekGrading}
           onSaveSupervisor={page.saveSupervisorWeek}
           onSaveMentor={page.saveMentorWeek}
