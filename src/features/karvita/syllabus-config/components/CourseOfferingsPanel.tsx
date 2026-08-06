@@ -22,7 +22,6 @@ type CourseOfferingsPanelProps = Pick<
   | 'toggleCourseOffering'
   | 'weeks'
   | 'isLoading'
-  | 'isSelectedCourseOffered'
   | 'hasUnsavedChanges'
   | 'isSaving'
   | 'updateWeekWeight'
@@ -71,7 +70,6 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
           courseTitle={props.selectedCourse?.title ?? null}
           weeks={props.weeks}
           isLoading={props.isLoading}
-          courseOffered={props.isSelectedCourseOffered}
           hasUnsavedChanges={props.hasUnsavedChanges}
           isSaving={props.isSaving}
           onWeightChange={props.updateWeekWeight}

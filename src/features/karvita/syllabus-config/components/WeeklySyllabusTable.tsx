@@ -28,7 +28,6 @@ interface WeeklySyllabusTableProps {
   courseTitle: string | null;
   weeks: SyllabusWeek[];
   isLoading: boolean;
-  courseOffered: boolean;
   hasUnsavedChanges: boolean;
   isSaving: boolean;
   className?: string;
@@ -45,7 +44,6 @@ export function WeeklySyllabusTable({
   courseTitle,
   weeks,
   isLoading,
-  courseOffered,
   hasUnsavedChanges,
   isSaving,
   className,
@@ -59,6 +57,7 @@ export function WeeklySyllabusTable({
 }: WeeklySyllabusTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, weeks.length);
   const emptyCopy = getModuleEmptyCopy('syllabus_weeks');
+  const canEdit = Boolean(courseTitle);
 
   return (
     <KvCard
@@ -70,11 +69,7 @@ export function WeeklySyllabusTable({
       )}
     >
       <div className="flex flex-col gap-kv-group sm:flex-row sm:items-center sm:justify-between">
-        <KvTypography
-          variant="subtitle"
-          as="h3"
-          tone={!courseOffered ? 'disabled' : undefined}
-        >
+        <KvTypography variant="subtitle" as="h3">
           پیکربندی سرفصل: {courseTitle ?? 'بدون عنوان'}
         </KvTypography>
 
@@ -83,7 +78,7 @@ export function WeeklySyllabusTable({
           color="success"
           size="sm"
           className="w-full sm:w-auto"
-          disabled={!courseOffered}
+          disabled={!canEdit}
           onClick={onAddWeek}
           icon={<FaIcon icon={faIcons.plus} size="xs" />}
         >
@@ -91,97 +86,75 @@ export function WeeklySyllabusTable({
         </KvButton>
       </div>
 
-      <div
-        className={cn(
-          'border-t border-kv-border-muted pt-kv-group',
-          !courseOffered && 'cursor-not-allowed'
-        )}
-      >
+      <div className="border-t border-kv-border-muted pt-kv-group">
         <KvTableViewport
           resetKey={courseTitle ?? 'weeks'}
           isBusy={isLoading}
           hasMore={false}
           heightClassName="max-h-[400px] min-h-[200px]"
-          className={cn(
-            !courseOffered &&
-              'pointer-events-none border-kv-border bg-kv-surface-muted/40 opacity-55'
-          )}
         >
-            <KvTable
-              scrollable={false}
-              className={cn(
-                'w-full table-fixed',
-                !courseOffered &&
-                  'text-kv-text-faint [&_[data-slot=kv-table-cell]]:text-kv-text-faint [&_[data-slot=kv-table-head]]:text-kv-text-faint [&_tr]:font-normal [&_tr]:in-[data-slot=kv-table-body]:hover:bg-transparent [&_tr]:hover:text-kv-text-faint'
-              )}
-            >
-              <KvTableHeader>
-                <KvTableRow
-                  className={cn(
-                    !courseOffered &&
-                      'in-[data-slot=kv-table-body]:hover:bg-transparent'
-                  )}
+          <KvTable scrollable={false} className="w-full table-fixed">
+            <KvTableHeader>
+              <KvTableRow>
+                <KvTableRowIndexHead />
+                <KvTableHead>عنوان جلسه آموزشی</KvTableHead>
+                <KvTableHead
+                  align="center"
+                  className="w-[9.5rem] sm:w-40 lg:w-44"
                 >
-                  <KvTableRowIndexHead />
-                  <KvTableHead>عنوان جلسه آموزشی</KvTableHead>
-                  <KvTableHead
-                    align="center"
-                    className="w-[9.5rem] sm:w-40 lg:w-44"
-                  >
-                    ضریب اهمیت
-                  </KvTableHead>
-                  <KvTableHead align="center" className="w-28 sm:w-32">
-                    عملیات
-                  </KvTableHead>
-                </KvTableRow>
-              </KvTableHeader>
-              <KvTableBody>
-                {bodyPhase === 'busy' ? (
-                  <KvTableBusy colSpan={4} />
-                ) : bodyPhase === 'empty' ? (
-                  <KvTableEmpty colSpan={4}>
-                    <KvEmptyState
-                      title={emptyCopy.title}
-                      description={
-                        courseOffered
-                          ? 'هنوز هفته‌ای برای این درس ثبت نشده است.'
-                          : emptyCopy.description
-                      }
-                      actions={
-                        courseOffered ? (
-                          <KvButton
-                            type="button"
-                            color="cta"
-                            appearance="solid"
-                            size="sm"
-                            onClick={onAddWeek}
-                            icon={<FaIcon icon={faIcons.plus} size="xs" />}
-                          >
-                            افزودن هفته
-                          </KvButton>
-                        ) : undefined
-                      }
-                    />
-                  </KvTableEmpty>
-                ) : (
-                  weeks.map((week, index) => (
-                    <WeeklySyllabusWeekRow
-                      key={week.id}
-                      week={week}
-                      index={index}
-                      weeks={weeks}
-                      courseOffered={courseOffered}
-                      onWeightChange={onWeightChange}
-                      onEditWeek={onEditWeek}
-                      onArchiveWeek={onArchiveWeek}
-                      onRestoreWeek={onRestoreWeek}
-                      onDeleteWeek={onDeleteWeek}
-                    />
-                  ))
-                )}
-              </KvTableBody>
-            </KvTable>
-          </KvTableViewport>
+                  ضریب اهمیت
+                </KvTableHead>
+                <KvTableHead align="center" className="w-28 sm:w-32">
+                  عملیات
+                </KvTableHead>
+              </KvTableRow>
+            </KvTableHeader>
+            <KvTableBody>
+              {bodyPhase === 'busy' ? (
+                <KvTableBusy colSpan={4} />
+              ) : bodyPhase === 'empty' ? (
+                <KvTableEmpty colSpan={4}>
+                  <KvEmptyState
+                    title={emptyCopy.title}
+                    description={
+                      canEdit
+                        ? 'هنوز هفته‌ای برای این درس ثبت نشده است.'
+                        : emptyCopy.description
+                    }
+                    actions={
+                      canEdit ? (
+                        <KvButton
+                          type="button"
+                          color="cta"
+                          appearance="solid"
+                          size="sm"
+                          onClick={onAddWeek}
+                          icon={<FaIcon icon={faIcons.plus} size="xs" />}
+                        >
+                          افزودن هفته
+                        </KvButton>
+                      ) : undefined
+                    }
+                  />
+                </KvTableEmpty>
+              ) : (
+                weeks.map((week, index) => (
+                  <WeeklySyllabusWeekRow
+                    key={week.id}
+                    week={week}
+                    index={index}
+                    weeks={weeks}
+                    onWeightChange={onWeightChange}
+                    onEditWeek={onEditWeek}
+                    onArchiveWeek={onArchiveWeek}
+                    onRestoreWeek={onRestoreWeek}
+                    onDeleteWeek={onDeleteWeek}
+                  />
+                ))
+              )}
+            </KvTableBody>
+          </KvTable>
+        </KvTableViewport>
       </div>
 
       <div className="flex flex-col border-t border-kv-border-muted pt-kv-group sm:flex-row sm:justify-end">

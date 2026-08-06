@@ -31,13 +31,13 @@ export const TERM_TYPE_OPTIONS: {
   },
 ];
 
-/** تب فیلتر ارائه سرفصل: دانشجویان (ترمی) در برابر مهارت‌آموزان (پودمانی). */
+/** تب فیلتر ارائه سرفصل: ترمی=دانشجو، پودمانی=مهارت‌آموز. */
 export const COURSE_OFFERING_AUDIENCE_TABS: {
   value: AcademicTermType;
   label: string;
 }[] = [
-  { value: 'semester', label: 'دانشجویان' },
-  { value: 'modular', label: 'مهارت‌آموزان' },
+  { value: 'semester', label: 'ترمی' },
+  { value: 'modular', label: 'پودمانی' },
 ];
 
 export const WEEK_WEIGHT_OPTIONS = [

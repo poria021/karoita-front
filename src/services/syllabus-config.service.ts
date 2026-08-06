@@ -185,8 +185,20 @@ export const SyllabusConfigService = {
     gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {
       const existing = draft.offerings[input.courseOfferingId];
-      if (!existing) throw new Error('ارائهٔ درس یافت نشد.');
-      existing.weeks = structuredClone(input.weeks);
+      if (!existing) {
+        const term = draft.terms.find((t) => t.id === input.termId);
+        if (!term) throw new Error('ترم انتخاب‌شده یافت نشد.');
+        const catalog = findCatalogById(term.type, input.courseCatalogId);
+        if (!catalog) throw new Error('درس کاتالوگ یافت نشد.');
+        draft.offerings[input.courseOfferingId] = {
+          id: input.courseOfferingId,
+          termId: input.termId,
+          courseCatalogId: input.courseCatalogId,
+          weeks: structuredClone(input.weeks),
+        };
+      } else {
+        existing.weeks = structuredClone(input.weeks);
+      }
 
       // Nest-blocked: syncStudentWeeksWithSyllabus
       void draft.internships;

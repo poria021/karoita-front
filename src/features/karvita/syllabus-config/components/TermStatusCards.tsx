@@ -115,39 +115,40 @@ export function TermSemesterCard({
   const isDataLoading = isLoading && terms.length === 0;
 
   return (
-    <KvCard className="h-full min-h-[240px]">
-      <KvCardContent
-        padding="md"
-        className="flex h-full min-h-[240px] flex-col gap-kv-group"
-      >
-        <div className="flex items-center gap-kv-pair">
-          <KvCardTitleIcon icon={faIcons.graduationCap} />
-          <div className="min-w-0">
-            <KvTypography variant="subtitle" as="h4">
-              نیم‌سال
-            </KvTypography>
-            <KvTypography variant="caption" tone="muted">
-              انتخاب ترم برای مدیریت ارائه و سرفصل
-            </KvTypography>
+    <KvCard>
+      <KvCardContent padding="md" className="flex flex-col gap-kv-pair">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-kv-pair">
+            <KvCardTitleIcon icon={faIcons.graduationCap} />
+            <div className="min-w-0">
+              <KvTypography variant="subtitle" as="h4">
+                نیم‌سال
+              </KvTypography>
+              <KvTypography variant="caption" tone="muted">
+                انتخاب ترم برای مدیریت ارائه و سرفصل
+              </KvTypography>
+            </div>
           </div>
+
+          <AppTabs
+            value={audience}
+            onValueChange={(value) =>
+              onAudienceChange(value as AcademicTermType)
+            }
+            gridCols={2}
+            fullWidth
+          >
+            <AppTabsList aria-label="فیلتر مخاطب نیم‌سال">
+              {COURSE_OFFERING_AUDIENCE_TABS.map((tab) => (
+                <AppTabsTrigger key={tab.value} value={tab.value}>
+                  {tab.label}
+                </AppTabsTrigger>
+              ))}
+            </AppTabsList>
+          </AppTabs>
         </div>
 
-        <AppTabs
-          value={audience}
-          onValueChange={(value) => onAudienceChange(value as AcademicTermType)}
-          gridCols={2}
-          fullWidth
-        >
-          <AppTabsList aria-label="فیلتر مخاطب نیم‌سال">
-            {COURSE_OFFERING_AUDIENCE_TABS.map((tab) => (
-              <AppTabsTrigger key={tab.value} value={tab.value}>
-                {tab.label}
-              </AppTabsTrigger>
-            ))}
-          </AppTabsList>
-        </AppTabs>
-
-        <div className="mt-auto w-full">
+        <div className="w-full">
           {isDataLoading ? (
             <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
           ) : (

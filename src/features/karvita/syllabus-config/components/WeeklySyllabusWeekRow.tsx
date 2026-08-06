@@ -30,7 +30,6 @@ type WeeklySyllabusWeekRowProps = {
   week: SyllabusWeek;
   index: number;
   weeks: SyllabusWeek[];
-  courseOffered: boolean;
   onWeightChange: (weekId: string, weight: number) => void;
   onEditWeek: (week: SyllabusWeek) => void;
   onArchiveWeek: (week: SyllabusWeek) => void;
@@ -42,7 +41,6 @@ export function WeeklySyllabusWeekRow({
   week,
   index,
   weeks,
-  courseOffered,
   onWeightChange,
   onEditWeek,
   onArchiveWeek,
@@ -50,22 +48,14 @@ export function WeeklySyllabusWeekRow({
   onDeleteWeek,
 }: WeeklySyllabusWeekRowProps) {
   const archived = week.status === 'archived';
-  const structureActionable =
-    courseOffered && isWeekRowActionable(index, weeks);
-  const contentEditable = courseOffered && !archived;
-  const muted = !courseOffered || archived;
+  const structureActionable = isWeekRowActionable(index, weeks);
 
   return (
-    <KvTableRow
-      className={cn(
-        !courseOffered &&
-          'in-[data-slot=kv-table-body]:hover:bg-transparent hover:text-kv-text-faint'
-      )}
-    >
+    <KvTableRow>
       <KvTableRowIndexCell index={index} />
       <KvTableCell
-        emphasis={!muted}
-        className={cn('max-w-0 truncate', muted && 'text-kv-text-faint')}
+        emphasis
+        className={cn('max-w-0 truncate', archived && 'text-kv-text-faint')}
       >
         {toPersianDigits(week.title || week.suffix)}
       </KvTableCell>
@@ -82,7 +72,6 @@ export function WeeklySyllabusWeekRow({
               WEEK_WEIGHT_OPTIONS.find((option) => option.value === week.weight)
                 ?.label
             }
-            disabled={!contentEditable}
             onValueChange={(value) =>
               onWeightChange(week.id, Number.parseInt(value, 10))
             }
@@ -105,7 +94,6 @@ export function WeeklySyllabusWeekRow({
               appearance="ghost"
               size="icon-xs"
               aria-label="ویرایش عنوان هفته"
-              disabled={!contentEditable}
               onClick={() => onEditWeek(week)}
               icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
             />

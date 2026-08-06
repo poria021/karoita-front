@@ -82,6 +82,9 @@ export type DeactivateOfferingInput = {
 
 export type SaveSyllabusWeeksInput = {
   courseOfferingId: string;
+  /** برای upsert وقتی ارائه هنوز ساخته نشده (پیکربندی سرفصل قبل از فعال‌سازی). */
+  termId: string;
+  courseCatalogId: string;
   weeks: SyllabusWeek[];
 };
 

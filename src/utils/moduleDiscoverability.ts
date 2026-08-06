@@ -42,9 +42,8 @@ const EMPTY_COPY: Record<ModuleEmptyKind, ModuleEmptyCopy> = {
   },
   syllabus_weeks: {
     title: 'سرفصلی تعریف نشده',
-    description:
-      'پس از ارائهٔ درس، هفته‌های پیش‌فرض سرفصل ساخته می‌شوند.',
-    actionLabel: 'ارائهٔ درس را فعال کنید',
+    description: 'هنوز هفته‌ای برای این درس ثبت نشده است.',
+    actionLabel: 'افزودن هفته',
   },
 };
 

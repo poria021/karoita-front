@@ -23,7 +23,6 @@ type UseSyllabusWeeksEditorArgs = {
   setWeeks: Dispatch<SetStateAction<SyllabusWeek[]>>;
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: Dispatch<SetStateAction<boolean>>;
-  isSelectedCourseOffered: boolean;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
 };
 
@@ -34,7 +33,6 @@ export function useSyllabusWeeksEditor({
   setWeeks,
   hasUnsavedChanges,
   setHasUnsavedChanges,
-  isSelectedCourseOffered,
   setIsSaving,
 }: UseSyllabusWeeksEditorArgs) {
   const [weekEditId, setWeekEditId] = useState<string | null>(null);
@@ -44,9 +42,9 @@ export function useSyllabusWeeksEditor({
     null
   );
 
-  function ensureCourseOffered() {
-    if (!selectedCourse || !isSelectedCourseOffered) {
-      toast.error('ابتدا این درس را ارائه دهید.');
+  function ensureCourseSelected() {
+    if (!selectedTermId || !selectedCourse) {
+      toast.error('ابتدا ترم و درس را انتخاب کنید.');
       return false;
     }
     return true;
@@ -67,7 +65,7 @@ export function useSyllabusWeeksEditor({
   }
 
   function restoreWeek(target: SyllabusWeek) {
-    if (!ensureCourseOffered()) return;
+    if (!ensureCourseSelected()) return;
     setWeeks((prev) =>
       prev.map((week) =>
         week.id === target.id ? { ...week, status: 'active' as const } : week
@@ -80,7 +78,7 @@ export function useSyllabusWeeksEditor({
   }
 
   function archiveWeek(target: SyllabusWeek) {
-    if (!ensureCourseOffered()) return;
+    if (!ensureCourseSelected()) return;
     setWeeks((prev) =>
       prev.map((week) =>
         week.id === target.id
@@ -93,7 +91,7 @@ export function useSyllabusWeeksEditor({
   }
 
   function addWeek() {
-    if (!ensureCourseOffered()) return;
+    if (!ensureCourseSelected()) return;
     setWeeks((prev) => {
       const n = prev.length + 1;
       const label = `هفته ${n}`;
@@ -111,7 +109,7 @@ export function useSyllabusWeeksEditor({
   }
 
   function requestDeleteWeek(target: SyllabusWeek) {
-    if (!ensureCourseOffered()) return;
+    if (!ensureCourseSelected()) return;
     setDeleteWeekTarget(target);
   }
 
@@ -129,7 +127,6 @@ export function useSyllabusWeeksEditor({
   }
 
   function openWeekEdit(week: SyllabusWeek) {
-    if (week.status === 'archived') return;
     setWeekEditId(week.id);
     setWeekEditTitle(week.title || week.suffix);
     setWeekEditError(null);
@@ -172,6 +169,8 @@ export function useSyllabusWeeksEditor({
       );
       await SyllabusConfigService.saveSyllabusWeeks({
         courseOfferingId,
+        termId: selectedTermId,
+        courseCatalogId: selectedCourse.id,
         weeks,
       });
       setHasUnsavedChanges(false);

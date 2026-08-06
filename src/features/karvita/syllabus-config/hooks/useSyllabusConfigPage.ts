@@ -106,7 +106,6 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     setWeeks,
     hasUnsavedChanges,
     setHasUnsavedChanges,
-    isSelectedCourseOffered,
     setIsSaving,
   });
 
