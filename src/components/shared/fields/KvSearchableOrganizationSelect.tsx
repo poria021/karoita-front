@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, forwardRef } from 'react';
 import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvOverlayScrollMoreCue } from '@/components/shared/KvOverlayScrollMoreCue';
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import {
@@ -161,7 +162,10 @@ export const KvSearchableOrganizationSelect = forwardRef<
           id={`org-select-${type}`}
           shouldFilter={false}
           loop
-          className={cn(kvOverlayPanelClassName, 'absolute start-0 z-50 mt-1 w-full')}
+          className={cn(
+            kvOverlayPanelClassName,
+            'absolute start-0 z-50 mt-1 flex w-full max-h-60 flex-col overflow-hidden'
+          )}
         >
           <Command.List
             ref={mergeEdgeAutoScrollRef(edgeScroll.ref, listRef)}
@@ -169,7 +173,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
             onScroll={handleListScroll}
             onPointerMove={edgeScroll.onPointerMove}
             onPointerLeave={edgeScroll.onPointerLeave}
-            className="max-h-52 overflow-y-auto overflow-x-hidden outline-none"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden outline-none"
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-kv-pair px-3.5 py-3">
@@ -250,6 +254,11 @@ export const KvSearchableOrganizationSelect = forwardRef<
               </Command.Empty>
             )}
           </Command.List>
+          <KvOverlayScrollMoreCue
+            visible={edgeScroll.canScrollDown}
+            onHoverStart={edgeScroll.nudgeDown}
+            onHoverEnd={edgeScroll.stop}
+          />
         </Command>
       ) : null}
     </div>

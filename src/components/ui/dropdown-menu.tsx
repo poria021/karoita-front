@@ -4,10 +4,8 @@ import * as React from "react"
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 
 import { FaIcon } from "@/components/shared/FaIcon"
-import {
-  mergeEdgeAutoScrollRef,
-  useEdgeAutoScroll,
-} from "@/hooks/useEdgeAutoScroll"
+import { KvOverlayScrollMoreCue } from "@/components/shared/KvOverlayScrollMoreCue"
+import { useEdgeAutoScroll } from "@/hooks/useEdgeAutoScroll"
 import { cn } from "@/lib/utils"
 import { faIcons } from "@/utils/iconMap"
 
@@ -42,6 +40,7 @@ function DropdownMenuContent({
   ref,
   onPointerMove,
   onPointerLeave,
+  children,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   const edgeScroll = useEdgeAutoScroll<HTMLDivElement>()
@@ -50,23 +49,35 @@ function DropdownMenuContent({
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
-        data-edge-auto-scroll=""
-        ref={mergeEdgeAutoScrollRef(edgeScroll.ref, ref)}
+        ref={ref}
         sideOffset={sideOffset}
-        onPointerMove={(event) => {
-          edgeScroll.onPointerMove(event)
-          onPointerMove?.(event)
-        }}
-        onPointerLeave={(event) => {
-          edgeScroll.onPointerLeave()
-          onPointerLeave?.(event)
-        }}
         className={cn(
-          "bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-kv-control border border-kv-border p-1 shadow-kv-overlay",
+          "bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 flex max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) flex-col overflow-hidden rounded-kv-control border border-kv-border p-0 shadow-kv-overlay",
           className
         )}
         {...props}
-      />
+      >
+        <div
+          data-edge-auto-scroll=""
+          ref={edgeScroll.ref}
+          onPointerMove={(event) => {
+            edgeScroll.onPointerMove(event)
+            onPointerMove?.(event)
+          }}
+          onPointerLeave={(event) => {
+            edgeScroll.onPointerLeave()
+            onPointerLeave?.(event)
+          }}
+          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-1"
+        >
+          {children}
+        </div>
+        <KvOverlayScrollMoreCue
+          visible={edgeScroll.canScrollDown}
+          onHoverStart={edgeScroll.nudgeDown}
+          onHoverEnd={edgeScroll.stop}
+        />
+      </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>
   )
 }

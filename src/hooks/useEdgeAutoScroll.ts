@@ -4,8 +4,9 @@ import {
   useCallback,
   useEffect,
   useRef,
-  type Ref,
+  useState,
   type MutableRefObject,
+  type Ref,
 } from 'react';
 
 import {
@@ -36,6 +37,19 @@ export function useEdgeAutoScroll<T extends HTMLElement = HTMLElement>(
   const enabledRef = useRef(enabled);
   const edgeSizeRef = useRef(edgeSize);
   const maxSpeedRef = useRef(maxSpeed);
+  const [canScrollDown, setCanScrollDown] = useState(false);
+
+  const syncOverflow = useCallback(() => {
+    const target = resolveScrollableTarget(nodeRef.current);
+    if (!target) {
+      setCanScrollDown(false);
+      return;
+    }
+    const next =
+      target.scrollHeight > target.clientHeight + 1 &&
+      target.scrollTop + target.clientHeight < target.scrollHeight - 2;
+    setCanScrollDown((prev) => (prev === next ? prev : next));
+  }, []);
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -56,6 +70,7 @@ export function useEdgeAutoScroll<T extends HTMLElement = HTMLElement>(
               maxScroll,
               Math.max(0, target.scrollTop + velocity)
             );
+            syncOverflow();
           }
         }
       }
@@ -66,11 +81,61 @@ export function useEdgeAutoScroll<T extends HTMLElement = HTMLElement>(
       window.cancelAnimationFrame(rafRef.current);
       velocityRef.current = 0;
     };
-  }, []);
+  }, [syncOverflow]);
 
-  const setRef = useCallback((node: T | null) => {
-    nodeRef.current = node;
-    if (!node) velocityRef.current = 0;
+  const bindOverflowListeners = useCallback(
+    (node: T | null) => {
+      const target = resolveScrollableTarget(node);
+      if (!target) {
+        setCanScrollDown(false);
+        return () => undefined;
+      }
+
+      const onScroll = () => syncOverflow();
+      target.addEventListener('scroll', onScroll, { passive: true });
+      const observer = new ResizeObserver(() => syncOverflow());
+      observer.observe(target);
+      // Content size changes (options loading) live on children.
+      if (target.firstElementChild) {
+        observer.observe(target.firstElementChild);
+      }
+      syncOverflow();
+
+      return () => {
+        target.removeEventListener('scroll', onScroll);
+        observer.disconnect();
+      };
+    },
+    [syncOverflow]
+  );
+
+  const cleanupOverflowRef = useRef<(() => void) | null>(null);
+
+  const setRef = useCallback(
+    (node: T | null) => {
+      cleanupOverflowRef.current?.();
+      cleanupOverflowRef.current = null;
+      nodeRef.current = node;
+      if (!node) {
+        velocityRef.current = 0;
+        setCanScrollDown(false);
+        return;
+      }
+      // Nested viewport may mount a tick later (Radix Select).
+      cleanupOverflowRef.current = bindOverflowListeners(node);
+      window.requestAnimationFrame(() => {
+        cleanupOverflowRef.current?.();
+        cleanupOverflowRef.current = bindOverflowListeners(node);
+      });
+    },
+    [bindOverflowListeners]
+  );
+
+  useEffect(() => {
+    return () => {
+      cleanupOverflowRef.current?.();
+      cleanupOverflowRef.current = null;
+    };
   }, []);
 
   const onPointerMove = useCallback(
@@ -108,10 +173,23 @@ export function useEdgeAutoScroll<T extends HTMLElement = HTMLElement>(
     velocityRef.current = 0;
   }, []);
 
+  const nudgeDown = useCallback(() => {
+    if (!enabledRef.current) return;
+    velocityRef.current = maxSpeedRef.current;
+  }, []);
+
+  const stop = useCallback(() => {
+    velocityRef.current = 0;
+  }, []);
+
   return {
     ref: setRef,
     onPointerMove,
     onPointerLeave,
+    canScrollDown,
+    nudgeDown,
+    stop,
+    syncOverflow,
   };
 }
 

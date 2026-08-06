@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvOverlayScrollMoreCue } from '@/components/shared/KvOverlayScrollMoreCue';
 import { KvTypography } from '@/components/shared/KvTypography';
 import {
   kvOverlayItemClassName,
@@ -152,7 +153,7 @@ export function KvSearchableCombobox({
           loop
           className={cn(
             kvOverlayPanelClassName,
-            'absolute start-0 top-full z-50 mt-1 w-full'
+            'absolute start-0 top-full z-50 mt-1 flex w-full max-h-56 flex-col overflow-hidden'
           )}
         >
           <Command.List
@@ -160,7 +161,7 @@ export function KvSearchableCombobox({
             data-edge-auto-scroll=""
             onPointerMove={edgeScroll.onPointerMove}
             onPointerLeave={edgeScroll.onPointerLeave}
-            className="max-h-48 overflow-y-auto overflow-x-hidden outline-none"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden outline-none"
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-kv-pair px-kv-group py-kv-pair">
@@ -196,6 +197,11 @@ export function KvSearchableCombobox({
               </Command.Empty>
             )}
           </Command.List>
+          <KvOverlayScrollMoreCue
+            visible={edgeScroll.canScrollDown}
+            onHoverStart={edgeScroll.nudgeDown}
+            onHoverEnd={edgeScroll.stop}
+          />
         </Command>
       ) : null}
     </div>

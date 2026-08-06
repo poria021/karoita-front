@@ -191,12 +191,22 @@ function SelectScrollDownButton({
     <SelectPrimitive.ScrollDownButton
       data-slot="select-scroll-down-button"
       className={cn(
-        "flex cursor-pointer items-center justify-center py-1",
+        "flex cursor-pointer items-center justify-center",
+        "bg-gradient-to-t from-kv-surface from-35% via-kv-surface/90 to-transparent",
+        "pt-3 pb-1",
         className
       )}
       {...props}
     >
-      <FaIcon icon={faIcons.chevronDown} size="sm" />
+      <span
+        aria-hidden="true"
+        className={cn(
+          "flex size-7 items-center justify-center rounded-full",
+          "border border-kv-border bg-kv-surface-muted text-kv-text-muted shadow-kv-raised"
+        )}
+      >
+        <FaIcon icon={faIcons.chevronDown} size="2xs" />
+      </span>
     </SelectPrimitive.ScrollDownButton>
   )
 }
