@@ -38,7 +38,7 @@ export function DailyApprovalsWorkspaceHeader({
   return (
     <div
       data-slot="daily-approvals-workspace-header"
-      className="rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised"
+      className="rounded-kv-control border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised"
     >
       <div className="flex flex-col items-stretch justify-between gap-kv-group sm:flex-row sm:items-center">
         <KvTypography variant="title" weight="bold" as="h2">
@@ -61,7 +61,10 @@ export function DailyApprovalsWorkspaceHeader({
           <div className="w-full shrink-0 sm:w-52">
             {selectedTermId ? (
               <KvSelect value={selectedTermId} onValueChange={onTermChange}>
-                <KvSelectTrigger aria-label="نیم‌سال تحصیلی">
+                <KvSelectTrigger
+                  aria-label="نیم‌سال تحصیلی"
+                  className="bg-kv-surface shadow-kv-raised"
+                >
                   <KvSelectValue placeholder="نیم‌سال تحصیلی" />
                 </KvSelectTrigger>
                 <KvSelectContent>
