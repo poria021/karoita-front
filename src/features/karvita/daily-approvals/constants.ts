@@ -133,9 +133,9 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
         label: 'پیش‌نویس',
         legendLabel: 'پیش‌نویس',
         className:
-          'border-kv-border bg-kv-surface-muted text-kv-text-secondary',
+          'border-kv-neutral-border bg-kv-neutral-soft text-kv-neutral-soft-fg',
         hoverClassName:
-          'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-text-secondary',
+          'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-neutral-soft-fg',
         icon: faIcons.clipboardList,
       };
     case 'pending':
@@ -143,9 +143,9 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
         label: 'منتظر بازخورد مدرسه',
         legendLabel: 'ارسال‌شده',
         className:
-          'border-kv-warning-border bg-kv-warning-soft text-kv-warning-soft-fg',
+          'border-kv-info-border bg-kv-info-soft text-kv-info-soft-fg',
         hoverClassName:
-          'enabled:hover:bg-kv-warning-soft-hover enabled:hover:text-kv-warning-soft-fg',
+          'enabled:hover:bg-kv-info-soft-hover enabled:hover:text-kv-info-soft-fg',
         icon: faIcons.clock,
       };
     case 'needs_edit':
@@ -188,7 +188,7 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
       return {
         label: 'حذف',
         className:
-          'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
+          'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg opacity-55',
         hoverClassName: 'enabled:hover:bg-inherit enabled:hover:text-inherit',
         icon: faIcons.lock,
       };
@@ -197,14 +197,15 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
         label: 'پیش‌نویس',
         legendLabel: 'پیش‌نویس',
         className:
-          'border-kv-border bg-kv-surface-muted text-kv-text-secondary',
+          'border-kv-neutral-border bg-kv-neutral-soft text-kv-neutral-soft-fg',
         hoverClassName:
-          'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-text-secondary',
+          'enabled:hover:bg-kv-neutral-soft-hover enabled:hover:text-kv-neutral-soft-fg',
         icon: faIcons.clipboardList,
       };
   }
 }
 
+/** Same status set + order as internship-enrollment week legend. */
 export const WEEK_LEGEND_ITEMS: readonly {
   label: string;
   icon: (typeof faIcons)[keyof typeof faIcons];
@@ -213,6 +214,8 @@ export const WEEK_LEGEND_ITEMS: readonly {
   [
     'locked_future',
     'overdue',
+    'extended',
+    'draft',
     'pending',
     'needs_edit',
     'approved',

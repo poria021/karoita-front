@@ -358,7 +358,8 @@
   --kv-info-soft: hsl(214 100% 96.9%);
   --kv-info-soft-hover: hsl(214 94.6% 92.7%);
   --kv-info-soft-fg: hsl(226 70.7% 40.2%);
-  --kv-info-border: hsl(213 96.9% 87.3%);
+  /* Match other status borders (success/warning) for readable soft chips/cards. */
+  --kv-info-border: hsl(221 65% 52%);
 
   --kv-violet: hsl(271 81% 46%);
   --kv-violet-hover: hsl(272 72% 40%);
