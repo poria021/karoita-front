@@ -1,0 +1,32 @@
+import Link from 'next/link';
+
+import { KvButton } from '@/components/shared/KvButton';
+import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
+import { RouteService } from '@/services/route.service';
+
+/** In-shell 404 for `notFound()` under `/(app)` (keeps Header/Sidebar). */
+export default function AppNotFound() {
+  return (
+    <KvRouteStatus
+      kind="notFound"
+      layout="inset"
+      title="صفحه مورد نظر یافت نشد"
+      description="این مسیر در سامانه وجود ندارد یا امکان دسترسی به آن فراهم نیست."
+      hint="از منو یا میز کار مسیر صحیح را انتخاب نمایید."
+      actions={
+        <>
+          <KvButton asChild color="cta">
+            <Link href={RouteService.karvita.entry()} prefetch={false}>
+              بازگشت به میز کار
+            </Link>
+          </KvButton>
+          <KvButton asChild color="neutral" appearance="text">
+            <Link href={RouteService.marketing.home()} prefetch={false}>
+              صفحه اصلی
+            </Link>
+          </KvButton>
+        </>
+      }
+    />
+  );
+}

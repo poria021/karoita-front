@@ -26,6 +26,8 @@ const nextConfig: NextConfig = {
    */
   experimental: {
     turbopackMemoryEviction: 'full',
+    /** Enables `forbidden()` / `unauthorized()` + their App Router pages. */
+    authInterrupts: true,
   },
   async headers() {
     return [

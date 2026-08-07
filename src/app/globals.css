@@ -712,6 +712,29 @@ input[readonly]:-webkit-autofill {
 }
 
 /*
+ * Soft float for route-status line art — quiet presence only.
+ */
+@keyframes kv-route-status-art-float {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-0.3rem);
+  }
+}
+
+.kv-route-status-art {
+  animation: kv-route-status-art-float 3.8s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-route-status-art {
+    animation: none;
+  }
+}
+
+/*
  * Official Karvita mark — transparent silhouette; color via currentColor
  * (e.g. text-kv-brand). No baked background.
  */

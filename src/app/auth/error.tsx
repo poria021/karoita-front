@@ -3,10 +3,9 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { RouteService } from '@/services/route.service';
-import { faIcons } from '@/utils/iconMap';
 
 interface AuthErrorProps {
   error: Error & { digest?: string };
@@ -19,29 +18,23 @@ export default function AuthError({ error, reset }: AuthErrorProps) {
   }, [error]);
 
   return (
-    <div
-      className="flex min-h-dvh flex-col items-center justify-center gap-4 p-8 text-center"
-      dir="rtl"
-    >
-      <div className="flex size-12 items-center justify-center rounded-kv-panel bg-kv-danger-soft text-kv-danger">
-        <FaIcon icon={faIcons.triangleExclamation} size="lg" />
-      </div>
-      <div className="space-y-2">
-        <h2 className="text-sm font-black text-kv-text">خطا در صفحه احراز هویت</h2>
-        <p className="max-w-md text-xs font-bold text-kv-text-subtle">
-          لطفاً دوباره تلاش کنید یا به صفحه ورود بازگردید.
-        </p>
-      </div>
-      <div className="flex flex-wrap items-center justify-center gap-2">
-        <KvButton type="button" color="cta" onClick={reset}>
-          تلاش مجدد
-        </KvButton>
-        <KvButton asChild appearance="secondary">
-          <Link href={RouteService.auth.login()} prefetch={false}>
-            صفحه ورود
-          </Link>
-        </KvButton>
-      </div>
-    </div>
+    <KvRouteStatus
+      kind="error"
+      title="خطا در احراز هویت"
+      description="بارگذاری این صفحه با اختلال مواجه شده است."
+      hint="لطفاً مجدداً تلاش کنید یا به صفحه ورود بازگردید."
+      actions={
+        <>
+          <KvButton type="button" color="cta" onClick={reset}>
+            تلاش مجدد
+          </KvButton>
+          <KvButton asChild appearance="secondary">
+            <Link href={RouteService.auth.login()} prefetch={false}>
+              صفحه ورود
+            </Link>
+          </KvButton>
+        </>
+      }
+    />
   );
 }
