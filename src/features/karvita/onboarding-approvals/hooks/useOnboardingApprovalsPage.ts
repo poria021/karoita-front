@@ -5,8 +5,10 @@ import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
-import { isMockApiMode } from '@/lib/api-mode';
-import { subscribeMockAuthUsers } from '@/services/auth/mock-auth.store';
+import {
+  resolveListSearchQuery,
+  SEARCH_DEBOUNCE_MS,
+} from '@/lib/search-debounce';
 import {
   ONBOARDING_APPROVALS_PAGE_SIZE,
   OnboardingApprovalsService,
@@ -23,8 +25,6 @@ import {
   ONBOARDING_APPROVALS_PROVINCES_KEY,
   onboardingApprovalsListResetKey,
 } from '../lib/onboardingApprovalsListKeys';
-
-const SEARCH_DEBOUNCE_MS = 300;
 
 type OnboardingChrome = {
   tab: ApprovalFilterTab;
@@ -59,7 +59,7 @@ export function useOnboardingApprovalsPage() {
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
 
-  const listQuery = query.trim() === '' ? '' : debouncedQuery;
+  const listQuery = resolveListSearchQuery(query, debouncedQuery);
   const resetKey = onboardingApprovalsListResetKey(tab, listQuery, province);
 
   useEffect(() => {
@@ -83,16 +83,12 @@ export function useOnboardingApprovalsPage() {
         items: page.items,
         total: page.total,
         hasMore: page.hasMore,
-        provinces: page.provinces,
       };
     },
     [tab, listQuery, province]
   );
 
-  const list = useOffsetLimitInfiniteList<
-    OnboardingApprovalUser,
-    { provinces: string[] }
-  >({
+  const list = useOffsetLimitInfiniteList<OnboardingApprovalUser>({
     resetKey,
     fetchPage,
     pageSize: ONBOARDING_APPROVALS_PAGE_SIZE,
@@ -112,26 +108,30 @@ export function useOnboardingApprovalsPage() {
     clearLoadMoreError,
   } = list;
 
-  // Extract provinces from first page
   useEffect(() => {
-    const firstPage = list.data?.pages[0];
-    if (firstPage?.provinces && firstPage.provinces.length > 0) {
-      // Only update if different to avoid unnecessary setState
-      setProvinces((prev) => {
-        const isSame =
-          prev.length === firstPage.provinces.length &&
-          prev.every((p, i) => p === firstPage.provinces[i]);
-        if (isSame) return prev;
-        setData(ONBOARDING_APPROVALS_PROVINCES_KEY, firstPage.provinces);
-        return firstPage.provinces;
+    let cancelled = false;
+    void OnboardingApprovalsService.listProvinces()
+      .then((next) => {
+        if (cancelled || next.length === 0) return;
+        setProvinces((prev) => {
+          const isSame =
+            prev.length === next.length &&
+            prev.every((p, i) => p === next[i]);
+          if (isSame) return prev;
+          setData(ONBOARDING_APPROVALS_PROVINCES_KEY, next);
+          return next;
+        });
+      })
+      .catch(() => {
+        /* filter chrome stays usable without province options */
       });
-    }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing query result metadata to UI state
-  }, [list.data, setData]);
+    return () => {
+      cancelled = true;
+    };
+  }, [resetKey, setData]);
 
   useEffect(() => {
-    if (!isMockApiMode()) return;
-    return subscribeMockAuthUsers(() => {
+    return OnboardingApprovalsService.subscribeDirectoryChanges(() => {
       void reload();
     });
   }, [reload]);
@@ -159,7 +159,6 @@ export function useOnboardingApprovalsPage() {
       setActionBusy(true);
       try {
         await OnboardingApprovalsService.approveIdentityDoc(user.id);
-        toast.success('وضعیت پرونده تغییر یافت و لیست سورت شد.');
         setSelectedId(null);
         setShowRejectForm(false);
         setRejectReason('');
@@ -189,7 +188,6 @@ export function useOnboardingApprovalsPage() {
           user.id,
           rejectReason
         );
-        toast.success('وضعیت پرونده تغییر یافت و لیست سورت شد.');
         setSelectedId(null);
         setShowRejectForm(false);
         setRejectReason('');

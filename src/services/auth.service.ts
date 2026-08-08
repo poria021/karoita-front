@@ -56,10 +56,19 @@ function rejectMockOtpInReal(otp: string): void {
 }
 
 /**
- * Facade احراز هویت — ورود، ثبت‌نام، OTP و نشست.
- * UI فقط از این لایه صدا می‌زند؛ مسیر mock/real داخل همین کلاس جدا می‌شود.
+ * Auth facade — login, OTP, registration, session.
+ * UI talks only here; mock vs Nest is swapped inside (see real-auth.bridge).
+ *
+ * Nest map (via REAL_AUTH_PATHS):
+ * - POST /auth/login
+ * - POST /auth/otp/login/send|verify
+ * - POST /auth/admin/otp/send|verify
+ * - POST /auth/register + /auth/otp/register/verify
+ * - POST /auth/password/forgot/* + /auth/password/initial
+ * - POST /auth/logout · GET /auth/session
  */
 export class AuthService {
+  /** POST /auth/login */
   static async loginWithCredentials(
     mobile: string,
     password: string
@@ -70,6 +79,7 @@ export class AuthService {
     return realLoginWithCredentials(mobile, password);
   }
 
+  /** POST /auth/otp/login/send */
   static async sendLoginOtp(mobile: string): Promise<void> {
     if (IS_MOCK_MODE) {
       mockSendLoginOtp(mobile);
@@ -78,6 +88,7 @@ export class AuthService {
     return realSendLoginOtp(mobile);
   }
 
+  /** POST /auth/otp/login/verify */
   static async verifyLoginOtp(mobile: string, otp: string): Promise<User> {
     if (IS_MOCK_MODE) {
       return mockVerifyLoginOtp(mobile, otp);
@@ -86,6 +97,7 @@ export class AuthService {
     return realVerifyLoginOtp(mobile, otp);
   }
 
+  /** POST /auth/admin/otp/send */
   static async sendAdminGateOtp(mobile: string): Promise<void> {
     if (IS_MOCK_MODE) {
       mockSendAdminGateOtp(mobile);
@@ -94,6 +106,7 @@ export class AuthService {
     return realSendAdminGateOtp(mobile);
   }
 
+  /** POST /auth/admin/otp/verify */
   static async verifyAdminGateOtp(mobile: string, otp: string): Promise<User> {
     if (IS_MOCK_MODE) {
       return mockVerifyAdminGateOtp(mobile, otp);
@@ -102,6 +115,7 @@ export class AuthService {
     return realVerifyAdminGateOtp(mobile, otp);
   }
 
+  /** POST /auth/register */
   static async register(payload: RegisterPayload): Promise<void> {
     if (IS_MOCK_MODE) {
       mockRegister(payload.mobile);
@@ -110,6 +124,7 @@ export class AuthService {
     await realRegister(payload.mobile);
   }
 
+  /** POST /auth/otp/register/verify */
   static async verifyRegistrationOtp(
     mobile: string,
     otp: string,
@@ -122,6 +137,7 @@ export class AuthService {
     return realVerifyRegistrationOtp(mobile, otp, role);
   }
 
+  /** POST /auth/password/forgot/send */
   static async sendForgotPasswordOtp(mobile: string): Promise<void> {
     if (IS_MOCK_MODE) {
       mockSendForgotPasswordOtp(mobile);
@@ -130,6 +146,7 @@ export class AuthService {
     return realSendForgotPasswordOtp(mobile);
   }
 
+  /** POST /auth/password/forgot/verify */
   static async verifyForgotPasswordOtp(
     mobile: string,
     otp: string
@@ -142,6 +159,7 @@ export class AuthService {
     return realVerifyForgotPasswordOtp(mobile, otp);
   }
 
+  /** POST /auth/password/forgot/reset */
   static async resetPassword(
     mobile: string,
     otp: string,
@@ -155,6 +173,7 @@ export class AuthService {
     return realResetPassword(mobile, otp, newPassword);
   }
 
+  /** POST /auth/password/initial */
   static async setInitialPassword(
     mobile: string,
     newPassword: string
@@ -169,6 +188,7 @@ export class AuthService {
     return realSetInitialPassword(mobile, newPassword);
   }
 
+  /** POST /auth/logout — clears local session even if Nest call fails */
   static async logout(): Promise<void> {
     if (!IS_MOCK_MODE) {
       try {
@@ -178,6 +198,7 @@ export class AuthService {
     dispatchSessionToStore(null);
   }
 
+  /** Read-only session peek — no cookie/store side-effects during render */
   static peekSession(): Session | null {
     const activeUser = useUserStore.getState().activeUser;
     if (!activeUser) return null;
@@ -196,6 +217,7 @@ export class AuthService {
     };
   }
 
+  /** Clears expired mock session; call from effects, not during render */
   static validateSession(): Session | null {
     const activeUser = useUserStore.getState().activeUser;
     if (!activeUser) return null;
@@ -214,5 +236,10 @@ export class AuthService {
 
   static getSession(): Session | null {
     return AuthService.peekSession();
+  }
+
+  /** DX-only mock OTP; real mode always null — never treat as auth */
+  static getMockOtpHint(): string | null {
+    return IS_MOCK_MODE ? MOCK_OTP_CODE : null;
   }
 }

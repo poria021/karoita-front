@@ -21,6 +21,7 @@ const INTERNSHIP_LEVEL_PATHS: readonly string[] = [
 /**
  * مسیرهایی که واقعاً صفحه زنده دارند.
  * منوی سایدبار فقط لینک‌های live را نشان دهد تا 404 اعلام‌نشده نرود.
+ * مسیرهای IA بدون صفحه → `PlannedRoutes` در `planned-routes.ts`.
  */
 export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.marketing.home(),

@@ -3,6 +3,7 @@ import type { ProfileDto } from '@/types/profile';
 
 import { ProfileServiceError } from './profile.mappers';
 
+/** Nest profile transport — used by ProfileService when API_MODE=real. */
 export async function requestProfile(
   method: 'GET' | 'PUT',
   token?: string,
@@ -14,8 +15,10 @@ export async function requestProfile(
 
   try {
     if (method === 'GET') {
+      // GET /profile
       return await apiClient.getJson<unknown>('profile', token);
     }
+    // PUT /profile
     return await apiClient.putJson<unknown>('profile', data, token);
   } catch (error) {
     if (error instanceof ApiClientError) {
@@ -25,6 +28,7 @@ export async function requestProfile(
   }
 }
 
+/** PUT /profile/identity-document */
 export async function requestIdentityDocument(
   documentBase64: string,
   token?: string

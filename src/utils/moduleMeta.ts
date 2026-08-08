@@ -1,3 +1,4 @@
+import { PlannedRoutes } from '@/services/planned-routes';
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import {
@@ -58,7 +59,7 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'پنل حاکمیتی سامانه کارویتا — بررسی مدارک، دسترسی‌ها و پیکربندی سازمانی.',
     icon: 'fa-user-shield',
   },
-  [RouteService.karvita.dailyReports()]: {
+  [PlannedRoutes.dailyReports()]: {
     title: 'ثبت و ارسال گزارش روزانه',
     description:
       'ورود اطلاعات حضور، شرح اقدامات آموزشی کلاس درس و مستندات عملکرد.',
@@ -71,32 +72,32 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
     icon: 'fa-clipboard-check',
     showSemester: true,
   },
-  [RouteService.karvita.traineesManagement()]: {
+  [PlannedRoutes.traineesManagement()]: {
     title: 'مدیریت کارورزان',
     description: 'صفحه مدیریت و پایش فرآیندهای مدیریت کارورزان.',
     icon: 'fa-id-card',
   },
-  [RouteService.karvita.studentsList()]: {
+  [PlannedRoutes.studentsList()]: {
     title: 'ثبت‌نام دانش‌آموزان و مهارت‌آموزان',
     description:
       'افزودن دانشجویان و مهارت‌آموزان جدید، تفکیک بر اساس نوع دوره، ویرایش مشخصات و مدارک ثبت‌نام.',
     icon: 'fa-user-group',
   },
-  [RouteService.karvita.standardReports()]: {
+  [PlannedRoutes.standardReports()]: {
     title: 'گزارش‌های استاندارد سیستمی',
     description:
       'گزارش‌گیری متمرکز بر نمرات، ساعات کارگاهی، لاگ‌های سیستمی و وضعیت تکمیل گزارش‌ها.',
     icon: 'fa-file-invoice',
     showSemester: true,
   },
-  [RouteService.karvita.comparativeReports()]: {
+  [PlannedRoutes.comparativeReports()]: {
     title: 'تحلیل مقایسه‌ای عملکرد',
     description:
       'رصد رقابتی و مقایسه عملکرد دانشکده‌ها، اساتید، مدارس و فراگیران بر اساس شاخص‌های آموزشی.',
     icon: 'fa-chart-column',
     showSemester: true,
   },
-  [RouteService.karvita.termLifecycle()]: {
+  [PlannedRoutes.termLifecycle()]: {
     title: 'مدیریت بازه‌ها و چرخه ترم',
     description:
       'تعیین زمان‌بندی دقیق، مهلت‌های انتخاب واحد و فعال‌سازی دستی دسترسی‌ها برای نیم‌سال جاری.',
@@ -114,7 +115,7 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'تعریف دوره‌های تحصیلی، ظرفیت استاد و آستانه نمره قبولی در سطح سامانه.',
     icon: 'fa-clock-rotate-left',
   },
-  [RouteService.karvita.locations()]: {
+  [PlannedRoutes.locations()]: {
     title: 'مکان‌ها و مناطق',
     description: 'صفحه مدیریت و پایش فرآیندهای مکان‌ها و مناطق.',
     icon: 'fa-map',
@@ -125,13 +126,13 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'تأیید صلاحیت هویتی و مدارک کارورزان و مربیان جهت فعال‌سازی پنل کاربری.',
     icon: 'fa-id-card',
   },
-  [RouteService.karvita.userPermissions()]: {
+  [PlannedRoutes.userPermissions()]: {
     title: 'مدیریت دسترسی‌های پویا (RBAC)',
     description:
       'تعریف دامنه‌های سازمانی (Scope)، ارتقای موقت نقش و ویرایش مجوزهای ممیزی کاربران.',
     icon: 'fa-user-gear',
   },
-  [RouteService.karvita.manageAds()]: {
+  [PlannedRoutes.manageAds()]: {
     title: 'پنل انتشارات و اعلانات',
     description:
       'بخش مدیریت عالی انتشارات، اعلانات استانی و اخبار رسمی سامانه جامع کارویتا.',
@@ -185,7 +186,7 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'پنل تعریف دستی حساب‌های ارشد، سازمان‌های مرکزی، پردیس‌ها و دستیاران اجرایی سیستم.',
     icon: 'fa-user-plus',
   },
-  [RouteService.karvita.academicEvaluation()]: {
+  [PlannedRoutes.academicEvaluation()]: {
     title: 'ارزیابی علمی',
     description: 'صفحه مدیریت و پایش فرآیندهای ارزیابی علمی.',
     icon: 'fa-clipboard-check',
@@ -261,7 +262,7 @@ export function getModuleMeta(
     return MODULE_META_BY_PATH[path] ?? FALLBACK_META;
   }
 
-  if (path === RouteService.karvita.standardReports()) {
+  if (path === PlannedRoutes.standardReports()) {
     const base = MODULE_META_BY_PATH[path] ?? FALLBACK_META;
     if (role && STANDARD_REPORTS_DESC_BY_ROLE[role]) {
       return {

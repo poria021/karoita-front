@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type Dispatch, type SetStateAction } from 'react';
+import { type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
 import { scheduleUndoableLocalChange } from '@/lib/undoable-mutation';
@@ -11,10 +11,7 @@ import {
 import type { CourseCatalogItem, SyllabusWeek } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-import {
-  weekTitleSchema,
-  weekWeightSchema,
-} from '../schemas/syllabus-config.schema';
+import { weekWeightSchema } from '../schemas/syllabus-config.schema';
 import { errorMessage } from '../lib/syllabusPageUtils';
 
 type UseSyllabusWeeksEditorArgs = {
@@ -36,10 +33,6 @@ export function useSyllabusWeeksEditor({
   setHasUnsavedChanges,
   setIsSaving,
 }: UseSyllabusWeeksEditorArgs) {
-  const [weekEditId, setWeekEditId] = useState<string | null>(null);
-  const [weekEditTitle, setWeekEditTitle] = useState('');
-  const [weekEditError, setWeekEditError] = useState<string | null>(null);
-
   function ensureCourseSelected() {
     if (!selectedTermId || !selectedCourse) {
       toast.error('ابتدا ترم و درس را انتخاب کنید.');
@@ -142,39 +135,6 @@ export function useSyllabusWeeksEditor({
     });
   }
 
-  function openWeekEdit(week: SyllabusWeek) {
-    setWeekEditId(week.id);
-    setWeekEditTitle(week.title || week.suffix);
-    setWeekEditError(null);
-  }
-
-  function closeWeekEdit() {
-    setWeekEditId(null);
-    setWeekEditTitle('');
-    setWeekEditError(null);
-  }
-
-  function saveWeekEdit() {
-    const parsed = weekTitleSchema.safeParse({ title: weekEditTitle });
-    if (!weekEditId || !parsed.success) {
-      setWeekEditError(
-        parsed.success
-          ? 'عنوان سرفصل الزامی است.'
-          : (parsed.error.issues[0]?.message ?? 'عنوان سرفصل الزامی است.')
-      );
-      return;
-    }
-    const title = parsed.data.title;
-    setWeeks((prev) =>
-      prev.map((week) =>
-        week.id === weekEditId ? { ...week, title, suffix: title } : week
-      )
-    );
-    setHasUnsavedChanges(true);
-    toast.warning('تغییرات در جدول اعمال شد. لطفاً ثبت نهایی کنید.');
-    closeWeekEdit();
-  }
-
   async function saveSyllabus() {
     if (!selectedTermId || !selectedCourse || !hasUnsavedChanges) return;
     setIsSaving(true);
@@ -204,13 +164,6 @@ export function useSyllabusWeeksEditor({
     archiveWeek,
     addWeek,
     deleteWeek,
-    weekEditId,
-    weekEditTitle,
-    setWeekEditTitle,
-    weekEditError,
-    openWeekEdit,
-    closeWeekEdit,
-    saveWeekEdit,
     saveSyllabus,
   };
 }

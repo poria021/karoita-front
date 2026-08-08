@@ -74,10 +74,16 @@ function friendlyError(error: unknown): Error {
 }
 
 /**
- * Facade پروفایل کاربر — خواندن/به‌روزرسانی هویت و امنیت.
- * شکل خروجی mock و real باید یکسان بماند.
+ * Profile facade — identity reads/writes + onboarding patch.
+ * Mock and real keep the same public DTO shape.
+ *
+ * Nest map:
+ * - GET  /profile
+ * - PUT  /profile
+ * - PUT  /profile/identity-document
  */
 export class ProfileService {
+  /** GET /profile */
   static async getProfile(token?: string): Promise<ProfileDto> {
     try {
       if (!isMockApiMode()) {
@@ -92,6 +98,7 @@ export class ProfileService {
     }
   }
 
+  /** PUT /profile */
   static async updateProfile(
     data: ProfileDto,
     token?: string
@@ -126,6 +133,7 @@ export class ProfileService {
     }
   }
 
+  /** Onboarding submit — real path reuses PUT /profile */
   static async updateOnboardingProfile(
     payload: UpdateOnboardingProfilePayload
   ): Promise<User> {
@@ -163,6 +171,7 @@ export class ProfileService {
     return toPublicUser(updated);
   }
 
+  /** PUT /profile/identity-document — WebP data-URL only */
   static async updateIdentityDocument(
     documentBase64: string,
     token?: string

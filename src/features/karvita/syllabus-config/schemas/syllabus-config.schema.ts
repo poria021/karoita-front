@@ -39,10 +39,6 @@ export const passingThresholdSchema = z.object({
     .refine((n) => n >= 0 && n <= 100, 'حدنصاب باید بین ۰ تا ۱۰۰ باشد.'),
 });
 
-export const weekTitleSchema = z.object({
-  title: z.string().trim().min(1, 'عنوان سرفصل الزامی است.'),
-});
-
 export const weekWeightSchema = z
   .number()
   .int()
@@ -52,4 +48,3 @@ export const weekWeightSchema = z
 export type TermFormValues = z.infer<typeof termFormSchema>;
 export type ProfessorCapacityValues = z.infer<typeof professorCapacitySchema>;
 export type PassingThresholdValues = z.infer<typeof passingThresholdSchema>;
-export type WeekTitleValues = z.infer<typeof weekTitleSchema>;

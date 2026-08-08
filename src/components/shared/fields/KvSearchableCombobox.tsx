@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type MouseEvent } from 'react';
 import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvButton } from '@/components/shared/KvButton';
 import { KvOverlayScrollMoreCue } from '@/components/shared/KvOverlayScrollMoreCue';
 import { KvTypography } from '@/components/shared/KvTypography';
 import {
@@ -85,6 +86,17 @@ export function KvSearchableCombobox({
     if (openProp === undefined) setUncontrolledOpen(next);
   };
 
+  const hasValue = value.trim().length > 0;
+  const showClear = !disabled && hasValue;
+
+  function handleClear(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (disabled) return;
+    onChange('');
+    setOpen(true);
+  }
+
   useEffect(() => {
     if (disabled) return;
 
@@ -130,7 +142,7 @@ export function KvSearchableCombobox({
           autoComplete="off"
           aria-autocomplete="list"
           aria-controls={open ? listId : undefined}
-          className="h-full w-full bg-transparent px-kv-group text-start text-xs font-medium text-kv-text outline-none placeholder:text-kv-text-faint disabled:cursor-not-allowed"
+          className="h-full w-full min-w-0 bg-transparent ps-kv-group pe-1 text-start text-xs font-medium text-kv-text outline-none placeholder:text-kv-text-faint disabled:cursor-not-allowed"
           onFocus={() => {
             if (disabled) return;
             setOpen(true);
@@ -141,8 +153,23 @@ export function KvSearchableCombobox({
             setOpen(true);
           }}
         />
-        <span className="pointer-events-none pe-kv-pair text-kv-text-faint">
-          <FaIcon icon={faIcons.chevronDown} size="2xs" />
+        <span className="flex h-full shrink-0 items-center gap-0.5 pe-kv-pair">
+          {showClear ? (
+            <KvButton
+              type="button"
+              color="error"
+              appearance="text"
+              size="xs"
+              tabIndex={-1}
+              aria-label="پاک کردن جستجو"
+              onClick={handleClear}
+              icon={<FaIcon icon={faIcons.xmark} size="sm" />}
+              className="text-kv-danger hover:text-kv-danger"
+            />
+          ) : null}
+          <span className="pointer-events-none text-kv-text-faint">
+            <FaIcon icon={faIcons.chevronDown} size="2xs" />
+          </span>
         </span>
       </div>
 

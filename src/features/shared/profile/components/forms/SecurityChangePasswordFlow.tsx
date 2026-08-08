@@ -8,8 +8,8 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvForm } from '@/components/shared/fields/KvForm';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { isMockApiMode, MOCK_MODE_LABEL } from '@/lib/api-mode';
-import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
+import { MOCK_MODE_LABEL } from '@/lib/api-mode';
+import { AuthService } from '@/services/auth.service';
 import {
   persianToEnglishDigits,
   toPersianDigits,
@@ -79,9 +79,12 @@ export function SecurityChangePasswordFlow({
             variant="info"
             title="کد تأیید ارسال شد"
             description={
-              isMockApiMode()
-                ? `کد ${MOCK_MODE_LABEL} — نه Nest: ${toPersianDigits(MOCK_OTP_CODE)}`
-                : 'کد تأیید به شماره موبایل شما ارسال شد.'
+              (() => {
+                const mockOtp = AuthService.getMockOtpHint();
+                return mockOtp
+                  ? `کد ${MOCK_MODE_LABEL} — نه Nest: ${toPersianDigits(mockOtp)}`
+                  : 'کد تأیید به شماره موبایل شما ارسال شد.';
+              })()
             }
           />
           <Controller

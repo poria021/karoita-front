@@ -138,16 +138,14 @@ export const KvSearchableOrganizationSelect = forwardRef<
         placeholder={placeholder}
         showIcon={showSearchIcon}
         endAddon={
-          <span className="flex h-full items-center pe-1.5">
-            <FaIcon
-              icon={faIcons.chevronDown}
-              size="sm"
-              className={cn(
-                'shrink-0 text-kv-text-placeholder',
-                locked && 'text-kv-text-disabled'
-              )}
-            />
-          </span>
+          <FaIcon
+            icon={faIcons.chevronDown}
+            size="sm"
+            className={cn(
+              'shrink-0 text-kv-text-placeholder',
+              locked && 'text-kv-text-disabled'
+            )}
+          />
         }
         onFocus={() => setOpen(true)}
         onChange={(event) => {

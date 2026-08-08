@@ -93,10 +93,15 @@ export type InternshipWeeklyReportFile = {
   mimeType?: string;
 };
 
+/** سطح شایستگی ۱–۵ (ASCII) — نمایش فارسی فقط در UI. */
+export type InternshipCompetencyRating = '1' | '2' | '3' | '4' | '5';
+
 export type InternshipWeeklyReportFeedback = {
   advisor?: string;
   mentor?: string;
   principal?: string;
+  mentorRating?: InternshipCompetencyRating;
+  principalRating?: InternshipCompetencyRating;
 };
 
 export type InternshipWeeklySession = {

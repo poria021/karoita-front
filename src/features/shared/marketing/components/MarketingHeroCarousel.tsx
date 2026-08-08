@@ -104,15 +104,7 @@ export function MarketingHeroCarousel({
           />
         );
 
-        const content = (
-          <>
-            {imageEl}
-            <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-kv-text/35 via-transparent to-kv-surface/25"
-              aria-hidden
-            />
-          </>
-        );
+        const content = <>{imageEl}</>;
 
         const frameClass = 'relative block size-full overflow-hidden';
 

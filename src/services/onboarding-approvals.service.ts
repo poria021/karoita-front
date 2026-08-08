@@ -4,6 +4,7 @@ import {
   findMockUserById,
   patchMockAuthUser,
   readMockUsers,
+  subscribeMockAuthUsers,
   toPublicUser,
 } from '@/services/auth/mock-auth.store';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
@@ -111,9 +112,17 @@ function patchUser(
 }
 
 /**
- * Facade تأیید ثبت‌نام — صفحه‌بندی، تأیید و رد درخواست‌های آنبوردینگ.
+ * Onboarding identity-doc approval queue.
+ * Real mode fail-closed until Nest admin review routes land.
+ *
+ * Nest map:
+ * - GET  /onboarding-approvals?status&province&query&offset&limit
+ * - POST /onboarding-approvals/:userId/approve
+ * - POST /onboarding-approvals/:userId/reject
+ * - GET  /onboarding-approvals/provinces  (or embedded in list meta)
  */
 export const OnboardingApprovalsService = {
+  /** GET /onboarding-approvals — offset/limit page + province facet */
   async listPage(
     filters: ListOnboardingApprovalsFilters
   ): Promise<ListOnboardingApprovalsPage> {
@@ -137,6 +146,7 @@ export const OnboardingApprovalsService = {
     };
   },
 
+  /** POST /onboarding-approvals/:userId/approve */
   async approveIdentityDoc(userId: string): Promise<OnboardingApprovalUser> {
     if (!IS_MOCK_MODE) {
       throwRealModeNotImplemented('OnboardingApprovalsService.approveIdentityDoc');
@@ -154,6 +164,7 @@ export const OnboardingApprovalsService = {
     });
   },
 
+  /** POST /onboarding-approvals/:userId/reject — body: { reason } */
   async rejectIdentityDoc(
     userId: string,
     reason: string
@@ -178,5 +189,22 @@ export const OnboardingApprovalsService = {
       approved: false,
       adminRequestMessage: trimmed,
     });
+  },
+
+  /** GET /onboarding-approvals/provinces — filter facet for the queue UI */
+  async listProvinces(): Promise<string[]> {
+    if (!IS_MOCK_MODE) {
+      throwRealModeNotImplemented('OnboardingApprovalsService.listProvinces');
+    }
+    requireOnboardingReview();
+    return collectProvinces();
+  },
+
+  /** Mock: auth-user store; real: no-op until Nest push/SSE */
+  subscribeDirectoryChanges(listener: () => void): () => void {
+    if (!isMockApiMode()) {
+      return () => {};
+    }
+    return subscribeMockAuthUsers(listener);
   },
 };

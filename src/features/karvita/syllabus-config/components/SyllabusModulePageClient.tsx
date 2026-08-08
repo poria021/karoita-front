@@ -10,7 +10,6 @@ import type { SyllabusConfigSubTab } from '@/types/syllabus-config';
 import { useSyllabusConfigPage } from '../hooks/useSyllabusConfigPage';
 import { CourseOfferingsPanel } from './CourseOfferingsPanel';
 import { TermSettingsPanel } from './TermSettingsPanel';
-import { WeekEditDialog } from './WeekEditDialog';
 
 type SyllabusModulePageProps = {
   section: SyllabusConfigSubTab;
@@ -64,7 +63,6 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
               hasUnsavedChanges={page.hasUnsavedChanges}
               isSaving={page.isSaving}
               updateWeekWeight={page.updateWeekWeight}
-              openWeekEdit={page.openWeekEdit}
               restoreWeek={page.restoreWeek}
               archiveWeek={page.archiveWeek}
               addWeek={page.addWeek}
@@ -100,15 +98,6 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
 
       {section === 'course_offerings' ? (
         <>
-          <WeekEditDialog
-            open={Boolean(page.weekEditId)}
-            title={page.weekEditTitle}
-            error={page.weekEditError}
-            onTitleChange={page.setWeekEditTitle}
-            onClose={page.closeWeekEdit}
-            onSave={page.saveWeekEdit}
-          />
-
           <KvConfirmationDialog
             isOpen={Boolean(page.pendingNavigation)}
             onClose={page.clearPendingNavigation}

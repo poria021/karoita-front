@@ -9,7 +9,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react';
-import { useDropzone, type FileRejection } from 'react-dropzone';
+import { useDropzone, type Accept, type FileRejection } from 'react-dropzone';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -42,13 +42,20 @@ export type KvImageDocUploaderProps = {
   optionalHint?: boolean;
   maxSizeMb?: number;
   previewAlt?: string;
+  /** Override dropzone accept map (default JPEG + PNG). */
+  accept?: Accept;
+  invalidTypeMessage?: string;
+  /**
+   * When false, skip client compress (needed for SVG logos).
+   * SVG files always skip compress even when true.
+   */
+  compress?: boolean;
   /**
    * When false, omit the muted panel chrome around the dropzone
    * (label can still be shown via KvFieldFrame).
    */
   framed?: boolean;
 };
-
 export function KvImageDocUploader({
   id: idProp,
   value,
@@ -62,6 +69,12 @@ export function KvImageDocUploader({
   optionalHint = false,
   maxSizeMb = DEFAULT_MAX_SIZE_MB,
   previewAlt = 'پیش‌نمایش تصویر بارگذاری‌شده',
+  accept = {
+    'image/jpeg': ['.jpg', '.jpeg'],
+    'image/png': ['.png'],
+  },
+  invalidTypeMessage = 'فقط فایل‌های تصویری (JPEG، PNG) مجاز هستند.',
+  compress = true,
   framed = true,
 }: KvImageDocUploaderProps) {
   const generatedId = useId();
@@ -88,10 +101,13 @@ export function KvImageDocUploader({
       if (rejectedFiles.length > 0) {
         const rejection = rejectedFiles[0];
         if (rejection.errors[0]?.code === 'file-too-large') {
-          setLocalError(
-            `حجم فایل نباید بیشتر از ${toPersianDigits(String(maxSizeMb))} مگابایت باشد.`
-          );        } else if (rejection.errors[0]?.code === 'file-invalid-type') {
-          setLocalError('فقط فایل‌های تصویری (JPEG، PNG) مجاز هستند.');
+          const sizeLabel =
+            maxSizeMb < 1
+              ? `${toPersianDigits(String(Math.round(maxSizeMb * 1024)))} کیلوبایت`
+              : `${toPersianDigits(String(maxSizeMb))} مگابایت`;
+          setLocalError(`حجم فایل نباید بیشتر از ${sizeLabel} باشد.`);
+        } else if (rejection.errors[0]?.code === 'file-invalid-type') {
+          setLocalError(invalidTypeMessage);
         } else {
           setLocalError('خطا در بارگذاری فایل. لطفاً دوباره تلاش کنید.');
         }
@@ -101,10 +117,32 @@ export function KvImageDocUploader({
       if (acceptedFiles.length === 0) return;
 
       const file = acceptedFiles[0];
+      const isSvg =
+        file.type === 'image/svg+xml' ||
+        file.name.toLowerCase().endsWith('.svg');
+
+      if (isSvg) {
+        if (file.size > maxSizeMb * 1024 * 1024) {
+          const sizeLabel =
+            maxSizeMb < 1
+              ? `${toPersianDigits(String(Math.round(maxSizeMb * 1024)))} کیلوبایت`
+              : `${toPersianDigits(String(maxSizeMb))} مگابایت`;
+          setLocalError(`حجم فایل نباید بیشتر از ${sizeLabel} باشد.`);
+          return;
+        }
+        onChange(file);
+        return;
+      }
+
       const validation = validateImageFile(file, maxSizeMb);
 
       if (!validation.isValid) {
         setLocalError(validation.error || 'فایل نامعتبر است.');
+        return;
+      }
+
+      if (!compress) {
+        onChange(file);
         return;
       }
 
@@ -128,7 +166,7 @@ export function KvImageDocUploader({
         setIsCompressing(false);
       }
     },
-    [disabled, maxSizeMb, onChange]
+    [compress, disabled, invalidTypeMessage, maxSizeMb, onChange]
   );
 
   const handleRemove = useCallback(
@@ -142,10 +180,7 @@ export function KvImageDocUploader({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-    },
+    accept,
     maxSize: maxSizeMb * 1024 * 1024,
     maxFiles: 1,
     disabled: disabled || isCompressing,

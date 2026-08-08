@@ -45,7 +45,7 @@ function gateSyllabus(): 'mock' | never {
   return 'mock';
 }
 
-/** Consumer reads (enrollment) — mock mode only; Nest will authorize separately. */
+/** Enrollment/daily-approvals consumers — Nest authorizes separately from syllabus.manage */
 function gateSyllabusConsumerRead(): 'mock' | never {
   if (!isMockApiMode()) {
     throwRealModeNotImplemented('SyllabusConfigService');
@@ -54,13 +54,23 @@ function gateSyllabusConsumerRead(): 'mock' | never {
 }
 
 /**
- * Facade مدیریت ترم و سرفصل هفتگی.
+ * Term + weekly syllabus admin facade.
+ * Real mode fail-closed. Student-week sync after save still Nest-blocked.
  *
- * Nest-blocked:
- * - همگام‌سازی هفته‌های internship دانشجو پس از saveSyllabusWeeks
- * - شاخهٔ real: fail-closed تا endpoint Nest وصل شود
+ * Nest map:
+ * - GET    /syllabus/snapshot
+ * - GET    /syllabus/enrollment-context
+ * - GET    /syllabus/passing-threshold
+ * - GET    /terms/:termId/courses|offerings
+ * - GET    /terms/:termId/offerings/:catalogId/weeks
+ * - POST   /terms · DELETE /terms/:termId
+ * - PATCH  /terms/:termId/gates
+ * - POST   /terms/:termId/offerings/activate|deactivate
+ * - PUT    /terms/:termId/offerings/:id/weeks
+ * - PATCH  /syllabus/professor-capacity|passing-threshold
  */
 export const SyllabusConfigService = {
+  /** GET /syllabus/snapshot */
   async getSnapshot(): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     return cloneSnapshot(readSyllabusSnapshot());
@@ -70,15 +80,12 @@ export const SyllabusConfigService = {
     return getAcademicYearOptions();
   },
 
-  /** مقدار پیش‌فرض سال تحصیلی برای فرم تعریف ترم (سال جاری جلالی). */
+  /** Default academic year for the create-term form (current Jalali) */
   getDefaultAcademicYear(): string {
     return getAcademicYearOptions()[1] ?? getAcademicYearOptions()[0] ?? '';
   },
 
-  /**
-   * Context ترم فعال برای انتخاب واحد — Nest: GET /syllabus/enrollment-context
-   * بدون نیاز به syllabus.manage (مصرف‌کننده enrollment).
-   */
+  /** GET /syllabus/enrollment-context — no syllabus.manage required */
   async getEnrollmentSyllabusContext(
     kind: CourseOfferingKind,
     level: number
@@ -91,16 +98,13 @@ export const SyllabusConfigService = {
     );
   },
 
-  /**
-   * حد نصاب قبولی سیستم (۰–۱۰۰) برای ارزیابی گزارش — Nest: GET /syllabus/passing-threshold
-   * مصرف‌کننده daily-approvals / progressive؛ بدون syllabus.manage.
-   */
+  /** GET /syllabus/passing-threshold — 0–100; shared by daily-approvals */
   async getPassingScoreThreshold(): Promise<number> {
     gateSyllabusConsumerRead();
     return readSyllabusSnapshot().passingScoreThreshold;
   },
 
-  /** کاتالوگ دروس ترم — Nest: GET /terms/:termId/courses */
+  /** GET /terms/:termId/courses */
   async listCoursesForTerm(termId: string): Promise<CourseCatalogItem[]> {
     gateSyllabus();
     const snapshot = readSyllabusSnapshot();
@@ -109,16 +113,13 @@ export const SyllabusConfigService = {
     return getCatalogForTermType(term.type);
   },
 
-  /** لیست ارائه با پرچم isOffered — Nest: GET /terms/:termId/offerings */
+  /** GET /terms/:termId/offerings */
   async listOfferings(termId: string): Promise<CourseOfferingListItem[]> {
     gateSyllabus();
     return listOfferingsForTerm(readSyllabusSnapshot(), termId);
   },
 
-  /**
-   * خواندن هفته‌ها — بدون side-effect / بدون seed.
-   * اگر ارائه ساخته نشده باشد `[]`.
-   */
+  /** GET weeks — read-only; [] when offering not created yet */
   async getWeeks(
     termId: string,
     courseCatalogId: string
@@ -131,6 +132,7 @@ export const SyllabusConfigService = {
     );
   },
 
+  /** POST /terms/:termId/offerings/activate */
   async activateOffering(
     input: ActivateOfferingInput
   ): Promise<SyllabusConfigSnapshot> {
@@ -149,6 +151,7 @@ export const SyllabusConfigService = {
     });
   },
 
+  /** POST /terms/:termId/offerings/deactivate */
   async deactivateOffering(
     input: DeactivateOfferingInput
   ): Promise<SyllabusConfigSnapshot> {
@@ -161,6 +164,7 @@ export const SyllabusConfigService = {
     });
   },
 
+  /** PATCH /terms/:termId/gates */
   async updateTermGates(
     input: UpdateTermGatesInput
   ): Promise<SyllabusConfigSnapshot> {
@@ -179,6 +183,7 @@ export const SyllabusConfigService = {
     });
   },
 
+  /** PUT /terms/:termId/offerings/:id/weeks — Nest still owes student-week sync */
   async saveSyllabusWeeks(
     input: SaveSyllabusWeeksInput
   ): Promise<SyllabusConfigSnapshot> {
@@ -206,6 +211,7 @@ export const SyllabusConfigService = {
     });
   },
 
+  /** POST /terms */
   async createTerm(input: UpsertTermInput): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     const title = buildTermTitle(input);
@@ -225,6 +231,7 @@ export const SyllabusConfigService = {
     });
   },
 
+  /** DELETE /terms/:termId — blocked when enrollment history exists */
   async deleteTerm(termId: string): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {
@@ -245,6 +252,7 @@ export const SyllabusConfigService = {
     });
   },
 
+  /** PATCH /syllabus/professor-capacity */
   async setProfessorCapacity(capacity: number): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {
@@ -252,6 +260,7 @@ export const SyllabusConfigService = {
     });
   },
 
+  /** PATCH /syllabus/passing-threshold */
   async setPassingThreshold(threshold: number): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     return mutateSyllabusSnapshot((draft) => {

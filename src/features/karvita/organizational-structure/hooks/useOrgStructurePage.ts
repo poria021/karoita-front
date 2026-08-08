@@ -5,6 +5,10 @@ import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
+import {
+  resolveListSearchQuery,
+  SEARCH_DEBOUNCE_MS,
+} from '@/lib/search-debounce';
 import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import {
   ORG_STRUCTURE_PAGE_SIZE,
@@ -25,8 +29,6 @@ import {
   orgStructureListResetKey,
 } from '../lib/orgStructureListKeys';
 import type { OrgEntityFormValues } from '../schemas/org-structure.schema';
-
-const SEARCH_DEBOUNCE_MS = 300;
 
 type OrgChrome = {
   tab: OrgStructureSubTab;
@@ -65,7 +67,7 @@ export function useOrgStructurePage() {
   const [editId, setEditId] = useState<string | null>(null);
 
   const tabConfig = useMemo(() => getOrgTabConfig(tab), [tab]);
-  const listQuery = query.trim() === '' ? '' : debouncedQuery;
+  const listQuery = resolveListSearchQuery(query, debouncedQuery);
   const resetKey = orgStructureListResetKey(tab, listQuery);
 
   useEffect(() => {

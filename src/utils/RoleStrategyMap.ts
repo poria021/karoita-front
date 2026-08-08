@@ -1,4 +1,5 @@
 import { isLiveSidebarPath } from '@/lib/live-nav-paths';
+import { PlannedRoutes } from '@/services/planned-routes';
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 
@@ -50,19 +51,19 @@ const ADMIN_DASHBOARD_ITEM: SidebarMenuItem = {
 
 const STANDARD_REPORTS_ITEM: SidebarMenuItem = {
   title: 'گزارش‌های استاندارد',
-  path: RouteService.karvita.standardReports(),
+  path: PlannedRoutes.standardReports(),
   icon: 'fa-file-invoice',
 };
 
 const COMPARATIVE_REPORTS_ITEM: SidebarMenuItem = {
   title: 'گزارش‌های مقایسه‌ای',
-  path: RouteService.karvita.comparativeReports(),
+  path: PlannedRoutes.comparativeReports(),
   icon: 'fa-chart-column',
 };
 
 const MANAGE_ADS_ITEM: SidebarMenuItem = {
   title: 'مدیریت انتشارات و اعلانات',
-  path: RouteService.karvita.manageAds(),
+  path: PlannedRoutes.manageAds(),
   icon: 'fa-bullhorn',
 };
 
@@ -112,7 +113,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
       },
       {
         title: 'گزارش روزانه',
-        path: RouteService.karvita.dailyReports(),
+        path: PlannedRoutes.dailyReports(),
         icon: 'fa-clipboard-list',
       },
     ],
@@ -130,25 +131,25 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
       {
         kind: 'group',
         title: 'انتخاب واحد کارآموزی',
-        icon: 'fa-screwdriver-wrench',
+        icon: 'fa-graduation-cap',
         children: [
           {
             title: 'کارآموزی ۱',
             path: RouteService.karvita.internshipSelection(1),
-            icon: 'fa-screwdriver-wrench',
+            icon: 'fa-graduation-cap',
             iconBadge: 1,
           },
           {
             title: 'کارآموزی ۲',
             path: RouteService.karvita.internshipSelection(2),
-            icon: 'fa-screwdriver-wrench',
+            icon: 'fa-graduation-cap',
             iconBadge: 2,
           },
         ],
       },
       {
         title: 'گزارش روزانه',
-        path: RouteService.karvita.dailyReports(),
+        path: PlannedRoutes.dailyReports(),
         icon: 'fa-clipboard-list',
       },
     ],
@@ -218,12 +219,12 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
       },
       {
         title: 'مدیریت کارورزان',
-        path: RouteService.karvita.traineesManagement(),
+        path: PlannedRoutes.traineesManagement(),
         icon: 'fa-id-card',
       },
       {
         title: 'ثبت‌نام مهارت‌آموزان',
-        path: RouteService.karvita.studentsList(),
+        path: PlannedRoutes.studentsList(),
         icon: 'fa-user-group',
       },
       STANDARD_REPORTS_ITEM,
@@ -248,7 +249,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
       DASHBOARD_ITEM,
       {
         title: 'مکان‌ها و مناطق',
-        path: RouteService.karvita.locations(),
+        path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
       STANDARD_REPORTS_ITEM,
@@ -282,7 +283,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
       DASHBOARD_ITEM,
       {
         title: 'مکان‌ها و پردیس‌ها',
-        path: RouteService.karvita.locations(),
+        path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
       STANDARD_REPORTS_ITEM,
@@ -346,7 +347,7 @@ export const ROLE_STRATEGY_MAP: Record<UserRole, RoleStrategyConfig> = {
       },
       {
         title: 'مدیریت دسترسی‌ها',
-        path: RouteService.karvita.userPermissions(),
+        path: PlannedRoutes.userPermissions(),
         icon: 'fa-user-gear',
       },
       {

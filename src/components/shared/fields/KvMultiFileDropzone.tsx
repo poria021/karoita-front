@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useId, useState } from 'react';
-import { useDropzone, type FileRejection } from 'react-dropzone';
+import { useDropzone, type Accept, type FileRejection } from 'react-dropzone';
 import { toast } from 'sonner';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -27,23 +27,20 @@ export type KvMultiFileDropzoneProps = {
   disabled?: boolean;
   maxFileSizeMb?: number;
   maxTotalSizeMb?: number;
+  accept?: Accept;
   acceptLabel?: string;
+  invalidTypeMessage?: string;
   onAdd: (files: KvAttachmentItem[]) => void;
   onRemove: (fileId: string) => void;
 };
 
-const DEFAULT_ACCEPT = {
-  'image/jpeg': ['.jpg', '.jpeg'],
-  'image/png': ['.png'],
-  'video/mp4': ['.mp4'],
-  'audio/mpeg': ['.mp3'],
-  'audio/wav': ['.wav'],
-  'audio/mp3': ['.mp3'],
+const DEFAULT_ACCEPT: Accept = {
   'application/pdf': ['.pdf'],
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': [
-    '.docx',
-  ],
-} as const;
+  'text/plain': ['.txt'],
+  'application/zip': ['.zip'],
+  'application/x-zip-compressed': ['.zip'],
+  'application/x-zip': ['.zip'],
+};
 
 function toSizeMb(bytes: number): number {
   return Number((bytes / (1024 * 1024)).toFixed(2));
@@ -60,9 +57,11 @@ export function KvMultiFileDropzone({
   id: idProp,
   files,
   disabled = false,
-  maxFileSizeMb = 2,
+  maxFileSizeMb = 5,
   maxTotalSizeMb = 100,
-  acceptLabel = 'فرمت‌های مجاز: عکس، ویدیو، صدا و اسناد متنی تا سقف ۲ مگابایت',
+  accept = DEFAULT_ACCEPT,
+  acceptLabel = 'فرمت‌های مجاز: PDF، TXT و ZIP تا سقف ۵ مگابایت',
+  invalidTypeMessage = 'فرمت فایل انتخابی مجاز نیست. فقط PDF، TXT یا ZIP مجاز است.',
   onAdd,
   onRemove,
 }: KvMultiFileDropzoneProps) {
@@ -84,9 +83,7 @@ export function KvMultiFileDropzone({
             `حجم فایل نباید بیشتر از ${toPersianDigits(String(maxFileSizeMb))} مگابایت باشد.`
           );
         } else if (code === 'file-invalid-type') {
-          setLocalError(
-            'فرمت فایل انتخابی مجاز نیست. فرمت‌های مجاز: عکس، ویدیو (mp4)، صدا (mp3, wav) و اسناد متنی (pdf, docx)'
-          );
+          setLocalError(invalidTypeMessage);
         } else {
           setLocalError('خطا در بارگذاری فایل. لطفاً دوباره تلاش کنید.');
         }
@@ -129,12 +126,19 @@ export function KvMultiFileDropzone({
           : `${toPersianDigits(next.length)} فایل با موفقیت ضمیمه گردید.`
       );
     },
-    [currentTotalMb, disabled, maxFileSizeMb, maxTotalSizeMb, onAdd]
+    [
+      currentTotalMb,
+      disabled,
+      invalidTypeMessage,
+      maxFileSizeMb,
+      maxTotalSizeMb,
+      onAdd,
+    ]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: DEFAULT_ACCEPT,
+    accept,
     maxSize: maxFileSizeMb * 1024 * 1024,
     multiple: true,
     disabled,

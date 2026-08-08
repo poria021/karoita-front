@@ -11,7 +11,7 @@ import {
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,
 } from '@/services/daily-approvals/mock-daily-approvals-store';
-import { readSyllabusSnapshot } from '@/services/syllabus-config/mock-syllabus-store';
+import { readDailyApprovalPassingScoreThreshold } from '@/services/syllabus-config/syllabus-daily-approvals-reads';
 import {
   assertMockClientHasPermission,
   MOCK_AUTHZ_DENIED,
@@ -61,10 +61,14 @@ function requireReviewRole(role: UserRole): void {
 }
 
 /**
- * Facade ارزیابی گزارش‌های فراگیران (مرجع: trainee_reports_grading).
+ * Trainee weekly-report grading facade (trainee_reports_grading).
+ * Real mode fail-closed until Nest routes below land.
  *
- * Nest-blocked:
- * - GET /daily-approvals?kind&query&readFilter&course&termId&offset&limit
+ * Nest map:
+ * - GET   /daily-approvals/terms?kind=
+ * - GET   /syllabus/passing-threshold
+ * - GET   /daily-approvals?kind&query&readFilter&course&termId&offset&limit
+ * - POST  /daily-approvals/:traineeId/weeks/:weekId/open
  * - PATCH /daily-approvals/:traineeId/weeks/:weekId
  * - PATCH /daily-approvals/:traineeId/weeks/:weekId/mentor
  * - PATCH /daily-approvals/:traineeId/weeks/:weekId/principal
@@ -73,10 +77,7 @@ function requireReviewRole(role: UserRole): void {
  * - POST  /daily-approvals/:traineeId/drop
  */
 export const DailyApprovalsService = {
-  /**
-   * ترم‌های قابل انتخاب بر اساس تب:
-   * internship → ترمی (semester)، apprenticeship → پودمانی (modular).
-   */
+  /** GET /daily-approvals/terms?kind= — internship→semester, apprenticeship→modular */
   async listTerms(
     kind: DailyApprovalCourseKind
   ): Promise<Array<{ id: string; title: string }>> {
@@ -87,10 +88,7 @@ export const DailyApprovalsService = {
     return listTermsForDailyApprovalKind(kind);
   },
 
-  /**
-   * حد نصاب قبولی سیستم (۰–۱۰۰) از تنظیمات عمومی ترم‌ها.
-   * Nest: GET /syllabus/passing-threshold
-   */
+  /** GET /syllabus/passing-threshold — 0–100 */
   async getPassingScoreThreshold(): Promise<number> {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented(
@@ -98,10 +96,10 @@ export const DailyApprovalsService = {
       );
     }
     requireDailyApprovalsReview();
-    const value = readSyllabusSnapshot().passingScoreThreshold;
-    return Number.isFinite(value) ? value : 70;
+    return readDailyApprovalPassingScoreThreshold();
   },
 
+  /** GET /daily-approvals — offset/limit page */
   async listPage(
     input: ListDailyApprovalsInput
   ): Promise<ListDailyApprovalsPage> {
@@ -113,6 +111,7 @@ export const DailyApprovalsService = {
     return listMockDailyApprovals(input);
   },
 
+  /** POST /daily-approvals/:traineeId/weeks/:weekId/open — marks week read */
   async openWeek(input: {
     traineeId: string;
     weekId: string;
@@ -124,6 +123,7 @@ export const DailyApprovalsService = {
     return markMockWeekRead(input);
   },
 
+  /** PATCH /daily-approvals/:traineeId/weeks/:weekId — supervisor */
   async updateWeekEvaluation(
     input: UpdateDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
@@ -138,6 +138,7 @@ export const DailyApprovalsService = {
     });
   },
 
+  /** PATCH /daily-approvals/:traineeId/weeks/:weekId/mentor */
   async updateMentorWeekEvaluation(
     input: UpdateMentorDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
@@ -154,6 +155,7 @@ export const DailyApprovalsService = {
     });
   },
 
+  /** PATCH /daily-approvals/:traineeId/weeks/:weekId/principal */
   async updatePrincipalWeekEvaluation(
     input: UpdatePrincipalDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
@@ -170,6 +172,7 @@ export const DailyApprovalsService = {
     });
   },
 
+  /** POST /daily-approvals/:traineeId/weeks/:weekId/extend */
   async extendWeek(
     input: ExtendDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
@@ -181,6 +184,7 @@ export const DailyApprovalsService = {
     return extendMockDailyApprovalWeek(input);
   },
 
+  /** POST /daily-approvals/weeks/bulk-extend */
   async bulkExtendWeeks(
     input: BulkExtendDailyApprovalWeeksInput
   ): Promise<BulkExtendDailyApprovalWeeksResult> {
@@ -197,6 +201,7 @@ export const DailyApprovalsService = {
     });
   },
 
+  /** POST /daily-approvals/:traineeId/drop */
   async dropTrainee(
     input: DropDailyApprovalTraineeInput
   ): Promise<DailyApprovalTrainee> {

@@ -77,22 +77,25 @@ export function KvRouteStatus({
       data-slot="kv-route-status"
       data-kind={kind}
       className={cn(
-        'relative flex w-full flex-col items-center justify-center px-kv-inset',
-        isPage ? 'min-h-dvh overflow-hidden py-kv-layout' : 'min-h-[50vh] py-kv-block',
+        'relative flex w-full flex-col items-center justify-center overflow-hidden',
+        isPage
+          ? 'min-h-dvh px-kv-inset py-kv-layout'
+          : // Fill dashboard `main` content slot only — not the viewport
+            'h-full min-h-0 flex-1 @container py-kv-group',
         className
       )}
       dir="rtl"
       role={meta.role}
     >
-      {/* Background sections */}
-      {isPage ? <KvRouteStatusBackdrop /> : null}
+      {/* Line field + code: clipped to this surface (page or main) */}
+      <KvRouteStatusBackdrop />
       <KvRouteStatusCodeBackdrop code={meta.code} layout={layout} />
 
       {/* Foreground content */}
       <div
         className={cn(
           'kv-auth-enter relative z-[1] flex w-full max-w-lg flex-col items-center text-center',
-          isPage ? 'gap-kv-section' : 'gap-kv-stack'
+          isPage ? 'gap-kv-section' : 'gap-kv-group'
         )}
       >
         {isPage ? (
@@ -109,7 +112,12 @@ export function KvRouteStatus({
           </div>
         ) : null}
 
-        <div className="relative z-[1] w-full max-w-[280px] sm:max-w-[300px]">
+        <div
+          className={cn(
+            'relative z-[1] w-full',
+            isPage ? 'max-w-[280px] sm:max-w-[300px]' : 'max-w-[220px] sm:max-w-[240px]'
+          )}
+        >
           <div
             className={cn(
               'pointer-events-none absolute inset-[10%] rounded-full blur-2xl',
@@ -119,7 +127,13 @@ export function KvRouteStatus({
           />
           <div className="relative flex w-full items-center justify-center p-kv-pair">
             <KvRouteStatusFrame />
-            <KvRouteStatusArt kind={kind} className="relative z-[1]" />
+            <KvRouteStatusArt
+              kind={kind}
+              className={cn(
+                'relative z-[1]',
+                !isPage && 'size-[160px] sm:size-[180px]'
+              )}
+            />
           </div>
         </div>
 

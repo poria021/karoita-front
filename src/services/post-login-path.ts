@@ -13,9 +13,7 @@ import {
 
 export { isSuperAdminRole };
 
-/**
- * مسیر فرود بعد از لاگین بر اساس نقش و وضعیت تأیید پروفایل.
- */
+/** Role + approval → first screen after auth (not a Nest call). */
 export function getPostLoginPath(user: User | null | undefined): string {
   if (!user) {
     return RouteService.auth.login();

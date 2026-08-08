@@ -5,13 +5,16 @@ import { useMemo } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import {
+  resolveListSearchQuery,
+  SEARCH_DEBOUNCE_MS,
+} from '@/lib/search-debounce';
+import {
   ORGANIZATION_OPTIONS_PAGE_SIZE,
   OrganizationOptionsService,
   type OrganizationOption,
 } from '@/services/organization-options.service';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
-const DEBOUNCE_MS = 300;
 const MAX_ORG_OPTION_PAGES = 20;
 const MAX_ORG_OPTIONS_IN_DOM = 200;
 
@@ -47,7 +50,8 @@ export function useOrganizationOptions({
   enabled,
   dependsOn,
 }: UseOrganizationOptionsArgs): UseOrganizationOptionsResult {
-  const debouncedQuery = useDebouncedValue(query, DEBOUNCE_MS);
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
+  const listQuery = resolveListSearchQuery(query, debouncedQuery);
   const province = dependsOn?.province ?? '';
   const district = dependsOn?.district ?? '';
 
@@ -60,13 +64,13 @@ export function useOrganizationOptions({
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: ['org-options', type, debouncedQuery, province, district],
+    queryKey: ['org-options', type, listQuery, province, district],
     enabled,
     initialPageParam: 1,
     queryFn: async ({ pageParam }) =>
       OrganizationOptionsService.getOptions({
         type,
-        query: debouncedQuery,
+        query: listQuery,
         page: pageParam,
         limit: ORGANIZATION_OPTIONS_PAGE_SIZE,
         province: province || undefined,

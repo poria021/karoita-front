@@ -1,24 +1,28 @@
+/**
+ * Nest auth transport — called only from AuthService when API_MODE=real.
+ * Flip NEST_AUTH_LIVE once Nest routes below are actually serving.
+ */
 import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { apiClient, ApiClientError } from '@/services/api-client';
 import type { Session, User, UserRole } from '@/types/auth';
 
-
 const NEST_AUTH_LIVE = false;
 
+/** Relative paths under NEXT_PUBLIC_API_URL — keep in sync with Nest auth controller */
 export const REAL_AUTH_PATHS = {
-  login: 'auth/login',
-  loginOtpSend: 'auth/otp/login/send',
-  loginOtpVerify: 'auth/otp/login/verify',
-  register: 'auth/register',
-  registerOtpVerify: 'auth/otp/register/verify',
-  forgotSend: 'auth/password/forgot/send',
-  forgotVerify: 'auth/password/forgot/verify',
-  forgotReset: 'auth/password/forgot/reset',
-  initialPassword: 'auth/password/initial',
-  logout: 'auth/logout',
-  session: 'auth/session',
-  adminOtpSend: 'auth/admin/otp/send',
-  adminOtpVerify: 'auth/admin/otp/verify',
+  login: 'auth/login', // POST
+  loginOtpSend: 'auth/otp/login/send', // POST
+  loginOtpVerify: 'auth/otp/login/verify', // POST
+  register: 'auth/register', // POST
+  registerOtpVerify: 'auth/otp/register/verify', // POST
+  forgotSend: 'auth/password/forgot/send', // POST
+  forgotVerify: 'auth/password/forgot/verify', // POST
+  forgotReset: 'auth/password/forgot/reset', // POST
+  initialPassword: 'auth/password/initial', // POST
+  logout: 'auth/logout', // POST
+  session: 'auth/session', // GET
+  adminOtpSend: 'auth/admin/otp/send', // POST
+  adminOtpVerify: 'auth/admin/otp/verify', // POST
 } as const;
 
 type NestAuthUserPayload = {

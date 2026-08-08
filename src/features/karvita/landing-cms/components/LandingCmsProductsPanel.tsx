@@ -15,7 +15,13 @@ import type {
 } from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
 
-import { getLandingCmsTabConfig } from '../constants';
+import {
+  getLandingCmsTabConfig,
+  LANDING_ICON_MAX_SIZE_MB,
+  LANDING_PRODUCT_LOGO_ACCEPT,
+  LANDING_PRODUCT_LOGO_INVALID_TYPE,
+  LANDING_PRODUCT_LOGO_MAX_SIZE_HELPER,
+} from '../constants';
 import type { LandingCmsDeleteTarget } from '../hooks/useLandingCmsPage';
 import {
   productFormSchema,
@@ -86,7 +92,10 @@ export function LandingCmsProductsPanel({
               label={false}
               framed={false}
               error={fieldState.error?.message}
-              helperText="PNG، JPG تا ۱۰ مگابایت"
+              maxSizeMb={LANDING_ICON_MAX_SIZE_MB}
+              accept={LANDING_PRODUCT_LOGO_ACCEPT}
+              invalidTypeMessage={LANDING_PRODUCT_LOGO_INVALID_TYPE}
+              helperText={LANDING_PRODUCT_LOGO_MAX_SIZE_HELPER}
               previewAlt="پیش‌نمایش لوگوی محصول"
             />
           )}

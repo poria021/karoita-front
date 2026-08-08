@@ -4,7 +4,6 @@ import {
   professorCapacitySchema,
   passingThresholdSchema,
   termFormSchema,
-  weekTitleSchema,
   weekWeightSchema,
 } from './syllabus-config.schema';
 
@@ -36,11 +35,7 @@ describe('syllabus-config schemas', () => {
     ).toBe(false);
   });
 
-  it('validates week title and weight', () => {
-    expect(weekTitleSchema.safeParse({ title: '  جلسه ۱  ' }).success).toBe(
-      true
-    );
-    expect(weekTitleSchema.safeParse({ title: '   ' }).success).toBe(false);
+  it('validates week weight', () => {
     expect(weekWeightSchema.safeParse(3).success).toBe(true);
     expect(weekWeightSchema.safeParse(0).success).toBe(false);
   });

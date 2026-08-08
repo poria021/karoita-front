@@ -28,7 +28,7 @@ function DockMark({ product }: { product: LandingProduct }) {
         <img
           src={product.logoImageUrl}
           alt={product.title}
-          className="size-full object-cover"
+          className="size-full object-contain p-0.5"
         />
       );
     }
@@ -39,7 +39,7 @@ function DockMark({ product }: { product: LandingProduct }) {
         alt={product.title}
         width={32}
         height={32}
-        className="size-full object-cover"
+        className="size-full object-contain p-0.5"
       />
     );
   }
@@ -77,7 +77,7 @@ export function MarketingProductsDock({ products }: MarketingProductsDockProps) 
 
           const inner = (
             <>
-              <span className="kv-dock-mark flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-text text-kv-canvas shadow-kv-soft transition-colors duration-200 group-hover/dock:border-kv-border group-hover/dock:bg-kv-surface group-hover/dock:text-kv-brand group-focus-within/dock:bg-kv-surface group-focus-within/dock:text-kv-brand">
+              <span className="kv-dock-mark flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-text text-kv-canvas shadow-kv-soft">
                 <DockMark product={product} />
               </span>
               <span className="kv-dock-item-label">

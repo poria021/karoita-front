@@ -3,13 +3,14 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 type KvRouteStatusCodeBackdropProps = {
   code: string;
-  /** Full-page gets a larger, more atmospheric code. */
+  /** Full-page vs in-shell main content sizing. */
   layout?: 'page' | 'inset';
   className?: string;
 };
 
 /**
  * Large faded status code as a background section (not a badge).
+ * Inset mode sizes to the dashboard main panel, not the viewport.
  */
 export function KvRouteStatusCodeBackdrop({
   code,
@@ -27,10 +28,10 @@ export function KvRouteStatusCodeBackdrop({
     >
       <span
         className={cn(
-          'font-sans font-black leading-none tracking-tight text-kv-border',
+          'font-sans font-black leading-none tracking-tight text-kv-text-faint',
           layout === 'page'
-            ? 'text-[min(42vw,18rem)] opacity-[0.14] sm:text-[min(36vw,20rem)]'
-            : 'text-[min(48vw,10rem)] opacity-[0.12]'
+            ? 'text-[min(42vw,18rem)] opacity-3 sm:text-[min(36vw,20rem)]'
+            : 'text-[clamp(4.5rem,30cqw,900rem)] opacity-3'
         )}
       >
         {toPersianDigits(code)}

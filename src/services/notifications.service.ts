@@ -7,20 +7,21 @@ import {
 import type { AppNotification } from '@/types/notifications';
 
 /**
- * Facade اعلان‌های هدر (chrome).
+ * Header notification chrome.
  *
- * MOCK → REAL swap map
- * - list / getSnapshot     →  GET  /notifications
- * - markAsRead             →  PATCH /notifications/:id/read
- * - markAllAsRead          →  POST  /notifications/mark-all-read
+ * Nest map:
+ * - GET   /notifications
+ * - PATCH /notifications/:id/read
+ * - POST  /notifications/mark-all-read
  */
 export class NotificationsService {
-  /** Sync snapshot for client chrome hydrate (mock only; real returns []). */
+  /** Sync hydrate for header chrome — mock only; real returns [] until wired */
   static getSnapshot(): AppNotification[] {
     if (!isMockApiMode()) return [];
     return readMockNotifications();
   }
 
+  /** GET /notifications */
   static async list(): Promise<AppNotification[]> {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('NotificationsService.list');
@@ -28,6 +29,7 @@ export class NotificationsService {
     return readMockNotifications();
   }
 
+  /** PATCH /notifications/:id/read */
   static async markAsRead(
     notificationId: string
   ): Promise<AppNotification[]> {
@@ -37,6 +39,7 @@ export class NotificationsService {
     return markMockNotificationAsRead(notificationId);
   }
 
+  /** POST /notifications/mark-all-read */
   static async markAllAsRead(): Promise<AppNotification[]> {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented('NotificationsService.markAllAsRead');

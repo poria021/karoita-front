@@ -29,7 +29,6 @@ updates:
           - "typescript"
           - "@types/*"
           - "eslint*"
-          - "prettier*"
           - "tailwindcss"
           - "postcss"
           - "autoprefixer"

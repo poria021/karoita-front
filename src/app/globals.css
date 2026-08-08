@@ -787,18 +787,24 @@ input[readonly]:-webkit-autofill {
  */
 /*
  * Blueprint grid overlay — auth + marketing canvases (brand-loud).
- * Pair with .kv-brand-atmosphere. Dashboard shells must NOT use this (rule 90).
+ * Grid only; soft brand wash lives on `.kv-brand-atmosphere` (marketing).
+ * Dashboard shells must NOT use this (rule 90).
  */
 .kv-blueprint-bg {
+  background-color: var(--kv-canvas);
   background-image:
     radial-gradient(circle, rgba(16, 78, 198, 0.05) 1px, transparent 1px),
     linear-gradient(to right, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
-    radial-gradient(ellipse 110% 75% at 50% -15%, var(--kv-brand-soft), transparent 58%),
-    radial-gradient(ellipse 55% 40% at 100% 100%, var(--kv-brand-soft-hover), transparent 55%),
-    radial-gradient(ellipse 45% 35% at 0% 85%, var(--kv-brand-soft), transparent 50%);
-  background-size: 24px 24px, 72px 72px, 72px 72px, auto, auto, auto;
+    linear-gradient(to bottom, rgba(203, 213, 225, 0.22) 1px, transparent 1px);
+  background-size: 24px 24px, 72px 72px, 72px 72px;
   background-position: center top;
+}
+
+.dark .kv-blueprint-bg {
+  background-image:
+    radial-gradient(circle, hsl(221 85% 70% / 0.015) 1px, transparent 1px),
+    linear-gradient(to right, hsl(220 14% 70% / 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(220 14% 70% / 0.02) 1px, transparent 1px);
 }
 
 /*
@@ -855,13 +861,16 @@ input[readonly]:-webkit-autofill {
   opacity: 1;
 }
 
-/* Dock mark: white glyph on dark well → original logo colors on hover */
-.kv-dock-mark img {
-  filter: brightness(0) invert(1);
+/* Dock mark: monochrome (B/W) before hover → original icon colors on hover */
+.kv-dock-mark img,
+.kv-dock-mark svg {
+  filter: grayscale(1);
   transition: filter 0.2s ease-out;
 }
 
 .kv-dock-item:hover .kv-dock-mark img,
-.kv-dock-item:focus-within .kv-dock-mark img {
+.kv-dock-item:focus-within .kv-dock-mark img,
+.kv-dock-item:hover .kv-dock-mark svg,
+.kv-dock-item:focus-within .kv-dock-mark svg {
   filter: none;
 }

@@ -7,15 +7,15 @@ interface AuthLogoProps {
 
 export function AuthLogo({ subtitle }: AuthLogoProps) {
   return (
-    <div className="mb-kv-section flex flex-col items-center text-center">
+    <div className="mb-kv-section mt-kv-inset flex flex-col items-center text-center ">
       <div className="flex items-center gap-kv-inline">
         <KarvitaBrandMark />
-        <KvTypography variant="title" tone="brand" weight="black" as="span">
+        <KvTypography variant="display" tone="brand" weight="black" as="span">
           کارویتا
         </KvTypography>
       </div>
-      <div className="mt-kv-stack max-w-[22rem]">
-        <KvTypography variant="caption" tone="muted" align="center">
+      <div className=" max-w-[22rem]">
+        <KvTypography variant="overline" tone="muted" align="center">
           {subtitle}
         </KvTypography>
       </div>

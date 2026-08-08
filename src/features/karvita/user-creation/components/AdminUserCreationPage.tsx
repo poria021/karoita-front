@@ -1,19 +1,6 @@
-'use client';
+import { AdminUserCreationPageClient } from '@/features/karvita/user-creation/components/AdminUserCreationPageClient';
 
-import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
-import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
-
-import { useAdminUserCreationForm } from '../hooks/useAdminUserCreationForm';
-import { AdminUserCreationForm } from './AdminUserCreationForm';
-
+/** RSC boundary — interactive admin user creation module leaf. */
 export function AdminUserCreationPage() {
-  const page = useAdminUserCreationForm();
-
-  return (
-    <SuperAdminModuleGuard>
-      <KvWorkspace panel={false}>
-        <AdminUserCreationForm page={page} />
-      </KvWorkspace>
-    </SuperAdminModuleGuard>
-  );
+  return <AdminUserCreationPageClient />;
 }

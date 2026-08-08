@@ -74,6 +74,7 @@ function paginate(
   };
 }
 
+/** GET /organization-options?type&page&limit&q&province&district */
 async function fetchFromApi(
   params: Required<
     Pick<OrganizationOptionsQuery, 'type' | 'page' | 'limit'>
@@ -155,7 +156,12 @@ async function fetchFromMock(
   return paginate(filtered, params.page, params.limit);
 }
 
+/**
+ * Org typeahead options for profile / admin forms.
+ * Nest: GET /organization-options — mock pages labels from OrgStructureService.
+ */
 export class OrganizationOptionsService {
+  /** GET /organization-options */
   static async getOptions(
     params: OrganizationOptionsQuery
   ): Promise<OrganizationOptionsResult> {

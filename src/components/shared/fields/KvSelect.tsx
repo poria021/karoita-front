@@ -67,7 +67,6 @@ export function KvSelectContent({
 }: KvSelectContentProps) {
   return (
     <SelectContent
-      dir="rtl"
       data-slot="kv-select-content"
       className={cn(
         kvOverlayPanelClassName,

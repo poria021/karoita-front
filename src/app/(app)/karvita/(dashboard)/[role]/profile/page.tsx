@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 
@@ -5,6 +6,7 @@ import {
   ProfileContainer,
   ProfileRoutePlaceholder,
 } from '@/features/shared/profile/components/ProfileContainer';
+import { dashboardModuleMetadata } from '@/lib/dashboard-module-metadata';
 import type { UserRole } from '@/types/auth';
 
 const VALID_ROLES: readonly UserRole[] = [
@@ -27,6 +29,16 @@ function isUserRole(value: string): value is UserRole {
 
 interface ProfilePageProps {
   params: Promise<{ role: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: ProfilePageProps): Promise<Metadata> {
+  const { role } = await params;
+  if (!isUserRole(role)) {
+    return dashboardModuleMetadata('profile');
+  }
+  return dashboardModuleMetadata('profile', role);
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {

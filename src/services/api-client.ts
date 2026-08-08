@@ -165,7 +165,8 @@ async function request<T>(
 }
 
 /**
- * کلاینت HTTP مشترک (ky) — اتصال به Nest، نگاشت خطا و هندل یکپارچهٔ ۴۰۱.
+ * Shared Nest HTTP client (ky).
+ * Credentials: cookie + optional Bearer. 401 → clear session + bounce to login.
  */
 export const apiClient = {
   getJson<T>(path: string, token?: string, options?: KyOptions): Promise<T> {

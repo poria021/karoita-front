@@ -4,11 +4,6 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'reac
 import { useRouter } from 'next/navigation';
 
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
-import {
-  clampLevel,
-  kindForRole,
-  maxLevelForKind,
-} from '@/services/internship-enrollment/mock-enrollment-store';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import type {
@@ -52,10 +47,12 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
 
   useLayoutEffect(() => {
     if (!role) return;
-    const kind = kindForRole(role);
-    const max = maxLevelForKind(kind);
-    if (level > max) {
-      router.replace(RouteService.karvita.internshipSelection(max));
+    const { maxLevel } = InternshipEnrollmentService.resolveLevelForRole(
+      role,
+      level
+    );
+    if (level > maxLevel) {
+      router.replace(RouteService.karvita.internshipSelection(maxLevel));
     }
   }, [role, level, router]);
 
@@ -67,8 +64,11 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
       return;
     }
 
-    const kind = kindForRole(actor.role);
-    if (level > maxLevelForKind(kind)) {
+    const resolved = InternshipEnrollmentService.resolveLevelForRole(
+      actor.role,
+      level
+    );
+    if (level > resolved.maxLevel) {
       return;
     }
 
@@ -77,7 +77,7 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
     try {
       const next = await InternshipEnrollmentService.getEnrollmentPageState({
         actor,
-        level: clampLevel(kind, level),
+        level: resolved.level,
       });
       setState(next);
     } catch (err) {

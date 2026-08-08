@@ -74,14 +74,25 @@ function requireMockOrgManage(): void {
 }
 
 /**
- * Facade ساختار سازمانی — لیست صفحه‌بندی‌شده و عملیات CRUD (mock/real).
+ * Org tree admin facade — paged lists + CRUD.
+ * Real mode fail-closed until Nest org endpoints land.
+ *
+ * Nest map:
+ * - GET    /org-structure/snapshot
+ * - GET    /org-structure?tab&query&offset&limit
+ * - GET    /org-structure/:kind/:id
+ * - GET    /org-structure/provinces|cities|districts
+ * - PUT    /org-structure/provinces|cities|faculties|districts|schools|majors
+ * - DELETE /org-structure/:kind/:id
  */
 export const OrgStructureService = {
+  /** GET /org-structure/snapshot */
   async getSnapshot(): Promise<OrgStructureSnapshot> {
     requireMockOrgManage();
     return cloneSnapshot(readOrgSnapshot());
   },
 
+  /** GET /org-structure?tab&query&offset&limit */
   async listPage(
     options: OrgStructureListPageOptions
   ): Promise<OrgStructureListPage> {
@@ -93,6 +104,7 @@ export const OrgStructureService = {
     return queryOrgListPage(options.tab, query, offset, limit);
   },
 
+  /** GET /org-structure/:kind/:id */
   async getEntity(
     kind: OrgStructureEntityKind,
     id: string
@@ -109,16 +121,19 @@ export const OrgStructureService = {
     return mockGetEntity(kind, id);
   },
 
+  /** GET /org-structure/provinces */
   async listProvinces(): Promise<OrgProvince[]> {
     requireMockOrgManage();
     return mockListProvinces();
   },
 
+  /** GET /org-structure/cities?provinceId= */
   async listCities(provinceId: string): Promise<OrgCity[]> {
     requireMockOrgManage();
     return mockListCities(provinceId);
   },
 
+  /** GET /org-structure/districts?provinceId=&cityId= */
   async listDistricts(
     provinceId: string,
     cityId?: string
@@ -127,6 +142,7 @@ export const OrgStructureService = {
     return mockListDistricts(provinceId, cityId);
   },
 
+  /** Sync labels for profile typeahead — mock only; real uses OrganizationOptionsService */
   listLabelsForField(
     field: 'province' | 'city' | 'college' | 'district' | 'school' | 'major',
     provinceName = '',
@@ -136,6 +152,7 @@ export const OrgStructureService = {
     return queryLabelsForField(field, provinceName, districtName);
   },
 
+  /** PUT /org-structure/provinces */
   async upsertProvince(
     input: UpsertProvinceInput,
     editId?: string
@@ -144,11 +161,13 @@ export const OrgStructureService = {
     mockUpsertProvince(input, editId);
   },
 
+  /** PUT /org-structure/cities */
   async upsertCity(input: UpsertCityInput, editId?: string): Promise<void> {
     requireMockOrgManage();
     mockUpsertCity(input, editId);
   },
 
+  /** PUT /org-structure/faculties */
   async upsertFaculty(
     input: UpsertFacultyInput,
     editId?: string
@@ -157,6 +176,7 @@ export const OrgStructureService = {
     mockUpsertFaculty(input, editId);
   },
 
+  /** PUT /org-structure/districts */
   async upsertDistrict(
     input: UpsertDistrictInput,
     editId?: string
@@ -165,16 +185,19 @@ export const OrgStructureService = {
     mockUpsertDistrict(input, editId);
   },
 
+  /** PUT /org-structure/schools */
   async upsertSchool(input: UpsertSchoolInput, editId?: string): Promise<void> {
     requireMockOrgManage();
     mockUpsertSchool(input, editId);
   },
 
+  /** PUT /org-structure/majors */
   async upsertMajor(input: UpsertMajorInput, editId?: string): Promise<void> {
     requireMockOrgManage();
     mockUpsertMajor(input, editId);
   },
 
+  /** DELETE /org-structure/:kind/:id */
   async deleteEntity(kind: OrgStructureEntityKind, id: string): Promise<void> {
     requireMockOrgManage();
     mockDeleteEntity(kind, id);

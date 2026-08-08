@@ -15,7 +15,11 @@ import type {
 } from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
 
-import { getLandingCmsTabConfig } from '../constants';
+import {
+  getLandingCmsTabConfig,
+  LANDING_BANNER_MAX_SIZE_HELPER,
+  LANDING_BANNER_MAX_SIZE_MB,
+} from '../constants';
 import type { LandingCmsDeleteTarget } from '../hooks/useLandingCmsPage';
 import {
   bannerFormSchema,
@@ -86,7 +90,8 @@ export function LandingCmsBannersPanel({
               label={false}
               framed={false}
               error={fieldState.error?.message}
-              helperText="PNG، JPG تا ۱۰ مگابایت"
+              maxSizeMb={LANDING_BANNER_MAX_SIZE_MB}
+              helperText={LANDING_BANNER_MAX_SIZE_HELPER}
               previewAlt="پیش‌نمایش بنر"
             />
           )}

@@ -4,6 +4,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import {
+  resolveListSearchQuery,
+  SEARCH_DEBOUNCE_MS,
+} from '@/lib/search-debounce';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
 import type {
   InternshipEnrollmentActor,
@@ -31,7 +35,8 @@ export function useSupervisorSelectionWizard({
   const [supervisors, setSupervisors] = useState<InternshipSupervisor[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
-  const debouncedQuery = useDebouncedValue(query, 300);
+  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
+  const listQuery = resolveListSearchQuery(query, debouncedQuery);
 
   useEffect(() => {
     if (!started || !initialScope) return;
@@ -41,7 +46,7 @@ export function useSupervisorSelectionWizard({
       actor,
       kind: state.kind,
       level: state.level,
-      query: debouncedQuery,
+      query: listQuery,
       province,
       college,
     })
@@ -68,8 +73,8 @@ export function useSupervisorSelectionWizard({
   }, [
     actor,
     college,
-    debouncedQuery,
     initialScope,
+    listQuery,
     province,
     started,
     state.kind,

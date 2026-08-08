@@ -25,7 +25,6 @@ type CourseOfferingsPanelProps = Pick<
   | 'hasUnsavedChanges'
   | 'isSaving'
   | 'updateWeekWeight'
-  | 'openWeekEdit'
   | 'restoreWeek'
   | 'archiveWeek'
   | 'addWeek'
@@ -76,7 +75,6 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
           hasUnsavedChanges={props.hasUnsavedChanges}
           isSaving={props.isSaving}
           onWeightChange={props.updateWeekWeight}
-          onEditWeek={props.openWeekEdit}
           onRestoreWeek={props.restoreWeek}
           onArchiveWeek={props.archiveWeek}
           onAddWeek={props.addWeek}

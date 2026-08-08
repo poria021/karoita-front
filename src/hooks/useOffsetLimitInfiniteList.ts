@@ -37,7 +37,8 @@ export { offsetLimitListQueryKey };
 
 /**
  * لیست بی‌نهایت ادمین روی قرارداد offset/limit — TanStack `useInfiniteQuery`.
- * جستجو یک‌بار در هوک صفحه debounce شود؛ این هوک فقط صفحه‌ها را جمع می‌کند.
+ * جستجو یک‌بار در هوک صفحه debounce شود (`SEARCH_DEBOUNCE_MS` + `resolveListSearchQuery`)؛
+ * این هوک فقط صفحه‌ها را جمع می‌کند.
  * صفحه همیشه کروم را نگه می‌دارد؛ busy فقط از `isLoading` روی ناحیهٔ داده (rule 84).
  */
 export function useOffsetLimitInfiniteList<T>({

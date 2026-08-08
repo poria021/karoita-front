@@ -1,4 +1,7 @@
 import { WorkbenchHome } from '@/features/karvita/dashboard/components/WorkbenchHome';
+import { dashboardModuleMetadata } from '@/lib/dashboard-module-metadata';
+
+export const metadata = dashboardModuleMetadata('admin-dashboard');
 
 export default function KarvitaAdminDashboardPage() {
   return (

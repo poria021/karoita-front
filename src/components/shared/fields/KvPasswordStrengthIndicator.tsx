@@ -92,7 +92,7 @@ export async function evaluatePasswordStrength(
   return scoreToStrengthResult(zxcvbn.check(password).score);
 }
 
-interface PasswordStrengthIndicatorProps {
+interface KvPasswordStrengthIndicatorProps {
   password: string;
   className?: string;
 }
@@ -104,10 +104,10 @@ const PENDING_STRENGTH: PasswordStrengthResult = {
   barClassName: 'bg-kv-border-strong',
 };
 
-export function PasswordStrengthIndicator({
+export function KvPasswordStrengthIndicator({
   password,
   className,
-}: PasswordStrengthIndicatorProps) {
+}: KvPasswordStrengthIndicatorProps) {
   const [engineScore, setEngineScore] = useState<{
     password: string;
     score: number;

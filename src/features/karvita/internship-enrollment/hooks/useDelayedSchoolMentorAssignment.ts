@@ -4,6 +4,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import {
+  resolveListSearchQuery,
+  SEARCH_DEBOUNCE_MS,
+} from '@/lib/search-debounce';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
 import type {
   InternshipEnrollmentActor,
@@ -34,15 +38,29 @@ export function useDelayedSchoolMentorAssignment({
   const [isLoadingSchools, setIsLoadingSchools] = useState(true);
   const [isLoadingMentors, setIsLoadingMentors] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const debouncedSchoolQuery = useDebouncedValue(schoolQuery, 250);
-  const debouncedMentorQuery = useDebouncedValue(mentorQuery, 250);
+  const debouncedSchoolQuery = useDebouncedValue(
+    schoolQuery,
+    SEARCH_DEBOUNCE_MS
+  );
+  const debouncedMentorQuery = useDebouncedValue(
+    mentorQuery,
+    SEARCH_DEBOUNCE_MS
+  );
+  const schoolListQuery = resolveListSearchQuery(
+    schoolQuery,
+    debouncedSchoolQuery
+  );
+  const mentorListQuery = resolveListSearchQuery(
+    mentorQuery,
+    debouncedMentorQuery
+  );
 
   useEffect(() => {
     let cancelled = false;
     void InternshipEnrollmentService.listDelayedSchools({
       actor,
       level: state.level,
-      query: debouncedSchoolQuery,
+      query: schoolListQuery,
     })
       .then((items) => {
         if (!cancelled) setSchools(items);
@@ -64,7 +82,7 @@ export function useDelayedSchoolMentorAssignment({
     return () => {
       cancelled = true;
     };
-  }, [actor, debouncedSchoolQuery, state.level]);
+  }, [actor, schoolListQuery, state.level]);
 
   useEffect(() => {
     if (!selectedSchool) return;
@@ -74,7 +92,7 @@ export function useDelayedSchoolMentorAssignment({
       actor,
       level: state.level,
       schoolId: selectedSchool.id,
-      query: debouncedMentorQuery,
+      query: mentorListQuery,
     })
       .then((items) => {
         if (!cancelled) setMentors(items);
@@ -96,7 +114,7 @@ export function useDelayedSchoolMentorAssignment({
     return () => {
       cancelled = true;
     };
-  }, [actor, debouncedMentorQuery, selectedSchool, state.level]);
+  }, [actor, mentorListQuery, selectedSchool, state.level]);
 
   const selectSchool = useCallback((school: InternshipSchoolCapacity) => {
     setSelectedSchool(school);

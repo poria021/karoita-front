@@ -162,7 +162,8 @@ export function IdentityForm({
                 labelIcon={
                   <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
                 }
-                helperText="PNG, JPG تا ۱۰ مگابایت"
+                maxSizeMb={2}
+                helperText="PNG، JPG تا ۲ مگابایت"
                 previewAlt="پیش‌نمایش مدرک ارسالی"
               />
             ) : null}

@@ -15,7 +15,11 @@ import type {
 } from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
 
-import { getLandingCmsTabConfig } from '../constants';
+import {
+  getLandingCmsTabConfig,
+  LANDING_ICON_MAX_SIZE_MB,
+  LANDING_SOCIAL_ICON_MAX_SIZE_HELPER,
+} from '../constants';
 import type { LandingCmsDeleteTarget } from '../hooks/useLandingCmsPage';
 import {
   socialFormSchema,
@@ -86,7 +90,8 @@ export function LandingCmsSocialsPanel({
               label={false}
               framed={false}
               error={fieldState.error?.message}
-              helperText="اختیاری — PNG یا JPG شفاف"
+              maxSizeMb={LANDING_ICON_MAX_SIZE_MB}
+              helperText={LANDING_SOCIAL_ICON_MAX_SIZE_HELPER}
               previewAlt="پیش‌نمایش آیکون شبکه"
             />
           )}

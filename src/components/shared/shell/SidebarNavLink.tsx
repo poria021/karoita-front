@@ -123,7 +123,8 @@ export function SidebarNavLink({
   return (
     <Link
       href={item.path}
-      prefetch={false}
+      // Live unlocked sidebar targets — prefetch for SPA-feel; locked items never Link.
+      prefetch
       onClick={onNavigate}
       aria-label={item.title}
       aria-current={isActive ? 'page' : undefined}

@@ -124,9 +124,13 @@ export function validateImageFile(
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024;
   if (file.size > maxSizeBytes) {
+    const sizeLabel =
+      maxSizeMB < 1
+        ? `${Math.round(maxSizeMB * 1024)} کیلوبایت`
+        : `${maxSizeMB} مگابایت`;
     return {
       isValid: false,
-      error: `حجم فایل نباید بیشتر از ${maxSizeMB} مگابایت باشد.`,
+      error: `حجم فایل نباید بیشتر از ${sizeLabel} باشد.`,
     };
   }
 

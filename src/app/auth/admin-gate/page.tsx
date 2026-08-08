@@ -16,7 +16,7 @@ function AdminGateFallback() {
 export default function AdminGatePage() {
   return (
     <main
-      className="kv-brand-atmosphere kv-blueprint-bg flex min-h-dvh w-full items-center justify-center p-kv-inset"
+      className="kv-blueprint-bg flex min-h-dvh w-full items-center justify-center p-kv-inset"
       dir="rtl"
     >
       <HydrationSafe>

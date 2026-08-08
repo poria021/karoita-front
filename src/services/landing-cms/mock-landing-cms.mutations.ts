@@ -3,6 +3,12 @@ import {
   readLandingCmsSnapshot,
   writeLandingCmsSnapshot,
 } from '@/services/landing-cms/mock-landing-cms.store';
+import {
+  isPngOrSvgFile,
+  isSvgFile,
+  LANDING_ICON_MAX_SIZE_MB,
+  readFileAsDataUrl,
+} from '@/services/landing-cms/landing-cms-media-limits';
 import type {
   CreateLandingBannerInput,
   CreateLandingProductInput,
@@ -21,6 +27,24 @@ const DEFAULT_PRODUCT_ICON = 'fa-briefcase';
 
 async function encodeImageFile(file: File): Promise<string> {
   const validation = validateImageFile(file);
+  if (!validation.isValid) {
+    throw new Error(validation.error ?? 'فایل تصویر نامعتبر است.');
+  }
+  return compressImageToBase64(file);
+}
+
+async function encodeProductLogo(file: File): Promise<string> {
+  if (!isPngOrSvgFile(file)) {
+    throw new Error('فقط فایل‌های SVG یا PNG مجاز هستند.');
+  }
+  const maxBytes = LANDING_ICON_MAX_SIZE_MB * 1024 * 1024;
+  if (file.size > maxBytes) {
+    throw new Error('حجم فایل نباید بیشتر از ۵۱۲ کیلوبایت باشد.');
+  }
+  if (isSvgFile(file)) {
+    return readFileAsDataUrl(file);
+  }
+  const validation = validateImageFile(file, LANDING_ICON_MAX_SIZE_MB);
   if (!validation.isValid) {
     throw new Error(validation.error ?? 'فایل تصویر نامعتبر است.');
   }
@@ -118,7 +142,7 @@ export async function mockCreateProduct(
     throw new Error('آپلود لوگوی محصول الزامی است.');
   }
 
-  const logoImageUrl = await encodeImageFile(input.logoImage);
+  const logoImageUrl = await encodeProductLogo(input.logoImage);
   const product: LandingProduct = {
     id: nextLandingEntityId('prd'),
     title,

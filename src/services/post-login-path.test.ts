@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { PlannedRoutes } from '@/services/planned-routes';
 import { RouteService } from '@/services/route.service';
 import {
   canAccessReturnPath,
@@ -85,7 +86,7 @@ describe('resolvePostAuthPath / canAccessReturnPath', () => {
   it('rejects unfinished module paths', () => {
     const student = user({ role: 'student' });
     expect(
-      resolvePostAuthPath(student, RouteService.karvita.dailyReports())
+      resolvePostAuthPath(student, PlannedRoutes.dailyReports())
     ).toBe(RouteService.karvita.dashboard());
   });
 

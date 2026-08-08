@@ -32,7 +32,6 @@ interface WeeklySyllabusTableProps {
   isSaving: boolean;
   className?: string;
   onWeightChange: (weekId: string, weight: number) => void;
-  onEditWeek: (week: SyllabusWeek) => void;
   onArchiveWeek: (week: SyllabusWeek) => void;
   onRestoreWeek: (week: SyllabusWeek) => void;
   onAddWeek: () => void;
@@ -48,7 +47,6 @@ export function WeeklySyllabusTable({
   isSaving,
   className,
   onWeightChange,
-  onEditWeek,
   onArchiveWeek,
   onRestoreWeek,
   onAddWeek,
@@ -59,7 +57,6 @@ export function WeeklySyllabusTable({
   const emptyCopy = getModuleEmptyCopy('syllabus_weeks');
   const canEdit = Boolean(courseTitle);
   const lastWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
-  const lastWeekArchived = lastWeek?.status === 'archived';
   const hasLastWeek = Boolean(lastWeek);
 
   return (
@@ -88,46 +85,6 @@ export function WeeklySyllabusTable({
           >
             افزودن
           </KvButton>
-
-          {lastWeekArchived ? (
-            <KvButton
-              type="button"
-              color="neutral"
-              appearance="ghost"
-              size="sm"
-              className="w-full sm:w-auto"
-              disabled={!canEdit || !hasLastWeek}
-              aria-label="بازیابی آخرین هفته"
-              onClick={() => {
-                if (lastWeek) onRestoreWeek(lastWeek);
-              }}
-              icon={<FaIcon icon={faIcons.clockRotateLeft} size="xs" />}
-            >
-              آخرین هفته
-            </KvButton>
-          ) : (
-            <KvButton
-              type="button"
-              color="warning"
-              appearance="ghost"
-              size="sm"
-              className="w-full text-kv-warning sm:w-auto"
-              disabled={!canEdit || !hasLastWeek}
-              aria-label="آرشیو آخرین هفته"
-              onClick={() => {
-                if (lastWeek) onArchiveWeek(lastWeek);
-              }}
-              icon={
-                <FaIcon
-                  icon={faIcons.folderOpen}
-                  size="xs"
-                  className="text-kv-warning"
-                />
-              }
-            >
-              آخرین هفته
-            </KvButton>
-          )}
 
           <KvButton
             type="button"
@@ -211,7 +168,8 @@ export function WeeklySyllabusTable({
                     week={week}
                     index={index}
                     onWeightChange={onWeightChange}
-                    onEditWeek={onEditWeek}
+                    onArchiveWeek={onArchiveWeek}
+                    onRestoreWeek={onRestoreWeek}
                   />
                 ))
               )}

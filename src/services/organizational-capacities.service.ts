@@ -31,14 +31,17 @@ function requireCapacityConfigure(): string {
 }
 
 /**
- * Facade پیکربندی ظرفیت پذیرش استاد راهنما (مرجع: organizational_capacities).
+ * Supervisor intake-capacity config (organizational_capacities).
+ * Real mode fail-closed until Nest routes land.
  *
- * Nest-blocked:
- * - GET  /organizational-capacities?kind&termId
+ * Nest map:
+ * - GET   /organizational-capacities/terms?kind=
+ * - GET   /organizational-capacities?kind&termId
  * - PATCH /organizational-capacities/courses/:courseId
  * - POST  /organizational-capacities/submit
  */
 export const OrganizationalCapacitiesService = {
+  /** GET /organizational-capacities/terms?kind= */
   async listTerms(
     kind: OrganizationalCapacityKind
   ): Promise<Array<{ id: string; title: string }>> {
@@ -49,6 +52,7 @@ export const OrganizationalCapacitiesService = {
     return listTermsForCapacityKind(kind);
   },
 
+  /** GET /organizational-capacities?kind&termId */
   async getSnapshot(
     input: GetOrganizationalCapacitiesInput
   ): Promise<OrganizationalCapacitiesSnapshot> {
@@ -60,6 +64,7 @@ export const OrganizationalCapacitiesService = {
     return getMockOrganizationalCapacities(input, actorId);
   },
 
+  /** PATCH /organizational-capacities/courses/:courseId */
   async updateCourse(
     input: UpdateOrganizationalCapacityCourseInput
   ): Promise<OrganizationalCapacitiesSnapshot> {
@@ -70,6 +75,7 @@ export const OrganizationalCapacitiesService = {
     return updateMockOrganizationalCapacityCourse(input, actorId);
   },
 
+  /** POST /organizational-capacities/submit */
   async submit(
     input: SubmitOrganizationalCapacitiesInput
   ): Promise<OrganizationalCapacitiesSnapshot> {

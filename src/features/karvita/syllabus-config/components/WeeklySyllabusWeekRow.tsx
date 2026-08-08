@@ -19,17 +19,21 @@ type WeeklySyllabusWeekRowProps = {
   week: SyllabusWeek;
   index: number;
   onWeightChange: (weekId: string, weight: number) => void;
-  onEditWeek: (week: SyllabusWeek) => void;
+  onArchiveWeek: (week: SyllabusWeek) => void;
+  onRestoreWeek: (week: SyllabusWeek) => void;
 };
 
 export function WeeklySyllabusWeekRow({
   week,
   index,
   onWeightChange,
-  onEditWeek,
+  onArchiveWeek,
+  onRestoreWeek,
 }: WeeklySyllabusWeekRowProps) {
+  const isArchived = week.status === 'archived';
+
   return (
-    <KvTableRow>
+    <KvTableRow className={isArchived ? 'opacity-60' : undefined}>
       <KvTableRowIndexCell index={index} />
       <KvTableCell emphasis className="max-w-0 truncate">
         {toPersianDigits(week.title || week.suffix)}
@@ -62,15 +66,33 @@ export function WeeklySyllabusWeekRow({
       </KvTableCell>
       <KvTableCell align="center" className="w-16 sm:w-20">
         <div className="flex h-8 items-center justify-center">
-          <KvButton
-            type="button"
-            color="neutral"
-            appearance="ghost"
-            size="icon-xs"
-            aria-label="ویرایش عنوان هفته"
-            onClick={() => onEditWeek(week)}
-            icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
-          />
+          {isArchived ? (
+            <KvButton
+              type="button"
+              color="neutral"
+              appearance="ghost"
+              size="icon-xs"
+              aria-label="بازیابی هفته"
+              onClick={() => onRestoreWeek(week)}
+              icon={<FaIcon icon={faIcons.clockRotateLeft} size="xs" />}
+            />
+          ) : (
+            <KvButton
+              type="button"
+              color="warning"
+              appearance="ghost"
+              size="icon-xs"
+              aria-label="آرشیو هفته"
+              onClick={() => onArchiveWeek(week)}
+              icon={
+                <FaIcon
+                  icon={faIcons.folderOpen}
+                  size="xs"
+                  className="text-kv-warning"
+                />
+              }
+            />
+          )}
         </div>
       </KvTableCell>
     </KvTableRow>

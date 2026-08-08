@@ -5,8 +5,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "node --max-old-space-size=8192 ./node_modules/next/dist/bin/next dev --webpack",
-    "dev:turbo": "node --max-old-space-size=8192 ./node_modules/next/dist/bin/next dev",
+    "dev": "node --max-old-space-size=8192 ./node_modules/next/dist/bin/next dev",
+    "dev:webpack": "node --max-old-space-size=8192 ./node_modules/next/dist/bin/next dev --webpack",
     "dev:clean": "node ./scripts/clean-next-cache.mjs && npm run dev",
     "build": "next build",
     "start": "next start",

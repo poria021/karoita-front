@@ -20,11 +20,9 @@ export function ConnectivityStatusDot({ className }: ConnectivityStatusDotProps)
       className={cn(
         'pointer-events-none absolute -bottom-0.5 -start-0.5 z-10 size-3 rounded-full',
         'border-2 border-kv-surface shadow-kv-soft transition-colors duration-300',
+        isOnline ? 'bg-kv-success' : 'bg-kv-danger',
         className
       )}
-      style={{
-        backgroundColor: isOnline ? 'var(--kv-success)' : 'var(--kv-danger)',
-      }}
       title={
         isOnline
           ? 'اتصال برقرار است (آنلاین)'

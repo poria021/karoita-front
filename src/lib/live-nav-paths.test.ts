@@ -6,6 +6,7 @@ import {
   isNavigableAppPath,
 } from '@/lib/live-nav-paths';
 import { isAppShellPath, RouteService } from '@/services/route.service';
+import { PlannedRoutes } from '@/services/planned-routes';
 import {
   getVisibleSidebarMenu,
   isSidebarMenuGroup,
@@ -109,7 +110,7 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.syllabusTermSettings(),
     ]);
 
-    expect(isLiveSidebarPath(RouteService.karvita.dailyReports())).toBe(false);
+    expect(isLiveSidebarPath(PlannedRoutes.dailyReports())).toBe(false);
     expect(isLiveSidebarPath(RouteService.karvita.entry())).toBe(false);
   });
 
@@ -172,7 +173,7 @@ describe('live nav / admin plane', () => {
     expect(isLiveSidebarPath(RouteService.marketing.loginSelect())).toBe(false);
   });
 
-  it('scopes app shell (theme/connectivity) to dashboards, not marketing/auth', () => {
+  it('scopes app shell (connectivity chrome) to dashboards, not marketing/auth', () => {
     expect(isAppShellPath(RouteService.karvita.dashboard())).toBe(true);
     expect(isAppShellPath(RouteService.karvita.landingCms())).toBe(true);
     expect(isAppShellPath(RouteService.marketing.home())).toBe(false);

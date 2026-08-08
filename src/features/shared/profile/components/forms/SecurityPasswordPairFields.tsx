@@ -3,9 +3,9 @@
 import { useWatch, type UseFormReturn } from 'react-hook-form';
 
 import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
+import { KvPasswordStrengthIndicator } from '@/components/shared/fields/KvPasswordStrengthIndicator';
 
 import type { SecurityPasswordSchema } from '../../schemas/security.schema';
-import { PasswordStrengthIndicator } from './PasswordStrengthIndicator';
 
 interface SecurityPasswordPairFieldsProps {
   form: UseFormReturn<SecurityPasswordSchema>;
@@ -31,7 +31,7 @@ export function SecurityPasswordPairFields({
         autoComplete="new-password"
         locked={disabled}
         error={form.formState.errors.newPassword?.message}
-        footer={<PasswordStrengthIndicator password={watchedPassword} />}
+        footer={<KvPasswordStrengthIndicator password={watchedPassword ?? ''} />}
         {...form.register('newPassword')}
       />
       <KvPasswordField

@@ -7,6 +7,7 @@ import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
+import { KvPasswordStrengthIndicator } from '@/components/shared/fields/KvPasswordStrengthIndicator';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
@@ -110,12 +111,16 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
                     required
                     placeholder="رمز عبور دلخواه را وارد کنید (حداقل ۸ کاراکتر)"
                     autoComplete="new-password"
+                    defaultVisible
                     value={field.value}
                     onChange={(event) => field.onChange(event.target.value)}
                     onBlur={field.onBlur}
                     name={field.name}
                     ref={field.ref}
                     error={errors.password?.message}
+                    footer={
+                      <KvPasswordStrengthIndicator password={field.value} />
+                    }
                   />
                 )}
               />

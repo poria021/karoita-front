@@ -27,7 +27,6 @@ export function KvDropdownMenuContent({
 }: React.ComponentProps<typeof DropdownMenuContent>) {
   return (
     <DropdownMenuContent
-      dir="rtl"
       data-slot="kv-dropdown-menu-content"
       className={cn(kvOverlayPanelClassName, className)}
       {...props}

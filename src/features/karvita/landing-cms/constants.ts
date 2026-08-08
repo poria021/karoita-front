@@ -1,8 +1,40 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
+import {
+  LANDING_BANNER_MAX_SIZE_MB,
+  LANDING_ICON_MAX_SIZE_MB,
+} from '@/services/landing-cms/landing-cms-media-limits';
 import { faIcons, iconMap } from '@/utils/iconMap';
 
 export type LandingCmsTab = 'banners' | 'socials' | 'products';
+
+export {
+  LANDING_BANNER_MAX_SIZE_MB,
+  LANDING_ICON_MAX_SIZE_MB,
+};
+
+/** Banner / hero slide — standard web CMS ceiling before client compress. */
+
+export const LANDING_BANNER_MAX_SIZE_HELPER =
+  'PNG، JPG تا ۲ مگابایت';
+
+/** Product dock mark — SVG/PNG only (color logos). */
+export const LANDING_PRODUCT_LOGO_MAX_SIZE_HELPER =
+  'فقط SVG یا PNG تا ۵۱۲ کیلوبایت';
+
+export const LANDING_ICON_MAX_SIZE_HELPER =
+  'PNG، JPG تا ۵۱۲ کیلوبایت';
+
+export const LANDING_SOCIAL_ICON_MAX_SIZE_HELPER =
+  'اختیاری — PNG یا JPG شفاف تا ۵۱۲ کیلوبایت';
+
+export const LANDING_PRODUCT_LOGO_ACCEPT = {
+  'image/png': ['.png'],
+  'image/svg+xml': ['.svg'],
+} as const;
+
+export const LANDING_PRODUCT_LOGO_INVALID_TYPE =
+  'فقط فایل‌های SVG یا PNG مجاز هستند.';
 
 export type LandingCmsTabConfig = {
   key: LandingCmsTab;

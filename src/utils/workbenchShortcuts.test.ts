@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { RouteService } from '@/services/route.service';
+import { PlannedRoutes } from '@/services/planned-routes';
 
 import { getLiveWorkbenchShortcuts } from './workbenchShortcuts';
 
@@ -14,11 +15,18 @@ describe('getLiveWorkbenchShortcuts', () => {
     expect(paths).toContain(RouteService.karvita.onboardingApprovals());
     expect(paths).toContain(RouteService.karvita.adminUserCreation());
     expect(paths).toContain(RouteService.karvita.syllabusCourseOfferings());
-    expect(paths).not.toContain(RouteService.karvita.standardReports());
+    expect(paths).not.toContain(PlannedRoutes.standardReports());
   });
 
-  it('returns no dead module shortcuts for a typical locked student menu', () => {
+  it('returns live internship shortcuts for student and excludes planned modules', () => {
     const shortcuts = getLiveWorkbenchShortcuts('student');
-    expect(shortcuts).toEqual([]);
+    const paths = shortcuts.map((item) => item.path);
+    expect(paths).toEqual([
+      RouteService.karvita.internshipSelection(1),
+      RouteService.karvita.internshipSelection(2),
+      RouteService.karvita.internshipSelection(3),
+      RouteService.karvita.internshipSelection(4),
+    ]);
+    expect(paths).not.toContain(PlannedRoutes.dailyReports());
   });
 });

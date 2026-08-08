@@ -1,8 +1,7 @@
 /**
- * کاتالوگ مسیرهای داخلی اپ.
- * برای ناوبری داخلی فقط از این سرویس استفاده شود؛ مسیر خام هاردکد نشود.
- *
- * Path helpers below are Edge-safe (no Nest/Zustand/browser APIs).
+ * Live internal route catalog.
+ * Planned-but-unbuilt paths live in planned-routes.ts — do not hardcode domain URLs in features.
+ * Path helpers here are Edge-safe (no Nest / Zustand / browser APIs).
  */
 
 const AUTH_BASE = '/auth';
@@ -25,7 +24,7 @@ export function isAuthPath(pathname: string): boolean {
 
 /**
  * Authenticated app/dashboard shell (`/(app)/…`).
- * Theme toggle + online/offline monitoring apply here only — not marketing/auth.
+ * Header theme toggle lives here; system/stored theme still applies on auth/marketing too.
  */
 export function isAppShellPath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
@@ -59,7 +58,7 @@ export const LEGACY_ORGANIZATION_BOOKMARK_PATHS = [
 export const RouteService = {
   marketing: {
     home: (): string => '/',
-    /** Product picker when CMS has two or more products. */
+    /** Product picker when CMS has 2+ products */
     loginSelect: (): string => '/login-select',
   },
 
@@ -72,9 +71,8 @@ export const RouteService = {
 
   karvita: {
     /**
-     * Client-only post-auth bounce. Edge may land here (presence-only);
-     * hydrated client resolves role/approval via `getPostLoginPath`.
-     * Not a sidebar / navigable home destination.
+     * Post-auth bounce only — Edge lands here (presence check);
+     * client then resolves role home via getPostLoginPath. Not a sidebar target.
      */
     entry: (): string => '/karvita/entry',
     dashboard: (): string => '/karvita/dashboard',
@@ -83,50 +81,25 @@ export const RouteService = {
     profileSecurity: (role: string): string =>
       `/karvita/${role}/profile?tab=security`,
 
-    dailyReports: (): string => '/karvita/daily-reports',
     dailyApprovals: (): string => '/karvita/daily-approvals',
-    academicEvaluation: (): string => '/karvita/academic-evaluation',
-    traineesManagement: (): string => '/karvita/trainees',
-    studentsList: (): string => '/karvita/students',
-    standardReports: (): string => '/karvita/reports',
-    comparativeReports: (): string => '/karvita/reports/comparative',
-    termLifecycle: (): string => '/karvita/term-lifecycle',
-    /**
-     * Syllabus module index (bookmark/redirect). Feature UI lives in
-     * `src/features/karvita/syllabus-config`; live pages under
-     * `/karvita/admin/syllabus/*` below.
-     */
+    /** Syllabus index (redirect); live UI under /admin/syllabus/* */
     syllabusConfig: (): string => `${KARVITA_ADMIN_BASE}/syllabus`,
-    /** Live course-offerings page — feature: `syllabus-config`. */
     syllabusCourseOfferings: (): string =>
       `${KARVITA_ADMIN_BASE}/syllabus/course-offerings`,
-    /** Live term-settings page — feature: `syllabus-config`. */
     syllabusTermSettings: (): string =>
       `${KARVITA_ADMIN_BASE}/syllabus/term-settings`,
-    locations: (): string => '/karvita/locations',
     onboardingApprovals: (): string =>
       `${KARVITA_ADMIN_BASE}/onboarding-approvals`,
-    userPermissions: (): string => '/karvita/permissions',
-    manageAds: (): string => '/karvita/ads',
-    /**
-     * انتخاب واحد کارورزی/کارآموزی.
-     * بدون level → ایندکس (redirect به سطح ۱)؛ با level → زیرماژول سایدبار.
-     */
+    /** No level → index redirect to L1; with level → sidebar submodule */
     internshipSelection: (level?: number): string =>
       level == null
         ? '/karvita/internships'
         : `/karvita/internships/${level}`,
     organizationalCapacities: (): string => '/karvita/capacities',
-    /** Live URL `/karvita/admin/user-creation` — feature: `user-creation`. */
     adminUserCreation: (): string => `${KARVITA_ADMIN_BASE}/user-creation`,
-    internshipDetail: (internshipId: string): string =>
-      `/karvita/internships/${internshipId}`,
-
-    /** Canonical org tree module — not the legacy `/organization/*` bookmarks. */
+    /** Canonical org tree — not legacy /organization/* bookmarks */
     organizationalStructure: (): string =>
       `${KARVITA_ADMIN_BASE}/organizational-structure`,
-
-    /** Live URL `/karvita/admin/landing-cms` — feature: `landing-cms`. */
     landingCms: (): string => `${KARVITA_ADMIN_BASE}/landing-cms`,
 
     isAdminControlPlanePath,

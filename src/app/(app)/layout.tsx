@@ -6,6 +6,7 @@ import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardA
 import { DashboardMainViewport } from '@/components/shared/shell/DashboardMainViewport';
 import { Header } from '@/components/shared/shell/Header';
 import { HydrationSafe } from '@/components/shared/shell/HydrationSafe';
+import { NetworkStatusWatcher } from '@/components/shared/shell/NetworkStatusWatcher';
 import { Sidebar } from '@/components/shared/shell/Sidebar';
 import { SkipToMainContent } from '@/components/shared/shell/SkipToMainContent';
 import { kvShellContentPadXClassName } from '@/components/shared/shell/shellChrome';
@@ -20,6 +21,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <HydrationSafe>
       <Suspense fallback={<DashboardAccessPlaceholder fullViewport />}>
         <AppAuthGuard>
+          <NetworkStatusWatcher />
           <div className="flex min-h-dvh w-full flex-col bg-kv-canvas">
             <SkipToMainContent />
             <Header />

@@ -26,13 +26,12 @@ import {
 } from '@/utils/roleFieldStrategy';
 
 /**
- * Facade ایجاد حساب‌های سازمانی (مدیر ارشد).
+ * Super-admin org account creation.
+ * DTO stays stable across mock→Nest; only transport swaps here.
  *
- * MOCK → REAL swap map
- * - mock writeMockUsers / createOrganizationalUser  →  POST /admin/users (Nest)
- * - mockMobileExists / checkMobileAvailable         →  GET  /admin/users/mobile-availability?mobile=
- * - OrganizationOptionsService (در UI)              →  همان endpointهای org options (از قبل abstract)
- * - CreateOrganizationalUserInput فیلدها ثابت می‌مانند؛ فقط transport داخل این Facade عوض می‌شود
+ * Nest map:
+ * - GET  /admin/users/mobile-availability?mobile=
+ * - POST /admin/users
  */
 
 function requireMockUserCreate(): void {
@@ -118,6 +117,7 @@ function mockCreateOrganizationalUser(
 }
 
 export const AdminUserCreationService = {
+  /** GET /admin/users/mobile-availability?mobile= */
   async checkMobileAvailable(
     mobile: string
   ): Promise<MobileAvailabilityResult> {
@@ -126,15 +126,14 @@ export const AdminUserCreationService = {
     if (!/^9\d{9}$/.test(normalized)) {
       return { available: true };
     }
-    // REAL: GET /admin/users/mobile-availability?mobile=
     return { available: !mockMobileExists(normalized) };
   },
 
+  /** POST /admin/users */
   async createOrganizationalUser(
     input: CreateOrganizationalUserInput
   ): Promise<CreateOrganizationalUserResult> {
     requireMockUserCreate();
-    // REAL: POST /admin/users with CreateOrganizationalUserInput body
     return mockCreateOrganizationalUser(input);
   },
 };

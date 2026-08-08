@@ -15,6 +15,13 @@ import { KvMultiFileDropzone } from '@/components/shared/fields/KvMultiFileDropz
 import { KvTextArea } from '@/components/shared/fields/KvTextArea';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useWeeklyReportModal } from '@/features/karvita/internship-enrollment/hooks/useWeeklyReportModal';
+import {
+  WEEKLY_REPORT_ACCEPT,
+  WEEKLY_REPORT_ACCEPT_LABEL,
+  WEEKLY_REPORT_INVALID_TYPE_MESSAGE,
+  WEEKLY_REPORT_MAX_FILE_SIZE_MB,
+  WEEKLY_REPORT_MAX_TOTAL_SIZE_MB,
+} from '@/services/internship-enrollment/weekly-report-attachment-limits';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
@@ -146,6 +153,11 @@ export function WeeklyReportModal({
           <KvMultiFileDropzone
             files={modal.files}
             disabled={modal.locked || modal.busy}
+            maxFileSizeMb={WEEKLY_REPORT_MAX_FILE_SIZE_MB}
+            maxTotalSizeMb={WEEKLY_REPORT_MAX_TOTAL_SIZE_MB}
+            accept={WEEKLY_REPORT_ACCEPT}
+            acceptLabel={WEEKLY_REPORT_ACCEPT_LABEL}
+            invalidTypeMessage={WEEKLY_REPORT_INVALID_TYPE_MESSAGE}
             onAdd={modal.addFiles}
             onRemove={modal.removeFile}
           />

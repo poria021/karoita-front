@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 /**
- * Open-canvas institutional line field for full-page status.
+ * Institutional line-vector field — used for both full-page and in-shell.
  */
 export function KvRouteStatusBackdrop({ className }: { className?: string }) {
   return (
@@ -13,7 +13,7 @@ export function KvRouteStatusBackdrop({ className }: { className?: string }) {
       aria-hidden
     >
       <svg
-        className="absolute inset-0 size-full opacity-[0.55]"
+        className="absolute inset-0 size-full opacity-[0.62]"
         viewBox="0 0 1200 800"
         preserveAspectRatio="xMidYMid slice"
         fill="none"
@@ -41,7 +41,6 @@ export function KvRouteStatusBackdrop({ className }: { className?: string }) {
         </defs>
 
         <rect width="1200" height="800" fill="url(#kvRsGrid)" />
-        <rect width="1200" height="800" fill="url(#kvRsFade)" />
 
         {/* Construction arcs */}
         <circle

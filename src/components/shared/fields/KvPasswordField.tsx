@@ -34,6 +34,8 @@ export type KvPasswordFieldProps = {
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
   footer?: React.ReactNode;
   suppressBrowserAutofill?: boolean;
+  /** When true, password characters start visible (toggle still available). */
+  defaultVisible?: boolean;
 };
 
 export const KvPasswordField = React.forwardRef<
@@ -59,10 +61,11 @@ export const KvPasswordField = React.forwardRef<
     onFocus,
     footer,
     suppressBrowserAutofill = false,
+    defaultVisible = false,
   },
   ref
 ) {
-  const [isVisible, setIsVisible] = React.useState(false);
+  const [isVisible, setIsVisible] = React.useState(defaultVisible);
   const [autofillUnlocked, setAutofillUnlocked] = React.useState(
     !suppressBrowserAutofill
   );
