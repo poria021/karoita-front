@@ -115,6 +115,7 @@ export function LandingCmsProductsPanel({
           label="لینک هدایت هنگام کلیک"
           required
           dir="ltr"
+          scriptGuard="none"
           placeholder="مثال: /auth/login یا https://..."
           error={form.formState.errors.link?.message}
           {...form.register('link')}

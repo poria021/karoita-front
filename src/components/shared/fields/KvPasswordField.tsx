@@ -113,6 +113,7 @@ export const KvPasswordField = React.forwardRef<
       onBlur={onBlur}
       onFocus={handleFocus}
       onChange={handleChange}
+      scriptGuard="none"
       error={persianScriptError ?? error}
       hint={persianScriptError ? undefined : hint}
       footer={footer}

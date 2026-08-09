@@ -178,6 +178,7 @@ export function TermFormCard({
                 required
                 size="md"
                 dir="ltr"
+                scriptGuard="none"
                 disabled={isEditing}
                 value={displayAcademicYear(termYear)}
                 placeholder="۱۴۰۵-۱۴۰۶"

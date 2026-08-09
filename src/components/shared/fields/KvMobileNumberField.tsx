@@ -11,6 +11,10 @@ import {
   persianToEnglishDigits,
   toPersianDigits,
 } from '@/utils/persianDigits';
+import {
+  LATIN_LETTERS_NOT_ALLOWED_MESSAGE,
+  containsLatinLetters,
+} from '@/utils/persianPersonName';
 
 function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
@@ -71,6 +75,9 @@ export const KvMobileNumberField = React.forwardRef<
   const [uncontrolledEnglish, setUncontrolledEnglish] = React.useState(() =>
     filterDigits(defaultValue ?? '').slice(0, 10)
   );
+  const [latinScriptError, setLatinScriptError] = React.useState<
+    string | undefined
+  >();
 
   const englishValue = (
     isControlled ? filterDigits(value ?? '') : uncontrolledEnglish
@@ -82,7 +89,14 @@ export const KvMobileNumberField = React.forwardRef<
       return;
     }
 
-    const next = filterDigits(event.target.value).slice(0, 10);
+    const raw = event.target.value;
+    if (containsLatinLetters(raw)) {
+      setLatinScriptError(LATIN_LETTERS_NOT_ALLOWED_MESSAGE);
+    } else if (latinScriptError) {
+      setLatinScriptError(undefined);
+    }
+
+    const next = filterDigits(raw).slice(0, 10);
     if (!isControlled) {
       setUncontrolledEnglish(next);
     }
@@ -111,7 +125,8 @@ export const KvMobileNumberField = React.forwardRef<
       onBlur={onBlur}
       onFocus={onFocus}
       onChange={handleChange}
-      error={error}
+      scriptGuard="none"
+      error={latinScriptError ?? error}
       startAddon={plus98Addon}
     />
   );

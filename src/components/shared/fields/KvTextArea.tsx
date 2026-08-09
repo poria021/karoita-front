@@ -4,9 +4,16 @@ import { cva } from 'class-variance-authority';
 import * as React from 'react';
 
 import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
-import { type KvTextFieldSize } from '@/components/shared/fields/KvTextField';
+import {
+  type KvTextFieldSize,
+  type PersianTextScriptGuard,
+} from '@/components/shared/fields/KvTextField';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import {
+  LATIN_LETTERS_NOT_ALLOWED_MESSAGE,
+  applyPersianTextScriptGuard,
+} from '@/utils/persianPersonName';
 
 const kvTextAreaVariants = cva(
   [
@@ -67,6 +74,8 @@ export type KvTextAreaProps = {
   onChange?: React.ChangeEventHandler<HTMLTextAreaElement>;
   onBlur?: React.FocusEventHandler<HTMLTextAreaElement>;
   onFocus?: React.FocusEventHandler<HTMLTextAreaElement>;
+  /** پیش‌فرض no-latin؛ برای متن آزاد انگلیسی `none` بگذارید. */
+  scriptGuard?: PersianTextScriptGuard;
   className?: never;
 };
 
@@ -94,17 +103,48 @@ export const KvTextArea = React.forwardRef<
     onChange,
     onBlur,
     onFocus,
+    scriptGuard = 'no-latin',
   },
   ref
 ) {
   const generatedId = React.useId();
   const id = idProp ?? generatedId;
-  const state = locked ? 'locked' : error ? 'error' : 'default';
-  const describedBy = error
+  const [latinScriptError, setLatinScriptError] = React.useState<
+    string | undefined
+  >();
+  const displayError = latinScriptError ?? error;
+  const state = locked ? 'locked' : displayError ? 'error' : 'default';
+  const describedBy = displayError
     ? `${id}-error`
-    : hint
+    : hint && !latinScriptError
       ? `${id}-hint`
       : undefined;
+
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (locked || scriptGuard === 'none') {
+      onChange?.(event);
+      return;
+    }
+
+    const raw = event.target.value;
+    const { value: next, blockedLatin } = applyPersianTextScriptGuard(
+      raw,
+      scriptGuard
+    );
+    if (blockedLatin) {
+      event.target.value = next;
+      setLatinScriptError(LATIN_LETTERS_NOT_ALLOWED_MESSAGE);
+    } else if (next !== raw) {
+      event.target.value = next;
+      if (latinScriptError) {
+        setLatinScriptError(undefined);
+      }
+    } else if (latinScriptError) {
+      setLatinScriptError(undefined);
+    }
+
+    onChange?.(event);
+  };
 
   return (
     <KvFieldFrame
@@ -114,8 +154,8 @@ export const KvTextArea = React.forwardRef<
       optionalHint={optionalHint}
       locked={locked}
       showLockIcon={showLockIcon}
-      error={error}
-      hint={hint}
+      error={displayError}
+      hint={latinScriptError ? undefined : hint}
     >
       <Textarea
         ref={ref}
@@ -129,9 +169,9 @@ export const KvTextArea = React.forwardRef<
         maxLength={maxLength}
         disabled={locked}
         readOnly={locked}
-        aria-invalid={error ? true : undefined}
+        aria-invalid={displayError ? true : undefined}
         aria-describedby={describedBy}
-        onChange={onChange}
+        onChange={handleChange}
         onBlur={onBlur}
         onFocus={onFocus}
         data-slot="kv-text-area"

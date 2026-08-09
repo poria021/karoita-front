@@ -76,6 +76,21 @@ describe('OtpCodeField', () => {
     );
   });
 
+  it('shows helper error when Latin letters are typed, then clears on digits', () => {
+    render(
+      <OtpCodeField id="otp-latin" registration={mockOtpRegistration()} />
+    );
+    const input = document.getElementById('otp-latin') as HTMLInputElement;
+
+    fireEvent.change(input, { target: { value: '12ab' } });
+    expect(screen.getByRole('alert').textContent).toContain(
+      'استفاده از حروف انگلیسی مجاز نیست'
+    );
+
+    fireEvent.change(input, { target: { value: '12345' } });
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
   it('clears display when controlled value resets to empty', () => {
     const registration = mockOtpRegistration();
     const { rerender } = render(

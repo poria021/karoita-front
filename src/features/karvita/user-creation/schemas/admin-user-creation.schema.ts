@@ -3,6 +3,10 @@ import { z } from 'zod';
 import { ORG_ACCOUNT_ROLES } from '@/types/admin-user-creation';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
+  PERSIAN_PERSON_NAME_INVALID_MESSAGE,
+  PERSIAN_PERSON_NAME_PATTERN,
+} from '@/utils/persianPersonName';
+import {
   PASSWORD_LATIN_ONLY_HINT,
   PASSWORD_MIN_LENGTH,
   PASSWORD_MIN_LENGTH_MESSAGE,
@@ -30,11 +34,13 @@ export const adminUserCreationSchema = z
     firstName: z
       .string('نام الزامی است.')
       .trim()
-      .min(1, 'نام کارشناس الزامی است.'),
+      .min(1, 'نام کارشناس الزامی است.')
+      .regex(PERSIAN_PERSON_NAME_PATTERN, PERSIAN_PERSON_NAME_INVALID_MESSAGE),
     lastName: z
       .string('نام خانوادگی الزامی است.')
       .trim()
-      .min(1, 'نام خانوادگی کارشناس الزامی است.'),
+      .min(1, 'نام خانوادگی کارشناس الزامی است.')
+      .regex(PERSIAN_PERSON_NAME_PATTERN, PERSIAN_PERSON_NAME_INVALID_MESSAGE),
     mobile: mobileField,
     password: z
       .string('رمز عبور الزامی است.')

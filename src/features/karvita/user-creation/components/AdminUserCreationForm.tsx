@@ -27,7 +27,6 @@ type AdminUserCreationFormProps = {
 
 export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
   const {
-    register,
     control,
     formState: { errors },
   } = page.form;
@@ -60,22 +59,48 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
           noValidate
         >
           <div className="grid grid-cols-1 gap-kv-group text-start sm:grid-cols-2">
-            <KvTextField
-              id="admin-user-first-name"
-              label="نام کارشناس"
-              required
-              placeholder="مثال: علی"
-              error={errors.firstName?.message}
-              {...register('firstName')}
+            <Controller
+              name="firstName"
+              control={control}
+              render={({ field }) => (
+                <KvTextField
+                  id="admin-user-first-name"
+                  label="نام کارشناس"
+                  required
+                  placeholder="مثال: علی"
+                  error={errors.firstName?.message}
+                  name={field.name}
+                  ref={field.ref}
+                  onBlur={field.onBlur}
+                  value={field.value}
+                  scriptGuard="persian-name"
+                  onChange={(event) => {
+                    field.onChange(event.target.value);
+                  }}
+                />
+              )}
             />
 
-            <KvTextField
-              id="admin-user-last-name"
-              label="نام خانوادگی کارشناس"
-              required
-              placeholder="مثال: رضایی"
-              error={errors.lastName?.message}
-              {...register('lastName')}
+            <Controller
+              name="lastName"
+              control={control}
+              render={({ field }) => (
+                <KvTextField
+                  id="admin-user-last-name"
+                  label="نام خانوادگی کارشناس"
+                  required
+                  placeholder="مثال: رضایی"
+                  error={errors.lastName?.message}
+                  name={field.name}
+                  ref={field.ref}
+                  onBlur={field.onBlur}
+                  value={field.value}
+                  scriptGuard="persian-name"
+                  onChange={(event) => {
+                    field.onChange(event.target.value);
+                  }}
+                />
+              )}
             />
 
             <div className="sm:col-span-2">

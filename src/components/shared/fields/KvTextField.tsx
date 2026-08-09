@@ -6,9 +6,15 @@ import * as React from 'react';
 import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
 import { KvInput } from '@/components/shared/fields/KvInput';
 import { cn } from '@/lib/utils';
+import {
+  LATIN_LETTERS_NOT_ALLOWED_MESSAGE,
+  applyPersianTextScriptGuard,
+  type PersianTextScriptGuard,
+} from '@/utils/persianPersonName';
 
 export type KvTextFieldType = 'text' | 'email' | 'tel' | 'password' | 'number';
 export type KvTextFieldSize = 'sm' | 'md' | 'lg';
+export type { PersianTextScriptGuard };
 
 const kvTextFieldWrapperVariants = cva(
   [
@@ -86,6 +92,25 @@ type KvTextFieldState = NonNullable<
   VariantProps<typeof kvTextFieldWrapperVariants>['state']
 >;
 
+function resolveScriptGuard(options: {
+  scriptGuard: PersianTextScriptGuard | 'auto';
+  type: KvTextFieldType;
+  otpStyle: boolean;
+  emphasis?: 'metric';
+}): PersianTextScriptGuard {
+  if (options.scriptGuard !== 'auto') {
+    return options.scriptGuard;
+  }
+  if (
+    options.otpStyle ||
+    options.emphasis === 'metric' ||
+    options.type !== 'text'
+  ) {
+    return 'none';
+  }
+  return 'no-latin';
+}
+
 export type KvTextFieldProps = {
   label?: string | false;
   required?: boolean;
@@ -115,6 +140,11 @@ export type KvTextFieldProps = {
   otpStyle?: boolean;
   /** عدد متریک ادمین — کمی درشت‌تر، وسط‌چین، بدون اسکیل نمایشی افراطی */
   emphasis?: 'metric';
+  /**
+   * نگهبان حروف لاتین (مثل KvPasswordField ولی برعکس).
+   * `auto`: برای type=text → no-latin؛ سرچ/رمز/عددی باید `none` بگذارند.
+   */
+  scriptGuard?: PersianTextScriptGuard | 'auto';
   footer?: React.ReactNode;
   className?: never;
 };
@@ -149,20 +179,31 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       endAddon,
       otpStyle = false,
       emphasis,
+      scriptGuard = 'auto',
       footer,
     },
     ref
   ) {
     const generatedId = React.useId();
     const id = idProp ?? generatedId;
+    const [latinScriptError, setLatinScriptError] = React.useState<
+      string | undefined
+    >();
+    const resolvedGuard = resolveScriptGuard({
+      scriptGuard,
+      type,
+      otpStyle,
+      emphasis,
+    });
+    const displayError = latinScriptError ?? error;
     const state: KvTextFieldState = locked
       ? 'locked'
-      : error
+      : displayError
         ? 'error'
         : 'default';
-    const describedBy = error
+    const describedBy = displayError
       ? `${id}-error`
-      : hint
+      : hint && !latinScriptError
         ? `${id}-hint`
         : undefined;
     const resolvedStartAddon =
@@ -170,6 +211,37 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       (startIcon ? (
         <span className="flex h-full items-center ps-1.5">{startIcon}</span>
       ) : null);
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (locked || readOnly || resolvedGuard === 'none') {
+        onChange?.(event);
+        return;
+      }
+
+      const raw = event.target.value;
+      const { value: next, blockedLatin } = applyPersianTextScriptGuard(
+        raw,
+        resolvedGuard
+      );
+      if (blockedLatin) {
+        event.target.value = next;
+        setLatinScriptError(LATIN_LETTERS_NOT_ALLOWED_MESSAGE);
+      } else if (resolvedGuard === 'persian-name' && next !== raw) {
+        event.target.value = next;
+        if (latinScriptError) {
+          setLatinScriptError(undefined);
+        }
+      } else if (next !== raw) {
+        event.target.value = next;
+        if (latinScriptError) {
+          setLatinScriptError(undefined);
+        }
+      } else if (latinScriptError) {
+        setLatinScriptError(undefined);
+      }
+
+      onChange?.(event);
+    };
 
     return (
       <KvFieldFrame
@@ -179,8 +251,8 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
         optionalHint={optionalHint}
         locked={locked}
         showLockIcon={showLockIcon}
-        error={error}
-        hint={hint}
+        error={displayError}
+        hint={latinScriptError ? undefined : hint}
         footer={footer}
       >
         <div
@@ -211,9 +283,9 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
             maxLength={maxLength}
             disabled={locked}
             readOnly={locked || readOnly}
-            aria-invalid={error ? true : undefined}
+            aria-invalid={displayError ? true : undefined}
             aria-describedby={describedBy}
-            onChange={onChange}
+            onChange={handleChange}
             onBlur={onBlur}
             onFocus={onFocus}
             className={cn(

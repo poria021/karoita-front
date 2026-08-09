@@ -70,4 +70,17 @@ describe('KvMobileNumberField', () => {
     expect(alert.id).toBe('mobile-err-error');
     expect(alert.textContent).toContain('شماره موبایل نامعتبر است');
   });
+
+  it('shows helper error when Latin letters are typed, then clears on digits', () => {
+    render(<ControlledMobile />);
+    const input = document.getElementById('mobile-field') as HTMLInputElement;
+
+    fireEvent.change(input, { target: { value: '912abc' } });
+    expect(screen.getByRole('alert').textContent).toContain(
+      'استفاده از حروف انگلیسی مجاز نیست'
+    );
+
+    fireEvent.change(input, { target: { value: '9123456789' } });
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
 });

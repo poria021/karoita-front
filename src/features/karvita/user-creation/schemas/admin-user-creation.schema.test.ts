@@ -84,6 +84,30 @@ describe('adminUserCreationSchema', () => {
     }
   });
 
+  it('rejects Latin letters in firstName and lastName', () => {
+    const latinFirst = adminUserCreationSchema.safeParse({
+      ...base,
+      firstName: 'Ali',
+      role: 'central_organization',
+      province: '',
+      city: '',
+      college: '',
+      district: '',
+    });
+    expect(latinFirst.success).toBe(false);
+
+    const mixedLast = adminUserCreationSchema.safeParse({
+      ...base,
+      lastName: 'رضایی Rezaei',
+      role: 'central_organization',
+      province: '',
+      city: '',
+      college: '',
+      district: '',
+    });
+    expect(mixedLast.success).toBe(false);
+  });
+
   it('accepts latin letters in password and rejects Persian letters', () => {
     const withLatin = adminUserCreationSchema.safeParse({
       ...base,

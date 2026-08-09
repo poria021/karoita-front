@@ -111,6 +111,7 @@ export function LandingCmsSocialsPanel({
           label="لینک شبکه اجتماعی"
           required
           dir="ltr"
+          scriptGuard="none"
           placeholder="مثال: https://eitaa.com/..."
           error={form.formState.errors.link?.message}
           {...form.register('link')}

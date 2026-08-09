@@ -91,6 +91,7 @@ export const KvSearchField = React.forwardRef<
       }
       endAddon={resolvedEndAddon}
       {...props}
+      scriptGuard="none"
     />
   );
 });

@@ -123,6 +123,7 @@ function SettingsMetricCard({
                   size="md"
                   inputMode="numeric"
                   dir="ltr"
+                  scriptGuard="none"
                   value={displayValue}
                   onChange={(event) => onValueChange(event.target.value)}
                 />

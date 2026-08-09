@@ -111,6 +111,7 @@ export function LandingCmsBannersPanel({
           label="لینک هدف"
           optionalHint
           dir="ltr"
+          scriptGuard="none"
           placeholder="مثال: #internship یا https://..."
           error={form.formState.errors.link?.message}
           {...form.register('link')}

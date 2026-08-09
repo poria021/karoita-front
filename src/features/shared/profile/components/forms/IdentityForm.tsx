@@ -8,7 +8,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
-import { KvForm } from '@/components/shared/fields/KvForm';
+import { KvForm, KvFormField } from '@/components/shared/fields/KvForm';
 import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
@@ -118,21 +118,51 @@ export function IdentityForm({
               className="min-w-0 border-0 p-0 disabled:opacity-100"
             >
               <div className="grid grid-cols-1 gap-kv-group text-start sm:grid-cols-2">
-                <KvTextField
-                  label="نام"
-                  required
-                  locked={isDisabled}
-                  placeholder="مثال: امیرحسین"
-                  error={form.formState.errors.firstName?.message}
-                  {...form.register('firstName')}
+                <KvFormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field, fieldState }) => (
+                    <KvTextField
+                      label="نام"
+                      required
+                      locked={isDisabled}
+                      placeholder="مثال: امیرحسین"
+                      error={fieldState.error?.message}
+                      name={field.name}
+                      ref={field.ref}
+                      onBlur={field.onBlur}
+                      value={
+                        typeof field.value === 'string' ? field.value : ''
+                      }
+                      scriptGuard="persian-name"
+                      onChange={(event) => {
+                        field.onChange(event.target.value);
+                      }}
+                    />
+                  )}
                 />
-                <KvTextField
-                  label="نام خانوادگی"
-                  required
-                  locked={isDisabled}
-                  placeholder="مثال: کریمی"
-                  error={form.formState.errors.lastName?.message}
-                  {...form.register('lastName')}
+                <KvFormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field, fieldState }) => (
+                    <KvTextField
+                      label="نام خانوادگی"
+                      required
+                      locked={isDisabled}
+                      placeholder="مثال: کریمی"
+                      error={fieldState.error?.message}
+                      name={field.name}
+                      ref={field.ref}
+                      onBlur={field.onBlur}
+                      value={
+                        typeof field.value === 'string' ? field.value : ''
+                      }
+                      scriptGuard="persian-name"
+                      onChange={(event) => {
+                        field.onChange(event.target.value);
+                      }}
+                    />
+                  )}
                 />
                 <KvMobileNumberField
                   value={liveUser.mobile}

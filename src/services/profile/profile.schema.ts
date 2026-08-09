@@ -2,13 +2,24 @@ import { z } from 'zod';
 
 import type { UserRole } from '@/types/auth';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
-
+import {
+  PERSIAN_PERSON_NAME_INVALID_MESSAGE,
+  PERSIAN_PERSON_NAME_PATTERN,
+} from '@/utils/persianPersonName';
 
 function requiredTextField(requiredMessage: string) {
   return z
     .string(requiredMessage)
     .trim()
     .min(1, requiredMessage);
+}
+
+function requiredPersianNameField(requiredMessage: string) {
+  return z
+    .string(requiredMessage)
+    .trim()
+    .min(1, requiredMessage)
+    .regex(PERSIAN_PERSON_NAME_PATTERN, PERSIAN_PERSON_NAME_INVALID_MESSAGE);
 }
 
 function requiredNumericIdField(options: {
@@ -27,8 +38,12 @@ function requiredNumericIdField(options: {
     );
 }
 
-const firstNameField = requiredTextField('لطفاً نام خود را وارد کنید.');
-const lastNameField = requiredTextField('لطفاً نام خانوادگی خود را وارد کنید.');
+const firstNameField = requiredPersianNameField(
+  'لطفاً نام خود را وارد کنید.'
+);
+const lastNameField = requiredPersianNameField(
+  'لطفاً نام خانوادگی خود را وارد کنید.'
+);
 const provinceField = requiredTextField(
   'لطفاً استان محل سکونت یا خدمت خود را انتخاب کنید.'
 );

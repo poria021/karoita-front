@@ -58,6 +58,7 @@ export function OrgStructureEntityFields({
         required
         placeholder={namePlaceholder}
         error={errors.name?.message}
+        scriptGuard="persian-name"
         {...register('name')}
       />
 

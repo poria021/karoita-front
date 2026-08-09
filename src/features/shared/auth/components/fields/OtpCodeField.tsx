@@ -9,6 +9,10 @@ import {
   persianToEnglishDigits,
   toPersianDigits,
 } from '@/utils/persianDigits';
+import {
+  LATIN_LETTERS_NOT_ALLOWED_MESSAGE,
+  containsLatinLetters,
+} from '@/utils/persianPersonName';
 
 interface OtpCodeFieldProps {
   id: string;
@@ -31,6 +35,9 @@ export function OtpCodeField({
   const [englishValue, setEnglishValue] = React.useState(() =>
     filterDigits(value ?? '').slice(0, 5)
   );
+  const [latinScriptError, setLatinScriptError] = React.useState<
+    string | undefined
+  >();
   const { name, onBlur, onChange, ref } = registration;
 
   React.useEffect(() => {
@@ -39,7 +46,14 @@ export function OtpCodeField({
   }, [value]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const next = filterDigits(event.target.value).slice(0, 5);
+    const raw = event.target.value;
+    if (containsLatinLetters(raw)) {
+      setLatinScriptError(LATIN_LETTERS_NOT_ALLOWED_MESSAGE);
+    } else if (latinScriptError) {
+      setLatinScriptError(undefined);
+    }
+
+    const next = filterDigits(raw).slice(0, 5);
     setEnglishValue(next);
     event.target.value = next;
     void onChange(event);
@@ -63,7 +77,8 @@ export function OtpCodeField({
         onChange={handleChange}
         ref={ref}
         value={toPersianDigits(englishValue)}
-        error={errorMessage}
+        scriptGuard="none"
+        error={latinScriptError ?? errorMessage}
       />
     </div>
   );
