@@ -57,7 +57,7 @@ export function KvRouteStatusArt({
   return (
     <div
       className={cn(
-        'kv-route-status-art relative mx-auto flex size-[200px] items-center justify-center sm:size-[220px]',
+        'kv-route-status-art relative mx-auto flex size-[140px] items-center justify-center sm:size-[160px]',
         className
       )}
       aria-hidden
@@ -102,12 +102,12 @@ export function KvRouteStatusArt({
 
       <div
         className={cn(
-          'relative flex size-28 items-center justify-center rounded-full shadow-kv-soft sm:size-32',
+          'relative flex size-20 items-center justify-center rounded-full shadow-kv-soft sm:size-24',
           art.wellClass,
           art.iconClass
         )}
       >
-        <FaIcon icon={art.icon} size="3xl" />
+        <FaIcon icon={art.icon} size="xl" />
       </div>
     </div>
   );

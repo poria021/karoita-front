@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
+import { KvRouteStatusNearestLink } from '@/components/shared/route-status/KvRouteStatusNearestLink';
 import { RouteService } from '@/services/route.service';
 
 /** In-shell 404 for `notFound()` under `/(app)` (keeps Header/Sidebar). */
@@ -15,14 +16,10 @@ export default function AppNotFound() {
       hint="از منو یا میز کار مسیر صحیح را انتخاب نمایید."
       actions={
         <>
-          <KvButton asChild color="cta">
+          <KvRouteStatusNearestLink />
+          <KvButton asChild color="neutral" appearance="text">
             <Link href={RouteService.karvita.entry()} prefetch={false}>
               بازگشت به میز کار
-            </Link>
-          </KvButton>
-          <KvButton asChild color="neutral" appearance="text">
-            <Link href={RouteService.marketing.home()} prefetch={false}>
-              صفحه اصلی
             </Link>
           </KvButton>
         </>

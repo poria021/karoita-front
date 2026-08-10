@@ -2,6 +2,7 @@ import Link from 'next/link';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
+import { KvRouteStatusNearestLink } from '@/components/shared/route-status/KvRouteStatusNearestLink';
 import { RouteService } from '@/services/route.service';
 
 export default function AuthUnauthorized() {
@@ -17,11 +18,7 @@ export default function AuthUnauthorized() {
               ورود به سامانه
             </Link>
           </KvButton>
-          <KvButton asChild color="neutral" appearance="text">
-            <Link href={RouteService.marketing.home()} prefetch={false}>
-              صفحه اصلی
-            </Link>
-          </KvButton>
+          <KvRouteStatusNearestLink color="neutral" appearance="text" />
         </>
       }
     />

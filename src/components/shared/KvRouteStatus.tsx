@@ -115,7 +115,9 @@ export function KvRouteStatus({
         <div
           className={cn(
             'relative z-[1] w-full',
-            isPage ? 'max-w-[280px] sm:max-w-[300px]' : 'max-w-[220px] sm:max-w-[240px]'
+            isPage
+              ? 'max-w-[200px] sm:max-w-[220px]'
+              : 'max-w-[160px] sm:max-w-[180px]'
           )}
         >
           <div
@@ -131,27 +133,27 @@ export function KvRouteStatus({
               kind={kind}
               className={cn(
                 'relative z-[1]',
-                !isPage && 'size-[160px] sm:size-[180px]'
+                !isPage && 'size-[120px] sm:size-[140px]'
               )}
             />
           </div>
         </div>
 
-        <div className="relative z-[1] flex max-w-md flex-col items-center gap-kv-group">
+        <div className="relative z-[1] flex max-w-lg flex-col items-center gap-kv-group">
           <div className="flex flex-col items-center gap-kv-pair">
             <KvTypography variant="overline" tone="muted" as="p">
               کد وضعیت {toPersianDigits(meta.code)}
             </KvTypography>
-            <KvTypography variant="title" as="h1" weight="black">
+            <KvTypography variant="display" as="h1" weight="black">
               {title}
             </KvTypography>
-            <KvTypography variant="body" tone="muted" as="p">
+            <KvTypography variant="title" tone="muted" as="p" weight="medium">
               {description}
             </KvTypography>
           </div>
 
           {hint ? (
-            <KvTypography variant="caption" tone="muted" as="p">
+            <KvTypography variant="body" tone="muted" as="p">
               {hint}
             </KvTypography>
           ) : null}

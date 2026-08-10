@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
+import { KvRouteStatusNearestLink } from '@/components/shared/route-status/KvRouteStatusNearestLink';
 import { RouteService } from '@/services/route.service';
 
 interface AuthErrorProps {
@@ -33,6 +34,7 @@ export default function AuthError({ error, reset }: AuthErrorProps) {
               صفحه ورود
             </Link>
           </KvButton>
+          <KvRouteStatusNearestLink color="neutral" appearance="text" />
         </>
       }
     />

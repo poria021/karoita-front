@@ -5,6 +5,7 @@ import { RouteService } from '@/services/route.service';
 import {
   canAccessReturnPath,
   getPostLoginPath,
+  resolveNearestLivePath,
   resolvePostAuthPath,
 } from '@/services/post-login-path';
 import type { User } from '@/types/auth';
@@ -119,5 +120,62 @@ describe('resolvePostAuthPath / canAccessReturnPath', () => {
     expect(
       resolvePostAuthPath(locked, '/profile/identity')
     ).toBe(RouteService.karvita.profile('student'));
+  });
+});
+
+describe('resolveNearestLivePath', () => {
+  it('walks up to a live sibling parent for unlocked students', () => {
+    const student = user({ role: 'student' });
+    expect(
+      resolveNearestLivePath(
+        `${RouteService.karvita.dailyApprovals()}/missing-row`,
+        student
+      )
+    ).toBe(RouteService.karvita.dailyApprovals());
+  });
+
+  it('walks up to live admin module for super_admin', () => {
+    const admin = user({ role: 'super_admin' });
+    expect(
+      resolveNearestLivePath(
+        `${RouteService.karvita.syllabusCourseOfferings()}/nope`,
+        admin
+      )
+    ).toBe(RouteService.karvita.syllabusCourseOfferings());
+  });
+
+  it('skips admin ancestors for non–super_admin and falls back to role home', () => {
+    const student = user({ role: 'student' });
+    expect(
+      resolveNearestLivePath(
+        `${RouteService.karvita.organizationalStructure()}/ghost`,
+        student
+      )
+    ).toBe(RouteService.karvita.dashboard());
+  });
+
+  it('resolves marketing ancestors for anonymous users (not /)', () => {
+    expect(
+      resolveNearestLivePath(
+        `${RouteService.marketing.loginSelect()}/missing`,
+        null
+      )
+    ).toBe(RouteService.marketing.loginSelect());
+  });
+
+  it('falls back to login for anonymous junk paths', () => {
+    expect(resolveNearestLivePath('/totally-missing/page', null)).toBe(
+      RouteService.auth.login()
+    );
+  });
+
+  it('never returns marketing home as the recovery target', () => {
+    const student = user({ role: 'student' });
+    expect(resolveNearestLivePath('/unknown', student)).not.toBe(
+      RouteService.marketing.home()
+    );
+    expect(resolveNearestLivePath('/unknown', null)).not.toBe(
+      RouteService.marketing.home()
+    );
   });
 });
