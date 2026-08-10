@@ -47,7 +47,8 @@ function ProductMark({ product }: { product: LandingProduct }) {
   return (
     <FaIcon
       icon={iconMap[product.icon] ?? faIcons.link}
-      className="text-xl text-kv-brand"
+      size="xl"
+      className="text-kv-brand"
     />
   );
 }
@@ -115,7 +116,7 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
 
               const inner = (
                 <>
-                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface text-xl text-kv-brand shadow-kv-soft">
+                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface text-kv-brand shadow-kv-soft">
                     <ProductMark product={product} />
                   </div>
                   <h2 className="text-sm font-black leading-snug text-kv-text transition-colors">

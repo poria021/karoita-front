@@ -82,7 +82,7 @@ export function UserAccountMenu({
       setIsLogoutDialogOpen(false);
       setAccountMenuOwner(null);
       onNavigate?.();
-      router.replace(RouteService.auth.login());
+      router.replace(RouteService.marketing.home());
     } catch {
       setLogoutError('خروج با خطا مواجه شد. لطفاً دوباره تلاش کنید.');
     } finally {

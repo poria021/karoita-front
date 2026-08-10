@@ -11,7 +11,7 @@ export const MOCK_SUPER_ADMIN_MOBILE = '9123456786';
 export const MOCK_SUPERVISOR_MOBILE = '9123456787';
 
 /** Bump when seed shape changes so mock localStorage rehydrates. */
-export const MOCK_USERS_SEED_VERSION = '8';
+export const MOCK_USERS_SEED_VERSION = '9';
 
 export interface MockAuthUserRecord extends User {
   password: string;
@@ -51,17 +51,16 @@ const DEFAULT_COLLEGE = 'پردیس شهید باهنر تهران';
 const DEFAULT_DISTRICT = 'ناحیه ۱ تهران';
 const DEFAULT_SCHOOL = 'دبیرستان ماندگار البرز';
 
+/** Minimal 1×1 JPEG — product-aligned mock (jpg), not SVG. */
 const MOCK_DOC_IMAGE_URL =
-  'data:image/svg+xml;charset=utf-8,' +
-  encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="200" viewBox="0 0 160 200">' +
-      '<rect width="160" height="200" fill="currentColor" opacity="0.08"/>' +
-      '<rect x="20" y="24" width="120" height="80" rx="8" fill="currentColor" opacity="0.18"/>' +
-      '<text x="80" y="140" text-anchor="middle" fill="currentColor" font-size="12" font-family="Tahoma,sans-serif">نمونه مدرک</text>' +
-      '</svg>'
-  );
+  'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwAA8A/9k=';
 
 const MOCK_DOC_PDF_URL = 'data:application/pdf;base64,JVBERi0xLjAK';
+
+/** Minimal plain-text sample for mock variety (txt). */
+const MOCK_DOC_TXT_URL =
+  'data:text/plain;charset=utf-8,' +
+  encodeURIComponent('نمونه مدرک متنی — کارویتا');
 
 const NOW = Date.UTC(2026, 6, 18, 12, 0, 0);
 
@@ -176,7 +175,7 @@ const CORE_SEEDS: MockUserSeed[] = [
     docStatus: 'pending_admin',
     approved: false,
     lastChange: NOW - 1000 * 60 * 45,
-    docUrl: MOCK_DOC_IMAGE_URL,
+    docUrl: MOCK_DOC_TXT_URL,
     docType: 'حکم مدیریت مدرسه',
     province: 'اصفهان',
     city: 'اصفهان',
@@ -259,7 +258,12 @@ function buildBulkSeeds(
       docStatus: status,
       approved,
       lastChange: NOW - 1000 * 60 * (i + 1) * 17,
-      docUrl: i % 2 === 0 ? MOCK_DOC_IMAGE_URL : MOCK_DOC_PDF_URL,
+      docUrl:
+        i % 3 === 0
+          ? MOCK_DOC_IMAGE_URL
+          : i % 3 === 1
+            ? MOCK_DOC_PDF_URL
+            : MOCK_DOC_TXT_URL,
       docType: role === 'student' ? 'کارت دانشجویی' : 'مدارک هویتی',
       province,
       city: province,

@@ -48,7 +48,7 @@ export function MarketingHeader({
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 flex flex-col transition-all duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 flex flex-col ${
         headerShouldBeTransparent
           ? 'bg-gradient-to-b from-black/90 via-black/60 to-black/10 text-white'
           : 'border-b border-kv-border/60 bg-kv-surface/80 text-kv-text shadow-kv-raised backdrop-blur-md supports-[backdrop-filter]:bg-kv-surface/70'
@@ -64,7 +64,7 @@ export function MarketingHeader({
           </div>
           <div className="flex flex-col">
             <span
-              className={`text-base font-black leading-none tracking-tight transition-colors sm:text-lg ${headerTextClass}`}
+              className={`text-base font-black leading-none tracking-tight sm:text-lg ${headerTextClass}`}
             >
               کارویتا
             </span>
@@ -85,7 +85,7 @@ export function MarketingHeader({
               <a
                 key={item.label}
                 href={href}
-                className={`transition-colors hover:text-kv-brand ${
+                className={`hover:text-kv-brand ${
                   isActive
                     ? 'font-extrabold text-kv-brand underline decoration-kv-brand decoration-2 underline-offset-8'
                     : headerShouldBeTransparent
@@ -106,12 +106,12 @@ export function MarketingHeader({
         <div className="flex items-center gap-kv-pair">
           <KvButton asChild color="cta" size="sm" className="shadow-kv-raised">
             <Link href={loginHref} prefetch={false}>
+              <span>ورود به سامانه</span>
               <FaIcon
                 icon={faIcons.arrowLeft}
                 size="xs"
                 className="rtl:rotate-180"
               />
-              <span>ورود به سامانه</span>
             </Link>
           </KvButton>
         </div>

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, forwardRef } from 'react';
 import { Command } from 'cmdk';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvOverlayScrollMoreCue } from '@/components/shared/KvOverlayScrollMoreCue';
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
 import { KvTypography } from '@/components/shared/KvTypography';
@@ -24,7 +23,6 @@ import {
 import { cn } from '@/lib/utils';
 import type { OrganizationOption } from '@/services/organization-options.service';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
-import { faIcons } from '@/utils/iconMap';
 
 export type KvSearchableOrganizationSelectProps = {
   type: OrganizationField;
@@ -137,16 +135,6 @@ export const KvSearchableOrganizationSelect = forwardRef<
         error={error}
         placeholder={placeholder}
         showIcon={showSearchIcon}
-        endAddon={
-          <FaIcon
-            icon={faIcons.chevronDown}
-            size="sm"
-            className={cn(
-              'shrink-0 text-kv-text-placeholder',
-              locked && 'text-kv-text-disabled'
-            )}
-          />
-        }
         onFocus={() => setOpen(true)}
         onChange={(event) => {
           setQuery(event.target.value);

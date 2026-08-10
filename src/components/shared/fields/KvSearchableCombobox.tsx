@@ -153,8 +153,8 @@ export function KvSearchableCombobox({
             setOpen(true);
           }}
         />
-        <span className="flex h-full shrink-0 items-center gap-0.5 pe-kv-pair">
-          {showClear ? (
+        {showClear ? (
+          <span className="flex h-full shrink-0 items-center gap-0.5 pe-kv-pair">
             <KvButton
               type="button"
               color="error"
@@ -166,11 +166,8 @@ export function KvSearchableCombobox({
               icon={<FaIcon icon={faIcons.xmark} size="sm" />}
               className="text-kv-danger hover:text-kv-danger"
             />
-          ) : null}
-          <span className="pointer-events-none text-kv-text-faint">
-            <FaIcon icon={faIcons.chevronDown} size="2xs" />
           </span>
-        </span>
+        ) : null}
       </div>
 
       {open && !disabled ? (

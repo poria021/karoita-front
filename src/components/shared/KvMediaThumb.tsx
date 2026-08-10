@@ -7,7 +7,7 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
-export type KvMediaThumbKind = 'image' | 'pdf' | 'empty';
+export type KvMediaThumbKind = 'image' | 'pdf' | 'text' | 'empty';
 export type KvMediaThumbSize = 'sm' | 'md' | 'lg';
 export type KvMediaThumbVariant = 'thumb' | 'preview';
 
@@ -20,6 +20,7 @@ export type KvMediaThumbProps = {
   alt?: string;
   emptyLabel?: string;
   pdfLabel?: string;
+  textLabel?: string;
   openInNewTab?: boolean;
   'aria-label'?: string;
 };
@@ -31,6 +32,7 @@ function resolveKind(
   if (kind) return kind;
   if (!src) return 'empty';
   if (src.startsWith('data:application/pdf')) return 'pdf';
+  if (src.startsWith('data:text/plain')) return 'text';
   return 'image';
 }
 
@@ -41,7 +43,7 @@ const SIZE_CLASS: Record<KvMediaThumbSize, string> = {
 };
 
 /**
- * بندانگشتی مدرک (تصویر/PDF/خالی) برای پنل‌های بررسی ادمین.
+ * بندانگشتی مدرک (تصویر/PDF/متن/خالی) برای پنل‌های بررسی ادمین.
  * با `openInNewTab` فایل در تب جدید باز می‌شود؛ دیالوگ درون‌برنامه‌ای ندارد.
  */
 export function KvMediaThumb({
@@ -53,6 +55,7 @@ export function KvMediaThumb({
   alt = '',
   emptyLabel = 'فاقد مدرک پیوست',
   pdfLabel = 'سند PDF',
+  textLabel = 'سند متنی',
   openInNewTab = false,
   'aria-label': ariaLabel,
 }: KvMediaThumbProps) {
@@ -103,6 +106,13 @@ export function KvMediaThumb({
         <FaIcon icon={faIcons.filePdf} size="lg" />
         <KvTypography variant="caption" weight="bold" as="span">
           {pdfLabel}
+        </KvTypography>
+      </span>
+    ) : kind === 'text' ? (
+      <span className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-kv-control bg-kv-info-soft text-kv-info-soft-fg">
+        <FaIcon icon={faIcons.file} size="lg" />
+        <KvTypography variant="caption" weight="bold" as="span">
+          {textLabel}
         </KvTypography>
       </span>
     ) : (
