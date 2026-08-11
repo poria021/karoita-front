@@ -86,3 +86,16 @@ export function isNavigableAppPath(pathname: string): boolean {
   if (LEGACY_TABBED_MODULE_PATHS.includes(path)) return true;
   return isLiveStaticNavPath(path);
 }
+
+/**
+ * Live / redirect targets used when recovering from a broken URL.
+ * Excludes marketing `/` (not a status-page recovery CTA).
+ */
+export function listNavigableRecoveryPaths(): readonly string[] {
+  return [
+    ...LIVE_STATIC_NAV_PATHS.filter(
+      (path) => path !== RouteService.marketing.home()
+    ),
+    ...LEGACY_TABBED_MODULE_PATHS,
+  ];
+}

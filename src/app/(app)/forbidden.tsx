@@ -17,7 +17,7 @@ export default function AppForbidden() {
       actions={
         <>
           <KvRouteStatusNearestLink />
-          <KvButton asChild color="neutral" appearance="text">
+          <KvButton asChild appearance="secondary">
             <Link href={RouteService.karvita.entry()} prefetch={false}>
               بازگشت به میز کار
             </Link>

@@ -144,6 +144,13 @@ describe('resolveNearestLivePath', () => {
     ).toBe(RouteService.karvita.syllabusCourseOfferings());
   });
 
+  it('picks longest shared-prefix live admin path when parent is not live', () => {
+    const admin = user({ role: 'super_admin' });
+    expect(
+      resolveNearestLivePath('/karvita/admin/missing-module/x', admin)
+    ).toBe(RouteService.karvita.adminDashboard());
+  });
+
   it('skips admin ancestors for non–super_admin and falls back to role home', () => {
     const student = user({ role: 'student' });
     expect(
@@ -152,6 +159,13 @@ describe('resolveNearestLivePath', () => {
         student
       )
     ).toBe(RouteService.karvita.dashboard());
+  });
+
+  it('does not treat sibling modules as nearest for random /karvita junk', () => {
+    const student = user({ role: 'student' });
+    expect(resolveNearestLivePath('/karvita/asdfgh', student)).toBe(
+      RouteService.karvita.dashboard()
+    );
   });
 
   it('resolves marketing ancestors for anonymous users (not /)', () => {

@@ -33,6 +33,11 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                 تلاش مجدد
               </KvButton>
               <KvButton asChild appearance="secondary">
+                <Link href={RouteService.marketing.home()} prefetch={false}>
+                  صفحه فرود
+                </Link>
+              </KvButton>
+              <KvButton asChild color="neutral" appearance="text">
                 <Link href={RouteService.auth.login()} prefetch={false}>
                   ورود
                 </Link>

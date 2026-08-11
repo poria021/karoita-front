@@ -5,7 +5,9 @@ import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { KvRouteStatusNearestLink } from '@/components/shared/route-status/KvRouteStatusNearestLink';
 import { RouteService } from '@/services/route.service';
 
-/** In-shell 404 for `notFound()` under `/(app)` (keeps Header/Sidebar). */
+/** In-shell 404 for `notFound()` under `/(app)` (keeps Header/Sidebar).
+ * Unmatched `/karvita/*` URLs reach this via `karvita/[...notFound]/page.tsx`.
+ */
 export default function AppNotFound() {
   return (
     <KvRouteStatus
@@ -17,7 +19,7 @@ export default function AppNotFound() {
       actions={
         <>
           <KvRouteStatusNearestLink />
-          <KvButton asChild color="neutral" appearance="text">
+          <KvButton asChild appearance="secondary">
             <Link href={RouteService.karvita.entry()} prefetch={false}>
               بازگشت به میز کار
             </Link>

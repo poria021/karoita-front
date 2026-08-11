@@ -14,12 +14,17 @@ export default function RootForbidden() {
       hint="در صورت نیاز به دسترسی، با مدیر سامانه هماهنگ نمایید."
       actions={
         <>
-          <KvRouteStatusNearestLink />
-          <KvButton asChild appearance="secondary">
-            <Link href={RouteService.karvita.entry()} prefetch={false}>
-              بازگشت به میز کار
+          <KvButton asChild color="cta">
+            <Link href={RouteService.marketing.home()} prefetch={false}>
+              صفحه فرود
             </Link>
           </KvButton>
+          <KvButton asChild appearance="secondary">
+            <Link href={RouteService.auth.login()} prefetch={false}>
+              ورود به سامانه
+            </Link>
+          </KvButton>
+          <KvRouteStatusNearestLink color="neutral" appearance="text" />
         </>
       }
     />

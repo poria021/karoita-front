@@ -13,12 +13,17 @@ export default function MarketingForbidden() {
       description="مجوز مشاهده این بخش برای شما تعریف نشده است."
       actions={
         <>
-          <KvRouteStatusNearestLink />
+          <KvButton asChild color="cta">
+            <Link href={RouteService.marketing.home()} prefetch={false}>
+              صفحه فرود
+            </Link>
+          </KvButton>
           <KvButton asChild appearance="secondary">
             <Link href={RouteService.auth.login()} prefetch={false}>
               ورود
             </Link>
           </KvButton>
+          <KvRouteStatusNearestLink color="neutral" appearance="text" />
         </>
       }
     />

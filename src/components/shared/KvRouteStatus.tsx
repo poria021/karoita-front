@@ -144,16 +144,16 @@ export function KvRouteStatus({
             <KvTypography variant="overline" tone="muted" as="p">
               کد وضعیت {toPersianDigits(meta.code)}
             </KvTypography>
-            <KvTypography variant="display" as="h1" weight="black">
+            <KvTypography variant="title" as="h1" weight="black">
               {title}
             </KvTypography>
-            <KvTypography variant="title" tone="muted" as="p" weight="medium">
+            <KvTypography variant="body" tone="muted" as="p">
               {description}
             </KvTypography>
           </div>
 
           {hint ? (
-            <KvTypography variant="body" tone="muted" as="p">
+            <KvTypography variant="caption" tone="muted" as="p">
               {hint}
             </KvTypography>
           ) : null}

@@ -11,15 +11,20 @@ export default function RootNotFound() {
       kind="notFound"
       title="صفحه مورد نظر یافت نشد"
       description="نشانی واردشده در سامانه تعریف نشده یا منتقل گردیده است."
-      hint="لطفاً نشانی را بررسی نمایید یا به بخش مرتبط بازگردید."
+      hint="می‌توانید به صفحه فرود بازگردید یا وارد سامانه شوید."
       actions={
         <>
-          <KvRouteStatusNearestLink />
+          <KvButton asChild color="cta">
+            <Link href={RouteService.marketing.home()} prefetch={false}>
+              صفحه فرود
+            </Link>
+          </KvButton>
           <KvButton asChild appearance="secondary">
             <Link href={RouteService.auth.login()} prefetch={false}>
               ورود به سامانه
             </Link>
           </KvButton>
+          <KvRouteStatusNearestLink color="neutral" appearance="text" />
         </>
       }
     />

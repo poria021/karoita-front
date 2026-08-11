@@ -5,7 +5,11 @@ import {
   RETURN_URL_PARAM,
   parseSafeReturnUrl,
 } from '@/lib/return-url';
-import { isAuthPath, RouteService } from '@/services/route.service';
+import {
+  isAppShellPath,
+  isAuthPath,
+  RouteService,
+} from '@/services/route.service';
 import { NextRequest, NextResponse } from 'next/server';
 
 function hasClientSession(request: NextRequest): boolean {
@@ -24,7 +28,11 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
 
 /**
  * Edge Proxy — فقط حضور نشست (کوکی/مارکر)، نه نقش یا مجوز.
- * کاربر بدون نشست به لاگین با `returnUrl` امن هدایت می‌شود.
+ *
+ * - مسیرهای public → عبور
+ * - `/karvita/*` بدون نشست → لاگین + returnUrl
+ * - بقیهٔ URLهای ناشناس (لندینگ غلط و …) → عبور تا `not-found` ریشه/مارکتینگ
+ *   نه ریدایرکت اجباری به لاگین
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -50,8 +58,15 @@ export async function proxy(request: NextRequest) {
     if (pathname === loginPath) {
       return NextResponse.next();
     }
-    const intended = `${pathname}${request.nextUrl.search}`;
-    return NextResponse.redirect(loginRedirectUrl(request, intended));
+
+    // Only the authenticated app shell requires a session at the Edge.
+    // Unknown marketing/other URLs must reach App Router not-found UI.
+    if (isAppShellPath(pathname)) {
+      const intended = `${pathname}${request.nextUrl.search}`;
+      return NextResponse.redirect(loginRedirectUrl(request, intended));
+    }
+
+    return NextResponse.next();
   }
 
   return NextResponse.next();
