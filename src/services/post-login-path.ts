@@ -5,7 +5,12 @@ import {
   listNavigableRecoveryPaths,
 } from '@/lib/live-nav-paths';
 import { parseSafeReturnUrl } from '@/lib/return-url';
-import { isAppShellPath, RouteService } from '@/services/route.service';
+import {
+  isAppShellPath,
+  isAuthPath,
+  isMarketingCmsPath,
+  RouteService,
+} from '@/services/route.service';
 import type { User } from '@/types/auth';
 import {
   areKarvitaModulesUnlocked,
@@ -42,6 +47,33 @@ function commonPrefixSegmentCount(a: string, b: string): number {
   return i;
 }
 
+/** Classic Levenshtein — small strings only (path segments / short paths). */
+function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+
+  const prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  const curr = new Array<number>(b.length + 1);
+
+  for (let i = 1; i <= a.length; i += 1) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(
+        (prev[j] ?? 0) + 1,
+        (curr[j - 1] ?? 0) + 1,
+        (prev[j - 1] ?? 0) + cost
+      );
+    }
+    for (let j = 0; j <= b.length; j += 1) {
+      prev[j] = curr[j] ?? 0;
+    }
+  }
+
+  return prev[b.length] ?? b.length;
+}
+
 function isPathAllowedForViewer(
   path: string,
   user: User | null | undefined
@@ -49,6 +81,44 @@ function isPathAllowedForViewer(
   if (!isNavigableAppPath(path)) return false;
   if (user) return canAccessReturnPath(user, path);
   return !isAppShellPath(path);
+}
+
+/**
+ * Zone hub when prefix walk / LCP cannot resolve a live sibling.
+ * Uses RouteService surfaces so `/auth/...` typos recover to login, not landing.
+ */
+function resolveZoneFallbackPath(
+  pathname: string,
+  user: User | null | undefined
+): string {
+  const first = pathSegments(pathname)[0] ?? '';
+
+  if (isAuthPath(pathname) || levenshtein(first, 'auth') <= 1) {
+    return RouteService.auth.login();
+  }
+
+  if (isAppShellPath(pathname) || levenshtein(first, 'karvita') <= 2) {
+    return user ? getPostLoginPath(user) : RouteService.auth.login();
+  }
+
+  if (
+    isMarketingCmsPath(pathname) ||
+    first === 'p' ||
+    first === 'login-select' ||
+    pathname.startsWith(`${RouteService.marketing.loginSelect()}/`)
+  ) {
+    return first === 'login-select' ||
+      pathname.startsWith(`${RouteService.marketing.loginSelect()}/`)
+      ? RouteService.marketing.loginSelect()
+      : RouteService.marketing.home();
+  }
+
+  return user ? getPostLoginPath(user) : RouteService.marketing.home();
+}
+
+function leafSegment(pathname: string): string {
+  const segs = pathSegments(pathname);
+  return segs[segs.length - 1] ?? '';
 }
 
 /** Role + approval → first screen after auth (not a Nest call). */
@@ -118,19 +188,18 @@ export function resolvePostAuthPath(
 }
 
 /**
- * Nearest live recovery target for a broken / unknown URL.
- * 1) Walk up exact ancestors that are navigable + allowed.
- * 2) Else pick the allowed live path with the longest shared prefix
- *    (must share more than just `/karvita` so random junk does not
- *    pretend a sibling module is “nearest”).
- * 3) Else `getPostLoginPath` (never marketing `/`).
+ * Nearest live recovery target from the RouteService / live-path catalog.
+ * 1) Walk up exact navigable ancestors.
+ * 2) Else longest shared prefix among allowed live paths; tie-break by
+ *    leaf-segment edit distance (typos like `/auth/loginn` → login).
+ * 3) Else zone hub (`/auth` → login, `/karvita` → role home, else landing).
  */
 export function resolveNearestLivePath(
   pathname: string,
   user: User | null | undefined
 ): string {
   const current = normalizePathname(pathname);
-  const home = getPostLoginPath(user);
+  const zoneHome = resolveZoneFallbackPath(current, user);
 
   let path = parentPathname(current);
   while (path !== '/' && path !== '') {
@@ -151,7 +220,6 @@ export function resolveNearestLivePath(
     if (!isPathAllowedForViewer(candidate, user)) continue;
 
     const score = commonPrefixSegmentCount(current, candidate);
-    // Under the app shell, sharing only `karvita` is too weak to call “nearest”.
     const minScore = isAppShellPath(current) ? 2 : 1;
     if (score < minScore) continue;
 
@@ -164,14 +232,32 @@ export function resolveNearestLivePath(
     }
   }
 
-  if (bestAtScore.length === 0) return home;
-  if (bestAtScore.includes(home)) return home;
+  if (bestAtScore.length === 0) {
+    return zoneHome;
+  }
 
+  const currentLeaf = leafSegment(current);
   bestAtScore.sort((a, b) => {
+    const distA = levenshtein(currentLeaf, leafSegment(a));
+    const distB = levenshtein(currentLeaf, leafSegment(b));
+    if (distA !== distB) return distA - distB;
+
     const len = pathSegments(a).length - pathSegments(b).length;
     if (len !== 0) return len;
+
+    // Prefer zone hub when distances are tied (e.g. auth → login).
+    if (a === zoneHome) return -1;
+    if (b === zoneHome) return 1;
+
     return a.localeCompare(b);
   });
 
-  return bestAtScore[0] ?? home;
+  const best = bestAtScore[0] ?? zoneHome;
+  const bestDist = levenshtein(currentLeaf, leafSegment(best));
+  // Unrelated sibling under same prefix (e.g. /auth/xyz) → zone hub.
+  if (bestDist > 2) {
+    return zoneHome;
+  }
+
+  return best;
 }

@@ -9,11 +9,7 @@ import {
   type KvButtonAppearance,
   type KvButtonColor,
 } from '@/components/shared/KvButton';
-import {
-  getPostLoginPath,
-  resolveNearestLivePath,
-} from '@/services/post-login-path';
-import { RouteService } from '@/services/route.service';
+import { resolveNearestLivePath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
 
 type KvRouteStatusNearestLinkProps = {
@@ -23,8 +19,8 @@ type KvRouteStatusNearestLinkProps = {
 };
 
 /**
- * CTA → nearest live URL related to the address bar path (role-aware).
- * Hidden when recovery would only duplicate landing / میز کار / login.
+ * Primary recovery CTA → nearest live URL for the address bar path (role-aware).
+ * Always rendered; callers pair it with a secondary landing / desk button.
  */
 export function KvRouteStatusNearestLink({
   color = 'cta',
@@ -43,16 +39,6 @@ export function KvRouteStatusNearestLink({
   }, [routerPathname]);
 
   const href = resolveNearestLivePath(pathname, user);
-  const home = getPostLoginPath(user);
-  const isDuplicateHome =
-    href === home ||
-    href === RouteService.karvita.entry() ||
-    href === RouteService.auth.login() ||
-    href === RouteService.marketing.home();
-
-  if (isDuplicateHome) {
-    return null;
-  }
 
   return (
     <KvButton asChild color={color} appearance={appearance}>

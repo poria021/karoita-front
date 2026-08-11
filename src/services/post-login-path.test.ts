@@ -177,19 +177,37 @@ describe('resolveNearestLivePath', () => {
     ).toBe(RouteService.marketing.loginSelect());
   });
 
-  it('falls back to login for anonymous junk paths', () => {
+  it('falls back to marketing home for anonymous junk paths', () => {
     expect(resolveNearestLivePath('/totally-missing/page', null)).toBe(
+      RouteService.marketing.home()
+    );
+  });
+
+  it('uses marketing home only as anonymous fallback, not for logged-in users', () => {
+    const student = user({ role: 'student' });
+    expect(resolveNearestLivePath('/unknown', student)).toBe(
+      RouteService.karvita.dashboard()
+    );
+    expect(resolveNearestLivePath('/unknown', null)).toBe(
+      RouteService.marketing.home()
+    );
+  });
+
+  it('recovers auth typos to login instead of landing', () => {
+    expect(resolveNearestLivePath('/auth/loginn', null)).toBe(
+      RouteService.auth.login()
+    );
+    expect(resolveNearestLivePath('/auth/xyz', null)).toBe(
+      RouteService.auth.login()
+    );
+    expect(resolveNearestLivePath('/autth/login', null)).toBe(
       RouteService.auth.login()
     );
   });
 
-  it('never returns marketing home as the recovery target', () => {
-    const student = user({ role: 'student' });
-    expect(resolveNearestLivePath('/unknown', student)).not.toBe(
-      RouteService.marketing.home()
-    );
-    expect(resolveNearestLivePath('/unknown', null)).not.toBe(
-      RouteService.marketing.home()
-    );
+  it('walks up exact auth parents before fuzzy matching', () => {
+    expect(
+      resolveNearestLivePath(`${RouteService.auth.login()}/extra`, null)
+    ).toBe(RouteService.auth.login());
   });
 });

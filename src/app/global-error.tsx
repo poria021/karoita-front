@@ -37,11 +37,6 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
                   صفحه فرود
                 </Link>
               </KvButton>
-              <KvButton asChild color="neutral" appearance="text">
-                <Link href={RouteService.auth.login()} prefetch={false}>
-                  ورود
-                </Link>
-              </KvButton>
             </>
           }
         />

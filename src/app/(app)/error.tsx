@@ -2,14 +2,11 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
-import { KvRouteStatusNearestLink } from '@/components/shared/route-status/KvRouteStatusNearestLink';
-import { getPostLoginPath } from '@/services/post-login-path';
+import { AppRouteStatusActions } from '@/components/shared/route-status/AppRouteStatusActions';
 import { RouteService } from '@/services/route.service';
-import { useUserStore } from '@/store/useUserStore';
 
 interface AppErrorProps {
   error: Error & { digest?: string };
@@ -17,8 +14,6 @@ interface AppErrorProps {
 }
 
 export default function AppError({ error, reset }: AppErrorProps) {
-  const router = useRouter();
-
   useEffect(() => {
     console.error('App route error:', error);
   }, [error]);
@@ -32,19 +27,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
       hint="لطفاً مجدداً تلاش کنید. در صورت تداوم مشکل به میز کار بازگردید."
       actions={
         <>
-          <KvButton type="button" color="cta" onClick={reset}>
-            تلاش مجدد
-          </KvButton>
-          <KvRouteStatusNearestLink />
-          <KvButton
-            type="button"
-            appearance="secondary"
-            onClick={() =>
-              router.push(getPostLoginPath(useUserStore.getState().activeUser))
-            }
-          >
-            بازگشت به میز کار
-          </KvButton>
+          <AppRouteStatusActions onReset={reset} />
           <KvButton asChild color="neutral" appearance="text">
             <Link href={RouteService.auth.login()} prefetch={false}>
               صفحه ورود
