@@ -9,6 +9,12 @@ describe('isPublicPath', () => {
     expect(isPublicPath(RouteService.marketing.loginSelect())).toBe(true);
   });
 
+  it('allows public CMS pages under /p', () => {
+    expect(isPublicPath(RouteService.marketing.cmsPagesBase())).toBe(true);
+    expect(isPublicPath(RouteService.marketing.cmsPage('about'))).toBe(true);
+    expect(isPublicPath('/p/foo/bar')).toBe(true);
+  });
+
   it('does not treat removed marketing leaves as public', () => {
     expect(isPublicPath('/about')).toBe(false);
     expect(isPublicPath('/benefits')).toBe(false);

@@ -8,6 +8,8 @@ const AUTH_BASE = '/auth';
 const KARVITA_BASE = '/karvita';
 const KARVITA_ADMIN_BASE = `${KARVITA_BASE}/admin`;
 const KARVITA_ADMIN_DASHBOARD = `${KARVITA_ADMIN_BASE}/dashboard`;
+/** Public CMS pages between landing and auth (admin-authored content). */
+const MARKETING_CMS_BASE = '/p';
 
 function normalizeAppPath(pathname: string): string {
   if (!pathname) return '/';
@@ -20,6 +22,14 @@ function normalizeAppPath(pathname: string): string {
 export function isAuthPath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
   return path === AUTH_BASE || path.startsWith(`${AUTH_BASE}/`);
+}
+
+/**
+ * Public CMS surface under `/p` and `/p/...` (not the admin editor).
+ */
+export function isMarketingCmsPath(pathname: string): boolean {
+  const path = normalizeAppPath(pathname);
+  return path === MARKETING_CMS_BASE || path.startsWith(`${MARKETING_CMS_BASE}/`);
 }
 
 /**
@@ -60,6 +70,16 @@ export const RouteService = {
     home: (): string => '/',
     /** Product picker when CMS has 2+ products */
     loginSelect: (): string => '/login-select',
+    /**
+     * Public CMS pages hub (between landing and auth).
+     * Admin editor remains `/karvita/admin/landing-cms`.
+     */
+    cmsPagesBase: (): string => MARKETING_CMS_BASE,
+    cmsPage: (slug: string): string => {
+      const clean = slug.replace(/^\/+|\/+$/g, '');
+      return clean ? `${MARKETING_CMS_BASE}/${clean}` : MARKETING_CMS_BASE;
+    },
+    isMarketingCmsPath,
   },
 
   auth: {

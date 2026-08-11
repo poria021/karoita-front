@@ -44,6 +44,14 @@ export function resolveMarketingNavTarget(link: string): MarketingNavTarget {
     return { kind: 'internal', href: trimmed };
   }
 
+  // Public CMS pages between landing and auth (`/p/...`).
+  if (
+    trimmed.startsWith('/') &&
+    RouteService.marketing.isMarketingCmsPath(trimmed)
+  ) {
+    return { kind: 'internal', href: trimmed };
+  }
+
   // Other relative CMS targets stay navigable (auth / future app paths).
   if (trimmed.startsWith('/')) {
     return { kind: 'internal', href: trimmed };

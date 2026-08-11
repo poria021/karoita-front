@@ -1,4 +1,4 @@
-import { RouteService } from '@/services/route.service';
+import { isMarketingCmsPath, RouteService } from '@/services/route.service';
 
 function normalizePath(pathname: string): string {
   if (!pathname) return '/';
@@ -15,13 +15,23 @@ const MARKETING_PUBLIC_EXACT = [
 
 export const publicPathsConfig = {
   exactPaths: [...MARKETING_PUBLIC_EXACT],
-  prefixes: ['/docs/', '/auth/'] as const,
+  /**
+   * - `/auth/` auth tree
+   * - `/docs/` docs
+   * - `/p/` public CMS pages between landing and login (admin-authored)
+   */
+  prefixes: ['/docs/', '/auth/', `${RouteService.marketing.cmsPagesBase()}/`] as const,
 };
 
 export function isPublicPath(pathname: string): boolean {
   const path = normalizePath(pathname);
 
   if (publicPathsConfig.exactPaths.includes(path)) {
+    return true;
+  }
+
+  // Exact CMS hub `/p` (prefix check alone needs trailing slash form).
+  if (isMarketingCmsPath(path)) {
     return true;
   }
 

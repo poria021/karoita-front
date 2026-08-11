@@ -39,6 +39,15 @@ describe('resolveMarketingNavTarget', () => {
     });
   });
 
+  it('classifies public CMS /p paths as internal', () => {
+    expect(
+      resolveMarketingNavTarget(RouteService.marketing.cmsPage('handbook'))
+    ).toEqual({
+      kind: 'internal',
+      href: '/p/handbook',
+    });
+  });
+
   it('returns none for empty link', () => {
     expect(resolveMarketingNavTarget('')).toEqual({ kind: 'none' });
   });

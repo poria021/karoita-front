@@ -166,11 +166,15 @@ describe('live nav / admin plane', () => {
   it('exposes live marketing paths without inventing sidebar links', () => {
     expect(RouteService.marketing.home()).toBe('/');
     expect(RouteService.marketing.loginSelect()).toBe('/login-select');
+    expect(RouteService.marketing.cmsPagesBase()).toBe('/p');
+    expect(RouteService.marketing.cmsPage('about')).toBe('/p/about');
     expect(isNavigableAppPath(RouteService.marketing.home())).toBe(true);
     expect(isNavigableAppPath(RouteService.marketing.loginSelect())).toBe(true);
     expect(isNavigableAppPath('/about')).toBe(false);
     expect(isNavigableAppPath('/benefits')).toBe(false);
     expect(isLiveSidebarPath(RouteService.marketing.loginSelect())).toBe(false);
+    expect(RouteService.marketing.isMarketingCmsPath('/p/x')).toBe(true);
+    expect(RouteService.marketing.isMarketingCmsPath('/about')).toBe(false);
   });
 
   it('scopes app shell (connectivity chrome) to dashboards, not marketing/auth', () => {
