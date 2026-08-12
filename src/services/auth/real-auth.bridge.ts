@@ -6,23 +6,23 @@ import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { apiClient, ApiClientError } from '@/services/api-client';
 import type { Session, User, UserRole } from '@/types/auth';
 
-const NEST_AUTH_LIVE = false;
+const NEST_AUTH_LIVE = true;
 
 /** Relative paths under NEXT_PUBLIC_API_URL — keep in sync with Nest auth controller */
 export const REAL_AUTH_PATHS = {
-  login: 'auth/login', // POST
-  loginOtpSend: 'auth/otp/login/send', // POST
-  loginOtpVerify: 'auth/otp/login/verify', // POST
-  register: 'auth/register', // POST
-  registerOtpVerify: 'auth/otp/register/verify', // POST
-  forgotSend: 'auth/password/forgot/send', // POST
-  forgotVerify: 'auth/password/forgot/verify', // POST
-  forgotReset: 'auth/password/forgot/reset', // POST
-  initialPassword: 'auth/password/initial', // POST
-  logout: 'auth/logout', // POST
-  session: 'auth/session', // GET
-  adminOtpSend: 'auth/admin/otp/send', // POST
-  adminOtpVerify: 'auth/admin/otp/verify', // POST
+  login: 'api/v1/auth/phone/login/password', // POST
+  loginOtpSend: 'api/v1/auth/phone/login/request-otp', // POST
+  loginOtpVerify: 'api/v1/auth/phone/login/verify-otp', // POST
+  register: 'api/v1/auth/phone/register/request-otp', // POST
+  registerOtpVerify: 'api/v1/auth/phone/register/verify-otp', // POST
+  forgotSend: 'api/v1/auth/forgot/password', // POST
+  forgotReset: 'api/v1/auth/reset/password', // POST
+  logout: 'api/v1/auth/logout', // POST
+  session: 'api/v1/auth/me', // GET
+  refresh: 'api/v1/auth/refresh', // POST
+  updateMe: 'api/v1/auth/me', // PATCH
+  deleteMe: 'api/v1/auth/me', // DELETE
+  roles: 'api/v1/auth/roles', // GET
 } as const;
 
 type NestAuthUserPayload = {
