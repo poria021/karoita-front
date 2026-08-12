@@ -2,16 +2,7 @@ import { Suspense } from 'react';
 
 import { HydrationSafe } from '@/components/shared/shell/HydrationSafe';
 import { AdminGateCard } from '@/features/shared/auth/components/AdminGateCard';
-
-function AdminGateFallback() {
-  return (
-    <div
-      className="min-h-40 w-full max-w-md bg-transparent"
-      aria-busy="true"
-      aria-live="polite"
-    />
-  );
-}
+import { AuthCardRouteFallback } from '@/features/shared/auth/components/AuthCardRouteFallback';
 
 export default function AdminGatePage() {
   return (
@@ -20,7 +11,7 @@ export default function AdminGatePage() {
       dir="rtl"
     >
       <HydrationSafe>
-        <Suspense fallback={<AdminGateFallback />}>
+        <Suspense fallback={<AuthCardRouteFallback />}>
           <AdminGateCard />
         </Suspense>
       </HydrationSafe>
