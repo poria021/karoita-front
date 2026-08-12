@@ -6,7 +6,7 @@ import {
   resetMockAuthStoreForTests,
   toPublicUser,
 } from '@/services/auth/mock-auth.store';
-import { AUTH_MOCK_USERS } from '@/services/mock/auth-mock-users';
+import { AUTH_MOCK_USERS } from '@/services/auth/auth-mock-users';
 import { OnboardingApprovalsService } from '@/services/onboarding-approvals.service';
 import { ProfileService } from '@/services/profile.service';
 import { useUserStore } from '@/store/useUserStore';

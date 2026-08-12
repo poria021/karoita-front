@@ -5,7 +5,7 @@ import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
+import { Spinner } from '@/components/ui/spinner';
 import { faIcons } from '@/utils/iconMap';
 import {
   persianToEnglishDigits,
@@ -113,9 +113,9 @@ function SettingsMetricCard({
               </KvTypography>
             </div>
           </div>
-          <div className="w-28 shrink-0">
+          <div className="flex w-28 shrink-0 items-center justify-center">
             {isLoading ? (
-              <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
+              <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
             ) : (
               <>
                 <KvTextField

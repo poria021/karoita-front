@@ -2,7 +2,7 @@ import {
   assertRealModeRejectsMockSecret,
   isMockApiMode,
 } from '@/lib/api-mode';
-import { MOCK_OTP_CODE } from '@/services/mock/auth-mock-users';
+import { MOCK_OTP_CODE } from '@/services/auth/auth-mock-users';
 import type { Session, User, UserRole } from '@/types/auth';
 import { useUserStore } from '@/store/useUserStore';
 import {

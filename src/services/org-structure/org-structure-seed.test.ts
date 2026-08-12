@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildOrgStructureSeed } from '@/services/mock/org-structure-seed';
+import { buildOrgStructureSeed } from '@/services/org-structure/org-structure-seed';
 import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
 describe('org structure mock seed paging capacity', () => {

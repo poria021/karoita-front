@@ -8,7 +8,7 @@ import {
 import {
   AUTH_MOCK_USERS,
   MOCK_SUPER_ADMIN_MOBILE,
-} from '@/services/mock/auth-mock-users';
+} from '@/services/auth/auth-mock-users';
 import { useUserStore } from '@/store/useUserStore';
 
 describe('AdminUserCreationService (mock)', () => {

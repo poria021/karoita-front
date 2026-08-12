@@ -3,7 +3,7 @@ import {
   MOCK_OTP_CODE,
   MOCK_USER_PASSWORD,
   type MockAuthUserRecord,
-} from '@/services/mock/auth-mock-users';
+} from '@/services/auth/auth-mock-users';
 import { useUserStore } from '@/store/useUserStore';
 import type { User, UserRole } from '@/types/auth';
 import { isSuperAdminRole } from '@/utils/RoleStrategyMap';

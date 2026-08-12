@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { AUTH_MOCK_USERS } from '@/services/mock/auth-mock-users';
+import { AUTH_MOCK_USERS } from '@/services/auth/auth-mock-users';
 import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
 describe('auth mock users onboarding paging capacity', () => {

@@ -1,5 +1,5 @@
 import { readMockUsers } from '@/services/auth/mock-auth.store';
-import { isDeleteBlockedWithSets } from '@/services/org-structure-delete-rules';
+import { isDeleteBlockedWithSets } from '@/services/org-structure/org-structure-delete-rules';
 import {
   buildOrgRuntimeIndex,
   clearOrgListFilterCache,

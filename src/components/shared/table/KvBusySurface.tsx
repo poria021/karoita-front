@@ -1,4 +1,4 @@
-import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
 import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
@@ -6,38 +6,33 @@ import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewp
 export type KvBusySurfaceProps = {
   tableViewport?: boolean;
   className?: string;
+  label?: string;
 };
 
 /**
- * Local data-region busy. Chrome stays painted; this surface shows quiet
- * skeleton bones so the wait does not read as a blank unfinished panel.
+ * Local data-region busy. Chrome stays painted; wait feedback is a quiet
+ * spinner (no skeleton bones). Soft refresh with existing content should
+ * keep prior UI and not mount this.
  */
 export function KvBusySurface({
   tableViewport = false,
   className,
+  label = 'در حال بارگذاری',
 }: KvBusySurfaceProps) {
   return (
     <div
       data-slot="kv-busy-surface"
       className={cn(
-        'flex w-full flex-col gap-kv-group bg-kv-surface p-kv-group',
+        'flex w-full flex-col items-center justify-center gap-kv-pair bg-kv-surface p-kv-group',
         tableViewport ? KV_TABLE_VIEWPORT_HEIGHT : 'min-h-40 bg-kv-canvas',
         className
       )}
       aria-busy="true"
       role="status"
-      aria-label="در حال بارگذاری"
+      aria-label={label}
     >
-      <div className="flex items-center justify-between gap-kv-group">
-        <KvSkeleton className="h-3 w-28" />
-        <KvSkeleton className="h-3 w-16" />
-      </div>
-      <div className="flex flex-col gap-kv-pair">
-        <KvSkeleton className="h-9 w-full" />
-        <KvSkeleton className="h-9 w-full" />
-        <KvSkeleton className="h-9 w-[88%]" />
-        <KvSkeleton className="h-9 w-full" />
-      </div>
+      <Spinner className="size-5 text-kv-brand" aria-hidden="true" />
+      <span className="sr-only">{label}</span>
     </div>
   );
 }

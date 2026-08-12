@@ -8,10 +8,10 @@ import {
 describe('sliceOffsetLimitPage', () => {
   const rows = Array.from({ length: 25 }, (_, i) => ({ id: String(i + 1) }));
 
-  it('defaults to page size 10', () => {
-    expect(DEFAULT_PAGE_LIMIT).toBe(10);
+  it('defaults to page size 20', () => {
+    expect(DEFAULT_PAGE_LIMIT).toBe(20);
     const page = sliceOffsetLimitPage(rows, 0);
-    expect(page.items).toHaveLength(10);
+    expect(page.items).toHaveLength(20);
     expect(page.total).toBe(25);
     expect(page.hasMore).toBe(true);
   });

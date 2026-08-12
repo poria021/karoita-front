@@ -33,7 +33,6 @@ export function SupervisorSelectionMobileList({
         isLoading={isLoading}
         isEmpty={supervisors.length === 0}
         hasItems={supervisors.length > 0}
-        busyVariant="surface"
         emptyTitle="استاد راهنمای در دسترس یافت نشد"
         emptyDescription="هیچ استادی دارای ظرفیت مجاز در حوزه انتخابی شما یافت نشد."
       >

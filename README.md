@@ -38,7 +38,7 @@ npm run test:e2e:install
 npm run test:e2e
 ```
 
-`test:e2e` starts `next dev` on `127.0.0.1:3000` via Playwright `webServer` (mock mode cannot use `next start` / production). Stop any other `next dev` for this repo first — Next 16 allows only one. Forces `NEXT_PUBLIC_API_MODE=mock`. Super-admin smoke uses `/auth/admin-gate` + `MOCK_OTP_CODE` / `MOCK_SUPER_ADMIN_MOBILE` from `src/services/mock/auth-mock-users.ts` (public `/auth/login` blocks admin by design). Config prefers the system Google Chrome channel (Chromium-family only; not Nest/real mode).
+`test:e2e` starts `next dev` on `127.0.0.1:3000` via Playwright `webServer` (mock mode cannot use `next start` / production). Stop any other `next dev` for this repo first — Next 16 allows only one. Forces `NEXT_PUBLIC_API_MODE=mock`. Super-admin smoke uses `/auth/admin-gate` + `MOCK_OTP_CODE` / `MOCK_SUPER_ADMIN_MOBILE` from `src/services/auth/auth-mock-users.ts` (public `/auth/login` blocks admin by design). Config prefers the system Google Chrome channel (Chromium-family only; not Nest/real mode).
 
 
 ## Env

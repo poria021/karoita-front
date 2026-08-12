@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import {
   MOCK_OTP_CODE,
   MOCK_SUPER_ADMIN_MOBILE,
-} from '../src/services/mock/auth-mock-users';
+} from '../src/services/auth/auth-mock-users';
 import { RouteService } from '../src/services/route.service';
 
 /**

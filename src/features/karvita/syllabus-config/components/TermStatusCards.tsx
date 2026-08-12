@@ -11,7 +11,7 @@ import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvSwitch } from '@/components/shared/fields/KvSwitch';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { isTermGateActive } from '@/services/syllabus-config.service';
 import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
@@ -58,7 +58,7 @@ export function TermGateCards({
         title="انتخاب واحد"
         subtitle={
           isDataLoading ? (
-            <KvSkeleton className="h-3.5 w-36 bg-kv-border" />
+            <Spinner className="size-3.5 text-kv-brand" aria-hidden="true" />
           ) : selectedTerm?.enrollStart ? (
             `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
           ) : (
@@ -77,7 +77,7 @@ export function TermGateCards({
         title="برگزاری کلاس‌ها"
         subtitle={
           isDataLoading ? (
-            <KvSkeleton className="h-3.5 w-36 bg-kv-border" />
+            <Spinner className="size-3.5 text-kv-brand" aria-hidden="true" />
           ) : selectedTerm?.termStart ? (
             `شروع: ${toPersianDigits(selectedTerm.termStart)}`
           ) : (
@@ -146,7 +146,14 @@ export function TermSemesterCard({
 
         <div className="w-full">
           {isDataLoading ? (
-            <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
+            <div
+              className="flex h-11 w-full items-center justify-center rounded-kv-control border border-kv-border bg-kv-surface"
+              role="status"
+              aria-busy="true"
+              aria-label="در حال بارگذاری نیم‌سال"
+            >
+              <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
+            </div>
           ) : (
             <KvSelectField
               label={false}
@@ -220,7 +227,7 @@ function StatusGateCard({
           </div>
         </div>
         {isLoading ? (
-          <KvSkeleton className="h-9 w-14 shrink-0 rounded-full bg-kv-border" />
+          <Spinner className="size-4 shrink-0 text-kv-brand" aria-hidden="true" />
         ) : (
           <KvSwitch
             size="md"

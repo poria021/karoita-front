@@ -20,7 +20,7 @@ import {
   MOCK_OTP_CODE,
   MOCK_USER_PASSWORD,
   type MockAuthUserRecord,
-} from '@/services/mock/auth-mock-users';
+} from '@/services/auth/auth-mock-users';
 
 describe('buildMockAuthIndexes', () => {
   it('resolves existing and missing mobiles in O(1) map lookup', () => {

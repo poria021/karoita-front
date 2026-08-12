@@ -1,0 +1,371 @@
+import { PlannedRoutes } from '@/services/planned-routes';
+import { RouteService } from '@/services/route.service';
+
+import type {
+  RoleStrategyMap,
+  SidebarMenuItem,
+} from '@/utils/role-strategy/types';
+
+const DASHBOARD_ITEM: SidebarMenuItem = {
+  title: 'میز کار',
+  path: RouteService.karvita.dashboard(),
+  icon: 'fa-home',
+};
+
+const ADMIN_DASHBOARD_ITEM: SidebarMenuItem = {
+  title: 'میز کار مدیریت',
+  path: RouteService.karvita.adminDashboard(),
+  icon: 'fa-home',
+};
+
+const STANDARD_REPORTS_ITEM: SidebarMenuItem = {
+  title: 'گزارش‌های استاندارد',
+  path: PlannedRoutes.standardReports(),
+  icon: 'fa-file-invoice',
+};
+
+const COMPARATIVE_REPORTS_ITEM: SidebarMenuItem = {
+  title: 'گزارش‌های مقایسه‌ای',
+  path: PlannedRoutes.comparativeReports(),
+  icon: 'fa-chart-column',
+};
+
+const MANAGE_ADS_ITEM: SidebarMenuItem = {
+  title: 'مدیریت انتشارات و اعلانات',
+  path: PlannedRoutes.manageAds(),
+  icon: 'fa-bullhorn',
+};
+
+/**
+ * استراتژی نقش‌ها — لیبل، منوی سایدبار، عرض لایوت و permissions.
+ * شرط‌های نقش در UI از این نقشه خوانده شود؛ `role === '...'` پراکنده ممنوع است.
+ */
+export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
+  student: {
+    label: 'دانشجو',
+    badge: 'آموزش علمی نظری',
+    roleIcon: 'fa-graduation-cap',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      {
+        kind: 'group',
+        title: 'انتخاب واحد کارورزی',
+        icon: 'fa-graduation-cap',
+        children: [
+          {
+            title: 'کارورزی ۱',
+            path: RouteService.karvita.internshipSelection(1),
+            icon: 'fa-graduation-cap',
+            iconBadge: 1,
+          },
+          {
+            title: 'کارورزی ۲',
+            path: RouteService.karvita.internshipSelection(2),
+            icon: 'fa-graduation-cap',
+            iconBadge: 2,
+          },
+          {
+            title: 'کارورزی ۳',
+            path: RouteService.karvita.internshipSelection(3),
+            icon: 'fa-graduation-cap',
+            iconBadge: 3,
+          },
+          {
+            title: 'کارورزی ۴',
+            path: RouteService.karvita.internshipSelection(4),
+            icon: 'fa-graduation-cap',
+            iconBadge: 4,
+          },
+        ],
+      },
+      {
+        title: 'گزارش روزانه',
+        path: PlannedRoutes.dailyReports(),
+        icon: 'fa-clipboard-list',
+      },
+    ],
+    permissions: ['dashboard.view', 'internship.select', 'daily-report.submit'],
+  },
+
+  skill_learner: {
+    label: 'مهارت‌آموز',
+    badge: 'آموزش فنی و کارگاهی',
+    roleIcon: 'fa-screwdriver-wrench',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      {
+        kind: 'group',
+        title: 'انتخاب واحد کارآموزی',
+        icon: 'fa-graduation-cap',
+        children: [
+          {
+            title: 'کارآموزی ۱',
+            path: RouteService.karvita.internshipSelection(1),
+            icon: 'fa-graduation-cap',
+            iconBadge: 1,
+          },
+          {
+            title: 'کارآموزی ۲',
+            path: RouteService.karvita.internshipSelection(2),
+            icon: 'fa-graduation-cap',
+            iconBadge: 2,
+          },
+        ],
+      },
+      {
+        title: 'گزارش روزانه',
+        path: PlannedRoutes.dailyReports(),
+        icon: 'fa-clipboard-list',
+      },
+    ],
+    permissions: ['dashboard.view', 'internship.select', 'daily-report.submit'],
+  },
+
+  supervisor_professor: {
+    label: 'استاد راهنما',
+    badge: 'ارزیاب علمی دانشگاه',
+    roleIcon: 'fa-user-tie',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      {
+        title: 'ارزیابی گزارش‌های فراگیران',
+        path: RouteService.karvita.dailyApprovals(),
+        icon: 'fa-clipboard-check',
+      },
+      {
+        title: 'پیکربندی ظرفیت‌ها',
+        path: RouteService.karvita.organizationalCapacities(),
+        icon: 'fa-chart-pie',
+      },
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+    ],
+    permissions: [
+      'dashboard.view',
+      'daily-approval.review',
+      'capacity.configure',
+      'reports.view',
+    ],
+  },
+
+  mentor_teacher: {
+    label: 'معلم راهنما',
+    badge: 'ناظر و هدایت‌گر مدرسه',
+    roleIcon: 'fa-chalkboard-user',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      {
+        title: 'ارزیابی گزارش‌های فراگیران',
+        path: RouteService.karvita.dailyApprovals(),
+        icon: 'fa-clipboard-check',
+      },
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+    ],
+    permissions: ['dashboard.view', 'daily-approval.review', 'reports.view'],
+  },
+
+  school_principal: {
+    label: 'مدیر مدرسه',
+    badge: 'مدیریت کل واحد آموزشی',
+    roleIcon: 'fa-school',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      {
+        title: 'ارزیابی گزارش‌های فراگیران',
+        path: RouteService.karvita.dailyApprovals(),
+        icon: 'fa-clipboard-check',
+      },
+      {
+        title: 'مدیریت کارورزان',
+        path: PlannedRoutes.traineesManagement(),
+        icon: 'fa-id-card',
+      },
+      {
+        title: 'ثبت‌نام مهارت‌آموزان',
+        path: PlannedRoutes.studentsList(),
+        icon: 'fa-user-group',
+      },
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+    ],
+    permissions: [
+      'dashboard.view',
+      'daily-approval.review',
+      'trainee.manage',
+      'student.manage',
+      'reports.view',
+    ],
+  },
+
+  regional_edu_admin: {
+    label: 'آموزش پرورش منطقه',
+    badge: 'نظارت منطقه‌ای آموزش',
+    roleIcon: 'fa-map-location-dot',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      {
+        title: 'مکان‌ها و مناطق',
+        path: PlannedRoutes.locations(),
+        icon: 'fa-map',
+      },
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+    ],
+    permissions: ['dashboard.view', 'location.manage', 'reports.view'],
+  },
+
+  faculty_role: {
+    label: 'دانشکده',
+    badge: 'مدیریت پردیس تابعه',
+    roleIcon: 'fa-university',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+      MANAGE_ADS_ITEM,
+    ],
+    permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
+  },
+
+  provincial_university: {
+    label: 'دانشگاه استانی',
+    badge: 'امور پردیس‌های استانی',
+    roleIcon: 'fa-university',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      {
+        title: 'مکان‌ها و پردیس‌ها',
+        path: PlannedRoutes.locations(),
+        icon: 'fa-map',
+      },
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+      MANAGE_ADS_ITEM,
+    ],
+    permissions: [
+      'dashboard.view',
+      'location.manage',
+      'reports.view',
+      'ads.manage',
+    ],
+  },
+
+  assistant_admin: {
+    label: 'دستیار مدیر',
+    badge: 'معاونت اجرایی و ستادی',
+    roleIcon: 'fa-user-gear',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+    ],
+    permissions: ['dashboard.view', 'reports.view'],
+  },
+
+  central_organization: {
+    label: 'سازمان مرکزی',
+    badge: 'مدیریت کلان کشوری',
+    roleIcon: 'fa-building-columns',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: true,
+    sidebarMenu: [
+      DASHBOARD_ITEM,
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+      MANAGE_ADS_ITEM,
+    ],
+    permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
+  },
+
+  super_admin: {
+    label: 'مدیر ارشد',
+    badge: 'مدیریت عالی و حاکمیتی',
+    roleIcon: 'fa-user-shield',
+    layoutWidthClass: 'max-w-none',
+    gateModulesUntilApproved: false,
+    sidebarMenu: [
+      ADMIN_DASHBOARD_ITEM,
+      {
+        title: 'بررسی مدارک هویتی',
+        path: RouteService.karvita.onboardingApprovals(),
+        icon: 'fa-id-card',
+      },
+      {
+        title: 'مدیریت محتوای لندینگ',
+        path: RouteService.karvita.landingCms(),
+        icon: 'fa-bullhorn',
+      },
+      {
+        title: 'مدیریت دسترسی‌ها',
+        path: PlannedRoutes.userPermissions(),
+        icon: 'fa-user-gear',
+      },
+      {
+        kind: 'group',
+        title: 'مدیریت سازمانی',
+        icon: 'fa-network-wired',
+        children: [
+          {
+            title: 'ساختار سازمانی',
+            path: RouteService.karvita.organizationalStructure(),
+            icon: 'fa-network-wired',
+          },
+          {
+            title: 'ایجاد حساب‌های سازمانی',
+            path: RouteService.karvita.adminUserCreation(),
+            icon: 'fa-user-plus',
+          },
+        ],
+      },
+      {
+        kind: 'group',
+        title: 'مدیریت ترم و سرفصل',
+        icon: 'fa-screwdriver-wrench',
+        children: [
+          {
+            title: 'ارائه و سرفصل دروس',
+            path: RouteService.karvita.syllabusCourseOfferings(),
+            icon: 'fa-sliders',
+          },
+          {
+            title: 'تنظیمات عمومی ترم‌ها',
+            path: RouteService.karvita.syllabusTermSettings(),
+            icon: 'fa-clock-rotate-left',
+          },
+        ],
+      },
+      MANAGE_ADS_ITEM,
+      STANDARD_REPORTS_ITEM,
+      COMPARATIVE_REPORTS_ITEM,
+    ],
+    permissions: [
+      'dashboard.view',
+      'onboarding.review',
+      'permission.manage',
+      'user.create',
+      'syllabus.manage',
+      'organization.manage',
+      'ads.manage',
+      'reports.view',
+    ],
+  },
+};

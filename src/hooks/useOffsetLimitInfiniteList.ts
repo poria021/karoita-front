@@ -14,7 +14,6 @@ import {
   replaceOffsetLimitListItems,
   type OffsetLimitInfiniteData,
 } from '@/hooks/offsetLimitInfiniteList.helpers';
-import { delayDashboardColdSkeletonPreview } from '@/lib/dashboard-cold-skeleton-preview';
 import {
   DEFAULT_PAGE_LIMIT,
   type OffsetLimitPage,
@@ -52,7 +51,7 @@ export function useOffsetLimitInfiniteList<T>({
   const fetchPageRef = useRef(fetchPage);
   fetchPageRef.current = fetchPage;
 
-  /** After first ready paint in this mount, skip QA cold-delay on later keys. */
+  /** After first ready paint in this mount (SPA soft refresh keeps prior rows). */
   const hasEverReadyRef = useRef(false);
   const [loadMoreErrorDismissed, setLoadMoreErrorDismissed] = useState(false);
 
@@ -79,9 +78,6 @@ export function useOffsetLimitInfiniteList<T>({
     queryKey,
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
-      const hadCache = queryClient.getQueryData(queryKey) != null;
-      const isFirstDataMiss = !hadCache && !hasEverReadyRef.current;
-      await delayDashboardColdSkeletonPreview(isFirstDataMiss);
       return fetchPageRef.current({ offset: pageParam, limit: pageSize });
     },
     getNextPageParam: (lastPage, allPages) => {

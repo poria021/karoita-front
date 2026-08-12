@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
+import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
 import { OrganizationalCapacitiesService } from '@/services/organizational-capacities.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
@@ -18,6 +19,10 @@ import {
 } from '@/utils/persianDigits';
 
 const CHROME_ID = 'organizational-capacities';
+const CAPACITY_KIND_KEYS = [
+  'internship',
+  'apprenticeship',
+] as const satisfies readonly OrganizationalCapacityKind[];
 
 type CapacitiesChrome = {
   kind: OrganizationalCapacityKind;
@@ -29,9 +34,12 @@ export function useOrganizationalCapacitiesPage() {
   const setChrome = useDashboardModuleCache((state) => state.setChrome);
   const cached = getChrome<CapacitiesChrome>(CHROME_ID);
 
-  const [kind, setKind] = useState<OrganizationalCapacityKind>(
-    () => cached?.kind ?? 'internship'
-  );
+  const [kind, setKind] = useSyncedUrlParam<OrganizationalCapacityKind>({
+    name: 'kind',
+    allowed: CAPACITY_KIND_KEYS,
+    defaultValue: 'internship',
+    preferWhenMissing: cached?.kind,
+  });
   const [termId, setTermId] = useState(() => cached?.termId ?? '');
   const [snapshot, setSnapshot] =
     useState<OrganizationalCapacitiesSnapshot | null>(null);
@@ -77,10 +85,13 @@ export function useOrganizationalCapacitiesPage() {
     void load();
   }, [load]);
 
-  const changeKind = useCallback((next: OrganizationalCapacityKind) => {
-    setKind(next);
-    setExpandedCourseId(null);
-  }, []);
+  const changeKind = useCallback(
+    (next: OrganizationalCapacityKind) => {
+      setKind(next);
+      setExpandedCourseId(null);
+    },
+    [setKind]
+  );
 
   const patchLocalCourse = useCallback(
     (courseId: string, patch: Partial<OrganizationalCapacityCourse>) => {

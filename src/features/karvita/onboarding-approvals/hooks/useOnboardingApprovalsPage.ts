@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
+import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
 import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
@@ -19,12 +20,17 @@ import type {
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 
+import { ONBOARDING_APPROVAL_TABS } from '../constants';
 import {
   ONBOARDING_APPROVALS_CACHE_NAMESPACE,
   ONBOARDING_APPROVALS_CHROME_ID,
   ONBOARDING_APPROVALS_PROVINCES_KEY,
   onboardingApprovalsListResetKey,
 } from '../lib/onboardingApprovalsListKeys';
+
+const ONBOARDING_TAB_KEYS = ONBOARDING_APPROVAL_TABS.map(
+  (item) => item.key
+) as ApprovalFilterTab[];
 
 type OnboardingChrome = {
   tab: ApprovalFilterTab;
@@ -41,9 +47,12 @@ export function useOnboardingApprovalsPage() {
     ONBOARDING_APPROVALS_CHROME_ID
   );
 
-  const [tab, setTab] = useState<ApprovalFilterTab>(
-    () => cachedChrome?.tab ?? 'pending_admin'
-  );
+  const [tab, setTab] = useSyncedUrlParam<ApprovalFilterTab>({
+    name: 'tab',
+    allowed: ONBOARDING_TAB_KEYS,
+    defaultValue: 'pending_admin',
+    preferWhenMissing: cachedChrome?.tab,
+  });
   const [query, setQuery] = useState(() => cachedChrome?.query ?? '');
   const [province, setProvince] = useState(
     () => cachedChrome?.province ?? 'all'
@@ -139,14 +148,17 @@ export function useOnboardingApprovalsPage() {
   const selectedUser =
     items.find((user) => user.id === selectedId) ?? null;
 
-  const changeTab = useCallback((next: ApprovalFilterTab) => {
-    setTab(next);
-    setQuery('');
-    setProvince('all');
-    setSelectedId(null);
-    setShowRejectForm(false);
-    setRejectReason('');
-  }, []);
+  const changeTab = useCallback(
+    (next: ApprovalFilterTab) => {
+      setTab(next);
+      setQuery('');
+      setProvince('all');
+      setSelectedId(null);
+      setShowRejectForm(false);
+      setRejectReason('');
+    },
+    [setTab]
+  );
 
   const selectUser = useCallback((user: OnboardingApprovalUser | null) => {
     setSelectedId(user?.id ?? null);

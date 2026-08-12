@@ -1,3 +1,7 @@
+import {
+  appendSearchParam,
+} from '@/lib/dashboard-url-state';
+
 /**
  * Live internal route catalog.
  * Planned-but-unbuilt paths live in planned-routes.ts — do not hardcode domain URLs in features.
@@ -101,26 +105,51 @@ export const RouteService = {
     profileSecurity: (role: string): string =>
       `/karvita/${role}/profile?tab=security`,
 
-    dailyApprovals: (): string => '/karvita/daily-approvals',
+    dailyApprovals: (kind?: 'internship' | 'apprenticeship'): string => {
+      const base = '/karvita/daily-approvals';
+      return kind ? appendSearchParam(base, 'kind', kind) : base;
+    },
     /** Syllabus index (redirect); live UI under /admin/syllabus/* */
     syllabusConfig: (): string => `${KARVITA_ADMIN_BASE}/syllabus`,
     syllabusCourseOfferings: (): string =>
       `${KARVITA_ADMIN_BASE}/syllabus/course-offerings`,
     syllabusTermSettings: (): string =>
       `${KARVITA_ADMIN_BASE}/syllabus/term-settings`,
-    onboardingApprovals: (): string =>
-      `${KARVITA_ADMIN_BASE}/onboarding-approvals`,
+    onboardingApprovals: (
+      tab?: 'pending_admin' | 'approved' | 'rejected'
+    ): string => {
+      const base = `${KARVITA_ADMIN_BASE}/onboarding-approvals`;
+      return tab ? appendSearchParam(base, 'tab', tab) : base;
+    },
     /** No level → index redirect to L1; with level → sidebar submodule */
     internshipSelection: (level?: number): string =>
       level == null
         ? '/karvita/internships'
         : `/karvita/internships/${level}`,
-    organizationalCapacities: (): string => '/karvita/capacities',
+    organizationalCapacities: (
+      kind?: 'internship' | 'apprenticeship'
+    ): string => {
+      const base = '/karvita/capacities';
+      return kind ? appendSearchParam(base, 'kind', kind) : base;
+    },
     adminUserCreation: (): string => `${KARVITA_ADMIN_BASE}/user-creation`,
     /** Canonical org tree — not legacy /organization/* bookmarks */
-    organizationalStructure: (): string =>
-      `${KARVITA_ADMIN_BASE}/organizational-structure`,
-    landingCms: (): string => `${KARVITA_ADMIN_BASE}/landing-cms`,
+    organizationalStructure: (
+      tab?:
+        | 'provinces'
+        | 'cities'
+        | 'districts'
+        | 'schools'
+        | 'majors'
+        | 'faculties'
+    ): string => {
+      const base = `${KARVITA_ADMIN_BASE}/organizational-structure`;
+      return tab ? appendSearchParam(base, 'tab', tab) : base;
+    },
+    landingCms: (tab?: 'banners' | 'socials' | 'products'): string => {
+      const base = `${KARVITA_ADMIN_BASE}/landing-cms`;
+      return tab ? appendSearchParam(base, 'tab', tab) : base;
+    },
 
     isAdminControlPlanePath,
     isAppShellPath,

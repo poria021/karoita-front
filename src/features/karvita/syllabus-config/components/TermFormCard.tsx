@@ -8,7 +8,7 @@ import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { KvSkeleton } from '@/components/shared/skeleton/KvSkeleton';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
 import {
@@ -76,36 +76,7 @@ export function TermFormCard({
         </div>
 
         {isLoading ? (
-          <>
-            <div className="space-y-kv-pair">
-              <KvTypography variant="label" as="label">
-                عملیات در حال انجام <span className="text-kv-danger">*</span>
-              </KvTypography>
-              <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
-            </div>
-
-            <div className="space-y-kv-pair">
-              <KvTypography variant="label" as="label">
-                نوع ساختار دوره <span className="text-kv-danger">*</span>
-              </KvTypography>
-              <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
-            </div>
-
-            <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
-              <div className="space-y-kv-pair">
-                <KvTypography variant="label" as="label">
-                  عنوان بازه <span className="text-kv-danger">*</span>
-                </KvTypography>
-                <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
-              </div>
-              <div className="space-y-kv-pair">
-                <KvTypography variant="label" as="label">
-                  سال تحصیلی <span className="text-kv-danger">*</span>
-                </KvTypography>
-                <KvSkeleton className="h-11 w-full rounded-kv-control bg-kv-border" />
-              </div>
-            </div>
-          </>
+          <KvBusySurface className="min-h-48 rounded-kv-panel" label="در حال بارگذاری فرم ترم" />
         ) : (
           <>
             <KvSelectField

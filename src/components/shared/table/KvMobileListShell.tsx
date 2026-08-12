@@ -5,7 +5,6 @@ import type { ReactNode } from 'react';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
-import { KvSkeletonListRow } from '@/components/shared/skeleton/KvSkeletonCard';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
 import { cn } from '@/lib/utils';
@@ -24,8 +23,6 @@ export type KvMobileListShellProps = {
   isLoadingMore?: boolean;
   onLoadMore?: () => void;
   loadMoreLabel?: string;
-  busyVariant?: 'skeletonRows' | 'surface';
-  skeletonCount?: number;
   matchTableViewport?: boolean;
   className?: string;
   children: ReactNode;
@@ -33,7 +30,7 @@ export type KvMobileListShellProps = {
 
 /**
  * Shared chrome for dashboard mobile card/accordion lists:
- * cold busy, empty, load-more footer — domain rows stay in children.
+ * cold busy (spinner), empty, load-more footer — domain rows stay in children.
  */
 export function KvMobileListShell({
   isLoading,
@@ -48,8 +45,6 @@ export function KvMobileListShell({
   isLoadingMore = false,
   onLoadMore,
   loadMoreLabel = 'بارگذاری موارد بیشتر',
-  busyVariant = 'skeletonRows',
-  skeletonCount = 6,
   matchTableViewport = false,
   className,
   children,
@@ -57,33 +52,15 @@ export function KvMobileListShell({
   const showColdBusy = isLoading && !(hasItems ?? !isEmpty);
 
   if (showColdBusy) {
-    if (busyVariant === 'surface') {
-      return (
-        <KvBusySurface
-          className={cn(
-            matchTableViewport ? KV_TABLE_VIEWPORT_HEIGHT : 'min-h-48',
-            'rounded-kv-card',
-            className
-          )}
-        />
-      );
-    }
-
     return (
-      <div
+      <KvBusySurface
         className={cn(
-          'flex w-full flex-col gap-kv-group',
-          matchTableViewport && KV_TABLE_VIEWPORT_HEIGHT,
+          matchTableViewport ? KV_TABLE_VIEWPORT_HEIGHT : 'min-h-48',
+          'rounded-kv-card',
           className
         )}
-        role="status"
-        aria-busy="true"
-        aria-label="در حال بارگذاری فهرست"
-      >
-        {Array.from({ length: skeletonCount }, (_, index) => (
-          <KvSkeletonListRow key={index} />
-        ))}
-      </div>
+        label="در حال بارگذاری فهرست"
+      />
     );
   }
 

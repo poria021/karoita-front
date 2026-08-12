@@ -1,4 +1,5 @@
-import type { ProfileDto } from '@/types/profile';import type { MockAuthUserRecord } from '@/services/mock/auth-mock-users';
+import type { ProfileDto } from '@/types/profile';
+import type { MockAuthUserRecord } from '@/services/auth/auth-mock-users';
 import {
   findMockUserById,
   findMockUserByMobile,

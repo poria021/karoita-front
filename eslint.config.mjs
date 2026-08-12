@@ -10,13 +10,16 @@ const COLOR_LITERAL_MESSAGE =
   'Hardcoded colors (#hex / rgb() / hsl()) are forbidden in TS/TSX. Add HSL `--kv-*` tokens in globals.css and use bg-kv-*/text-kv-*/border-kv-*/fill-kv-* utilities. See .cursor/rules/70-color-hsl-tokens.mdc.';
 
 const UI_PRODUCT_BYPASS_MESSAGE =
-  'Product composition belongs in shared: use KvTable stack, shared/skeleton wrappers, domain *Field / FieldFrame, EmptyState, ConfirmationDialog, and shell — not raw ui/table or ui/skeleton from features/app. Plain atoms (Button, Badge, Spinner, Checkbox, Tooltip, …) MAY come from @/components/ui/*. See docs/design-system.md.';
+  'Product composition belongs in shared: use KvTable stack / KvBusySurface, domain *Field / FieldFrame, EmptyState, ConfirmationDialog, and shell — not raw ui/table. Do not reintroduce ui/skeleton (product loading uses Spinner + KvBusySurface). Plain atoms (Button, Badge, Spinner, Checkbox, Tooltip, …) MAY come from @/components/ui/*. See docs/design-system.md.';
 
 const CROSS_FEATURE_MESSAGE =
   'Cross-feature imports are forbidden (rule 00/60). Move shared logic to src/services/ or src/components/shared/, or use shared types in src/types/. Do not import another features/[domain] slice.';
 
 const HARDCODED_PATH_MESSAGE =
   'Hardcoded /karvita/ or /auth/ paths are forbidden in features/components (rule 20). Use RouteService (or isAuthPath / isAdminControlPlanePath helpers) from @/services/route.service.';
+
+const SKELETON_BAN_MESSAGE =
+  'Skeleton bones are banned (rule 84). Use Spinner / KvTableBusy / KvBusySurface / aria-busy — never @/components/ui/skeleton or shared/skeleton.';
 
 const UI_RESTRICTED_IMPORT_PATTERNS = [
   {
@@ -25,18 +28,19 @@ const UI_RESTRICTED_IMPORT_PATTERNS = [
   },
   {
     group: ['@/components/ui/skeleton', '@/components/ui/skeleton/*'],
-    message: UI_PRODUCT_BYPASS_MESSAGE,
+    message: SKELETON_BAN_MESSAGE,
+  },
+  {
+    group: [
+      '@/components/shared/skeleton',
+      '@/components/shared/skeleton/**',
+    ],
+    message: SKELETON_BAN_MESSAGE,
   },
 ];
 
-/** Domains under src/features/ — keep in sync when adding a new slice. */
-const FEATURE_DOMAINS = [
-  'karvita',
-  'shared',
-  'reporting',
-  'forms-wizard',
-  'ad-engine',
-];
+/** Domains under src/features/ — keep in sync when adding a new slice (docs/planned-domains.md). */
+const FEATURE_DOMAINS = ['karvita', 'shared'];
 
 function otherFeatureImportPatterns(selfDomain) {
   return FEATURE_DOMAINS.filter((domain) => domain !== selfDomain).flatMap(
@@ -124,7 +128,7 @@ const eslintConfig = [
   },
   /**
    * Layer law: features/app MAY import plain ui atoms.
-   * Forbidden: bypass product stacks (admin table, cold skeletons) via raw ui.
+   * Forbidden: bypass product stacks (admin table) via raw ui/table; do not revive ui/skeleton.
    */
   {
     files: ['src/features/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],

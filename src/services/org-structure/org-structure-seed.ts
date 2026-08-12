@@ -2,9 +2,10 @@ import type {
   OrgMajorAudience,
   OrgStructureSnapshot,
 } from '@/types/org-structure';
+import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
 /**
- * Seed بزرگ‌تر از یک صفحه (DEFAULT_PAGE_LIMIT=10) تا paging جدول‌های ادمین
+ * Seed بزرگ‌تر از یک صفحه (DEFAULT_PAGE_LIMIT) تا paging جدول‌های ادمین
  * در mock قابل مشاهده باشد.
  */
 const BRANCHES: Array<{
@@ -297,6 +298,58 @@ export function buildOrgStructureSeed(): OrgStructureSnapshot {
     name: major.name,
     audience: major.audience,
   }));
+
+  const minRows = DEFAULT_PAGE_LIMIT + 1;
+  const padProvinceId = provinces[0]?.id ?? nextId('prov');
+  const padCityId = cities[0]?.id ?? nextId('city');
+  const padDistrictId = districts[0]?.id ?? nextId('dist');
+
+  while (provinces.length < minRows) {
+    provinces.push({
+      id: nextId('prov'),
+      name: `استان نمونه ${provinces.length + 1}`,
+    });
+  }
+  while (cities.length < minRows) {
+    cities.push({
+      id: nextId('city'),
+      name: `شهر نمونه ${cities.length + 1}`,
+      provinceId: padProvinceId,
+    });
+  }
+  while (faculties.length < minRows) {
+    faculties.push({
+      id: nextId('fac'),
+      name: `پردیس نمونه ${faculties.length + 1}`,
+      provinceId: padProvinceId,
+      cityId: padCityId,
+    });
+  }
+  while (districts.length < minRows) {
+    districts.push({
+      id: nextId('dist'),
+      name: `منطقه نمونه ${districts.length + 1}`,
+      provinceId: padProvinceId,
+      cityId: padCityId,
+    });
+  }
+  while (schools.length < minRows) {
+    schools.push({
+      id: nextId('sch'),
+      name: `مدرسه نمونه ${schools.length + 1}`,
+      provinceId: padProvinceId,
+      cityId: padCityId,
+      districtId: padDistrictId,
+      gender: 'male',
+    });
+  }
+  while (majors.length < minRows) {
+    majors.push({
+      id: nextId('maj'),
+      name: `رشته نمونه ${majors.length + 1}`,
+      audience: 'student',
+    });
+  }
 
   return { provinces, cities, faculties, districts, schools, majors };
 }

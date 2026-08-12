@@ -10,13 +10,12 @@ afterEach(() => {
 });
 
 describe('KvBusySurface', () => {
-  it('exposes a busy status region with skeleton bones', () => {
+  it('exposes a busy status region with a spinner', () => {
     const { container } = render(<KvBusySurface />);
 
     const status = screen.getByRole('status', { name: 'در حال بارگذاری' });
     expect(status.getAttribute('aria-busy')).toBe('true');
-    expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(
-      2
-    );
+    expect(container.querySelectorAll('[data-slot="skeleton"]').length).toBe(0);
+    expect(status.querySelector('[aria-hidden="true"]')).not.toBeNull();
   });
 });

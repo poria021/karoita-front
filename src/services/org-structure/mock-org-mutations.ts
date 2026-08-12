@@ -1,4 +1,4 @@
-import { isDeleteBlockedWithSets } from '@/services/org-structure-delete-rules';
+import { isDeleteBlockedWithSets } from '@/services/org-structure/org-structure-delete-rules';
 import {
   getEntityById,
   getOrgRuntime,

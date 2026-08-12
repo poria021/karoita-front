@@ -55,5 +55,7 @@ MIGRATION_ROADMAP.md
 playground/
 
 # Personal / interview notes under docs — keep local.
-# Engineering docs (design-system, adr, checklists) are tracked.
-docs/
+# Engineering architecture docs below are tracked (force-include).
+docs/*
+!docs/architecture-folders.md
+!docs/planned-domains.md

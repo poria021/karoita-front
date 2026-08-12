@@ -1,7 +1,7 @@
 /**
  * Fails if features/ or app/ import product-bypass ui paths.
  * Plain atoms (@/components/ui/button, badge, spinner, …) are allowed.
- * Forbidden: ui/table, ui/skeleton — use shared KvTable stack / shared/skeleton.
+ * Forbidden: ui/table, ui/skeleton — use shared KvTable / KvBusySurface (no skeleton bones; shared/skeleton stack deleted, rule 84).
  *
  * Run: node scripts/check-no-ui-imports.mjs
  */
@@ -51,7 +51,7 @@ for (const target of TARGETS) {
 
 if (violations.length) {
   console.error(
-    'Forbidden product-bypass @/components/ui imports in features/app (use shared table/skeleton):\n'
+    'Forbidden product-bypass @/components/ui imports in features/app (use shared KvTable / KvBusySurface):\n'
   );
   for (const v of violations) console.error(`  ${v}`);
   process.exit(1);

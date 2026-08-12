@@ -9,7 +9,7 @@ import {
   AUTH_MOCK_USERS,
   MOCK_USERS_SEED_VERSION,
   type MockAuthUserRecord,
-} from '@/services/mock/auth-mock-users';
+} from '@/services/auth/auth-mock-users';
 import {
   buildMockAuthIndexes,
   getMockUserById,

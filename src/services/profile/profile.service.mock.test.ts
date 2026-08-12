@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AUTH_MOCK_USERS } from '@/services/mock/auth-mock-users';
+import { AUTH_MOCK_USERS } from '@/services/auth/auth-mock-users';
 import {
   findMockUserById,
   resetMockAuthStoreForTests,

@@ -6,7 +6,7 @@ import { resetLandingCmsStoreForTests } from '@/services/landing-cms/mock-landin
 import {
   AUTH_MOCK_USERS,
   MOCK_SUPER_ADMIN_MOBILE,
-} from '@/services/mock/auth-mock-users';
+} from '@/services/auth/auth-mock-users';
 import { resetMockAuthStoreForTests } from '@/services/auth/mock-auth.store';
 import { useUserStore } from '@/store/useUserStore';
 

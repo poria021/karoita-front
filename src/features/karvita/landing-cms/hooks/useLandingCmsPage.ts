@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
 import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { LandingCmsService } from '@/services/landing-cms.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
@@ -15,9 +16,12 @@ import type {
   LandingSocial,
 } from '@/types/landing-cms';
 
-import type { LandingCmsTab } from '../constants';
+import { LANDING_CMS_TABS, type LandingCmsTab } from '../constants';
 
 const LANDING_CMS_CHROME_ID = 'karvita:landing-cms:chrome';
+const LANDING_CMS_TAB_KEYS = LANDING_CMS_TABS.map(
+  (item) => item.key
+) as LandingCmsTab[];
 
 type LandingCmsChrome = {
   tab: LandingCmsTab;
@@ -42,9 +46,12 @@ export function useLandingCmsPage() {
   const setChrome = useDashboardModuleCache((s) => s.setChrome);
   const cachedChrome = getChrome<LandingCmsChrome>(LANDING_CMS_CHROME_ID);
 
-  const [tab, setTab] = useState<LandingCmsTab>(
-    () => cachedChrome?.tab ?? 'banners'
-  );
+  const [tab, setTab] = useSyncedUrlParam<LandingCmsTab>({
+    name: 'tab',
+    allowed: LANDING_CMS_TAB_KEYS,
+    defaultValue: 'banners',
+    preferWhenMissing: cachedChrome?.tab,
+  });
   const [banners, setBanners] = useState<LandingBanner[]>([]);
   const [socials, setSocials] = useState<LandingSocial[]>([]);
   const [products, setProducts] = useState<LandingProduct[]>([]);
@@ -116,9 +123,12 @@ export function useLandingCmsPage() {
     };
   }, []);
 
-  const changeTab = useCallback((next: LandingCmsTab) => {
-    setTab(next);
-  }, []);
+  const changeTab = useCallback(
+    (next: LandingCmsTab) => {
+      setTab(next);
+    },
+    [setTab]
+  );
 
   const scheduleCreateBanner = useCallback(
     (input: CreateLandingBannerInput) => {

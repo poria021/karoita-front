@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { delayDashboardColdSkeletonPreview } from '@/lib/dashboard-cold-skeleton-preview';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type {
   SyllabusConfigSubTab,
@@ -180,7 +179,6 @@ export function useSyllabusPageLoader({
     const requestId = ++loadRequestIdRef.current;
     void (async () => {
       try {
-        await delayDashboardColdSkeletonPreview(!hasCache);
         if (requestId !== loadRequestIdRef.current) return;
         const snapshot = await SyllabusConfigService.getSnapshot();
         if (requestId !== loadRequestIdRef.current) return;

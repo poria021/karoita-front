@@ -296,16 +296,16 @@ function buildBulkSeeds(
   return seeds;
 }
 
-/** Enough rows per onboarding tab to exercise DEFAULT_PAGE_LIMIT=10 paging. */
+/** Enough rows per onboarding tab to exercise DEFAULT_PAGE_LIMIT paging. */
 const BULK_PENDING = buildBulkSeeds(
   'pending_admin',
-  14,
+  24,
   '#MOCK-PEND',
   ['student', 'skill_learner', 'mentor_teacher', 'school_principal']
 );
 const BULK_APPROVED = buildBulkSeeds(
   'approved',
-  12,
+  24,
   '#MOCK-APPR',
   [
     'student',
@@ -317,7 +317,7 @@ const BULK_APPROVED = buildBulkSeeds(
 );
 const BULK_REJECTED = buildBulkSeeds(
   'rejected',
-  12,
+  24,
   '#MOCK-REJ',
   ['student', 'skill_learner', 'supervisor_professor', 'mentor_teacher']
 );

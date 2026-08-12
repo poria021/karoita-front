@@ -1,14 +1,13 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
-import {
-  findMockUserById,
-  patchMockAuthUser,
-  readMockUsers,
-  subscribeMockAuthUsers,
-  toPublicUser,
-} from '@/services/auth/mock-auth.store';
+import { subscribeMockAuthUsers } from '@/services/auth/mock-auth.store';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
-import type { User } from '@/types/auth';
+import {
+  collectProvinces,
+  listFilteredUsers,
+  patchApprovalUser,
+  requireExistingMockUser,
+} from '@/services/onboarding-approvals/mock-onboarding-approvals';
 import type {
   ListOnboardingApprovalsFilters,
   ListOnboardingApprovalsPage,
@@ -18,8 +17,6 @@ import {
   DEFAULT_PAGE_LIMIT,
   sliceOffsetLimitPage,
 } from '@/utils/offset-limit-page';
-import { persianToEnglishDigits } from '@/utils/persianDigits';
-
 
 const IS_MOCK_MODE = isMockApiMode();
 
@@ -30,85 +27,6 @@ function requireOnboardingReview(): void {
     throwRealModeNotImplemented('OnboardingApprovalsService');
   }
   assertMockClientHasPermission('onboarding.review');
-}
-
-function toApprovalUser(user: User): OnboardingApprovalUser {
-  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
-  return {
-    ...user,
-    fullName: fullName || 'ثبت‌نشده',
-  };
-}
-
-function matchesQuery(user: User, rawQuery: string): boolean {
-  const q = persianToEnglishDigits(rawQuery).trim().toLowerCase();
-  if (!q) return true;
-  const haystack = [
-    user.firstName,
-    user.lastName,
-    `${user.firstName} ${user.lastName}`,
-    user.id,
-    user.mobile,
-    user.personalCode,
-    user.studentId,
-    user.skillCode,
-  ]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase();
-  return haystack.includes(q);
-}
-
-function listFilteredUsers(
-  filters: Omit<ListOnboardingApprovalsFilters, 'offset' | 'limit'>
-): OnboardingApprovalUser[] {
-  const province =
-    filters.province && filters.province !== 'all' ? filters.province : null;
-  const query = filters.query ?? '';
-
-  return readMockUsers()
-    .filter(
-      (user) =>
-        user.role !== 'super_admin' && user.docStatus !== 'not_submitted'
-    )
-    .filter((user) => user.docStatus === filters.status)
-    .filter((user) => (province ? user.province === province : true))
-    .filter((user) => matchesQuery(user, query))
-    .sort((a, b) => (b.lastChange ?? 0) - (a.lastChange ?? 0))
-    .map((record) => toApprovalUser(toPublicUser(record)));
-}
-
-function collectProvinces(): string[] {
-  const names = new Set<string>();
-  for (const user of readMockUsers()) {
-    if (
-      user.role === 'super_admin' ||
-      user.docStatus === 'not_submitted' ||
-      !user.province
-    ) {
-      continue;
-    }
-    names.add(user.province);
-  }
-  return Array.from(names).sort((a, b) => a.localeCompare(b, 'fa'));
-}
-
-function patchUser(
-  userId: string,
-  patch: Partial<User>
-): OnboardingApprovalUser {
-  const updated = patchMockAuthUser(
-    { id: userId },
-    {
-      ...patch,
-      lastChange: Date.now(),
-      ...(patch.docStatus === 'approved'
-        ? { adminRequestMessage: undefined }
-        : {}),
-    }
-  );
-
-  return toApprovalUser(toPublicUser(updated));
 }
 
 /**
@@ -152,12 +70,9 @@ export const OnboardingApprovalsService = {
       throwRealModeNotImplemented('OnboardingApprovalsService.approveIdentityDoc');
     }
     requireOnboardingReview();
-    const current = findMockUserById(userId);
-    if (!current) {
-      throw new Error('کاربر موردنظر یافت نشد.');
-    }
+    requireExistingMockUser(userId);
     await new Promise((resolve) => setTimeout(resolve, 250));
-    return patchUser(userId, {
+    return patchApprovalUser(userId, {
       docStatus: 'approved',
       approved: true,
       adminRequestMessage: undefined,
@@ -179,12 +94,9 @@ export const OnboardingApprovalsService = {
         'لطفاً علت نقص یا عدم تایید مدارک را بنویسید یا انتخاب کنید.'
       );
     }
-    const current = findMockUserById(userId);
-    if (!current) {
-      throw new Error('کاربر موردنظر یافت نشد.');
-    }
+    requireExistingMockUser(userId);
     await new Promise((resolve) => setTimeout(resolve, 250));
-    return patchUser(userId, {
+    return patchApprovalUser(userId, {
       docStatus: 'rejected',
       approved: false,
       adminRequestMessage: trimmed,

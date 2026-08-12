@@ -17,7 +17,7 @@ import {
   MOCK_OTP_CODE,
   MOCK_SUPER_ADMIN_MOBILE,
   MOCK_USER_PASSWORD,
-} from '@/services/mock/auth-mock-users';
+} from '@/services/auth/auth-mock-users';
 import { useUserStore } from '@/store/useUserStore';
 
 function firstNonAdminMobile(): string {

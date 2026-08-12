@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
 import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
@@ -20,6 +21,11 @@ import {
   dailyApprovalsListResetKey,
 } from '../lib/dailyApprovalsListKeys';
 
+const DAILY_APPROVAL_KIND_KEYS = [
+  'internship',
+  'apprenticeship',
+] as const satisfies readonly DailyApprovalCourseKind[];
+
 export type DailyApprovalsChrome = {
   kind: DailyApprovalCourseKind;
   query: string;
@@ -36,9 +42,12 @@ export function useDailyApprovalsChrome() {
     DAILY_APPROVALS_CHROME_ID
   );
 
-  const [kind, setKind] = useState<DailyApprovalCourseKind>(
-    () => cachedChrome?.kind ?? 'internship'
-  );
+  const [kind, setKind] = useSyncedUrlParam<DailyApprovalCourseKind>({
+    name: 'kind',
+    allowed: DAILY_APPROVAL_KIND_KEYS,
+    defaultValue: 'internship',
+    preferWhenMissing: cachedChrome?.kind,
+  });
   const [query, setQuery] = useState(() => cachedChrome?.query ?? '');
   const [readFilter, setReadFilter] = useState<DailyApprovalReadFilter>(
     () => cachedChrome?.readFilter ?? 'all'

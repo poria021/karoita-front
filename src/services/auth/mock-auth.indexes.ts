@@ -1,4 +1,4 @@
-import type { MockAuthUserRecord } from '@/services/mock/auth-mock-users';
+import type { MockAuthUserRecord } from '@/services/auth/auth-mock-users';
 
 export type MockAuthIndexes = {
   byMobile: Map<string, MockAuthUserRecord>;

@@ -1,9 +1,9 @@
 import { isMockApiMode } from '@/lib/api-mode';
-import { buildOrgStructureSeed } from '@/services/mock/org-structure-seed';
+import { buildOrgStructureSeed } from '@/services/org-structure/org-structure-seed';
 import {
   buildOrgDeleteBlockedSets,
   type OrgDeleteBlockedSets,
-} from '@/services/org-structure-delete-rules';
+} from '@/services/org-structure/org-structure-delete-rules';
 import type {
   OrgCity,
   OrgDistrict,

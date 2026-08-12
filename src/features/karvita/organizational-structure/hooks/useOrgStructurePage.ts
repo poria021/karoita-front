@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
+import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
 import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
@@ -21,7 +22,7 @@ import {
   type OrgStructureSubTab,
 } from '@/types/org-structure';
 
-import { getOrgTabConfig } from '../constants';
+import { getOrgTabConfig, ORG_STRUCTURE_TABS } from '../constants';
 import { submitOrgEntity } from '../lib/orgEntitySubmitHandlers';
 import {
   ORG_STRUCTURE_CACHE_NAMESPACE,
@@ -29,6 +30,10 @@ import {
   orgStructureListResetKey,
 } from '../lib/orgStructureListKeys';
 import type { OrgEntityFormValues } from '../schemas/org-structure.schema';
+
+const ORG_STRUCTURE_TAB_KEYS = ORG_STRUCTURE_TABS.map(
+  (item) => item.key
+) as OrgStructureSubTab[];
 
 type OrgChrome = {
   tab: OrgStructureSubTab;
@@ -57,9 +62,12 @@ export function useOrgStructurePage() {
   const setChrome = useDashboardModuleCache((s) => s.setChrome);
   const cachedChrome = getChrome<OrgChrome>(ORG_STRUCTURE_CHROME_ID);
 
-  const [tab, setTab] = useState<OrgStructureSubTab>(
-    () => cachedChrome?.tab ?? 'provinces'
-  );
+  const [tab, setTab] = useSyncedUrlParam<OrgStructureSubTab>({
+    name: 'tab',
+    allowed: ORG_STRUCTURE_TAB_KEYS,
+    defaultValue: 'provinces',
+    preferWhenMissing: cachedChrome?.tab,
+  });
   const [query, setQuery] = useState(() => cachedChrome?.query ?? '');
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
@@ -92,10 +100,13 @@ export function useOrgStructurePage() {
     cacheNamespace: ORG_STRUCTURE_CACHE_NAMESPACE,
   });
 
-  const changeTab = useCallback((next: OrgStructureSubTab) => {
-    setTab(next);
-    setQuery('');
-  }, []);
+  const changeTab = useCallback(
+    (next: OrgStructureSubTab) => {
+      setTab(next);
+      setQuery('');
+    },
+    [setTab]
+  );
 
   const openCreate = useCallback(() => {
     setEditId(null);

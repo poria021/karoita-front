@@ -5,7 +5,7 @@ import {
   isDistrictDeleteBlocked,
   isOrgEntityDeleteBlocked,
   isProvinceDeleteBlocked,
-} from '@/services/org-structure-delete-rules';
+} from '@/services/org-structure/org-structure-delete-rules';
 import type { OrgStructureSnapshot } from '@/types/org-structure';
 
 const emptyDb: OrgStructureSnapshot = {
