@@ -8,7 +8,11 @@ import type { Session, User, UserRole } from '@/types/auth';
 
 const NEST_AUTH_LIVE = true;
 
-/** Relative paths under NEXT_PUBLIC_API_URL — keep in sync with Nest auth controller */
+/**
+ * Relative paths under NEXT_PUBLIC_API_URL (no leading slash).
+ * Source of truth: https://backenddev.darkube.ir/docs — Auth tag.
+ * Login/register phone flows use these five routes first.
+ */
 export const REAL_AUTH_PATHS = {
   login: 'api/v1/auth/phone/login/password', // POST
   loginOtpSend: 'api/v1/auth/phone/login/request-otp', // POST
