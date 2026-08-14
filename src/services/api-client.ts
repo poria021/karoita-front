@@ -3,7 +3,6 @@ import ky, { HTTPError, type Options as KyOptions } from 'ky';
 import { isAuthPath, RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
 
 export class ApiClientError extends Error {
@@ -101,6 +100,19 @@ function bearerHeaders(token?: string): HeadersInit {
   };
 }
 
+async function resolveBearerToken(explicit?: string): Promise<string | undefined> {
+  if (explicit) return explicit;
+  try {
+    const { readSessionMeta } = await import('@/services/auth/mock-auth.store');
+    const meta = readSessionMeta();
+    if (!meta?.token) return undefined;
+    if (new Date(meta.expiresAt).getTime() <= Date.now()) return undefined;
+    return meta.token;
+  } catch {
+    return undefined;
+  }
+}
+
 function createClient() {
   if (!API_URL) {
     throw new ApiClientError('آدرس سرویس API پیکربندی نشده است.');
@@ -154,11 +166,16 @@ async function mapHttpError(error: unknown): Promise<never> {
 async function request<T>(
   method: 'get' | 'put' | 'post' | 'patch' | 'delete',
   path: string,
-  options: KyOptions = {}
+  options: KyOptions = {},
+  token?: string
 ): Promise<T> {
   try {
     const client = createClient();
-    return await client[method](path.replace(/^\//, ''), options).json<T>();
+    const bearer = await resolveBearerToken(token);
+    return await client[method](path.replace(/^\//, ''), {
+      ...options,
+      headers: { ...bearerHeaders(bearer), ...options.headers },
+    }).json<T>();
   } catch (error) {
     return mapHttpError(error);
   }
@@ -166,14 +183,12 @@ async function request<T>(
 
 /**
  * Shared Nest HTTP client (ky).
- * Credentials: cookie + optional Bearer. 401 → clear session + bounce to login.
+ * Credentials: cookie + optional Bearer (from arg or stored session meta).
+ * 401 → clear session + bounce to login.
  */
 export const apiClient = {
   getJson<T>(path: string, token?: string, options?: KyOptions): Promise<T> {
-    return request<T>('get', path, {
-      ...options,
-      headers: { ...bearerHeaders(token), ...options?.headers },
-    });
+    return request<T>('get', path, { ...options }, token);
   },
 
   putJson<T>(
@@ -182,11 +197,15 @@ export const apiClient = {
     token?: string,
     options?: KyOptions
   ): Promise<T> {
-    return request<T>('put', path, {
-      ...options,
-      json: body,
-      headers: { ...bearerHeaders(token), ...options?.headers },
-    });
+    return request<T>(
+      'put',
+      path,
+      {
+        ...options,
+        json: body,
+      },
+      token
+    );
   },
 
   postJson<T>(
@@ -195,11 +214,40 @@ export const apiClient = {
     token?: string,
     options?: KyOptions
   ): Promise<T> {
-    return request<T>('post', path, {
-      ...options,
-      json: body,
-      headers: { ...bearerHeaders(token), ...options?.headers },
-    });
+    return request<T>(
+      'post',
+      path,
+      {
+        ...options,
+        json: body,
+      },
+      token
+    );
+  },
+
+  async postMaybeJson<T>(
+    path: string,
+    body: unknown,
+    token?: string,
+    options?: KyOptions
+  ): Promise<T | null> {
+    try {
+      const client = createClient();
+      const bearer = await resolveBearerToken(token);
+      const response = await client.post(path.replace(/^\//, ''), {
+        ...options,
+        json: body,
+        headers: { ...bearerHeaders(bearer), ...options?.headers },
+      });
+      if (response.status === 204) return null;
+      const contentType = response.headers.get('content-type') ?? '';
+      if (!contentType.includes('application/json')) return null;
+      const text = await response.text();
+      if (!text.trim()) return null;
+      return JSON.parse(text) as T;
+    } catch (error) {
+      return mapHttpError(error);
+    }
   },
 
   async getMaybeJson<T>(
@@ -209,9 +257,10 @@ export const apiClient = {
   ): Promise<T | null> {
     try {
       const client = createClient();
+      const bearer = await resolveBearerToken(token);
       const response = await client.get(path.replace(/^\//, ''), {
         ...options,
-        headers: { ...bearerHeaders(token), ...options?.headers },
+        headers: { ...bearerHeaders(bearer), ...options?.headers },
       });
       if (response.status === 204) return null;
       const contentType = response.headers.get('content-type') ?? '';

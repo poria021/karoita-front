@@ -8,6 +8,11 @@ import {
   pickNestRoleDto,
   type NestRoleDto,
 } from '@/services/auth/nest-auth-role';
+import {
+  extractNestMeUser,
+  sessionFromNestLogin,
+} from '@/services/auth/nest-auth-response';
+import { dispatchSessionToStore } from '@/services/auth/mock-auth.store';
 import type { Session, User, UserRole } from '@/types/auth';
 
 const NEST_AUTH_LIVE = true;
@@ -32,22 +37,6 @@ export const REAL_AUTH_PATHS = {
   deleteMe: 'api/v1/auth/me', // DELETE
   roles: 'api/v1/auth/roles', // GET
 } as const;
-
-type NestAuthUserPayload = {
-  id: string;
-  mobile: string;
-  role: User['role'];
-  firstName?: string;
-  lastName?: string;
-  approved?: boolean;
-  docStatus?: User['docStatus'];
-  hasPassword?: boolean;
-};
-
-type NestSessionPayload = {
-  user: NestAuthUserPayload;
-  expiresAt?: string;
-};
 
 function requireApiConfigured(surface: string): void {
   if (!apiClient.isConfigured) {
@@ -98,41 +87,40 @@ async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
   return pickNestRoleDto(roles, role);
 }
 
-function mapNestUser(payload: NestAuthUserPayload): User {
-  return {
-    id: payload.id,
-    mobile: payload.mobile,
-    role: payload.role,
-    firstName: payload.firstName ?? '',
-    lastName: payload.lastName ?? '',
-    approved: payload.approved ?? false,
-    docStatus: payload.docStatus ?? 'not_submitted',
-    hasPassword: payload.hasPassword ?? false,
-  };
+function applyNestSession(
+  session: Session & { refreshToken?: string }
+): User {
+  dispatchSessionToStore(session);
+  return session.user;
 }
 
-function extractSessionPayload(raw: unknown): NestSessionPayload {
-  if (!raw || typeof raw !== 'object') {
-    throw new ApiClientError('پاسخ نشست نامعتبر است.');
+function applyNestLoginRaw(raw: unknown): User {
+  return applyNestSession(sessionFromNestLogin(raw));
+}
+
+/**
+ * Register verify may return LoginResponseDto, empty 201, or rely on cookie + /me.
+ */
+async function applyRegisterVerifyRaw(
+  raw: unknown,
+  _fallbackRole: UserRole
+): Promise<User> {
+  if (raw != null) {
+    try {
+      return applyNestLoginRaw(raw);
+    } catch {
+      // Fall through — Nest Swagger marks verify-otp as 201 with no schema.
+    }
   }
-  const record = raw as Record<string, unknown>;
-  const data =
-    record.data && typeof record.data === 'object'
-      ? (record.data as Record<string, unknown>)
-      : record;
-  const userRaw = data.user;
-  if (!userRaw || typeof userRaw !== 'object') {
-    throw new ApiClientError('پاسخ نشست فاقد کاربر است.');
-  }
-  const user = userRaw as NestAuthUserPayload;
-  if (typeof user.id !== 'string' || typeof user.mobile !== 'string') {
-    throw new ApiClientError('پاسخ نشست ناقص است.');
-  }
-  return {
+
+  const meRaw = await apiClient.getJson<unknown>(REAL_AUTH_PATHS.session);
+  const user = extractNestMeUser(meRaw);
+  const expiresAt = new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString();
+  return applyNestSession({
     user,
-    expiresAt:
-      typeof data.expiresAt === 'string' ? data.expiresAt : undefined,
-  };
+    token: '',
+    expiresAt,
+  });
 }
 
 export async function realLoginWithCredentials(
@@ -144,7 +132,7 @@ export async function realLoginWithCredentials(
     ...toPhoneBody(mobile),
     password,
   });
-  return mapNestUser(extractSessionPayload(raw).user);
+  return applyNestLoginRaw(raw);
 }
 
 export async function realSendLoginOtp(mobile: string): Promise<void> {
@@ -161,7 +149,7 @@ export async function realVerifyLoginOtp(
     ...toPhoneBody(mobile),
     otp,
   });
-  return mapNestUser(extractSessionPayload(raw).user);
+  return applyNestLoginRaw(raw);
 }
 
 export async function realRegister(
@@ -183,14 +171,14 @@ export async function realRegister(
 export async function realVerifyRegistrationOtp(
   mobile: string,
   otp: string,
-  _role: UserRole
+  role: UserRole
 ): Promise<User> {
   guard('real-auth.bridge.registerOtpVerify');
-  const raw = await apiClient.postJson<unknown>(
+  const raw = await apiClient.postMaybeJson<unknown>(
     REAL_AUTH_PATHS.registerOtpVerify,
     { ...toPhoneBody(mobile), otp }
   );
-  return mapNestUser(extractSessionPayload(raw).user);
+  return applyRegisterVerifyRaw(raw, role);
 }
 
 export async function realSendForgotPasswordOtp(mobile: string): Promise<void> {
@@ -245,7 +233,7 @@ export async function realVerifyAdminGateOtp(
     mobile,
     otp,
   });
-  return mapNestUser(extractSessionPayload(raw).user);
+  return applyNestLoginRaw(raw);
 }
 
 export async function realSignOut(): Promise<void> {
@@ -257,13 +245,11 @@ export async function realFetchSession(): Promise<Session | null> {
   guard('real-auth.bridge.session');
   try {
     const raw = await apiClient.getJson<unknown>(REAL_AUTH_PATHS.session);
-    const session = extractSessionPayload(raw);
+    const user = extractNestMeUser(raw);
     return {
-      user: mapNestUser(session.user),
+      user,
       token: '',
-      expiresAt:
-        session.expiresAt ??
-        new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
     };
   } catch (error) {
     if (error instanceof ApiClientError && error.status === 401) return null;

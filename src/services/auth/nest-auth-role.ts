@@ -26,12 +26,30 @@ const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   school_principal: 'school_admin',
 };
 
+const NEST_NAME_TO_FE_ROLE: Record<NestRoleName, UserRole> = {
+  student: 'student',
+  trainee: 'skill_learner',
+  mentor: 'supervisor_professor',
+  teacher: 'mentor_teacher',
+  school_admin: 'school_principal',
+  manager: 'faculty_role',
+  admin: 'assistant_admin',
+};
+
 export function toNestRoleName(role: UserRole): NestRoleName {
   const nestName = FE_ROLE_TO_NEST_NAME[role];
   if (!nestName) {
     throw new Error('این نقش برای ثبت‌نام از طریق API پشتیبانی نمی‌شود.');
   }
   return nestName;
+}
+
+export function fromNestRoleName(name: string): UserRole {
+  const role = NEST_NAME_TO_FE_ROLE[name as NestRoleName];
+  if (!role) {
+    throw new Error('نقش بازگشتی از سرور پشتیبانی نمی‌شود.');
+  }
+  return role;
 }
 
 export function pickNestRoleDto(
