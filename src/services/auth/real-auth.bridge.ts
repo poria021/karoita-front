@@ -4,6 +4,10 @@
  */
 import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { apiClient, ApiClientError } from '@/services/api-client';
+import {
+  pickNestRoleDto,
+  type NestRoleDto,
+} from '@/services/auth/nest-auth-role';
 import type { Session, User, UserRole } from '@/types/auth';
 
 const NEST_AUTH_LIVE = true;
@@ -62,6 +66,38 @@ function guard(surface: string): void {
   assertNestLive(surface);
 }
 
+/** Nest Auth bodies use `phone`; Facade / UI keep `mobile` in domain types. */
+function toPhoneBody(mobile: string): { phone: string } {
+  return { phone: mobile };
+}
+
+async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
+  const raw = await apiClient.getJson<unknown>(REAL_AUTH_PATHS.roles);
+  const list = Array.isArray(raw)
+    ? raw
+    : raw &&
+        typeof raw === 'object' &&
+        Array.isArray((raw as { data?: unknown }).data)
+      ? (raw as { data: unknown[] }).data
+      : null;
+
+  if (!list) {
+    throw new ApiClientError('پاسخ لیست نقش‌ها نامعتبر است.');
+  }
+
+  const roles: NestRoleDto[] = [];
+  for (const entry of list) {
+    if (!entry || typeof entry !== 'object') continue;
+    const record = entry as Record<string, unknown>;
+    if (typeof record.id !== 'string' || typeof record.name !== 'string') {
+      continue;
+    }
+    roles.push({ id: record.id, name: record.name as NestRoleDto['name'] });
+  }
+
+  return pickNestRoleDto(roles, role);
+}
+
 function mapNestUser(payload: NestAuthUserPayload): User {
   return {
     id: payload.id,
@@ -105,7 +141,7 @@ export async function realLoginWithCredentials(
 ): Promise<User> {
   guard('real-auth.bridge.login');
   const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.login, {
-    mobile,
+    ...toPhoneBody(mobile),
     password,
   });
   return mapNestUser(extractSessionPayload(raw).user);
@@ -113,7 +149,7 @@ export async function realLoginWithCredentials(
 
 export async function realSendLoginOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.loginOtpSend');
-  await apiClient.postJson(REAL_AUTH_PATHS.loginOtpSend, { mobile });
+  await apiClient.postJson(REAL_AUTH_PATHS.loginOtpSend, toPhoneBody(mobile));
 }
 
 export async function realVerifyLoginOtp(
@@ -122,32 +158,44 @@ export async function realVerifyLoginOtp(
 ): Promise<User> {
   guard('real-auth.bridge.loginOtpVerify');
   const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.loginOtpVerify, {
-    mobile,
+    ...toPhoneBody(mobile),
     otp,
   });
   return mapNestUser(extractSessionPayload(raw).user);
 }
 
-export async function realRegister(mobile: string): Promise<void> {
+export async function realRegister(
+  mobile: string,
+  role: UserRole
+): Promise<void> {
   guard('real-auth.bridge.register');
-  await apiClient.postJson(REAL_AUTH_PATHS.register, { mobile });
+  const nestRole = await resolveNestRoleDto(role);
+  await apiClient.postJson(REAL_AUTH_PATHS.register, {
+    ...toPhoneBody(mobile),
+    role: nestRole,
+  });
 }
 
+/**
+ * Nest AuthConfirmPhoneDto is only `{ phone, otp }` (role was sent on request-otp).
+ * `role` stays on the Facade signature for mock + post-verify UX.
+ */
 export async function realVerifyRegistrationOtp(
   mobile: string,
   otp: string,
-  role: UserRole
+  _role: UserRole
 ): Promise<User> {
   guard('real-auth.bridge.registerOtpVerify');
   const raw = await apiClient.postJson<unknown>(
     REAL_AUTH_PATHS.registerOtpVerify,
-    { mobile, otp, role }
+    { ...toPhoneBody(mobile), otp }
   );
   return mapNestUser(extractSessionPayload(raw).user);
 }
 
 export async function realSendForgotPasswordOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.forgotSend');
+  // Nest AuthForgotPasswordDto currently uses `email` — wire separately from phone auth.
   await apiClient.postJson(REAL_AUTH_PATHS.forgotSend, { mobile });
 }
 

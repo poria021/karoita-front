@@ -121,7 +121,7 @@ export class AuthService {
       mockRegister(payload.mobile);
       return;
     }
-    await realRegister(payload.mobile);
+    await realRegister(payload.mobile, payload.role);
   }
 
   /** POST /auth/otp/register/verify */
