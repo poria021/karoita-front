@@ -17,6 +17,7 @@ export {
   dropMockDailyApprovalTrainee,
   extendMockDailyApprovalWeek,
   markMockWeekRead,
+  restoreMockDailyApprovalTrainee,
   updateMockDailyApprovalWeek,
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,

@@ -98,6 +98,7 @@ export function useDailyApprovalsActions({
     (trainee: DailyApprovalTrainee) => {
       const prevSelected = selectedTraineeId;
       const prevGrading = gradingTarget;
+      const traineeSnapshot = structuredClone(trainee);
       let snapshot: DailyApprovalTrainee[] = [];
       let snapshotTotal = 0;
 
@@ -130,8 +131,14 @@ export function useDailyApprovalsActions({
         },
         commit: () =>
           DailyApprovalsService.dropTrainee({ traineeId: trainee.id }),
+        reverse: async () => {
+          await DailyApprovalsService.restoreTrainee(traineeSnapshot);
+        },
         onCommitted: async () => {
           await list.reload();
+        },
+        onUndone: () => {
+          void list.reload();
         },
         onError: (error) => {
           toast.error(
@@ -277,8 +284,20 @@ export function useDailyApprovalsActions({
             weekNumbers: input.weekNumbers,
             revokeWeekNumbers: input.revokeWeekNumbers,
           }),
+        reverse: async () => {
+          await DailyApprovalsService.bulkExtendWeeks({
+            kind,
+            termId: commitTermId,
+            course,
+            weekNumbers: input.revokeWeekNumbers,
+            revokeWeekNumbers: input.weekNumbers,
+          });
+        },
         onCommitted: async () => {
           await list.reload();
+        },
+        onUndone: () => {
+          void list.reload();
         },
         onError: (error) => {
           toast.error(

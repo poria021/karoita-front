@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 export type AccountMenuOwner = 'header' | 'sidebar' | null;
 
@@ -18,13 +19,29 @@ interface UIActions {
 
 type UIStore = UIState & UIActions;
 
-export const useUIStore = create<UIStore>()((set) => ({
-  isSidebarCollapsed: false,
-  isMobileSidebarOpen: false,
-  accountMenuOwner: null,
-  toggleSidebarCollapsed: () =>
-    set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
-  openMobileSidebar: () => set({ isMobileSidebarOpen: true }),
-  closeMobileSidebar: () => set({ isMobileSidebarOpen: false }),
-  setAccountMenuOwner: (owner) => set({ accountMenuOwner: owner }),
-}));
+/**
+ * Ephemeral chrome UI — sidebar collapse persists across refresh;
+ * mobile drawer + account menu stay session-only.
+ */
+export const useUIStore = create<UIStore>()(
+  persist(
+    (set) => ({
+      isSidebarCollapsed: false,
+      isMobileSidebarOpen: false,
+      accountMenuOwner: null,
+      toggleSidebarCollapsed: () =>
+        set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+      openMobileSidebar: () => set({ isMobileSidebarOpen: true }),
+      closeMobileSidebar: () => set({ isMobileSidebarOpen: false }),
+      setAccountMenuOwner: (owner) => set({ accountMenuOwner: owner }),
+    }),
+    {
+      name: 'karvita-ui-store',
+      storage: createJSONStorage(() => localStorage),
+      skipHydration: true,
+      partialize: (state) => ({
+        isSidebarCollapsed: state.isSidebarCollapsed,
+      }),
+    }
+  )
+);

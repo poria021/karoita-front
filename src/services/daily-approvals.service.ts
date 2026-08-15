@@ -7,6 +7,7 @@ import {
   listMockDailyApprovals,
   listTermsForDailyApprovalKind,
   markMockWeekRead,
+  restoreMockDailyApprovalTrainee,
   updateMockDailyApprovalWeek,
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,
@@ -214,5 +215,17 @@ export const DailyApprovalsService = {
     requireReviewRole('supervisor_professor');
     await new Promise((resolve) => setTimeout(resolve, 200));
     return dropMockDailyApprovalTrainee(input.traineeId);
+  },
+
+  /** Undo drop — restore prior trainee snapshot (mock). */
+  async restoreTrainee(
+    trainee: DailyApprovalTrainee
+  ): Promise<DailyApprovalTrainee> {
+    if (!isMockApiMode()) {
+      throwRealModeNotImplemented('DailyApprovalsService.restoreTrainee');
+    }
+    requireReviewRole('supervisor_professor');
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    return restoreMockDailyApprovalTrainee(trainee);
   },
 };

@@ -31,7 +31,7 @@ describe('scheduleUndoableMutation', () => {
     vi.useRealTimers();
   });
 
-  it('applies immediately and commits on auto-close when undo was not pressed', async () => {
+  it('applies and commits immediately so refresh can keep persisted data', async () => {
     const apply = vi.fn();
     const revert = vi.fn();
     const commit = vi.fn(async () => 'ok');
@@ -46,27 +46,19 @@ describe('scheduleUndoableMutation', () => {
     });
 
     expect(apply).toHaveBeenCalledTimes(1);
-
-    const opts = toastMock.mock.calls[0]?.[1] as {
-      onAutoClose?: () => void;
-      action?: { onClick: () => void; label: string };
-    };
-
-    expect(opts.action?.label).toBe('لغو');
-    opts.onAutoClose?.();
     await vi.waitFor(() => {
       expect(commit).toHaveBeenCalledTimes(1);
       expect(onCommitted).toHaveBeenCalledWith('ok');
     });
     expect(revert).not.toHaveBeenCalled();
-    expect(toastMock.success).not.toHaveBeenCalled();
-    expect(toastMock.message).not.toHaveBeenCalled();
+    expect(toastMock).toHaveBeenCalled();
   });
 
-  it('reverts and does not commit when undo is pressed', async () => {
+  it('reverses commit then reverts UI when undo is pressed', async () => {
     const apply = vi.fn();
     const revert = vi.fn();
     const commit = vi.fn(async () => 'ok');
+    const reverse = vi.fn(async () => undefined);
     const onUndone = vi.fn();
 
     scheduleUndoableMutation({
@@ -74,25 +66,26 @@ describe('scheduleUndoableMutation', () => {
       apply,
       revert,
       commit,
+      reverse,
       onUndone,
     });
 
+    await vi.waitFor(() => {
+      expect(commit).toHaveBeenCalledTimes(1);
+    });
+
     const opts = toastMock.mock.calls[0]?.[1] as {
-      onAutoClose?: () => void;
-      onDismiss?: () => void;
-      action?: { onClick: () => void };
+      action?: { onClick: () => void; label: string };
     };
 
+    expect(opts.action?.label).toBe('لغو');
     opts.action?.onClick();
-    expect(revert).toHaveBeenCalledTimes(1);
-    expect(onUndone).toHaveBeenCalledTimes(1);
 
-    opts.onAutoClose?.();
-    opts.onDismiss?.();
-    await Promise.resolve();
-
-    expect(commit).not.toHaveBeenCalled();
-    expect(toastMock.message).not.toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(reverse).toHaveBeenCalledWith('ok');
+      expect(revert).toHaveBeenCalledTimes(1);
+      expect(onUndone).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('reverts UI when commit fails', async () => {
@@ -109,11 +102,6 @@ describe('scheduleUndoableMutation', () => {
       },
       onError,
     });
-
-    const opts = toastMock.mock.calls[0]?.[1] as {
-      onAutoClose?: () => void;
-    };
-    opts.onAutoClose?.();
 
     await vi.waitFor(() => {
       expect(revert).toHaveBeenCalledTimes(1);

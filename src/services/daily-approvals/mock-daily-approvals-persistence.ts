@@ -210,4 +210,14 @@ export function resetMockDailyApprovalsForTests(
   trainees?: DailyApprovalTrainee[] | null
 ): void {
   memoryTrainees = trainees ? structuredClone(trainees) : null;
+  if (isBrowser()) {
+    if (trainees == null) {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } else {
+      window.localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(memoryTrainees)
+      );
+    }
+  }
 }

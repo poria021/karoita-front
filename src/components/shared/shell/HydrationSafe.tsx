@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
+import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
 
 export type HydrationSafeProps = {
@@ -23,14 +24,20 @@ export function HydrationSafe({
 
   useEffect(() => {
     let cancelled = false;
-    const persistApi = useUserStore.persist;
 
-    if (!persistApi?.rehydrate) {
-      setReady(true);
-      return;
-    }
+    const rehydrateAll = async () => {
+      const tasks: Array<Promise<unknown> | unknown> = [];
+      if (useUserStore.persist?.rehydrate) {
+        tasks.push(useUserStore.persist.rehydrate());
+      }
+      if (useUIStore.persist?.rehydrate) {
+        tasks.push(useUIStore.persist.rehydrate());
+      }
+      if (tasks.length === 0) return;
+      await Promise.all(tasks.map((task) => Promise.resolve(task)));
+    };
 
-    void Promise.resolve(persistApi.rehydrate()).finally(() => {
+    void rehydrateAll().finally(() => {
       if (!cancelled) setReady(true);
     });
 

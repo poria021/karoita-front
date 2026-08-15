@@ -16,8 +16,16 @@ export type UndoableMutationOptions<T> = {
   apply: () => void;
   /** Restore UI when the user presses Undo (and on commit failure). */
   revert: () => void;
-  /** Runs only if the user does not undo before the toast closes. */
+  /**
+   * Persist via Facade immediately after apply so a refresh keeps the change.
+   * Do not defer writes until toast close — mock localStorage must survive reload.
+   */
   commit: () => Promise<T>;
+  /**
+   * Undo after a successful commit — reverse the Facade write, then `revert` runs.
+   * Required for Undo to restore persisted mock/real state, not only the UI snapshot.
+   */
+  reverse?: (result: T) => Promise<void>;
   onCommitted?: (result: T) => void | Promise<void>;
   onUndone?: () => void;
   onError?: (error: unknown) => void;
@@ -80,15 +88,16 @@ function defaultUndoDescription(undoLabel: string): string {
 }
 
 /**
- * Optimistic undoable Facade write: UI updates immediately, API commits after
- * the toast window unless Undo restores the previous UI and cancels the send.
- * One toast only — do not call toast.success in onCommitted.
+ * Optimistic undoable Facade write: UI updates and commit run immediately so
+ * refresh keeps mock/local persistence. Undo calls `reverse` (when provided)
+ * then restores the prior UI. One toast only — no follow-up success toast.
  */
 export function scheduleUndoableMutation<T>(
   options: UndoableMutationOptions<T>
 ): string | number {
-  let cancelled = false;
-  let settled = false;
+  let undone = false;
+  let commitFailed = false;
+  let committedResult: T | undefined;
 
   const durationMs = options.durationMs ?? UNDOABLE_MUTATION_DEFAULT_MS;
   const undoLabel = options.undoLabel ?? 'لغو';
@@ -98,26 +107,24 @@ export function scheduleUndoableMutation<T>(
 
   options.apply();
 
-  const runCommit = () => {
-    if (cancelled || settled) return;
-    settled = true;
-
-    void (async () => {
-      try {
-        const result = await options.commit();
-        await options.onCommitted?.(result);
-      } catch (error) {
-        options.revert();
-        if (options.onError) {
-          options.onError(error);
-          return;
-        }
-        toast.error(
-          error instanceof Error ? error.message : 'عملیات ناموفق بود.'
-        );
+  const commitPromise = (async () => {
+    try {
+      const result = await options.commit();
+      committedResult = result;
+      await options.onCommitted?.(result);
+      return result;
+    } catch (error) {
+      commitFailed = true;
+      options.revert();
+      if (options.onError) {
+        options.onError(error);
+        return;
       }
-    })();
-  };
+      toast.error(
+        error instanceof Error ? error.message : 'عملیات ناموفق بود.'
+      );
+    }
+  })();
 
   return showUndoableToast(tone, options.message, {
     id: `undoable-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -127,19 +134,24 @@ export function scheduleUndoableMutation<T>(
     action: {
       label: undoLabel,
       onClick: () => {
-        if (settled) return;
-        cancelled = true;
-        settled = true;
-        options.revert();
-        options.onUndone?.();
+        if (undone || commitFailed) return;
+        undone = true;
+        void (async () => {
+          await commitPromise;
+          if (commitFailed) return;
+          try {
+            if (options.reverse && committedResult !== undefined) {
+              await options.reverse(committedResult);
+            }
+            options.revert();
+            options.onUndone?.();
+          } catch (error) {
+            toast.error(
+              error instanceof Error ? error.message : 'لغو عملیات ناموفق بود.'
+            );
+          }
+        })();
       },
-    },
-    onAutoClose: () => {
-      runCommit();
-    },
-    onDismiss: () => {
-      // Swipe / X without Undo still commits (Gmail-style).
-      runCommit();
     },
   });
 }

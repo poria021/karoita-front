@@ -271,6 +271,23 @@ export function dropMockDailyApprovalTrainee(
   return structuredClone(nextTrainee);
 }
 
+/** Undo helper for drop — writes the pre-drop trainee snapshot back. */
+export function restoreMockDailyApprovalTrainee(
+  trainee: DailyApprovalTrainee
+): DailyApprovalTrainee {
+  const trainees = readTrainees();
+  const next = withDerived(structuredClone(trainee));
+  const traineeIndex = trainees.findIndex((row) => row.id === trainee.id);
+  const nextTrainees = [...trainees];
+  if (traineeIndex >= 0) {
+    nextTrainees[traineeIndex] = next;
+  } else {
+    nextTrainees.push(next);
+  }
+  writeTrainees(nextTrainees);
+  return structuredClone(next);
+}
+
 export function markMockWeekRead(input: {
   traineeId: string;
   weekId: string;
