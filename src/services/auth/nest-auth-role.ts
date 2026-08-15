@@ -47,3 +47,21 @@ export function pickNestRoleDto(
   }
   return { id: match.id, name: match.name };
 }
+
+const NEST_NAME_TO_FE_ROLE: Record<NestRoleName, UserRole> = {
+  student: 'student',
+  trainee: 'skill_learner',
+  mentor: 'supervisor_professor',
+  teacher: 'mentor_teacher',
+  school_admin: 'school_principal',
+  manager: 'faculty_role',
+  admin: 'assistant_admin',
+};
+
+export function fromNestRoleName(name: string): UserRole {
+  const mapped = NEST_NAME_TO_FE_ROLE[name as NestRoleName];
+  if (!mapped) {
+    throw new Error('نقش برگشتی از سرور پشتیبانی نمی‌شود.');
+  }
+  return mapped;
+}

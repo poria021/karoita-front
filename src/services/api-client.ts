@@ -3,6 +3,7 @@ import ky, { HTTPError, type Options as KyOptions } from 'ky';
 import { isAuthPath, RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
 
 export class ApiClientError extends Error {
@@ -103,11 +104,10 @@ function bearerHeaders(token?: string): HeadersInit {
 async function resolveBearerToken(explicit?: string): Promise<string | undefined> {
   if (explicit) return explicit;
   try {
-    const { readSessionMeta } = await import('@/services/auth/mock-auth.store');
-    const meta = readSessionMeta();
-    if (!meta?.token) return undefined;
-    if (new Date(meta.expiresAt).getTime() <= Date.now()) return undefined;
-    return meta.token;
+    const { readRealAccessToken } = await import(
+      '@/services/auth/real-auth.tokens'
+    );
+    return readRealAccessToken() ?? undefined;
   } catch {
     return undefined;
   }
@@ -183,12 +183,11 @@ async function request<T>(
 
 /**
  * Shared Nest HTTP client (ky).
- * Credentials: cookie + optional Bearer (from arg or stored session meta).
- * 401 → clear session + bounce to login.
+ * Credentials: cookie + optional Bearer. 401 → clear session + bounce to login.
  */
 export const apiClient = {
   getJson<T>(path: string, token?: string, options?: KyOptions): Promise<T> {
-    return request<T>('get', path, { ...options }, token);
+    return request<T>('get', path, options ?? {}, token);
   },
 
   putJson<T>(
@@ -197,15 +196,7 @@ export const apiClient = {
     token?: string,
     options?: KyOptions
   ): Promise<T> {
-    return request<T>(
-      'put',
-      path,
-      {
-        ...options,
-        json: body,
-      },
-      token
-    );
+    return request<T>('put', path, { ...options, json: body }, token);
   },
 
   postJson<T>(
@@ -214,15 +205,7 @@ export const apiClient = {
     token?: string,
     options?: KyOptions
   ): Promise<T> {
-    return request<T>(
-      'post',
-      path,
-      {
-        ...options,
-        json: body,
-      },
-      token
-    );
+    return request<T>('post', path, { ...options, json: body }, token);
   },
 
   async postMaybeJson<T>(

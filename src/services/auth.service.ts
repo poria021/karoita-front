@@ -25,10 +25,10 @@ import {
 } from '@/services/auth/mock-auth.operations';
 import {
   dispatchSessionToStore,
-  MOCK_SESSION_TTL_MS,
   readSessionMeta,
 } from '@/services/auth/mock-auth.store';
 import {
+  realFetchSession,
   realLoginWithCredentials,
   realRegister,
   realResetPassword,
@@ -42,6 +42,11 @@ import {
   realVerifyLoginOtp,
   realVerifyRegistrationOtp,
 } from '@/services/auth/real-auth.bridge';
+import {
+  clearRealAuthTokens,
+  readRealAccessToken,
+  readRealTokenExpiresAt,
+} from '@/services/auth/real-auth.tokens';
 
 
 const IS_MOCK_MODE = isMockApiMode();
@@ -193,7 +198,10 @@ export class AuthService {
     if (!IS_MOCK_MODE) {
       try {
         await realSignOut();
-      } catch {}
+      } catch {
+        clearRealAuthTokens();
+      }
+      clearRealAuthTokens();
     }
     dispatchSessionToStore(null);
   }
@@ -210,11 +218,10 @@ export class AuthService {
       return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
 
-    return {
-      user: activeUser,
-      token: '',
-      expiresAt: new Date(Date.now() + MOCK_SESSION_TTL_MS).toISOString(),
-    };
+    const token = readRealAccessToken();
+    const expiresAt = readRealTokenExpiresAt();
+    if (!token || !expiresAt) return null;
+    return { user: activeUser, token, expiresAt };
   }
 
   /** Clears expired mock session; call from effects, not during render */
@@ -231,7 +238,25 @@ export class AuthService {
       return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
 
-    return AuthService.peekSession();
+    const peeked = AuthService.peekSession();
+    if (!peeked) {
+      clearRealAuthTokens();
+      dispatchSessionToStore(null);
+      return null;
+    }
+    return peeked;
+  }
+
+  /** Real mode: refresh user from Nest `/auth/me` when a token exists. */
+  static async refreshRealSession(): Promise<Session | null> {
+    if (IS_MOCK_MODE) return AuthService.peekSession();
+    const session = await realFetchSession();
+    if (!session) {
+      dispatchSessionToStore(null);
+      return null;
+    }
+    dispatchSessionToStore(session);
+    return session;
   }
 
   static getSession(): Session | null {
