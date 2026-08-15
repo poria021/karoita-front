@@ -76,8 +76,8 @@ export function KvCheckboxMultiSelect({
             aria-invalid={error ? true : undefined}
             className={cn(
               'flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-kv-pair rounded-kv-control',
-              'border border-kv-border bg-kv-field px-2 py-1.5',
-              'font-sans text-xs font-bold text-kv-text shadow-none',
+              'border border-kv-border bg-kv-field px-2 py-1',
+              'font-sans text-xs font-medium text-kv-text shadow-none',
               'outline-none transition-[color,background-color,border-color,box-shadow]',
               'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
               'data-[state=open]:border-kv-brand data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15',
@@ -86,14 +86,14 @@ export function KvCheckboxMultiSelect({
               className
             )}
           >
-            <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 text-start">
+            <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-start">
               {selectedOptions.length === 0
                 ? placeholder
                 : selectedOptions.map((option) => (
                     <Badge
                       key={option.value}
                       variant="brand"
-                      className="max-w-full gap-1 pe-1"
+                      className="max-w-full gap-0.5 rounded-kv-tight px-1.5 py-0.5 pe-0.5 font-medium leading-none"
                     >
                       <span className="min-w-0 truncate">{option.label}</span>
                       <button
@@ -102,7 +102,7 @@ export function KvCheckboxMultiSelect({
                         aria-label={`حذف ${option.label}`}
                         disabled={disabled}
                         className={cn(
-                          'inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-kv-tight',
+                          'inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-kv-tight',
                           'text-kv-brand-soft-fg hover:bg-kv-brand/15',
                           'outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30',
                           'disabled:pointer-events-none disabled:opacity-50'
@@ -120,7 +120,7 @@ export function KvCheckboxMultiSelect({
             </span>
             <FaIcon
               icon={faIcons.chevronDown}
-              size="xs"
+              size="2xs"
               className="shrink-0 text-kv-text-muted"
             />
           </div>
