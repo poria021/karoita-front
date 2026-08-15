@@ -243,6 +243,7 @@ export function useDailyApprovalsActions({
       const commitTermId = termId;
 
       scheduleUndoableMutation({
+        tone: 'success',
         message: buildBulkExtendUndoMessage(
           input.weekNumbers,
           input.revokeWeekNumbers

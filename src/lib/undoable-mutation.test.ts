@@ -7,7 +7,7 @@ const { toastMock } = vi.hoisted(() => {
       message: vi.fn(),
       error: vi.fn(() => 'toast-error'),
       warning: vi.fn(() => 'toast-warning'),
-      success: vi.fn(),
+      success: vi.fn(() => 'toast-success'),
       dismiss: vi.fn(),
     }),
   };
@@ -119,6 +119,19 @@ describe('scheduleUndoableMutation', () => {
       expect(revert).toHaveBeenCalledTimes(1);
       expect(onError).toHaveBeenCalled();
     });
+  });
+
+  it('uses toast.success for success tone', () => {
+    scheduleUndoableMutation({
+      tone: 'success',
+      message: 'تمدید شد',
+      apply: vi.fn(),
+      revert: vi.fn(),
+      commit: async () => 'ok',
+    });
+
+    expect(toastMock.success).toHaveBeenCalled();
+    expect(toastMock).not.toHaveBeenCalled();
   });
 });
 

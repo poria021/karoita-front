@@ -2,7 +2,7 @@ import { toast } from 'sonner';
 
 export const UNDOABLE_MUTATION_DEFAULT_MS = 5_000;
 
-export type UndoableToastTone = 'default' | 'error' | 'warning';
+export type UndoableToastTone = 'default' | 'success' | 'error' | 'warning';
 
 export type UndoableMutationOptions<T> = {
   /** Past-tense result copy (shown immediately; single toast, no follow-up success). */
@@ -41,6 +41,7 @@ function showUndoableToast(
 ): string | number {
   if (tone === 'error') return toast.error(message, options);
   if (tone === 'warning') return toast.warning(message, options);
+  if (tone === 'success') return toast.success(message, options);
   return toast(message, options);
 }
 
