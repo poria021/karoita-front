@@ -26,7 +26,7 @@ type DailyApprovalBulkExtendModalProps = {
   onConfirm: (input: {
     weekNumbers: number[];
     revokeWeekNumbers: number[];
-  }) => Promise<void>;
+  }) => void;
 };
 
 export function DailyApprovalBulkExtendModal({
@@ -60,7 +60,7 @@ export function DailyApprovalBulkExtendModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid reset while toggling checkboxes
   }, [open, kind]);
 
-  const submit = async () => {
+  const submit = () => {
     const selectedWeekNumbers = selectedValues
       .map((value) => Number(value))
       .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0);
@@ -83,7 +83,7 @@ export function DailyApprovalBulkExtendModal({
       return;
     }
     setError(undefined);
-    await onConfirm({ weekNumbers, revokeWeekNumbers });
+    onConfirm({ weekNumbers, revokeWeekNumbers });
   };
 
   return (
@@ -145,7 +145,7 @@ export function DailyApprovalBulkExtendModal({
             size="md"
             loading={busy}
             disabled={busy}
-            onClick={() => void submit()}
+            onClick={submit}
           >
             اعمال تمدید گروهی
           </KvButton>

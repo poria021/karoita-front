@@ -12,8 +12,11 @@ import type {
   DailyApprovalTrainee,
   DailyApprovalWeek,
 } from '@/types/daily-approvals';
-import { toPersianDigits } from '@/utils/persianDigits';
 
+import {
+  applyOptimisticBulkExtendWeeks,
+  buildBulkExtendUndoMessage,
+} from '../lib/bulkExtendOptimistic';
 import {
   scheduleWeekGradingSave,
   type DailyApprovalGradingTarget,
@@ -40,7 +43,7 @@ export function useDailyApprovalsActions({
   const [gradingTarget, setGradingTarget] =
     useState<DailyApprovalGradingTarget | null>(null);
   const [bulkExtendOpen, setBulkExtendOpen] = useState(false);
-  const [actionBusy, setActionBusy] = useState(false);
+  const actionBusy = false;
 
   const selectedTrainee =
     list.items.find((row) => row.id === selectedTraineeId) ?? null;
@@ -226,7 +229,7 @@ export function useDailyApprovalsActions({
   }, [actionBusy]);
 
   const bulkExtendWeeks = useCallback(
-    async (input: {
+    (input: {
       weekNumbers: number[];
       revokeWeekNumbers: number[];
     }) => {
@@ -234,36 +237,54 @@ export function useDailyApprovalsActions({
         toast.error('نیم‌سال تحصیلی مشخص نشده است.');
         return;
       }
-      setActionBusy(true);
-      try {
-        const result = await DailyApprovalsService.bulkExtendWeeks({
-          kind,
-          termId,
-          course,
-          weekNumbers: input.weekNumbers,
-          revokeWeekNumbers: input.revokeWeekNumbers,
-        });
-        const parts: string[] = [];
-        if (result.extendedPairCount > 0) {
-          parts.push(
-            `مهلت ${toPersianDigits(result.extendedPairCount)} گزارش برای ${toPersianDigits(result.affectedTraineeCount)} کارورز تمدید شد`
+
+      let snapshot: DailyApprovalTrainee[] = [];
+      let snapshotTotal = 0;
+      const commitTermId = termId;
+
+      scheduleUndoableMutation({
+        message: buildBulkExtendUndoMessage(
+          input.weekNumbers,
+          input.revokeWeekNumbers
+        ),
+        undoLabel: 'لغو',
+        apply: () => {
+          setBulkExtendOpen(false);
+          list.patchItems(
+            (prev) => {
+              snapshot = prev;
+              return applyOptimisticBulkExtendWeeks(
+                prev,
+                input.weekNumbers,
+                input.revokeWeekNumbers
+              );
+            },
+            (prevTotal) => {
+              snapshotTotal = prevTotal;
+              return prevTotal;
+            }
           );
-        }
-        if (result.revokedPairCount > 0) {
-          parts.push(
-            `تمدید ${toPersianDigits(result.revokedPairCount)} گزارش لغو شد`
+        },
+        revert: () => {
+          list.patchItems(() => snapshot, () => snapshotTotal);
+        },
+        commit: () =>
+          DailyApprovalsService.bulkExtendWeeks({
+            kind,
+            termId: commitTermId,
+            course,
+            weekNumbers: input.weekNumbers,
+            revokeWeekNumbers: input.revokeWeekNumbers,
+          }),
+        onCommitted: async () => {
+          await list.reload();
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error ? error.message : 'تمدید گروهی ناموفق بود.'
           );
-        }
-        toast.success(parts.join(' و ') + '.');
-        setBulkExtendOpen(false);
-        await list.reload();
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : 'تمدید گروهی ناموفق بود.'
-        );
-      } finally {
-        setActionBusy(false);
-      }
+        },
+      });
     },
     [course, kind, list, termId]
   );
