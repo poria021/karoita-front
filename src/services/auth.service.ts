@@ -203,49 +203,35 @@ export class AuthService {
     const activeUser = useUserStore.getState().activeUser;
     if (!activeUser) return null;
 
-    const meta = readSessionMeta();
-    if (!meta) {
-      if (IS_MOCK_MODE) return null;
-      return {
-        user: activeUser,
-        token: '',
-        expiresAt: new Date(Date.now() + MOCK_SESSION_TTL_MS).toISOString(),
-      };
+    if (IS_MOCK_MODE) {
+      const meta = readSessionMeta();
+      if (!meta) return null;
+      if (new Date(meta.expiresAt).getTime() <= Date.now()) return null;
+      return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
-
-    if (new Date(meta.expiresAt).getTime() <= Date.now()) return null;
 
     return {
       user: activeUser,
-      token: meta.token,
-      expiresAt: meta.expiresAt,
+      token: '',
+      expiresAt: new Date(Date.now() + MOCK_SESSION_TTL_MS).toISOString(),
     };
   }
 
-  /** Clears expired mock/real session; call from effects, not during render */
+  /** Clears expired mock session; call from effects, not during render */
   static validateSession(): Session | null {
     const activeUser = useUserStore.getState().activeUser;
     if (!activeUser) return null;
 
-    const meta = readSessionMeta();
-    if (!meta) {
-      if (IS_MOCK_MODE) {
+    if (IS_MOCK_MODE) {
+      const meta = readSessionMeta();
+      if (!meta || new Date(meta.expiresAt).getTime() <= Date.now()) {
         dispatchSessionToStore(null);
         return null;
       }
-      return AuthService.peekSession();
+      return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
 
-    if (new Date(meta.expiresAt).getTime() <= Date.now()) {
-      dispatchSessionToStore(null);
-      return null;
-    }
-
-    return {
-      user: activeUser,
-      token: meta.token,
-      expiresAt: meta.expiresAt,
-    };
+    return AuthService.peekSession();
   }
 
   static getSession(): Session | null {

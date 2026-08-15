@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 
 import { assertMockApiMode, isMockApiMode } from '@/lib/api-mode';
-import { AUTH_COOKIE_NAME, MOCK_SESSION_MARKER } from '@/lib/config';
+import { MOCK_SESSION_MARKER } from '@/lib/config';
 import { useUserStore } from '@/store/useUserStore';
 import type { Session, User } from '@/types/auth';
 
@@ -26,7 +26,6 @@ export const MOCK_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 export interface SessionMeta {
   token: string;
   expiresAt: string;
-  refreshToken?: string;
 }
 
 let memoryUsers: MockAuthUserRecord[] | null = null;
@@ -267,7 +266,7 @@ export function toPublicUser(record: MockAuthUserRecord): User {
 }
 
 export function readSessionMeta(): SessionMeta | null {
-  if (!isBrowser()) return null;
+  if (!isBrowser() || !isMockApiMode()) return null;
   const stored = getCookie(SESSION_META_STORAGE_KEY);
   if (!stored) return null;
   try {
@@ -278,7 +277,7 @@ export function readSessionMeta(): SessionMeta | null {
 }
 
 export function writeSessionMeta(meta: SessionMeta | null): void {
-  if (!isBrowser()) return;
+  if (!isBrowser() || !isMockApiMode()) return;
   if (!meta) {
     deleteCookie(SESSION_META_STORAGE_KEY);
     return;
@@ -296,21 +295,6 @@ export function setMockMarkerCookie(expiresAt: string): void {
   });
 }
 
-export function setRealPresenceCookie(expiresAt: string): void {
-  if (!isBrowser() || isMockApiMode()) return;
-  Cookies.set(AUTH_COOKIE_NAME, '1', {
-    path: '/',
-    expires: new Date(expiresAt),
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-  });
-}
-
-export function clearRealPresenceCookie(): void {
-  if (!isBrowser()) return;
-  Cookies.remove(AUTH_COOKIE_NAME, { path: '/' });
-}
-
 export function clearMockMarkerCookie(): void {
   if (!isBrowser()) return;
   Cookies.remove(MOCK_SESSION_MARKER, { path: '/' });
@@ -325,37 +309,20 @@ export function buildMockSession(user: User): Session {
   };
 }
 
-export function dispatchSessionToStore(
-  session: (Session & { refreshToken?: string }) | null
-): void {
+export function dispatchSessionToStore(session: Session | null): void {
   useUserStore.getState().setUser(session?.user ?? null);
 
-  writeSessionMeta(
-    session
-      ? {
-          token: session.token,
-          expiresAt: session.expiresAt,
-          refreshToken: session.refreshToken,
-        }
-      : null
-  );
-
-  if (isMockApiMode()) {
-    clearRealPresenceCookie();
-    if (session) {
-      setMockMarkerCookie(session.expiresAt);
-    } else {
-      Cookies.remove(MOCK_SESSION_MARKER, { path: '/' });
-      deleteCookie(SESSION_META_STORAGE_KEY);
-    }
+  if (!isMockApiMode()) {
+    clearMockMarkerCookie();
     return;
   }
 
-  Cookies.remove(MOCK_SESSION_MARKER, { path: '/' });
+  writeSessionMeta(
+    session ? { token: session.token, expiresAt: session.expiresAt } : null
+  );
   if (session) {
-    setRealPresenceCookie(session.expiresAt);
+    setMockMarkerCookie(session.expiresAt);
   } else {
-    clearRealPresenceCookie();
-    deleteCookie(SESSION_META_STORAGE_KEY);
+    clearMockMarkerCookie();
   }
 }

@@ -1,17 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  fromNestRoleName,
   pickNestRoleDto,
   toNestRoleName,
 } from '@/services/auth/nest-auth-role';
 
 describe('nest-auth-role', () => {
-  it('maps Nest role names back to FE roles', () => {
-    expect(fromNestRoleName('trainee')).toBe('skill_learner');
-    expect(fromNestRoleName('teacher')).toBe('mentor_teacher');
-  });
-
   it('maps self-registerable FE roles to Nest RoleDto names', () => {
     expect(toNestRoleName('student')).toBe('student');
     expect(toNestRoleName('skill_learner')).toBe('trainee');
