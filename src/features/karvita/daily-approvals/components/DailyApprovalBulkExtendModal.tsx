@@ -97,7 +97,10 @@ export function DailyApprovalBulkExtendModal({
         size="md"
         showCloseButton
         onPointerDownOutside={(event) => {
-          if (busy) event.preventDefault();
+          event.preventDefault();
+        }}
+        onInteractOutside={(event) => {
+          event.preventDefault();
         }}
         onEscapeKeyDown={(event) => {
           if (busy) event.preventDefault();
