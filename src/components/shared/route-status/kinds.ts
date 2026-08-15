@@ -1,5 +1,1 @@
-export type KvRouteStatusKind =
-  | 'error'
-  | 'notFound'
-  | 'forbidden'
-  | 'unauthorized';
+export type KvRouteStatusKind = 'error' | 'notFound';

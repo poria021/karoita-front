@@ -28,18 +28,6 @@ const ART_BY_KIND: Record<KvRouteStatusKind, ArtConfig> = {
     iconClass: 'text-kv-danger-soft-fg',
     ringClass: 'stroke-kv-danger',
   },
-  forbidden: {
-    icon: faIcons.lock,
-    wellClass: 'bg-kv-warning-soft',
-    iconClass: 'text-kv-warning-soft-fg',
-    ringClass: 'stroke-kv-warning',
-  },
-  unauthorized: {
-    icon: faIcons.key,
-    wellClass: 'bg-kv-info-soft',
-    iconClass: 'text-kv-info-soft-fg',
-    ringClass: 'stroke-kv-info',
-  },
 };
 
 /**

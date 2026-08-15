@@ -44,16 +44,6 @@ const KIND_META: Record<
     role: 'status',
     glowClass: 'bg-kv-brand-soft/50',
   },
-  forbidden: {
-    code: '403',
-    role: 'status',
-    glowClass: 'bg-kv-warning-soft/50',
-  },
-  unauthorized: {
-    code: '401',
-    role: 'status',
-    glowClass: 'bg-kv-info-soft/50',
-  },
 };
 
 /**

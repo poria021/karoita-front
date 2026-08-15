@@ -1,14 +1,5 @@
-import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
-import { PublicRouteStatusActions } from '@/components/shared/route-status/PublicRouteStatusActions';
+import { PublicNotFoundStatus } from '@/components/shared/route-status/PublicNotFoundStatus';
 
 export default function RootNotFound() {
-  return (
-    <KvRouteStatus
-      kind="notFound"
-      title="صفحه مورد نظر یافت نشد"
-      description="نشانی واردشده در سامانه تعریف نشده یا منتقل گردیده است."
-      hint="می‌توانید به بخش مرتبط یا صفحه فرود بازگردید."
-      actions={<PublicRouteStatusActions />}
-    />
-  );
+  return <PublicNotFoundStatus />;
 }
