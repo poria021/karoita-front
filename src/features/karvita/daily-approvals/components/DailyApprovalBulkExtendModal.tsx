@@ -23,7 +23,10 @@ type DailyApprovalBulkExtendModalProps = {
   /** Already-extended week numbers for the active group — pre-checked in the list. */
   previouslyExtendedWeekNumbers?: readonly number[];
   onClose: () => void;
-  onConfirm: (weekNumbers: number[]) => Promise<void>;
+  onConfirm: (input: {
+    weekNumbers: number[];
+    revokeWeekNumbers: number[];
+  }) => Promise<void>;
 };
 
 export function DailyApprovalBulkExtendModal({
@@ -37,34 +40,50 @@ export function DailyApprovalBulkExtendModal({
   const options = getDailyApprovalWeekOptions(kind);
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>();
+  const [baselineExtendedValues, setBaselineExtendedValues] = useState<
+    string[]
+  >([]);
 
   useEffect(() => {
     if (!open) return;
     const allowedValues = new Set(
       getDailyApprovalWeekOptions(kind).map((option) => option.value)
     );
-    setSelectedValues(
-      previouslyExtendedWeekNumbers
-        .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0)
-        .map((weekNumber) => String(weekNumber))
-        .filter((value) => allowedValues.has(value))
-    );
+    const baseline = previouslyExtendedWeekNumbers
+      .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0)
+      .map((weekNumber) => String(weekNumber))
+      .filter((value) => allowedValues.has(value));
+    setBaselineExtendedValues(baseline);
+    setSelectedValues(baseline);
     setError(undefined);
     // Snapshot previously-extended weeks only when the dialog opens (or kind changes).
     // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid reset while toggling checkboxes
   }, [open, kind]);
 
   const submit = async () => {
-    if (selectedValues.length === 0) {
-      setError('حداقل یک هفته را انتخاب کنید.');
+    const selectedWeekNumbers = selectedValues
+      .map((value) => Number(value))
+      .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0);
+    const baselineSet = new Set(
+      baselineExtendedValues
+        .map((value) => Number(value))
+        .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0)
+    );
+    const selectedSet = new Set(selectedWeekNumbers);
+
+    const weekNumbers = selectedWeekNumbers
+      .filter((weekNumber) => !baselineSet.has(weekNumber))
+      .sort((left, right) => left - right);
+    const revokeWeekNumbers = [...baselineSet]
+      .filter((weekNumber) => !selectedSet.has(weekNumber))
+      .sort((left, right) => left - right);
+
+    if (weekNumbers.length === 0 && revokeWeekNumbers.length === 0) {
+      setError('تغییری نسبت به هفته‌های تمدیدشده فعلی اعمال نشده است.');
       return;
     }
     setError(undefined);
-    const weekNumbers = selectedValues
-      .map((value) => Number(value))
-      .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0)
-      .sort((left, right) => left - right);
-    await onConfirm(weekNumbers);
+    await onConfirm({ weekNumbers, revokeWeekNumbers });
   };
 
   return (
@@ -99,7 +118,9 @@ export function DailyApprovalBulkExtendModal({
           values={selectedValues}
           onValuesChange={(next) => {
             setSelectedValues(next);
-            if (next.length > 0) setError(undefined);
+            if (next.length > 0 || baselineExtendedValues.length > 0) {
+              setError(undefined);
+            }
           }}
           placeholder="انتخاب هفته‌ها"
           disabled={busy}

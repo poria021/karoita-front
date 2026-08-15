@@ -198,6 +198,9 @@ export const DailyApprovalsService = {
       weekNumbers: input.weekNumbers.map((weekNumber) =>
         Number(String(weekNumber))
       ),
+      revokeWeekNumbers: (input.revokeWeekNumbers ?? []).map((weekNumber) =>
+        Number(String(weekNumber))
+      ),
     });
   },
 

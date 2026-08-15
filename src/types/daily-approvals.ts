@@ -119,13 +119,19 @@ export type BulkExtendDailyApprovalWeeksInput = {
   kind: DailyApprovalCourseKind;
   termId: string;
   course: DailyApprovalCourseFilter;
-  /** English week numbers (`1…N`). */
+  /** English week numbers (`1…N`) to extend / keep extended. */
   weekNumbers: number[];
+  /**
+   * English week numbers previously extended that should be revoked
+   * (deadline returns to overdue).
+   */
+  revokeWeekNumbers?: number[];
 };
 
 export type BulkExtendDailyApprovalWeeksResult = {
   affectedTraineeCount: number;
   extendedPairCount: number;
+  revokedPairCount: number;
 };
 
 export type DropDailyApprovalTraineeInput = {

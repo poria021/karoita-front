@@ -222,6 +222,7 @@ describe('mock daily approvals paging', () => {
     });
 
     expect(result.extendedPairCount).toBeGreaterThan(0);
+    expect(result.revokedPairCount).toBe(0);
     expect(result.affectedTraineeCount).toBeGreaterThan(0);
 
     const after = listMockDailyApprovals({
@@ -245,6 +246,53 @@ describe('mock daily approvals paging', () => {
         expect(week.status).toBe('extended');
         expect(week.isExtended).toBe(true);
       }
+    }
+  });
+
+  it('revokes previously extended week numbers back to overdue', () => {
+    const termId = listTermsForDailyApprovalKind('internship')[0]?.id;
+    expect(termId).toBeTruthy();
+    if (!termId) return;
+
+    bulkExtendMockDailyApprovalWeeks({
+      kind: 'internship',
+      termId,
+      course: 'all',
+      weekNumbers: [2, 3],
+    });
+
+    const result = bulkExtendMockDailyApprovalWeeks({
+      kind: 'internship',
+      termId,
+      course: 'all',
+      weekNumbers: [],
+      revokeWeekNumbers: [2],
+    });
+
+    expect(result.revokedPairCount).toBeGreaterThan(0);
+    expect(result.extendedPairCount).toBe(0);
+
+    const after = listMockDailyApprovals({
+      query: '',
+      readFilter: 'all',
+      course: 'all',
+      termId,
+      kind: 'internship',
+      offset: 0,
+      limit: 50,
+    });
+
+    for (const trainee of after.items) {
+      if (trainee.status !== 'active') continue;
+      const week2 = trainee.weeks.find((item) => item.weekNumber === 2);
+      if (!week2 || week2.status === 'graded') continue;
+      expect(week2.status).toBe('overdue');
+      expect(week2.isExtended).toBe(false);
+
+      const week3 = trainee.weeks.find((item) => item.weekNumber === 3);
+      if (!week3 || week3.status === 'graded') continue;
+      expect(week3.status).toBe('extended');
+      expect(week3.isExtended).toBe(true);
     }
   });
 });

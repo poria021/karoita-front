@@ -139,6 +139,25 @@ function applyExtendToWeek(week: DailyApprovalWeek): DailyApprovalWeek {
   };
 }
 
+function applyRevokeExtendToWeek(week: DailyApprovalWeek): DailyApprovalWeek {
+  return {
+    ...week,
+    status: 'overdue',
+    isExtended: false,
+  };
+}
+
+function normalizeBulkWeekNumbers(weekNumbers: readonly number[]): number[] {
+  return [
+    ...new Set(
+      weekNumbers.filter(
+        (weekNumber) =>
+          Number.isInteger(weekNumber) && weekNumber >= 1 && weekNumber <= 32
+      )
+    ),
+  ];
+}
+
 export function extendMockDailyApprovalWeek(input: {
   traineeId: string;
   weekId: string;
@@ -167,31 +186,29 @@ export function extendMockDailyApprovalWeek(input: {
 }
 
 /**
- * تمدید گروهی: هفته‌های انتخاب‌شده برای همه کارورزان فعالِ فیلتر kind/term/course.
- * هفته‌های graded نادیده گرفته می‌شوند.
+ * تمدید / لغو تمدید گروهی برای همه کارورزان فعالِ فیلتر kind/term/course.
+ * هفته‌های graded نادیده گرفته می‌شوند؛ لغو فقط روی هفته‌های extended اعمال می‌شود.
  */
 export function bulkExtendMockDailyApprovalWeeks(
   input: BulkExtendDailyApprovalWeeksInput
 ): BulkExtendDailyApprovalWeeksResult {
-  const weekNumbers = [
-    ...new Set(
-      input.weekNumbers.filter(
-        (weekNumber) =>
-          Number.isInteger(weekNumber) && weekNumber >= 1 && weekNumber <= 32
-      )
-    ),
-  ];
-  if (weekNumbers.length === 0) {
-    throw new Error('حداقل یک هفته را برای تمدید انتخاب کنید.');
+  const weekNumbers = normalizeBulkWeekNumbers(input.weekNumbers);
+  const revokeWeekNumbers = normalizeBulkWeekNumbers(
+    input.revokeWeekNumbers ?? []
+  ).filter((weekNumber) => !weekNumbers.includes(weekNumber));
+  if (weekNumbers.length === 0 && revokeWeekNumbers.length === 0) {
+    throw new Error('حداقل یک هفته را برای تمدید یا لغو تمدید انتخاب کنید.');
   }
   if (!input.termId) {
     throw new Error('نیم‌سال تحصیلی مشخص نشده است.');
   }
 
   const weekSet = new Set(weekNumbers);
+  const revokeSet = new Set(revokeWeekNumbers);
   const trainees = readTrainees();
   let affectedTraineeCount = 0;
   let extendedPairCount = 0;
+  let revokedPairCount = 0;
 
   const nextTrainees = trainees.map((trainee) => {
     if (trainee.kind !== input.kind) return trainee;
@@ -201,6 +218,15 @@ export function bulkExtendMockDailyApprovalWeeks(
 
     let touched = false;
     const nextWeeks = trainee.weeks.map((week) => {
+      if (revokeSet.has(week.weekNumber)) {
+        if (week.status === 'graded') return week;
+        if (week.status !== 'extended' && week.isExtended !== true) {
+          return week;
+        }
+        touched = true;
+        revokedPairCount += 1;
+        return applyRevokeExtendToWeek(week);
+      }
       if (!weekSet.has(week.weekNumber)) return week;
       if (week.status === 'graded') return week;
       touched = true;
@@ -213,14 +239,14 @@ export function bulkExtendMockDailyApprovalWeeks(
     return withDerived({ ...trainee, weeks: nextWeeks });
   });
 
-  if (extendedPairCount === 0) {
+  if (extendedPairCount === 0 && revokedPairCount === 0) {
     throw new Error(
-      'هیچ هفته‌ای برای تمدید یافت نشد (ممکن است همه نمره‌گذاری شده باشند).'
+      'هیچ هفته‌ای برای تمدید یا لغو تمدید یافت نشد (ممکن است همه نمره‌گذاری شده باشند).'
     );
   }
 
   writeTrainees(nextTrainees);
-  return { affectedTraineeCount, extendedPairCount };
+  return { affectedTraineeCount, extendedPairCount, revokedPairCount };
 }
 
 export function dropMockDailyApprovalTrainee(

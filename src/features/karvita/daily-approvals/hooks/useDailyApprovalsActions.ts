@@ -226,7 +226,10 @@ export function useDailyApprovalsActions({
   }, [actionBusy]);
 
   const bulkExtendWeeks = useCallback(
-    async (weekNumbers: number[]) => {
+    async (input: {
+      weekNumbers: number[];
+      revokeWeekNumbers: number[];
+    }) => {
       if (!termId) {
         toast.error('نیم‌سال تحصیلی مشخص نشده است.');
         return;
@@ -237,11 +240,21 @@ export function useDailyApprovalsActions({
           kind,
           termId,
           course,
-          weekNumbers,
+          weekNumbers: input.weekNumbers,
+          revokeWeekNumbers: input.revokeWeekNumbers,
         });
-        toast.success(
-          `مهلت ${toPersianDigits(result.extendedPairCount)} گزارش برای ${toPersianDigits(result.affectedTraineeCount)} کارورز تمدید شد.`
-        );
+        const parts: string[] = [];
+        if (result.extendedPairCount > 0) {
+          parts.push(
+            `مهلت ${toPersianDigits(result.extendedPairCount)} گزارش برای ${toPersianDigits(result.affectedTraineeCount)} کارورز تمدید شد`
+          );
+        }
+        if (result.revokedPairCount > 0) {
+          parts.push(
+            `تمدید ${toPersianDigits(result.revokedPairCount)} گزارش لغو شد`
+          );
+        }
+        toast.success(parts.join(' و ') + '.');
         setBulkExtendOpen(false);
         await list.reload();
       } catch (error) {

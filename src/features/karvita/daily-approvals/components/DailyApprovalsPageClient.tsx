@@ -159,8 +159,8 @@ export function DailyApprovalsPageClient() {
               page.trainees
             )}
             onClose={page.closeBulkExtend}
-            onConfirm={async (weekNumbers) => {
-              await page.bulkExtendWeeks(weekNumbers);
+            onConfirm={async ({ weekNumbers, revokeWeekNumbers }) => {
+              await page.bulkExtendWeeks({ weekNumbers, revokeWeekNumbers });
             }}
           />
         ) : null}
