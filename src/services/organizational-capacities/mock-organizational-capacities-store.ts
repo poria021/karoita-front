@@ -13,7 +13,7 @@ import type {
 } from '@/types/organizational-capacities';
 import type { AcademicTermType } from '@/types/syllabus-config';
 
-const STORAGE_KEY = 'karvita_mock_organizational_capacities_v1';
+const STORAGE_KEY = 'karvita_mock_organizational_capacities_v2';
 
 type ActorBucket = {
   status: OrganizationalCapacitySubmissionStatus;

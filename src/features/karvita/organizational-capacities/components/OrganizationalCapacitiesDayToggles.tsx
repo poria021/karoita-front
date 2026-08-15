@@ -9,15 +9,22 @@ type OrganizationalCapacitiesDayTogglesProps = {
   selectedDays: readonly OrganizationalCapacityWeekday[];
   disabled?: boolean;
   onToggle: (day: OrganizationalCapacityWeekday) => void;
+  className?: string;
 };
 
 export function OrganizationalCapacitiesDayToggles({
   selectedDays,
   disabled = false,
   onToggle,
+  className,
 }: OrganizationalCapacitiesDayTogglesProps) {
   return (
-    <div className="flex flex-row flex-nowrap items-center justify-center gap-kv-micro">
+    <div
+      className={cn(
+        'flex flex-row flex-nowrap items-center justify-start gap-kv-micro',
+        className
+      )}
+    >
       {CAPACITY_WEEK_DAYS.map((day) => {
         const active = selectedDays.includes(day.value);
         return (

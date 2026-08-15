@@ -13,9 +13,5 @@ export function OrganizationalCapacitiesHeader({
   kind,
   onKindChange,
 }: OrganizationalCapacitiesHeaderProps) {
-  return (
-    <div className="border-b border-kv-border pb-kv-group">
-      <OrganizationalCapacitiesTabs value={kind} onChange={onKindChange} />
-    </div>
-  );
+  return <OrganizationalCapacitiesTabs value={kind} onChange={onKindChange} />;
 }

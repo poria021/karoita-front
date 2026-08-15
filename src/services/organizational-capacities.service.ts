@@ -37,7 +37,7 @@ function requireCapacityConfigure(): string {
  * Nest map:
  * - GET   /organizational-capacities/terms?kind=
  * - GET   /organizational-capacities?kind&termId
- * - PATCH /organizational-capacities/courses/:courseId
+ * - PATCH /organizational-capacities/courses/:courseId (optional autosave; FE drafts locally)
  * - POST  /organizational-capacities/submit
  */
 export const OrganizationalCapacitiesService = {

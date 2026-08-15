@@ -20,89 +20,91 @@ export function OrganizationalCapacitiesPageClient() {
 
   return (
     <OrganizationalCapacitiesGuard>
-      <div className="space-y-kv-group">
+      <div className="flex flex-col gap-kv-group">
         <OrganizationalCapacitiesHeader
           kind={page.kind}
           onKindChange={page.changeKind}
         />
 
-        {page.error ? (
-          <KvAlert
-            variant="error"
-            title="بارگذاری ظرفیت‌ها ناموفق بود"
-            description={page.error}
-            actions={
-              <KvButton
-                type="button"
-                appearance="secondary"
-                size="sm"
-                onClick={page.reload}
-              >
-                تلاش مجدد
-              </KvButton>
-            }
-          />
-        ) : null}
+        <div className="space-y-kv-group border-t border-kv-border py-kv-group">
+          {page.error ? (
+            <KvAlert
+              variant="error"
+              title="بارگذاری ظرفیت‌ها ناموفق بود"
+              description={page.error}
+              actions={
+                <KvButton
+                  type="button"
+                  appearance="secondary"
+                  size="sm"
+                  onClick={page.reload}
+                >
+                  تلاش مجدد
+                </KvButton>
+              }
+            />
+          ) : null}
 
-        {page.isLoading || !page.snapshot ? (
-          <KvBusySurface className="min-h-[280px] rounded-kv-control" />
-        ) : (
-          <>
-            {page.locked ? (
-              <KvAlert
-                variant="info"
-                title="ظرفیت این نیم‌سال ارسال شده است"
-                description="پس از ثبت نهایی، ویرایش ظرفیت و روزهای حضور تا تعیین تکلیف مدیریت قفل می‌ماند."
-              />
-            ) : null}
+          {page.isLoading || !page.snapshot ? (
+            <KvBusySurface className="min-h-[280px] rounded-kv-control" />
+          ) : (
+            <>
+              {page.locked ? (
+                <KvAlert
+                  variant="info"
+                  title="ظرفیت این نیم‌سال ارسال شده است"
+                  description="پس از ثبت نهایی، ویرایش ظرفیت و روزهای حضور تا تعیین تکلیف مدیریت قفل می‌ماند."
+                />
+              ) : null}
 
-            <OrganizationalCapacitiesSummary summary={page.snapshot.summary} />
+              <OrganizationalCapacitiesSummary summary={page.snapshot.summary} />
 
-            <div className="hidden lg:block">
-              <OrganizationalCapacitiesTable
+              <div className="hidden lg:block">
+                <OrganizationalCapacitiesTable
+                  courses={page.snapshot.courses}
+                  maxCapacity={page.snapshot.maxCapacity}
+                  locked={page.locked}
+                  resetKey={resetKey}
+                  onTotalChange={(courseId, value) =>
+                    page.updateCourseTotal(courseId, value)
+                  }
+                  onToggleDay={(courseId, day) =>
+                    page.toggleDay(courseId, day)
+                  }
+                />
+              </div>
+
+              <OrganizationalCapacitiesMobileList
                 courses={page.snapshot.courses}
                 maxCapacity={page.snapshot.maxCapacity}
                 locked={page.locked}
-                resetKey={resetKey}
+                expandedCourseId={page.expandedCourseId}
+                onExpandedChange={page.setExpandedCourseId}
                 onTotalChange={(courseId, value) =>
-                  void page.updateCourseTotal(courseId, value)
+                  page.updateCourseTotal(courseId, value)
                 }
                 onToggleDay={(courseId, day) =>
-                  void page.toggleDay(courseId, day)
+                  page.toggleDay(courseId, day)
                 }
               />
-            </div>
 
-            <OrganizationalCapacitiesMobileList
-              courses={page.snapshot.courses}
-              maxCapacity={page.snapshot.maxCapacity}
-              locked={page.locked}
-              expandedCourseId={page.expandedCourseId}
-              onExpandedChange={page.setExpandedCourseId}
-              onTotalChange={(courseId, value) =>
-                void page.updateCourseTotal(courseId, value)
-              }
-              onToggleDay={(courseId, day) =>
-                void page.toggleDay(courseId, day)
-              }
-            />
-
-            <div className="flex justify-end border-t border-kv-border pt-kv-group">
-              <KvButton
-                type="button"
-                color="cta"
-                appearance="solid"
-                size="md"
-                disabled={page.locked || page.actionBusy || !page.isDirty}
-                loading={page.actionBusy}
-                icon={<FaIcon icon={faIcons.cloudArrowUp} size="xs" />}
-                onClick={() => page.setConfirmOpen(true)}
-              >
-                ثبت نهایی و ارسال به مدیریت
-              </KvButton>
-            </div>
-          </>
-        )}
+              <div className="flex justify-end border-t border-kv-border pt-kv-group">
+                <KvButton
+                  type="button"
+                  color="cta"
+                  appearance="solid"
+                  size="md"
+                  disabled={page.locked || page.actionBusy || !page.isDirty}
+                  loading={page.actionBusy}
+                  icon={<FaIcon icon={faIcons.cloudArrowUp} size="xs" />}
+                  onClick={() => page.setConfirmOpen(true)}
+                >
+                  ثبت نهایی و ارسال به مدیریت
+                </KvButton>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       <KvConfirmationDialog

@@ -202,9 +202,12 @@ export function useOrganizationalCapacitiesPage() {
     [kind, queryClient, resolvedTermId]
   );
 
+  /** Local draft only — persist happens on final submit. */
   const updateCourseTotal = useCallback(
-    async (courseId: string, rawValue: string) => {
+    (courseId: string, rawValue: string) => {
       if (!snapshot || snapshot.status !== 'draft') return;
+      const course = snapshot.courses.find((row) => row.id === courseId);
+      if (!course) return;
       const english = persianToEnglishDigits(rawValue);
       const digits = english.replace(/[^\d]/g, '');
       const attempted = digits === '' ? 0 : Number(digits);
@@ -217,52 +220,28 @@ export function useOrganizationalCapacitiesPage() {
           `ظرفیت هر درس نمی‌تواند از سقف عمومی ${toPersianDigits(snapshot.maxCapacity)} بیشتر باشد.`
         );
       }
-      const total = normalizeCapacityTotalInput(english, snapshot.maxCapacity);
-      patchLocalCourse(courseId, { total });
-      try {
-        const course = snapshot.courses.find((row) => row.id === courseId);
-        const next = await OrganizationalCapacitiesService.updateCourse({
-          kind,
-          termId: snapshot.termId,
-          courseId,
-          total,
-          selectedDays: course?.selectedDays ?? [],
-        });
-        setSnapshotData(next);
-      } catch (err) {
-        toast.error(
-          unknownErrorMessage(err, 'به‌روزرسانی ظرفیت ناموفق بود.')
+      let total = normalizeCapacityTotalInput(english, snapshot.maxCapacity);
+      if (total < course.confirmed) {
+        toast.message(
+          `ظرفیت درس «${course.title}» نمی‌تواند کمتر از ثبت‌نام قطعی باشد.`
         );
-        reload();
+        total = course.confirmed;
       }
+      patchLocalCourse(courseId, { total });
     },
-    [kind, patchLocalCourse, reload, setSnapshotData, snapshot]
+    [patchLocalCourse, snapshot]
   );
 
+  /** Local draft only — persist happens on final submit. */
   const toggleDay = useCallback(
-    async (courseId: string, day: OrganizationalCapacityWeekday) => {
+    (courseId: string, day: OrganizationalCapacityWeekday) => {
       if (!snapshot || snapshot.status !== 'draft') return;
       const course = snapshot.courses.find((row) => row.id === courseId);
       if (!course) return;
       const selectedDays = course.selectedDays.includes(day) ? [] : [day];
       patchLocalCourse(courseId, { selectedDays });
-      try {
-        const next = await OrganizationalCapacitiesService.updateCourse({
-          kind,
-          termId: snapshot.termId,
-          courseId,
-          total: course.total,
-          selectedDays,
-        });
-        setSnapshotData(next);
-      } catch (err) {
-        toast.error(
-          unknownErrorMessage(err, 'به‌روزرسانی روز حضور ناموفق بود.')
-        );
-        reload();
-      }
     },
-    [kind, patchLocalCourse, reload, setSnapshotData, snapshot]
+    [patchLocalCourse, snapshot]
   );
 
   const submit = useCallback(async () => {

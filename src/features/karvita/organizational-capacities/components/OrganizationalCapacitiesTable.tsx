@@ -70,6 +70,7 @@ export function OrganizationalCapacitiesTable({
                   value={course.total}
                   maxCapacity={maxCapacity}
                   locked={locked}
+                  className="mx-auto"
                   onChange={(value) => onTotalChange(course.id, value)}
                 />
               </KvTableCell>
@@ -82,6 +83,7 @@ export function OrganizationalCapacitiesTable({
                 <OrganizationalCapacitiesDayToggles
                   selectedDays={course.selectedDays}
                   disabled={locked}
+                  className="justify-center"
                   onToggle={(day) => onToggleDay(course.id, day)}
                 />
               </KvTableCell>

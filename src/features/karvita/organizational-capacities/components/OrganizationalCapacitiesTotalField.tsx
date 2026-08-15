@@ -24,6 +24,7 @@ type OrganizationalCapacitiesTotalFieldProps = {
   locked?: boolean;
   onChange: (value: string) => void;
   'aria-label'?: string;
+  className?: string;
 };
 
 export function OrganizationalCapacitiesTotalField({
@@ -32,6 +33,7 @@ export function OrganizationalCapacitiesTotalField({
   locked = false,
   onChange,
   'aria-label': ariaLabel = 'ظرفیت پذیرش',
+  className,
 }: OrganizationalCapacitiesTotalFieldProps) {
   return (
     <KvInput
@@ -45,7 +47,8 @@ export function OrganizationalCapacitiesTotalField({
       onChange={(event) => onChange(event.target.value)}
       className={cn(
         CAPACITY_METRIC_BOX,
-        'mx-auto px-2 text-center leading-none'
+        'px-2 text-center leading-none',
+        className
       )}
     />
   );
