@@ -779,12 +779,13 @@ input[readonly]:-webkit-autofill {
 [data-sonner-toast].kv-toast-undoable {
   background-image: linear-gradient(var(--kv-brand), var(--kv-brand)) !important;
   background-repeat: no-repeat !important;
-  background-position: 0 100% !important;
+  /* Anchor at inline-end so the rail depletes toward the start (RTL: right→left). */
+  background-position: 100% 100% !important;
   animation: kv-toast-progress-shrink var(--kv-toast-duration, 5s) linear forwards;
 }
 
 [data-sonner-toaster][dir='rtl'] [data-sonner-toast].kv-toast-undoable {
-  background-position: 100% 100% !important;
+  background-position: 0 100% !important;
 }
 
 [data-sonner-toast].kv-toast-undoable:hover {
