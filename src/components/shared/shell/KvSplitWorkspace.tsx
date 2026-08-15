@@ -25,6 +25,7 @@ export type KvSplitWorkspaceProps = {
 
 /**
  * ورک‌اسپیس دو ستونه (دسکتاپ) + اسلات موبایل — فقط لایوت، بدون منطق دامنه.
+ * Border + equal vertical padding sit on the content below tabs (not under the tab track).
  */
 export function KvSplitWorkspace({
   tabs,
@@ -40,7 +41,6 @@ export function KvSplitWorkspace({
   const showDesktop = primary != null || secondary != null;
   const showMobile = mobileContent != null;
 
-  // Track viewport for true unmount (not just CSS hide)
   const [isDesktop, setIsDesktop] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -52,19 +52,21 @@ export function KvSplitWorkspace({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // SSR/first paint: render both; hydration syncs with actual viewport
   const shouldRenderDesktop = isDesktop === null || isDesktop === true;
   const shouldRenderMobile = isDesktop === null || isDesktop === false;
 
   return (
     <div
-      className={cn('space-y-kv-group', className)}
+      className={cn('flex flex-col gap-kv-group', className)}
       dir="rtl"
       data-slot="kv-split-workspace"
     >
-      {tabs}
+      {tabs ? <div data-slot="kv-split-workspace-tabs">{tabs}</div> : null}
       <div
-        className="space-y-kv-group pt-kv-pair"
+        className={cn(
+          'space-y-kv-group',
+          tabs && 'border-t border-kv-border py-kv-group'
+        )}
         data-slot="kv-split-workspace-body"
       >
         {toolbar}

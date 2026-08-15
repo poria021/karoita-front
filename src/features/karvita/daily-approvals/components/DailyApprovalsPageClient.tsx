@@ -91,7 +91,6 @@ export function DailyApprovalsPageClient() {
           }
           toolbar={
             <DailyApprovalsWorkspaceHeader
-              title="ارزیابی و ممیزی نهایی گزارش‌ها"
               termId={page.termId}
               terms={page.terms}
               onTermChange={page.changeTerm}

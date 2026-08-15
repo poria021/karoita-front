@@ -11,6 +11,13 @@ import { toPersianDigits } from '@/utils/persianDigits';
 /** حدنصاب قبولی گزارش روی مقیاس ۰–۱۰۰ (مرجع mock). */
 export const DAILY_APPROVAL_PASSING_SCORE = 70;
 
+/** Feature chrome copy for the daily-approvals module. */
+export const DAILY_APPROVALS_FEATURE = {
+  title: 'ارزیابی و ممیزی نهایی گزارش‌ها',
+  description:
+    'بررسی، نمره‌دهی و تأیید نهایی گزارش‌های هفتگی کارورزان و کارآموزان در این بخش انجام می‌شود.',
+} as const;
+
 /** تعداد هفته‌های قابل تمدید گروهی — کارورزی ۱۶، کارآموزی ۸. */
 export const DAILY_APPROVAL_WEEK_COUNT: Record<
   DailyApprovalCourseKind,

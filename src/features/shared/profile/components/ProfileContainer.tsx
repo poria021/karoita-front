@@ -199,7 +199,7 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
         <AppTabs
           value={activeTab}
           onValueChange={handleTabChange}
-          className="gap-kv-stack"
+          className="gap-kv-group"
         >
           <AppTabsList>
             <AppTabsTrigger value="identity">
@@ -212,9 +212,17 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
             </AppTabsTrigger>
           </AppTabsList>
 
-          <AppTabsContent value="identity">{identityForm}</AppTabsContent>
+          <AppTabsContent
+            value="identity"
+            className="mt-0 border-t border-kv-border py-kv-group"
+          >
+            {identityForm}
+          </AppTabsContent>
 
-          <AppTabsContent value="security">
+          <AppTabsContent
+            value="security"
+            className="mt-0 border-t border-kv-border py-kv-group"
+          >
             <SecurityForm
               mobile={activeUser.mobile}
               hasPassword={activeUser.hasPassword !== false}

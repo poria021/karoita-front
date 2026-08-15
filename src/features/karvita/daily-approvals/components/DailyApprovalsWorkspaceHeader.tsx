@@ -9,11 +9,12 @@ import {
   KvSelectTrigger,
   KvSelectValue,
 } from '@/components/shared/fields/KvSelect';
-import { KvTypography } from '@/components/shared/KvTypography';
+import { KvFeatureIntro } from '@/components/shared/shell/KvFeatureIntro';
 import { faIcons } from '@/utils/iconMap';
 
+import { DAILY_APPROVALS_FEATURE } from '../constants';
+
 type DailyApprovalsWorkspaceHeaderProps = {
-  title: string;
   termId: string;
   terms: Array<{ id: string; title: string }>;
   onTermChange: (termId: string) => void;
@@ -23,7 +24,6 @@ type DailyApprovalsWorkspaceHeaderProps = {
 };
 
 export function DailyApprovalsWorkspaceHeader({
-  title,
   termId,
   terms,
   onTermChange,
@@ -38,51 +38,53 @@ export function DailyApprovalsWorkspaceHeader({
   return (
     <div
       data-slot="daily-approvals-workspace-header"
-      className="border-b border-kv-border py-kv-group"
+      className="border-b border-kv-border pb-kv-group"
     >
-      <div className="flex flex-col items-stretch justify-between gap-kv-group sm:flex-row sm:items-center">
-        <KvTypography variant="title" weight="bold" as="h2">
-          {title}
-        </KvTypography>
-        <div className="flex w-full flex-col items-stretch gap-kv-pair sm:w-auto sm:flex-row sm:items-center">
-          {showBulkExtend ? (
-            <KvButton
-              type="button"
-              color="violet"
-              appearance="ghost"
-              size="md"
-              disabled={bulkExtendDisabled}
-              icon={<FaIcon icon={faIcons.unlockKeyhole} size="xs" />}
-              onClick={onBulkExtendClick}
-            >
-              تمدید گروهی مهلت ارسال گزارش
-            </KvButton>
-          ) : null}
-          <div className="w-full shrink-0 sm:w-52">
-            {selectedTermId ? (
-              <KvSelect value={selectedTermId} onValueChange={onTermChange}>
-                <KvSelectTrigger
-                  aria-label="نیم‌سال تحصیلی"
-                  className="bg-kv-surface !shadow-kv-raised"
-                >
-                  <KvSelectValue placeholder="نیم‌سال تحصیلی" />
-                </KvSelectTrigger>
-                <KvSelectContent>
-                  {terms.map((term) => (
-                    <KvSelectItem key={term.id} value={term.id}>
-                      {term.title}
-                    </KvSelectItem>
-                  ))}
-                </KvSelectContent>
-              </KvSelect>
-            ) : (
-              <div className="flex h-11 items-center rounded-kv-control border border-kv-border bg-kv-surface-muted px-kv-group text-xs font-bold text-kv-text-faint">
-                در حال بارگذاری نیم‌سال...
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      <KvFeatureIntro
+        title={DAILY_APPROVALS_FEATURE.title}
+        description={DAILY_APPROVALS_FEATURE.description}
+        actions={
+          <>
+            <div className="order-1 w-full shrink-0 lg:order-2 lg:w-52">
+              {selectedTermId ? (
+                <KvSelect value={selectedTermId} onValueChange={onTermChange}>
+                  <KvSelectTrigger
+                    aria-label="نیم‌سال تحصیلی"
+                    className="bg-kv-surface !shadow-kv-raised"
+                  >
+                    <KvSelectValue placeholder="نیم‌سال تحصیلی" />
+                  </KvSelectTrigger>
+                  <KvSelectContent>
+                    {terms.map((term) => (
+                      <KvSelectItem key={term.id} value={term.id}>
+                        {term.title}
+                      </KvSelectItem>
+                    ))}
+                  </KvSelectContent>
+                </KvSelect>
+              ) : (
+                <div className="flex h-11 items-center rounded-kv-control border border-kv-border bg-kv-surface-muted px-kv-group text-xs font-bold text-kv-text-faint">
+                  در حال بارگذاری نیم‌سال...
+                </div>
+              )}
+            </div>
+            {showBulkExtend ? (
+              <KvButton
+                type="button"
+                color="violet"
+                appearance="ghost"
+                size="md"
+                className="order-2 lg:order-1"
+                disabled={bulkExtendDisabled}
+                icon={<FaIcon icon={faIcons.unlockKeyhole} size="xs" />}
+                onClick={onBulkExtendClick}
+              >
+                تمدید گروهی مهلت ارسال گزارش
+              </KvButton>
+            ) : null}
+          </>
+        }
+      />
     </div>
   );
 }

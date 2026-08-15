@@ -14,6 +14,7 @@ export type KvWorkspaceProps = {
 
 /**
  * اسکلت ورک‌اسپیس تک‌ستونهٔ ماژول ادمین — تب / تولبار / کارت جدول.
+ * Border + equal vertical padding sit on the content below tabs (not under the tab track).
  */
 export function KvWorkspace({
   tabs,
@@ -22,13 +23,8 @@ export function KvWorkspace({
   className,
   panel = true,
 }: KvWorkspaceProps) {
-  return (
-    <div
-      className={cn('flex flex-col gap-kv-group', className)}
-      dir="rtl"
-      data-slot="kv-workspace"
-    >
-      {tabs}
+  const body = (
+    <>
       {toolbar ? (
         <div data-slot="kv-workspace-toolbar">{toolbar}</div>
       ) : null}
@@ -42,6 +38,25 @@ export function KvWorkspace({
           {children}
         </div>
       )}
+    </>
+  );
+
+  return (
+    <div
+      className={cn('flex flex-col gap-kv-group', className)}
+      dir="rtl"
+      data-slot="kv-workspace"
+    >
+      {tabs ? <div data-slot="kv-workspace-tabs">{tabs}</div> : null}
+      <div
+        data-slot="kv-workspace-body"
+        className={cn(
+          'flex flex-col gap-kv-group',
+          tabs && 'border-t border-kv-border py-kv-group'
+        )}
+      >
+        {body}
+      </div>
     </div>
   );
 }

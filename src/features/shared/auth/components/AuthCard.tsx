@@ -53,7 +53,7 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
             activeTone="surface"
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as AuthCardTab)}
-            className="gap-kv-stack"
+            className="gap-kv-group"
           >
             <AppTabsList>
               <AppTabsTrigger value="register">ثبت نام</AppTabsTrigger>
@@ -62,10 +62,16 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
               </AppTabsTrigger>
             </AppTabsList>
 
-            <AppTabsContent value="register" className="mt-0 duration-300 animate-in fade-in">
+            <AppTabsContent
+              value="register"
+              className="mt-0 border-t border-kv-border py-kv-group duration-300 animate-in fade-in"
+            >
               <RegisterForm />
             </AppTabsContent>
-            <AppTabsContent value="login" className="mt-0 duration-300 animate-in fade-in">
+            <AppTabsContent
+              value="login"
+              className="mt-0 border-t border-kv-border py-kv-group duration-300 animate-in fade-in"
+            >
               <LoginForm login={login} />
             </AppTabsContent>
           </AppTabs>

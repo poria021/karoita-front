@@ -15,6 +15,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 import { DailyApprovalWeekGrid } from './DailyApprovalWeekGrid';
 import { DailyApprovalWeekLegend } from './DailyApprovalWeekLegend';
+import { DAILY_APPROVALS_FEATURE } from '../constants';
 
 type DailyApprovalDetailPanelProps = {
   trainee: DailyApprovalTrainee | null;
@@ -35,7 +36,7 @@ export function DailyApprovalDetailPanel({
           className="flex h-full min-h-0 flex-1 flex-col items-center justify-center"
         >
           <KvEmptyState
-            title="ارزیابی و ممیزی نهایی گزارش‌ها"
+            title={DAILY_APPROVALS_FEATURE.title}
             description="لطفاً از لیست سمت راست بر روی یکی از کارورزان کلیک کنید تا جدول هفته‌ها و گزارش‌های ارسالی او جهت ممیزی و ارزیابی در این بخش نمایش داده شود."
           />
         </KvCardContent>
