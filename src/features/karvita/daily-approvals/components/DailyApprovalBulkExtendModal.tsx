@@ -20,6 +20,8 @@ type DailyApprovalBulkExtendModalProps = {
   open: boolean;
   kind: DailyApprovalCourseKind;
   busy: boolean;
+  /** Already-extended week numbers for the active group — pre-checked in the list. */
+  previouslyExtendedWeekNumbers?: readonly number[];
   onClose: () => void;
   onConfirm: (weekNumbers: number[]) => Promise<void>;
 };
@@ -28,6 +30,7 @@ export function DailyApprovalBulkExtendModal({
   open,
   kind,
   busy,
+  previouslyExtendedWeekNumbers = [],
   onClose,
   onConfirm,
 }: DailyApprovalBulkExtendModalProps) {
@@ -37,8 +40,18 @@ export function DailyApprovalBulkExtendModal({
 
   useEffect(() => {
     if (!open) return;
-    setSelectedValues([]);
+    const allowedValues = new Set(
+      getDailyApprovalWeekOptions(kind).map((option) => option.value)
+    );
+    setSelectedValues(
+      previouslyExtendedWeekNumbers
+        .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0)
+        .map((weekNumber) => String(weekNumber))
+        .filter((value) => allowedValues.has(value))
+    );
     setError(undefined);
+    // Snapshot previously-extended weeks only when the dialog opens (or kind changes).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid reset while toggling checkboxes
   }, [open, kind]);
 
   const submit = async () => {
