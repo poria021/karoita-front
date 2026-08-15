@@ -53,14 +53,15 @@ export function OnboardingChecklist({
             وضعیت واقعی پرونده شما؛ تا تأیید مدارک، ماژول‌ها قفل می‌مانند.
           </KvTypography>
         </div>
-        <KvTypography
-          variant="label"
-          as="p"
-          className="shrink-0 text-kv-brand"
-          aria-label={`پیشرفت ${toPersianDigits(String(progress.percent))} درصد`}
-        >
-          {toPersianDigits(String(progress.percent))}٪
-        </KvTypography>
+        <div className="shrink-0 text-kv-brand">
+          <KvTypography
+            variant="label"
+            as="p"
+            aria-label={`پیشرفت ${toPersianDigits(String(progress.percent))} درصد`}
+          >
+            {toPersianDigits(String(progress.percent))}٪
+          </KvTypography>
+        </div>
       </div>
 
       <ol className="mt-kv-group space-y-kv-pair">

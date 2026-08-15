@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useId, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -89,7 +89,7 @@ export function KvSearchableCombobox({
   const hasValue = value.trim().length > 0;
   const showClear = !disabled && hasValue;
 
-  function handleClear(event: MouseEvent<HTMLButtonElement>) {
+  function handleClear(event: ReactMouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
     if (disabled) return;

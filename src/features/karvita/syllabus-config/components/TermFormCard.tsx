@@ -150,7 +150,7 @@ export function TermFormCard({
                 size="md"
                 dir="ltr"
                 scriptGuard="none"
-                disabled={isEditing}
+                locked={isEditing}
                 value={displayAcademicYear(termYear)}
                 placeholder="۱۴۰۵-۱۴۰۶"
                 onChange={(event) =>

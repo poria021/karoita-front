@@ -64,11 +64,7 @@ export function KvFieldFrame({
               {labelIcon}
             </span>
           ) : null}
-          <KvTypography
-            variant="label"
-            as={locked ? 'span' : 'label'}
-            htmlFor={locked ? undefined : id}
-          >
+          <KvTypography variant="label" as="label" htmlFor={id}>
             {label}
             {showLabelLock ? (
               <FaIcon

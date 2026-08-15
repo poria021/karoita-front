@@ -2,7 +2,6 @@
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { ChangeEvent } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
 import { OtpCodeField } from '@/features/shared/auth/components/fields/OtpCodeField';
@@ -26,7 +25,7 @@ function mockOtpRegistration(
 describe('OtpCodeField', () => {
   it('normalizes Persian digits to English before RHF onChange', () => {
     const emitted: string[] = [];
-    const onChange = vi.fn((event: ChangeEvent<HTMLInputElement>) => {
+    const onChange = vi.fn((event: Parameters<UseFormRegisterReturn<'otp'>['onChange']>[0]) => {
       emitted.push(event.target.value);
       return Promise.resolve();
     });
@@ -43,7 +42,7 @@ describe('OtpCodeField', () => {
 
   it('accepts English digits and caps at 5', () => {
     const emitted: string[] = [];
-    const onChange = vi.fn((event: ChangeEvent<HTMLInputElement>) => {
+    const onChange = vi.fn((event: Parameters<UseFormRegisterReturn<'otp'>['onChange']>[0]) => {
       emitted.push(event.target.value);
       return Promise.resolve();
     });

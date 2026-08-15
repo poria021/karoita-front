@@ -30,7 +30,7 @@ function trainee(
     major: 'm',
     schoolName: null,
     kind: 'internship',
-    level: 'intern1',
+    level: 1,
     courseKey: 'intern1',
     courseTitle: 'کارورزی ۱',
     termId: 't1',

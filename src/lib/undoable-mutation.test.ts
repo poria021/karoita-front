@@ -74,7 +74,7 @@ describe('scheduleUndoableMutation', () => {
       expect(commit).toHaveBeenCalledTimes(1);
     });
 
-    const opts = toastMock.mock.calls[0]?.[1] as {
+    const opts = (toastMock as any).mock.calls[0]?.[1] as {
       action?: { onClick: () => void; label: string };
     };
 
@@ -120,7 +120,7 @@ describe('scheduleUndoableMutation', () => {
 
     expect(toastMock.success).toHaveBeenCalled();
     expect(toastMock).not.toHaveBeenCalled();
-    const opts = toastMock.success.mock.calls[0]?.[1] as {
+    const opts = (toastMock.success as any).mock.calls[0]?.[1] as {
       className?: string;
       actionButtonStyle?: { background?: string };
     };
@@ -148,7 +148,7 @@ describe('scheduleUndoableLocalChange', () => {
     expect(apply).toHaveBeenCalledTimes(1);
     expect(toastMock.error).toHaveBeenCalled();
 
-    const opts = toastMock.error.mock.calls[0]?.[1] as {
+    const opts = (toastMock.error as any).mock.calls[0]?.[1] as {
       action?: { onClick: () => void; label: string };
     };
     expect(opts.action?.label).toBe('لغو');
