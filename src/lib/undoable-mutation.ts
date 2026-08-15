@@ -51,8 +51,8 @@ function undoableToastChrome(
       className: 'kv-toast-undoable kv-toast-undoable--success',
       style,
       actionButtonStyle: {
-        background: 'var(--kv-success)',
-        color: 'var(--kv-success-fg)',
+        background: 'var(--kv-danger)',
+        color: 'var(--kv-danger-fg)',
         borderRadius: 'var(--radius-kv-control)',
       },
     };

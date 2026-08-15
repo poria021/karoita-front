@@ -818,13 +818,13 @@ input[readonly]:-webkit-autofill {
 
 [data-rich-colors='true'][data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-button],
 [data-sonner-toast][data-styled='true'][data-type='success'].kv-toast-undoable--success [data-button] {
-  background: var(--kv-success) !important;
-  color: var(--kv-success-fg) !important;
+  background: var(--kv-danger) !important;
+  color: var(--kv-danger-fg) !important;
   border-radius: var(--radius-kv-control) !important;
 }
 
 [data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-button]:hover {
-  background: var(--kv-success-hover) !important;
+  background: var(--kv-danger-hover) !important;
 }
 
 [data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-close-button] {
