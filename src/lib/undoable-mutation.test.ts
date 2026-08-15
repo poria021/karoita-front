@@ -132,6 +132,12 @@ describe('scheduleUndoableMutation', () => {
 
     expect(toastMock.success).toHaveBeenCalled();
     expect(toastMock).not.toHaveBeenCalled();
+    const opts = toastMock.success.mock.calls[0]?.[1] as {
+      className?: string;
+      actionButtonStyle?: { background?: string };
+    };
+    expect(opts.className).toContain('kv-toast-undoable--success');
+    expect(opts.actionButtonStyle?.background).toBe('var(--kv-success)');
   });
 });
 

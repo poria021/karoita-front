@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { toast } from 'sonner';
 
 export const UNDOABLE_MUTATION_DEFAULT_MS = 5_000;
@@ -33,6 +34,35 @@ export type UndoableLocalChangeOptions = {
   /** Revert when the user presses Undo. */
   revert: () => void;
 };
+
+function undoableToastChrome(
+  tone: UndoableToastTone,
+  durationMs: number
+): Pick<
+  NonNullable<Parameters<typeof toast>[1]>,
+  'className' | 'style' | 'actionButtonStyle'
+> {
+  const style = {
+    ['--kv-toast-duration' as string]: `${durationMs}ms`,
+  } as CSSProperties;
+
+  if (tone === 'success') {
+    return {
+      className: 'kv-toast-undoable kv-toast-undoable--success',
+      style,
+      actionButtonStyle: {
+        background: 'var(--kv-success)',
+        color: 'var(--kv-success-fg)',
+        borderRadius: 'var(--radius-kv-control)',
+      },
+    };
+  }
+
+  return {
+    className: 'kv-toast-undoable',
+    style,
+  };
+}
 
 function showUndoableToast(
   tone: UndoableToastTone,
@@ -93,6 +123,7 @@ export function scheduleUndoableMutation<T>(
     id: `undoable-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     description,
     duration: durationMs,
+    ...undoableToastChrome(tone, durationMs),
     action: {
       label: undoLabel,
       onClick: () => {
@@ -132,6 +163,7 @@ export function scheduleUndoableLocalChange(
     id: `undoable-local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     description,
     duration: durationMs,
+    ...undoableToastChrome(tone, durationMs),
     action: {
       label: undoLabel,
       onClick: () => {

@@ -763,32 +763,73 @@ input[readonly]:-webkit-autofill {
   cursor: pointer;
 }
 
-/* Success undoable toasts: soft green surface + strong green action */
-[data-sonner-toast][data-type='success'] {
-  background: var(--kv-success-soft) !important;
+/*
+ * Undoable toast timer bar — Sonner has no native duration progress API,
+ * so we mirror dismiss timing with a bottom rail (pauses on hover).
+ */
+@keyframes kv-toast-progress-shrink {
+  from {
+    background-size: 100% 3px;
+  }
+  to {
+    background-size: 0% 3px;
+  }
+}
+
+[data-sonner-toast].kv-toast-undoable {
+  background-image: linear-gradient(var(--kv-brand), var(--kv-brand)) !important;
+  background-repeat: no-repeat !important;
+  background-position: 0 100% !important;
+  animation: kv-toast-progress-shrink var(--kv-toast-duration, 5s) linear forwards;
+}
+
+[data-sonner-toaster][dir='rtl'] [data-sonner-toast].kv-toast-undoable {
+  background-position: 100% 100% !important;
+}
+
+[data-sonner-toast].kv-toast-undoable:hover {
+  animation-play-state: paused;
+}
+
+[data-sonner-toast].kv-toast-undoable--success {
+  background-image: linear-gradient(var(--kv-success), var(--kv-success)) !important;
+}
+
+/* Success undoable: soft green surface + solid green undo action */
+[data-rich-colors='true'][data-sonner-toast][data-type='success'].kv-toast-undoable--success,
+[data-sonner-toast][data-type='success'].kv-toast-undoable--success {
+  background-color: var(--kv-success-soft) !important;
   border-color: var(--kv-success-border) !important;
   color: var(--kv-success-soft-fg) !important;
 }
 
-[data-sonner-toast][data-type='success'] [data-description] {
+[data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-description] {
   color: var(--kv-success-soft-fg) !important;
   opacity: 0.85;
 }
 
-[data-sonner-toast][data-type='success'] [data-button] {
+[data-rich-colors='true'][data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-button],
+[data-sonner-toast][data-styled='true'][data-type='success'].kv-toast-undoable--success [data-button] {
   background: var(--kv-success) !important;
   color: var(--kv-success-fg) !important;
-  border-radius: var(--radius-kv-control);
+  border-radius: var(--radius-kv-control) !important;
 }
 
-[data-sonner-toast][data-type='success'] [data-button]:hover {
+[data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-button]:hover {
   background: var(--kv-success-hover) !important;
 }
 
-[data-sonner-toast][data-type='success'] [data-close-button] {
+[data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-close-button] {
   background: var(--kv-success-soft) !important;
   border-color: var(--kv-success-border) !important;
   color: var(--kv-success-soft-fg) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-sonner-toast].kv-toast-undoable {
+    animation: none;
+    background-image: none !important;
+  }
 }
 
 /* Soft stagger for marketing hero visual (same motion, delayed). */
