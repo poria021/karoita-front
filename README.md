@@ -8,8 +8,18 @@ Pure Next.js (App Router) frontend for the Karvita education platform.
 
 ## Learn this codebase
 
+→ **Day-one data/HTTP map:** [`docs/data-flow.md`](docs/data-flow.md) (Facade → mock/`apiClient` → TanStack Query)  
+→ Folder layout: [`docs/architecture-folders.md`](docs/architecture-folders.md)  
 → Open [`docs/learning/karvita-complete-course.html`](docs/learning/karvita-complete-course.html) in a browser (RTL sidebar course, all sessions)  
 → Markdown lessons: [`docs/learning/README.md`](docs/learning/README.md)
+
+### How data flows (5 rules)
+
+1. UI/hooks call **Facades** in `src/services/` only — never `fetch` / `ky` / `apiClient` from features.
+2. HTTP lives in **`src/services/api-client.ts`** (`ky` + cookies/Bearer + 401 handling).
+3. Lists/cache use **TanStack Query** (admin tables: `useOffsetLimitInfiniteList`).
+4. Internal paths go through **`RouteService`** — no hardcoded `/karvita/...`.
+5. `NEXT_PUBLIC_API_MODE=mock|real` — same Facade shapes; production forbids mock.
 
 ## Quick start
 

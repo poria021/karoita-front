@@ -1,9 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { QUERY_STALE_MS } from '@/lib/query-stale';
+import { unknownErrorMessage } from '@/lib/unknown-error-message';
 import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { LandingCmsService } from '@/services/landing-cms.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
@@ -17,6 +20,11 @@ import type {
 } from '@/types/landing-cms';
 
 import { LANDING_CMS_TABS, type LandingCmsTab } from '../constants';
+import {
+  fetchLandingCmsBundle,
+  landingCmsQueryKey,
+  type LandingCmsBundle,
+} from './landingCmsQuery';
 
 const LANDING_CMS_CHROME_ID = 'karvita:landing-cms:chrome';
 const LANDING_CMS_TAB_KEYS = LANDING_CMS_TABS.map(
@@ -27,21 +35,22 @@ type LandingCmsChrome = {
   tab: LandingCmsTab;
 };
 
+function revokeIfBlob(url: string): void {
+  if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+}
+
+function emptyBundle(): LandingCmsBundle {
+  return { banners: [], socials: [], products: [] };
+}
+
 export type LandingCmsDeleteTarget = {
   kind: LandingCmsTab;
   id: string;
   label: string;
 };
 
-function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
-
-function revokeIfBlob(url: string): void {
-  if (url.startsWith('blob:')) URL.revokeObjectURL(url);
-}
-
 export function useLandingCmsPage() {
+  const queryClient = useQueryClient();
   const getChrome = useDashboardModuleCache((s) => s.getChrome);
   const setChrome = useDashboardModuleCache((s) => s.setChrome);
   const cachedChrome = getChrome<LandingCmsChrome>(LANDING_CMS_CHROME_ID);
@@ -52,76 +61,43 @@ export function useLandingCmsPage() {
     defaultValue: 'banners',
     preferWhenMissing: cachedChrome?.tab,
   });
-  const [banners, setBanners] = useState<LandingBanner[]>([]);
-  const [socials, setSocials] = useState<LandingSocial[]>([]);
-  const [products, setProducts] = useState<LandingProduct[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const loadRequestIdRef = useRef(0);
-  const hasDataRef = useRef(false);
+
+  const {
+    data,
+    error: queryError,
+    isPending,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: landingCmsQueryKey,
+    queryFn: fetchLandingCmsBundle,
+    staleTime: QUERY_STALE_MS.cms,
+  });
+
+  const banners = data?.banners ?? [];
+  const socials = data?.socials ?? [];
+  const products = data?.products ?? [];
+  const isLoading = data == null && (isPending || isFetching);
+  const error = queryError
+    ? unknownErrorMessage(queryError, 'بارگذاری محتوای لندینگ ناموفق بود.')
+    : null;
 
   useEffect(() => {
     setChrome<LandingCmsChrome>(LANDING_CMS_CHROME_ID, { tab });
   }, [tab, setChrome]);
 
-  const reload = useCallback(async (opts?: { soft?: boolean }) => {
-    const soft = Boolean(opts?.soft && hasDataRef.current);
-    const requestId = ++loadRequestIdRef.current;
-    if (!soft) setIsLoading(true);
-    setError(null);
+  const patchBundle = useCallback(
+    (updater: (prev: LandingCmsBundle) => LandingCmsBundle) => {
+      queryClient.setQueryData<LandingCmsBundle>(landingCmsQueryKey, (old) =>
+        updater(old ?? emptyBundle())
+      );
+    },
+    [queryClient]
+  );
 
-    try {
-      const [nextBanners, nextSocials, nextProducts] = await Promise.all([
-        LandingCmsService.listBanners(),
-        LandingCmsService.listSocials(),
-        LandingCmsService.listProducts(),
-      ]);
-      if (requestId !== loadRequestIdRef.current) return;
-      setBanners(nextBanners);
-      setSocials(nextSocials);
-      setProducts(nextProducts);
-      hasDataRef.current = true;
-    } catch (err) {
-      if (requestId !== loadRequestIdRef.current) return;
-      setError(errorMessage(err, 'بارگذاری محتوای لندینگ ناموفق بود.'));
-    } finally {
-      if (requestId === loadRequestIdRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const requestId = ++loadRequestIdRef.current;
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        const [nextBanners, nextSocials, nextProducts] = await Promise.all([
-          LandingCmsService.listBanners(),
-          LandingCmsService.listSocials(),
-          LandingCmsService.listProducts(),
-        ]);
-        if (cancelled || requestId !== loadRequestIdRef.current) return;
-        setBanners(nextBanners);
-        setSocials(nextSocials);
-        setProducts(nextProducts);
-        hasDataRef.current = true;
-        setError(null);
-      } catch (err) {
-        if (cancelled || requestId !== loadRequestIdRef.current) return;
-        setError(errorMessage(err, 'بارگذاری محتوای لندینگ ناموفق بود.'));
-      } finally {
-        if (!cancelled && requestId === loadRequestIdRef.current) {
-          setIsLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const reload = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const changeTab = useCallback(
     (next: LandingCmsTab) => {
@@ -146,26 +122,26 @@ export function useLandingCmsPage() {
         message: 'بنر جدید به اسلایدر اضافه شد.',
         undoLabel: 'لغو',
         apply: () => {
-          setBanners((prev) => {
-            snapshot = prev;
-            return [optimistic, ...prev];
+          patchBundle((prev) => {
+            snapshot = prev.banners;
+            return { ...prev, banners: [optimistic, ...prev.banners] };
           });
         },
         revert: () => {
           revokeIfBlob(imageUrl);
-          setBanners(snapshot);
+          patchBundle((prev) => ({ ...prev, banners: snapshot }));
         },
         commit: () => LandingCmsService.createBanner(input),
         onCommitted: async () => {
           revokeIfBlob(imageUrl);
-          await reload({ soft: true });
+          await reload();
         },
         onError: (err) => {
-          toast.error(errorMessage(err, 'افزودن بنر ناموفق بود.'));
+          toast.error(unknownErrorMessage(err, 'افزودن بنر ناموفق بود.'));
         },
       });
     },
-    [reload]
+    [patchBundle, reload]
   );
 
   const scheduleCreateSocial = useCallback(
@@ -187,26 +163,28 @@ export function useLandingCmsPage() {
         message: 'شبکه اجتماعی جدید اضافه شد.',
         undoLabel: 'لغو',
         apply: () => {
-          setSocials((prev) => {
-            snapshot = prev;
-            return [optimistic, ...prev];
+          patchBundle((prev) => {
+            snapshot = prev.socials;
+            return { ...prev, socials: [optimistic, ...prev.socials] };
           });
         },
         revert: () => {
           revokeIfBlob(iconImageUrl);
-          setSocials(snapshot);
+          patchBundle((prev) => ({ ...prev, socials: snapshot }));
         },
         commit: () => LandingCmsService.createSocial(input),
         onCommitted: async () => {
           revokeIfBlob(iconImageUrl);
-          await reload({ soft: true });
+          await reload();
         },
         onError: (err) => {
-          toast.error(errorMessage(err, 'افزودن شبکه اجتماعی ناموفق بود.'));
+          toast.error(
+            unknownErrorMessage(err, 'افزودن شبکه اجتماعی ناموفق بود.')
+          );
         },
       });
     },
-    [reload]
+    [patchBundle, reload]
   );
 
   const scheduleCreateProduct = useCallback(
@@ -226,26 +204,26 @@ export function useLandingCmsPage() {
         message: 'محصول جدید به داک شناور اضافه شد.',
         undoLabel: 'لغو',
         apply: () => {
-          setProducts((prev) => {
-            snapshot = prev;
-            return [optimistic, ...prev];
+          patchBundle((prev) => {
+            snapshot = prev.products;
+            return { ...prev, products: [optimistic, ...prev.products] };
           });
         },
         revert: () => {
           revokeIfBlob(logoImageUrl);
-          setProducts(snapshot);
+          patchBundle((prev) => ({ ...prev, products: snapshot }));
         },
         commit: () => LandingCmsService.createProduct(input),
         onCommitted: async () => {
           revokeIfBlob(logoImageUrl);
-          await reload({ soft: true });
+          await reload();
         },
         onError: (err) => {
-          toast.error(errorMessage(err, 'افزودن محصول ناموفق بود.'));
+          toast.error(unknownErrorMessage(err, 'افزودن محصول ناموفق بود.'));
         },
       });
     },
-    [reload]
+    [patchBundle, reload]
   );
 
   const requestDelete = useCallback(
@@ -267,26 +245,39 @@ export function useLandingCmsPage() {
         undoLabel: 'لغو',
         apply: () => {
           if (target.kind === 'banners') {
-            setBanners((prev) => {
-              bannersSnapshot = prev;
-              return prev.filter((item) => item.id !== target.id);
+            patchBundle((prev) => {
+              bannersSnapshot = prev.banners;
+              return {
+                ...prev,
+                banners: prev.banners.filter((item) => item.id !== target.id),
+              };
             });
           } else if (target.kind === 'socials') {
-            setSocials((prev) => {
-              socialsSnapshot = prev;
-              return prev.filter((item) => item.id !== target.id);
+            patchBundle((prev) => {
+              socialsSnapshot = prev.socials;
+              return {
+                ...prev,
+                socials: prev.socials.filter((item) => item.id !== target.id),
+              };
             });
           } else {
-            setProducts((prev) => {
-              productsSnapshot = prev;
-              return prev.filter((item) => item.id !== target.id);
+            patchBundle((prev) => {
+              productsSnapshot = prev.products;
+              return {
+                ...prev,
+                products: prev.products.filter((item) => item.id !== target.id),
+              };
             });
           }
         },
         revert: () => {
-          if (target.kind === 'banners') setBanners(bannersSnapshot);
-          else if (target.kind === 'socials') setSocials(socialsSnapshot);
-          else setProducts(productsSnapshot);
+          if (target.kind === 'banners') {
+            patchBundle((prev) => ({ ...prev, banners: bannersSnapshot }));
+          } else if (target.kind === 'socials') {
+            patchBundle((prev) => ({ ...prev, socials: socialsSnapshot }));
+          } else {
+            patchBundle((prev) => ({ ...prev, products: productsSnapshot }));
+          }
         },
         commit: async () => {
           if (target.kind === 'banners') {
@@ -298,14 +289,14 @@ export function useLandingCmsPage() {
           }
         },
         onCommitted: async () => {
-          await reload({ soft: true });
+          await reload();
         },
         onError: (err) => {
-          toast.error(errorMessage(err, 'حذف ناموفق بود.'));
+          toast.error(unknownErrorMessage(err, 'حذف ناموفق بود.'));
         },
       });
     },
-    [reload]
+    [patchBundle, reload]
   );
 
   return {

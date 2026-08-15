@@ -2,12 +2,14 @@
 
 import { QueryClient } from '@tanstack/react-query';
 
-/** Browser QueryClient defaults for Karvita server-state (lists + typeahead). */
+import { QUERY_STALE_MS } from '@/lib/query-stale';
+
+/** Browser QueryClient defaults for Karvita server-state (lists + module snapshots). */
 export function makeQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 0,
+        staleTime: QUERY_STALE_MS.list,
         gcTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         retry: 1,

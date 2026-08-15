@@ -4,6 +4,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { QUERY_STALE_MS } from '@/lib/query-stale';
 import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
@@ -67,6 +68,7 @@ export function useOrganizationOptions({
     queryKey: ['org-options', type, listQuery, province, district],
     enabled,
     initialPageParam: 1,
+    staleTime: QUERY_STALE_MS.list,
     queryFn: async ({ pageParam }) =>
       OrganizationOptionsService.getOptions({
         type,

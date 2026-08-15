@@ -14,6 +14,7 @@ import {
   replaceOffsetLimitListItems,
   type OffsetLimitInfiniteData,
 } from '@/hooks/offsetLimitInfiniteList.helpers';
+import { QUERY_STALE_MS } from '@/lib/query-stale';
 import {
   DEFAULT_PAGE_LIMIT,
   type OffsetLimitPage,
@@ -77,6 +78,7 @@ export function useOffsetLimitInfiniteList<T>({
   } = useInfiniteQuery({
     queryKey,
     initialPageParam: 0,
+    staleTime: QUERY_STALE_MS.list,
     queryFn: async ({ pageParam }) => {
       return fetchPageRef.current({ offset: pageParam, limit: pageSize });
     },

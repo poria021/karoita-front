@@ -1,15 +1,17 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useLayoutEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { QUERY_STALE_MS } from '@/lib/query-stale';
+import { unknownErrorMessage } from '@/lib/unknown-error-message';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentLevel,
-  InternshipEnrollmentPageState,
   InternshipEnrollmentRole,
 } from '@/types/internship-enrollment';
 
@@ -39,74 +41,61 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
     [activeUser, role]
   );
 
-  const [state, setState] = useState<InternshipEnrollmentPageState | null>(
-    null
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const resolved = useMemo(() => {
+    if (!actor) return null;
+    return InternshipEnrollmentService.resolveLevelForRole(actor.role, level);
+  }, [actor, level]);
+
+  const levelAllowed = Boolean(resolved && level <= resolved.maxLevel);
 
   useLayoutEffect(() => {
-    if (!role) return;
-    const { maxLevel } = InternshipEnrollmentService.resolveLevelForRole(
-      role,
-      level
-    );
-    if (level > maxLevel) {
-      router.replace(RouteService.karvita.internshipSelection(maxLevel));
-    }
-  }, [role, level, router]);
-
-  const load = useCallback(async () => {
-    if (!actor) {
-      setState(null);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
-
-    const resolved = InternshipEnrollmentService.resolveLevelForRole(
-      actor.role,
-      level
-    );
+    if (!role || !resolved) return;
     if (level > resolved.maxLevel) {
-      return;
+      router.replace(RouteService.karvita.internshipSelection(resolved.maxLevel));
     }
+  }, [role, level, resolved, router]);
 
-    setIsLoading(true);
-    setError(null);
-    try {
-      const next = await InternshipEnrollmentService.getEnrollmentPageState({
+  const query = useQuery({
+    queryKey: [
+      'internship-enrollment',
+      actor?.id ?? 'anon',
+      actor?.role ?? 'none',
+      resolved?.level ?? level,
+    ],
+    queryFn: () => {
+      if (!actor || !resolved) {
+        throw new Error('بارگذاری وضعیت انتخاب واحد ناموفق بود.');
+      }
+      return InternshipEnrollmentService.getEnrollmentPageState({
         actor,
         level: resolved.level,
       });
-      setState(next);
-    } catch (err) {
-      setState(null);
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'بارگذاری وضعیت انتخاب واحد ناموفق بود.'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [actor, level]);
+    },
+    enabled: Boolean(actor) && levelAllowed,
+    staleTime: QUERY_STALE_MS.module,
+  });
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void load();
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [load]);
+  const isLoading =
+    Boolean(actor) &&
+    levelAllowed &&
+    query.data == null &&
+    (query.isPending || query.isFetching);
 
   return {
     role,
     actor,
     level,
-    state,
-    isLoading,
-    error,
-    reload: load,
+    state: query.data ?? null,
+    isLoading: actor ? isLoading : false,
+    error: query.error
+      ? unknownErrorMessage(
+          query.error,
+          'بارگذاری وضعیت انتخاب واحد ناموفق بود.'
+        )
+      : null,
+    reload: async () => {
+      await query.refetch();
+    },
   };
 }
 

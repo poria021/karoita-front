@@ -1,11 +1,13 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { QUERY_STALE_MS } from '@/lib/query-stale';
 import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
@@ -24,7 +26,6 @@ import { ONBOARDING_APPROVAL_TABS } from '../constants';
 import {
   ONBOARDING_APPROVALS_CACHE_NAMESPACE,
   ONBOARDING_APPROVALS_CHROME_ID,
-  ONBOARDING_APPROVALS_PROVINCES_KEY,
   onboardingApprovalsListResetKey,
 } from '../lib/onboardingApprovalsListKeys';
 
@@ -41,8 +42,6 @@ type OnboardingChrome = {
 export function useOnboardingApprovalsPage() {
   const getChrome = useDashboardModuleCache((s) => s.getChrome);
   const setChrome = useDashboardModuleCache((s) => s.setChrome);
-  const getData = useDashboardModuleCache((s) => s.getData);
-  const setData = useDashboardModuleCache((s) => s.setData);
   const cachedChrome = getChrome<OnboardingChrome>(
     ONBOARDING_APPROVALS_CHROME_ID
   );
@@ -59,9 +58,6 @@ export function useOnboardingApprovalsPage() {
   );
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
 
-  const [provinces, setProvinces] = useState<string[]>(
-    () => getData<string[]>(ONBOARDING_APPROVALS_PROVINCES_KEY) ?? []
-  );
   const [actionBusy, setActionBusy] = useState(false);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -78,6 +74,14 @@ export function useOnboardingApprovalsPage() {
       province,
     });
   }, [tab, query, province, setChrome]);
+
+  const provincesQuery = useQuery({
+    queryKey: ['onboarding-approvals', 'provinces'],
+    queryFn: () => OnboardingApprovalsService.listProvinces(),
+    staleTime: QUERY_STALE_MS.module,
+    retry: false,
+  });
+  const provinces = provincesQuery.data ?? [];
 
   const fetchPage = useCallback(
     async ({ offset, limit }: { offset: number; limit: number }) => {
@@ -116,28 +120,6 @@ export function useOnboardingApprovalsPage() {
     reload,
     clearLoadMoreError,
   } = list;
-
-  useEffect(() => {
-    let cancelled = false;
-    void OnboardingApprovalsService.listProvinces()
-      .then((next) => {
-        if (cancelled || next.length === 0) return;
-        setProvinces((prev) => {
-          const isSame =
-            prev.length === next.length &&
-            prev.every((p, i) => p === next[i]);
-          if (isSame) return prev;
-          setData(ONBOARDING_APPROVALS_PROVINCES_KEY, next);
-          return next;
-        });
-      })
-      .catch(() => {
-        /* filter chrome stays usable without province options */
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [resetKey, setData]);
 
   useEffect(() => {
     return OnboardingApprovalsService.subscribeDirectoryChanges(() => {

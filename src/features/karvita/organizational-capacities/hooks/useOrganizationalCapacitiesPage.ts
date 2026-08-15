@@ -1,9 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { QUERY_STALE_MS } from '@/lib/query-stale';
+import { unknownErrorMessage } from '@/lib/unknown-error-message';
 import { OrganizationalCapacitiesService } from '@/services/organizational-capacities.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
@@ -29,7 +32,19 @@ type CapacitiesChrome = {
   termId: string;
 };
 
+function capacitiesTermsKey(kind: OrganizationalCapacityKind) {
+  return ['org-capacities', 'terms', kind] as const;
+}
+
+function capacitiesSnapshotKey(
+  kind: OrganizationalCapacityKind,
+  termId: string
+) {
+  return ['org-capacities', 'snapshot', kind, termId] as const;
+}
+
 export function useOrganizationalCapacitiesPage() {
+  const queryClient = useQueryClient();
   const getChrome = useDashboardModuleCache((state) => state.getChrome);
   const setChrome = useDashboardModuleCache((state) => state.setChrome);
   const cached = getChrome<CapacitiesChrome>(CHROME_ID);
@@ -41,10 +56,6 @@ export function useOrganizationalCapacitiesPage() {
     preferWhenMissing: cached?.kind,
   });
   const [termId, setTermId] = useState(() => cached?.termId ?? '');
-  const [snapshot, setSnapshot] =
-    useState<OrganizationalCapacitiesSnapshot | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [actionBusy, setActionBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
@@ -53,37 +64,60 @@ export function useOrganizationalCapacitiesPage() {
     setChrome<CapacitiesChrome>(CHROME_ID, { kind, termId });
   }, [kind, setChrome, termId]);
 
-  const load = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const nextTerms = await OrganizationalCapacitiesService.listTerms(kind);
-      const resolvedTermId = nextTerms.some((term) => term.id === termId)
-        ? termId
-        : (nextTerms[0]?.id ?? '');
-      if (resolvedTermId !== termId) setTermId(resolvedTermId);
-      if (!resolvedTermId) {
-        setSnapshot(null);
-        return;
-      }
-      const next = await OrganizationalCapacitiesService.getSnapshot({
-        kind,
-        termId: resolvedTermId,
-      });
-      setSnapshot(next);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'بارگذاری ظرفیت‌ها ناموفق بود.'
-      );
-      setSnapshot(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [kind, termId]);
+  const {
+    data: termsData,
+    error: termsError,
+    isPending: termsPending,
+    refetch: refetchTerms,
+  } = useQuery({
+    queryKey: capacitiesTermsKey(kind),
+    queryFn: () => OrganizationalCapacitiesService.listTerms(kind),
+    staleTime: QUERY_STALE_MS.module,
+  });
+
+  const resolvedTermId = useMemo(() => {
+    const terms = termsData ?? [];
+    if (terms.some((term) => term.id === termId)) return termId;
+    return terms[0]?.id ?? '';
+  }, [termId, termsData]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    if (resolvedTermId !== termId) setTermId(resolvedTermId);
+  }, [resolvedTermId, termId]);
+
+  const {
+    data: snapshotData,
+    error: snapshotError,
+    isPending: snapshotPending,
+    isFetching: snapshotFetching,
+    refetch: refetchSnapshot,
+  } = useQuery({
+    queryKey: capacitiesSnapshotKey(kind, resolvedTermId),
+    queryFn: () =>
+      OrganizationalCapacitiesService.getSnapshot({
+        kind,
+        termId: resolvedTermId,
+      }),
+    enabled: Boolean(resolvedTermId),
+    staleTime: QUERY_STALE_MS.module,
+  });
+
+  const snapshot = snapshotData ?? null;
+  const isLoading =
+    termsPending ||
+    (Boolean(resolvedTermId) &&
+      snapshot == null &&
+      (snapshotPending || snapshotFetching));
+  const error = termsError
+    ? unknownErrorMessage(termsError, 'بارگذاری ظرفیت‌ها ناموفق بود.')
+    : snapshotError
+      ? unknownErrorMessage(snapshotError, 'بارگذاری ظرفیت‌ها ناموفق بود.')
+      : null;
+
+  const reload = useCallback(() => {
+    void refetchTerms();
+    if (resolvedTermId) void refetchSnapshot();
+  }, [refetchSnapshot, refetchTerms, resolvedTermId]);
 
   const changeKind = useCallback(
     (next: OrganizationalCapacityKind) => {
@@ -93,35 +127,47 @@ export function useOrganizationalCapacitiesPage() {
     [setKind]
   );
 
+  const setSnapshotData = useCallback(
+    (next: OrganizationalCapacitiesSnapshot) => {
+      queryClient.setQueryData(
+        capacitiesSnapshotKey(kind, next.termId),
+        next
+      );
+    },
+    [kind, queryClient]
+  );
+
   const patchLocalCourse = useCallback(
     (courseId: string, patch: Partial<OrganizationalCapacityCourse>) => {
-      setSnapshot((current) => {
-        if (!current) return current;
-        const courses = current.courses.map((course) =>
-          course.id === courseId ? { ...course, ...patch } : course
-        );
-        return {
-          ...current,
-          courses,
-          summary: {
-            ...current.summary,
-            // refreshed after service roundtrip; keep interim values usable
-            confirmed: courses.reduce((sum, row) => sum + row.confirmed, 0),
-            total: courses.some((row) => row.total === null)
-              ? 'unlimited'
-              : courses.reduce((sum, row) => sum + (row.total ?? 0), 0),
-            remaining: courses.some((row) => row.total === null)
-              ? 'unlimited'
-              : Math.max(
-                  0,
-                  courses.reduce((sum, row) => sum + (row.total ?? 0), 0) -
-                    courses.reduce((sum, row) => sum + row.confirmed, 0)
-                ),
-          },
-        };
-      });
+      queryClient.setQueryData<OrganizationalCapacitiesSnapshot>(
+        capacitiesSnapshotKey(kind, resolvedTermId),
+        (current) => {
+          if (!current) return current;
+          const courses = current.courses.map((course) =>
+            course.id === courseId ? { ...course, ...patch } : course
+          );
+          return {
+            ...current,
+            courses,
+            summary: {
+              ...current.summary,
+              confirmed: courses.reduce((sum, row) => sum + row.confirmed, 0),
+              total: courses.some((row) => row.total === null)
+                ? 'unlimited'
+                : courses.reduce((sum, row) => sum + (row.total ?? 0), 0),
+              remaining: courses.some((row) => row.total === null)
+                ? 'unlimited'
+                : Math.max(
+                    0,
+                    courses.reduce((sum, row) => sum + (row.total ?? 0), 0) -
+                      courses.reduce((sum, row) => sum + row.confirmed, 0)
+                  ),
+            },
+          };
+        }
+      );
     },
-    []
+    [kind, queryClient, resolvedTermId]
   );
 
   const updateCourseTotal = useCallback(
@@ -150,15 +196,15 @@ export function useOrganizationalCapacitiesPage() {
           total,
           selectedDays: course?.selectedDays ?? [],
         });
-        setSnapshot(next);
+        setSnapshotData(next);
       } catch (err) {
         toast.error(
-          err instanceof Error ? err.message : 'به‌روزرسانی ظرفیت ناموفق بود.'
+          unknownErrorMessage(err, 'به‌روزرسانی ظرفیت ناموفق بود.')
         );
-        await load();
+        reload();
       }
     },
-    [kind, load, patchLocalCourse, snapshot]
+    [kind, patchLocalCourse, reload, setSnapshotData, snapshot]
   );
 
   const toggleDay = useCallback(
@@ -166,8 +212,7 @@ export function useOrganizationalCapacitiesPage() {
       if (!snapshot || snapshot.status !== 'draft') return;
       const course = snapshot.courses.find((row) => row.id === courseId);
       if (!course) return;
-      const selectedDays =
-        course.selectedDays.includes(day) ? [] : [day];
+      const selectedDays = course.selectedDays.includes(day) ? [] : [day];
       patchLocalCourse(courseId, { selectedDays });
       try {
         const next = await OrganizationalCapacitiesService.updateCourse({
@@ -177,15 +222,15 @@ export function useOrganizationalCapacitiesPage() {
           total: course.total,
           selectedDays,
         });
-        setSnapshot(next);
+        setSnapshotData(next);
       } catch (err) {
         toast.error(
-          err instanceof Error ? err.message : 'به‌روزرسانی روز حضور ناموفق بود.'
+          unknownErrorMessage(err, 'به‌روزرسانی روز حضور ناموفق بود.')
         );
-        await load();
+        reload();
       }
     },
-    [kind, load, patchLocalCourse, snapshot]
+    [kind, patchLocalCourse, reload, setSnapshotData, snapshot]
   );
 
   const submit = useCallback(async () => {
@@ -201,17 +246,17 @@ export function useOrganizationalCapacitiesPage() {
           selectedDays: course.selectedDays,
         })),
       });
-      setSnapshot(next);
+      setSnapshotData(next);
       setConfirmOpen(false);
       toast.success('ظرفیت‌ها با موفقیت برای مدیریت ارسال شد.');
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'ارسال نهایی ظرفیت‌ها ناموفق بود.'
+        unknownErrorMessage(err, 'ارسال نهایی ظرفیت‌ها ناموفق بود.')
       );
     } finally {
       setActionBusy(false);
     }
-  }, [kind, snapshot]);
+  }, [kind, setSnapshotData, snapshot]);
 
   const locked = snapshot?.status !== 'draft';
 
@@ -222,7 +267,7 @@ export function useOrganizationalCapacitiesPage() {
     snapshot,
     isLoading,
     error,
-    reload: () => void load(),
+    reload,
     actionBusy,
     locked: Boolean(locked),
     confirmOpen,
