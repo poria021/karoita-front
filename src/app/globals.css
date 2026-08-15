@@ -818,13 +818,14 @@ input[readonly]:-webkit-autofill {
 
 [data-rich-colors='true'][data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-button],
 [data-sonner-toast][data-styled='true'][data-type='success'].kv-toast-undoable--success [data-button] {
-  background: var(--kv-danger) !important;
-  color: var(--kv-danger-fg) !important;
+  background: var(--kv-danger-soft) !important;
+  color: var(--kv-danger-soft-fg) !important;
+  border: 1px solid var(--kv-danger-border) !important;
   border-radius: var(--radius-kv-control) !important;
 }
 
 [data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-button]:hover {
-  background: var(--kv-danger-hover) !important;
+  background: var(--kv-danger-soft-hover) !important;
 }
 
 [data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-close-button] {

@@ -59,9 +59,10 @@ function undoableToastChrome(
       className: 'kv-toast-undoable kv-toast-undoable--success',
       style,
       actionButtonStyle: {
-        background: 'var(--kv-danger)',
-        color: 'var(--kv-danger-fg)',
+        background: 'var(--kv-danger-soft)',
+        color: 'var(--kv-danger-soft-fg)',
         borderRadius: 'var(--radius-kv-control)',
+        border: '1px solid var(--kv-danger-border)',
       },
     };
   }
