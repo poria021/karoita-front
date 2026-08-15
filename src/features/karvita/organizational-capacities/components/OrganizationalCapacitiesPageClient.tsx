@@ -93,7 +93,7 @@ export function OrganizationalCapacitiesPageClient() {
                 color="cta"
                 appearance="solid"
                 size="md"
-                disabled={page.locked || page.actionBusy}
+                disabled={page.locked || page.actionBusy || !page.isDirty}
                 loading={page.actionBusy}
                 icon={<FaIcon icon={faIcons.cloudArrowUp} size="xs" />}
                 onClick={() => page.setConfirmOpen(true)}
@@ -113,7 +113,7 @@ export function OrganizationalCapacitiesPageClient() {
         description="آیا مایل به ثبت نهایی ظرفیت‌های پذیرش اعلام‌شده هستید؟ پس از ارسال، پنل سهمیه شما قفل خواهد شد."
         confirmText="ارسال نهایی"
         cancelText="انصراف"
-        confirmDisabled={page.actionBusy}
+        confirmDisabled={page.actionBusy || !page.isDirty}
       />
     </OrganizationalCapacitiesGuard>
   );

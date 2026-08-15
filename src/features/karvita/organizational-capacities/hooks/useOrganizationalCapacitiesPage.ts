@@ -43,6 +43,19 @@ function capacitiesSnapshotKey(
   return ['org-capacities', 'snapshot', kind, termId] as const;
 }
 
+/** Stable signature of editable draft fields for dirty-checking. */
+function courseDraftSignature(
+  courses: readonly OrganizationalCapacityCourse[]
+): string {
+  return JSON.stringify(
+    courses.map((course) => ({
+      id: course.id,
+      total: course.total,
+      selectedDays: [...course.selectedDays].sort(),
+    }))
+  );
+}
+
 export function useOrganizationalCapacitiesPage() {
   const queryClient = useQueryClient();
   const getChrome = useDashboardModuleCache((state) => state.getChrome);
@@ -59,6 +72,10 @@ export function useOrganizationalCapacitiesPage() {
   const [actionBusy, setActionBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
+  const [baselineScope, setBaselineScope] = useState('');
+  const [baselineSignature, setBaselineSignature] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     setChrome<CapacitiesChrome>(CHROME_ID, { kind, termId });
@@ -113,6 +130,21 @@ export function useOrganizationalCapacitiesPage() {
     : snapshotError
       ? unknownErrorMessage(snapshotError, 'بارگذاری ظرفیت‌ها ناموفق بود.')
       : null;
+
+  useEffect(() => {
+    const scope = `${kind}::${resolvedTermId}`;
+    if (!snapshotData || snapshotData.termId !== resolvedTermId) return;
+    if (baselineScope === scope) return;
+    setBaselineScope(scope);
+    setBaselineSignature(courseDraftSignature(snapshotData.courses));
+  }, [baselineScope, kind, resolvedTermId, snapshotData]);
+
+  const isDirty = useMemo(() => {
+    if (!snapshot || snapshot.status !== 'draft' || baselineSignature == null) {
+      return false;
+    }
+    return courseDraftSignature(snapshot.courses) !== baselineSignature;
+  }, [baselineSignature, snapshot]);
 
   const reload = useCallback(() => {
     void refetchTerms();
@@ -248,6 +280,8 @@ export function useOrganizationalCapacitiesPage() {
       });
       setSnapshotData(next);
       setConfirmOpen(false);
+      setBaselineScope(`${kind}::${next.termId}`);
+      setBaselineSignature(courseDraftSignature(next.courses));
       toast.success('ظرفیت‌ها با موفقیت برای مدیریت ارسال شد.');
     } catch (err) {
       toast.error(
@@ -270,6 +304,7 @@ export function useOrganizationalCapacitiesPage() {
     reload,
     actionBusy,
     locked: Boolean(locked),
+    isDirty,
     confirmOpen,
     setConfirmOpen,
     expandedCourseId,
