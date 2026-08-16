@@ -13,7 +13,7 @@ import type {
 } from '@/types/organizational-capacities';
 import type { AcademicTermType } from '@/types/syllabus-config';
 
-const STORAGE_KEY = 'karvita_mock_organizational_capacities_v2';
+const STORAGE_KEY = 'karvita_mock_organizational_capacities_v3';
 
 type ActorBucket = {
   status: OrganizationalCapacitySubmissionStatus;
@@ -53,9 +53,7 @@ function buildSeedCourses(
       level: level as 1 | 2 | 3 | 4,
       total: 15,
       confirmed: level === 1 ? 2 : level === 2 ? 1 : 0,
-      selectedDays: (level % 2 === 0
-        ? ['mon']
-        : ['sat']) as OrganizationalCapacityWeekday[],
+      selectedDays: ['sat'] as OrganizationalCapacityWeekday[],
     }));
   }
   return [1, 2].map((level) => ({
@@ -65,7 +63,7 @@ function buildSeedCourses(
     level: level as 1 | 2,
     total: 15,
     confirmed: level === 1 ? 1 : 0,
-    selectedDays: ['tue'] as OrganizationalCapacityWeekday[],
+    selectedDays: ['sat'] as OrganizationalCapacityWeekday[],
   }));
 }
 
