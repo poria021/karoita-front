@@ -27,7 +27,7 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
 }
 
 /**
- * Edge Proxy — فقط حضور نشست (کوکی/مارکر)، نه نقش یا مجوز.
+ * Auth Middleware — فقط حضور نشست (کوکی/مارکر)، نه نقش یا مجوز.
  *
  * - مسیرهای public → عبور
  * - `/karvita/*` بدون نشست → لاگین + returnUrl
