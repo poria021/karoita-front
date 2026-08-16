@@ -25,21 +25,16 @@ type NetworkToastHandlers = {
 };
 
 /** Public NCSI-style fallbacks when no production API URL is configured. */
-const PUBLIC_PROBE_URLS = [
-  'https://www.msftconnecttest.com/connecttest.txt',
-  'https://captive.apple.com/hotspot-detect.html',
-  // Extra diversity so a single blocked NCSI host does not force false offline.
-  'https://www.cloudflare.com/cdn-cgi/trace',
-] as const;
+const PUBLIC_PROBE_URLS: readonly string[] = [];
 
-const PROBE_TIMEOUT_MS = 2500;
+const PROBE_TIMEOUT_MS = 8000;
 /** While offline — retry often so reconnect feels snappy. */
-const OFFLINE_POLL_MS = 4000;
+const OFFLINE_POLL_MS = 6000;
 /** While stably online — keep traffic low. */
-const ONLINE_POLL_MS = 25_000;
+const ONLINE_POLL_MS = 45_000;
 /** After browser `online` / tab focus — verify quickly once. */
-const VERIFY_POLL_MS = 1500;
-const FAIL_STREAK_TO_OFFLINE = 2;
+const VERIFY_POLL_MS = 3000;
+const FAIL_STREAK_TO_OFFLINE = 4;
 
 let initialized = false;
 let toastHandlers: NetworkToastHandlers | null = null;
@@ -148,6 +143,14 @@ async function syncConnectivity(announce: boolean): Promise<void> {
     return;
   }
 
+  const urls = resolveProbeUrls();
+  if (urls.length === 0) {
+    failStreak = 0;
+    applyOnline(true, announce);
+    scheduleNextPoll(ONLINE_POLL_MS);
+    return;
+  }
+
   const reachable = await probeInternetReachable();
   if (reachable) {
     failStreak = 0;
@@ -156,13 +159,10 @@ async function syncConnectivity(announce: boolean): Promise<void> {
     return;
   }
 
-  failStreak += 1;
-  if (failStreak >= FAIL_STREAK_TO_OFFLINE) {
-    applyOnline(false, announce);
-  }
-  scheduleNextPoll(
-    useNetworkStore.getState().isOnline ? VERIFY_POLL_MS : OFFLINE_POLL_MS
-  );
+  // Probe failed, but navigator.onLine is true -> NEVER set offline solely due to probe failure.
+  failStreak = 0;
+  applyOnline(true, announce);
+  scheduleNextPoll(ONLINE_POLL_MS);
 }
 
 function queueSync(announce: boolean): void {
