@@ -868,19 +868,18 @@ input[readonly]:-webkit-autofill {
  * Grid only; soft brand wash lives on `.kv-brand-atmosphere` (marketing).
  * Dashboard shells must NOT use this (rule 90).
  */
+
 .kv-blueprint-bg {
   background-color: var(--kv-canvas);
   background-image:
-    radial-gradient(circle, rgba(16, 78, 198, 0.05) 1px, transparent 1px),
     linear-gradient(to right, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(203, 213, 225, 0.22) 1px, transparent 1px);
-  background-size: 24px 24px, 72px 72px, 72px 72px;
+  background-size: 72px 72px, 72px 72px;
   background-position: center top;
 }
 
 .dark .kv-blueprint-bg {
   background-image:
-    radial-gradient(circle, hsl(221 85% 70% / 0.015) 1px, transparent 1px),
     linear-gradient(to right, hsl(220 14% 70% / 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, hsl(220 14% 70% / 0.02) 1px, transparent 1px);
 }

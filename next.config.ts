@@ -47,7 +47,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   experimental: {
-    turbopackMemoryEviction: 'full',
     authInterrupts: true,
     optimizePackageImports: [
       '@fortawesome/free-solid-svg-icons',

@@ -27,14 +27,16 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
 }
 
 /**
- * Auth Middleware — فقط حضور نشست (کوکی/مارکر)، نه نقش یا مجوز.
+ * proxy — فقط حضور نشست (کوکی/مارکر)، نه نقش یا مجوز.
  *
  * - مسیرهای public → عبور
  * - `/karvita/*` بدون نشست → لاگین + returnUrl
  * - بقیهٔ URLهای ناشناس (لندینگ غلط و …) → عبور تا `not-found` ریشه/مارکتینگ
  *   نه ریدایرکت اجباری به لاگین
  */
-export async function authMiddleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
+    // console.log('✅ Proxy is working on path:', request.nextUrl.pathname);
+
   const { pathname } = request.nextUrl;
   const loggedIn = hasClientSession(request);
   const loginPath = RouteService.auth.login();
