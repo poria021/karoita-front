@@ -15,7 +15,6 @@ import {
   KvDropdownMenuTrigger,
 } from '@/components/shared/KvDropdownMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { ConnectivityStatusDot } from '@/components/shared/shell/ConnectivityStatusDot';
 import { shellCopy } from '@/components/shared/shell/shellCopy';
 import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
@@ -197,7 +196,6 @@ export function UserAccountMenu({
             >
               <span className="relative flex size-8 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={faIcons.user} size="sm" />
-                <ConnectivityStatusDot />
               </span>
               <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start sm:text-start">
                 <KvTypography variant="subtitle" as="span" truncate>
@@ -242,7 +240,6 @@ export function UserAccountMenu({
             >
               <div className="relative flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={faIcons.user} size="lg" />
-                <ConnectivityStatusDot />
               </div>
               <div
                 className={cn(
