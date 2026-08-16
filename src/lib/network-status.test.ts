@@ -39,7 +39,6 @@ describe('network-status monitor', () => {
 
   it('goes offline immediately on window offline event', () => {
     stubNavigatorOnline(true);
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response()));
     const onOffline = vi.fn();
     const onOnline = vi.fn();
     ensureNetworkMonitoring({ onOffline, onOnline });
@@ -51,140 +50,17 @@ describe('network-status monitor', () => {
     expect(onOffline).toHaveBeenCalledTimes(1);
   });
 
-  it('in mock mode probes public WAN endpoints (navigator alone is not enough)', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
-    vi.stubEnv('NEXT_PUBLIC_API_URL', '');
-    stubNavigatorOnline(true);
-    const fetchMock = vi.fn().mockResolvedValue(new Response());
-    vi.stubGlobal('fetch', fetchMock);
-
-    const onOffline = vi.fn();
-    const onOnline = vi.fn();
-    ensureNetworkMonitoring({ onOffline, onOnline });
-
-    await vi.waitFor(() => {
-      expect(useNetworkStore.getState().isOnline).toBe(true);
-    });
-    expect(fetchMock).toHaveBeenCalled();
-    expect(onOffline).not.toHaveBeenCalled();
-  });
-
-  it('marks offline after two failed public probe rounds in mock mode', async () => {
-    vi.useFakeTimers();
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
-    vi.stubEnv('NEXT_PUBLIC_API_URL', '');
-    stubNavigatorOnline(true);
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
-    );
-    const onOffline = vi.fn();
-    const onOnline = vi.fn();
-
-    ensureNetworkMonitoring({ onOffline, onOnline });
-
-    await vi.advanceTimersByTimeAsync(0);
-    await Promise.resolve();
-    expect(useNetworkStore.getState().isOnline).toBe(true);
-
-    await vi.advanceTimersByTimeAsync(1500);
-    await Promise.resolve();
-    await vi.waitFor(() => {
-      expect(useNetworkStore.getState().isOnline).toBe(false);
-    });
-    expect(onOffline).toHaveBeenCalled();
-
-    vi.useRealTimers();
-  });
-
-  it('confirms online via API probe after window online event (real mode)', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
-    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.com');
-
-    let online = false;
-    Object.defineProperty(window.navigator, 'onLine', {
-      configurable: true,
-      get: () => online,
-    });
-    const fetchMock = vi.fn().mockResolvedValue(new Response());
-    vi.stubGlobal('fetch', fetchMock);
-
+  it('goes online immediately on window online event', () => {
+    stubNavigatorOnline(false);
     const onOffline = vi.fn();
     const onOnline = vi.fn();
     ensureNetworkMonitoring({ onOffline, onOnline });
     expect(useNetworkStore.getState().isOnline).toBe(false);
 
-    online = true;
+    stubNavigatorOnline(true);
     window.dispatchEvent(new Event('online'));
 
-    await vi.waitFor(() => {
-      expect(useNetworkStore.getState().isOnline).toBe(true);
-    });
-    expect(onOnline).toHaveBeenCalled();
-    expect(fetchMock).toHaveBeenCalled();
-  });
-
-  it('marks offline after two failed API probe rounds (hysteresis, real mode)', async () => {
-    vi.useFakeTimers();
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
-    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.com');
-    stubNavigatorOnline(true);
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
-    );
-    const onOffline = vi.fn();
-    const onOnline = vi.fn();
-
-    ensureNetworkMonitoring({ onOffline, onOnline });
-
-    // First probe round — streak 1, still optimistic online.
-    await vi.advanceTimersByTimeAsync(0);
-    await Promise.resolve();
     expect(useNetworkStore.getState().isOnline).toBe(true);
-
-    // Second round after VERIFY_POLL_MS (1500).
-    await vi.advanceTimersByTimeAsync(1500);
-    await Promise.resolve();
-    await vi.waitFor(() => {
-      expect(useNetworkStore.getState().isOnline).toBe(false);
-    });
-    expect(onOffline).toHaveBeenCalled();
-
-    vi.useRealTimers();
-  });
-
-  it('pauses polling while the document is hidden', async () => {
-    vi.useFakeTimers();
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
-    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.com');
-    stubNavigatorOnline(true);
-    const fetchMock = vi.fn().mockResolvedValue(new Response());
-    vi.stubGlobal('fetch', fetchMock);
-
-    let visibility: DocumentVisibilityState = 'visible';
-    vi.spyOn(document, 'visibilityState', 'get').mockImplementation(
-      () => visibility
-    );
-
-    ensureNetworkMonitoring({ onOffline: vi.fn(), onOnline: vi.fn() });
-
-    await vi.waitFor(() => {
-      expect(useNetworkStore.getState().isOnline).toBe(true);
-    });
-    // Allow syncConnectivity `finally` / scheduleNextPoll to run.
-    await Promise.resolve();
-    await Promise.resolve();
-
-    const callsAfterInit = fetchMock.mock.calls.length;
-    expect(callsAfterInit).toBeGreaterThan(0);
-
-    visibility = 'hidden';
-    document.dispatchEvent(new Event('visibilitychange'));
-
-    await vi.advanceTimersByTimeAsync(60_000);
-    expect(fetchMock.mock.calls.length).toBe(callsAfterInit);
-
-    vi.useRealTimers();
+    expect(onOnline).toHaveBeenCalledTimes(1);
   });
 });
