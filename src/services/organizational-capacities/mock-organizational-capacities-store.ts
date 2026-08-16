@@ -170,9 +170,6 @@ export function updateMockOrganizationalCapacityCourse(
   const store = readStore();
   const key = actorKey(actorId, input.kind);
   const bucket = ensureBucket(term.id, actorId, input.kind);
-  if (bucket.status !== 'draft') {
-    throw new Error('پس از ارسال نهایی، ویرایش ظرفیت قفل شده است.');
-  }
 
   const maxCapacity = maxCapacityFromSyllabus();
   const courseIndex = bucket.courses.findIndex(
@@ -219,9 +216,6 @@ export function submitMockOrganizationalCapacities(
   const store = readStore();
   const key = actorKey(actorId, input.kind);
   const bucket = ensureBucket(term.id, actorId, input.kind);
-  if (bucket.status !== 'draft') {
-    throw new Error('ظرفیت این نیم‌سال قبلاً ارسال شده و قفل است.');
-  }
 
   const maxCapacity = maxCapacityFromSyllabus();
   const byId = new Map(input.courses.map((row) => [row.courseId, row]));
@@ -249,7 +243,7 @@ export function submitMockOrganizationalCapacities(
   });
 
   store[term.id]![key] = {
-    status: 'pending_admin',
+    status: 'draft',
     courses: nextCourses,
   };
   writeStore(store);

@@ -49,21 +49,13 @@ export function OrganizationalCapacitiesPageClient() {
             <KvBusySurface className="min-h-[280px] rounded-kv-control" />
           ) : (
             <>
-              {page.locked ? (
-                <KvAlert
-                  variant="info"
-                  title="ظرفیت این نیم‌سال ارسال شده است"
-                  description="پس از ثبت نهایی، ویرایش ظرفیت و روزهای حضور تا تعیین تکلیف مدیریت قفل می‌ماند."
-                />
-              ) : null}
-
               <OrganizationalCapacitiesSummary summary={page.snapshot.summary} />
 
               <div className="hidden lg:block">
                 <OrganizationalCapacitiesTable
                   courses={page.snapshot.courses}
                   maxCapacity={page.snapshot.maxCapacity}
-                  locked={page.locked}
+                  locked={false}
                   resetKey={resetKey}
                   onTotalChange={(courseId, value) =>
                     page.updateCourseTotal(courseId, value)
@@ -77,7 +69,7 @@ export function OrganizationalCapacitiesPageClient() {
               <OrganizationalCapacitiesMobileList
                 courses={page.snapshot.courses}
                 maxCapacity={page.snapshot.maxCapacity}
-                locked={page.locked}
+                locked={false}
                 expandedCourseId={page.expandedCourseId}
                 onExpandedChange={page.setExpandedCourseId}
                 onTotalChange={(courseId, value) =>
@@ -94,12 +86,12 @@ export function OrganizationalCapacitiesPageClient() {
                   color="cta"
                   appearance="solid"
                   size="md"
-                  disabled={page.locked || page.actionBusy || !page.isDirty}
+                  disabled={page.actionBusy || !page.isDirty}
                   loading={page.actionBusy}
                   icon={<FaIcon icon={faIcons.cloudArrowUp} size="xs" />}
                   onClick={() => page.setConfirmOpen(true)}
                 >
-                  ثبت نهایی و ارسال به مدیریت
+                  ثبت و ذخیره تغییرات ظرفیت‌ها
                 </KvButton>
               </div>
             </>
@@ -111,9 +103,9 @@ export function OrganizationalCapacitiesPageClient() {
         isOpen={page.confirmOpen}
         onClose={() => page.setConfirmOpen(false)}
         onConfirm={() => void page.submit()}
-        title="تایید و ارسال نهایی ظرفیت‌ها"
-        description="آیا مایل به ثبت نهایی ظرفیت‌های پذیرش اعلام‌شده هستید؟ پس از ارسال، پنل سهمیه شما قفل خواهد شد."
-        confirmText="ارسال نهایی"
+        title="تایید و ذخیره ظرفیت‌ها"
+        description="آیا مایل به ذخیره تغییرات ظرفیت‌های پذیرش اعلام‌شده هستید؟"
+        confirmText="ذخیره تغییرات"
         cancelText="انصراف"
         confirmDisabled={page.actionBusy || !page.isDirty}
       />

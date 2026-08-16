@@ -140,7 +140,7 @@ export function useOrganizationalCapacitiesPage() {
   }, [baselineScope, kind, resolvedTermId, snapshotData]);
 
   const isDirty = useMemo(() => {
-    if (!snapshot || snapshot.status !== 'draft' || baselineSignature == null) {
+    if (!snapshot || baselineSignature == null) {
       return false;
     }
     return courseDraftSignature(snapshot.courses) !== baselineSignature;
@@ -205,7 +205,7 @@ export function useOrganizationalCapacitiesPage() {
   /** Local draft only — persist happens on final submit. */
   const updateCourseTotal = useCallback(
     (courseId: string, rawValue: string) => {
-      if (!snapshot || snapshot.status !== 'draft') return;
+      if (!snapshot) return;
       const course = snapshot.courses.find((row) => row.id === courseId);
       if (!course) return;
       const english = persianToEnglishDigits(rawValue);
@@ -235,7 +235,7 @@ export function useOrganizationalCapacitiesPage() {
   /** Local draft only — persist happens on final submit. */
   const toggleDay = useCallback(
     (courseId: string, day: OrganizationalCapacityWeekday) => {
-      if (!snapshot || snapshot.status !== 'draft') return;
+      if (!snapshot) return;
       const course = snapshot.courses.find((row) => row.id === courseId);
       if (!course) return;
       const selectedDays = course.selectedDays.includes(day) ? [] : [day];
@@ -261,17 +261,17 @@ export function useOrganizationalCapacitiesPage() {
       setConfirmOpen(false);
       setBaselineScope(`${kind}::${next.termId}`);
       setBaselineSignature(courseDraftSignature(next.courses));
-      toast.success('ظرفیت‌ها با موفقیت برای مدیریت ارسال شد.');
+      toast.success('ظرفیت‌ها با موفقیت ذخیره شدند.');
     } catch (err) {
       toast.error(
-        unknownErrorMessage(err, 'ارسال نهایی ظرفیت‌ها ناموفق بود.')
+        unknownErrorMessage(err, 'ذخیره ظرفیت‌ها ناموفق بود.')
       );
     } finally {
       setActionBusy(false);
     }
   }, [kind, setSnapshotData, snapshot]);
 
-  const locked = snapshot?.status !== 'draft';
+  const locked = false;
 
   return {
     kind,

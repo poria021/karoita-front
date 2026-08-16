@@ -36,7 +36,7 @@ describe('mock organizational capacities store', () => {
     expect(next.courses[0]?.selectedDays).toEqual(['mon']);
   });
 
-  it('locks the tab after final submit', () => {
+  it('allows updating capacities repeatedly even after submit', () => {
     const snapshot = getMockOrganizationalCapacities(
       { kind: 'apprenticeship', termId: 'term_modular_1' },
       ACTOR
@@ -53,18 +53,18 @@ describe('mock organizational capacities store', () => {
       },
       ACTOR
     );
-    expect(submitted.status).toBe('pending_admin');
-    expect(() =>
-      updateMockOrganizationalCapacityCourse(
-        {
-          kind: 'apprenticeship',
-          termId: snapshot.termId,
-          courseId: snapshot.courses[0]!.id,
-          total: 10,
-          selectedDays: ['tue'],
-        },
-        ACTOR
-      )
-    ).toThrow(/قفل/);
+    expect(submitted.status).toBe('draft');
+
+    const updated = updateMockOrganizationalCapacityCourse(
+      {
+        kind: 'apprenticeship',
+        termId: snapshot.termId,
+        courseId: snapshot.courses[0]!.id,
+        total: 10,
+        selectedDays: ['tue'],
+      },
+      ACTOR
+    );
+    expect(updated.courses[0]?.total).toBe(10);
   });
 });

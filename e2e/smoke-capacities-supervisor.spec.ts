@@ -50,7 +50,7 @@ test.describe('supervisor capacities smoke', () => {
     });
     await expect(page.getByRole('table')).toBeVisible();
     await expect(
-      page.getByRole('button', { name: /ثبت نهایی و ارسال به مدیریت/ })
+      page.getByRole('button', { name: /ثبت و ذخیره تغییرات ظرفیت‌ها/ })
     ).toBeVisible();
   });
 });
