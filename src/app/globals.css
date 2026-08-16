@@ -776,10 +776,6 @@ input[readonly]:-webkit-autofill {
   }
 }
 
-[data-sonner-toast].kv-toast-undoable {
-  overflow: hidden;
-}
-
 [data-sonner-toast].kv-toast-undoable::before {
   content: '' !important;
   position: absolute;
@@ -787,51 +783,18 @@ input[readonly]:-webkit-autofill {
   right: 0;
   bottom: 0;
   z-index: 2;
-  height: 3px;
+  height: 2px;
   width: 100%;
   pointer-events: none;
   background: var(--kv-brand);
   transform-origin: left center;
+  border-bottom-left-radius: var(--radius, 8px);
+  border-bottom-right-radius: var(--radius, 8px);
   animation: kv-toast-progress-shrink var(--kv-toast-duration, 5s) linear forwards;
 }
 
 [data-sonner-toast].kv-toast-undoable:hover::before {
   animation-play-state: paused;
-}
-
-[data-sonner-toast].kv-toast-undoable--success::before {
-  background: var(--kv-success);
-}
-
-/* Success undoable: soft green surface + solid green undo action */
-[data-rich-colors='true'][data-sonner-toast][data-type='success'].kv-toast-undoable--success,
-[data-sonner-toast][data-type='success'].kv-toast-undoable--success {
-  background-color: var(--kv-success-soft) !important;
-  border-color: var(--kv-success-border) !important;
-  color: var(--kv-success-soft-fg) !important;
-}
-
-[data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-description] {
-  color: var(--kv-success-soft-fg) !important;
-  opacity: 0.85;
-}
-
-[data-rich-colors='true'][data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-button],
-[data-sonner-toast][data-styled='true'][data-type='success'].kv-toast-undoable--success [data-button] {
-  background: var(--kv-danger-soft) !important;
-  color: var(--kv-danger-soft-fg) !important;
-  border: 1px solid var(--kv-danger-border) !important;
-  border-radius: var(--radius-kv-control) !important;
-}
-
-[data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-button]:hover {
-  background: var(--kv-danger-soft-hover) !important;
-}
-
-[data-sonner-toast][data-type='success'].kv-toast-undoable--success [data-close-button] {
-  background: var(--kv-success-soft) !important;
-  border-color: var(--kv-success-border) !important;
-  color: var(--kv-success-soft-fg) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

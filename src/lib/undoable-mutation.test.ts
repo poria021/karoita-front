@@ -124,7 +124,7 @@ describe('scheduleUndoableMutation', () => {
       className?: string;
       actionButtonStyle?: { background?: string };
     };
-    expect(opts.className).toContain('kv-toast-undoable--success');
+    expect(opts.className).toContain('kv-toast-undoable');
     expect(opts.actionButtonStyle?.background).toBe('var(--kv-danger-soft)');
   });
 });

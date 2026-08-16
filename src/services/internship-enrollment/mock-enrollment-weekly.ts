@@ -19,6 +19,7 @@ import {
   WEEKLY_REPORT_MAX_TOTAL_SIZE_MB,
 } from '@/services/internship-enrollment/weekly-report-attachment-limits';
 import {
+  APPRENTICESHIP_DEFAULT_WEEKS,
   INTERNSHIP_DEFAULT_WEEKS,
   readSyllabusSnapshot,
 } from '@/services/syllabus-config/mock-syllabus-store';
@@ -102,15 +103,20 @@ export function buildWeeklySessions(input: {
   );
   const offering = syllabus.offerings[offeringId];
   /** After syllabus save: card count = rows of that course offering. */
-  const weeks = offering
-    ? offering.weeks
-    : Array.from({ length: INTERNSHIP_DEFAULT_WEEKS }, (_, index) => ({
-        id: `week-${index + 1}`,
-        title: `هفته ${index + 1}`,
-        suffix: String(index + 1),
-        weight: 1,
-        status: 'active' as const,
-      }));
+  const defaultCount =
+    input.kind === 'apprenticeship'
+      ? APPRENTICESHIP_DEFAULT_WEEKS
+      : INTERNSHIP_DEFAULT_WEEKS;
+  const weeks =
+    offering && offering.weeks && offering.weeks.length > 0
+      ? offering.weeks
+      : Array.from({ length: defaultCount }, (_, index) => ({
+          id: `week-${index + 1}`,
+          title: `هفته ${index + 1}`,
+          suffix: String(index + 1),
+          weight: 1,
+          status: 'active' as const,
+        }));
 
   const snapshot = readSnapshot();
 

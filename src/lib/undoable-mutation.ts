@@ -54,22 +54,17 @@ function undoableToastChrome(
     ['--kv-toast-duration' as string]: `${durationMs}ms`,
   } as CSSProperties;
 
-  if (tone === 'success') {
-    return {
-      className: 'kv-toast-undoable kv-toast-undoable--success',
-      style,
-      actionButtonStyle: {
-        background: 'var(--kv-danger-soft)',
-        color: 'var(--kv-danger-soft-fg)',
-        borderRadius: 'var(--radius-kv-control)',
-        border: '1px solid var(--kv-danger-border)',
-      },
-    };
-  }
-
   return {
     className: 'kv-toast-undoable',
     style,
+    actionButtonStyle: {
+      background: 'var(--kv-danger-soft)',
+      color: 'var(--kv-danger-soft-fg)',
+      borderRadius: 'var(--radius-kv-control)',
+      border: '1px solid var(--kv-danger-border)',
+      paddingLeft: '0.85rem',
+      paddingRight: '0.85rem',
+    },
   };
 }
 
@@ -82,10 +77,6 @@ function showUndoableToast(
   if (tone === 'warning') return toast.warning(message, options);
   if (tone === 'success') return toast.success(message, options);
   return toast(message, options);
-}
-
-function defaultUndoDescription(undoLabel: string): string {
-  return `برای لغو، قبل از پایان زمان روی «${undoLabel}» بزنید.`;
 }
 
 /**
@@ -102,8 +93,7 @@ export function scheduleUndoableMutation<T>(
 
   const durationMs = options.durationMs ?? UNDOABLE_MUTATION_DEFAULT_MS;
   const undoLabel = options.undoLabel ?? 'لغو';
-  const description =
-    options.description ?? defaultUndoDescription(undoLabel);
+  const description = options.description;
   const tone = options.tone ?? 'default';
 
   options.apply();
@@ -166,8 +156,7 @@ export function scheduleUndoableLocalChange(
   let undone = false;
   const durationMs = options.durationMs ?? UNDOABLE_MUTATION_DEFAULT_MS;
   const undoLabel = options.undoLabel ?? 'لغو';
-  const description =
-    options.description ?? defaultUndoDescription(undoLabel);
+  const description = options.description;
   const tone = options.tone ?? 'default';
 
   options.apply();

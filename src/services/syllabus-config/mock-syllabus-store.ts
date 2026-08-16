@@ -11,6 +11,7 @@ import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 import {
   buildCourseOfferingId,
+  findCatalogById,
   findCatalogByTitle,
   getCatalogForTermType,
   legacyOfferingStorageKey,
@@ -256,19 +257,31 @@ export function readWeeksFromSnapshot(
 ): SyllabusWeek[] {
   const id = buildCourseOfferingId(termId, courseCatalogId);
   const record = snapshot.offerings[id];
-  return record ? structuredClone(record.weeks) : [];
+  if (record && record.weeks && record.weeks.length > 0) {
+    return structuredClone(record.weeks);
+  }
+  const term = snapshot.terms.find((t) => t.id === termId);
+  if (!term) return [];
+  const catalog = findCatalogById(term.type, courseCatalogId);
+  if (!catalog) return [];
+  const count = defaultWeekCount(catalog.type);
+  return buildSeedWeeks(count, 'active');
 }
 
 export function activateOfferingInSnapshot(
   draft: SyllabusConfigSnapshot,
   termId: string,
   courseCatalogId: string,
-  _kind: CourseOfferingKind
+  kind: CourseOfferingKind
 ): CourseOfferingRecord {
   const id = buildCourseOfferingId(termId, courseCatalogId);
   const existing = draft.offerings[id];
+  const count = defaultWeekCount(kind);
   if (existing) {
     existing.isOffered = true;
+    if (!existing.weeks || existing.weeks.length === 0) {
+      existing.weeks = buildSeedWeeks(count, 'active');
+    }
     return existing;
   }
 
@@ -277,7 +290,7 @@ export function activateOfferingInSnapshot(
     termId,
     courseCatalogId,
     isOffered: true,
-    weeks: [],
+    weeks: buildSeedWeeks(count, 'active'),
   };
   draft.offerings[id] = record;
   return record;

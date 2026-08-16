@@ -49,13 +49,22 @@ describe('syllabus-config mock helpers', () => {
     expect(isTermGateActive(true, '1499/01/01', today)).toBe(false);
   });
 
-  it('getWeeks is read-only and activate leaves weeks empty for manual setup', () => {
+  it('provides default weeks (16 for students/semester, 8 for skill learners/modular)', () => {
     const draft: SyllabusConfigSnapshot = {
       terms: [
         {
           id: 'term_2',
           title: 'نیم‌سال اول 1405-1406',
           type: 'semester',
+          isEnrollOpen: false,
+          isTermOpen: false,
+          enrollStart: '',
+          termStart: '',
+        },
+        {
+          id: 'term_modular_1',
+          title: 'دوره مهارتی 1405-1406',
+          type: 'modular',
           isEnrollOpen: false,
           isTermOpen: false,
           enrollStart: '',
@@ -68,9 +77,23 @@ describe('syllabus-config mock helpers', () => {
       passingScoreThreshold: 70,
     };
 
-    expect(
-      readWeeksFromSnapshot(draft, 'term_2', 'course_internship_1')
-    ).toEqual([]);
+    const studentWeeks = readWeeksFromSnapshot(
+      draft,
+      'term_2',
+      'course_internship_1'
+    );
+    expect(studentWeeks).toHaveLength(16);
+    expect(studentWeeks[0]?.title).toBe('هفته 1');
+    expect(studentWeeks[15]?.title).toBe('هفته 16');
+
+    const skillLearnerWeeks = readWeeksFromSnapshot(
+      draft,
+      'term_modular_1',
+      'course_apprenticeship_1'
+    );
+    expect(skillLearnerWeeks).toHaveLength(8);
+    expect(skillLearnerWeeks[0]?.title).toBe('هفته 1');
+    expect(skillLearnerWeeks[7]?.title).toBe('هفته 8');
 
     activateOfferingInSnapshot(
       draft,
@@ -79,12 +102,12 @@ describe('syllabus-config mock helpers', () => {
       'internship'
     );
 
-    const weeks = readWeeksFromSnapshot(
+    const activatedWeeks = readWeeksFromSnapshot(
       draft,
       'term_2',
       'course_internship_1'
     );
-    expect(weeks).toEqual([]);
+    expect(activatedWeeks).toHaveLength(16);
     expect(
       draft.offerings.off_term_2_course_internship_1?.isOffered
     ).toBe(true);
