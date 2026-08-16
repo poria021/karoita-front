@@ -15,7 +15,7 @@ export type AppNotification = {
 };
 
 export function isExpandableNotification(
-  notification: AppNotification
+  _notification: AppNotification
 ): boolean {
-  return notification.kind === 'message' && Boolean(notification.body?.trim());
+  return false;
 }

@@ -15,19 +15,17 @@ import {
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import { useNotificationsStore } from '@/store/useNotificationsStore';
-import { isExpandableNotification } from '@/types/notifications';
 import { formatNotificationTime } from '@/utils/formatJalaliDate';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 /**
- * منوی اعلان‌های هدر — پیام‌های کاربری قابل باز شدن؛ اعلان‌های سیستمی فقط متن ثابت.
+ * منوی اعلان‌های هدر — نمایش مستقیم و تک‌بخشی اعلان‌ها بدون آکاردئون یا دراور.
  */
 export function HeaderNotificationsMenu() {
   const notifications = useNotificationsStore((state) => state.notifications);
   const markAsRead = useNotificationsStore((state) => state.markAsRead);
   const markAllAsRead = useNotificationsStore((state) => state.markAllAsRead);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const unreadCount = notifications.filter((item) => !item.read).length;
@@ -35,10 +33,7 @@ export function HeaderNotificationsMenu() {
   return (
     <KvDropdownMenu
       open={isOpen}
-      onOpenChange={(open) => {
-        setIsOpen(open);
-        if (!open) setExpandedId(null);
-      }}
+      onOpenChange={setIsOpen}
     >
       <KvDropdownMenuTrigger asChild>
         <button
@@ -87,7 +82,6 @@ export function HeaderNotificationsMenu() {
               appearance="text"
               size="sm"
               onClick={() => {
-                setExpandedId(null);
                 void markAllAsRead();
               }}
             >
@@ -105,8 +99,6 @@ export function HeaderNotificationsMenu() {
             </div>
           ) : (
             notifications.map((notification) => {
-              const expandable = isExpandableNotification(notification);
-              const expanded = expandedId === notification.id;
               const isUnread = !notification.read;
 
               return (
@@ -120,22 +112,15 @@ export function HeaderNotificationsMenu() {
                 >
                   <button
                     type="button"
-                    aria-expanded={expandable ? expanded : undefined}
                     onClick={() => {
                       if (isUnread) {
                         void markAsRead(notification.id);
-                      }
-                      if (expandable) {
-                        setExpandedId((current) =>
-                          current === notification.id ? null : notification.id
-                        );
                       }
                     }}
                     className={cn(
                       'flex w-full flex-col gap-kv-micro px-3.5 py-2.5 text-start',
                       'transition-colors hover:bg-kv-surface-muted focus-visible:bg-kv-surface-muted',
-                      'focus-visible:outline-none',
-                      !expandable && 'cursor-default'
+                      'focus-visible:outline-none'
                     )}
                   >
                     <span className="flex w-full items-start gap-kv-inline">
@@ -174,31 +159,7 @@ export function HeaderNotificationsMenu() {
                           {formatNotificationTime(notification.createdAt)}
                         </KvTypography>
                       </span>
-                      {expandable ? (
-                        <FaIcon
-                          icon={faIcons.chevronDown}
-                          size="2xs"
-                          className={cn(
-                            'mt-1 shrink-0 text-kv-text-faint transition-transform',
-                            expanded && 'rotate-180'
-                          )}
-                          aria-hidden
-                        />
-                      ) : null}
                     </span>
-
-                    {expandable && expanded && notification.body ? (
-                      <span className="w-full origin-start scale-[0.92] ps-3.5 [&_span]:leading-snug">
-                        <KvTypography
-                          variant="overline"
-                          tone="muted"
-                          weight="medium"
-                          as="span"
-                        >
-                          {notification.body}
-                        </KvTypography>
-                      </span>
-                    ) : null}
                   </button>
                 </div>
               );
