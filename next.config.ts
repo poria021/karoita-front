@@ -1,9 +1,37 @@
 import type { NextConfig } from 'next';
 
+function buildCsp(): string {
+  const isDev = process.env.NODE_ENV !== 'production';
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
+  const directives: Record<string, string[]> = {
+    'default-src': ["'self'"],
+    'script-src': [
+      "'self'",
+      "'unsafe-inline'",
+      ...(isDev ? ["'unsafe-eval'"] : []),
+    ],
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'img-src': ["'self'", 'data:', 'blob:', 'https:'],
+    'font-src': ["'self'", 'data:'],
+    'connect-src': [
+      "'self'",
+      ...(apiUrl ? [apiUrl] : []),
+      ...(isDev ? ['ws:', 'wss:', 'http://localhost:*'] : []),
+    ],
+    'frame-ancestors': ["'self'"],
+    'form-action': ["'self'"],
+    'object-src': ["'none'"],
+    'base-uri': ["'self'"],
+  };
+
+  return Object.entries(directives)
+    .map(([key, values]) => `${key} ${values.join(' ')}`)
+    .join('; ');
+}
+
 /**
  * Conservative browser security headers (rule 45).
- * CSP intentionally omitted until a verified allowlist for Kv / Font Awesome /
- * Next assets exists — a brittle CSP would break auth/dashboard chrome.
  */
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -13,34 +41,27 @@ const securityHeaders = [
     key: 'Permissions-Policy',
     value: 'camera=(), microphone=(), geolocation=()',
   },
-  /** Mitigate some cross-origin window attacks; allow same-origin popups if needed later. */
   { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+  { key: 'Content-Security-Policy', value: buildCsp() },
 ];
 
 const nextConfig: NextConfig = {
-  /**
-   * Turbopack on Next <16.3 kept unbounded in-memory route caches and could OOM
-   * long `next dev` sessions. 16.3+ can evict after FS snapshots — prefer full
-   * reclaim on this large app so Windows/dev agents stay under pressure.
-   * @see https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopackMemoryEviction
-   */
   experimental: {
     turbopackMemoryEviction: 'full',
-    /** Enables `forbidden()` / `unauthorized()` + their App Router pages. */
     authInterrupts: true,
-     optimizePackageImports: [
-    '@fortawesome/free-solid-svg-icons',
-    '@fortawesome/react-fontawesome',
-     'radix-ui',
-  '@tanstack/react-query',
-  'react-hook-form',
-  'zod',
-  'cmdk',
-  'sonner',
-  'clsx',
-  'tailwind-merge',
-  'class-variance-authority',
-  ],
+    optimizePackageImports: [
+      '@fortawesome/free-solid-svg-icons',
+      '@fortawesome/react-fontawesome',
+      'radix-ui',
+      '@tanstack/react-query',
+      'react-hook-form',
+      'zod',
+      'cmdk',
+      'sonner',
+      'clsx',
+      'tailwind-merge',
+      'class-variance-authority',
+    ],
   },
   async headers() {
     return [
