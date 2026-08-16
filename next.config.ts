@@ -28,6 +28,19 @@ const nextConfig: NextConfig = {
     turbopackMemoryEviction: 'full',
     /** Enables `forbidden()` / `unauthorized()` + their App Router pages. */
     authInterrupts: true,
+     optimizePackageImports: [
+    '@fortawesome/free-solid-svg-icons',
+    '@fortawesome/react-fontawesome',
+     'radix-ui',
+  '@tanstack/react-query',
+  'react-hook-form',
+  'zod',
+  'cmdk',
+  'sonner',
+  'clsx',
+  'tailwind-merge',
+  'class-variance-authority',
+  ],
   },
   async headers() {
     return [
