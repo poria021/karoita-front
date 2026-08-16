@@ -24,14 +24,16 @@ type NetworkToastHandlers = {
   onOnline: () => void;
 };
 
-/** Public NCSI-style fallbacks when no production API URL is configured. */
-const PUBLIC_PROBE_URLS: readonly string[] = [];
+/** Reliable lightweight probe fallback (Cloudflare trace is globally fast and unblocked). */
+const PUBLIC_PROBE_URLS = [
+  'https://www.cloudflare.com/cdn-cgi/trace',
+] as const;
 
-const PROBE_TIMEOUT_MS = 8000;
+const PROBE_TIMEOUT_MS = 6000;
 /** While offline — retry often so reconnect feels snappy. */
-const OFFLINE_POLL_MS = 6000;
+const OFFLINE_POLL_MS = 5000;
 /** While stably online — keep traffic low. */
-const ONLINE_POLL_MS = 45_000;
+const ONLINE_POLL_MS = 30_000;
 /** After browser `online` / tab focus — verify quickly once. */
 const VERIFY_POLL_MS = 3000;
 const FAIL_STREAK_TO_OFFLINE = 4;
@@ -159,10 +161,13 @@ async function syncConnectivity(announce: boolean): Promise<void> {
     return;
   }
 
-  // Probe failed, but navigator.onLine is true -> NEVER set offline solely due to probe failure.
-  failStreak = 0;
-  applyOnline(true, announce);
-  scheduleNextPoll(ONLINE_POLL_MS);
+  failStreak += 1;
+  if (failStreak >= FAIL_STREAK_TO_OFFLINE) {
+    applyOnline(false, announce);
+  }
+  scheduleNextPoll(
+    useNetworkStore.getState().isOnline ? VERIFY_POLL_MS : OFFLINE_POLL_MS
+  );
 }
 
 function queueSync(announce: boolean): void {
