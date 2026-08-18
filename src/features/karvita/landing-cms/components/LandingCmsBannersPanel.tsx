@@ -2,13 +2,13 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
+import dynamic from 'next/dynamic';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTableCell } from '@/components/shared/table/KvTable';
-import dynamic from 'next/dynamic';
 
 import type {
   CreateLandingBannerInput,

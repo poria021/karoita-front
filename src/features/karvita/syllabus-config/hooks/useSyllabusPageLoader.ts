@@ -52,17 +52,23 @@ export function useSyllabusPageLoader({
   const loadRequestIdRef = useRef(0);
   const appliedSnapshotAtRef = useRef(0);
   const sectionRef = useRef(section);
-  sectionRef.current = section;
   const stateRefs = useRef({
     selectedTermId,
     audience,
     selectedCourseId: selectedCourse?.id,
   });
-  stateRefs.current = {
-    selectedTermId,
-    audience,
-    selectedCourseId: selectedCourse?.id,
-  };
+
+  useEffect(() => {
+    sectionRef.current = section;
+  }, [section]);
+
+  useEffect(() => {
+    stateRefs.current = {
+      selectedTermId,
+      audience,
+      selectedCourseId: selectedCourse?.id,
+    };
+  }, [audience, selectedCourse?.id, selectedTermId]);
 
   const snapshotQuery = useQuery({
     queryKey: syllabusSnapshotQueryKey,

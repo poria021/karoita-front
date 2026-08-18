@@ -1,7 +1,6 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -16,27 +15,6 @@ import { faIcons } from '@/utils/iconMap';
  */
 export function ThemeModeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <>
-        <span
-          className="inline-flex h-9 w-[4.5rem] items-center justify-center md:hidden"
-          aria-hidden
-        />
-        <span
-          className="hidden h-11 w-[4.25rem] items-center justify-center md:inline-flex"
-          aria-hidden
-        />
-      </>
-    );
-  }
-
   const isDark = resolvedTheme === 'dark';
 
   return (

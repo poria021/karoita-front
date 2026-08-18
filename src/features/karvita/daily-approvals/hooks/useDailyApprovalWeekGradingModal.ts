@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 import type {
@@ -14,7 +14,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 import { normalizeDailyApprovalScoreInput } from '../lib/dailyApprovalScore';
 
 type UseDailyApprovalWeekGradingModalInput = {
-  open: boolean;
+  open?: boolean;
   role: UserRole | null | undefined;
   trainee: DailyApprovalTrainee | null;
   week: DailyApprovalWeek | null;
@@ -47,8 +47,19 @@ function modalTitle(
   return `ارزیابی مدیر مدرسه - ${traineeName}`;
 }
 
+// تابع کمکی برای آماده‌سازی مقادیر اولیه (بیرون از هوک برای جلوگیری از رندرهای بیهوده)
+function getInitialGradingForm(week: DailyApprovalWeek | null) {
+  return {
+    advisorFeedback: week?.feedback.advisor ?? '',
+    scoreInput: week?.score === null ? '' : String(week?.score ?? ''),
+    mentorRating: (week?.feedback.mentorRating ?? '5') as DailyApprovalCompetencyRating,
+    mentorFeedback: week?.feedback.mentor ?? '',
+    principalRating: (week?.feedback.principalRating ?? '5') as DailyApprovalCompetencyRating,
+    principalFeedback: week?.feedback.principal ?? '',
+  };
+}
+
 export function useDailyApprovalWeekGradingModal({
-  open,
   role,
   trainee,
   week,
@@ -58,24 +69,36 @@ export function useDailyApprovalWeekGradingModal({
   onSaveMentor,
   onSavePrincipal,
 }: UseDailyApprovalWeekGradingModalInput) {
-  const [advisorFeedback, setAdvisorFeedback] = useState('');
-  const [scoreInput, setScoreInput] = useState('');
-  const [mentorRating, setMentorRating] =
-    useState<DailyApprovalCompetencyRating>('5');
-  const [mentorFeedback, setMentorFeedback] = useState('');
+  // مقداردهی با Lazy Initializer برای بهینه‌سازی عملکرد در رندر اول
+  const [advisorFeedback, setAdvisorFeedback] = useState(
+    () => getInitialGradingForm(week).advisorFeedback
+  );
+  const [scoreInput, setScoreInput] = useState(
+    () => getInitialGradingForm(week).scoreInput
+  );
+  const [mentorRating, setMentorRating] = useState<DailyApprovalCompetencyRating>(
+    () => getInitialGradingForm(week).mentorRating
+  );
+  const [mentorFeedback, setMentorFeedback] = useState(
+    () => getInitialGradingForm(week).mentorFeedback
+  );
   const [principalRating, setPrincipalRating] =
-    useState<DailyApprovalCompetencyRating>('5');
-  const [principalFeedback, setPrincipalFeedback] = useState('');
+    useState<DailyApprovalCompetencyRating>(
+      () => getInitialGradingForm(week).principalRating
+    );
+  const [principalFeedback, setPrincipalFeedback] = useState(
+    () => getInitialGradingForm(week).principalFeedback
+  );
 
-  useEffect(() => {
-    if (!open || !week) return;
-    setAdvisorFeedback(week.feedback.advisor ?? '');
-    setScoreInput(week.score === null ? '' : String(week.score));
-    setMentorRating(week.feedback.mentorRating ?? '5');
-    setMentorFeedback(week.feedback.mentor ?? '');
-    setPrincipalRating(week.feedback.principalRating ?? '5');
-    setPrincipalFeedback(week.feedback.principal ?? '');
-  }, [open, week]);
+  const resetForm = useCallback(() => {
+    const initial = getInitialGradingForm(week);
+    setAdvisorFeedback(initial.advisorFeedback);
+    setScoreInput(initial.scoreInput);
+    setMentorRating(initial.mentorRating);
+    setMentorFeedback(initial.mentorFeedback);
+    setPrincipalRating(initial.principalRating);
+    setPrincipalFeedback(initial.principalFeedback);
+  }, [week]);
 
   const dropped = trainee?.status === 'dropped';
   const disabled = dropped || actionBusy;
@@ -145,6 +168,7 @@ export function useDailyApprovalWeekGradingModal({
     setPrincipalRating,
     principalFeedback,
     setPrincipalFeedback,
+    resetForm,
     save,
     close: onClose,
   };

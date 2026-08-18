@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
 import {
@@ -40,25 +40,19 @@ export function DailyApprovalBulkExtendModal({
   const options = getDailyApprovalWeekOptions(kind);
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>();
-  const [baselineExtendedValues, setBaselineExtendedValues] = useState<
-    string[]
-  >([]);
 
-  useEffect(() => {
-    if (!open) return;
-    const allowedValues = new Set(
-      getDailyApprovalWeekOptions(kind).map((option) => option.value)
-    );
-    const baseline = previouslyExtendedWeekNumbers
+  const baselineExtendedValues = useMemo(() => {
+    const allowedValues = new Set(options.map((option) => option.value));
+    return previouslyExtendedWeekNumbers
       .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0)
       .map((weekNumber) => String(weekNumber))
       .filter((value) => allowedValues.has(value));
-    setBaselineExtendedValues(baseline);
-    setSelectedValues(baseline);
+  }, [options, previouslyExtendedWeekNumbers]);
+
+  const resetForm = useCallback(() => {
+    setSelectedValues(baselineExtendedValues);
     setError(undefined);
-    // Snapshot previously-extended weeks only when the dialog opens (or kind changes).
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid reset while toggling checkboxes
-  }, [open, kind]);
+  }, [baselineExtendedValues]);
 
   const submit = () => {
     const selectedWeekNumbers = selectedValues
@@ -90,6 +84,9 @@ export function DailyApprovalBulkExtendModal({
     <KvDialog
       open={open}
       onOpenChange={(next) => {
+        if (next) {
+          resetForm();
+        }
         if (!next && !busy) onClose();
       }}
     >

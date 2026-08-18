@@ -72,10 +72,6 @@ export function useOrganizationalCapacitiesPage() {
   const [actionBusy, setActionBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
-  const [baselineScope, setBaselineScope] = useState('');
-  const [baselineSignature, setBaselineSignature] = useState<string | null>(
-    null
-  );
 
   useEffect(() => {
     setChrome<CapacitiesChrome>(CHROME_ID, { kind, termId });
@@ -98,10 +94,6 @@ export function useOrganizationalCapacitiesPage() {
     return terms[0]?.id ?? '';
   }, [termId, termsData]);
 
-  useEffect(() => {
-    if (resolvedTermId !== termId) setTermId(resolvedTermId);
-  }, [resolvedTermId, termId]);
-
   const {
     data: snapshotData,
     error: snapshotError,
@@ -120,6 +112,10 @@ export function useOrganizationalCapacitiesPage() {
   });
 
   const snapshot = snapshotData ?? null;
+  const baselineSignature = useMemo(() => {
+    if (!snapshotData || snapshotData.termId !== resolvedTermId) return null;
+    return courseDraftSignature(snapshotData.courses);
+  }, [resolvedTermId, snapshotData]);
   const isLoading =
     termsPending ||
     (Boolean(resolvedTermId) &&
@@ -130,14 +126,6 @@ export function useOrganizationalCapacitiesPage() {
     : snapshotError
       ? unknownErrorMessage(snapshotError, 'بارگذاری ظرفیت‌ها ناموفق بود.')
       : null;
-
-  useEffect(() => {
-    const scope = `${kind}::${resolvedTermId}`;
-    if (!snapshotData || snapshotData.termId !== resolvedTermId) return;
-    if (baselineScope === scope) return;
-    setBaselineScope(scope);
-    setBaselineSignature(courseDraftSignature(snapshotData.courses));
-  }, [baselineScope, kind, resolvedTermId, snapshotData]);
 
   const isDirty = useMemo(() => {
     if (!snapshot || baselineSignature == null) {
@@ -259,8 +247,6 @@ export function useOrganizationalCapacitiesPage() {
       });
       setSnapshotData(next);
       setConfirmOpen(false);
-      setBaselineScope(`${kind}::${next.termId}`);
-      setBaselineSignature(courseDraftSignature(next.courses));
       toast.success('ظرفیت‌ها با موفقیت ذخیره شدند.');
     } catch (err) {
       toast.error(

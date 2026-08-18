@@ -4,7 +4,7 @@ import {
   useInfiniteQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   flattenOffsetLimitPages,
@@ -102,7 +102,6 @@ export function useOffsetLimitInfiniteList<T>({
     error && !isFetchNextPageError
       ? mapOffsetLimitListError(error, 'بارگذاری فهرست ناموفق بود.')
       : null;
-
   const loadMoreError =
     isFetchNextPageError && !loadMoreErrorDismissed
       ? mapOffsetLimitListError(error, 'بارگذاری موارد بیشتر ناموفق بود.')
@@ -119,19 +118,22 @@ export function useOffsetLimitInfiniteList<T>({
     await refetch();
   };
 
-  const patchItems = (
-    updater: (prev: T[]) => T[],
-    totalUpdater?: (prevTotal: number, nextItems: T[]) => number
-  ) => {
-    queryClient.setQueryData<OffsetLimitInfiniteData<T>>(queryKey, (old) => {
-      const prevItems = flattenOffsetLimitPages(old);
-      const prevTotal = old?.pages.at(-1)?.total ?? prevItems.length;
-      const nextItems = updater(prevItems);
-      const nextTotal =
-        totalUpdater?.(prevTotal, nextItems) ?? prevTotal;
-      return replaceOffsetLimitListItems(old, nextItems, nextTotal);
-    });
-  };
+  const patchItems = useCallback(
+    (
+      updater: (prev: T[]) => T[],
+      totalUpdater?: (prevTotal: number, nextItems: T[]) => number
+    ) => {
+      queryClient.setQueryData<OffsetLimitInfiniteData<T>>(queryKey, (old) => {
+        const prevItems = flattenOffsetLimitPages(old);
+        const prevTotal = old?.pages.at(-1)?.total ?? prevItems.length;
+        const nextItems = updater(prevItems);
+        const nextTotal =
+          totalUpdater?.(prevTotal, nextItems) ?? prevTotal;
+        return replaceOffsetLimitListItems(old, nextItems, nextTotal);
+      });
+    },
+    [queryClient, queryKey]
+  );
 
   return {
     items,

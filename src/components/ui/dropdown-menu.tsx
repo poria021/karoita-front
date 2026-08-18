@@ -43,7 +43,14 @@ function DropdownMenuContent({
   children,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
-  const edgeScroll = useEdgeAutoScroll<HTMLDivElement>()
+  const {
+    ref: edgeScrollRef,
+    onPointerMove: handlePointerMove,
+    onPointerLeave: handlePointerLeave,
+    canScrollDown,
+    nudgeDown,
+    stop,
+  } = useEdgeAutoScroll<HTMLDivElement>()
 
   return (
     <DropdownMenuPrimitive.Portal>
@@ -59,13 +66,13 @@ function DropdownMenuContent({
       >
         <div
           data-edge-auto-scroll=""
-          ref={edgeScroll.ref}
+          ref={edgeScrollRef}
           onPointerMove={(event) => {
-            edgeScroll.onPointerMove(event)
+            handlePointerMove(event)
             onPointerMove?.(event)
           }}
           onPointerLeave={(event) => {
-            edgeScroll.onPointerLeave()
+            handlePointerLeave()
             onPointerLeave?.(event)
           }}
           className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-1"
@@ -73,9 +80,9 @@ function DropdownMenuContent({
           {children}
         </div>
         <KvOverlayScrollMoreCue
-          visible={edgeScroll.canScrollDown}
-          onHoverStart={edgeScroll.nudgeDown}
-          onHoverEnd={edgeScroll.stop}
+          visible={canScrollDown}
+          onHoverStart={nudgeDown}
+          onHoverEnd={stop}
         />
       </DropdownMenuPrimitive.Content>
     </DropdownMenuPrimitive.Portal>

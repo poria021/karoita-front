@@ -20,23 +20,6 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
   } = login;
   const { register, formState } = forgotResetForm;
 
-  const newPasswordField = register('newPassword');
-  const confirmPasswordField = register('confirmPassword');
-
-  const newPasswordProps = {
-    name: newPasswordField.name,
-    onBlur: newPasswordField.onBlur,
-    onChange: newPasswordField.onChange,
-    ref: newPasswordField.ref,
-  } as const;
-
-  const confirmPasswordProps = {
-    name: confirmPasswordField.name,
-    onBlur: confirmPasswordField.onBlur,
-    onChange: confirmPasswordField.onChange,
-    ref: confirmPasswordField.ref,
-  } as const;
-
   return (
     <form
       onSubmit={submitResetPassword}
@@ -52,7 +35,7 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
           required
           autoComplete="new-password"
           error={formState.errors.newPassword?.message}
-          {...newPasswordProps}
+          {...register('newPassword')}
         />
 
         <KvPasswordField
@@ -61,7 +44,7 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
           required
           autoComplete="new-password"
           error={formState.errors.confirmPassword?.message}
-          {...confirmPasswordProps}
+          {...register('confirmPassword')}
         />
       </div>
 

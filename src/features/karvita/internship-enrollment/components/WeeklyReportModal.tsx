@@ -85,6 +85,9 @@ export function WeeklyReportModal({
     <KvDialog
       open={open}
       onOpenChange={(next) => {
+        if (next) {
+          modal.resetForm();
+        }
         if (!next && !modal.busy) onClose();
       }}
     >

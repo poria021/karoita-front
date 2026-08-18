@@ -89,6 +89,9 @@ export function DailyApprovalWeekGradingModal({
     <KvDialog
       open={open}
       onOpenChange={(next) => {
+        if (next) {
+          modal.resetForm();
+        }
         if (!next && !actionBusy) onClose();
       }}
     >

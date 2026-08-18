@@ -26,8 +26,6 @@ export function useDailyApprovalsTerms({
 
   useEffect(() => {
     let cancelled = false;
-    setTermsReady(false);
-    setTermsError(null);
     void Promise.all([
       DailyApprovalsService.listTerms(kind),
       DailyApprovalsService.getPassingScoreThreshold(),
