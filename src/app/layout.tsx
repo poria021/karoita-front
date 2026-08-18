@@ -13,8 +13,18 @@ import {
 } from "@/lib/site-seo";
 
 /**
- * Local Vazirmatn (arabic subset) — avoids next/font/google download at compile time
+ * Local Vazirmatn — avoids next/font/google download at compile time
  * (Google Fonts is often unreachable and hangs Turbopack on first compile).
+ *
+ * وزن‌های بارگذاری‌شده:
+ *   400 → font-sans (پیش‌فرض بدنه)
+ *   500 → font-medium  (nav, body, caption در KvTypography)
+ *   700 → font-bold    (title, subtitle, label در KvTypography)
+ *   900 → font-black   (display و headingهای برجسته)
+ *
+ * وزن 600 (font-semibold) در هیچ کجای UI استفاده نمی‌شود — حذف شد تا
+ * دو فایل woff2 اضافی (~37KB) در هر صفحه preload نشوند.
+ * اگر در آینده font-semibold اضافه شد، دو فایل 600 را دوباره اینجا بیاورید.
  */
 const vazirmatn = localFont({
   src: [
@@ -36,16 +46,6 @@ const vazirmatn = localFont({
     {
       path: "../fonts/vazirmatn/vazirmatn-latin-500-normal.woff2",
       weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../fonts/vazirmatn/vazirmatn-arabic-600-normal.woff2",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "../fonts/vazirmatn/vazirmatn-latin-600-normal.woff2",
-      weight: "600",
       style: "normal",
     },
     {

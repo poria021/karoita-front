@@ -6,9 +6,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTableCell } from '@/components/shared/table/KvTable';
+import dynamic from 'next/dynamic';
+
 import type {
   CreateLandingBannerInput,
   LandingBanner,
@@ -28,6 +29,20 @@ import {
 } from '../schemas/landing-cms.schema';
 import { LandingCmsEntityTable } from './LandingCmsEntityTable';
 import { LandingCmsMediaThumb } from './LandingCmsMediaThumb';
+
+// react-dropzone + browser-image-compression را فقط وقتی پنل افزودن بنر رندر می‌شود بارگذاری کن.
+const KvImageDocUploader = dynamic(
+  () =>
+    import('@/components/shared/fields/KvImageDocUploader').then(
+      (m) => m.KvImageDocUploader
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-40 animate-pulse rounded-kv-panel border-2 border-dashed border-kv-border bg-kv-surface-muted" />
+    ),
+  }
+);
 
 const BANNER_COLUMNS = [
   { key: 'image', label: 'تصویر', align: 'center' as const, className: 'w-24' },

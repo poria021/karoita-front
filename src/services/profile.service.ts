@@ -45,15 +45,30 @@ export interface UpdateOnboardingProfilePayload {
   identityDoc?: File | null;
 }
 
-function approvalFields(role: UserRole): {
+/**
+ * Determines approved/docStatus after a profile save.
+ * - super_admin is always approved.
+ * - Once a user is already `approved`, subsequent saves (e.g. editing org
+ *   fields like province/city/district/school) must NOT push them back to
+ *   `pending_admin` — approval status is preserved.
+ * - Otherwise (not_submitted / rejected / pending_admin), a save puts the
+ *   profile into pending_admin review, same as before.
+ */
+function approvalFields(
+  role: UserRole,
+  current?: { approved: boolean; docStatus: DocStatus }
+): {
   approved: boolean;
   docStatus: DocStatus;
 } {
   const isSuperAdmin = isSuperAdminRole(role);
-  return {
-    approved: isSuperAdmin,
-    docStatus: (isSuperAdmin ? 'approved' : 'pending_admin') as DocStatus,
-  };
+  if (isSuperAdmin) {
+    return { approved: true, docStatus: 'approved' };
+  }
+  if (current?.docStatus === 'approved') {
+    return { approved: true, docStatus: 'approved' };
+  }
+  return { approved: false, docStatus: 'pending_admin' };
 }
 
 function friendlyError(error: unknown): Error {
@@ -114,7 +129,10 @@ export class ProfileService {
           useUserStore.getState().setUser({
             ...activeUser,
             ...validatedData,
-            ...approvalFields(validatedData.role),
+            ...approvalFields(validatedData.role, {
+              approved: activeUser.approved,
+              docStatus: activeUser.docStatus,
+            }),
           });
         }
         return {
@@ -164,7 +182,10 @@ export class ProfileService {
       { id: activeUser.id },
       {
         ...validatedData,
-        ...approvalFields(validatedData.role),
+        ...approvalFields(validatedData.role, {
+          approved: activeUser.approved,
+          docStatus: activeUser.docStatus,
+        }),
         lastChange: Date.now(),
       }
     );
