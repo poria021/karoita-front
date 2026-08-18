@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
 import {
   KvButton,
@@ -28,15 +27,12 @@ export function KvRouteStatusNearestLink({
   label = 'بازگشت به بخش مرتبط',
 }: KvRouteStatusNearestLinkProps) {
   const routerPathname = usePathname() || '/';
-  const [pathname, setPathname] = useState(routerPathname);
   const user = useUserStore((s) => s.activeUser);
 
-  useEffect(() => {
-    // During App Router not-found, prefer the real address bar path.
-    const fromWindow =
-      typeof window !== 'undefined' ? window.location.pathname : '';
-    setPathname(fromWindow || routerPathname);
-  }, [routerPathname]);
+  const pathname =
+    typeof window !== 'undefined'
+      ? window.location.pathname || routerPathname
+      : routerPathname;
 
   const href = resolveNearestLivePath(pathname, user);
 
