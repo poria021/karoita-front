@@ -15,7 +15,7 @@ export function AdminGateCard() {
   const gate = useAdminGate();
 
   return (
-    <div className="kv-auth-enter mt-kv-section w-full max-w-[450px] mx-auto self-center overflow-hidden rounded-kv-card border border-kv-border/80 bg-kv-surface shadow-kv-overlay">
+    <div className="kv-auth-enter w-full max-w-[450px] mx-auto self-center overflow-hidden rounded-kv-card border border-kv-border/80 bg-kv-surface shadow-kv-overlay">
       <div className="p-kv-inset sm:p-kv-page">
         <AuthLogo subtitle="درگاه امن ورود مدیریت ارشد سامانه" />
 
