@@ -60,7 +60,6 @@ export function useAdminGate() {
       mobileForm.setError('mobile', {
         message: readAuthErrorMessage(error, 'ارسال کد تایید ناموفق بود.'),
       });
-      setStep(1);
     }
   });
 
