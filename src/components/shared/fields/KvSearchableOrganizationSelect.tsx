@@ -119,7 +119,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
       className="relative"
       role="combobox"
       aria-expanded={open && !locked}
-      aria-controls={open ? `org-select-${type}` : undefined}
+      aria-controls={`org-select-${type}`}
     >
       <KvSearchField
         ref={ref}

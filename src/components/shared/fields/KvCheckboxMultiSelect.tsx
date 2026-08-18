@@ -76,6 +76,7 @@ export function KvCheckboxMultiSelect({
           <div
             id={fieldId}
             role="combobox"
+            aria-autocomplete="list"
             tabIndex={disabled ? -1 : 0}
             aria-expanded={isOpen}
             aria-haspopup="listbox"
