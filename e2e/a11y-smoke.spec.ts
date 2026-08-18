@@ -24,23 +24,16 @@ async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
 }
 
 async function setMockSessionCookies(page: Page): Promise<void> {
-  const origin = new URL('http://127.0.0.1:3000').origin;
-  await page.context().addCookies([
-    {
-      name: 'karvita_mock_session',
-      value: '1',
-      url: origin,
-      path: '/',
-      expires: Math.floor(Date.now() / 1000) + 60 * 60,
-    },
-    {
-      name: 'karvita_auth_session_meta',
-      value: JSON.stringify({ token: 'mock.test', expiresAt: new Date(Date.now() + 1000 * 60 * 60).toISOString() }),
-      url: origin,
-      path: '/',
-      expires: Math.floor(Date.now() / 1000) + 60 * 60,
-    },
-  ]);
+  // Visit public home so `document` exists; then set cookies/localStorage
+  await page.goto(RouteService.marketing.home());
+  const meta = JSON.stringify({ token: 'mock.test', expiresAt: new Date(Date.now() + 1000 * 60 * 60).toISOString() });
+  await page.evaluate((m) => {
+    document.cookie = `karvita_mock_session=1; path=/`;
+    document.cookie = `karvita_auth_session_meta=${m}; path=/`;
+    try {
+      localStorage.setItem('karvita_auth_session_meta', m);
+    } catch {}
+  }, meta);
 }
 
 async function expectNoSeriousAxeViolations(page: Page): Promise<void> {
