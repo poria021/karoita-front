@@ -68,7 +68,7 @@ export function useOrganizationalCapacitiesPage() {
     defaultValue: 'internship',
     preferWhenMissing: cached?.kind,
   });
-  const [termId, setTermId] = useState(() => cached?.termId ?? '');
+  const [termId] = useState(() => cached?.termId ?? '');
   const [actionBusy, setActionBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);

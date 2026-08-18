@@ -70,23 +70,29 @@ export function isDistrictDeleteBlocked(
 }
 
 export function isFacultyDeleteBlocked(
-  _db: OrgStructureSnapshot,
-  _id: string
+  db: OrgStructureSnapshot,
+  id: string
 ): boolean {
+  void db;
+  void id;
   return false;
 }
 
 export function isSchoolDeleteBlocked(
-  _db: OrgStructureSnapshot,
-  _id: string
+  db: OrgStructureSnapshot,
+  id: string
 ): boolean {
+  void db;
+  void id;
   return false;
 }
 
 export function isMajorDeleteBlocked(
-  _db: OrgStructureSnapshot,
-  _id: string
+  db: OrgStructureSnapshot,
+  id: string
 ): boolean {
+  void db;
+  void id;
   return false;
 }
 

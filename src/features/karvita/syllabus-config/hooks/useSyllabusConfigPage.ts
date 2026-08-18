@@ -114,7 +114,6 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     setTerms,
     setSelectedTermId,
     loadTermContext: loadTermContextForUi,
-    setIsSaving,
     professorCapacity,
     setProfessorCapacity,
     passingThreshold,

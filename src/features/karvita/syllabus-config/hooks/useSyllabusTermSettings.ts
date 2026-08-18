@@ -21,8 +21,6 @@ type UseSyllabusTermSettingsArgs = {
   setTerms: Dispatch<SetStateAction<AcademicTerm[]>>;
   setSelectedTermId: Dispatch<SetStateAction<string>>;
   loadTermContext: (termId: string) => Promise<void>;
-  /** Kept for page wiring; create/delete use undoable toast instead of busy lock. */
-  setIsSaving: Dispatch<SetStateAction<boolean>>;
   professorCapacity: string;
   setProfessorCapacity: Dispatch<SetStateAction<string>>;
   passingThreshold: string;
@@ -34,7 +32,6 @@ export function useSyllabusTermSettings({
   setTerms,
   setSelectedTermId,
   loadTermContext,
-  setIsSaving: _setIsSaving,
   professorCapacity,
   setProfessorCapacity,
   passingThreshold,

@@ -15,7 +15,8 @@ export type AppNotification = {
 };
 
 export function isExpandableNotification(
-  _notification: AppNotification
+  notification: AppNotification
 ): boolean {
+  void notification;
   return false;
 }

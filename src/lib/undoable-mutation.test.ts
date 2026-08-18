@@ -74,12 +74,13 @@ describe('scheduleUndoableMutation', () => {
       expect(commit).toHaveBeenCalledTimes(1);
     });
 
-    const opts = (toastMock as any).mock.calls[0]?.[1] as {
-      action?: { onClick: () => void; label: string };
+    const toastMockWithCalls = toastMock as {
+      mock: { calls: Array<[unknown, { action?: { onClick: () => void; label: string } }]> };
     };
+    const opts = toastMockWithCalls.mock.calls[0]?.[1];
 
-    expect(opts.action?.label).toBe('لغو');
-    opts.action?.onClick();
+    expect(opts?.action?.label).toBe('لغو');
+    opts?.action?.onClick();
 
     await vi.waitFor(() => {
       expect(reverse).toHaveBeenCalledWith('ok');
@@ -120,12 +121,20 @@ describe('scheduleUndoableMutation', () => {
 
     expect(toastMock.success).toHaveBeenCalled();
     expect(toastMock).not.toHaveBeenCalled();
-    const opts = (toastMock.success as any).mock.calls[0]?.[1] as {
-      className?: string;
-      actionButtonStyle?: { background?: string };
+    const successMockWithCalls = toastMock.success as {
+      mock: {
+        calls: Array<[
+          unknown,
+          {
+            className?: string;
+            actionButtonStyle?: { background?: string };
+          }
+        ]>;
+      };
     };
-    expect(opts.className).toContain('kv-toast-undoable');
-    expect(opts.actionButtonStyle?.background).toBe('var(--kv-danger-soft)');
+    const opts = successMockWithCalls.mock.calls[0]?.[1];
+    expect(opts?.className).toContain('kv-toast-undoable');
+    expect(opts?.actionButtonStyle?.background).toBe('var(--kv-danger-soft)');
   });
 });
 
@@ -148,11 +157,12 @@ describe('scheduleUndoableLocalChange', () => {
     expect(apply).toHaveBeenCalledTimes(1);
     expect(toastMock.error).toHaveBeenCalled();
 
-    const opts = (toastMock.error as any).mock.calls[0]?.[1] as {
-      action?: { onClick: () => void; label: string };
+    const errorMockWithCalls = toastMock.error as {
+      mock: { calls: Array<[unknown, { action?: { onClick: () => void; label: string } }]> };
     };
-    expect(opts.action?.label).toBe('لغو');
-    opts.action?.onClick();
+    const opts = errorMockWithCalls.mock.calls[0]?.[1];
+    expect(opts?.action?.label).toBe('لغو');
+    opts?.action?.onClick();
     expect(revert).toHaveBeenCalledTimes(1);
   });
 });

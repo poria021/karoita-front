@@ -154,8 +154,9 @@ export async function realRegister(
 export async function realVerifyRegistrationOtp(
   mobile: string,
   otp: string,
-  _role: UserRole
+  role: UserRole
 ): Promise<User> {
+  void role;
   guard('real-auth.bridge.registerOtpVerify');
   const raw = await apiClient.postMaybeJson<unknown>(
     REAL_AUTH_PATHS.registerOtpVerify,

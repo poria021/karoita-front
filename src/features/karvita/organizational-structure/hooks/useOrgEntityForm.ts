@@ -104,137 +104,110 @@ export function useOrgEntityForm({
     name: 'cityId',
   });
 
-  const loadProvinces = useCallback(async () => {
-    const provincesData = await OrgStructureService.listProvinces();
-    syncProvinces(provincesData);
-    return provincesData;
-  }, [syncProvinces]);
-
-  const loadCitiesForProvince = useCallback(
-    async (nextProvinceId: string) => {
-      if (!nextProvinceId) {
-        syncCities([]);
-        return;
-      }
-
-      const data = await OrgStructureService.listCities(nextProvinceId);
-      syncCities(data);
-    },
-    [syncCities]
-  );
-
-  const loadDistrictsForCity = useCallback(
-    async (nextProvinceId: string, nextCityId: string) => {
-      if (!nextProvinceId || !nextCityId || tab !== 'schools') {
-        syncDistricts([]);
-        return;
-      }
-
-      const data = await OrgStructureService.listDistricts(
-        nextProvinceId,
-        nextCityId
-      );
-      syncDistricts(data);
-    },
-    [syncDistricts, tab]
-  );
-
   useEffect(() => {
     if (!open) return;
 
-    const initTimer = window.setTimeout(() => {
-      void loadProvinces();
+    let isActive = true;
+
+    void (async () => {
+      const provincesData = await OrgStructureService.listProvinces();
+      if (!isActive) return;
+      syncProvinces(provincesData);
 
       if (!editId) {
         form.reset(defaultValuesForTab(tab));
         return;
       }
 
-      void (async () => {
-        const entity = await OrgStructureService.getEntity(entityKind, editId);
-        if (!entity) return;
+      const entity = await OrgStructureService.getEntity(entityKind, editId);
+      if (!entity || !isActive) return;
 
-        if (entityKind === 'province') {
-          form.reset({ name: entity.name });
-          return;
-        }
+      if (entityKind === 'province') {
+        form.reset({ name: entity.name });
+        return;
+      }
 
-        if (entityKind === 'major') {
-          const major = entity as OrgMajor;
-          form.reset({ name: major.name, audience: major.audience });
-          return;
-        }
+      if (entityKind === 'major') {
+        const major = entity as OrgMajor;
+        form.reset({ name: major.name, audience: major.audience });
+        return;
+      }
 
-        if (entityKind === 'city') {
-          const city = entity as OrgCity;
-          form.reset({ name: city.name, provinceId: city.provinceId });
-          return;
-        }
+      if (entityKind === 'city') {
+        const city = entity as OrgCity;
+        form.reset({ name: city.name, provinceId: city.provinceId });
+        return;
+      }
 
-        if (entityKind === 'school') {
-          const school = entity as OrgSchool;
-          form.reset({
-            name: school.name,
-            provinceId: school.provinceId,
-            cityId: school.cityId,
-            districtId: school.districtId,
-            gender: school.gender,
-          });
-          return;
-        }
-
-        const row = entity as {
-          name: string;
-          provinceId: string;
-          cityId: string;
-        };
-
+      if (entityKind === 'school') {
+        const school = entity as OrgSchool;
         form.reset({
-          name: row.name,
-          provinceId: row.provinceId,
-          cityId: row.cityId,
+          name: school.name,
+          provinceId: school.provinceId,
+          cityId: school.cityId,
+          districtId: school.districtId,
+          gender: school.gender,
         });
-      })();
-    }, 0);
+        return;
+      }
 
-    return () => window.clearTimeout(initTimer);
-  }, [editId, entityKind, form, loadProvinces, open, tab]);
+      const row = entity as {
+        name: string;
+        provinceId: string;
+        cityId: string;
+      };
 
-  useEffect(() => {
-    if (!open) {
-      const clearTimer = window.setTimeout(() => syncCities([]), 0);
-      return () => window.clearTimeout(clearTimer);
-    }
+      form.reset({
+        name: row.name,
+        provinceId: row.provinceId,
+        cityId: row.cityId,
+      });
+    })();
 
-    if (!provinceId) {
-      const clearTimer = window.setTimeout(() => syncCities([]), 0);
-      return () => window.clearTimeout(clearTimer);
-    }
-
-    const loadTimer = window.setTimeout(() => {
-      void loadCitiesForProvince(provinceId);
-    }, 0);
-
-    return () => window.clearTimeout(loadTimer);
-  }, [loadCitiesForProvince, open, provinceId, syncCities]);
+    return () => {
+      isActive = false;
+    };
+  }, [editId, entityKind, form, open, syncProvinces, tab]);
 
   useEffect(() => {
-    if (!open || tab !== 'schools') {
-      const clearTimer = window.setTimeout(() => syncDistricts([]), 0);
-      return () => window.clearTimeout(clearTimer);
-    }
+    if (!open) return;
 
-    if (!provinceId || !cityId) {
-      const clearTimer = window.setTimeout(() => syncDistricts([]), 0);
-      return () => window.clearTimeout(clearTimer);
-    }
+    let isActive = true;
 
-    const loadTimer = window.setTimeout(() => {
-      void loadDistrictsForCity(provinceId, cityId);
-    }, 0);
+    void (async () => {
+      if (!provinceId) {
+        if (isActive) syncCities([]);
+        return;
+      }
 
-    return () => window.clearTimeout(loadTimer);
-  }, [cityId, loadDistrictsForCity, open, provinceId, syncDistricts, tab]);
+      const data = await OrgStructureService.listCities(provinceId);
+      if (isActive) syncCities(data);
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, [open, provinceId, syncCities]);
+
+  useEffect(() => {
+    if (!open || tab !== 'schools') return;
+
+    let isActive = true;
+
+    void (async () => {
+      if (!provinceId || !cityId) {
+        if (isActive) syncDistricts([]);
+        return;
+      }
+
+      const data = await OrgStructureService.listDistricts(provinceId, cityId);
+      if (isActive) syncDistricts(data);
+    })();
+
+    return () => {
+      isActive = false;
+    };
+  }, [cityId, open, provinceId, syncDistricts, tab]);
 
   return {
     form,
