@@ -28,7 +28,7 @@ async function setMockSessionCookies(page: Page): Promise<void> {
   await page.goto(RouteService.marketing.home());
   const meta = JSON.stringify({ token: 'mock.test', expiresAt: new Date(Date.now() + 1000 * 60 * 60).toISOString() });
   await page.evaluate(
-    (m, mobile) => {
+    ({ m, mobile }) => {
       document.cookie = `karvita_mock_session=1; path=/`;
       document.cookie = `karvita_auth_session_meta=${m}; path=/`;
       try {
@@ -51,8 +51,7 @@ async function setMockSessionCookies(page: Page): Promise<void> {
         localStorage.setItem('karvita-user-store', JSON.stringify(userState));
       } catch {}
     },
-    meta,
-    MOCK_SUPER_ADMIN_MOBILE
+    { m: meta, mobile: MOCK_SUPER_ADMIN_MOBILE }
   );
 }
 
