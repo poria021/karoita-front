@@ -1,6 +1,5 @@
 import { Suspense } from 'react';
 
-import { HydrationSafe } from '@/components/shared/shell/HydrationSafe';
 import { AuthCardRouteFallback } from '@/features/shared/auth/components/AuthCardRouteFallback';
 import { AuthCard } from '@/features/shared/auth/components/AuthCard';
 import {
@@ -26,11 +25,9 @@ export default async function LoginRoutePage({
       className="kv-blueprint-bg flex min-h-dvh w-full items-center justify-center p-kv-inset"
       dir="rtl"
     >
-      <HydrationSafe>
-        <Suspense fallback={<AuthCardRouteFallback />}>
-          <AuthCard defaultTab="login" />
-        </Suspense>
-      </HydrationSafe>
+      <Suspense fallback={<AuthCardRouteFallback />}>
+        <AuthCard defaultTab="login" />
+      </Suspense>
     </main>
   );
 }
