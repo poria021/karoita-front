@@ -27,6 +27,17 @@ async function setMockSessionCookies(page: Page): Promise<void> {
   // Visit public home so `document` exists; then set cookies/localStorage
   await page.goto(RouteService.marketing.home());
   const meta = JSON.stringify({ token: 'mock.test', expiresAt: new Date(Date.now() + 1000 * 60 * 60).toISOString() });
+  // Ensure cookies are installed at the browser context so the Edge/proxy
+  // middleware sees them on the subsequent navigation to the dashboard.
+  try {
+    await page.context().addCookies([
+      { name: 'karvita_mock_session', value: '1', url: page.url(), path: '/' },
+      { name: 'karvita_auth_session_meta', value: meta, url: page.url(), path: '/' },
+    ]);
+  } catch {
+    // ignore addCookies failures — fallback to document.cookie below
+  }
+
   await page.evaluate(
     ({ m, mobile }) => {
       document.cookie = `karvita_mock_session=1; path=/`;
