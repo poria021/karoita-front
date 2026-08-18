@@ -42,11 +42,13 @@ export function useWeeklyReportModal({
   actor,
   state,
   week,
-  open: _open,
+  open,
   onClose,
   onReopen,
   onSaved,
 }: UseWeeklyReportModalInput) {
+  void open;
+
   const enrollment = state.enrollment;
   const [editorWeekId, setEditorWeekId] = useState<string | null>(null);
   const [text, setText] = useState('');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -45,6 +45,20 @@ export function useAdminUserCreationForm() {
 
   const [mobileDuplicate, setMobileDuplicate] = useState(false);
   const [checkingMobile, setCheckingMobile] = useState(false);
+  const mobileRequestIdRef = useRef(0);
+
+  const updateMobileReviewState = useCallback(
+    (duplicate: boolean, checking: boolean) => {
+      setMobileDuplicate(duplicate);
+      setCheckingMobile(checking);
+    },
+    []
+  );
+
+  const resetMobileReviewState = useCallback(() => {
+    mobileRequestIdRef.current += 1;
+    updateMobileReviewState(false, false);
+  }, [updateMobileReviewState]);
 
   const mobileNormalized = normalizeMobile(mobile ?? '');
   const mobileComplete = /^9\d{9}$/.test(mobileNormalized);
@@ -55,40 +69,45 @@ export function useAdminUserCreationForm() {
 
   useEffect(() => {
     if (!mobileComplete) {
-      setMobileDuplicate(false);
-      setCheckingMobile(false);
-      return;
+      const resetTimer = window.setTimeout(() => {
+        resetMobileReviewState();
+      }, 0);
+
+      return () => window.clearTimeout(resetTimer);
     }
 
-    let cancelled = false;
-    setCheckingMobile(true);
+    const requestId = ++mobileRequestIdRef.current;
+    const startTimer = window.setTimeout(() => {
+      updateMobileReviewState(false, true);
 
-    const timer = window.setTimeout(() => {
-      void AdminUserCreationService.checkMobileAvailable(mobileNormalized)
-        .then((result) => {
-          if (cancelled) return;
+      const timer = window.setTimeout(() => {
+        void AdminUserCreationService.checkMobileAvailable(mobileNormalized)
+          .then((result) => {
+            if (requestId !== mobileRequestIdRef.current) return;
 
-          setMobileDuplicate(!result.available);
+            updateMobileReviewState(!result.available, false);
 
-          if (!result.available) {
-            toast.error(
-              'هشدار امنیتی: این شماره موبایل قبلاً در سامانه ثبت شده است!'
-            );
-          }
-        })
-        .catch(() => {
-          if (!cancelled) setMobileDuplicate(false);
-        })
-        .finally(() => {
-          if (!cancelled) setCheckingMobile(false);
-        });
-    }, 400);
+            if (!result.available) {
+              toast.error(
+                'هشدار امنیتی: این شماره موبایل قبلاً در سامانه ثبت شده است!'
+              );
+            }
+          })
+          .catch(() => {
+            if (requestId === mobileRequestIdRef.current) {
+              updateMobileReviewState(false, false);
+            }
+          });
+      }, 400);
+
+      return () => window.clearTimeout(timer);
+    }, 0);
 
     return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
+      mobileRequestIdRef.current += 1;
+      window.clearTimeout(startTimer);
     };
-  }, [mobileComplete, mobileNormalized]);
+  }, [mobileComplete, mobileNormalized, resetMobileReviewState, updateMobileReviewState]);
 
   const onRoleChange = useCallback(
     (nextRole: string) => {
