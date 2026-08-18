@@ -4,7 +4,7 @@ import {
   useInfiniteQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   flattenOffsetLimitPages,
@@ -29,7 +29,6 @@ export type UseOffsetLimitInfiniteListOptions<T> = {
   resetKey: string;
   fetchPage: FetchOffsetLimitPage<T>;
   pageSize?: number;
-  /** When set, included in the TanStack queryKey for SPA list cache (rule 83). */
   cacheNamespace?: string;
 };
 
@@ -37,9 +36,6 @@ export { offsetLimitListQueryKey };
 
 /**
  * لیست بی‌نهایت ادمین روی قرارداد offset/limit — TanStack `useInfiniteQuery`.
- * جستجو یک‌بار در هوک صفحه debounce شود (`SEARCH_DEBOUNCE_MS` + `resolveListSearchQuery`)؛
- * این هوک فقط صفحه‌ها را جمع می‌کند.
- * صفحه همیشه کروم را نگه می‌دارد؛ busy فقط از `isLoading` روی ناحیهٔ داده (rule 84).
  */
 export function useOffsetLimitInfiniteList<T>({
   resetKey,
@@ -49,20 +45,19 @@ export function useOffsetLimitInfiniteList<T>({
 }: UseOffsetLimitInfiniteListOptions<T>) {
   const queryClient = useQueryClient();
   const queryKey = offsetLimitListQueryKey(cacheNamespace, resetKey, pageSize);
-  const fetchPageRef = useRef(fetchPage);
-  fetchPageRef.current = fetchPage;
 
-  /** After first ready paint in this mount (SPA soft refresh keeps prior rows). */
-  const hasEverReadyRef = useRef(false);
+  const fetchPageRef = useRef(fetchPage);
+
+  useEffect(() => {
+    fetchPageRef.current = fetchPage;
+  }, [fetchPage]);
+
   const [loadMoreErrorDismissed, setLoadMoreErrorDismissed] = useState(false);
 
   const cached = queryClient.getQueryData<{
     pages: OffsetLimitPage<T>[];
     pageParams: number[];
   }>(queryKey);
-  if (cached?.pages?.length && !hasEverReadyRef.current) {
-    hasEverReadyRef.current = true;
-  }
 
   const {
     data,
@@ -96,17 +91,7 @@ export function useOffsetLimitInfiniteList<T>({
   const lastPage = data?.pages.at(-1);
   const total = lastPage?.total ?? 0;
 
-  useEffect(() => {
-    if (isSuccess) {
-      hasEverReadyRef.current = true;
-    }
-  }, [isSuccess]);
-
-  useEffect(() => {
-    if (isFetchNextPageError) {
-      setLoadMoreErrorDismissed(false);
-    }
-  }, [isFetchNextPageError, error]);
+  const hasEverReady = Boolean(cached?.pages?.length) || isSuccess;
 
   const isLoading =
     data == null &&
@@ -117,38 +102,36 @@ export function useOffsetLimitInfiniteList<T>({
     error && !isFetchNextPageError
       ? mapOffsetLimitListError(error, 'بارگذاری فهرست ناموفق بود.')
       : null;
+
   const loadMoreError =
     isFetchNextPageError && !loadMoreErrorDismissed
       ? mapOffsetLimitListError(error, 'بارگذاری موارد بیشتر ناموفق بود.')
       : null;
 
-  const loadMore = useCallback(async () => {
+  const loadMore = async () => {
     if (!hasNextPage || isFetchingNextPage || isLoading) return;
     setLoadMoreErrorDismissed(false);
     await fetchNextPage();
-  }, [hasNextPage, isFetchingNextPage, isLoading, fetchNextPage]);
+  };
 
-  const reload = useCallback(async () => {
+  const reload = async () => {
     setLoadMoreErrorDismissed(false);
     await refetch();
-  }, [refetch]);
+  };
 
-  const patchItems = useCallback(
-    (
-      updater: (prev: T[]) => T[],
-      totalUpdater?: (prevTotal: number, nextItems: T[]) => number
-    ) => {
-      queryClient.setQueryData<OffsetLimitInfiniteData<T>>(queryKey, (old) => {
-        const prevItems = flattenOffsetLimitPages(old);
-        const prevTotal = old?.pages.at(-1)?.total ?? prevItems.length;
-        const nextItems = updater(prevItems);
-        const nextTotal =
-          totalUpdater?.(prevTotal, nextItems) ?? prevTotal;
-        return replaceOffsetLimitListItems(old, nextItems, nextTotal);
-      });
-    },
-    [queryClient, queryKey]
-  );
+  const patchItems = (
+    updater: (prev: T[]) => T[],
+    totalUpdater?: (prevTotal: number, nextItems: T[]) => number
+  ) => {
+    queryClient.setQueryData<OffsetLimitInfiniteData<T>>(queryKey, (old) => {
+      const prevItems = flattenOffsetLimitPages(old);
+      const prevTotal = old?.pages.at(-1)?.total ?? prevItems.length;
+      const nextItems = updater(prevItems);
+      const nextTotal =
+        totalUpdater?.(prevTotal, nextItems) ?? prevTotal;
+      return replaceOffsetLimitListItems(old, nextItems, nextTotal);
+    });
+  };
 
   return {
     items,
@@ -163,5 +146,6 @@ export function useOffsetLimitInfiniteList<T>({
     patchItems,
     clearLoadMoreError: () => setLoadMoreErrorDismissed(true),
     pageSize,
+    hasEverReady,
   };
 }

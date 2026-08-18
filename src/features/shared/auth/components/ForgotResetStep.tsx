@@ -12,15 +12,37 @@ interface ForgotResetStepProps {
 }
 
 export function ForgotResetStep({ login }: ForgotResetStepProps) {
-  const { forgotResetForm, submitResetPassword, isSubmittingResetPassword, goBackToForgotStep2 } =
-    login;
+  const {
+    forgotResetForm,
+    submitResetPassword,
+    isSubmittingResetPassword,
+    goBackToForgotStep2,
+  } = login;
   const { register, formState } = forgotResetForm;
 
-  const newPasswordRegistration = register('newPassword');
-  const confirmPasswordRegistration = register('confirmPassword');
+  const newPasswordField = register('newPassword');
+  const confirmPasswordField = register('confirmPassword');
+
+  const newPasswordProps = {
+    name: newPasswordField.name,
+    onBlur: newPasswordField.onBlur,
+    onChange: newPasswordField.onChange,
+    ref: newPasswordField.ref,
+  } as const;
+
+  const confirmPasswordProps = {
+    name: confirmPasswordField.name,
+    onBlur: confirmPasswordField.onBlur,
+    onChange: confirmPasswordField.onChange,
+    ref: confirmPasswordField.ref,
+  } as const;
 
   return (
-    <form onSubmit={submitResetPassword} className="flex flex-col gap-kv-section" noValidate>
+    <form
+      onSubmit={submitResetPassword}
+      className="flex flex-col gap-kv-section"
+      noValidate
+    >
       <AuthStepHeading step={3} totalSteps={3} />
 
       <div className="flex flex-col gap-kv-group">
@@ -30,10 +52,7 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
           required
           autoComplete="new-password"
           error={formState.errors.newPassword?.message}
-          name={newPasswordRegistration.name}
-          onBlur={newPasswordRegistration.onBlur}
-          onChange={newPasswordRegistration.onChange}
-          ref={newPasswordRegistration.ref}
+          {...newPasswordProps}
         />
 
         <KvPasswordField
@@ -42,19 +61,24 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
           required
           autoComplete="new-password"
           error={formState.errors.confirmPassword?.message}
-          name={confirmPasswordRegistration.name}
-          onBlur={confirmPasswordRegistration.onBlur}
-          onChange={confirmPasswordRegistration.onChange}
-          ref={confirmPasswordRegistration.ref}
+          {...confirmPasswordProps}
         />
       </div>
 
       <div className="flex flex-col gap-kv-group">
-        <AuthSubmitButton isLoading={isSubmittingResetPassword} loadingLabel="در حال ثبت...">
+        <AuthSubmitButton
+          isLoading={isSubmittingResetPassword}
+          loadingLabel="در حال ثبت..."
+        >
           تایید نهایی و تغییر رمز
         </AuthSubmitButton>
 
-        <KvButton type="button" appearance="secondary" fullWidth onClick={goBackToForgotStep2}>
+        <KvButton
+          type="button"
+          appearance="secondary"
+          fullWidth
+          onClick={goBackToForgotStep2}
+        >
           بازگشت به مرحله قبل
         </KvButton>
       </div>

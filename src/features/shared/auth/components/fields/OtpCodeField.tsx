@@ -17,7 +17,6 @@ import {
 interface OtpCodeFieldProps {
   id: string;
   registration: UseFormRegisterReturn<'otp'>;
-  /** Controlled RHF value — keeps display in sync after `reset({ otp: '' })`. */
   value?: string;
   errorMessage?: string;
 }
@@ -32,7 +31,7 @@ export function OtpCodeField({
   value,
   errorMessage,
 }: OtpCodeFieldProps) {
-  const [englishValue, setEnglishValue] = React.useState(() =>
+  const [localValue, setLocalValue] = React.useState(() =>
     filterDigits(value ?? '').slice(0, 5)
   );
   const [latinScriptError, setLatinScriptError] = React.useState<
@@ -40,10 +39,8 @@ export function OtpCodeField({
   >();
   const { name, onBlur, onChange, ref } = registration;
 
-  React.useEffect(() => {
-    if (value === undefined) return;
-    setEnglishValue(filterDigits(value).slice(0, 5));
-  }, [value]);
+  const displayValue =
+    value === undefined ? localValue : filterDigits(value).slice(0, 5);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const raw = event.target.value;
@@ -54,7 +51,7 @@ export function OtpCodeField({
     }
 
     const next = filterDigits(raw).slice(0, 5);
-    setEnglishValue(next);
+    setLocalValue(next);
     event.target.value = next;
     void onChange(event);
   };
@@ -76,7 +73,7 @@ export function OtpCodeField({
         onBlur={onBlur}
         onChange={handleChange}
         ref={ref}
-        value={toPersianDigits(englishValue)}
+        value={toPersianDigits(displayValue)}
         scriptGuard="none"
         error={latinScriptError ?? errorMessage}
       />
