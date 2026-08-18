@@ -121,34 +121,32 @@ export function useAdminUserCreationForm() {
     [setValue]
   );
 
-  const onSubmit = handleSubmit(async (raw) => {
+  const onSubmit = handleSubmit(async (values) => {
+    if (checkingMobile) {
+      toast.warning('لطفاً تا اتمام بررسی شماره موبایل شکیبا باشید.');
+      return;
+    }
+
     if (mobileDuplicate) {
       toast.error('این شماره موبایل قبلاً در سیستم ثبت شده است.');
       return;
     }
 
-    const parsed = adminUserCreationSchema.safeParse(raw);
-    if (!parsed.success) {
-      toast.error(
-        'لطفاً مشخصات حساب کاربری را طبق ترتیب الزامی فرم تکمیل فرمایید.'
-      );
-      return;
-    }
+    const typedValues = values as AdminUserCreationFormValues;
 
-    const values: AdminUserCreationFormValues = parsed.data;
     const payload: CreateOrganizationalUserInput = {
-      firstName: values.firstName,
-      lastName: values.lastName,
-      mobile: values.mobile,
-      password: values.password,
-      role: values.role,
-      province: values.province || undefined,
-      city: values.city || undefined,
-      college: values.college || undefined,
-      district: values.district || undefined,
+      firstName: typedValues.firstName,
+      lastName: typedValues.lastName,
+      mobile: typedValues.mobile,
+      password: typedValues.password,
+      role: typedValues.role,
+      province: typedValues.province || undefined,
+      city: typedValues.city || undefined,
+      college: typedValues.college || undefined,
+      district: typedValues.district || undefined,
     };
 
-    const formSnapshot = { ...raw };
+    const formSnapshot = { ...values };
     const mobileDuplicateSnapshot = mobileDuplicate;
 
     scheduleUndoableMutation({
@@ -185,7 +183,7 @@ export function useAdminUserCreationForm() {
     mobileComplete,
     mobileDuplicate,
     checkingMobile,
-    submitting: false,
+    submitting: formState.isSubmitting,
     onRoleChange,
     onProvinceChange,
     onCityChange,
