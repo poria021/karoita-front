@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import type { LandingProduct } from '@/types/landing-cms';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 
 import { useMarketingPanel } from '../lib/marketingPanelContext';
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
@@ -13,6 +13,14 @@ import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 type MarketingProductsDockProps = {
   products: LandingProduct[];
 };
+
+function getProductIcon(iconName?: string) {
+  if (!iconName) return faIcons.link;
+  const key = iconName
+    .replace(/^fa-/, '')
+    .replace(/-([a-z])/g, (_, c) => c.toUpperCase()) as keyof typeof faIcons;
+  return faIcons[key] ?? (faIcons as Record<string, typeof faIcons.link>)[iconName] ?? faIcons.link;
+}
 
 function DockMark({ product }: { product: LandingProduct }) {
   if (product.logoImageUrl) {
@@ -46,7 +54,7 @@ function DockMark({ product }: { product: LandingProduct }) {
 
   return (
     <FaIcon
-      icon={iconMap[product.icon] ?? faIcons.link}
+      icon={getProductIcon(product.icon)}
       size="xs"
       className="text-current"
     />

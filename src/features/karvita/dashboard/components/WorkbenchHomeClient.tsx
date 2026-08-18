@@ -6,7 +6,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { OnboardingChecklist } from '@/components/shared/shell/OnboardingChecklist';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useUserStore } from '@/store/useUserStore';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 import {
   getOnboardingProgress,
   shouldShowOnboardingChecklist,
@@ -19,6 +19,18 @@ export type WorkbenchHomeProps = {
   subtitle: string;
   emptyDescription: string;
 };
+
+function resolveShortcutIcon(iconName?: string) {
+  if (!iconName) return faIcons.folderOpen;
+  const key = iconName
+    .replace(/^fa-/, '')
+    .replace(/-([a-z])/g, (_, c) => c.toUpperCase()) as keyof typeof faIcons;
+  return (
+    faIcons[key] ??
+    (faIcons as Record<string, typeof faIcons.folderOpen>)[iconName] ??
+    faIcons.folderOpen
+  );
+}
 
 /**
  * Quiet organizational workbench — welcome + live module shortcuts only.
@@ -72,7 +84,7 @@ export function WorkbenchHomeClient({
         <nav aria-label="میان‌برهای میز کار">
           <ul className="grid list-none gap-kv-pair sm:grid-cols-2 lg:grid-cols-3">
             {shortcuts.map((item) => {
-              const icon = iconMap[item.icon] ?? faIcons.folderOpen;
+              const icon = resolveShortcutIcon(item.icon);
               return (
                 <li key={item.path}>
                   <Link

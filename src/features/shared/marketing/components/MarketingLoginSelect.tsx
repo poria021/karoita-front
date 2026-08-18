@@ -7,13 +7,21 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { RouteService } from '@/services/route.service';
 import type { LandingProduct } from '@/types/landing-cms';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
 type MarketingLoginSelectProps = {
   products: LandingProduct[];
 };
+
+function getProductIcon(iconName?: string) {
+  if (!iconName) return faIcons.link;
+  const key = iconName
+    .replace(/^fa-/, '')
+    .replace(/-([a-z])/g, (_, c) => c.toUpperCase()) as keyof typeof faIcons;
+  return faIcons[key] ?? (faIcons as Record<string, typeof faIcons.link>)[iconName] ?? faIcons.link;
+}
 
 function ProductMark({ product }: { product: LandingProduct }) {
   if (product.logoImageUrl) {
@@ -46,7 +54,7 @@ function ProductMark({ product }: { product: LandingProduct }) {
 
   return (
     <FaIcon
-      icon={iconMap[product.icon] ?? faIcons.link}
+      icon={getProductIcon(product.icon)}
       size="xl"
       className="text-kv-brand"
     />

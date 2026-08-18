@@ -2,7 +2,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 import type { ApprovalFilterTab } from '@/types/onboarding-approvals';
 import type { UserRole } from '@/types/auth';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 
 export type OnboardingApprovalTabConfig = {
   key: ApprovalFilterTab;
@@ -62,7 +62,7 @@ export const GENERAL_APPROVAL_FIELDS: ApprovalFieldDef[] = [
   {
     key: 'province',
     label: 'استان تابعه',
-    icon: iconMap['fa-map-location-dot'] ?? faIcons.mapLocationDot,
+    icon: faIcons.mapLocationDot,
   },
   {
     key: 'city',
@@ -72,7 +72,7 @@ export const GENERAL_APPROVAL_FIELDS: ApprovalFieldDef[] = [
   {
     key: 'college',
     label: 'دانشکده / پردیس',
-    icon: iconMap['fa-school'] ?? faIcons.school,
+    icon: faIcons.school,
   },
   {
     key: 'district',
@@ -82,7 +82,7 @@ export const GENERAL_APPROVAL_FIELDS: ApprovalFieldDef[] = [
   {
     key: 'school',
     label: 'مدرسه همکار',
-    icon: iconMap['fa-school'] ?? faIcons.school,
+    icon: faIcons.school,
   },
 ];
 
@@ -138,7 +138,7 @@ export const ROLE_APPROVAL_FIELDS: Partial<
     {
       key: 'school',
       label: 'مدرسه همکار',
-      icon: iconMap['fa-school'] ?? faIcons.school,
+      icon: faIcons.school,
     },
   ],
   school_principal: [
@@ -151,7 +151,7 @@ export const ROLE_APPROVAL_FIELDS: Partial<
     {
       key: 'school',
       label: 'مدرسه همکار',
-      icon: iconMap['fa-school'] ?? faIcons.school,
+      icon: faIcons.school,
     },
   ],
 };

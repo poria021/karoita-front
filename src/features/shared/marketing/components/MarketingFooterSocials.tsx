@@ -3,13 +3,21 @@ import Link from 'next/link';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import type { LandingSocial } from '@/types/landing-cms';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
 type MarketingFooterSocialsProps = {
   socials: LandingSocial[];
 };
+
+function getSocialIcon(iconName?: string) {
+  if (!iconName) return faIcons.link;
+  const key = iconName
+    .replace(/^fa-/, '')
+    .replace(/-([a-z])/g, (_, c) => c.toUpperCase()) as keyof typeof faIcons;
+  return faIcons[key] ?? (faIcons as Record<string, typeof faIcons.link>)[iconName] ?? faIcons.link;
+}
 
 function SocialMark({ social }: { social: LandingSocial }) {
   if (social.iconImageUrl) {
@@ -43,7 +51,7 @@ function SocialMark({ social }: { social: LandingSocial }) {
 
   return (
     <FaIcon
-      icon={iconMap[social.icon] ?? faIcons.link}
+      icon={getSocialIcon(social.icon)}
       size="xs"
       className="text-kv-brand"
     />

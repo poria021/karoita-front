@@ -1,7 +1,7 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 import type { OrgMajorAudience, OrgStructureSubTab } from '@/types/org-structure';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 
 export type OrgStructureTabConfig = {
   key: OrgStructureSubTab;
@@ -19,7 +19,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     key: 'provinces',
     label: 'استان‌ها',
     shortLabel: 'استان‌ها',
-    icon: iconMap['fa-map'] ?? faIcons.map,
+    icon: faIcons.map,
     searchPlaceholder: 'جستجوی استان...',
     addLabel: 'استان',
     nameColumnLabel: 'نام استان',
@@ -49,7 +49,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     key: 'schools',
     label: 'مدارس تابعه',
     shortLabel: 'مدارس',
-    icon: iconMap['fa-school'] ?? faIcons.school,
+    icon: faIcons.school,
     searchPlaceholder: 'جستجوی مدرسه...',
     addLabel: 'مدرسه',
     nameColumnLabel: 'نام مدرسه',

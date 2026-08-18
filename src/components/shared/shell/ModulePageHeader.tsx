@@ -7,15 +7,23 @@ import { KvBreadcrumb } from '@/components/shared/shell/KvBreadcrumb';
 import { PageHeader } from '@/components/shared/shell/PageHeader';
 import { useUserStore } from '@/store/useUserStore';
 import { getModuleBreadcrumb } from '@/utils/moduleBreadcrumb';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 import { getModuleMeta } from '@/utils/moduleMeta';
+
+function resolveMetaIcon(iconName?: string) {
+  if (!iconName) return faIcons.folderOpen;
+  const key = iconName
+    .replace(/^fa-/, '')
+    .replace(/-([a-z])/g, (_, c) => c.toUpperCase()) as keyof typeof faIcons;
+  return faIcons[key] ?? (faIcons as Record<string, typeof faIcons.folderOpen>)[iconName] ?? faIcons.folderOpen;
+}
 
 export function ModulePageHeader() {
   const pathname = usePathname();
   const role = useUserStore((state) => state.activeUser?.role);
   const meta = getModuleMeta(pathname, role);
   const crumbs = getModuleBreadcrumb(pathname, role);
-  const icon = iconMap[meta.icon] ?? faIcons.folderOpen;
+  const icon = resolveMetaIcon(meta.icon);
 
   return (
     <PageHeader

@@ -4,7 +4,7 @@ import {
   LANDING_BANNER_MAX_SIZE_MB,
   LANDING_ICON_MAX_SIZE_MB,
 } from '@/services/landing-cms/landing-cms-media-limits';
-import { faIcons, iconMap } from '@/utils/iconMap';
+import { faIcons } from '@/utils/iconMap';
 
 export type LandingCmsTab = 'banners' | 'socials' | 'products';
 
@@ -50,7 +50,7 @@ export const LANDING_CMS_TABS: readonly LandingCmsTabConfig[] = [
     key: 'banners',
     label: 'بنرهای اسلایدر',
     shortLabel: 'بنرها',
-    icon: iconMap['fa-image'] ?? faIcons.image,
+    icon: faIcons.image,
     emptyTitle: 'بنری ثبت نشده است',
     emptyDescription: 'اولین بنر اسلایدر اصلی را از فرم کنار جدول اضافه کنید.',
   },
@@ -58,7 +58,7 @@ export const LANDING_CMS_TABS: readonly LandingCmsTabConfig[] = [
     key: 'socials',
     label: 'شبکه‌های اجتماعی',
     shortLabel: 'اجتماعی',
-    icon: iconMap['fa-link'] ?? faIcons.link,
+    icon: faIcons.link,
     emptyTitle: 'شبکه اجتماعی ثبت نشده است',
     emptyDescription: 'لینک شبکه‌های فوتر را از فرم کنار جدول اضافه کنید.',
   },
@@ -66,7 +66,7 @@ export const LANDING_CMS_TABS: readonly LandingCmsTabConfig[] = [
     key: 'products',
     label: 'محصولات شناور',
     shortLabel: 'محصولات',
-    icon: iconMap['fa-briefcase'] ?? faIcons.briefcase,
+    icon: faIcons.briefcase,
     emptyTitle: 'محصولی ثبت نشده است',
     emptyDescription: 'آیتم‌های داک شناور لندینگ را از فرم کنار جدول اضافه کنید.',
   },
@@ -78,5 +78,6 @@ export function getLandingCmsTabConfig(tab: LandingCmsTab): LandingCmsTabConfig 
 }
 
 export function resolveLandingIcon(stem: string): IconDefinition {
-  return iconMap[stem] ?? faIcons.link;
+  const key = stem.replace(/^fa-/, '').replace(/-([a-z])/g, (_, c) => c.toUpperCase()) as keyof typeof faIcons;
+  return faIcons[key] ?? faIcons.link;
 }
