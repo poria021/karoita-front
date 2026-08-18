@@ -39,7 +39,7 @@ async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
     {
       name: 'karvita_mock_session',
       value: '1',
-      url: RouteService.auth.adminGate(),
+      url: new URL(page.url()).origin,
       path: '/',
       expires: Math.floor(Date.now() / 1000) + 60 * 60,
     },
