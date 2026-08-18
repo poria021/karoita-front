@@ -56,6 +56,22 @@ export function useAdminGate() {
       }
 
       otpForm.reset({ otp: '' });
+
+      // Ensure the OTP field is focused/visible for end-to-end tests that rely
+      // on direct DOM locators. This is a small, non-invasive UX assist that
+      // does nothing when `document` isn't available.
+      try {
+        if (typeof document !== 'undefined') {
+          setTimeout(() => {
+            const el = document.getElementById('admin-gate-otp');
+            if (el && typeof (el as HTMLElement).focus === 'function') {
+              (el as HTMLElement).focus();
+            }
+          }, 50);
+        }
+      } catch {
+        // noop
+      }
     } catch (error) {
       mobileForm.setError('mobile', {
         message: readAuthErrorMessage(error, 'ارسال کد تایید ناموفق بود.'),
