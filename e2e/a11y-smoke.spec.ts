@@ -43,6 +43,13 @@ async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
       path: '/',
       expires: Math.floor(Date.now() / 1000) + 60 * 60,
     },
+    {
+      name: 'karvita_auth_session_meta',
+      value: JSON.stringify({ token: 'mock.test', expiresAt: new Date(Date.now() + 1000 * 60 * 60).toISOString() }),
+      domain: new URL(page.url()).hostname,
+      path: '/',
+      expires: Math.floor(Date.now() / 1000) + 60 * 60,
+    },
   ]);
 
   // Navigate directly to the admin dashboard after mocking the session.
