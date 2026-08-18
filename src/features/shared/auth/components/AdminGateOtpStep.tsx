@@ -46,7 +46,7 @@ export function AdminGateOtpStep({ gate }: AdminGateOtpStepProps) {
         />
       </div>
 
-      <AuthSubmitButton isLoading={isVerifyingOtp} loadingLabel="در حال تایید...">
+      <AuthSubmitButton id="admin-gate-verify" isLoading={isVerifyingOtp} loadingLabel="در حال تایید...">
         ورود به پنل مدیریت
       </AuthSubmitButton>
     </form>

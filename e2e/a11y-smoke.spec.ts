@@ -33,7 +33,7 @@ async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
   await page.locator('#admin-gate-otp').pressSequentially(MOCK_OTP_CODE, {
     delay: 15,
   });
-  await page.getByRole('button', { name: 'ورود به پنل مدیریت' }).click();
+  await page.locator('#admin-gate-verify').click();
 
   await expect(page).toHaveURL(
     new RegExp(
