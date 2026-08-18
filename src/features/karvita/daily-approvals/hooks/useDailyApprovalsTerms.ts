@@ -26,12 +26,14 @@ export function useDailyApprovalsTerms({
 
   useEffect(() => {
     let cancelled = false;
+
     void Promise.all([
       DailyApprovalsService.listTerms(kind),
       DailyApprovalsService.getPassingScoreThreshold(),
     ])
       .then(([nextTerms, threshold]) => {
         if (cancelled) return;
+
         setTerms(nextTerms);
         setPassingScoreThreshold(
           Number.isFinite(threshold) ? threshold : DAILY_APPROVAL_PASSING_SCORE
@@ -44,6 +46,7 @@ export function useDailyApprovalsTerms({
       })
       .catch((error: unknown) => {
         if (cancelled) return;
+
         setTerms([]);
         setTermId('');
         setTermsError(
@@ -53,6 +56,7 @@ export function useDailyApprovalsTerms({
         );
         setTermsReady(true);
       });
+
     return () => {
       cancelled = true;
     };
