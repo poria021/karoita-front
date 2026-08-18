@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm, type Resolver } from 'react-hook-form';
+import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { OrgStructureService } from '@/services/org-structure.service';
@@ -85,36 +85,50 @@ export function useOrgEntityForm({
     mode: 'onSubmit',
   });
 
-  // eslint-disable-next-line react-hooks/incompatible-library -- RHF watch for cascading select dependencies
-  const provinceId = form.watch('provinceId');
-  // eslint-disable-next-line react-hooks/incompatible-library -- RHF watch for cascading select dependencies
-  const cityId = form.watch('cityId');
+  const provinceId = useWatch({
+    control: form.control,
+    name: 'provinceId',
+  });
+  const cityId = useWatch({
+    control: form.control,
+    name: 'cityId',
+  });
 
-  // Load provinces and hydrate entity on open
   useEffect(() => {
     if (!open) return;
+
+    let isMounted = true;
+
     void (async () => {
-      setProvinces(await OrgStructureService.listProvinces());
+      const provincesData = await OrgStructureService.listProvinces();
+      if (!isMounted) return;
+      setProvinces(provincesData);
+
       if (!editId) {
         form.reset(defaultValuesForTab(tab));
         return;
       }
+
       const entity = await OrgStructureService.getEntity(entityKind, editId);
-      if (!entity) return;
+      if (!entity || !isMounted) return;
+
       if (entityKind === 'province') {
         form.reset({ name: entity.name });
         return;
       }
+
       if (entityKind === 'major') {
         const major = entity as OrgMajor;
         form.reset({ name: major.name, audience: major.audience });
         return;
       }
+
       if (entityKind === 'city') {
         const city = entity as OrgCity;
         form.reset({ name: city.name, provinceId: city.provinceId });
         return;
       }
+
       if (entityKind === 'school') {
         const school = entity as OrgSchool;
         form.reset({
@@ -126,37 +140,66 @@ export function useOrgEntityForm({
         });
         return;
       }
+
       const row = entity as {
         name: string;
         provinceId: string;
         cityId: string;
       };
+
       form.reset({
         name: row.name,
         provinceId: row.provinceId,
         cityId: row.cityId,
       });
     })();
+
+    return () => {
+      isMounted = false;
+    };
   }, [open, editId, entityKind, tab, form]);
 
-  // Load cities when province changes
   useEffect(() => {
     if (!open || !provinceId) {
       setCities([]);
       return;
     }
-    void OrgStructureService.listCities(provinceId).then(setCities);
+
+    let isMounted = true;
+
+    void OrgStructureService.listCities(provinceId).then((data) => {
+      if (isMounted) {
+        setCities(data);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, [open, provinceId]);
 
-  // Load districts when city changes (schools only)
   useEffect(() => {
-    if (!open || tab !== 'schools' || !provinceId) {
+    if (!open || tab !== 'schools') {
       setDistricts([]);
       return;
     }
-    void OrgStructureService.listDistricts(provinceId, cityId).then(
-      setDistricts
-    );
+
+    if (!provinceId || !cityId) {
+      setDistricts([]);
+      return;
+    }
+
+    let isMounted = true;
+
+    void OrgStructureService.listDistricts(provinceId, cityId).then((data) => {
+      if (isMounted) {
+        setDistricts(data);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, [open, tab, provinceId, cityId]);
 
   return {
