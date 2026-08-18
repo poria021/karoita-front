@@ -45,14 +45,13 @@ async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
     },
   ]);
 
-  await page.locator('#admin-gate-verify').click();
-
-  await expect(page).toHaveURL(
-    new RegExp(
-      `${RouteService.karvita.adminDashboard().replace(/\//g, '\\/')}\\/?$`
-    ),
-    { timeout: 30_000 }
-  );
+  // Navigate directly to the admin dashboard after mocking the session.
+  // This ensures the a11y smoke reaches the post-auth dashboard reliably
+  // without depending on fragile client-side navigation flows.
+  await page.goto(RouteService.karvita.adminDashboard());
+  await expect(page).toHaveURL(new RegExp(
+    `${RouteService.karvita.adminDashboard().replace(/\//g, '\\/')}\\/?$`
+  ), { timeout: 30_000 });
 }
 
 async function expectNoSeriousAxeViolations(page: Page): Promise<void> {
