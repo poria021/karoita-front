@@ -62,12 +62,10 @@ export const KvSearchableOrganizationSelect = forwardRef<
   const edgeScroll = useEdgeAutoScroll<HTMLDivElement>();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState(value);
-  const [syncedValue, setSyncedValue] = useState(value);
 
-  if (value !== syncedValue) {
-    setSyncedValue(value);
+  useEffect(() => {
     setQuery(value);
-  }
+  }, [value]);
 
   useEffect(() => {
     const close = (event: MouseEvent) => {
