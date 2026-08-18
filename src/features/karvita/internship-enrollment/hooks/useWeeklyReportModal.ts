@@ -28,7 +28,6 @@ type UseWeeklyReportModalInput = {
   week: InternshipWeeklySession | null;
   open: boolean;
   onClose: () => void;
-  /** Re-open the same week editor when submit undo is pressed. */
   onReopen: (week: InternshipWeeklySession) => void;
   onSaved: () => Promise<void>;
 };
@@ -123,7 +122,9 @@ export function useWeeklyReportModal({
   const removeFile = useCallback(
     (fileId: string) => {
       if (locked) return;
+
       let snapshot: InternshipWeeklyReportFile[] = [];
+
       scheduleUndoableLocalChange({
         tone: 'error',
         message: 'ضمیمه مورد نظر حذف شد.',
@@ -149,6 +150,7 @@ export function useWeeklyReportModal({
       );
       return false;
     }
+
     return true;
   }, [files.length, text]);
 
@@ -157,6 +159,7 @@ export function useWeeklyReportModal({
     if (!assertNonEmpty()) return;
 
     setIsSavingDraft(true);
+
     try {
       await InternshipEnrollmentService.saveWeeklyReportDraft({
         actor,
@@ -167,6 +170,7 @@ export function useWeeklyReportModal({
         text,
         files,
       });
+
       toast.success('گزارش با موفقیت به عنوان پیش‌نویس ذخیره گردید.');
       await onSaved();
       onClose();
@@ -236,6 +240,7 @@ export function useWeeklyReportModal({
         );
       },
     });
+
     setIsSubmitting(false);
   }, [
     actor,
