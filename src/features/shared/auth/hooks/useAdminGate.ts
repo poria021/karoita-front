@@ -47,17 +47,20 @@ export function useAdminGate() {
       const isSameNumber = data.mobile === pendingMobile && !countdown.canResend;
 
       if (!isSameNumber) {
+        setStep(2);
         await AuthService.sendAdminGateOtp(data.mobile);
         setPendingMobile(data.mobile);
         countdown.restart();
+      } else {
+        setStep(2);
       }
 
-      setStep(2);
       otpForm.reset({ otp: '' });
     } catch (error) {
       mobileForm.setError('mobile', {
         message: readAuthErrorMessage(error, 'ارسال کد تایید ناموفق بود.'),
       });
+      setStep(1);
     }
   });
 
