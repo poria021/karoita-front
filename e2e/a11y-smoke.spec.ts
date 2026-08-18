@@ -33,6 +33,18 @@ async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
   await page.locator('#admin-gate-otp').pressSequentially(MOCK_OTP_CODE, {
     delay: 15,
   });
+  // Simulate successful mock session on the Edge/proxy so the app treats
+  // this as an authenticated session during the e2e run.
+  await page.context().addCookies([
+    {
+      name: 'karvita_mock_session',
+      value: '1',
+      url: RouteService.auth.adminGate(),
+      path: '/',
+      expires: Math.floor(Date.now() / 1000) + 60 * 60,
+    },
+  ]);
+
   await page.locator('#admin-gate-verify').click();
 
   await expect(page).toHaveURL(
