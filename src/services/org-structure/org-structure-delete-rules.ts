@@ -70,23 +70,28 @@ export function isDistrictDeleteBlocked(
 }
 
 export function isFacultyDeleteBlocked(
-  _db: OrgStructureSnapshot,
-  _id: string
+  db: OrgStructureSnapshot,
+  id: string
 ): boolean {
+  // Currently there are no dependent entities that reference a faculty
+  // within the snapshot. Keep delete unblocked until business rules
+  // require otherwise.
   return false;
 }
 
 export function isSchoolDeleteBlocked(
-  _db: OrgStructureSnapshot,
-  _id: string
+  db: OrgStructureSnapshot,
+  id: string
 ): boolean {
+  // Schools are leaf entities in the snapshot; by default allow deletion.
   return false;
 }
 
 export function isMajorDeleteBlocked(
-  _db: OrgStructureSnapshot,
-  _id: string
+  db: OrgStructureSnapshot,
+  id: string
 ): boolean {
+  // Majors are independent in the snapshot; do not block deletion here.
   return false;
 }
 

@@ -154,9 +154,9 @@ export async function realRegister(
 export async function realVerifyRegistrationOtp(
   mobile: string,
   otp: string,
-  role: UserRole
+  _role: UserRole
 ): Promise<User> {
-  void role;
+  void _role;
   guard('real-auth.bridge.registerOtpVerify');
   const raw = await apiClient.postMaybeJson<unknown>(
     REAL_AUTH_PATHS.registerOtpVerify,
@@ -172,55 +172,55 @@ export async function realVerifyRegistrationOtp(
   );
 }
 
-export async function realSendForgotPasswordOtp(mobile: string): Promise<void> {
-  void mobile;
+export async function realSendForgotPasswordOtp(_mobile: string): Promise<void> {
+  void _mobile;
   guard('real-auth.bridge.forgotSend');
   // Nest AuthForgotPasswordDto currently uses `email` — wire in a later step.
   throwRealModeNotImplemented('real-auth.bridge.forgotSend');
 }
 
 export async function realVerifyForgotPasswordOtp(
-  mobile: string,
-  otp: string
+  _mobile: string,
+  _otp: string
 ): Promise<void> {
-  void mobile;
-  void otp;
+  void _mobile;
+  void _otp;
   throwRealModeNotImplemented('real-auth.bridge.forgotVerify');
 }
 
 export async function realResetPassword(
-  mobile: string,
-  otp: string,
-  newPassword: string
+  _mobile: string,
+  _otp: string,
+  _newPassword: string
 ): Promise<void> {
-  void mobile;
-  void otp;
-  void newPassword;
+  void _mobile;
+  void _otp;
+  void _newPassword;
   guard('real-auth.bridge.forgotReset');
   // Nest AuthResetPasswordDto uses `{ password, hash }` — wire in a later step.
   throwRealModeNotImplemented('real-auth.bridge.forgotReset');
 }
 
 export async function realSetInitialPassword(
-  mobile: string,
-  newPassword: string
+  _mobile: string,
+  _newPassword: string
 ): Promise<void> {
-  void mobile;
-  void newPassword;
+  void _mobile;
+  void _newPassword;
   throwRealModeNotImplemented('real-auth.bridge.initialPassword');
 }
 
-export async function realSendAdminGateOtp(mobile: string): Promise<void> {
-  void mobile;
+export async function realSendAdminGateOtp(_mobile: string): Promise<void> {
+  void _mobile;
   throwRealModeNotImplemented('real-auth.bridge.adminOtpSend');
 }
 
 export async function realVerifyAdminGateOtp(
-  mobile: string,
-  otp: string
+  _mobile: string,
+  _otp: string
 ): Promise<User> {
-  void mobile;
-  void otp;
+  void _mobile;
+  void _otp;
   throwRealModeNotImplemented('real-auth.bridge.adminOtpVerify');
 }
 
