@@ -43,7 +43,7 @@ export function useWeeklyReportModal({
   actor,
   state,
   week,
-  open,
+  open: _open,
   onClose,
   onReopen,
   onSaved,
@@ -60,27 +60,34 @@ export function useWeeklyReportModal({
     files: InternshipWeeklyReportFile[];
   } | null>(null);
 
-  const resetForm = useCallback(() => {
-    if (!week) {
-      setEditorWeekId(null);
-      setText('');
-      setFiles([]);
-      return;
-    }
+  const resetForm = useCallback(
+    (force = false) => {
+      if (!week) {
+        setEditorWeekId(null);
+        setText('');
+        setFiles([]);
+        return;
+      }
 
-    const draft = undoDraftRef.current;
-    setEditorWeekId(week.id);
+      if (!force && week.id === editorWeekId) {
+        return;
+      }
 
-    if (draft && draft.weekId === week.id) {
-      setText(draft.text);
-      setFiles(cloneFiles(draft.files));
-      undoDraftRef.current = null;
-      return;
-    }
+      const draft = undoDraftRef.current;
+      setEditorWeekId(week.id);
 
-    setText(week.text ?? '');
-    setFiles(cloneFiles(week.files));
-  }, [week]);
+      if (draft && draft.weekId === week.id) {
+        setText(draft.text);
+        setFiles(cloneFiles(draft.files));
+        undoDraftRef.current = null;
+        return;
+      }
+
+      setText(week.text ?? '');
+      setFiles(cloneFiles(week.files));
+    },
+    [editorWeekId, week]
+  );
 
   const lockContext = useMemo(() => {
     if (!week || !enrollment) return null;
