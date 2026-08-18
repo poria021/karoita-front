@@ -114,6 +114,7 @@ export function useAdminGate() {
     pendingMobile,
     mobileForm,
     requestOtp,
+    showOtp: () => setStep(2),
     isRequestingOtp: mobileForm.formState.isSubmitting,
     otpForm,
     verifyOtp,

@@ -13,12 +13,20 @@ interface AdminGateMobileStepProps {
 }
 
 export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
-  const { mobileForm, requestOtp, isRequestingOtp, secondsUntilResend } = gate;
+  const { mobileForm, requestOtp, isRequestingOtp, secondsUntilResend, showOtp } = gate;
   const { control, formState } = mobileForm;
   const hasActiveCountdown = secondsUntilResend > 0;
 
   return (
-    <form onSubmit={requestOtp} className="flex flex-col gap-kv-section" noValidate>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        showOtp();
+        void requestOtp();
+      }}
+      className="flex flex-col gap-kv-section"
+      noValidate
+    >
       <AuthStepHeading step={1} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
