@@ -1,5 +1,3 @@
-import imageCompression from 'browser-image-compression';
-
 export interface CompressionOptions {
   maxWidth?: number;
   quality?: number;
@@ -10,6 +8,18 @@ export interface CompressionOptions {
 const DEFAULT_MAX_WIDTH = 1000;
 const DEFAULT_QUALITY = 0.7;
 const DEFAULT_FORMAT = 'image/webp' as const;
+
+type ImageCompressionFn = typeof import('browser-image-compression').default;
+let imageCompressionPromise: Promise<ImageCompressionFn> | null = null;
+
+function loadImageCompression(): Promise<ImageCompressionFn> {
+  if (!imageCompressionPromise) {
+    imageCompressionPromise = import('browser-image-compression').then(
+      (mod) => mod.default ?? mod
+    );
+  }
+  return imageCompressionPromise;
+}
 
 function ensureBrowser(): void {
   if (typeof window === 'undefined') {
@@ -56,6 +66,8 @@ async function compressWithLibrary(
   const preferredFormat = options.format ?? DEFAULT_FORMAT;
   const allowJpegFallback = options.allowJpegFallback ?? true;
   validateCompressionOptions(maxWidth, quality);
+
+  const imageCompression = await loadImageCompression();
 
   const run = (fileType: string) =>
     imageCompression(file, {
