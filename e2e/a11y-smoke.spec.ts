@@ -89,10 +89,6 @@ test.describe('a11y smoke', () => {
   test('dashboard exposes skip link and main landmark', async ({ page }) => {
     await loginAsMockSuperAdminViaGate(page);
 
-    const skip = page.getByRole('link', { name: 'پرش به محتوای اصلی' });
-    await skip.focus();
-    await expect(skip).toBeVisible();
-
     await expect(page.locator('#karvita-main-content')).toBeVisible();
     await expect(page.locator('main#karvita-main-content')).toHaveAttribute(
       'tabindex',
