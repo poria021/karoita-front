@@ -133,7 +133,7 @@ export function KvSearchableCombobox({
       className={cn('relative', className)}
       role="combobox"
       aria-expanded={open && !disabled}
-      aria-controls={open ? listId : undefined}
+      aria-controls={listId}
       aria-haspopup="listbox"
       aria-autocomplete="list"
       aria-disabled={disabled || undefined}
@@ -157,7 +157,7 @@ export function KvSearchableCombobox({
           placeholder={placeholder}
           autoComplete="off"
           aria-autocomplete="list"
-          aria-controls={open ? listId : undefined}
+          aria-controls={listId}
           className="h-full w-full min-w-0 bg-transparent ps-kv-group pe-1 text-start text-xs font-medium text-kv-text outline-none placeholder:text-kv-text-faint disabled:cursor-not-allowed"
           onFocus={() => {
             if (disabled) return;
