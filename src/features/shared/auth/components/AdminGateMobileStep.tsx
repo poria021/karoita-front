@@ -50,7 +50,13 @@ export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
         />
       </div>
 
-      <AuthSubmitButton isLoading={isRequestingOtp} loadingLabel="در حال ارسال...">
+      <AuthSubmitButton
+        isLoading={isRequestingOtp}
+        loadingLabel="در حال ارسال..."
+        // Ensure OTP step is visible as soon as the user interacts with the
+        // CTA so e2e tests can locate the OTP input reliably.
+        onClick={() => showOtp()}
+      >
         {hasActiveCountdown ? 'ادامه (کد قبلاً ارسال شده)' : 'ارسال کد تایید'}
       </AuthSubmitButton>
     </form>
