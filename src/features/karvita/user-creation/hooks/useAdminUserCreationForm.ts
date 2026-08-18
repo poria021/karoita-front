@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm, type Resolver } from 'react-hook-form';
+import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
@@ -36,15 +36,17 @@ export function useAdminUserCreationForm() {
     mode: 'onSubmit',
   });
 
-  const { watch, setValue, reset, handleSubmit, formState } = form;
+  const { setValue, reset, handleSubmit, formState, control } = form;
 
-  const mobile = watch('mobile');
-  const role = watch('role');
+  const [mobile, role] = useWatch({
+    control,
+    name: ['mobile', 'role'],
+  });
 
   const [mobileDuplicate, setMobileDuplicate] = useState(false);
   const [checkingMobile, setCheckingMobile] = useState(false);
 
-  const mobileNormalized = normalizeMobile(mobile);
+  const mobileNormalized = normalizeMobile(mobile ?? '');
   const mobileComplete = /^9\d{9}$/.test(mobileNormalized);
   const needsProvinceRole = orgAccountRequiresProvince(role);
   const needsCollege = orgAccountRequiresCollege(role);
@@ -54,31 +56,37 @@ export function useAdminUserCreationForm() {
   useEffect(() => {
     if (!mobileComplete) {
       setMobileDuplicate(false);
+      setCheckingMobile(false);
       return;
     }
 
     let cancelled = false;
     setCheckingMobile(true);
 
-    void AdminUserCreationService.checkMobileAvailable(mobileNormalized)
-      .then((result) => {
-        if (cancelled) return;
-        setMobileDuplicate(!result.available);
-        if (!result.available) {
-          toast.error(
-            'هشدار امنیتی: این شماره موبایل قبلاً در سامانه ثبت شده است!'
-          );
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setMobileDuplicate(false);
-      })
-      .finally(() => {
-        if (!cancelled) setCheckingMobile(false);
-      });
+    const timer = window.setTimeout(() => {
+      void AdminUserCreationService.checkMobileAvailable(mobileNormalized)
+        .then((result) => {
+          if (cancelled) return;
+
+          setMobileDuplicate(!result.available);
+
+          if (!result.available) {
+            toast.error(
+              'هشدار امنیتی: این شماره موبایل قبلاً در سامانه ثبت شده است!'
+            );
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setMobileDuplicate(false);
+        })
+        .finally(() => {
+          if (!cancelled) setCheckingMobile(false);
+        });
+    }, 400);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(timer);
     };
   }, [mobileComplete, mobileNormalized]);
 
