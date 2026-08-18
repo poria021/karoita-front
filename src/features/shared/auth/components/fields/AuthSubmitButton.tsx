@@ -15,9 +15,10 @@ export function AuthSubmitButton({
   children,
   ...rest
 }: AuthSubmitButtonProps) {
+  const finalType = (rest as Record<string, any>).type ?? 'submit';
   return (
     <KvButton
-      type="submit"
+      type={finalType}
       color="cta"
       appearance="solid"
       fullWidth

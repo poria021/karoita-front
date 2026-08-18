@@ -21,7 +21,6 @@ export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        showOtp();
         void requestOtp();
       }}
       className="flex flex-col gap-kv-section"
