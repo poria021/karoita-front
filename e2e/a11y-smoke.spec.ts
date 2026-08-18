@@ -27,13 +27,33 @@ async function setMockSessionCookies(page: Page): Promise<void> {
   // Visit public home so `document` exists; then set cookies/localStorage
   await page.goto(RouteService.marketing.home());
   const meta = JSON.stringify({ token: 'mock.test', expiresAt: new Date(Date.now() + 1000 * 60 * 60).toISOString() });
-  await page.evaluate((m) => {
-    document.cookie = `karvita_mock_session=1; path=/`;
-    document.cookie = `karvita_auth_session_meta=${m}; path=/`;
-    try {
-      localStorage.setItem('karvita_auth_session_meta', m);
-    } catch {}
-  }, meta);
+  await page.evaluate(
+    (m, mobile) => {
+      document.cookie = `karvita_mock_session=1; path=/`;
+      document.cookie = `karvita_auth_session_meta=${m}; path=/`;
+      try {
+        localStorage.setItem('karvita_auth_session_meta', m);
+        const userState = {
+          state: {
+            activeUser: {
+              id: 'mock-admin',
+              mobile,
+              firstName: '',
+              lastName: '',
+              role: 'super_admin',
+              approved: true,
+              docStatus: 'not_submitted',
+              hasPassword: false,
+            },
+            isAuthenticated: true,
+          },
+        };
+        localStorage.setItem('karvita-user-store', JSON.stringify(userState));
+      } catch {}
+    },
+    meta,
+    MOCK_SUPER_ADMIN_MOBILE
+  );
 }
 
 async function expectNoSeriousAxeViolations(page: Page): Promise<void> {
