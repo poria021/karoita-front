@@ -26,10 +26,7 @@ export function AdminGateCard() {
           <AdminGateMobileStep gate={gate} />
         </div>
 
-        <div
-          aria-hidden={gate.step !== 2}
-          style={{ display: gate.step === 2 ? 'block' : 'none' }}
-        >
+        <div aria-hidden={gate.step !== 2} style={{ display: 'block' }}>
           <AdminGateOtpStep gate={gate} />
         </div>
 
