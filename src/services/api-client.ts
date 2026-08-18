@@ -113,24 +113,30 @@ async function resolveBearerToken(explicit?: string): Promise<string | undefined
   }
 }
 
-function createClient() {
+let _client: ReturnType<typeof ky.create> | null = null;
+
+function getOrCreateClient() {
   if (!API_URL) {
     throw new ApiClientError('آدرس سرویس API پیکربندی نشده است.');
   }
 
-  return ky.create({
-    prefix: API_URL,
-    credentials: 'include',
-    hooks: {
-      afterResponse: [
-        async ({ response }) => {
-          if (response.status === 401) {
-            await handleUnauthorized();
-          }
-        },
-      ],
-    },
-  });
+  if (!_client) {
+    _client = ky.create({
+      prefix: API_URL,
+      credentials: 'include',
+      hooks: {
+        afterResponse: [
+          async ({ response }) => {
+            if (response.status === 401) {
+              await handleUnauthorized();
+            }
+          },
+        ],
+      },
+    });
+  }
+
+  return _client;
 }
 
 async function mapHttpError(error: unknown): Promise<never> {
@@ -170,7 +176,7 @@ async function request<T>(
   token?: string
 ): Promise<T> {
   try {
-    const client = createClient();
+    const client = getOrCreateClient();
     const bearer = await resolveBearerToken(token);
     return await client[method](path.replace(/^\//, ''), {
       ...options,
@@ -215,7 +221,7 @@ export const apiClient = {
     options?: KyOptions
   ): Promise<T | null> {
     try {
-      const client = createClient();
+      const client = getOrCreateClient();
       const bearer = await resolveBearerToken(token);
       const response = await client.post(path.replace(/^\//, ''), {
         ...options,
@@ -239,7 +245,7 @@ export const apiClient = {
     options?: KyOptions
   ): Promise<T | null> {
     try {
-      const client = createClient();
+      const client = getOrCreateClient();
       const bearer = await resolveBearerToken(token);
       const response = await client.get(path.replace(/^\//, ''), {
         ...options,
