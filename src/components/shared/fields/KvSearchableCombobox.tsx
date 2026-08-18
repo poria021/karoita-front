@@ -64,7 +64,14 @@ export function KvSearchableCombobox({
   const fieldId = idProp ?? autoId;
   const listId = `${fieldId}-list`;
   const rootRef = useRef<HTMLDivElement>(null);
-  const edgeScroll = useEdgeAutoScroll<HTMLDivElement>();
+  const {
+    ref: edgeScrollRef,
+    onPointerMove,
+    onPointerLeave,
+    canScrollDown,
+    nudgeDown,
+    stop,
+  } = useEdgeAutoScroll<HTMLDivElement>();
   const openRef = useRef(false);
   const onOpenChangeRef = useRef(onOpenChange);
   const onDismissRef = useRef(onDismiss);
@@ -149,11 +156,8 @@ export function KvSearchableCombobox({
           value={value}
           placeholder={placeholder}
           autoComplete="off"
-          role="textbox"
           aria-autocomplete="list"
           aria-controls={open ? listId : undefined}
-          aria-expanded={open && !disabled}
-          aria-haspopup="listbox"
           className="h-full w-full min-w-0 bg-transparent ps-kv-group pe-1 text-start text-xs font-medium text-kv-text outline-none placeholder:text-kv-text-faint disabled:cursor-not-allowed"
           onFocus={() => {
             if (disabled) return;
@@ -196,10 +200,10 @@ export function KvSearchableCombobox({
           )}
         >
           <Command.List
-            ref={edgeScroll.ref}
+            ref={edgeScrollRef}
             data-edge-auto-scroll=""
-            onPointerMove={edgeScroll.onPointerMove}
-            onPointerLeave={edgeScroll.onPointerLeave}
+            onPointerMove={onPointerMove}
+            onPointerLeave={onPointerLeave}
             className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden outline-none"
           >
             {isLoading ? (
@@ -240,9 +244,9 @@ export function KvSearchableCombobox({
           </Command.List>
 
           <KvOverlayScrollMoreCue
-            visible={edgeScroll.canScrollDown}
-            onHoverStart={edgeScroll.nudgeDown}
-            onHoverEnd={edgeScroll.stop}
+            visible={canScrollDown}
+            onHoverStart={nudgeDown}
+            onHoverEnd={stop}
           />
         </Command>
       ) : null}
