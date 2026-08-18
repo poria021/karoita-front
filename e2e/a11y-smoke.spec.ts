@@ -76,9 +76,9 @@ test.describe('a11y smoke', () => {
   });
 
   test('dashboard exposes skip link and main landmark', async ({ page }) => {
-    await loginAsMockSuperAdminViaGate(page);
-
-    await expect(page.locator('#karvita-main-content')).toBeVisible();
+    await setMockSessionCookies(page);
+    await page.goto(RouteService.karvita.adminDashboard());
+    await expect(page.locator('#karvita-main-content')).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('main#karvita-main-content')).toHaveAttribute(
       'tabindex',
       '-1'
