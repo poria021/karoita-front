@@ -43,7 +43,7 @@ export function useDailyApprovalsActions({
   const [gradingTarget, setGradingTarget] =
     useState<DailyApprovalGradingTarget | null>(null);
   const [bulkExtendOpen, setBulkExtendOpen] = useState(false);
-  const actionBusy = false;
+  const [actionBusy, setActionBusy] = useState(false);
 
   const selectedTrainee =
     list.items.find((row) => row.id === selectedTraineeId) ?? null;
@@ -77,6 +77,7 @@ export function useDailyApprovalsActions({
       }
       setSelectedTraineeId(trainee.id);
       setGradingTarget({ traineeId: trainee.id, weekId: week.id });
+      setActionBusy(true);
       try {
         await DailyApprovalsService.openWeek({
           traineeId: trainee.id,
@@ -89,6 +90,8 @@ export function useDailyApprovalsActions({
             ? error.message
             : 'باز کردن گزارش هفته ناموفق بود.'
         );
+      } finally {
+        setActionBusy(false);
       }
     },
     [list]
@@ -129,10 +132,21 @@ export function useDailyApprovalsActions({
           setSelectedTraineeId(prevSelected);
           setGradingTarget(prevGrading);
         },
-        commit: () =>
-          DailyApprovalsService.dropTrainee({ traineeId: trainee.id }),
+        commit: async () => {
+          setActionBusy(true);
+          try {
+            await DailyApprovalsService.dropTrainee({ traineeId: trainee.id });
+          } finally {
+            setActionBusy(false);
+          }
+        },
         reverse: async () => {
-          await DailyApprovalsService.restoreTrainee(traineeSnapshot);
+          setActionBusy(true);
+          try {
+            await DailyApprovalsService.restoreTrainee(traineeSnapshot);
+          } finally {
+            setActionBusy(false);
+          }
         },
         onCommitted: async () => {
           await list.reload();
@@ -160,13 +174,19 @@ export function useDailyApprovalsActions({
             : 'نمره نهایی گزارش با موفقیت ثبت شد.',
         errorFallback: 'ثبت ارزیابی استاد ناموفق بود.',
         setGradingTarget,
-        commit: (target) =>
-          DailyApprovalsService.updateWeekEvaluation({
-            traineeId: target.traineeId,
-            weekId: target.weekId,
-            score: input.score,
-            advisorFeedback: input.advisorFeedback,
-          }),
+        commit: async (target) => {
+          setActionBusy(true);
+          try {
+            await DailyApprovalsService.updateWeekEvaluation({
+              traineeId: target.traineeId,
+              weekId: target.weekId,
+              score: input.score,
+              advisorFeedback: input.advisorFeedback,
+            });
+          } finally {
+            setActionBusy(false);
+          }
+        },
         onCommitted: async () => {
           await list.reload();
         },
@@ -186,13 +206,19 @@ export function useDailyApprovalsActions({
           'ارزیابی با موفقیت ثبت نهایی شد و گزارش در وضعیت تایید قرار گرفت.',
         errorFallback: 'ثبت ارزیابی معلم راهنما ناموفق بود.',
         setGradingTarget,
-        commit: (target) =>
-          DailyApprovalsService.updateMentorWeekEvaluation({
-            traineeId: target.traineeId,
-            weekId: target.weekId,
-            mentorFeedback: input.mentorFeedback,
-            mentorRating: input.mentorRating,
-          }),
+        commit: async (target) => {
+          setActionBusy(true);
+          try {
+            await DailyApprovalsService.updateMentorWeekEvaluation({
+              traineeId: target.traineeId,
+              weekId: target.weekId,
+              mentorFeedback: input.mentorFeedback,
+              mentorRating: input.mentorRating,
+            });
+          } finally {
+            setActionBusy(false);
+          }
+        },
         onCommitted: async () => {
           await list.reload();
         },
@@ -211,13 +237,19 @@ export function useDailyApprovalsActions({
         message: 'ارزیابی توصیفی مدیر مدرسه با موفقیت ثبت نهایی شد.',
         errorFallback: 'ثبت ارزیابی مدیر مدرسه ناموفق بود.',
         setGradingTarget,
-        commit: (target) =>
-          DailyApprovalsService.updatePrincipalWeekEvaluation({
-            traineeId: target.traineeId,
-            weekId: target.weekId,
-            principalFeedback: input.principalFeedback,
-            principalRating: input.principalRating,
-          }),
+        commit: async (target) => {
+          setActionBusy(true);
+          try {
+            await DailyApprovalsService.updatePrincipalWeekEvaluation({
+              traineeId: target.traineeId,
+              weekId: target.weekId,
+              principalFeedback: input.principalFeedback,
+              principalRating: input.principalRating,
+            });
+          } finally {
+            setActionBusy(false);
+          }
+        },
         onCommitted: async () => {
           await list.reload();
         },
@@ -276,22 +308,33 @@ export function useDailyApprovalsActions({
         revert: () => {
           list.patchItems(() => snapshot, () => snapshotTotal);
         },
-        commit: () =>
-          DailyApprovalsService.bulkExtendWeeks({
-            kind,
-            termId: commitTermId,
-            course,
-            weekNumbers: input.weekNumbers,
-            revokeWeekNumbers: input.revokeWeekNumbers,
-          }),
+        commit: async () => {
+          setActionBusy(true);
+          try {
+            await DailyApprovalsService.bulkExtendWeeks({
+              kind,
+              termId: commitTermId,
+              course,
+              weekNumbers: input.weekNumbers,
+              revokeWeekNumbers: input.revokeWeekNumbers,
+            });
+          } finally {
+            setActionBusy(false);
+          }
+        },
         reverse: async () => {
-          await DailyApprovalsService.bulkExtendWeeks({
-            kind,
-            termId: commitTermId,
-            course,
-            weekNumbers: input.revokeWeekNumbers,
-            revokeWeekNumbers: input.weekNumbers,
-          });
+          setActionBusy(true);
+          try {
+            await DailyApprovalsService.bulkExtendWeeks({
+              kind,
+              termId: commitTermId,
+              course,
+              weekNumbers: input.revokeWeekNumbers,
+              revokeWeekNumbers: input.weekNumbers,
+            });
+          } finally {
+            setActionBusy(false);
+          }
         },
         onCommitted: async () => {
           await list.reload();
