@@ -1,6 +1,12 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 import { Command } from 'cmdk';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -38,10 +44,6 @@ export type KvSearchableComboboxProps = {
   inputClassName?: string;
 };
 
-/**
- * Generic searchable combobox (cmdk) for non-organization lists.
- * Organization typeahead stays on {@link KvSearchableOrganizationSelect}.
- */
 export function KvSearchableCombobox({
   id: idProp,
   value,
@@ -101,9 +103,13 @@ export function KvSearchableCombobox({
     if (disabled) return;
 
     const close = (event: MouseEvent) => {
-      if (!(event.target instanceof Node) || rootRef.current?.contains(event.target)) {
+      if (
+        !(event.target instanceof Node) ||
+        rootRef.current?.contains(event.target)
+      ) {
         return;
       }
+
       if (!openRef.current) return;
       onOpenChangeRef.current?.(false);
       if (openProp === undefined) setUncontrolledOpen(false);
@@ -121,6 +127,9 @@ export function KvSearchableCombobox({
       role="combobox"
       aria-expanded={open && !disabled}
       aria-controls={open ? listId : undefined}
+      aria-haspopup="listbox"
+      aria-autocomplete="list"
+      aria-disabled={disabled || undefined}
     >
       <div
         className={cn(
@@ -140,8 +149,11 @@ export function KvSearchableCombobox({
           value={value}
           placeholder={placeholder}
           autoComplete="off"
+          role="textbox"
           aria-autocomplete="list"
           aria-controls={open ? listId : undefined}
+          aria-expanded={open && !disabled}
+          aria-haspopup="listbox"
           className="h-full w-full min-w-0 bg-transparent ps-kv-group pe-1 text-start text-xs font-medium text-kv-text outline-none placeholder:text-kv-text-faint disabled:cursor-not-allowed"
           onFocus={() => {
             if (disabled) return;
@@ -153,6 +165,7 @@ export function KvSearchableCombobox({
             setOpen(true);
           }}
         />
+
         {showClear ? (
           <span className="flex h-full shrink-0 items-center gap-0.5 pe-kv-pair">
             <KvButton
@@ -173,6 +186,8 @@ export function KvSearchableCombobox({
       {open && !disabled ? (
         <Command
           id={listId}
+          role="listbox"
+          aria-label="گزینه‌های جستجو"
           shouldFilter={false}
           loop
           className={cn(
@@ -199,6 +214,8 @@ export function KvSearchableCombobox({
                 <Command.Item
                   key={item.id}
                   value={`${item.id}::${item.label}`}
+                  role="option"
+                  aria-selected={false}
                   onSelect={() => {
                     onSelect(item);
                     setOpen(false);
@@ -221,6 +238,7 @@ export function KvSearchableCombobox({
               </Command.Empty>
             )}
           </Command.List>
+
           <KvOverlayScrollMoreCue
             visible={edgeScroll.canScrollDown}
             onHoverStart={edgeScroll.nudgeDown}

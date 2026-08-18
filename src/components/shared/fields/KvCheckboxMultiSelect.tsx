@@ -1,6 +1,6 @@
 'use client';
 
-import type { SyntheticEvent } from 'react';
+import { useId, useState, type SyntheticEvent } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
@@ -44,6 +44,11 @@ export function KvCheckboxMultiSelect({
   error,
   className,
 }: KvCheckboxMultiSelectProps) {
+  const autoId = useId();
+  const fieldId = id ?? autoId;
+  const listboxId = `${fieldId}-listbox`;
+  const [isOpen, setIsOpen] = useState(false);
+
   const selectedOptions = values
     .map((value) => options.find((option) => option.value === value))
     .filter((option): option is KvCheckboxMultiSelectOption => Boolean(option));
@@ -65,15 +70,18 @@ export function KvCheckboxMultiSelect({
   };
 
   return (
-    <KvFieldFrame id={id} label={label} required={required} error={error}>
-      <KvDropdownMenu>
+    <KvFieldFrame id={fieldId} label={label} required={required} error={error}>
+      <KvDropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <KvDropdownMenuTrigger asChild disabled={disabled}>
           <div
-            id={id}
+            id={fieldId}
             role="combobox"
             tabIndex={disabled ? -1 : 0}
+            aria-expanded={isOpen}
             aria-haspopup="listbox"
+            aria-controls={listboxId}
             aria-invalid={error ? true : undefined}
+            aria-disabled={disabled || undefined}
             className={cn(
               'flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-kv-pair rounded-kv-control',
               'border border-kv-border bg-kv-field px-2 py-1',
@@ -118,6 +126,7 @@ export function KvCheckboxMultiSelect({
                     </Badge>
                   ))}
             </span>
+
             <FaIcon
               icon={faIcons.chevronDown}
               size="2xs"
@@ -125,8 +134,12 @@ export function KvCheckboxMultiSelect({
             />
           </div>
         </KvDropdownMenuTrigger>
+
         <KvDropdownMenuContent
           align="start"
+          id={listboxId}
+          role="listbox"
+          aria-label="گزینه‌های انتخاب‌شده"
           className="max-h-64 w-[var(--radix-dropdown-menu-trigger-width)] min-w-[14rem] overflow-y-auto p-1"
         >
           {options.map((option) => {
@@ -135,6 +148,8 @@ export function KvCheckboxMultiSelect({
               <DropdownMenuCheckboxItem
                 key={option.value}
                 checked={checked}
+                role="option"
+                aria-selected={checked}
                 onSelect={(event) => event.preventDefault()}
                 onCheckedChange={(next) => {
                   toggleValue(option.value, next === true);
