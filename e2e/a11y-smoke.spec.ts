@@ -29,14 +29,14 @@ async function setMockSessionCookies(page: Page): Promise<void> {
     {
       name: 'karvita_mock_session',
       value: '1',
-      domain: new URL(origin).hostname,
+      url: origin,
       path: '/',
       expires: Math.floor(Date.now() / 1000) + 60 * 60,
     },
     {
       name: 'karvita_auth_session_meta',
       value: JSON.stringify({ token: 'mock.test', expiresAt: new Date(Date.now() + 1000 * 60 * 60).toISOString() }),
-      domain: new URL(origin).hostname,
+      url: origin,
       path: '/',
       expires: Math.floor(Date.now() / 1000) + 60 * 60,
     },
