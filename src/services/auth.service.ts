@@ -199,9 +199,8 @@ export class AuthService {
       try {
         await realSignOut();
       } catch {
-        clearRealAuthTokens();
+        // realSignOut handles token cleanup
       }
-      clearRealAuthTokens();
     }
     dispatchSessionToStore(null);
   }
