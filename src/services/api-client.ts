@@ -187,6 +187,30 @@ async function request<T>(
   }
 }
 
+async function requestMaybeJson<T>(
+  method: 'get' | 'put' | 'post' | 'patch' | 'delete',
+  path: string,
+  options: KyOptions = {},
+  token?: string
+): Promise<T | null> {
+  try {
+    const client = getOrCreateClient();
+    const bearer = await resolveBearerToken(token);
+    const response = await client[method](path.replace(/^\//, ''), {
+      ...options,
+      headers: { ...bearerHeaders(bearer), ...options.headers },
+    });
+    if (response.status === 204) return null;
+    const contentType = response.headers.get('content-type') ?? '';
+    if (!contentType.includes('application/json')) return null;
+    const text = await response.text();
+    if (!text.trim()) return null;
+    return JSON.parse(text) as T;
+  } catch (error) {
+    return mapHttpError(error);
+  }
+}
+
 /**
  * Shared Nest HTTP client (ky).
  * Credentials: cookie + optional Bearer. 401 → clear session + bounce to login.
@@ -214,50 +238,57 @@ export const apiClient = {
     return request<T>('post', path, { ...options, json: body }, token);
   },
 
+  patchJson<T>(
+    path: string,
+    body: unknown,
+    token?: string,
+    options?: KyOptions
+  ): Promise<T> {
+    return request<T>('patch', path, { ...options, json: body }, token);
+  },
+
+  patchMaybeJson<T>(
+    path: string,
+    body: unknown,
+    token?: string,
+    options?: KyOptions
+  ): Promise<T | null> {
+    return requestMaybeJson<T>(
+      'patch',
+      path,
+      { ...options, json: body },
+      token
+    );
+  },
+
+  deleteMaybeJson<T>(
+    path: string,
+    token?: string,
+    options?: KyOptions
+  ): Promise<T | null> {
+    return requestMaybeJson<T>('delete', path, options ?? {}, token);
+  },
+
   async postMaybeJson<T>(
     path: string,
     body: unknown,
     token?: string,
     options?: KyOptions
   ): Promise<T | null> {
-    try {
-      const client = getOrCreateClient();
-      const bearer = await resolveBearerToken(token);
-      const response = await client.post(path.replace(/^\//, ''), {
-        ...options,
-        json: body,
-        headers: { ...bearerHeaders(bearer), ...options?.headers },
-      });
-      if (response.status === 204) return null;
-      const contentType = response.headers.get('content-type') ?? '';
-      if (!contentType.includes('application/json')) return null;
-      const text = await response.text();
-      if (!text.trim()) return null;
-      return JSON.parse(text) as T;
-    } catch (error) {
-      return mapHttpError(error);
-    }
+    return requestMaybeJson<T>(
+      'post',
+      path,
+      { ...options, json: body },
+      token
+    );
   },
 
-  async getMaybeJson<T>(
+  getMaybeJson<T>(
     path: string,
     token?: string,
     options?: KyOptions
   ): Promise<T | null> {
-    try {
-      const client = getOrCreateClient();
-      const bearer = await resolveBearerToken(token);
-      const response = await client.get(path.replace(/^\//, ''), {
-        ...options,
-        headers: { ...bearerHeaders(bearer), ...options?.headers },
-      });
-      if (response.status === 204) return null;
-      const contentType = response.headers.get('content-type') ?? '';
-      if (!contentType.includes('application/json')) return null;
-      return (await response.json()) as T;
-    } catch (error) {
-      return mapHttpError(error);
-    }
+    return requestMaybeJson<T>('get', path, options ?? {}, token);
   },
 
   get baseUrl(): string {

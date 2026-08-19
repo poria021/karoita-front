@@ -250,6 +250,32 @@ export async function realRefreshToken(
   }
 }
 
+export async function realUpdateMe(
+  body: {
+    photo?: { id: string };
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    password?: string;
+    oldPassword?: string;
+  },
+  token?: string
+): Promise<User> {
+  guard('real-auth.bridge.updateMe');
+  const raw = await apiClient.patchJson<unknown>(
+    REAL_AUTH_PATHS.updateMe,
+    body,
+    token
+  );
+  return mapNestAuthUser(raw);
+}
+
+export async function realDeleteMe(token?: string): Promise<void> {
+  guard('real-auth.bridge.deleteMe');
+  await apiClient.deleteMaybeJson(REAL_AUTH_PATHS.deleteMe, token);
+  clearRealAuthTokens();
+}
+
 export async function realSignOut(): Promise<void> {
   guard('real-auth.bridge.logout');
   try {

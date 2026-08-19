@@ -1,6 +1,7 @@
 import {
   assertRealModeRejectsMockSecret,
   isMockApiMode,
+  throwRealModeNotImplemented,
 } from '@/lib/api-mode';
 import { MOCK_OTP_CODE } from '@/services/auth/auth-mock-users';
 import type { Session, User, UserRole } from '@/types/auth';
@@ -28,6 +29,7 @@ import {
   readSessionMeta,
 } from '@/services/auth/mock-auth.store';
 import {
+  realDeleteMe,
   realFetchSession,
   realLoginWithCredentials,
   realRegister,
@@ -37,6 +39,7 @@ import {
   realSendLoginOtp,
   realSetInitialPassword,
   realSignOut,
+  realUpdateMe,
   realVerifyAdminGateOtp,
   realVerifyForgotPasswordOtp,
   realVerifyLoginOtp,
@@ -191,6 +194,35 @@ export class AuthService {
       return;
     }
     return realSetInitialPassword(mobile, newPassword);
+  }
+
+  /** PATCH /api/v1/auth/me */
+  static async updateMe(body: {
+    photo?: { id: string };
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    password?: string;
+    oldPassword?: string;
+  }): Promise<User> {
+    if (IS_MOCK_MODE) {
+      throwRealModeNotImplemented('AuthService.updateMe');
+    }
+    const user = await realUpdateMe(body);
+    const peeked = AuthService.peekSession();
+    if (peeked) {
+      dispatchSessionToStore({ ...peeked, user });
+    }
+    return user;
+  }
+
+  /** DELETE /api/v1/auth/me */
+  static async deleteMe(): Promise<void> {
+    if (IS_MOCK_MODE) {
+      throwRealModeNotImplemented('AuthService.deleteMe');
+    }
+    await realDeleteMe();
+    dispatchSessionToStore(null);
   }
 
   /** POST /auth/logout — clears local session even if Nest call fails */
