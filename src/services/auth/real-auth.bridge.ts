@@ -31,19 +31,19 @@ const NEST_AUTH_LIVE = true;
  * Login/register phone flows use these five routes first.
  */
 export const REAL_AUTH_PATHS = {
-  login: 'api/v1/auth/phone/login/password', // POST
-  loginOtpSend: 'api/v1/auth/phone/login/request-otp', // POST
-  loginOtpVerify: 'api/v1/auth/phone/login/verify-otp', // POST
-  register: 'api/v1/auth/phone/register/request-otp', // POST
-  registerOtpVerify: 'api/v1/auth/phone/register/verify-otp', // POST
-  forgotSend: 'api/v1/auth/forgot/password', // POST
-  forgotReset: 'api/v1/auth/reset/password', // POST
-  logout: 'api/v1/auth/logout', // POST
-  session: 'api/v1/auth/me', // GET
-  refresh: 'api/v1/auth/refresh', // POST
-  updateMe: 'api/v1/auth/me', // PATCH
-  deleteMe: 'api/v1/auth/me', // DELETE
-  roles: 'api/v1/auth/roles', // GET
+  login: 'v1/auth/phone/login/password', // POST
+  loginOtpSend: 'v1/auth/phone/login/request-otp', // POST
+  loginOtpVerify: 'v1/auth/phone/login/verify-otp', // POST
+  register: 'v1/auth/phone/register/request-otp', // POST
+  registerOtpVerify: 'v1/auth/phone/register/verify-otp', // POST
+  forgotSend: 'v1/auth/forgot/password', // POST
+  forgotReset: 'v1/auth/reset/password', // POST
+  logout: 'v1/auth/logout', // POST
+  session: 'v1/auth/me', // GET
+  refresh: 'v1/auth/refresh', // POST
+  updateMe: 'v1/auth/me', // PATCH
+  deleteMe: 'v1/auth/me', // DELETE
+  roles: 'v1/auth/roles', // GET
 } as const;
 
 function requireApiConfigured(surface: string): void {
