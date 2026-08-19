@@ -2,12 +2,30 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
+import localFont from 'next/font/local';
 
 import './globals.css';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { RouteService } from '@/services/route.service';
+
+const vazirmatn = localFont({
+  src: [
+    {
+      path: '../fonts/vazirmatn/vazirmatn-arabic-400-normal.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../fonts/vazirmatn/vazirmatn-arabic-700-normal.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-vazirmatn',
+  display: 'swap',
+});
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };
@@ -21,7 +39,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
   return (
     <html lang="fa" dir="rtl">
-      <body className="bg-kv-canvas font-sans antialiased">
+      <body className={`${vazirmatn.variable} bg-kv-canvas font-sans antialiased`}>
         <KvRouteStatus
           kind="error"
           title="خطای غیرمنتظره"
