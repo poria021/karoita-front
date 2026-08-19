@@ -31,7 +31,7 @@ export const useUserStore = create<UserStore>()(
     }),
     {
       name: 'karvita-user-store',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => sessionStorage),
       skipHydration: true,
       partialize: (state) => ({
         activeUser: state.activeUser,
