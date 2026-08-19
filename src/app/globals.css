@@ -446,7 +446,6 @@
   /* Same role as light: dim the page — never use surface-inverse (near-white) */
   --kv-scrim: hsl(220 25% 4%);
 
-  /* Body ink — soft off-white, never chalk pure white (tabs use --kv-text-bright). */
   --kv-text: hsl(220 18% 90%);
   --kv-text-secondary: hsl(220 14% 78%);
   --kv-text-muted: hsl(220 12% 68%);
@@ -618,11 +617,6 @@
   [data-disabled]:not([data-disabled='false']) * {
     @apply cursor-not-allowed;
   }
-}
-
-/* اعمال فونت وزیرمتن بر روی کل بدنه سایت */
-body {
-  font-family: var(--font-vazirmatn), sans-serif;
 }
 
 /* Modern Material Design Scrollbar */

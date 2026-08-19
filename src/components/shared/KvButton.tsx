@@ -9,7 +9,6 @@ import {
   type ButtonSize,
 } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
-import { cn } from '@/lib/utils';
 
 export type KvButtonColor = ButtonColor;
 export type KvButtonAppearance = ButtonAppearance;
@@ -90,7 +89,7 @@ export function KvButton({
       fullWidth={fullWidth}
       asChild={asChild}
       disabled={disabled || loading}
-      className={cn(className)}
+      className={className}
       {...props}
     >
       {content}

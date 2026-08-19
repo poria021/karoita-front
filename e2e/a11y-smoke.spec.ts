@@ -101,11 +101,6 @@ test.describe('a11y smoke', () => {
   test('dashboard exposes skip link and main landmark', async ({ page }) => {
     await setMockSessionCookies(page);
     await page.goto(RouteService.karvita.adminDashboard());
-    // Debugging: capture final URL and screenshot to understand why dashboard
-    // main landmark isn't present.
-    // eslint-disable-next-line no-console
-    console.log('DEBUG: after goto URL=', page.url());
-    await page.screenshot({ path: 'test-results/dashboard-debug.png', fullPage: true });
     await expect(page.locator('#karvita-main-content')).toBeVisible({ timeout: 30_000 });
     await expect(page.locator('main#karvita-main-content')).toHaveAttribute(
       'tabindex',

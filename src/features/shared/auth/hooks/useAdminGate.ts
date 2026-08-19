@@ -47,19 +47,18 @@ export function useAdminGate() {
       const isSameNumber = data.mobile === pendingMobile && !countdown.canResend;
 
       if (!isSameNumber) {
-        setStep(2);
+        // ✅ اول OTP میفرستیم — اگر شماره مجاز نباشه اینجا خطا میده
         await AuthService.sendAdminGateOtp(data.mobile);
+        // ✅ فقط بعد از موفقیت به step 2 میریم
         setPendingMobile(data.mobile);
         countdown.restart();
+        setStep(2);
       } else {
         setStep(2);
       }
 
       otpForm.reset({ otp: '' });
 
-      // Ensure the OTP field is focused/visible for end-to-end tests that rely
-      // on direct DOM locators. This is a small, non-invasive UX assist that
-      // does nothing when `document` isn't available.
       try {
         if (typeof document !== 'undefined') {
           setTimeout(() => {
@@ -73,6 +72,7 @@ export function useAdminGate() {
         // noop
       }
     } catch (error) {
+      // ✅ کاربر در step 1 می‌ماند و خطا روی فیلد شماره نمایش داده می‌شود
       mobileForm.setError('mobile', {
         message: readAuthErrorMessage(error, 'ارسال کد تایید ناموفق بود.'),
       });
