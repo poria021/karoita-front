@@ -224,6 +224,29 @@ export async function realVerifyAdminGateOtp(
   throwRealModeNotImplemented('real-auth.bridge.adminOtpVerify');
 }
 
+export async function realRefreshToken(
+  refreshToken: string
+): Promise<Session | null> {
+  guard('real-auth.bridge.refresh');
+  if (!refreshToken) return null;
+
+  try {
+    const raw = await apiClient.postJson<unknown>(
+      REAL_AUTH_PATHS.refresh,
+      { refreshToken },
+      refreshToken
+    );
+    applyNestLoginResponse(raw);
+    return toSessionFromNestLogin(raw);
+  } catch (error) {
+    if (error instanceof ApiClientError && error.status === 401) {
+      clearRealAuthTokens();
+      return null;
+    }
+    throw error;
+  }
+}
+
 export async function realSignOut(): Promise<void> {
   guard('real-auth.bridge.logout');
   try {

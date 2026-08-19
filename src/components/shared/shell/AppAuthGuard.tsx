@@ -27,7 +27,7 @@ export function AppAuthGuard({ children }: { children: ReactNode }) {
     }
   }, [hasHydrated, isAuthenticated, pathname, router, searchParams]);
 
-  if (!hasHydrated || !session) {
+  if (!hasHydrated || !session || !isAuthenticated) {
     return <DashboardAccessPlaceholder fullViewport />;
   }
 
