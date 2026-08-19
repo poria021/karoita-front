@@ -313,7 +313,9 @@ export function dispatchSessionToStore(session: Session | null): void {
   useUserStore.getState().setUser(session?.user ?? null);
 
   if (!isMockApiMode()) {
-    clearMockMarkerCookie();
+    if (!session) {
+      clearMockMarkerCookie();
+    }
     return;
   }
 
