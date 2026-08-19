@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
@@ -43,7 +43,6 @@ function capacitiesSnapshotKey(
   return ['org-capacities', 'snapshot', kind, termId] as const;
 }
 
-/** Stable signature of editable draft fields for dirty-checking. */
 function courseDraftSignature(
   courses: readonly OrganizationalCapacityCourse[]
 ): string {
@@ -72,6 +71,13 @@ export function useOrganizationalCapacitiesPage() {
   const [actionBusy, setActionBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
+  const [tick, setTick] = useState(0);
+  const bump = useCallback(() => setTick((n) => n + 1), []);
+
+  // baseline: وضعیت آخرین بار که داده از سرور آمده یا submit شده
+  // isDirty = وضعیت فعلی !== baseline
+  const baselineRef = useRef<string | null>(null);
+  const baselineKeyRef = useRef<string>('');
 
   useEffect(() => {
     setChrome<CapacitiesChrome>(CHROME_ID, { kind, termId });
@@ -112,29 +118,37 @@ export function useOrganizationalCapacitiesPage() {
   });
 
   const snapshot = snapshotData ?? null;
-  const baselineSignature = useMemo(() => {
-    if (!snapshotData || snapshotData.termId !== resolvedTermId) return null;
-    return courseDraftSignature(snapshotData.courses);
-  }, [resolvedTermId, snapshotData]);
+
+  // baseline فقط اولین بار که داده برای این kind+term میاد ست می‌شه
+  useEffect(() => {
+    if (!snapshotData || snapshotData.termId !== resolvedTermId) return;
+    const key = `${kind}::${resolvedTermId}`;
+    if (baselineKeyRef.current === key && baselineRef.current !== null) return;
+    baselineKeyRef.current = key;
+    baselineRef.current = courseDraftSignature(snapshotData.courses);
+  }, [snapshotData, resolvedTermId, kind]);
+
   const isLoading =
     termsPending ||
     (Boolean(resolvedTermId) &&
       snapshot == null &&
       (snapshotPending || snapshotFetching));
+
   const error = termsError
     ? unknownErrorMessage(termsError, 'بارگذاری ظرفیت‌ها ناموفق بود.')
     : snapshotError
       ? unknownErrorMessage(snapshotError, 'بارگذاری ظرفیت‌ها ناموفق بود.')
       : null;
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const isDirty = useMemo(() => {
-    if (!snapshot || baselineSignature == null) {
-      return false;
-    }
-    return courseDraftSignature(snapshot.courses) !== baselineSignature;
-  }, [baselineSignature, snapshot]);
+    if (!snapshot || baselineRef.current === null) return false;
+    return courseDraftSignature(snapshot.courses) !== baselineRef.current;
+  }, [snapshot, tick]);
 
   const reload = useCallback(() => {
+    baselineRef.current = null;
+    baselineKeyRef.current = '';
     void refetchTerms();
     if (resolvedTermId) void refetchSnapshot();
   }, [refetchSnapshot, refetchTerms, resolvedTermId]);
@@ -143,6 +157,8 @@ export function useOrganizationalCapacitiesPage() {
     (next: OrganizationalCapacityKind) => {
       setKind(next);
       setExpandedCourseId(null);
+      baselineRef.current = null;
+      baselineKeyRef.current = '';
     },
     [setKind]
   );
@@ -186,11 +202,11 @@ export function useOrganizationalCapacitiesPage() {
           };
         }
       );
+      bump();
     },
-    [kind, queryClient, resolvedTermId]
+    [bump, kind, queryClient, resolvedTermId]
   );
 
-  /** Local draft only — persist happens on final submit. */
   const updateCourseTotal = useCallback(
     (courseId: string, rawValue: string) => {
       if (!snapshot) return;
@@ -220,7 +236,6 @@ export function useOrganizationalCapacitiesPage() {
     [patchLocalCourse, snapshot]
   );
 
-  /** Local draft only — persist happens on final submit. */
   const toggleDay = useCallback(
     (courseId: string, day: OrganizationalCapacityWeekday) => {
       if (!snapshot) return;
@@ -246,18 +261,18 @@ export function useOrganizationalCapacitiesPage() {
         })),
       });
       setSnapshotData(next);
+      // baseline رو به وضعیت جدید ست می‌کنیم → isDirty=false → دکمه قفل می‌شه
+      baselineRef.current = courseDraftSignature(next.courses);
+      baselineKeyRef.current = `${kind}::${next.termId}`;
       setConfirmOpen(false);
+      bump();
       toast.success('ظرفیت‌ها با موفقیت ذخیره شدند.');
     } catch (err) {
-      toast.error(
-        unknownErrorMessage(err, 'ذخیره ظرفیت‌ها ناموفق بود.')
-      );
+      toast.error(unknownErrorMessage(err, 'ذخیره ظرفیت‌ها ناموفق بود.'));
     } finally {
       setActionBusy(false);
     }
-  }, [kind, setSnapshotData, snapshot]);
-
-  const locked = false;
+  }, [bump, kind, setSnapshotData, snapshot]);
 
   return {
     kind,
@@ -268,7 +283,6 @@ export function useOrganizationalCapacitiesPage() {
     error,
     reload,
     actionBusy,
-    locked: Boolean(locked),
     isDirty,
     confirmOpen,
     setConfirmOpen,
@@ -280,6 +294,4 @@ export function useOrganizationalCapacitiesPage() {
   };
 }
 
-export type UseOrganizationalCapacitiesPageReturn = ReturnType<
-  typeof useOrganizationalCapacitiesPage
->;
+export type UseOrganizationalCapacitiesPageReturn = ReturnType<typeof useOrganizationalCapacitiesPage>;

@@ -27,8 +27,6 @@ import { ProfileService } from '@/services/profile.service';
 import { DynamicRoleFields } from './DynamicRoleFields';
 import { getProfileDefaultValues } from './profile-form-options';
 
-// react-dropzone + browser-image-compression را فقط وقتی uploader واقعاً
-// رندر می‌شود بارگذاری کن (نه در initial bundle پروفایل).
 const KvImageDocUploader = dynamic(
   () =>
     import('@/components/shared/fields/KvImageDocUploader').then(
@@ -53,11 +51,6 @@ export interface IdentityFormProps {
   autoApproveOnSave?: boolean;
 }
 
-function isIdentityProfileLocked(user: User, lockAfterSubmit: boolean): boolean {
-  if (!lockAfterSubmit) return false;
-  return user.docStatus !== 'not_submitted' && user.docStatus !== 'rejected';
-}
-
 export function IdentityForm({
   activeUser,
   token,
@@ -75,6 +68,7 @@ export function IdentityForm({
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const roleStrategy = getRoleStrategy(liveUser.role);
+
   const form = useForm<ProfileSchema>({
     resolver: zodResolver(createProfileSchema(liveUser.role)),
     defaultValues: getProfileDefaultValues(liveUser),
@@ -85,19 +79,15 @@ export function IdentityForm({
 
   const submit = form.handleSubmit(async (data) => {
     setSubmitError(null);
-
     try {
       let documentBase64: string | undefined;
       if (identityDocument) {
         documentBase64 = await fileToDataUrl(identityDocument);
       }
-
-      // Form is created with createProfileSchema(liveUser.role); role stays on `data`.
       await ProfileService.updateProfile(data, token);
       if (documentBase64) {
         await ProfileService.updateIdentityDocument(documentBase64, token);
       }
-
       form.reset(data);
       setIdentityDocument(null);
       onSaved?.();
@@ -111,27 +101,20 @@ export function IdentityForm({
   });
 
   const isBusy = form.formState.isSubmitting;
-  const isProfileLocked =
-    disabled || isIdentityProfileLocked(liveUser, !autoApproveOnSave);
 
-  // Org fields (province/college/city/district/school) stay editable once the
-  // profile is approved — only lock them while the identity form itself is
-  // locked for a reason OTHER than approval (e.g. pending_admin review).
-  const isOrgFieldsLocked =
-    disabled || (isProfileLocked && liveUser.docStatus !== 'approved');
+  // فرم قفل است اگر: disabled باشد، یا docStatus نه not_submitted باشد نه rejected
+  // (یعنی pending_admin یا approved هر دو قفل می‌کنند)
+  // استثنا: اگر autoApproveOnSave=true باشد (پنل ادمین) قفل نمی‌شود
+  const isLocked =
+    disabled ||
+    (!autoApproveOnSave &&
+      liveUser.docStatus !== 'not_submitted' &&
+      liveUser.docStatus !== 'rejected');
 
-  // Identity fields (name, doc upload) stay locked once approved or pending.
-  const isDisabled = isProfileLocked;
-
-  // Submit stays enabled after approval so the user can save org-field edits;
-  // it's disabled while pending review (nothing is editable at that point).
-  const isSubmitDisabled =
-    (isProfileLocked && liveUser.docStatus !== 'approved') || isBusy;
-
-  const effectiveSubmitLabel =
-    isProfileLocked && liveUser.docStatus === 'approved'
-      ? 'ذخیره تغییرات محل خدمت / تحصیل'
-      : submitLabel;
+  const statusMessage =
+    liveUser.docStatus === 'approved'
+      ? 'مشخصات هویتی و مدرک شما توسط مدیریت تأیید شده و قابل ویرایش نیست.'
+      : 'اطلاعات شما ارسال شده و در انتظار تأیید مدیریت است؛ تا تعیین وضعیت پرونده امکان ویرایش و ارسال مجدد وجود ندارد.';
 
   return (
     <KvCard
@@ -145,9 +128,7 @@ export function IdentityForm({
 
         <KvForm {...form}>
           <form onSubmit={submit} noValidate className="space-y-kv-section">
-            <fieldset
-              className="min-w-0 border-0 p-0"
-            >
+            <fieldset className="min-w-0 border-0 p-0">
               <div className="grid grid-cols-1 gap-kv-group text-start sm:grid-cols-2">
                 <KvFormField
                   control={form.control}
@@ -156,19 +137,15 @@ export function IdentityForm({
                     <KvTextField
                       label="نام"
                       required
-                      locked={isDisabled}
+                      locked={isLocked}
                       placeholder="مثال: امیرحسین"
                       error={fieldState.error?.message}
                       name={field.name}
                       ref={field.ref}
                       onBlur={field.onBlur}
-                      value={
-                        typeof field.value === 'string' ? field.value : ''
-                      }
+                      value={typeof field.value === 'string' ? field.value : ''}
                       scriptGuard="persian-name"
-                      onChange={(event) => {
-                        field.onChange(event.target.value);
-                      }}
+                      onChange={(event) => field.onChange(event.target.value)}
                     />
                   )}
                 />
@@ -179,19 +156,15 @@ export function IdentityForm({
                     <KvTextField
                       label="نام خانوادگی"
                       required
-                      locked={isDisabled}
+                      locked={isLocked}
                       placeholder="مثال: کریمی"
                       error={fieldState.error?.message}
                       name={field.name}
                       ref={field.ref}
                       onBlur={field.onBlur}
-                      value={
-                        typeof field.value === 'string' ? field.value : ''
-                      }
+                      value={typeof field.value === 'string' ? field.value : ''}
                       scriptGuard="persian-name"
-                      onChange={(event) => {
-                        field.onChange(event.target.value);
-                      }}
+                      onChange={(event) => field.onChange(event.target.value)}
                     />
                   )}
                 />
@@ -208,7 +181,7 @@ export function IdentityForm({
                 />
                 <DynamicRoleFields
                   role={liveUser.role}
-                  disabled={isOrgFieldsLocked}
+                  disabled={isLocked}
                 />
               </div>
             </fieldset>
@@ -217,12 +190,10 @@ export function IdentityForm({
               <KvImageDocUploader
                 value={identityDocument}
                 onChange={setIdentityDocument}
-                disabled={isDisabled}
+                disabled={isLocked}
                 optionalHint
                 label="بارگذاری مدرک هویتی"
-                labelIcon={
-                  <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
-                }
+                labelIcon={<FaIcon icon={faIcons.cloudArrowUp} size="sm" />}
                 maxSizeMb={2}
                 helperText="PNG، JPG تا ۲ مگابایت"
                 previewAlt="پیش‌نمایش مدرک ارسالی"
@@ -234,7 +205,7 @@ export function IdentityForm({
             ) : null}
 
             <div className="mt-kv-group flex flex-col gap-kv-pair border-t border-kv-border pt-kv-group sm:flex-row sm:items-center sm:justify-between sm:gap-kv-group">
-              {isProfileLocked ? (
+              {isLocked ? (
                 <div
                   role="status"
                   className="flex min-w-0 flex-1 items-start gap-kv-pair text-start"
@@ -249,14 +220,8 @@ export function IdentityForm({
                     className="mt-0.5 shrink-0 text-kv-text-faint"
                     aria-hidden
                   />
-                  <KvTypography
-                    variant="caption"
-                    tone="muted"
-                    weight="medium"
-                  >
-                    {liveUser.docStatus === 'approved'
-                      ? 'مشخصات هویتی و مدرک شما توسط مدیریت تأیید شده و قابل ویرایش نیست؛ در صورت نیاز می‌توانید فیلدهای محل خدمت / تحصیل را ویرایش و ذخیره کنید.'
-                      : 'اطلاعات شما ارسال شده و در انتظار تأیید مدیریت است؛ تا تعیین وضعیت پرونده امکان ویرایش و ارسال مجدد وجود ندارد.'}
+                  <KvTypography variant="caption" tone="muted" weight="medium">
+                    {statusMessage}
                   </KvTypography>
                 </div>
               ) : (
@@ -267,10 +232,10 @@ export function IdentityForm({
                 color="cta"
                 appearance="solid"
                 loading={isBusy}
-                disabled={isSubmitDisabled}
+                disabled={isLocked || isBusy}
                 className="shrink-0 self-end sm:self-auto"
               >
-                {isBusy ? 'در حال ارسال...' : effectiveSubmitLabel}
+                {isBusy ? 'در حال ارسال...' : submitLabel}
               </KvButton>
             </div>
           </form>
