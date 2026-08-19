@@ -57,6 +57,12 @@ export function readRealAccessToken(): string | null {
   return tokens.token;
 }
 
+export function readRealRefreshToken(): string | null {
+  const tokens = readStoredTokens();
+  if (!tokens) return null;
+  return tokens.refreshToken;
+}
+
 export function readRealTokenExpiresAt(): string | null {
   const tokens = readStoredTokens();
   if (!tokens) return null;
