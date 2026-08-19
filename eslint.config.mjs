@@ -21,6 +21,16 @@ const HARDCODED_PATH_MESSAGE =
 const SKELETON_BAN_MESSAGE =
   'Skeleton bones are banned (rule 84). Use Spinner / KvTableBusy / KvBusySurface / aria-busy — never @/components/ui/skeleton or shared/skeleton.';
 
+const FA_SOLID_PACK_MESSAGE =
+  'Named Font Awesome icons only via src/utils/iconMap.ts (faIcons). Do not import @fortawesome/free-solid-svg-icons outside that map.';
+
+const FA_RESTRICTED_IMPORT_PATHS = [
+  {
+    name: '@fortawesome/free-solid-svg-icons',
+    message: FA_SOLID_PACK_MESSAGE,
+  },
+];
+
 const UI_RESTRICTED_IMPORT_PATTERNS = [
   {
     group: ['@/components/ui/table', '@/components/ui/table/*'],
@@ -136,6 +146,7 @@ const eslintConfig = [
       'no-restricted-imports': [
         'error',
         {
+          paths: FA_RESTRICTED_IMPORT_PATHS,
           patterns: UI_RESTRICTED_IMPORT_PATTERNS,
         },
       ],
@@ -151,6 +162,7 @@ const eslintConfig = [
       'no-restricted-imports': [
         'error',
         {
+          paths: FA_RESTRICTED_IMPORT_PATHS,
           patterns: [
             ...UI_RESTRICTED_IMPORT_PATTERNS,
             ...otherFeatureImportPatterns(domain),
@@ -159,6 +171,24 @@ const eslintConfig = [
       ],
     },
   })),
+  {
+    files: [
+      'src/components/**/*.{ts,tsx}',
+      'src/services/**/*.{ts,tsx}',
+      'src/hooks/**/*.{ts,tsx}',
+      'src/store/**/*.{ts,tsx}',
+      'src/utils/**/*.{ts,tsx}',
+    ],
+    ignores: ['src/utils/iconMap.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: FA_RESTRICTED_IMPORT_PATHS,
+        },
+      ],
+    },
+  },
   /**
    * Route catalog law: domain paths only via RouteService (C4 helpers OK in services/lib).
    * Tests / route catalog / Edge public-path config are ignored.

@@ -65,7 +65,9 @@ export function Sidebar() {
         className={cn(
           'fixed inset-y-0 start-0 z-50 transition-all duration-300 ease-in-out',
           'lg:sticky lg:top-[calc(4rem+var(--spacing-kv-group))] lg:z-0 lg:mt-kv-group lg:h-auto lg:translate-x-0 lg:self-start lg:pointer-events-auto lg:visible',
-          isMobileOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
+          isMobileOpen
+            ? 'translate-x-0'
+            : '-translate-x-full rtl:translate-x-full lg:translate-x-0',
           !isMobileOpen && 'max-lg:pointer-events-none max-lg:invisible',
           isCollapsed ? 'w-72 lg:w-20' : 'w-72 lg:w-60'
         )}

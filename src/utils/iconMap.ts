@@ -1,3 +1,7 @@
+/**
+ * Named Font Awesome imports only — never `import *` from the solid pack.
+ * Product UI must consume `faIcons` / `<FaIcon>`, not the FA barrel.
+ */
 import {
   faArrowLeft,
   faArrowRight,

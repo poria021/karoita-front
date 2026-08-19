@@ -27,7 +27,8 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
 }
 
 /**
- * proxy — فقط حضور نشست (کوکی/مارکر)، نه نقش یا مجوز.
+ * Edge session gate (Next.js 16 `proxy.ts` — replaces root `middleware.ts`).
+ * Presence only: Better Auth cookie or mock marker — not role/authorization.
  *
  * - مسیرهای public → عبور
  * - `/karvita/*` بدون نشست → لاگین + returnUrl

@@ -14,9 +14,9 @@ let imageCompressionPromise: Promise<ImageCompressionFn> | null = null;
 
 function loadImageCompression(): Promise<ImageCompressionFn> {
   if (!imageCompressionPromise) {
-    imageCompressionPromise = import('browser-image-compression').then(
-      (mod) => mod.default ?? mod
-    );
+    imageCompressionPromise = import(
+      /* webpackChunkName: "image-compression" */ 'browser-image-compression'
+    ).then((mod) => mod.default ?? mod);
   }
   return imageCompressionPromise;
 }

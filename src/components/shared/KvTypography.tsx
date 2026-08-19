@@ -115,7 +115,11 @@ export type KvTypographyProps = {
   htmlFor?: string;
   id?: string;
   children: React.ReactNode;
-  className?: never;
+  /**
+   * Layout-only extras (`mt-*`, `truncate` wrappers). Do not override
+   * variant type size/color here — use `variant` / `tone` / `weight`.
+   */
+  className?: string;
 } & Omit<
   VariantProps<typeof kvTypographyVariants>,
   'variant' | 'tone' | 'weight' | 'align' | 'truncate'
@@ -130,6 +134,7 @@ export function KvTypography({
   truncate = false,
   htmlFor,
   id,
+  className,
   children,
 }: KvTypographyProps) {
   const Component = as ?? DEFAULT_ELEMENT[variant];
@@ -145,7 +150,8 @@ export function KvTypography({
           weight,
           align,
           truncate,
-        })
+        }),
+        className
       )}
     >
       {children}

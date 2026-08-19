@@ -1,5 +1,6 @@
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 
-export default function ProfileLoading() {
+/** Module chunk gap — app chrome stays; this fills the page slot only. */
+export default function DailyApprovalsLoading() {
   return <DashboardAccessPlaceholder />;
 }

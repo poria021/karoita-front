@@ -1,4 +1,4 @@
-import { isMockApiMode } from '@/lib/api-mode';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import {
   fetchOrganizationOptionsFromApi,
   fetchOrganizationOptionsFromMock,
@@ -7,8 +7,6 @@ import {
   type OrganizationOptionsResult,
 } from '@/services/organization-options/organization-options-helpers';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
-
-const IS_MOCK_MODE = isMockApiMode();
 
 export type { OrganizationField };
 export type {

@@ -1,9 +1,17 @@
 'use client';
 
 import { useWatch, type UseFormReturn } from 'react-hook-form';
+import dynamic from 'next/dynamic';
 
 import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
-import { KvPasswordStrengthIndicator } from '@/components/shared/fields/KvPasswordStrengthIndicator';
+
+const KvPasswordStrengthIndicator = dynamic(
+  () =>
+    import('@/components/shared/fields/KvPasswordStrengthIndicator').then(
+      (mod) => ({ default: mod.KvPasswordStrengthIndicator })
+    ),
+  { ssr: false }
+);
 
 import type { SecurityPasswordSchema } from '../../schemas/security.schema';
 

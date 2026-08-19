@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
-import { Suspense } from 'react';
 
 import { AppAuthGuard } from '@/components/shared/shell/AppAuthGuard';
-import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { DashboardMainViewport } from '@/components/shared/shell/DashboardMainViewport';
 import { Header } from '@/components/shared/shell/Header';
 import { HydrationSafe } from '@/components/shared/shell/HydrationSafe';
@@ -17,11 +15,11 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
-    <HydrationSafe>
-      <Suspense fallback={<DashboardAccessPlaceholder fullViewport />}>
+    <>
+      <SkipToMainContent />
+      <HydrationSafe>
         <AppAuthGuard>
           <div className="flex min-h-dvh w-full flex-col bg-kv-canvas">
-            <SkipToMainContent />
             <Header />
             <div
               className={cn(
@@ -34,7 +32,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
             </div>
           </div>
         </AppAuthGuard>
-      </Suspense>
-    </HydrationSafe>
+      </HydrationSafe>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { Suspense, useEffect, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
@@ -9,7 +9,7 @@ import { RouteService } from '@/services/route.service';
 import { buildLoginHref } from '@/lib/return-url';
 import { useUserStore } from '@/store/useUserStore';
 
-export function AppAuthGuard({ children }: { children: ReactNode }) {
+function AppAuthGuardInner({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -32,4 +32,13 @@ export function AppAuthGuard({ children }: { children: ReactNode }) {
   }
 
   return <>{children}</>;
+}
+
+/** Client role/session gate. Edge presence is `src/proxy.ts` (Next 16). */
+export function AppAuthGuard({ children }: { children: ReactNode }) {
+  return (
+    <Suspense fallback={<DashboardAccessPlaceholder fullViewport />}>
+      <AppAuthGuardInner>{children}</AppAuthGuardInner>
+    </Suspense>
+  );
 }

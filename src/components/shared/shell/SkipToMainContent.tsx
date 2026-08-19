@@ -3,6 +3,7 @@
 import { shellCopy } from '@/components/shared/shell/shellCopy';
 
 export const DASHBOARD_MAIN_ID = 'karvita-main-content';
+export const SKIP_TO_MAIN_ID = 'karvita-skip-to-main';
 
 /**
  * First focusable control in the dashboard shell — jumps keyboard users past
@@ -11,7 +12,15 @@ export const DASHBOARD_MAIN_ID = 'karvita-main-content';
 export function SkipToMainContent() {
   return (
     <a
+      id={SKIP_TO_MAIN_ID}
       href={`#${DASHBOARD_MAIN_ID}`}
+      onClick={(event) => {
+        const target = document.getElementById(DASHBOARD_MAIN_ID);
+        if (!target) return;
+        event.preventDefault();
+        target.focus({ preventScroll: false });
+        target.scrollIntoView({ block: 'start' });
+      }}
       className={[
         'sr-only',
         'focus:not-sr-only focus:fixed focus:start-kv-group focus:top-kv-group focus:z-[100]',

@@ -1,8 +1,8 @@
-import { TermSettingsPage } from '@/features/karvita/syllabus-config/components/SyllabusModulePage';
+import { SyllabusModule } from '@/features/karvita/syllabus-config/components/SyllabusModule';
 import { dashboardModuleMetadata } from '@/lib/dashboard-module-metadata';
 
 export const metadata = dashboardModuleMetadata('syllabus-term-settings');
 
 export default function SyllabusTermSettingsRoutePage() {
-  return <TermSettingsPage />;
+  return <SyllabusModule section="term_settings" />;
 }

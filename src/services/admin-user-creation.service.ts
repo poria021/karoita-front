@@ -1,4 +1,4 @@
-import { isMockApiMode } from '@/lib/api-mode';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { mapNestAuthUser } from '@/services/auth/nest-auth-mappers';
 import {
   mockCheckMobileAvailable,
@@ -22,8 +22,6 @@ import type {
  * Note: Swagger has no POST /admin/users endpoint — we use PATCH /api/v1/users/{id}
  * to assign role after the user is found/created through the auth flow.
  */
-
-const IS_MOCK_MODE = isMockApiMode();
 
 function requireMockUserCreate(): void {
   assertMockClientHasPermission('user.create');

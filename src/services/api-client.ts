@@ -92,7 +92,9 @@ export function localizeApiError(payload: unknown, status: number): string {
 }
 
 let handlingUnauthorized = false;
-let rotateAccessPromise: Promise<string | null> | null = null;
+let browserRotateAccessPromise: Promise<string | null> | null = null;
+let browserClient: ReturnType<typeof ky.create> | null = null;
+let browserClientPrefix: string | null = null;
 
 const AUTH_BOOTSTRAP_PATH =
   /\/v1\/auth\/(refresh|logout|phone\/login|phone\/register|forgot|reset)(?:\/|$|\?)/;
@@ -101,10 +103,8 @@ function shouldSkipTokenRefresh(url: string): boolean {
   return AUTH_BOOTSTRAP_PATH.test(url);
 }
 
-async function rotateRealAccessToken(): Promise<string | null> {
-  if (rotateAccessPromise) return rotateAccessPromise;
-
-  rotateAccessPromise = (async () => {
+async function rotateAccessTokenOnce(): Promise<string | null> {
+  try {
     const { readRealRefreshToken } = await import(
       '@/services/auth/real-auth.tokens'
     );
@@ -115,13 +115,22 @@ async function rotateRealAccessToken(): Promise<string | null> {
     );
     const session = await realRefreshToken(refresh);
     return session?.token ?? null;
-  })()
-    .catch(() => null)
-    .finally(() => {
-      rotateAccessPromise = null;
-    });
+  } catch {
+    return null;
+  }
+}
 
-  return rotateAccessPromise;
+async function rotateRealAccessToken(): Promise<string | null> {
+  if (typeof window === 'undefined') {
+    return rotateAccessTokenOnce();
+  }
+  if (browserRotateAccessPromise) return browserRotateAccessPromise;
+
+  browserRotateAccessPromise = rotateAccessTokenOnce().finally(() => {
+    browserRotateAccessPromise = null;
+  });
+
+  return browserRotateAccessPromise;
 }
 
 async function handleUnauthorized(): Promise<void> {
@@ -167,9 +176,6 @@ async function resolveBearerToken(explicit?: string): Promise<string | undefined
   }
 }
 
-let _client: ReturnType<typeof ky.create> | null = null;
-let _clientPrefix: string | null = null;
-
 /**
  * Browser calls go through Next rewrite (`/__nest-api`) so CORS on
  * backenddev.darkube.ir does not block register GET /auth/roles.
@@ -190,45 +196,54 @@ function resolveClientPrefix(): string {
   return API_URL;
 }
 
+function createKyClient(prefix: string) {
+  return ky.create({
+    prefix,
+    credentials: 'include',
+    timeout: 30_000,
+    retry: { limit: 1 },
+    hooks: {
+      afterResponse: [
+        async ({ request, response, retryCount }) => {
+          if (response.status !== 401) return;
+          if (retryCount > 0 || shouldSkipTokenRefresh(request.url)) {
+            await handleUnauthorized();
+            return;
+          }
+          const token = await rotateRealAccessToken();
+          if (!token) {
+            await handleUnauthorized();
+            return;
+          }
+          const headers = new Headers(request.headers);
+          headers.set('Authorization', `Bearer ${token}`);
+          return ky.retry({
+            request: new Request(request, { headers }),
+            code: 'TOKEN_REFRESHED',
+          });
+        },
+      ],
+    },
+  });
+}
+
+/**
+ * Browser: reuse one ky instance.
+ * SSR/streaming: new instance per call so requests do not share cookies/hooks.
+ */
 function getOrCreateClient() {
   const prefix = resolveClientPrefix();
 
-  if (!_client || _clientPrefix !== prefix) {
-    _clientPrefix = prefix;
-    _client = ky.create({
-      prefix,
-      credentials: 'include',
-      timeout: 30_000,
-      retry: { limit: 1 },
-      hooks: {
-        afterResponse: [
-          async ({ request, response, retryCount }) => {
-            if (response.status !== 401) return;
-            if (
-              retryCount > 0 ||
-              shouldSkipTokenRefresh(request.url)
-            ) {
-              await handleUnauthorized();
-              return;
-            }
-            const token = await rotateRealAccessToken();
-            if (!token) {
-              await handleUnauthorized();
-              return;
-            }
-            const headers = new Headers(request.headers);
-            headers.set('Authorization', `Bearer ${token}`);
-            return ky.retry({
-              request: new Request(request, { headers }),
-              code: 'TOKEN_REFRESHED',
-            });
-          },
-        ],
-      },
-    });
+  if (typeof window === 'undefined') {
+    return createKyClient(prefix);
   }
 
-  return _client;
+  if (!browserClient || browserClientPrefix !== prefix) {
+    browserClientPrefix = prefix;
+    browserClient = createKyClient(prefix);
+  }
+
+  return browserClient;
 }
 
 async function mapHttpError(error: unknown): Promise<never> {

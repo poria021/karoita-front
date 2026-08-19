@@ -1,4 +1,4 @@
-import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { IS_MOCK_MODE, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import { subscribeMockAuthUsers } from '@/services/auth/mock-auth.store';
 import { mapNestAuthUser } from '@/services/auth/nest-auth-mappers';
@@ -20,12 +20,10 @@ import {
   sliceOffsetLimitPage,
 } from '@/utils/offset-limit-page';
 
-const IS_MOCK_MODE = isMockApiMode();
-
 export const ONBOARDING_APPROVALS_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
 
 function requireOnboardingReview(): void {
-  if (!isMockApiMode()) {
+  if (!IS_MOCK_MODE) {
     throwRealModeNotImplemented('OnboardingApprovalsService');
   }
   assertMockClientHasPermission('onboarding.review');
@@ -188,7 +186,7 @@ export const OnboardingApprovalsService = {
 
   /** Mock: auth-user store; real: no-op until Nest push/SSE */
   subscribeDirectoryChanges(listener: () => void): () => void {
-    if (!isMockApiMode()) {
+    if (!IS_MOCK_MODE) {
       return () => {};
     }
     return subscribeMockAuthUsers(listener);

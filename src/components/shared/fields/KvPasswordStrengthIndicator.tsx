@@ -24,9 +24,9 @@ let zxcvbnPromise: Promise<ZxcvbnChecker> | null = null;
 function loadZxcvbn(): Promise<ZxcvbnChecker> {
   if (!zxcvbnPromise) {
     zxcvbnPromise = Promise.all([
-      import('@zxcvbn-ts/core'),
-      import('@zxcvbn-ts/language-common'),
-      import('@zxcvbn-ts/language-en'),
+      import(/* webpackChunkName: "zxcvbn" */ '@zxcvbn-ts/core'),
+      import(/* webpackChunkName: "zxcvbn" */ '@zxcvbn-ts/language-common'),
+      import(/* webpackChunkName: "zxcvbn" */ '@zxcvbn-ts/language-en'),
     ]).then(([core, common, en]) => {
       return new core.ZxcvbnFactory({
         translations: en.translations,

@@ -11,7 +11,7 @@ import { useSyllabusConfigPage } from '../hooks/useSyllabusConfigPage';
 import { CourseOfferingsPanel } from './CourseOfferingsPanel';
 import { TermSettingsPanel } from './TermSettingsPanel';
 
-type SyllabusModulePageProps = {
+export type SyllabusModulePageProps = {
   section: SyllabusConfigSubTab;
 };
 
@@ -148,4 +148,4 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
   );
 }
 
-export { SyllabusModulePageClient, type SyllabusModulePageProps };
+export { SyllabusModulePageClient };

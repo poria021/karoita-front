@@ -1,6 +1,6 @@
 import {
   assertRealModeRejectsMockSecret,
-  isMockApiMode,
+  IS_MOCK_MODE,
   throwRealModeNotImplemented,
 } from '@/lib/api-mode';
 import { MOCK_OTP_CODE } from '@/services/auth/auth-mock-users';
@@ -54,8 +54,6 @@ import {
   readRealTokenExpiresAt,
 } from '@/services/auth/real-auth.tokens';
 
-
-const IS_MOCK_MODE = isMockApiMode();
 
 export interface RegisterPayload {
   mobile: string;

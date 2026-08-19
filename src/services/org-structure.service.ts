@@ -1,4 +1,4 @@
-import { isMockApiMode } from '@/lib/api-mode';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
@@ -45,8 +45,6 @@ import type {
 import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
 
-const IS_MOCK_MODE = isMockApiMode();
-
 export const ORG_STRUCTURE_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
 
 export type {
@@ -68,7 +66,7 @@ export type OrgStructureListPageOptions = {
 };
 
 function requireMockOrgManage(): void {
-  if (!isMockApiMode()) {
+  if (!IS_MOCK_MODE) {
     // real mode — caller must handle the real API branch directly
     return;
   }

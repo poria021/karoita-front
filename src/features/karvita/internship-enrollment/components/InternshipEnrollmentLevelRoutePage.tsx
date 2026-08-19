@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { InternshipEnrollmentPage } from '@/features/karvita/internship-enrollment/components/InternshipEnrollmentPage';
+import { InternshipEnrollmentModule } from '@/features/karvita/internship-enrollment/components/InternshipEnrollmentModule';
 import { parseInternshipEnrollmentLevel } from '@/features/karvita/internship-enrollment/lib/parseInternshipEnrollmentLevel';
 import { dashboardModuleMetadata } from '@/lib/dashboard-module-metadata';
 import { RouteService } from '@/services/route.service';
@@ -36,5 +36,5 @@ export default async function InternshipEnrollmentLevelRoutePage({
   const level = parseInternshipEnrollmentLevel(raw);
   if (!level) notFound();
 
-  return <InternshipEnrollmentPage level={level} />;
+  return <InternshipEnrollmentModule level={level} />;
 }

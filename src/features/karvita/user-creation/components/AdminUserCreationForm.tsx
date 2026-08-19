@@ -1,18 +1,26 @@
 'use client';
 
 import { Controller } from 'react-hook-form';
+import dynamic from 'next/dynamic';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
-import { KvPasswordStrengthIndicator } from '@/components/shared/fields/KvPasswordStrengthIndicator';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
+
+const KvPasswordStrengthIndicator = dynamic(
+  () =>
+    import('@/components/shared/fields/KvPasswordStrengthIndicator').then(
+      (mod) => ({ default: mod.KvPasswordStrengthIndicator })
+    ),
+  { ssr: false }
+);
 
 import { ORG_ACCOUNT_ROLE_OPTIONS } from '../constants';
 import type { useAdminUserCreationForm } from '../hooks/useAdminUserCreationForm';

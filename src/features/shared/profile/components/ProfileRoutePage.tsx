@@ -2,10 +2,8 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 
-import {
-  ProfileContainer,
-  ProfileRoutePlaceholder,
-} from '@/features/shared/profile/components/ProfileContainer';
+import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
+import { ProfileModule } from '@/features/shared/profile/components/ProfileModule';
 import { dashboardModuleMetadata } from '@/lib/dashboard-module-metadata';
 import { parseUserRole } from '@/utils/userRole';
 
@@ -35,8 +33,8 @@ export default async function ProfileRoutePage({
   }
 
   return (
-    <Suspense fallback={<ProfileRoutePlaceholder />}>
-      <ProfileContainer role={parsedRole} />
+    <Suspense fallback={<DashboardAccessPlaceholder />}>
+      <ProfileModule role={parsedRole} />
     </Suspense>
   );
 }

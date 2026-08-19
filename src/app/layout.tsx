@@ -136,8 +136,13 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [{ url: '/brand/karvita-mark.png', type: 'image/png' }],
-    apple: [{ url: '/brand/karvita-mark.png', type: 'image/png' }],
+    icon: [
+      { url: '/brand/karvita-mark.svg', type: 'image/svg+xml' },
+      { url: '/brand/karvita-mark.png', type: 'image/png', sizes: '32x32' },
+    ],
+    apple: [
+      { url: '/brand/karvita-mark.png', type: 'image/png', sizes: '180x180' },
+    ],
   },
   category: 'education',
 };
@@ -154,15 +159,7 @@ export default function RootLayout({
       >
         <Providers>
           {children}
-          <Toaster
-            dir="rtl"
-            richColors
-            closeButton
-            position="top-center"
-            toastOptions={{
-              closeButton: true,
-            }}
-          />
+          <Toaster dir="rtl" richColors closeButton position="top-center" />
         </Providers>
       </body>
     </html>

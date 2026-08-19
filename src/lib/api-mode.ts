@@ -53,6 +53,12 @@ export function isRealApiMode(): boolean {
   return resolveApiMode() === 'real';
 }
 
+/**
+ * Snapshot برای Facadeهایی که نباید env را در هر متد دوباره parse کنند.
+ * تست‌هایی که mid-suite بین mock/real سوئیچ می‌کنند باید `isMockApiMode()` صدا بزنند.
+ */
+export const IS_MOCK_MODE = isMockApiMode();
+
 export function assertMockApiMode(): void {
   if (!isMockApiMode()) {
     throw new Error(

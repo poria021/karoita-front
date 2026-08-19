@@ -1,6 +1,8 @@
 /**
- * Nest auth transport — called only from AuthService when API_MODE=real.
- * Flip NEST_AUTH_LIVE once Nest routes below are actually serving.
+ * Nest auth transport — AuthService when API_MODE=real.
+ * Phone login/register/OTP/session/refresh/logout/me match backenddev OpenAPI.
+ * Forgot: Nest has no verify-otp route; OTP is the reset `hash`.
+ * Set-initial-password: PATCH /auth/me { password } while logged in.
  */
 import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { apiClient, ApiClientError } from '@/services/api-client';
@@ -40,8 +42,8 @@ export const REAL_AUTH_PATHS = {
   loginOtpVerify: 'v1/auth/phone/login/verify-otp', // POST
   register: 'v1/auth/phone/register/request-otp', // POST
   registerOtpVerify: 'v1/auth/phone/register/verify-otp', // POST
-  forgotSend: 'v1/auth/forgot/password', // POST
-  forgotReset: 'v1/auth/reset/password', // POST
+  forgotSend: 'v1/auth/forgot/password', // POST — Nest DTO is email; phone sent for Karvita
+  forgotReset: 'v1/auth/reset/password', // POST — Nest DTO is { password, hash }
   logout: 'v1/auth/logout', // POST
   session: 'v1/auth/me', // GET
   refresh: 'v1/auth/refresh', // POST
@@ -195,9 +197,14 @@ export async function realVerifyForgotPasswordOtp(
   mobile: string,
   otp: string
 ): Promise<void> {
-  void mobile;
-  void otp;
   guard('real-auth.bridge.forgotVerify');
+  // Nest OpenAPI has no dedicated forgot-verify route; OTP/hash is consumed on
+  // POST /auth/reset/password. Fail closed on empty/short codes before step 3.
+  const phone = toPhoneBody(mobile).phone;
+  const digits = otp.replace(/\D/g, '');
+  if (!phone || digits.length < 4) {
+    throw new ApiClientError('کد تایید بازیابی نامعتبر است.');
+  }
 }
 
 export async function realResetPassword(
@@ -207,9 +214,10 @@ export async function realResetPassword(
 ): Promise<void> {
   guard('real-auth.bridge.forgotReset');
   await apiClient.postJson(REAL_AUTH_PATHS.forgotReset, {
+    password: newPassword,
+    hash: otp,
     ...toPhoneBody(mobile),
     otp,
-    password: newPassword,
   });
 }
 
@@ -218,10 +226,8 @@ export async function realSetInitialPassword(
   newPassword: string
 ): Promise<void> {
   guard('real-auth.bridge.initialPassword');
-  await apiClient.postJson(REAL_AUTH_PATHS.forgotReset, {
-    ...toPhoneBody(mobile),
-    password: newPassword,
-  });
+  void mobile;
+  await apiClient.patchJson(REAL_AUTH_PATHS.updateMe, { password: newPassword });
 }
 
 export async function realSendAdminGateOtp(mobile: string): Promise<void> {

@@ -101,11 +101,18 @@ test.describe('a11y smoke', () => {
   test('dashboard exposes skip link and main landmark', async ({ page }) => {
     await setMockSessionCookies(page);
     await page.goto(RouteService.karvita.adminDashboard());
-    await expect(page.locator('#karvita-main-content')).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator('main#karvita-main-content')).toHaveAttribute(
-      'tabindex',
-      '-1'
-    );
+
+    const skip = page.getByRole('link', { name: 'پرش به محتوای اصلی' });
+    const main = page.locator('main#karvita-main-content');
+
+    await expect(skip).toBeAttached({ timeout: 30_000 });
+    await expect(main).toBeVisible({ timeout: 30_000 });
+    await expect(main).toHaveAttribute('tabindex', '-1');
+
+    await skip.focus();
+    await expect(skip).toBeVisible();
+    await skip.press('Enter');
+    await expect(main).toBeFocused();
 
     await expectNoSeriousAxeViolations(page);
   });

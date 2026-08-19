@@ -1,6 +1,9 @@
+import { createRequire } from 'node:module';
 import type { NextConfig } from 'next';
 
 import { NEST_BROWSER_PROXY_PATH } from './src/lib/nest-proxy';
+
+const bundleAnalyzer = createRequire(import.meta.url)('@next/bundle-analyzer');
 
 function nestApiOrigin(): string | null {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -75,6 +78,10 @@ const nextConfig: NextConfig = {
     optimizePackageImports: [
       '@fortawesome/free-solid-svg-icons',
       '@fortawesome/react-fontawesome',
+      '@zxcvbn-ts/core',
+      '@zxcvbn-ts/language-common',
+      '@zxcvbn-ts/language-en',
+      'browser-image-compression',
       'radix-ui',
       '@tanstack/react-query',
       'react-hook-form',
@@ -96,4 +103,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+export default withBundleAnalyzer(nextConfig);
