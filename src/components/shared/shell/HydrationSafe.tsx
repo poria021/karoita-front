@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { useUIStore } from '@/store/useUIStore';
@@ -20,11 +20,9 @@ export function HydrationSafe({
   children,
   fallback,
 }: HydrationSafeProps) {
-  const [ready, setReady] = useState(false);
+  const hasHydrated = useUserStore((state) => state.hasHydrated);
 
   useEffect(() => {
-    let cancelled = false;
-
     const rehydrateAll = async () => {
       const tasks: Array<Promise<unknown> | unknown> = [];
       if (useUserStore.persist?.rehydrate) {
@@ -37,16 +35,10 @@ export function HydrationSafe({
       await Promise.all(tasks.map((task) => Promise.resolve(task)));
     };
 
-    void rehydrateAll().finally(() => {
-      if (!cancelled) setReady(true);
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    void rehydrateAll();
   }, []);
 
-  if (ready) return <>{children}</>;
+  if (hasHydrated) return <>{children}</>;
 
   return <>{fallback ?? <DashboardAccessPlaceholder fullViewport />}</>;
 }
