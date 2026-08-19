@@ -172,56 +172,59 @@ export async function realVerifyRegistrationOtp(
   );
 }
 
-export async function realSendForgotPasswordOtp(_mobile: string): Promise<void> {
-  void _mobile;
+export async function realSendForgotPasswordOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.forgotSend');
-  // Nest AuthForgotPasswordDto currently uses `email` — wire in a later step.
-  throwRealModeNotImplemented('real-auth.bridge.forgotSend');
+  await apiClient.postJson(REAL_AUTH_PATHS.forgotSend, toPhoneBody(mobile));
 }
 
 export async function realVerifyForgotPasswordOtp(
-  _mobile: string,
-  _otp: string
+  mobile: string,
+  otp: string
 ): Promise<void> {
-  void _mobile;
-  void _otp;
-  throwRealModeNotImplemented('real-auth.bridge.forgotVerify');
+  void mobile;
+  void otp;
+  guard('real-auth.bridge.forgotVerify');
 }
 
 export async function realResetPassword(
-  _mobile: string,
-  _otp: string,
-  _newPassword: string
+  mobile: string,
+  otp: string,
+  newPassword: string
 ): Promise<void> {
-  void _mobile;
-  void _otp;
-  void _newPassword;
   guard('real-auth.bridge.forgotReset');
-  // Nest AuthResetPasswordDto uses `{ password, hash }` — wire in a later step.
-  throwRealModeNotImplemented('real-auth.bridge.forgotReset');
+  await apiClient.postJson(REAL_AUTH_PATHS.forgotReset, {
+    ...toPhoneBody(mobile),
+    otp,
+    password: newPassword,
+  });
 }
 
 export async function realSetInitialPassword(
-  _mobile: string,
-  _newPassword: string
+  mobile: string,
+  newPassword: string
 ): Promise<void> {
-  void _mobile;
-  void _newPassword;
-  throwRealModeNotImplemented('real-auth.bridge.initialPassword');
+  guard('real-auth.bridge.initialPassword');
+  await apiClient.postJson(REAL_AUTH_PATHS.forgotReset, {
+    ...toPhoneBody(mobile),
+    password: newPassword,
+  });
 }
 
-export async function realSendAdminGateOtp(_mobile: string): Promise<void> {
-  void _mobile;
-  throwRealModeNotImplemented('real-auth.bridge.adminOtpSend');
+export async function realSendAdminGateOtp(mobile: string): Promise<void> {
+  guard('real-auth.bridge.adminOtpSend');
+  await apiClient.postJson(REAL_AUTH_PATHS.loginOtpSend, toPhoneBody(mobile));
 }
 
 export async function realVerifyAdminGateOtp(
-  _mobile: string,
-  _otp: string
+  mobile: string,
+  otp: string
 ): Promise<User> {
-  void _mobile;
-  void _otp;
-  throwRealModeNotImplemented('real-auth.bridge.adminOtpVerify');
+  guard('real-auth.bridge.adminOtpVerify');
+  const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.loginOtpVerify, {
+    ...toPhoneBody(mobile),
+    otp,
+  });
+  return applyNestLoginResponse(raw);
 }
 
 export async function realRefreshToken(
