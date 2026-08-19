@@ -20,9 +20,21 @@ export const shellCopy = {
   },
   account: {
     profile: 'پروفایل',
-    /** Placeholder until PWA install prompt is wired. */
     installApp: 'نصب نسخه اپ',
-    installAppSoon: 'نصب نسخه اپ به‌زودی فعال می‌شود.',
+    installAppPwa: 'نصب و اجرای مستقیم (PWA)',
+    installOfferTitle: 'نصب کارویتا روی دستگاه',
+    installOfferBody:
+      'سامانه را مثل یک برنامه روی میز کار یا صفحهٔ اصلی داشته باشید؛ دسترسی سریع‌تر و کار آفلاین روی شل برنامه.',
+    installOfferNativeHint: 'با تأیید، پنجرهٔ نصب مرورگر باز می‌شود.',
+    installOfferChromeHint:
+      'اگر پنجرهٔ نصب باز نشد: منوی سه‌نقطهٔ Chrome → Install app / نصب کارویتا.',
+    installOfferIosHint:
+      'در Safari دکمهٔ اشتراک را بزنید و Add to Home Screen را انتخاب کنید.',
+    installOfferLater: 'بعداً',
+    installOfferAction: 'نصب برنامه',
+    installOfferGotIt: 'متوجه شدم',
+    pwaUpdated: 'نسخهٔ جدید کارویتا آماده است.',
+    pwaReload: 'بارگذاری مجدد',
     logout: 'خروج',
     logoutConfirmTitle: 'خروج از حساب کاربری',
     logoutConfirmDescription:

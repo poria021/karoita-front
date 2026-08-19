@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
@@ -15,7 +14,9 @@ import {
   KvDropdownMenuTrigger,
 } from '@/components/shared/KvDropdownMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { runPwaInstallFlow, shouldShowPwaInstallMenuItem } from '@/components/shared/shell/PwaInstallControl';
 import { shellCopy } from '@/components/shared/shell/shellCopy';
+import { usePwaStandalone } from '@/hooks/usePwaInstall';
 import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
@@ -40,7 +41,7 @@ function displayName(firstName: string, lastName: string, mobile: string): strin
 }
 
 /**
- * منوی حساب کاربر — تریگر نام + آیکن کاربر؛ پروفایل، نصب اپ (stub)، خروج.
+ * منوی حساب کاربر — پروفایل، نصب PWA، خروج.
  * در هدر و فوتر سایدبار مشترک است؛ هم‌زمان فقط یکی باز می‌ماند.
  */
 export function UserAccountMenu({
@@ -55,6 +56,7 @@ export function UserAccountMenu({
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
+  const isStandalone = usePwaStandalone();
 
   if (!activeUser) return null;
 
@@ -100,11 +102,10 @@ export function UserAccountMenu({
     onNavigate?.();
   };
 
-  /** Stub until PWA `beforeinstallprompt` is wired. */
   const handleInstallAppClick = () => {
     setAccountMenuOwner(null);
     onNavigate?.();
-    toast.message(shellCopy.account.installAppSoon);
+    void runPwaInstallFlow();
   };
 
   const menuItemClass = isHeader
@@ -135,13 +136,15 @@ export function UserAccountMenu({
         </Link>
       </KvDropdownMenuItem>
 
-      <KvDropdownMenuItem
-        onSelect={handleInstallAppClick}
-        className={cn('flex items-center', menuItemClass)}
-      >
-        <FaIcon icon={faIcons.download} size="sm" fixedWidth />
-        <span>{shellCopy.account.installApp}</span>
-      </KvDropdownMenuItem>
+      {shouldShowPwaInstallMenuItem(isStandalone) ? (
+        <KvDropdownMenuItem
+          onSelect={handleInstallAppClick}
+          className={cn('flex items-center', menuItemClass)}
+        >
+          <FaIcon icon={faIcons.download} size="sm" fixedWidth />
+          <span>{shellCopy.account.installApp}</span>
+        </KvDropdownMenuItem>
+      ) : null}
 
       <KvDropdownMenuSeparator />
 

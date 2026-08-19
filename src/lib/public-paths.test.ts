@@ -7,6 +7,7 @@ describe('isPublicPath', () => {
   it('allows marketing home and login-select', () => {
     expect(isPublicPath(RouteService.marketing.home())).toBe(true);
     expect(isPublicPath(RouteService.marketing.loginSelect())).toBe(true);
+    expect(isPublicPath(RouteService.marketing.offline())).toBe(true);
   });
 
   it('allows public CMS pages under /p', () => {

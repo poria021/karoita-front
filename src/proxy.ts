@@ -27,7 +27,11 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
 }
 
 /**
- * Edge session gate (Next.js 16 `proxy.ts` — replaces root `middleware.ts`).
+ * Edge session gate — Next.js 16 convention (`src/proxy.ts`, named `proxy`).
+ * Do NOT add `middleware.ts`: Next treats that as deprecated and fails the
+ * build if both files exist. `config.matcher` is statically extracted from
+ * THIS file; moving it to an import would skip the session gate.
+ *
  * Presence only: Better Auth cookie or mock marker — not role/authorization.
  *
  * - مسیرهای public → عبور

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { KvRouteStatusNearestLink } from '@/components/shared/route-status/KvRouteStatusNearestLink';
+import { reportError } from '@/lib/observability/reportError';
 import { RouteService } from '@/services/route.service';
 
 interface AuthErrorProps {
@@ -15,7 +16,10 @@ interface AuthErrorProps {
 
 export default function AuthError({ error, reset }: AuthErrorProps) {
   useEffect(() => {
-    console.error('Auth route error:', error);
+    void reportError(error, {
+      source: 'auth-error',
+      digest: error.digest,
+    });
   }, [error]);
 
   return (

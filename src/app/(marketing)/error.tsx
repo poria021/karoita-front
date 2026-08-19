@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { PublicRouteStatusActions } from '@/components/shared/route-status/PublicRouteStatusActions';
+import { reportError } from '@/lib/observability/reportError';
 
 interface MarketingErrorProps {
   error: Error & { digest?: string };
@@ -12,7 +13,10 @@ interface MarketingErrorProps {
 
 export default function MarketingError({ error, reset }: MarketingErrorProps) {
   useEffect(() => {
-    console.error('Marketing route error:', error);
+    void reportError(error, {
+      source: 'marketing-error',
+      digest: error.digest,
+    });
   }, [error]);
 
   return (

@@ -11,6 +11,7 @@ function normalizePath(pathname: string): string {
 const MARKETING_PUBLIC_EXACT = [
   RouteService.marketing.home(),
   RouteService.marketing.loginSelect(),
+  RouteService.marketing.offline(),
 ] as const;
 
 export const publicPathsConfig = {

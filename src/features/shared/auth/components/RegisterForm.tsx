@@ -1,25 +1,9 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-
 import { useRegisterForm } from '../hooks/useRegisterForm';
 import { AuthFormMessage } from './fields/AuthFormMessage';
-
-const RegisterDetailsStep = dynamic(
-  () =>
-    import('./RegisterDetailsStep').then((mod) => ({
-      default: mod.RegisterDetailsStep,
-    })),
-  { ssr: false }
-);
-
-const RegisterOtpStep = dynamic(
-  () =>
-    import('./RegisterOtpStep').then((mod) => ({
-      default: mod.RegisterOtpStep,
-    })),
-  { ssr: false }
-);
+import { RegisterDetailsStep } from './RegisterDetailsStep';
+import { RegisterOtpStep } from './RegisterOtpStep';
 
 export function RegisterForm() {
   const registerForm = useRegisterForm();

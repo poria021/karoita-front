@@ -1,1 +1,1 @@
-export type KvRouteStatusKind = 'error' | 'notFound';
+export type KvRouteStatusKind = 'error' | 'notFound' | 'offline';

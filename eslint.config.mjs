@@ -131,7 +131,7 @@ const eslintConfig = [
   },
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: [],
+    ignores: ['src/lib/pwa/pwa-chrome-color.ts'],
     rules: {
       'no-restricted-syntax': ['error', ...COLOR_RESTRICTED_SYNTAX],
     },

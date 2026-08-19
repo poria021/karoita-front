@@ -74,7 +74,7 @@ describe('scheduleUndoableMutation', () => {
       expect(commit).toHaveBeenCalledTimes(1);
     });
 
-    const toastMockWithCalls = toastMock as {
+    const toastMockWithCalls = toastMock as unknown as {
       mock: { calls: Array<[unknown, { action?: { onClick: () => void; label: string } }]> };
     };
     const opts = toastMockWithCalls.mock.calls[0]?.[1];
@@ -121,7 +121,7 @@ describe('scheduleUndoableMutation', () => {
 
     expect(toastMock.success).toHaveBeenCalled();
     expect(toastMock).not.toHaveBeenCalled();
-    const successMockWithCalls = toastMock.success as {
+    const successMockWithCalls = toastMock.success as unknown as {
       mock: {
         calls: Array<[
           unknown,
@@ -157,7 +157,7 @@ describe('scheduleUndoableLocalChange', () => {
     expect(apply).toHaveBeenCalledTimes(1);
     expect(toastMock.error).toHaveBeenCalled();
 
-    const errorMockWithCalls = toastMock.error as {
+    const errorMockWithCalls = toastMock.error as unknown as {
       mock: { calls: Array<[unknown, { action?: { onClick: () => void; label: string } }]> };
     };
     const opts = errorMockWithCalls.mock.calls[0]?.[1];

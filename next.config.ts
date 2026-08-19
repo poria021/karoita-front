@@ -1,49 +1,18 @@
 import { createRequire } from 'node:module';
 import type { NextConfig } from 'next';
+import withPWAInit from '@ducanh2912/next-pwa';
 
 import { NEST_BROWSER_PROXY_PATH } from './src/lib/nest-proxy';
+import { buildContentSecurityPolicy } from './src/lib/content-security-policy';
+import { PWA_OFFLINE_PATH } from './src/lib/pwa/pwa-cache-policy';
+import { buildPwaRuntimeCaching } from './src/lib/pwa/pwa-workbox-runtime';
 
-const bundleAnalyzer = createRequire(import.meta.url)('@next/bundle-analyzer');
-
-function nestApiOrigin(): string | null {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (!apiUrl) return null;
-  try {
-    return new URL(apiUrl).origin;
-  } catch {
-    return null;
-  }
-}
-
-function buildCsp(): string {
-  const isDev = process.env.NODE_ENV !== 'production';
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  const apiOrigin = nestApiOrigin();
-
-  const directives: Record<string, string[]> = {
-    'default-src': ["'self'"],
-    'script-src': [
-      "'self'",
-      ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
-    ],
-    'style-src': ["'self'", "'unsafe-inline'"],
-    'img-src': ["'self'", 'data:', 'blob:', 'https:'],
-    'font-src': ["'self'", 'data:'],
-    'connect-src': [
-      "'self'",
-      ...(apiUrl ? [apiUrl] : []),
-      ...(apiOrigin ? [apiOrigin] : []),
-      ...(isDev ? ['ws:', 'wss:', 'http://localhost:*'] : []),
-    ],
-    'frame-ancestors': ["'self'"],
-    'form-action': ["'self'"],
-    'object-src': ["'none'"],
-    'base-uri': ["'self'"],
-  };
-
-  return Object.entries(directives)
-    .map(([key, values]) => `${key} ${values.join(' ')}`)
-    .join('; ');
+function withOptionalBundleAnalyzer(config: NextConfig): NextConfig {
+  if (process.env.ANALYZE !== 'true') return config;
+  const bundleAnalyzer = createRequire(import.meta.url)(
+    '@next/bundle-analyzer'
+  ) as (opts: { enabled: boolean }) => (c: NextConfig) => NextConfig;
+  return bundleAnalyzer({ enabled: true })(config);
 }
 
 /**
@@ -58,12 +27,33 @@ const securityHeaders = [
     value: 'camera=(), microphone=(), geolocation=()',
   },
   { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-  { key: 'Content-Security-Policy', value: buildCsp() },
+  { key: 'Content-Security-Policy', value: buildContentSecurityPolicy() },
 ];
 
 const nestProxyDestination = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
 
+const withPWA = withPWAInit({
+  dest: 'public',
+  disable: process.env.NODE_ENV === 'development',
+  register: false,
+  cacheStartUrl: false,
+  dynamicStartUrl: true,
+  cacheOnFrontEndNav: false,
+  aggressiveFrontEndNavCaching: false,
+  reloadOnOnline: true,
+  fallbacks: {
+    document: PWA_OFFLINE_PATH,
+  },
+  workboxOptions: {
+    runtimeCaching: buildPwaRuntimeCaching(),
+    skipWaiting: true,
+    clientsClaim: true,
+    cleanupOutdatedCaches: true,
+  },
+});
+
 const nextConfig: NextConfig = {
+  turbopack: {},
   async rewrites() {
     if (!nestProxyDestination?.startsWith('http')) return [];
     return [
@@ -103,8 +93,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-const withBundleAnalyzer = bundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-});
-
-export default withBundleAnalyzer(nextConfig);
+export default withOptionalBundleAnalyzer(withPWA(nextConfig));

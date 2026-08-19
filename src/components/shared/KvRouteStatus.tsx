@@ -44,6 +44,11 @@ const KIND_META: Record<
     role: 'status',
     glowClass: 'bg-kv-brand-soft/50',
   },
+  offline: {
+    code: '503',
+    role: 'status',
+    glowClass: 'bg-kv-warning-soft/50',
+  },
 };
 
 /**

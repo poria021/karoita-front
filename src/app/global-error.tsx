@@ -8,6 +8,7 @@ import './globals.css';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
+import { reportError } from '@/lib/observability/reportError';
 import { RouteService } from '@/services/route.service';
 
 const vazirmatn = localFont({
@@ -34,7 +35,10 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
-    console.error('Global application error:', error);
+    void reportError(error, {
+      source: 'global-error',
+      digest: error.digest,
+    });
   }, [error]);
 
   return (

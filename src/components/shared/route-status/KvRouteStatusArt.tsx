@@ -28,6 +28,12 @@ const ART_BY_KIND: Record<KvRouteStatusKind, ArtConfig> = {
     iconClass: 'text-kv-danger-soft-fg',
     ringClass: 'stroke-kv-danger',
   },
+  offline: {
+    icon: faIcons.wifi,
+    wellClass: 'bg-kv-warning-soft',
+    iconClass: 'text-kv-warning-soft-fg',
+    ringClass: 'stroke-kv-warning',
+  },
 };
 
 /**

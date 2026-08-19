@@ -7,6 +7,8 @@ import { ThemeProvider } from 'next-themes';
 import { useState, type ReactNode } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { PwaBoot } from '@/components/shared/shell/PwaBoot';
+import { ObservabilityBoot } from '@/lib/observability/ObservabilityBoot';
 import { makeQueryClient } from '@/lib/query-client';
 
 config.autoAddCss = false;
@@ -25,7 +27,11 @@ export function Providers({ children }: { children: ReactNode }) {
     >
       <QueryClientProvider client={queryClient}>
         <Direction.Provider dir="rtl">
-          <TooltipProvider>{children}</TooltipProvider>
+          <TooltipProvider>
+            <ObservabilityBoot />
+            <PwaBoot />
+            {children}
+          </TooltipProvider>
         </Direction.Provider>
       </QueryClientProvider>
     </ThemeProvider>

@@ -89,6 +89,7 @@ import {
   faUserPlus,
   faUserShield,
   faUserTie,
+  faWifi,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -179,5 +180,6 @@ export const faIcons = {
   userPlus: faUserPlus,
   userShield: faUserShield,
   userTie: faUserTie,
+  wifi: faWifi,
   xmark: faXmark,
 } as const;

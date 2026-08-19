@@ -74,6 +74,8 @@ export const RouteService = {
     home: (): string => '/',
     /** Product picker when CMS has 2+ products */
     loginSelect: (): string => '/login-select',
+    /** Precached document fallback when the network is unavailable. */
+    offline: (): string => '/offline',
     /**
      * Public CMS pages hub (between landing and auth).
      * Admin editor remains `/karvita/admin/landing-cms`.

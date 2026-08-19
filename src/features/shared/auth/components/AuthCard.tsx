@@ -1,6 +1,5 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import { useState } from 'react';
 
 import {
@@ -18,12 +17,7 @@ import { cn } from '@/lib/utils';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { AuthLogo } from './AuthLogo';
 import { LoginForm } from './LoginForm';
-
-const RegisterForm = dynamic(
-  () =>
-    import('./RegisterForm').then((mod) => ({ default: mod.RegisterForm })),
-  { ssr: false }
-);
+import { RegisterForm } from './RegisterForm';
 
 interface AuthCardProps {
   defaultTab?: 'register' | 'login';

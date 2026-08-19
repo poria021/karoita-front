@@ -8,9 +8,10 @@
     "dev": "next dev",
     "dev:webpack": "next dev --webpack",
     "dev:clean": "node ./scripts/clean-next-cache.mjs && next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint . && node scripts/check-hardcoded-colors.mjs && node scripts/check-no-ui-imports.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . && node scripts/check-hardcoded-colors.mjs && node scripts/check-no-ui-imports.mjs && node scripts/check-edge-proxy.mjs",
     "lint:colors": "node scripts/check-hardcoded-colors.mjs",
     "lint:ds": "node scripts/check-no-ui-imports.mjs",
     "test": "vitest run",
@@ -21,6 +22,7 @@
     "analyze": "node ./scripts/analyze-bundle.mjs"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@fortawesome/fontawesome-svg-core": "^7.3.1",
     "@fortawesome/free-solid-svg-icons": "^7.3.1",
     "@fortawesome/react-fontawesome": "^3.4.0",
@@ -75,6 +77,10 @@
     "esbuild": "0.25.12"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "sharp", "unrs-resolver"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
   }
 }

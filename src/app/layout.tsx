@@ -1,5 +1,5 @@
 import "./globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -11,6 +11,7 @@ import {
   SITE_TITLE,
   getSiteUrl,
 } from "@/lib/site-seo";
+import { PWA_THEME_COLOR } from "@/lib/pwa/pwa-chrome-color";
 
 /**
  * Local Vazirmatn — avoids next/font/google download at compile time
@@ -138,13 +139,30 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/brand/karvita-mark.svg', type: 'image/svg+xml' },
-      { url: '/brand/karvita-mark.png', type: 'image/png', sizes: '32x32' },
+      { url: '/brand/pwa-icon-192.png', type: 'image/png', sizes: '192x192' },
     ],
     apple: [
-      { url: '/brand/karvita-mark.png', type: 'image/png', sizes: '180x180' },
+      {
+        url: '/brand/apple-touch-icon.png',
+        type: 'image/png',
+        sizes: '180x180',
+      },
     ],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: SITE_NAME,
+  },
+  formatDetection: {
+    telephone: false,
+  },
   category: 'education',
+};
+
+export const viewport: Viewport = {
+  themeColor: PWA_THEME_COLOR,
+  colorScheme: 'light dark',
 };
 
 export default function RootLayout({

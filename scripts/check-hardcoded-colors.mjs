@@ -9,7 +9,8 @@ import path from 'path';
 
 const ROOT = path.join(process.cwd(), 'src');
 const ALLOW_FILES = new Set([
-  // Reserved for rare third-party brand SVG exceptions.
+  // Web App Manifest / theme-color cannot use Tailwind utilities.
+  'lib/pwa/pwa-chrome-color.ts',
 ]);
 
 const COLOR_RE =
@@ -33,7 +34,7 @@ const violations = [];
 
 for (const file of files) {
   const rel = path.relative(ROOT, file).split(path.sep).join('/');
-  if (ALLOW_FILES.has(path.normalize(rel))) continue;
+  if (ALLOW_FILES.has(rel)) continue;
 
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   lines.forEach((line, index) => {

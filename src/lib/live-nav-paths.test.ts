@@ -182,6 +182,7 @@ describe('live nav / admin plane', () => {
     expect(isAppShellPath(RouteService.karvita.landingCms())).toBe(true);
     expect(isAppShellPath(RouteService.marketing.home())).toBe(false);
     expect(isAppShellPath(RouteService.marketing.loginSelect())).toBe(false);
+    expect(isAppShellPath(RouteService.marketing.offline())).toBe(false);
     expect(isAppShellPath(RouteService.auth.login())).toBe(false);
   });
 });

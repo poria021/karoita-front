@@ -4,6 +4,7 @@ import { faIcons } from '@/utils/iconMap';
 
 import { MarketingFooterSocials } from './MarketingFooterSocials';
 import { MarketingPanelHomeLink } from './MarketingPanelHomeLink';
+import { MarketingPwaInstallChip } from './MarketingPwaInstallChip';
 
 type MarketingFooterProps = {
   socials: LandingSocial[];
@@ -49,23 +50,7 @@ export function MarketingFooter({ socials }: MarketingFooterProps) {
             </div>
 
             <div className="pt-1">
-              <div className="group inline-flex items-center gap-3 rounded-kv-control border-2 border-kv-brand-border bg-kv-surface px-4 py-2.5">
-                <div className="flex items-center gap-1.5 rounded-sm bg-kv-brand-soft px-2.5 py-1.5 text-xs font-black text-kv-brand">
-                  <FaIcon icon={faIcons.mobileScreen} size="xs" />
-                  <FaIcon icon={faIcons.tabletScreenButton} size="xs" />
-                  <FaIcon icon={faIcons.desktop} size="xs" />
-                </div>
-                <div className="flex flex-col text-right">
-                  <span className="text-xs font-black text-kv-text">
-                    نصب و اجرای مستقیم (PWA)
-                  </span>
-                </div>
-                <FaIcon
-                  icon={faIcons.arrowLeft}
-                  size="xs"
-                  className="me-0 ms-2 text-kv-brand"
-                />
-              </div>
+              <MarketingPwaInstallChip />
             </div>
           </div>
 
