@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   fromNestRoleName,
+  nestRoleLabel,
   pickNestRoleDto,
   toNestRoleName,
 } from '@/services/auth/nest-auth-role';
@@ -24,14 +25,15 @@ describe('nest-auth-role', () => {
     expect(() => toNestRoleName('super_admin')).toThrow(/پشتیبانی/);
   });
 
-  it('picks Nest role id by mapped name', () => {
+  it('reads live Nest role lists that use title instead of name', () => {
     const dto = pickNestRoleDto(
       [
-        { id: 'role-student', name: 'student' },
-        { id: 'role-trainee', name: 'trainee' },
+        { id: 'role-mentor', name: 'mentor' },
       ],
-      'skill_learner'
+      'supervisor_professor'
     );
-    expect(dto).toEqual({ id: 'role-trainee', name: 'trainee' });
+    expect(dto.id).toBe('role-mentor');
+    expect(nestRoleLabel({ title: 'mentor' })).toBe('mentor');
+    expect(nestRoleLabel({ name: 'student' })).toBe('student');
   });
 });

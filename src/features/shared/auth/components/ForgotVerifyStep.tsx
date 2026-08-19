@@ -2,6 +2,7 @@
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthStepHeading } from './AuthStepHeading';
+import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { OtpCodeField } from './fields/OtpCodeField';
 import { OtpResendFooter } from './fields/OtpResendFooter';
@@ -24,7 +25,7 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
   const { register, formState, watch } = forgotOtpForm;
 
   return (
-    <form onSubmit={verifyForgotOtp} className="flex flex-col gap-kv-section" noValidate>
+    <AuthBusyForm busy={isVerifyingForgotOtp} onSubmit={verifyForgotOtp}>
       <AuthStepHeading step={2} totalSteps={3} />
 
       <div className="flex flex-col gap-kv-group">
@@ -33,6 +34,7 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
           registration={register('otp')}
           value={watch('otp')}
           errorMessage={formState.errors.otp?.message}
+          locked={isVerifyingForgotOtp || isResendingForgotOtp}
         />
 
         <OtpResendFooter
@@ -49,6 +51,6 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
       <AuthSubmitButton isLoading={isVerifyingForgotOtp} loadingLabel="در حال تایید...">
         تایید و ادامه
       </AuthSubmitButton>
-    </form>
+    </AuthBusyForm>
   );
 }

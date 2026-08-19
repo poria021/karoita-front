@@ -5,6 +5,7 @@ import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthStepHeading } from './AuthStepHeading';
+import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 
 interface ForgotResetStepProps {
@@ -21,11 +22,7 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
   const { register, formState } = forgotResetForm;
 
   return (
-    <form
-      onSubmit={submitResetPassword}
-      className="flex flex-col gap-kv-section"
-      noValidate
-    >
+    <AuthBusyForm busy={isSubmittingResetPassword} onSubmit={submitResetPassword}>
       <AuthStepHeading step={3} totalSteps={3} />
 
       <div className="flex flex-col gap-kv-group">
@@ -36,6 +33,7 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
           autoComplete="new-password"
           error={formState.errors.newPassword?.message}
           {...register('newPassword')}
+          locked={isSubmittingResetPassword}
         />
 
         <KvPasswordField
@@ -45,6 +43,7 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
           autoComplete="new-password"
           error={formState.errors.confirmPassword?.message}
           {...register('confirmPassword')}
+          locked={isSubmittingResetPassword}
         />
       </div>
 
@@ -61,10 +60,11 @@ export function ForgotResetStep({ login }: ForgotResetStepProps) {
           appearance="secondary"
           fullWidth
           onClick={goBackToForgotStep2}
+          disabled={isSubmittingResetPassword}
         >
           بازگشت به مرحله قبل
         </KvButton>
       </div>
-    </form>
+    </AuthBusyForm>
   );
 }

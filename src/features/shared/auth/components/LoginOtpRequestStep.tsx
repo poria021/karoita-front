@@ -7,6 +7,7 @@ import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberFi
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthStepHeading } from './AuthStepHeading';
+import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 
 interface LoginOtpRequestStepProps {
@@ -18,7 +19,7 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
   const { control, formState } = otpMobileForm;
 
   return (
-    <form onSubmit={requestOtp} className="flex flex-col gap-kv-section" noValidate>
+    <AuthBusyForm busy={isRequestingOtp} onSubmit={requestOtp}>
       <AuthStepHeading step={1} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
@@ -29,6 +30,7 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
             <KvMobileNumberField
               id="login-otp-mobile"
               required
+              locked={isRequestingOtp}
               error={formState.errors.mobile?.message}
               name={field.name}
               value={field.value}
@@ -55,6 +57,6 @@ export function LoginOtpRequestStep({ login }: LoginOtpRequestStepProps) {
           ورود با رمز عبور
         </KvButton>
       </div>
-    </form>
+    </AuthBusyForm>
   );
 }

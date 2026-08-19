@@ -18,6 +18,13 @@ export type NestRoleDto = {
   name: NestRoleName;
 };
 
+/** Live GET /auth/roles uses `title`; Swagger RoleDto uses `name`. */
+export function nestRoleLabel(entry: Record<string, unknown>): string | null {
+  if (typeof entry.name === 'string' && entry.name.trim()) return entry.name.trim();
+  if (typeof entry.title === 'string' && entry.title.trim()) return entry.title.trim();
+  return null;
+}
+
 const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   student: 'student',
   skill_learner: 'trainee',

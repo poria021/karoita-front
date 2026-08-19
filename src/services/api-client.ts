@@ -1,5 +1,6 @@
-import ky, { HTTPError, type Options as KyOptions } from 'ky';
+import ky, { HTTPError, NetworkError, TimeoutError, type Options as KyOptions } from 'ky';
 
+import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
 import { isAuthPath, RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 
@@ -42,6 +43,22 @@ function extractApiMessage(payload: unknown): string | null {
       .filter(Boolean);
     return messages.length > 0 ? messages.join('، ') : null;
   }
+  if (isRecord(payload.errors)) {
+    const mapped = Object.values(payload.errors)
+      .map((value) => {
+        if (typeof value !== 'string') return null;
+        const lower = value.toLowerCase();
+        if (lower === 'notfound' || lower.includes('not found')) {
+          return 'کاربری با این شماره یافت نشد.';
+        }
+        if (/phone/i.test(value) || /11-digit/i.test(value)) {
+          return 'فرمت شماره موبایل معتبر نیست.';
+        }
+        return isPersianMessage(value) ? value : null;
+      })
+      .filter((value): value is string => Boolean(value));
+    if (mapped.length > 0) return mapped.join('، ');
+  }
   return typeof payload.error === 'string' ? payload.error : null;
 }
 
@@ -58,6 +75,9 @@ function defaultStatusMessage(status: number): string {
   if (status === 404) return 'منبع درخواستی یافت نشد.';
   if (status === 409) return 'اطلاعات با داده‌های موجود تداخل دارد.';
   if (status === 413) return 'حجم فایل ارسالی بیش از حد مجاز است.';
+  if (status === 422) {
+    return 'اطلاعات ارسال‌شده معتبر نیست. شماره موبایل یا رمز را بررسی کنید.';
+  }
   if (status >= 500) {
     return 'سرویس موقتاً در دسترس نیست. لطفاً کمی بعد تلاش کنید.';
   }
@@ -72,6 +92,37 @@ export function localizeApiError(payload: unknown, status: number): string {
 }
 
 let handlingUnauthorized = false;
+let rotateAccessPromise: Promise<string | null> | null = null;
+
+const AUTH_BOOTSTRAP_PATH =
+  /\/v1\/auth\/(refresh|logout|phone\/login|phone\/register|forgot|reset)(?:\/|$|\?)/;
+
+function shouldSkipTokenRefresh(url: string): boolean {
+  return AUTH_BOOTSTRAP_PATH.test(url);
+}
+
+async function rotateRealAccessToken(): Promise<string | null> {
+  if (rotateAccessPromise) return rotateAccessPromise;
+
+  rotateAccessPromise = (async () => {
+    const { readRealRefreshToken } = await import(
+      '@/services/auth/real-auth.tokens'
+    );
+    const refresh = readRealRefreshToken();
+    if (!refresh) return null;
+    const { realRefreshToken } = await import(
+      '@/services/auth/real-auth.bridge'
+    );
+    const session = await realRefreshToken(refresh);
+    return session?.token ?? null;
+  })()
+    .catch(() => null)
+    .finally(() => {
+      rotateAccessPromise = null;
+    });
+
+  return rotateAccessPromise;
+}
 
 async function handleUnauthorized(): Promise<void> {
   if (handlingUnauthorized || typeof window === 'undefined') return;
@@ -104,32 +155,73 @@ function bearerHeaders(token?: string): HeadersInit {
 async function resolveBearerToken(explicit?: string): Promise<string | undefined> {
   if (explicit) return explicit;
   try {
-    const { readRealAccessToken } = await import(
+    const { readRealAccessToken, readRealRefreshToken } = await import(
       '@/services/auth/real-auth.tokens'
     );
-    return readRealAccessToken() ?? undefined;
+    const access = readRealAccessToken();
+    if (access) return access;
+    if (!readRealRefreshToken()) return undefined;
+    return (await rotateRealAccessToken()) ?? undefined;
   } catch {
     return undefined;
   }
 }
 
 let _client: ReturnType<typeof ky.create> | null = null;
+let _clientPrefix: string | null = null;
 
-function getOrCreateClient() {
+/**
+ * Browser calls go through Next rewrite (`/__nest-api`) so CORS on
+ * backenddev.darkube.ir does not block register GET /auth/roles.
+ */
+function resolveClientPrefix(): string {
   if (!API_URL) {
     throw new ApiClientError('آدرس سرویس API پیکربندی نشده است.');
   }
+  if (typeof window === 'undefined') return API_URL;
+  try {
+    const origin = new URL(API_URL).origin;
+    if (origin !== window.location.origin) {
+      return `${window.location.origin}${NEST_BROWSER_PROXY_PATH}`;
+    }
+  } catch {
+    return API_URL;
+  }
+  return API_URL;
+}
 
-  if (!_client) {
+function getOrCreateClient() {
+  const prefix = resolveClientPrefix();
+
+  if (!_client || _clientPrefix !== prefix) {
+    _clientPrefix = prefix;
     _client = ky.create({
-      prefix: API_URL,
+      prefix,
       credentials: 'include',
+      timeout: 30_000,
+      retry: { limit: 1 },
       hooks: {
         afterResponse: [
-          async ({ response }) => {
-            if (response.status === 401) {
+          async ({ request, response, retryCount }) => {
+            if (response.status !== 401) return;
+            if (
+              retryCount > 0 ||
+              shouldSkipTokenRefresh(request.url)
+            ) {
               await handleUnauthorized();
+              return;
             }
+            const token = await rotateRealAccessToken();
+            if (!token) {
+              await handleUnauthorized();
+              return;
+            }
+            const headers = new Headers(request.headers);
+            headers.set('Authorization', `Bearer ${token}`);
+            return ky.retry({
+              request: new Request(request, { headers }),
+              code: 'TOKEN_REFRESHED',
+            });
           },
         ],
       },
@@ -155,6 +247,12 @@ async function mapHttpError(error: unknown): Promise<never> {
   }
 
   if (error instanceof ApiClientError) throw error;
+
+  if (error instanceof NetworkError || error instanceof TimeoutError) {
+    throw new ApiClientError(
+      'ارتباط با سرویس احراز هویت برقرار نشد. اگر همین صفحه را تازه ری‌استارت کرده‌اید، چند ثانیه صبر کنید و دوباره تلاش کنید.'
+    );
+  }
 
   if (error instanceof TypeError) {
     throw new ApiClientError(
@@ -213,7 +311,7 @@ async function requestMaybeJson<T>(
 
 /**
  * Shared Nest HTTP client (ky).
- * Credentials: cookie + optional Bearer. 401 → clear session + bounce to login.
+ * Credentials: cookie + optional Bearer. 401 → refresh once, then logout.
  */
 export const apiClient = {
   getJson<T>(path: string, token?: string, options?: KyOptions): Promise<T> {

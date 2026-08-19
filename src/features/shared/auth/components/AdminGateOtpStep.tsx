@@ -2,6 +2,7 @@
 
 import type { UseAdminGateReturn } from '../hooks/useAdminGate';
 import { AuthStepHeading } from './AuthStepHeading';
+import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { OtpCodeField } from './fields/OtpCodeField';
 import { OtpResendFooter } from './fields/OtpResendFooter';
@@ -24,7 +25,7 @@ export function AdminGateOtpStep({ gate }: AdminGateOtpStepProps) {
   const { register, formState, watch } = otpForm;
 
   return (
-    <form onSubmit={verifyOtp} className="flex flex-col gap-kv-section" noValidate>
+    <AuthBusyForm busy={isVerifyingOtp} onSubmit={verifyOtp}>
       <AuthStepHeading step={2} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
@@ -33,6 +34,7 @@ export function AdminGateOtpStep({ gate }: AdminGateOtpStepProps) {
           registration={register('otp')}
           value={watch('otp')}
           errorMessage={formState.errors.otp?.message}
+          locked={isVerifyingOtp || isResending}
         />
 
         <OtpResendFooter
@@ -54,6 +56,6 @@ export function AdminGateOtpStep({ gate }: AdminGateOtpStepProps) {
       >
         ورود به پنل مدیریت
       </AuthSubmitButton>
-    </form>
+    </AuthBusyForm>
   );
 }

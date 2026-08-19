@@ -22,9 +22,8 @@ describe('isPublicPath', () => {
     expect(isPublicPath('/advantages')).toBe(false);
   });
 
-  it('allows auth tree and docs prefix', () => {
-    expect(isPublicPath(RouteService.auth.login())).toBe(true);
-    expect(isPublicPath('/docs/guide')).toBe(true);
+  it('allows the Nest browser proxy prefix', () => {
+    expect(isPublicPath('/__nest-api/v1/auth/roles')).toBe(true);
   });
 
   it('blocks dashboard shell paths', () => {

@@ -19,6 +19,7 @@ interface OtpCodeFieldProps {
   registration: UseFormRegisterReturn<'otp'>;
   value?: string;
   errorMessage?: string;
+  locked?: boolean;
 }
 
 function filterDigits(rawValue: string): string {
@@ -30,6 +31,7 @@ export function OtpCodeField({
   registration,
   value,
   errorMessage,
+  locked = false,
 }: OtpCodeFieldProps) {
   const [localValue, setLocalValue] = React.useState(() =>
     filterDigits(value ?? '').slice(0, 5)
@@ -69,6 +71,7 @@ export function OtpCodeField({
         maxLength={5}
         placeholder="• • • • •"
         otpStyle
+        locked={locked}
         name={name}
         onBlur={onBlur}
         onChange={handleChange}

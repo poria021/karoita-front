@@ -9,6 +9,7 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
+import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 
 interface LoginPasswordStepProps {
@@ -26,10 +27,9 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
   const { control, formState } = passwordForm;
 
   return (
-    <form
+    <AuthBusyForm
+      busy={isSubmittingPassword}
       onSubmit={submitPassword}
-      className="flex flex-col gap-kv-section"
-      noValidate
       autoComplete="off"
     >
       <input
@@ -50,6 +50,7 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
             <KvMobileNumberField
               id="login-mobile"
               required
+              locked={isSubmittingPassword}
               error={formState.errors.mobile?.message}
               name={field.name}
               value={field.value}
@@ -70,6 +71,7 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
                 id="login-password"
                 label="رمز عبور"
                 required
+                locked={isSubmittingPassword}
                 suppressBrowserAutofill
                 error={formState.errors.password?.message}
                 name={field.name}
@@ -106,6 +108,7 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
                 render={({ field }) => (
                   <Checkbox
                     id="login-remember"
+                    disabled={isSubmittingPassword}
                     checked={field.value}
                     onCheckedChange={(checked) =>
                       field.onChange(checked === true)
@@ -139,6 +142,6 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
           ورود با رمز یکبار مصرف (OTP)
         </KvButton>
       </div>
-    </form>
+    </AuthBusyForm>
   );
 }

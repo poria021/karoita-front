@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import type { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
 
@@ -13,18 +12,19 @@ export function AuthSubmitButton({
   isLoading,
   loadingLabel,
   children,
+  type = 'submit',
+  disabled,
   ...rest
 }: AuthSubmitButtonProps) {
-  const finalType = (rest as Record<string, any>).type ?? 'submit';
   return (
     <KvButton
-      type={finalType}
+      {...rest}
+      type={type}
       color="cta"
       appearance="solid"
       fullWidth
       loading={isLoading}
-      disabled={isLoading}
-      {...(rest as Record<string, unknown>)}
+      disabled={disabled || isLoading}
     >
       {isLoading ? loadingLabel : children}
     </KvButton>

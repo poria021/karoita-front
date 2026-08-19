@@ -32,11 +32,11 @@ function readStoredTokens(): NestLoginTokens | null {
   }
 }
 
-function setPresenceCookie(expiresAtMs: number): void {
+/** Session cookie (no `expires`) so proxy presence outlives access-token TTL. */
+function setPresenceCookie(): void {
   if (!isBrowser()) return;
   Cookies.set(AUTH_COOKIE_NAME, '1', {
     path: '/',
-    expires: new Date(expiresAtMs),
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
   });
@@ -47,11 +47,17 @@ function clearPresenceCookie(): void {
   Cookies.remove(AUTH_COOKIE_NAME, { path: '/' });
 }
 
+/** Refresh a little before Nest `tokenExpires` so in-flight requests stay valid. */
+const ACCESS_REFRESH_SKEW_MS = 15_000;
+
+export function peekRealAuthTokens(): NestLoginTokens | null {
+  return readStoredTokens();
+}
+
 export function readRealAccessToken(): string | null {
   const tokens = readStoredTokens();
   if (!tokens) return null;
-  if (tokens.tokenExpires <= Date.now()) {
-    clearRealAuthTokens();
+  if (tokens.tokenExpires <= Date.now() + ACCESS_REFRESH_SKEW_MS) {
     return null;
   }
   return tokens.token;
@@ -72,7 +78,7 @@ export function readRealTokenExpiresAt(): string | null {
 export function writeRealAuthTokens(tokens: NestLoginTokens): void {
   if (!isBrowser()) return;
   window.sessionStorage.setItem(REAL_TOKENS_STORAGE_KEY, JSON.stringify(tokens));
-  setPresenceCookie(tokens.tokenExpires);
+  setPresenceCookie();
 }
 
 export function clearRealAuthTokens(): void {

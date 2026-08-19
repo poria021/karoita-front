@@ -44,6 +44,9 @@ function readRole(user: Record<string, unknown>): User['role'] {
   if (isRecord(user.role) && typeof user.role.name === 'string') {
     return fromNestRoleName(user.role.name);
   }
+  if (isRecord(user.role) && typeof user.role.title === 'string') {
+    return fromNestRoleName(user.role.title);
+  }
   throw new ApiClientError('پاسخ کاربر فاقد نقش معتبر است.');
 }
 
@@ -113,6 +116,24 @@ export function extractNestLoginResponse(raw: unknown): {
     user,
     expiresAt,
   };
+}
+
+export function extractNestRefreshTokens(raw: unknown): NestLoginTokens {
+  const data = unwrapData(raw);
+  const token = data.token;
+  const refreshToken = data.refreshToken;
+  const tokenExpires = data.tokenExpires;
+
+  if (
+    typeof token !== 'string' ||
+    !token ||
+    typeof refreshToken !== 'string' ||
+    typeof tokenExpires !== 'number'
+  ) {
+    throw new ApiClientError('پاسخ تمدید نشست فاقد توکن معتبر است.');
+  }
+
+  return { token, refreshToken, tokenExpires };
 }
 
 export function toSessionFromNestLogin(raw: unknown): Session {

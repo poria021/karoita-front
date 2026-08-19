@@ -37,9 +37,8 @@ export function FaIcon({
     <FontAwesomeIcon
       icon={icon}
       fixedWidth={fixedWidth}
-      spin={spin}
+      className={cn('shrink-0', spin && 'animate-spin', className)}
       style={{ width: px, height: px, fontSize: px }}
-      className={cn('shrink-0', className)}
       aria-hidden
     />
   );

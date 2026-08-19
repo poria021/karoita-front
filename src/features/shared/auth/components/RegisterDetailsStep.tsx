@@ -6,6 +6,7 @@ import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberFi
 
 import type { UseRegisterFormReturn } from '../hooks/useRegisterForm';
 import { AuthStepHeading } from './AuthStepHeading';
+import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { RoleSelectField } from './fields/RoleSelectField';
 
@@ -18,7 +19,7 @@ export function RegisterDetailsStep({ registerForm }: RegisterDetailsStepProps) 
   const { control, formState } = detailsForm;
 
   return (
-    <form onSubmit={submitDetails} className="flex flex-col gap-kv-section" noValidate>
+    <AuthBusyForm busy={isSubmittingDetails} onSubmit={submitDetails}>
       <AuthStepHeading step={1} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
@@ -29,6 +30,7 @@ export function RegisterDetailsStep({ registerForm }: RegisterDetailsStepProps) 
             <KvMobileNumberField
               id="register-mobile"
               required
+              locked={isSubmittingDetails}
               error={formState.errors.mobile?.message}
               name={field.name}
               value={field.value}
@@ -41,6 +43,7 @@ export function RegisterDetailsStep({ registerForm }: RegisterDetailsStepProps) 
 
         <RoleSelectField
           control={control}
+          disabled={isSubmittingDetails}
           errorMessage={formState.errors.role?.message}
         />
       </div>
@@ -48,6 +51,6 @@ export function RegisterDetailsStep({ registerForm }: RegisterDetailsStepProps) 
       <AuthSubmitButton isLoading={isSubmittingDetails} loadingLabel="در حال ارسال...">
         ارسال کد تایید و ثبت‌نام
       </AuthSubmitButton>
-    </form>
+    </AuthBusyForm>
   );
 }

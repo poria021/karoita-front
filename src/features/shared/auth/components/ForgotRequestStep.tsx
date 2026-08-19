@@ -7,6 +7,7 @@ import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberFi
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
 import { AuthStepHeading } from './AuthStepHeading';
+import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 
 interface ForgotRequestStepProps {
@@ -18,7 +19,7 @@ export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
   const { control, formState } = forgotMobileForm;
 
   return (
-    <form onSubmit={sendForgotOtp} className="flex flex-col gap-kv-section" noValidate>
+    <AuthBusyForm busy={isSendingForgotOtp} onSubmit={sendForgotOtp}>
       <AuthStepHeading step={1} totalSteps={3} />
 
       <div className="flex flex-col gap-kv-group">
@@ -29,6 +30,7 @@ export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
             <KvMobileNumberField
               id="forgot-mobile"
               required
+              locked={isSendingForgotOtp}
               error={formState.errors.mobile?.message}
               name={field.name}
               value={field.value}
@@ -45,10 +47,10 @@ export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
           ارسال کد بازیابی
         </AuthSubmitButton>
 
-        <KvButton type="button" appearance="secondary" fullWidth onClick={cancelForgotMode}>
+        <KvButton type="button" appearance="secondary" fullWidth disabled={isSendingForgotOtp} onClick={cancelForgotMode}>
           بازگشت به ورود
         </KvButton>
       </div>
-    </form>
+    </AuthBusyForm>
   );
 }

@@ -6,21 +6,25 @@ import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { apiClient, ApiClientError } from '@/services/api-client';
 import {
   extractNestLoginResponse,
+  extractNestRefreshTokens,
   looksLikeNestLoginResponse,
   mapNestAuthUser,
   toSessionFromNestLogin,
 } from '@/services/auth/nest-auth-mappers';
 import {
+  nestRoleLabel,
   pickNestRoleDto,
   type NestRoleDto,
 } from '@/services/auth/nest-auth-role';
 import {
   clearRealAuthTokens,
   readRealAccessToken,
+  readRealRefreshToken,
   readRealTokenExpiresAt,
   writeRealAuthTokens,
 } from '@/services/auth/real-auth.tokens';
 import { dispatchSessionToStore } from '@/services/auth/mock-auth.store';
+import { useUserStore } from '@/store/useUserStore';
 import type { Session, User, UserRole } from '@/types/auth';
 
 const NEST_AUTH_LIVE = true;
@@ -63,9 +67,14 @@ function guard(surface: string): void {
   assertNestLive(surface);
 }
 
-/** Nest Auth bodies use `phone`; Facade / UI keep `mobile` in domain types. */
+/** Nest Auth bodies use `phone`; live login validators expect 11-digit `09…`. */
 function toPhoneBody(mobile: string): { phone: string } {
-  return { phone: mobile };
+  const digits = mobile.replace(/\D/g, '');
+  const phone =
+    digits.length === 10 && digits.startsWith('9')
+      ? `0${digits}`
+      : digits;
+  return { phone };
 }
 
 async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
@@ -86,10 +95,15 @@ async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
   for (const entry of list) {
     if (!entry || typeof entry !== 'object') continue;
     const record = entry as Record<string, unknown>;
-    if (typeof record.id !== 'string' || typeof record.name !== 'string') {
+    if (typeof record.id !== 'string' && typeof record.id !== 'number') {
       continue;
     }
-    roles.push({ id: record.id, name: record.name as NestRoleDto['name'] });
+    const label = nestRoleLabel(record);
+    if (!label) continue;
+    roles.push({
+      id: String(record.id),
+      name: label as NestRoleDto['name'],
+    });
   }
 
   return pickNestRoleDto(roles, role);
@@ -143,7 +157,7 @@ export async function realRegister(
   const nestRole = await resolveNestRoleDto(role);
   await apiClient.postJson(REAL_AUTH_PATHS.register, {
     ...toPhoneBody(mobile),
-    role: nestRole,
+    role: { id: nestRole.id, name: nestRole.name, title: nestRole.name },
   });
 }
 
@@ -239,8 +253,28 @@ export async function realRefreshToken(
       { refreshToken },
       refreshToken
     );
-    applyNestLoginResponse(raw);
-    return toSessionFromNestLogin(raw);
+
+    if (looksLikeNestLoginResponse(raw)) {
+      applyNestLoginResponse(raw);
+      return toSessionFromNestLogin(raw);
+    }
+
+    const tokens = extractNestRefreshTokens(raw);
+    writeRealAuthTokens(tokens);
+    const existingUser = useUserStore.getState().activeUser;
+    const expiresAt = new Date(tokens.tokenExpires).toISOString();
+
+    if (!existingUser) {
+      return realFetchSession();
+    }
+
+    const session = {
+      user: existingUser,
+      token: tokens.token,
+      expiresAt,
+    };
+    dispatchSessionToStore(session);
+    return session;
   } catch (error) {
     if (error instanceof ApiClientError && error.status === 401) {
       clearRealAuthTokens();
@@ -287,8 +321,14 @@ export async function realSignOut(): Promise<void> {
 
 export async function realFetchSession(): Promise<Session | null> {
   guard('real-auth.bridge.session');
-  const accessToken = readRealAccessToken();
-  if (!accessToken) return null;
+  let accessToken = readRealAccessToken();
+  if (!accessToken) {
+    const refreshToken = readRealRefreshToken();
+    if (!refreshToken) return null;
+    const rotated = await realRefreshToken(refreshToken);
+    accessToken = rotated?.token ?? readRealAccessToken();
+    if (!accessToken) return null;
+  }
 
   try {
     const raw = await apiClient.getJson<unknown>(

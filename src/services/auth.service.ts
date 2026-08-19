@@ -44,10 +44,13 @@ import {
   realVerifyForgotPasswordOtp,
   realVerifyLoginOtp,
   realVerifyRegistrationOtp,
+  realRefreshToken,
 } from '@/services/auth/real-auth.bridge';
 import {
   clearRealAuthTokens,
+  peekRealAuthTokens,
   readRealAccessToken,
+  readRealRefreshToken,
   readRealTokenExpiresAt,
 } from '@/services/auth/real-auth.tokens';
 
@@ -249,9 +252,11 @@ export class AuthService {
       return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
 
-    const token = readRealAccessToken();
+    const stored = peekRealAuthTokens();
+    if (!stored) return null;
+    const token = readRealAccessToken() ?? stored.token;
     const expiresAt = readRealTokenExpiresAt();
-    if (!token || !expiresAt) return null;
+    if (!expiresAt) return null;
     return { user: activeUser, token, expiresAt };
   }
 
@@ -269,18 +274,32 @@ export class AuthService {
       return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };
     }
 
-    const peeked = AuthService.peekSession();
-    if (!peeked) {
+    if (!peekRealAuthTokens()) {
       clearRealAuthTokens();
       dispatchSessionToStore(null);
       return null;
     }
-    return peeked;
+    return AuthService.peekSession();
+  }
+
+  /** POST /auth/refresh — rotate Nest access token; keep the current user. */
+  static async refreshAccessToken(): Promise<Session | null> {
+    if (IS_MOCK_MODE) return AuthService.peekSession();
+    const refresh = readRealRefreshToken();
+    if (!refresh) return null;
+    return realRefreshToken(refresh);
   }
 
   /** Real mode: refresh user from Nest `/auth/me` when a token exists. */
   static async refreshRealSession(): Promise<Session | null> {
     if (IS_MOCK_MODE) return AuthService.peekSession();
+    if (!readRealAccessToken()) {
+      const rotated = await AuthService.refreshAccessToken();
+      if (!rotated && !readRealAccessToken()) {
+        dispatchSessionToStore(null);
+        return null;
+      }
+    }
     const session = await realFetchSession();
     if (!session) {
       dispatchSessionToStore(null);

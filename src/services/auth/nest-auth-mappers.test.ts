@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   extractNestLoginResponse,
+  extractNestRefreshTokens,
   looksLikeNestLoginResponse,
   mapNestAuthUser,
 } from '@/services/auth/nest-auth-mappers';
@@ -22,6 +23,14 @@ describe('nest-auth-mappers', () => {
     expect(user.role).toBe('student');
     expect(user.docStatus).toBe('pending_admin');
     expect(user.firstName).toBe('Ali');
+  });
+
+  it('maps role.title when name is absent', () => {
+    const user = mapNestAuthUser({
+      ...nestUser,
+      role: { id: 'role-1', title: 'mentor' },
+    });
+    expect(user.role).toBe('supervisor_professor');
   });
 
   it('extracts LoginResponseDto tokens and session expiry', () => {
@@ -48,5 +57,17 @@ describe('nest-auth-mappers', () => {
     ).toBe(true);
     expect(looksLikeNestLoginResponse({ time: 120 })).toBe(false);
     expect(looksLikeNestLoginResponse(null)).toBe(false);
+  });
+
+  it('extracts RefreshResponseDto tokens without a user', () => {
+    const tokenExpires = Date.UTC(2031, 0, 1);
+    const tokens = extractNestRefreshTokens({
+      token: 'new-access',
+      refreshToken: 'new-refresh',
+      tokenExpires,
+    });
+    expect(tokens.token).toBe('new-access');
+    expect(tokens.refreshToken).toBe('new-refresh');
+    expect(tokens.tokenExpires).toBe(tokenExpires);
   });
 });

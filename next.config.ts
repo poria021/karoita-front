@@ -1,8 +1,21 @@
 import type { NextConfig } from 'next';
 
+import { NEST_BROWSER_PROXY_PATH } from './src/lib/nest-proxy';
+
+function nestApiOrigin(): string | null {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (!apiUrl) return null;
+  try {
+    return new URL(apiUrl).origin;
+  } catch {
+    return null;
+  }
+}
+
 function buildCsp(): string {
   const isDev = process.env.NODE_ENV !== 'production';
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+  const apiOrigin = nestApiOrigin();
 
   const directives: Record<string, string[]> = {
     'default-src': ["'self'"],
@@ -16,6 +29,7 @@ function buildCsp(): string {
     'connect-src': [
       "'self'",
       ...(apiUrl ? [apiUrl] : []),
+      ...(apiOrigin ? [apiOrigin] : []),
       ...(isDev ? ['ws:', 'wss:', 'http://localhost:*'] : []),
     ],
     'frame-ancestors': ["'self'"],
@@ -44,7 +58,18 @@ const securityHeaders = [
   { key: 'Content-Security-Policy', value: buildCsp() },
 ];
 
+const nestProxyDestination = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
+
 const nextConfig: NextConfig = {
+  async rewrites() {
+    if (!nestProxyDestination?.startsWith('http')) return [];
+    return [
+      {
+        source: `${NEST_BROWSER_PROXY_PATH}/:path*`,
+        destination: `${nestProxyDestination}/:path*`,
+      },
+    ];
+  },
   experimental: {
     authInterrupts: true,
     optimizePackageImports: [

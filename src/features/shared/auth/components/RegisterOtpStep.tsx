@@ -2,6 +2,7 @@
 
 import type { UseRegisterFormReturn } from '../hooks/useRegisterForm';
 import { AuthStepHeading } from './AuthStepHeading';
+import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 import { OtpCodeField } from './fields/OtpCodeField';
 import { OtpResendFooter } from './fields/OtpResendFooter';
@@ -22,9 +23,10 @@ export function RegisterOtpStep({ registerForm }: RegisterOtpStepProps) {
     canResendOtp,
   } = registerForm;
   const { register, formState, watch } = otpForm;
+  const busy = isVerifyingOtp || isResendingOtp;
 
   return (
-    <form onSubmit={verifyOtp} className="flex flex-col gap-kv-section" noValidate>
+    <AuthBusyForm busy={busy} onSubmit={verifyOtp}>
       <AuthStepHeading step={2} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
@@ -33,6 +35,7 @@ export function RegisterOtpStep({ registerForm }: RegisterOtpStepProps) {
           registration={register('otp')}
           value={watch('otp')}
           errorMessage={formState.errors.otp?.message}
+          locked={busy}
         />
 
         <OtpResendFooter
@@ -49,6 +52,6 @@ export function RegisterOtpStep({ registerForm }: RegisterOtpStepProps) {
       <AuthSubmitButton isLoading={isVerifyingOtp} loadingLabel="در حال ثبت‌نام...">
         تایید کد و ثبت نام
       </AuthSubmitButton>
-    </form>
+    </AuthBusyForm>
   );
 }

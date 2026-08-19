@@ -20,7 +20,12 @@ export const publicPathsConfig = {
    * - `/docs/` docs
    * - `/p/` public CMS pages between landing and login (admin-authored)
    */
-  prefixes: ['/docs/', '/auth/', `${RouteService.marketing.cmsPagesBase()}/`] as const,
+  prefixes: [
+    '/docs/',
+    '/auth/',
+    `${RouteService.marketing.cmsPagesBase()}/`,
+    '/__nest-api/',
+  ] as const,
 };
 
 export function isPublicPath(pathname: string): boolean {

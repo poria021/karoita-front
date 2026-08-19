@@ -6,6 +6,7 @@ import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberFi
 
 import type { UseAdminGateReturn } from '../hooks/useAdminGate';
 import { AuthStepHeading } from './AuthStepHeading';
+import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 
 interface AdminGateMobileStepProps {
@@ -18,14 +19,7 @@ export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
   const hasActiveCountdown = secondsUntilResend > 0;
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        void requestOtp();
-      }}
-      className="flex flex-col gap-kv-section"
-      noValidate
-    >
+    <AuthBusyForm busy={isRequestingOtp} onSubmit={requestOtp}>
       <AuthStepHeading step={1} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
@@ -37,6 +31,7 @@ export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
               id="admin-gate-mobile"
               label="شماره موبایل مدیریت"
               required
+              locked={isRequestingOtp}
               error={formState.errors.mobile?.message}
               name={field.name}
               value={field.value}
@@ -56,6 +51,6 @@ export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
       >
         {hasActiveCountdown ? 'ادامه (کد قبلاً ارسال شده)' : 'ارسال کد تایید'}
       </AuthSubmitButton>
-    </form>
+    </AuthBusyForm>
   );
 }
