@@ -64,13 +64,13 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
 
             <AppTabsContent
               value="register"
-              className="mt-0 border-t border-kv-border py-kv-group duration-300 animate-in fade-in"
+              className="pb-kv-group duration-300 animate-in fade-in"
             >
               <RegisterForm />
             </AppTabsContent>
             <AppTabsContent
               value="login"
-              className="mt-0 border-t border-kv-border py-kv-group duration-300 animate-in fade-in"
+              className="pb-kv-group duration-300 animate-in fade-in"
             >
               <LoginForm login={login} />
             </AppTabsContent>

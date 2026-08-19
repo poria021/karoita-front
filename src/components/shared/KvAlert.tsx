@@ -106,7 +106,7 @@ export function KvAlert({
           color={DISMISS_BUTTON_COLOR[variant]}
           appearance="text"
           aria-label="بستن پیام"
-          className="absolute end-3 top-3"
+          className="absolute end-3 top-1/2 -translate-y-1/2"
           onClick={handleDismiss}
           icon={<FaIcon icon={faIcons.xmark} size="sm" />}
         />
