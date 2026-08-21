@@ -3,6 +3,12 @@
  * https://backenddev.darkube.ir/docs (OpenAPI 3).
  */
 
+/** Nest paginated admin-list envelope (e.g. GET /admin/provinces). No total count, only `hasNextPage`. */
+export type NestPagedList<T> = {
+  data: T[];
+  hasNextPage: boolean;
+};
+
 export type NestProvince = {
   id: string;
   title: string;

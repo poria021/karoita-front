@@ -42,7 +42,11 @@ import type {
   OrgStructureSnapshot,
   OrgStructureSubTab,
 } from '@/types/org-structure';
-import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
+import type { NestProvince } from '@/types/nest-admin';
+import {
+  DEFAULT_PAGE_LIMIT,
+  estimateHasNextPageTotal,
+} from '@/utils/offset-limit-page';
 
 
 export const ORG_STRUCTURE_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
@@ -71,6 +75,26 @@ function requireMockOrgManage(): void {
     return;
   }
   assertMockClientHasPermission('organization.manage');
+}
+
+const REAL_PROVINCE_FETCH_PAGE_SIZE = 200;
+// Guards a runaway loop if `hasNextPage` never settles to false.
+const REAL_PROVINCE_FETCH_MAX_PAGES = 50;
+
+/** Nest has no bulk "all provinces" endpoint — page through GET /admin/provinces. */
+async function fetchAllRealProvinces(): Promise<NestProvince[]> {
+  const all: NestProvince[] = [];
+  let page = 1;
+  for (let i = 0; i < REAL_PROVINCE_FETCH_MAX_PAGES; i += 1) {
+    const { data, hasNextPage } = await adminCatalogApi.listProvinces({
+      page,
+      limit: REAL_PROVINCE_FETCH_PAGE_SIZE,
+    });
+    all.push(...data);
+    if (!hasNextPage) break;
+    page += 1;
+  }
+  return all;
 }
 
 /** Nest Province → OrgProvince */
@@ -142,8 +166,8 @@ export const OrgStructureService = {
   async getSnapshot(): Promise<OrgStructureSnapshot> {
     if (!IS_MOCK_MODE) {
       const [provinces, cities, districts, schools] = await Promise.all([
-        adminCatalogApi.getAllProvinces().then((ps) => ps.map(toOrgProvince)),
-        adminCatalogApi.listCities().then((cs) => cs.map(toOrgCity)),
+        fetchAllRealProvinces().then((ps) => ps.map(toOrgProvince)),
+        adminCatalogApi.listCities().then((res) => res.data.map(toOrgCity)),
         adminCatalogApi.listEducations().then((ds) =>
           Array.isArray(ds)
             ? (ds as { id: string; title: string; provinceId?: string; cityId?: string }[]).map(toOrgDistrict)
@@ -171,17 +195,48 @@ export const OrgStructureService = {
       const page = Math.floor(offset / limit) + 1;
       const query = options.query ?? '';
 
+      // Confirmed envelope: GET /admin/provinces and GET /admin/cities both
+      // return { data, hasNextPage }. districts/schools still assume a bare
+      // array below — verify before trusting their hasMore/total.
+      if (options.tab === 'provinces') {
+        const { data, hasNextPage } = await adminCatalogApi.listProvinces({
+          page,
+          limit,
+        });
+        const items: OrgStructureListItem[] = data.map((p) => ({
+          ...toOrgProvince(p),
+          kind: 'province' as const,
+          deleteBlocked: false,
+        }));
+        return {
+          items,
+          total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
+          hasMore: hasNextPage,
+        };
+      }
+
+      if (options.tab === 'cities') {
+        const { data, hasNextPage } = await adminCatalogApi.listCities({
+          page,
+          limit,
+        });
+        const items: OrgStructureListItem[] = data.map((c) => ({
+          ...toOrgCity(c),
+          kind: 'city' as const,
+          deleteBlocked: false,
+        }));
+        return {
+          items,
+          total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
+          hasMore: hasNextPage,
+        };
+      }
+
       type RawItem = { id: string; title: string; provinceId?: string; cityId?: string; educationId?: string; gender?: string; province_id?: string };
 
       let items: OrgStructureListItem[] = [];
 
-      if (options.tab === 'provinces') {
-        const raw = await adminCatalogApi.listProvinces({ page, limit }) as RawItem[];
-        items = raw.map((p) => ({ ...toOrgProvince(p), kind: 'province' as const, deleteBlocked: false }));
-      } else if (options.tab === 'cities') {
-        const raw = await adminCatalogApi.listCities({ page, limit }) as (RawItem & { province_id: string })[];
-        items = raw.map((c) => ({ ...toOrgCity(c), kind: 'city' as const, deleteBlocked: false }));
-      } else if (options.tab === 'districts') {
+      if (options.tab === 'districts') {
         const raw = await adminCatalogApi.listEducations({ title: query || undefined }) as RawItem[];
         items = raw.map((d) => ({ ...toOrgDistrict(d), kind: 'district' as const, deleteBlocked: false }));
       } else if (options.tab === 'schools') {
@@ -207,7 +262,11 @@ export const OrgStructureService = {
     return queryOrgListPage(options.tab, query, offset, limit);
   },
 
-  /** GET /org-structure/:kind/:id */
+  /**
+   * GET /org-structure/:kind/:id — real: province only for now (Nest has no
+   * get-by-id route; resolved by scanning the full province list). Other
+   * kinds fall through to mock and resolve to null in real mode.
+   */
   async getEntity(
     kind: OrgStructureEntityKind,
     id: string
@@ -220,15 +279,22 @@ export const OrgStructureService = {
     | OrgMajor
     | null
   > {
+    if (!IS_MOCK_MODE) {
+      if (kind === 'province') {
+        const provinces = await OrgStructureService.listProvinces();
+        return provinces.find((p) => p.id === id) ?? null;
+      }
+      return null;
+    }
     requireMockOrgManage();
     return mockGetEntity(kind, id);
   },
 
-  /** GET /org-structure/provinces — real: GET /api/admin/province/all */
+  /** GET /org-structure/provinces — real: pages GET /api/admin/provinces to collect the full list. */
   async listProvinces(): Promise<OrgProvince[]> {
     if (!IS_MOCK_MODE) {
-      const raw = await adminCatalogApi.getAllProvinces();
-      return raw.map(toOrgProvince);
+      const provinces = await fetchAllRealProvinces();
+      return provinces.map(toOrgProvince);
     }
     requireMockOrgManage();
     return mockListProvinces();

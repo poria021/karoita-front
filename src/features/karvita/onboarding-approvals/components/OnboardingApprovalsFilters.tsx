@@ -47,7 +47,7 @@ export function OnboardingApprovalsFilters({
           placeholder="همه استان‌ها"
         >
           <KvSelectItem value="all">همه استان‌ها</KvSelectItem>
-          {provinces.map((name) => (
+          {Array.from(new Set(provinces)).map((name) => (
             <KvSelectItem key={name} value={name}>
               {name}
             </KvSelectItem>

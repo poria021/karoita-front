@@ -10,6 +10,7 @@ import type {
   NestCreateSchoolDto,
   NestCreateUniversityDto,
   NestEducationListQuery,
+  NestPagedList,
   NestProvince,
   NestSchoolListQuery,
   NestUpdateCityDto,
@@ -51,8 +52,9 @@ export const adminCatalogApi = {
   createProvince(body: NestCreateProvinceDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.provinces, body, token);
   },
+  /** GET /admin/provinces — paginated envelope `{ data, hasNextPage }`, no total count. */
   listProvinces(query: NestAdminPageQuery = {}, token?: string) {
-    return apiClient.getJson<NestProvince[]>(
+    return apiClient.getJson<NestPagedList<NestProvince>>(
       NEST_ADMIN_PATHS.provinces,
       token,
       { searchParams: toSearchParams(query) }
@@ -75,8 +77,9 @@ export const adminCatalogApi = {
   createCity(body: NestCreateCityDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.cities, body, token);
   },
+  /** GET /admin/cities — paginated envelope `{ data, hasNextPage }`, same shape as provinces. */
   listCities(query: NestAdminPageQuery = {}, token?: string) {
-    return apiClient.getJson<NestCity[]>(NEST_ADMIN_PATHS.cities, token, {
+    return apiClient.getJson<NestPagedList<NestCity>>(NEST_ADMIN_PATHS.cities, token, {
       searchParams: toSearchParams(query),
     });
   },

@@ -178,7 +178,10 @@ export const OnboardingApprovalsService = {
         '@/services/admin-catalog/admin-catalog.api'
       );
       const provinces = await adminCatalogApi.getAllProvinces();
-      return provinces.map((p) => p.title);
+      // Backend may return duplicate province titles across different ids;
+      // dedupe here so consumers (e.g. <KvSelectItem key={name}>) never see
+      // repeated keys.
+      return Array.from(new Set(provinces.map((p) => p.title)));
     }
     requireOnboardingReview();
     return collectProvinces();

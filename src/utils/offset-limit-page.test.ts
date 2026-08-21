@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_PAGE_LIMIT,
+  estimateHasNextPageTotal,
   sliceOffsetLimitPage,
 } from '@/utils/offset-limit-page';
 
@@ -42,5 +43,19 @@ describe('sliceOffsetLimitPage', () => {
     expect(page.items).toEqual([]);
     expect(page.hasMore).toBe(false);
     expect(page.total).toBe(25);
+  });
+});
+
+describe('estimateHasNextPageTotal', () => {
+  it('adds one past offset+count when another page exists', () => {
+    expect(estimateHasNextPageTotal(0, 20, true)).toBe(21);
+  });
+
+  it('equals offset+count on the last page', () => {
+    expect(estimateHasNextPageTotal(20, 5, false)).toBe(25);
+  });
+
+  it('clamps a negative offset to zero', () => {
+    expect(estimateHasNextPageTotal(-10, 3, false)).toBe(3);
   });
 });
