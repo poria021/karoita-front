@@ -35,6 +35,15 @@ export type OrgStructureListItem = {
   districtsCount?: number;
   schoolsCount?: number;
   usersCount?: number;
+  // Real-mode listPage() spreads the raw Nest FK fields (toOrgCity/
+  // toOrgDistrict/toOrgSchool) onto these items; mock-mode items only
+  // carry the *Name display labels above. Optional here so the edit
+  // dialog can populate its selects straight from the row it already
+  // has, without a second (and, for non-province kinds, currently
+  // unsupported) getEntity() round trip.
+  provinceId?: string;
+  cityId?: string;
+  districtId?: string;
 };
 
 export type OrgStructureListPage = OffsetLimitPage<OrgStructureListItem>;

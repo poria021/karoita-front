@@ -13,6 +13,7 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import { KvTypography } from '@/components/shared/KvTypography';
+import type { OrgStructureListItem } from '@/services/org-structure.service';
 import type {
   OrgStructureEntityKind,
   OrgStructureSubTab,
@@ -29,6 +30,7 @@ interface OrgStructureEntityModalProps {
   tab: OrgStructureSubTab;
   entityKind: OrgStructureEntityKind;
   editId: string | null;
+  editRow: OrgStructureListItem | null;
   onClose: () => void;
   onSaved: () => void;
   onCreate: (values: OrgEntityFormValues) => void;
@@ -39,6 +41,7 @@ export function OrgStructureEntityModal({
   tab,
   entityKind,
   editId,
+  editRow,
   onClose,
   onSaved,
   onCreate,
@@ -52,6 +55,7 @@ export function OrgStructureEntityModal({
     tab,
     entityKind,
     editId,
+    editRow,
   });
 
   const submit = form.handleSubmit(async (values) => {

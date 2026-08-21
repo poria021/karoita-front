@@ -73,6 +73,7 @@ export function useOrgStructurePage() {
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [editRow, setEditRow] = useState<OrgStructureListItem | null>(null);
 
   const tabConfig = useMemo(() => getOrgTabConfig(tab), [tab]);
   const listQuery = resolveListSearchQuery(query, debouncedQuery);
@@ -115,12 +116,14 @@ export function useOrgStructurePage() {
 
   const openEdit = useCallback((row: OrgStructureListItem) => {
     setEditId(row.id);
+    setEditRow(row);
     setEditorOpen(true);
   }, []);
 
   const closeEditor = useCallback(() => {
     setEditorOpen(false);
     setEditId(null);
+    setEditRow(null);
   }, []);
 
   const reload = list.reload;
@@ -240,6 +243,7 @@ export function useOrgStructurePage() {
     clearLoadMoreError: list.clearLoadMoreError,
     editorOpen,
     editId,
+    editRow,
     openCreate,
     openEdit,
     closeEditor,

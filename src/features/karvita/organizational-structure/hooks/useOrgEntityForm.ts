@@ -5,6 +5,7 @@ import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { OrgStructureService } from '@/services/org-structure.service';
+import type { OrgStructureListItem } from '@/services/org-structure.service';
 import type {
   OrgCity,
   OrgDistrict,
@@ -62,11 +63,55 @@ function resolverForTab(
   return zodResolver(majorFormSchema) as Resolver<OrgEntityFormValues>;
 }
 
+/**
+ * Try to build reset() values straight from the row the table already
+ * fetched, so editing doesn't depend on a second getEntity() lookup —
+ * which, in real (non-mock) mode, only actually resolves 'province'
+ * today and silently no-ops (leaving the form blank) for every other
+ * kind. Returns null when the row is missing a field the kind needs
+ * (e.g. mock-mode rows, which only carry *Name display labels), so the
+ * caller can fall back to OrgStructureService.getEntity().
+ */
+function valuesFromRow(
+  kind: OrgStructureEntityKind,
+  row: OrgStructureListItem
+): OrgEntityFormValues | null {
+  if (kind === 'province') {
+    return { name: row.name };
+  }
+  if (kind === 'major') {
+    if (!row.audience) return null;
+    return { name: row.name, audience: row.audience };
+  }
+  if (kind === 'city') {
+    if (!row.provinceId) return null;
+    return { name: row.name, provinceId: row.provinceId };
+  }
+  if (kind === 'district' || kind === 'faculty') {
+    if (!row.provinceId || !row.cityId) return null;
+    return { name: row.name, provinceId: row.provinceId, cityId: row.cityId };
+  }
+  if (kind === 'school') {
+    if (!row.provinceId || !row.cityId || !row.districtId || !row.gender) {
+      return null;
+    }
+    return {
+      name: row.name,
+      provinceId: row.provinceId,
+      cityId: row.cityId,
+      districtId: row.districtId,
+      gender: row.gender,
+    };
+  }
+  return null;
+}
+
 type UseOrgEntityFormParams = {
   open: boolean;
   tab: OrgStructureSubTab;
   entityKind: OrgStructureEntityKind;
   editId: string | null;
+  editRow: OrgStructureListItem | null;
 };
 
 export function useOrgEntityForm({
@@ -74,6 +119,7 @@ export function useOrgEntityForm({
   tab,
   entityKind,
   editId,
+  editRow,
 }: UseOrgEntityFormParams) {
   const [provinces, setProvinces] = useState<OrgProvince[]>([]);
   const [cities, setCities] = useState<OrgCity[]>([]);
@@ -115,6 +161,14 @@ export function useOrgEntityForm({
         if (!editId) {
           form.reset(defaultValuesForTab(tab));
           return;
+        }
+
+        if (editRow) {
+          const rowValues = valuesFromRow(entityKind, editRow);
+          if (rowValues) {
+            form.reset(rowValues);
+            return;
+          }
         }
 
         const entity = await OrgStructureService.getEntity(entityKind, editId);
@@ -164,7 +218,7 @@ export function useOrgEntityForm({
     }, 0);
 
     return () => window.clearTimeout(initTimer);
-  }, [editId, entityKind, form, open, syncProvinces, tab]);
+  }, [editId, editRow, entityKind, form, open, syncProvinces, tab]);
 
   useEffect(() => {
     if (!open) {

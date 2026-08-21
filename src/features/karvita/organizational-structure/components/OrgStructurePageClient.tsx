@@ -71,6 +71,7 @@ export function OrgStructurePageClient() {
           tab={page.tab}
           entityKind={page.entityKind}
           editId={page.editId}
+          editRow={page.editRow}
           onClose={page.closeEditor}
           onSaved={page.reload}
           onCreate={page.scheduleCreate}
