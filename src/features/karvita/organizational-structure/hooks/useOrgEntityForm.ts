@@ -153,24 +153,25 @@ export function useOrgEntityForm({
   useEffect(() => {
     if (!open) return;
 
-    const initTimer = window.setTimeout(() => {
+    // Populate the form's *values* first, synchronously where possible —
+    // this must not wait on the provinces fetch below, which only feeds
+    // the province <select>'s option list, not the values themselves.
+    if (!editId) {
+      form.reset(defaultValuesForTab(tab));
+      return;
+    }
+
+    if (editRow) {
+      const rowValues = valuesFromRow(entityKind, editRow);
+      if (rowValues) {
+        form.reset(rowValues);
+        return;
+      }
+    }
+
+    // Fallback only: no usable row (mock-mode rows don't carry FK ids).
+    const fetchTimer = window.setTimeout(() => {
       void (async () => {
-        const provincesData = await OrgStructureService.listProvinces();
-        syncProvinces(provincesData);
-
-        if (!editId) {
-          form.reset(defaultValuesForTab(tab));
-          return;
-        }
-
-        if (editRow) {
-          const rowValues = valuesFromRow(entityKind, editRow);
-          if (rowValues) {
-            form.reset(rowValues);
-            return;
-          }
-        }
-
         const entity = await OrgStructureService.getEntity(entityKind, editId);
         if (!entity) return;
 
@@ -217,8 +218,24 @@ export function useOrgEntityForm({
       })();
     }, 0);
 
-    return () => window.clearTimeout(initTimer);
-  }, [editId, editRow, entityKind, form, open, syncProvinces, tab]);
+    return () => window.clearTimeout(fetchTimer);
+  }, [editId, editRow, entityKind, form, open, tab]);
+
+  // Province <select> options — loaded independently/in parallel with the
+  // value population above, so a slow provinces page-through never delays
+  // the name/select values from appearing.
+  useEffect(() => {
+    if (!open) return;
+
+    const optionsTimer = window.setTimeout(() => {
+      void (async () => {
+        const provincesData = await OrgStructureService.listProvinces();
+        syncProvinces(provincesData);
+      })();
+    }, 0);
+
+    return () => window.clearTimeout(optionsTimer);
+  }, [open, syncProvinces]);
 
   useEffect(() => {
     if (!open) {
