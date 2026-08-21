@@ -21,7 +21,16 @@ export const facultyFormSchema = z.object({
   cityId: z.string().min(1, 'انتخاب شهر الزامی است.'),
 });
 
-export const districtFormSchema = facultyFormSchema;
+/**
+ * districtFormSchema: cityId is optional when the selected province has no
+ * cities (province-level districts). When the province has cities and the
+ * user picks one, cityId must be a non-empty string.
+ */
+export const districtFormSchema = z.object({
+  name: nameField,
+  provinceId: z.string().min(1, 'انتخاب استان الزامی است.'),
+  cityId: z.string().optional(),
+});
 
 export const schoolFormSchema = z.object({
   name: nameField,

@@ -13,6 +13,7 @@ export default defineConfig({
     include: ['src/**/*.{test,spec}.{ts,tsx}'],
     clearMocks: true,
     restoreMocks: true,
+    setupFiles: ['./vitest.setup.ts'],
   },
   resolve: {
     alias: {

@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
+import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { OrgStructureService } from '@/services/org-structure.service';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
 import type {
@@ -16,6 +18,7 @@ import type {
   OrgStructureSubTab,
 } from '@/types/org-structure';
 
+import { ORG_STRUCTURE_CACHE_NAMESPACE } from '../lib/orgStructureListKeys';
 import {
   cityFormSchema,
   districtFormSchema,
@@ -68,9 +71,16 @@ function resolverForTab(
  * fetched, so editing doesn't depend on a second getEntity() lookup —
  * which, in real (non-mock) mode, only actually resolves 'province'
  * today and silently no-ops (leaving the form blank) for every other
- * kind. Returns null when the row is missing a field the kind needs
- * (e.g. mock-mode rows, which only carry *Name display labels), so the
- * caller can fall back to OrgStructureService.getEntity().
+ * kind.
+ *
+ * Real-mode rows always carry the FK keys (provinceId/cityId/...), even
+ * when their value ends up '' (e.g. a city with no province linked on
+ * the backend) — toOrgCity/toOrgDistrict/toOrgSchool always set them.
+ * Mock-mode rows never carry them at all (only *Name display labels).
+ * So `=== undefined` (key absent → mock, needs the getEntity fallback)
+ * is the right check here, not falsy (which would also reject a real
+ * row that's merely missing that one relation and needs the name +
+ * whatever *is* linked to show immediately either way).
  */
 function valuesFromRow(
   kind: OrgStructureEntityKind,
@@ -80,19 +90,24 @@ function valuesFromRow(
     return { name: row.name };
   }
   if (kind === 'major') {
-    if (!row.audience) return null;
+    if (row.audience === undefined) return null;
     return { name: row.name, audience: row.audience };
   }
   if (kind === 'city') {
-    if (!row.provinceId) return null;
+    if (row.provinceId === undefined) return null;
     return { name: row.name, provinceId: row.provinceId };
   }
   if (kind === 'district' || kind === 'faculty') {
-    if (!row.provinceId || !row.cityId) return null;
+    if (row.provinceId === undefined || row.cityId === undefined) return null;
     return { name: row.name, provinceId: row.provinceId, cityId: row.cityId };
   }
   if (kind === 'school') {
-    if (!row.provinceId || !row.cityId || !row.districtId || !row.gender) {
+    if (
+      row.provinceId === undefined ||
+      row.cityId === undefined ||
+      row.districtId === undefined ||
+      row.gender === undefined
+    ) {
       return null;
     }
     return {
@@ -121,20 +136,6 @@ export function useOrgEntityForm({
   editId,
   editRow,
 }: UseOrgEntityFormParams) {
-  const [provinces, setProvinces] = useState<OrgProvince[]>([]);
-  const [cities, setCities] = useState<OrgCity[]>([]);
-  const [districts, setDistricts] = useState<OrgDistrict[]>([]);
-
-  const syncProvinces = useCallback(
-    (next: OrgProvince[]) => setProvinces(next),
-    []
-  );
-  const syncCities = useCallback((next: OrgCity[]) => setCities(next), []);
-  const syncDistricts = useCallback(
-    (next: OrgDistrict[]) => setDistricts(next),
-    []
-  );
-
   const form = useForm<OrgEntityFormValues>({
     resolver: resolverForTab(tab),
     defaultValues: defaultValuesForTab(tab),
@@ -150,11 +151,57 @@ export function useOrgEntityForm({
     name: 'cityId',
   });
 
+  // Option lists for the selects below are cached via react-query — keyed
+  // by namespace + params, shared across every tab and every dialog open.
+  // The first province/city/district fetch in a session still pays a real
+  // network round trip, but re-opening any edit dialog afterwards (any
+  // tab, any row) reads from cache instead of re-fetching, so the selects
+  // no longer show a multi-second blank/placeholder state each time.
+  const provincesQuery = useQuery({
+    queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'provinces'],
+    queryFn: () => OrgStructureService.listProvinces(),
+    staleTime: QUERY_STALE_MS.list,
+    enabled: open,
+  });
+
+  const citiesQuery = useQuery({
+    queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'cities', provinceId],
+    queryFn: () => OrgStructureService.listCities(provinceId as string),
+    staleTime: QUERY_STALE_MS.list,
+    enabled: open && Boolean(provinceId),
+    placeholderData: keepPreviousData,
+  });
+
+  const districtsQuery = useQuery({
+    queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'districts', provinceId, cityId],
+    queryFn: () =>
+      OrgStructureService.listDistricts(provinceId as string, cityId as string),
+    staleTime: QUERY_STALE_MS.list,
+    enabled: open && tab === 'schools' && Boolean(provinceId) && Boolean(cityId),
+    placeholderData: keepPreviousData,
+  });
+
+  const provinces: OrgProvince[] = provincesQuery.data ?? [];
+  const cities: OrgCity[] = provinceId ? (citiesQuery.data ?? []) : [];
+  const districts: OrgDistrict[] =
+    tab === 'schools' && provinceId && cityId ? (districtsQuery.data ?? []) : [];
+
+  /**
+   * True when an province is selected, the cities query has finished, and
+   * that province genuinely has no cities. Used by the city select in the
+   * districts tab to lock the field and make it optional.
+   */
+  const provinceHasNoCities =
+    Boolean(provinceId) &&
+    citiesQuery.isFetched &&
+    !citiesQuery.isFetching &&
+    cities.length === 0;
+
   useEffect(() => {
     if (!open) return;
 
     // Populate the form's *values* first, synchronously where possible —
-    // this must not wait on the provinces fetch below, which only feeds
+    // this must not wait on the provinces query above, which only feeds
     // the province <select>'s option list, not the values themselves.
     if (!editId) {
       form.reset(defaultValuesForTab(tab));
@@ -221,68 +268,11 @@ export function useOrgEntityForm({
     return () => window.clearTimeout(fetchTimer);
   }, [editId, editRow, entityKind, form, open, tab]);
 
-  // Province <select> options — loaded independently/in parallel with the
-  // value population above, so a slow provinces page-through never delays
-  // the name/select values from appearing.
-  useEffect(() => {
-    if (!open) return;
-
-    const optionsTimer = window.setTimeout(() => {
-      void (async () => {
-        const provincesData = await OrgStructureService.listProvinces();
-        syncProvinces(provincesData);
-      })();
-    }, 0);
-
-    return () => window.clearTimeout(optionsTimer);
-  }, [open, syncProvinces]);
-
-  useEffect(() => {
-    if (!open) {
-      const clearTimer = window.setTimeout(() => syncCities([]), 0);
-      return () => window.clearTimeout(clearTimer);
-    }
-
-    if (!provinceId) {
-      const clearTimer = window.setTimeout(() => syncCities([]), 0);
-      return () => window.clearTimeout(clearTimer);
-    }
-
-    const loadTimer = window.setTimeout(() => {
-      void (async () => {
-        const data = await OrgStructureService.listCities(provinceId);
-        syncCities(data);
-      })();
-    }, 0);
-
-    return () => window.clearTimeout(loadTimer);
-  }, [open, provinceId, syncCities]);
-
-  useEffect(() => {
-    if (!open || tab !== 'schools') {
-      const clearTimer = window.setTimeout(() => syncDistricts([]), 0);
-      return () => window.clearTimeout(clearTimer);
-    }
-
-    if (!provinceId || !cityId) {
-      const clearTimer = window.setTimeout(() => syncDistricts([]), 0);
-      return () => window.clearTimeout(clearTimer);
-    }
-
-    const loadTimer = window.setTimeout(() => {
-      void (async () => {
-        const data = await OrgStructureService.listDistricts(provinceId, cityId);
-        syncDistricts(data);
-      })();
-    }, 0);
-
-    return () => window.clearTimeout(loadTimer);
-  }, [cityId, open, provinceId, syncDistricts, tab]);
-
   return {
     form,
     provinces,
     cities,
     districts,
+    provinceHasNoCities,
   };
 }

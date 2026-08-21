@@ -29,6 +29,12 @@ interface OrgStructureEntityFieldsProps {
   cities: OrgCity[];
   districts: OrgDistrict[];
   namePlaceholder: string;
+  /**
+   * True when the selected province has no cities (query finished, result
+   * empty). In the districts tab this locks the city select and makes it
+   * optional so the user can still submit without picking a city.
+   */
+  provinceHasNoCities?: boolean;
 }
 
 export function OrgStructureEntityFields({
@@ -41,6 +47,7 @@ export function OrgStructureEntityFields({
   cities,
   districts,
   namePlaceholder,
+  provinceHasNoCities = false,
 }: OrgStructureEntityFieldsProps) {
   const needsProvince =
     tab === 'cities' ||
@@ -49,6 +56,9 @@ export function OrgStructureEntityFields({
     tab === 'schools';
   const needsCity =
     tab === 'faculties' || tab === 'districts' || tab === 'schools';
+
+  // In the districts tab, city is optional when the province has no cities.
+  const cityIsOptional = tab === 'districts' && provinceHasNoCities;
 
   return (
     <>
@@ -99,14 +109,25 @@ export function OrgStructureEntityFields({
             <KvSelectField
               id="org-entity-city"
               label="شهر"
-              required
-              placeholder="انتخاب شهر"
-              value={field.value || ''}
-              onValueChange={(value) => {
-                field.onChange(value);
-                setValue('districtId', '');
-              }}
-              error={errors.cityId?.message}
+              required={!cityIsOptional}
+              optionalHint={cityIsOptional}
+              locked={cityIsOptional}
+              hint={
+                cityIsOptional
+                  ? 'این استان شهر ثبت‌شده‌ای ندارد.'
+                  : undefined
+              }
+              placeholder={cityIsOptional ? '—' : 'انتخاب شهر'}
+              value={cityIsOptional ? '' : (field.value || '')}
+              onValueChange={
+                cityIsOptional
+                  ? undefined
+                  : (value) => {
+                      field.onChange(value);
+                      setValue('districtId', '');
+                    }
+              }
+              error={cityIsOptional ? undefined : errors.cityId?.message}
               contentClassName={SELECT_IN_DIALOG_Z}
             >
               {cities.map((c) => (

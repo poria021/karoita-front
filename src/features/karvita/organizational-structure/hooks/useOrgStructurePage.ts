@@ -1,11 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { QUERY_STALE_MS } from '@/lib/query-stale';
 import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
@@ -99,6 +101,18 @@ export function useOrgStructurePage() {
     fetchPage,
     pageSize: ORG_STRUCTURE_PAGE_SIZE,
     cacheNamespace: ORG_STRUCTURE_CACHE_NAMESPACE,
+  });
+
+  // Warm the entity-modal's province select cache as soon as the org
+  // structure page mounts — regardless of which tab is active. Shares the
+  // exact query key with useOrgEntityForm's provincesQuery, so react-query
+  // dedupes/caches across both: the first Add/Edit dialog that needs a
+  // province list (cities, districts, schools, faculties) then reads from
+  // cache instead of paying its own network round trip.
+  useQuery({
+    queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'provinces'],
+    queryFn: () => OrgStructureService.listProvinces(),
+    staleTime: QUERY_STALE_MS.list,
   });
 
   const changeTab = useCallback(

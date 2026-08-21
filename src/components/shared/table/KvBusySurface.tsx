@@ -1,5 +1,6 @@
 'use client';
 
+import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
@@ -13,13 +14,13 @@ export type KvBusySurfaceProps = {
 
 /**
  * Local data-region busy. Chrome stays painted; wait feedback is a quiet
- * spinner (no skeleton bones). Soft refresh with existing content should
- * keep prior UI and not mount this.
+ * spinner with a visible caption (no skeleton bones). Soft refresh with
+ * existing content should keep prior UI and not mount this.
  */
 export function KvBusySurface({
   tableViewport = false,
   className,
-  label = 'در حال بارگذاری',
+  label = 'در حال دریافت اطلاعات',
 }: KvBusySurfaceProps) {
   return (
     <div
@@ -34,7 +35,9 @@ export function KvBusySurface({
       aria-label={label}
     >
       <Spinner className="size-5 text-kv-brand" aria-hidden="true" />
-      <span className="sr-only">{label}</span>
+      <KvTypography variant="caption" tone="muted">
+        {label}
+      </KvTypography>
     </div>
   );
 }

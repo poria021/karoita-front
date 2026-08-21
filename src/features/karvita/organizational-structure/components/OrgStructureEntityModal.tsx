@@ -50,7 +50,7 @@ export function OrgStructureEntityModal({
   const isEdit = Boolean(editId);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const { form, provinces, cities, districts } = useOrgEntityForm({
+  const { form, provinces, cities, districts, provinceHasNoCities } = useOrgEntityForm({
     open,
     tab,
     entityKind,
@@ -115,6 +115,7 @@ export function OrgStructureEntityModal({
             cities={cities}
             districts={districts}
             namePlaceholder={tabConfig.namePlaceholder}
+            provinceHasNoCities={provinceHasNoCities}
           />
 
           {formError ? (

@@ -102,39 +102,64 @@ function toOrgProvince(p: { id: string; title: string }): OrgProvince {
   return { id: p.id, name: p.title };
 }
 
-/** Nest City → OrgCity */
+/** Nest City → OrgCity. Live GET responses nest `province: { id, ... }`
+ * (sometimes `{}`) instead of the flat `province_id` the Swagger schema
+ * doc and create/update DTOs use — try both. */
 function toOrgCity(c: {
   id: string;
   title: string;
-  province_id: string;
+  province_id?: string;
+  province?: { id?: string; title?: string } | null;
 }): OrgCity {
-  return { id: c.id, name: c.title, provinceId: c.province_id };
-}
-
-/** Nest EducationalDistrict/School → OrgDistrict */
-function toOrgDistrict(d: {
-  id: string;
-  title: string;
-  provinceId?: string;
-  cityId?: string;
-}): OrgDistrict {
   return {
-    id: d.id,
-    name: d.title,
-    provinceId: d.provinceId ?? '',
-    cityId: d.cityId ?? '',
+    id: c.id,
+    name: c.title,
+    provinceId: c.province_id ?? c.province?.id ?? '',
   };
 }
 
-/** Nest School → OrgSchool */
-function toOrgSchool(s: {
+/**
+ * Shared raw shape for `/admin/educations` and `/admin/schools` rows —
+ * both may carry either flat `provinceId`/`cityId`/`educationId` (Swagger
+ * DTO shape) or nested `province`/`city`/`education` objects (observed
+ * live-response shape), so every reader here resolves defensively.
+ *
+ * (Was previously declared twice under two different names — once inline
+ * here, once as a function-local `RawItem` inside `listPage()` — which
+ * left `getSnapshot()`/`listDistricts()` referencing an undeclared
+ * `RawEducationOrSchoolItem`. Hoisted to one module-level type.)
+ */
+type RawEducationOrSchoolItem = {
   id: string;
   title: string;
   provinceId?: string;
   cityId?: string;
   educationId?: string;
   gender?: string;
-}): OrgSchool {
+  province_id?: string;
+  city_id?: string;
+  education_id?: string;
+  province?: { id?: string } | null;
+  city?: { id?: string } | null;
+  education?: { id?: string } | null;
+};
+
+/** Nest EducationalDistrict/School → OrgDistrict. Same defensive shape
+ * handling as toOrgCity — not confirmed live yet, but educations/schools
+ * link to province+city the same way cities link to province, so a
+ * nested `province`/`city` object instead of flat `provinceId`/`cityId`
+ * is equally plausible here. */
+function toOrgDistrict(d: RawEducationOrSchoolItem): OrgDistrict {
+  return {
+    id: d.id,
+    name: d.title,
+    provinceId: d.provinceId ?? d.province_id ?? d.province?.id ?? '',
+    cityId: d.cityId ?? d.city_id ?? d.city?.id ?? '',
+  };
+}
+
+/** Nest School → OrgSchool. Same defensive shape handling as toOrgCity. */
+function toOrgSchool(s: RawEducationOrSchoolItem): OrgSchool {
   const gender =
     s.gender?.toLowerCase() === 'girl' || s.gender?.toLowerCase() === 'female'
       ? 'female'
@@ -142,9 +167,9 @@ function toOrgSchool(s: {
   return {
     id: s.id,
     name: s.title,
-    provinceId: s.provinceId ?? '',
-    cityId: s.cityId ?? '',
-    districtId: s.educationId ?? '',
+    provinceId: s.provinceId ?? s.province_id ?? s.province?.id ?? '',
+    cityId: s.cityId ?? s.city_id ?? s.city?.id ?? '',
+    districtId: s.educationId ?? s.education_id ?? s.education?.id ?? '',
     gender,
   };
 }
@@ -169,14 +194,10 @@ export const OrgStructureService = {
         fetchAllRealProvinces().then((ps) => ps.map(toOrgProvince)),
         adminCatalogApi.listCities().then((res) => res.data.map(toOrgCity)),
         adminCatalogApi.listEducations().then((ds) =>
-          Array.isArray(ds)
-            ? (ds as { id: string; title: string; provinceId?: string; cityId?: string }[]).map(toOrgDistrict)
-            : []
+          Array.isArray(ds) ? (ds as RawEducationOrSchoolItem[]).map(toOrgDistrict) : []
         ),
         adminCatalogApi.listSchools().then((ss) =>
-          Array.isArray(ss)
-            ? (ss as { id: string; title: string; provinceId?: string; cityId?: string; educationId?: string; gender?: string }[]).map(toOrgSchool)
-            : []
+          Array.isArray(ss) ? (ss as RawEducationOrSchoolItem[]).map(toOrgSchool) : []
         ),
       ]);
       return { provinces, cities, districts, schools, majors: [], faculties: [] };
@@ -224,6 +245,7 @@ export const OrgStructureService = {
           ...toOrgCity(c),
           kind: 'city' as const,
           deleteBlocked: false,
+          provinceName: c.province?.title,
         }));
         return {
           items,
@@ -232,15 +254,17 @@ export const OrgStructureService = {
         };
       }
 
-      type RawItem = { id: string; title: string; provinceId?: string; cityId?: string; educationId?: string; gender?: string; province_id?: string };
-
       let items: OrgStructureListItem[] = [];
 
       if (options.tab === 'districts') {
-        const raw = await adminCatalogApi.listEducations({ title: query || undefined }) as RawItem[];
+        const raw = (await adminCatalogApi.listEducations({
+          title: query || undefined,
+        })) as RawEducationOrSchoolItem[];
         items = raw.map((d) => ({ ...toOrgDistrict(d), kind: 'district' as const, deleteBlocked: false }));
       } else if (options.tab === 'schools') {
-        const raw = await adminCatalogApi.listSchools({ title: query || undefined }) as RawItem[];
+        const raw = (await adminCatalogApi.listSchools({
+          title: query || undefined,
+        })) as RawEducationOrSchoolItem[];
         items = raw.map((s) => ({ ...toOrgSchool(s), kind: 'school' as const, deleteBlocked: false, gender: toOrgSchool(s).gender }));
       } else {
         // majors / faculties — not in Swagger; return empty
@@ -303,8 +327,16 @@ export const OrgStructureService = {
   /** GET /org-structure/cities?provinceId= — real: GET /api/admin/provinces/{id}/cities */
   async listCities(provinceId: string): Promise<OrgCity[]> {
     if (!IS_MOCK_MODE) {
-      const raw = await adminCatalogApi.listCitiesByProvince(provinceId) as { id: string; title: string; province_id: string }[];
-      return raw.map(toOrgCity);
+      const raw = (await adminCatalogApi.listCitiesByProvince(provinceId)) as {
+        id: string;
+        title: string;
+        province_id?: string;
+        province?: { id?: string } | null;
+      }[];
+      // This list is already scoped to `provinceId` by the endpoint itself —
+      // use the known value directly rather than trusting whichever (if
+      // any) province field shape the row happens to carry.
+      return raw.map((c) => ({ id: c.id, name: c.title, provinceId }));
     }
     requireMockOrgManage();
     return mockListCities(provinceId);
@@ -316,7 +348,10 @@ export const OrgStructureService = {
     cityId?: string
   ): Promise<OrgDistrict[]> {
     if (!IS_MOCK_MODE) {
-      const raw = await adminCatalogApi.listEducations({ provinceId, cityId }) as { id: string; title: string; provinceId?: string; cityId?: string }[];
+      const raw = (await adminCatalogApi.listEducations({
+        provinceId,
+        cityId,
+      })) as RawEducationOrSchoolItem[];
       return raw.map(toOrgDistrict);
     }
     requireMockOrgManage();

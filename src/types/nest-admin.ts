@@ -24,10 +24,17 @@ export type NestUpdateProvinceDto = {
   title: string;
 };
 
+/**
+ * GET responses from the live API nest `province` as an object (e.g.
+ * `province: {}` or `province: { id, title }`), while the Swagger schema
+ * doc and the POST/PATCH DTOs use a flat `province_id` string instead.
+ * Keep both optional here and resolve defensively wherever this is read.
+ */
 export type NestCity = {
   id: string;
   title: string;
-  province_id: string;
+  province_id?: string;
+  province?: { id?: string; title?: string } | null;
   createdAt: string;
   updatedAt: string;
 };

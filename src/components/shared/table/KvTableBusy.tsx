@@ -1,3 +1,4 @@
+import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
 
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
@@ -11,8 +12,8 @@ export type KvTableBusyProps = {
 
 /**
  * First-load / empty-key busy row — keeps real table header; body shows a
- * centered spinner. Soft refresh with existing rows stays on `rows` phase
- * and never hits this.
+ * centered spinner with a visible caption. Soft refresh with existing rows
+ * stays on `rows` phase and never hits this.
  */
 export function KvTableBusy({ colSpan, className }: KvTableBusyProps) {
   return (
@@ -21,10 +22,11 @@ export function KvTableBusy({ colSpan, className }: KvTableBusyProps) {
         className="flex min-h-48 w-full flex-1 flex-col items-center justify-center gap-kv-pair py-kv-section"
         role="status"
         aria-busy="true"
-        aria-label="در حال بارگذاری جدول"
       >
         <Spinner className="size-5 text-kv-brand" aria-hidden="true" />
-        <span className="sr-only">در حال بارگذاری جدول</span>
+        <KvTypography variant="caption" tone="muted">
+          در حال دریافت اطلاعات
+        </KvTypography>
       </div>
     </KvTableEmpty>
   );
