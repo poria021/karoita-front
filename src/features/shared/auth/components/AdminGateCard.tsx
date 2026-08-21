@@ -19,16 +19,11 @@ export function AdminGateCard() {
       <div className="p-kv-inset sm:p-kv-page">
         <AuthLogo subtitle="درگاه امن ورود مدیریت ارشد سامانه" />
 
-        <div
-          aria-hidden={gate.step !== 1}
-          style={{ display: gate.step === 1 ? 'block' : 'none' }}
-        >
+        {gate.step === 1 ? (
           <AdminGateMobileStep gate={gate} />
-        </div>
-
-        <div aria-hidden={gate.step !== 2} style={{ display: gate.step === 2 ? 'block' : 'none' }}>
+        ) : (
           <AdminGateOtpStep gate={gate} />
-        </div>
+        )}
 
         <div
           className={cn(

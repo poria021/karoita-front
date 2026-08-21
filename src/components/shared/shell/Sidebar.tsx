@@ -63,11 +63,11 @@ export function Sidebar() {
       */}
       <div
         className={cn(
-          'fixed inset-y-0 start-0 z-50 transition-all duration-300 ease-in-out',
+          'fixed inset-y-0 inset-s-0 z-50 transition-all duration-300 ease-in-out',
           'lg:sticky lg:top-[calc(4rem+var(--spacing-kv-group))] lg:z-0 lg:mt-kv-group lg:h-auto lg:translate-x-0 lg:self-start lg:pointer-events-auto lg:visible',
           isMobileOpen
             ? 'translate-x-0'
-            : '-translate-x-full rtl:translate-x-full lg:translate-x-0',
+            : 'max-lg:-translate-x-full max-lg:rtl:translate-x-full',
           !isMobileOpen && 'max-lg:pointer-events-none max-lg:invisible',
           isCollapsed ? 'w-72 lg:w-20' : 'w-72 lg:w-60'
         )}
@@ -145,7 +145,7 @@ export function Sidebar() {
           aria-label={
             isCollapsed ? 'باز کردن نوار کناری' : 'جمع کردن نوار کناری'
           }
-          className="absolute -end-2.5 top-3 z-20 hidden size-6 min-h-0 rounded-kv-control border border-kv-border/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-soft hover:border-kv-brand hover:text-kv-brand lg:flex"
+          className="absolute -inset-e-2.5 top-3 z-20 hidden size-6 min-h-0 rounded-kv-control border border-kv-border/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-soft hover:border-kv-brand hover:text-kv-brand lg:flex"
           icon={
             <FaIcon
               icon={faIcons.chevronLeft}

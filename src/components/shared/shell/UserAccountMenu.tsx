@@ -109,7 +109,7 @@ export function UserAccountMenu({
   };
 
   const menuItemClass = isHeader
-    ? 'gap-kv-pair justify-center px-2 py-1.5 text-xs leading-none sm:justify-start sm:px-3.5 sm:py-2.5'
+    ? 'gap-kv-pair justify-start px-3.5 py-2.5 text-xs leading-none'
     : 'gap-kv-pair';
 
   const menu = (

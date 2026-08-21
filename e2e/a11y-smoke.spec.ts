@@ -1,27 +1,13 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
-import {
-  MOCK_OTP_CODE,
-  MOCK_SUPER_ADMIN_MOBILE,
-} from '../src/services/auth/auth-mock-users';
+import { MOCK_SUPER_ADMIN_MOBILE } from '../src/services/auth/auth-mock-users';
 import { RouteService } from '../src/services/route.service';
 
 /**
  * Accessibility smoke — serious/critical axe findings must stay empty on
  * marketing, public login, and a post-auth dashboard shell landmark.
  */
-async function fillMobile(page: Page, selector: string, mobile: string) {
-  await page.locator(selector).click();
-  await page.locator(selector).fill('');
-  await page.locator(selector).pressSequentially(mobile, { delay: 15 });
-}
-
-async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
-  // legacy helper retained for API parity — tests now set session cookies
-  // directly before navigating to the dashboard for stability.
-  return Promise.resolve();
-}
 
 async function setMockSessionCookies(page: Page): Promise<void> {
   // Visit public home so `document` exists; then set cookies/localStorage
@@ -43,7 +29,9 @@ async function setMockSessionCookies(page: Page): Promise<void> {
       document.cookie = `karvita_mock_session=1; path=/`;
       document.cookie = `karvita_auth_session_meta=${m}; path=/`;
       try {
-        localStorage.setItem('karvita_auth_session_meta', m);
+        // useUserStore persists to sessionStorage (see src/store/useUserStore.ts) —
+        // seed the same storage the app actually reads on rehydrate.
+        sessionStorage.setItem('karvita_auth_session_meta', m);
         const userState = {
           state: {
             activeUser: {
@@ -59,7 +47,7 @@ async function setMockSessionCookies(page: Page): Promise<void> {
             isAuthenticated: true,
           },
         };
-        localStorage.setItem('karvita-user-store', JSON.stringify(userState));
+        sessionStorage.setItem('karvita-user-store', JSON.stringify(userState));
       } catch {}
     },
     { m: meta, mobile: MOCK_SUPER_ADMIN_MOBILE }

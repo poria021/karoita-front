@@ -10,11 +10,13 @@ export function DashboardFooter() {
         kvProductFooterBorderClassName
       )}
     >
-      <KvTypography variant="overline" tone="disabled" as="p">
+      {/* tone left at default (faint) — "disabled" is for inactive controls,
+          not permanently-visible copy; it fails WCAG AA contrast here. */}
+      <KvTypography variant="overline" as="p">
         تمام حقوق مادی و معنوی متعلق به سامانه آموزشی مهارتی کارویتا می‌باشد.
       </KvTypography>
       <div className="flex items-center gap-kv-pair">
-        <KvTypography variant="overline" tone="disabled" as="span">
+        <KvTypography variant="overline" as="span">
           v3.4.0
         </KvTypography>
       </div>

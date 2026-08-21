@@ -27,11 +27,23 @@ const passwordFieldSchema = z
     message: PASSWORD_LATIN_ONLY_HINT,
   });
 
+/**
+ * OTP length as defined in the Nest backend (backenddev.darkube.ir/docs).
+ * All flows (login OTP, register OTP, forgot-password OTP) share the same length.
+ * If the backend changes the OTP length, update this single constant only.
+ */
+export const BACKEND_OTP_LENGTH = 5;
+
 export const otpSchema = z.object({
   otp: z
     .string('کد تایید الزامی است.')
     .transform((value) => persianToEnglishDigits(value).trim())
-    .pipe(z.string().min(1, 'کد تایید الزامی است.').length(5, 'کد تایید باید ۵ رقم باشد.')),
+    .pipe(
+      z
+        .string()
+        .min(1, 'کد تایید الزامی است.')
+        .length(BACKEND_OTP_LENGTH, `کد تایید باید ۵ رقم باشد.`)
+    ),
 });
 
 export type OtpSchema = z.infer<typeof otpSchema>;

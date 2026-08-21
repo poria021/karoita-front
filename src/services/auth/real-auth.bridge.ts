@@ -32,24 +32,67 @@ import type { Session, User, UserRole } from '@/types/auth';
 const NEST_AUTH_LIVE = true;
 
 /**
+ * آیدی‌های پیش‌فرض نقش‌ها جهت جلوگیری از بن‌بست در صورت خطای ۵۰۰ اندپوینت roles
+ */
+const FALLBACK_ROLE_IDS: Record<string, string> = {
+  student: '6a43982fceda93d39f5d3493',
+  skill_learner: '6a43982fceda93d39f5d3494',
+  supervisor_professor: '6a43982fceda93d39f5d3495',
+  mentor_teacher: '6a43982fceda93d39f5d3496',
+  school_principal: '6a43982fceda93d39f5d3497',
+};
+
+/**
  * Relative paths under NEXT_PUBLIC_API_URL (no leading slash).
  * Source of truth: https://backenddev.darkube.ir/docs — Auth tag.
- * Login/register phone flows use these five routes first.
+ *
+ * ─── Phone Login ──────────────────────────────────────────────────────────────
+ * POST v1/auth/phone/login/password         { phone, password }  → LoginResponseDto
+ * POST v1/auth/phone/login/request-otp      { phone }            → void
+ * POST v1/auth/phone/login/verify-otp       { phone, otp }       → LoginResponseDto
+ *
+ * ─── Phone Register ───────────────────────────────────────────────────────────
+ * POST v1/auth/phone/register/request-otp   { phone, role }      → void
+ * POST v1/auth/phone/register/verify-otp    { phone, otp }       → LoginResponseDto
+ * GET  v1/auth/roles                                             → RoleDto[]
+ *
+ * ─── Forgot / Reset Password ──────────────────────────────────────────────────
+ * POST v1/auth/forgot/password              { phone }            → void
+ * POST v1/auth/reset/password               { phone, otp, password, hash } → void
+ *
+ * ─── Session ──────────────────────────────────────────────────────────────────
+ * GET  v1/auth/me                                                → UserDto
+ * PATCH v1/auth/me                          { firstName?, ... }  → UserDto
+ * DELETE v1/auth/me                                              → void
+ * POST v1/auth/refresh                      { refreshToken }     → TokensDto
+ * POST v1/auth/logout                                            → void
+ *
+ * ─── Admin Gate (reuses phone-login OTP until Nest adds dedicated admin route) ─
+ * POST v1/auth/phone/login/request-otp      { phone }            → void
+ * POST v1/auth/phone/login/verify-otp       { phone, otp }       → LoginResponseDto
  */
 export const REAL_AUTH_PATHS = {
-  login: 'v1/auth/phone/login/password', // POST
-  loginOtpSend: 'v1/auth/phone/login/request-otp', // POST
-  loginOtpVerify: 'v1/auth/phone/login/verify-otp', // POST
-  register: 'v1/auth/phone/register/request-otp', // POST
-  registerOtpVerify: 'v1/auth/phone/register/verify-otp', // POST
-  forgotSend: 'v1/auth/forgot/password', // POST — Nest DTO is email; phone sent for Karvita
-  forgotReset: 'v1/auth/reset/password', // POST — Nest DTO is { password, hash }
-  logout: 'v1/auth/logout', // POST
-  session: 'v1/auth/me', // GET
-  refresh: 'v1/auth/refresh', // POST
-  updateMe: 'v1/auth/me', // PATCH
-  deleteMe: 'v1/auth/me', // DELETE
-  roles: 'v1/auth/roles', // GET
+  // ── Phone password login ──
+  login: 'v1/auth/phone/login/password',           // POST { phone, password }
+  // ── Phone OTP login ──
+  loginOtpSend: 'v1/auth/phone/login/request-otp', // POST { phone }
+  loginOtpVerify: 'v1/auth/phone/login/verify-otp',// POST { phone, otp }
+  // ── Phone register ──
+  register: 'v1/auth/phone/register/request-otp',  // POST { phone, role: { id, name } }
+  registerOtpVerify: 'v1/auth/phone/register/verify-otp', // POST { phone, otp }
+  // ── Forgot / Reset ──
+  forgotSend: 'v1/auth/forgot/password',            // POST { phone }
+  forgotReset: 'v1/auth/reset/password',            // POST { phone, otp, password, hash }
+  // ── Admin gate — shares OTP login until Nest exposes a dedicated admin route ──
+  adminOtpSend: 'v1/auth/phone/login/request-otp',  // POST { phone } (same as loginOtpSend)
+  adminOtpVerify: 'v1/auth/phone/login/verify-otp', // POST { phone, otp } (same as loginOtpVerify)
+  // ── Session management ──
+  logout: 'v1/auth/logout',  // POST
+  session: 'v1/auth/me',     // GET
+  refresh: 'v1/auth/refresh',// POST { refreshToken }
+  updateMe: 'v1/auth/me',    // PATCH
+  deleteMe: 'v1/auth/me',    // DELETE
+  roles: 'v1/auth/roles',    // GET → RoleDto[]
 } as const;
 
 function requireApiConfigured(surface: string): void {
@@ -69,50 +112,79 @@ function guard(surface: string): void {
   assertNestLive(surface);
 }
 
-/** Nest Auth bodies use `phone`; live login validators expect 11-digit `09…`. */
+/**
+ * Normalise FE `mobile` (10-digit `9XXXXXXXXX`, without leading zero) to the
+ * Nest-expected 11-digit `09XXXXXXXXX` format.
+ *
+ * Schema stores numbers WITHOUT a leading `0`; Nest validators require it.
+ * Example: `9123456789` → `09123456789`.
+ */
 function toPhoneBody(mobile: string): { phone: string } {
   const digits = mobile.replace(/\D/g, '');
-  const phone =
-    digits.length === 10 && digits.startsWith('9')
-      ? `0${digits}`
-      : digits;
+
+  let phone: string;
+  if (digits.length === 10 && digits.startsWith('9')) {
+    // FE canonical form — prepend leading zero for Nest.
+    phone = `0${digits}`;
+  } else if (digits.length === 11 && digits.startsWith('09')) {
+    // Already in Nest format (e.g. pre-filled from remembered mobile).
+    phone = digits;
+  } else {
+    // Unexpected input — pass through and let Nest validate.
+    phone = digits;
+  }
+
   return { phone };
 }
 
 async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
-  const raw = await apiClient.getJson<unknown>(REAL_AUTH_PATHS.roles);
-  const list = Array.isArray(raw)
-    ? raw
-    : raw &&
-        typeof raw === 'object' &&
-        Array.isArray((raw as { data?: unknown }).data)
-      ? (raw as { data: unknown[] }).data
-      : null;
+  try {
+    const raw = await apiClient.getJson<unknown>(REAL_AUTH_PATHS.roles);
+    const list = Array.isArray(raw)
+      ? raw
+      : raw &&
+          typeof raw === 'object' &&
+          Array.isArray((raw as { data?: unknown }).data)
+        ? (raw as { data: unknown[] }).data
+        : null;
 
-  if (!list) {
-    throw new ApiClientError('پاسخ لیست نقش‌ها نامعتبر است.');
-  }
+    if (list && list.length > 0) {
+      const roles: NestRoleDto[] = [];
+      for (const entry of list) {
+        if (!entry || typeof entry !== 'object') continue;
+        const record = entry as Record<string, unknown>;
+        if (typeof record.id !== 'string' && typeof record.id !== 'number') {
+          continue;
+        }
+        const label = nestRoleLabel(record);
+        if (!label) continue;
+        roles.push({
+          id: String(record.id),
+          name: label as NestRoleDto['name'],
+        });
+      }
 
-  const roles: NestRoleDto[] = [];
-  for (const entry of list) {
-    if (!entry || typeof entry !== 'object') continue;
-    const record = entry as Record<string, unknown>;
-    if (typeof record.id !== 'string' && typeof record.id !== 'number') {
-      continue;
+      if (roles.length > 0) {
+        return pickNestRoleDto(roles, role);
+      }
     }
-    const label = nestRoleLabel(record);
-    if (!label) continue;
-    roles.push({
-      id: String(record.id),
-      name: label as NestRoleDto['name'],
-    });
+  } catch (error) {
+    console.warn(
+      '⚠️ دریافت لیست نقش‌ها از سرور با خطا مواجه شد، استفاده از مقدار پیش‌فرض...',
+      error
+    );
   }
 
-  return pickNestRoleDto(roles, role);
+  // Fallback مقاوم در صورت خطای اندپوینت roles
+  const fallbackId = FALLBACK_ROLE_IDS[role] ?? '1';
+  return {
+    id: fallbackId,
+    name: role as NestRoleDto['name'],
+  };
 }
 
-function applyNestLoginResponse(raw: unknown): User {
-  const parsed = extractNestLoginResponse(raw);
+function applyNestLoginResponse(raw: unknown, fallbackMobile?: string): User {
+  const parsed = extractNestLoginResponse(raw, fallbackMobile);
   writeRealAuthTokens(parsed.tokens);
   dispatchSessionToStore({
     user: parsed.user,
@@ -131,7 +203,7 @@ export async function realLoginWithCredentials(
     ...toPhoneBody(mobile),
     password,
   });
-  return applyNestLoginResponse(raw);
+  return applyNestLoginResponse(raw, mobile);
 }
 
 export async function realSendLoginOtp(mobile: string): Promise<void> {
@@ -148,7 +220,7 @@ export async function realVerifyLoginOtp(
     ...toPhoneBody(mobile),
     otp,
   });
-  return applyNestLoginResponse(raw);
+  return applyNestLoginResponse(raw, mobile);
 }
 
 export async function realRegister(
@@ -159,13 +231,18 @@ export async function realRegister(
   const nestRole = await resolveNestRoleDto(role);
   await apiClient.postJson(REAL_AUTH_PATHS.register, {
     ...toPhoneBody(mobile),
-    role: { id: nestRole.id, name: nestRole.name, title: nestRole.name },
+    role: { id: nestRole.id, name: nestRole.name},
   });
 }
 
 /**
- * Nest AuthConfirmPhoneDto is only `{ phone, otp }` (role was sent on request-otp).
- * `role` stays on the Facade signature for mock + post-verify UX.
+ * POST v1/auth/phone/register/verify-otp { phone, otp }
+ *
+ * Nest AuthConfirmPhoneDto is only `{ phone, otp }` — role was already sent on
+ * request-otp. `role` stays on the Facade signature for mock + post-verify UX.
+ *
+ * Success: Nest returns LoginResponseDto `{ token, refreshToken, tokenExpires, user }`.
+ * Edge case: 201 with empty body → we re-fetch session instead of throwing.
  */
 export async function realVerifyRegistrationOtp(
   mobile: string,
@@ -174,39 +251,70 @@ export async function realVerifyRegistrationOtp(
 ): Promise<User> {
   void _role;
   guard('real-auth.bridge.registerOtpVerify');
+
   const raw = await apiClient.postMaybeJson<unknown>(
     REAL_AUTH_PATHS.registerOtpVerify,
     { ...toPhoneBody(mobile), otp }
   );
 
+  // Happy path — Nest returned a full LoginResponseDto.
   if (raw && looksLikeNestLoginResponse(raw)) {
-    return applyNestLoginResponse(raw);
+    return applyNestLoginResponse(raw, mobile);
   }
 
+  // Edge-case: Nest returned 201 with no body (register-then-redirect design).
+  // Try to read the session from GET /auth/me using any token already stored.
+  const accessToken = readRealAccessToken();
+  if (accessToken) {
+    const session = await realFetchSession(mobile);
+    if (session) return session.user;
+  }
+
+  // Hard fail — ask the backend team to return LoginResponseDto.
   throw new ApiClientError(
     'پاسخ تایید ثبت‌نام فاقد نشست/توکن است. از همکار بک‌اند بخواهید LoginResponseDto برگردانند.'
   );
 }
 
+/**
+ * POST v1/auth/forgot/password { phone }
+ *
+ * Sends an OTP (or reset hash) to the phone number for password recovery.
+ */
 export async function realSendForgotPasswordOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.forgotSend');
   await apiClient.postJson(REAL_AUTH_PATHS.forgotSend, toPhoneBody(mobile));
 }
 
+/**
+ * Client-side gate before the reset step.
+ *
+ * Nest OpenAPI (backenddev.darkube.ir/docs) has NO dedicated forgot-verify route:
+ * the OTP / hash is consumed directly on POST v1/auth/reset/password.
+ * This function is therefore a client-side validation only — it checks that the
+ * code is at least 4 digits before allowing the user to proceed to Step 3.
+ *
+ * If the backend later adds a verify endpoint, replace this with an apiClient call.
+ */
 export async function realVerifyForgotPasswordOtp(
   mobile: string,
   otp: string
 ): Promise<void> {
   guard('real-auth.bridge.forgotVerify');
-  // Nest OpenAPI has no dedicated forgot-verify route; OTP/hash is consumed on
-  // POST /auth/reset/password. Fail closed on empty/short codes before step 3.
-  const phone = toPhoneBody(mobile).phone;
+  const { phone } = toPhoneBody(mobile);
   const digits = otp.replace(/\D/g, '');
   if (!phone || digits.length < 4) {
     throw new ApiClientError('کد تایید بازیابی نامعتبر است.');
   }
+  // No API call — OTP/hash will be verified server-side on POST /reset/password.
 }
 
+/**
+ * POST v1/auth/reset/password { phone, otp, password, hash }
+ *
+ * Resets the user’s password. The backend accepts the OTP both as `otp` and as
+ * `hash` (Nest AuthResetPasswordDto) — we send both to maximise compatibility.
+ */
 export async function realResetPassword(
   mobile: string,
   otp: string,
@@ -214,10 +322,10 @@ export async function realResetPassword(
 ): Promise<void> {
   guard('real-auth.bridge.forgotReset');
   await apiClient.postJson(REAL_AUTH_PATHS.forgotReset, {
-    password: newPassword,
-    hash: otp,
     ...toPhoneBody(mobile),
     otp,
+    hash: otp,      // Nest AuthResetPasswordDto uses `hash` as the OTP/token field.
+    password: newPassword,
   });
 }
 
@@ -232,7 +340,9 @@ export async function realSetInitialPassword(
 
 export async function realSendAdminGateOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.adminOtpSend');
-  await apiClient.postJson(REAL_AUTH_PATHS.loginOtpSend, toPhoneBody(mobile));
+  // Uses the dedicated adminOtpSend path (currently same as loginOtpSend).
+  // When Nest exposes a separate admin route, update REAL_AUTH_PATHS.adminOtpSend.
+  await apiClient.postJson(REAL_AUTH_PATHS.adminOtpSend, toPhoneBody(mobile));
 }
 
 export async function realVerifyAdminGateOtp(
@@ -240,11 +350,13 @@ export async function realVerifyAdminGateOtp(
   otp: string
 ): Promise<User> {
   guard('real-auth.bridge.adminOtpVerify');
-  const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.loginOtpVerify, {
+  // Uses the dedicated adminOtpVerify path (currently same as loginOtpVerify).
+  // When Nest exposes a separate admin route, update REAL_AUTH_PATHS.adminOtpVerify.
+  const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.adminOtpVerify, {
     ...toPhoneBody(mobile),
     otp,
   });
-  return applyNestLoginResponse(raw);
+  return applyNestLoginResponse(raw, mobile);
 }
 
 export async function realRefreshToken(
@@ -254,6 +366,7 @@ export async function realRefreshToken(
   if (!refreshToken) return null;
 
   try {
+    const existingMobile = useUserStore.getState().activeUser?.mobile;
     const raw = await apiClient.postJson<unknown>(
       REAL_AUTH_PATHS.refresh,
       { refreshToken },
@@ -261,8 +374,8 @@ export async function realRefreshToken(
     );
 
     if (looksLikeNestLoginResponse(raw)) {
-      applyNestLoginResponse(raw);
-      return toSessionFromNestLogin(raw);
+      applyNestLoginResponse(raw, existingMobile);
+      return toSessionFromNestLogin(raw, existingMobile);
     }
 
     const tokens = extractNestRefreshTokens(raw);
@@ -271,7 +384,7 @@ export async function realRefreshToken(
     const expiresAt = new Date(tokens.tokenExpires).toISOString();
 
     if (!existingUser) {
-      return realFetchSession();
+      return realFetchSession(existingMobile);
     }
 
     const session = {
@@ -307,7 +420,7 @@ export async function realUpdateMe(
     body,
     token
   );
-  return mapNestAuthUser(raw);
+  return mapNestAuthUser(raw, useUserStore.getState().activeUser?.mobile);
 }
 
 export async function realDeleteMe(token?: string): Promise<void> {
@@ -325,8 +438,12 @@ export async function realSignOut(): Promise<void> {
   }
 }
 
-export async function realFetchSession(): Promise<Session | null> {
+export async function realFetchSession(
+  fallbackMobile?: string
+): Promise<Session | null> {
   guard('real-auth.bridge.session');
+  const mobileFallback =
+    fallbackMobile ?? useUserStore.getState().activeUser?.mobile;
   let accessToken = readRealAccessToken();
   if (!accessToken) {
     const refreshToken = readRealRefreshToken();
@@ -343,7 +460,7 @@ export async function realFetchSession(): Promise<Session | null> {
     );
     // GET /auth/me returns User directly (not LoginResponseDto).
     if (looksLikeNestLoginResponse(raw)) {
-      return toSessionFromNestLogin(raw);
+      return toSessionFromNestLogin(raw, mobileFallback);
     }
     const payload =
       raw &&
@@ -352,7 +469,7 @@ export async function realFetchSession(): Promise<Session | null> {
       (raw as { data: unknown }).data
         ? (raw as { data: unknown }).data
         : raw;
-    const user = mapNestAuthUser(payload);
+    const user = mapNestAuthUser(payload, mobileFallback);
     return {
       user,
       token: accessToken,

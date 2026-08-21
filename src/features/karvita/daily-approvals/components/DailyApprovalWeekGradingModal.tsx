@@ -59,7 +59,6 @@ export function DailyApprovalWeekGradingModal({
   onSavePrincipal,
 }: DailyApprovalWeekGradingModalProps) {
   const modal = useDailyApprovalWeekGradingModal({
-    open,
     role,
     trainee,
     week,

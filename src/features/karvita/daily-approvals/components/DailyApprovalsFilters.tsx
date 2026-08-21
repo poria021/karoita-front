@@ -38,12 +38,6 @@ export function DailyApprovalsFilters({
           : 'flex w-full flex-col items-stretch gap-kv-pair lg:flex-row lg:items-center'
       }
     >
-      {mobile ? (
-        <span className="border-b border-kv-border pb-kv-pair text-xs font-black text-kv-text-faint">
-          جستجو و فیلترهای پایش:
-        </span>
-      ) : null}
-
       <div className={mobile ? 'w-full' : 'w-full min-w-0 flex-[2]'}>
         <KvSearchField
           label={false}

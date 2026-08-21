@@ -53,3 +53,23 @@ export function isIosSafariInstallHint(): boolean {
   if (isDisplayStandalone()) return false;
   return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
 }
+
+/** Safari on macOS also never fires `beforeinstallprompt` — needs manual steps too. */
+export function isMacSafariInstallHint(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (isDisplayStandalone()) return false;
+  const ua = window.navigator.userAgent;
+  const isMac = /macintosh/i.test(ua) && !/(iphone|ipad|ipod)/i.test(ua);
+  const isSafari =
+    /safari/i.test(ua) && !/(chrome|chromium|crios|edg|firefox|fxios)/i.test(ua);
+  return isMac && isSafari;
+}
+
+export type ManualInstallPlatform = 'ios' | 'mac-safari' | null;
+
+/** Which manual install instructions (if any) this browser needs. */
+export function getManualInstallPlatform(): ManualInstallPlatform {
+  if (isIosSafariInstallHint()) return 'ios';
+  if (isMacSafariInstallHint()) return 'mac-safari';
+  return null;
+}

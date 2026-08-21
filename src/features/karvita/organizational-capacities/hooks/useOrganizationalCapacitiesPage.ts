@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
@@ -71,11 +71,11 @@ export function useOrganizationalCapacitiesPage() {
   const [actionBusy, setActionBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
-  const [tick, setTick] = useState(0);
-  const bump = useCallback(() => setTick((n) => n + 1), []);
+
+  // isDirty را با state نگه می‌داریم نه با ref داخل useMemo
+  const [isDirty, setIsDirty] = useState(false);
 
   // baseline: وضعیت آخرین بار که داده از سرور آمده یا submit شده
-  // isDirty = وضعیت فعلی !== baseline
   const baselineRef = useRef<string | null>(null);
   const baselineKeyRef = useRef<string>('');
 
@@ -94,11 +94,11 @@ export function useOrganizationalCapacitiesPage() {
     staleTime: QUERY_STALE_MS.module,
   });
 
-  const resolvedTermId = useMemo(() => {
+  const resolvedTermId = (() => {
     const terms = termsData ?? [];
     if (terms.some((term) => term.id === termId)) return termId;
     return terms[0]?.id ?? '';
-  }, [termId, termsData]);
+  })();
 
   const {
     data: snapshotData,
@@ -126,6 +126,7 @@ export function useOrganizationalCapacitiesPage() {
     if (baselineKeyRef.current === key && baselineRef.current !== null) return;
     baselineKeyRef.current = key;
     baselineRef.current = courseDraftSignature(snapshotData.courses);
+    setIsDirty(false);
   }, [snapshotData, resolvedTermId, kind]);
 
   const isLoading =
@@ -140,15 +141,10 @@ export function useOrganizationalCapacitiesPage() {
       ? unknownErrorMessage(snapshotError, 'بارگذاری ظرفیت‌ها ناموفق بود.')
       : null;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const isDirty = useMemo(() => {
-    if (!snapshot || baselineRef.current === null) return false;
-    return courseDraftSignature(snapshot.courses) !== baselineRef.current;
-  }, [snapshot, tick]);
-
   const reload = useCallback(() => {
     baselineRef.current = null;
     baselineKeyRef.current = '';
+    setIsDirty(false);
     void refetchTerms();
     if (resolvedTermId) void refetchSnapshot();
   }, [refetchSnapshot, refetchTerms, resolvedTermId]);
@@ -159,6 +155,7 @@ export function useOrganizationalCapacitiesPage() {
       setExpandedCourseId(null);
       baselineRef.current = null;
       baselineKeyRef.current = '';
+      setIsDirty(false);
     },
     [setKind]
   );
@@ -182,7 +179,7 @@ export function useOrganizationalCapacitiesPage() {
           const courses = current.courses.map((course) =>
             course.id === courseId ? { ...course, ...patch } : course
           );
-          return {
+          const updated: OrganizationalCapacitiesSnapshot = {
             ...current,
             courses,
             summary: {
@@ -200,11 +197,15 @@ export function useOrganizationalCapacitiesPage() {
                   ),
             },
           };
+          // isDirty رو اینجا محاسبه می‌کنیم که خارج از render cycle هست
+          const newSignature = courseDraftSignature(updated.courses);
+          const dirty = baselineRef.current !== null && newSignature !== baselineRef.current;
+          setIsDirty(dirty);
+          return updated;
         }
       );
-      bump();
     },
-    [bump, kind, queryClient, resolvedTermId]
+    [kind, queryClient, resolvedTermId]
   );
 
   const updateCourseTotal = useCallback(
@@ -265,14 +266,14 @@ export function useOrganizationalCapacitiesPage() {
       baselineRef.current = courseDraftSignature(next.courses);
       baselineKeyRef.current = `${kind}::${next.termId}`;
       setConfirmOpen(false);
-      bump();
+      setIsDirty(false);
       toast.success('ظرفیت‌ها با موفقیت ذخیره شدند.');
     } catch (err) {
       toast.error(unknownErrorMessage(err, 'ذخیره ظرفیت‌ها ناموفق بود.'));
     } finally {
       setActionBusy(false);
     }
-  }, [bump, kind, setSnapshotData, snapshot]);
+  }, [kind, setSnapshotData, snapshot]);
 
   return {
     kind,

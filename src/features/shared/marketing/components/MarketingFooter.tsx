@@ -49,17 +49,17 @@ export function MarketingFooter({ socials }: MarketingFooterProps) {
               </address>
             </div>
 
-            <div className="pt-1">
+            <div className="flex justify-center pt-1 sm:justify-start">
               <MarketingPwaInstallChip />
             </div>
           </div>
 
           <div className="my-auto flex items-center justify-center lg:col-span-5 lg:justify-end">
-            <div className="grid w-auto grid-cols-3 gap-2.5">
+            <div className="grid w-auto grid-cols-3 gap-1.5 sm:gap-2.5">
               <div
                 role="img"
                 aria-label="نماد اعتماد الکترونیکی"
-                className="flex h-32 w-28 select-none items-center justify-center rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-xs font-black leading-snug text-kv-text shadow-kv-soft transition-colors duration-300 hover:border-kv-brand hover:bg-kv-surface hover:text-kv-brand"
+                className="flex h-28 w-24 select-none items-center justify-center rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-xs font-black leading-snug text-kv-text shadow-kv-soft transition-colors duration-300 hover:border-kv-brand hover:bg-kv-surface hover:text-kv-brand sm:h-32 sm:w-28"
               >
                 نماد اعتماد الکترونیکی
               </div>
@@ -67,7 +67,7 @@ export function MarketingFooter({ socials }: MarketingFooterProps) {
               <div
                 role="img"
                 aria-label="نشان ملی ساماندهی"
-                className="flex h-32 w-28 select-none items-center justify-center rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-xs font-black leading-snug text-kv-text shadow-kv-soft transition-colors duration-300 hover:border-kv-success hover:bg-kv-surface hover:text-kv-success"
+                className="flex h-28 w-24 select-none items-center justify-center rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-xs font-black leading-snug text-kv-text shadow-kv-soft transition-colors duration-300 hover:border-kv-success hover:bg-kv-surface hover:text-kv-success sm:h-32 sm:w-28"
               >
                 نشان ملی ساماندهی
               </div>
@@ -75,7 +75,7 @@ export function MarketingFooter({ socials }: MarketingFooterProps) {
               <div
                 role="img"
                 aria-label="تاییدیه دانش‌بنیان"
-                className="flex h-32 w-28 select-none items-center justify-center rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-xs font-black leading-snug text-kv-text shadow-kv-soft transition-colors duration-300 hover:border-kv-info hover:bg-kv-surface hover:text-kv-info"
+                className="flex h-28 w-24 select-none items-center justify-center rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle/80 p-2 text-center text-xs font-black leading-snug text-kv-text shadow-kv-soft transition-colors duration-300 hover:border-kv-info hover:bg-kv-surface hover:text-kv-info sm:h-32 sm:w-28"
               >
                 تاییدیه دانش‌بنیان
               </div>

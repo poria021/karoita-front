@@ -39,8 +39,11 @@ async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
     new RegExp(`${RouteService.karvita.adminDashboard().replace(/\//g, '\\/')}\\/?$`),
     { timeout: 30_000 }
   );
+  // Dashboard home greets by name ("خوش آمدید، <name>"), not a fixed
+  // "panel" title — match the stable greeting prefix so a display-name
+  // change alone doesn't break this smoke test.
   await expect(
-    page.getByRole('heading', { name: /پنل کاربری - مدیر ارشد/ })
+    page.getByRole('heading', { name: /خوش آمدید/ })
   ).toBeVisible();
 }
 
@@ -50,10 +53,29 @@ test.describe('mock smoke', () => {
     await expect(
       page.getByRole('heading', { name: 'کارویتا' })
     ).toBeVisible();
-    await page.getByRole('link', { name: /ورود به میز کار/ }).click();
-    await expect(page).toHaveURL(
-      new RegExp(`${RouteService.auth.login().replace(/\//g, '\\/')}\\/?$`)
+
+    // لینک ورود در header با متن «ورود به سامانه» نمایش داده می‌شه
+    await page.getByRole('link', { name: /ورود به سامانه/ }).first().click();
+
+    // 2+ CMS products → header CTA lands on the product picker first
+    // (see `resolveMarketingLoginHref`); pick a product to continue into
+    // the real login shell instead of assuming a direct /auth/login jump.
+    const loginUrlPattern = new RegExp(
+      `${RouteService.auth.login().replace(/\//g, '\\/')}\\/?$`
     );
+    const loginSelectUrlPattern = new RegExp(
+      `${RouteService.marketing.loginSelect().replace(/\//g, '\\/')}\\/?$`
+    );
+    await expect(page).toHaveURL(
+      new RegExp(`(${loginUrlPattern.source})|(${loginSelectUrlPattern.source})`)
+    );
+    if (loginSelectUrlPattern.test(new URL(page.url()).pathname)) {
+      await page
+        .locator(`a[href="${RouteService.auth.login()}"]`)
+        .first()
+        .click();
+    }
+    await expect(page).toHaveURL(loginUrlPattern);
 
     const loginTab = page.getByRole('tab', { name: /ورود/ });
     if (await loginTab.count()) {

@@ -42,7 +42,7 @@ function MarketingShellChrome({
 
         <main
           className={`flex w-full flex-1 flex-col ${
-            overlayHeader ? '' : 'pt-14 lg:pt-16'
+            overlayHeader ? 'pt-14 lg:pt-0' : 'pt-14 lg:pt-16'
           }`}
         >
           {children}

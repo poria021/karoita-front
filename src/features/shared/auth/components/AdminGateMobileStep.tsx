@@ -14,7 +14,7 @@ interface AdminGateMobileStepProps {
 }
 
 export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
-  const { mobileForm, requestOtp, isRequestingOtp, secondsUntilResend, showOtp } = gate;
+  const { mobileForm, requestOtp, isRequestingOtp, secondsUntilResend } = gate;
   const { control, formState } = mobileForm;
   const hasActiveCountdown = secondsUntilResend > 0;
 

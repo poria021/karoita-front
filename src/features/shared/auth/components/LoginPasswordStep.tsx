@@ -34,6 +34,8 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
     >
       <input
         type="password"
+        id="login-autofill-trap"
+        name="login-autofill-trap"
         tabIndex={-1}
         aria-hidden="true"
         autoComplete="current-password"

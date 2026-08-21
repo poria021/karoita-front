@@ -21,6 +21,7 @@ import {
   usePwaStandalone,
 } from '@/hooks/usePwaInstall';
 import {
+  getManualInstallPlatform,
   isIosSafariInstallHint,
   promptPwaInstall,
 } from '@/lib/pwa/pwa-install';
@@ -35,6 +36,61 @@ import { faIcons } from '@/utils/iconMap';
 function hintText(): string {
   if (isIosSafariInstallHint()) return shellCopy.account.installOfferIosHint;
   return shellCopy.account.installOfferChromeHint;
+}
+
+/**
+ * Safari (iOS و macOS) هرگز `beforeinstallprompt` را نمی‌فرستد — برای این دو پلتفرم
+ * مراحل دستی نصب را درون دیالوگ نشان می‌دهیم.
+ */
+function ManualInstallHint() {
+  const platform = getManualInstallPlatform();
+
+  if (platform === 'ios') {
+    return (
+      <div className="flex flex-col gap-kv-field">
+        <KvTypography variant="caption" tone="muted" weight="bold" as="p">
+          {shellCopy.account.installOfferIosTitle}
+        </KvTypography>
+        <ol className="flex list-decimal flex-col gap-kv-field ps-kv-group">
+          {shellCopy.account.installOfferIosHintSteps.map((step) => (
+            <li key={step}>
+              <KvTypography variant="caption" tone="muted" as="span">
+                {step}
+              </KvTypography>
+            </li>
+          ))}
+        </ol>
+      </div>
+    );
+  }
+
+  if (platform === 'mac-safari') {
+    return (
+      <div className="flex flex-col gap-kv-field">
+        <KvTypography variant="caption" tone="muted" weight="bold" as="p">
+          {shellCopy.account.installOfferMacTitle}
+        </KvTypography>
+        <ol className="flex list-decimal flex-col gap-kv-field ps-kv-group">
+          {shellCopy.account.installOfferMacHintSteps.map((step) => (
+            <li key={step}>
+              <KvTypography variant="caption" tone="muted" as="span">
+                {step}
+              </KvTypography>
+            </li>
+          ))}
+        </ol>
+        <KvTypography variant="caption" tone="muted" as="p">
+          {shellCopy.account.installOfferMacUnsupportedHint}
+        </KvTypography>
+      </div>
+    );
+  }
+
+  return (
+    <KvTypography variant="caption" tone="muted" as="p">
+      {hintText()}
+    </KvTypography>
+  );
 }
 
 async function runNativeInstall(): Promise<'accepted' | 'dismissed' | 'unavailable'> {
@@ -158,11 +214,13 @@ export function PwaInstallSuggestion() {
               {shellCopy.account.installOfferBody}
             </KvDialogDescription>
           </KvDialogHeader>
-          <KvTypography variant="caption" tone="muted" as="p">
-            {nativeAvailable
-              ? shellCopy.account.installOfferNativeHint
-              : hintText()}
-          </KvTypography>
+          {nativeAvailable ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              {shellCopy.account.installOfferNativeHint}
+            </KvTypography>
+          ) : (
+            <ManualInstallHint />
+          )}
           <KvDialogFooter>
             <KvButton
               type="button"

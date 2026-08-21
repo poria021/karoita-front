@@ -44,10 +44,18 @@ function extractApiMessage(payload: unknown): string | null {
     return messages.length > 0 ? messages.join('، ') : null;
   }
   if (isRecord(payload.errors)) {
-    const mapped = Object.values(payload.errors)
-      .map((value) => {
+    const mapped = Object.entries(payload.errors)
+      .map(([key, value]) => {
         if (typeof value !== 'string') return null;
         const lower = value.toLowerCase();
+        // Nest reuses `hash` as the OTP/reset-token field (see real-auth.bridge.ts).
+        // An invalid/expired OTP on verify-otp comes back as a 404 with
+        // `{ errors: { hash: 'invalidOtp.' } }` — without this check it fell
+        // through to the generic 404 message ('منبع درخواستی یافت نشد.'),
+        // which reads like a broken route instead of a wrong code.
+        if (key.toLowerCase() === 'hash' || /invalid.?otp/i.test(value)) {
+          return 'کد تایید وارد‌شده اشتباه یا منقضی شده است.';
+        }
         if (lower === 'notfound' || lower.includes('not found')) {
           return 'کاربری با این شماره یافت نشد.';
         }

@@ -78,4 +78,16 @@ export function resetEnrollmentSnapshotForTests(
   snapshot?: EnrollmentSnapshot | null
 ): void {
   memorySnapshot = snapshot ? structuredClone(snapshot) : null;
+  // همچنین localStorage رو پاک می‌کنیم تا بین تست‌ها data leak نشه
+  if (isBrowser()) {
+    try {
+      if (snapshot == null) {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } else {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(memorySnapshot));
+      }
+    } catch {
+      // noop — در محیط تست ممکنه localStorage محدود باشه
+    }
+  }
 }

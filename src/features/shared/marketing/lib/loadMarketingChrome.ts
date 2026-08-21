@@ -13,9 +13,22 @@ export type MarketingChromeData = {
 
 /**
  * Public chrome lists for marketing compositions.
- * Real-mode Facade still Nest-blocked — fail soft to empty chrome (not a hard crash).
+ *
+ * In real-API mode the Nest landing endpoints are not yet implemented —
+ * we short-circuit before calling the service so no [real-mode stub] warn
+ * is emitted in the server log and no unnecessary network round-trip fires.
+ * When the Nest /landing/* routes land, remove the isMockApiMode guard and
+ * let the service handle both modes.
  */
 export async function loadMarketingChrome(): Promise<MarketingChromeData> {
+  const { isMockApiMode } = await import('@/lib/api-mode');
+  if (!isMockApiMode()) {
+    // Real-mode: Nest landing endpoints not yet implemented — return empty
+    // chrome silently instead of letting throwRealModeNotImplemented fire
+    // and pollute the server log with [real-mode stub] warnings.
+    return { banners: [], products: [], socials: [] };
+  }
+
   try {
     const [banners, products, socials] = await Promise.all([
       LandingCmsService.listBanners(),

@@ -66,17 +66,11 @@ export const KvPasswordField = React.forwardRef<
   ref
 ) {
   const [isVisible, setIsVisible] = React.useState(defaultVisible);
-  const [autofillUnlocked, setAutofillUnlocked] = React.useState(
-    !suppressBrowserAutofill
-  );
   const [persianScriptError, setPersianScriptError] = React.useState<
     string | undefined
   >();
 
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
-    if (suppressBrowserAutofill && !autofillUnlocked) {
-      setAutofillUnlocked(true);
-    }
     onFocus?.(event);
   };
 
@@ -106,7 +100,6 @@ export const KvPasswordField = React.forwardRef<
       placeholder={placeholder}
       locked={locked}
       showLockIcon={showLockIcon}
-      readOnly={!autofillUnlocked}
       value={value}
       defaultValue={defaultValue}
       name={name}

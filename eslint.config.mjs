@@ -103,7 +103,14 @@ const HARDCODED_PATH_SYNTAX = [
  */
 const eslintConfig = [
   {
-    ignores: ['.next/**', 'node_modules/**', 'coverage/**', 'dist/**'],
+    // فایل‌های build شده و third-party که نباید lint بشن
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      'coverage/**',
+      'dist/**',
+      'public/**',
+    ],
   },
   ...nextVitals,
   ...nextTs,

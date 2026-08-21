@@ -30,6 +30,20 @@ export const shellCopy = {
       'اگر پنجرهٔ نصب باز نشد: منوی سه‌نقطهٔ Chrome → Install app / نصب کارویتا.',
     installOfferIosHint:
       'در Safari دکمهٔ اشتراک را بزنید و Add to Home Screen را انتخاب کنید.',
+    installOfferIosTitle: 'نصب روی آیفون / آیپد (Safari)',
+    installOfferIosHintSteps: [
+      'در نوار پایین Safari روی آیکون اشتراک‌گذاری (مربع با فلش رو به بالا) بزنید.',
+      'از فهرست باز شده «Add to Home Screen» را انتخاب کنید.',
+      'روی «Add» بزنید — آیکون کارویتا به صفحهٔ اصلی گوشی اضافه می‌شود.',
+    ],
+    installOfferMacTitle: 'نصب روی مک (Safari)',
+    installOfferMacHintSteps: [
+      'از منوی File در بالای Safari روی «Add to Dock…» بزنید.',
+      'یا روی آیکون اشتراک‌گذاری کنار نوار آدرس Safari بزنید و «Add to Dock» را انتخاب کنید.',
+      'کارویتا به‌صورت یک برنامهٔ مستقل به Dock اضافه می‌شود.',
+    ],
+    installOfferMacUnsupportedHint:
+      'این قابلیت در Safari 17 (macOS Sonoma) به بعد در دسترس است؛ در نسخه‌های قدیمی‌تر می‌توانید از Chrome استفاده کنید.',
     installOfferLater: 'بعداً',
     installOfferAction: 'نصب برنامه',
     installOfferGotIt: 'متوجه شدم',

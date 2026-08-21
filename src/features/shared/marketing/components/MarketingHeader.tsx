@@ -116,6 +116,47 @@ export function MarketingHeader({
           </KvButton>
         </div>
       </div>
+
+      {/* طبقه دوم — فقط موبایل و تبلت */}
+      <div
+        className={`flex w-full items-center justify-center px-kv-inset py-2 lg:hidden ${
+          headerShouldBeTransparent
+            ? 'border-t border-white/10'
+            : 'border-t border-kv-border/40'
+        }`}
+      >
+        <nav
+          aria-label="منوی اصلی موبایل"
+          className={`flex items-center gap-5 text-xs font-bold ${
+            headerShouldBeTransparent ? 'text-white/90' : 'text-kv-text-secondary'
+          }`}
+        >
+          {MARKETING_NAV_ITEMS.map((item) => {
+            const isActive =
+              item.id === null ? activePanel === null : activePanel === item.id;
+            const href = item.id ? `#${item.id}` : '#hero';
+            return (
+              <a
+                key={item.label}
+                href={href}
+                className={`whitespace-nowrap hover:text-kv-brand ${
+                  isActive
+                    ? 'font-extrabold text-kv-brand underline decoration-kv-brand decoration-2 underline-offset-6'
+                    : headerShouldBeTransparent
+                      ? 'text-white/90'
+                      : 'text-kv-text-secondary'
+                }`}
+                onClick={(event) => {
+                  event.preventDefault();
+                  openPanel(item.id);
+                }}
+              >
+                {item.label}
+              </a>
+            );
+          })}
+        </nav>
+      </div>
     </header>
   );
 }

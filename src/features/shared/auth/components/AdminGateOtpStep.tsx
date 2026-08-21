@@ -1,5 +1,8 @@
 'use client';
 
+import { KvTypography } from '@/components/shared/KvTypography';
+import { isDevAdminGateBypassEnabled } from '@/services/auth/dev-admin-gate-bypass';
+
 import type { UseAdminGateReturn } from '../hooks/useAdminGate';
 import { AuthStepHeading } from './AuthStepHeading';
 import { AuthBusyForm } from './fields/AuthBusyForm';
@@ -46,6 +49,12 @@ export function AdminGateOtpStep({ gate }: AdminGateOtpStepProps) {
           onGoBack={goBackToMobileStep}
           goBackLabel="اصلاح شماره"
         />
+
+        {isDevAdminGateBypassEnabled() ? (
+          <KvTypography variant="caption" tone="warning">
+            حالت Dev Bypass فعال است — هر کد ۵ رقمی دلخواه پذیرفته می‌شود (لاگین واقعی نیست).
+          </KvTypography>
+        ) : null}
       </div>
 
       <AuthSubmitButton

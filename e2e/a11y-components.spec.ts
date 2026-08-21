@@ -24,6 +24,57 @@ async function expectNoSeriousAxeViolations(page: Page, include?: string) {
   ).toEqual([]);
 }
 
+async function setMockAdminSession(page: Page, mobile: string): Promise<void> {
+  // اول به صفحه عمومی می‌ریم تا document وجود داشته باشه
+  await page.goto(RouteService.marketing.home());
+
+  const meta = JSON.stringify({
+    token: 'mock.test',
+    expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+  });
+
+  // کوکی رو در browser context ست می‌کنیم تا middleware Edge هم ببینه
+  try {
+    await page.context().addCookies([
+      { name: 'karvita_mock_session', value: '1', url: page.url(), path: '/' },
+      { name: 'karvita_auth_session_meta', value: meta, url: page.url(), path: '/' },
+    ]);
+  } catch {
+    // fallback به document.cookie
+  }
+
+  await page.evaluate(
+    ({ m, mob }) => {
+      document.cookie = `karvita_mock_session=1; path=/`;
+      document.cookie = `karvita_auth_session_meta=${m}; path=/`;
+      try {
+        // useUserStore persists to sessionStorage (see src/store/useUserStore.ts) —
+        // seed the same storage the app actually reads on rehydrate.
+        sessionStorage.setItem('karvita_auth_session_meta', m);
+        sessionStorage.setItem(
+          'karvita-user-store',
+          JSON.stringify({
+            state: {
+              activeUser: {
+                id: 'mock-admin',
+                mobile: mob,
+                firstName: '',
+                lastName: '',
+                role: 'super_admin',
+                approved: true,
+                docStatus: 'not_submitted',
+                hasPassword: false,
+              },
+              isAuthenticated: true,
+            },
+          })
+        );
+      } catch {}
+    },
+    { m: meta, mob: mobile }
+  );
+}
+
 test.describe('a11y components', () => {
   test('login form fields are labelled', async ({ page }) => {
     await page.goto(RouteService.auth.login());
@@ -36,33 +87,7 @@ test.describe('a11y components', () => {
   test('skip link is the first focusable control on the app shell', async ({
     page,
   }) => {
-    await page.goto(RouteService.marketing.home());
-    await page.evaluate((mobile) => {
-      document.cookie = `karvita_mock_session=1; path=/`;
-      const meta = JSON.stringify({
-        token: 'mock.test',
-        expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
-      });
-      document.cookie = `karvita_auth_session_meta=${meta}; path=/`;
-      localStorage.setItem(
-        'karvita-user-store',
-        JSON.stringify({
-          state: {
-            activeUser: {
-              id: 'mock-admin',
-              mobile,
-              firstName: '',
-              lastName: '',
-              role: 'super_admin',
-              approved: true,
-              docStatus: 'not_submitted',
-              hasPassword: false,
-            },
-            isAuthenticated: true,
-          },
-        })
-      );
-    }, MOCK_SUPER_ADMIN_MOBILE);
+    await setMockAdminSession(page, MOCK_SUPER_ADMIN_MOBILE);
 
     await page.goto(RouteService.karvita.adminDashboard());
     await expect(page.locator('main#karvita-main-content')).toBeVisible({

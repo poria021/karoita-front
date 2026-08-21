@@ -29,11 +29,15 @@ function mapNestDocStatus(value: unknown): DocStatus {
   }
 }
 
-function readPhone(user: Record<string, unknown>): string {
+function readPhone(user: Record<string, unknown>, fallbackMobile?: string): string {
   if (typeof user.phone === 'string' && user.phone.trim()) return user.phone.trim();
   if (typeof user.mobile === 'string' && user.mobile.trim()) {
     return user.mobile.trim();
   }
+  // برخی مسیرهای Nest (دست‌کم در محیط dev) شماره را در پاسخ کاربر برنمی‌گردانند.
+  // چون شماره را همان لحظه‌ی درخواست (لاگین/ثبت‌نام/OTP) از کاربر داریم، به‌جای
+  // شکست کامل ورود، همان مقدار شناخته‌شده را جایگزین می‌کنیم.
+  if (fallbackMobile && fallbackMobile.trim()) return fallbackMobile.trim();
   throw new ApiClientError('پاسخ کاربر فاقد شماره موبایل است.');
 }
 
@@ -53,7 +57,7 @@ function readRole(user: Record<string, unknown>): User['role'] {
 /**
  * Maps Nest Auth `User` (phone + RoleDto) → FE `User` (mobile + UserRole).
  */
-export function mapNestAuthUser(raw: unknown): User {
+export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
   if (!isRecord(raw) || typeof raw.id !== 'string') {
     throw new ApiClientError('پاسخ کاربر نامعتبر است.');
   }
@@ -67,7 +71,7 @@ export function mapNestAuthUser(raw: unknown): User {
 
   return {
     id: raw.id,
-    mobile: readPhone(raw),
+    mobile: readPhone(raw, fallbackMobile),
     role: readRole(raw),
     firstName: typeof raw.firstName === 'string' ? raw.firstName : '',
     lastName: typeof raw.lastName === 'string' ? raw.lastName : '',
@@ -89,7 +93,10 @@ export type NestLoginTokens = {
 /**
  * Nest LoginResponseDto: `{ token, refreshToken, tokenExpires, user }`.
  */
-export function extractNestLoginResponse(raw: unknown): {
+export function extractNestLoginResponse(
+  raw: unknown,
+  fallbackMobile?: string
+): {
   tokens: NestLoginTokens;
   user: User;
   expiresAt: string;
@@ -108,7 +115,7 @@ export function extractNestLoginResponse(raw: unknown): {
     throw new ApiClientError('پاسخ ورود فاقد توکن معتبر است.');
   }
 
-  const user = mapNestAuthUser(data.user);
+  const user = mapNestAuthUser(data.user, fallbackMobile);
   const expiresAt = new Date(tokenExpires).toISOString();
 
   return {
@@ -136,8 +143,8 @@ export function extractNestRefreshTokens(raw: unknown): NestLoginTokens {
   return { token, refreshToken, tokenExpires };
 }
 
-export function toSessionFromNestLogin(raw: unknown): Session {
-  const parsed = extractNestLoginResponse(raw);
+export function toSessionFromNestLogin(raw: unknown, fallbackMobile?: string): Session {
+  const parsed = extractNestLoginResponse(raw, fallbackMobile);
   return {
     user: parsed.user,
     token: parsed.tokens.token,

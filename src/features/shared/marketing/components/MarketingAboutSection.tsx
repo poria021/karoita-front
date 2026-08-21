@@ -3,11 +3,11 @@ import { faIcons } from '@/utils/iconMap';
 
 export function MarketingAboutSection() {
   return (
-    <section className="relative w-full overflow-hidden bg-kv-surface/30">
+    <section className="relative w-full overflow-hidden ">
       <div className="relative z-10 mx-auto max-w-7xl px-kv-inset sm:px-kv-page">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
-          <div className="group relative flex h-[400px] w-full shrink-0 items-center justify-center rounded-full bg-kv-surface-subtle/50 lg:col-span-5">
-            <div className="absolute size-[360px] rounded-full border border-kv-border-muted bg-kv-surface/60" />
+          <div className="group relative flex h-100 w-full shrink-0 items-center justify-center rounded-full lg:col-span-5">
+            <div className="absolute size-90 rounded-full border border-kv-border-muted bg-kv-surface/60" />
 
             <svg
               className="pointer-events-none absolute inset-0 size-full"

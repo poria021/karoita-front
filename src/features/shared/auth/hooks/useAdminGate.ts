@@ -114,27 +114,6 @@ export function useAdminGate() {
     pendingMobile,
     mobileForm,
     requestOtp,
-    showOtp: () => {
-      setStep(2);
-      try {
-        if (typeof document !== 'undefined') {
-          setTimeout(() => {
-            const el = document.getElementById('admin-gate-otp');
-            let node: HTMLElement | null = el as HTMLElement | null;
-            while (node) {
-              try {
-                node.removeAttribute('hidden');
-                node.setAttribute('aria-hidden', 'false');
-                if (node.style) node.style.display = 'block';
-              } catch {}
-              node = node.parentElement as HTMLElement | null;
-            }
-          }, 100);
-        }
-      } catch {
-        // noop
-      }
-    },
     isRequestingOtp: mobileForm.formState.isSubmitting,
     otpForm,
     verifyOtp,

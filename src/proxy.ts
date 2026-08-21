@@ -17,6 +17,26 @@ function hasClientSession(request: NextRequest): boolean {
   return request.cookies.get(MOCK_SESSION_MARKER)?.value === '1';
 }
 
+/**
+ * Attach non-CSP security headers per-request.
+ *
+ * CSP is now set in next.config.ts → headers() which runs in Node.js runtime
+ * where process.env.NODE_ENV is guaranteed to be correct. Setting CSP here
+ * (Edge Runtime) caused unsafe-eval to be dropped in dev because NODE_ENV
+ * and NEXT_PUBLIC_* env vars are not reliably available in the Edge bundle.
+ */
+function withSecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=()'
+  );
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  return response;
+}
+
 function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
   const loginUrl = new URL(RouteService.auth.login(), request.url);
   const safe = parseSafeReturnUrl(intendedPath);
@@ -40,8 +60,6 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
  *   نه ریدایرکت اجباری به لاگین
  */
 export async function proxy(request: NextRequest) {
-    // console.log('✅ Proxy is working on path:', request.nextUrl.pathname);
-
   const { pathname } = request.nextUrl;
   const loggedIn = hasClientSession(request);
   const loginPath = RouteService.auth.login();
@@ -52,31 +70,35 @@ export async function proxy(request: NextRequest) {
     const destination = safeReturn ?? DEFAULT_LOGIN_REDIRECT;
 
     if (pathname === destination) {
-      return NextResponse.next();
+      return withSecurityHeaders(NextResponse.next());
     }
-    return NextResponse.redirect(new URL(destination, request.url));
+    return withSecurityHeaders(
+      NextResponse.redirect(new URL(destination, request.url))
+    );
   }
 
   if (isPublicPath(pathname)) {
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
   if (!loggedIn) {
     if (pathname === loginPath) {
-      return NextResponse.next();
+      return withSecurityHeaders(NextResponse.next());
     }
 
     // Only the authenticated app shell requires a session at the Edge.
     // Unknown marketing/other URLs must reach App Router not-found UI.
     if (isAppShellPath(pathname)) {
       const intended = `${pathname}${request.nextUrl.search}`;
-      return NextResponse.redirect(loginRedirectUrl(request, intended));
+      return withSecurityHeaders(
+        NextResponse.redirect(loginRedirectUrl(request, intended))
+      );
     }
 
-    return NextResponse.next();
+    return withSecurityHeaders(NextResponse.next());
   }
 
-  return NextResponse.next();
+  return withSecurityHeaders(NextResponse.next());
 }
 
 export const config = {

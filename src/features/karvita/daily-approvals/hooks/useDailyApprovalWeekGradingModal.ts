@@ -14,7 +14,6 @@ import { toPersianDigits } from '@/utils/persianDigits';
 import { normalizeDailyApprovalScoreInput } from '../lib/dailyApprovalScore';
 
 type UseDailyApprovalWeekGradingModalInput = {
-  open?: boolean;
   role: UserRole | null | undefined;
   trainee: DailyApprovalTrainee | null;
   week: DailyApprovalWeek | null;

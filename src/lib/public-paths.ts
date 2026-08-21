@@ -20,12 +20,15 @@ export const publicPathsConfig = {
    * - `/auth/` auth tree
    * - `/docs/` docs
    * - `/p/` public CMS pages between landing and login (admin-authored)
+   * - `/api/auth/` httpOnly refresh-token routes (set/clear/refresh) — must
+   *   stay reachable pre-login and mid-rotation; see real-auth.tokens.ts
    */
   prefixes: [
     '/docs/',
     '/auth/',
     `${RouteService.marketing.cmsPagesBase()}/`,
     '/__nest-api/',
+    '/api/auth/',
   ] as const,
 };
 
