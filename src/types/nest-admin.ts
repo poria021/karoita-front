@@ -86,6 +86,21 @@ export type NestUpdateDegreeDto = {
   title?: string;
 };
 
+/**
+ * GET /admin/degreeee ("Get all degrees with role") — degree paired with
+ * its linked role. Shape not pinned down by Swagger (live sample was an
+ * empty array), so — same defensive pattern as toOrgCity/toOrgDistrict —
+ * accept either a flat `roleId` or a nested `role` object.
+ */
+export type NestDegree = {
+  id: string;
+  title: string;
+  roleId?: string;
+  role?: { id?: string; title?: string } | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type NestCreateUniversityDto = {
   title: string;
   provinceId: string;

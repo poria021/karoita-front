@@ -100,7 +100,9 @@ function renderDataCell(
     case 'audience':
       return (
         <KvTableCell key={column.key} align={column.align}>
-          {row.audience ? getMajorAudienceLabel(row.audience) : '—'}
+          {row.audience
+            ? getMajorAudienceLabel(row.audience)
+            : (row.roleName ?? '—')}
         </KvTableCell>
       );
     case 'campusesCount':

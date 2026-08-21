@@ -27,6 +27,8 @@ export type OrgStructureListItem = {
   kind: OrgStructureEntityKind;
   deleteBlocked: boolean;
   audience?: OrgMajorAudience;
+  /** Real-mode majors (degrees): linked role's display title (see NestDegree). */
+  roleName?: string;
   gender?: OrgSchoolGender;
   provinceName?: string;
   cityName?: string;

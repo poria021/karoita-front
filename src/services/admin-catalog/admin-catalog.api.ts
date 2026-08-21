@@ -9,6 +9,7 @@ import type {
   NestCreateProvinceDto,
   NestCreateSchoolDto,
   NestCreateUniversityDto,
+  NestDegree,
   NestEducationListQuery,
   NestPagedList,
   NestProvince,
@@ -159,10 +160,13 @@ export const adminCatalogApi = {
   createDegree(body: NestCreateDegreeDto, token?: string) {
     return apiClient.postJson<unknown>(NEST_ADMIN_PATHS.degree, body, token);
   },
+  /** GET /admin/degreeee — bare array, degree rows paired with their linked role. */
   listDegrees(title?: string, token?: string) {
-    return apiClient.getJson<unknown>(NEST_ADMIN_PATHS.degreesWithRole, token, {
-      searchParams: toSearchParams({ title }),
-    });
+    return apiClient.getJson<NestDegree[]>(
+      NEST_ADMIN_PATHS.degreesWithRole,
+      token,
+      { searchParams: toSearchParams({ title }) }
+    );
   },
   updateDegree(id: string, body: NestUpdateDegreeDto, token?: string) {
     return apiClient.putJson<unknown>(NEST_ADMIN_PATHS.degreeById(id), body, token);

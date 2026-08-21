@@ -42,7 +42,7 @@ import type {
   OrgStructureSnapshot,
   OrgStructureSubTab,
 } from '@/types/org-structure';
-import type { NestProvince } from '@/types/nest-admin';
+import type { NestDegree, NestProvince } from '@/types/nest-admin';
 import {
   DEFAULT_PAGE_LIMIT,
   estimateHasNextPageTotal,
@@ -158,6 +158,17 @@ function toOrgDistrict(d: RawEducationOrSchoolItem): OrgDistrict {
   };
 }
 
+/** Nest Degree (GET /admin/degreeee) → majors-tab list row. */
+function toOrgMajorListItem(d: NestDegree): OrgStructureListItem {
+  return {
+    id: d.id,
+    name: d.title,
+    kind: 'major' as const,
+    deleteBlocked: false,
+    roleName: d.role?.title,
+  };
+}
+
 /** Nest School → OrgSchool. Same defensive shape handling as toOrgCity. */
 function toOrgSchool(s: RawEducationOrSchoolItem): OrgSchool {
   const gender =
@@ -181,6 +192,7 @@ function toOrgSchool(s: RawEducationOrSchoolItem): OrgSchool {
  * Nest map:
  * - GET    /org-structure/snapshot
  * - GET    /org-structure?tab&query&offset&limit
+ *          majors tab → GET /admin/degreeee?title= (bare array, no paging)
  * - GET    /org-structure/:kind/:id
  * - GET    /org-structure/provinces|cities|districts
  * - PUT    /org-structure/provinces|cities|faculties|districts|schools|majors
@@ -266,8 +278,12 @@ export const OrgStructureService = {
           title: query || undefined,
         })) as RawEducationOrSchoolItem[];
         items = raw.map((s) => ({ ...toOrgSchool(s), kind: 'school' as const, deleteBlocked: false, gender: toOrgSchool(s).gender }));
+      } else if (options.tab === 'majors') {
+        // GET /admin/degreeee — bare array, no paging envelope.
+        const raw = await adminCatalogApi.listDegrees(query || undefined);
+        items = raw.map(toOrgMajorListItem);
       } else {
-        // majors / faculties — not in Swagger; return empty
+        // faculties — not in Swagger; return empty
         items = [];
       }
 
@@ -436,17 +452,20 @@ export const OrgStructureService = {
     editId?: string
   ): Promise<void> {
     if (!IS_MOCK_MODE) {
+      // cityId is optional — only include when present so the API doesn't
+      // reject an empty-string value with a 422.
+      const cityId = input.cityId || undefined;
       if (editId) {
         await adminCatalogApi.updateEducation(editId, {
           title: input.name,
           provinceId: input.provinceId,
-          cityId: input.cityId,
+          ...(cityId ? { cityId } : {}),
         });
       } else {
         await adminCatalogApi.createEducation({
           title: input.name,
           provinceId: input.provinceId,
-          cityId: input.cityId,
+          ...(cityId ? { cityId } : {}),
         });
       }
       return;
