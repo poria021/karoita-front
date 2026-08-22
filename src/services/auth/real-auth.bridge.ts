@@ -21,7 +21,6 @@ import {
 import {
   clearRealAuthTokens,
   readRealAccessToken,
-  readRealRefreshToken,
   readRealTokenExpiresAt,
   writeRealAuthTokens,
 } from '@/services/auth/real-auth.tokens';
@@ -183,9 +182,12 @@ async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
   };
 }
 
-function applyNestLoginResponse(raw: unknown, fallbackMobile?: string): User {
+async function applyNestLoginResponse(
+  raw: unknown,
+  fallbackMobile?: string
+): Promise<User> {
   const parsed = extractNestLoginResponse(raw, fallbackMobile);
-  writeRealAuthTokens(parsed.tokens);
+  await writeRealAuthTokens(parsed.tokens);
   dispatchSessionToStore({
     user: parsed.user,
     token: parsed.tokens.token,
@@ -359,27 +361,43 @@ export async function realVerifyAdminGateOtp(
   return applyNestLoginResponse(raw, mobile);
 }
 
-export async function realRefreshToken(
-  refreshToken: string
-): Promise<Session | null> {
+/**
+ * Rotates the Nest access token using the httpOnly refresh cookie.
+ *
+ * Deliberately does NOT go through `apiClient`/ky: it calls this app's own
+ * `POST /api/auth/refresh` Route Handler with a plain `fetch`, which reads
+ * `karvita_rt` (httpOnly, server-only) and forwards to Nest itself — the
+ * refresh token never exists as a value inside browser JS. See
+ * `src/app/api/auth/refresh/route.ts` and `src/lib/real-auth-cookie.ts`.
+ */
+export async function realRefreshToken(): Promise<Session | null> {
   guard('real-auth.bridge.refresh');
-  if (!refreshToken) return null;
+  if (typeof window === 'undefined') return null;
 
   try {
     const existingMobile = useUserStore.getState().activeUser?.mobile;
-    const raw = await apiClient.postJson<unknown>(
-      REAL_AUTH_PATHS.refresh,
-      { refreshToken },
-      refreshToken
-    );
+    const response = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (response.status === 401) {
+      clearRealAuthTokens();
+      return null;
+    }
+    if (!response.ok) {
+      throw new ApiClientError('تمدید نشست با خطا مواجه شد.', response.status);
+    }
+
+    const raw: unknown = await response.json();
 
     if (looksLikeNestLoginResponse(raw)) {
-      applyNestLoginResponse(raw, existingMobile);
+      await applyNestLoginResponse(raw, existingMobile);
       return toSessionFromNestLogin(raw, existingMobile);
     }
 
     const tokens = extractNestRefreshTokens(raw);
-    writeRealAuthTokens(tokens);
+    await writeRealAuthTokens(tokens);
     const existingUser = useUserStore.getState().activeUser;
     const expiresAt = new Date(tokens.tokenExpires).toISOString();
 
@@ -446,9 +464,7 @@ export async function realFetchSession(
     fallbackMobile ?? useUserStore.getState().activeUser?.mobile;
   let accessToken = readRealAccessToken();
   if (!accessToken) {
-    const refreshToken = readRealRefreshToken();
-    if (!refreshToken) return null;
-    const rotated = await realRefreshToken(refreshToken);
+    const rotated = await realRefreshToken();
     accessToken = rotated?.token ?? readRealAccessToken();
     if (!accessToken) return null;
   }

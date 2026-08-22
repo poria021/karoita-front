@@ -50,7 +50,6 @@ import {
   clearRealAuthTokens,
   peekRealAuthTokens,
   readRealAccessToken,
-  readRealRefreshToken,
   readRealTokenExpiresAt,
 } from '@/services/auth/real-auth.tokens';
 import {
@@ -290,12 +289,13 @@ export class AuthService {
     return AuthService.peekSession();
   }
 
-  /** POST /auth/refresh — rotate Nest access token; keep the current user. */
+  /**
+   * POST /auth/refresh — rotate Nest access token from the httpOnly refresh
+   * cookie (never held in client JS); keep the current user.
+   */
   static async refreshAccessToken(): Promise<Session | null> {
     if (IS_MOCK_MODE) return AuthService.peekSession();
-    const refresh = readRealRefreshToken();
-    if (!refresh) return null;
-    return realRefreshToken(refresh);
+    return realRefreshToken();
   }
 
   /** Real mode: refresh user from Nest `/auth/me` when a token exists. */

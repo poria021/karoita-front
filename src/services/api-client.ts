@@ -113,15 +113,17 @@ function shouldSkipTokenRefresh(url: string): boolean {
 
 async function rotateAccessTokenOnce(): Promise<string | null> {
   try {
-    const { readRealRefreshToken } = await import(
+    const { hasAuthPresence } = await import(
       '@/services/auth/real-auth.tokens'
     );
-    const refresh = readRealRefreshToken();
-    if (!refresh) return null;
+    // Presence cookie is just a cheap "was logged in" hint — skips a wasted
+    // round-trip for anonymous visitors. The actual refresh token lives only
+    // in the httpOnly cookie and is read server-side by /api/auth/refresh.
+    if (!hasAuthPresence()) return null;
     const { realRefreshToken } = await import(
       '@/services/auth/real-auth.bridge'
     );
-    const session = await realRefreshToken(refresh);
+    const session = await realRefreshToken();
     return session?.token ?? null;
   } catch {
     return null;
@@ -172,12 +174,12 @@ function bearerHeaders(token?: string): HeadersInit {
 async function resolveBearerToken(explicit?: string): Promise<string | undefined> {
   if (explicit) return explicit;
   try {
-    const { readRealAccessToken, readRealRefreshToken } = await import(
+    const { readRealAccessToken, hasAuthPresence } = await import(
       '@/services/auth/real-auth.tokens'
     );
     const access = readRealAccessToken();
     if (access) return access;
-    if (!readRealRefreshToken()) return undefined;
+    if (!hasAuthPresence()) return undefined;
     return (await rotateRealAccessToken()) ?? undefined;
   } catch {
     return undefined;

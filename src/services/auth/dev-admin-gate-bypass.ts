@@ -58,7 +58,10 @@ export function devAdminGateBypassLogin(mobile: string): User {
   const tokenExpires = Date.now() + BYPASS_TOKEN_TTL_MS;
   const token = `dev-bypass.${mobile}.${Date.now()}`;
 
-  writeRealAuthTokens({
+  // Fire-and-forget: writeRealAuthTokens is async (it POSTs the refresh
+  // token to /api/auth/set-tokens). This is a dev-only fabricated session,
+  // so we don't need to await the cookie write before continuing.
+  void writeRealAuthTokens({
     token,
     refreshToken: `dev-bypass-refresh.${mobile}.${Date.now()}`,
     tokenExpires,

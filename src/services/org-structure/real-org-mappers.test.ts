@@ -266,19 +266,27 @@ describe('toOrgMajorListItemForRole', () => {
 });
 
 describe('resolveRoleLabel', () => {
+  // Deliberately NOT all-hex in the last 6 chars (unlike 'abcdef123456' /
+  // '#123456' would be): the hardcoded-color checks (ESLint rule +
+  // scripts/check-hardcoded-colors.mjs) both flag any literal '#' followed
+  // by 3/6/8 hex digits, with no way to know this is a role-id label and
+  // not a color. Picking a non-hex-looking id sidesteps the false positive
+  // at the source instead of suppressing the check.
+  const ROLE_ID = 'abcdefxyz999';
+
   it('uses the title when present', () => {
-    expect(resolveRoleLabel({ id: 'abcdef123456', title: 'دانش‌آموز' })).toBe(
+    expect(resolveRoleLabel({ id: ROLE_ID, title: 'دانش‌آموز' })).toBe(
       'دانش‌آموز'
     );
   });
 
   it('falls back to a short id-based label when title is missing', () => {
-    expect(resolveRoleLabel({ id: 'abcdef123456' })).toBe('نقش #123456');
+    expect(resolveRoleLabel({ id: ROLE_ID })).toBe('نقش #xyz999');
   });
 
   it('falls back when title is blank/whitespace-only', () => {
-    expect(resolveRoleLabel({ id: 'abcdef123456', title: '   ' })).toBe(
-      'نقش #123456'
+    expect(resolveRoleLabel({ id: ROLE_ID, title: '   ' })).toBe(
+      'نقش #xyz999'
     );
   });
 });
