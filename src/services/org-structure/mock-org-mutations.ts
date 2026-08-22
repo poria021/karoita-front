@@ -209,6 +209,10 @@ export function mockUpsertDistrict(
     name,
     editId
   );
+  // Optional in the input (province-level districts have no city) but
+  // OrgDistrict.cityId is a required string — normalize to '' so the
+  // stored shape always matches the type.
+  const cityId = input.cityId ?? '';
   if (editId) {
     db.districts = db.districts.map((d) =>
       d.id === editId
@@ -216,7 +220,7 @@ export function mockUpsertDistrict(
             ...d,
             name,
             provinceId: input.provinceId,
-            cityId: input.cityId,
+            cityId,
           }
         : d
     );
@@ -225,7 +229,7 @@ export function mockUpsertDistrict(
       id: newId('dist'),
       name,
       provinceId: input.provinceId,
-      cityId: input.cityId,
+      cityId,
     });
   }
   writeOrgSnapshot(db);
@@ -274,13 +278,18 @@ export function mockUpsertMajor(input: UpsertMajorInput, editId?: string): void 
   const name = input.name.trim();
   if (!name) throw new Error('نام رشته الزامی است.');
   if (!input.audience) throw new Error('انتخاب مخاطب رشته الزامی است.');
-  assertUniqueMajorNameForAudience(db.majors, name, input.audience, editId);
+  // Narrow to a local const — TS can't carry the above guard through to
+  // `input.audience` reads further down (it's a property access, not a
+  // variable), so `mock-org-mutations.ts` was assigning an
+  // `OrgMajorAudience | undefined` into fields typed as required.
+  const audience = input.audience;
+  assertUniqueMajorNameForAudience(db.majors, name, audience, editId);
   if (editId) {
     db.majors = db.majors.map((m) =>
-      m.id === editId ? { ...m, name, audience: input.audience } : m
+      m.id === editId ? { ...m, name, audience } : m
     );
   } else {
-    db.majors.push({ id: newId('maj'), name, audience: input.audience });
+    db.majors.push({ id: newId('maj'), name, audience });
   }
   writeOrgSnapshot(db);
 }

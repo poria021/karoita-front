@@ -50,7 +50,8 @@ export type NestUpdateCityDto = {
 
 export type NestCreateEducationalDistrictDto = {
   provinceId: string;
-  cityId: string;
+  /** Optional: provinces with no cities yield province-level districts. */
+  cityId?: string;
   title: string;
 };
 

@@ -58,7 +58,7 @@ export const adminCatalogApi = {
   createProvince(body: NestCreateProvinceDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.provinces, body, token);
   },
-  /** GET /admin/provinces — paginated envelope `{ data, hasNextPage }`, no total count. */
+  /** GET /admin/provinces — paged envelope: { data, hasNextPage }. */
   listProvinces(query: NestAdminPageQuery = {}, token?: string) {
     return apiClient.getJson<NestPagedList<NestProvince>>(
       NEST_ADMIN_PATHS.provinces,
@@ -83,11 +83,13 @@ export const adminCatalogApi = {
   createCity(body: NestCreateCityDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.cities, body, token);
   },
-  /** GET /admin/cities — paginated envelope `{ data, hasNextPage }`, same shape as provinces. */
+  /** GET /admin/cities — paged envelope: { data, hasNextPage }. */
   listCities(query: NestAdminPageQuery = {}, token?: string) {
-    return apiClient.getJson<NestPagedList<NestCity>>(NEST_ADMIN_PATHS.cities, token, {
-      searchParams: toSearchParams(query),
-    });
+    return apiClient.getJson<NestPagedList<NestCity>>(
+      NEST_ADMIN_PATHS.cities,
+      token,
+      { searchParams: toSearchParams(query) }
+    );
   },
   getCity(id: string, token?: string) {
     return apiClient.getJson<NestCity>(NEST_ADMIN_PATHS.cityById(id), token);
@@ -169,13 +171,11 @@ export const adminCatalogApi = {
   createDegree(body: NestCreateDegreeDto, token?: string) {
     return apiClient.postJson<unknown>(NEST_ADMIN_PATHS.degree, body, token);
   },
-  /** GET /admin/degreeee — bare array, degree rows paired with their linked role. */
+  /** GET /admin/degreeee ("all degrees with role") — bare array. */
   listDegrees(title?: string, token?: string) {
-    return apiClient.getJson<NestDegree[]>(
-      NEST_ADMIN_PATHS.degreesWithRole,
-      token,
-      { searchParams: toSearchParams({ title }) }
-    );
+    return apiClient.getJson<NestDegree[]>(NEST_ADMIN_PATHS.degreesWithRole, token, {
+      searchParams: toSearchParams({ title }),
+    });
   },
   updateDegree(id: string, body: NestUpdateDegreeDto, token?: string) {
     return apiClient.putJson<unknown>(NEST_ADMIN_PATHS.degreeById(id), body, token);
@@ -187,10 +187,11 @@ export const adminCatalogApi = {
     );
   },
 
+  /** GET /admin/roles — bare array, only `{ id }` confirmed live. */
   listRoles(token?: string) {
     return apiClient.getJson<NestRole[]>(NEST_ADMIN_PATHS.roles, token);
   },
-  /** GET /admin/roles/{roleId}/degrees — degrees already scoped to that role. */
+  /** GET /admin/roles/{roleId}/degrees — bare array, already role-scoped. */
   listDegreesByRole(roleId: string, token?: string) {
     return apiClient.getJson<NestDegreeByRole[]>(
       NEST_ADMIN_PATHS.roleDegrees(roleId),
@@ -205,13 +206,11 @@ export const adminCatalogApi = {
       token
     );
   },
-  /** GET /admin/universites — bare array, title-only filter (no province/city query param documented). */
+  /** GET /admin/universites — bare array, title-only filter. */
   listUniversities(title?: string, token?: string) {
-    return apiClient.getJson<NestUniversity[]>(
-      NEST_ADMIN_PATHS.universities,
-      token,
-      { searchParams: toSearchParams({ title }) }
-    );
+    return apiClient.getJson<NestUniversity[]>(NEST_ADMIN_PATHS.universities, token, {
+      searchParams: toSearchParams({ title }),
+    });
   },
   updateUniversity(id: string, body: NestUpdateUniversityDto, token?: string) {
     return apiClient.putJson<unknown>(

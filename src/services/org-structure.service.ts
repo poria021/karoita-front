@@ -44,7 +44,6 @@ import {
   getRealSnapshot,
   listRealCities,
   listRealDistricts,
-  listRealMajorsByRole,
   listRealPage,
   listRealProvinces,
   listRealRoles,
@@ -93,22 +92,15 @@ function requireMockOrgManage(): void {
 
 /**
  * Org tree admin facade — paged lists + CRUD.
- * Real mode fail-closed until Nest org endpoints land.
  *
- * This is a thin dispatcher: every mock-mode call goes to `mock-org-*`
- * (services/org-structure/mock-org-query.ts, mock-org-mutations.ts,
- * mock-org-store.ts) and every real-mode call goes to `real-org-*`
- * (services/org-structure/real-org-reads.ts, real-org-mutations.ts,
- * real-org-mappers.ts) — mirroring each other file-for-file so the real
- * side gets the same "one file, one responsibility" treatment the mock
- * side already had. Nothing beyond IS_MOCK_MODE branching + the mock
- * permission guard lives in this file.
+ * This facade only switches on IS_MOCK_MODE and delegates: real-mode
+ * reads live in ./org-structure/real-org-reads.ts, real-mode writes in
+ * ./org-structure/real-org-mutations.ts (mappers in real-org-mappers.ts),
+ * mock-mode logic in ./org-structure/mock-org-*.ts.
  *
  * Nest map:
  * - GET    /org-structure/snapshot
  * - GET    /org-structure?tab&query&offset&limit
- *          majors tab → GET /admin/degreeee?title= (bare array, no paging)
- *          faculties tab → GET /admin/universites?title= (bare array, no paging)
  * - GET    /org-structure/:kind/:id
  * - GET    /org-structure/provinces|cities|districts
  * - PUT    /org-structure/provinces|cities|faculties|districts|schools|majors
@@ -141,12 +133,7 @@ export const OrgStructureService = {
     return queryOrgListPage(options.tab, query, offset, limit);
   },
 
-  /**
-   * GET /org-structure/:kind/:id — real: province and faculty only for now
-   * (Nest has no get-by-id route for either — resolved by scanning the full
-   * list instead). Other kinds fall through to mock and resolve to null in
-   * real mode.
-   */
+  /** GET /org-structure/:kind/:id */
   async getEntity(
     kind: OrgStructureEntityKind,
     id: string
@@ -166,7 +153,7 @@ export const OrgStructureService = {
     return mockGetEntity(kind, id);
   },
 
-  /** GET /org-structure/provinces — real: pages GET /api/admin/provinces to collect the full list. */
+  /** GET /org-structure/provinces — real: pages GET /api/admin/provinces to collect the full list */
   async listProvinces(): Promise<OrgProvince[]> {
     if (!IS_MOCK_MODE) {
       return listRealProvinces();
@@ -196,19 +183,10 @@ export const OrgStructureService = {
     return mockListDistricts(provinceId, cityId);
   },
 
-  /** Sync labels for profile typeahead — mock only; real uses OrganizationOptionsService */
-  listLabelsForField(
-    field: 'province' | 'city' | 'college' | 'district' | 'school' | 'major',
-    provinceName = '',
-    districtName = ''
-  ): string[] {
-    if (!IS_MOCK_MODE) return [];
-    return queryLabelsForField(field, provinceName, districtName);
-  },
-
   /**
-   * GET /admin/roles — real: roles a degree/major can link to. Mock mode
-   * uses the audience enum instead.
+   * GET /admin/roles — real mode only, the role a degree/major links to.
+   * Mock mode has no Nest role concept (uses the fixed audience enum
+   * instead) and always returns an empty list.
    */
   async listRoles(): Promise<OrgRole[]> {
     if (!IS_MOCK_MODE) {
@@ -217,19 +195,14 @@ export const OrgStructureService = {
     return [];
   },
 
-  /**
-   * GET /admin/roles/{roleId}/degrees — real: majors already linked to one
-   * role. Not wired into the majors-tab list yet (that tab lists across all
-   * roles, see listPage() above) — exposed here for role-scoped lookups.
-   */
-  async listMajorsByRole(roleId: string): Promise<OrgStructureListItem[]> {
-    if (!IS_MOCK_MODE) {
-      return listRealMajorsByRole(roleId);
-    }
-    // Mock mode has no Nest role concept (majors use the fixed `audience`
-    // enum instead — see majorFormSchema) so there is nothing to scope by
-    // roleId here.
-    return [];
+  /** Sync labels for profile typeahead — mock only; real uses OrganizationOptionsService */
+  listLabelsForField(
+    field: 'province' | 'city' | 'college' | 'district' | 'school' | 'major',
+    provinceName = '',
+    districtName = ''
+  ): string[] {
+    if (!IS_MOCK_MODE) return [];
+    return queryLabelsForField(field, provinceName, districtName);
   },
 
   /** PUT /org-structure/provinces — real: POST/PATCH /api/admin/provinces */
@@ -254,9 +227,8 @@ export const OrgStructureService = {
   },
 
   /**
-   * PUT /org-structure/faculties — real: POST/PUT /api/admin/universites.
-   * The Nest entity is called "university" but is surfaced in this UI as
-   * the دانشکده/پردیس (faculty) tab.
+   * PUT /org-structure/faculties — no direct Swagger endpoint.
+   * Mapped to university CRUD as the closest entity (faculty ≈ university).
    */
   async upsertFaculty(
     input: UpsertFacultyInput,
@@ -290,7 +262,11 @@ export const OrgStructureService = {
     mockUpsertSchool(input, editId);
   },
 
-  /** PUT /org-structure/majors — real: POST/PATCH /api/admin/degree. */
+  /**
+   * PUT /org-structure/majors — real: POST/PATCH /api/admin/degree.
+   * Nest's degree DTO requires `roleId` — real mode rejects a create
+   * with no role selected instead of silently no-op'ing.
+   */
   async upsertMajor(input: UpsertMajorInput, editId?: string): Promise<void> {
     if (!IS_MOCK_MODE) {
       return upsertRealMajor(input, editId);
