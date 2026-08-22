@@ -54,19 +54,8 @@ export function isDeleteBlockedWithSets(
   return false;
 }
 
-/**
- * Single entry point for "can this row be deleted" — builds the blocked
- * sets fresh from the snapshot and checks `id` against them.
- *
- * Prefer `buildOrgDeleteBlockedSets` + `isDeleteBlockedWithSets` directly
- * when checking many ids against the same snapshot (e.g. an entire list
- * page) — that pattern computes the sets once and reuses them, instead of
- * re-scanning the whole snapshot per row the way this function does.
- */
-export function isOrgEntityDeleteBlocked(
-  kind: OrgStructureEntityKind,
-  db: OrgStructureSnapshot,
-  id: string
-): boolean {
-  return isDeleteBlockedWithSets(kind, id, buildOrgDeleteBlockedSets(db));
-}
+// Note: an `isOrgEntityDeleteBlocked(kind, db, id)` single-shot wrapper
+// used to live here. It had no caller — every consumer (mock-org-query,
+// mock-org-mutations) builds the sets once via `buildOrgDeleteBlockedSets`
+// and reuses them across many rows via `isDeleteBlockedWithSets` directly —
+// so it was removed as dead code rather than kept "just in case".

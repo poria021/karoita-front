@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   buildOrgDeleteBlockedSets,
   isDeleteBlockedWithSets,
-  isOrgEntityDeleteBlocked,
 } from '@/services/org-structure/org-structure-delete-rules';
 import type { OrgStructureSnapshot } from '@/types/org-structure';
 
@@ -34,30 +33,38 @@ const linkedDb: OrgStructureSnapshot = {
   majors: [],
 };
 
+function isBlocked(
+  kind: Parameters<typeof isDeleteBlockedWithSets>[0],
+  db: OrgStructureSnapshot,
+  id: string
+): boolean {
+  return isDeleteBlockedWithSets(kind, id, buildOrgDeleteBlockedSets(db));
+}
+
 describe('org-structure deleteBlocked rules', () => {
   it('allows delete when province has no children', () => {
-    expect(isOrgEntityDeleteBlocked('province', emptyDb, 'p1')).toBe(false);
+    expect(isBlocked('province', emptyDb, 'p1')).toBe(false);
   });
 
   it('blocks province delete when cities/districts/schools reference it', () => {
-    expect(isOrgEntityDeleteBlocked('province', linkedDb, 'p1')).toBe(true);
+    expect(isBlocked('province', linkedDb, 'p1')).toBe(true);
   });
 
   it('blocks city delete when districts or schools reference it', () => {
-    expect(isOrgEntityDeleteBlocked('city', linkedDb, 'c1')).toBe(true);
+    expect(isBlocked('city', linkedDb, 'c1')).toBe(true);
   });
 
   it('blocks district delete when schools reference it', () => {
-    expect(isOrgEntityDeleteBlocked('district', linkedDb, 'd1')).toBe(true);
+    expect(isBlocked('district', linkedDb, 'd1')).toBe(true);
   });
 
   it('allows school delete in current mock rules (leaf entity)', () => {
-    expect(isOrgEntityDeleteBlocked('school', linkedDb, 's1')).toBe(false);
+    expect(isBlocked('school', linkedDb, 's1')).toBe(false);
   });
 
   it('allows faculty/major delete — leaf entities with no dependents today', () => {
-    expect(isOrgEntityDeleteBlocked('faculty', linkedDb, 'anything')).toBe(false);
-    expect(isOrgEntityDeleteBlocked('major', linkedDb, 'anything')).toBe(false);
+    expect(isBlocked('faculty', linkedDb, 'anything')).toBe(false);
+    expect(isBlocked('major', linkedDb, 'anything')).toBe(false);
   });
 
   it('isDeleteBlockedWithSets + buildOrgDeleteBlockedSets: reuse sets across many ids', () => {
