@@ -78,6 +78,12 @@ export interface OrgMajor {
   audience: OrgMajorAudience;
 }
 
+/** Nest role a degree/major links to (real mode only — GET /admin/roles). */
+export interface OrgRole {
+  id: string;
+  name: string;
+}
+
 export interface OrgStructureSnapshot {
   provinces: OrgProvince[];
   cities: OrgCity[];

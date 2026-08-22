@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { QUERY_STALE_MS } from '@/lib/query-stale';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { OrgStructureService } from '@/services/org-structure.service';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
 import type {
@@ -13,6 +14,7 @@ import type {
   OrgDistrict,
   OrgMajor,
   OrgProvince,
+  OrgRole,
   OrgSchool,
   OrgStructureEntityKind,
   OrgStructureSubTab,
@@ -31,7 +33,11 @@ import {
 
 function defaultValuesForTab(tab: OrgStructureSubTab): OrgEntityFormValues {
   if (tab === 'provinces') return { name: '' };
-  if (tab === 'majors') return { name: '', audience: undefined };
+  if (tab === 'majors') {
+    return IS_MOCK_MODE
+      ? { name: '', audience: undefined }
+      : { name: '', roleId: '' };
+  }
   if (tab === 'cities') return { name: '', provinceId: '' };
   if (tab === 'schools') {
     return {
@@ -90,8 +96,12 @@ function valuesFromRow(
     return { name: row.name };
   }
   if (kind === 'major') {
-    if (row.audience === undefined) return null;
-    return { name: row.name, audience: row.audience };
+    if (IS_MOCK_MODE) {
+      if (row.audience === undefined) return null;
+      return { name: row.name, audience: row.audience };
+    }
+    if (row.roleId === undefined) return null;
+    return { name: row.name, roleId: row.roleId };
   }
   if (kind === 'city') {
     if (row.provinceId === undefined) return null;
@@ -181,10 +191,20 @@ export function useOrgEntityForm({
     placeholderData: keepPreviousData,
   });
 
+  // Real mode only — the role a degree/major links to. Mock mode has no
+  // Nest role concept and keeps using the fixed audience enum instead.
+  const rolesQuery = useQuery({
+    queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'roles'],
+    queryFn: () => OrgStructureService.listRoles(),
+    staleTime: QUERY_STALE_MS.list,
+    enabled: open && tab === 'majors' && !IS_MOCK_MODE,
+  });
+
   const provinces: OrgProvince[] = provincesQuery.data ?? [];
   const cities: OrgCity[] = provinceId ? (citiesQuery.data ?? []) : [];
   const districts: OrgDistrict[] =
     tab === 'schools' && provinceId && cityId ? (districtsQuery.data ?? []) : [];
+  const roles: OrgRole[] = tab === 'majors' ? (rolesQuery.data ?? []) : [];
 
   /**
    * True when an province is selected, the cities query has finished, and
@@ -273,6 +293,7 @@ export function useOrgEntityForm({
     provinces,
     cities,
     districts,
+    roles,
     provinceHasNoCities,
   };
 }

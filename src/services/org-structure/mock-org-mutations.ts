@@ -28,7 +28,8 @@ export type UpsertFacultyInput = {
 export type UpsertDistrictInput = {
   name: string;
   provinceId: string;
-  cityId: string;
+  /** Optional: provinces that have no cities yield province-level districts. */
+  cityId?: string;
 };
 export type UpsertSchoolInput = {
   name: string;
@@ -37,7 +38,13 @@ export type UpsertSchoolInput = {
   districtId: string;
   gender: OrgSchoolGender;
 };
-export type UpsertMajorInput = { name: string; audience: OrgMajorAudience };
+export type UpsertMajorInput = {
+  name: string;
+  /** Mock-mode only — required by mockUpsertMajor below. */
+  audience?: OrgMajorAudience;
+  /** Real-mode only — required by OrgStructureService.upsertMajor's Nest branch. */
+  roleId?: string;
+};
 
 function newId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;

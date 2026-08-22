@@ -33,7 +33,9 @@ const SUBMIT_HANDLERS: Record<OrgStructureSubTab, SubmitHandler> = {
       {
         name: values.name,
         provinceId: values.provinceId!,
-        cityId: values.cityId!,
+        // cityId is optional — omit entirely when empty so the API doesn't
+        // receive an empty string and return a 422.
+        ...(values.cityId ? { cityId: values.cityId } : {}),
       },
       editId
     );
@@ -52,7 +54,7 @@ const SUBMIT_HANDLERS: Record<OrgStructureSubTab, SubmitHandler> = {
   },
   majors: async (values, editId) => {
     await OrgStructureService.upsertMajor(
-      { name: values.name, audience: values.audience! },
+      { name: values.name, audience: values.audience, roleId: values.roleId },
       editId
     );
   },

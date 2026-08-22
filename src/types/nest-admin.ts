@@ -60,6 +60,25 @@ export type NestUpdateEducationalDistrictDto = {
   title?: string;
 };
 
+/**
+ * GET /admin/educations row. Live GET responses have not been confirmed
+ * (empty sample) — same defensive pattern as NestCity/NestUniversity:
+ * accept either flat `provinceId`/`cityId` (the create/update DTO shape)
+ * or `province_id`/`city_id`, or a nested `province`/`city` object.
+ */
+export type NestEducationalDistrict = {
+  id: string;
+  title: string;
+  provinceId?: string;
+  cityId?: string;
+  province_id?: string;
+  city_id?: string;
+  province?: { id?: string; title?: string } | null;
+  city?: { id?: string; title?: string } | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type NestCreateSchoolDto = {
   provinceId: string;
   cityId: string;
@@ -74,6 +93,27 @@ export type NestUpdateSchoolDto = {
   educationId?: string;
   title?: string;
   gender?: string;
+};
+
+/**
+ * GET /admin/schools row. Same defensive pattern as NestEducationalDistrict
+ * — `educationId` links a school to its educational district (رشته/ناحیه).
+ */
+export type NestSchool = {
+  id: string;
+  title: string;
+  provinceId?: string;
+  cityId?: string;
+  educationId?: string;
+  gender?: string;
+  province_id?: string;
+  city_id?: string;
+  education_id?: string;
+  province?: { id?: string; title?: string } | null;
+  city?: { id?: string; title?: string } | null;
+  education?: { id?: string; title?: string } | null;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type NestCreateDegreeDto = {
@@ -101,6 +141,28 @@ export type NestDegree = {
   updatedAt?: string;
 };
 
+/**
+ * Nest Role (GET /admin/roles) — used to pick the `roleId` a degree links to.
+ * Confirmed live shape is bare `{ id }` — no `title`/`name` field is returned,
+ * unlike `v1/auth/roles` (see nest-auth-role.ts). Keep `title` optional and
+ * resolve a display fallback wherever this is read (see resolveRoleLabel in
+ * org-structure.service.ts) rather than assuming it is always present.
+ */
+export type NestRole = {
+  id: string;
+  title?: string;
+};
+
+/**
+ * GET /admin/roles/{roleId}/degrees — degrees already scoped to one role by
+ * the endpoint itself, so (unlike NestDegree from /admin/degreeee) there is
+ * no `role`/`roleId` field on each row.
+ */
+export type NestDegreeByRole = {
+  id: string;
+  title: string;
+};
+
 export type NestCreateUniversityDto = {
   title: string;
   provinceId: string;
@@ -111,6 +173,25 @@ export type NestUpdateUniversityDto = {
   title?: string;
   provinceId?: string;
   cityId?: string;
+};
+
+/**
+ * GET /admin/universites ('universites' matches the live OpenAPI path
+ * spelling — see NEST_ADMIN_PATHS). Live sample was an empty array (no
+ * universities seeded yet), so — same defensive pattern as toOrgCity/
+ * toOrgDistrict — accept either the flat `provinceId`/`cityId` the
+ * create/update DTOs use, or a nested `province`/`city` object the way
+ * GET /admin/cities is confirmed to return them.
+ */
+export type NestUniversity = {
+  id: string;
+  title: string;
+  provinceId?: string;
+  cityId?: string;
+  province?: { id?: string; title?: string } | null;
+  city?: { id?: string; title?: string } | null;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type NestAdminPageQuery = {

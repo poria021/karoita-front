@@ -1,0 +1,3 @@
+Ignore/delete this stray file — created by mistake during the audit fix.
+Run: git rm "src/services/admin-catalog.service.ts.DELETED"
+It has a non-.ts extension so it won't affect the build either way.

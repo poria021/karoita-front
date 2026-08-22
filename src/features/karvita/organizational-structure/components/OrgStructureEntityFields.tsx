@@ -11,7 +11,8 @@ import { Controller } from 'react-hook-form';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
-import type { OrgCity, OrgDistrict, OrgProvince } from '@/types/org-structure';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
+import type { OrgCity, OrgDistrict, OrgProvince, OrgRole } from '@/types/org-structure';
 import type { OrgStructureSubTab } from '@/types/org-structure';
 
 import { MAJOR_AUDIENCE_OPTIONS, SCHOOL_GENDER_OPTIONS } from '../constants';
@@ -28,6 +29,7 @@ interface OrgStructureEntityFieldsProps {
   provinces: OrgProvince[];
   cities: OrgCity[];
   districts: OrgDistrict[];
+  roles: OrgRole[];
   namePlaceholder: string;
   /**
    * True when the selected province has no cities (query finished, result
@@ -46,6 +48,7 @@ export function OrgStructureEntityFields({
   provinces,
   cities,
   districts,
+  roles,
   namePlaceholder,
   provinceHasNoCities = false,
 }: OrgStructureEntityFieldsProps) {
@@ -190,28 +193,53 @@ export function OrgStructureEntityFields({
       ) : null}
 
       {tab === 'majors' ? (
-        <Controller
-          name="audience"
-          control={control}
-          render={({ field }) => (
-            <KvSelectField
-              id="org-entity-major-audience"
-              label="مخاطب رشته"
-              required
-              placeholder="انتخاب مخاطب"
-              value={field.value || ''}
-              onValueChange={field.onChange}
-              error={errors.audience?.message}
-              contentClassName={SELECT_IN_DIALOG_Z}
-            >
-              {MAJOR_AUDIENCE_OPTIONS.map((opt) => (
-                <KvSelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
-          )}
-        />
+        IS_MOCK_MODE ? (
+          <Controller
+            name="audience"
+            control={control}
+            render={({ field }) => (
+              <KvSelectField
+                id="org-entity-major-audience"
+                label="مخاطب رشته"
+                required
+                placeholder="انتخاب مخاطب"
+                value={field.value || ''}
+                onValueChange={field.onChange}
+                error={errors.audience?.message}
+                contentClassName={SELECT_IN_DIALOG_Z}
+              >
+                {MAJOR_AUDIENCE_OPTIONS.map((opt) => (
+                  <KvSelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </KvSelectItem>
+                ))}
+              </KvSelectField>
+            )}
+          />
+        ) : (
+          <Controller
+            name="roleId"
+            control={control}
+            render={({ field }) => (
+              <KvSelectField
+                id="org-entity-major-role"
+                label="نقش"
+                required
+                placeholder="انتخاب نقش"
+                value={field.value || ''}
+                onValueChange={field.onChange}
+                error={errors.roleId?.message}
+                contentClassName={SELECT_IN_DIALOG_Z}
+              >
+                {roles.map((r) => (
+                  <KvSelectItem key={r.id} value={r.id}>
+                    {r.name}
+                  </KvSelectItem>
+                ))}
+              </KvSelectField>
+            )}
+          />
+        )
       ) : null}
     </>
   );

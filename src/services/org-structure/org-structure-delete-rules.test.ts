@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  isCityDeleteBlocked,
-  isDistrictDeleteBlocked,
+  buildOrgDeleteBlockedSets,
+  isDeleteBlockedWithSets,
   isOrgEntityDeleteBlocked,
-  isProvinceDeleteBlocked,
 } from '@/services/org-structure/org-structure-delete-rules';
 import type { OrgStructureSnapshot } from '@/types/org-structure';
 
@@ -37,23 +36,35 @@ const linkedDb: OrgStructureSnapshot = {
 
 describe('org-structure deleteBlocked rules', () => {
   it('allows delete when province has no children', () => {
-    expect(isProvinceDeleteBlocked(emptyDb, 'p1')).toBe(false);
     expect(isOrgEntityDeleteBlocked('province', emptyDb, 'p1')).toBe(false);
   });
 
   it('blocks province delete when cities/districts/schools reference it', () => {
-    expect(isProvinceDeleteBlocked(linkedDb, 'p1')).toBe(true);
+    expect(isOrgEntityDeleteBlocked('province', linkedDb, 'p1')).toBe(true);
   });
 
   it('blocks city delete when districts or schools reference it', () => {
-    expect(isCityDeleteBlocked(linkedDb, 'c1')).toBe(true);
+    expect(isOrgEntityDeleteBlocked('city', linkedDb, 'c1')).toBe(true);
   });
 
   it('blocks district delete when schools reference it', () => {
-    expect(isDistrictDeleteBlocked(linkedDb, 'd1')).toBe(true);
+    expect(isOrgEntityDeleteBlocked('district', linkedDb, 'd1')).toBe(true);
   });
 
-  it('allows school delete in current mock rules', () => {
+  it('allows school delete in current mock rules (leaf entity)', () => {
     expect(isOrgEntityDeleteBlocked('school', linkedDb, 's1')).toBe(false);
+  });
+
+  it('allows faculty/major delete — leaf entities with no dependents today', () => {
+    expect(isOrgEntityDeleteBlocked('faculty', linkedDb, 'anything')).toBe(false);
+    expect(isOrgEntityDeleteBlocked('major', linkedDb, 'anything')).toBe(false);
+  });
+
+  it('isDeleteBlockedWithSets + buildOrgDeleteBlockedSets: reuse sets across many ids', () => {
+    const sets = buildOrgDeleteBlockedSets(linkedDb);
+    expect(isDeleteBlockedWithSets('province', 'p1', sets)).toBe(true);
+    expect(isDeleteBlockedWithSets('city', 'c1', sets)).toBe(true);
+    expect(isDeleteBlockedWithSets('district', 'd1', sets)).toBe(true);
+    expect(isDeleteBlockedWithSets('school', 's1', sets)).toBe(false);
   });
 });

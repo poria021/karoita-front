@@ -45,62 +45,24 @@ export function isDeleteBlockedWithSets(
   if (kind === 'province') return sets.provinces.has(id);
   if (kind === 'city') return sets.cities.has(id);
   if (kind === 'district') return sets.districts.has(id);
+  // faculty / school / major are leaf entities in the snapshot today —
+  // nothing references them, so delete is always allowed. If a future
+  // business rule needs to block one of these, add a Set for it above
+  // and a branch here (see git history for the old always-false stub
+  // functions this replaced: isFacultyDeleteBlocked, isSchoolDeleteBlocked,
+  // isMajorDeleteBlocked — removed as dead code, none had any caller).
   return false;
 }
 
-export function isProvinceDeleteBlocked(
-  db: OrgStructureSnapshot,
-  id: string
-): boolean {
-  return buildOrgDeleteBlockedSets(db).provinces.has(id);
-}
-
-export function isCityDeleteBlocked(
-  db: OrgStructureSnapshot,
-  id: string
-): boolean {
-  return buildOrgDeleteBlockedSets(db).cities.has(id);
-}
-
-export function isDistrictDeleteBlocked(
-  db: OrgStructureSnapshot,
-  id: string
-): boolean {
-  return buildOrgDeleteBlockedSets(db).districts.has(id);
-}
-
-export function isFacultyDeleteBlocked(
-  db: OrgStructureSnapshot,
-  id: string
-): boolean {
-  void db;
-  void id;
-  // Currently there are no dependent entities that reference a faculty
-  // within the snapshot. Keep delete unblocked until business rules
-  // require otherwise.
-  return false;
-}
-
-export function isSchoolDeleteBlocked(
-  db: OrgStructureSnapshot,
-  id: string
-): boolean {
-  void db;
-  void id;
-  // Schools are leaf entities in the snapshot; by default allow deletion.
-  return false;
-}
-
-export function isMajorDeleteBlocked(
-  db: OrgStructureSnapshot,
-  id: string
-): boolean {
-  void db;
-  void id;
-  // Majors are independent in the snapshot; do not block deletion here.
-  return false;
-}
-
+/**
+ * Single entry point for "can this row be deleted" — builds the blocked
+ * sets fresh from the snapshot and checks `id` against them.
+ *
+ * Prefer `buildOrgDeleteBlockedSets` + `isDeleteBlockedWithSets` directly
+ * when checking many ids against the same snapshot (e.g. an entire list
+ * page) — that pattern computes the sets once and reuses them, instead of
+ * re-scanning the whole snapshot per row the way this function does.
+ */
 export function isOrgEntityDeleteBlocked(
   kind: OrgStructureEntityKind,
   db: OrgStructureSnapshot,

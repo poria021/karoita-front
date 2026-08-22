@@ -46,6 +46,8 @@ export type OrgStructureListItem = {
   provinceId?: string;
   cityId?: string;
   districtId?: string;
+  /** Real-mode majors (degrees): linked role's id, for edit-form prefill. */
+  roleId?: string;
 };
 
 export type OrgStructureListPage = OffsetLimitPage<OrgStructureListItem>;

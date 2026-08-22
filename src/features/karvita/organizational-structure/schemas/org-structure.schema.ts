@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { IS_MOCK_MODE } from '@/lib/api-mode';
+
 const nameField = z
   .string('نام الزامی است.')
   .trim()
@@ -42,15 +44,25 @@ export const schoolFormSchema = z.object({
   }),
 });
 
-export const majorFormSchema = z.object({
-  name: nameField,
-  audience: z.enum(
-    ['student', 'skill_learner', 'supervisor_professor'],
-    {
-      error: 'انتخاب مخاطب رشته الزامی است.',
-    }
-  ),
-});
+/**
+ * Mock mode: pick from the fixed `audience` enum (no Nest `role` concept
+ * in the local simulator). Real mode: Nest's degree DTO requires a
+ * `roleId` from GET /admin/roles — there is no "audience" field there.
+ */
+export const majorFormSchema = IS_MOCK_MODE
+  ? z.object({
+      name: nameField,
+      audience: z.enum(
+        ['student', 'skill_learner', 'supervisor_professor'],
+        {
+          error: 'انتخاب مخاطب رشته الزامی است.',
+        }
+      ),
+    })
+  : z.object({
+      name: nameField,
+      roleId: z.string().min(1, 'انتخاب نقش رشته الزامی است.'),
+    });
 
 export type ProvinceFormValues = z.infer<typeof provinceFormSchema>;
 export type CityFormValues = z.infer<typeof cityFormSchema>;
@@ -70,4 +82,5 @@ export type OrgEntityFormValues = {
   districtId?: string;
   gender?: 'male' | 'female';
   audience?: 'student' | 'skill_learner' | 'supervisor_professor';
+  roleId?: string;
 };
