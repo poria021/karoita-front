@@ -85,7 +85,7 @@ const NEST_NAME_TO_FE_ROLE: Record<NestRoleName, UserRole> = {
   school_admin: 'school_principal',
   // Admin / management
   manager: 'faculty_role',
-  admin: 'super_admin',
+  admin: 'assistant_admin',
   superadmin: 'super_admin',
   // Higher-level (assigned by Nest)
   regional_admin: 'regional_edu_admin',
