@@ -1,5 +1,9 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import { invalidateRealBareListCache } from '@/services/org-structure/real-org-reads';
+import {
+  invalidateDistrictNameCache,
+  invalidateProvinceNameCache,
+} from '@/services/organization-options/organization-options-helpers';
 import type {
   UpsertCityInput,
   UpsertDistrictInput,
@@ -20,6 +24,8 @@ export async function upsertRealProvince(
   } else {
     await adminCatalogApi.createProvince({ title: input.name });
   }
+  // کش typeahead استان را باطل کن تا resolve نام→id آپ‌تودیت بماند
+  invalidateProvinceNameCache();
 }
 
 /** PUT /org-structure/cities — real: POST/PATCH /api/admin/cities */
@@ -84,6 +90,8 @@ export async function upsertRealDistrict(
     });
   }
   invalidateRealBareListCache('districts');
+  // کش typeahead منطقه را باطل کن تا resolve نام→id آپ‌تودیت بماند
+  invalidateDistrictNameCache();
 }
 
 /** PUT /org-structure/schools — real: POST/PUT /api/admin/schools */
@@ -149,6 +157,7 @@ export async function deleteRealEntity(
   switch (kind) {
     case 'province':
       await adminCatalogApi.deleteProvince(id);
+      invalidateProvinceNameCache();
       break;
     case 'city':
       await adminCatalogApi.deleteCity(id);
@@ -156,6 +165,7 @@ export async function deleteRealEntity(
     case 'district':
       await adminCatalogApi.deleteEducation(id);
       invalidateRealBareListCache('districts');
+      invalidateDistrictNameCache();
       break;
     case 'school':
       await adminCatalogApi.deleteSchool(id);

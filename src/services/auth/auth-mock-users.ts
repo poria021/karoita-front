@@ -30,8 +30,8 @@ interface MockUserSeed {
   docUrl?: string;
   docType?: string;
   major?: string;
-  city?: string;
-  province?: string;
+  city?: string[];
+  province?: string[];
   extra?: Partial<
     Pick<
       User,
@@ -110,7 +110,7 @@ const CORE_SEEDS: MockUserSeed[] = [
     docUrl: MOCK_DOC_IMAGE_URL,
     docType: 'کارت مهارت‌آموزی',
     major: 'الکترونیک صنعتی',
-    city: 'تهران',
+    city: ['تهران'],
     extra: { skillCode: 'SK-1001' },
   },
   {
@@ -123,8 +123,8 @@ const CORE_SEEDS: MockUserSeed[] = [
     docUrl: MOCK_DOC_PDF_URL,
     docType: 'کارت دانشجویی',
     major: 'مهندسی کامپیوتر',
-    city: 'تهران',
-    extra: { college: DEFAULT_COLLEGE, studentId: '1400001' },
+    city: ['تهران'],
+    extra: { college: [DEFAULT_COLLEGE], studentId: '1400001' },
   },
   {
     id: '#MOCK-M1',
@@ -135,10 +135,10 @@ const CORE_SEEDS: MockUserSeed[] = [
     lastChange: NOW - 1000 * 60 * 60 * 24 * 3,
     docUrl: MOCK_DOC_IMAGE_URL,
     docType: 'کارت پرسنلی',
-    city: 'تهران',
+    city: ['تهران'],
     extra: {
-      district: DEFAULT_DISTRICT,
-      school: DEFAULT_SCHOOL,
+      district: [DEFAULT_DISTRICT],
+      school: [DEFAULT_SCHOOL],
       personalCode: '5001',
     },
   },
@@ -152,8 +152,8 @@ const CORE_SEEDS: MockUserSeed[] = [
     lastChange: NOW - 1000 * 60 * 60 * 24,
     docUrl: MOCK_DOC_IMAGE_URL,
     docType: 'کارت هیئت علمی',
-    city: 'تهران',
-    extra: { college: DEFAULT_COLLEGE, personalCode: '2001' },
+    city: ['تهران'],
+    extra: { college: [DEFAULT_COLLEGE], personalCode: '2001' },
   },
   {
     id: '#MOCK-P2',
@@ -165,8 +165,8 @@ const CORE_SEEDS: MockUserSeed[] = [
     lastChange: NOW - 1000 * 60 * 60 * 24 * 2,
     docUrl: MOCK_DOC_IMAGE_URL,
     docType: 'کارت هیئت علمی',
-    city: 'تهران',
-    extra: { college: DEFAULT_COLLEGE, personalCode: '2002' },
+    city: ['تهران'],
+    extra: { college: [DEFAULT_COLLEGE], personalCode: '2002' },
   },
   {
     id: '#MOCK-PR1',
@@ -177,11 +177,11 @@ const CORE_SEEDS: MockUserSeed[] = [
     lastChange: NOW - 1000 * 60 * 45,
     docUrl: MOCK_DOC_TXT_URL,
     docType: 'حکم مدیریت مدرسه',
-    province: 'اصفهان',
-    city: 'اصفهان',
+    province: ['اصفهان'],
+    city: ['اصفهان'],
     extra: {
-      district: 'ناحیه ۲ اصفهان',
-      school: 'هنرستان فنی شهید بهشتی',
+      district: ['ناحیه ۲ اصفهان'],
+      school: ['هنرستان فنی شهید بهشتی'],
       personalCode: '5002',
     },
   },
@@ -192,7 +192,7 @@ const CORE_SEEDS: MockUserSeed[] = [
     docStatus: 'approved',
     approved: true,
     lastChange: NOW - 1000 * 60 * 60 * 24 * 10,
-    extra: { district: DEFAULT_DISTRICT },
+    extra: { district: [DEFAULT_DISTRICT] },
   },
   {
     id: '#MOCK-F1',
@@ -201,7 +201,7 @@ const CORE_SEEDS: MockUserSeed[] = [
     docStatus: 'approved',
     approved: true,
     lastChange: NOW - 1000 * 60 * 60 * 24 * 12,
-    extra: { college: DEFAULT_COLLEGE },
+    extra: { college: [DEFAULT_COLLEGE] },
   },
   {
     id: '#MOCK-PU1',
@@ -265,14 +265,14 @@ function buildBulkSeeds(
             ? MOCK_DOC_PDF_URL
             : MOCK_DOC_TXT_URL,
       docType: role === 'student' ? 'کارت دانشجویی' : 'مدارک هویتی',
-      province,
-      city: province,
+      province: [province],
+      city: [province],
       adminRequestMessage:
         status === 'rejected' ? 'نقص مدارک بارگذاری‌شده' : undefined,
       extra:
         role === 'student'
           ? {
-              college: DEFAULT_COLLEGE,
+              college: [DEFAULT_COLLEGE],
               studentId: `1401${String(i + 1).padStart(3, '0')}`,
               specialPermissions:
                 i === 0 ? { crossFaculty: true } : undefined,
@@ -281,13 +281,13 @@ function buildBulkSeeds(
             ? { skillCode: `SK-${2000 + i}` }
             : role === 'mentor_teacher' || role === 'school_principal'
               ? {
-                  district: DEFAULT_DISTRICT,
-                  school: DEFAULT_SCHOOL,
+                  district: [DEFAULT_DISTRICT],
+                  school: [DEFAULT_SCHOOL],
                   personalCode: `${6000 + i}`,
                 }
               : role === 'supervisor_professor'
                 ? {
-                    college: DEFAULT_COLLEGE,
+                    college: [DEFAULT_COLLEGE],
                     personalCode: `${3000 + i}`,
                   }
                 : undefined,
@@ -351,7 +351,7 @@ export const AUTH_MOCK_USERS: MockAuthUserRecord[] = MOCK_USER_SEEDS.map(
       approved: seed.approved ?? true,
       docStatus: seed.docStatus ?? 'approved',
       adminRequestMessage: seed.adminRequestMessage,
-      province: seed.province ?? DEFAULT_PROVINCE,
+      province: seed.province ?? [DEFAULT_PROVINCE],
       city: seed.city,
       major: seed.major,
       docUrl: seed.docUrl,

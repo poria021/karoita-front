@@ -33,8 +33,8 @@ describe('ProfileService mock persistence', () => {
       role: 'student',
       firstName: 'تست',
       lastName: 'پروفایل',
-      province: seed.province ?? 'تهران',
-      college: seed.college ?? 'پردیس',
+      province: seed.province ?? ['تهران'],
+      college: seed.college ?? ['پردیس'],
       major: seed.major ?? 'آموزش',
       studentId: seed.studentId ?? '140210345',
     });

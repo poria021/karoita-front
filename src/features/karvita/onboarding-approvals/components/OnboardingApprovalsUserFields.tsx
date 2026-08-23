@@ -14,7 +14,16 @@ function readFieldValue(
 ): string | undefined {
   if (!(key in user)) return undefined;
   const value = user[key as keyof OnboardingApprovalUser];
-  return typeof value === 'string' && value.trim() ? value : undefined;
+  if (typeof value === 'string') {
+    return value.trim() ? value : undefined;
+  }
+  if (Array.isArray(value)) {
+    const items = value.filter(
+      (item): item is string => typeof item === 'string' && item.trim().length > 0
+    );
+    return items.length > 0 ? items.join('، ') : undefined;
+  }
+  return undefined;
 }
 
 interface OnboardingApprovalsUserFieldsProps {

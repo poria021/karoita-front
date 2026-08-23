@@ -51,7 +51,7 @@ export function listFilteredUsers(
         user.role !== 'super_admin' && user.docStatus !== 'not_submitted'
     )
     .filter((user) => user.docStatus === filters.status)
-    .filter((user) => (province ? user.province === province : true))
+    .filter((user) => (province ? (user.province ?? []).includes(province) : true))
     .filter((user) => matchesQuery(user, query))
     .sort((a, b) => (b.lastChange ?? 0) - (a.lastChange ?? 0))
     .map((record) => toApprovalUser(toPublicUser(record)));
@@ -67,7 +67,9 @@ export function collectProvinces(): string[] {
     ) {
       continue;
     }
-    names.add(user.province);
+    for (const province of user.province) {
+      names.add(province);
+    }
   }
   return Array.from(names).sort((a, b) => a.localeCompare(b, 'fa'));
 }

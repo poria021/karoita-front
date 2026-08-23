@@ -14,6 +14,16 @@ function requiredTextField(requiredMessage: string) {
     .min(1, requiredMessage);
 }
 
+/** فیلد چندانتخابی سازمانی — حداقل یک گزینه الزامی. */
+function requiredOrgArrayField(requiredMessage: string) {
+  return z.array(z.string().trim().min(1)).min(1, requiredMessage);
+}
+
+/** فیلد چندانتخابی سازمانی — اختیاری (می‌تواند خالی بماند). */
+function optionalOrgArrayField() {
+  return z.array(z.string().trim().min(1)).optional();
+}
+
 function requiredPersianNameField(requiredMessage: string) {
   return z
     .string(requiredMessage)
@@ -44,22 +54,24 @@ const firstNameField = requiredPersianNameField(
 const lastNameField = requiredPersianNameField(
   'لطفاً نام خانوادگی خود را وارد کنید.'
 );
-const provinceField = requiredTextField(
-  'لطفاً استان محل سکونت یا خدمت خود را انتخاب کنید.'
+const provinceField = requiredOrgArrayField(
+  'لطفاً حداقل یک استان محل سکونت یا خدمت را انتخاب کنید.'
 );
-const collegeField = requiredTextField(
-  'لطفاً دانشکده / پردیس خود را انتخاب کنید.'
+const collegeField = requiredOrgArrayField(
+  'لطفاً حداقل یک دانشکده / پردیس را انتخاب کنید.'
 );
 const majorField = requiredTextField('لطفاً رشته تحصیلی خود را انتخاب کنید.');
-const districtField = requiredTextField(
-  'لطفاً منطقه آموزشی خود را انتخاب کنید.'
+const districtField = requiredOrgArrayField(
+  'لطفاً حداقل یک منطقه آموزشی را انتخاب کنید.'
 );
-const schoolField = requiredTextField(
-  'لطفاً مدرسه محل خدمت خود را انتخاب کنید.'
+const schoolField = requiredOrgArrayField(
+  'لطفاً حداقل یک مدرسه محل خدمت را انتخاب کنید.'
 );
-const cityField = requiredTextField('لطفاً شهر تابعه خود را انتخاب کنید.');
+const cityField = requiredOrgArrayField(
+  'لطفاً حداقل یک شهر تابعه را انتخاب کنید.'
+);
 
-const optionalCityField = z.string().trim().optional();
+const optionalCityField = optionalOrgArrayField();
 
 const studentIdField = requiredNumericIdField({
   requiredMessage: 'شماره دانشجویی الزامی است.',
@@ -88,7 +100,7 @@ const identityNameSchema = z.object({
 
 const adminOnlyProfileSchema = identityNameSchema.extend({
   role: z.enum(['super_admin', 'central_organization', 'assistant_admin']),
-  province: z.string().trim().optional(),
+  province: optionalOrgArrayField(),
 });
 
 export const studentProfileSchema = identityNameSchema.extend({

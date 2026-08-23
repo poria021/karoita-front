@@ -2,6 +2,8 @@ import { IS_MOCK_MODE } from '@/lib/api-mode';
 import {
   fetchOrganizationOptionsFromApi,
   fetchOrganizationOptionsFromMock,
+  invalidateDistrictNameCache,
+  invalidateProvinceNameCache,
   ORGANIZATION_OPTIONS_DEFAULT_LIMIT,
   type OrganizationOptionsQuery,
   type OrganizationOptionsResult,
@@ -17,10 +19,18 @@ export type {
 
 /**
  * Org typeahead options for profile / admin forms.
- * Nest: GET /organization-options — mock pages labels from OrgStructureService.
+ *
+ * Real mode: مستقیم به Nest Admin API وصل می‌شود
+ *   province → GET /api/admin/provinces          (paginated, filters param)
+ *   city     → GET /api/admin/provinces/{id}/cities  یا /api/admin/cities
+ *   district → GET /api/admin/educations          (bare array, provinceId)
+ *   school   → GET /api/admin/schools             (bare array, educationId)
+ *   college  → GET /api/admin/universites         (bare array, title)
+ *   major    → GET /api/admin/degreeee            (bare array, title)
+ *
+ * Mock mode: از OrgStructureService.listLabelsForField استفاده می‌کند.
  */
 export class OrganizationOptionsService {
-  /** GET /organization-options */
   static async getOptions(
     params: OrganizationOptionsQuery
   ): Promise<OrganizationOptionsResult> {
@@ -41,6 +51,22 @@ export class OrganizationOptionsService {
     }
 
     return fetchOrganizationOptionsFromMock(request);
+  }
+
+  /**
+   * کش استان را باطل می‌کند.
+   * پس از ایجاد/ویرایش/حذف استان در پنل ادمین صدا بزن.
+   */
+  static invalidateProvinceCache(): void {
+    invalidateProvinceNameCache();
+  }
+
+  /**
+   * کش منطقه آموزشی را باطل می‌کند.
+   * پس از ایجاد/ویرایش/حذف منطقه در پنل ادمین صدا بزن.
+   */
+  static invalidateDistrictCache(): void {
+    invalidateDistrictNameCache();
   }
 }
 

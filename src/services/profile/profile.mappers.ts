@@ -31,6 +31,12 @@ function asString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
+/** فیلدهای سازمانی چندانتخابی مثل province/city/college/district/school آرایه هستند. */
+function asStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter((item): item is string => typeof item === 'string');
+}
+
 function asBoolean(value: unknown): boolean | undefined {
   return typeof value === 'boolean' ? value : undefined;
 }
@@ -82,11 +88,11 @@ export function mergeRecordIntoUser(
     hasPassword: asBoolean(record.hasPassword) ?? activeUser.hasPassword,
     adminRequestMessage:
       asString(record.adminRequestMessage) ?? activeUser.adminRequestMessage,
-    province: asString(record.province) ?? activeUser.province,
-    city: asString(record.city) ?? activeUser.city,
-    college: asString(record.college) ?? activeUser.college,
-    district: asString(record.district) ?? activeUser.district,
-    school: asString(record.school) ?? activeUser.school,
+    province: asStringArray(record.province) ?? activeUser.province,
+    city: asStringArray(record.city) ?? activeUser.city,
+    college: asStringArray(record.college) ?? activeUser.college,
+    district: asStringArray(record.district) ?? activeUser.district,
+    school: asStringArray(record.school) ?? activeUser.school,
     major: asString(record.major) ?? activeUser.major,
     personalCode: asString(record.personalCode) ?? activeUser.personalCode,
     studentId: asString(record.studentId) ?? activeUser.studentId,

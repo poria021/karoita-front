@@ -164,7 +164,9 @@ export function OnboardingApprovalsTable({
                         : '---'}
                     </KvTableCell>
                     <KvTableCell align="center" className="text-kv-text-muted">
-                      {user.province || '---'}
+                      {user.province && user.province.length > 0
+                        ? user.province.join('، ')
+                        : '---'}
                     </KvTableCell>
                     <KvTableCell align="center" className="text-kv-text-muted">
                       {getRoleStrategy(user.role).label}

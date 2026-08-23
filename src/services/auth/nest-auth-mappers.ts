@@ -54,6 +54,57 @@ function readRole(user: Record<string, unknown>): User['role'] {
   throw new ApiClientError('پاسخ کاربر فاقد نقش معتبر است.');
 }
 
+function asOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+/**
+ * Nest `/auth/me` برمی‌گرداند: city, educationalDistrict, school (رشته‌ای ساده)
+ * و یک شناسه‌ی عمومی userUniqueId که بسته به نقش کاربر روی یکی از
+ * studentId / skillCode / personalCode فرانت مپ می‌شود.
+ *
+ * ⚠️ توجه: در پاسخ فعلی بک‌اند، فیلدهای province و university/college و
+ * major/degree اصلاً برگردانده نمی‌شوند (با اینکه در NestUpdateUserDto برای
+ * PATCH به‌صورت provinceId/universityId/degreeId پذیرفته می‌شوند). تا وقتی
+ * بک‌اند این فیلدها را به پاسخ GET اضافه نکند، این سه مقدار همچنان خالی
+ * می‌مانند — این محدودیت سمت فرانت قابل رفع نیست.
+ */
+function asOptionalStringArray(value: unknown): string[] | undefined {
+  const single = asOptionalString(value);
+  return single ? [single] : undefined;
+}
+
+function readOrgFields(user: Record<string, unknown>): Pick<
+  User,
+  'city' | 'district' | 'school'
+> {
+  return {
+    city: asOptionalStringArray(user.city),
+    district: asOptionalStringArray(user.educationalDistrict),
+    school: asOptionalStringArray(user.school),
+  };
+}
+
+function readRoleIdentifier(
+  role: User['role'],
+  uniqueId: string | undefined
+): Pick<User, 'studentId' | 'skillCode' | 'personalCode'> {
+  if (!uniqueId) return {};
+  switch (role) {
+    case 'student':
+      return { studentId: uniqueId };
+    case 'skill_learner':
+      return { skillCode: uniqueId };
+    case 'supervisor_professor':
+    case 'mentor_teacher':
+    case 'school_principal':
+    case 'regional_edu_admin':
+      return { personalCode: uniqueId };
+    default:
+      return {};
+  }
+}
+
 /**
  * Maps Nest Auth `User` (phone + RoleDto) → FE `User` (mobile + UserRole).
  */
@@ -69,10 +120,12 @@ export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
         ? raw.status.name
         : undefined;
 
+  const role = readRole(raw);
+
   return {
     id: raw.id,
     mobile: readPhone(raw, fallbackMobile),
-    role: readRole(raw),
+    role,
     firstName: typeof raw.firstName === 'string' ? raw.firstName : '',
     lastName: typeof raw.lastName === 'string' ? raw.lastName : '',
     approved:
@@ -81,6 +134,8 @@ export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
         : mapNestDocStatus(documentStatus) === 'approved',
     docStatus: mapNestDocStatus(documentStatus),
     hasPassword: typeof raw.hasPassword === 'boolean' ? raw.hasPassword : true,
+    ...readOrgFields(raw),
+    ...readRoleIdentifier(role, asOptionalString(raw.userUniqueId)),
   };
 }
 

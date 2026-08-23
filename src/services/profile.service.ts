@@ -33,15 +33,15 @@ export interface UpdateOnboardingProfilePayload {
   role: UserRole;
   firstName: string;
   lastName: string;
-  province?: string;
-  college?: string;
+  province?: string[];
+  college?: string[];
   major?: string;
   studentId?: string;
   skillCode?: string;
   personalCode?: string;
-  district?: string;
-  school?: string;
-  city?: string;
+  district?: string[];
+  school?: string[];
+  city?: string[];
   identityDoc?: File | null;
 }
 

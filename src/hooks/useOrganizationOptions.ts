@@ -20,9 +20,14 @@ const MAX_ORG_OPTION_PAGES = 20;
 const MAX_ORG_OPTIONS_IN_DOM = 200;
 
 export type OrganizationDependsOn = {
-  province?: string;
-  district?: string;
+  province?: string | string[];
+  district?: string | string[];
 };
+
+function toDependsOnKey(value: string | string[] | undefined): string {
+  if (!value) return '';
+  return Array.isArray(value) ? value.join('|') : value;
+}
 
 export type UseOrganizationOptionsArgs = {
   type: OrganizationField;
@@ -55,6 +60,8 @@ export function useOrganizationOptions({
   const listQuery = resolveListSearchQuery(query, debouncedQuery);
   const province = dependsOn?.province ?? '';
   const district = dependsOn?.district ?? '';
+  const provinceKey = toDependsOnKey(province);
+  const districtKey = toDependsOnKey(district);
 
   const {
     data,
@@ -65,7 +72,7 @@ export function useOrganizationOptions({
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: ['org-options', type, listQuery, province, district],
+    queryKey: ['org-options', type, listQuery, provinceKey, districtKey],
     enabled,
     initialPageParam: 1,
     staleTime: QUERY_STALE_MS.list,
@@ -75,8 +82,8 @@ export function useOrganizationOptions({
         query: listQuery,
         page: pageParam,
         limit: ORGANIZATION_OPTIONS_PAGE_SIZE,
-        province: province || undefined,
-        district: district || undefined,
+        province: provinceKey ? province : undefined,
+        district: districtKey ? district : undefined,
       }),
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.hasMore) return undefined;

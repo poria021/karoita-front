@@ -40,43 +40,43 @@ type DefaultValuesFactory = (user: User) => ProfileSchema;
 const PROFILE_DEFAULTS: Record<UserRole, DefaultValuesFactory> = {
   student: (user) => ({
     role: 'student', firstName: user.firstName, lastName: user.lastName,
-    province: user.province ?? '', college: user.college ?? '',
+    province: user.province ?? [], college: user.college ?? [],
     major: user.major ?? '', studentId: user.studentId ?? '',
   }),
   skill_learner: (user) => ({
     role: 'skill_learner', firstName: user.firstName, lastName: user.lastName,
-    province: user.province ?? '', college: user.college ?? '',
+    province: user.province ?? [], college: user.college ?? [],
     major: user.major ?? '', skillCode: user.skillCode ?? '',
   }),
   supervisor_professor: (user) => ({
     role: 'supervisor_professor', firstName: user.firstName, lastName: user.lastName,
-    province: user.province ?? '', college: user.college ?? '',
+    province: user.province ?? [], college: user.college ?? [],
     major: user.major ?? '', personalCode: user.personalCode ?? '',
   }),
   mentor_teacher: (user) => ({
     role: 'mentor_teacher', firstName: user.firstName, lastName: user.lastName,
-    province: user.province ?? '', city: user.city ?? '',
-    district: user.district ?? '', school: user.school ?? '',
+    province: user.province ?? [], city: user.city ?? [],
+    district: user.district ?? [], school: user.school ?? [],
     personalCode: user.personalCode ?? '',
   }),
   school_principal: (user) => ({
     role: 'school_principal', firstName: user.firstName, lastName: user.lastName,
-    province: user.province ?? '', city: user.city ?? '',
-    district: user.district ?? '', school: user.school ?? '',
+    province: user.province ?? [], city: user.city ?? [],
+    district: user.district ?? [], school: user.school ?? [],
     personalCode: user.personalCode ?? '',
   }),
   regional_edu_admin: (user) => ({
     role: 'regional_edu_admin', firstName: user.firstName, lastName: user.lastName,
-    province: user.province ?? '', city: user.city ?? '',
-    district: user.district ?? '', personalCode: user.personalCode ?? '',
+    province: user.province ?? [], city: user.city ?? [],
+    district: user.district ?? [], personalCode: user.personalCode ?? '',
   }),
   faculty_role: (user) => ({
     role: 'faculty_role', firstName: user.firstName, lastName: user.lastName,
-    province: user.province ?? '', college: user.college ?? '',
+    province: user.province ?? [], college: user.college ?? [],
   }),
   provincial_university: (user) => ({
     role: 'provincial_university', firstName: user.firstName,
-    lastName: user.lastName, province: user.province ?? '',
+    lastName: user.lastName, province: user.province ?? [],
   }),
   assistant_admin: (user) => ({
     role: 'assistant_admin', firstName: user.firstName,

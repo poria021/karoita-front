@@ -145,13 +145,17 @@ export function OnboardingApprovalsMobileList({
           const mobile = user.mobile?.trim()
             ? toPersianDigits(user.mobile.trim())
             : '---';
+          const provinceLabel =
+            user.province && user.province.length > 0
+              ? user.province.join('، ')
+              : '---';
 
           return (
             <KvAccordionItem key={user.id} value={user.id}>
               <KvAccordionTrigger>
                 <KvAccordionTriggerMeta
                   title={user.fullName}
-                  description={`${roleLabel} • ${mobile} • ${user.province || '---'}`}
+                  description={`${roleLabel} • ${mobile} • ${provinceLabel}`}
                   trailing={
                     <Badge variant={badge.variant}>{badge.label}</Badge>
                   }

@@ -37,8 +37,8 @@ describe('OnboardingApprovalsService mock — register then profile', () => {
       role: 'student',
       firstName: 'کاربر',
       lastName: 'تازه‌وارد',
-      province: 'تهران',
-      college: 'پردیس مرکزی',
+      province: ['تهران'],
+      college: ['پردیس مرکزی'],
       major: 'آموزش ابتدایی',
       studentId: '140299001',
     });

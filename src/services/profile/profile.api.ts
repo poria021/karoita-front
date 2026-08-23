@@ -6,17 +6,100 @@ import { ProfileServiceError } from './profile.mappers';
 
 /**
  * Map Nest `/auth/me` response (NestUserDto) → ProfileDto shape.
- * Fields not in Nest (province, district, school, etc.) fall back to empty.
+ *
+ * ⚠️ توجه: بک‌اند فعلاً province و university/college و major/degree را در
+ * پاسخ GET برنمی‌گرداند (فقط city/educationalDistrict/school/userUniqueId را
+ * می‌دهد). این سه فیلد همچنان با رشته خالی پر می‌شوند تا وقتی بک‌اند آن‌ها را
+ * به پاسخ اضافه کند — این محدودیت سمت فرانت قابل رفع نیست.
  */
 function nestUserToProfileDto(raw: unknown): ProfileDto {
   try {
     const user = mapNestAuthUser(raw);
-    return {
-      role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
-    } as ProfileDto;
-  } catch {
+    const base = { firstName: user.firstName, lastName: user.lastName };
+
+    switch (user.role) {
+      case 'student':
+        return {
+          role: 'student',
+          ...base,
+          province: user.province ?? [],
+          college: user.college ?? [],
+          major: user.major ?? '',
+          studentId: user.studentId ?? '',
+        };
+      case 'skill_learner':
+        return {
+          role: 'skill_learner',
+          ...base,
+          province: user.province ?? [],
+          college: user.college ?? [],
+          major: user.major ?? '',
+          skillCode: user.skillCode ?? '',
+        };
+      case 'supervisor_professor':
+        return {
+          role: 'supervisor_professor',
+          ...base,
+          province: user.province ?? [],
+          college: user.college ?? [],
+          major: user.major ?? '',
+          personalCode: user.personalCode ?? '',
+        };
+      case 'mentor_teacher':
+        return {
+          role: 'mentor_teacher',
+          ...base,
+          province: user.province ?? [],
+          city: user.city ?? [],
+          district: user.district ?? [],
+          school: user.school ?? [],
+          personalCode: user.personalCode ?? '',
+        };
+      case 'school_principal':
+        return {
+          role: 'school_principal',
+          ...base,
+          province: user.province ?? [],
+          city: user.city ?? [],
+          district: user.district ?? [],
+          school: user.school ?? [],
+          personalCode: user.personalCode ?? '',
+        };
+      case 'regional_edu_admin':
+        return {
+          role: 'regional_edu_admin',
+          ...base,
+          province: user.province ?? [],
+          city: user.city ?? [],
+          district: user.district ?? [],
+          personalCode: user.personalCode ?? '',
+        };
+      case 'faculty_role':
+        return {
+          role: 'faculty_role',
+          ...base,
+          province: user.province ?? [],
+          college: user.college ?? [],
+        };
+      case 'provincial_university':
+        return {
+          role: 'provincial_university',
+          ...base,
+          province: user.province ?? [],
+        };
+      case 'super_admin':
+      case 'central_organization':
+      case 'assistant_admin':
+        return {
+          role: user.role,
+          ...base,
+          province: user.province ?? [],
+        };
+      default:
+        throw new ProfileServiceError('پاسخ پروفایل از سرور نامعتبر است.');
+    }
+  } catch (error) {
+    if (error instanceof ProfileServiceError) throw error;
     throw new ProfileServiceError('پاسخ پروفایل از سرور نامعتبر است.');
   }
 }

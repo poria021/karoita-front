@@ -18,6 +18,7 @@ import {
   isOptionalOrganizationField,
   ORGANIZATION_LABELS,
   ROLE_FIELD_STRATEGY,
+  type OrganizationField,
 } from './profile-form-options';
 
 export interface DynamicRoleFieldsProps {
@@ -29,53 +30,84 @@ function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
 }
 
+/** این فیلدها می‌توانند بیش از یک مقدار داشته باشند (چندانتخابی با چیپ). */
+const MULTI_ORGANIZATION_FIELDS = new Set<OrganizationField>([
+  'province',
+  'city',
+  'district',
+  'college',
+  'school',
+]);
+
+function asStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : [];
+}
+
 export function DynamicRoleFields({
   role,
   disabled = false,
 }: DynamicRoleFieldsProps) {
   const form = useFormContext<ProfileSchema>();
-  const province = useWatch({ control: form.control, name: 'province' }) ?? '';
-  const district = useWatch({ control: form.control, name: 'district' }) ?? '';
+  const province = asStringArray(
+    useWatch({ control: form.control, name: 'province' })
+  );
+  const district = asStringArray(
+    useWatch({ control: form.control, name: 'district' })
+  );
   const strategy = ROLE_FIELD_STRATEGY[role];
 
   return (
     <>
       {strategy.organizationFields.map((name) => {
         const optional = isOptionalOrganizationField(role, name);
+        const isMulti = MULTI_ORGANIZATION_FIELDS.has(name);
 
         return (
           <KvFormField
             key={name}
             control={form.control}
             name={name}
-            render={({ field, fieldState }) => (
-              <KvSearchableOrganizationSelect
-                ref={field.ref}
-                type={name}
-                label={ORGANIZATION_LABELS[name]}
-                required={!optional}
-                optionalHint={optional}
-                value={typeof field.value === 'string' ? field.value : ''}
-                placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
-                locked={disabled}
-                error={fieldState.error?.message}
-                dependsOn={{
-                  province:
-                    typeof province === 'string' ? province : undefined,
-                  district:
-                    typeof district === 'string' ? district : undefined,
-                }}
-                onChange={(value) => {
-                  field.onChange(value);
-                  for (const dependent of DEPENDENCIES[name] ?? []) {
-                    form.setValue(dependent, '', {
-                      shouldDirty: true,
-                      shouldValidate: false,
-                    });
-                  }
-                }}
-              />
-            )}
+            render={({ field, fieldState }) =>
+              isMulti ? (
+                <KvSearchableOrganizationSelect
+                  ref={field.ref}
+                  multi
+                  type={name}
+                  label={ORGANIZATION_LABELS[name]}
+                  required={!optional}
+                  optionalHint={optional}
+                  value={asStringArray(field.value)}
+                  placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
+                  locked={disabled}
+                  error={fieldState.error?.message}
+                  dependsOn={{ province, district }}
+                  onChange={(next) => {
+                    field.onChange(next);
+                    for (const dependent of DEPENDENCIES[name] ?? []) {
+                      form.setValue(dependent, [], {
+                        shouldDirty: true,
+                        shouldValidate: false,
+                      });
+                    }
+                  }}
+                />
+              ) : (
+                <KvSearchableOrganizationSelect
+                  ref={field.ref}
+                  type={name}
+                  label={ORGANIZATION_LABELS[name]}
+                  required={!optional}
+                  optionalHint={optional}
+                  value={typeof field.value === 'string' ? field.value : ''}
+                  placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
+                  locked={disabled}
+                  error={fieldState.error?.message}
+                  onChange={(value) => field.onChange(value)}
+                />
+              )
+            }
           />
         );
       })}

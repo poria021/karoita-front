@@ -32,11 +32,12 @@ export interface User {
   docStatus: DocStatus;
   hasPassword?: boolean;
   adminRequestMessage?: string;
-  province?: string;
-  city?: string;
-  college?: string;
-  district?: string;
-  school?: string;
+  /** چندانتخابی — کاربر می‌تواند بیش از یک استان/شهر/دانشکده/منطقه/مدرسه داشته باشد. */
+  province?: string[];
+  city?: string[];
+  college?: string[];
+  district?: string[];
+  school?: string[];
   major?: string;
   personalCode?: string;
   studentId?: string;

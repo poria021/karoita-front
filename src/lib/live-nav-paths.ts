@@ -53,25 +53,30 @@ const LEGACY_TABBED_MODULE_PATHS: readonly string[] = [
   RouteService.karvita.internshipSelection(),
 ];
 
+/**
+ * Sidebar subset: app-shell paths from LIVE_STATIC_NAV_PATHS only.
+ *
+ * Derived from LIVE_STATIC_NAV_PATHS (single source of truth) so it can
+ * never drift out of sync — adding a new /karvita/* page automatically
+ * makes it a sidebar candidate without touching this file.
+ *
+ * Marketing and auth paths are excluded: sidebar is only rendered inside
+ * the authenticated app shell (/(app)/karvita/*).
+ */
+const LIVE_SIDEBAR_PATH_SET: ReadonlySet<string> = new Set(
+  LIVE_STATIC_NAV_PATHS.filter((p) => p.startsWith('/karvita/'))
+);
+
 export function isLiveStaticNavPath(pathname: string): boolean {
   return LIVE_STATIC_NAV_PATHS.includes(normalizePath(pathname));
 }
 
+/**
+ * True for paths that appear in the authenticated sidebar (app-shell only).
+ * Uses a Set for O(1) lookup instead of duplicating the manual path list.
+ */
 export function isLiveSidebarPath(pathname: string): boolean {
-  const path = normalizePath(pathname);
-  return (
-    path === RouteService.karvita.dashboard() ||
-    path === RouteService.karvita.adminDashboard() ||
-    path === RouteService.karvita.organizationalStructure() ||
-    path === RouteService.karvita.adminUserCreation() ||
-    path === RouteService.karvita.onboardingApprovals() ||
-    path === RouteService.karvita.landingCms() ||
-    path === RouteService.karvita.syllabusCourseOfferings() ||
-    path === RouteService.karvita.syllabusTermSettings() ||
-    path === RouteService.karvita.dailyApprovals() ||
-    path === RouteService.karvita.organizationalCapacities() ||
-    INTERNSHIP_LEVEL_PATHS.includes(path)
-  );
+  return LIVE_SIDEBAR_PATH_SET.has(normalizePath(pathname));
 }
 
 export function isKarvitaProfilePath(pathname: string): boolean {

@@ -194,9 +194,15 @@ export type NestUniversity = {
   updatedAt?: string;
 };
 
+/**
+ * پارامترهای pagination عمومی Nest Admin.
+ * `filters` یک رشته query برای جستجوی عنوان است
+ * (مطابق OpenAPI لایو: GET /admin/provinces?filters=...).
+ */
 export type NestAdminPageQuery = {
   page?: number;
   limit?: number;
+  /** جستجو بر اساس عنوان — مطابق پارامتر `filters` در OpenAPI */
   filters?: string;
 };
 
