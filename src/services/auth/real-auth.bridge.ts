@@ -3,12 +3,19 @@
  * Phone login/register/OTP/session/refresh/logout/me match backenddev OpenAPI.
  * Forgot: Nest has no verify-otp route; OTP is the reset `hash`.
  * Set-initial-password: PATCH /auth/me { password } while logged in.
+ *
+ * Admin gate از اندپوینت‌های جداگانه‌ی خود استفاده می‌کند:
+ *   POST api/v1/admin/auth/phone/login/request-otp  { phone: '9XXXXXXXXX' }
+ *   POST api/v1/admin/auth/phone/login/verify-otp   { phone: '09XXXXXXXXX', otp }
+ * پاسخ verify: AdminLoginResponseDto { token, refreshToken, tokenExpires, admin: {...} }
  */
 import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { apiClient, ApiClientError } from '@/services/api-client';
 import {
+  extractNestAdminLoginResponse,
   extractNestLoginResponse,
   extractNestRefreshTokens,
+  looksLikeNestAdminLoginResponse,
   looksLikeNestLoginResponse,
   mapNestAuthUser,
   toSessionFromNestLogin,
@@ -67,9 +74,9 @@ const FALLBACK_ROLE_IDS: Record<string, string> = {
  * POST v1/auth/refresh                      { refreshToken }     → TokensDto
  * POST v1/auth/logout                                            → void
  *
- * ─── Admin Gate (reuses phone-login OTP until Nest adds dedicated admin route) ─
- * POST v1/auth/phone/login/request-otp      { phone }            → void
- * POST v1/auth/phone/login/verify-otp       { phone, otp }       → LoginResponseDto
+ * ─── Admin Gate (اندپوینت اختصاصی ادمین — کاملاً جدا از auth عمومی) ──────────
+ * POST api/v1/admin/auth/phone/login/request-otp { phone: '9XXXXXXXXX' }      → { time, message }
+ * POST api/v1/admin/auth/phone/login/verify-otp  { phone: '09XXXXXXXXX', otp } → AdminLoginResponseDto
  */
 export const REAL_AUTH_PATHS = {
   // ── Phone password login ──
@@ -83,9 +90,9 @@ export const REAL_AUTH_PATHS = {
   // ── Forgot / Reset ──
   forgotSend: 'v1/auth/forgot/password',            // POST { phone }
   forgotReset: 'v1/auth/reset/password',            // POST { phone, otp, password, hash }
-  // ── Admin gate — shares OTP login until Nest exposes a dedicated admin route ──
-  adminOtpSend: 'v1/auth/phone/login/request-otp',  // POST { phone } (same as loginOtpSend)
-  adminOtpVerify: 'v1/auth/phone/login/verify-otp', // POST { phone, otp } (same as loginOtpVerify)
+  // ── Admin gate — کاملاً مسیر جداگانه، فرمت phone هم متفاوت است ────────────────
+  adminOtpSend:   'v1/admin/auth/phone/login/request-otp', // POST { phone: '9XXXXXXXXX' } — بدون پیشوند ۰
+  adminOtpVerify: 'v1/admin/auth/phone/login/verify-otp',  // POST { phone: '09XXXXXXXXX', otp }
   // ── Session management ──
   logout: 'v1/auth/logout',  // POST
   session: 'v1/auth/me',     // GET
@@ -113,28 +120,37 @@ function guard(surface: string): void {
 }
 
 /**
- * Normalise FE `mobile` (10-digit `9XXXXXXXXX`, without leading zero) to the
- * Nest-expected 11-digit `09XXXXXXXXX` format.
- *
- * Schema stores numbers WITHOUT a leading `0`; Nest validators require it.
- * Example: `9123456789` → `09123456789`.
+ * Normalise FE `mobile` (10-digit `9XXXXXXXXX`) to Nest-expected `09XXXXXXXXX`.
+ * Used for all public auth endpoints.
  */
 function toPhoneBody(mobile: string): { phone: string } {
   const digits = mobile.replace(/\D/g, '');
-
   let phone: string;
   if (digits.length === 10 && digits.startsWith('9')) {
-    // FE canonical form — prepend leading zero for Nest.
     phone = `0${digits}`;
   } else if (digits.length === 11 && digits.startsWith('09')) {
-    // Already in Nest format (e.g. pre-filled from remembered mobile).
     phone = digits;
   } else {
-    // Unexpected input — pass through and let Nest validate.
     phone = digits;
   }
-
   return { phone };
+}
+
+/**
+ * Admin request-otp بدون پیشوند ۰ می‌خواهد: '9XXXXXXXXX'
+ * Admin verify-otp  با پیشوند ۰ می‌خواهد:   '09XXXXXXXXX'
+ *
+ * دیده‌شده در Swagger: request-otp با "9386951413" پذیرفته می‌شود،
+ * verify-otp با "09386951413" پذیرفته می‌شود.
+ */
+function toAdminOtpSendBody(mobile: string): { phone: string } {
+  const digits = mobile.replace(/\D/g, '');
+  // اگر ۱۱ رقمی با 09 → پیشوند ۰ را حذف کن
+  if (digits.length === 11 && digits.startsWith('09')) {
+    return { phone: digits.slice(1) };
+  }
+  // ۱۰ رقمی (فرمت کانونیک FE که با 9 شروع می‌شود) → مستقیم بفرست
+  return { phone: digits };
 }
 
 async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
@@ -153,36 +169,22 @@ async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
       for (const entry of list) {
         if (!entry || typeof entry !== 'object') continue;
         const record = entry as Record<string, unknown>;
-        if (typeof record.id !== 'string' && typeof record.id !== 'number') {
-          continue;
-        }
+        if (typeof record.id !== 'string' && typeof record.id !== 'number') continue;
         const label = nestRoleLabel(record);
         if (!label) continue;
-        roles.push({
-          id: String(record.id),
-          name: label as NestRoleDto['name'],
-        });
+        roles.push({ id: String(record.id), name: label as NestRoleDto['name'] });
       }
-
-      if (roles.length > 0) {
-        return pickNestRoleDto(roles, role);
-      }
+      if (roles.length > 0) return pickNestRoleDto(roles, role);
     }
   } catch (error) {
-    console.warn(
-      '⚠️ دریافت لیست نقش‌ها از سرور با خطا مواجه شد، استفاده از مقدار پیش‌فرض...',
-      error
-    );
+    console.warn('⚠️ دریافت لیست نقش‌ها از سرور با خطا مواجه شد، استفاده از مقدار پیش‌فرض...', error);
   }
 
-  // Fallback مقاوم در صورت خطای اندپوینت roles
   const fallbackId = FALLBACK_ROLE_IDS[role] ?? '1';
-  return {
-    id: fallbackId,
-    name: role as NestRoleDto['name'],
-  };
+  return { id: fallbackId, name: role as NestRoleDto['name'] };
 }
 
+/** ذخیره توکن‌ها + dispatch session برای LoginResponseDto عمومی { token, ..., user } */
 function applyNestLoginResponse(raw: unknown, fallbackMobile?: string): User {
   const parsed = extractNestLoginResponse(raw, fallbackMobile);
   writeRealAuthTokens(parsed.tokens);
@@ -193,6 +195,20 @@ function applyNestLoginResponse(raw: unknown, fallbackMobile?: string): User {
   });
   return parsed.user;
 }
+
+/** ذخیره توکن‌ها + dispatch session برای AdminLoginResponseDto { token, ..., admin } */
+function applyNestAdminLoginResponse(raw: unknown, fallbackMobile?: string): User {
+  const parsed = extractNestAdminLoginResponse(raw, fallbackMobile);
+  writeRealAuthTokens(parsed.tokens);
+  dispatchSessionToStore({
+    user: parsed.user,
+    token: parsed.tokens.token,
+    expiresAt: parsed.expiresAt,
+  });
+  return parsed.user;
+}
+
+// ─── Public auth ──────────────────────────────────────────────────────────────
 
 export async function realLoginWithCredentials(
   mobile: string,
@@ -211,10 +227,7 @@ export async function realSendLoginOtp(mobile: string): Promise<void> {
   await apiClient.postJson(REAL_AUTH_PATHS.loginOtpSend, toPhoneBody(mobile));
 }
 
-export async function realVerifyLoginOtp(
-  mobile: string,
-  otp: string
-): Promise<User> {
+export async function realVerifyLoginOtp(mobile: string, otp: string): Promise<User> {
   guard('real-auth.bridge.loginOtpVerify');
   const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.loginOtpVerify, {
     ...toPhoneBody(mobile),
@@ -223,26 +236,18 @@ export async function realVerifyLoginOtp(
   return applyNestLoginResponse(raw, mobile);
 }
 
-export async function realRegister(
-  mobile: string,
-  role: UserRole
-): Promise<void> {
+export async function realRegister(mobile: string, role: UserRole): Promise<void> {
   guard('real-auth.bridge.register');
   const nestRole = await resolveNestRoleDto(role);
   await apiClient.postJson(REAL_AUTH_PATHS.register, {
     ...toPhoneBody(mobile),
-    role: { id: nestRole.id, name: nestRole.name},
+    role: { id: nestRole.id, name: nestRole.name },
   });
 }
 
 /**
  * POST v1/auth/phone/register/verify-otp { phone, otp }
- *
- * Nest AuthConfirmPhoneDto is only `{ phone, otp }` — role was already sent on
- * request-otp. `role` stays on the Facade signature for mock + post-verify UX.
- *
- * Success: Nest returns LoginResponseDto `{ token, refreshToken, tokenExpires, user }`.
- * Edge case: 201 with empty body → we re-fetch session instead of throwing.
+ * Success: Nest returns LoginResponseDto. Edge case: 201 empty body → re-fetch session.
  */
 export async function realVerifyRegistrationOtp(
   mobile: string,
@@ -257,64 +262,35 @@ export async function realVerifyRegistrationOtp(
     { ...toPhoneBody(mobile), otp }
   );
 
-  // Happy path — Nest returned a full LoginResponseDto.
   if (raw && looksLikeNestLoginResponse(raw)) {
     return applyNestLoginResponse(raw, mobile);
   }
 
-  // Edge-case: Nest returned 201 with no body (register-then-redirect design).
-  // Try to read the session from GET /auth/me using any token already stored.
   const accessToken = readRealAccessToken();
   if (accessToken) {
     const session = await realFetchSession(mobile);
     if (session) return session.user;
   }
 
-  // Hard fail — ask the backend team to return LoginResponseDto.
   throw new ApiClientError(
     'پاسخ تایید ثبت‌نام فاقد نشست/توکن است. از همکار بک‌اند بخواهید LoginResponseDto برگردانند.'
   );
 }
 
-/**
- * POST v1/auth/forgot/password { phone }
- *
- * Sends an OTP (or reset hash) to the phone number for password recovery.
- */
 export async function realSendForgotPasswordOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.forgotSend');
   await apiClient.postJson(REAL_AUTH_PATHS.forgotSend, toPhoneBody(mobile));
 }
 
-/**
- * Client-side gate before the reset step.
- *
- * Nest OpenAPI (backenddev.darkube.ir/docs) has NO dedicated forgot-verify route:
- * the OTP / hash is consumed directly on POST v1/auth/reset/password.
- * This function is therefore a client-side validation only — it checks that the
- * code is at least 4 digits before allowing the user to proceed to Step 3.
- *
- * If the backend later adds a verify endpoint, replace this with an apiClient call.
- */
-export async function realVerifyForgotPasswordOtp(
-  mobile: string,
-  otp: string
-): Promise<void> {
+export async function realVerifyForgotPasswordOtp(mobile: string, otp: string): Promise<void> {
   guard('real-auth.bridge.forgotVerify');
   const { phone } = toPhoneBody(mobile);
   const digits = otp.replace(/\D/g, '');
   if (!phone || digits.length < 4) {
     throw new ApiClientError('کد تایید بازیابی نامعتبر است.');
   }
-  // No API call — OTP/hash will be verified server-side on POST /reset/password.
 }
 
-/**
- * POST v1/auth/reset/password { phone, otp, password, hash }
- *
- * Resets the user’s password. The backend accepts the OTP both as `otp` and as
- * `hash` (Nest AuthResetPasswordDto) — we send both to maximise compatibility.
- */
 export async function realResetPassword(
   mobile: string,
   otp: string,
@@ -324,44 +300,51 @@ export async function realResetPassword(
   await apiClient.postJson(REAL_AUTH_PATHS.forgotReset, {
     ...toPhoneBody(mobile),
     otp,
-    hash: otp,      // Nest AuthResetPasswordDto uses `hash` as the OTP/token field.
+    hash: otp,
     password: newPassword,
   });
 }
 
-export async function realSetInitialPassword(
-  mobile: string,
-  newPassword: string
-): Promise<void> {
+export async function realSetInitialPassword(mobile: string, newPassword: string): Promise<void> {
   guard('real-auth.bridge.initialPassword');
   void mobile;
   await apiClient.patchJson(REAL_AUTH_PATHS.updateMe, { password: newPassword });
 }
 
+// ─── Admin gate ───────────────────────────────────────────────────────────────
+
+/**
+ * POST api/v1/admin/auth/phone/login/request-otp
+ * phone بدون پیشوند ۰: '9XXXXXXXXX'
+ * پاسخ: { time: 60, message: '<OTP>' }
+ */
 export async function realSendAdminGateOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.adminOtpSend');
-  // Uses the dedicated adminOtpSend path (currently same as loginOtpSend).
-  // When Nest exposes a separate admin route, update REAL_AUTH_PATHS.adminOtpSend.
-  await apiClient.postJson(REAL_AUTH_PATHS.adminOtpSend, toPhoneBody(mobile));
+  await apiClient.postJson(REAL_AUTH_PATHS.adminOtpSend, toAdminOtpSendBody(mobile));
 }
 
-export async function realVerifyAdminGateOtp(
-  mobile: string,
-  otp: string
-): Promise<User> {
+/**
+ * POST api/v1/admin/auth/phone/login/verify-otp
+ * phone با پیشوند ۰: '09XXXXXXXXX'
+ * پاسخ: AdminLoginResponseDto { token, refreshToken, tokenExpires, admin: { id, fname, lname, phone, role, status } }
+ */
+export async function realVerifyAdminGateOtp(mobile: string, otp: string): Promise<User> {
   guard('real-auth.bridge.adminOtpVerify');
-  // Uses the dedicated adminOtpVerify path (currently same as loginOtpVerify).
-  // When Nest exposes a separate admin route, update REAL_AUTH_PATHS.adminOtpVerify.
   const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.adminOtpVerify, {
-    ...toPhoneBody(mobile),
+    ...toPhoneBody(mobile), // verify با پیشوند ۰
     otp,
   });
+  // پاسخ Admin API: { token, ..., admin: { fname, lname, ... } }
+  if (looksLikeNestAdminLoginResponse(raw)) {
+    return applyNestAdminLoginResponse(raw, mobile);
+  }
+  // fallback برای سازگاری با نسخه‌های احتمالی که user برگردانند
   return applyNestLoginResponse(raw, mobile);
 }
 
-export async function realRefreshToken(
-  refreshToken: string
-): Promise<Session | null> {
+// ─── Session & refresh ────────────────────────────────────────────────────────
+
+export async function realRefreshToken(refreshToken: string): Promise<Session | null> {
   guard('real-auth.bridge.refresh');
   if (!refreshToken) return null;
 
@@ -383,15 +366,9 @@ export async function realRefreshToken(
     const existingUser = useUserStore.getState().activeUser;
     const expiresAt = new Date(tokens.tokenExpires).toISOString();
 
-    if (!existingUser) {
-      return realFetchSession(existingMobile);
-    }
+    if (!existingUser) return realFetchSession(existingMobile);
 
-    const session = {
-      user: existingUser,
-      token: tokens.token,
-      expiresAt,
-    };
+    const session = { user: existingUser, token: tokens.token, expiresAt };
     dispatchSessionToStore(session);
     return session;
   } catch (error) {
@@ -415,11 +392,7 @@ export async function realUpdateMe(
   token?: string
 ): Promise<User> {
   guard('real-auth.bridge.updateMe');
-  const raw = await apiClient.patchJson<unknown>(
-    REAL_AUTH_PATHS.updateMe,
-    body,
-    token
-  );
+  const raw = await apiClient.patchJson<unknown>(REAL_AUTH_PATHS.updateMe, body, token);
   return mapNestAuthUser(raw, useUserStore.getState().activeUser?.mobile);
 }
 
@@ -438,12 +411,9 @@ export async function realSignOut(): Promise<void> {
   }
 }
 
-export async function realFetchSession(
-  fallbackMobile?: string
-): Promise<Session | null> {
+export async function realFetchSession(fallbackMobile?: string): Promise<Session | null> {
   guard('real-auth.bridge.session');
-  const mobileFallback =
-    fallbackMobile ?? useUserStore.getState().activeUser?.mobile;
+  const mobileFallback = fallbackMobile ?? useUserStore.getState().activeUser?.mobile;
   let accessToken = readRealAccessToken();
   if (!accessToken) {
     const refreshToken = readRealRefreshToken();
@@ -454,19 +424,12 @@ export async function realFetchSession(
   }
 
   try {
-    const raw = await apiClient.getJson<unknown>(
-      REAL_AUTH_PATHS.session,
-      accessToken
-    );
-    // GET /auth/me returns User directly (not LoginResponseDto).
+    const raw = await apiClient.getJson<unknown>(REAL_AUTH_PATHS.session, accessToken);
     if (looksLikeNestLoginResponse(raw)) {
       return toSessionFromNestLogin(raw, mobileFallback);
     }
     const payload =
-      raw &&
-      typeof raw === 'object' &&
-      'data' in raw &&
-      (raw as { data: unknown }).data
+      raw && typeof raw === 'object' && 'data' in raw && (raw as { data: unknown }).data
         ? (raw as { data: unknown }).data
         : raw;
     const user = mapNestAuthUser(payload, mobileFallback);
@@ -474,8 +437,7 @@ export async function realFetchSession(
       user,
       token: accessToken,
       expiresAt:
-        readRealTokenExpiresAt() ??
-        new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+        readRealTokenExpiresAt() ?? new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
     };
   } catch (error) {
     if (error instanceof ApiClientError && error.status === 401) {

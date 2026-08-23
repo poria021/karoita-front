@@ -17,6 +17,7 @@ export type NestRoleName =
   // ── Admin / management (assigned by Nest, not self-registerable) ──
   | 'manager'      // مدیر دانشکده
   | 'admin'        // معاون ادمین
+  | 'superadmin'  // سوپر ادمین (پاسخ Admin API)
   // ── Higher-level roles (returned by Nest on GET /auth/me) ──
   | 'regional_admin'   // مدیر آموزش استانی / منطقه‌ای
   | 'provincial_admin' // مسئول دانشگاه استانی
@@ -84,7 +85,8 @@ const NEST_NAME_TO_FE_ROLE: Record<NestRoleName, UserRole> = {
   school_admin: 'school_principal',
   // Admin / management
   manager: 'faculty_role',
-  admin: 'assistant_admin',
+  admin: 'super_admin',
+  superadmin: 'super_admin',
   // Higher-level (assigned by Nest)
   regional_admin: 'regional_edu_admin',
   provincial_admin: 'provincial_university',

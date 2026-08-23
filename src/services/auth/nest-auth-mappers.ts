@@ -158,3 +158,83 @@ export function looksLikeNestLoginResponse(raw: unknown): boolean {
   const data = isRecord(raw.data) ? raw.data : raw;
   return typeof data.token === 'string' && isRecord(data.user);
 }
+
+/**
+ * True when payload looks like Admin LoginResponseDto
+ * { token, refreshToken, tokenExpires, admin: { id, fname, lname, phone, role, ... } }
+ */
+export function looksLikeNestAdminLoginResponse(raw: unknown): boolean {
+  if (!isRecord(raw)) return false;
+  const data = isRecord(raw.data) ? raw.data : raw;
+  return typeof data.token === 'string' && isRecord(data.admin);
+}
+
+/**
+ * Maps Admin response `{ id, fname, lname, phone, role, status }` → FE `User`.
+ * Admin API uses fname/lname instead of firstName/lastName,
+ * and role is a plain string (e.g. 'admin') not a RoleDto object.
+ */
+export function mapNestAdminUser(raw: unknown, fallbackMobile?: string): User {
+  if (!isRecord(raw) || typeof raw.id !== 'string') {
+    throw new ApiClientError('پاسخ ادمین نامعتبر است.');
+  }
+
+  const mobile = readPhone(raw, fallbackMobile);
+
+  // role در پاسخ ادمین یک string ساده است: 'admin' | 'superadmin'
+  let role: User['role'] = 'super_admin';
+  if (typeof raw.role === 'string') {
+    role = fromNestRoleName(raw.role);
+  }
+
+  // status.name: 'active' → approved
+  const isActive =
+    isRecord(raw.status) && raw.status.name === 'active';
+
+  return {
+    id: raw.id,
+    mobile,
+    role,
+    firstName: typeof raw.fname === 'string' ? raw.fname : '',
+    lastName:  typeof raw.lname === 'string' ? raw.lname : '',
+    approved: isActive,
+    docStatus: isActive ? 'approved' : 'not_submitted',
+    hasPassword: true,
+  };
+}
+
+/**
+ * Extracts tokens + admin user from Admin LoginResponseDto:
+ * { token, refreshToken, tokenExpires, admin: { ... } }
+ */
+export function extractNestAdminLoginResponse(
+  raw: unknown,
+  fallbackMobile?: string
+): {
+  tokens: NestLoginTokens;
+  user: User;
+  expiresAt: string;
+} {
+  const data = unwrapData(raw);
+  const token = data.token;
+  const refreshToken = data.refreshToken;
+  const tokenExpires = data.tokenExpires;
+
+  if (
+    typeof token !== 'string' ||
+    !token ||
+    typeof refreshToken !== 'string' ||
+    typeof tokenExpires !== 'number'
+  ) {
+    throw new ApiClientError('پاسخ ورود ادمین فاقد توکن معتبر است.');
+  }
+
+  const user = mapNestAdminUser(data.admin, fallbackMobile);
+  const expiresAt = new Date(tokenExpires).toISOString();
+
+  return {
+    tokens: { token, refreshToken, tokenExpires },
+    user,
+    expiresAt,
+  };
+}

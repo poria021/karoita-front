@@ -105,7 +105,7 @@ let browserClient: ReturnType<typeof ky.create> | null = null;
 let browserClientPrefix: string | null = null;
 
 const AUTH_BOOTSTRAP_PATH =
-  /\/v1\/auth\/(refresh|logout|phone\/login|phone\/register|forgot|reset)(?:\/|$|\?)/;
+  /(\/v1\/auth\/(refresh|logout|phone\/login|phone\/register|forgot|reset)|\/admin\/auth\/)(?:\/|$|\?)/;
 
 function shouldSkipTokenRefresh(url: string): boolean {
   return AUTH_BOOTSTRAP_PATH.test(url);

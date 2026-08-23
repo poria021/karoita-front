@@ -53,11 +53,6 @@ import {
   readRealRefreshToken,
   readRealTokenExpiresAt,
 } from '@/services/auth/real-auth.tokens';
-import {
-  devAdminGateBypassLogin,
-  isDevAdminGateBypassEnabled,
-} from '@/services/auth/dev-admin-gate-bypass';
-
 
 export interface RegisterPayload {
   mobile: string;
@@ -110,25 +105,19 @@ export class AuthService {
     return realVerifyLoginOtp(mobile, otp);
   }
 
-  /** POST /auth/admin/otp/send — dev bypass (see dev-admin-gate-bypass.ts) skips this call */
+  /** POST /auth/admin/otp/send */
   static async sendAdminGateOtp(mobile: string): Promise<void> {
     if (IS_MOCK_MODE) {
       mockSendAdminGateOtp(mobile);
       return;
     }
-    if (isDevAdminGateBypassEnabled()) {
-      return;
-    }
     return realSendAdminGateOtp(mobile);
   }
 
-  /** POST /auth/admin/otp/verify — dev bypass (see dev-admin-gate-bypass.ts) fabricates the session */
+  /** POST /auth/admin/otp/verify */
   static async verifyAdminGateOtp(mobile: string, otp: string): Promise<User> {
     if (IS_MOCK_MODE) {
       return mockVerifyAdminGateOtp(mobile, otp);
-    }
-    if (isDevAdminGateBypassEnabled()) {
-      return devAdminGateBypassLogin(mobile);
     }
     rejectMockOtpInReal(otp);
     return realVerifyAdminGateOtp(mobile, otp);
