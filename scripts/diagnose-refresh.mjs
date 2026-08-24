@@ -201,7 +201,6 @@ async function main() {
 
   const log = [];
   let round = 0;
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     round += 1;
     console.log(`\n\n========== دور ${round} — ${nowStamp()} ==========`);

@@ -18,7 +18,6 @@ import {
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
   REAL_ACCESS_COOKIE_NAME,
-  REAL_ACCESS_COOKIE_OPTIONS,
 } from '@/lib/real-auth-cookie';
 
 const NEST_API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
@@ -78,7 +77,7 @@ export async function POST(request: NextRequest) {
     if (process.env.NODE_ENV !== 'production') {
       console.log('[/api/auth/refresh] ← Nest:', nestResponse.status);
     }
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: 'ارتباط با سرویس احراز هویت برقرار نشد.' },
       { status: 502 }

@@ -99,6 +99,17 @@ export function useDailyApprovalWeekGradingModal({
     setPrincipalFeedback(initial.principalFeedback);
   }, [week]);
 
+  // هر بار trainee/week عوض بشه (نه فقط موقع باز شدن مودال) فرم رو ریست کن —
+  // طبق الگوی رسمی React این کار مستقیم حین رندر انجام می‌شه، نه با
+  // useEffect (که یک رندر اضافه/cascading render ایجاد می‌کرد):
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const weekIdentity = trainee && week ? `${trainee.id}:${week.weekNumber}` : null;
+  const [prevWeekIdentity, setPrevWeekIdentity] = useState(weekIdentity);
+  if (weekIdentity !== prevWeekIdentity) {
+    setPrevWeekIdentity(weekIdentity);
+    resetForm();
+  }
+
   const dropped = trainee?.status === 'dropped';
   const disabled = dropped || actionBusy;
   const mentorFeedbackEmpty = mentorFeedback.trim() === '';

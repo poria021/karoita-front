@@ -17,7 +17,6 @@ import {
 import {
   clearRealAuthTokens,
   readRealAccessToken,
-  readRealRefreshToken,
   readRealTokenExpiresAt,
   writeRealAuthTokens,
 } from '@/services/auth/real-auth.tokens';

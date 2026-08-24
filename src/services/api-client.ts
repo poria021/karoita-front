@@ -8,7 +8,7 @@
 import ky, { type Options as KyOptions } from 'ky';
 
 import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
-import { mapHttpError } from '@/services/api-error';
+import { ApiClientError, mapHttpError } from '@/services/api-error';
 import {
   bearerHeaders,
   handleUnauthorized,
@@ -34,7 +34,6 @@ let browserClientPrefix: string | null = null;
  */
 function resolveClientPrefix(): string {
   if (!API_URL) {
-    const { ApiClientError } = require('@/services/api-error') as typeof import('@/services/api-error');
     throw new ApiClientError('آدرس سرویس API پیکربندی نشده است.');
   }
   if (typeof window === 'undefined') return API_URL;

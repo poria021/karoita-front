@@ -152,12 +152,14 @@ export const KvSearchableOrganizationSelect = forwardRef<
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
 
-  // در single-mode وقتی مقدار بیرونی عوض می‌شود input را sync کن
-  useEffect(() => {
-    if (!isMulti) {
-      setQuery((props as SingleSelectProps).value ?? '');
-    }
-  }, [isMulti, props]);
+  // در single-mode وقتی مقدار بیرونی عوض می‌شود input را sync کن — به‌جای useEffect (که باعث یک رندر اضافه و cascading render می‌شد)، طبق الگوی رسمی React مستقیم حین رندر state رو تنظیم می‌کنیم:
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const singleValue = !isMulti ? (props as SingleSelectProps).value : undefined;
+  const [prevSingleValue, setPrevSingleValue] = useState(singleValue);
+  if (!isMulti && singleValue !== prevSingleValue) {
+    setPrevSingleValue(singleValue);
+    setQuery(singleValue ?? '');
+  }
 
   // بستن dropdown وقتی خارج از کامپوننت کلیک می‌شود
   useEffect(() => {
