@@ -15,23 +15,6 @@ import type {
  */
 export const FilesService = {
   /**
-   * presigned read URL برای نمایش preview تصویر آپلودشده.
-   *
-   * جریان: `user.docUrl` (یعنی `photo.path` از Nest) رو نگه‌دار، سپس این تابع رو صدا بزن
-   * تا URL معتبر برای نمایش در `<img src>` بگیری.
-   *
-   * باید `photo.id` رو بدانی — نه مسیر (path). اگر فقط `path` داری،
-   * باید `user.docType` (یعنی `photo.id`) هم ذخیره بشه در mapper.
-   */
-  async getDocPreviewUrl(
-    fileId: string,
-    token?: string
-  ): Promise<string> {
-    requireNestTransport('FilesService.getDocPreviewUrl');
-    return filesApi.getReadUrl(fileId, token);
-  },
-
-  /**
    * درخواست presigned URL بدون آپلود واقعی فایل — در صورت نیاز به مرحله‌ها به‌صورت جداگانه استفاده کن.
    */
   async requestUpload(
