@@ -1,6 +1,11 @@
 /**
  * Fails if product TS/TSX under src/ contains hardcoded #hex / rgb() / hsl().
  * Allowed: CSS token file (globals.css), third-party brand icons.
+ * Line-level suppression: append `// eslint-disable-line no-restricted-syntax`
+ * (or `// eslint-disable-next-line no-restricted-syntax` on the prior line) to
+ * a genuine non-color false positive — the same comment already used to
+ * suppress the mirrored ESLint `no-restricted-syntax` rule, so one comment
+ * silences both checks consistently.
  *
  * Run: node scripts/check-hardcoded-colors.mjs
  */
@@ -15,6 +20,7 @@ const ALLOW_FILES = new Set([
 
 const COLOR_RE =
   /#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\b|\b(?:rgb|rgba|hsl|hsla)\s*\(/i;
+const SUPPRESS_RE = /eslint-disable(?:-next)?-line\s+no-restricted-syntax/;
 
 function walk(dir, out = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -43,9 +49,10 @@ for (const file of files) {
     if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) {
       return;
     }
-    if (COLOR_RE.test(line)) {
-      violations.push(`${rel}:${index + 1}: ${trimmed.slice(0, 120)}`);
-    }
+    if (!COLOR_RE.test(line)) return;
+    if (SUPPRESS_RE.test(line)) return;
+    if (index > 0 && SUPPRESS_RE.test(lines[index - 1])) return;
+    violations.push(`${rel}:${index + 1}: ${trimmed.slice(0, 120)}`);
   });
 }
 

@@ -273,11 +273,17 @@ describe('resolveRoleLabel', () => {
   });
 
   it('falls back to a short id-based label when title is missing', () => {
-    expect(resolveRoleLabel({ id: 'abcdef123456' })).toBe('نقش #123456');
+    expect(resolveRoleLabel({ id: 'abcdef123456' })).toBe(
+      // Not a color — id-based label built by resolveRoleLabel(), see real-org-mappers.ts
+      // eslint-disable-next-line no-restricted-syntax
+      'نقش #123456'
+    );
   });
 
   it('falls back when title is blank/whitespace-only', () => {
     expect(resolveRoleLabel({ id: 'abcdef123456', title: '   ' })).toBe(
+      // Not a color — id-based label built by resolveRoleLabel(), see real-org-mappers.ts
+      // eslint-disable-next-line no-restricted-syntax
       'نقش #123456'
     );
   });
