@@ -79,10 +79,12 @@ export function UserAccountMenu({
     setIsLoggingOut(true);
     setLogoutError(null);
     try {
-      await AuthService.logout();
       setIsLogoutDialogOpen(false);
       setAccountMenuOwner(null);
       onNavigate?.();
+      // اول store/cookie رو پاک کن، بعد navigate — در غیر این صورت
+      // store در حین soft-navigation خالی می‌شه و داشبورد flash می‌کنه
+      await AuthService.logout();
       router.replace(RouteService.marketing.home());
     } catch {
       setLogoutError('خروج با خطا مواجه شد. لطفاً دوباره تلاش کنید.');
