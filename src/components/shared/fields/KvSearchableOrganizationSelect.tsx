@@ -150,11 +150,13 @@ export const KvSearchableOrganizationSelect = forwardRef<
   const listRef = useRef<HTMLDivElement>(null);
   const edgeScroll = useEdgeAutoScroll<HTMLDivElement>();
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
 
   // در single-mode وقتی مقدار بیرونی عوض می‌شود input را sync کن — به‌جای useEffect (که باعث یک رندر اضافه و cascading render می‌شد)، طبق الگوی رسمی React مستقیم حین رندر state رو تنظیم می‌کنیم:
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   const singleValue = !isMulti ? (props as SingleSelectProps).value : undefined;
+  // query با مقدار اولیه singleValue مقداردهی می‌شه تا single-select (مثل رشته تحصیلی)
+  // بلافاصله پس از mount مقدار خود را نشان بده — نه بعد از اولین تغییر.
+  const [query, setQuery] = useState(singleValue ?? '');
   const [prevSingleValue, setPrevSingleValue] = useState(singleValue);
   if (!isMulti && singleValue !== prevSingleValue) {
     setPrevSingleValue(singleValue);

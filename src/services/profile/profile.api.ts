@@ -1,16 +1,17 @@
 import { ApiClientError, apiClient } from '@/services/api-client';
 import { mapNestAuthUser } from '@/services/auth/nest-auth-mappers';
+import { usersApi } from '@/services/users/users.api';
+import { useUserStore } from '@/store/useUserStore';
 import type { ProfileDto } from '@/types/profile';
 
+import { buildNestUpdateUserBody } from './profile-real-payload';
 import { ProfileServiceError } from './profile.mappers';
 
 /**
  * Map Nest `/auth/me` response (NestUserDto) → ProfileDto shape.
  *
- * ⚠️ توجه: بک‌اند فعلاً province و university/college و major/degree را در
- * پاسخ GET برنمی‌گرداند (فقط city/educationalDistrict/school/userUniqueId را
- * می‌دهد). این سه فیلد همچنان با رشته خالی پر می‌شوند تا وقتی بک‌اند آن‌ها را
- * به پاسخ اضافه کند — این محدودیت سمت فرانت قابل رفع نیست.
+ * بک‌اند province، university، degree را به‌صورت آرایه‌ای از {_id, title} برمی‌گرداند.
+ * mapNestAuthUser → readOrgArray این فرمت را handle می‌کند.
  */
 function nestUserToProfileDto(raw: unknown): ProfileDto {
   try {
@@ -106,13 +107,17 @@ function nestUserToProfileDto(raw: unknown): ProfileDto {
 
 /**
  * Nest profile transport — used by ProfileService when API_MODE=real.
- * GET  → /api/v1/auth/me   (returns NestUserDto)
- * PATCH → /api/v1/auth/me  (AuthUpdateDto → NestUserDto)
+ * GET   → /api/v1/auth/me    (returns NestUserDto)
+ * PATCH → /api/v1/users/{id} (NestUpdateUserDto → NestUserDto) — see the
+ *         comment inside the PUT branch below for why /api/v1/auth/me
+ *         cannot be used for the org fields.
  */
 export async function requestProfile(
   method: 'GET' | 'PUT',
   token?: string,
-  data?: ProfileDto
+  data?: ProfileDto,
+  /** شناسهٔ فایل عکس بعد از آپلود به S3 — به NestUpdateUserDto.photo اضافه می‌شه. */
+  photoFileId?: string
 ): Promise<unknown> {
   if (!apiClient.isConfigured) {
     throw new ProfileServiceError('آدرس سرویس پروفایل پیکربندی نشده است.');
@@ -123,11 +128,32 @@ export async function requestProfile(
       const raw = await apiClient.getJson<unknown>('v1/auth/me', token);
       return nestUserToProfileDto(raw);
     }
-    // PATCH /api/v1/auth/me — map ProfileDto fields to AuthUpdateDto
-    const body: Record<string, unknown> = {};
-    if (data?.firstName) body.firstName = data.firstName;
-    if (data?.lastName) body.lastName = data.lastName;
-    const raw = await apiClient.patchJson<unknown>('v1/auth/me', body, token);
+
+    if (!data) {
+      throw new ProfileServiceError('اطلاعات پروفایل برای ذخیره ارسال نشده است.');
+    }
+
+    const activeUser = useUserStore.getState().activeUser;
+    if (!activeUser) {
+      throw new ProfileServiceError('نشست کاربری یافت نشد. لطفاً دوباره وارد شوید.', 401);
+    }
+
+    // ⚠️ PATCH /api/v1/auth/me (`NestAuthUpdateDto`) فقط firstName/lastName/
+    // email/password/photo را می‌پذیرد — فیلدهای سازمانی (استان، دانشکده،
+    // رشته، کد دانشجویی/مهارتی/پرسنلی، شهر، منطقه، مدرسه) در آن DTO تعریف
+    // نشده‌اند و بی‌صدا نادیده گرفته می‌شوند؛ این دقیقاً همان چیزی بود که
+    // باعث می‌شد بعد از logout/login مقادیر فرم گم شوند.
+    //
+    // تنها DTOیی که این فیلدها را می‌پذیرد `NestUpdateUserDto` است که با
+    // PATCH /api/v1/users/{id} کار می‌کند — همان مسیری که ادمین برای ایجاد
+    // حساب سازمانی استفاده می‌کند (بنگرید admin-user-creation.service.ts).
+    // این‌جا همان endpoint را برای «ذخیره‌ی پروفایل توسط خود کاربر» صدا
+    // می‌زنیم و شناسه‌ی کاربر را از session جاری می‌گیریم.
+    //
+    // نیاز به تست روی بک‌اند واقعی: مشخص نیست کاربر غیرادمین اجازه‌ی PATCH
+    // روی رکورد خودش را از این endpoint دارد یا نه (۴۰۳ ممکن است برگردد).
+    const body = await buildNestUpdateUserBody(data, activeUser.docStatus, photoFileId);
+    const raw = await usersApi.update(activeUser.id, body, token);
     return nestUserToProfileDto(raw);
   } catch (error) {
     if (error instanceof ApiClientError) {

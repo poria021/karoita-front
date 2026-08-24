@@ -9,6 +9,7 @@ import { RouteService } from '@/services/route.service';
 import { buildLoginHref } from '@/lib/return-url';
 import { useUserStore } from '@/store/useUserStore';
 import { isMockApiMode } from '@/lib/api-mode';
+import { tryRestoreMockSession } from '@/services/auth/mock-auth.store';
 
 type BootState = 'pending' | 'authenticated' | 'unauthenticated';
 
@@ -25,10 +26,17 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
     booted.current = true;
 
     async function tryRestoreSession() {
-      // ─── Mock mode: فقط store/cookie چک می‌شود، هیچ refresh network نداریم ───
+      // ─── Mock mode: store/cookie چک می‌شود، هیچ refresh network نداریم ───
       if (isMockApiMode()) {
-        const valid = AuthService.validateSession();
-        setBoot(valid ? 'authenticated' : 'unauthenticated');
+        // اول store رو چک کنیم (sessionStorage همون تب)
+        const quick = AuthService.validateSession();
+        if (quick) {
+          setBoot('authenticated');
+          return;
+        }
+        // اگر sessionStorage خالی بود ولی cookie داریم، کاربر رو از localStorage بازسازی کنیم
+        const restored = tryRestoreMockSession();
+        setBoot(restored ? 'authenticated' : 'unauthenticated');
         return;
       }
 

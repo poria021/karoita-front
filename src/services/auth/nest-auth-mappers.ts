@@ -63,25 +63,53 @@ function asOptionalString(value: unknown): string | undefined {
  * و یک شناسه‌ی عمومی userUniqueId که بسته به نقش کاربر روی یکی از
  * studentId / skillCode / personalCode فرانت مپ می‌شود.
  *
- * ⚠️ توجه: در پاسخ فعلی بک‌اند، فیلدهای province و university/college و
- * major/degree اصلاً برگردانده نمی‌شوند (با اینکه در NestUpdateUserDto برای
- * PATCH به‌صورت provinceId/universityId/degreeId پذیرفته می‌شوند). تا وقتی
- * بک‌اند این فیلدها را به پاسخ GET اضافه نکند، این سه مقدار همچنان خالی
- * می‌مانند — این محدودیت سمت فرانت قابل رفع نیست.
+ * بک‌اند فیلدهای province، university، degree را به‌صورت آرایه‌ای از
+ * آبجکت {_id, title} برمی‌گرداند — readOrgArray این فرمت را handle می‌کند.
  */
-function asOptionalStringArray(value: unknown): string[] | undefined {
-  const single = asOptionalString(value);
-  return single ? [single] : undefined;
+/**
+ * بک‌اند آرایه‌ای از آبجکت با فرمت {_id, title} یا {id, title} یا string ساده
+ * برمی‌گردونه — این تابع title هر آیتم رو استخراج می‌کنه.
+ */
+function readOrgArray(value: unknown): string[] | undefined {
+  // آرایه‌ای از آبجکت: [{_id, title}, ...]
+  if (Array.isArray(value) && value.length > 0) {
+    const titles = value
+      .map((item) => {
+        if (typeof item === 'string') return item.trim();
+        if (isRecord(item)) {
+          const title = item.title ?? item.name ?? item.label;
+          return typeof title === 'string' ? title.trim() : '';
+        }
+        return '';
+      })
+      .filter(Boolean);
+    return titles.length > 0 ? titles : undefined;
+  }
+  // آبجکت تکی: {_id, title}
+  if (isRecord(value)) {
+    const title = value.title ?? value.name ?? value.label;
+    const str = typeof title === 'string' ? title.trim() : '';
+    return str ? [str] : undefined;
+  }
+  // string ساده
+  const str = asOptionalString(value);
+  return str ? [str] : undefined;
 }
 
 function readOrgFields(user: Record<string, unknown>): Pick<
   User,
-  'city' | 'district' | 'school'
+  'province' | 'college' | 'major' | 'city' | 'district' | 'school'
 > {
   return {
-    city: asOptionalStringArray(user.city),
-    district: asOptionalStringArray(user.educationalDistrict),
-    school: asOptionalStringArray(user.school),
+    province: readOrgArray(user.province),
+    college:  readOrgArray(user.university),
+    major:    asOptionalString(user.degree
+      ? (isRecord(user.degree) ? (user.degree.title ?? user.degree.name) : user.degree)
+      : undefined
+    ),
+    city:     readOrgArray(user.city),
+    district: readOrgArray(user.educationalDistrict),
+    school:   readOrgArray(user.school),
   };
 }
 

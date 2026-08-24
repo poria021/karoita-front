@@ -301,6 +301,31 @@ export function clearMockMarkerCookie(): void {
   deleteCookie(SESSION_META_STORAGE_KEY);
 }
 
+/**
+ * وقتی sessionStorage خالی است ولی cookie session معتبر است
+ * (مثلاً بعد از رفرش صفحه یا باز کردن تب جدید)،
+ * این تابع user را از token (mock.{userId}.{ts}) بازسازی می‌کند.
+ */
+export function tryRestoreMockSession(): Session | null {
+  if (!isBrowser() || !isMockApiMode()) return null;
+  const meta = readSessionMeta();
+  if (!meta) return null;
+  if (new Date(meta.expiresAt).getTime() <= Date.now()) return null;
+
+  // token = mock.{userId}.{timestamp}
+  const parts = meta.token.split('.');
+  const userId = parts[1];
+  if (!userId) return null;
+
+  const record = getMockUserById(indexes(), userId);
+  if (!record) return null;
+
+  const user = toPublicUser(record);
+  // store رو بدون نوشتن مجدد cookie آپدیت می‌کنیم
+  useUserStore.getState().setUser(user);
+  return { user, token: meta.token, expiresAt: meta.expiresAt };
+}
+
 export function buildMockSession(user: User): Session {
   return {
     user,

@@ -116,13 +116,15 @@ export class ProfileService {
   /** PUT /profile */
   static async updateProfile(
     data: ProfileDto,
-    token?: string
+    token?: string,
+    /** شناسهٔ فایل عکس بعد از آپلود — به Nest PATCH ارسال می‌شه که photo رو لینک کند. */
+    photoFileId?: string
   ): Promise<{ success: boolean; message: string }> {
     try {
       const validatedData = parseProfile(data);
 
       if (!isMockApiMode()) {
-        const payload = await requestProfile('PUT', token, validatedData);
+        const payload = await requestProfile('PUT', token, validatedData, photoFileId);
         const serverMessage = extractApiMessage(payload);
         const activeUser = useUserStore.getState().activeUser;
         if (activeUser) {

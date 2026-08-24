@@ -15,7 +15,7 @@ import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
-import { fileToDataUrl } from '@/utils/compressor';
+import { FilesService } from '@/services/files.service';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
@@ -67,6 +67,7 @@ export function IdentityForm({
 
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   const roleStrategy = getRoleStrategy(liveUser.role);
 
   const form = useForm<ProfileSchema>({
@@ -80,16 +81,20 @@ export function IdentityForm({
   const submit = form.handleSubmit(async (data) => {
     setSubmitError(null);
     try {
-      let documentBase64: string | undefined;
+      // مرحله ۱: اگر کاربر عکس انتخاب کرده، اول آپلود دومرحله‌ای انجام ده
+      // (presigned URL بگیر → فایل رو روی S3 آپلود کن)
+      let photoFileId: string | undefined;
       if (identityDocument) {
-        documentBase64 = await fileToDataUrl(identityDocument);
+        const fileRef = await FilesService.uploadFile(identityDocument, token);
+        photoFileId = fileRef.id;
       }
-      await ProfileService.updateProfile(data, token);
-      if (documentBase64) {
-        await ProfileService.updateIdentityDocument(documentBase64, token);
-      }
+
+      // مرحله ۲: پروفایل رو به‌روزرسانی کن — اگر photoFileId داشتیم به PATCH اضافه می‌شه
+      await ProfileService.updateProfile(data, token, photoFileId);
+
       form.reset(data);
       setIdentityDocument(null);
+      setSubmitSuccess(true);
       onSaved?.();
     } catch (error) {
       setSubmitError(
@@ -200,6 +205,13 @@ export function IdentityForm({
               />
             ) : null}
 
+            {submitSuccess && !submitError ? (
+              <KvAlert
+                variant="success"
+                title="اطلاعات شما با موفقیت ذخیره و ارسال شد."
+                description="پس از بررسی توسط مدیریت، وضعیت پرونده شما به‌روزرسانی خواهد شد. تا آن زمان امکان ویرایش وجود ندارد."
+              />
+            ) : null}
             {submitError ? (
               <KvAlert variant="error" title={submitError} />
             ) : null}

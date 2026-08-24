@@ -67,18 +67,30 @@ export type NestStatusDto = {
   id: unknown;
 };
 
+/**
+ * PATCH /api/v1/users/{id}
+ * Role-based location fields per Swagger:
+ * - teacher/school_admin  → provinceIds[], cityIds[], schoolIds[], educationalDistrictsIds[]
+ * - mentor/supervisor     → provinceIds[], universityIds[]
+ * - student/trainee       → single provinceId, universityId, degreeId
+ * We send both singular and plural so the same payload works for all roles.
+ */
 export type NestUpdateUserDto = {
   firstName: string;
   lastName: string;
-  provinceId: string;
-  universityId: string;
-  degreeId: string;
+  // singular (student / trainee)
+  provinceId?: string;
+  universityId?: string;
+  degreeId?: string;
+  // plural (teacher / school_admin / mentor / supervisor)
+  provinceIds?: string[];
+  universityIds?: string[];
+  cityIds?: string[];
+  schoolIds?: string[];
+  educationalDistrictsIds?: string[];
   userUniqueId: string;
-  cityId: string;
-  schoolId: string;
-  educationalDistrictsId: string;
   documentStatus: NestDocumentStatus;
-  rejectDescription: string[];
+  rejectDescription: unknown[];
   password?: string;
   photo?: NestFileDto;
   role?: NestRoleDto;
