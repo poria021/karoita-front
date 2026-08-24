@@ -13,10 +13,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
+  REAL_ACCESS_COOKIE_NAME,
+  REAL_ACCESS_COOKIE_OPTIONS,
 } from '@/lib/real-auth-cookie';
 
 interface SetTokensBody {
   refreshToken?: unknown;
+  accessToken?: unknown;
 }
 
 export async function POST(request: NextRequest) {
@@ -38,10 +41,13 @@ export async function POST(request: NextRequest) {
   }
 
   const response = NextResponse.json({ ok: true });
-  response.cookies.set(
-    REAL_REFRESH_COOKIE_NAME,
-    body.refreshToken,
-    REAL_REFRESH_COOKIE_OPTIONS
-  );
+  response.cookies.set(REAL_REFRESH_COOKIE_NAME, body.refreshToken, REAL_REFRESH_COOKIE_OPTIONS);
+
+  // access token را هم ذخیره می‌کنیم تا Route Handler /api/auth/refresh بتواند
+  // آن را در Authorization header به Nest بفرستد (اگر Nest نیاز داشت)
+  if (typeof body.accessToken === 'string' && body.accessToken) {
+    response.cookies.set(REAL_ACCESS_COOKIE_NAME, body.accessToken, REAL_ACCESS_COOKIE_OPTIONS);
+  }
+
   return response;
 }

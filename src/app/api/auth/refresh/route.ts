@@ -17,6 +17,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
+  REAL_ACCESS_COOKIE_NAME,
+  REAL_ACCESS_COOKIE_OPTIONS,
 } from '@/lib/real-auth-cookie';
 
 const NEST_API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
@@ -35,6 +37,13 @@ function extractRotatedRefreshToken(raw: unknown): string | null {
 
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get(REAL_REFRESH_COOKIE_NAME)?.value;
+  const accessToken  = request.cookies.get(REAL_ACCESS_COOKIE_NAME)?.value;
+
+  if (process.env.NODE_ENV !== 'production') {
+    const allCookies = request.cookies.getAll();
+    console.log('[/api/auth/refresh] cookies:', allCookies.map(c => c.name));
+    console.log('[/api/auth/refresh] rt:', !!refreshToken, '| at:', !!accessToken);
+  }
 
   if (!refreshToken) {
     return NextResponse.json(
@@ -52,13 +61,24 @@ export async function POST(request: NextRequest) {
 
   let nestResponse: Response;
   try {
+    // Nest از Authorization: Bearer <refreshToken> استفاده می‌کنه (همون یک
+    // security scheme مشترک روی کل API) — نه accessToken قدیمی، و بدنه هم
+    // لازم نداره. تأیید شده با تست مستقیم روی Swagger (2026-08-24).
+    const nestHeaders: Record<string, string> = {
+      Authorization: `Bearer ${refreshToken}`,
+    };
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[/api/auth/refresh] →', `${NEST_API_URL}/${NEST_REFRESH_PATH}`);
+    }
     nestResponse = await fetch(`${NEST_API_URL}/${NEST_REFRESH_PATH}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      headers: nestHeaders,
       cache: 'no-store',
     });
-  } catch {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[/api/auth/refresh] ← Nest:', nestResponse.status);
+    }
+  } catch (err) {
     return NextResponse.json(
       { error: 'ارتباط با سرویس احراز هویت برقرار نشد.' },
       { status: 502 }
@@ -67,6 +87,12 @@ export async function POST(request: NextRequest) {
 
   if (nestResponse.status === 401 || nestResponse.status === 403) {
     // refresh token باطل/منقضی — cookie فاسد را پاک کن تا کلاینت به login برود.
+    if (process.env.NODE_ENV !== 'production') {
+      try {
+        const errBody = await nestResponse.clone().text();
+        console.log('[/api/auth/refresh] Nest 401/403 body:', errBody);
+      } catch { /* ignore */ }
+    }
     const expired = NextResponse.json(
       { error: 'نشست منقضی شده است.' },
       { status: 401 }

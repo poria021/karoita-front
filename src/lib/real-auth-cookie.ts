@@ -11,8 +11,18 @@
  */
 export const REAL_REFRESH_COOKIE_NAME = 'karvita_rt';
 
+/**
+ * Access token — httpOnly cookie برای ارسال سرور-به-سرور در /api/auth/refresh.
+ * کوتاه‌عمر است (با TTL access token همخوان) تا در صورت لیک، تأثیر محدود باشد.
+ * JS سمت کلاینت این cookie را نمی‌بیند.
+ */
+export const REAL_ACCESS_COOKIE_NAME = 'karvita_at';
+
 /** هفت روز — با TTL معمول refresh token همخوان است. */
 const REAL_REFRESH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+
+/** ۱ ساعت — کمی بیشتر از TTL معمول access token (۱۵ دقیقه) تا پوشش کامل باشد. */
+const REAL_ACCESS_COOKIE_MAX_AGE_SECONDS = 60 * 60;
 
 export interface RealRefreshCookieOptions {
   httpOnly: boolean;
@@ -28,4 +38,12 @@ export const REAL_REFRESH_COOKIE_OPTIONS: RealRefreshCookieOptions = {
   sameSite: 'lax',
   path: '/',
   maxAge: REAL_REFRESH_COOKIE_MAX_AGE_SECONDS,
+};
+
+export const REAL_ACCESS_COOKIE_OPTIONS: RealRefreshCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  path: '/',
+  maxAge: REAL_ACCESS_COOKIE_MAX_AGE_SECONDS,
 };

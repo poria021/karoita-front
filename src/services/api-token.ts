@@ -3,6 +3,12 @@
  * Responsible for: token resolution, silent refresh, unauthorized side-effects.
  *
  * Intentionally free of ky/HTTP imports — only auth store + token storage.
+ *
+ * ─── Token model ─────────────────────────────────────────────────────────────
+ *   Access token  → حافظهٔ ماژول (real-auth.tokens._mem)
+ *   Refresh token → httpOnly cookie — فقط /api/auth/refresh می‌خواند
+ *   Rotate        → POST /api/auth/refresh (Next.js Route Handler)
+ * ─────────────────────────────────────────────────────────────────────────────
  */
 import { isAuthPath, RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
@@ -13,15 +19,10 @@ let browserRotateAccessPromise: Promise<string | null> | null = null;
 
 async function rotateAccessTokenOnce(): Promise<string | null> {
   try {
-    const { readRealRefreshToken } = await import(
-      '@/services/auth/real-auth.tokens'
-    );
-    const refresh = readRealRefreshToken();
-    if (!refresh) return null;
     const { realRefreshToken } = await import(
       '@/services/auth/real-auth.bridge'
     );
-    const session = await realRefreshToken(refresh);
+    const session = await realRefreshToken();
     return session?.token ?? null;
   } catch {
     return null;
@@ -30,7 +31,7 @@ async function rotateAccessTokenOnce(): Promise<string | null> {
 
 /**
  * Rotate the access token exactly once per browser tab — concurrent 401s share
- * one promise so only one refresh request hits Nest.
+ * one promise so only one refresh request hits the Next.js Route (and then Nest).
  */
 export async function rotateRealAccessToken(): Promise<string | null> {
   if (typeof window === 'undefined') {
@@ -55,21 +56,27 @@ export function bearerHeaders(token?: string): HeadersInit {
 }
 
 /**
- * Resolve bearer token: explicit > stored access > rotate via refresh.
- * Returns undefined when no token is available (mock mode / unauthenticated).
+ * Resolve bearer token: explicit > stored access token > بس.
+ *
+ * عمداً refresh نمی‌زنیم اینجا — این وظیفهٔ afterResponse hook روی 401 است.
+ * اگر اینجا refresh بزنیم، هر request بدون token (مثل OTP send/verify که
+ * هنوز هیچ session ای وجود ندارد) یک /api/auth/refresh غیرضروری می‌زند
+ * که 401 برمی‌گرداند و در DevTools به‌عنوان خطا نمایش داده می‌شود.
+ *
+ * جریان درست:
+ *   1. resolveBearerToken → access token از memory (یا undefined)
+ *   2. request با bearer (یا بدون آن)
+ *   3. اگر 401 برگشت → afterResponse hook → rotateRealAccessToken → retry
  */
 export async function resolveBearerToken(
   explicit?: string
 ): Promise<string | undefined> {
   if (explicit) return explicit;
   try {
-    const { readRealAccessToken, readRealRefreshToken } = await import(
+    const { readRealAccessToken } = await import(
       '@/services/auth/real-auth.tokens'
     );
-    const access = readRealAccessToken();
-    if (access) return access;
-    if (!readRealRefreshToken()) return undefined;
-    return (await rotateRealAccessToken()) ?? undefined;
+    return readRealAccessToken() ?? undefined;
   } catch {
     return undefined;
   }
@@ -107,7 +114,7 @@ export async function handleUnauthorized(): Promise<void> {
 // ─── Auth-bootstrap path guard ────────────────────────────────────────────────
 
 const AUTH_BOOTSTRAP_PATH =
-  /(\/v1\/auth\/(refresh|logout|phone\/login|phone\/register|forgot|reset)|\/admin\/auth\/)(?:\/|$|\?)/;
+  /(\/v1\/auth\/(logout|phone\/login|phone\/register|forgot|reset)|\/admin\/auth\/|\/api\/auth\/(refresh|clear-tokens|set-tokens))(?:\/|$|\?)/;
 
 /**
  * Paths that must NOT trigger a token refresh on 401 — they ARE the auth
