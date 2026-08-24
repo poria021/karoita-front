@@ -195,7 +195,9 @@ export const KvSearchableOrganizationSelect = forwardRef<
   } = useOrganizationOptions({
     type,
     query: listQuery,
-    enabled: open && !locked,
+    // multi-select: از mount شروع به fetch کن تا وقتی dropdown باز میشه داده آماده باشه (بدون jump)
+    // single-select: فقط وقتی dropdown بازه fetch کن
+    enabled: isMulti ? !locked : (open && !locked),
     dependsOn,
   });
 
