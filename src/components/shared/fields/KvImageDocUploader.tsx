@@ -32,6 +32,11 @@ const DEFAULT_MAX_SIZE_MB = 10;
 export type KvImageDocUploaderProps = {
   id?: string;
   value?: File | null;
+  /**
+   * URL تصویر قبلاً آپلودشده (مثلاً docUrl از user store).
+   * وقتی value=null ولی existingUrl وجود داشته باشد، preview از URL نمایش داده می‌شود.
+   */
+  existingUrl?: string | null;
   /** originalFile: راهنمای شناسایی extension واقعی — چون فایل فشرده‌شده معمولاً webp است. */
   onChange: (file: File | null, originalFile?: File | null) => void;
   label?: string | false;
@@ -60,6 +65,7 @@ export type KvImageDocUploaderProps = {
 export function KvImageDocUploader({
   id: idProp,
   value,
+  existingUrl,
   onChange,
   label = 'بارگذاری تصویر',
   labelIcon,
@@ -83,16 +89,21 @@ export function KvImageDocUploader({
   const [isCompressing, setIsCompressing] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  const previewUrl = useMemo(
+  const blobUrl = useMemo(
     () => (value ? URL.createObjectURL(value) : null),
     [value]
   );
 
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
     };
-  }, [previewUrl]);
+  }, [blobUrl]);
+
+  // اگه فایل جدید انتخاب شده blob URL رو نشون بده، وگرنه از existingUrl استفاده کن
+  const previewUrl = blobUrl ?? existingUrl ?? null;
+  // آیا preview از URL قبلی (نه فایل جدید) است
+  const isExistingPreview = !value && !!existingUrl;
 
   const onDrop = useCallback(
     async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -271,7 +282,7 @@ export function KvImageDocUploader({
           </div>
         ) : null}
 
-        {value && !isCompressing ? (
+        {(value || isExistingPreview) && !isCompressing ? (
           <div className="relative mx-auto flex min-h-48 w-full flex-col items-center justify-center gap-kv-inline rounded-kv-control border-2 border-solid border-kv-border bg-kv-surface p-kv-group text-center transition-all">
             {previewUrl ? (
               <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface p-kv-micro shadow-kv-raised">
@@ -292,12 +303,14 @@ export function KvImageDocUploader({
                   truncate
                   align="center"
                 >
-                  {value.name}
+                  {value ? value.name : 'مدرک بارگذاری‌شده'}
                 </KvTypography>
               </div>
-              <KvTypography variant="caption" as="p" align="center">
-                {formatFileSize(value.size)}
-              </KvTypography>
+              {value ? (
+                <KvTypography variant="caption" as="p" align="center">
+                  {formatFileSize(value.size)}
+                </KvTypography>
+              ) : null}
             </div>
             {!disabled ? (
               <KvButton

@@ -84,14 +84,16 @@ export function KvCheckboxMultiSelect({
             aria-invalid={error ? true : undefined}
             aria-disabled={disabled || undefined}
             className={cn(
-              'flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-kv-pair rounded-kv-control',
-              'border border-kv-border bg-kv-field px-2 py-1',
-              'font-sans text-xs font-medium text-kv-text shadow-none',
-              'outline-none transition-[color,background-color,border-color,box-shadow]',
-              'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
-              'data-[state=open]:border-kv-brand data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15',
-              disabled && 'cursor-not-allowed opacity-50',
-              selectedOptions.length === 0 && 'ps-3.5 text-kv-text-placeholder',
+            'flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-kv-pair rounded-kv-control',
+            'border border-kv-border bg-kv-field px-2 py-1',
+            'font-sans text-xs font-bold text-kv-text-secondary shadow-none',
+            'outline-none transition-[color,background-color,border-color,box-shadow]',
+            'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
+            'data-[state=open]:border-kv-brand data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15',
+            disabled
+              ? 'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled [&_svg]:text-kv-text-disabled focus-visible:border-kv-border-disabled focus-visible:ring-0'
+              : selectedOptions.length === 0 && 'ps-3.5 text-kv-text-placeholder',
+              disabled && 'ps-3.5',
               className
             )}
           >

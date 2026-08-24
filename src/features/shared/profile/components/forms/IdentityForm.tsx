@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dynamic from 'next/dynamic';
@@ -18,6 +18,7 @@ import type { User } from '@/types/auth';
 import { FilesService } from '@/services/files.service';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
+import { isMockApiMode } from '@/lib/api-mode';
 
 import {
   createProfileSchema,
@@ -80,27 +81,65 @@ export function IdentityForm({
     shouldFocusError: true,
   });
 
+  // وقتی liveUser از store آپدیت میشه (مثلاً بعد از Zustand hydration یا بعد از saveموفق)
+  // فقط فیلدهای سازمانی رو با setValue آپدیت کن (نه form.reset کامل) تا تایپ کاربر دست نخورد
+  useEffect(() => {
+    const defaults = getProfileDefaultValues(liveUser);
+    const orgFields = [
+      'province', 'college', 'district', 'school', 'city',
+      'major', 'studentId', 'skillCode', 'personalCode',
+    ] as const;
+    for (const field of orgFields) {
+      if (field in defaults) {
+        const current = form.getValues(field as keyof ProfileSchema);
+        const next = defaults[field as keyof typeof defaults];
+        // فقط اگه مقدار عوض شده setValue بزن تا dirty کاذب رد نشه
+        const currentStr = JSON.stringify(current);
+        const nextStr = JSON.stringify(next);
+        if (currentStr !== nextStr && !form.getFieldState(field as keyof ProfileSchema).isDirty) {
+          form.setValue(field as keyof ProfileSchema, next as never, {
+            shouldDirty: false,
+            shouldValidate: false,
+          });
+        }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveUser.id, liveUser.province, liveUser.college, liveUser.district, liveUser.school, liveUser.city, liveUser.major, liveUser.studentId, liveUser.skillCode, liveUser.personalCode]);
+
   const submit = form.handleSubmit(async (data) => {
     setSubmitError(null);
     try {
-      // مرحله ۱: اگر کاربر عکس انتخاب کرده، اول آپلود دومرحله‌ای انجام ده
-      // (presigned URL بگیر → فایل رو روی S3 آپلود کن)
-      let photoFileId: string | undefined;
-      if (identityDocument) {
-        // originalDocument رو هم میدیم تا اسم فایل اصلی (jpg/png) به Nest بره نه اسم فایل فشرده‌شده (webp)
-        const fileRef = await FilesService.uploadFile(
-          identityDocument,
-          token,
-          originalDocument ?? undefined
-        );
-        photoFileId = fileRef.id;
+      if (isMockApiMode()) {
+        // ─── Mock mode: عکس رو به base64 تبدیل کن و مستقیم در mock user ذخیره کن
+        // FilesService در mock کار نمی‌کنه (requireNestTransport throw می‌کنه)
+        if (identityDocument) {
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(new Error('خواندن فایل ناموفق بود.'));
+            reader.readAsDataURL(identityDocument);
+          });
+          await ProfileService.updateIdentityDocument(base64, token);
+        }
+        await ProfileService.updateProfile(data, token);
+      } else {
+        // ─── Real mode: آپلود دومرحله‌ای به S3
+        let photoFileId: string | undefined;
+        if (identityDocument) {
+          const fileRef = await FilesService.uploadFile(
+            identityDocument,
+            token,
+            originalDocument ?? undefined
+          );
+          photoFileId = fileRef.id;
+        }
+        await ProfileService.updateProfile(data, token, photoFileId);
       }
-
-      // مرحله ۲: پروفایل رو به‌روزرسانی کن — اگر photoFileId داشتیم به PATCH اضافه می‌شه
-      await ProfileService.updateProfile(data, token, photoFileId);
 
       form.reset(data);
       setIdentityDocument(null);
+      setOriginalDocument(null);
       setSubmitSuccess(true);
       onSaved?.();
     } catch (error) {
@@ -201,6 +240,7 @@ export function IdentityForm({
             {showDocUploader ? (
               <KvImageDocUploader
                 value={identityDocument}
+                existingUrl={liveUser.docUrl ?? null}
                 onChange={(compressed, original) => {
                   setIdentityDocument(compressed);
                   setOriginalDocument(compressed ? (original ?? null) : null);

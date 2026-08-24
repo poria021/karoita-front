@@ -11,7 +11,7 @@ export const MOCK_SUPER_ADMIN_MOBILE = '9123456786';
 export const MOCK_SUPERVISOR_MOBILE = '9123456787';
 
 /** Bump when seed shape changes so mock localStorage rehydrates. */
-export const MOCK_USERS_SEED_VERSION = '9';
+export const MOCK_USERS_SEED_VERSION = '10';
 
 export interface MockAuthUserRecord extends User {
   password: string;

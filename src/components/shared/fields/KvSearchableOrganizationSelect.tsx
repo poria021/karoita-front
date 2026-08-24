@@ -35,10 +35,18 @@ import type { OrganizationField } from '@/utils/roleFieldStrategy';
 const multiTriggerClassName = cn(
   'flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-kv-pair rounded-kv-control',
   'border border-kv-border bg-kv-field px-2 py-1',
-  'font-sans text-xs font-medium text-kv-text shadow-none',
+  'font-sans text-xs font-bold text-kv-text-secondary shadow-none',
   'outline-none transition-[color,background-color,border-color,box-shadow]',
   'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
   'data-[state=open]:border-kv-brand data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15'
+);
+
+/** استایل locked — دقیقاً مثل KvTextField و KvSelectField در حالت locked */
+const multiTriggerLockedClassName = cn(
+  'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled',
+  'text-kv-text-disabled [&_svg]:text-kv-text-disabled',
+  'focus-visible:border-kv-border-disabled focus-visible:ring-0',
+  'data-[state=open]:border-kv-border-disabled data-[state=open]:ring-0'
 );
 
 /** آیتم چک‌باکسی — دقیقاً هم‌استایل DropdownMenuCheckboxItem (چک‌باکس تمدید گروهی). */
@@ -87,10 +95,20 @@ type MultiSelectProps = BaseProps & {
 function SelectionChip({
   label,
   onRemove,
+  disabled = false,
 }: {
   label: string;
   onRemove: () => void;
+  disabled?: boolean;
 }) {
+  if (disabled) {
+    return (
+      <span className="min-w-0 truncate text-kv-text-disabled">
+        {label}
+      </span>
+    );
+  }
+
   return (
     <Badge
       variant="brand"
@@ -283,17 +301,32 @@ export const KvSearchableOrganizationSelect = forwardRef<
               }}
               className={cn(
                 multiTriggerClassName,
-                locked && 'cursor-not-allowed opacity-50',
-                selectedLabels.length === 0 && 'ps-3.5 text-kv-text-placeholder'
+                locked && multiTriggerLockedClassName,
+                !locked && selectedLabels.length === 0 && 'ps-3.5 text-kv-text-placeholder',
+                locked && 'ps-3.5'
               )}
             >
               <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-start">
                 {selectedLabels.length === 0
                   ? placeholder
+                  : locked
+                  ? selectedLabels.map((lbl, idx) => (
+                      <span key={lbl} className="inline-flex items-center gap-1">
+                        <SelectionChip
+                          label={lbl}
+                          disabled
+                          onRemove={() => handleRemoveChip(lbl)}
+                        />
+                        {idx < selectedLabels.length - 1 && (
+                          <span className="shrink-0 text-kv-text-disabled">و</span>
+                        )}
+                      </span>
+                    ))
                   : selectedLabels.map((lbl) => (
                       <SelectionChip
                         key={lbl}
                         label={lbl}
+                        disabled={false}
                         onRemove={() => handleRemoveChip(lbl)}
                       />
                     ))}

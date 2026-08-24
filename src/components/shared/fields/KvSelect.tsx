@@ -48,6 +48,8 @@ export function KvSelectTrigger({
         'data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15',
         'cursor-pointer',
         'disabled:cursor-not-allowed disabled:opacity-100 disabled:text-kv-text-disabled',
+        'disabled:border-kv-border-disabled disabled:bg-kv-field-disabled',
+        'disabled:focus-visible:ring-0 disabled:focus-visible:border-kv-border-disabled',
         'dark:bg-kv-field',
         '[&_svg]:pointer-events-none [&_svg]:shrink-0',
         '[&_svg]:text-kv-text-muted',

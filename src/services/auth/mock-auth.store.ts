@@ -20,6 +20,8 @@ import {
 export const MOCK_USERS_STORAGE_KEY = 'karvita_mock_auth_users';
 const MOCK_USERS_VERSION_KEY = 'karvita_mock_auth_users_version';
 const SESSION_META_STORAGE_KEY = 'karvita_auth_session_meta';
+/** پیشوند کلیدهای جداگانه docUrl (base64 می‌تواند چند صد KB باشد) */
+const MOCK_DOC_URL_PREFIX = 'karvita_mock_doc_url_';
 
 export const MOCK_SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 
@@ -93,8 +95,37 @@ function syncMemory(users: MockAuthUserRecord[]): MockAuthIndexes {
   return memoryIndexes;
 }
 
+// ─── ذخیره‌سازی جداگانه docUrl ─────────────────────────────────────────────
+// base64 تصویر مدرک می‌تواند ۵۰۰KB+ باشد؛ نگه‌داری آن داخل آرایه کاربران
+// به سرعت quota localStorage را پر می‌کند. هر کاربر یک کلید مستقل دارد.
+
+export function readMockDocUrl(userId: string): string | undefined {
+  if (!isBrowser()) return undefined;
+  return window.localStorage.getItem(MOCK_DOC_URL_PREFIX + userId) ?? undefined;
+}
+
+export function writeMockDocUrl(userId: string, docUrl: string | undefined): void {
+  if (!isBrowser()) return;
+  if (docUrl) {
+    try {
+      window.localStorage.setItem(MOCK_DOC_URL_PREFIX + userId, docUrl);
+    } catch {
+      // quota exceeded — ذخیره docUrl ناموفق بود؛ ادامه می‌دهیم
+    }
+  } else {
+    window.localStorage.removeItem(MOCK_DOC_URL_PREFIX + userId);
+  }
+}
+
 function persistUsersToStorage(users: MockAuthUserRecord[]): void {
-  window.localStorage.setItem(MOCK_USERS_STORAGE_KEY, JSON.stringify(users));
+  // docUrl را جداگانه ذخیره کن و از آرایه حذف کن تا سبک بماند
+  const slim = users.map(({ docUrl, ...rest }) => {
+    if (docUrl !== undefined) {
+      writeMockDocUrl(rest.id, docUrl);
+    }
+    return rest;
+  });
+  window.localStorage.setItem(MOCK_USERS_STORAGE_KEY, JSON.stringify(slim));
   window.localStorage.setItem(MOCK_USERS_VERSION_KEY, MOCK_USERS_SEED_VERSION);
 }
 
@@ -117,7 +148,12 @@ function readUsersFromStorage(): MockAuthUserRecord[] {
 
   try {
     const parsed = JSON.parse(stored) as MockAuthUserRecord[];
-    return Array.isArray(parsed) ? parsed : cloneUsers(AUTH_MOCK_USERS);
+    if (!Array.isArray(parsed)) return cloneUsers(AUTH_MOCK_USERS);
+    // docUrl را از کلیدهای جداگانه بازگردان
+    return parsed.map((u) => ({
+      ...u,
+      docUrl: readMockDocUrl(u.id) ?? u.docUrl,
+    }));
   } catch {
     return cloneUsers(AUTH_MOCK_USERS);
   }
@@ -218,6 +254,11 @@ export function patchMockAuthUser(
     mobile: patch.mobile ?? previous.mobile,
   };
 
+  // اگه docUrl تغییر کرده جداگانه ذخیره کن (base64 از آرایه اصلی خارج میمونه)
+  if (isBrowser() && 'docUrl' in patch) {
+    writeMockDocUrl(updated.id, patch.docUrl);
+  }
+
   const next = [...users];
   next[index] = updated;
   writeMockUsers(next);
@@ -240,6 +281,10 @@ export function resetMockAuthStoreForTests(
 }
 
 export function toPublicUser(record: MockAuthUserRecord): User {
+  // docUrl ممکنه در کلید جداگانه localStorage باشه (بعد از آپلود در همین session)
+  const docUrl = isBrowser()
+    ? (readMockDocUrl(record.id) ?? record.docUrl)
+    : record.docUrl;
   return {
     id: record.id,
     firstName: record.firstName,
@@ -259,7 +304,7 @@ export function toPublicUser(record: MockAuthUserRecord): User {
     personalCode: record.personalCode,
     studentId: record.studentId,
     skillCode: record.skillCode,
-    docUrl: record.docUrl,
+    docUrl,
     docType: record.docType,
     lastChange: record.lastChange,
   };
