@@ -74,7 +74,9 @@ async function compressWithLibrary(
       maxWidthOrHeight: maxWidth,
       initialQuality: quality,
       fileType,
-      useWebWorker: true,
+      // useWebWorker: true باعث میشه کتابخونه از cdn.jsdelivr.net script لود کنه
+      // که توسط CSP بلاک میشه — main thread برای عکس پروفایل کافیه
+      useWebWorker: false,
       preserveExif: false,
     });
 

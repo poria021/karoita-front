@@ -40,6 +40,8 @@ export function buildContentSecurityPolicy(): string {
   const isDev = isDevEnvironment();
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
   const apiOrigin = originFromEnv(process.env.NEXT_PUBLIC_API_URL);
+  // S3/MinIO presigned URL origin — برای آپلود مستقیم فایل روی signed URL
+  const s3Origin = originFromEnv(process.env.NEXT_PUBLIC_S3_URL);
 
   const webhookOrigin = originFromEnv(process.env.NEXT_PUBLIC_ERROR_WEBHOOK_URL);
   const analyticsOrigin = originFromEnv(
@@ -62,6 +64,7 @@ export function buildContentSecurityPolicy(): string {
       "'self'",
       ...(apiUrl ? [apiUrl] : []),
       ...(apiOrigin ? [apiOrigin] : []),
+      ...(s3Origin ? [s3Origin] : []),
       ...sentryConnectOriginsFromEnv(),
       ...(webhookOrigin ? [webhookOrigin] : []),
       ...(analyticsOrigin ? [analyticsOrigin] : []),

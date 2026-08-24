@@ -83,7 +83,7 @@ function defaultStatusMessage(status: number): string {
   if (status === 404) return 'منبع درخواستی یافت نشد.';
   if (status === 409) return 'اطلاعات با داده‌های موجود تداخل دارد.';
   if (status === 413) return 'حجم فایل ارسالی بیش از حد مجاز است.';
-  if (status === 422) return 'اطلاعات ارسال‌شده معتبر نیست. شماره موبایل یا رمز را بررسی کنید.';
+  if (status === 422) return 'اطلاعات ارسال‌شده توسط سرور پذیرفته نشد. لطفاً فرم را بررسی کنید.';
   if (status >= 500) return 'سرویس موقتاً در دسترس نیست. لطفاً کمی بعد تلاش کنید.';
   return 'انجام عملیات با خطا مواجه شد.';
 }
@@ -102,6 +102,12 @@ export async function mapHttpError(error: unknown): Promise<never> {
       payload = await error.response.json();
     } catch {
       payload = null;
+    }
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(
+        `[api-error] HTTP ${error.response.status} → ${error.response.url}`,
+        payload
+      );
     }
     throw new ApiClientError(
       localizeApiError(payload, error.response.status),

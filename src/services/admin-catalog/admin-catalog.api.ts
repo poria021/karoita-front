@@ -58,12 +58,20 @@ export const adminCatalogApi = {
   createProvince(body: NestCreateProvinceDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.provinces, body, token);
   },
-  /** GET /admin/provinces — paginated envelope `{ data, hasNextPage }`, no total count. */
+  /** GET /admin/provinces — paginated envelope `{ data, hasNextPage }`, no total count.
+   * Nest انتظار دارد `filters` یک JSON object-string باشه: {"title":"..."}
+   */
   listProvinces(query: NestAdminPageQuery = {}, token?: string) {
+    const { filters, ...rest } = query;
+    const searchParams = toSearchParams({
+      ...rest,
+      // اگر filters وجود داشت به‌صورت JSON string بفرست
+      ...(filters ? { filters: JSON.stringify({ title: filters }) } : {}),
+    });
     return apiClient.getJson<NestPagedList<NestProvince>>(
       NEST_ADMIN_PATHS.provinces,
       token,
-      { searchParams: toSearchParams(query) }
+      { searchParams }
     );
   },
   getAllProvinces(token?: string) {

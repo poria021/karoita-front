@@ -65,7 +65,9 @@ export function IdentityForm({
   const liveUser =
     storeUser && storeUser.id === activeUser.id ? storeUser : activeUser;
 
+  // فایل compressed برای آپلود + فایل اصلی برای ارسال اسم معتبر به Nest
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
+  const [originalDocument, setOriginalDocument] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const roleStrategy = getRoleStrategy(liveUser.role);
@@ -85,7 +87,12 @@ export function IdentityForm({
       // (presigned URL بگیر → فایل رو روی S3 آپلود کن)
       let photoFileId: string | undefined;
       if (identityDocument) {
-        const fileRef = await FilesService.uploadFile(identityDocument, token);
+        // originalDocument رو هم میدیم تا اسم فایل اصلی (jpg/png) به Nest بره نه اسم فایل فشرده‌شده (webp)
+        const fileRef = await FilesService.uploadFile(
+          identityDocument,
+          token,
+          originalDocument ?? undefined
+        );
         photoFileId = fileRef.id;
       }
 
@@ -194,7 +201,10 @@ export function IdentityForm({
             {showDocUploader ? (
               <KvImageDocUploader
                 value={identityDocument}
-                onChange={setIdentityDocument}
+                onChange={(compressed, original) => {
+                  setIdentityDocument(compressed);
+                  setOriginalDocument(compressed ? (original ?? null) : null);
+                }}
                 disabled={isLocked}
                 optionalHint
                 label="بارگذاری مدرک هویتی"
@@ -205,13 +215,6 @@ export function IdentityForm({
               />
             ) : null}
 
-            {submitSuccess && !submitError ? (
-              <KvAlert
-                variant="success"
-                title="اطلاعات شما با موفقیت ذخیره و ارسال شد."
-                description="پس از بررسی توسط مدیریت، وضعیت پرونده شما به‌روزرسانی خواهد شد. تا آن زمان امکان ویرایش وجود ندارد."
-              />
-            ) : null}
             {submitError ? (
               <KvAlert variant="error" title={submitError} />
             ) : null}

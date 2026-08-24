@@ -32,7 +32,8 @@ const DEFAULT_MAX_SIZE_MB = 10;
 export type KvImageDocUploaderProps = {
   id?: string;
   value?: File | null;
-  onChange: (file: File | null) => void;
+  /** originalFile: راهنمای شناسایی extension واقعی — چون فایل فشرده‌شده معمولاً webp است. */
+  onChange: (file: File | null, originalFile?: File | null) => void;
   label?: string | false;
   labelIcon?: ReactNode;
   description?: string;
@@ -130,7 +131,7 @@ export function KvImageDocUploader({
           setLocalError(`حجم فایل نباید بیشتر از ${sizeLabel} باشد.`);
           return;
         }
-        onChange(file);
+        onChange(file, file);
         return;
       }
 
@@ -142,7 +143,7 @@ export function KvImageDocUploader({
       }
 
       if (!compress) {
-        onChange(file);
+        onChange(file, file);
         return;
       }
 
@@ -154,14 +155,14 @@ export function KvImageDocUploader({
           format: 'image/webp',
           allowJpegFallback: false,
         });
-        onChange(compressedFile);
+        onChange(compressedFile, file);
       } catch (err) {
         setLocalError(
           err instanceof Error
             ? err.message
             : 'خطا در فشرده‌سازی تصویر. لطفاً دوباره تلاش کنید.'
         );
-        onChange(null);
+        onChange(null, null);
       } finally {
         setIsCompressing(false);
       }
@@ -173,7 +174,7 @@ export function KvImageDocUploader({
     (event: MouseEvent) => {
       event.stopPropagation();
       setLocalError(null);
-      onChange(null);
+      onChange(null, null);
     },
     [onChange]
   );
@@ -212,6 +213,11 @@ export function KvImageDocUploader({
       ) : null}
 
       <div className="w-full shrink-0">
+        {/* hidden input: label[for] رو live نگه می‌داره حتی وقتی preview یا compressing نمایش داده میشه */}
+        {(value || isCompressing) ? (
+          <input {...getInputProps()} id={id} hidden aria-hidden="true" />
+        ) : null}
+
         {!value && !isCompressing ? (
           <div
             {...getRootProps()}
