@@ -34,10 +34,10 @@ export async function onRequestError(
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
 
-  process.on('unhandledRejection', (reason) => {
-    void reportError(reason, { source: 'process.unhandledRejection' });
-  });
-  process.on('uncaughtException', (error) => {
-    void reportError(error, { source: 'process.uncaughtException' });
-  });
+  // Dynamic import (not a static one) so bundling for the Edge Runtime
+  // never pulls in process.on(...) — see instrumentation-node.ts.
+  const { registerNodeProcessHandlers } = await import(
+    './instrumentation-node'
+  );
+  registerNodeProcessHandlers();
 }
