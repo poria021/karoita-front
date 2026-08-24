@@ -16,9 +16,9 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
 import { FilesService } from '@/services/files.service';
+import { isMockApiMode } from '@/lib/api-mode';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
-import { isMockApiMode } from '@/lib/api-mode';
 
 import {
   createProfileSchema,
@@ -71,6 +71,26 @@ export function IdentityForm({
   const [originalDocument, setOriginalDocument] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  // read signed URL برای preview عکس آپلودشده قبلی
+  const [docPreviewUrl, setDocPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    // اگه کاربر عکس آپلود کرده (docType = photo.id) و mock نیست، read signed URL بگیر
+    if (!liveUser.docType || isMockApiMode()) {
+      // در mock mode از docUrl (که base64 یا data URL هست) مستقیم استفاده می‌کنیم
+      setDocPreviewUrl(liveUser.docUrl ?? null);
+      return;
+    }
+    let cancelled = false;
+    FilesService.getDocPreviewUrl(liveUser.docType)
+      .then((url) => { if (!cancelled) setDocPreviewUrl(url); })
+      .catch(() => {
+        // اگه signed URL نگرفتیم، fallback به path خام — ممکنه کار نکنه ولی silent fail
+        if (!cancelled) setDocPreviewUrl(liveUser.docUrl ?? null);
+      });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveUser.docType, liveUser.docUrl]);
   const roleStrategy = getRoleStrategy(liveUser.role);
 
   const form = useForm<ProfileSchema>({
@@ -240,7 +260,7 @@ export function IdentityForm({
             {showDocUploader ? (
               <KvImageDocUploader
                 value={identityDocument}
-                existingUrl={liveUser.docUrl ?? null}
+                existingUrl={docPreviewUrl}
                 onChange={(compressed, original) => {
                   setIdentityDocument(compressed);
                   setOriginalDocument(compressed ? (original ?? null) : null);

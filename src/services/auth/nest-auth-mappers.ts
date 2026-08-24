@@ -150,10 +150,9 @@ export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
 
   const role = readRole(raw);
 
-  // photo.path: مسیر نسبی فایل در S3 — برای نمایش preview از GET /api/v1/files/:id استفاده می‌شه
-  const photoPath = isRecord(raw.photo) && typeof raw.photo.path === 'string'
-    ? raw.photo.path
-    : undefined;
+  // photo: { id, path } — id برای GET /api/v1/files/:id (read signed URL)، path به عنوان fallback
+  const photoId   = isRecord(raw.photo) && typeof raw.photo.id   === 'string' ? raw.photo.id   : undefined;
+  const photoPath = isRecord(raw.photo) && typeof raw.photo.path === 'string' ? raw.photo.path : undefined;
 
   return {
     id: raw.id,
@@ -167,7 +166,10 @@ export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
         : mapNestDocStatus(documentStatus) === 'approved',
     docStatus: mapNestDocStatus(documentStatus),
     hasPassword: typeof raw.hasPassword === 'boolean' ? raw.hasPassword : true,
-    ...(photoPath ? { docUrl: photoPath } : {}),
+    // docType = photo.id — برای گرفتن read signed URL از GET /api/v1/files/:id
+    // docUrl  = photo.path — fallback یا بعد از resolve به signed URL جایگزین می‌شه
+    ...(photoId   ? { docType: photoId }   : {}),
+    ...(photoPath ? { docUrl:  photoPath } : {}),
     ...readOrgFields(raw),
     ...readRoleIdentifier(role, asOptionalString(raw.userUniqueId)),
   };
