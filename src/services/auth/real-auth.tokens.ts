@@ -70,9 +70,6 @@ function clearPresenceCookie(): void {
  */
 async function persistRefreshTokenInCookie(refreshToken: string, accessToken?: string): Promise<void> {
   if (!isBrowser()) return;
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('[real-auth.tokens] ♻️ set-tokens called — rt length:', refreshToken.length, '| at length:', accessToken?.length ?? 0);
-  }
   try {
     const res = await fetch('/api/auth/set-tokens', {
       method: 'POST',
@@ -82,8 +79,6 @@ async function persistRefreshTokenInCookie(refreshToken: string, accessToken?: s
     });
     if (!res.ok) {
       console.warn('[real-auth.tokens] set-tokens route returned', res.status);
-    } else if (process.env.NODE_ENV !== 'production') {
-      console.log('[real-auth.tokens] ✅ karvita_rt + karvita_at cookies set');
     }
   } catch (err) {
     console.warn('[real-auth.tokens] set-tokens fetch failed', err);

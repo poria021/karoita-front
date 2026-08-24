@@ -189,17 +189,6 @@ export function extractNestLoginResponse(
   const refreshToken = data.refreshToken;
   const tokenExpires = data.tokenExpires;
 
-  // ── DEBUG: نمایش ساختار پاسخ بک‌اند در console ──────────────────────────
-  if (process.env.NODE_ENV !== 'production') {
-    console.group('[nest-auth] extractNestLoginResponse — raw payload');
-    console.log('token:', typeof token, token ? '✅ exists' : '❌ missing');
-    console.log('refreshToken:', typeof refreshToken, refreshToken ? '✅ exists' : '❌ MISSING — cookie will not be set!');
-    console.log('tokenExpires:', typeof tokenExpires, tokenExpires);
-    console.log('full data keys:', Object.keys(data));
-    console.groupEnd();
-  }
-  // ────────────────────────────────────────────────────────────────────────
-
   if (
     typeof token !== 'string' ||
     !token ||
@@ -319,17 +308,6 @@ export function extractNestAdminLoginResponse(
   const token = data.token;
   const refreshToken = data.refreshToken;
   const tokenExpires = data.tokenExpires;
-
-  // ── DEBUG ────────────────────────────────────────────────────────────
-  if (process.env.NODE_ENV !== 'production') {
-    console.group('[nest-auth] extractNestAdminLoginResponse — raw payload');
-    console.log('token:', typeof token, token ? '✅ exists' : '❌ missing');
-    console.log('refreshToken:', typeof refreshToken, refreshToken ? '✅ exists' : '❌ MISSING — cookie will not be set!');
-    console.log('tokenExpires:', typeof tokenExpires, tokenExpires);
-    console.log('full data keys:', Object.keys(data));
-    console.groupEnd();
-  }
-  // ────────────────────────────────────────────────────────────
 
   if (
     typeof token !== 'string' ||

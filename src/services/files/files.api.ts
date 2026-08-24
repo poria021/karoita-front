@@ -9,15 +9,8 @@ export const filesApi = {
    * مرحله ۱ — از سرور یک presigned S3 URL بگیر.
    * POST /api/v1/files/upload → { file: { id, path }, uploadSignedUrl }
    */
-  async upload(body: NestFileUploadDto, token?: string) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[files.api] upload درخواست:', JSON.stringify(body));
-    }
-    const result = await apiClient.postJson<NestFileResponseDto>(NEST_FILES_PATH, body, token);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[files.api] upload پاسخ:', JSON.stringify(result));
-    }
-    return result;
+  upload(body: NestFileUploadDto, token?: string) {
+    return apiClient.postJson<NestFileResponseDto>(NEST_FILES_PATH, body, token);
   },
 
   /**

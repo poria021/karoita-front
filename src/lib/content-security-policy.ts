@@ -55,7 +55,9 @@ export function buildContentSecurityPolicy(): string {
       "'unsafe-inline'",
       // Turbopack (dev) needs unsafe-eval + wasm-unsafe-eval for HMR.
       // Both are intentionally blocked in production.
-      ...(isDev ? ["'unsafe-eval'", "'wasm-unsafe-eval'"] : []),
+      // wasm-unsafe-eval همیشه در دو محیط لازمه (هم dev هم prod) برای WebAssembly
+      "'wasm-unsafe-eval'",
+      ...(isDev ? ["'unsafe-eval'"] : []),
     ],
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'blob:', 'https:'],

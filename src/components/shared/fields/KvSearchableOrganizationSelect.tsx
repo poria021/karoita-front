@@ -241,12 +241,13 @@ export const KvSearchableOrganizationSelect = forwardRef<
   // ─── حالت چندانتخابی: دقیقاً هم‌استایل KvCheckboxMultiSelect (تمدید گروهی) ───
   if (isMulti) {
     const fieldId = `org-select-${type}`;
+    const labelId = `${fieldId}-label`;
     const listboxId = `${fieldId}-listbox`;
 
     return (
       <div ref={rootRef} className="relative">
         <KvFieldFrame
-          id={fieldId}
+          id={labelId}
           label={label}
           required={required}
           optionalHint={optionalHint}
@@ -264,6 +265,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
               aria-expanded={open}
               aria-haspopup="listbox"
               aria-controls={listboxId}
+              aria-labelledby={labelId}
               aria-invalid={error ? true : undefined}
               aria-disabled={locked || undefined}
               data-state={open ? 'open' : 'closed'}
