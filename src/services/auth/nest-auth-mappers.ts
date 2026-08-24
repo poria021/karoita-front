@@ -209,7 +209,9 @@ export function extractNestLoginResponse(
     throw new ApiClientError('پاسخ ورود فاقد توکن معتبر است.');
   }
 
-  const user = mapNestAuthUser(data.user, fallbackMobile);
+  // بک‌اند ثبت‌نام: آبجکت کاربر را در «newUser» برمی‌گرداند، نه «user»
+  const rawUser = isRecord(data.user) ? data.user : data.newUser;
+  const user = mapNestAuthUser(rawUser, fallbackMobile);
   const expiresAt = new Date(tokenExpires).toISOString();
 
   return {
@@ -250,7 +252,11 @@ export function toSessionFromNestLogin(raw: unknown, fallbackMobile?: string): S
 export function looksLikeNestLoginResponse(raw: unknown): boolean {
   if (!isRecord(raw)) return false;
   const data = isRecord(raw.data) ? raw.data : raw;
-  return typeof data.token === 'string' && isRecord(data.user);
+  // بک‌اند ثبت‌نام کاربر را در «newUser» برمی‌گرداند، نه «user»
+  return (
+    typeof data.token === 'string' &&
+    (isRecord(data.user) || isRecord(data.newUser))
+  );
 }
 
 /**
