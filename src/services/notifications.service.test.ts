@@ -25,6 +25,12 @@ describe('NotificationsService (mock)', () => {
     expect(list.find((item) => item.id === 'ntf-3')?.read).toBe(true);
   });
 
+  it('listPaginated returns hasNextPage=false in mock mode', async () => {
+    const result = await NotificationsService.listPaginated();
+    expect(result.hasNextPage).toBe(false);
+    expect(result.data.length).toBeGreaterThan(0);
+  });
+
   it('markAsRead flips only the target notification', async () => {
     const after = await NotificationsService.markAsRead('ntf-2');
     expect(after.find((item) => item.id === 'ntf-2')?.read).toBe(true);

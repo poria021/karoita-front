@@ -29,7 +29,7 @@ function requireOnboardingReview(): void {
   assertMockClientHasPermission('onboarding.review');
 }
 
-/** Map Nest status string to FE `docStatus` */
+/** Map FE docStatus → Nest filter status string */
 function nestStatusLabel(
   docStatus: 'approved' | 'rejected' | 'pending_admin'
 ): 'CONFIRM' | 'REJECT' | 'PENDING' {
@@ -41,22 +41,26 @@ function nestStatusLabel(
 /**
  * Onboarding identity-doc approval queue.
  *
- * Nest map:
- * - GET    /api/v1/users?filters={"status":"PENDING"}&page&limit → list queue
- * - PATCH  /api/v1/users/{id} documentStatus:CONFIRM → approve
- * - PATCH  /api/v1/users/{id} documentStatus:REJECT + rejectDescription → reject
+ * Nest endpoints used:
+ * - GET    /api/v1/users?filters={"status":"PENDING"|"CONFIRM"|"REJECT"}&page&limit
+ * - GET    /api/v1/users/{id}          ← fetch current data before PATCH
+ * - PATCH  /api/v1/users/{id}          documentStatus: "CONFIRM"
+ * - PATCH  /api/v1/users/{id}          documentStatus: "REJECT" + rejectDescription
  */
 export const OnboardingApprovalsService = {
   /**
    * GET /api/v1/users?filters={"status":"PENDING"|"CONFIRM"|"REJECT"}&page&limit
-   * Returns offset/limit page + province facet (provinces extracted from data in real mode).
    */
   async listPage(
     filters: ListOnboardingApprovalsFilters
   ): Promise<ListOnboardingApprovalsPage> {
     if (!IS_MOCK_MODE) {
       const nestStatus = nestStatusLabel(filters.status);
-      const page = Math.floor((filters.offset ?? 0) / (filters.limit ?? ONBOARDING_APPROVALS_PAGE_SIZE)) + 1;
+      const page =
+        Math.floor(
+          (filters.offset ?? 0) / (filters.limit ?? ONBOARDING_APPROVALS_PAGE_SIZE)
+        ) + 1;
+
       const raw = await usersApi.list({
         page,
         limit: filters.limit ?? ONBOARDING_APPROVALS_PAGE_SIZE,
@@ -92,23 +96,26 @@ export const OnboardingApprovalsService = {
     };
   },
 
-  /** PATCH /api/v1/users/{id} → documentStatus: CONFIRM */
+  /**
+   * PATCH /api/v1/users/{id} → documentStatus: "CONFIRM"
+   *
+   * اول اطلاعات فعلی کاربر رو می‌گیریم (GET /api/v1/users/{id}) تا
+   * فیلدهای اجباری با مقدار واقعی پر بشن و بک‌اند رد نکنه.
+   */
   async approveIdentityDoc(userId: string): Promise<OnboardingApprovalUser> {
     if (!IS_MOCK_MODE) {
+      // ۱. اطلاعات فعلی کاربر رو بگیر
+      const current = await usersApi.getById(userId);
+
+      // ۲. فقط documentStatus رو تغییر بده، بقیه فیلدها دست نخورده بمونن
       const raw = await usersApi.update(userId, {
         documentStatus: 'CONFIRM',
-        // required fields for UpdateUserDto — pass empty strings; Nest ignores unchanged
-        firstName: '',
-        lastName: '',
-        provinceId: '',
-        universityId: '',
-        degreeId: '',
-        userUniqueId: '',
-        cityId: '',
-        schoolId: '',
-        educationalDistrictsId: '',
+        firstName: current.firstName,
+        lastName: current.lastName,
+        userUniqueId: current.userUniqueId ?? undefined,
         rejectDescription: [],
       });
+
       const u = mapNestAuthUser(raw);
       return { ...u, fullName: `${u.firstName} ${u.lastName}`.trim() };
     }
@@ -123,7 +130,11 @@ export const OnboardingApprovalsService = {
     });
   },
 
-  /** PATCH /api/v1/users/{id} → documentStatus: REJECT + rejectDescription */
+  /**
+   * PATCH /api/v1/users/{id} → documentStatus: "REJECT" + rejectDescription
+   *
+   * Swagger schema: rejectDescription: { id: number, description: string }
+   */
   async rejectIdentityDoc(
     userId: string,
     reason: string
@@ -135,19 +146,19 @@ export const OnboardingApprovalsService = {
           'لطفاً علت نقص یا عدم تایید مدارک را بنویسید یا انتخاب کنید.'
         );
       }
+
+      // ۱. اطلاعات فعلی کاربر رو بگیر
+      const current = await usersApi.getById(userId);
+
+      // ۲. PATCH با documentStatus: REJECT و دلیل رد
       const raw = await usersApi.update(userId, {
         documentStatus: 'REJECT',
-        rejectDescription: [trimmed],
-        firstName: '',
-        lastName: '',
-        provinceId: '',
-        universityId: '',
-        degreeId: '',
-        userUniqueId: '',
-        cityId: '',
-        schoolId: '',
-        educationalDistrictsId: '',
+        firstName: current.firstName,
+        lastName: current.lastName,
+        userUniqueId: current.userUniqueId ?? undefined,
+        rejectDescription: [{ id: 1, description: trimmed }],
       });
+
       const u = mapNestAuthUser(raw);
       return { ...u, fullName: `${u.firstName} ${u.lastName}`.trim() };
     }
@@ -169,8 +180,8 @@ export const OnboardingApprovalsService = {
   },
 
   /**
-   * استان‌های فیلتر queue.
-   * در real mode از GET /api/admin/province/all استفاده می‌شود.
+   * لیست استان‌های موجود در صف بررسی.
+   * Real mode: GET /api/admin/province/all
    */
   async listProvinces(): Promise<string[]> {
     if (!IS_MOCK_MODE) {
@@ -178,16 +189,13 @@ export const OnboardingApprovalsService = {
         '@/services/admin-catalog/admin-catalog.api'
       );
       const provinces = await adminCatalogApi.getAllProvinces();
-      // Backend may return duplicate province titles across different ids;
-      // dedupe here so consumers (e.g. <KvSelectItem key={name}>) never see
-      // repeated keys.
       return Array.from(new Set(provinces.map((p) => p.title)));
     }
     requireOnboardingReview();
     return collectProvinces();
   },
 
-  /** Mock: auth-user store; real: no-op until Nest push/SSE */
+  /** Mock: subscribe to auth-user store changes; real: no-op (no SSE yet) */
   subscribeDirectoryChanges(listener: () => void): () => void {
     if (!IS_MOCK_MODE) {
       return () => {};

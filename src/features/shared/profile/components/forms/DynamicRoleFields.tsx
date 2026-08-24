@@ -45,17 +45,64 @@ function asStringArray(value: unknown): string[] {
     : [];
 }
 
+/**
+ * تعیین می‌کند که آیا یک فیلد در این لحظه باید قفل باشد.
+ * اگر فیلد والد خالی باشد، فیلد فرزند قفل می‌شود.
+ */
+function isLockedByParent(
+  name: OrganizationField,
+  province: string[],
+  district: string[]
+): boolean {
+  switch (name) {
+    case 'city':
+      return province.length === 0;
+    case 'district':
+      return province.length === 0;
+    case 'school':
+      return district.length === 0;
+    case 'college':
+      return province.length === 0;
+    default:
+      return false;
+  }
+}
+
+/**
+ * dependsOn مناسب برای هر فیلد را برمی‌گرداند.
+ * فقط اطلاعاتی که API واقعاً برای فیلتر نیاز دارد پاس می‌شود.
+ */
+function getDependsOn(
+  name: OrganizationField,
+  province: string[],
+  district: string[]
+): { province?: string[]; district?: string[] } | undefined {
+  switch (name) {
+    case 'city':
+      return { province };
+    case 'district':
+      return { province };
+    case 'school':
+      return { district };
+    default:
+      return undefined;
+  }
+}
+
 export function DynamicRoleFields({
   role,
   disabled = false,
 }: DynamicRoleFieldsProps) {
   const form = useFormContext<ProfileSchema>();
+
+  // watch فیلدهای والد برای cascade lock و cascade clear
   const province = asStringArray(
     useWatch({ control: form.control, name: 'province' })
   );
   const district = asStringArray(
     useWatch({ control: form.control, name: 'district' })
   );
+
   const strategy = ROLE_FIELD_STRATEGY[role];
 
   return (
@@ -63,6 +110,9 @@ export function DynamicRoleFields({
       {strategy.organizationFields.map((name) => {
         const optional = isOptionalOrganizationField(role, name);
         const isMulti = MULTI_ORGANIZATION_FIELDS.has(name);
+        const parentLocked = isLockedByParent(name, province, district);
+        const fieldLocked = disabled || parentLocked;
+        const dependsOn = getDependsOn(name, province, district);
 
         return (
           <KvFormField
@@ -80,11 +130,13 @@ export function DynamicRoleFields({
                   optionalHint={optional}
                   value={asStringArray(field.value)}
                   placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
-                  locked={disabled}
+                  locked={fieldLocked}
+                  showLockIcon={!disabled && parentLocked}
                   error={fieldState.error?.message}
-                  dependsOn={{ province, district }}
+                  dependsOn={dependsOn}
                   onChange={(next) => {
                     field.onChange(next);
+                    // پاک کردن آبشاری فیلدهای وابسته
                     for (const dependent of DEPENDENCIES[name] ?? []) {
                       form.setValue(dependent, [], {
                         shouldDirty: true,
@@ -102,8 +154,10 @@ export function DynamicRoleFields({
                   optionalHint={optional}
                   value={typeof field.value === 'string' ? field.value : ''}
                   placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
-                  locked={disabled}
+                  locked={fieldLocked}
+                  showLockIcon={!disabled && parentLocked}
                   error={fieldState.error?.message}
+                  dependsOn={dependsOn}
                   onChange={(value) => field.onChange(value)}
                 />
               )

@@ -20,10 +20,20 @@ export {
   ROLE_FIELD_STRATEGY,
 };
 
+/**
+ * زنجیره وابستگی فیلدهای سازمانی — آبشاری (cascade clear)
+ *
+ * province → city, college, district, school
+ * city     → district, school
+ * district → school
+ *
+ * وقتی مقدار یک فیلد تغییر می‌کند، تمام فیلدهای فهرست‌شده پاک می‌شوند.
+ */
 export const DEPENDENCIES: Partial<
   Record<OrganizationField, OrganizationField[]>
 > = {
   province: ['city', 'college', 'district', 'school'],
+  city: ['district', 'school'],
   district: ['school'],
 };
 

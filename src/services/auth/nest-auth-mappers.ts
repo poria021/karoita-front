@@ -29,16 +29,21 @@ function mapNestDocStatus(value: unknown): DocStatus {
   }
 }
 
+/**
+ * شماره موبایل / phone رو از پاسخ Nest می‌خونه.
+ *
+ * برخی endpoint‌های Nest (از جمله PATCH /api/v1/users/{id}) شماره رو
+ * در پاسخ برنمی‌گردونن — در این حالت به‌جای throw، رشته خالی برمی‌گردونیم
+ * تا عملیات approve/reject کامل بشه. برای لاگین/رجیستر همچنان باید
+ * fallbackMobile پاس بشه.
+ */
 function readPhone(user: Record<string, unknown>, fallbackMobile?: string): string {
   if (typeof user.phone === 'string' && user.phone.trim()) return user.phone.trim();
-  if (typeof user.mobile === 'string' && user.mobile.trim()) {
-    return user.mobile.trim();
-  }
-  // برخی مسیرهای Nest (دست‌کم در محیط dev) شماره را در پاسخ کاربر برنمی‌گردانند.
-  // چون شماره را همان لحظه‌ی درخواست (لاگین/ثبت‌نام/OTP) از کاربر داریم، به‌جای
-  // شکست کامل ورود، همان مقدار شناخته‌شده را جایگزین می‌کنیم.
+  if (typeof user.mobile === 'string' && user.mobile.trim()) return user.mobile.trim();
   if (fallbackMobile && fallbackMobile.trim()) return fallbackMobile.trim();
-  throw new ApiClientError('پاسخ کاربر فاقد شماره موبایل است.');
+  // برای endpoint‌هایی که phone رو برنمی‌گردونن (مثل PATCH users/{id})
+  // به‌جای throw کردن، رشته خالی برمیگردونیم.
+  return '';
 }
 
 function readRole(user: Record<string, unknown>): User['role'] {
@@ -58,14 +63,6 @@ function asOptionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
 }
 
-/**
- * Nest `/auth/me` برمی‌گرداند: city, educationalDistrict, school (رشته‌ای ساده)
- * و یک شناسه‌ی عمومی userUniqueId که بسته به نقش کاربر روی یکی از
- * studentId / skillCode / personalCode فرانت مپ می‌شود.
- *
- * بک‌اند فیلدهای province، university، degree را به‌صورت آرایه‌ای از
- * آبجکت {_id, title} برمی‌گرداند — readOrgArray این فرمت را handle می‌کند.
- */
 /**
  * بک‌اند آرایه‌ای از آبجکت با فرمت {_id, title} یا {id, title} یا string ساده
  * برمی‌گردونه — این تابع title هر آیتم رو استخراج می‌کنه.
@@ -134,13 +131,20 @@ function readRoleIdentifier(
 }
 
 /**
- * Maps Nest Auth `User` (phone + RoleDto) → FE `User` (mobile + UserRole).
+ * Maps a Nest User DTO (from any endpoint) → FE `User`.
+ *
+ * استفاده می‌شه برای:
+ * - GET  /api/v1/users  (لیست)
+ * - GET  /api/v1/users/{id}
+ * - PATCH /api/v1/users/{id}  (approve / reject)
+ * - GET  /auth/me
  */
 export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
   if (!isRecord(raw) || typeof raw.id !== 'string') {
     throw new ApiClientError('پاسخ کاربر نامعتبر است.');
   }
 
+  // documentStatus مستقیم یا داخل status.name
   const documentStatus =
     typeof raw.documentStatus === 'string'
       ? raw.documentStatus
@@ -150,11 +154,11 @@ export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
 
   const role = readRole(raw);
 
-  // photo.path از Nest یک URL کامل S3 است (مثلاً https://example.com/path/to/file.jpg)
-  // — مستقیم قابل استفاده در <img src> است، نیازی به presigned read URL جداگانه نیست
-  const photoUrl = isRecord(raw.photo) && typeof raw.photo.path === 'string'
-    ? raw.photo.path
-    : undefined;
+  // photo.path از Nest یک URL کامل S3 است — مستقیم قابل استفاده در <img src>
+  const photoUrl =
+    isRecord(raw.photo) && typeof raw.photo.path === 'string'
+      ? raw.photo.path
+      : undefined;
 
   return {
     id: raw.id,
@@ -248,7 +252,6 @@ export function toSessionFromNestLogin(raw: unknown, fallbackMobile?: string): S
 export function looksLikeNestLoginResponse(raw: unknown): boolean {
   if (!isRecord(raw)) return false;
   const data = isRecord(raw.data) ? raw.data : raw;
-  // بک‌اند ثبت‌نام کاربر را در «newUser» برمی‌گرداند، نه «user»
   return (
     typeof data.token === 'string' &&
     (isRecord(data.user) || isRecord(data.newUser))
@@ -277,15 +280,12 @@ export function mapNestAdminUser(raw: unknown, fallbackMobile?: string): User {
 
   const mobile = readPhone(raw, fallbackMobile);
 
-  // role در پاسخ ادمین یک string ساده است: 'admin' | 'superadmin'
   let role: User['role'] = 'super_admin';
   if (typeof raw.role === 'string') {
     role = fromNestRoleName(raw.role);
   }
 
-  // status.name: 'active' → approved
-  const isActive =
-    isRecord(raw.status) && raw.status.name === 'active';
+  const isActive = isRecord(raw.status) && raw.status.name === 'active';
 
   return {
     id: raw.id,

@@ -243,8 +243,16 @@ async function performRealRefresh(): Promise<Session | null> {
 
     const raw: unknown = await res.json();
 
+    // ادمین لاگین‌رسپانس را اول چک کن (data.admin بجای data.user)
+    if (looksLikeNestAdminLoginResponse(raw)) {
+      const parsed = extractNestAdminLoginResponse(raw, existingMobile);
+      await writeRealAuthTokens(parsed.tokens);
+      dispatchSessionToStore({ user: parsed.user, token: parsed.tokens.token, expiresAt: parsed.expiresAt });
+      return { user: parsed.user, token: parsed.tokens.token, expiresAt: parsed.expiresAt };
+    }
+
     if (looksLikeNestLoginResponse(raw)) {
-      applyNestLoginResponse(raw, existingMobile);
+      await applyNestLoginResponse(raw, existingMobile);
       return toSessionFromNestLogin(raw, existingMobile);
     }
 

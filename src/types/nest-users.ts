@@ -68,16 +68,29 @@ export type NestStatusDto = {
 };
 
 /**
+ * Swagger schema for rejectDescription:
+ * { id: number, description: string }
+ * id=1 is used as a generic placeholder from the FE side.
+ */
+export type NestRejectDescription = {
+  id: number;
+  description: string;
+};
+
+/**
  * PATCH /api/v1/users/{id}
  * Role-based location fields per Swagger:
  * - teacher/school_admin  → provinceIds[], cityIds[], schoolIds[], educationalDistrictsIds[]
  * - mentor/supervisor     → provinceIds[], universityIds[]
  * - student/trainee       → single provinceId, universityId, degreeId
- * We send both singular and plural so the same payload works for all roles.
+ *
+ * For approval/reject actions only `documentStatus` (and optionally
+ * `rejectDescription`) are sent. All other fields are optional so we
+ * never overwrite user data with empty strings.
  */
 export type NestUpdateUserDto = {
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   // singular (student / trainee)
   provinceId?: string;
   universityId?: string;
@@ -88,9 +101,9 @@ export type NestUpdateUserDto = {
   cityIds?: string[];
   schoolIds?: string[];
   educationalDistrictsIds?: string[];
-  userUniqueId: string;
+  userUniqueId?: string;
   documentStatus: NestDocumentStatus;
-  rejectDescription: unknown[];
+  rejectDescription?: NestRejectDescription[];
   password?: string;
   photo?: NestFileDto;
   role?: NestRoleDto;
