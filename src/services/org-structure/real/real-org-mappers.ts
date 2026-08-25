@@ -14,7 +14,7 @@ import type {
   NestSchool,
   NestUniversity,
 } from '@/types/nest-admin';
-import type { OrgStructureListItem } from '@/services/org-structure/mock-org-query';
+import type { OrgStructureListItem } from '@/types/org-structure';
 
 type ProvinceLike = Pick<NestProvince, 'id' | 'title'>;
 

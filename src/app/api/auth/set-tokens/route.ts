@@ -15,11 +15,16 @@ import {
   REAL_REFRESH_COOKIE_OPTIONS,
   REAL_ACCESS_COOKIE_NAME,
   REAL_ACCESS_COOKIE_OPTIONS,
+  REAL_SURFACE_COOKIE_NAME,
+  REAL_SURFACE_COOKIE_OPTIONS,
+  type AuthSurface,
 } from '@/lib/real-auth-cookie';
 
 interface SetTokensBody {
   refreshToken?: unknown;
   accessToken?: unknown;
+  /** 'admin' | 'user' — تعیین می‌کند /api/auth/refresh کدام Nest endpoint بزند */
+  surface?: unknown;
 }
 
 export async function POST(request: NextRequest) {
@@ -48,6 +53,12 @@ export async function POST(request: NextRequest) {
   if (typeof body.accessToken === 'string' && body.accessToken) {
     response.cookies.set(REAL_ACCESS_COOKIE_NAME, body.accessToken, REAL_ACCESS_COOKIE_OPTIONS);
   }
+
+  // surface cookie — مشخص می‌کند /api/auth/refresh کدام Nest endpoint بزند
+  // 'admin' → v1/admin/auth/refresh | 'user' → v1/auth/refresh
+  const surface: AuthSurface =
+    typeof body.surface === 'string' && body.surface === 'admin' ? 'admin' : 'user';
+  response.cookies.set(REAL_SURFACE_COOKIE_NAME, surface, REAL_SURFACE_COOKIE_OPTIONS);
 
   return response;
 }

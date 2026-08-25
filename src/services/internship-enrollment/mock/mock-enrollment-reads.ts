@@ -43,15 +43,36 @@ import {
   hasAvailableCapacity,
 } from '@/utils/enrollment-eligibility';
 
+/**
+ * بررسی می‌کند که مدرسه در scope عمل‌کرد actor قرار دارد یا نه.
+ * چون actor.province و actor.district هر دو string[] هستند،
+ * بررسی شامل همه مقادیر آرایه می‌شود.
+ */
 function isSchoolInActorScope(
   school: InternshipSchoolCapacity,
   actor: InternshipEnrollmentActor
 ): boolean {
   if (actor.specialPermissions?.crossFaculty) return true;
-  return (
-    school.province === (actor.province ?? 'تهران') &&
-    (!actor.district || school.district === actor.district)
-  );
+
+  // province: اگر آرایه است، چک می‌کنیم که مدرسه در یکی از استان‌های actor باشد
+  const actorProvinces = Array.isArray(actor.province)
+    ? actor.province
+    : actor.province
+    ? [actor.province]
+    : ['تهران'];
+
+  if (!actorProvinces.includes(school.province)) return false;
+
+  // district: اگر actor هیچ منطقه‌ای ندارد، هر مدرسه‌ای قابل قبول است
+  if (!actor.district || (Array.isArray(actor.district) && actor.district.length === 0)) {
+    return true;
+  }
+
+  const actorDistricts = Array.isArray(actor.district)
+    ? actor.district
+    : [actor.district];
+
+  return actorDistricts.includes(school.district);
 }
 
 export function resolveEnrollmentPageState(

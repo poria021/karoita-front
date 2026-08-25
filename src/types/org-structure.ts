@@ -100,3 +100,30 @@ export type OrgStructureEntity =
   | OrgDistrict
   | OrgSchool
   | OrgMajor;
+
+/**
+ * ردیف جدول ساختار سازمانی — هم mock و هم real از این type استفاده می‌کنند.
+ * نگه داشتن اینجا جلوی وابستگی real-mode به mock-mode را می‌گیرد.
+ */
+export type OrgStructureListItem = {
+  id: string;
+  name: string;
+  kind: OrgStructureEntityKind;
+  deleteBlocked: boolean;
+  audience?: OrgMajorAudience;
+  /** Real-mode majors (degrees): linked role's display title (see NestDegree). */
+  roleName?: string;
+  gender?: OrgSchoolGender;
+  provinceName?: string;
+  cityName?: string;
+  districtName?: string;
+  campusesCount?: number;
+  districtsCount?: number;
+  schoolsCount?: number;
+  usersCount?: number;
+  provinceId?: string;
+  cityId?: string;
+  districtId?: string;
+  /** Real-mode majors (degrees): linked role's id, for edit-form prefill. */
+  roleId?: string;
+};

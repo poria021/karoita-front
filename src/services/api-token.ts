@@ -20,7 +20,7 @@ let browserRotateAccessPromise: Promise<string | null> | null = null;
 async function rotateAccessTokenOnce(): Promise<string | null> {
   try {
     const { realRefreshToken } = await import(
-      '@/services/auth/real-auth.bridge'
+      '@/services/auth/real/real-auth.bridge'
     );
     const session = await realRefreshToken();
     return session?.token ?? null;
@@ -74,7 +74,7 @@ export async function resolveBearerToken(
   if (explicit) return explicit;
   try {
     const { readRealAccessToken } = await import(
-      '@/services/auth/real-auth.tokens'
+      '@/services/auth/real/real-auth.tokens'
     );
     return readRealAccessToken() ?? undefined;
   } catch {
@@ -114,7 +114,7 @@ export async function handleUnauthorized(): Promise<void> {
 // ─── Auth-bootstrap path guard ────────────────────────────────────────────────
 
 const AUTH_BOOTSTRAP_PATH =
-  /(\/v1\/auth\/(logout|phone\/login|phone\/register|forgot|reset)|\/admin\/auth\/|\/api\/auth\/(refresh|clear-tokens|set-tokens))(?:\/|$|\?)/;
+  /(\/v1\/auth\/(logout|refresh|phone\/login|phone\/register|forgot|reset)|\/v1\/admin\/auth\/|\/admin\/auth\/|\/api\/auth\/(refresh|clear-tokens|set-tokens))(?:\/|$|\?)/;
 
 /**
  * Paths that must NOT trigger a token refresh on 401 — they ARE the auth

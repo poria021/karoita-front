@@ -7,7 +7,18 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
 
 export type KvFieldFrameProps = {
+  /**
+   * id برای label (htmlFor) — همیشه لازمه.
+   * برای input/textarea: id === fieldId (label مستقیماً به input اشاره می‌کنه).
+   * برای select/button: fieldId جداست تا browser "duplicate form field id" نده
+   *   (label.htmlFor به label خودش اشاره می‌کنه، trigger با aria-labelledby به label).
+   */
   id: string;
+  /**
+   * id اصلی که به field/control داده می‌شه (aria-describedby پیشوند از این می‌گیره).
+   * اگر نداده بشه، همان id استفاده می‌شه (رفتار قدیمی برای input ها).
+   */
+  fieldId?: string;
   label?: string | false;
   /** آیکن کنار برچسب (مثلاً بخش بارگذاری مدرک). */
   labelIcon?: ReactNode;
@@ -36,6 +47,7 @@ export function resolveFieldLabelMode(options: {
 
 export function KvFieldFrame({
   id,
+  fieldId,
   label,
   labelIcon,
   required = false,
@@ -47,6 +59,10 @@ export function KvFieldFrame({
   children,
   footer,
 }: KvFieldFrameProps) {
+  // برای aria-describedby و error/hint id ها، از fieldId استفاده می‌کنیم
+  // اگر fieldId نداده نشده، از id استفاده می‌کنیم (backward compatible)
+  const controlId = fieldId ?? id;
+
   const showLabel = label !== undefined && label !== false && label !== '';
   const showLabelLock = Boolean(locked && showLockIcon);
   const labelMode = resolveFieldLabelMode({
@@ -64,7 +80,7 @@ export function KvFieldFrame({
               {labelIcon}
             </span>
           ) : null}
-          <KvTypography variant="label" as="label" htmlFor={id}>
+          <KvTypography variant="label" as="label" htmlFor={controlId}>
             {label}
             {showLabelLock ? (
               <FaIcon
@@ -90,7 +106,7 @@ export function KvFieldFrame({
       {error ? (
         <div
           className="mt-kv-field flex items-start gap-1.5"
-          id={`${id}-error`}
+          id={`${controlId}-error`}
           role="alert"
         >
           <FaIcon
@@ -103,7 +119,7 @@ export function KvFieldFrame({
           </KvTypography>
         </div>
       ) : hint ? (
-        <div className="mt-kv-field flex items-start gap-1.5" id={`${id}-hint`}>
+        <div className="mt-kv-field flex items-start gap-1.5" id={`${controlId}-hint`}>
           <FaIcon
             icon={faIcons.circleInfo}
             size="sm"

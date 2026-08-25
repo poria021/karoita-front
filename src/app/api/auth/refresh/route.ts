@@ -17,6 +17,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
+  REAL_SURFACE_COOKIE_NAME,
+  type AuthSurface,
 } from '@/lib/real-auth-cookie';
 
 /**
@@ -26,26 +28,74 @@ import {
 const NEST_API_URL =
   (process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? '')
     .replace(/\/$/, '');
-const NEST_REFRESH_PATH = 'v1/auth/refresh';
+
+/** Nest endpoint بر اساس surface انتخاب می‌شود */
+const NEST_REFRESH_PATHS: Record<AuthSurface, string> = {
+  user: 'v1/auth/refresh',
+  admin: 'v1/admin/auth/refresh',
+};
+
+/** Nest session endpoint بر اساس surface */
+const NEST_SESSION_PATHS: Record<AuthSurface, string> = {
+  user: 'v1/auth/me',
+  admin: 'v1/admin/auth/me',
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** رفرش‌توکن جدید را از پاسخ Nest (مستقیم یا زیر `data`) استخراج می‌کند. */
+/**
+ * رفرش‌توکن جدید را از پاسخ Nest استخراج می‌کند.
+ * Nest گاهی { token, refreshToken, ... } و گاهی { data: { token, refreshToken, ... } } می‌فرستد.
+ * هر دو حالت را پشتیبانی می‌کنیم.
+ */
 function extractRotatedRefreshToken(raw: unknown): string | null {
   if (!isRecord(raw)) return null;
-  const data = isRecord(raw.data) ? raw.data : raw;
-  return typeof data.refreshToken === 'string' ? data.refreshToken : null;
+  // اول flat را چک کن
+  if (typeof raw.refreshToken === 'string' && raw.refreshToken) return raw.refreshToken;
+  // بعد nested data را چک کن
+  if (isRecord(raw.data) && typeof raw.data.refreshToken === 'string' && raw.data.refreshToken) {
+    return raw.data.refreshToken;
+  }
+  return null;
+}
+
+/**
+ * پس از refresh موفق، /auth/me یا /admin/auth/me را با access token جدید می‌زنیم
+ * تا اطلاعات کامل کاربر همراه payload برگردد.
+ * برای ادمین: admin object | برای user: user object
+ */
+async function fetchSessionUser(
+  accessToken: string,
+  baseUrl: string,
+  surface: AuthSurface,
+): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch(`${baseUrl}/${NEST_SESSION_PATHS[surface]}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const json: unknown = await res.json();
+    if (!isRecord(json)) return null;
+    return isRecord(json.data) ? json.data : json;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get(REAL_REFRESH_COOKIE_NAME)?.value;
+  const rawSurface = request.cookies.get(REAL_SURFACE_COOKIE_NAME)?.value;
+  const surface: AuthSurface = rawSurface === 'admin' ? 'admin' : 'user';
+  const nestRefreshPath = NEST_REFRESH_PATHS[surface];
 
   if (process.env.NODE_ENV !== 'production') {
     const allCookies = request.cookies.getAll();
     console.log('[/api/auth/refresh] cookies present:', allCookies.map(c => c.name));
-    console.log('[/api/auth/refresh] rt present:', !!refreshToken);
+    console.log('[/api/auth/refresh] rt present:', !!refreshToken, '| surface:', surface);
   }
 
   if (!refreshToken) {
@@ -67,9 +117,9 @@ export async function POST(request: NextRequest) {
     // Nest از Authorization: Bearer <refreshToken> استفاده می‌کنه:
     // refresh endpoint یه token مستقل قبول می‌کنه، نه access token.
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[/api/auth/refresh] → POST', `${NEST_API_URL}/${NEST_REFRESH_PATH}`);
+      console.log('[/api/auth/refresh] → POST', `${NEST_API_URL}/${nestRefreshPath}`);
     }
-    nestResponse = await fetch(`${NEST_API_URL}/${NEST_REFRESH_PATH}`, {
+    nestResponse = await fetch(`${NEST_API_URL}/${nestRefreshPath}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${refreshToken}` },
       cache: 'no-store',
@@ -98,6 +148,7 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
     expired.cookies.delete(REAL_REFRESH_COOKIE_NAME);
+    expired.cookies.delete(REAL_SURFACE_COOKIE_NAME);
     return expired;
   }
 
@@ -118,6 +169,35 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // اگر Nest فقط { token, refreshToken, tokenExpires } برگرداند (بدون user/admin object)،
+  // اینجا /auth/me یا /admin/auth/me را سرور-تو-سرور می‌زنیم و نتیجه را ضمیمه می‌کنیم.
+  // این کار باعث می‌شود performRealRefresh در کلاینت بتواند user/admin را parse کند
+  // و نیازی به فراخوانی جداگانه‌ی /auth/me نباشد.
+  {
+    const data = isRecord(payload) && isRecord((payload as Record<string, unknown>).data)
+      ? (payload as Record<string, unknown>).data as Record<string, unknown>
+      : payload as Record<string, unknown>;
+
+    const newAccessToken = typeof data.token === 'string' ? data.token : null;
+
+    if (newAccessToken) {
+      if (surface === 'admin' && !isRecord(data.admin)) {
+        // ادمین: admin object را از /admin/auth/me می‌گیریم
+        const adminUser = await fetchSessionUser(newAccessToken, NEST_API_URL, 'admin');
+        if (adminUser) {
+          (data as Record<string, unknown>).admin = adminUser;
+        }
+      } else if (surface === 'user' && !isRecord(data.user) && !isRecord(data.newUser)) {
+        // کاربر عمومی: user object را از /auth/me می‌گیریم و به عنوان data.user اضافه می‌کنیم
+        // این باعث می‌شود looksLikeNestLoginResponse در performRealRefresh true بشود
+        const userObj = await fetchSessionUser(newAccessToken, NEST_API_URL, 'user');
+        if (userObj) {
+          (data as Record<string, unknown>).user = userObj;
+        }
+      }
+    }
+  }
+
   const response = NextResponse.json(payload);
 
   const rotatedRefreshToken = extractRotatedRefreshToken(payload);
@@ -127,6 +207,14 @@ export async function POST(request: NextRequest) {
       rotatedRefreshToken,
       REAL_REFRESH_COOKIE_OPTIONS
     );
+    // surface cookie را هم تمدید کن تا بعد از rotation هم درست بماند
+    response.cookies.set(REAL_SURFACE_COOKIE_NAME, surface, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
   }
 
   return response;

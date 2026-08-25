@@ -11,8 +11,7 @@ import {
 import {
   orgEntityKindFromTab,
   type OrgMajorAudience,
-  type OrgSchoolGender,
-  type OrgStructureEntityKind,
+  type OrgStructureListItem,
   type OrgStructureSnapshot,
   type OrgStructureSubTab,
 } from '@/types/org-structure';
@@ -21,34 +20,8 @@ import {
   type OffsetLimitPage,
 } from '@/utils/offset-limit-page';
 
-export type OrgStructureListItem = {
-  id: string;
-  name: string;
-  kind: OrgStructureEntityKind;
-  deleteBlocked: boolean;
-  audience?: OrgMajorAudience;
-  /** Real-mode majors (degrees): linked role's display title (see NestDegree). */
-  roleName?: string;
-  gender?: OrgSchoolGender;
-  provinceName?: string;
-  cityName?: string;
-  districtName?: string;
-  campusesCount?: number;
-  districtsCount?: number;
-  schoolsCount?: number;
-  usersCount?: number;
-  // Real-mode listPage() spreads the raw Nest FK fields (toOrgCity/
-  // toOrgDistrict/toOrgSchool) onto these items; mock-mode items only
-  // carry the *Name display labels above. Optional here so the edit
-  // dialog can populate its selects straight from the row it already
-  // has, without a second (and, for non-province kinds, currently
-  // unsupported) getEntity() round trip.
-  provinceId?: string;
-  cityId?: string;
-  districtId?: string;
-  /** Real-mode majors (degrees): linked role's id, for edit-form prefill. */
-  roleId?: string;
-};
+// OrgStructureListItem is now defined in @/types/org-structure and re-exported here for backward compat.
+export type { OrgStructureListItem };
 
 export type OrgStructureListPage = OffsetLimitPage<OrgStructureListItem>;
 

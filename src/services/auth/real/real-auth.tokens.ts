@@ -26,6 +26,11 @@
 import Cookies from 'js-cookie';
 
 import { AUTH_COOKIE_NAME } from '@/lib/config';
+import {
+  REAL_SURFACE_COOKIE_NAME,
+  REAL_SURFACE_COOKIE_OPTIONS,
+  type AuthSurface,
+} from '@/lib/real-auth-cookie';
 import type { NestLoginTokens } from '@/services/auth/real/nest-auth-mappers';
 
 // ─── Module-level memory (access token فقط اینجا زندگی می‌کند) ───────────────
@@ -64,30 +69,105 @@ function clearPresenceCookie(): void {
 }
 
 /**
- * refresh token را در httpOnly cookie ذخیره می‌کند (server-side route).
- * این تابع async است — fire-and-forget نیست؛ خطا را می‌بلعد تا login را
- * بلاک نکند ولی در console هشدار می‌دهد.
+ * خطای اختصاصی وقتی httpOnly refresh cookie، پس از تلاش‌های مکرر، همچنان
+ * قابل‌نوشتن نبود. یک Error معمولی است (نه ApiClientError از api-error.ts)
+ * تا وابستگی HTTP/ky به این فایل اضافه نشود — همان مرزبندی معماری که در
+ * کامنت بالای فایل مستند شده. hookهای auth موجود (usePasswordLogin,
+ * useOtpLogin, useAdminGate, ...) از قبل با `error.message` کار می‌کنند
+ * (رجوع کنید به readAuthErrorMessage) پس نیازی به تغییر آن‌ها نیست.
  */
-async function persistRefreshTokenInCookie(refreshToken: string, accessToken?: string): Promise<void> {
-  if (!isBrowser()) return;
-  try {
-    const res = await fetch('/api/auth/set-tokens', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken, accessToken }),
-      credentials: 'include',
-    });
-    if (!res.ok) {
-      console.warn('[real-auth.tokens] set-tokens route returned', res.status);
-    }
-  } catch (err) {
-    console.warn('[real-auth.tokens] set-tokens fetch failed', err);
+export class AuthSessionPersistError extends Error {
+  constructor(message: string, readonly cause?: unknown) {
+    super(message);
+    this.name = 'AuthSessionPersistError';
   }
 }
 
-/** httpOnly refresh cookie را از طریق route پاک می‌کند. */
+const SET_TOKENS_MAX_ATTEMPTS = 3;
+/** فاصلهٔ بین تلاش‌ها — index صفر بین تلاش ۱ و ۲، index یک بین تلاش ۲ و ۳. */
+const SET_TOKENS_RETRY_DELAYS_MS = [300, 900];
+/** هر تلاش حداکثر این‌قدر منتظر می‌ماند؛ درخواست آویزان نباید login را برای همیشه معلق نگه دارد. */
+const SET_TOKENS_ATTEMPT_TIMEOUT_MS = 8_000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** یک تلاش خام برای POST /api/auth/set-tokens، با timeout مستقل از هم. */
+async function requestSetTokensOnce(
+  refreshToken: string,
+  accessToken?: string,
+  surface?: AuthSurface,
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), SET_TOKENS_ATTEMPT_TIMEOUT_MS);
+  try {
+    return await fetch('/api/auth/set-tokens', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken, accessToken, surface }),
+      credentials: 'include',
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+/**
+ * refresh token و surface را در httpOnly cookie ذخیره می‌کند (server-side route).
+ * surface تعیین می‌کند /api/auth/refresh به کدام Nest endpoint بزند.
+ *
+ * این عملیات برای صحت session حیاتی است — اگر بی‌صدا شکست بخورد، کاربر با
+ * ظاهر «ورود موفق» در حافظه می‌ماند اما بدون کوکی refresh، و با اولین
+ * تازه‌سازی صفحه یا اولین ۴۰۱ به‌طور غیرمنتظره logout می‌شود. برای همین:
+ *
+ *  ۱. تا SET_TOKENS_MAX_ATTEMPTS بار با backoff تلاش می‌کند — خطاهای شبکه/
+ *     timeout/۵xx گذرا فرض می‌شوند و retry می‌خورند؛ خطای ۴xx (بدنهٔ نامعتبر
+ *     و مشابه) با تلاش مجدد حل نمی‌شود، پس فوراً متوقف می‌شویم.
+ *  ۲. اگر همهٔ تلاش‌ها شکست بخورند، AuthSessionPersistError پرتاب می‌کند تا
+ *     caller (writeRealAuthTokens) بتواند state نیمه‌کاره را rollback کند و
+ *     خطا را به فرم/UI برساند، نه اینکه سکوت کند.
+ */
+async function persistRefreshTokenInCookie(
+  refreshToken: string,
+  accessToken?: string,
+  surface?: AuthSurface,
+): Promise<void> {
+  if (!isBrowser()) return;
+
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < SET_TOKENS_MAX_ATTEMPTS; attempt++) {
+    if (attempt > 0) {
+      await sleep(SET_TOKENS_RETRY_DELAYS_MS[attempt - 1] ?? 900);
+    }
+    try {
+      const res = await requestSetTokensOnce(refreshToken, accessToken, surface);
+      if (res.ok) return;
+
+      lastError = new Error(`set-tokens route returned ${res.status}`);
+      if (res.status >= 400 && res.status < 500) break; // خطای client — retry فایده ندارد
+    } catch (err) {
+      lastError = err; // NetworkError / AbortError(timeout) — گذراست، تلاش بعدی را امتحان کن
+    }
+  }
+
+  console.error(
+    '[real-auth.tokens] set-tokens failed after retries — rolling back session',
+    lastError
+  );
+  throw new AuthSessionPersistError(
+    'ورود کامل نشد؛ ارتباط با سرور برای تکمیل نشست برقرار نشد. لطفاً دوباره تلاش کنید.',
+    lastError
+  );
+}
+
+/** httpOnly refresh cookie و surface cookie را از طریق route پاک می‌کند. */
 async function clearRefreshTokenCookie(): Promise<void> {
   if (!isBrowser()) return;
+  // surface cookie را سمت کلاینت هم پاک می‌کنیم (حساس نیست — فقط httpOnly نبود)
+  Cookies.remove(REAL_SURFACE_COOKIE_NAME, { path: '/' });
   try {
     await fetch('/api/auth/clear-tokens', {
       method: 'POST',
@@ -117,18 +197,47 @@ const ACCESS_REFRESH_SKEW_MS = 60_000;
  * تابع async است — await می‌کند تا httpOnly cookie قبل از هر redirect
  * قطعاً ست شده باشد. بدون این تضمین، رفرش صفحه بلافاصله پس از login
  * می‌تواند karvita_rt را خالی ببیند و session را باطل کند.
+ *
+ * تراکنشی رفتار می‌کند: اگر persistRefreshTokenInCookie (پس از تلاش‌های
+ * داخلی‌اش) شکست بخورد، تمام side-effectهای سنکرون بالا (memory، presence
+ * cookie، surface cookie) را rollback می‌کند و AuthSessionPersistError را
+ * دوباره پرتاب می‌کند. بدون این rollback، کاربر یک session نیمه‌کاره
+ * (access token در حافظه بدون کوکی refresh معتبر) می‌گرفت که ظاهرش «ورود
+ * موفق» بود ولی با اولین تازه‌سازی صفحه یا اولین ۴۰۱ بی‌دلیل logout می‌شد.
  */
-export async function writeRealAuthTokens(tokens: NestLoginTokens): Promise<void> {
+export async function writeRealAuthTokens(
+  tokens: NestLoginTokens,
+  surface: AuthSurface = 'user',
+): Promise<void> {
   _mem = {
     token: tokens.token,
     refreshToken: tokens.refreshToken,
     tokenExpires: tokens.tokenExpires,
   };
   setPresenceCookie();
-  // هر دو توکن را httpOnly cookie می‌کنیم:
-  // - karvita_rt: refresh token (برای rotation)
-  // - karvita_at: access token (برای Authorization header در /api/auth/refresh، اگر Nest نیاز داشت)
-  await persistRefreshTokenInCookie(tokens.refreshToken, tokens.token);
+  // surface cookie سمت کلاینت (دسترس JS دارد چون حساس نیست)
+  if (isBrowser()) {
+    Cookies.set(REAL_SURFACE_COOKIE_NAME, surface, {
+      path: REAL_SURFACE_COOKIE_OPTIONS.path,
+      sameSite: REAL_SURFACE_COOKIE_OPTIONS.sameSite,
+      secure: REAL_SURFACE_COOKIE_OPTIONS.secure,
+      expires: 7, // روز
+    });
+  }
+
+  try {
+    // هر دو توکن را httpOnly cookie می‌کنیم:
+    // - karvita_rt: refresh token (برای rotation)
+    // - karvita_at: access token (برای Authorization header در /api/auth/refresh، اگر Nest نیاز داشت)
+    await persistRefreshTokenInCookie(tokens.refreshToken, tokens.token, surface);
+  } catch (error) {
+    // rollback کامل — نباید state نیمه‌کاره باقی بماند. clearRealAuthTokens
+    // هم memory/presence cookie را فوری پاک می‌کند هم (fire-and-forget)
+    // درخواست /api/auth/clear-tokens را می‌زند تا اگر set-tokens جزئاً
+    // موفق شده بود (مثلاً فقط surface cookie ست شده) آن هم پاک شود.
+    clearRealAuthTokens();
+    throw error;
+  }
 }
 
 /**
@@ -178,4 +287,23 @@ export function peekRealAuthTokens(): NestLoginTokens | null {
   return _mem
     ? { token: _mem.token, refreshToken: _mem.refreshToken, tokenExpires: _mem.tokenExpires }
     : null;
+}
+
+/**
+ * سطح (surface) جاری session را از cookie کلاینت می‌خواند.
+ * httpOnly نیست — پس JS دسترسی دارد.
+ * برگشت: 'admin' | 'user' | null (اگر cookie وجود نداشته باشد)
+ */
+export function readRealAuthSurface(): AuthSurface | null {
+  if (!isBrowser()) return null;
+  const value = document.cookie
+    .split(';')
+    .find(c => c.trim().startsWith(`${REAL_SURFACE_COOKIE_NAME}=`))
+    ?.split('=')
+    .slice(1)
+    .join('=')
+    .trim();
+  if (value === 'admin') return 'admin';
+  if (value === 'user') return 'user';
+  return null;
 }

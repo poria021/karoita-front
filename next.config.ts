@@ -34,6 +34,11 @@ const withPWA = withPWAInit({
     skipWaiting: true,
     clientsClaim: true,
     cleanupOutdatedCaches: true,
+    // inline: true باعث می‌شه fallback script مستقیم داخل sw.js inline بشه
+    // به جای یه فایل جداگانه — این preload link اضافه از head رو حذف می‌کنه
+    // و هشدار "preloaded but not used" رو از بین می‌بره.
+    inlineWorkboxRuntime: true,
+    disableDevLogs: true,
   },
 });
 

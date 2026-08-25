@@ -50,7 +50,8 @@ export type NestUpdateCityDto = {
 
 export type NestCreateEducationalDistrictDto = {
   provinceId: string;
-  cityId: string;
+  /** cityId اختیاری — منطقه آموزشی روستایی ممکنه بدون شهر باشد. */
+  cityId?: string;
   title: string;
 };
 

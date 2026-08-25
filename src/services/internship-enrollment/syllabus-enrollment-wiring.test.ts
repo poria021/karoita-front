@@ -21,22 +21,23 @@ import { buildCourseOfferingId } from '@/services/syllabus-config/syllabus-mappe
 import type { InternshipEnrollmentActor } from '@/types/internship-enrollment';
 import type { SyllabusConfigSnapshot } from '@/types/syllabus-config';
 
+// actor.province/college/district اکنون string[] هستند (چندانتخابی)
 const student: InternshipEnrollmentActor = {
   id: 'student-wire-1',
   role: 'student',
   approved: true,
-  province: 'تهران',
-  college: 'پردیس شهید باهنر تهران',
-  district: 'ناحیه ۱ تهران',
+  province: ['تهران'],
+  college: ['پردیس شهید باهنر تهران'],
+  district: ['ناحیه ۱ تهران'],
 };
 
 const learner: InternshipEnrollmentActor = {
   id: 'learner-wire-1',
   role: 'skill_learner',
   approved: true,
-  province: 'تهران',
-  college: 'پردیس شهید باهنر تهران',
-  district: 'ناحیه ۱ تهران',
+  province: ['تهران'],
+  college: ['پردیس شهید باهنر تهران'],
+  district: ['ناحیه ۱ تهران'],
 };
 
 function baseSnapshot(): SyllabusConfigSnapshot {

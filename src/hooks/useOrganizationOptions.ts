@@ -21,6 +21,7 @@ const MAX_ORG_OPTIONS_IN_DOM = 200;
 
 export type OrganizationDependsOn = {
   province?: string | string[];
+  city?: string | string[];
   district?: string | string[];
 };
 
@@ -59,8 +60,10 @@ export function useOrganizationOptions({
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const listQuery = resolveListSearchQuery(query, debouncedQuery);
   const province = dependsOn?.province ?? '';
+  const city = dependsOn?.city ?? '';
   const district = dependsOn?.district ?? '';
   const provinceKey = toDependsOnKey(province);
+  const cityKey = toDependsOnKey(city);
   const districtKey = toDependsOnKey(district);
 
   const {
@@ -72,7 +75,7 @@ export function useOrganizationOptions({
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: ['org-options', type, listQuery, provinceKey, districtKey],
+    queryKey: ['org-options', type, listQuery, provinceKey, cityKey, districtKey],
     enabled,
     initialPageParam: 1,
     staleTime: QUERY_STALE_MS.list,
@@ -83,6 +86,7 @@ export function useOrganizationOptions({
         page: pageParam,
         limit: ORGANIZATION_OPTIONS_PAGE_SIZE,
         province: provinceKey ? province : undefined,
+        city: cityKey ? city : undefined,
         district: districtKey ? district : undefined,
       }),
     getNextPageParam: (lastPage, allPages) => {

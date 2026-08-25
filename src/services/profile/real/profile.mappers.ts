@@ -97,6 +97,8 @@ export function mergeRecordIntoUser(
     personalCode: asString(record.personalCode) ?? activeUser.personalCode,
     studentId: asString(record.studentId) ?? activeUser.studentId,
     skillCode: asString(record.skillCode) ?? activeUser.skillCode,
+    docUrl: asString(record.docUrl) ?? activeUser.docUrl,
+    docType: asString(record.docType) ?? activeUser.docType,
   };
 }
 

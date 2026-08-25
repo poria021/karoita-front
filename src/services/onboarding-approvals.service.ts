@@ -113,7 +113,6 @@ export const OnboardingApprovalsService = {
         firstName: current.firstName,
         lastName: current.lastName,
         userUniqueId: current.userUniqueId ?? undefined,
-        rejectDescription: [],
       });
 
       const u = mapNestAuthUser(raw);
@@ -133,7 +132,7 @@ export const OnboardingApprovalsService = {
   /**
    * PATCH /api/v1/users/{id} → documentStatus: "REJECT" + rejectDescription
    *
-   * Swagger schema: rejectDescription: { id: number, description: string }
+   * Swagger PATCH request schema: rejectDescription: { id: number, description: string } — آبجکت تکی.
    */
   async rejectIdentityDoc(
     userId: string,
@@ -151,12 +150,13 @@ export const OnboardingApprovalsService = {
       const current = await usersApi.getById(userId);
 
       // ۲. PATCH با documentStatus: REJECT و دلیل رد
+      // Swagger PATCH request schema: rejectDescription یک آبجکت تکی است، نه آرایه.
       const raw = await usersApi.update(userId, {
         documentStatus: 'REJECT',
         firstName: current.firstName,
         lastName: current.lastName,
         userUniqueId: current.userUniqueId ?? undefined,
-        rejectDescription: [{ id: 1, description: trimmed }],
+        rejectDescription: { id: 1, description: trimmed },
       });
 
       const u = mapNestAuthUser(raw);

@@ -33,18 +33,18 @@ function buildOrgFields(
   MockAuthUserRecord,
   'province' | 'city' | 'college' | 'district' | 'school' | 'major'
 > {
+  // فیلدهای موقعیت سازمانی به صورت string[] ذخیره می‌شوند (چندانتخابی)
+  const provinceVal = input.province?.trim() ?? '';
+  const cityVal = input.city?.trim() ?? '';
+  const collegeVal = input.college?.trim() ?? '';
+  const districtVal = input.district?.trim() ?? '';
+
   return {
-    province: orgAccountRequiresProvince(role)
-      ? (input.province?.trim() ?? '')
-      : '',
-    city: orgAccountRequiresCity(role) ? (input.city?.trim() ?? '') : '',
-    college: orgAccountRequiresCollege(role)
-      ? (input.college?.trim() ?? '')
-      : '',
-    district: orgAccountRequiresDistrict(role)
-      ? (input.district?.trim() ?? '')
-      : '',
-    school: '',
+    province: orgAccountRequiresProvince(role) && provinceVal ? [provinceVal] : [],
+    city: orgAccountRequiresCity(role) && cityVal ? [cityVal] : [],
+    college: orgAccountRequiresCollege(role) && collegeVal ? [collegeVal] : [],
+    district: orgAccountRequiresDistrict(role) && districtVal ? [districtVal] : [],
+    school: [],
     major: '',
   };
 }
@@ -66,15 +66,15 @@ export function mockCreateOrganizationalUser(
   }
 
   const org = buildOrgFields(input.role, input);
-  if (orgAccountRequiresProvince(input.role) && !org.province) {
+  if (orgAccountRequiresProvince(input.role) && !org.province?.length) {
     throw new Error('انتخاب استان الزامی است.');
   }
-  if (orgAccountRequiresCollege(input.role) && !org.college) {
+  if (orgAccountRequiresCollege(input.role) && !org.college?.length) {
     throw new Error('انتخاب دانشکده / پردیس الزامی است.');
   }
   if (
-    (orgAccountRequiresCity(input.role) && !org.city) ||
-    (orgAccountRequiresDistrict(input.role) && !org.district)
+    (orgAccountRequiresCity(input.role) && !org.city?.length) ||
+    (orgAccountRequiresDistrict(input.role) && !org.district?.length)
   ) {
     throw new Error('انتخاب شهر و منطقه آموزشی الزامی است.');
   }

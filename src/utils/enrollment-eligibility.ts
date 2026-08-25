@@ -20,6 +20,27 @@ export function normalizeEnrollmentCourseTitle(
   return `${persianToEnglishDigits(courseName).trim()} ${level}`;
 }
 
+/**
+ * بررسی می‌کند که یک مقدار (string) در یک فیلد چندانتخابی (string | string[] | undefined) وجود دارد.
+ * از آنجا که actor.district ممکن است string[] باشد، این helper ایمن‌ترین روش مقایسه است.
+ */
+function actorFieldIncludes(
+  actorField: string | string[] | undefined,
+  value: string
+): boolean {
+  if (!actorField) return false;
+  if (Array.isArray(actorField)) return actorField.includes(value);
+  return actorField === value;
+}
+
+/**
+ * اولین مقدار از یک فیلد چندانتخابی را برمی‌گرداند.
+ */
+function firstOf(value: string | string[] | undefined, fallback: string): string {
+  if (Array.isArray(value)) return value[0] ?? fallback;
+  return value ?? fallback;
+}
+
 export function hasEligibleSchoolMentorCascade(input: {
   actor: InternshipEnrollmentActor;
   level: InternshipEnrollmentLevel;
@@ -27,12 +48,15 @@ export function hasEligibleSchoolMentorCascade(input: {
   mentors: InternshipMentorCapacity[];
 }): boolean {
   const { actor, level, schools, mentors } = input;
+  const actorProvince = firstOf(actor.province, 'تهران');
 
   return schools.some((school) => {
     const isInDefaultScope =
       actor.specialPermissions?.crossFaculty ||
-      (school.province === (actor.province ?? 'تهران') &&
-        (!actor.district || school.district === actor.district));
+      (school.province === actorProvince &&
+        (!actor.district ||
+          (Array.isArray(actor.district) ? actor.district.length === 0 : false) ||
+          actorFieldIncludes(actor.district, school.district)));
 
     if (!isInDefaultScope || !hasAvailableCapacity(school.capacities[level])) {
       return false;

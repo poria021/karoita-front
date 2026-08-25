@@ -11,9 +11,9 @@ const student = {
   id: 'student-1',
   role: 'student' as const,
   approved: true,
-  province: 'تهران',
-  college: 'پردیس شهید باهنر تهران',
-  district: 'ناحیه ۱ تهران',
+  province: ['تهران'],
+  college: ['پردیس شهید باهنر تهران'],
+  district: ['ناحیه ۱ تهران'],
 };
 
 const supervisors = [
@@ -96,7 +96,7 @@ describe('enrollment eligibility', () => {
         query: '',
         province: 'تهران',
         college: 'پردیس شهید باهنر تهران',
-        schools: [{ ...schools[0], capacities: { 1: 0 } }],
+        schools: [{ ...schools[0]!, capacities: { 1: 0 } }],
         mentors,
       })
     ).toEqual([]);
@@ -152,7 +152,7 @@ describe('enrollment eligibility', () => {
             mentorName: null,
           },
         ],
-        actor: { ...student, id: 'learner-1', role: 'skill_learner' },
+        actor: { ...student, id: 'learner-1', role: 'skill_learner' as const },
         kind: 'apprenticeship',
         level: 2,
         termId: 'term-1',

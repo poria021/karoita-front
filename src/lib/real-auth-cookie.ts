@@ -18,6 +18,29 @@ export const REAL_REFRESH_COOKIE_NAME = 'karvita_rt';
  */
 export const REAL_ACCESS_COOKIE_NAME = 'karvita_at';
 
+/**
+ * Surface cookie — مشخص می‌کند session از کدام API surface آمده ('admin' | 'user').
+ *
+ * این cookie httpOnly نیست چون مقدار حساسی ندارد — فقط به /api/auth/refresh
+ * می‌گوید کدام Nest endpoint را بزند:
+ *   admin → POST v1/admin/auth/refresh
+ *   user  → POST v1/auth/refresh
+ *
+ * بدون این cookie، رفرش همیشه به v1/auth/refresh می‌رفت و refresh token ادمین
+ * رد می‌شد (401) که باعث می‌شد با رفرش صفحه کاربر ادمین اخراج شود.
+ */
+export const REAL_SURFACE_COOKIE_NAME = 'karvita_surface';
+
+export type AuthSurface = 'admin' | 'user';
+
+export const REAL_SURFACE_COOKIE_OPTIONS = {
+  httpOnly: false,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+  maxAge: 60 * 60 * 24 * 7, // ۷ روز — همتراز با refresh token
+};
+
 /** هفت روز — با TTL معمول refresh token همخوان است. */
 const REAL_REFRESH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 

@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
-import { MOCK_SUPER_ADMIN_MOBILE } from '../src/services/auth/auth-mock-users';
+import { MOCK_SUPER_ADMIN_MOBILE } from '../src/services/auth/mock/auth-mock-users';
 import { RouteService } from '../src/services/route.service';
 
 /**

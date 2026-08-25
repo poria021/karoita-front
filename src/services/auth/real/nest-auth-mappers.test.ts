@@ -33,6 +33,33 @@ describe('nest-auth-mappers', () => {
     expect(user.role).toBe('supervisor_professor');
   });
 
+  it('maps rejectDescription array to adminRequestMessage (most recent entry)', () => {
+    const user = mapNestAuthUser({
+      ...nestUser,
+      documentStatus: 'REJECT',
+      rejectDescription: [
+        { id: 1, description: 'مدرک ناخوانا بود' },
+        { id: 2, description: 'عکس پروفایل نامعتبر است' },
+      ],
+    });
+    expect(user.docStatus).toBe('rejected');
+    expect(user.adminRequestMessage).toBe('عکس پروفایل نامعتبر است');
+  });
+
+  it('maps rejectDescription single object to adminRequestMessage', () => {
+    const user = mapNestAuthUser({
+      ...nestUser,
+      documentStatus: 'REJECT',
+      rejectDescription: { id: 1, description: 'مدرک ناخوانا بود' },
+    });
+    expect(user.adminRequestMessage).toBe('مدرک ناخوانا بود');
+  });
+
+  it('leaves adminRequestMessage undefined when rejectDescription is absent', () => {
+    const user = mapNestAuthUser(nestUser);
+    expect(user.adminRequestMessage).toBeUndefined();
+  });
+
   it('extracts LoginResponseDto tokens and session expiry', () => {
     const tokenExpires = Date.UTC(2030, 0, 1);
     const parsed = extractNestLoginResponse({

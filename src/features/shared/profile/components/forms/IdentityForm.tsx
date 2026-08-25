@@ -18,6 +18,7 @@ import type { User } from '@/types/auth';
 import { FilesService } from '@/services/files.service';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
+import { isMockApiMode } from '@/lib/api-mode';
 
 import {
   createProfileSchema,
@@ -69,7 +70,6 @@ export function IdentityForm({
   const [identityDocument, setIdentityDocument] = useState<File | null>(null);
   const [originalDocument, setOriginalDocument] = useState<File | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
   const roleStrategy = getRoleStrategy(liveUser.role);
 
   const form = useForm<ProfileSchema>({
@@ -139,7 +139,6 @@ export function IdentityForm({
       form.reset(data);
       setIdentityDocument(null);
       setOriginalDocument(null);
-      setSubmitSuccess(true);
       onSaved?.();
     } catch (error) {
       setSubmitError(

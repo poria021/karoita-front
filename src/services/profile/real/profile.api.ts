@@ -2,6 +2,7 @@ import { ApiClientError, apiClient } from '@/services/api-client';
 import { mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
 import { usersApi } from '@/services/users/users.api';
 import { useUserStore } from '@/store/useUserStore';
+import type { User } from '@/types/auth';
 import type { ProfileDto } from '@/types/profile';
 
 import { buildNestUpdateUserBody } from '../profile-real-payload';
@@ -118,7 +119,7 @@ export async function requestProfile(
   data?: ProfileDto,
   /** شناسهٔ فایل عکس بعد از آپلود به S3 — به NestUpdateUserDto.photo اضافه می‌شه. */
   photoFileId?: string
-): Promise<unknown> {
+): Promise<{ profileDto: unknown; nestUser?: User }> {
   if (!apiClient.isConfigured) {
     throw new ProfileServiceError('آدرس سرویس پروفایل پیکربندی نشده است.');
   }
@@ -126,7 +127,7 @@ export async function requestProfile(
   try {
     if (method === 'GET') {
       const raw = await apiClient.getJson<unknown>('v1/auth/me', token);
-      return nestUserToProfileDto(raw);
+      return { profileDto: nestUserToProfileDto(raw) };
     }
 
     if (!data) {
@@ -154,7 +155,10 @@ export async function requestProfile(
     // روی رکورد خودش را از این endpoint دارد یا نه (۴۰۳ ممکن است برگردد).
     const body = await buildNestUpdateUserBody(data, activeUser.docStatus, photoFileId);
     const raw = await usersApi.update(activeUser.id, body, token);
-    return nestUserToProfileDto(raw);
+    // برای PUT، هم ProfileDto هم User کامل (با docUrl) رو برمیگردونیم
+    // تا profile.service بتونه docUrl رو در store ذخیره کنه
+    const nestUser = mapNestAuthUser(raw);
+    return { profileDto: nestUserToProfileDto(raw), nestUser };
   } catch (error) {
     if (error instanceof ApiClientError) {
       throw new ProfileServiceError(error.message, error.status);

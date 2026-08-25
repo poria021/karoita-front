@@ -62,17 +62,31 @@ export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
               </AppTabsTrigger>
             </AppTabsList>
 
+            {/* 
+              فقط tab فعال در DOM نگه داشته می‌شه تا:
+              1. ID های form field ها duplicate نشن (مرورگر warning نده)
+              2. حافظه و re-render کاهش پیدا کنه
+              
+              unmountOnHide روی TabsContent از Radix این کار رو می‌کنه.
+              وقتی tab تغییر می‌کنه، form state ری‌ست می‌شه — این رفتار مطلوبه
+              چون کاربر نباید اطلاعات tab دیگه رو ببینه.
+            */}
             <AppTabsContent
               value="register"
               className="pb-kv-group duration-300 animate-in fade-in"
+              // فقط tab فعال mount بشه — جلوگیری از duplicate form field IDs
+              forceMount={activeTab === 'register' ? true : undefined}
+              hidden={activeTab !== 'register'}
             >
-              <RegisterForm />
+              {activeTab === 'register' && <RegisterForm />}
             </AppTabsContent>
             <AppTabsContent
               value="login"
               className="pb-kv-group duration-300 animate-in fade-in"
+              forceMount={activeTab === 'login' ? true : undefined}
+              hidden={activeTab !== 'login'}
             >
-              <LoginForm login={login} />
+              {activeTab === 'login' && <LoginForm login={login} />}
             </AppTabsContent>
           </AppTabs>
         )}

@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import {
   MOCK_SUPERVISOR_MOBILE,
   MOCK_USER_PASSWORD,
-} from '../src/services/auth/auth-mock-users';
+} from '../src/services/auth/mock/auth-mock-users';
 import { RouteService } from '../src/services/route.service';
 
 async function fillMobile(page: Page, selector: string, mobile: string) {

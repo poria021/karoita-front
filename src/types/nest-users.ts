@@ -33,6 +33,9 @@ export type NestUserDto = {
   city: unknown;
   educationalDistrict: unknown;
   school: unknown;
+  documentStatus?: NestDocumentStatus;
+  /** Shape unconfirmed on GET (array vs single object) — see readRejectMessage in nest-auth-mappers.ts. */
+  rejectDescription?: NestRejectDescription[] | NestRejectDescription;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
@@ -103,7 +106,8 @@ export type NestUpdateUserDto = {
   educationalDistrictsIds?: string[];
   userUniqueId?: string;
   documentStatus: NestDocumentStatus;
-  rejectDescription?: NestRejectDescription[];
+  /** Swagger PATCH request example: single object, NOT an array. */
+  rejectDescription?: NestRejectDescription;
   password?: string;
   photo?: NestFileDto;
   role?: NestRoleDto;

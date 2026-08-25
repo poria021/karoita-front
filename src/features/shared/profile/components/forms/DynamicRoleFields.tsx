@@ -18,8 +18,8 @@ import {
   isOptionalOrganizationField,
   ORGANIZATION_LABELS,
   ROLE_FIELD_STRATEGY,
-  type OrganizationField,
 } from './profile-form-options';
+import type { OrganizationField } from './profile-form-options';
 
 export interface DynamicRoleFieldsProps {
   role: UserRole;
@@ -46,44 +46,24 @@ function asStringArray(value: unknown): string[] {
 }
 
 /**
- * تعیین می‌کند که آیا یک فیلد در این لحظه باید قفل باشد.
- * اگر فیلد والد خالی باشد، فیلد فرزند قفل می‌شود.
- */
-function isLockedByParent(
-  name: OrganizationField,
-  province: string[],
-  district: string[]
-): boolean {
-  switch (name) {
-    case 'city':
-      return province.length === 0;
-    case 'district':
-      return province.length === 0;
-    case 'school':
-      return district.length === 0;
-    case 'college':
-      return province.length === 0;
-    default:
-      return false;
-  }
-}
-
-/**
  * dependsOn مناسب برای هر فیلد را برمی‌گرداند.
  * فقط اطلاعاتی که API واقعاً برای فیلتر نیاز دارد پاس می‌شود.
  */
 function getDependsOn(
   name: OrganizationField,
   province: string[],
+  city: string[],
   district: string[]
-): { province?: string[]; district?: string[] } | undefined {
+): { province?: string[]; city?: string[]; district?: string[] } | undefined {
   switch (name) {
     case 'city':
       return { province };
     case 'district':
-      return { province };
+      return { province, city };
     case 'school':
-      return { district };
+      return { province, city, district };
+    case 'college':
+      return { province };
     default:
       return undefined;
   }
@@ -95,9 +75,12 @@ export function DynamicRoleFields({
 }: DynamicRoleFieldsProps) {
   const form = useFormContext<ProfileSchema>();
 
-  // watch فیلدهای والد برای cascade lock و cascade clear
+  // watch فیلدهای والد برای cascade filter
   const province = asStringArray(
     useWatch({ control: form.control, name: 'province' })
+  );
+  const city = asStringArray(
+    useWatch({ control: form.control, name: 'city' })
   );
   const district = asStringArray(
     useWatch({ control: form.control, name: 'district' })
@@ -110,9 +93,7 @@ export function DynamicRoleFields({
       {strategy.organizationFields.map((name) => {
         const optional = isOptionalOrganizationField(role, name);
         const isMulti = MULTI_ORGANIZATION_FIELDS.has(name);
-        const parentLocked = isLockedByParent(name, province, district);
-        const fieldLocked = disabled || parentLocked;
-        const dependsOn = getDependsOn(name, province, district);
+        const dependsOn = getDependsOn(name, province, city, district);
 
         return (
           <KvFormField
@@ -130,8 +111,8 @@ export function DynamicRoleFields({
                   optionalHint={optional}
                   value={asStringArray(field.value)}
                   placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
-                  locked={fieldLocked}
-                  showLockIcon={!disabled && parentLocked}
+                  locked={disabled}
+                  showLockIcon={false}
                   error={fieldState.error?.message}
                   dependsOn={dependsOn}
                   onChange={(next) => {
@@ -154,8 +135,8 @@ export function DynamicRoleFields({
                   optionalHint={optional}
                   value={typeof field.value === 'string' ? field.value : ''}
                   placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
-                  locked={fieldLocked}
-                  showLockIcon={!disabled && parentLocked}
+                  locked={disabled}
+                  showLockIcon={false}
                   error={fieldState.error?.message}
                   dependsOn={dependsOn}
                   onChange={(value) => field.onChange(value)}

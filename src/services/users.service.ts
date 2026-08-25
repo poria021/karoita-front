@@ -1,5 +1,5 @@
 import { requireNestTransport } from '@/services/require-nest-transport';
-import { mapNestAuthUser } from '@/services/auth/nest-auth-mappers';
+import { mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
 import { usersApi } from '@/services/users/users.api';
 import type { User } from '@/types/auth';
 import type {

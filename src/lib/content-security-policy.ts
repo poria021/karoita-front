@@ -35,6 +35,11 @@ function isDevEnvironment(): boolean {
  * In development, Turbopack requires both `'unsafe-eval'` and
  * `'wasm-unsafe-eval'` for HMR and module evaluation. These are intentionally
  * excluded from production where they pose a real security risk.
+ *
+ * @zxcvbn-ts/core uses WebAssembly internally — `'wasm-unsafe-eval'` is required
+ * in both dev and production for the password strength indicator to work.
+ * This is safe: wasm-unsafe-eval only allows WebAssembly compilation from
+ * ArrayBuffers, NOT arbitrary string evaluation like `unsafe-eval` does.
  */
 export function buildContentSecurityPolicy(): string {
   const isDev = isDevEnvironment();
@@ -53,10 +58,12 @@ export function buildContentSecurityPolicy(): string {
     'script-src': [
       "'self'",
       "'unsafe-inline'",
-      // Turbopack (dev) needs unsafe-eval + wasm-unsafe-eval for HMR.
-      // Both are intentionally blocked in production.
-      // wasm-unsafe-eval همیشه در دو محیط لازمه (هم dev هم prod) برای WebAssembly
+      // wasm-unsafe-eval: لازم برای @zxcvbn-ts/core (WebAssembly) در هر دو محیط.
+      // این با unsafe-eval فرق دارد — فقط ArrayBuffer های wasm رو مجاز می‌کنه،
+      // نه ارزیابی رشته‌های دلخواه. خطرپذیری پایین است.
       "'wasm-unsafe-eval'",
+      // unsafe-eval فقط در development برای Turbopack HMR لازمه.
+      // در production هرگز فعال نمی‌شه.
       ...(isDev ? ["'unsafe-eval'"] : []),
     ],
     'style-src': ["'self'", "'unsafe-inline'"],
@@ -77,7 +84,15 @@ export function buildContentSecurityPolicy(): string {
     'form-action': ["'self'"],
     'object-src': ["'none'"],
     'base-uri': ["'self'"],
+    // blob: برای workbox service worker که از blob URLs استفاده می‌کنه
     'worker-src': ["'self'", 'blob:'],
+    // Service worker و workbox نیاز به دسترسی به static assets دارن
+    'script-src-elem': [
+      "'self'",
+      "'unsafe-inline'",
+      "'wasm-unsafe-eval'",
+      ...(isDev ? ["'unsafe-eval'"] : []),
+    ],
   };
 
   return Object.entries(directives)

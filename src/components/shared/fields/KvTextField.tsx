@@ -146,6 +146,7 @@ export type KvTextFieldProps = {
    */
   scriptGuard?: PersianTextScriptGuard | 'auto';
   footer?: React.ReactNode;
+  autoFocus?: boolean;
   className?: never;
 };
 
@@ -172,6 +173,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       onBlur,
       onFocus,
       autoComplete,
+      autoFocus,
       inputMode,
       maxLength,
       startAddon,
@@ -280,6 +282,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
             defaultValue={defaultValue}
             placeholder={placeholder}
             autoComplete={autoComplete}
+            autoFocus={autoFocus}
             inputMode={inputMode}
             maxLength={maxLength}
             disabled={locked}

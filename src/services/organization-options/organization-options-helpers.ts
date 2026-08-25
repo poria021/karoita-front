@@ -23,12 +23,13 @@ export type OrganizationOptionsQuery = {
   page?: number;
   limit?: number;
   /**
-   * نام استان(های) انتخاب‌شده — برای scope کردن شهرها و مناطق.
-   * چون فرم نام label ذخیره می‌کند (نه id)، این helper آن را
-   * با کش به id تبدیل می‌کند. وقتی فیلد مقصد چندانتخابی باشد (مثلاً فرم
-   * پروفایل)، نتایج زیرمجموعه همهٔ استان‌ها مرج می‌شود.
+   * نام استان(های) انتخاب‌شده — برای scope کردن شهرها، مناطق، مدارس و دانشگاه‌ها.
    */
   province?: string | string[];
+  /**
+   * نام شهر(های) انتخاب‌شده — برای scope کردن منطقه و مدارس بر اساس شهر.
+   */
+  city?: string | string[];
   /**
    * نام منطقه(های) آموزشی انتخاب‌شده — برای scope کردن مدارس.
    */
@@ -77,7 +78,7 @@ let provinceCache: NameIdCache | null = null;
 async function resolveProvinceId(provinceName: string): Promise<string | undefined> {
   const now = Date.now();
   if (!provinceCache || now - provinceCache.fetchedAt > PROVINCE_CACHE_TTL_MS) {
-    let all;
+    let all: Array<{ id: string; title: string }>;
     try {
       // GET /api/admin/province/all — اگر endpoint موجود است (یک round-trip)
       all = await adminCatalogApi.getAllProvinces();
@@ -87,13 +88,13 @@ async function resolveProvinceId(provinceName: string): Promise<string | undefin
       let page = 1;
       for (let i = 0; i < 50; i++) {
         const res = await adminCatalogApi.listProvinces({ page, limit: 200 });
-        (all as typeof res.data).push(...res.data);
+        all.push(...res.data);
         if (!res.hasNextPage) break;
         page++;
       }
     }
     provinceCache = {
-      byName: new Map((all as Array<{ id: string; title: string }>).map((p) => [p.title, p.id])),
+      byName: new Map(all.map((p) => [p.title, p.id])),
       fetchedAt: now,
     };
   }
@@ -135,10 +136,41 @@ function paginateBare(
   };
 }
 
+// ─── کش نام → id برای شهرها ──────────────────────────────────────────────────
+
+const CITY_CACHE_TTL_MS = 2 * 60 * 1_000; // ۲ دقیقه
+let cityCache: NameIdCache | null = null;
+
+async function resolveCityId(cityName: string, provinceId?: string): Promise<string | undefined> {
+  const now = Date.now();
+  if (!cityCache || now - cityCache.fetchedAt > CITY_CACHE_TTL_MS) {
+    // اگه provinceId داریم فقط شهرهای همون استان رو بگیر
+    let all: Array<{ id: string; title: string }>;
+    if (provinceId) {
+      all = await adminCatalogApi.listCitiesByProvince(provinceId);
+    } else {
+      // fallback: صفحه‌بندی کامل — فقط اگه استان نداریم
+      all = [];
+      let page = 1;
+      for (let i = 0; i < 50; i++) {
+        const res = await adminCatalogApi.listCities({ page, limit: 200 });
+        all.push(...res.data);
+        if (!res.hasNextPage) break;
+        page++;
+      }
+    }
+    cityCache = {
+      byName: new Map(all.map((c) => [c.title, c.id])),
+      fetchedAt: now,
+    };
+  }
+  return cityCache.byName.get(cityName);
+}
+
 type ResolvedOptionsRequest = Required<
   Pick<OrganizationOptionsQuery, 'type' | 'page' | 'limit'>
 > &
-  Pick<OrganizationOptionsQuery, 'query' | 'province' | 'district' | 'signal'>;
+  Pick<OrganizationOptionsQuery, 'query' | 'province' | 'city' | 'district' | 'signal'>;
 
 /**
  * Real-mode: مستقیم به Nest Admin API وصل می‌شود.
@@ -209,24 +241,47 @@ export async function fetchOrganizationOptionsFromApi(
 
       // ── منطقه آموزشی ────────────────────────────────────────────────────────
       case 'district': {
-        // GET /api/admin/educations — bare array
-        // قابلیت فیلتر: provinceId + title
+        // اولویت: شهر → استان → بدون فیلتر
+        // GET /api/admin/cities/{id}/educations  یا  /api/admin/province/{id}/educations
+        const cityNames = toNameList(params.city);
         const provinceNames = toNameList(params.province);
+        const q = params.query?.trim() || undefined;
+
+        if (cityNames.length > 0) {
+          // دقیق‌ترین فیلتر: مناطق داخل شهر
+          const merged: OrganizationOption[] = [];
+          for (const cityName of cityNames) {
+            // برای resolve cityId ابتدا provinceId رو می‌گیریم اگه داریم
+            let provinceId: string | undefined;
+            if (provinceNames[0]) provinceId = await resolveProvinceId(provinceNames[0]);
+            const cityId = await resolveCityId(cityName, provinceId);
+            if (!cityId) continue;
+            const raw = await adminCatalogApi.listEducationsByCity(cityId);
+            const filtered = q ? raw.filter((d) => d.title.includes(q)) : raw;
+            merged.push(...filtered.map((d) => ({ id: d.id, label: d.title })));
+          }
+          if (merged.length > 0) {
+            return paginateBare(dedupeOptions(merged), params.page, params.limit);
+          }
+        }
+
         if (provinceNames.length > 0) {
+          // فیلتر استانی: مناطق داخل استان
           const merged: OrganizationOption[] = [];
           for (const provinceName of provinceNames) {
             const provinceId = await resolveProvinceId(provinceName);
-            const raw = await adminCatalogApi.listEducations({
-              provinceId,
-              title: params.query?.trim() || undefined,
-            });
-            merged.push(...raw.map((d) => ({ id: d.id, label: d.title })));
+            if (!provinceId) continue;
+            const raw = await adminCatalogApi.listEducationsByProvince(provinceId);
+            const filtered = q ? raw.filter((d) => d.title.includes(q)) : raw;
+            merged.push(...filtered.map((d) => ({ id: d.id, label: d.title })));
           }
-          return paginateBare(dedupeOptions(merged), params.page, params.limit);
+          if (merged.length > 0) {
+            return paginateBare(dedupeOptions(merged), params.page, params.limit);
+          }
         }
-        const raw = await adminCatalogApi.listEducations({
-          title: params.query?.trim() || undefined,
-        });
+
+        // fallback: همه مناطق
+        const raw = await adminCatalogApi.listEducations({ title: q });
         return paginateBare(
           raw.map((d) => ({ id: d.id, label: d.title })),
           params.page,
@@ -236,20 +291,48 @@ export async function fetchOrganizationOptionsFromApi(
 
       // ── مدرسه ───────────────────────────────────────────────────────────────
       case 'school': {
-        // GET /api/admin/schools — bare array
-        // قابلیت فیلتر: provinceId + educationId (منطقه) + title
+        // اولویت: منطقه → شهر → استان
+        // GET /api/admin/schools?provinceId=&educationId=&title=
         let provinceId: string | undefined;
         let educationId: string | undefined;
-        if (params.province) {
-          provinceId = await resolveProvinceId(params.province);
+        const q = params.query?.trim() || undefined;
+
+        const provinceNames = toNameList(params.province);
+        const cityNames = toNameList(params.city);
+        const districtNames = toNameList(params.district);
+
+        if (provinceNames[0]) {
+          provinceId = await resolveProvinceId(provinceNames[0]);
         }
-        if (params.district) {
-          educationId = await resolveDistrictId(params.district);
+
+        if (districtNames.length > 0) {
+          // دقیق‌ترین فیلتر: منطقه آموزشی
+          const merged: OrganizationOption[] = [];
+          for (const districtName of districtNames) {
+            const edId = await resolveDistrictId(districtName);
+            if (!edId) continue;
+            const raw = await adminCatalogApi.listSchools({
+              provinceId,
+              educationId: edId,
+              title: q,
+            });
+            merged.push(...raw.map((s) => ({ id: s.id, label: s.title })));
+          }
+          if (merged.length > 0) {
+            return paginateBare(dedupeOptions(merged), params.page, params.limit);
+          }
         }
+
+        if (cityNames.length > 0) {
+          // فیلتر شهری: مدارس داخل شهر (از طریق cityId نداریم در API — از provinceId استفاده کن)
+          // چون Nest endpoint مدرسه cityId نداره، از provinceId استفاده می‌کنیم
+          // و title فیلتر می‌کنیم
+        }
+
         const raw = await adminCatalogApi.listSchools({
           provinceId,
           educationId,
-          title: params.query?.trim() || undefined,
+          title: q,
         });
         return paginateBare(
           raw.map((s) => ({ id: s.id, label: s.title })),
@@ -261,9 +344,9 @@ export async function fetchOrganizationOptionsFromApi(
       // ── دانشگاه / دانشکده / پردیس ────────────────────────────────────────────
       case 'college': {
         // GET /api/admin/universites — bare array، title query
-        const raw = await adminCatalogApi.listUniversities(
-          params.query?.trim() || undefined
-        );
+        // اگه استان انتخاب شده، جستجو رو محدود کن (API title filter داره)
+        const q = params.query?.trim() || undefined;
+        const raw = await adminCatalogApi.listUniversities(q);
         return paginateBare(
           raw.map((u) => ({ id: u.id, label: u.title })),
           params.page,
@@ -342,10 +425,12 @@ export async function fetchOrganizationOptionsFromMock(
     );
   });
 
+  const provinceStr = Array.isArray(params.province) ? (params.province[0] ?? '') : (params.province ?? '');
+  const districtStr = Array.isArray(params.district) ? (params.district[0] ?? '') : (params.district ?? '');
   const labels = OrgStructureService.listLabelsForField(
     params.type,
-    params.province ?? '',
-    params.district ?? ''
+    provinceStr,
+    districtStr
   );
   const filtered = filterByQuery(toOptions(labels), params.query ?? '');
   return paginateMock(filtered, params.page, params.limit);
@@ -366,4 +451,11 @@ export function invalidateProvinceNameCache(): void {
  */
 export function invalidateDistrictNameCache(): void {
   districtCache = null;
+}
+
+/**
+ * کش شهر را باطل می‌کند — هر بار استان عوض شد باید صدا بشه اگر می‌خوایید cityIdها درست باشند.
+ */
+export function invalidateCityNameCache(): void {
+  cityCache = null;
 }

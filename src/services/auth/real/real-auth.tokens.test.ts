@@ -1,0 +1,126 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { AUTH_COOKIE_NAME } from '@/lib/config';
+import type { NestLoginTokens } from '@/services/auth/real/nest-auth-mappers';
+import {
+  AuthSessionPersistError,
+  clearRealAuthTokens,
+  readRealAccessToken,
+  readRealAuthSurface,
+  writeRealAuthTokens,
+} from '@/services/auth/real/real-auth.tokens';
+
+const TOKENS: NestLoginTokens = {
+  token: 'access-token-1',
+  refreshToken: 'refresh-token-1',
+  tokenExpires: Date.now() + 15 * 60 * 1000,
+};
+
+function fakeResponse(ok: boolean, status = ok ? 200 : 500): Response {
+  return { ok, status } as unknown as Response;
+}
+
+function clearAllCookies(): void {
+  document.cookie.split(';').forEach((entry) => {
+    const name = entry.split('=')[0]?.trim();
+    if (name) {
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+    }
+  });
+}
+
+/**
+ * پوشش رگرسیون برای باگ «شکست بی‌صدا در ذخیرهٔ کوکی refresh»:
+ * persistRefreshTokenInCookie باید خطاهای گذرا را retry کند، خطاهای ۴xx را
+ * فوراً نهایی کند، و در صورت شکست کامل، به‌جای سکوت، state نیمه‌کاره
+ * (access token در حافظه بدون کوکی refresh معتبر) را rollback کرده و
+ * AuthSessionPersistError پرتاب کند.
+ */
+describe('writeRealAuthTokens — set-tokens persistence', () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    clearRealAuthTokens();
+    clearAllCookies();
+    fetchMock.mockReset();
+    vi.stubGlobal('fetch', fetchMock);
+  });
+
+  afterEach(() => {
+    clearRealAuthTokens();
+    clearAllCookies();
+    vi.unstubAllGlobals();
+  });
+
+  it('persists on the first attempt without retrying', async () => {
+    fetchMock.mockResolvedValue(fakeResponse(true));
+
+    await writeRealAuthTokens(TOKENS, 'user');
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(readRealAccessToken()).toBe(TOKENS.token);
+    expect(readRealAuthSurface()).toBe('user');
+    expect(document.cookie).toContain(`${AUTH_COOKIE_NAME}=1`);
+  });
+
+  it('retries a transient network failure and succeeds on the second attempt', async () => {
+    let call = 0;
+    fetchMock.mockImplementation(async () => {
+      call += 1;
+      if (call === 1) throw new TypeError('network error');
+      return fakeResponse(true);
+    });
+
+    await writeRealAuthTokens(TOKENS, 'user');
+
+    expect(call).toBe(2);
+    expect(readRealAccessToken()).toBe(TOKENS.token);
+  }, 10_000);
+
+  it('retries a transient 5xx and succeeds before exhausting attempts', async () => {
+    let call = 0;
+    fetchMock.mockImplementation(async () => {
+      call += 1;
+      if (call < 3) return fakeResponse(false, 503);
+      return fakeResponse(true);
+    });
+
+    await writeRealAuthTokens(TOKENS, 'user');
+
+    expect(call).toBe(3);
+    expect(readRealAccessToken()).toBe(TOKENS.token);
+  }, 10_000);
+
+  it('does not retry a 4xx client error', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      if (String(input).includes('/api/auth/clear-tokens')) return fakeResponse(true);
+      return fakeResponse(false, 400);
+    });
+
+    await expect(writeRealAuthTokens(TOKENS, 'user')).rejects.toThrow(
+      AuthSessionPersistError
+    );
+
+    const setTokenCalls = fetchMock.mock.calls.filter(([input]) =>
+      String(input).includes('/api/auth/set-tokens')
+    );
+    expect(setTokenCalls).toHaveLength(1);
+  });
+
+  it('rolls back the in-memory token and presence cookie when every attempt fails', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      if (String(input).includes('/api/auth/set-tokens')) {
+        throw new TypeError('network down');
+      }
+      return fakeResponse(true); // /api/auth/clear-tokens — بخشی از rollback
+    });
+
+    await expect(writeRealAuthTokens(TOKENS, 'user')).rejects.toThrow(
+      'ورود کامل نشد'
+    );
+
+    // rollback باید state نیمه‌کاره (access token در حافظه بدون کوکی refresh) باقی نگذارد
+    expect(readRealAccessToken()).toBeNull();
+    expect(document.cookie).not.toContain(`${AUTH_COOKIE_NAME}=1`);
+  }, 10_000);
+});

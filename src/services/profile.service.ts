@@ -102,8 +102,8 @@ export class ProfileService {
   static async getProfile(token?: string): Promise<ProfileDto> {
     try {
       if (!isMockApiMode()) {
-        const payload = await requestProfile('GET', token);
-        return parseProfile(extractApiPayload(payload));
+        const { profileDto } = await requestProfile('GET', token);
+        return parseProfile(extractApiPayload(profileDto));
       }
 
       await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
@@ -124,13 +124,16 @@ export class ProfileService {
       const validatedData = parseProfile(data);
 
       if (!isMockApiMode()) {
-        const payload = await requestProfile('PUT', token, validatedData, photoFileId);
+        const { profileDto: payload, nestUser } = await requestProfile('PUT', token, validatedData, photoFileId);
         const serverMessage = extractApiMessage(payload);
         const activeUser = useUserStore.getState().activeUser;
         if (activeUser) {
           useUserStore.getState().setUser({
             ...activeUser,
             ...validatedData,
+            // اگر Nest مقدار docUrl رو در پاسخ برگردوند (بعد از آپلود عکس)، اون رو نگه دار
+            // وگرنه docUrl قبلی از activeUser حفظ میشه
+            ...(nestUser?.docUrl ? { docUrl: nestUser.docUrl } : {}),
             ...approvalFields(validatedData.role, {
               approved: activeUser.approved,
               docStatus: activeUser.docStatus,

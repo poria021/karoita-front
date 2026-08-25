@@ -47,9 +47,19 @@ export function getSupervisorList(input: {
   });
 }
 
+/**
+ * اولین مقدار از یک فیلد چندانتخابی (string[]) را برمی‌گرداند.
+ * اگر آرایه خالی یا undefined باشد، مقدار پیش‌فرض برگردانده می‌شود.
+ */
+function firstOf(value: string | string[] | undefined, fallback: string): string {
+  if (Array.isArray(value)) return value[0] ?? fallback;
+  return value ?? fallback;
+}
+
 export function getScope(actor: InternshipEnrollmentActor): InternshipSelectionScope {
-  const profileProvince = actor.province ?? 'تهران';
-  const profileCollege = actor.college ?? 'پردیس شهید باهنر تهران';
+  // actor.province و actor.college هر دو string[] هستند — اولین مقدار را می‌گیریم
+  const profileProvince = firstOf(actor.province, 'تهران');
+  const profileCollege = firstOf(actor.college, 'پردیس شهید باهنر تهران');
   const canChangeScope = Boolean(actor.specialPermissions?.crossFaculty);
   const provinces = Array.from(
     new Set(SUPERVISOR_SEEDS.map((supervisor) => supervisor.province))

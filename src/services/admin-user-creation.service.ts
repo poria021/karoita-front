@@ -66,14 +66,15 @@ export const AdminUserCreationService = {
         firstName: input.firstName,
         lastName: input.lastName,
         documentStatus: 'PENDING',
-        rejectDescription: [],
         provinceId: '',
         universityId: '',
         degreeId: '',
         userUniqueId: '',
-        cityId: '',
-        schoolId: '',
-        educationalDistrictsId: '',
+        cityIds: [],
+        schoolIds: [],
+        educationalDistrictsIds: [],
+        // cityId intentionally omitted — NestUpdateUserDto uses cityIds[] not cityId
+        // rejectDescription intentionally omitted — optional field, not relevant to account creation
       });
       return { user: mapNestAuthUser(raw) };
     }

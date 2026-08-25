@@ -93,6 +93,26 @@ function readOrgFields(user: Record<string, unknown>): Pick<
   };
 }
 
+/**
+ * Swagger: `rejectDescription: { id: number, description: string }`.
+ * PATCH sends it as an array (see rejectIdentityDoc in
+ * onboarding-approvals.service.ts); GET responses aren't confirmed to be
+ * array-vs-single-object, so — same defensive pattern as the org-field
+ * readers above — accept either shape. Array case: take the last entry
+ * (most recent rejection reason).
+ */
+function readRejectMessage(user: Record<string, unknown>): string | undefined {
+  const value = user.rejectDescription;
+  if (Array.isArray(value)) {
+    const last = value[value.length - 1];
+    return isRecord(last) ? asOptionalString(last.description) : undefined;
+  }
+  if (isRecord(value)) {
+    return asOptionalString(value.description);
+  }
+  return undefined;
+}
+
 function readRoleIdentifier(
   role: User['role'],
   uniqueId: string | undefined
@@ -127,10 +147,23 @@ export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
 
   const role = readRole(raw);
 
+  // Nest ممکنه photo رو به شکل‌های مختلف برگردونه:
+  // 1. { photo: { path: '...' } }  ← معمول
+  // 2. { photo: 'https://...' }    ← رشته مستقیم
+  // 3. { photoUrl: '...' }         ← فلد جدا
+  // 4. { photo: { url: '...' } }   ← نام url بجای path
   const photoUrl =
     isRecord(raw.photo) && typeof raw.photo.path === 'string'
       ? raw.photo.path
-      : undefined;
+      : isRecord(raw.photo) && typeof raw.photo.url === 'string'
+        ? raw.photo.url
+        : typeof raw.photo === 'string' && raw.photo
+          ? raw.photo
+          : typeof raw.photoUrl === 'string' && raw.photoUrl
+            ? raw.photoUrl
+            : undefined;
+
+  const adminRequestMessage = readRejectMessage(raw);
 
   return {
     id: raw.id,
@@ -147,6 +180,7 @@ export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
     ...(photoUrl ? { docUrl: photoUrl } : {}),
     ...readOrgFields(raw),
     ...readRoleIdentifier(role, asOptionalString(raw.userUniqueId)),
+    ...(adminRequestMessage ? { adminRequestMessage } : {}),
   };
 }
 

@@ -71,11 +71,17 @@ export const KvSelectField = React.forwardRef<
   const rawId = React.useId();
   const generatedId = `kv${rawId.replace(/:/g, '')}`;
   const id = idProp ?? generatedId;
+  // label از labelId برای htmlFor استفاده می‌کنه
+  // trigger از triggerId برای id استفاده می‌کنه
+  // این جلوگیری می‌کنه از duplicate form field id در browser DevTools
+  const labelId = `${id}-label`;
+  const triggerId = id;
   const isDisabled = locked || disabled;
 
   return (
     <KvFieldFrame
-      id={id}
+      id={labelId}
+      fieldId={triggerId}
       label={label}
       required={required}
       optionalHint={optionalHint}
@@ -92,7 +98,8 @@ export const KvSelectField = React.forwardRef<
       >
         <KvSelectTrigger
           ref={ref}
-          id={id}
+          id={triggerId}
+          aria-labelledby={labelId}
           aria-invalid={error ? true : undefined}
           aria-describedby={
             error ? `${id}-error` : hint ? `${id}-hint` : undefined
