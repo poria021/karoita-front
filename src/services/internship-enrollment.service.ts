@@ -15,7 +15,7 @@ import {
   resolveEnrollmentPageState,
   saveWeeklyReportDraft,
   submitWeeklyReport,
-} from '@/services/internship-enrollment/mock-enrollment-store';
+} from '@/services/internship-enrollment/mock/mock-enrollment-store';
 import type {
   AssignDelayedSchoolMentorInput,
   EnrollWithSupervisorInput,

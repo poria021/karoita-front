@@ -9,7 +9,7 @@ import { RouteService } from '@/services/route.service';
 import { buildLoginHref } from '@/lib/return-url';
 import { useUserStore } from '@/store/useUserStore';
 import { isMockApiMode } from '@/lib/api-mode';
-import { tryRestoreMockSession } from '@/services/auth/mock-auth.store';
+import { tryRestoreMockSession } from '@/services/auth/mock/mock-auth.store';
 
 type BootState = 'pending' | 'authenticated' | 'unauthenticated';
 

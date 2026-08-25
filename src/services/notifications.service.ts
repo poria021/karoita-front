@@ -3,12 +3,12 @@ import {
   apiListNotifications,
   apiMarkNotificationAsRead,
   type ListNotificationsQuery,
-} from '@/services/notifications/notifications.api';
+} from '@/services/notifications/real/notifications.api';
 import {
   markAllMockNotificationsAsRead,
   markMockNotificationAsRead,
   readMockNotifications,
-} from '@/services/notifications/mock-notifications.store';
+} from '@/services/notifications/mock/mock-notifications.store';
 import type { AppNotification } from '@/types/notifications';
 
 /**

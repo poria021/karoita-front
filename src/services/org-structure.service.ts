@@ -4,13 +4,13 @@ import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   cloneSnapshot,
   readOrgSnapshot,
-} from '@/services/org-structure/mock-org-store';
+} from '@/services/org-structure/mock/mock-org-store';
 import {
   listLabelsForField as queryLabelsForField,
   queryOrgListPage,
   type OrgStructureListItem,
   type OrgStructureListPage,
-} from '@/services/org-structure/mock-org-query';
+} from '@/services/org-structure/mock/mock-org-query';
 import {
   mockDeleteEntity,
   mockGetEntity,
@@ -29,7 +29,7 @@ import {
   type UpsertMajorInput,
   type UpsertProvinceInput,
   type UpsertSchoolInput,
-} from '@/services/org-structure/mock-org-mutations';
+} from '@/services/org-structure/mock/mock-org-mutations';
 import {
   deleteRealEntity,
   upsertRealCity,
@@ -38,7 +38,7 @@ import {
   upsertRealMajor,
   upsertRealProvince,
   upsertRealSchool,
-} from '@/services/org-structure/real-org-mutations';
+} from '@/services/org-structure/real/real-org-mutations';
 import {
   getRealEntity,
   getRealSnapshot,
@@ -48,7 +48,7 @@ import {
   listRealPage,
   listRealProvinces,
   listRealRoles,
-} from '@/services/org-structure/real-org-reads';
+} from '@/services/org-structure/real/real-org-reads';
 import type {
   OrgCity,
   OrgDistrict,

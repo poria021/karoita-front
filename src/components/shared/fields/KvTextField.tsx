@@ -184,7 +184,8 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
     },
     ref
   ) {
-    const generatedId = React.useId();
+    const rawId = React.useId();
+    const generatedId = `kv${rawId.replace(/:/g, '')}`;
     const id = idProp ?? generatedId;
     const [latinScriptError, setLatinScriptError] = React.useState<
       string | undefined

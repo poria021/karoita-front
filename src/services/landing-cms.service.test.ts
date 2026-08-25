@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
 import { LandingCmsService } from '@/services/landing-cms.service';
-import { resetLandingCmsStoreForTests } from '@/services/landing-cms/mock-landing-cms.store';
+import { resetLandingCmsStoreForTests } from '@/services/landing-cms/mock/mock-landing-cms.store';
 import {
   AUTH_MOCK_USERS,
   MOCK_SUPER_ADMIN_MOBILE,
-} from '@/services/auth/auth-mock-users';
-import { resetMockAuthStoreForTests } from '@/services/auth/mock-auth.store';
+} from '@/services/auth/mock/auth-mock-users';
+import { resetMockAuthStoreForTests } from '@/services/auth/mock/mock-auth.store';
 import { useUserStore } from '@/store/useUserStore';
 
 describe('LandingCmsService (mock)', () => {

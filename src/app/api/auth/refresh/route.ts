@@ -17,10 +17,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
-  REAL_ACCESS_COOKIE_NAME,
 } from '@/lib/real-auth-cookie';
 
-const NEST_API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
+/**
+ * سرور-تو-سرور: BACKEND_INTERNAL_URL به route داخلی، مستقیم
+ * (بدون CORS). اگر ست نشده با NEXT_PUBLIC_API_URL فالبک می‌کنیم.
+ */
+const NEST_API_URL =
+  (process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? '')
+    .replace(/\/$/, '');
 const NEST_REFRESH_PATH = 'v1/auth/refresh';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -36,12 +41,11 @@ function extractRotatedRefreshToken(raw: unknown): string | null {
 
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get(REAL_REFRESH_COOKIE_NAME)?.value;
-  const accessToken  = request.cookies.get(REAL_ACCESS_COOKIE_NAME)?.value;
 
   if (process.env.NODE_ENV !== 'production') {
     const allCookies = request.cookies.getAll();
-    console.log('[/api/auth/refresh] cookies:', allCookies.map(c => c.name));
-    console.log('[/api/auth/refresh] rt:', !!refreshToken, '| at:', !!accessToken);
+    console.log('[/api/auth/refresh] cookies present:', allCookies.map(c => c.name));
+    console.log('[/api/auth/refresh] rt present:', !!refreshToken);
   }
 
   if (!refreshToken) {
@@ -60,24 +64,21 @@ export async function POST(request: NextRequest) {
 
   let nestResponse: Response;
   try {
-    // Nest از Authorization: Bearer <refreshToken> استفاده می‌کنه (همون یک
-    // security scheme مشترک روی کل API) — نه accessToken قدیمی، و بدنه هم
-    // لازم نداره. تأیید شده با تست مستقیم روی Swagger (2026-08-24).
-    const nestHeaders: Record<string, string> = {
-      Authorization: `Bearer ${refreshToken}`,
-    };
+    // Nest از Authorization: Bearer <refreshToken> استفاده می‌کنه:
+    // refresh endpoint یه token مستقل قبول می‌کنه، نه access token.
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[/api/auth/refresh] →', `${NEST_API_URL}/${NEST_REFRESH_PATH}`);
+      console.log('[/api/auth/refresh] → POST', `${NEST_API_URL}/${NEST_REFRESH_PATH}`);
     }
     nestResponse = await fetch(`${NEST_API_URL}/${NEST_REFRESH_PATH}`, {
       method: 'POST',
-      headers: nestHeaders,
+      headers: { Authorization: `Bearer ${refreshToken}` },
       cache: 'no-store',
     });
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[/api/auth/refresh] ← Nest:', nestResponse.status);
+      console.log('[/api/auth/refresh] ← Nest status:', nestResponse.status);
     }
-  } catch {
+  } catch (err) {
+    console.error('[/api/auth/refresh] fetch to Nest failed:', err);
     return NextResponse.json(
       { error: 'ارتباط با سرویس احراز هویت برقرار نشد.' },
       { status: 502 }

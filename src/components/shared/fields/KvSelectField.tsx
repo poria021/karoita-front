@@ -68,7 +68,8 @@ export const KvSelectField = React.forwardRef<
   },
   ref
 ) {
-  const generatedId = React.useId();
+  const rawId = React.useId();
+  const generatedId = `kv${rawId.replace(/:/g, '')}`;
   const id = idProp ?? generatedId;
   const isDisabled = locked || disabled;
 

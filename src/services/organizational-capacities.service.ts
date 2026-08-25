@@ -4,7 +4,7 @@ import {
   listTermsForCapacityKind,
   submitMockOrganizationalCapacities,
   updateMockOrganizationalCapacityCourse,
-} from '@/services/organizational-capacities/mock-organizational-capacities-store';
+} from '@/services/organizational-capacities/mock/mock-organizational-capacities-store';
 import {
   assertMockClientHasPermission,
   MOCK_AUTHZ_DENIED,

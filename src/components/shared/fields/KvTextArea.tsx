@@ -107,7 +107,8 @@ export const KvTextArea = React.forwardRef<
   },
   ref
 ) {
-  const generatedId = React.useId();
+  const rawId = React.useId();
+  const generatedId = `kv${rawId.replace(/:/g, '')}`;
   const id = idProp ?? generatedId;
   const [latinScriptError, setLatinScriptError] = React.useState<
     string | undefined

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { SyllabusConfigSnapshot } from '@/types/syllabus-config';
 
-import { migrateLegacySnapshot } from './mock-syllabus-store';
+import { migrateLegacySnapshot } from './mock/mock-syllabus-store';
 import {
   buildCourseOfferingId,
   getCatalogForTermType,

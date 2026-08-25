@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { resetMockNotificationsForTests } from '@/services/notifications/mock-notifications.store';
+import { resetMockNotificationsForTests } from '@/services/notifications/mock/mock-notifications.store';
 import { NotificationsService } from '@/services/notifications.service';
 
 describe('NotificationsService (mock)', () => {

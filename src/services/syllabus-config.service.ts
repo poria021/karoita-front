@@ -13,7 +13,7 @@ import {
   readSyllabusSnapshot,
   readWeeksFromSnapshot,
   DEFAULT_WEEK_WEIGHT,
-} from '@/services/syllabus-config/mock-syllabus-store';
+} from '@/services/syllabus-config/mock/mock-syllabus-store';
 import {
   resolveEnrollmentSyllabusContext,
   type EnrollmentSyllabusContext,

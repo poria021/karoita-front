@@ -7,7 +7,7 @@ import {
   mockDeleteBanner,
   mockDeleteProduct,
   mockDeleteSocial,
-} from '@/services/landing-cms/mock-landing-cms.mutations';
+} from '@/services/landing-cms/mock/mock-landing-cms.mutations';
 import {
   invalidateLandingCmsMemory,
   LANDING_CMS_STORAGE_KEY,
@@ -15,7 +15,7 @@ import {
   readLandingBanners,
   readLandingProducts,
   readLandingSocials,
-} from '@/services/landing-cms/mock-landing-cms.store';
+} from '@/services/landing-cms/mock/mock-landing-cms.store';
 import type {
   CreateLandingBannerInput,
   CreateLandingProductInput,

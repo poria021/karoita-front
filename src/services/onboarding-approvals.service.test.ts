@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { mockVerifyRegistrationOtp } from '@/services/auth/mock-auth.operations';
+import { mockVerifyRegistrationOtp } from '@/services/auth/mock/mock-auth.operations';
 import {
   findMockUserById,
   resetMockAuthStoreForTests,
   toPublicUser,
-} from '@/services/auth/mock-auth.store';
-import { AUTH_MOCK_USERS } from '@/services/auth/auth-mock-users';
+} from '@/services/auth/mock/mock-auth.store';
+import { AUTH_MOCK_USERS } from '@/services/auth/mock/auth-mock-users';
 import { OnboardingApprovalsService } from '@/services/onboarding-approvals.service';
 import { ProfileService } from '@/services/profile.service';
 import { useUserStore } from '@/store/useUserStore';

@@ -44,7 +44,8 @@ export function KvCheckboxMultiSelect({
   error,
   className,
 }: KvCheckboxMultiSelectProps) {
-  const autoId = useId();
+  const rawAutoId = useId();
+  const autoId = `kv${rawAutoId.replace(/:/g, '')}`;
   const fieldId = id ?? autoId;
   const listboxId = `${fieldId}-listbox`;
   const [isOpen, setIsOpen] = useState(false);

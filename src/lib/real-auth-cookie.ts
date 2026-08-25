@@ -21,8 +21,12 @@ export const REAL_ACCESS_COOKIE_NAME = 'karvita_at';
 /** هفت روز — با TTL معمول refresh token همخوان است. */
 const REAL_REFRESH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
-/** ۱ ساعت — کمی بیشتر از TTL معمول access token (۱۵ دقیقه) تا پوشش کامل باشد. */
-const REAL_ACCESS_COOKIE_MAX_AGE_SECONDS = 60 * 60;
+/**
+ * ۲۴ ساعت — برای backup در زمان refresh کافیه.
+ * این cookie در عمل فقط در /api/auth/refresh خوانده می‌شود و تاثیری
+ * روی TTL واقعی access token در مموری ندارد.
+ */
+const REAL_ACCESS_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24;
 
 export interface RealRefreshCookieOptions {
   httpOnly: boolean;

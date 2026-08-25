@@ -3,7 +3,7 @@ import {
   IS_MOCK_MODE,
   throwRealModeNotImplemented,
 } from '@/lib/api-mode';
-import { MOCK_OTP_CODE } from '@/services/auth/auth-mock-users';
+import { MOCK_OTP_CODE } from '@/services/auth/mock/auth-mock-users';
 import type { Session, User, UserRole } from '@/types/auth';
 import { useUserStore } from '@/store/useUserStore';
 import {
@@ -23,11 +23,11 @@ import {
   mockVerifyForgotPasswordOtp,
   mockVerifyLoginOtp,
   mockVerifyRegistrationOtp,
-} from '@/services/auth/mock-auth.operations';
+} from '@/services/auth/mock/mock-auth.operations';
 import {
   dispatchSessionToStore,
   readSessionMeta,
-} from '@/services/auth/mock-auth.store';
+} from '@/services/auth/mock/mock-auth.store';
 import {
   realDeleteMe,
   realFetchSession,
@@ -45,13 +45,13 @@ import {
   realVerifyLoginOtp,
   realVerifyRegistrationOtp,
   realRefreshToken,
-} from '@/services/auth/real-auth.bridge';
+} from '@/services/auth/real/real-auth.bridge';
 import {
   clearRealAuthTokens,
   peekRealAuthTokens,
   readRealAccessToken,
   readRealTokenExpiresAt,
-} from '@/services/auth/real-auth.tokens';
+} from '@/services/auth/real/real-auth.tokens';
 
 export interface RegisterPayload {
   mobile: string;

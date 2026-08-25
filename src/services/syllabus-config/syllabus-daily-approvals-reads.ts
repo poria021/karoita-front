@@ -1,4 +1,4 @@
-import { readSyllabusSnapshot } from '@/services/syllabus-config/mock-syllabus-store';
+import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
 import type { DailyApprovalCourseKind } from '@/types/daily-approvals';
 import type { AcademicTermType } from '@/types/syllabus-config';
 

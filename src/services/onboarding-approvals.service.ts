@@ -1,14 +1,14 @@
 import { IS_MOCK_MODE, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
-import { subscribeMockAuthUsers } from '@/services/auth/mock-auth.store';
-import { mapNestAuthUser } from '@/services/auth/nest-auth-mappers';
+import { subscribeMockAuthUsers } from '@/services/auth/mock/mock-auth.store';
+import { mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   collectProvinces,
   listFilteredUsers,
   patchApprovalUser,
   requireExistingMockUser,
-} from '@/services/onboarding-approvals/mock-onboarding-approvals';
+} from '@/services/onboarding-approvals/mock/mock-onboarding-approvals';
 import { usersApi } from '@/services/users/users.api';
 import type {
   ListOnboardingApprovalsFilters,

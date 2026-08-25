@@ -1,9 +1,9 @@
 import { IS_MOCK_MODE } from '@/lib/api-mode';
-import { mapNestAuthUser } from '@/services/auth/nest-auth-mappers';
+import { mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
 import {
   mockCheckMobileAvailable,
   mockCreateOrganizationalUser,
-} from '@/services/admin-user-creation/mock-admin-user-creation';
+} from '@/services/admin-user-creation/mock/mock-admin-user-creation';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import { usersApi } from '@/services/users/users.api';
 import type {

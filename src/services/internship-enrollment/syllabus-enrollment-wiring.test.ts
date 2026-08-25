@@ -8,7 +8,7 @@ import {
   resetEnrollmentSnapshotForTests,
   resolveEnrollmentPageState,
   resolveEnrollmentScenario,
-} from '@/services/internship-enrollment/mock-enrollment-store';
+} from '@/services/internship-enrollment/mock/mock-enrollment-store';
 import {
   activateOfferingInSnapshot,
   buildSeedWeeks,
@@ -16,7 +16,7 @@ import {
   INTERNSHIP_DEFAULT_WEEKS,
   resetSyllabusSnapshotForTests,
   writeSyllabusSnapshot,
-} from '@/services/syllabus-config/mock-syllabus-store';
+} from '@/services/syllabus-config/mock/mock-syllabus-store';
 import { buildCourseOfferingId } from '@/services/syllabus-config/syllabus-mappers';
 import type { InternshipEnrollmentActor } from '@/types/internship-enrollment';
 import type { SyllabusConfigSnapshot } from '@/types/syllabus-config';

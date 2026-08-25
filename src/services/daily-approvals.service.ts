@@ -11,7 +11,7 @@ import {
   updateMockDailyApprovalWeek,
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,
-} from '@/services/daily-approvals/mock-daily-approvals-store';
+} from '@/services/daily-approvals/mock/mock-daily-approvals-store';
 import { readDailyApprovalPassingScoreThreshold } from '@/services/syllabus-config/syllabus-daily-approvals-reads';
 import {
   assertMockClientHasPermission,

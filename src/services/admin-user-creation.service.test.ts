@@ -4,11 +4,11 @@ import { AdminUserCreationService } from '@/services/admin-user-creation.service
 import {
   readMockUsers,
   resetMockAuthStoreForTests,
-} from '@/services/auth/mock-auth.store';
+} from '@/services/auth/mock/mock-auth.store';
 import {
   AUTH_MOCK_USERS,
   MOCK_SUPER_ADMIN_MOBILE,
-} from '@/services/auth/auth-mock-users';
+} from '@/services/auth/mock/auth-mock-users';
 import { useUserStore } from '@/store/useUserStore';
 
 describe('AdminUserCreationService (mock)', () => {

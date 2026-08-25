@@ -3,7 +3,7 @@ import { ApiClientError } from '@/services/api-client';
 import {
   patchMockAuthUser,
   toPublicUser,
-} from '@/services/auth/mock-auth.store';
+} from '@/services/auth/mock/mock-auth.store';
 import type { ProfileDto } from '@/types/profile';
 import { useUserStore } from '@/store/useUserStore';
 import type { DocStatus, User, UserRole } from '@/types/auth';
@@ -12,19 +12,19 @@ import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 import {
   requestIdentityDocument,
   requestProfile,
-} from './profile/profile.api';
+} from './profile/real/profile.api';
 import {
   extractApiMessage,
   extractApiPayload,
   isPersianMessage,
   parseProfile,
   ProfileServiceError,
-} from './profile/profile.mappers';
+} from './profile/real/profile.mappers';
 import {
   getMockProfile,
   updateMockIdentityDocument,
   updateMockProfile,
-} from './profile/profile.mock';
+} from './profile/mock/profile.mock';
 
 const MOCK_DELAY_MS = 350;
 const MAX_IDENTITY_BASE64_CHARS = 1_100_000;
