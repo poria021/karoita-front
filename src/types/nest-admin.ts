@@ -21,6 +21,15 @@ export type NestCreateProvinceDto = {
   title: string;
 };
 
+/**
+ * GET /admin/province/all row — confirmed live shape carries only
+ * `{ id, title }`, unlike GET /admin/provinces which also returns
+ * `createdAt`/`updatedAt`. Kept as its own type instead of reusing
+ * `NestProvince` so callers don't assume timestamp fields that never
+ * arrive on this endpoint.
+ */
+export type NestProvinceLite = Pick<NestProvince, 'id' | 'title'>;
+
 export type NestUpdateProvinceDto = {
   title: string;
 };
@@ -46,7 +55,9 @@ export type NestCreateCityDto = {
 };
 
 export type NestUpdateCityDto = {
-  title: string;
+  title?: string;
+  /** Parent province — must be sent on edit or the city silently keeps its old province. */
+  province_id?: string;
 };
 
 export type NestCreateEducationalDistrictDto = {
@@ -63,10 +74,11 @@ export type NestUpdateEducationalDistrictDto = {
 };
 
 /**
- * GET /admin/educations row. Live GET responses have not been confirmed
- * (empty sample) — same defensive pattern as NestCity/NestUniversity:
- * accept either flat `provinceId`/`cityId` (the create/update DTO shape)
- * or `province_id`/`city_id`, or a nested `province`/`city` object.
+ * GET /admin/educations row. Confirmed live: rows nest `province`/`city`
+ * as objects (`{ id, title }`, or `{}` when unlinked) — same shape as
+ * NestCity/NestUniversity. The flat `provinceId`/`cityId` /
+ * `province_id`/`city_id` variants are kept as defensive fallbacks since
+ * the create/update DTOs use the flat shape.
  */
 export type NestEducationalDistrict = {
   id: string;
@@ -100,6 +112,12 @@ export type NestUpdateSchoolDto = {
 /**
  * GET /admin/schools row. Same defensive pattern as NestEducationalDistrict
  * — `educationId` links a school to its educational district (رشته/ناحیه).
+ *
+ * Confirmed live quirk: the read row reports gender as `genderType`
+ * (`"Boy"` / `"Girl"`), NOT `gender` — the create/update DTOs above use
+ * `gender`, but the list/get response uses a different key entirely.
+ * `gender` is kept here too as a defensive fallback in case that ever
+ * changes server-side.
  */
 export type NestSchool = {
   id: string;
@@ -107,6 +125,8 @@ export type NestSchool = {
   provinceId?: string;
   cityId?: string;
   educationId?: string;
+  /** Confirmed live field name on GET rows — see note above. */
+  genderType?: string;
   gender?: string;
   province_id?: string;
   city_id?: string;
@@ -138,21 +158,24 @@ export type NestDegree = {
   id: string;
   title: string;
   roleId?: string;
-  role?: { id?: string; title?: string } | null;
+  /** `title_fa` is the Persian display label — see NestRole / resolveRoleLabel(). */
+  role?: { id?: string; title?: string; title_fa?: string } | null;
   createdAt?: string;
   updatedAt?: string;
 };
 
 /**
  * Nest Role (GET /admin/roles) — used to pick the `roleId` a degree links to.
- * Confirmed live shape is bare `{ id }` — no `title`/`name` field is returned,
- * unlike `v1/auth/roles` (see nest-auth-role.ts). Keep `title` optional and
- * resolve a display fallback wherever this is read (see resolveRoleLabel in
- * org-structure.service.ts) rather than assuming it is always present.
+ * Confirmed live shape is `{ id, title, title_fa }`: `title` is the English
+ * role key (e.g. `"trainee"`) and `title_fa` is the Persian display label
+ * (e.g. `"کارآموز"`). Both stay optional defensively — resolveRoleLabel()
+ * in real-org-mappers.ts prefers `title_fa`, then `title`, then a short
+ * id-based label, so the majors-tab role <select> never renders blank.
  */
 export type NestRole = {
   id: string;
   title?: string;
+  title_fa?: string;
 };
 
 /**
@@ -179,11 +202,15 @@ export type NestUpdateUniversityDto = {
 
 /**
  * GET /admin/universites ('universites' matches the live OpenAPI path
- * spelling — see NEST_ADMIN_PATHS). Live sample was an empty array (no
- * universities seeded yet), so — same defensive pattern as toOrgCity/
- * toOrgDistrict — accept either the flat `provinceId`/`cityId` the
- * create/update DTOs use, or a nested `province`/`city` object the way
- * GET /admin/cities is confirmed to return them.
+ * spelling — see NEST_ADMIN_PATHS).
+ *
+ * Confirmed live quirk: the read row nests the linked province under the
+ * key `role` (`role: { id, title }`, title being the province name e.g.
+ * "تهران"), NOT `province` — almost certainly a copy-paste artifact in the
+ * Nest serializer, but this is what the live API actually returns. `city`
+ * is nested correctly under `city`. The flat `provinceId`/`cityId` (the
+ * create/update DTO shape) and a correctly-named nested `province` are
+ * kept as defensive fallbacks in case the backend fixes this later.
  */
 export type NestUniversity = {
   id: string;
@@ -192,6 +219,8 @@ export type NestUniversity = {
   cityId?: string;
   province?: { id?: string; title?: string } | null;
   city?: { id?: string; title?: string } | null;
+  /** Confirmed live quirk — the province, mislabeled `role`. See note above. */
+  role?: { id?: string; title?: string } | null;
   createdAt?: string;
   updatedAt?: string;
 };

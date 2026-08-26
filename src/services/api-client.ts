@@ -23,6 +23,16 @@ export { ApiClientError, localizeApiError } from '@/services/api-error';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
 
+/**
+ * Nest reads `x-custom-lang` to pick the response/validation-message locale
+ * (confirmed on the Admin `provinces`/`cities` controllers). The whole app
+ * is Persian-only (rule 30), so this is fixed — never derived from browser
+ * locale — and set once at the shared client so every Facade call (admin
+ * catalog, profile, auth, …) inherits it without each call site repeating
+ * the header.
+ */
+const NEST_LANG_HEADER = { 'x-custom-lang': 'fa' } as const;
+
 // ─── Client factory ───────────────────────────────────────────────────────────
 
 let browserClient: ReturnType<typeof ky.create> | null = null;
@@ -111,7 +121,7 @@ async function request<T>(
     const bearer = await resolveBearerToken(token);
     return await client[method](path.replace(/^\//, ''), {
       ...options,
-      headers: { ...bearerHeaders(bearer), ...options.headers },
+      headers: { ...bearerHeaders(bearer), ...NEST_LANG_HEADER, ...options.headers },
     }).json<T>();
   } catch (error) {
     return mapHttpError(error);
@@ -129,7 +139,7 @@ async function requestMaybeJson<T>(
     const bearer = await resolveBearerToken(token);
     const response = await client[method](path.replace(/^\//, ''), {
       ...options,
-      headers: { ...bearerHeaders(bearer), ...options.headers },
+      headers: { ...bearerHeaders(bearer), ...NEST_LANG_HEADER, ...options.headers },
     });
     if (response.status === 204) return null;
     const contentType = response.headers.get('content-type') ?? '';

@@ -1,5 +1,8 @@
 import { ApiClientError } from '@/services/api-client';
-import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
+import {
+  adminCatalogApi,
+  fetchAllNestProvinces,
+} from '@/services/admin-catalog/admin-catalog.api';
 import { OrgStructureService } from '@/services/org-structure.service';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
@@ -78,21 +81,9 @@ let provinceCache: NameIdCache | null = null;
 async function resolveProvinceId(provinceName: string): Promise<string | undefined> {
   const now = Date.now();
   if (!provinceCache || now - provinceCache.fetchedAt > PROVINCE_CACHE_TTL_MS) {
-    let all: Array<{ id: string; title: string }>;
-    try {
-      // GET /api/admin/province/all — اگر endpoint موجود است (یک round-trip)
-      all = await adminCatalogApi.getAllProvinces();
-    } catch {
-      // fallback: paginate GET /api/admin/provinces
-      all = [];
-      let page = 1;
-      for (let i = 0; i < 50; i++) {
-        const res = await adminCatalogApi.listProvinces({ page, limit: 200 });
-        all.push(...res.data);
-        if (!res.hasNextPage) break;
-        page++;
-      }
-    }
+    // GET /api/admin/province/all با fallback به pagination یکجا نگه داشته می‌شود —
+    // ببین fetchAllNestProvinces() در admin-catalog.api.ts
+    const all = await fetchAllNestProvinces();
     provinceCache = {
       byName: new Map(all.map((p) => [p.title, p.id])),
       fetchedAt: now,

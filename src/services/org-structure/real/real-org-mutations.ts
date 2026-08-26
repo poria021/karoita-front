@@ -1,5 +1,8 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
-import { invalidateRealBareListCache } from '@/services/org-structure/real/real-org-reads';
+import {
+  flushBareListCache,
+  invalidateRealBareListCache,
+} from '@/services/org-structure/real/real-org-reads';
 import {
   invalidateDistrictNameCache,
   invalidateProvinceNameCache,
@@ -14,7 +17,14 @@ import type {
 } from '@/services/org-structure/mock/mock-org-mutations';
 import type { OrgStructureEntityKind } from '@/types/org-structure';
 
-/** PUT /org-structure/provinces — real: POST/PATCH /api/admin/provinces */
+/**
+ * PUT /org-structure/provinces — real: POST/PATCH /api/admin/provinces.
+ *
+ * provinces از paginated endpoint می‌خونن (GET /admin/provinces با envelope
+ * `{ data, hasNextPage }`) — react-query list cache توسط `invalidateAndReload`
+ * در useOrgStructurePage باطل می‌شه. اینجا فقط typeahead cache و bareList را
+ * flush می‌کنیم تا form-dropdown استان هم بعد از ایجاد/ویرایش به‌روز بشه.
+ */
 export async function upsertRealProvince(
   input: UpsertProvinceInput,
   editId?: string
@@ -24,29 +34,49 @@ export async function upsertRealProvince(
   } else {
     await adminCatalogApi.createProvince({ title: input.name });
   }
-  // کش typeahead استان را باطل کن تا resolve نام→id آپ‌تودیت بماند
+  // typeahead cache استان را باطل کن (listRealProvinces → fetchAllNestProvinces).
   invalidateProvinceNameCache();
+  // hard-flush تا form-dropdown استان در فرم‌های دیگر (شهر/منطقه/مدرسه) هم
+  // بعد از ایجاد استان جدید، لیست تازه بگیره — این cache جدا از react-query است.
+  flushBareListCache('provinces');
 }
 
-/** PUT /org-structure/cities — real: POST/PATCH /api/admin/cities */
+/**
+ * PUT /org-structure/cities — real: POST/PATCH /api/admin/cities.
+ *
+ * cities هم paginated هستن. react-query list cache توسط `invalidateAndReload`
+ * باطل می‌شه. `province_id` حتماً باید در edit هم ارسال بشه وگرنه Nest استان
+ * قبلی شهر رو حفظ می‌کنه بدون خطا.
+ */
 export async function upsertRealCity(
   input: UpsertCityInput,
   editId?: string
 ): Promise<void> {
   if (editId) {
-    await adminCatalogApi.updateCity(editId, { title: input.name });
+    await adminCatalogApi.updateCity(editId, {
+      title: input.name,
+      province_id: input.provinceId,
+    });
   } else {
     await adminCatalogApi.createCity({
       title: input.name,
       province_id: input.provinceId,
     });
   }
+  // cities tab از paginated endpoint می‌خونه — react-query cache توسط
+  // invalidateAndReload باطل می‌شه. bareList را flush کن تا dropdown شهر
+  // در فرم‌های districts/schools بعد از ایجاد شهر جدید به‌روز بشه.
+  flushBareListCache('cities');
 }
 
 /**
  * PUT /org-structure/faculties — real: POST/PUT /api/admin/universites.
  * The Nest entity is called "university" but is surfaced in this UI as
  * the دانشکده/پردیس (faculty) tab.
+ *
+ * faculties از bareListCache استفاده می‌کنن — hard-flush لازمه تا مطمئن بشیم
+ * reload() که بلافاصله بعد از این صدا می‌شه از Nest داده تازه می‌گیره،
+ * نه از entry ای که staleSince=0 شده ولی هنوز در Map هست.
  */
 export async function upsertRealFaculty(
   input: UpsertFacultyInput,
@@ -65,16 +95,21 @@ export async function upsertRealFaculty(
       cityId: input.cityId,
     });
   }
-  invalidateRealBareListCache('faculties');
+  // Hard-flush برای تضمین freshness — invalidate نرم (staleSince=0) کافی نیست
+  // چون reload() ممکنه قبل از اینکه fetch جدید بیاد از entry قدیمی بخونه.
+  flushBareListCache('faculties');
 }
 
-/** PUT /org-structure/districts — real: POST/PUT /api/admin/educations */
+/**
+ * PUT /org-structure/districts — real: POST/PUT /api/admin/educations.
+ *
+ * cityId اختیاری است — فقط وقتی مقدار دارد ارسال می‌شه تا API خطای ۴۲۲
+ * برای empty string برنگردونه.
+ */
 export async function upsertRealDistrict(
   input: UpsertDistrictInput,
   editId?: string
 ): Promise<void> {
-  // cityId is optional — only include when present so the API doesn't
-  // reject an empty-string value with a 422.
   const cityId = input.cityId || undefined;
   if (editId) {
     await adminCatalogApi.updateEducation(editId, {
@@ -89,8 +124,8 @@ export async function upsertRealDistrict(
       ...(cityId ? { cityId } : {}),
     });
   }
-  invalidateRealBareListCache('districts');
-  // کش typeahead منطقه را باطل کن تا resolve نام→id آپ‌تودیت بماند
+  // Hard-flush برای تضمین freshness + typeahead منطقه آموزشی را باطل کن.
+  flushBareListCache('districts');
   invalidateDistrictNameCache();
 }
 
@@ -99,6 +134,7 @@ export async function upsertRealSchool(
   input: UpsertSchoolInput,
   editId?: string
 ): Promise<void> {
+  // Nest gender enum: 'Boy' | 'Girl'
   const gender = input.gender === 'female' ? 'Girl' : 'Boy';
   if (editId) {
     await adminCatalogApi.updateSchool(editId, {
@@ -117,16 +153,15 @@ export async function upsertRealSchool(
       gender,
     });
   }
-  invalidateRealBareListCache('schools');
+  // Hard-flush مدارس تا جدول بلافاصله داده تازه بگیره.
+  flushBareListCache('schools');
 }
 
 /**
  * PUT /org-structure/majors — real: POST/PATCH /api/admin/degree.
- * Nest's degree DTO requires `roleId` (no direct "audience" concept —
- * that's a mock-only stand-in). Previously this silently no-op'd on
- * create in real mode: the optimistic row would show for a few seconds,
- * then vanish once the list reloaded from the server, because nothing
- * had actually been persisted.
+ *
+ * Nest's degree DTO requires `roleId` — the mock-only `audience` concept
+ * has no equivalent on the server side. `roleId` must always be set.
  */
 export async function upsertRealMajor(
   input: UpsertMajorInput,
@@ -146,7 +181,8 @@ export async function upsertRealMajor(
       roleId: input.roleId,
     });
   }
-  invalidateRealBareListCache('majors');
+  // Hard-flush رشته‌های تحصیلی تا جدول بعد از ذخیره داده تازه از Nest بگیره.
+  flushBareListCache('majors');
 }
 
 /** DELETE /org-structure/:kind/:id — real: DELETE /api/admin/{kind}/{id} */
@@ -158,26 +194,28 @@ export async function deleteRealEntity(
     case 'province':
       await adminCatalogApi.deleteProvince(id);
       invalidateProvinceNameCache();
+      flushBareListCache('provinces');
       break;
     case 'city':
       await adminCatalogApi.deleteCity(id);
+      flushBareListCache('cities');
       break;
     case 'district':
       await adminCatalogApi.deleteEducation(id);
-      invalidateRealBareListCache('districts');
+      flushBareListCache('districts');
       invalidateDistrictNameCache();
       break;
     case 'school':
       await adminCatalogApi.deleteSchool(id);
-      invalidateRealBareListCache('schools');
+      flushBareListCache('schools');
       break;
     case 'faculty':
       await adminCatalogApi.deleteUniversity(id);
-      invalidateRealBareListCache('faculties');
+      flushBareListCache('faculties');
       break;
     case 'major':
       await adminCatalogApi.deleteDegree(id);
-      invalidateRealBareListCache('majors');
+      flushBareListCache('majors');
       break;
   }
 }

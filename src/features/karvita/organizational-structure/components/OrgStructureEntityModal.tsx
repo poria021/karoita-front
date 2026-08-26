@@ -32,7 +32,8 @@ interface OrgStructureEntityModalProps {
   editId: string | null;
   editRow: OrgStructureListItem | null;
   onClose: () => void;
-  onSaved: () => void;
+  /** پس از ویرایش موفق: کش باطل می‌کنه و جدول را reload می‌دهد. */
+  onSaved: () => Promise<void>;
   onCreate: (values: OrgEntityFormValues) => void;
 }
 
@@ -66,7 +67,9 @@ export function OrgStructureEntityModal({
       try {
         await submitOrgEntity(tab, values, editId);
         toast.success(`${tabConfig.addLabel} «${label}» به‌روزرسانی شد.`);
-        onSaved();
+        // onSaved کش را flush و جدول را reload می‌کنه — باید await بشه
+        // تا اطمینان حاصل بشه قبل از بستن مدال، خطای راس‌اندازی catch نمی‌شه.
+        await onSaved();
         onClose();
       } catch (err) {
         setFormError(err instanceof Error ? err.message : 'ذخیره ناموفق بود.');

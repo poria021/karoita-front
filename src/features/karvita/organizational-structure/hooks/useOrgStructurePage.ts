@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -13,11 +13,13 @@ import {
   SEARCH_DEBOUNCE_MS,
 } from '@/lib/search-debounce';
 import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import {
   ORG_STRUCTURE_PAGE_SIZE,
   OrgStructureService,
   type OrgStructureListItem,
 } from '@/services/org-structure.service';
+import { flushBareListCache } from '@/services/org-structure/real/real-org-reads';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import {
   orgEntityKindFromTab,
@@ -60,6 +62,8 @@ function buildOptimisticRow(
 }
 
 export function useOrgStructurePage() {
+  const queryClient = useQueryClient();
+
   const getChrome = useDashboardModuleCache((s) => s.getChrome);
   const setChrome = useDashboardModuleCache((s) => s.setChrome);
   const cachedChrome = getChrome<OrgChrome>(ORG_STRUCTURE_CHROME_ID);
@@ -104,11 +108,8 @@ export function useOrgStructurePage() {
   });
 
   // Warm the entity-modal's province select cache as soon as the org
-  // structure page mounts — regardless of which tab is active. Shares the
-  // exact query key with useOrgEntityForm's provincesQuery, so react-query
-  // dedupes/caches across both: the first Add/Edit dialog that needs a
-  // province list (cities, districts, schools, faculties) then reads from
-  // cache instead of paying its own network round trip.
+  // structure page mounts — shares the query key with useOrgEntityForm's
+  // provincesQuery, so react-query dedupes/caches across both.
   useQuery({
     queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'provinces'],
     queryFn: () => OrgStructureService.listProvinces(),
@@ -139,6 +140,33 @@ export function useOrgStructurePage() {
     setEditId(null);
     setEditRow(null);
   }, []);
+
+  /**
+   * پس از ذخیره موفق (create یا edit)، کش را به‌طور کامل باطل می‌کنیم
+   * تا `reload()` حتماً داده‌ی تازه از سرور بگیرد — حتی اگر staleTime
+   * هنوز نگذشته باشد.
+   *
+   * ترتیب اجرا اهمیت دارد:
+   * 1. flushBareListCache: حذف فیزیکی تمام ورودی‌های in-memory bareListCache
+   *    (districts/schools/majors/faculties) — باید قبل از reload باشه تا
+   *    getBareListItems در listRealPage هیچ entry قدیمی‌ای پیدا نکنه.
+   * 2. invalidateQueries: باطل‌سازی react-query cache برای provinces/cities
+   *    (paginated) و dropdown‌های province/city/district داخل فرم.
+   * 3. list.reload(): refetch صفحه اول از Nest — در این مرحله هر دو cache
+   *    پاک شده‌اند و داده تازه گرفته می‌شه.
+   */
+  const invalidateAndReload = useCallback(async () => {
+    // ۱. hard-flush bareListCache (in-memory, خارج از react-query)
+    if (!IS_MOCK_MODE) {
+      flushBareListCache();
+    }
+    // ۲. باطل‌سازی react-query cache برای تمام کلیدهای org-structure
+    await queryClient.invalidateQueries({
+      queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE],
+    });
+    // ۳. refetch — هر دو cache پاک شده‌اند، Nest داده تازه برمی‌گردونه
+    await list.reload();
+  }, [queryClient, list]);
 
   const reload = list.reload;
   const patchItems = list.patchItems;
@@ -171,7 +199,7 @@ export function useOrgStructurePage() {
         },
         commit: () => submitOrgEntity(tab, values, null),
         onCommitted: async () => {
-          await reload();
+          await invalidateAndReload();
         },
         onError: (error) => {
           toast.error(
@@ -180,7 +208,7 @@ export function useOrgStructurePage() {
         },
       });
     },
-    [patchItems, reload, tab, tabConfig.addLabel]
+    [patchItems, invalidateAndReload, tab, tabConfig.addLabel]
   );
 
   const requestDelete = useCallback(
@@ -211,7 +239,7 @@ export function useOrgStructurePage() {
         },
         commit: () => OrgStructureService.deleteEntity(row.kind, row.id),
         onCommitted: async () => {
-          await reload();
+          await invalidateAndReload();
         },
         onError: (error) => {
           toast.error(
@@ -222,7 +250,7 @@ export function useOrgStructurePage() {
         },
       });
     },
-    [patchItems, reload]
+    [patchItems, invalidateAndReload]
   );
 
   const handleLoadMore = useCallback(() => {
@@ -264,6 +292,8 @@ export function useOrgStructurePage() {
     scheduleCreate,
     requestDelete,
     entityKind: entityKindFromTab(tab),
+    /** برای استفاده در OrgStructureEntityModal — باطل‌سازی کش + reload */
+    invalidateAndReload,
   };
 }
 

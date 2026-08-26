@@ -104,6 +104,28 @@ describe('toOrgFaculty — defensive province/city field resolution', () => {
       cityId: '',
     });
   });
+
+  it('falls back to the confirmed live quirk (province nested under `role`) when `province` is absent', () => {
+    expect(
+      toOrgFaculty({
+        id: 'f1',
+        title: 'نسیبه',
+        role: { id: 'p1', title: 'تهران' },
+        city: { id: 'c1', title: 'کاشان' },
+      })
+    ).toEqual({ id: 'f1', name: 'نسیبه', provinceId: 'p1', cityId: 'c1' });
+  });
+
+  it('prefers a correctly-named `province` over the `role` quirk if both are present', () => {
+    expect(
+      toOrgFaculty({
+        id: 'f1',
+        title: 'نسیبه',
+        province: { id: 'p1' },
+        role: { id: 'p2' },
+      })
+    ).toEqual({ id: 'f1', name: 'نسیبه', provinceId: 'p1', cityId: '' });
+  });
 });
 
 describe('toOrgDistrict — defensive province/city field resolution', () => {
@@ -217,6 +239,16 @@ describe('toOrgSchool — defensive field resolution + gender normalization', ()
     ).toBe('male');
     expect(toOrgSchool({ id: 's1', title: 'x' }).gender).toBe('male');
   });
+
+  it('prefers the confirmed live `genderType` field over `gender`', () => {
+    expect(
+      toOrgSchool({ id: 's1', title: 'x', genderType: 'Girl', gender: 'Boy' })
+        .gender
+    ).toBe('female');
+    expect(
+      toOrgSchool({ id: 's1', title: 'x', genderType: 'Boy' }).gender
+    ).toBe('male');
+  });
 });
 
 describe('toOrgMajorListItem', () => {
@@ -266,6 +298,16 @@ describe('toOrgMajorListItemForRole', () => {
 });
 
 describe('resolveRoleLabel', () => {
+  it('prefers title_fa over title when both are present', () => {
+    expect(
+      resolveRoleLabel({
+        id: 'abcdef123456',
+        title: 'trainee',
+        title_fa: 'کارآموز',
+      })
+    ).toBe('کارآموز');
+  });
+
   it('uses the title when present', () => {
     expect(resolveRoleLabel({ id: 'abcdef123456', title: 'دانش‌آموز' })).toBe(
       'دانش‌آموز'

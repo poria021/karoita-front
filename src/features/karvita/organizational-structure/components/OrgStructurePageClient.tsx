@@ -73,7 +73,7 @@ export function OrgStructurePageClient() {
           editId={page.editId}
           editRow={page.editRow}
           onClose={page.closeEditor}
-          onSaved={page.reload}
+          onSaved={page.invalidateAndReload}
           onCreate={page.scheduleCreate}
         />
       ) : null}

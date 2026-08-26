@@ -18,6 +18,7 @@ import type {
   NestEducationListQuery,
   NestPagedList,
   NestProvince,
+  NestProvinceLite,
   NestRole,
   NestSchool,
   NestSchoolListQuery,
@@ -50,6 +51,13 @@ export const NEST_ADMIN_PATHS = {
   provinceEducations: (id: string) => `admin/province/${id}/educations`,
   schools: 'admin/schools',
   schoolById: (id: string) => `admin/schools/${id}`,
+  /**
+   * Confirmed live quirk: DELETE has no `/` before the id
+   * (`admin/schools{id}`, not `admin/schools/{id}`) — verified against a
+   * live 204 response. PUT/update uses the normal slash-separated path
+   * above; only DELETE is affected.
+   */
+  schoolDeleteById: (id: string) => `admin/schools${id}`,
   degree: 'admin/degree',
   degreeById: (id: string) => `admin/degree/${id}`,
   degreesWithRole: 'admin/degreeee',
@@ -62,6 +70,20 @@ export const NEST_ADMIN_PATHS = {
   academicSettings: 'admin/settings',
 } as const;
 
+/**
+ * GET /admin/provinces and GET /admin/cities are the same generated CRUD
+ * controller shape: `filters` must arrive as a JSON object-string
+ * (`{"title":"..."}`), not a bare string — confirmed live for provinces.
+ * Shared so both call sites stay in sync.
+ */
+function toNestTitleFilterSearchParams(query: NestAdminPageQuery) {
+  const { filters, ...rest } = query;
+  return toSearchParams({
+    ...rest,
+    ...(filters ? { filters: JSON.stringify({ title: filters }) } : {}),
+  });
+}
+
 export const adminCatalogApi = {
   createProvince(body: NestCreateProvinceDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.provinces, body, token);
@@ -70,20 +92,19 @@ export const adminCatalogApi = {
    * Nest انتظار دارد `filters` یک JSON object-string باشه: {"title":"..."}
    */
   listProvinces(query: NestAdminPageQuery = {}, token?: string) {
-    const { filters, ...rest } = query;
-    const searchParams = toSearchParams({
-      ...rest,
-      // اگر filters وجود داشت به‌صورت JSON string بفرست
-      ...(filters ? { filters: JSON.stringify({ title: filters }) } : {}),
-    });
     return apiClient.getJson<NestPagedList<NestProvince>>(
       NEST_ADMIN_PATHS.provinces,
       token,
-      { searchParams }
+      { searchParams: toNestTitleFilterSearchParams(query) }
     );
   },
-  getAllProvinces(token?: string) {
-    return apiClient.getJson<NestProvince[]>(NEST_ADMIN_PATHS.provincesAll, token);
+  /** GET /admin/province/all?title= — bare array, no paging envelope, no createdAt/updatedAt on rows. */
+  getAllProvinces(title?: string, token?: string) {
+    return apiClient.getJson<NestProvinceLite[]>(
+      NEST_ADMIN_PATHS.provincesAll,
+      token,
+      { searchParams: toSearchParams({ title }) }
+    );
   },
   updateProvince(id: string, body: NestUpdateProvinceDto, token?: string) {
     return apiClient.patchMaybeJson<null>(
@@ -99,10 +120,11 @@ export const adminCatalogApi = {
   createCity(body: NestCreateCityDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.cities, body, token);
   },
-  /** GET /admin/cities — paginated envelope `{ data, hasNextPage }`, same shape as provinces. */
+  /** GET /admin/cities — paginated envelope `{ data, hasNextPage }`, same generated-controller
+   * shape as provinces — `filters` gets the same JSON-object-string treatment. */
   listCities(query: NestAdminPageQuery = {}, token?: string) {
     return apiClient.getJson<NestPagedList<NestCity>>(NEST_ADMIN_PATHS.cities, token, {
-      searchParams: toSearchParams(query),
+      searchParams: toNestTitleFilterSearchParams(query),
     });
   },
   getCity(id: string, token?: string) {
@@ -178,8 +200,12 @@ export const adminCatalogApi = {
   updateSchool(id: string, body: NestUpdateSchoolDto, token?: string) {
     return apiClient.putJson<unknown>(NEST_ADMIN_PATHS.schoolById(id), body, token);
   },
+  /** DELETE /admin/schools{id} — see `schoolDeleteById` above for the missing-slash quirk. */
   deleteSchool(id: string, token?: string) {
-    return apiClient.deleteMaybeJson<null>(NEST_ADMIN_PATHS.schoolById(id), token);
+    return apiClient.deleteMaybeJson<null>(
+      NEST_ADMIN_PATHS.schoolDeleteById(id),
+      token
+    );
   },
 
   createDegree(body: NestCreateDegreeDto, token?: string) {
@@ -279,3 +305,38 @@ export const adminCatalogApi = {
     );
   },
 };
+
+const ALL_PROVINCES_FALLBACK_PAGE_SIZE = 200;
+// Guards a runaway loop if `hasNextPage` never settles to false.
+const ALL_PROVINCES_FALLBACK_MAX_PAGES = 50;
+
+/**
+ * Full unfiltered province list, for typeaheads/dropdowns that need every
+ * province at once. GET /admin/province/all is built for exactly this (no
+ * paging envelope, no `hasNextPage` to page through) but has only ever been
+ * exercised live with a `title` filter, so this tries it first and falls
+ * back to paging GET /admin/provinces if the bulk endpoint errors or turns
+ * out not to return the full set. Shared by org-structure reads and the
+ * organization-options typeahead so this fallback lives in exactly one
+ * place instead of two near-identical copies.
+ */
+export async function fetchAllNestProvinces(
+  token?: string
+): Promise<NestProvinceLite[]> {
+  try {
+    return await adminCatalogApi.getAllProvinces(undefined, token);
+  } catch {
+    const all: NestProvinceLite[] = [];
+    let page = 1;
+    for (let i = 0; i < ALL_PROVINCES_FALLBACK_MAX_PAGES; i += 1) {
+      const { data, hasNextPage } = await adminCatalogApi.listProvinces(
+        { page, limit: ALL_PROVINCES_FALLBACK_PAGE_SIZE },
+        token
+      );
+      all.push(...data);
+      if (!hasNextPage) break;
+      page += 1;
+    }
+    return all;
+  }
+}
