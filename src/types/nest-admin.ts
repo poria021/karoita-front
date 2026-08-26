@@ -2,6 +2,7 @@
  * Nest Admin catalog DTOs from
  * https://backenddev.darkube.ir/docs (OpenAPI 3).
  */
+import type { AcademicTermType } from '@/types/syllabus-config';
 
 /** Nest paginated admin-list envelope (e.g. GET /admin/provinces). No total count, only `hasNextPage`. */
 export type NestPagedList<T> = {
@@ -193,6 +194,53 @@ export type NestUniversity = {
   city?: { id?: string; title?: string } | null;
   createdAt?: string;
   updatedAt?: string;
+};
+
+/**
+ * GET/POST/PATCH/DELETE `/admin/semester` — academic term (نیم‌سال/پودمان).
+ * `structure` mirrors {@link AcademicTermType} 1:1. `season` has no display
+ * label of its own on the Nest side — the term-settings form's prefix
+ * select (نیم‌سال اول/دوم/تابستان, پودمان اول/دوم) encodes it instead; see
+ * `real-syllabus-mappers.ts`. The live model carries no enroll/term "gate"
+ * fields yet (isEnrollOpen/isTermOpen/enrollStart/termStart) — those stay
+ * Nest-blocked.
+ */
+export type NestSemesterSeason = 'one' | 'two' | 'three';
+
+export type NestSemester = {
+  id: string;
+  academicYear: string;
+  season: NestSemesterSeason;
+  structure: AcademicTermType;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type NestCreateSemesterDto = {
+  season: NestSemesterSeason;
+  structure: AcademicTermType;
+  academicYear: string;
+};
+
+/**
+ * GET/POST `/admin/settings` — global academic settings. Nest has no PATCH
+ * here: POST inserts a new row and GET always reads the latest one back.
+ */
+export type NestAcademicSettings = {
+  id: string;
+  systemPassingScore: number;
+  generalProfessorCapacity: number;
+};
+
+export type NestUpdateSemesterDto = {
+  season?: NestSemesterSeason;
+  structure?: AcademicTermType;
+  academicYear?: string;
+};
+
+export type NestCreateAcademicSettingsDto = {
+  generalProfessorCapacity: number;
+  systemPassingScore: number;
 };
 
 /**

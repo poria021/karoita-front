@@ -1,13 +1,16 @@
 import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
 import type {
+  NestAcademicSettings,
   NestAdminPageQuery,
   NestCity,
+  NestCreateAcademicSettingsDto,
   NestCreateCityDto,
   NestCreateDegreeDto,
   NestCreateEducationalDistrictDto,
   NestCreateProvinceDto,
   NestCreateSchoolDto,
+  NestCreateSemesterDto,
   NestCreateUniversityDto,
   NestDegree,
   NestDegreeByRole,
@@ -18,12 +21,14 @@ import type {
   NestRole,
   NestSchool,
   NestSchoolListQuery,
+  NestSemester,
   NestUniversity,
   NestUpdateCityDto,
   NestUpdateDegreeDto,
   NestUpdateEducationalDistrictDto,
   NestUpdateProvinceDto,
   NestUpdateSchoolDto,
+  NestUpdateSemesterDto,
   NestUpdateUniversityDto,
 } from '@/types/nest-admin';
 
@@ -52,6 +57,9 @@ export const NEST_ADMIN_PATHS = {
   roleDegrees: (roleId: string) => `admin/roles/${roleId}/degrees`,
   universities: 'admin/universites',
   universityById: (id: string) => `admin/universites/${id}`,
+  semesters: 'admin/semester',
+  semesterById: (id: string) => `admin/semester/${id}`,
+  academicSettings: 'admin/settings',
 } as const;
 
 export const adminCatalogApi = {
@@ -231,6 +239,42 @@ export const adminCatalogApi = {
   deleteUniversity(id: string, token?: string) {
     return apiClient.deleteMaybeJson<null>(
       NEST_ADMIN_PATHS.universityById(id),
+      token
+    );
+  },
+
+  createSemester(body: NestCreateSemesterDto, token?: string) {
+    return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.semesters, body, token);
+  },
+  /** GET /admin/semester — bare array, no paging envelope. */
+  listSemesters(token?: string) {
+    return apiClient.getJson<NestSemester[]>(NEST_ADMIN_PATHS.semesters, token);
+  },
+  updateSemester(id: string, body: NestUpdateSemesterDto, token?: string) {
+    return apiClient.patchMaybeJson<null>(
+      NEST_ADMIN_PATHS.semesterById(id),
+      body,
+      token
+    );
+  },
+  deleteSemester(id: string, token?: string) {
+    return apiClient.deleteMaybeJson<null>(
+      NEST_ADMIN_PATHS.semesterById(id),
+      token
+    );
+  },
+
+  createAcademicSettings(body: NestCreateAcademicSettingsDto, token?: string) {
+    return apiClient.postMaybeJson<null>(
+      NEST_ADMIN_PATHS.academicSettings,
+      body,
+      token
+    );
+  },
+  /** GET /admin/settings — always the latest inserted row. */
+  getAcademicSettings(token?: string) {
+    return apiClient.getJson<NestAcademicSettings>(
+      NEST_ADMIN_PATHS.academicSettings,
       token
     );
   },
