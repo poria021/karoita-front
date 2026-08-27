@@ -17,6 +17,7 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
+import { KvTypography } from '@/components/shared/KvTypography';
 import type { CourseCatalogItem } from '@/types/syllabus-config';
 
 interface CourseOfferingsTableProps {
@@ -57,7 +58,11 @@ export function CourseOfferingsTable({
           {bodyPhase === 'busy' ? (
             <KvTableBusy colSpan={3} />
           ) : bodyPhase === 'empty' ? (
-            <KvTableEmpty colSpan={3}>موردی یافت نشد</KvTableEmpty>
+            <KvTableEmpty colSpan={3}>
+              <KvTypography variant="body" tone="muted">
+                موردی یافت نشد
+              </KvTypography>
+            </KvTableEmpty>
           ) : (
             courses.map((course, index) => {
               const offered = offeredCatalogIds.has(course.id);

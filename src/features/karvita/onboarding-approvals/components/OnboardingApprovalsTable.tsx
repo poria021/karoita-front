@@ -20,6 +20,7 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
+import { KvTypography } from '@/components/shared/KvTypography';
 import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
@@ -110,7 +111,11 @@ export function OnboardingApprovalsTable({
             {bodyPhase === 'busy' ? (
               <KvTableBusy colSpan={columnCount} />
             ) : bodyPhase === 'empty' ? (
-              <KvTableEmpty colSpan={columnCount}>موردی یافت نشد</KvTableEmpty>
+              <KvTableEmpty colSpan={columnCount}>
+                <KvTypography variant="body" tone="muted">
+                  موردی یافت نشد
+                </KvTypography>
+              </KvTableEmpty>
             ) : (
               users.map((user, index) => {
                 const selected = selectedId === user.id;

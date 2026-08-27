@@ -19,6 +19,7 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
+import { KvTypography } from '@/components/shared/KvTypography';
 import type { DailyApprovalTrainee } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -107,7 +108,11 @@ export function DailyApprovalsTable({
             {bodyPhase === 'busy' ? (
               <KvTableBusy colSpan={colSpan} />
             ) : bodyPhase === 'empty' ? (
-              <KvTableEmpty colSpan={colSpan}>موردی یافت نشد</KvTableEmpty>
+              <KvTableEmpty colSpan={colSpan}>
+                <KvTypography variant="body" tone="muted">
+                  موردی یافت نشد
+                </KvTypography>
+              </KvTableEmpty>
             ) : (
               trainees.map((trainee, index) => (
                 <KvTableRow

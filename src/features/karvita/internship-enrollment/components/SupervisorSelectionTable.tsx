@@ -17,6 +17,7 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { Badge } from '@/components/ui/badge';
 import type { InternshipSupervisor } from '@/types/internship-enrollment';
 import { faIcons } from '@/utils/iconMap';
@@ -58,7 +59,11 @@ export function SupervisorSelectionTable({
             {isLoading ? (
               <KvTableBusy colSpan={7} />
             ) : supervisors.length === 0 ? (
-              <KvTableEmpty colSpan={7}>موردی یافت نشد</KvTableEmpty>
+              <KvTableEmpty colSpan={7}>
+                <KvTypography variant="body" tone="muted">
+                  موردی یافت نشد
+                </KvTypography>
+              </KvTableEmpty>
             ) : (
               supervisors.map((supervisor, index) => (
                 <KvTableRow key={supervisor.id}>

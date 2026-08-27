@@ -19,6 +19,7 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { Badge } from '@/components/ui/badge';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
 import { faIcons } from '@/utils/iconMap';
@@ -196,7 +197,11 @@ export function OrgStructureTable({
             {bodyPhase === 'busy' ? (
               <KvTableBusy colSpan={colSpan} />
             ) : bodyPhase === 'empty' ? (
-              <KvTableEmpty colSpan={colSpan}>موردی یافت نشد</KvTableEmpty>
+              <KvTableEmpty colSpan={colSpan}>
+                <KvTypography variant="body" tone="muted">
+                  موردی یافت نشد
+                </KvTypography>
+              </KvTableEmpty>
             ) : (
               items.map((row, index) => (
                 <KvTableRow key={row.id}>

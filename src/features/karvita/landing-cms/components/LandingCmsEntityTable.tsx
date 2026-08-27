@@ -20,6 +20,7 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
 
 export type LandingCmsTableColumn = {
@@ -83,7 +84,11 @@ export function LandingCmsEntityTable<T extends { id: string }>({
         <KvTableBody>
           {bodyPhase === 'busy' ? <KvTableBusy colSpan={colSpan} /> : null}
           {bodyPhase === 'empty' ? (
-            <KvTableEmpty colSpan={colSpan}>موردی یافت نشد</KvTableEmpty>
+            <KvTableEmpty colSpan={colSpan}>
+              <KvTypography variant="body" tone="muted">
+                موردی یافت نشد
+              </KvTypography>
+            </KvTableEmpty>
           ) : null}
           {bodyPhase === 'rows'
             ? items.map((item, index) => (

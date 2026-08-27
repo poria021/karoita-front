@@ -134,7 +134,11 @@ export function WeeklySyllabusTable({
               {bodyPhase === 'busy' ? (
                 <KvTableBusy colSpan={4} />
               ) : bodyPhase === 'empty' ? (
-                <KvTableEmpty colSpan={4}>موردی یافت نشد</KvTableEmpty>
+                <KvTableEmpty colSpan={4}>
+                  <KvTypography variant="body" tone="muted">
+                    موردی یافت نشد
+                  </KvTypography>
+                </KvTableEmpty>
               ) : (
                 weeks.map((week, index) => (
                   <WeeklySyllabusWeekRow
