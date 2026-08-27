@@ -121,15 +121,21 @@ export function localizeApiError(payload: unknown, status: number, url?: string)
 export async function mapHttpError(error: unknown): Promise<never> {
   if (error instanceof HTTPError) {
     let payload: unknown = null;
+    let rawText: string | null = null;
     try {
-      payload = await error.response.json();
+      // متن خام را اول می‌خوانیم (نه response.json() مستقیم) تا وقتی بدنه
+      // JSON معتبر نیست — مثلاً صفحهٔ 404 خودِ Next.js/gateway به‌جای پاسخ
+      // واقعی Nest، یا بدنهٔ کاملاً خالی — همان متن خام برای دیباگ لاگ شود
+      // به‌جای گم‌شدن پشت یک `null` بی‌معنی.
+      rawText = await error.response.text();
+      payload = rawText.trim() ? JSON.parse(rawText) : null;
     } catch {
       payload = null;
     }
     if (process.env.NODE_ENV !== 'production') {
       console.error(
         `[api-error] HTTP ${error.response.status} → ${error.response.url}`,
-        payload
+        payload ?? rawText
       );
     }
     throw new ApiClientError(

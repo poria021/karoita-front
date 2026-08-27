@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
+import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
 import { buildLoginHref } from '@/lib/return-url';
@@ -77,7 +77,7 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
   }, [boot, pathname, router, searchParams]);
 
   if (boot !== 'authenticated') {
-    return <DashboardAccessPlaceholder fullViewport />;
+    return <KvBrandLinearLoader fullViewport label="در حال ورود…" />;
   }
 
   return <>{children}</>;
@@ -85,7 +85,7 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
 
 export function AppAuthGuard({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={<DashboardAccessPlaceholder fullViewport />}>
+    <Suspense fallback={<KvBrandLinearLoader fullViewport label="در حال ورود…" />}>
       <AppAuthGuardInner>{children}</AppAuthGuardInner>
     </Suspense>
   );

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import {
   KvDropdownMenu,
@@ -185,6 +186,12 @@ export function UserAccountMenu({
     </KvConfirmationDialog>
   );
 
+  const logoutTransition = isLoggingOut ? (
+    <div className="fixed inset-0 z-50">
+      <KvBrandLinearLoader fullViewport label="در حال خروج از حساب کاربری…" />
+    </div>
+  ) : null;
+
   if (variant === 'header') {
     return (
       <>
@@ -217,6 +224,7 @@ export function UserAccountMenu({
           {menu}
         </KvDropdownMenu>
         {logoutDialog}
+        {logoutTransition}
       </>
     );
   }
@@ -267,6 +275,7 @@ export function UserAccountMenu({
         {menu}
       </KvDropdownMenu>
       {logoutDialog}
+      {logoutTransition}
     </>
   );
 }

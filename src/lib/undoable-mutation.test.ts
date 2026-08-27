@@ -110,6 +110,72 @@ describe('scheduleUndoableMutation', () => {
     });
   });
 
+  it('deferCommit: does not call commit when undo is pressed before toast closes', async () => {
+    const apply = vi.fn();
+    const revert = vi.fn();
+    const commit = vi.fn(async () => 'ok');
+    const onUndone = vi.fn();
+
+    scheduleUndoableMutation({
+      message: 'حذف شد',
+      deferCommit: true,
+      apply,
+      revert,
+      commit,
+      onUndone,
+    });
+
+    expect(apply).toHaveBeenCalledTimes(1);
+    // commit نباید فوری صدا شده باشه
+    expect(commit).not.toHaveBeenCalled();
+
+    // شبیه‌سازی کلیک دکمه «لغو» قبل از بسته‌شدن toast
+    const toastMockWithCalls = toastMock as unknown as {
+      mock: { calls: Array<[unknown, { action?: { onClick: () => void; label: string } }]> };
+    };
+    const opts = toastMockWithCalls.mock.calls[0]?.[1];
+    opts?.action?.onClick();
+
+    await vi.waitFor(() => {
+      expect(revert).toHaveBeenCalledTimes(1);
+      expect(onUndone).toHaveBeenCalledTimes(1);
+    });
+    // commit هرگز نباید ارسال شده باشه
+    expect(commit).not.toHaveBeenCalled();
+  });
+
+  it('deferCommit: calls commit when toast auto-closes without undo', async () => {
+    const apply = vi.fn();
+    const revert = vi.fn();
+    const commit = vi.fn(async () => 'ok');
+    const onCommitted = vi.fn();
+
+    scheduleUndoableMutation({
+      message: 'حذف شد',
+      deferCommit: true,
+      apply,
+      revert,
+      commit,
+      onCommitted,
+    });
+
+    expect(apply).toHaveBeenCalledTimes(1);
+    expect(commit).not.toHaveBeenCalled();
+
+    // شبیه‌سازی بسته‌شدن خودکار toast
+    const toastMockWithCalls = toastMock as unknown as {
+      mock: { calls: Array<[unknown, { onAutoClose?: () => void }]> };
+    };
+    const opts = toastMockWithCalls.mock.calls[0]?.[1];
+    opts?.onAutoClose?.();
+
+    await vi.waitFor(() => {
+      expect(commit).toHaveBeenCalledTimes(1);
+      expect(onCommitted).toHaveBeenCalledWith('ok');
+    });
+    expect(revert).not.toHaveBeenCalled();
+  });
+
   it('uses toast.success for success tone', () => {
     scheduleUndoableMutation({
       tone: 'success',
