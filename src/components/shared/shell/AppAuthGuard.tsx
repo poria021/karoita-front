@@ -77,7 +77,7 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
   }, [boot, pathname, router, searchParams]);
 
   if (boot !== 'authenticated') {
-    return <KvBrandLinearLoader fullViewport label="در حال ورود…" />;
+    return <KvBrandLinearLoader fullViewport label="لطفا منتظر بمانید…" />;
   }
 
   return <>{children}</>;
@@ -85,7 +85,7 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
 
 export function AppAuthGuard({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={<KvBrandLinearLoader fullViewport label="در حال ورود…" />}>
+    <Suspense fallback={<KvBrandLinearLoader fullViewport label="لطفا منتظر بمانید…" />}>
       <AppAuthGuardInner>{children}</AppAuthGuardInner>
     </Suspense>
   );
