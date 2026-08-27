@@ -2,7 +2,6 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import {
@@ -59,12 +58,7 @@ export function SupervisorSelectionTable({
             {isLoading ? (
               <KvTableBusy colSpan={7} />
             ) : supervisors.length === 0 ? (
-              <KvTableEmpty colSpan={7}>
-                <KvEmptyState
-                  title="استاد راهنمای در دسترس یافت نشد"
-                  description="هیچ استادی دارای ظرفیت مجاز در حوزه انتخابی شما یافت نشد."
-                />
-              </KvTableEmpty>
+              <KvTableEmpty colSpan={7}>موردی یافت نشد</KvTableEmpty>
             ) : (
               supervisors.map((supervisor, index) => (
                 <KvTableRow key={supervisor.id}>

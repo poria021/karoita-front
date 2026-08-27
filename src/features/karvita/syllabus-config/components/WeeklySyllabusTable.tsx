@@ -3,7 +3,6 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
@@ -19,7 +18,6 @@ import { KvTableRowIndexHead } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { cn } from '@/lib/utils';
 import type { SyllabusWeek } from '@/types/syllabus-config';
-import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 
 import { WeeklySyllabusWeekRow } from './WeeklySyllabusWeekRow';
@@ -54,7 +52,6 @@ export function WeeklySyllabusTable({
   onSave,
 }: WeeklySyllabusTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, weeks.length);
-  const emptyCopy = getModuleEmptyCopy('syllabus_weeks');
   const canEdit = Boolean(courseTitle);
   const lastWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
   const hasLastWeek = Boolean(lastWeek);
@@ -137,30 +134,7 @@ export function WeeklySyllabusTable({
               {bodyPhase === 'busy' ? (
                 <KvTableBusy colSpan={4} />
               ) : bodyPhase === 'empty' ? (
-                <KvTableEmpty colSpan={4}>
-                  <KvEmptyState
-                    title={emptyCopy.title}
-                    description={
-                      canEdit
-                        ? 'هنوز هفته‌ای برای این درس ثبت نشده است.'
-                        : emptyCopy.description
-                    }
-                    actions={
-                      canEdit ? (
-                        <KvButton
-                          type="button"
-                          color="cta"
-                          appearance="solid"
-                          size="sm"
-                          onClick={onAddWeek}
-                          icon={<FaIcon icon={faIcons.plus} size="xs" />}
-                        >
-                          افزودن
-                        </KvButton>
-                      ) : undefined
-                    }
-                  />
-                </KvTableEmpty>
+                <KvTableEmpty colSpan={4}>موردی یافت نشد</KvTableEmpty>
               ) : (
                 weeks.map((week, index) => (
                   <WeeklySyllabusWeekRow

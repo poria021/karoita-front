@@ -3,7 +3,6 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
@@ -22,7 +21,6 @@ import {
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { Badge } from '@/components/ui/badge';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
-import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -150,8 +148,6 @@ export function OrgStructureTable({
   onDelete,
 }: OrgStructureTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, items.length);
-  const emptyCopy = getModuleEmptyCopy('org_structure');
-  const hasQuery = query.trim().length > 0;
   const columns = getOrgStructureColumns(tabConfig.key);
   const colSpan = columns.length + 1;
 
@@ -200,34 +196,7 @@ export function OrgStructureTable({
             {bodyPhase === 'busy' ? (
               <KvTableBusy colSpan={colSpan} />
             ) : bodyPhase === 'empty' ? (
-              <KvTableEmpty colSpan={colSpan}>
-                <KvEmptyState
-                  title={emptyCopy.title}
-                  description={
-                    hasQuery
-                      ? 'جستجوی فعلی نتیجه‌ای نداشت. عبارت را پاک کنید یا مورد جدیدی اضافه کنید.'
-                      : emptyCopy.description
-                  }
-                  actions={
-                    <KvButton
-                      type="button"
-                      color="cta"
-                      appearance="solid"
-                      size="sm"
-                      onClick={hasQuery ? onClearQuery : onAdd}
-                      icon={
-                        <FaIcon
-                          icon={hasQuery ? faIcons.xmark : faIcons.plus}
-                          size="xs"
-                        />
-                      }
-                      iconPosition="start"
-                    >
-                      {hasQuery ? 'پاک کردن جستجو' : emptyCopy.actionLabel}
-                    </KvButton>
-                  }
-                />
-              </KvTableEmpty>
+              <KvTableEmpty colSpan={colSpan}>موردی یافت نشد</KvTableEmpty>
             ) : (
               items.map((row, index) => (
                 <KvTableRow key={row.id}>

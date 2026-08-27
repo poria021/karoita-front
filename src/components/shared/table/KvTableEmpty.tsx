@@ -27,7 +27,12 @@ export function KvTableEmpty({
         align="center"
         className={cn('h-auto min-h-0 p-0', className)}
       >
-        <div className={cn('flex w-full flex-col', KV_TABLE_EMPTY_FILL_HEIGHT)}>
+        <div
+          className={cn(
+            'flex w-full flex-col items-center justify-center text-center',
+            KV_TABLE_EMPTY_FILL_HEIGHT
+          )}
+        >
           {children}
         </div>
       </KvTableCell>

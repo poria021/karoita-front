@@ -4,7 +4,6 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
@@ -25,7 +24,6 @@ import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
-import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
@@ -66,7 +64,6 @@ export function OnboardingApprovalsTable({
   const showActions = tab === 'pending_admin';
   const columnCount = (showActions ? 5 : 4) + 1;
   const bodyPhase = getAdminTableBodyPhase(isLoading, users.length);
-  const emptyCopy = getModuleEmptyCopy('onboarding_list');
 
   return (
     <div className="space-y-kv-group">
@@ -113,35 +110,7 @@ export function OnboardingApprovalsTable({
             {bodyPhase === 'busy' ? (
               <KvTableBusy colSpan={columnCount} />
             ) : bodyPhase === 'empty' ? (
-              <KvTableEmpty colSpan={columnCount}>
-                <KvEmptyState
-                  title={emptyCopy.title}
-                  description={emptyCopy.description}
-                  actions={
-                    hasActiveFilters && onClearFilters ? (
-                      <KvButton
-                        type="button"
-                        color="cta"
-                        appearance="solid"
-                        size="sm"
-                        onClick={onClearFilters}
-                      >
-                        {emptyCopy.actionLabel}
-                      </KvButton>
-                    ) : (
-                      <KvButton
-                        type="button"
-                        color="neutral"
-                        appearance="secondary"
-                        size="sm"
-                        onClick={onRetryLoadMore}
-                      >
-                        تلاش مجدد
-                      </KvButton>
-                    )
-                  }
-                />
-              </KvTableEmpty>
+              <KvTableEmpty colSpan={columnCount}>موردی یافت نشد</KvTableEmpty>
             ) : (
               users.map((user, index) => {
                 const selected = selectedId === user.id;

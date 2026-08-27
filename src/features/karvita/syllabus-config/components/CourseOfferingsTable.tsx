@@ -1,9 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-
 import { KvButton } from '@/components/shared/KvButton';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
@@ -21,10 +18,6 @@ import {
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import type { CourseCatalogItem } from '@/types/syllabus-config';
-import {
-  getModuleEmptyCopy,
-  getSyllabusTermSettingsHref,
-} from '@/utils/moduleDiscoverability';
 
 interface CourseOfferingsTableProps {
   courses: CourseCatalogItem[];
@@ -44,7 +37,6 @@ export function CourseOfferingsTable({
   onToggleOffering,
 }: CourseOfferingsTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, courses.length);
-  const emptyCopy = getModuleEmptyCopy('syllabus_courses');
 
   return (
     <KvTableViewport
@@ -65,27 +57,7 @@ export function CourseOfferingsTable({
           {bodyPhase === 'busy' ? (
             <KvTableBusy colSpan={3} />
           ) : bodyPhase === 'empty' ? (
-            <KvTableEmpty colSpan={3}>
-              <KvEmptyState
-                title={emptyCopy.title}
-                description={emptyCopy.description}
-                actions={
-                  <KvButton
-                    asChild
-                    color="cta"
-                    appearance="solid"
-                    size="sm"
-                  >
-                    <Link
-                      href={getSyllabusTermSettingsHref()}
-                      prefetch={false}
-                    >
-                      {emptyCopy.actionLabel}
-                    </Link>
-                  </KvButton>
-                }
-              />
-            </KvTableEmpty>
+            <KvTableEmpty colSpan={3}>موردی یافت نشد</KvTableEmpty>
           ) : (
             courses.map((course, index) => {
               const offered = offeredCatalogIds.has(course.id);

@@ -3,7 +3,6 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import {
   KvTable,
@@ -108,25 +107,7 @@ export function DailyApprovalsTable({
             {bodyPhase === 'busy' ? (
               <KvTableBusy colSpan={colSpan} />
             ) : bodyPhase === 'empty' ? (
-              <KvTableEmpty colSpan={colSpan}>
-                <KvEmptyState
-                  title="کارورزی مطابق فیلترها پیدا نشد"
-                  description="عبارت جستجو یا فیلترهای پایش را تغییر دهید."
-                  actions={
-                    hasActiveFilters ? (
-                      <KvButton
-                        type="button"
-                        color="cta"
-                        appearance="solid"
-                        size="sm"
-                        onClick={onClearFilters}
-                      >
-                        پاک کردن فیلترها
-                      </KvButton>
-                    ) : undefined
-                  }
-                />
-              </KvTableEmpty>
+              <KvTableEmpty colSpan={colSpan}>موردی یافت نشد</KvTableEmpty>
             ) : (
               trainees.map((trainee, index) => (
                 <KvTableRow
