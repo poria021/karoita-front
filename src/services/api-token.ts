@@ -114,11 +114,16 @@ export async function handleUnauthorized(): Promise<void> {
 // ─── Auth-bootstrap path guard ────────────────────────────────────────────────
 
 const AUTH_BOOTSTRAP_PATH =
-  /(\/v1\/auth\/(logout|refresh|phone\/login|phone\/register|forgot|reset)|\/v1\/admin\/auth\/|\/admin\/auth\/|\/api\/auth\/(refresh|clear-tokens|set-tokens))(?:\/|$|\?)/;
+  /(\/v1\/auth\/(logout|refresh|phone\/login|phone\/register|forgot|reset)|\/v1\/admin\/auth\/(refresh|phone\/login|logout)|\/admin\/auth\/(refresh|phone\/login|logout)|\/api\/auth\/(refresh|clear-tokens|set-tokens))(?:\/|$|\?)/;
 
 /**
  * Paths that must NOT trigger a token refresh on 401 — they ARE the auth
  * bootstrap flow; retrying them with a new token would loop forever.
+ *
+ * ⚠️ عمداً محدود به زیرمسیرهای واقعی bootstrap شده (refresh/login/logout)،
+ * نه کل namespace `/v1/admin/auth/` — قبلاً کل namespace استثنا شده بود که
+ * باعث می‌شد 401 روی `v1/admin/auth/me` (چک سشن ادمین، معادل `v1/auth/me`
+ * برای کاربر عادی) هرگز refresh را تریگر نکند و کاربر ادمین مستقیم logout شود.
  */
 export function shouldSkipTokenRefresh(url: string): boolean {
   return AUTH_BOOTSTRAP_PATH.test(url);

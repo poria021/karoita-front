@@ -8,7 +8,6 @@ import {
   ROLE_FIELD_STRATEGY,
 } from '@/utils/roleFieldStrategy';
 
-import { listOrganizationLabels } from '../../data/organization-catalog';
 import type { ProfileSchema } from '@/services/profile/profile.schema';
 
 export type { OrganizationField, IdentifierField } from '@/utils/roleFieldStrategy';
@@ -36,14 +35,6 @@ export const DEPENDENCIES: Partial<
   city: ['district', 'school'],
   district: ['school'],
 };
-
-export function getOrganizationOptions(
-  field: OrganizationField,
-  province: string,
-  district: string
-): string[] {
-  return listOrganizationLabels(field, province, district);
-}
 
 type DefaultValuesFactory = (user: User) => ProfileSchema;
 

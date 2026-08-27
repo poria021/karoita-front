@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 import {
@@ -11,6 +11,7 @@ import {
 } from '@/components/shared/AppTabs';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
+import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
@@ -23,6 +24,8 @@ import { SecurityForm } from './forms/SecurityForm';
 
 type ProfileTab = 'identity' | 'security';
 
+const PROFILE_TABS: readonly ProfileTab[] = ['identity', 'security'];
+
 interface ProfileUiStrategy {
   showSecurityTab: boolean;
   showStatusAlerts: boolean;
@@ -31,77 +34,26 @@ interface ProfileUiStrategy {
   identitySubmitLabel: string;
 }
 
-const PROFILE_UI_STRATEGY: Record<UserRole, ProfileUiStrategy> = {
-  student: {
-    showSecurityTab: true,
-    showStatusAlerts: true,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
-  skill_learner: {
-    showSecurityTab: true,
-    showStatusAlerts: true,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
-  supervisor_professor: {
-    showSecurityTab: true,
-    showStatusAlerts: true,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
-  mentor_teacher: {
-    showSecurityTab: true,
-    showStatusAlerts: true,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
-  school_principal: {
-    showSecurityTab: true,
-    showStatusAlerts: true,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
-  regional_edu_admin: {
-    showSecurityTab: true,
-    showStatusAlerts: true,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
-  faculty_role: {
-    showSecurityTab: true,
-    showStatusAlerts: false,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
-  provincial_university: {
-    showSecurityTab: true,
-    showStatusAlerts: false,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
-  assistant_admin: {
-    showSecurityTab: true,
-    showStatusAlerts: false,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
-  central_organization: {
-    showSecurityTab: true,
-    showStatusAlerts: false,
-    lockIdentityAfterSubmit: true,
-    showDocUploader: true,
-    identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
-  },
+/**
+ * پیش‌فرض برای اکثر نقش‌ها یکسان است — فقط چند نقش استثنا دارند
+ * (override در `PROFILE_UI_STRATEGY_OVERRIDES`)، به‌جای تکرار همان
+ * آبجکت ۵ فیلدی برای هر ۱۱ نقش.
+ */
+const PROFILE_UI_STRATEGY_DEFAULT: ProfileUiStrategy = {
+  showSecurityTab: true,
+  showStatusAlerts: true,
+  lockIdentityAfterSubmit: true,
+  showDocUploader: true,
+  identitySubmitLabel: 'ثبت و ارسال نهایی اطلاعات',
+};
+
+const PROFILE_UI_STRATEGY_OVERRIDES: Partial<
+  Record<UserRole, Partial<ProfileUiStrategy>>
+> = {
+  faculty_role: { showStatusAlerts: false },
+  provincial_university: { showStatusAlerts: false },
+  assistant_admin: { showStatusAlerts: false },
+  central_organization: { showStatusAlerts: false },
   super_admin: {
     showSecurityTab: false,
     showStatusAlerts: false,
@@ -111,8 +63,15 @@ const PROFILE_UI_STRATEGY: Record<UserRole, ProfileUiStrategy> = {
   },
 };
 
+function getProfileUiStrategy(role: UserRole): ProfileUiStrategy {
+  return {
+    ...PROFILE_UI_STRATEGY_DEFAULT,
+    ...PROFILE_UI_STRATEGY_OVERRIDES[role],
+  };
+}
+
 export interface ProfileContainerProps {
-  role: string;
+  role: UserRole;
 }
 
 export function ProfileContainer({ role }: ProfileContainerProps) {
@@ -121,10 +80,16 @@ export function ProfileContainer({ role }: ProfileContainerProps) {
 
 function ProfileContainerInner({ role }: ProfileContainerProps) {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const activeUser = useUserStore((state) => state.activeUser);
   const session = AuthService.getSession();
+
+  // پارامتر `tab` طبق rule 20 §6 از هوک مشترک dashboard chrome می‌آید —
+  // نه پیاده‌سازی دستی موازی با URLSearchParams/router.replace.
+  const [urlTab, setUrlTab] = useSyncedUrlParam<ProfileTab>({
+    name: 'tab',
+    allowed: PROFILE_TABS,
+    defaultValue: 'identity',
+  });
 
   useEffect(() => {
     if (!activeUser) {
@@ -140,18 +105,16 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
     return <ProfileRoutePlaceholder />;
   }
 
-  const uiStrategy = PROFILE_UI_STRATEGY[activeUser.role];
-  const requestedTab = searchParams.get('tab');
+  const uiStrategy = getProfileUiStrategy(activeUser.role);
+  // اگر نقش کاربر تب امنیت را ندارد ولی URL همچنان ?tab=security دارد،
+  // به identity برگرد (این گیت کسب‌وکاری است، نه اعتبارسنجی خود پارامتر).
   const activeTab: ProfileTab =
-    requestedTab === 'security' && uiStrategy.showSecurityTab
+    urlTab === 'security' && uiStrategy.showSecurityTab
       ? 'security'
       : 'identity';
 
   const handleTabChange = (value: string) => {
-    const nextTab: ProfileTab = value === 'security' ? 'security' : 'identity';
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', nextTab);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    setUrlTab(value === 'security' ? 'security' : 'identity');
   };
 
   const statusAlerts = uiStrategy.showStatusAlerts ? (

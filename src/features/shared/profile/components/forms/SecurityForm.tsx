@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { KvAlert } from '@/components/shared/KvAlert';
@@ -35,7 +35,6 @@ export function SecurityForm({
   onPasswordRegistered,
 }: SecurityFormProps) {
   const [hasExistingPassword, setHasExistingPassword] = useState(hasPassword);
-  const [syncedHasPassword, setSyncedHasPassword] = useState(hasPassword);
   const [passwordStep, setPasswordStep] = useState<PasswordStep>('initial');
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error' | 'info';
@@ -43,10 +42,11 @@ export function SecurityForm({
   } | null>(null);
   const [isBusy, setIsBusy] = useState(false);
 
-  if (hasPassword !== syncedHasPassword) {
-    setSyncedHasPassword(hasPassword);
+  // سینک با prop والد بعد از رندر (نه در بدنهٔ رندر) — هم‌راستا با الگوی
+  // sync دیگر فرم‌های این ماژول (مثلاً IdentityForm).
+  useEffect(() => {
     setHasExistingPassword(hasPassword);
-  }
+  }, [hasPassword]);
 
   const passwordForm = useForm<SecurityPasswordSchema>({
     resolver: zodResolver(securityPasswordSchema),

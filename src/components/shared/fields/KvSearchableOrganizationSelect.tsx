@@ -90,6 +90,59 @@ type MultiSelectProps = BaseProps & {
   onChange: (value: string[]) => void;
 };
 
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+function isDependencyValue(value: string | string[] | undefined): boolean {
+  if (!value) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  return value.trim().length > 0;
+}
+
+/**
+ * آیا این فیلد باید fetch را متوقف کند چون یک parent dependency خالی است؟
+ *
+ * قوانین:
+ *   city     → به province نیاز دارد
+ *   district → به province یا city نیاز دارد
+ *   school   → به province یا city یا district نیاز دارد
+ *   college  → به province نیاز دارد (اختیاری — بدون فیلتر هم کار می‌کند)
+ *   province / major → هیچ dependency ندارند؛ همیشه enabled
+ *
+ * نکته: اگه dependsOn اصلاً پاس نشده، یعنی این field مستقل است
+ * (مثل province در فرم‌هایی که dependsOn نمی‌فرستند) → block نمی‌کنیم.
+ */
+function isBlockedByMissingDependency(
+  type: OrganizationField,
+  dependsOn: OrganizationDependsOn | undefined
+): boolean {
+  // اگه dependsOn اصلاً تعریف نشده، این field مستقل است
+  if (!dependsOn) return false;
+
+  switch (type) {
+    case 'city':
+      // شهر بدون استان معنا ندارد
+      return !isDependencyValue(dependsOn.province);
+    case 'district':
+      // منطقه بدون استان یا شهر باید block شود
+      return (
+        !isDependencyValue(dependsOn.province) &&
+        !isDependencyValue(dependsOn.city)
+      );
+    case 'school':
+      // مدرسه بدون هر سه والد block می‌شود
+      return (
+        !isDependencyValue(dependsOn.province) &&
+        !isDependencyValue(dependsOn.city) &&
+        !isDependencyValue(dependsOn.district)
+      );
+    case 'college':
+      // دانشگاه می‌تواند بدون province هم fetch کند (title-only filter)
+      return false;
+    default:
+      return false;
+  }
+}
+
 // ─── Chip (برای multi-select) ──────────────────────────────────────────────────
 
 function SelectionChip({
@@ -202,6 +255,9 @@ export const KvSearchableOrganizationSelect = forwardRef<
   // query برای جستجو در لیست — در single-mode وقتی query != selected value است
   const listQuery = isMulti ? query : query === (props as SingleSelectProps).value ? '' : query;
 
+  // آیا این فیلد باید fetch را منتظر parent dependency بگذارد؟
+  const blockedByParent = isBlockedByMissingDependency(type, dependsOn);
+
   const {
     items,
     hasMore,
@@ -213,9 +269,16 @@ export const KvSearchableOrganizationSelect = forwardRef<
   } = useOrganizationOptions({
     type,
     query: listQuery,
-    // multi-select: از mount شروع به fetch کن تا وقتی dropdown باز میشه داده آماده باشه (بدون jump)
-    // single-select: فقط وقتی dropdown بازه fetch کن
-    enabled: isMulti ? !locked : (open && !locked),
+    // multi-select: از mount شروع به fetch کن — اما نه اگه parent dependency خالی باشد.
+    //   وقتی province انتخاب می‌شه، queryKey عوض می‌شه و TanStack Query خودش re-fetch می‌کنه.
+    // single-select: فقط وقتی dropdown بازه fetch کن.
+    enabled: locked
+      ? false
+      : blockedByParent
+      ? false
+      : isMulti
+      ? true
+      : open,
     dependsOn,
   });
 
@@ -383,6 +446,19 @@ export const KvSearchableOrganizationSelect = forwardRef<
                         خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
                       </KvTypography>
                     </div>
+                  ) : blockedByParent ? (
+                    // نمایش راهنما برای کاربر که باید ابتدا والد را انتخاب کند
+                    <div className="px-3.5 py-2.5 text-center">
+                      <KvTypography variant="caption" align="center">
+                        {type === 'city'
+                          ? 'ابتدا استان را انتخاب کنید.'
+                          : type === 'district'
+                          ? 'ابتدا استان یا شهر را انتخاب کنید.'
+                          : type === 'school'
+                          ? 'ابتدا استان، شهر یا منطقه را انتخاب کنید.'
+                          : 'ابتدا فیلد والد را انتخاب کنید.'}
+                      </KvTypography>
+                    </div>
                   ) : items.length > 0 ? (
                     <>
                       {items.map((option) => {
@@ -527,6 +603,18 @@ export const KvSearchableOrganizationSelect = forwardRef<
               <div className="px-3.5 py-2.5 text-center">
                 <KvTypography variant="error" align="center">
                   خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
+                </KvTypography>
+              </div>
+            ) : blockedByParent ? (
+              <div className="px-3.5 py-2.5 text-center">
+                <KvTypography variant="caption" align="center">
+                  {type === 'city'
+                    ? 'ابتدا استان را انتخاب کنید.'
+                    : type === 'district'
+                    ? 'ابتدا استان یا شهر را انتخاب کنید.'
+                    : type === 'school'
+                    ? 'ابتدا استان، شهر یا منطقه را انتخاب کنید.'
+                    : 'ابتدا فیلد والد را انتخاب کنید.'}
                 </KvTypography>
               </div>
             ) : items.length > 0 ? (

@@ -5,10 +5,7 @@ import { useMemo } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
-import {
-  resolveListSearchQuery,
-  SEARCH_DEBOUNCE_MS,
-} from '@/lib/search-debounce';
+import { SEARCH_DEBOUNCE_MS } from '@/lib/search-debounce';
 import {
   ORGANIZATION_OPTIONS_PAGE_SIZE,
   OrganizationOptionsService,
@@ -47,24 +44,22 @@ export type UseOrganizationOptionsResult = {
   reachedLimit: boolean;
 };
 
-/**
- * Paginated typeahead options for organization fields.
- * TanStack `useInfiniteQuery` + OrganizationOptionsService (not the admin-table list stack).
- */
 export function useOrganizationOptions({
   type,
   query,
   enabled,
   dependsOn,
 }: UseOrganizationOptionsArgs): UseOrganizationOptionsResult {
-  const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
-  const listQuery = resolveListSearchQuery(query, debouncedQuery);
-  const province = dependsOn?.province ?? '';
-  const city = dependsOn?.city ?? '';
-  const district = dependsOn?.district ?? '';
-  const provinceKey = toDependsOnKey(province);
-  const cityKey = toDependsOnKey(city);
-  const districtKey = toDependsOnKey(district);
+  // همیشه از debouncedQuery استفاده می‌کنیم — نه raw query.
+  // قبلاً resolveListSearchQuery وقتی query خالی می‌شد بلافاصله '' می‌فرستاد
+  // که باعث می‌شد به ازای هر clear یا اولین کاراکتر دو request زده بشه:
+  // یکی فوری با ''، یکی بعد از 300ms با مقدار واقعی.
+  // الان: هر تغییر query (شامل پاک‌کردن) 300ms صبر می‌کنه — یک request.
+  const debouncedQuery = useDebouncedValue(query.trim(), SEARCH_DEBOUNCE_MS);
+
+  const provinceKey = toDependsOnKey(dependsOn?.province);
+  const cityKey = toDependsOnKey(dependsOn?.city);
+  const districtKey = toDependsOnKey(dependsOn?.district);
 
   const {
     data,
@@ -75,19 +70,21 @@ export function useOrganizationOptions({
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: ['org-options', type, listQuery, provinceKey, cityKey, districtKey],
+    // queryKey فقط از debouncedQuery استفاده می‌کنه —
+    // پس re-fetch فقط بعد از پایان debounce اتفاق می‌افته، نه حین تایپ.
+    queryKey: ['org-options', type, debouncedQuery, provinceKey, cityKey, districtKey],
     enabled,
     initialPageParam: 1,
     staleTime: QUERY_STALE_MS.list,
     queryFn: async ({ pageParam }) =>
       OrganizationOptionsService.getOptions({
         type,
-        query: listQuery,
+        query: debouncedQuery,
         page: pageParam,
         limit: ORGANIZATION_OPTIONS_PAGE_SIZE,
-        province: provinceKey ? province : undefined,
-        city: cityKey ? city : undefined,
-        district: districtKey ? district : undefined,
+        province: provinceKey ? dependsOn?.province : undefined,
+        city: cityKey ? dependsOn?.city : undefined,
+        district: districtKey ? dependsOn?.district : undefined,
       }),
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.hasMore) return undefined;
@@ -100,11 +97,7 @@ export function useOrganizationOptions({
 
   const { items, totalMerged, reachedLimit } = useMemo(() => {
     if (!data) {
-      return {
-        items: [] as OrganizationOption[],
-        totalMerged: 0,
-        reachedLimit: false,
-      };
+      return { items: [] as OrganizationOption[], totalMerged: 0, reachedLimit: false };
     }
     const seen = new Set<string>();
     const merged: OrganizationOption[] = [];
@@ -124,11 +117,10 @@ export function useOrganizationOptions({
     };
   }, [data, pageCount]);
 
-  const hasMore =
-    Boolean(hasNextPage) && !reachedLimit && pageCount < MAX_ORG_OPTION_PAGES;
+  const hasMore = Boolean(hasNextPage) && !reachedLimit && pageCount < MAX_ORG_OPTION_PAGES;
   const isLoadingMore = isFetchingNextPage && items.length > 0;
-  const isInitialLoading =
-    Boolean(enabled) && isPending && items.length === 0;
+  // isPending یعنی هنوز هیچ داده‌ای در cache نیست (اولین fetch)
+  const isInitialLoading = Boolean(enabled) && isPending && items.length === 0;
 
   const loadMore = () => {
     if (!hasMore || isFetching || isFetchingNextPage) return;

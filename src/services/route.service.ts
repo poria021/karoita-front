@@ -57,18 +57,6 @@ export function isAdminControlPlanePath(pathname: string): boolean {
   );
 }
 
-/**
- * Legacy org bookmarks only — redirect pages, not canonical modules.
- * Sole source for `/karvita/admin/organization/*` paths.
- * Live sidebar/menus must link to `organizationalStructure` / `adminUserCreation`,
- * never these bookmark URLs.
- */
-export const LEGACY_ORGANIZATION_BOOKMARK_PATHS = [
-  `${KARVITA_ADMIN_BASE}/organization`,
-  `${KARVITA_ADMIN_BASE}/organization/structure`,
-  `${KARVITA_ADMIN_BASE}/organization/accounts`,
-] as const;
-
 export const RouteService = {
   marketing: {
     home: (): string => '/',
@@ -135,7 +123,7 @@ export const RouteService = {
       return kind ? appendSearchParam(base, 'kind', kind) : base;
     },
     adminUserCreation: (): string => `${KARVITA_ADMIN_BASE}/user-creation`,
-    /** Canonical org tree — not legacy /organization/* bookmarks */
+    /** Canonical org tree module */
     organizationalStructure: (
       tab?:
         | 'provinces'
@@ -155,7 +143,5 @@ export const RouteService = {
 
     isAdminControlPlanePath,
     isAppShellPath,
-    legacyOrganizationBookmarks: (): readonly string[] =>
-      LEGACY_ORGANIZATION_BOOKMARK_PATHS,
   },
 } as const;

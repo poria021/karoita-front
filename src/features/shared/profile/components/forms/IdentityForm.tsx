@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import dynamic from 'next/dynamic';
@@ -25,6 +25,7 @@ import {
   type ProfileSchema,
 } from '@/services/profile/profile.schema';
 import { ProfileService } from '@/services/profile.service';
+import { useProfileOrgFieldsSync } from '../../hooks/useProfileOrgFieldsSync';
 import { DynamicRoleFields } from './DynamicRoleFields';
 import { getProfileDefaultValues } from './profile-form-options';
 
@@ -80,31 +81,10 @@ export function IdentityForm({
     shouldFocusError: true,
   });
 
-  // وقتی liveUser از store آپدیت میشه (مثلاً بعد از Zustand hydration یا بعد از saveموفق)
-  // فقط فیلدهای سازمانی رو با setValue آپدیت کن (نه form.reset کامل) تا تایپ کاربر دست نخورد
-  useEffect(() => {
-    const defaults = getProfileDefaultValues(liveUser);
-    const orgFields = [
-      'province', 'college', 'district', 'school', 'city',
-      'major', 'studentId', 'skillCode', 'personalCode',
-    ] as const;
-    for (const field of orgFields) {
-      if (field in defaults) {
-        const current = form.getValues(field as keyof ProfileSchema);
-        const next = defaults[field as keyof typeof defaults];
-        // فقط اگه مقدار عوض شده setValue بزن تا dirty کاذب رد نشه
-        const currentStr = JSON.stringify(current);
-        const nextStr = JSON.stringify(next);
-        if (currentStr !== nextStr && !form.getFieldState(field as keyof ProfileSchema).isDirty) {
-          form.setValue(field as keyof ProfileSchema, next as never, {
-            shouldDirty: false,
-            shouldValidate: false,
-          });
-        }
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [liveUser.id, liveUser.province, liveUser.college, liveUser.district, liveUser.school, liveUser.city, liveUser.major, liveUser.studentId, liveUser.skillCode, liveUser.personalCode]);
+  // وقتی liveUser از store آپدیت میشه (مثلاً بعد از Zustand hydration یا بعد از save موفق)، فقط فیلدهای
+  // سازمانی رو با setValue آپدیت کن (نه form.reset کامل) تا تایپ کاربر دست نخورد — جزئیات
+  // در useProfileOrgFieldsSync.ts.
+  useProfileOrgFieldsSync(form, liveUser);
 
   const submit = form.handleSubmit(async (data) => {
     setSubmitError(null);

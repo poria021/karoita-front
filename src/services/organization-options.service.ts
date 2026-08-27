@@ -36,12 +36,15 @@ export class OrganizationOptionsService {
   ): Promise<OrganizationOptionsResult> {
     const page = params.page ?? 1;
     const limit = params.limit ?? ORGANIZATION_OPTIONS_DEFAULT_LIMIT;
+    // FIX: `city` را به request اضافه کردیم — قبلاً گم می‌شد و
+    // case 'district' هرگز cityId رو resolve نمی‌کرد.
     const request = {
       type: params.type,
       query: params.query,
       page,
       limit,
       province: params.province,
+      city: params.city,
       district: params.district,
       signal: params.signal,
     };

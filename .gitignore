@@ -61,7 +61,7 @@ original-karvita.html
 MIGRATION_ROADMAP.md
 
 # Cursor IDE metadata/rules stay local only — never push to GitHub.
-.cursor/
+.claude/
 
 playground/
 

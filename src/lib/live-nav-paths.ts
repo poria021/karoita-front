@@ -1,6 +1,5 @@
 import {
   isAdminControlPlanePath,
-  LEGACY_ORGANIZATION_BOOKMARK_PATHS,
   RouteService,
 } from '@/services/route.service';
 
@@ -43,12 +42,11 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
 ];
 
 /**
- * Navigable legacy bookmarks (redirect-only). Not sidebar live targets.
- * Org paths come from LEGACY_ORGANIZATION_BOOKMARK_PATHS; syllabus index
- * and internship index redirect into live subpages.
+ * Navigable index-redirect pages (redirect-only, no own UI). Not sidebar
+ * live targets themselves — they immediately redirect into a live subpage
+ * (syllabus index → course-offerings, internship index → level 1).
  */
-const LEGACY_TABBED_MODULE_PATHS: readonly string[] = [
-  ...LEGACY_ORGANIZATION_BOOKMARK_PATHS,
+const INDEX_REDIRECT_MODULE_PATHS: readonly string[] = [
   RouteService.karvita.syllabusConfig(),
   RouteService.karvita.internshipSelection(),
 ];
@@ -88,7 +86,7 @@ export { isAdminControlPlanePath };
 export function isNavigableAppPath(pathname: string): boolean {
   const path = normalizePath(pathname);
   if (isKarvitaProfilePath(path)) return true;
-  if (LEGACY_TABBED_MODULE_PATHS.includes(path)) return true;
+  if (INDEX_REDIRECT_MODULE_PATHS.includes(path)) return true;
   return isLiveStaticNavPath(path);
 }
 
@@ -101,6 +99,6 @@ export function listNavigableRecoveryPaths(): readonly string[] {
     ...LIVE_STATIC_NAV_PATHS.filter(
       (path) => path !== RouteService.marketing.home()
     ),
-    ...LEGACY_TABBED_MODULE_PATHS,
+    ...INDEX_REDIRECT_MODULE_PATHS,
   ];
 }

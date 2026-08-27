@@ -127,20 +127,28 @@ function paginateBare(
   };
 }
 
-// ─── کش نام → id برای شهرها ──────────────────────────────────────────────────
+// ─── کش نام → id برای شهرها (province-scoped) ────────────────────────────────
+//
+// FIX: به‌جای یک singleton global، یک Map از provinceId → NameIdCache داریم.
+// این باعث می‌شه وقتی استان عوض می‌شه، کش استان قدیم استفاده نشه.
 
 const CITY_CACHE_TTL_MS = 2 * 60 * 1_000; // ۲ دقیقه
-let cityCache: NameIdCache | null = null;
+
+// key: provinceId (string) یا '' برای حالت بدون استان
+const cityCacheByProvince = new Map<string, NameIdCache>();
 
 async function resolveCityId(cityName: string, provinceId?: string): Promise<string | undefined> {
+  const cacheKey = provinceId ?? '';
   const now = Date.now();
-  if (!cityCache || now - cityCache.fetchedAt > CITY_CACHE_TTL_MS) {
-    // اگه provinceId داریم فقط شهرهای همون استان رو بگیر
+  const cached = cityCacheByProvince.get(cacheKey);
+
+  if (!cached || now - cached.fetchedAt > CITY_CACHE_TTL_MS) {
     let all: Array<{ id: string; title: string }>;
     if (provinceId) {
+      // دقیق‌ترین: شهرهای همان استان
       all = await adminCatalogApi.listCitiesByProvince(provinceId);
     } else {
-      // fallback: صفحه‌بندی کامل — فقط اگه استان نداریم
+      // fallback: همه شهرها با pagination
       all = [];
       let page = 1;
       for (let i = 0; i < 50; i++) {
@@ -150,12 +158,13 @@ async function resolveCityId(cityName: string, provinceId?: string): Promise<str
         page++;
       }
     }
-    cityCache = {
+    cityCacheByProvince.set(cacheKey, {
       byName: new Map(all.map((c) => [c.title, c.id])),
       fetchedAt: now,
-    };
+    });
   }
-  return cityCache.byName.get(cityName);
+
+  return cityCacheByProvince.get(cacheKey)!.byName.get(cityName);
 }
 
 type ResolvedOptionsRequest = Required<
@@ -232,8 +241,8 @@ export async function fetchOrganizationOptionsFromApi(
 
       // ── منطقه آموزشی ────────────────────────────────────────────────────────
       case 'district': {
+        // FIX: city رو از params می‌گیریم (قبلاً params.city گم شده بود)
         // اولویت: شهر → استان → بدون فیلتر
-        // GET /api/admin/cities/{id}/educations  یا  /api/admin/province/{id}/educations
         const cityNames = toNameList(params.city);
         const provinceNames = toNameList(params.province);
         const q = params.query?.trim() || undefined;
@@ -242,9 +251,9 @@ export async function fetchOrganizationOptionsFromApi(
           // دقیق‌ترین فیلتر: مناطق داخل شهر
           const merged: OrganizationOption[] = [];
           for (const cityName of cityNames) {
-            // برای resolve cityId ابتدا provinceId رو می‌گیریم اگه داریم
             let provinceId: string | undefined;
             if (provinceNames[0]) provinceId = await resolveProvinceId(provinceNames[0]);
+            // FIX: provinceId رو به resolveCityId پاس می‌دیم تا از cache درست استفاده کنه
             const cityId = await resolveCityId(cityName, provinceId);
             if (!cityId) continue;
             const raw = await adminCatalogApi.listEducationsByCity(cityId);
@@ -289,7 +298,6 @@ export async function fetchOrganizationOptionsFromApi(
         const q = params.query?.trim() || undefined;
 
         const provinceNames = toNameList(params.province);
-        const cityNames = toNameList(params.city);
         const districtNames = toNameList(params.district);
 
         if (provinceNames[0]) {
@@ -314,12 +322,7 @@ export async function fetchOrganizationOptionsFromApi(
           }
         }
 
-        if (cityNames.length > 0) {
-          // فیلتر شهری: مدارس داخل شهر (از طریق cityId نداریم در API — از provinceId استفاده کن)
-          // چون Nest endpoint مدرسه cityId نداره، از provinceId استفاده می‌کنیم
-          // و title فیلتر می‌کنیم
-        }
-
+        // fallback: فیلتر استانی (یا بدون فیلتر)
         const raw = await adminCatalogApi.listSchools({
           provinceId,
           educationId,
@@ -335,7 +338,6 @@ export async function fetchOrganizationOptionsFromApi(
       // ── دانشگاه / دانشکده / پردیس ────────────────────────────────────────────
       case 'college': {
         // GET /api/admin/universites — bare array، title query
-        // اگه استان انتخاب شده، جستجو رو محدود کن (API title filter داره)
         const q = params.query?.trim() || undefined;
         const raw = await adminCatalogApi.listUniversities(q);
         return paginateBare(
@@ -445,8 +447,11 @@ export function invalidateDistrictNameCache(): void {
 }
 
 /**
- * کش شهر را باطل می‌کند — هر بار استان عوض شد باید صدا بشه اگر می‌خوایید cityIdها درست باشند.
+ * کش شهر را باطل می‌کند — هر بار که استان‌های انتخاب‌شده عوض شدند صدا بزن،
+ * یا پس از ایجاد/ویرایش/حذف شهر در پنل ادمین.
+ * FIX: حالا کل Map پاک می‌شود (نه فقط یک province-bucket) تا استال‌ترین
+ * حالت هم به‌درستی expire شود.
  */
 export function invalidateCityNameCache(): void {
-  cityCache = null;
+  cityCacheByProvince.clear();
 }

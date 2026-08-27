@@ -46,10 +46,24 @@ type OrgChrome = {
 
 export const entityKindFromTab = orgEntityKindFromTab;
 
+/**
+ * نام‌های نمایشی (نه id) والد/نقش مرتبط با رکورد در حال ساخت — OrgStructureEntityModal
+ * این را از روی lists همون مدالی که برای selectها دارد resolve می‌کنه و به scheduleCreate
+ * پاس می‌دهد تا ستون‌های استان/شهر/منطقه در ردیف optimistic هم از همان لحظه‌ی اول
+ * پر باشند تا invalidateAndReload تمام شود.
+ */
+export type OrgEntityOptimisticLabels = {
+  provinceName?: string;
+  cityName?: string;
+  districtName?: string;
+  roleName?: string;
+};
+
 function buildOptimisticRow(
   tab: OrgStructureSubTab,
   values: OrgEntityFormValues,
-  tempId: string
+  tempId: string,
+  labels: OrgEntityOptimisticLabels = {}
 ): OrgStructureListItem {
   return {
     id: tempId,
@@ -58,6 +72,14 @@ function buildOptimisticRow(
     deleteBlocked: false,
     audience: values.audience,
     gender: values.gender,
+    provinceName: labels.provinceName,
+    cityName: labels.cityName,
+    districtName: labels.districtName,
+    roleName: labels.roleName,
+    campusesCount: 0,
+    districtsCount: 0,
+    schoolsCount: 0,
+    usersCount: 0,
   };
 }
 
@@ -172,10 +194,10 @@ export function useOrgStructurePage() {
   const patchItems = list.patchItems;
 
   const scheduleCreate = useCallback(
-    (values: OrgEntityFormValues) => {
+    (values: OrgEntityFormValues, labels?: OrgEntityOptimisticLabels) => {
       const label = values.name.trim();
       const tempId = `temp-org-${Date.now()}`;
-      const optimistic = buildOptimisticRow(tab, values, tempId);
+      const optimistic = buildOptimisticRow(tab, values, tempId, labels);
       let snapshot: OrgStructureListItem[] = [];
       let snapshotTotal = 0;
 

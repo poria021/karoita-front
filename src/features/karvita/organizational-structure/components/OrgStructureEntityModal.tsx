@@ -20,6 +20,7 @@ import type {
 } from '@/types/org-structure';
 
 import { getOrgTabConfig } from '../constants';
+import type { OrgEntityOptimisticLabels } from '../hooks/useOrgStructurePage';
 import { useOrgEntityForm } from '../hooks/useOrgEntityForm';
 import { submitOrgEntity } from '../lib/orgEntitySubmitHandlers';
 import type { OrgEntityFormValues } from '../schemas/org-structure.schema';
@@ -34,7 +35,10 @@ interface OrgStructureEntityModalProps {
   onClose: () => void;
   /** پس از ویرایش موفق: کش باطل می‌کنه و جدول را reload می‌دهد. */
   onSaved: () => Promise<void>;
-  onCreate: (values: OrgEntityFormValues) => void;
+  onCreate: (
+    values: OrgEntityFormValues,
+    labels?: OrgEntityOptimisticLabels
+  ) => void;
 }
 
 export function OrgStructureEntityModal({
@@ -78,7 +82,24 @@ export function OrgStructureEntityModal({
     }
 
     onClose();
-    onCreate(values);
+    // نام‌های نمایشی والد/نقش رو از روی همین لیست‌های مدال (برای selectها) resolve
+    // کن تا ردیف optimistic در جدول از همون لحظه‌ی اول استان/شهر/منطقه/نقش را نشان بدهد،
+    // نه “—” تا پایان invalidateAndReload.
+    const labels: OrgEntityOptimisticLabels = {
+      provinceName: values.provinceId
+        ? provinces.find((p) => p.id === values.provinceId)?.name
+        : undefined,
+      cityName: values.cityId
+        ? cities.find((c) => c.id === values.cityId)?.name
+        : undefined,
+      districtName: values.districtId
+        ? districts.find((d) => d.id === values.districtId)?.name
+        : undefined,
+      roleName: values.roleId
+        ? roles.find((r) => r.id === values.roleId)?.name
+        : undefined,
+    };
+    onCreate(values, labels);
   });
 
   return (
