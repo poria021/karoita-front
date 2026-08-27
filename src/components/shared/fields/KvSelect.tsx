@@ -21,7 +21,10 @@ export {
 };
 
 export type KvSelectTriggerProps = React.ComponentProps<typeof SelectTrigger>;
-export type KvSelectContentProps = React.ComponentProps<typeof SelectContent>;
+export type KvSelectContentProps = React.ComponentProps<typeof SelectContent> & {
+  /** متن نمایشی وقتی هیچ گزینه‌ای وجود ندارد. پیش‌فرض: «موردی یافت نشد.» */
+  emptyLabel?: string;
+};
 export type KvSelectItemProps = React.ComponentProps<typeof SelectItem>;
 
 export function KvSelectTrigger({
@@ -65,8 +68,13 @@ export function KvSelectTrigger({
 
 export function KvSelectContent({
   className,
+  children,
+  emptyLabel = 'موردی یافت نشد.',
   ...props
 }: KvSelectContentProps) {
+  // children خالی یعنی آرایه‌ی صفر عنصری یا null/undefined
+  const isEmpty = React.Children.count(children) === 0;
+
   return (
     <SelectContent
       data-slot="kv-select-content"
@@ -77,7 +85,19 @@ export function KvSelectContent({
         className
       )}
       {...props}
-    />
+    >
+      {isEmpty ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="px-kv-group py-3 text-center text-xs text-kv-text-faint"
+        >
+          {emptyLabel}
+        </div>
+      ) : (
+        children
+      )}
+    </SelectContent>
   );
 }
 
