@@ -152,7 +152,7 @@ export function OrgStructureEntityFields({
               <KvSelectField
                 id="org-entity-district"
                 label="منطقه آموزشی"
-                required
+                optionalHint
                 placeholder="انتخاب منطقه"
                 value={field.value || ''}
                 onValueChange={field.onChange}

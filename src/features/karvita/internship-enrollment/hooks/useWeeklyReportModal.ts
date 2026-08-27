@@ -4,8 +4,8 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
+  scheduleOptimisticMutation,
   scheduleUndoableLocalChange,
-  scheduleUndoableMutation,
 } from '@/lib/undoable-mutation';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
 import type {
@@ -216,7 +216,7 @@ export function useWeeklyReportModal({
 
     const reopenWeek = week;
 
-    scheduleUndoableMutation({
+    scheduleOptimisticMutation({
       message: 'گزارش نهایی شده و جهت دریافت بازخورد ارسال گردید.',
       apply: () => {
         undoDraftRef.current = {

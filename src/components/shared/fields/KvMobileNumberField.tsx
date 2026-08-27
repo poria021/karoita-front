@@ -15,22 +15,36 @@ import {
   LATIN_LETTERS_NOT_ALLOWED_MESSAGE,
   containsLatinLetters,
 } from '@/utils/persianPersonName';
+import { cn } from '@/lib/utils';
 
 function filterDigits(rawValue: string): string {
   return persianToEnglishDigits(rawValue).replace(/\D/g, '');
 }
 
-const plus98Addon = (
-  <span
-    className="flex h-full items-center gap-kv-pair ps-3.5 text-xs font-bold leading-none text-kv-text-secondary select-none"
-    aria-hidden="true"
-  >
-    <span>+{toPersianDigits('98')}</span>
-    <span className="text-kv-border-strong" aria-hidden="true">
-      |
+/**
+ * پیشوند «۹۸+» — رنگ متن باید در حالت قفل، هم‌رنگ سایر متن‌های قفل‌شده
+ * (text-kv-text-disabled) باشد؛ در حالت عادی رنگ پیش‌فرض همان
+ * text-kv-text-secondary می‌ماند.
+ */
+function buildPlus98Addon(locked: boolean) {
+  return (
+    <span
+      className={cn(
+        'flex h-full items-center gap-kv-pair ps-3.5 text-xs font-bold leading-none select-none',
+        locked ? 'text-kv-text-disabled' : 'text-kv-text-secondary'
+      )}
+      aria-hidden="true"
+    >
+      <span>+{toPersianDigits('98')}</span>
+      <span
+        className={locked ? 'text-kv-border-disabled' : 'text-kv-border-strong'}
+        aria-hidden="true"
+      >
+        |
+      </span>
     </span>
-  </span>
-);
+  );
+}
 
 export type KvMobileNumberFieldProps = {
   id?: string;
@@ -127,7 +141,7 @@ export const KvMobileNumberField = React.forwardRef<
       onChange={handleChange}
       scriptGuard="none"
       error={latinScriptError ?? error}
-      startAddon={plus98Addon}
+      startAddon={buildPlus98Addon(locked)}
     />
   );
 });

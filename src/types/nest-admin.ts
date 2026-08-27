@@ -96,7 +96,8 @@ export type NestEducationalDistrict = {
 export type NestCreateSchoolDto = {
   provinceId: string;
   cityId: string;
-  educationId: string;
+  /** منطقه آموزشی اختیاری است — برخی مدارس ممکن است بدون منطقه ثبت شوند. */
+  educationId?: string;
   title: string;
   gender: string;
 };

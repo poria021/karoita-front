@@ -35,7 +35,8 @@ export type UpsertSchoolInput = {
   name: string;
   provinceId: string;
   cityId: string;
-  districtId: string;
+  /** منطقه آموزشی اختیاری است. */
+  districtId?: string;
   gender: OrgSchoolGender;
 };
 export type UpsertMajorInput = {
@@ -239,7 +240,7 @@ export function mockUpsertSchool(
   const name = input.name.trim();
   if (!name) throw new Error('نام مدرسه الزامی است.');
   assertUniqueName(
-    db.schools.filter((s) => s.districtId === input.districtId),
+    db.schools.filter((s) => (s.districtId ?? '') === (input.districtId ?? '')),
     name,
     editId
   );

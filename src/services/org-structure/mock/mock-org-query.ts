@@ -205,7 +205,7 @@ function enrichListItem(
     return {
       ...base,
       gender: school?.gender,
-      districtName: school
+      districtName: school?.districtId
         ? (runtime.byId.district.get(school.districtId)?.name ?? '—')
         : '—',
       cityName: school

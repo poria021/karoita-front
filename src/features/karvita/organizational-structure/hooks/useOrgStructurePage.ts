@@ -12,7 +12,7 @@ import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
 } from '@/lib/search-debounce';
-import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
+import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { IS_MOCK_MODE } from '@/lib/api-mode';
 import {
   ORG_STRUCTURE_PAGE_SIZE,
@@ -201,9 +201,8 @@ export function useOrgStructurePage() {
       let snapshot: OrgStructureListItem[] = [];
       let snapshotTotal = 0;
 
-      scheduleUndoableMutation({
+      scheduleOptimisticMutation({
         message: `${tabConfig.addLabel} «${label}» افزوده شد.`,
-        undoLabel: 'لغو',
         apply: () => {
           patchItems(
             (prev) => {

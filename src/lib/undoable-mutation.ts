@@ -210,3 +210,72 @@ export function scheduleUndoableLocalChange(
     },
   });
 }
+
+/**
+ * غیرقابل-لغو: برای هر عملیاتی به‌جز حذف/دیلیت (ایجاد، ویرایش، تغییر وضعیت و غیره).
+ * برخلاف scheduleUndoableMutation هیچ دکمه «لغو» نشان نمی‌دهد و commit همیشه همان لحظه اجرا می‌شود
+ * (هیچ deferCommitی وجود ندارد). اگر commit شکست بخورد، UI با `revert` به حالت قبل برمی‌گردد.
+ */
+export type OptimisticMutationOptions<T> = {
+  message: string;
+  description?: string;
+  tone?: UndoableToastTone;
+  durationMs?: number;
+  /** Apply optimistic UI immediately so the user sees the change. */
+  apply: () => void;
+  /** Roll back the optimistic UI if commit fails. */
+  revert: () => void;
+  /** Persist immediately — there is no undo window to wait out. */
+  commit: () => Promise<T>;
+  onCommitted?: (result: T) => void | Promise<void>;
+  onError?: (error: unknown) => void;
+};
+
+export function scheduleOptimisticMutation<T>(
+  options: OptimisticMutationOptions<T>
+): string | number {
+  const tone = options.tone ?? 'default';
+  const durationMs = options.durationMs ?? UNDOABLE_MUTATION_DEFAULT_MS;
+
+  options.apply();
+
+  void (async () => {
+    try {
+      const result = await options.commit();
+      await options.onCommitted?.(result);
+    } catch (error) {
+      options.revert();
+      if (options.onError) {
+        options.onError(error);
+      } else {
+        toast.error(
+          error instanceof Error ? error.message : 'عملیات ناموفق بود.'
+        );
+      }
+    }
+  })();
+
+  return showUndoableToast(tone, options.message, {
+    description: options.description,
+    duration: durationMs,
+  });
+}
+
+/**
+ * غیرقابل-لغو: فقط وضعیت محلی را فوراً تغییر می‌دهد و یک toast ساده نشان می‌دهد (بدون دکمه لغو).
+ */
+export type LocalChangeOptions = {
+  message: string;
+  description?: string;
+  tone?: UndoableToastTone;
+  apply: () => void;
+};
+
+export function scheduleLocalChange(options: LocalChangeOptions): string | number {
+  const tone = options.tone ?? 'default';
+  options.apply();
+  return showUndoableToast(tone, options.message, {
+    description: options.description,
+  });
+}
+

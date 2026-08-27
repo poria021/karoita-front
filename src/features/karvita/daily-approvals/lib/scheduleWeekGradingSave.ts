@@ -1,6 +1,6 @@
 import { toast } from 'sonner';
 
-import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
+import { scheduleOptimisticMutation } from '@/lib/undoable-mutation';
 
 export type DailyApprovalGradingTarget = {
   traineeId: string;
@@ -30,7 +30,7 @@ export function scheduleWeekGradingSave<T>({
   if (!gradingTarget) return;
   const target = gradingTarget;
 
-  scheduleUndoableMutation({
+  scheduleOptimisticMutation({
     message,
     apply: () => {
       setGradingTarget(null);

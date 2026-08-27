@@ -55,7 +55,7 @@ export function KvSelectTrigger({
         'disabled:focus-visible:ring-0 disabled:focus-visible:border-kv-border-disabled',
         'dark:bg-kv-field',
         '[&_svg]:pointer-events-none [&_svg]:shrink-0',
-        '[&_svg]:text-kv-text-muted',
+        '[&_svg]:text-kv-text-placeholder',
         'disabled:[&_svg]:text-kv-text-disabled',
         '*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex',
         '*:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-kv-pair',

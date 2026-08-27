@@ -129,19 +129,26 @@ export async function upsertRealDistrict(
   invalidateDistrictNameCache();
 }
 
-/** PUT /org-structure/schools — real: POST/PUT /api/admin/schools */
+/**
+ * PUT /org-structure/schools — real: POST/PUT /api/admin/schools
+ *
+ * educationId (منطقه آموزشی) اختیاری است — فقط وقتی مقدار دارد ارسال می‌شه
+ * تا API خطای ۴۲۲ برای empty string/undefined برنگردونه (همان الگوی
+ * upsertRealDistrict برای cityId).
+ */
 export async function upsertRealSchool(
   input: UpsertSchoolInput,
   editId?: string
 ): Promise<void> {
   // Nest gender enum: 'Boy' | 'Girl'
   const gender = input.gender === 'female' ? 'Girl' : 'Boy';
+  const educationId = input.districtId || undefined;
   if (editId) {
     await adminCatalogApi.updateSchool(editId, {
       title: input.name,
       provinceId: input.provinceId,
       cityId: input.cityId,
-      educationId: input.districtId,
+      ...(educationId ? { educationId } : {}),
       gender,
     });
   } else {
@@ -149,7 +156,7 @@ export async function upsertRealSchool(
       title: input.name,
       provinceId: input.provinceId,
       cityId: input.cityId,
-      educationId: input.districtId,
+      ...(educationId ? { educationId } : {}),
       gender,
     });
   }

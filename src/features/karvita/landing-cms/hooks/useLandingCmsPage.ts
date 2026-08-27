@@ -5,9 +5,10 @@ import { useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { unknownErrorMessage } from '@/lib/unknown-error-message';
-import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
+import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { LandingCmsService } from '@/services/landing-cms.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
@@ -118,9 +119,8 @@ export function useLandingCmsPage() {
       };
       let snapshot: LandingBanner[] = [];
 
-      scheduleUndoableMutation({
+      scheduleOptimisticMutation({
         message: 'بنر جدید به اسلایدر اضافه شد.',
-        undoLabel: 'لغو',
         apply: () => {
           patchBundle((prev) => {
             snapshot = prev.banners;
@@ -159,9 +159,8 @@ export function useLandingCmsPage() {
       };
       let snapshot: LandingSocial[] = [];
 
-      scheduleUndoableMutation({
+      scheduleOptimisticMutation({
         message: 'شبکه اجتماعی جدید اضافه شد.',
-        undoLabel: 'لغو',
         apply: () => {
           patchBundle((prev) => {
             snapshot = prev.socials;
@@ -200,9 +199,8 @@ export function useLandingCmsPage() {
       };
       let snapshot: LandingProduct[] = [];
 
-      scheduleUndoableMutation({
+      scheduleOptimisticMutation({
         message: 'محصول جدید به داک شناور اضافه شد.',
-        undoLabel: 'لغو',
         apply: () => {
           patchBundle((prev) => {
             snapshot = prev.products;
@@ -243,6 +241,9 @@ export function useLandingCmsPage() {
         tone: 'error',
         message,
         undoLabel: 'لغو',
+        // real mode: commit تا بسته‌شدن toast به تأخیر می‌افتد تا «لغو» واقعی باشد.
+        // mock mode: commit فوری لازم است تا داده در localStorage قبل از reload ذخیره شود.
+        deferCommit: !IS_MOCK_MODE,
         apply: () => {
           if (target.kind === 'banners') {
             patchBundle((prev) => {

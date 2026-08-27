@@ -38,7 +38,7 @@ export const schoolFormSchema = z.object({
   name: nameField,
   provinceId: z.string().min(1, 'انتخاب استان الزامی است.'),
   cityId: z.string().min(1, 'انتخاب شهر الزامی است.'),
-  districtId: z.string().min(1, 'انتخاب منطقه الزامی است.'),
+  districtId: z.string().optional(),
   gender: z.enum(['male', 'female'], {
     error: 'انتخاب نوع مدرسه الزامی است.',
   }),

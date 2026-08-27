@@ -187,6 +187,10 @@ export const apiClient = {
     return request<T>('put', path, { ...options, json: body }, token);
   },
 
+  putMaybeJson<T>(path: string, body: unknown, token?: string, options?: KyOptions): Promise<T | null> {
+    return requestMaybeJson<T>('put', path, { ...options, json: body }, token);
+  },
+
   patchJson<T>(path: string, body: unknown, token?: string, options?: KyOptions): Promise<T> {
     return request<T>('patch', path, { ...options, json: body }, token);
   },

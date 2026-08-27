@@ -121,7 +121,7 @@ export function buildOrgRuntimeIndex(
       districtsByCity: groupBy(snapshot.districts, (d) => d.cityId),
       schoolsByProvince: groupBy(snapshot.schools, (s) => s.provinceId),
       schoolsByCity: groupBy(snapshot.schools, (s) => s.cityId),
-      schoolsByDistrict: groupBy(snapshot.schools, (s) => s.districtId),
+      schoolsByDistrict: groupBy(snapshot.schools, (s) => s.districtId ?? ''),
     },
   };
 }

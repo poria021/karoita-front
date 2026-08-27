@@ -170,12 +170,17 @@ export const adminCatalogApi = {
       token
     );
   },
+  /**
+   * PUT /admin/educations/{id} — برخی پاسخ‌ها بدون بدنه (۲۰۴/۲۰۰ خالی) برمی‌گردند — باید
+   * از putMaybeJson استفاده شود ونه putJson (وگرنه parse خطای
+   * «Unexpected end of JSON input» می‌دهد حتی وقتی به‌موفقیت ذخیره شده).
+   */
   updateEducation(
     id: string,
     body: NestUpdateEducationalDistrictDto,
     token?: string
   ) {
-    return apiClient.putJson<unknown>(
+    return apiClient.putMaybeJson<unknown>(
       NEST_ADMIN_PATHS.educationById(id),
       body,
       token
@@ -197,8 +202,13 @@ export const adminCatalogApi = {
       searchParams: toSearchParams(query),
     });
   },
+  /**
+   * PUT /admin/schools/{id} — مشابه educations/universities/degree، پاسخ ممکنه
+   * بدون بدنه برگردد — putMaybeJson از خطای «Unexpected end of JSON
+   * input» روی فرم ویرایش مدرسه جلوگیری می‌کند.
+   */
   updateSchool(id: string, body: NestUpdateSchoolDto, token?: string) {
-    return apiClient.putJson<unknown>(NEST_ADMIN_PATHS.schoolById(id), body, token);
+    return apiClient.putMaybeJson<unknown>(NEST_ADMIN_PATHS.schoolById(id), body, token);
   },
   /** DELETE /admin/schools{id} — see `schoolDeleteById` above for the missing-slash quirk. */
   deleteSchool(id: string, token?: string) {
@@ -208,8 +218,12 @@ export const adminCatalogApi = {
     );
   },
 
+  /**
+   * POST /admin/degree — مشابه update‌های بالا، پاسخ ممکنه بدون بدنه برگردد
+   * — postMaybeJson از همان خطای پارس JSON خالی جلوگیری می‌کند.
+   */
   createDegree(body: NestCreateDegreeDto, token?: string) {
-    return apiClient.postJson<unknown>(NEST_ADMIN_PATHS.degree, body, token);
+    return apiClient.postMaybeJson<unknown>(NEST_ADMIN_PATHS.degree, body, token);
   },
   /** GET /admin/degreeee — bare array, degree rows paired with their linked role. */
   listDegrees(title?: string, token?: string) {
@@ -220,7 +234,7 @@ export const adminCatalogApi = {
     );
   },
   updateDegree(id: string, body: NestUpdateDegreeDto, token?: string) {
-    return apiClient.putJson<unknown>(NEST_ADMIN_PATHS.degreeById(id), body, token);
+    return apiClient.putMaybeJson<unknown>(NEST_ADMIN_PATHS.degreeById(id), body, token);
   },
   deleteDegree(id: string, token?: string) {
     return apiClient.deleteMaybeJson<unknown>(
@@ -256,7 +270,7 @@ export const adminCatalogApi = {
     );
   },
   updateUniversity(id: string, body: NestUpdateUniversityDto, token?: string) {
-    return apiClient.putJson<unknown>(
+    return apiClient.putMaybeJson<unknown>(
       NEST_ADMIN_PATHS.universityById(id),
       body,
       token

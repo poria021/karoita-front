@@ -222,18 +222,35 @@ export async function listRealPage(
 
   if (options.tab === 'schools') {
     const items = await getBareListItems('schools', query, async () => {
-      const raw = await adminCatalogApi.listSchools({
-        title: query || undefined,
+      // منطقه آموزشی (education) روی برخی ردیف‌های زنده Nest به‌صورت nested
+      // برنمی‌گردد (شبیه کوییرک province/role در توی توی toOrgFaculty) — برای
+      // همین لیست مناطق را هم موازی می‌گیریم و اگر s.education?.title خالی بود،
+      // از روی districtId (educationId) نام منطقه را از این لیست پیدا می‌کنیم
+      // تا ستون «منطقه آموزشی» در جدول خالی نماند.
+      const [raw, educations] = await Promise.all([
+        adminCatalogApi.listSchools({ title: query || undefined }),
+        adminCatalogApi.listEducations(),
+      ]);
+      const districtNameById = new Map(
+        educations.map((edu) => [edu.id, edu.title])
+      );
+      return raw.map((s) => {
+        const mapped = toOrgSchool(s);
+        return {
+          ...mapped,
+          kind: 'school' as const,
+          deleteBlocked: false,
+          // استان و شهر تابعه — از آبجکت‌های nested
+          provinceName: s.province?.title ?? undefined,
+          cityName: s.city?.title ?? undefined,
+          districtName:
+            s.education?.title ??
+            (mapped.districtId
+              ? districtNameById.get(mapped.districtId)
+              : undefined) ??
+            undefined,
+        };
       });
-      return raw.map((s) => ({
-        ...toOrgSchool(s),
-        kind: 'school' as const,
-        deleteBlocked: false,
-        // استان، شهر و منطقه آموزشی تابعه — از آبجکت‌های nested
-        provinceName: s.province?.title ?? undefined,
-        cityName: s.city?.title ?? undefined,
-        districtName: s.education?.title ?? undefined,
-      }));
     });
     return pageBareList(items, offset, limit);
   }

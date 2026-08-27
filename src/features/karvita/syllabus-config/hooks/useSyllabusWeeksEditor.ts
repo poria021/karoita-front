@@ -3,7 +3,7 @@
 import { type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
-import { scheduleUndoableLocalChange } from '@/lib/undoable-mutation';
+import { scheduleLocalChange, scheduleUndoableLocalChange } from '@/lib/undoable-mutation';
 import {
   DEFAULT_WEEK_WEIGHT,
   SyllabusConfigService,
@@ -70,10 +70,9 @@ export function useSyllabusWeeksEditor({
 
   function archiveWeek(target: SyllabusWeek) {
     if (!ensureCourseSelected()) return;
-    const previous = weeks;
     const label = toPersianDigits(target.title || target.suffix);
 
-    scheduleUndoableLocalChange({
+    scheduleLocalChange({
       tone: 'warning',
       message: `جلسه «${label}» آرشیو شد.`,
       apply: () => {
@@ -86,15 +85,11 @@ export function useSyllabusWeeksEditor({
         );
         setHasUnsavedChanges(true);
       },
-      revert: () => {
-        setWeeks(previous);
-      },
     });
   }
 
   function addWeek() {
     if (!ensureCourseSelected()) return;
-    const previous = weeks;
     const n = weeks.length + 1;
     const label = `هفته ${n}`;
     const next: SyllabusWeek = {
@@ -105,14 +100,11 @@ export function useSyllabusWeeksEditor({
       status: 'active',
     };
 
-    scheduleUndoableLocalChange({
+    scheduleLocalChange({
       message: `هفته ${toPersianDigits(n)} افزوده شد.`,
       apply: () => {
         setWeeks((prev) => [...prev, next]);
         setHasUnsavedChanges(true);
-      },
-      revert: () => {
-        setWeeks(previous);
       },
     });
   }

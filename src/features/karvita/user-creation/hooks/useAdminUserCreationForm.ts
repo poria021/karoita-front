@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
 
-import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
+import { scheduleOptimisticMutation } from '@/lib/undoable-mutation';
 import { AdminUserCreationService } from '@/services/admin-user-creation.service';
 import type { CreateOrganizationalUserInput } from '@/types/admin-user-creation';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
@@ -168,9 +168,8 @@ export function useAdminUserCreationForm() {
     const formSnapshot = { ...values };
     const mobileDuplicateSnapshot = mobileDuplicate;
 
-    scheduleUndoableMutation({
+    scheduleOptimisticMutation({
       message: 'حساب کاربری سازمانی جدید ایجاد و فعال گردید.',
-      undoLabel: 'لغو',
       apply: () => {
         reset({ ...ADMIN_USER_CREATION_DEFAULTS });
         setMobileDuplicate(false);

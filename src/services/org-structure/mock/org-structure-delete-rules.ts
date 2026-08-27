@@ -31,7 +31,7 @@ export function buildOrgDeleteBlockedSets(
   for (const school of db.schools) {
     provinces.add(school.provinceId);
     cities.add(school.cityId);
-    districts.add(school.districtId);
+    if (school.districtId) districts.add(school.districtId);
   }
 
   return { provinces, cities, districts };

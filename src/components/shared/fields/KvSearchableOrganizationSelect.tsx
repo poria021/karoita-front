@@ -398,7 +398,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
               <FaIcon
                 icon={faIcons.chevronDown}
                 size="2xs"
-                className="shrink-0 text-kv-text-muted"
+                className="shrink-0 text-kv-text-placeholder"
               />
             </div>
 

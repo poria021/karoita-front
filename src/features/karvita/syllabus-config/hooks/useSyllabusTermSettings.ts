@@ -3,7 +3,8 @@
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
-import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
+import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
 import { persianToEnglishDigits, toPersianDigits } from '@/utils/persianDigits';
@@ -106,9 +107,8 @@ export function useSyllabusTermSettings({
     };
     let snapshot = terms;
 
-    scheduleUndoableMutation({
+    scheduleOptimisticMutation({
       message: `دوره تحصیلی «${toPersianDigits(`${parsed.data.titlePrefix} ${parsed.data.academicYear}`)}» ایجاد شد.`,
-      undoLabel: 'لغو',
       apply: () => {
         snapshot = terms;
         setTerms((prev) => [...prev, optimistic]);
@@ -143,6 +143,9 @@ export function useSyllabusTermSettings({
       tone: 'error',
       message: `دوره تحصیلی «${toPersianDigits(target.title)}» حذف شد.`,
       undoLabel: 'لغو',
+      // real mode: commit تا بسته‌شدن toast به تأخیر می‌افتد تا «لغو» واقعی باشد.
+      // mock mode: commit فوری لازم است تا داده در localStorage قبل از reload ذخیره شود.
+      deferCommit: !IS_MOCK_MODE,
       apply: () => {
         snapshot = terms;
         setTerms((prev) => prev.filter((term) => term.id !== target.id));

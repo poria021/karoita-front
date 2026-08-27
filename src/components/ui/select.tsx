@@ -58,7 +58,7 @@ function SelectTrigger({
         <FaIcon
           icon={faIcons.chevronDown}
           size="sm"
-          className="text-kv-text-muted"
+          className="text-kv-text-placeholder"
         />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>

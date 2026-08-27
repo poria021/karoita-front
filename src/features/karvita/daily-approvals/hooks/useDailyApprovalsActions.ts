@@ -3,7 +3,8 @@
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
-import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
+import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
 import type {
   DailyApprovalCompetencyRating,
@@ -109,6 +110,9 @@ export function useDailyApprovalsActions({
         tone: 'error',
         message: 'وضعیت کارورز به حذف تغییر یافت.',
         undoLabel: 'لغو',
+        // real mode: commit تا بسته‌شدن toast به تأخیر می‌افتد تا «لغو» واقعی باشد.
+        // mock mode: commit فوری لازم است تا داده در localStorage قبل از reload ذخیره شود.
+        deferCommit: !IS_MOCK_MODE,
         apply: () => {
           list.patchItems(
             (prev) => {
@@ -281,13 +285,12 @@ export function useDailyApprovalsActions({
       let snapshotTotal = 0;
       const commitTermId = termId;
 
-      scheduleUndoableMutation({
+      scheduleOptimisticMutation({
         tone: 'success',
         message: buildBulkExtendUndoMessage(
           input.weekNumbers,
           input.revokeWeekNumbers
         ),
-        undoLabel: 'لغو',
         apply: () => {
           setBulkExtendOpen(false);
           list.patchItems(
@@ -322,25 +325,8 @@ export function useDailyApprovalsActions({
             setActionBusy(false);
           }
         },
-        reverse: async () => {
-          setActionBusy(true);
-          try {
-            await DailyApprovalsService.bulkExtendWeeks({
-              kind,
-              termId: commitTermId,
-              course,
-              weekNumbers: input.revokeWeekNumbers,
-              revokeWeekNumbers: input.weekNumbers,
-            });
-          } finally {
-            setActionBusy(false);
-          }
-        },
         onCommitted: async () => {
           await list.reload();
-        },
-        onUndone: () => {
-          void list.reload();
         },
         onError: (error) => {
           toast.error(

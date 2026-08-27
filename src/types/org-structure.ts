@@ -62,7 +62,9 @@ export interface OrgSchool {
   name: string;
   provinceId: string;
   cityId: string;
-  districtId: string;
+  /** منطقه آموزشی اختیاری است — برخی مدارس ممکن است بدون منطقه ثبت شوند.
+   */
+  districtId?: string;
   gender: OrgSchoolGender;
 }
 
