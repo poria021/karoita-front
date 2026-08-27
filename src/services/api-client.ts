@@ -63,6 +63,14 @@ function createKyClient(prefix: string) {
     prefix,
     credentials: 'include',
     timeout: 30_000,
+    // ⚠️ وابسته‌ی حیاتی با مکانیزم refresh-روی-401 پایین: کتابخانهی ky فقط وقتی
+    // `retry.limit > 0` باشد، قبل از fetch واقعی یک clone از request نگه می‌دارد و همان
+    // clone (نه نسخهٔ مصرف‌شده) را به هوک afterResponse پایین می‌دهد. اگر این
+    // عدد رو روی `0` بذارید (مثلاً با این استدلال که «retry رو خودمون دستی زدیم»)،
+    // `request` داخل هوک همون request مصرف‌شده‌ی اصلی می‌شود و `ky.retry({ request: new
+    // Request(request, { headers }) })` پایین برای POST/PATCH بی‌صدا/بدون بدنه می‌شود و
+    // refresh بی‌صدا fail می‌شود. یعنی: `limit: 1` را برای بهینه‌سازی/حذف رکورده‌ها
+    // تغییر ندهید بدون اینکه جریان را بازسازی کنید.
     retry: { limit: 1 },
     hooks: {
       afterResponse: [

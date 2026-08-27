@@ -76,7 +76,30 @@ function extractApiMessage(payload: unknown): string | null {
   return typeof payload.error === 'string' ? payload.error : null;
 }
 
-function defaultStatusMessage(status: number): string {
+/**
+ * Nest از ۴۰۴ برای «کد تایید اشتباه/منقضی» روی مسیرهای verify-otp استفاده
+ * می‌کند (نگاه کن به کامنت `hash`/`invalidOtp` در extractApiMessage بالا).
+ * آن مسیر فقط وقتی جواب می‌دهد که بدنهٔ پاسخ دقیقاً `{ errors: { hash: ... } }`
+ * باشد و parse شود. اما گاهی (مثلاً بعد از تعداد تلاش‌های زیاد که رکورد OTP
+ * سمت Nest حذف/منقضی شده) همان مسیر یک ۴۰۴ با بدنهٔ خالی یا شکل متفاوت
+ * برمی‌گرداند؛ در آن حالت extractApiMessage چیزی پیدا نمی‌کند و پیام عمومی
+ * «منبع درخواستی یافت نشد» نمایش داده می‌شد که برای کاربر گیج‌کننده است
+ * (به‌نظر می‌رسد مسیر خراب است، نه اینکه کد اشتباه بوده).
+ *
+ * چون همین endpointها اصلاً معنای دیگری برای ۴۰۴ ندارند، هر ۴۰۴ روی مسیر
+ * verify-otp — صرف‌نظر از شکل/قابل‌parse بودن بدنه — به‌عنوان «کد اشتباه یا
+ * منقضی» ترجمه می‌شود.
+ */
+const OTP_VERIFY_URL_HINT = 'verify-otp';
+
+function isOtpVerifyUrl(url: string | undefined): boolean {
+  return typeof url === 'string' && url.includes(OTP_VERIFY_URL_HINT);
+}
+
+function defaultStatusMessage(status: number, url?: string): string {
+  if (status === 404 && isOtpVerifyUrl(url)) {
+    return 'کد تایید وارد‌شده اشتباه یا منقضی شده است.';
+  }
   if (status === 400) return 'اطلاعات ارسال‌شده معتبر نیست. لطفاً فیلدها را بررسی کنید.';
   if (status === 401) return 'نشست شما منقضی شده است. لطفاً دوباره وارد شوید.';
   if (status === 403) return 'شما اجازه انجام این عملیات را ندارید.';
@@ -88,11 +111,11 @@ function defaultStatusMessage(status: number): string {
   return 'انجام عملیات با خطا مواجه شد.';
 }
 
-export function localizeApiError(payload: unknown, status: number): string {
+export function localizeApiError(payload: unknown, status: number, url?: string): string {
   const serverMessage = extractApiMessage(payload);
   return serverMessage && isPersianMessage(serverMessage)
     ? serverMessage
-    : defaultStatusMessage(status);
+    : defaultStatusMessage(status, url);
 }
 
 export async function mapHttpError(error: unknown): Promise<never> {
@@ -110,7 +133,7 @@ export async function mapHttpError(error: unknown): Promise<never> {
       );
     }
     throw new ApiClientError(
-      localizeApiError(payload, error.response.status),
+      localizeApiError(payload, error.response.status, error.response.url),
       error.response.status,
       payload
     );

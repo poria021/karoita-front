@@ -46,6 +46,31 @@ let _mem: MemoryTokens | null = null;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * هشدار dev-only اگر `tokenExpires` شبیه epoch-ثانیه باشد نه epoch-میلی‌ثانیه.
+ *
+ * چرا این چک لازم است؟ کل منطق انقضا (`readRealAccessToken`,
+ * `ACCESS_REFRESH_SKEW_MS`) فرض می‌کند `tokenExpires` یک epoch میلی‌ثانیه‌ای
+ * است (`new Date(tokenExpires)` در nest-auth-mappers.ts هم همین فرض را دارد).
+ * اگر Nest این مقدار را به‌صورت epoch-ثانیه برگرداند (رایج در JWT `exp`)،
+ * عدد ۱۰ رقمی به‌جای ۱۳ رقمی می‌شود و `new Date(...)` چیزی حدود سال ۱۹۷۰
+ * می‌سازد — یعنی توکن همیشه «منقضی» به‌نظر می‌رسد، هیچ‌وقت Bearer فرستاده
+ * نمی‌شود، و هر ریکوئست یک refresh اضافه می‌زند. این فقط از console لاگ قابل
+ * کشف است، نه از تایپ‌اسکریپت — برای همین اینجا صریح چک می‌شود.
+ */
+function warnIfTokenExpiresLooksLikeSeconds(tokenExpires: number): void {
+  if (process.env.NODE_ENV === 'production') return;
+  // یک epoch میلی‌ثانیه‌ای امروز ۱۳ رقم است؛ epoch ثانیه‌ای فقط ۱۰ رقم.
+  if (tokenExpires > 0 && tokenExpires < 1_000_000_000_000) {
+    console.warn(
+      '[real-auth.tokens] tokenExpires به‌نظر epoch-ثانیه می‌رسد نه epoch-میلی‌ثانیه ' +
+      `(مقدار: ${tokenExpires} → ${new Date(tokenExpires).toISOString()}). ` +
+      'اگر Nest واقعاً ثانیه می‌فرستد، این مقدار باید قبل از ذخیره در ' +
+      'tokenExpires * 1000 ضرب شود، وگرنه توکن همیشه منقضی تلقی می‌شود.'
+    );
+  }
+}
+
 function isBrowser(): boolean {
   return typeof window !== 'undefined';
 }
@@ -209,6 +234,7 @@ export async function writeRealAuthTokens(
   tokens: NestLoginTokens,
   surface: AuthSurface = 'user',
 ): Promise<void> {
+  warnIfTokenExpiresLooksLikeSeconds(tokens.tokenExpires);
   _mem = {
     token: tokens.token,
     refreshToken: tokens.refreshToken,
