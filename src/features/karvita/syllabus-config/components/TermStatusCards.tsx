@@ -235,7 +235,7 @@ function StatusGateCard({
             disabled={disabled}
             onCheckedChange={onToggle}
             aria-label={title}
-            className="shrink-0 data-[state=unchecked]:bg-kv-danger/35"
+            className="shrink-0 data-[state=unchecked]:bg-kv-danger"
           />
         )}
       </KvCardContent>
