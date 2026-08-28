@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   fromNestRoleName,
+  isStaffAdminRole,
   nestRoleLabel,
   pickNestRoleDto,
+  toNestAdminAccountRole,
   toNestRoleName,
 } from '@/services/auth/real/nest-auth-role';
 
@@ -23,6 +25,14 @@ describe('nest-auth-role', () => {
 
   it('rejects roles that cannot self-register via Nest', () => {
     expect(() => toNestRoleName('super_admin')).toThrow(/پشتیبانی/);
+  });
+
+  it('maps staff-admin FE roles to Nest admin-account role names', () => {
+    expect(isStaffAdminRole('super_admin')).toBe(true);
+    expect(isStaffAdminRole('assistant_admin')).toBe(true);
+    expect(isStaffAdminRole('central_organization')).toBe(false);
+    expect(toNestAdminAccountRole('super_admin')).toBe('superadmin');
+    expect(toNestAdminAccountRole('assistant_admin')).toBe('admin');
   });
 
   it('reads live Nest role lists that use title instead of name', () => {

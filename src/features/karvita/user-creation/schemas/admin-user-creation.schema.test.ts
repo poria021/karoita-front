@@ -10,6 +10,18 @@ describe('adminUserCreationSchema', () => {
     password: '12345678',
   };
 
+  it('accepts super_admin without geo fields', () => {
+    const result = adminUserCreationSchema.safeParse({
+      ...base,
+      role: 'super_admin',
+      province: '',
+      city: '',
+      college: '',
+      district: '',
+    });
+    expect(result.success).toBe(true);
+  });
+
   it('accepts central_organization without geo fields', () => {
     const result = adminUserCreationSchema.safeParse({
       ...base,

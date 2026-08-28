@@ -7,6 +7,7 @@ export const ORG_ACCOUNT_ROLES = [
   'faculty_role',
   'regional_edu_admin',
   'assistant_admin',
+  'super_admin',
 ] as const;
 
 export type OrgAccountRole = (typeof ORG_ACCOUNT_ROLES)[number];

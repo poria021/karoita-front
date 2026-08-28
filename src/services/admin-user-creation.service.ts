@@ -1,9 +1,13 @@
-import { IS_MOCK_MODE } from '@/lib/api-mode';
-import { mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
+import { isMockApiMode } from '@/lib/api-mode';
+import { ApiClientError } from '@/services/api-error';
+import { mapNestAdminUser, mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
+import { isStaffAdminRole } from '@/services/auth/real/nest-auth-role';
 import {
   mockCheckMobileAvailable,
   mockCreateOrganizationalUser,
 } from '@/services/admin-user-creation/mock/mock-admin-user-creation';
+import { adminsApi } from '@/services/admin-user-creation/real/admins.api';
+import { toNestCreateAdminDto } from '@/services/admin-user-creation/real/to-nest-admin-create';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import { usersApi } from '@/services/users/users.api';
 import type {
@@ -13,18 +17,29 @@ import type {
 } from '@/types/admin-user-creation';
 
 /**
- * Super-admin org account creation.
+ * Super-admin account creation.
  *
- * Nest map (via existing Users API):
- * - GET  /api/v1/users?filters={"phone":"<mobile>"}&limit=1  → mobile availability check
- * - PATCH /api/v1/users/{id} role+status → create/assign org role
- *
- * Note: Swagger has no POST /admin/users endpoint — we use PATCH /api/v1/users/{id}
- * to assign role after the user is found/created through the auth flow.
+ * Nest map:
+ * - Staff (ادمین کل / دستیار ادمین):
+ *     POST /api/v1/admin/admins  { fname, lname, phone, role: admin|superadmin }
+ * - Organizational roles:
+ *     GET  /api/v1/users?filters={"phone":"<mobile>"}&limit=1  → mobile check
+ *     PATCH /api/v1/users/{id} → assign org role (user must already exist)
  */
 
 function requireMockUserCreate(): void {
   assertMockClientHasPermission('user.create');
+}
+
+function toDuplicateMobileError(error: unknown): never {
+  if (error instanceof ApiClientError && error.status === 409) {
+    throw new ApiClientError(
+      'این شماره موبایل قبلاً در سیستم ثبت شده است.',
+      409,
+      error.payload
+    );
+  }
+  throw error;
 }
 
 export const AdminUserCreationService = {
@@ -35,7 +50,7 @@ export const AdminUserCreationService = {
   async checkMobileAvailable(
     mobile: string
   ): Promise<MobileAvailabilityResult> {
-    if (!IS_MOCK_MODE) {
+    if (!isMockApiMode()) {
       const result = await usersApi.list({
         page: 1,
         limit: 1,
@@ -48,15 +63,23 @@ export const AdminUserCreationService = {
   },
 
   /**
-   * Create/assign organizational user.
-   * Real: PATCH /api/v1/users/{id} with role + required profile fields.
-   * Requires the user to already exist (registered via auth flow).
-   * Pass `userId` when calling in real mode — input.mobile is used in mock.
+   * Create a staff admin (POST /admin/admins) or assign an organizational role.
+   * Staff path does not send password — Nest CreateAdmin has no password field.
+   * Org path in real mode still requires `userId` (existing user via auth flow).
    */
   async createOrganizationalUser(
     input: CreateOrganizationalUserInput & { userId?: string }
   ): Promise<CreateOrganizationalUserResult> {
-    if (!IS_MOCK_MODE) {
+    if (!isMockApiMode()) {
+      if (isStaffAdminRole(input.role)) {
+        try {
+          const raw = await adminsApi.create(toNestCreateAdminDto(input));
+          return { user: mapNestAdminUser(raw, input.mobile) };
+        } catch (error) {
+          toDuplicateMobileError(error);
+        }
+      }
+
       if (!input.userId) {
         throw new Error(
           'برای ایجاد حساب سازمانی در حالت واقعی، شناسه کاربر (userId) الزامی است.'
@@ -73,8 +96,6 @@ export const AdminUserCreationService = {
         cityIds: [],
         schoolIds: [],
         educationalDistrictsIds: [],
-        // cityId intentionally omitted — NestUpdateUserDto uses cityIds[] not cityId
-        // rejectDescription intentionally omitted — optional field, not relevant to account creation
       });
       return { user: mapNestAuthUser(raw) };
     }

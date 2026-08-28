@@ -48,6 +48,23 @@ const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   school_principal: 'school_admin',
 };
 
+/** Staff accounts created via POST /api/v1/admin/admins. */
+export type StaffAdminRole = Extract<UserRole, 'super_admin' | 'assistant_admin'>;
+
+export function isStaffAdminRole(role: string): role is StaffAdminRole {
+  return role === 'super_admin' || role === 'assistant_admin';
+}
+
+/**
+ * FE staff role → Nest admin-account `role` string.
+ * Auth self-register uses `toNestRoleName`; this map is only for `/v1/admin/admins`.
+ */
+export function toNestAdminAccountRole(
+  role: StaffAdminRole
+): Extract<NestRoleName, 'admin' | 'superadmin'> {
+  return role === 'super_admin' ? 'superadmin' : 'admin';
+}
+
 export function toNestRoleName(role: UserRole): NestRoleName {
   const nestName = FE_ROLE_TO_NEST_NAME[role];
   if (!nestName) {

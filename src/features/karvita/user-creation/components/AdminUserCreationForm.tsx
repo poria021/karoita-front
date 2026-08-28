@@ -22,9 +22,9 @@ const KvPasswordStrengthIndicator = dynamic(
   { ssr: false }
 );
 
-import { ORG_ACCOUNT_ROLE_OPTIONS } from '../constants';
 import type { useAdminUserCreationForm } from '../hooks/useAdminUserCreationForm';
 import { AdminUserCreationOrgFields } from './AdminUserCreationOrgFields';
+import { AdminUserCreationRoleKindTabs } from './AdminUserCreationRoleKindTabs';
 
 const MOBILE_DUPLICATE_ERROR =
   'این شماره موبایل قبلاً در سیستم ثبت شده است.';
@@ -159,12 +159,18 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
               />
             </div>
 
-            <div className="sm:col-span-2">
+            <div className="grid grid-cols-1 gap-kv-group sm:col-span-2 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-end">
+              <AdminUserCreationRoleKindTabs
+                value={page.accountKind}
+                onChange={page.onAccountKindChange}
+              />
+
               <Controller
                 name="role"
                 control={control}
                 render={({ field }) => (
                   <KvSelectField
+                    key={page.accountKind}
                     id="admin-user-role"
                     label="نقش سازمانی کاربر"
                     required
@@ -174,7 +180,7 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
                     ref={field.ref}
                     error={errors.role?.message}
                   >
-                    {ORG_ACCOUNT_ROLE_OPTIONS.map((option) => (
+                    {page.roleOptions.map((option) => (
                       <KvSelectItem key={option.value} value={option.value}>
                         {option.label}
                       </KvSelectItem>

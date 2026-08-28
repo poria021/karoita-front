@@ -16,7 +16,13 @@ import {
   orgAccountRequiresProvince,
 } from '@/utils/roleFieldStrategy';
 
-import { ADMIN_USER_CREATION_DEFAULTS } from '../constants';
+import {
+  ADMIN_USER_CREATION_DEFAULTS,
+  getOrgAccountRoleOptionsForKind,
+  isOrgAccountRoleAllowedForKind,
+  ORG_ACCOUNT_KIND_TABS,
+  type OrgAccountKind,
+} from '../constants';
 import {
   adminUserCreationSchema,
   type AdminUserCreationFormInput,
@@ -36,7 +42,9 @@ export function useAdminUserCreationForm() {
     mode: 'onSubmit',
   });
 
-  const { setValue, reset, handleSubmit, formState, control } = form;
+  const { setValue, reset, handleSubmit, formState, control, getValues } = form;
+  const [accountKind, setAccountKind] = useState<OrgAccountKind>('user');
+  const roleOptions = getOrgAccountRoleOptionsForKind(accountKind);
 
   const [mobile, role] = useWatch({
     control,
@@ -122,6 +130,25 @@ export function useAdminUserCreationForm() {
     [setValue]
   );
 
+  const onAccountKindChange = useCallback(
+    (nextValue: string) => {
+      const nextKind = ORG_ACCOUNT_KIND_TABS.find(
+        (tab) => tab.value === nextValue
+      )?.value;
+      if (!nextKind || nextKind === accountKind) return;
+
+      setAccountKind(nextKind);
+      const currentRole = getValues('role');
+      if (
+        currentRole &&
+        !isOrgAccountRoleAllowedForKind(currentRole, nextKind)
+      ) {
+        onRoleChange('');
+      }
+    },
+    [accountKind, getValues, onRoleChange]
+  );
+
   const onProvinceChange = useCallback(
     (next: string) => {
       setValue('province', next, { shouldValidate: false });
@@ -153,6 +180,11 @@ export function useAdminUserCreationForm() {
 
     const typedValues = values as AdminUserCreationFormValues;
 
+    const isStaffAdmin = isOrgAccountRoleAllowedForKind(
+      typedValues.role,
+      'user'
+    );
+
     const payload: CreateOrganizationalUserInput = {
       firstName: typedValues.firstName,
       lastName: typedValues.lastName,
@@ -167,16 +199,21 @@ export function useAdminUserCreationForm() {
 
     const formSnapshot = { ...values };
     const mobileDuplicateSnapshot = mobileDuplicate;
+    const accountKindSnapshot = accountKind;
 
     scheduleOptimisticMutation({
-      message: 'حساب کاربری سازمانی جدید ایجاد و فعال گردید.',
+      message: isStaffAdmin
+        ? 'حساب ادمین جدید ایجاد گردید.'
+        : 'حساب کاربری سازمانی جدید ایجاد و فعال گردید.',
       apply: () => {
         reset({ ...ADMIN_USER_CREATION_DEFAULTS });
         setMobileDuplicate(false);
+        setAccountKind('user');
       },
       revert: () => {
         reset(formSnapshot);
         setMobileDuplicate(mobileDuplicateSnapshot);
+        setAccountKind(accountKindSnapshot);
       },
       commit: () =>
         AdminUserCreationService.createOrganizationalUser(payload),
@@ -195,6 +232,8 @@ export function useAdminUserCreationForm() {
     formState,
     mobile,
     role,
+    accountKind,
+    roleOptions,
     needsProvinceRole,
     needsCollege,
     needsRegional,
@@ -203,6 +242,7 @@ export function useAdminUserCreationForm() {
     checkingMobile,
     submitting: formState.isSubmitting,
     onRoleChange,
+    onAccountKindChange,
     onProvinceChange,
     onCityChange,
     onSubmit,
