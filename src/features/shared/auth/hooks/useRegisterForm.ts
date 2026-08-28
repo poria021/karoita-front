@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
+import { beginEnteringApp } from '@/store/authTransition';
 
 import {
   otpSchema,
@@ -85,6 +86,7 @@ export function useRegisterForm() {
     setFormMessage(null);
     try {
       await AuthService.verifyRegistrationOtp(pendingMobile, data.otp, pendingRole);
+      beginEnteringApp();
       router.push(RouteService.karvita.profile(pendingRole));
     } catch (error) {
       otpForm.setError('otp', {

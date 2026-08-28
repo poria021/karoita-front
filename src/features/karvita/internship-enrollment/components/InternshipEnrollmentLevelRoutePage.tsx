@@ -1,7 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
 
-import { InternshipEnrollmentModule } from '@/features/karvita/internship-enrollment/components/InternshipEnrollmentModule';
 import { parseInternshipEnrollmentLevel } from '@/features/karvita/internship-enrollment/lib/parseInternshipEnrollmentLevel';
 import { dashboardModuleMetadata } from '@/lib/dashboard-module-metadata';
 import { RouteService } from '@/services/route.service';
@@ -27,14 +25,4 @@ export async function generateInternshipEnrollmentLevelMetadata({
     description: meta.description,
     robots: { index: false, follow: false },
   };
-}
-
-export default async function InternshipEnrollmentLevelRoutePage({
-  params,
-}: InternshipEnrollmentLevelRoutePageProps) {
-  const { level: raw } = await params;
-  const level = parseInternshipEnrollmentLevel(raw);
-  if (!level) notFound();
-
-  return <InternshipEnrollmentModule level={level} />;
 }

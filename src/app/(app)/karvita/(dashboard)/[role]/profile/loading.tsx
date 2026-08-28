@@ -1,5 +1,0 @@
-import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
-
-export default function ProfileLoading() {
-  return <DashboardAccessPlaceholder />;
-}

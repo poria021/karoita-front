@@ -4,9 +4,10 @@ import { config } from '@fortawesome/fontawesome-svg-core';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Direction } from 'radix-ui';
 import { ThemeProvider } from 'next-themes';
-import { useState, type ReactNode } from 'react';
+import { Suspense, useState, type ReactNode } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { AuthTransitionOverlay } from '@/components/shared/shell/AuthTransitionOverlay';
 import { PwaBoot } from '@/components/shared/shell/PwaBoot';
 import { ObservabilityBoot } from '@/lib/observability/ObservabilityBoot';
 import { makeQueryClient } from '@/lib/query-client';
@@ -31,6 +32,9 @@ export function Providers({ children }: { children: ReactNode }) {
             <ObservabilityBoot />
             <PwaBoot />
             {children}
+            <Suspense fallback={null}>
+              <AuthTransitionOverlay />
+            </Suspense>
           </TooltipProvider>
         </Direction.Provider>
       </QueryClientProvider>

@@ -3,7 +3,7 @@
 import { useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
+import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
 
@@ -19,5 +19,5 @@ export function KarvitaEntryRedirect() {
     router.replace(getPostLoginPath(activeUser));
   }, [activeUser, router]);
 
-  return <DashboardAccessPlaceholder fullViewport />;
+  return <KvBrandLinearLoader fullViewport label="لطفا منتظر بمانید…" />;
 }

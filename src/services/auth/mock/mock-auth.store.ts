@@ -2,6 +2,7 @@ import Cookies from 'js-cookie';
 
 import { assertMockApiMode, isMockApiMode } from '@/lib/api-mode';
 import { MOCK_SESSION_MARKER } from '@/lib/config';
+import { setRuntimeAuthBoot } from '@/store/sessionBoot';
 import { useUserStore } from '@/store/useUserStore';
 import type { Session, User } from '@/types/auth';
 
@@ -357,7 +358,15 @@ export function buildMockSession(user: User): Session {
 }
 
 export function dispatchSessionToStore(session: Session | null): void {
-  useUserStore.getState().setUser(session?.user ?? null);
+  const store = useUserStore.getState();
+  store.setUser(session?.user ?? null);
+
+  if (session) {
+    store.setHasHydrated(true);
+    setRuntimeAuthBoot('authenticated');
+  } else {
+    setRuntimeAuthBoot('unauthenticated');
+  }
 
   if (!isMockApiMode()) return;
 

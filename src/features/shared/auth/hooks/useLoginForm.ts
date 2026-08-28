@@ -3,6 +3,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { RETURN_URL_PARAM } from '@/lib/return-url';
 import { resolvePostAuthPath } from '@/services/post-login-path';
+import { beginEnteringApp } from '@/store/authTransition';
 import { useUserStore } from '@/store/useUserStore';
 
 import { usePasswordLogin } from './usePasswordLogin';
@@ -21,6 +22,7 @@ export function useLoginForm() {
   const goAfterLogin = useCallback(() => {
     const user = useUserStore.getState().activeUser;
     const rawReturn = searchParams.get(RETURN_URL_PARAM);
+    beginEnteringApp();
     router.replace(resolvePostAuthPath(user, rawReturn));
   }, [router, searchParams]);
 

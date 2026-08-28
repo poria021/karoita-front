@@ -11,6 +11,8 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 import { isAuthPath, RouteService } from '@/services/route.service';
+import { beginLeavingApp } from '@/store/authTransition';
+import { setRuntimeAuthBoot } from '@/store/sessionBoot';
 import { useUserStore } from '@/store/useUserStore';
 
 // ─── Token rotation ──────────────────────────────────────────────────────────
@@ -94,12 +96,15 @@ export async function handleUnauthorized(): Promise<void> {
   if (handlingUnauthorized || typeof window === 'undefined') return;
 
   if (isAuthPath(window.location.pathname)) {
+    setRuntimeAuthBoot('unauthenticated');
     useUserStore.getState().setUser(null);
     return;
   }
 
   handlingUnauthorized = true;
   try {
+    beginLeavingApp();
+    setRuntimeAuthBoot('unauthenticated');
     useUserStore.getState().setUser(null);
     const { AuthService } = await import('@/services/auth.service');
     await AuthService.logout().catch(() => undefined);

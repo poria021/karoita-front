@@ -1,9 +1,7 @@
 'use client';
 
-import { loadDashboardClient } from '@/components/shared/shell/loadDashboardClient';
+import { DailyApprovalsPageClient } from '@/features/karvita/daily-approvals/components/DailyApprovalsPageClient';
 
-export const DailyApprovalsModule = loadDashboardClient(() =>
-  import('@/features/karvita/daily-approvals/components/DailyApprovalsPageClient').then(
-    (mod) => ({ default: mod.DailyApprovalsPageClient })
-  )
-);
+export function DailyApprovalsModule() {
+  return <DailyApprovalsPageClient />;
+}

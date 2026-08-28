@@ -14,6 +14,8 @@ import {
   scheduleKarvitaServiceWorkerRegistration,
   shouldRegisterKarvitaServiceWorker,
   shouldReloadToPrimePwa,
+  shouldUnregisterKarvitaServiceWorkerInDev,
+  unregisterStaleKarvitaServiceWorkers,
 } from '@/lib/pwa/register-pwa';
 
 function bindInstallPromptListener(): () => void {
@@ -40,6 +42,14 @@ export function PwaBoot() {
     });
 
     if (!canRegister) {
+      if (
+        shouldUnregisterKarvitaServiceWorkerInDev({
+          nodeEnv: process.env.NODE_ENV,
+          hasServiceWorker: 'serviceWorker' in navigator,
+        })
+      ) {
+        void unregisterStaleKarvitaServiceWorkers();
+      }
       return unbindPrompt;
     }
 

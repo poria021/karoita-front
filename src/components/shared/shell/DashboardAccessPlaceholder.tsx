@@ -1,6 +1,9 @@
+'use client';
+
 /**
  * Plain canvas while session/role gates resolve a redirect.
  * Not a data skeleton — no pulse bones (rule 84).
+ * Not used for in-dashboard module/tab navigation.
  */
 export function DashboardAccessPlaceholder({
   fullViewport = false,

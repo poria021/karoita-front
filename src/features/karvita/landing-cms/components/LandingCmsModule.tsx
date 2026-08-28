@@ -1,9 +1,7 @@
 'use client';
 
-import { loadDashboardClient } from '@/components/shared/shell/loadDashboardClient';
+import { LandingCmsPageClient } from '@/features/karvita/landing-cms/components/LandingCmsPageClient';
 
-export const LandingCmsModule = loadDashboardClient(() =>
-  import('@/features/karvita/landing-cms/components/LandingCmsPageClient').then(
-    (mod) => ({ default: mod.LandingCmsPageClient })
-  )
-);
+export function LandingCmsModule() {
+  return <LandingCmsPageClient />;
+}

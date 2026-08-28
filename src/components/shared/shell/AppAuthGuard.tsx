@@ -1,92 +1,88 @@
 'use client';
 
-import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState, type ReactNode } from 'react';
 
 import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
+import { UnauthenticatedRedirect } from '@/components/shared/shell/UnauthenticatedRedirect';
 import { AuthService } from '@/services/auth.service';
-import { RouteService } from '@/services/route.service';
-import { buildLoginHref } from '@/lib/return-url';
+import { getAuthTransitionPhase } from '@/store/authTransition';
 import { useUserStore } from '@/store/useUserStore';
 import { isMockApiMode } from '@/lib/api-mode';
 import { tryRestoreMockSession } from '@/services/auth/mock/mock-auth.store';
+import {
+  ensureAuthRestore,
+  getRuntimeAuthBoot,
+  type RuntimeAuthBoot,
+} from '@/store/sessionBoot';
 
-type BootState = 'pending' | 'authenticated' | 'unauthenticated';
+type BootState = 'pending' | RuntimeAuthBoot;
 
-function AppAuthGuardInner({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const hasHydrated = useUserStore((state) => state.hasHydrated);
-  const [boot, setBoot] = useState<BootState>('pending');
-  const booted = useRef(false);
+const BOOT_LABEL = 'لطفا منتظر بمانید…';
 
-  useEffect(() => {
-    if (!hasHydrated || booted.current) return;
-    booted.current = true;
+function BootLoader() {
+  return <KvBrandLinearLoader fullViewport label={BOOT_LABEL} />;
+}
 
-    async function tryRestoreSession() {
-      // ─── Mock mode: store/cookie چک می‌شود، هیچ refresh network نداریم ───
-      if (isMockApiMode()) {
-        // اول store رو چک کنیم (sessionStorage همون تب)
-        const quick = AuthService.validateSession();
-        if (quick) {
-          setBoot('authenticated');
-          return;
-        }
-        // اگر sessionStorage خالی بود ولی cookie داریم، کاربر رو از localStorage بازسازی کنیم
-        const restored = tryRestoreMockSession();
-        setBoot(restored ? 'authenticated' : 'unauthenticated');
-        return;
-      }
-
-      // ─── Real mode ────────────────────────────────────────────────────────────
-
-      // ۱. memory همین تب session داره → سریع تأیید کن، cookie را دست نزن
-      const quick = AuthService.peekSession();
-      if (quick) {
-        setBoot('authenticated');
-        return;
-      }
-
-      // ۲. memory خالیه (tab reload / بازگشت از لندینگ) → refresh از httpOnly cookie
-      //    عمداً validateSession() صدا نمی‌زنیم چون clearRealAuthTokens() صدا می‌کند
-      //    و cookie را قبل از refresh پاک می‌کند.
-      try {
-        const restored = await AuthService.refreshRealSession();
-        if (restored) {
-          setBoot('authenticated');
-          return;
-        }
-      } catch {
-        // 401 → cookie منقضی
-      }
-
-      // ۳. هیچ session ای نیست → redirect به login
-      setBoot('unauthenticated');
-    }
-
-    void tryRestoreSession();
-  }, [hasHydrated]);
-
-  useEffect(() => {
-    if (boot !== 'unauthenticated') return;
-    const search = searchParams.toString();
-    const intended = search ? `${pathname}?${search}` : pathname;
-    router.replace(buildLoginHref(RouteService.auth.login(), intended));
-  }, [boot, pathname, router, searchParams]);
-
-  if (boot !== 'authenticated') {
-    return <KvBrandLinearLoader fullViewport label="لطفا منتظر بمانید…" />;
+async function restoreSession(): Promise<RuntimeAuthBoot> {
+  if (isMockApiMode()) {
+    const quick = AuthService.validateSession();
+    if (quick) return 'authenticated';
+    const restored = tryRestoreMockSession();
+    return restored ? 'authenticated' : 'unauthenticated';
   }
 
-  return <>{children}</>;
+  const quick = AuthService.peekSession();
+  if (quick) return 'authenticated';
+
+  try {
+    const restored = await AuthService.refreshRealSession();
+    if (restored) return 'authenticated';
+  } catch {
+    // 401 → cookie expired
+  }
+
+  return 'unauthenticated';
+}
+
+function AppAuthGuardInner({ children }: { children: ReactNode }) {
+  const hasHydrated = useUserStore((state) => state.hasHydrated);
+  const [boot, setBoot] = useState<BootState>(
+    () => getRuntimeAuthBoot() ?? 'pending'
+  );
+
+  useEffect(() => {
+    if (getRuntimeAuthBoot()) return;
+    if (!hasHydrated) return;
+
+    let cancelled = false;
+    void ensureAuthRestore(restoreSession).then((next) => {
+      if (cancelled) return;
+      setBoot(next);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasHydrated]);
+
+  if (boot === 'authenticated') {
+    return <>{children}</>;
+  }
+
+  if (boot === 'unauthenticated') {
+    if (getAuthTransitionPhase() === 'leaving') {
+      return <BootLoader />;
+    }
+    return (
+      <Suspense fallback={<BootLoader />}>
+        <UnauthenticatedRedirect />
+      </Suspense>
+    );
+  }
+
+  return <BootLoader />;
 }
 
 export function AppAuthGuard({ children }: { children: ReactNode }) {
-  return (
-    <Suspense fallback={<KvBrandLinearLoader fullViewport label="لطفا منتظر بمانید…" />}>
-      <AppAuthGuardInner>{children}</AppAuthGuardInner>
-    </Suspense>
-  );
+  return <AppAuthGuardInner>{children}</AppAuthGuardInner>;
 }

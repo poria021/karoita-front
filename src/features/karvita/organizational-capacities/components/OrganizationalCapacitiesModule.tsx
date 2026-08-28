@@ -1,9 +1,7 @@
 'use client';
 
-import { loadDashboardClient } from '@/components/shared/shell/loadDashboardClient';
+import { OrganizationalCapacitiesPageClient } from '@/features/karvita/organizational-capacities/components/OrganizationalCapacitiesPageClient';
 
-export const OrganizationalCapacitiesModule = loadDashboardClient(() =>
-  import('@/features/karvita/organizational-capacities/components/OrganizationalCapacitiesPageClient').then(
-    (mod) => ({ default: mod.OrganizationalCapacitiesPageClient })
-  )
-);
+export function OrganizationalCapacitiesModule() {
+  return <OrganizationalCapacitiesPageClient />;
+}

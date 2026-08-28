@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { RETURN_URL_PARAM } from '@/lib/return-url';
 import { AuthService } from '@/services/auth.service';
 import { resolvePostAuthPath } from '@/services/post-login-path';
+import { beginEnteringApp } from '@/store/authTransition';
 
 import { mobileSchema, otpSchema, type MobileSchema, type OtpSchema } from '../schemas/auth.schema';
 import { readAuthErrorMessage } from './authError';
@@ -82,6 +83,7 @@ export function useAdminGate() {
   const verifyOtp = otpForm.handleSubmit(async (data) => {
     try {
       const user = await AuthService.verifyAdminGateOtp(pendingMobile, data.otp);
+      beginEnteringApp();
       router.replace(
         resolvePostAuthPath(user, searchParams.get(RETURN_URL_PARAM))
       );

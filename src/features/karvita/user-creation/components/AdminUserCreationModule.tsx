@@ -1,9 +1,7 @@
 'use client';
 
-import { loadDashboardClient } from '@/components/shared/shell/loadDashboardClient';
+import { AdminUserCreationPageClient } from '@/features/karvita/user-creation/components/AdminUserCreationPageClient';
 
-export const AdminUserCreationModule = loadDashboardClient(() =>
-  import('@/features/karvita/user-creation/components/AdminUserCreationPageClient').then(
-    (mod) => ({ default: mod.AdminUserCreationPageClient })
-  )
-);
+export function AdminUserCreationModule() {
+  return <AdminUserCreationPageClient />;
+}

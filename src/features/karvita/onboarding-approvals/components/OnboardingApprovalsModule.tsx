@@ -1,9 +1,7 @@
 'use client';
 
-import { loadDashboardClient } from '@/components/shared/shell/loadDashboardClient';
+import { OnboardingApprovalsPageClient } from '@/features/karvita/onboarding-approvals/components/OnboardingApprovalsPageClient';
 
-export const OnboardingApprovalsModule = loadDashboardClient(() =>
-  import('@/features/karvita/onboarding-approvals/components/OnboardingApprovalsPageClient').then(
-    (mod) => ({ default: mod.OnboardingApprovalsPageClient })
-  )
-);
+export function OnboardingApprovalsModule() {
+  return <OnboardingApprovalsPageClient />;
+}

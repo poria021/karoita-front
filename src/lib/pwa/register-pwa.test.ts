@@ -5,6 +5,7 @@ import {
   scheduleKarvitaServiceWorkerRegistration,
   shouldRegisterKarvitaServiceWorker,
   shouldReloadToPrimePwa,
+  shouldUnregisterKarvitaServiceWorkerInDev,
 } from '@/lib/pwa/register-pwa';
 
 describe('shouldRegisterKarvitaServiceWorker', () => {
@@ -23,6 +24,23 @@ describe('shouldRegisterKarvitaServiceWorker', () => {
         hasServiceWorker: true,
       })
     ).toBe(true);
+  });
+});
+
+describe('shouldUnregisterKarvitaServiceWorkerInDev', () => {
+  it('unregisters leftover SW control in non-production', () => {
+    expect(
+      shouldUnregisterKarvitaServiceWorkerInDev({
+        nodeEnv: 'development',
+        hasServiceWorker: true,
+      })
+    ).toBe(true);
+    expect(
+      shouldUnregisterKarvitaServiceWorkerInDev({
+        nodeEnv: 'production',
+        hasServiceWorker: true,
+      })
+    ).toBe(false);
   });
 });
 

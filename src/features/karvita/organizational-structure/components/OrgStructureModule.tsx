@@ -1,9 +1,7 @@
 'use client';
 
-import { loadDashboardClient } from '@/components/shared/shell/loadDashboardClient';
+import { OrgStructurePageClient } from '@/features/karvita/organizational-structure/components/OrgStructurePageClient';
 
-export const OrgStructureModule = loadDashboardClient(() =>
-  import('@/features/karvita/organizational-structure/components/OrgStructurePageClient').then(
-    (mod) => ({ default: mod.OrgStructurePageClient })
-  )
-);
+export function OrgStructureModule() {
+  return <OrgStructurePageClient />;
+}

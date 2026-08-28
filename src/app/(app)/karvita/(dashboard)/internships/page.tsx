@@ -1,8 +1,18 @@
-import { redirect } from 'next/navigation';
+'use client';
 
+import { useLayoutEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+import { InternshipEnrollmentModule } from '@/features/karvita/internship-enrollment/components/InternshipEnrollmentModule';
 import { RouteService } from '@/services/route.service';
 
-/** ایندکس انتخاب واحد → زیرماژول سطح ۱ (مثل HTML: internship1). */
+/** Index bounce — paint L1 immediately, then canonicalize the URL. */
 export default function InternshipEnrollmentIndexPage() {
-  redirect(RouteService.karvita.internshipSelection(1));
+  const router = useRouter();
+
+  useLayoutEffect(() => {
+    router.replace(RouteService.karvita.internshipSelection(1));
+  }, [router]);
+
+  return <InternshipEnrollmentModule level={1} />;
 }

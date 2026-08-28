@@ -2,7 +2,8 @@
 
 import { useEffect, type ReactNode } from 'react';
 
-import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
+import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
+import { getRuntimeAuthBoot } from '@/store/sessionBoot';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
 
@@ -14,13 +15,16 @@ export type HydrationSafeProps = {
 /**
  * Gates chrome until Zustand persist has rehydrated (skipHydration: true).
  * Persist API is client-only — never touch it during SSR render.
- * Fallback is a plain canvas (not skeleton bones) — rule 80 / 84.
+ *
+ * After login the user is already in memory, so we must not wait on persist
+ * or we flash an empty canvas before the dashboard paints.
  */
 export function HydrationSafe({
   children,
   fallback,
 }: HydrationSafeProps) {
   const hasHydrated = useUserStore((state) => state.hasHydrated);
+  const activeUser = useUserStore((state) => state.activeUser);
 
   useEffect(() => {
     const rehydrateAll = async () => {
@@ -38,7 +42,16 @@ export function HydrationSafe({
     void rehydrateAll();
   }, []);
 
-  if (hasHydrated) return <>{children}</>;
+  const sessionReady =
+    getRuntimeAuthBoot() === 'authenticated' || activeUser != null;
 
-  return <>{fallback ?? <DashboardAccessPlaceholder fullViewport />}</>;
+  if (hasHydrated || sessionReady) return <>{children}</>;
+
+  return (
+    <>
+      {fallback ?? (
+        <KvBrandLinearLoader fullViewport label="لطفا منتظر بمانید…" />
+      )}
+    </>
+  );
 }

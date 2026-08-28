@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import {
   KvDropdownMenu,
@@ -21,6 +20,7 @@ import { usePwaStandalone } from '@/hooks/usePwaInstall';
 import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
+import { beginLeavingApp, clearAuthTransition } from '@/store/authTransition';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
 import { faIcons } from '@/utils/iconMap';
@@ -83,11 +83,11 @@ export function UserAccountMenu({
       setIsLogoutDialogOpen(false);
       setAccountMenuOwner(null);
       onNavigate?.();
-      // اول store/cookie رو پاک کن، بعد navigate — در غیر این صورت
-      // store در حین soft-navigation خالی می‌شه و داشبورد flash می‌کنه
+      beginLeavingApp();
       await AuthService.logout();
       router.replace(RouteService.marketing.home());
     } catch {
+      clearAuthTransition();
       setLogoutError('خروج با خطا مواجه شد. لطفاً دوباره تلاش کنید.');
     } finally {
       setIsLoggingOut(false);
@@ -186,12 +186,6 @@ export function UserAccountMenu({
     </KvConfirmationDialog>
   );
 
-  const logoutTransition = isLoggingOut ? (
-    <div className="fixed inset-0 z-50">
-      <KvBrandLinearLoader fullViewport label="در حال خروج از حساب کاربری…" />
-    </div>
-  ) : null;
-
   if (variant === 'header') {
     return (
       <>
@@ -224,7 +218,6 @@ export function UserAccountMenu({
           {menu}
         </KvDropdownMenu>
         {logoutDialog}
-        {logoutTransition}
       </>
     );
   }
@@ -275,7 +268,6 @@ export function UserAccountMenu({
         {menu}
       </KvDropdownMenu>
       {logoutDialog}
-      {logoutTransition}
     </>
   );
 }

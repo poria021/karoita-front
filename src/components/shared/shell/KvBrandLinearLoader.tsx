@@ -14,12 +14,13 @@ interface KvBrandLinearLoaderProps {
 
 /**
  * Brand mark + indeterminate linear progress — auth-boundary transition
- * screen ONLY (login → dashboard, logout → marketing).
+ * screen ONLY (login → dashboard, logout → marketing, cold dashboard boot).
  *
- * Not for ordinary dashboard SPA loading: internal navigation/data busy
- * still follows rule 83/84 (`DashboardAccessPlaceholder`, `KvTableBusy`,
- * `KvBusySurface` — no full-page takeover for routine fetches). This
- * component intentionally stays quiet (canvas + brand mark, no atmosphere/
+ * Not for ordinary dashboard SPA loading: internal navigation between
+ * modules and tabs must keep the previous page until the next one paints
+ * (no `loading.tsx`, no full-page takeover). Data busy still follows
+ * rule 83/84 (`KvTableBusy`, `KvBusySurface`). This component
+ * intentionally stays quiet (canvas + brand mark, no atmosphere/
  * blueprint wash) per rule 90 — dashboard shell volume, not auth-loud.
  */
 export function KvBrandLinearLoader({

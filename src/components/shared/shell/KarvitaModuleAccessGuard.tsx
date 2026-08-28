@@ -54,7 +54,6 @@ export function KarvitaModuleAccessGuard({
   }, [redirectTo, router]);
 
   if (!activeUser || redirectTo) {
-    // Header/Sidebar already mounted by app layout — only blank main slot.
     return <DashboardAccessPlaceholder />;
   }
 
