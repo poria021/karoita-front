@@ -866,6 +866,31 @@ input[readonly]:-webkit-autofill {
 }
 
 /*
+ * Both classes on one node: keep the grid AND the brand wash.
+ * Separate rules each set `background-image`, so without this the later
+ * class would wipe the other (marketing shell, login select, loaders).
+ */
+.kv-brand-atmosphere.kv-blueprint-bg {
+  background-image:
+    linear-gradient(to right, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
+    radial-gradient(ellipse 110% 75% at 50% -15%, var(--kv-brand-soft), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 100% 100%, var(--kv-brand-soft-hover), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 0% 85%, var(--kv-brand-soft), transparent 50%);
+  background-size: 72px 72px, 72px 72px, auto, auto, auto;
+  background-position: center top, center top, 0 0, 0 0, 0 0;
+}
+
+.dark .kv-brand-atmosphere.kv-blueprint-bg {
+  background-image:
+    linear-gradient(to right, hsl(220 14% 70% / 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, hsl(220 14% 70% / 0.02) 1px, transparent 1px),
+    radial-gradient(ellipse 110% 75% at 50% -15%, var(--kv-brand-soft), transparent 58%),
+    radial-gradient(ellipse 55% 40% at 100% 100%, var(--kv-brand-soft-hover), transparent 55%),
+    radial-gradient(ellipse 45% 35% at 0% 85%, var(--kv-brand-soft), transparent 50%);
+}
+
+/*
  * Data flow animation for About section SVG lines.
  */
 @keyframes kv-data-flow {

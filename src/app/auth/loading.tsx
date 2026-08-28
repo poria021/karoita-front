@@ -4,7 +4,7 @@ import { AuthCardRouteFallback } from '@/features/shared/auth/components/AuthCar
 export default function AuthLoading() {
   return (
     <div
-      className="kv-blueprint-bg flex min-h-dvh w-full items-center justify-center p-kv-inset"
+      className="kv-brand-atmosphere kv-blueprint-bg flex min-h-dvh w-full items-center justify-center p-kv-inset"
       dir="rtl"
       aria-busy="true"
     >
