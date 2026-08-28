@@ -232,9 +232,9 @@ export function useOrgEntityForm({
   const roles: OrgRole[] = tab === 'majors' ? (rolesQuery.data ?? []) : [];
 
   /**
-   * True when an province is selected, the cities query has finished, and
-   * that province genuinely has no cities. Used by the city select in the
-   * districts tab to lock the field and make it optional.
+   * True when a province is selected, the cities query has finished, and
+   * that province genuinely has no cities. Used by the city select on
+   * district/school/faculty forms to lock the field.
    */
   const provinceHasNoCities =
     Boolean(provinceId) &&

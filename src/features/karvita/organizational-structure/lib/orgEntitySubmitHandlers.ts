@@ -23,7 +23,7 @@ const SUBMIT_HANDLERS: Record<OrgStructureSubTab, SubmitHandler> = {
       {
         name: values.name,
         provinceId: values.provinceId!,
-        cityId: values.cityId!,
+        ...(values.cityId ? { cityId: values.cityId } : {}),
       },
       editId
     );
@@ -45,8 +45,8 @@ const SUBMIT_HANDLERS: Record<OrgStructureSubTab, SubmitHandler> = {
       {
         name: values.name,
         provinceId: values.provinceId!,
-        cityId: values.cityId!,
-        districtId: values.districtId!,
+        ...(values.cityId ? { cityId: values.cityId } : {}),
+        ...(values.districtId ? { districtId: values.districtId } : {}),
         gender: values.gender!,
       },
       editId

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   cityFormSchema,
+  districtFormSchema,
+  facultyFormSchema,
   majorFormSchema,
   provinceFormSchema,
   schoolFormSchema,
@@ -26,15 +28,64 @@ describe('org-structure form schemas', () => {
     ).toBe(true);
   });
 
-  it('requires full school geo + gender', () => {
-    const missing = schoolFormSchema.safeParse({
+  it('requires province for a district; city is optional', () => {
+    expect(
+      districtFormSchema.safeParse({ name: 'ناحیه ۱', provinceId: '' }).success
+    ).toBe(false);
+    expect(
+      districtFormSchema.safeParse({ name: 'ناحیه ۱', provinceId: 'p1' }).success
+    ).toBe(true);
+    expect(
+      districtFormSchema.safeParse({
+        name: 'ناحیه ۱',
+        provinceId: 'p1',
+        cityId: 'c1',
+      }).success
+    ).toBe(true);
+  });
+
+  it('requires faculty province; city is optional', () => {
+    expect(
+      facultyFormSchema.safeParse({ name: 'پردیس مرکزی', provinceId: '' })
+        .success
+    ).toBe(false);
+    expect(
+      facultyFormSchema.safeParse({ name: 'پردیس مرکزی', provinceId: 'p1' })
+        .success
+    ).toBe(true);
+    expect(
+      facultyFormSchema.safeParse({
+        name: 'پردیس مرکزی',
+        provinceId: 'p1',
+        cityId: 'c1',
+      }).success
+    ).toBe(true);
+  });
+
+  it('requires school province and gender; city and district are optional', () => {
+    const missingProvince = schoolFormSchema.safeParse({
+      name: 'مدرسه نمونه',
+      provinceId: '',
+      gender: 'male',
+    });
+    expect(missingProvince.success).toBe(false);
+
+    const withoutCity = schoolFormSchema.safeParse({
+      name: 'مدرسه نمونه',
+      provinceId: 'p1',
+      cityId: '',
+      gender: 'male',
+    });
+    expect(withoutCity.success).toBe(true);
+
+    const withoutDistrict = schoolFormSchema.safeParse({
       name: 'مدرسه نمونه',
       provinceId: 'p1',
       cityId: 'c1',
       districtId: '',
       gender: 'male',
     });
-    expect(missing.success).toBe(false);
+    expect(withoutDistrict.success).toBe(true);
 
     const ok = schoolFormSchema.safeParse({
       name: 'مدرسه نمونه',

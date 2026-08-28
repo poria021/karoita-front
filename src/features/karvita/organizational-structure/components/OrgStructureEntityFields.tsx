@@ -33,8 +33,8 @@ interface OrgStructureEntityFieldsProps {
   namePlaceholder: string;
   /**
    * True when the selected province has no cities (query finished, result
-   * empty). In the districts tab this locks the city select and makes it
-   * optional so the user can still submit without picking a city.
+   * empty). Locks the city select on district/school/faculty forms so the
+   * user can still submit without picking a city.
    */
   provinceHasNoCities?: boolean;
 }
@@ -60,8 +60,9 @@ export function OrgStructureEntityFields({
   const needsCity =
     tab === 'faculties' || tab === 'districts' || tab === 'schools';
 
-  // In the districts tab, city is optional when the province has no cities.
-  const cityIsOptional = tab === 'districts' && provinceHasNoCities;
+  // شهر در دانشکده / منطقه / مدرسه همیشه اختیاری است — لیبل همه جا
+  // «شهر (اختیاری)». اگر استان شهری نداشته باشد فیلد قفل می‌شود.
+  const cityIsLocked = needsCity && provinceHasNoCities;
 
   return (
     <>
@@ -112,25 +113,24 @@ export function OrgStructureEntityFields({
             <KvSelectField
               id="org-entity-city"
               label="شهر"
-              required={!cityIsOptional}
-              optionalHint={cityIsOptional}
-              locked={cityIsOptional}
+              optionalHint
+              locked={cityIsLocked}
               hint={
-                cityIsOptional
+                cityIsLocked
                   ? 'این استان شهر ثبت‌شده‌ای ندارد.'
                   : undefined
               }
-              placeholder={cityIsOptional ? '—' : 'انتخاب شهر'}
-              value={cityIsOptional ? '' : (field.value || '')}
+              placeholder={cityIsLocked ? '—' : 'انتخاب شهر'}
+              value={cityIsLocked ? '' : (field.value || '')}
               onValueChange={
-                cityIsOptional
+                cityIsLocked
                   ? undefined
                   : (value) => {
                       field.onChange(value);
                       setValue('districtId', '');
                     }
               }
-              error={cityIsOptional ? undefined : errors.cityId?.message}
+              error={cityIsLocked ? undefined : errors.cityId?.message}
               contentClassName={SELECT_IN_DIALOG_Z}
             >
               {cities.map((c) => (
@@ -152,7 +152,7 @@ export function OrgStructureEntityFields({
               <KvSelectField
                 id="org-entity-district"
                 label="منطقه آموزشی"
-                required
+                optionalHint
                 placeholder="انتخاب منطقه"
                 value={field.value || ''}
                 onValueChange={field.onChange}

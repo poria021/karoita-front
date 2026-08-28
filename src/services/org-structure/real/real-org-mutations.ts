@@ -82,17 +82,18 @@ export async function upsertRealFaculty(
   input: UpsertFacultyInput,
   editId?: string
 ): Promise<void> {
+  const cityId = input.cityId || undefined;
   if (editId) {
     await adminCatalogApi.updateUniversity(editId, {
       title: input.name,
       provinceId: input.provinceId,
-      cityId: input.cityId,
+      ...(cityId ? { cityId } : {}),
     });
   } else {
     await adminCatalogApi.createUniversity({
       title: input.name,
       provinceId: input.provinceId,
-      cityId: input.cityId,
+      ...(cityId ? { cityId } : {}),
     });
   }
   // Hard-flush برای تضمین freshness — invalidate نرم (staleSince=0) کافی نیست
@@ -132,8 +133,8 @@ export async function upsertRealDistrict(
 /**
  * PUT /org-structure/schools — real: POST/PUT /api/admin/schools
  *
- * Nest CreateSchoolDto requires educationId. Confirmed live: GET rows still
- * nest `education: {}`, but the write DTO field is `educationId`.
+ * educationId اختیاری است — فقط وقتی منطقه انتخاب شده ارسال می‌شود تا
+ * API برای رشته خالی ۴۲۲ ندهد. GET همچنان `education: {}` برمی‌گرداند.
  */
 export async function upsertRealSchool(
   input: UpsertSchoolInput,
@@ -141,11 +142,13 @@ export async function upsertRealSchool(
 ): Promise<void> {
   // Nest gender enum: 'Boy' | 'Girl'
   const gender = input.gender === 'female' ? 'Girl' : 'Boy';
+  const cityId = input.cityId || undefined;
+  const educationId = input.districtId || undefined;
   const body = {
     title: input.name,
     provinceId: input.provinceId,
-    cityId: input.cityId,
-    educationId: input.districtId!,
+    ...(cityId ? { cityId } : {}),
+    ...(educationId ? { educationId } : {}),
     gender,
   };
   if (editId) {
@@ -153,7 +156,6 @@ export async function upsertRealSchool(
   } else {
     await adminCatalogApi.createSchool(body);
   }
-  // Hard-flush مدارس تا جدول بلافاصله داده تازه بگیره.
   flushBareListCache('schools');
 }
 

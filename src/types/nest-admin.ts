@@ -111,9 +111,10 @@ export type NestEducationalDistrict = {
 
 export type NestCreateSchoolDto = {
   provinceId: string;
-  cityId: string;
-  /** Required by live CreateSchoolDto. */
-  educationId: string;
+  /** Optional — omit when the school has no city. */
+  cityId?: string;
+  /** Optional on write — omit when the school has no educational district. */
+  educationId?: string;
   title: string;
   gender: string;
 };
@@ -221,7 +222,8 @@ export type NestDegreeByRole = {
 export type NestCreateUniversityDto = {
   title: string;
   provinceId: string;
-  cityId: string;
+  /** Optional — omit when the faculty has no city. */
+  cityId?: string;
 };
 
 export type NestUpdateUniversityDto = {

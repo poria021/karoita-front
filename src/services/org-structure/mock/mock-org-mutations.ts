@@ -23,7 +23,8 @@ export type UpsertCityInput = { name: string; provinceId: string };
 export type UpsertFacultyInput = {
   name: string;
   provinceId: string;
-  cityId: string;
+  /** Optional — same as district/school; omit when the faculty has no city. */
+  cityId?: string;
 };
 export type UpsertDistrictInput = {
   name: string;
@@ -34,8 +35,9 @@ export type UpsertDistrictInput = {
 export type UpsertSchoolInput = {
   name: string;
   provinceId: string;
-  cityId: string;
-  /** منطقه آموزشی — در real الزامی است (Nest educationId). */
+  /** Optional — same as district/faculty; omit when the school has no city. */
+  cityId?: string;
+  /** منطقه آموزشی اختیاری است. */
   districtId?: string;
   gender: OrgSchoolGender;
 };
@@ -183,7 +185,7 @@ export function mockUpsertFaculty(
             ...f,
             name,
             provinceId: input.provinceId,
-            cityId: input.cityId,
+            cityId: input.cityId ?? '',
           }
         : f
     );
@@ -192,7 +194,7 @@ export function mockUpsertFaculty(
       id: newId('fac'),
       name,
       provinceId: input.provinceId,
-      cityId: input.cityId,
+      cityId: input.cityId ?? '',
     });
   }
   writeOrgSnapshot(db);
@@ -251,7 +253,7 @@ export function mockUpsertSchool(
             ...s,
             name,
             provinceId: input.provinceId,
-            cityId: input.cityId,
+            cityId: input.cityId ?? '',
             districtId: input.districtId,
             gender: input.gender,
           }
@@ -262,7 +264,7 @@ export function mockUpsertSchool(
       id: newId('sch'),
       name,
       provinceId: input.provinceId,
-      cityId: input.cityId,
+      cityId: input.cityId ?? '',
       districtId: input.districtId,
       gender: input.gender,
     });
