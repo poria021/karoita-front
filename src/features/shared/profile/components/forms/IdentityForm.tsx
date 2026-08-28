@@ -40,12 +40,9 @@ const KvImageDocUploader = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="rounded-kv-panel border border-kv-border bg-kv-surface-muted/60 p-kv-group">
-        <div className="mb-kv-field h-5" />
-        <div
-          className={`${KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS} w-full rounded-kv-control border-2 border-dashed border-kv-border bg-kv-surface`}
-        />
-      </div>
+      <div
+        className={`${KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS} w-full rounded-kv-control border-2 border-dashed border-kv-border bg-kv-surface`}
+      />
     ),
   }
 );
@@ -251,12 +248,13 @@ export function IdentityForm({
                 disabled={locks.identityLocked}
                 optionalHint
                 compress={false}
+                framed={false}
+                previewFit="cover"
                 label={
                   locks.identityLocked
                     ? 'مدرک هویتی'
                     : 'بارگذاری مدرک هویتی'
                 }
-                labelIcon={<FaIcon icon={faIcons.cloudArrowUp} size="sm" />}
                 maxSizeMb={2}
                 helperText="PNG، JPG تا ۲ مگابایت"
                 previewAlt="پیش‌نمایش مدرک ارسالی"

@@ -66,6 +66,8 @@ export type KvImageDocUploaderProps = {
    * (label can still be shown via KvFieldFrame).
    */
   framed?: boolean;
+  /** How the existing/new image fills the preview surface. */
+  previewFit?: 'contain' | 'cover';
 };
 export function KvImageDocUploader({
   id: idProp,
@@ -88,6 +90,7 @@ export function KvImageDocUploader({
   invalidTypeMessage = 'فقط فایل‌های تصویری (JPEG، PNG) مجاز هستند.',
   compress = true,
   framed = true,
+  previewFit = 'contain',
 }: KvImageDocUploaderProps) {
   const generatedId = useId();
   const id = idProp ?? generatedId;
@@ -222,6 +225,13 @@ export function KvImageDocUploader({
   const isLocked = disabled;
   const showOptionalHint = optionalHint || isLocked;
 
+  const previewImageClass = cn(
+    'h-full w-full',
+    previewFit === 'cover'
+      ? 'absolute inset-0 object-cover'
+      : 'object-contain'
+  );
+
   const mediaSurfaceClass = cn(
     KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS,
     'relative w-full overflow-hidden rounded-kv-control'
@@ -342,7 +352,7 @@ export function KvImageDocUploader({
                       alt={previewAlt}
                       referrerPolicy="no-referrer"
                       onError={() => setPreviewFailed(true)}
-                      className="h-full w-full object-contain"
+                      className={previewImageClass}
                     />
                   </a>
                 ) : (
@@ -353,7 +363,7 @@ export function KvImageDocUploader({
                       alt={previewAlt}
                       referrerPolicy="no-referrer"
                       onError={() => setPreviewFailed(true)}
-                      className="h-full w-full object-contain"
+                      className={previewImageClass}
                     />
                   </div>
                 )}
