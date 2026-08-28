@@ -8,7 +8,7 @@ export function PublicNotFoundStatus() {
       kind="notFound"
       title="صفحه مورد نظر یافت نشد"
       description="نشانی واردشده در سامانه تعریف نشده یا منتقل گردیده است."
-      hint="می‌توانید به بخش مرتبط یا صفحه فرود بازگردید."
+      hint="می‌توانید به صفحه فرود بازگردید."
       actions={<PublicRouteStatusActions />}
     />
   );

@@ -1,13 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
 
-import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { AppRouteStatusActions } from '@/components/shared/route-status/AppRouteStatusActions';
 import { reportError } from '@/lib/observability/reportError';
-import { RouteService } from '@/services/route.service';
 
 interface AppErrorProps {
   error: Error & { digest?: string };
@@ -29,16 +26,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
       title="خطا در بارگذاری صفحه"
       description="در دریافت اطلاعات این بخش اختلالی رخ داده است."
       hint="لطفاً مجدداً تلاش کنید. در صورت تداوم مشکل به میز کار بازگردید."
-      actions={
-        <>
-          <AppRouteStatusActions onReset={reset} />
-          <KvButton asChild color="neutral" appearance="text">
-            <Link href={RouteService.auth.login()} prefetch={false}>
-              صفحه ورود
-            </Link>
-          </KvButton>
-        </>
-      }
+      actions={<AppRouteStatusActions onReset={reset} />}
     />
   );
 }

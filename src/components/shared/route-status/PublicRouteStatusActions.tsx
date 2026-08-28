@@ -3,16 +3,15 @@
 import Link from 'next/link';
 
 import { KvButton } from '@/components/shared/KvButton';
-import { KvRouteStatusNearestLink } from '@/components/shared/route-status/KvRouteStatusNearestLink';
 import { RouteService } from '@/services/route.service';
 
 type PublicRouteStatusActionsProps = {
-  /** When set, renders «تلاش مجدد» before nearest/landing (error boundaries). */
+  /** When set, renders «تلاش مجدد» before صفحه فرود (error boundaries). */
   onReset?: () => void;
 };
 
 /**
- * Public surface status CTAs: nearest (primary) + صفحه فرود (secondary).
+ * Public-surface status CTAs: retry (errors) + صفحه فرود.
  */
 export function PublicRouteStatusActions({
   onReset,
@@ -24,10 +23,9 @@ export function PublicRouteStatusActions({
           تلاش مجدد
         </KvButton>
       ) : null}
-      <KvRouteStatusNearestLink />
-      <KvButton asChild appearance="secondary">
+      <KvButton asChild appearance={onReset ? 'secondary' : 'solid'} color="cta">
         <Link href={RouteService.marketing.home()} prefetch={false}>
-          صفحه فرود
+          بازگشت به صفحه فرود
         </Link>
       </KvButton>
     </>

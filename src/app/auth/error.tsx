@@ -1,13 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import Link from 'next/link';
 
-import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
-import { KvRouteStatusNearestLink } from '@/components/shared/route-status/KvRouteStatusNearestLink';
+import { PublicRouteStatusActions } from '@/components/shared/route-status/PublicRouteStatusActions';
 import { reportError } from '@/lib/observability/reportError';
-import { RouteService } from '@/services/route.service';
 
 interface AuthErrorProps {
   error: Error & { digest?: string };
@@ -27,20 +24,8 @@ export default function AuthError({ error, reset }: AuthErrorProps) {
       kind="error"
       title="خطا در احراز هویت"
       description="بارگذاری این صفحه با اختلال مواجه شده است."
-      hint="لطفاً مجدداً تلاش کنید یا به صفحه ورود بازگردید."
-      actions={
-        <>
-          <KvButton type="button" color="cta" onClick={reset}>
-            تلاش مجدد
-          </KvButton>
-          <KvButton asChild appearance="secondary">
-            <Link href={RouteService.auth.login()} prefetch={false}>
-              صفحه ورود
-            </Link>
-          </KvButton>
-          <KvRouteStatusNearestLink color="neutral" appearance="text" />
-        </>
-      }
+      hint="لطفاً مجدداً تلاش کنید یا به صفحه فرود بازگردید."
+      actions={<PublicRouteStatusActions onReset={reset} />}
     />
   );
 }

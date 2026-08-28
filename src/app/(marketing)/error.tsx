@@ -24,7 +24,7 @@ export default function MarketingError({ error, reset }: MarketingErrorProps) {
       kind="error"
       title="خطا در بارگذاری صفحه"
       description="بارگذاری این صفحه با اختلال مواجه شده است."
-      hint="لطفاً مجدداً تلاش کنید یا به بخش مرتبط بازگردید."
+      hint="لطفاً مجدداً تلاش کنید یا به صفحه فرود بازگردید."
       actions={<PublicRouteStatusActions onReset={reset} />}
     />
   );

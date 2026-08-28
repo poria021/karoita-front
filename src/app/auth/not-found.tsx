@@ -7,7 +7,7 @@ export default function AuthNotFound() {
       kind="notFound"
       title="صفحه مورد نظر یافت نشد"
       description="این مسیر احراز هویت در سامانه تعریف نشده است."
-      hint="می‌توانید به نزدیک‌ترین مسیر احراز هویت یا صفحه فرود بازگردید."
+      hint="می‌توانید به صفحه فرود بازگردید."
       actions={<PublicRouteStatusActions />}
     />
   );

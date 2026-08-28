@@ -11,7 +11,7 @@ export default function AppNotFound() {
       layout="inset"
       title="صفحه مورد نظر یافت نشد"
       description="این مسیر در سامانه وجود ندارد یا امکان دسترسی به آن فراهم نیست."
-      hint="از منو یا میز کار مسیر صحیح را انتخاب نمایید."
+      hint="از منو مسیر صحیح را انتخاب نمایید یا به میز کار بازگردید."
       actions={<AppRouteStatusActions />}
     />
   );
