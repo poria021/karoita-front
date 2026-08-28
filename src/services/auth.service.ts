@@ -3,8 +3,14 @@ import {
   IS_MOCK_MODE,
   throwRealModeNotImplemented,
 } from '@/lib/api-mode';
+import {
+  keepLocalIdentityPreview,
+  retainSessionOrgFields,
+} from '@/services/auth/keep-local-identity-preview';
 import { MOCK_OTP_CODE } from '@/services/auth/mock/auth-mock-users';
+import { DEFAULT_FORGOT_RETRY_AFTER_SECONDS } from '@/services/auth/real/parse-forgot-retry-after';
 import type { Session, User, UserRole } from '@/types/auth';
+import type { NestAuthUpdateDto } from '@/types/nest-users';
 import { useUserStore } from '@/store/useUserStore';
 import {
   PASSWORD_MIN_LENGTH,
@@ -19,6 +25,7 @@ import {
   mockSendForgotPasswordOtp,
   mockSendLoginOtp,
   mockSetInitialPassword,
+  mockUpdateMe,
   mockVerifyAdminGateOtp,
   mockVerifyForgotPasswordOtp,
   mockVerifyLoginOtp,
@@ -37,7 +44,6 @@ import {
   realSendAdminGateOtp,
   realSendForgotPasswordOtp,
   realSendLoginOtp,
-  realSetInitialPassword,
   realSignOut,
   realUpdateMe,
   realVerifyAdminGateOtp,
@@ -45,6 +51,7 @@ import {
   realVerifyLoginOtp,
   realVerifyRegistrationOtp,
   realRefreshToken,
+  type ForgotPasswordOtpResult,
 } from '@/services/auth/real/real-auth.bridge';
 import {
   clearRealAuthTokens,
@@ -101,8 +108,13 @@ export class AuthService {
     return realVerifyRegistrationOtp(mobile, otp, role);
   }
 
-  static async sendForgotPasswordOtp(mobile: string): Promise<void> {
-    if (IS_MOCK_MODE) { mockSendForgotPasswordOtp(mobile); return; }
+  static async sendForgotPasswordOtp(
+    mobile: string
+  ): Promise<ForgotPasswordOtpResult> {
+    if (IS_MOCK_MODE) {
+      mockSendForgotPasswordOtp(mobile);
+      return { retryAfterSeconds: DEFAULT_FORGOT_RETRY_AFTER_SECONDS };
+    }
     return realSendForgotPasswordOtp(mobile);
   }
 
@@ -121,19 +133,18 @@ export class AuthService {
   static async setInitialPassword(mobile: string, newPassword: string): Promise<void> {
     if (newPassword.trim().length < PASSWORD_MIN_LENGTH) throw new Error(PASSWORD_MIN_LENGTH_MESSAGE);
     if (IS_MOCK_MODE) { mockSetInitialPassword(mobile, newPassword); return; }
-    return realSetInitialPassword(mobile, newPassword);
+    await AuthService.updateMe({ password: newPassword });
   }
 
-  static async updateMe(body: {
-    photo?: { id: string };
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    password?: string;
-    oldPassword?: string;
-  }): Promise<User> {
-    if (IS_MOCK_MODE) throwRealModeNotImplemented('AuthService.updateMe');
-    const user = await realUpdateMe(body);
+  static async updateMe(body: NestAuthUpdateDto): Promise<User> {
+    const previous = useUserStore.getState().activeUser;
+    const incoming = IS_MOCK_MODE
+      ? mockUpdateMe(body)
+      : await realUpdateMe(body);
+    const user = keepLocalIdentityPreview(
+      previous,
+      retainSessionOrgFields(previous, incoming)
+    );
     const peeked = AuthService.peekSession();
     if (peeked) dispatchSessionToStore({ ...peeked, user });
     return user;

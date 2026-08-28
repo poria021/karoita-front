@@ -1,6 +1,6 @@
 'use client';
 
-import { useWatch, type UseFormReturn } from 'react-hook-form';
+import { useWatch, type FieldValues, type Path, type UseFormReturn } from 'react-hook-form';
 import dynamic from 'next/dynamic';
 
 import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
@@ -13,22 +13,27 @@ const KvPasswordStrengthIndicator = dynamic(
   { ssr: false }
 );
 
-import type { SecurityPasswordSchema } from '../../schemas/security.schema';
+type PasswordPairValues = FieldValues & {
+  newPassword: string;
+  confirmPassword: string;
+};
 
-interface SecurityPasswordPairFieldsProps {
-  form: UseFormReturn<SecurityPasswordSchema>;
+interface SecurityPasswordPairFieldsProps<TFieldValues extends PasswordPairValues> {
+  form: UseFormReturn<TFieldValues>;
   disabled: boolean;
   confirmLabel?: string;
 }
 
-export function SecurityPasswordPairFields({
+export function SecurityPasswordPairFields<TFieldValues extends PasswordPairValues>({
   form,
   disabled,
   confirmLabel = 'تکرار رمز عبور',
-}: SecurityPasswordPairFieldsProps) {
+}: SecurityPasswordPairFieldsProps<TFieldValues>) {
+  const newPasswordName = 'newPassword' as Path<TFieldValues>;
+  const confirmPasswordName = 'confirmPassword' as Path<TFieldValues>;
   const watchedPassword = useWatch({
     control: form.control,
-    name: 'newPassword',
+    name: newPasswordName,
   });
 
   return (
@@ -38,17 +43,27 @@ export function SecurityPasswordPairFields({
         required
         autoComplete="new-password"
         locked={disabled}
-        error={form.formState.errors.newPassword?.message}
-        footer={<KvPasswordStrengthIndicator password={watchedPassword ?? ''} />}
-        {...form.register('newPassword')}
+        error={
+          typeof form.formState.errors.newPassword?.message === 'string'
+            ? form.formState.errors.newPassword.message
+            : undefined
+        }
+        footer={
+          <KvPasswordStrengthIndicator password={String(watchedPassword ?? '')} />
+        }
+        {...form.register(newPasswordName)}
       />
       <KvPasswordField
         label={confirmLabel}
         required
         autoComplete="new-password"
         locked={disabled}
-        error={form.formState.errors.confirmPassword?.message}
-        {...form.register('confirmPassword')}
+        error={
+          typeof form.formState.errors.confirmPassword?.message === 'string'
+            ? form.formState.errors.confirmPassword.message
+            : undefined
+        }
+        {...form.register(confirmPasswordName)}
       />
     </div>
   );

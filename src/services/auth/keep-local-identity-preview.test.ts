@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { keepLocalIdentityPreview } from './keep-local-identity-preview';
+import {
+  keepLocalIdentityPreview,
+  retainSessionOrgFields,
+} from './keep-local-identity-preview';
 import type { User } from '@/types/auth';
 
 const baseUser: User = {
@@ -32,5 +35,30 @@ describe('keepLocalIdentityPreview', () => {
     };
     const incoming = { ...baseUser, id: 'u2', docUrl: 'abc.jpg' };
     expect(keepLocalIdentityPreview(previous, incoming).docUrl).toBe('abc.jpg');
+  });
+});
+
+describe('retainSessionOrgFields', () => {
+  it('keeps previous org fields when PATCH /auth/me omits them', () => {
+    const previous = {
+      ...baseUser,
+      province: ['تهران'],
+      college: ['پردیس'],
+      major: 'آموزش',
+      studentId: '140210345',
+    };
+    const incoming = { ...baseUser, firstName: 'نیما' };
+    const merged = retainSessionOrgFields(previous, incoming);
+    expect(merged.firstName).toBe('نیما');
+    expect(merged.province).toEqual(['تهران']);
+    expect(merged.college).toEqual(['پردیس']);
+    expect(merged.major).toBe('آموزش');
+    expect(merged.studentId).toBe('140210345');
+  });
+
+  it('lets an explicit empty org array from the server win', () => {
+    const previous = { ...baseUser, province: ['تهران'] };
+    const incoming = { ...baseUser, province: [] };
+    expect(retainSessionOrgFields(previous, incoming).province).toEqual([]);
   });
 });

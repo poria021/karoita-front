@@ -1,5 +1,6 @@
 import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { apiClient, ApiClientError } from '@/services/api-client';
+import { parseForgotPasswordRetryAfter } from '@/services/auth/real/parse-forgot-retry-after';
 import {
   extractNestAdminLoginResponse,
   extractNestLoginResponse,
@@ -25,6 +26,7 @@ import {
 import { dispatchSessionToStore } from '@/services/auth/mock/mock-auth.store';
 import { useUserStore } from '@/store/useUserStore';
 import type { Session, User, UserRole } from '@/types/auth';
+import type { NestAuthUpdateDto } from '@/types/nest-users';
 
 /** surface جاری session را می‌خواند — در browser از cookie، خارج از browser 'user' */
 function currentSurface(): 'admin' | 'user' {
@@ -144,7 +146,14 @@ async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
     } catch (error) {
       lastError = error;
       // ۴xx: مشکل سمت کلاینت یا تغییر API — retry فایده ندارد
-      if (error instanceof ApiClientError && error.status >= 400 && error.status < 500) break;
+      if (
+        error instanceof ApiClientError &&
+        typeof error.status === 'number' &&
+        error.status >= 400 &&
+        error.status < 500
+      ) {
+        break;
+      }
     }
   }
 
@@ -206,11 +215,26 @@ export async function realVerifyRegistrationOtp(mobile: string, otp: string, _ro
   throw new ApiClientError('پاسخ تایید ثبت‌نام فاقد نشست/توکن است.');
 }
 
-export async function realSendForgotPasswordOtp(mobile: string): Promise<void> {
+export type ForgotPasswordOtpResult = {
+  retryAfterSeconds: number;
+};
+
+export async function realSendForgotPasswordOtp(
+  mobile: string
+): Promise<ForgotPasswordOtpResult> {
   guard('real-auth.bridge.forgotSend');
-  await apiClient.postJson(REAL_AUTH_PATHS.forgotSend, toPhoneBody(mobile));
+  const raw = await apiClient.postJson<unknown>(
+    REAL_AUTH_PATHS.forgotSend,
+    toPhoneBody(mobile)
+  );
+  return { retryAfterSeconds: parseForgotPasswordRetryAfter(raw) };
 }
 
+/**
+ * Nest has no standalone "verify forgot OTP" route. The OTP is checked on
+ * `POST /auth/reset/password`. This only rejects obviously empty/short codes
+ * so the reset step is not shown with a blank value.
+ */
 export async function realVerifyForgotPasswordOtp(mobile: string, otp: string): Promise<void> {
   guard('real-auth.bridge.forgotVerify');
   const { phone } = toPhoneBody(mobile);
@@ -220,13 +244,11 @@ export async function realVerifyForgotPasswordOtp(mobile: string, otp: string): 
 
 export async function realResetPassword(mobile: string, otp: string, newPassword: string): Promise<void> {
   guard('real-auth.bridge.forgotReset');
-  await apiClient.postJson(REAL_AUTH_PATHS.forgotReset, { ...toPhoneBody(mobile), otp, hash: otp, password: newPassword });
-}
-
-export async function realSetInitialPassword(mobile: string, newPassword: string): Promise<void> {
-  guard('real-auth.bridge.initialPassword');
-  void mobile;
-  await apiClient.patchJson(REAL_AUTH_PATHS.updateMe, { password: newPassword });
+  await apiClient.postMaybeJson(REAL_AUTH_PATHS.forgotReset, {
+    ...toPhoneBody(mobile),
+    otp,
+    password: newPassword,
+  });
 }
 
 export async function realSendAdminGateOtp(mobile: string): Promise<void> {
@@ -331,12 +353,24 @@ async function performRealRefresh(): Promise<Session | null> {
 }
 
 export async function realUpdateMe(
-  body: { photo?: { id: string }; firstName?: string; lastName?: string; email?: string; password?: string; oldPassword?: string },
+  body: NestAuthUpdateDto,
   token?: string
 ): Promise<User> {
   guard('real-auth.bridge.updateMe');
-  const raw = await apiClient.patchJson<unknown>(REAL_AUTH_PATHS.updateMe, body, token);
-  return mapNestAuthUser(raw, useUserStore.getState().activeUser?.mobile);
+  const fallbackMobile = useUserStore.getState().activeUser?.mobile;
+  const raw = await apiClient.patchMaybeJson<unknown>(
+    REAL_AUTH_PATHS.updateMe,
+    body,
+    token
+  );
+  if (raw) return mapNestAuthUser(raw, fallbackMobile);
+
+  const session = await realFetchSession(fallbackMobile, token);
+  if (session) return session.user;
+
+  throw new ApiClientError(
+    'به‌روزرسانی حساب انجام شد اما پاسخ کاربر از سرور دریافت نشد.'
+  );
 }
 
 export async function realDeleteMe(token?: string): Promise<void> {

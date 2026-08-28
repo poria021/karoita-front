@@ -18,9 +18,16 @@ export function useOtpCountdown(durationInSeconds: number = DEFAULT_OTP_COUNTDOW
     return () => window.clearTimeout(timeoutId);
   }, [secondsLeft]);
 
-  const restart = useCallback(() => {
-    setSecondsLeft(durationInSeconds);
-  }, [durationInSeconds]);
+  const restart = useCallback(
+    (seconds?: number) => {
+      const next =
+        typeof seconds === 'number' && Number.isFinite(seconds)
+          ? Math.max(0, Math.round(seconds))
+          : durationInSeconds;
+      setSecondsLeft(next);
+    },
+    [durationInSeconds]
+  );
 
   return {
     secondsLeft,

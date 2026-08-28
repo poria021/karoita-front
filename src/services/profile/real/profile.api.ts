@@ -109,9 +109,10 @@ function nestUserToProfileDto(raw: unknown): ProfileDto {
 /**
  * Nest profile transport — used by ProfileService when API_MODE=real.
  * GET   → /api/v1/auth/me    (returns NestUserDto)
- * PATCH → /api/v1/users/{id} (NestUpdateUserDto → NestUserDto) — see the
- *         comment inside the PUT branch below for why /api/v1/auth/me
- *         cannot be used for the org fields.
+ * Identity write (firstName/lastName/photo) → PATCH /api/v1/auth/me
+ *   is done in ProfileService.updateProfile via AuthService.updateMe.
+ * Org write → PATCH /api/v1/users/{id} (NestUpdateUserDto) — AuthUpdateDto
+ *   does not accept province/university/school/… and drops them silently.
  */
 export async function requestProfile(
   method: 'GET' | 'PUT',
@@ -139,20 +140,12 @@ export async function requestProfile(
       throw new ProfileServiceError('نشست کاربری یافت نشد. لطفاً دوباره وارد شوید.', 401);
     }
 
-    // ⚠️ PATCH /api/v1/auth/me (`NestAuthUpdateDto`) فقط firstName/lastName/
-    // email/password/photo را می‌پذیرد — فیلدهای سازمانی (استان، دانشکده،
-    // رشته، کد دانشجویی/مهارتی/پرسنلی، شهر، منطقه، مدرسه) در آن DTO تعریف
-    // نشده‌اند و بی‌صدا نادیده گرفته می‌شوند؛ این دقیقاً همان چیزی بود که
-    // باعث می‌شد بعد از logout/login مقادیر فرم گم شوند.
+    // هویت (نام، نام‌خانوادگی، عکس) با PATCH /api/v1/auth/me در
+    // ProfileService.updateProfile نوشته می‌شود.
     //
-    // تنها DTOیی که این فیلدها را می‌پذیرد `NestUpdateUserDto` است که با
-    // PATCH /api/v1/users/{id} کار می‌کند — همان مسیری که ادمین برای ایجاد
-    // حساب سازمانی استفاده می‌کند (بنگرید admin-user-creation.service.ts).
-    // این‌جا همان endpoint را برای «ذخیره‌ی پروفایل توسط خود کاربر» صدا
-    // می‌زنیم و شناسه‌ی کاربر را از session جاری می‌گیریم.
-    //
-    // نیاز به تست روی بک‌اند واقعی: مشخص نیست کاربر غیرادمین اجازه‌ی PATCH
-    // روی رکورد خودش را از این endpoint دارد یا نه (۴۰۳ ممکن است برگردد).
+    // ⚠️ PATCH /api/v1/auth/me (`NestAuthUpdateDto`) فیلدهای سازمانی
+    // (استان، دانشکده، رشته، کد، شهر، منطقه، مدرسه) را نمی‌پذیرد و بی‌صدا
+    // نادیده می‌گیرد. این‌ها فقط روی PATCH /api/v1/users/{id} ذخیره می‌شوند.
     const body = await buildNestUpdateUserBody(data, activeUser.docStatus, photoFileId);
     const raw = await usersApi.update(activeUser.id, body, token);
     // برای PUT، هم ProfileDto هم User کامل (با docUrl) رو برمیگردونیم

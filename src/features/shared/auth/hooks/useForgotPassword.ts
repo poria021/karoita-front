@@ -73,9 +73,11 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
       const isSameNumber = data.mobile === pendingForgotMobile && !countdown.canResend;
 
       if (!isSameNumber) {
-        await AuthService.sendForgotPasswordOtp(data.mobile);
+        const { retryAfterSeconds } = await AuthService.sendForgotPasswordOtp(
+          data.mobile
+        );
         setPendingForgotMobile(data.mobile);
-        countdown.restart();
+        countdown.restart(retryAfterSeconds);
       }
 
       setForgotStep(2);
@@ -104,8 +106,10 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
 
     setIsResendingForgotOtp(true);
     try {
-      await AuthService.sendForgotPasswordOtp(pendingForgotMobile);
-      countdown.restart();
+      const { retryAfterSeconds } = await AuthService.sendForgotPasswordOtp(
+        pendingForgotMobile
+      );
+      countdown.restart(retryAfterSeconds);
       forgotOtpForm.reset({ otp: '' });
     } catch (error) {
       forgotOtpForm.setError('otp', {

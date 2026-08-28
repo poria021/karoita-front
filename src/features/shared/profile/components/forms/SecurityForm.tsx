@@ -1,7 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { KvAlert } from '@/components/shared/KvAlert';
@@ -9,17 +10,17 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/fields/KvForm';
 import { AuthService } from '@/services/auth.service';
+import { forgotHref } from '@/features/shared/auth/lib/authHrefs';
+import { writeAuthFlowMobilePrefill } from '@/features/shared/auth/utils/authFlowMobilePrefill';
 
 import {
-  securityOtpSchema,
+  securityChangePasswordSchema,
   securityPasswordSchema,
-  type SecurityOtpSchema,
+  type SecurityChangePasswordSchema,
   type SecurityPasswordSchema,
 } from '../../schemas/security.schema';
 import { SecurityChangePasswordFlow } from './SecurityChangePasswordFlow';
 import { SecurityPasswordPairFields } from './SecurityPasswordPairFields';
-
-type PasswordStep = 'initial' | 'otp_pending' | 'new_password_pending';
 
 export interface SecurityFormProps {
   mobile: string;
@@ -34,19 +35,15 @@ export function SecurityForm({
   disabled = false,
   onPasswordRegistered,
 }: SecurityFormProps) {
-  const [hasExistingPassword, setHasExistingPassword] = useState(hasPassword);
-  const [passwordStep, setPasswordStep] = useState<PasswordStep>('initial');
+  const pathname = usePathname();
+  const [passwordJustRegistered, setPasswordJustRegistered] = useState(false);
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error' | 'info';
     message: string;
   } | null>(null);
   const [isBusy, setIsBusy] = useState(false);
 
-  // سینک با prop والد بعد از رندر (نه در بدنهٔ رندر) — هم‌راستا با الگوی
-  // sync دیگر فرم‌های این ماژول (مثلاً IdentityForm).
-  useEffect(() => {
-    setHasExistingPassword(hasPassword);
-  }, [hasPassword]);
+  const hasExistingPassword = hasPassword || passwordJustRegistered;
 
   const passwordForm = useForm<SecurityPasswordSchema>({
     resolver: zodResolver(securityPasswordSchema),
@@ -55,27 +52,22 @@ export function SecurityForm({
     reValidateMode: 'onChange',
   });
 
-  const otpForm = useForm<SecurityOtpSchema>({
-    resolver: zodResolver(securityOtpSchema),
-    defaultValues: { otp: '' },
+  const changeForm = useForm<SecurityChangePasswordSchema>({
+    resolver: zodResolver(securityChangePasswordSchema),
+    defaultValues: { oldPassword: '', newPassword: '', confirmPassword: '' },
     mode: 'onSubmit',
     reValidateMode: 'onChange',
   });
 
   const isDisabled = disabled || isBusy;
 
-  const resetPasswordFields = () => {
-    passwordForm.reset({ newPassword: '', confirmPassword: '' });
-  };
-
   const saveFirstTimePassword = passwordForm.handleSubmit(async (data) => {
     setFeedback(null);
     setIsBusy(true);
     try {
       await AuthService.setInitialPassword(mobile, data.newPassword);
-      setHasExistingPassword(true);
-      setPasswordStep('initial');
-      resetPasswordFields();
+      setPasswordJustRegistered(true);
+      passwordForm.reset({ newPassword: '', confirmPassword: '' });
       setFeedback({ type: 'success', message: 'رمز عبور اولیه شما ثبت شد.' });
       onPasswordRegistered?.();
     } catch (error) {
@@ -90,59 +82,25 @@ export function SecurityForm({
     }
   });
 
-  const requestPasswordChangeOtp = async () => {
+  const saveChangedPassword = changeForm.handleSubmit(async (data) => {
     setFeedback(null);
     setIsBusy(true);
     try {
-      await AuthService.sendForgotPasswordOtp(mobile);
-      otpForm.reset({ otp: '' });
-      setPasswordStep('otp_pending');
-    } catch (error) {
-      setFeedback({
-        type: 'error',
-        message:
-          error instanceof Error ? error.message : 'ارسال کد تایید ناموفق بود.',
+      await AuthService.updateMe({
+        oldPassword: data.oldPassword,
+        password: data.newPassword,
       });
-    } finally {
-      setIsBusy(false);
-    }
-  };
-
-  const verifyPasswordOtp = otpForm.handleSubmit(async (data) => {
-    setFeedback(null);
-    setIsBusy(true);
-    try {
-      await AuthService.verifyForgotPasswordOtp(mobile, data.otp);
-      setPasswordStep('new_password_pending');
-      resetPasswordFields();
-    } catch (error) {
-      otpForm.setError('otp', {
-        message:
-          error instanceof Error ? error.message : 'کد تایید معتبر نیست.',
+      changeForm.reset({
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: '',
       });
-    } finally {
-      setIsBusy(false);
-    }
-  });
-
-  const saveNewPasswordWithOtp = passwordForm.handleSubmit(async (data) => {
-    setFeedback(null);
-    setIsBusy(true);
-    try {
-      await AuthService.resetPassword(
-        mobile,
-        otpForm.getValues('otp'),
-        data.newPassword
-      );
-      setPasswordStep('initial');
-      resetPasswordFields();
-      otpForm.reset({ otp: '' });
       setFeedback({
         type: 'success',
         message: 'رمز عبور با موفقیت به‌روزرسانی شد.',
       });
     } catch (error) {
-      passwordForm.setError('newPassword', {
+      changeForm.setError('oldPassword', {
         message:
           error instanceof Error
             ? error.message
@@ -152,13 +110,6 @@ export function SecurityForm({
       setIsBusy(false);
     }
   });
-
-  const cancelPasswordChangeProcess = () => {
-    setPasswordStep('initial');
-    resetPasswordFields();
-    otpForm.reset({ otp: '' });
-    setFeedback(null);
-  };
 
   return (
     <KvCard
@@ -197,15 +148,12 @@ export function SecurityForm({
           </KvForm>
         ) : (
           <SecurityChangePasswordFlow
-            passwordStep={passwordStep}
-            passwordForm={passwordForm}
-            otpForm={otpForm}
+            changeForm={changeForm}
             isBusy={isBusy}
             isDisabled={isDisabled}
-            onRequestOtp={requestPasswordChangeOtp}
-            onVerifyOtp={verifyPasswordOtp}
-            onSaveNewPassword={saveNewPasswordWithOtp}
-            onCancel={cancelPasswordChangeProcess}
+            forgotHref={forgotHref({ returnUrl: pathname })}
+            onPrepareForgot={() => writeAuthFlowMobilePrefill(mobile)}
+            onSubmit={saveChangedPassword}
           />
         )}
 

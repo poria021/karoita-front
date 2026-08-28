@@ -1,5 +1,6 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { ApiClientError } from '@/services/api-client';
+import { AuthService } from '@/services/auth.service';
 import {
   patchMockAuthUser,
   toPublicUser,
@@ -127,6 +128,11 @@ export class ProfileService {
       const validatedData = parseProfile(data);
 
       if (!isMockApiMode()) {
+        await AuthService.updateMe({
+          firstName: validatedData.firstName,
+          lastName: validatedData.lastName,
+          ...(photoFileId ? { photo: { id: photoFileId } } : {}),
+        });
         const { profileDto: payload, nestUser } = await requestProfile('PUT', token, validatedData, photoFileId);
         const serverMessage = extractApiMessage(payload);
         const activeUser = useUserStore.getState().activeUser;

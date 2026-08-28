@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
   PASSWORD_LATIN_ONLY_HINT,
   PASSWORD_MIN_LENGTH,
@@ -28,16 +27,23 @@ export const securityPasswordSchema = z
 
 export type SecurityPasswordSchema = z.infer<typeof securityPasswordSchema>;
 
-export const securityOtpSchema = z.object({
-  otp: z
-    .string('کد تایید الزامی است.')
-    .transform((value) => persianToEnglishDigits(value).trim())
-    .pipe(
-      z
-        .string()
-        .min(1, 'کد تایید الزامی است.')
-        .length(5, 'کد تایید باید ۵ رقم باشد.')
-    ),
-});
+export const securityChangePasswordSchema = z
+  .object({
+    oldPassword: z
+      .string('رمز عبور فعلی الزامی است.')
+      .min(1, 'رمز عبور فعلی الزامی است.'),
+    newPassword: securityPasswordField,
+    confirmPassword: securityPasswordField,
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'رمزها همخوانی ندارند.',
+    path: ['confirmPassword'],
+  })
+  .refine((data) => data.oldPassword !== data.newPassword, {
+    message: 'رمز جدید باید با رمز فعلی متفاوت باشد.',
+    path: ['newPassword'],
+  });
 
-export type SecurityOtpSchema = z.infer<typeof securityOtpSchema>;
+export type SecurityChangePasswordSchema = z.infer<
+  typeof securityChangePasswordSchema
+>;

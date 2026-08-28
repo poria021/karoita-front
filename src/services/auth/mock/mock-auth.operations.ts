@@ -6,18 +6,23 @@ import {
 } from '@/services/auth/mock/auth-mock-users';
 import { useUserStore } from '@/store/useUserStore';
 import type { User, UserRole } from '@/types/auth';
+import type { NestAuthUpdateDto } from '@/types/nest-users';
 import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import {
   AUTH_ERR_ADMIN_GATE_ONLY,
+  AUTH_ERR_OLD_PASSWORD_WRONG,
   AUTH_ERR_PUBLIC_AUTH_ADMIN_BLOCKED,
+  AUTH_ERR_SESSION_REQUIRED,
   AUTH_ERR_USER_NOT_FOUND,
 } from '@/services/auth/real/auth-error-messages';
 import {
   buildMockSession,
   dispatchSessionToStore,
+  findMockUserById,
   findMockUserByMobile,
   mockMobileExists,
+  patchMockAuthUser,
   readMockUsers,
   toPublicUser,
   writeMockUsers,
@@ -170,4 +175,34 @@ export function mockSetInitialPassword(
   newPassword: string
 ): void {
   updateUserPassword(mobile, newPassword);
+}
+
+export function mockUpdateMe(body: NestAuthUpdateDto): User {
+  assertMockApiMode();
+  const activeUser = useUserStore.getState().activeUser;
+  if (!activeUser) {
+    throw new Error(AUTH_ERR_SESSION_REQUIRED);
+  }
+
+  const record = findMockUserById(activeUser.id);
+  if (!record) {
+    throw new Error(AUTH_ERR_USER_NOT_FOUND);
+  }
+
+  if (body.password && record.hasPassword && body.oldPassword !== record.password) {
+    throw new Error(AUTH_ERR_OLD_PASSWORD_WRONG);
+  }
+
+  const updated = patchMockAuthUser(
+    { id: record.id },
+    {
+      ...(typeof body.firstName === 'string' ? { firstName: body.firstName } : {}),
+      ...(typeof body.lastName === 'string' ? { lastName: body.lastName } : {}),
+      ...(body.password
+        ? { password: body.password, hasPassword: true }
+        : {}),
+    }
+  );
+
+  return toPublicUser(updated);
 }
