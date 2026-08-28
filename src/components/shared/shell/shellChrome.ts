@@ -25,3 +25,6 @@ export const kvShellHeaderPadXClassName =
 
 /** Shared product footer hairline — dashboard main + auth cards. */
 export const kvProductFooterBorderClassName = 'border-t border-kv-border';
+
+/** Separator under the tab track, on the content body. */
+export const kvTabsBodyBorderClassName = 'border-t border-kv-border';

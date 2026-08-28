@@ -4,7 +4,9 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
+import { kvTabsBodyBorderClassName } from '@/components/shared/shell/shellChrome';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
+import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
 import { useOrganizationalCapacitiesPage } from '../hooks/useOrganizationalCapacitiesPage';
@@ -26,7 +28,12 @@ export function OrganizationalCapacitiesPageClient() {
           onKindChange={page.changeKind}
         />
 
-        <div className="space-y-kv-group border-t border-kv-border py-kv-group">
+        <div
+          className={cn(
+            'space-y-kv-group py-kv-group',
+            kvTabsBodyBorderClassName
+          )}
+        >
           {page.error ? (
             <KvAlert
               variant="error"

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { KvCard } from '@/components/shared/KvCard';
+import { kvTabsBodyBorderClassName } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 
 export type KvWorkspaceProps = {
@@ -52,7 +53,7 @@ export function KvWorkspace({
         data-slot="kv-workspace-body"
         className={cn(
           'flex flex-col gap-kv-group',
-          tabs && 'border-t border-kv-border py-kv-group'
+          tabs && cn(kvTabsBodyBorderClassName, 'py-kv-group')
         )}
       >
         {body}

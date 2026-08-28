@@ -11,7 +11,9 @@ import {
 } from '@/components/shared/AppTabs';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
+import { kvTabsBodyBorderClassName } from '@/components/shared/shell/shellChrome';
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
@@ -177,14 +179,14 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
 
           <AppTabsContent
             value="identity"
-            className="mt-0 border-t border-kv-border py-kv-group"
+            className={cn('mt-0 py-kv-group', kvTabsBodyBorderClassName)}
           >
             {identityForm}
           </AppTabsContent>
 
           <AppTabsContent
             value="security"
-            className="mt-0 border-t border-kv-border py-kv-group"
+            className={cn('mt-0 py-kv-group', kvTabsBodyBorderClassName)}
           >
             <SecurityForm
               mobile={activeUser.mobile}

@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 
+import { kvTabsBodyBorderClassName } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 
 export type KvSplitWorkspaceRatio = '5/7' | '6/6' | '4/8';
@@ -65,7 +66,7 @@ export function KvSplitWorkspace({
       <div
         className={cn(
           'space-y-kv-group',
-          tabs && 'border-t border-kv-border py-kv-group'
+          tabs && cn(kvTabsBodyBorderClassName, 'py-kv-group')
         )}
         data-slot="kv-split-workspace-body"
       >

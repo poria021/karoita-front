@@ -57,14 +57,13 @@ const LIST_HUG = [
 const LIST_STRETCH = 'w-full self-stretch justify-stretch';
 
 const TRIGGER_BASE = [
-  'inline-flex min-w-0 items-center justify-center rounded-kv-control',
-  // Idle hairline — much fainter in dark so inactive pills stay quiet.
-  'border border-kv-border-muted bg-transparent',
+  'inline-flex min-w-0 shrink-0 items-center justify-center rounded-kv-control',
+  'box-border border border-kv-border-muted bg-transparent',
   'dark:border-kv-border/25',
-  // Match page chrome (label/nav/body = text-xs); weight steps up when active.
-  'font-sans text-xs font-medium leading-none text-kv-text-subtle shadow-none outline-none transition-all',
+  // Weight stays bold so active/idle cannot resize the pill or hug track.
+  'font-sans text-xs font-bold leading-none text-kv-text-subtle shadow-none outline-none',
+  'transition-[color,background-color,border-color,box-shadow]',
   'hover:text-kv-text',
-  'data-[state=active]:font-bold',
   'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
   'disabled:cursor-not-allowed disabled:opacity-50',
   '[&_svg]:pointer-events-none [&_svg]:shrink-0',
