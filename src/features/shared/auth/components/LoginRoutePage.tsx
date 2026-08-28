@@ -1,7 +1,5 @@
-import { Suspense } from 'react';
-
-import { AuthCardRouteFallback } from '@/features/shared/auth/components/AuthCardRouteFallback';
 import { AuthCard } from '@/features/shared/auth/components/AuthCard';
+import { AuthPageShell } from '@/features/shared/auth/components/AuthPageShell';
 import {
   redirectLoginToAdminGate,
   shouldRedirectLoginToAdminGate,
@@ -21,13 +19,8 @@ export default async function LoginRoutePage({
   }
 
   return (
-    <main
-      className="kv-blueprint-bg flex min-h-dvh w-full items-center justify-center p-kv-inset"
-      dir="rtl"
-    >
-      <Suspense fallback={<AuthCardRouteFallback />}>
-        <AuthCard defaultTab="login" />
-      </Suspense>
-    </main>
+    <AuthPageShell>
+      <AuthCard surface="login" />
+    </AuthPageShell>
   );
 }

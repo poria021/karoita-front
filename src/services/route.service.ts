@@ -79,6 +79,7 @@ export const RouteService = {
   auth: {
     login: (): string => `${AUTH_BASE}/login`,
     register: (): string => `${AUTH_BASE}/register`,
+    forgot: (): string => `${AUTH_BASE}/forgot`,
     adminGate: (): string => `${AUTH_BASE}/admin-gate`,
     isAuthPath,
   },

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 import {
   AppTabs,
-  AppTabsContent,
   AppTabsList,
   AppTabsTrigger,
 } from '@/components/shared/AppTabs';
@@ -12,83 +12,99 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import {
   kvProductFooterBorderClassName,
 } from '@/components/shared/shell/shellChrome';
+import { RETURN_URL_PARAM } from '@/lib/return-url';
 import { cn } from '@/lib/utils';
 
-import { useLoginForm } from '../hooks/useLoginForm';
+import { useLoginForm, type LoginMode } from '../hooks/useLoginForm';
+import {
+  loginHref,
+  registerHref,
+  type AuthCardSurface,
+} from '../lib/authHrefs';
 import { AuthLogo } from './AuthLogo';
+import { ForgotForm } from './ForgotForm';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
 
 interface AuthCardProps {
-  defaultTab?: 'register' | 'login';
+  surface: AuthCardSurface;
 }
 
-type AuthCardTab = 'register' | 'login';
-
-function getLoginTabLabel(
-  activeTab: AuthCardTab,
-  loginMode: 'password' | 'otp' | 'forgot'
-): string {
-  if (activeTab !== 'login') return 'ورود';
+function loginTabLabel(surface: AuthCardSurface, loginMode: LoginMode) {
+  if (surface !== 'login') return 'ورود';
   if (loginMode === 'otp') return 'ورود با رمز یکبار مصرف';
   return 'ورود با رمز عبور';
 }
 
-export function AuthCard({ defaultTab = 'register' }: AuthCardProps) {
-  const [activeTab, setActiveTab] = useState<AuthCardTab>(defaultTab);
+function AuthSurfaceTabs({
+  surface,
+  loginMode = 'password',
+}: {
+  surface: 'login' | 'register';
+  loginMode?: LoginMode;
+}) {
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams.get(RETURN_URL_PARAM);
+
+  return (
+    <AppTabs fullWidth activeTone="surface" value={surface} className="gap-kv-group">
+      <AppTabsList>
+        <AppTabsTrigger value="register" asChild>
+          <Link
+            href={registerHref({ returnUrl })}
+            replace
+            scroll={false}
+            prefetch={false}
+          >
+            ثبت نام
+          </Link>
+        </AppTabsTrigger>
+        <AppTabsTrigger value="login" asChild>
+          <Link
+            href={loginHref({ returnUrl })}
+            replace
+            scroll={false}
+            prefetch={false}
+          >
+            {loginTabLabel(surface, loginMode)}
+          </Link>
+        </AppTabsTrigger>
+      </AppTabsList>
+    </AppTabs>
+  );
+}
+
+function LoginPanel() {
   const login = useLoginForm();
+  return (
+    <div className="flex flex-col gap-kv-group">
+      <AuthSurfaceTabs surface="login" loginMode={login.mode} />
+      <LoginForm login={login} />
+    </div>
+  );
+}
 
-  const isForgotMode = login.mode === 'forgot';
+function RegisterPanel() {
+  return (
+    <div className="flex flex-col gap-kv-group">
+      <AuthSurfaceTabs surface="register" />
+      <RegisterForm />
+    </div>
+  );
+}
 
+export function AuthCard({ surface }: AuthCardProps) {
   return (
     <div className="kv-auth-enter mt-kv-section w-full max-w-[450px] overflow-hidden rounded-kv-card border border-kv-border/80 bg-kv-surface shadow-kv-overlay">
       <div className="px-kv-inset py-kv-group sm:px-kv-page sm:py-kv-section">
         <AuthLogo subtitle="سامانه هوشمند کارورزی و کارآموزی" />
 
-        {isForgotMode ? (
-          <LoginForm login={login} />
+        {surface === 'forgot' ? (
+          <ForgotForm />
+        ) : surface === 'register' ? (
+          <RegisterPanel />
         ) : (
-          <AppTabs
-            fullWidth
-            activeTone="surface"
-            value={activeTab}
-            onValueChange={(value) => setActiveTab(value as AuthCardTab)}
-            className="gap-kv-group"
-          >
-            <AppTabsList>
-              <AppTabsTrigger value="register">ثبت نام</AppTabsTrigger>
-              <AppTabsTrigger value="login">
-                {getLoginTabLabel(activeTab, login.mode)}
-              </AppTabsTrigger>
-            </AppTabsList>
-
-            {/* 
-              فقط tab فعال در DOM نگه داشته می‌شه تا:
-              1. ID های form field ها duplicate نشن (مرورگر warning نده)
-              2. حافظه و re-render کاهش پیدا کنه
-              
-              unmountOnHide روی TabsContent از Radix این کار رو می‌کنه.
-              وقتی tab تغییر می‌کنه، form state ری‌ست می‌شه — این رفتار مطلوبه
-              چون کاربر نباید اطلاعات tab دیگه رو ببینه.
-            */}
-            <AppTabsContent
-              value="register"
-              className="pb-kv-group duration-300 animate-in fade-in"
-              // فقط tab فعال mount بشه — جلوگیری از duplicate form field IDs
-              forceMount={activeTab === 'register' ? true : undefined}
-              hidden={activeTab !== 'register'}
-            >
-              {activeTab === 'register' && <RegisterForm />}
-            </AppTabsContent>
-            <AppTabsContent
-              value="login"
-              className="pb-kv-group duration-300 animate-in fade-in"
-              forceMount={activeTab === 'login' ? true : undefined}
-              hidden={activeTab !== 'login'}
-            >
-              {activeTab === 'login' && <LoginForm login={login} />}
-            </AppTabsContent>
-          </AppTabs>
+          <LoginPanel />
         )}
 
         <div

@@ -3,22 +3,22 @@
 import { KvButton } from '@/components/shared/KvButton';
 import { KvPasswordField } from '@/components/shared/fields/KvPasswordField';
 
-import type { UseLoginFormReturn } from '../hooks/useLoginForm';
+import type { UseForgotPasswordReturn } from '../hooks/useForgotPassword';
 import { AuthStepHeading } from './AuthStepHeading';
 import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 
 interface ForgotResetStepProps {
-  login: UseLoginFormReturn;
+  forgot: UseForgotPasswordReturn;
 }
 
-export function ForgotResetStep({ login }: ForgotResetStepProps) {
+export function ForgotResetStep({ forgot }: ForgotResetStepProps) {
   const {
     forgotResetForm,
     submitResetPassword,
     isSubmittingResetPassword,
     goBackToForgotStep2,
-  } = login;
+  } = forgot;
   const { register, formState } = forgotResetForm;
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import type { UseLoginFormReturn } from '../hooks/useLoginForm';
+import type { UseForgotPasswordReturn } from '../hooks/useForgotPassword';
 import { AuthStepHeading } from './AuthStepHeading';
 import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
@@ -8,10 +8,10 @@ import { OtpCodeField } from './fields/OtpCodeField';
 import { OtpResendFooter } from './fields/OtpResendFooter';
 
 interface ForgotVerifyStepProps {
-  login: UseLoginFormReturn;
+  forgot: UseForgotPasswordReturn;
 }
 
-export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
+export function ForgotVerifyStep({ forgot }: ForgotVerifyStepProps) {
   const {
     forgotOtpForm,
     verifyForgotOtp,
@@ -21,7 +21,7 @@ export function ForgotVerifyStep({ login }: ForgotVerifyStepProps) {
     isResendingForgotOtp,
     secondsUntilForgotResend,
     canResendForgotOtp,
-  } = login;
+  } = forgot;
   const { register, formState, watch } = forgotOtpForm;
 
   return (

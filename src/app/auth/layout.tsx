@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 /**
- * Auth layout — wrapper for /auth/* routes (login, register, admin-gate).
+ * Auth layout — wrapper for /auth/* routes (login, register, forgot, admin-gate).
  *
  * The Vazirmatn font variable (`--font-vazirmatn`) is already applied on
  * <body> inside the root layout (`src/app/layout.tsx`). Re-applying it here

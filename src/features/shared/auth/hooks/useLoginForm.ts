@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { RETURN_URL_PARAM } from '@/lib/return-url';
@@ -6,38 +6,39 @@ import { resolvePostAuthPath } from '@/services/post-login-path';
 import { beginEnteringApp } from '@/store/authTransition';
 import { useUserStore } from '@/store/useUserStore';
 
-import { usePasswordLogin } from './usePasswordLogin';
+import { forgotHref } from '../lib/authHrefs';
+import {
+  consumeAuthFlowMobilePrefill,
+  writeAuthFlowMobilePrefill,
+} from '../utils/authFlowMobilePrefill';
 import { useOtpLogin } from './useOtpLogin';
-import { useForgotPassword, type ForgotStep } from './useForgotPassword';
+import { usePasswordLogin } from './usePasswordLogin';
 
-export type LoginMode = 'password' | 'otp' | 'forgot';
-export type { ForgotStep };
+export type LoginMode = 'password' | 'otp';
 
 export function useLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
+  const returnUrl = searchParams.get(RETURN_URL_PARAM);
   const [mode, setMode] = useState<LoginMode>('password');
 
   const goAfterLogin = useCallback(() => {
     const user = useUserStore.getState().activeUser;
-    const rawReturn = searchParams.get(RETURN_URL_PARAM);
     beginEnteringApp();
-    router.replace(resolvePostAuthPath(user, rawReturn));
-  }, [router, searchParams]);
+    router.replace(resolvePostAuthPath(user, returnUrl));
+  }, [returnUrl, router]);
 
   const password = usePasswordLogin({ onSuccess: goAfterLogin });
   const otp = useOtpLogin({ onSuccess: goAfterLogin });
-  const forgot = useForgotPassword({
-    onComplete: (recoveredMobile) => {
-      password.passwordForm.reset({
-        mobile: recoveredMobile,
-        password: '',
-        remember: false,
-      });
-      setMode('password');
-    },
-  });
+  const [prefill] = useState(() => consumeAuthFlowMobilePrefill());
+
+  useEffect(() => {
+    if (!prefill) return;
+    password.passwordForm.setValue('mobile', prefill, {
+      shouldDirty: false,
+      shouldValidate: false,
+    });
+  }, [prefill, password.passwordForm]);
 
   const switchToPasswordMode = useCallback(() => {
     setMode('password');
@@ -46,21 +47,18 @@ export function useLoginForm() {
   const switchToOtpMode = useCallback(() => {
     otp.start(password.passwordForm.getValues('mobile'));
     setMode('otp');
-  }, [otp, password.passwordForm]);
+  }, [otp.start, password.passwordForm]);
 
-  const switchToForgotMode = useCallback(() => {
-    forgot.start(password.passwordForm.getValues('mobile'));
-    setMode('forgot');
-  }, [forgot, password.passwordForm]);
-
-  const cancelForgotMode = useCallback(() => {
-    setMode('password');
-  }, []);
+  const prepareForgot = useCallback(() => {
+    writeAuthFlowMobilePrefill(password.passwordForm.getValues('mobile'));
+  }, [password.passwordForm]);
 
   return {
     mode,
     switchToOtpMode,
     switchToPasswordMode,
+    prepareForgot,
+    forgotHref: forgotHref({ returnUrl }),
 
     passwordForm: password.passwordForm,
     submitPassword: password.submitPassword,
@@ -81,30 +79,6 @@ export function useLoginForm() {
     isResendingOtp: otp.isResendingOtp,
     secondsUntilResend: otp.secondsUntilResend,
     canResendOtp: otp.canResendOtp,
-
-    switchToForgotMode,
-    cancelForgotMode,
-    goBackToForgotStep1: forgot.goBackToForgotStep1,
-    goBackToForgotStep2: forgot.goBackToForgotStep2,
-
-    forgotStep: forgot.forgotStep,
-    pendingForgotMobile: forgot.pendingForgotMobile,
-    forgotMobileForm: forgot.forgotMobileForm,
-    sendForgotOtp: forgot.sendForgotOtp,
-    isSendingForgotOtp: forgot.isSendingForgotOtp,
-
-    forgotOtpForm: forgot.forgotOtpForm,
-    verifyForgotOtp: forgot.verifyForgotOtp,
-    isVerifyingForgotOtp: forgot.isVerifyingForgotOtp,
-
-    resendForgotOtp: forgot.resendForgotOtp,
-    isResendingForgotOtp: forgot.isResendingForgotOtp,
-    secondsUntilForgotResend: forgot.secondsUntilForgotResend,
-    canResendForgotOtp: forgot.canResendForgotOtp,
-
-    forgotResetForm: forgot.forgotResetForm,
-    submitResetPassword: forgot.submitResetPassword,
-    isSubmittingResetPassword: forgot.isSubmittingResetPassword,
   };
 }
 

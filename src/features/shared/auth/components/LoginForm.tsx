@@ -1,9 +1,6 @@
 'use client';
 
 import type { UseLoginFormReturn } from '../hooks/useLoginForm';
-import { ForgotRequestStep } from './ForgotRequestStep';
-import { ForgotResetStep } from './ForgotResetStep';
-import { ForgotVerifyStep } from './ForgotVerifyStep';
 import { LoginOtpRequestStep } from './LoginOtpRequestStep';
 import { LoginOtpVerifyStep } from './LoginOtpVerifyStep';
 import { LoginPasswordStep } from './LoginPasswordStep';
@@ -16,11 +13,12 @@ export function LoginForm({ login }: LoginFormProps) {
   return (
     <div className="flex flex-col gap-kv-group">
       {login.mode === 'password' && <LoginPasswordStep login={login} />}
-      {login.mode === 'otp' && login.otpStep === 1 && <LoginOtpRequestStep login={login} />}
-      {login.mode === 'otp' && login.otpStep === 2 && <LoginOtpVerifyStep login={login} />}
-      {login.mode === 'forgot' && login.forgotStep === 1 && <ForgotRequestStep login={login} />}
-      {login.mode === 'forgot' && login.forgotStep === 2 && <ForgotVerifyStep login={login} />}
-      {login.mode === 'forgot' && login.forgotStep === 3 && <ForgotResetStep login={login} />}
+      {login.mode === 'otp' && login.otpStep === 1 && (
+        <LoginOtpRequestStep login={login} />
+      )}
+      {login.mode === 'otp' && login.otpStep === 2 && (
+        <LoginOtpVerifyStep login={login} />
+      )}
     </div>
   );
 }

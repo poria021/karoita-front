@@ -184,6 +184,8 @@ describe('live nav / admin plane', () => {
     expect(isAppShellPath(RouteService.marketing.loginSelect())).toBe(false);
     expect(isAppShellPath(RouteService.marketing.offline())).toBe(false);
     expect(isAppShellPath(RouteService.auth.login())).toBe(false);
+    expect(isNavigableAppPath(RouteService.auth.forgot())).toBe(true);
+    expect(isLiveSidebarPath(RouteService.auth.forgot())).toBe(false);
   });
 });
 

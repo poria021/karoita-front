@@ -27,6 +27,7 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.marketing.loginSelect(),
   RouteService.auth.login(),
   RouteService.auth.register(),
+  RouteService.auth.forgot(),
   RouteService.auth.adminGate(),
   RouteService.karvita.dashboard(),
   RouteService.karvita.adminDashboard(),

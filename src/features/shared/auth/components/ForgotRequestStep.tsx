@@ -1,21 +1,26 @@
 'use client';
 
+import Link from 'next/link';
 import { Controller } from 'react-hook-form';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 
-import type { UseLoginFormReturn } from '../hooks/useLoginForm';
+import type { UseForgotPasswordReturn } from '../hooks/useForgotPassword';
 import { AuthStepHeading } from './AuthStepHeading';
 import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
 
 interface ForgotRequestStepProps {
-  login: UseLoginFormReturn;
+  forgot: UseForgotPasswordReturn;
+  cancelHref: string;
 }
 
-export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
-  const { forgotMobileForm, sendForgotOtp, isSendingForgotOtp, cancelForgotMode } = login;
+export function ForgotRequestStep({
+  forgot,
+  cancelHref,
+}: ForgotRequestStepProps) {
+  const { forgotMobileForm, sendForgotOtp, isSendingForgotOtp } = forgot;
   const { control, formState } = forgotMobileForm;
 
   return (
@@ -47,8 +52,10 @@ export function ForgotRequestStep({ login }: ForgotRequestStepProps) {
           ارسال کد بازیابی
         </AuthSubmitButton>
 
-        <KvButton type="button" appearance="secondary" fullWidth disabled={isSendingForgotOtp} onClick={cancelForgotMode}>
-          بازگشت به ورود
+        <KvButton asChild appearance="secondary" fullWidth>
+          <Link href={cancelHref} prefetch={false} replace>
+            بازگشت به ورود
+          </Link>
         </KvButton>
       </div>
     </AuthBusyForm>

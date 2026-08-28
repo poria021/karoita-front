@@ -209,5 +209,8 @@ describe('resolveNearestLivePath', () => {
     expect(
       resolveNearestLivePath(`${RouteService.auth.login()}/extra`, null)
     ).toBe(RouteService.auth.login());
+    expect(
+      resolveNearestLivePath(`${RouteService.auth.forgot()}/extra`, null)
+    ).toBe(RouteService.auth.forgot());
   });
 });

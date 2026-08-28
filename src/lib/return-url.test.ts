@@ -21,6 +21,7 @@ describe('parseSafeReturnUrl', () => {
     expect(parseSafeReturnUrl('javascript:alert(1)')).toBeNull();
     expect(parseSafeReturnUrl('/auth/login')).toBeNull();
     expect(parseSafeReturnUrl('/auth/register')).toBeNull();
+    expect(parseSafeReturnUrl('/auth/forgot')).toBeNull();
     expect(parseSafeReturnUrl('')).toBeNull();
     expect(parseSafeReturnUrl(null)).toBeNull();
   });

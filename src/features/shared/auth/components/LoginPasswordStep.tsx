@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Controller } from 'react-hook-form';
 
 import { KvButton } from '@/components/shared/KvButton';
@@ -22,7 +23,8 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
     submitPassword,
     isSubmittingPassword,
     switchToOtpMode,
-    switchToForgotMode,
+    prepareForgot,
+    forgotHref,
   } = login;
   const { control, formState } = passwordForm;
 
@@ -86,15 +88,10 @@ export function LoginPasswordStep({ login }: LoginPasswordStepProps) {
           />
 
           <div className="flex items-center justify-between">
-            <KvButton
-              type="button"
-              color="neutral"
-              appearance="text"
-              size="sm"
-              disabled={isSubmittingPassword}
-              onClick={switchToForgotMode}
-            >
-              رمز خود را فراموش کردم
+            <KvButton asChild color="neutral" appearance="text" size="sm">
+              <Link href={forgotHref} prefetch={false} onClick={prepareForgot}>
+                رمز خود را فراموش کردم
+              </Link>
             </KvButton>
 
             <label
