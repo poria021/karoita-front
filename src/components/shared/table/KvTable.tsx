@@ -27,6 +27,10 @@ export type KvTableProps = React.ComponentProps<typeof Table> & {
   scrollable?: boolean;
 };
 
+/**
+ * Shared admin table. `min-w-max` keeps a content floor so columns do not
+ * collapse; `KvTableViewport` (or the optional scroll wrapper) owns overflow-x.
+ */
 export function KvTable({
   className,
   scrollable = true,
@@ -36,7 +40,7 @@ export function KvTable({
     <Table
       data-slot="kv-table"
       className={cn(
-        'w-full border-separate border-spacing-0 text-start text-xs font-sans',
+        'w-full min-w-max border-separate border-spacing-0 text-start text-xs font-sans',
         className
       )}
       {...props}

@@ -114,18 +114,18 @@ export function WeeklySyllabusTable({
           hasMore={false}
           heightClassName="max-h-[400px] min-h-[200px]"
         >
-          <KvTable scrollable={false} className="w-full table-fixed">
+          <KvTable scrollable={false}>
             <KvTableHeader>
               <KvTableRow>
                 <KvTableRowIndexHead />
                 <KvTableHead>عنوان جلسه آموزشی</KvTableHead>
                 <KvTableHead
                   align="center"
-                  className="w-[9.5rem] sm:w-40 lg:w-44"
+                  className="w-[9.5rem] min-w-[9.5rem] sm:w-40 lg:w-44"
                 >
                   ضریب اهمیت
                 </KvTableHead>
-                <KvTableHead align="center" className="w-16 sm:w-20">
+                <KvTableHead align="center" className="w-16 min-w-16 sm:w-20">
                   عملیات
                 </KvTableHead>
               </KvTableRow>

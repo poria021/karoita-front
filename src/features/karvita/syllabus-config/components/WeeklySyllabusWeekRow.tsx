@@ -35,12 +35,12 @@ export function WeeklySyllabusWeekRow({
   return (
     <KvTableRow className={isArchived ? 'opacity-60' : undefined}>
       <KvTableRowIndexCell index={index} />
-      <KvTableCell emphasis className="max-w-0 truncate">
+      <KvTableCell emphasis>
         {toPersianDigits(week.title || week.suffix)}
       </KvTableCell>
       <KvTableCell
         align="center"
-        className="w-[9.5rem] sm:w-40 lg:w-44"
+        className="w-[9.5rem] min-w-[9.5rem] sm:w-40 lg:w-44"
       >
         <div className="mx-auto flex w-full min-w-0 items-center justify-center">
           <KvSelectField
@@ -64,7 +64,7 @@ export function WeeklySyllabusWeekRow({
           </KvSelectField>
         </div>
       </KvTableCell>
-      <KvTableCell align="center" className="w-16 sm:w-20">
+      <KvTableCell align="center" className="w-16 min-w-16 sm:w-20">
         <div className="flex h-8 items-center justify-center">
           {isArchived ? (
             <KvButton
