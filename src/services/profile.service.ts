@@ -4,6 +4,7 @@ import {
   patchMockAuthUser,
   toPublicUser,
 } from '@/services/auth/mock/mock-auth.store';
+import { isBrowsableMediaUrl } from '@/services/files/resolve-nest-file-url';
 import type { ProfileDto } from '@/types/profile';
 import { useUserStore } from '@/store/useUserStore';
 import type { DocStatus, User, UserRole } from '@/types/auth';
@@ -118,7 +119,9 @@ export class ProfileService {
     data: ProfileDto,
     token?: string,
     /** شناسهٔ فایل عکس بعد از آپلود — به Nest PATCH ارسال می‌شه که photo رو لینک کند. */
-    photoFileId?: string
+    photoFileId?: string,
+    /** URL مطلق ساخته‌شده از signed PUT (اگر Nest فقط کلید S3 برگرداند). */
+    photoPublicUrl?: string
   ): Promise<{ success: boolean; message: string }> {
     try {
       const validatedData = parseProfile(data);
@@ -128,12 +131,15 @@ export class ProfileService {
         const serverMessage = extractApiMessage(payload);
         const activeUser = useUserStore.getState().activeUser;
         if (activeUser) {
+          const nestDocUrl = nestUser?.docUrl;
+          const docUrl =
+            photoPublicUrl && isBrowsableMediaUrl(photoPublicUrl)
+              ? photoPublicUrl
+              : nestDocUrl;
           useUserStore.getState().setUser({
             ...activeUser,
             ...validatedData,
-            // اگر Nest مقدار docUrl رو در پاسخ برگردوند (بعد از آپلود عکس)، اون رو نگه دار
-            // وگرنه docUrl قبلی از activeUser حفظ میشه
-            ...(nestUser?.docUrl ? { docUrl: nestUser.docUrl } : {}),
+            ...(docUrl ? { docUrl } : {}),
             ...approvalFields(validatedData.role, {
               approved: activeUser.approved,
               docStatus: activeUser.docStatus,

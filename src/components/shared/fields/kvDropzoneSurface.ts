@@ -7,6 +7,7 @@ export type KvDropzoneSurfaceState = {
 };
 
 /** Shared dashed drop target chrome for all file uploaders. */
+export const KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS = 'h-36';
 export function kvDropzoneSurfaceClass({
   disabled = false,
   isDragActive = false,

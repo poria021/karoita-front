@@ -15,13 +15,18 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
 import {
+  KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS,
   kvDropzoneIconClass,
   kvDropzoneSurfaceClass,
 } from '@/components/shared/fields/kvDropzoneSurface';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { cn } from '@/lib/utils';
+import {
+  isBrowsableMediaUrl,
+  resolveNestFileUrl,
+} from '@/services/files/resolve-nest-file-url';
 import {
   compressImage,
-  formatFileSize,
   validateImageFile,
 } from '@/utils/compressor';
 import { faIcons } from '@/utils/iconMap';
@@ -93,6 +98,11 @@ export function KvImageDocUploader({
     () => (value ? URL.createObjectURL(value) : null),
     [value]
   );
+  const resolvedExistingUrl = useMemo(
+    () => resolveNestFileUrl(existingUrl) ?? existingUrl ?? null,
+    [existingUrl]
+  );
+  const [previewFailed, setPreviewFailed] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -100,10 +110,16 @@ export function KvImageDocUploader({
     };
   }, [blobUrl]);
 
+  useEffect(() => {
+    setPreviewFailed(false);
+  }, [blobUrl, resolvedExistingUrl]);
+
   // اگه فایل جدید انتخاب شده blob URL رو نشون بده، وگرنه از existingUrl استفاده کن
-  const previewUrl = blobUrl ?? existingUrl ?? null;
+  const previewUrl = blobUrl ?? resolvedExistingUrl ?? null;
   // آیا preview از URL قبلی (نه فایل جدید) است
-  const isExistingPreview = !value && !!existingUrl;
+  const isExistingPreview = !value && !!resolvedExistingUrl;
+  const canOpenPreview =
+    Boolean(previewUrl) && isBrowsableMediaUrl(previewUrl ?? '');
 
   const onDrop = useCallback(
     async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
@@ -183,6 +199,7 @@ export function KvImageDocUploader({
 
   const handleRemove = useCallback(
     (event: MouseEvent) => {
+      event.preventDefault();
       event.stopPropagation();
       setLocalError(null);
       onChange(null, null);
@@ -204,6 +221,11 @@ export function KvImageDocUploader({
   const displayError = error || localError || undefined;
   const isLocked = disabled;
   const showOptionalHint = optionalHint || isLocked;
+
+  const mediaSurfaceClass = cn(
+    KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS,
+    'relative w-full overflow-hidden rounded-kv-control'
+  );
 
   const body = (
     <KvFieldFrame
@@ -229,14 +251,18 @@ export function KvImageDocUploader({
           <input {...getInputProps()} id={id} hidden aria-hidden="true" />
         ) : null}
 
-        {!value && !isCompressing ? (
+        {!value && !isExistingPreview && !isCompressing ? (
           <div
             {...getRootProps()}
-            className={kvDropzoneSurfaceClass({
-              disabled,
-              isDragActive,
-              error: Boolean(displayError),
-            })}
+            className={cn(
+              kvDropzoneSurfaceClass({
+                disabled,
+                isDragActive,
+                error: Boolean(displayError),
+              }),
+              mediaSurfaceClass,
+              'min-h-0'
+            )}
           >
             <input {...getInputProps()} id={id} />
             <div className={kvDropzoneIconClass({ disabled, isDragActive })}>
@@ -263,7 +289,12 @@ export function KvImageDocUploader({
         ) : null}
 
         {isCompressing ? (
-          <div className="mx-auto flex min-h-32 w-full flex-col items-center justify-center gap-kv-pair rounded-kv-control border-2 border-dashed border-kv-border-strong bg-kv-surface p-kv-group">
+          <div
+            className={cn(
+              mediaSurfaceClass,
+              'flex flex-col items-center justify-center gap-kv-pair border-2 border-dashed border-kv-border-strong bg-kv-surface p-kv-group text-center'
+            )}
+          >
             <FaIcon
               icon={faIcons.spinner}
               size="sm"
@@ -277,52 +308,69 @@ export function KvImageDocUploader({
               as="p"
               align="center"
             >
-              در حال بهینه‌سازی و آماده‌سازی تصویر...
+              در حال بهینه‌سازی تصویر...
             </KvTypography>
           </div>
         ) : null}
 
         {(value || isExistingPreview) && !isCompressing ? (
-          <div className="relative mx-auto flex min-h-48 w-full flex-col items-center justify-center gap-kv-inline rounded-kv-control border-2 border-solid border-kv-border bg-kv-surface p-kv-group text-center transition-all">
-            {previewUrl ? (
-              <div className="flex h-32 w-full items-center justify-center overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface p-kv-micro shadow-kv-raised">
-                {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
-                <img
-                  src={previewUrl}
-                  alt={previewAlt}
-                  className="h-full w-full rounded object-contain"
+          <div className={cn(mediaSurfaceClass, 'border border-kv-border bg-kv-surface-muted')}>
+            {previewFailed ? (
+              <div className="flex h-full flex-col items-center justify-center gap-kv-pair px-kv-group text-center">
+                <FaIcon
+                  icon={faIcons.triangleExclamation}
+                  size="sm"
+                  className="text-kv-text-faint"
                 />
-              </div>
-            ) : null}
-            <div className="max-w-full px-kv-micro text-center">
-              <div className="mx-auto max-w-72">
-                <KvTypography
-                  variant="subtitle"
-                  weight="black"
-                  as="p"
-                  truncate
-                  align="center"
-                >
-                  {value ? value.name : 'مدرک بارگذاری‌شده'}
+                <KvTypography variant="caption" tone="muted" as="p">
+                  تصویر مدرک بارگذاری نشد
                 </KvTypography>
               </div>
-              {value ? (
-                <KvTypography variant="caption" as="p" align="center">
-                  {formatFileSize(value.size)}
-                </KvTypography>
-              ) : null}
-            </div>
-            {!disabled ? (
-              <KvButton
-                type="button"
-                onClick={handleRemove}
-                color="error"
-                appearance="ghost"
-                size="sm"
-                icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
-              >
-                حذف تصویر
-              </KvButton>
+            ) : previewUrl ? (
+              <div className="relative h-full w-full">
+                {canOpenPreview ? (
+                  <a
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-full w-full items-center justify-center focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
+                    aria-label="باز کردن مدرک در تب جدید"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
+                    <img
+                      src={previewUrl}
+                      alt={previewAlt}
+                      referrerPolicy="no-referrer"
+                      onError={() => setPreviewFailed(true)}
+                      className="h-full w-full object-contain"
+                    />
+                  </a>
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
+                    <img
+                      src={previewUrl}
+                      alt={previewAlt}
+                      referrerPolicy="no-referrer"
+                      onError={() => setPreviewFailed(true)}
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                )}
+                {!disabled ? (
+                  <KvButton
+                    type="button"
+                    onClick={handleRemove}
+                    color="error"
+                    appearance="ghost"
+                    size="sm"
+                    className="absolute start-2 top-2 z-10"
+                    icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+                  >
+                    حذف
+                  </KvButton>
+                ) : null}
+              </div>
             ) : null}
           </div>
         ) : null}

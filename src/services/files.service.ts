@@ -64,7 +64,20 @@ export const FilesService = {
     // مرحله ۲: فایل compressed رو مستقیم روی signed URL آپلود کن (بدون Authorization header)
     await filesApi.uploadToSignedUrl(uploadSignedUrl, file);
 
-    // مرحله ۳: رفرنس فایل برگردان — یک صدا کافیه برای لینک کردن به پروفایل
-    return fileRef;
+    // path برگشتی Nest معمولاً فقط کلید S3 است. origin همان signed PUT را
+    // به عنوان URL عمومی نگه می‌داریم تا پیش‌نمایش بعد از آپلود یک آدرس مطلق داشته باشد.
+    return {
+      ...fileRef,
+      path: absoluteObjectUrlFromSignedUrl(uploadSignedUrl) ?? fileRef.path,
+    };
   },
 };
+
+function absoluteObjectUrlFromSignedUrl(signedUrl: string): string | null {
+  try {
+    const url = new URL(signedUrl);
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    return null;
+  }
+}

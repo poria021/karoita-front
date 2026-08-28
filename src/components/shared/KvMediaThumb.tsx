@@ -5,6 +5,10 @@ import * as React from 'react';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
+import {
+  isBrowsableMediaUrl,
+  resolveNestFileUrl,
+} from '@/services/files/resolve-nest-file-url';
 import { faIcons } from '@/utils/iconMap';
 
 export type KvMediaThumbKind = 'image' | 'pdf' | 'text' | 'empty';
@@ -59,26 +63,26 @@ export function KvMediaThumb({
   openInNewTab = false,
   'aria-label': ariaLabel,
 }: KvMediaThumbProps) {
-  const kind = resolveKind(src, kindProp);
+  const resolvedSrc = resolveNestFileUrl(src) ?? src ?? null;
+  const kind = resolveKind(resolvedSrc, kindProp);
+  const [failed, setFailed] = React.useState(false);
 
-  if (variant === 'preview' && src && kind === 'image') {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element -- data-URI / arbitrary preview URLs
-      <img
-        data-slot="kv-media-thumb-preview"
-        src={src}
-        alt={alt || 'پیش‌نمایش مدرک'}
-        className="mx-auto max-h-[70vh] w-auto max-w-full rounded-kv-panel border border-kv-border object-contain"
-      />
-    );
-  }
+  React.useEffect(() => {
+    setFailed(false);
+  }, [resolvedSrc]);
+
+  const canOpen =
+    openInNewTab &&
+    Boolean(resolvedSrc) &&
+    isBrowsableMediaUrl(resolvedSrc ?? '') &&
+    !failed;
 
   const frame = cn(
     'flex shrink-0 flex-col items-center justify-center overflow-hidden rounded-kv-panel p-1',
     fluid ? 'h-28 w-full sm:w-24' : SIZE_CLASS[size]
   );
 
-  if (kind === 'empty' || !src) {
+  if (failed || kind === 'empty' || !resolvedSrc) {
     return (
       <div
         data-slot="kv-media-thumb"
@@ -100,6 +104,34 @@ export function KvMediaThumb({
     );
   }
 
+  if (variant === 'preview' && resolvedSrc && kind === 'image') {
+    const preview = (
+      // eslint-disable-next-line @next/next/no-img-element -- data-URI / arbitrary preview URLs
+      <img
+        data-slot="kv-media-thumb-preview"
+        src={resolvedSrc}
+        alt={alt || 'پیش‌نمایش مدرک'}
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
+        className="mx-auto max-h-[70vh] w-auto max-w-full rounded-kv-panel border border-kv-border object-contain"
+      />
+    );
+    if (canOpen) {
+      return (
+        <a
+          href={resolvedSrc}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={ariaLabel ?? 'باز کردن مدرک در تب جدید'}
+          className="block focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
+        >
+          {preview}
+        </a>
+      );
+    }
+    return preview;
+  }
+
   const body =
     kind === 'pdf' ? (
       <span className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-kv-control bg-kv-danger-soft text-kv-danger">
@@ -118,13 +150,15 @@ export function KvMediaThumb({
     ) : (
       // eslint-disable-next-line @next/next/no-img-element -- data-URI / arbitrary preview URLs
       <img
-        src={src}
+        src={resolvedSrc}
         alt={alt}
+        referrerPolicy="no-referrer"
+        onError={() => setFailed(true)}
         className="h-full w-full rounded-kv-control object-cover"
       />
     );
 
-  if (!openInNewTab) {
+  if (!canOpen) {
     return (
       <div
         data-slot="kv-media-thumb"
@@ -137,7 +171,7 @@ export function KvMediaThumb({
 
   return (
     <a
-      href={src}
+      href={resolvedSrc}
       target="_blank"
       rel="noopener noreferrer"
       data-slot="kv-media-thumb"

@@ -67,7 +67,7 @@ export function buildContentSecurityPolicy(): string {
       ...(isDev ? ["'unsafe-eval'"] : []),
     ],
     'style-src': ["'self'", "'unsafe-inline'"],
-    'img-src': ["'self'", 'data:', 'blob:', 'https:'],
+    'img-src': ["'self'", 'data:', 'blob:', 'https:', ...(isDev ? ['http:'] : [])],
     'font-src': ["'self'", 'data:'],
     'connect-src': [
       "'self'",

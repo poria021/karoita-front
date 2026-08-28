@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   extractNestLoginResponse,
@@ -17,6 +17,9 @@ const nestUser = {
 };
 
 describe('nest-auth-mappers', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
   it('maps Nest phone + RoleDto to FE mobile + UserRole', () => {
     const user = mapNestAuthUser(nestUser);
     expect(user.mobile).toBe('9386951413');
@@ -58,6 +61,29 @@ describe('nest-auth-mappers', () => {
   it('leaves adminRequestMessage undefined when rejectDescription is absent', () => {
     const user = mapNestAuthUser(nestUser);
     expect(user.adminRequestMessage).toBeUndefined();
+  });
+
+  it('maps photo.path S3 keys to a public object URL', () => {
+    vi.stubEnv('NEXT_PUBLIC_S3_URL', 'https://files.example.com');
+    const user = mapNestAuthUser({
+      ...nestUser,
+      photo: { id: 'file-1', path: 'abc-uuid.jpg' },
+    });
+    expect(user.docUrl).toBe('https://files.example.com/abc-uuid.jpg');
+  });
+
+  it('prefers an already-absolute photo.url over a storage key', () => {
+    const user = mapNestAuthUser({
+      ...nestUser,
+      photo: {
+        id: 'file-1',
+        path: 'abc-uuid.jpg',
+        url: 'https://cdn.example.com/signed.jpg?X-Amz-Signature=abc',
+      },
+    });
+    expect(user.docUrl).toBe(
+      'https://cdn.example.com/signed.jpg?X-Amz-Signature=abc'
+    );
   });
 
   it('extracts LoginResponseDto tokens and session expiry', () => {

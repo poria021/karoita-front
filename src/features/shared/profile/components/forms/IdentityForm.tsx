@@ -9,6 +9,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
+import { KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS } from '@/components/shared/fields/kvDropzoneSurface';
 import { KvForm, KvFormField } from '@/components/shared/fields/KvForm';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
@@ -19,6 +20,7 @@ import { FilesService } from '@/services/files.service';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import { isMockApiMode } from '@/lib/api-mode';
+import { readBlobAsDataUrl } from '@/utils/readBlobAsDataUrl';
 
 import {
   createProfileSchema,
@@ -38,7 +40,12 @@ const KvImageDocUploader = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-40 animate-pulse rounded-kv-panel border-2 border-dashed border-kv-border bg-kv-surface-muted" />
+      <div className="rounded-kv-panel border border-kv-border bg-kv-surface-muted/60 p-kv-group">
+        <div className="mb-kv-field h-5" />
+        <div
+          className={`${KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS} w-full rounded-kv-control border-2 border-dashed border-kv-border bg-kv-surface`}
+        />
+      </div>
     ),
   }
 );
@@ -94,18 +101,14 @@ export function IdentityForm({
         // ─── Mock mode: عکس رو به base64 تبدیل کن و مستقیم در mock user ذخیره کن
         // FilesService در mock کار نمی‌کنه (requireNestTransport throw می‌کنه)
         if (identityDocument) {
-          const base64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = () => reject(new Error('خواندن فایل ناموفق بود.'));
-            reader.readAsDataURL(identityDocument);
-          });
+          const base64 = await readBlobAsDataUrl(identityDocument);
           await ProfileService.updateIdentityDocument(base64, token);
         }
         await ProfileService.updateProfile(data, token);
       } else {
         // ─── Real mode: آپلود دومرحله‌ای به S3
         let photoFileId: string | undefined;
+        let photoPublicUrl: string | undefined;
         if (identityDocument) {
           const fileRef = await FilesService.uploadFile(
             identityDocument,
@@ -113,8 +116,24 @@ export function IdentityForm({
             originalDocument ?? undefined
           );
           photoFileId = fileRef.id;
+          photoPublicUrl = fileRef.path;
         }
-        await ProfileService.updateProfile(data, token, photoFileId);
+        await ProfileService.updateProfile(
+          data,
+          token,
+          photoFileId,
+          photoPublicUrl
+        );
+      }
+
+      // باکت S3 برای GET عمومی بسته است؛ پیش‌نمایش قفل‌شدهٔ خود کاربر
+      // باید از همان فایل انتخاب‌شده بماند، نه از URL ذخیره‌سازی.
+      if (identityDocument) {
+        const preview = await readBlobAsDataUrl(identityDocument);
+        const active = useUserStore.getState().activeUser;
+        if (active) {
+          useUserStore.getState().setUser({ ...active, docUrl: preview });
+        }
       }
 
       form.reset(data);
@@ -222,13 +241,18 @@ export function IdentityForm({
               <KvImageDocUploader
                 value={identityDocument}
                 existingUrl={liveUser.docUrl ?? null}
-                onChange={(compressed, original) => {
-                  setIdentityDocument(compressed);
-                  setOriginalDocument(compressed ? (original ?? null) : null);
+                onChange={(file, original) => {
+                  setIdentityDocument(file);
+                  setOriginalDocument(file ? (original ?? file) : null);
                 }}
                 disabled={locks.identityLocked}
                 optionalHint
-                label="بارگذاری مدرک هویتی"
+                compress={false}
+                label={
+                  locks.identityLocked
+                    ? 'مدرک هویتی'
+                    : 'بارگذاری مدرک هویتی'
+                }
                 labelIcon={<FaIcon icon={faIcons.cloudArrowUp} size="sm" />}
                 maxSizeMb={2}
                 helperText="PNG، JPG تا ۲ مگابایت"

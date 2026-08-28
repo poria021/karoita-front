@@ -1,5 +1,9 @@
 import { ApiClientError } from '@/services/api-client';
 import { fromNestRoleName } from '@/services/auth/real/nest-auth-role';
+import {
+  isBrowsableMediaUrl,
+  resolveNestFileUrl,
+} from '@/services/files/resolve-nest-file-url';
 import type { DocStatus, Session, User } from '@/types/auth';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -51,6 +55,29 @@ function readRole(user: Record<string, unknown>): User['role'] {
 
 function asOptionalString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+/**
+ * Nest FileType.path در درایور S3 presigned کلید آبجکت است، نه URL عمومی.
+ * اگر یکی از فیلدها از قبل http(s) باشد (signed GET) همان را ترجیح می‌دهیم.
+ */
+function readNestPhotoUrl(raw: Record<string, unknown>): string | undefined {
+  const candidates: string[] = [];
+  if (isRecord(raw.photo)) {
+    const url = asOptionalString(raw.photo.url);
+    const path = asOptionalString(raw.photo.path);
+    if (url) candidates.push(url);
+    if (path) candidates.push(path);
+  } else {
+    const photo = asOptionalString(raw.photo);
+    if (photo) candidates.push(photo);
+  }
+  const photoUrl = asOptionalString(raw.photoUrl);
+  if (photoUrl) candidates.push(photoUrl);
+
+  const preferred = candidates.find((item) => isBrowsableMediaUrl(item)) ?? candidates[0];
+  if (!preferred) return undefined;
+  return resolveNestFileUrl(preferred) ?? preferred;
 }
 
 function readOrgArray(value: unknown): string[] | undefined {
@@ -147,21 +174,7 @@ export function mapNestAuthUser(raw: unknown, fallbackMobile?: string): User {
 
   const role = readRole(raw);
 
-  // Nest ممکنه photo رو به شکل‌های مختلف برگردونه:
-  // 1. { photo: { path: '...' } }  ← معمول
-  // 2. { photo: 'https://...' }    ← رشته مستقیم
-  // 3. { photoUrl: '...' }         ← فلد جدا
-  // 4. { photo: { url: '...' } }   ← نام url بجای path
-  const photoUrl =
-    isRecord(raw.photo) && typeof raw.photo.path === 'string'
-      ? raw.photo.path
-      : isRecord(raw.photo) && typeof raw.photo.url === 'string'
-        ? raw.photo.url
-        : typeof raw.photo === 'string' && raw.photo
-          ? raw.photo
-          : typeof raw.photoUrl === 'string' && raw.photoUrl
-            ? raw.photoUrl
-            : undefined;
+  const photoUrl = readNestPhotoUrl(raw);
 
   const adminRequestMessage = readRejectMessage(raw);
 
