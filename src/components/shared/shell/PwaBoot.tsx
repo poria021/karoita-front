@@ -5,10 +5,7 @@ import { toast } from 'sonner';
 
 import { PwaInstallSuggestion } from '@/components/shared/shell/PwaInstallSuggestion';
 import { shellCopy } from '@/components/shared/shell/shellCopy';
-import {
-  captureBeforeInstallPrompt,
-  type KarvitaBeforeInstallPromptEvent,
-} from '@/lib/pwa/pwa-install';
+import { ensureBeforeInstallPromptCapture } from '@/lib/pwa/pwa-install';
 import {
   PWA_SW_PRIMED_STORAGE_KEY,
   scheduleKarvitaServiceWorkerRegistration,
@@ -18,14 +15,6 @@ import {
   unregisterStaleKarvitaServiceWorkers,
 } from '@/lib/pwa/register-pwa';
 
-function bindInstallPromptListener(): () => void {
-  const onInstallPrompt = (event: Event) => {
-    captureBeforeInstallPrompt(event as KarvitaBeforeInstallPromptEvent);
-  };
-  window.addEventListener('beforeinstallprompt', onInstallPrompt);
-  return () => window.removeEventListener('beforeinstallprompt', onInstallPrompt);
-}
-
 /**
  * SW registration after first paint + capture of Chrome's install event.
  */
@@ -33,7 +22,7 @@ export function PwaBoot() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const unbindPrompt = bindInstallPromptListener();
+    ensureBeforeInstallPromptCapture();
 
     const canRegister = shouldRegisterKarvitaServiceWorker({
       nodeEnv: process.env.NODE_ENV,
@@ -50,7 +39,7 @@ export function PwaBoot() {
       ) {
         void unregisterStaleKarvitaServiceWorkers();
       }
-      return unbindPrompt;
+      return;
     }
 
     scheduleKarvitaServiceWorkerRegistration(async (scriptUrl) => {
@@ -89,7 +78,6 @@ export function PwaBoot() {
     );
 
     return () => {
-      unbindPrompt();
       navigator.serviceWorker.removeEventListener(
         'controllerchange',
         onControllerChange

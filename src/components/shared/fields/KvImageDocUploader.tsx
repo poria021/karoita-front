@@ -15,7 +15,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
 import {
-  KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS,
+  KV_IMAGE_DOC_MEDIA_SURFACE_CLASS,
   kvDropzoneIconClass,
   kvDropzoneSurfaceClass,
 } from '@/components/shared/fields/kvDropzoneSurface';
@@ -232,11 +232,6 @@ export function KvImageDocUploader({
       : 'object-contain'
   );
 
-  const mediaSurfaceClass = cn(
-    KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS,
-    'relative w-full overflow-hidden rounded-kv-control'
-  );
-
   const body = (
     <KvFieldFrame
       id={id}
@@ -270,7 +265,7 @@ export function KvImageDocUploader({
                 isDragActive,
                 error: Boolean(displayError),
               }),
-              mediaSurfaceClass,
+              KV_IMAGE_DOC_MEDIA_SURFACE_CLASS,
               'min-h-0'
             )}
           >
@@ -301,7 +296,7 @@ export function KvImageDocUploader({
         {isCompressing ? (
           <div
             className={cn(
-              mediaSurfaceClass,
+              KV_IMAGE_DOC_MEDIA_SURFACE_CLASS,
               'flex flex-col items-center justify-center gap-kv-pair border-2 border-dashed border-kv-border-strong bg-kv-surface p-kv-group text-center'
             )}
           >
@@ -324,7 +319,7 @@ export function KvImageDocUploader({
         ) : null}
 
         {(value || isExistingPreview) && !isCompressing ? (
-          <div className={cn(mediaSurfaceClass, 'border border-kv-border bg-kv-surface-muted')}>
+          <div className={cn(KV_IMAGE_DOC_MEDIA_SURFACE_CLASS, 'border border-kv-border bg-kv-surface-muted')}>
             {previewFailed ? (
               <div className="flex h-full flex-col items-center justify-center gap-kv-pair px-kv-group text-center">
                 <FaIcon

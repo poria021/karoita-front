@@ -8,6 +8,9 @@ export type KvDropzoneSurfaceState = {
 
 /** Shared dashed drop target chrome for all file uploaders. */
 export const KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS = 'h-36';
+
+/** Fixed preview / drop / compressing surface. Module-scoped so Fast Refresh cannot TDZ it. */
+export const KV_IMAGE_DOC_MEDIA_SURFACE_CLASS = `${KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS} relative w-full overflow-hidden rounded-kv-control`;
 export function kvDropzoneSurfaceClass({
   disabled = false,
   isDragActive = false,

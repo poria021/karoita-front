@@ -3,13 +3,12 @@
 import { useState, type ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import dynamic from 'next/dynamic';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
-import { KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS } from '@/components/shared/fields/kvDropzoneSurface';
+import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { KvForm, KvFormField } from '@/components/shared/fields/KvForm';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
@@ -31,21 +30,6 @@ import { useProfileOrgFieldsSync } from '../../hooks/useProfileOrgFieldsSync';
 import { getProfileFormLocks } from '../../lib/profileFormLocks';
 import { DynamicRoleFields } from './DynamicRoleFields';
 import { getProfileDefaultValues } from './profile-form-options';
-
-const KvImageDocUploader = dynamic(
-  () =>
-    import('@/components/shared/fields/KvImageDocUploader').then(
-      (m) => m.KvImageDocUploader
-    ),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className={`${KV_IMAGE_DOC_SURFACE_HEIGHT_CLASS} w-full rounded-kv-control border-2 border-dashed border-kv-border bg-kv-surface`}
-      />
-    ),
-  }
-);
 
 export interface IdentityFormProps {
   activeUser: User;

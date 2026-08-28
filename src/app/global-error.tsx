@@ -1,30 +1,13 @@
 'use client';
 
 import { useEffect } from 'react';
-import localFont from 'next/font/local';
 
 import './globals.css';
 
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { PublicRouteStatusActions } from '@/components/shared/route-status/PublicRouteStatusActions';
 import { reportError } from '@/lib/observability/reportError';
-
-const vazirmatn = localFont({
-  src: [
-    {
-      path: '../fonts/vazirmatn/vazirmatn-arabic-400-normal.woff2',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../fonts/vazirmatn/vazirmatn-arabic-700-normal.woff2',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-vazirmatn',
-  display: 'swap',
-});
+import { vazirmatn } from '@/lib/vazirmatn-font';
 
 interface GlobalErrorProps {
   error: Error & { digest?: string };

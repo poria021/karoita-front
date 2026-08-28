@@ -7,6 +7,7 @@ type Listener = () => void;
 
 let deferredPrompt: KarvitaBeforeInstallPromptEvent | null = null;
 const listeners = new Set<Listener>();
+let removeInstallPromptCapture: (() => void) | null = null;
 
 function emit(): void {
   for (const listener of listeners) listener();
@@ -22,9 +23,36 @@ export function subscribePwaInstallAvailability(listener: Listener): () => void 
 export function captureBeforeInstallPrompt(
   event: KarvitaBeforeInstallPromptEvent
 ): void {
+  // Chrome logs "Banner not shown" whenever preventDefault runs without an
+  // immediate prompt() — that is the deferred-install contract, not a leak.
   event.preventDefault();
   deferredPrompt = event;
   emit();
+}
+
+/**
+ * Bind once per JS realm. React Strict Mode and Fast Refresh remount PwaBoot
+ * without re-firing beforeinstallprompt; stacking listeners repeats Chrome's
+ * banner warning and can drop the deferred event.
+ */
+export function ensureBeforeInstallPromptCapture(): void {
+  if (typeof window === 'undefined' || removeInstallPromptCapture) return;
+
+  const onInstallPrompt = (event: Event) => {
+    captureBeforeInstallPrompt(event as KarvitaBeforeInstallPromptEvent);
+  };
+
+  window.addEventListener('beforeinstallprompt', onInstallPrompt);
+  removeInstallPromptCapture = () => {
+    window.removeEventListener('beforeinstallprompt', onInstallPrompt);
+    removeInstallPromptCapture = null;
+  };
+}
+
+/** Test-only: drop the singleton listener and captured prompt. */
+export function resetBeforeInstallPromptCapture(): void {
+  removeInstallPromptCapture?.();
+  deferredPrompt = null;
 }
 
 export function peekPwaInstallPrompt(): KarvitaBeforeInstallPromptEvent | null {
