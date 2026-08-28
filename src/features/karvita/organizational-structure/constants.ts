@@ -42,7 +42,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     icon: faIcons.mapLocationDot,
     searchPlaceholder: 'جستجوی منطقه...',
     addLabel: 'منطقه',
-    nameColumnLabel: 'عنوان منطقه یا ناحیه',
+    nameColumnLabel: 'نام منطقه یا ناحیه',
     namePlaceholder: 'مثال: منطقه ۱',
   },
   {
@@ -72,7 +72,7 @@ export const ORG_STRUCTURE_TABS: OrgStructureTabConfig[] = [
     icon: faIcons.university,
     searchPlaceholder: 'جستجوی پردیس...',
     addLabel: 'پردیس',
-    nameColumnLabel: 'نام پردیس / دانشکده',
+    nameColumnLabel: 'نام دانشکده یا پردیس',
     namePlaceholder: 'مثال: پردیس البرز',
   },
 ];

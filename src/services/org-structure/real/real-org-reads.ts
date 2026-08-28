@@ -3,6 +3,8 @@ import {
   fetchAllNestProvinces,
 } from '@/services/admin-catalog/admin-catalog.api';
 import {
+  firstRelationTitle,
+  nestRelationFiltersIgnored,
   resolveRoleLabel,
   toOrgCity,
   toOrgDistrict,
@@ -12,6 +14,7 @@ import {
   toOrgProvince,
   toOrgSchool,
 } from '@/services/org-structure/real/real-org-mappers';
+import { overlayOrgRelationLabels } from '@/services/org-structure/real/org-relation-label-overlay';
 import type { OrgStructureListItem, OrgStructureListPage } from '@/services/org-structure/mock/mock-org-query';
 import type {
   OrgCity,
@@ -55,6 +58,62 @@ function pageBareList(
     limit
   );
   return { items: pageItems, total, hasMore };
+}
+
+/**
+ * Resolve city titles from GET /admin/provinces/{id}/cities for rows that
+ * have a cityId but no nested `city.title`. Confirmed live GET for schools
+ * and universities currently omits cityId and returns `city: {}`, so this
+ * only fires after Nest starts serializing the FK.
+ */
+async function lookupCityNamesByProvinceIds(
+  provinceIds: string[]
+): Promise<Map<string, string>> {
+  const unique = [...new Set(provinceIds.filter(Boolean))];
+  if (unique.length === 0) return new Map();
+  const lists = await Promise.all(
+    unique.map((provinceId) =>
+      adminCatalogApi.listCitiesByProvince(provinceId).catch(() => [])
+    )
+  );
+  return new Map(lists.flat().map((city) => [city.id, city.title]));
+}
+
+type NamedCatalogItem = { id: string; title: string };
+
+/**
+ * Confirmed live: GET /admin/schools nests `city: {}` and `education: {}`
+ * and omits the FKs, but `?educationId=` / `?cityId=` DO filter. Walk the
+ * catalog and map school id → catalog item so the table (and edit form)
+ * can recover title and id.
+ */
+async function indexSchoolRelationsByFilter(
+  catalog: NamedCatalogItem[],
+  totalSchoolCount: number,
+  filterKey: 'educationId' | 'cityId'
+): Promise<Map<string, NamedCatalogItem>> {
+  if (catalog.length === 0 || totalSchoolCount === 0) return new Map();
+  const hits = await Promise.all(
+    catalog.map(async (item) => {
+      const schools = await adminCatalogApi
+        .listSchools({ [filterKey]: item.id })
+        .catch(() => []);
+      return { item, schools };
+    })
+  );
+  if (
+    nestRelationFiltersIgnored(
+      hits.map((hit) => hit.schools.length),
+      totalSchoolCount
+    )
+  ) {
+    return new Map();
+  }
+  return new Map(
+    hits.flatMap(({ item, schools }) =>
+      schools.map((school) => [school.id, item] as const)
+    )
+  );
 }
 
 /**
@@ -191,8 +250,7 @@ export async function listRealPage(
       ...toOrgCity(c),
       kind: 'city' as const,
       deleteBlocked: false,
-      // استان تابعه — از آبجکت nested province.title
-      provinceName: c.province?.title ?? undefined,
+      provinceName: firstRelationTitle(c.province, c.province_id),
     }));
     return {
       items,
@@ -208,48 +266,77 @@ export async function listRealPage(
       const raw = await adminCatalogApi.listEducations({
         title: query || undefined,
       });
-      return raw.map((d) => ({
-        ...toOrgDistrict(d),
-        kind: 'district' as const,
-        deleteBlocked: false,
-        // استان و شهر تابعه — از آبجکت nested
-        provinceName: d.province?.title ?? undefined,
-        cityName: d.city?.title ?? undefined,
-      }));
+      return raw.map((d) => {
+        const mapped = toOrgDistrict(d);
+        return overlayOrgRelationLabels({
+          ...mapped,
+          kind: 'district' as const,
+          deleteBlocked: false,
+          provinceName: firstRelationTitle(d.province, d.provinceId, d.province_id),
+          cityName: firstRelationTitle(d.city, d.cityId, d.city_id),
+        });
+      });
     });
     return pageBareList(items, offset, limit);
   }
 
   if (options.tab === 'schools') {
     const items = await getBareListItems('schools', query, async () => {
-      // منطقه آموزشی (education) روی برخی ردیف‌های زنده Nest به‌صورت nested
-      // برنمی‌گردد (شبیه کوییرک province/role در توی توی toOrgFaculty) — برای
-      // همین لیست مناطق را هم موازی می‌گیریم و اگر s.education?.title خالی بود،
-      // از روی districtId (educationId) نام منطقه را از این لیست پیدا می‌کنیم
-      // تا ستون «منطقه آموزشی» در جدول خالی نماند.
       const [raw, educations] = await Promise.all([
         adminCatalogApi.listSchools({ title: query || undefined }),
         adminCatalogApi.listEducations(),
       ]);
-      const districtNameById = new Map(
-        educations.map((edu) => [edu.id, edu.title])
-      );
-      return raw.map((s) => {
-        const mapped = toOrgSchool(s);
-        return {
+      const unfilteredSchoolCount = query
+        ? (await adminCatalogApi.listSchools()).length
+        : raw.length;
+      const mappedRows = raw.map((s) => ({ s, mapped: toOrgSchool(s) }));
+      const provinceIds = [
+        ...new Set(
+          mappedRows.map(({ mapped }) => mapped.provinceId).filter(Boolean)
+        ),
+      ];
+      const cities = (
+        await Promise.all(
+          provinceIds.map((provinceId) =>
+            adminCatalogApi.listCitiesByProvince(provinceId).catch(() => [])
+          )
+        )
+      ).flat();
+
+      const [districtBySchoolId, cityBySchoolId] = await Promise.all([
+        indexSchoolRelationsByFilter(
+          educations,
+          unfilteredSchoolCount,
+          'educationId'
+        ),
+        indexSchoolRelationsByFilter(cities, unfilteredSchoolCount, 'cityId'),
+      ]);
+
+      return mappedRows.map(({ s, mapped }) => {
+        const district = districtBySchoolId.get(s.id);
+        const city = cityBySchoolId.get(s.id);
+        return overlayOrgRelationLabels({
           ...mapped,
           kind: 'school' as const,
           deleteBlocked: false,
-          // استان و شهر تابعه — از آبجکت‌های nested
-          provinceName: s.province?.title ?? undefined,
-          cityName: s.city?.title ?? undefined,
+          provinceName: firstRelationTitle(
+            s.province,
+            s.provinceId,
+            s.province_id
+          ),
+          cityId: mapped.cityId || city?.id || '',
+          cityName:
+            firstRelationTitle(s.city, s.cityId, s.city_id) ?? city?.title,
+          districtId: mapped.districtId || district?.id || '',
           districtName:
-            s.education?.title ??
-            (mapped.districtId
-              ? districtNameById.get(mapped.districtId)
-              : undefined) ??
-            undefined,
-        };
+            firstRelationTitle(
+              s.education,
+              s.educationId,
+              s.education_id,
+              s.educationalDistrict,
+              s.district
+            ) ?? district?.title,
+        });
       });
     });
     return pageBareList(items, offset, limit);
@@ -284,16 +371,33 @@ export async function listRealPage(
   // faculties: GET /admin/universites — bare array, title-only filter.
   const items = await getBareListItems('faculties', query, async () => {
     const raw = await adminCatalogApi.listUniversities(query || undefined);
-    return raw.map((u) => ({
-      ...toOrgFaculty(u),
-      kind: 'faculty' as const,
-      deleteBlocked: false,
-      // Confirmed live quirk: province is nested under `role`, not `province`.
-      // Prefer correctly-named `province` first (in case backend fixes it),
-      // then fall back to the mislabeled `role` field.
-      provinceName: u.province?.title ?? u.role?.title ?? undefined,
-      cityName: u.city?.title ?? undefined,
-    }));
+    const mappedRows = raw.map((u) => ({ u, mapped: toOrgFaculty(u) }));
+
+    // Confirmed live GET returns `city: {}` and omits cityId. This lookup
+    // only runs after Nest starts serializing cityId (or populated city).
+    const cityNameById = await lookupCityNamesByProvinceIds(
+      mappedRows
+        .filter(
+          ({ u, mapped }) =>
+            !firstRelationTitle(u.city, u.cityId, u.city_id) &&
+            Boolean(mapped.cityId) &&
+            Boolean(mapped.provinceId)
+        )
+        .map(({ mapped }) => mapped.provinceId)
+    );
+
+    return mappedRows.map(({ u, mapped }) =>
+      overlayOrgRelationLabels({
+        ...mapped,
+        kind: 'faculty' as const,
+        deleteBlocked: false,
+        // Confirmed live quirk: province is nested under `role`, not `province`.
+        provinceName: firstRelationTitle(u.province, u.role, u.provinceId),
+        cityName:
+          firstRelationTitle(u.city, u.cityId, u.city_id) ??
+          (mapped.cityId ? cityNameById.get(mapped.cityId) : undefined),
+      })
+    );
   });
   return pageBareList(items, offset, limit);
 }
@@ -331,13 +435,20 @@ export async function listRealCities(provinceId: string): Promise<OrgCity[]> {
   return raw.map((c) => ({ id: c.id, name: c.title, provinceId }));
 }
 
-/** GET /org-structure/districts — real: GET /api/admin/educations?provinceId&cityId */
+/** GET /org-structure/districts — real: GET /api/admin/educations?provinceId.
+ *
+ * Confirmed live: adding `cityId` to that query 500s the Nest handler, so
+ * city filtering stays client-side after a province-only fetch.
+ */
 export async function listRealDistricts(
   provinceId: string,
   cityId?: string
 ): Promise<OrgDistrict[]> {
-  const raw = await adminCatalogApi.listEducations({ provinceId, cityId });
-  return raw.map(toOrgDistrict);
+  const raw = await adminCatalogApi.listEducations({ provinceId });
+  const mapped = raw.map(toOrgDistrict);
+  if (!cityId) return mapped;
+  const forCity = mapped.filter((d) => d.cityId === cityId);
+  return forCity.length > 0 ? forCity : mapped;
 }
 
 /**

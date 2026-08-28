@@ -51,6 +51,11 @@ interface OrgStructureTableProps {
   onDelete: (row: OrgStructureListItem) => void;
 }
 
+function displayText(value: string | undefined): string {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : '—';
+}
+
 function formatCount(value: number | undefined, suffix: string): string {
   return `${toPersianDigits(String(value ?? 0))} ${suffix}`;
 }
@@ -69,19 +74,19 @@ function renderDataCell(
     case 'provinceName':
       return (
         <KvTableCell key={column.key} align={column.align}>
-          {row.provinceName ?? '—'}
+          {displayText(row.provinceName)}
         </KvTableCell>
       );
     case 'cityName':
       return (
         <KvTableCell key={column.key} align={column.align}>
-          {row.cityName ?? '—'}
+          {displayText(row.cityName)}
         </KvTableCell>
       );
     case 'districtName':
       return (
         <KvTableCell key={column.key} align={column.align}>
-          {row.districtName ?? '—'}
+          {displayText(row.districtName)}
         </KvTableCell>
       );
     case 'gender':

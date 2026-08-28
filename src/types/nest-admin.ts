@@ -35,6 +35,22 @@ export type NestUpdateProvinceDto = {
 };
 
 /**
+ * Nested / populated Nest relation. GET rows sometimes return the FK as a
+ * plain id string and sometimes as the populated document (`{ id, title }`
+ * or `{ _id, name }`). Display mappers must accept both — see
+ * `nestRelationId` / `nestRelationTitle` in real-org-mappers.ts.
+ */
+export type NestNamedRef = {
+  id?: string;
+  _id?: string;
+  title?: string;
+  name?: string;
+};
+
+/** FK that Nest may leave as a string or populate into a named ref. */
+export type NestRelationId = string | NestNamedRef | null;
+
+/**
  * GET responses from the live API nest `province` as an object (e.g.
  * `province: {}` or `province: { id, title }`), while the Swagger schema
  * doc and the POST/PATCH DTOs use a flat `province_id` string instead.
@@ -87,8 +103,8 @@ export type NestEducationalDistrict = {
   cityId?: string;
   province_id?: string;
   city_id?: string;
-  province?: { id?: string; title?: string } | null;
-  city?: { id?: string; title?: string } | null;
+  province?: NestNamedRef | null;
+  city?: NestNamedRef | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -96,8 +112,8 @@ export type NestEducationalDistrict = {
 export type NestCreateSchoolDto = {
   provinceId: string;
   cityId: string;
-  /** منطقه آموزشی اختیاری است — برخی مدارس ممکن است بدون منطقه ثبت شوند. */
-  educationId?: string;
+  /** Required by live CreateSchoolDto. */
+  educationId: string;
   title: string;
   gender: string;
 };
@@ -111,30 +127,43 @@ export type NestUpdateSchoolDto = {
 };
 
 /**
- * GET /admin/schools row. Same defensive pattern as NestEducationalDistrict
- * — `educationId` links a school to its educational district (رشته/ناحیه).
+ * GET /admin/schools row. Confirmed live 200 (2026-08-28):
  *
- * Confirmed live quirk: the read row reports gender as `genderType`
- * (`"Boy"` / `"Girl"`), NOT `gender` — the create/update DTOs above use
- * `gender`, but the list/get response uses a different key entirely.
- * `gender` is kept here too as a defensive fallback in case that ever
- * changes server-side.
+ * ```
+ * { id, title, createdAt, updatedAt, genderType,
+ *   province: { id, title },
+ *   city: { id, title } | {},
+ *   education: {} }
+ * ```
+ *
+ * Gender arrives as `genderType` (`"Boy"` / `"Girl"`), not `gender`.
+ * `province` is populated. `city` is populated when a city was saved.
+ * `education` stays `{}` and `educationId` is omitted on GET — recover
+ * the district via `GET /admin/schools?educationId=`.
  */
 export type NestSchool = {
   id: string;
   title: string;
-  provinceId?: string;
-  cityId?: string;
-  educationId?: string;
+  provinceId?: NestRelationId;
+  cityId?: NestRelationId;
+  /**
+   * May arrive as a plain id OR a populated `{ id, title }` document.
+   * When populated, the nested `education` object is often `{}` / absent —
+   * the table must read the title off this field, not only `education.title`.
+   */
+  educationId?: NestRelationId;
   /** Confirmed live field name on GET rows — see note above. */
   genderType?: string;
   gender?: string;
-  province_id?: string;
-  city_id?: string;
-  education_id?: string;
-  province?: { id?: string; title?: string } | null;
-  city?: { id?: string; title?: string } | null;
-  education?: { id?: string; title?: string } | null;
+  province_id?: NestRelationId;
+  city_id?: NestRelationId;
+  education_id?: NestRelationId;
+  province?: NestNamedRef | null;
+  city?: NestNamedRef | null;
+  education?: NestNamedRef | null;
+  /** Alternate serializer names seen on some Nest copies of this entity. */
+  educationalDistrict?: NestNamedRef | null;
+  district?: NestNamedRef | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -205,23 +234,28 @@ export type NestUpdateUniversityDto = {
  * GET /admin/universites ('universites' matches the live OpenAPI path
  * spelling — see NEST_ADMIN_PATHS).
  *
- * Confirmed live quirk: the read row nests the linked province under the
- * key `role` (`role: { id, title }`, title being the province name e.g.
- * "تهران"), NOT `province` — almost certainly a copy-paste artifact in the
- * Nest serializer, but this is what the live API actually returns. `city`
- * is nested correctly under `city`. The flat `provinceId`/`cityId` (the
- * create/update DTO shape) and a correctly-named nested `province` are
- * kept as defensive fallbacks in case the backend fixes this later.
+ * Confirmed live 200 (2026-08-28):
+ *
+ * ```
+ * { id, title, role: { id, title }, city: {} }
+ * ```
+ *
+ * Province is nested under `role`, not `province` (serializer copy-paste).
+ * `city` is an empty object and `cityId` is omitted — same gap as school
+ * GET. Display falls back to a cities-by-province lookup only when a
+ * `cityId` is present. Optional FK/nested fields stay so a backend fix
+ * (populate `city` or return `cityId`) works without another mapper change.
  */
 export type NestUniversity = {
   id: string;
   title: string;
-  provinceId?: string;
-  cityId?: string;
-  province?: { id?: string; title?: string } | null;
-  city?: { id?: string; title?: string } | null;
+  provinceId?: NestRelationId;
+  cityId?: NestRelationId;
+  city_id?: NestRelationId;
+  province?: NestNamedRef | null;
+  city?: NestNamedRef | null;
   /** Confirmed live quirk — the province, mislabeled `role`. See note above. */
-  role?: { id?: string; title?: string } | null;
+  role?: NestNamedRef | null;
   createdAt?: string;
   updatedAt?: string;
 };

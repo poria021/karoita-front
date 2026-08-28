@@ -184,7 +184,7 @@ export const OrgStructureService = {
     return mockListCities(provinceId);
   },
 
-  /** GET /org-structure/districts — real: GET /api/admin/educations?provinceId&cityId */
+  /** GET /org-structure/districts — real: GET /api/admin/educations?provinceId */
   async listDistricts(
     provinceId: string,
     cityId?: string

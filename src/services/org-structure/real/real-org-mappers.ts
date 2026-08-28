@@ -22,6 +22,68 @@ import type { OrgStructureListItem } from '@/types/org-structure';
  * mode's logic lives in its own files under this folder.
  */
 
+/**
+ * Pull a usable id out of a Nest FK that may be a string, a populated
+ * `{ id, title }` / `{ _id, name }` document, or an array of those.
+ * Empty / whitespace-only strings are treated as absent.
+ */
+export function nestRelationId(value: unknown): string {
+  if (typeof value === 'string') return value.trim();
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (Array.isArray(value)) return nestRelationId(value[0]);
+  if (!value || typeof value !== 'object') return '';
+  const rec = value as Record<string, unknown>;
+  const rawId = rec.id ?? rec._id;
+  if (typeof rawId === 'string') return rawId.trim();
+  if (typeof rawId === 'number' && Number.isFinite(rawId)) return String(rawId);
+  if (rawId && typeof rawId === 'object') {
+    const asString = String(rawId);
+    if (asString && asString !== '[object Object]') return asString;
+  }
+  return '';
+}
+
+/**
+ * Pull a display title out of a populated Nest relation. Accepts `title`
+ * or `name`, nested arrays (first element), and treats blank strings as
+ * absent so the caller can fall through to the next candidate.
+ */
+export function nestRelationTitle(value: unknown): string | undefined {
+  if (Array.isArray(value)) return nestRelationTitle(value[0]);
+  if (!value || typeof value !== 'object') return undefined;
+  const rec = value as Record<string, unknown>;
+  const raw = rec.title ?? rec.name;
+  if (typeof raw !== 'string') return undefined;
+  const trimmed = raw.trim();
+  return trimmed || undefined;
+}
+
+/** First non-empty title among populated-relation candidates. */
+export function firstRelationTitle(
+  ...candidates: unknown[]
+): string | undefined {
+  for (const candidate of candidates) {
+    const title = nestRelationTitle(candidate);
+    if (title) return title;
+  }
+  return undefined;
+}
+
+/**
+ * GET /admin/schools?educationId= actually filters. Some sibling query
+ * params are ignored and return the full list for every catalog value.
+ * Only treat the filter as ignored when TWO OR MORE catalog values each
+ * return the entire school list — a single district owning every school
+ * (or a 1-school catalog) is a real assignment, not an ignored param.
+ */
+export function nestRelationFiltersIgnored(
+  hitCounts: number[],
+  totalCount: number
+): boolean {
+  if (totalCount <= 0 || hitCounts.length <= 1) return false;
+  return hitCounts.filter((count) => count === totalCount).length > 1;
+}
+
 /** Nest Province → OrgProvince */
 export function toOrgProvince(p: NestProvinceLite): OrgProvince {
   return { id: p.id, name: p.title };
@@ -39,7 +101,7 @@ export function toOrgCity(c: {
   return {
     id: c.id,
     name: c.title,
-    provinceId: c.province_id ?? c.province?.id ?? '',
+    provinceId: nestRelationId(c.province_id) || nestRelationId(c.province) || '',
   };
 }
 
@@ -47,13 +109,22 @@ export function toOrgCity(c: {
  * the دانشکده/پردیس tab). Confirmed live quirk: GET rows nest the linked
  * province under `role`, not `province` (see NestUniversity) — `role` is
  * checked last, only as a fallback, so a future backend fix to the
- * correctly-named `province` field keeps working without a code change. */
+ * correctly-named `province` field keeps working without a code change.
+ * City may be a string FK or a populated `{ id, title }` on `cityId`. */
 export function toOrgFaculty(u: NestUniversity): OrgFaculty {
   return {
     id: u.id,
     name: u.title,
-    provinceId: u.provinceId ?? u.province?.id ?? u.role?.id ?? '',
-    cityId: u.cityId ?? u.city?.id ?? '',
+    provinceId:
+      nestRelationId(u.provinceId) ||
+      nestRelationId(u.province) ||
+      nestRelationId(u.role) ||
+      '',
+    cityId:
+      nestRelationId(u.cityId) ||
+      nestRelationId(u.city_id) ||
+      nestRelationId(u.city) ||
+      '',
   };
 }
 
@@ -65,8 +136,16 @@ export function toOrgDistrict(d: NestEducationalDistrict): OrgDistrict {
   return {
     id: d.id,
     name: d.title,
-    provinceId: d.provinceId ?? d.province_id ?? d.province?.id ?? '',
-    cityId: d.cityId ?? d.city_id ?? d.city?.id ?? '',
+    provinceId:
+      nestRelationId(d.provinceId) ||
+      nestRelationId(d.province_id) ||
+      nestRelationId(d.province) ||
+      '',
+    cityId:
+      nestRelationId(d.cityId) ||
+      nestRelationId(d.city_id) ||
+      nestRelationId(d.city) ||
+      '',
   };
 }
 
@@ -82,9 +161,23 @@ export function toOrgSchool(s: NestSchool): OrgSchool {
   return {
     id: s.id,
     name: s.title,
-    provinceId: s.provinceId ?? s.province_id ?? s.province?.id ?? '',
-    cityId: s.cityId ?? s.city_id ?? s.city?.id ?? '',
-    districtId: s.educationId ?? s.education_id ?? s.education?.id ?? '',
+    provinceId:
+      nestRelationId(s.provinceId) ||
+      nestRelationId(s.province_id) ||
+      nestRelationId(s.province) ||
+      '',
+    cityId:
+      nestRelationId(s.cityId) ||
+      nestRelationId(s.city_id) ||
+      nestRelationId(s.city) ||
+      '',
+    districtId:
+      nestRelationId(s.educationId) ||
+      nestRelationId(s.education_id) ||
+      nestRelationId(s.education) ||
+      nestRelationId(s.educationalDistrict) ||
+      nestRelationId(s.district) ||
+      '',
     gender,
   };
 }

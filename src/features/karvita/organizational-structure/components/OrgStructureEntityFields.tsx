@@ -152,12 +152,15 @@ export function OrgStructureEntityFields({
               <KvSelectField
                 id="org-entity-district"
                 label="منطقه آموزشی"
-                optionalHint
+                required
                 placeholder="انتخاب منطقه"
                 value={field.value || ''}
                 onValueChange={field.onChange}
                 error={errors.districtId?.message}
                 contentClassName={SELECT_IN_DIALOG_Z}
+                displayValue={
+                  districts.find((d) => d.id === field.value)?.name
+                }
               >
                 {districts.map((d) => (
                   <KvSelectItem key={d.id} value={d.id}>

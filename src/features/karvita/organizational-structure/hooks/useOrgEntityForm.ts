@@ -183,11 +183,22 @@ export function useOrgEntityForm({
   });
 
   const districtsQuery = useQuery({
-    queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'districts', provinceId, cityId],
+    queryKey: [
+      ORG_STRUCTURE_CACHE_NAMESPACE,
+      'districts',
+      provinceId,
+      cityId || '',
+    ],
     queryFn: () =>
-      OrgStructureService.listDistricts(provinceId as string, cityId as string),
+      OrgStructureService.listDistricts(
+        provinceId as string,
+        cityId || undefined
+      ),
     staleTime: QUERY_STALE_MS.list,
-    enabled: open && tab === 'schools' && Boolean(provinceId) && Boolean(cityId),
+    // Confirmed live: GET /admin/educations?provinceId&cityId 500s, so the
+    // school form must load districts as soon as a province is picked —
+    // not wait for city. listRealDistricts already omits cityId on the wire.
+    enabled: open && tab === 'schools' && Boolean(provinceId),
     placeholderData: keepPreviousData,
   });
 
@@ -202,8 +213,22 @@ export function useOrgEntityForm({
 
   const provinces: OrgProvince[] = provincesQuery.data ?? [];
   const cities: OrgCity[] = provinceId ? (citiesQuery.data ?? []) : [];
+  const districtsFromQuery: OrgDistrict[] =
+    tab === 'schools' && provinceId ? (districtsQuery.data ?? []) : [];
   const districts: OrgDistrict[] =
-    tab === 'schools' && provinceId && cityId ? (districtsQuery.data ?? []) : [];
+    editRow?.districtId &&
+    editRow.districtName &&
+    !districtsFromQuery.some((d) => d.id === editRow.districtId)
+      ? [
+          ...districtsFromQuery,
+          {
+            id: editRow.districtId,
+            name: editRow.districtName,
+            provinceId: editRow.provinceId ?? '',
+            cityId: editRow.cityId ?? '',
+          },
+        ]
+      : districtsFromQuery;
   const roles: OrgRole[] = tab === 'majors' ? (rolesQuery.data ?? []) : [];
 
   /**
@@ -287,6 +312,19 @@ export function useOrgEntityForm({
 
     return () => window.clearTimeout(fetchTimer);
   }, [editId, editRow, entityKind, form, open, tab]);
+
+  useEffect(() => {
+    if (!open || tab !== 'schools' || !editId) return;
+    if (form.getValues('districtId')) return;
+    if (editRow?.districtId) {
+      form.setValue('districtId', editRow.districtId);
+      return;
+    }
+    const label = editRow?.districtName?.trim();
+    if (!label) return;
+    const match = districts.find((d) => d.name === label);
+    if (match) form.setValue('districtId', match.id);
+  }, [open, tab, editId, editRow, districts, form]);
 
   return {
     form,

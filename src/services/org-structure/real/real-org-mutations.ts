@@ -132,9 +132,8 @@ export async function upsertRealDistrict(
 /**
  * PUT /org-structure/schools — real: POST/PUT /api/admin/schools
  *
- * educationId (منطقه آموزشی) اختیاری است — فقط وقتی مقدار دارد ارسال می‌شه
- * تا API خطای ۴۲۲ برای empty string/undefined برنگردونه (همان الگوی
- * upsertRealDistrict برای cityId).
+ * Nest CreateSchoolDto requires educationId. Confirmed live: GET rows still
+ * nest `education: {}`, but the write DTO field is `educationId`.
  */
 export async function upsertRealSchool(
   input: UpsertSchoolInput,
@@ -142,23 +141,17 @@ export async function upsertRealSchool(
 ): Promise<void> {
   // Nest gender enum: 'Boy' | 'Girl'
   const gender = input.gender === 'female' ? 'Girl' : 'Boy';
-  const educationId = input.districtId || undefined;
+  const body = {
+    title: input.name,
+    provinceId: input.provinceId,
+    cityId: input.cityId,
+    educationId: input.districtId!,
+    gender,
+  };
   if (editId) {
-    await adminCatalogApi.updateSchool(editId, {
-      title: input.name,
-      provinceId: input.provinceId,
-      cityId: input.cityId,
-      ...(educationId ? { educationId } : {}),
-      gender,
-    });
+    await adminCatalogApi.updateSchool(editId, body);
   } else {
-    await adminCatalogApi.createSchool({
-      title: input.name,
-      provinceId: input.provinceId,
-      cityId: input.cityId,
-      ...(educationId ? { educationId } : {}),
-      gender,
-    });
+    await adminCatalogApi.createSchool(body);
   }
   // Hard-flush مدارس تا جدول بلافاصله داده تازه بگیره.
   flushBareListCache('schools');

@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  firstRelationTitle,
+  nestRelationFiltersIgnored,
+  nestRelationId,
+  nestRelationTitle,
   resolveRoleLabel,
   toOrgCity,
   toOrgDistrict,
@@ -10,6 +14,43 @@ import {
   toOrgProvince,
   toOrgSchool,
 } from '@/services/org-structure/real/real-org-mappers';
+
+describe('nestRelationId / nestRelationTitle', () => {
+  it('reads a plain string id and ignores blank strings', () => {
+    expect(nestRelationId('c1')).toBe('c1');
+    expect(nestRelationId('  ')).toBe('');
+    expect(nestRelationId(undefined)).toBe('');
+  });
+
+  it('reads populated `{ id, title }` and `{ _id, name }` documents', () => {
+    expect(nestRelationId({ id: 'c1', title: 'کاشان' })).toBe('c1');
+    expect(nestRelationId({ _id: 'c1', name: 'کاشان' })).toBe('c1');
+    expect(nestRelationTitle({ id: 'c1', title: 'کاشان' })).toBe('کاشان');
+    expect(nestRelationTitle({ _id: 'c1', name: 'کاشان' })).toBe('کاشان');
+  });
+
+  it('treats empty title as absent so callers can fall through', () => {
+    expect(nestRelationTitle({ id: 'c1', title: '  ' })).toBeUndefined();
+    expect(nestRelationTitle({})).toBeUndefined();
+  });
+
+  it('picks the first populated title among candidates', () => {
+    expect(firstRelationTitle({}, { id: 'c1', title: 'کاشان' })).toBe('کاشان');
+    expect(firstRelationTitle('c1', { title: '' }, { name: 'قم' })).toBe('قم');
+  });
+});
+
+describe('nestRelationFiltersIgnored', () => {
+  it('treats the filter as ignored only when several catalog values each return the full list', () => {
+    expect(nestRelationFiltersIgnored([2, 2, 2], 2)).toBe(true);
+    expect(nestRelationFiltersIgnored([1, 0, 0], 2)).toBe(false);
+  });
+
+  it('keeps a real assignment when one district owns every school, including a 1-school list', () => {
+    expect(nestRelationFiltersIgnored([2, 0, 0, 0], 2)).toBe(false);
+    expect(nestRelationFiltersIgnored([1, 0, 0, 0, 0, 0], 1)).toBe(false);
+  });
+});
 
 describe('toOrgProvince', () => {
   it('maps Nest Province → OrgProvince', () => {
@@ -125,6 +166,18 @@ describe('toOrgFaculty — defensive province/city field resolution', () => {
         role: { id: 'p2' },
       })
     ).toEqual({ id: 'f1', name: 'نسیبه', provinceId: 'p1', cityId: '' });
+  });
+
+  it('extracts a string cityId when GET populates the city onto the FK field', () => {
+    expect(
+      toOrgFaculty({
+        id: 'f1',
+        title: 'نسیبه',
+        role: { id: 'p1', title: 'تهران' },
+        cityId: { id: 'c1', title: 'کاشان' },
+        city: {},
+      })
+    ).toEqual({ id: 'f1', name: 'نسیبه', provinceId: 'p1', cityId: 'c1' });
   });
 });
 
@@ -248,6 +301,24 @@ describe('toOrgSchool — defensive field resolution + gender normalization', ()
     expect(
       toOrgSchool({ id: 's1', title: 'x', genderType: 'Boy' }).gender
     ).toBe('male');
+  });
+
+  it('extracts a string districtId when GET populates education onto the FK field', () => {
+    expect(
+      toOrgSchool({
+        id: 's1',
+        title: 'دبیرستان البرز',
+        educationId: { id: 'd1', title: 'ناحیه ۱' },
+        education: {},
+      })
+    ).toEqual({
+      id: 's1',
+      name: 'دبیرستان البرز',
+      provinceId: '',
+      cityId: '',
+      districtId: 'd1',
+      gender: 'male',
+    });
   });
 });
 

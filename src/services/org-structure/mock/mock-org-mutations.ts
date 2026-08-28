@@ -35,7 +35,7 @@ export type UpsertSchoolInput = {
   name: string;
   provinceId: string;
   cityId: string;
-  /** منطقه آموزشی اختیاری است. */
+  /** منطقه آموزشی — در real الزامی است (Nest educationId). */
   districtId?: string;
   gender: OrgSchoolGender;
 };
