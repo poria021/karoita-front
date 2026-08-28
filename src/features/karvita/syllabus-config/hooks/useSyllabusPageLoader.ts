@@ -1,16 +1,22 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type {
+  CourseCatalogItem,
+  SyllabusConfigSnapshot,
   SyllabusConfigSubTab,
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
-import { offeredCatalogIdsFromList, errorMessage } from '../lib/syllabusPageUtils';
+import {
+  errorMessage,
+  offeredCatalogIdsFromList,
+  type SyllabusTermPane,
+} from '../lib/syllabusPageUtils';
 import type { UseSyllabusPageStateReturn } from './useSyllabusPageState';
 
 type UseSyllabusPageLoaderArgs = {
@@ -20,11 +26,16 @@ type UseSyllabusPageLoaderArgs = {
 
 export const syllabusSnapshotQueryKey = ['syllabus-config', 'snapshot'] as const;
 
+type TermContextResult = {
+  courses: CourseCatalogItem[];
+  selectedCourse: CourseCatalogItem | null;
+  weeks: SyllabusWeek[];
+  offeredCatalogIds: Set<string>;
+};
+
 /**
- * Snapshot + term-context loading via TanStack Query (snapshot) + race-guarded
- * term context fetches. Chrome stays mounted; only data regions use `isLoading`
- * busy (rule 84). Snapshot re-apply is mount/reload only so unsaved edits survive
- * background refetch.
+ * Snapshot + term-context loading via TanStack Query (snapshot) + in-memory
+ * term panes so audience-tab switches stay SPA (no refetch / no table busy).
  */
 export function useSyllabusPageLoader({
   section,
@@ -35,6 +46,10 @@ export function useSyllabusPageLoader({
     selectedTermId,
     audience,
     selectedCourse,
+    courses,
+    weeks,
+    offeredCatalogIds,
+    hasUnsavedChanges,
     setTerms,
     setSelectedTermId,
     setSelectedCourse,
@@ -47,15 +62,21 @@ export function useSyllabusPageLoader({
     persistCache,
   } = state;
 
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(!hasCache);
   const [error, setError] = useState<string | null>(null);
   const loadRequestIdRef = useRef(0);
   const appliedSnapshotAtRef = useRef(0);
+  const termPanesRef = useRef<Record<string, SyllabusTermPane>>({});
   const sectionRef = useRef(section);
   const stateRefs = useRef({
     selectedTermId,
     audience,
-    selectedCourseId: selectedCourse?.id,
+    selectedCourse,
+    courses,
+    weeks,
+    offeredCatalogIds,
+    hasUnsavedChanges,
   });
 
   useEffect(() => {
@@ -66,9 +87,21 @@ export function useSyllabusPageLoader({
     stateRefs.current = {
       selectedTermId,
       audience,
-      selectedCourseId: selectedCourse?.id,
+      selectedCourse,
+      courses,
+      weeks,
+      offeredCatalogIds,
+      hasUnsavedChanges,
     };
-  }, [audience, selectedCourse?.id, selectedTermId]);
+  }, [
+    audience,
+    courses,
+    hasUnsavedChanges,
+    offeredCatalogIds,
+    selectedCourse,
+    selectedTermId,
+    weeks,
+  ]);
 
   const snapshotQuery = useQuery({
     queryKey: syllabusSnapshotQueryKey,
@@ -76,15 +109,88 @@ export function useSyllabusPageLoader({
     staleTime: QUERY_STALE_MS.module,
   });
 
-  async function loadTermContext(termId: string, preferredCourseId?: string) {
-    setIsLoading(true);
+  function stashCurrentTermPane() {
+    const current = stateRefs.current;
+    if (!current.selectedTermId) return;
+    termPanesRef.current[current.selectedTermId] = {
+      selectedTermId: current.selectedTermId,
+      selectedCourse: current.selectedCourse,
+      courses: current.courses,
+      weeks: current.weeks,
+      offeredCatalogIds: [...current.offeredCatalogIds],
+      hasUnsavedChanges: current.hasUnsavedChanges,
+    };
+  }
+
+  function applyTermPane(pane: SyllabusTermPane): TermContextResult {
+    const offered = new Set(pane.offeredCatalogIds);
+    setSelectedTermId(pane.selectedTermId);
+    setSelectedCourse(pane.selectedCourse);
+    setCourses(pane.courses);
+    setWeeks(pane.weeks);
+    setOfferedCatalogIds(offered);
+    setHasUnsavedChanges(pane.hasUnsavedChanges);
+    return {
+      courses: pane.courses,
+      selectedCourse: pane.selectedCourse,
+      weeks: pane.weeks,
+      offeredCatalogIds: offered,
+    };
+  }
+
+  function rememberTermPane(result: TermContextResult, termId: string) {
+    termPanesRef.current[termId] = {
+      selectedTermId: termId,
+      selectedCourse: result.selectedCourse,
+      courses: result.courses,
+      weeks: result.weeks,
+      offeredCatalogIds: [...result.offeredCatalogIds],
+      hasUnsavedChanges: false,
+    };
+  }
+
+  function resolveSnapshot(
+    explicit?: SyllabusConfigSnapshot
+  ): SyllabusConfigSnapshot | undefined {
+    return (
+      explicit ??
+      queryClient.getQueryData<SyllabusConfigSnapshot>(syllabusSnapshotQueryKey)
+    );
+  }
+
+  async function loadTermContext(
+    termId: string,
+    preferredCourseId?: string,
+    options?: { force?: boolean; snapshot?: SyllabusConfigSnapshot }
+  ): Promise<TermContextResult> {
+    const previousId = stateRefs.current.selectedTermId;
+    if (previousId && previousId !== termId) {
+      stashCurrentTermPane();
+    }
+
+    if (!options?.force) {
+      const pane = termPanesRef.current[termId];
+      if (pane) {
+        setIsLoading(false);
+        return applyTermPane(pane);
+      }
+    }
+
+    const snapshot = resolveSnapshot(options?.snapshot);
+    const fromSnapshot = snapshot
+      ? SyllabusConfigService.termContextFromSnapshot(snapshot, termId)
+      : null;
+
+    if (!fromSnapshot) {
+      setIsLoading(true);
+    }
+
     try {
-      const [courseList, offerings] = await Promise.all([
-        SyllabusConfigService.listCoursesForTerm(termId),
-        SyllabusConfigService.listOfferings(termId),
-      ]);
-      setCourses(courseList);
+      const { courses: courseList, offerings } =
+        fromSnapshot ??
+        (await SyllabusConfigService.listCoursesAndOfferingsForTerm(termId));
       const offered = offeredCatalogIdsFromList(offerings);
+      setCourses(courseList);
       setOfferedCatalogIds(offered);
 
       const nextCourse =
@@ -92,24 +198,48 @@ export function useSyllabusPageLoader({
         courseList[0] ??
         null;
       setSelectedCourse(nextCourse);
+      setSelectedTermId(termId);
 
       let nextWeeks: SyllabusWeek[] = [];
-      if (nextCourse) {
-        nextWeeks = await SyllabusConfigService.getWeeks(
+      if (nextCourse && snapshot) {
+        nextWeeks = SyllabusConfigService.weeksFromSnapshot(
+          snapshot,
           termId,
           nextCourse.id
         );
         setWeeks(nextWeeks);
-      } else {
+      } else if (!nextCourse) {
         setWeeks([]);
       }
+
       setHasUnsavedChanges(false);
-      return {
+      setIsLoading(false);
+
+      if (nextCourse) {
+        const remoteWeeks = await SyllabusConfigService.getWeeks(
+          termId,
+          nextCourse.id
+        );
+        if (stateRefs.current.selectedTermId !== termId) {
+          return {
+            courses: courseList,
+            selectedCourse: nextCourse,
+            weeks: nextWeeks,
+            offeredCatalogIds: offered,
+          };
+        }
+        nextWeeks = remoteWeeks;
+        setWeeks(remoteWeeks);
+      }
+
+      const result: TermContextResult = {
         courses: courseList,
         selectedCourse: nextCourse,
         weeks: nextWeeks,
         offeredCatalogIds: offered,
       };
+      rememberTermPane(result, termId);
+      return result;
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +275,8 @@ export function useSyllabusPageLoader({
     snapshot: Awaited<ReturnType<typeof SyllabusConfigService.getSnapshot>>
   ) {
     const currentSection = sectionRef.current;
-    const { audience: currentAudience, selectedCourseId } = stateRefs.current;
+    const { audience: currentAudience, selectedCourse: currentCourse } =
+      stateRefs.current;
     const termId = applySnapshotTerms(snapshot);
     if (currentSection === 'term_settings') {
       setIsLoading(false);
@@ -164,7 +295,9 @@ export function useSyllabusPageLoader({
     }
 
     if (termId) {
-      const ctx = await loadTermContext(termId, selectedCourseId);
+      const ctx = await loadTermContext(termId, currentCourse?.id, {
+        snapshot,
+      });
       persistCache({
         terms: snapshot.terms,
         selectedTermId: termId,
@@ -232,6 +365,7 @@ export function useSyllabusPageLoader({
 
   async function reload() {
     const requestId = ++loadRequestIdRef.current;
+    termPanesRef.current = {};
     setIsLoading(true);
     setError(null);
     try {

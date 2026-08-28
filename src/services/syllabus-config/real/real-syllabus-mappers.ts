@@ -1,11 +1,21 @@
 import type {
   NestAcademicSettings,
+  NestLesson,
+  NestLessonWeek,
+  NestPutLessonWeeksDto,
   NestSemester,
+  NestSemesterAllStructure,
   NestSemesterSeason,
+  NestSemesterWithLessons,
 } from '@/types/nest-admin';
 import type {
   AcademicTerm,
   AcademicTermType,
+  CourseCatalogItem,
+  CourseOfferingKind,
+  CourseOfferingListItem,
+  CourseOfferingRecord,
+  SyllabusWeek,
   UpsertTermInput,
 } from '@/types/syllabus-config';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
@@ -30,6 +40,32 @@ const MODULAR_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   three: 'پودمان دوم',
 };
 
+export function nestEntityId(row: { id?: string; _id?: string }): string {
+  return row.id || row._id || '';
+}
+
+/**
+ * GET `/admin/semesters_all` uses `podmani` for modular terms (live), while
+ * POST `/admin/semester` still writes `structure: modular`.
+ */
+export function toAcademicTermType(structure: string): AcademicTermType {
+  return structure === 'podmani' || structure === 'modular'
+    ? 'modular'
+    : 'semester';
+}
+
+export function toNestSemesterAllStructure(
+  type: AcademicTermType
+): NestSemesterAllStructure {
+  return type === 'modular' ? 'podmani' : 'semester';
+}
+
+export function catalogKindForTermType(
+  type: AcademicTermType
+): CourseOfferingKind {
+  return type === 'modular' ? 'apprenticeship' : 'internship';
+}
+
 function prefixForSeason(
   structure: AcademicTermType,
   season: NestSemesterSeason
@@ -52,23 +88,160 @@ export function seasonForPrefix(
   return match ?? 'one';
 }
 
+function semesterYear(semester: NestSemester): string {
+  return semester.academicYears ?? semester.academicYear ?? '';
+}
+
+function weekLabel(priority: number, title?: string): string {
+  const trimmed = title?.trim();
+  return trimmed || `هفته ${priority}`;
+}
+
 /**
- * Nest Semester → AcademicTerm. `structure` maps 1:1 to AcademicTermType.
- * Enroll/term gates aren't part of the Nest semester model yet — real
- * terms always come back closed (see NestSemester doc comment).
+ * Nest Semester → AcademicTerm.
+ * Gate flags are lesson-level on `/semesters_all` — pass `lessons` to overlay
+ * them. When a flag is on and Nest sends no start date, `todayJalali` is used
+ * so the existing `isTermGateActive(isOpen, startDate)` helper still lights up.
  */
-export function toAcademicTerm(semester: NestSemester): AcademicTerm {
-  const prefix = prefixForSeason(semester.structure, semester.season);
-  const title =
-    `${prefix} ${persianToEnglishDigits(semester.academicYear)}`.trim();
+export function toAcademicTerm(
+  semester: NestSemester,
+  options?: { lessons?: NestLesson[]; todayJalali?: string }
+): AcademicTerm {
+  const type = toAcademicTermType(semester.structure);
+  const prefix = prefixForSeason(type, semester.season);
+  const title = `${prefix} ${persianToEnglishDigits(semesterYear(semester))}`.trim();
+  const lessons = options?.lessons ?? [];
+  const isEnrollOpen = lessons.some((lesson) => lesson.courseSelection === true);
+  const isTermOpen = lessons.some((lesson) => lesson.startClasses === true);
+  const today = options?.todayJalali ?? '';
   return {
     id: semester.id,
     title,
-    type: semester.structure,
-    isEnrollOpen: false,
-    isTermOpen: false,
-    enrollStart: '',
-    termStart: '',
+    type,
+    isEnrollOpen,
+    isTermOpen,
+    enrollStart: isEnrollOpen ? today : '',
+    termStart: isTermOpen ? today : '',
+  };
+}
+
+export function toCourseCatalogItem(
+  lesson: NestLesson,
+  termType: AcademicTermType
+): CourseCatalogItem | null {
+  const id = nestEntityId(lesson);
+  if (!id) return null;
+  return {
+    id,
+    title: lesson.title,
+    type: catalogKindForTermType(termType),
+  };
+}
+
+export function toCourseOfferingListItem(
+  lesson: NestLesson,
+  termType: AcademicTermType
+): CourseOfferingListItem | null {
+  const catalog = toCourseCatalogItem(lesson, termType);
+  if (!catalog) return null;
+  return {
+    courseOfferingId: catalog.id,
+    courseCatalogId: catalog.id,
+    title: catalog.title,
+    type: catalog.type,
+    isOffered: lesson.status === true,
+  };
+}
+
+export function toSyllabusWeek(
+  week: NestLessonWeek,
+  index: number,
+  defaultWeight: number
+): SyllabusWeek {
+  const priority = week.priority ?? index + 1;
+  const label = weekLabel(priority, week.title);
+  return {
+    id: nestEntityId(week) || `week_priority_${priority}`,
+    suffix: label,
+    title: label,
+    weight: defaultWeight,
+    status: week.status === false ? 'archived' : 'active',
+  };
+}
+
+export function toCourseOfferingRecord(
+  termId: string,
+  lesson: NestLesson,
+  defaultWeight: number,
+  termType: AcademicTermType
+): CourseOfferingRecord | null {
+  const lessonId = nestEntityId(lesson);
+  if (!lessonId) return null;
+  return {
+    id: lessonId,
+    termId,
+    courseCatalogId: lessonId,
+    title: lesson.title,
+    type: catalogKindForTermType(termType),
+    isOffered: lesson.status === true,
+    weeks: (lesson.weeks ?? []).map((week, index) =>
+      toSyllabusWeek(week, index, defaultWeight)
+    ),
+  };
+}
+
+export function toNestLessonWeeksBody(weeks: SyllabusWeek[]): NestPutLessonWeeksDto {
+  return {
+    weeks: weeks.map((week, index) => ({
+      priority: index + 1,
+      status: week.status === 'active',
+    })),
+  };
+}
+
+export function mergeTermsWithLessonBundles(
+  listed: AcademicTerm[],
+  bundles: NestSemesterWithLessons[],
+  todayJalali: string,
+  defaultWeight: number
+): {
+  terms: AcademicTerm[];
+  offerings: Record<string, CourseOfferingRecord>;
+} {
+  const byId = new Map<string, AcademicTerm>();
+  for (const term of listed) {
+    byId.set(term.id, term);
+  }
+
+  const offerings: Record<string, CourseOfferingRecord> = {};
+  for (const bundle of bundles) {
+    byId.set(
+      bundle.id,
+      toAcademicTerm(bundle, { lessons: bundle.lessons, todayJalali })
+    );
+    for (const lesson of bundle.lessons ?? []) {
+      const record = toCourseOfferingRecord(
+        bundle.id,
+        lesson,
+        defaultWeight,
+        toAcademicTermType(bundle.structure)
+      );
+      if (record) offerings[record.id] = record;
+    }
+  }
+
+  return { terms: [...byId.values()], offerings };
+}
+
+export function lessonsOfTerm(
+  bundles: NestSemesterWithLessons[],
+  termId: string
+): { termType: AcademicTermType; lessons: NestLesson[] } | null {
+  const bundle = bundles.find((row) => row.id === termId);
+  if (!bundle) return null;
+  return {
+    termType: toAcademicTermType(bundle.structure),
+    lessons: bundle.lessons ?? [],
   };
 }
 

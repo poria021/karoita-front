@@ -1,14 +1,19 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import {
+  toNestLessonWeeksBody,
   toNestSemesterDto,
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import {
+  findRealLessonIdsForTerm,
   getRealAcademicSettings,
-  listRealTerms,
+  getRealSyllabusSnapshot,
 } from '@/services/syllabus-config/real/real-syllabus-reads';
 import type {
-  AcademicTerm,
+  ActivateOfferingInput,
+  DeactivateOfferingInput,
+  SaveSyllabusWeeksInput,
   SyllabusConfigSnapshot,
+  UpdateTermGatesInput,
   UpsertTermInput,
 } from '@/types/syllabus-config';
 
@@ -20,16 +25,18 @@ export async function createRealTerm(
 ): Promise<SyllabusConfigSnapshot> {
   const body = toNestSemesterDto(input);
   await adminCatalogApi.createSemester(body);
-  return _buildRealSnapshot();
+  return getRealSyllabusSnapshot();
 }
 
 /**
  * DELETE /admin/semester/:id — delete a semester by id.
  * Returns the refreshed snapshot after deletion.
  */
-export async function deleteRealTerm(id: string): Promise<SyllabusConfigSnapshot> {
+export async function deleteRealTerm(
+  id: string
+): Promise<SyllabusConfigSnapshot> {
   await adminCatalogApi.deleteSemester(id);
-  return _buildRealSnapshot();
+  return getRealSyllabusSnapshot();
 }
 
 /**
@@ -45,13 +52,7 @@ export async function setRealProfessorCapacity(
     generalProfessorCapacity: capacity,
     systemPassingScore: current.passingScoreThreshold,
   });
-  // Re-read to confirm the persisted value (Nest may round or coerce the number).
-  const updated = await getRealAcademicSettings();
-  return _buildRealSnapshot(
-    undefined,
-    updated.globalProfessorCapacity,
-    updated.passingScoreThreshold
-  );
+  return getRealSyllabusSnapshot();
 }
 
 /**
@@ -65,42 +66,67 @@ export async function setRealPassingThreshold(
     generalProfessorCapacity: current.globalProfessorCapacity,
     systemPassingScore: threshold,
   });
-  const updated = await getRealAcademicSettings();
-  return _buildRealSnapshot(
-    undefined,
-    updated.globalProfessorCapacity,
-    updated.passingScoreThreshold
-  );
+  return getRealSyllabusSnapshot();
 }
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
+/** PATCH /admin/lessons/{id}/status — `status` is the ارائه flag. */
+export async function activateRealOffering(
+  input: ActivateOfferingInput
+): Promise<SyllabusConfigSnapshot> {
+  await adminCatalogApi.patchLessonStatus(input.courseCatalogId, {
+    status: true,
+  });
+  return getRealSyllabusSnapshot();
+}
+
+export async function deactivateRealOffering(
+  input: DeactivateOfferingInput
+): Promise<SyllabusConfigSnapshot> {
+  await adminCatalogApi.patchLessonStatus(input.courseOfferingId, {
+    status: false,
+  });
+  return getRealSyllabusSnapshot();
+}
 
 /**
- * Composite real-mode snapshot builder.  Offerings / internships / course-catalog
- * have no Nest surface yet — real snapshots always return empty collections there.
+ * Term-level switches map onto every lesson of that semester:
+ * انتخاب واحد → `courseSelection`, برگزاری کلاس → `startClasses`.
  */
-async function _buildRealSnapshot(
-  terms?: AcademicTerm[],
-  globalProfessorCapacity?: number,
-  passingScoreThreshold?: number
+export async function updateRealTermGates(
+  input: UpdateTermGatesInput
 ): Promise<SyllabusConfigSnapshot> {
-  const [resolvedTerms, settings] = await Promise.all([
-    terms !== undefined ? Promise.resolve(terms) : listRealTerms(),
-    globalProfessorCapacity !== undefined && passingScoreThreshold !== undefined
-      ? Promise.resolve({
-          globalProfessorCapacity,
-          passingScoreThreshold,
-        })
-      : getRealAcademicSettings(),
-  ]);
+  const lessonIds = await findRealLessonIdsForTerm(input.termId);
+  if (lessonIds.length === 0) {
+    throw new Error('درسی برای این ترم یافت نشد.');
+  }
 
-  return {
-    terms: resolvedTerms,
-    offerings: {},
-    internships: [],
-    globalProfessorCapacity:
-      globalProfessorCapacity ?? settings.globalProfessorCapacity,
-    passingScoreThreshold:
-      passingScoreThreshold ?? settings.passingScoreThreshold,
-  };
+  const patch: {
+    courseSelection?: boolean;
+    startClasses?: boolean;
+  } = {};
+  if (input.isEnrollOpen !== undefined) {
+    patch.courseSelection = input.isEnrollOpen;
+  }
+  if (input.isTermOpen !== undefined) {
+    patch.startClasses = input.isTermOpen;
+  }
+  if (patch.courseSelection === undefined && patch.startClasses === undefined) {
+    return getRealSyllabusSnapshot();
+  }
+
+  await Promise.all(
+    lessonIds.map((id) => adminCatalogApi.patchLessonStatus(id, patch))
+  );
+  return getRealSyllabusSnapshot();
+}
+
+/** PUT /admin/lessons/{lessonId}/weeks — replace-all weekly syllabus. */
+export async function saveRealSyllabusWeeks(
+  input: SaveSyllabusWeeksInput
+): Promise<SyllabusConfigSnapshot> {
+  await adminCatalogApi.putLessonWeeks(
+    input.courseCatalogId,
+    toNestLessonWeeksBody(input.weeks)
+  );
+  return getRealSyllabusSnapshot();
 }

@@ -264,22 +264,80 @@ export type NestUniversity = {
 
 /**
  * GET/POST/PATCH/DELETE `/admin/semester` — academic term (نیم‌سال/پودمان).
- * `structure` mirrors {@link AcademicTermType} 1:1. `season` has no display
- * label of its own on the Nest side — the term-settings form's prefix
- * select (نیم‌سال اول/دوم/تابستان, پودمان اول/دوم) encodes it instead; see
- * `real-syllabus-mappers.ts`. The live model carries no enroll/term "gate"
- * fields yet (isEnrollOpen/isTermOpen/enrollStart/termStart) — those stay
- * Nest-blocked.
+ * `structure` on create is {@link AcademicTermType} (`semester` | `modular`).
+ * GET `/admin/semesters_all` filters modular rows with `structure=podmani`
+ * (confirmed live 2026-08-28) and may return `academicYears` (plural).
+ * Lesson-level gates (`courseSelection` / `startClasses` / `status`) live on
+ * nested lessons, not on the semester document.
  */
 export type NestSemesterSeason = 'one' | 'two' | 'three';
 
+/** Query value for GET `/admin/semesters_all?structure=` */
+export type NestSemesterAllStructure = 'semester' | 'podmani';
+
 export type NestSemester = {
   id: string;
-  academicYear: string;
+  academicYear?: string;
+  academicYears?: string;
   season: NestSemesterSeason;
-  structure: AcademicTermType;
+  structure: AcademicTermType | NestSemesterAllStructure;
   createdAt?: string;
   updatedAt?: string;
+};
+
+export type NestLessonWeek = {
+  id?: string;
+  _id?: string;
+  lessonId?: string;
+  priority?: number;
+  status?: boolean;
+  title?: string;
+};
+
+export type NestLesson = {
+  id?: string;
+  _id?: string;
+  title: string;
+  semesterId?: string;
+  startClasses?: boolean;
+  courseSelection?: boolean;
+  status?: boolean;
+  capacity?: number;
+  days?: number[];
+  weeks?: NestLessonWeek[];
+};
+
+/** GET `/admin/semesters_all` row — semester plus nested lessons/weeks. */
+export type NestSemesterWithLessons = NestSemester & {
+  lessons?: NestLesson[];
+};
+
+export type NestPatchLessonStatusDto = {
+  courseSelection?: boolean;
+  startClasses?: boolean;
+  status?: boolean;
+  capacity?: number;
+  days?: number[];
+};
+
+export type NestBulkLessonStatusDto = NestPatchLessonStatusDto & {
+  id: string;
+};
+
+export type NestPutLessonWeeksDto = {
+  weeks: Array<{ priority: number; status: boolean }>;
+};
+
+export type NestCreateWeekDto = {
+  lessonId: string;
+  priority: number;
+  status: boolean;
+};
+
+export type NestUpdateWeekDto = {
+  lessonId?: string;
+  priority?: number;
+  status?: boolean;
 };
 
 export type NestCreateSemesterDto = {

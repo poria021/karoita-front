@@ -1,11 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import type {
   AcademicTermType,
   SyllabusConfigSubTab,
 } from '@/types/syllabus-config';
+
+import { resolveAudienceTermId } from '../lib/syllabusPageUtils';
 
 import { useSyllabusOfferingGates } from './useSyllabusOfferingGates';
 import { useSyllabusPageLoader } from './useSyllabusPageLoader';
@@ -43,6 +45,9 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
 
   const { isLoading, reload, loadTermContext, loadTermContextForUi, error } =
     useSyllabusPageLoader({ section, state });
+  const lastTermByAudienceRef = useRef<Partial<Record<AcademicTermType, string>>>(
+    {}
+  );
 
   const audienceTerms = useMemo(
     () => terms.filter((term) => term.type === audience),
@@ -72,20 +77,24 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
 
   function changeAudience(next: AcademicTermType) {
     if (next === audience) return;
+    lastTermByAudienceRef.current[audience] = selectedTermId;
     setAudience(next);
     const match = terms.filter((term) => term.type === next);
-    if (match.some((term) => term.id === selectedTermId)) return;
-    const first = match[0];
-    if (first) {
-      navigation.selectTerm(first.id);
+    const termId = resolveAudienceTermId(
+      match,
+      lastTermByAudienceRef.current[next]
+    );
+    if (!termId) {
+      setSelectedTermId('');
+      setSelectedCourse(null);
+      setCourses([]);
+      setWeeks([]);
+      setOfferedCatalogIds(new Set());
+      setHasUnsavedChanges(false);
       return;
     }
-    setSelectedTermId('');
-    setSelectedCourse(null);
-    setCourses([]);
-    setWeeks([]);
-    setOfferedCatalogIds(new Set());
-    setHasUnsavedChanges(false);
+    lastTermByAudienceRef.current[next] = termId;
+    void loadTermContext(termId);
   }
 
   const offeringGates = useSyllabusOfferingGates({

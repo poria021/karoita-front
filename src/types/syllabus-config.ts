@@ -31,11 +31,14 @@ export type CourseCatalogItem = {
   type: CourseOfferingKind;
 };
 
-/** ارائهٔ درس در یک ترم (Nest: courseOfferingId). */
+/** ارائهٔ درس در یک ترم (Nest: courseOfferingId / lesson id). */
 export type CourseOfferingRecord = {
   id: string;
   termId: string;
   courseCatalogId: string;
+  /** Present on real Nest lessons; mock catalog supplies title when omitted. */
+  title?: string;
+  type?: CourseOfferingKind;
   /** وضعیت ارائه برای کاربران — مستقل از سطرهای سرفصل. */
   isOffered: boolean;
   weeks: SyllabusWeek[];

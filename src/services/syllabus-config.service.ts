@@ -25,13 +25,22 @@ import {
   listOfferingsForTerm,
 } from '@/services/syllabus-config/syllabus-mappers';
 import {
+  activateRealOffering,
   createRealTerm,
+  deactivateRealOffering,
   deleteRealTerm,
+  saveRealSyllabusWeeks,
   setRealPassingThreshold,
   setRealProfessorCapacity,
+  updateRealTermGates,
 } from '@/services/syllabus-config/real/real-syllabus-mutations';
+import { catalogKindForTermType } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import {
   getRealSyllabusSnapshot,
+  getRealTermCourseContext,
+  getRealWeeksForLesson,
+  listRealCoursesForTerm,
+  listRealOfferingsForTerm,
 } from '@/services/syllabus-config/real/real-syllabus-reads';
 import type {
   ActivateOfferingInput,
@@ -71,9 +80,12 @@ function gateSyllabusConsumerRead(): void {
  * - DELETE /admin/semester/:id                       → deleteSemester
  * - GET    /admin/settings                           → getAcademicSettings
  * - POST   /admin/settings                           → createAcademicSettings
+ * - GET    /admin/semesters_all                      → lessons + offering flags
+ * - GET    /admin/weeks/lesson/:lessonId             → weekly syllabus
+ * - PATCH  /admin/lessons/:id/status                 → offering + term gates
+ * - PUT    /admin/lessons/:lessonId/weeks            → replace-all weeks
  *
- * The following remain mock-only (no Nest surface yet):
- * - GET/PUT offerings, gates, weeks, enrollment-context, passing-threshold reads
+ * Enrollment-context remains mock-only until Nest exposes a consumer route.
  */
 export const SyllabusConfigService = {
   // ─── Snapshot (read) ───────────────────────────────────────────────────────
@@ -124,32 +136,98 @@ export const SyllabusConfigService = {
     return readSyllabusSnapshot().passingScoreThreshold;
   },
 
-  // ─── Course catalog + offerings (mock-only for now) ───────────────────────
+  // ─── Course catalog + offerings ────────────────────────────────────────────
 
-  /** GET /terms/:termId/courses */
+  /** Derive term courses from an already-fetched snapshot — no extra HTTP. */
+  termContextFromSnapshot(
+    snapshot: SyllabusConfigSnapshot,
+    termId: string
+  ): {
+    courses: CourseCatalogItem[];
+    offerings: CourseOfferingListItem[];
+  } | null {
+    const term = snapshot.terms.find((row) => row.id === termId) ?? null;
+    if (!term) return null;
+    if (!IS_MOCK_MODE) {
+      const kind = catalogKindForTermType(term.type);
+      const records = Object.values(snapshot.offerings).filter(
+        (row) => row.termId === termId
+      );
+      const courses: CourseCatalogItem[] = records.map((row) => ({
+        id: row.courseCatalogId,
+        title: row.title ?? '',
+        type: row.type ?? kind,
+      }));
+      const offerings: CourseOfferingListItem[] = records.map((row) => ({
+        courseOfferingId: row.id,
+        courseCatalogId: row.courseCatalogId,
+        title: row.title ?? '',
+        type: row.type ?? kind,
+        isOffered: row.isOffered,
+      }));
+      return { courses, offerings };
+    }
+    return {
+      courses: getCatalogForTermType(term.type),
+      offerings: listOfferingsForTerm(snapshot, termId),
+    };
+  },
+
+  weeksFromSnapshot(
+    snapshot: SyllabusConfigSnapshot,
+    termId: string,
+    courseCatalogId: string
+  ): SyllabusWeek[] {
+    if (!IS_MOCK_MODE) {
+      return structuredClone(
+        snapshot.offerings[courseCatalogId]?.weeks ?? []
+      );
+    }
+    return readWeeksFromSnapshot(snapshot, termId, courseCatalogId);
+  },
+
+  /** GET /admin/semesters_all — courses + offering flags in one round-trip. */
+  async listCoursesAndOfferingsForTerm(termId: string): Promise<{
+    courses: CourseCatalogItem[];
+    offerings: CourseOfferingListItem[];
+  }> {
+    gateSyllabus();
+    if (!IS_MOCK_MODE) return getRealTermCourseContext(termId);
+    const snapshot = readSyllabusSnapshot();
+    const term = snapshot.terms.find((t) => t.id === termId) ?? null;
+    if (!term) return { courses: [], offerings: [] };
+    return {
+      courses: getCatalogForTermType(term.type),
+      offerings: listOfferingsForTerm(snapshot, termId),
+    };
+  },
+
+  /** GET /admin/semesters_all (real) | mock catalog for the term type */
   async listCoursesForTerm(termId: string): Promise<CourseCatalogItem[]> {
     gateSyllabus();
-    if (!IS_MOCK_MODE) return [];
+    if (!IS_MOCK_MODE) return listRealCoursesForTerm(termId);
     const snapshot = readSyllabusSnapshot();
     const term = snapshot.terms.find((t) => t.id === termId) ?? null;
     if (!term) return [];
     return getCatalogForTermType(term.type);
   },
 
-  /** GET /terms/:termId/offerings */
+  /** GET /admin/semesters_all — lesson.status is the ارائه flag */
   async listOfferings(termId: string): Promise<CourseOfferingListItem[]> {
     gateSyllabus();
-    if (!IS_MOCK_MODE) return [];
+    if (!IS_MOCK_MODE) return listRealOfferingsForTerm(termId);
     return listOfferingsForTerm(readSyllabusSnapshot(), termId);
   },
 
-  /** GET /terms/:termId/offerings/:catalogId/weeks */
+  /** GET /admin/weeks/lesson/:lessonId */
   async getWeeks(
     termId: string,
     courseCatalogId: string
   ): Promise<SyllabusWeek[]> {
     gateSyllabus();
-    if (!IS_MOCK_MODE) return [];
+    if (!IS_MOCK_MODE) {
+      return getRealWeeksForLesson(termId, courseCatalogId);
+    }
     return readWeeksFromSnapshot(
       readSyllabusSnapshot(),
       termId,
@@ -157,15 +235,15 @@ export const SyllabusConfigService = {
     );
   },
 
-  // ─── Offering mutations (mock-only) ───────────────────────────────────────
+  // ─── Offering mutations ───────────────────────────────────────────────────
 
-  /** POST /terms/:termId/offerings/activate */
+  /** PATCH /admin/lessons/:id/status { status: true } */
   async activateOffering(
     input: ActivateOfferingInput
   ): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     if (!IS_MOCK_MODE) {
-      throw new Error('فعال‌سازی ارائه درس هنوز به API واقعی متصل نشده است.');
+      return activateRealOffering(input);
     }
     return mutateSyllabusSnapshot((draft) => {
       const term = draft.terms.find((t) => t.id === input.termId);
@@ -181,13 +259,13 @@ export const SyllabusConfigService = {
     });
   },
 
-  /** POST /terms/:termId/offerings/deactivate */
+  /** PATCH /admin/lessons/:id/status { status: false } */
   async deactivateOffering(
     input: DeactivateOfferingInput
   ): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     if (!IS_MOCK_MODE) {
-      throw new Error('غیرفعال‌سازی ارائه درس هنوز به API واقعی متصل نشده است.');
+      return deactivateRealOffering(input);
     }
     return mutateSyllabusSnapshot((draft) => {
       if (!draft.offerings[input.courseOfferingId]) {
@@ -197,15 +275,18 @@ export const SyllabusConfigService = {
     });
   },
 
-  // ─── Term gates (mock-only) ────────────────────────────────────────────────
+  // ─── Term gates ───────────────────────────────────────────────────────────
 
-  /** PATCH /terms/:termId/gates */
+  /**
+   * PATCH /admin/lessons/:id/status for every lesson of the term
+   * (`courseSelection` / `startClasses`).
+   */
   async updateTermGates(
     input: UpdateTermGatesInput
   ): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     if (!IS_MOCK_MODE) {
-      throw new Error('تغییر وضعیت گیت ترم هنوز به API واقعی متصل نشده است.');
+      return updateRealTermGates(input);
     }
     return mutateSyllabusSnapshot((draft) => {
       const term = draft.terms.find((t) => t.id === input.termId);
@@ -221,15 +302,15 @@ export const SyllabusConfigService = {
     });
   },
 
-  // ─── Weekly syllabus (mock-only) ──────────────────────────────────────────
+  // ─── Weekly syllabus ──────────────────────────────────────────────────────
 
-  /** PUT /terms/:termId/offerings/:id/weeks */
+  /** PUT /admin/lessons/:lessonId/weeks */
   async saveSyllabusWeeks(
     input: SaveSyllabusWeeksInput
   ): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     if (!IS_MOCK_MODE) {
-      throw new Error('ذخیره سرفصل هفتگی هنوز به API واقعی متصل نشده است.');
+      return saveRealSyllabusWeeks(input);
     }
     return mutateSyllabusSnapshot((draft) => {
       const existing = draft.offerings[input.courseOfferingId];
@@ -344,6 +425,7 @@ export const SyllabusConfigService = {
   // ─── Utility ──────────────────────────────────────────────────────────────
 
   resolveOfferingId(termId: string, courseCatalogId: string): string {
+    if (!IS_MOCK_MODE) return courseCatalogId;
     return buildCourseOfferingId(termId, courseCatalogId);
   },
 };

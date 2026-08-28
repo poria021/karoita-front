@@ -10,8 +10,10 @@ import type {
   NestCreateEducationalDistrictDto,
   NestCreateProvinceDto,
   NestCreateSchoolDto,
+  NestBulkLessonStatusDto,
   NestCreateSemesterDto,
   NestCreateUniversityDto,
+  NestCreateWeekDto,
   NestDegree,
   NestDegreeByRole,
   NestEducationalDistrict,
@@ -22,7 +24,12 @@ import type {
   NestRole,
   NestSchool,
   NestSchoolListQuery,
+  NestLessonWeek,
+  NestPatchLessonStatusDto,
+  NestPutLessonWeeksDto,
   NestSemester,
+  NestSemesterAllStructure,
+  NestSemesterWithLessons,
   NestUniversity,
   NestUpdateCityDto,
   NestUpdateDegreeDto,
@@ -31,6 +38,7 @@ import type {
   NestUpdateSchoolDto,
   NestUpdateSemesterDto,
   NestUpdateUniversityDto,
+  NestUpdateWeekDto,
 } from '@/types/nest-admin';
 
 /**
@@ -67,6 +75,13 @@ export const NEST_ADMIN_PATHS = {
   universityById: (id: string) => `admin/universites/${id}`,
   semesters: 'admin/semester',
   semesterById: (id: string) => `admin/semester/${id}`,
+  semestersAll: 'admin/semesters_all',
+  lessonsStatus: 'admin/lessons/status',
+  lessonStatusById: (id: string) => `admin/lessons/${id}/status`,
+  lessonWeeks: (lessonId: string) => `admin/lessons/${lessonId}/weeks`,
+  weeks: 'admin/weeks',
+  weekById: (id: string) => `admin/weeks/${id}`,
+  weeksByLesson: (lessonId: string) => `admin/weeks/lesson/${lessonId}`,
   academicSettings: 'admin/settings',
 } as const;
 
@@ -300,6 +315,84 @@ export const adminCatalogApi = {
   deleteSemester(id: string, token?: string) {
     return apiClient.deleteMaybeJson<null>(
       NEST_ADMIN_PATHS.semesterById(id),
+      token
+    );
+  },
+
+  /**
+   * GET /admin/semesters_all?structure=semester|podmani
+   * Bare array of semesters with nested lessons (and sometimes weeks).
+   */
+  listSemestersAll(structure: NestSemesterAllStructure, token?: string) {
+    return apiClient.getJson<NestSemesterWithLessons[]>(
+      NEST_ADMIN_PATHS.semestersAll,
+      token,
+      { searchParams: toSearchParams({ structure }) }
+    );
+  },
+
+  /** GET /admin/weeks/lesson/{lessonId} — bare week array. */
+  listWeeksByLesson(lessonId: string, token?: string) {
+    return apiClient.getJson<NestLessonWeek[]>(
+      NEST_ADMIN_PATHS.weeksByLesson(lessonId),
+      token
+    );
+  },
+
+  /**
+   * PATCH /admin/lessons/status — bulk capacity / days / status flags.
+   * Confirmed live 204.
+   */
+  patchLessonsStatus(body: NestBulkLessonStatusDto[], token?: string) {
+    return apiClient.patchMaybeJson<null>(
+      NEST_ADMIN_PATHS.lessonsStatus,
+      body,
+      token
+    );
+  },
+
+  /**
+   * PATCH /admin/lessons/{id}/status — single lesson flags / capacity / days.
+   * Confirmed live 204.
+   */
+  patchLessonStatus(
+    id: string,
+    body: NestPatchLessonStatusDto,
+    token?: string
+  ) {
+    return apiClient.patchMaybeJson<null>(
+      NEST_ADMIN_PATHS.lessonStatusById(id),
+      body,
+      token
+    );
+  },
+
+  /**
+   * PUT /admin/lessons/{lessonId}/weeks — replace-all weeks for a lesson.
+   * Confirmed live 204.
+   */
+  putLessonWeeks(
+    lessonId: string,
+    body: NestPutLessonWeeksDto,
+    token?: string
+  ) {
+    return apiClient.putMaybeJson<null>(
+      NEST_ADMIN_PATHS.lessonWeeks(lessonId),
+      body,
+      token
+    );
+  },
+
+  /** POST /admin/weeks — create one week. Confirmed live 204. */
+  createWeek(body: NestCreateWeekDto, token?: string) {
+    return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.weeks, body, token);
+  },
+
+  /** PATCH /admin/weeks/{id} — update one week. Confirmed live 204. */
+  updateWeek(id: string, body: NestUpdateWeekDto, token?: string) {
+    return apiClient.patchMaybeJson<null>(
+      NEST_ADMIN_PATHS.weekById(id),
+      body,
       token
     );
   },

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   errorMessage,
   offeredCatalogIdsFromList,
+  resolveAudienceTermId,
 } from './syllabusPageUtils';
 
 describe('errorMessage', () => {
@@ -48,5 +49,38 @@ describe('offeredCatalogIdsFromList', () => {
       },
     ]);
     expect([...ids].sort()).toEqual(['c1', 'c3']);
+  });
+});
+
+describe('resolveAudienceTermId', () => {
+  const pool = [
+    {
+      id: 'term_mod_1',
+      title: 'پودمان اول 1405-1406',
+      type: 'modular' as const,
+      isEnrollOpen: false,
+      isTermOpen: false,
+      enrollStart: '',
+      termStart: '',
+    },
+    {
+      id: 'term_mod_2',
+      title: 'پودمان دوم 1405-1406',
+      type: 'modular' as const,
+      isEnrollOpen: false,
+      isTermOpen: false,
+      enrollStart: '',
+      termStart: '',
+    },
+  ];
+
+  it('restores the remembered term when it still exists in the audience pool', () => {
+    expect(resolveAudienceTermId(pool, 'term_mod_2')).toBe('term_mod_2');
+  });
+
+  it('falls back to the first term when memory is empty or stale', () => {
+    expect(resolveAudienceTermId(pool, undefined)).toBe('term_mod_1');
+    expect(resolveAudienceTermId(pool, 'term_gone')).toBe('term_mod_1');
+    expect(resolveAudienceTermId([], 'term_mod_1')).toBe('');
   });
 });
