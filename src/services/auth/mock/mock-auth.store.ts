@@ -350,10 +350,15 @@ export function tryRestoreMockSession(): Session | null {
   return { user, token: meta.token, expiresAt: meta.expiresAt };
 }
 
+/** Shape: `mock.{userId}.{issuedAt}` — `tryRestoreMockSession` reads `userId`. */
+export function buildMockSessionToken(userId: string): string {
+  return `mock.${userId}.${Date.now()}`;
+}
+
 export function buildMockSession(user: User): Session {
   return {
     user,
-    token: `mock.${user.id}.${Date.now()}`,
+    token: buildMockSessionToken(user.id),
     expiresAt: new Date(Date.now() + MOCK_SESSION_TTL_MS).toISOString(),
   };
 }

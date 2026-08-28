@@ -2,7 +2,10 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { RouteService } from '../src/services/route.service';
-import { MOCK_SUPER_ADMIN_MOBILE } from '../src/services/auth/mock/auth-mock-users';
+import {
+  AUTH_MOCK_USERS,
+  MOCK_SUPER_ADMIN_MOBILE,
+} from '../src/services/auth/mock/auth-mock-users';
 
 async function expectNoSeriousAxeViolations(page: Page, include?: string) {
   let builder = new AxeBuilder({ page }).withTags([
@@ -24,16 +27,21 @@ async function expectNoSeriousAxeViolations(page: Page, include?: string) {
   ).toEqual([]);
 }
 
-async function setMockAdminSession(page: Page, mobile: string): Promise<void> {
-  // اول به صفحه عمومی می‌ریم تا document وجود داشته باشه
+async function setMockAdminSession(page: Page): Promise<void> {
   await page.goto(RouteService.marketing.home());
 
+  const admin = AUTH_MOCK_USERS.find(
+    (user) => user.mobile === MOCK_SUPER_ADMIN_MOBILE
+  );
+  if (!admin) {
+    throw new Error('AUTH_MOCK_USERS is missing the super_admin seed');
+  }
+
   const meta = JSON.stringify({
-    token: 'mock.test',
+    token: `mock.${admin.id}.${Date.now()}`,
     expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
   });
 
-  // کوکی رو در browser context ست می‌کنیم تا middleware Edge هم ببینه
   try {
     await page.context().addCookies([
       { name: 'karvita_mock_session', value: '1', url: page.url(), path: '/' },
@@ -43,36 +51,15 @@ async function setMockAdminSession(page: Page, mobile: string): Promise<void> {
     // fallback به document.cookie
   }
 
-  await page.evaluate(
-    ({ m, mob }) => {
-      document.cookie = `karvita_mock_session=1; path=/`;
-      document.cookie = `karvita_auth_session_meta=${m}; path=/`;
-      try {
-        // useUserStore persists to sessionStorage (see src/store/useUserStore.ts) —
-        // seed the same storage the app actually reads on rehydrate.
-        sessionStorage.setItem('karvita_auth_session_meta', m);
-        sessionStorage.setItem(
-          'karvita-user-store',
-          JSON.stringify({
-            state: {
-              activeUser: {
-                id: 'mock-admin',
-                mobile: mob,
-                firstName: '',
-                lastName: '',
-                role: 'super_admin',
-                approved: true,
-                docStatus: 'not_submitted',
-                hasPassword: false,
-              },
-              isAuthenticated: true,
-            },
-          })
-        );
-      } catch {}
-    },
-    { m: meta, mob: mobile }
-  );
+  await page.evaluate((m) => {
+    document.cookie = `karvita_mock_session=1; path=/`;
+    document.cookie = `karvita_auth_session_meta=${encodeURIComponent(m)}; path=/`;
+    try {
+      sessionStorage.removeItem('karvita-user-store');
+    } catch {
+      // ignore
+    }
+  }, meta);
 }
 
 test.describe('a11y components', () => {
@@ -87,7 +74,7 @@ test.describe('a11y components', () => {
   test('skip link is the first focusable control on the app shell', async ({
     page,
   }) => {
-    await setMockAdminSession(page, MOCK_SUPER_ADMIN_MOBILE);
+    await setMockAdminSession(page);
 
     await page.goto(RouteService.karvita.adminDashboard());
     await expect(page.locator('main#karvita-main-content')).toBeVisible({
