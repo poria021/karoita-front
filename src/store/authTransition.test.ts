@@ -25,4 +25,9 @@ describe('authTransition', () => {
     expect(getAuthTransitionPhase()).toBe('leaving');
     expect(getRuntimeAuthBoot()).toBeNull();
   });
+
+  it('waitForNextPaint resolves on the next animation frame', async () => {
+    const { waitForNextPaint } = await import('@/store/authTransition');
+    await expect(waitForNextPaint()).resolves.toBeUndefined();
+  });
 });

@@ -11,7 +11,7 @@
  * ─────────────────────────────────────────────────────────────────────────────
  */
 import { isAuthPath, RouteService } from '@/services/route.service';
-import { beginLeavingApp } from '@/store/authTransition';
+import { beginLeavingApp, waitForNextPaint } from '@/store/authTransition';
 import { setRuntimeAuthBoot } from '@/store/sessionBoot';
 import { useUserStore } from '@/store/useUserStore';
 
@@ -104,6 +104,7 @@ export async function handleUnauthorized(): Promise<void> {
   handlingUnauthorized = true;
   try {
     beginLeavingApp();
+    await waitForNextPaint();
     setRuntimeAuthBoot('unauthenticated');
     useUserStore.getState().setUser(null);
     const { AuthService } = await import('@/services/auth.service');

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 
+import { AuthTransitionPaintRelease } from '@/components/shared/shell/AuthTransitionPaintRelease';
 import { DashboardFooter } from '@/components/shared/shell/DashboardFooter';
 import { ModulePageHeader } from '@/components/shared/shell/ModulePageHeader';
 import { DASHBOARD_MAIN_ID } from '@/components/shared/shell/SkipToMainContent';
@@ -22,6 +23,7 @@ export function DashboardMainViewport({ children }: DashboardMainViewportProps) 
         {children}
       </div>
       <DashboardFooter />
+      <AuthTransitionPaintRelease when="entering" />
     </main>
   );
 }

@@ -90,3 +90,10 @@ export function beginEnteringApp(): void {
 export function beginLeavingApp(): void {
   setAuthTransitionPhase('leaving');
 }
+
+/** Yield until the overlay/guard can paint over the dashboard shell. */
+export function waitForNextPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
+}

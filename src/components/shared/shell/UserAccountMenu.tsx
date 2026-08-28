@@ -20,7 +20,7 @@ import { usePwaStandalone } from '@/hooks/usePwaInstall';
 import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
-import { beginLeavingApp, clearAuthTransition } from '@/store/authTransition';
+import { beginLeavingApp, clearAuthTransition, waitForNextPaint } from '@/store/authTransition';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
 import { faIcons } from '@/utils/iconMap';
@@ -84,6 +84,7 @@ export function UserAccountMenu({
       setAccountMenuOwner(null);
       onNavigate?.();
       beginLeavingApp();
+      await waitForNextPaint();
       await AuthService.logout();
       router.replace(RouteService.marketing.home());
     } catch {

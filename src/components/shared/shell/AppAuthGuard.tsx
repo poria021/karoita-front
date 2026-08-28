@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { UnauthenticatedRedirect } from '@/components/shared/shell/UnauthenticatedRedirect';
 import { AuthService } from '@/services/auth.service';
-import { getAuthTransitionPhase } from '@/store/authTransition';
+import { useAuthTransitionPhase } from '@/store/authTransition';
 import { useUserStore } from '@/store/useUserStore';
 import { isMockApiMode } from '@/lib/api-mode';
 import { tryRestoreMockSession } from '@/services/auth/mock/mock-auth.store';
@@ -19,8 +19,8 @@ type BootState = 'pending' | RuntimeAuthBoot;
 
 const BOOT_LABEL = 'لطفا منتظر بمانید…';
 
-function BootLoader() {
-  return <KvBrandLinearLoader fullViewport label={BOOT_LABEL} />;
+function BootLoader({ label = BOOT_LABEL }: { label?: string }) {
+  return <KvBrandLinearLoader fullViewport label={label} />;
 }
 
 async function restoreSession(): Promise<RuntimeAuthBoot> {
@@ -46,6 +46,8 @@ async function restoreSession(): Promise<RuntimeAuthBoot> {
 
 function AppAuthGuardInner({ children }: { children: ReactNode }) {
   const hasHydrated = useUserStore((state) => state.hasHydrated);
+  const activeUser = useUserStore((state) => state.activeUser);
+  const phase = useAuthTransitionPhase();
   const [boot, setBoot] = useState<BootState>(
     () => getRuntimeAuthBoot() ?? 'pending'
   );
@@ -65,14 +67,18 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
     };
   }, [hasHydrated]);
 
+  if (phase === 'leaving') {
+    return <BootLoader label="در حال خروج از حساب کاربری…" />;
+  }
+
   if (boot === 'authenticated') {
+    if (!activeUser) {
+      return <BootLoader />;
+    }
     return <>{children}</>;
   }
 
   if (boot === 'unauthenticated') {
-    if (getAuthTransitionPhase() === 'leaving') {
-      return <BootLoader />;
-    }
     return (
       <Suspense fallback={<BootLoader />}>
         <UnauthenticatedRedirect />
