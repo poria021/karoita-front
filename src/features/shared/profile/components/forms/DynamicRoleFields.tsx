@@ -23,7 +23,9 @@ import type { OrganizationField } from './profile-form-options';
 
 export interface DynamicRoleFieldsProps {
   role: UserRole;
-  disabled?: boolean;
+  section: 'identifiers' | 'organization';
+  organizationLocked?: boolean;
+  identifierLocked?: boolean;
 }
 
 function filterDigits(rawValue: string): string {
@@ -69,115 +71,162 @@ function getDependsOn(
   }
 }
 
+function RoleOrganizationSelect({
+  name,
+  role,
+  locked,
+  dependsOn,
+}: {
+  name: OrganizationField;
+  role: UserRole;
+  locked: boolean;
+  dependsOn?: { province?: string[]; city?: string[]; district?: string[] };
+}) {
+  const form = useFormContext<ProfileSchema>();
+  const optional = isOptionalOrganizationField(role, name);
+  const isMulti = MULTI_ORGANIZATION_FIELDS.has(name);
+
+  return (
+    <KvFormField
+      control={form.control}
+      name={name}
+      render={({ field, fieldState }) =>
+        isMulti ? (
+          <KvSearchableOrganizationSelect
+            ref={field.ref}
+            multi
+            type={name}
+            label={ORGANIZATION_LABELS[name]}
+            required={!optional}
+            optionalHint={optional}
+            value={asStringArray(field.value)}
+            placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
+            locked={locked}
+            showLockIcon={false}
+            error={fieldState.error?.message}
+            dependsOn={dependsOn}
+            onChange={(next) => {
+              field.onChange(next);
+              for (const dependent of DEPENDENCIES[name] ?? []) {
+                form.setValue(dependent, [], {
+                  shouldDirty: true,
+                  shouldValidate: false,
+                });
+              }
+            }}
+          />
+        ) : (
+          <KvSearchableOrganizationSelect
+            ref={field.ref}
+            type={name}
+            label={ORGANIZATION_LABELS[name]}
+            required={!optional}
+            optionalHint={optional}
+            value={typeof field.value === 'string' ? field.value : ''}
+            placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
+            locked={locked}
+            showLockIcon={false}
+            error={fieldState.error?.message}
+            dependsOn={dependsOn}
+            onChange={(value) => field.onChange(value)}
+          />
+        )
+      }
+    />
+  );
+}
+
 export function DynamicRoleFields({
   role,
-  disabled = false,
+  section,
+  organizationLocked = false,
+  identifierLocked = false,
 }: DynamicRoleFieldsProps) {
   const form = useFormContext<ProfileSchema>();
+  const strategy = ROLE_FIELD_STRATEGY[role];
+  const hasMajor = strategy.organizationFields.includes('major');
+  const locationFields = strategy.organizationFields.filter(
+    (name) => name !== 'major'
+  );
 
-  // watch فیلدهای والد برای cascade filter
   const province = asStringArray(
-    useWatch({ control: form.control, name: 'province' })
+    useWatch({
+      control: form.control,
+      name: 'province',
+      disabled: section !== 'organization',
+    })
   );
   const city = asStringArray(
-    useWatch({ control: form.control, name: 'city' })
+    useWatch({
+      control: form.control,
+      name: 'city',
+      disabled: section !== 'organization',
+    })
   );
   const district = asStringArray(
-    useWatch({ control: form.control, name: 'district' })
+    useWatch({
+      control: form.control,
+      name: 'district',
+      disabled: section !== 'organization',
+    })
   );
 
-  const strategy = ROLE_FIELD_STRATEGY[role];
+  if (section === 'identifiers') {
+    return (
+      <>
+        {strategy.identifierFields.map((name) => {
+          const meta = getIdentifierMeta(role, name);
+          return (
+            <KvFormField
+              key={name}
+              control={form.control}
+              name={name}
+              render={({ field, fieldState }) => (
+                <KvTextField
+                  label={meta.label}
+                  required
+                  type="tel"
+                  inputMode="numeric"
+                  dir="ltr"
+                  locked={identifierLocked}
+                  placeholder={meta.placeholder}
+                  error={fieldState.error?.message}
+                  name={field.name}
+                  ref={field.ref}
+                  onBlur={field.onBlur}
+                  value={toPersianDigits(
+                    typeof field.value === 'string' ? field.value : ''
+                  )}
+                  onChange={(event) => {
+                    field.onChange(filterDigits(event.target.value));
+                  }}
+                />
+              )}
+            />
+          );
+        })}
+        {hasMajor ? (
+          <RoleOrganizationSelect
+            name="major"
+            role={role}
+            locked={identifierLocked}
+          />
+        ) : null}
+      </>
+    );
+  }
 
   return (
     <>
-      {strategy.organizationFields.map((name) => {
-        const optional = isOptionalOrganizationField(role, name);
-        const isMulti = MULTI_ORGANIZATION_FIELDS.has(name);
-        const dependsOn = getDependsOn(name, province, city, district);
-
-        return (
-          <KvFormField
-            key={name}
-            control={form.control}
-            name={name}
-            render={({ field, fieldState }) =>
-              isMulti ? (
-                <KvSearchableOrganizationSelect
-                  ref={field.ref}
-                  multi
-                  type={name}
-                  label={ORGANIZATION_LABELS[name]}
-                  required={!optional}
-                  optionalHint={optional}
-                  value={asStringArray(field.value)}
-                  placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
-                  locked={disabled}
-                  showLockIcon={false}
-                  error={fieldState.error?.message}
-                  dependsOn={dependsOn}
-                  onChange={(next) => {
-                    field.onChange(next);
-                    // پاک کردن آبشاری فیلدهای وابسته
-                    for (const dependent of DEPENDENCIES[name] ?? []) {
-                      form.setValue(dependent, [], {
-                        shouldDirty: true,
-                        shouldValidate: false,
-                      });
-                    }
-                  }}
-                />
-              ) : (
-                <KvSearchableOrganizationSelect
-                  ref={field.ref}
-                  type={name}
-                  label={ORGANIZATION_LABELS[name]}
-                  required={!optional}
-                  optionalHint={optional}
-                  value={typeof field.value === 'string' ? field.value : ''}
-                  placeholder={`جستجو و انتخاب ${ORGANIZATION_LABELS[name]}...`}
-                  locked={disabled}
-                  showLockIcon={false}
-                  error={fieldState.error?.message}
-                  dependsOn={dependsOn}
-                  onChange={(value) => field.onChange(value)}
-                />
-              )
-            }
-          />
-        );
-      })}
-
-      {strategy.identifierFields.map((name) => {
-        const meta = getIdentifierMeta(role, name);
-        return (
-          <KvFormField
-            key={name}
-            control={form.control}
-            name={name}
-            render={({ field, fieldState }) => (
-              <KvTextField
-                label={meta.label}
-                required
-                type="tel"
-                inputMode="numeric"
-                dir="ltr"
-                locked={disabled}
-                placeholder={meta.placeholder}
-                error={fieldState.error?.message}
-                name={field.name}
-                ref={field.ref}
-                onBlur={field.onBlur}
-                value={toPersianDigits(
-                  typeof field.value === 'string' ? field.value : ''
-                )}
-                onChange={(event) => {
-                  field.onChange(filterDigits(event.target.value));
-                }}
-              />
-            )}
-          />
-        );
-      })}
+      {locationFields.map((name) => (
+        <RoleOrganizationSelect
+          key={name}
+          name={name}
+          role={role}
+          locked={organizationLocked}
+          dependsOn={getDependsOn(name, province, city, district)}
+        />
+      ))}
     </>
   );
 }

@@ -26,6 +26,7 @@ import {
 } from '@/services/profile/profile.schema';
 import { ProfileService } from '@/services/profile.service';
 import { useProfileOrgFieldsSync } from '../../hooks/useProfileOrgFieldsSync';
+import { getProfileFormLocks } from '../../lib/profileFormLocks';
 import { DynamicRoleFields } from './DynamicRoleFields';
 import { getProfileDefaultValues } from './profile-form-options';
 
@@ -130,20 +131,15 @@ export function IdentityForm({
   });
 
   const isBusy = form.formState.isSubmitting;
+  const locks = getProfileFormLocks({
+    disabled,
+    autoApproveOnSave,
+    docStatus: liveUser.docStatus,
+  });
 
-  // فرم قفل است اگر: disabled باشد، یا docStatus نه not_submitted باشد نه rejected
-  // (یعنی pending_admin یا approved هر دو قفل می‌کنند)
-  // استثنا: اگر autoApproveOnSave=true باشد (پنل ادمین) قفل نمی‌شود
-  const isLocked =
-    disabled ||
-    (!autoApproveOnSave &&
-      liveUser.docStatus !== 'not_submitted' &&
-      liveUser.docStatus !== 'rejected');
-
-  const statusMessage =
-    liveUser.docStatus === 'approved'
-      ? 'مشخصات هویتی و مدرک شما توسط مدیریت تأیید شده و قابل ویرایش نیست.'
-      : 'اطلاعات شما ارسال شده و در انتظار تأیید مدیریت است؛ تا تعیین وضعیت پرونده امکان ویرایش و ارسال مجدد وجود ندارد.';
+  const statusMessage = locks.accountApproved
+    ? 'نام، نام خانوادگی، رشته، کد شناسایی و مدرک هویتی پس از تأیید قابل ویرایش نیست. استان، منطقه، شهر، مدرسه یا دانشگاه را می‌توانید ذخیره کنید؛ این تغییر به صف تأیید مدیر ارشد برنمی‌گردد.'
+    : 'اطلاعات شما ارسال شده و در انتظار تأیید مدیریت است؛ تا تعیین وضعیت پرونده امکان ویرایش و ارسال مجدد وجود ندارد.';
 
   return (
     <KvCard
@@ -166,7 +162,7 @@ export function IdentityForm({
                     <KvTextField
                       label="نام"
                       required
-                      locked={isLocked}
+                      locked={locks.identityLocked}
                       placeholder="مثال: امیرحسین"
                       error={fieldState.error?.message}
                       name={field.name}
@@ -185,7 +181,7 @@ export function IdentityForm({
                     <KvTextField
                       label="نام خانوادگی"
                       required
-                      locked={isLocked}
+                      locked={locks.identityLocked}
                       placeholder="مثال: کریمی"
                       error={fieldState.error?.message}
                       name={field.name}
@@ -210,7 +206,14 @@ export function IdentityForm({
                 />
                 <DynamicRoleFields
                   role={liveUser.role}
-                  disabled={isLocked}
+                  section="identifiers"
+                  identifierLocked={locks.identityLocked}
+                />
+                <DynamicRoleFields
+                  role={liveUser.role}
+                  section="organization"
+                  organizationLocked={locks.organizationLocked}
+                  identifierLocked={locks.identityLocked}
                 />
               </div>
             </fieldset>
@@ -223,7 +226,7 @@ export function IdentityForm({
                   setIdentityDocument(compressed);
                   setOriginalDocument(compressed ? (original ?? null) : null);
                 }}
-                disabled={isLocked}
+                disabled={locks.identityLocked}
                 optionalHint
                 label="بارگذاری مدرک هویتی"
                 labelIcon={<FaIcon icon={faIcons.cloudArrowUp} size="sm" />}
@@ -238,14 +241,14 @@ export function IdentityForm({
             ) : null}
 
             <div className="mt-kv-group flex flex-col gap-kv-pair border-t border-kv-border pt-kv-group sm:flex-row sm:items-center sm:justify-between sm:gap-kv-group">
-              {isLocked ? (
+              {locks.awaitingAdminReview || locks.accountApproved ? (
                 <div
                   role="status"
                   className="flex min-w-0 flex-1 items-start gap-kv-pair text-start"
                 >
                   <FaIcon
                     icon={
-                      liveUser.docStatus === 'approved'
+                      locks.accountApproved
                         ? faIcons.circleCheck
                         : faIcons.circleExclamation
                     }
@@ -265,7 +268,7 @@ export function IdentityForm({
                 color="cta"
                 appearance="solid"
                 loading={isBusy}
-                disabled={isLocked || isBusy}
+                disabled={locks.submitLocked || isBusy}
                 className="shrink-0 self-end sm:self-auto"
               >
                 {isBusy ? 'در حال ارسال...' : submitLabel}

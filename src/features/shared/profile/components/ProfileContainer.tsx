@@ -127,19 +127,22 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
     />
   ) : null;
 
-  const isProfileLocked =
+  const isAwaitingAdminReview =
     uiStrategy.lockIdentityAfterSubmit &&
-    activeUser.docStatus !== 'not_submitted' &&
-    activeUser.docStatus !== 'rejected';
+    activeUser.docStatus === 'pending_admin';
+  const identitySubmitLabel =
+    uiStrategy.lockIdentityAfterSubmit && activeUser.docStatus === 'approved'
+      ? 'ذخیره تغییرات'
+      : uiStrategy.identitySubmitLabel;
 
   const identityForm = (
     <IdentityForm
       activeUser={activeUser}
       token={session?.token}
-      disabled={isProfileLocked}
+      disabled={isAwaitingAdminReview}
       statusAlerts={statusAlerts}
       showDocUploader={uiStrategy.showDocUploader}
-      submitLabel={uiStrategy.identitySubmitLabel}
+      submitLabel={identitySubmitLabel}
       autoApproveOnSave={!uiStrategy.lockIdentityAfterSubmit}
     />
   );

@@ -45,6 +45,36 @@ describe('ProfileService mock persistence', () => {
     expect(updated.docStatus).toBe('pending_admin');
   });
 
+  it('keeps an approved account approved after later org-field edits', async () => {
+    const seed = AUTH_MOCK_USERS.find(
+      (u) => u.role === 'mentor_teacher' && u.docStatus === 'approved'
+    );
+    expect(seed).toBeTruthy();
+    if (!seed) return;
+
+    useUserStore.getState().setUser(toPublicUser(seed));
+
+    await ProfileService.updateProfile(
+      {
+        role: 'mentor_teacher',
+        firstName: seed.firstName,
+        lastName: seed.lastName,
+        province: ['اصفهان'],
+        city: seed.city ?? [],
+        district: seed.district ?? [],
+        school: seed.school ?? [],
+        personalCode: seed.personalCode ?? '10002345',
+      },
+      `mock.${seed.id}.1`
+    );
+
+    const stored = findMockUserById(seed.id);
+    expect(stored?.docStatus).toBe('approved');
+    expect(stored?.approved).toBe(true);
+    expect(stored?.province).toEqual(['اصفهان']);
+    expect(useUserStore.getState().activeUser?.docStatus).toBe('approved');
+  });
+
   it('updateProfile portal path uses the same mock writer', async () => {
     const seed = AUTH_MOCK_USERS.find((u) => u.role === 'super_admin');
     expect(seed).toBeTruthy();

@@ -26,7 +26,7 @@ export function ProfileStatusAlert({
       <KvAlert
         variant="success"
         title="احراز هویت با موفقیت انجام شد"
-        description="هویت و مدارک شما با موفقیت توسط مدیریت تایید و حساب کاربری فعال گردید."
+        description="هویت و مدارک شما توسط مدیریت تایید و حساب فعال شد. استان، منطقه، شهر، مدرسه یا دانشگاه را می‌توانید بعداً بدون ارسال مجدد به مدیر ارشد تغییر دهید."
         dismissible={dismissibleApproved}
       />
     );
