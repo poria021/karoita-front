@@ -8,12 +8,7 @@ import {
   AppTabsList,
   AppTabsTrigger,
 } from '@/components/shared/AppTabs';
-import { KvTypography } from '@/components/shared/KvTypography';
-import {
-  kvProductFooterBorderClassName,
-} from '@/components/shared/shell/shellChrome';
 import { RETURN_URL_PARAM } from '@/lib/return-url';
-import { cn } from '@/lib/utils';
 
 import { useLoginForm, type LoginMode } from '../hooks/useLoginForm';
 import {
@@ -21,7 +16,6 @@ import {
   registerHref,
   type AuthCardSurface,
 } from '../lib/authHrefs';
-import { AuthLogo } from './AuthLogo';
 import { ForgotForm } from './ForgotForm';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
@@ -94,30 +88,7 @@ function RegisterPanel() {
 }
 
 export function AuthCard({ surface }: AuthCardProps) {
-  return (
-    <div className="kv-auth-enter mt-kv-section w-full max-w-[450px] overflow-hidden rounded-kv-card border border-kv-border/80 bg-kv-surface shadow-kv-overlay">
-      <div className="px-kv-inset py-kv-group sm:px-kv-page sm:py-kv-section">
-        <AuthLogo subtitle="سامانه هوشمند کارورزی و کارآموزی" />
-
-        {surface === 'forgot' ? (
-          <ForgotForm />
-        ) : surface === 'register' ? (
-          <RegisterPanel />
-        ) : (
-          <LoginPanel />
-        )}
-
-        <div
-          className={cn(
-            'mt-kv-section pt-kv-stack text-center',
-            kvProductFooterBorderClassName
-          )}
-        >
-          <KvTypography variant="overline" tone="disabled" align="center">
-            کارویتا - سامانه هوشمند کارورزی و کارآموزی
-          </KvTypography>
-        </div>
-      </div>
-    </div>
-  );
+  if (surface === 'forgot') return <ForgotForm />;
+  if (surface === 'register') return <RegisterPanel />;
+  return <LoginPanel />;
 }

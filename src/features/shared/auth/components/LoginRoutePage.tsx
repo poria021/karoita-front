@@ -1,5 +1,4 @@
 import { AuthCard } from '@/features/shared/auth/components/AuthCard';
-import { AuthPageShell } from '@/features/shared/auth/components/AuthPageShell';
 import {
   redirectLoginToAdminGate,
   shouldRedirectLoginToAdminGate,
@@ -18,9 +17,5 @@ export default async function LoginRoutePage({
     redirectLoginToAdminGate(params.returnUrl);
   }
 
-  return (
-    <AuthPageShell>
-      <AuthCard surface="login" />
-    </AuthPageShell>
-  );
+  return <AuthCard surface="login" />;
 }

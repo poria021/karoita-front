@@ -1,0 +1,166 @@
+TOTAL 165
+features/shared/profile/data/organization-catalog.ts:5:mock: OrgStructureService.listLabelsForField).
+features/shared/profile/data/organization-catalog.ts:9:src/features/shared/profile/data/organization-catalog.ts
+features/shared/profile/components/forms/profile-form-options.ts:25:province → city, college, district, school
+features/shared/profile/components/forms/profile-form-options.ts:26:city     → district, school
+features/shared/profile/components/forms/profile-form-options.ts:27:district → school
+features/karvita/organizational-capacities/components/OrganizationalCapacitiesModule.tsx:9:Facade: `OrganizationalCapacitiesService`.
+components/shared/AppTabs.tsx:16:Shared track chrome — identical pill style on all breakpoints.
+components/shared/AppTabs.tsx:24:Single-line track; scrolls horizontally if needed.
+components/shared/AppTabs.tsx:38:Mobile/tablet: N-col grid inside the same track.
+components/shared/AppTabs.tsx:39:Desktop (lg+): hug-content row like default dashboard tabs.
+components/shared/AppTabs.tsx:51:Dashboard: full width through tablet; hug content from lg. Auth (`fullWidth`): always stretch.
+components/shared/AppTabs.tsx:63:Weight stays bold so active/idle cannot resize the pill or hug track.
+components/shared/AppTabs.tsx:72:Active fill — light: surface; dark: subtle + pure white ink (tabs exception).
+components/shared/AppTabs.tsx:79:@deprecated Prefer surface — kept for rare brand-emphasis call sites.
+components/shared/AppTabs.tsx:85:Dashboard — same type size as labels/body; below page title (sm/base).
+components/shared/AppTabs.tsx:91:Auth fullWidth — denser pad, same type size as dashboard.
+components/shared/AppTabs.tsx:98:Grid cells fill; desktop row hugs.
+components/shared/AppTabs.tsx:119:Stretch track + equal-width triggers (auth card). Style tokens stay identical.
+components/shared/AppTabs.tsx:121:Active pill: `surface` (default, matches auth) or `brand`.
+components/shared/AppTabs.tsx:124:Below `lg`: N-column grid inside the shared track (org structure).
+components/shared/AppTabs.tsx:125:`lg+`: hug-content row — never forced full width.
+components/shared/KarvitaBrandMark.tsx:8:Official Karvita mark — compact brand well, glyph fills most of the box.
+components/shared/KvAccordion.tsx:44:Open = border only — no background shift on select/press.
+components/shared/KvAccordion.tsx:62:No hover / press / open background changes on card triggers.
+components/shared/KvCard.tsx:35:Semi-transparent kv-field bleeds the soft tint — force opaque near-white fill.
+components/shared/KvCard.tsx:73:Default visible so in-card overlays (searchable selects) are not clipped.
+components/shared/KvCard.tsx:74:fill/fillMin keep overflow-hidden for intentional scroll wells.
+components/shared/KvCard.tsx:169:Nested under KvCardContent — no extra X pad so actions align with fields.
+components/shared/KvCardTitleIcon.tsx:9:Soft brand well for icons beside card title + subtitle headers.
+components/shared/KvEmptyState.tsx:20:Flat hero × — muted slate by default; danger only for destructive empties.
+components/shared/KvOverlayScrollMoreCue.tsx:15:Full-width icon-only bottom cue — same row height/padding as overlay options.
+components/shared/KvOverlayScrollMoreCue.tsx:16:Hovering nudges edge auto-scroll downward.
+components/shared/KvRouteStatus.tsx:21:Quiet secondary guidance under the description.
+components/shared/KvRouteStatus.tsx:24:`page` = full viewport open canvas; `inset` = inside dashboard shell.
+components/shared/KvRouteStatus.tsx:55:Route status — open canvas, huge faded code section,
+components/shared/KvRouteStatus.tsx:56:ready Font Awesome vectors in a framed stage.
+components/shared/KvTypography.tsx:40:Brand / marketing heroes
+components/shared/KvTypography.tsx:42:Page / module headings — clearly above dense chrome
+components/shared/KvTypography.tsx:44:Section headings inside modules
+components/shared/KvTypography.tsx:46:Shell/sidebar nav stays dense
+components/shared/KvTypography.tsx:48:Readable supporting copy (not chrome-compressed)
+components/shared/KvTypography.tsx:50:Field labels + meta chrome remain 12px floor
+components/shared/KvTypography.tsx:119:Layout-only extras (`mt-*`, `truncate` wrappers). Do not override
+components/shared/KvTypography.tsx:120:variant type size/color here — use `variant` / `tone` / `weight`.
+components/shared/fields/kvDropzoneSurface.ts:9:Shared dashed drop target chrome for all file uploaders.
+components/shared/fields/kvDropzoneSurface.ts:12:Fixed preview / drop / compressing surface. Module-scoped so Fast Refresh cannot TDZ it.
+components/shared/fields/KvImageDocUploader.tsx:56:Override dropzone accept map (default JPEG + PNG).
+components/shared/fields/KvImageDocUploader.tsx:60:When false, skip client compress (needed for SVG logos).
+components/shared/fields/KvImageDocUploader.tsx:61:SVG files always skip compress even when true.
+components/shared/fields/KvImageDocUploader.tsx:65:When false, omit the muted panel chrome around the dropzone
+components/shared/fields/KvImageDocUploader.tsx:66:(label can still be shown via KvFieldFrame).
+components/shared/fields/KvImageDocUploader.tsx:69:How the existing/new image fills the preview surface.
+components/shared/fields/KvPasswordField.tsx:37:When true, password characters start visible (toggle still available).
+components/shared/fields/KvSearchableOrganizationSelect.tsx:62:─── Types ─────────────────────────────────────────────────────────────────────
+components/shared/fields/KvSearchableOrganizationSelect.tsx:93:─── Helpers ───────────────────────────────────────────────────────────────────
+components/shared/fields/KvSearchableOrganizationSelect.tsx:192:─── Component ─────────────────────────────────────────────────────────────────
+components/shared/fields/KvSearchableOrganizationSelect.tsx:296:toggle off
+components/shared/fields/KvSearchField.tsx:18:Show an X control when the field has a value (default true).
+components/shared/fields/KvSelect.tsx:43:Selected value = primary text; placeholder/chevron stay quiet chrome.
+components/shared/fields/KvSelectField.tsx:30:Extra classes on the trigger (e.g. denser height beside icon buttons).
+components/shared/fields/KvSelectField.tsx:33:Force trigger label (e.g. Persian digits). When set, overrides ItemText
+components/shared/fields/KvSelectField.tsx:34:in the closed trigger so raw English `value` never leaks into the UI.
+components/shared/fields/KvSelectField.tsx:94:Keep '' as controlled empty — do not coerce with `value || undefined`.
+components/shared/fields/KvTextField.tsx:27:Product control height is locked to 44px (rule 80 md) for all sizes.
+components/shared/fields/KvTextField.tsx:68:Padding + type locked with control height (md).
+components/shared/route-status/KvRouteStatusArt.tsx:17:Ready Font Awesome vectors from the project icon map.
+components/shared/route-status/KvRouteStatusArt.tsx:40:Ready-made FA vector in a soft well + light geometric line rings.
+components/shared/route-status/KvRouteStatusBackdrop.tsx:4:Institutional line-vector field — used for both full-page and in-shell.
+components/shared/route-status/KvRouteStatusCodeBackdrop.tsx:6:Full-page vs in-shell main content sizing.
+components/shared/route-status/KvRouteStatusCodeBackdrop.tsx:12:Large faded status code as a background section (not a badge).
+components/shared/route-status/KvRouteStatusCodeBackdrop.tsx:13:Inset mode sizes to the dashboard main panel, not the viewport.
+components/shared/route-status/KvRouteStatusFrame.tsx:3:Technical corner brackets around the art stage.
+components/shared/route-status/PublicNotFoundStatus.tsx:4:Shared 404 copy for public surfaces (root + marketing).
+components/shared/shell/AppAuthGuard.tsx:41:401 → cookie expired
+components/shared/shell/AuthTransitionOverlay.tsx:7:Full-viewport brand loader for auth-boundary transitions only
+components/shared/shell/AuthTransitionOverlay.tsx:8:(login → dashboard, logout → marketing). Never used for in-dashboard
+components/shared/shell/AuthTransitionOverlay.tsx:9:module or tab switches.
+components/shared/shell/AuthTransitionOverlay.tsx:11:Does not read the router — `usePathname` during Next.js segment swaps
+components/shared/shell/AuthTransitionOverlay.tsx:12:can suspend this overlay (fallback null) and flash the empty dashboard
+components/shared/shell/AuthTransitionOverlay.tsx:13:shell. Destination layouts call `AuthTransitionPaintRelease` instead.
+components/shared/shell/AuthTransitionPaintRelease.tsx:13:Drops the auth overlay after this route's HTML has committed.
+components/shared/shell/AuthTransitionPaintRelease.tsx:14:Mount in the destination layout — never in the origin shell.
+components/shared/shell/DashboardAccessPlaceholder.tsx:4:Plain canvas while session/role gates resolve a redirect.
+components/shared/shell/DashboardAccessPlaceholder.tsx:5:Not a data skeleton — no pulse bones (rule 84).
+components/shared/shell/DashboardAccessPlaceholder.tsx:6:Not used for in-dashboard module/tab navigation.
+components/shared/shell/DashboardAccessPlaceholder.tsx:11:Use for shell-level auth/hydration gates that replace Header+Sidebar.
+components/shared/shell/HeaderBrandWordmark.tsx:4:Header brand name + quiet subtitle, start-aligned (RTL).
+components/shared/shell/HydrationSafe.tsx:19:Gates chrome until client stores are ready.
+components/shared/shell/HydrationSafe.tsx:20:User profile is memory-only; UI chrome (sidebar collapse) still rehydrates
+components/shared/shell/HydrationSafe.tsx:21:from localStorage. After login the user is already in memory, so we must
+components/shared/shell/HydrationSafe.tsx:22:not wait on chrome persist or we flash an empty canvas before the dashboard paints.
+components/shared/shell/KvBrandLinearLoader.tsx:6:Full-viewport overlay — use for the two auth-boundary transitions
+components/shared/shell/KvBrandLinearLoader.tsx:7:(entering the dashboard after login, exiting it on logout).
+components/shared/shell/KvBrandLinearLoader.tsx:16:Brand mark + indeterminate linear progress — auth-boundary transition
+components/shared/shell/KvBrandLinearLoader.tsx:17:screen ONLY (login → dashboard, logout → marketing, cold dashboard boot).
+components/shared/shell/KvBrandLinearLoader.tsx:19:Not for ordinary dashboard SPA loading: internal navigation between
+components/shared/shell/KvBrandLinearLoader.tsx:20:modules and tabs must keep the previous page until the next one paints
+components/shared/shell/KvBrandLinearLoader.tsx:21:(no `loading.tsx`, no full-page takeover). Data busy still follows
+components/shared/shell/KvBrandLinearLoader.tsx:22:rule 83/84 (`KvTableBusy`, `KvBusySurface`).
+components/shared/shell/KvBrandLinearLoader.tsx:24:Full-viewport uses the public marketing canvas (`kv-brand-atmosphere` +
+components/shared/shell/KvBrandLinearLoader.tsx:25:`kv-blueprint-bg`) so login/logout match landing and auth. Dashboard
+components/shared/shell/KvBrandLinearLoader.tsx:26:chrome itself stays a quiet canvas (rule 90).
+components/shared/shell/KvFeatureIntro.tsx:14:Module feature chrome — title + short description, optional trailing actions.
+components/shared/shell/KvSplitWorkspace.tsx:29:Border + equal vertical padding sit on the content below tabs (not under the tab track).
+components/shared/shell/KvWorkspace.tsx:18:Border + equal vertical padding sit on the content below tabs (not under the tab track).
+components/shared/shell/MobileBottomNav.tsx:86:─────────────────────────────────── NavItem ──
+components/shared/shell/OnboardingChecklist.tsx:19:When true, omit CTA that points at the current profile page.
+components/shared/shell/Providers.tsx:17:System + stored preference apply on auth, marketing, and dashboard.
+components/shared/shell/PwaBoot.tsx:19:SW registration after first paint + capture of Chrome's install event.
+components/shared/shell/PwaInstallControl.tsx:5:Opens the design-system install suggestion (dialog), not a toast.
+components/shared/shell/PwaInstallSuggestion.tsx:116:Design-system install suggestion: quiet bottom card when Chrome can
+components/shared/shell/PwaInstallSuggestion.tsx:117:install, plus KvDialog for footer / account-menu entry.
+components/shared/shell/shellChrome.ts:2:Shared focus / density recipes for shell chrome that cannot use KvButton
+components/shared/shell/shellChrome.ts:3:(e.g. DropdownMenuTrigger asChild with composite layout, locked nav stubs).
+components/shared/shell/shellChrome.ts:8:Compact overlay row padding — matches select/menu item density.
+components/shared/shell/shellChrome.ts:12:Horizontal inset for the dashboard body row (sidebar + main).
+components/shared/shell/shellChrome.ts:13:Mobile: full-bleed (`px-0`) so main spans the viewport.
+components/shared/shell/shellChrome.ts:14:Tablet+: start/end margins aligned with the shell scale.
+components/shared/shell/shellChrome.ts:20:Header content inset — slight mobile pad so controls are not flush to the edge;
+components/shared/shell/shellChrome.ts:21:from `sm` matches the body row margins.
+components/shared/shell/shellChrome.ts:26:Shared product footer hairline — dashboard main + auth cards.
+components/shared/shell/shellChrome.ts:29:Separator under the tab track, on the content body.
+components/shared/shell/shellCopy.ts:2:Phrases shared across product shell chrome (header / sidebar overlays).
+components/shared/shell/shellCopy.ts:3:Keep short, institutional Persian — not a full i18n layer.
+components/shared/shell/shellCopy.ts:16:Collapsed-rail title suffix when modules are locked.
+components/shared/shell/shellCopy.ts:18:Aria reason — matches onboarding gate language.
+components/shared/shell/SidebarCourseIcon.tsx:9:Course level digit (1–9) overlaid bottom-end on the domain icon.
+components/shared/shell/SidebarCourseIcon.tsx:17:anchored to the bottom-end corner of the glyph.
+components/shared/shell/SidebarNavGroup.tsx:48:Collapsed rail: expose children as icon links so both modules stay reachable.
+components/shared/shell/SidebarNavLink.tsx:18:L2 under a group — quieter than L1; hierarchy via color/weight, not size.
+components/shared/shell/SidebarNavLink.tsx:32:Expanded sidebar: L2 children use a quiet bullet. Collapsed rail: show course icons.
+components/shared/shell/SidebarNavLink.tsx:126:Live unlocked sidebar targets — prefetch for SPA-feel; locked items never Link.
+components/shared/shell/SkipToMainContent.tsx:9:First focusable control in the dashboard shell — jumps keyboard users past
+components/shared/shell/SkipToMainContent.tsx:10:header/sidebar chrome into the module main landmark (WCAG 2.4.1).
+components/shared/shell/SuperAdminModuleGuard.tsx:12:Guards admin control-plane routes; redirects non-super-admins to appropriate dashboard.
+components/shared/shell/SuperAdminModuleGuard.tsx:13:Used for module pages that require super-admin access.
+components/shared/shell/UnauthenticatedRedirect.tsx:11:Isolated module: `useSearchParams` must not live in the authenticated
+components/shared/shell/UnauthenticatedRedirect.tsx:12:dashboard shell graph. Next.js opts any client parent that imports this
+components/shared/shell/UnauthenticatedRedirect.tsx:13:hook into a Suspense/CSR boundary; on leftover `?tab=` / `?kind=` that
+components/shared/shell/UnauthenticatedRedirect.tsx:14:becomes a full-document load and the brand boot loader.
+components/shared/shell/useSidebarMobileDrawer.ts:12:Escape + focus trap/restore for the mobile sidebar drawer.
+components/shared/shell/useSidebarMobileDrawer.ts:13:Behavior must stay aligned with Sidebar composition (a11y only).
+components/shared/table/adminTableBodyPhase.ts:2:Admin table body phase (rule 80 / 83 soft refresh):
+components/shared/table/adminTableBodyPhase.ts:3:- rows: keep previous/current rows visible
+components/shared/table/adminTableBodyPhase.ts:4:- busy: first load — keep table chrome; body uses KvTableBusy (spinner)
+components/shared/table/adminTableBodyPhase.ts:5:- empty: idle and no rows — KvTableEmpty + empty state
+components/shared/table/adminTableRowNumber.ts:3:Display row number for admin tables (1-based, Persian digits).
+components/shared/table/KvBusySurface.tsx:16:Local data-region busy. Chrome stays painted; wait feedback is a quiet
+components/shared/table/KvBusySurface.tsx:17:spinner with a visible caption (no skeleton bones). Soft refresh with
+components/shared/table/KvBusySurface.tsx:18:existing content should keep prior UI and not mount this.
+components/shared/table/KvMobileListShell.tsx:15:When true during soft refresh, keep children instead of cold busy.
+components/shared/table/KvMobileListShell.tsx:32:Shared chrome for dashboard mobile card/accordion lists:
+components/shared/table/KvMobileListShell.tsx:33:cold busy (spinner), empty, load-more footer — domain rows stay in children.
+components/shared/table/KvTable.tsx:31:Shared admin table. `min-w-max` keeps a content floor so columns do not
+components/shared/table/KvTable.tsx:32:collapse; `KvTableViewport` (or the optional scroll wrapper) owns overflow-x.
+components/shared/table/KvTable.tsx:137:Desktop hover only on non-selected body rows — selected stays put.
+components/shared/table/KvTableBusy.tsx:7:Kept for API compatibility; ignored (no row bones).
+components/shared/table/KvTableBusy.tsx:12:First-load busy row — table header stays; body shows a quiet spinner
+components/shared/table/KvTableBusy.tsx:13:and caption (no skeleton bones). Soft refresh with existing rows stays
+components/shared/table/KvTableBusy.tsx:14:on `rows` phase and never hits this.
+components/shared/table/KvTableViewport.tsx:19:Soft refresh / in-viewport busy. For first-load empty body,
+components/shared/table/KvTableViewport.tsx:20:callers keep the header and use `KvTableBusy` / rows / `KvTableEmpty`
+components/shared/table/KvTableViewport.tsx:21:in the body via `getAdminTableBodyPhase`.
+components/shared/table/KvTableViewport.tsx:25:Panel chrome via radius/border tokens (`rounded-kv-control`).
+components/shared/table/KvTableViewport.tsx:26:Set false only when a parent already owns the frame (rare).
