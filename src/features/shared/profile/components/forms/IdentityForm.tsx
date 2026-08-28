@@ -150,10 +150,13 @@ export function IdentityForm({
   });
 
   const isBusy = form.formState.isSubmitting;
+  const hasUnsavedChanges =
+    form.formState.isDirty || Boolean(identityDocument);
   const locks = getProfileFormLocks({
     disabled,
     autoApproveOnSave,
     docStatus: liveUser.docStatus,
+    hasUnsavedChanges,
   });
 
   const statusMessage = locks.accountApproved

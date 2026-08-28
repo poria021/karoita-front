@@ -9,6 +9,8 @@ export function getProfileFormLocks(input: {
   disabled: boolean;
   autoApproveOnSave: boolean;
   docStatus: DocStatus;
+  /** بعد از تأیید حساب، دکمه فقط وقتی فیلدی عوض شده باز است. */
+  hasUnsavedChanges?: boolean;
 }): {
   awaitingAdminReview: boolean;
   accountApproved: boolean;
@@ -20,12 +22,16 @@ export function getProfileFormLocks(input: {
     !input.autoApproveOnSave && input.docStatus === 'pending_admin';
   const accountApproved =
     !input.autoApproveOnSave && input.docStatus === 'approved';
+  const hasUnsavedChanges = input.hasUnsavedChanges ?? false;
 
   return {
     awaitingAdminReview,
     accountApproved,
     identityLocked: input.disabled || awaitingAdminReview || accountApproved,
     organizationLocked: input.disabled || awaitingAdminReview,
-    submitLocked: input.disabled || awaitingAdminReview,
+    submitLocked:
+      input.disabled ||
+      awaitingAdminReview ||
+      (accountApproved && !hasUnsavedChanges),
   };
 }

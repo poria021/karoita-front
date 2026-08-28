@@ -33,10 +33,22 @@ describe('getProfileFormLocks', () => {
       disabled: false,
       autoApproveOnSave: false,
       docStatus: 'approved',
+      hasUnsavedChanges: true,
     });
     expect(locks.accountApproved).toBe(true);
     expect(locks.identityLocked).toBe(true);
     expect(locks.organizationLocked).toBe(false);
     expect(locks.submitLocked).toBe(false);
+  });
+
+  it('locks submit after approval until the user changes a field', () => {
+    const pristine = getProfileFormLocks({
+      disabled: false,
+      autoApproveOnSave: false,
+      docStatus: 'approved',
+      hasUnsavedChanges: false,
+    });
+    expect(pristine.submitLocked).toBe(true);
+    expect(pristine.organizationLocked).toBe(false);
   });
 });
