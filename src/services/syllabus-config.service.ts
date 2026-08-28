@@ -155,16 +155,23 @@ export const SyllabusConfigService = {
       );
       const courses: CourseCatalogItem[] = records.map((row) => ({
         id: row.courseCatalogId,
-        title: row.title ?? '',
+        title: row.title?.trim() ?? '',
         type: row.type ?? kind,
       }));
       const offerings: CourseOfferingListItem[] = records.map((row) => ({
         courseOfferingId: row.id,
         courseCatalogId: row.courseCatalogId,
-        title: row.title ?? '',
+        title: row.title?.trim() ?? '',
         type: row.type ?? kind,
         isOffered: row.isOffered,
       }));
+      // Snapshot hydrate without labels is unusable — fetch lessons instead.
+      if (
+        courses.length > 0 &&
+        courses.every((course) => course.title.length === 0)
+      ) {
+        return null;
+      }
       return { courses, offerings };
     }
     return {

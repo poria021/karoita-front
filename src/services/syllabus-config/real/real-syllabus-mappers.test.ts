@@ -7,6 +7,7 @@ import {
   catalogKindForTermType,
   mergeTermsWithLessonBundles,
   nestEntityId,
+  nestLessonTitle,
   toAcademicTerm,
   toAcademicTermType,
   toCourseCatalogItem,
@@ -71,6 +72,8 @@ describe('real-syllabus-mappers offerings', () => {
     expect(offering?.isOffered).toBe(true);
     expect(offering?.courseOfferingId).toBe(catalog?.id);
     expect(nestEntityId({ _id: 'only-underscore' })).toBe('only-underscore');
+    expect(nestLessonTitle({ name: 'کارورزی ۲' })).toBe('کارورزی ۲');
+    expect(nestLessonTitle({ title: { fa: 'کارورزی ۳' } })).toBe('کارورزی ۳');
   });
 
   it('maps weeks by priority and boolean status; PUT body drops local weight', () => {

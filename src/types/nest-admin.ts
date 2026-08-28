@@ -297,7 +297,9 @@ export type NestLessonWeek = {
 export type NestLesson = {
   id?: string;
   _id?: string;
-  title: string;
+  title?: string;
+  name?: string;
+  title_fa?: string;
   semesterId?: string;
   startClasses?: boolean;
   courseSelection?: boolean;

@@ -170,7 +170,11 @@ export function useSyllabusPageLoader({
 
     if (!options?.force) {
       const pane = termPanesRef.current[termId];
-      if (pane) {
+      if (
+        pane &&
+        (pane.courses.length === 0 ||
+          pane.courses.some((course) => course.title.trim().length > 0))
+      ) {
         setIsLoading(false);
         return applyTermPane(pane);
       }

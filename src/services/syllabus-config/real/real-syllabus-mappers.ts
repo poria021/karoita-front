@@ -44,6 +44,26 @@ export function nestEntityId(row: { id?: string; _id?: string }): string {
   return row.id || row._id || '';
 }
 
+/** Lesson label — live rows may send `title`, `name`, or `title_fa`. */
+export function nestLessonTitle(lesson: {
+  title?: unknown;
+  name?: unknown;
+  title_fa?: unknown;
+}): string {
+  const candidates = [lesson.title, lesson.name, lesson.title_fa];
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string' && candidate.trim()) {
+      return candidate.trim();
+    }
+    if (candidate && typeof candidate === 'object') {
+      const rec = candidate as Record<string, unknown>;
+      const nested = rec.title_fa ?? rec.fa ?? rec.title ?? rec.name;
+      if (typeof nested === 'string' && nested.trim()) return nested.trim();
+    }
+  }
+  return '';
+}
+
 /**
  * GET `/admin/semesters_all` uses `podmani` for modular terms (live), while
  * POST `/admin/semester` still writes `structure: modular`.
@@ -133,7 +153,7 @@ export function toCourseCatalogItem(
   if (!id) return null;
   return {
     id,
-    title: lesson.title,
+    title: nestLessonTitle(lesson),
     type: catalogKindForTermType(termType),
   };
 }
@@ -181,7 +201,7 @@ export function toCourseOfferingRecord(
     id: lessonId,
     termId,
     courseCatalogId: lessonId,
-    title: lesson.title,
+    title: nestLessonTitle(lesson),
     type: catalogKindForTermType(termType),
     isOffered: lesson.status === true,
     weeks: (lesson.weeks ?? []).map((week, index) =>
