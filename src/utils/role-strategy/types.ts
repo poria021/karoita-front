@@ -14,6 +14,8 @@ export interface SidebarMenuGroup {
   title: string;
   icon: string;
   children: SidebarMenuItem[];
+  /** اگر true باشد گروه از ابتدا باز است تا زیرماژول‌ها دیده شوند. */
+  defaultOpen?: boolean;
 }
 
 export type SidebarMenuEntry = SidebarMenuItem | SidebarMenuGroup;

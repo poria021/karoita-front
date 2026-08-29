@@ -29,6 +29,7 @@ describe('live nav / admin plane', () => {
       'انتخاب واحد کارورزی',
     ]);
     const studentGroup = studentMenu.find(isSidebarMenuGroup);
+    expect(studentGroup?.defaultOpen).toBe(true);
     expect(studentGroup?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.internshipSelection(1),
       RouteService.karvita.internshipSelection(2),
@@ -42,6 +43,7 @@ describe('live nav / admin plane', () => {
       'انتخاب واحد کارآموزی',
     ]);
     const learnerGroup = learnerMenu.find(isSidebarMenuGroup);
+    expect(learnerGroup?.defaultOpen).toBe(true);
     expect(learnerGroup?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.internshipSelection(1),
       RouteService.karvita.internshipSelection(2),

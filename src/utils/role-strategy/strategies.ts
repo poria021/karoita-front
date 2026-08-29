@@ -144,6 +144,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         kind: 'group',
         title: 'انتخاب واحد کارورزی',
         icon: 'fa-graduation-cap',
+        defaultOpen: true,
         children: [
           {
             title: 'کارورزی ۱',
@@ -192,6 +193,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         kind: 'group',
         title: 'انتخاب واحد کارآموزی',
         icon: 'fa-graduation-cap',
+        defaultOpen: true,
         children: [
           {
             title: 'کارآموزی ۱',

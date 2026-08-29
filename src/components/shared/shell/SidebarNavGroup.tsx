@@ -33,7 +33,7 @@ export function SidebarNavGroup({
 }: SidebarNavGroupProps) {
   const childActive =
     !locked && group.children.some((child) => child.path === pathname);
-  const [open, setOpen] = useState(childActive);
+  const [open, setOpen] = useState(childActive || Boolean(group.defaultOpen));
   const [prevChildActive, setPrevChildActive] = useState(childActive);
   const groupId = useId();
 
