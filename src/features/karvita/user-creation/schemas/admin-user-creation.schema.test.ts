@@ -92,6 +92,19 @@ describe('adminUserCreationSchema', () => {
     expect(result.success).toBe(false);
   });
 
+  it('rejects a leading-zero mobile like the login form', () => {
+    const result = adminUserCreationSchema.safeParse({
+      ...base,
+      mobile: '09123456780',
+      role: 'assistant_admin',
+      province: '',
+      city: '',
+      college: '',
+      district: '',
+    });
+    expect(result.success).toBe(false);
+  });
+
   it('normalizes Persian mobile digits to English', () => {
     const result = adminUserCreationSchema.safeParse({
       ...base,

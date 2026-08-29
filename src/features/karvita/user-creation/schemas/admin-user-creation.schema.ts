@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { ORG_ACCOUNT_ROLES } from '@/types/admin-user-creation';
-import { persianToEnglishDigits } from '@/utils/persianDigits';
+import { iranMobileFieldSchema } from '@/utils/iranMobileField';
 import {
   PERSIAN_PERSON_NAME_INVALID_MESSAGE,
   PERSIAN_PERSON_NAME_PATTERN,
@@ -19,16 +19,6 @@ import {
   orgAccountRequiresProvince,
 } from '@/utils/roleFieldStrategy';
 
-const mobileField = z
-  .string('شماره موبایل الزامی است.')
-  .transform((value) => persianToEnglishDigits(value).replace(/\D/g, ''))
-  .pipe(
-    z
-      .string()
-      .min(1, 'شماره موبایل الزامی است.')
-      .regex(/^9\d{9}$/, 'فرمت شماره موبایل معتبر نیست (۱۰ رقم بدون صفر اول).')
-  );
-
 export const adminUserCreationSchema = z
   .object({
     firstName: z
@@ -41,7 +31,7 @@ export const adminUserCreationSchema = z
       .trim()
       .min(1, 'نام خانوادگی کارشناس الزامی است.')
       .regex(PERSIAN_PERSON_NAME_PATTERN, PERSIAN_PERSON_NAME_INVALID_MESSAGE),
-    mobile: mobileField,
+    mobile: iranMobileFieldSchema,
     password: z
       .string('رمز عبور الزامی است.')
       .trim()

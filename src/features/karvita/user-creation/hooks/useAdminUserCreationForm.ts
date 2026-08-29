@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { scheduleOptimisticMutation } from '@/lib/undoable-mutation';
 import { AdminUserCreationService } from '@/services/admin-user-creation.service';
 import type { CreateOrganizationalUserInput } from '@/types/admin-user-creation';
+import { IRAN_MOBILE_PATTERN } from '@/utils/iranMobileField';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
   orgAccountRequiresCity,
@@ -31,7 +32,7 @@ import {
 import { isStaffAdminRole } from '@/utils/RoleStrategyMap';
 
 function normalizeMobile(value: string): string {
-  return persianToEnglishDigits(value).replace(/\D/g, '').slice(0, 10);
+  return persianToEnglishDigits(value).trim();
 }
 
 export function useAdminUserCreationForm() {
@@ -70,7 +71,7 @@ export function useAdminUserCreationForm() {
   }, [updateMobileReviewState]);
 
   const mobileNormalized = normalizeMobile(mobile ?? '');
-  const mobileComplete = /^9\d{9}$/.test(mobileNormalized);
+  const mobileComplete = IRAN_MOBILE_PATTERN.test(mobileNormalized);
   const needsProvinceRole = orgAccountRequiresProvince(role);
   const needsCollege = orgAccountRequiresCollege(role);
   const needsRegional =

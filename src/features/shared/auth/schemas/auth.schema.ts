@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { iranMobileFieldSchema } from '@/utils/iranMobileField';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
   PASSWORD_LATIN_ONLY_HINT,
@@ -7,17 +8,6 @@ import {
   PASSWORD_MIN_LENGTH_MESSAGE,
   containsPersianOrArabicScript,
 } from '@/utils/passwordInput';
-
-
-const mobileFieldSchema = z
-  .string('شماره موبایل الزامی است.')
-  .transform((value) => persianToEnglishDigits(value).trim())
-  .pipe(
-    z
-      .string()
-      .min(1, 'شماره موبایل الزامی است.')
-      .regex(/^9\d{9}$/, 'فرمت شماره موبایل معتبر نیست (۱۰ رقم بدون صفر اول).')
-  );
 
 const passwordFieldSchema = z
   .string('رمز عبور الزامی است.')
@@ -49,7 +39,7 @@ export const otpSchema = z.object({
 export type OtpSchema = z.infer<typeof otpSchema>;
 
 export const mobileSchema = z.object({
-  mobile: mobileFieldSchema,
+  mobile: iranMobileFieldSchema,
 });
 
 export type MobileSchema = z.infer<typeof mobileSchema>;
