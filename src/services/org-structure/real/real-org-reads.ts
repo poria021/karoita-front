@@ -1,11 +1,13 @@
 import {
   adminCatalogApi,
   fetchAllNestCities,
+  fetchAllNestEducations,
   fetchAllNestProvinces,
+  fetchAllNestSchools,
+  fetchAllNestUniversities,
 } from '@/services/admin-catalog/admin-catalog.api';
 import {
   firstRelationTitle,
-  nestRelationFiltersIgnored,
   nestUsersCount,
   resolveRoleLabel,
   toOrgCity,
@@ -44,20 +46,17 @@ export async function getRealSnapshot(): Promise<OrgStructureSnapshot> {
   const [provinces, cities, districts, schools, faculties] = await Promise.all([
     fetchAllNestProvinces().then((ps) => ps.map(toOrgProvince)),
     fetchAllNestCities().then((rows) => rows.map(toOrgCity)),
-    adminCatalogApi.listEducations().then((rows) => rows.map(toOrgDistrict)),
-    adminCatalogApi.listSchools().then((rows) => rows.map(toOrgSchool)),
-    adminCatalogApi.listUniversities().then((rows) => rows.map(toOrgFaculty)),
+    fetchAllNestEducations().then((rows) => rows.map(toOrgDistrict)),
+    fetchAllNestSchools().then((rows) => rows.map(toOrgSchool)),
+    fetchAllNestUniversities().then((rows) => rows.map(toOrgFaculty)),
   ]);
   return { provinces, cities, districts, schools, majors: [], faculties };
 }
 
 /**
- * Client-side page a bare (unpaginated) Nest array — used for the
- * districts/schools/majors/faculties tabs, none of which have a Nest
- * paging envelope. Fixes the previous bug where these tabs always
- * returned `hasMore: false` (the entire result set rendered in one go
- * and "load more" never fired, no matter how large the list) by slicing
- * to `limit` and reporting real total/hasMore via sliceOffsetLimitPage.
+ * Client-side page a bare Nest array — majors (`/admin/degreeee`) still
+ * has no `{ data, hasNextPage }` envelope. Districts/schools/faculties
+ * now page on Nest; do not send those tabs through this helper.
  */
 function pageBareList(
   items: OrgStructureListItem[],
@@ -72,50 +71,12 @@ function pageBareList(
   return { items: pageItems, total, hasMore };
 }
 
-type NamedCatalogItem = { id: string; title: string };
-
-/**
- * Confirmed live: GET /admin/schools nests `city: {}` and `education: {}`
- * and omits the FKs, but `?educationId=` / `?cityId=` DO filter. Walk the
- * catalog and map school id → catalog item so the table (and edit form)
- * can recover title and id.
- */
-async function indexSchoolRelationsByFilter(
-  catalog: NamedCatalogItem[],
-  totalSchoolCount: number,
-  filterKey: 'educationId' | 'cityId'
-): Promise<Map<string, NamedCatalogItem>> {
-  if (catalog.length === 0 || totalSchoolCount === 0) return new Map();
-  const hits = await Promise.all(
-    catalog.map(async (item) => {
-      const schools = await adminCatalogApi
-        .listSchools({ [filterKey]: item.id })
-        .catch(() => []);
-      return { item, schools };
-    })
-  );
-  if (
-    nestRelationFiltersIgnored(
-      hits.map((hit) => hit.schools.length),
-      totalSchoolCount
-    )
-  ) {
-    return new Map();
-  }
-  return new Map(
-    hits.flatMap(({ item, schools }) =>
-      schools.map((school) => [school.id, item] as const)
-    )
-  );
-}
-
 /**
  * Per-tab+query in-memory cache for bare (unpaginated) list responses.
  *
- * Why this exists: districts/schools/majors/faculties have no Nest paging
- * envelope so every page must start from the full remote array. Without
- * this cache, "load more" would re-fetch and re-map the same full array
- * on every page increment.
+ * Why this exists: majors still have no Nest paging envelope so every
+ * page must start from the full remote array. Without this cache, "load
+ * more" would re-fetch and re-map the same full array on every page.
  *
  * Invalidation: any real-mode mutation calls `invalidateRealBareListCache`
  * which sets `staleSince` to 0, making the next read treat it as expired
@@ -189,8 +150,8 @@ export function invalidateRealBareListCache(tab?: OrgStructureSubTab): void {
  * (sets staleSince=0); this is the hard variant (Map.clear).
  *
  * Called by `useOrgStructurePage.invalidateAndReload` after every mutation
- * so tabs that read from bareListCache (districts/schools/majors/faculties)
- * always get a fresh network fetch after create/update/delete.
+ * so tabs that read from bareListCache (majors) always get a fresh
+ * network fetch after create/update/delete.
  */
 export function flushBareListCache(tab?: OrgStructureSubTab): void {
   flushRealDeleteBlockedCache();
@@ -269,87 +230,57 @@ async function listRealPageRaw(
     };
   }
 
-  // Everything below has no Nest paging envelope (bare array) — page it
-  // client-side with sliceOffsetLimitPage and cache the full mapped array.
   if (options.tab === 'districts') {
-    const items = await getBareListItems('districts', query, async () => {
-      const raw = await adminCatalogApi.listEducations({
-        title: query || undefined,
-      });
-      return raw.map((d) => {
-        const mapped = toOrgDistrict(d);
-        return overlayOrgRelationLabels({
-          ...mapped,
-          kind: 'district' as const,
-          deleteBlocked: false,
-          provinceName: firstRelationTitle(d.province, d.provinceId, d.province_id),
-          cityName: firstRelationTitle(d.city, d.cityId, d.city_id),
-        });
+    const { data, hasNextPage } = await adminCatalogApi.listEducations({
+      page,
+      limit,
+      title: query || undefined,
+    });
+    const items: OrgStructureListItem[] = data.map((d) => {
+      const mapped = toOrgDistrict(d);
+      return overlayOrgRelationLabels({
+        ...mapped,
+        kind: 'district' as const,
+        deleteBlocked: false,
+        provinceName: firstRelationTitle(d.province, d.provinceId, d.province_id),
+        cityName: firstRelationTitle(d.city, d.cityId, d.city_id),
       });
     });
-    return pageBareList(items, offset, limit);
+    return {
+      items,
+      total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
+      hasMore: hasNextPage,
+    };
   }
 
   if (options.tab === 'schools') {
-    const items = await getBareListItems('schools', query, async () => {
-      const [raw, educations] = await Promise.all([
-        adminCatalogApi.listSchools({ title: query || undefined }),
-        adminCatalogApi.listEducations(),
-      ]);
-      const unfilteredSchoolCount = query
-        ? (await adminCatalogApi.listSchools()).length
-        : raw.length;
-      const mappedRows = raw.map((s) => ({ s, mapped: toOrgSchool(s) }));
-      const provinceIds = [
-        ...new Set(
-          mappedRows.map(({ mapped }) => mapped.provinceId).filter(Boolean)
+    const { data, hasNextPage } = await adminCatalogApi.listSchools({
+      page,
+      limit,
+      title: query || undefined,
+    });
+    const items: OrgStructureListItem[] = data.map((s) => {
+      const mapped = toOrgSchool(s);
+      return overlayOrgRelationLabels({
+        ...mapped,
+        kind: 'school' as const,
+        deleteBlocked: false,
+        provinceName: firstRelationTitle(s.province, s.provinceId, s.province_id),
+        cityName: firstRelationTitle(s.city, s.cityId, s.city_id),
+        districtName: firstRelationTitle(
+          s.education,
+          s.educationId,
+          s.education_id,
+          s.educationalDistrict,
+          s.district
         ),
-      ];
-      const cities = (
-        await Promise.all(
-          provinceIds.map((provinceId) =>
-            adminCatalogApi.listCitiesByProvince(provinceId).catch(() => [])
-          )
-        )
-      ).flat();
-
-      const [districtBySchoolId, cityBySchoolId] = await Promise.all([
-        indexSchoolRelationsByFilter(
-          educations,
-          unfilteredSchoolCount,
-          'educationId'
-        ),
-        indexSchoolRelationsByFilter(cities, unfilteredSchoolCount, 'cityId'),
-      ]);
-
-      return mappedRows.map(({ s, mapped }) => {
-        const district = districtBySchoolId.get(s.id);
-        const city = cityBySchoolId.get(s.id);
-        return overlayOrgRelationLabels({
-          ...mapped,
-          kind: 'school' as const,
-          deleteBlocked: false,
-          provinceName: firstRelationTitle(
-            s.province,
-            s.provinceId,
-            s.province_id
-          ),
-          cityId: mapped.cityId || city?.id || '',
-          cityName:
-            firstRelationTitle(s.city, s.cityId, s.city_id) ?? city?.title,
-          districtId: mapped.districtId || district?.id || '',
-          districtName:
-            firstRelationTitle(
-              s.education,
-              s.educationId,
-              s.education_id,
-              s.educationalDistrict,
-              s.district
-            ) ?? district?.title,
-        });
       });
     });
-    return pageBareList(items, offset, limit);
+    return {
+      items,
+      total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
+      hasMore: hasNextPage,
+    };
   }
 
   if (options.tab === 'majors') {
@@ -378,27 +309,34 @@ async function listRealPageRaw(
     return pageBareList(items, offset, limit);
   }
 
-  // faculties: GET /admin/universites — bare array, title-only filter.
-  const items = await getBareListItems('faculties', query, async () => {
-    const raw = await adminCatalogApi.listUniversities(query || undefined);
-    return raw.map((u) => {
-      const mapped = toOrgFaculty(u);
-      const usersCount = nestUsersCount(u);
-      return overlayOrgRelationLabels({
-        ...mapped,
-        kind: 'faculty' as const,
-        usersCount,
-        deleteBlocked: isLinkedUserDeleteBlocked('faculty', usersCount),
-        // Confirmed live quirk: province is nested under `role`, not `province`.
-        provinceName: firstRelationTitle(u.province, u.role, u.provinceId),
-      });
+  // faculties: GET /admin/universites — `{ data, hasNextPage }`, title filter.
+  const { data, hasNextPage } = await adminCatalogApi.listUniversities({
+    page,
+    limit,
+    title: query || undefined,
+  });
+  const items: OrgStructureListItem[] = data.map((u) => {
+    const mapped = toOrgFaculty(u);
+    const usersCount = nestUsersCount(u);
+    return overlayOrgRelationLabels({
+      ...mapped,
+      kind: 'faculty' as const,
+      usersCount,
+      deleteBlocked: isLinkedUserDeleteBlocked('faculty', usersCount),
+      // Confirmed live quirk: province is nested under `role`, not `province`.
+      provinceName: firstRelationTitle(u.province, u.role, u.provinceId),
     });
   });
-  return pageBareList(items, offset, limit);
+  return {
+    items,
+    total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
+    hasMore: hasNextPage,
+  };
 }
 
 /**
- * GET /org-structure/:kind/:id — real: province and faculty only for now.
+ * GET /org-structure/:kind/:id — city uses GET /admin/cities/{id}.
+ * Province/faculty still scan the full catalog (no get-by-id on Nest).
  */
 export async function getRealEntity(
   kind: OrgStructureEntityKind,
@@ -410,8 +348,12 @@ export async function getRealEntity(
     const provinces = await listRealProvinces();
     return provinces.find((p) => p.id === id) ?? null;
   }
+  if (kind === 'city') {
+    const raw = await adminCatalogApi.getCity(id);
+    return toOrgCity(raw);
+  }
   if (kind === 'faculty') {
-    const raw = await adminCatalogApi.listUniversities();
+    const raw = await fetchAllNestUniversities();
     const match = raw.find((u) => u.id === id);
     return match ? toOrgFaculty(match) : null;
   }
@@ -439,7 +381,7 @@ export async function listRealDistricts(
   provinceId: string,
   cityId?: string
 ): Promise<OrgDistrict[]> {
-  const raw = await adminCatalogApi.listEducations({ provinceId });
+  const raw = await fetchAllNestEducations({ provinceId });
   const mapped = raw.map(toOrgDistrict);
   if (!cityId) return mapped;
   const forCity = mapped.filter((d) => d.cityId === cityId);

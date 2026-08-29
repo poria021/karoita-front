@@ -393,14 +393,41 @@ export type NestAdminPageQuery = {
 };
 
 export type NestEducationListQuery = {
+  page?: number;
+  limit?: number;
   provinceId?: string;
   cityId?: string;
   title?: string;
 };
 
 export type NestSchoolListQuery = {
+  page?: number;
+  limit?: number;
   provinceId?: string;
   cityId?: string;
   educationId?: string;
   title?: string;
 };
+
+export type NestUniversityListQuery = {
+  page?: number;
+  limit?: number;
+  title?: string;
+};
+
+/** Envelope `{ data, hasNextPage }` — یا آرایهٔ خام قدیمی اگر Nest هنوز آن را بدهد. */
+export function parseNestPagedList<T>(raw: unknown): NestPagedList<T> {
+  if (Array.isArray(raw)) {
+    return { data: raw as T[], hasNextPage: false };
+  }
+  if (raw && typeof raw === 'object') {
+    const rec = raw as Record<string, unknown>;
+    if (Array.isArray(rec.data)) {
+      return {
+        data: rec.data as T[],
+        hasNextPage: Boolean(rec.hasNextPage),
+      };
+    }
+  }
+  return { data: [], hasNextPage: false };
+}

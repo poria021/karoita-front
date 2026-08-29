@@ -108,7 +108,7 @@ function requireMockOrgManage(): void {
  * - GET    /org-structure/snapshot
  * - GET    /org-structure?tab&query&offset&limit
  *          majors tab → GET /admin/degreeee?title= (bare array, no paging)
- *          faculties tab → GET /admin/universites?title= (bare array, no paging)
+ *          faculties tab → GET /admin/universites?page=&limit=&title=
  * - GET    /org-structure/:kind/:id
  * - GET    /org-structure/provinces|cities|districts
  * - PUT    /org-structure/provinces|cities|faculties|districts|schools|majors
@@ -142,10 +142,8 @@ export const OrgStructureService = {
   },
 
   /**
-   * GET /org-structure/:kind/:id — real: province and faculty only for now
-   * (Nest has no get-by-id route for either — resolved by scanning the full
-   * list instead). Other kinds fall through to mock and resolve to null in
-   * real mode.
+   * GET /org-structure/:kind/:id — real: city via GET /admin/cities/{id};
+   * province/faculty scan the catalog (no get-by-id).
    */
   async getEntity(
     kind: OrgStructureEntityKind,

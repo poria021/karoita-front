@@ -1,6 +1,8 @@
 import {
-  adminCatalogApi,
   fetchAllNestCities,
+  fetchAllNestEducations,
+  fetchAllNestSchools,
+  fetchAllNestUniversities,
 } from '@/services/admin-catalog/admin-catalog.api';
 import {
   buildOrgDeleteBlockedSets,
@@ -47,9 +49,9 @@ async function loadRealDeleteBlockedSets(): Promise<OrgDeleteBlockedSets> {
   const [citiesRaw, districtsRaw, schoolsRaw, facultiesRaw] = await Promise.all(
     [
       fetchAllNestCities(),
-      adminCatalogApi.listEducations(),
-      adminCatalogApi.listSchools(),
-      adminCatalogApi.listUniversities(),
+      fetchAllNestEducations(),
+      fetchAllNestSchools(),
+      fetchAllNestUniversities(),
     ]
   );
 

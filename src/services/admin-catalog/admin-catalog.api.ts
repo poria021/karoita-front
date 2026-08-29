@@ -1,5 +1,6 @@
 import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
+import { parseNestPagedList } from '@/types/nest-admin';
 import type {
   NestAcademicSettings,
   NestAdminPageQuery,
@@ -31,6 +32,7 @@ import type {
   NestSemesterAllStructure,
   NestSemesterWithLessons,
   NestUniversity,
+  NestUniversityListQuery,
   NestUpdateCityDto,
   NestUpdateDegreeDto,
   NestUpdateEducationalDistrictDto,
@@ -58,6 +60,7 @@ export const NEST_ADMIN_PATHS = {
   cityEducations: (id: string) => `admin/cities/${id}/educations`,
   provinceEducations: (id: string) => `admin/province/${id}/educations`,
   schools: 'admin/schools',
+  schoolsAll: 'admin/schools/all',
   schoolById: (id: string) => `admin/schools/${id}`,
   /**
    * Confirmed live quirk: DELETE has no `/` before the id
@@ -165,13 +168,14 @@ export const adminCatalogApi = {
   createEducation(body: NestCreateEducationalDistrictDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.educations, body, token);
   },
-  /** GET /admin/educations — bare array, no paging envelope. */
-  listEducations(query: NestEducationListQuery = {}, token?: string) {
-    return apiClient.getJson<NestEducationalDistrict[]>(
+  /** GET /admin/educations — `{ data, hasNextPage }` + page/limit/provinceId/cityId/title. */
+  async listEducations(query: NestEducationListQuery = {}, token?: string) {
+    const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.educations,
       token,
       { searchParams: toSearchParams(query) }
     );
+    return parseNestPagedList<NestEducationalDistrict>(raw);
   },
   listEducationsByCity(cityId: string, token?: string) {
     return apiClient.getJson<NestEducationalDistrict[]>(
@@ -211,11 +215,14 @@ export const adminCatalogApi = {
   createSchool(body: NestCreateSchoolDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.schools, body, token);
   },
-  /** GET /admin/schools — bare array, no paging envelope. */
-  listSchools(query: NestSchoolListQuery = {}, token?: string) {
-    return apiClient.getJson<NestSchool[]>(NEST_ADMIN_PATHS.schools, token, {
-      searchParams: toSearchParams(query),
-    });
+  /** GET /admin/schools/all — `{ data, hasNextPage }` + page/limit + parent filters. */
+  async listSchools(query: NestSchoolListQuery = {}, token?: string) {
+    const raw = await apiClient.getJson<unknown>(
+      NEST_ADMIN_PATHS.schoolsAll,
+      token,
+      { searchParams: toSearchParams(query) }
+    );
+    return parseNestPagedList<NestSchool>(raw);
   },
   /**
    * PUT /admin/schools/{id} — مشابه educations/universities/degree، پاسخ ممکنه
@@ -276,13 +283,17 @@ export const adminCatalogApi = {
       token
     );
   },
-  /** GET /admin/universites — bare array, title-only filter (no province/city query param documented). */
-  listUniversities(title?: string, token?: string) {
-    return apiClient.getJson<NestUniversity[]>(
+  /** GET /admin/universites — `{ data, hasNextPage }` + page/limit/title. */
+  async listUniversities(
+    query: NestUniversityListQuery = {},
+    token?: string
+  ) {
+    const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.universities,
       token,
-      { searchParams: toSearchParams({ title }) }
+      { searchParams: toSearchParams(query) }
     );
+    return parseNestPagedList<NestUniversity>(raw);
   },
   updateUniversity(id: string, body: NestUpdateUniversityDto, token?: string) {
     return apiClient.putMaybeJson<unknown>(
@@ -465,4 +476,37 @@ export async function fetchAllNestProvinces(
  */
 export async function fetchAllNestCities(token?: string): Promise<NestCity[]> {
   return fetchAllNestPagedCatalog(adminCatalogApi.listCities, token);
+}
+
+export async function fetchAllNestEducations(
+  query: Omit<NestEducationListQuery, 'page' | 'limit'> = {},
+  token?: string
+): Promise<NestEducationalDistrict[]> {
+  return fetchAllNestPagedCatalog(
+    (pageQuery, pageToken) =>
+      adminCatalogApi.listEducations({ ...query, ...pageQuery }, pageToken),
+    token
+  );
+}
+
+export async function fetchAllNestSchools(
+  query: Omit<NestSchoolListQuery, 'page' | 'limit'> = {},
+  token?: string
+): Promise<NestSchool[]> {
+  return fetchAllNestPagedCatalog(
+    (pageQuery, pageToken) =>
+      adminCatalogApi.listSchools({ ...query, ...pageQuery }, pageToken),
+    token
+  );
+}
+
+export async function fetchAllNestUniversities(
+  query: Omit<NestUniversityListQuery, 'page' | 'limit'> = {},
+  token?: string
+): Promise<NestUniversity[]> {
+  return fetchAllNestPagedCatalog(
+    (pageQuery, pageToken) =>
+      adminCatalogApi.listUniversities({ ...query, ...pageQuery }, pageToken),
+    token
+  );
 }

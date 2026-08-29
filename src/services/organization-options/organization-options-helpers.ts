@@ -1,7 +1,9 @@
 import { ApiClientError } from '@/services/api-client';
 import {
   adminCatalogApi,
+  fetchAllNestEducations,
   fetchAllNestProvinces,
+  fetchAllNestSchools,
 } from '@/services/admin-catalog/admin-catalog.api';
 import { OrgStructureService } from '@/services/org-structure.service';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
@@ -100,7 +102,7 @@ let districtCache: NameIdCache | null = null;
 async function resolveDistrictId(districtName: string): Promise<string | undefined> {
   const now = Date.now();
   if (!districtCache || now - districtCache.fetchedAt > DISTRICT_CACHE_TTL_MS) {
-    const all = await adminCatalogApi.listEducations();
+    const all = await fetchAllNestEducations();
     districtCache = {
       byName: new Map(all.map((d) => [d.title, d.id])),
       fetchedAt: now,
@@ -180,9 +182,9 @@ type ResolvedOptionsRequest = Required<
  *   province → GET /api/admin/provinces          (paginated envelope, filters param)
  *   city     → GET /api/admin/provinces/{id}/cities (bare, province-scoped)
  *              یا GET /api/admin/cities           (paginated fallback)
- *   district → GET /api/admin/educations          (bare, provinceId query)
- *   school   → GET /api/admin/schools             (bare, educationId + provinceId query)
- *   college  → GET /api/admin/universites         (bare, title query)
+ *   district → GET /api/admin/educations          (paginated, title/provinceId/cityId)
+ *   school   → GET /api/admin/schools/all         (paginated, educationId + provinceId)
+ *   college  → GET /api/admin/universites         (paginated, title)
  *   major    → GET /api/admin/degreeee            (bare, title query)
  */
 export async function fetchOrganizationOptionsFromApi(
@@ -280,19 +282,22 @@ export async function fetchOrganizationOptionsFromApi(
           }
         }
 
-        // fallback: همه مناطق
-        const raw = await adminCatalogApi.listEducations({ title: q });
-        return paginateBare(
-          raw.map((d) => ({ id: d.id, label: d.title })),
-          params.page,
-          params.limit
-        );
+        const { data, hasNextPage } = await adminCatalogApi.listEducations({
+          title: q,
+          page: params.page,
+          limit: params.limit,
+        });
+        return {
+          items: data.map((d) => ({ id: d.id, label: d.title })),
+          hasMore: hasNextPage,
+          page: params.page,
+        };
       }
 
       // ── مدرسه ───────────────────────────────────────────────────────────────
       case 'school': {
         // اولویت: منطقه → شهر → استان
-        // GET /api/admin/schools?provinceId=&educationId=&title=
+        // GET /api/admin/schools/all?provinceId=&educationId=&title=&page=&limit=
         let provinceId: string | undefined;
         let educationId: string | undefined;
         const q = params.query?.trim() || undefined;
@@ -310,7 +315,7 @@ export async function fetchOrganizationOptionsFromApi(
           for (const districtName of districtNames) {
             const edId = await resolveDistrictId(districtName);
             if (!edId) continue;
-            const raw = await adminCatalogApi.listSchools({
+            const raw = await fetchAllNestSchools({
               provinceId,
               educationId: edId,
               title: q,
@@ -323,28 +328,33 @@ export async function fetchOrganizationOptionsFromApi(
         }
 
         // fallback: فیلتر استانی (یا بدون فیلتر)
-        const raw = await adminCatalogApi.listSchools({
+        const { data, hasNextPage } = await adminCatalogApi.listSchools({
           provinceId,
           educationId,
           title: q,
+          page: params.page,
+          limit: params.limit,
         });
-        return paginateBare(
-          raw.map((s) => ({ id: s.id, label: s.title })),
-          params.page,
-          params.limit
-        );
+        return {
+          items: data.map((s) => ({ id: s.id, label: s.title })),
+          hasMore: hasNextPage,
+          page: params.page,
+        };
       }
 
       // ── دانشگاه / دانشکده / پردیس ────────────────────────────────────────────
       case 'college': {
-        // GET /api/admin/universites — bare array، title query
         const q = params.query?.trim() || undefined;
-        const raw = await adminCatalogApi.listUniversities(q);
-        return paginateBare(
-          raw.map((u) => ({ id: u.id, label: u.title })),
-          params.page,
-          params.limit
-        );
+        const { data, hasNextPage } = await adminCatalogApi.listUniversities({
+          title: q,
+          page: params.page,
+          limit: params.limit,
+        });
+        return {
+          items: data.map((u) => ({ id: u.id, label: u.title })),
+          hasMore: hasNextPage,
+          page: params.page,
+        };
       }
 
       // ── رشته تحصیلی ─────────────────────────────────────────────────────────

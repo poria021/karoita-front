@@ -23,9 +23,9 @@ export type {
  * Real mode: مستقیم به Nest Admin API وصل می‌شود
  *   province → GET /api/admin/provinces          (paginated, filters param)
  *   city     → GET /api/admin/provinces/{id}/cities  یا /api/admin/cities
- *   district → GET /api/admin/educations          (bare array, provinceId)
- *   school   → GET /api/admin/schools             (bare array, educationId)
- *   college  → GET /api/admin/universites         (bare array, title)
+ *   district → GET /api/admin/educations          (paginated)
+ *   school   → GET /api/admin/schools/all         (paginated)
+ *   college  → GET /api/admin/universites         (paginated)
  *   major    → GET /api/admin/degreeee            (bare array, title)
  *
  * Mock mode: از OrgStructureService.listLabelsForField استفاده می‌کند.

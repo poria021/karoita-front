@@ -1,24 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
-  listEducations,
-  listSchools,
-  listUniversities,
   fetchAllNestCities,
+  fetchAllNestEducations,
+  fetchAllNestSchools,
+  fetchAllNestUniversities,
 } = vi.hoisted(() => ({
-  listEducations: vi.fn(),
-  listSchools: vi.fn(),
-  listUniversities: vi.fn(),
   fetchAllNestCities: vi.fn(),
+  fetchAllNestEducations: vi.fn(),
+  fetchAllNestSchools: vi.fn(),
+  fetchAllNestUniversities: vi.fn(),
 }));
 
 vi.mock('@/services/admin-catalog/admin-catalog.api', () => ({
-  adminCatalogApi: {
-    listEducations,
-    listSchools,
-    listUniversities,
-  },
   fetchAllNestCities,
+  fetchAllNestEducations,
+  fetchAllNestSchools,
+  fetchAllNestUniversities,
 }));
 
 import {
@@ -30,17 +28,17 @@ import {
 describe('getRealDeleteBlockedSets', () => {
   beforeEach(() => {
     flushRealDeleteBlockedCache();
-    listEducations.mockReset();
-    listSchools.mockReset();
-    listUniversities.mockReset();
     fetchAllNestCities.mockReset();
+    fetchAllNestEducations.mockReset();
+    fetchAllNestSchools.mockReset();
+    fetchAllNestUniversities.mockReset();
 
     fetchAllNestCities.mockResolvedValue([
       { id: 'c1', title: 'کرج', province_id: 'p1' },
     ]);
-    listEducations.mockResolvedValue([]);
-    listSchools.mockResolvedValue([]);
-    listUniversities.mockResolvedValue([]);
+    fetchAllNestEducations.mockResolvedValue([]);
+    fetchAllNestSchools.mockResolvedValue([]);
+    fetchAllNestUniversities.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -57,7 +55,7 @@ describe('getRealDeleteBlockedSets', () => {
     await getRealDeleteBlockedSets();
     await getRealDeleteBlockedSets();
     expect(fetchAllNestCities).toHaveBeenCalledTimes(1);
-    expect(listEducations).toHaveBeenCalledTimes(1);
+    expect(fetchAllNestEducations).toHaveBeenCalledTimes(1);
   });
 
   it('force refresh sees a newly created city', async () => {
