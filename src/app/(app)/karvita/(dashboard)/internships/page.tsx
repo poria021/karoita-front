@@ -1,18 +1,8 @@
-'use client';
+import { InternshipEnrollmentIndexClient } from '@/features/karvita/internship-enrollment/components/InternshipEnrollmentIndexClient';
+import { dashboardModuleMetadata } from '@/lib/dashboard-module-metadata';
 
-import { useLayoutEffect } from 'react';
-import { useRouter } from 'next/navigation';
+export const metadata = dashboardModuleMetadata('internship-level');
 
-import { InternshipEnrollmentModule } from '@/features/karvita/internship-enrollment/components/InternshipEnrollmentModule';
-import { RouteService } from '@/services/route.service';
-
-/** Index bounce — paint L1 immediately, then canonicalize the URL. */
 export default function InternshipEnrollmentIndexPage() {
-  const router = useRouter();
-
-  useLayoutEffect(() => {
-    router.replace(RouteService.karvita.internshipSelection(1));
-  }, [router]);
-
-  return <InternshipEnrollmentModule level={1} />;
+  return <InternshipEnrollmentIndexClient />;
 }

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { PublicRouteStatusActions } from '@/components/shared/route-status/PublicRouteStatusActions';
+import { DOCUMENT_TITLE, formatDocumentTitle } from '@/lib/document-title';
 import { reportError } from '@/lib/observability/reportError';
 
 interface MarketingErrorProps {
@@ -13,6 +14,7 @@ interface MarketingErrorProps {
 
 export default function MarketingError({ error, reset }: MarketingErrorProps) {
   useEffect(() => {
+    document.title = formatDocumentTitle(DOCUMENT_TITLE.error);
     void reportError(error, {
       source: 'marketing-error',
       digest: error.digest,

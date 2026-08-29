@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+
+import { DOCUMENT_TITLE, privatePageMetadata } from '@/lib/document-title';
+
+export const metadata: Metadata = privatePageMetadata(DOCUMENT_TITLE.signIn);
 
 /**
  * Auth layout — wrapper for /auth/* routes (login, register, forgot, admin-gate).

@@ -186,6 +186,12 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'پنل تعریف دستی حساب‌های ارشد، سازمان‌های مرکزی، پردیس‌ها و دستیاران اجرایی سیستم.',
     icon: 'fa-user-plus',
   },
+  [RouteService.karvita.landingCms()]: {
+    title: 'مدیریت محتوای لندینگ',
+    description:
+      'ویرایش بنرها، شبکه‌های اجتماعی و محصولات نمایش‌داده‌شده در صفحهٔ فرود عمومی.',
+    icon: 'fa-bullhorn',
+  },
   [PlannedRoutes.academicEvaluation()]: {
     title: 'ارزیابی علمی',
     description: 'صفحه مدیریت و پایش فرآیندهای ارزیابی علمی.',

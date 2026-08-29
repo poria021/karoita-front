@@ -21,4 +21,10 @@ describe('dashboard-module-metadata', () => {
     expect(meta.title).toBe('بررسی مدارک هویتی ثبت‌نام');
     expect(meta.robots).toEqual({ index: false, follow: false });
   });
+
+  it('uses the landing CMS module title from moduleMeta', () => {
+    expect(dashboardModuleMetadata('landing-cms').title).toBe(
+      'مدیریت محتوای لندینگ'
+    );
+  });
 });

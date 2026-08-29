@@ -1,3 +1,7 @@
+/**
+ * Opaque PWA / Apple home-screen tiles (white canvas required).
+ * Tab favicon is `public/brand/karvita-mark.png`.
+ */
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 

@@ -12,7 +12,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const SRC = path.join(ROOT, 'public/brand/karvita-mark.source.png');
 const OUT_PNG = path.join(ROOT, 'public/brand/karvita-mark.png');
-const OUT_SVG = path.join(ROOT, 'public/brand/karvita-mark.svg');
 
 async function main() {
   const fallback = path.join(ROOT, 'public/brand/karvita-mark.png');
@@ -106,16 +105,7 @@ async function main() {
   const png = Buffer.from(dataUrl.split(',')[1], 'base64');
   fs.writeFileSync(OUT_PNG, png);
 
-  const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${meta.w} ${meta.h}" width="${meta.w}" height="${meta.h}" role="img" aria-label="کارویتا">
-  <!-- Monochrome silhouette — tint via CSS mask + currentColor (transparent bg). -->
-  <image width="${meta.w}" height="${meta.h}" href="data:image/png;base64,${png.toString('base64')}" />
-</svg>
-`;
-  fs.writeFileSync(OUT_SVG, svg, 'utf8');
-
   console.log('Wrote', OUT_PNG, `(${meta.w}×${meta.h}, ${png.length} bytes)`);
-  console.log('Wrote', OUT_SVG);
   await browser.close();
 }
 

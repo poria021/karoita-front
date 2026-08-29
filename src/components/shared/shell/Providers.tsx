@@ -8,6 +8,7 @@ import { useState, type ReactNode } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthTransitionOverlay } from '@/components/shared/shell/AuthTransitionOverlay';
+import { DocumentTitleSync } from '@/components/shared/shell/DocumentTitleSync';
 import { PwaBoot } from '@/components/shared/shell/PwaBoot';
 import { ObservabilityBoot } from '@/lib/observability/ObservabilityBoot';
 import { makeQueryClient } from '@/lib/query-client';
@@ -31,6 +32,7 @@ export function Providers({ children }: { children: ReactNode }) {
           <TooltipProvider>
             <ObservabilityBoot />
             <PwaBoot />
+            <DocumentTitleSync />
             {children}
             <AuthTransitionOverlay />
           </TooltipProvider>

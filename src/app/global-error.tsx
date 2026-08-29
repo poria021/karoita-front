@@ -6,7 +6,9 @@ import './globals.css';
 
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { PublicRouteStatusActions } from '@/components/shared/route-status/PublicRouteStatusActions';
+import { DOCUMENT_TITLE, formatDocumentTitle } from '@/lib/document-title';
 import { reportError } from '@/lib/observability/reportError';
+import { SITE_FAVICON } from '@/lib/site-seo';
 import { vazirmatn } from '@/lib/vazirmatn-font';
 
 interface GlobalErrorProps {
@@ -16,6 +18,7 @@ interface GlobalErrorProps {
 
 export default function GlobalError({ error, reset }: GlobalErrorProps) {
   useEffect(() => {
+    document.title = formatDocumentTitle(DOCUMENT_TITLE.error);
     void reportError(error, {
       source: 'global-error',
       digest: error.digest,
@@ -24,6 +27,10 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
 
   return (
     <html lang="fa" dir="rtl">
+      <head>
+        <title>{formatDocumentTitle(DOCUMENT_TITLE.error)}</title>
+        <link rel="icon" href={SITE_FAVICON} type="image/png" />
+      </head>
       <body className={`${vazirmatn.variable} bg-kv-canvas font-sans antialiased`}>
         <KvRouteStatus
           kind="error"

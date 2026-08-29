@@ -29,4 +29,10 @@ describe('getModuleMeta', () => {
       ).title
     ).toBe('کارآموزی ۲');
   });
+
+  it('uses the landing CMS admin title', () => {
+    expect(getModuleMeta(RouteService.karvita.landingCms()).title).toBe(
+      'مدیریت محتوای لندینگ'
+    );
+  });
 });

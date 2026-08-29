@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { MarketingHomePage } from '@/features/shared/marketing/components/MarketingHomePage';
 import { MarketingJsonLd } from '@/features/shared/marketing/components/MarketingJsonLd';
 import { loadMarketingChrome } from '@/features/shared/marketing/lib/loadMarketingChrome';
+import { homePageTitle } from '@/lib/document-title';
 import {
   SITE_DESCRIPTION,
   SITE_TITLE,
@@ -10,7 +11,7 @@ import {
 import { RouteService } from '@/services/route.service';
 
 export const metadata: Metadata = {
-  title: { absolute: SITE_TITLE },
+  title: homePageTitle(),
   description: SITE_DESCRIPTION,
   alternates: {
     canonical: RouteService.marketing.home(),

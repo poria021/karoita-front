@@ -4,8 +4,10 @@ import { Toaster } from "@/components/ui/sonner";
 
 import { Providers } from "@/components/shared/shell/Providers";
 import { vazirmatn } from "@/lib/vazirmatn-font";
+import { DOCUMENT_TITLE_TEMPLATE } from "@/lib/document-title";
 import {
   SITE_DESCRIPTION,
+  SITE_FAVICON,
   SITE_NAME,
   SITE_OG_IMAGE,
   SITE_TITLE,
@@ -16,8 +18,8 @@ import { PWA_THEME_COLOR } from "@/lib/pwa/pwa-chrome-color";
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
   title: {
-    default: SITE_TITLE,
-    template: `%s | ${SITE_NAME}`,
+    default: SITE_NAME,
+    template: DOCUMENT_TITLE_TEMPLATE,
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
@@ -75,10 +77,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [
-      { url: '/brand/karvita-mark.svg', type: 'image/svg+xml' },
-      { url: '/brand/pwa-icon-192.png', type: 'image/png', sizes: '192x192' },
-    ],
+    icon: [{ url: SITE_FAVICON, type: 'image/png' }],
     apple: [
       {
         url: '/brand/apple-touch-icon.png',
