@@ -30,6 +30,7 @@ import {
   deactivateRealOffering,
   deleteRealTerm,
   saveRealSyllabusWeeks,
+  updateRealTerm,
   setRealPassingThreshold,
   setRealProfessorCapacity,
   updateRealTermGates,
@@ -37,12 +38,14 @@ import {
 import { catalogKindForTermType } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import {
   getRealSyllabusSnapshot,
+  getRealTerm,
   getRealTermCourseContext,
   getRealWeeksForLesson,
   listRealCoursesForTerm,
   listRealOfferingsForTerm,
 } from '@/services/syllabus-config/real/real-syllabus-reads';
 import type {
+  AcademicTerm,
   ActivateOfferingInput,
   CourseCatalogItem,
   CourseOfferingKind,
@@ -82,14 +85,18 @@ function gateSyllabusConsumerRead(): void {
  *
  * Real-mode routing:
  * - GET    /admin/semester                           → listSemesters
+ * - GET    /admin/semester/:id                       → getSemester
  * - POST   /admin/semester                           → createSemester
+ * - PATCH  /admin/semester/:id                       → updateSemester
  * - DELETE /admin/semester/:id                       → deleteSemester
  * - GET    /admin/settings                           → getAcademicSettings
  * - POST   /admin/settings                           → createAcademicSettings
  * - GET    /admin/semesters_all                      → lessons + offering flags
  * - GET    /admin/weeks/lesson/:lessonId             → weekly syllabus
- * - PATCH  /admin/lessons/:id/status                 → offering + term gates
- * - PUT    /admin/lessons/:lessonId/weeks            → replace-all weeks
+ * - POST   /admin/weeks                              → createWeek
+ * - PATCH  /admin/weeks/:id                          → updateWeek
+ * - PATCH  /admin/lessons/status                     → bulk term gates
+ * - PATCH  /admin/lessons/:id/status                 → offering toggle
  *
  * Enrollment-context remains mock-only until Nest exposes a consumer route.
  */
@@ -291,7 +298,7 @@ export const SyllabusConfigService = {
   // ─── Term gates ───────────────────────────────────────────────────────────
 
   /**
-   * PATCH /admin/lessons/:id/status for every lesson of the term
+   * PATCH /admin/lessons/status — one array for every lesson of the term
    * (`courseSelection` / `startClasses`).
    */
   async updateTermGates(
@@ -317,7 +324,7 @@ export const SyllabusConfigService = {
 
   // ─── Weekly syllabus ──────────────────────────────────────────────────────
 
-  /** PUT /admin/lessons/:lessonId/weeks */
+  /** POST /admin/weeks + PATCH /admin/weeks/{id} */
   async saveSyllabusWeeks(
     input: SaveSyllabusWeeksInput
   ): Promise<SyllabusConfigSnapshot> {
@@ -348,6 +355,15 @@ export const SyllabusConfigService = {
 
   // ─── Term CRUD — real + mock ───────────────────────────────────────────────
 
+  /** GET /admin/semester/{id} */
+  async getTerm(id: string): Promise<AcademicTerm | null> {
+    gateSyllabusTermSettings();
+    if (!IS_MOCK_MODE) {
+      return getRealTerm(id);
+    }
+    return readSyllabusSnapshot().terms.find((term) => term.id === id) ?? null;
+  },
+
   /**
    * POST /admin/semester (real) | mock store mutation.
    * Returns the refreshed SyllabusConfigSnapshot.
@@ -371,6 +387,29 @@ export const SyllabusConfigService = {
         enrollStart: '',
         termStart: '',
       });
+    });
+  },
+
+  /**
+   * PATCH /admin/semester/{id} (real) | mock store mutation.
+   */
+  async updateTerm(
+    id: string,
+    input: UpsertTermInput
+  ): Promise<SyllabusConfigSnapshot> {
+    gateSyllabusTermSettings();
+    if (!IS_MOCK_MODE) {
+      return updateRealTerm(id, input);
+    }
+    const title = buildTermTitle(input);
+    return mutateSyllabusSnapshot((draft) => {
+      const term = draft.terms.find((item) => item.id === id);
+      if (!term) throw new Error('دوره تحصیلی یافت نشد.');
+      if (draft.terms.some((item) => item.id !== id && item.title === title)) {
+        throw new Error('دوره تحصیلی با این عنوان از قبل وجود دارد.');
+      }
+      term.title = title;
+      term.type = input.type;
     });
   },
 

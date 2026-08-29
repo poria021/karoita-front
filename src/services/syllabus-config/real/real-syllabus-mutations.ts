@@ -1,6 +1,6 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import {
-  toNestLessonWeeksBody,
+  planNestWeekWrites,
   toNestSemesterDto,
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import {
@@ -25,6 +25,19 @@ export async function createRealTerm(
 ): Promise<SyllabusConfigSnapshot> {
   const body = toNestSemesterDto(input);
   await adminCatalogApi.createSemester(body);
+  return getRealSyllabusSnapshot();
+}
+
+/**
+ * PATCH /admin/semester/{id} then GET the same id.
+ * Live PATCH body is a Mongoose dump — do not map it.
+ */
+export async function updateRealTerm(
+  id: string,
+  input: UpsertTermInput
+): Promise<SyllabusConfigSnapshot> {
+  await adminCatalogApi.updateSemester(id, toNestSemesterDto(input));
+  await adminCatalogApi.getSemester(id);
   return getRealSyllabusSnapshot();
 }
 
@@ -89,7 +102,7 @@ export async function deactivateRealOffering(
 }
 
 /**
- * Term-level switches map onto every lesson of that semester:
+ * Term-level switches: one PATCH /admin/lessons/status array.
  * انتخاب واحد → `courseSelection`, برگزاری کلاس → `startClasses`.
  */
 export async function updateRealTermGates(
@@ -114,19 +127,25 @@ export async function updateRealTermGates(
     return getRealSyllabusSnapshot();
   }
 
-  await Promise.all(
-    lessonIds.map((id) => adminCatalogApi.patchLessonStatus(id, patch))
+  await adminCatalogApi.patchLessonsStatus(
+    lessonIds.map((id) => ({ id, ...patch }))
   );
   return getRealSyllabusSnapshot();
 }
 
-/** PUT /admin/lessons/{lessonId}/weeks — replace-all weekly syllabus. */
+/**
+ * POST /admin/weeks + PATCH /admin/weeks/{id}.
+ * New editor rows create; existing rows update; removed remote rows archive.
+ */
 export async function saveRealSyllabusWeeks(
   input: SaveSyllabusWeeksInput
 ): Promise<SyllabusConfigSnapshot> {
-  await adminCatalogApi.putLessonWeeks(
-    input.courseCatalogId,
-    toNestLessonWeeksBody(input.weeks)
-  );
+  const lessonId = input.courseCatalogId;
+  const remote = await adminCatalogApi.listWeeksByLesson(lessonId);
+  const plan = planNestWeekWrites(lessonId, input.weeks, remote);
+  await Promise.all([
+    ...plan.creates.map((body) => adminCatalogApi.createWeek(body)),
+    ...plan.updates.map(({ id, body }) => adminCatalogApi.updateWeek(id, body)),
+  ]);
   return getRealSyllabusSnapshot();
 }

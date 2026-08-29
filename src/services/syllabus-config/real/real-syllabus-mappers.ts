@@ -1,5 +1,6 @@
 import type {
   NestAcademicSettings,
+  NestCreateWeekDto,
   NestLesson,
   NestLessonWeek,
   NestPutLessonWeeksDto,
@@ -7,6 +8,7 @@ import type {
   NestSemesterAllStructure,
   NestSemesterSeason,
   NestSemesterWithLessons,
+  NestUpdateWeekDto,
 } from '@/types/nest-admin';
 import type {
   AcademicTerm,
@@ -42,6 +44,11 @@ const MODULAR_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
 
 export function nestEntityId(row: { id?: string; _id?: string }): string {
   return row.id || row._id || '';
+}
+
+/** Nest Mongo ids on GET rows; local draft weeks use `week_…`. */
+export function isNestObjectId(id: string): boolean {
+  return /^[a-fA-F0-9]{24}$/.test(id);
 }
 
 /** Lesson label — live rows may send `title`, `name`, or `title_fa`. */
@@ -217,6 +224,59 @@ export function toNestLessonWeeksBody(weeks: SyllabusWeek[]): NestPutLessonWeeks
       status: week.status === 'active',
     })),
   };
+}
+
+export type NestWeekWritePlan = {
+  creates: NestCreateWeekDto[];
+  updates: Array<{ id: string; body: NestUpdateWeekDto }>;
+};
+
+/**
+ * POST /admin/weeks for new rows, PATCH /admin/weeks/{id} for existing.
+ * Remote weeks dropped from the editor are archived (`status: false`) —
+ * Nest has no week DELETE in this batch.
+ */
+export function planNestWeekWrites(
+  lessonId: string,
+  weeks: SyllabusWeek[],
+  remote: NestLessonWeek[]
+): NestWeekWritePlan {
+  const remoteById = new Map(
+    remote
+      .map((week) => [nestEntityId(week), week] as const)
+      .filter(([id]) => Boolean(id))
+  );
+  const used = new Set<string>();
+  const creates: NestCreateWeekDto[] = [];
+  const updates: Array<{ id: string; body: NestUpdateWeekDto }> = [];
+
+  weeks.forEach((week, index) => {
+    const priority = index + 1;
+    const status = week.status === 'active';
+    if (isNestObjectId(week.id)) {
+      used.add(week.id);
+      updates.push({
+        id: week.id,
+        body: { lessonId, priority, status },
+      });
+      return;
+    }
+    creates.push({ lessonId, priority, status });
+  });
+
+  for (const [id, week] of remoteById) {
+    if (used.has(id)) continue;
+    updates.push({
+      id,
+      body: {
+        lessonId,
+        priority: week.priority ?? 99,
+        status: false,
+      },
+    });
+  }
+
+  return { creates, updates };
 }
 
 export function mergeTermsWithLessonBundles(

@@ -30,6 +30,12 @@ export async function listRealTerms(): Promise<AcademicTerm[]> {
   return rows.map((row) => toAcademicTerm(row));
 }
 
+/** GET /admin/semester/{id} */
+export async function getRealTerm(id: string): Promise<AcademicTerm> {
+  const row = await adminCatalogApi.getSemester(id);
+  return toAcademicTerm(row);
+}
+
 export async function listRealSemesterBundles(): Promise<
   NestSemesterWithLessons[]
 > {

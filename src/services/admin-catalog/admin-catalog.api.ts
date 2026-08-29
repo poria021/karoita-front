@@ -316,8 +316,20 @@ export const adminCatalogApi = {
   listSemesters(token?: string) {
     return apiClient.getJson<NestSemester[]>(NEST_ADMIN_PATHS.semesters, token);
   },
+  /** GET /admin/semester/{id} — `{ id, academicYear, season, structure }`. */
+  getSemester(id: string, token?: string) {
+    return apiClient.getJson<NestSemester>(
+      NEST_ADMIN_PATHS.semesterById(id),
+      token
+    );
+  },
+  /**
+   * PATCH /admin/semester/{id}
+   * Live 200 is a raw Mongoose document, not NestSemester — ignore the body
+   * and re-GET the row after write.
+   */
   updateSemester(id: string, body: NestUpdateSemesterDto, token?: string) {
-    return apiClient.patchMaybeJson<null>(
+    return apiClient.patchMaybeJson<unknown>(
       NEST_ADMIN_PATHS.semesterById(id),
       body,
       token

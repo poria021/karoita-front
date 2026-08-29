@@ -12,6 +12,8 @@ import {
   toAcademicTermType,
   toCourseCatalogItem,
   toCourseOfferingListItem,
+  isNestObjectId,
+  planNestWeekWrites,
   toNestLessonWeeksBody,
   toNestSemesterAllStructure,
   toSyllabusWeek,
@@ -101,6 +103,61 @@ describe('real-syllabus-mappers offerings', () => {
     expect(body.weeks).toEqual([
       { priority: 1, status: false },
       { priority: 2, status: true },
+    ]);
+  });
+
+  it('plans POST for draft weeks and PATCH for Nest ids', () => {
+    expect(isNestObjectId('6a9164b4c208454ddf32ec92')).toBe(true);
+    expect(isNestObjectId('week_1')).toBe(false);
+
+    const plan = planNestWeekWrites(
+      '6a8e2b51d2187e0f2fdb784c',
+      [
+        {
+          id: '6a9164b4c208454ddf32ec92',
+          suffix: 'هفته 1',
+          title: 'هفته 1',
+          weight: 3,
+          status: 'active',
+        },
+        {
+          id: 'week_local_2',
+          suffix: 'هفته 2',
+          title: 'هفته 2',
+          weight: 3,
+          status: 'archived',
+        },
+      ],
+      [
+        { id: '6a9164b4c208454ddf32ec92', priority: 1, status: true },
+        { id: '6a9164b4c208454ddf32ec93', priority: 2, status: true },
+      ]
+    );
+
+    expect(plan.creates).toEqual([
+      {
+        lessonId: '6a8e2b51d2187e0f2fdb784c',
+        priority: 2,
+        status: false,
+      },
+    ]);
+    expect(plan.updates).toEqual([
+      {
+        id: '6a9164b4c208454ddf32ec92',
+        body: {
+          lessonId: '6a8e2b51d2187e0f2fdb784c',
+          priority: 1,
+          status: true,
+        },
+      },
+      {
+        id: '6a9164b4c208454ddf32ec93',
+        body: {
+          lessonId: '6a8e2b51d2187e0f2fdb784c',
+          priority: 2,
+          status: false,
+        },
+      },
     ]);
   });
 

@@ -55,13 +55,7 @@ export function useSyllabusTermSettings({
     setTermFormError(null);
   }
 
-  function selectEditTerm(termId: string) {
-    if (!termId) {
-      resetTermForm();
-      return;
-    }
-    const match = terms.find((t) => t.id === termId);
-    if (!match) return;
+  function applyTermToForm(match: AcademicTerm) {
     setEditTermId(match.id);
     setTermType(match.type);
     const parts = parseTermTitleParts(match.title);
@@ -70,16 +64,29 @@ export function useSyllabusTermSettings({
     setTermFormError(null);
   }
 
+  function selectEditTerm(termId: string) {
+    if (!termId) {
+      resetTermForm();
+      return;
+    }
+    const match = terms.find((t) => t.id === termId);
+    if (!match) return;
+    applyTermToForm(match);
+    void SyllabusConfigService.getTerm(termId)
+      .then((fresh) => {
+        if (fresh) applyTermToForm(fresh);
+      })
+      .catch(() => {
+        // لیست کافی است اگر GET تکی شکست بخورد
+      });
+  }
+
   function onTermTypeChange(type: AcademicTermType) {
     setTermType(type);
     setTermPrefix(defaultPrefixForType(type));
   }
 
   function saveTerm() {
-    if (editTermId) {
-      toast.message('برای دوره موجود فقط حذف مجاز است؛ فیلدهای عنوان قفل‌اند.');
-      return;
-    }
     const parsed = termFormSchema.safeParse({
       type: termType,
       titlePrefix: termPrefix,
@@ -95,6 +102,40 @@ export function useSyllabusTermSettings({
 
     const title =
       `${parsed.data.titlePrefix} ${persianToEnglishDigits(parsed.data.academicYear)}`.trim();
+    const label = toPersianDigits(
+      `${parsed.data.titlePrefix} ${parsed.data.academicYear}`
+    );
+
+    if (editTermId) {
+      const targetId = editTermId;
+      let snapshot = terms;
+      scheduleOptimisticMutation({
+        message: `دوره تحصیلی «${label}» به‌روز شد.`,
+        apply: () => {
+          snapshot = terms;
+          setTerms((prev) =>
+            prev.map((term) =>
+              term.id === targetId ? { ...term, title, type: parsed.data.type } : term
+            )
+          );
+        },
+        revert: () => {
+          setTerms(snapshot);
+        },
+        commit: () =>
+          SyllabusConfigService.updateTerm(targetId, parsed.data),
+        onCommitted: async (result) => {
+          setTerms(result.terms);
+          setSelectedTermId(targetId);
+          await loadTermContext(targetId);
+        },
+        onError: (err) => {
+          toast.error(errorMessage(err, 'به‌روزرسانی دوره تحصیلی ناموفق بود.'));
+        },
+      });
+      return;
+    }
+
     const tempId = `temp_term_${Date.now()}`;
     const optimistic: AcademicTerm = {
       id: tempId,
@@ -108,7 +149,7 @@ export function useSyllabusTermSettings({
     let snapshot = terms;
 
     scheduleOptimisticMutation({
-      message: `دوره تحصیلی «${toPersianDigits(`${parsed.data.titlePrefix} ${parsed.data.academicYear}`)}» ایجاد شد.`,
+      message: `دوره تحصیلی «${label}» ایجاد شد.`,
       apply: () => {
         snapshot = terms;
         setTerms((prev) => [...prev, optimistic]);

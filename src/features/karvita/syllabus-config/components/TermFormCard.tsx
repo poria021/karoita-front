@@ -67,7 +67,7 @@ export function TermFormCard({
           <KvCardTitleIcon icon={faIcons.plus} />
           <div className="min-w-0">
             <KvTypography variant="subtitle" weight="black" as="h4">
-              تعریف و ساختارسازی ترم جدید
+              {isEditing ? 'ویرایش دوره تحصیلی' : 'تعریف و ساختارسازی ترم جدید'}
             </KvTypography>
             <KvTypography variant="caption" tone="muted" as="p">
               ساختار ترمی برای دانشجویان و پودمانی برای مهارت‌آموزان اعمال می‌شود.
@@ -110,7 +110,6 @@ export function TermFormCard({
               required
               size="md"
               value={termType}
-              disabled={isEditing}
               onValueChange={(value) =>
                 onTermTypeChange(value as AcademicTermType)
               }
@@ -133,7 +132,6 @@ export function TermFormCard({
                 size="md"
                 value={termPrefix}
                 displayValue={toPersianDigits(termPrefix)}
-                disabled={isEditing}
                 onValueChange={onTermPrefixChange}
               >
                 {prefixOptions.map((prefix) => (
@@ -150,7 +148,6 @@ export function TermFormCard({
                 size="md"
                 dir="ltr"
                 scriptGuard="none"
-                locked={isEditing}
                 value={displayAcademicYear(termYear)}
                 placeholder="۱۴۰۵-۱۴۰۶"
                 onChange={(event) =>
@@ -175,24 +172,23 @@ export function TermFormCard({
               size="md"
               className="w-full sm:w-auto"
               onClick={onRequestDelete}
-              disabled={isLoading}
+              disabled={isLoading || isSaving}
               icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
             >
               حذف این دوره
             </KvButton>
-          ) : (
-            <KvButton
-              type="button"
-              color="cta"
-              size="md"
-              className="w-full sm:w-auto"
-              loading={isSaving}
-              disabled={isLoading}
-              onClick={onSave}
-            >
-              ایجاد دوره تحصیلی
-            </KvButton>
-          )}
+          ) : null}
+          <KvButton
+            type="button"
+            color="cta"
+            size="md"
+            className="w-full sm:w-auto"
+            loading={isSaving}
+            disabled={isLoading}
+            onClick={onSave}
+          >
+            {isEditing ? 'ذخیره تغییرات دوره' : 'ایجاد دوره تحصیلی'}
+          </KvButton>
         </div>
       </KvCardContent>
     </KvCard>
