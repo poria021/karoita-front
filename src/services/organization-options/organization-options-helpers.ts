@@ -42,12 +42,12 @@ export type OrganizationOptionsQuery = {
   signal?: AbortSignal;
 };
 
-function toNameList(value: string | string[] | undefined): string[] {
+export function toNameList(value: string | string[] | undefined): string[] {
   if (!value) return [];
   return Array.isArray(value) ? value.filter(Boolean) : [value];
 }
 
-function dedupeOptions(items: OrganizationOption[]): OrganizationOption[] {
+export function dedupeOptions(items: OrganizationOption[]): OrganizationOption[] {
   const seen = new Set<string>();
   const merged: OrganizationOption[] = [];
   for (const item of items) {
@@ -113,7 +113,7 @@ async function resolveDistrictId(districtName: string): Promise<string | undefin
 
 // ─── Paginator برای bare array (بدون envelope) ────────────────────────────────
 
-function paginateBare(
+export function paginateBare(
   items: OrganizationOption[],
   page: number,
   limit: number

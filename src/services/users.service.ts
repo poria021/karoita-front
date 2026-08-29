@@ -13,7 +13,9 @@ export type UsersListPage = {
   hasNextPage: boolean;
 };
 
-function mapList(raw: NestInfinityPaginationUserResponse): UsersListPage {
+export function mapNestUsersListPage(
+  raw: NestInfinityPaginationUserResponse
+): UsersListPage {
   return {
     data: raw.data.map((row) => mapNestAuthUser(row)),
     hasNextPage: raw.hasNextPage,
@@ -31,7 +33,7 @@ function mapList(raw: NestInfinityPaginationUserResponse): UsersListPage {
 export const UsersService = {
   async list(query: NestUsersListQuery = {}, token?: string): Promise<UsersListPage> {
     requireNestTransport('UsersService.list');
-    return mapList(await usersApi.list(query, token));
+    return mapNestUsersListPage(await usersApi.list(query, token));
   },
 
   async getById(id: string, token?: string): Promise<User> {

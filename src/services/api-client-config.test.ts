@@ -1,0 +1,79 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  decideUnauthorizedAfterResponse,
+  KY_RETRY_LIMIT,
+  resolveNestClientPrefix,
+} from '@/services/api-client-config';
+import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
+
+describe('api-client real Nest transport contract', () => {
+  it('keeps ky retry.limit at 1 so POST/PATCH bodies survive 401 refresh', () => {
+    expect(KY_RETRY_LIMIT).toBe(1);
+  });
+
+  it('uses the same-origin proxy when Nest lives on another origin', () => {
+    expect(
+      resolveNestClientPrefix({
+        apiUrl: 'https://backend.example.com/api',
+        windowOrigin: 'http://localhost:3000',
+      })
+    ).toBe(`http://localhost:3000${NEST_BROWSER_PROXY_PATH}`);
+  });
+
+  it('uses NEXT_PUBLIC_API_URL on SSR and same-origin browser', () => {
+    expect(
+      resolveNestClientPrefix({
+        apiUrl: 'https://backend.example.com/api',
+      })
+    ).toBe('https://backend.example.com/api');
+    expect(
+      resolveNestClientPrefix({
+        apiUrl: 'https://app.example.com/api',
+        windowOrigin: 'https://app.example.com',
+      })
+    ).toBe('https://app.example.com/api');
+  });
+
+  it('refreshes once on 401, then logs out on the retry or bootstrap URL', () => {
+    expect(
+      decideUnauthorizedAfterResponse({
+        status: 200,
+        retryCount: 0,
+        url: '/__nest-api/v1/users',
+      })
+    ).toBe('ignore');
+
+    expect(
+      decideUnauthorizedAfterResponse({
+        status: 401,
+        retryCount: 0,
+        url: '/__nest-api/v1/users',
+      })
+    ).toBe('refresh');
+
+    expect(
+      decideUnauthorizedAfterResponse({
+        status: 401,
+        retryCount: 1,
+        url: '/__nest-api/v1/users',
+      })
+    ).toBe('logout');
+
+    expect(
+      decideUnauthorizedAfterResponse({
+        status: 401,
+        retryCount: 0,
+        url: '/__nest-api/v1/auth/refresh',
+      })
+    ).toBe('logout');
+
+    expect(
+      decideUnauthorizedAfterResponse({
+        status: 401,
+        retryCount: 0,
+        url: '/__nest-api/v1/admin/auth/me',
+      })
+    ).toBe('refresh');
+  });
+});

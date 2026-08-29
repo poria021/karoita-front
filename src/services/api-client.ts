@@ -7,14 +7,17 @@
  */
 import ky, { type Options as KyOptions } from 'ky';
 
-import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
+import {
+  decideUnauthorizedAfterResponse,
+  KY_RETRY_LIMIT,
+  resolveNestClientPrefix,
+} from '@/services/api-client-config';
 import { ApiClientError, mapHttpError } from '@/services/api-error';
 import {
   bearerHeaders,
   handleUnauthorized,
   resolveBearerToken,
   rotateRealAccessToken,
-  shouldSkipTokenRefresh,
 } from '@/services/api-token';
 
 export { ApiClientError, localizeApiError } from '@/services/api-error';
@@ -43,19 +46,11 @@ let browserClientPrefix: string | null = null;
  * backend domain does not block cross-origin requests.
  */
 function resolveClientPrefix(): string {
-  if (!API_URL) {
-    throw new ApiClientError('آدرس سرویس API پیکربندی نشده است.');
-  }
-  if (typeof window === 'undefined') return API_URL;
-  try {
-    const origin = new URL(API_URL).origin;
-    if (origin !== window.location.origin) {
-      return `${window.location.origin}${NEST_BROWSER_PROXY_PATH}`;
-    }
-  } catch {
-    return API_URL;
-  }
-  return API_URL;
+  return resolveNestClientPrefix({
+    apiUrl: API_URL,
+    windowOrigin:
+      typeof window === 'undefined' ? undefined : window.location.origin,
+  });
 }
 
 function createKyClient(prefix: string) {
@@ -71,12 +66,17 @@ function createKyClient(prefix: string) {
     // Request(request, { headers }) })` پایین برای POST/PATCH بی‌صدا/بدون بدنه می‌شود و
     // refresh بی‌صدا fail می‌شود. یعنی: `limit: 1` را برای بهینه‌سازی/حذف رکورده‌ها
     // تغییر ندهید بدون اینکه جریان را بازسازی کنید.
-    retry: { limit: 1 },
+    retry: { limit: KY_RETRY_LIMIT },
     hooks: {
       afterResponse: [
         async ({ request, response, retryCount }) => {
-          if (response.status !== 401) return;
-          if (retryCount > 0 || shouldSkipTokenRefresh(request.url)) {
+          const action = decideUnauthorizedAfterResponse({
+            status: response.status,
+            retryCount,
+            url: request.url,
+          });
+          if (action === 'ignore') return;
+          if (action === 'logout') {
             await handleUnauthorized();
             return;
           }

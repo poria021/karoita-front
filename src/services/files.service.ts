@@ -51,9 +51,7 @@ export const FilesService = {
     // اسم فایل اصلی (jpg/png) رو به Nest بدیم — Nest فقط برای ساختن سیگند URL از اسم استفاده می‌کنه
     // و محتوای واقعی رو مستقیم از S3 می‌خونه — پس extension فایل compressed مهم نیست.
     const sourceFile = originalFile ?? file;
-    const safeName = sourceFile.name.includes('.')
-      ? sourceFile.name
-      : `${sourceFile.name}.jpg`;
+    const safeName = nestUploadFileName(sourceFile.name);
 
     // مرحله ۱: از Nest presigned URL بگیر
     const { file: fileRef, uploadSignedUrl } = await filesApi.upload(
@@ -73,7 +71,12 @@ export const FilesService = {
   },
 };
 
-function absoluteObjectUrlFromSignedUrl(signedUrl: string): string | null {
+/** Nest فقط extension اسم را برای presign می‌سنجد؛ فایل compress ممکن است بدون پسوند باشد. */
+export function nestUploadFileName(sourceName: string): string {
+  return sourceName.includes('.') ? sourceName : `${sourceName}.jpg`;
+}
+
+export function absoluteObjectUrlFromSignedUrl(signedUrl: string): string | null {
   try {
     const url = new URL(signedUrl);
     return `${url.origin}${url.pathname}`;

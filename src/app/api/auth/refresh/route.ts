@@ -20,6 +20,14 @@ import {
   REAL_SURFACE_COOKIE_NAME,
   type AuthSurface,
 } from '@/lib/real-auth-cookie';
+import {
+  accessTokenFromRefreshPayload,
+  extractRotatedRefreshToken,
+  NEST_REFRESH_PATHS,
+  NEST_SESSION_PATHS,
+  resolveAuthSurface,
+  unwrapRefreshPayloadData,
+} from '@/services/auth/real/refresh-route-helpers';
 
 /**
  * سرور-تو-سرور: BACKEND_INTERNAL_URL به route داخلی، مستقیم
@@ -29,36 +37,8 @@ const NEST_API_URL =
   (process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? '')
     .replace(/\/$/, '');
 
-/** Nest endpoint بر اساس surface انتخاب می‌شود */
-const NEST_REFRESH_PATHS: Record<AuthSurface, string> = {
-  user: 'v1/auth/refresh',
-  admin: 'v1/admin/auth/refresh',
-};
-
-/** Nest session endpoint بر اساس surface */
-const NEST_SESSION_PATHS: Record<AuthSurface, string> = {
-  user: 'v1/auth/me',
-  admin: 'v1/admin/auth/me',
-};
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-/**
- * رفرش‌توکن جدید را از پاسخ Nest استخراج می‌کند.
- * Nest گاهی { token, refreshToken, ... } و گاهی { data: { token, refreshToken, ... } } می‌فرستد.
- * هر دو حالت را پشتیبانی می‌کنیم.
- */
-function extractRotatedRefreshToken(raw: unknown): string | null {
-  if (!isRecord(raw)) return null;
-  // اول flat را چک کن
-  if (typeof raw.refreshToken === 'string' && raw.refreshToken) return raw.refreshToken;
-  // بعد nested data را چک کن
-  if (isRecord(raw.data) && typeof raw.data.refreshToken === 'string' && raw.data.refreshToken) {
-    return raw.data.refreshToken;
-  }
-  return null;
 }
 
 /**
@@ -89,7 +69,7 @@ async function fetchSessionUser(
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get(REAL_REFRESH_COOKIE_NAME)?.value;
   const rawSurface = request.cookies.get(REAL_SURFACE_COOKIE_NAME)?.value;
-  const surface: AuthSurface = rawSurface === 'admin' ? 'admin' : 'user';
+  const surface: AuthSurface = resolveAuthSurface(rawSurface);
   const nestRefreshPath = NEST_REFRESH_PATHS[surface];
 
   if (process.env.NODE_ENV !== 'production') {
@@ -174,11 +154,13 @@ export async function POST(request: NextRequest) {
   // این کار باعث می‌شود performRealRefresh در کلاینت بتواند user/admin را parse کند
   // و نیازی به فراخوانی جداگانه‌ی /auth/me نباشد.
   {
-    const data = isRecord(payload) && isRecord((payload as Record<string, unknown>).data)
-      ? (payload as Record<string, unknown>).data as Record<string, unknown>
-      : payload as Record<string, unknown>;
+    const data = unwrapRefreshPayloadData(payload);
+    const newAccessToken = accessTokenFromRefreshPayload(payload);
 
-    const newAccessToken = typeof data.token === 'string' ? data.token : null;
+    if (!data) {
+      const response = NextResponse.json(payload);
+      return response;
+    }
 
     if (newAccessToken) {
       if (surface === 'admin' && !isRecord(data.admin)) {

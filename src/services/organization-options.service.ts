@@ -34,20 +34,7 @@ export class OrganizationOptionsService {
   static async getOptions(
     params: OrganizationOptionsQuery
   ): Promise<OrganizationOptionsResult> {
-    const page = params.page ?? 1;
-    const limit = params.limit ?? ORGANIZATION_OPTIONS_DEFAULT_LIMIT;
-    // FIX: `city` را به request اضافه کردیم — قبلاً گم می‌شد و
-    // case 'district' هرگز cityId رو resolve نمی‌کرد.
-    const request = {
-      type: params.type,
-      query: params.query,
-      page,
-      limit,
-      province: params.province,
-      city: params.city,
-      district: params.district,
-      signal: params.signal,
-    };
+    const request = buildOrganizationOptionsRequest(params);
 
     if (!IS_MOCK_MODE) {
       return fetchOrganizationOptionsFromApi(request);
@@ -74,3 +61,19 @@ export class OrganizationOptionsService {
 }
 
 export { ORGANIZATION_OPTIONS_DEFAULT_LIMIT as ORGANIZATION_OPTIONS_PAGE_SIZE };
+
+/** همان payload که به Nest typeahead می‌رود — `city` نباید حذف شود. */
+export function buildOrganizationOptionsRequest(
+  params: OrganizationOptionsQuery
+) {
+  return {
+    type: params.type,
+    query: params.query,
+    page: params.page ?? 1,
+    limit: params.limit ?? ORGANIZATION_OPTIONS_DEFAULT_LIMIT,
+    province: params.province,
+    city: params.city,
+    district: params.district,
+    signal: params.signal,
+  };
+}
