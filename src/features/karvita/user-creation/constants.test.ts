@@ -6,13 +6,11 @@ import {
 } from './constants';
 
 describe('getOrgAccountRoleOptionsForKind', () => {
-  it('shows super_admin and assistant_admin for the admin kind', () => {
+  it('shows only assistant_admin for the admin kind', () => {
     expect(getOrgAccountRoleOptionsForKind('admin').map((option) => option.value)).toEqual([
-      'super_admin',
       'assistant_admin',
     ]);
     expect(getOrgAccountRoleOptionsForKind('admin').map((option) => option.label)).toEqual([
-      'مدیر ارشد',
       'دستیار مدیر ارشد',
     ]);
   });
@@ -29,7 +27,7 @@ describe('getOrgAccountRoleOptionsForKind', () => {
 
 describe('isOrgAccountRoleAllowedForKind', () => {
   it('accepts staff roles only on the admin kind', () => {
-    expect(isOrgAccountRoleAllowedForKind('super_admin', 'admin')).toBe(true);
+    expect(isOrgAccountRoleAllowedForKind('super_admin', 'admin')).toBe(false);
     expect(isOrgAccountRoleAllowedForKind('assistant_admin', 'admin')).toBe(true);
     expect(isOrgAccountRoleAllowedForKind('central_organization', 'admin')).toBe(
       false

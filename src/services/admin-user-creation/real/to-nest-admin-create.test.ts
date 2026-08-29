@@ -50,15 +50,10 @@ describe('toNestCreateAdminDto', () => {
     });
   });
 
-  it('maps super_admin to Nest role superadmin', () => {
-    expect(
-      toNestCreateAdminDto({ ...base, role: 'super_admin' })
-    ).toEqual({
-      fname: 'علی',
-      lname: 'رضایی',
-      phone: '09386951413',
-      role: 'superadmin',
-    });
+  it('rejects super_admin on create', () => {
+    expect(() =>
+      toNestCreateAdminDto({ ...base, role: 'super_admin' } as never)
+    ).toThrow(/ادمین/);
   });
 
   it('rejects organizational roles', () => {

@@ -1,9 +1,10 @@
-import type { OrgAccountRoleOption } from '@/types/admin-user-creation';
+import type {
+  OrgAccountRole,
+  OrgAccountRoleOption,
+} from '@/types/admin-user-creation';
 import {
+  CREATABLE_STAFF_ADMIN_ROLES,
   ORG_MANAGEMENT_ROLES,
-  STAFF_ADMIN_ROLES,
-  type OrgManagementRole,
-  type StaffAdminRole,
 } from '@/types/role-taxonomy';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
@@ -14,7 +15,7 @@ export const ORG_ACCOUNT_KIND_TABS = [
 
 export type OrgAccountKind = (typeof ORG_ACCOUNT_KIND_TABS)[number]['value'];
 
-function roleOption(value: StaffAdminRole | OrgManagementRole): OrgAccountRoleOption {
+function roleOption(value: OrgAccountRole): OrgAccountRoleOption {
   return {
     value,
     label: getRoleStrategy(value).label,
@@ -25,7 +26,7 @@ export function getOrgAccountRoleOptionsForKind(
   kind: OrgAccountKind
 ): OrgAccountRoleOption[] {
   if (kind === 'admin') {
-    return STAFF_ADMIN_ROLES.map(roleOption);
+    return CREATABLE_STAFF_ADMIN_ROLES.map(roleOption);
   }
 
   return ORG_MANAGEMENT_ROLES.map(roleOption);

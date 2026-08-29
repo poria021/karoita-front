@@ -2,6 +2,7 @@ import { isMockApiMode } from '@/lib/api-mode';
 import { ApiClientError } from '@/services/api-error';
 import { mapNestAdminUser, mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
 import { isStaffAdminRole } from '@/services/auth/real/nest-auth-role';
+import { isCreatableStaffAdminRole } from '@/types/role-taxonomy';
 import {
   mockCheckMobileAvailable,
   mockCreateOrganizationalUser,
@@ -93,6 +94,11 @@ export const AdminUserCreationService = {
   ): Promise<CreateOrganizationalUserResult> {
     if (!isMockApiMode()) {
       if (isStaffAdminRole(input.role)) {
+        if (!isCreatableStaffAdminRole(input.role)) {
+          throw new Error(
+            'ایجاد حساب مدیر ارشد از این فرم مجاز نیست. فقط دستیار ادمین ساخته می‌شود.'
+          );
+        }
         try {
           const raw = await adminsApi.create(toNestCreateAdminDto(input));
           return { user: mapNestAdminUser(raw, input.mobile) };

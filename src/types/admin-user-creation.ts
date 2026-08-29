@@ -4,7 +4,7 @@ import {
   type ProvisionableAccountRole,
 } from '@/types/role-taxonomy';
 
-/** نقش‌هایی که مدیر ارشد می‌تواند به‌صورت دستی بسازد. */
+/** نقش‌هایی که از فرم ایجاد حساب ساخته می‌شوند (بدون مدیر ارشد). */
 export const ORG_ACCOUNT_ROLES = PROVISIONABLE_ACCOUNT_ROLES;
 
 export type OrgAccountRole = ProvisionableAccountRole;

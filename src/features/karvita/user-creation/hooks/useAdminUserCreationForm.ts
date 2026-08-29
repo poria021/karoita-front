@@ -139,6 +139,11 @@ export function useAdminUserCreationForm() {
       if (!nextKind || nextKind === accountKind) return;
 
       setAccountKind(nextKind);
+      if (nextKind === 'admin') {
+        onRoleChange('assistant_admin');
+        return;
+      }
+
       const currentRole = getValues('role');
       if (
         currentRole &&

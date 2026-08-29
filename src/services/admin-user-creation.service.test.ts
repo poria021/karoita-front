@@ -104,6 +104,18 @@ describe('AdminUserCreationService (mock)', () => {
     expect(approved.items.some((user) => user.id === result.user.id)).toBe(true);
   });
 
+  it('rejects creating super_admin', async () => {
+    await expect(
+      AdminUserCreationService.createOrganizationalUser({
+        firstName: 'سارا',
+        lastName: 'محمدی',
+        mobile: '9111111188',
+        password: '12345678',
+        role: 'super_admin',
+      } as never)
+    ).rejects.toThrow(/مدیر ارشد/);
+  });
+
   it('rejects duplicate mobile', async () => {
     await expect(
       AdminUserCreationService.createOrganizationalUser({
@@ -219,33 +231,18 @@ describe('AdminUserCreationService (real staff admin)', () => {
     expect(result.user.approved).toBe(true);
   });
 
-  it('POSTs Nest role superadmin for super_admin', async () => {
-    vi.mocked(adminsApi.create).mockResolvedValue({
-      id: 'adm-2',
-      fname: 'سارا',
-      lname: 'محمدی',
-      phone: '09111111112',
-      status: { id: 'st-1', name: 'active' },
-      role: 'superadmin',
-      createdAt: '2026-08-28T11:38:05.046Z',
-      updatedAt: '2026-08-28T11:38:05.046Z',
-    });
+  it('does not POST super_admin to /admin/admins', async () => {
+    await expect(
+      AdminUserCreationService.createOrganizationalUser({
+        firstName: 'سارا',
+        lastName: 'محمدی',
+        mobile: '9111111112',
+        password: '12345678',
+        role: 'super_admin',
+      } as never)
+    ).rejects.toThrow(/مدیر ارشد/);
 
-    const result = await AdminUserCreationService.createOrganizationalUser({
-      firstName: 'سارا',
-      lastName: 'محمدی',
-      mobile: '9111111112',
-      password: '12345678',
-      role: 'super_admin',
-    });
-
-    expect(adminsApi.create).toHaveBeenCalledWith({
-      fname: 'سارا',
-      lname: 'محمدی',
-      phone: '09111111112',
-      role: 'superadmin',
-    });
-    expect(result.user.role).toBe('super_admin');
+    expect(adminsApi.create).not.toHaveBeenCalled();
   });
 
   it('does not call /admin/admins for organizational roles', async () => {

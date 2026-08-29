@@ -13,7 +13,10 @@ import type {
   StaffAdminAccount,
   UpdateStaffAdminInput,
 } from '@/types/admin-user-creation';
-import { isStaffAdminRole } from '@/types/role-taxonomy';
+import {
+  isCreatableStaffAdminRole,
+  isStaffAdminRole,
+} from '@/types/role-taxonomy';
 import { sliceOffsetLimitPage } from '@/utils/offset-limit-page';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
@@ -57,6 +60,12 @@ function buildOrgFields(
 export function mockCreateOrganizationalUser(
   input: CreateOrganizationalUserInput
 ): CreateOrganizationalUserResult {
+  if (isStaffAdminRole(input.role) && !isCreatableStaffAdminRole(input.role)) {
+    throw new Error(
+      'ایجاد حساب مدیر ارشد از این فرم مجاز نیست. فقط دستیار ادمین ساخته می‌شود.'
+    );
+  }
+
   const mobile = normalizeMobile(input.mobile);
   if (!/^9\d{9}$/.test(mobile)) {
     throw new Error('فرمت شماره موبایل معتبر نیست (۱۰ رقم بدون صفر اول).');

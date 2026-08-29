@@ -10,10 +10,22 @@ describe('adminUserCreationSchema', () => {
     password: '12345678',
   };
 
-  it('accepts super_admin without geo fields', () => {
+  it('rejects super_admin as a creatable role', () => {
     const result = adminUserCreationSchema.safeParse({
       ...base,
       role: 'super_admin',
+      province: '',
+      city: '',
+      college: '',
+      district: '',
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts assistant_admin without geo fields', () => {
+    const result = adminUserCreationSchema.safeParse({
+      ...base,
+      role: 'assistant_admin',
       province: '',
       city: '',
       college: '',

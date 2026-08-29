@@ -23,10 +23,18 @@ export const ORG_MANAGEMENT_ROLES = [
 
 export type OrgManagementRole = (typeof ORG_MANAGEMENT_ROLES)[number];
 
-/** حساب‌های قابل ساخت در ماژول ایجاد حساب (ستادی + سازمانی). */
+/**
+ * ستادی که از فرم ایجاد حساب ساخته می‌شود.
+ * مدیر ارشد از UI ساخته نمی‌شود؛ فقط دستیار از POST /admin/admins.
+ */
+export const CREATABLE_STAFF_ADMIN_ROLES = [
+  'assistant_admin',
+] as const satisfies readonly StaffAdminRole[];
+
+/** حساب‌های قابل ساخت در ماژول ایجاد حساب (سازمانی + دستیار ادمین). */
 export const PROVISIONABLE_ACCOUNT_ROLES = [
   ...ORG_MANAGEMENT_ROLES,
-  ...STAFF_ADMIN_ROLES,
+  ...CREATABLE_STAFF_ADMIN_ROLES,
 ] as const satisfies readonly UserRole[];
 
 export type ProvisionableAccountRole =
@@ -42,6 +50,12 @@ export function isOrgManagementRole(
   role: UserRole | string | null | undefined
 ): role is OrgManagementRole {
   return (ORG_MANAGEMENT_ROLES as readonly string[]).includes(role ?? '');
+}
+
+export function isCreatableStaffAdminRole(
+  role: UserRole | string | null | undefined
+): role is (typeof CREATABLE_STAFF_ADMIN_ROLES)[number] {
+  return role === 'assistant_admin';
 }
 
 export function isProvisionableAccountRole(

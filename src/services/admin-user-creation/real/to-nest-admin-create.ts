@@ -1,4 +1,5 @@
 import { isStaffAdminRole, toNestAdminAccountRole } from '@/services/auth/real/nest-auth-role';
+import { isCreatableStaffAdminRole } from '@/types/role-taxonomy';
 import type {
   CreateOrganizationalUserInput,
   UpdateStaffAdminInput,
@@ -44,7 +45,7 @@ export function toNestCreateAdminDto(
     'firstName' | 'lastName' | 'mobile' | 'role'
   >
 ): NestCreateAdminDto {
-  if (!isStaffAdminRole(input.role)) {
+  if (!isCreatableStaffAdminRole(input.role)) {
     throw new Error('این نقش از مسیر ایجاد ادمین پشتیبانی نمی‌شود.');
   }
 
