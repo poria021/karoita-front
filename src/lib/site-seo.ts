@@ -13,8 +13,8 @@ export const SITE_DESCRIPTION =
 
 export const SITE_OG_IMAGE = '/brand/karvita-wordmark.png';
 
-/** Favicon واحد — همان مارک برند (`public/brand/karvita-mark.png`). */
-export const SITE_FAVICON = '/brand/karvita-mark.png';
+/** Favicon — مربع با نسبت طبیعی مارک (`public/brand/favicon.png`). */
+export const SITE_FAVICON = '/brand/favicon.png';
 
 export function getSiteUrl(): URL {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim();
