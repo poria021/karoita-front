@@ -193,6 +193,10 @@ export type NestDegree = {
   role?: { id?: string; title?: string; title_fa?: string } | null;
   createdAt?: string;
   updatedAt?: string;
+  /** Optional until Nest ships linked-user counts for delete locking. */
+  usersCount?: number;
+  userCount?: number;
+  users_count?: number;
 };
 
 /**
@@ -217,6 +221,9 @@ export type NestRole = {
 export type NestDegreeByRole = {
   id: string;
   title: string;
+  usersCount?: number;
+  userCount?: number;
+  users_count?: number;
 };
 
 export type NestCreateUniversityDto = {
@@ -260,6 +267,10 @@ export type NestUniversity = {
   role?: NestNamedRef | null;
   createdAt?: string;
   updatedAt?: string;
+  /** Optional until Nest ships linked-user counts for delete locking. */
+  usersCount?: number;
+  userCount?: number;
+  users_count?: number;
 };
 
 /**

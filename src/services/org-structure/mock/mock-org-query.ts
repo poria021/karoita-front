@@ -1,5 +1,8 @@
 import { readMockUsers } from '@/services/auth/mock/mock-auth.store';
-import { isDeleteBlockedWithSets } from '@/services/org-structure/org-structure-delete-rules';
+import {
+  isDeleteBlockedWithSets,
+  isLinkedUserDeleteBlocked,
+} from '@/services/org-structure/org-structure-delete-rules';
 import {
   buildOrgRuntimeIndex,
   clearOrgListFilterCache,
@@ -55,7 +58,14 @@ type UserCountIndexes = {
   byMajor: Map<string, number>;
 };
 
-function bumpCount(map: Map<string, number>, key: string | undefined): void {
+function bumpCount(
+  map: Map<string, number>,
+  key: string | string[] | undefined
+): void {
+  if (Array.isArray(key)) {
+    for (const item of key) bumpCount(map, item);
+    return;
+  }
   if (!key) return;
   map.set(key, (map.get(key) ?? 0) + 1);
 }
@@ -64,7 +74,7 @@ export function buildOrgUserCountIndexes(
   users: ReadonlyArray<{
     province?: string;
     city?: string;
-    college?: string;
+    college?: string | string[];
     district?: string;
     school?: string;
     major?: string;
@@ -141,11 +151,22 @@ function enrichListItem(
   users: UserCountIndexes
 ): OrgStructureListItem {
   const kind = kindFromTab(tab);
+  const usersCount = (() => {
+    if (tab === 'provinces') return countOf(users.byProvince, row.name);
+    if (tab === 'cities') return countOf(users.byCity, row.name);
+    if (tab === 'faculties') return countOf(users.byCollege, row.name);
+    if (tab === 'districts') return countOf(users.byDistrict, row.name);
+    if (tab === 'schools') return countOf(users.bySchool, row.name);
+    return countOf(users.byMajor, row.name);
+  })();
   const base: OrgStructureListItem = {
     id: row.id,
     name: row.name,
     kind,
-    deleteBlocked: isDeleteBlockedWithSets(kind, row.id, runtime.deleteBlocked),
+    usersCount,
+    deleteBlocked:
+      isDeleteBlockedWithSets(kind, row.id, runtime.deleteBlocked) ||
+      isLinkedUserDeleteBlocked(kind, usersCount),
   };
 
   if (tab === 'provinces') {
@@ -154,7 +175,6 @@ function enrichListItem(
       campusesCount: runtime.parents.facultiesByProvince.get(row.id)?.length ?? 0,
       districtsCount: runtime.parents.districtsByProvince.get(row.id)?.length ?? 0,
       schoolsCount: runtime.parents.schoolsByProvince.get(row.id)?.length ?? 0,
-      usersCount: countOf(users.byProvince, row.name),
     };
   }
 
@@ -167,7 +187,6 @@ function enrichListItem(
       ...base,
       provinceName: provinceName ?? '—',
       schoolsCount: runtime.parents.schoolsByCity.get(row.id)?.length ?? 0,
-      usersCount: countOf(users.byCity, row.name),
     };
   }
 
@@ -175,13 +194,9 @@ function enrichListItem(
     const faculty = runtime.byId.faculty.get(row.id);
     return {
       ...base,
-      cityName: faculty
-        ? (runtime.byId.city.get(faculty.cityId)?.name ?? '—')
-        : '—',
       provinceName: faculty
         ? (runtime.byId.province.get(faculty.provinceId)?.name ?? '—')
         : '—',
-      usersCount: countOf(users.byCollege, row.name),
     };
   }
 
@@ -196,7 +211,6 @@ function enrichListItem(
         ? (runtime.byId.province.get(district.provinceId)?.name ?? '—')
         : '—',
       schoolsCount: runtime.parents.schoolsByDistrict.get(row.id)?.length ?? 0,
-      usersCount: countOf(users.byDistrict, row.name),
     };
   }
 
@@ -214,14 +228,12 @@ function enrichListItem(
       provinceName: school
         ? (runtime.byId.province.get(school.provinceId)?.name ?? '—')
         : '—',
-      usersCount: countOf(users.bySchool, row.name),
     };
   }
 
   return {
     ...base,
     ...(row.audience ? { audience: row.audience } : {}),
-    usersCount: countOf(users.byMajor, row.name),
   };
 }
 

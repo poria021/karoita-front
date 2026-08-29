@@ -1,5 +1,7 @@
+import { readMockUsers } from '@/services/auth/mock/mock-auth.store';
 import {
   isDeleteBlockedWithSets,
+  isLinkedUserDeleteBlocked,
   orgDeleteBlockedMessage,
 } from '@/services/org-structure/org-structure-delete-rules';
 import {
@@ -291,13 +293,36 @@ export function mockUpsertMajor(input: UpsertMajorInput, editId?: string): void 
   writeOrgSnapshot(db);
 }
 
+function mockLinkedUserCount(
+  kind: OrgStructureEntityKind,
+  id: string
+): number {
+  const entity = getEntityById(kind, id);
+  if (!entity) return 0;
+  const name = entity.name;
+  let count = 0;
+  for (const user of readMockUsers()) {
+    if (kind === 'faculty') {
+      const college = user.college;
+      if (Array.isArray(college) ? college.includes(name) : college === name) {
+        count += 1;
+      }
+    } else if (kind === 'major' && user.major === name) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
 export function mockDeleteEntity(
   kind: OrgStructureEntityKind,
   id: string
 ): void {
   const runtime = getOrgRuntime();
   const db = runtime.snapshot;
-  const blocked = isDeleteBlockedWithSets(kind, id, runtime.deleteBlocked);
+  const blocked =
+    isDeleteBlockedWithSets(kind, id, runtime.deleteBlocked) ||
+    isLinkedUserDeleteBlocked(kind, mockLinkedUserCount(kind, id));
 
   if (blocked) {
     const message = orgDeleteBlockedMessage(kind);

@@ -5,6 +5,7 @@ import {
   nestRelationFiltersIgnored,
   nestRelationId,
   nestRelationTitle,
+  nestUsersCount,
   resolveRoleLabel,
   toOrgCity,
   toOrgDistrict,
@@ -322,6 +323,15 @@ describe('toOrgSchool — defensive field resolution + gender normalization', ()
   });
 });
 
+describe('nestUsersCount', () => {
+  it('prefers usersCount then users_count then users array length', () => {
+    expect(nestUsersCount({ usersCount: 3 })).toBe(3);
+    expect(nestUsersCount({ users_count: 2 })).toBe(2);
+    expect(nestUsersCount({ users: [{}, {}] })).toBe(2);
+    expect(nestUsersCount({})).toBeUndefined();
+  });
+});
+
 describe('toOrgMajorListItem', () => {
   it('maps a degree with a flat roleId', () => {
     expect(
@@ -331,6 +341,7 @@ describe('toOrgMajorListItem', () => {
       name: 'ریاضی',
       kind: 'major',
       deleteBlocked: false,
+      usersCount: undefined,
       roleName: undefined,
       roleId: 'r1',
     });
@@ -342,12 +353,14 @@ describe('toOrgMajorListItem', () => {
         id: 'm1',
         title: 'ریاضی',
         role: { id: 'r1', title: 'دانش‌آموز' },
+        usersCount: 4,
       })
     ).toEqual({
       id: 'm1',
       name: 'ریاضی',
       kind: 'major',
-      deleteBlocked: false,
+      deleteBlocked: true,
+      usersCount: 4,
       roleName: 'دانش‌آموز',
       roleId: 'r1',
     });
@@ -363,6 +376,7 @@ describe('toOrgMajorListItemForRole', () => {
       name: 'ریاضی',
       kind: 'major',
       deleteBlocked: false,
+      usersCount: undefined,
       roleId: 'r1',
     });
   });

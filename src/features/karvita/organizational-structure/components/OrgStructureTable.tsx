@@ -239,7 +239,7 @@ export function OrgStructureTable({
                               }
                               title={
                                 row.deleteBlocked
-                                  ? 'حذف به‌خاطر وابستگی واحدهای زیرمجموعه ممکن نیست'
+                                  ? 'حذف به‌خاطر وابستگی رکوردهای مرتبط ممکن نیست'
                                   : undefined
                               }
                               disabled={row.deleteBlocked}

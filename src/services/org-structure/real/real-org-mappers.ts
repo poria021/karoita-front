@@ -14,6 +14,7 @@ import type {
   NestUniversity,
 } from '@/types/nest-admin';
 import type { OrgStructureListItem } from '@/types/org-structure';
+import { isLinkedUserDeleteBlocked } from '@/services/org-structure/org-structure-delete-rules';
 
 /**
  * Real-mode (Nest) mappers — pure functions, no I/O. Split out of
@@ -82,6 +83,18 @@ export function nestRelationFiltersIgnored(
 ): boolean {
   if (totalCount <= 0 || hitCounts.length <= 1) return false;
   return hitCounts.filter((count) => count === totalCount).length > 1;
+}
+
+export function nestUsersCount(row: {
+  usersCount?: number;
+  userCount?: number;
+  users_count?: number;
+  users?: unknown;
+}): number | undefined {
+  const raw = row.usersCount ?? row.userCount ?? row.users_count;
+  if (typeof raw === 'number' && Number.isFinite(raw) && raw >= 0) return raw;
+  if (Array.isArray(row.users)) return row.users.length;
+  return undefined;
 }
 
 /** Nest Province → OrgProvince */
@@ -191,11 +204,13 @@ export function toOrgSchool(s: NestSchool): OrgSchool {
  * instead of the Persian label (e.g. "کارآموز").
  */
 export function toOrgMajorListItem(d: NestDegree): OrgStructureListItem {
+  const usersCount = nestUsersCount(d);
   return {
     id: d.id,
     name: d.title,
     kind: 'major' as const,
-    deleteBlocked: false,
+    usersCount,
+    deleteBlocked: isLinkedUserDeleteBlocked('major', usersCount),
     roleName: d.role ? resolveRoleLabel(d.role) : undefined,
     roleId: d.roleId ?? d.role?.id,
   };
@@ -206,11 +221,13 @@ export function toOrgMajorListItemForRole(
   d: NestDegreeByRole,
   roleId: string
 ): OrgStructureListItem {
+  const usersCount = nestUsersCount(d);
   return {
     id: d.id,
     name: d.title,
     kind: 'major' as const,
-    deleteBlocked: false,
+    usersCount,
+    deleteBlocked: isLinkedUserDeleteBlocked('major', usersCount),
     roleId,
   };
 }

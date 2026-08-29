@@ -6,6 +6,7 @@ import {
 import {
   firstRelationTitle,
   nestRelationFiltersIgnored,
+  nestUsersCount,
   resolveRoleLabel,
   toOrgCity,
   toOrgDistrict,
@@ -15,6 +16,7 @@ import {
   toOrgProvince,
   toOrgSchool,
 } from '@/services/org-structure/real/real-org-mappers';
+import { isLinkedUserDeleteBlocked } from '@/services/org-structure/org-structure-delete-rules';
 import {
   orgTabNeedsDeleteBlockedIndex,
   withDeleteBlocked,
@@ -68,25 +70,6 @@ function pageBareList(
     limit
   );
   return { items: pageItems, total, hasMore };
-}
-
-/**
- * Resolve city titles from GET /admin/provinces/{id}/cities for rows that
- * have a cityId but no nested `city.title`. Confirmed live GET for schools
- * and universities currently omits cityId and returns `city: {}`, so this
- * only fires after Nest starts serializing the FK.
- */
-async function lookupCityNamesByProvinceIds(
-  provinceIds: string[]
-): Promise<Map<string, string>> {
-  const unique = [...new Set(provinceIds.filter(Boolean))];
-  if (unique.length === 0) return new Map();
-  const lists = await Promise.all(
-    unique.map((provinceId) =>
-      adminCatalogApi.listCitiesByProvince(provinceId).catch(() => [])
-    )
-  );
-  return new Map(lists.flat().map((city) => [city.id, city.title]));
 }
 
 type NamedCatalogItem = { id: string; title: string };
@@ -398,33 +381,18 @@ async function listRealPageRaw(
   // faculties: GET /admin/universites — bare array, title-only filter.
   const items = await getBareListItems('faculties', query, async () => {
     const raw = await adminCatalogApi.listUniversities(query || undefined);
-    const mappedRows = raw.map((u) => ({ u, mapped: toOrgFaculty(u) }));
-
-    // Confirmed live GET returns `city: {}` and omits cityId. This lookup
-    // only runs after Nest starts serializing cityId (or populated city).
-    const cityNameById = await lookupCityNamesByProvinceIds(
-      mappedRows
-        .filter(
-          ({ u, mapped }) =>
-            !firstRelationTitle(u.city, u.cityId, u.city_id) &&
-            Boolean(mapped.cityId) &&
-            Boolean(mapped.provinceId)
-        )
-        .map(({ mapped }) => mapped.provinceId)
-    );
-
-    return mappedRows.map(({ u, mapped }) =>
-      overlayOrgRelationLabels({
+    return raw.map((u) => {
+      const mapped = toOrgFaculty(u);
+      const usersCount = nestUsersCount(u);
+      return overlayOrgRelationLabels({
         ...mapped,
         kind: 'faculty' as const,
-        deleteBlocked: false,
+        usersCount,
+        deleteBlocked: isLinkedUserDeleteBlocked('faculty', usersCount),
         // Confirmed live quirk: province is nested under `role`, not `province`.
         provinceName: firstRelationTitle(u.province, u.role, u.provinceId),
-        cityName:
-          firstRelationTitle(u.city, u.cityId, u.city_id) ??
-          (mapped.cityId ? cityNameById.get(mapped.cityId) : undefined),
-      })
-    );
+      });
+    });
   });
   return pageBareList(items, offset, limit);
 }

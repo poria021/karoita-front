@@ -25,6 +25,8 @@ import type { OrgStructureEntityKind } from '@/types/org-structure';
  * blocking from schools is best-effort from whatever FK the mapper
  * recovers. Province/city blocking still sees cities, educations,
  * faculties, and populated school.province / school.city.
+ * Faculty does not lock a city. Faculty/major user locks use
+ * optional Nest `usersCount` on the list row, not this index.
  */
 const DELETE_BLOCKED_TTL_MS = 30_000;
 

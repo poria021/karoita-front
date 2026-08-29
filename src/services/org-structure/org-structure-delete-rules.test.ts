@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildOrgDeleteBlockedSets,
   isDeleteBlockedWithSets,
+  isLinkedUserDeleteBlocked,
   isOrgEntityDeleteBlocked,
   orgDeleteBlockedMessage,
   orgTabNeedsDeleteBlockedIndex,
@@ -58,12 +59,12 @@ describe('org-structure deleteBlocked rules', () => {
     expect(isOrgEntityDeleteBlocked('school', linkedDb, 's1')).toBe(false);
   });
 
-  it('allows faculty/major delete — leaf entities with no dependents today', () => {
+  it('allows faculty/major delete when no users are linked (tree rules ignore them)', () => {
     expect(isOrgEntityDeleteBlocked('faculty', linkedDb, 'anything')).toBe(false);
     expect(isOrgEntityDeleteBlocked('major', linkedDb, 'anything')).toBe(false);
   });
 
-  it('blocks province/city when a faculty is the only child', () => {
+  it('blocks province when a faculty is the only child, but not the city', () => {
     const withFaculty: OrgStructureSnapshot = {
       ...emptyDb,
       faculties: [
@@ -71,7 +72,7 @@ describe('org-structure deleteBlocked rules', () => {
       ],
     };
     expect(isOrgEntityDeleteBlocked('province', withFaculty, 'p1')).toBe(true);
-    expect(isOrgEntityDeleteBlocked('city', withFaculty, 'c9')).toBe(true);
+    expect(isOrgEntityDeleteBlocked('city', withFaculty, 'c9')).toBe(false);
   });
 
   it('ignores empty Nest FKs so a blank cityId cannot block an unrelated row', () => {
@@ -115,7 +116,15 @@ describe('org-structure deleteBlocked rules', () => {
     expect(orgDeleteBlockedMessage('province')).toMatch(/استان/);
     expect(orgDeleteBlockedMessage('city')).toMatch(/شهر/);
     expect(orgDeleteBlockedMessage('district')).toMatch(/منطقه/);
-    expect(orgDeleteBlockedMessage('major')).toBeNull();
+    expect(orgDeleteBlockedMessage('major')).toMatch(/رشته/);
+    expect(orgDeleteBlockedMessage('faculty')).toMatch(/دانشکده/);
+  });
+
+  it('locks faculty/major when usersCount is positive', () => {
+    expect(isLinkedUserDeleteBlocked('faculty', 1)).toBe(true);
+    expect(isLinkedUserDeleteBlocked('major', 2)).toBe(true);
+    expect(isLinkedUserDeleteBlocked('faculty', 0)).toBe(false);
+    expect(isLinkedUserDeleteBlocked('city', 9)).toBe(false);
   });
 
   it('only parent list tabs pay for the child-catalog index', () => {

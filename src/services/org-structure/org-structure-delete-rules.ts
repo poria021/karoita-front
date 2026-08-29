@@ -27,7 +27,6 @@ export function buildOrgDeleteBlockedSets(
   }
   for (const faculty of db.faculties) {
     addId(provinces, faculty.provinceId);
-    addId(cities, faculty.cityId);
   }
   for (const district of db.districts) {
     addId(provinces, district.provinceId);
@@ -50,13 +49,16 @@ export function isDeleteBlockedWithSets(
   if (kind === 'province') return sets.provinces.has(id);
   if (kind === 'city') return sets.cities.has(id);
   if (kind === 'district') return sets.districts.has(id);
-  // faculty / school / major are leaf entities in the snapshot today —
-  // nothing references them, so delete is always allowed. If a future
-  // business rule needs to block one of these, add a Set for it above
-  // and a branch here (see git history for the old always-false stub
-  // functions this replaced: isFacultyDeleteBlocked, isSchoolDeleteBlocked,
-  // isMajorDeleteBlocked — removed as dead code, none had any caller).
   return false;
+}
+
+/** Faculty/major lock when at least one user is linked. Tree children use the sets above. */
+export function isLinkedUserDeleteBlocked(
+  kind: OrgStructureEntityKind,
+  usersCount: number | undefined
+): boolean {
+  if (kind !== 'faculty' && kind !== 'major') return false;
+  return (usersCount ?? 0) > 0;
 }
 
 /**
@@ -82,7 +84,9 @@ export function withDeleteBlocked(
 ): OrgStructureListItem[] {
   return items.map((row) => ({
     ...row,
-    deleteBlocked: isDeleteBlockedWithSets(row.kind, row.id, sets),
+    deleteBlocked:
+      isDeleteBlockedWithSets(row.kind, row.id, sets) ||
+      isLinkedUserDeleteBlocked(row.kind, row.usersCount),
   }));
 }
 
@@ -98,7 +102,12 @@ export function orgDeleteBlockedMessage(
   if (kind === 'district') {
     return 'این منطقه به مدارس متصل است و قابل حذف نیست.';
   }
-  if (kind === 'faculty') return 'این پردیس قابل حذف نیست.';
+  if (kind === 'faculty') {
+    return 'این دانشکده به کاربر متصل است و قابل حذف نیست.';
+  }
+  if (kind === 'major') {
+    return 'این رشته به کاربر متصل است و قابل حذف نیست.';
+  }
   if (kind === 'school') return 'این مدرسه قابل حذف نیست.';
   return null;
 }
