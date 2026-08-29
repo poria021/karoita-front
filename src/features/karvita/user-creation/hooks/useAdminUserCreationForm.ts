@@ -28,6 +28,7 @@ import {
   type AdminUserCreationFormInput,
   type AdminUserCreationFormValues,
 } from '../schemas/admin-user-creation.schema';
+import { isStaffAdminRole } from '@/utils/RoleStrategyMap';
 
 function normalizeMobile(value: string): string {
   return persianToEnglishDigits(value).replace(/\D/g, '').slice(0, 10);
@@ -180,10 +181,7 @@ export function useAdminUserCreationForm() {
 
     const typedValues = values as AdminUserCreationFormValues;
 
-    const isStaffAdmin = isOrgAccountRoleAllowedForKind(
-      typedValues.role,
-      'user'
-    );
+    const isStaffAdmin = isStaffAdminRole(typedValues.role);
 
     const payload: CreateOrganizationalUserInput = {
       firstName: typedValues.firstName,

@@ -6,19 +6,19 @@ import {
 } from './constants';
 
 describe('getOrgAccountRoleOptionsForKind', () => {
-  it('shows super_admin and assistant_admin for the user kind', () => {
-    expect(getOrgAccountRoleOptionsForKind('user').map((option) => option.value)).toEqual([
+  it('shows super_admin and assistant_admin for the admin kind', () => {
+    expect(getOrgAccountRoleOptionsForKind('admin').map((option) => option.value)).toEqual([
       'super_admin',
       'assistant_admin',
     ]);
-    expect(getOrgAccountRoleOptionsForKind('user').map((option) => option.label)).toEqual([
-      'ادمین کل',
-      'دستیار ادمین',
+    expect(getOrgAccountRoleOptionsForKind('admin').map((option) => option.label)).toEqual([
+      'مدیر ارشد',
+      'دستیار مدیر ارشد',
     ]);
   });
 
-  it('shows current org roles except assistant_admin for the admin kind', () => {
-    expect(getOrgAccountRoleOptionsForKind('admin').map((option) => option.value)).toEqual([
+  it('shows organizational roles for the user kind', () => {
+    expect(getOrgAccountRoleOptionsForKind('user').map((option) => option.value)).toEqual([
       'central_organization',
       'provincial_university',
       'faculty_role',
@@ -28,18 +28,18 @@ describe('getOrgAccountRoleOptionsForKind', () => {
 });
 
 describe('isOrgAccountRoleAllowedForKind', () => {
-  it('accepts staff roles only on the user kind', () => {
-    expect(isOrgAccountRoleAllowedForKind('super_admin', 'user')).toBe(true);
-    expect(isOrgAccountRoleAllowedForKind('assistant_admin', 'user')).toBe(true);
-    expect(isOrgAccountRoleAllowedForKind('central_organization', 'user')).toBe(
+  it('accepts staff roles only on the admin kind', () => {
+    expect(isOrgAccountRoleAllowedForKind('super_admin', 'admin')).toBe(true);
+    expect(isOrgAccountRoleAllowedForKind('assistant_admin', 'admin')).toBe(true);
+    expect(isOrgAccountRoleAllowedForKind('central_organization', 'admin')).toBe(
       false
     );
   });
 
-  it('rejects assistant_admin on the organizational-role kind', () => {
-    expect(isOrgAccountRoleAllowedForKind('assistant_admin', 'admin')).toBe(
+  it('rejects assistant_admin on the organizational user kind', () => {
+    expect(isOrgAccountRoleAllowedForKind('assistant_admin', 'user')).toBe(
       false
     );
-    expect(isOrgAccountRoleAllowedForKind('faculty_role', 'admin')).toBe(true);
+    expect(isOrgAccountRoleAllowedForKind('faculty_role', 'user')).toBe(true);
   });
 });

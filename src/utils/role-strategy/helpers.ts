@@ -55,12 +55,7 @@ export function isSuperAdminRole(
   return role === 'super_admin';
 }
 
-/** مدیر ارشد و دستیار مدیر ارشد — پنل کنترل `/karvita/admin`. */
-export function isStaffAdminRole(
-  role: UserRole | string | null | undefined
-): boolean {
-  return role === 'super_admin' || role === 'assistant_admin';
-}
+export { isStaffAdminRole } from '@/types/role-taxonomy';
 
 function normalizeAccessPath(pathname: string): string {
   const withoutQuery = pathname.split('?')[0] ?? pathname;

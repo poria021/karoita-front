@@ -1,4 +1,10 @@
 import type { UserRole } from '@/types/auth';
+import type { StaffAdminRole } from '@/types/role-taxonomy';
+
+export {
+  isStaffAdminRole,
+  type StaffAdminRole,
+} from '@/types/role-taxonomy';
 
 /**
  * Nest RoleDto.name values from Auth Swagger (AuthRegisterLoginDto.role).
@@ -47,13 +53,6 @@ const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   mentor_teacher: 'teacher',
   school_principal: 'school_admin',
 };
-
-/** Staff accounts created via POST /api/v1/admin/admins. */
-export type StaffAdminRole = Extract<UserRole, 'super_admin' | 'assistant_admin'>;
-
-export function isStaffAdminRole(role: string): role is StaffAdminRole {
-  return role === 'super_admin' || role === 'assistant_admin';
-}
 
 /**
  * FE staff role → Nest admin-account `role` string.

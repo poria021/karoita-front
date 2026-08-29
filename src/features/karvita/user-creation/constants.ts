@@ -1,8 +1,11 @@
-import type {
-  OrgAccountRole,
-  OrgAccountRoleOption,
-} from '@/types/admin-user-creation';
-import { ORG_ACCOUNT_ROLES } from '@/types/admin-user-creation';
+import type { OrgAccountRoleOption } from '@/types/admin-user-creation';
+import {
+  ORG_MANAGEMENT_ROLES,
+  STAFF_ADMIN_ROLES,
+  type OrgManagementRole,
+  type StaffAdminRole,
+} from '@/types/role-taxonomy';
+import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 export const ORG_ACCOUNT_KIND_TABS = [
   { value: 'user', label: 'کاربر' },
@@ -11,41 +14,21 @@ export const ORG_ACCOUNT_KIND_TABS = [
 
 export type OrgAccountKind = (typeof ORG_ACCOUNT_KIND_TABS)[number]['value'];
 
-export const ORG_ACCOUNT_ROLE_LABELS: Record<OrgAccountRole, string> = {
-  central_organization: 'سازمان مرکزی',
-  provincial_university: 'دانشگاه استانی',
-  faculty_role: 'مدیر دانشکده',
-  regional_edu_admin: 'آموزش و پرورش منطقه',
-  assistant_admin: 'دستیار ادمین',
-  super_admin: 'ادمین کل',
-};
-
-export const ORG_ACCOUNT_ROLE_OPTIONS: OrgAccountRoleOption[] =
-  ORG_ACCOUNT_ROLES.map((value) => ({
+function roleOption(value: StaffAdminRole | OrgManagementRole): OrgAccountRoleOption {
+  return {
     value,
-    label: ORG_ACCOUNT_ROLE_LABELS[value],
-  }));
-
-/** حساب‌های ستادی: ادمین کل و دستیار ادمین. */
-const USER_KIND_ROLES = [
-  'super_admin',
-  'assistant_admin',
-] as const satisfies readonly OrgAccountRole[];
+    label: getRoleStrategy(value).label,
+  };
+}
 
 export function getOrgAccountRoleOptionsForKind(
   kind: OrgAccountKind
 ): OrgAccountRoleOption[] {
-  if (kind === 'user') {
-    return USER_KIND_ROLES.map((value) => ({
-      value,
-      label: ORG_ACCOUNT_ROLE_LABELS[value],
-    }));
+  if (kind === 'admin') {
+    return STAFF_ADMIN_ROLES.map(roleOption);
   }
 
-  return ORG_ACCOUNT_ROLE_OPTIONS.filter(
-    (option) =>
-      !(USER_KIND_ROLES as readonly OrgAccountRole[]).includes(option.value)
-  );
+  return ORG_MANAGEMENT_ROLES.map(roleOption);
 }
 
 export function isOrgAccountRoleAllowedForKind(

@@ -172,9 +172,17 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
                   <KvSelectField
                     key={page.accountKind}
                     id="admin-user-role"
-                    label="نقش سازمانی کاربر"
+                    label={
+                      page.accountKind === 'admin'
+                        ? 'نقش ادمین'
+                        : 'نقش سازمانی کاربر'
+                    }
                     required
-                    placeholder="-- انتخاب نقش سازمانی حساب --"
+                    placeholder={
+                      page.accountKind === 'admin'
+                        ? '-- انتخاب نقش ادمین --'
+                        : '-- انتخاب نقش سازمانی حساب --'
+                    }
                     value={field.value || ''}
                     onValueChange={page.onRoleChange}
                     ref={field.ref}

@@ -1,16 +1,13 @@
 import type { User, UserRole } from '@/types/auth';
+import {
+  PROVISIONABLE_ACCOUNT_ROLES,
+  type ProvisionableAccountRole,
+} from '@/types/role-taxonomy';
 
 /** نقش‌هایی که مدیر ارشد می‌تواند به‌صورت دستی بسازد. */
-export const ORG_ACCOUNT_ROLES = [
-  'central_organization',
-  'provincial_university',
-  'faculty_role',
-  'regional_edu_admin',
-  'assistant_admin',
-  'super_admin',
-] as const;
+export const ORG_ACCOUNT_ROLES = PROVISIONABLE_ACCOUNT_ROLES;
 
-export type OrgAccountRole = (typeof ORG_ACCOUNT_ROLES)[number];
+export type OrgAccountRole = ProvisionableAccountRole;
 
 export function isOrgAccountRole(role: string): role is OrgAccountRole {
   return (ORG_ACCOUNT_ROLES as readonly string[]).includes(role);
