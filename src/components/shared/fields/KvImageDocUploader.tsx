@@ -12,6 +12,7 @@ import {
 import { useDropzone, type Accept, type FileRejection } from 'react-dropzone';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvBrowsableMediaLink } from '@/components/shared/KvBrowsableMediaLink';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
 import {
@@ -334,12 +335,11 @@ export function KvImageDocUploader({
             ) : previewUrl ? (
               <div className="relative h-full w-full">
                 {canOpenPreview ? (
-                  <a
+                  <KvBrowsableMediaLink
                     href={previewUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    alt={previewAlt}
                     className="flex h-full w-full items-center justify-center focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
-                    aria-label="باز کردن مدرک در تب جدید"
+                    aria-label="نمایش تصویر"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
                     <img
@@ -349,7 +349,7 @@ export function KvImageDocUploader({
                       onError={() => setPreviewFailed(true)}
                       className={previewImageClass}
                     />
-                  </a>
+                  </KvBrowsableMediaLink>
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}

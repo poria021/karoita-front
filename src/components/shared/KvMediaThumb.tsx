@@ -3,6 +3,7 @@
 import * as React from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvBrowsableMediaLink } from '@/components/shared/KvBrowsableMediaLink';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import {
@@ -48,7 +49,7 @@ const SIZE_CLASS: Record<KvMediaThumbSize, string> = {
 
 /**
  * بندانگشتی مدرک (تصویر/PDF/متن/خالی) برای پنل‌های بررسی ادمین.
- * با `openInNewTab` فایل در تب جدید باز می‌شود؛ دیالوگ درون‌برنامه‌ای ندارد.
+ * با `openInNewTab` تصویر در مرورگر تب جدید و در PWA مودال است؛ PDF/متن تب جدید می‌ماند.
  */
 export function KvMediaThumb({
   src,
@@ -118,15 +119,18 @@ export function KvMediaThumb({
     );
     if (canOpen) {
       return (
-        <a
+        <KvBrowsableMediaLink
           href={resolvedSrc}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={ariaLabel ?? 'باز کردن مدرک در تب جدید'}
+          alt={alt || 'پیش‌نمایش مدرک'}
+          previewAsImage={kind === 'image'}
+          aria-label={
+            ariaLabel ??
+            (kind === 'image' ? 'نمایش تصویر' : 'باز کردن مدرک در تب جدید')
+          }
           className="block focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
         >
           {preview}
-        </a>
+        </KvBrowsableMediaLink>
       );
     }
     return preview;
@@ -170,10 +174,10 @@ export function KvMediaThumb({
   }
 
   return (
-    <a
+    <KvBrowsableMediaLink
       href={resolvedSrc}
-      target="_blank"
-      rel="noopener noreferrer"
+      alt={alt}
+      previewAsImage={kind === 'image'}
       data-slot="kv-media-thumb"
       className={cn(
         frame,
@@ -181,9 +185,12 @@ export function KvMediaThumb({
         'hover:border-kv-brand hover:bg-kv-brand-soft/30',
         'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20'
       )}
-      aria-label={ariaLabel ?? 'باز کردن مدرک در تب جدید'}
+      aria-label={
+        ariaLabel ??
+        (kind === 'image' ? 'نمایش تصویر' : 'باز کردن مدرک در تب جدید')
+      }
     >
       {body}
-    </a>
+    </KvBrowsableMediaLink>
   );
 }
