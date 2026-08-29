@@ -1,6 +1,8 @@
 /**
- * Opaque PWA / Apple home-screen tiles (white canvas required).
- * Tab favicon is `public/brand/karvita-mark.png`.
+ * PWA / Apple home-screen icons from `karvita-mark.png`.
+ * Transparent square canvas — same mark as tab favicon, no white tile.
+ *
+ * Run: node scripts/generate-pwa-icons.mjs
  */
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,47 +13,31 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src = path.join(root, 'public', 'brand', 'karvita-mark.png');
 const outDir = path.join(root, 'public', 'brand');
 
-const white = { r: 255, g: 255, b: 255, alpha: 1 };
-
-async function squareIcon(size, fileName) {
-  await sharp(src)
-    .resize(size, size, { fit: 'contain', background: white })
-    .flatten({ background: white })
-    .png()
-    .toFile(path.join(outDir, fileName));
-}
-
-async function maskable512() {
-  const inner = 410;
-  const canvas = 512;
-  const padded = await sharp(src)
-    .resize(inner, inner, { fit: 'contain', background: white })
-    .flatten({ background: white })
+async function squareTransparentIcon(size, fileName, fillRatio) {
+  const inner = Math.round(size * fillRatio);
+  const glyph = await sharp(src)
+    .resize(inner, inner, { fit: 'cover', position: 'centre' })
+    .ensureAlpha()
     .png()
     .toBuffer();
 
   await sharp({
     create: {
-      width: canvas,
-      height: canvas,
-      channels: 3,
-      background: white,
+      width: size,
+      height: size,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
     },
   })
-    .composite([
-      {
-        input: padded,
-        left: Math.round((canvas - inner) / 2),
-        top: Math.round((canvas - inner) / 2),
-      },
-    ])
+    .composite([{ input: glyph, gravity: 'centre' }])
     .png()
-    .toFile(path.join(outDir, 'pwa-icon-512-maskable.png'));
+    .toFile(path.join(outDir, fileName));
 }
 
-await squareIcon(192, 'pwa-icon-192.png');
-await squareIcon(512, 'pwa-icon-512.png');
-await squareIcon(180, 'apple-touch-icon.png');
-await maskable512();
+await squareTransparentIcon(192, 'pwa-icon-192.png', 0.92);
+await squareTransparentIcon(512, 'pwa-icon-512.png', 0.92);
+await squareTransparentIcon(180, 'apple-touch-icon.png', 0.92);
+/** Maskable safe zone ≈ 80% — mark slightly inset for Android adaptive icons. */
+await squareTransparentIcon(512, 'pwa-icon-512-maskable.png', 0.8);
 
 console.log('Wrote PWA icons under public/brand/');
