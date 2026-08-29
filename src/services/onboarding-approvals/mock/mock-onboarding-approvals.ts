@@ -48,7 +48,7 @@ export function listFilteredUsers(
   return readMockUsers()
     .filter(
       (user) =>
-        user.role !== 'super_admin' && user.docStatus !== 'not_submitted'
+        user.docStatus !== 'not_submitted'
     )
     .filter((user) => user.docStatus === filters.status)
     .filter((user) => (province ? (user.province ?? []).includes(province) : true))
@@ -60,11 +60,7 @@ export function listFilteredUsers(
 export function collectProvinces(): string[] {
   const names = new Set<string>();
   for (const user of readMockUsers()) {
-    if (
-      user.role === 'super_admin' ||
-      user.docStatus === 'not_submitted' ||
-      !user.province
-    ) {
+    if (user.docStatus === 'not_submitted' || !user.province) {
       continue;
     }
     for (const province of user.province) {

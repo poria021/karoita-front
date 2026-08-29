@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminUserCreationService } from '@/services/admin-user-creation.service';
+import { OnboardingApprovalsService } from '@/services/onboarding-approvals.service';
 import { adminsApi } from '@/services/admin-user-creation/real/admins.api';
 import { ApiClientError } from '@/services/api-error';
 import {
@@ -60,6 +61,37 @@ describe('AdminUserCreationService (mock)', () => {
     expect(result.user.docStatus).toBe('approved');
     expect(result.user.hasPassword).toBe(true);
     expect(readMockUsers()).toHaveLength(before + 1);
+
+    const approved = await OnboardingApprovalsService.listPage({
+      status: 'approved',
+      query: '9111111111',
+      province: 'all',
+      offset: 0,
+      limit: 20,
+    });
+    expect(approved.items.some((user) => user.id === result.user.id)).toBe(true);
+  });
+
+  it('puts a created staff admin on the approved identity tab', async () => {
+    const result = await AdminUserCreationService.createOrganizationalUser({
+      firstName: 'سارا',
+      lastName: 'محمدی',
+      mobile: '9111111199',
+      password: '12345678',
+      role: 'assistant_admin',
+    });
+
+    expect(result.user.approved).toBe(true);
+    expect(result.user.docStatus).toBe('approved');
+
+    const approved = await OnboardingApprovalsService.listPage({
+      status: 'approved',
+      query: '9111111199',
+      province: 'all',
+      offset: 0,
+      limit: 20,
+    });
+    expect(approved.items.some((user) => user.id === result.user.id)).toBe(true);
   });
 
   it('rejects duplicate mobile', async () => {

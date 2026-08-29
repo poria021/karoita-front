@@ -103,7 +103,7 @@ export const AdminUserCreationService = {
       const raw = await usersApi.update(input.userId, {
         firstName: input.firstName,
         lastName: input.lastName,
-        documentStatus: 'PENDING',
+        documentStatus: 'CONFIRM',
         provinceId: '',
         universityId: '',
         degreeId: '',

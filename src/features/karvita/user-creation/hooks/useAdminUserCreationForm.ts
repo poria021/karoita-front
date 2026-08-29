@@ -34,9 +34,7 @@ function normalizeMobile(value: string): string {
   return persianToEnglishDigits(value).replace(/\D/g, '').slice(0, 10);
 }
 
-export function useAdminUserCreationForm(options?: {
-  onStaffAdminCreated?: () => void;
-}) {
+export function useAdminUserCreationForm() {
   const form = useForm<AdminUserCreationFormInput>({
     resolver: zodResolver(
       adminUserCreationSchema
@@ -203,8 +201,8 @@ export function useAdminUserCreationForm(options?: {
 
     scheduleOptimisticMutation({
       message: isStaffAdmin
-        ? 'حساب ادمین جدید ایجاد گردید.'
-        : 'حساب کاربری سازمانی جدید ایجاد و فعال گردید.',
+        ? 'حساب ادمین ایجاد شد و در تایید هویت به‌صورت تاییدشده ثبت گردید.'
+        : 'حساب سازمانی ایجاد شد و در تایید هویت به‌صورت تاییدشده ثبت گردید.',
       apply: () => {
         reset({ ...ADMIN_USER_CREATION_DEFAULTS });
         setMobileDuplicate(false);
@@ -219,9 +217,6 @@ export function useAdminUserCreationForm(options?: {
       },
       commit: () =>
         AdminUserCreationService.createOrganizationalUser(payload),
-      onCommitted: () => {
-        if (isStaffAdmin) options?.onStaffAdminCreated?.();
-      },
       onError: (error: unknown) => {
         toast.error(
           error instanceof Error
