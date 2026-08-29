@@ -1,21 +1,25 @@
 /**
- * Notification types — aligned with Nest API schema.
+ * Notification types — FE shape vs Nest DTO.
  *
- * GET  /api/v1/notifications  → NotificationsListResponse
+ * GET  /api/v1/notifications  → { data, hasNextPage }
  * PATCH /api/v1/notifications/:id/read → NestNotification
+ *
+ * Mapper lives in `services/notifications/real/` so Nest quirks stay out of UI.
  */
 
-/** Raw shape returned by the Nest backend. */
+/** Raw row from Nest (Swagger Notifications tag). */
+export type NestNotificationAudience = 'all' | 'role' | 'user' | string;
+
 export type NestNotification = {
   id: string;
   title: string;
   body: string;
-  audience: 'all' | 'role' | 'user';
+  audience: NestNotificationAudience;
   targetRoles: string[];
   userId: string | null;
   readByUserIds: string[];
   metadata: string | null;
-  /** Derived on the backend per-user — true when current user has read it. */
+  /** Derived on the backend per current user. */
   isRead: boolean;
   createdAt: string;
   updatedAt: string;
@@ -26,8 +30,6 @@ export type NotificationsListResponse = {
   hasNextPage: boolean;
 };
 
-// ─── App-level shape (used by store + UI) ────────────────────────────────────
-
 export type AppNotificationKind = 'message' | 'system';
 
 export type AppNotification = {
@@ -35,28 +37,13 @@ export type AppNotification = {
   kind: AppNotificationKind;
   title: string;
   body?: string;
-  /** Populated from targetRoles or userId context. */
   senderLabel?: string;
   createdAt: string;
   read: boolean;
 };
 
-// ─── Mapper ──────────────────────────────────────────────────────────────────
-
-export function mapNestNotification(n: NestNotification): AppNotification {
-  return {
-    id: n.id,
-    kind: n.targetRoles.length > 0 || n.audience === 'role' ? 'system' : 'message',
-    title: n.title,
-    body: n.body || undefined,
-    createdAt: n.createdAt,
-    read: n.isRead,
-  };
-}
-
 export function isExpandableNotification(
   notification: AppNotification
 ): boolean {
-  void notification;
-  return false;
+  return Boolean(notification.body?.trim());
 }

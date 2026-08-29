@@ -1,8 +1,9 @@
 import { isMockApiMode } from '@/lib/api-mode';
 import {
-  apiListNotifications,
-  apiMarkNotificationAsRead,
+  NOTIFICATIONS_PAGE_SIZE,
+  notificationsApi,
   type ListNotificationsQuery,
+  type NotificationsPage,
 } from '@/services/notifications/real/notifications.api';
 import {
   markAllMockNotificationsAsRead,
@@ -11,12 +12,28 @@ import {
 } from '@/services/notifications/mock/mock-notifications.store';
 import type { AppNotification } from '@/types/notifications';
 
+const MARK_ALL_PAGE_SIZE = 50;
+const MARK_ALL_MAX_PAGES = 40;
+const MARK_ALL_PATCH_CHUNK = 8;
+
+async function mapInChunks(
+  ids: string[],
+  chunkSize: number,
+  fn: (id: string) => Promise<unknown>
+): Promise<void> {
+  for (let i = 0; i < ids.length; i += chunkSize) {
+    const chunk = ids.slice(i, i + chunkSize);
+    await Promise.all(chunk.map(fn));
+  }
+}
+
 /**
  * Header notification chrome.
  *
- * Nest map:
- * - GET   /api/v1/notifications
- * - PATCH /api/v1/notifications/:id/read
+ * Nest:
+ * - GET   /api/v1/notifications?page=&limit=
+ * - PATCH /api/v1/notifications/{id}/read
+ * Bulk mark-all does not exist — real pages GET then PATCHes unread ids.
  */
 export class NotificationsService {
   /** Sync hydrate for header chrome — mock only; real returns [] until first fetch. */
@@ -27,52 +44,74 @@ export class NotificationsService {
 
   /**
    * GET /api/v1/notifications
-   * Returns flat list; real mode fetches page 1 with limit 20 for header chrome.
+   * Default page 1 / limit 20 matches header chrome.
    */
   static async list(
-    query: ListNotificationsQuery = { page: 1, limit: 20 }
+    query: ListNotificationsQuery = { page: 1, limit: NOTIFICATIONS_PAGE_SIZE }
   ): Promise<AppNotification[]> {
-    if (isMockApiMode()) {
-      return readMockNotifications();
-    }
-    const result = await apiListNotifications(query);
-    return result.data;
+    const page = await NotificationsService.listPaginated(query);
+    return page.data;
   }
 
-  /**
-   * GET /api/v1/notifications — returns full paginated response (for infinite scroll).
-   */
+  /** GET /api/v1/notifications — envelope for infinite scroll. */
   static async listPaginated(
     query: ListNotificationsQuery = {}
-  ): Promise<{ data: AppNotification[]; hasNextPage: boolean }> {
+  ): Promise<NotificationsPage> {
     if (isMockApiMode()) {
       return { data: readMockNotifications(), hasNextPage: false };
     }
-    return apiListNotifications(query);
-  }
-
-  /** PATCH /api/v1/notifications/:id/read */
-  static async markAsRead(notificationId: string): Promise<AppNotification[]> {
-    if (isMockApiMode()) {
-      return markMockNotificationAsRead(notificationId);
-    }
-    // Real: patch the single item, then re-fetch to get fresh list.
-    await apiMarkNotificationAsRead(notificationId);
-    return NotificationsService.list();
+    return notificationsApi.list(query);
   }
 
   /**
-   * Mark all as read — mock has a bulk endpoint; real iterates visible items.
-   * Backend does not expose POST /mark-all-read yet; we patch items client-side.
+   * PATCH /api/v1/notifications/{id}/read
+   * Returns the Nest row when present; `null` on empty/204 so the store can
+   * flip `read` locally without wiping the loaded pages.
    */
-  static async markAllAsRead(): Promise<AppNotification[]> {
+  static async markAsRead(
+    notificationId: string
+  ): Promise<AppNotification | null> {
     if (isMockApiMode()) {
-      return markAllMockNotificationsAsRead();
+      const list = markMockNotificationAsRead(notificationId);
+      return list.find((item) => item.id === notificationId) ?? null;
     }
-    // Real: fetch current unread list, then patch each one in parallel.
-    const current = await NotificationsService.list();
-    const unread = current.filter((n) => !n.read);
-    await Promise.all(unread.map((n) => apiMarkNotificationAsRead(n.id)));
-    return NotificationsService.list();
+    return notificationsApi.markAsRead(notificationId);
+  }
+
+  /**
+   * Mark every unread notification as read.
+   * Real: walk GET pages (no unread filter on Nest), PATCH each unread id,
+   * then return page 1 for the header.
+   */
+  static async markAllAsRead(): Promise<NotificationsPage> {
+    if (isMockApiMode()) {
+      return {
+        data: markAllMockNotificationsAsRead(),
+        hasNextPage: false,
+      };
+    }
+
+    const unreadIds: string[] = [];
+    let page = 1;
+    for (let i = 0; i < MARK_ALL_MAX_PAGES; i += 1) {
+      const result = await notificationsApi.list({
+        page,
+        limit: MARK_ALL_PAGE_SIZE,
+      });
+      for (const item of result.data) {
+        if (!item.read) unreadIds.push(item.id);
+      }
+      if (!result.hasNextPage) break;
+      page += 1;
+    }
+
+    await mapInChunks(unreadIds, MARK_ALL_PATCH_CHUNK, (id) =>
+      notificationsApi.markAsRead(id)
+    );
+
+    return notificationsApi.list({
+      page: 1,
+      limit: NOTIFICATIONS_PAGE_SIZE,
+    });
   }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -13,27 +13,58 @@ import {
   kvOverlayItemDividerClassName,
 } from '@/components/shared/kvOverlayMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { useNotificationsStore } from '@/store/useNotificationsStore';
+import { useUserStore } from '@/store/useUserStore';
+import { isExpandableNotification } from '@/types/notifications';
 import { formatNotificationTime } from '@/utils/formatJalaliDate';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 /**
- * منوی اعلان‌های هدر — نمایش مستقیم و تک‌بخشی اعلان‌ها بدون آکاردئون یا دراور.
+ * منوی اعلان‌های هدر — GET صفحهٔ اول روی ورود نشست، PATCH روی کلیک.
  */
 export function HeaderNotificationsMenu() {
+  const userId = useUserStore((state) => state.activeUser?.id);
   const notifications = useNotificationsStore((state) => state.notifications);
+  const hasNextPage = useNotificationsStore((state) => state.hasNextPage);
+  const status = useNotificationsStore((state) => state.status);
+  const isLoadingMore = useNotificationsStore((state) => state.isLoadingMore);
+  const isMutating = useNotificationsStore((state) => state.isMutating);
+  const errorMessage = useNotificationsStore((state) => state.errorMessage);
+  const refresh = useNotificationsStore((state) => state.refresh);
+  const loadMore = useNotificationsStore((state) => state.loadMore);
   const markAsRead = useNotificationsStore((state) => state.markAsRead);
   const markAllAsRead = useNotificationsStore((state) => state.markAllAsRead);
   const [isOpen, setIsOpen] = useState(false);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    void refresh();
+  }, [userId, refresh]);
 
   const unreadCount = notifications.filter((item) => !item.read).length;
+  const isInitialLoading =
+    Boolean(userId) &&
+    notifications.length === 0 &&
+    (status === 'idle' || status === 'loading');
+
+  function onListScroll() {
+    const el = listRef.current;
+    if (!el || !hasNextPage || isLoadingMore) return;
+    const remaining = el.scrollHeight - el.scrollTop - el.clientHeight;
+    if (remaining < 48) void loadMore();
+  }
 
   return (
     <KvDropdownMenu
       open={isOpen}
-      onOpenChange={setIsOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (open && userId) void refresh();
+      }}
     >
       <KvDropdownMenuTrigger asChild>
         <button
@@ -81,6 +112,7 @@ export function HeaderNotificationsMenu() {
               color="cta"
               appearance="text"
               size="sm"
+              loading={isMutating}
               onClick={() => {
                 void markAllAsRead();
               }}
@@ -90,8 +122,42 @@ export function HeaderNotificationsMenu() {
           ) : null}
         </div>
 
-        <div className="max-h-[min(16rem,45dvh)] min-h-0 overflow-y-auto overscroll-contain">
-          {notifications.length === 0 ? (
+        {errorMessage ? (
+          <div className="flex items-start justify-between gap-kv-pair border-b border-kv-border/70 px-3.5 py-2">
+            <KvTypography variant="caption" tone="danger" as="p">
+              {errorMessage}
+            </KvTypography>
+            <KvButton
+              type="button"
+              color="neutral"
+              appearance="text"
+              size="sm"
+              onClick={() => {
+                void refresh();
+              }}
+            >
+              تلاش دوباره
+            </KvButton>
+          </div>
+        ) : null}
+
+        <div
+          ref={listRef}
+          onScroll={onListScroll}
+          className="max-h-[min(16rem,45dvh)] min-h-0 overflow-y-auto overscroll-contain"
+        >
+          {isInitialLoading ? (
+            <div
+              className="flex flex-col items-center justify-center gap-kv-pair px-3.5 py-kv-section"
+              role="status"
+              aria-label="در حال دریافت اعلان‌ها"
+            >
+              <Spinner className="size-5 text-kv-brand" aria-hidden="true" />
+              <KvTypography variant="caption" tone="muted" as="p">
+                در حال دریافت اعلان‌ها
+              </KvTypography>
+            </div>
+          ) : notifications.length === 0 ? (
             <div className="px-3.5 py-kv-section text-center">
               <KvTypography variant="caption" tone="muted" as="p">
                 اعلانی وجود ندارد
@@ -100,6 +166,7 @@ export function HeaderNotificationsMenu() {
           ) : (
             notifications.map((notification) => {
               const isUnread = !notification.read;
+              const showBody = isExpandableNotification(notification);
 
               return (
                 <div
@@ -146,25 +213,39 @@ export function HeaderNotificationsMenu() {
                             {notification.title}
                           </KvTypography>
                         </span>
+                        {showBody ? (
+                          <span className="mt-kv-micro block">
+                            <KvTypography variant="caption" tone="muted" as="span">
+                              {notification.body}
+                            </KvTypography>
+                          </span>
+                        ) : null}
                       </span>
-                      <span
-                        className="origin-top-end shrink-0 scale-[0.85] whitespace-nowrap opacity-70"
-                        dir="rtl"
-                      >
-                        <KvTypography
-                          variant="overline"
-                          tone="disabled"
-                          as="span"
+                      {notification.createdAt ? (
+                        <span
+                          className="origin-top-end shrink-0 scale-[0.85] whitespace-nowrap opacity-70"
+                          dir="rtl"
                         >
-                          {formatNotificationTime(notification.createdAt)}
-                        </KvTypography>
-                      </span>
+                          <KvTypography
+                            variant="overline"
+                            tone="disabled"
+                            as="span"
+                          >
+                            {formatNotificationTime(notification.createdAt)}
+                          </KvTypography>
+                        </span>
+                      ) : null}
                     </span>
                   </button>
                 </div>
               );
             })
           )}
+          {isLoadingMore ? (
+            <div className="flex justify-center py-2" role="status" aria-label="بارگذاری موارد بیشتر">
+              <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
+            </div>
+          ) : null}
         </div>
       </KvDropdownMenuContent>
     </KvDropdownMenu>

@@ -1,49 +1,68 @@
 /**
- * Real Nest API calls for notifications.
+ * Real Nest calls for header notifications.
+ *
+ * Relative to NEXT_PUBLIC_API_URL (`.../api`), same as users/auth —
+ * never prefix `api/` again or the rewrite becomes `/api/api/v1/...`.
  *
  * GET   /api/v1/notifications?page=&limit=
- * PATCH /api/v1/notifications/:id/read
+ * PATCH /api/v1/notifications/{id}/read  (no request body in Swagger)
  */
 import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
-import type {
-  AppNotification,
-  NestNotification,
-  NotificationsListResponse,
-} from '@/types/notifications';
-import { mapNestNotification } from '@/types/notifications';
+import {
+  mapNestNotification,
+  parseNotificationsListResponse,
+} from '@/services/notifications/real/notifications.mappers';
+import type { AppNotification, NestNotification } from '@/types/notifications';
 
-const BASE = 'api/v1/notifications';
+export const NEST_NOTIFICATIONS_PATHS = {
+  list: 'v1/notifications',
+  markRead: (id: string) => `v1/notifications/${id}/read`,
+} as const;
+
+export const NOTIFICATIONS_PAGE_SIZE = 20;
 
 export type ListNotificationsQuery = {
   page?: number;
   limit?: number;
 };
 
-/** GET /api/v1/notifications */
-export async function apiListNotifications(
-  query: ListNotificationsQuery = {}
-): Promise<{ data: AppNotification[]; hasNextPage: boolean }> {
-  const raw = await apiClient.getJson<NotificationsListResponse>(BASE, undefined, {
-    searchParams: toSearchParams({
-      page: query.page,
-      limit: query.limit,
-    }),
-  });
+export type NotificationsPage = {
+  data: AppNotification[];
+  hasNextPage: boolean;
+};
 
-  return {
-    data: raw.data.map(mapNestNotification),
-    hasNextPage: raw.hasNextPage,
-  };
-}
+export const notificationsApi = {
+  /** GET /api/v1/notifications */
+  async list(query: ListNotificationsQuery = {}): Promise<NotificationsPage> {
+    const raw = await apiClient.getJson<unknown>(
+      NEST_NOTIFICATIONS_PATHS.list,
+      undefined,
+      {
+        searchParams: toSearchParams({
+          page: query.page,
+          limit: query.limit,
+        }),
+      }
+    );
+    const parsed = parseNotificationsListResponse(raw);
+    return {
+      data: parsed.data.map(mapNestNotification).filter((item) => item.id),
+      hasNextPage: parsed.hasNextPage,
+    };
+  },
 
-/** PATCH /api/v1/notifications/:id/read */
-export async function apiMarkNotificationAsRead(
-  id: string
-): Promise<AppNotification> {
-  const raw = await apiClient.patchJson<NestNotification>(
-    `${BASE}/${id}/read`,
-    {}
-  );
-  return mapNestNotification(raw);
-}
+  /**
+   * PATCH /api/v1/notifications/{id}/read
+   * Swagger 200 returns the row; some copies answer 204 — then `null`.
+   */
+  async markAsRead(id: string): Promise<AppNotification | null> {
+    const raw = await apiClient.patchMaybeJson<NestNotification>(
+      NEST_NOTIFICATIONS_PATHS.markRead(id),
+      {},
+      undefined
+    );
+    if (!raw) return null;
+    return mapNestNotification(raw);
+  },
+};
