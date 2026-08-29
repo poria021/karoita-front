@@ -7,7 +7,7 @@ import { vazirmatn } from "@/lib/vazirmatn-font";
 import { DOCUMENT_TITLE_TEMPLATE } from "@/lib/document-title";
 import {
   SITE_DESCRIPTION,
-  SITE_FAVICON,
+  SITE_FAVICON_SIZES,
   SITE_NAME,
   SITE_OG_IMAGE,
   SITE_TITLE,
@@ -77,7 +77,11 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [{ url: SITE_FAVICON, type: 'image/png', sizes: '64x64' }],
+    icon: SITE_FAVICON_SIZES.map(({ url, sizes }) => ({
+      url,
+      type: 'image/png',
+      sizes,
+    })),
     apple: [
       {
         url: '/brand/apple-touch-icon.png',

@@ -16,6 +16,12 @@ export const SITE_OG_IMAGE = '/brand/karvita-wordmark.png';
 /** Favicon — مربع با نسبت طبیعی مارک (`public/brand/favicon.png`). */
 export const SITE_FAVICON = '/brand/favicon.png';
 
+export const SITE_FAVICON_SIZES = [
+  { url: '/brand/favicon-32.png', sizes: '32x32' },
+  { url: '/brand/favicon-48.png', sizes: '48x48' },
+  { url: SITE_FAVICON, sizes: '64x64' },
+] as const;
+
 export function getSiteUrl(): URL {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim();
   if (fromEnv) {
