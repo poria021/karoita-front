@@ -18,7 +18,6 @@ vi.mock('@/services/admin-user-creation/real/admins.api', () => ({
     create: vi.fn(),
     list: vi.fn(),
     getById: vi.fn(),
-    update: vi.fn(),
   },
 }));
 
@@ -85,12 +84,36 @@ describe('AdminUserCreationService (mock)', () => {
     );
     expect(free.available).toBe(true);
   });
+
+  it('lists staff admins from the mock store', async () => {
+    const page = await AdminUserCreationService.listStaffAdmins({
+      offset: 0,
+      limit: 20,
+    });
+    expect(page.items.length).toBeGreaterThan(0);
+    expect(page.items.every((item) => item.role === 'super_admin' || item.role === 'assistant_admin')).toBe(true);
+  });
+
+  it('gets a staff admin by id from the mock store', async () => {
+    const page = await AdminUserCreationService.listStaffAdmins({
+      offset: 0,
+      limit: 20,
+    });
+    const first = page.items[0];
+    expect(first).toBeTruthy();
+    if (!first) return;
+    const detail = await AdminUserCreationService.getStaffAdmin(first.id);
+    expect(detail.id).toBe(first.id);
+    expect(detail.mobile).toBe(first.mobile);
+  });
 });
 
 describe('AdminUserCreationService (real staff admin)', () => {
   beforeEach(() => {
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
     vi.mocked(adminsApi.create).mockReset();
+    vi.mocked(adminsApi.list).mockReset();
+    vi.mocked(adminsApi.getById).mockReset();
   });
 
   afterEach(() => {
@@ -185,5 +208,48 @@ describe('AdminUserCreationService (real staff admin)', () => {
         role: 'assistant_admin',
       })
     ).rejects.toThrow(/موبایل/);
+  });
+
+  it('lists staff admins from GET /admin/admins', async () => {
+    vi.mocked(adminsApi.list).mockResolvedValue({
+      data: [
+        {
+          id: 'adm-1',
+          firstName: 'Ali',
+          lastName: 'Rezaei',
+          mobile: '09386951413',
+          role: 'assistant_admin',
+          statusName: 'active',
+          createdAt: '2026-08-29T14:11:55.298Z',
+        },
+      ],
+      hasNextPage: false,
+    });
+
+    const page = await AdminUserCreationService.listStaffAdmins({
+      offset: 0,
+      limit: 20,
+    });
+
+    expect(adminsApi.list).toHaveBeenCalledWith({ page: 1, limit: 20 });
+    expect(page.items[0]?.id).toBe('adm-1');
+    expect(page.hasMore).toBe(false);
+  });
+
+  it('gets a staff admin from GET /admin/admins/{id}', async () => {
+    vi.mocked(adminsApi.getById).mockResolvedValue({
+      id: 'adm-1',
+      firstName: 'Ali',
+      lastName: 'Rezaei',
+      mobile: '09386951413',
+      role: 'assistant_admin',
+      statusName: 'active',
+      createdAt: '2026-08-29T14:11:55.298Z',
+    });
+
+    const detail = await AdminUserCreationService.getStaffAdmin('adm-1');
+
+    expect(adminsApi.getById).toHaveBeenCalledWith('adm-1');
+    expect(detail.firstName).toBe('Ali');
   });
 });

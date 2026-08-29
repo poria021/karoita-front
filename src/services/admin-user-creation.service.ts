@@ -5,6 +5,8 @@ import { isStaffAdminRole } from '@/services/auth/real/nest-auth-role';
 import {
   mockCheckMobileAvailable,
   mockCreateOrganizationalUser,
+  mockGetStaffAdmin,
+  mockListStaffAdmins,
 } from '@/services/admin-user-creation/mock/mock-admin-user-creation';
 import { adminsApi } from '@/services/admin-user-creation/real/admins.api';
 import { toNestCreateAdminDto } from '@/services/admin-user-creation/real/to-nest-admin-create';
@@ -14,7 +16,12 @@ import type {
   CreateOrganizationalUserInput,
   CreateOrganizationalUserResult,
   MobileAvailabilityResult,
+  StaffAdminAccount,
 } from '@/types/admin-user-creation';
+import {
+  estimateHasNextPageTotal,
+  type OffsetLimitPage,
+} from '@/utils/offset-limit-page';
 
 /**
  * Super-admin account creation.
@@ -22,6 +29,8 @@ import type {
  * Nest map:
  * - Staff (ادمین کل / دستیار ادمین):
  *     POST /api/v1/admin/admins  { fname, lname, phone, role: admin|superadmin }
+ *     GET  /api/v1/admin/admins?page=&limit=
+ *     GET  /api/v1/admin/admins/{id}
  * - Organizational roles:
  *     GET  /api/v1/users?filters={"phone":"<mobile>"}&limit=1  → mobile check
  *     PATCH /api/v1/users/{id} → assign org role (user must already exist)
@@ -101,5 +110,40 @@ export const AdminUserCreationService = {
     }
     requireMockUserCreate();
     return mockCreateOrganizationalUser(input);
+  },
+
+  /**
+   * GET /api/v1/admin/admins — offset/limit برای جدول ادمین.
+   * Nest فقط page/limit و hasNextPage دارد.
+   */
+  async listStaffAdmins(args: {
+    offset: number;
+    limit: number;
+  }): Promise<OffsetLimitPage<StaffAdminAccount>> {
+    if (isMockApiMode()) {
+      requireMockUserCreate();
+      return mockListStaffAdmins(args.offset, args.limit);
+    }
+
+    const page = Math.floor(args.offset / args.limit) + 1;
+    const result = await adminsApi.list({ page, limit: args.limit });
+    return {
+      items: result.data,
+      total: estimateHasNextPageTotal(
+        args.offset,
+        result.data.length,
+        result.hasNextPage
+      ),
+      hasMore: result.hasNextPage,
+    };
+  },
+
+  /** GET /api/v1/admin/admins/{id} */
+  async getStaffAdmin(id: string): Promise<StaffAdminAccount> {
+    if (isMockApiMode()) {
+      requireMockUserCreate();
+      return mockGetStaffAdmin(id);
+    }
+    return adminsApi.getById(id);
   },
 };

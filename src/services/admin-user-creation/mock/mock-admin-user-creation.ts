@@ -9,7 +9,10 @@ import type {
   CreateOrganizationalUserInput,
   CreateOrganizationalUserResult,
   OrgAccountRole,
+  StaffAdminAccount,
 } from '@/types/admin-user-creation';
+import { isStaffAdminRole } from '@/types/role-taxonomy';
+import { sliceOffsetLimitPage } from '@/utils/offset-limit-page';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
   PASSWORD_MIN_LENGTH,
@@ -103,4 +106,33 @@ export function mockCheckMobileAvailable(mobile: string): boolean {
     return true;
   }
   return !mockMobileExists(normalized);
+}
+
+function toStaffAdminAccount(record: MockAuthUserRecord): StaffAdminAccount {
+  return {
+    id: record.id,
+    firstName: record.firstName,
+    lastName: record.lastName,
+    mobile: record.mobile,
+    role: record.role,
+    statusName: record.approved ? 'active' : 'inactive',
+    createdAt: '',
+  };
+}
+
+export function mockListStaffAdmins(offset: number, limit: number) {
+  const rows = readMockUsers()
+    .filter((record) => isStaffAdminRole(record.role))
+    .map(toStaffAdminAccount);
+  return sliceOffsetLimitPage(rows, offset, limit);
+}
+
+export function mockGetStaffAdmin(id: string): StaffAdminAccount {
+  const record = readMockUsers().find(
+    (item) => item.id === id && isStaffAdminRole(item.role)
+  );
+  if (!record) {
+    throw new Error('حساب ادمین یافت نشد.');
+  }
+  return toStaffAdminAccount(record);
 }

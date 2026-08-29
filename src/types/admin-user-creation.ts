@@ -44,3 +44,21 @@ export type OrgAccountRoleOption = {
 
 /** زیرمجموعهٔ UserRole که در این ماژول ساخته می‌شود. */
 export type CreatedOrgUserRole = Extract<UserRole, OrgAccountRole>;
+
+/**
+ * ردیف GET /api/v1/admin/admins — شکل فرانت (fname/lname/phone Nest جدا می‌ماند).
+ */
+export type StaffAdminAccount = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  mobile: string;
+  role: UserRole;
+  statusName: string;
+  createdAt: string;
+};
+
+export type StaffAdminsPage = {
+  data: StaffAdminAccount[];
+  hasNextPage: boolean;
+};

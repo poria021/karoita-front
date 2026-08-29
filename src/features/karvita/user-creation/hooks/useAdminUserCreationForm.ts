@@ -34,7 +34,9 @@ function normalizeMobile(value: string): string {
   return persianToEnglishDigits(value).replace(/\D/g, '').slice(0, 10);
 }
 
-export function useAdminUserCreationForm() {
+export function useAdminUserCreationForm(options?: {
+  onStaffAdminCreated?: () => void;
+}) {
   const form = useForm<AdminUserCreationFormInput>({
     resolver: zodResolver(
       adminUserCreationSchema
@@ -206,7 +208,9 @@ export function useAdminUserCreationForm() {
       apply: () => {
         reset({ ...ADMIN_USER_CREATION_DEFAULTS });
         setMobileDuplicate(false);
-        setAccountKind('user');
+        if (!isStaffAdmin) {
+          setAccountKind('user');
+        }
       },
       revert: () => {
         reset(formSnapshot);
@@ -215,6 +219,9 @@ export function useAdminUserCreationForm() {
       },
       commit: () =>
         AdminUserCreationService.createOrganizationalUser(payload),
+      onCommitted: () => {
+        if (isStaffAdmin) options?.onStaffAdminCreated?.();
+      },
       onError: (error: unknown) => {
         toast.error(
           error instanceof Error
