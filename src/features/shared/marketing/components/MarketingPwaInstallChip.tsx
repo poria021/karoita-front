@@ -3,16 +3,12 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { runPwaInstallFlow } from '@/components/shared/shell/PwaInstallControl';
 import { shellCopy } from '@/components/shared/shell/shellCopy';
-import { usePwaStandalone } from '@/hooks/usePwaInstall';
 import { faIcons } from '@/utils/iconMap';
 
 /**
  * Marketing footer install affordance — client leaf for beforeinstallprompt.
  */
 export function MarketingPwaInstallChip() {
-  const standalone = usePwaStandalone();
-  if (standalone) return null;
-
   return (
     <button
       type="button"

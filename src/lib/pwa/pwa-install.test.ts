@@ -1,13 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { toast } from 'sonner';
+
 import {
   runPwaInstallFlow,
   shouldShowPwaInstallMenuItem,
 } from '@/components/shared/shell/PwaInstallControl';
+import { shellCopy } from '@/components/shared/shell/shellCopy';
 import {
   captureBeforeInstallPrompt,
   ensureBeforeInstallPromptCapture,
   getManualInstallPlatform,
+  isKarvitaPwaInstalled,
   peekPwaInstallPrompt,
   promptPwaInstall,
   resetBeforeInstallPromptCapture,
@@ -36,13 +40,22 @@ function fakePromptEvent(): KarvitaBeforeInstallPromptEvent {
   return event;
 }
 
-function stubBrowser(ua: string): void {
+function stubBrowser(
+  ua: string,
+  options?: { standalone?: boolean; relatedApps?: Array<{ platform: string }> }
+): void {
   Object.defineProperty(window.navigator, 'userAgent', {
     configurable: true,
     value: ua,
   });
+  Object.defineProperty(window.navigator, 'getInstalledRelatedApps', {
+    configurable: true,
+    value: options?.relatedApps
+      ? vi.fn().mockResolvedValue(options.relatedApps)
+      : undefined,
+  });
   vi.spyOn(window, 'matchMedia').mockReturnValue({
-    matches: false,
+    matches: options?.standalone ?? false,
     media: '(display-mode: standalone)',
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
@@ -99,31 +112,62 @@ describe('getManualInstallPlatform', () => {
   });
 });
 
+describe('isKarvitaPwaInstalled', () => {
+  it('is true in standalone or when Chrome reports a webapp', async () => {
+    stubBrowser(CHROME_WIN, { standalone: true });
+    await expect(isKarvitaPwaInstalled()).resolves.toBe(true);
+
+    stubBrowser(CHROME_WIN, { relatedApps: [{ platform: 'windows' }] });
+    await expect(isKarvitaPwaInstalled()).resolves.toBe(true);
+
+    stubBrowser(CHROME_WIN);
+    await expect(isKarvitaPwaInstalled()).resolves.toBe(false);
+  });
+});
+
 describe('runPwaInstallFlow', () => {
-  it('opens the guide only on iOS / Mac Safari', () => {
+  it('opens the guide only on iOS / Mac Safari', async () => {
     const open = vi.spyOn(pwaInstallUi, 'openPwaInstallDialog');
     stubBrowser(IOS_SAFARI);
-    runPwaInstallFlow();
+    await runPwaInstallFlow();
     expect(open).toHaveBeenCalledTimes(1);
 
     stubBrowser(MAC_SAFARI);
-    runPwaInstallFlow();
+    await runPwaInstallFlow();
     expect(open).toHaveBeenCalledTimes(2);
   });
 
-  it('prompts native install without a confirm dialog on Chrome', () => {
+  it('prompts native install without a confirm dialog on Chrome', async () => {
     const open = vi.spyOn(pwaInstallUi, 'openPwaInstallDialog');
     captureBeforeInstallPrompt(fakePromptEvent());
     stubBrowser(CHROME_WIN);
-    runPwaInstallFlow();
+    await runPwaInstallFlow();
     expect(open).not.toHaveBeenCalled();
     expect(peekPwaInstallPrompt()).toBeNull();
+  });
+
+  it('toasts instead of prompting when the PWA is already installed', async () => {
+    const open = vi.spyOn(pwaInstallUi, 'openPwaInstallDialog');
+    const notify = vi.spyOn(toast, 'warning');
+    captureBeforeInstallPrompt(fakePromptEvent());
+    stubBrowser(CHROME_WIN, { relatedApps: [{ platform: 'webapp' }] });
+    await runPwaInstallFlow();
+    expect(notify).toHaveBeenCalledWith(shellCopy.account.installAppAlreadyInstalled);
+    expect(open).not.toHaveBeenCalled();
+    expect(peekPwaInstallPrompt()).not.toBeNull();
+  });
+
+  it('toasts when Chrome has no native install prompt', async () => {
+    const notify = vi.spyOn(toast, 'warning');
+    stubBrowser(CHROME_WIN);
+    await runPwaInstallFlow();
+    expect(notify).toHaveBeenCalledWith(shellCopy.account.installAppAlreadyInstalled);
   });
 });
 
 describe('shouldShowPwaInstallMenuItem', () => {
-  it('hides install when already running standalone', () => {
-    expect(shouldShowPwaInstallMenuItem(true)).toBe(false);
+  it('keeps the install action visible so an installed app can toast', () => {
+    expect(shouldShowPwaInstallMenuItem(true)).toBe(true);
     expect(shouldShowPwaInstallMenuItem(false)).toBe(true);
   });
 });

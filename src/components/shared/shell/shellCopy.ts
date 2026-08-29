@@ -22,6 +22,7 @@ export const shellCopy = {
     profile: 'پروفایل',
     installApp: 'نصب نسخه اپ',
     installAppPwa: 'نصب و اجرای مستقیم (PWA)',
+    installAppAlreadyInstalled: 'در حال حاضر اپ را نصب دارید.',
     installOfferTitle: 'نصب کارویتا روی دستگاه',
     installOfferBody:
       'سامانه را مثل یک برنامه روی میز کار یا صفحهٔ اصلی داشته باشید؛ دسترسی سریع‌تر و کار آفلاین روی شل برنامه.',

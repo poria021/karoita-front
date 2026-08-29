@@ -69,6 +69,29 @@ export async function promptPwaInstall(): Promise<'accepted' | 'dismissed' | 'un
   return choice.outcome;
 }
 
+/**
+ * Chrome/Edge می‌توانند PWA نصب‌شده را از تب مرورگر هم ببینند
+ * (`getInstalledRelatedApps` + `related_applications` در manifest).
+ * standalone یعنی همین پنجره خودش اپ است.
+ */
+export async function isKarvitaPwaInstalled(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  if (isDisplayStandalone()) return true;
+
+  const nav = window.navigator as Navigator & {
+    getInstalledRelatedApps?: () => Promise<Array<{ platform: string }>>;
+  };
+  if (typeof nav.getInstalledRelatedApps !== 'function') return false;
+
+  try {
+    const apps = await nav.getInstalledRelatedApps();
+    // Chrome گاهی platform را خالی یا غیر webapp برمی‌گرداند.
+    return apps.length > 0;
+  } catch {
+    return false;
+  }
+}
+
 export function isDisplayStandalone(): boolean {
   if (typeof window === 'undefined') return false;
   const media = window.matchMedia('(display-mode: standalone)');

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-import { SITE_DESCRIPTION, SITE_NAME } from '@/lib/site-seo';
+import { absoluteSiteUrl, SITE_DESCRIPTION, SITE_NAME } from '@/lib/site-seo';
 import {
   PWA_BACKGROUND_COLOR,
   PWA_THEME_COLOR,
@@ -22,6 +22,12 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: PWA_THEME_COLOR,
     categories: ['education', 'business'],
     prefer_related_applications: false,
+    related_applications: [
+      {
+        platform: 'webapp',
+        url: absoluteSiteUrl('/manifest.webmanifest'),
+      },
+    ],
     icons: [
       {
         src: '/brand/pwa-icon-192.png',
