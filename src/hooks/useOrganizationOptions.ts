@@ -11,6 +11,7 @@ import {
   OrganizationOptionsService,
   type OrganizationOption,
 } from '@/services/organization-options.service';
+import type { UserRole } from '@/types/auth';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
 const MAX_ORG_OPTION_PAGES = 20;
@@ -32,6 +33,8 @@ export type UseOrganizationOptionsArgs = {
   query: string;
   enabled: boolean;
   dependsOn?: OrganizationDependsOn;
+  /** برای رشته تحصیلی — scope به GET /admin/roles/{id}/degrees */
+  role?: UserRole;
 };
 
 export type UseOrganizationOptionsResult = {
@@ -49,6 +52,7 @@ export function useOrganizationOptions({
   query,
   enabled,
   dependsOn,
+  role,
 }: UseOrganizationOptionsArgs): UseOrganizationOptionsResult {
   // همیشه از debouncedQuery استفاده می‌کنیم — نه raw query.
   // قبلاً resolveListSearchQuery وقتی query خالی می‌شد بلافاصله '' می‌فرستاد
@@ -72,7 +76,15 @@ export function useOrganizationOptions({
   } = useInfiniteQuery({
     // queryKey فقط از debouncedQuery استفاده می‌کنه —
     // پس re-fetch فقط بعد از پایان debounce اتفاق می‌افته، نه حین تایپ.
-    queryKey: ['org-options', type, debouncedQuery, provinceKey, cityKey, districtKey],
+    queryKey: [
+      'org-options',
+      type,
+      debouncedQuery,
+      provinceKey,
+      cityKey,
+      districtKey,
+      role ?? '',
+    ],
     enabled,
     initialPageParam: 1,
     staleTime: QUERY_STALE_MS.list,
@@ -85,6 +97,7 @@ export function useOrganizationOptions({
         province: provinceKey ? dependsOn?.province : undefined,
         city: cityKey ? dependsOn?.city : undefined,
         district: districtKey ? dependsOn?.district : undefined,
+        role,
       }),
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.hasMore) return undefined;

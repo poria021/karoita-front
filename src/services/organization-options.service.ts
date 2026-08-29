@@ -26,7 +26,8 @@ export type {
  *   district → GET /api/admin/educations          (paginated)
  *   school   → GET /api/admin/schools/all         (paginated)
  *   college  → GET /api/admin/universites         (paginated)
- *   major    → GET /api/admin/degreeee            (paginated, title)
+ *   major    → GET /api/admin/roles/{roleId}/degrees (با role)
+ *              یا GET /api/admin/degreeee (بدون role)
  *
  * Mock mode: از OrgStructureService.listLabelsForField استفاده می‌کند.
  */
@@ -74,6 +75,7 @@ export function buildOrganizationOptionsRequest(
     province: params.province,
     city: params.city,
     district: params.district,
+    role: params.role,
     signal: params.signal,
   };
 }

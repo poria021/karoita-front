@@ -5,7 +5,12 @@ import {
   fetchAllNestProvinces,
   fetchAllNestSchools,
 } from '@/services/admin-catalog/admin-catalog.api';
+import {
+  toDegreeCatalogRoleTitle,
+  toMockMajorAudience,
+} from '@/services/organization-options/degree-catalog-role';
 import { OrgStructureService } from '@/services/org-structure.service';
+import type { UserRole } from '@/types/auth';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
 export const ORGANIZATION_OPTIONS_DEFAULT_LIMIT = 10;
@@ -39,6 +44,11 @@ export type OrganizationOptionsQuery = {
    * نام منطقه(های) آموزشی انتخاب‌شده — برای scope کردن مدارس.
    */
   district?: string | string[];
+  /**
+   * نقش کاربر — برای رشته تحصیلی: GET /admin/roles/{roleId}/degrees
+   * به‌جای لیست سراسری GET /admin/degreeee.
+   */
+  role?: UserRole;
   signal?: AbortSignal;
 };
 
@@ -172,7 +182,38 @@ async function resolveCityId(cityName: string, provinceId?: string): Promise<str
 type ResolvedOptionsRequest = Required<
   Pick<OrganizationOptionsQuery, 'type' | 'page' | 'limit'>
 > &
-  Pick<OrganizationOptionsQuery, 'query' | 'province' | 'city' | 'district' | 'signal'>;
+  Pick<
+    OrganizationOptionsQuery,
+    'query' | 'province' | 'city' | 'district' | 'role' | 'signal'
+  >;
+
+const DEGREE_ROLE_CACHE_TTL_MS = 5 * 60 * 1_000;
+
+let degreeRoleIdByTitle: { byTitle: Map<string, string>; fetchedAt: number } | null =
+  null;
+
+async function resolveDegreeCatalogRoleId(
+  role: UserRole
+): Promise<string | undefined> {
+  const title = toDegreeCatalogRoleTitle(role);
+  if (!title) return undefined;
+
+  const now = Date.now();
+  if (
+    !degreeRoleIdByTitle ||
+    now - degreeRoleIdByTitle.fetchedAt > DEGREE_ROLE_CACHE_TTL_MS
+  ) {
+    const roles = await adminCatalogApi.listRoles();
+    const byTitle = new Map<string, string>();
+    for (const entry of roles) {
+      const key = entry.title?.trim().toLowerCase();
+      if (key && entry.id) byTitle.set(key, entry.id);
+    }
+    degreeRoleIdByTitle = { byTitle, fetchedAt: now };
+  }
+
+  return degreeRoleIdByTitle.byTitle.get(title.toLowerCase());
+}
 
 /**
  * Real-mode: مستقیم به Nest Admin API وصل می‌شود.
@@ -185,7 +226,8 @@ type ResolvedOptionsRequest = Required<
  *   district → GET /api/admin/educations          (paginated, title/provinceId/cityId)
  *   school   → GET /api/admin/schools/all         (paginated, educationId + provinceId)
  *   college  → GET /api/admin/universites         (paginated, title)
- *   major    → GET /api/admin/degreeee            (paginated, title)
+ *   major    → GET /api/admin/roles/{roleId}/degrees وقتی role هست
+ *              وگرنه GET /api/admin/degreeee (paginated, title)
  */
 export async function fetchOrganizationOptionsFromApi(
   params: ResolvedOptionsRequest
@@ -359,7 +401,24 @@ export async function fetchOrganizationOptionsFromApi(
 
       // ── رشته تحصیلی ─────────────────────────────────────────────────────────
       case 'major': {
-        // GET /api/admin/degreeee — `{ data, hasNextPage }` + page/limit/title
+        if (params.role) {
+          const roleId = await resolveDegreeCatalogRoleId(params.role);
+          if (!roleId) {
+            return { items: [], hasMore: false, page: params.page };
+          }
+          // GET /api/admin/roles/{roleId}/degrees — آرایهٔ خام، بدون paging
+          const raw = await adminCatalogApi.listDegreesByRole(roleId);
+          return paginateBare(
+            filterByQuery(
+              raw.map((d) => ({ id: d.id, label: d.title })),
+              params.query ?? ''
+            ),
+            params.page,
+            params.limit
+          );
+        }
+
+        // بدون نقش: کاتالوگ سراسری (ادمین / resolve بدون scope)
         const q = params.query?.trim() || undefined;
         const { data, hasNextPage } = await adminCatalogApi.listDegrees({
           title: q,
@@ -436,7 +495,10 @@ export async function fetchOrganizationOptionsFromMock(
   const labels = OrgStructureService.listLabelsForField(
     params.type,
     provinceStr,
-    districtStr
+    districtStr,
+    params.type === 'major' && params.role
+      ? toMockMajorAudience(params.role)
+      : undefined
   );
   const filtered = filterByQuery(toOptions(labels), params.query ?? '');
   return paginateMock(filtered, params.page, params.limit);
@@ -447,6 +509,10 @@ export async function fetchOrganizationOptionsFromMock(
  * پس از ایجاد/ویرایش/حذف استان در پنل ادمین صدا بزن تا
  * resolve‌های بعدی نام → id از Nest بخوانند.
  */
+export function invalidateDegreeRoleCache(): void {
+  degreeRoleIdByTitle = null;
+}
+
 export function invalidateProvinceNameCache(): void {
   provinceCache = null;
 }

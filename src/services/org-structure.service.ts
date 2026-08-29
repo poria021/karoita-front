@@ -54,6 +54,7 @@ import type {
   OrgDistrict,
   OrgFaculty,
   OrgMajor,
+  OrgMajorAudience,
   OrgProvince,
   OrgRole,
   OrgSchool,
@@ -198,10 +199,11 @@ export const OrgStructureService = {
   listLabelsForField(
     field: 'province' | 'city' | 'college' | 'district' | 'school' | 'major',
     provinceName = '',
-    districtName = ''
+    districtName = '',
+    majorAudience?: OrgMajorAudience
   ): string[] {
     if (!IS_MOCK_MODE) return [];
-    return queryLabelsForField(field, provinceName, districtName);
+    return queryLabelsForField(field, provinceName, districtName, majorAudience);
   },
 
   /**

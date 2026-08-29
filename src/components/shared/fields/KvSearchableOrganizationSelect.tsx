@@ -26,6 +26,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { OrganizationOption } from '@/services/organization-options.service';
 import { faIcons } from '@/utils/iconMap';
+import type { UserRole } from '@/types/auth';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
 /**
@@ -76,6 +77,7 @@ type BaseProps = {
   showLockIcon?: boolean;
   error?: string;
   dependsOn?: OrganizationDependsOn;
+  role?: UserRole;
 };
 
 type SingleSelectProps = BaseProps & {
@@ -205,6 +207,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
     showLockIcon,
     error,
     dependsOn,
+    role,
   } = props;
 
   const isMulti = props.multi === true;
@@ -280,6 +283,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
       ? true
       : open,
     dependsOn,
+    role,
   });
 
   const handleListScroll = () => {

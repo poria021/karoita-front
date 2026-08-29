@@ -294,12 +294,18 @@ export function queryOrgListPage(
 export function listLabelsForField(
   field: 'province' | 'city' | 'college' | 'district' | 'school' | 'major',
   provinceName = '',
-  districtName = ''
+  districtName = '',
+  majorAudience?: OrgMajorAudience
 ): string[] {
   const runtime = getOrgRuntime();
   const db = runtime.snapshot;
   if (field === 'province') return sortByNameFa(db.provinces).map((p) => p.name);
-  if (field === 'major') return sortByNameFa(db.majors).map((m) => m.name);
+  if (field === 'major') {
+    const majors = majorAudience
+      ? db.majors.filter((m) => m.audience === majorAudience)
+      : db.majors;
+    return sortByNameFa(majors).map((m) => m.name);
+  }
 
   const province = db.provinces.find((p) => p.name === provinceName);
   if (!province) return [];

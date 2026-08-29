@@ -105,6 +105,7 @@ function RoleOrganizationSelect({
             showLockIcon={false}
             error={fieldState.error?.message}
             dependsOn={dependsOn}
+            role={role}
             onChange={(next) => {
               field.onChange(next);
               for (const dependent of DEPENDENCIES[name] ?? []) {
@@ -128,6 +129,7 @@ function RoleOrganizationSelect({
             showLockIcon={false}
             error={fieldState.error?.message}
             dependsOn={dependsOn}
+            role={role}
             onChange={(value) => field.onChange(value)}
           />
         )

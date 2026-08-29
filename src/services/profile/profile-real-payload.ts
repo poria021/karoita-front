@@ -26,7 +26,7 @@ import type { OrganizationField } from '@/utils/roleFieldStrategy';
 async function resolveLabelToId(
   type: OrganizationField,
   label: string | undefined,
-  scope?: { province?: string; district?: string }
+  scope?: { province?: string; district?: string; role?: UserRole }
 ): Promise<string> {
   const trimmed = label?.trim();
   if (!trimmed) return '';
@@ -39,6 +39,7 @@ async function resolveLabelToId(
       limit: 25,
       province: scope?.province,
       district: scope?.district,
+      role: scope?.role,
     });
     const exact = result.items.find((item) => item.label === trimmed);
     if (!exact && process.env.NODE_ENV !== 'production') {
@@ -59,7 +60,7 @@ async function resolveLabelToId(
 async function resolveLabelsToIds(
   type: OrganizationField,
   labels: string[] | undefined,
-  scope?: { province?: string; district?: string }
+  scope?: { province?: string; district?: string; role?: UserRole }
 ): Promise<string[]> {
   if (!labels?.length) return [];
   const ids = await Promise.all(
@@ -116,7 +117,9 @@ export async function buildNestUpdateUserBody(
     resolveLabelsToIds('province', provinceNames),
     resolveLabelsToIds('college',  collegeNames),
     majorName
-      ? resolveLabelToId('major', majorName).then((id) => (id ? [id] : []))
+      ? resolveLabelToId('major', majorName, { role: data.role }).then((id) =>
+          id ? [id] : []
+        )
       : Promise.resolve([] as string[]),
     resolveLabelsToIds('city',     cityNames,    { province: primaryProvince }),
     resolveLabelsToIds('school',   schoolNames,  { province: primaryProvince, district: primaryDistrict }),

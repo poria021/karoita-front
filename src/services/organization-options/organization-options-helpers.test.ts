@@ -5,6 +5,7 @@ import {
   dedupeOptions,
   fetchOrganizationOptionsFromApi,
   invalidateCityNameCache,
+  invalidateDegreeRoleCache,
   invalidateDistrictNameCache,
   invalidateProvinceNameCache,
   paginateBare,
@@ -18,6 +19,8 @@ const listEducationsByCity = vi.fn();
 const listEducationsByProvince = vi.fn();
 const listEducations = vi.fn();
 const listDegrees = vi.fn();
+const listRoles = vi.fn();
+const listDegreesByRole = vi.fn();
 const fetchAllNestProvinces = vi.fn();
 
 vi.mock('@/services/admin-catalog/admin-catalog.api', () => ({
@@ -30,6 +33,8 @@ vi.mock('@/services/admin-catalog/admin-catalog.api', () => ({
       listEducationsByProvince(...args),
     listEducations: (...args: unknown[]) => listEducations(...args),
     listDegrees: (...args: unknown[]) => listDegrees(...args),
+    listRoles: (...args: unknown[]) => listRoles(...args),
+    listDegreesByRole: (...args: unknown[]) => listDegreesByRole(...args),
   },
   fetchAllNestProvinces: (...args: unknown[]) => fetchAllNestProvinces(...args),
   fetchAllNestEducations: vi.fn(),
@@ -45,10 +50,13 @@ describe('organization options — Nest typeahead', () => {
     listEducationsByProvince.mockReset();
     listEducations.mockReset();
     listDegrees.mockReset();
+    listRoles.mockReset();
+    listDegreesByRole.mockReset();
     fetchAllNestProvinces.mockReset();
     invalidateProvinceNameCache();
     invalidateDistrictNameCache();
     invalidateCityNameCache();
+    invalidateDegreeRoleCache();
   });
 
   it('keeps city on the request that hits Nest', () => {
@@ -172,6 +180,30 @@ describe('organization options — Nest typeahead', () => {
     expect(result.items).toEqual([
       { id: '6a8fae999dd4b76b91bbd789', label: 'مهندسی معدن' },
     ]);
+    expect(result.hasMore).toBe(false);
+  });
+
+  it('scopes majors to GET /admin/roles/{roleId}/degrees when role is set', async () => {
+    listRoles.mockResolvedValue([
+      { id: '6a895cc8864f70463b97c17d', title: 'trainee', title_fa: 'کارآموز' },
+      { id: '6a895cc8864f70463b97c17f', title: 'student', title_fa: 'دانشجو' },
+    ]);
+    listDegreesByRole.mockResolvedValue([
+      { id: 'deg-1', title: 'آموزش ابتدایی' },
+      { id: 'deg-2', title: 'مهندسی معدن' },
+    ]);
+
+    const result = await fetchOrganizationOptionsFromApi({
+      type: 'major',
+      page: 1,
+      limit: 10,
+      query: 'آموزش',
+      role: 'skill_learner',
+    });
+
+    expect(listDegrees).not.toHaveBeenCalled();
+    expect(listDegreesByRole).toHaveBeenCalledWith('6a895cc8864f70463b97c17d');
+    expect(result.items).toEqual([{ id: 'deg-1', label: 'آموزش ابتدایی' }]);
     expect(result.hasMore).toBe(false);
   });
 });
