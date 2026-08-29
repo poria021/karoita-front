@@ -1,6 +1,6 @@
 /**
  * PWA / Apple home-screen icons from `karvita-mark.png`.
- * Transparent square canvas — same mark as tab favicon, no white tile.
+ * Brand-colored mark on a transparent square — same look as tab favicon.
  *
  * Run: node scripts/generate-pwa-icons.mjs
  */
@@ -9,17 +9,20 @@ import { fileURLToPath } from 'node:url';
 
 import sharp from 'sharp';
 
+import { recolorSilhouetteToBrand } from './brand-mark-color.mjs';
+
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const src = path.join(root, 'public', 'brand', 'karvita-mark.png');
 const outDir = path.join(root, 'public', 'brand');
 
 async function squareTransparentIcon(size, fileName, fillRatio) {
   const inner = Math.round(size * fillRatio);
-  const glyph = await sharp(src)
+  const resized = await sharp(src)
     .resize(inner, inner, { fit: 'cover', position: 'centre' })
     .ensureAlpha()
     .png()
     .toBuffer();
+  const glyph = await recolorSilhouetteToBrand(sharp, resized);
 
   await sharp({
     create: {

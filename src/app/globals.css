@@ -8,7 +8,7 @@
 @theme inline {
   /* معرفی فونت وزیرمتن به عنوان فونت بدون‌سریف پیش‌فرض Tailwind v4 */
   --font-sans: var(--font-vazirmatn), sans-serif;
-  /* Official geometric mark (monochrome, no bg) — tint with currentColor */
+  /* Official geometric mark — transparent; PNG may be brand-colored for favicon/PWA. */
   --kv-brand-mark: url("/brand/karvita-mark.png");
 
   --radius-sm: var(--radius-kv-tight);

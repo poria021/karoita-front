@@ -1,5 +1,5 @@
 /**
- * Strip white background from official mark → monochrome transparent PNG.
+ * Strip white background from official mark → brand-colored transparent PNG.
  * Keeps source at public/brand/karvita-mark.source.png
  * Run: node scripts/generate-karvita-mark.mjs
  */
@@ -7,6 +7,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from '@playwright/test';
+
+import { BRAND_MARK_RGB } from './brand-mark-color.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -53,9 +55,9 @@ async function main() {
       const isNearWhite = max > 235 && min > 220;
       const isInk = a > 40 && !isNearWhite;
       if (isInk) {
-        d[i] = 0;
-        d[i + 1] = 0;
-        d[i + 2] = 0;
+        d[i] = ${BRAND_MARK_RGB.r};
+        d[i + 1] = ${BRAND_MARK_RGB.g};
+        d[i + 2] = ${BRAND_MARK_RGB.b};
         d[i + 3] = 255;
       } else {
         d[i] = 0;
