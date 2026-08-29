@@ -56,6 +56,18 @@ describe('mapNestAdminAccount', () => {
     );
   });
 
+  it('keeps numeric status.id for PUT', () => {
+    expect(
+      mapNestAdminAccount(
+        nestAdmin({ status: { id: '2', name: 'active' } })
+      )?.statusCode
+    ).toBe(2);
+  });
+
+  it('drops non-numeric status.id', () => {
+    expect(mapNestAdminAccount(nestAdmin())?.statusCode).toBeUndefined();
+  });
+
   it('drops rows without id', () => {
     expect(mapNestAdminAccount(nestAdmin({ id: '' }))).toBeNull();
   });

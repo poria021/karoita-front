@@ -89,6 +89,9 @@ export function AdminUserCreationPageClient() {
             admin={staff.detail}
             isLoading={staff.detailLoading}
             errorMessage={staff.detailError}
+            saving={staff.saving}
+            saveError={staff.saveError}
+            onSave={staff.save}
           />
         </div>
       </KvWorkspace>

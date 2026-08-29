@@ -55,7 +55,17 @@ export type StaffAdminAccount = {
   mobile: string;
   role: UserRole;
   statusName: string;
+  /** Numeric Nest status when GET gives a digit id; PUT sends this code. */
+  statusCode?: number;
   createdAt: string;
+};
+
+export type UpdateStaffAdminInput = {
+  firstName: string;
+  lastName: string;
+  mobile: string;
+  role: UserRole;
+  active: boolean;
 };
 
 export type StaffAdminsPage = {

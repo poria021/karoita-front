@@ -3,9 +3,7 @@
  *
  * Relative to NEXT_PUBLIC_API_URL (`.../api`).
  * GET/POST /api/v1/admin/admins
- * GET      /api/v1/admin/admins/{id}
- *
- * PUT is defined on Nest but not wired until that Swagger lands in this batch.
+ * GET/PUT  /api/v1/admin/admins/{id}
  */
 import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
@@ -21,6 +19,7 @@ import type {
   NestAdminDto,
   NestAdminsListQuery,
   NestCreateAdminDto,
+  NestUpdateAdminDto,
 } from '@/types/nest-admins';
 
 export const NEST_ADMINS_PATHS = {
@@ -58,6 +57,27 @@ export const adminsApi = {
       throw new Error('پاسخ حساب ادمین نامعتبر است.');
     }
     return mapped;
+  },
+
+  /**
+   * PUT /api/v1/admin/admins/{id}
+   * بدنهٔ ۲۰۰ ردیف است؛ پاسخ خالی با GET همان id جبران می‌شود.
+   */
+  async update(
+    id: string,
+    body: NestUpdateAdminDto,
+    token?: string
+  ): Promise<StaffAdminAccount> {
+    const raw = await apiClient.putMaybeJson<unknown>(
+      NEST_ADMINS_PATHS.byId(id),
+      body,
+      token
+    );
+    if (raw && isRecord(raw)) {
+      const mapped = mapNestAdminAccount(raw);
+      if (mapped) return mapped;
+    }
+    return adminsApi.getById(id, token);
   },
 };
 

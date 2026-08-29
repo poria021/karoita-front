@@ -1,5 +1,6 @@
 import {
   mockMobileExists,
+  patchMockAuthUser,
   readMockUsers,
   toPublicUser,
   writeMockUsers,
@@ -10,6 +11,7 @@ import type {
   CreateOrganizationalUserResult,
   OrgAccountRole,
   StaffAdminAccount,
+  UpdateStaffAdminInput,
 } from '@/types/admin-user-creation';
 import { isStaffAdminRole } from '@/types/role-taxonomy';
 import { sliceOffsetLimitPage } from '@/utils/offset-limit-page';
@@ -135,4 +137,39 @@ export function mockGetStaffAdmin(id: string): StaffAdminAccount {
     throw new Error('حساب ادمین یافت نشد.');
   }
   return toStaffAdminAccount(record);
+}
+
+export function mockUpdateStaffAdmin(
+  id: string,
+  input: UpdateStaffAdminInput
+): StaffAdminAccount {
+  const record = readMockUsers().find(
+    (item) => item.id === id && isStaffAdminRole(item.role)
+  );
+  if (!record) {
+    throw new Error('حساب ادمین یافت نشد.');
+  }
+  if (!isStaffAdminRole(input.role)) {
+    throw new Error('این نقش از مسیر ویرایش ادمین پشتیبانی نمی‌شود.');
+  }
+
+  const mobile = normalizeMobile(input.mobile);
+  if (!/^9\d{9}$/.test(mobile)) {
+    throw new Error('فرمت شماره موبایل معتبر نیست (۱۰ رقم بدون صفر اول).');
+  }
+  if (mobile !== record.mobile && mockMobileExists(mobile)) {
+    throw new Error('این شماره موبایل قبلاً در سیستم ثبت شده است.');
+  }
+
+  const updated = patchMockAuthUser(
+    { id },
+    {
+      firstName: input.firstName.trim(),
+      lastName: input.lastName.trim(),
+      mobile,
+      role: input.role,
+      approved: input.active,
+    }
+  );
+  return toStaffAdminAccount(updated);
 }

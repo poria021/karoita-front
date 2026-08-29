@@ -4,11 +4,13 @@ import { adminsApi } from '@/services/admin-user-creation/real/admins.api';
 
 const getJson = vi.fn();
 const postJson = vi.fn();
+const putMaybeJson = vi.fn();
 
 vi.mock('@/services/api-client', () => ({
   apiClient: {
     getJson: (...args: unknown[]) => getJson(...args),
     postJson: (...args: unknown[]) => postJson(...args),
+    putMaybeJson: (...args: unknown[]) => putMaybeJson(...args),
   },
 }));
 
@@ -27,6 +29,7 @@ describe('adminsApi', () => {
   beforeEach(() => {
     getJson.mockReset();
     postJson.mockReset();
+    putMaybeJson.mockReset();
   });
 
   it('GETs v1/admin/admins with page and limit', async () => {
@@ -78,5 +81,52 @@ describe('adminsApi', () => {
       },
       undefined
     );
+  });
+
+  it('PUTs update body to v1/admin/admins/{id}', async () => {
+    putMaybeJson.mockResolvedValue({
+      ...nestRow,
+      fname: 'Ali',
+      role: 'superadmin',
+      status: { id: '2', name: 'active' },
+    });
+
+    const admin = await adminsApi.update('adm-1', {
+      fname: 'Ali',
+      lname: 'Rezaei',
+      phone: '09386951413',
+      role: 'superadmin',
+      status: 2,
+    });
+
+    expect(putMaybeJson).toHaveBeenCalledWith(
+      'v1/admin/admins/adm-1',
+      {
+        fname: 'Ali',
+        lname: 'Rezaei',
+        phone: '09386951413',
+        role: 'superadmin',
+        status: 2,
+      },
+      undefined
+    );
+    expect(admin.role).toBe('super_admin');
+    expect(admin.statusCode).toBe(2);
+  });
+
+  it('falls back to GET when PUT body is empty', async () => {
+    putMaybeJson.mockResolvedValue(null);
+    getJson.mockResolvedValue(nestRow);
+
+    const updated = await adminsApi.update('adm-1', {
+      fname: 'Ali',
+      lname: 'Rezaei',
+      phone: '09386951413',
+      role: 'admin',
+      status: 2,
+    });
+
+    expect(getJson).toHaveBeenCalledWith('v1/admin/admins/adm-1', undefined);
+    expect(updated.id).toBe('adm-1');
   });
 });

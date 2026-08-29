@@ -7,9 +7,13 @@ import {
   mockCreateOrganizationalUser,
   mockGetStaffAdmin,
   mockListStaffAdmins,
+  mockUpdateStaffAdmin,
 } from '@/services/admin-user-creation/mock/mock-admin-user-creation';
 import { adminsApi } from '@/services/admin-user-creation/real/admins.api';
-import { toNestCreateAdminDto } from '@/services/admin-user-creation/real/to-nest-admin-create';
+import {
+  toNestCreateAdminDto,
+  toNestUpdateAdminDto,
+} from '@/services/admin-user-creation/real/to-nest-admin-create';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import { usersApi } from '@/services/users/users.api';
 import type {
@@ -17,6 +21,7 @@ import type {
   CreateOrganizationalUserResult,
   MobileAvailabilityResult,
   StaffAdminAccount,
+  UpdateStaffAdminInput,
 } from '@/types/admin-user-creation';
 import {
   estimateHasNextPageTotal,
@@ -31,6 +36,7 @@ import {
  *     POST /api/v1/admin/admins  { fname, lname, phone, role: admin|superadmin }
  *     GET  /api/v1/admin/admins?page=&limit=
  *     GET  /api/v1/admin/admins/{id}
+ *     PUT  /api/v1/admin/admins/{id}  { fname, lname, phone, role, status: 2|1 }
  * - Organizational roles:
  *     GET  /api/v1/users?filters={"phone":"<mobile>"}&limit=1  → mobile check
  *     PATCH /api/v1/users/{id} → assign org role (user must already exist)
@@ -145,5 +151,21 @@ export const AdminUserCreationService = {
       return mockGetStaffAdmin(id);
     }
     return adminsApi.getById(id);
+  },
+
+  /** PUT /api/v1/admin/admins/{id} — status: 2 فعال، 1 غیرفعال */
+  async updateStaffAdmin(
+    id: string,
+    input: UpdateStaffAdminInput
+  ): Promise<StaffAdminAccount> {
+    if (isMockApiMode()) {
+      requireMockUserCreate();
+      return mockUpdateStaffAdmin(id, input);
+    }
+    try {
+      return await adminsApi.update(id, toNestUpdateAdminDto(input));
+    } catch (error) {
+      toDuplicateMobileError(error);
+    }
   },
 };

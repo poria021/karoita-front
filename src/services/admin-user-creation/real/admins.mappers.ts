@@ -44,7 +44,9 @@ export function mapNestAdminAccount(
   const id = asString(row.id);
   if (!id) return null;
 
-  const statusName = isRecord(row.status) ? asString(row.status.name) : '';
+  const status = isRecord(row.status) ? row.status : null;
+  const statusName = status ? asString(status.name) : '';
+  const statusCode = readStatusCode(status);
   const roleName = asString(row.role);
 
   return {
@@ -54,8 +56,23 @@ export function mapNestAdminAccount(
     mobile: asString(row.phone),
     role: roleName ? fromNestRoleName(roleName) : 'assistant_admin',
     statusName: statusName || 'active',
+    ...(statusCode !== undefined ? { statusCode } : {}),
     createdAt: asString(row.createdAt),
   };
+}
+
+/** PUT می‌خواهد عدد؛ id رشته‌ای غیرعددی (مثل st-1) را دور می‌اندازیم. */
+function readStatusCode(
+  status: Record<string, unknown> | null
+): number | undefined {
+  if (!status) return undefined;
+  if (typeof status.id === 'number' && Number.isFinite(status.id)) {
+    return status.id;
+  }
+  if (typeof status.id === 'string' && /^\d+$/.test(status.id)) {
+    return Number(status.id);
+  }
+  return undefined;
 }
 
 export function mapAdminsPage(raw: unknown): StaffAdminsPage {

@@ -1,6 +1,16 @@
 import { isStaffAdminRole, toNestAdminAccountRole } from '@/services/auth/real/nest-auth-role';
-import type { CreateOrganizationalUserInput } from '@/types/admin-user-creation';
-import type { NestCreateAdminDto } from '@/types/nest-admins';
+import type {
+  CreateOrganizationalUserInput,
+  UpdateStaffAdminInput,
+} from '@/types/admin-user-creation';
+import type { NestCreateAdminDto, NestUpdateAdminDto } from '@/types/nest-admins';
+
+/**
+ * Swagger PUT example uses `status: 2` and the 200 body has `status.name: active`.
+ * Inactive is the other documented numeric slot (1).
+ */
+export const NEST_ADMIN_STATUS_ACTIVE = 2;
+export const NEST_ADMIN_STATUS_INACTIVE = 1;
 
 /**
  * Swagger CreateAdmin.phone example is `0938…` (leading zero).
@@ -28,5 +38,25 @@ export function toNestCreateAdminDto(
     lname: input.lastName.trim(),
     phone: toNestAdminPhone(input.mobile),
     role: toNestAdminAccountRole(input.role),
+  };
+}
+
+export function toNestAdminStatusCode(active: boolean): number {
+  return active ? NEST_ADMIN_STATUS_ACTIVE : NEST_ADMIN_STATUS_INACTIVE;
+}
+
+export function toNestUpdateAdminDto(
+  input: UpdateStaffAdminInput
+): NestUpdateAdminDto {
+  if (!isStaffAdminRole(input.role)) {
+    throw new Error('این نقش از مسیر ویرایش ادمین پشتیبانی نمی‌شود.');
+  }
+
+  return {
+    fname: input.firstName.trim(),
+    lname: input.lastName.trim(),
+    phone: toNestAdminPhone(input.mobile),
+    role: toNestAdminAccountRole(input.role),
+    status: toNestAdminStatusCode(input.active),
   };
 }

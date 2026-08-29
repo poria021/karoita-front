@@ -18,6 +18,7 @@ vi.mock('@/services/admin-user-creation/real/admins.api', () => ({
     create: vi.fn(),
     list: vi.fn(),
     getById: vi.fn(),
+    update: vi.fn(),
   },
 }));
 
@@ -106,6 +107,29 @@ describe('AdminUserCreationService (mock)', () => {
     expect(detail.id).toBe(first.id);
     expect(detail.mobile).toBe(first.mobile);
   });
+
+  it('updates a staff admin in the mock store', async () => {
+    const page = await AdminUserCreationService.listStaffAdmins({
+      offset: 0,
+      limit: 20,
+    });
+    const first = page.items[0];
+    expect(first).toBeTruthy();
+    if (!first) return;
+
+    const updated = await AdminUserCreationService.updateStaffAdmin(first.id, {
+      firstName: 'علی',
+      lastName: 'رضایی',
+      mobile: first.mobile,
+      role: first.role,
+      active: false,
+    });
+
+    expect(updated.firstName).toBe('علی');
+    expect(updated.lastName).toBe('رضایی');
+    expect(updated.role).toBe(first.role);
+    expect(updated.statusName).toBe('inactive');
+  });
 });
 
 describe('AdminUserCreationService (real staff admin)', () => {
@@ -114,6 +138,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
     vi.mocked(adminsApi.create).mockReset();
     vi.mocked(adminsApi.list).mockReset();
     vi.mocked(adminsApi.getById).mockReset();
+    vi.mocked(adminsApi.update).mockReset();
   });
 
   afterEach(() => {
@@ -251,5 +276,35 @@ describe('AdminUserCreationService (real staff admin)', () => {
 
     expect(adminsApi.getById).toHaveBeenCalledWith('adm-1');
     expect(detail.firstName).toBe('Ali');
+  });
+
+  it('PUTs /admin/admins/{id} with Nest status 2', async () => {
+    vi.mocked(adminsApi.update).mockResolvedValue({
+      id: 'adm-1',
+      firstName: 'Ali',
+      lastName: 'Rezaei',
+      mobile: '09386951413',
+      role: 'super_admin',
+      statusName: 'active',
+      statusCode: 2,
+      createdAt: '2026-08-29T14:11:55.298Z',
+    });
+
+    const detail = await AdminUserCreationService.updateStaffAdmin('adm-1', {
+      firstName: 'Ali',
+      lastName: 'Rezaei',
+      mobile: '9386951413',
+      role: 'super_admin',
+      active: true,
+    });
+
+    expect(adminsApi.update).toHaveBeenCalledWith('adm-1', {
+      fname: 'Ali',
+      lname: 'Rezaei',
+      phone: '09386951413',
+      role: 'superadmin',
+      status: 2,
+    });
+    expect(detail.statusName).toBe('active');
   });
 });

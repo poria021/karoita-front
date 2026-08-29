@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  NEST_ADMIN_STATUS_ACTIVE,
+  NEST_ADMIN_STATUS_INACTIVE,
   toNestAdminPhone,
   toNestCreateAdminDto,
+  toNestUpdateAdminDto,
 } from './to-nest-admin-create';
 
 describe('toNestAdminPhone', () => {
@@ -48,5 +51,31 @@ describe('toNestCreateAdminDto', () => {
     expect(() =>
       toNestCreateAdminDto({ ...base, role: 'central_organization' })
     ).toThrow(/ادمین/);
+  });
+});
+
+describe('toNestUpdateAdminDto', () => {
+  const base = {
+    firstName: 'Ali',
+    lastName: 'Rezaei',
+    mobile: '9386951413',
+    role: 'super_admin' as const,
+    active: true,
+  };
+
+  it('sends Swagger PUT fields with status 2 when active', () => {
+    expect(toNestUpdateAdminDto(base)).toEqual({
+      fname: 'Ali',
+      lname: 'Rezaei',
+      phone: '09386951413',
+      role: 'superadmin',
+      status: NEST_ADMIN_STATUS_ACTIVE,
+    });
+  });
+
+  it('sends status 1 when inactive', () => {
+    expect(toNestUpdateAdminDto({ ...base, active: false }).status).toBe(
+      NEST_ADMIN_STATUS_INACTIVE
+    );
   });
 });
