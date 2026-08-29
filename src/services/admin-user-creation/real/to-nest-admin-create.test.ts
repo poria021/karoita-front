@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   NEST_ADMIN_STATUS_ACTIVE,
   NEST_ADMIN_STATUS_INACTIVE,
+  nestPhonesMatch,
+  toComparableIranMobile,
   toNestAdminPhone,
   toNestCreateAdminDto,
   toNestUpdateAdminDto,
@@ -15,6 +17,18 @@ describe('toNestAdminPhone', () => {
 
   it('keeps an already-prefixed 11-digit number', () => {
     expect(toNestAdminPhone('09386951413')).toBe('09386951413');
+  });
+});
+
+describe('nestPhonesMatch', () => {
+  it('treats 09, +98, and 10-digit national as the same number', () => {
+    expect(toComparableIranMobile('+989386951413')).toBe('9386951413');
+    expect(nestPhonesMatch('09386951413', '9386951413')).toBe(true);
+    expect(nestPhonesMatch('+989386951413', '9386951413')).toBe(true);
+  });
+
+  it('rejects a different national number', () => {
+    expect(nestPhonesMatch('09386951413', '9445465457')).toBe(false);
   });
 });
 

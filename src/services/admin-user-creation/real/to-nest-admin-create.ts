@@ -23,6 +23,21 @@ export function toNestAdminPhone(mobile: string): string {
   return digits;
 }
 
+/** ۱۰ رقم ملی (۹xxxxxxxxx) برای مقایسهٔ 09 / +98 / ۱۰ رقم خام. */
+export function toComparableIranMobile(mobile: string): string {
+  const digits = mobile.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('98')) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('09')) return digits.slice(1);
+  if (digits.length === 10 && digits.startsWith('9')) return digits;
+  return digits;
+}
+
+export function nestPhonesMatch(left: string, right: string): boolean {
+  const a = toComparableIranMobile(left);
+  const b = toComparableIranMobile(right);
+  return a.length === 10 && a === b;
+}
+
 export function toNestCreateAdminDto(
   input: Pick<
     CreateOrganizationalUserInput,

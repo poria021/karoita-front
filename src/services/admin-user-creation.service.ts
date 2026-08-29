@@ -11,6 +11,8 @@ import {
 } from '@/services/admin-user-creation/mock/mock-admin-user-creation';
 import { adminsApi } from '@/services/admin-user-creation/real/admins.api';
 import {
+  nestPhonesMatch,
+  toNestAdminPhone,
   toNestCreateAdminDto,
   toNestUpdateAdminDto,
 } from '@/services/admin-user-creation/real/to-nest-admin-create';
@@ -69,9 +71,13 @@ export const AdminUserCreationService = {
       const result = await usersApi.list({
         page: 1,
         limit: 1,
-        filters: JSON.stringify({ phone: mobile }),
+        filters: JSON.stringify({ phone: toNestAdminPhone(mobile) }),
       });
-      return { available: result.data.length === 0 };
+      // اگر Nest فیلتر phone را نادیده بگیرد، اولین کاربر سیستم می‌آید؛ تکراری فقط با تطابق شماره.
+      const rows = Array.isArray(result.data) ? result.data : [];
+      return {
+        available: !rows.some((row) => nestPhonesMatch(row.phone, mobile)),
+      };
     }
     requireMockUserCreate();
     return { available: mockCheckMobileAvailable(mobile) };

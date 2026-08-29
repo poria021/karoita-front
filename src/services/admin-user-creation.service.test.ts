@@ -4,6 +4,7 @@ import { AdminUserCreationService } from '@/services/admin-user-creation.service
 import { OnboardingApprovalsService } from '@/services/onboarding-approvals.service';
 import { adminsApi } from '@/services/admin-user-creation/real/admins.api';
 import { ApiClientError } from '@/services/api-error';
+import { usersApi } from '@/services/users/users.api';
 import {
   readMockUsers,
   resetMockAuthStoreForTests,
@@ -20,6 +21,15 @@ vi.mock('@/services/admin-user-creation/real/admins.api', () => ({
     list: vi.fn(),
     getById: vi.fn(),
     update: vi.fn(),
+  },
+}));
+
+vi.mock('@/services/users/users.api', () => ({
+  usersApi: {
+    list: vi.fn(),
+    getById: vi.fn(),
+    update: vi.fn(),
+    remove: vi.fn(),
   },
 }));
 
@@ -171,6 +181,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
     vi.mocked(adminsApi.list).mockReset();
     vi.mocked(adminsApi.getById).mockReset();
     vi.mocked(adminsApi.update).mockReset();
+    vi.mocked(usersApi.list).mockReset();
   });
 
   afterEach(() => {
@@ -338,5 +349,73 @@ describe('AdminUserCreationService (real staff admin)', () => {
       status: 2,
     });
     expect(detail.statusName).toBe('active');
+  });
+
+  it('does not treat an unrelated users-list row as a taken mobile', async () => {
+    vi.mocked(usersApi.list).mockResolvedValue({
+      data: [
+        {
+          id: 'user-1',
+          phone: '09386951413',
+          provider: '',
+          socialId: '',
+          firstName: 'Ali',
+          lastName: 'Karimi',
+          photo: { id: '', path: '' },
+          role: { id: '1', name: 'student' },
+          status: { id: '1', name: 'active' },
+          userUniqueId: '',
+          city: null,
+          educationalDistrict: null,
+          school: null,
+          createdAt: '',
+          updatedAt: '',
+          deletedAt: null,
+        },
+      ],
+      hasNextPage: false,
+    });
+
+    const result = await AdminUserCreationService.checkMobileAvailable(
+      '9445465457'
+    );
+
+    expect(usersApi.list).toHaveBeenCalledWith({
+      page: 1,
+      limit: 1,
+      filters: JSON.stringify({ phone: '09445465457' }),
+    });
+    expect(result.available).toBe(true);
+  });
+
+  it('marks a mobile taken when the listed user phone matches', async () => {
+    vi.mocked(usersApi.list).mockResolvedValue({
+      data: [
+        {
+          id: 'user-1',
+          phone: '09445465457',
+          provider: '',
+          socialId: '',
+          firstName: 'Ali',
+          lastName: 'Karimi',
+          photo: { id: '', path: '' },
+          role: { id: '1', name: 'student' },
+          status: { id: '1', name: 'active' },
+          userUniqueId: '',
+          city: null,
+          educationalDistrict: null,
+          school: null,
+          createdAt: '',
+          updatedAt: '',
+          deletedAt: null,
+        },
+      ],
+      hasNextPage: false,
+    });
+
+    const result = await AdminUserCreationService.checkMobileAvailable(
+      '9445465457'
+    );
+    expect(result.available).toBe(false);
   });
 });
