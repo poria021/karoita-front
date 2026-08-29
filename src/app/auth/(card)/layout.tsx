@@ -2,14 +2,14 @@ import { type ReactNode } from 'react';
 
 import { KvTypography } from '@/components/shared/KvTypography';
 import { kvProductFooterBorderClassName } from '@/components/shared/shell/shellChrome';
+import { AuthCardHost } from '@/features/shared/auth/components/AuthCardHost';
 import { AuthLogo } from '@/features/shared/auth/components/AuthLogo';
 import { cn } from '@/lib/utils';
 
 /**
  * Shared chrome for the /auth/login, /auth/register, /auth/forgot routes.
  *
- * `returnUrl` از searchParams در pageهای سروری خوانده می‌شود تا این layout
- * نیاز به Suspense نداشته باشد — وگرنه لوگو/فوتر زودتر از فرم دیده می‌شوند.
+ * کارت ورود در layout می‌ماند تا عوض شدن login/register/forgot فرم را خالی نکند.
  */
 export default function AuthCardGroupLayout({
   children,
@@ -25,6 +25,7 @@ export default function AuthCardGroupLayout({
         <div className="px-kv-inset py-kv-group sm:px-kv-page sm:py-kv-section">
           <AuthLogo subtitle="سامانه هوشمند کارورزی و کارآموزی" />
 
+          <AuthCardHost />
           {children}
 
           <div
