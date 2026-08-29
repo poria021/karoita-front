@@ -174,16 +174,24 @@ export type NestCreateDegreeDto = {
   title: string;
 };
 
+/** PUT /admin/degree/{id} — live body is `{ roleId, title }`. */
 export type NestUpdateDegreeDto = {
-  roleId?: string;
-  title?: string;
+  roleId: string;
+  title: string;
 };
 
 /**
- * GET /admin/degreeee ("Get all degrees with role") — degree paired with
- * its linked role. Shape not pinned down by Swagger (live sample was an
- * empty array), so — same defensive pattern as toOrgCity/toOrgDistrict —
- * accept either a flat `roleId` or a nested `role` object.
+ * GET /admin/degreeee row ("Get all degrees with role").
+ *
+ * Confirmed live 200 (2026-08-29):
+ *
+ * ```
+ * { id, title, role: { id, title } }
+ * ```
+ *
+ * `role.title` is the English role key (e.g. `"teacher"`). Persian
+ * `title_fa` is not on this join — listRoles() fills it in. Accept a
+ * flat `roleId` too in case Nest sends an unpopulated FK.
  */
 export type NestDegree = {
   id: string;
@@ -197,6 +205,13 @@ export type NestDegree = {
   usersCount?: number;
   userCount?: number;
   users_count?: number;
+};
+
+/** GET /admin/degreeee — `{ data, hasNextPage }` + page/limit/title. */
+export type NestDegreeListQuery = {
+  page?: number;
+  limit?: number;
+  title?: string;
 };
 
 /**

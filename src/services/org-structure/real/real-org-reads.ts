@@ -40,7 +40,7 @@ import type {
   OrgStructureSnapshot,
   OrgStructureSubTab,
 } from '@/types/org-structure';
-import { estimateHasNextPageTotal, sliceOffsetLimitPage } from '@/utils/offset-limit-page';
+import { estimateHasNextPageTotal } from '@/utils/offset-limit-page';
 
 export async function getRealSnapshot(): Promise<OrgStructureSnapshot> {
   const [provinces, cities, districts, schools, faculties] = await Promise.all([
@@ -54,40 +54,10 @@ export async function getRealSnapshot(): Promise<OrgStructureSnapshot> {
 }
 
 /**
- * Client-side page a bare Nest array — majors (`/admin/degreeee`) still
- * has no `{ data, hasNextPage }` envelope. Districts/schools/faculties
- * now page on Nest; do not send those tabs through this helper.
+ * In-memory leftover from when some org tabs returned a bare Nest array.
+ * Catalog tabs now page on Nest; mutations still flush this map so the
+ * delete-blocked index does not outlive a write.
  */
-function pageBareList(
-  items: OrgStructureListItem[],
-  offset: number,
-  limit: number
-): OrgStructureListPage {
-  const { items: pageItems, total, hasMore } = sliceOffsetLimitPage(
-    items,
-    offset,
-    limit
-  );
-  return { items: pageItems, total, hasMore };
-}
-
-/**
- * Per-tab+query in-memory cache for bare (unpaginated) list responses.
- *
- * Why this exists: majors still have no Nest paging envelope so every
- * page must start from the full remote array. Without this cache, "load
- * more" would re-fetch and re-map the same full array on every page.
- *
- * Invalidation: any real-mode mutation calls `invalidateRealBareListCache`
- * which sets `staleSince` to 0, making the next read treat it as expired
- * and force a fresh network fetch — regardless of TTL. This guarantees
- * that immediately after create/update/delete the list is always fresh.
- *
- * TTL (BARE_LIST_CACHE_TTL_MS) is a safety-net for forgotten invalidations,
- * not the primary freshness mechanism.
- */
-const BARE_LIST_CACHE_TTL_MS = 30_000;
-
 type BareListCacheEntry = {
   query: string;
   items: OrgStructureListItem[];
@@ -96,25 +66,6 @@ type BareListCacheEntry = {
 };
 
 const bareListCache = new Map<OrgStructureSubTab, BareListCacheEntry>();
-
-async function getBareListItems(
-  tab: OrgStructureSubTab,
-  query: string,
-  fetcher: () => Promise<OrgStructureListItem[]>
-): Promise<OrgStructureListItem[]> {
-  const cached = bareListCache.get(tab);
-  const isValid =
-    cached !== undefined &&
-    cached.query === query &&
-    cached.staleSince > 0 &&
-    Date.now() - cached.staleSince < BARE_LIST_CACHE_TTL_MS;
-
-  if (isValid) return cached.items;
-
-  const items = await fetcher();
-  bareListCache.set(tab, { query, items, staleSince: Date.now() });
-  return items;
-}
 
 /**
  * Called by real-org-mutations.ts after any write so the very next read
@@ -150,8 +101,8 @@ export function invalidateRealBareListCache(tab?: OrgStructureSubTab): void {
  * (sets staleSince=0); this is the hard variant (Map.clear).
  *
  * Called by `useOrgStructurePage.invalidateAndReload` after every mutation
- * so tabs that read from bareListCache (majors) always get a fresh
- * network fetch after create/update/delete.
+ * so the delete-blocked index and leftover cache entries do not outlive
+ * create/update/delete.
  */
 export function flushBareListCache(tab?: OrgStructureSubTab): void {
   flushRealDeleteBlockedCache();
@@ -284,29 +235,31 @@ async function listRealPageRaw(
   }
 
   if (options.tab === 'majors') {
-    // GET /admin/degreeee — bare array, no paging envelope.
-    // مشکل: Nest روی این endpoint گاهی title_fa رو روی role join برنمی‌گردونه —
-    // برای اینکه جدول همیشه فارسی نشون بده، roles را parallel فچ می‌کنیم و
-    // title_fa رو به هر degree.role inject می‌کنیم تا resolveRoleLabel درست
-    // داده فارسی بگیره حتی وقتی API آن رو خالی برگردونه.
-    const items = await getBareListItems('majors', query, async () => {
-      const [raw, roles] = await Promise.all([
-        adminCatalogApi.listDegrees(query || undefined),
-        adminCatalogApi.listRoles(),
-      ]);
-      // یک Map از roleId → { title_fa, title } بساز ایجاد کن تا به O(1) دسترسی داشته باشیم.
-      const roleMap = new Map(
-        roles.map((r) => [r.id, { title: r.title, title_fa: r.title_fa }])
-      );
-      return raw.map((d) => {
-        // اگر role.title_fa روی degree خالیه، از roleMap اینریچ کن.
-        const enrichedRole = d.role?.id
-          ? { ...d.role, ...(roleMap.get(d.role.id) ?? {}) }
-          : d.role;
-        return toOrgMajorListItem({ ...d, role: enrichedRole });
-      });
+    // GET /admin/degreeee — `{ data, hasNextPage }` + page/limit/title.
+    // join این endpoint فقط `role.title` انگلیسی دارد؛ title_fa را از
+    // GET /admin/roles تزریق می‌کنیم تا جدول فارسی بماند.
+    const [{ data, hasNextPage }, roles] = await Promise.all([
+      adminCatalogApi.listDegrees({
+        page,
+        limit,
+        title: query || undefined,
+      }),
+      adminCatalogApi.listRoles(),
+    ]);
+    const roleMap = new Map(
+      roles.map((r) => [r.id, { title: r.title, title_fa: r.title_fa }])
+    );
+    const items: OrgStructureListItem[] = data.map((d) => {
+      const enrichedRole = d.role?.id
+        ? { ...d.role, ...(roleMap.get(d.role.id) ?? {}) }
+        : d.role;
+      return toOrgMajorListItem({ ...d, role: enrichedRole });
     });
-    return pageBareList(items, offset, limit);
+    return {
+      items,
+      total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
+      hasMore: hasNextPage,
+    };
   }
 
   // faculties: GET /admin/universites — `{ data, hasNextPage }`, title filter.

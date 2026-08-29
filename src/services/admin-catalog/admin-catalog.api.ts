@@ -8,6 +8,7 @@ import type {
   NestCreateAcademicSettingsDto,
   NestCreateCityDto,
   NestCreateDegreeDto,
+  NestDegreeListQuery,
   NestCreateEducationalDistrictDto,
   NestCreateProvinceDto,
   NestCreateSchoolDto,
@@ -241,23 +242,32 @@ export const adminCatalogApi = {
   },
 
   /**
-   * POST /admin/degree — مشابه update‌های بالا، پاسخ ممکنه بدون بدنه برگردد
-   * — postMaybeJson از همان خطای پارس JSON خالی جلوگیری می‌کند.
+   * POST /admin/degree — body `{ roleId, title }`. پاسخ ممکن است بدون بدنه
+   * باشد — postMaybeJson از پارس JSON خالی جلوگیری می‌کند.
    */
   createDegree(body: NestCreateDegreeDto, token?: string) {
     return apiClient.postMaybeJson<unknown>(NEST_ADMIN_PATHS.degree, body, token);
   },
-  /** GET /admin/degreeee — bare array, degree rows paired with their linked role. */
-  listDegrees(title?: string, token?: string) {
-    return apiClient.getJson<NestDegree[]>(
+  /**
+   * GET /admin/degreeee — `{ data, hasNextPage }` + page/limit/title.
+   * هر ردیف رشته را با نقش متصل (`role: { id, title }`) برمی‌گرداند.
+   */
+  async listDegrees(query: NestDegreeListQuery = {}, token?: string) {
+    const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.degreesWithRole,
       token,
-      { searchParams: toSearchParams({ title }) }
+      { searchParams: toSearchParams(query) }
     );
+    return parseNestPagedList<NestDegree>(raw);
   },
+  /**
+   * PUT /admin/degree/{id} — body `{ roleId, title }`. پاسخ لایو سند خام
+   * Mongoose است؛ بدنه را دور می‌اندازیم.
+   */
   updateDegree(id: string, body: NestUpdateDegreeDto, token?: string) {
     return apiClient.putMaybeJson<unknown>(NEST_ADMIN_PATHS.degreeById(id), body, token);
   },
+  /** DELETE /admin/degree/{id} — `{ message: "Deleted successfully" }`. */
   deleteDegree(id: string, token?: string) {
     return apiClient.deleteMaybeJson<unknown>(
       NEST_ADMIN_PATHS.degreeById(id),
@@ -519,6 +529,17 @@ export async function fetchAllNestUniversities(
   return fetchAllNestPagedCatalog(
     (pageQuery, pageToken) =>
       adminCatalogApi.listUniversities({ ...query, ...pageQuery }, pageToken),
+    token
+  );
+}
+
+export async function fetchAllNestDegrees(
+  query: Omit<NestDegreeListQuery, 'page' | 'limit'> = {},
+  token?: string
+): Promise<NestDegree[]> {
+  return fetchAllNestPagedCatalog(
+    (pageQuery, pageToken) =>
+      adminCatalogApi.listDegrees({ ...query, ...pageQuery }, pageToken),
     token
   );
 }

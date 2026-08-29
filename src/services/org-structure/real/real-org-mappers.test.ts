@@ -347,6 +347,24 @@ describe('toOrgMajorListItem', () => {
     });
   });
 
+  it('maps the live degreeee join (role.id + English role.title)', () => {
+    expect(
+      toOrgMajorListItem({
+        id: '6a8fae999dd4b76b91bbd789',
+        title: 'مهندسی معدن',
+        role: { id: '6a895cc8864f70463b97c17e', title: 'teacher' },
+      })
+    ).toEqual({
+      id: '6a8fae999dd4b76b91bbd789',
+      name: 'مهندسی معدن',
+      kind: 'major',
+      deleteBlocked: false,
+      usersCount: undefined,
+      roleName: 'teacher',
+      roleId: '6a895cc8864f70463b97c17e',
+    });
+  });
+
   it('falls back to the nested role object for both id and display name', () => {
     expect(
       toOrgMajorListItem({

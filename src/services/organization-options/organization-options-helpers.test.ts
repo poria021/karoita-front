@@ -17,6 +17,7 @@ const listCities = vi.fn();
 const listEducationsByCity = vi.fn();
 const listEducationsByProvince = vi.fn();
 const listEducations = vi.fn();
+const listDegrees = vi.fn();
 const fetchAllNestProvinces = vi.fn();
 
 vi.mock('@/services/admin-catalog/admin-catalog.api', () => ({
@@ -28,6 +29,7 @@ vi.mock('@/services/admin-catalog/admin-catalog.api', () => ({
     listEducationsByProvince: (...args: unknown[]) =>
       listEducationsByProvince(...args),
     listEducations: (...args: unknown[]) => listEducations(...args),
+    listDegrees: (...args: unknown[]) => listDegrees(...args),
   },
   fetchAllNestProvinces: (...args: unknown[]) => fetchAllNestProvinces(...args),
   fetchAllNestEducations: vi.fn(),
@@ -42,6 +44,7 @@ describe('organization options — Nest typeahead', () => {
     listEducationsByCity.mockReset();
     listEducationsByProvince.mockReset();
     listEducations.mockReset();
+    listDegrees.mockReset();
     fetchAllNestProvinces.mockReset();
     invalidateProvinceNameCache();
     invalidateDistrictNameCache();
@@ -140,5 +143,35 @@ describe('organization options — Nest typeahead', () => {
     expect(listEducationsByCity).toHaveBeenCalledWith('c1');
     expect(listEducationsByProvince).not.toHaveBeenCalled();
     expect(result.items).toEqual([{ id: 'd1', label: 'منطقه ۱' }]);
+  });
+
+  it('lists majors from the Nest degreeee envelope', async () => {
+    listDegrees.mockResolvedValue({
+      data: [
+        {
+          id: '6a8fae999dd4b76b91bbd789',
+          title: 'مهندسی معدن',
+          role: { id: '6a895cc8864f70463b97c17e', title: 'teacher' },
+        },
+      ],
+      hasNextPage: false,
+    });
+
+    const result = await fetchOrganizationOptionsFromApi({
+      type: 'major',
+      page: 1,
+      limit: 10,
+      query: 'معدن',
+    });
+
+    expect(listDegrees).toHaveBeenCalledWith({
+      title: 'معدن',
+      page: 1,
+      limit: 10,
+    });
+    expect(result.items).toEqual([
+      { id: '6a8fae999dd4b76b91bbd789', label: 'مهندسی معدن' },
+    ]);
+    expect(result.hasMore).toBe(false);
   });
 });

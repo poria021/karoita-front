@@ -26,7 +26,7 @@ export type {
  *   district → GET /api/admin/educations          (paginated)
  *   school   → GET /api/admin/schools/all         (paginated)
  *   college  → GET /api/admin/universites         (paginated)
- *   major    → GET /api/admin/degreeee            (bare array, title)
+ *   major    → GET /api/admin/degreeee            (paginated, title)
  *
  * Mock mode: از OrgStructureService.listLabelsForField استفاده می‌کند.
  */

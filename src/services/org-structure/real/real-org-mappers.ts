@@ -196,7 +196,7 @@ export function toOrgSchool(s: NestSchool): OrgSchool {
 }
 
 /**
- * Nest Degree (GET /admin/degreeee) → majors-tab list row.
+ * Nest Degree (GET /admin/degreeee `{ data }`) → majors-tab list row.
  * `roleName` must prefer the linked role's Persian `title_fa` — this app
  * is Persian-only — the same preference resolveRoleLabel() already
  * applies for the role <select>. Using `d.role?.title` directly (as

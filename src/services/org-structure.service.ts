@@ -107,7 +107,7 @@ function requireMockOrgManage(): void {
  * Nest map:
  * - GET    /org-structure/snapshot
  * - GET    /org-structure?tab&query&offset&limit
- *          majors tab → GET /admin/degreeee?title= (bare array, no paging)
+ *          majors tab → GET /admin/degreeee?page=&limit=&title= ({ data, hasNextPage })
  *          faculties tab → GET /admin/universites?page=&limit=&title=
  * - GET    /org-structure/:kind/:id
  * - GET    /org-structure/provinces|cities|districts
@@ -288,7 +288,7 @@ export const OrgStructureService = {
     mockUpsertSchool(input, editId);
   },
 
-  /** PUT /org-structure/majors — real: POST/PATCH /api/admin/degree. */
+  /** PUT /org-structure/majors — real: POST/PUT /api/admin/degree. */
   async upsertMajor(input: UpsertMajorInput, editId?: string): Promise<void> {
     if (!IS_MOCK_MODE) {
       return upsertRealMajor(input, editId);

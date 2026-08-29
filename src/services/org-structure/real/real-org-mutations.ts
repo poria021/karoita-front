@@ -160,7 +160,8 @@ export async function upsertRealSchool(
 }
 
 /**
- * PUT /org-structure/majors — real: POST/PATCH /api/admin/degree.
+ * PUT /org-structure/majors — real: POST /api/admin/degree and
+ * PUT /api/admin/degree/{id} with `{ roleId, title }`.
  *
  * Nest's degree DTO requires `roleId` — the mock-only `audience` concept
  * has no equivalent on the server side. `roleId` must always be set.

@@ -185,7 +185,7 @@ type ResolvedOptionsRequest = Required<
  *   district → GET /api/admin/educations          (paginated, title/provinceId/cityId)
  *   school   → GET /api/admin/schools/all         (paginated, educationId + provinceId)
  *   college  → GET /api/admin/universites         (paginated, title)
- *   major    → GET /api/admin/degreeee            (bare, title query)
+ *   major    → GET /api/admin/degreeee            (paginated, title)
  */
 export async function fetchOrganizationOptionsFromApi(
   params: ResolvedOptionsRequest
@@ -359,15 +359,18 @@ export async function fetchOrganizationOptionsFromApi(
 
       // ── رشته تحصیلی ─────────────────────────────────────────────────────────
       case 'major': {
-        // GET /api/admin/degreeee — bare array، title query
-        const raw = await adminCatalogApi.listDegrees(
-          params.query?.trim() || undefined
-        );
-        return paginateBare(
-          raw.map((d) => ({ id: d.id, label: d.title })),
-          params.page,
-          params.limit
-        );
+        // GET /api/admin/degreeee — `{ data, hasNextPage }` + page/limit/title
+        const q = params.query?.trim() || undefined;
+        const { data, hasNextPage } = await adminCatalogApi.listDegrees({
+          title: q,
+          page: params.page,
+          limit: params.limit,
+        });
+        return {
+          items: data.map((d) => ({ id: d.id, label: d.title })),
+          hasMore: hasNextPage,
+          page: params.page,
+        };
       }
 
       default:

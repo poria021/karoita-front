@@ -170,9 +170,8 @@ export function useOrgStructurePage() {
    * هنوز نگذشته باشد.
    *
    * ترتیب اجرا اهمیت دارد:
-   * 1. flushBareListCache: حذف فیزیکی تمام ورودی‌های in-memory bareListCache
-   *    (districts/schools/majors/faculties) — باید قبل از reload باشه تا
-   *    getBareListItems در listRealPage هیچ entry قدیمی‌ای پیدا نکنه.
+   * 1. flushBareListCache: حذف فیزیکی leftover bareListCache و ایندکس
+   *    delete-blocked — باید قبل از reload باشد.
    * 2. invalidateQueries: باطل‌سازی react-query cache برای provinces/cities
    *    (paginated) و dropdown‌های province/city/district داخل فرم.
    * 3. list.reload(): refetch صفحه اول از Nest — در این مرحله هر دو cache
