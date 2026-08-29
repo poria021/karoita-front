@@ -1,5 +1,5 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
-import { assertMockClientIsSuperAdmin } from '@/services/mock/mock-authz';
+import { assertMockClientIsStaffAdmin } from '@/services/mock/mock-authz';
 import {
   mockCreateBanner,
   mockCreateProduct,
@@ -35,7 +35,7 @@ function gateAdminWrite(surface: string): void {
   if (!isMockApiMode()) {
     throwRealModeNotImplemented(surface);
   }
-  assertMockClientIsSuperAdmin();
+  assertMockClientIsStaffAdmin();
 }
 
 /**

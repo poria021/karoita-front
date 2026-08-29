@@ -78,6 +78,13 @@ describe('public auth audience (mock)', () => {
     expect(() => mockSendAdminGateOtp(MOCK_SUPER_ADMIN_MOBILE)).not.toThrow();
   });
 
+  it('allows assistant_admin on admin-gate OTP send', () => {
+    const assistant = AUTH_MOCK_USERS.find((u) => u.role === 'assistant_admin');
+    expect(assistant).toBeTruthy();
+    if (!assistant) return;
+    expect(() => mockSendAdminGateOtp(assistant.mobile)).not.toThrow();
+  });
+
   it('rejects non-admin on admin-gate OTP send', () => {
     expect(() => mockSendAdminGateOtp(firstNonAdminMobile())).toThrow(
       AUTH_ERR_ADMIN_GATE_ONLY

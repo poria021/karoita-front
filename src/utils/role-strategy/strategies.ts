@@ -1,9 +1,11 @@
 import { PlannedRoutes } from '@/services/planned-routes';
 import { RouteService } from '@/services/route.service';
 
-import type {
-  RoleStrategyMap,
-  SidebarMenuItem,
+import {
+  isSidebarMenuGroup,
+  type RoleStrategyMap,
+  type SidebarMenuEntry,
+  type SidebarMenuItem,
 } from '@/utils/role-strategy/types';
 
 const DASHBOARD_ITEM: SidebarMenuItem = {
@@ -35,6 +37,95 @@ const MANAGE_ADS_ITEM: SidebarMenuItem = {
   path: PlannedRoutes.manageAds(),
   icon: 'fa-bullhorn',
 };
+
+function omitSidebarPaths(
+  menu: readonly SidebarMenuEntry[],
+  paths: readonly string[]
+): SidebarMenuEntry[] {
+  const blocked = new Set(paths);
+  const next: SidebarMenuEntry[] = [];
+  for (const entry of menu) {
+    if (isSidebarMenuGroup(entry)) {
+      const children = entry.children.filter(
+        (child) => !blocked.has(child.path)
+      );
+      if (children.length > 0) {
+        next.push({ ...entry, children });
+      }
+      continue;
+    }
+    if (!blocked.has(entry.path)) next.push(entry);
+  }
+  return next;
+}
+
+const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
+  ADMIN_DASHBOARD_ITEM,
+  {
+    title: 'بررسی مدارک هویتی',
+    path: RouteService.karvita.onboardingApprovals(),
+    icon: 'fa-id-card',
+  },
+  {
+    title: 'مدیریت محتوای لندینگ',
+    path: RouteService.karvita.landingCms(),
+    icon: 'fa-bullhorn',
+  },
+  {
+    title: 'مدیریت دسترسی‌ها',
+    path: PlannedRoutes.userPermissions(),
+    icon: 'fa-user-gear',
+  },
+  {
+    kind: 'group',
+    title: 'مدیریت سازمانی',
+    icon: 'fa-network-wired',
+    children: [
+      {
+        title: 'ساختار سازمانی',
+        path: RouteService.karvita.organizationalStructure(),
+        icon: 'fa-network-wired',
+      },
+      {
+        title: 'ایجاد حساب‌های سازمانی',
+        path: RouteService.karvita.adminUserCreation(),
+        icon: 'fa-user-plus',
+      },
+    ],
+  },
+  {
+    kind: 'group',
+    title: 'مدیریت ترم و سرفصل',
+    icon: 'fa-screwdriver-wrench',
+    children: [
+      {
+        title: 'ارائه و سرفصل دروس',
+        path: RouteService.karvita.syllabusCourseOfferings(),
+        icon: 'fa-sliders',
+      },
+      {
+        title: 'تنظیمات عمومی ترم‌ها',
+        path: RouteService.karvita.syllabusTermSettings(),
+        icon: 'fa-clock-rotate-left',
+      },
+    ],
+  },
+  MANAGE_ADS_ITEM,
+  STANDARD_REPORTS_ITEM,
+  COMPARATIVE_REPORTS_ITEM,
+];
+
+const SENIOR_ADMIN_PERMISSIONS = [
+  'dashboard.view',
+  'onboarding.review',
+  'permission.manage',
+  'user.create',
+  'syllabus.manage',
+  'syllabus.term-settings',
+  'organization.manage',
+  'ads.manage',
+  'reports.view',
+] as const;
 
 /**
  * استراتژی نقش‌ها — لیبل، منوی سایدبار، عرض لایوت و permissions.
@@ -268,17 +359,19 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
   },
 
   assistant_admin: {
-    label: 'دستیار مدیر',
+    label: 'دستیار مدیر ارشد',
     badge: 'معاونت اجرایی و ستادی',
     roleIcon: 'fa-user-gear',
     layoutWidthClass: 'max-w-none',
-    gateModulesUntilApproved: true,
-    sidebarMenu: [
-      DASHBOARD_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
-    ],
-    permissions: ['dashboard.view', 'reports.view'],
+    gateModulesUntilApproved: false,
+    sidebarMenu: omitSidebarPaths(SENIOR_ADMIN_SIDEBAR_MENU, [
+      RouteService.karvita.adminUserCreation(),
+      RouteService.karvita.syllabusTermSettings(),
+    ]),
+    permissions: SENIOR_ADMIN_PERMISSIONS.filter(
+      (permission) =>
+        permission !== 'user.create' && permission !== 'syllabus.term-settings'
+    ),
   },
 
   central_organization: {
@@ -302,70 +395,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     roleIcon: 'fa-user-shield',
     layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: false,
-    sidebarMenu: [
-      ADMIN_DASHBOARD_ITEM,
-      {
-        title: 'بررسی مدارک هویتی',
-        path: RouteService.karvita.onboardingApprovals(),
-        icon: 'fa-id-card',
-      },
-      {
-        title: 'مدیریت محتوای لندینگ',
-        path: RouteService.karvita.landingCms(),
-        icon: 'fa-bullhorn',
-      },
-      {
-        title: 'مدیریت دسترسی‌ها',
-        path: PlannedRoutes.userPermissions(),
-        icon: 'fa-user-gear',
-      },
-      {
-        kind: 'group',
-        title: 'مدیریت سازمانی',
-        icon: 'fa-network-wired',
-        children: [
-          {
-            title: 'ساختار سازمانی',
-            path: RouteService.karvita.organizationalStructure(),
-            icon: 'fa-network-wired',
-          },
-          {
-            title: 'ایجاد حساب‌های سازمانی',
-            path: RouteService.karvita.adminUserCreation(),
-            icon: 'fa-user-plus',
-          },
-        ],
-      },
-      {
-        kind: 'group',
-        title: 'مدیریت ترم و سرفصل',
-        icon: 'fa-screwdriver-wrench',
-        children: [
-          {
-            title: 'ارائه و سرفصل دروس',
-            path: RouteService.karvita.syllabusCourseOfferings(),
-            icon: 'fa-sliders',
-          },
-          {
-            title: 'تنظیمات عمومی ترم‌ها',
-            path: RouteService.karvita.syllabusTermSettings(),
-            icon: 'fa-clock-rotate-left',
-          },
-        ],
-      },
-      MANAGE_ADS_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
-    ],
-    permissions: [
-      'dashboard.view',
-      'onboarding.review',
-      'permission.manage',
-      'user.create',
-      'syllabus.manage',
-      'organization.manage',
-      'ads.manage',
-      'reports.view',
-    ],
+    sidebarMenu: SENIOR_ADMIN_SIDEBAR_MENU,
+    permissions: [...SENIOR_ADMIN_PERMISSIONS],
   },
 };

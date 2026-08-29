@@ -5,11 +5,15 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { isAdminControlPlanePath } from '@/lib/live-nav-paths';
-import { getPostLoginPath, isSuperAdminRole } from '@/services/post-login-path';
+import { getPostLoginPath } from '@/services/post-login-path';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
-import { areKarvitaModulesUnlocked } from '@/utils/RoleStrategyMap';
+import {
+  areKarvitaModulesUnlocked,
+  canAccessAdminControlPlane,
+  isStaffAdminRole,
+} from '@/utils/RoleStrategyMap';
 
 function isProfilePath(pathname: string, role: string): boolean {
   const profilePath = RouteService.karvita.profile(role);
@@ -25,11 +29,14 @@ function resolveKarvitaRedirect(
   }
 
   const userDashboard = RouteService.karvita.dashboard();
-  if (isSuperAdminRole(user.role) && pathname === userDashboard) {
+  if (isStaffAdminRole(user.role) && pathname === userDashboard) {
     return getPostLoginPath(user);
   }
-  if (!isSuperAdminRole(user.role) && isAdminControlPlanePath(pathname)) {
-    return userDashboard;
+  if (
+    isAdminControlPlanePath(pathname) &&
+    !canAccessAdminControlPlane(user.role, pathname)
+  ) {
+    return getPostLoginPath(user);
   }
 
   return null;

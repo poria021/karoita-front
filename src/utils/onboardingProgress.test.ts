@@ -90,4 +90,13 @@ describe('shouldShowOnboardingChecklist', () => {
       })
     ).toBe(false);
   });
+
+  it('never shows for assistant_admin (ungated staff panel)', () => {
+    expect(
+      shouldShowOnboardingChecklist({
+        role: 'assistant_admin',
+        approved: false,
+      })
+    ).toBe(false);
+  });
 });

@@ -1,4 +1,5 @@
-import { isLiveSidebarPath } from '@/lib/live-nav-paths';
+import { isAdminControlPlanePath, isLiveSidebarPath } from '@/lib/live-nav-paths';
+import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 
 import { ROLE_STRATEGY_MAP } from '@/utils/role-strategy/strategies';
@@ -52,6 +53,44 @@ export function isSuperAdminRole(
   role: UserRole | string | null | undefined
 ): boolean {
   return role === 'super_admin';
+}
+
+/** مدیر ارشد و دستیار مدیر ارشد — پنل کنترل `/karvita/admin`. */
+export function isStaffAdminRole(
+  role: UserRole | string | null | undefined
+): boolean {
+  return role === 'super_admin' || role === 'assistant_admin';
+}
+
+function normalizeAccessPath(pathname: string): string {
+  const withoutQuery = pathname.split('?')[0] ?? pathname;
+  const trimmed = withoutQuery.replace(/\/+$/, '');
+  return trimmed.length > 0 ? trimmed : '/';
+}
+
+const ASSISTANT_ADMIN_BLOCKED_PATHS = new Set([
+  RouteService.karvita.adminUserCreation(),
+  RouteService.karvita.syllabusTermSettings(),
+]);
+
+function isAssistantAdminBlockedPath(pathname: string): boolean {
+  return ASSISTANT_ADMIN_BLOCKED_PATHS.has(normalizeAccessPath(pathname));
+}
+
+/**
+ * دستیار مدیر ارشد ماژول‌های اجرایی مدیر ارشد را می‌بیند،
+ * به‌جز ایجاد حساب سازمانی و تنظیمات عمومی ترم.
+ */
+export function canAccessAdminControlPlane(
+  role: UserRole | string | null | undefined,
+  pathname: string
+): boolean {
+  if (!isAdminControlPlanePath(pathname)) return false;
+  if (isSuperAdminRole(role)) return true;
+  if (role === 'assistant_admin') {
+    return !isAssistantAdminBlockedPath(pathname);
+  }
+  return false;
 }
 
 export function hasPermission(

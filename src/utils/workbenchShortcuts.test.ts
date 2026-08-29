@@ -18,6 +18,17 @@ describe('getLiveWorkbenchShortcuts', () => {
     expect(paths).not.toContain(PlannedRoutes.standardReports());
   });
 
+  it('gives assistant_admin live shortcuts except org accounts and term settings', () => {
+    const shortcuts = getLiveWorkbenchShortcuts('assistant_admin');
+    const paths = shortcuts.map((item) => item.path);
+
+    expect(paths).toContain(RouteService.karvita.organizationalStructure());
+    expect(paths).toContain(RouteService.karvita.onboardingApprovals());
+    expect(paths).not.toContain(RouteService.karvita.adminUserCreation());
+    expect(paths).toContain(RouteService.karvita.syllabusCourseOfferings());
+    expect(paths).not.toContain(RouteService.karvita.syllabusTermSettings());
+  });
+
   it('returns live internship shortcuts for student and excludes planned modules', () => {
     const shortcuts = getLiveWorkbenchShortcuts('student');
     const paths = shortcuts.map((item) => item.path);

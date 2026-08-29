@@ -104,6 +104,27 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.adminUserCreation(),
     ]);
 
+    const assistantMenu = getVisibleSidebarMenu('assistant_admin');
+    expect(assistantMenu.map((entry) => entry.title)).toEqual([
+      'میز کار مدیریت',
+      'بررسی مدارک هویتی',
+      'مدیریت محتوای لندینگ',
+      'مدیریت سازمانی',
+      'مدیریت ترم و سرفصل',
+    ]);
+    expect(
+      assistantMenu
+        .filter(isSidebarMenuGroup)
+        .find((g) => g.title === 'مدیریت سازمانی')
+        ?.children.map((c) => c.path)
+    ).toEqual([RouteService.karvita.organizationalStructure()]);
+    expect(
+      assistantMenu
+        .filter(isSidebarMenuGroup)
+        .find((g) => g.title === 'مدیریت ترم و سرفصل')
+        ?.children.map((c) => c.path)
+    ).toEqual([RouteService.karvita.syllabusCourseOfferings()]);
+
     const syllabusGroup = groups.find((g) => g.title === 'مدیریت ترم و سرفصل');
     expect(syllabusGroup?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.syllabusCourseOfferings(),

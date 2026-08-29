@@ -29,6 +29,12 @@ describe('getPostLoginPath', () => {
     );
   });
 
+  it('routes assistant_admin to the same admin dashboard', () => {
+    expect(getPostLoginPath(user({ role: 'assistant_admin' }))).toBe(
+      RouteService.karvita.adminDashboard()
+    );
+  });
+
   it('routes locked student to profile (home while locked)', () => {
     expect(
       getPostLoginPath(user({ role: 'student', approved: false }))
@@ -75,6 +81,43 @@ describe('resolvePostAuthPath / canAccessReturnPath', () => {
         RouteService.karvita.organizationalStructure()
       )
     ).toBe(RouteService.karvita.organizationalStructure());
+  });
+
+  it('allows assistant_admin admin modules except user-creation and term settings', () => {
+    const assistant = user({ role: 'assistant_admin' });
+    expect(
+      canAccessReturnPath(
+        assistant,
+        RouteService.karvita.organizationalStructure()
+      )
+    ).toBe(true);
+    expect(
+      canAccessReturnPath(
+        assistant,
+        RouteService.karvita.syllabusCourseOfferings()
+      )
+    ).toBe(true);
+    expect(
+      canAccessReturnPath(assistant, RouteService.karvita.adminUserCreation())
+    ).toBe(false);
+    expect(
+      canAccessReturnPath(
+        assistant,
+        RouteService.karvita.syllabusTermSettings()
+      )
+    ).toBe(false);
+    expect(
+      resolvePostAuthPath(
+        assistant,
+        RouteService.karvita.adminUserCreation()
+      )
+    ).toBe(RouteService.karvita.adminDashboard());
+    expect(
+      resolvePostAuthPath(
+        assistant,
+        RouteService.karvita.syllabusTermSettings()
+      )
+    ).toBe(RouteService.karvita.adminDashboard());
   });
 
   it('rejects open redirect payloads', () => {

@@ -46,8 +46,9 @@ export function isAppShellPath(pathname: string): boolean {
 }
 
 /**
- * Super-admin control plane under `/karvita/admin/...`
- * (dashboard + modules).
+ * Staff admin control plane under `/karvita/admin/...`
+ * (dashboard + modules). دستیار مدیر ارشد ماژول‌های اجرایی را می‌بیند؛
+ * ایجاد حساب سازمانی و تنظیمات عمومی ترم فقط برای مدیر ارشد است.
  */
 export function isAdminControlPlanePath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);

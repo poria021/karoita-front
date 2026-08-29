@@ -14,6 +14,8 @@ import {
 import type { User } from '@/types/auth';
 import {
   areKarvitaModulesUnlocked,
+  canAccessAdminControlPlane,
+  isStaffAdminRole,
   isSuperAdminRole,
 } from '@/utils/RoleStrategyMap';
 
@@ -127,7 +129,7 @@ export function getPostLoginPath(user: User | null | undefined): string {
     return RouteService.auth.login();
   }
 
-  if (isSuperAdminRole(user.role)) {
+  if (isStaffAdminRole(user.role)) {
     return RouteService.karvita.adminDashboard();
   }
 
@@ -157,12 +159,15 @@ export function canAccessReturnPath(
     return true;
   }
 
-  if (isAdminControlPlanePath(pathname) && !isSuperAdminRole(user.role)) {
+  if (
+    isAdminControlPlanePath(pathname) &&
+    !canAccessAdminControlPlane(user.role, pathname)
+  ) {
     return false;
   }
 
   if (
-    isSuperAdminRole(user.role) &&
+    isStaffAdminRole(user.role) &&
     pathname === RouteService.karvita.dashboard()
   ) {
     return false;

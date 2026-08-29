@@ -5,12 +5,14 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { isAdminControlPlanePath } from '@/lib/live-nav-paths';
-import { getPostLoginPath, isSuperAdminRole } from '@/services/post-login-path';
+import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
+import { canAccessAdminControlPlane } from '@/utils/RoleStrategyMap';
 
 /**
- * Guards admin control-plane routes; redirects non-super-admins to appropriate dashboard.
- * Used for module pages that require super-admin access.
+ * Guards `/karvita/admin` modules. مدیر ارشد همه را می‌بیند؛
+ * دستیار مدیر ارشد ماژول‌های اجرایی را می‌بیند، به‌جز ایجاد حساب
+ * سازمانی و تنظیمات عمومی ترم.
  */
 export function SuperAdminModuleGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -18,7 +20,9 @@ export function SuperAdminModuleGuard({ children }: { children: ReactNode }) {
   const activeUser = useUserStore((state) => state.activeUser);
 
   const shouldRedirect =
-    activeUser && !isSuperAdminRole(activeUser.role) && isAdminControlPlanePath(pathname);
+    activeUser &&
+    isAdminControlPlanePath(pathname) &&
+    !canAccessAdminControlPlane(activeUser.role, pathname);
 
   useLayoutEffect(() => {
     if (!shouldRedirect) return;

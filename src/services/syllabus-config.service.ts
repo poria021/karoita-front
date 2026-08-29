@@ -63,6 +63,12 @@ function gateSyllabus(): void {
   }
 }
 
+function gateSyllabusTermSettings(): void {
+  if (isMockApiMode()) {
+    assertMockClientHasPermission('syllabus.term-settings');
+  }
+}
+
 /** Enrollment/daily-approvals consumers — Nest authorises separately. */
 function gateSyllabusConsumerRead(): void {
   // No permission check for consumers in real mode — Nest handles authz.
@@ -347,7 +353,7 @@ export const SyllabusConfigService = {
    * Returns the refreshed SyllabusConfigSnapshot.
    */
   async createTerm(input: UpsertTermInput): Promise<SyllabusConfigSnapshot> {
-    gateSyllabus();
+    gateSyllabusTermSettings();
     if (!IS_MOCK_MODE) {
       return createRealTerm(input);
     }
@@ -373,7 +379,7 @@ export const SyllabusConfigService = {
    * Returns the refreshed SyllabusConfigSnapshot.
    */
   async deleteTerm(termId: string): Promise<SyllabusConfigSnapshot> {
-    gateSyllabus();
+    gateSyllabusTermSettings();
     if (!IS_MOCK_MODE) {
       return deleteRealTerm(termId);
     }
@@ -404,7 +410,7 @@ export const SyllabusConfigService = {
   async setProfessorCapacity(
     capacity: number
   ): Promise<SyllabusConfigSnapshot> {
-    gateSyllabus();
+    gateSyllabusTermSettings();
     if (!IS_MOCK_MODE) {
       return setRealProfessorCapacity(capacity);
     }
@@ -420,7 +426,7 @@ export const SyllabusConfigService = {
   async setPassingThreshold(
     threshold: number
   ): Promise<SyllabusConfigSnapshot> {
-    gateSyllabus();
+    gateSyllabusTermSettings();
     if (!IS_MOCK_MODE) {
       return setRealPassingThreshold(threshold);
     }

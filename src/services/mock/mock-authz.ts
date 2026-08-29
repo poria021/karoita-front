@@ -2,6 +2,7 @@ import { isMockApiMode } from '@/lib/api-mode';
 import { useUserStore } from '@/store/useUserStore';
 import {
   hasPermission,
+  isStaffAdminRole,
   isSuperAdminRole,
 } from '@/utils/RoleStrategyMap';
 
@@ -30,6 +31,14 @@ export function assertMockClientIsSuperAdmin(): void {
   assertMockSimulator();
   const user = useUserStore.getState().activeUser;
   if (!user || !isSuperAdminRole(user.role)) {
+    throw new Error(MOCK_AUTHZ_DENIED);
+  }
+}
+
+export function assertMockClientIsStaffAdmin(): void {
+  assertMockSimulator();
+  const user = useUserStore.getState().activeUser;
+  if (!user || !isStaffAdminRole(user.role)) {
     throw new Error(MOCK_AUTHZ_DENIED);
   }
 }

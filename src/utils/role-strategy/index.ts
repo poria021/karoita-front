@@ -11,8 +11,10 @@ export { ROLE_STRATEGY_MAP } from '@/utils/role-strategy/strategies';
 
 export {
   areKarvitaModulesUnlocked,
+  canAccessAdminControlPlane,
   getRoleStrategy,
   getVisibleSidebarMenu,
   hasPermission,
+  isStaffAdminRole,
   isSuperAdminRole,
 } from '@/utils/role-strategy/helpers';

@@ -7,7 +7,7 @@ import {
 import { useUserStore } from '@/store/useUserStore';
 import type { User, UserRole } from '@/types/auth';
 import type { NestAuthUpdateDto } from '@/types/nest-users';
-import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
+import { isStaffAdminRole, isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import {
   AUTH_ERR_ADMIN_GATE_ONLY,
@@ -102,7 +102,7 @@ export function mockVerifyLoginOtp(mobile: string, otp: string): User {
 
 export function mockSendAdminGateOtp(mobile: string): void {
   const record = findMockUserByMobile(mobile);
-  if (!record || !isSuperAdminRole(record.role)) {
+  if (!record || !isStaffAdminRole(record.role)) {
     throw new Error(AUTH_ERR_ADMIN_GATE_ONLY);
   }
 }
@@ -110,7 +110,7 @@ export function mockSendAdminGateOtp(mobile: string): void {
 export function mockVerifyAdminGateOtp(mobile: string, otp: string): User {
   assertMockOtp(otp);
   const record = findMockUserByMobile(mobile);
-  if (!record || !isSuperAdminRole(record.role)) {
+  if (!record || !isStaffAdminRole(record.role)) {
     throw new Error(AUTH_ERR_ADMIN_GATE_ONLY);
   }
   const user = toPublicUser(record);
