@@ -107,6 +107,7 @@ export function KvImageDocUploader({
     [existingUrl]
   );
   const [previewFailed, setPreviewFailed] = useState(false);
+  const [previewDimmed, setPreviewDimmed] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -333,7 +334,12 @@ export function KvImageDocUploader({
                 </KvTypography>
               </div>
             ) : previewUrl ? (
-              <div className="relative h-full w-full">
+              <div
+                className="relative h-full w-full"
+                onMouseEnter={() => setPreviewDimmed(true)}
+                onMouseLeave={() => setPreviewDimmed(false)}
+                onClick={() => setPreviewDimmed(false)}
+              >
                 {canOpenPreview ? (
                   <KvBrowsableMediaLink
                     href={previewUrl}
@@ -362,6 +368,14 @@ export function KvImageDocUploader({
                     />
                   </div>
                 )}
+                {/* کلیک لایه را برمی‌گرداند — :hover بعد از تب جدید گیر می‌کند */}
+                <div
+                  aria-hidden
+                  className={cn(
+                    'pointer-events-none absolute inset-0 z-[1] bg-white/80 transition-opacity duration-300 ease-out dark:bg-black/80',
+                    previewDimmed ? 'opacity-0' : 'opacity-100'
+                  )}
+                />
                 {!disabled ? (
                   <KvButton
                     type="button"
