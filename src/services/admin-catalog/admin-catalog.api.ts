@@ -413,9 +413,30 @@ export const adminCatalogApi = {
   },
 };
 
-const ALL_PROVINCES_FALLBACK_PAGE_SIZE = 200;
+const NEST_PAGED_CATALOG_PAGE_SIZE = 200;
 // Guards a runaway loop if `hasNextPage` never settles to false.
-const ALL_PROVINCES_FALLBACK_MAX_PAGES = 50;
+const NEST_PAGED_CATALOG_MAX_PAGES = 50;
+
+async function fetchAllNestPagedCatalog<T>(
+  listPage: (
+    query: NestAdminPageQuery,
+    token?: string
+  ) => Promise<NestPagedList<T>>,
+  token?: string
+): Promise<T[]> {
+  const all: T[] = [];
+  let page = 1;
+  for (let i = 0; i < NEST_PAGED_CATALOG_MAX_PAGES; i += 1) {
+    const { data, hasNextPage } = await listPage(
+      { page, limit: NEST_PAGED_CATALOG_PAGE_SIZE },
+      token
+    );
+    all.push(...data);
+    if (!hasNextPage) break;
+    page += 1;
+  }
+  return all;
+}
 
 /**
  * Full unfiltered province list, for typeaheads/dropdowns that need every
@@ -433,17 +454,15 @@ export async function fetchAllNestProvinces(
   try {
     return await adminCatalogApi.getAllProvinces(undefined, token);
   } catch {
-    const all: NestProvinceLite[] = [];
-    let page = 1;
-    for (let i = 0; i < ALL_PROVINCES_FALLBACK_MAX_PAGES; i += 1) {
-      const { data, hasNextPage } = await adminCatalogApi.listProvinces(
-        { page, limit: ALL_PROVINCES_FALLBACK_PAGE_SIZE },
-        token
-      );
-      all.push(...data);
-      if (!hasNextPage) break;
-      page += 1;
-    }
-    return all;
+    return fetchAllNestPagedCatalog(adminCatalogApi.listProvinces, token);
   }
+}
+
+/**
+ * Full city catalog. GET /admin/cities is paginated (`hasNextPage`) with
+ * no bulk sibling of `/admin/province/all`, so parent-delete checks must
+ * walk pages — using only `data` from page 1 would under-block provinces.
+ */
+export async function fetchAllNestCities(token?: string): Promise<NestCity[]> {
+  return fetchAllNestPagedCatalog(adminCatalogApi.listCities, token);
 }

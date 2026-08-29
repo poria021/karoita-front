@@ -232,7 +232,16 @@ export function OrgStructureTable({
                               color="error"
                               appearance="ghost"
                               size="icon-xs"
-                              aria-label="حذف"
+                              aria-label={
+                                row.deleteBlocked
+                                  ? 'حذف غیرفعال است چون واحدهای وابسته وجود دارد'
+                                  : 'حذف'
+                              }
+                              title={
+                                row.deleteBlocked
+                                  ? 'حذف به‌خاطر وابستگی واحدهای زیرمجموعه ممکن نیست'
+                                  : undefined
+                              }
                               disabled={row.deleteBlocked}
                               onClick={() => onDelete(row)}
                               icon={

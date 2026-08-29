@@ -1,14 +1,19 @@
 import type {
   OrgStructureEntityKind,
+  OrgStructureListItem,
   OrgStructureSnapshot,
+  OrgStructureSubTab,
 } from '@/types/org-structure';
-
 
 export type OrgDeleteBlockedSets = {
   provinces: Set<string>;
   cities: Set<string>;
   districts: Set<string>;
 };
+
+function addId(set: Set<string>, id: string | undefined): void {
+  if (id) set.add(id);
+}
 
 export function buildOrgDeleteBlockedSets(
   db: OrgStructureSnapshot
@@ -18,20 +23,20 @@ export function buildOrgDeleteBlockedSets(
   const districts = new Set<string>();
 
   for (const city of db.cities) {
-    provinces.add(city.provinceId);
+    addId(provinces, city.provinceId);
   }
   for (const faculty of db.faculties) {
-    provinces.add(faculty.provinceId);
-    cities.add(faculty.cityId);
+    addId(provinces, faculty.provinceId);
+    addId(cities, faculty.cityId);
   }
   for (const district of db.districts) {
-    provinces.add(district.provinceId);
-    cities.add(district.cityId);
+    addId(provinces, district.provinceId);
+    addId(cities, district.cityId);
   }
   for (const school of db.schools) {
-    provinces.add(school.provinceId);
-    cities.add(school.cityId);
-    if (school.districtId) districts.add(school.districtId);
+    addId(provinces, school.provinceId);
+    addId(cities, school.cityId);
+    addId(districts, school.districtId);
   }
 
   return { provinces, cities, districts };
@@ -69,4 +74,37 @@ export function isOrgEntityDeleteBlocked(
   id: string
 ): boolean {
   return isDeleteBlockedWithSets(kind, id, buildOrgDeleteBlockedSets(db));
+}
+
+export function withDeleteBlocked(
+  items: readonly OrgStructureListItem[],
+  sets: OrgDeleteBlockedSets
+): OrgStructureListItem[] {
+  return items.map((row) => ({
+    ...row,
+    deleteBlocked: isDeleteBlockedWithSets(row.kind, row.id, sets),
+  }));
+}
+
+export function orgDeleteBlockedMessage(
+  kind: OrgStructureEntityKind
+): string | null {
+  if (kind === 'province') {
+    return 'این استان به سایر واحدهای سازمانی متصل است و قابل حذف نیست.';
+  }
+  if (kind === 'city') {
+    return 'این شهر به سایر واحدهای سازمانی متصل است و قابل حذف نیست.';
+  }
+  if (kind === 'district') {
+    return 'این منطقه به مدارس متصل است و قابل حذف نیست.';
+  }
+  if (kind === 'faculty') return 'این پردیس قابل حذف نیست.';
+  if (kind === 'school') return 'این مدرسه قابل حذف نیست.';
+  return null;
+}
+
+export function orgTabNeedsDeleteBlockedIndex(
+  tab: OrgStructureSubTab
+): boolean {
+  return tab === 'provinces' || tab === 'cities' || tab === 'districts';
 }

@@ -1,4 +1,7 @@
-import { isDeleteBlockedWithSets } from '@/services/org-structure/mock/org-structure-delete-rules';
+import {
+  isDeleteBlockedWithSets,
+  orgDeleteBlockedMessage,
+} from '@/services/org-structure/org-structure-delete-rules';
 import {
   getEntityById,
   getOrgRuntime,
@@ -296,34 +299,20 @@ export function mockDeleteEntity(
   const db = runtime.snapshot;
   const blocked = isDeleteBlockedWithSets(kind, id, runtime.deleteBlocked);
 
+  if (blocked) {
+    const message = orgDeleteBlockedMessage(kind);
+    if (message) throw new Error(message);
+  }
+
   if (kind === 'province') {
-    if (blocked) {
-      throw new Error(
-        'این استان به سایر واحدهای سازمانی متصل است و قابل حذف نیست.'
-      );
-    }
     db.provinces = db.provinces.filter((p) => p.id !== id);
   } else if (kind === 'city') {
-    if (blocked) {
-      throw new Error(
-        'این شهر به سایر واحدهای سازمانی متصل است و قابل حذف نیست.'
-      );
-    }
     db.cities = db.cities.filter((c) => c.id !== id);
   } else if (kind === 'faculty') {
-    if (blocked) {
-      throw new Error('این پردیس قابل حذف نیست.');
-    }
     db.faculties = db.faculties.filter((f) => f.id !== id);
   } else if (kind === 'district') {
-    if (blocked) {
-      throw new Error('این منطقه به مدارس متصل است و قابل حذف نیست.');
-    }
     db.districts = db.districts.filter((d) => d.id !== id);
   } else if (kind === 'school') {
-    if (blocked) {
-      throw new Error('این مدرسه قابل حذف نیست.');
-    }
     db.schools = db.schools.filter((s) => s.id !== id);
   } else {
     db.majors = db.majors.filter((m) => m.id !== id);

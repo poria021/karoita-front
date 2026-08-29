@@ -1,8 +1,8 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import {
   flushBareListCache,
-  invalidateRealBareListCache,
 } from '@/services/org-structure/real/real-org-reads';
+import { assertRealOrgDeleteAllowed } from '@/services/org-structure/real/real-org-delete-blocked';
 import {
   invalidateDistrictNameCache,
   invalidateProvinceNameCache,
@@ -192,6 +192,7 @@ export async function deleteRealEntity(
   kind: OrgStructureEntityKind,
   id: string
 ): Promise<void> {
+  await assertRealOrgDeleteAllowed(kind, id);
   switch (kind) {
     case 'province':
       await adminCatalogApi.deleteProvince(id);

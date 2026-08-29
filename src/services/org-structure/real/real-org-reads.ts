@@ -1,5 +1,6 @@
 import {
   adminCatalogApi,
+  fetchAllNestCities,
   fetchAllNestProvinces,
 } from '@/services/admin-catalog/admin-catalog.api';
 import {
@@ -14,7 +15,15 @@ import {
   toOrgProvince,
   toOrgSchool,
 } from '@/services/org-structure/real/real-org-mappers';
+import {
+  orgTabNeedsDeleteBlockedIndex,
+  withDeleteBlocked,
+} from '@/services/org-structure/org-structure-delete-rules';
 import { overlayOrgRelationLabels } from '@/services/org-structure/real/org-relation-label-overlay';
+import {
+  flushRealDeleteBlockedCache,
+  getRealDeleteBlockedSets,
+} from '@/services/org-structure/real/real-org-delete-blocked';
 import type { OrgStructureListItem, OrgStructureListPage } from '@/services/org-structure/mock/mock-org-query';
 import type {
   OrgCity,
@@ -30,13 +39,14 @@ import type {
 import { estimateHasNextPageTotal, sliceOffsetLimitPage } from '@/utils/offset-limit-page';
 
 export async function getRealSnapshot(): Promise<OrgStructureSnapshot> {
-  const [provinces, cities, districts, schools] = await Promise.all([
+  const [provinces, cities, districts, schools, faculties] = await Promise.all([
     fetchAllNestProvinces().then((ps) => ps.map(toOrgProvince)),
-    adminCatalogApi.listCities().then((res) => res.data.map(toOrgCity)),
+    fetchAllNestCities().then((rows) => rows.map(toOrgCity)),
     adminCatalogApi.listEducations().then((rows) => rows.map(toOrgDistrict)),
     adminCatalogApi.listSchools().then((rows) => rows.map(toOrgSchool)),
+    adminCatalogApi.listUniversities().then((rows) => rows.map(toOrgFaculty)),
   ]);
-  return { provinces, cities, districts, schools, majors: [], faculties: [] };
+  return { provinces, cities, districts, schools, majors: [], faculties };
 }
 
 /**
@@ -171,6 +181,7 @@ async function getBareListItems(
  * parallel fetch before the first one lands.
  */
 export function invalidateRealBareListCache(tab?: OrgStructureSubTab): void {
+  flushRealDeleteBlockedCache();
   if (tab) {
     const entry = bareListCache.get(tab);
     if (entry) {
@@ -199,6 +210,7 @@ export function invalidateRealBareListCache(tab?: OrgStructureSubTab): void {
  * always get a fresh network fetch after create/update/delete.
  */
 export function flushBareListCache(tab?: OrgStructureSubTab): void {
+  flushRealDeleteBlockedCache();
   if (tab) {
     bareListCache.delete(tab);
     return;
@@ -214,6 +226,21 @@ export type RealListPageOptions = {
 };
 
 export async function listRealPage(
+  options: RealListPageOptions
+): Promise<OrgStructureListPage> {
+  const page = await listRealPageRaw(options);
+  if (!orgTabNeedsDeleteBlockedIndex(options.tab)) return page;
+  try {
+    const sets = await getRealDeleteBlockedSets();
+    return { ...page, items: withDeleteBlocked(page.items, sets) };
+  } catch {
+    // Catalog index is advisory. Keep the list readable if a child
+    // endpoint is down; Nest still rejects an illegal DELETE.
+    return page;
+  }
+}
+
+async function listRealPageRaw(
   options: RealListPageOptions
 ): Promise<OrgStructureListPage> {
   const { offset, limit, query } = options;

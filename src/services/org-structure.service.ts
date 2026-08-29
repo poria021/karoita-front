@@ -115,7 +115,7 @@ function requireMockOrgManage(): void {
  * - DELETE /org-structure/:kind/:id
  */
 export const OrgStructureService = {
-  /** GET /org-structure/snapshot — real: composite from provinces+cities+districts+schools */
+  /** GET /org-structure/snapshot — real: composite from provinces+cities+districts+schools+faculties */
   async getSnapshot(): Promise<OrgStructureSnapshot> {
     if (!IS_MOCK_MODE) {
       return getRealSnapshot();

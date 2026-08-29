@@ -3,7 +3,7 @@ import { buildOrgStructureSeed } from '@/services/org-structure/mock/org-structu
 import {
   buildOrgDeleteBlockedSets,
   type OrgDeleteBlockedSets,
-} from '@/services/org-structure/mock/org-structure-delete-rules';
+} from '@/services/org-structure/org-structure-delete-rules';
 import type {
   OrgCity,
   OrgDistrict,

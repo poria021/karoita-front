@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildOrgDeleteBlockedSets,
   isDeleteBlockedWithSets,
-} from '@/services/org-structure/mock/org-structure-delete-rules';
+} from '@/services/org-structure/org-structure-delete-rules';
 import {
   getFilteredSortedRows,
   pageOrgRows,
