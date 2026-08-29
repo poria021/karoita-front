@@ -1,5 +1,5 @@
 /**
- * Nest `POST /auth/forgot/password` returns `{ time, message? }`.
+ * Nest OTP send endpoints (`forgot/password`, `register/request-otp`, …) return `{ time, message? }`.
  *
  * `time` is the resend cooldown in seconds. `message` is ignored on purpose:
  * some environments put the OTP itself there, and the UI must never display it.

@@ -73,6 +73,19 @@ export const forgotResetSchema = z
 
 export type ForgotResetSchema = z.infer<typeof forgotResetSchema>;
 
+/** Nest فقط در `reset/password` OTP را می‌سنجد — کد و رمز جدید یک‌جا جمع می‌شوند. */
+export const forgotOtpResetSchema = otpSchema
+  .extend({
+    newPassword: passwordFieldSchema,
+    confirmPassword: passwordFieldSchema,
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'رمزها همخوانی ندارند.',
+    path: ['confirmPassword'],
+  });
+
+export type ForgotOtpResetSchema = z.infer<typeof forgotOtpResetSchema>;
+
 export const SELF_REGISTERABLE_ROLES = [
   'student',
   'skill_learner',

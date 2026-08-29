@@ -196,10 +196,18 @@ export async function realVerifyLoginOtp(mobile: string, otp: string): Promise<U
   return applyNestLoginResponse(raw, mobile);
 }
 
-export async function realRegister(mobile: string, role: UserRole): Promise<void> {
+export type OtpCooldownResult = {
+  retryAfterSeconds: number;
+};
+
+/** @deprecated Use OtpCooldownResult */
+export type ForgotPasswordOtpResult = OtpCooldownResult;
+
+export async function realRegister(mobile: string, role: UserRole): Promise<OtpCooldownResult> {
   guard('real-auth.bridge.register');
   const nestRole = await resolveNestRoleDto(role);
-  await apiClient.postJson(REAL_AUTH_PATHS.register, { ...toPhoneBody(mobile), role: { id: nestRole.id, name: nestRole.name } });
+  const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.register, { ...toPhoneBody(mobile), role: { id: nestRole.id, name: nestRole.name } });
+  return { retryAfterSeconds: parseForgotPasswordRetryAfter(raw) };
 }
 
 export async function realVerifyRegistrationOtp(mobile: string, otp: string, _role: UserRole): Promise<User> {
@@ -215,31 +223,15 @@ export async function realVerifyRegistrationOtp(mobile: string, otp: string, _ro
   throw new ApiClientError('پاسخ تایید ثبت‌نام فاقد نشست/توکن است.');
 }
 
-export type ForgotPasswordOtpResult = {
-  retryAfterSeconds: number;
-};
-
 export async function realSendForgotPasswordOtp(
   mobile: string
-): Promise<ForgotPasswordOtpResult> {
+): Promise<OtpCooldownResult> {
   guard('real-auth.bridge.forgotSend');
   const raw = await apiClient.postJson<unknown>(
     REAL_AUTH_PATHS.forgotSend,
     toPhoneBody(mobile)
   );
   return { retryAfterSeconds: parseForgotPasswordRetryAfter(raw) };
-}
-
-/**
- * Nest has no standalone "verify forgot OTP" route. The OTP is checked on
- * `POST /auth/reset/password`. This only rejects obviously empty/short codes
- * so the reset step is not shown with a blank value.
- */
-export async function realVerifyForgotPasswordOtp(mobile: string, otp: string): Promise<void> {
-  guard('real-auth.bridge.forgotVerify');
-  const { phone } = toPhoneBody(mobile);
-  const digits = otp.replace(/\D/g, '');
-  if (!phone || digits.length < 4) throw new ApiClientError('کد تایید بازیابی نامعتبر است.');
 }
 
 export async function realResetPassword(mobile: string, otp: string, newPassword: string): Promise<void> {

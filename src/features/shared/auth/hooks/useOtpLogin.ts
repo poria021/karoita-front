@@ -9,7 +9,7 @@ import { readAuthErrorMessage } from './authError';
 import { useOtpCountdown } from './useOtpCountdown';
 
 interface UseOtpLoginOptions {
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
 }
 
 export function useOtpLogin({ onSuccess }: UseOtpLoginOptions) {
@@ -67,7 +67,7 @@ export function useOtpLogin({ onSuccess }: UseOtpLoginOptions) {
   const verifyOtp = otpCodeForm.handleSubmit(async (data) => {
     try {
       await AuthService.verifyLoginOtp(pendingMobile, data.otp);
-      onSuccess();
+      await onSuccess();
     } catch (error) {
       otpCodeForm.setError('otp', {
         message: readAuthErrorMessage(error, 'تایید کد ناموفق بود.'),

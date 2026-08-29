@@ -155,11 +155,6 @@ export function mockSendForgotPasswordOtp(mobile: string): void {
   requirePublicUserByMobile(mobile);
 }
 
-export function mockVerifyForgotPasswordOtp(mobile: string, otp: string): void {
-  assertMockOtp(otp);
-  requirePublicUserByMobile(mobile);
-}
-
 export function mockResetPassword(
   mobile: string,
   otp: string,

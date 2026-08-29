@@ -25,7 +25,7 @@ export function ForgotRequestStep({
 
   return (
     <AuthBusyForm busy={isSendingForgotOtp} onSubmit={sendForgotOtp}>
-      <AuthStepHeading step={1} totalSteps={3} />
+      <AuthStepHeading step={1} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
         <Controller

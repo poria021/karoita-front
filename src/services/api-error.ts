@@ -91,13 +91,15 @@ function extractApiMessage(payload: unknown): string | null {
  * منقضی» ترجمه می‌شود.
  */
 const OTP_VERIFY_URL_HINT = 'verify-otp';
+const OTP_RESET_URL_HINT = 'reset/password';
 
-function isOtpVerifyUrl(url: string | undefined): boolean {
-  return typeof url === 'string' && url.includes(OTP_VERIFY_URL_HINT);
+function isOtpAuthUrl(url: string | undefined): boolean {
+  if (typeof url !== 'string') return false;
+  return url.includes(OTP_VERIFY_URL_HINT) || url.includes(OTP_RESET_URL_HINT);
 }
 
 function defaultStatusMessage(status: number, url?: string): string {
-  if (status === 404 && isOtpVerifyUrl(url)) {
+  if (status === 404 && isOtpAuthUrl(url)) {
     return 'کد تایید وارد‌شده اشتباه یا منقضی شده است.';
   }
   if (status === 400) return 'اطلاعات ارسال‌شده معتبر نیست. لطفاً فیلدها را بررسی کنید.';

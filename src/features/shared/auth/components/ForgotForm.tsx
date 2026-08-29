@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-import { RETURN_URL_PARAM } from '@/lib/return-url';
 import { useForgotPassword } from '../hooks/useForgotPassword';
 import { loginHref } from '../lib/authHrefs';
 import {
@@ -12,14 +11,14 @@ import {
 } from '../utils/authFlowMobilePrefill';
 import { ForgotRequestStep } from './ForgotRequestStep';
 import { ForgotResetStep } from './ForgotResetStep';
-import { ForgotVerifyStep } from './ForgotVerifyStep';
 
-export function ForgotForm() {
+interface ForgotFormProps {
+  returnUrl?: string | null;
+}
+
+export function ForgotForm({ returnUrl = null }: ForgotFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const backToLogin = loginHref({
-    returnUrl: searchParams.get(RETURN_URL_PARAM),
-  });
+  const backToLogin = loginHref({ returnUrl });
 
   const [prefill] = useState(() => consumeAuthFlowMobilePrefill());
 
@@ -39,8 +38,7 @@ export function ForgotForm() {
       {forgot.forgotStep === 1 && (
         <ForgotRequestStep forgot={forgot} cancelHref={backToLogin} />
       )}
-      {forgot.forgotStep === 2 && <ForgotVerifyStep forgot={forgot} />}
-      {forgot.forgotStep === 3 && <ForgotResetStep forgot={forgot} />}
+      {forgot.forgotStep === 2 && <ForgotResetStep forgot={forgot} />}
     </div>
   );
 }

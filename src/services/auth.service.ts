@@ -27,7 +27,6 @@ import {
   mockSetInitialPassword,
   mockUpdateMe,
   mockVerifyAdminGateOtp,
-  mockVerifyForgotPasswordOtp,
   mockVerifyLoginOtp,
   mockVerifyRegistrationOtp,
 } from '@/services/auth/mock/mock-auth.operations';
@@ -47,11 +46,10 @@ import {
   realSignOut,
   realUpdateMe,
   realVerifyAdminGateOtp,
-  realVerifyForgotPasswordOtp,
   realVerifyLoginOtp,
   realVerifyRegistrationOtp,
   realRefreshToken,
-  type ForgotPasswordOtpResult,
+  type OtpCooldownResult,
 } from '@/services/auth/real/real-auth.bridge';
 import {
   clearRealAuthTokens,
@@ -97,9 +95,12 @@ export class AuthService {
     return realVerifyAdminGateOtp(mobile, otp);
   }
 
-  static async register(payload: RegisterPayload): Promise<void> {
-    if (IS_MOCK_MODE) { mockRegister(payload.mobile); return; }
-    await realRegister(payload.mobile, payload.role);
+  static async register(payload: RegisterPayload): Promise<OtpCooldownResult> {
+    if (IS_MOCK_MODE) {
+      mockRegister(payload.mobile);
+      return { retryAfterSeconds: DEFAULT_FORGOT_RETRY_AFTER_SECONDS };
+    }
+    return realRegister(payload.mobile, payload.role);
   }
 
   static async verifyRegistrationOtp(mobile: string, otp: string, role: UserRole): Promise<User> {
@@ -110,18 +111,12 @@ export class AuthService {
 
   static async sendForgotPasswordOtp(
     mobile: string
-  ): Promise<ForgotPasswordOtpResult> {
+  ): Promise<OtpCooldownResult> {
     if (IS_MOCK_MODE) {
       mockSendForgotPasswordOtp(mobile);
       return { retryAfterSeconds: DEFAULT_FORGOT_RETRY_AFTER_SECONDS };
     }
     return realSendForgotPasswordOtp(mobile);
-  }
-
-  static async verifyForgotPasswordOtp(mobile: string, otp: string): Promise<void> {
-    if (IS_MOCK_MODE) { mockVerifyForgotPasswordOtp(mobile, otp); return; }
-    rejectMockOtpInReal(otp);
-    return realVerifyForgotPasswordOtp(mobile, otp);
   }
 
   static async resetPassword(mobile: string, otp: string, newPassword: string): Promise<void> {

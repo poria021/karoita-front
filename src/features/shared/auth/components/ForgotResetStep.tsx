@@ -7,6 +7,8 @@ import type { UseForgotPasswordReturn } from '../hooks/useForgotPassword';
 import { AuthStepHeading } from './AuthStepHeading';
 import { AuthBusyForm } from './fields/AuthBusyForm';
 import { AuthSubmitButton } from './fields/AuthSubmitButton';
+import { OtpCodeField } from './fields/OtpCodeField';
+import { OtpResendFooter } from './fields/OtpResendFooter';
 
 interface ForgotResetStepProps {
   forgot: UseForgotPasswordReturn;
@@ -14,18 +16,31 @@ interface ForgotResetStepProps {
 
 export function ForgotResetStep({ forgot }: ForgotResetStepProps) {
   const {
-    forgotResetForm,
+    forgotOtpResetForm,
     submitResetPassword,
     isSubmittingResetPassword,
-    goBackToForgotStep2,
+    goBackToForgotStep1,
+    resendForgotOtp,
+    isResendingForgotOtp,
+    secondsUntilForgotResend,
+    canResendForgotOtp,
   } = forgot;
-  const { register, formState } = forgotResetForm;
+  const { register, formState, watch } = forgotOtpResetForm;
+  const busy = isSubmittingResetPassword || isResendingForgotOtp;
 
   return (
-    <AuthBusyForm busy={isSubmittingResetPassword} onSubmit={submitResetPassword}>
-      <AuthStepHeading step={3} totalSteps={3} />
+    <AuthBusyForm busy={busy} onSubmit={submitResetPassword}>
+      <AuthStepHeading step={2} totalSteps={2} />
 
       <div className="flex flex-col gap-kv-group">
+        <OtpCodeField
+          id="forgot-otp-code"
+          registration={register('otp')}
+          value={watch('otp')}
+          errorMessage={formState.errors.otp?.message}
+          locked={busy}
+        />
+
         <KvPasswordField
           id="forgot-new-password"
           label="رمز عبور جدید"
@@ -33,7 +48,7 @@ export function ForgotResetStep({ forgot }: ForgotResetStepProps) {
           autoComplete="new-password"
           error={formState.errors.newPassword?.message}
           {...register('newPassword')}
-          locked={isSubmittingResetPassword}
+          locked={busy}
         />
 
         <KvPasswordField
@@ -43,7 +58,17 @@ export function ForgotResetStep({ forgot }: ForgotResetStepProps) {
           autoComplete="new-password"
           error={formState.errors.confirmPassword?.message}
           {...register('confirmPassword')}
-          locked={isSubmittingResetPassword}
+          locked={busy}
+        />
+
+        <OtpResendFooter
+          secondsUntilResend={secondsUntilForgotResend}
+          canResend={canResendForgotOtp}
+          isResending={isResendingForgotOtp}
+          isBusy={isSubmittingResetPassword}
+          onResend={resendForgotOtp}
+          onGoBack={goBackToForgotStep1}
+          goBackLabel="اصلاح شماره"
         />
       </div>
 
@@ -52,15 +77,15 @@ export function ForgotResetStep({ forgot }: ForgotResetStepProps) {
           isLoading={isSubmittingResetPassword}
           loadingLabel="در حال ثبت..."
         >
-          تایید نهایی و تغییر رمز
+          تایید و تغییر رمز
         </AuthSubmitButton>
 
         <KvButton
           type="button"
           appearance="secondary"
           fullWidth
-          onClick={goBackToForgotStep2}
-          disabled={isSubmittingResetPassword}
+          onClick={goBackToForgotStep1}
+          disabled={busy}
         >
           بازگشت به مرحله قبل
         </KvButton>

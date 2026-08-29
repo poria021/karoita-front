@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
-import { RETURN_URL_PARAM } from '@/lib/return-url';
 import { resolvePostAuthPath } from '@/services/post-login-path';
-import { beginEnteringApp } from '@/store/authTransition';
+import { beginEnteringApp, waitForNextPaint } from '@/store/authTransition';
 import { useUserStore } from '@/store/useUserStore';
 
 import { forgotHref } from '../lib/authHrefs';
@@ -16,15 +15,14 @@ import { usePasswordLogin } from './usePasswordLogin';
 
 export type LoginMode = 'password' | 'otp';
 
-export function useLoginForm() {
+export function useLoginForm(returnUrl: string | null) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const returnUrl = searchParams.get(RETURN_URL_PARAM);
   const [mode, setMode] = useState<LoginMode>('password');
 
-  const goAfterLogin = useCallback(() => {
+  const goAfterLogin = useCallback(async () => {
     const user = useUserStore.getState().activeUser;
     beginEnteringApp();
+    await waitForNextPaint();
     router.replace(resolvePostAuthPath(user, returnUrl));
   }, [returnUrl, router]);
 

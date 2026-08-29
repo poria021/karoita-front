@@ -13,7 +13,7 @@ import {
 import { readAuthErrorMessage } from './authError';
 
 interface UsePasswordLoginOptions {
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
 }
 
 export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
@@ -49,7 +49,7 @@ export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
         shouldValidate: false,
       });
 
-      onSuccess();
+      await onSuccess();
     } catch (error) {
       const message = readAuthErrorMessage(
         error,

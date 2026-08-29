@@ -5,17 +5,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthService } from '@/services/auth.service';
 
 import {
-  forgotResetSchema,
+  forgotOtpResetSchema,
   mobileSchema,
-  otpSchema,
-  type ForgotResetSchema,
+  type ForgotOtpResetSchema,
   type MobileSchema,
-  type OtpSchema,
 } from '../schemas/auth.schema';
-import { readAuthErrorMessage } from './authError';
+import { isOtpAuthError, readAuthErrorMessage } from './authError';
 import { useOtpCountdown } from './useOtpCountdown';
 
-export type ForgotStep = 1 | 2 | 3;
+export type ForgotStep = 1 | 2;
 
 interface UseForgotPasswordOptions {
   onComplete: (recoveredMobile: string) => void;
@@ -34,39 +32,26 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
     defaultValues: { mobile: '' },
   });
 
-  const forgotOtpForm = useForm<OtpSchema>({
-    resolver: zodResolver(otpSchema),
+  const forgotOtpResetForm = useForm<ForgotOtpResetSchema>({
+    resolver: zodResolver(forgotOtpResetSchema),
     mode: 'onSubmit',
     reValidateMode: 'onChange',
-    defaultValues: { otp: '' },
-  });
-
-  const forgotResetForm = useForm<ForgotResetSchema>({
-    resolver: zodResolver(forgotResetSchema),
-    mode: 'onSubmit',
-    reValidateMode: 'onChange',
-    defaultValues: { newPassword: '', confirmPassword: '' },
+    defaultValues: { otp: '', newPassword: '', confirmPassword: '' },
   });
 
   const start = useCallback(
     (prefillMobile: string) => {
       forgotMobileForm.reset({ mobile: prefillMobile });
-      forgotOtpForm.reset({ otp: '' });
-      forgotResetForm.reset({ newPassword: '', confirmPassword: '' });
+      forgotOtpResetForm.reset({ otp: '', newPassword: '', confirmPassword: '' });
       setForgotStep(1);
     },
-    [forgotMobileForm, forgotOtpForm, forgotResetForm]
+    [forgotMobileForm, forgotOtpResetForm]
   );
 
   const goBackToForgotStep1 = useCallback(() => {
     setForgotStep(1);
-    forgotOtpForm.reset({ otp: '' });
-  }, [forgotOtpForm]);
-
-  const goBackToForgotStep2 = useCallback(() => {
-    setForgotStep(2);
-    forgotResetForm.reset({ newPassword: '', confirmPassword: '' });
-  }, [forgotResetForm]);
+    forgotOtpResetForm.reset({ otp: '', newPassword: '', confirmPassword: '' });
+  }, [forgotOtpResetForm]);
 
   const sendForgotOtp = forgotMobileForm.handleSubmit(async (data) => {
     try {
@@ -81,22 +66,10 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
       }
 
       setForgotStep(2);
-      forgotOtpForm.reset({ otp: '' });
+      forgotOtpResetForm.reset({ otp: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
       forgotMobileForm.setError('mobile', {
         message: readAuthErrorMessage(error, 'ارسال کد بازیابی ناموفق بود.'),
-      });
-    }
-  });
-
-  const verifyForgotOtp = forgotOtpForm.handleSubmit(async (data) => {
-    try {
-      await AuthService.verifyForgotPasswordOtp(pendingForgotMobile, data.otp);
-      setForgotStep(3);
-      forgotResetForm.reset({ newPassword: '', confirmPassword: '' });
-    } catch (error) {
-      forgotOtpForm.setError('otp', {
-        message: readAuthErrorMessage(error, 'تایید کد ناموفق بود.'),
       });
     }
   });
@@ -110,50 +83,53 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
         pendingForgotMobile
       );
       countdown.restart(retryAfterSeconds);
-      forgotOtpForm.reset({ otp: '' });
+      forgotOtpResetForm.setValue('otp', '', {
+        shouldDirty: false,
+        shouldValidate: false,
+      });
     } catch (error) {
-      forgotOtpForm.setError('otp', {
+      forgotOtpResetForm.setError('otp', {
         message: readAuthErrorMessage(error, 'ارسال مجدد کد ناموفق بود.'),
       });
     } finally {
       setIsResendingForgotOtp(false);
     }
-  }, [countdown, isResendingForgotOtp, pendingForgotMobile, forgotOtpForm]);
+  }, [countdown, isResendingForgotOtp, pendingForgotMobile, forgotOtpResetForm]);
 
-  const submitResetPassword = forgotResetForm.handleSubmit(async (data) => {
+  const submitResetPassword = forgotOtpResetForm.handleSubmit(async (data) => {
     try {
       await AuthService.resetPassword(
         pendingForgotMobile,
-        forgotOtpForm.getValues('otp'),
+        data.otp,
         data.newPassword
       );
       onComplete(pendingForgotMobile);
     } catch (error) {
-      forgotResetForm.setError('newPassword', {
-        message: readAuthErrorMessage(error, 'تغییر رمز عبور ناموفق بود.'),
-      });
+      const message = readAuthErrorMessage(error, 'تغییر رمز عبور ناموفق بود.');
+      if (isOtpAuthError(error)) {
+        forgotOtpResetForm.setError('otp', { message }, { shouldFocus: true });
+        forgotOtpResetForm.clearErrors(['newPassword', 'confirmPassword']);
+        return;
+      }
+      forgotOtpResetForm.setError('newPassword', { message }, { shouldFocus: true });
     }
   });
 
   return {
     start,
     goBackToForgotStep1,
-    goBackToForgotStep2,
     forgotStep,
     pendingForgotMobile,
     forgotMobileForm,
     sendForgotOtp,
     isSendingForgotOtp: forgotMobileForm.formState.isSubmitting,
-    forgotOtpForm,
-    verifyForgotOtp,
-    isVerifyingForgotOtp: forgotOtpForm.formState.isSubmitting,
+    forgotOtpResetForm,
+    submitResetPassword,
+    isSubmittingResetPassword: forgotOtpResetForm.formState.isSubmitting,
     resendForgotOtp,
     isResendingForgotOtp,
     secondsUntilForgotResend: countdown.secondsLeft,
     canResendForgotOtp: countdown.canResend,
-    forgotResetForm,
-    submitResetPassword,
-    isSubmittingResetPassword: forgotResetForm.formState.isSubmitting,
   };
 }
 

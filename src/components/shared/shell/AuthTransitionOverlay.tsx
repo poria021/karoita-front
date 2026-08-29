@@ -18,10 +18,9 @@ export function AuthTransitionOverlay() {
   if (phase === 'idle') return null;
 
   return (
-    <div className="kv-brand-atmosphere kv-blueprint-bg fixed inset-0 z-[200]">
+    <div className="kv-blueprint-bg fixed inset-0 z-[200]">
       <KvBrandLinearLoader
-        fullViewport
-        className="h-full min-h-dvh"
+        className="h-full min-h-dvh bg-transparent"
         label={
           phase === 'leaving'
             ? 'در حال خروج از حساب کاربری…'

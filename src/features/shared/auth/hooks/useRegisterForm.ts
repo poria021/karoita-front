@@ -62,10 +62,13 @@ export function useRegisterForm() {
       const isSameNumber = data.mobile === pendingMobile && !otpCountdown.canResend;
 
       if (!isSameNumber) {
-        await AuthService.register({ mobile: data.mobile, role: data.role });
+        const { retryAfterSeconds } = await AuthService.register({
+          mobile: data.mobile,
+          role: data.role,
+        });
         setPendingMobile(data.mobile);
         setPendingRole(data.role);
-        otpCountdown.restart();
+        otpCountdown.restart(retryAfterSeconds);
       }
 
       setStep(2);
@@ -101,11 +104,11 @@ export function useRegisterForm() {
     setIsResendingOtp(true);
     setFormMessage(null);
     try {
-      await AuthService.register({
+      const { retryAfterSeconds } = await AuthService.register({
         mobile: pendingMobile,
         role: pendingRole as SelfRegisterableRole,
       });
-      otpCountdown.restart();
+      otpCountdown.restart(retryAfterSeconds);
       otpForm.reset({ otp: '' });
       setFormMessage({ type: 'success', text: 'کد تایید دوباره ارسال شد.' });
     } catch (error) {

@@ -11,8 +11,8 @@ import {
   mockSendAdminGateOtp,
   mockSendForgotPasswordOtp,
   mockSendLoginOtp,
+  mockResetPassword,
   mockUpdateMe,
-  mockVerifyForgotPasswordOtp,
 } from '@/services/auth/mock/mock-auth.operations';
 import {
   findMockUserById,
@@ -52,9 +52,9 @@ describe('public auth audience (mock)', () => {
     );
   });
 
-  it('rejects super_admin on public forgot OTP verify', () => {
+  it('rejects super_admin on public password reset', () => {
     expect(() =>
-      mockVerifyForgotPasswordOtp(MOCK_SUPER_ADMIN_MOBILE, MOCK_OTP_CODE)
+      mockResetPassword(MOCK_SUPER_ADMIN_MOBILE, MOCK_OTP_CODE, 'newPass12')
     ).toThrow(AUTH_ERR_USER_NOT_FOUND);
   });
 
