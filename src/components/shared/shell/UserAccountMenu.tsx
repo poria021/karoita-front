@@ -15,6 +15,7 @@ import {
 } from '@/components/shared/KvDropdownMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { runPwaInstallFlow, shouldShowPwaInstallMenuItem } from '@/components/shared/shell/PwaInstallControl';
+import { kvShellRailLabelMotionClassName } from '@/components/shared/shell/shellChrome';
 import { shellCopy } from '@/components/shared/shell/shellCopy';
 import { usePwaStandalone } from '@/hooks/usePwaInstall';
 import { cn } from '@/lib/utils';
@@ -239,7 +240,7 @@ export function UserAccountMenu({
           >
             <div
               className={cn(
-                'flex items-center rounded-kv-control border border-kv-border-muted bg-kv-surface-muted transition-all',
+                'flex items-center rounded-kv-control border border-kv-border-muted bg-kv-surface-muted transition-[padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
                 isCollapsed
                   ? 'justify-start p-kv-inline lg:justify-center lg:p-kv-pair'
                   : 'p-kv-inline'
@@ -250,7 +251,8 @@ export function UserAccountMenu({
               </div>
               <div
                 className={cn(
-                  'flex min-w-0 flex-col overflow-hidden transition-all',
+                  'flex min-w-0 flex-col',
+                  kvShellRailLabelMotionClassName,
                   isCollapsed
                     ? 'ms-kv-inline max-w-[150px] opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0'
                     : 'ms-kv-inline max-w-[150px] opacity-100'

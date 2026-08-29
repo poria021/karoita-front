@@ -4,6 +4,7 @@ import Link from 'next/link';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { SidebarCourseIcon } from '@/components/shared/shell/SidebarCourseIcon';
+import { kvShellRailLabelMotionClassName } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 import type { SidebarMenuItem } from '@/utils/RoleStrategyMap';
 
@@ -74,7 +75,8 @@ export function SidebarNavLink({
       )}
       <span
         className={cn(
-          'inline-block max-w-[150px] overflow-hidden whitespace-nowrap transition-all',
+          'inline-block max-w-[150px] whitespace-nowrap',
+          kvShellRailLabelMotionClassName,
           useBullet
             ? 'opacity-100'
             : isCollapsed
@@ -88,7 +90,7 @@ export function SidebarNavLink({
   );
 
   const className = cn(
-    'group flex w-full items-center rounded-kv-control text-xs leading-snug transition-colors',
+    'group flex w-full items-center rounded-kv-control text-xs leading-snug transition-[padding,color,background-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
     useBullet ? 'px-3 py-2' : 'py-2.5',
     !useBullet && (isCollapsed ? 'px-3.5 lg:px-0' : 'px-3.5'),

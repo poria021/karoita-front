@@ -6,6 +6,7 @@ import { useId, useRef } from 'react';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
+import { kvShellSidebarHoverScrollClassName } from '@/components/shared/shell/shellChrome';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
@@ -79,8 +80,9 @@ export function Sidebar() {
           aria-modal={isMobileOpen ? true : undefined}
           aria-labelledby={isMobileOpen ? drawerTitleId : undefined}
           className={cn(
-            'flex h-full min-h-0 w-full shrink-0 flex-col overflow-y-auto border-e border-kv-border/80 bg-kv-surface',
-            'lg:h-auto lg:overflow-hidden lg:border lg:border-kv-border/80 lg:rounded-kv-shell'
+            'group/sidebar flex h-full min-h-0 w-full shrink-0 flex-col overflow-y-auto border-e border-kv-border/80 bg-kv-surface',
+            'lg:h-auto lg:overflow-hidden lg:border lg:border-kv-border/80 lg:rounded-kv-shell',
+            kvShellSidebarHoverScrollClassName
           )}
         >
           <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">

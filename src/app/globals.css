@@ -636,6 +636,45 @@
 }
 
 /*
+ * Sidebar rail: overflow stays, chrome stays hidden until the rail is
+ * hovered. Touch / coarse pointers keep the thin bar so scroll is discoverable.
+ */
+.kv-sidebar-hover-scroll {
+  scrollbar-width: none;
+}
+
+.kv-sidebar-hover-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .group\/sidebar:hover .kv-sidebar-hover-scroll,
+  .kv-sidebar-hover-scroll:hover {
+    scrollbar-width: thin;
+    scrollbar-color: var(--kv-border-strong) transparent;
+  }
+
+  .group\/sidebar:hover .kv-sidebar-hover-scroll::-webkit-scrollbar,
+  .kv-sidebar-hover-scroll:hover::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .kv-sidebar-hover-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--kv-border-strong) transparent;
+  }
+
+  .kv-sidebar-hover-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/*
  * Kill Chromium/Edge autofill wash (blue/yellow). Keep surface + text tokens.
  * Does not enable autofill — only paints over the browser's default highlight.
  */

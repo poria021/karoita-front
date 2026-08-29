@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  kvShellAdminHeaderPadXClassName,
+  kvShellAdminMainGutterClassName,
+  kvShellAdminRailClearanceClassName,
+  kvShellAdminRailClearanceMotionClassName,
+  kvShellAdminRailCollapsedClassName,
+  kvShellAdminRailExpandedClassName,
+  kvShellAdminRailMotionClassName,
+  kvShellAdminRailWidthMotionClassName,
+  kvShellRailLabelMotionClassName,
   kvShellFocusRingClassName,
   kvShellOverlayRowPadClassName,
+  kvShellSidebarHoverScrollClassName,
 } from './shellChrome';
 import {
   lockedNavAriaLabel,
@@ -40,5 +50,26 @@ describe('shellChrome', () => {
     expect(kvShellFocusRingClassName).toContain('focus-visible:ring-kv-ring');
     expect(kvShellOverlayRowPadClassName).toContain('px-kv-inline');
     expect(kvShellOverlayRowPadClassName).toContain('py-kv-nav');
+  });
+
+  it('clears the fixed admin rail on the inline-start edge', () => {
+    expect(kvShellAdminRailClearanceClassName(false)).toBe(
+      kvShellAdminRailExpandedClassName
+    );
+    expect(kvShellAdminRailClearanceClassName(true)).toBe(
+      kvShellAdminRailCollapsedClassName
+    );
+    expect(kvShellAdminRailExpandedClassName).toContain('lg:ps-72');
+    expect(kvShellAdminRailCollapsedClassName).toContain('lg:ps-24');
+    expect(kvShellAdminMainGutterClassName).toBe('px-0 sm:px-kv-group');
+    expect(kvShellSidebarHoverScrollClassName).toBe('kv-sidebar-hover-scroll');
+    expect(kvShellAdminHeaderPadXClassName).toBe('px-kv-group');
+    expect(kvShellAdminRailMotionClassName).toContain('duration-500');
+    expect(kvShellAdminRailWidthMotionClassName).toContain('duration-500');
+    expect(kvShellAdminRailClearanceMotionClassName).toContain(
+      'padding-inline-start'
+    );
+    expect(kvShellRailLabelMotionClassName).toContain('duration-500');
+    expect(kvShellRailLabelMotionClassName).toContain('max-width');
   });
 });
