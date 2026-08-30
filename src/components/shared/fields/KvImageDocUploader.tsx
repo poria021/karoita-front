@@ -335,7 +335,7 @@ export function KvImageDocUploader({
               </div>
             ) : previewUrl ? (
               <div
-                className="relative h-full w-full"
+                className="relative h-full w-full overflow-hidden rounded-[inherit]"
                 onMouseEnter={() => setPreviewDimmed(true)}
                 onMouseLeave={() => setPreviewDimmed(false)}
                 onClick={() => setPreviewDimmed(false)}
@@ -372,7 +372,7 @@ export function KvImageDocUploader({
                 <div
                   aria-hidden
                   className={cn(
-                    'pointer-events-none absolute inset-0 z-[1] bg-white/80 transition-opacity duration-300 ease-out dark:bg-black/80',
+                    'pointer-events-none absolute inset-0 z-[1] rounded-[inherit] bg-white/80 transition-opacity duration-300 ease-out dark:bg-black/80',
                     previewDimmed ? 'opacity-0' : 'opacity-100'
                   )}
                 />
