@@ -11,6 +11,7 @@ import {
 } from '@/components/shared/KvDropdownMenu';
 import {
   kvOverlayItemDividerClassName,
+  kvOverlayListScrollClassName,
 } from '@/components/shared/kvOverlayMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
@@ -144,7 +145,10 @@ export function HeaderNotificationsMenu() {
         <div
           ref={listRef}
           onScroll={onListScroll}
-          className="max-h-[min(16rem,45dvh)] min-h-0 overflow-y-auto overscroll-contain"
+          className={cn(
+            kvOverlayListScrollClassName,
+            'max-h-[min(16rem,45dvh)] overscroll-contain'
+          )}
         >
           {isInitialLoading ? (
             <div

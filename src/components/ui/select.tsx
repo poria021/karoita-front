@@ -113,7 +113,7 @@ function SelectContent({
           data-edge-auto-scroll=""
           className={cn(
             kvOverlayListScrollClassName,
-            "p-0",
+            "h-0 p-0",
             position === "popper" &&
               "w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
           )}

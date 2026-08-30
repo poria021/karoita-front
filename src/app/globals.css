@@ -636,18 +636,35 @@
 }
 
 /*
- * Overlay select / combobox lists: keep a visible thin bar whenever the
- * list overflows. Radix Viewport defaults to overflow:hidden.
+ * Overlay select / combobox lists: visible thin bar when the list overflows.
+ * `direction: ltr` keeps the bar on the physical right so RTL overflow-hidden
+ * parents do not clip it. Children stay RTL.
  */
 .kv-overlay-list-scroll {
+  direction: ltr;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: var(--kv-border-strong) transparent;
+  scrollbar-color: var(--kv-border-strong) var(--kv-surface-muted);
+}
+
+.kv-overlay-list-scroll > * {
+  direction: rtl;
 }
 
 .kv-overlay-list-scroll::-webkit-scrollbar {
   width: 8px;
   height: 8px;
+}
+
+.kv-overlay-list-scroll::-webkit-scrollbar-track {
+  background: var(--kv-surface-muted);
+}
+
+.kv-overlay-list-scroll::-webkit-scrollbar-thumb {
+  background: var(--kv-border-strong);
+  border-radius: var(--radius-kv-control);
 }
 
 [data-radix-select-viewport].kv-overlay-list-scroll,

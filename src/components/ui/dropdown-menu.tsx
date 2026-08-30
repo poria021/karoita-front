@@ -5,6 +5,7 @@ import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 
 import { FaIcon } from "@/components/shared/FaIcon"
 import { KvOverlayScrollMoreCue } from "@/components/shared/KvOverlayScrollMoreCue"
+import { kvOverlayListScrollClassName } from "@/components/shared/kvOverlayMenu"
 import { useEdgeAutoScroll } from "@/hooks/useEdgeAutoScroll"
 import { cn } from "@/lib/utils"
 import { faIcons } from "@/utils/iconMap"
@@ -75,7 +76,7 @@ function DropdownMenuContent({
             handlePointerLeave()
             onPointerLeave?.(event)
           }}
-          className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-1"
+          className={cn(kvOverlayListScrollClassName, "p-1")}
         >
           {children}
         </div>

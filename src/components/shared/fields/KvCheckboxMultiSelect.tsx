@@ -144,7 +144,7 @@ export function KvCheckboxMultiSelect({
           id={listboxId}
           role="listbox"
           aria-label="گزینه‌های انتخاب‌شده"
-          className="max-h-64 w-[var(--radix-dropdown-menu-trigger-width)] min-w-[14rem] overflow-y-auto p-1"
+          className="max-h-64 w-[var(--radix-dropdown-menu-trigger-width)] min-w-[14rem] p-0"
         >
           {options.map((option) => {
             const checked = values.includes(option.value);
