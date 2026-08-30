@@ -38,7 +38,9 @@ function defaultValuesForTab(tab: OrgStructureSubTab): OrgEntityFormValues {
       ? { name: '', audience: undefined }
       : { name: '', roleId: '' };
   }
-  if (tab === 'cities') return { name: '', provinceId: '' };
+  if (tab === 'cities' || tab === 'faculties') {
+    return { name: '', provinceId: '' };
+  }
   if (tab === 'schools') {
     return {
       name: '',
@@ -107,7 +109,11 @@ function valuesFromRow(
     if (row.provinceId === undefined) return null;
     return { name: row.name, provinceId: row.provinceId };
   }
-  if (kind === 'district' || kind === 'faculty') {
+  if (kind === 'faculty') {
+    if (row.provinceId === undefined) return null;
+    return { name: row.name, provinceId: row.provinceId };
+  }
+  if (kind === 'district') {
     if (row.provinceId === undefined || row.cityId === undefined) return null;
     return { name: row.name, provinceId: row.provinceId, cityId: row.cityId };
   }
@@ -178,7 +184,10 @@ export function useOrgEntityForm({
     queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'cities', provinceId],
     queryFn: () => OrgStructureService.listCities(provinceId as string),
     staleTime: QUERY_STALE_MS.list,
-    enabled: open && Boolean(provinceId),
+    enabled:
+      open &&
+      Boolean(provinceId) &&
+      (tab === 'districts' || tab === 'schools'),
     placeholderData: keepPreviousData,
   });
 
@@ -234,7 +243,7 @@ export function useOrgEntityForm({
   /**
    * True when a province is selected, the cities query has finished, and
    * that province genuinely has no cities. Used by the city select on
-   * district/school/faculty forms to lock the field.
+   * district/school forms to lock the field.
    */
   const provinceHasNoCities =
     Boolean(provinceId) &&
@@ -281,6 +290,12 @@ export function useOrgEntityForm({
         if (entityKind === 'city') {
           const city = entity as OrgCity;
           form.reset({ name: city.name, provinceId: city.provinceId });
+          return;
+        }
+
+        if (entityKind === 'faculty') {
+          const faculty = entity as { name: string; provinceId: string };
+          form.reset({ name: faculty.name, provinceId: faculty.provinceId });
           return;
         }
 

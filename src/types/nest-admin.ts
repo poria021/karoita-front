@@ -244,8 +244,8 @@ export type NestDegreeByRole = {
 export type NestCreateUniversityDto = {
   title: string;
   provinceId: string;
-  /** Optional — omit when the faculty has no city. */
-  cityId?: string;
+  /** Live Nest 422s without cityId — UI hides the field and the service fills it. */
+  cityId: string;
 };
 
 export type NestUpdateUniversityDto = {

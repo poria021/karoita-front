@@ -44,7 +44,7 @@ describe('org-structure form schemas', () => {
     ).toBe(true);
   });
 
-  it('requires faculty province; city is optional', () => {
+  it('requires faculty province and does not use city', () => {
     expect(
       facultyFormSchema.safeParse({ name: 'پردیس مرکزی', provinceId: '' })
         .success
@@ -52,13 +52,6 @@ describe('org-structure form schemas', () => {
     expect(
       facultyFormSchema.safeParse({ name: 'پردیس مرکزی', provinceId: 'p1' })
         .success
-    ).toBe(true);
-    expect(
-      facultyFormSchema.safeParse({
-        name: 'پردیس مرکزی',
-        provinceId: 'p1',
-        cityId: 'c1',
-      }).success
     ).toBe(true);
   });
 

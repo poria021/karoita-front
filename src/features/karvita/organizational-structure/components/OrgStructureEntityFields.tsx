@@ -33,7 +33,7 @@ interface OrgStructureEntityFieldsProps {
   namePlaceholder: string;
   /**
    * True when the selected province has no cities (query finished, result
-   * empty). Locks the city select on district/school/faculty forms so the
+   * empty). Locks the city select on district/school forms so the
    * user can still submit without picking a city.
    */
   provinceHasNoCities?: boolean;
@@ -57,11 +57,10 @@ export function OrgStructureEntityFields({
     tab === 'faculties' ||
     tab === 'districts' ||
     tab === 'schools';
-  const needsCity =
-    tab === 'faculties' || tab === 'districts' || tab === 'schools';
+  const needsCity = tab === 'districts' || tab === 'schools';
 
-  // شهر در دانشکده / منطقه / مدرسه همیشه اختیاری است — لیبل همه جا
-  // «شهر (اختیاری)». اگر استان شهری نداشته باشد فیلد قفل می‌شود.
+  // شهر در منطقه / مدرسه اختیاری است. پردیس فقط استان می‌خواهد.
+  // اگر استان شهری نداشته باشد فیلد قفل می‌شود.
   const cityIsLocked = needsCity && provinceHasNoCities;
 
   return (

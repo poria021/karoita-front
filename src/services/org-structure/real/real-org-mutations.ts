@@ -1,6 +1,7 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import {
   flushBareListCache,
+  listRealCities,
 } from '@/services/org-structure/real/real-org-reads';
 import { assertRealOrgDeleteAllowed } from '@/services/org-structure/real/real-org-delete-blocked';
 import {
@@ -77,23 +78,41 @@ export async function upsertRealCity(
  * faculties از bareListCache استفاده می‌کنن — hard-flush لازمه تا مطمئن بشیم
  * reload() که بلافاصله بعد از این صدا می‌شه از Nest داده تازه می‌گیره،
  * نه از entry ای که staleSince=0 شده ولی هنوز در Map هست.
+ *
+ * فرم پردیس شهر نشان نمی‌دهد، ولی POST/PUT /admin/universites بدون
+ * cityId زنده ۴۲۲ می‌دهد. اگر فرم cityId نداده باشد، اولین شهر همان
+ * استان را می‌فرستیم تا قرارداد Nest برقرار بماند.
  */
+async function resolveUniversityCityId(
+  input: UpsertFacultyInput
+): Promise<string> {
+  if (input.cityId) return input.cityId;
+  const cities = await listRealCities(input.provinceId);
+  const cityId = cities[0]?.id;
+  if (!cityId) {
+    throw new Error(
+      'این استان شهر ثبت‌شده‌ای ندارد. ابتدا یک شهر برای استان اضافه کنید.'
+    );
+  }
+  return cityId;
+}
+
 export async function upsertRealFaculty(
   input: UpsertFacultyInput,
   editId?: string
 ): Promise<void> {
-  const cityId = input.cityId || undefined;
+  const cityId = await resolveUniversityCityId(input);
   if (editId) {
     await adminCatalogApi.updateUniversity(editId, {
       title: input.name,
       provinceId: input.provinceId,
-      ...(cityId ? { cityId } : {}),
+      cityId,
     });
   } else {
     await adminCatalogApi.createUniversity({
       title: input.name,
       provinceId: input.provinceId,
-      ...(cityId ? { cityId } : {}),
+      cityId,
     });
   }
   // Hard-flush برای تضمین freshness — invalidate نرم (staleSince=0) کافی نیست

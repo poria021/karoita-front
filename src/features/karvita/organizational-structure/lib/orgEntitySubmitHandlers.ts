@@ -23,7 +23,6 @@ const SUBMIT_HANDLERS: Record<OrgStructureSubTab, SubmitHandler> = {
       {
         name: values.name,
         provinceId: values.provinceId!,
-        ...(values.cityId ? { cityId: values.cityId } : {}),
       },
       editId
     );
