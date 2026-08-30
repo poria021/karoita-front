@@ -53,17 +53,29 @@ const INDEX_REDIRECT_MODULE_PATHS: readonly string[] = [
 ];
 
 /**
- * Sidebar subset: app-shell paths from LIVE_STATIC_NAV_PATHS only.
+ * صفحات زنده که تا تکمیل UI در سایدبار نیستند.
+ * مسیر، لاگین، ریکاوری و بردکرامب سر جایشان می‌مانند.
+ * برای نمایش دوباره، همان مسیر را از این مجموعه بردارید — آیتم نقش از قبل هست.
+ */
+const SIDEBAR_DEFERRED_PATHS: ReadonlySet<string> = new Set([
+  RouteService.karvita.dashboard(),
+  RouteService.karvita.adminDashboard(),
+  RouteService.karvita.adminUserCreation(),
+]);
+
+/**
+ * Sidebar subset: app-shell paths from LIVE_STATIC_NAV_PATHS, minus deferred.
  *
- * Derived from LIVE_STATIC_NAV_PATHS (single source of truth) so it can
- * never drift out of sync — adding a new /karvita/* page automatically
- * makes it a sidebar candidate without touching this file.
+ * Derived from LIVE_STATIC_NAV_PATHS so a new /karvita/* page is a sidebar
+ * candidate unless it is listed in SIDEBAR_DEFERRED_PATHS.
  *
  * Marketing and auth paths are excluded: sidebar is only rendered inside
  * the authenticated app shell (/(app)/karvita/*).
  */
 const LIVE_SIDEBAR_PATH_SET: ReadonlySet<string> = new Set(
-  LIVE_STATIC_NAV_PATHS.filter((p) => p.startsWith('/karvita/'))
+  LIVE_STATIC_NAV_PATHS.filter(
+    (p) => p.startsWith('/karvita/') && !SIDEBAR_DEFERRED_PATHS.has(p)
+  )
 );
 
 export function isLiveStaticNavPath(pathname: string): boolean {

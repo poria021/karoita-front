@@ -6,14 +6,14 @@ import { PlannedRoutes } from '@/services/planned-routes';
 import { getLiveWorkbenchShortcuts } from './workbenchShortcuts';
 
 describe('getLiveWorkbenchShortcuts', () => {
-  it('returns live admin modules and excludes the admin home itself', () => {
+  it('returns live admin modules and excludes deferred home and user-creation', () => {
     const shortcuts = getLiveWorkbenchShortcuts('super_admin');
     const paths = shortcuts.map((item) => item.path);
 
     expect(paths).not.toContain(RouteService.karvita.adminDashboard());
     expect(paths).toContain(RouteService.karvita.organizationalStructure());
     expect(paths).toContain(RouteService.karvita.onboardingApprovals());
-    expect(paths).toContain(RouteService.karvita.adminUserCreation());
+    expect(paths).not.toContain(RouteService.karvita.adminUserCreation());
     expect(paths).toContain(RouteService.karvita.syllabusCourseOfferings());
     expect(paths).not.toContain(PlannedRoutes.standardReports());
   });
