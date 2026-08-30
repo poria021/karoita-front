@@ -649,6 +649,19 @@
   scrollbar-color: var(--kv-border-strong) var(--kv-surface-muted);
 }
 
+.kv-overlay-list-scroll.kv-overlay-list-gutter-auto {
+  scrollbar-gutter: auto;
+}
+
+.kv-overlay-list-scroll.kv-overlay-list-gutter-symmetric {
+  scrollbar-gutter: stable both-edges;
+}
+
+[data-slot='kv-dropdown-menu-content'].kv-overlay-dropdown-auto-gutter
+  [data-edge-auto-scroll] {
+  scrollbar-gutter: auto;
+}
+
 .kv-overlay-list-scroll > * {
   direction: rtl;
 }

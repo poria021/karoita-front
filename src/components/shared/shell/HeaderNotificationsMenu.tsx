@@ -10,7 +10,9 @@ import {
   KvDropdownMenuTrigger,
 } from '@/components/shared/KvDropdownMenu';
 import {
+  kvOverlayDropdownAutoGutterClassName,
   kvOverlayItemDividerClassName,
+  kvOverlayListGutterSymmetricClassName,
   kvOverlayListScrollClassName,
 } from '@/components/shared/kvOverlayMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
@@ -96,7 +98,10 @@ export function HeaderNotificationsMenu() {
         </button>
       </KvDropdownMenuTrigger>
 
-      <KvDropdownMenuContent align="end" className="w-80">
+      <KvDropdownMenuContent
+        align="end"
+        className={cn('w-80', kvOverlayDropdownAutoGutterClassName)}
+      >
         <div
           className={cn(
             'flex items-center justify-between gap-kv-pair border-b border-kv-border/70 px-3.5 py-2.5'
@@ -147,6 +152,7 @@ export function HeaderNotificationsMenu() {
           onScroll={onListScroll}
           className={cn(
             kvOverlayListScrollClassName,
+            kvOverlayListGutterSymmetricClassName,
             'max-h-[min(16rem,45dvh)] overscroll-contain'
           )}
         >

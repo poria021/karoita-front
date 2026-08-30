@@ -40,3 +40,11 @@ export const kvOverlaySeparatorClassName = 'h-px w-full bg-kv-border/40';
 export const kvOverlayListScrollClassName = [
   'kv-overlay-list-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto',
 ].join(' ');
+
+/** لیست اسکرول‌دار — فضای اسکرول دو طرفه تا inset متقارن بماند. */
+export const kvOverlayListGutterSymmetricClassName =
+  'kv-overlay-list-gutter-symmetric';
+
+/** بدنهٔ دراپ‌داون — اسکرول داخلی Radix gutter رزرو نکند. */
+export const kvOverlayDropdownAutoGutterClassName =
+  'kv-overlay-dropdown-auto-gutter';

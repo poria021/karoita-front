@@ -15,6 +15,7 @@ import {
 } from '@/components/shared/KvDropdownMenu';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { runPwaInstallFlow, shouldShowPwaInstallMenuItem } from '@/components/shared/shell/PwaInstallControl';
+import { kvOverlayDropdownAutoGutterClassName } from '@/components/shared/kvOverlayMenu';
 import { kvShellRailLabelMotionClassName } from '@/components/shared/shell/shellChrome';
 import { shellCopy } from '@/components/shared/shell/shellCopy';
 import { usePwaStandalone } from '@/hooks/usePwaInstall';
@@ -124,9 +125,11 @@ export function UserAccountMenu({
       sideOffset={variant === 'sidebar' ? 8 : 4}
       className={
         isHeader
-          ? // Desktop: match chip width. Mobile: icon-only trigger is too narrow for labels.
-            'w-[var(--radix-dropdown-menu-trigger-width)] min-w-[var(--radix-dropdown-menu-trigger-width)] max-sm:w-auto max-sm:min-w-[7.5rem]'
-          : 'min-w-44'
+          ? cn(
+              kvOverlayDropdownAutoGutterClassName,
+              'w-max min-w-[8.5rem]'
+            )
+          : cn(kvOverlayDropdownAutoGutterClassName, 'min-w-44')
       }
     >
       <KvDropdownMenuItem asChild>
