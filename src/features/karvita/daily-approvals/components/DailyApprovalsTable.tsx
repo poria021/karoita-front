@@ -3,6 +3,7 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import {
   KvTable,
@@ -19,7 +20,6 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
-import { KvTypography } from '@/components/shared/KvTypography';
 import type { DailyApprovalTrainee } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -109,9 +109,31 @@ export function DailyApprovalsTable({
               <KvTableBusy colSpan={colSpan} />
             ) : bodyPhase === 'empty' ? (
               <KvTableEmpty colSpan={colSpan}>
-                <KvTypography variant="body" tone="muted">
-                  موردی یافت نشد
-                </KvTypography>
+                <KvEmptyState
+                  title={
+                    hasActiveFilters
+                      ? 'کارورزی مطابق فیلترها پیدا نشد'
+                      : 'موردی یافت نشد'
+                  }
+                  description={
+                    hasActiveFilters
+                      ? 'عبارت جستجو یا فیلترهای پایش را تغییر دهید.'
+                      : undefined
+                  }
+                  actions={
+                    hasActiveFilters ? (
+                      <KvButton
+                        type="button"
+                        color="cta"
+                        appearance="solid"
+                        size="sm"
+                        onClick={onClearFilters}
+                      >
+                        پاک کردن فیلترها
+                      </KvButton>
+                    ) : undefined
+                  }
+                />
               </KvTableEmpty>
             ) : (
               trainees.map((trainee, index) => (

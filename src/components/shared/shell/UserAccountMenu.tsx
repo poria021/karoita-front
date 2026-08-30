@@ -18,7 +18,6 @@ import { runPwaInstallFlow, shouldShowPwaInstallMenuItem } from '@/components/sh
 import { kvOverlayDropdownAutoGutterClassName } from '@/components/shared/kvOverlayMenu';
 import { kvShellRailLabelMotionClassName } from '@/components/shared/shell/shellChrome';
 import { shellCopy } from '@/components/shared/shell/shellCopy';
-import { usePwaStandalone } from '@/hooks/usePwaInstall';
 import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
 import { RouteService } from '@/services/route.service';
@@ -59,7 +58,6 @@ export function UserAccountMenu({
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
-  const isStandalone = usePwaStandalone();
 
   if (!activeUser) return null;
 
@@ -144,7 +142,7 @@ export function UserAccountMenu({
         </Link>
       </KvDropdownMenuItem>
 
-      {shouldShowPwaInstallMenuItem(isStandalone) ? (
+      {shouldShowPwaInstallMenuItem() ? (
         <KvDropdownMenuItem
           onSelect={handleInstallAppClick}
           className={cn('flex items-center', menuItemClass)}

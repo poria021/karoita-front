@@ -70,6 +70,102 @@ export type KvImageDocUploaderProps = {
   /** How the existing/new image fills the preview surface. */
   previewFit?: 'contain' | 'cover';
 };
+
+function KvImageDocPreviewSurface({
+  previewUrl,
+  canOpenPreview,
+  previewAlt,
+  previewImageClass,
+  disabled,
+  onRemove,
+}: {
+  previewUrl: string | null;
+  canOpenPreview: boolean;
+  previewAlt: string;
+  previewImageClass: string;
+  disabled: boolean;
+  onRemove: (event: MouseEvent) => void;
+}) {
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const [previewDimmed, setPreviewDimmed] = useState(false);
+
+  if (previewFailed) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-kv-pair px-kv-group text-center">
+        <FaIcon
+          icon={faIcons.triangleExclamation}
+          size="sm"
+          className="text-kv-text-faint"
+        />
+        <KvTypography variant="caption" tone="muted" as="p">
+          تصویر مدرک بارگذاری نشد
+        </KvTypography>
+      </div>
+    );
+  }
+
+  if (!previewUrl) return null;
+
+  return (
+    <div
+      className="relative h-full w-full overflow-hidden rounded-[inherit]"
+      onMouseEnter={() => setPreviewDimmed(true)}
+      onMouseLeave={() => setPreviewDimmed(false)}
+      onClick={() => setPreviewDimmed(false)}
+    >
+      {canOpenPreview ? (
+        <KvBrowsableMediaLink
+          href={previewUrl}
+          alt={previewAlt}
+          className="flex h-full w-full items-center justify-center focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
+          aria-label="نمایش تصویر"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
+          <img
+            src={previewUrl}
+            alt={previewAlt}
+            referrerPolicy="no-referrer"
+            onError={() => setPreviewFailed(true)}
+            className={previewImageClass}
+          />
+        </KvBrowsableMediaLink>
+      ) : (
+        <div className="flex h-full w-full items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
+          <img
+            src={previewUrl}
+            alt={previewAlt}
+            referrerPolicy="no-referrer"
+            onError={() => setPreviewFailed(true)}
+            className={previewImageClass}
+          />
+        </div>
+      )}
+      {/* کلیک لایه را برمی‌گرداند — :hover بعد از تب جدید گیر می‌کند */}
+      <div
+        aria-hidden
+        className={cn(
+          'pointer-events-none absolute inset-0 z-[1] rounded-[inherit] bg-white/80 transition-opacity duration-300 ease-out dark:bg-black/80',
+          previewDimmed ? 'opacity-0' : 'opacity-100'
+        )}
+      />
+      {!disabled ? (
+        <KvButton
+          type="button"
+          onClick={onRemove}
+          color="error"
+          appearance="ghost"
+          size="sm"
+          className="absolute start-2 top-2 z-10"
+          icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+        >
+          حذف
+        </KvButton>
+      ) : null}
+    </div>
+  );
+}
+
 export function KvImageDocUploader({
   id: idProp,
   value,
@@ -106,18 +202,12 @@ export function KvImageDocUploader({
     () => resolveNestFileUrl(existingUrl) ?? existingUrl ?? null,
     [existingUrl]
   );
-  const [previewFailed, setPreviewFailed] = useState(false);
-  const [previewDimmed, setPreviewDimmed] = useState(false);
 
   useEffect(() => {
     return () => {
       if (blobUrl) URL.revokeObjectURL(blobUrl);
     };
   }, [blobUrl]);
-
-  useEffect(() => {
-    setPreviewFailed(false);
-  }, [blobUrl, resolvedExistingUrl]);
 
   // اگه فایل جدید انتخاب شده blob URL رو نشون بده، وگرنه از existingUrl استفاده کن
   const previewUrl = blobUrl ?? resolvedExistingUrl ?? null;
@@ -322,75 +412,16 @@ export function KvImageDocUploader({
 
         {(value || isExistingPreview) && !isCompressing ? (
           <div className={cn(KV_IMAGE_DOC_MEDIA_SURFACE_CLASS, 'border border-kv-border bg-kv-surface-muted')}>
-            {previewFailed ? (
-              <div className="flex h-full flex-col items-center justify-center gap-kv-pair px-kv-group text-center">
-                <FaIcon
-                  icon={faIcons.triangleExclamation}
-                  size="sm"
-                  className="text-kv-text-faint"
-                />
-                <KvTypography variant="caption" tone="muted" as="p">
-                  تصویر مدرک بارگذاری نشد
-                </KvTypography>
-              </div>
-            ) : previewUrl ? (
-              <div
-                className="relative h-full w-full overflow-hidden rounded-[inherit]"
-                onMouseEnter={() => setPreviewDimmed(true)}
-                onMouseLeave={() => setPreviewDimmed(false)}
-                onClick={() => setPreviewDimmed(false)}
-              >
-                {canOpenPreview ? (
-                  <KvBrowsableMediaLink
-                    href={previewUrl}
-                    alt={previewAlt}
-                    className="flex h-full w-full items-center justify-center focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
-                    aria-label="نمایش تصویر"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
-                    <img
-                      src={previewUrl}
-                      alt={previewAlt}
-                      referrerPolicy="no-referrer"
-                      onError={() => setPreviewFailed(true)}
-                      className={previewImageClass}
-                    />
-                  </KvBrowsableMediaLink>
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- blob:/object URL preview; next/image does not apply */}
-                    <img
-                      src={previewUrl}
-                      alt={previewAlt}
-                      referrerPolicy="no-referrer"
-                      onError={() => setPreviewFailed(true)}
-                      className={previewImageClass}
-                    />
-                  </div>
-                )}
-                {/* کلیک لایه را برمی‌گرداند — :hover بعد از تب جدید گیر می‌کند */}
-                <div
-                  aria-hidden
-                  className={cn(
-                    'pointer-events-none absolute inset-0 z-[1] rounded-[inherit] bg-white/80 transition-opacity duration-300 ease-out dark:bg-black/80',
-                    previewDimmed ? 'opacity-0' : 'opacity-100'
-                  )}
-                />
-                {!disabled ? (
-                  <KvButton
-                    type="button"
-                    onClick={handleRemove}
-                    color="error"
-                    appearance="ghost"
-                    size="sm"
-                    className="absolute start-2 top-2 z-10"
-                    icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
-                  >
-                    حذف
-                  </KvButton>
-                ) : null}
-              </div>
-            ) : null}
+            <KvImageDocPreviewSurface
+              // تعویض blob/existing باید failed را صفر کند — remount با key معادل reset در useEffect است.
+              key={`${blobUrl ?? ''}|${resolvedExistingUrl ?? ''}`}
+              previewUrl={previewUrl}
+              canOpenPreview={canOpenPreview}
+              previewAlt={previewAlt}
+              previewImageClass={previewImageClass}
+              disabled={disabled}
+              onRemove={handleRemove}
+            />
           </div>
         ) : null}
       </div>

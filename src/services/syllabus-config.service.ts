@@ -134,7 +134,14 @@ export const SyllabusConfigService = {
     if (!IS_MOCK_MODE) {
       // Real Nest route not wired yet — fall back to empty context so consumers
       // degrade gracefully rather than throwing.
-      return { term: null, offering: null, weeks: [] };
+      return {
+        term: null,
+        termId: `mock-term-${kind}`,
+        termTitle: 'نیم‌سال جاری',
+        syllabusConfigured: false,
+        enrollOpen: false,
+        termOpen: false,
+      };
     }
     return resolveEnrollmentSyllabusContext(readSyllabusSnapshot(), kind, level);
   },

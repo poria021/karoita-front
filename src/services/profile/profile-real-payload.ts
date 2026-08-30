@@ -147,7 +147,6 @@ export async function buildNestUpdateUserBody(
     educationalDistrictsIds,
     userUniqueId,
     documentStatus: toNestDocumentStatus(data.role, currentDocStatus),
-    rejectDescription: [],
     // عکس پروفایل — فقط زمانی اضافه می‌شه که کاربر در این submit عکس جدید آپلود کرده باشد
     ...(photoFileId ? { photo: { id: photoFileId } } : {}),
   };

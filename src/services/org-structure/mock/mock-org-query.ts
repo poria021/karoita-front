@@ -1,4 +1,5 @@
 import { readMockUsers } from '@/services/auth/mock/mock-auth.store';
+import type { User } from '@/types/auth';
 import {
   isDeleteBlockedWithSets,
   isLinkedUserDeleteBlocked,
@@ -71,14 +72,9 @@ function bumpCount(
 }
 
 export function buildOrgUserCountIndexes(
-  users: ReadonlyArray<{
-    province?: string;
-    city?: string;
-    college?: string | string[];
-    district?: string;
-    school?: string;
-    major?: string;
-  }>
+  users: ReadonlyArray<
+    Pick<User, 'province' | 'city' | 'college' | 'district' | 'school' | 'major'>
+  >
 ): UserCountIndexes {
   const indexes: UserCountIndexes = {
     byProvince: new Map(),

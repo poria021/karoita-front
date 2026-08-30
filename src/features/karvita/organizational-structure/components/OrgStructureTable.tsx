@@ -3,6 +3,7 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
@@ -19,10 +20,10 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
-import { KvTypography } from '@/components/shared/KvTypography';
 import { Badge } from '@/components/ui/badge';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
 import { faIcons } from '@/utils/iconMap';
+import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import {
@@ -156,6 +157,8 @@ export function OrgStructureTable({
   const bodyPhase = getAdminTableBodyPhase(isLoading, items.length);
   const columns = getOrgStructureColumns(tabConfig.key);
   const colSpan = columns.length + 1;
+  const hasQuery = query.trim().length > 0;
+  const emptyCopy = getModuleEmptyCopy('org_structure');
 
   return (
     <>
@@ -203,9 +206,35 @@ export function OrgStructureTable({
               <KvTableBusy colSpan={colSpan} />
             ) : bodyPhase === 'empty' ? (
               <KvTableEmpty colSpan={colSpan}>
-                <KvTypography variant="body" tone="muted">
-                  موردی یافت نشد
-                </KvTypography>
+                <KvEmptyState
+                  title={emptyCopy.title}
+                  description={emptyCopy.description}
+                  actions={
+                    hasQuery ? (
+                      <KvButton
+                        type="button"
+                        color="cta"
+                        appearance="solid"
+                        size="sm"
+                        onClick={onClearQuery}
+                      >
+                        پاک کردن جستجو
+                      </KvButton>
+                    ) : (
+                      <KvButton
+                        type="button"
+                        color="cta"
+                        appearance="solid"
+                        size="sm"
+                        onClick={onAdd}
+                        icon={<FaIcon icon={faIcons.plus} size="xs" />}
+                        iconPosition="start"
+                      >
+                        {emptyCopy.actionLabel}
+                      </KvButton>
+                    )
+                  }
+                />
               </KvTableEmpty>
             ) : (
               items.map((row, index) => (

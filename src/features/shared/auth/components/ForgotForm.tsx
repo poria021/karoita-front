@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { useForgotPassword } from '../hooks/useForgotPassword';
@@ -22,16 +22,20 @@ export function ForgotForm({ returnUrl = null }: ForgotFormProps) {
 
   const [prefill] = useState(() => consumeAuthFlowMobilePrefill());
 
-  const forgot = useForgotPassword({
-    onComplete: (recoveredMobile) => {
+  const onComplete = useCallback(
+    (recoveredMobile: string) => {
       writeAuthFlowMobilePrefill(recoveredMobile);
       router.replace(backToLogin);
     },
-  });
+    [backToLogin, router]
+  );
+
+  const forgot = useForgotPassword({ onComplete });
+  const { start } = forgot;
 
   useEffect(() => {
-    if (prefill) forgot.start(prefill);
-  }, [forgot.start, prefill]);
+    if (prefill) start(prefill);
+  }, [prefill, start]);
 
   return (
     <div className="flex flex-col gap-kv-group">

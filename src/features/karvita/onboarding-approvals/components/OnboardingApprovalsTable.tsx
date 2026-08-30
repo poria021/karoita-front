@@ -4,6 +4,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
+import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
@@ -20,12 +21,12 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
-import { KvTypography } from '@/components/shared/KvTypography';
 import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 import { faIcons } from '@/utils/iconMap';
+import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
@@ -65,6 +66,7 @@ export function OnboardingApprovalsTable({
   const showActions = tab === 'pending_admin';
   const columnCount = (showActions ? 5 : 4) + 1;
   const bodyPhase = getAdminTableBodyPhase(isLoading, users.length);
+  const emptyCopy = getModuleEmptyCopy('onboarding_list');
 
   return (
     <div className="space-y-kv-group">
@@ -112,9 +114,23 @@ export function OnboardingApprovalsTable({
               <KvTableBusy colSpan={columnCount} />
             ) : bodyPhase === 'empty' ? (
               <KvTableEmpty colSpan={columnCount}>
-                <KvTypography variant="body" tone="muted">
-                  موردی یافت نشد
-                </KvTypography>
+                <KvEmptyState
+                  title={emptyCopy.title}
+                  description={emptyCopy.description}
+                  actions={
+                    hasActiveFilters && onClearFilters ? (
+                      <KvButton
+                        type="button"
+                        color="cta"
+                        appearance="solid"
+                        size="sm"
+                        onClick={onClearFilters}
+                      >
+                        {emptyCopy.actionLabel}
+                      </KvButton>
+                    ) : undefined
+                  }
+                />
               </KvTableEmpty>
             ) : (
               users.map((user, index) => {

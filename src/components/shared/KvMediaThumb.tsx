@@ -51,8 +51,16 @@ const SIZE_CLASS: Record<KvMediaThumbSize, string> = {
  * بندانگشتی مدرک (تصویر/PDF/متن/خالی) برای پنل‌های بررسی ادمین.
  * با `openInNewTab` تصویر در مرورگر تب جدید و در PWA مودال است؛ PDF/متن تب جدید می‌ماند.
  */
-export function KvMediaThumb({
-  src,
+export function KvMediaThumb(props: KvMediaThumbProps) {
+  const resolvedSrc = resolveNestFileUrl(props.src) ?? props.src ?? null;
+  // تعویض src باید failed را صفر کند — remount با key معادل reset در useEffect است.
+  return (
+    <KvMediaThumbBody key={resolvedSrc ?? ''} {...props} resolvedSrc={resolvedSrc} />
+  );
+}
+
+function KvMediaThumbBody({
+  resolvedSrc,
   kind: kindProp,
   size = 'md',
   variant = 'thumb',
@@ -63,14 +71,9 @@ export function KvMediaThumb({
   textLabel = 'سند متنی',
   openInNewTab = false,
   'aria-label': ariaLabel,
-}: KvMediaThumbProps) {
-  const resolvedSrc = resolveNestFileUrl(src) ?? src ?? null;
+}: KvMediaThumbProps & { resolvedSrc: string | null }) {
   const kind = resolveKind(resolvedSrc, kindProp);
   const [failed, setFailed] = React.useState(false);
-
-  React.useEffect(() => {
-    setFailed(false);
-  }, [resolvedSrc]);
 
   const canOpen =
     openInNewTab &&

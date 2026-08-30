@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, type RefObject } from 'react';
+import { useEffect } from 'react';
 
 type UseSidebarMobileDrawerArgs = {
   isMobileOpen: boolean;
-  drawerRef: RefObject<HTMLElement | null>;
+  /** `readonly` تا هم `div` و هم `aside` بدون invariant بودن RefObject قبول شوند. */
+  drawerRef: { readonly current: HTMLElement | null };
   onClose: () => void;
 };
 

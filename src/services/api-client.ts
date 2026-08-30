@@ -12,7 +12,7 @@ import {
   KY_RETRY_LIMIT,
   resolveNestClientPrefix,
 } from '@/services/api-client-config';
-import { ApiClientError, mapHttpError } from '@/services/api-error';
+import { mapHttpError } from '@/services/api-error';
 import {
   bearerHeaders,
   handleUnauthorized,

@@ -1,9 +1,11 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 
 import {
   AppTabs,
+  AppTabsContent,
   AppTabsList,
   AppTabsTrigger,
 } from '@/components/shared/AppTabs';
@@ -36,11 +38,13 @@ function AuthSurfaceTabs({
   loginMode = 'password',
   returnUrl,
   onSurfaceIntent,
+  children,
 }: {
   surface: 'login' | 'register';
   loginMode?: LoginMode;
   returnUrl?: string | null;
   onSurfaceIntent?: (surface: AuthCardSurface) => void;
+  children: ReactNode;
 }) {
   return (
     <AppTabs fullWidth activeTone="surface" value={surface} className="gap-kv-group">
@@ -68,6 +72,17 @@ function AuthSurfaceTabs({
           </Link>
         </AppTabsTrigger>
       </AppTabsList>
+      {/*
+        Radix برای هر تریگر aria-controls می‌سازد؛ بدون TabsContent با همان value
+        آن id در DOM نیست و axe خطای aria-valid-attr-value می‌دهد.
+        forceMount پنل غیرفعال را هم نگه می‌دارد تا تریگر غیرفعال هم ارجاع معتبر داشته باشد.
+      */}
+      <AppTabsContent value="register" forceMount className="mt-0">
+        {surface === 'register' ? children : null}
+      </AppTabsContent>
+      <AppTabsContent value="login" forceMount className="mt-0">
+        {surface === 'login' ? children : null}
+      </AppTabsContent>
     </AppTabs>
   );
 }
@@ -81,17 +96,16 @@ function LoginPanel({
 }) {
   const login = useLoginForm(returnUrl ?? null);
   return (
-    <div className="flex flex-col gap-kv-group">
-      <AuthSurfaceTabs
-        surface="login"
-        loginMode={login.mode}
-        returnUrl={returnUrl}
-        onSurfaceIntent={onSurfaceIntent}
-      />
+    <AuthSurfaceTabs
+      surface="login"
+      loginMode={login.mode}
+      returnUrl={returnUrl}
+      onSurfaceIntent={onSurfaceIntent}
+    >
       <AuthFormStage stageKey={`login-${login.mode}`}>
         <LoginForm login={login} />
       </AuthFormStage>
-    </div>
+    </AuthSurfaceTabs>
   );
 }
 
@@ -103,16 +117,15 @@ function RegisterPanel({
   onSurfaceIntent?: (surface: AuthCardSurface) => void;
 }) {
   return (
-    <div className="flex flex-col gap-kv-group">
-      <AuthSurfaceTabs
-        surface="register"
-        returnUrl={returnUrl}
-        onSurfaceIntent={onSurfaceIntent}
-      />
+    <AuthSurfaceTabs
+      surface="register"
+      returnUrl={returnUrl}
+      onSurfaceIntent={onSurfaceIntent}
+    >
       <AuthFormStage stageKey="register">
         <RegisterForm />
       </AuthFormStage>
-    </div>
+    </AuthSurfaceTabs>
   );
 }
 

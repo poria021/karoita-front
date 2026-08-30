@@ -42,7 +42,7 @@ export function AdminSidebar() {
   const closeMobileSidebar = useUIStore((state) => state.closeMobileSidebar);
   const pathname = usePathname();
   const drawerTitleId = useId();
-  const drawerRef = useRef<HTMLElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   useSidebarMobileDrawer({
     isMobileOpen,

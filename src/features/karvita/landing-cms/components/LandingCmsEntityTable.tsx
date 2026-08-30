@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
@@ -20,7 +21,6 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
-import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
 
 export type LandingCmsTableColumn = {
@@ -85,9 +85,10 @@ export function LandingCmsEntityTable<T extends { id: string }>({
           {bodyPhase === 'busy' ? <KvTableBusy colSpan={colSpan} /> : null}
           {bodyPhase === 'empty' ? (
             <KvTableEmpty colSpan={colSpan}>
-              <KvTypography variant="body" tone="muted">
-                موردی یافت نشد
-              </KvTypography>
+              <KvEmptyState
+                title={emptyTitle}
+                description={emptyDescription}
+              />
             </KvTableEmpty>
           ) : null}
           {bodyPhase === 'rows'

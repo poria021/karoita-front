@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
@@ -222,22 +222,38 @@ export function useOrgEntityForm({
 
   const provinces: OrgProvince[] = provincesQuery.data ?? [];
   const cities: OrgCity[] = provinceId ? (citiesQuery.data ?? []) : [];
-  const districtsFromQuery: OrgDistrict[] =
-    tab === 'schools' && provinceId ? (districtsQuery.data ?? []) : [];
-  const districts: OrgDistrict[] =
-    editRow?.districtId &&
-    editRow.districtName &&
-    !districtsFromQuery.some((d) => d.id === editRow.districtId)
-      ? [
-          ...districtsFromQuery,
-          {
-            id: editRow.districtId,
-            name: editRow.districtName,
-            provinceId: editRow.provinceId ?? '',
-            cityId: editRow.cityId ?? '',
-          },
-        ]
-      : districtsFromQuery;
+  const editDistrictId = editRow?.districtId;
+  const editDistrictName = editRow?.districtName;
+  const editDistrictProvinceId = editRow?.provinceId ?? '';
+  const editDistrictCityId = editRow?.cityId ?? '';
+  const districts = useMemo((): OrgDistrict[] => {
+    const fromQuery: OrgDistrict[] =
+      tab === 'schools' && provinceId ? (districtsQuery.data ?? []) : [];
+    if (
+      editDistrictId &&
+      editDistrictName &&
+      !fromQuery.some((d) => d.id === editDistrictId)
+    ) {
+      return [
+        ...fromQuery,
+        {
+          id: editDistrictId,
+          name: editDistrictName,
+          provinceId: editDistrictProvinceId,
+          cityId: editDistrictCityId,
+        },
+      ];
+    }
+    return fromQuery;
+  }, [
+    tab,
+    provinceId,
+    districtsQuery.data,
+    editDistrictId,
+    editDistrictName,
+    editDistrictProvinceId,
+    editDistrictCityId,
+  ]);
   const roles: OrgRole[] = tab === 'majors' ? (rolesQuery.data ?? []) : [];
 
   /**

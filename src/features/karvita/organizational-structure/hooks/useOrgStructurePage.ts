@@ -163,7 +163,6 @@ export function useOrgStructurePage() {
     await list.reload();
   }, [queryClient, list]);
 
-  const reload = list.reload;
   const patchItems = list.patchItems;
 
   const scheduleCreate = useCallback(

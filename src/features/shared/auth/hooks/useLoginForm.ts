@@ -28,6 +28,7 @@ export function useLoginForm(returnUrl: string | null) {
 
   const password = usePasswordLogin({ onSuccess: goAfterLogin });
   const otp = useOtpLogin({ onSuccess: goAfterLogin });
+  const { start: startOtpLogin } = otp;
   const [prefill] = useState(() => consumeAuthFlowMobilePrefill());
 
   useEffect(() => {
@@ -43,9 +44,9 @@ export function useLoginForm(returnUrl: string | null) {
   }, []);
 
   const switchToOtpMode = useCallback(() => {
-    otp.start(password.passwordForm.getValues('mobile'));
+    startOtpLogin(password.passwordForm.getValues('mobile'));
     setMode('otp');
-  }, [otp.start, password.passwordForm]);
+  }, [startOtpLogin, password.passwordForm]);
 
   const prepareForgot = useCallback(() => {
     writeAuthFlowMobilePrefill(password.passwordForm.getValues('mobile'));

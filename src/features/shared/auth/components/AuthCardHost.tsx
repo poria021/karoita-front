@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
 
-import { RETURN_URL_PARAM, parseSafeReturnUrl } from '@/lib/return-url';
+import { readReturnUrlParam } from '@/lib/return-url';
 import { RouteService } from '@/services/route.service';
 
 import { AuthCard } from './AuthCard';
@@ -15,36 +15,25 @@ function surfaceFromPath(pathname: string): AuthCardSurface {
   return 'login';
 }
 
-function readReturnUrl(): string | null {
-  if (typeof window === 'undefined') return null;
-  return parseSafeReturnUrl(
-    new URLSearchParams(window.location.search).get(RETURN_URL_PARAM)
-  );
-}
-
 /**
  * Keeps the auth card mounted across login/register/forgot so the form
  * does not flash empty while the RSC page swaps.
  */
 export function AuthCardHost() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const pathSurface = surfaceFromPath(pathname);
   const [pendingSurface, setPendingSurface] = useState<AuthCardSurface | null>(
     null
   );
-  const [returnUrl, setReturnUrl] = useState<string | null>(null);
 
-  useEffect(() => {
-    setReturnUrl(readReturnUrl());
-  }, [pathname]);
-
-  useEffect(() => {
-    if (pendingSurface && pathSurface === pendingSurface) {
-      setPendingSurface(null);
-    }
-  }, [pathSurface, pendingSurface]);
+  // تا وقتی pathname به تب کلیک‌شده برسد، همان سطح را نشان بده؛ بعد pending را خالی کن.
+  if (pendingSurface !== null && pendingSurface === pathSurface) {
+    setPendingSurface(null);
+  }
 
   const surface = pendingSurface ?? pathSurface;
+  const returnUrl = readReturnUrlParam(searchParams);
 
   return (
     <AuthCard

@@ -36,6 +36,6 @@ export async function runPwaInstallFlow(): Promise<void> {
 }
 
 /** دکمه می‌ماند تا کلیک روی اپِ نصب‌شده توستر بدهد، نه اینکه آیتم مخفی شود. */
-export function shouldShowPwaInstallMenuItem(_standalone: boolean): boolean {
+export function shouldShowPwaInstallMenuItem(): boolean {
   return true;
 }

@@ -167,7 +167,6 @@ describe('runPwaInstallFlow', () => {
 
 describe('shouldShowPwaInstallMenuItem', () => {
   it('keeps the install action visible so an installed app can toast', () => {
-    expect(shouldShowPwaInstallMenuItem(true)).toBe(true);
-    expect(shouldShowPwaInstallMenuItem(false)).toBe(true);
+    expect(shouldShowPwaInstallMenuItem()).toBe(true);
   });
 });
