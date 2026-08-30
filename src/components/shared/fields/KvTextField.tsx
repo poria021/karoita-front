@@ -31,12 +31,12 @@ const kvTextFieldWrapperVariants = cva(
       },
       state: {
         default: [
-          'border-kv-border',
+          'border-kv-border can-hover:hover:border-kv-border-hover',
           'focus-within:border-kv-brand focus-within:bg-kv-field',
           'focus-within:ring-[3px] focus-within:ring-kv-ring/15',
         ].join(' '),
         error: [
-          'border-kv-danger-border',
+          'border-kv-danger-border hover:border-kv-danger-border',
           'focus-within:border-kv-danger focus-within:bg-kv-field',
           'focus-within:ring-[3px] focus-within:ring-kv-ring-danger/15',
         ].join(' '),

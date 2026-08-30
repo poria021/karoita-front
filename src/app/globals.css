@@ -91,6 +91,7 @@
   --color-kv-border: var(--kv-border);
   --color-kv-border-strong: var(--kv-border-strong);
   --color-kv-border-muted: var(--kv-border-muted);
+  --color-kv-border-hover: var(--kv-border-hover);
   --color-kv-border-disabled: var(--kv-border-disabled);
   --color-kv-ring: var(--kv-ring);
   --color-kv-ring-danger: var(--kv-ring-danger);
@@ -309,6 +310,8 @@
   --kv-border: hsl(40 10% 88%);
   --kv-border-strong: hsl(40 9% 80%);
   --kv-border-muted: hsl(40 12% 92%);
+  /* هاور فیلد — همان فام بردر، چند پله روشن‌تر از muted تا دیده شود */
+  --kv-border-hover: hsl(40 16% 97%);
   --kv-border-disabled: hsl(40 8% 86%);
   --kv-ring: hsl(220 85% 42%);
   --kv-ring-danger: hsl(347 77.2% 49.8%);
@@ -449,6 +452,7 @@
   --kv-border:          hsl(220 60% 80% / 0.07);
   --kv-border-strong:   hsl(220 60% 80% / 0.13);
   --kv-border-muted:    hsl(220 60% 80% / 0.045);
+  --kv-border-hover:    hsl(220 45% 92% / 0.28);
   --kv-border-disabled: hsl(220 60% 80% / 0.055);
   --kv-ring:            hsl(217 91% 60%);
   --kv-ring-danger:     hsl(0 65% 60%);

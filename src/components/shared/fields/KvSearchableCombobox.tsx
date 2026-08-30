@@ -146,7 +146,7 @@ export function KvSearchableCombobox({
             ? 'cursor-not-allowed border-kv-border bg-kv-surface-muted/50 opacity-60'
             : open
               ? 'border-kv-brand'
-              : 'border-kv-border',
+              : 'border-kv-border can-hover:hover:border-kv-border-hover',
           inputClassName
         )}
       >

@@ -370,6 +370,8 @@ export const KvSearchableOrganizationSelect = forwardRef<
               className={cn(
                 multiTriggerClassName,
                 locked && multiTriggerLockedClassName,
+                !locked &&
+                  'can-hover:hover:border-kv-border-hover data-[state=open]:hover:border-kv-brand',
                 !locked && selectedLabels.length === 0 && 'ps-3.5 text-kv-text-placeholder',
                 locked && 'ps-3.5'
               )}

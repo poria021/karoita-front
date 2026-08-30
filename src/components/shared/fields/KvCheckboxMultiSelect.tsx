@@ -93,8 +93,9 @@ export function KvCheckboxMultiSelect({
             'data-[state=open]:border-kv-brand data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15',
             disabled
               ? 'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled [&_svg]:text-kv-text-disabled focus-visible:border-kv-border-disabled focus-visible:ring-0'
-              : selectedOptions.length === 0 && 'ps-3.5 text-kv-text-placeholder',
-              disabled && 'ps-3.5',
+              : 'can-hover:hover:border-kv-border-hover data-[state=open]:hover:border-kv-brand',
+            !disabled && selectedOptions.length === 0 && 'ps-3.5 text-kv-text-placeholder',
+            disabled && 'ps-3.5',
               className
             )}
           >
