@@ -43,7 +43,7 @@ export function SupervisorSelectionTable({
   return (
     <div className="hidden min-h-0 flex-1 lg:block">
       <KvTableViewport isBusy={isLoading}>
-        <KvTable scrollable>
+        <KvTable scrollable={false}>
           <KvTableHeader>
             <KvTableRow>
               <KvTableRowIndexHead />

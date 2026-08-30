@@ -187,7 +187,7 @@ export function OrgStructureTable({
         onEndReached={onLoadMore}
         loadingMoreLabel="در حال بارگذاری ۱۰ سطر بعدی…"
       >
-        <KvTable scrollable>
+        <KvTable scrollable={false}>
           <KvTableHeader>
             <KvTableRow>
               <KvTableRowIndexHead />

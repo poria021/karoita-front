@@ -163,6 +163,9 @@ export function KvTableHead({
       data-slot="kv-table-head"
       className={cn(
         ROW_HEIGHT,
+        // sticky روی th — روی thead با border-separate در کروم کار نمی‌کند.
+        // والد overflow-x جدا هم چسبندگی را به ارتفاع کل جدول محدود می‌کند.
+        'sticky top-0 z-10 bg-kv-surface-muted',
         'border-b border-kv-border px-3.5 py-0 font-bold whitespace-nowrap',
         ALIGN_CLASS[align],
         className
