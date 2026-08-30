@@ -64,7 +64,7 @@ export function KvTableHeader({
     <TableHeader
       data-slot="kv-table-header"
       className={cn(
-        'sticky top-0 z-10 bg-kv-surface-muted font-bold text-kv-text-faint',
+        'bg-kv-surface-muted font-bold text-kv-text-faint',
         className
       )}
       {...props}
