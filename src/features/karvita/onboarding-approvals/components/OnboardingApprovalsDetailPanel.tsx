@@ -1,6 +1,7 @@
 'use client';
 
 import { KvButton } from '@/components/shared/KvButton';
+import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import {
   KvCard,
   KvCardAction,
@@ -118,7 +119,7 @@ export function OnboardingApprovalsDetailPanel({
       <KvCardContent
         padding="none"
         stacked
-        className="min-h-0 flex-1 overflow-y-auto"
+        className={`min-h-0 flex-1 overflow-y-auto ${kvScrollAreaClassName}`}
       >
         {canReject && showRejectForm ? (
           <OnboardingApprovalsRejectForm

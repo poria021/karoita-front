@@ -8,11 +8,11 @@ import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
 import { HeaderBrandWordmark } from '@/components/shared/shell/HeaderBrandWordmark';
 import { SidebarNavList } from '@/components/shared/shell/SidebarNavList';
+import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import {
   kvShellAdminRailMotionClassName,
   kvShellAdminRailWidthMotionClassName,
   kvShellRailLabelMotionClassName,
-  kvShellSidebarHoverScrollClassName,
 } from '@/components/shared/shell/shellChrome';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
 import { cn } from '@/lib/utils';
@@ -156,7 +156,7 @@ export function AdminSidebar() {
           <aside
             className={cn(
               'flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden',
-              kvShellSidebarHoverScrollClassName
+              kvScrollAreaClassName
             )}
           >
             <SidebarNavList
@@ -167,7 +167,7 @@ export function AdminSidebar() {
               onNavigate={closeMobileSidebar}
               className={cn(
                 'lg:overflow-y-auto',
-                kvShellSidebarHoverScrollClassName
+                kvScrollAreaClassName
               )}
             />
 

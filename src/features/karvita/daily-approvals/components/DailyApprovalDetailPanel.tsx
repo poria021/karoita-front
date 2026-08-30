@@ -6,6 +6,7 @@ import {
   KvCardContent,
 } from '@/components/shared/KvCard';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
+import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { KvTypography } from '@/components/shared/KvTypography';
 import type {
   DailyApprovalTrainee,
@@ -54,7 +55,7 @@ export function DailyApprovalDetailPanel({
       <KvCardContent
         padding="none"
         stacked
-        className="min-h-0 flex-1 overflow-y-auto"
+        className={`min-h-0 flex-1 overflow-y-auto ${kvScrollAreaClassName}`}
       >
         <div className="flex flex-col items-stretch justify-between gap-kv-group border-b border-kv-border pb-kv-group sm:flex-row sm:items-center">
           <div>

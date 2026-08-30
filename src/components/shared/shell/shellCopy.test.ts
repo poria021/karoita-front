@@ -12,8 +12,8 @@ import {
   kvShellRailLabelMotionClassName,
   kvShellFocusRingClassName,
   kvShellOverlayRowPadClassName,
-  kvShellSidebarHoverScrollClassName,
 } from './shellChrome';
+import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import {
   lockedNavAriaLabel,
   lockedNavTitle,
@@ -62,7 +62,7 @@ describe('shellChrome', () => {
     expect(kvShellAdminRailExpandedClassName).toContain('lg:ps-72');
     expect(kvShellAdminRailCollapsedClassName).toContain('lg:ps-24');
     expect(kvShellAdminMainGutterClassName).toBe('px-0 sm:px-kv-group');
-    expect(kvShellSidebarHoverScrollClassName).toBe('kv-sidebar-hover-scroll');
+    expect(kvScrollAreaClassName).toBe('kv-scroll-area');
     expect(kvShellAdminHeaderPadXClassName).toBe('px-kv-group');
     expect(kvShellAdminRailMotionClassName).toContain('duration-500');
     expect(kvShellAdminRailWidthMotionClassName).toContain('duration-500');

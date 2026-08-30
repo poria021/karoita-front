@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { SidebarCourseIcon } from '@/components/shared/shell/SidebarCourseIcon';
+import { kvScrollAreaHiddenClassName } from '@/components/shared/KvScrollArea';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store/useUserStore';
 import {
@@ -57,7 +58,10 @@ export function MobileBottomNav() {
         {/* اسکرول افقی بدون نمایش scrollbar */}
         <ul
           role="list"
-          className="flex items-center gap-0.5 overflow-x-auto px-2 py-1.5 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className={cn(
+            'flex items-center gap-0.5 overflow-x-auto px-2 py-1.5',
+            kvScrollAreaHiddenClassName
+          )}
         >
           {allItems.map((item) => {
             const isActive = pathname === item.path;

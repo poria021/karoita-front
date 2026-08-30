@@ -2,6 +2,7 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { KvTypography } from '@/components/shared/KvTypography';
 import type { DailyApprovalWeek } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
@@ -24,11 +25,11 @@ export function DailyApprovalWeekReportReadonly({
         <KvTypography variant="subtitle" as="h4">
           ۱. متن کامل گزارش ارسالی فراگیر:
         </KvTypography>
-        <div className="max-h-36 overflow-y-auto rounded-kv-control border border-kv-border bg-kv-surface-muted p-kv-group text-justify">
+        <KvScrollArea className="max-h-36 overflow-y-auto rounded-kv-control border border-kv-border bg-kv-surface-muted p-kv-group text-justify">
           <KvTypography variant="body" as="p">
             {reportText}
           </KvTypography>
-        </div>
+        </KvScrollArea>
       </div>
 
       <div className="space-y-kv-pair">

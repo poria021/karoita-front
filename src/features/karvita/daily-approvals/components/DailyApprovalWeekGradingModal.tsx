@@ -1,6 +1,7 @@
 'use client';
 
 import { KvAlert } from '@/components/shared/KvAlert';
+import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { KvButton } from '@/components/shared/KvButton';
 import {
   KvDialog,
@@ -110,7 +111,7 @@ export function DailyApprovalWeekGradingModal({
           <KvDialogDescription>{modal.subtitle}</KvDialogDescription>
         </KvDialogHeader>
 
-        <div className="-mx-kv-stack max-h-[min(70vh,560px)] overflow-y-auto px-kv-stack [direction:ltr] sm:-mx-kv-section sm:px-kv-section">
+        <KvScrollArea className="-mx-kv-stack max-h-[min(70vh,560px)] overflow-y-auto px-kv-stack [direction:ltr] sm:-mx-kv-section sm:px-kv-section">
           <div className="flex flex-col gap-kv-group [direction:rtl]">
             {modal.dropped ? (
               <KvAlert
@@ -157,7 +158,7 @@ export function DailyApprovalWeekGradingModal({
               ) : null}
             </fieldset>
           </div>
-        </div>
+        </KvScrollArea>
 
         <KvDialogFooter>
           <KvButton

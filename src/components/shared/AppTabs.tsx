@@ -8,6 +8,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { kvScrollAreaHiddenClassName } from '@/components/shared/KvScrollArea';
 import { cn } from '@/lib/utils';
 
 export type AppTabsActiveTone = 'brand' | 'surface';
@@ -25,7 +26,7 @@ const LIST_BASE = [
 const LIST_ROW = [
   LIST_BASE,
   'overflow-x-auto whitespace-nowrap',
-  '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+  kvScrollAreaHiddenClassName,
 ].join(' ');
 
 const GRID_COLS_CLASS: Record<AppTabsGridCols, string> = {
@@ -45,7 +46,7 @@ const LIST_RESPONSIVE_GRID = (cols: AppTabsGridCols) =>
     GRID_COLS_CLASS[cols],
     'lg:flex lg:w-fit lg:max-w-full lg:flex-nowrap lg:justify-start',
     'lg:overflow-x-auto lg:whitespace-nowrap',
-    'lg:[-ms-overflow-style:none] lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden',
+    kvScrollAreaHiddenClassName,
   ].join(' ');
 
 /** Dashboard: full width through tablet; hug content from lg. Auth (`fullWidth`): always stretch. */

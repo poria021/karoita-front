@@ -1,3 +1,4 @@
+import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { cn } from '@/lib/utils';
 
 /**
@@ -34,10 +35,10 @@ export function kvOverlayItemClassName(
 export const kvOverlaySeparatorClassName = 'h-px w-full bg-kv-border/40';
 
 /**
- * بدنهٔ اسکرول‌شوندهٔ لیست اورلی — اسکرول‌بار نازک همیشه وقتی overflow هست.
- * کلاس `kv-overlay-list-scroll` در globals.css عرض thumb را برای Radix/cmdk اجبار می‌کند.
+ * بدنهٔ اسکرول لیست اورلی — همان KvScrollArea؛ ltr فقط جای نوار را راست نگه می‌دارد.
  */
 export const kvOverlayListScrollClassName = [
+  kvScrollAreaClassName,
   'kv-overlay-list-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto',
 ].join(' ');
 

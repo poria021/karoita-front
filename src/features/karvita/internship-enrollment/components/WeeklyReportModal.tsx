@@ -2,6 +2,7 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
+import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { KvButton } from '@/components/shared/KvButton';
 import {
   KvDialog,
@@ -109,7 +110,7 @@ export function WeeklyReportModal({
           </KvDialogDescription>
         </KvDialogHeader>
 
-        <div className="max-h-[min(70vh,560px)] overflow-y-auto pe-kv-micro [direction:ltr]">
+        <KvScrollArea className="max-h-[min(70vh,560px)] overflow-y-auto pe-kv-micro [direction:ltr]">
           <div className="flex flex-col gap-kv-group [direction:rtl]">
           {modal.locked && modal.lockNotice ? (
             <KvAlert
@@ -165,7 +166,7 @@ export function WeeklyReportModal({
             onRemove={modal.removeFile}
           />
           </div>
-        </div>
+        </KvScrollArea>
 
         <KvDialogFooter>
           {modal.locked ? (

@@ -10,6 +10,8 @@ import {
   type ReactNode,
 } from 'react';
 
+import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
+
 export type MarketingPanelId =
   | 'benefits'
   | 'about'
@@ -153,7 +155,7 @@ export function MarketingPanel({
       inert={!isOpen ? true : undefined}
       className={
         isOpen
-          ? 'kv-auth-enter flex min-h-dvh w-full scroll-mt-0 items-center justify-center overflow-y-auto border-t border-kv-border-muted'
+          ? `kv-auth-enter flex min-h-dvh w-full scroll-mt-0 items-center justify-center overflow-y-auto border-t border-kv-border-muted ${kvScrollAreaClassName}`
           : undefined
       }
     >

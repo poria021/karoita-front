@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCaption,
 } from '@/components/ui/table';
+import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { cn } from '@/lib/utils';
 
 const ROW_HEIGHT = 'h-12';
@@ -50,9 +51,9 @@ export function KvTable({
   if (!scrollable) return table;
 
   return (
-    <div data-slot="kv-table-scroll" className="max-w-full overflow-x-auto">
+    <KvScrollArea data-slot="kv-table-scroll" className="max-w-full overflow-x-auto">
       {table}
-    </div>
+    </KvScrollArea>
   );
 }
 

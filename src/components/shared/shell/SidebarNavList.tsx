@@ -1,3 +1,4 @@
+import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { cn } from '@/lib/utils';
 import {
   isSidebarMenuGroup,
@@ -32,6 +33,7 @@ export function SidebarNavList({
   return (
     <nav
       className={cn(
+        kvScrollAreaClassName,
         'flex-1 space-y-kv-inline overflow-y-auto p-kv-group lg:overflow-y-visible lg:p-kv-inline lg:pt-kv-stack lg:pb-kv-page',
         className
       )}

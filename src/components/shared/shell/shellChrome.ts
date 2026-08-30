@@ -75,9 +75,6 @@ export function kvShellAdminRailClearanceClassName(isCollapsed: boolean) {
  */
 export const kvShellAdminMainGutterClassName = 'px-0 sm:px-kv-group';
 
-/** Rail overflow chrome — hidden until hover; see `.kv-sidebar-hover-scroll`. */
-export const kvShellSidebarHoverScrollClassName = 'kv-sidebar-hover-scroll';
-
 /** Shared product footer hairline — dashboard main + auth cards. */
 export const kvProductFooterBorderClassName = 'border-t border-kv-border';
 

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Dialog as DialogPrimitive } from 'radix-ui';
 
+import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { cn } from '@/lib/utils';
 
 function Dialog({
@@ -61,6 +62,7 @@ function DialogContent({
           data-slot="dialog-content"
           className={cn(
             // LTR scroll container → physical-right scrollbar in RTL product UI.
+            kvScrollAreaClassName,
             'bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-auto relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col gap-kv-stack overflow-y-auto rounded-kv-card border border-kv-border p-kv-stack text-start shadow-kv-floating duration-200 [direction:ltr] sm:p-kv-section',
             className
           )}

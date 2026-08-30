@@ -6,7 +6,7 @@ import { useId, useRef } from 'react';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
-import { kvShellSidebarHoverScrollClassName } from '@/components/shared/shell/shellChrome';
+import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
@@ -82,7 +82,7 @@ export function Sidebar() {
           className={cn(
             'group/sidebar flex h-full min-h-0 w-full shrink-0 flex-col overflow-y-auto border-e border-kv-border/80 bg-kv-surface',
             'lg:h-auto lg:overflow-hidden lg:border lg:border-kv-border/80 lg:rounded-kv-shell',
-            kvShellSidebarHoverScrollClassName
+            kvScrollAreaClassName
           )}
         >
           <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">
@@ -105,7 +105,10 @@ export function Sidebar() {
           </div>
 
           <nav
-            className="flex-1 space-y-kv-inline overflow-y-auto p-kv-group lg:overflow-y-visible lg:p-kv-inline lg:pt-kv-stack lg:pb-kv-page"
+            className={cn(
+              kvScrollAreaClassName,
+              'flex-1 space-y-kv-inline overflow-y-auto p-kv-group lg:overflow-y-visible lg:p-kv-inline lg:pt-kv-stack lg:pb-kv-page'
+            )}
             aria-label="منوی اصلی"
           >
             {visibleMenu.map((entry) =>

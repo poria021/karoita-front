@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
 import { KV_TABLE_VIEWPORT_HEIGHT } from '@/components/shared/table/kvTableViewportHeight';
@@ -78,12 +79,12 @@ export function KvTableViewport({
   }, [onEndReached, hasMore, isLoadingMore, isBusy, resetKey]);
 
   return (
-    <div
+    <KvScrollArea
       ref={rootRef}
       data-slot="kv-table-viewport"
       dir="ltr"
       className={cn(
-        'max-w-full overflow-auto overscroll-contain',
+        'max-w-full overscroll-contain',
         framed &&
           'rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-soft',
         heightClassName,
@@ -122,6 +123,6 @@ export function KvTableViewport({
           </div>
         ) : null}
       </div>
-    </div>
+    </KvScrollArea>
   );
 }
