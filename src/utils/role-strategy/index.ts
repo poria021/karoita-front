@@ -15,6 +15,7 @@ export {
   getRoleStrategy,
   getVisibleSidebarMenu,
   hasPermission,
+  isLearnerDashboardRole,
   isStaffAdminRole,
   isSuperAdminRole,
 } from '@/utils/role-strategy/helpers';

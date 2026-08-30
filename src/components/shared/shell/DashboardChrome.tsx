@@ -12,11 +12,15 @@ import {
   kvShellAdminRailClearanceClassName,
   kvShellAdminRailClearanceMotionClassName,
   kvShellContentPadXClassName,
+  kvShellLearnerDashboardWidthClassName,
 } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
-import { isStaffAdminRole } from '@/utils/RoleStrategyMap';
+import {
+  isLearnerDashboardRole,
+  isStaffAdminRole,
+} from '@/utils/RoleStrategyMap';
 
 interface DashboardChromeProps {
   children: ReactNode;
@@ -38,9 +42,11 @@ export function DashboardChrome({ children }: DashboardChromeProps) {
     <div className="flex min-h-dvh w-full flex-col bg-kv-canvas">
       <Header />
       <div
+        data-slot="kv-org-dashboard-frame"
         className={cn(
           'relative flex w-full flex-1 flex-col items-stretch gap-kv-group lg:flex-row',
-          kvShellContentPadXClassName
+          kvShellContentPadXClassName,
+          isLearnerDashboardRole(role) && kvShellLearnerDashboardWidthClassName
         )}
       >
         <Sidebar />

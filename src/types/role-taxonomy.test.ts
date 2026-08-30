@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest';
 import {
   CREATABLE_STAFF_ADMIN_ROLES,
   isCreatableStaffAdminRole,
+  isLearnerDashboardRole,
   isOrgManagementRole,
   isProvisionableAccountRole,
   isStaffAdminRole,
+  LEARNER_DASHBOARD_ROLES,
   ORG_MANAGEMENT_ROLES,
   PROVISIONABLE_ACCOUNT_ROLES,
   STAFF_ADMIN_ROLES,
@@ -37,5 +39,13 @@ describe('role-taxonomy', () => {
     expect(isCreatableStaffAdminRole('assistant_admin')).toBe(true);
     expect(isCreatableStaffAdminRole('super_admin')).toBe(false);
     expect(isProvisionableAccountRole('student')).toBe(false);
+  });
+
+  it('classifies learner dashboard roles', () => {
+    expect(LEARNER_DASHBOARD_ROLES).toEqual(['student', 'skill_learner']);
+    expect(isLearnerDashboardRole('student')).toBe(true);
+    expect(isLearnerDashboardRole('skill_learner')).toBe(true);
+    expect(isLearnerDashboardRole('supervisor_professor')).toBe(false);
+    expect(isLearnerDashboardRole('super_admin')).toBe(false);
   });
 });

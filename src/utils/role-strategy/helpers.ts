@@ -55,7 +55,7 @@ export function isSuperAdminRole(
   return role === 'super_admin';
 }
 
-export { isStaffAdminRole } from '@/types/role-taxonomy';
+export { isLearnerDashboardRole, isStaffAdminRole } from '@/types/role-taxonomy';
 
 function normalizeAccessPath(pathname: string): string {
   const withoutQuery = pathname.split('?')[0] ?? pathname;

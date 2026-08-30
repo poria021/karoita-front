@@ -46,6 +46,20 @@ export function isStaffAdminRole(
   return role === 'super_admin' || role === 'assistant_admin';
 }
 
+/** دانشجو و مهارت‌آموز — کروم داشبورد باریک‌تر از نقش‌های سازمانی/ادمین. */
+export const LEARNER_DASHBOARD_ROLES = [
+  'student',
+  'skill_learner',
+] as const satisfies readonly UserRole[];
+
+export type LearnerDashboardRole = (typeof LEARNER_DASHBOARD_ROLES)[number];
+
+export function isLearnerDashboardRole(
+  role: UserRole | string | null | undefined
+): role is LearnerDashboardRole {
+  return role === 'student' || role === 'skill_learner';
+}
+
 export function isOrgManagementRole(
   role: UserRole | string | null | undefined
 ): role is OrgManagementRole {

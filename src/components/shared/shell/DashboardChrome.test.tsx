@@ -69,6 +69,29 @@ describe('DashboardChrome', () => {
     }
   );
 
+  it.each(['student', 'skill_learner'] as const)(
+    'constrains the %s dashboard to the standard learner width',
+    (role) => {
+      useUserStore.setState({
+        activeUser: user(role),
+        isAuthenticated: true,
+        hasHydrated: true,
+      });
+
+      render(
+        <DashboardChrome>
+          <span>محتوا</span>
+        </DashboardChrome>
+      );
+
+      const frame = screen
+        .getByText('محتوا')
+        .closest('[data-slot="kv-org-dashboard-frame"]');
+      expect(frame).toHaveClass('max-w-[90rem]');
+      expect(frame?.contains(screen.getByTestId('org-header'))).toBe(false);
+    }
+  );
+
   it('keeps the card sidebar stack for non-admin roles', () => {
     useUserStore.setState({
       activeUser: user('student'),
@@ -85,5 +108,23 @@ describe('DashboardChrome', () => {
     expect(screen.getByTestId('org-rail')).toBeInTheDocument();
     expect(screen.getByTestId('org-header')).toBeInTheDocument();
     expect(screen.queryByTestId('admin-rail')).not.toBeInTheDocument();
+  });
+
+  it('does not constrain org-management dashboards to the learner width', () => {
+    useUserStore.setState({
+      activeUser: user('supervisor_professor'),
+      isAuthenticated: true,
+      hasHydrated: true,
+    });
+
+    render(
+      <DashboardChrome>
+        <span>محتوا</span>
+      </DashboardChrome>
+    );
+
+    expect(
+      screen.getByText('محتوا').closest('[data-slot="kv-org-dashboard-frame"]')
+    ).not.toHaveClass('max-w-[90rem]');
   });
 });

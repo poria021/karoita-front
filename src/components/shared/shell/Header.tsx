@@ -7,14 +7,17 @@ import { HeaderBrandWordmark } from '@/components/shared/shell/HeaderBrandWordma
 import { HeaderNotificationsMenu } from '@/components/shared/shell/HeaderNotificationsMenu';
 import { ThemeModeToggle } from '@/components/shared/shell/ThemeModeToggle';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
-import { kvShellHeaderPadXClassName } from '@/components/shared/shell/shellChrome';
+import {
+  kvShellHeaderPadXClassName,
+  kvShellLearnerDashboardWidthClassName,
+} from '@/components/shared/shell/shellChrome';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
 import { getTodayJalaliFormatted } from '@/utils/formatJalaliDate';
 import { faIcons } from '@/utils/iconMap';
-import { getRoleStrategy } from '@/utils/RoleStrategyMap';
+import { getRoleStrategy, isLearnerDashboardRole } from '@/utils/RoleStrategyMap';
 
 export function Header() {
   const activeUser = useUserStore((state) => state.activeUser);
@@ -28,9 +31,12 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 w-full border-b border-kv-border/60 bg-kv-surface/80 shadow-kv-raised backdrop-blur-md supports-[backdrop-filter]:bg-kv-surface/70">
       <div
+        data-slot="kv-org-header-inner"
         className={cn(
           'flex h-16 w-full items-center justify-between',
-          kvShellHeaderPadXClassName
+          kvShellHeaderPadXClassName,
+          isLearnerDashboardRole(activeUser.role) &&
+            kvShellLearnerDashboardWidthClassName
         )}
       >
         <div className="flex min-w-0 items-center gap-kv-group">

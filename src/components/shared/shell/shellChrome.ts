@@ -17,6 +17,13 @@ export const kvShellContentPadXClassName =
   'px-0 sm:px-kv-section lg:px-kv-section xl:px-kv-page 2xl:px-kv-screen';
 
 /**
+ * دانشجو / مهارت‌آموز — محتوای هدر و ردیف سایدبار+اصلی (نوار هدر فول‌ویدث می‌ماند).
+ * ۱۴۴۰px یک پله از ۷xl بازتر است؛ ادمین و نقش‌های سازمانی تمام‌عرض می‌مانند.
+ */
+export const kvShellLearnerDashboardWidthClassName =
+  'mx-auto w-full max-w-[90rem]';
+
+/**
  * Header content inset — slight mobile pad so controls are not flush to the edge;
  * from `sm` matches the body row margins.
  */
