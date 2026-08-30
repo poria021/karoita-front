@@ -4,6 +4,8 @@ import * as React from "react"
 import { Select as SelectPrimitive } from "radix-ui"
 
 import { FaIcon } from "@/components/shared/FaIcon"
+import { KvOverlayScrollMoreCue } from "@/components/shared/KvOverlayScrollMoreCue"
+import { kvOverlayListScrollClassName } from "@/components/shared/kvOverlayMenu"
 import {
   mergeEdgeAutoScrollRef,
   useEdgeAutoScroll,
@@ -74,23 +76,32 @@ function SelectContent({
   onPointerLeave,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
-  const edgeScroll = useEdgeAutoScroll<HTMLDivElement>()
+  const {
+    ref: edgeScrollRef,
+    onPointerMove: handlePointerMove,
+    onPointerLeave: handlePointerLeave,
+    canScrollDown,
+    nudgeDown,
+    stop,
+  } = useEdgeAutoScroll<HTMLDivElement>()
 
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         data-slot="select-content"
-        ref={mergeEdgeAutoScrollRef(edgeScroll.ref, ref)}
+        ref={mergeEdgeAutoScrollRef(edgeScrollRef, ref)}
         onPointerMove={(event) => {
-          edgeScroll.onPointerMove(event)
+          handlePointerMove(event)
           onPointerMove?.(event)
         }}
         onPointerLeave={(event) => {
-          edgeScroll.onPointerLeave()
+          handlePointerLeave()
           onPointerLeave?.(event)
         }}
         className={cn(
-          "bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-kv-control border border-kv-border/70 shadow-kv-overlay",
+          "relative z-50 flex min-w-[8rem] origin-(--radix-select-content-transform-origin) flex-col overflow-hidden rounded-kv-control border border-kv-border/70 bg-kv-surface text-kv-text shadow-kv-overlay",
+          "max-h-[min(14rem,var(--radix-select-content-available-height))]",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className
@@ -98,18 +109,22 @@ function SelectContent({
         position={position}
         {...props}
       >
-        <SelectScrollUpButton />
         <SelectPrimitive.Viewport
           data-edge-auto-scroll=""
           className={cn(
-            "p-1",
+            kvOverlayListScrollClassName,
+            "p-0",
             position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
+              "w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1"
           )}
         >
           {children}
         </SelectPrimitive.Viewport>
-        <SelectScrollDownButton />
+        <KvOverlayScrollMoreCue
+          visible={canScrollDown}
+          onHoverStart={nudgeDown}
+          onHoverEnd={stop}
+        />
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   )

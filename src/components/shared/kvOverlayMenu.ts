@@ -32,3 +32,11 @@ export function kvOverlayItemClassName(
 
 /** خط جداکنندهٔ مستقل (جایگزین Separatorهای پررنگ). */
 export const kvOverlaySeparatorClassName = 'h-px w-full bg-kv-border/40';
+
+/**
+ * بدنهٔ اسکرول‌شوندهٔ لیست اورلی — اسکرول‌بار نازک همیشه وقتی overflow هست.
+ * کلاس `kv-overlay-list-scroll` در globals.css عرض thumb را برای Radix/cmdk اجبار می‌کند.
+ */
+export const kvOverlayListScrollClassName = [
+  'kv-overlay-list-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto',
+].join(' ');

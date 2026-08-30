@@ -636,6 +636,26 @@
 }
 
 /*
+ * Overlay select / combobox lists: keep a visible thin bar whenever the
+ * list overflows. Radix Viewport defaults to overflow:hidden.
+ */
+.kv-overlay-list-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--kv-border-strong) transparent;
+}
+
+.kv-overlay-list-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-radix-select-viewport].kv-overlay-list-scroll,
+[data-slot='select-viewport'].kv-overlay-list-scroll {
+  overflow-y: auto !important;
+}
+
+/*
  * Sidebar rail: overflow stays, chrome stays hidden until the rail is
  * hovered. Touch / coarse pointers keep the thin bar so scroll is discoverable.
  */

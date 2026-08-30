@@ -15,6 +15,7 @@ import { KvOverlayScrollMoreCue } from '@/components/shared/KvOverlayScrollMoreC
 import { KvTypography } from '@/components/shared/KvTypography';
 import {
   kvOverlayItemClassName,
+  kvOverlayListScrollClassName,
   kvOverlayPanelClassName,
 } from '@/components/shared/kvOverlayMenu';
 import { Spinner } from '@/components/ui/spinner';
@@ -204,7 +205,7 @@ export function KvSearchableCombobox({
             data-edge-auto-scroll=""
             onPointerMove={onPointerMove}
             onPointerLeave={onPointerLeave}
-            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden outline-none"
+            className={cn(kvOverlayListScrollClassName, 'outline-none')}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-kv-pair px-kv-group py-kv-pair">

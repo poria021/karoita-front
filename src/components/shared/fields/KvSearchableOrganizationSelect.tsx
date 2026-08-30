@@ -10,6 +10,7 @@ import { KvSearchField } from '@/components/shared/fields/KvSearchField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import {
   kvOverlayItemClassName,
+  kvOverlayListScrollClassName,
   kvOverlayPanelClassName,
   kvOverlaySectionTopDividerClassName,
 } from '@/components/shared/kvOverlayMenu';
@@ -435,7 +436,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
                   onScroll={handleListScroll}
                   onPointerMove={edgeScroll.onPointerMove}
                   onPointerLeave={edgeScroll.onPointerLeave}
-                  className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-1 outline-none"
+                  className={cn(kvOverlayListScrollClassName, 'p-1 outline-none')}
                 >
                   {isLoading ? (
                     <div className="flex items-center justify-center gap-kv-pair px-3.5 py-3">
@@ -594,7 +595,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
             onScroll={handleListScroll}
             onPointerMove={edgeScroll.onPointerMove}
             onPointerLeave={edgeScroll.onPointerLeave}
-            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden outline-none"
+            className={cn(kvOverlayListScrollClassName, 'outline-none')}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-kv-pair px-3.5 py-3">
