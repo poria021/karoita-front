@@ -66,6 +66,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        // Retired presence-only lander. Role home is the live dashboard
+        // plus KarvitaModuleAccessGuard — keep this 307 so old tabs/bookmarks
+        // do not 404 inside the app shell.
+        source: '/karvita/entry',
+        destination: '/karvita/dashboard',
+        permanent: false,
+      },
+    ];
+  },
   async rewrites() {
     if (!nestProxyDestination?.startsWith('http')) return [];
     return [

@@ -22,7 +22,7 @@ export function AppRouteStatusActions({ onReset }: AppRouteStatusActionsProps) {
         </KvButton>
       ) : null}
       <KvButton asChild appearance={onReset ? 'secondary' : 'solid'} color="cta">
-        <Link href={RouteService.karvita.entry()} prefetch={false}>
+        <Link href={RouteService.karvita.dashboard()} prefetch={false}>
           رفتن به میز کار
         </Link>
       </KvButton>

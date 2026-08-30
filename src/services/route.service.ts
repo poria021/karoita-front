@@ -86,11 +86,6 @@ export const RouteService = {
   },
 
   karvita: {
-    /**
-     * Post-auth bounce only — Edge lands here (presence check);
-     * client then resolves role home via getPostLoginPath. Not a sidebar target.
-     */
-    entry: (): string => '/karvita/entry',
     dashboard: (): string => '/karvita/dashboard',
     adminDashboard: (): string => KARVITA_ADMIN_DASHBOARD,
     profile: (role: string): string => `/karvita/${role}/profile`,

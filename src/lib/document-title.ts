@@ -18,7 +18,6 @@ export const DOCUMENT_TITLE = {
   signIn: 'صفحه ورود',
   systemsEntry: 'ورود به سامانه‌ها',
   forgotPassword: 'بازیابی رمز عبور',
-  appEntry: 'ورود به سامانه',
   offline: 'آفلاین',
   notFound: 'صفحه یافت نشد',
   error: 'خطا',
@@ -63,10 +62,6 @@ export function resolveBrowserTabTitle(
 
   if (path === RouteService.auth.forgot()) {
     return formatDocumentTitle(DOCUMENT_TITLE.forgotPassword);
-  }
-
-  if (path === RouteService.karvita.entry()) {
-    return formatDocumentTitle(DOCUMENT_TITLE.appEntry);
   }
 
   const internshipMatch = /^\/karvita\/internships\/(\d+)$/.exec(path);

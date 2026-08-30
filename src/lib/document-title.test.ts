@@ -26,8 +26,8 @@ describe('document-title', () => {
   });
 
   it('marks private surfaces noindex', () => {
-    expect(privatePageMetadata(DOCUMENT_TITLE.appEntry)).toEqual({
-      title: 'ورود به سامانه',
+    expect(privatePageMetadata(DOCUMENT_TITLE.signIn)).toEqual({
+      title: 'صفحه ورود',
       robots: { index: false, follow: false },
     });
   });

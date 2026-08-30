@@ -1,7 +1,12 @@
 import { RouteService } from '@/services/route.service';
 
-/** Edge presence-only default; client `/karvita/entry` resolves role home. */
-const DEFAULT_LOGIN_REDIRECT = RouteService.karvita.entry();
+/**
+ * Edge presence-only default when a session cookie exists on `/auth/*`
+ * and there is no safe `returnUrl`. Role correction stays on the client
+ * (`KarvitaModuleAccessGuard` / `getPostLoginPath`) — Edge must not pick
+ * admin vs user vs locked-profile home.
+ */
+const DEFAULT_LOGIN_REDIRECT = RouteService.karvita.dashboard();
 
 const AUTH_COOKIE_NAME =
   process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || 'karvita_session';
