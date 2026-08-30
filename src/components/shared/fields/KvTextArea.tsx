@@ -32,7 +32,7 @@ const kvTextAreaVariants = cva(
       },
       state: {
         default: [
-          'border-kv-border can-hover:enabled:hover:border-kv-border-hover',
+          'border-kv-border can-hover:enabled:not-focus-visible:hover:border-kv-border-hover',
           'focus-visible:border-kv-brand focus-visible:bg-kv-field',
           'focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
         ].join(' '),

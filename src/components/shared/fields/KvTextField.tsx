@@ -31,7 +31,7 @@ const kvTextFieldWrapperVariants = cva(
       },
       state: {
         default: [
-          'border-kv-border can-hover:hover:border-kv-border-hover',
+          'border-kv-border can-hover:not-focus-within:hover:border-kv-border-hover',
           'focus-within:border-kv-brand focus-within:bg-kv-field',
           'focus-within:ring-[3px] focus-within:ring-kv-ring/15',
         ].join(' '),

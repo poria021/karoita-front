@@ -22,7 +22,7 @@ export function kvDropzoneSurfaceClass({
       ? 'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled'
       : isDragActive
         ? 'cursor-pointer border-kv-brand bg-kv-brand-soft/50'
-        : 'cursor-pointer border-kv-border-strong can-hover:hover:border-kv-border-hover can-hover:hover:bg-kv-surface-muted',
+        : 'cursor-pointer border-kv-border-strong can-hover:not-focus-visible:hover:border-kv-border-hover can-hover:not-focus-visible:hover:bg-kv-surface-muted',
     error && 'border-kv-danger'
   );
 }
