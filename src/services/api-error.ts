@@ -149,7 +149,13 @@ export async function mapHttpError(error: unknown): Promise<never> {
 
   if (error instanceof ApiClientError) throw error;
 
-  if (error instanceof NetworkError || error instanceof TimeoutError) {
+  if (error instanceof TimeoutError) {
+    throw new ApiClientError(
+      'پاسخ سرویس بیش از حد طول کشید. لطفاً دوباره تلاش کنید.'
+    );
+  }
+
+  if (error instanceof NetworkError) {
     throw new ApiClientError(
       'ارتباط با سرویس احراز هویت برقرار نشد. اگر همین صفحه را تازه ری‌استارت کرده‌اید، چند ثانیه صبر کنید و دوباره تلاش کنید.'
     );

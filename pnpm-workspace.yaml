@@ -2,3 +2,14 @@ allowBuilds:
   esbuild: set this to true or false
   sharp: set this to true or false
   unrs-resolver: set this to true or false
+
+# رفع آسیب‌پذیری‌های انتقالی (pnpm 11 فقط این فایل را می‌خواند).
+# همهٔ مقادیر patch-within-major هستند مگر serialize-javascript که major 6→7
+# لازم است (تنها نسخهٔ پچ‌شده). تأیید نهایی با build/test انجام می‌شود.
+overrides:
+  brace-expansion@1: 1.1.18
+  brace-expansion@5: 5.0.9
+  postcss: 8.5.23
+  nanoid: 3.3.18
+  js-yaml: 4.3.1
+  serialize-javascript: 7.0.5

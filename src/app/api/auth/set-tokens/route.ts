@@ -19,6 +19,7 @@ import {
   REAL_SURFACE_COOKIE_OPTIONS,
   type AuthSurface,
 } from '@/lib/real-auth-cookie';
+import { assertSameOriginPost } from '@/lib/auth-origin-guard';
 
 interface SetTokensBody {
   refreshToken?: unknown;
@@ -28,6 +29,13 @@ interface SetTokensBody {
 }
 
 export async function POST(request: NextRequest) {
+  // CSRF: این Route cookie httpOnly رفرش را می‌نویسد؛ فقط فراخوانی same-origin
+  // مجاز است تا یک سایت متقاطع نتواند session را ثابت-fix کند.
+  const guard = assertSameOriginPost(request);
+  if (!guard.ok) {
+    return NextResponse.json({ error: guard.reason }, { status: guard.status });
+  }
+
   let body: SetTokensBody;
   try {
     body = (await request.json()) as SetTokensBody;

@@ -1,6 +1,6 @@
 import { isPublicPath } from '@/lib/public-paths';
-import { AUTH_COOKIE_NAME, DEFAULT_LOGIN_REDIRECT } from '@/lib/config';
-import { MOCK_SESSION_MARKER } from '@/lib/config';
+import { DEFAULT_LOGIN_REDIRECT } from '@/lib/config';
+import { hasEdgeClientSession } from '@/lib/edge-session';
 import {
   RETURN_URL_PARAM,
   parseSafeReturnUrl,
@@ -11,11 +11,6 @@ import {
   RouteService,
 } from '@/services/route.service';
 import { NextRequest, NextResponse } from 'next/server';
-
-function hasClientSession(request: NextRequest): boolean {
-  if (request.cookies.get(AUTH_COOKIE_NAME)?.value) return true;
-  return request.cookies.get(MOCK_SESSION_MARKER)?.value === '1';
-}
 
 /**
  * Attach non-CSP security headers per-request.
@@ -52,7 +47,9 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
  * build if both files exist. `config.matcher` is statically extracted from
  * THIS file; moving it to an import would skip the session gate.
  *
- * Presence only: Better Auth cookie or mock marker — not role/authorization.
+ * Presence only: real session cookie, or mock marker when mock/dev is
+ * actually enabled — not role/authorization. Production/real ignores a
+ * forged mock cookie so Edge cannot paint an authenticated shell.
  *
  * - مسیرهای public → عبور
  * - `/karvita/*` بدون نشست → لاگین + returnUrl
@@ -61,7 +58,7 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const loggedIn = hasClientSession(request);
+  const loggedIn = hasEdgeClientSession(request.cookies);
   const loginPath = RouteService.auth.login();
 
   if (loggedIn && isAuthPath(pathname)) {

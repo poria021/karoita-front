@@ -66,6 +66,9 @@ export function buildContentSecurityPolicy(): string {
       // در production هرگز فعال نمی‌شه.
       ...(isDev ? ["'unsafe-eval'"] : []),
     ],
+    // Next hydration از <script> استفاده می‌کند نه onclick=؛ بستن attr XSS
+    // رایج را بدون nonce (که سند را خالی می‌کند) محدود می‌کند.
+    'script-src-attr': ["'none'"],
     'style-src': ["'self'", "'unsafe-inline'"],
     'img-src': ["'self'", 'data:', 'blob:', 'https:', ...(isDev ? ['http:'] : [])],
     'font-src': ["'self'", 'data:'],

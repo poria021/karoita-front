@@ -35,6 +35,18 @@ export function flattenOffsetLimitPages<T>(
   );
 }
 
+/**
+ * بزرگ‌ترین `total` گزارش‌شده در صفحات — نه فقط صفحهٔ آخر.
+ * تخمین Nest روی صفحات بعدی معمولاً بزرگ‌تر می‌شود؛ صفحهٔ خالی/کوتاه آخر
+ * نباید شمارنده را صفر یا کوچک‌تر از صفحهٔ اول کند.
+ */
+export function resolveOffsetLimitReportedTotal<T>(
+  pages: OffsetLimitPage<T>[] | undefined
+): number {
+  if (!pages?.length) return 0;
+  return pages.reduce((max, page) => Math.max(max, page.total), 0);
+}
+
 /** Collapse infinite pages into one optimistic page after a local list patch. */
 export function replaceOffsetLimitListItems<T>(
   old: OffsetLimitInfiniteData<T> | undefined,

@@ -6,6 +6,7 @@ import {
   mergeOffsetLimitPageItems,
   offsetLimitListQueryKey,
   replaceOffsetLimitListItems,
+  resolveOffsetLimitReportedTotal,
 } from './offsetLimitInfiniteList.helpers';
 
 describe('offsetLimitInfiniteList helpers', () => {
@@ -49,5 +50,21 @@ describe('offsetLimitInfiniteList helpers', () => {
       pages: [{ items: [{ id: 'a' }], total: 1, hasMore: false }],
       pageParams: [0],
     });
+  });
+
+  it('uses the largest reported total, not only the last page', () => {
+    expect(
+      resolveOffsetLimitReportedTotal([
+        { items: [{ id: 'a' }], total: 25, hasMore: true },
+        { items: [], total: 0, hasMore: false },
+      ])
+    ).toBe(25);
+    expect(
+      resolveOffsetLimitReportedTotal([
+        { items: [{ id: 'a' }], total: 21, hasMore: true },
+        { items: [{ id: 'b' }], total: 41, hasMore: true },
+      ])
+    ).toBe(41);
+    expect(resolveOffsetLimitReportedTotal(undefined)).toBe(0);
   });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -13,6 +13,25 @@ const SLIDE_DURATION = 6000; // 6 seconds per slide
 /** Progress ticks — keep UI smooth without 20Hz state churn. */
 const PROGRESS_TICK_MS = 200;
 
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+
+/**
+ * خواندن ترجیح کاهش حرکت از طریق useSyncExternalStore — الگوی پیشنهادی React
+ * برای منابع خارجی مثل matchMedia، بدون setState-in-effect و بدون hydration mismatch.
+ * getServerSnapshot در SSR مقدار امن (بدون کاهش حرکت) برمی‌گرداند.
+ */
+function subscribeReducedMotion(notify: () => void): () => void {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener('change', notify);
+  return () => query.removeEventListener('change', notify);
+}
+function readReducedMotion(): boolean {
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+function readReducedMotionServer(): boolean {
+  return false;
+}
+
 type MarketingHeroCarouselProps = {
   banners: LandingBanner[];
 };
@@ -23,12 +42,19 @@ export function MarketingHeroCarousel({
   const slides = banners;
   const [currentSlide, setCurrentSlide] = useState(0);
   const [progress, setProgress] = useState(0);
+  // a11y: اگر کاربر کاهش حرکت خواسته، پیشروی خودکار را خاموش می‌کنیم.
+  // اسلایدها با دکمه‌های تب همچنان دستی قابل انتخاب‌اند.
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    readReducedMotion,
+    readReducedMotionServer,
+  );
   const { openPanel } = useMarketingPanel();
   const activeIndex =
     slides.length === 0 ? 0 : Math.min(currentSlide, slides.length - 1);
 
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (slides.length <= 1 || reducedMotion) return;
 
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
@@ -46,7 +72,7 @@ export function MarketingHeroCarousel({
       clearInterval(progressInterval);
       clearInterval(slideInterval);
     };
-  }, [slides.length]);
+  }, [slides.length, reducedMotion]);
 
   const handleSlideClick = (index: number) => {
     setCurrentSlide(index);
@@ -83,17 +109,12 @@ export function MarketingHeroCarousel({
           ? resolveMarketingNavTarget(slide.link)
           : ({ kind: 'none' } as const);
         const isActive = activeIndex === index;
-        const isDataUrl = slide.imageUrl.startsWith('data:');
+        // next/image فقط برای مسیر محلی (`/marketing/...`). URLهای https/S3/data
+        // بدون remotePatterns یا بهینه‌ساز ناشناس صفحه را می‌شکنند.
+        const useNextImage =
+          slide.imageUrl.startsWith('/') && !slide.imageUrl.startsWith('//');
 
-        const imageEl = isDataUrl ? (
-          // CMS mock data-URL — next/image does not apply.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={slide.imageUrl}
-            alt={slide.title || 'بنر اطلاع‌رسانی کارویتا'}
-            className="size-full object-cover object-center"
-          />
-        ) : (
+        const imageEl = useNextImage ? (
           <Image
             src={slide.imageUrl}
             alt={slide.title || 'بنر اطلاع‌رسانی کارویتا'}
@@ -101,6 +122,13 @@ export function MarketingHeroCarousel({
             priority={index === 0}
             className="object-cover object-center"
             sizes="100vw"
+          />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element -- data-URL / S3 / arbitrary CMS
+          <img
+            src={slide.imageUrl}
+            alt={slide.title || 'بنر اطلاع‌رسانی کارویتا'}
+            className="size-full object-cover object-center"
           />
         );
 

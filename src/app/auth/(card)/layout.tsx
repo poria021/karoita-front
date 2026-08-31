@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 
 import { KvTypography } from '@/components/shared/KvTypography';
 import { kvProductFooterBorderClassName } from '@/components/shared/shell/shellChrome';
@@ -25,7 +25,10 @@ export default function AuthCardGroupLayout({
         <div className="px-kv-inset py-kv-group sm:px-kv-page sm:py-kv-section">
           <AuthLogo subtitle="سامانه هوشمند کارورزی و کارآموزی" />
 
-          <AuthCardHost />
+          {/* useSearchParams در AuthCardHost بدون Suspense، prerender استاتیک /auth/* را bailout می‌کند. */}
+          <Suspense fallback={null}>
+            <AuthCardHost />
+          </Suspense>
           {children}
 
           <div

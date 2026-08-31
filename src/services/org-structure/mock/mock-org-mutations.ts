@@ -224,7 +224,7 @@ export function mockUpsertDistrict(
             ...d,
             name,
             provinceId: input.provinceId,
-            cityId: input.cityId,
+            cityId: input.cityId ?? '',
           }
         : d
     );
@@ -233,7 +233,7 @@ export function mockUpsertDistrict(
       id: newId('dist'),
       name,
       provinceId: input.provinceId,
-      cityId: input.cityId,
+      cityId: input.cityId ?? '',
     });
   }
   writeOrgSnapshot(db);
@@ -282,13 +282,15 @@ export function mockUpsertMajor(input: UpsertMajorInput, editId?: string): void 
   const name = input.name.trim();
   if (!name) throw new Error('نام رشته الزامی است.');
   if (!input.audience) throw new Error('انتخاب مخاطب رشته الزامی است.');
-  assertUniqueMajorNameForAudience(db.majors, name, input.audience, editId);
+  // narrowing نوع audience داخل closureهای map/push از دست می‌رود؛ در یک متغیر محلی نگه می‌داریم.
+  const audience = input.audience;
+  assertUniqueMajorNameForAudience(db.majors, name, audience, editId);
   if (editId) {
     db.majors = db.majors.map((m) =>
-      m.id === editId ? { ...m, name, audience: input.audience } : m
+      m.id === editId ? { ...m, name, audience } : m
     );
   } else {
-    db.majors.push({ id: newId('maj'), name, audience: input.audience });
+    db.majors.push({ id: newId('maj'), name, audience });
   }
   writeOrgSnapshot(db);
 }

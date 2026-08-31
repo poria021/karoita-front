@@ -8,6 +8,13 @@ import { shouldSkipTokenRefresh } from '@/services/api-token';
  */
 export const KY_RETRY_LIMIT = 1;
 
+/**
+ * timeout پیش‌فرض ky (AbortController داخلی). آپلود فایل روی S3 جداست
+ * و timeout بلندتری دارد — این عدد را برای JSON/Nest نگه می‌داریم تا
+ * شبکهٔ بد UI را ۳۰ ثانیه hang نکند.
+ */
+export const KY_TIMEOUT_MS = 20_000;
+
 export type UnauthorizedAfterResponseAction = 'ignore' | 'logout' | 'refresh';
 
 /** تصمیم هوک afterResponse — بدون ky، تا قرارداد 401 در real تست‌پذیر بماند. */

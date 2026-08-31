@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   decideUnauthorizedAfterResponse,
   KY_RETRY_LIMIT,
+  KY_TIMEOUT_MS,
   resolveNestClientPrefix,
 } from '@/services/api-client-config';
 import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
@@ -10,6 +11,12 @@ import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
 describe('api-client real Nest transport contract', () => {
   it('keeps ky retry.limit at 1 so POST/PATCH bodies survive 401 refresh', () => {
     expect(KY_RETRY_LIMIT).toBe(1);
+  });
+
+  it('caps Nest JSON timeout below 30s so a hung API does not freeze the UI', () => {
+    expect(KY_TIMEOUT_MS).toBe(20_000);
+    expect(KY_TIMEOUT_MS).toBeGreaterThan(0);
+    expect(KY_TIMEOUT_MS).toBeLessThan(30_000);
   });
 
   it('uses the same-origin proxy when Nest lives on another origin', () => {

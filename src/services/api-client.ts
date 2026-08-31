@@ -10,6 +10,7 @@ import ky, { type Options as KyOptions } from 'ky';
 import {
   decideUnauthorizedAfterResponse,
   KY_RETRY_LIMIT,
+  KY_TIMEOUT_MS,
   resolveNestClientPrefix,
 } from '@/services/api-client-config';
 import { mapHttpError } from '@/services/api-error';
@@ -57,7 +58,7 @@ function createKyClient(prefix: string) {
   return ky.create({
     prefix,
     credentials: 'include',
-    timeout: 30_000,
+    timeout: KY_TIMEOUT_MS,
     // ⚠️ وابسته‌ی حیاتی با مکانیزم refresh-روی-401 پایین: کتابخانهی ky فقط وقتی
     // `retry.limit > 0` باشد، قبل از fetch واقعی یک clone از request نگه می‌دارد و همان
     // clone (نه نسخهٔ مصرف‌شده) را به هوک afterResponse پایین می‌دهد. اگر این

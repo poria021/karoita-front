@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { TimeoutError } from 'ky';
 
-import { localizeApiError } from '@/services/api-error';
+import { localizeApiError, mapHttpError } from '@/services/api-error';
 
 const LOGIN_VERIFY_OTP_URL = 'http://localhost:3000/__nest-api/v1/auth/phone/login/verify-otp';
 const ADMIN_VERIFY_OTP_URL = 'http://localhost:3000/__nest-api/v1/admin/auth/phone/login/verify-otp';
@@ -46,5 +47,14 @@ describe('localizeApiError — OTP verify 404 mapping', () => {
 
   it('does NOT hijack 404s when the url is missing entirely (no regression on existing callers)', () => {
     expect(localizeApiError(null, 404)).toBe('منبع درخواستی یافت نشد.');
+  });
+});
+
+describe('mapHttpError — timeout vs network', () => {
+  it('maps TimeoutError to a generic timeout message, not the auth-network copy', async () => {
+    const timeout = new TimeoutError(new Request('https://api.example.com/v1/users'));
+    await expect(mapHttpError(timeout)).rejects.toMatchObject({
+      message: 'پاسخ سرویس بیش از حد طول کشید. لطفاً دوباره تلاش کنید.',
+    });
   });
 });

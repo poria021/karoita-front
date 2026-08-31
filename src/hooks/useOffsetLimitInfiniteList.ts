@@ -12,6 +12,7 @@ import {
   mergeOffsetLimitPageItems,
   offsetLimitListQueryKey,
   replaceOffsetLimitListItems,
+  resolveOffsetLimitReportedTotal,
   type OffsetLimitInfiniteData,
 } from '@/hooks/offsetLimitInfiniteList.helpers';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
@@ -88,8 +89,7 @@ export function useOffsetLimitInfiniteList<T>({
       (acc, page) => mergeOffsetLimitPageItems(acc, page),
       []
     ) ?? [];
-  const lastPage = data?.pages.at(-1);
-  const total = lastPage?.total ?? 0;
+  const total = resolveOffsetLimitReportedTotal(data?.pages);
 
   const hasEverReady = Boolean(cached?.pages?.length) || isSuccess;
 
@@ -125,7 +125,8 @@ export function useOffsetLimitInfiniteList<T>({
     ) => {
       queryClient.setQueryData<OffsetLimitInfiniteData<T>>(queryKey, (old) => {
         const prevItems = flattenOffsetLimitPages(old);
-        const prevTotal = old?.pages.at(-1)?.total ?? prevItems.length;
+        const prevTotal =
+          resolveOffsetLimitReportedTotal(old?.pages) || prevItems.length;
         const nextItems = updater(prevItems);
         const nextTotal =
           totalUpdater?.(prevTotal, nextItems) ?? prevTotal;
