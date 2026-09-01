@@ -2,7 +2,6 @@ import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
 import { parseNestPagedList } from '@/types/nest-admin';
 import type {
-  NestAcademicSettings,
   NestAdminPageQuery,
   NestCity,
   NestCreateAcademicSettingsDto,
@@ -25,10 +24,8 @@ import type {
   NestRole,
   NestSchool,
   NestSchoolListQuery,
-  NestLessonWeek,
   NestPatchLessonStatusDto,
   NestPutLessonWeeksDto,
-  NestSemester,
   NestSemesterAllStructure,
   NestSemesterWithLessons,
   NestUniversity,
@@ -36,6 +33,7 @@ import type {
   NestUpdateCityDto,
   NestUpdateDegreeDto,
   NestUpdateEducationalDistrictDto,
+  NestUpdateLessonItemDto,
   NestUpdateProvinceDto,
   NestUpdateSchoolDto,
   NestUpdateSemesterDto,
@@ -74,6 +72,8 @@ export const NEST_ADMIN_PATHS = {
   semesterById: (id: string) => `admin/semester/${id}`,
   semestersAll: 'admin/semesters_all',
   lessonStatusById: (id: string) => `admin/lessons/${id}/status`,
+  /** PATCH آرایه — ظرفیت/روز/وضعیت چند درس. */
+  lessonsStatus: 'admin/lessons/status',
   lessonWeeks: (lessonId: string) => `admin/lessons/${lessonId}/weeks`,
   weeks: 'admin/weeks',
   weekById: (id: string) => `admin/weeks/${id}`,
@@ -286,21 +286,23 @@ export const adminCatalogApi = {
     );
   },
 
+  /** POST /admin/semester — لایو ۲۰۴ بدون بدنه. */
+  /** POST /admin/semester — لایو ۲۰۴؛ بدنه کامل با `structure: semester|podmani`. */
   createSemester(body: NestCreateSemesterDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.semesters, body, token);
   },
   /** GET /admin/semester — آرایهٔ خام با گیت روی هر ردیف، بدون پاکت paging. */
   listSemesters(token?: string) {
-    return apiClient.getJson<NestSemester[]>(NEST_ADMIN_PATHS.semesters, token);
+    return apiClient.getJson<unknown>(NEST_ADMIN_PATHS.semesters, token);
   },
   /** GET /admin/semester/{id}. */
   getSemester(id: string, token?: string) {
-    return apiClient.getJson<NestSemester>(
-      NEST_ADMIN_PATHS.semesterById(id),
-      token
-    );
+    return apiClient.getJson<unknown>(NEST_ADMIN_PATHS.semesterById(id), token);
   },
-  /** PATCH /admin/semester/{id} — بدنهٔ کامل شامل گیت؛ لایو ممکن است ۲۰۴ یا سند خام بدهد. */
+  /**
+   * PATCH /admin/semester/{id} — بدنهٔ کامل شامل گیت.
+   * لایو ممکن است ۲۰۴ یا سند خام mongoose بدهد؛ بدنه را مصرف نکن.
+   */
   updateSemester(id: string, body: NestUpdateSemesterDto, token?: string) {
     return apiClient.patchMaybeJson<unknown>(
       NEST_ADMIN_PATHS.semesterById(id),
@@ -308,6 +310,7 @@ export const adminCatalogApi = {
       token
     );
   },
+  /** DELETE /admin/semester/{id} — لایو ۲۰۰ با بدنهٔ خالی. */
   deleteSemester(id: string, token?: string) {
     return apiClient.deleteMaybeJson<null>(
       NEST_ADMIN_PATHS.semesterById(id),
@@ -324,9 +327,9 @@ export const adminCatalogApi = {
     );
   },
 
-  /** GET /admin/weeks/lesson/{lessonId} — آرایهٔ خام هفته. */
+  /** GET /admin/weeks/lesson/{lessonId} — آرایهٔ `{ id, lessonId, priority, status }`. */
   listWeeksByLesson(lessonId: string, token?: string) {
-    return apiClient.getJson<NestLessonWeek[]>(
+    return apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.weeksByLesson(lessonId),
       token
     );
@@ -345,6 +348,15 @@ export const adminCatalogApi = {
     );
   },
 
+  /** PATCH /admin/lessons/status — آرایهٔ به‌روزرسانی چند درس؛ لایو ۲۰۴. */
+  patchLessonsStatus(body: NestUpdateLessonItemDto[], token?: string) {
+    return apiClient.patchMaybeJson<null>(
+      NEST_ADMIN_PATHS.lessonsStatus,
+      body,
+      token
+    );
+  },
+
   /** PUT /admin/lessons/{lessonId}/weeks — جایگزینی همهٔ هفته‌ها؛ لایو ۲۰۴. */
   putLessonWeeks(
     lessonId: string,
@@ -358,7 +370,7 @@ export const adminCatalogApi = {
     );
   },
 
-  /** POST /admin/weeks — لایو ۲۰۴. */
+  /** POST /admin/weeks — یک هفته؛ لایو ۲۰۴. */
   createWeek(body: NestCreateWeekDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.weeks, body, token);
   },
@@ -372,6 +384,7 @@ export const adminCatalogApi = {
     );
   },
 
+  /** POST /admin/settings — ردیف جدید؛ لایو ۲۰۴. GET بعدی آخرین را می‌دهد. */
   createAcademicSettings(body: NestCreateAcademicSettingsDto, token?: string) {
     return apiClient.postMaybeJson<null>(
       NEST_ADMIN_PATHS.academicSettings,
@@ -379,12 +392,9 @@ export const adminCatalogApi = {
       token
     );
   },
-  /** GET /admin/settings — همیشه آخرین ردیف درج‌شده. */
+  /** GET /admin/settings — آخرین ردیف درج‌شده `{ id, systemPassingScore, generalProfessorCapacity }`. */
   getAcademicSettings(token?: string) {
-    return apiClient.getJson<NestAcademicSettings>(
-      NEST_ADMIN_PATHS.academicSettings,
-      token
-    );
+    return apiClient.getJson<unknown>(NEST_ADMIN_PATHS.academicSettings, token);
   },
 };
 

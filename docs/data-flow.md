@@ -60,7 +60,7 @@ Access token در حافظهٔ ماژول است (نه `localStorage`) چون XS
 | `UsersService` | وصل | CRUD کاربران Nest |
 | `OrgStructureService` | وصل | استان/شهر/منطقه/مدرسه/دانشکده/رشته |
 | `OrganizationOptionsService` | وصل | typeahead فرم پروفایل و ادمین |
-| `SyllabusConfigService` | نسبی | ترم و ارائه وصل؛ context انتخاب واحد هنوز mock است |
+| `SyllabusConfigService` | نسبی | ترم CRUD/گیت، `settings`، `semesters_all`، ارائه درس و `PUT weeks` وصل؛ context انتخاب واحد هنوز mock است |
 | `OnboardingApprovalsService` | وصل | صف مدرک از طریق `GET/PATCH /users` |
 | `NotificationsService` | وصل | GET/PATCH `v1/notifications` — هدر روی ورود hydrate می‌شود |
 | `AdminUserCreationService` | نسبی | ستادی: `POST /admin/admins` (بدون رمز). سازمانی: کاربر باید از قبل وجود داشته باشد (`userId`) |

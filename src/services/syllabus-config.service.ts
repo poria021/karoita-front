@@ -82,7 +82,7 @@ function gateSyllabusConsumerRead(): void {
  * `getEnrollmentSyllabusContext` تا آمدن route مصرف‌کننده در Nest خالی برمی‌گردد.
  */
 export const SyllabusConfigService = {
-  /** `GET /admin/semester` + `GET /admin/settings` */
+  /** `GET /admin/semester` + `GET /admin/semesters_all` + `GET /admin/settings` */
   async getSnapshot(): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     if (!IS_MOCK_MODE) {
@@ -292,7 +292,7 @@ export const SyllabusConfigService = {
     });
   },
 
-  /** `POST /admin/weeks` + `PATCH /admin/weeks/{id}` */
+  /** `PUT /admin/lessons/{lessonId}/weeks` — جایگزینی همهٔ هفته‌های درس. */
   async saveSyllabusWeeks(
     input: SaveSyllabusWeeksInput
   ): Promise<SyllabusConfigSnapshot> {
@@ -343,6 +343,8 @@ export const SyllabusConfigService = {
         id: `term_${Date.now()}`,
         title,
         type: input.type,
+        titlePrefix: input.titlePrefix,
+        academicYear: input.academicYear,
         isEnrollOpen: false,
         isTermOpen: false,
         enrollStart: '',
@@ -368,6 +370,8 @@ export const SyllabusConfigService = {
       }
       term.title = title;
       term.type = input.type;
+      term.titlePrefix = input.titlePrefix;
+      term.academicYear = input.academicYear;
     });
   },
 
@@ -394,7 +398,7 @@ export const SyllabusConfigService = {
     });
   },
 
-  /** `POST /admin/settings` — Nest برای تنظیمات PATCH ندارد. */
+  /** `POST /admin/settings` — Nest برای تنظیمات PATCH ندارد؛ هر نوشته ردیف جدید است. */
   async setProfessorCapacity(
     capacity: number
   ): Promise<SyllabusConfigSnapshot> {

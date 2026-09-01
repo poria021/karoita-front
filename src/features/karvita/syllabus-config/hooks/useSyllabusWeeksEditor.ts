@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
@@ -11,8 +12,9 @@ import {
 import type { CourseCatalogItem, SyllabusWeek } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-import { weekWeightSchema } from '../schemas/syllabus-config.schema';
+import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
 import { errorMessage } from '../lib/syllabusPageUtils';
+import { weekWeightSchema } from '../schemas/syllabus-config.schema';
 
 type UseSyllabusWeeksEditorArgs = {
   selectedTermId: string;
@@ -33,6 +35,8 @@ export function useSyllabusWeeksEditor({
   setHasUnsavedChanges,
   setIsSaving,
 }: UseSyllabusWeeksEditorArgs) {
+  const queryClient = useQueryClient();
+
   function ensureCourseSelected() {
     if (!selectedTermId || !selectedCourse) {
       toast.error('ابتدا ترم و درس را انتخاب کنید.');
@@ -135,13 +139,24 @@ export function useSyllabusWeeksEditor({
         selectedTermId,
         selectedCourse.id
       );
-      await SyllabusConfigService.saveSyllabusWeeks({
+      const snapshot = await SyllabusConfigService.saveSyllabusWeeks({
         courseOfferingId,
         termId: selectedTermId,
         courseCatalogId: selectedCourse.id,
         weeks,
       });
+      queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
       setHasUnsavedChanges(false);
+      try {
+        const nextWeeks = await SyllabusConfigService.getWeeks(
+          selectedTermId,
+          selectedCourse.id
+        );
+        setWeeks(nextWeeks);
+      } catch {
+        // ذخیره موفق بود؛ شناسهٔ هفته تا GET بعدی محلی می‌ماند.
+      }
+      toast.success('برنامه سرفصل‌های هفتگی با موفقیت ثبت نهایی شد.');
       toast.success('برنامه سرفصل‌های هفتگی با موفقیت ثبت نهایی شد.');
     } catch (err) {
       toast.error(errorMessage(err, 'ثبت نهایی سرفصل ناموفق بود.'));

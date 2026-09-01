@@ -1,21 +1,27 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
 import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
-import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
+import type {
+  AcademicTerm,
+  AcademicTermType,
+  SyllabusConfigSnapshot,
+} from '@/types/syllabus-config';
 import { persianToEnglishDigits, toPersianDigits } from '@/utils/persianDigits';
 
 import { defaultPrefixForType, parseTermTitleParts } from '../constants';
+import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
+import { errorMessage } from '../lib/syllabusPageUtils';
 import {
   professorCapacitySchema,
   passingThresholdSchema,
   termFormSchema,
 } from '../schemas/syllabus-config.schema';
-import { errorMessage } from '../lib/syllabusPageUtils';
 
 type UseSyllabusTermSettingsArgs = {
   terms: AcademicTerm[];
@@ -38,6 +44,7 @@ export function useSyllabusTermSettings({
   passingThreshold,
   setPassingThreshold,
 }: UseSyllabusTermSettingsArgs) {
+  const queryClient = useQueryClient();
   const defaultAcademicYear = SyllabusConfigService.getDefaultAcademicYear();
   const [editTermId, setEditTermId] = useState('');
   const [termType, setTermType] = useState<AcademicTermType>('semester');
@@ -55,12 +62,17 @@ export function useSyllabusTermSettings({
     setTermFormError(null);
   }
 
+  function applySnapshotTerms(snapshot: SyllabusConfigSnapshot) {
+    queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
+    setTerms(snapshot.terms);
+  }
+
   function applyTermToForm(match: AcademicTerm) {
     setEditTermId(match.id);
     setTermType(match.type);
     const parts = parseTermTitleParts(match.title);
-    setTermPrefix(parts.prefix);
-    setTermYear(parts.academicYear);
+    setTermPrefix(match.titlePrefix || parts.prefix);
+    setTermYear(match.academicYear || parts.academicYear);
     setTermFormError(null);
   }
 
@@ -115,7 +127,15 @@ export function useSyllabusTermSettings({
           snapshot = terms;
           setTerms((prev) =>
             prev.map((term) =>
-              term.id === targetId ? { ...term, title, type: parsed.data.type } : term
+              term.id === targetId
+                ? {
+                    ...term,
+                    title,
+                    type: parsed.data.type,
+                    titlePrefix: parsed.data.titlePrefix,
+                    academicYear: parsed.data.academicYear,
+                  }
+                : term
             )
           );
         },
@@ -125,7 +145,7 @@ export function useSyllabusTermSettings({
         commit: () =>
           SyllabusConfigService.updateTerm(targetId, parsed.data),
         onCommitted: async (result) => {
-          setTerms(result.terms);
+          applySnapshotTerms(result);
           setSelectedTermId(targetId);
           await loadTermContext(targetId);
         },
@@ -141,6 +161,8 @@ export function useSyllabusTermSettings({
       id: tempId,
       title,
       type: parsed.data.type,
+      titlePrefix: parsed.data.titlePrefix,
+      academicYear: parsed.data.academicYear,
       isEnrollOpen: false,
       isTermOpen: false,
       enrollStart: '',
@@ -162,8 +184,20 @@ export function useSyllabusTermSettings({
       },
       commit: () => SyllabusConfigService.createTerm(parsed.data),
       onCommitted: async (result) => {
-        setTerms(result.terms);
-        const created = result.terms.find((t) => t.title === title);
+        applySnapshotTerms(result);
+        const previousIds = new Set(snapshot.map((term) => term.id));
+        const created =
+          result.terms.find(
+            (term) =>
+              !previousIds.has(term.id) &&
+              term.type === parsed.data.type &&
+              (term.academicYear === parsed.data.academicYear ||
+                term.title === title)
+          ) ??
+          result.terms.find(
+            (term) =>
+              term.type === parsed.data.type && term.title === title
+          );
         const nextId = created?.id ?? result.terms[0]?.id ?? '';
         setSelectedTermId(nextId);
         if (nextId) await loadTermContext(nextId);
@@ -206,7 +240,7 @@ export function useSyllabusTermSettings({
       },
       commit: () => SyllabusConfigService.deleteTerm(target.id),
       onCommitted: async (result) => {
-        setTerms(result.terms);
+        applySnapshotTerms(result);
         const nextId = result.terms[0]?.id ?? '';
         setSelectedTermId(nextId);
         if (nextId) await loadTermContext(nextId);
@@ -231,6 +265,7 @@ export function useSyllabusTermSettings({
       const snapshot = await SyllabusConfigService.setProfessorCapacity(
         parsed.data.capacity
       );
+      applySnapshotTerms(snapshot);
       setProfessorCapacity(String(snapshot.globalProfessorCapacity));
       toast.success(
         `ظرفیت پیش‌فرض تمامی اساتید به ${toPersianDigits(parsed.data.capacity)} نفر تغییر یافت.`
@@ -254,6 +289,7 @@ export function useSyllabusTermSettings({
       const snapshot = await SyllabusConfigService.setPassingThreshold(
         parsed.data.threshold
       );
+      applySnapshotTerms(snapshot);
       setPassingThreshold(String(snapshot.passingScoreThreshold));
       toast.success('حدنصاب قبولی کل سیستم با موفقیت ثبت نهایی شد.');
     } catch (err) {

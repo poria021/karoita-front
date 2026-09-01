@@ -45,6 +45,61 @@ export function nestEntityId(row: { id?: string; _id?: string }): string {
   return row.id || row._id || '';
 }
 
+/**
+ * GET تمیز است؛ PATCH لایو گاهی سند mongoose (`$__` + `_doc` + `_id.buffer`) می‌دهد.
+ * بعد از parse، `id` همیشه hex است.
+ */
+export function parseNestSemester(
+  raw: unknown,
+  fallbackId?: string
+): NestSemester | null {
+  if (!isRecord(raw)) return null;
+  const doc = isRecord(raw._doc) ? raw._doc : raw;
+  const id =
+    nestIdFromUnknown(doc.id) ||
+    nestIdFromUnknown(doc._id) ||
+    (fallbackId ?? '');
+  if (!id || !isSeason(doc.season)) return null;
+  const structure =
+    typeof doc.structure === 'string' && doc.structure
+      ? doc.structure
+      : 'semester';
+  return {
+    id,
+    academicYear:
+      typeof doc.academicYear === 'string' ? doc.academicYear : undefined,
+    academicYears:
+      typeof doc.academicYears === 'string' ? doc.academicYears : undefined,
+    season: doc.season,
+    structure: structure as NestSemester['structure'],
+    courseSelection:
+      typeof doc.courseSelection === 'boolean' ? doc.courseSelection : undefined,
+    startClasses:
+      typeof doc.startClasses === 'boolean' ? doc.startClasses : undefined,
+    createdAt: typeof doc.createdAt === 'string' ? doc.createdAt : undefined,
+    updatedAt: typeof doc.updatedAt === 'string' ? doc.updatedAt : undefined,
+  };
+}
+
+export function parseNestSemesterList(raw: unknown): NestSemester[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((row) => parseNestSemester(row))
+    .filter((row): row is NestSemester => row !== null);
+}
+
+export function parseNestSemesterBundle(
+  raw: unknown
+): NestSemesterWithLessons | null {
+  const semester = parseNestSemester(raw);
+  if (!semester || !isRecord(raw)) return null;
+  const source = isRecord(raw._doc) ? raw._doc : raw;
+  const lessons = Array.isArray(source.lessons)
+    ? (source.lessons as NestLesson[])
+    : [];
+  return { ...semester, lessons };
+}
+
 /** شناسهٔ Mongo در GET؛ پیش‌نویس محلی `week_…` است. */
 export function isNestObjectId(id: string): boolean {
   return /^[a-fA-F0-9]{24}$/.test(id);
@@ -70,9 +125,113 @@ export function nestLessonTitle(lesson: {
   return '';
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isSeason(value: unknown): value is NestSemesterSeason {
+  return value === 'one' || value === 'two' || value === 'three';
+}
+
+/** `_id.buffer` سند خام mongoose را به hex ۲۴ کاراکتری برمی‌گرداند. */
+function mongoBufferToHex(value: unknown): string {
+  if (!isRecord(value)) return '';
+  const bytes = Array.from({ length: 12 }, (_, index) => {
+    const raw = value[String(index)];
+    return typeof raw === 'number' ? raw : Number.NaN;
+  });
+  if (bytes.some((byte) => !Number.isInteger(byte) || byte < 0 || byte > 255)) {
+    return '';
+  }
+  return bytes.map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function nestIdFromUnknown(value: unknown): string {
+  if (typeof value === 'string' && value.trim()) return value.trim();
+  if (isRecord(value) && value.buffer !== undefined) {
+    return mongoBufferToHex(value.buffer);
+  }
+  return '';
+}
+
+function asFiniteNumber(value: unknown, fallback = 0): number {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(persianToEnglishDigits(value.trim()));
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+}
+
+function unwrapNestDoc(raw: unknown): Record<string, unknown> | null {
+  if (!isRecord(raw)) return null;
+  return isRecord(raw._doc) ? raw._doc : raw;
+}
+
 /**
- * `GET /admin/semesters_all` پودمانی را `podmani` می‌فرستد؛
- * `POST /admin/semester` هنوز `structure: modular` می‌نویسد.
+ * GET `/admin/settings` آخرین ردیف است؛ گاهی آرایه یا سند mongoose می‌آید.
+ */
+export function parseNestAcademicSettings(
+  raw: unknown
+): NestAcademicSettings | null {
+  if (Array.isArray(raw)) {
+    if (raw.length === 0) return null;
+    return parseNestAcademicSettings(raw[raw.length - 1]);
+  }
+  const doc = unwrapNestDoc(raw);
+  if (!doc) return null;
+  if (
+    !('systemPassingScore' in doc) &&
+    !('generalProfessorCapacity' in doc)
+  ) {
+    return null;
+  }
+  return {
+    id: nestIdFromUnknown(doc.id) || nestIdFromUnknown(doc._id),
+    systemPassingScore: asFiniteNumber(doc.systemPassingScore),
+    generalProfessorCapacity: asFiniteNumber(doc.generalProfessorCapacity),
+  };
+}
+
+/** GET `/admin/weeks/lesson/{id}` — `{ id, lessonId, priority, status }`. */
+export function parseNestLessonWeek(raw: unknown): NestLessonWeek | null {
+  const doc = unwrapNestDoc(raw);
+  if (!doc) return null;
+  const id = nestIdFromUnknown(doc.id) || nestIdFromUnknown(doc._id);
+  const lessonId = nestIdFromUnknown(doc.lessonId);
+  const priorityRaw = asFiniteNumber(doc.priority, Number.NaN);
+  if (!id && !lessonId && !Number.isFinite(priorityRaw)) return null;
+  return {
+    id: id || undefined,
+    lessonId: lessonId || undefined,
+    priority: Number.isFinite(priorityRaw) ? priorityRaw : undefined,
+    status: typeof doc.status === 'boolean' ? doc.status : undefined,
+    title: typeof doc.title === 'string' ? doc.title : undefined,
+  };
+}
+
+export function parseNestLessonWeekList(raw: unknown): NestLessonWeek[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(parseNestLessonWeek)
+    .filter((week): week is NestLessonWeek => week !== null)
+    .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+}
+
+/**
+ * سال تحصیلی لایو مخلوط است (`۱۴۰۵-۱۴۰۶`، `1405-1407`، `۱۴۰۵ -۱۴۰7`).
+ * state فرم و payload نوشتن همیشه `YYYY-YYYY` انگلیسی است.
+ */
+export function normalizeAcademicYear(raw: string): string {
+  return persianToEnglishDigits(raw)
+    .trim()
+    .replace(/\s*-\s*/g, '-')
+    .replace(/\s+/g, '');
+}
+
+/**
+ * خواندن: `podmani` لایو و `modular` ردیف قدیمی هر دو پودمانی‌اند.
+ * نوشتن فقط `toNestSemesterStructure` — هرگز `modular` نفرست.
  */
 export function toAcademicTermType(structure: string): AcademicTermType {
   return structure === 'podmani' || structure === 'modular'
@@ -80,10 +239,17 @@ export function toAcademicTermType(structure: string): AcademicTermType {
     : 'semester';
 }
 
-export function toNestSemesterAllStructure(
+/** `structure` برای POST/PATCH و کوئری `semesters_all`. */
+export function toNestSemesterStructure(
   type: AcademicTermType
 ): NestSemesterAllStructure {
   return type === 'modular' ? 'podmani' : 'semester';
+}
+
+export function toNestSemesterAllStructure(
+  type: AcademicTermType
+): NestSemesterAllStructure {
+  return toNestSemesterStructure(type);
 }
 
 export function catalogKindForTermType(
@@ -115,7 +281,9 @@ export function seasonForPrefix(
 }
 
 function semesterYear(semester: NestSemester): string {
-  return semester.academicYears ?? semester.academicYear ?? '';
+  return normalizeAcademicYear(
+    semester.academicYears ?? semester.academicYear ?? ''
+  );
 }
 
 function weekLabel(priority: number, title?: string): string {
@@ -134,7 +302,8 @@ export function toAcademicTerm(
 ): AcademicTerm {
   const type = toAcademicTermType(semester.structure);
   const prefix = prefixForSeason(type, semester.season);
-  const title = `${prefix} ${persianToEnglishDigits(semesterYear(semester))}`.trim();
+  const year = semesterYear(semester);
+  const title = `${prefix} ${year}`.trim();
   const lessons = options?.lessons ?? [];
   const isEnrollOpen =
     semester.courseSelection === true ||
@@ -144,9 +313,11 @@ export function toAcademicTerm(
     lessons.some((lesson) => lesson.startClasses === true);
   const today = options?.todayJalali ?? '';
   return {
-    id: semester.id,
+    id: nestEntityId(semester) || semester.id,
     title,
     type,
+    titlePrefix: prefix,
+    academicYear: year,
     isEnrollOpen,
     isTermOpen,
     enrollStart: isEnrollOpen ? today : '',
@@ -353,8 +524,8 @@ export function toNestSemesterDto(
 ): NestCreateSemesterDto {
   return {
     season: seasonForPrefix(input.type, input.titlePrefix),
-    structure: input.type,
-    academicYear: persianToEnglishDigits(input.academicYear),
+    structure: toNestSemesterStructure(input.type),
+    academicYear: normalizeAcademicYear(input.academicYear),
     courseSelection: current?.courseSelection ?? false,
     startClasses: current?.startClasses ?? false,
   };
@@ -362,7 +533,7 @@ export function toNestSemesterDto(
 
 /**
  * PATCH ترم باید season/structure/academicYear را هم بفرستد؛
- * فقط گیت فرستادن فیلد هویت را خالی می‌کند.
+ * فقط گیت فرستادن فیلد هویت را خالی می‌کند. `structure` همیشه `podmani`/`semester`.
  */
 export function toNestSemesterWriteDto(
   current: NestSemester,
@@ -375,9 +546,14 @@ export function toNestSemesterWriteDto(
 ): NestCreateSemesterDto {
   return {
     season: patch.season ?? current.season,
-    structure: patch.structure ?? toAcademicTermType(current.structure),
+    structure:
+      patch.structure ??
+      toNestSemesterStructure(toAcademicTermType(current.structure)),
     academicYear:
-      patch.academicYear ?? current.academicYear ?? current.academicYears ?? '',
+      patch.academicYear ??
+      current.academicYear ??
+      current.academicYears ??
+      '',
     courseSelection: patch.courseSelection ?? current.courseSelection ?? false,
     startClasses: patch.startClasses ?? current.startClasses ?? false,
   };
@@ -393,7 +569,7 @@ export function toAcademicSettings(
   settings: NestAcademicSettings
 ): RealAcademicSettings {
   return {
-    globalProfessorCapacity: settings.generalProfessorCapacity,
-    passingScoreThreshold: settings.systemPassingScore,
+    globalProfessorCapacity: asFiniteNumber(settings.generalProfessorCapacity),
+    passingScoreThreshold: asFiniteNumber(settings.systemPassingScore),
   };
 }

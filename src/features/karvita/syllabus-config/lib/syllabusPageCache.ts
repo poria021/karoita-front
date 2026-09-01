@@ -10,6 +10,9 @@ export function cacheKeyFor(section: SyllabusConfigSubTab): string {
   return `syllabus-config::${section}`;
 }
 
+/** کلید مشترک snapshot بین تنظیمات ترم و ارائه سرفصل. */
+export const syllabusSnapshotQueryKey = ['syllabus-config', 'snapshot'] as const;
+
 export type PendingNavigation =
   | { kind: 'term'; termId: string }
   | { kind: 'course'; course: CourseCatalogItem }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
@@ -7,9 +8,11 @@ import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type {
   AcademicTerm,
   CourseCatalogItem,
+  SyllabusConfigSnapshot,
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
+import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
 import { errorMessage, offeredCatalogIdsFromList } from '../lib/syllabusPageUtils';
 
 type UseSyllabusOfferingGatesArgs = {
@@ -33,11 +36,17 @@ export function useSyllabusOfferingGates({
   setOfferedCatalogIds,
   setHasUnsavedChanges,
 }: UseSyllabusOfferingGatesArgs) {
+  const queryClient = useQueryClient();
   const [gateCloseTarget, setGateCloseTarget] = useState<
     'enroll' | 'term' | null
   >(null);
   const [deactivateCourseTarget, setDeactivateCourseTarget] =
     useState<CourseCatalogItem | null>(null);
+
+  function applySnapshotTerms(snapshot: SyllabusConfigSnapshot) {
+    queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
+    setTerms(snapshot.terms);
+  }
 
   async function refreshOfferingsAndWeeks(course: CourseCatalogItem) {
     if (!selectedTermId) return;
@@ -60,7 +69,7 @@ export function useSyllabusOfferingGates({
         termId: selectedTermId,
         isEnrollOpen: open,
       });
-      setTerms(snapshot.terms);
+      applySnapshotTerms(snapshot);
       toast.success(
         open
           ? 'فرآیند انتخاب واحد پورتال فعال گردید.'
@@ -78,7 +87,7 @@ export function useSyllabusOfferingGates({
         termId: selectedTermId,
         isTermOpen: open,
       });
-      setTerms(snapshot.terms);
+      applySnapshotTerms(snapshot);
       toast.success(
         open
           ? 'برگزاری کلاس‌های ترم فعال شد.'
@@ -117,10 +126,11 @@ export function useSyllabusOfferingGates({
   async function applyActivateCourse(course: CourseCatalogItem) {
     if (!selectedTermId || !selectedTerm) return;
     try {
-      await SyllabusConfigService.activateOffering({
+      const snapshot = await SyllabusConfigService.activateOffering({
         termId: selectedTermId,
         courseCatalogId: course.id,
       });
+      applySnapshotTerms(snapshot);
       await refreshOfferingsAndWeeks(course);
       toast.success(
         `درس «${course.title}» با موفقیت برای این نیم‌سال ارائه شد.`
@@ -137,7 +147,10 @@ export function useSyllabusOfferingGates({
         selectedTermId,
         course.id
       );
-      await SyllabusConfigService.deactivateOffering({ courseOfferingId });
+      const snapshot = await SyllabusConfigService.deactivateOffering({
+        courseOfferingId,
+      });
+      applySnapshotTerms(snapshot);
       await refreshOfferingsAndWeeks(course);
       toast.warning(
         `ارائه درس «${course.title}» در این نیم‌سال متوقف شد.`

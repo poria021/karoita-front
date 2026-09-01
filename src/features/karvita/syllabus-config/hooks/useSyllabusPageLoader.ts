@@ -12,6 +12,7 @@ import type {
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
+import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
 import {
   errorMessage,
   offeredCatalogIdsFromList,
@@ -24,7 +25,7 @@ type UseSyllabusPageLoaderArgs = {
   state: UseSyllabusPageStateReturn;
 };
 
-export const syllabusSnapshotQueryKey = ['syllabus-config', 'snapshot'] as const;
+export { syllabusSnapshotQueryKey };
 
 type TermContextResult = {
   courses: CourseCatalogItem[];

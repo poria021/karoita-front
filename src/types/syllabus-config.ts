@@ -14,6 +14,10 @@ export type AcademicTerm = {
   isTermOpen: boolean;
   enrollStart: string;
   termStart: string;
+  /** از `season` + `structure` Nest؛ برای فرم ویرایش تا title را پارس نکنیم. */
+  titlePrefix?: string;
+  /** سال نرمال‌شدهٔ `YYYY-YYYY` از `academicYear` / `academicYears`. */
+  academicYear?: string;
 };
 
 export type SyllabusWeek = {
