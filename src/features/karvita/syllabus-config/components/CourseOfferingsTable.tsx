@@ -1,8 +1,6 @@
 'use client';
 
 import { KvButton } from '@/components/shared/KvButton';
-import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
-import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import {
   KvTable,
@@ -16,6 +14,8 @@ import {
   KvTableRowIndexCell,
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
+import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
+import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
@@ -45,7 +45,7 @@ export function CourseOfferingsTable({
   return (
     <KvTableViewport
       resetKey="course-offerings"
-      isBusy={isLoading}
+      isBusy={isLoading && courses.length === 0}
       hasMore={false}
       heightClassName="h-full min-h-[240px]"
     >
@@ -76,7 +76,9 @@ export function CourseOfferingsTable({
                   key={course.id}
                   interactive
                   selected={selected}
-                  onClick={() => onSelectCourse(course)}
+                  onClick={() => {
+                    if (!isLoading) onSelectCourse(course);
+                  }}
                 >
                   <KvTableRowIndexCell index={index} />
                   <KvTableCell emphasis={selected}>{course.title}</KvTableCell>
@@ -90,7 +92,7 @@ export function CourseOfferingsTable({
                       appearance="ghost"
                       size="xs"
                       className="min-w-16"
-                      disabled={Boolean(pendingCourseId)}
+                      disabled={isLoading || Boolean(pendingCourseId)}
                       aria-pressed={offered}
                       aria-busy={pending || undefined}
                       aria-label={`وضعیت ارائه ${course.title}: ${offered ? 'فعال' : 'غیرفعال'}`}

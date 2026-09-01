@@ -18,6 +18,7 @@ import { WEEK_WEIGHT_OPTIONS } from '../constants';
 type WeeklySyllabusWeekRowProps = {
   week: SyllabusWeek;
   index: number;
+  disabled?: boolean;
   onWeightChange: (weekId: string, weight: number) => void;
   onArchiveWeek: (week: SyllabusWeek) => void;
   onRestoreWeek: (week: SyllabusWeek) => void;
@@ -26,6 +27,7 @@ type WeeklySyllabusWeekRowProps = {
 export function WeeklySyllabusWeekRow({
   week,
   index,
+  disabled = false,
   onWeightChange,
   onArchiveWeek,
   onRestoreWeek,
@@ -46,6 +48,7 @@ export function WeeklySyllabusWeekRow({
           <KvSelectField
             label={false}
             size="sm"
+            disabled={disabled}
             value={String(week.weight)}
             displayValue={
               WEEK_WEIGHT_OPTIONS.find((option) => option.value === week.weight)
@@ -73,6 +76,7 @@ export function WeeklySyllabusWeekRow({
               appearance="ghost"
               size="icon-xs"
               aria-label="بازیابی هفته"
+              disabled={disabled}
               onClick={() => onRestoreWeek(week)}
               icon={<FaIcon icon={faIcons.clockRotateLeft} size="xs" />}
             />
@@ -83,6 +87,7 @@ export function WeeklySyllabusWeekRow({
               appearance="ghost"
               size="icon-xs"
               aria-label="آرشیو هفته"
+              disabled={disabled}
               onClick={() => onArchiveWeek(week)}
               icon={
                 <FaIcon

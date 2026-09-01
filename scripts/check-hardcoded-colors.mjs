@@ -1,5 +1,5 @@
 /**
- * اگر `src/**/*.{ts,tsx}` رنگ هاردکد (`#hex` / `rgb()` / `hsl()`) داشته باشد fail کن.
+ * اگر فایل‌های ts/tsx زیر src رنگ هاردکد (#hex / rgb() / hsl()) داشته باشند fail کن.
  * توکن‌ها در `globals.css`؛ برای مثبت کاذب همان `eslint-disable-line no-restricted-syntax`.
  */
 import fs from 'fs';

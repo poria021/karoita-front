@@ -29,6 +29,7 @@ const GATE_CONTENT_CLASS =
 
 type TermGateCardsProps = {
   selectedTerm: AcademicTerm | null;
+  isLoading?: boolean;
   enrollPending?: boolean;
   termOpenPending?: boolean;
   onToggleEnroll: (open: boolean) => void;
@@ -38,6 +39,7 @@ type TermGateCardsProps = {
 /** انتخاب واحد / برگزاری کلاس — خارج از فیلتر تب مخاطب. */
 export function TermGateCards({
   selectedTerm,
+  isLoading = false,
   enrollPending = false,
   termOpenPending = false,
   onToggleEnroll,
@@ -65,8 +67,8 @@ export function TermGateCards({
         switchOn={Boolean(selectedTerm?.isEnrollOpen)}
         active={enrollActive}
         onToggle={onToggleEnroll}
-        disabled={!selectedTerm || enrollPending}
-        isLoading={enrollPending}
+        disabled={!selectedTerm || enrollPending || isLoading}
+        isLoading={isLoading || enrollPending}
       />
 
       <StatusGateCard
@@ -80,8 +82,8 @@ export function TermGateCards({
         switchOn={Boolean(selectedTerm?.isTermOpen)}
         active={termActive}
         onToggle={onToggleTermOpen}
-        disabled={!selectedTerm || termOpenPending}
-        isLoading={termOpenPending}
+        disabled={!selectedTerm || termOpenPending || isLoading}
+        isLoading={isLoading || termOpenPending}
       />
     </div>
   );
@@ -105,8 +107,6 @@ export function TermSemesterCard({
   onAudienceChange,
   onSelectTerm,
 }: TermSemesterCardProps) {
-  const isDataLoading = isLoading && terms.length === 0;
-
   return (
     <KvCard>
       <KvCardContent padding="md" className="flex flex-col gap-kv-pair">
@@ -128,7 +128,11 @@ export function TermSemesterCard({
             >
               <AppTabsList aria-label="فیلتر مخاطب نیم‌سال">
                 {COURSE_OFFERING_AUDIENCE_TABS.map((tab) => (
-                  <AppTabsTrigger key={tab.value} value={tab.value}>
+                  <AppTabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    disabled={isLoading}
+                  >
                     {tab.label}
                   </AppTabsTrigger>
                 ))}
@@ -138,35 +142,25 @@ export function TermSemesterCard({
         </div>
 
         <div className="w-full">
-          {isDataLoading ? (
-            <div
-              className="flex h-11 w-full items-center justify-center rounded-kv-control border border-kv-border bg-kv-surface"
-              role="status"
-              aria-busy="true"
-              aria-label="در حال بارگذاری نیم‌سال"
-            >
-              <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
-            </div>
-          ) : (
-            <KvSelectField
-              label={false}
-              size="md"
-              value={selectedTerm?.id ?? ''}
-              displayValue={
-                selectedTerm
-                  ? formatTermOptionLabel(selectedTerm.title)
-                  : undefined
-              }
-              onValueChange={onSelectTerm}
-              placeholder="انتخاب ترم"
-            >
-              {terms.map((term) => (
-                <KvSelectItem key={term.id} value={term.id}>
-                  {formatTermOptionLabel(term.title)}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
-          )}
+          <KvSelectField
+            label={false}
+            size="md"
+            disabled={isLoading}
+            value={selectedTerm?.id ?? ''}
+            displayValue={
+              selectedTerm
+                ? formatTermOptionLabel(selectedTerm.title)
+                : undefined
+            }
+            onValueChange={onSelectTerm}
+            placeholder="انتخاب ترم"
+          >
+            {terms.map((term) => (
+              <KvSelectItem key={term.id} value={term.id}>
+                {formatTermOptionLabel(term.title)}
+              </KvSelectItem>
+            ))}
+          </KvSelectField>
         </div>
       </KvCardContent>
     </KvCard>

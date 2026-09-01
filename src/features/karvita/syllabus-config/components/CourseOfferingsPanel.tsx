@@ -8,7 +8,6 @@ import { WeeklySyllabusTable } from './WeeklySyllabusTable';
 type CourseOfferingsPanelProps = Pick<
   UseSyllabusConfigPageReturn,
   | 'audienceTerms'
-  | 'selectedTerm'
   | 'selectedAudienceTerm'
   | 'audience'
   | 'changeAudience'
@@ -36,6 +35,11 @@ type CourseOfferingsPanelProps = Pick<
 >;
 
 export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
+  const hasAudienceTerm = Boolean(props.selectedAudienceTerm);
+  const courses = hasAudienceTerm ? props.courses : [];
+  const weeks = hasAudienceTerm ? props.weeks : [];
+  const selectedCourse = hasAudienceTerm ? props.selectedCourse : null;
+
   return (
     <div className="grid grid-cols-1 items-start gap-kv-section lg:grid-cols-12 lg:gap-kv-group">
       {/* ستون راست دسکتاپ RTL؛ موبایل/تبلت زیر گیت‌ها. */}
@@ -50,8 +54,8 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
         />
 
         <CourseOfferingsTable
-          courses={props.courses}
-          selectedCourseId={props.selectedCourse?.id ?? null}
+          courses={courses}
+          selectedCourseId={selectedCourse?.id ?? null}
           offeredCatalogIds={props.offeredCatalogIds}
           isLoading={props.isLoading}
           pendingCourseId={props.pendingCourseId}
@@ -64,7 +68,8 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
 
       <div className="order-1 lg:order-2 lg:col-span-8">
         <TermGateCards
-          selectedTerm={props.selectedTerm}
+          selectedTerm={props.selectedAudienceTerm}
+          isLoading={props.isLoading}
           enrollPending={props.pendingEnroll}
           termOpenPending={props.pendingTermOpen}
           onToggleEnroll={(open) => void props.toggleEnroll(open)}
@@ -74,8 +79,8 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
 
       <div className="order-3 lg:order-3 lg:col-span-8">
         <WeeklySyllabusTable
-          courseTitle={props.selectedCourse?.title ?? null}
-          weeks={props.weeks}
+          courseTitle={selectedCourse?.title ?? null}
+          weeks={weeks}
           isLoading={props.isLoading}
           hasUnsavedChanges={props.hasUnsavedChanges}
           isSaving={props.isSaving}
