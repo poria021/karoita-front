@@ -24,13 +24,12 @@ import type { NestSemesterWithLessons } from '@/types/nest-admin';
 
 export type { RealAcademicSettings };
 
-/** GET /admin/semester — bare array, no paging envelope. */
+/** `GET /admin/semester` — آرایهٔ خام، بدون پاکت paging. */
 export async function listRealTerms(): Promise<AcademicTerm[]> {
   const rows = await adminCatalogApi.listSemesters();
   return rows.map((row) => toAcademicTerm(row));
 }
 
-/** GET /admin/semester/{id} */
 export async function getRealTerm(id: string): Promise<AcademicTerm> {
   const row = await adminCatalogApi.getSemester(id);
   return toAcademicTerm(row);
@@ -47,23 +46,21 @@ export async function listRealSemesterBundles(): Promise<
 }
 
 /**
- * GET /admin/settings — latest inserted row.
- * Falls back to safe defaults when the settings collection is still empty
- * (first-time setup before any POST /admin/settings call).
+ * `GET /admin/settings` — آخرین ردیف درج‌شده.
+ * اگر مجموعه خالی باشد (قبل از اولین POST) به پیش‌فرض امن برمی‌گردیم.
  */
 export async function getRealAcademicSettings(): Promise<RealAcademicSettings> {
   try {
     const settings = await adminCatalogApi.getAcademicSettings();
     return toAcademicSettings(settings);
   } catch {
-    // Nest returns 404/500 when no settings row exists yet — return defaults.
+    // Nest وقتی ردیف تنظیمات نیست ۴۰۴/۵۰۰ می‌دهد — پیش‌فرض برگردان.
     return { globalProfessorCapacity: 0, passingScoreThreshold: 0 };
   }
 }
 
 /**
- * Composite snapshot for real mode: terms from GET /admin/semester, overlay
- * lesson gates/offerings from GET /admin/semesters_all.
+ * snapshot واقعی: ترم و گیت از `GET /admin/semester`، ارائه از `GET /admin/semesters_all`.
  */
 export async function getRealSyllabusSnapshot(): Promise<SyllabusConfigSnapshot> {
   const [listedTerms, bundles, settings] = await Promise.all([
@@ -119,9 +116,8 @@ export async function listRealOfferingsForTerm(
 }
 
 /**
- * GET /admin/weeks/lesson/{lessonId}. If the dedicated list is empty, fall
- * back to weeks nested on GET /admin/semesters_all (some Nest copies omit
- * them from the lesson-scoped route until a PUT has round-tripped).
+ * `GET /admin/weeks/lesson/{lessonId}`. اگر خالی بود، هفته‌های تو در تو روی
+ * `GET /admin/semesters_all` (بعضی کپی‌های Nest تا PUT آن‌ها را در مسیر درس نمی‌گذارند).
  */
 export async function getRealWeeksForLesson(
   termId: string,
@@ -140,14 +136,4 @@ export async function getRealWeeksForLesson(
   return (lesson?.weeks ?? []).map((week, index) =>
     toSyllabusWeek(week, index, DEFAULT_WEEK_WEIGHT)
   );
-}
-
-export async function findRealLessonIdsForTerm(
-  termId: string
-): Promise<string[]> {
-  const scoped = lessonsOfTerm(await listRealSemesterBundles(), termId);
-  if (!scoped) return [];
-  return scoped.lessons
-    .map((lesson) => lesson.id || lesson._id || '')
-    .filter(Boolean);
 }

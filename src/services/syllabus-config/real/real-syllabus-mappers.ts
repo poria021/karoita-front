@@ -1,5 +1,6 @@
 import type {
   NestAcademicSettings,
+  NestCreateSemesterDto,
   NestCreateWeekDto,
   NestLesson,
   NestLessonWeek,
@@ -23,11 +24,9 @@ import type {
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 /**
- * Nest's semester model has no prefix/label field of its own — `season` +
- * `structure` encode it instead. These literals must stay in sync with
- * SEMESTER_PREFIX_OPTIONS / MODULAR_PREFIX_OPTIONS in
- * `src/features/karvita/syllabus-config/constants.ts` (services must not
- * import feature-layer constants).
+ * ترم Nest فیلد پیشوند جدا ندارد — `season` + `structure` همان است.
+ * این لیترال‌ها باید با `SEMESTER_PREFIX_OPTIONS` / `MODULAR_PREFIX_OPTIONS`
+ * در فیچر سرفصل هم‌خوان بمانند (سرویس نباید از لایهٔ فیچر import کند).
  */
 const SEMESTER_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   one: 'نیم‌سال اول',
@@ -38,7 +37,7 @@ const SEMESTER_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
 const MODULAR_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   one: 'پودمان اول',
   two: 'پودمان دوم',
-  // Modular terms have no summer season in the form — fall back to دوم.
+  // فرم پودمانی تابستان ندارد — به دوم برمی‌گردیم.
   three: 'پودمان دوم',
 };
 
@@ -46,12 +45,12 @@ export function nestEntityId(row: { id?: string; _id?: string }): string {
   return row.id || row._id || '';
 }
 
-/** Nest Mongo ids on GET rows; local draft weeks use `week_…`. */
+/** شناسهٔ Mongo در GET؛ پیش‌نویس محلی `week_…` است. */
 export function isNestObjectId(id: string): boolean {
   return /^[a-fA-F0-9]{24}$/.test(id);
 }
 
-/** Lesson label — live rows may send `title`, `name`, or `title_fa`. */
+/** برچسب درس زنده ممکن است `title`، `name` یا `title_fa` باشد. */
 export function nestLessonTitle(lesson: {
   title?: unknown;
   name?: unknown;
@@ -72,8 +71,8 @@ export function nestLessonTitle(lesson: {
 }
 
 /**
- * GET `/admin/semesters_all` uses `podmani` for modular terms (live), while
- * POST `/admin/semester` still writes `structure: modular`.
+ * `GET /admin/semesters_all` پودمانی را `podmani` می‌فرستد؛
+ * `POST /admin/semester` هنوز `structure: modular` می‌نویسد.
  */
 export function toAcademicTermType(structure: string): AcademicTermType {
   return structure === 'podmani' || structure === 'modular'
@@ -102,7 +101,7 @@ function prefixForSeason(
   return table[season];
 }
 
-/** Inverse of prefixForSeason — used when building the create/update body. */
+/** معکوس `prefixForSeason` برای بدنهٔ create/update. */
 export function seasonForPrefix(
   structure: AcademicTermType,
   titlePrefix: string
@@ -125,10 +124,9 @@ function weekLabel(priority: number, title?: string): string {
 }
 
 /**
- * Nest Semester → AcademicTerm.
- * Gate flags are lesson-level on `/semesters_all` — pass `lessons` to overlay
- * them. When a flag is on and Nest sends no start date, `todayJalali` is used
- * so the existing `isTermGateActive(isOpen, startDate)` helper still lights up.
+ * `Semester` Nest → `AcademicTerm`.
+ * گیت روی خود ترم است؛ درس فقط fallback برای کپی قدیمی Nest.
+ * اگر پرچم روشن باشد و تاریخ شروع نیاید، `todayJalali` می‌گذاریم تا `isTermGateActive` روشن بماند.
  */
 export function toAcademicTerm(
   semester: NestSemester,
@@ -138,8 +136,12 @@ export function toAcademicTerm(
   const prefix = prefixForSeason(type, semester.season);
   const title = `${prefix} ${persianToEnglishDigits(semesterYear(semester))}`.trim();
   const lessons = options?.lessons ?? [];
-  const isEnrollOpen = lessons.some((lesson) => lesson.courseSelection === true);
-  const isTermOpen = lessons.some((lesson) => lesson.startClasses === true);
+  const isEnrollOpen =
+    semester.courseSelection === true ||
+    lessons.some((lesson) => lesson.courseSelection === true);
+  const isTermOpen =
+    semester.startClasses === true ||
+    lessons.some((lesson) => lesson.startClasses === true);
   const today = options?.todayJalali ?? '';
   return {
     id: semester.id,
@@ -232,9 +234,8 @@ export type NestWeekWritePlan = {
 };
 
 /**
- * POST /admin/weeks for new rows, PATCH /admin/weeks/{id} for existing.
- * Remote weeks dropped from the editor are archived (`status: false`) —
- * Nest has no week DELETE in this batch.
+ * ردیف جدید `POST /admin/weeks`؛ موجود `PATCH /admin/weeks/{id}`.
+ * هفتهٔ حذف‌شده از ادیتور با `status: false` بایگانی می‌شود — Nest در این دسته DELETE هفته ندارد.
  */
 export function planNestWeekWrites(
   lessonId: string,
@@ -295,9 +296,29 @@ export function mergeTermsWithLessonBundles(
 
   const offerings: Record<string, CourseOfferingRecord> = {};
   for (const bundle of bundles) {
+    const listedTerm = byId.get(bundle.id);
+    const mapped = toAcademicTerm(bundle, {
+      lessons: bundle.lessons,
+      todayJalali,
+    });
+    // GET /admin/semester منبع گیت است؛ semesters_all معمولاً courseSelection/startClasses ندارد.
     byId.set(
       bundle.id,
-      toAcademicTerm(bundle, { lessons: bundle.lessons, todayJalali })
+      listedTerm
+        ? {
+            ...mapped,
+            isEnrollOpen: listedTerm.isEnrollOpen || mapped.isEnrollOpen,
+            isTermOpen: listedTerm.isTermOpen || mapped.isTermOpen,
+            enrollStart:
+              listedTerm.isEnrollOpen || mapped.isEnrollOpen
+                ? listedTerm.enrollStart || mapped.enrollStart
+                : '',
+            termStart:
+              listedTerm.isTermOpen || mapped.isTermOpen
+                ? listedTerm.termStart || mapped.termStart
+                : '',
+          }
+        : mapped
     );
     for (const lesson of bundle.lessons ?? []) {
       const record = toCourseOfferingRecord(
@@ -325,16 +346,40 @@ export function lessonsOfTerm(
   };
 }
 
-/** UpsertTermInput (term-settings form) → Nest create body. */
-export function toNestSemesterDto(input: UpsertTermInput): {
-  season: NestSemesterSeason;
-  structure: AcademicTermType;
-  academicYear: string;
-} {
+/** فرم تنظیمات ترم → بدنهٔ create/update Nest. گیت پیش‌فرض بسته است مگر ردیف زنده بدهی. */
+export function toNestSemesterDto(
+  input: UpsertTermInput,
+  current?: Pick<NestSemester, 'courseSelection' | 'startClasses'>
+): NestCreateSemesterDto {
   return {
     season: seasonForPrefix(input.type, input.titlePrefix),
     structure: input.type,
     academicYear: persianToEnglishDigits(input.academicYear),
+    courseSelection: current?.courseSelection ?? false,
+    startClasses: current?.startClasses ?? false,
+  };
+}
+
+/**
+ * PATCH ترم باید season/structure/academicYear را هم بفرستد؛
+ * فقط گیت فرستادن فیلد هویت را خالی می‌کند.
+ */
+export function toNestSemesterWriteDto(
+  current: NestSemester,
+  patch: Partial<
+    Pick<
+      NestCreateSemesterDto,
+      'season' | 'structure' | 'academicYear' | 'courseSelection' | 'startClasses'
+    >
+  > = {}
+): NestCreateSemesterDto {
+  return {
+    season: patch.season ?? current.season,
+    structure: patch.structure ?? toAcademicTermType(current.structure),
+    academicYear:
+      patch.academicYear ?? current.academicYear ?? current.academicYears ?? '',
+    courseSelection: patch.courseSelection ?? current.courseSelection ?? false,
+    startClasses: patch.startClasses ?? current.startClasses ?? false,
   };
 }
 
@@ -343,7 +388,7 @@ export type RealAcademicSettings = {
   passingScoreThreshold: number;
 };
 
-/** Nest AcademicSettings → local settings shape. */
+/** `AcademicSettings` Nest → شکل تنظیمات محلی. */
 export function toAcademicSettings(
   settings: NestAcademicSettings
 ): RealAcademicSettings {

@@ -58,8 +58,6 @@ import type {
   UpsertTermInput,
 } from '@/types/syllabus-config';
 
-// ─── Auth guards ──────────────────────────────────────────────────────────────
-
 function gateSyllabus(): void {
   if (isMockApiMode()) {
     assertMockClientHasPermission('syllabus.manage');
@@ -72,38 +70,19 @@ function gateSyllabusTermSettings(): void {
   }
 }
 
-/** Enrollment/daily-approvals consumers — Nest authorises separately. */
+/** خوانندهٔ ثبت‌نام/تأیید روزانه — در real، `Nest` خودش authz می‌کند. */
 function gateSyllabusConsumerRead(): void {
-  // No permission check for consumers in real mode — Nest handles authz.
   if (isMockApiMode()) {
-    // no extra mock permission needed for read-only consumer paths
+    // مسیر فقط-خواندنی mock گارد `syllabus.manage` نمی‌خواهد
   }
 }
 
 /**
- * Term + weekly syllabus admin façade.
- *
- * Real-mode routing:
- * - GET    /admin/semester                           → listSemesters
- * - GET    /admin/semester/:id                       → getSemester
- * - POST   /admin/semester                           → createSemester
- * - PATCH  /admin/semester/:id                       → updateSemester
- * - DELETE /admin/semester/:id                       → deleteSemester
- * - GET    /admin/settings                           → getAcademicSettings
- * - POST   /admin/settings                           → createAcademicSettings
- * - GET    /admin/semesters_all                      → lessons + offering flags
- * - GET    /admin/weeks/lesson/:lessonId             → weekly syllabus
- * - POST   /admin/weeks                              → createWeek
- * - PATCH  /admin/weeks/:id                          → updateWeek
- * - PATCH  /admin/lessons/status                     → bulk term gates
- * - PATCH  /admin/lessons/:id/status                 → offering toggle
- *
- * Enrollment-context remains mock-only until Nest exposes a consumer route.
+ * نمای سرفصل ترم و هفته. UI فقط همین Facade را صدا می‌زند.
+ * `getEnrollmentSyllabusContext` تا آمدن route مصرف‌کننده در Nest خالی برمی‌گردد.
  */
 export const SyllabusConfigService = {
-  // ─── Snapshot (read) ───────────────────────────────────────────────────────
-
-  /** GET /admin/semester + GET /admin/settings (real) | mock snapshot */
+  /** `GET /admin/semester` + `GET /admin/settings` */
   async getSnapshot(): Promise<SyllabusConfigSnapshot> {
     gateSyllabus();
     if (!IS_MOCK_MODE) {
@@ -112,28 +91,21 @@ export const SyllabusConfigService = {
     return cloneSnapshot(readSyllabusSnapshot());
   },
 
-  // ─── Academic-year helpers (mock + real share the same Jalali util) ────────
-
   getAcademicYears(): string[] {
     return getAcademicYearOptions();
   },
 
-  /** Default academic year for the create-term form (current Jalali year). */
   getDefaultAcademicYear(): string {
     return getAcademicYearOptions()[1] ?? getAcademicYearOptions()[0] ?? '';
   },
 
-  // ─── Consumer reads (enrollment / daily-approvals) ────────────────────────
-
-  /** GET /syllabus/enrollment-context — no syllabus.manage required */
+  /** تا آمدن route مصرف‌کننده در Nest خالی برمی‌گردد — throw نمی‌کند. */
   async getEnrollmentSyllabusContext(
     kind: CourseOfferingKind,
     level: number
   ): Promise<EnrollmentSyllabusContext> {
     gateSyllabusConsumerRead();
     if (!IS_MOCK_MODE) {
-      // Real Nest route not wired yet — fall back to empty context so consumers
-      // degrade gracefully rather than throwing.
       return {
         term: null,
         termId: `mock-term-${kind}`,
@@ -146,7 +118,6 @@ export const SyllabusConfigService = {
     return resolveEnrollmentSyllabusContext(readSyllabusSnapshot(), kind, level);
   },
 
-  /** GET /syllabus/passing-threshold — shared by daily-approvals */
   async getPassingScoreThreshold(): Promise<number> {
     gateSyllabusConsumerRead();
     if (!IS_MOCK_MODE) {
@@ -156,9 +127,7 @@ export const SyllabusConfigService = {
     return readSyllabusSnapshot().passingScoreThreshold;
   },
 
-  // ─── Course catalog + offerings ────────────────────────────────────────────
-
-  /** Derive term courses from an already-fetched snapshot — no extra HTTP. */
+  /** از snapshot موجود؛ HTTP اضافه نمی‌زند. */
   termContextFromSnapshot(
     snapshot: SyllabusConfigSnapshot,
     termId: string
@@ -185,7 +154,7 @@ export const SyllabusConfigService = {
         type: row.type ?? kind,
         isOffered: row.isOffered,
       }));
-      // Snapshot hydrate without labels is unusable — fetch lessons instead.
+      // بدون عنوان درس، hydrate به درد UI نمی‌خورد — باید `semesters_all` زده شود.
       if (
         courses.length > 0 &&
         courses.every((course) => course.title.length === 0)
@@ -213,7 +182,7 @@ export const SyllabusConfigService = {
     return readWeeksFromSnapshot(snapshot, termId, courseCatalogId);
   },
 
-  /** GET /admin/semesters_all — courses + offering flags in one round-trip. */
+  /** `GET /admin/semesters_all` — درس و پرچم ارائه در یک رفت‌وبرگشت. */
   async listCoursesAndOfferingsForTerm(termId: string): Promise<{
     courses: CourseCatalogItem[];
     offerings: CourseOfferingListItem[];
@@ -229,7 +198,6 @@ export const SyllabusConfigService = {
     };
   },
 
-  /** GET /admin/semesters_all (real) | mock catalog for the term type */
   async listCoursesForTerm(termId: string): Promise<CourseCatalogItem[]> {
     gateSyllabus();
     if (!IS_MOCK_MODE) return listRealCoursesForTerm(termId);
@@ -239,14 +207,13 @@ export const SyllabusConfigService = {
     return getCatalogForTermType(term.type);
   },
 
-  /** GET /admin/semesters_all — lesson.status is the ارائه flag */
+  /** در Nest پرچم ارائه همان `lesson.status` است. */
   async listOfferings(termId: string): Promise<CourseOfferingListItem[]> {
     gateSyllabus();
     if (!IS_MOCK_MODE) return listRealOfferingsForTerm(termId);
     return listOfferingsForTerm(readSyllabusSnapshot(), termId);
   },
 
-  /** GET /admin/weeks/lesson/:lessonId */
   async getWeeks(
     termId: string,
     courseCatalogId: string
@@ -262,9 +229,7 @@ export const SyllabusConfigService = {
     );
   },
 
-  // ─── Offering mutations ───────────────────────────────────────────────────
-
-  /** PATCH /admin/lessons/:id/status { status: true } */
+  /** `PATCH /admin/lessons/:id/status` با `{ status: true }` */
   async activateOffering(
     input: ActivateOfferingInput
   ): Promise<SyllabusConfigSnapshot> {
@@ -286,7 +251,7 @@ export const SyllabusConfigService = {
     });
   },
 
-  /** PATCH /admin/lessons/:id/status { status: false } */
+  /** `PATCH /admin/lessons/:id/status` با `{ status: false }` */
   async deactivateOffering(
     input: DeactivateOfferingInput
   ): Promise<SyllabusConfigSnapshot> {
@@ -302,10 +267,8 @@ export const SyllabusConfigService = {
     });
   },
 
-  // ─── Term gates ───────────────────────────────────────────────────────────
-
   /**
-   * PATCH /admin/lessons/status — one array for every lesson of the term
+   * `PATCH /admin/semester/:id` — گیت روی خود ترم است
    * (`courseSelection` / `startClasses`).
    */
   async updateTermGates(
@@ -329,9 +292,7 @@ export const SyllabusConfigService = {
     });
   },
 
-  // ─── Weekly syllabus ──────────────────────────────────────────────────────
-
-  /** POST /admin/weeks + PATCH /admin/weeks/{id} */
+  /** `POST /admin/weeks` + `PATCH /admin/weeks/{id}` */
   async saveSyllabusWeeks(
     input: SaveSyllabusWeeksInput
   ): Promise<SyllabusConfigSnapshot> {
@@ -360,9 +321,6 @@ export const SyllabusConfigService = {
     });
   },
 
-  // ─── Term CRUD — real + mock ───────────────────────────────────────────────
-
-  /** GET /admin/semester/{id} */
   async getTerm(id: string): Promise<AcademicTerm | null> {
     gateSyllabusTermSettings();
     if (!IS_MOCK_MODE) {
@@ -371,10 +329,6 @@ export const SyllabusConfigService = {
     return readSyllabusSnapshot().terms.find((term) => term.id === id) ?? null;
   },
 
-  /**
-   * POST /admin/semester (real) | mock store mutation.
-   * Returns the refreshed SyllabusConfigSnapshot.
-   */
   async createTerm(input: UpsertTermInput): Promise<SyllabusConfigSnapshot> {
     gateSyllabusTermSettings();
     if (!IS_MOCK_MODE) {
@@ -397,9 +351,6 @@ export const SyllabusConfigService = {
     });
   },
 
-  /**
-   * PATCH /admin/semester/{id} (real) | mock store mutation.
-   */
   async updateTerm(
     id: string,
     input: UpsertTermInput
@@ -420,10 +371,6 @@ export const SyllabusConfigService = {
     });
   },
 
-  /**
-   * DELETE /admin/semester/:id (real) | mock store mutation.
-   * Returns the refreshed SyllabusConfigSnapshot.
-   */
   async deleteTerm(termId: string): Promise<SyllabusConfigSnapshot> {
     gateSyllabusTermSettings();
     if (!IS_MOCK_MODE) {
@@ -447,12 +394,7 @@ export const SyllabusConfigService = {
     });
   },
 
-  // ─── Global settings — real + mock ────────────────────────────────────────
-
-  /**
-   * POST /admin/settings (real) | mock snapshot mutation.
-   * Returns the refreshed SyllabusConfigSnapshot.
-   */
+  /** `POST /admin/settings` — Nest برای تنظیمات PATCH ندارد. */
   async setProfessorCapacity(
     capacity: number
   ): Promise<SyllabusConfigSnapshot> {
@@ -465,10 +407,7 @@ export const SyllabusConfigService = {
     });
   },
 
-  /**
-   * POST /admin/settings (real) | mock snapshot mutation.
-   * Returns the refreshed SyllabusConfigSnapshot.
-   */
+  /** `POST /admin/settings` — هر نوشته ردیف جدید می‌سازد. */
   async setPassingThreshold(
     threshold: number
   ): Promise<SyllabusConfigSnapshot> {
@@ -480,8 +419,6 @@ export const SyllabusConfigService = {
       draft.passingScoreThreshold = threshold;
     });
   },
-
-  // ─── Utility ──────────────────────────────────────────────────────────────
 
   resolveOfferingId(termId: string, courseCatalogId: string): string {
     if (!IS_MOCK_MODE) return courseCatalogId;

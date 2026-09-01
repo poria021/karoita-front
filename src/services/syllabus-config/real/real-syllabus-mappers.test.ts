@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { NestSemesterWithLessons } from '@/types/nest-admin';
+import type { NestSemester, NestSemesterWithLessons } from '@/types/nest-admin';
 import type { AcademicTerm, SyllabusWeek } from '@/types/syllabus-config';
 
 import {
@@ -16,9 +16,22 @@ import {
   planNestWeekWrites,
   toNestLessonWeeksBody,
   toNestSemesterAllStructure,
+  toNestSemesterDto,
+  toNestSemesterWriteDto,
   toSyllabusWeek,
 } from './real-syllabus-mappers';
 
+/** شکل GET `/admin/semester` — گیت روی خود ترم. */
+const LISTED_SEMESTER: NestSemester = {
+  id: '6a8e2b51d2187e0f2fdb784b',
+  academicYear: '۱۴۰۵-۱۴۰۶',
+  season: 'one',
+  structure: 'semester',
+  courseSelection: false,
+  startClasses: true,
+};
+
+/** شکل GET `/admin/semesters_all` — درس/هفته؛ گیت معمولاً نیست. */
 const SAMPLE_SEMESTER: NestSemesterWithLessons = {
   id: '6a8e2b51d2187e0f2fdb784b',
   season: 'one',
@@ -30,8 +43,6 @@ const SAMPLE_SEMESTER: NestSemesterWithLessons = {
       id: '6a8e2b51d2187e0f2fdb784c',
       title: 'کارورزی ۱',
       semesterId: '6a8e2b51d2187e0f2fdb784b',
-      startClasses: true,
-      courseSelection: false,
       status: true,
       capacity: 30,
       days: [0],
@@ -50,9 +61,8 @@ describe('real-syllabus-mappers offerings', () => {
     expect(catalogKindForTermType('modular')).toBe('apprenticeship');
   });
 
-  it('builds term title from academicYears and overlays lesson gates', () => {
-    const term = toAcademicTerm(SAMPLE_SEMESTER, {
-      lessons: SAMPLE_SEMESTER.lessons,
+  it('builds term title from academicYear and reads gates on the semester', () => {
+    const term = toAcademicTerm(LISTED_SEMESTER, {
       todayJalali: '1405/06/06',
     });
     expect(term.title).toBe('نیم‌سال اول 1405-1406');
@@ -60,6 +70,50 @@ describe('real-syllabus-mappers offerings', () => {
     expect(term.isTermOpen).toBe(true);
     expect(term.termStart).toBe('1405/06/06');
     expect(term.enrollStart).toBe('');
+  });
+
+  it('falls back to lesson gates when the semester omits them', () => {
+    const term = toAcademicTerm(
+      { ...SAMPLE_SEMESTER, courseSelection: undefined, startClasses: undefined },
+      {
+        lessons: [
+          {
+            ...SAMPLE_SEMESTER.lessons![0]!,
+            courseSelection: true,
+            startClasses: false,
+          },
+        ],
+        todayJalali: '1405/06/06',
+      }
+    );
+    expect(term.isEnrollOpen).toBe(true);
+    expect(term.isTermOpen).toBe(false);
+    expect(term.enrollStart).toBe('1405/06/06');
+  });
+
+  it('writes create/update bodies with gates on the semester', () => {
+    expect(
+      toNestSemesterDto({
+        type: 'semester',
+        titlePrefix: 'نیم‌سال اول',
+        academicYear: '۱۴۰۵-۱۴۰۶',
+      })
+    ).toEqual({
+      season: 'one',
+      structure: 'semester',
+      academicYear: '1405-1406',
+      courseSelection: false,
+      startClasses: false,
+    });
+    expect(
+      toNestSemesterWriteDto(LISTED_SEMESTER, { courseSelection: true })
+    ).toEqual({
+      season: 'one',
+      structure: 'semester',
+      academicYear: '۱۴۰۵-۱۴۰۶',
+      courseSelection: true,
+      startClasses: true,
+    });
   });
 
   it('uses lesson id as catalog/offering id and status as isOffered', () => {
@@ -161,17 +215,9 @@ describe('real-syllabus-mappers offerings', () => {
     ]);
   });
 
-  it('merges listed terms with semesters_all offerings', () => {
+  it('keeps listed semester gates when semesters_all omits them', () => {
     const listed: AcademicTerm[] = [
-      {
-        id: SAMPLE_SEMESTER.id,
-        title: 'نیم‌سال اول 1405-1406',
-        type: 'semester',
-        isEnrollOpen: false,
-        isTermOpen: false,
-        enrollStart: '',
-        termStart: '',
-      },
+      toAcademicTerm(LISTED_SEMESTER, { todayJalali: '1405/06/06' }),
     ];
     const { terms, offerings } = mergeTermsWithLessonBundles(
       listed,
@@ -180,6 +226,7 @@ describe('real-syllabus-mappers offerings', () => {
       3
     );
     expect(terms[0]?.isTermOpen).toBe(true);
+    expect(terms[0]?.termStart).toBe('1405/06/06');
     expect(offerings['6a8e2b51d2187e0f2fdb784c']?.isOffered).toBe(true);
     expect(offerings['6a8e2b51d2187e0f2fdb784c']?.title).toBe('کارورزی ۱');
     expect(offerings['6a8e2b51d2187e0f2fdb784c']?.weeks).toHaveLength(1);
