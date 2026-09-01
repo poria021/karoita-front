@@ -25,6 +25,7 @@ interface CourseOfferingsTableProps {
   selectedCourseId: string | null;
   offeredCatalogIds: Set<string>;
   isLoading: boolean;
+  pendingCourseId?: string | null;
   onSelectCourse: (course: CourseCatalogItem) => void;
   onToggleOffering: (course: CourseCatalogItem) => void;
 }
@@ -34,6 +35,7 @@ export function CourseOfferingsTable({
   selectedCourseId,
   offeredCatalogIds,
   isLoading,
+  pendingCourseId = null,
   onSelectCourse,
   onToggleOffering,
 }: CourseOfferingsTableProps) {
@@ -85,6 +87,8 @@ export function CourseOfferingsTable({
                       color={offered ? 'success' : 'error'}
                       appearance="ghost"
                       size="xs"
+                      loading={pendingCourseId === course.id}
+                      disabled={Boolean(pendingCourseId)}
                       aria-pressed={offered}
                       aria-label={`وضعیت ارائه ${course.title}: ${offered ? 'فعال' : 'غیرفعال'}`}
                       onClick={() => onToggleOffering(course)}

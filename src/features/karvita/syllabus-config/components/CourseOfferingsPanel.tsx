@@ -15,6 +15,9 @@ type CourseOfferingsPanelProps = Pick<
   | 'selectTerm'
   | 'toggleEnroll'
   | 'toggleTermOpen'
+  | 'pendingEnroll'
+  | 'pendingTermOpen'
+  | 'pendingCourseId'
   | 'courses'
   | 'selectedCourse'
   | 'selectCourse'
@@ -51,6 +54,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
           selectedCourseId={props.selectedCourse?.id ?? null}
           offeredCatalogIds={props.offeredCatalogIds}
           isLoading={props.isLoading}
+          pendingCourseId={props.pendingCourseId}
           onSelectCourse={(course) => void props.selectCourse(course)}
           onToggleOffering={(course) =>
             void props.toggleCourseOffering(course)
@@ -62,6 +66,8 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
         <TermGateCards
           selectedTerm={props.selectedTerm}
           isLoading={props.isLoading}
+          enrollPending={props.pendingEnroll}
+          termOpenPending={props.pendingTermOpen}
           onToggleEnroll={(open) => void props.toggleEnroll(open)}
           onToggleTermOpen={(open) => void props.toggleTermOpen(open)}
         />

@@ -30,6 +30,8 @@ const GATE_CONTENT_CLASS =
 type TermGateCardsProps = {
   selectedTerm: AcademicTerm | null;
   isLoading?: boolean;
+  enrollPending?: boolean;
+  termOpenPending?: boolean;
   onToggleEnroll: (open: boolean) => void;
   onToggleTermOpen: (open: boolean) => void;
 };
@@ -38,6 +40,8 @@ type TermGateCardsProps = {
 export function TermGateCards({
   selectedTerm,
   isLoading = false,
+  enrollPending = false,
+  termOpenPending = false,
   onToggleEnroll,
   onToggleTermOpen,
 }: TermGateCardsProps) {
@@ -68,8 +72,8 @@ export function TermGateCards({
         switchOn={Boolean(selectedTerm?.isEnrollOpen)}
         active={enrollActive}
         onToggle={onToggleEnroll}
-        disabled={!selectedTerm || isLoading}
-        isLoading={isDataLoading}
+        disabled={!selectedTerm || isLoading || enrollPending}
+        isLoading={isDataLoading || enrollPending}
       />
 
       <StatusGateCard
@@ -87,8 +91,8 @@ export function TermGateCards({
         switchOn={Boolean(selectedTerm?.isTermOpen)}
         active={termActive}
         onToggle={onToggleTermOpen}
-        disabled={!selectedTerm || isLoading}
-        isLoading={isDataLoading}
+        disabled={!selectedTerm || isLoading || termOpenPending}
+        isLoading={isDataLoading || termOpenPending}
       />
     </div>
   );
@@ -227,7 +231,13 @@ function StatusGateCard({
           </div>
         </div>
         {isLoading ? (
-          <Spinner className="size-4 shrink-0 text-kv-brand" aria-hidden="true" />
+          <span
+            className="inline-flex h-7 w-11 shrink-0 items-center justify-center"
+            role="status"
+            aria-label={`در حال به‌روزرسانی ${title}`}
+          >
+            <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
+          </span>
         ) : (
           <KvSwitch
             size="md"

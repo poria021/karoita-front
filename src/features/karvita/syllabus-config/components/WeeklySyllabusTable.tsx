@@ -112,7 +112,7 @@ export function WeeklySyllabusTable({
           resetKey={courseTitle ?? 'weeks'}
           isBusy={isLoading}
           hasMore={false}
-          heightClassName="max-h-[400px] min-h-[200px]"
+          heightClassName="h-[400px] min-h-[400px] max-h-[400px]"
         >
           <KvTable scrollable={false}>
             <KvTableHeader>

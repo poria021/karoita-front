@@ -42,6 +42,9 @@ export function useSyllabusOfferingGates({
   >(null);
   const [deactivateCourseTarget, setDeactivateCourseTarget] =
     useState<CourseCatalogItem | null>(null);
+  const [pendingEnroll, setPendingEnroll] = useState(false);
+  const [pendingTermOpen, setPendingTermOpen] = useState(false);
+  const [pendingCourseId, setPendingCourseId] = useState<string | null>(null);
 
   function applySnapshotTerms(snapshot: SyllabusConfigSnapshot) {
     queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
@@ -64,6 +67,7 @@ export function useSyllabusOfferingGates({
 
   async function toggleEnroll(open: boolean) {
     if (!selectedTermId) return;
+    setPendingEnroll(true);
     try {
       const snapshot = await SyllabusConfigService.updateTermGates({
         termId: selectedTermId,
@@ -77,11 +81,14 @@ export function useSyllabusOfferingGates({
       );
     } catch (err) {
       toast.error(errorMessage(err, 'تغییر وضعیت انتخاب واحد ناموفق بود.'));
+    } finally {
+      setPendingEnroll(false);
     }
   }
 
   async function toggleTermOpen(open: boolean) {
     if (!selectedTermId) return;
+    setPendingTermOpen(true);
     try {
       const snapshot = await SyllabusConfigService.updateTermGates({
         termId: selectedTermId,
@@ -95,10 +102,13 @@ export function useSyllabusOfferingGates({
       );
     } catch (err) {
       toast.error(errorMessage(err, 'تغییر وضعیت برگزاری کلاس ناموفق بود.'));
+    } finally {
+      setPendingTermOpen(false);
     }
   }
 
   function requestToggleEnroll(open: boolean) {
+    if (!selectedTermId || pendingEnroll) return;
     if (open) {
       void toggleEnroll(true);
       return;
@@ -107,6 +117,7 @@ export function useSyllabusOfferingGates({
   }
 
   function requestToggleTermOpen(open: boolean) {
+    if (!selectedTermId || pendingTermOpen) return;
     if (open) {
       void toggleTermOpen(true);
       return;
@@ -115,16 +126,18 @@ export function useSyllabusOfferingGates({
   }
 
   async function confirmGateClose() {
-    if (gateCloseTarget === 'enroll') {
+    const target = gateCloseTarget;
+    setGateCloseTarget(null);
+    if (target === 'enroll') {
       await toggleEnroll(false);
-    } else if (gateCloseTarget === 'term') {
+    } else if (target === 'term') {
       await toggleTermOpen(false);
     }
-    setGateCloseTarget(null);
   }
 
   async function applyActivateCourse(course: CourseCatalogItem) {
     if (!selectedTermId || !selectedTerm) return;
+    setPendingCourseId(course.id);
     try {
       const snapshot = await SyllabusConfigService.activateOffering({
         termId: selectedTermId,
@@ -137,11 +150,14 @@ export function useSyllabusOfferingGates({
       );
     } catch (err) {
       toast.error(errorMessage(err, 'فعال‌سازی ارائه درس ناموفق بود.'));
+    } finally {
+      setPendingCourseId(null);
     }
   }
 
   async function applyDeactivateCourse(course: CourseCatalogItem) {
     if (!selectedTermId) return;
+    setPendingCourseId(course.id);
     try {
       const courseOfferingId = SyllabusConfigService.resolveOfferingId(
         selectedTermId,
@@ -157,10 +173,13 @@ export function useSyllabusOfferingGates({
       );
     } catch (err) {
       toast.error(errorMessage(err, 'غیرفعال‌سازی ارائه درس ناموفق بود.'));
+    } finally {
+      setPendingCourseId(null);
     }
   }
 
   function requestToggleCourseOffering(course: CourseCatalogItem) {
+    if (pendingCourseId) return;
     if (offeredCatalogIds.has(course.id)) {
       setDeactivateCourseTarget(course);
       return;
@@ -185,5 +204,8 @@ export function useSyllabusOfferingGates({
     deactivateCourseTarget,
     clearDeactivateCourse: () => setDeactivateCourseTarget(null),
     confirmDeactivateCourse,
+    pendingEnroll,
+    pendingTermOpen,
+    pendingCourseId,
   };
 }

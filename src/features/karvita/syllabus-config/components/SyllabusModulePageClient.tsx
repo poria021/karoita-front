@@ -53,6 +53,9 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
               selectTerm={page.selectTerm}
               toggleEnroll={page.toggleEnroll}
               toggleTermOpen={page.toggleTermOpen}
+              pendingEnroll={page.pendingEnroll}
+              pendingTermOpen={page.pendingTermOpen}
+              pendingCourseId={page.pendingCourseId}
               courses={page.courses}
               selectedCourse={page.selectedCourse}
               selectCourse={page.selectCourse}
