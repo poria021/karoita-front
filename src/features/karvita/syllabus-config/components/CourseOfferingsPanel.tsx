@@ -65,7 +65,6 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
       <div className="order-1 lg:order-2 lg:col-span-8">
         <TermGateCards
           selectedTerm={props.selectedTerm}
-          isLoading={props.isLoading}
           enrollPending={props.pendingEnroll}
           termOpenPending={props.pendingTermOpen}
           onToggleEnroll={(open) => void props.toggleEnroll(open)}

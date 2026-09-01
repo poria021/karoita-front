@@ -18,6 +18,7 @@ import {
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { Spinner } from '@/components/ui/spinner';
 import type { CourseCatalogItem } from '@/types/syllabus-config';
 
 interface CourseOfferingsTableProps {
@@ -69,6 +70,7 @@ export function CourseOfferingsTable({
             courses.map((course, index) => {
               const offered = offeredCatalogIds.has(course.id);
               const selected = selectedCourseId === course.id;
+              const pending = pendingCourseId === course.id;
               return (
                 <KvTableRow
                   key={course.id}
@@ -87,13 +89,23 @@ export function CourseOfferingsTable({
                       color={offered ? 'success' : 'error'}
                       appearance="ghost"
                       size="xs"
-                      loading={pendingCourseId === course.id}
+                      className="min-w-16"
                       disabled={Boolean(pendingCourseId)}
                       aria-pressed={offered}
+                      aria-busy={pending || undefined}
                       aria-label={`وضعیت ارائه ${course.title}: ${offered ? 'فعال' : 'غیرفعال'}`}
                       onClick={() => onToggleOffering(course)}
                     >
-                      {offered ? 'فعال' : 'غیرفعال'}
+                      {pending ? (
+                        <Spinner
+                          className="size-3.5 text-current"
+                          aria-hidden="true"
+                        />
+                      ) : offered ? (
+                        'فعال'
+                      ) : (
+                        'غیرفعال'
+                      )}
                     </KvButton>
                   </KvTableCell>
                 </KvTableRow>

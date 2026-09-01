@@ -29,7 +29,6 @@ const GATE_CONTENT_CLASS =
 
 type TermGateCardsProps = {
   selectedTerm: AcademicTerm | null;
-  isLoading?: boolean;
   enrollPending?: boolean;
   termOpenPending?: boolean;
   onToggleEnroll: (open: boolean) => void;
@@ -39,7 +38,6 @@ type TermGateCardsProps = {
 /** انتخاب واحد / برگزاری کلاس — خارج از فیلتر تب مخاطب. */
 export function TermGateCards({
   selectedTerm,
-  isLoading = false,
   enrollPending = false,
   termOpenPending = false,
   onToggleEnroll,
@@ -53,7 +51,6 @@ export function TermGateCards({
     Boolean(selectedTerm?.isTermOpen),
     selectedTerm?.termStart ?? ''
   );
-  const isDataLoading = isLoading && !selectedTerm;
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-kv-group sm:grid-cols-2">
@@ -61,38 +58,30 @@ export function TermGateCards({
         icon={faIcons.clipboardList}
         title="انتخاب واحد"
         subtitle={
-          isDataLoading ? (
-            <Spinner className="size-3.5 text-kv-brand" aria-hidden="true" />
-          ) : selectedTerm?.enrollStart ? (
-            `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
-          ) : (
-            'تاریخ شروع ثبت نشده'
-          )
+          selectedTerm?.enrollStart
+            ? `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
+            : 'تاریخ شروع ثبت نشده'
         }
         switchOn={Boolean(selectedTerm?.isEnrollOpen)}
         active={enrollActive}
         onToggle={onToggleEnroll}
-        disabled={!selectedTerm || isLoading || enrollPending}
-        isLoading={isDataLoading || enrollPending}
+        disabled={!selectedTerm || enrollPending}
+        isLoading={enrollPending}
       />
 
       <StatusGateCard
         icon={faIcons.chalkboardUser}
         title="برگزاری کلاس‌ها"
         subtitle={
-          isDataLoading ? (
-            <Spinner className="size-3.5 text-kv-brand" aria-hidden="true" />
-          ) : selectedTerm?.termStart ? (
-            `شروع: ${toPersianDigits(selectedTerm.termStart)}`
-          ) : (
-            'تاریخ شروع ثبت نشده'
-          )
+          selectedTerm?.termStart
+            ? `شروع: ${toPersianDigits(selectedTerm.termStart)}`
+            : 'تاریخ شروع ثبت نشده'
         }
         switchOn={Boolean(selectedTerm?.isTermOpen)}
         active={termActive}
         onToggle={onToggleTermOpen}
-        disabled={!selectedTerm || isLoading || termOpenPending}
-        isLoading={isDataLoading || termOpenPending}
+        disabled={!selectedTerm || termOpenPending}
+        isLoading={termOpenPending}
       />
     </div>
   );
