@@ -42,6 +42,13 @@ describe('shouldHonorMockSessionMarker', () => {
     expect(shouldHonorMockSessionMarker()).toBe(false);
   });
 
+  it('در production پرچم لوکال IS_DEV را نادیده می‌گیرد', () => {
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', '');
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_IS_DEV', 'true');
+    expect(shouldHonorMockSessionMarker()).toBe(false);
+  });
+
   it('در development با mode خالی (پیش‌فرض mock) می‌پذیرد', () => {
     vi.stubEnv('NEXT_PUBLIC_API_MODE', '');
     vi.stubEnv('NODE_ENV', 'development');
