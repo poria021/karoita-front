@@ -1,5 +1,6 @@
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { Spinner } from '@/components/ui/spinner';
 import type { OrganizationalCapacitiesSnapshot } from '@/types/organizational-capacities';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -9,19 +10,27 @@ function formatCount(value: number | 'unlimited'): string {
 }
 
 type OrganizationalCapacitiesSummaryProps = {
-  summary: OrganizationalCapacitiesSnapshot['summary'];
+  summary: OrganizationalCapacitiesSnapshot['summary'] | null;
+  isLoading: boolean;
 };
 
 export function OrganizationalCapacitiesSummary({
   summary,
+  isLoading,
 }: OrganizationalCapacitiesSummaryProps) {
   const items = [
-    { label: 'کل ظرفیت اعلام‌شده', value: formatCount(summary.total) },
+    {
+      label: 'کل ظرفیت اعلام‌شده',
+      value: summary ? formatCount(summary.total) : null,
+    },
     {
       label: 'پذیرش قطعی',
-      value: `${toPersianDigits(summary.confirmed)} نفر`,
+      value: summary ? `${toPersianDigits(summary.confirmed)} نفر` : null,
     },
-    { label: 'باقی‌مانده', value: formatCount(summary.remaining) },
+    {
+      label: 'باقی‌مانده',
+      value: summary ? formatCount(summary.remaining) : null,
+    },
   ] as const;
 
   return (
@@ -32,9 +41,19 @@ export function OrganizationalCapacitiesSummary({
             <KvTypography variant="caption" tone="muted" as="span">
               {item.label}
             </KvTypography>
-            <KvTypography variant="subtitle" as="p">
-              {item.value}
-            </KvTypography>
+            {isLoading && item.value == null ? (
+              <span
+                className="inline-flex h-7 items-center"
+                role="status"
+                aria-label={`در حال دریافت ${item.label}`}
+              >
+                <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
+              </span>
+            ) : (
+              <KvTypography variant="subtitle" as="p">
+                {item.value ?? '—'}
+              </KvTypography>
+            )}
           </KvCardContent>
         </KvCard>
       ))}

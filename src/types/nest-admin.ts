@@ -274,6 +274,34 @@ export type NestPatchLessonStatusDto = {
 };
 
 /**
+ * ردیف GET `/admin/professor-capacities`.
+ * `days`: ۰=شنبه … ۵=پنجشنبه.
+ */
+export type NestProfessorCapacity = {
+  id?: string;
+  _id?: string;
+  professorId: string;
+  lessonId: string;
+  semesterId: string;
+  days?: number[];
+  capacity?: number;
+};
+
+/** بدنهٔ POST/PUT `/admin/professor-capacities` — آرایه. */
+export type NestProfessorCapacityWriteDto = {
+  professorId: string;
+  lessonId: string;
+  semesterId: string;
+  days: number[];
+  capacity: number;
+};
+
+export type NestProfessorCapacitiesQuery = {
+  lessonId?: string;
+  semesterId?: string;
+};
+
+/**
  * آیتم PATCH `/admin/lessons/status` (آرایه).
  * `capacity` نباید از آخرین `generalProfessorCapacity` بیشتر باشد (اگر تنظیمات خالی باشد سقف لایو ۱۵ است).
  * `days`: ۰=شنبه … ۵=پنجشنبه؛ یکتا.

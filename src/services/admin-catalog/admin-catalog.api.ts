@@ -25,6 +25,9 @@ import type {
   NestSchool,
   NestSchoolListQuery,
   NestPatchLessonStatusDto,
+  NestProfessorCapacity,
+  NestProfessorCapacityWriteDto,
+  NestProfessorCapacitiesQuery,
   NestPutLessonWeeksDto,
   NestSemesterAllStructure,
   NestSemesterWithLessons,
@@ -79,6 +82,7 @@ export const NEST_ADMIN_PATHS = {
   weekById: (id: string) => `admin/weeks/${id}`,
   weeksByLesson: (lessonId: string) => `admin/weeks/lesson/${lessonId}`,
   academicSettings: 'admin/settings',
+  professorCapacities: 'admin/professor-capacities',
 } as const;
 
 /** `filters` باید JSON آبجکت-رشته باشد (`{"title":"..."}`) نه رشتهٔ خام — provinces و cities یکی‌اند. */
@@ -395,6 +399,39 @@ export const adminCatalogApi = {
   /** GET /admin/settings — آخرین ردیف درج‌شده `{ id, systemPassingScore, generalProfessorCapacity }`. */
   getAcademicSettings(token?: string) {
     return apiClient.getJson<unknown>(NEST_ADMIN_PATHS.academicSettings, token);
+  },
+
+  /** GET /admin/professor-capacities?lessonId=&semesterId= — آرایه؛ خالی یعنی هنوز ردیفی نیست. */
+  listProfessorCapacities(query: NestProfessorCapacitiesQuery = {}, token?: string) {
+    return apiClient.getJson<NestProfessorCapacity[]>(
+      NEST_ADMIN_PATHS.professorCapacities,
+      token,
+      { searchParams: toSearchParams(query) }
+    );
+  },
+
+  /** POST /admin/professor-capacities — آرایه؛ لایو ۲۰۴. */
+  createProfessorCapacities(
+    body: NestProfessorCapacityWriteDto[],
+    token?: string
+  ) {
+    return apiClient.postMaybeJson<null>(
+      NEST_ADMIN_PATHS.professorCapacities,
+      body,
+      token
+    );
+  },
+
+  /** PUT /admin/professor-capacities — تطبیق با professorId + lessonId؛ لایو ۲۰۴. */
+  updateProfessorCapacities(
+    body: NestProfessorCapacityWriteDto[],
+    token?: string
+  ) {
+    return apiClient.putMaybeJson<null>(
+      NEST_ADMIN_PATHS.professorCapacities,
+      body,
+      token
+    );
   },
 };
 

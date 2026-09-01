@@ -83,16 +83,22 @@ export function useOrganizationalCapacitiesPage() {
     setChrome<CapacitiesChrome>(CHROME_ID, { kind, termId });
   }, [kind, setChrome, termId]);
 
-  const {
-    data: termsData,
-    error: termsError,
-    isPending: termsPending,
-    refetch: refetchTerms,
-  } = useQuery({
-    queryKey: capacitiesTermsKey(kind),
-    queryFn: () => OrganizationalCapacitiesService.listTerms(kind),
+  const internshipTermsQuery = useQuery({
+    queryKey: capacitiesTermsKey('internship'),
+    queryFn: () => OrganizationalCapacitiesService.listTerms('internship'),
     staleTime: QUERY_STALE_MS.module,
   });
+  const apprenticeshipTermsQuery = useQuery({
+    queryKey: capacitiesTermsKey('apprenticeship'),
+    queryFn: () => OrganizationalCapacitiesService.listTerms('apprenticeship'),
+    staleTime: QUERY_STALE_MS.module,
+  });
+
+  const termsQuery =
+    kind === 'internship' ? internshipTermsQuery : apprenticeshipTermsQuery;
+  const termsData = termsQuery.data;
+  const termsError = termsQuery.error;
+  const termsPending = termsQuery.isPending;
 
   const resolvedTermId = (() => {
     const terms = termsData ?? [];
@@ -113,7 +119,7 @@ export function useOrganizationalCapacitiesPage() {
         kind,
         termId: resolvedTermId,
       }),
-    enabled: Boolean(resolvedTermId),
+    enabled: !termsPending,
     staleTime: QUERY_STALE_MS.module,
   });
 
@@ -130,10 +136,10 @@ export function useOrganizationalCapacitiesPage() {
   }, [snapshotData, resolvedTermId, kind]);
 
   const isLoading =
-    termsPending ||
-    (Boolean(resolvedTermId) &&
-      snapshot == null &&
-      (snapshotPending || snapshotFetching));
+    snapshot == null &&
+    !termsError &&
+    !snapshotError &&
+    (termsPending || snapshotPending || snapshotFetching);
 
   const error = termsError
     ? unknownErrorMessage(termsError, 'بارگذاری ظرفیت‌ها ناموفق بود.')
@@ -145,9 +151,14 @@ export function useOrganizationalCapacitiesPage() {
     baselineRef.current = null;
     baselineKeyRef.current = '';
     setIsDirty(false);
-    void refetchTerms();
-    if (resolvedTermId) void refetchSnapshot();
-  }, [refetchSnapshot, refetchTerms, resolvedTermId]);
+    void internshipTermsQuery.refetch();
+    void apprenticeshipTermsQuery.refetch();
+    void refetchSnapshot();
+  }, [
+    apprenticeshipTermsQuery.refetch,
+    internshipTermsQuery.refetch,
+    refetchSnapshot,
+  ]);
 
   const changeKind = useCallback(
     (next: OrganizationalCapacityKind) => {

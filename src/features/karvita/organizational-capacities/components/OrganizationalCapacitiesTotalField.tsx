@@ -2,7 +2,6 @@
 
 import { KvInput } from '@/components/shared/fields/KvInput';
 import { cn } from '@/lib/utils';
-import { toPersianDigits } from '@/utils/persianDigits';
 
 /** ظرفیت پذیرش قابل‌ویرایش — همان سطح/حاشیهٔ `KvInput`. */
 export const CAPACITY_METRIC_BOX = [
@@ -37,13 +36,15 @@ export function OrganizationalCapacitiesTotalField({
 }: OrganizationalCapacitiesTotalFieldProps) {
   return (
     <KvInput
-      type="text"
+      type="number"
       inputMode="numeric"
+      min={0}
+      max={maxCapacity}
+      step={1}
       dir="ltr"
       disabled={locked}
       aria-label={ariaLabel}
-      value={toPersianDigits(value ?? 0)}
-      maxLength={String(maxCapacity).length + 1}
+      value={value ?? 0}
       onChange={(event) => onChange(event.target.value)}
       className={cn(
         CAPACITY_METRIC_BOX,

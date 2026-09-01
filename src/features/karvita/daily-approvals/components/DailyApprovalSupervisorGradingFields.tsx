@@ -159,10 +159,10 @@ export function DailyApprovalSupervisorGradingFields({
         <div className="sm:w-32">
           <KvTextField
             label={false}
-            type="text"
+            type="number"
             inputMode="decimal"
             emphasis="metric"
-            value={toPersianDigits(scoreInput)}
+            value={scoreInput}
             placeholder="نمره"
             maxLength={5}
             onChange={(event) => onScoreInputChange(event.target.value)}

@@ -2,14 +2,55 @@ import * as React from 'react';
 
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
 export type KvInputProps = React.ComponentProps<'input'>;
 
-export function KvInput({ className, ref, ...props }: KvInputProps) {
+function displayNumericValue(
+  value: React.ComponentProps<'input'>['value'] | undefined
+) {
+  if (value === undefined || value === null) return value;
+  return toPersianDigits(persianToEnglishDigits(String(value)));
+}
+
+/**
+ * فیلد مشترک. `type="number"` روی DOM `text` + `inputMode=numeric` است
+ * تا ارقام فارسی دیده شوند؛ `onChange` همیشه English (`0-9`) می‌دهد.
+ */
+export function KvInput({
+  className,
+  ref,
+  type,
+  value,
+  defaultValue,
+  onChange,
+  inputMode,
+  ...props
+}: KvInputProps) {
+  const isNumberField = type === 'number';
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (isNumberField) {
+      event.target.value = persianToEnglishDigits(event.target.value);
+    }
+    onChange?.(event);
+  };
+
   return (
     <Input
       ref={ref}
       data-slot="kv-input"
+      {...props}
+      type={isNumberField ? 'text' : type}
+      inputMode={inputMode ?? (isNumberField ? 'numeric' : undefined)}
+      value={isNumberField ? displayNumericValue(value) : value}
+      defaultValue={
+        isNumberField ? displayNumericValue(defaultValue) : defaultValue
+      }
+      onChange={handleChange}
       className={cn(
         'h-11 w-full min-w-0 rounded-kv-control border border-kv-border bg-kv-field',
         'px-3.5 font-sans text-xs font-bold text-kv-text-secondary shadow-none md:text-xs',

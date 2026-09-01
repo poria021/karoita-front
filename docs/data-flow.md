@@ -66,7 +66,7 @@ Access token در حافظهٔ ماژول است (نه `localStorage`) چون XS
 | `AdminUserCreationService` | نسبی | ستادی: `POST /admin/admins` (بدون رمز). سازمانی: کاربر باید از قبل وجود داشته باشد (`userId`) |
 | `DailyApprovalsService` | قطع | صفحه و mock مانده؛ real تا رسیدن route نست fail-closed است |
 | `InternshipEnrollmentService` | قطع | همین‌طور — صفحه حذف نشود |
-| `OrganizationalCapacitiesService` | قطع | همین‌طور — صفحه حذف نشود |
+| `OrganizationalCapacitiesService` | وصل | استاد راهنما: `GET semesters_all` + `GET/POST/PUT professor-capacities` |
 | `LandingCmsService` | قطع | ادمین CMS fail-closed؛ لندینگ عمومی در real کروم خالی می‌دهد تا Nest برسد |
 | `AdminCatalogService` | مرده | استفاده نشود؛ HTTP کاتالوگ از `admin-catalog.api.ts` است |
 

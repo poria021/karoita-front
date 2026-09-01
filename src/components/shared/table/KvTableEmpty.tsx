@@ -13,12 +13,15 @@ export type KvTableEmptyProps = {
   colSpan: number;
   children: ReactNode;
   className?: string;
+  /** ارتفاع پرکنندهٔ busy/empty؛ پیش‌فرض ویوپورت جداول ادمین. */
+  fillClassName?: string;
 };
 
 export function KvTableEmpty({
   colSpan,
   children,
   className,
+  fillClassName,
 }: KvTableEmptyProps) {
   return (
     <KvTableRow className="in-[data-slot=kv-table-body]:hover:bg-transparent">
@@ -30,7 +33,7 @@ export function KvTableEmpty({
         <div
           className={cn(
             'flex w-full flex-col items-center justify-center text-center',
-            KV_TABLE_EMPTY_FILL_HEIGHT
+            fillClassName ?? KV_TABLE_EMPTY_FILL_HEIGHT
           )}
         >
           {children}

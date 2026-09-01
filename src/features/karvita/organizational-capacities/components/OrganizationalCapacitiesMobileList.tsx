@@ -3,6 +3,7 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import type {
   OrganizationalCapacityCourse,
   OrganizationalCapacityWeekday,
@@ -17,6 +18,7 @@ type OrganizationalCapacitiesMobileListProps = {
   courses: OrganizationalCapacityCourse[];
   maxCapacity: number;
   locked: boolean;
+  isLoading: boolean;
   expandedCourseId: string | null;
   onExpandedChange: (courseId: string | null) => void;
   onTotalChange: (courseId: string, value: string) => void;
@@ -27,11 +29,22 @@ export function OrganizationalCapacitiesMobileList({
   courses,
   maxCapacity,
   locked,
+  isLoading,
   expandedCourseId,
   onExpandedChange,
   onTotalChange,
   onToggleDay,
 }: OrganizationalCapacitiesMobileListProps) {
+  if (isLoading) {
+    return (
+      <div className="lg:hidden">
+        <KvCard>
+          <KvBusySurface className="h-[16rem] min-h-[16rem] max-h-[16rem] rounded-kv-control" />
+        </KvCard>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-kv-group lg:hidden">
       {courses.map((course) => {
