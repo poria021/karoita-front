@@ -13,9 +13,8 @@ import { getTodayJalaliFormatted } from '@/utils/formatJalaliDate';
 import { faIcons } from '@/utils/iconMap';
 
 /**
- * Staff-admin header — brand lives on AdminSidebar, so this bar only
- * carries actions. Width is the remaining column (parent applies rail
- * clearance); it meets the rail and does not run under it.
+ * هدر ستادی — برند روی `AdminSidebar` است؛ این نوار فقط اکشن دارد.
+ * عرض ستون باقی‌مانده است (والد `rail` را خالی می‌کند) و زیر ریل نمی‌رود.
  */
 export function AdminShellHeader() {
   const isMobileSidebarOpen = useUIStore((state) => state.isMobileSidebarOpen);

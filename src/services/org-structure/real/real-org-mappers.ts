@@ -17,17 +17,11 @@ import type { OrgStructureListItem } from '@/types/org-structure';
 import { isLinkedUserDeleteBlocked } from '@/services/org-structure/org-structure-delete-rules';
 
 /**
- * Real-mode (Nest) mappers — pure functions, no I/O. Split out of
- * org-structure.service.ts so the real-mode transformation logic lives
- * next to its own tests (real-org-mappers.test.ts), the same way mock
- * mode's logic lives in its own files under this folder.
+ * Mapperهای حالت real (Nest) — خالص، بدون I/O.
+ * FK ممکن است رشته یا سند populated باشد.
  */
 
-/**
- * Pull a usable id out of a Nest FK that may be a string, a populated
- * `{ id, title }` / `{ _id, name }` document, or an array of those.
- * Empty / whitespace-only strings are treated as absent.
- */
+/** id قابل‌استفاده از FK رشته، سند `{ id, title }` / `{ _id, name }`، یا آرایه. */
 export function nestRelationId(value: unknown): string {
   if (typeof value === 'string') return value.trim();
   if (typeof value === 'number' && Number.isFinite(value)) return String(value);
@@ -44,11 +38,7 @@ export function nestRelationId(value: unknown): string {
   return '';
 }
 
-/**
- * Pull a display title out of a populated Nest relation. Accepts `title`
- * or `name`, nested arrays (first element), and treats blank strings as
- * absent so the caller can fall through to the next candidate.
- */
+/** عنوان نمایشی از رابطهٔ populated (`title` یا `name`)؛ رشتهٔ خالی یعنی غایب. */
 export function nestRelationTitle(value: unknown): string | undefined {
   if (Array.isArray(value)) return nestRelationTitle(value[0]);
   if (!value || typeof value !== 'object') return undefined;
@@ -59,7 +49,7 @@ export function nestRelationTitle(value: unknown): string | undefined {
   return trimmed || undefined;
 }
 
-/** First non-empty title among populated-relation candidates. */
+/** اولین عنوان غیرخالی بین کاندیدهای populated. */
 export function firstRelationTitle(
   ...candidates: unknown[]
 ): string | undefined {
@@ -71,11 +61,8 @@ export function firstRelationTitle(
 }
 
 /**
- * GET /admin/schools?educationId= actually filters. Some sibling query
- * params are ignored and return the full list for every catalog value.
- * Only treat the filter as ignored when TWO OR MORE catalog values each
- * return the entire school list — a single district owning every school
- * (or a 1-school catalog) is a real assignment, not an ignored param.
+ * GET /admin/schools?educationId= واقعاً فیلتر می‌کند؛ بعضی queryهای خواهر نادیده گرفته می‌شوند.
+ * فقط وقتی دو مقدار کاتالوگ یا بیشتر کل لیست را برگردانند فیلتر را نادیده بگیر.
  */
 export function nestRelationFiltersIgnored(
   hitCounts: number[],
@@ -97,14 +84,11 @@ export function nestUsersCount(row: {
   return undefined;
 }
 
-/** Nest Province → OrgProvince */
 export function toOrgProvince(p: NestProvinceLite): OrgProvince {
   return { id: p.id, name: p.title };
 }
 
-/** Nest City → OrgCity. Live GET responses nest `province: { id, ... }`
- * (sometimes `{}`) instead of the flat `province_id` the Swagger schema
- * doc and create/update DTOs use — try both. */
+/** GET لایو `province` را آبجکت می‌گذارد (گاهی `{}`) نه `province_id` تختِ DTO نوشتن. */
 export function toOrgCity(c: {
   id: string;
   title: string;
@@ -118,12 +102,7 @@ export function toOrgCity(c: {
   };
 }
 
-/** Nest University → OrgFaculty ('university' is the Nest entity behind
- * the دانشکده/پردیس tab). Confirmed live quirk: GET rows nest the linked
- * province under `role`, not `province` (see NestUniversity) — `role` is
- * checked last, only as a fallback, so a future backend fix to the
- * correctly-named `province` field keeps working without a code change.
- * City may be a string FK or a populated `{ id, title }` on `cityId`. */
+/** university Nest همان تب پردیس است؛ استان لایو زیر `role` است نه `province`. */
 export function toOrgFaculty(u: NestUniversity): OrgFaculty {
   return {
     id: u.id,
@@ -141,10 +120,7 @@ export function toOrgFaculty(u: NestUniversity): OrgFaculty {
   };
 }
 
-/** Nest EducationalDistrict → OrgDistrict. Confirmed live: rows nest
- * `province`/`city` as objects, same as toOrgCity — the flat
- * `provinceId`/`cityId` (create/update DTO shape) and snake_case variants
- * are kept as defensive fallbacks. */
+/** GET `province`/`city` آبجکت‌اند؛ id تخت و snake_case فقط fallback است. */
 export function toOrgDistrict(d: NestEducationalDistrict): OrgDistrict {
   return {
     id: d.id,
@@ -162,12 +138,7 @@ export function toOrgDistrict(d: NestEducationalDistrict): OrgDistrict {
   };
 }
 
-/**
- * Nest School → OrgSchool. Same defensive shape handling as toOrgCity.
- * Confirmed live quirk: GET rows report gender as `genderType`, not
- * `gender` (see NestSchool) — `gender` is checked second only as a
- * defensive fallback.
- */
+/** جنسیت لایو `genderType` است نه `gender`. */
 export function toOrgSchool(s: NestSchool): OrgSchool {
   const rawGender = (s.genderType ?? s.gender)?.toLowerCase();
   const gender = rawGender === 'girl' || rawGender === 'female' ? 'female' : 'male';
@@ -195,14 +166,7 @@ export function toOrgSchool(s: NestSchool): OrgSchool {
   };
 }
 
-/**
- * Nest Degree (GET /admin/degreeee `{ data }`) → majors-tab list row.
- * `roleName` must prefer the linked role's Persian `title_fa` — this app
- * is Persian-only — the same preference resolveRoleLabel() already
- * applies for the role <select>. Using `d.role?.title` directly (as
- * before) rendered the English role key (e.g. "trainee") in the table
- * instead of the Persian label (e.g. "کارآموز").
- */
+/** GET /admin/degreeee → ردیف رشته؛ `roleName` باید `title_fa` باشد نه کلید انگلیسی. */
 export function toOrgMajorListItem(d: NestDegree): OrgStructureListItem {
   const usersCount = nestUsersCount(d);
   return {
@@ -216,7 +180,7 @@ export function toOrgMajorListItem(d: NestDegree): OrgStructureListItem {
   };
 }
 
-/** Nest Degree (GET /admin/roles/{roleId}/degrees) → majors-tab list row, already scoped to `roleId`. */
+/** GET /admin/roles/{roleId}/degrees → ردیف رشتهٔ از قبل scoped. */
 export function toOrgMajorListItemForRole(
   d: NestDegreeByRole,
   roleId: string
@@ -232,29 +196,16 @@ export function toOrgMajorListItemForRole(
   };
 }
 
-/**
- * GET /admin/roles returns `{ id, title, title_fa }` — `title_fa` is the
- * Persian display label and is strongly preferred since this UI is Persian.
- * `title` (the English role key, e.g. `"trainee"`) is a last-resort fallback
- * only when `title_fa` is genuinely absent or empty from the API response.
- *
- * If the table shows English role names despite this, the root cause is that
- * the Nest API is not returning `title_fa` on GET /admin/degreeee rows —
- * file a backend task to populate `title_fa` on the role join in that
- * endpoint. The frontend correctly prefers `title_fa` whenever it exists.
- */
+/** `title_fa` برچسب فارسی است؛ `title` انگلیسی فقط اگر `title_fa` نباشد — join درجه گاهی `title_fa` ندارد. */
 export function resolveRoleLabel(role: {
   id?: string;
   title?: string;
   title_fa?: string;
 }): string {
-  // اولویت قطعی با title_fa (فارسی) — اگر خالی بود، به title (انگلیسی) فالبک کن.
   const persianLabel = role.title_fa?.trim();
   if (persianLabel) return persianLabel;
 
-  // fallback: API روی GET /admin/degreeee برخی وقت‌ها title_fa رو برنمی‌گردونه.
-  // در این صورت title (انگلیسی) نشون داده می‌شه — راه‌حل پایدار: بکنند
-  // backend title_fa رو روی degree-role join در GET /admin/degreeee پر کند.
+  // GET /admin/degreeee گاهی `title_fa` روی join نمی‌دهد.
   const englishLabel = role.title?.trim();
   if (englishLabel) return englishLabel;
 

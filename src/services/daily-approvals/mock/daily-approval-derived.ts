@@ -5,8 +5,8 @@ import type {
 } from '@/types/daily-approvals';
 
 /**
- * Pure progressive-grade derivation — shared by mock store (and Nest mappers later).
- * Threshold is injected so callers own syllabus/config reads.
+ * مشتق نمرهٔ پیش‌رونده — مشترک store mock (و بعداً mapper Nest).
+ * آستانه را caller تزریق می‌کند تا خواندن سرفصل اینجا نباشد.
  */
 export function computeDailyApprovalProgressiveGrade(
   weeks: DailyApprovalWeek[],

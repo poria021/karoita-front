@@ -23,9 +23,8 @@ export const facultyFormSchema = z.object({
 });
 
 /**
- * cityId is optional on district / school forms — same rule and
- * the same «(اختیاری)» label. Faculty (پردیس) has no city field.
- * Province stays required.
+ * `cityId` در فرم منطقه / مدرسه اختیاری است — همان قانون و برچسب «(اختیاری)».
+ * پردیس فیلد شهر ندارد. استان اجباری می‌ماند.
  */
 export const districtFormSchema = z.object({
   name: nameField,
@@ -44,9 +43,8 @@ export const schoolFormSchema = z.object({
 });
 
 /**
- * Mock mode: pick from the fixed `audience` enum (no Nest `role` concept
- * in the local simulator). Real mode: Nest's degree DTO requires a
- * `roleId` from GET /admin/roles — there is no "audience" field there.
+ * mock: از enum ثابت `audience` (شبیه‌ساز نقش Nest ندارد).
+ * real: DTO رشتهٔ Nest به `roleId` از GET `/admin/roles` نیاز دارد — فیلد `audience` آنجا نیست.
  */
 export const majorFormSchema = IS_MOCK_MODE
   ? z.object({
@@ -71,8 +69,7 @@ export type SchoolFormValues = z.infer<typeof schoolFormSchema>;
 export type MajorFormValues = z.infer<typeof majorFormSchema>;
 
 /**
- * Unified form values type for org entity modal.
- * Union of all entity-specific form types.
+ * مقادیر فرم مودال موجودیت ساختار — اتحاد همهٔ نوع‌های فرم.
  */
 export type OrgEntityFormValues = {
   name: string;

@@ -4,14 +4,13 @@ import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 export type KvTableBusyProps = {
   colSpan: number;
   className?: string;
-  /** Kept for API compatibility; ignored (no row bones). */
+  /** برای سازگاری API مانده؛ نادیده گرفته می‌شود (بدون استخوان ردیف). */
   rows?: number;
 };
 
 /**
- * First-load busy row — table header stays; body shows a quiet spinner
- * and caption (no skeleton bones). Soft refresh with existing rows stays
- * on `rows` phase and never hits this.
+ * ردیف busy بار اول — هدر جدول می‌ماند؛ بدنه اسپینر آرام و توضیح است (بدون اسکلتون).
+ * رفرش نرم با ردیف موجود روی فاز `rows` می‌ماند و به اینجا نمی‌رسد.
  */
 export function KvTableBusy({ colSpan, className }: KvTableBusyProps) {
   return (

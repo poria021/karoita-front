@@ -1,8 +1,8 @@
 import type { DailyApprovalTrainee } from '@/types/daily-approvals';
 
 /**
- * Week numbers that already appear as extended on any active trainee
- * in the current list snapshot (for bulk-extend modal pre-selection).
+ * شماره هفته‌هایی که در اسنپ‌شات فعلی برای کارآموز فعال تمدید شده‌اند
+ * (پیش‌انتخاب مودال تمدید گروهی).
  */
 export function collectExtendedWeekNumbers(
   trainees: readonly DailyApprovalTrainee[]

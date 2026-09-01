@@ -1,8 +1,6 @@
 import { notFound } from 'next/navigation';
 
-/**
- * Unmatched `/auth/*` URLs → auth `not-found`.
- */
+/** URL بی‌تطبیق `/auth/*` → `not-found` احراز هویت. */
 export default function AuthUnmatchedCatchAllPage() {
   notFound();
 }

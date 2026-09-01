@@ -1,11 +1,7 @@
 /**
- * Real Nest calls for header notifications.
- *
- * Relative to NEXT_PUBLIC_API_URL (`.../api`), same as users/auth —
- * never prefix `api/` again or the rewrite becomes `/api/api/v1/...`.
- *
- * GET   /api/v1/notifications?page=&limit=
- * PATCH /api/v1/notifications/{id}/read  (no request body in Swagger)
+ * HTTP اعلان هدر. مسیر نسبت به `NEXT_PUBLIC_API_URL` (`.../api`) است —
+ * دوباره `api/` نگذار وگرنه rewrite می‌شود `/api/api/v1/...`.
+ * PATCH خوانده‌شدن در Swagger بدنه ندارد.
  */
 import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
@@ -33,7 +29,6 @@ export type NotificationsPage = {
 };
 
 export const notificationsApi = {
-  /** GET /api/v1/notifications */
   async list(query: ListNotificationsQuery = {}): Promise<NotificationsPage> {
     const raw = await apiClient.getJson<unknown>(
       NEST_NOTIFICATIONS_PATHS.list,
@@ -53,8 +48,8 @@ export const notificationsApi = {
   },
 
   /**
-   * PATCH /api/v1/notifications/{id}/read
-   * Swagger 200 returns the row; some copies answer 204 — then `null`.
+   * `PATCH /api/v1/notifications/{id}/read`.
+   * Swagger ردیف ۲۰۰ می‌دهد؛ بعضی کپی‌ها ۲۰۴ — آن‌وقت `null`.
    */
   async markAsRead(id: string): Promise<AppNotification | null> {
     const raw = await apiClient.patchMaybeJson<NestNotification>(

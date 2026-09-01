@@ -19,12 +19,8 @@ import type {
 import type { OrgStructureEntityKind } from '@/types/org-structure';
 
 /**
- * PUT /org-structure/provinces — real: POST/PATCH /api/admin/provinces.
- *
- * provinces از paginated endpoint می‌خونن (GET /admin/provinces با envelope
- * `{ data, hasNextPage }`) — react-query list cache توسط `invalidateAndReload`
- * در useOrgStructurePage باطل می‌شه. اینجا فقط typeahead cache و bareList را
- * flush می‌کنیم تا form-dropdown استان هم بعد از ایجاد/ویرایش به‌روز بشه.
+ * POST/PATCH /admin/provinces.
+ * کش typeahead و bareList جدا از react-query است — بدون flush، dropdown فرم‌های دیگر کهنه می‌ماند.
  */
 export async function upsertRealProvince(
   input: UpsertProvinceInput,
@@ -35,19 +31,12 @@ export async function upsertRealProvince(
   } else {
     await adminCatalogApi.createProvince({ title: input.name });
   }
-  // typeahead cache استان را باطل کن (listRealProvinces → fetchAllNestProvinces).
   invalidateProvinceNameCache();
-  // hard-flush تا form-dropdown استان در فرم‌های دیگر (شهر/منطقه/مدرسه) هم
-  // بعد از ایجاد استان جدید، لیست تازه بگیره — این cache جدا از react-query است.
   flushBareListCache('provinces');
 }
 
 /**
- * PUT /org-structure/cities — real: POST/PATCH /api/admin/cities.
- *
- * cities هم paginated هستن. react-query list cache توسط `invalidateAndReload`
- * باطل می‌شه. `province_id` حتماً باید در edit هم ارسال بشه وگرنه Nest استان
- * قبلی شهر رو حفظ می‌کنه بدون خطا.
+ * POST/PATCH /admin/cities؛ بدون `province_id` در ویرایش Nest استان قبلی را بی‌خطا نگه می‌دارد.
  */
 export async function upsertRealCity(
   input: UpsertCityInput,
@@ -64,25 +53,11 @@ export async function upsertRealCity(
       province_id: input.provinceId,
     });
   }
-  // cities tab از paginated endpoint می‌خونه — react-query cache توسط
-  // invalidateAndReload باطل می‌شه. bareList را flush کن تا dropdown شهر
-  // در فرم‌های districts/schools بعد از ایجاد شهر جدید به‌روز بشه.
+  // بدون flush، dropdown شهر در فرم منطقه/مدرسه کهنه می‌ماند.
   flushBareListCache('cities');
 }
 
-/**
- * PUT /org-structure/faculties — real: POST/PUT /api/admin/universites.
- * The Nest entity is called "university" but is surfaced in this UI as
- * the دانشکده/پردیس (faculty) tab.
- *
- * faculties از bareListCache استفاده می‌کنن — hard-flush لازمه تا مطمئن بشیم
- * reload() که بلافاصله بعد از این صدا می‌شه از Nest داده تازه می‌گیره،
- * نه از entry ای که staleSince=0 شده ولی هنوز در Map هست.
- *
- * فرم پردیس شهر نشان نمی‌دهد، ولی POST/PUT /admin/universites بدون
- * cityId زنده ۴۲۲ می‌دهد. اگر فرم cityId نداده باشد، اولین شهر همان
- * استان را می‌فرستیم تا قرارداد Nest برقرار بماند.
- */
+/** بدون `cityId`، POST/PUT /admin/universites لایو ۴۲۲ می‌دهد؛ فرم پردیس شهر ندارد پس اولین شهر استان را می‌فرستیم. */
 async function resolveUniversityCityId(
   input: UpsertFacultyInput
 ): Promise<string> {
@@ -115,16 +90,12 @@ export async function upsertRealFaculty(
       cityId,
     });
   }
-  // Hard-flush برای تضمین freshness — invalidate نرم (staleSince=0) کافی نیست
-  // چون reload() ممکنه قبل از اینکه fetch جدید بیاد از entry قدیمی بخونه.
+  // invalidate نرم (`staleSince=0`) کافی نیست؛ reload ممکن است entry کهنه را بخواند.
   flushBareListCache('faculties');
 }
 
 /**
- * PUT /org-structure/districts — real: POST/PUT /api/admin/educations.
- *
- * cityId اختیاری است — فقط وقتی مقدار دارد ارسال می‌شه تا API خطای ۴۲۲
- * برای empty string برنگردونه.
+ * POST/PUT /admin/educations؛ `cityId` خالی را نفرست وگرنه ۴۲۲.
  */
 export async function upsertRealDistrict(
   input: UpsertDistrictInput,
@@ -144,22 +115,18 @@ export async function upsertRealDistrict(
       ...(cityId ? { cityId } : {}),
     });
   }
-  // Hard-flush برای تضمین freshness + typeahead منطقه آموزشی را باطل کن.
   flushBareListCache('districts');
   invalidateDistrictNameCache();
 }
 
 /**
- * PUT /org-structure/schools — real: POST/PUT /api/admin/schools
- *
- * educationId اختیاری است — فقط وقتی منطقه انتخاب شده ارسال می‌شود تا
- * API برای رشته خالی ۴۲۲ ندهد. GET همچنان `education: {}` برمی‌گرداند.
+ * POST/PUT /admin/schools؛ `educationId` خالی را نفرست؛ GET همچنان `education: {}` است.
  */
 export async function upsertRealSchool(
   input: UpsertSchoolInput,
   editId?: string
 ): Promise<void> {
-  // Nest gender enum: 'Boy' | 'Girl'
+  // enum جنسیت Nest: 'Boy' | 'Girl'
   const gender = input.gender === 'female' ? 'Girl' : 'Boy';
   const cityId = input.cityId || undefined;
   const educationId = input.districtId || undefined;
@@ -179,11 +146,7 @@ export async function upsertRealSchool(
 }
 
 /**
- * PUT /org-structure/majors — real: POST /api/admin/degree and
- * PUT /api/admin/degree/{id} with `{ roleId, title }`.
- *
- * Nest's degree DTO requires `roleId` — the mock-only `audience` concept
- * has no equivalent on the server side. `roleId` must always be set.
+ * POST/PUT /admin/degree با `{ roleId, title }`؛ `audience` ماک روی Nest نیست.
  */
 export async function upsertRealMajor(
   input: UpsertMajorInput,
@@ -203,11 +166,10 @@ export async function upsertRealMajor(
       roleId: input.roleId,
     });
   }
-  // Hard-flush رشته‌های تحصیلی تا جدول بعد از ذخیره داده تازه از Nest بگیره.
   flushBareListCache('majors');
 }
 
-/** DELETE /org-structure/:kind/:id — real: DELETE /api/admin/{kind}/{id} */
+/** DELETE کاتالوگ Nest به‌ازای kind — مدرسه بدون `/` قبل از id. */
 export async function deleteRealEntity(
   kind: OrgStructureEntityKind,
   id: string

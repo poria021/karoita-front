@@ -14,8 +14,8 @@ import { useDailyApprovalsList } from './useDailyApprovalsList';
 import { useDailyApprovalsTerms } from './useDailyApprovalsTerms';
 
 /**
- * Page composer — chrome / terms / list / actions stay in focused hooks.
- * Public return shape stays flat for existing workspace consumers.
+ * ترکیب صفحه — chrome / ترم / لیست / اکشن در هوک‌های جدا می‌مانند.
+ * شکل خروجی تخت می‌ماند تا مصرف‌کننده‌های workspace نشکنند.
  */
 export function useDailyApprovalsPage() {
   const chrome = useDailyApprovalsChrome();

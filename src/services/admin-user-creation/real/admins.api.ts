@@ -1,9 +1,6 @@
 /**
- * Real Nest calls for staff admin accounts.
- *
- * Relative to NEXT_PUBLIC_API_URL (`.../api`).
- * GET/POST /api/v1/admin/admins
- * GET/PUT  /api/v1/admin/admins/{id}
+ * HTTP حساب ادمین Nest — GET/POST `/api/v1/admin/admins` و GET/PUT `/{id}`.
+ * مسیر نسبت به `NEXT_PUBLIC_API_URL` (`.../api`).
  */
 import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
@@ -28,7 +25,7 @@ export const NEST_ADMINS_PATHS = {
 } as const;
 
 export const adminsApi = {
-  /** POST /api/v1/admin/admins — 201 */
+  /** POST /api/v1/admin/admins — ۲۰۱. */
   create(body: NestCreateAdminDto, token?: string) {
     return apiClient.postJson<NestAdminDto>(NEST_ADMINS_PATHS.list, body, token);
   },
@@ -59,10 +56,7 @@ export const adminsApi = {
     return mapped;
   },
 
-  /**
-   * PUT /api/v1/admin/admins/{id}
-   * بدنهٔ ۲۰۰ ردیف است؛ پاسخ خالی با GET همان id جبران می‌شود.
-   */
+  /** PUT /api/v1/admin/admins/{id} — بدنهٔ ۲۰۰ ردیف است؛ پاسخ خالی با GET همان id جبران می‌شود. */
   async update(
     id: string,
     body: NestUpdateAdminDto,

@@ -1,20 +1,13 @@
 /**
- * Fails if product TS/TSX under src/ contains hardcoded #hex / rgb() / hsl().
- * Allowed: CSS token file (globals.css), third-party brand icons.
- * Line-level suppression: append `// eslint-disable-line no-restricted-syntax`
- * (or `// eslint-disable-next-line no-restricted-syntax` on the prior line) to
- * a genuine non-color false positive — the same comment already used to
- * suppress the mirrored ESLint `no-restricted-syntax` rule, so one comment
- * silences both checks consistently.
- *
- * Run: node scripts/check-hardcoded-colors.mjs
+ * اگر `src/**/*.{ts,tsx}` رنگ هاردکد (`#hex` / `rgb()` / `hsl()`) داشته باشد fail کن.
+ * توکن‌ها در `globals.css`؛ برای مثبت کاذب همان `eslint-disable-line no-restricted-syntax`.
  */
 import fs from 'fs';
 import path from 'path';
 
 const ROOT = path.join(process.cwd(), 'src');
 const ALLOW_FILES = new Set([
-  // Web App Manifest / theme-color cannot use Tailwind utilities.
+  // Manifest / theme-color نمی‌تواند از کلاس Tailwind استفاده کند.
   'lib/pwa/pwa-chrome-color.ts',
 ]);
 
@@ -44,7 +37,6 @@ for (const file of files) {
 
   const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
   lines.forEach((line, index) => {
-    // Skip pure imports / comments that mention hex in docs
     const trimmed = line.trim();
     if (trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) {
       return;

@@ -1,8 +1,8 @@
 /**
- * Admin table body phase (soft refresh):
- * - rows: keep previous/current rows visible
- * - busy: first load — keep table chrome; body uses KvTableBusy (spinner)
- * - empty: idle and no rows — KvTableEmpty + empty state
+ * فاز بدنهٔ جدول ادمین (رفرش نرم):
+ * - `rows`: ردیف قبلی/جاری بماند
+ * - `busy`: بار اول — کروم جدول بماند؛ بدنه `KvTableBusy` (اسپینر)
+ * - `empty`: بیکار و بدون ردیف — `KvTableEmpty`
  */
 export type AdminTableBodyPhase = 'busy' | 'empty' | 'rows';
 

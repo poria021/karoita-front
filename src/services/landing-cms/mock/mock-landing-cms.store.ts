@@ -9,10 +9,10 @@ import type {
 
 const STORAGE_KEY = 'karvita_mock_landing_cms_v1';
 
-/** Cross-tab `storage` event key — public for Facade chrome subscription. */
+/** کلید `storage` بین‌تب — Facade کروم آن را subscribe می‌کند. */
 export const LANDING_CMS_STORAGE_KEY = STORAGE_KEY;
 
-/** Browser event after mock CMS snapshot writes — marketing chrome refreshes. */
+/** رویداد مرورگر بعد از نوشتن snapshot mock — کروم مارکتینگ تازه می‌شود. */
 export const LANDING_CMS_UPDATED_EVENT = 'karvita-landing-cms-updated';
 
 export const LANDING_CMS_STORAGE_QUOTA_ERROR =
@@ -31,7 +31,6 @@ function isQuotaExceededError(error: unknown): boolean {
   return (
     error.name === 'QuotaExceededError' ||
     error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
-    // Legacy browsers
     error.code === 22 ||
     error.code === 1014
   );
@@ -69,9 +68,8 @@ function persistSnapshot(data: LandingCmsSnapshot): void {
 }
 
 function loadSnapshot(): LandingCmsSnapshot {
-  // Prefer an explicit in-memory write (tests / same-process mock mutations).
-  // On RSC without a write, return a fresh seed and do not stick it in the
-  // module singleton — public marketing rehydrates on the client.
+  // نوشتهٔ صریح حافظه برای تست/mutation همان پردازه.
+  // در RSC بدون نوشته، seed تازه برگردان — در singleton نگذار تا مارکتینگ روی کلاینت hydrate شود.
   if (memory) return memory;
 
   if (!isBrowser()) {
@@ -104,7 +102,7 @@ function loadSnapshot(): LandingCmsSnapshot {
   }
 }
 
-/** Drop in-memory cache so the next read rehydrates from localStorage. */
+/** کش حافظه را خالی کن تا خواندن بعدی از `localStorage` hydrate شود. */
 export function invalidateLandingCmsMemory(): void {
   memory = null;
 }
@@ -139,7 +137,6 @@ export function nextLandingEntityId(prefix: 'bnr' | 'soc' | 'prd'): string {
   return `${prefix}-${Date.now()}`;
 }
 
-/** Test-only reset to seed (clears in-memory + storage when available). */
 export function resetLandingCmsStoreForTests(
   snapshot?: LandingCmsSnapshot
 ): void {
@@ -149,7 +146,7 @@ export function resetLandingCmsStoreForTests(
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     } catch {
-      // Ignore quota/storage errors in test reset.
+      // در ریست تست، خطای سهمیهٔ ذخیره را نادیده بگیر
     }
   }
 }

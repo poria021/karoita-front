@@ -271,7 +271,7 @@ export function dropMockDailyApprovalTrainee(
   return structuredClone(nextTrainee);
 }
 
-/** Undo helper for drop — writes the pre-drop trainee snapshot back. */
+/** برگرداندن snapshot قبل از حذف. */
 export function restoreMockDailyApprovalTrainee(
   trainee: DailyApprovalTrainee
 ): DailyApprovalTrainee {

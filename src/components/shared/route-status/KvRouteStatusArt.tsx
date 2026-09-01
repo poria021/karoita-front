@@ -14,7 +14,6 @@ type ArtConfig = {
   ringClass: string;
 };
 
-/** Ready Font Awesome vectors from the project icon map. */
 const ART_BY_KIND: Record<KvRouteStatusKind, ArtConfig> = {
   notFound: {
     icon: faIcons.magnifyingGlass,
@@ -36,9 +35,6 @@ const ART_BY_KIND: Record<KvRouteStatusKind, ArtConfig> = {
   },
 };
 
-/**
- * Ready-made FA vector in a soft well + light geometric line rings.
- */
 export function KvRouteStatusArt({
   kind,
   className,
@@ -56,7 +52,6 @@ export function KvRouteStatusArt({
       )}
       aria-hidden
     >
-      {/* Geometric line rings (ready pattern, not custom illustration) */}
       <svg
         viewBox="0 0 220 220"
         className={cn(

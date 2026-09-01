@@ -54,10 +54,10 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     [audience, terms]
   );
 
-  /** Gate cards (انتخاب واحد / برگزاری) follow the live selection even across tabs. */
+  /** کارت گیت (انتخاب واحد / برگزاری) انتخاب زنده را حتی بین تب‌ها دنبال می‌کند. */
   const selectedTerm =
     terms.find((t) => t.id === selectedTermId) ?? null;
-  /** Semester picker only shows a term when it belongs to the active audience tab. */
+  /** picker نیم‌سال فقط ترمی را نشان می‌دهد که مال تب مخاطب فعال باشد. */
   const selectedAudienceTerm =
     audienceTerms.find((t) => t.id === selectedTermId) ?? null;
   const isSelectedCourseOffered = Boolean(

@@ -15,7 +15,7 @@ import { makeQueryClient } from '@/lib/query-client';
 
 config.autoAddCss = false;
 
-/** System + stored preference apply on auth, marketing, and dashboard. */
+/** ترجیح سیستم و ذخیره‌شده روی احراز، مارکتینگ و داشبورد اعمال می‌شود. */
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(makeQueryClient);
 

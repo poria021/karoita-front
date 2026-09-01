@@ -20,7 +20,7 @@ type DailyApprovalBulkExtendModalProps = {
   open: boolean;
   kind: DailyApprovalCourseKind;
   busy: boolean;
-  /** Already-extended week numbers for the active group — pre-checked in the list. */
+  /** شماره هفته‌های از قبل تمدیدشده در گروه فعال — در لیست پیش‌انتخاب. */
   previouslyExtendedWeekNumbers?: readonly number[];
   onClose: () => void;
   onConfirm: (input: {

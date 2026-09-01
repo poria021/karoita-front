@@ -1,7 +1,7 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { faIcons } from '@/utils/iconMap';
 
-/** Decorative SaaS product frame — matches Landing-2 internship mock (left column). */
+/** قاب تزئینی محصول — مطابق موک کارورزی Landing-2 (ستون چپ). */
 export function MarketingInternshipMockup() {
   return (
     <div className="relative mt-8 flex h-[300px] w-full items-center justify-center sm:h-[340px] lg:mt-0 lg:h-[360px]">

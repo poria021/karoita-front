@@ -2,7 +2,7 @@ import { RouteService } from '@/services/route.service';
 
 import type { MarketingPanelId } from './marketingPanelContext';
 
-/** Legacy CMS leaf paths → in-page SPA panels (no separate routes). */
+/** مسیر قدیمی برگ CMS → پنل SPA داخل صفحه (بدون route جدا). */
 const MARKETING_PANEL_PATHS: Readonly<Record<string, MarketingPanelId>> = {
   '/benefits': 'benefits',
   '/about': 'about',
@@ -26,7 +26,7 @@ export type MarketingNavTarget =
   | { kind: 'panel'; id: MarketingPanelId }
   | { kind: 'none' };
 
-/** Resolve CMS link strings for public marketing chrome (dock / banners / socials). */
+/** رشتهٔ لینک CMS را برای chrome مارکتینگ عمومی (داک / بنر / شبکه اجتماعی) حل می‌کند. */
 export function resolveMarketingNavTarget(link: string): MarketingNavTarget {
   const trimmed = link.trim();
   if (!trimmed) return { kind: 'none' };
@@ -44,7 +44,7 @@ export function resolveMarketingNavTarget(link: string): MarketingNavTarget {
     return { kind: 'internal', href: trimmed };
   }
 
-  // Public CMS pages between landing and auth (`/p/...`).
+  // صفحات CMS عمومی بین لندینگ و auth (`/p/...`).
   if (
     trimmed.startsWith('/') &&
     RouteService.marketing.isMarketingCmsPath(trimmed)
@@ -52,7 +52,7 @@ export function resolveMarketingNavTarget(link: string): MarketingNavTarget {
     return { kind: 'internal', href: trimmed };
   }
 
-  // Other relative CMS targets stay navigable (auth / future app paths).
+  // بقیهٔ هدف‌های نسبی CMS قابل ناوبری می‌مانند (auth / مسیر آیندهٔ اپ).
   if (trimmed.startsWith('/')) {
     return { kind: 'internal', href: trimmed };
   }
@@ -61,9 +61,9 @@ export function resolveMarketingNavTarget(link: string): MarketingNavTarget {
 }
 
 /**
- * Header «ورود» CTA:
- * - 2+ CMS products → login-select portal
- * - fewer than 2 → straight to auth login
+ * CTA «ورود» هدر:
+ * - ۲+ محصول CMS → پورتال انتخاب ورود
+ * - کمتر از ۲ → مستقیم ورود auth
  */
 export function resolveMarketingLoginHref(productCount: number): string {
   return productCount >= 2

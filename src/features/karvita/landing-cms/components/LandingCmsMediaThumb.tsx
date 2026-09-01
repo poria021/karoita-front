@@ -19,7 +19,7 @@ export function LandingCmsMediaThumb({
 }: LandingCmsMediaThumbProps) {
   if (imageUrl) {
     return (
-      // Data-URL / mock blob previews — next/image does not apply here.
+      // پیش‌نمایش data-URL / blob موک — `next/image` اینجا اعمال نمی‌شود.
       // eslint-disable-next-line @next/next/no-img-element
       <img
         src={imageUrl}

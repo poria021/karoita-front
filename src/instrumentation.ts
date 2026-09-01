@@ -12,7 +12,7 @@ type RequestErrorContext = {
 };
 
 /**
- * Next.js instrumentation hook — server/edge request failures.
+ * هوک instrumentation نکست — شکست درخواست سرور/Edge.
  * @see https://nextjs.org/docs/app/building-your-application/optimizing/instrumentation
  */
 export async function onRequestError(
@@ -34,8 +34,8 @@ export async function onRequestError(
 export async function register(): Promise<void> {
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
 
-  // Dynamic import (not a static one) so bundling for the Edge Runtime
-  // never pulls in process.on(...) — see instrumentation-node.ts.
+  // import پویا (نه استاتیک) تا باندل Edge هرگز `process.on(...)` را نکشد —
+  // نگاه کنید به `instrumentation-node.ts`.
   const { registerNodeProcessHandlers } = await import(
     './instrumentation-node'
   );

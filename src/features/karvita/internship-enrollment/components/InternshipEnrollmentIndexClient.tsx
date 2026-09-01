@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { InternshipEnrollmentModule } from '@/features/karvita/internship-enrollment/components/InternshipEnrollmentModule';
 import { RouteService } from '@/services/route.service';
 
-/** Index bounce — paint L1 immediately, then canonicalize the URL. */
+/** پرش ایندکس — فوراً L1 را رنگ کن، بعد URL را canonicalize کن. */
 export function InternshipEnrollmentIndexClient() {
   const router = useRouter();
 

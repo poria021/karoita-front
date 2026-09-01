@@ -6,8 +6,7 @@ export const DASHBOARD_MAIN_ID = 'karvita-main-content';
 export const SKIP_TO_MAIN_ID = 'karvita-skip-to-main';
 
 /**
- * First focusable control in the dashboard shell — jumps keyboard users past
- * header/sidebar chrome into the module main landmark (WCAG 2.4.1).
+ * اولین کنترل فوکوس‌پذیر شل داشبورد — کاربر صفحه‌کلید را از کروم هدر/سایدبار به landmark اصلی ماژول می‌برد (WCAG 2.4.1).
  */
 export function SkipToMainContent() {
   return (

@@ -5,7 +5,7 @@ import type { PendingNavigation } from './syllabusPageCache';
 export type UnsavedNavDecision = 'noop' | 'defer' | 'commit';
 
 /**
- * Decide whether a term switch is a no-op, needs discard confirm, or commits now.
+ * تعویض ترم: no-op، تأیید دورریز، یا commit فوری.
  */
 export function decideUnsavedTermSelect(
   termId: string,
@@ -18,7 +18,7 @@ export function decideUnsavedTermSelect(
 }
 
 /**
- * Decide whether a course switch is a no-op, needs discard confirm, or commits now.
+ * تعویض درس: no-op، تأیید دورریز، یا commit فوری.
  */
 export function decideUnsavedCourseSelect(
   courseId: string,

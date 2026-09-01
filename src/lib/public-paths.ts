@@ -7,7 +7,7 @@ function normalizePath(pathname: string): string {
   return trimmed.length > 0 ? trimmed : '/';
 }
 
-/** Exact public routes (marketing home + login-select portal). */
+/** مسیرهای عمومی دقیق (خانهٔ مارکتینگ + پورتال انتخاب ورود). */
 const MARKETING_PUBLIC_EXACT = [
   RouteService.marketing.home(),
   RouteService.marketing.loginSelect(),
@@ -17,11 +17,12 @@ const MARKETING_PUBLIC_EXACT = [
 export const publicPathsConfig = {
   exactPaths: [...MARKETING_PUBLIC_EXACT],
   /**
-   * - `/auth/` auth tree
-   * - `/docs/` docs
-   * - `/p/` public CMS pages between landing and login (admin-authored)
-   * - `/api/auth/` httpOnly refresh-token routes (set/clear/refresh) — must
-   *   stay reachable pre-login and mid-rotation; see real-auth.tokens.ts
+   * پیشوندهای عمومی:
+   * - `/auth/` درخت احراز هویت
+   * - `/docs/` مستندات
+   * - `/p/` صفحات CMS عمومی بین لندینگ و ورود (نوشتهٔ ادمین)
+   * - `/api/auth/` مسیرهای cookie رفرش httpOnly (set/clear/refresh) —
+   *   باید قبل از لاگین و وسط rotation در دسترس بمانند؛ `real-auth.tokens.ts`
    */
   prefixes: [
     '/docs/',
@@ -39,7 +40,7 @@ export function isPublicPath(pathname: string): boolean {
     return true;
   }
 
-  // Exact CMS hub `/p` (prefix check alone needs trailing slash form).
+  // هاب CMS دقیق `/p` (بررسی پیشوند به‌تنهایی فرم اسلش انتهایی می‌خواهد).
   if (isMarketingCmsPath(path)) {
     return true;
   }

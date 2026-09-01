@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils';
 
-/** Technical corner brackets around the art stage. */
 export function KvRouteStatusFrame({ className }: { className?: string }) {
   return (
     <svg

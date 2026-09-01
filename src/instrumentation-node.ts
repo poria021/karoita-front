@@ -1,13 +1,11 @@
 import { reportError } from '@/lib/observability/reportError';
 
 /**
- * Node-only process-level error hooks. Lives in its own module (instead of
- * inline in instrumentation.ts) and is only ever reached via a dynamic
- * `import()` gated by `NEXT_RUNTIME === 'nodejs'` in instrumentation.ts —
- * that keeps `process.on(...)` out of the Edge Runtime bundle entirely,
- * instead of just no-op'ing at runtime, which is what previously produced
- * Next's "A Node.js API is used ... not supported in the Edge Runtime"
- * build warning even though the guard made it harmless.
+ * هوک خطای سطح `process` فقط برای Node. جدا از `instrumentation.ts` است و فقط با
+ * `import()` پویا وقتی `NEXT_RUNTIME === 'nodejs'` صدا می‌شود تا `process.on(...)`
+ * اصلاً وارد باندل Edge نشود — نه اینکه در runtime no-op شود؛ قبلاً همان گارد
+ * بی‌خطر بود ولی نکست هشدار «A Node.js API is used ... not supported in the Edge Runtime»
+ * می‌داد.
  */
 export function registerNodeProcessHandlers(): void {
   process.on('unhandledRejection', (reason) => {

@@ -6,17 +6,15 @@ import { DOCUMENT_TITLE, privatePageMetadata } from '@/lib/document-title';
 export const metadata: Metadata = privatePageMetadata(DOCUMENT_TITLE.signIn);
 
 /**
- * Auth layout — wrapper for /auth/* routes (login, register, forgot, admin-gate).
+ * پوستهٔ `/auth/*` (ورود، ثبت‌نام، فراموشی، admin-gate).
  *
- * The Vazirmatn font variable (`--font-vazirmatn`) is already applied on
- * <body> inside the root layout (`src/app/layout.tsx`). Re-applying it here
- * caused Next.js to emit a duplicate <link rel="preload"> for the font CSS
- * chunk on every /auth/* page, triggering the browser warning:
- *   "preloaded but not used within a few seconds from the window's load event"
+ * متغیر فونت Vazirmatn (`--font-vazirmatn`) از قبل روی `<body>` در layout ریشه
+ * (`src/app/layout.tsx`) است. گذاشتن دوبارهٔ کلاس فونت اینجا باعث می‌شد نکست
+ * `<link rel="preload">` تکراری برای chunk CSS فونت روی هر `/auth/*` بگذارد و
+ * مرورگر هشدار «preloaded but not used» بدهد.
  *
- * Removing the redundant font class from this layout eliminates the duplicate
- * preload without affecting typography — the CSS variable is already in scope
- * from the root <body>.
+ * حذف کلاس فونت از این layout، preload تکراری را برمی‌دارد بدون اینکه تایپوگرافی
+ * عوض شود — متغیر CSS از `<body>` ریشه در scope است.
  */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return <>{children}</>;

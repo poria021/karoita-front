@@ -102,7 +102,7 @@ export function buildWeeklySessions(input: {
     catalogIdForKind(input.kind, input.level)
   );
   const offering = syllabus.offerings[offeringId];
-  /** After syllabus save: card count = rows of that course offering. */
+  // بعد از ذخیرهٔ سرفصل، تعداد کارت = ردیف‌های همان ارائه.
   const defaultCount =
     input.kind === 'apprenticeship'
       ? APPRENTICESHIP_DEFAULT_WEEKS

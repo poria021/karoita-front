@@ -26,7 +26,7 @@ type UseDailyApprovalsListArgs = {
   resetKey: string;
 };
 
-/** Offset/limit trainee list for the active chrome + term gate. */
+/** لیست offset/limit کارآموز برای chrome فعال + گیت ترم. */
 export function useDailyApprovalsList({
   kind,
   listQuery,

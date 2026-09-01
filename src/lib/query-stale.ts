@@ -1,12 +1,12 @@
 /**
- * TanStack Query staleTime defaults (ms).
- * Lists stay fresher; module snapshots / CMS tolerate longer reuse for SPA revisit.
+ * پیش‌فرض `staleTime` برای TanStack Query (میلی‌ثانیه).
+ * لیست‌ها تازه‌تر می‌مانند؛ اسنپ‌شات ماژول و CMS برای بازدید دوبارهٔ SPA طولانی‌تر reuse می‌شوند.
  */
 export const QUERY_STALE_MS = {
-  /** Admin offset/limit lists + org typeahead */
+  /** لیست offset/limit ادمین + typeahead سازمانی */
   list: 30_000,
-  /** Module snapshot panels (capacities, syllabus, enrollment) */
+  /** پنل اسنپ‌شات ماژول (ظرفیت، سرفصل، ثبت‌نام) */
   module: 60_000,
-  /** Landing CMS admin bundle (rarely changes mid-session) */
+  /** باندل CMS لندینگ ادمین (وسط نشست کم عوض می‌شود) */
   cms: 60_000,
 } as const;

@@ -17,8 +17,8 @@ import {
 } from '../lib/syllabusPageCache';
 
 /**
- * Hydrate syllabus page domain state from the dashboard module cache
- * and keep a soft-refresh snapshot in memory.
+ * state دامنهٔ صفحهٔ سرفصل را از کش ماژول داشبورد hydrate می‌کند
+ * و اسنپ‌شات soft-refresh را در حافظه نگه می‌دارد.
  */
 export function useSyllabusPageState(section: SyllabusConfigSubTab) {
   const cacheKey = cacheKeyFor(section);

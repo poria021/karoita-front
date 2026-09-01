@@ -32,9 +32,8 @@ interface OrgStructureEntityFieldsProps {
   roles: OrgRole[];
   namePlaceholder: string;
   /**
-   * True when the selected province has no cities (query finished, result
-   * empty). Locks the city select on district/school forms so the
-   * user can still submit without picking a city.
+   * وقتی استان انتخاب‌شده شهری ندارد (کوئری تمام و نتیجه خالی).
+   * select شهر در فرم منطقه/مدرسه قفل می‌شود تا بدون شهر هم بتوان submit کرد.
    */
   provinceHasNoCities?: boolean;
 }

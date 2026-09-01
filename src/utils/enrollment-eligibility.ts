@@ -21,8 +21,7 @@ export function normalizeEnrollmentCourseTitle(
 }
 
 /**
- * بررسی می‌کند که یک مقدار (string) در یک فیلد چندانتخابی (string | string[] | undefined) وجود دارد.
- * از آنجا که actor.district ممکن است string[] باشد، این helper ایمن‌ترین روش مقایسه است.
+ * وجود مقدار در فیلد چندانتخابی — `actor.district` ممکن است `string[]` باشد.
  */
 function actorFieldIncludes(
   actorField: string | string[] | undefined,
@@ -33,9 +32,7 @@ function actorFieldIncludes(
   return actorField === value;
 }
 
-/**
- * اولین مقدار از یک فیلد چندانتخابی را برمی‌گرداند.
- */
+/** اولین مقدار فیلد چندانتخابی. */
 function firstOf(value: string | string[] | undefined, fallback: string): string {
   if (Array.isArray(value)) return value[0] ?? fallback;
   return value ?? fallback;

@@ -45,7 +45,7 @@ export function SidebarNavGroup({
   const groupIcon = resolveSidebarIcon(group.icon);
   const disclosureOpen = locked ? false : open;
 
-  // Collapsed rail: expose children as icon links so both modules stay reachable.
+  // ریل جمع‌شده: فرزندان را لینک آیکن کن تا هر دو ماژول در دسترس بمانند.
   if (isCollapsed) {
     return (
       <div className="space-y-kv-inline max-lg:contents lg:block">
@@ -126,8 +126,8 @@ function ExpandedGroupChrome({
   return (
     <div className="space-y-kv-nav-tight">
       {/*
-        L1 group disclosure — native button (accordion chrome, not a CTA).
-        When modules are gated, the parent itself looks locked like leaf panels.
+        افشای گروه `L1` — دکمهٔ native (کروم آکاردئون، نه `CTA`).
+        وقتی ماژول قفل است خود والد مثل برگ‌ها قفل دیده می‌شود.
       */}
       <button
         type="button"

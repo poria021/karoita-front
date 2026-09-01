@@ -1,6 +1,6 @@
 /**
- * Parse a public Sentry DSN without pulling in the Sentry SDK.
- * DSN shape: https://<publicKey>@<host>/<projectId>
+ * DSN عمومی Sentry را بدون SDK پارس می‌کند.
+ * شکل: `https://<publicKey>@<host>/<projectId>`
  */
 export type SentryDsnParts = {
   publicKey: string;

@@ -23,12 +23,7 @@ export function mapNestUsersListPage(
 }
 
 /**
- * Nest Users facade — https://backenddev.darkube.ir/docs#/ Users
- *
- * - GET    /api/v1/users
- * - GET    /api/v1/users/{id}
- * - PATCH  /api/v1/users/{id}
- * - DELETE /api/v1/users/{id}
+ * Facade کاربران Nest — GET/PATCH/DELETE `/api/v1/users`.
  */
 export const UsersService = {
   async list(query: NestUsersListQuery = {}, token?: string): Promise<UsersListPage> {

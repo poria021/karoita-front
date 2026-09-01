@@ -1,12 +1,7 @@
 import type { OrgStructureListItem } from '@/types/org-structure';
 
 /**
- * GET /admin/schools and GET /admin/universites omit nested education/city
- * on list rows even after a successful write. The create/edit form knows
- * the labels at submit time — remember them so the post-save reload does
- * not flash the optimistic row then replace it with "—".
- *
- * Keys are entity id and/or title. Nested API titles still win when present.
+ * GET مدرسه/پردیس education/city تو در تو را نمی‌دهد؛ برچسب فرم را به خاطر بسپار تا reload «—» نشان ندهد.
  */
 export type OrgRelationLabelOverlay = {
   provinceName?: string;
@@ -45,7 +40,7 @@ export function overlayOrgRelationLabels(
   };
 }
 
-/** Test-only: drop remembered labels so cases don't leak across files. */
+/** فقط تست: برچسب‌های به‌خاطر سپرده را پاک کن تا کیس‌ها نشت نکنند. */
 export function resetOrgRelationLabelOverlay(): void {
   overlayByKey.clear();
 }

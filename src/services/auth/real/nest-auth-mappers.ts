@@ -120,14 +120,7 @@ function readOrgFields(user: Record<string, unknown>): Pick<
   };
 }
 
-/**
- * Swagger: `rejectDescription: { id: number, description: string }`.
- * PATCH sends it as an array (see rejectIdentityDoc in
- * onboarding-approvals.service.ts); GET responses aren't confirmed to be
- * array-vs-single-object, so — same defensive pattern as the org-field
- * readers above — accept either shape. Array case: take the last entry
- * (most recent rejection reason).
- */
+/** Swagger یک شیء است؛ PATCH آرایه می‌فرستد — هر دو را بپذیر؛ آخری = دلیل جدیدتر. */
 function readRejectMessage(user: Record<string, unknown>): string | undefined {
   const value = user.rejectDescription;
   if (Array.isArray(value)) {

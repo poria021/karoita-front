@@ -57,7 +57,7 @@ export function readSnapshot(): EnrollmentSnapshot {
         return memorySnapshot;
       }
     } catch {
-      // A damaged mock value must not prevent the enrollment route from loading.
+      // مقدار خراب mock نباید مسیر ثبت‌نام را ببندد.
     }
   }
 
@@ -73,12 +73,11 @@ export function writeSnapshot(snapshot: EnrollmentSnapshot): EnrollmentSnapshot 
   return memorySnapshot;
 }
 
-/** Test helper — replace or clear enrollment mock persistence. */
 export function resetEnrollmentSnapshotForTests(
   snapshot?: EnrollmentSnapshot | null
 ): void {
   memorySnapshot = snapshot ? structuredClone(snapshot) : null;
-  // همچنین localStorage رو پاک می‌کنیم تا بین تست‌ها data leak نشه
+  // `localStorage` هم پاک می‌شود تا بین تست‌ها نشت نکند
   if (isBrowser()) {
     try {
       if (snapshot == null) {
@@ -87,7 +86,7 @@ export function resetEnrollmentSnapshotForTests(
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(memorySnapshot));
       }
     } catch {
-      // noop — در محیط تست ممکنه localStorage محدود باشه
+      // در تست ممکن است `localStorage` محدود باشد
     }
   }
 }

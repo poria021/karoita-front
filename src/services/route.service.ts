@@ -3,16 +3,15 @@ import {
 } from '@/lib/dashboard-url-state';
 
 /**
- * Live internal route catalog.
- * Planned-but-unbuilt paths live in planned-routes.ts — do not hardcode domain URLs in features.
- * Path helpers here are Edge-safe (no Nest / Zustand / browser APIs).
+ * کاتالوگ مسیرهای زنده. مسیرهای برنامه‌ریزی‌شده در `planned-routes.ts` است.
+ * این هلپرها Edge-safeاند (بدون Nest / Zustand / API مرورگر).
  */
 
 const AUTH_BASE = '/auth';
 const KARVITA_BASE = '/karvita';
 const KARVITA_ADMIN_BASE = `${KARVITA_BASE}/admin`;
 const KARVITA_ADMIN_DASHBOARD = `${KARVITA_ADMIN_BASE}/dashboard`;
-/** Public CMS pages between landing and auth (admin-authored content). */
+/** صفحات CMS عمومی بین لندینگ و ورود. */
 const MARKETING_CMS_BASE = '/p';
 
 function normalizeAppPath(pathname: string): string {
@@ -22,33 +21,26 @@ function normalizeAppPath(pathname: string): string {
   return trimmed.length > 0 ? trimmed : '/';
 }
 
-/** Auth route tree: `/auth` and `/auth/...` */
 export function isAuthPath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
   return path === AUTH_BASE || path.startsWith(`${AUTH_BASE}/`);
 }
 
-/**
- * Public CMS surface under `/p` and `/p/...` (not the admin editor).
- */
+/** سطح CMS عمومی زیر `/p` — نه ادیتور ادمین. */
 export function isMarketingCmsPath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
   return path === MARKETING_CMS_BASE || path.startsWith(`${MARKETING_CMS_BASE}/`);
 }
 
-/**
- * Authenticated app/dashboard shell (`/(app)/…`).
- * Header theme toggle lives here; system/stored theme still applies on auth/marketing too.
- */
+/** پوستهٔ داشبورد `/(app)` — سوییچ تم هدر اینجاست. */
 export function isAppShellPath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
   return path === KARVITA_BASE || path.startsWith(`${KARVITA_BASE}/`);
 }
 
 /**
- * Staff admin control plane under `/karvita/admin/...`
- * (dashboard + modules). دستیار مدیر ارشد ماژول‌های اجرایی را می‌بیند؛
- * ایجاد حساب سازمانی و تنظیمات عمومی ترم فقط برای مدیر ارشد است.
+ * صفحهٔ ادمین زیر `/karvita/admin`.
+ * دستیار مدیر ارشد ماژول اجرایی می‌بیند؛ ساخت حساب سازمانی و تنظیمات ترم فقط مدیر ارشد است.
  */
 export function isAdminControlPlanePath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
@@ -61,13 +53,10 @@ export function isAdminControlPlanePath(pathname: string): boolean {
 export const RouteService = {
   marketing: {
     home: (): string => '/',
-    /** Product picker when CMS has 2+ products */
     loginSelect: (): string => '/login-select',
-    /** Precached document fallback when the network is unavailable. */
     offline: (): string => '/offline',
     /**
-     * Public CMS pages hub (between landing and auth).
-     * Admin editor remains `/karvita/admin/landing-cms`.
+     * هاب صفحات CMS عمومی. ادیتور ادمین `/karvita/admin/landing-cms` می‌ماند.
      */
     cmsPagesBase: (): string => MARKETING_CMS_BASE,
     cmsPage: (slug: string): string => {
@@ -96,7 +85,7 @@ export const RouteService = {
       const base = '/karvita/daily-approvals';
       return kind ? appendSearchParam(base, 'kind', kind) : base;
     },
-    /** Syllabus index (redirect); live UI under /admin/syllabus/* */
+    /** ایندکس سرفصل redirect است؛ UI زنده زیر `/admin/syllabus/*`. */
     syllabusConfig: (): string => `${KARVITA_ADMIN_BASE}/syllabus`,
     syllabusCourseOfferings: (): string =>
       `${KARVITA_ADMIN_BASE}/syllabus/course-offerings`,
@@ -108,7 +97,7 @@ export const RouteService = {
       const base = `${KARVITA_ADMIN_BASE}/onboarding-approvals`;
       return tab ? appendSearchParam(base, 'tab', tab) : base;
     },
-    /** No level → index redirect to L1; with level → sidebar submodule */
+    /** بدون سطح → redirect به L1؛ با سطح → زیرماژول سایدبار. */
     internshipSelection: (level?: number): string =>
       level == null
         ? '/karvita/internships'
@@ -120,7 +109,6 @@ export const RouteService = {
       return kind ? appendSearchParam(base, 'kind', kind) : base;
     },
     adminUserCreation: (): string => `${KARVITA_ADMIN_BASE}/user-creation`,
-    /** Canonical org tree module */
     organizationalStructure: (
       tab?:
         | 'provinces'

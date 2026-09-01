@@ -27,9 +27,8 @@ interface DashboardChromeProps {
 }
 
 /**
- * App-shell chrome split: staff admins get a full-height start rail
- * (logo lives in the rail; header + main clear it). Other roles keep
- * the existing header-then-card-sidebar stack.
+ * شل اپ: ادمین ستادی ریل تمام‌قد شروع (لوگو در ریل؛ هدر و `main` خالی می‌کنند).
+ * نقش‌های دیگر همان پشتهٔ هدر سپس سایدبار کارتی.
  */
 export function DashboardChrome({ children }: DashboardChromeProps) {
   const role = useUserStore((state) => state.activeUser?.role);

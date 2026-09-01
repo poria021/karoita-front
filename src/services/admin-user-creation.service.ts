@@ -32,17 +32,9 @@ import {
 } from '@/utils/offset-limit-page';
 
 /**
- * Super-admin account creation.
- *
- * Nest map:
- * - Staff (ادمین کل / دستیار ادمین):
- *     POST /api/v1/admin/admins  { fname, lname, phone, role: admin|superadmin }
- *     GET  /api/v1/admin/admins?page=&limit=
- *     GET  /api/v1/admin/admins/{id}
- *     PUT  /api/v1/admin/admins/{id}  { fname, lname, phone, role, status: 2|1 }
- * - Organizational roles:
- *     GET  /api/v1/users?filters={"phone":"<mobile>"}&limit=1  → mobile check
- *     PATCH /api/v1/users/{id} → assign org role (user must already exist)
+ * ایجاد حساب توسط مدیر ارشد.
+ * ادمین: POST/GET/PUT `/api/v1/admin/admins` (`role: admin|superadmin`، PUT `status: 2|1`).
+ * سازمانی: چک موبایل با GET `/api/v1/users?filters=`؛ PATCH `/users/{id}` نقش را روی کاربر موجود می‌گذارد.
  */
 
 function requireMockUserCreate(): void {
@@ -62,8 +54,7 @@ function toDuplicateMobileError(error: unknown): never {
 
 export const AdminUserCreationService = {
   /**
-   * Check whether a mobile number is already registered.
-   * Real: GET /api/v1/users?filters={"phone":"<mobile>"}&limit=1
+   * آیا موبایل ثبت شده — real: GET `/api/v1/users?filters={"phone":"..."}&limit=1`.
    */
   async checkMobileAvailable(
     mobile: string
@@ -85,9 +76,8 @@ export const AdminUserCreationService = {
   },
 
   /**
-   * Create a staff admin (POST /admin/admins) or assign an organizational role.
-   * Staff path does not send password — Nest CreateAdmin has no password field.
-   * Org path in real mode still requires `userId` (existing user via auth flow).
+   * ادمین: POST /admin/admins بدون password (CreateAdmin فیلد ندارد).
+   * سازمانی real هنوز `userId` کاربر موجود از جریان auth می‌خواهد.
    */
   async createOrganizationalUser(
     input: CreateOrganizationalUserInput & { userId?: string }

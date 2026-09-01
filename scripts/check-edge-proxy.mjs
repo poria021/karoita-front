@@ -1,6 +1,5 @@
 /**
- * Next.js 16: Edge session gate lives in src/proxy.ts (PROXY_FILENAME).
- * A root/src middleware.ts is deprecated and conflicts with proxy.ts.
+ * گیت Edge نشست فقط در `src/proxy.ts` است؛ `middleware.ts` با آن تداخل می‌سازد و بیلد را می‌شکند.
  */
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';

@@ -1,6 +1,6 @@
 /**
- * Pure helpers for dashboard module chrome mirrored into the browser query string.
- * Keep search text and infinite-list offset out of the URL (SPA/PWA density).
+ * کمک‌تابع خالص برای chrome ماژول داشبورد که در query string مرورگر آینه می‌شود.
+ * متن جست‌وجو و offset لیست بی‌نهایت را در URL نگذارید (تراکم SPA/PWA).
  */
 
 export function pickAllowedSearchParam<T extends string>(
@@ -14,7 +14,7 @@ export function pickAllowedSearchParam<T extends string>(
   return fallback;
 }
 
-/** Build pathname + search; `value: null` deletes the key. Empty search → bare pathname. */
+/** pathname + search؛ `value: null` کلید را حذف می‌کند. search خالی → فقط pathname. */
 export function hrefWithSearchParam(
   pathname: string,
   current: URLSearchParams | { toString(): string },

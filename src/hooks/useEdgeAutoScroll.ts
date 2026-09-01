@@ -16,15 +16,15 @@ import {
 
 export type UseEdgeAutoScrollOptions = {
   enabled?: boolean;
-  /** Distance from top/bottom that starts auto-scroll (px). */
+  /** فاصله از بالا/پایین که اسکرول خودکار شروع شود (px). */
   edgeSize?: number;
-  /** Max pixels advanced per animation frame. */
+  /** حداکثر پیکسل در هر فریم انیمیشن. */
   maxSpeed?: number;
 };
 
 /**
- * Pointer-near-edge auto-scroll for long overlay lists (select / menu / combobox).
- * Attach `ref` + pointer handlers to the scroll container (or its wrapper).
+ * اسکرول خودکار نزدیک لبه برای لیست‌های overlay بلند (select / منو / combobox).
+ * `ref` و handlerهای pointer را به ظرف اسکرول ببندید.
  */
 export function useEdgeAutoScroll<T extends HTMLElement = HTMLElement>(
   options: UseEdgeAutoScrollOptions = {}
@@ -95,7 +95,7 @@ export function useEdgeAutoScroll<T extends HTMLElement = HTMLElement>(
       target.addEventListener('scroll', onScroll, { passive: true });
       const observer = new ResizeObserver(() => syncOverflow());
       observer.observe(target);
-      // Content size changes (options loading) live on children.
+      // تغییر اندازهٔ محتوا (لود گزینه‌ها) روی فرزندان است.
       if (target.firstElementChild) {
         observer.observe(target.firstElementChild);
       }
@@ -121,7 +121,7 @@ export function useEdgeAutoScroll<T extends HTMLElement = HTMLElement>(
         setCanScrollDown(false);
         return;
       }
-      // Nested viewport may mount a tick later (Radix Select).
+      // viewport تو در تو ممکن است یک تیک دیرتر mount شود (Radix Select).
       cleanupOverflowRef.current = bindOverflowListeners(node);
       window.requestAnimationFrame(() => {
         cleanupOverflowRef.current?.();
@@ -193,7 +193,7 @@ export function useEdgeAutoScroll<T extends HTMLElement = HTMLElement>(
   };
 }
 
-/** Merge a callback/object ref with the edge-auto-scroll ref setter. */
+/** `ref` تابعی/آبجکت را با setter اسکرول لبه‌ای ادغام می‌کند. */
 export function mergeEdgeAutoScrollRef<T extends HTMLElement>(
   edgeRef: (node: T | null) => void,
   externalRef?: Ref<T> | null

@@ -1,13 +1,13 @@
 /**
- * Service-worker cache law for Karvita.
- * Shell static assets may be cached. Documents, RSC payloads, Nest proxy,
- * and credentialed API traffic are always NetworkOnly (never offline replay).
+ * قانون کش service worker.
+ * دارایی استاتیک شِل قابل کش است. سند، payload RSC، پروکسی Nest،
+ * و ترافیک API با credential همیشه `NetworkOnly` است (بدون replay آفلاین).
  */
 
 export const PWA_OFFLINE_PATH = '/offline';
 export const PWA_SW_PATH = '/sw.js';
 
-/** Same-origin static shell that is safe to CacheFirst. */
+/** شِل استاتیک هم‌مبدأ که `CacheFirst` برایش امن است. */
 export const PWA_STATIC_CACHE_PATH =
   /^(?:\/_next\/static\/|\/brand\/|\/fonts\/|\/marketing\/)/;
 
@@ -19,7 +19,7 @@ export type PwaRequestSnapshot = {
   search?: string;
   mode?: string;
   destination?: string;
-  /** Lowercase header names. */
+  /** نام هدر با حروف کوچک. */
   headers?: Record<string, string | null | undefined>;
 };
 

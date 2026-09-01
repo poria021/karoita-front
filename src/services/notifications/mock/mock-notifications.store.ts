@@ -67,7 +67,6 @@ export function markAllMockNotificationsAsRead(): AppNotification[] {
   return cloneList();
 }
 
-/** Test-only reset to seed. */
 export function resetMockNotificationsForTests(): void {
   notifications = SEED.map((item) => ({ ...item }));
 }

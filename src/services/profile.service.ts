@@ -48,13 +48,8 @@ export interface UpdateOnboardingProfilePayload {
 }
 
 /**
- * Determines approved/docStatus after a profile save.
- * - super_admin is always approved.
- * - Once a user is already `approved`, subsequent saves (e.g. editing org
- *   fields like province/city/district/school) must NOT push them back to
- *   `pending_admin` — approval status is preserved.
- * - Otherwise (not_submitted / rejected / pending_admin), a save puts the
- *   profile into pending_admin review, same as before.
+ * بعد از ذخیره: `super_admin` همیشه تأییدشده است.
+ * اگر قبلاً `approved` بوده، ذخیرهٔ بعدی (مثلاً ویرایش استان) او را به `pending_admin` برنمی‌گرداند.
  */
 function approvalFields(
   role: UserRole,
@@ -91,16 +86,9 @@ function friendlyError(error: unknown): Error {
 }
 
 /**
- * Profile facade — identity reads/writes + onboarding patch.
- * Mock and real keep the same public DTO shape.
- *
- * Nest map:
- * - GET  /profile
- * - PUT  /profile
- * - PUT  /profile/identity-document
+ * نمای پروفایل و پچ آنبوردینگ. شکل DTO در mock و real یکی است.
  */
 export class ProfileService {
-  /** GET /profile */
   static async getProfile(token?: string): Promise<ProfileDto> {
     try {
       if (!isMockApiMode()) {
@@ -115,13 +103,12 @@ export class ProfileService {
     }
   }
 
-  /** PUT /profile */
   static async updateProfile(
     data: ProfileDto,
     token?: string,
-    /** شناسهٔ فایل عکس بعد از آپلود — به Nest PATCH ارسال می‌شه که photo رو لینک کند. */
+    /** شناسهٔ فایل بعد از آپلود — به PATCH Nest می‌رود تا `photo` لینک شود. */
     photoFileId?: string,
-    /** URL مطلق ساخته‌شده از signed PUT (اگر Nest فقط کلید S3 برگرداند). */
+    /** URL مطلق از signed PUT اگر Nest فقط کلید S3 برگرداند. */
     photoPublicUrl?: string
   ): Promise<{ success: boolean; message: string }> {
     try {
@@ -168,7 +155,7 @@ export class ProfileService {
     }
   }
 
-  /** Onboarding submit — real path reuses PUT /profile */
+  /** ارسال آنبوردینگ در real همان `updateProfile` است. */
   static async updateOnboardingProfile(
     payload: UpdateOnboardingProfilePayload
   ): Promise<User> {
@@ -209,7 +196,7 @@ export class ProfileService {
     return toPublicUser(updated);
   }
 
-  /** PUT /profile/identity-document — WebP data-URL only */
+  /** فقط data-URL از نوع WebP. */
   static async updateIdentityDocument(
     documentBase64: string,
     token?: string

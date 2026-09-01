@@ -23,17 +23,16 @@ export function subscribePwaInstallAvailability(listener: Listener): () => void 
 export function captureBeforeInstallPrompt(
   event: KarvitaBeforeInstallPromptEvent
 ): void {
-  // Chrome logs "Banner not shown" whenever preventDefault runs without an
-  // immediate prompt() — that is the deferred-install contract, not a leak.
+  // Chrome با `preventDefault` بدون `prompt()` فوری «Banner not shown» می‌نویسد؛ قرارداد نصب تأخیری است، نه نشت.
   event.preventDefault();
   deferredPrompt = event;
   emit();
 }
 
 /**
- * Bind once per JS realm. React Strict Mode and Fast Refresh remount PwaBoot
- * without re-firing beforeinstallprompt; stacking listeners repeats Chrome's
- * banner warning and can drop the deferred event.
+ * یک‌بار در هر JS realm. Strict Mode و Fast Refresh، `PwaBoot` را دوباره mount می‌کنند
+ * بدون اینکه `beforeinstallprompt` دوباره بیاید؛ شنوندهٔ تکراری هشدار بنر Chrome را تکرار
+ * می‌کند و ممکن است رویداد deferred را از دست بدهد.
  */
 export function ensureBeforeInstallPromptCapture(): void {
   if (typeof window === 'undefined' || removeInstallPromptCapture) return;
@@ -49,7 +48,7 @@ export function ensureBeforeInstallPromptCapture(): void {
   };
 }
 
-/** Test-only: drop the singleton listener and captured prompt. */
+/** فقط تست: شنوندهٔ singleton و prompt ذخیره‌شده را بردار. */
 export function resetBeforeInstallPromptCapture(): void {
   removeInstallPromptCapture?.();
   deferredPrompt = null;
@@ -105,7 +104,7 @@ export function isIosSafariInstallHint(): boolean {
   return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
 }
 
-/** Safari on macOS also never fires `beforeinstallprompt` — needs manual steps too. */
+/** Safari روی macOS هم `beforeinstallprompt` نمی‌فرستد — نصب دستی لازم است. */
 export function isMacSafariInstallHint(): boolean {
   if (typeof window === 'undefined') return false;
   if (isDisplayStandalone()) return false;
@@ -118,7 +117,7 @@ export function isMacSafariInstallHint(): boolean {
 
 export type ManualInstallPlatform = 'ios' | 'mac-safari' | null;
 
-/** Which manual install instructions (if any) this browser needs. */
+/** اگر این مرورگر نصب native ندارد، کدام راهنمای دستی را نشان دهیم. */
 export function getManualInstallPlatform(): ManualInstallPlatform {
   if (isIosSafariInstallHint()) return 'ios';
   if (isMacSafariInstallHint()) return 'mac-safari';

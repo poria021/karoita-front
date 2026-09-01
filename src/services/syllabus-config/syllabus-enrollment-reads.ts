@@ -12,8 +12,8 @@ import type {
 } from '@/types/syllabus-config';
 
 /**
- * Pure syllabus reads for enrollment consumers.
- * Nest can replace snapshot sourcing; these helpers stay domain-stable.
+ * خواندن خالص سرفصل برای مصرف‌کنندهٔ ثبت‌نام.
+ * منبع snapshot را Nest می‌تواند عوض کند؛ این هلپرها دامنه را ثابت نگه می‌دارند.
  */
 
 export function pickActiveTermForKind(

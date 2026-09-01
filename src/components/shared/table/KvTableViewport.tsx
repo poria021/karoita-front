@@ -17,14 +17,13 @@ export type KvTableViewportProps = {
   hasMore?: boolean;
   isLoadingMore?: boolean;
   /**
-   * Soft refresh / in-viewport busy. For first-load empty body,
-   * callers keep the header and use `KvTableBusy` / rows / `KvTableEmpty`
-   * in the body via `getAdminTableBodyPhase`.
+   * شلوغی رفرش نرم داخل ویوپورت. برای بدنهٔ خالی بار اول، هدر بماند و
+   * `KvTableBusy` / ردیف / `KvTableEmpty` از `getAdminTableBodyPhase` بیاید.
    */
   isBusy?: boolean;
   /**
-   * Panel chrome via radius/border tokens (`rounded-kv-control`).
-   * Set false only when a parent already owns the frame (rare).
+   * کروم پنل با توکن شعاع/بردر (`rounded-kv-control`).
+   * فقط وقتی والد خودش فریم دارد خاموش کنید.
    */
   framed?: boolean;
   endMessage?: string;

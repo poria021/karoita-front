@@ -1,10 +1,8 @@
 import { create } from 'zustand';
 
 /**
- * In-memory cache for Karvita dashboard modules (SPA revisit).
- * Not persisted — no tokens/secrets. In-memory only for SPA revisit.
- *
- * Caps entry count so long SPA sessions (many tab/search keys) cannot grow without bound.
+ * کش حافظهٔ ماژول‌های داشبورد برای بازدید مجدد SPA.
+ * persist نمی‌شود (بدون توکن). سقف کلید جلوی رشد بی‌پایان نشست‌های طولانی را می‌گیرد.
  */
 type DashboardModuleCacheState = {
   data: Record<string, unknown>;
@@ -16,9 +14,9 @@ type DashboardModuleCacheState = {
   invalidatePrefix: (prefix: string) => void;
 };
 
-/** Soft max for list/data keys (search × tab combinations). */
+/** سقف نرم کلیدهای لیست/داده (ترکیب جستجو × تب). */
 const MAX_DATA_KEYS = 48;
-/** Soft max for per-module chrome blobs. */
+/** سقف نرم chrome هر ماژول. */
 const MAX_CHROME_KEYS = 24;
 
 function setCappedRecord(
@@ -27,7 +25,7 @@ function setCappedRecord(
   value: unknown,
   maxKeys: number
 ): Record<string, unknown> {
-  // Re-insert key at the end so updates count as most-recent (LRU-ish).
+  // کلید را ته رکورد می‌گذاریم تا به‌روز‌رسانی تازه‌ترین باشد (تقریباً LRU).
   const { [key]: _removed, ...rest } = record;
   void _removed;
   const next: Record<string, unknown> = { ...rest, [key]: value };

@@ -18,9 +18,8 @@ export type SidebarNavListProps = {
 };
 
 /**
- * Shared L1/L2 nav item renderer, extracted out of Sidebar so AdminSidebar
- * can drive the same `visibleMenu` map without duplicating it. Behavior only
- * — no shell-specific chrome lives here.
+ * رندر مشترک آیتم `L1`/`L2` — از `Sidebar` جدا شد تا `AdminSidebar` همان `visibleMenu` را بدون تکرار براند.
+ * فقط رفتار؛ کروم مخصوص شل اینجا نیست.
  */
 export function SidebarNavList({
   visibleMenu,

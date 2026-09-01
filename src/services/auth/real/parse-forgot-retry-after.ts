@@ -1,8 +1,5 @@
 /**
- * Nest OTP send endpoints (`forgot/password`, `register/request-otp`, …) return `{ time, message? }`.
- *
- * `time` is the resend cooldown in seconds. `message` is ignored on purpose:
- * some environments put the OTP itself there, and the UI must never display it.
+ * پاسخ OTP Nest فیلد `time` = cooldown ثانیه است. `message` را نشان نده — بعضی محیط‌ها خود OTP را آنجا می‌گذارند.
  */
 export const DEFAULT_FORGOT_RETRY_AFTER_SECONDS = 60;
 const MAX_FORGOT_RETRY_AFTER_SECONDS = 600;

@@ -9,10 +9,8 @@ import { buildNestUpdateUserBody } from '../profile-real-payload';
 import { ProfileServiceError } from './profile.mappers';
 
 /**
- * Map Nest `/auth/me` response (NestUserDto) → ProfileDto shape.
- *
- * بک‌اند province، university، degree را به‌صورت آرایه‌ای از {_id, title} برمی‌گرداند.
- * mapNestAuthUser → readOrgArray این فرمت را handle می‌کند.
+ * `GET /api/v1/auth/me` (`NestUserDto`) → `ProfileDto`.
+ * استان/دانشکده/رشته آرایهٔ `{_id, title}` است؛ `mapNestAuthUser` آن را باز می‌کند.
  */
 function nestUserToProfileDto(raw: unknown): ProfileDto {
   try {
@@ -107,18 +105,14 @@ function nestUserToProfileDto(raw: unknown): ProfileDto {
 }
 
 /**
- * Nest profile transport — used by ProfileService when API_MODE=real.
- * GET   → /api/v1/auth/me    (returns NestUserDto)
- * Identity write (firstName/lastName/photo) → PATCH /api/v1/auth/me
- *   is done in ProfileService.updateProfile via AuthService.updateMe.
- * Org write → PATCH /api/v1/users/{id} (NestUpdateUserDto) — AuthUpdateDto
- *   does not accept province/university/school/… and drops them silently.
+ * GET → `/api/v1/auth/me`. هویت با `PATCH /api/v1/auth/me` در `ProfileService.updateProfile`.
+ * فیلد سازمانی را آن DTO نمی‌پذیرد و بی‌صدا دور می‌اندازد — فقط `PATCH /api/v1/users/{id}`.
  */
 export async function requestProfile(
   method: 'GET' | 'PUT',
   token?: string,
   data?: ProfileDto,
-  /** شناسهٔ فایل عکس بعد از آپلود به S3 — به NestUpdateUserDto.photo اضافه می‌شه. */
+  /** شناسهٔ فایل بعد از آپلود S3 — به `NestUpdateUserDto.photo` می‌رود. */
   photoFileId?: string
 ): Promise<{ profileDto: unknown; nestUser?: User }> {
   if (!apiClient.isConfigured) {
@@ -140,16 +134,9 @@ export async function requestProfile(
       throw new ProfileServiceError('نشست کاربری یافت نشد. لطفاً دوباره وارد شوید.', 401);
     }
 
-    // هویت (نام، نام‌خانوادگی، عکس) با PATCH /api/v1/auth/me در
-    // ProfileService.updateProfile نوشته می‌شود.
-    //
-    // ⚠️ PATCH /api/v1/auth/me (`NestAuthUpdateDto`) فیلدهای سازمانی
-    // (استان، دانشکده، رشته، کد، شهر، منطقه، مدرسه) را نمی‌پذیرد و بی‌صدا
-    // نادیده می‌گیرد. این‌ها فقط روی PATCH /api/v1/users/{id} ذخیره می‌شوند.
     const body = await buildNestUpdateUserBody(data, activeUser.docStatus, photoFileId);
     const raw = await usersApi.update(activeUser.id, body, token);
-    // برای PUT، هم ProfileDto هم User کامل (با docUrl) رو برمیگردونیم
-    // تا profile.service بتونه docUrl رو در store ذخیره کنه
+    // `PUT` هم `ProfileDto` و هم User کامل (`docUrl`) برمی‌گرداند تا store ذخیره کند.
     const nestUser = mapNestAuthUser(raw);
     return { profileDto: nestUserToProfileDto(raw), nestUser };
   } catch (error) {
@@ -160,7 +147,6 @@ export async function requestProfile(
   }
 }
 
-/** PUT /profile/identity-document */
 export async function requestIdentityDocument(
   documentBase64: string,
   token?: string

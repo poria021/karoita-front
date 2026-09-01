@@ -10,9 +10,8 @@ import { useUserStore } from '@/store/useUserStore';
 import { canAccessAdminControlPlane } from '@/utils/RoleStrategyMap';
 
 /**
- * Guards `/karvita/admin` modules. مدیر ارشد همه را می‌بیند؛
- * دستیار مدیر ارشد ماژول‌های اجرایی را می‌بیند، به‌جز ایجاد حساب
- * سازمانی و تنظیمات عمومی ترم.
+ * گیت ماژول‌های `/karvita/admin`. مدیر ارشد همه را می‌بیند؛
+ * دستیار فقط اجرایی را می‌بیند — بدون ایجاد حساب سازمانی و تنظیمات ترم.
  */
 export function SuperAdminModuleGuard({ children }: { children: ReactNode }) {
   const router = useRouter();

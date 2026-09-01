@@ -2,7 +2,7 @@ import type { User } from '@/types/auth';
 
 /**
  * انتخاب واحد کارورزی / کارآموزی — قراردادهای mock Phase 2.
- * Nest DTOs may expand later; keep English digits in data contracts.
+ * DTOهای Nest ممکن است بعداً گسترده شوند؛ ارقام در قرارداد داده انگلیسی بمانند.
  */
 
 export type InternshipCourseKind = 'internship' | 'apprenticeship';
@@ -88,7 +88,7 @@ export type InternshipWeeklySessionState =
 export type InternshipWeeklyReportFile = {
   id: string;
   name: string;
-  /** English decimal megabytes in data contracts; display with `toPersianDigits`. */
+  /** مگابایت اعشاری انگلیسی در قرارداد داده؛ نمایش با `toPersianDigits`. */
   sizeMb: number;
   mimeType?: string;
 };
@@ -192,7 +192,7 @@ export type InternshipEnrollmentPageState = {
     wasDropped: boolean;
     droppedSupervisorName: string | null;
   } | null;
-  /** Present on S6 — the other active course the trainee already holds this term. */
+  /** در S6 — درس فعال دیگری که کارآموز همین ترم دارد. */
   conflictEnrollment: {
     level: InternshipEnrollmentLevel;
     courseTitle: string;

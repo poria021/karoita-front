@@ -79,15 +79,15 @@ export function IdentityForm({
     setSubmitError(null);
     try {
       if (isMockApiMode()) {
-        // ─── Mock mode: عکس رو به base64 تبدیل کن و مستقیم در mock user ذخیره کن
-        // FilesService در mock کار نمی‌کنه (requireNestTransport throw می‌کنه)
+        // mock: عکس را به base64 تبدیل کن و مستقیم در کاربر موک ذخیره کن.
+        // `FilesService` در mock کار نمی‌کند (`requireNestTransport` throw می‌کند).
         if (identityDocument) {
           const base64 = await readBlobAsDataUrl(identityDocument);
           await ProfileService.updateIdentityDocument(base64, token);
         }
         await ProfileService.updateProfile(data, token);
       } else {
-        // ─── Real mode: آپلود دومرحله‌ای به S3
+        // real: آپلود دومرحله‌ای به S3
         let photoFileId: string | undefined;
         let photoPublicUrl: string | undefined;
         if (identityDocument) {

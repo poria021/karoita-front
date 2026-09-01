@@ -18,7 +18,7 @@ export type OrgStructureColumnDef = {
   key: OrgStructureColumnKey;
   label: string;
   align?: KvTableAlign;
-  /** Suffix after Persian digits for count columns (e.g. «نفر»). */
+  /** پسوند بعد از رقم فارسی برای ستون شمار (مثل «نفر»). */
   countSuffix?: string;
 };
 

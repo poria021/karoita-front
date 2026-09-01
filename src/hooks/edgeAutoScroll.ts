@@ -1,6 +1,5 @@
 /**
- * Pure velocity helper for Google-Translate-style edge hover auto-scroll.
- * Negative = scroll up, positive = scroll down, 0 = idle.
+ * سرعت اسکرول لبه‌ای (مثل Translate): منفی بالا، مثبت پایین، `0` بی‌حرکت.
  */
 export function computeEdgeScrollVelocity(input: {
   offsetY: number;

@@ -19,16 +19,8 @@ import {
 import type { OrgStructureEntityKind } from '@/types/org-structure';
 
 /**
- * Child catalogs that decide whether a province/city/district delete
- * button should lock. Same rule as mock (`buildOrgDeleteBlockedSets`);
- * Nest has no `canDelete` flag on list rows.
- *
- * School GET often omits `educationId` (`education: {}`) — district
- * blocking from schools is best-effort from whatever FK the mapper
- * recovers. Province/city blocking still sees cities, educations,
- * faculties, and populated school.province / school.city.
- * Faculty does not lock a city. Faculty/major user locks use
- * optional Nest `usersCount` on the list row, not this index.
+ * آیا حذف استان/شهر/منطقه قفل شود — همان قاعدهٔ mock؛ Nest فلگ `canDelete` ندارد.
+ * GET مدرسه اغلب `educationId` ندارد (`education: {}`)؛ قفل منطقه best-effort است.
  */
 const DELETE_BLOCKED_TTL_MS = 30_000;
 
@@ -91,7 +83,7 @@ export async function getRealDeleteBlockedSets(options?: {
   }
 }
 
-/** Defense in depth for delete commit — UI already hides the action. */
+/** دفاع در عمق هنگام commit حذف؛ UI از قبل اکشن را پنهان می‌کند. */
 export async function assertRealOrgDeleteAllowed(
   kind: OrgStructureEntityKind,
   id: string

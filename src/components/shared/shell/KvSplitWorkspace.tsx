@@ -26,7 +26,7 @@ export type KvSplitWorkspaceProps = {
 
 /**
  * ورک‌اسپیس دو ستونه (دسکتاپ) + اسلات موبایل — فقط لایوت، بدون منطق دامنه.
- * Border + equal vertical padding sit on the content below tabs (not under the tab track).
+ * بردر و پد عمودی روی محتوای زیر تب است نه زیر ترک تب.
  */
 export function KvSplitWorkspace({
   tabs,

@@ -32,7 +32,7 @@ const TONE_CLASS: Record<KvCardTone, string> = {
   muted: 'border-kv-border bg-kv-surface-muted shadow-kv-raised',
   danger: [
     'border-kv-danger-border bg-kv-danger-soft shadow-none',
-    // Semi-transparent kv-field bleeds the soft tint — force opaque near-white fill.
+    // `kv-field` نیمه‌شفاف ته‌رنگ را می‌کشد — پر نزدیک‌سفید اجباری است.
     '[&_[data-slot=kv-select-trigger]]:bg-kv-surface',
     '[&_[data-slot=kv-select-trigger]]:focus-visible:bg-kv-surface',
     '[&_[data-slot=kv-select-trigger]]:data-[state=open]:bg-kv-surface',
@@ -70,8 +70,8 @@ export function KvCard({
     <Card
       data-slot="kv-card"
       className={cn(
-        // Default visible so in-card overlays (searchable selects) are not clipped.
-        // fill/fillMin keep overflow-hidden for intentional scroll wells.
+        // پیش‌فرض visible تا اورلی داخل کارت (سلکت جست‌وجوپذیر) بریده نشود.
+        // `fill`/`fillMin` برای چاه اسکرول عمدی `overflow-hidden` می‌مانند.
         'gap-0 overflow-visible rounded-kv-control font-sans text-kv-text',
         TONE_CLASS[tone],
         PADDING_CLASS[padding],
@@ -166,7 +166,7 @@ export function KvCardFooter({
     <CardFooter
       data-slot="kv-card-footer"
       className={cn(
-        // Nested under KvCardContent — no extra X pad so actions align with fields.
+        // زیر `KvCardContent` — پد افقی اضافه نباشد تا اکشن با فیلدها هم‌تراز بماند.
         'flex items-center justify-end gap-kv-pair px-0',
         className
       )}

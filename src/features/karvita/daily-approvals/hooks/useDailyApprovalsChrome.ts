@@ -34,7 +34,7 @@ export type DailyApprovalsChrome = {
   termId: string;
 };
 
-/** Filter chrome + module cache — no list/mutation concerns. */
+/** chrome فیلتر + کش ماژول — بدون دغدغهٔ لیست/mutation. */
 export function useDailyApprovalsChrome() {
   const getChrome = useDashboardModuleCache((state) => state.getChrome);
   const setChrome = useDashboardModuleCache((state) => state.setChrome);

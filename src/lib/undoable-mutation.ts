@@ -6,35 +6,33 @@ export const UNDOABLE_MUTATION_DEFAULT_MS = 5_000;
 export type UndoableToastTone = 'default' | 'success' | 'error' | 'warning';
 
 export type UndoableMutationOptions<T> = {
-  /** Past-tense result copy (shown immediately; single toast, no follow-up success). */
+  /** متن نتیجه به زمان گذشته (فوری؛ یک toast، بدون موفقیت جدا). */
   message: string;
   description?: string;
   undoLabel?: string;
   durationMs?: number;
   tone?: UndoableToastTone;
-  /** Apply optimistic UI immediately so the user sees the change. */
   apply: () => void;
-  /** Restore UI when the user presses Undo (and on commit failure). */
+  /** بازگردانی UI با «لغو» و وقتی `commit` شکست بخورد. */
   revert: () => void;
   /**
-   * Persist via Facade immediately after apply so a refresh keeps the change.
-   * Do not defer writes until toast close — mock localStorage must survive reload.
+   * نوشتن Facade بلافاصله بعد از `apply` تا refresh داده را نگه دارد.
+   * نوشتن را تا بستن toast عقب نیندازید — mock باید در localStorage زنده بماند.
    */
   commit: () => Promise<T>;
   /**
-   * Undo after a successful commit — reverse the Facade write, then `revert` runs.
-   * Required for Undo to restore persisted mock/real state, not only the UI snapshot.
+   * بعد از `commit` موفق، نوشتن Facade را برعکس می‌کند، بعد `revert`.
+   * بدون این، «لغو» فقط اسنپ‌شات UI را برمی‌گرداند نه state ذخیره‌شده.
    */
   reverse?: (result: T) => Promise<void>;
   onCommitted?: (result: T) => void | Promise<void>;
   onUndone?: () => void;
   onError?: (error: unknown) => void;
   /**
-   * اگر `true` باشد، commit تا بسته‌شدن toast به تأخیر می‌افتد.
-   * وقتی کاربر «لغو» بزند قبل از بسته‌شدن، commit اصلاً ارسال نمی‌شود.
-   * فقط برای real mode استفاده کن — mock mode باید فوری commit کنه
-   * تا داده در localStorage قبل از هر reload ذخیره شده باشد.
-   * پیش‌فرض: false (رفتار فعلی حفظ می‌شود)
+   * اگر `true` باشد، `commit` تا بسته شدن toast عقب می‌افتد.
+   * «لغو» قبل از بسته شدن اصلاً `commit` را نمی‌فرستد.
+   * فقط در real؛ mock باید فوری `commit` کند تا قبل از reload در localStorage باشد.
+   * پیش‌فرض: `false`.
    */
   deferCommit?: boolean;
 };
@@ -45,9 +43,7 @@ export type UndoableLocalChangeOptions = {
   undoLabel?: string;
   durationMs?: number;
   tone?: UndoableToastTone;
-  /** Apply the local UI change immediately. */
   apply: () => void;
-  /** Revert when the user presses Undo. */
   revert: () => void;
 };
 
@@ -88,17 +84,13 @@ function showUndoableToast(
 }
 
 /**
- * Optimistic undoable Facade write.
+ * نوشتن Facade با UI خوش‌بینانه و قابلیت لغو.
  *
- * حالت پیش‌فرض (deferCommit: false):
- *   UI و commit هر دو فوری اجرا می‌شوند تا refresh داده را در mock/localStorage
- *   حفظ کند. Undo پس از تکمیل commit، تابع `reverse` را صدا می‌کند.
+ * پیش‌فرض (`deferCommit: false`): UI و `commit` هر دو فوری تا refresh داده را
+ * در mock/localStorage نگه دارد. Undo بعد از `commit`، `reverse` را صدا می‌کند.
  *
- * حالت deferred (deferCommit: true):
- *   فقط UI فوری به‌روز می‌شود. commit تا بسته‌شدن toast به تأخیر می‌افتد.
- *   اگر کاربر «لغو» بزند قبل از بسته‌شدن، commit اصلاً ارسال نمی‌شود و
- *   UI به حالت قبل برمی‌گردد — بدون هیچ درخواستی به سرور.
- *   فقط برای real mode مناسب است (mock mode به commit فوری نیاز دارد).
+ * `deferCommit: true`: فقط UI فوری است. `commit` تا بسته شدن toast عقب می‌افتد.
+ * «لغو» قبل از بسته شدن اصلاً درخواست نمی‌فرستد. فقط برای real مناسب است.
  */
 export function scheduleUndoableMutation<T>(
   options: UndoableMutationOptions<T>
@@ -115,9 +107,7 @@ export function scheduleUndoableMutation<T>(
 
   options.apply();
 
-  // تابع مشترک برای اجرای commit — در هر دو حالت فوری و deferred استفاده می‌شود.
   const runCommit = async (): Promise<T | undefined> => {
-    // اگر کاربر قبلاً undo زده، commit را ارسال نکن
     if (undone) return undefined;
     try {
       const result = await options.commit();
@@ -138,7 +128,7 @@ export function scheduleUndoableMutation<T>(
     }
   };
 
-  // حالت فوری: commit بلافاصله اجرا می‌شود (رفتار قبلی برای mock mode)
+  // mock و حالت فوری: `commit` همان لحظه می‌رود
   const immediateCommitPromise = deferCommit ? null : runCommit();
 
   return showUndoableToast(tone, options.message, {
@@ -146,7 +136,7 @@ export function scheduleUndoableMutation<T>(
     description,
     duration: durationMs,
     ...undoableToastChrome(tone, durationMs),
-    // حالت deferred: وقتی toast بسته می‌شود (auto یا دستی) commit ارسال می‌شود
+    // deferred: بسته شدن toast (خودکار یا دستی) `commit` را می‌فرستد
     onAutoClose: deferCommit ? () => { void runCommit(); } : undefined,
     onDismiss: deferCommit ? () => { void runCommit(); } : undefined,
     action: {
@@ -156,7 +146,7 @@ export function scheduleUndoableMutation<T>(
         undone = true;
         void (async () => {
           if (immediateCommitPromise !== null) {
-            // حالت فوری: صبر کن commit تمام شود، سپس reverse بزن
+            // فوری: صبر تا `commit` تمام شود، بعد `reverse`
             await immediateCommitPromise;
             if (commitFailed) return;
             try {
@@ -171,7 +161,7 @@ export function scheduleUndoableMutation<T>(
               );
             }
           } else {
-            // حالت deferred: commit هنوز نرفته، فقط UI را برگردان
+            // deferred: `commit` هنوز نرفته؛ فقط UI برگردد
             options.revert();
             options.onUndone?.();
           }
@@ -181,9 +171,7 @@ export function scheduleUndoableMutation<T>(
   });
 }
 
-/**
- * Apply a local UI change immediately, with a single undo toast (no second alert).
- */
+/** تغییر محلی فوری با یک toast لغو (بدون هشدار دوم). */
 export function scheduleUndoableLocalChange(
   options: UndoableLocalChangeOptions
 ): string | number {
@@ -212,20 +200,15 @@ export function scheduleUndoableLocalChange(
 }
 
 /**
- * غیرقابل-لغو: برای هر عملیاتی به‌جز حذف/دیلیت (ایجاد، ویرایش، تغییر وضعیت و غیره).
- * برخلاف scheduleUndoableMutation هیچ دکمه «لغو» نشان نمی‌دهد و commit همیشه همان لحظه اجرا می‌شود
- * (هیچ deferCommitی وجود ندارد). اگر commit شکست بخورد، UI با `revert` به حالت قبل برمی‌گردد.
+ * بدون لغو: ایجاد/ویرایش/تغییر وضعیت. `commit` همان لحظه است؛ شکست → `revert`.
  */
 export type OptimisticMutationOptions<T> = {
   message: string;
   description?: string;
   tone?: UndoableToastTone;
   durationMs?: number;
-  /** Apply optimistic UI immediately so the user sees the change. */
   apply: () => void;
-  /** Roll back the optimistic UI if commit fails. */
   revert: () => void;
-  /** Persist immediately — there is no undo window to wait out. */
   commit: () => Promise<T>;
   onCommitted?: (result: T) => void | Promise<void>;
   onError?: (error: unknown) => void;
@@ -262,7 +245,7 @@ export function scheduleOptimisticMutation<T>(
 }
 
 /**
- * غیرقابل-لغو: فقط وضعیت محلی را فوراً تغییر می‌دهد و یک toast ساده نشان می‌دهد (بدون دکمه لغو).
+ * بدون لغو: فقط وضعیت محلی فوری و یک toast ساده.
  */
 export type LocalChangeOptions = {
   message: string;

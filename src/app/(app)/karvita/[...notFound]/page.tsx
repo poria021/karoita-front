@@ -1,10 +1,9 @@
 import { notFound } from 'next/navigation';
 
 /**
- * Unmatched `/karvita/*` URLs do not hit `(app)/not-found.tsx` by themselves
- * (Next serves root `app/not-found` outside the shell). This catch-all matches
- * inside `(app)/layout` then throws `notFound()` so the inset status UI keeps
- * Header/Sidebar.
+ * URL بی‌تطبیق `/karvita/*` به‌تنهایی به `(app)/not-found.tsx` نمی‌خورد
+ * (نکست `app/not-found` ریشه را بیرون شِل سرو می‌کند). این catch-all داخل
+ * `(app)/layout` می‌خورد و `notFound()` می‌اندازد تا UI وضعیت inset، Header/Sidebar را نگه دارد.
  */
 export default function KarvitaUnmatchedCatchAllPage() {
   notFound();

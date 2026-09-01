@@ -126,10 +126,9 @@ describe('scheduleUndoableMutation', () => {
     });
 
     expect(apply).toHaveBeenCalledTimes(1);
-    // commit نباید فوری صدا شده باشه
     expect(commit).not.toHaveBeenCalled();
 
-    // شبیه‌سازی کلیک دکمه «لغو» قبل از بسته‌شدن toast
+    // شبیه‌سازی کلیک دکمهٔ «لغو» قبل از بسته شدن toast
     const toastMockWithCalls = toastMock as unknown as {
       mock: { calls: Array<[unknown, { action?: { onClick: () => void; label: string } }]> };
     };
@@ -140,7 +139,6 @@ describe('scheduleUndoableMutation', () => {
       expect(revert).toHaveBeenCalledTimes(1);
       expect(onUndone).toHaveBeenCalledTimes(1);
     });
-    // commit هرگز نباید ارسال شده باشه
     expect(commit).not.toHaveBeenCalled();
   });
 
@@ -162,7 +160,7 @@ describe('scheduleUndoableMutation', () => {
     expect(apply).toHaveBeenCalledTimes(1);
     expect(commit).not.toHaveBeenCalled();
 
-    // شبیه‌سازی بسته‌شدن خودکار toast
+    // شبیه‌سازی بسته شدن خودکار toast
     const toastMockWithCalls = toastMock as unknown as {
       mock: { calls: Array<[unknown, { onAutoClose?: () => void }]> };
     };

@@ -48,9 +48,9 @@ export function useAdminGate() {
       const isSameNumber = data.mobile === pendingMobile && !countdown.canResend;
 
       if (!isSameNumber) {
-        // ✅ اول OTP میفرستیم — اگر شماره مجاز نباشه اینجا خطا میده
+        // اول OTP — اگر شماره مجاز نباشد همین‌جا خطا می‌دهد.
         await AuthService.sendAdminGateOtp(data.mobile);
-        // ✅ فقط بعد از موفقیت به step 2 میریم
+        // فقط بعد از موفقیت به step 2 برو.
         setPendingMobile(data.mobile);
         countdown.restart();
         setStep(2);
@@ -70,10 +70,10 @@ export function useAdminGate() {
           }, 50);
         }
       } catch {
-        // noop
+        // فوکوس OTP در محیط بدون `document` نباید جریان را بشکند.
       }
     } catch (error) {
-      // ✅ کاربر در step 1 می‌ماند و خطا روی فیلد شماره نمایش داده می‌شود
+      // کاربر در step 1 می‌ماند و خطا روی فیلد شماره نمایش داده می‌شود.
       mobileForm.setError('mobile', {
         message: readAuthErrorMessage(error, 'ارسال کد تایید ناموفق بود.'),
       });

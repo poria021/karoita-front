@@ -3,9 +3,9 @@ import type { ReactNode } from 'react';
 import { AuthCardHost } from '@/features/shared/auth/components/AuthCardHost';
 
 /**
- * Shared canvas for /auth/login, /auth/register, /auth/forgot.
+ * بوم مشترک `/auth/login`، `/auth/register`، `/auth/forgot`.
  *
- * خود کارت داخل AuthCardHost است تا لوگو و فرم با هم SSR شوند.
+ * خود کارت داخل `AuthCardHost` است تا لوگو و فرم با هم SSR شوند.
  * میزبان روی layout می‌ماند تا عوض شدن تب فرم را خالی نکند.
  */
 export default function AuthCardGroupLayout({

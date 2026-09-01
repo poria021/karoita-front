@@ -1,6 +1,6 @@
 /**
- * Public barrel for mock daily-approvals store.
- * Implementation is split across persistence / query / mutations + pure derived helpers.
+ * بشکهٔ عمومی store mock تأیید روزانه.
+ * پیاده‌سازی در persistence / query / mutations و هلپرهای derived است.
  */
 
 export {

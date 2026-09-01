@@ -10,8 +10,8 @@ import {
 } from '@/store/authTransition';
 
 /**
- * Drops the auth overlay after this route's HTML has committed.
- * Mount in the destination layout — never in the origin shell.
+ * `overlay` احراز را بعد از commit HTML همین مسیر برمی‌دارد.
+ * در لایوت مقصد بگذار — نه در شل مبدأ.
  */
 export function AuthTransitionPaintRelease({
   when,

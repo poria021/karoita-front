@@ -8,7 +8,7 @@ function termTypeForKind(kind: DailyApprovalCourseKind): AcademicTermType {
   return kind === 'apprenticeship' ? 'modular' : 'semester';
 }
 
-/** internship → semester terms; apprenticeship → modular */
+/** کارورزی → ترم نیم‌سال؛ مهارت‌آموزی → پودمانی. */
 export function listTermsForDailyApprovalKind(
   kind: DailyApprovalCourseKind
 ): Array<{ id: string; title: string }> {

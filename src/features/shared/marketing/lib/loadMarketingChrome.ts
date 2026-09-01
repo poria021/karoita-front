@@ -12,20 +12,17 @@ export type MarketingChromeData = {
 };
 
 /**
- * Public chrome lists for marketing compositions.
+ * فهرست chrome عمومی برای ترکیب‌های مارکتینگ.
  *
- * In real-API mode the Nest landing endpoints are not yet implemented —
- * we short-circuit before calling the service so no [real-mode stub] warn
- * is emitted in the server log and no unnecessary network round-trip fires.
- * When the Nest /landing/* routes land, remove the isMockApiMode guard and
- * let the service handle both modes.
+ * در حالت real هنوز endpoint لندینگ Nest پیاده نشده —
+ * قبل از Facade کوتاه می‌کنیم تا هشدار `[real-mode stub]` در لاگ سرور نیاید
+ * و round-trip شبکهٔ بیهوده نزند. وقتی مسیر `/landing/*` Nest آمد،
+ * گارد `isMockApiMode` را بردارید تا سرویس هر دو حالت را هندل کند.
  */
 export async function loadMarketingChrome(): Promise<MarketingChromeData> {
   const { isMockApiMode } = await import('@/lib/api-mode');
   if (!isMockApiMode()) {
-    // Real-mode: Nest landing endpoints not yet implemented — return empty
-    // chrome silently instead of letting throwRealModeNotImplemented fire
-    // and pollute the server log with [real-mode stub] warnings.
+    // real: مسیر لندینگ Nest هنوز نیست — chrome خالی، بدون `throwRealModeNotImplemented`.
     return { banners: [], products: [], socials: [] };
   }
 

@@ -9,7 +9,7 @@ import {
 import { RouteService } from '@/services/route.service';
 
 /**
- * Organization + WebSite JSON-LD for the public marketing home (SSR).
+ * JSON-LD سازمان + وب‌سایت برای خانهٔ مارکتینگ عمومی (SSR).
  */
 export function MarketingJsonLd() {
   const siteOrigin = getSiteUrl().origin;

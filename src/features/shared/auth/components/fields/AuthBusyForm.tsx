@@ -12,8 +12,7 @@ interface AuthBusyFormProps {
 }
 
 /**
- * Locks fields on submit click and keeps them locked until the submit
- * promise settles (server response or validation failure).
+ * فیلدها را با کلیک submit قفل می‌کند تا promise تمام شود (پاسخ سرور یا شکست اعتبارسنجی).
  */
 export function AuthBusyForm({
   busy = false,

@@ -24,7 +24,7 @@ const kvTextFieldWrapperVariants = cva(
   {
     variants: {
       size: {
-        /* Product control height is locked to 44px for all sizes. */
+        /* ارتفاع کنترل همهٔ سایزها ۴۴px قفل است. */
         sm: 'h-11',
         md: 'h-11',
         lg: 'h-11',
@@ -65,7 +65,7 @@ const kvTextFieldInputVariants = cva(
   {
     variants: {
       size: {
-        /* Padding + type locked with control height (md). */
+        /* پد و تایپ با ارتفاع کنترل قفل‌اند (مثل md). */
         sm: 'px-3.5 text-xs md:text-xs',
         md: 'px-3.5 text-xs md:text-xs',
         lg: 'px-3.5 text-xs md:text-xs',

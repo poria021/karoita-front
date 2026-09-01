@@ -1,10 +1,7 @@
 /**
- * Auth-boot flags that must survive AppAuthGuard remounts.
- *
- * Next.js can remount the (app) client shell on segment navigation while the
- * JS runtime (memory tokens, Zustand) is still the same tab. A useState/useRef
- * inside the guard resets on that remount and would flash the full-viewport
- * loader between dashboard tabs/modules.
+ * پرچم boot نشست باید از remount گارد `(app)` جان سالم به در ببرد.
+ * Next ممکن است پوسته را عوض کند در حالی که حافظهٔ تب (توکن، Zustand) همان است؛
+ * `useState` داخل گارد لودر تمام‌صفحه بین ماژول‌ها را چشمک می‌زند.
  */
 
 export type RuntimeAuthBoot = 'authenticated' | 'unauthenticated';

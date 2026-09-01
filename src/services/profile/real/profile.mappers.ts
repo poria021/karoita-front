@@ -31,7 +31,7 @@ function asString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
-/** فیلدهای سازمانی چندانتخابی مثل province/city/college/district/school آرایه هستند. */
+/** فیلدهای سازمانی چندانتخابی مثل `province`/`city`/`college`/`district`/`school` آرایه هستند. */
 function asStringArray(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined;
   return value.filter((item): item is string => typeof item === 'string');

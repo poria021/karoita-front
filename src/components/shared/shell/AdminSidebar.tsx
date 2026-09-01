@@ -28,11 +28,9 @@ import { faIcons } from '@/utils/iconMap';
 import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
 
 /**
- * Staff-admin rail — `fixed`, full viewport height on the inline-start
- * edge (RTL = right). Brand lives here, not in the header. Out of flow;
- * header + main clear it with `kvShellAdminRailClearanceClassName`.
- * Nav + mobile drawer are shared with Sidebar (SidebarNavList /
- * useSidebarMobileDrawer).
+ * ریل ستادی — `fixed` تمام‌قد در لبهٔ شروع (RTL = راست). برند اینجاست نه در هدر.
+ * خارج از جریان؛ هدر و `main` با `kvShellAdminRailClearanceClassName` خالی می‌کنند.
+ * ناوبار و دراور موبایل با `Sidebar` مشترکند (`SidebarNavList` / `useSidebarMobileDrawer`).
  */
 export function AdminSidebar() {
   const activeUser = useUserStore((state) => state.activeUser);

@@ -9,9 +9,9 @@ export type ModuleEmptyKind =
 
 export type ModuleEmptyCopy = {
   title: string;
-  /** One sentence: why it is empty. */
+  /** یک جمله: چرا خالی است. */
   description: string;
-  /** Default primary CTA label when the caller supplies an action. */
+  /** برچسب CTA پیش‌فرض وقتی فراخواننده action می‌دهد. */
   actionLabel: string;
 };
 

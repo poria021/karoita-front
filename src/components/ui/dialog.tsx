@@ -61,7 +61,7 @@ function DialogContent({
         <DialogPrimitive.Content
           data-slot="dialog-content"
           className={cn(
-            // LTR scroll container → physical-right scrollbar in RTL product UI.
+            // ظرف اسکرول LTR تا در UI راست‌چین، اسکرولبار فیزیکی راست بماند.
             kvScrollAreaClassName,
             'bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-auto relative flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col gap-kv-stack overflow-y-auto rounded-kv-card border border-kv-border p-kv-stack text-start shadow-kv-floating duration-200 [direction:ltr] sm:p-kv-section',
             className

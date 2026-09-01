@@ -2,16 +2,11 @@ import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
 import { ApiClientError } from '@/services/api-error';
 import { shouldSkipTokenRefresh } from '@/services/api-token';
 
-/**
- * ky فقط وقتی limit > 0 باشد request را clone می‌کند تا هوک 401
- * بتواند POST/PATCH را با بدنه دوباره بزند. این عدد را عوض نکنید.
- */
+/** ky فقط با retry.limit>0 از request کلون می‌گیرد؛ این عدد را عوض نکن. */
 export const KY_RETRY_LIMIT = 1;
 
 /**
- * timeout پیش‌فرض ky (AbortController داخلی). آپلود فایل روی S3 جداست
- * و timeout بلندتری دارد — این عدد را برای JSON/Nest نگه می‌داریم تا
- * شبکهٔ بد UI را ۳۰ ثانیه hang نکند.
+ * timeout JSON/Nest؛ آپلود S3 جداست — این را بالا نبر تا شبکهٔ بد UI را hang نکند.
  */
 export const KY_TIMEOUT_MS = 20_000;
 

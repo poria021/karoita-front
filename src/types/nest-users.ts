@@ -1,7 +1,6 @@
 /**
- * Nest Users / Files / Auth User DTOs from
- * https://backenddev.darkube.ir/docs (OpenAPI 3).
- * Domain `User` in `auth.ts` stays FE-shaped; mappers convert at the facade.
+ * DTO کاربران/فایل/Auth User از OpenAPI لایو.
+ * دامنهٔ `User` در `auth.ts` شکل فرانت می‌ماند؛ mapper در facade تبدیل می‌کند.
  */
 
 export type NestFileType = {
@@ -34,7 +33,7 @@ export type NestUserDto = {
   educationalDistrict: unknown;
   school: unknown;
   documentStatus?: NestDocumentStatus;
-  /** Shape unconfirmed on GET (array vs single object) — see readRejectMessage in nest-auth-mappers.ts. */
+  /** شکل GET تأیید نشده (آرایه یا تک‌آبجکت) — ببین readRejectMessage در nest-auth-mappers.ts. */
   rejectDescription?: NestRejectDescription[] | NestRejectDescription;
   createdAt: string;
   updatedAt: string;
@@ -70,35 +69,24 @@ export type NestStatusDto = {
   id: unknown;
 };
 
-/**
- * Swagger schema for rejectDescription:
- * { id: number, description: string }
- * id=1 is used as a generic placeholder from the FE side.
- */
+/** Swagger: `{ id: number, description: string }`؛ فرانت `id=1` را به‌عنوان placeholder می‌فرستد. */
 export type NestRejectDescription = {
   id: number;
   description: string;
 };
 
 /**
- * PATCH /api/v1/users/{id}
- * Role-based location fields per Swagger:
- * - teacher/school_admin  → provinceIds[], cityIds[], schoolIds[], educationalDistrictsIds[]
- * - mentor/supervisor     → provinceIds[], universityIds[]
- * - student/trainee       → single provinceId, universityId, degreeId
- *
- * For approval/reject actions only `documentStatus` (and optionally
- * `rejectDescription`) are sent. All other fields are optional so we
- * never overwrite user data with empty strings.
+ * PATCH /api/v1/users/{id} — فیلد مکان بر اساس نقش جمع/مفرد است.
+ * برای تأیید/رد فقط `documentStatus` (و در صورت رد `rejectDescription`) بفرست تا داده خالی بازنویسی نشود.
  */
 export type NestUpdateUserDto = {
   firstName?: string;
   lastName?: string;
-  // singular (student / trainee)
+  // دانشجو/کارآموز: مفرد
   provinceId?: string;
   universityId?: string;
   degreeId?: string;
-  // plural (teacher / school_admin / mentor / supervisor)
+  // معلم/مدیر مدرسه/منتور/سوپروایزر: جمع
   provinceIds?: string[];
   universityIds?: string[];
   cityIds?: string[];
@@ -106,7 +94,7 @@ export type NestUpdateUserDto = {
   educationalDistrictsIds?: string[];
   userUniqueId?: string;
   documentStatus: NestDocumentStatus;
-  /** Swagger PATCH request example: single object, NOT an array. */
+  /** مثال PATCH در Swagger تک‌آبجکت است نه آرایه. */
   rejectDescription?: NestRejectDescription;
   password?: string;
   photo?: NestFileDto;
@@ -117,7 +105,7 @@ export type NestUpdateUserDto = {
 export type NestUsersListQuery = {
   page?: number;
   limit?: number;
-  /** JSON string, e.g. `{"status":"PENDING"}` */
+  /** رشتهٔ JSON مثلاً `{"status":"PENDING"}`. */
   filters?: string;
   sort?: string;
 };

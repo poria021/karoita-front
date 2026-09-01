@@ -1,17 +1,16 @@
 /**
- * Shared focus / density recipes for shell chrome that cannot use KvButton
- * (e.g. DropdownMenuTrigger asChild with composite layout, locked nav stubs).
+ * فوکوس/تراکم کروم شل که نمی‌تواند `KvButton` باشد
+ * (مثلاً `DropdownMenuTrigger asChild` با لایوت مرکب، استاب قفل ناوبار).
  */
 export const kvShellFocusRingClassName =
   'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20';
 
-/** Compact overlay row padding — matches select/menu item density. */
+/** پد فشردهٔ ردیف اورلی — همان تراکم آیتم سلکت/منو. */
 export const kvShellOverlayRowPadClassName = 'px-kv-inline py-kv-nav';
 
 /**
- * Horizontal inset for the dashboard body row (sidebar + main).
- * Mobile: full-bleed (`px-0`) so main spans the viewport.
- * Tablet+: start/end margins aligned with the shell scale.
+ * اینست افقی ردیف بدنهٔ داشبورد (سایدبار + `main`).
+ * موبایل تمام‌عرض (`px-0`) تا `main` ویوپورت را بگیرد؛ از تبلت حاشیه با مقیاس شل.
  */
 export const kvShellContentPadXClassName =
   'px-0 sm:px-kv-section lg:px-kv-section xl:px-kv-page 2xl:px-kv-screen';
@@ -24,27 +23,18 @@ export const kvShellLearnerDashboardWidthClassName =
   'mx-auto w-full max-w-[90rem]';
 
 /**
- * Header content inset — slight mobile pad so controls are not flush to the edge;
- * from `sm` matches the body row margins.
+ * اینست محتوای هدر — پد کم موبایل تا کنترل به لبه نچسبد؛ از `sm` همان حاشیهٔ ردیف بدنه.
  */
 export const kvShellHeaderPadXClassName =
   'px-kv-inline sm:px-kv-section lg:px-kv-section xl:px-kv-page 2xl:px-kv-screen';
 
 /**
- * Admin header inset — `pe` (RTL left / user cluster) matches the rail
- * brand `p-kv-group` from the viewport start edge (RTL right / logo).
+ * اینست هدر ادمین — `pe` (چپ RTL / خوشهٔ کاربر) با `p-kv-group` برند ریل از لبهٔ شروع ویوپورت یکی است.
  */
 export const kvShellAdminHeaderPadXClassName = 'px-kv-group';
 
 /**
- * Admin rail is `fixed` on the inline-start edge (RTL = right).
- * Padding — not margin — so `w-full` stays inside the viewport
- * (`width: 100%` + start margin was overflowing and creating both
- * scrollbars). Mobile stays full-bleed; the rail is a drawer there.
- */
-/**
- * Soft collapse clock — longer ease-out so labels, rail width, and
- * header/main pad decelerate together instead of snapping at 300ms.
+ * ساعت جمع‌شدن نرم — ease-out بلندتر تا لیبل، عرض ریل و پد هدر/`main` با هم کند شوند نه در ۳۰۰ms بپرند.
  */
 export const kvShellAdminRailMotionClassName =
   'duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]';
@@ -55,13 +45,14 @@ export const kvShellAdminRailWidthMotionClassName =
 export const kvShellAdminRailClearanceMotionClassName =
   'transition-[padding-inline-start] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]';
 
-/** Labels next to rail icons (nav, account, wordmark) — same clock as rail width. */
+/** لیبل کنار آیکن ریل (ناو، حساب، وردمارک) — همان ساعت عرض ریل. */
 export const kvShellRailLabelMotionClassName =
   'overflow-hidden transition-[max-width,max-height,margin-inline-start,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]';
 
 export const kvShellAdminRailExpandedClassName = 'lg:ps-72';
 export const kvShellAdminRailCollapsedClassName = 'lg:ps-24';
 
+/** ریل ادمین `fixed` در لبهٔ شروع (RTL = راست). پد نه مارجین تا `w-full` از ویوپورت بیرون نزند. موبایل تمام‌عرض؛ ریل آنجا دراور است. */
 export function kvShellAdminRailClearanceClassName(isCollapsed: boolean) {
   return isCollapsed
     ? kvShellAdminRailCollapsedClassName
@@ -69,14 +60,12 @@ export function kvShellAdminRailClearanceClassName(isCollapsed: boolean) {
 }
 
 /**
- * Main-only gutters in the admin column — same `kv-group` on both sides
- * (RTL: from the rail and from the left page edge). Header stays flush
- * to the rail.
+ * گاتر فقط روی `main` ستون ادمین — همان `kv-group` دو طرف (RTL: از ریل و لبهٔ چپ صفحه). هدر به ریل می‌چسبد.
  */
 export const kvShellAdminMainGutterClassName = 'px-0 sm:px-kv-group';
 
-/** Shared product footer hairline — dashboard main + auth cards. */
+/** خط موی فوتر محصول — `main` داشبورد + کارت احراز. */
 export const kvProductFooterBorderClassName = 'border-t border-kv-border';
 
-/** Separator under the tab track, on the content body. */
+/** جداکننده زیر ترک تب، روی بدنهٔ محتوا. */
 export const kvTabsBodyBorderClassName = 'border-t border-kv-border';

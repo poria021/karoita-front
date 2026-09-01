@@ -62,13 +62,12 @@ export interface OrgSchool {
   name: string;
   provinceId: string;
   cityId: string;
-  /** منطقه آموزشی اختیاری است — برخی مدارس ممکن است بدون منطقه ثبت شوند.
-   */
+  /** منطقه آموزشی اختیاری است — برخی مدارس بدون منطقه ثبت می‌شوند. */
   districtId?: string;
   gender: OrgSchoolGender;
 }
 
-/** Roles that pick a major in profile / onboarding. */
+/** نقش‌هایی که در پروفایل/آنبوردینگ رشته انتخاب می‌کنند. */
 export type OrgMajorAudience =
   | 'student'
   | 'skill_learner'
@@ -80,7 +79,7 @@ export interface OrgMajor {
   audience: OrgMajorAudience;
 }
 
-/** Nest role a degree/major links to (real mode only — GET /admin/roles). */
+/** نقش Nest که رشته به آن وصل است (فقط real — GET /admin/roles). */
 export interface OrgRole {
   id: string;
   name: string;
@@ -113,7 +112,7 @@ export type OrgStructureListItem = {
   kind: OrgStructureEntityKind;
   deleteBlocked: boolean;
   audience?: OrgMajorAudience;
-  /** Real-mode majors (degrees): linked role's display title (see NestDegree). */
+  /** حالت real: عنوان نمایشی نقش وصل‌شده (ببین NestDegree). */
   roleName?: string;
   gender?: OrgSchoolGender;
   provinceName?: string;
@@ -126,6 +125,6 @@ export type OrgStructureListItem = {
   provinceId?: string;
   cityId?: string;
   districtId?: string;
-  /** Real-mode majors (degrees): linked role's id, for edit-form prefill. */
+  /** حالت real: id نقش وصل‌شده برای پیش‌پر کردن فرم ویرایش. */
   roleId?: string;
 };

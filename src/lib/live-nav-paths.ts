@@ -43,9 +43,8 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
 ];
 
 /**
- * Navigable index-redirect pages (redirect-only, no own UI). Not sidebar
- * live targets themselves — they immediately redirect into a live subpage
- * (syllabus index → course-offerings, internship index → level 1).
+ * صفحات ایندکس که فقط redirect می‌کنند (بدون UI خود). هدف سایدبار نیستند —
+ * فوراً به زیرصفحهٔ زنده می‌روند (سرفصل → ارائه درس، کارورزی → سطح ۱).
  */
 const INDEX_REDIRECT_MODULE_PATHS: readonly string[] = [
   RouteService.karvita.syllabusConfig(),
@@ -64,13 +63,10 @@ const SIDEBAR_DEFERRED_PATHS: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * Sidebar subset: app-shell paths from LIVE_STATIC_NAV_PATHS, minus deferred.
- *
- * Derived from LIVE_STATIC_NAV_PATHS so a new /karvita/* page is a sidebar
- * candidate unless it is listed in SIDEBAR_DEFERRED_PATHS.
- *
- * Marketing and auth paths are excluded: sidebar is only rendered inside
- * the authenticated app shell (/(app)/karvita/*).
+ * زیرمجموعهٔ سایدبار: مسیرهای شِل از `LIVE_STATIC_NAV_PATHS` منهای deferred.
+ * از همان لیست مشتق می‌شود تا صفحهٔ جدید `/karvita/*` کاندید سایدبار باشد مگر در
+ * `SIDEBAR_DEFERRED_PATHS`. مسیرهای مارکتینگ و auth بیرون می‌مانند؛ سایدبار فقط
+ * داخل شِل احراز‌شده (`/(app)/karvita/*`) رندر می‌شود.
  */
 const LIVE_SIDEBAR_PATH_SET: ReadonlySet<string> = new Set(
   LIVE_STATIC_NAV_PATHS.filter(
@@ -82,10 +78,7 @@ export function isLiveStaticNavPath(pathname: string): boolean {
   return LIVE_STATIC_NAV_PATHS.includes(normalizePath(pathname));
 }
 
-/**
- * True for paths that appear in the authenticated sidebar (app-shell only).
- * Uses a Set for O(1) lookup instead of duplicating the manual path list.
- */
+/** مسیرهایی که در سایدبار احراز‌شده دیده می‌شوند — `Set` برای جست‌وجوی O(1). */
 export function isLiveSidebarPath(pathname: string): boolean {
   return LIVE_SIDEBAR_PATH_SET.has(normalizePath(pathname));
 }
@@ -104,8 +97,8 @@ export function isNavigableAppPath(pathname: string): boolean {
 }
 
 /**
- * Live / redirect targets used when recovering from a broken URL.
- * Excludes marketing `/` (not a status-page recovery CTA).
+ * اهداف زنده/ریدایرکت برای ریکاوری URL خراب.
+ * لندینگ `/` را ندارد (CTA صفحهٔ وضعیت نیست).
  */
 export function listNavigableRecoveryPaths(): readonly string[] {
   return [

@@ -34,15 +34,14 @@ const withPWA = withPWAInit({
     skipWaiting: true,
     clientsClaim: true,
     cleanupOutdatedCaches: true,
-    // inline: true باعث می‌شه fallback script مستقیم داخل sw.js inline بشه
-    // به جای یه فایل جداگانه — این preload link اضافه از head رو حذف می‌کنه
-    // و هشدار "preloaded but not used" رو از بین می‌بره.
+    // `inline: true` اسکریپت fallback را داخل `sw.js` می‌گذارد نه فایل جدا —
+    // لینک preload اضافه از head حذف می‌شود و هشدار «preloaded but not used» می‌رود.
     inlineWorkboxRuntime: true,
     disableDevLogs: true,
   },
 });
 
-// Build CSP once at startup in Node.js runtime where NODE_ENV is guaranteed.
+// CSP را یک‌بار در استارت نود بساز که `NODE_ENV` آنجا تضمینی است.
 const csp = buildContentSecurityPolicy();
 
 const nextConfig: NextConfig = {
@@ -50,7 +49,6 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Apply security headers to all routes
         source: '/(.*)',
         headers: [
           { key: 'Content-Security-Policy', value: csp },
@@ -69,9 +67,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        // Retired presence-only lander. Role home is the live dashboard
-        // plus KarvitaModuleAccessGuard — keep this 307 so old tabs/bookmarks
-        // do not 404 inside the app shell.
+        // لندر فقط-حضور بازنشسته. خانهٔ نقش داشبورد زنده است به‌علاوه
+        // `KarvitaModuleAccessGuard` — این 307 را نگه دارید تا تب/بوکمارک قدیمی
+        // داخل شِل 404 نشود.
         source: '/karvita/entry',
         destination: '/karvita/dashboard',
         permanent: false,

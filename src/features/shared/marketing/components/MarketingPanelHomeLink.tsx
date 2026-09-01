@@ -13,7 +13,7 @@ type MarketingPanelHomeLinkProps = {
   'aria-label'?: string;
 };
 
-/** Brand / home control that also closes an open marketing panel. */
+/** کنترل برند/خانه که پنل باز مارکتینگ را هم می‌بندد. */
 export function MarketingPanelHomeLink({
   children,
   className,

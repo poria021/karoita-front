@@ -6,23 +6,12 @@ import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
 /**
- * PATCH /api/v1/auth/me (`NestAuthUpdateDto`) فقط firstName/lastName/email/
- * password/photo را می‌پذیرد — فیلدهای سازمانی (استان/دانشکده/رشته/کد و ...)
- * اصلاً در آن DTO تعریف نشده‌اند و بی‌صدا نادیده گرفته می‌شوند.
- *
- * تنها DTOیی که این فیلدها را می‌پذیرد `NestUpdateUserDto` است که با
- * PATCH /api/v1/users/{id} کار می‌کند (همان مسیری که ادمین برای ایجاد
- * حساب سازمانی استفاده می‌کند — بنگرید admin-user-creation.service.ts).
- * این فایل همان payload را برای «ذخیره پروفایل توسط خود کاربر» می‌سازد.
- *
- * ⚠️ نکته‌ی مهم: این مسیر باید روی بک‌اند واقعی تست شود — مشخص نیست کاربر
- * غیرادمین اجازه‌ی PATCH روی رکورد خودش را از همین endpoint دارد یا نه.
- * اگر ۴۰۳ برگرداند، راه‌حل واقعی این است که یا این فیلدها به
- * `AuthUpdateDto` (سمت بک‌اند) اضافه شوند، یا این endpoint برای «خود کاربر»
- * (self) مجاز شود.
+ * `PATCH /api/v1/auth/me` فیلد سازمانی نمی‌پذیرد و بی‌صدا دور می‌اندازد.
+ * ذخیرهٔ پروفایل خود کاربر با `NestUpdateUserDto` روی `PATCH /api/v1/users/{id}` است.
+ * اگر ۴۰۳ آمد، یا فیلدها باید به `AuthUpdateDto` اضافه شوند یا self-PATCH مجاز شود.
  */
 
-/** یک label رو به id تبدیل می‌کنه — اگه پیدا نشد رشتهٔ خالی برمی‌گردونه. */
+/** برچسب → id؛ اگر پیدا نشد رشتهٔ خالی. */
 async function resolveLabelToId(
   type: OrganizationField,
   label: string | undefined,
@@ -56,7 +45,7 @@ async function resolveLabelToId(
   }
 }
 
-/** یک آرایهٔ label رو به آرایهٔ id تبدیل می‌کنه — مقادیر خالی حذف می‌شن. */
+/** آرایهٔ برچسب → آرایهٔ id؛ خالی‌ها حذف می‌شوند. */
 async function resolveLabelsToIds(
   type: OrganizationField,
   labels: string[] | undefined,
@@ -79,21 +68,13 @@ function toNestDocumentStatus(
 }
 
 /**
- * ProfileDto → NestUpdateUserDto برای PATCH /api/v1/users/{id}.
- *
- * Swagger می‌گوید:
- * - student/trainee       → provinceId (تکی), universityId (تکی), degreeId (تکی)
- * - mentor/supervisor     → provinceIds (آرایه), universityIds (آرایه)
- * - teacher/school_admin  → provinceIds (آرایه), cityIds (آرایه),
- *                           schoolIds (آرایه), educationalDistrictsIds (آرایه)
- *
- * برای سادگی هم فیلد تکی و هم آرایه‌ای رو می‌فرستیم تا بک‌اند
- * بر اساس role کاربر هر کدام که نیاز داشت استفاده کنه.
+ * `ProfileDto` → `NestUpdateUserDto` برای `PATCH /api/v1/users/{id}`.
+ * Swagger تکی و آرایه‌ای را بر اساس نقش جدا می‌کند؛ هر دو را می‌فرستیم تا بک‌اند انتخاب کند.
  */
 export async function buildNestUpdateUserBody(
   data: ProfileDto,
   currentDocStatus: DocStatus,
-  /** شناسهٔ فایل عکس بعد از آپلود به S3 — اگر ارسال شده به NestUpdateUserDto.photo اضافه می‌شود. */
+  /** شناسهٔ فایل بعد از آپلود S3 — اگر باشد به `NestUpdateUserDto.photo` می‌رود. */
   photoFileId?: string
 ): Promise<NestUpdateUserDto> {
   const provinceNames = 'province' in data ? (data.province ?? []) : [];
@@ -135,11 +116,11 @@ export async function buildNestUpdateUserBody(
   return {
     firstName: data.firstName,
     lastName:  data.lastName,
-    // تکی (student / trainee)
+    // تکی: student / trainee
     provinceId:             provinceIds[0]             ?? '',
     universityId:           universityIds[0]           ?? '',
     degreeId:               degreeIds[0]               ?? '',
-    // آرایه‌ای (teacher / school_admin / mentor / supervisor)
+    // آرایه: teacher / school_admin / mentor / supervisor
     provinceIds,
     universityIds,
     cityIds,
@@ -147,7 +128,7 @@ export async function buildNestUpdateUserBody(
     educationalDistrictsIds,
     userUniqueId,
     documentStatus: toNestDocumentStatus(data.role, currentDocStatus),
-    // عکس پروفایل — فقط زمانی اضافه می‌شه که کاربر در این submit عکس جدید آپلود کرده باشد
+    // عکس فقط اگر در این submit فایل جدید آپلود شده باشد
     ...(photoFileId ? { photo: { id: photoFileId } } : {}),
   };
 }

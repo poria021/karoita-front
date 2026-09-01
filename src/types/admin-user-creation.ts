@@ -55,7 +55,7 @@ export type StaffAdminAccount = {
   mobile: string;
   role: UserRole;
   statusName: string;
-  /** Numeric Nest status when GET gives a digit id; PUT sends this code. */
+  /** کد عددی Nest وقتی GET رقم بدهد؛ PUT همین کد را می‌فرستد. */
   statusCode?: number;
   createdAt: string;
 };

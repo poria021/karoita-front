@@ -1,6 +1,5 @@
 /**
- * Clears Next/Turbopack disk cache so long-lived `.next/dev` LSM growth
- * does not keep bloating subsequent `next dev` sessions.
+ * کش دیسک Next/Turbopack را پاک می‌کند تا رشد LSM در `.next/dev` جلسه‌های بعدی `next dev` را باد نکند.
  */
 import { rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';

@@ -8,8 +8,7 @@ import {
 import { RouteService } from '../src/services/route.service';
 
 /**
- * Accessibility smoke — serious/critical axe findings must stay empty on
- * marketing, public login, and a post-auth dashboard shell landmark.
+ * دود axe: یافتهٔ serious/critical روی مارکتینگ، ورود عمومی، و یک شل داشبورد باید خالی بماند.
  */
 
 function mockSuperAdminSessionMeta(): string {
@@ -35,7 +34,7 @@ async function setMockSessionCookies(page: Page): Promise<void> {
       { name: 'karvita_auth_session_meta', value: meta, url: page.url(), path: '/' },
     ]);
   } catch {
-    // fallback to document.cookie below
+    // addCookies گاهی روی همین origin رد می‌شود؛ در evaluate با document.cookie جبران می‌کنیم.
   }
 
   await page.evaluate((m) => {
@@ -44,7 +43,6 @@ async function setMockSessionCookies(page: Page): Promise<void> {
     try {
       sessionStorage.removeItem('karvita-user-store');
     } catch {
-      // ignore
     }
   }, meta);
 }

@@ -1,8 +1,7 @@
 import { spawn } from 'node:child_process';
 
 /**
- * Webpack production build + @next/bundle-analyzer (ANALYZE=true).
- * Turbopack does not emit the analyzer report.
+ * بیلد production با webpack و `@next/bundle-analyzer` (`ANALYZE=true`)؛ Turbopack گزارش analyzer نمی‌دهد.
  */
 const child = spawn('npx', ['next', 'build', '--webpack'], {
   stdio: 'inherit',

@@ -4,8 +4,8 @@ import { RouteService } from '@/services/route.service';
 export type AuthCardSurface = 'login' | 'register' | 'forgot';
 
 /**
- * Public auth query builder. Copies a safe `returnUrl` only.
- * Login vs register vs forgot are paths; OTP-vs-password stays in memory.
+ * سازندهٔ query عمومی auth. فقط `returnUrl` امن کپی می‌شود.
+ * ورود/ثبت‌نام/فراموشی مسیرند؛ OTP در برابر رمز در حافظه می‌ماند.
  */
 export function buildPublicAuthHref(
   path: string,

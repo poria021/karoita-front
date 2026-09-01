@@ -16,7 +16,7 @@ import {
 } from '@/lib/pwa/register-pwa';
 
 /**
- * SW registration after first paint + capture of Chrome's install event.
+ * ثبت SW بعد از اولین paint + گرفتن رویداد نصب Chrome.
  */
 export function PwaBoot() {
   useEffect(() => {

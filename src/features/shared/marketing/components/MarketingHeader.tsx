@@ -16,7 +16,7 @@ import { MarketingPanelHomeLink } from './MarketingPanelHomeLink';
 
 type MarketingHeaderProps = {
   loginHref: string;
-  /** When true, header sits over the hero and turns solid after scroll. */
+  /** اگر `true` باشد هدر روی هیرو می‌نشیند و بعد از اسکرول توپر می‌شود. */
   overlayHeader?: boolean;
 };
 

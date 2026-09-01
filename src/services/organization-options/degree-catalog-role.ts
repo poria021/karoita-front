@@ -1,10 +1,7 @@
 import type { UserRole } from '@/types/auth';
 import type { OrgMajorAudience } from '@/types/org-structure';
 
-/**
- * FE role → English `title` on GET /admin/roles (degree catalog).
- * These ids are not the auth-role ids from GET /auth/roles.
- */
+/** نقش فرانت → `title` انگلیسی GET /admin/roles؛ این idها همان GET /auth/roles نیستند. */
 const FE_TO_DEGREE_ROLE_TITLE: Partial<Record<UserRole, string>> = {
   student: 'student',
   skill_learner: 'trainee',
@@ -16,7 +13,7 @@ export function toDegreeCatalogRoleTitle(role: UserRole): string | undefined {
   return FE_TO_DEGREE_ROLE_TITLE[role];
 }
 
-/** Mock majors still use the profile audience enum, not Nest titles. */
+/** در mock رشته هنوز از enum مخاطب پروفایل است نه `title`های Nest. */
 export function toMockMajorAudience(
   role: UserRole
 ): OrgMajorAudience | undefined {

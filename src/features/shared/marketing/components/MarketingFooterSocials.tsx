@@ -28,7 +28,7 @@ function SocialMark({ social }: { social: LandingSocial }) {
 
     if (isRemote) {
       return (
-        // Data-URL / remote mock assets — next/image remote config may not apply.
+        // data-URL / دارایی موک ریموت — تنظیم remote `next/image` ممکن است اعمال نشود.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={social.iconImageUrl}
@@ -58,7 +58,7 @@ function SocialMark({ social }: { social: LandingSocial }) {
   );
 }
 
-/** Quiet footer social row — accessible labels, kv chrome only. */
+/** ردیف آرام شبکه‌های اجتماعی فوتر — برچسب دسترس‌پذیر، فقط chrome `kv`. */
 export function MarketingFooterSocials({
   socials,
 }: MarketingFooterSocialsProps) {

@@ -30,11 +30,7 @@ function clearAllCookies(): void {
 }
 
 /**
- * پوشش رگرسیون برای باگ «شکست بی‌صدا در ذخیرهٔ کوکی refresh»:
- * persistRefreshTokenInCookie باید خطاهای گذرا را retry کند، خطاهای ۴xx را
- * فوراً نهایی کند، و در صورت شکست کامل، به‌جای سکوت، state نیمه‌کاره
- * (access token در حافظه بدون کوکی refresh معتبر) را rollback کرده و
- * AuthSessionPersistError پرتاب کند.
+ * رگرسیون: شکست بی‌صدای `set-tokens` ممنوع — retry گذرا، ۴xx فوری، شکست کامل → rollback و `AuthSessionPersistError`.
  */
 describe('writeRealAuthTokens — set-tokens persistence', () => {
   const fetchMock = vi.fn();
@@ -112,14 +108,14 @@ describe('writeRealAuthTokens — set-tokens persistence', () => {
       if (String(input).includes('/api/auth/set-tokens')) {
         throw new TypeError('network down');
       }
-      return fakeResponse(true); // /api/auth/clear-tokens — بخشی از rollback
+      return fakeResponse(true); // `/api/auth/clear-tokens` بخشی از rollback
     });
 
     await expect(writeRealAuthTokens(TOKENS, 'user')).rejects.toThrow(
       'ورود کامل نشد'
     );
 
-    // rollback باید state نیمه‌کاره (access token در حافظه بدون کوکی refresh) باقی نگذارد
+    // rollback نباید access در حافظه بدون کوکی رفرش باقی بگذارد
     expect(readRealAccessToken()).toBeNull();
     expect(document.cookie).not.toContain(`${AUTH_COOKIE_NAME}=1`);
   }, 10_000);

@@ -5,7 +5,7 @@ export interface SidebarMenuItem {
   title: string;
   path: string;
   icon: string;
-  /** Persian course-level badge composed onto `icon` (کارورزی/کارآموزی ۱…). */
+  /** نشان سطح درس فارسی روی `icon` (کارورزی/کارآموزی ۱…). */
   iconBadge?: number;
 }
 

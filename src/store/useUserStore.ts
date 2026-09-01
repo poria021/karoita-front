@@ -28,7 +28,7 @@ function removeStorageItem(
   try {
     storage.removeItem(key);
   } catch {
-    // private mode / blocked storage
+    // حالت خصوصی / مسدود بودن storage
   }
 }
 

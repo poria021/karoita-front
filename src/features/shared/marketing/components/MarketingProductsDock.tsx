@@ -31,7 +31,7 @@ function DockMark({ product }: { product: LandingProduct }) {
 
     if (isRemote) {
       return (
-        // Data-URL / remote mock assets — next/image remote config may not apply.
+        // data-URL / دارایی موک ریموت — تنظیم remote `next/image` ممکن است اعمال نشود.
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={product.logoImageUrl}
@@ -62,8 +62,8 @@ function DockMark({ product }: { product: LandingProduct }) {
 }
 
 /**
- * Quiet floating product dock — brand-loud page, institutional chrome.
- * Each item expands its own title LTR on hover (siblings stay collapsed).
+ * داک شناور آرام محصول — صفحهٔ برندپررنگ، chrome سازمانی.
+ * هر آیتم عنوان خودش را LTR روی hover باز می‌کند (همسایه‌ها جمع می‌مانند).
  */
 export function MarketingProductsDock({ products }: MarketingProductsDockProps) {
   const { openPanel } = useMarketingPanel();

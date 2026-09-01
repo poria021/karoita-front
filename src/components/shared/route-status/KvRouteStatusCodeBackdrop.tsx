@@ -3,15 +3,11 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 type KvRouteStatusCodeBackdropProps = {
   code: string;
-  /** Full-page vs in-shell main content sizing. */
   layout?: 'page' | 'inset';
   className?: string;
 };
 
-/**
- * Large faded status code as a background section (not a badge).
- * Inset mode sizes to the dashboard main panel, not the viewport.
- */
+/** کد وضعیت محو در پس‌زمینه — در `inset` به پنل `main` اندازه می‌شود نه ویوپورت. */
 export function KvRouteStatusCodeBackdrop({
   code,
   layout = 'page',

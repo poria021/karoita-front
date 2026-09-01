@@ -12,7 +12,7 @@ type UseDailyApprovalsTermsArgs = {
   setTermId: Dispatch<SetStateAction<string>>;
 };
 
-/** Bootstrap term list + passing threshold for the active course kind. */
+/** بارگذاری فهرست ترم + حدنصاب قبولی برای kind فعال. */
 export function useDailyApprovalsTerms({
   kind,
   setTermId,

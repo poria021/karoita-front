@@ -6,7 +6,7 @@ function isBrowser(): boolean {
   return typeof window !== 'undefined';
 }
 
-/** Tab-scoped handoff between login ↔ forgot. Never put the number in the URL. */
+/** تحویل شماره بین ورود ↔ فراموشی در همین تب. هرگز در URL نگذارید. */
 export function writeAuthFlowMobilePrefill(mobile: string): void {
   if (!isBrowser()) return;
   const normalized = normalizeRememberedMobile(mobile);

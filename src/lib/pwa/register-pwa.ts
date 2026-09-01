@@ -14,7 +14,7 @@ export function shouldRegisterKarvitaServiceWorker(input: {
   );
 }
 
-/** Dev/HMR must not keep a production SW that serves stale Turbopack chunks. */
+/** در dev/HMR نباید SW پروداکشن بماند که chunk کهنهٔ Turbopack سرو کند. */
 export function shouldUnregisterKarvitaServiceWorkerInDev(input: {
   nodeEnv: string | undefined;
   hasServiceWorker: boolean;
@@ -35,7 +35,7 @@ export async function unregisterStaleKarvitaServiceWorkers(): Promise<void> {
   await Promise.all(keys.map((key) => caches.delete(key)));
 }
 
-/** First SW activation often needs a reload before Chrome fires `beforeinstallprompt`. */
+/** اولین فعال‌سازی SW معمولاً یک reload می‌خواهد تا Chrome `beforeinstallprompt` بفرستد. */
 export function shouldReloadToPrimePwa(input: {
   alreadyPrimed: boolean;
   hasController: boolean;
@@ -44,8 +44,8 @@ export function shouldReloadToPrimePwa(input: {
 }
 
 /**
- * Register after first paint (rAF), not after a long idle — Chrome's install
- * check often runs before requestIdleCallback (up to 4s).
+ * ثبت بعد از اولین paint (`rAF`)، نه بعد از idle طولانی — بررسی نصب Chrome
+ * اغلب قبل از `requestIdleCallback` (تا ۴ ثانیه) اجرا می‌شود.
  */
 export function scheduleKarvitaServiceWorkerRegistration(
   register: (scriptUrl: string) => Promise<unknown>
@@ -54,7 +54,7 @@ export function scheduleKarvitaServiceWorkerRegistration(
 
   const run = () => {
     void register(PWA_SW_PATH).catch(() => {
-      // Registration failures must not break the app shell.
+      // شکست ثبت نباید شِل را بشکند.
     });
   };
 

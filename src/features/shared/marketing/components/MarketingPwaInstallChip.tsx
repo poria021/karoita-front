@@ -6,7 +6,7 @@ import { shellCopy } from '@/components/shared/shell/shellCopy';
 import { faIcons } from '@/utils/iconMap';
 
 /**
- * Marketing footer install affordance — client leaf for beforeinstallprompt.
+ * امکان نصب در فوتر مارکتینگ — برگ کلاینت برای `beforeinstallprompt`.
  */
 export function MarketingPwaInstallChip() {
   return (

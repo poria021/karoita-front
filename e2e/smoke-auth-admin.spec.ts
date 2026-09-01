@@ -7,9 +7,9 @@ import {
 import { RouteService } from '../src/services/route.service';
 
 /**
- * Smoke: marketing → public login shell → admin-gate OTP → org-structure.
- * Super-admin is blocked on public `/auth/login` (by design); use admin-gate.
- * OTP/mobile come from the shared mock seed — no invented secrets.
+ * دود: مارکتینگ → شل ورود عمومی → OTP گیت ادمین → ساختار سازمانی.
+ * سوپرادمین روی `/auth/login` عمومی عمداً بلاک است؛ از `admin-gate` استفاده کن.
+ * موبایل/OTP از mock مشترک است؛ راز ساختگی نگذار.
  */
 async function fillMobile(page: Page, selector: string, mobile: string) {
   await page.locator(selector).click();
@@ -39,9 +39,7 @@ async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
     new RegExp(`${RouteService.karvita.adminDashboard().replace(/\//g, '\\/')}\\/?$`),
     { timeout: 30_000 }
   );
-  // Dashboard home greets by name ("خوش آمدید، <name>"), not a fixed
-  // "panel" title — match the stable greeting prefix so a display-name
-  // change alone doesn't break this smoke test.
+  // خانهٔ داشبورد با «خوش آمدید» سلام می‌دهد نه عنوان ثابت پنل؛ پیشوند پایدار تا تغییر نام نمایش تست را نشکند.
   await expect(
     page.getByRole('heading', { name: /خوش آمدید/ })
   ).toBeVisible();
@@ -54,12 +52,9 @@ test.describe('mock smoke', () => {
       page.getByRole('heading', { name: 'کارویتا' })
     ).toBeVisible();
 
-    // لینک ورود در header با متن «ورود به سامانه» نمایش داده می‌شه
     await page.getByRole('link', { name: /ورود به سامانه/ }).first().click();
 
-    // 2+ CMS products → header CTA lands on the product picker first
-    // (see `resolveMarketingLoginHref`); pick a product to continue into
-    // the real login shell instead of assuming a direct /auth/login jump.
+    // با چند محصول CMS، CTA هدر اول به انتخاب محصول می‌رود (`resolveMarketingLoginHref`) نه مستقیم `/auth/login`.
     const loginUrlPattern = new RegExp(
       `${RouteService.auth.login().replace(/\//g, '\\/')}\\/?$`
     );

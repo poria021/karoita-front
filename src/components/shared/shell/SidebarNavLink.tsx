@@ -16,7 +16,7 @@ export type SidebarNavLinkProps = {
   isCollapsed: boolean;
   locked: boolean;
   onNavigate: () => void;
-  /** L2 under a group — quieter than L1; hierarchy via color/weight, not size. */
+  /** `L2` زیر گروه — آرام‌تر از `L1`؛ سلسله‌مراتب با رنگ/وزن نه اندازه. */
   nested?: boolean;
 };
 
@@ -30,7 +30,7 @@ export function SidebarNavLink({
 }: SidebarNavLinkProps) {
   const itemIcon = resolveSidebarIcon(item.icon);
   const hasCourseBadge = typeof item.iconBadge === 'number';
-  /** Expanded sidebar: L2 children use a quiet bullet. Collapsed rail: show course icons. */
+  /** سایدبار باز: فرزند `L2` گلولهٔ آرام. ریل جمع: آیکن دوره. */
   const useBullet = nested && !isCollapsed;
   const hoverTitle = isCollapsed
     ? locked
@@ -98,12 +98,12 @@ export function SidebarNavLink({
     locked
       ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
       : isActive
-        ? /* Focus of the tree — soft fill + inner border on every active module */
+        ? /* فوکوس درخت — پر نرم + بردر داخلی روی هر ماژول فعال */
           'cursor-pointer border border-kv-brand-border bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
         : useBullet
-          ? /* L2 idle — recedes under L1 */
+          ? /* `L2` بیکار — زیر `L1` فرو می‌رود */
             'cursor-pointer border border-transparent font-medium text-kv-text-faint hover:bg-kv-surface-muted hover:text-kv-text-secondary'
-          : /* L1 leaf idle */
+          : /* برگ `L1` بیکار */
             'cursor-pointer border border-transparent font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
   );
 
@@ -125,7 +125,7 @@ export function SidebarNavLink({
   return (
     <Link
       href={item.path}
-      // Live unlocked sidebar targets — prefetch for SPA-feel; locked items never Link.
+      // هدف زندهٔ باز — prefetch برای حس SPA؛ قفل‌ها هرگز `Link` نیستند.
       prefetch
       onClick={onNavigate}
       aria-label={item.title}

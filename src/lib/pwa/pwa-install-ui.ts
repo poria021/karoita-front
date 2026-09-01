@@ -44,7 +44,7 @@ export function dismissPwaInstallSuggestion(): void {
   try {
     sessionStorage.setItem(PWA_INSTALL_DISMISS_KEY, '1');
   } catch {
-    // Private mode — banner may return this session.
+    // حالت خصوصی — ممکن است بنر همین نشست برگردد.
   }
   closePwaInstallDialog();
 }

@@ -15,7 +15,7 @@ export type KvWorkspaceProps = {
 
 /**
  * اسکلت ورک‌اسپیس تک‌ستونهٔ ماژول ادمین — تب / تولبار / کارت جدول.
- * Border + equal vertical padding sit on the content below tabs (not under the tab track).
+ * بردر و پد عمودی روی محتوای زیر تب است نه زیر ترک تب.
  */
 export function KvWorkspace({
   tabs,

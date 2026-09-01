@@ -6,16 +6,13 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 export type SidebarCourseIconProps = {
   icon: IconDefinition;
-  /** Course level digit (1–9) overlaid bottom-end on the domain icon. */
+  /** رقم سطح دوره (۱–۹) روی گوشهٔ پایین-پایان آیکن دامنه. */
   badge?: number;
   className?: string;
   iconClassName?: string;
 };
 
-/**
- * Domain icon (کارورزی/کارآموزی) with an optional Persian level digit
- * anchored to the bottom-end corner of the glyph.
- */
+/** آیکن دامنه با رقم فارسی سطح در گوشهٔ پایین-پایان گلیف. */
 export function SidebarCourseIcon({
   icon,
   badge,

@@ -20,7 +20,7 @@ export function offeredCatalogIdsFromList(
   return next;
 }
 
-/** Last selected term for an audience tab — keep the SPA switch in-memory. */
+/** آخرین ترم انتخاب‌شده برای تب مخاطب — تعویض SPA در حافظه بماند. */
 export function resolveAudienceTermId(
   pool: AcademicTerm[],
   rememberedTermId: string | undefined

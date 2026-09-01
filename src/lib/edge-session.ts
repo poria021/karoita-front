@@ -22,9 +22,7 @@ export type EdgeCookieReader = {
   get(name: string): { value: string } | undefined;
 };
 
-/**
- * Presence-only: cookie واقعی نشست، یا (فقط در mock/dev) marker شبیه‌ساز.
- */
+/** فقط حضور: cookie واقعی نشست، یا (فقط در mock/dev) marker شبیه‌ساز. */
 export function hasEdgeClientSession(cookies: EdgeCookieReader): boolean {
   if (cookies.get(AUTH_COOKIE_NAME)?.value) return true;
   if (!shouldHonorMockSessionMarker()) return false;

@@ -14,10 +14,10 @@ import { MarketingHeader } from './MarketingHeader';
 import { MarketingProductsDock } from './MarketingProductsDock';
 
 type MarketingShellProps = {
-  /** SSR chrome seed — client rehydrates from Landing CMS (mock localStorage). */
+  /** بذر chrome SSR — کلاینت از Landing CMS (localStorage موک) دوباره hydrate می‌شود. */
   initialChrome: MarketingChromeData;
   children: ReactNode;
-  /** When true, header sits over the hero composition. */
+  /** اگر `true` باشد هدر روی ترکیب هیرو می‌نشیند. */
   overlayHeader?: boolean;
 };
 
@@ -55,8 +55,8 @@ function MarketingShellChrome({
 }
 
 /**
- * Public marketing chrome — client leaf so dock / footer / login CTA
- * track Landing CMS after admin edits (RSC seed alone is server-seed only).
+ * chrome مارکتینگ عمومی — برگ کلاینت تا داک / فوتر / CTA ورود
+ * بعد از ویرایش ادمین CMS را دنبال کنند (بذر RSC به‌تنهایی فقط سرور است).
  */
 export function MarketingShell({
   initialChrome,

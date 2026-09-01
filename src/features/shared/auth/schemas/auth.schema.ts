@@ -18,9 +18,8 @@ const passwordFieldSchema = z
   });
 
 /**
- * OTP length as defined in the Nest backend (backenddev.darkube.ir/docs).
- * All flows (login OTP, register OTP, forgot-password OTP) share the same length.
- * If the backend changes the OTP length, update this single constant only.
+ * طول OTP طبق Nest (backenddev.darkube.ir/docs).
+ * همهٔ جریان‌ها (ورود، ثبت‌نام، فراموشی) همین طول را دارند — فقط همین ثابت را عوض کنید.
  */
 export const BACKEND_OTP_LENGTH = 5;
 

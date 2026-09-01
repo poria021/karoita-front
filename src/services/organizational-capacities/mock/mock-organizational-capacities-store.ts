@@ -83,7 +83,7 @@ function readStore(): StoreShape {
         return memoryStore;
       }
     } catch {
-      // fall through to empty
+      // اگر خراب بود به خالی برو
     }
   }
   memoryStore = {};
@@ -189,7 +189,7 @@ export function updateMockOrganizationalCapacityCourse(
     }
   }
 
-  // Supervisor: single mutual presence day (reference toggleDay).
+  // استاد راهنما: یک روز حضور متقابل (مرجع `toggleDay`).
   const selectedDays =
     input.selectedDays.length > 0
       ? [input.selectedDays[input.selectedDays.length - 1]!]

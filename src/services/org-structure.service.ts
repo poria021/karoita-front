@@ -86,37 +86,19 @@ export type OrgStructureListPageOptions = {
 
 function requireMockOrgManage(): void {
   if (!IS_MOCK_MODE) {
-    // real mode — caller must handle the real API branch directly
+    // حالت real — گارد mock را رد کن؛ شاخهٔ Nest جدا است.
     return;
   }
   assertMockClientHasPermission('organization.manage');
 }
 
 /**
- * Org tree admin facade — paged lists + CRUD.
- * Real mode fail-closed until Nest org endpoints land.
- *
- * This is a thin dispatcher: every mock-mode call goes to `mock-org-*`
- * (services/org-structure/mock-org-query.ts, mock-org-mutations.ts,
- * mock-org-store.ts) and every real-mode call goes to `real-org-*`
- * (services/org-structure/real-org-reads.ts, real-org-mutations.ts,
- * real-org-mappers.ts) — mirroring each other file-for-file so the real
- * side gets the same "one file, one responsibility" treatment the mock
- * side already had. Nothing beyond IS_MOCK_MODE branching + the mock
- * permission guard lives in this file.
- *
- * Nest map:
- * - GET    /org-structure/snapshot
- * - GET    /org-structure?tab&query&offset&limit
- *          majors tab → GET /admin/degreeee?page=&limit=&title= ({ data, hasNextPage })
- *          faculties tab → GET /admin/universites?page=&limit=&title=
- * - GET    /org-structure/:kind/:id
- * - GET    /org-structure/provinces|cities|districts
- * - PUT    /org-structure/provinces|cities|faculties|districts|schools|majors
- * - DELETE /org-structure/:kind/:id
+ * Facade ساختار سازمانی — لیست صفحه‌بندی‌شده و CRUD.
+ * این فایل فقط `IS_MOCK_MODE` و گارد مجوز است؛ mock به `mock-org-*` و real به `real-org-*`.
+ * رشته در Nest یعنی `degree` (`/admin/degreeee`)؛ پردیس یعنی `universites`.
  */
 export const OrgStructureService = {
-  /** GET /org-structure/snapshot — real: composite from provinces+cities+districts+schools+faculties */
+  /** GET snapshot — real از provinces+cities+districts+schools+faculties جمع می‌شود. */
   async getSnapshot(): Promise<OrgStructureSnapshot> {
     if (!IS_MOCK_MODE) {
       return getRealSnapshot();
@@ -125,7 +107,7 @@ export const OrgStructureService = {
     return cloneSnapshot(readOrgSnapshot());
   },
 
-  /** GET /org-structure?tab&query&offset&limit */
+  /** لیست صفحه‌بندی‌شده؛ رشته → GET /admin/degreeee، پردیس → GET /admin/universites. */
   async listPage(
     options: OrgStructureListPageOptions
   ): Promise<OrgStructureListPage> {
@@ -142,10 +124,7 @@ export const OrgStructureService = {
     return queryOrgListPage(options.tab, query, offset, limit);
   },
 
-  /**
-   * GET /org-structure/:kind/:id — real: city via GET /admin/cities/{id};
-   * province/faculty scan the catalog (no get-by-id).
-   */
+  /** شهر از GET /admin/cities/{id}؛ استان/پردیس get-by-id ندارند. */
   async getEntity(
     kind: OrgStructureEntityKind,
     id: string
@@ -165,7 +144,7 @@ export const OrgStructureService = {
     return mockGetEntity(kind, id);
   },
 
-  /** GET /org-structure/provinces — real: pages GET /api/admin/provinces to collect the full list. */
+  /** همهٔ استان‌ها — real صفحات GET /admin/provinces را جمع می‌کند. */
   async listProvinces(): Promise<OrgProvince[]> {
     if (!IS_MOCK_MODE) {
       return listRealProvinces();
@@ -174,7 +153,7 @@ export const OrgStructureService = {
     return mockListProvinces();
   },
 
-  /** GET /org-structure/cities?provinceId= — real: GET /api/admin/provinces/{id}/cities */
+  /** شهرهای یک استان — real: GET /admin/provinces/{id}/cities. */
   async listCities(provinceId: string): Promise<OrgCity[]> {
     if (!IS_MOCK_MODE) {
       return listRealCities(provinceId);
@@ -183,7 +162,7 @@ export const OrgStructureService = {
     return mockListCities(provinceId);
   },
 
-  /** GET /org-structure/districts — real: GET /api/admin/educations?provinceId */
+  /** مناطق — real: GET /admin/educations?provinceId (بدون cityId؛ لایو ۵۰۰ می‌دهد). */
   async listDistricts(
     provinceId: string,
     cityId?: string
@@ -195,7 +174,7 @@ export const OrgStructureService = {
     return mockListDistricts(provinceId, cityId);
   },
 
-  /** Sync labels for profile typeahead — mock only; real uses OrganizationOptionsService */
+  /** برچسب typeahead پروفایل — فقط mock؛ real از OrganizationOptionsService. */
   listLabelsForField(
     field: 'province' | 'city' | 'college' | 'district' | 'school' | 'major',
     provinceName = '',
@@ -206,10 +185,7 @@ export const OrgStructureService = {
     return queryLabelsForField(field, provinceName, districtName, majorAudience);
   },
 
-  /**
-   * GET /admin/roles — real: roles a degree/major can link to. Mock mode
-   * uses the audience enum instead.
-   */
+  /** GET /admin/roles — نقش‌هایی که رشته می‌تواند به آن‌ها وصل شود؛ mock خالی. */
   async listRoles(): Promise<OrgRole[]> {
     if (!IS_MOCK_MODE) {
       return listRealRoles();
@@ -217,22 +193,16 @@ export const OrgStructureService = {
     return [];
   },
 
-  /**
-   * GET /admin/roles/{roleId}/degrees — real: majors already linked to one
-   * role. Not wired into the majors-tab list yet (that tab lists across all
-   * roles, see listPage() above) — exposed here for role-scoped lookups.
-   */
+  /** GET /admin/roles/{roleId}/degrees — رشته‌های یک نقش؛ تب majors هنوز همهٔ نقش‌ها را لیست می‌کند. */
   async listMajorsByRole(roleId: string): Promise<OrgStructureListItem[]> {
     if (!IS_MOCK_MODE) {
       return listRealMajorsByRole(roleId);
     }
-    // Mock mode has no Nest role concept (majors use the fixed `audience`
-    // enum instead — see majorFormSchema) so there is nothing to scope by
-    // roleId here.
+    // mock نقش Nest ندارد؛ رشته با enum `audience` است (ببین majorFormSchema).
     return [];
   },
 
-  /** PUT /org-structure/provinces — real: POST/PATCH /api/admin/provinces */
+  /** POST/PATCH /admin/provinces. */
   async upsertProvince(
     input: UpsertProvinceInput,
     editId?: string
@@ -244,7 +214,7 @@ export const OrgStructureService = {
     mockUpsertProvince(input, editId);
   },
 
-  /** PUT /org-structure/cities — real: POST/PATCH /api/admin/cities */
+  /** POST/PATCH /admin/cities. */
   async upsertCity(input: UpsertCityInput, editId?: string): Promise<void> {
     if (!IS_MOCK_MODE) {
       return upsertRealCity(input, editId);
@@ -253,11 +223,7 @@ export const OrgStructureService = {
     mockUpsertCity(input, editId);
   },
 
-  /**
-   * PUT /org-structure/faculties — real: POST/PUT /api/admin/universites.
-   * The Nest entity is called "university" but is surfaced in this UI as
-   * the دانشکده/پردیس (faculty) tab.
-   */
+  /** POST/PUT /admin/universites — university Nest همان تب پردیس است. */
   async upsertFaculty(
     input: UpsertFacultyInput,
     editId?: string
@@ -269,7 +235,7 @@ export const OrgStructureService = {
     mockUpsertFaculty(input, editId);
   },
 
-  /** PUT /org-structure/districts — real: POST/PUT /api/admin/educations */
+  /** POST/PUT /admin/educations. */
   async upsertDistrict(
     input: UpsertDistrictInput,
     editId?: string
@@ -281,7 +247,7 @@ export const OrgStructureService = {
     mockUpsertDistrict(input, editId);
   },
 
-  /** PUT /org-structure/schools — real: POST/PUT /api/admin/schools */
+  /** POST/PUT /admin/schools. */
   async upsertSchool(input: UpsertSchoolInput, editId?: string): Promise<void> {
     if (!IS_MOCK_MODE) {
       return upsertRealSchool(input, editId);
@@ -290,7 +256,7 @@ export const OrgStructureService = {
     mockUpsertSchool(input, editId);
   },
 
-  /** PUT /org-structure/majors — real: POST/PUT /api/admin/degree. */
+  /** POST/PUT /admin/degree. */
   async upsertMajor(input: UpsertMajorInput, editId?: string): Promise<void> {
     if (!IS_MOCK_MODE) {
       return upsertRealMajor(input, editId);
@@ -299,7 +265,7 @@ export const OrgStructureService = {
     mockUpsertMajor(input, editId);
   },
 
-  /** DELETE /org-structure/:kind/:id — real: DELETE /api/admin/{kind}/{id} */
+  /** DELETE /admin/{kind}/{id} — مدرسه بدون `/` قبل از id. */
   async deleteEntity(kind: OrgStructureEntityKind, id: string): Promise<void> {
     if (!IS_MOCK_MODE) {
       return deleteRealEntity(kind, id);

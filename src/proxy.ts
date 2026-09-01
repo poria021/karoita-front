@@ -13,12 +13,11 @@ import {
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
- * Attach non-CSP security headers per-request.
+ * هدرهای امنیتی غیر-CSP روی هر درخواست.
  *
- * CSP is now set in next.config.ts → headers() which runs in Node.js runtime
- * where process.env.NODE_ENV is guaranteed to be correct. Setting CSP here
- * (Edge Runtime) caused unsafe-eval to be dropped in dev because NODE_ENV
- * and NEXT_PUBLIC_* env vars are not reliably available in the Edge bundle.
+ * CSP در `next.config.ts` → `headers()` در runtime نود ساخته می‌شود که `NODE_ENV`
+ * آنجا درست است. گذاشتن CSP اینجا (Edge) باعث می‌شد `unsafe-eval` در dev حذف شود
+ * چون `NODE_ENV` و `NEXT_PUBLIC_*` در باندل Edge قابل اعتماد نیستند.
  */
 function withSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('X-Content-Type-Options', 'nosniff');
@@ -42,17 +41,16 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
 }
 
 /**
- * Edge session gate — Next.js 16 convention (`src/proxy.ts`, named `proxy`).
- * Do NOT add `middleware.ts`: Next treats that as deprecated and fails the
- * build if both files exist. `config.matcher` is statically extracted from
- * THIS file; moving it to an import would skip the session gate.
+ * گیت نشست Edge — قرارداد Next ۱۶ (`src/proxy.ts`، نام `proxy`).
+ * `middleware.ts` نسازید: وجود هر دو فایل بیلد را fail می‌کند. `config.matcher`
+ * از همین فایل استخراج ایستا می‌شود؛ اگر به import منتقل شود گیت نشست اجرا نمی‌شود.
  *
- * Presence only: real session cookie, or mock marker when mock/dev is
- * actually enabled — not role/authorization. Production/real ignores a
- * forged mock cookie so Edge cannot paint an authenticated shell.
+ * فقط حضور: cookie نشست واقعی، یا marker شبیه‌ساز وقتی mock/dev واقعاً روشن است —
+ * نه نقش/مجوز. production/real یک cookie جعلی mock را نادیده می‌گیرد تا Edge
+ * شِل لاگین‌شده نشان ندهد.
  *
  * - مسیرهای public → عبور
- * - `/karvita/*` بدون نشست → لاگین + returnUrl
+ * - `/karvita/*` بدون نشست → لاگین + `returnUrl`
  * - بقیهٔ URLهای ناشناس (لندینگ غلط و …) → عبور تا `not-found` ریشه/مارکتینگ
  *   نه ریدایرکت اجباری به لاگین
  */
@@ -83,8 +81,8 @@ export async function proxy(request: NextRequest) {
       return withSecurityHeaders(NextResponse.next());
     }
 
-    // Only the authenticated app shell requires a session at the Edge.
-    // Unknown marketing/other URLs must reach App Router not-found UI.
+    // فقط شِل احراز‌شده در Edge به نشست نیاز دارد.
+    // URL ناشناس مارکتینگ باید به UI not-found اپ‌روتر برسد.
     if (isAppShellPath(pathname)) {
       const intended = `${pathname}${request.nextUrl.search}`;
       return withSecurityHeaders(

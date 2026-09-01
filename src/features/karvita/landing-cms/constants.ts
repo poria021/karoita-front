@@ -13,12 +13,12 @@ export {
   LANDING_ICON_MAX_SIZE_MB,
 };
 
-/** Banner / hero slide — standard web CMS ceiling before client compress. */
+/** اسلاید بنر/هیرو — سقف رایج CMS وب قبل از فشرده‌سازی کلاینت. */
 
 export const LANDING_BANNER_MAX_SIZE_HELPER =
   'PNG، JPG تا ۲ مگابایت';
 
-/** Product dock mark — SVG/PNG only (color logos). */
+/** نشان داک محصول — فقط SVG/PNG (لوگوی رنگی). */
 export const LANDING_PRODUCT_LOGO_MAX_SIZE_HELPER =
   'فقط SVG یا PNG تا ۵۱۲ کیلوبایت';
 

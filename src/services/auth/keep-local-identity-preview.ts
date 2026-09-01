@@ -5,10 +5,8 @@ function isDataImageUrl(value: string | undefined): boolean {
 }
 
 /**
- * PATCH /auth/me may omit org/identifier fields. Replacing the session user
- * wholesale would wipe province/city/… until the next full GET /auth/me.
- * Empty arrays from the server still win; only `undefined` is filled from
- * the previous session.
+ * `PATCH /auth/me` ممکن است فیلد سازمان را حذف کند؛ جایگزینی کامل سشن استان/شهر را تا GET بعدی پاک می‌کند.
+ * آرایهٔ خالی از سرور می‌ماند؛ فقط `undefined` از سشن قبلی پر می‌شود.
  */
 export function retainSessionOrgFields(
   previous: User | null | undefined,
@@ -29,11 +27,7 @@ export function retainSessionOrgFields(
   };
 }
 
-/**
- * Nest/S3 GET for identity docs is often private. After the user uploads,
- * we keep a data-URL preview on the client user. Session refresh from
- * `/auth/me` must not replace that with a storage key that cannot render.
- */
+/** GET هویت از S3 اغلب خصوصی است؛ refresh نباید data-URL پیش‌نمایش را با کلید غیرقابل‌نمایش عوض کند. */
 export function keepLocalIdentityPreview(
   previous: User | null | undefined,
   incoming: User

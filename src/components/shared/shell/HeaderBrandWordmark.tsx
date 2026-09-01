@@ -1,8 +1,5 @@
 import { KvTypography } from '@/components/shared/KvTypography';
 
-/**
- * Header brand name + quiet subtitle, start-aligned (RTL).
- */
 export function HeaderBrandWordmark() {
   return (
     <div className="flex min-w-0 flex-col items-start justify-center gap-1.5">

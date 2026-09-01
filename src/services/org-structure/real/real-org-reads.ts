@@ -54,26 +54,20 @@ export async function getRealSnapshot(): Promise<OrgStructureSnapshot> {
 }
 
 /**
- * In-memory leftover from when some org tabs returned a bare Nest array.
- * Catalog tabs now page on Nest; mutations still flush this map so the
- * delete-blocked index does not outlive a write.
+ * باقی‌ماندهٔ وقتی بعضی تب‌ها آرایهٔ خام Nest می‌دادند.
+ * تب‌ها حالا page می‌شوند؛ mutation هنوز این Map را flush می‌کند تا ایندکس قفل‌حذف از write جلو نزند.
  */
 type BareListCacheEntry = {
   query: string;
   items: OrgStructureListItem[];
-  /** Monotonic timestamp — set to 0 by invalidation to force a fresh fetch. */
+  /** timestamp یکنواخت — 0 یعنی fetch اجباری. */
   staleSince: number;
 };
 
 const bareListCache = new Map<OrgStructureSubTab, BareListCacheEntry>();
 
 /**
- * Called by real-org-mutations.ts after any write so the very next read
- * bypasses the cache and fetches fresh data from Nest.
- * Setting `staleSince: 0` (rather than deleting the entry) guarantees the
- * check `staleSince > 0` fails, forcing a fresh fetch, without the
- * risk of a concurrent reader finding no entry and kicking off a second
- * parallel fetch before the first one lands.
+ * بعد از نوشتن صدا می‌شود؛ `staleSince: 0` تا reader هم‌زمان fetch دوم راه نیندازد.
  */
 export function invalidateRealBareListCache(tab?: OrgStructureSubTab): void {
   flushRealDeleteBlockedCache();
@@ -82,28 +76,14 @@ export function invalidateRealBareListCache(tab?: OrgStructureSubTab): void {
     if (entry) {
       bareListCache.set(tab, { ...entry, staleSince: 0 });
     }
-    // No entry yet — nothing to invalidate; the next read will fetch fresh.
     return;
   }
-  // Invalidate all tabs.
   for (const [key, entry] of bareListCache) {
     bareListCache.set(key, { ...entry, staleSince: 0 });
   }
 }
 
-/**
- * Hard-deletes all entries from the in-memory bare-list cache.
- *
- * Use this when you need a guaranteed sync flush — e.g. immediately before
- * a `reload()` in the UI so the refetch never hits a stale entry even under
- * a race where `staleSince: 0` could theoretically still be served before
- * the new fetch lands. `invalidateRealBareListCache` is the soft variant
- * (sets staleSince=0); this is the hard variant (Map.clear).
- *
- * Called by `useOrgStructurePage.invalidateAndReload` after every mutation
- * so the delete-blocked index and leftover cache entries do not outlive
- * create/update/delete.
- */
+/** پاک کردن سخت Map؛ قبل از reload تا race با `staleSince: 0` رخ ندهد. */
 export function flushBareListCache(tab?: OrgStructureSubTab): void {
   flushRealDeleteBlockedCache();
   if (tab) {
@@ -129,8 +109,7 @@ export async function listRealPage(
     const sets = await getRealDeleteBlockedSets();
     return { ...page, items: withDeleteBlocked(page.items, sets) };
   } catch {
-    // Catalog index is advisory. Keep the list readable if a child
-    // endpoint is down; Nest still rejects an illegal DELETE.
+    // ایندکس مشورتی است؛ اگر endpoint فرزند پایین باشد لیست بخواند — Nest هنوز DELETE غیرمجاز را رد می‌کند.
     return page;
   }
 }
@@ -141,13 +120,11 @@ async function listRealPageRaw(
   const { offset, limit, query } = options;
   const page = Math.floor(offset / limit) + 1;
 
-  // Confirmed envelope: GET /admin/provinces and GET /admin/cities both
-  // return { data, hasNextPage } — real server-side paging.
+  // GET /admin/provinces و /admin/cities پاکت `{ data, hasNextPage }` دارند.
   if (options.tab === 'provinces') {
     const { data, hasNextPage } = await adminCatalogApi.listProvinces({
       page,
       limit,
-      // فیلتر عنوان برای provinces — توسط toNestTitleFilterSearchParams در adminCatalogApi
       ...(query ? { filters: query } : {}),
     });
     const items: OrgStructureListItem[] = data.map((p) => ({
@@ -235,9 +212,7 @@ async function listRealPageRaw(
   }
 
   if (options.tab === 'majors') {
-    // GET /admin/degreeee — `{ data, hasNextPage }` + page/limit/title.
-    // join این endpoint فقط `role.title` انگلیسی دارد؛ title_fa را از
-    // GET /admin/roles تزریق می‌کنیم تا جدول فارسی بماند.
+    // join /admin/degreeee فقط `role.title` انگلیسی دارد؛ `title_fa` از GET /admin/roles تزریق می‌شود.
     const [{ data, hasNextPage }, roles] = await Promise.all([
       adminCatalogApi.listDegrees({
         page,
@@ -262,7 +237,7 @@ async function listRealPageRaw(
     };
   }
 
-  // faculties: GET /admin/universites — `{ data, hasNextPage }`, title filter.
+  // GET /admin/universites (املای لایو) — `{ data, hasNextPage }`.
   const { data, hasNextPage } = await adminCatalogApi.listUniversities({
     page,
     limit,
@@ -276,7 +251,7 @@ async function listRealPageRaw(
       kind: 'faculty' as const,
       usersCount,
       deleteBlocked: isLinkedUserDeleteBlocked('faculty', usersCount),
-      // Confirmed live quirk: province is nested under `role`, not `province`.
+      // رفتار لایو: استان زیر `role` است نه `province`.
       provinceName: firstRelationTitle(u.province, u.role, u.provinceId),
     });
   });
@@ -287,10 +262,7 @@ async function listRealPageRaw(
   };
 }
 
-/**
- * GET /org-structure/:kind/:id — city uses GET /admin/cities/{id}.
- * Province/faculty still scan the full catalog (no get-by-id on Nest).
- */
+/** شهر از GET /admin/cities/{id}؛ استان/پردیس get-by-id ندارند و کاتالوگ را اسکن می‌کنند. */
 export async function getRealEntity(
   kind: OrgStructureEntityKind,
   id: string
@@ -313,22 +285,20 @@ export async function getRealEntity(
   return null;
 }
 
-/** GET /org-structure/provinces — real: GET /api/admin/province/all (falls back to paging). */
+/** GET /admin/province/all با fallback به صفحه‌بندی. */
 export async function listRealProvinces(): Promise<OrgProvince[]> {
   const provinces = await fetchAllNestProvinces();
   return provinces.map(toOrgProvince);
 }
 
-/** GET /org-structure/cities?provinceId= — real: GET /api/admin/provinces/{id}/cities */
+/** GET /admin/provinces/{id}/cities. */
 export async function listRealCities(provinceId: string): Promise<OrgCity[]> {
   const raw = await adminCatalogApi.listCitiesByProvince(provinceId);
   return raw.map((c) => ({ id: c.id, name: c.title, provinceId }));
 }
 
-/** GET /org-structure/districts — real: GET /api/admin/educations?provinceId.
- *
- * Confirmed live: adding `cityId` to that query 500s the Nest handler, so
- * city filtering stays client-side after a province-only fetch.
+/**
+ * GET /admin/educations?provinceId — افزودن `cityId` لایو ۵۰۰ می‌دهد؛ فیلتر شهر سمت کلاینت است.
  */
 export async function listRealDistricts(
   provinceId: string,
@@ -341,19 +311,13 @@ export async function listRealDistricts(
   return forCity.length > 0 ? forCity : mapped;
 }
 
-/**
- * GET /admin/roles — real: roles a degree/major can link to.
- * `title_fa` is the Persian label (preferred); `title` is the English
- * role key (fallback); resolveRoleLabel() handles both.
- */
+/** GET /admin/roles — `title_fa` برچسب فارسی، `title` کلید انگلیسی. */
 export async function listRealRoles(): Promise<OrgRole[]> {
   const roles = await adminCatalogApi.listRoles();
   return roles.map((r) => ({ id: r.id, name: resolveRoleLabel(r) }));
 }
 
-/**
- * GET /admin/roles/{roleId}/degrees — degrees scoped to one role.
- */
+/** GET /admin/roles/{roleId}/degrees. */
 export async function listRealMajorsByRole(
   roleId: string
 ): Promise<OrgStructureListItem[]> {

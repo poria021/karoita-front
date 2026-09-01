@@ -1,6 +1,6 @@
 /**
- * Phrases shared across product shell chrome (header / sidebar overlays).
- * Keep short, institutional Persian — not a full i18n layer.
+ * عبارت‌های مشترک کروم شل (هدر / اورلی سایدبار).
+ * کوتاه و سازمانی بماند — لایهٔ i18n کامل نیست.
  */
 export const shellCopy = {
   a11y: {
@@ -13,9 +13,9 @@ export const shellCopy = {
     menuLabel: 'اعلان‌ها',
   },
   nav: {
-    /** Collapsed-rail title suffix when modules are locked. */
+    /** پسوند عنوان ریل جمع‌شده وقتی ماژول قفل است. */
     lockedSuffix: 'غیرفعال',
-    /** Aria reason — matches onboarding gate language. */
+    /** دلیل aria — همان زبان گیت آنبوردینگ. */
     lockedUntilDocs: 'غیرفعال تا تأیید مدارک',
   },
   account: {

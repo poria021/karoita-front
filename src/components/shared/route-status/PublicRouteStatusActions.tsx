@@ -6,13 +6,10 @@ import { KvButton } from '@/components/shared/KvButton';
 import { RouteService } from '@/services/route.service';
 
 type PublicRouteStatusActionsProps = {
-  /** When set, renders «تلاش مجدد» before صفحه فرود (error boundaries). */
+  /** اگر باشد «تلاش مجدد» قبل از صفحهٔ فرود می‌آید (error boundary). */
   onReset?: () => void;
 };
 
-/**
- * Public-surface status CTAs: retry (errors) + صفحه فرود.
- */
 export function PublicRouteStatusActions({
   onReset,
 }: PublicRouteStatusActionsProps) {

@@ -135,7 +135,7 @@ export function useDelayedSchoolMentorAssignment({
     setIsLoadingMentors(false);
   }, []);
 
-  /** Match original: focus opens picker and clears confirmed school/mentor, keeps typed school text. */
+  /** فوکوس picker را باز می‌کند و مدرسه/معلم تأییدشده را پاک می‌کند؛ متن تایپ‌شده می‌ماند. */
   const beginSchoolPick = useCallback(() => {
     setSelectedSchool(null);
     setSelectedMentor(null);

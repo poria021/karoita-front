@@ -26,7 +26,7 @@ export const PlannedRoutes = {
     `/karvita/internships/${internshipId}`,
 } as const;
 
-/** All planned IA paths (static segments only). */
+/** فقط مسیرهای IA بدون `page.tsx` زنده. در سایدبار نشان داده نمی‌شوند. */
 export const PLANNED_STATIC_ROUTE_PATHS: readonly string[] = [
   PlannedRoutes.dailyReports(),
   PlannedRoutes.academicEvaluation(),

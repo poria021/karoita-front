@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 export type KvMobileListShellProps = {
   isLoading: boolean;
   isEmpty: boolean;
-  /** When true during soft refresh, keep children instead of cold busy. */
+  /** در رفرش نرم، فرزندان را به‌جای busy سرد نگه دار. */
   hasItems?: boolean;
   emptyTitle: string;
   emptyDescription?: string;
@@ -29,8 +29,8 @@ export type KvMobileListShellProps = {
 };
 
 /**
- * Shared chrome for dashboard mobile card/accordion lists:
- * cold busy (spinner), empty, load-more footer — domain rows stay in children.
+ * کروم مشترک لیست کارت/آکاردئون موبایل داشبورد:
+ * busy سرد (اسپینر)، خالی، فوتر load-more — ردیف دامنه در children می‌ماند.
  */
 export function KvMobileListShell({
   isLoading,

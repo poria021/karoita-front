@@ -31,8 +31,7 @@ import type { UserRole } from '@/types/auth';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
 /**
- * کلاس باکس تریگر — دقیقاً همان استایل باکس چندانتخابی «تمدید گروهی»
- * (KvCheckboxMultiSelect) در ارزیابی فراگیران، تا ظاهر یکسان باشد.
+ * تریگر چندانتخابی — همان کروم `KvCheckboxMultiSelect` تا ظاهر یکی بماند.
  */
 const multiTriggerClassName = cn(
   'flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-kv-pair rounded-kv-control',
@@ -43,7 +42,7 @@ const multiTriggerClassName = cn(
   'data-[state=open]:border-kv-brand data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15'
 );
 
-/** استایل locked — دقیقاً مثل KvTextField و KvSelectField در حالت locked */
+/** قفل — همان توکن‌های `KvTextField` / `KvSelectField`. */
 const multiTriggerLockedClassName = cn(
   'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled',
   'text-kv-text-disabled [&_svg]:text-kv-text-disabled',
@@ -51,7 +50,7 @@ const multiTriggerLockedClassName = cn(
   'data-[state=open]:border-kv-border-disabled data-[state=open]:ring-0'
 );
 
-/** آیتم چک‌باکسی — دقیقاً هم‌استایل DropdownMenuCheckboxItem (چک‌باکس تمدید گروهی). */
+/** ردیف چک‌باکس — همان `DropdownMenuCheckboxItem`. */
 function multiCheckboxItemClassName(isSelected: boolean): string {
   return cn(
     'relative flex cursor-pointer items-center gap-2 rounded-kv-control py-kv-pair ps-8 pe-2',
@@ -61,9 +60,6 @@ function multiCheckboxItemClassName(isSelected: boolean): string {
   );
 }
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
-
-/** حالت single: value رشته است؛ حالت multi: value آرایه رشته‌ها */
 export type KvSearchableOrganizationSelectProps =
   | SingleSelectProps
   | MultiSelectProps;
@@ -93,8 +89,6 @@ type MultiSelectProps = BaseProps & {
   onChange: (value: string[]) => void;
 };
 
-// ─── Helpers ───────────────────────────────────────────────────────────────────
-
 function isDependencyValue(value: string | string[] | undefined): boolean {
   if (!value) return false;
   if (Array.isArray(value)) return value.length > 0;
@@ -102,51 +96,35 @@ function isDependencyValue(value: string | string[] | undefined): boolean {
 }
 
 /**
- * آیا این فیلد باید fetch را متوقف کند چون یک parent dependency خالی است؟
- *
- * قوانین:
- *   city     → به province نیاز دارد
- *   district → به province یا city نیاز دارد
- *   school   → به province یا city یا district نیاز دارد
- *   college  → به province نیاز دارد (اختیاری — بدون فیلتر هم کار می‌کند)
- *   province / major → هیچ dependency ندارند؛ همیشه enabled
- *
- * نکته: اگه dependsOn اصلاً پاس نشده، یعنی این field مستقل است
- * (مثل province در فرم‌هایی که dependsOn نمی‌فرستند) → block نمی‌کنیم.
+ * بدون والد لازم fetch نکن. اگر `dependsOn` پاس نشود فیلد مستقل است.
  */
 function isBlockedByMissingDependency(
   type: OrganizationField,
   dependsOn: OrganizationDependsOn | undefined
 ): boolean {
-  // اگه dependsOn اصلاً تعریف نشده، این field مستقل است
   if (!dependsOn) return false;
 
   switch (type) {
     case 'city':
-      // شهر بدون استان معنا ندارد
       return !isDependencyValue(dependsOn.province);
     case 'district':
-      // منطقه بدون استان یا شهر باید block شود
       return (
         !isDependencyValue(dependsOn.province) &&
         !isDependencyValue(dependsOn.city)
       );
     case 'school':
-      // مدرسه بدون هر سه والد block می‌شود
       return (
         !isDependencyValue(dependsOn.province) &&
         !isDependencyValue(dependsOn.city) &&
         !isDependencyValue(dependsOn.district)
       );
     case 'college':
-      // دانشگاه می‌تواند بدون province هم fetch کند (title-only filter)
+      // بدون `province` هم fetch می‌شود (فیلتر فقط عنوان).
       return false;
     default:
       return false;
   }
 }
-
-// ─── Chip (برای multi-select) ──────────────────────────────────────────────────
 
 function SelectionChip({
   label,
@@ -192,8 +170,6 @@ function SelectionChip({
   );
 }
 
-// ─── Component ─────────────────────────────────────────────────────────────────
-
 export const KvSearchableOrganizationSelect = forwardRef<
   HTMLInputElement,
   KvSearchableOrganizationSelectProps
@@ -213,8 +189,6 @@ export const KvSearchableOrganizationSelect = forwardRef<
 
   const isMulti = props.multi === true;
 
-  // ── مقادیر انتخابی ──
-  // در single: selectedLabels حداکثر یک آیتم دارد
   const selectedLabels: string[] = isMulti
     ? (props.value as string[])
     : props.value
@@ -226,11 +200,10 @@ export const KvSearchableOrganizationSelect = forwardRef<
   const edgeScroll = useEdgeAutoScroll<HTMLDivElement>();
   const [open, setOpen] = useState(false);
 
-  // در single-mode وقتی مقدار بیرونی عوض می‌شود input را sync کن — به‌جای useEffect (که باعث یک رندر اضافه و cascading render می‌شد)، طبق الگوی رسمی React مستقیم حین رندر state رو تنظیم می‌کنیم:
+  // مقدار بیرونی را حین رندر sync کن — `useEffect` یک رندر اضافه و cascade می‌داد:
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   const singleValue = !isMulti ? (props as SingleSelectProps).value : undefined;
-  // query با مقدار اولیه singleValue مقداردهی می‌شه تا single-select (مثل رشته تحصیلی)
-  // بلافاصله پس از mount مقدار خود را نشان بده — نه بعد از اولین تغییر.
+  // `query` اولیه همان `singleValue` تا تک‌انتخابی بعد از mount مقدار را نشان دهد.
   const [query, setQuery] = useState(singleValue ?? '');
   const [prevSingleValue, setPrevSingleValue] = useState(singleValue);
   if (!isMulti && singleValue !== prevSingleValue) {
@@ -238,7 +211,6 @@ export const KvSearchableOrganizationSelect = forwardRef<
     setQuery(singleValue ?? '');
   }
 
-  // بستن dropdown وقتی خارج از کامپوننت کلیک می‌شود
   useEffect(() => {
     const close = (event: MouseEvent) => {
       if (
@@ -246,7 +218,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
         !rootRef.current?.contains(event.target)
       ) {
         setOpen(false);
-        // در single-mode اگر کاربر نیمه‌راه ول کرد، input را reset کن
+        // جستجوی نیمه‌کاره را به مقدار انتخاب‌شده برگردان
         if (!isMulti) {
           setQuery((props as SingleSelectProps).value ?? '');
         }
@@ -256,10 +228,8 @@ export const KvSearchableOrganizationSelect = forwardRef<
     return () => document.removeEventListener('mousedown', close);
   }, [isMulti, props]);
 
-  // query برای جستجو در لیست — در single-mode وقتی query != selected value است
   const listQuery = isMulti ? query : query === (props as SingleSelectProps).value ? '' : query;
 
-  // آیا این فیلد باید fetch را منتظر parent dependency بگذارد؟
   const blockedByParent = isBlockedByMissingDependency(type, dependsOn);
 
   const {
@@ -273,9 +243,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
   } = useOrganizationOptions({
     type,
     query: listQuery,
-    // multi-select: از mount شروع به fetch کن — اما نه اگه parent dependency خالی باشد.
-    //   وقتی province انتخاب می‌شه، queryKey عوض می‌شه و TanStack Query خودش re-fetch می‌کنه.
-    // single-select: فقط وقتی dropdown بازه fetch کن.
+    // چندانتخابی از mount fetch می‌کند مگر والد خالی باشد؛ تک‌انتخابی فقط با دراپ‌داون باز.
     enabled: locked
       ? false
       : blockedByParent
@@ -298,12 +266,11 @@ export const KvSearchableOrganizationSelect = forwardRef<
     if (isMulti) {
       const current = props.value as string[];
       if (current.includes(option.label)) {
-        // toggle off
         (props as MultiSelectProps).onChange(current.filter((v) => v !== option.label));
       } else {
         (props as MultiSelectProps).onChange([...current, option.label]);
       }
-      // در multi-mode dropdown باز می‌ماند تا کاربر چند مورد انتخاب کند
+      // چندانتخابی باز می‌ماند تا چند مورد پشت‌سرهم انتخاب شوند
       setQuery('');
     } else {
       setQuery(option.label);
@@ -324,7 +291,6 @@ export const KvSearchableOrganizationSelect = forwardRef<
 
   const showSearchIcon = query.trim().length === 0 && selectedLabels.length === 0;
 
-  // ─── حالت چندانتخابی: دقیقاً هم‌استایل KvCheckboxMultiSelect (تمدید گروهی) ───
   if (isMulti) {
     const fieldId = `org-select-${type}`;
     const labelId = `${fieldId}-label`;
@@ -454,7 +420,6 @@ export const KvSearchableOrganizationSelect = forwardRef<
                       </KvTypography>
                     </div>
                   ) : blockedByParent ? (
-                    // نمایش راهنما برای کاربر که باید ابتدا والد را انتخاب کند
                     <div className="px-3.5 py-2.5 text-center">
                       <KvTypography variant="caption" align="center">
                         {type === 'city'
@@ -549,7 +514,6 @@ export const KvSearchableOrganizationSelect = forwardRef<
     );
   }
 
-  // ─── حالت تک‌انتخابی: کومبوباکس جست‌وجوپذیر (بدون تغییر) ───
   return (
     <div
       ref={rootRef}

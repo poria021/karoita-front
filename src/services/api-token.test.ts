@@ -14,9 +14,7 @@ describe('shouldSkipTokenRefresh', () => {
   });
 
   it('does NOT skip session-check endpoints — regression test for the admin logout-loop bug', () => {
-    // این دقیقاً همون باگی بود که رگرشن‌تست‌اش این‌جاست: قبلاً کل namespace
-    // `/v1/admin/auth/` استثنا شده بود، پس 401 روی `me` هرگز refresh
-    // نمی‌گرفت و کاربر ادمین با انقضای توکن مستقیم logout می‌شد.
+    // قبلاً کل `/v1/admin/auth/` استثنا بود؛ ۴۰۱ روی `me` refresh نمی‌گرفت و ادمین logout می‌شد.
     expect(shouldSkipTokenRefresh('/__nest-api/v1/admin/auth/me')).toBe(false);
     expect(shouldSkipTokenRefresh('/__nest-api/v1/auth/me')).toBe(false);
   });

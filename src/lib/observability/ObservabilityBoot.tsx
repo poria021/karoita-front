@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { reportClientEvent } from '@/lib/observability/reportClientEvent';
 import { reportError } from '@/lib/observability/reportError';
 
-/** Client crash + optional page-view beacon. Renders nothing. */
+/** کرش کلاینت + بیکن اختیاری page-view. چیزی رندر نمی‌کند. */
 export function ObservabilityBoot() {
   useEffect(() => {
     const onError = (event: ErrorEvent) => {

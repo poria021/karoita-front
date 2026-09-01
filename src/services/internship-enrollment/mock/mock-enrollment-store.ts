@@ -1,6 +1,6 @@
 /**
- * Public barrel for mock internship enrollment store.
- * Implementation is split across helpers / reads / writes / weekly modules.
+ * بشکهٔ عمومی store mock ثبت‌نام.
+ * پیاده‌سازی در helpers / reads / writes / weekly است.
  */
 
 export {
