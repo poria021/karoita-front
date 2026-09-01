@@ -1,6 +1,5 @@
 /**
- * HTTP error mapping: raw ky errors → typed ApiClientError with Persian messages.
- * Responsible for: error classification, payload extraction, status → message.
+ * خطای ky → `ApiClientError` با پیام فارسی.
  */
 import { HTTPError, NetworkError, TimeoutError } from 'ky';
 
@@ -53,11 +52,7 @@ function extractApiMessage(payload: unknown): string | null {
       .map(([key, value]) => {
         if (typeof value !== 'string') return null;
         const lower = value.toLowerCase();
-        // Nest reuses `hash` as the OTP/reset-token field (see real-auth.bridge.ts).
-        // An invalid/expired OTP on verify-otp comes back as a 404 with
-        // `{ errors: { hash: 'invalidOtp.' } }` — without this check it fell
-        // through to the generic 404 message ('منبع درخواستی یافت نشد.'),
-        // which reads like a broken route instead of a wrong code.
+        // Nest فیلد OTP را `hash` می‌گذارد؛ ۴۰۴ با `invalidOtp` را پیام «منبع یافت نشد» نکن.
         if (key.toLowerCase() === 'hash' || /invalid.?otp/i.test(value)) {
           return 'کد تایید وارد‌شده اشتباه یا منقضی شده است.';
         }
@@ -76,20 +71,7 @@ function extractApiMessage(payload: unknown): string | null {
   return typeof payload.error === 'string' ? payload.error : null;
 }
 
-/**
- * Nest از ۴۰۴ برای «کد تایید اشتباه/منقضی» روی مسیرهای verify-otp استفاده
- * می‌کند (نگاه کن به کامنت `hash`/`invalidOtp` در extractApiMessage بالا).
- * آن مسیر فقط وقتی جواب می‌دهد که بدنهٔ پاسخ دقیقاً `{ errors: { hash: ... } }`
- * باشد و parse شود. اما گاهی (مثلاً بعد از تعداد تلاش‌های زیاد که رکورد OTP
- * سمت Nest حذف/منقضی شده) همان مسیر یک ۴۰۴ با بدنهٔ خالی یا شکل متفاوت
- * برمی‌گرداند؛ در آن حالت extractApiMessage چیزی پیدا نمی‌کند و پیام عمومی
- * «منبع درخواستی یافت نشد» نمایش داده می‌شد که برای کاربر گیج‌کننده است
- * (به‌نظر می‌رسد مسیر خراب است، نه اینکه کد اشتباه بوده).
- *
- * چون همین endpointها اصلاً معنای دیگری برای ۴۰۴ ندارند، هر ۴۰۴ روی مسیر
- * verify-otp — صرف‌نظر از شکل/قابل‌parse بودن بدنه — به‌عنوان «کد اشتباه یا
- * منقضی» ترجمه می‌شود.
- */
+/** Nest روی `verify-otp` برای کد اشتباه/منقضی ۴۰۴ می‌دهد — حتی با بدنهٔ خالی؛ پیام عمومی ۴۰۴ نده. */
 const OTP_VERIFY_URL_HINT = 'verify-otp';
 const OTP_RESET_URL_HINT = 'reset/password';
 
@@ -125,10 +107,7 @@ export async function mapHttpError(error: unknown): Promise<never> {
     let payload: unknown = null;
     let rawText: string | null = null;
     try {
-      // متن خام را اول می‌خوانیم (نه response.json() مستقیم) تا وقتی بدنه
-      // JSON معتبر نیست — مثلاً صفحهٔ 404 خودِ Next.js/gateway به‌جای پاسخ
-      // واقعی Nest، یا بدنهٔ کاملاً خالی — همان متن خام برای دیباگ لاگ شود
-      // به‌جای گم‌شدن پشت یک `null` بی‌معنی.
+      // اول `text()` نه `json()` تا بدنهٔ غیرJSON (صفحهٔ ۴۰۴ Next/gateway) در لاگ گم نشود.
       rawText = await error.response.text();
       payload = rawText.trim() ? JSON.parse(rawText) : null;
     } catch {

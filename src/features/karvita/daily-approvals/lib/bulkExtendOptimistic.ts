@@ -1,7 +1,7 @@
 import type { DailyApprovalTrainee } from '@/types/daily-approvals';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-/** Optimistic list patch for pending bulk extend / revoke (before Facade commit). */
+/** پچ خوش‌بینانهٔ لیست برای تمدید/لغو گروهی در انتظار commit Facade. */
 export function applyOptimisticBulkExtendWeeks(
   trainees: readonly DailyApprovalTrainee[],
   weekNumbers: readonly number[],

@@ -18,8 +18,8 @@ function asStringArray(value: unknown): string[] {
 }
 
 /**
- * Nest list envelope is `{ data, hasNextPage }`. Live copies sometimes omit
- * `data` or send a bare array — never throw on chrome hydrate.
+ * پاکت لیست Nest `{ data, hasNextPage }` است. بعضی کپی‌ها `data` ندارند یا آرایهٔ خام می‌دهند —
+ * hydrate کروم نباید throw کند.
  */
 export function parseNotificationsListResponse(
   raw: unknown

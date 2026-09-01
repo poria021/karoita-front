@@ -3,8 +3,8 @@
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 
 /**
- * Keeps the auth slot at least as tall as the current form (no clip)
- * and eases min-height down when the form gets shorter.
+ * ارتفاع اسلات auth حداقل به اندازهٔ فرم جاری می‌ماند (بدون برش)
+ * و وقتی فرم کوتاه‌تر شود min-height را نرم پایین می‌آورد.
  */
 export function AuthFormStage({
   stageKey,

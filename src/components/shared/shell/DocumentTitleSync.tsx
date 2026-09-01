@@ -6,12 +6,12 @@ import { usePathname } from 'next/navigation';
 import { resolveBrowserTabTitle } from '@/lib/document-title';
 import { useUserStore } from '@/store/useUserStore';
 
-/** Next.js may briefly show an English segment title during soft navigation. */
+/** `Next` هنگام ناوبار نرم ممکن است لحظه‌ای عنوان انگلیسی سگمنت را نشان دهد. */
 const TITLE_GUARD_MS = 750;
 
 /**
- * Keeps the browser tab title in sync on client navigations — before RSC
- * metadata arrives. Uses the same resolver as server-side page metadata.
+ * عنوان تب مرورگر را در ناوبار کلاینت هم‌گام می‌کند — قبل از رسیدن metadata RSC.
+ * همان resolver سمت سرور.
  */
 export function DocumentTitleSync() {
   const pathname = usePathname();

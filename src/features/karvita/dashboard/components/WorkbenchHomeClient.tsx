@@ -15,7 +15,7 @@ import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import { getLiveWorkbenchShortcuts } from '@/utils/workbenchShortcuts';
 
 export type WorkbenchHomeProps = {
-  /** Greeting line under the title (role-agnostic copy). */
+  /** خط خوشامد زیر عنوان (رونوشت مستقل از نقش). */
   subtitle: string;
   emptyDescription: string;
 };
@@ -33,7 +33,7 @@ function resolveShortcutIcon(iconName?: string) {
 }
 
 /**
- * Quiet organizational workbench — welcome + live module shortcuts only.
+ * میز کار سازمانی آرام — فقط خوشامد + میان‌بر ماژول‌های زنده.
  */
 export function WorkbenchHomeClient({
   subtitle,

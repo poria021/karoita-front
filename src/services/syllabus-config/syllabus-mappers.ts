@@ -8,7 +8,7 @@ import type {
 } from '@/types/syllabus-config';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
-/** Legacy mock key: `C::${termTitle}::${normalizedCourseTitle}` */
+/** کلید قدیمی mock: `C::${termTitle}::${normalizedCourseTitle}` */
 export function legacyOfferingStorageKey(
   termTitle: string,
   courseTitle: string

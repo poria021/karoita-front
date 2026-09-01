@@ -1,12 +1,6 @@
 /**
- * POST /api/auth/set-tokens
- *
- * refresh token را از بدنهٔ درخواست می‌گیرد و در یک httpOnly cookie ذخیره
- * می‌کند. این تنها نویسندهٔ cookie رفرش است — کلاینت پس از فراخوانی این
- * Route دیگر رفرش‌توکن را در sessionStorage/localStorage نمی‌نویسد.
- *
- * access token عمداً اینجا پذیرفته نمی‌شود؛ در حافظهٔ ماژول کلاینت می‌ماند
- * (رجوع کنید به src/services/auth/real-auth.tokens.ts).
+ * `POST /api/auth/set-tokens` — تنها نویسندهٔ کوکی httpOnly رفرش.
+ * کلاینت بعد از این Route رفرش را در storage ننویسد.
  */
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -24,13 +18,12 @@ import { assertSameOriginPost } from '@/lib/auth-origin-guard';
 interface SetTokensBody {
   refreshToken?: unknown;
   accessToken?: unknown;
-  /** 'admin' | 'user' — تعیین می‌کند /api/auth/refresh کدام Nest endpoint بزند */
+  /** `admin` | `user` — `/api/auth/refresh` کدام مسیر Nest را بزند */
   surface?: unknown;
 }
 
 export async function POST(request: NextRequest) {
-  // CSRF: این Route cookie httpOnly رفرش را می‌نویسد؛ فقط فراخوانی same-origin
-  // مجاز است تا یک سایت متقاطع نتواند session را ثابت-fix کند.
+  // CSRF: کوکی httpOnly می‌نویسد؛ فقط same-origin تا سایت متقاطع session را fix نکند.
   const guard = assertSameOriginPost(request);
   if (!guard.ok) {
     return NextResponse.json({ error: guard.reason }, { status: guard.status });
@@ -56,14 +49,12 @@ export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
   response.cookies.set(REAL_REFRESH_COOKIE_NAME, body.refreshToken, REAL_REFRESH_COOKIE_OPTIONS);
 
-  // access token را هم ذخیره می‌کنیم تا Route Handler /api/auth/refresh بتواند
-  // آن را در Authorization header به Nest بفرستد (اگر Nest نیاز داشت)
+  // access هم httpOnly تا `/api/auth/refresh` بتواند `Authorization` به Nest بفرستد.
   if (typeof body.accessToken === 'string' && body.accessToken) {
     response.cookies.set(REAL_ACCESS_COOKIE_NAME, body.accessToken, REAL_ACCESS_COOKIE_OPTIONS);
   }
 
-  // surface cookie — مشخص می‌کند /api/auth/refresh کدام Nest endpoint بزند
-  // 'admin' → v1/admin/auth/refresh | 'user' → v1/auth/refresh
+  // surface: `admin` → `v1/admin/auth/refresh` | `user` → `v1/auth/refresh`
   const surface: AuthSurface =
     typeof body.surface === 'string' && body.surface === 'admin' ? 'admin' : 'user';
   response.cookies.set(REAL_SURFACE_COOKIE_NAME, surface, REAL_SURFACE_COOKIE_OPTIONS);

@@ -1,21 +1,11 @@
 /**
- * Browser-side token lifecycle: read access token, rotate on 401, handle logout.
- * Responsible for: token resolution, silent refresh, unauthorized side-effects.
- *
- * Intentionally free of ky/HTTP imports — only auth store + token storage.
- *
- * ─── Token model ─────────────────────────────────────────────────────────────
- *   Access token  → حافظهٔ ماژول (real-auth.tokens._mem)
- *   Refresh token → httpOnly cookie — فقط /api/auth/refresh می‌خواند
- *   Rotate        → POST /api/auth/refresh (Next.js Route Handler)
- * ─────────────────────────────────────────────────────────────────────────────
+ * چرخهٔ توکن مرورگر: access در حافظهٔ ماژول این تب؛ refresh فقط کوکی httpOnly
+ * که `POST /api/auth/refresh` می‌خواند. ky اینجا import نشود.
  */
 import { isAuthPath, RouteService } from '@/services/route.service';
 import { beginLeavingApp, waitForNextPaint } from '@/store/authTransition';
 import { setRuntimeAuthBoot } from '@/store/sessionBoot';
 import { useUserStore } from '@/store/useUserStore';
-
-// ─── Token rotation ──────────────────────────────────────────────────────────
 
 let browserRotateAccessPromise: Promise<string | null> | null = null;
 
@@ -31,10 +21,7 @@ async function rotateAccessTokenOnce(): Promise<string | null> {
   }
 }
 
-/**
- * Rotate the access token exactly once per browser tab — concurrent 401s share
- * one promise so only one refresh request hits the Next.js Route (and then Nest).
- */
+/** یک promise در هر تب — چند ۴۰۱ همزمان فقط یک refresh به Route/Nest می‌زنند. */
 export async function rotateRealAccessToken(): Promise<string | null> {
   if (typeof window === 'undefined') {
     return rotateAccessTokenOnce();
@@ -48,8 +35,6 @@ export async function rotateRealAccessToken(): Promise<string | null> {
   return browserRotateAccessPromise;
 }
 
-// ─── Bearer resolution ────────────────────────────────────────────────────────
-
 export function bearerHeaders(token?: string): HeadersInit {
   if (!token) return {};
   return {
@@ -57,19 +42,7 @@ export function bearerHeaders(token?: string): HeadersInit {
   };
 }
 
-/**
- * Resolve bearer token: explicit > stored access token > بس.
- *
- * عمداً refresh نمی‌زنیم اینجا — این وظیفهٔ afterResponse hook روی 401 است.
- * اگر اینجا refresh بزنیم، هر request بدون token (مثل OTP send/verify که
- * هنوز هیچ session ای وجود ندارد) یک /api/auth/refresh غیرضروری می‌زند
- * که 401 برمی‌گرداند و در DevTools به‌عنوان خطا نمایش داده می‌شود.
- *
- * جریان درست:
- *   1. resolveBearerToken → access token از memory (یا undefined)
- *   2. request با bearer (یا بدون آن)
- *   3. اگر 401 برگشت → afterResponse hook → rotateRealAccessToken → retry
- */
+/** Bearer صریح یا access حافظه؛ اینجا refresh نزن — OTP بدون سشن `/api/auth/refresh` الکی می‌زند. */
 export async function resolveBearerToken(
   explicit?: string
 ): Promise<string | undefined> {
@@ -84,14 +57,9 @@ export async function resolveBearerToken(
   }
 }
 
-// ─── Unauthorized handler ─────────────────────────────────────────────────────
-
 let handlingUnauthorized = false;
 
-/**
- * 401 side-effect: clear local session and redirect to login.
- * Guarded against concurrent calls and re-entrancy on auth pages.
- */
+/** ۴۰۱: سشن محلی پاک و به login؛ هم‌زمانی و صفحات auth را رد می‌کند. */
 export async function handleUnauthorized(): Promise<void> {
   if (handlingUnauthorized || typeof window === 'undefined') return;
 
@@ -117,20 +85,10 @@ export async function handleUnauthorized(): Promise<void> {
   }
 }
 
-// ─── Auth-bootstrap path guard ────────────────────────────────────────────────
-
 const AUTH_BOOTSTRAP_PATH =
   /(\/v1\/auth\/(logout|refresh|phone\/login|phone\/register|forgot|reset)|\/v1\/admin\/auth\/(refresh|phone\/login|logout)|\/admin\/auth\/(refresh|phone\/login|logout)|\/api\/auth\/(refresh|clear-tokens|set-tokens))(?:\/|$|\?)/;
 
-/**
- * Paths that must NOT trigger a token refresh on 401 — they ARE the auth
- * bootstrap flow; retrying them with a new token would loop forever.
- *
- * ⚠️ عمداً محدود به زیرمسیرهای واقعی bootstrap شده (refresh/login/logout)،
- * نه کل namespace `/v1/admin/auth/` — قبلاً کل namespace استثنا شده بود که
- * باعث می‌شد 401 روی `v1/admin/auth/me` (چک سشن ادمین، معادل `v1/auth/me`
- * برای کاربر عادی) هرگز refresh را تریگر نکند و کاربر ادمین مستقیم logout شود.
- */
+/** ۴۰۱ روی login/refresh/logout را refresh نکن (حلقه). کل `/v1/admin/auth/` استثنا نشود — `me` ادمین باید refresh بگیرد. */
 export function shouldSkipTokenRefresh(url: string): boolean {
   return AUTH_BOOTSTRAP_PATH.test(url);
 }

@@ -6,8 +6,9 @@ import { DOCUMENT_TITLE, privatePageMetadata } from '@/lib/document-title';
 
 export const metadata: Metadata = privatePageMetadata(DOCUMENT_TITLE.notFound);
 
-/** In-shell 404 for `notFound()` under `/(app)` (keeps Header/Sidebar).
- * Unmatched `/karvita/*` URLs reach this via `karvita/[...notFound]/page.tsx`.
+/**
+ * ۴۰۴ داخل شِل برای `notFound()` زیر `/(app)` (Header/Sidebar می‌ماند).
+ * URL بی‌تطبیق `/karvita/*` از `karvita/[...notFound]/page.tsx` به اینجا می‌رسد.
  */
 export default function AppNotFound() {
   return (

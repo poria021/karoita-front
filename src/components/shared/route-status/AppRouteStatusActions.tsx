@@ -6,13 +6,10 @@ import { KvButton } from '@/components/shared/KvButton';
 import { RouteService } from '@/services/route.service';
 
 type AppRouteStatusActionsProps = {
-  /** When set, renders «تلاش مجدد» before میز کار (error boundaries). */
+  /** اگر باشد «تلاش مجدد» قبل از میز کار می‌آید (error boundary). */
   onReset?: () => void;
 };
 
-/**
- * Dashboard status CTAs: retry (errors) + میز کار.
- */
 export function AppRouteStatusActions({ onReset }: AppRouteStatusActionsProps) {
   return (
     <>

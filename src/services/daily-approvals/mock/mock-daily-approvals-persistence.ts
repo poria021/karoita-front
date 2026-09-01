@@ -191,7 +191,7 @@ export function readTrainees(): DailyApprovalTrainee[] {
         return memoryTrainees.map(withDerived);
       }
     } catch {
-      // Damaged simulator data falls back to seed.
+      // دادهٔ خراب شبیه‌ساز به seed برمی‌گردد.
     }
   }
 

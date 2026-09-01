@@ -42,8 +42,8 @@ async function postJson(url: string, body: unknown, headers?: Record<string, str
 }
 
 /**
- * Always logs locally. When env is set, also posts to Sentry store and/or a
- * generic webhook. Never throws — reporting must not break error UI.
+ * همیشه locally لاگ می‌کند. اگر env ست باشد، به store سنتری و/یا webhook هم می‌فرستد.
+ * هرگز throw نمی‌کند — گزارش نباید UI خطا را بشکند.
  */
 export async function reportError(
   error: unknown,
@@ -113,6 +113,6 @@ export async function reportError(
 
     await Promise.all(jobs);
   } catch {
-    // Swallow reporter failures.
+    // شکست reporter نباید UI خطا را بشکند.
   }
 }

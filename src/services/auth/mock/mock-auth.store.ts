@@ -97,7 +97,6 @@ function syncMemory(users: MockAuthUserRecord[]): MockAuthIndexes {
   return memoryIndexes;
 }
 
-// ─── ذخیره‌سازی جداگانه docUrl ─────────────────────────────────────────────
 export function readMockDocUrl(userId: string): string | undefined {
   if (!isBrowser()) return undefined;
   return window.localStorage.getItem(MOCK_DOC_URL_PREFIX + userId) ?? undefined;
@@ -109,7 +108,7 @@ export function writeMockDocUrl(userId: string, docUrl: string | undefined): voi
     try {
       window.localStorage.setItem(MOCK_DOC_URL_PREFIX + userId, docUrl);
     } catch {
-      // quota exceeded
+      // سهمیهٔ localStorage پر است — مدرک را drop کن نه کل persist
     }
   } else {
     window.localStorage.removeItem(MOCK_DOC_URL_PREFIX + userId);
@@ -350,7 +349,7 @@ export function tryRestoreMockSession(): Session | null {
   return { user, token: meta.token, expiresAt: meta.expiresAt };
 }
 
-/** Shape: `mock.{userId}.{issuedAt}` — `tryRestoreMockSession` reads `userId`. */
+/** شکل `mock.{userId}.{issuedAt}` — `tryRestoreMockSession` قسمت `userId` را می‌خواند. */
 export function buildMockSessionToken(userId: string): string {
   return `mock.${userId}.${Date.now()}`;
 }

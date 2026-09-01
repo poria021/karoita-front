@@ -28,7 +28,7 @@ import { useUserStore } from '@/store/useUserStore';
 import type { Session, User, UserRole } from '@/types/auth';
 import type { NestAuthUpdateDto } from '@/types/nest-users';
 
-/** surface جاری session را می‌خواند — در browser از cookie، خارج از browser 'user' */
+/** سطح سشن: در مرورگر از کوکی؛ بیرون `'user'`. */
 function currentSurface(): 'admin' | 'user' {
   return readRealAuthSurface() ?? 'user';
 }
@@ -36,11 +36,8 @@ function currentSurface(): 'admin' | 'user' {
 const NEST_AUTH_LIVE = true;
 
 /**
- * ⚠️ این ثابت‌ها فقط برای مقایسهٔ سریع در تست‌ها نگه‌داشته شده‌اند و دیگر
- * در runtime استفاده نمی‌شوند. resolveNestRoleDto در صورت شکست GET /auth/roles
- * یک خطای صریح می‌دهد، نه fallback خاموش.
- *
- * @deprecated — به‌جای این، خطا از سرور به کاربر نمایش داده می‌شود.
+ * فقط برای مقایسه در تست؛ runtime دیگر fallback ندارد — شکست `GET /auth/roles` یعنی خطا.
+ * @deprecated
  */
 export const _DEPRECATED_FALLBACK_ROLE_IDS: Readonly<Record<string, string>> = {
   student: '6a43982fceda93d39f5d3493',
@@ -97,21 +94,12 @@ function toAdminOtpSendBody(mobile: string): { phone: string } {
 }
 
 /**
- * شناسهٔ Nest مربوط به نقش کاربر را از GET /auth/roles می‌خواند.
- *
- * چرا fallback حذف شد؟
- *  - این تابع برای یک عملیات نوشتاری (ثبت‌نام) فراخوانی می‌شود — نقش اشتباه
- *    یعنی کاربر با دسترسی‌های غلط ثبت‌نام می‌کند و بعداً به مشکلات جدی
- *    authorization برمی‌خورد.
- *  - اگر IDها در بک‌اند تغییر کرده باشند، fallback hardcode خاموشانه باگ
- *    تولید می‌کند — سخت‌ترین نوع برای دیباگ.
- *  - خطای صریح به کاربر («دریافت لیست نقش‌ها ناموفق بود، دوباره تلاش کنید»)
- *    قابل‌فهم و قابل‌اقدام است؛ ثبت‌نام با نقش اشتباه قابل‌فهم نیست.
+ * `role.id` از `GET /auth/roles`. fallback هاردکد ممنوع — نقش اشتباه در ثبت‌نام authorization را خراب می‌کند.
  */
 async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
   let lastError: unknown;
 
-  // تا ۲ بار تلاش می‌کنیم — خطاهای شبکهٔ گذرا رو پوشش می‌دیم
+  // دو تلاش برای خطای شبکهٔ گذرا
   for (let attempt = 0; attempt < 2; attempt++) {
     if (attempt > 0) await new Promise((r) => setTimeout(r, 400));
 
@@ -141,11 +129,10 @@ async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
         throw new Error('هیچ نقش معتبری در پاسخ سرور یافت نشد.');
       }
 
-      // pickNestRoleDto در صورت نیافتن نقش throw می‌کند — آن را bubble بده
       return pickNestRoleDto(roles, role);
     } catch (error) {
       lastError = error;
-      // ۴xx: مشکل سمت کلاینت یا تغییر API — retry فایده ندارد
+      // ۴xx با retry درست نمی‌شود
       if (
         error instanceof ApiClientError &&
         typeof error.status === 'number' &&
@@ -157,7 +144,6 @@ async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
     }
   }
 
-  // همهٔ تلاش‌ها شکست خوردند — خطای صریح و قابل‌فهم به کاربر
   console.error('[real-auth.bridge] resolveNestRoleDto failed after retries', lastError);
   throw new ApiClientError(
     'دریافت لیست نقش‌ها از سرور ناموفق بود. اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید.',
@@ -173,7 +159,7 @@ async function applyNestLoginResponse(raw: unknown, fallbackMobile?: string): Pr
 
 async function applyNestAdminLoginResponse(raw: unknown, fallbackMobile?: string): Promise<User> {
   const parsed = extractNestAdminLoginResponse(raw, fallbackMobile);
-  // سارفیس 'admin' را پاس می‌کنیم تا /api/auth/refresh بداند کدام Nest endpoint بزند
+  // surface `admin` تا `/api/auth/refresh` مسیر ادمین Nest را بزند
   await writeRealAuthTokens(parsed.tokens, 'admin');
   dispatchSessionToStore({ user: parsed.user, token: parsed.tokens.token, expiresAt: parsed.expiresAt });
   return parsed.user;
@@ -200,7 +186,7 @@ export type OtpCooldownResult = {
   retryAfterSeconds: number;
 };
 
-/** @deprecated Use OtpCooldownResult */
+/** @deprecated به‌جای این از `OtpCooldownResult` استفاده کنید */
 export type ForgotPasswordOtpResult = OtpCooldownResult;
 
 export async function realRegister(mobile: string, role: UserRole): Promise<OtpCooldownResult> {
@@ -279,7 +265,7 @@ async function performRealRefresh(): Promise<Session | null> {
       credentials: 'include',
     });
 
-    // refresh token باطل/منقضی → پاکسازی فوری و برگشت به login
+    // رفرش باطل → پاکسازی فوری
     if (res.status === 401 || res.status === 403) {
       clearRealAuthTokens();
       dispatchSessionToStore(null);
@@ -292,10 +278,7 @@ async function performRealRefresh(): Promise<Session | null> {
 
     const raw: unknown = await res.json();
 
-    // route.ts قبلاً /admin/auth/me یا /auth/me را زده و admin/user object را ضمیمه کرده.
-    // پس فقط parse می‌کنیم — هیچ درخواست شبکه‌ای اضافه نداریم.
-
-    // ۱. پاسخ ادمین: شامل admin object است
+    // Route قبلاً `/auth/me` را ضمیمه کرده — اینجا فقط parse
     if (looksLikeNestAdminLoginResponse(raw)) {
       const parsed = extractNestAdminLoginResponse(raw, existingMobile);
       await writeRealAuthTokens(parsed.tokens, 'admin');
@@ -304,7 +287,6 @@ async function performRealRefresh(): Promise<Session | null> {
       return session;
     }
 
-    // ۲. پاسخ کاربر عمومی: شامل user object است (route.ts از /auth/me آورده)
     if (looksLikeNestLoginResponse(raw)) {
       const parsed = extractNestLoginResponse(raw, existingMobile);
       await writeRealAuthTokens(parsed.tokens, 'user');
@@ -313,9 +295,7 @@ async function performRealRefresh(): Promise<Session | null> {
       return session;
     }
 
-    // ۳. fallback نادر: Nest فقط { token, refreshToken, tokenExpires } برگرداند
-    //    و fetchSessionUser در route.ts هم fail شد (مثلاً /auth/me در دسترس نبود).
-    //    token را ذخیره می‌کنیم و مستقیم /auth/me می‌زنیم.
+    // fallback: Nest فقط توکن داد و `me` در Route شکست خورد
     try {
       const tokens = extractNestRefreshTokens(raw);
       const surface = currentSurface();
@@ -327,10 +307,9 @@ async function performRealRefresh(): Promise<Session | null> {
         return fallbackSession;
       }
     } catch {
-      // پاسخ Nest نه token داشت نه user — پاکسازی کامل
+      // نه token نه user — به پاکسازی پایین می‌افتد
     }
 
-    // هیچ راهی نماند — پاکسازی کامل
     clearRealAuthTokens();
     dispatchSessionToStore(null);
     return null;
@@ -390,17 +369,15 @@ export async function realFetchSession(
   const mobileFallback = fallbackMobile ?? useUserStore.getState().activeUser?.mobile;
   const surface = currentSurface();
 
-  // explicitAccessToken اولویت دارد؛ اگر نبود از memory بخوان.
-  // عمداً refresh نمی‌زنیم — caller مسئول تأمین token است.
+  // اینجا refresh نزن — caller باید token بدهد؛ OTP بدون سشن refresh الکی می‌زند
   const accessToken = explicitAccessToken ?? readRealAccessToken();
   if (!accessToken) return null;
 
   try {
-    // برای ادمین /admin/auth/me، برای user عمومی /auth/me
+    // سطح از کوکی؛ مسیر `me` ادمین و کاربر جداست
     const sessionPath = surface === 'admin' ? REAL_AUTH_PATHS.adminSession : REAL_AUTH_PATHS.session;
     const raw = await apiClient.getJson<unknown>(sessionPath, accessToken);
 
-    // پاسخ ادمین: شامل admin object است
     if (looksLikeNestAdminLoginResponse(raw)) {
       return {
         user: extractNestAdminLoginResponse(raw, mobileFallback).user,
@@ -411,13 +388,12 @@ export async function realFetchSession(
 
     if (looksLikeNestLoginResponse(raw)) return toSessionFromNestLogin(raw, mobileFallback);
 
-    // پاسخ خام GET /auth/me یا /admin/auth/me: فقط یک شیء object با id برمی‌گرداند
+    // GET `me` خام: شیء با id، بدون پوشش login
     const payload =
       raw && typeof raw === 'object' && 'data' in raw && (raw as { data: unknown }).data
         ? (raw as { data: unknown }).data
         : raw;
 
-    // برای ادمین mapNestAdminUser بگیریم وگرنه mapNestAuthUser
     const user = surface === 'admin'
       ? mapNestAdminUser(payload, mobileFallback)
       : mapNestAuthUser(payload, mobileFallback);

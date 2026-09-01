@@ -2,9 +2,9 @@ import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
 
 /**
- * Product UI must not hardcode colors in TS/TSX.
- * Define HSL tokens as `--kv-*` in `src/app/globals.css`, then use `*-kv-*` utilities.
- * Exception: third-party brand SVGs (see ignores).
+ * UI محصول نباید رنگ را در TS/TSX هاردکد کند.
+ * توکن HSL را به‌صورت `--kv-*` در `src/app/globals.css` تعریف کنید و از utilityهای `*-kv-*` استفاده کنید.
+ * استثناء: SVG برند third-party (نگاه کنید به ignores).
  */
 const COLOR_LITERAL_MESSAGE =
   'Hardcoded colors (#hex / rgb() / hsl()) are forbidden in TS/TSX. Add HSL `--kv-*` tokens in globals.css and use bg-kv-*/text-kv-*/border-kv-*/fill-kv-* utilities.';
@@ -49,7 +49,7 @@ const UI_RESTRICTED_IMPORT_PATTERNS = [
   },
 ];
 
-/** Domains under src/features/ — keep in sync when adding a new slice (docs/planned-domains.md). */
+/** دامنه‌های `src/features/` — با افزودن اسلایس جدید هم‌زمان به‌روز کنید (`docs/planned-domains.md`). */
 const FEATURE_DOMAINS = ['karvita', 'shared'];
 
 function otherFeatureImportPatterns(selfDomain) {
@@ -74,7 +74,7 @@ const COLOR_RESTRICTED_SYNTAX = [
     message: COLOR_LITERAL_MESSAGE,
   },
   {
-    // Catches hex embedded in longer strings, e.g. fill="#104ec6" class pieces
+    // hex داخل رشتهٔ طولانی‌تر، مثلاً `fill="#104ec6"` در تکه‌های class
     selector:
       'Literal[value=/#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})\\b/]',
     message: COLOR_LITERAL_MESSAGE,
@@ -91,19 +91,19 @@ const HARDCODED_PATH_SYNTAX = [
     message: HARDCODED_PATH_MESSAGE,
   },
   {
-    // Template strings that embed domain path prefixes, e.g. `/karvita/${role}/profile`
+    // template string که پیشوند مسیر دامنه دارد، مثلاً `/karvita/${role}/profile`
     selector: 'TemplateElement[value.raw=/\\/(?:karvita|auth)\\//]',
     message: HARDCODED_PATH_MESSAGE,
   },
 ];
 
 /**
- * Next 16 ships flat configs — do not use FlatCompat for `next/*` extends
- * (breaks with circular JSON when validating plugins).
+ * Next ۱۶ کانفیگ flat می‌دهد — برای `next/*` از FlatCompat استفاده نکنید
+ * (با JSON حلقه‌ای موقع اعتبارسنجی plugin می‌شکند).
  */
 const eslintConfig = [
   {
-    // فایل‌های build شده و third-party که نباید lint بشن
+    // فایل‌های build و third-party که نباید lint شوند
     ignores: [
       '.next/**',
       'node_modules/**',
@@ -115,11 +115,11 @@ const eslintConfig = [
   ...nextVitals,
   ...nextTs,
   {
-    // Prefer typed DTOs; allow outside product cores during migration.
+    // DTO تایپ‌شده ترجیح است؛ بیرون هستهٔ محصول در مهاجرت warn می‌ماند.
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-explicit-any': 'off',
-      /* Tighten a11y beyond Next defaults without blocking unrelated files. */
+      /* a11y را از پیش‌فرض نکست سخت‌تر کن بدون اینکه فایل‌های نامرتبط را قفل کند. */
       'jsx-a11y/alt-text': 'error',
       'jsx-a11y/aria-props': 'error',
       'jsx-a11y/aria-proptypes': 'error',
@@ -144,8 +144,8 @@ const eslintConfig = [
     },
   },
   /**
-   * Layer law: features/app MAY import plain ui atoms.
-   * Forbidden: bypass product stacks (admin table) via raw ui/table; do not revive ui/skeleton.
+   * قانون لایه: features/app می‌توانند اتم ui ساده را import کنند.
+   * ممنوع: دور زدن استک محصول (جدول ادمین) با `ui/table` خام؛ `ui/skeleton` را برنگردانید.
    */
   {
     files: ['src/features/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
@@ -160,8 +160,8 @@ const eslintConfig = [
     },
   },
   /**
-   * Multi-domain FSD: no features/[A] → features/[B] imports.
-   * app/** may import features (OK). Later blocks override imports for matched files.
+   * FSD چنددامنه‌ای: import از `features/[A]` به `features/[B]` ممنوع.
+   * `app/**` می‌تواند features را import کند. بلوک‌های بعدی import را برای فایل‌های منطبق override می‌کنند.
    */
   ...FEATURE_DOMAINS.map((domain) => ({
     files: [`src/features/${domain}/**/*.{ts,tsx}`],
@@ -197,8 +197,8 @@ const eslintConfig = [
     },
   },
   /**
-   * Route catalog law: domain paths only via RouteService (C4 helpers OK in services/lib).
-   * Tests / route catalog / Edge public-path config are ignored.
+   * قانون کاتالوگ مسیر: مسیر دامنه فقط از `RouteService` (هلپر C4 در services/lib مجاز).
+   * تست / کاتالوگ مسیر / کانفیگ public-path در Edge نادیده گرفته می‌شوند.
    */
   {
     files: ['src/features/**/*.{ts,tsx}', 'src/components/**/*.{ts,tsx}'],

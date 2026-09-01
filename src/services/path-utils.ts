@@ -1,6 +1,6 @@
 /**
- * Pure path string utilities — no routing catalog, no user types, no imports.
- * Safe to use in Edge runtime and tests without side-effects.
+ * هلپر خالص رشتهٔ مسیر — بدون کاتالوگ مسیر و بدون نوع کاربر.
+ * در Edge و تست بدون side-effect قابل استفاده است.
  */
 
 export function normalizePathname(pathname: string): string {
@@ -25,7 +25,7 @@ export function leafSegment(pathname: string): string {
   return segs[segs.length - 1] ?? '';
 }
 
-/** Shared leading segment count between two paths (e.g. /a/b/c vs /a/b/x → 2). */
+/** تعداد سگمنت مشترک ابتدای دو مسیر. */
 export function commonPrefixSegmentCount(a: string, b: string): number {
   const left = pathSegments(a);
   const right = pathSegments(b);
@@ -36,7 +36,7 @@ export function commonPrefixSegmentCount(a: string, b: string): number {
   return i;
 }
 
-/** Classic Levenshtein — small strings only (path segments / short paths). */
+/** Levenshtein فقط برای سگمنت/مسیر کوتاه. */
 export function levenshtein(a: string, b: string): number {
   if (a === b) return 0;
   if (!a.length) return b.length;

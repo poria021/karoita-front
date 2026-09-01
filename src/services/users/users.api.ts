@@ -8,8 +8,7 @@ import type {
 } from '@/types/nest-users';
 
 /**
- * Relative to NEXT_PUBLIC_API_URL (typically `.../api`).
- * Swagger: GET/PATCH/DELETE `/api/v1/users`.
+ * مسیر نسبت به `NEXT_PUBLIC_API_URL`. Swagger: GET/PATCH/DELETE `/api/v1/users`.
  */
 export const NEST_USERS_PATHS = {
   list: 'v1/users',
@@ -40,7 +39,7 @@ export const usersApi = {
     );
   },
 
-  /** DELETE /api/v1/users/{id} — 204 */
+  /** DELETE /api/v1/users/{id} — لایو ۲۰۴. */
   remove(id: string, token?: string) {
     return apiClient.deleteMaybeJson<null>(NEST_USERS_PATHS.byId(id), token);
   },

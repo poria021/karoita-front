@@ -31,4 +31,35 @@ pnpm test
 
 اگر رفتار UI داشبورد عوض شد، همان جریان را در مرورگر هم بزنید — فقط اسکرین‌شات کافی نیست.
 
+## گیت و انتشار
+
+دو برنچ پایدار:
+
+| برنچ | نقش |
+|------|------|
+| `dev` | کار روزانه. فیچر و فیکس اینجا commit و push می‌شود. |
+| `main` | نسخهٔ سرور. فقط از `dev` merge می‌شود. |
+
+روی `main` مستقیم کار نکنید. سرور فقط `main` را بیلد می‌کند.
+
+```bash
+git checkout dev
+# کار، بعد:
+pnpm typecheck && pnpm lint && pnpm test
+git add -p   # یا فایل‌های مربوط
+git commit
+git push origin dev
+```
+
+وقتی برای سرور آماده شد:
+
+```bash
+git checkout main
+git pull origin main
+git merge --no-ff dev
+git push origin main
+```
+
+`.env` و `.env.local` را commit نکنید. روی سرور از [`.env.production.example`](./.env.production.example) کپی کنید؛ `NEXT_PUBLIC_*` باید **قبل از `pnpm build`** ست شود.
+
 جزئیات اضافه کردن دامنه، الگوی Facade، و کامنت‌گذاری در [`docs/contributing.md`](./docs/contributing.md) است.

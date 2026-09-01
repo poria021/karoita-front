@@ -39,11 +39,10 @@ export type KvImageDocUploaderProps = {
   id?: string;
   value?: File | null;
   /**
-   * URL تصویر قبلاً آپلودشده (مثلاً docUrl از user store).
-   * وقتی value=null ولی existingUrl وجود داشته باشد، preview از URL نمایش داده می‌شود.
+   * URL تصویر قبلاً آپلودشده. با `value=null` پیش‌نمایش از همین URL است.
    */
   existingUrl?: string | null;
-  /** originalFile: راهنمای شناسایی extension واقعی — چون فایل فشرده‌شده معمولاً webp است. */
+  /** `originalFile` برای پسوند واقعی — فایل فشرده معمولاً webp است. */
   onChange: (file: File | null, originalFile?: File | null) => void;
   label?: string | false;
   labelIcon?: ReactNode;
@@ -54,20 +53,19 @@ export type KvImageDocUploaderProps = {
   optionalHint?: boolean;
   maxSizeMb?: number;
   previewAlt?: string;
-  /** Override dropzone accept map (default JPEG + PNG). */
+  /** نقشهٔ accept دراپ‌زون؛ پیش‌فرض JPEG و PNG. */
   accept?: Accept;
   invalidTypeMessage?: string;
   /**
-   * When false, skip client compress (needed for SVG logos).
-   * SVG files always skip compress even when true.
+   * `false` یعنی بدون فشرده‌سازی کلاینت (لوگوی SVG).
+   * SVG حتی با `true` هم فشرده نمی‌شود.
    */
   compress?: boolean;
   /**
-   * When false, omit the muted panel chrome around the dropzone
-   * (label can still be shown via KvFieldFrame).
+   * `false` کروم پنل دور دراپ‌زون را برمی‌دارد؛ لیبل از `KvFieldFrame` می‌ماند.
    */
   framed?: boolean;
-  /** How the existing/new image fills the preview surface. */
+  /** پر شدن سطح پیش‌نمایش با تصویر موجود/جدید. */
   previewFit?: 'contain' | 'cover';
 };
 
@@ -209,9 +207,7 @@ export function KvImageDocUploader({
     };
   }, [blobUrl]);
 
-  // اگه فایل جدید انتخاب شده blob URL رو نشون بده، وگرنه از existingUrl استفاده کن
   const previewUrl = blobUrl ?? resolvedExistingUrl ?? null;
-  // آیا preview از URL قبلی (نه فایل جدید) است
   const isExistingPreview = !value && !!resolvedExistingUrl;
   const canOpenPreview =
     Boolean(previewUrl) && isBrowsableMediaUrl(previewUrl ?? '');
@@ -343,7 +339,7 @@ export function KvImageDocUploader({
       ) : null}
 
       <div className="w-full shrink-0">
-        {/* hidden input: label[for] رو live نگه می‌داره حتی وقتی preview یا compressing نمایش داده میشه */}
+        {/* `label[for]` زنده بماند حتی وقتی پیش‌نمایش یا فشرده‌سازی روی دراپ‌زون است */}
         {(value || isCompressing) ? (
           <input {...getInputProps()} id={id} hidden aria-hidden="true" />
         ) : null}

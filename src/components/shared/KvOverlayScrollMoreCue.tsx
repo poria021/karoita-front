@@ -11,10 +11,7 @@ type KvOverlayScrollMoreCueProps = {
   className?: string;
 };
 
-/**
- * Full-width icon-only bottom cue — same row height/padding as overlay options.
- * Hovering nudges edge auto-scroll downward.
- */
+/** نشانهٔ پایین اورلی؛ هاور اسکرول لبه را به پایین هل می‌دهد. */
 export function KvOverlayScrollMoreCue({
   visible,
   onHoverStart,

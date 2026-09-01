@@ -16,7 +16,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 type OnboardingChecklistProps = {
   progress: OnboardingProgress;
   className?: string;
-  /** When true, omit CTA that points at the current profile page. */
+  /** `CTA`ای که به صفحهٔ پروفایل جاری می‌رود را حذف کن. */
   hideProfileCta?: boolean;
 };
 

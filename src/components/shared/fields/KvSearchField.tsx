@@ -15,7 +15,7 @@ export type KvSearchFieldProps = Omit<
   'startAddon' | 'startIcon' | 'type' | 'otpStyle'
 > & {
   showIcon?: boolean;
-  /** Show an X control when the field has a value (default true). */
+  /** دکمهٔ پاک‌کردن وقتی مقدار هست؛ پیش‌فرض روشن. */
   clearable?: boolean;
   onClear?: () => void;
 };

@@ -8,10 +8,9 @@ import { buildLoginHref } from '@/lib/return-url';
 import { RouteService } from '@/services/route.service';
 
 /**
- * Isolated module: `useSearchParams` must not live in the authenticated
- * dashboard shell graph. Next.js opts any client parent that imports this
- * hook into a Suspense/CSR boundary; on leftover `?tab=` / `?kind=` that
- * becomes a full-document load and the brand boot loader.
+ * ماژول جدا: `useSearchParams` نباید در گراف شل داشبورد احرازشده باشد.
+ * Next هر والد کلاینتی که این هوک را import کند به مرز Suspense/CSR می‌برد؛
+ * با `?tab=` / `?kind=` باقی‌مانده بارگذاری سند کامل و لودر برند می‌شود.
  */
 export function UnauthenticatedRedirect() {
   const router = useRouter();

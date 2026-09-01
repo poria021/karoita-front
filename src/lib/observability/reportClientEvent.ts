@@ -1,6 +1,6 @@
 /**
- * Optional first-party analytics beacon. No vendor is loaded unless
- * NEXT_PUBLIC_ANALYTICS_BEACON_URL is set (privacy-preserving default).
+ * بیکن آنالیتیکس اختیاری first-party. تا وقتی `NEXT_PUBLIC_ANALYTICS_BEACON_URL`
+ * ست نشده باشد هیچ vendorای لود نمی‌شود.
  */
 export function reportClientEvent(
   name: string,
@@ -23,7 +23,7 @@ export function reportClientEvent(
       return;
     }
   } catch {
-    // Fall through to fetch.
+    // اگر `sendBeacon` شکست خورد، `fetch`.
   }
 
   void fetch(url, {

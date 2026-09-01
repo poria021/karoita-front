@@ -31,7 +31,7 @@ type UseDailyApprovalsActionsArgs = {
   termId: string;
 };
 
-/** Selection, grading modal, drop, and bulk-extend mutations. */
+/** انتخاب، مودال نمره، حذف، و mutation تمدید گروهی. */
 export function useDailyApprovalsActions({
   list,
   kind,

@@ -22,7 +22,7 @@ function isAwsS3Host(hostname: string): boolean {
   return /\.amazonaws\.com$/i.test(hostname) && /s3/i.test(hostname);
 }
 
-/** bucket.s3.amazonaws.com or bucket.s3.eu-west-1.amazonaws.com */
+/** `bucket.s3.amazonaws.com` یا `bucket.s3.eu-west-1.amazonaws.com`. */
 function virtualHostedS3Bucket(hostname: string): string | null {
   const match = hostname.match(
     /^(.+)\.s3(?:[.-][a-z0-9-]+)?\.amazonaws\.com$/i
@@ -40,10 +40,8 @@ function hasAwsSignatureQuery(url: URL): boolean {
 }
 
 /**
- * Nest FileType @Transform signs GET against the AWS SDK default endpoint
- * (often *.amazonaws.com) even when the real bucket is S3-compatible (HS3).
- * Opening that signed URL sends a non-AWS access key to Amazon → InvalidAccessKeyId.
- * Rebase onto NEXT_PUBLIC_S3_URL and drop the AWS signature query.
+ * Nest `FileType` GET را روی endpoint پیش‌فرض AWS (`*.amazonaws.com`) امضا می‌کند حتی اگر باکت S3-compatible باشد.
+ * باز کردن آن URL کلید غیرآمازون را به Amazon می‌فرستد → `InvalidAccessKeyId`. مبدأ را به `NEXT_PUBLIC_S3_URL` برگردان.
  */
 function rebaseAwsUrlToPublicS3(raw: string, s3Base: string): string {
   if (!s3Base) return raw;
@@ -69,8 +67,7 @@ function rebaseAwsUrlToPublicS3(raw: string, s3Base: string): string {
     return `${trimSlash(s3Base)}/${objectPath.replace(/^\/+/, '')}`;
   }
 
-  // Same storage origin as NEXT_PUBLIC_S3_URL but still carrying a PUT/GET
-  // signature — drop the query so the browser does a normal GET.
+  // همان مبدأ `NEXT_PUBLIC_S3_URL` با کوئری امضا — query را بردار تا مرورگر GET عادی بزند.
   if (parsed.origin === publicOrigin && hasAwsSignatureQuery(parsed)) {
     parsed.search = '';
     return parsed.toString();
@@ -80,10 +77,7 @@ function rebaseAwsUrlToPublicS3(raw: string, s3Base: string): string {
 }
 
 /**
- * Nest `FileType.path` از درایور S3 presigned معمولاً فقط کلید آبجکت است
- * (مثلاً `abc.jpg`)، نه URL. همان مقدار اگر مستقیم در `<img src>` برود
- * نسبت به صفحهٔ جاری resolve می‌شود و هم پیش‌نمایش و هم تب جدید ۴۰۴ می‌شود.
- *
+ * `FileType.path` معمولاً فقط کلید S3 است نه URL؛ اگر مستقیم در `<img src>` برود نسبت به صفحه resolve می‌شود.
  * URL امضاشدهٔ AWS روی amazonaws.com را به مبدأ عمومی باکت برمی‌گردانیم.
  */
 export function resolveNestFileUrl(

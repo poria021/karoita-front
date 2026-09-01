@@ -1,16 +1,6 @@
 /**
- * POST /api/auth/refresh
- *
- * این Route تنها جایی است که refresh token واقعی را می‌خواند: مستقیماً از
- * httpOnly cookie سمت سرور، نه از بدنهٔ درخواست کلاینت. کلاینت هرگز مقدار
- * این کوکی را نمی‌بیند و بنابراین امکان ارسال دستی آن را هم ندارد.
- *
- * جریان:
- *   1. refreshToken را از cookie httpOnly می‌خواند.
- *   2. مستقیماً (سرور-به-سرور، بدون مشکل CORS) به Nest می‌زند.
- *   3. اگر Nest رفرش‌توکن جدید برگرداند (rotation)، cookie را به‌روزرسانی می‌کند.
- *   4. پاسخ خام Nest (شامل access token جدید) را به کلاینت برمی‌گرداند —
- *      کلاینت access token را فقط در حافظهٔ ماژول نگه می‌دارد (نه storage).
+ * `POST /api/auth/refresh` — تنها خوانندهٔ کوکی httpOnly رفرش؛ کلاینت مقدار را نمی‌بیند.
+ * سرور-به-سرور به Nest؛ access جدید فقط در حافظهٔ ماژول کلاینت بماند.
  */
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -29,10 +19,7 @@ import {
   unwrapRefreshPayloadData,
 } from '@/services/auth/real/refresh-route-helpers';
 
-/**
- * سرور-تو-سرور: BACKEND_INTERNAL_URL به route داخلی، مستقیم
- * (بدون CORS). اگر ست نشده با NEXT_PUBLIC_API_URL فالبک می‌کنیم.
- */
+/** سرور-به-سرور: `BACKEND_INTERNAL_URL` بدون CORS؛ وگرنه `NEXT_PUBLIC_API_URL`. */
 const NEST_API_URL =
   (process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? '')
     .replace(/\/$/, '');
@@ -41,11 +28,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/**
- * پس از refresh موفق، /auth/me یا /admin/auth/me را با access token جدید می‌زنیم
- * تا اطلاعات کامل کاربر همراه payload برگردد.
- * برای ادمین: admin object | برای user: user object
- */
+/** بعد از refresh، `/auth/me` یا `/admin/auth/me` تا payload کاربر کامل شود. */
 async function fetchSessionUser(
   accessToken: string,
   baseUrl: string,
@@ -94,8 +77,7 @@ export async function POST(request: NextRequest) {
 
   let nestResponse: Response;
   try {
-    // Nest از Authorization: Bearer <refreshToken> استفاده می‌کنه:
-    // refresh endpoint یه token مستقل قبول می‌کنه، نه access token.
+    // Nest روی refresh، `Authorization: Bearer` را به‌عنوان refresh می‌گیرد نه access.
     if (process.env.NODE_ENV !== 'production') {
       console.log('[/api/auth/refresh] → POST', `${NEST_API_URL}/${nestRefreshPath}`);
     }
@@ -116,12 +98,12 @@ export async function POST(request: NextRequest) {
   }
 
   if (nestResponse.status === 401 || nestResponse.status === 403) {
-    // refresh token باطل/منقضی — cookie فاسد را پاک کن تا کلاینت به login برود.
+    // رفرش باطل — کوکی فاسد را پاک کن تا کلاینت به login برود.
     if (process.env.NODE_ENV !== 'production') {
       try {
         const errBody = await nestResponse.clone().text();
         console.log('[/api/auth/refresh] Nest 401/403 body:', errBody);
-      } catch { /* ignore */ }
+      } catch {}
     }
     const expired = NextResponse.json(
       { error: 'نشست منقضی شده است.' },
@@ -149,10 +131,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // اگر Nest فقط { token, refreshToken, tokenExpires } برگرداند (بدون user/admin object)،
-  // اینجا /auth/me یا /admin/auth/me را سرور-تو-سرور می‌زنیم و نتیجه را ضمیمه می‌کنیم.
-  // این کار باعث می‌شود performRealRefresh در کلاینت بتواند user/admin را parse کند
-  // و نیازی به فراخوانی جداگانه‌ی /auth/me نباشد.
+  // اگر Nest فقط توکن بدهد، `/auth/me` را سرور-به-سرور ضمیمه کن تا کلاینت دوباره `me` نزند.
   {
     const data = unwrapRefreshPayloadData(payload);
     const newAccessToken = accessTokenFromRefreshPayload(payload);
@@ -164,14 +143,12 @@ export async function POST(request: NextRequest) {
 
     if (newAccessToken) {
       if (surface === 'admin' && !isRecord(data.admin)) {
-        // ادمین: admin object را از /admin/auth/me می‌گیریم
         const adminUser = await fetchSessionUser(newAccessToken, NEST_API_URL, 'admin');
         if (adminUser) {
           (data as Record<string, unknown>).admin = adminUser;
         }
       } else if (surface === 'user' && !isRecord(data.user) && !isRecord(data.newUser)) {
-        // کاربر عمومی: user object را از /auth/me می‌گیریم و به عنوان data.user اضافه می‌کنیم
-        // این باعث می‌شود looksLikeNestLoginResponse در performRealRefresh true بشود
+        // بدون `user`، `looksLikeNestLoginResponse` در کلاینت false می‌شود.
         const userObj = await fetchSessionUser(newAccessToken, NEST_API_URL, 'user');
         if (userObj) {
           (data as Record<string, unknown>).user = userObj;
@@ -189,7 +166,7 @@ export async function POST(request: NextRequest) {
       rotatedRefreshToken,
       REAL_REFRESH_COOKIE_OPTIONS
     );
-    // surface cookie را هم تمدید کن تا بعد از rotation هم درست بماند
+    // surface را تمدید کن تا بعد از rotation مسیر Nest درست بماند.
     response.cookies.set(REAL_SURFACE_COOKIE_NAME, surface, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',

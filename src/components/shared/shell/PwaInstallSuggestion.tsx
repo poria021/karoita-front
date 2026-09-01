@@ -113,8 +113,7 @@ function OfferCopy({ nativeAvailable }: { nativeAvailable: boolean }) {
 }
 
 /**
- * Design-system install suggestion: quiet bottom card when Chrome can
- * install, plus KvDialog for footer / account-menu entry.
+ * پیشنهاد نصب: کارت آرام پایین وقتی Chrome می‌تواند نصب کند، به‌علاوه `KvDialog` از فوتر/منوی حساب.
  */
 export function PwaInstallSuggestion() {
   const standalone = usePwaStandalone();

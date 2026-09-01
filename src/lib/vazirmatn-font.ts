@@ -1,16 +1,14 @@
 import localFont from 'next/font/local';
 
 /**
- * Vazirmatn local font.
+ * فونت محلی Vazirmatn.
  *
- * Each weight is declared ONCE with a single `path` (the Arabic/Persian
- * subset which also covers Latin). Duplicate arabic+latin src entries, a
- * second `localFont()` in `global-error.tsx` (default preload: true), and
- * re-applying the font class on nested layouts all caused unused
- * `<link rel="preload">` warnings.
+ * هر وزن فقط یک‌بار با یک `path` (زیرمجموعهٔ عربی/فارسی که لاتین را هم پوشش می‌دهد).
+ * تکرار arabic+latin، `localFont()` دوم در `global-error.tsx` (preload پیش‌فرض)،
+ * و گذاشتن دوبارهٔ کلاس فونت روی layout تو در تو، هشدار preload استفاده‌نشده می‌داد.
  *
- * `preload: false`: the face is applied via `--font-vazirmatn` on <body>;
- * Next must not inject extra font preloads that the first paint never uses.
+ * `preload: false`: فیس از `--font-vazirmatn` روی `<body>` اعمال می‌شود؛
+ * Next نباید preload اضافه برای فونتی که اولین paint استفاده نمی‌کند تزریق کند.
  */
 export const vazirmatn = localFont({
   src: [

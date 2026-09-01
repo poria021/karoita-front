@@ -41,7 +41,7 @@ export function KvAccordionItem({
       data-slot="kv-accordion-item"
       className={cn(
         'mb-3 overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-raised last:mb-0',
-        // Open = border only — no background shift on select/press.
+        // باز = فقط بردر؛ پس‌زمینه با select/press عوض نشود.
         'data-[state=open]:border-kv-brand-border',
         className
       )}
@@ -59,7 +59,7 @@ export function KvAccordionTrigger({
       data-slot="kv-accordion-trigger"
       className={cn(
         'px-kv-inset py-kv-group hover:no-underline',
-        // No hover / press / open background changes on card triggers.
+        // هاور/پرس/باز، پس‌زمینهٔ تریگر کارت را عوض نکند.
         'data-[state=open]:text-kv-brand',
         className
       )}

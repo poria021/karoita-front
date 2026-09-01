@@ -28,24 +28,15 @@ async function mapInChunks(
 }
 
 /**
- * Header notification chrome.
- *
- * Nest:
- * - GET   /api/v1/notifications?page=&limit=
- * - PATCH /api/v1/notifications/{id}/read
- * Bulk mark-all does not exist — real pages GET then PATCHes unread ids.
+ * اعلان هدر. Nest bulk mark-all ندارد — real صفحات GET را می‌گردد و unread را PATCH می‌کند.
  */
 export class NotificationsService {
-  /** Sync hydrate for header chrome — mock only; real returns [] until first fetch. */
+  /** hydrate همزمان فقط mock؛ real تا اولین fetch خالی است. */
   static getSnapshot(): AppNotification[] {
     if (!isMockApiMode()) return [];
     return readMockNotifications();
   }
 
-  /**
-   * GET /api/v1/notifications
-   * Default page 1 / limit 20 matches header chrome.
-   */
   static async list(
     query: ListNotificationsQuery = { page: 1, limit: NOTIFICATIONS_PAGE_SIZE }
   ): Promise<AppNotification[]> {
@@ -53,7 +44,6 @@ export class NotificationsService {
     return page.data;
   }
 
-  /** GET /api/v1/notifications — envelope for infinite scroll. */
   static async listPaginated(
     query: ListNotificationsQuery = {}
   ): Promise<NotificationsPage> {
@@ -64,9 +54,8 @@ export class NotificationsService {
   }
 
   /**
-   * PATCH /api/v1/notifications/{id}/read
-   * Returns the Nest row when present; `null` on empty/204 so the store can
-   * flip `read` locally without wiping the loaded pages.
+   * `PATCH /api/v1/notifications/{id}/read`.
+   * پاسخ خالی/204 یعنی `null` تا store بدون پاک کردن صفحات `read` را عوض کند.
    */
   static async markAsRead(
     notificationId: string
@@ -79,9 +68,7 @@ export class NotificationsService {
   }
 
   /**
-   * Mark every unread notification as read.
-   * Real: walk GET pages (no unread filter on Nest), PATCH each unread id,
-   * then return page 1 for the header.
+   * Nest فیلتر unread ندارد — صفحات GET را می‌گردیم، unread را PATCH، بعد صفحهٔ ۱ هدر.
    */
   static async markAllAsRead(): Promise<NotificationsPage> {
     if (isMockApiMode()) {

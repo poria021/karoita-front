@@ -4,7 +4,7 @@ import { MarketingHeroCarousel } from '@/features/shared/marketing/components/Ma
 import { useMarketingChromeData } from '@/features/shared/marketing/lib/marketingChromeContext';
 
 /**
- * Hero banners from shared landing chrome context (CMS-backed).
+ * بنرهای هیرو از context مشترک chrome لندینگ (پشتیبانی CMS).
  */
 export function MarketingHomeHero() {
   const { banners } = useMarketingChromeData();

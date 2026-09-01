@@ -54,11 +54,7 @@ export function useOrganizationOptions({
   dependsOn,
   role,
 }: UseOrganizationOptionsArgs): UseOrganizationOptionsResult {
-  // همیشه از debouncedQuery استفاده می‌کنیم — نه raw query.
-  // قبلاً resolveListSearchQuery وقتی query خالی می‌شد بلافاصله '' می‌فرستاد
-  // که باعث می‌شد به ازای هر clear یا اولین کاراکتر دو request زده بشه:
-  // یکی فوری با ''، یکی بعد از 300ms با مقدار واقعی.
-  // الان: هر تغییر query (شامل پاک‌کردن) 300ms صبر می‌کنه — یک request.
+  // debounce حتی برای پاک‌کردن — وگرنه `''` فوری + مقدار واقعی بعد از ۳۰۰ms دو درخواست می‌سازد.
   const debouncedQuery = useDebouncedValue(query.trim(), SEARCH_DEBOUNCE_MS);
 
   const provinceKey = toDependsOnKey(dependsOn?.province);
@@ -74,8 +70,6 @@ export function useOrganizationOptions({
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    // queryKey فقط از debouncedQuery استفاده می‌کنه —
-    // پس re-fetch فقط بعد از پایان debounce اتفاق می‌افته، نه حین تایپ.
     queryKey: [
       'org-options',
       type,
@@ -132,7 +126,6 @@ export function useOrganizationOptions({
 
   const hasMore = Boolean(hasNextPage) && !reachedLimit && pageCount < MAX_ORG_OPTION_PAGES;
   const isLoadingMore = isFetchingNextPage && items.length > 0;
-  // isPending یعنی هنوز هیچ داده‌ای در cache نیست (اولین fetch)
   const isInitialLoading = Boolean(enabled) && isPending && items.length === 0;
 
   const loadMore = () => {

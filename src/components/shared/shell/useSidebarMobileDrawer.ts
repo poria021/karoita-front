@@ -10,8 +10,8 @@ type UseSidebarMobileDrawerArgs = {
 };
 
 /**
- * Escape + focus trap/restore for the mobile sidebar drawer.
- * Behavior must stay aligned with Sidebar composition (a11y only).
+ * Escape + تله/بازگردانی فوکوس برای دراور موبایل سایدبار.
+ * رفتار باید با ترکیب `Sidebar` هم‌خوان بماند (فقط a11y).
  */
 export function useSidebarMobileDrawer({
   isMobileOpen,

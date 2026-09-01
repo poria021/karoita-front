@@ -21,10 +21,8 @@ export function sliceOffsetLimitPage<T>(
 }
 
 /**
- * `total` for backends that only report `hasNextPage` (no absolute count),
- * e.g. Nest admin list envelopes. Not an exact count — callers only use
- * `OffsetLimitPage.total` for optimistic +1/-1 bookkeeping, never as a
- * displayed figure, so "at least N" is safe.
+ * `total` برای بک‌اندهایی که فقط `hasNextPage` می‌دهند (بدون شمار مطلق)،
+ * مثل envelope لیست ادمین Nest. عدد نمایشی نیست — فقط برای حسابداری خوش‌بینانهٔ +۱/−۱.
  */
 export function estimateHasNextPageTotal(
   offset: number,

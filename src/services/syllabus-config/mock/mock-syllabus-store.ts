@@ -205,7 +205,7 @@ export function readSyllabusSnapshot(): SyllabusConfigSnapshot {
         return memorySnapshot;
       }
     } catch {
-      // fall through to seed
+      // اگر خراب بود به seed برو
     }
   }
 
@@ -213,7 +213,7 @@ export function readSyllabusSnapshot(): SyllabusConfigSnapshot {
   return memorySnapshot;
 }
 
-/** Ensure apprenticeship consumers always have a modular term pool. */
+/** مصرف‌کنندهٔ مهارت‌آموزی همیشه استخر ترم پودمانی داشته باشد. */
 function ensureModularTerm(snapshot: SyllabusConfigSnapshot): void {
   if (snapshot.terms.some((term) => term.type === 'modular')) return;
   snapshot.terms.push({
@@ -227,7 +227,6 @@ function ensureModularTerm(snapshot: SyllabusConfigSnapshot): void {
   });
 }
 
-/** Test helper — replace or clear in-memory syllabus snapshot. */
 export function resetSyllabusSnapshotForTests(
   snapshot?: SyllabusConfigSnapshot | null
 ): void {

@@ -462,7 +462,7 @@
   --kv-brand-hover:      hsl(213 84% 70%);
   --kv-brand-active:     hsl(212 88% 76%);
   --kv-brand-fg:         hsl(222 60% 10%);
-  --kv-brand-soft:       hsl(222 45% 13%);   /* #171e2e */
+  --kv-brand-soft:       hsl(222 45% 13%);  
   --kv-brand-soft-hover: hsl(222 48% 17%);
   --kv-brand-soft-fg:    hsl(213 80% 80%);
   --kv-brand-border:     hsl(222 42% 24%);

@@ -9,7 +9,7 @@ import { getModuleMeta } from '@/utils/moduleMeta';
 
 export type ModuleBreadcrumbItem = {
   label: string;
-  /** Absent on the current crumb and on non-routable group labels. */
+  /** روی خردهٔ جاری و برچسب گروه بدون مسیر نیست. */
   href?: string;
 };
 

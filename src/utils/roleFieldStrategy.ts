@@ -94,7 +94,7 @@ export function isOptionalOrganizationField(
   );
 }
 
-/** Org-account create form — field requirements from ROLE_FIELD_STRATEGY. */
+/** الزام فیلد فرم ایجاد حساب سازمانی از `ROLE_FIELD_STRATEGY`. */
 export function orgAccountRequiresField(
   role: UserRole | '',
   field: OrganizationField

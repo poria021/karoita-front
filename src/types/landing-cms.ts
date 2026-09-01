@@ -1,14 +1,14 @@
 /**
- * Nest-flat DTOs for Landing CMS (banners / socials / products).
- * IDs and numeric payloads use English ASCII digits (`0-9`) only.
+ * DTO تخت Nest برای CMS لندینگ (بنر / شبکه اجتماعی / محصول).
+ * شناسه و ارقام payload فقط ASCII انگلیسی (`0-9`).
  */
 
 export interface LandingBanner {
   id: string;
   title: string;
-  /** Public path or mock data-URL after compress. */
+  /** مسیر عمومی یا data-URL موک بعد از فشرده‌سازی. */
   imageUrl: string;
-  /** Internal marketing path, hash target, or absolute URL; empty = display-only. */
+  /** مسیر مارکتینگ داخلی، hash، یا URL مطلق؛ خالی = فقط نمایش. */
   link: string;
 }
 
@@ -16,9 +16,9 @@ export interface LandingSocial {
   id: string;
   name: string;
   link: string;
-  /** Empty when using `icon` stem fallback. */
+  /** خالی وقتی از stem `icon` به‌عنوان fallback استفاده می‌شود. */
   iconImageUrl: string;
-  /** Font Awesome class stem, e.g. `fa-share-nodes`. */
+  /** stem کلاس Font Awesome، مثل `fa-share-nodes`. */
   icon: string;
 }
 
@@ -26,9 +26,9 @@ export interface LandingProduct {
   id: string;
   title: string;
   link: string;
-  /** Empty when using `icon` stem fallback. */
+  /** خالی وقتی از stem `icon` به‌عنوان fallback استفاده می‌شود. */
   logoImageUrl: string;
-  /** Font Awesome class stem fallback when logo is empty. */
+  /** stem کلاس Font Awesome وقتی لوگو خالی است. */
   icon: string;
 }
 

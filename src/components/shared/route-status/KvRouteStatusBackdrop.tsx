@@ -1,8 +1,5 @@
 import { cn } from '@/lib/utils';
 
-/**
- * Institutional line-vector field — used for both full-page and in-shell.
- */
 export function KvRouteStatusBackdrop({ className }: { className?: string }) {
   return (
     <div
@@ -42,7 +39,6 @@ export function KvRouteStatusBackdrop({ className }: { className?: string }) {
 
         <rect width="1200" height="800" fill="url(#kvRsGrid)" />
 
-        {/* Construction arcs */}
         <circle
           cx="160"
           cy="120"
@@ -86,7 +82,6 @@ export function KvRouteStatusBackdrop({ className }: { className?: string }) {
           opacity="0.14"
         />
 
-        {/* Crosshairs + ticks */}
         <g stroke="var(--kv-brand)" strokeWidth="1.2" opacity="0.28">
           <path d="M100 64h24M112 52v24" />
           <path d="M1050 710h24M1062 698v24" />
@@ -94,7 +89,6 @@ export function KvRouteStatusBackdrop({ className }: { className?: string }) {
           <path d="M200 680h16M208 672v16" />
         </g>
 
-        {/* Small geometric motifs */}
         <g
           stroke="var(--kv-info)"
           strokeWidth="1.1"

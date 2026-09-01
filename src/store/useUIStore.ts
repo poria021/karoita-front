@@ -20,8 +20,8 @@ interface UIActions {
 type UIStore = UIState & UIActions;
 
 /**
- * Ephemeral chrome UI — sidebar collapse persists across refresh;
- * mobile drawer + account menu stay session-only.
+ * chrome لحظه‌ای UI — جمع‌شدن سایدبار بعد از refresh می‌ماند؛
+ * دراور موبایل و منوی حساب فقط همین نشست‌اند.
  */
 export const useUIStore = create<UIStore>()(
   persist(

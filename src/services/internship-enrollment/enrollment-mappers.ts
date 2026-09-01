@@ -51,7 +51,7 @@ export function resolveEnrollmentScenario(input: {
   }
   if (input.registered) return 'S4_registered_waiting';
   if (!input.syllabusConfigured) return 'S1_syllabus_blocked';
-  // انتخاب واحد و برگزاری ترم مستقل‌اند؛ termOpen فقط مسیر بعد از ثبت‌نام را عوض می‌کند.
+  // انتخاب واحد و برگزاری ترم مستقل‌اند؛ `termOpen` فقط مسیر بعد از ثبت‌نام را عوض می‌کند.
   if (input.enrollOpen) return 'S3_enroll_open';
   return 'S2_enroll_closed';
 }

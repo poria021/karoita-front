@@ -9,7 +9,7 @@ const buttonVariants = cva(
     'inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 font-sans font-black',
     'whitespace-nowrap transition-all outline-none',
     'focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
-    // Keep pointer events so cursor-not-allowed is visible; hover only when enabled.
+    // `pointer-events` را قطع نکن تا `cursor-not-allowed` دیده شود؛ `hover` فقط وقتی فعال است.
     'disabled:cursor-not-allowed disabled:opacity-50',
     'aria-disabled:cursor-not-allowed aria-disabled:opacity-50',
     '[&_svg]:pointer-events-none [&_svg]:shrink-0',
@@ -22,7 +22,6 @@ const buttonVariants = cva(
         warning: '',
         error: '',
         neutral: '',
-        /** Status action — reopen / extended opportunity (kv-violet). */
         violet: '',
       },
       appearance: {

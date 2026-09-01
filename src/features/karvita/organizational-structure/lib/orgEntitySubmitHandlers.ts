@@ -32,8 +32,7 @@ const SUBMIT_HANDLERS: Record<OrgStructureSubTab, SubmitHandler> = {
       {
         name: values.name,
         provinceId: values.provinceId!,
-        // cityId is optional — omit entirely when empty so the API doesn't
-        // receive an empty string and return a 422.
+        // `cityId` اختیاری — خالی را نفرست تا API رشتهٔ خالی نگیرد و 422 ندهد.
         ...(values.cityId ? { cityId: values.cityId } : {}),
       },
       editId

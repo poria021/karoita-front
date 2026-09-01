@@ -1,12 +1,10 @@
 /**
- * Nest Admin-account DTOs from
- * https://backenddev.darkube.ir/docs — POST/GET/PUT `/api/v1/admin/admins`.
- *
- * Domain `User` stays FE-shaped; mappers convert at the facade.
+ * DTO حساب ادمین Nest — POST/GET/PUT `/api/v1/admin/admins`.
+ * دامنهٔ `User` شکل فرانت می‌ماند؛ mapper در facade تبدیل می‌کند.
  */
 import type { NestPagedList } from '@/types/nest-admin';
 
-/** Swagger CreateAdmin / update `role` — not the Auth RoleDto.name union. */
+/** نقش CreateAdmin در Swagger — نه unionِ Auth `RoleDto.name`. */
 export type NestAdminAccountRoleName = 'admin' | 'superadmin';
 
 export type NestAdminStatus = {
@@ -25,7 +23,7 @@ export type NestAdminDto = {
   updatedAt: string;
 };
 
-/** POST /api/v1/admin/admins */
+/** بدنهٔ POST /api/v1/admin/admins. */
 export type NestCreateAdminDto = {
   fname: string;
   lname: string;
@@ -33,7 +31,7 @@ export type NestCreateAdminDto = {
   role: NestAdminAccountRoleName;
 };
 
-/** PUT /api/v1/admin/admins/{id} */
+/** بدنهٔ PUT /api/v1/admin/admins/{id}. */
 export type NestUpdateAdminDto = {
   fname?: string;
   lname?: string;

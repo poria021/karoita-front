@@ -7,10 +7,10 @@ export const MOCK_USER_PASSWORD = '12345678';
 
 export const MOCK_SUPER_ADMIN_MOBILE = '9123456786';
 
-/** Approved supervisor for mock smoke / module e2e (capacities, daily-approvals). */
+/** سوپروایزر تأییدشده برای smoke/e2e ماژول ظرفیت و تأیید روزانه. */
 export const MOCK_SUPERVISOR_MOBILE = '9123456787';
 
-/** Bump when seed shape changes so mock localStorage rehydrates. */
+/** با تغییر شکل seed بالا ببر تا mock در localStorage دوباره hydrate شود. */
 export const MOCK_USERS_SEED_VERSION = '10';
 
 export interface MockAuthUserRecord extends User {
@@ -51,13 +51,13 @@ const DEFAULT_COLLEGE = 'پردیس شهید باهنر تهران';
 const DEFAULT_DISTRICT = 'ناحیه ۱ تهران';
 const DEFAULT_SCHOOL = 'دبیرستان ماندگار البرز';
 
-/** Minimal 1×1 JPEG — product-aligned mock (jpg), not SVG. */
+/** JPEG ۱×۱ حداقلی — mock هم‌تراز محصول (jpg) نه SVG. */
 const MOCK_DOC_IMAGE_URL =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAn/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwAA8A/9k=';
 
 const MOCK_DOC_PDF_URL = 'data:application/pdf;base64,JVBERi0xLjAK';
 
-/** Minimal plain-text sample for mock variety (txt). */
+/** نمونهٔ متنی برای تنوع mock. */
 const MOCK_DOC_TXT_URL =
   'data:text/plain;charset=utf-8,' +
   encodeURIComponent('نمونه مدرک متنی — کارویتا');
@@ -296,7 +296,7 @@ function buildBulkSeeds(
   return seeds;
 }
 
-/** Enough rows per onboarding tab to exercise DEFAULT_PAGE_LIMIT paging. */
+/** ردیف کافی در هر تب آنبوردینگ برای صفحه‌بندی `DEFAULT_PAGE_LIMIT`. */
 const BULK_PENDING = buildBulkSeeds(
   'pending_admin',
   24,

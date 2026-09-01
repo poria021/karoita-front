@@ -24,7 +24,7 @@ import {
   type OffsetLimitPage,
 } from '@/utils/offset-limit-page';
 
-// OrgStructureListItem is now defined in @/types/org-structure and re-exported here for backward compat.
+// از `@/types/org-structure` re-export می‌شود تا importهای قدیمی نشکنند.
 export type { OrgStructureListItem };
 
 export type OrgStructureListPage = OffsetLimitPage<OrgStructureListItem>;

@@ -14,7 +14,6 @@ import { cn } from '@/lib/utils';
 export type AppTabsActiveTone = 'brand' | 'surface';
 export type AppTabsGridCols = 2 | 3 | 4;
 
-/** Shared track chrome — identical pill style on all breakpoints. */
 const LIST_BASE = [
   'flex h-auto max-w-full items-center gap-1',
   'overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface-subtle p-[3px]',
@@ -22,7 +21,6 @@ const LIST_BASE = [
   'font-sans text-kv-text-subtle',
 ].join(' ');
 
-/** Single-line track; scrolls horizontally if needed. */
 const LIST_ROW = [
   LIST_BASE,
   'overflow-x-auto whitespace-nowrap',
@@ -35,10 +33,7 @@ const GRID_COLS_CLASS: Record<AppTabsGridCols, string> = {
   4: 'grid-cols-4',
 };
 
-/**
- * Mobile/tablet: N-col grid inside the same track.
- * Desktop (lg+): hug-content row like default dashboard tabs.
- */
+/** زیر `lg` گرید داخل همان ترک؛ از `lg` ردیف hug مثل تب داشبورد. */
 const LIST_RESPONSIVE_GRID = (cols: AppTabsGridCols) =>
   [
     LIST_BASE,
@@ -49,7 +44,7 @@ const LIST_RESPONSIVE_GRID = (cols: AppTabsGridCols) =>
     kvScrollAreaHiddenClassName,
   ].join(' ');
 
-/** Dashboard: full width through tablet; hug content from lg. Auth (`fullWidth`): always stretch. */
+/** داشبورد تا تبلت تمام‌عرض؛ از `lg` hug. */
 const LIST_HUG = [
   'w-full self-stretch',
   'lg:inline-flex lg:w-fit lg:max-w-full lg:self-start lg:justify-start',
@@ -61,7 +56,7 @@ const TRIGGER_BASE = [
   'inline-flex min-w-0 shrink-0 items-center justify-center rounded-kv-control',
   'box-border border border-kv-border-muted bg-transparent',
   'dark:border-kv-border/25',
-  // Weight stays bold so active/idle cannot resize the pill or hug track.
+  // وزن همیشه bold تا فعال/غیرفعال عرض قرص را عوض نکند.
   'font-sans text-xs font-bold leading-none text-kv-text-subtle shadow-none outline-none',
   'transition-[color,background-color,border-color,box-shadow]',
   'hover:text-kv-text',
@@ -70,33 +65,31 @@ const TRIGGER_BASE = [
   '[&_svg]:pointer-events-none [&_svg]:shrink-0',
 ].join(' ');
 
-/** Active fill — light: surface; dark: subtle + pure white ink (tabs exception). */
+/** پر فعال — در دارک جوهر سفید خالص (استثنای تب). */
 const TRIGGER_ACTIVE_SURFACE = [
   'data-[state=active]:border-kv-border data-[state=active]:bg-kv-surface data-[state=active]:text-kv-text',
   'dark:data-[state=active]:border-kv-border-strong dark:data-[state=active]:bg-kv-surface-subtle dark:data-[state=active]:text-kv-text-bright',
   'data-[state=active]:shadow-kv-raised',
 ].join(' ');
 
-/** @deprecated Prefer surface — kept for rare brand-emphasis call sites. */
+/** @deprecated به‌جای `surface` نگذارید؛ فقط کال‌سایت تأکید برند. */
 const TRIGGER_ACTIVE_BRAND = [
   'data-[state=active]:border-kv-brand data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
   'data-[state=active]:shadow-kv-raised data-[state=active]:shadow-kv-brand/15',
 ].join(' ');
 
-/** Dashboard — same type size as labels/body; below page title (sm/base). */
 const TRIGGER_ROW_SIZE = [
   'gap-1.5 px-2.5 py-2 min-h-10',
   'md:gap-2 md:px-3.5 md:py-2 md:min-h-10',
 ].join(' ');
 
-/** Auth fullWidth — denser pad, same type size as dashboard. */
+/** `fullWidth` احراز — پد فشرده‌تر، همان سایز تایپ. */
 const TRIGGER_ROW_SIZE_COMPACT = [
   'flex-1 gap-1 px-1.5 py-1.5 min-h-9',
   'md:gap-1.5 md:px-2 md:py-1.5 md:min-h-9',
 ].join(' ');
 
 const TRIGGER_HUG = 'lg:w-auto lg:flex-none lg:grow-0';
-/** Grid cells fill; desktop row hugs. */
 const TRIGGER_GRID = 'w-full min-w-0 lg:w-auto lg:flex-none lg:grow-0';
 
 
@@ -117,14 +110,10 @@ function useAppTabsContext() {
 }
 
 export type AppTabsProps = React.ComponentProps<typeof Tabs> & {
-  /** Stretch track + equal-width triggers (auth card). Style tokens stay identical. */
+  /** ترک کشیده و تریگر هم‌عرض (کارت احراز)؛ توکن استایل یکی می‌ماند. */
   fullWidth?: boolean;
-  /** Active pill: `surface` (default, matches auth) or `brand`. */
   activeTone?: AppTabsActiveTone;
-  /**
-   * Below `lg`: N-column grid inside the shared track (org structure).
-   * `lg+`: hug-content row — never forced full width.
-   */
+  /** زیر `lg` گرید N ستونه؛ از `lg` ردیف hug — تمام‌عرض اجباری نیست. */
   gridCols?: AppTabsGridCols;
 };
 

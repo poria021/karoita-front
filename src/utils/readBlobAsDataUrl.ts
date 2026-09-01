@@ -1,7 +1,6 @@
 /**
- * Read a Blob/File as a data URL for in-app identity-doc preview.
- * Remote S3 object URLs are often private; the owner’s own preview
- * should not depend on a public GET.
+ * `Blob`/`File` را برای پیش‌نمایش مدرک هویتی به data URL می‌خواند.
+ * URLهای S3 اغلب خصوصی‌اند؛ پیش‌نمایش مالک نباید به GET عمومی وابسته باشد.
  */
 export function readBlobAsDataUrl(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {

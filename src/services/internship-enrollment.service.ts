@@ -45,20 +45,10 @@ function gateEnrollment(): 'mock' | never {
 }
 
 /**
- * Internship / apprenticeship enrollment facade.
- * Real mode fail-closed. Week PDF editor still mock-only this phase.
- *
- * Nest map:
- * - GET  /internships/enrollment?role&level
- * - GET  /internships/supervisors
- * - POST /internships/enroll
- * - GET  /internships/delayed/schools|mentors
- * - POST /internships/delayed/assign
- * - PUT  /internships/weeks/:weekId/draft
- * - POST /internships/weeks/:weekId/submit
+ * ثبت‌نام کارورزی / مهارت‌آموزی. در real fail-closed است؛ ویرایشگر PDF هفته هنوز mock است.
  */
 export const InternshipEnrollmentService = {
-  /** role → course kind (stable across Nest) */
+  /** نقش → نوع درس؛ در Nest هم همین نگاشت پایدار است. */
   kindForRole,
   courseNameForKind,
   maxLevelForKind,
@@ -80,7 +70,7 @@ export const InternshipEnrollmentService = {
     };
   },
 
-  /** GET /internships/enrollment — term/gates come from syllabus snapshot */
+  /** ترم و گیت‌ها از snapshot سرفصل می‌آیند، نه از Nest جدا. */
   async getEnrollmentPageState(
     input: GetEnrollmentPageStateInput
   ): Promise<InternshipEnrollmentPageState> {
@@ -88,7 +78,6 @@ export const InternshipEnrollmentService = {
     return resolveEnrollmentPageState(input);
   },
 
-  /** GET /internships/supervisors */
   async listEligibleSupervisors(
     input: ListEligibleSupervisorsInput
   ): Promise<InternshipSupervisor[]> {
@@ -96,7 +85,6 @@ export const InternshipEnrollmentService = {
     return listEligibleSupervisors(input);
   },
 
-  /** POST /internships/enroll */
   async enrollWithSupervisor(
     input: EnrollWithSupervisorInput
   ): Promise<InternshipEnrollmentRecord> {
@@ -104,7 +92,6 @@ export const InternshipEnrollmentService = {
     return enrollWithSupervisor(input);
   },
 
-  /** GET /internships/delayed/schools */
   async listDelayedSchools(
     input: ListDelayedSchoolsInput
   ): Promise<InternshipSchoolCapacity[]> {
@@ -112,7 +99,6 @@ export const InternshipEnrollmentService = {
     return listDelayedSchools(input);
   },
 
-  /** GET /internships/delayed/mentors */
   async listDelayedMentors(
     input: ListDelayedMentorsInput
   ): Promise<InternshipMentorCapacity[]> {
@@ -120,7 +106,6 @@ export const InternshipEnrollmentService = {
     return listDelayedMentors(input);
   },
 
-  /** POST /internships/delayed/assign */
   async assignDelayedSchoolMentor(
     input: AssignDelayedSchoolMentorInput
   ): Promise<InternshipEnrollmentRecord> {
@@ -128,7 +113,6 @@ export const InternshipEnrollmentService = {
     return assignDelayedSchoolMentor(input);
   },
 
-  /** PUT /internships/weeks/:weekId/draft */
   async saveWeeklyReportDraft(
     input: SaveWeeklyReportDraftInput
   ): Promise<InternshipWeeklySession> {
@@ -136,7 +120,6 @@ export const InternshipEnrollmentService = {
     return saveWeeklyReportDraft(input);
   },
 
-  /** POST /internships/weeks/:weekId/submit */
   async submitWeeklyReport(
     input: SubmitWeeklyReportInput
   ): Promise<InternshipWeeklySession> {

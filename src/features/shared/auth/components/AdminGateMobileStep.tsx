@@ -47,7 +47,7 @@ export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
       <AuthSubmitButton
         isLoading={isRequestingOtp}
         loadingLabel="در حال ارسال..."
-        // OTP step is shown after successful submit (requestOtp sets step=2).
+        // مرحلهٔ OTP بعد از submit موفق نشان داده می‌شود (`requestOtp` مقدار `step=2` می‌گذارد).
       >
         {hasActiveCountdown ? 'ادامه (کد قبلاً ارسال شده)' : 'ارسال کد تایید'}
       </AuthSubmitButton>

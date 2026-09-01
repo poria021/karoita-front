@@ -1,4 +1,4 @@
-/** Shared landing CMS media ceilings (Facade + feature forms). */
+/** سقف حجم رسانهٔ CMS لندینگ (Facade + فرم فیچر). */
 
 export const LANDING_BANNER_MAX_SIZE_MB = 2;
 export const LANDING_ICON_MAX_SIZE_MB = 0.5;

@@ -13,8 +13,8 @@ type MarketingChromeProviderProps = {
 };
 
 /**
- * One client subscription for landing chrome (products / banners / socials).
- * SSR seed paints first; mock localStorage + CMS events refresh after mount.
+ * یک اشتراک کلاینت برای chrome لندینگ (محصول / بنر / شبکه اجتماعی).
+ * بذر SSR اول رنگ می‌شود؛ localStorage موک + رویداد CMS بعد از mount تازه می‌شوند.
  */
 export function MarketingChromeProvider({
   initialChrome,

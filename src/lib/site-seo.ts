@@ -1,6 +1,6 @@
 /**
- * Public site URL + SEO copy for marketing surfaces.
- * Prefer NEXT_PUBLIC_SITE_URL in production; fall back to Vercel / localhost.
+ * URL عمومی سایت و متن SEO برای سطح مارکتینگ.
+ * در production ترجیح با `NEXT_PUBLIC_SITE_URL` است؛ وگرنه Vercel / localhost.
  */
 
 export const SITE_NAME = 'کارویتا';

@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { RouteService } from '@/services/route.service';
 import { getModuleMeta } from '@/utils/moduleMeta';
 
-/** Dashboard module keys aligned with live `page.tsx` routes. */
+/** کلید ماژول داشبورد هم‌تراز با مسیرهای زندهٔ `page.tsx`. */
 export type DashboardModuleKey =
   | 'dashboard'
   | 'admin-dashboard'
@@ -44,7 +44,7 @@ export function resolveDashboardModulePath(
   return typeof entry === 'function' ? entry(role) : entry;
 }
 
-/** RSC metadata for dashboard routes — titles from moduleMeta. */
+/** metadata RSC برای مسیرهای داشبورد — عنوان از `moduleMeta`. */
 export function dashboardModuleMetadata(
   key: DashboardModuleKey,
   role?: string

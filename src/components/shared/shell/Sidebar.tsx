@@ -59,8 +59,8 @@ export function Sidebar() {
       />
 
       {/*
-        Wrapper owns sticky + collapse-btn overflow; panel clips to shell radius
-        so the account footer cannot square-off the bottom corners.
+        Wrapper مالک `sticky` و `overflow` دکمهٔ جمع است؛ پنل به شعاع شل `clip` می‌شود
+        تا فوتر حساب گوشه‌های پایین را مربع نکند.
       */}
       <div
         className={cn(

@@ -36,7 +36,7 @@ export type CourseOfferingRecord = {
   id: string;
   termId: string;
   courseCatalogId: string;
-  /** Present on real Nest lessons; mock catalog supplies title when omitted. */
+  /** روی درس واقعی Nest می‌آید؛ کاتالوگ mock وقتی نیست عنوان می‌دهد. */
   title?: string;
   type?: CourseOfferingKind;
   /** وضعیت ارائه برای کاربران — مستقل از سطرهای سرفصل. */

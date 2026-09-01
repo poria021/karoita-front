@@ -38,7 +38,7 @@ async function restoreSession(): Promise<RuntimeAuthBoot> {
     const restored = await AuthService.refreshRealSession();
     if (restored) return 'authenticated';
   } catch {
-    // 401 → cookie expired
+    // ۴۰۱ یعنی کوکی منقضی شده
   }
 
   return 'unauthenticated';

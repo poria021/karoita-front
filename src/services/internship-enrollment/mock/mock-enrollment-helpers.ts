@@ -48,8 +48,8 @@ export function getSupervisorList(input: {
 }
 
 /**
- * اولین مقدار از یک فیلد چندانتخابی (string[]) را برمی‌گرداند.
- * اگر آرایه خالی یا undefined باشد، مقدار پیش‌فرض برگردانده می‌شود.
+ * اولین مقدار فیلد چندانتخابی (`string[]`).
+ * اگر آرایه خالی یا `undefined` باشد، پیش‌فرض برمی‌گردد.
  */
 function firstOf(value: string | string[] | undefined, fallback: string): string {
   if (Array.isArray(value)) return value[0] ?? fallback;
@@ -57,7 +57,7 @@ function firstOf(value: string | string[] | undefined, fallback: string): string
 }
 
 export function getScope(actor: InternshipEnrollmentActor): InternshipSelectionScope {
-  // actor.province و actor.college هر دو string[] هستند — اولین مقدار را می‌گیریم
+  // `actor.province` و `actor.college` هر دو `string[]` هستند — اولین مقدار.
   const profileProvince = firstOf(actor.province, 'تهران');
   const profileCollege = firstOf(actor.college, 'پردیس شهید باهنر تهران');
   const canChangeScope = Boolean(actor.specialPermissions?.crossFaculty);

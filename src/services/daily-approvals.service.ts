@@ -62,23 +62,10 @@ function requireReviewRole(role: UserRole): void {
 }
 
 /**
- * Trainee weekly-report grading facade (trainee_reports_grading).
- * Real mode fail-closed until Nest routes below land.
- *
- * Nest map:
- * - GET   /daily-approvals/terms?kind=
- * - GET   /syllabus/passing-threshold
- * - GET   /daily-approvals?kind&query&readFilter&course&termId&offset&limit
- * - POST  /daily-approvals/:traineeId/weeks/:weekId/open
- * - PATCH /daily-approvals/:traineeId/weeks/:weekId
- * - PATCH /daily-approvals/:traineeId/weeks/:weekId/mentor
- * - PATCH /daily-approvals/:traineeId/weeks/:weekId/principal
- * - POST  /daily-approvals/:traineeId/weeks/:weekId/extend
- * - POST  /daily-approvals/weeks/bulk-extend
- * - POST  /daily-approvals/:traineeId/drop
+ * نمرهٔ گزارش هفتگی کارورز. تا آمدن routeهای Nest در real fail-closed است.
  */
 export const DailyApprovalsService = {
-  /** GET /daily-approvals/terms?kind= — internship→semester, apprenticeship→modular */
+  /** کارورزی → ترم نیم‌سال؛ مهارت‌آموزی → پودمانی. */
   async listTerms(
     kind: DailyApprovalCourseKind
   ): Promise<Array<{ id: string; title: string }>> {
@@ -89,7 +76,6 @@ export const DailyApprovalsService = {
     return listTermsForDailyApprovalKind(kind);
   },
 
-  /** GET /syllabus/passing-threshold — 0–100 */
   async getPassingScoreThreshold(): Promise<number> {
     if (!isMockApiMode()) {
       throwRealModeNotImplemented(
@@ -100,7 +86,6 @@ export const DailyApprovalsService = {
     return readDailyApprovalPassingScoreThreshold();
   },
 
-  /** GET /daily-approvals — offset/limit page */
   async listPage(
     input: ListDailyApprovalsInput
   ): Promise<ListDailyApprovalsPage> {
@@ -112,7 +97,7 @@ export const DailyApprovalsService = {
     return listMockDailyApprovals(input);
   },
 
-  /** POST /daily-approvals/:traineeId/weeks/:weekId/open — marks week read */
+  /** باز کردن هفته را خوانده‌شده علامت می‌زند. */
   async openWeek(input: {
     traineeId: string;
     weekId: string;
@@ -124,7 +109,6 @@ export const DailyApprovalsService = {
     return markMockWeekRead(input);
   },
 
-  /** PATCH /daily-approvals/:traineeId/weeks/:weekId — supervisor */
   async updateWeekEvaluation(
     input: UpdateDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
@@ -139,7 +123,6 @@ export const DailyApprovalsService = {
     });
   },
 
-  /** PATCH /daily-approvals/:traineeId/weeks/:weekId/mentor */
   async updateMentorWeekEvaluation(
     input: UpdateMentorDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
@@ -156,7 +139,6 @@ export const DailyApprovalsService = {
     });
   },
 
-  /** PATCH /daily-approvals/:traineeId/weeks/:weekId/principal */
   async updatePrincipalWeekEvaluation(
     input: UpdatePrincipalDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
@@ -173,7 +155,6 @@ export const DailyApprovalsService = {
     });
   },
 
-  /** POST /daily-approvals/:traineeId/weeks/:weekId/extend */
   async extendWeek(
     input: ExtendDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
@@ -185,7 +166,6 @@ export const DailyApprovalsService = {
     return extendMockDailyApprovalWeek(input);
   },
 
-  /** POST /daily-approvals/weeks/bulk-extend */
   async bulkExtendWeeks(
     input: BulkExtendDailyApprovalWeeksInput
   ): Promise<BulkExtendDailyApprovalWeeksResult> {
@@ -205,7 +185,6 @@ export const DailyApprovalsService = {
     });
   },
 
-  /** POST /daily-approvals/:traineeId/drop */
   async dropTrainee(
     input: DropDailyApprovalTraineeInput
   ): Promise<DailyApprovalTrainee> {
@@ -217,7 +196,7 @@ export const DailyApprovalsService = {
     return dropMockDailyApprovalTrainee(input.traineeId);
   },
 
-  /** Undo drop — restore prior trainee snapshot (mock). */
+  /** برگرداندن snapshot قبل از حذف (فقط mock). */
   async restoreTrainee(
     trainee: DailyApprovalTrainee
   ): Promise<DailyApprovalTrainee> {

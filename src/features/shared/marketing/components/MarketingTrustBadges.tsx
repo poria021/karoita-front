@@ -29,8 +29,8 @@ const TRUST_STATS = [
 ] as const;
 
 /**
- * Trust & capacity badges strip — immediately below hero.
- * Flat items on all breakpoints (no per-item card chrome).
+ * نوار نشان اعتماد و ظرفیت — بلافاصله زیر هیرو.
+ * آیتم تخت در همهٔ breakpointها (بدون chrome کارت جدا).
  */
 export function MarketingTrustBadges() {
   return (

@@ -16,10 +16,9 @@ export type HydrationSafeProps = {
 };
 
 /**
- * Gates chrome until client stores are ready.
- * User profile is memory-only; UI chrome (sidebar collapse) still rehydrates
- * from localStorage. After login the user is already in memory, so we must
- * not wait on chrome persist or we flash an empty canvas before the dashboard paints.
+ * کروم را تا آماده شدن استور کلاینت نگه می‌دارد.
+ * پروفایل فقط حافظه است؛ کروم UI (جمع‌شدن سایدبار) از localStorage می‌آید.
+ * بعد از ورود کاربر در حافظه است — منتظر persist کروم نمان تا بوم خالی قبل از داشبورد چشمک نزند.
  */
 export function HydrationSafe({
   children,

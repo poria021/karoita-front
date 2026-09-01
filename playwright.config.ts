@@ -1,19 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Thin mock-mode smoke (Chromium-family only).
+ * اسموک نازک حالت mock (فقط خانوادهٔ Chromium).
  *
- * Prefers system Google Chrome (`channel: 'chrome'`) — Playwright’s CDN is
- * geo-blocked in some regions. Optional: `npm run test:e2e:install`.
+ * ترجیح با Google Chrome سیستم (`channel: 'chrome'`) است — CDN پلی‌رایت در برخی
+ * مناطق geo-block است. اختیاری: `npm run test:e2e:install`.
  *
- * Must use `next dev` (not `next start`): production forbids
- * `NEXT_PUBLIC_API_MODE=mock`. `webServer.reuseExistingServer` below is
- * hardcoded `false` on purpose: if another `next dev` for this app is
- * already running on :3000 (Next 16 allows only one per project dir),
- * Playwright will now fail loudly on port conflict instead of silently
- * reusing that server — which previously ran with whatever env/session it
- * already had (often real mode from `.env.local`) and broke mock-only
- * OTP/login flows non-deterministically. Stop the other `next dev` first.
+ * باید `next dev` باشد (نه `next start`): پروداکشن `NEXT_PUBLIC_API_MODE=mock` را
+ * ممنوع می‌کند. `webServer.reuseExistingServer` پایین عمداً `false` است: اگر `next
+ * dev` دیگری روی :3000 باشد (Next ۱۶ فقط یک اینستنس در هر پوشهٔ پروژه)، پلی‌رایت
+ * با تداخل پورت بلند fail می‌شود به‌جای اینکه بی‌صدا همان سرور را reuse کند —
+ * که قبلاً با هر env/session موجود (اغلب real از `.env.local`) OTP/ورود mock را
+ * غیرقطعی خراب می‌کرد. اول `next dev` دیگر را ببندید.
  */
 export default defineConfig({
   testDir: './e2e',
@@ -42,12 +40,11 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- --hostname 127.0.0.1 --port 3000',
     url: 'http://127.0.0.1:3000',
-    // NEVER reuse an already-running `next dev`: a stray server (e.g. one
-    // started manually with `.env.local`'s NEXT_PUBLIC_API_MODE=real, or
-    // carrying a leftover auth cookie) silently breaks mock-only smoke tests
-    // — OTP/login flows depend on MOCK_* seed users that only exist in mock
-    // mode. Always spawn a dedicated server bound to the forced env below,
-    // even locally. See README "E2E smoke (mock only)".
+    // هرگز `next dev` در حال اجرا را reuse نکنید: سرور سرگردان (مثلاً دستی با
+    // `NEXT_PUBLIC_API_MODE=real` از `.env.local`، یا کوکی نشست باقی‌مانده) اسموک
+    // mock را بی‌صدا خراب می‌کند — جریان OTP/ورود به کاربرهای `MOCK_*` وابسته است
+    // که فقط در mock وجود دارند. همیشه سرور جدا با env اجباری پایین بالا بیاید،
+    // حتی locally. نگاه کنید به README «E2E smoke (mock only)».
     reuseExistingServer: false,
     timeout: 180_000,
     env: {

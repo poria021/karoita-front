@@ -47,9 +47,7 @@ export function updateMockProfile(
   const current = resolveMockUser(token);
   const isSuperAdmin = isSuperAdminRole(validatedData.role);
 
-  // Preserve approved status on subsequent saves (e.g. editing org fields
-  // like province/city/district/school after approval) instead of bouncing
-  // the user back into pending_admin review.
+  // اگر قبلاً `approved` بوده، ویرایش سازمانی او را به `pending_admin` برنگرداند.
   const keepApproved = !isSuperAdmin && current.docStatus === 'approved';
 
   patchMockAuthUser(

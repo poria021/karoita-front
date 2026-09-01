@@ -40,7 +40,7 @@ export function KvSelectTrigger({
         'flex w-full min-w-0 items-center justify-between gap-kv-pair rounded-kv-control',
         'h-11 data-[size=default]:h-11 data-[size=sm]:h-11',
         'border border-kv-border bg-kv-field ps-3.5 pe-2 py-0',
-        // Selected value = primary text; placeholder/chevron stay quiet chrome.
+        // مقدار انتخاب‌شده متن اصلی؛ placeholder و شورون کروم آرام می‌مانند.
         'font-sans text-xs font-bold text-kv-text shadow-none md:text-xs',
         'whitespace-nowrap outline-none',
         'transition-[color,background-color,border-color,box-shadow]',
@@ -77,7 +77,6 @@ export function KvSelectContent({
   emptyLabel = 'موردی یافت نشد.',
   ...props
 }: KvSelectContentProps) {
-  // children خالی یعنی آرایه‌ی صفر عنصری یا null/undefined
   const isEmpty = React.Children.count(children) === 0;
 
   return (

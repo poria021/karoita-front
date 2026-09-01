@@ -13,10 +13,7 @@ function asString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
 
-/**
- * Nest list envelope is `{ data, hasNextPage }`. Bare arrays or missing
- * `data` must not crash the staff table.
- */
+/** پاکت لیست `{ data, hasNextPage }` است؛ آرایهٔ خام یا `data` غایب جدول را نترکاند. */
 export function parseAdminsListResponse(raw: unknown): {
   data: NestAdminDto[];
   hasNextPage: boolean;

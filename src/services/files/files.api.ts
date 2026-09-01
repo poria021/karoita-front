@@ -1,24 +1,20 @@
 import { apiClient } from '@/services/api-client';
 import type { NestFileResponseDto, NestFileUploadDto } from '@/types/nest-users';
 
-/** Swagger: POST `/api/v1/files/upload` */
+/** POST `/api/v1/files/upload`. */
 export const NEST_FILES_PATH = 'v1/files/upload';
 
 /** آپلود مستقیم روی signed URL — از timeout کوتاه Nest جداست. */
 const SIGNED_UPLOAD_TIMEOUT_MS = 60_000;
 
 export const filesApi = {
-  /**
-   * مرحله ۱ — از سرور یک presigned S3 URL بگیر.
-   * POST /api/v1/files/upload → { file: { id, path }, uploadSignedUrl }
-   */
+  /** مرحله ۱ — POST /api/v1/files/upload → `{ file, uploadSignedUrl }`. */
   upload(body: NestFileUploadDto, token?: string) {
     return apiClient.postJson<NestFileResponseDto>(NEST_FILES_PATH, body, token);
   },
 
   /**
-   * مرحله ۲ — فایل رو مستقیم روی signed URL آپلود کن (بدون auth header).
-   * S3/MinIO این درخواست رو بررسی می‌کنه نه Nest، پس token لازم نیست.
+   * مرحله ۲ — PUT مستقیم روی signed URL بدون auth؛ S3/MinIO این را می‌سنجد نه Nest.
    */
   async uploadToSignedUrl(signedUrl: string, file: File): Promise<void> {
     const controller = new AbortController();

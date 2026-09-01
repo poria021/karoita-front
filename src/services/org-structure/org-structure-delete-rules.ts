@@ -52,7 +52,7 @@ export function isDeleteBlockedWithSets(
   return false;
 }
 
-/** Faculty/major lock when at least one user is linked. Tree children use the sets above. */
+/** قفل faculty/major وقتی حداقل یک کاربر وصل باشد؛ فرزندان درخت از sets بالا. */
 export function isLinkedUserDeleteBlocked(
   kind: OrgStructureEntityKind,
   usersCount: number | undefined
@@ -61,15 +61,7 @@ export function isLinkedUserDeleteBlocked(
   return (usersCount ?? 0) > 0;
 }
 
-/**
- * Single entry point for "can this row be deleted" — builds the blocked
- * sets fresh from the snapshot and checks `id` against them.
- *
- * Prefer `buildOrgDeleteBlockedSets` + `isDeleteBlockedWithSets` directly
- * when checking many ids against the same snapshot (e.g. an entire list
- * page) — that pattern computes the sets once and reuses them, instead of
- * re-scanning the whole snapshot per row the way this function does.
- */
+/** یک id در برابر snapshot؛ برای کل صفحه sets را یک‌بار بساز و `isDeleteBlockedWithSets` را صدا بزن. */
 export function isOrgEntityDeleteBlocked(
   kind: OrgStructureEntityKind,
   db: OrgStructureSnapshot,

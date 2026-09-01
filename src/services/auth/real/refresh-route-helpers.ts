@@ -1,6 +1,6 @@
 import type { AuthSurface } from '@/lib/real-auth-cookie';
 
-/** Nest refresh path per session surface — admin must not hit user refresh. */
+/** مسیر refresh Nest بر اساس سطح سشن؛ ادمین نباید به refresh کاربر بخورد. */
 export const NEST_REFRESH_PATHS: Record<AuthSurface, string> = {
   user: 'v1/auth/refresh',
   admin: 'v1/admin/auth/refresh',

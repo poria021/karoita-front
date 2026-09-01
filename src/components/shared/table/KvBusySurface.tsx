@@ -13,9 +13,8 @@ export type KvBusySurfaceProps = {
 };
 
 /**
- * Local data-region busy. Chrome stays painted; wait feedback is a quiet
- * spinner with a visible caption (no skeleton bones). Soft refresh with
- * existing content should keep prior UI and not mount this.
+ * شلوغی ناحیهٔ داده. کروم نقاشی‌شده می‌ماند؛ بازخورد انتظار اسپینر آرام با توضیح است (بدون استخوان اسکلتون).
+ * رفرش نرم با محتوای موجود UI قبلی را نگه دارد و این را mount نکند.
  */
 export function KvBusySurface({
   tableViewport = false,

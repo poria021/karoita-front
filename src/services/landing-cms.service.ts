@@ -39,58 +39,44 @@ function gateAdminWrite(surface: string): void {
 }
 
 /**
- * Landing CMS (banners / socials / floating products).
- * Real branch fail-closed; uploads go multipart when Nest lands.
- *
- * Nest map:
- * - GET    /landing/banners|socials|products
- * - POST   /landing/banners|socials|products  (+ upload)
- * - DELETE /landing/:collection/:id
+ * CMS لندینگ (بنر / شبکه اجتماعی / محصول شناور). شاخهٔ real fail-closed است.
  */
 export const LandingCmsService = {
-  /** GET /landing/banners */
   async listBanners(): Promise<LandingBanner[]> {
     gatePublicRead('LandingCmsService.listBanners');
     return readLandingBanners();
   },
 
-  /** GET /landing/socials */
   async listSocials(): Promise<LandingSocial[]> {
     gatePublicRead('LandingCmsService.listSocials');
     return readLandingSocials();
   },
 
-  /** GET /landing/products */
   async listProducts(): Promise<LandingProduct[]> {
     gatePublicRead('LandingCmsService.listProducts');
     return readLandingProducts();
   },
 
-  /** POST /landing/banners (+ image upload) */
   async createBanner(input: CreateLandingBannerInput): Promise<LandingBanner> {
     gateAdminWrite('LandingCmsService.createBanner');
     return mockCreateBanner(input);
   },
 
-  /** DELETE /landing/banners/:id */
   async deleteBanner(id: string): Promise<void> {
     gateAdminWrite('LandingCmsService.deleteBanner');
     mockDeleteBanner(id);
   },
 
-  /** POST /landing/socials (+ optional icon) */
   async createSocial(input: CreateLandingSocialInput): Promise<LandingSocial> {
     gateAdminWrite('LandingCmsService.createSocial');
     return mockCreateSocial(input);
   },
 
-  /** DELETE /landing/socials/:id */
   async deleteSocial(id: string): Promise<void> {
     gateAdminWrite('LandingCmsService.deleteSocial');
     mockDeleteSocial(id);
   },
 
-  /** POST /landing/products (+ logo upload) */
   async createProduct(
     input: CreateLandingProductInput
   ): Promise<LandingProduct> {
@@ -98,22 +84,21 @@ export const LandingCmsService = {
     return mockCreateProduct(input);
   },
 
-  /** DELETE /landing/products/:id */
   async deleteProduct(id: string): Promise<void> {
     gateAdminWrite('LandingCmsService.deleteProduct');
     mockDeleteProduct(id);
   },
 
-  /** Same-tab CustomEvent after CMS writes — public so features skip store imports */
+  /** `CustomEvent` بعد از نوشتن CMS — فیچر نباید store را import کند. */
   LANDING_CMS_UPDATED_EVENT,
 
-  /** Drop in-memory snapshot so next list* rehydrates (mock-only) */
+  /** فقط mock: حافظه را خالی می‌کند تا `list*` دوباره hydrate شود. */
   invalidateClientCache(): void {
     if (!isMockApiMode()) return;
     invalidateLandingCmsMemory();
   },
 
-  /** Mock: storage + CustomEvent; real: no-op until Nest push */
+  /** در mock به `storage` و `CustomEvent` وصل است؛ real تا push خالی است. */
   subscribeChromeChanges(listener: () => void): () => void {
     if (typeof window === 'undefined' || !isMockApiMode()) {
       return () => {};

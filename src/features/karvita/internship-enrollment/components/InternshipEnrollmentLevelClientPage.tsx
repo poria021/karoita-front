@@ -6,9 +6,9 @@ import { InternshipEnrollmentModule } from '@/features/karvita/internship-enroll
 import { parseInternshipEnrollmentLevel } from '@/features/karvita/internship-enrollment/lib/parseInternshipEnrollmentLevel';
 
 /**
- * Client page so switching internship levels does not `await params` on the
- * server. An async Server Component here suspends the dashboard segment and
- * Next.js 16 may fall back to a full document load (Network tab clears).
+ * صفحهٔ کلاینت تا عوض‌کردن سطح کارورزی `await params` سمت سرور نزند.
+ * Server Component ناهم‌زمان اینجا سگمنت داشبورد را suspend می‌کند و
+ * Next ۱۶ ممکن است به بار کامل سند برگردد (Network tab خالی می‌شود).
  */
 export function InternshipEnrollmentLevelClientPage() {
   const params = useParams();

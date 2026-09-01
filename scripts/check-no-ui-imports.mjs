@@ -1,9 +1,6 @@
 /**
- * Fails if features/ or app/ import product-bypass ui paths.
- * Plain atoms (@/components/ui/button, badge, spinner, …) are allowed.
- * Forbidden: ui/table, ui/skeleton — use shared KvTable / KvBusySurface (no skeleton bones).
- *
- * Run: node scripts/check-no-ui-imports.mjs
+ * اگر `features` یا `app` مستقیم `ui/table` یا `ui/skeleton` بگیرند fail کن.
+ * اتم‌های button/badge/spinner مجازند؛ جدول/اسکلتون فقط از طریق `KvTable` / `KvBusySurface`.
  */
 import fs from 'fs';
 import path from 'path';
@@ -14,7 +11,6 @@ const TARGETS = [
   path.join(ROOT, 'src', 'app'),
 ];
 
-/** Product stacks that must stay behind shared wrappers. */
 const FORBIDDEN_RE =
   /from\s+['"]@\/components\/ui\/(?:table|skeleton)(?:\/[^'"]*)?['"]|require\(\s*['"]@\/components\/ui\/(?:table|skeleton)(?:\/[^'"]*)?['"]\s*\)/;
 

@@ -86,8 +86,8 @@ function ProductMark({ product }: { product: LandingProduct }) {
 }
 
 /**
- * Portal picker → auth login (Nest role simulator from HTML is not ported).
- * Absolute product URLs stay external; everything else enters the auth gate.
+ * انتخاب پورتال → ورود auth (شبیه‌ساز نقش Nest از HTML پورت نشده).
+ * URL مطلق محصول خارجی می‌ماند؛ بقیه وارد گیت auth می‌شوند.
  */
 function resolveProductLoginHref(product: LandingProduct): {
   kind: 'external' | 'internal';

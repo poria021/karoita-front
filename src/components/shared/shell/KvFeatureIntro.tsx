@@ -10,9 +10,6 @@ export type KvFeatureIntroProps = {
   className?: string;
 };
 
-/**
- * Module feature chrome — title + short description, optional trailing actions.
- */
 export function KvFeatureIntro({
   title,
   description,

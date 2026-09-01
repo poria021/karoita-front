@@ -103,9 +103,7 @@ export function useOrgStructurePage() {
     cacheNamespace: ORG_STRUCTURE_CACHE_NAMESPACE,
   });
 
-  // Warm the entity-modal's province select cache as soon as the org
-  // structure page mounts — shares the query key with useOrgEntityForm's
-  // provincesQuery, so react-query dedupes/caches across both.
+  // کش select استان مودال را هنگام mount گرم کن — همان query key با `useOrgEntityForm`.
   useQuery({
     queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'provinces'],
     queryFn: () => OrgStructureService.listProvinces(),

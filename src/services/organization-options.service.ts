@@ -18,18 +18,8 @@ export type {
 } from '@/services/organization-options/organization-options-helpers';
 
 /**
- * Org typeahead options for profile / admin forms.
- *
- * Real mode: مستقیم به Nest Admin API وصل می‌شود
- *   province → GET /api/admin/provinces          (paginated, filters param)
- *   city     → GET /api/admin/provinces/{id}/cities  یا /api/admin/cities
- *   district → GET /api/admin/educations          (paginated)
- *   school   → GET /api/admin/schools/all         (paginated)
- *   college  → GET /api/admin/universites         (paginated)
- *   major    → GET /api/admin/roles/{roleId}/degrees (با role)
- *              یا GET /api/admin/degreeee (بدون role)
- *
- * Mock mode: از OrgStructureService.listLabelsForField استفاده می‌کند.
+ * Typeahead سازمانی پروفایل/ادمین.
+ * Real مستقیم به کاتالوگ Nest می‌رود (`universites`/`degreeee` املای لایو)؛ mock از `OrgStructureService.listLabelsForField`.
  */
 export class OrganizationOptionsService {
   static async getOptions(
@@ -44,18 +34,12 @@ export class OrganizationOptionsService {
     return fetchOrganizationOptionsFromMock(request);
   }
 
-  /**
-   * کش استان را باطل می‌کند.
-   * پس از ایجاد/ویرایش/حذف استان در پنل ادمین صدا بزن.
-   */
+  /** کش استان را باطل کن؛ بعد از CRUD استان در پنل ادمین. */
   static invalidateProvinceCache(): void {
     invalidateProvinceNameCache();
   }
 
-  /**
-   * کش منطقه آموزشی را باطل می‌کند.
-   * پس از ایجاد/ویرایش/حذف منطقه در پنل ادمین صدا بزن.
-   */
+  /** کش منطقه آموزشی را باطل کن؛ بعد از CRUD منطقه در پنل ادمین. */
   static invalidateDistrictCache(): void {
     invalidateDistrictNameCache();
   }

@@ -4,13 +4,11 @@ import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoad
 import { useAuthTransitionPhase } from '@/store/authTransition';
 
 /**
- * Full-viewport brand loader for auth-boundary transitions only
- * (login → dashboard, logout → marketing). Never used for in-dashboard
- * module or tab switches.
+ * لودر تمام‌ویوپورت فقط برای مرز احراز (ورود→داشبورد، خروج→مارکتینگ).
+ * برای تعویض ماژول/تب داخل داشبورد استفاده نشود.
  *
- * Does not read the router — `usePathname` during Next.js segment swaps
- * can suspend this overlay (fallback null) and flash the empty dashboard
- * shell. Destination layouts call `AuthTransitionPaintRelease` instead.
+ * روتر را نخوان — `usePathname` هنگام تعویض سگمنت `Next` این `overlay` را `suspend`
+ * می‌کند (`fallback` تهی) و شل خالی چشمک می‌زند. مقصد `AuthTransitionPaintRelease` را صدا می‌زند.
  */
 export function AuthTransitionOverlay() {
   const phase = useAuthTransitionPhase();

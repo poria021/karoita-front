@@ -27,7 +27,7 @@ type UseSyllabusUnsavedNavigationArgs = {
 };
 
 /**
- * Guard term/course switches while the weeks editor has unsaved edits.
+ * گارد عوض‌کردن ترم/درس وقتی ویرایشگر هفته‌ها ذخیرهٔ نشده دارد.
  */
 export function useSyllabusUnsavedNavigation({
   hasUnsavedChanges,

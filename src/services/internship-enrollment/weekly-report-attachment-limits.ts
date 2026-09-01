@@ -1,4 +1,4 @@
-/** Shared weekly-report attachment limits (UI dropzone + mock Facade). */
+/** سقف پیوست گزارش هفتگی (dropzone UI + Facade mock). */
 
 export const WEEKLY_REPORT_MAX_FILE_SIZE_MB = 5;
 export const WEEKLY_REPORT_MAX_TOTAL_SIZE_MB = 100;

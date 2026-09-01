@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { SyllabusModule } from '@/features/karvita/syllabus-config/components/SyllabusModule';
 import { RouteService } from '@/services/route.service';
 
-/** Index bounce — paint course-offerings immediately, then canonicalize the URL. */
+/** پرش ایندکس — فوراً ارائه‌های درس را رنگ کن، بعد URL را canonicalize کن. */
 export function SyllabusConfigIndexClient() {
   const router = useRouter();
 

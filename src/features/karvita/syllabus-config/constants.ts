@@ -1,6 +1,6 @@
 /**
- * Syllabus-config feature constants.
- * Live routes under `/karvita/admin/syllabus/*` via RouteService
+ * ثابت‌های فیچر تنظیم سرفصل.
+ * مسیر زنده زیر `/karvita/admin/syllabus/*` از `RouteService`
  * (`syllabusConfig`, `syllabusCourseOfferings`, `syllabusTermSettings`).
  */
 import type { AcademicTermType } from '@/types/syllabus-config';
@@ -70,7 +70,7 @@ export function parseTermTitleParts(title: string): {
   };
 }
 
-/** Option label for course-offerings / term pickers: «عنوان بازه · سال تحصیلی». */
+/** برچسب option در picker ارائه/ترم: «عنوان بازه · سال تحصیلی». */
 export function formatTermOptionLabel(title: string): string {
   const { prefix, academicYear } = parseTermTitleParts(title);
   if (!academicYear) return toPersianDigits(title);

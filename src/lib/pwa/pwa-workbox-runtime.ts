@@ -5,9 +5,9 @@ type PwaRuntimeCaching = NonNullable<
 >;
 
 /**
- * Workbox runtime routes. Matcher functions stay self-contained so GenerateSW
- * can serialize them into the worker (no module closures). Keep path checks
- * aligned with `pwa-cache-policy.ts`.
+ * مسیرهای runtime ورکباکس. توابع matcher باید خودکفا باشند تا `GenerateSW`
+ * بتواند آن‌ها را داخل worker سریال کند (بدون closure ماژول). بررسی مسیر را با
+ * `pwa-cache-policy.ts` هم‌تراز نگه دارید.
  */
 export function buildPwaRuntimeCaching(): PwaRuntimeCaching {
   return [

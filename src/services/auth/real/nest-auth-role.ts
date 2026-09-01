@@ -6,25 +6,16 @@ export {
   type StaffAdminRole,
 } from '@/types/role-taxonomy';
 
-/**
- * Nest RoleDto.name values from Auth Swagger (AuthRegisterLoginDto.role).
- * FE roles stay in `@/types/auth`; this map is transport-only.
- *
- * Source: GET v1/auth/roles → { id: string; name: NestRoleName }[]
- * Verified against: https://backenddev.darkube.ir/docs — Auth tag.
- */
+/** نام نقش Nest از Swagger (`RoleDto.name`)؛ نقش فرانت در `@/types/auth` بماند — فقط حمل‌ونقل. */
 export type NestRoleName =
-  // ── Self-registerable (shown in RegisterDetailsStep) ──
   | 'student'      // دانشجو
   | 'trainee'      // مهارت‌آموز
   | 'mentor'       // استاد راهنما
   | 'teacher'      // معلم راهنما
   | 'school_admin' // مدیر مدرسه
-  // ── Admin / management (assigned by Nest, not self-registerable) ──
   | 'manager'      // مدیر دانشکده
   | 'admin'        // معاون ادمین
   | 'superadmin'  // سوپر ادمین (پاسخ Admin API)
-  // ── Higher-level roles (returned by Nest on GET /auth/me) ──
   | 'regional_admin'   // مدیر آموزش استانی / منطقه‌ای
   | 'provincial_admin' // مسئول دانشگاه استانی
   | 'central_org'      // سازمان مرکزی
@@ -35,17 +26,14 @@ export type NestRoleDto = {
   name: NestRoleName;
 };
 
-/** Live GET /auth/roles uses `title`; Swagger RoleDto uses `name`. */
+/** لایو `GET /auth/roles` فیلد `title` دارد؛ Swagger `name`. */
 export function nestRoleLabel(entry: Record<string, unknown>): string | null {
   if (typeof entry.name === 'string' && entry.name.trim()) return entry.name.trim();
   if (typeof entry.title === 'string' && entry.title.trim()) return entry.title.trim();
   return null;
 }
 
-/**
- * FE role → Nest RoleDto.name (used when POSTing to register/request-otp).
- * Only self-registerable roles are included — admin roles are assigned by Nest.
- */
+/** نقش فرانت → `RoleDto.name` برای register/request-otp؛ نقش ادمین را Nest می‌گذارد. */
 const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   student: 'student',
   skill_learner: 'trainee',
@@ -54,10 +42,7 @@ const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   school_principal: 'school_admin',
 };
 
-/**
- * FE staff role → Nest admin-account `role` string.
- * Auth self-register uses `toNestRoleName`; this map is only for `/v1/admin/admins`.
- */
+/** نقش staff فرانت → رشتهٔ `role` در `/v1/admin/admins`؛ ثبت‌نام عمومی `toNestRoleName` است. */
 export function toNestAdminAccountRole(
   role: StaffAdminRole
 ): Extract<NestRoleName, 'admin' | 'superadmin'> {
@@ -86,37 +71,23 @@ export function pickNestRoleDto(
   return { id: match.id, name: match.name };
 }
 
-/**
- * Nest RoleDto.name → FE UserRole (used when parsing GET /auth/me or LoginResponseDto).
- *
- * ⚠️ If Nest adds a new role, add it here AND in `@/types/auth.ts` — do NOT just add
- * to one side or the mapper will silently fall back to `assistant_admin`.
- */
+/** Nest → `UserRole` برای `/auth/me`؛ نقش جدید را اینجا و در `@/types/auth` با هم اضافه کن وگرنه silent به `assistant_admin`. */
 const NEST_NAME_TO_FE_ROLE: Record<NestRoleName, UserRole> = {
-  // Self-registerable
   student: 'student',
   trainee: 'skill_learner',
   mentor: 'supervisor_professor',
   teacher: 'mentor_teacher',
   school_admin: 'school_principal',
-  // Admin / management
   manager: 'faculty_role',
   admin: 'assistant_admin',
   superadmin: 'super_admin',
-  // Higher-level (assigned by Nest)
   regional_admin: 'regional_edu_admin',
   provincial_admin: 'provincial_university',
   central_org: 'central_organization',
   super_admin: 'super_admin',
 };
 
-/**
- * Maps a Nest role name string to a FE `UserRole`.
- *
- * Defensive: unknown role names log a warning and fall back to `assistant_admin`
- * rather than throwing, so a new Nest role doesn’t crash the login flow for all users.
- * Update `NEST_NAME_TO_FE_ROLE` and `@/types/auth.ts` when a new Nest role ships.
- */
+/** نقش ناشناخته را throw نکن — login همه را خراب می‌کند؛ fallback `assistant_admin`. */
 export function fromNestRoleName(name: string): UserRole {
   const mapped = NEST_NAME_TO_FE_ROLE[name as NestRoleName];
   if (!mapped) {
@@ -125,7 +96,7 @@ export function fromNestRoleName(name: string): UserRole {
         `[nest-auth-role] نقش ناشناخته از Nest: «${name}». به NEST_NAME_TO_FE_ROLE اضافه کنید.`
       );
     }
-    // Fail-open with lowest-privilege admin role to avoid crashing the auth flow.
+    // fail-open با کم‌دسترس‌ترین نقش ادمین تا جریان auth نشکند
     return 'assistant_admin';
   }
   return mapped;

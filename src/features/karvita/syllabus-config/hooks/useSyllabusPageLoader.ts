@@ -34,8 +34,8 @@ type TermContextResult = {
 };
 
 /**
- * Snapshot + term-context loading via TanStack Query (snapshot) + in-memory
- * term panes so audience-tab switches stay SPA (no refetch / no table busy).
+ * بارگذاری snapshot با TanStack Query + pane ترم در حافظه
+ * تا عوض‌کردن تب مخاطب SPA بماند (بدون refetch / شلوغی جدول).
  */
 export function useSyllabusPageLoader({
   section,
@@ -337,7 +337,7 @@ export function useSyllabusPageLoader({
   useEffect(() => {
     if (!snapshotQuery.isSuccess || !snapshotQuery.data) return;
     if (appliedSnapshotAtRef.current === snapshotQuery.dataUpdatedAt) return;
-    // First paint / remount only — skip background soft-refetch re-apply.
+    // فقط اولین رنگ / remount — اعمال مجدد soft-refetch پس‌زمینه را رد کن.
     if (appliedSnapshotAtRef.current !== 0) return;
 
     const requestId = ++loadRequestIdRef.current;
@@ -354,8 +354,8 @@ export function useSyllabusPageLoader({
         setIsLoading(false);
       }
     })();
-    // intentional: apply once per mount from Query cache/fetch
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount bootstrap from Query
+    // عمدی: یک‌بار روی mount از کش/fetch کوئری اعمال شود
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- bootstrap روی mount از Query
   }, [snapshotQuery.isSuccess, snapshotQuery.data, snapshotQuery.dataUpdatedAt]);
 
   useEffect(() => {

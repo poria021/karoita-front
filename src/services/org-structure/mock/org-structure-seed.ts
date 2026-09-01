@@ -4,10 +4,7 @@ import type {
 } from '@/types/org-structure';
 import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
-/**
- * Seed بزرگ‌تر از یک صفحه (DEFAULT_PAGE_LIMIT) تا paging جدول‌های ادمین
- * در mock قابل مشاهده باشد.
- */
+/** Seed بزرگ‌تر از یک صفحه (`DEFAULT_PAGE_LIMIT`) تا paging جدول ادمین در mock دیده شود. */
 const BRANCHES: Array<{
   province: string;
   cities: string[];

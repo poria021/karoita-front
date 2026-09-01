@@ -18,7 +18,7 @@ export type MarketingPanelId =
   | 'internship'
   | 'advantages';
 
-/** Auto-hide open nav panels after this idle window (no interaction on the panel). */
+/** پنل ناو باز بعد از این پنجرهٔ بی‌فعالیت خودکار پنهان شود. */
 const PANEL_IDLE_MS = 60_000;
 
 type MarketingPanelContextValue = {
@@ -77,7 +77,7 @@ export function MarketingPanelProvider({ children }: { children: ReactNode }) {
     if (!pendingScrollId) return;
 
     const targetId = pendingScrollId;
-    // Wait a tick so the target panel is un-hidden before scrolling.
+    // یک تیک صبر کن تا پنل هدف از `hidden` درآید، بعد اسکرول.
     const timer = window.setTimeout(() => {
       document
         .getElementById(targetId)
@@ -106,8 +106,8 @@ export function useMarketingPanel() {
 }
 
 /**
- * Always mounts panel copy for SSR/crawlers; visually shows only the active nav target
- * at viewport height. Inactive panels use `hidden` (out of layout, still in HTML).
+ * رونوشت پنل همیشه برای SSR/خزنده‌ها mount می‌شود؛ فقط هدف ناو فعال در ارتفاع viewport دیده می‌شود.
+ * پنل غیرفعال `hidden` است (خارج از لایوت، هنوز در HTML).
  */
 export function MarketingPanel({
   id,
@@ -151,7 +151,7 @@ export function MarketingPanel({
       ref={panelRef}
       id={id}
       hidden={!isOpen}
-      // Prevent tabbing into closed panels while keeping markup crawlable.
+      // تب به پنل بسته نرود؛ markup برای خزنده‌ها بماند.
       inert={!isOpen ? true : undefined}
       className={
         isOpen

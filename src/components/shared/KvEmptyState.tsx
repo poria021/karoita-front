@@ -17,7 +17,7 @@ export type KvEmptyStateProps = {
   className?: string;
 };
 
-/** Flat hero × — muted slate by default; danger only for destructive empties. */
+/** آیکن تخت؛ `danger` فقط برای خالیِ مخرب. */
 const ICON_TONE_CLASS: Record<KvEmptyStateTone, string> = {
   muted: 'text-kv-empty-icon',
   danger: 'text-kv-danger',

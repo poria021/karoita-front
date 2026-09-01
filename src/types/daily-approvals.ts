@@ -12,12 +12,12 @@ export type DailyApprovalCompetencyRating = InternshipCompetencyRating;
 
 export type DailyApprovalCourseKind = InternshipCourseKind;
 
-/** Read/status filter from reference `readFilterStatus`. */
+/** فیلتر خوانده/وضعیت از مرجع `readFilterStatus`. */
 export type DailyApprovalReadFilter = 'all' | 'read' | 'unread' | 'dropped';
 
 /**
- * Course filter from reference `selectedCourse` / `getGradingCourses()`.
- * Values stay English in state/API; labels are Persian in UI.
+ * فیلتر درس از مرجع `selectedCourse` / `getGradingCourses()`.
+ * مقدار در state/API انگلیسی می‌ماند؛ برچسب UI فارسی است.
  */
 export type DailyApprovalCourseFilter =
   | 'all'
@@ -90,7 +90,7 @@ export type ListDailyApprovalsPage = OffsetLimitPage<DailyApprovalTrainee> & {
 export type UpdateDailyApprovalWeekInput = {
   traineeId: string;
   weekId: string;
-  /** ASCII 0–100; empty/null + feedback → needs_edit. */
+  /** ASCII ۰–۱۰۰؛ خالی/`null` + بازخورد → `needs_edit`. */
   score: number | null;
   advisorFeedback: string;
 };
@@ -114,16 +114,15 @@ export type ExtendDailyApprovalWeekInput = {
   weekId: string;
 };
 
-/** Bulk reopen by week numbers for the active kind/term/course group. */
+/** بازگشایی گروهی هفته‌ها برای گروه kind/ترم/درس فعال. */
 export type BulkExtendDailyApprovalWeeksInput = {
   kind: DailyApprovalCourseKind;
   termId: string;
   course: DailyApprovalCourseFilter;
-  /** English week numbers (`1…N`) to extend / keep extended. */
+  /** شماره هفته انگلیسی (`1…N`) برای تمدید / نگه‌داشتن تمدید. */
   weekNumbers: number[];
   /**
-   * English week numbers previously extended that should be revoked
-   * (deadline returns to overdue).
+   * هفته‌هایی که قبلاً تمدید شده و باید لغو شوند (مهلت به overdue برمی‌گردد).
    */
   revokeWeekNumbers?: number[];
 };

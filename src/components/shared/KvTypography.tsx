@@ -37,17 +37,11 @@ export type KvTypographyElement =
 const kvTypographyVariants = cva('font-sans', {
   variants: {
     variant: {
-      /* Brand / marketing heroes */
       display: 'text-3xl font-black leading-[1.15] tracking-tight sm:text-4xl',
-      /* Page / module headings — clearly above dense chrome */
       title: 'text-base font-bold leading-snug tracking-tight sm:text-lg',
-      /* Section headings inside modules */
       subtitle: 'text-sm font-bold leading-snug',
-      /* Shell/sidebar nav stays dense */
       nav: 'text-xs font-medium leading-snug',
-      /* Readable supporting copy (not chrome-compressed) */
       body: 'text-sm font-medium leading-relaxed',
-      /* Field labels + meta chrome remain 12px floor */
       label: 'text-xs font-bold leading-none',
       caption: 'text-xs font-medium leading-normal',
       overline: 'text-xs font-medium leading-normal tracking-wide',
@@ -116,8 +110,7 @@ export type KvTypographyProps = {
   id?: string;
   children: React.ReactNode;
   /**
-   * Layout-only extras (`mt-*`, `truncate` wrappers). Do not override
-   * variant type size/color here — use `variant` / `tone` / `weight`.
+   * فقط لایوت (`mt-*`). اندازه/رنگ را با `variant` / `tone` / `weight` بدهید.
    */
   className?: string;
 } & Omit<

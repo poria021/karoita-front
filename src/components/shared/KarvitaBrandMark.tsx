@@ -4,9 +4,6 @@ interface KarvitaBrandMarkProps {
   className?: string;
 }
 
-/**
- * Official Karvita mark — compact brand well, glyph fills most of the box.
- */
 export function KarvitaBrandMark({ className }: KarvitaBrandMarkProps) {
   return (
     <span

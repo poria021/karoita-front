@@ -27,12 +27,8 @@ export type KvSelectFieldProps = {
   onValueChange?: (value: string) => void;
   disabled?: boolean;
   contentClassName?: string;
-  /** Extra classes on the trigger (e.g. denser height beside icon buttons). */
   triggerClassName?: string;
-  /**
-   * Force trigger label (e.g. Persian digits). When set, overrides ItemText
-   * in the closed trigger so raw English `value` never leaks into the UI.
-   */
+  /** برچسب تریگر بسته (مثلاً رقم فارسی) تا `value` انگلیسی به UI نشت نکند. */
   displayValue?: React.ReactNode;
   children: React.ReactNode;
 };
@@ -71,9 +67,6 @@ export const KvSelectField = React.forwardRef<
   const rawId = React.useId();
   const generatedId = `kv${rawId.replace(/:/g, '')}`;
   const id = idProp ?? generatedId;
-  // label از labelId برای htmlFor استفاده می‌کنه
-  // trigger از triggerId برای id استفاده می‌کنه
-  // این جلوگیری می‌کنه از duplicate form field id در browser DevTools
   const labelId = `${id}-label`;
   const triggerId = id;
   const isDisabled = locked || disabled;
@@ -91,7 +84,7 @@ export const KvSelectField = React.forwardRef<
       hint={hint}
     >
       <KvSelect
-        // Keep '' as controlled empty — do not coerce with `value || undefined`.
+        // خالیِ کنترل‌شده را `''` بگذار — با `value || undefined` coerce نکن.
         value={value}
         onValueChange={onValueChange}
         disabled={isDisabled}

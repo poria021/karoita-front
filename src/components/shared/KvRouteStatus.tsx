@@ -18,10 +18,9 @@ export type KvRouteStatusProps = {
   kind: KvRouteStatusKind;
   title: string;
   description: string;
-  /** Quiet secondary guidance under the description. */
   hint?: string;
   actions?: ReactNode;
-  /** `page` = full viewport open canvas; `inset` = inside dashboard shell. */
+  /** `page` = بوم تمام‌ویوپورت؛ `inset` = داخل شل داشبورد. */
   layout?: 'page' | 'inset';
   className?: string;
 };
@@ -51,10 +50,6 @@ const KIND_META: Record<
   },
 };
 
-/**
- * Route status — open canvas, huge faded code section,
- * ready Font Awesome vectors in a framed stage.
- */
 export function KvRouteStatus({
   kind,
   title,
@@ -75,18 +70,16 @@ export function KvRouteStatus({
         'relative flex w-full flex-col items-center justify-center overflow-hidden',
         isPage
           ? 'min-h-dvh px-kv-inset py-kv-layout'
-          : // Fill dashboard `main` content slot only — not the viewport
+          : // فقط اسلات `main` داشبورد را پر کن — نه ویوپورت
             'h-full min-h-0 flex-1 @container py-kv-group',
         className
       )}
       dir="rtl"
       role={meta.role}
     >
-      {/* Line field + code: clipped to this surface (page or main) */}
       <KvRouteStatusBackdrop />
       <KvRouteStatusCodeBackdrop code={meta.code} layout={layout} />
 
-      {/* Foreground content */}
       <div
         className={cn(
           'kv-auth-enter relative z-[1] flex w-full max-w-lg flex-col items-center text-center',

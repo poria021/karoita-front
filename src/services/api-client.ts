@@ -1,9 +1,6 @@
 /**
- * Shared Nest HTTP client (ky).
- * Responsible for: client creation, request dispatch, 401 retry hook.
- *
- * Error mapping → api-error.ts
- * Token lifecycle → api-token.ts
+ * کلاینت HTTP مشترک Nest با ky. خطا در `api-error.ts`؛ توکن در `api-token.ts`.
+ * هوک ۴۰۱ یک‌بار refresh می‌کند؛ `retry.limit` را کم نکن.
  */
 import ky, { type Options as KyOptions } from 'ky';
 
@@ -23,29 +20,15 @@ import {
 
 export { ApiClientError, localizeApiError } from '@/services/api-error';
 
-// ─── Configuration ────────────────────────────────────────────────────────────
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
 
-/**
- * Nest reads `x-custom-lang` to pick the response/validation-message locale
- * (confirmed on the Admin `provinces`/`cities` controllers). The whole app
- * is Persian-only, so this is fixed — never derived from browser
- * locale — and set once at the shared client so every Facade call (admin
- * catalog, profile, auth, …) inherits it without each call site repeating
- * the header.
- */
+/** Nest با `x-custom-lang` locale پیام را می‌گیرد؛ از locale مرورگر نگیر — محصول فارسی است. */
 const NEST_LANG_HEADER = { 'x-custom-lang': 'fa' } as const;
-
-// ─── Client factory ───────────────────────────────────────────────────────────
 
 let browserClient: ReturnType<typeof ky.create> | null = null;
 let browserClientPrefix: string | null = null;
 
-/**
- * Browser calls go through Next rewrite (`/__nest-api`) so CORS on the
- * backend domain does not block cross-origin requests.
- */
+/** مرورگر از rewrite `/__nest-api` می‌رود تا CORS دامنهٔ Nest بلاک نکند. */
 function resolveClientPrefix(): string {
   return resolveNestClientPrefix({
     apiUrl: API_URL,
@@ -59,14 +42,7 @@ function createKyClient(prefix: string) {
     prefix,
     credentials: 'include',
     timeout: KY_TIMEOUT_MS,
-    // ⚠️ وابسته‌ی حیاتی با مکانیزم refresh-روی-401 پایین: کتابخانهی ky فقط وقتی
-    // `retry.limit > 0` باشد، قبل از fetch واقعی یک clone از request نگه می‌دارد و همان
-    // clone (نه نسخهٔ مصرف‌شده) را به هوک afterResponse پایین می‌دهد. اگر این
-    // عدد رو روی `0` بذارید (مثلاً با این استدلال که «retry رو خودمون دستی زدیم»)،
-    // `request` داخل هوک همون request مصرف‌شده‌ی اصلی می‌شود و `ky.retry({ request: new
-    // Request(request, { headers }) })` پایین برای POST/PATCH بی‌صدا/بدون بدنه می‌شود و
-    // refresh بی‌صدا fail می‌شود. یعنی: `limit: 1` را برای بهینه‌سازی/حذف رکورده‌ها
-    // تغییر ندهید بدون اینکه جریان را بازسازی کنید.
+    // ky فقط با retry.limit>0 از request کلون می‌گیرد؛ limit را 0 نکن وگرنه POST بعد از 401 بدون بدنه می‌رود.
     retry: { limit: KY_RETRY_LIMIT },
     hooks: {
       afterResponse: [
@@ -98,10 +74,7 @@ function createKyClient(prefix: string) {
   });
 }
 
-/**
- * Browser: reuse one ky instance (avoids redundant hook registrations).
- * SSR/streaming: new instance per call so requests do not share cookies/hooks.
- */
+/** مرورگر یک instance ky نگه می‌دارد؛ SSR هر بار جدا تا cookie/هوک قاطی نشود. */
 function getOrCreateClient() {
   const prefix = resolveClientPrefix();
 
@@ -116,8 +89,6 @@ function getOrCreateClient() {
 
   return browserClient;
 }
-
-// ─── Request helpers ──────────────────────────────────────────────────────────
 
 async function request<T>(
   method: 'get' | 'put' | 'post' | 'patch' | 'delete',
@@ -161,12 +132,7 @@ async function requestMaybeJson<T>(
   }
 }
 
-// ─── Public API ───────────────────────────────────────────────────────────────
-
-/**
- * Shared Nest HTTP client.
- * Credentials: cookie + optional Bearer. 401 → refresh once, then logout.
- */
+/** کلاینت Nest: cookie + Bearer اختیاری؛ ۴۰۱ → یک‌بار refresh، بعد logout. */
 export const apiClient = {
   getJson<T>(path: string, token?: string, options?: KyOptions): Promise<T> {
     return request<T>('get', path, options ?? {}, token);

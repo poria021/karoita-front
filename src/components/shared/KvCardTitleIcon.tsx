@@ -6,7 +6,6 @@ type KvCardTitleIconProps = {
   icon: IconDefinition;
 };
 
-/** Soft brand well for icons beside card title + subtitle headers. */
 export function KvCardTitleIcon({ icon }: KvCardTitleIconProps) {
   return (
     <div

@@ -75,20 +75,12 @@ function resolverForTab(
 }
 
 /**
- * Try to build reset() values straight from the row the table already
- * fetched, so editing doesn't depend on a second getEntity() lookup —
- * which, in real (non-mock) mode, only actually resolves 'province'
- * today and silently no-ops (leaving the form blank) for every other
- * kind.
+ * مقادیر `reset()` را از ردیف جدول بساز تا ویرایش به `getEntity()` دوم وابسته نباشد.
+ * در real فقط `province` واقعاً resolve می‌شود؛ بقیه kindها silent no-op می‌مانند.
  *
- * Real-mode rows always carry the FK keys (provinceId/cityId/...), even
- * when their value ends up '' (e.g. a city with no province linked on
- * the backend) — toOrgCity/toOrgDistrict/toOrgSchool always set them.
- * Mock-mode rows never carry them at all (only *Name display labels).
- * So `=== undefined` (key absent → mock, needs the getEntity fallback)
- * is the right check here, not falsy (which would also reject a real
- * row that's merely missing that one relation and needs the name +
- * whatever *is* linked to show immediately either way).
+ * ردیف real همیشه کلید FK دارد (`provinceId`/`cityId`/…) حتی اگر `''` باشد.
+ * ردیف mock اصلاً آن کلیدها را ندارد (فقط برچسب `*Name`).
+ * پس چک درست `=== undefined` است نه falsy — وگرنه ردیف real با یک رابطهٔ خالی هم رد می‌شود.
  */
 function valuesFromRow(
   kind: OrgStructureEntityKind,
@@ -167,12 +159,7 @@ export function useOrgEntityForm({
     name: 'cityId',
   });
 
-  // Option lists for the selects below are cached via react-query — keyed
-  // by namespace + params, shared across every tab and every dialog open.
-  // The first province/city/district fetch in a session still pays a real
-  // network round trip, but re-opening any edit dialog afterwards (any
-  // tab, any row) reads from cache instead of re-fetching, so the selects
-  // no longer show a multi-second blank/placeholder state each time.
+  // فهرست select با react-query کش می‌شود؛ بازکردن دوبارهٔ مودال نباید چند ثانیه خالی بماند.
   const provincesQuery = useQuery({
     queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'provinces'],
     queryFn: () => OrgStructureService.listProvinces(),
@@ -204,15 +191,14 @@ export function useOrgEntityForm({
         cityId || undefined
       ),
     staleTime: QUERY_STALE_MS.list,
-    // Confirmed live: GET /admin/educations?provinceId&cityId 500s, so the
-    // school form must load districts as soon as a province is picked —
-    // not wait for city. listRealDistricts already omits cityId on the wire.
+    // لایو: GET `/admin/educations?provinceId&cityId` خطای ۵۰۰ می‌دهد —
+    // فرم مدرسه باید منطقه را با انتخاب استان لود کند، نه بعد از شهر.
+    // `listRealDistricts` روی سیم `cityId` را حذف می‌کند.
     enabled: open && tab === 'schools' && Boolean(provinceId),
     placeholderData: keepPreviousData,
   });
 
-  // Real mode only — the role a degree/major links to. Mock mode has no
-  // Nest role concept and keeps using the fixed audience enum instead.
+  // فقط real — نقش متصل به رشته. mock مفهوم نقش Nest ندارد و enum `audience` می‌ماند.
   const rolesQuery = useQuery({
     queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE, 'roles'],
     queryFn: () => OrgStructureService.listRoles(),
@@ -257,9 +243,8 @@ export function useOrgEntityForm({
   const roles: OrgRole[] = tab === 'majors' ? (rolesQuery.data ?? []) : [];
 
   /**
-   * True when a province is selected, the cities query has finished, and
-   * that province genuinely has no cities. Used by the city select on
-   * district/school forms to lock the field.
+   * استان انتخاب شده، کوئری شهر تمام شده، و واقعاً شهری نیست.
+   * select شهر در فرم منطقه/مدرسه را قفل می‌کند.
    */
   const provinceHasNoCities =
     Boolean(provinceId) &&
@@ -270,9 +255,7 @@ export function useOrgEntityForm({
   useEffect(() => {
     if (!open) return;
 
-    // Populate the form's *values* first, synchronously where possible —
-    // this must not wait on the provinces query above, which only feeds
-    // the province <select>'s option list, not the values themselves.
+    // اول *مقادیر* فرم را پر کن — منتظر کوئری استان نمان؛ آن فقط optionهای select است.
     if (!editId) {
       form.reset(defaultValuesForTab(tab));
       return;
@@ -286,7 +269,7 @@ export function useOrgEntityForm({
       }
     }
 
-    // Fallback only: no usable row (mock-mode rows don't carry FK ids).
+    // فقط fallback: ردیف قابل‌استفاده نیست (mock کلید FK ندارد).
     const fetchTimer = window.setTimeout(() => {
       void (async () => {
         const entity = await OrgStructureService.getEntity(entityKind, editId);

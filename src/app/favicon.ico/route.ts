@@ -1,11 +1,11 @@
 /**
  * GET /favicon.ico
  *
- * مرورگرها فارغ از تگ‌های <link rel="icon"> که در `metadata.icons` (نگاه کن
- * به src/app/layout.tsx) تعریف شده‌اند، همیشه یک درخواست مجزا و سخت‌کدشده
- * برای مسیر /favicon.ico می‌فرستند. `favicon.png` مربع است و نسبت مارک را حفظ می‌کند.
+ * مرورگرها فارغ از تگ‌های `<link rel="icon">` که در `metadata.icons` (نگاه کنید
+ * به `src/app/layout.tsx`) تعریف شده‌اند، همیشه یک درخواست مجزا و سخت‌کدشده
+ * برای مسیر `/favicon.ico` می‌فرستند. `favicon.png` مربع است و نسبت مارک را حفظ می‌کند.
  *
- * پوشه‌ای با نام «favicon.ico» حاوی route.ts، قرارداد رسمی App Router برای
+ * پوشه‌ای با نام «favicon.ico» حاوی `route.ts`، قرارداد رسمی App Router برای
  * ست‌کردن Route Handler روی مسیرهایی با نقطه در نامشان است.
  */
 import { readFile } from 'node:fs/promises';

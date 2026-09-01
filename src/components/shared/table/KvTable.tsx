@@ -29,8 +29,8 @@ export type KvTableProps = React.ComponentProps<typeof Table> & {
 };
 
 /**
- * Shared admin table. `min-w-max` keeps a content floor so columns do not
- * collapse; `KvTableViewport` (or the optional scroll wrapper) owns overflow-x.
+ * جدول ادمین مشترک. `min-w-max` کف محتوا می‌گذارد تا ستون‌ها جمع نشوند؛
+ * `KvTableViewport` (یا wrapper اسکرول اختیاری) مالک `overflow-x` است.
  */
 export function KvTable({
   className,
@@ -135,7 +135,7 @@ export function KvTableRow({
       onKeyDown={handleKeyDown}
       className={cn(
         'font-bold text-kv-text transition-colors',
-        // Desktop hover only on non-selected body rows — selected stays put.
+        // هاور دسکتاپ فقط روی ردیف بدنهٔ غیرانتخابی — انتخاب‌شده سر جایش می‌ماند.
         'can-hover:in-[data-slot=kv-table-body]:not-data-[selected]:hover:bg-kv-surface-muted',
         'data-[selected]:bg-kv-brand-soft data-[selected]:font-extrabold data-[selected]:text-kv-brand',
         interactive &&
@@ -164,7 +164,7 @@ export function KvTableHead({
       data-slot="kv-table-head"
       className={cn(
         ROW_HEIGHT,
-        // sticky روی th — روی thead با border-separate در کروم کار نمی‌کند.
+        // `sticky` روی `th` — روی `thead` با `border-separate` در کروم کار نمی‌کند.
         // والد overflow-x جدا هم چسبندگی را به ارتفاع کل جدول محدود می‌کند.
         'sticky top-0 z-10 bg-kv-surface-muted',
         'border-b border-kv-border px-3.5 py-0 font-bold whitespace-nowrap',

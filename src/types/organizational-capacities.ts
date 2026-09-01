@@ -6,7 +6,7 @@ export type OrganizationalCapacitySubmissionStatus =
   | 'approved'
   | 'rejected';
 
-/** English weekday keys in form/API; labels are Persian in UI. */
+/** کلید روز هفته انگلیسی در فرم/API؛ برچسب UI فارسی است. */
 export type OrganizationalCapacityWeekday =
   | 'sat'
   | 'sun'
@@ -20,10 +20,10 @@ export type OrganizationalCapacityCourse = {
   title: string;
   kind: OrganizationalCapacityKind;
   level: 1 | 2 | 3 | 4;
-  /** ASCII digits; null = unlimited (non-supervisor roles in reference). */
+  /** ارقام ASCII؛ `null` = نامحدود (نقش‌های غیر استاد راهنما در مرجع). */
   total: number | null;
   confirmed: number;
-  /** Supervisor: at most one day. */
+  /** استاد راهنما: حداکثر یک روز. */
   selectedDays: OrganizationalCapacityWeekday[];
 };
 

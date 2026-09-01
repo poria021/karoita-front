@@ -11,7 +11,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 /** حدنصاب قبولی گزارش روی مقیاس ۰–۱۰۰ (مرجع mock). */
 export const DAILY_APPROVAL_PASSING_SCORE = 70;
 
-/** Feature chrome copy for the daily-approvals module. */
+/** رونوشت chrome ماژول ارزیابی گزارش‌ها. */
 export const DAILY_APPROVALS_FEATURE = {
   title: 'ارزیابی و ممیزی نهایی گزارش‌ها',
   description:
@@ -94,7 +94,7 @@ export function getDailyApprovalCourseOptions(kind: DailyApprovalCourseKind) {
   return kind === 'internship' ? INTERNSHIP_COURSES : APPRENTICESHIP_COURSES;
 }
 
-/** Aligned with internship-enrollment `SESSION_VISUALS` (report-writing panel). */
+/** هم‌تراز با `SESSION_VISUALS` انتخاب واحد (پنل گزارش‌نویسی). */
 export type WeekVisual = {
   label: string;
   legendLabel?: string;
@@ -212,7 +212,7 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
   }
 }
 
-/** Same status set + order as internship-enrollment week legend. */
+/** همان مجموعه و ترتیب وضعیت افسانهٔ هفته در انتخاب واحد. */
 export const WEEK_LEGEND_ITEMS: readonly {
   label: string;
   icon: (typeof faIcons)[keyof typeof faIcons];

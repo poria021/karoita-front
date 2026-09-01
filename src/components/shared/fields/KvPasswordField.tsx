@@ -34,7 +34,7 @@ export type KvPasswordFieldProps = {
   onFocus?: React.FocusEventHandler<HTMLInputElement>;
   footer?: React.ReactNode;
   suppressBrowserAutofill?: boolean;
-  /** When true, password characters start visible (toggle still available). */
+  /** شروع با کاراکترهای نمایان؛ دکمهٔ toggle همچنان هست. */
   defaultVisible?: boolean;
 };
 

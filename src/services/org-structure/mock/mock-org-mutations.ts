@@ -28,19 +28,19 @@ export type UpsertCityInput = { name: string; provinceId: string };
 export type UpsertFacultyInput = {
   name: string;
   provinceId: string;
-  /** Optional — same as district/school; omit when the faculty has no city. */
+  /** اختیاری مثل منطقه/مدرسه — پردیس بدون شهر. */
   cityId?: string;
 };
 export type UpsertDistrictInput = {
   name: string;
   provinceId: string;
-  /** Optional: provinces that have no cities yield province-level districts. */
+  /** اختیاری: استان بدون شهر، منطقه در سطح استان می‌سازد. */
   cityId?: string;
 };
 export type UpsertSchoolInput = {
   name: string;
   provinceId: string;
-  /** Optional — same as district/faculty; omit when the school has no city. */
+  /** اختیاری مثل منطقه/پردیس — مدرسه بدون شهر. */
   cityId?: string;
   /** منطقه آموزشی اختیاری است. */
   districtId?: string;
@@ -48,9 +48,9 @@ export type UpsertSchoolInput = {
 };
 export type UpsertMajorInput = {
   name: string;
-  /** Mock-mode only — required by mockUpsertMajor below. */
+  /** فقط mock — `mockUpsertMajor` لازم دارد. */
   audience?: OrgMajorAudience;
-  /** Real-mode only — required by OrgStructureService.upsertMajor's Nest branch. */
+  /** فقط real — شاخهٔ Nest در `OrgStructureService.upsertMajor`. */
   roleId?: string;
 };
 

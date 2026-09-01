@@ -1,5 +1,5 @@
 /**
- * Compatibility re-export — prefer `@/utils/role-strategy` for new imports.
- * Existing `@/utils/RoleStrategyMap` imports keep working unchanged.
+ * re-export سازگاری — import جدید از `@/utils/role-strategy`.
+ * مسیر قدیمی `@/utils/RoleStrategyMap` همچنان کار می‌کند.
  */
 export * from '@/utils/role-strategy';

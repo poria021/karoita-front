@@ -1,7 +1,7 @@
 import { RouteService } from '@/services/route.service';
 import type { LandingCmsSnapshot } from '@/types/landing-cms';
 
-/** Persian sample content; image URLs prefer `/public/marketing/*`. */
+/** محتوای نمونهٔ فارسی؛ تصویر ترجیحاً از `/public/marketing/*`. */
 export function buildLandingCmsSeed(): LandingCmsSnapshot {
   const authLogin = RouteService.auth.login();
 
@@ -11,7 +11,7 @@ export function buildLandingCmsSeed(): LandingCmsSnapshot {
         id: 'bnr-1',
         title: 'سامانه مدیریت کارورزی',
         imageUrl: '/marketing/dashboard-hero.svg',
-        // Link only when CMS admin sets one — empty = not clickable.
+        // لینک فقط اگر ادمین CMS بگذارد — خالی یعنی غیرقابل‌کلیک.
         link: '',
       },
       {

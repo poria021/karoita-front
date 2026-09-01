@@ -13,7 +13,7 @@ type MarketingLoginSelectPageProps = {
 };
 
 /**
- * Login portal — product count from Landing CMS. Fewer than two → auth login.
+ * پورتال ورود — تعداد محصول از Landing CMS. کمتر از دو → ورود auth.
  */
 export function MarketingLoginSelectPage({
   initialChrome,

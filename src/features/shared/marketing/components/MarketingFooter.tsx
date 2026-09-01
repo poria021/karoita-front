@@ -11,7 +11,7 @@ type MarketingFooterProps = {
 };
 
 /**
- * Public marketing footer — RSC shell with small client brand link + social marks.
+ * فوتر مارکتینگ عمومی — پوستهٔ RSC با لینک برند کلاینت + نشان شبکه‌های اجتماعی.
  */
 export function MarketingFooter({ socials }: MarketingFooterProps) {
   return (

@@ -1,13 +1,11 @@
 /**
- * Notification types — FE shape vs Nest DTO.
- *
- * GET  /api/v1/notifications  → { data, hasNextPage }
- * PATCH /api/v1/notifications/:id/read → NestNotification
- *
- * Mapper lives in `services/notifications/real/` so Nest quirks stay out of UI.
+ * اعلان‌ها — شکل فرانت در برابر DTO Nest.
+ * GET `/api/v1/notifications` → `{ data, hasNextPage }`؛
+ * PATCH `/api/v1/notifications/:id/read` → `NestNotification`.
+ * mapper در `services/notifications/real/` است تا quirk Nest به UI نرسد.
  */
 
-/** Raw row from Nest (Swagger Notifications tag). */
+/** ردیف خام Nest (تگ Swagger Notifications). */
 export type NestNotificationAudience = 'all' | 'role' | 'user' | string;
 
 export type NestNotification = {
@@ -19,7 +17,7 @@ export type NestNotification = {
   userId: string | null;
   readByUserIds: string[];
   metadata: string | null;
-  /** Derived on the backend per current user. */
+  /** سمت بک‌اند برای کاربر جاری مشتق می‌شود. */
   isRead: boolean;
   createdAt: string;
   updatedAt: string;

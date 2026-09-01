@@ -9,13 +9,13 @@ import type { MarketingChromeData } from '@/features/shared/marketing/lib/loadMa
 import { MarketingPanel } from '@/features/shared/marketing/lib/marketingPanelContext';
 
 type MarketingHomePageProps = {
-  /** SSR chrome from Landing CMS / Nest so first HTML is crawlable. */
+  /** chrome SSR از Landing CMS / Nest تا HTML اول crawlپذیر باشد. */
   initialChrome: MarketingChromeData;
 };
 
 /**
- * Public landing as RSC composition.
- * Client leaves: hero carousel, nav panels, dock (via shell), benefits tabs.
+ * لندینگ عمومی به‌صورت ترکیب RSC.
+ * برگ‌های کلاینت: کاروسل هیرو، پنل ناو، داک (از طریق shell)، تب مزایا.
  */
 export function MarketingHomePage({ initialChrome }: MarketingHomePageProps) {
   return (

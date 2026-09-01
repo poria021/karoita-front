@@ -47,7 +47,7 @@ export function resolveOffsetLimitReportedTotal<T>(
   return pages.reduce((max, page) => Math.max(max, page.total), 0);
 }
 
-/** Collapse infinite pages into one optimistic page after a local list patch. */
+/** صفحات بی‌نهایت را بعد از پچ محلی به یک صفحهٔ خوش‌بینانه جمع می‌کند. */
 export function replaceOffsetLimitListItems<T>(
   old: OffsetLimitInfiniteData<T> | undefined,
   nextItems: T[],

@@ -3,8 +3,7 @@ import { useSyncExternalStore } from 'react';
 import { setRuntimeAuthBoot } from '@/store/sessionBoot';
 
 /**
- * Login/logout overlay phase. Lives outside React so it survives the
- * auth layout unmounting and the (app) layout mounting (and the reverse).
+ * فاز overlay ورود/خروج — خارج از React تا عوض‌شدن layout auth و `(app)` آن را صفر نکند.
  */
 
 export type AuthTransitionPhase = 'idle' | 'entering' | 'leaving';
@@ -80,18 +79,18 @@ export function runAfterPaint(callback: () => void): () => void {
   };
 }
 
-/** Call synchronously before navigating into the dashboard after auth. */
+/** هم‌زمان با ناوبری به داشبورد بعد از auth صدا زده شود. */
 export function beginEnteringApp(): void {
   setRuntimeAuthBoot('authenticated');
   setAuthTransitionPhase('entering');
 }
 
-/** Call synchronously before clearing the session and leaving the dashboard. */
+/** هم‌زمان با پاک‌کردن نشست و خروج از داشبورد صدا زده شود. */
 export function beginLeavingApp(): void {
   setAuthTransitionPhase('leaving');
 }
 
-/** Yield until the overlay/guard can paint over the dashboard shell. */
+/** صبر تا overlay/گارد روی پوستهٔ داشبورد رنگ شود. */
 export function waitForNextPaint(): Promise<void> {
   return new Promise((resolve) => {
     requestAnimationFrame(() => resolve());

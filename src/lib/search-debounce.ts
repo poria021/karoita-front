@@ -1,12 +1,10 @@
 /**
- * Shared search debounce for admin lists / typeahead.
- * Debounce once in the page/hook layer — never inside KvSearchField.
+ * debounce مشترک جست‌وجوی لیست ادمین / typeahead.
+ * یک‌بار در لایهٔ صفحه/هوک — داخل `KvSearchField` هرگز debounce نکنید.
  */
 export const SEARCH_DEBOUNCE_MS = 300;
 
-/**
- * Empty/clear search hits the list immediately; non-empty waits for debounce.
- */
+/** جست‌وجوی خالی/پاک‌شده فوری به لیست می‌خورد؛ غیرخالی منتظر debounce می‌ماند. */
 export function resolveListSearchQuery(
   rawQuery: string,
   debouncedQuery: string

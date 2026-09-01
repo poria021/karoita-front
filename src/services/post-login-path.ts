@@ -38,7 +38,7 @@ function pathSegments(pathname: string): string[] {
   return normalizePathname(pathname).split('/').filter(Boolean);
 }
 
-/** Shared leading segment count between two paths (e.g. /a/b/c vs /a/b/x → 2). */
+/** تعداد سگمنت مشترک ابتدای دو مسیر. */
 function commonPrefixSegmentCount(a: string, b: string): number {
   const left = pathSegments(a);
   const right = pathSegments(b);
@@ -49,7 +49,7 @@ function commonPrefixSegmentCount(a: string, b: string): number {
   return i;
 }
 
-/** Classic Levenshtein — small strings only (path segments / short paths). */
+/** Levenshtein فقط برای سگمنت/مسیر کوتاه. */
 function levenshtein(a: string, b: string): number {
   if (a === b) return 0;
   if (!a.length) return b.length;
@@ -86,8 +86,8 @@ function isPathAllowedForViewer(
 }
 
 /**
- * Zone hub when prefix walk / LCP cannot resolve a live sibling.
- * Uses RouteService surfaces so `/auth/...` typos recover to login, not landing.
+ * هاب ناحیه وقتی پیمایش پیشوند به خواهر زنده نرسد.
+ * غلط املای `/auth/...` به ورود برمی‌گردد نه لندینگ.
  */
 function resolveZoneFallbackPath(
   pathname: string,
@@ -123,7 +123,7 @@ function leafSegment(pathname: string): string {
   return segs[segs.length - 1] ?? '';
 }
 
-/** Role + approval → first screen after auth (not a Nest call). */
+/** نقش + تأیید → اولین صفحه بعد از ورود (فراخوانی Nest نیست). */
 export function getPostLoginPath(user: User | null | undefined): string {
   if (!user) {
     return RouteService.auth.login();
@@ -150,7 +150,7 @@ export function canAccessReturnPath(
     return false;
   }
 
-  // Locked users: fail-closed — only their own canonical profile (incl. ?tab=security).
+  // قفل‌شده فقط پروفایل خودش (از جمله `?tab=security`).
   if (!areKarvitaModulesUnlocked(user)) {
     return pathname === RouteService.karvita.profile(user.role);
   }
@@ -193,11 +193,8 @@ export function resolvePostAuthPath(
 }
 
 /**
- * Nearest live recovery target from the RouteService / live-path catalog.
- * 1) Walk up exact navigable ancestors.
- * 2) Else longest shared prefix among allowed live paths; tie-break by
- *    leaf-segment edit distance (typos like `/auth/loginn` → login).
- * 3) Else zone hub (`/auth` → login, `/karvita` → role home, else landing).
+ * نزدیک‌ترین مسیر زنده از کاتالوگ `RouteService`.
+ * پیشوند مشترک، سپس فاصلهٔ ویرایش برگ؛ وگرنه هاب ناحیه (`/auth` → ورود).
  */
 export function resolveNearestLivePath(
   pathname: string,
@@ -250,7 +247,7 @@ export function resolveNearestLivePath(
     const len = pathSegments(a).length - pathSegments(b).length;
     if (len !== 0) return len;
 
-    // Prefer zone hub when distances are tied (e.g. auth → login).
+    // در تساوی فاصله، هاب ناحیه را ترجیح بده (مثلاً auth → ورود).
     if (a === zoneHome) return -1;
     if (b === zoneHome) return 1;
 
@@ -259,7 +256,7 @@ export function resolveNearestLivePath(
 
   const best = bestAtScore[0] ?? zoneHome;
   const bestDist = levenshtein(currentLeaf, leafSegment(best));
-  // Unrelated sibling under same prefix (e.g. /auth/xyz) → zone hub.
+  // خواهر بی‌ربط زیر همان پیشوند (مثلاً `/auth/xyz`) → هاب ناحیه.
   if (bestDist > 2) {
     return zoneHome;
   }

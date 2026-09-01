@@ -21,7 +21,7 @@ import { buildCourseOfferingId } from '@/services/syllabus-config/syllabus-mappe
 import type { InternshipEnrollmentActor } from '@/types/internship-enrollment';
 import type { SyllabusConfigSnapshot } from '@/types/syllabus-config';
 
-// actor.province/college/district اکنون string[] هستند (چندانتخابی)
+// `actor.province` / `college` / `district` اکنون `string[]` هستند (چندانتخابی)
 const student: InternshipEnrollmentActor = {
   id: 'student-wire-1',
   role: 'student',

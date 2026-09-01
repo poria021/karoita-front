@@ -6,9 +6,8 @@ import { config, proxy } from '@/proxy';
 import { RouteService } from '@/services/route.service';
 
 /**
- * Next.js 16 Edge convention: `src/proxy.ts` (not `middleware.ts`).
- * Both files together fail the build. `config.matcher` is statically
- * extracted from this module — it must stay a local export.
+ * قرارداد Edge در Next ۱۶: `src/proxy.ts` (نه `middleware.ts`).
+ * وجود هر دو فایل بیلد را fail می‌کند. `config.matcher` باید export محلی همین ماژول بماند.
  */
 describe('Edge proxy convention (Next.js 16)', () => {
   it('exports a named proxy function (not default-only)', () => {

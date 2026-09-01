@@ -2,28 +2,18 @@ import { cn } from '@/lib/utils';
 import { KvTypography } from '@/components/shared/KvTypography';
 
 interface KvBrandLinearLoaderProps {
-  /**
-   * Full-viewport overlay — use for the two auth-boundary transitions
-   * (entering the dashboard after login, exiting it on logout).
-   */
+  /** `overlay` تمام‌ویوپورت — فقط دو مرز احراز (ورود به داشبورد، خروج). */
   fullViewport?: boolean;
-  /** Optional quiet caption under the mark (e.g. "در حال ورود…"). */
+  /** توضیح آرام زیر مارک (مثلاً «در حال ورود…»). */
   label?: string;
   className?: string;
 }
 
 /**
- * Brand mark + indeterminate linear progress — auth-boundary transition
- * screen ONLY (login → dashboard, logout → marketing, cold dashboard boot).
- *
- * Not for ordinary dashboard SPA loading: internal navigation between
- * modules and tabs must keep the previous page until the next one paints
- * (no `loading.tsx`, no full-page takeover). Data busy still follows
- * `KvTableBusy` / `KvBusySurface`.
- *
- * Full-viewport uses the public marketing canvas (`kv-brand-atmosphere` +
- * `kv-blueprint-bg`) so login/logout match landing and auth. Dashboard
- * chrome itself stays a quiet canvas.
+ * مارک + پیشرفت نامعین — فقط صفحهٔ گذار مرز احراز (ورود، خروج، بوت سرد داشبورد).
+ * ناوبار داخلی ماژول/تب باید صفحهٔ قبلی را تا paint بعدی نگه دارد (بدون `loading.tsx`).
+ * شلوغی داده همان `KvTableBusy` / `KvBusySurface` است.
+ * تمام‌ویوپورت بوم مارکتینگ (`kv-brand-atmosphere` + `kv-blueprint-bg`) تا ورود/خروج با لندینگ یکی باشد.
  */
 export function KvBrandLinearLoader({
   fullViewport = false,

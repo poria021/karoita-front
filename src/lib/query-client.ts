@@ -4,7 +4,7 @@ import { QueryClient } from '@tanstack/react-query';
 
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 
-/** Browser QueryClient defaults for Karvita server-state (lists + module snapshots). */
+/** پیش‌فرض `QueryClient` مرورگر برای state سرور (لیست + اسنپ‌شات ماژول). */
 export function makeQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {

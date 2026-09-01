@@ -29,7 +29,7 @@ function requireOnboardingReview(): void {
   assertMockClientHasPermission('onboarding.review');
 }
 
-/** Map FE docStatus → Nest filter status string */
+/** نگاشت `docStatus` فرانت به فیلتر `status` در Nest. */
 function nestStatusLabel(
   docStatus: 'approved' | 'rejected' | 'pending_admin'
 ): 'CONFIRM' | 'REJECT' | 'PENDING' {
@@ -39,18 +39,10 @@ function nestStatusLabel(
 }
 
 /**
- * Onboarding identity-doc approval queue.
- *
- * Nest endpoints used:
- * - GET    /api/v1/users?filters={"status":"PENDING"|"CONFIRM"|"REJECT"}&page&limit
- * - GET    /api/v1/users/{id}          ← fetch current data before PATCH
- * - PATCH  /api/v1/users/{id}          documentStatus: "CONFIRM"
- * - PATCH  /api/v1/users/{id}          documentStatus: "REJECT" + rejectDescription
+ * صف تأیید مدرک هویت. فیلتر Nest روی `status` است نه `docStatus`.
+ * قبل از PATCH باید GET شود وگرنه فیلدهای اجباری خالی می‌مانند.
  */
 export const OnboardingApprovalsService = {
-  /**
-   * GET /api/v1/users?filters={"status":"PENDING"|"CONFIRM"|"REJECT"}&page&limit
-   */
   async listPage(
     filters: ListOnboardingApprovalsFilters
   ): Promise<ListOnboardingApprovalsPage> {
@@ -96,18 +88,11 @@ export const OnboardingApprovalsService = {
     };
   },
 
-  /**
-   * PATCH /api/v1/users/{id} → documentStatus: "CONFIRM"
-   *
-   * اول اطلاعات فعلی کاربر رو می‌گیریم (GET /api/v1/users/{id}) تا
-   * فیلدهای اجباری با مقدار واقعی پر بشن و بک‌اند رد نکنه.
-   */
+  /** `documentStatus: CONFIRM` — اول GET تا فیلدهای اجباری خالی نروند. */
   async approveIdentityDoc(userId: string): Promise<OnboardingApprovalUser> {
     if (!IS_MOCK_MODE) {
-      // ۱. اطلاعات فعلی کاربر رو بگیر
       const current = await usersApi.getById(userId);
 
-      // ۲. فقط documentStatus رو تغییر بده، بقیه فیلدها دست نخورده بمونن
       const raw = await usersApi.update(userId, {
         documentStatus: 'CONFIRM',
         firstName: current.firstName,
@@ -130,9 +115,7 @@ export const OnboardingApprovalsService = {
   },
 
   /**
-   * PATCH /api/v1/users/{id} → documentStatus: "REJECT" + rejectDescription
-   *
-   * Swagger PATCH request schema: rejectDescription: { id: number, description: string } — آبجکت تکی.
+   * `documentStatus: REJECT`. در Swagger، `rejectDescription` آبجکت تکی است نه آرایه.
    */
   async rejectIdentityDoc(
     userId: string,
@@ -146,11 +129,8 @@ export const OnboardingApprovalsService = {
         );
       }
 
-      // ۱. اطلاعات فعلی کاربر رو بگیر
       const current = await usersApi.getById(userId);
 
-      // ۲. PATCH با documentStatus: REJECT و دلیل رد
-      // Swagger PATCH request schema: rejectDescription یک آبجکت تکی است، نه آرایه.
       const raw = await usersApi.update(userId, {
         documentStatus: 'REJECT',
         firstName: current.firstName,
@@ -179,10 +159,6 @@ export const OnboardingApprovalsService = {
     });
   },
 
-  /**
-   * لیست استان‌های موجود در صف بررسی.
-   * Real mode: GET /api/admin/province/all
-   */
   async listProvinces(): Promise<string[]> {
     if (!IS_MOCK_MODE) {
       const { adminCatalogApi } = await import(
@@ -195,7 +171,7 @@ export const OnboardingApprovalsService = {
     return collectProvinces();
   },
 
-  /** Mock: subscribe to auth-user store changes; real: no-op (no SSE yet) */
+  /** در mock به store کاربران وصل می‌شود؛ real تا SSE خالی است. */
   subscribeDirectoryChanges(listener: () => void): () => void {
     if (!IS_MOCK_MODE) {
       return () => {};

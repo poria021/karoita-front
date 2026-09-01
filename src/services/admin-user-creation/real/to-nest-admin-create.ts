@@ -6,17 +6,11 @@ import type {
 } from '@/types/admin-user-creation';
 import type { NestCreateAdminDto, NestUpdateAdminDto } from '@/types/nest-admins';
 
-/**
- * Swagger PUT example uses `status: 2` and the 200 body has `status.name: active`.
- * Inactive is the other documented numeric slot (1).
- */
+/** مثال PUT در Swagger `status: 2` است و ۲۰۰ `status.name: active`؛ غیرفعال اسلات عددی ۱. */
 export const NEST_ADMIN_STATUS_ACTIVE = 2;
 export const NEST_ADMIN_STATUS_INACTIVE = 1;
 
-/**
- * Swagger CreateAdmin.phone example is `0938…` (leading zero).
- * FE stores 10 digits without the trunk prefix.
- */
+/** مثال CreateAdmin.phone در Swagger با صفر اول است (`0938…`)؛ فرانت ۱۰ رقم بدون پیشوند نگه می‌دارد. */
 export function toNestAdminPhone(mobile: string): string {
   const digits = mobile.replace(/\D/g, '');
   if (digits.length === 10 && digits.startsWith('9')) return `0${digits}`;

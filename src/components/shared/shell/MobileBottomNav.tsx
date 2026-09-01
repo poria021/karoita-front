@@ -18,10 +18,6 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 import { resolveSidebarIcon } from './resolveSidebarIcon';
 
-/**
- * همه آیتم‌های منو را به لیست مسطح تبدیل می‌کند.
- * گروه‌ها: عنوان گروه به عنوان جداکننده + همه فرزندان.
- */
 function flattenAllItems(entries: SidebarMenuEntry[]): SidebarMenuItem[] {
   const result: SidebarMenuItem[] = [];
   for (const entry of entries) {
@@ -34,10 +30,7 @@ function flattenAllItems(entries: SidebarMenuEntry[]): SidebarMenuItem[] {
   return result;
 }
 
-/**
- * MobileNavBar — نوار منوی افقی زیر هدر برای موبایل و تبلت (lg:hidden).
- * همه آیتم‌های سایدبار را به صورت لینک‌های افقی اسکرول‌پذیر نشان می‌دهد.
- */
+/** نوار افقی زیر هدر برای موبایل/تبلت (`lg:hidden`). */
 export function MobileBottomNav() {
   const activeUser = useUserStore((state) => state.activeUser);
   const pathname = usePathname();
@@ -55,7 +48,6 @@ export function MobileBottomNav() {
       className="sticky top-16 z-20 w-full border-b border-kv-border/80 bg-kv-surface/95 shadow-kv-soft backdrop-blur-md supports-[backdrop-filter]:bg-kv-surface/85 lg:hidden"
     >
       <nav aria-label="منوی اصلی">
-        {/* اسکرول افقی بدون نمایش scrollbar */}
         <ul
           role="list"
           className={cn(
@@ -86,8 +78,6 @@ export function MobileBottomNav() {
     </div>
   );
 }
-
-/* ─────────────────────────────────── NavItem ── */
 
 function NavItem({
   item,

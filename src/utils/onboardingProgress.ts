@@ -18,11 +18,11 @@ export type OnboardingStep = {
 
 export type OnboardingProgress = {
   steps: OnboardingStep[];
-  /** 0–100, derived from completed steps only. */
+  /** ۰–۱۰۰، فقط از گام‌های تمام‌شده. */
   percent: number;
-  /** Primary next action label; null when nothing to do. */
+  /** برچسب اقدام بعدی؛ `null` وقتی کاری نمانده. */
   ctaLabel: string | null;
-  /** RouteService path for the CTA. */
+  /** مسیر `RouteService` برای CTA. */
   ctaHref: string | null;
 };
 
@@ -40,8 +40,8 @@ const STEP_TITLES: Record<OnboardingStepId, string> = {
 };
 
 /**
- * Maps real doc/approval status to the first-run checklist.
- * Pure contract — keep UI free of duplicated status branches.
+ * وضعیت مدرک/تأیید را به چک‌لیست اولین ورود نگاشت می‌کند.
+ * قرارداد خالص — شاخهٔ وضعیت را در UI تکرار نکنید.
  */
 export function getOnboardingProgress(input: ProgressInput): OnboardingProgress {
   const { role, approved, docStatus } = input;
@@ -90,7 +90,7 @@ export function getOnboardingProgress(input: ProgressInput): OnboardingProgress 
     };
   }
 
-  // not_submitted (and any unexpected non-approved state)
+  // `not_submitted` و هر وضعیت غیرمنتظرهٔ غیرتأیید
   return {
     steps: [
       step('complete_docs', 'current'),

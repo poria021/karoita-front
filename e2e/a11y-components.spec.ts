@@ -48,7 +48,7 @@ async function setMockAdminSession(page: Page): Promise<void> {
       { name: 'karvita_auth_session_meta', value: meta, url: page.url(), path: '/' },
     ]);
   } catch {
-    // fallback به document.cookie
+    // addCookies گاهی روی همین origin رد می‌شود؛ در evaluate با document.cookie جبران می‌کنیم.
   }
 
   await page.evaluate((m) => {
@@ -57,7 +57,6 @@ async function setMockAdminSession(page: Page): Promise<void> {
     try {
       sessionStorage.removeItem('karvita-user-store');
     } catch {
-      // ignore
     }
   }, meta);
 }

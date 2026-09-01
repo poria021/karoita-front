@@ -17,7 +17,7 @@ type ScheduleWeekGradingSaveArgs<T> = {
 };
 
 /**
- * Shared undoable close-modal + commit path for supervisor/mentor/principal week saves.
+ * مسیر مشترک بستن مودال + commit قابل‌لغو برای ذخیرهٔ هفتهٔ استاد راهنما/معلم/مدیر.
  */
 export function scheduleWeekGradingSave<T>({
   gradingTarget,

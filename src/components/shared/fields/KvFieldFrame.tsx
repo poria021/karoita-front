@@ -7,20 +7,11 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
 
 export type KvFieldFrameProps = {
-  /**
-   * id برای label (htmlFor) — همیشه لازمه.
-   * برای input/textarea: id === fieldId (label مستقیماً به input اشاره می‌کنه).
-   * برای select/button: fieldId جداست تا browser "duplicate form field id" نده
-   *   (label.htmlFor به label خودش اشاره می‌کنه، trigger با aria-labelledby به label).
-   */
+  /** `htmlFor` لیبل. برای select جدا از `fieldId` تا مرورگر duplicate id ندهد. */
   id: string;
-  /**
-   * id اصلی که به field/control داده می‌شه (aria-describedby پیشوند از این می‌گیره).
-   * اگر نداده بشه، همان id استفاده می‌شه (رفتار قدیمی برای input ها).
-   */
+  /** کنترل واقعی (`aria-describedby`). اگر نباشد همان `id` است. */
   fieldId?: string;
   label?: string | false;
-  /** آیکن کنار برچسب (مثلاً بخش بارگذاری مدرک). */
   labelIcon?: ReactNode;
   required?: boolean;
   optionalHint?: boolean;
@@ -59,8 +50,6 @@ export function KvFieldFrame({
   children,
   footer,
 }: KvFieldFrameProps) {
-  // برای aria-describedby و error/hint id ها، از fieldId استفاده می‌کنیم
-  // اگر fieldId نداده نشده، از id استفاده می‌کنیم (backward compatible)
   const controlId = fieldId ?? id;
 
   const showLabel = label !== undefined && label !== false && label !== '';

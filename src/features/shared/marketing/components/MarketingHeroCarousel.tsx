@@ -9,8 +9,8 @@ import type { LandingBanner } from '@/types/landing-cms';
 import { useMarketingPanel } from '../lib/marketingPanelContext';
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
-const SLIDE_DURATION = 6000; // 6 seconds per slide
-/** Progress ticks — keep UI smooth without 20Hz state churn. */
+const SLIDE_DURATION = 6000;
+/** تیک پیشرفت — UI نرم بدون churn وضعیت ۲۰Hz. */
 const PROGRESS_TICK_MS = 200;
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
@@ -104,7 +104,7 @@ export function MarketingHeroCarousel({
       </h1>
 
       {slides.map((slide, index) => {
-        // Only clickable when CMS admin set a link on upload.
+        // فقط وقتی ادمین CMS هنگام آپلود لینک گذاشته قابل کلیک است.
         const target = slide.link.trim()
           ? resolveMarketingNavTarget(slide.link)
           : ({ kind: 'none' } as const);
@@ -124,7 +124,7 @@ export function MarketingHeroCarousel({
             sizes="100vw"
           />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element -- data-URL / S3 / arbitrary CMS
+          // eslint-disable-next-line @next/next/no-img-element -- data-URL / S3 / CMS دلخواه
           <img
             src={slide.imageUrl}
             alt={slide.title || 'بنر اطلاع‌رسانی کارویتا'}
@@ -175,7 +175,7 @@ export function MarketingHeroCarousel({
         );
       })}
 
-      {/* Slide indicators */}
+      {/* نشانگر اسلاید */}
       {slides.length > 1 && (
         <div
           className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex items-center justify-center gap-1.5 sm:bottom-6"

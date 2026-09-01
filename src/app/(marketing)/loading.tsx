@@ -1,6 +1,6 @@
 import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 
-/** Marketing route gap — brand loader (login/logout destination only). */
+/** فاصلهٔ مسیر مارکتینگ — لودر برند (فقط مقصد ورود/خروج). */
 export default function MarketingLoading() {
   return <KvBrandLinearLoader fullViewport label="لطفا منتظر بمانید…" />;
 }

@@ -10,8 +10,7 @@ export function DashboardFooter() {
         kvProductFooterBorderClassName
       )}
     >
-      {/* tone left at default (faint) — "disabled" is for inactive controls,
-          not permanently-visible copy; it fails WCAG AA contrast here. */}
+      {/* `tone` پیش‌فرض (`faint`) بماند — `disabled` برای کنترل غیرفعال است و اینجا کنتراست WCAG AA را رد می‌کند. */}
       <KvTypography variant="overline" as="p">
         تمام حقوق مادی و معنوی متعلق به سامانه آموزشی مهارتی کارویتا می‌باشد.
       </KvTypography>
