@@ -5,11 +5,15 @@ import { Select as SelectPrimitive } from "radix-ui"
 
 import { FaIcon } from "@/components/shared/FaIcon"
 import { KvOverlayScrollMoreCue } from "@/components/shared/KvOverlayScrollMoreCue"
-import { kvOverlayListScrollClassName } from "@/components/shared/kvOverlayMenu"
+import {
+  kvKeepPageScrollProps,
+  kvOverlayListScrollClassName,
+} from "@/components/shared/kvOverlayMenu"
 import {
   mergeEdgeAutoScrollRef,
   useEdgeAutoScroll,
 } from "@/hooks/useEdgeAutoScroll"
+import { KeepPageScrollOnMount } from "@/hooks/useKeepPageScroll"
 import { cn } from "@/lib/utils"
 import { faIcons } from "@/utils/iconMap"
 
@@ -89,6 +93,7 @@ function SelectContent({
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         data-slot="select-content"
+        {...kvKeepPageScrollProps}
         ref={mergeEdgeAutoScrollRef(edgeScrollRef, ref)}
         onPointerMove={(event) => {
           handlePointerMove(event)
@@ -109,6 +114,7 @@ function SelectContent({
         position={position}
         {...props}
       >
+        <KeepPageScrollOnMount />
         <SelectPrimitive.Viewport
           data-edge-auto-scroll=""
           className={cn(

@@ -5,15 +5,27 @@ import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui"
 
 import { FaIcon } from "@/components/shared/FaIcon"
 import { KvOverlayScrollMoreCue } from "@/components/shared/KvOverlayScrollMoreCue"
-import { kvOverlayListScrollClassName } from "@/components/shared/kvOverlayMenu"
+import {
+  kvKeepPageScrollProps,
+  kvOverlayListScrollClassName,
+} from "@/components/shared/kvOverlayMenu"
 import { useEdgeAutoScroll } from "@/hooks/useEdgeAutoScroll"
+import { KeepPageScrollOnMount } from "@/hooks/useKeepPageScroll"
 import { cn } from "@/lib/utils"
 import { faIcons } from "@/utils/iconMap"
 
 function DropdownMenu({
+  modal = false,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
+  // منو اسکرول صفحه را قفل نکند؛ قفل Radix اسکرولبار را برمی‌دارد و در RTL بین ریل ثابت و هدر فاصله می‌اندازد.
+  return (
+    <DropdownMenuPrimitive.Root
+      data-slot="dropdown-menu"
+      {...props}
+      modal={modal}
+    />
+  )
 }
 
 function DropdownMenuPortal({
@@ -57,6 +69,7 @@ function DropdownMenuContent({
     <DropdownMenuPrimitive.Portal>
       <DropdownMenuPrimitive.Content
         data-slot="dropdown-menu-content"
+        {...kvKeepPageScrollProps}
         ref={ref}
         sideOffset={sideOffset}
         className={cn(
@@ -65,6 +78,7 @@ function DropdownMenuContent({
         )}
         {...props}
       >
+        <KeepPageScrollOnMount />
         <div
           data-edge-auto-scroll=""
           ref={edgeScrollRef}
@@ -268,6 +282,7 @@ function DropdownMenuSubContent({
   return (
     <DropdownMenuPrimitive.SubContent
       data-slot="dropdown-menu-sub-content"
+      {...kvKeepPageScrollProps}
       className={cn(
         "bg-kv-surface text-kv-text data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-kv-control border border-kv-border p-1 shadow-kv-overlay",
         className
