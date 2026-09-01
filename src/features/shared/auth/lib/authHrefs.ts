@@ -33,3 +33,12 @@ export function registerHref(options?: { returnUrl?: string | null }): string {
 export function forgotHref(options?: { returnUrl?: string | null }): string {
   return buildPublicAuthHref(RouteService.auth.forgot(), options);
 }
+
+/** سطح کارت از pathname — پیش‌فرض login تا مسیر ناشناس فرم را خالی نگذارد. */
+export function authCardSurfaceFromPathname(
+  pathname: string
+): AuthCardSurface {
+  if (pathname === RouteService.auth.register()) return 'register';
+  if (pathname === RouteService.auth.forgot()) return 'forgot';
+  return 'login';
+}
