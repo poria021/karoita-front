@@ -48,7 +48,6 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
               audienceTerms={page.audienceTerms}
               audience={page.audience}
               changeAudience={page.changeAudience}
-              selectedTerm={page.selectedTerm}
               selectedAudienceTerm={page.selectedAudienceTerm}
               selectTerm={page.selectTerm}
               toggleEnroll={page.toggleEnroll}
@@ -86,7 +85,9 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
               isLoading={page.isLoading}
               isSaving={page.isSaving}
               termFormError={page.termFormError}
+              academicYearError={page.academicYearError}
               saveTerm={page.saveTerm}
+              isTermFormDirty={page.isTermFormDirty}
               requestDeleteTerm={page.requestDeleteTerm}
               professorCapacity={page.professorCapacity}
               setProfessorCapacity={page.setProfessorCapacity}

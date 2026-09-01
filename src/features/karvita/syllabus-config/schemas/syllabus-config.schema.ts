@@ -12,6 +12,7 @@ export const termFormSchema = z.object({
   academicYear: z
     .string()
     .trim()
+    .min(1, 'سال تحصیلی الزامی است.')
     .transform(englishDigits)
     .refine(
       (v) => /^\d{4}-\d{4}$/.test(v),

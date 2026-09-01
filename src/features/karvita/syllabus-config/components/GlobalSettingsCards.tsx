@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
@@ -7,10 +9,7 @@ import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
 import { faIcons } from '@/utils/iconMap';
-import {
-  persianToEnglishDigits,
-  toPersianDigits,
-} from '@/utils/persianDigits';
+import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 import {
   professorCapacitySchema,
@@ -20,10 +19,10 @@ import {
 interface GlobalSettingsCardsProps {
   professorCapacity: string;
   onProfessorCapacityChange: (value: string) => void;
-  onSaveProfessorCapacity: () => void;
+  onSaveProfessorCapacity: () => void | Promise<boolean>;
   passingThreshold: string;
   onPassingThresholdChange: (value: string) => void;
-  onSavePassingThreshold: () => void;
+  onSavePassingThreshold: () => void | Promise<boolean>;
   isLoading?: boolean;
 }
 
@@ -53,13 +52,12 @@ export function GlobalSettingsCards({
         icon={faIcons.userGroup}
         title="سقف عمومی ظرفیت اساتید"
         value={professorCapacity}
-        displayValue={toPersianDigits(professorCapacity)}
         onValueChange={(raw) =>
           onProfessorCapacityChange(normalizeDigitsOnly(raw))
         }
         onSave={onSaveProfessorCapacity}
         saveLabel="ذخیره ظرفیت"
-        disabled={capacityInvalid}
+        invalid={capacityInvalid}
         isLoading={isLoading}
       />
 
@@ -67,13 +65,12 @@ export function GlobalSettingsCards({
         icon={faIcons.graduationCap}
         title="حد نصاب قبولی سیستم (از ۱۰۰)"
         value={passingThreshold}
-        displayValue={toPersianDigits(passingThreshold)}
         onValueChange={(raw) =>
           onPassingThresholdChange(normalizeDigitsOnly(raw))
         }
         onSave={onSavePassingThreshold}
         saveLabel="ذخیره نمره"
-        disabled={thresholdInvalid}
+        invalid={thresholdInvalid}
         isLoading={isLoading}
       />
     </div>
@@ -84,23 +81,38 @@ function SettingsMetricCard({
   icon,
   title,
   value,
-  displayValue,
   onValueChange,
   onSave,
   saveLabel,
-  disabled,
+  invalid,
   isLoading,
 }: {
   icon: typeof faIcons.userGroup;
   title: string;
   value: string;
-  displayValue: string;
   onValueChange: (raw: string) => void;
-  onSave: () => void;
+  onSave: () => void | Promise<boolean>;
   saveLabel: string;
-  disabled: boolean;
+  invalid: boolean;
   isLoading?: boolean;
 }) {
+  const [committed, setCommitted] = useState(value);
+  const [touched, setTouched] = useState(false);
+
+  useEffect(() => {
+    if (isLoading) {
+      setTouched(false);
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (!touched) {
+      setCommitted(value);
+    }
+  }, [value, touched]);
+
+  const isDirty = touched && value !== committed;
+
   return (
     <KvCard>
       <KvCardContent padding="md" className="space-y-kv-group">
@@ -115,20 +127,27 @@ function SettingsMetricCard({
           </div>
           <div className="flex w-28 shrink-0 items-center justify-center">
             {isLoading ? (
-              <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
+              <span
+                className="inline-flex h-11 w-full items-center justify-center"
+                role="status"
+                aria-label={`در حال دریافت ${title}`}
+              >
+                <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
+              </span>
             ) : (
-              <>
-                <KvTextField
-                  label={false}
-                  size="md"
-                  inputMode="numeric"
-                  dir="ltr"
-                  scriptGuard="none"
-                  value={displayValue}
-                  onChange={(event) => onValueChange(event.target.value)}
-                />
-                <span className="sr-only">{value}</span>
-              </>
+              <KvTextField
+                label={false}
+                size="md"
+                type="number"
+                inputMode="numeric"
+                dir="ltr"
+                scriptGuard="none"
+                value={value}
+                onChange={(event) => {
+                  setTouched(true);
+                  onValueChange(event.target.value);
+                }}
+              />
             )}
           </div>
         </div>
@@ -140,8 +159,14 @@ function SettingsMetricCard({
             appearance="solid"
             size="sm"
             className="w-full sm:w-auto"
-            disabled={disabled || isLoading}
-            onClick={onSave}
+            disabled={invalid || isLoading || !isDirty}
+            onClick={() => {
+              void Promise.resolve(onSave()).then((ok) => {
+                if (ok !== false) {
+                  setTouched(false);
+                }
+              });
+            }}
           >
             {saveLabel}
           </KvButton>

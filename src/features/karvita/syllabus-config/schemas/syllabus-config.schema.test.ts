@@ -20,6 +20,18 @@ describe('syllabus-config schemas', () => {
     }
   });
 
+  it('rejects empty academic year', () => {
+    const parsed = termFormSchema.safeParse({
+      type: 'semester',
+      titlePrefix: 'نیم‌سال اول',
+      academicYear: '',
+    });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      expect(parsed.error.issues[0]?.message).toBe('سال تحصیلی الزامی است.');
+    }
+  });
+
   it('parses capacity and threshold with persian digits', () => {
     expect(
       professorCapacitySchema.safeParse({ capacity: '۱۵' }).success

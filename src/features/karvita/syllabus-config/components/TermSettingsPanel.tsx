@@ -18,7 +18,9 @@ type TermSettingsPanelProps = Pick<
   | 'isLoading'
   | 'isSaving'
   | 'termFormError'
+  | 'academicYearError'
   | 'saveTerm'
+  | 'isTermFormDirty'
   | 'requestDeleteTerm'
   | 'professorCapacity'
   | 'setProfessorCapacity'
@@ -29,8 +31,6 @@ type TermSettingsPanelProps = Pick<
 >;
 
 export function TermSettingsPanel(props: TermSettingsPanelProps) {
-  const isDataLoading = props.isLoading && props.terms.length === 0;
-
   return (
     <div className="flex w-full justify-center">
       <div className="grid w-full grid-cols-1 items-start gap-kv-group lg:max-w-5xl lg:grid-cols-12 xl:max-w-6xl">
@@ -47,20 +47,22 @@ export function TermSettingsPanel(props: TermSettingsPanelProps) {
             onTermYearChange={props.setTermYear}
             isSaving={props.isSaving}
             formError={props.termFormError}
+            academicYearError={props.academicYearError}
+            isDirty={props.isTermFormDirty}
             onSave={() => void props.saveTerm()}
             onRequestDelete={props.requestDeleteTerm}
-            isLoading={isDataLoading}
+            isLoading={props.isLoading}
           />
         </div>
         <div className="lg:col-span-5">
           <GlobalSettingsCards
             professorCapacity={props.professorCapacity}
             onProfessorCapacityChange={props.setProfessorCapacity}
-            onSaveProfessorCapacity={() => void props.saveProfessorCapacity()}
+            onSaveProfessorCapacity={() => props.saveProfessorCapacity()}
             passingThreshold={props.passingThreshold}
             onPassingThresholdChange={props.setPassingThreshold}
-            onSavePassingThreshold={() => void props.savePassingThreshold()}
-            isLoading={isDataLoading}
+            onSavePassingThreshold={() => props.savePassingThreshold()}
+            isLoading={props.isLoading}
           />
         </div>
       </div>

@@ -23,6 +23,15 @@ import {
   termFormSchema,
 } from '../schemas/syllabus-config.schema';
 
+function termFormKey(
+  editTermId: string,
+  type: AcademicTermType,
+  prefix: string,
+  year: string
+) {
+  return `${editTermId}|${type}|${prefix}|${year}`;
+}
+
 type UseSyllabusTermSettingsArgs = {
   terms: AcademicTerm[];
   setTerms: Dispatch<SetStateAction<AcademicTerm[]>>;
@@ -45,21 +54,37 @@ export function useSyllabusTermSettings({
   setPassingThreshold,
 }: UseSyllabusTermSettingsArgs) {
   const queryClient = useQueryClient();
-  const defaultAcademicYear = SyllabusConfigService.getDefaultAcademicYear();
   const [editTermId, setEditTermId] = useState('');
   const [termType, setTermType] = useState<AcademicTermType>('semester');
   const [termPrefix, setTermPrefix] = useState(defaultPrefixForType('semester'));
-  const [termYear, setTermYear] = useState(defaultAcademicYear);
+  const [termYear, setTermYearState] = useState('');
   const [termFormError, setTermFormError] = useState<string | null>(null);
+  const [academicYearError, setAcademicYearError] = useState<string | null>(
+    null
+  );
+  const [termFormBaseline, setTermFormBaseline] = useState(() =>
+    termFormKey('', 'semester', defaultPrefixForType('semester'), '')
+  );
 
   const editingTerm = terms.find((t) => t.id === editTermId) ?? null;
+  const isTermFormDirty =
+    termFormKey(editTermId, termType, termPrefix, termYear) !==
+    termFormBaseline;
+
+  function setTermYear(year: string) {
+    setTermYearState(year);
+    setAcademicYearError(null);
+  }
 
   function resetTermForm() {
+    const prefix = defaultPrefixForType('semester');
     setEditTermId('');
     setTermType('semester');
-    setTermPrefix(defaultPrefixForType('semester'));
-    setTermYear(SyllabusConfigService.getDefaultAcademicYear());
+    setTermPrefix(prefix);
+    setTermYearState('');
     setTermFormError(null);
+    setAcademicYearError(null);
+    setTermFormBaseline(termFormKey('', 'semester', prefix, ''));
   }
 
   function applySnapshotTerms(snapshot: SyllabusConfigSnapshot) {
@@ -68,12 +93,16 @@ export function useSyllabusTermSettings({
   }
 
   function applyTermToForm(match: AcademicTerm) {
+    const parts = parseTermTitleParts(match.title);
+    const prefix = match.titlePrefix || parts.prefix;
+    const year = match.academicYear || parts.academicYear;
     setEditTermId(match.id);
     setTermType(match.type);
-    const parts = parseTermTitleParts(match.title);
-    setTermPrefix(match.titlePrefix || parts.prefix);
-    setTermYear(match.academicYear || parts.academicYear);
+    setTermPrefix(prefix);
+    setTermYearState(year);
     setTermFormError(null);
+    setAcademicYearError(null);
+    setTermFormBaseline(termFormKey(match.id, match.type, prefix, year));
   }
 
   function selectEditTerm(termId: string) {
@@ -105,11 +134,19 @@ export function useSyllabusTermSettings({
       academicYear: termYear,
     });
     if (!parsed.success) {
+      const yearIssue = parsed.error.issues.find(
+        (issue) => issue.path[0] === 'academicYear'
+      );
+      const otherIssue = parsed.error.issues.find(
+        (issue) => issue.path[0] !== 'academicYear'
+      );
+      setAcademicYearError(yearIssue?.message ?? null);
       setTermFormError(
-        parsed.error.issues[0]?.message ?? 'فرم دوره معتبر نیست.'
+        otherIssue?.message ?? (yearIssue ? null : 'فرم دوره معتبر نیست.')
       );
       return;
     }
+    setAcademicYearError(null);
     setTermFormError(null);
 
     const title =
@@ -136,6 +173,14 @@ export function useSyllabusTermSettings({
                     academicYear: parsed.data.academicYear,
                   }
                 : term
+            )
+          );
+          setTermFormBaseline(
+            termFormKey(
+              targetId,
+              parsed.data.type,
+              parsed.data.titlePrefix,
+              parsed.data.academicYear
             )
           );
         },
@@ -235,7 +280,11 @@ export function useSyllabusTermSettings({
         setTermType(target.type);
         const parts = parseTermTitleParts(target.title);
         setTermPrefix(parts.prefix);
-        setTermYear(parts.academicYear);
+        setTermYearState(parts.academicYear);
+        setAcademicYearError(null);
+        setTermFormBaseline(
+          termFormKey(target.id, target.type, parts.prefix, parts.academicYear)
+        );
         setSelectedTermId(target.id);
       },
       commit: () => SyllabusConfigService.deleteTerm(target.id),
@@ -251,7 +300,7 @@ export function useSyllabusTermSettings({
     });
   }
 
-  async function saveProfessorCapacity() {
+  async function saveProfessorCapacity(): Promise<boolean> {
     const parsed = professorCapacitySchema.safeParse({
       capacity: professorCapacity,
     });
@@ -259,7 +308,7 @@ export function useSyllabusTermSettings({
       toast.error(
         parsed.error.issues[0]?.message ?? 'ظرفیت معتبر نیست.'
       );
-      return;
+      return false;
     }
     try {
       const snapshot = await SyllabusConfigService.setProfessorCapacity(
@@ -270,12 +319,14 @@ export function useSyllabusTermSettings({
       toast.success(
         `ظرفیت پیش‌فرض تمامی اساتید به ${toPersianDigits(parsed.data.capacity)} نفر تغییر یافت.`
       );
+      return true;
     } catch (err) {
       toast.error(errorMessage(err, 'ذخیره ظرفیت ناموفق بود.'));
+      return false;
     }
   }
 
-  async function savePassingThreshold() {
+  async function savePassingThreshold(): Promise<boolean> {
     const parsed = passingThresholdSchema.safeParse({
       threshold: passingThreshold,
     });
@@ -283,7 +334,7 @@ export function useSyllabusTermSettings({
       toast.error(
         parsed.error.issues[0]?.message ?? 'حدنصاب باید بین ۰ تا ۱۰۰ باشد.'
       );
-      return;
+      return false;
     }
     try {
       const snapshot = await SyllabusConfigService.setPassingThreshold(
@@ -292,8 +343,10 @@ export function useSyllabusTermSettings({
       applySnapshotTerms(snapshot);
       setPassingThreshold(String(snapshot.passingScoreThreshold));
       toast.success('حدنصاب قبولی کل سیستم با موفقیت ثبت نهایی شد.');
+      return true;
     } catch (err) {
       toast.error(errorMessage(err, 'ذخیره حدنصاب ناموفق بود.'));
+      return false;
     }
   }
 
@@ -307,7 +360,9 @@ export function useSyllabusTermSettings({
     termYear,
     setTermYear,
     termFormError,
+    academicYearError,
     saveTerm,
+    isTermFormDirty,
     editingTerm,
     requestDeleteTerm,
     saveProfessorCapacity,
