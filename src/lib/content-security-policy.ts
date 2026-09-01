@@ -10,13 +10,21 @@ function originFromEnv(raw: string | undefined): string | null {
   }
 }
 
+function isProductionRuntime(): boolean {
+  return (
+    process.env.NODE_ENV === 'production' ||
+    process.env.VERCEL_ENV === 'production'
+  );
+}
+
 /**
  * تشخیص development در Node و Edge. در Edge مقدار `NODE_ENV` قابل اعتماد نیست؛
- * `NEXT_PUBLIC_IS_DEV` در بیلد اینلاین می‌شود. فقط در `.env.local` بگذارید، نه production.
+ * `NEXT_PUBLIC_IS_DEV` در بیلد اینلاین می‌شود — فقط لوکال (`.env.local` / `.env.example`).
+ * روی سرور حتی اگر کسی `true` بگذارد، production برنده است.
  */
 function isDevEnvironment(): boolean {
+  if (isProductionRuntime()) return false;
   if (process.env.NODE_ENV === 'development') return true;
-  // Edge/کلاینت: `NEXT_PUBLIC_IS_DEV` در بیلد اینلاین می‌شود.
   if (process.env.NEXT_PUBLIC_IS_DEV === 'true') return true;
   return false;
 }
