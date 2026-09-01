@@ -66,3 +66,9 @@ playground/
 # Scratch notes — not part of the engineering docs in docs/*.md
 docs/notes/
 docs/learning/
+
+# Local dumps / one-off scans — not part of the product
+.eslint-current.txt
+_en_comments.txt
+_tmp-*.mjs
+_backup-*/
