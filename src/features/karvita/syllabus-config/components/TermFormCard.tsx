@@ -8,7 +8,6 @@ import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { Spinner } from '@/components/ui/spinner';
 import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
 import {
@@ -140,7 +139,6 @@ export function TermFormCard({
             ))}
           </KvSelectField>
 
-          <div className="relative">
             <KvTextField
               id="syllabus-term-academic-year"
               label="سال تحصیلی"
@@ -148,24 +146,14 @@ export function TermFormCard({
               size="md"
               dir="ltr"
               scriptGuard="none"
-              locked={isLoading}
-              value={isLoading ? '' : displayAcademicYear(termYear)}
+              disabled={isLoading}
+              value={displayAcademicYear(termYear)}
               placeholder="۱۴۰۵-۱۴۰۶"
               error={academicYearError ?? undefined}
               onChange={(event) =>
                 onTermYearChange(persianToEnglishDigits(event.target.value))
               }
             />
-            {isLoading ? (
-              <span
-                className="pointer-events-none absolute inset-x-0 bottom-0 flex h-11 items-center justify-center"
-                role="status"
-                aria-label="در حال دریافت سال تحصیلی"
-              >
-                <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
-              </span>
-            ) : null}
-          </div>
         </div>
 
         {formError ? (
