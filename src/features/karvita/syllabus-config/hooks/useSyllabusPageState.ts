@@ -18,7 +18,7 @@ import {
 
 /**
  * Hydrate syllabus page domain state from the dashboard module cache
- * and keep a soft-refresh snapshot in memory (rule 83 / 84).
+ * and keep a soft-refresh snapshot in memory.
  */
 export function useSyllabusPageState(section: SyllabusConfigSubTab) {
   const cacheKey = cacheKeyFor(section);

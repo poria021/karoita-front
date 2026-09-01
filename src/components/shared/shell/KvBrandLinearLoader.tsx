@@ -19,11 +19,11 @@ interface KvBrandLinearLoaderProps {
  * Not for ordinary dashboard SPA loading: internal navigation between
  * modules and tabs must keep the previous page until the next one paints
  * (no `loading.tsx`, no full-page takeover). Data busy still follows
- * rule 83/84 (`KvTableBusy`, `KvBusySurface`).
+ * `KvTableBusy` / `KvBusySurface`.
  *
  * Full-viewport uses the public marketing canvas (`kv-brand-atmosphere` +
  * `kv-blueprint-bg`) so login/logout match landing and auth. Dashboard
- * chrome itself stays a quiet canvas (rule 90).
+ * chrome itself stays a quiet canvas.
  */
 export function KvBrandLinearLoader({
   fullViewport = false,

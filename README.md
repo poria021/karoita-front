@@ -1,60 +1,81 @@
-# Karvita Frontend
+# کارویتا — فرانت‌اند
 
-Pure Next.js (App Router) frontend for the Karvita education platform.
+فرانت Next.js (App Router) برای سامانهٔ آموزشی کارویتا. بک‌اند Nest جداست؛ در این مخزن دیتابیس و ORM نیست.
 
-- **mock** (`NEXT_PUBLIC_API_MODE=mock`): in-browser simulator (`localStorage` + fixed OTP). Local DX only.
-- **real**: NestJS API consumer via `NEXT_PUBLIC_API_URL`. Auth/domain facades throw until Nest is wired.
-- No in-repo product ORM / Better-Auth / Drizzle. Database lives on Nest later.
+دو حالت API:
 
-## Learn this codebase
+- **mock** — شبیه‌ساز داخل مرورگر (`localStorage` + OTP ثابت). فقط برای توسعهٔ محلی.
+- **real** — مصرف API نست از طریق `NEXT_PUBLIC_API_URL`. در production مقدار `mock` عمداً خطا می‌دهد.
 
-→ **Day-one data/HTTP map:** [`docs/data-flow.md`](docs/data-flow.md) (Facade → mock/`apiClient` → TanStack Query)  
-→ Folder layout: [`docs/architecture-folders.md`](docs/architecture-folders.md)  
-→ Open [`docs/learning/karvita-complete-course.html`](docs/learning/karvita-complete-course.html) in a browser (RTL sidebar course, all sessions)  
-→ Markdown lessons: [`docs/learning/README.md`](docs/learning/README.md)
+قفل وابستگی‌ها **pnpm** است (`pnpm-lock.yaml`). با `npm install` قفل را عوض نکنید.
 
-### How data flows (5 rules)
+## از کجا بخوانید
 
-1. UI/hooks call **Facades** in `src/services/` only — never `fetch` / `ky` / `apiClient` from features.
-2. HTTP lives in **`src/services/api-client.ts`** (`ky` + cookies/Bearer + 401 handling).
-3. Lists/cache use **TanStack Query** (admin tables: `useOffsetLimitInfiniteList`).
-4. Internal paths go through **`RouteService`** — no hardcoded `/karvita/...`.
-5. `NEXT_PUBLIC_API_MODE=mock|real` — same Facade shapes; production forbids mock.
+| فایل | برای چه |
+|------|---------|
+| [`docs/data-flow.md`](docs/data-flow.md) | جریان داده: Facade، HTTP، توکن، وضعیت وصل بودن Nest |
+| [`docs/architecture-folders.md`](docs/architecture-folders.md) | درخت پوشه و مرز لایه‌ها |
+| [`docs/decisions.md`](docs/decisions.md) | چرا این معماری |
+| [`docs/contributing.md`](docs/contributing.md) | چک‌لیست فیچر جدید و importهای ممنوع |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | شروع کار و چک قبل از PR |
 
-## Quick start
+قانون‌های اصلی (جزئیات در `data-flow.md`):
+
+1. UI و hook فقط **Facade** داخل `src/services/` را صدا می‌زنند — نه `fetch` / `ky` / `apiClient`.
+2. HTTP فقط در `src/services/api-client.ts`.
+3. لیست‌های صفحه‌بندی‌شده با **TanStack Query** (`useOffsetLimitInfiniteList`).
+4. مسیر داخلی فقط از **`RouteService`**.
+5. `NEXT_PUBLIC_API_MODE=mock|real` — شکل Facade یکی است.
+
+## راه افتادن
 
 ```bash
-npm install
+pnpm install
 cp .env.example .env.local
-npm run dev
+pnpm dev
 ```
 
-## Scripts
+در development اگر `NEXT_PUBLIC_API_MODE` خالی باشد، پیش‌فرض mock است.
 
-| Script | Purpose |
-|--------|---------|
-| `npm run dev` | Next.js dev server |
-| `npm run build` / `start` | Production build |
-| `npm test` | Vitest |
-| `npm run test:e2e:install` | Download Chromium for Playwright (once) |
-| `npm run test:e2e` | Thin mock-mode Playwright smoke (`e2e/`) |
-| `npm run lint` | ESLint + color/DS checks |
+## اسکریپت‌ها
 
-### E2E smoke (mock only)
+| دستور | کار |
+|--------|-----|
+| `pnpm dev` | سرور توسعه |
+| `pnpm build` / `pnpm start` | بیلد و اجرای پروداکشن |
+| `pnpm typecheck` | TypeScript |
+| `pnpm lint` | ESLint + رنگ هاردکد + مرز UI |
+| `pnpm test` | Vitest |
+| `pnpm test:e2e` | دود Playwright فقط در حالت mock |
+
+E2E سرور را روی `127.0.0.1:3000` بالا می‌آورد. قبلش هر `next dev` دیگر این مخزن را ببندید — Next ۱۶ فقط یک اینستنس می‌پذیرد. ورود ادمین در تست از `/auth/admin-gate` است، نه `/auth/login`. جزئیات در [`docs/contributing.md`](docs/contributing.md).
+
+## متغیرهای محیطی
+
+نمونه در `.env.example`. مهم‌ها:
+
+| متغیر | نکته |
+|--------|------|
+| `NEXT_PUBLIC_API_MODE` | `mock` یا `real`. خالی → در dev برابر mock، در production برابر real. `mock` صریح در production خطا می‌دهد. |
+| `NEXT_PUBLIC_API_URL` | آدرس پایهٔ Nest بدون اسلش پایانی. برای real لازم است. |
+| `NEXT_PUBLIC_SITE_URL` | آدرس عمومی سایت (SEO / لینک مطلق). |
+| `NEXT_PUBLIC_S3_URL` | مبدأ عمومی باکت برای پیش‌نمایش مدرک هویت. |
+| `NEXT_PUBLIC_AUTH_COOKIE_NAME` | اختیاری؛ پیش‌فرض `karvita_session`. |
+
+## روی سرور
+
+متغیرهای `NEXT_PUBLIC_*` موقع **`pnpm build`** داخل باندل می‌شوند. بعد از بیلد عوض کردنشان اثر ندارد.
+
+1. از [`.env.production.example`](./.env.production.example) کپی کنید (`/.env.production` یا env پروسس) و آدرس Nest / سایت / S3 واقعی را بگذارید.
+2. `NEXT_PUBLIC_API_MODE=real` — مقدار `mock` در production کرش می‌کند.
+3. بیلد و اجرا:
 
 ```bash
-# Optional: bundled Chromium (may 403 in some regions — system Chrome is used by default)
-npm run test:e2e:install
-npm run test:e2e
+pnpm install --frozen-lockfile
+pnpm build
+pnpm start
 ```
 
-`test:e2e` starts `next dev` on `127.0.0.1:3000` via Playwright `webServer` (mock mode cannot use `next start` / production). Stop any other `next dev` for this repo first — Next 16 allows only one. Forces `NEXT_PUBLIC_API_MODE=mock`. Super-admin smoke uses `/auth/admin-gate` + `MOCK_OTP_CODE` / `MOCK_SUPER_ADMIN_MOBILE` from `src/services/auth/auth-mock-users.ts` (public `/auth/login` blocks admin by design). Config prefers the system Google Chrome channel (Chromium-family only; not Nest/real mode).
+`pnpm dev` برای سرور نیست.
 
-
-## Env
-
-| Variable | Notes |
-|----------|--------|
-| `NEXT_PUBLIC_API_MODE` | `mock` or `real`. Unset → mock in development, real in production. Explicit `mock` in production throws. |
-| `NEXT_PUBLIC_API_URL` | Nest base URL (no trailing slash) for real mode. |
-| `NEXT_PUBLIC_AUTH_COOKIE_NAME` | Optional Edge session cookie name (default `karvita_session`). |
+صفحات **کارورزی، تأیید روزانه، ظرفیت‌ها، و CMS لندینگ حذف نشده‌اند.** تا وقتی endpoint نست برسد، همان Facade در حالت real پیام «هنوز به API واقعی متصل نشده» می‌دهد. mock محلی برای توسعهٔ همان صفحات سر جایش است. وضعیت وصل بودن در [`docs/data-flow.md`](docs/data-flow.md) است.

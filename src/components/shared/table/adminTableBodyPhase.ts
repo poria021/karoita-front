@@ -1,5 +1,5 @@
 /**
- * Admin table body phase (rule 80 / 83 soft refresh):
+ * Admin table body phase (soft refresh):
  * - rows: keep previous/current rows visible
  * - busy: first load — keep table chrome; body uses KvTableBusy (spinner)
  * - empty: idle and no rows — KvTableEmpty + empty state

@@ -62,7 +62,7 @@ function DockMark({ product }: { product: LandingProduct }) {
 }
 
 /**
- * Quiet floating product dock — brand-loud page, institutional chrome (rule 90).
+ * Quiet floating product dock — brand-loud page, institutional chrome.
  * Each item expands its own title LTR on hover (siblings stay collapsed).
  */
 export function MarketingProductsDock({ products }: MarketingProductsDockProps) {

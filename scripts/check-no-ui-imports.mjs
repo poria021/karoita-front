@@ -1,7 +1,7 @@
 /**
  * Fails if features/ or app/ import product-bypass ui paths.
  * Plain atoms (@/components/ui/button, badge, spinner, …) are allowed.
- * Forbidden: ui/table, ui/skeleton — use shared KvTable / KvBusySurface (no skeleton bones; shared/skeleton stack deleted, rule 84).
+ * Forbidden: ui/table, ui/skeleton — use shared KvTable / KvBusySurface (no skeleton bones).
  *
  * Run: node scripts/check-no-ui-imports.mjs
  */

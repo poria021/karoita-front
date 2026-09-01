@@ -46,6 +46,7 @@ yarn-error.log*
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 # IDE & OS Files
 .DS_Store
@@ -56,17 +57,12 @@ next-env.d.ts
 .vscode/
 .idea/
 
-# Migration Reference (Project Specific)
-original-karvita.html
-MIGRATION_ROADMAP.md
-
-# Cursor IDE metadata/rules stay local only — never push to GitHub.
+# Cursor / Claude IDE metadata stay local — never push to GitHub.
 .claude/
+.cursor/
 
 playground/
 
-# Personal / interview notes under docs — keep local.
-# Engineering architecture docs below are tracked (force-include).
-docs/*
-!docs/architecture-folders.md
-!docs/planned-domains.md
+# Scratch notes — not part of the engineering docs in docs/*.md
+docs/notes/
+docs/learning/

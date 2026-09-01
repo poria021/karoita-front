@@ -135,7 +135,7 @@ export function readLandingProducts(): LandingProduct[] {
 }
 
 export function nextLandingEntityId(prefix: 'bnr' | 'soc' | 'prd'): string {
-  // English ASCII digits only (rule 85).
+  // شناسهٔ انگلیسی/ASCII — ارقام فارسی در id نگذار.
   return `${prefix}-${Date.now()}`;
 }
 

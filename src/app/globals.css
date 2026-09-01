@@ -261,7 +261,7 @@
     0 16px 40px -8px hsl(220 25% 18% / 0.18),
     0 4px 12px -2px hsl(220 25% 18% / 0.09);
 
-  /* —— kv semantic palette (light) — HSL only (see rule 70-color-hsl-tokens) —— */
+  /* —— kv semantic palette (light) — HSL only —— */
   /* Layer 0 — exact canvas swatch #F4F2EE (locked) */
   --kv-canvas: hsl(40 21.4% 94.5%);
   /*
@@ -719,7 +719,7 @@ input[readonly]:-webkit-autofill {
 
 /*
  * Brand signature: soft institutional wash for auth + marketing canvases.
- * Dashboard shells must NOT use this (stay quiet canvas). See rule 90.
+ * Dashboard shells must NOT use this (stay quiet canvas).
  */
 .kv-brand-atmosphere {
   background-color: var(--kv-canvas);
@@ -896,7 +896,7 @@ input[readonly]:-webkit-autofill {
 /*
  * Blueprint grid overlay — auth + marketing canvases (brand-loud).
  * Grid only; soft brand wash lives on `.kv-brand-atmosphere` (marketing).
- * Dashboard shells must NOT use this (rule 90).
+ * Dashboard shells must NOT use this.
  */
 
 .kv-blueprint-bg {

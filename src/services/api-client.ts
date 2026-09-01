@@ -30,7 +30,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
 /**
  * Nest reads `x-custom-lang` to pick the response/validation-message locale
  * (confirmed on the Admin `provinces`/`cities` controllers). The whole app
- * is Persian-only (rule 30), so this is fixed — never derived from browser
+ * is Persian-only, so this is fixed — never derived from browser
  * locale — and set once at the shared client so every Facade call (admin
  * catalog, profile, auth, …) inherits it without each call site repeating
  * the header.

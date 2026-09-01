@@ -27,7 +27,7 @@ import { persianToEnglishDigits } from '@/utils/persianDigits';
  * `structure` encode it instead. These literals must stay in sync with
  * SEMESTER_PREFIX_OPTIONS / MODULAR_PREFIX_OPTIONS in
  * `src/features/karvita/syllabus-config/constants.ts` (services must not
- * import feature-layer constants — see rule 00, #4/#13).
+ * import feature-layer constants).
  */
 const SEMESTER_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   one: 'نیم‌سال اول',

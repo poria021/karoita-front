@@ -1,6 +1,6 @@
 import type { InternshipEnrollmentLevel } from '@/types/internship-enrollment';
 
-/** Parses dynamic `[level]` route segment — English digits only (rule 85). */
+/** Parses dynamic `[level]` route segment — English digits only. */
 export function parseInternshipEnrollmentLevel(
   raw: string
 ): InternshipEnrollmentLevel | null {

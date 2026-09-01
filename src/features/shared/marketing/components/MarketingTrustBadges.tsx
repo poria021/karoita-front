@@ -29,7 +29,7 @@ const TRUST_STATS = [
 ] as const;
 
 /**
- * Trust & capacity badges strip — immediately below hero (rule 90: trust strip below fold).
+ * Trust & capacity badges strip — immediately below hero.
  * Flat items on all breakpoints (no per-item card chrome).
  */
 export function MarketingTrustBadges() {

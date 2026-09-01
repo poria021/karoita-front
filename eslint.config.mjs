@@ -7,19 +7,19 @@ import nextTs from 'eslint-config-next/typescript';
  * Exception: third-party brand SVGs (see ignores).
  */
 const COLOR_LITERAL_MESSAGE =
-  'Hardcoded colors (#hex / rgb() / hsl()) are forbidden in TS/TSX. Add HSL `--kv-*` tokens in globals.css and use bg-kv-*/text-kv-*/border-kv-*/fill-kv-* utilities. See .cursor/rules/70-color-hsl-tokens.mdc.';
+  'Hardcoded colors (#hex / rgb() / hsl()) are forbidden in TS/TSX. Add HSL `--kv-*` tokens in globals.css and use bg-kv-*/text-kv-*/border-kv-*/fill-kv-* utilities.';
 
 const UI_PRODUCT_BYPASS_MESSAGE =
   'Product composition belongs in shared: use KvTable stack / KvBusySurface, domain *Field / FieldFrame, EmptyState, ConfirmationDialog, and shell — not raw ui/table. Do not reintroduce ui/skeleton (product loading uses Spinner + KvBusySurface). Plain atoms (Button, Badge, Spinner, Checkbox, Tooltip, …) MAY come from @/components/ui/*. See docs/design-system.md.';
 
 const CROSS_FEATURE_MESSAGE =
-  'Cross-feature imports are forbidden (rule 00/60). Move shared logic to src/services/ or src/components/shared/, or use shared types in src/types/. Do not import another features/[domain] slice.';
+  'Cross-feature imports are forbidden. Move shared logic to src/services/ or src/components/shared/, or use shared types in src/types/. Do not import another features/[domain] slice.';
 
 const HARDCODED_PATH_MESSAGE =
-  'Hardcoded /karvita/ or /auth/ paths are forbidden in features/components (rule 20). Use RouteService (or isAuthPath / isAdminControlPlanePath helpers) from @/services/route.service.';
+  'Hardcoded /karvita/ or /auth/ paths are forbidden in features/components. Use RouteService (or isAuthPath / isAdminControlPlanePath helpers) from @/services/route.service.';
 
 const SKELETON_BAN_MESSAGE =
-  'Skeleton bones are banned (rule 84). Use Spinner / KvTableBusy / KvBusySurface / aria-busy — never @/components/ui/skeleton or shared/skeleton.';
+  'Skeleton bones are banned. Use Spinner / KvTableBusy / KvBusySurface / aria-busy — never @/components/ui/skeleton or shared/skeleton.';
 
 const FA_SOLID_PACK_MESSAGE =
   'Named Font Awesome icons only via src/utils/iconMap.ts (faIcons). Do not import @fortawesome/free-solid-svg-icons outside that map.';

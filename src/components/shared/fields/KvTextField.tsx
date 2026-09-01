@@ -24,7 +24,7 @@ const kvTextFieldWrapperVariants = cva(
   {
     variants: {
       size: {
-        /* Product control height is locked to 44px (rule 80 md) for all sizes. */
+        /* Product control height is locked to 44px for all sizes. */
         sm: 'h-11',
         md: 'h-11',
         lg: 'h-11',

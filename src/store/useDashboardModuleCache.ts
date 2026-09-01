@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 /**
  * In-memory cache for Karvita dashboard modules (SPA revisit).
- * Not persisted — no tokens/secrets. See rule 83.
+ * Not persisted — no tokens/secrets. In-memory only for SPA revisit.
  *
  * Caps entry count so long SPA sessions (many tab/search keys) cannot grow without bound.
  */

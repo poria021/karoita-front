@@ -64,7 +64,7 @@ src/components/
     KvButton, AppTabs, …  # product composition at shared root
 ```
 
-### Skeleton ban (rule 84)
+### Skeleton ban
 
 - **Deleted / forbidden:** `src/components/shared/skeleton/**`, `src/components/ui/skeleton`
 - Product loading = chrome-first + spinner / `aria-busy` on data regions only
@@ -89,6 +89,10 @@ src/utils/
 
 | Doc | Purpose |
 |-----|---------|
-| `docs/data-flow.md` | Day-one cheat sheet — Facade, `apiClient` (ky), TanStack Query, lists |
+| `README.md` | Clone, scripts, env |
+| `CONTRIBUTING.md` | Day-one reading order and PR checks |
+| `docs/data-flow.md` | Facade, `apiClient` (ky), TanStack Query, Nest wiring status |
+| `docs/decisions.md` | Why this architecture |
+| `docs/contributing.md` | Feature checklist, forbidden imports, tests, UI |
 | `docs/architecture-folders.md` | This file — target tree |
 | `docs/planned-domains.md` | Future domains (ad-engine, reporting, forms-wizard) |

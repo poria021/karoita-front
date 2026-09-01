@@ -25,8 +25,7 @@ const ORG_SYNC_FIELDS = [
  * از save موفق)، فقط فیلدهای سازمانی رو با setValue آپدیت کن (نه form.reset
  * کامل) تا تایپ در حال انجام کاربر دست نخورد.
  *
- * از IdentityForm.tsx استخراج شده تا اون فایل زیر سقف نرم ~۲۵۰-۳۰۰ خط
- * (rule 00 §7) بمونه.
+ * از IdentityForm.tsx استخراج شده تا آن فایل بیش از حد بزرگ نشود.
  */
 export function useProfileOrgFieldsSync(
   form: UseFormReturn<ProfileSchema>,
