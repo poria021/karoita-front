@@ -89,6 +89,7 @@ describe('live nav / admin plane', () => {
 
     const groups = adminMenu.filter(isSidebarMenuGroup);
     expect(groups).toHaveLength(2);
+    expect(groups.every((g) => g.defaultOpen)).toBe(true);
 
     const orgGroup = groups.find((g) => g.title === 'مدیریت سازمانی');
     expect(orgGroup?.children.map((c) => c.path)).toEqual([

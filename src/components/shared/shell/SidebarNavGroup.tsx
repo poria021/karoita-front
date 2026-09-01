@@ -33,7 +33,8 @@ export function SidebarNavGroup({
 }: SidebarNavGroupProps) {
   const childActive =
     !locked && group.children.some((child) => child.path === pathname);
-  const [open, setOpen] = useState(childActive || Boolean(group.defaultOpen));
+  // گروه با زیرماژول از ابتدا باز باشد تا فرزندان دیده شوند.
+  const [open, setOpen] = useState(true);
   const [prevChildActive, setPrevChildActive] = useState(childActive);
   const groupId = useId();
 
