@@ -58,6 +58,8 @@ next-env.d.ts
 .idea/
 
 # Cursor / Claude IDE metadata stay local — never push to GitHub.
+AGENTS.md
+CLAUDE.md
 .claude/
 .cursor/
 
