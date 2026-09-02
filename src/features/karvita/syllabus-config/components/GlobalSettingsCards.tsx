@@ -96,22 +96,13 @@ function SettingsMetricCard({
   invalid: boolean;
   isLoading?: boolean;
 }) {
-  const [committed, setCommitted] = useState(value);
-  const [touched, setTouched] = useState(false);
+  const [baseline, setBaseline] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isLoading) {
-      setTouched(false);
-    }
+    if (isLoading) setBaseline(null);
   }, [isLoading]);
 
-  useEffect(() => {
-    if (!touched) {
-      setCommitted(value);
-    }
-  }, [value, touched]);
-
-  const isDirty = touched && value !== committed;
+  const isDirty = baseline !== null && value !== baseline;
 
   return (
     <KvCard>
@@ -144,7 +135,9 @@ function SettingsMetricCard({
                 scriptGuard="none"
                 value={value}
                 onChange={(event) => {
-                  setTouched(true);
+                  if (baseline === null) {
+                    setBaseline(value);
+                  }
                   onValueChange(event.target.value);
                 }}
               />
@@ -163,7 +156,7 @@ function SettingsMetricCard({
             onClick={() => {
               void Promise.resolve(onSave()).then((ok) => {
                 if (ok !== false) {
-                  setTouched(false);
+                  setBaseline(null);
                 }
               });
             }}
