@@ -6,9 +6,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
 import type {
+  DailyApprovalCatalogCourse,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
 } from '@/types/daily-approvals';
+
+const EMPTY_COURSES: DailyApprovalCatalogCourse[] = [];
 
 type UseDailyApprovalBulkExtendCatalogArgs = {
   open: boolean;
@@ -32,7 +35,7 @@ export function useDailyApprovalBulkExtendCatalog({
     staleTime: QUERY_STALE_MS.module,
   });
 
-  const courses = coursesQuery.data ?? [];
+  const courses = coursesQuery.data ?? EMPTY_COURSES;
   const selectedCourse =
     courses.find((course) => course.id === lessonId) ?? courses[0] ?? null;
 

@@ -1,7 +1,6 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import { ApiClientError } from '@/services/api-error';
 import {
-  filterBundlesForCapacityKind,
   nestEntityId,
   nestLessonTitle,
   nestStructureForCapacityKind,
@@ -31,7 +30,7 @@ async function listSemesterBundles(
     const parsed = parseNestSemesterBundle(item);
     if (parsed) bundles.push(parsed);
   }
-  return filterBundlesForCapacityKind(bundles, kind);
+  return bundles;
 }
 
 function termsFromBundles(

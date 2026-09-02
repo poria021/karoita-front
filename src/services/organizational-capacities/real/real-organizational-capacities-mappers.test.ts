@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  filterBundlesForCapacityKind,
-  lessonKindFromTitle,
   lessonLevelFromTitle,
   nestDaysToSelectedDays,
   nestStructureForCapacityKind,
@@ -16,45 +14,9 @@ import {
 } from './real-organizational-capacities-mappers';
 
 describe('real organizational capacity mappers', () => {
-  it('splits mixed podmani payload by lesson title', () => {
+  it('maps capacity kind to semesters_all structure', () => {
     expect(nestStructureForCapacityKind('internship')).toBe('semester');
     expect(nestStructureForCapacityKind('apprenticeship')).toBe('podmani');
-    expect(lessonKindFromTitle('کارورزی ۱')).toBe('internship');
-    expect(lessonKindFromTitle('کارآموزی ۲')).toBe('apprenticeship');
-    const mixed = [
-      parseNestSemesterBundle({
-        id: 'a',
-        season: 'one',
-        structure: 'podmani',
-        academicYears: '1405-1406',
-        lessons: [
-          { id: '1', title: 'کارآموزی ۱' },
-          { id: '2', title: 'کارآموزی ۲' },
-        ],
-      }),
-      parseNestSemesterBundle({
-        id: 'b',
-        season: 'one',
-        structure: 'podmani',
-        academicYears: '1405-1402',
-        lessons: [
-          { id: '3', title: 'کارورزی ۱' },
-          { id: '4', title: 'کارورزی ۲' },
-        ],
-      }),
-    ].filter((row) => row !== null);
-    expect(filterBundlesForCapacityKind(mixed, 'internship')).toEqual([
-      expect.objectContaining({
-        id: 'b',
-        lessons: [
-          expect.objectContaining({ title: 'کارورزی ۱' }),
-          expect.objectContaining({ title: 'کارورزی ۲' }),
-        ],
-      }),
-    ]);
-    expect(filterBundlesForCapacityKind(mixed, 'apprenticeship')[0]?.id).toBe(
-      'a'
-    );
   });
 
   it('maps nest day 0–5 to a single weekday', () => {

@@ -43,29 +43,6 @@ export function nestStructureForCapacityKind(
   return kind === 'internship' ? 'semester' : 'podmani';
 }
 
-/** عنوان درس منبع تفکیک تب است؛ فیلد `structure` روی ترم لایو همیشه قابل اعتماد نیست. */
-export function lessonKindFromTitle(
-  title: string
-): OrganizationalCapacityKind | null {
-  if (title.includes('کارآموزی')) return 'apprenticeship';
-  if (title.includes('کارورزی')) return 'internship';
-  return null;
-}
-
-export function filterBundlesForCapacityKind(
-  bundles: NestSemesterWithLessons[],
-  kind: OrganizationalCapacityKind
-): NestSemesterWithLessons[] {
-  return bundles
-    .map((bundle) => ({
-      ...bundle,
-      lessons: (bundle.lessons ?? []).filter(
-        (lesson) => lessonKindFromTitle(nestLessonTitle(lesson)) === kind
-      ),
-    }))
-    .filter((bundle) => (bundle.lessons?.length ?? 0) > 0);
-}
-
 export function nestEntityId(row: { id?: string; _id?: string }): string {
   return row.id || row._id || '';
 }

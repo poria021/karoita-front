@@ -11,8 +11,9 @@ import {
   KvDialogHeader,
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
-import { KvTypography } from '@/components/shared/KvTypography';
 import { KvCheckboxMultiSelect } from '@/components/shared/fields/KvCheckboxMultiSelect';
+import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
+import { KvTypography } from '@/components/shared/KvTypography';
 import type {
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
@@ -54,26 +55,29 @@ export function DailyApprovalBulkExtendModal({
     preferredCourse,
   });
   const options = catalog.weekOptions;
+  const selectedCourseId = catalog.selectedCourse?.id ?? '';
+  const selectedCourseFilter = catalog.selectedCourse?.courseFilter;
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>();
 
-  const previouslyExtendedWeekNumbers = collectExtendedWeekNumbers(
-    trainees,
-    catalog.selectedCourse?.courseFilter
-  );
-
-  const baselineExtendedValues = useMemo(() => {
+  const baselineKey = useMemo(() => {
     const allowedValues = new Set(options.map((option) => option.value));
-    return previouslyExtendedWeekNumbers
+    return collectExtendedWeekNumbers(trainees, selectedCourseFilter)
       .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0)
       .map((weekNumber) => String(weekNumber))
-      .filter((value) => allowedValues.has(value));
-  }, [options, previouslyExtendedWeekNumbers]);
+      .filter((value) => allowedValues.has(value))
+      .join(',');
+  }, [options, selectedCourseFilter, trainees]);
+
+  const baselineExtendedValues = useMemo(
+    () => (baselineKey ? baselineKey.split(',') : []),
+    [baselineKey]
+  );
 
   useEffect(() => {
-    setSelectedValues(baselineExtendedValues);
+    setSelectedValues(baselineKey ? baselineKey.split(',') : []);
     setError(undefined);
-  }, [baselineExtendedValues, catalog.selectedCourse?.id]);
+  }, [baselineKey, selectedCourseId]);
 
   const resetForm = useCallback(() => {
     setSelectedValues(baselineExtendedValues);
@@ -153,29 +157,30 @@ export function DailyApprovalBulkExtendModal({
           </KvDialogDescription>
         </KvDialogHeader>
 
-        <div className="space-y-kv-pair">
-          <div className="space-y-kv-micro">
-            <KvTypography variant="label" as="p">
-              درس
-              <span className="text-kv-danger"> *</span>
-            </KvTypography>
+        <div className="space-y-kv-group">
+          <KvFieldFrame
+            id="daily-approval-bulk-extend-course"
+            label="درس"
+            required
+            error={catalog.coursesError ?? undefined}
+            hint={
+              !catalog.coursesPending &&
+              !catalog.coursesError &&
+              catalog.courses.length === 0
+                ? 'برای این نیم‌سال درسی یافت نشد.'
+                : undefined
+            }
+          >
             {catalog.coursesPending ? (
               <KvTypography variant="caption" tone="muted" as="p">
                 در حال بارگذاری دروس...
               </KvTypography>
-            ) : catalog.coursesError ? (
-              <KvTypography variant="caption" tone="danger" as="p">
-                {catalog.coursesError}
-              </KvTypography>
-            ) : catalog.courses.length === 0 ? (
-              <KvTypography variant="caption" tone="muted" as="p">
-                برای این نیم‌سال درسی یافت نشد.
-              </KvTypography>
-            ) : (
+            ) : catalog.courses.length > 0 ? (
               <div
+                id="daily-approval-bulk-extend-course"
                 role="radiogroup"
                 aria-label="انتخاب درس"
-                className="flex flex-wrap justify-start gap-kv-micro"
+                className="flex w-full items-stretch gap-kv-pair"
               >
                 {catalog.courses.map((course) => {
                   const selected = course.id === catalog.selectedCourse?.id;
@@ -189,6 +194,7 @@ export function DailyApprovalBulkExtendModal({
                       disabled={busy}
                       aria-checked={selected}
                       role="radio"
+                      className="min-w-0 flex-1 justify-center text-center"
                       onClick={() => catalog.setLessonId(course.id)}
                     >
                       {course.title}
@@ -196,8 +202,8 @@ export function DailyApprovalBulkExtendModal({
                   );
                 })}
               </div>
-            )}
-          </div>
+            ) : null}
+          </KvFieldFrame>
 
           <KvCheckboxMultiSelect
             id="daily-approval-bulk-extend-weeks"
