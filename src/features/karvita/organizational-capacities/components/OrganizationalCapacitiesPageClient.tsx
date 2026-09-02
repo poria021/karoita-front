@@ -5,7 +5,6 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import { kvTabsBodyBorderClassName } from '@/components/shared/shell/shellChrome';
-import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
@@ -13,12 +12,16 @@ import { useOrganizationalCapacitiesPage } from '../hooks/useOrganizationalCapac
 import { OrganizationalCapacitiesGuard } from './OrganizationalCapacitiesGuard';
 import { OrganizationalCapacitiesHeader } from './OrganizationalCapacitiesHeader';
 import { OrganizationalCapacitiesMobileList } from './OrganizationalCapacitiesMobileList';
+import { OrganizationalCapacitiesWorkspaceHeader } from './OrganizationalCapacitiesWorkspaceHeader';
 import { OrganizationalCapacitiesSummary } from './OrganizationalCapacitiesSummary';
 import { OrganizationalCapacitiesTable } from './OrganizationalCapacitiesTable';
 
 export function OrganizationalCapacitiesPageClient() {
   const page = useOrganizationalCapacitiesPage();
-  const resetKey = `${page.kind}::${page.termId}::${page.snapshot?.status ?? 'loading'}`;
+  const courses = page.snapshot?.courses ?? [];
+  const maxCapacity = page.snapshot?.maxCapacity ?? 15;
+  const resetKey = `${page.kind}::${page.termId}`;
+  const fieldsLocked = page.snapshot == null;
 
   return (
     <OrganizationalCapacitiesGuard>
@@ -34,6 +37,13 @@ export function OrganizationalCapacitiesPageClient() {
             kvTabsBodyBorderClassName
           )}
         >
+          <OrganizationalCapacitiesWorkspaceHeader
+            termId={page.termId}
+            terms={page.terms}
+            termsPending={page.termsPending}
+            onTermChange={page.changeTerm}
+          />
+
           {page.error ? (
             <KvAlert
               variant="error"
@@ -52,57 +62,52 @@ export function OrganizationalCapacitiesPageClient() {
             />
           ) : null}
 
-          {page.isLoading || !page.snapshot ? (
-            <KvBusySurface className="min-h-[280px] rounded-kv-control" />
-          ) : (
-            <>
-              <OrganizationalCapacitiesSummary summary={page.snapshot.summary} />
+          <OrganizationalCapacitiesSummary
+            summary={page.snapshot?.summary ?? null}
+            isLoading={page.isLoading}
+          />
 
-              <div className="hidden lg:block">
-                <OrganizationalCapacitiesTable
-                  courses={page.snapshot.courses}
-                  maxCapacity={page.snapshot.maxCapacity}
-                  locked={false}
-                  resetKey={resetKey}
-                  onTotalChange={(courseId, value) =>
-                    page.updateCourseTotal(courseId, value)
-                  }
-                  onToggleDay={(courseId, day) =>
-                    page.toggleDay(courseId, day)
-                  }
-                />
-              </div>
+          <div className="hidden lg:block">
+            <OrganizationalCapacitiesTable
+              courses={courses}
+              maxCapacity={maxCapacity}
+              locked={fieldsLocked}
+              isLoading={page.isLoading}
+              resetKey={resetKey}
+              onTotalChange={(courseId, value) =>
+                page.updateCourseTotal(courseId, value)
+              }
+              onToggleDay={(courseId, day) => page.toggleDay(courseId, day)}
+            />
+          </div>
 
-              <OrganizationalCapacitiesMobileList
-                courses={page.snapshot.courses}
-                maxCapacity={page.snapshot.maxCapacity}
-                locked={false}
-                expandedCourseId={page.expandedCourseId}
-                onExpandedChange={page.setExpandedCourseId}
-                onTotalChange={(courseId, value) =>
-                  page.updateCourseTotal(courseId, value)
-                }
-                onToggleDay={(courseId, day) =>
-                  page.toggleDay(courseId, day)
-                }
-              />
+          <OrganizationalCapacitiesMobileList
+            courses={courses}
+            maxCapacity={maxCapacity}
+            locked={fieldsLocked}
+            isLoading={page.isLoading}
+            expandedCourseId={page.expandedCourseId}
+            onExpandedChange={page.setExpandedCourseId}
+            onTotalChange={(courseId, value) =>
+              page.updateCourseTotal(courseId, value)
+            }
+            onToggleDay={(courseId, day) => page.toggleDay(courseId, day)}
+          />
 
-              <div className="flex justify-end border-t border-kv-border pt-kv-group">
-                <KvButton
-                  type="button"
-                  color="cta"
-                  appearance="solid"
-                  size="md"
-                  disabled={page.actionBusy || !page.isDirty}
-                  loading={page.actionBusy}
-                  icon={<FaIcon icon={faIcons.cloudArrowUp} size="xs" />}
-                  onClick={() => page.setConfirmOpen(true)}
-                >
-                  ثبت و ذخیره تغییرات ظرفیت‌ها
-                </KvButton>
-              </div>
-            </>
-          )}
+          <div className="flex justify-end border-t border-kv-border pt-kv-group">
+            <KvButton
+              type="button"
+              color="cta"
+              appearance="solid"
+              size="md"
+              disabled={page.actionBusy || !page.isDirty || fieldsLocked}
+              loading={page.actionBusy}
+              icon={<FaIcon icon={faIcons.cloudArrowUp} size="xs" />}
+              onClick={() => page.setConfirmOpen(true)}
+            >
+              ثبت و ذخیره تغییرات ظرفیت‌ها
+            </KvButton>
+          </div>
         </div>
       </div>
 
@@ -114,7 +119,7 @@ export function OrganizationalCapacitiesPageClient() {
         description="آیا مایل به ذخیره تغییرات ظرفیت‌های پذیرش اعلام‌شده هستید؟"
         confirmText="ذخیره تغییرات"
         cancelText="انصراف"
-        confirmDisabled={page.actionBusy || !page.isDirty}
+        confirmDisabled={page.actionBusy || !page.isDirty || fieldsLocked}
       />
     </OrganizationalCapacitiesGuard>
   );

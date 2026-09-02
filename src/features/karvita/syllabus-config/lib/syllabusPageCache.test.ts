@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { cacheKeyFor, type PendingNavigation } from './syllabusPageCache';
+import { cacheKeyFor, syllabusSnapshotQueryKey, type PendingNavigation } from './syllabusPageCache';
 import type { CourseCatalogItem } from '@/types/syllabus-config';
 
 describe('cacheKeyFor', () => {
@@ -9,6 +9,12 @@ describe('cacheKeyFor', () => {
     expect(cacheKeyFor('course_offerings')).toBe(
       'syllabus-config::course_offerings'
     );
+  });
+});
+
+describe('syllabusSnapshotQueryKey', () => {
+  it('is shared by term settings and course offerings', () => {
+    expect(syllabusSnapshotQueryKey).toEqual(['syllabus-config', 'snapshot']);
   });
 });
 

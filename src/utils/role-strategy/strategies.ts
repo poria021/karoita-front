@@ -80,6 +80,7 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     kind: 'group',
     title: 'مدیریت سازمانی',
     icon: 'fa-network-wired',
+    defaultOpen: true,
     children: [
       {
         title: 'ساختار سازمانی',
@@ -97,6 +98,7 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     kind: 'group',
     title: 'مدیریت ترم و سرفصل',
     icon: 'fa-screwdriver-wrench',
+    defaultOpen: true,
     children: [
       {
         title: 'ارائه و سرفصل دروس',

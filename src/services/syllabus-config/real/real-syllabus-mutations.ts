@@ -1,6 +1,8 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
+import { ApiClientError } from '@/services/api-error';
 import {
-  planNestWeekWrites,
+  parseNestSemester,
+  toNestLessonWeeksBody,
   toNestSemesterDto,
   toNestSemesterWriteDto,
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
@@ -17,6 +19,14 @@ import type {
   UpsertTermInput,
 } from '@/types/syllabus-config';
 
+async function loadSemesterForWrite(id: string) {
+  const current = parseNestSemester(await adminCatalogApi.getSemester(id), id);
+  if (!current) {
+    throw new ApiClientError('دوره تحصیلی یافت نشد.', 404);
+  }
+  return current;
+}
+
 export async function createRealTerm(
   input: UpsertTermInput
 ): Promise<SyllabusConfigSnapshot> {
@@ -25,16 +35,16 @@ export async function createRealTerm(
 }
 
 /**
- * `PATCH /admin/semester/{id}` سپس GET همان id.
+ * `PATCH /admin/semester/{id}` سپس snapshot.
  * بدنه باید کامل باشد تا گیت‌های زنده از بین نروند.
+ * پاسخ PATCH لایو سند mongoose است — نادیده می‌گیریم و از GET لیست می‌خوانیم.
  */
 export async function updateRealTerm(
   id: string,
   input: UpsertTermInput
 ): Promise<SyllabusConfigSnapshot> {
-  const current = await adminCatalogApi.getSemester(id);
+  const current = await loadSemesterForWrite(id);
   await adminCatalogApi.updateSemester(id, toNestSemesterDto(input, current));
-  await adminCatalogApi.getSemester(id);
   return getRealSyllabusSnapshot();
 }
 
@@ -72,7 +82,7 @@ export async function setRealPassingThreshold(
   return getRealSyllabusSnapshot();
 }
 
-/** `PATCH /admin/lessons/{id}/status` — `status` پرچم ارائه است. */
+/** `PATCH /admin/lessons/{id}/status` — `status` پرچم ارائه است؛ ظرفیت/روز اختیاری‌اند. */
 export async function activateRealOffering(
   input: ActivateOfferingInput
 ): Promise<SyllabusConfigSnapshot> {
@@ -98,7 +108,7 @@ export async function deactivateRealOffering(
 export async function updateRealTermGates(
   input: UpdateTermGatesInput
 ): Promise<SyllabusConfigSnapshot> {
-  const current = await adminCatalogApi.getSemester(input.termId);
+  const current = await loadSemesterForWrite(input.termId);
   const patch: {
     courseSelection?: boolean;
     startClasses?: boolean;
@@ -120,16 +130,16 @@ export async function updateRealTermGates(
   return getRealSyllabusSnapshot();
 }
 
-/** ردیف جدید create؛ موجود update؛ حذف‌شده از ادیتور بایگانی. */
+/**
+ * `PUT /admin/lessons/{lessonId}/weeks` — جایگزینی همهٔ هفته‌ها در یک رفت‌وبرگشت.
+ * POST/PATCH تکی `/admin/weeks` برای به‌روزرسانی جزئی در HTTP مانده‌اند.
+ */
 export async function saveRealSyllabusWeeks(
   input: SaveSyllabusWeeksInput
 ): Promise<SyllabusConfigSnapshot> {
-  const lessonId = input.courseCatalogId;
-  const remote = await adminCatalogApi.listWeeksByLesson(lessonId);
-  const plan = planNestWeekWrites(lessonId, input.weeks, remote);
-  await Promise.all([
-    ...plan.creates.map((body) => adminCatalogApi.createWeek(body)),
-    ...plan.updates.map(({ id, body }) => adminCatalogApi.updateWeek(id, body)),
-  ]);
+  await adminCatalogApi.putLessonWeeks(
+    input.courseCatalogId,
+    toNestLessonWeeksBody(input.weeks)
+  );
   return getRealSyllabusSnapshot();
 }

@@ -67,7 +67,7 @@ export function useOrganizationalCapacitiesPage() {
     defaultValue: 'internship',
     preferWhenMissing: cached?.kind,
   });
-  const [termId] = useState(() => cached?.termId ?? '');
+  const [termId, setTermId] = useState(() => cached?.termId ?? '');
   const [actionBusy, setActionBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
@@ -83,19 +83,34 @@ export function useOrganizationalCapacitiesPage() {
     setChrome<CapacitiesChrome>(CHROME_ID, { kind, termId });
   }, [kind, setChrome, termId]);
 
-  const {
-    data: termsData,
-    error: termsError,
-    isPending: termsPending,
-    refetch: refetchTerms,
-  } = useQuery({
-    queryKey: capacitiesTermsKey(kind),
-    queryFn: () => OrganizationalCapacitiesService.listTerms(kind),
+  const internshipTermsQuery = useQuery({
+    queryKey: capacitiesTermsKey('internship'),
+    queryFn: () => OrganizationalCapacitiesService.listTerms('internship'),
     staleTime: QUERY_STALE_MS.module,
   });
+  const apprenticeshipTermsQuery = useQuery({
+    queryKey: capacitiesTermsKey('apprenticeship'),
+    queryFn: () => OrganizationalCapacitiesService.listTerms('apprenticeship'),
+    staleTime: QUERY_STALE_MS.module,
+  });
+  const refetchInternshipTerms = internshipTermsQuery.refetch;
+  const refetchApprenticeshipTerms = apprenticeshipTermsQuery.refetch;
+
+  const termsQuery =
+    kind === 'internship' ? internshipTermsQuery : apprenticeshipTermsQuery;
+  const termsData = termsQuery.data;
+  const termsError = termsQuery.error;
+  const termsPending = termsQuery.isPending;
+
+  const terms = termsData ?? [];
+
+  useEffect(() => {
+    if (termsPending) return;
+    if (terms.some((term) => term.id === termId)) return;
+    setTermId(terms[0]?.id ?? '');
+  }, [termId, terms, termsPending]);
 
   const resolvedTermId = (() => {
-    const terms = termsData ?? [];
     if (terms.some((term) => term.id === termId)) return termId;
     return terms[0]?.id ?? '';
   })();
@@ -113,7 +128,7 @@ export function useOrganizationalCapacitiesPage() {
         kind,
         termId: resolvedTermId,
       }),
-    enabled: Boolean(resolvedTermId),
+    enabled: !termsPending,
     staleTime: QUERY_STALE_MS.module,
   });
 
@@ -130,10 +145,10 @@ export function useOrganizationalCapacitiesPage() {
   }, [snapshotData, resolvedTermId, kind]);
 
   const isLoading =
-    termsPending ||
-    (Boolean(resolvedTermId) &&
-      snapshot == null &&
-      (snapshotPending || snapshotFetching));
+    snapshot == null &&
+    !termsError &&
+    !snapshotError &&
+    (termsPending || snapshotPending || snapshotFetching);
 
   const error = termsError
     ? unknownErrorMessage(termsError, 'بارگذاری ظرفیت‌ها ناموفق بود.')
@@ -145,9 +160,10 @@ export function useOrganizationalCapacitiesPage() {
     baselineRef.current = null;
     baselineKeyRef.current = '';
     setIsDirty(false);
-    void refetchTerms();
-    if (resolvedTermId) void refetchSnapshot();
-  }, [refetchSnapshot, refetchTerms, resolvedTermId]);
+    void refetchInternshipTerms();
+    void refetchApprenticeshipTerms();
+    void refetchSnapshot();
+  }, [refetchApprenticeshipTerms, refetchInternshipTerms, refetchSnapshot]);
 
   const changeKind = useCallback(
     (next: OrganizationalCapacityKind) => {
@@ -159,6 +175,14 @@ export function useOrganizationalCapacitiesPage() {
     },
     [setKind]
   );
+
+  const changeTerm = useCallback((nextTermId: string) => {
+    setTermId(nextTermId);
+    setExpandedCourseId(null);
+    baselineRef.current = null;
+    baselineKeyRef.current = '';
+    setIsDirty(false);
+  }, []);
 
   const setSnapshotData = useCallback(
     (next: OrganizationalCapacitiesSnapshot) => {
@@ -278,7 +302,10 @@ export function useOrganizationalCapacitiesPage() {
   return {
     kind,
     changeKind,
-    termId,
+    termId: resolvedTermId,
+    terms,
+    termsPending,
+    changeTerm,
     snapshot,
     isLoading,
     error,

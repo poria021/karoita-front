@@ -10,6 +10,8 @@ export {
 export { resetMockDailyApprovalsForTests } from '@/services/daily-approvals/mock/mock-daily-approvals-persistence';
 export {
   listMockDailyApprovals,
+  listMockDailyApprovalCourses,
+  listMockDailyApprovalWeeks,
   listTermsForDailyApprovalKind,
 } from '@/services/daily-approvals/mock/mock-daily-approvals-query';
 export {

@@ -8,7 +8,6 @@ import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
 import {
@@ -35,6 +34,8 @@ interface TermFormCardProps {
   onTermYearChange: (year: string) => void;
   isSaving: boolean;
   formError?: string | null;
+  academicYearError?: string | null;
+  isDirty?: boolean;
   onSave: () => void;
   onRequestDelete: () => void;
   isLoading?: boolean;
@@ -52,6 +53,8 @@ export function TermFormCard({
   onTermYearChange,
   isSaving,
   formError,
+  academicYearError,
+  isDirty = false,
   onSave,
   onRequestDelete,
   isLoading = false,
@@ -59,104 +62,99 @@ export function TermFormCard({
   const isEditing = Boolean(editTermId);
   const prefixOptions =
     termType === 'modular' ? MODULAR_PREFIX_OPTIONS : SEMESTER_PREFIX_OPTIONS;
+  const canSubmit = isEditing ? isDirty : isDirty || !termYear.trim();
 
   return (
     <KvCard>
       <KvCardContent padding="md" className="space-y-kv-group">
         <div className="flex items-center gap-kv-pair border-b border-kv-border pb-kv-pair">
           <KvCardTitleIcon icon={faIcons.plus} />
-          <div className="min-w-0">
-            <KvTypography variant="subtitle" weight="black" as="h4">
-              {isEditing ? 'ویرایش دوره تحصیلی' : 'تعریف و ساختارسازی ترم جدید'}
-            </KvTypography>
-            <KvTypography variant="caption" tone="muted" as="p">
-              ساختار ترمی برای دانشجویان و پودمانی برای مهارت‌آموزان اعمال می‌شود.
-            </KvTypography>
-          </div>
+          <KvTypography variant="subtitle" weight="black" as="h4" className="min-w-0">
+            {isEditing ? 'ویرایش دوره تحصیلی' : 'تعریف و ساختارسازی ترم جدید'}
+          </KvTypography>
         </div>
 
-        {isLoading ? (
-          <KvBusySurface className="min-h-48 rounded-kv-panel" label="در حال بارگذاری فرم ترم" />
-        ) : (
-          <>
-            <KvSelectField
-              label="عملیات در حال انجام"
-              required
-              size="md"
-              value={editTermId || '__new__'}
-              displayValue={
-                editTermId
-                  ? `ویرایش دوره: ${toPersianDigits(
-                      terms.find((term) => term.id === editTermId)?.title ?? ''
-                    )}`
-                  : '-- ایجاد و تعریف دوره تحصیلی جدید --'
-              }
-              onValueChange={(value) =>
-                onSelectEditTerm(value === '__new__' ? '' : value)
-              }
-            >
-              <KvSelectItem value="__new__">
-                -- ایجاد و تعریف دوره تحصیلی جدید --
+        <KvSelectField
+          label="عملیات در حال انجام"
+          required
+          size="md"
+          disabled={isLoading}
+          value={editTermId || '__new__'}
+          displayValue={
+            editTermId
+              ? `ویرایش دوره: ${toPersianDigits(
+                  terms.find((term) => term.id === editTermId)?.title ?? ''
+                )}`
+              : '-- ایجاد و تعریف دوره تحصیلی جدید --'
+          }
+          onValueChange={(value) =>
+            onSelectEditTerm(value === '__new__' ? '' : value)
+          }
+        >
+          <KvSelectItem value="__new__">
+            -- ایجاد و تعریف دوره تحصیلی جدید --
+          </KvSelectItem>
+          {terms.map((term) => (
+            <KvSelectItem key={term.id} value={term.id}>
+              ویرایش دوره: {toPersianDigits(term.title)}
+            </KvSelectItem>
+          ))}
+        </KvSelectField>
+
+        <KvSelectField
+          label="نوع ساختار دوره"
+          required
+          size="md"
+          disabled={isLoading}
+          value={termType}
+          onValueChange={(value) =>
+            onTermTypeChange(value as AcademicTermType)
+          }
+        >
+          {TERM_TYPE_OPTIONS.map((option) => (
+            <KvSelectItem key={option.value} value={option.value}>
+              {option.label}
+            </KvSelectItem>
+          ))}
+        </KvSelectField>
+
+        <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
+          <KvSelectField
+            label={
+              termType === 'modular'
+                ? 'عنوان بازه پودمان'
+                : 'عنوان بازه نیم‌سال'
+            }
+            required
+            size="md"
+            disabled={isLoading}
+            value={termPrefix}
+            displayValue={toPersianDigits(termPrefix)}
+            onValueChange={onTermPrefixChange}
+          >
+            {prefixOptions.map((prefix) => (
+              <KvSelectItem key={prefix} value={prefix}>
+                {toPersianDigits(prefix)}
               </KvSelectItem>
-              {terms.map((term) => (
-                <KvSelectItem key={term.id} value={term.id}>
-                  ویرایش دوره: {toPersianDigits(term.title)}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
+            ))}
+          </KvSelectField>
 
-            <KvSelectField
-              label="نوع ساختار دوره"
+            <KvTextField
+              id="syllabus-term-academic-year"
+              label="سال تحصیلی"
               required
               size="md"
-              value={termType}
-              onValueChange={(value) =>
-                onTermTypeChange(value as AcademicTermType)
+              dir="ltr"
+              scriptGuard="none"
+              disabled={isLoading}
+              value={displayAcademicYear(termYear)}
+              placeholder="۱۴۰۵-۱۴۰۶"
+              error={academicYearError ?? undefined}
+              onChange={(event) =>
+                onTermYearChange(persianToEnglishDigits(event.target.value))
               }
-            >
-              {TERM_TYPE_OPTIONS.map((option) => (
-                <KvSelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
-
-            <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
-              <KvSelectField
-                label={
-                  termType === 'modular'
-                    ? 'عنوان بازه پودمان'
-                    : 'عنوان بازه نیم‌سال'
-                }
-                required
-                size="md"
-                value={termPrefix}
-                displayValue={toPersianDigits(termPrefix)}
-                onValueChange={onTermPrefixChange}
-              >
-                {prefixOptions.map((prefix) => (
-                  <KvSelectItem key={prefix} value={prefix}>
-                    {toPersianDigits(prefix)}
-                  </KvSelectItem>
-                ))}
-              </KvSelectField>
-
-              <KvTextField
-                id="syllabus-term-academic-year"
-                label="سال تحصیلی"
-                required
-                size="md"
-                dir="ltr"
-                scriptGuard="none"
-                value={displayAcademicYear(termYear)}
-                placeholder="۱۴۰۵-۱۴۰۶"
-                onChange={(event) =>
-                  onTermYearChange(persianToEnglishDigits(event.target.value))
-                }
-              />
-            </div>
-          </>
-        )}
+            />
+        </div>
 
         {formError ? (
           <KvTypography variant="caption" tone="danger">
@@ -184,7 +182,7 @@ export function TermFormCard({
             size="md"
             className="w-full sm:w-auto"
             loading={isSaving}
-            disabled={isLoading}
+            disabled={isLoading || isSaving || !canSubmit}
             onClick={onSave}
           >
             {isEditing ? 'ذخیره تغییرات دوره' : 'ایجاد دوره تحصیلی'}

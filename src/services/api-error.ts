@@ -80,6 +80,27 @@ function isOtpAuthUrl(url: string | undefined): boolean {
   return url.includes(OTP_VERIFY_URL_HINT) || url.includes(OTP_RESET_URL_HINT);
 }
 
+/** `/admin/semester` و `/admin/semester/{id}` — نه `semesters_all`. */
+function isSemesterAdminUrl(url: string | undefined): boolean {
+  if (typeof url !== 'string') return false;
+  return /\/admin\/semester(?:\/|$|\?)/.test(url);
+}
+
+function isSettingsAdminUrl(url: string | undefined): boolean {
+  if (typeof url !== 'string') return false;
+  return /\/admin\/settings(?:\/|$|\?)/.test(url);
+}
+
+function isWeeksAdminUrl(url: string | undefined): boolean {
+  if (typeof url !== 'string') return false;
+  return /\/admin\/weeks(?:\/|$|\?)/.test(url);
+}
+
+function isLessonsAdminUrl(url: string | undefined): boolean {
+  if (typeof url !== 'string') return false;
+  return /\/admin\/lessons(?:\/|$|\?)/.test(url);
+}
+
 function defaultStatusMessage(status: number, url?: string): string {
   if (status === 404 && isOtpAuthUrl(url)) {
     return 'کد تایید وارد‌شده اشتباه یا منقضی شده است.';
@@ -97,9 +118,44 @@ function defaultStatusMessage(status: number, url?: string): string {
 
 export function localizeApiError(payload: unknown, status: number, url?: string): string {
   const serverMessage = extractApiMessage(payload);
-  return serverMessage && isPersianMessage(serverMessage)
-    ? serverMessage
-    : defaultStatusMessage(status, url);
+  if (serverMessage && isPersianMessage(serverMessage)) {
+    return serverMessage;
+  }
+  if (isSemesterAdminUrl(url)) {
+    if (status === 400) {
+      return 'این دوره تحصیلی تکراری است، یا ترم دیگری با همین فصل و ساختار انتخاب واحد باز دارد.';
+    }
+    if (status === 404) {
+      return 'دوره تحصیلی یافت نشد.';
+    }
+  }
+  if (isSettingsAdminUrl(url)) {
+    if (status === 404) {
+      return 'تنظیمات تحصیلی یافت نشد.';
+    }
+  }
+  if (isWeeksAdminUrl(url)) {
+    if (status === 404) {
+      return 'هفته یافت نشد.';
+    }
+  }
+  if (isLessonsAdminUrl(url)) {
+    if (status === 404) {
+      return 'درس یافت نشد.';
+    }
+    if (status === 400) {
+      if (/\/lessons\/[^/]+\/weeks/.test(url ?? '')) {
+        return 'برنامهٔ هفتگی درس معتبر نیست.';
+      }
+      const capacityHint =
+        typeof serverMessage === 'string' &&
+        /capacit|exceed|professor/i.test(serverMessage);
+      return capacityHint
+        ? 'ظرفیت درس از سقف عمومی اساتید بیشتر است.'
+        : 'اطلاعات درس معتبر نیست. ظرفیت و روزهای حضور را بررسی کنید.';
+    }
+  }
+  return defaultStatusMessage(status, url);
 }
 
 export async function mapHttpError(error: unknown): Promise<never> {

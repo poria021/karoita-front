@@ -1,4 +1,5 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
+import { ApiClientError } from '@/services/api-error';
 import {
   DEFAULT_WEEK_WEIGHT,
   getTodayJalaliSlash,
@@ -6,6 +7,11 @@ import {
 import {
   lessonsOfTerm,
   mergeTermsWithLessonBundles,
+  parseNestAcademicSettings,
+  parseNestLessonWeekList,
+  parseNestSemester,
+  parseNestSemesterBundle,
+  parseNestSemesterList,
   toAcademicSettings,
   toAcademicTerm,
   toCourseCatalogItem,
@@ -26,12 +32,15 @@ export type { RealAcademicSettings };
 
 /** `GET /admin/semester` — آرایهٔ خام، بدون پاکت paging. */
 export async function listRealTerms(): Promise<AcademicTerm[]> {
-  const rows = await adminCatalogApi.listSemesters();
+  const rows = parseNestSemesterList(await adminCatalogApi.listSemesters());
   return rows.map((row) => toAcademicTerm(row));
 }
 
 export async function getRealTerm(id: string): Promise<AcademicTerm> {
-  const row = await adminCatalogApi.getSemester(id);
+  const row = parseNestSemester(await adminCatalogApi.getSemester(id), id);
+  if (!row) {
+    throw new ApiClientError('دوره تحصیلی یافت نشد.', 404);
+  }
   return toAcademicTerm(row);
 }
 
@@ -42,7 +51,12 @@ export async function listRealSemesterBundles(): Promise<
     adminCatalogApi.listSemestersAll('semester'),
     adminCatalogApi.listSemestersAll('podmani'),
   ]);
-  return [...semester, ...podmani];
+  const bundles: NestSemesterWithLessons[] = [];
+  for (const row of [...semester, ...podmani]) {
+    const parsed = parseNestSemesterBundle(row);
+    if (parsed) bundles.push(parsed);
+  }
+  return bundles;
 }
 
 /**
@@ -51,8 +65,13 @@ export async function listRealSemesterBundles(): Promise<
  */
 export async function getRealAcademicSettings(): Promise<RealAcademicSettings> {
   try {
-    const settings = await adminCatalogApi.getAcademicSettings();
-    return toAcademicSettings(settings);
+    const parsed = parseNestAcademicSettings(
+      await adminCatalogApi.getAcademicSettings()
+    );
+    if (!parsed) {
+      return { globalProfessorCapacity: 0, passingScoreThreshold: 0 };
+    }
+    return toAcademicSettings(parsed);
   } catch {
     // Nest وقتی ردیف تنظیمات نیست ۴۰۴/۵۰۰ می‌دهد — پیش‌فرض برگردان.
     return { globalProfessorCapacity: 0, passingScoreThreshold: 0 };
@@ -117,13 +136,15 @@ export async function listRealOfferingsForTerm(
 
 /**
  * `GET /admin/weeks/lesson/{lessonId}`. اگر خالی بود، هفته‌های تو در تو روی
- * `GET /admin/semesters_all` (بعضی کپی‌های Nest تا PUT آن‌ها را در مسیر درس نمی‌گذارند).
+ * `GET /admin/semesters_all` (تا وقتی PUT به مسیر درس ننشیند بعضی کپی‌ها خالی‌اند).
  */
 export async function getRealWeeksForLesson(
   termId: string,
   lessonId: string
 ): Promise<SyllabusWeek[]> {
-  const rows = await adminCatalogApi.listWeeksByLesson(lessonId);
+  const rows = parseNestLessonWeekList(
+    await adminCatalogApi.listWeeksByLesson(lessonId)
+  );
   if (rows.length > 0) {
     return rows.map((week, index) =>
       toSyllabusWeek(week, index, DEFAULT_WEEK_WEIGHT)
@@ -133,7 +154,7 @@ export async function getRealWeeksForLesson(
   const lesson = scoped?.lessons.find(
     (item) => (item.id || item._id) === lessonId
   );
-  return (lesson?.weeks ?? []).map((week, index) =>
+  return parseNestLessonWeekList(lesson?.weeks ?? []).map((week, index) =>
     toSyllabusWeek(week, index, DEFAULT_WEEK_WEIGHT)
   );
 }

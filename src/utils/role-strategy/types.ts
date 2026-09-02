@@ -14,7 +14,7 @@ export interface SidebarMenuGroup {
   title: string;
   icon: string;
   children: SidebarMenuItem[];
-  /** اگر true باشد گروه از ابتدا باز است تا زیرماژول‌ها دیده شوند. */
+  /** گروه با زیرماژول از ابتدا باز است؛ سایدبار هم بدون این فلگ باز شروع می‌شود. */
   defaultOpen?: boolean;
 }
 

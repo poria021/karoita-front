@@ -685,6 +685,25 @@
 }
 
 /*
+ * RemoveScroll سلکت (و گاهی منو) overflow و margin/padding جبرانی روی body می‌گذارد.
+ * در RTL ریل fixed سر جایش می‌ماند و هدر می‌پرد. دیالوگ قفل را نگه می‌دارد.
+ */
+body[data-scroll-locked]:has([data-kv-keep-page-scroll]):not(
+    :has([data-slot='dialog-overlay'])
+  ):not(:has([data-slot='alert-dialog-overlay'])),
+body.with-scroll-bars-hidden:has([data-kv-keep-page-scroll]):not(
+    :has([data-slot='dialog-overlay'])
+  ):not(:has([data-slot='alert-dialog-overlay'])) {
+  overflow: auto !important;
+  overscroll-behavior: auto !important;
+  margin-right: 0 !important;
+  margin-left: 0 !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  --removed-body-scroll-bar-size: 0px;
+}
+
+/*
  * Kill Chromium/Edge autofill wash (blue/yellow). Keep surface + text tokens.
  * Does not enable autofill — only paints over the browser's default highlight.
  */

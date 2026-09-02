@@ -27,17 +27,12 @@ export function useDailyApprovalsTerms({
   useEffect(() => {
     let cancelled = false;
 
-    void Promise.all([
-      DailyApprovalsService.listTerms(kind),
-      DailyApprovalsService.getPassingScoreThreshold(),
-    ])
-      .then(([nextTerms, threshold]) => {
+    void DailyApprovalsService.listTerms(kind)
+      .then((nextTerms) => {
         if (cancelled) return;
 
         setTerms(nextTerms);
-        setPassingScoreThreshold(
-          Number.isFinite(threshold) ? threshold : DAILY_APPROVAL_PASSING_SCORE
-        );
+        setTermsError(null);
         setTermId((current) => {
           if (nextTerms.some((term) => term.id === current)) return current;
           return nextTerms[0]?.id ?? '';
@@ -55,6 +50,18 @@ export function useDailyApprovalsTerms({
             : 'بارگذاری نیم‌سال‌ها ناموفق بود.'
         );
         setTermsReady(true);
+      });
+
+    void DailyApprovalsService.getPassingScoreThreshold()
+      .then((threshold) => {
+        if (cancelled) return;
+        setPassingScoreThreshold(
+          Number.isFinite(threshold) ? threshold : DAILY_APPROVAL_PASSING_SCORE
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPassingScoreThreshold(DAILY_APPROVAL_PASSING_SCORE);
       });
 
     return () => {

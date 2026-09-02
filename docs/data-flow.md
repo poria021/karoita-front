@@ -35,7 +35,7 @@
 | خطا | `api-error.ts` | `HTTPError` → `ApiClientError` با پیام فارسی |
 | توکن | `api-token.ts` | خواندن access از حافظه، refresh مشترک، logout روی ۴۰۱ |
 | پروکسی مرورگر | `lib/nest-proxy.ts` + `next.config.ts` | `/__nest-api` تا CORS دامنهٔ Nest بلاک نکند |
-| refresh سمت سرور | `app/api/auth/refresh/route.ts` | تنها جایی که کوکی httpOnly رفرش خوانده می‌شود |
+| refresh سمت سرور | `app/api/auth/refresh/route.ts` | تنها جایی که کوکی httpOnly رفرش خوانده می‌شود؛ مثل set/clear با `assertSameOriginPost` |
 
 Access token در حافظهٔ ماژول است (نه `localStorage`) چون XSS به Web Storage دسترسی دارد. Refresh token فقط کوکی httpOnly است و کلاینت هرگز آن را نمی‌بیند.
 
@@ -60,13 +60,13 @@ Access token در حافظهٔ ماژول است (نه `localStorage`) چون XS
 | `UsersService` | وصل | CRUD کاربران Nest |
 | `OrgStructureService` | وصل | استان/شهر/منطقه/مدرسه/دانشکده/رشته |
 | `OrganizationOptionsService` | وصل | typeahead فرم پروفایل و ادمین |
-| `SyllabusConfigService` | نسبی | ترم و ارائه وصل؛ context انتخاب واحد هنوز mock است |
+| `SyllabusConfigService` | نسبی | ترم CRUD/گیت، `settings`، `semesters_all`، ارائه درس و `PUT weeks` وصل؛ context انتخاب واحد هنوز mock است |
 | `OnboardingApprovalsService` | وصل | صف مدرک از طریق `GET/PATCH /users` |
 | `NotificationsService` | وصل | GET/PATCH `v1/notifications` — هدر روی ورود hydrate می‌شود |
 | `AdminUserCreationService` | نسبی | ستادی: `POST /admin/admins` (بدون رمز). سازمانی: کاربر باید از قبل وجود داشته باشد (`userId`) |
-| `DailyApprovalsService` | قطع | صفحه و mock مانده؛ real تا رسیدن route نست fail-closed است |
+| `DailyApprovalsService` | نسبی | picker نیم‌سال/درس از `GET semesters_all`؛ هفته از `GET weeks/lesson`؛ mutationهای نمره هنوز fail-closed |
 | `InternshipEnrollmentService` | قطع | همین‌طور — صفحه حذف نشود |
-| `OrganizationalCapacitiesService` | قطع | همین‌طور — صفحه حذف نشود |
+| `OrganizationalCapacitiesService` | وصل | استاد راهنما: `GET semesters_all` + `GET/POST/PUT professor-capacities` |
 | `LandingCmsService` | قطع | ادمین CMS fail-closed؛ لندینگ عمومی در real کروم خالی می‌دهد تا Nest برسد |
 | `AdminCatalogService` | مرده | استفاده نشود؛ HTTP کاتالوگ از `admin-catalog.api.ts` است |
 

@@ -8,6 +8,11 @@ import {
   mergeTermsWithLessonBundles,
   nestEntityId,
   nestLessonTitle,
+  normalizeAcademicYear,
+  parseNestAcademicSettings,
+  parseNestLessonWeekList,
+  parseNestSemester,
+  toAcademicSettings,
   toAcademicTerm,
   toAcademicTermType,
   toCourseCatalogItem,
@@ -17,6 +22,7 @@ import {
   toNestLessonWeeksBody,
   toNestSemesterAllStructure,
   toNestSemesterDto,
+  toNestSemesterStructure,
   toNestSemesterWriteDto,
   toSyllabusWeek,
 } from './real-syllabus-mappers';
@@ -56,6 +62,7 @@ describe('real-syllabus-mappers offerings', () => {
     expect(toAcademicTermType('podmani')).toBe('modular');
     expect(toAcademicTermType('modular')).toBe('modular');
     expect(toAcademicTermType('semester')).toBe('semester');
+    expect(toNestSemesterStructure('modular')).toBe('podmani');
     expect(toNestSemesterAllStructure('modular')).toBe('podmani');
     expect(toNestSemesterAllStructure('semester')).toBe('semester');
     expect(catalogKindForTermType('modular')).toBe('apprenticeship');
@@ -66,6 +73,8 @@ describe('real-syllabus-mappers offerings', () => {
       todayJalali: '1405/06/06',
     });
     expect(term.title).toBe('نیم‌سال اول 1405-1406');
+    expect(term.titlePrefix).toBe('نیم‌سال اول');
+    expect(term.academicYear).toBe('1405-1406');
     expect(term.isEnrollOpen).toBe(false);
     expect(term.isTermOpen).toBe(true);
     expect(term.termStart).toBe('1405/06/06');
@@ -106,6 +115,19 @@ describe('real-syllabus-mappers offerings', () => {
       startClasses: false,
     });
     expect(
+      toNestSemesterDto({
+        type: 'modular',
+        titlePrefix: 'پودمان اول',
+        academicYear: '۱۴۰۵ -۱۴۰7',
+      })
+    ).toEqual({
+      season: 'one',
+      structure: 'podmani',
+      academicYear: '1405-1407',
+      courseSelection: false,
+      startClasses: false,
+    });
+    expect(
       toNestSemesterWriteDto(LISTED_SEMESTER, { courseSelection: true })
     ).toEqual({
       season: 'one',
@@ -113,6 +135,87 @@ describe('real-syllabus-mappers offerings', () => {
       academicYear: '۱۴۰۵-۱۴۰۶',
       courseSelection: true,
       startClasses: true,
+    });
+    expect(
+      toNestSemesterWriteDto(
+        {
+          id: '6a96bc5ec0dbacb9d068188b',
+          season: 'one',
+          structure: 'podmani',
+          academicYear: '۱۴۰۵ -۱۴۰7',
+          courseSelection: false,
+          startClasses: false,
+        },
+        { startClasses: true }
+      )
+    ).toEqual({
+      season: 'one',
+      structure: 'podmani',
+      academicYear: '۱۴۰۵ -۱۴۰7',
+      courseSelection: false,
+      startClasses: true,
+    });
+  });
+
+  it('normalizes mixed academicYear spellings from live Nest', () => {
+    expect(normalizeAcademicYear('۱۴۰۵ -۱۴۰7')).toBe('1405-1407');
+    expect(normalizeAcademicYear('۱۴۰۵-۱۴۰۶')).toBe('1405-1406');
+    expect(normalizeAcademicYear('1405-1407')).toBe('1405-1407');
+    const term = toAcademicTerm(
+      {
+        id: '6a96bc5ec0dbacb9d068188b',
+        season: 'one',
+        structure: 'podmani',
+        academicYears: '۱۴۰۵ -۱۴۰7',
+        courseSelection: false,
+        startClasses: false,
+      },
+      { todayJalali: '1405/06/10' }
+    );
+    expect(term.type).toBe('modular');
+    expect(term.titlePrefix).toBe('پودمان اول');
+    expect(term.academicYear).toBe('1405-1407');
+    expect(term.title).toBe('پودمان اول 1405-1407');
+  });
+
+  it('unwraps a live mongoose PATCH document into NestSemester', () => {
+    const parsed = parseNestSemester(
+      {
+        $__: { skipId: true },
+        $isNew: false,
+        _doc: {
+          _id: {
+            buffer: {
+              '0': 106,
+              '1': 150,
+              '2': 188,
+              '3': 94,
+              '4': 192,
+              '5': 219,
+              '6': 172,
+              '7': 185,
+              '8': 208,
+              '9': 104,
+              '10': 24,
+              '11': 139,
+            },
+          },
+          season: 'one',
+          structure: 'podmani',
+          academicYear: '۱۴۰۵ -۱۴۰7',
+          courseSelection: false,
+          startClasses: false,
+        },
+      },
+      'fallback'
+    );
+    expect(parsed).toMatchObject({
+      id: '6a96bc5ec0dbacb9d068188b',
+      season: 'one',
+      structure: 'podmani',
+      academicYear: '۱۴۰۵ -۱۴۰7',
+      courseSelection: false,
+      startClasses: false,
     });
   });
 
@@ -230,5 +333,78 @@ describe('real-syllabus-mappers offerings', () => {
     expect(offerings['6a8e2b51d2187e0f2fdb784c']?.isOffered).toBe(true);
     expect(offerings['6a8e2b51d2187e0f2fdb784c']?.title).toBe('کارورزی ۱');
     expect(offerings['6a8e2b51d2187e0f2fdb784c']?.weeks).toHaveLength(1);
+  });
+
+  it('parses GET /admin/settings and maps to local academic settings', () => {
+    expect(
+      parseNestAcademicSettings({
+        id: '6a96c10bc0dbacb9d06818a0',
+        systemPassingScore: 60,
+        generalProfessorCapacity: 30,
+      })
+    ).toEqual({
+      id: '6a96c10bc0dbacb9d06818a0',
+      systemPassingScore: 60,
+      generalProfessorCapacity: 30,
+    });
+    expect(
+      toAcademicSettings({
+        id: '6a96c10bc0dbacb9d06818a0',
+        systemPassingScore: 60,
+        generalProfessorCapacity: 30,
+      })
+    ).toEqual({
+      globalProfessorCapacity: 30,
+      passingScoreThreshold: 60,
+    });
+    expect(
+      parseNestAcademicSettings([
+        { id: 'old', systemPassingScore: 10, generalProfessorCapacity: 5 },
+        { id: 'latest', systemPassingScore: 60, generalProfessorCapacity: 30 },
+      ])
+    ).toMatchObject({
+      id: 'latest',
+      systemPassingScore: 60,
+      generalProfessorCapacity: 30,
+    });
+  });
+
+  it('parses GET /admin/weeks/lesson and sorts by priority', () => {
+    const rows = parseNestLessonWeekList([
+      {
+        id: '6a96c14fc0dbacb9d06818a1',
+        status: false,
+        lessonId: '6a96bc5ec0dbacb9d068188b',
+        priority: 2,
+      },
+      {
+        id: '6a96c14fc0dbacb9d06818a2',
+        status: true,
+        lessonId: '6a96bc5ec0dbacb9d068188b',
+        priority: 1,
+      },
+    ]);
+    expect(rows.map((week) => week.priority)).toEqual([1, 2]);
+    expect(toNestLessonWeeksBody([
+      {
+        id: 'week_local',
+        suffix: 'هفته 1',
+        title: 'هفته 1',
+        weight: 3,
+        status: 'active',
+      },
+      {
+        id: 'week_local_2',
+        suffix: 'هفته 2',
+        title: 'هفته 2',
+        weight: 3,
+        status: 'archived',
+      },
+    ])).toEqual({
+      weeks: [
+        { priority: 1, status: true },
+        { priority: 2, status: false },
+      ],
+    });
   });
 });

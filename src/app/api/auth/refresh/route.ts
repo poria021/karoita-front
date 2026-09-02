@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 
+import { assertSameOriginPost } from '@/lib/auth-origin-guard';
 import {
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
@@ -50,6 +51,12 @@ async function fetchSessionUser(
 }
 
 export async function POST(request: NextRequest) {
+  // CSRF: کوکی رفرش را rotate می‌کند؛ فقط same-origin تا سایت متقاطع نشست را تمدید/باطل نکند.
+  const guard = assertSameOriginPost(request);
+  if (!guard.ok) {
+    return NextResponse.json({ error: guard.reason }, { status: guard.status });
+  }
+
   const refreshToken = request.cookies.get(REAL_REFRESH_COOKIE_NAME)?.value;
   const rawSurface = request.cookies.get(REAL_SURFACE_COOKIE_NAME)?.value;
   const surface: AuthSurface = resolveAuthSurface(rawSurface);

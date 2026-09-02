@@ -12,6 +12,7 @@ import type {
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
+import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
 import {
   errorMessage,
   offeredCatalogIdsFromList,
@@ -24,7 +25,7 @@ type UseSyllabusPageLoaderArgs = {
   state: UseSyllabusPageStateReturn;
 };
 
-export const syllabusSnapshotQueryKey = ['syllabus-config', 'snapshot'] as const;
+export { syllabusSnapshotQueryKey };
 
 type TermContextResult = {
   courses: CourseCatalogItem[];
@@ -260,11 +261,11 @@ export function useSyllabusPageLoader({
     setProfessorCapacity(String(snapshot.globalProfessorCapacity));
     setPassingThreshold(String(snapshot.passingScoreThreshold));
 
-    const preferredPool =
+    // ارائه درس فقط از ترم‌های همان تب مخاطب؛ بدون fallback به نوع دیگر.
+    const pool =
       currentSection === 'course_offerings'
         ? snapshot.terms.filter((term) => term.type === currentAudience)
         : snapshot.terms;
-    const pool = preferredPool.length > 0 ? preferredPool : snapshot.terms;
 
     const term = pool[0]
       ? pool.find((t) => t.id === preferredTermId) ?? pool[0]

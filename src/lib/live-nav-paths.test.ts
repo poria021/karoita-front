@@ -83,13 +83,13 @@ describe('live nav / admin plane', () => {
     const adminMenu = getVisibleSidebarMenu('super_admin');
     expect(adminMenu.map((entry) => entry.title)).toEqual([
       'بررسی مدارک هویتی',
-      'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
     ]);
 
     const groups = adminMenu.filter(isSidebarMenuGroup);
     expect(groups).toHaveLength(2);
+    expect(groups.every((g) => g.defaultOpen)).toBe(true);
 
     const orgGroup = groups.find((g) => g.title === 'مدیریت سازمانی');
     expect(orgGroup?.children.map((c) => c.path)).toEqual([
@@ -99,7 +99,6 @@ describe('live nav / admin plane', () => {
     const assistantMenu = getVisibleSidebarMenu('assistant_admin');
     expect(assistantMenu.map((entry) => entry.title)).toEqual([
       'بررسی مدارک هویتی',
-      'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
     ]);
@@ -161,6 +160,7 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.dashboard(),
       RouteService.karvita.adminDashboard(),
       RouteService.karvita.adminUserCreation(),
+      RouteService.karvita.landingCms(),
     ];
     for (const path of deferred) {
       expect(isLiveStaticNavPath(path)).toBe(true);
@@ -177,11 +177,11 @@ describe('live nav / admin plane', () => {
     );
   });
 
-  it('treats landing CMS as admin control plane and live sidebar path', () => {
+  it('treats landing CMS as admin control plane and keeps it off the sidebar', () => {
     expect(isAdminControlPlanePath(RouteService.karvita.landingCms())).toBe(
       true
     );
-    expect(isLiveSidebarPath(RouteService.karvita.landingCms())).toBe(true);
+    expect(isLiveSidebarPath(RouteService.karvita.landingCms())).toBe(false);
     expect(isNavigableAppPath('/karvita/landing-cms')).toBe(false);
     expect(RouteService.karvita.landingCms()).toBe(
       '/karvita/admin/landing-cms'

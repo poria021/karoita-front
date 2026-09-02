@@ -52,7 +52,7 @@ export function WeeklySyllabusTable({
   onSave,
 }: WeeklySyllabusTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, weeks.length);
-  const canEdit = Boolean(courseTitle);
+  const canEdit = Boolean(courseTitle) && !isLoading;
   const lastWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
   const hasLastWeek = Boolean(lastWeek);
 
@@ -110,9 +110,9 @@ export function WeeklySyllabusTable({
       <div className="border-t border-kv-border-muted pt-kv-group">
         <KvTableViewport
           resetKey={courseTitle ?? 'weeks'}
-          isBusy={isLoading}
+          isBusy={isLoading && weeks.length === 0}
           hasMore={false}
-          heightClassName="max-h-[400px] min-h-[200px]"
+          heightClassName="h-[400px] min-h-[400px] max-h-[400px]"
         >
           <KvTable scrollable={false}>
             <KvTableHeader>
@@ -145,6 +145,7 @@ export function WeeklySyllabusTable({
                     key={week.id}
                     week={week}
                     index={index}
+                    disabled={isLoading}
                     onWeightChange={onWeightChange}
                     onArchiveWeek={onArchiveWeek}
                     onRestoreWeek={onRestoreWeek}
@@ -163,7 +164,7 @@ export function WeeklySyllabusTable({
           size="md"
           className="w-full sm:w-auto"
           loading={isSaving}
-          disabled={!hasUnsavedChanges || isSaving}
+          disabled={!hasUnsavedChanges || isSaving || isLoading}
           onClick={onSave}
         >
           ثبت نهایی و انتشار برنامه به کاربران

@@ -45,6 +45,8 @@ test.describe('supervisor capacities smoke', () => {
     await expect(
       page.getByRole('tab', { name: 'ظرفیت کارورزی' })
     ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'پیکربندی ظرفیت' })).toBeVisible();
+    await expect(page.getByLabel('نیم‌سال تحصیلی')).toBeVisible();
     await expect(page.getByText('کل ظرفیت اعلام‌شده').first()).toBeVisible({
       timeout: 30_000,
     });

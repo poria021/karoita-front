@@ -67,6 +67,27 @@ describe('collectExtendedWeekNumbers', () => {
     expect(result).toEqual([3, 5]);
   });
 
+  it('can scope extended weeks to one course', () => {
+    const result = collectExtendedWeekNumbers(
+      [
+        trainee({
+          id: 'a',
+          status: 'active',
+          courseKey: 'intern1',
+          weeks: [week({ weekNumber: 2, status: 'extended' })],
+        }),
+        trainee({
+          id: 'b',
+          status: 'active',
+          courseKey: 'intern2',
+          weeks: [week({ weekNumber: 4, status: 'extended' })],
+        }),
+      ],
+      'intern1'
+    );
+    expect(result).toEqual([2]);
+  });
+
   it('ignores dropped trainees', () => {
     const result = collectExtendedWeekNumbers([
       trainee({

@@ -1,6 +1,6 @@
 /**
  * گارد CSRF برای Routeهای تغییر سشن: فقط same-origin.
- * `sameSite=lax` با ناوبری top-level کوکی را می‌فرستد؛ بدون این چک CSRF می‌تواند session را fix/logout کند.
+ * `sameSite=lax` با ناوبری top-level کوکی را می‌فرستد؛ بدون این چک CSRF می‌تواند session را fix/rotate/logout کند.
  */
 
 export interface OriginGuardRequest {

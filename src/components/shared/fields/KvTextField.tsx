@@ -121,6 +121,8 @@ export type KvTextFieldProps = {
   error?: string;
   hint?: string;
   locked?: boolean;
+  /** مثل سلکت: غیرفعال بدون ظاهر locked. */
+  disabled?: boolean;
   readOnly?: boolean;
   showLockIcon?: boolean;
   dir?: 'rtl' | 'ltr' | 'auto';
@@ -162,6 +164,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
       error,
       hint,
       locked = false,
+      disabled = false,
       readOnly = false,
       showLockIcon,
       dir,
@@ -285,7 +288,7 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
             autoFocus={autoFocus}
             inputMode={inputMode}
             maxLength={maxLength}
-            disabled={locked}
+            disabled={locked || disabled}
             readOnly={locked || readOnly}
             aria-invalid={displayError ? true : undefined}
             aria-describedby={describedBy}

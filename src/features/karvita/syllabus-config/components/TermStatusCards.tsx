@@ -30,6 +30,8 @@ const GATE_CONTENT_CLASS =
 type TermGateCardsProps = {
   selectedTerm: AcademicTerm | null;
   isLoading?: boolean;
+  enrollPending?: boolean;
+  termOpenPending?: boolean;
   onToggleEnroll: (open: boolean) => void;
   onToggleTermOpen: (open: boolean) => void;
 };
@@ -38,6 +40,8 @@ type TermGateCardsProps = {
 export function TermGateCards({
   selectedTerm,
   isLoading = false,
+  enrollPending = false,
+  termOpenPending = false,
   onToggleEnroll,
   onToggleTermOpen,
 }: TermGateCardsProps) {
@@ -49,7 +53,6 @@ export function TermGateCards({
     Boolean(selectedTerm?.isTermOpen),
     selectedTerm?.termStart ?? ''
   );
-  const isDataLoading = isLoading && !selectedTerm;
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-kv-group sm:grid-cols-2">
@@ -57,38 +60,30 @@ export function TermGateCards({
         icon={faIcons.clipboardList}
         title="انتخاب واحد"
         subtitle={
-          isDataLoading ? (
-            <Spinner className="size-3.5 text-kv-brand" aria-hidden="true" />
-          ) : selectedTerm?.enrollStart ? (
-            `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
-          ) : (
-            'تاریخ شروع ثبت نشده'
-          )
+          selectedTerm?.enrollStart
+            ? `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
+            : 'تاریخ شروع ثبت نشده'
         }
         switchOn={Boolean(selectedTerm?.isEnrollOpen)}
         active={enrollActive}
         onToggle={onToggleEnroll}
-        disabled={!selectedTerm || isLoading}
-        isLoading={isDataLoading}
+        disabled={!selectedTerm || enrollPending || isLoading}
+        isLoading={isLoading || enrollPending}
       />
 
       <StatusGateCard
         icon={faIcons.chalkboardUser}
         title="برگزاری کلاس‌ها"
         subtitle={
-          isDataLoading ? (
-            <Spinner className="size-3.5 text-kv-brand" aria-hidden="true" />
-          ) : selectedTerm?.termStart ? (
-            `شروع: ${toPersianDigits(selectedTerm.termStart)}`
-          ) : (
-            'تاریخ شروع ثبت نشده'
-          )
+          selectedTerm?.termStart
+            ? `شروع: ${toPersianDigits(selectedTerm.termStart)}`
+            : 'تاریخ شروع ثبت نشده'
         }
         switchOn={Boolean(selectedTerm?.isTermOpen)}
         active={termActive}
         onToggle={onToggleTermOpen}
-        disabled={!selectedTerm || isLoading}
-        isLoading={isDataLoading}
+        disabled={!selectedTerm || termOpenPending || isLoading}
+        isLoading={isLoading || termOpenPending}
       />
     </div>
   );
@@ -112,8 +107,6 @@ export function TermSemesterCard({
   onAudienceChange,
   onSelectTerm,
 }: TermSemesterCardProps) {
-  const isDataLoading = isLoading && terms.length === 0;
-
   return (
     <KvCard>
       <KvCardContent padding="md" className="flex flex-col gap-kv-pair">
@@ -135,7 +128,11 @@ export function TermSemesterCard({
             >
               <AppTabsList aria-label="فیلتر مخاطب نیم‌سال">
                 {COURSE_OFFERING_AUDIENCE_TABS.map((tab) => (
-                  <AppTabsTrigger key={tab.value} value={tab.value}>
+                  <AppTabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    disabled={isLoading}
+                  >
                     {tab.label}
                   </AppTabsTrigger>
                 ))}
@@ -145,35 +142,25 @@ export function TermSemesterCard({
         </div>
 
         <div className="w-full">
-          {isDataLoading ? (
-            <div
-              className="flex h-11 w-full items-center justify-center rounded-kv-control border border-kv-border bg-kv-surface"
-              role="status"
-              aria-busy="true"
-              aria-label="در حال بارگذاری نیم‌سال"
-            >
-              <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
-            </div>
-          ) : (
-            <KvSelectField
-              label={false}
-              size="md"
-              value={selectedTerm?.id ?? ''}
-              displayValue={
-                selectedTerm
-                  ? formatTermOptionLabel(selectedTerm.title)
-                  : undefined
-              }
-              onValueChange={onSelectTerm}
-              placeholder="انتخاب ترم"
-            >
-              {terms.map((term) => (
-                <KvSelectItem key={term.id} value={term.id}>
-                  {formatTermOptionLabel(term.title)}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
-          )}
+          <KvSelectField
+            label={false}
+            size="md"
+            disabled={isLoading}
+            value={selectedTerm?.id ?? ''}
+            displayValue={
+              selectedTerm
+                ? formatTermOptionLabel(selectedTerm.title)
+                : undefined
+            }
+            onValueChange={onSelectTerm}
+            placeholder="انتخاب ترم"
+          >
+            {terms.map((term) => (
+              <KvSelectItem key={term.id} value={term.id}>
+                {formatTermOptionLabel(term.title)}
+              </KvSelectItem>
+            ))}
+          </KvSelectField>
         </div>
       </KvCardContent>
     </KvCard>
@@ -227,7 +214,13 @@ function StatusGateCard({
           </div>
         </div>
         {isLoading ? (
-          <Spinner className="size-4 shrink-0 text-kv-brand" aria-hidden="true" />
+          <span
+            className="inline-flex h-7 w-11 shrink-0 items-center justify-center"
+            role="status"
+            aria-label={`در حال به‌روزرسانی ${title}`}
+          >
+            <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
+          </span>
         ) : (
           <KvSwitch
             size="md"

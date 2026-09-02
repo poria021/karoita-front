@@ -25,6 +25,8 @@ export type OrganizationalCapacityCourse = {
   confirmed: number;
   /** استاد راهنما: حداکثر یک روز. */
   selectedDays: OrganizationalCapacityWeekday[];
+  /** ردیف Nest از قبل وجود دارد → ذخیره با PUT نه POST. */
+  existsOnServer?: boolean;
 };
 
 export type OrganizationalCapacitiesSnapshot = {

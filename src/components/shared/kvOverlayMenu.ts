@@ -49,3 +49,11 @@ export const kvOverlayListGutterSymmetricClassName =
 /** بدنهٔ دراپ‌داون — اسکرول داخلی Radix gutter رزرو نکند. */
 export const kvOverlayDropdownAutoGutterClassName =
   'kv-overlay-dropdown-auto-gutter';
+
+/**
+ * سلکت/منو این اتریبیوت را می‌گیرند تا قفل اسکرول صفحهٔ RemoveScroll خنثی شود
+ * (دیالوگ جداست). CSS در globals.css.
+ */
+export const kvKeepPageScrollProps = {
+  'data-kv-keep-page-scroll': '',
+} as const;

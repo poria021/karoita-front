@@ -10,7 +10,6 @@ import {
   canBulkExtendDailyApprovalWeeks,
   canDropDailyApprovalTrainee,
 } from '../lib/dailyApprovalsAccess';
-import { collectExtendedWeekNumbers } from '../lib/collectExtendedWeekNumbers';
 import { DailyApprovalBulkExtendModal } from './DailyApprovalBulkExtendModal';
 import { DailyApprovalDetailPanel } from './DailyApprovalDetailPanel';
 import { DailyApprovalsCourseTabs } from './DailyApprovalsCourseTabs';
@@ -153,13 +152,17 @@ export function DailyApprovalsPageClient() {
           <DailyApprovalBulkExtendModal
             open={page.bulkExtendOpen}
             kind={page.kind}
+            termId={page.termId}
+            preferredCourse={page.course}
             busy={page.actionBusy}
-            previouslyExtendedWeekNumbers={collectExtendedWeekNumbers(
-              page.trainees
-            )}
+            trainees={page.trainees}
             onClose={page.closeBulkExtend}
-            onConfirm={({ weekNumbers, revokeWeekNumbers }) => {
-              page.bulkExtendWeeks({ weekNumbers, revokeWeekNumbers });
+            onConfirm={({ course, weekNumbers, revokeWeekNumbers }) => {
+              page.bulkExtendWeeks({
+                course,
+                weekNumbers,
+                revokeWeekNumbers,
+              });
             }}
           />
         ) : null}

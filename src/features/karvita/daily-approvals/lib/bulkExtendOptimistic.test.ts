@@ -84,6 +84,31 @@ describe('applyOptimisticBulkExtendWeeks', () => {
     ];
     expect(applyOptimisticBulkExtendWeeks(source, [1], [])).toEqual(source);
   });
+
+  it('only patches trainees of the selected course', () => {
+    const internTwo = trainee({
+      id: 'b',
+      status: 'active',
+      courseKey: 'intern2',
+      weeks: [week({ weekNumber: 1, status: 'overdue' })],
+    });
+    const result = applyOptimisticBulkExtendWeeks(
+      [
+        trainee({
+          id: 'a',
+          status: 'active',
+          courseKey: 'intern1',
+          weeks: [week({ weekNumber: 1, status: 'overdue' })],
+        }),
+        internTwo,
+      ],
+      [1],
+      [],
+      'intern1'
+    );
+    expect(result[0]?.weeks[0]?.status).toBe('extended');
+    expect(result[1]).toEqual(internTwo);
+  });
 });
 
 describe('buildBulkExtendUndoMessage', () => {

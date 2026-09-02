@@ -45,6 +45,8 @@ const withPWA = withPWAInit({
 const csp = buildContentSecurityPolicy();
 
 const nextConfig: NextConfig = {
+  // ایمیج داکر فقط ردپای standalone را کپی می‌کند، نه کل node_modules.
+  output: 'standalone',
   turbopack: {},
   async headers() {
     return [

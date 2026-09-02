@@ -212,19 +212,25 @@ export type NestUniversity = {
 
 /**
  * نیم‌سال/پودمان. گیت انتخاب‌واحد/کلاس روی خود ترم است.
- * GET `/admin/semesters_all` پودمانی را با `structure=podmani` می‌گیرد و ممکن است
- * `academicYears` جمع باشد و گیت را ندهد — آن‌ها را از GET `/admin/semester` بخوان.
+ * خواندن و نوشتن پودمانی املای لایو `podmani` است (نه `modular`).
+ * GET `/admin/semesters_all` ممکن است `academicYears` جمع باشد و گیت را ندهد —
+ * آن‌ها را از GET `/admin/semester` بخوان. PATCH ممکن است سند خام mongoose بدهد.
  */
 export type NestSemesterSeason = 'one' | 'two' | 'three';
 
-/** مقدار کوئری GET `/admin/semesters_all?structure=` — `podmani` املای لایو است. */
+/**
+ * مقدار `structure` در POST/PATCH `/admin/semester` و کوئری
+ * GET `/admin/semesters_all?structure=` — `podmani` املای لایو است.
+ */
 export type NestSemesterAllStructure = 'semester' | 'podmani';
 
 export type NestSemester = {
   id: string;
+  _id?: string;
   academicYear?: string;
   academicYears?: string;
   season: NestSemesterSeason;
+  /** خواندن ممکن است ردیف قدیمی `modular` هم بدهد؛ نوشتن فقط `podmani`. */
   structure: AcademicTermType | NestSemesterAllStructure;
   courseSelection?: boolean;
   startClasses?: boolean;
@@ -267,6 +273,46 @@ export type NestPatchLessonStatusDto = {
   days?: number[];
 };
 
+/**
+ * ردیف GET `/admin/professor-capacities`.
+ * `days`: ۰=شنبه … ۵=پنجشنبه.
+ */
+export type NestProfessorCapacity = {
+  id?: string;
+  _id?: string;
+  professorId: string;
+  lessonId: string;
+  semesterId: string;
+  days?: number[];
+  capacity?: number;
+};
+
+/** بدنهٔ POST/PUT `/admin/professor-capacities` — آرایه. */
+export type NestProfessorCapacityWriteDto = {
+  professorId: string;
+  lessonId: string;
+  semesterId: string;
+  days: number[];
+  capacity: number;
+};
+
+export type NestProfessorCapacitiesQuery = {
+  lessonId?: string;
+  semesterId?: string;
+};
+
+/**
+ * آیتم PATCH `/admin/lessons/status` (آرایه).
+ * `capacity` نباید از آخرین `generalProfessorCapacity` بیشتر باشد (اگر تنظیمات خالی باشد سقف لایو ۱۵ است).
+ * `days`: ۰=شنبه … ۵=پنجشنبه؛ یکتا.
+ */
+export type NestUpdateLessonItemDto = {
+  id: string;
+  status?: boolean;
+  capacity?: number;
+  days?: number[];
+};
+
 export type NestPutLessonWeeksDto = {
   weeks: Array<{ priority: number; status: boolean }>;
 };
@@ -277,35 +323,38 @@ export type NestCreateWeekDto = {
   status: boolean;
 };
 
+/** PATCH `/admin/weeks/{id}` — لایو ۲۰۴؛ بدنه مثل create. */
 export type NestUpdateWeekDto = {
   lessonId?: string;
   priority?: number;
   status?: boolean;
 };
 
+/** POST `/admin/semester` — لایو ۲۰۴ می‌دهد؛ بدنه باید کامل باشد. */
 export type NestCreateSemesterDto = {
   season: NestSemesterSeason;
-  structure: AcademicTermType;
+  structure: NestSemesterAllStructure;
   academicYear: string;
   courseSelection: boolean;
   startClasses: boolean;
 };
 
-/** GET/POST `/admin/settings` — PATCH ندارد؛ POST ردیف جدید می‌گذارد و GET آخرین را می‌خواند. */
+/**
+ * PATCH `/admin/semester/{id}` — لایو بدنهٔ کامل می‌خواهد (هویت + گیت).
+ * پاسخ ممکن است ۲۰۴ یا سند خام mongoose باشد؛ بعد از نوشته GET بزن.
+ */
+export type NestUpdateSemesterDto = NestCreateSemesterDto;
+
+/**
+ * GET/POST `/admin/settings` — PATCH ندارد؛ POST ردیف جدید می‌گذارد (لایو ۲۰۴) و GET آخرین را می‌خواند.
+ */
 export type NestAcademicSettings = {
   id: string;
   systemPassingScore: number;
   generalProfessorCapacity: number;
 };
 
-export type NestUpdateSemesterDto = {
-  season?: NestSemesterSeason;
-  structure?: AcademicTermType;
-  academicYear?: string;
-  courseSelection?: boolean;
-  startClasses?: boolean;
-};
-
+/** POST `/admin/settings` — هر دو فیلد اجباری‌اند. */
 export type NestCreateAcademicSettingsDto = {
   generalProfessorCapacity: number;
   systemPassingScore: number;

@@ -14,6 +14,7 @@ describe('getLiveWorkbenchShortcuts', () => {
     expect(paths).toContain(RouteService.karvita.organizationalStructure());
     expect(paths).toContain(RouteService.karvita.onboardingApprovals());
     expect(paths).not.toContain(RouteService.karvita.adminUserCreation());
+    expect(paths).not.toContain(RouteService.karvita.landingCms());
     expect(paths).toContain(RouteService.karvita.syllabusCourseOfferings());
     expect(paths).not.toContain(PlannedRoutes.standardReports());
   });
@@ -25,6 +26,7 @@ describe('getLiveWorkbenchShortcuts', () => {
     expect(paths).toContain(RouteService.karvita.organizationalStructure());
     expect(paths).toContain(RouteService.karvita.onboardingApprovals());
     expect(paths).not.toContain(RouteService.karvita.adminUserCreation());
+    expect(paths).not.toContain(RouteService.karvita.landingCms());
     expect(paths).toContain(RouteService.karvita.syllabusCourseOfferings());
     expect(paths).not.toContain(RouteService.karvita.syllabusTermSettings());
   });

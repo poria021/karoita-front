@@ -1,10 +1,15 @@
-import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { isMockApiMode } from '@/lib/api-mode';
 import {
   getMockOrganizationalCapacities,
   listTermsForCapacityKind,
   submitMockOrganizationalCapacities,
   updateMockOrganizationalCapacityCourse,
 } from '@/services/organizational-capacities/mock/mock-organizational-capacities-store';
+import {
+  getRealOrganizationalCapacities,
+  listRealCapacityTerms,
+  submitRealOrganizationalCapacities,
+} from '@/services/organizational-capacities/real/real-organizational-capacities';
 import {
   assertMockClientHasPermission,
   MOCK_AUTHZ_DENIED,
@@ -18,62 +23,68 @@ import type {
   UpdateOrganizationalCapacityCourseInput,
 } from '@/types/organizational-capacities';
 
-function requireCapacityConfigure(): string {
-  if (!isMockApiMode()) {
-    throwRealModeNotImplemented('OrganizationalCapacitiesService');
-  }
-  assertMockClientHasPermission('capacity.configure');
+function requireProfessorId(): string {
   const actor = useUserStore.getState().activeUser;
-  if (!actor || actor.role !== 'supervisor_professor') {
+  if (!actor?.id) {
     throw new Error(MOCK_AUTHZ_DENIED);
+  }
+  if (isMockApiMode()) {
+    assertMockClientHasPermission('capacity.configure');
+    if (actor.role !== 'supervisor_professor') {
+      throw new Error(MOCK_AUTHZ_DENIED);
+    }
   }
   return actor.id;
 }
 
 /**
- * ظرفیت جذب استاد راهنما. تا آمدن routeهای Nest در real fail-closed است.
+ * ظرفیت جذب استاد راهنما.
+ * real: `GET semesters_all` برای درس‌ها، سپس `GET/POST/PUT professor-capacities`.
  */
 export const OrganizationalCapacitiesService = {
   async listTerms(
     kind: OrganizationalCapacityKind
   ): Promise<Array<{ id: string; title: string }>> {
     if (!isMockApiMode()) {
-      throwRealModeNotImplemented('OrganizationalCapacitiesService.listTerms');
+      return listRealCapacityTerms(kind);
     }
-    requireCapacityConfigure();
+    requireProfessorId();
     return listTermsForCapacityKind(kind);
   },
 
   async getSnapshot(
     input: GetOrganizationalCapacitiesInput
   ): Promise<OrganizationalCapacitiesSnapshot> {
+    const professorId = requireProfessorId();
     if (!isMockApiMode()) {
-      throwRealModeNotImplemented('OrganizationalCapacitiesService.getSnapshot');
+      return getRealOrganizationalCapacities(input, professorId);
     }
-    const actorId = requireCapacityConfigure();
     await new Promise((resolve) => setTimeout(resolve, 180));
-    return getMockOrganizationalCapacities(input, actorId);
+    return getMockOrganizationalCapacities(input, professorId);
   },
 
-  /** اختیاری؛ فرم پیش‌نویس را محلی نگه می‌دارد. */
+  /** اختیاری؛ فرم پیش‌نویس را محلی نگه می‌دارد. در real همان snapshot سرور است. */
   async updateCourse(
     input: UpdateOrganizationalCapacityCourseInput
   ): Promise<OrganizationalCapacitiesSnapshot> {
+    const professorId = requireProfessorId();
     if (!isMockApiMode()) {
-      throwRealModeNotImplemented('OrganizationalCapacitiesService.updateCourse');
+      return getRealOrganizationalCapacities(
+        { kind: input.kind, termId: input.termId },
+        professorId
+      );
     }
-    const actorId = requireCapacityConfigure();
-    return updateMockOrganizationalCapacityCourse(input, actorId);
+    return updateMockOrganizationalCapacityCourse(input, professorId);
   },
 
   async submit(
     input: SubmitOrganizationalCapacitiesInput
   ): Promise<OrganizationalCapacitiesSnapshot> {
+    const professorId = requireProfessorId();
     if (!isMockApiMode()) {
-      throwRealModeNotImplemented('OrganizationalCapacitiesService.submit');
+      return submitRealOrganizationalCapacities(input, professorId);
     }
-    const actorId = requireCapacityConfigure();
     await new Promise((resolve) => setTimeout(resolve, 250));
-    return submitMockOrganizationalCapacities(input, actorId);
+    return submitMockOrganizationalCapacities(input, professorId);
   },
 };
