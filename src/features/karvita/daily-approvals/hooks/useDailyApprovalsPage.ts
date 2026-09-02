@@ -51,7 +51,6 @@ export function useDailyApprovalsPage() {
   const actions = useDailyApprovalsActions({
     list,
     kind,
-    course,
     termId,
   });
 

@@ -3,6 +3,7 @@ import { ApiClientError } from '@/services/api-error';
 import {
   filterBundlesForCapacityKind,
   nestEntityId,
+  nestLessonTitle,
   nestStructureForCapacityKind,
   parseGeneralProfessorCapacity,
   parseNestProfessorCapacityList,
@@ -56,6 +57,22 @@ export async function listRealCapacityTerms(
   kind: OrganizationalCapacityKind
 ): Promise<Array<{ id: string; title: string }>> {
   return termsFromBundles(await listSemesterBundles(kind));
+}
+
+export async function listRealCapacityCourses(
+  kind: OrganizationalCapacityKind,
+  termId: string
+): Promise<Array<{ id: string; title: string }>> {
+  const bundles = await listSemesterBundles(kind);
+  const bundle =
+    bundles.find((row) => row.id === termId) ?? bundles[0] ?? null;
+  if (!bundle) return [];
+  return (bundle.lessons ?? [])
+    .map((lesson) => ({
+      id: nestEntityId(lesson),
+      title: nestLessonTitle(lesson),
+    }))
+    .filter((course) => course.id);
 }
 
 export async function getRealOrganizationalCapacities(

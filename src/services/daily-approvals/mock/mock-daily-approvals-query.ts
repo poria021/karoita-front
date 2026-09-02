@@ -1,11 +1,15 @@
+import { toDailyApprovalCatalogCourses, toDailyApprovalWeekOptions } from '@/services/daily-approvals/daily-approval-catalog-mappers';
 import {
   readTrainees,
 } from '@/services/daily-approvals/mock/mock-daily-approvals-persistence';
 import { listTermsForDailyApprovalKind } from '@/services/syllabus-config/syllabus-daily-approvals-reads';
 import type {
+  DailyApprovalCatalogCourse,
   DailyApprovalCourseFilter,
+  DailyApprovalCourseKind,
   DailyApprovalReadFilter,
   DailyApprovalTrainee,
+  DailyApprovalWeekOption,
   ListDailyApprovalsInput,
   ListDailyApprovalsPage,
 } from '@/types/daily-approvals';
@@ -13,6 +17,43 @@ import { sliceOffsetLimitPage } from '@/utils/offset-limit-page';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 export { listTermsForDailyApprovalKind };
+
+const MOCK_INTERNSHIP_COURSES = [
+  { id: 'intern1', title: 'کارورزی ۱' },
+  { id: 'intern2', title: 'کارورزی ۲' },
+  { id: 'intern3', title: 'کارورزی ۳' },
+  { id: 'intern4', title: 'کارورزی ۴' },
+];
+
+const MOCK_APPRENTICESHIP_COURSES = [
+  { id: 'appr1', title: 'کارآموزی ۱' },
+  { id: 'appr2', title: 'کارآموزی ۲' },
+];
+
+export function listMockDailyApprovalCourses(
+  kind: DailyApprovalCourseKind
+): DailyApprovalCatalogCourse[] {
+  return toDailyApprovalCatalogCourses(
+    kind,
+    kind === 'internship' ? MOCK_INTERNSHIP_COURSES : MOCK_APPRENTICESHIP_COURSES
+  );
+}
+
+export function listMockDailyApprovalWeeks(
+  kind: DailyApprovalCourseKind,
+  courseFilter: Exclude<DailyApprovalCourseFilter, 'all'>
+): DailyApprovalWeekOption[] {
+  const trainee = readTrainees().find(
+    (row) => row.kind === kind && row.courseKey === courseFilter
+  );
+  const count =
+    trainee?.weeks.length ?? (kind === 'internship' ? 16 : 8);
+  return toDailyApprovalWeekOptions(
+    Array.from({ length: count }, (_, index) => ({
+      title: `هفته ${index + 1}`,
+    }))
+  );
+}
 
 function matchesQuery(trainee: DailyApprovalTrainee, rawQuery: string): boolean {
   const query = persianToEnglishDigits(rawQuery).trim().toLocaleLowerCase('fa');

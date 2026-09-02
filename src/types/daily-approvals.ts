@@ -28,6 +28,18 @@ export type DailyApprovalCourseFilter =
   | 'appr1'
   | 'appr2';
 
+export type DailyApprovalCatalogCourse = {
+  id: string;
+  title: string;
+  courseFilter: Exclude<DailyApprovalCourseFilter, 'all'>;
+};
+
+export type DailyApprovalWeekOption = {
+  value: string;
+  label: string;
+  weekNumber: number;
+};
+
 export type DailyApprovalTraineeStatus = 'active' | 'dropped';
 
 export type DailyApprovalWeekState = InternshipWeeklySessionState;

@@ -1,17 +1,21 @@
-import type { DailyApprovalTrainee } from '@/types/daily-approvals';
+import type { DailyApprovalCourseFilter, DailyApprovalTrainee } from '@/types/daily-approvals';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 /** پچ خوش‌بینانهٔ لیست برای تمدید/لغو گروهی در انتظار commit Facade. */
 export function applyOptimisticBulkExtendWeeks(
   trainees: readonly DailyApprovalTrainee[],
   weekNumbers: readonly number[],
-  revokeWeekNumbers: readonly number[]
+  revokeWeekNumbers: readonly number[],
+  course?: DailyApprovalCourseFilter
 ): DailyApprovalTrainee[] {
   const extendSet = new Set(weekNumbers);
   const revokeSet = new Set(revokeWeekNumbers);
 
   return trainees.map((trainee) => {
     if (trainee.status === 'dropped') return trainee;
+    if (course && course !== 'all' && trainee.courseKey !== course) {
+      return trainee;
+    }
 
     let changed = false;
     const weeks = trainee.weeks.map((week) => {

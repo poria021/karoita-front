@@ -1,9 +1,16 @@
 import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
+import { listRealCapacityCourses, listRealCapacityTerms } from '@/services/organizational-capacities/real/real-organizational-capacities';
+import {
+  toDailyApprovalCatalogCourses,
+  toDailyApprovalWeekOptions,
+} from '@/services/daily-approvals/daily-approval-catalog-mappers';
 import {
   bulkExtendMockDailyApprovalWeeks,
   dropMockDailyApprovalTrainee,
   extendMockDailyApprovalWeek,
+  listMockDailyApprovalCourses,
+  listMockDailyApprovalWeeks,
   listMockDailyApprovals,
   listTermsForDailyApprovalKind,
   markMockWeekRead,
@@ -12,6 +19,7 @@ import {
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,
 } from '@/services/daily-approvals/mock/mock-daily-approvals-store';
+import { getRealWeeksForLesson } from '@/services/syllabus-config/real/real-syllabus-reads';
 import { readDailyApprovalPassingScoreThreshold } from '@/services/syllabus-config/syllabus-daily-approvals-reads';
 import {
   assertMockClientHasPermission,
@@ -22,8 +30,11 @@ import type { UserRole } from '@/types/auth';
 import type {
   BulkExtendDailyApprovalWeeksInput,
   BulkExtendDailyApprovalWeeksResult,
+  DailyApprovalCatalogCourse,
+  DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
   DailyApprovalTrainee,
+  DailyApprovalWeekOption,
   DropDailyApprovalTraineeInput,
   ExtendDailyApprovalWeekInput,
   ListDailyApprovalsInput,
@@ -62,18 +73,49 @@ function requireReviewRole(role: UserRole): void {
 }
 
 /**
- * نمرهٔ گزارش هفتگی کارورز. تا آمدن routeهای Nest در real fail-closed است.
+ * نمرهٔ گزارش هفتگی کارورز.
+ * picker نیم‌سال/درس از `semesters_all`؛ هفته از `GET weeks/lesson`؛ بقیهٔ mutationها fail-closed.
  */
 export const DailyApprovalsService = {
-  /** کارورزی → ترم نیم‌سال؛ مهارت‌آموزی → پودمانی. */
+  /** کارورزی → `structure=semester`؛ کارآموزی → `podmani` — همان کلید ظرفیت. */
   async listTerms(
     kind: DailyApprovalCourseKind
   ): Promise<Array<{ id: string; title: string }>> {
     if (!isMockApiMode()) {
-      throwRealModeNotImplemented('DailyApprovalsService.listTerms');
+      return listRealCapacityTerms(kind);
     }
     requireDailyApprovalsReview();
     return listTermsForDailyApprovalKind(kind);
+  },
+
+  async listCourses(input: {
+    kind: DailyApprovalCourseKind;
+    termId: string;
+  }): Promise<DailyApprovalCatalogCourse[]> {
+    if (!isMockApiMode()) {
+      return toDailyApprovalCatalogCourses(
+        input.kind,
+        await listRealCapacityCourses(input.kind, input.termId)
+      );
+    }
+    requireDailyApprovalsReview();
+    return listMockDailyApprovalCourses(input.kind);
+  },
+
+  async listWeeks(input: {
+    kind: DailyApprovalCourseKind;
+    termId: string;
+    lessonId: string;
+    courseFilter: Exclude<DailyApprovalCourseFilter, 'all'>;
+  }): Promise<DailyApprovalWeekOption[]> {
+    if (!isMockApiMode()) {
+      const weeks = await getRealWeeksForLesson(input.termId, input.lessonId);
+      return toDailyApprovalWeekOptions(
+        weeks.filter((week) => week.status !== 'archived')
+      );
+    }
+    requireDailyApprovalsReview();
+    return listMockDailyApprovalWeeks(input.kind, input.courseFilter);
   },
 
   async getPassingScoreThreshold(): Promise<number> {

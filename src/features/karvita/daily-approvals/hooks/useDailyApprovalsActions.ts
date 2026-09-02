@@ -27,7 +27,6 @@ import type { UseDailyApprovalsListReturn } from './useDailyApprovalsList';
 type UseDailyApprovalsActionsArgs = {
   list: UseDailyApprovalsListReturn;
   kind: DailyApprovalCourseKind;
-  course: DailyApprovalCourseFilter;
   termId: string;
 };
 
@@ -35,7 +34,6 @@ type UseDailyApprovalsActionsArgs = {
 export function useDailyApprovalsActions({
   list,
   kind,
-  course,
   termId,
 }: UseDailyApprovalsActionsArgs) {
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(
@@ -273,6 +271,7 @@ export function useDailyApprovalsActions({
 
   const bulkExtendWeeks = useCallback(
     (input: {
+      course: DailyApprovalCourseFilter;
       weekNumbers: number[];
       revokeWeekNumbers: number[];
     }) => {
@@ -284,6 +283,7 @@ export function useDailyApprovalsActions({
       let snapshot: DailyApprovalTrainee[] = [];
       let snapshotTotal = 0;
       const commitTermId = termId;
+      const commitCourse = input.course;
 
       scheduleOptimisticMutation({
         tone: 'success',
@@ -299,7 +299,8 @@ export function useDailyApprovalsActions({
               return applyOptimisticBulkExtendWeeks(
                 prev,
                 input.weekNumbers,
-                input.revokeWeekNumbers
+                input.revokeWeekNumbers,
+                commitCourse
               );
             },
             (prevTotal) => {
@@ -317,7 +318,7 @@ export function useDailyApprovalsActions({
             await DailyApprovalsService.bulkExtendWeeks({
               kind,
               termId: commitTermId,
-              course,
+              course: commitCourse,
               weekNumbers: input.weekNumbers,
               revokeWeekNumbers: input.revokeWeekNumbers,
             });
@@ -335,7 +336,7 @@ export function useDailyApprovalsActions({
         },
       });
     },
-    [course, kind, list, termId]
+    [kind, list, termId]
   );
 
   return {

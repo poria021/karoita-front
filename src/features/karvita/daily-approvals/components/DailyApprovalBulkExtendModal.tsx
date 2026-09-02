@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
 import {
@@ -11,19 +11,27 @@ import {
   KvDialogHeader,
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { KvCheckboxMultiSelect } from '@/components/shared/fields/KvCheckboxMultiSelect';
-import type { DailyApprovalCourseKind } from '@/types/daily-approvals';
+import type {
+  DailyApprovalCourseFilter,
+  DailyApprovalCourseKind,
+  DailyApprovalTrainee,
+} from '@/types/daily-approvals';
+import { collectExtendedWeekNumbers } from '../lib/collectExtendedWeekNumbers';
 
-import { getDailyApprovalWeekOptions } from '../constants';
+import { useDailyApprovalBulkExtendCatalog } from '../hooks/useDailyApprovalBulkExtendCatalog';
 
 type DailyApprovalBulkExtendModalProps = {
   open: boolean;
   kind: DailyApprovalCourseKind;
+  termId: string;
+  preferredCourse: DailyApprovalCourseFilter;
   busy: boolean;
-  /** شماره هفته‌های از قبل تمدیدشده در گروه فعال — در لیست پیش‌انتخاب. */
-  previouslyExtendedWeekNumbers?: readonly number[];
+  trainees: readonly DailyApprovalTrainee[];
   onClose: () => void;
   onConfirm: (input: {
+    course: Exclude<DailyApprovalCourseFilter, 'all'>;
     weekNumbers: number[];
     revokeWeekNumbers: number[];
   }) => void;
@@ -32,14 +40,27 @@ type DailyApprovalBulkExtendModalProps = {
 export function DailyApprovalBulkExtendModal({
   open,
   kind,
+  termId,
+  preferredCourse,
   busy,
-  previouslyExtendedWeekNumbers = [],
+  trainees,
   onClose,
   onConfirm,
 }: DailyApprovalBulkExtendModalProps) {
-  const options = getDailyApprovalWeekOptions(kind);
+  const catalog = useDailyApprovalBulkExtendCatalog({
+    open,
+    kind,
+    termId,
+    preferredCourse,
+  });
+  const options = catalog.weekOptions;
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>();
+
+  const previouslyExtendedWeekNumbers = collectExtendedWeekNumbers(
+    trainees,
+    catalog.selectedCourse?.courseFilter
+  );
 
   const baselineExtendedValues = useMemo(() => {
     const allowedValues = new Set(options.map((option) => option.value));
@@ -49,12 +70,26 @@ export function DailyApprovalBulkExtendModal({
       .filter((value) => allowedValues.has(value));
   }, [options, previouslyExtendedWeekNumbers]);
 
+  useEffect(() => {
+    setSelectedValues(baselineExtendedValues);
+    setError(undefined);
+  }, [baselineExtendedValues, catalog.selectedCourse?.id]);
+
   const resetForm = useCallback(() => {
     setSelectedValues(baselineExtendedValues);
     setError(undefined);
   }, [baselineExtendedValues]);
 
   const submit = () => {
+    const courseFilter = catalog.selectedCourse?.courseFilter;
+    if (!courseFilter) {
+      setError('ابتدا یک درس را انتخاب کنید.');
+      return;
+    }
+    if (catalog.weeksPending || options.length === 0) {
+      setError('هفته‌های این درس هنوز آماده نیست.');
+      return;
+    }
     const selectedWeekNumbers = selectedValues
       .map((value) => Number(value))
       .filter((weekNumber) => Number.isInteger(weekNumber) && weekNumber > 0);
@@ -77,8 +112,16 @@ export function DailyApprovalBulkExtendModal({
       return;
     }
     setError(undefined);
-    onConfirm({ weekNumbers, revokeWeekNumbers });
+    onConfirm({ course: courseFilter, weekNumbers, revokeWeekNumbers });
   };
+
+  const weeksPlaceholder = catalog.weeksPending
+    ? 'در حال بارگذاری هفته‌ها...'
+    : catalog.weeksError
+      ? catalog.weeksError
+      : options.length === 0
+        ? 'هفته‌ای برای این درس یافت نشد'
+        : 'انتخاب هفته‌ها';
 
   return (
     <KvDialog
@@ -106,26 +149,78 @@ export function DailyApprovalBulkExtendModal({
         <KvDialogHeader>
           <KvDialogTitle>تمدید گروهی مهلت ارسال گزارش</KvDialogTitle>
           <KvDialogDescription className="sr-only">
-            انتخاب هفته‌ها برای تمدید گروهی مهلت ارسال گزارش
+            انتخاب درس و هفته‌ها برای تمدید گروهی مهلت ارسال گزارش
           </KvDialogDescription>
         </KvDialogHeader>
 
-        <KvCheckboxMultiSelect
-          id="daily-approval-bulk-extend-weeks"
-          label="هفته‌های قابل تمدید"
-          required
-          options={options}
-          values={selectedValues}
-          onValuesChange={(next) => {
-            setSelectedValues(next);
-            if (next.length > 0 || baselineExtendedValues.length > 0) {
-              setError(undefined);
+        <div className="space-y-kv-pair">
+          <div className="space-y-kv-micro">
+            <KvTypography variant="label" as="p">
+              درس
+              <span className="text-kv-danger"> *</span>
+            </KvTypography>
+            {catalog.coursesPending ? (
+              <KvTypography variant="caption" tone="muted" as="p">
+                در حال بارگذاری دروس...
+              </KvTypography>
+            ) : catalog.coursesError ? (
+              <KvTypography variant="caption" tone="danger" as="p">
+                {catalog.coursesError}
+              </KvTypography>
+            ) : catalog.courses.length === 0 ? (
+              <KvTypography variant="caption" tone="muted" as="p">
+                برای این نیم‌سال درسی یافت نشد.
+              </KvTypography>
+            ) : (
+              <div
+                role="radiogroup"
+                aria-label="انتخاب درس"
+                className="flex flex-wrap justify-start gap-kv-micro"
+              >
+                {catalog.courses.map((course) => {
+                  const selected = course.id === catalog.selectedCourse?.id;
+                  return (
+                    <KvButton
+                      key={course.id}
+                      type="button"
+                      size="xs"
+                      color={selected ? 'cta' : 'neutral'}
+                      appearance={selected ? 'solid' : 'secondary'}
+                      disabled={busy}
+                      aria-checked={selected}
+                      role="radio"
+                      onClick={() => catalog.setLessonId(course.id)}
+                    >
+                      {course.title}
+                    </KvButton>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <KvCheckboxMultiSelect
+            id="daily-approval-bulk-extend-weeks"
+            label="هفته‌های قابل تمدید"
+            required
+            options={options}
+            values={selectedValues}
+            onValuesChange={(next) => {
+              setSelectedValues(next);
+              if (next.length > 0 || baselineExtendedValues.length > 0) {
+                setError(undefined);
+              }
+            }}
+            placeholder={weeksPlaceholder}
+            disabled={
+              busy ||
+              catalog.weeksPending ||
+              options.length === 0 ||
+              !catalog.selectedCourse
             }
-          }}
-          placeholder="انتخاب هفته‌ها"
-          disabled={busy}
-          error={error}
-        />
+            error={error ?? catalog.weeksError ?? undefined}
+          />
+        </div>
 
         <KvDialogFooter>
           <KvButton
@@ -144,7 +239,12 @@ export function DailyApprovalBulkExtendModal({
             appearance="solid"
             size="md"
             loading={busy}
-            disabled={busy}
+            disabled={
+              busy ||
+              catalog.weeksPending ||
+              !catalog.selectedCourse ||
+              options.length === 0
+            }
             onClick={submit}
           >
             اعمال تمدید گروهی
