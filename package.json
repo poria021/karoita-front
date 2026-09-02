@@ -11,7 +11,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint . --max-warnings=0 && node scripts/check-hardcoded-colors.mjs && node scripts/check-no-ui-imports.mjs && node scripts/check-edge-proxy.mjs",
+    "lint": "eslint . --max-warnings=0 && node scripts/check-hardcoded-colors.mjs && node scripts/check-no-ui-imports.mjs && node scripts/check-edge-proxy.mjs && node scripts/check-auth-origin-guard.mjs",
     "lint:colors": "node scripts/check-hardcoded-colors.mjs",
     "lint:ds": "node scripts/check-no-ui-imports.mjs",
     "test": "vitest run",

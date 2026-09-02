@@ -35,7 +35,7 @@
 | خطا | `api-error.ts` | `HTTPError` → `ApiClientError` با پیام فارسی |
 | توکن | `api-token.ts` | خواندن access از حافظه، refresh مشترک، logout روی ۴۰۱ |
 | پروکسی مرورگر | `lib/nest-proxy.ts` + `next.config.ts` | `/__nest-api` تا CORS دامنهٔ Nest بلاک نکند |
-| refresh سمت سرور | `app/api/auth/refresh/route.ts` | تنها جایی که کوکی httpOnly رفرش خوانده می‌شود |
+| refresh سمت سرور | `app/api/auth/refresh/route.ts` | تنها جایی که کوکی httpOnly رفرش خوانده می‌شود؛ مثل set/clear با `assertSameOriginPost` |
 
 Access token در حافظهٔ ماژول است (نه `localStorage`) چون XSS به Web Storage دسترسی دارد. Refresh token فقط کوکی httpOnly است و کلاینت هرگز آن را نمی‌بیند.
 
