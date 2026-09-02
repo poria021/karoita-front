@@ -12,6 +12,7 @@ import { useOrganizationalCapacitiesPage } from '../hooks/useOrganizationalCapac
 import { OrganizationalCapacitiesGuard } from './OrganizationalCapacitiesGuard';
 import { OrganizationalCapacitiesHeader } from './OrganizationalCapacitiesHeader';
 import { OrganizationalCapacitiesMobileList } from './OrganizationalCapacitiesMobileList';
+import { OrganizationalCapacitiesWorkspaceHeader } from './OrganizationalCapacitiesWorkspaceHeader';
 import { OrganizationalCapacitiesSummary } from './OrganizationalCapacitiesSummary';
 import { OrganizationalCapacitiesTable } from './OrganizationalCapacitiesTable';
 
@@ -36,6 +37,13 @@ export function OrganizationalCapacitiesPageClient() {
             kvTabsBodyBorderClassName
           )}
         >
+          <OrganizationalCapacitiesWorkspaceHeader
+            termId={page.termId}
+            terms={page.terms}
+            termsPending={page.termsPending}
+            onTermChange={page.changeTerm}
+          />
+
           {page.error ? (
             <KvAlert
               variant="error"

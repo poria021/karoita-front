@@ -36,7 +36,7 @@ const MODULAR_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   three: 'پودمان دوم',
 };
 
-/** کارورزی → `semester`؛ کارآموزی → `podmani`. لایو ممکن است کارورزی را داخل podmani هم بدهد. */
+/** کارورزی → `GET semesters_all?structure=semester`؛ کارآموزی → `podmani`. */
 export function nestStructureForCapacityKind(
   kind: OrganizationalCapacityKind
 ): NestSemesterAllStructure {

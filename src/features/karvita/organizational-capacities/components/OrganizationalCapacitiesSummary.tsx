@@ -37,23 +37,24 @@ export function OrganizationalCapacitiesSummary({
     <div className="grid grid-cols-3 gap-kv-pair sm:gap-kv-group">
       {items.map((item) => (
         <KvCard key={item.label} tone="surface" padding="sm">
-          <KvCardContent padding="none" className="space-y-kv-micro text-start">
-            <KvTypography variant="caption" tone="muted" as="span">
+          <KvCardContent padding="none" className="flex flex-col gap-kv-micro text-start">
+            <KvTypography variant="caption" tone="muted" as="p">
               {item.label}
             </KvTypography>
-            {isLoading && item.value == null ? (
-              <span
-                className="inline-flex h-7 items-center"
-                role="status"
-                aria-label={`در حال دریافت ${item.label}`}
-              >
-                <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
-              </span>
-            ) : (
-              <KvTypography variant="subtitle" as="p">
-                {item.value ?? '—'}
-              </KvTypography>
-            )}
+            <div className="flex h-7 min-h-7 items-center justify-start">
+              {isLoading && item.value == null ? (
+                <span
+                  role="status"
+                  aria-label={`در حال دریافت ${item.label}`}
+                >
+                  <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
+                </span>
+              ) : (
+                <KvTypography variant="subtitle" as="p">
+                  {item.value ?? '—'}
+                </KvTypography>
+              )}
+            </div>
           </KvCardContent>
         </KvCard>
       ))}

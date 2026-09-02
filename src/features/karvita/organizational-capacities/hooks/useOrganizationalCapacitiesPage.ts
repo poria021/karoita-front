@@ -67,7 +67,7 @@ export function useOrganizationalCapacitiesPage() {
     defaultValue: 'internship',
     preferWhenMissing: cached?.kind,
   });
-  const [termId] = useState(() => cached?.termId ?? '');
+  const [termId, setTermId] = useState(() => cached?.termId ?? '');
   const [actionBusy, setActionBusy] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [expandedCourseId, setExpandedCourseId] = useState<string | null>(null);
@@ -93,6 +93,8 @@ export function useOrganizationalCapacitiesPage() {
     queryFn: () => OrganizationalCapacitiesService.listTerms('apprenticeship'),
     staleTime: QUERY_STALE_MS.module,
   });
+  const refetchInternshipTerms = internshipTermsQuery.refetch;
+  const refetchApprenticeshipTerms = apprenticeshipTermsQuery.refetch;
 
   const termsQuery =
     kind === 'internship' ? internshipTermsQuery : apprenticeshipTermsQuery;
@@ -100,8 +102,15 @@ export function useOrganizationalCapacitiesPage() {
   const termsError = termsQuery.error;
   const termsPending = termsQuery.isPending;
 
+  const terms = termsData ?? [];
+
+  useEffect(() => {
+    if (termsPending) return;
+    if (terms.some((term) => term.id === termId)) return;
+    setTermId(terms[0]?.id ?? '');
+  }, [termId, terms, termsPending]);
+
   const resolvedTermId = (() => {
-    const terms = termsData ?? [];
     if (terms.some((term) => term.id === termId)) return termId;
     return terms[0]?.id ?? '';
   })();
@@ -151,14 +160,10 @@ export function useOrganizationalCapacitiesPage() {
     baselineRef.current = null;
     baselineKeyRef.current = '';
     setIsDirty(false);
-    void internshipTermsQuery.refetch();
-    void apprenticeshipTermsQuery.refetch();
+    void refetchInternshipTerms();
+    void refetchApprenticeshipTerms();
     void refetchSnapshot();
-  }, [
-    apprenticeshipTermsQuery.refetch,
-    internshipTermsQuery.refetch,
-    refetchSnapshot,
-  ]);
+  }, [refetchApprenticeshipTerms, refetchInternshipTerms, refetchSnapshot]);
 
   const changeKind = useCallback(
     (next: OrganizationalCapacityKind) => {
@@ -170,6 +175,14 @@ export function useOrganizationalCapacitiesPage() {
     },
     [setKind]
   );
+
+  const changeTerm = useCallback((nextTermId: string) => {
+    setTermId(nextTermId);
+    setExpandedCourseId(null);
+    baselineRef.current = null;
+    baselineKeyRef.current = '';
+    setIsDirty(false);
+  }, []);
 
   const setSnapshotData = useCallback(
     (next: OrganizationalCapacitiesSnapshot) => {
@@ -289,7 +302,10 @@ export function useOrganizationalCapacitiesPage() {
   return {
     kind,
     changeKind,
-    termId,
+    termId: resolvedTermId,
+    terms,
+    termsPending,
+    changeTerm,
     snapshot,
     isLoading,
     error,

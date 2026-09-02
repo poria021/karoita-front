@@ -3,6 +3,7 @@ import { ApiClientError } from '@/services/api-error';
 import {
   filterBundlesForCapacityKind,
   nestEntityId,
+  nestStructureForCapacityKind,
   parseGeneralProfessorCapacity,
   parseNestProfessorCapacityList,
   parseNestSemesterBundle,
@@ -22,26 +23,14 @@ import type { NestSemesterWithLessons } from '@/types/nest-admin';
 async function listSemesterBundles(
   kind: OrganizationalCapacityKind
 ): Promise<NestSemesterWithLessons[]> {
-  // هر دو را می‌گیریم: سمستر ممکن است خالی باشد ولی کارورزی داخل پودمانی آمده باشد.
-  const [semesterRaw, podmaniRaw] = await Promise.all([
-    adminCatalogApi.listSemestersAll('semester'),
-    adminCatalogApi.listSemestersAll('podmani'),
-  ]);
-  const byId = new Map<string, NestSemesterWithLessons>();
-  for (const raw of [...semesterRaw, ...podmaniRaw]) {
-    const parsed = parseNestSemesterBundle(raw);
-    if (!parsed) continue;
-    const existing = byId.get(parsed.id);
-    if (!existing) {
-      byId.set(parsed.id, parsed);
-      continue;
-    }
-    byId.set(parsed.id, {
-      ...existing,
-      lessons: [...(existing.lessons ?? []), ...(parsed.lessons ?? [])],
-    });
+  const structure = nestStructureForCapacityKind(kind);
+  const raw = await adminCatalogApi.listSemestersAll(structure);
+  const bundles: NestSemesterWithLessons[] = [];
+  for (const item of raw) {
+    const parsed = parseNestSemesterBundle(item);
+    if (parsed) bundles.push(parsed);
   }
-  return filterBundlesForCapacityKind([...byId.values()], kind);
+  return filterBundlesForCapacityKind(bundles, kind);
 }
 
 function termsFromBundles(

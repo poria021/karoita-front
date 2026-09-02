@@ -11,6 +11,12 @@ export const CAPACITY_KIND_TABS: readonly {
   { value: 'apprenticeship', label: 'ظرفیت کارآموزی' },
 ];
 
+export const CAPACITY_FEATURE = {
+  title: 'پیکربندی ظرفیت',
+  description:
+    'تعیین سقف پذیرش و روز حضور هفتگی برای دروس کارورزی و کارآموزی در نیم‌سال یا پودمان انتخاب‌شده در این بخش انجام می‌شود.',
+} as const;
+
 export const CAPACITY_WEEK_DAYS: readonly {
   value: OrganizationalCapacityWeekday;
   label: string;
