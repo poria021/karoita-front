@@ -191,15 +191,21 @@ export function KvImageDocUploader({
   const id = idProp ?? generatedId;
   const [isCompressing, setIsCompressing] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+  /** بعد از حذف، `existingUrl` والد را نادیده بگیر تا دراپ‌زون برای فایل جدید باز شود. */
+  const [existingDismissed, setExistingDismissed] = useState(false);
+
+  useEffect(() => {
+    setExistingDismissed(false);
+  }, [existingUrl]);
 
   const blobUrl = useMemo(
     () => (value ? URL.createObjectURL(value) : null),
     [value]
   );
-  const resolvedExistingUrl = useMemo(
-    () => resolveNestFileUrl(existingUrl) ?? existingUrl ?? null,
-    [existingUrl]
-  );
+  const resolvedExistingUrl = useMemo(() => {
+    if (existingDismissed) return null;
+    return resolveNestFileUrl(existingUrl) ?? existingUrl ?? null;
+  }, [existingDismissed, existingUrl]);
 
   useEffect(() => {
     return () => {
@@ -293,6 +299,7 @@ export function KvImageDocUploader({
       event.preventDefault();
       event.stopPropagation();
       setLocalError(null);
+      setExistingDismissed(true);
       onChange(null, null);
     },
     [onChange]
