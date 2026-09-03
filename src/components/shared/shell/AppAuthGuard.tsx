@@ -18,10 +18,24 @@ import {
   resetRuntimeAuthBoot,
   type RuntimeAuthBoot,
 } from '@/store/sessionBoot';
+import type { Session } from '@/types/auth';
 
 type BootState = 'pending' | RuntimeAuthBoot;
 
 const BOOT_LABEL = 'لطفا منتظر بمانید…';
+
+/** نگاشت refresh واقعی به boot — بدون حدس لاگین‌نشده روی خطای گذرا. */
+export async function resolveRealAuthRestoreBoot(
+  refresh: () => Promise<Session | null>
+): Promise<RuntimeAuthBoot> {
+  try {
+    const restored = await refresh();
+    if (restored) return 'authenticated';
+  } catch (error) {
+    if (isSessionTransientError(error)) return 'error';
+  }
+  return 'unauthenticated';
+}
 
 function BootLoader({ label = BOOT_LABEL }: { label?: string }) {
   return <KvBrandLinearLoader fullViewport label={label} />;
@@ -57,14 +71,7 @@ async function restoreSession(): Promise<RuntimeAuthBoot> {
   const quick = AuthService.peekSession();
   if (quick) return 'authenticated';
 
-  try {
-    const restored = await AuthService.refreshRealSession();
-    if (restored) return 'authenticated';
-  } catch (error) {
-    if (isSessionTransientError(error)) return 'error';
-  }
-
-  return 'unauthenticated';
+  return resolveRealAuthRestoreBoot(() => AuthService.refreshRealSession());
 }
 
 function AppAuthGuardInner({ children }: { children: ReactNode }) {

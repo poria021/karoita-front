@@ -7,16 +7,17 @@ const DEFAULT_OTP_COUNTDOWN_SECONDS = 60;
  */
 export function useOtpCountdown(durationInSeconds: number = DEFAULT_OTP_COUNTDOWN_SECONDS) {
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const isRunning = secondsLeft > 0;
 
   useEffect(() => {
-    if (secondsLeft <= 0) return undefined;
+    if (!isRunning) return undefined;
 
-    const timeoutId = window.setTimeout(() => {
-      setSecondsLeft((current) => current - 1);
+    const intervalId = window.setInterval(() => {
+      setSecondsLeft((current) => Math.max(0, current - 1));
     }, 1000);
 
-    return () => window.clearTimeout(timeoutId);
-  }, [secondsLeft]);
+    return () => window.clearInterval(intervalId);
+  }, [isRunning]);
 
   const restart = useCallback(
     (seconds?: number) => {

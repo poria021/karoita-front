@@ -1,11 +1,6 @@
 /**
- * تست‌های منطق Edge — بدون NextRequest واقعی:
- *
- * - `hasEdgeClientSession`: presence cookie را درست می‌خواند
- * - `isAuthPath` / `isAppShellPath`: مسیرها به‌درستی شناسایی می‌شوند
- *
- * این تست‌ها تأیید می‌کنند که قرارداد دو لایه (client bounce loop fix + Edge rule)
- * یکپارچه است. تست کامل E2E proxy نیاز به Node/Edge runtime دارد.
+ * تست‌های منطق Edge با فراخوانی واقعی `proxy()` (NextRequest + cookie):
+ * ماتریس presence × path. طبقه‌بندی مسیر جدا در همین فایل؛ کوکی در `edge-session.test.ts`.
  */
 
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
@@ -142,29 +137,49 @@ describe('proxy() — Edge gate', () => {
     vi.unstubAllEnvs();
   });
 
-  it('بدون نشست + /karvita/dashboard → لاگین + returnUrl', async () => {
-    const { NextRequest } = await import('next/server');
-    const { proxy } = await import('@/proxy');
-    const request = new NextRequest('http://localhost:3000/karvita/dashboard');
-    const response = await proxy(request);
-    expect(response.status).toBeGreaterThanOrEqual(300);
-    expect(response.status).toBeLessThan(400);
-    const location = response.headers.get('location') ?? '';
-    expect(location).toContain('/auth/login');
-    expect(location).toContain('returnUrl');
-  });
-
-  it('presence + /auth/login → داشبورد (کاربر واردشده به لاگین برنگردد)', async () => {
+  async function runProxy(path: string, loggedIn: boolean) {
     const { NextRequest } = await import('next/server');
     const { proxy } = await import('@/proxy');
     const { AUTH_COOKIE_NAME: cookieName } = await import('@/lib/config');
-    const request = new NextRequest('http://localhost:3000/auth/login', {
-      headers: { cookie: `${cookieName}=1` },
+    const request = new NextRequest(`http://localhost:3000${path}`, {
+      headers: loggedIn ? { cookie: `${cookieName}=1` } : undefined,
     });
-    const response = await proxy(request);
+    return proxy(request);
+  }
+
+  function locationOf(response: Response): string {
+    return response.headers.get('location') ?? '';
+  }
+
+  it('بدون نشست + /karvita/dashboard → لاگین + returnUrl', async () => {
+    const response = await runProxy('/karvita/dashboard', false);
     expect(response.status).toBeGreaterThanOrEqual(300);
     expect(response.status).toBeLessThan(400);
-    const location = response.headers.get('location') ?? '';
-    expect(location).toContain('/karvita/dashboard');
+    const location = locationOf(response);
+    expect(location).toContain('/auth/login');
+    expect(location).toContain('returnUrl');
+    expect(decodeURIComponent(location)).toContain('/karvita/dashboard');
+  });
+
+  it('بدون نشست + /auth/login → عبور (Edge به داشبورد برنمی‌گرداند)', async () => {
+    const response = await runProxy('/auth/login', false);
+    expect(locationOf(response)).toBe('');
+  });
+
+  it('presence + /auth/login → داشبورد (کاربر واردشده به لاگین برنگردد)', async () => {
+    const response = await runProxy('/auth/login', true);
+    expect(response.status).toBeGreaterThanOrEqual(300);
+    expect(response.status).toBeLessThan(400);
+    expect(locationOf(response)).toContain('/karvita/dashboard');
+  });
+
+  it('presence + /karvita/dashboard → عبور', async () => {
+    const response = await runProxy('/karvita/dashboard', true);
+    expect(locationOf(response)).toBe('');
+  });
+
+  it('بدون نشست + / → عبور (لندینگ اجباری به لاگین نیست)', async () => {
+    const response = await runProxy('/', false);
+    expect(locationOf(response)).toBe('');
   });
 });
