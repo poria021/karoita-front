@@ -54,6 +54,13 @@ describe('writeRealAuthTokens — set-tokens persistence', () => {
     await writeRealAuthTokens(TOKENS, 'user');
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+    expect(body).toEqual({
+      refreshToken: TOKENS.refreshToken,
+      surface: 'user',
+    });
+    expect(body).not.toHaveProperty('accessToken');
     expect(readRealAccessToken()).toBe(TOKENS.token);
     expect(readRealAuthSurface()).toBe('user');
     expect(document.cookie).toContain(`${AUTH_COOKIE_NAME}=1`);

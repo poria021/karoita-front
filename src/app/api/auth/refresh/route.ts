@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { assertSameOriginPost } from '@/lib/auth-origin-guard';
 import {
+  LEGACY_ACCESS_COOKIE_NAME,
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
   REAL_SURFACE_COOKIE_NAME,
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest) {
     );
     expired.cookies.delete(REAL_REFRESH_COOKIE_NAME);
     expired.cookies.delete(REAL_SURFACE_COOKIE_NAME);
+    expired.cookies.delete(LEGACY_ACCESS_COOKIE_NAME);
     return expired;
   }
 

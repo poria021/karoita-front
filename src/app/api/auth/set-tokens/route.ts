@@ -7,8 +7,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
-  REAL_ACCESS_COOKIE_NAME,
-  REAL_ACCESS_COOKIE_OPTIONS,
   REAL_SURFACE_COOKIE_NAME,
   REAL_SURFACE_COOKIE_OPTIONS,
   type AuthSurface,
@@ -17,7 +15,6 @@ import { assertSameOriginPost } from '@/lib/auth-origin-guard';
 
 interface SetTokensBody {
   refreshToken?: unknown;
-  accessToken?: unknown;
   /** `admin` | `user` — `/api/auth/refresh` کدام مسیر Nest را بزند */
   surface?: unknown;
 }
@@ -48,11 +45,6 @@ export async function POST(request: NextRequest) {
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(REAL_REFRESH_COOKIE_NAME, body.refreshToken, REAL_REFRESH_COOKIE_OPTIONS);
-
-  // access هم httpOnly تا `/api/auth/refresh` بتواند `Authorization` به Nest بفرستد.
-  if (typeof body.accessToken === 'string' && body.accessToken) {
-    response.cookies.set(REAL_ACCESS_COOKIE_NAME, body.accessToken, REAL_ACCESS_COOKIE_OPTIONS);
-  }
 
   // surface: `admin` → `v1/admin/auth/refresh` | `user` → `v1/auth/refresh`
   const surface: AuthSurface =

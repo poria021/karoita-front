@@ -1,12 +1,12 @@
 /**
- * `POST /api/auth/clear-tokens` — پاک کردن کوکی‌های رفرش/access/surface.
+ * `POST /api/auth/clear-tokens` — پاک کردن کوکی رفرش/surface.
  * روی logout و ۴۰۱ قطعی بعد از refresh ناموفق.
  */
 import { NextResponse, type NextRequest } from 'next/server';
 
 import {
+  LEGACY_ACCESS_COOKIE_NAME,
   REAL_REFRESH_COOKIE_NAME,
-  REAL_ACCESS_COOKIE_NAME,
   REAL_SURFACE_COOKIE_NAME,
 } from '@/lib/real-auth-cookie';
 import { assertSameOriginPost } from '@/lib/auth-origin-guard';
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
   const response = NextResponse.json({ ok: true });
   response.cookies.delete(REAL_REFRESH_COOKIE_NAME);
-  response.cookies.delete(REAL_ACCESS_COOKIE_NAME);
+  response.cookies.delete(LEGACY_ACCESS_COOKIE_NAME);
   response.cookies.delete(REAL_SURFACE_COOKIE_NAME);
   return response;
 }

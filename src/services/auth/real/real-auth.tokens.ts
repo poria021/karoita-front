@@ -76,7 +76,6 @@ function sleep(ms: number): Promise<void> {
 /** یک POST به `/api/auth/set-tokens` با timeout جدا. */
 async function requestSetTokensOnce(
   refreshToken: string,
-  accessToken?: string,
   surface?: AuthSurface,
 ): Promise<Response> {
   const controller = new AbortController();
@@ -85,7 +84,7 @@ async function requestSetTokensOnce(
     return await fetch('/api/auth/set-tokens', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken, accessToken, surface }),
+      body: JSON.stringify({ refreshToken, surface }),
       credentials: 'include',
       signal: controller.signal,
     });
@@ -100,7 +99,6 @@ async function requestSetTokensOnce(
  */
 async function persistRefreshTokenInCookie(
   refreshToken: string,
-  accessToken?: string,
   surface?: AuthSurface,
 ): Promise<void> {
   if (!isBrowser()) return;
@@ -112,7 +110,7 @@ async function persistRefreshTokenInCookie(
       await sleep(SET_TOKENS_RETRY_DELAYS_MS[attempt - 1] ?? 900);
     }
     try {
-      const res = await requestSetTokensOnce(refreshToken, accessToken, surface);
+      const res = await requestSetTokensOnce(refreshToken, surface);
       if (res.ok) return;
 
       lastError = new Error(`set-tokens route returned ${res.status}`);
@@ -176,8 +174,8 @@ export async function writeRealAuthTokens(
   }
 
   try {
-    // `karvita_rt` برای rotation؛ `karvita_at` اگر Nest روی refresh به Bearer نیاز داشت
-    await persistRefreshTokenInCookie(tokens.refreshToken, tokens.token, surface);
+    // فقط `karvita_rt` (+ surface)؛ access در حافظه می‌ماند
+    await persistRefreshTokenInCookie(tokens.refreshToken, surface);
   } catch (error) {
     // rollback: اگر set-tokens جزئی موفق بود، clear-tokens هم بزن
     clearRealAuthTokens();
