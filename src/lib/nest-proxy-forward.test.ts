@@ -45,6 +45,26 @@ describe('forwardToNestApi', () => {
     const headers = new Headers(init.headers);
     expect(headers.get('authorization')).toBe('Bearer t');
     expect(headers.get('cookie')).toBeNull();
+    expect(headers.get('accept-encoding')).toBe('identity');
+  });
+
+  it('does not forward the browser Accept-Encoding to Nest', async () => {
+    vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
+    const nestFetch = vi.fn().mockResolvedValue(
+      new Response('{"ok":true}', {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    );
+    vi.stubGlobal('fetch', nestFetch);
+
+    const req = new NextRequest('http://localhost/api/nest/v1/auth/roles', {
+      headers: { 'accept-encoding': 'gzip, deflate, br' },
+    });
+    await forwardToNestApi(req, ['v1', 'auth', 'roles']);
+
+    const [, init] = nestFetch.mock.calls[0] as [string, RequestInit];
+    expect(new Headers(init.headers).get('accept-encoding')).toBe('identity');
   });
 
   it('strips content-encoding from upstream response to prevent ERR_CONTENT_DECODING_FAILED', async () => {
@@ -57,6 +77,7 @@ describe('forwardToNestApi', () => {
           headers: {
             'content-type': 'application/json',
             'content-encoding': 'gzip',
+            'x-powered-by': 'Express',
           },
         })
       )
@@ -68,5 +89,7 @@ describe('forwardToNestApi', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('content-encoding')).toBeNull();
     expect(res.headers.get('content-type')).toBe('application/json');
+    expect(res.headers.get('x-powered-by')).toBeNull();
+    await expect(res.json()).resolves.toEqual({ ok: true });
   });
 });

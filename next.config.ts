@@ -32,7 +32,7 @@ const withPWA = withPWAInit({
     skipWaiting: true,
     clientsClaim: true,
     cleanupOutdatedCaches: true,
-    cacheId: 'karvita-20260903',
+    cacheId: 'karvita-20260903-otp',
     // `inline: true` اسکریپت fallback را داخل `sw.js` می‌گذارد نه فایل جدا —
     // لینک preload اضافه از head حذف می‌شود و هشدار «preloaded but not used» می‌رود.
     inlineWorkboxRuntime: true,
