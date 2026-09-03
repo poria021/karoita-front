@@ -1,7 +1,7 @@
 allowBuilds:
-  esbuild: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
 
 # رفع آسیب‌پذیری‌های انتقالی (pnpm 11 فقط این فایل را می‌خواند).
 # همهٔ مقادیر patch-within-major هستند مگر serialize-javascript که major 6→7
