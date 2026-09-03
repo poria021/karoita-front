@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { readNestApiBaseUrl } from '@/lib/nest-proxy';
 
 const SKIP_HEADER =
-  /^(host|connection|keep-alive|proxy-authenticate|proxy-authorization|te|trailer|transfer-encoding|upgrade|cookie|content-length)$/i;
+  /^(host|connection|keep-alive|proxy-authenticate|proxy-authorization|te|trailer|transfer-encoding|upgrade|cookie|content-length|content-encoding)$/i;
 
 function isUnsafePathSegment(segment: string): boolean {
   return segment === '..' || segment.includes('/') || segment.includes('\\');
