@@ -26,7 +26,7 @@ export function decideUnauthorizedAfterResponse(input: {
 }
 
 /**
- * مرورگر از `/__nest-api` می‌رود (حتی اگر URL نست در باندل خالی باشد).
+ * مرورگر از `/api/nest` می‌رود (حتی اگر URL نست در باندل خالی باشد).
  * SSR همان آدرس Nest سمت سرور است.
  */
 export function resolveNestClientPrefix(input: {

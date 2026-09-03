@@ -56,7 +56,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 200,
         retryCount: 0,
-        url: '/__nest-api/v1/users',
+        url: '/api/nest/v1/users',
       })
     ).toBe('ignore');
 
@@ -64,7 +64,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 401,
         retryCount: 0,
-        url: '/__nest-api/v1/users',
+        url: '/api/nest/v1/users',
       })
     ).toBe('refresh');
 
@@ -72,7 +72,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 401,
         retryCount: 1,
-        url: '/__nest-api/v1/users',
+        url: '/api/nest/v1/users',
       })
     ).toBe('logout');
 
@@ -80,7 +80,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 401,
         retryCount: 0,
-        url: '/__nest-api/v1/auth/refresh',
+        url: '/api/nest/v1/auth/refresh',
       })
     ).toBe('logout');
 
@@ -88,7 +88,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 401,
         retryCount: 0,
-        url: '/__nest-api/v1/admin/auth/me',
+        url: '/api/nest/v1/admin/auth/me',
       })
     ).toBe('refresh');
   });

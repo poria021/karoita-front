@@ -1,5 +1,8 @@
-/** پروکسی هم‌مبدا مرورگر تا CORS نست localhost را نبندد. */
-export const NEST_BROWSER_PROXY_PATH = '/__nest-api';
+/**
+ * پروکسی هم‌مبدا مرورگر تا CORS نست را نبندد.
+ * با `_` شروع نشود — در App Router پوشهٔ `_` route نیست و روی سرور ۴۰۴ می‌شود.
+ */
+export const NEST_BROWSER_PROXY_PATH = '/api/nest';
 
 function trimSlash(value: string): string {
   return value.replace(/\/$/, '');

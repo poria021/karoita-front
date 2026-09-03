@@ -1,7 +1,7 @@
 # ایمیج پروداکشن فرانت کارویتا (Next ۱۶ + pnpm).
 # NEXT_PUBLIC_* موقع `pnpm build` داخل باندل می‌رود.
 # اگر Darkube فقط env زمان اجرا بدهد، `BACKEND_INTERNAL_URL` را روی پاد بگذارید؛
-# مرورگر از `/__nest-api` می‌رود و سرور همان آدرس را پروکسی می‌کند.
+# مرورگر از `/api/nest` می‌رود و سرور همان آدرس را پروکسی می‌کند.
 #
 # نمونه:
 #   docker build -t karvita-frontend \

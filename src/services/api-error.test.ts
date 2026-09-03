@@ -3,9 +3,9 @@ import { TimeoutError } from 'ky';
 
 import { localizeApiError, mapHttpError } from '@/services/api-error';
 
-const LOGIN_VERIFY_OTP_URL = 'http://localhost:3000/__nest-api/v1/auth/phone/login/verify-otp';
-const ADMIN_VERIFY_OTP_URL = 'http://localhost:3000/__nest-api/v1/admin/auth/phone/login/verify-otp';
-const SOME_OTHER_URL = 'http://localhost:3000/__nest-api/v1/auth/me';
+const LOGIN_VERIFY_OTP_URL = 'http://localhost:3000/api/nest/v1/auth/phone/login/verify-otp';
+const ADMIN_VERIFY_OTP_URL = 'http://localhost:3000/api/nest/v1/admin/auth/phone/login/verify-otp';
+const SOME_OTHER_URL = 'http://localhost:3000/api/nest/v1/auth/me';
 
 /** رگرسیون: Nest کد OTP اشتباه را ۴۰۴ می‌دهد؛ حتی بدون `{ errors.hash }` پیام «منبع یافت نشد» نباشد. */
 describe('localizeApiError — OTP verify 404 mapping', () => {

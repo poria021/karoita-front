@@ -67,7 +67,7 @@ E2E سرور را روی `127.0.0.1:3000` بالا می‌آورد. قبلش ه�
 
 متغیرهای `NEXT_PUBLIC_*` موقع **`pnpm build`** داخل باندل می‌شوند. بعد از بیلد عوض کردنشان در مرورگر اثر ندارد.
 
-1. کلیدها در [`.env.production.example`](./.env.production.example) هستند. اگر Darkube فقط env زمان اجرا دارد، **`BACKEND_INTERNAL_URL`** را روی پاد بگذارید (همان آدرس Nest، مثلاً `https://backenddev.darkube.ir/api`). مرورگر از `/__nest-api` می‌زند و Node همان آدرس را پروکسی می‌کند.
+1. کلیدها در [`.env.production.example`](./.env.production.example) هستند. اگر Darkube فقط env زمان اجرا دارد، **`BACKEND_INTERNAL_URL`** را روی پاد بگذارید (همان آدرس Nest، مثلاً `https://backenddev.darkube.ir/api`). مرورگر از `/api/nest` می‌زند و Node همان آدرس را پروکسی می‌کند.
 2. اگر می‌توانید `--build-arg` بدهید، `NEXT_PUBLIC_API_URL` را هم همان‌جا ست کنید.
 3. `NEXT_PUBLIC_API_MODE=real` — مقدار `mock` در production کرش می‌کند.
 4. بیلد بدون داکر:

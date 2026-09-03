@@ -3,6 +3,7 @@
  * دارایی استاتیک شِل قابل کش است. سند، payload RSC، پروکسی Nest،
  * و ترافیک API با credential همیشه `NetworkOnly` است (بدون replay آفلاین).
  */
+import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
 
 export const PWA_OFFLINE_PATH = '/offline';
 export const PWA_SW_PATH = '/sw.js';
@@ -11,7 +12,7 @@ export const PWA_SW_PATH = '/sw.js';
 export const PWA_STATIC_CACHE_PATH =
   /^(?:\/_next\/static\/|\/brand\/|\/fonts\/|\/marketing\/)/;
 
-const NEST_PROXY = '/__nest-api';
+const NEST_PROXY = NEST_BROWSER_PROXY_PATH;
 
 export type PwaRequestSnapshot = {
   method: string;

@@ -15,7 +15,7 @@
                                       ├─ mock/   شبیه‌ساز localStorage
                                       └─ real/   apiClient → Nest
                                               ↑
-                                    مرورگر: /__nest-api  (route runtime + rewrite)
+                                    مرورگر: /api/nest  (route runtime + rewrite)
                                     سرور:   BACKEND_INTERNAL_URL یا NEXT_PUBLIC_API_URL
 ```
 
@@ -34,7 +34,7 @@
 | کلاینت | `api-client.ts` | ساخت `ky`، هدر `x-custom-lang: fa`، retry روی ۴۰۱ |
 | خطا | `api-error.ts` | `HTTPError` → `ApiClientError` با پیام فارسی |
 | توکن | `api-token.ts` | خواندن access از حافظه، refresh مشترک، logout روی ۴۰۱ |
-| پروکسی مرورگر | `lib/nest-proxy.ts` + `app/__nest-api/[...path]/route.ts` | `/__nest-api` تا CORS دامنهٔ Nest بلاک نکند؛ مقصد از env زمان اجرا |
+| پروکسی مرورگر | `lib/nest-proxy.ts` + `app/api/nest/[...path]/route.ts` | `/api/nest` تا CORS دامنهٔ Nest بلاک نکند؛ مقصد از env زمان اجرا |
 | refresh سمت سرور | `app/api/auth/refresh/route.ts` | تنها جایی که کوکی httpOnly رفرش خوانده می‌شود؛ مثل set/clear با `assertSameOriginPost` |
 
 Access token در حافظهٔ ماژول است (نه `localStorage`) چون XSS به Web Storage دسترسی دارد. Refresh token فقط کوکی httpOnly است و کلاینت هرگز آن را نمی‌بیند.

@@ -10,7 +10,7 @@ describe('forwardToNestApi', () => {
   });
 
   it('rejects path traversal', async () => {
-    const req = new NextRequest('http://localhost/__nest-api/v1/auth');
+    const req = new NextRequest('http://localhost/api/nest/v1/auth');
     const res = await forwardToNestApi(req, ['..', 'etc']);
     expect(res.status).toBe(400);
   });
@@ -18,7 +18,7 @@ describe('forwardToNestApi', () => {
   it('returns 502 when Nest URL is not configured', async () => {
     vi.stubEnv('BACKEND_INTERNAL_URL', '');
     vi.stubEnv('NEXT_PUBLIC_API_URL', '');
-    const req = new NextRequest('http://localhost/__nest-api/v1/auth/roles');
+    const req = new NextRequest('http://localhost/api/nest/v1/auth/roles');
     const res = await forwardToNestApi(req, ['v1', 'auth', 'roles']);
     expect(res.status).toBe(502);
   });
@@ -33,7 +33,7 @@ describe('forwardToNestApi', () => {
     );
     vi.stubGlobal('fetch', nestFetch);
 
-    const req = new NextRequest('http://localhost/__nest-api/v1/auth/roles', {
+    const req = new NextRequest('http://localhost/api/nest/v1/auth/roles', {
       headers: { authorization: 'Bearer t', cookie: 'secret=1' },
     });
     const res = await forwardToNestApi(req, ['v1', 'auth', 'roles']);

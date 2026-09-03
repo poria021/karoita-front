@@ -31,7 +31,7 @@ const NEST_LANG_HEADER = { 'x-custom-lang': 'fa' } as const;
 let browserClient: ReturnType<typeof ky.create> | null = null;
 let browserClientPrefix: string | null = null;
 
-/** مرورگر از rewrite `/__nest-api` می‌رود تا CORS دامنهٔ Nest بلاک نکند. */
+/** مرورگر از `/api/nest` می‌رود تا CORS دامنهٔ Nest بلاک نکند. */
 function resolveClientPrefix(): string {
   if (typeof window === 'undefined') {
     return resolveNestClientPrefix({ apiUrl: readNestApiBaseUrl() });

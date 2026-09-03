@@ -14,7 +14,7 @@ describe('shouldUseNetworkOnly', () => {
     expect(
       shouldUseNetworkOnly({
         method: 'GET',
-        pathname: '/__nest-api/v1/auth/login',
+        pathname: '/api/nest/v1/auth/login',
       })
     ).toBe(true);
     expect(
@@ -97,7 +97,7 @@ describe('shouldCacheStaticShell', () => {
     expect(
       shouldCacheStaticShell({
         method: 'GET',
-        pathname: '/__nest-api/org',
+        pathname: '/api/nest/org',
       })
     ).toBe(false);
   });
