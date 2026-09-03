@@ -90,6 +90,8 @@ describe('forwardToNestApi', () => {
     expect(res.headers.get('content-encoding')).toBeNull();
     expect(res.headers.get('content-type')).toBe('application/json');
     expect(res.headers.get('x-powered-by')).toBeNull();
+    expect(res.headers.get('x-karvita-proxy')).toBe('nest-raw');
+    expect(res.headers.get('cache-control')).toBe('no-store, no-transform');
     await expect(res.json()).resolves.toEqual({ ok: true });
   });
 });

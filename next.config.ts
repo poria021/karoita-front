@@ -32,7 +32,7 @@ const withPWA = withPWAInit({
     skipWaiting: true,
     clientsClaim: true,
     cleanupOutdatedCaches: true,
-    cacheId: 'karvita-20260903-otp',
+    cacheId: 'karvita-20260903-otp-raw',
     // `inline: true` اسکریپت fallback را داخل `sw.js` می‌گذارد نه فایل جدا —
     // لینک preload اضافه از head حذف می‌شود و هشدار «preloaded but not used» می‌رود.
     inlineWorkboxRuntime: true,
@@ -46,9 +46,23 @@ const csp = buildContentSecurityPolicy();
 const nextConfig: NextConfig = {
   // ایمیج داکر فقط ردپای standalone را کپی می‌کند، نه کل node_modules.
   output: 'standalone',
+  // gzip این سرور + gzip اینگرس = ERR_CONTENT_DECODING_FAILED روی /api/nest.
+  compress: false,
   turbopack: {},
   async headers() {
     return [
+      {
+        source: '/api/nest/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-transform' },
+        ],
+      },
+      {
+        source: '/__nest-api/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-transform' },
+        ],
+      },
       {
         source: '/(.*)',
         headers: [
