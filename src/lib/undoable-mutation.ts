@@ -1,6 +1,11 @@
 import type { CSSProperties } from 'react';
 import { toast } from 'sonner';
 
+import {
+  isPostCommitRefreshError,
+  notifyPostCommitRefreshFailure,
+} from '@/lib/post-commit-refresh';
+
 export const UNDOABLE_MUTATION_DEFAULT_MS = 5_000;
 
 export type UndoableToastTone = 'default' | 'success' | 'error' | 'warning';
@@ -83,6 +88,19 @@ function showUndoableToast(
   return toast(message, options);
 }
 
+/** Refetch بعد از write جدا از commit است — شکستش UI ذخیره‌شده را برنمی‌گرداند. */
+async function runOnCommitted<T>(
+  onCommitted: ((result: T) => void | Promise<void>) | undefined,
+  result: T
+): Promise<void> {
+  if (!onCommitted) return;
+  try {
+    await onCommitted(result);
+  } catch {
+    notifyPostCommitRefreshFailure();
+  }
+}
+
 /**
  * نوشتن Facade با UI خوش‌بینانه و قابلیت لغو.
  *
@@ -112,9 +130,13 @@ export function scheduleUndoableMutation<T>(
     try {
       const result = await options.commit();
       committedResult = result;
-      await options.onCommitted?.(result);
+      await runOnCommitted(options.onCommitted, result);
       return result;
     } catch (error) {
+      if (isPostCommitRefreshError(error)) {
+        notifyPostCommitRefreshFailure();
+        return undefined;
+      }
       commitFailed = true;
       options.revert();
       if (options.onError) {
@@ -225,8 +247,12 @@ export function scheduleOptimisticMutation<T>(
   void (async () => {
     try {
       const result = await options.commit();
-      await options.onCommitted?.(result);
+      await runOnCommitted(options.onCommitted, result);
     } catch (error) {
+      if (isPostCommitRefreshError(error)) {
+        notifyPostCommitRefreshFailure();
+        return;
+      }
       options.revert();
       if (options.onError) {
         options.onError(error);

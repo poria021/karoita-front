@@ -17,7 +17,9 @@ vi.mock('sonner', () => ({
   toast: toastMock,
 }));
 
+import { PostCommitRefreshError } from '@/lib/post-commit-refresh';
 import {
+  scheduleOptimisticMutation,
   scheduleUndoableLocalChange,
   scheduleUndoableMutation,
 } from '@/lib/undoable-mutation';
@@ -174,6 +176,51 @@ describe('scheduleUndoableMutation', () => {
     expect(revert).not.toHaveBeenCalled();
   });
 
+  it('does not revert when onCommitted refetch fails after a successful write', async () => {
+    const apply = vi.fn();
+    const revert = vi.fn();
+    const onError = vi.fn();
+
+    scheduleUndoableMutation({
+      message: 'حذف شد',
+      apply,
+      revert,
+      commit: async () => 'ok',
+      onCommitted: async () => {
+        throw new Error('سرویس موقتاً در دسترس نیست. لطفاً کمی بعد تلاش کنید.');
+      },
+      onError,
+    });
+
+    await vi.waitFor(() => {
+      expect(toastMock.warning).toHaveBeenCalled();
+    });
+    expect(revert).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it('does not revert when commit throws PostCommitRefreshError', async () => {
+    const apply = vi.fn();
+    const revert = vi.fn();
+    const onError = vi.fn();
+
+    scheduleUndoableMutation({
+      message: 'حذف شد',
+      apply,
+      revert,
+      commit: async () => {
+        throw new PostCommitRefreshError(new Error('HTTP 500'));
+      },
+      onError,
+    });
+
+    await vi.waitFor(() => {
+      expect(toastMock.warning).toHaveBeenCalled();
+    });
+    expect(revert).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it('uses toast.success for success tone', () => {
     scheduleUndoableMutation({
       tone: 'success',
@@ -228,5 +275,35 @@ describe('scheduleUndoableLocalChange', () => {
     expect(opts?.action?.label).toBe('لغو');
     opts?.action?.onClick();
     expect(revert).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('scheduleOptimisticMutation', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('keeps optimistic UI when onCommitted refetch fails', async () => {
+    const apply = vi.fn();
+    const revert = vi.fn();
+    const onError = vi.fn();
+
+    scheduleOptimisticMutation({
+      message: 'افزوده شد',
+      apply,
+      revert,
+      commit: async () => 'ok',
+      onCommitted: async () => {
+        throw new Error('سرویس موقتاً در دسترس نیست. لطفاً کمی بعد تلاش کنید.');
+      },
+      onError,
+    });
+
+    await vi.waitFor(() => {
+      expect(toastMock.warning).toHaveBeenCalled();
+    });
+    expect(apply).toHaveBeenCalledTimes(1);
+    expect(revert).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
   });
 });

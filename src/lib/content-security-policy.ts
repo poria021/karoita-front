@@ -70,8 +70,20 @@ export function buildContentSecurityPolicy(): string {
       ...sentryConnectOriginsFromEnv(),
       ...(webhookOrigin ? [webhookOrigin] : []),
       ...(analyticsOrigin ? [analyticsOrigin] : []),
-      // websocket HMR و API محلی در development
-      ...(isDev ? ['ws://localhost:*', 'wss://localhost:*', 'http://localhost:*'] : []),
+      // websocket HMR: localhost و 127.0.0.1 و IPv6 — تب Playwright/Cursor یکی نیستند.
+      ...(isDev
+        ? [
+            'ws://localhost:*',
+            'wss://localhost:*',
+            'http://localhost:*',
+            'ws://127.0.0.1:*',
+            'wss://127.0.0.1:*',
+            'http://127.0.0.1:*',
+            'ws://[::1]:*',
+            'wss://[::1]:*',
+            'http://[::1]:*',
+          ]
+        : []),
     ],
     'frame-ancestors': ["'self'"],
     'form-action': ["'self'"],

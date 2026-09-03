@@ -26,4 +26,14 @@ describe('buildContentSecurityPolicy', () => {
     const csp = buildContentSecurityPolicy();
     expect(csp).not.toContain("'unsafe-eval'");
   });
+
+  it('allows Turbopack HMR eval and local websocket origins in development', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('VERCEL_ENV', '');
+    const csp = buildContentSecurityPolicy();
+    expect(csp).toContain("'unsafe-eval'");
+    expect(csp).toContain('ws://localhost:*');
+    expect(csp).toContain('ws://127.0.0.1:*');
+    expect(csp).toContain('ws://[::1]:*');
+  });
 });

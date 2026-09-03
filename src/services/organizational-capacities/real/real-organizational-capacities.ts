@@ -1,3 +1,4 @@
+import { reloadAfterWrite } from '@/lib/post-commit-refresh';
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import { ApiClientError } from '@/services/api-error';
 import {
@@ -180,8 +181,10 @@ export async function submitRealOrganizationalCapacities(
     await adminCatalogApi.updateProfessorCapacities(updates.map(toBody));
   }
 
-  return getRealOrganizationalCapacities(
-    { kind: input.kind, termId: current.termId },
-    professorId
+  return reloadAfterWrite(() =>
+    getRealOrganizationalCapacities(
+      { kind: input.kind, termId: current.termId },
+      professorId
+    )
   );
 }

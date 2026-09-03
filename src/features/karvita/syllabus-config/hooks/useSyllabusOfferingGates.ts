@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
+import { notifyIfPostCommitRefreshFailure } from '@/lib/post-commit-refresh';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type {
   AcademicTerm,
@@ -80,6 +81,14 @@ export function useSyllabusOfferingGates({
           : 'فرآیند انتخاب واحد موقتاً مسدود شد.'
       );
     } catch (err) {
+      if (notifyIfPostCommitRefreshFailure(err)) {
+        setTerms((prev) =>
+          prev.map((term) =>
+            term.id === selectedTermId ? { ...term, isEnrollOpen: open } : term
+          )
+        );
+        return;
+      }
       toast.error(errorMessage(err, 'تغییر وضعیت انتخاب واحد ناموفق بود.'));
     } finally {
       setPendingEnroll(false);
@@ -101,6 +110,14 @@ export function useSyllabusOfferingGates({
           : 'برگزاری کلاس‌های ترم موقتاً غیرفعال شد.'
       );
     } catch (err) {
+      if (notifyIfPostCommitRefreshFailure(err)) {
+        setTerms((prev) =>
+          prev.map((term) =>
+            term.id === selectedTermId ? { ...term, isTermOpen: open } : term
+          )
+        );
+        return;
+      }
       toast.error(errorMessage(err, 'تغییر وضعیت برگزاری کلاس ناموفق بود.'));
     } finally {
       setPendingTermOpen(false);
@@ -149,6 +166,10 @@ export function useSyllabusOfferingGates({
         `درس «${course.title}» با موفقیت برای این نیم‌سال ارائه شد.`
       );
     } catch (err) {
+      if (notifyIfPostCommitRefreshFailure(err)) {
+        setOfferedCatalogIds((prev) => new Set(prev).add(course.id));
+        return;
+      }
       toast.error(errorMessage(err, 'فعال‌سازی ارائه درس ناموفق بود.'));
     } finally {
       setPendingCourseId(null);
@@ -172,6 +193,14 @@ export function useSyllabusOfferingGates({
         `ارائه درس «${course.title}» در این نیم‌سال متوقف شد.`
       );
     } catch (err) {
+      if (notifyIfPostCommitRefreshFailure(err)) {
+        setOfferedCatalogIds((prev) => {
+          const next = new Set(prev);
+          next.delete(course.id);
+          return next;
+        });
+        return;
+      }
       toast.error(errorMessage(err, 'غیرفعال‌سازی ارائه درس ناموفق بود.'));
     } finally {
       setPendingCourseId(null);

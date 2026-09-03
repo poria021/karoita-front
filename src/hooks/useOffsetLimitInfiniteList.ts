@@ -115,7 +115,7 @@ export function useOffsetLimitInfiniteList<T>({
 
   const reload = async () => {
     setLoadMoreErrorDismissed(false);
-    await refetch();
+    await refetch({ throwOnError: false });
   };
 
   const patchItems = useCallback(

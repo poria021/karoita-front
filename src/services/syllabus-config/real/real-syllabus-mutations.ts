@@ -1,3 +1,4 @@
+import { reloadAfterWrite } from '@/lib/post-commit-refresh';
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import { ApiClientError } from '@/services/api-error';
 import {
@@ -31,7 +32,7 @@ export async function createRealTerm(
   input: UpsertTermInput
 ): Promise<SyllabusConfigSnapshot> {
   await adminCatalogApi.createSemester(toNestSemesterDto(input));
-  return getRealSyllabusSnapshot();
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
 /**
@@ -45,14 +46,14 @@ export async function updateRealTerm(
 ): Promise<SyllabusConfigSnapshot> {
   const current = await loadSemesterForWrite(id);
   await adminCatalogApi.updateSemester(id, toNestSemesterDto(input, current));
-  return getRealSyllabusSnapshot();
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
 export async function deleteRealTerm(
   id: string
 ): Promise<SyllabusConfigSnapshot> {
   await adminCatalogApi.deleteSemester(id);
-  return getRealSyllabusSnapshot();
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
 /**
@@ -67,7 +68,7 @@ export async function setRealProfessorCapacity(
     generalProfessorCapacity: capacity,
     systemPassingScore: current.passingScoreThreshold,
   });
-  return getRealSyllabusSnapshot();
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
 /** همان درج `POST /admin/settings` مثل `setRealProfessorCapacity`. */
@@ -79,7 +80,7 @@ export async function setRealPassingThreshold(
     generalProfessorCapacity: current.globalProfessorCapacity,
     systemPassingScore: threshold,
   });
-  return getRealSyllabusSnapshot();
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
 /** `PATCH /admin/lessons/{id}/status` — `status` پرچم ارائه است؛ ظرفیت/روز اختیاری‌اند. */
@@ -89,7 +90,7 @@ export async function activateRealOffering(
   await adminCatalogApi.patchLessonStatus(input.courseCatalogId, {
     status: true,
   });
-  return getRealSyllabusSnapshot();
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
 export async function deactivateRealOffering(
@@ -98,7 +99,7 @@ export async function deactivateRealOffering(
   await adminCatalogApi.patchLessonStatus(input.courseOfferingId, {
     status: false,
   });
-  return getRealSyllabusSnapshot();
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
 /**
@@ -127,7 +128,7 @@ export async function updateRealTermGates(
     input.termId,
     toNestSemesterWriteDto(current, patch)
   );
-  return getRealSyllabusSnapshot();
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
 /**
@@ -141,5 +142,5 @@ export async function saveRealSyllabusWeeks(
     input.courseCatalogId,
     toNestLessonWeeksBody(input.weeks)
   );
-  return getRealSyllabusSnapshot();
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }

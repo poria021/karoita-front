@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { notifyIfPostCommitRefreshFailure } from '@/lib/post-commit-refresh';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { unknownErrorMessage } from '@/lib/unknown-error-message';
 import { OrganizationalCapacitiesService } from '@/services/organizational-capacities.service';
@@ -287,6 +288,13 @@ export function useOrganizationalCapacitiesPage() {
       setIsDirty(false);
       toast.success('ظرفیت‌ها با موفقیت ذخیره شدند.');
     } catch (err) {
+      if (notifyIfPostCommitRefreshFailure(err) && snapshot) {
+        baselineRef.current = courseDraftSignature(snapshot.courses);
+        baselineKeyRef.current = `${kind}::${snapshot.termId}`;
+        setConfirmOpen(false);
+        setIsDirty(false);
+        return;
+      }
       toast.error(unknownErrorMessage(err, 'ذخیره ظرفیت‌ها ناموفق بود.'));
     } finally {
       setActionBusy(false);

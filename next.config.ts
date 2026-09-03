@@ -40,9 +40,6 @@ const withPWA = withPWAInit({
   },
 });
 
-// CSP را یک‌بار در استارت نود بساز که `NODE_ENV` آنجا تضمینی است.
-const csp = buildContentSecurityPolicy();
-
 const nextConfig: NextConfig = {
   // ایمیج داکر فقط ردپای standalone را کپی می‌کند، نه کل node_modules.
   output: 'standalone',
@@ -50,6 +47,8 @@ const nextConfig: NextConfig = {
   compress: false,
   turbopack: {},
   async headers() {
+    // داخل headers() بساز — NODE_ENV اینجا development است، نه موقع transpile کانفیگ.
+    const csp = buildContentSecurityPolicy();
     return [
       {
         source: '/api/nest/:path*',
@@ -64,7 +63,8 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        source: '/(.*)',
+        // `/_next/*` (از جمله webpack-hmr) را CSP نده تا Fast Refresh قطع نشود.
+        source: '/((?!_next/).*)',
         headers: [
           { key: 'Content-Security-Policy', value: csp },
           { key: 'X-Content-Type-Options', value: 'nosniff' },

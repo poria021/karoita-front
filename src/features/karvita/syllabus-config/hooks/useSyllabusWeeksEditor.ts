@@ -5,6 +5,7 @@ import { type Dispatch, type SetStateAction, useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
+import { notifyIfPostCommitRefreshFailure } from '@/lib/post-commit-refresh';
 import { scheduleLocalChange, scheduleUndoableLocalChange } from '@/lib/undoable-mutation';
 import {
   DEFAULT_WEEK_WEIGHT,
@@ -192,8 +193,12 @@ export function useSyllabusWeeksEditor({
         // ذخیره موفق بود؛ شناسهٔ هفته تا GET بعدی محلی می‌ماند.
       }
       toast.success('برنامه سرفصل‌های هفتگی با موفقیت ثبت نهایی شد.');
-      toast.success('برنامه سرفصل‌های هفتگی با موفقیت ثبت نهایی شد.');
     } catch (err) {
+      if (notifyIfPostCommitRefreshFailure(err)) {
+        setHasUnsavedChanges(false);
+        clearSyllabusWeeksDraft();
+        return;
+      }
       toast.error(errorMessage(err, 'ثبت نهایی سرفصل ناموفق بود.'));
     } finally {
       setIsSaving(false);

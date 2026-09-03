@@ -5,6 +5,7 @@ import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
 import { IS_MOCK_MODE } from '@/lib/api-mode';
+import { notifyIfPostCommitRefreshFailure } from '@/lib/post-commit-refresh';
 import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type {
@@ -321,6 +322,7 @@ export function useSyllabusTermSettings({
       );
       return true;
     } catch (err) {
+      if (notifyIfPostCommitRefreshFailure(err)) return true;
       toast.error(errorMessage(err, 'ذخیره ظرفیت ناموفق بود.'));
       return false;
     }
@@ -345,6 +347,7 @@ export function useSyllabusTermSettings({
       toast.success('حدنصاب قبولی کل سیستم با موفقیت ثبت نهایی شد.');
       return true;
     } catch (err) {
+      if (notifyIfPostCommitRefreshFailure(err)) return true;
       toast.error(errorMessage(err, 'ذخیره حدنصاب ناموفق بود.'));
       return false;
     }
