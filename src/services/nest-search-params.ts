@@ -10,3 +10,19 @@ export function toSearchParams(
   }
   return params;
 }
+
+/**
+ * Nest روی `GET /admin/provinces` و `/admin/cities` مقدار `filters` را
+ * `JSON.parse` می‌کند. بدون این کلید بدنهٔ parse می‌ترکد و پروکسی ۵۰۰ می‌دهد.
+ */
+export function toNestTitleFilterSearchParams(query: {
+  page?: number;
+  limit?: number;
+  filters?: string;
+}): NonNullable<KyOptions['searchParams']> {
+  const { filters, ...rest } = query;
+  return toSearchParams({
+    ...rest,
+    filters: JSON.stringify(filters ? { title: filters } : {}),
+  });
+}

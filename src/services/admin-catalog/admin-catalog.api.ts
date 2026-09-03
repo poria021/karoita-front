@@ -1,5 +1,8 @@
 import { apiClient } from '@/services/api-client';
-import { toSearchParams } from '@/services/nest-search-params';
+import {
+  toNestTitleFilterSearchParams,
+  toSearchParams,
+} from '@/services/nest-search-params';
 import { parseNestPagedList } from '@/types/nest-admin';
 import type {
   NestAdminPageQuery,
@@ -84,15 +87,6 @@ export const NEST_ADMIN_PATHS = {
   academicSettings: 'admin/settings',
   professorCapacities: 'admin/professor-capacities',
 } as const;
-
-/** `filters` باید JSON آبجکت-رشته باشد (`{"title":"..."}`) نه رشتهٔ خام — provinces و cities یکی‌اند. */
-function toNestTitleFilterSearchParams(query: NestAdminPageQuery) {
-  const { filters, ...rest } = query;
-  return toSearchParams({
-    ...rest,
-    ...(filters ? { filters: JSON.stringify({ title: filters }) } : {}),
-  });
-}
 
 export const adminCatalogApi = {
   createProvince(body: NestCreateProvinceDto, token?: string) {

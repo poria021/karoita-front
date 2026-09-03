@@ -4,11 +4,45 @@ type PwaRuntimeCaching = NonNullable<
   NonNullable<PluginOptions['workboxOptions']>['runtimeCaching']
 >;
 
+type WorkboxRuntimePlugin = NonNullable<
+  NonNullable<PwaRuntimeCaching[number]['options']>['plugins']
+>[number];
+
+/**
+ * NetworkOnly بدون catch، FetchEvent را `no-response` reject می‌کند
+ * (سند داشبورد و `/api/nest` هر دو). `self.fallback` را next-pwa تزریق می‌کند.
+ * تابع باید خودکفا بماند تا GenerateSW بتواند سریالش کند.
+ */
+function networkOnlyErrorPlugin(): WorkboxRuntimePlugin {
+  return {
+    handlerDidError: async ({ request }) => {
+      const fallback = (
+        self as typeof self & {
+          fallback?: (req: Request) => Promise<Response | undefined>;
+        }
+      ).fallback;
+      if (typeof fallback === 'function') {
+        const response = await fallback(request);
+        if (response) return response;
+      }
+      return new Response('', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { 'cache-control': 'no-store' },
+      });
+    },
+  };
+}
+
 /**
  * مسیرهای runtime ورکباکس. توابع matcher باید خودکفا باشند تا `GenerateSW`
  * بتواند آن‌ها را داخل worker سریال کند (بدون closure ماژول). بررسی مسیر را با
  * `pwa-cache-policy.ts` هم‌تراز نگه دارید.
  */
+function networkOnlyOnError() {
+  return { plugins: [networkOnlyErrorPlugin()] };
+}
+
 export function buildPwaRuntimeCaching(): PwaRuntimeCaching {
   return [
     {
@@ -17,11 +51,13 @@ export function buildPwaRuntimeCaching(): PwaRuntimeCaching {
         return method !== 'GET' && method !== 'HEAD';
       },
       handler: 'NetworkOnly',
+      options: networkOnlyOnError(),
     },
     {
       urlPattern: ({ request }) =>
         request.mode === 'navigate' || request.destination === 'document',
       handler: 'NetworkOnly',
+      options: networkOnlyOnError(),
     },
     {
       urlPattern: ({ url, request }) => {
@@ -41,6 +77,7 @@ export function buildPwaRuntimeCaching(): PwaRuntimeCaching {
         return false;
       },
       handler: 'NetworkOnly',
+      options: networkOnlyOnError(),
     },
     {
       urlPattern: ({ url, request }) => {
