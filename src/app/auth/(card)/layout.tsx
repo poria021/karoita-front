@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 
 import { AuthCardHost } from '@/features/shared/auth/components/AuthCardHost';
 
@@ -7,6 +7,7 @@ import { AuthCardHost } from '@/features/shared/auth/components/AuthCardHost';
  *
  * خود کارت داخل `AuthCardHost` است تا لوگو و فرم با هم SSR شوند.
  * میزبان روی layout می‌ماند تا عوض شدن تب فرم را خالی نکند.
+ * `Suspense` دور `page` تا await شدن searchParams کارت را با لودر برند عوض نکند.
  */
 export default function AuthCardGroupLayout({
   children,
@@ -19,7 +20,7 @@ export default function AuthCardGroupLayout({
       dir="rtl"
     >
       <AuthCardHost />
-      {children}
+      <Suspense fallback={null}>{children}</Suspense>
     </main>
   );
 }
