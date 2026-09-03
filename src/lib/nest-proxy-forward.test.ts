@@ -46,4 +46,27 @@ describe('forwardToNestApi', () => {
     expect(headers.get('authorization')).toBe('Bearer t');
     expect(headers.get('cookie')).toBeNull();
   });
+
+  it('strips content-encoding from upstream response to prevent ERR_CONTENT_DECODING_FAILED', async () => {
+    vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response('{"ok":true}', {
+          status: 200,
+          headers: {
+            'content-type': 'application/json',
+            'content-encoding': 'gzip',
+          },
+        })
+      )
+    );
+
+    const req = new NextRequest('http://localhost/api/nest/v1/auth/roles');
+    const res = await forwardToNestApi(req, ['v1', 'auth', 'roles']);
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-encoding')).toBeNull();
+    expect(res.headers.get('content-type')).toBe('application/json');
+  });
 });
