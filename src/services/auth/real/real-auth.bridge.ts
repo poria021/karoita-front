@@ -243,6 +243,58 @@ export async function realVerifyAdminGateOtp(mobile: string, otp: string): Promi
 
 let refreshInFlight: Promise<Session | null> | null = null;
 
+export type SessionFailureKind = 'dead' | 'transient';
+
+const TRANSIENT_RESTORE_MESSAGE =
+  'برقراری ارتباط با سرور ممکن نیست. اتصال را بررسی کنید و دوباره تلاش کنید.';
+
+/** نشست مرده است — باید خروج و پاک کردن presence. */
+export class SessionDeadError extends Error {
+  readonly kind = 'dead' as const;
+
+  constructor(message: string, readonly cause?: unknown) {
+    super(message);
+    this.name = 'SessionDeadError';
+  }
+}
+
+/**
+ * بازیابی نشست نامشخص است (شبکه/۵xx). presence را پاک نکن و به لاگین نفرست.
+ */
+export class SessionTransientError extends Error {
+  readonly kind = 'transient' as const;
+
+  constructor(message: string, readonly cause?: unknown) {
+    super(message);
+    this.name = 'SessionTransientError';
+  }
+}
+
+export function isDeadSessionHttpStatus(status: number | undefined): boolean {
+  return status === 401 || status === 403;
+}
+
+export function isSessionTransientError(
+  error: unknown
+): error is SessionTransientError {
+  return error instanceof SessionTransientError;
+}
+
+export function toSessionTransientError(error: unknown): SessionTransientError {
+  if (error instanceof SessionTransientError) return error;
+  const message =
+    error instanceof ApiClientError && error.message
+      ? error.message
+      : TRANSIENT_RESTORE_MESSAGE;
+  return new SessionTransientError(message, error);
+}
+
+function markSessionDead(): null {
+  clearRealAuthTokens();
+  dispatchSessionToStore(null);
+  return null;
+}
+
 export function realRefreshToken(_refreshToken?: string): Promise<Session | null> {
   void _refreshToken;
   if (typeof window === 'undefined') return Promise.resolve(null);
@@ -265,15 +317,13 @@ async function performRealRefresh(): Promise<Session | null> {
       credentials: 'include',
     });
 
-    // رفرش باطل → پاکسازی فوری
-    if (res.status === 401 || res.status === 403) {
-      clearRealAuthTokens();
-      dispatchSessionToStore(null);
-      return null;
+    // رفرش باطل → پاکسازی فوری (کلاس الف)
+    if (isDeadSessionHttpStatus(res.status)) {
+      return markSessionDead();
     }
 
     if (!res.ok) {
-      throw new ApiClientError(`تمدید نشست ناموفق: ${res.status}`);
+      throw new SessionTransientError(TRANSIENT_RESTORE_MESSAGE, res.status);
     }
 
     const raw: unknown = await res.json();
@@ -306,20 +356,23 @@ async function performRealRefresh(): Promise<Session | null> {
         dispatchSessionToStore(fallbackSession);
         return fallbackSession;
       }
-    } catch {
-      // نه token نه user — به پاکسازی پایین می‌افتد
+    } catch (error) {
+      if (error instanceof ApiClientError && isDeadSessionHttpStatus(error.status)) {
+        return markSessionDead();
+      }
+      throw toSessionTransientError(error);
     }
 
-    clearRealAuthTokens();
-    dispatchSessionToStore(null);
-    return null;
+    return markSessionDead();
   } catch (error) {
-    if (error instanceof ApiClientError && error.status === 401) {
-      clearRealAuthTokens();
-      dispatchSessionToStore(null);
-      return null;
+    if (error instanceof SessionTransientError) throw error;
+    if (error instanceof SessionDeadError) {
+      return markSessionDead();
     }
-    throw error;
+    if (error instanceof ApiClientError && isDeadSessionHttpStatus(error.status)) {
+      return markSessionDead();
+    }
+    throw toSessionTransientError(error);
   }
 }
 

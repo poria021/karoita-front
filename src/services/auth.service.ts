@@ -49,8 +49,11 @@ import {
   realVerifyLoginOtp,
   realVerifyRegistrationOtp,
   realRefreshToken,
+  toSessionTransientError,
+  isDeadSessionHttpStatus,
   type OtpCooldownResult,
 } from '@/services/auth/real/real-auth.bridge';
+import { ApiClientError } from '@/services/api-client';
 import {
   clearRealAuthTokens,
   peekRealAuthTokens,
@@ -208,39 +211,43 @@ export class AuthService {
   /**
    * session کامل را بازسازی می‌کند:
    * ۱. اگر access token در memory هست → مستقیم /auth/me
-   * ۲. اگر نه → یک‌بار /api/auth/refresh (httpOnly cookie) — این خودش در صورت
-   *    نیاز /auth/me را می‌زند و نتیجه را به store دیسپچ می‌کند؛ اینجا دیگر
-   *    دوباره /auth/me صدا زده نمی‌شود (قبلاً همیشه دوبار زده می‌شد).
-   * ۳. اگر refresh هم fail شد → tokens/store پاک می‌شود و null برمی‌گردد
+   * ۲. اگر نه → یک‌بار /api/auth/refresh (httpOnly cookie)
+   * ۳. null = نشست مرده (presence پاک شده). throw SessionTransientError = خطای گذرا.
    */
   static async refreshRealSession(): Promise<Session | null> {
     if (IS_MOCK_MODE) return AuthService.peekSession();
 
-    // اگر access token داریم مستقیم session fetch کن (یک درخواست، بدون refresh)
     if (readRealAccessToken()) {
-      const session = await realFetchSession();
-      if (session) {
-        dispatchSessionToStore(session);
-      } else {
-        // access token در memory بود ولی /auth/me آن را رد کرد — پاکسازی کامل
+      try {
+        const session = await realFetchSession();
+        if (session) {
+          dispatchSessionToStore(session);
+        } else {
+          clearRealAuthTokens();
+          dispatchSessionToStore(null);
+        }
+        return session;
+      } catch (error) {
+        if (error instanceof ApiClientError && isDeadSessionHttpStatus(error.status)) {
+          clearRealAuthTokens();
+          dispatchSessionToStore(null);
+          return null;
+        }
+        throw toSessionTransientError(error);
+      }
+    }
+
+    try {
+      const refreshed = await realRefreshToken();
+      if (!refreshed) {
         clearRealAuthTokens();
         dispatchSessionToStore(null);
+        return null;
       }
-      return session;
+      return refreshed;
+    } catch (error) {
+      throw toSessionTransientError(error);
     }
-
-    // access token نداریم — یک‌بار refresh بزن. realRefreshToken خودش نتیجه را
-    // (چه از مسیر rotation ساده، چه با /auth/me برای بازسازی کامل user) به
-    // store دیسپچ می‌کند — دیگر نیازی به فراخوانی دوبارهٔ /auth/me نیست.
-    const refreshed = await realRefreshToken();
-    if (!refreshed) {
-      // کوکی منقضی یا وجود ندارد — store و tokens پاک کن
-      clearRealAuthTokens();
-      dispatchSessionToStore(null);
-      return null;
-    }
-
-    return refreshed;
   }
 
   static getSession(): Session | null {

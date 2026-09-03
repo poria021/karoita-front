@@ -59,4 +59,10 @@ describe('sessionBoot', () => {
     await expect(pending).resolves.toBe('authenticated');
     expect(getRuntimeAuthBoot()).toBe('authenticated');
   });
+
+  it('can persist error boot without treating it as unauthenticated', async () => {
+    const boot = await ensureAuthRestore(async () => 'error');
+    expect(boot).toBe('error');
+    expect(getRuntimeAuthBoot()).toBe('error');
+  });
 });

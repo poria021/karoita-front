@@ -2,6 +2,8 @@
 
 import { Suspense, useEffect, useState, type ReactNode } from 'react';
 
+import { KvAlert } from '@/components/shared/KvAlert';
+import { KvButton } from '@/components/shared/KvButton';
 import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { UnauthenticatedRedirect } from '@/components/shared/shell/UnauthenticatedRedirect';
 import { AuthService } from '@/services/auth.service';
@@ -9,9 +11,11 @@ import { useAuthTransitionPhase } from '@/store/authTransition';
 import { useUserStore } from '@/store/useUserStore';
 import { isMockApiMode } from '@/lib/api-mode';
 import { tryRestoreMockSession } from '@/services/auth/mock/mock-auth.store';
+import { isSessionTransientError } from '@/services/auth/real/real-auth.bridge';
 import {
   ensureAuthRestore,
   getRuntimeAuthBoot,
+  resetRuntimeAuthBoot,
   type RuntimeAuthBoot,
 } from '@/store/sessionBoot';
 
@@ -21,6 +25,25 @@ const BOOT_LABEL = 'لطفا منتظر بمانید…';
 
 function BootLoader({ label = BOOT_LABEL }: { label?: string }) {
   return <KvBrandLinearLoader fullViewport label={label} />;
+}
+
+function RestoreErrorScreen({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="kv-brand-atmosphere kv-blueprint-bg flex min-h-dvh items-center justify-center p-kv-section">
+      <div className="w-full max-w-md">
+        <KvAlert
+          variant="warning"
+          title="برقراری ارتباط با سرور ممکن نیست"
+          description="نشست شما حفظ شده است. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
+          actions={
+            <KvButton type="button" color="cta" onClick={onRetry}>
+              تلاش دوباره
+            </KvButton>
+          }
+        />
+      </div>
+    </div>
+  );
 }
 
 async function restoreSession(): Promise<RuntimeAuthBoot> {
@@ -37,8 +60,8 @@ async function restoreSession(): Promise<RuntimeAuthBoot> {
   try {
     const restored = await AuthService.refreshRealSession();
     if (restored) return 'authenticated';
-  } catch {
-    // ۴۰۱ یعنی کوکی منقضی شده
+  } catch (error) {
+    if (isSessionTransientError(error)) return 'error';
   }
 
   return 'unauthenticated';
@@ -67,6 +90,12 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
     };
   }, [hasHydrated]);
 
+  const retryRestore = () => {
+    resetRuntimeAuthBoot();
+    setBoot('pending');
+    void ensureAuthRestore(restoreSession).then(setBoot);
+  };
+
   if (phase === 'leaving') {
     return <BootLoader label="در حال خروج از حساب کاربری…" />;
   }
@@ -84,6 +113,10 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
         <UnauthenticatedRedirect />
       </Suspense>
     );
+  }
+
+  if (boot === 'error') {
+    return <RestoreErrorScreen onRetry={retryRestore} />;
   }
 
   return <BootLoader />;

@@ -4,7 +4,7 @@
  * `useState` داخل گارد لودر تمام‌صفحه بین ماژول‌ها را چشمک می‌زند.
  */
 
-export type RuntimeAuthBoot = 'authenticated' | 'unauthenticated';
+export type RuntimeAuthBoot = 'authenticated' | 'unauthenticated' | 'error';
 
 let runtimeBoot: RuntimeAuthBoot | null = null;
 let restorePromise: Promise<RuntimeAuthBoot> | null = null;
