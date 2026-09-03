@@ -9,7 +9,6 @@ export const shellCopy = {
   notifications: {
     title: 'اعلان‌های سیستم',
     empty: 'اعلانی وجود ندارد',
-    markAllRead: 'همه را خواندم',
     menuLabel: 'اعلان‌ها',
   },
   nav: {

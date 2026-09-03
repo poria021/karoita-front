@@ -26,7 +26,7 @@
 
 ## ۴. مرورگر از rewrite هم‌مبدأ می‌رود
 
-**تصمیم:** `NEXT_PUBLIC_API_URL` اگر origin دیگری باشد، مرورگر به `/__nest-api` می‌زند و Next آن را پروکسی می‌کند.
+**تصمیم:** `NEXT_PUBLIC_API_URL` اگر origin دیگری باشد، مرورگر به `/api/nest` می‌زند و Route Handler همان را به Nest پروکسی می‌کند.
 
 **چرا:** CORS روی دامنهٔ بک‌اند localhost را می‌بندد. سرور Next (Route Handlerها) مستقیم به Nest می‌زنند و CORS ندارند.
 

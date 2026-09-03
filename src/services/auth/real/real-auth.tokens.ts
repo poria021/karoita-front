@@ -1,6 +1,6 @@
 /**
- * چرخهٔ توکن حالت real: access در حافظهٔ ماژول این تب؛ refresh فقط کوکی httpOnly
- * که Route Handler می‌خواند. در sessionStorage ننویس — XSS می‌بیندش.
+ * Real-mode token lifecycle: access stays in memory, refresh stays in an httpOnly cookie.
+ * Avoid sessionStorage because it is exposed to XSS.
  */
 
 import Cookies from 'js-cookie';
@@ -40,7 +40,7 @@ function isBrowser(): boolean {
   return typeof window !== 'undefined';
 }
 
-/** کوکی حضور بدون مقدار برای Edge proxy؛ مقدار را چک نمی‌کند. */
+// A value-less cookie is enough for the edge proxy to recognize the session presence.
 function setPresenceCookie(): void {
   if (!isBrowser()) return;
   Cookies.set(AUTH_COOKIE_NAME, '1', {
@@ -55,7 +55,7 @@ function clearPresenceCookie(): void {
   Cookies.remove(AUTH_COOKIE_NAME, { path: '/' });
 }
 
-/** شکست نوشتن کوکی رفرش؛ `Error` معمولی تا این فایل به ky وابسته نشود. */
+// Wrap refresh-cookie write failures without coupling this module to a specific HTTP client.
 export class AuthSessionPersistError extends Error {
   constructor(message: string, readonly cause?: unknown) {
     super(message);
@@ -64,9 +64,9 @@ export class AuthSessionPersistError extends Error {
 }
 
 const SET_TOKENS_MAX_ATTEMPTS = 3;
-/** backoff بین تلاش‌های نوشتن کوکی. */
+// Backoff between refresh-cookie write attempts.
 const SET_TOKENS_RETRY_DELAYS_MS = [300, 900];
-/** سقف هر تلاش؛ درخواست آویزان login را معلق نکند. */
+// Keep each write attempt bounded so a stuck login request does not hang indefinitely.
 const SET_TOKENS_ATTEMPT_TIMEOUT_MS = 8_000;
 
 function sleep(ms: number): Promise<void> {
@@ -93,10 +93,7 @@ async function requestSetTokensOnce(
   }
 }
 
-/**
- * کوکی رفرش حیاتی است — شکست بی‌صدا یعنی ورود ظاهری بدون refresh و logout ناگهانی.
- * ۴xx را retry نکن؛ بعد از اتمام تلاش‌ها `AuthSessionPersistError`.
- */
+// Refresh-cookie persistence is required for a valid session; if it fails, the app must stop with a clear error.
 async function persistRefreshTokenInCookie(
   refreshToken: string,
   surface: AuthSurface,
@@ -130,7 +127,7 @@ async function persistRefreshTokenInCookie(
   );
 }
 
-/** پاک کردن کوکی رفرش/surface از Route. */
+// Clear the refresh and surface cookies via the route so the server can remove the httpOnly values.
 async function clearRefreshTokenCookie(): Promise<void> {
   if (!isBrowser()) return;
   // باقیماندهٔ کوکی غیر-httpOnly قدیمی
@@ -145,13 +142,10 @@ async function clearRefreshTokenCookie(): Promise<void> {
   }
 }
 
-/** کمتر از ۶۰ثانیه تا انقضا را منقضی بگیر تا هوک قبل از ۴۰۱ refresh بزند. */
+// Treat a token as expired before the 401 threshold so the app refreshes early.
 const ACCESS_REFRESH_SKEW_MS = 60_000;
 
-/**
- * بعد از login/refresh: access در حافظه، رفرش در httpOnly. await تا قبل از redirect کوکی ست شود.
- * شکست persist → rollback کامل؛ وگرنه سشن نیمه‌کاره با ظاهر ورود موفق می‌ماند.
- */
+// After login or refresh, keep access in memory and store the refresh token in httpOnly cookies.
 export async function writeRealAuthTokens(
   tokens: NestLoginTokens,
   surface: AuthSurface,
@@ -175,39 +169,39 @@ export async function writeRealAuthTokens(
   }
 }
 
-/** logout/۴۰۱ قطعی؛ حافظه فوری، کوکی httpOnly آسنکرون. */
+// On logout or a hard 401, clear the in-memory session immediately and remove the server cookie asynchronously.
 export function clearRealAuthTokens(): void {
   _mem = null;           // فوری تا request جدید token نگیرد
   clearPresenceCookie(); // فوری تا proxy سشن نبیند
   void clearRefreshTokenCookie(); // httpOnly فقط از سرور پاک می‌شود
 }
 
-/** access یا null اگر با skew منقضی شده. */
+// Return null when the access token is effectively expired by the skew window.
 export function readRealAccessToken(): string | null {
   if (!_mem) return null;
   if (_mem.tokenExpires <= Date.now() + ACCESS_REFRESH_SKEW_MS) return null;
   return _mem.token;
 }
 
-/** رفرش حافظه برای `/api/auth/refresh`؛ تب تازه null است — Route از کوکی می‌خواند. */
+// The refresh token is kept in memory only for the route refresh flow; a fresh tab reads it from the cookie instead.
 export function readRealRefreshToken(): string | null {
   return _mem?.refreshToken ?? null;
 }
 
-/** ISO انقضای access برای UI. */
+// Format the access-token expiry as ISO for UI display and comparisons.
 export function readRealTokenExpiresAt(): string | null {
   if (!_mem) return null;
   return new Date(_mem.tokenExpires).toISOString();
 }
 
-/** وجود سشن در حافظه بدون side-effect؛ null یعنی `/api/auth/refresh` را امتحان کن. */
+// Inspect the current in-memory session without triggering any side effects; null means the refresh route may need to restore it.
 export function peekRealAuthTokens(): NestLoginTokens | null {
   return _mem
     ? { token: _mem.token, refreshToken: _mem.refreshToken, tokenExpires: _mem.tokenExpires }
     : null;
 }
 
-/** سطح سشن از حافظهٔ ماژول؛ بعد از F5 تا refresh موفق `null` است. */
+// The session surface comes from memory; after a page refresh it stays null until a successful restore.
 export function readRealAuthSurface(): AuthSurface | null {
   return _mem?.surface ?? null;
 }

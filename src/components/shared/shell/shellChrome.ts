@@ -49,6 +49,22 @@ export const kvShellAdminRailClearanceMotionClassName =
 export const kvShellRailLabelMotionClassName =
   'overflow-hidden transition-[max-width,max-height,margin-inline-start,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]';
 
+/**
+ * اندازهٔ تایپ ریل — `compact` کارت نقش‌های سازمانی؛ `legible` ریل ستادی (≥۱۴px، بدون scale).
+ */
+export type KvShellRailTextSize = 'compact' | 'legible';
+
+export const kvShellRailNavTypeClassName: Record<KvShellRailTextSize, string> = {
+  compact: 'text-xs leading-snug',
+  legible: 'text-sm leading-snug',
+};
+
+export const kvShellRailLabelMaxClassName: Record<KvShellRailTextSize, string> =
+  {
+    compact: 'max-w-[150px]',
+    legible: 'max-w-[11.5rem]',
+  };
+
 export const kvShellAdminRailExpandedClassName = 'lg:ps-72';
 export const kvShellAdminRailCollapsedClassName = 'lg:ps-24';
 

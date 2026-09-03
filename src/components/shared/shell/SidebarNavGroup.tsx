@@ -8,7 +8,12 @@ import {
   lockedNavAriaLabel,
   lockedNavTitle,
 } from '@/components/shared/shell/shellCopy';
-import { kvShellFocusRingClassName } from '@/components/shared/shell/shellChrome';
+import {
+  kvShellFocusRingClassName,
+  kvShellRailLabelMaxClassName,
+  kvShellRailNavTypeClassName,
+  type KvShellRailTextSize,
+} from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 import type { SidebarMenuGroup } from '@/utils/RoleStrategyMap';
 import { faIcons } from '@/utils/iconMap';
@@ -22,6 +27,7 @@ export type SidebarNavGroupProps = {
   isCollapsed: boolean;
   locked: boolean;
   onNavigate: () => void;
+  textSize?: KvShellRailTextSize;
 };
 
 export function SidebarNavGroup({
@@ -30,6 +36,7 @@ export function SidebarNavGroup({
   isCollapsed,
   locked,
   onNavigate,
+  textSize = 'compact',
 }: SidebarNavGroupProps) {
   const childActive =
     !locked && group.children.some((child) => child.path === pathname);
@@ -59,6 +66,7 @@ export function SidebarNavGroup({
               isCollapsed
               locked={locked}
               onNavigate={onNavigate}
+              textSize={textSize}
             />
           ))}
         </div>
@@ -76,6 +84,7 @@ export function SidebarNavGroup({
             locked={locked}
             onNavigate={onNavigate}
             isCollapsed={false}
+            textSize={textSize}
           />
         </div>
       </div>
@@ -96,6 +105,7 @@ export function SidebarNavGroup({
       locked={locked}
       onNavigate={onNavigate}
       isCollapsed={false}
+      textSize={textSize}
     />
   );
 }
@@ -110,6 +120,7 @@ function ExpandedGroupChrome({
   locked,
   onNavigate,
   isCollapsed,
+  textSize,
 }: {
   group: SidebarMenuGroup;
   groupIcon: IconDefinition;
@@ -120,6 +131,7 @@ function ExpandedGroupChrome({
   locked: boolean;
   onNavigate: () => void;
   isCollapsed: boolean;
+  textSize: KvShellRailTextSize;
 }) {
   const childActive =
     !locked && group.children.some((child) => child.path === pathname);
@@ -141,7 +153,8 @@ function ExpandedGroupChrome({
         title={locked ? lockedNavTitle(group.title) : undefined}
         onClick={onToggle}
         className={cn(
-          'group flex w-full items-center justify-between rounded-kv-control px-kv-inline py-kv-nav text-xs font-semibold leading-snug transition-colors',
+          'group flex w-full items-center justify-between rounded-kv-control px-kv-inline py-kv-nav font-semibold transition-colors',
+          kvShellRailNavTypeClassName[textSize],
           kvShellFocusRingClassName,
           locked
             ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
@@ -163,7 +176,14 @@ function ExpandedGroupChrome({
                   : 'text-kv-text-faint group-hover:text-kv-text-subtle'
             )}
           />
-          <span className="ms-kv-inline max-w-[150px] truncate">{group.title}</span>
+          <span
+            className={cn(
+              'ms-kv-inline truncate',
+              kvShellRailLabelMaxClassName[textSize]
+            )}
+          >
+            {group.title}
+          </span>
         </span>
         {!locked ? (
           <FaIcon
@@ -193,6 +213,7 @@ function ExpandedGroupChrome({
               locked={locked}
               onNavigate={onNavigate}
               nested
+              textSize={textSize}
             />
           ))}
         </div>

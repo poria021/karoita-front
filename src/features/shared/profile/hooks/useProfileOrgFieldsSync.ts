@@ -21,11 +21,8 @@ const ORG_SYNC_FIELDS = [
 ] as const;
 
 /**
- * وقتی liveUser از store آپدیت میشه (مثلاً بعد از Zustand hydration یا بعد
- * از save موفق)، فقط فیلدهای سازمانی رو با setValue آپدیت کن (نه form.reset
- * کامل) تا تایپ در حال انجام کاربر دست نخورد.
- *
- * از IdentityForm.tsx استخراج شده تا آن فایل بیش از حد بزرگ نشود.
+ * When the live user changes, update only organization fields instead of resetting the whole form,
+ * so the user keeps their current in-progress edits intact.
  */
 export function useProfileOrgFieldsSync(
   form: UseFormReturn<ProfileSchema>,

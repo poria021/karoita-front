@@ -16,9 +16,7 @@ import { faIcons } from '@/utils/iconMap';
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
 function usePwaStandalone(): boolean {
-  // مقدار اولیه رو مستقیم از window می‌خونیم (این یه 'use client' component هست)
-  // استفاده از lazy initializer باعث میشه نه در SSR اجرا بشه
-  // و نه نیاز باشه داخل effect setState بزنیم
+  // Read the initial value from window without SSR; the client-only hook stays cheap.
   const [isStandalone, setIsStandalone] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(display-mode: standalone)').matches;
@@ -26,7 +24,6 @@ function usePwaStandalone(): boolean {
 
   useEffect(() => {
     const mq = window.matchMedia('(display-mode: standalone)');
-    // فقط تغییرات بعدی رو گوش میدیم؛ مقدار اولیه در useState initializer خونده شد
     const handler = (e: MediaQueryListEvent) => setIsStandalone(e.matches);
     mq.addEventListener('change', handler);
     return () => mq.removeEventListener('change', handler);
@@ -86,8 +83,7 @@ function ProductMark({ product }: { product: LandingProduct }) {
 }
 
 /**
- * انتخاب پورتال → ورود auth (شبیه‌ساز نقش Nest از HTML پورت نشده).
- * URL مطلق محصول خارجی می‌ماند؛ بقیه وارد گیت auth می‌شوند.
+ * External products keep their own URL; internal ones route to the shared auth gate.
  */
 function resolveProductLoginHref(product: LandingProduct): {
   kind: 'external' | 'internal';

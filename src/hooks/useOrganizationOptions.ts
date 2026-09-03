@@ -54,7 +54,7 @@ export function useOrganizationOptions({
   dependsOn,
   role,
 }: UseOrganizationOptionsArgs): UseOrganizationOptionsResult {
-  // debounce حتی برای پاک‌کردن — وگرنه `''` فوری + مقدار واقعی بعد از ۳۰۰ms دو درخواست می‌سازد.
+  // Debounce even empty values so a clear action does not race with the previous request.
   const debouncedQuery = useDebouncedValue(query.trim(), SEARCH_DEBOUNCE_MS);
 
   const provinceKey = toDependsOnKey(dependsOn?.province);

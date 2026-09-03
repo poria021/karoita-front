@@ -28,6 +28,15 @@ describe('api-client real Nest transport contract', () => {
     ).toBe(`http://localhost:3000${NEST_BROWSER_PROXY_PATH}`);
   });
 
+  it('uses the same-origin proxy when the Nest URL is missing from the client bundle', () => {
+    expect(
+      resolveNestClientPrefix({
+        apiUrl: '',
+        windowOrigin: 'https://karoita.darkube.ir',
+      })
+    ).toBe(`https://karoita.darkube.ir${NEST_BROWSER_PROXY_PATH}`);
+  });
+
   it('uses NEXT_PUBLIC_API_URL on SSR and same-origin browser', () => {
     expect(
       resolveNestClientPrefix({
@@ -47,7 +56,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 200,
         retryCount: 0,
-        url: '/__nest-api/v1/users',
+        url: '/api/nest/v1/users',
       })
     ).toBe('ignore');
 
@@ -55,7 +64,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 401,
         retryCount: 0,
-        url: '/__nest-api/v1/users',
+        url: '/api/nest/v1/users',
       })
     ).toBe('refresh');
 
@@ -63,7 +72,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 401,
         retryCount: 1,
-        url: '/__nest-api/v1/users',
+        url: '/api/nest/v1/users',
       })
     ).toBe('logout');
 
@@ -71,7 +80,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 401,
         retryCount: 0,
-        url: '/__nest-api/v1/auth/refresh',
+        url: '/api/nest/v1/auth/refresh',
       })
     ).toBe('logout');
 
@@ -79,7 +88,7 @@ describe('api-client real Nest transport contract', () => {
       decideUnauthorizedAfterResponse({
         status: 401,
         retryCount: 0,
-        url: '/__nest-api/v1/admin/auth/me',
+        url: '/api/nest/v1/admin/auth/me',
       })
     ).toBe('refresh');
   });

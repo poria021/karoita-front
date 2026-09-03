@@ -1,3 +1,4 @@
+import { rewriteLegacyNestProxyPath } from '@/lib/nest-proxy';
 import { isPublicPath } from '@/lib/public-paths';
 import { DEFAULT_LOGIN_REDIRECT } from '@/lib/config';
 import { hasEdgeClientSession } from '@/lib/edge-session';
@@ -56,6 +57,15 @@ function loginRedirectUrl(request: NextRequest, intendedPath: string): URL {
  */
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // باندل قدیمی هنوز POST به `/__nest-api` می‌زند؛ پوشهٔ `_` در App Router ۴۰۴ است.
+  const nestRewrite = rewriteLegacyNestProxyPath(pathname);
+  if (nestRewrite) {
+    const url = request.nextUrl.clone();
+    url.pathname = nestRewrite;
+    return withSecurityHeaders(NextResponse.rewrite(url));
+  }
+
   const loggedIn = hasEdgeClientSession(request.cookies);
   const loginPath = RouteService.auth.login();
 

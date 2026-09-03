@@ -685,8 +685,9 @@
 }
 
 /*
- * RemoveScroll سلکت (و گاهی منو) overflow و margin/padding جبرانی روی body می‌گذارد.
- * در RTL ریل fixed سر جایش می‌ماند و هدر می‌پرد. دیالوگ قفل را نگه می‌دارد.
+ * RemoveScroll سلکت/منو overflow و gutter روی body می‌گذارد.
+ * overflow غیر visible روی body sticky هدر/سایدبار را به بالای سند می‌برد.
+ * اسکرول باید روی html بماند؛ دیالوگ قفل را نگه می‌دارد.
  */
 body[data-scroll-locked]:has([data-kv-keep-page-scroll]):not(
     :has([data-slot='dialog-overlay'])
@@ -694,7 +695,9 @@ body[data-scroll-locked]:has([data-kv-keep-page-scroll]):not(
 body.with-scroll-bars-hidden:has([data-kv-keep-page-scroll]):not(
     :has([data-slot='dialog-overlay'])
   ):not(:has([data-slot='alert-dialog-overlay'])) {
-  overflow: auto !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
   overscroll-behavior: auto !important;
   margin-right: 0 !important;
   margin-left: 0 !important;

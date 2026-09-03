@@ -34,12 +34,10 @@ export function HeaderNotificationsMenu() {
   const hasNextPage = useNotificationsStore((state) => state.hasNextPage);
   const status = useNotificationsStore((state) => state.status);
   const isLoadingMore = useNotificationsStore((state) => state.isLoadingMore);
-  const isMutating = useNotificationsStore((state) => state.isMutating);
   const errorMessage = useNotificationsStore((state) => state.errorMessage);
   const refresh = useNotificationsStore((state) => state.refresh);
   const loadMore = useNotificationsStore((state) => state.loadMore);
   const markAsRead = useNotificationsStore((state) => state.markAsRead);
-  const markAllAsRead = useNotificationsStore((state) => state.markAllAsRead);
   const [isOpen, setIsOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -102,30 +100,12 @@ export function HeaderNotificationsMenu() {
         align="end"
         className={cn('w-80', kvOverlayDropdownAutoGutterClassName)}
       >
-        <div
-          className={cn(
-            'flex items-center justify-between gap-kv-pair border-b border-kv-border/70 px-3.5 py-2.5'
-          )}
-        >
+        <div className="border-b border-kv-border/70 px-3.5 py-2.5">
           <span className="origin-start scale-90">
             <KvTypography variant="overline" tone="muted" as="span">
               اعلان‌های سیستم
             </KvTypography>
           </span>
-          {unreadCount > 0 ? (
-            <KvButton
-              type="button"
-              color="cta"
-              appearance="text"
-              size="sm"
-              loading={isMutating}
-              onClick={() => {
-                void markAllAsRead();
-              }}
-            >
-              همه را خواندم
-            </KvButton>
-          ) : null}
         </div>
 
         {errorMessage ? (

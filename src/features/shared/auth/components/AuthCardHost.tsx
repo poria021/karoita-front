@@ -16,8 +16,8 @@ import { AuthCard } from './AuthCard';
 import { AuthLogo } from './AuthLogo';
 
 /**
- * فقط همین برگ useSearchParams دارد. اگر روی خود میزبان باشد، کل کارت
- * suspend می‌شود و HTML اولیه پوستهٔ خالی (لوگو + فوتر) را استریم می‌کند.
+ * Read the return URL only from the current search params so the shell can remain stable
+ * while the auth tab switches.
  */
 function AuthReturnUrlSync({
   onReturnUrl,
@@ -35,8 +35,7 @@ function AuthReturnUrlSync({
 }
 
 /**
- * کارت ورود روی layout مشترک login/register/forgot می‌ماند تا عوض شدن تب
- * فرم را خالی نکند. لوگو و فوتر هم اینجاست تا با فرم یک HTML واحد باشند.
+ * Keep the auth card mounted across login/register/forgot tabs so the form state is stable.
  */
 export function AuthCardHost() {
   const pathname = usePathname();

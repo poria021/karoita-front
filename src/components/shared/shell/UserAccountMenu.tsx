@@ -16,7 +16,11 @@ import {
 import { KvTypography } from '@/components/shared/KvTypography';
 import { runPwaInstallFlow, shouldShowPwaInstallMenuItem } from '@/components/shared/shell/PwaInstallControl';
 import { kvOverlayDropdownAutoGutterClassName } from '@/components/shared/kvOverlayMenu';
-import { kvShellRailLabelMotionClassName } from '@/components/shared/shell/shellChrome';
+import {
+  kvShellRailLabelMaxClassName,
+  kvShellRailLabelMotionClassName,
+  type KvShellRailTextSize,
+} from '@/components/shared/shell/shellChrome';
 import { shellCopy } from '@/components/shared/shell/shellCopy';
 import { cn } from '@/lib/utils';
 import { AuthService } from '@/services/auth.service';
@@ -35,6 +39,7 @@ export type UserAccountMenuProps = {
   onNavigate?: () => void;
   /** فقط برای sidebar — حالت جمع‌شدهٔ دسکتاپ. */
   isCollapsed?: boolean;
+  textSize?: KvShellRailTextSize;
 };
 
 function displayName(firstName: string, lastName: string, mobile: string): string {
@@ -50,6 +55,7 @@ export function UserAccountMenu({
   variant,
   onNavigate,
   isCollapsed = false,
+  textSize = 'compact',
 }: UserAccountMenuProps) {
   const router = useRouter();
   const activeUser = useUserStore((state) => state.activeUser);
@@ -254,15 +260,21 @@ export function UserAccountMenu({
                 className={cn(
                   'flex min-w-0 flex-col',
                   kvShellRailLabelMotionClassName,
+                  kvShellRailLabelMaxClassName[textSize],
                   isCollapsed
-                    ? 'ms-kv-inline max-w-[150px] opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0'
-                    : 'ms-kv-inline max-w-[150px] opacity-100'
+                    ? 'ms-kv-inline opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0'
+                    : 'ms-kv-inline opacity-100'
                 )}
               >
                 <KvTypography variant="subtitle" as="p" truncate>
                   {name}
                 </KvTypography>
-                <KvTypography variant="caption" as="p" truncate>
+                <KvTypography
+                  variant={textSize === 'legible' ? 'body' : 'caption'}
+                  tone="muted"
+                  as="p"
+                  truncate
+                >
                   {strategy.label}
                 </KvTypography>
               </div>

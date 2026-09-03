@@ -1,6 +1,6 @@
 import type { AuthSurface } from '@/lib/real-auth-cookie';
 
-/** مسیر refresh Nest بر اساس سطح سشن؛ ادمین نباید به refresh کاربر بخورد. */
+// Refresh URLs depend on the session surface; an admin session must not call the user refresh endpoint.
 export const NEST_REFRESH_PATHS: Record<AuthSurface, string> = {
   user: 'v1/auth/refresh',
   admin: 'v1/admin/auth/refresh',
@@ -19,7 +19,7 @@ export function isAuthSurface(raw: string | undefined): raw is AuthSurface {
   return raw === 'admin' || raw === 'user';
 }
 
-/** echo سطح از `/api/auth/refresh` برای restore بعد از F5؛ حدس `user` ممنوع. */
+// Restore the session surface from the refresh response; do not guess a user surface.
 export function echoedAuthSurface(raw: unknown): AuthSurface | null {
   if (!isRecord(raw)) return null;
   if (raw.surface === 'admin' || raw.surface === 'user') return raw.surface;
@@ -30,9 +30,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/**
- * Nest گاهی `{ refreshToken }` و گاهی `{ data: { refreshToken } }` می‌فرستد.
- */
+// Nest may return refreshToken either at the top level or inside a nested data object.
 export function extractRotatedRefreshToken(raw: unknown): string | null {
   if (!isRecord(raw)) return null;
   if (typeof raw.refreshToken === 'string' && raw.refreshToken) {

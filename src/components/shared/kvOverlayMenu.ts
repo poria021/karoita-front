@@ -52,7 +52,7 @@ export const kvOverlayDropdownAutoGutterClassName =
 
 /**
  * سلکت/منو این اتریبیوت را می‌گیرند تا قفل اسکرول صفحهٔ RemoveScroll خنثی شود
- * (دیالوگ جداست). CSS در globals.css.
+ * بدون ساختن ظرف اسکرول روی body (دیالوگ جداست). CSS در globals.css.
  */
 export const kvKeepPageScrollProps = {
   'data-kv-keep-page-scroll': '',

@@ -29,6 +29,7 @@ export function buildPwaRuntimeCaching(): PwaRuntimeCaching {
         const search = url.search;
         if (path === '/sw.js' || path.startsWith('/workbox-')) return true;
         if (path.startsWith('/swe-worker')) return true;
+        if (path.startsWith('/api/nest')) return true;
         if (path.startsWith('/__nest-api')) return true;
         if (path === '/api' || path.startsWith('/api/')) return true;
         if (path.includes('/_next/data/')) return true;
@@ -45,13 +46,11 @@ export function buildPwaRuntimeCaching(): PwaRuntimeCaching {
       urlPattern: ({ url, request }) => {
         const method = request.method.toUpperCase();
         if (method !== 'GET' && method !== 'HEAD') return false;
-        return /^(?:\/_next\/static\/|\/brand\/|\/fonts\/|\/marketing\/)/.test(
-          url.pathname
-        );
+        return /^(?:\/brand\/|\/fonts\/|\/marketing\/)/.test(url.pathname);
       },
       handler: 'CacheFirst',
       options: {
-        cacheName: 'karvita-static-shell',
+        cacheName: 'karvita-static-shell-v2',
         expiration: {
           maxEntries: 96,
           maxAgeSeconds: 60 * 60 * 24 * 30,

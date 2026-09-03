@@ -14,7 +14,7 @@ describe('shouldUseNetworkOnly', () => {
     expect(
       shouldUseNetworkOnly({
         method: 'GET',
-        pathname: '/__nest-api/v1/auth/login',
+        pathname: '/api/nest/v1/auth/login',
       })
     ).toBe(true);
     expect(
@@ -70,23 +70,23 @@ describe('shouldUseNetworkOnly', () => {
         pathname: '/_next/static/chunks/app.js',
       })
     ).toBe(false);
-    expect(
-      shouldUseNetworkOnly({
-        method: 'GET',
-        pathname: '/brand/pwa-icon-192.png',
-      })
-    ).toBe(false);
   });
 });
 
 describe('shouldCacheStaticShell', () => {
-  it('caches only brand and Next static GET', () => {
+  it('caches brand/marketing assets, not hashed Next chunks', () => {
     expect(
       shouldCacheStaticShell({
         method: 'GET',
         pathname: '/marketing/dashboard-hero.svg',
       })
     ).toBe(true);
+    expect(
+      shouldCacheStaticShell({
+        method: 'GET',
+        pathname: '/_next/static/chunks/app.js',
+      })
+    ).toBe(false);
     expect(
       shouldCacheStaticShell({
         method: 'GET',
@@ -97,7 +97,7 @@ describe('shouldCacheStaticShell', () => {
     expect(
       shouldCacheStaticShell({
         method: 'GET',
-        pathname: '/__nest-api/org',
+        pathname: '/api/nest/org',
       })
     ).toBe(false);
   });

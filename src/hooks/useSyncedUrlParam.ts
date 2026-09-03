@@ -12,16 +12,12 @@ type UseSyncedUrlParamOptions<T extends string> = {
   name: string;
   allowed: readonly T[];
   defaultValue: T;
-  /**
-   * اگر URL مقدار مجاز نداشته باشد (اولین رنگ / ورود از سایدبار)، این را
-   * — معمولاً کش chrome ماژول — قبل از `defaultValue` ترجیح بده.
-   */
+  /** Fallback value to prefer when the URL is missing or invalid. */
   preferWhenMissing?: T;
 };
 
 /**
- * یک query param مجاز (مثل `tab` / `kind`) را با URL هم‌گام نگه می‌دارد.
- * با `router.replace` تا تاریخچه پر نشود؛ جستجو و صفحه‌بندی را دست نمی‌زند.
+ * Keep a validated query-param in sync with the URL without polluting browser history.
  */
 export function useSyncedUrlParam<T extends string>({
   name,
