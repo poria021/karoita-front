@@ -11,7 +11,8 @@ interface KvBrandLinearLoaderProps {
 
 /**
  * مارک + پیشرفت نامعین — فقط صفحهٔ گذار مرز احراز (ورود، خروج، بوت سرد داشبورد).
- * ناوبار داخلی ماژول/تب باید صفحهٔ قبلی را تا paint بعدی نگه دارد (بدون `loading.tsx`).
+ * ناوبار داخلی ماژول/تب باید صفحهٔ قبلی را تا paint بعدی نگه دارد
+ * (بدون `loading.tsx` و بدون `router.replace` برای `?tab=` / `?kind=`).
  * شلوغی داده همان `KvTableBusy` / `KvBusySurface` است.
  * تمام‌ویوپورت بوم مارکتینگ (`kv-brand-atmosphere` + `kv-blueprint-bg`) تا ورود/خروج با لندینگ یکی باشد.
  */

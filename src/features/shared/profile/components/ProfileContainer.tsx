@@ -86,7 +86,7 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
   const session = AuthService.getSession();
 
   // پارامتر `tab` از هوک مشترک dashboard chrome می‌آید —
-  // نه پیاده‌سازی دستی موازی با URLSearchParams/router.replace.
+  // آینهٔ URL سطحی است، نه `router.replace`.
   const [urlTab, setUrlTab] = useSyncedUrlParam<ProfileTab>({
     name: 'tab',
     allowed: PROFILE_TABS,
