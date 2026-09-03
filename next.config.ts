@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 import type { NextConfig } from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
-import { NEST_BROWSER_PROXY_PATH } from './src/lib/nest-proxy';
+import { NEST_BROWSER_PROXY_PATH, NEST_LEGACY_BROWSER_PROXY_PATH } from './src/lib/nest-proxy';
 import { PWA_OFFLINE_PATH } from './src/lib/pwa/pwa-cache-policy';
 import { buildPwaRuntimeCaching } from './src/lib/pwa/pwa-workbox-runtime';
 import { buildContentSecurityPolicy } from './src/lib/content-security-policy';
@@ -14,8 +14,6 @@ function withOptionalBundleAnalyzer(config: NextConfig): NextConfig {
   ) as (opts: { enabled: boolean }) => (c: NextConfig) => NextConfig;
   return bundleAnalyzer({ enabled: true })(config);
 }
-
-const nestProxyDestination = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -79,11 +77,12 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
-    if (!nestProxyDestination?.startsWith('http')) return [];
+    // مقصد Nest را اینجا hardcode نکن — URL روی Darkube موقع run می‌آید.
+    // Route `/api/nest` همان را runtime پروکسی می‌کند. این فقط باندل قدیمی را نجات می‌دهد.
     return [
       {
-        source: `${NEST_BROWSER_PROXY_PATH}/:path*`,
-        destination: `${nestProxyDestination}/:path*`,
+        source: `${NEST_LEGACY_BROWSER_PROXY_PATH}/:path*`,
+        destination: `${NEST_BROWSER_PROXY_PATH}/:path*`,
       },
     ];
   },

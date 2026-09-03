@@ -30,6 +30,7 @@ export function buildPwaRuntimeCaching(): PwaRuntimeCaching {
         if (path === '/sw.js' || path.startsWith('/workbox-')) return true;
         if (path.startsWith('/swe-worker')) return true;
         if (path.startsWith('/api/nest')) return true;
+        if (path.startsWith('/__nest-api')) return true;
         if (path === '/api' || path.startsWith('/api/')) return true;
         if (path.includes('/_next/data/')) return true;
         if (/(?:^|[?&])_rsc=/.test(search)) return true;

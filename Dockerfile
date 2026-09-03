@@ -1,7 +1,9 @@
 # ایمیج پروداکشن فرانت کارویتا (Next ۱۶ + pnpm).
 # NEXT_PUBLIC_* موقع `pnpm build` داخل باندل می‌رود.
 # اگر Darkube فقط env زمان اجرا بدهد، `BACKEND_INTERNAL_URL` را روی پاد بگذارید؛
-# مرورگر از `/api/nest` می‌رود و سرور همان آدرس را پروکسی می‌کند.
+# مرورگر از `/api/nest` می‌رود (و `/__nest-api` به همان rewrite می‌شود).
+# اگر Darkube فقط NEXT_PUBLIC_API_URL را موقع run بدهد، entrypoint آن را
+# به BACKEND_INTERNAL_URL کپی می‌کند.
 #
 # نمونه:
 #   docker build -t karvita-frontend \
@@ -58,7 +60,10 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh
 
 USER nextjs
 EXPOSE 3000
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "server.js"]

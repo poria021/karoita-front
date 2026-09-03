@@ -4,16 +4,33 @@
  */
 export const NEST_BROWSER_PROXY_PATH = '/api/nest';
 
+/** باندل/PWA قدیمی هنوز این مسیر را می‌زند؛ rewrite به `/api/nest` می‌رود. */
+export const NEST_LEGACY_BROWSER_PROXY_PATH = '/__nest-api';
+
 function trimSlash(value: string): string {
   return value.replace(/\/$/, '');
 }
 
 /**
- * آدرس Nest روی سرور. `BACKEND_INTERNAL_URL` اینلاین نمی‌شود پس روی Darkube
- * بعد از بیلد هم کار می‌کند؛ `NEXT_PUBLIC_API_URL` ممکن است موقع بیلد خالی بماند.
+ * خواندن env بدون اینلاین Next.
+ * `process.env.NEXT_PUBLIC_*` موقع بیلد با رشتهٔ خالی عوض می‌شود؛ دسترسی پویا نه.
+ */
+function readRuntimeEnv(name: string): string {
+  const value = process.env[name];
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+/**
+ * آدرس Nest روی سرور. ترتیب: internal، سپس NEST_API_URL، سپس NEXT_PUBLIC در runtime پاد.
  */
 export function readNestApiBaseUrl(): string {
-  const internal = process.env.BACKEND_INTERNAL_URL?.trim();
-  if (internal) return trimSlash(internal);
-  return trimSlash(process.env.NEXT_PUBLIC_API_URL?.trim() ?? '');
+  for (const key of [
+    'BACKEND_INTERNAL_URL',
+    'NEST_API_URL',
+    'NEXT_PUBLIC_API_URL',
+  ] as const) {
+    const value = readRuntimeEnv(key);
+    if (value) return trimSlash(value);
+  }
+  return '';
 }

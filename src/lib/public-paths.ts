@@ -1,4 +1,4 @@
-import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
+import { NEST_BROWSER_PROXY_PATH, NEST_LEGACY_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
 import { isMarketingCmsPath, RouteService } from '@/services/route.service';
 
 function normalizePath(pathname: string): string {
@@ -31,6 +31,7 @@ export const publicPathsConfig = {
     '/auth/',
     `${RouteService.marketing.cmsPagesBase()}/`,
     `${NEST_BROWSER_PROXY_PATH}/`,
+    `${NEST_LEGACY_BROWSER_PROXY_PATH}/`,
     '/api/auth/',
   ] as const,
 };

@@ -15,7 +15,8 @@
                                       ├─ mock/   شبیه‌ساز localStorage
                                       └─ real/   apiClient → Nest
                                               ↑
-                                    مرورگر: /api/nest  (route runtime + rewrite)
+                                    مرورگر: /api/nest  (و /__nest-api → همان)
+                                    سرور:   BACKEND_INTERNAL_URL یا NEXT_PUBLIC_API_URL زمان اجرا
                                     سرور:   BACKEND_INTERNAL_URL یا NEXT_PUBLIC_API_URL
 ```
 

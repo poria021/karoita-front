@@ -25,6 +25,7 @@ describe('isPublicPath', () => {
 
   it('allows the Nest browser proxy prefix', () => {
     expect(isPublicPath('/api/nest/v1/auth/roles')).toBe(true);
+    expect(isPublicPath('/__nest-api/v1/auth/roles')).toBe(true);
   });
 
   it('blocks dashboard shell paths', () => {

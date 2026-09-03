@@ -3,12 +3,13 @@ import { NextRequest } from 'next/server';
 import { forwardToNestApi } from '@/lib/nest-proxy-forward';
 
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-type RouteCtx = { params: Promise<{ path: string[] }> };
+type RouteCtx = { params: { path?: string[] } | Promise<{ path?: string[] }> };
 
 async function handle(request: NextRequest, ctx: RouteCtx) {
-  const { path } = await ctx.params;
-  return forwardToNestApi(request, path ?? []);
+  const resolved = await Promise.resolve(ctx.params);
+  return forwardToNestApi(request, resolved.path ?? []);
 }
 
 export const GET = handle;

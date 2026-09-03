@@ -61,13 +61,13 @@ E2E سرور را روی `127.0.0.1:3000` بالا می‌آورد. قبلش ه�
 | `NEXT_PUBLIC_SITE_URL` | آدرس عمومی سایت (SEO / لینک مطلق). |
 | `NEXT_PUBLIC_S3_URL` | مبدأ عمومی باکت برای پیش‌نمایش مدرک هویت. |
 | `NEXT_PUBLIC_AUTH_COOKIE_NAME` | اختیاری؛ پیش‌فرض `karvita_session`. |
-| `BACKEND_INTERNAL_URL` | آدرس Nest سمت سرور (runtime). روی Darkube لازم است اگر بیلد بدون `NEXT_PUBLIC_API_URL` بوده. |
+| `BACKEND_INTERNAL_URL` | آدرس Nest سمت سرور. اگر خالی باشد، ایمیج داکر همان `NEXT_PUBLIC_API_URL` زمان اجرا را برمی‌دارد. |
 
 ## روی سرور
 
 متغیرهای `NEXT_PUBLIC_*` موقع **`pnpm build`** داخل باندل می‌شوند. بعد از بیلد عوض کردنشان در مرورگر اثر ندارد.
 
-1. کلیدها در [`.env.production.example`](./.env.production.example) هستند. اگر Darkube فقط env زمان اجرا دارد، **`BACKEND_INTERNAL_URL`** را روی پاد بگذارید (همان آدرس Nest، مثلاً `https://backenddev.darkube.ir/api`). مرورگر از `/api/nest` می‌زند و Node همان آدرس را پروکسی می‌کند.
+1. روی Darkube این را روی پاد فرانت بگذارید (runtime کافی است): `NEXT_PUBLIC_API_URL=https://backenddev.darkube.ir/api` — ایمیج آن را به `BACKEND_INTERNAL_URL` کپی می‌کند. مرورگر `/api/nest` (یا `/__nest-api` قدیمی) را می‌زند و Node به Nest پروکسی می‌کند.
 2. اگر می‌توانید `--build-arg` بدهید، `NEXT_PUBLIC_API_URL` را هم همان‌جا ست کنید.
 3. `NEXT_PUBLIC_API_MODE=real` — مقدار `mock` در production کرش می‌کند.
 4. بیلد بدون داکر:
