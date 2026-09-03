@@ -102,6 +102,15 @@ const nextConfig: NextConfig = {
     ];
   },
   experimental: {
+    // بیلد Docker/Darkube: سقف worker برای page-data (پیش‌فرض ≈ نصف CPUها).
+    ...(process.env.NEXT_CPU_COUNT
+      ? {
+          cpus: Math.max(
+            1,
+            Number.parseInt(process.env.NEXT_CPU_COUNT, 10) || 1
+          ),
+        }
+      : {}),
     authInterrupts: true,
     optimizePackageImports: [
       '@fortawesome/free-solid-svg-icons',
