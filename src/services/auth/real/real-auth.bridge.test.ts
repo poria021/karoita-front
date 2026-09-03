@@ -203,11 +203,87 @@ describe('performRealRefresh (از طریق realRefreshToken)', () => {
     const { realRefreshToken } = await import(
       '@/services/auth/real/real-auth.bridge'
     );
+    const { readRealAuthSurface } = await import(
+      '@/services/auth/real/real-auth.tokens'
+    );
 
     const session = await realRefreshToken();
     expect(session).not.toBeNull();
     expect(session?.user.id).toBe(VALID_USER.id);
+    expect(readRealAuthSurface()).toBe('user');
     expect(document.cookie).toContain(`${AUTH_COOKIE_NAME}=1`);
+    expect(document.cookie).not.toContain('karvita_surface=');
+  });
+
+  it('refresh موفق ادمین از حافظهٔ خالی → surface ادمین بدون حدس user', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/api/auth/set-tokens')) return jsonResponse({});
+      if (url.includes('/api/auth/refresh')) {
+        return jsonResponse({
+          token: 'access-admin',
+          refreshToken: 'refresh-admin',
+          tokenExpires: TOKEN_EXPIRES_MS,
+          admin: {
+            id: 'a-1',
+            fname: 'Ad',
+            lname: 'Min',
+            phone: '09120000000',
+            status: { name: 'active' },
+          },
+          surface: 'admin',
+        });
+      }
+      return jsonResponse({});
+    });
+
+    const { realRefreshToken } = await import(
+      '@/services/auth/real/real-auth.bridge'
+    );
+    const { readRealAuthSurface } = await import(
+      '@/services/auth/real/real-auth.tokens'
+    );
+
+    const session = await realRefreshToken();
+    expect(session).not.toBeNull();
+    expect(session?.user.id).toBe('a-1');
+    expect(readRealAuthSurface()).toBe('admin');
+    const setTokenCall = fetchMock.mock.calls.find(([input]) =>
+      String(input).includes('/api/auth/set-tokens')
+    );
+    expect(setTokenCall).toBeDefined();
+    const body = JSON.parse(String((setTokenCall?.[1] as RequestInit).body));
+    expect(body.surface).toBe('admin');
+  });
+
+  it('payload فقط-توکن بدون surface echo → user me زده نمی‌شود', async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes('/api/auth/set-tokens')) return jsonResponse({});
+      if (url.includes('/api/auth/refresh')) {
+        return jsonResponse({
+          token: 'access-1',
+          refreshToken: 'refresh-1',
+          tokenExpires: TOKEN_EXPIRES_MS,
+        });
+      }
+      return jsonResponse({});
+    });
+
+    const { realRefreshToken } = await import(
+      '@/services/auth/real/real-auth.bridge'
+    );
+    const { readRealAuthSurface } = await import(
+      '@/services/auth/real/real-auth.tokens'
+    );
+
+    const session = await realRefreshToken();
+    expect(session).toBeNull();
+    expect(readRealAuthSurface()).toBeNull();
+    const setTokenCalls = fetchMock.mock.calls.filter(([input]) =>
+      String(input).includes('/api/auth/set-tokens')
+    );
+    expect(setTokenCalls).toHaveLength(0);
   });
 });
 

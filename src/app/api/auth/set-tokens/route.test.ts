@@ -32,6 +32,19 @@ describe('POST /api/auth/set-tokens', () => {
     expect(response.status).toBe(200);
     expect(response.cookies.get(REAL_REFRESH_COOKIE_NAME)?.value).toBe('refresh-1');
     expect(response.cookies.get(REAL_SURFACE_COOKIE_NAME)?.value).toBe('user');
+    expect(response.cookies.get(REAL_SURFACE_COOKIE_NAME)?.httpOnly).toBe(true);
     expect(response.cookies.get(LEGACY_ACCESS_COOKIE_NAME)).toBeUndefined();
+  });
+
+  it('sets httpOnly admin surface when login asks for admin', async () => {
+    const response = await POST(
+      sameOriginRequest({
+        refreshToken: 'refresh-admin',
+        surface: 'admin',
+      })
+    );
+
+    expect(response.cookies.get(REAL_SURFACE_COOKIE_NAME)?.value).toBe('admin');
+    expect(response.cookies.get(REAL_SURFACE_COOKIE_NAME)?.httpOnly).toBe(true);
   });
 });

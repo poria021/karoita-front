@@ -16,6 +16,7 @@ import {
   pickNestRoleDto,
   type NestRoleDto,
 } from '@/services/auth/real/nest-auth-role';
+import { echoedAuthSurface } from '@/services/auth/real/refresh-route-helpers';
 import {
   clearRealAuthTokens,
   readRealAccessToken,
@@ -28,9 +29,9 @@ import { useUserStore } from '@/store/useUserStore';
 import type { Session, User, UserRole } from '@/types/auth';
 import type { NestAuthUpdateDto } from '@/types/nest-users';
 
-/** سطح سشن: در مرورگر از کوکی؛ بیرون `'user'`. */
-function currentSurface(): 'admin' | 'user' {
-  return readRealAuthSurface() ?? 'user';
+/** سطح سشن از حافظه؛ بدون حدس `'user'`. */
+function currentSurface(): 'admin' | 'user' | null {
+  return readRealAuthSurface();
 }
 
 const NEST_AUTH_LIVE = true;
@@ -152,7 +153,7 @@ async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
 
 async function applyNestLoginResponse(raw: unknown, fallbackMobile?: string): Promise<User> {
   const parsed = extractNestLoginResponse(raw, fallbackMobile);
-  await writeRealAuthTokens(parsed.tokens);
+  await writeRealAuthTokens(parsed.tokens, 'user');
   dispatchSessionToStore({ user: parsed.user, token: parsed.tokens.token, expiresAt: parsed.expiresAt });
   return parsed.user;
 }
@@ -345,10 +346,13 @@ async function performRealRefresh(): Promise<Session | null> {
       return session;
     }
 
-    // fallback: Nest فقط توکن داد و `me` در Route شکست خورد
+    // fallback: Nest فقط توکن داد و `me` در Route شکست خورد — سطح را حدس نزن
     try {
       const tokens = extractNestRefreshTokens(raw);
-      const surface = currentSurface();
+      const surface = echoedAuthSurface(raw);
+      if (!surface) {
+        return markSessionDead();
+      }
       await writeRealAuthTokens(tokens, surface);
 
       const fallbackSession = await realFetchSession(existingMobile, tokens.token);
@@ -406,9 +410,12 @@ export async function realDeleteMe(token?: string): Promise<void> {
 export async function realSignOut(): Promise<void> {
   guard('real-auth.bridge.logout');
   const surface = currentSurface();
-  const logoutPath = surface === 'admin' ? REAL_AUTH_PATHS.adminLogout : REAL_AUTH_PATHS.logout;
   try {
-    await apiClient.postJson(logoutPath, {});
+    if (surface === 'admin') {
+      await apiClient.postJson(REAL_AUTH_PATHS.adminLogout, {});
+    } else if (surface === 'user') {
+      await apiClient.postJson(REAL_AUTH_PATHS.logout, {});
+    }
   } finally {
     clearRealAuthTokens();
   }
@@ -424,10 +431,9 @@ export async function realFetchSession(
 
   // اینجا refresh نزن — caller باید token بدهد؛ OTP بدون سشن refresh الکی می‌زند
   const accessToken = explicitAccessToken ?? readRealAccessToken();
-  if (!accessToken) return null;
+  if (!accessToken || !surface) return null;
 
   try {
-    // سطح از کوکی؛ مسیر `me` ادمین و کاربر جداست
     const sessionPath = surface === 'admin' ? REAL_AUTH_PATHS.adminSession : REAL_AUTH_PATHS.session;
     const raw = await apiClient.getJson<unknown>(sessionPath, accessToken);
 

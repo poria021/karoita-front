@@ -8,7 +8,6 @@ import Cookies from 'js-cookie';
 import { AUTH_COOKIE_NAME } from '@/lib/config';
 import {
   REAL_SURFACE_COOKIE_NAME,
-  REAL_SURFACE_COOKIE_OPTIONS,
   type AuthSurface,
 } from '@/lib/real-auth-cookie';
 import type { NestLoginTokens } from '@/services/auth/real/nest-auth-mappers';
@@ -18,6 +17,7 @@ interface MemoryTokens {
   /** رفرش در حافظه فقط برای پاس به `/api/auth/refresh`؛ کلاینت مستقیم به Nest نزند. */
   refreshToken: string;
   tokenExpires: number;
+  surface: AuthSurface;
 }
 
 let _mem: MemoryTokens | null = null;
@@ -76,7 +76,7 @@ function sleep(ms: number): Promise<void> {
 /** یک POST به `/api/auth/set-tokens` با timeout جدا. */
 async function requestSetTokensOnce(
   refreshToken: string,
-  surface?: AuthSurface,
+  surface: AuthSurface,
 ): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), SET_TOKENS_ATTEMPT_TIMEOUT_MS);
@@ -99,7 +99,7 @@ async function requestSetTokensOnce(
  */
 async function persistRefreshTokenInCookie(
   refreshToken: string,
-  surface?: AuthSurface,
+  surface: AuthSurface,
 ): Promise<void> {
   if (!isBrowser()) return;
 
@@ -133,7 +133,7 @@ async function persistRefreshTokenInCookie(
 /** پاک کردن کوکی رفرش/surface از Route. */
 async function clearRefreshTokenCookie(): Promise<void> {
   if (!isBrowser()) return;
-  // surface httpOnly نیست — سمت کلاینت هم پاک کن
+  // باقیماندهٔ کوکی غیر-httpOnly قدیمی
   Cookies.remove(REAL_SURFACE_COOKIE_NAME, { path: '/' });
   try {
     await fetch('/api/auth/clear-tokens', {
@@ -154,27 +154,19 @@ const ACCESS_REFRESH_SKEW_MS = 60_000;
  */
 export async function writeRealAuthTokens(
   tokens: NestLoginTokens,
-  surface: AuthSurface = 'user',
+  surface: AuthSurface,
 ): Promise<void> {
   warnIfTokenExpiresLooksLikeSeconds(tokens.tokenExpires);
   _mem = {
     token: tokens.token,
     refreshToken: tokens.refreshToken,
     tokenExpires: tokens.tokenExpires,
+    surface,
   };
   setPresenceCookie();
-  // surface حساس نیست — JS می‌خواندش
-  if (isBrowser()) {
-    Cookies.set(REAL_SURFACE_COOKIE_NAME, surface, {
-      path: REAL_SURFACE_COOKIE_OPTIONS.path,
-      sameSite: REAL_SURFACE_COOKIE_OPTIONS.sameSite,
-      secure: REAL_SURFACE_COOKIE_OPTIONS.secure,
-      expires: 7, // js-cookie: روز نه ثانیه
-    });
-  }
 
   try {
-    // فقط `karvita_rt` (+ surface)؛ access در حافظه می‌ماند
+    // فقط `karvita_rt` + `karvita_surface` httpOnly؛ access در حافظه می‌ماند
     await persistRefreshTokenInCookie(tokens.refreshToken, surface);
   } catch (error) {
     // rollback: اگر set-tokens جزئی موفق بود، clear-tokens هم بزن
@@ -215,17 +207,7 @@ export function peekRealAuthTokens(): NestLoginTokens | null {
     : null;
 }
 
-/** سطح سشن از کوکی کلاینت (`admin` | `user`)؛ httpOnly نیست. */
+/** سطح سشن از حافظهٔ ماژول؛ بعد از F5 تا refresh موفق `null` است. */
 export function readRealAuthSurface(): AuthSurface | null {
-  if (!isBrowser()) return null;
-  const value = document.cookie
-    .split(';')
-    .find(c => c.trim().startsWith(`${REAL_SURFACE_COOKIE_NAME}=`))
-    ?.split('=')
-    .slice(1)
-    .join('=')
-    .trim();
-  if (value === 'admin') return 'admin';
-  if (value === 'user') return 'user';
-  return null;
+  return _mem?.surface ?? null;
 }

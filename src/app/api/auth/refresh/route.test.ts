@@ -13,12 +13,22 @@ import {
   REAL_SURFACE_COOKIE_NAME,
 } from '@/lib/real-auth-cookie';
 
-function refreshRequest(): NextRequest {
+function refreshRequest(surface = 'user'): NextRequest {
   return new NextRequest('http://localhost/api/auth/refresh', {
     method: 'POST',
     headers: {
       'sec-fetch-site': 'same-origin',
-      cookie: `${REAL_REFRESH_COOKIE_NAME}=refresh-cookie; ${REAL_SURFACE_COOKIE_NAME}=user; ${LEGACY_ACCESS_COOKIE_NAME}=stale-access`,
+      cookie: `${REAL_REFRESH_COOKIE_NAME}=refresh-cookie; ${REAL_SURFACE_COOKIE_NAME}=${surface}; ${LEGACY_ACCESS_COOKIE_NAME}=stale-access`,
+    },
+  });
+}
+
+function refreshRequestWithoutSurface(): NextRequest {
+  return new NextRequest('http://localhost/api/auth/refresh', {
+    method: 'POST',
+    headers: {
+      'sec-fetch-site': 'same-origin',
+      cookie: `${REAL_REFRESH_COOKIE_NAME}=refresh-cookie`,
     },
   });
 }
@@ -43,7 +53,7 @@ describe('POST /api/auth/refresh', () => {
       })
     );
 
-    await POST(refreshRequest());
+    const response = await POST(refreshRequest());
 
     expect(nestFetch).toHaveBeenCalled();
     const [url, init] = nestFetch.mock.calls[0] as [string, RequestInit];
@@ -51,6 +61,29 @@ describe('POST /api/auth/refresh', () => {
     expect((init.headers as Record<string, string>).Authorization).toBe(
       'Bearer refresh-cookie'
     );
+    expect(await response.json()).toMatchObject({ surface: 'user' });
+    expect(response.cookies.get(REAL_SURFACE_COOKIE_NAME)?.httpOnly).toBe(true);
+  });
+
+  it('uses the admin Nest refresh path when the httpOnly surface cookie is admin', async () => {
+    nestFetch.mockResolvedValue(
+      new Response(JSON.stringify({ token: 'new-access' }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    );
+
+    const response = await POST(refreshRequest('admin'));
+    const [url] = nestFetch.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain('v1/admin/auth/refresh');
+    expect(await response.json()).toMatchObject({ surface: 'admin' });
+  });
+
+  it('does not default missing surface to the user Nest tree', async () => {
+    const response = await POST(refreshRequestWithoutSurface());
+
+    expect(response.status).toBe(401);
+    expect(nestFetch).not.toHaveBeenCalled();
   });
 
   it('on Nest 401 deletes refresh, surface, and leftover karvita_at', async () => {

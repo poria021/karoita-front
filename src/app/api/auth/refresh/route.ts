@@ -10,11 +10,13 @@ import {
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
   REAL_SURFACE_COOKIE_NAME,
+  REAL_SURFACE_COOKIE_OPTIONS,
   type AuthSurface,
 } from '@/lib/real-auth-cookie';
 import {
   accessTokenFromRefreshPayload,
   extractRotatedRefreshToken,
+  isAuthSurface,
   NEST_REFRESH_PATHS,
   NEST_SESSION_PATHS,
   resolveAuthSurface,
@@ -60,6 +62,18 @@ export async function POST(request: NextRequest) {
 
   const refreshToken = request.cookies.get(REAL_REFRESH_COOKIE_NAME)?.value;
   const rawSurface = request.cookies.get(REAL_SURFACE_COOKIE_NAME)?.value;
+
+  if (!isAuthSurface(rawSurface)) {
+    const expired = NextResponse.json(
+      { error: 'نشست منقضی شده است.' },
+      { status: 401 }
+    );
+    expired.cookies.delete(REAL_REFRESH_COOKIE_NAME);
+    expired.cookies.delete(REAL_SURFACE_COOKIE_NAME);
+    expired.cookies.delete(LEGACY_ACCESS_COOKIE_NAME);
+    return expired;
+  }
+
   const surface: AuthSurface = resolveAuthSurface(rawSurface);
   const nestRefreshPath = NEST_REFRESH_PATHS[surface];
 
@@ -146,8 +160,7 @@ export async function POST(request: NextRequest) {
     const newAccessToken = accessTokenFromRefreshPayload(payload);
 
     if (!data) {
-      const response = NextResponse.json(payload);
-      return response;
+      return jsonWithSurface(payload, surface);
     }
 
     if (newAccessToken) {
@@ -166,7 +179,12 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const response = NextResponse.json(payload);
+  const response = jsonWithSurface(payload, surface);
+  response.cookies.set(
+    REAL_SURFACE_COOKIE_NAME,
+    surface,
+    REAL_SURFACE_COOKIE_OPTIONS
+  );
 
   const rotatedRefreshToken = extractRotatedRefreshToken(payload);
   if (rotatedRefreshToken) {
@@ -175,15 +193,15 @@ export async function POST(request: NextRequest) {
       rotatedRefreshToken,
       REAL_REFRESH_COOKIE_OPTIONS
     );
-    // surface را تمدید کن تا بعد از rotation مسیر Nest درست بماند.
-    response.cookies.set(REAL_SURFACE_COOKIE_NAME, surface, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    });
   }
 
   return response;
+}
+
+function jsonWithSurface(payload: unknown, surface: AuthSurface): NextResponse {
+  const body =
+    typeof payload === 'object' && payload !== null && !Array.isArray(payload)
+      ? { ...(payload as Record<string, unknown>), surface }
+      : { surface };
+  return NextResponse.json(body);
 }
