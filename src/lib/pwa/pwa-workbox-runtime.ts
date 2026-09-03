@@ -46,13 +46,11 @@ export function buildPwaRuntimeCaching(): PwaRuntimeCaching {
       urlPattern: ({ url, request }) => {
         const method = request.method.toUpperCase();
         if (method !== 'GET' && method !== 'HEAD') return false;
-        return /^(?:\/_next\/static\/|\/brand\/|\/fonts\/|\/marketing\/)/.test(
-          url.pathname
-        );
+        return /^(?:\/brand\/|\/fonts\/|\/marketing\/)/.test(url.pathname);
       },
       handler: 'CacheFirst',
       options: {
-        cacheName: 'karvita-static-shell',
+        cacheName: 'karvita-static-shell-v2',
         expiration: {
           maxEntries: 96,
           maxAgeSeconds: 60 * 60 * 24 * 30,

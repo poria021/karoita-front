@@ -7,6 +7,15 @@ export const NEST_BROWSER_PROXY_PATH = '/api/nest';
 /** باندل/PWA قدیمی هنوز این مسیر را می‌زند؛ rewrite به `/api/nest` می‌رود. */
 export const NEST_LEGACY_BROWSER_PROXY_PATH = '/__nest-api';
 
+/** `/__nest-api/v1/...` → `/api/nest/v1/...`؛ در غیر این صورت null. */
+export function rewriteLegacyNestProxyPath(pathname: string): string | null {
+  const legacy = NEST_LEGACY_BROWSER_PROXY_PATH;
+  if (pathname !== legacy && !pathname.startsWith(`${legacy}/`)) {
+    return null;
+  }
+  return `${NEST_BROWSER_PROXY_PATH}${pathname.slice(legacy.length)}`;
+}
+
 function trimSlash(value: string): string {
   return value.replace(/\/$/, '');
 }

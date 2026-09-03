@@ -1,6 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { readNestApiBaseUrl } from '@/lib/nest-proxy';
+import {
+  readNestApiBaseUrl,
+  rewriteLegacyNestProxyPath,
+} from '@/lib/nest-proxy';
+
+describe('rewriteLegacyNestProxyPath', () => {
+  it('rewrites leftover /__nest-api clients onto /api/nest', () => {
+    expect(
+      rewriteLegacyNestProxyPath(
+        '/__nest-api/v1/auth/phone/login/request-otp'
+      )
+    ).toBe('/api/nest/v1/auth/phone/login/request-otp');
+    expect(rewriteLegacyNestProxyPath('/api/nest/v1/auth/roles')).toBeNull();
+  });
+});
 
 describe('readNestApiBaseUrl', () => {
   afterEach(() => {

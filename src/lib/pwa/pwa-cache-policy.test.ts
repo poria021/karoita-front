@@ -70,23 +70,23 @@ describe('shouldUseNetworkOnly', () => {
         pathname: '/_next/static/chunks/app.js',
       })
     ).toBe(false);
-    expect(
-      shouldUseNetworkOnly({
-        method: 'GET',
-        pathname: '/brand/pwa-icon-192.png',
-      })
-    ).toBe(false);
   });
 });
 
 describe('shouldCacheStaticShell', () => {
-  it('caches only brand and Next static GET', () => {
+  it('caches brand/marketing assets, not hashed Next chunks', () => {
     expect(
       shouldCacheStaticShell({
         method: 'GET',
         pathname: '/marketing/dashboard-hero.svg',
       })
     ).toBe(true);
+    expect(
+      shouldCacheStaticShell({
+        method: 'GET',
+        pathname: '/_next/static/chunks/app.js',
+      })
+    ).toBe(false);
     expect(
       shouldCacheStaticShell({
         method: 'GET',

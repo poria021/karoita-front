@@ -182,4 +182,17 @@ describe('proxy() — Edge gate', () => {
     const response = await runProxy('/', false);
     expect(locationOf(response)).toBe('');
   });
+
+  it('POST قدیمی /__nest-api → rewrite داخلی به /api/nest', async () => {
+    const response = await runProxy(
+      '/__nest-api/v1/auth/phone/login/request-otp',
+      false
+    );
+    expect(locationOf(response)).toBe('');
+    const rewrite =
+      response.headers.get('x-middleware-rewrite') ??
+      response.headers.get('x-nextjs-rewrite') ??
+      '';
+    expect(rewrite).toContain('/api/nest/v1/auth/phone/login/request-otp');
+  });
 });

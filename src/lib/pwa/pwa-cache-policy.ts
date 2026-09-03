@@ -8,9 +8,8 @@ import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
 export const PWA_OFFLINE_PATH = '/offline';
 export const PWA_SW_PATH = '/sw.js';
 
-/** شِل استاتیک هم‌مبدأ که `CacheFirst` برایش امن است. */
-export const PWA_STATIC_CACHE_PATH =
-  /^(?:\/_next\/static\/|\/brand\/|\/fonts\/|\/marketing\/)/;
+/** شِل استاتیک هم‌مبدأ که `CacheFirst` برایش امن است — نه `/_next/static` (هش عوض می‌شود). */
+export const PWA_STATIC_CACHE_PATH = /^(?:\/brand\/|\/fonts\/|\/marketing\/)/;
 
 const NEST_PROXY = NEST_BROWSER_PROXY_PATH;
 
