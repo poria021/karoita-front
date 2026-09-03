@@ -44,6 +44,10 @@ ENV NEXT_PUBLIC_APP_SURFACE=$NEXT_PUBLIC_APP_SURFACE
 ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+# Darkube CPU زیاد گزارش می‌دهد ولی سقف thread کم است؛ بدون این،
+# «Collecting page data using 34 workers» با os error 11 می‌میرد.
+ENV NEXT_CPU_COUNT=1
+ENV NODE_OPTIONS=--max-old-space-size=3072
 
 # `NEXT_PUBLIC_IS_DEV` عمداً ست نمی‌شود.
 RUN pnpm build
