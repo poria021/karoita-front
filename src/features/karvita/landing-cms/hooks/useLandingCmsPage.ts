@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 
+import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
 import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
@@ -55,6 +56,11 @@ export function useLandingCmsPage() {
   const getChrome = useDashboardModuleCache((s) => s.getChrome);
   const setChrome = useDashboardModuleCache((s) => s.setChrome);
   const cachedChrome = getChrome<LandingCmsChrome>(LANDING_CMS_CHROME_ID);
+  const landingTabDraft = useLocalFormDraft<{ tab: LandingCmsTab }>({
+    key: 'landing-cms:tab',
+    initialValue: { tab: 'banners' },
+    debounceMs: 200,
+  });
 
   const [tab, setTab] = useSyncedUrlParam<LandingCmsTab>({
     name: 'tab',
@@ -85,7 +91,8 @@ export function useLandingCmsPage() {
 
   useEffect(() => {
     setChrome<LandingCmsChrome>(LANDING_CMS_CHROME_ID, { tab });
-  }, [tab, setChrome]);
+    landingTabDraft.setValue({ tab });
+  }, [landingTabDraft, tab, setChrome]);
 
   const patchBundle = useCallback(
     (updater: (prev: LandingCmsBundle) => LandingCmsBundle) => {

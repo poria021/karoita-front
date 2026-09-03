@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
@@ -36,20 +36,17 @@ export function useDailyApprovalBulkExtendCatalog({
   });
 
   const courses = coursesQuery.data ?? EMPTY_COURSES;
-  const selectedCourse =
-    courses.find((course) => course.id === lessonId) ?? courses[0] ?? null;
-
-  useEffect(() => {
-    if (!open || courses.length === 0) return;
+  const resolvedLessonId = useMemo(() => {
+    if (!open || courses.length === 0) return lessonId || '';
+    if (courses.some((course) => course.id === lessonId)) return lessonId;
     const preferred =
       preferredCourse !== 'all'
         ? courses.find((course) => course.courseFilter === preferredCourse)
         : undefined;
-    const nextId = preferred?.id ?? courses[0]?.id ?? '';
-    setLessonId((current) =>
-      courses.some((course) => course.id === current) ? current : nextId
-    );
-  }, [courses, open, preferredCourse]);
+    return preferred?.id ?? courses[0]?.id ?? '';
+  }, [courses, lessonId, open, preferredCourse]);
+  const selectedCourse =
+    courses.find((course) => course.id === resolvedLessonId) ?? courses[0] ?? null;
 
   const weeksQuery = useQuery({
     queryKey: [

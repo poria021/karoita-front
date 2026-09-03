@@ -3,6 +3,7 @@
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
+import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import type {
   DailyApprovalCompetencyRating,
   DailyApprovalTrainee,
@@ -68,6 +69,29 @@ export function useDailyApprovalWeekGradingModal({
   onSaveMentor,
   onSavePrincipal,
 }: UseDailyApprovalWeekGradingModalInput) {
+  const {
+    value: draftValue,
+    hasDraft: hasGradingDraft,
+    setValue: setGradingDraft,
+    clearDraft: clearGradingDraft,
+  } = useLocalFormDraft<{
+    advisorFeedback: string;
+    scoreInput: string;
+    mentorFeedback: string;
+    principalFeedback: string;
+  }>({
+    key:
+      trainee && week
+        ? `daily-approval-grading:${trainee.id}:${week.weekNumber}`
+        : 'daily-approval-grading:placeholder',
+    initialValue: {
+      advisorFeedback: '',
+      scoreInput: '',
+      mentorFeedback: '',
+      principalFeedback: '',
+    },
+  });
+
   // مقداردهی با Lazy Initializer برای بهینه‌سازی عملکرد در رندر اول
   const [advisorFeedback, setAdvisorFeedback] = useState(
     () => getInitialGradingForm(week).advisorFeedback
@@ -91,13 +115,14 @@ export function useDailyApprovalWeekGradingModal({
 
   const resetForm = useCallback(() => {
     const initial = getInitialGradingForm(week);
-    setAdvisorFeedback(initial.advisorFeedback);
-    setScoreInput(initial.scoreInput);
+    const restored = hasGradingDraft ? draftValue : null;
+    setAdvisorFeedback(restored?.advisorFeedback ?? initial.advisorFeedback);
+    setScoreInput(restored?.scoreInput ?? initial.scoreInput);
     setMentorRating(initial.mentorRating);
-    setMentorFeedback(initial.mentorFeedback);
+    setMentorFeedback(restored?.mentorFeedback ?? initial.mentorFeedback);
     setPrincipalRating(initial.principalRating);
-    setPrincipalFeedback(initial.principalFeedback);
-  }, [week]);
+    setPrincipalFeedback(restored?.principalFeedback ?? initial.principalFeedback);
+  }, [draftValue, hasGradingDraft, week]);
 
   // هر بار trainee/week عوض بشه (نه فقط موقع باز شدن مودال) فرم رو ریست کن —
   // طبق الگوی رسمی React این کار مستقیم حین رندر انجام می‌شه، نه با
@@ -119,10 +144,6 @@ export function useDailyApprovalWeekGradingModal({
       ? `ارزیابی هفته ${toPersianDigits(week.weekNumber)} - ${toPersianDigits(trainee.courseTitle)}`
       : '';
 
-  const handleScoreInputChange = (raw: string) => {
-    setScoreInput(normalizeDailyApprovalScoreInput(raw));
-  };
-
   const save = async () => {
     if (!trainee || !week || dropped) return;
 
@@ -143,6 +164,7 @@ export function useDailyApprovalWeekGradingModal({
         score = parsed;
       }
       await onSaveSupervisor({ score, advisorFeedback });
+      clearGradingDraft();
       return;
     }
 
@@ -152,13 +174,32 @@ export function useDailyApprovalWeekGradingModal({
         return;
       }
       await onSaveMentor({ mentorFeedback, mentorRating });
+      clearGradingDraft();
       return;
     }
 
     if (role === 'school_principal') {
       await onSavePrincipal({ principalFeedback, principalRating });
+      clearGradingDraft();
     }
   };
+
+  const persistGradingDraft = useCallback(
+    (next: Partial<{
+      advisorFeedback: string;
+      scoreInput: string;
+      mentorFeedback: string;
+      principalFeedback: string;
+    }>) => {
+      setGradingDraft({
+        advisorFeedback: next.advisorFeedback ?? advisorFeedback,
+        scoreInput: next.scoreInput ?? scoreInput,
+        mentorFeedback: next.mentorFeedback ?? mentorFeedback,
+        principalFeedback: next.principalFeedback ?? principalFeedback,
+      });
+    },
+    [advisorFeedback, mentorFeedback, principalFeedback, scoreInput, setGradingDraft]
+  );
 
   return {
     title,
@@ -167,17 +208,30 @@ export function useDailyApprovalWeekGradingModal({
     disabled,
     mentorFeedbackEmpty,
     advisorFeedback,
-    setAdvisorFeedback,
+    setAdvisorFeedback: (next: string) => {
+      setAdvisorFeedback(next);
+      persistGradingDraft({ advisorFeedback: next });
+    },
     scoreInput,
-    handleScoreInputChange,
+    handleScoreInputChange: (raw: string) => {
+      const next = normalizeDailyApprovalScoreInput(raw);
+      setScoreInput(next);
+      persistGradingDraft({ scoreInput: next });
+    },
     mentorRating,
     setMentorRating,
     mentorFeedback,
-    setMentorFeedback,
+    setMentorFeedback: (next: string) => {
+      setMentorFeedback(next);
+      persistGradingDraft({ mentorFeedback: next });
+    },
     principalRating,
     setPrincipalRating,
     principalFeedback,
-    setPrincipalFeedback,
+    setPrincipalFeedback: (next: string) => {
+      setPrincipalFeedback(next);
+      persistGradingDraft({ principalFeedback: next });
+    },
     resetForm,
     save,
     close: onClose,

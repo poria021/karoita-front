@@ -1,9 +1,10 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { type Dispatch, type SetStateAction } from 'react';
+import { type Dispatch, type SetStateAction, useEffect } from 'react';
 import { toast } from 'sonner';
 
+import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import { scheduleLocalChange, scheduleUndoableLocalChange } from '@/lib/undoable-mutation';
 import {
   DEFAULT_WEEK_WEIGHT,
@@ -36,6 +37,39 @@ export function useSyllabusWeeksEditor({
   setIsSaving,
 }: UseSyllabusWeeksEditorArgs) {
   const queryClient = useQueryClient();
+  const {
+    value: persistedWeeksDraft,
+    hasDraft: hasSyllabusWeeksDraft,
+    setValue: setSyllabusWeeksDraft,
+    clearDraft: clearSyllabusWeeksDraft,
+  } = useLocalFormDraft<SyllabusWeek[]>({
+    key:
+      selectedTermId && selectedCourse
+        ? `syllabus-weeks:${selectedTermId}:${selectedCourse.id}`
+        : 'syllabus-weeks:placeholder',
+    initialValue: [],
+    debounceMs: 400,
+  });
+
+  useEffect(() => {
+    if (!selectedTermId || !selectedCourse || !hasUnsavedChanges) return;
+    setSyllabusWeeksDraft(weeks);
+  }, [hasUnsavedChanges, selectedCourse, selectedTermId, setSyllabusWeeksDraft, weeks]);
+
+  useEffect(() => {
+    if (!selectedTermId || !selectedCourse || hasUnsavedChanges) return;
+    if (!hasSyllabusWeeksDraft || !persistedWeeksDraft.length) return;
+
+    toast.warning('پیش‌نویس ذخیره‌نشده‌ای دارید — بازیابی شود؟', {
+      action: {
+        label: 'بازیابی',
+        onClick: () => {
+          setWeeks(persistedWeeksDraft);
+          setHasUnsavedChanges(true);
+        },
+      },
+    });
+  }, [hasSyllabusWeeksDraft, hasUnsavedChanges, persistedWeeksDraft, selectedCourse, selectedTermId, setHasUnsavedChanges, setWeeks]);
 
   function ensureCourseSelected() {
     if (!selectedTermId || !selectedCourse) {
@@ -147,6 +181,7 @@ export function useSyllabusWeeksEditor({
       });
       queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
       setHasUnsavedChanges(false);
+      clearSyllabusWeeksDraft();
       try {
         const nextWeeks = await SyllabusConfigService.getWeeks(
           selectedTermId,

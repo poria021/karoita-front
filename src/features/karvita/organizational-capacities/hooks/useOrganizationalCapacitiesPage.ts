@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
@@ -102,18 +102,12 @@ export function useOrganizationalCapacitiesPage() {
   const termsError = termsQuery.error;
   const termsPending = termsQuery.isPending;
 
-  const terms = termsData ?? [];
+  const terms = useMemo(() => termsData ?? [], [termsData]);
 
-  useEffect(() => {
-    if (termsPending) return;
-    if (terms.some((term) => term.id === termId)) return;
-    setTermId(terms[0]?.id ?? '');
-  }, [termId, terms, termsPending]);
-
-  const resolvedTermId = (() => {
+  const resolvedTermId = useMemo(() => {
     if (terms.some((term) => term.id === termId)) return termId;
     return terms[0]?.id ?? '';
-  })();
+  }, [termId, terms]);
 
   const {
     data: snapshotData,
