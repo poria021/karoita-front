@@ -4,7 +4,12 @@ import Link from 'next/link';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { SidebarCourseIcon } from '@/components/shared/shell/SidebarCourseIcon';
-import { kvShellRailLabelMotionClassName } from '@/components/shared/shell/shellChrome';
+import {
+  kvShellRailLabelMaxClassName,
+  kvShellRailLabelMotionClassName,
+  kvShellRailNavTypeClassName,
+  type KvShellRailTextSize,
+} from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 import type { SidebarMenuItem } from '@/utils/RoleStrategyMap';
 
@@ -18,6 +23,7 @@ export type SidebarNavLinkProps = {
   onNavigate: () => void;
   /** `L2` زیر گروه — آرام‌تر از `L1`؛ سلسله‌مراتب با رنگ/وزن نه اندازه. */
   nested?: boolean;
+  textSize?: KvShellRailTextSize;
 };
 
 export function SidebarNavLink({
@@ -27,6 +33,7 @@ export function SidebarNavLink({
   locked,
   onNavigate,
   nested = false,
+  textSize = 'compact',
 }: SidebarNavLinkProps) {
   const itemIcon = resolveSidebarIcon(item.icon);
   const hasCourseBadge = typeof item.iconBadge === 'number';
@@ -75,7 +82,8 @@ export function SidebarNavLink({
       )}
       <span
         className={cn(
-          'inline-block max-w-[150px] whitespace-nowrap',
+          'inline-block whitespace-nowrap',
+          kvShellRailLabelMaxClassName[textSize],
           kvShellRailLabelMotionClassName,
           useBullet
             ? 'opacity-100'
@@ -90,7 +98,8 @@ export function SidebarNavLink({
   );
 
   const className = cn(
-    'group flex w-full items-center rounded-kv-control text-xs leading-snug transition-[padding,color,background-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+    'group flex w-full items-center rounded-kv-control transition-[padding,color,background-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+    kvShellRailNavTypeClassName[textSize],
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
     useBullet ? 'px-3 py-2' : 'py-2.5',
     !useBullet && (isCollapsed ? 'px-3.5 lg:px-0' : 'px-3.5'),
@@ -102,7 +111,9 @@ export function SidebarNavLink({
           'cursor-pointer border border-kv-brand-border bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
         : useBullet
           ? /* `L2` بیکار — زیر `L1` فرو می‌رود */
-            'cursor-pointer border border-transparent font-medium text-kv-text-faint hover:bg-kv-surface-muted hover:text-kv-text-secondary'
+            textSize === 'legible'
+              ? 'cursor-pointer border border-transparent font-medium text-kv-text-muted hover:bg-kv-surface-muted hover:text-kv-text-secondary'
+              : 'cursor-pointer border border-transparent font-medium text-kv-text-faint hover:bg-kv-surface-muted hover:text-kv-text-secondary'
           : /* برگ `L1` بیکار */
             'cursor-pointer border border-transparent font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
   );

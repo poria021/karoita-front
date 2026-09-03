@@ -6,34 +6,34 @@ export {
   type StaffAdminRole,
 } from '@/types/role-taxonomy';
 
-/** نام نقش Nest از Swagger (`RoleDto.name`)؛ نقش فرانت در `@/types/auth` بماند — فقط حمل‌ونقل. */
+// Role names returned by Nest's auth API.
 export type NestRoleName =
-  | 'student'      // دانشجو
-  | 'trainee'      // مهارت‌آموز
-  | 'mentor'       // استاد راهنما
-  | 'teacher'      // معلم راهنما
-  | 'school_admin' // مدیر مدرسه
-  | 'manager'      // مدیر دانشکده
-  | 'admin'        // معاون ادمین
-  | 'superadmin'  // سوپر ادمین (پاسخ Admin API)
-  | 'regional_admin'   // مدیر آموزش استانی / منطقه‌ای
-  | 'provincial_admin' // مسئول دانشگاه استانی
-  | 'central_org'      // سازمان مرکزی
-  | 'super_admin';     // سوپر ادمین
+  | 'student'
+  | 'trainee'
+  | 'mentor'
+  | 'teacher'
+  | 'school_admin'
+  | 'manager'
+  | 'admin'
+  | 'superadmin'
+  | 'regional_admin'
+  | 'provincial_admin'
+  | 'central_org'
+  | 'super_admin';
 
 export type NestRoleDto = {
   id: string;
   name: NestRoleName;
 };
 
-/** لایو `GET /auth/roles` فیلد `title` دارد؛ Swagger `name`. */
+// Some Nest role lists expose `title` instead of `name`; keep both accepted.
 export function nestRoleLabel(entry: Record<string, unknown>): string | null {
   if (typeof entry.name === 'string' && entry.name.trim()) return entry.name.trim();
   if (typeof entry.title === 'string' && entry.title.trim()) return entry.title.trim();
   return null;
 }
 
-/** نقش فرانت → `RoleDto.name` برای register/request-otp؛ نقش ادمین را Nest می‌گذارد. */
+// Front-end roles used by public auth flows.
 const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   student: 'student',
   skill_learner: 'trainee',
@@ -42,7 +42,7 @@ const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   school_principal: 'school_admin',
 };
 
-/** نقش staff فرانت → رشتهٔ `role` در `/v1/admin/admins`؛ ثبت‌نام عمومی `toNestRoleName` است. */
+// Admin account role mapping for Nest's admin endpoints.
 export function toNestAdminAccountRole(
   role: StaffAdminRole
 ): Extract<NestRoleName, 'admin' | 'superadmin'> {
@@ -71,7 +71,7 @@ export function pickNestRoleDto(
   return { id: match.id, name: match.name };
 }
 
-/** Nest → `UserRole` برای `/auth/me`؛ نقش جدید را اینجا و در `@/types/auth` با هم اضافه کن وگرنه silent به `assistant_admin`. */
+// Maps roles returned by /auth/me back into the front-end role union.
 const NEST_NAME_TO_FE_ROLE: Record<NestRoleName, UserRole> = {
   student: 'student',
   trainee: 'skill_learner',
@@ -87,7 +87,7 @@ const NEST_NAME_TO_FE_ROLE: Record<NestRoleName, UserRole> = {
   super_admin: 'super_admin',
 };
 
-/** نقش ناشناخته را throw نکن — login همه را خراب می‌کند؛ fallback `assistant_admin`. */
+// Unknown roles should not block login; it is safer to fall back to the least privileged admin role.
 export function fromNestRoleName(name: string): UserRole {
   const mapped = NEST_NAME_TO_FE_ROLE[name as NestRoleName];
   if (!mapped) {
@@ -96,7 +96,6 @@ export function fromNestRoleName(name: string): UserRole {
         `[nest-auth-role] نقش ناشناخته از Nest: «${name}». به NEST_NAME_TO_FE_ROLE اضافه کنید.`
       );
     }
-    // fail-open با کم‌دسترس‌ترین نقش ادمین تا جریان auth نشکند
     return 'assistant_admin';
   }
   return mapped;

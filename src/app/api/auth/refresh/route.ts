@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { assertSameOriginPost } from '@/lib/auth-origin-guard';
+import { readNestApiBaseUrl } from '@/lib/nest-proxy';
 import {
   LEGACY_ACCESS_COOKIE_NAME,
   REAL_REFRESH_COOKIE_NAME,
@@ -22,11 +23,6 @@ import {
   resolveAuthSurface,
   unwrapRefreshPayloadData,
 } from '@/services/auth/real/refresh-route-helpers';
-
-/** سرور-به-سرور: `BACKEND_INTERNAL_URL` بدون CORS؛ وگرنه `NEXT_PUBLIC_API_URL`. */
-const NEST_API_URL =
-  (process.env.BACKEND_INTERNAL_URL ?? process.env.NEXT_PUBLIC_API_URL ?? '')
-    .replace(/\/$/, '');
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -90,7 +86,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (!NEST_API_URL) {
+  const nestApiUrl = readNestApiBaseUrl();
+  if (!nestApiUrl) {
     return NextResponse.json(
       { error: 'سرویس API پیکربندی نشده است.' },
       { status: 500 }
@@ -101,9 +98,9 @@ export async function POST(request: NextRequest) {
   try {
     // Nest روی refresh، `Authorization: Bearer` را به‌عنوان refresh می‌گیرد نه access.
     if (process.env.NODE_ENV !== 'production') {
-      console.log('[/api/auth/refresh] → POST', `${NEST_API_URL}/${nestRefreshPath}`);
+      console.log('[/api/auth/refresh] → POST', `${nestApiUrl}/${nestRefreshPath}`);
     }
-    nestResponse = await fetch(`${NEST_API_URL}/${nestRefreshPath}`, {
+    nestResponse = await fetch(`${nestApiUrl}/${nestRefreshPath}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${refreshToken}` },
       cache: 'no-store',
@@ -165,13 +162,13 @@ export async function POST(request: NextRequest) {
 
     if (newAccessToken) {
       if (surface === 'admin' && !isRecord(data.admin)) {
-        const adminUser = await fetchSessionUser(newAccessToken, NEST_API_URL, 'admin');
+        const adminUser = await fetchSessionUser(newAccessToken, nestApiUrl, 'admin');
         if (adminUser) {
           (data as Record<string, unknown>).admin = adminUser;
         }
       } else if (surface === 'user' && !isRecord(data.user) && !isRecord(data.newUser)) {
         // بدون `user`، `looksLikeNestLoginResponse` در کلاینت false می‌شود.
-        const userObj = await fetchSessionUser(newAccessToken, NEST_API_URL, 'user');
+        const userObj = await fetchSessionUser(newAccessToken, nestApiUrl, 'user');
         if (userObj) {
           (data as Record<string, unknown>).user = userObj;
         }

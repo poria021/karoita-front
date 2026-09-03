@@ -4,6 +4,7 @@
  */
 import ky, { type Options as KyOptions } from 'ky';
 
+import { NEST_BROWSER_PROXY_PATH, readNestApiBaseUrl } from '@/lib/nest-proxy';
 import {
   decideUnauthorizedAfterResponse,
   KY_RETRY_LIMIT,
@@ -20,7 +21,9 @@ import {
 
 export { ApiClientError, localizeApiError } from '@/services/api-error';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
+function publicApiUrl(): string {
+  return process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? '';
+}
 
 /** Nest با `x-custom-lang` locale پیام را می‌گیرد؛ از locale مرورگر نگیر — محصول فارسی است. */
 const NEST_LANG_HEADER = { 'x-custom-lang': 'fa' } as const;
@@ -30,10 +33,12 @@ let browserClientPrefix: string | null = null;
 
 /** مرورگر از rewrite `/__nest-api` می‌رود تا CORS دامنهٔ Nest بلاک نکند. */
 function resolveClientPrefix(): string {
+  if (typeof window === 'undefined') {
+    return resolveNestClientPrefix({ apiUrl: readNestApiBaseUrl() });
+  }
   return resolveNestClientPrefix({
-    apiUrl: API_URL,
-    windowOrigin:
-      typeof window === 'undefined' ? undefined : window.location.origin,
+    apiUrl: publicApiUrl(),
+    windowOrigin: window.location.origin,
   });
 }
 
@@ -171,10 +176,14 @@ export const apiClient = {
   },
 
   get baseUrl(): string {
-    return API_URL;
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}${NEST_BROWSER_PROXY_PATH}`;
+    }
+    return readNestApiBaseUrl();
   },
 
   get isConfigured(): boolean {
-    return Boolean(API_URL);
+    if (typeof window !== 'undefined') return true;
+    return Boolean(readNestApiBaseUrl());
   },
 };

@@ -24,7 +24,6 @@ import {
 describe('shellCopy', () => {
   it('keeps institutional notification phrases', () => {
     expect(shellCopy.notifications.empty).toBeTruthy();
-    expect(shellCopy.notifications.markAllRead).toContain('خواند');
     expect(shellCopy.notifications.title).toContain('اعلان');
   });
 

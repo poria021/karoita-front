@@ -109,7 +109,7 @@ export function AdminSidebar() {
                     : 'ms-kv-inline max-h-16 max-w-48 opacity-100'
                 )}
               >
-                <HeaderBrandWordmark />
+                <HeaderBrandWordmark textSize="legible" />
               </div>
               <h2 id={drawerTitleId} className="sr-only">
                 کارویتا — پنل مدیریت - {strategy.label}
@@ -163,6 +163,7 @@ export function AdminSidebar() {
               isCollapsed={isCollapsed}
               modulesUnlocked={modulesUnlocked}
               onNavigate={closeMobileSidebar}
+              textSize="legible"
               className={cn(
                 'lg:overflow-y-auto',
                 kvScrollAreaClassName
@@ -173,6 +174,7 @@ export function AdminSidebar() {
               variant="sidebar"
               isCollapsed={isCollapsed}
               onNavigate={closeMobileSidebar}
+              textSize="legible"
             />
           </aside>
         </div>

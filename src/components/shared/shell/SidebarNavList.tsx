@@ -1,4 +1,5 @@
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
+import type { KvShellRailTextSize } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 import {
   isSidebarMenuGroup,
@@ -15,6 +16,7 @@ export type SidebarNavListProps = {
   modulesUnlocked: boolean;
   onNavigate: () => void;
   className?: string;
+  textSize?: KvShellRailTextSize;
 };
 
 /**
@@ -28,6 +30,7 @@ export function SidebarNavList({
   modulesUnlocked,
   onNavigate,
   className,
+  textSize = 'compact',
 }: SidebarNavListProps) {
   return (
     <nav
@@ -47,6 +50,7 @@ export function SidebarNavList({
             isCollapsed={isCollapsed}
             locked={!modulesUnlocked}
             onNavigate={onNavigate}
+            textSize={textSize}
           />
         ) : (
           <SidebarNavLink
@@ -56,6 +60,7 @@ export function SidebarNavList({
             isCollapsed={isCollapsed}
             locked={!modulesUnlocked}
             onNavigate={onNavigate}
+            textSize={textSize}
           />
         )
       )}

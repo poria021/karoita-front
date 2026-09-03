@@ -60,6 +60,6 @@ git merge --no-ff dev
 git push origin main
 ```
 
-`.env` و `.env.local` را commit نکنید. روی سرور از [`.env.production.example`](./.env.production.example) کپی کنید؛ `NEXT_PUBLIC_*` باید **قبل از `pnpm build`** ست شود. `NEXT_PUBLIC_IS_DEV` فقط برای لوکال است — روی سرور نگذارید.
+`.env` و `.env.local` را commit نکنید. کلیدهای پروداکشن در [`.env.production.example`](./.env.production.example) است. روی Darkube `BACKEND_INTERNAL_URL` را روی پاد بگذارید. `NEXT_PUBLIC_IS_DEV` فقط برای لوکال است — روی سرور نگذارید.
 
 جزئیات اضافه کردن دامنه، الگوی Facade، و کامنت‌گذاری در [`docs/contributing.md`](./docs/contributing.md) است.

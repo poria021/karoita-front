@@ -9,7 +9,8 @@ import {
 } from '@/hooks/keepPageScroll';
 
 /**
- * سلکت Radix اسکرول صفحه را با استایل !important قفل می‌کند؛ CSS فایل به آن نمی‌رسد.
+ * سلکت/منوی Radix اسکرول را با استایل !important قفل می‌کند؛ CSS فایل به آن نمی‌رسد.
+ * body را overflow:visible می‌گذاریم تا sticky هدر نشکند.
  * فقط وقتی Content واقعاً در DOM است (باز) mount شود.
  */
 export function useKeepPageScroll() {

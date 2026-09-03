@@ -26,23 +26,29 @@ export function decideUnauthorizedAfterResponse(input: {
 }
 
 /**
- * Browser روی origin دیگر از `/__nest-api` می‌رود؛ SSR همان NEXT_PUBLIC_API_URL.
+ * مرورگر از `/__nest-api` می‌رود (حتی اگر URL نست در باندل خالی باشد).
+ * SSR همان آدرس Nest سمت سرور است.
  */
 export function resolveNestClientPrefix(input: {
   apiUrl: string;
   windowOrigin?: string;
 }): string {
-  if (!input.apiUrl) {
-    throw new ApiClientError('آدرس سرویس API پیکربندی نشده است.');
-  }
-  if (!input.windowOrigin) return input.apiUrl;
-  try {
-    const origin = new URL(input.apiUrl).origin;
-    if (origin !== input.windowOrigin) {
+  if (input.windowOrigin) {
+    if (!input.apiUrl) {
       return `${input.windowOrigin}${NEST_BROWSER_PROXY_PATH}`;
     }
-  } catch {
+    try {
+      const origin = new URL(input.apiUrl).origin;
+      if (origin !== input.windowOrigin) {
+        return `${input.windowOrigin}${NEST_BROWSER_PROXY_PATH}`;
+      }
+    } catch {
+      return `${input.windowOrigin}${NEST_BROWSER_PROXY_PATH}`;
+    }
     return input.apiUrl;
+  }
+  if (!input.apiUrl) {
+    throw new ApiClientError('آدرس سرویس API پیکربندی نشده است.');
   }
   return input.apiUrl;
 }
