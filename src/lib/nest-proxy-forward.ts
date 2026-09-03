@@ -72,12 +72,18 @@ export async function forwardToNestApi(
     if (!ALLOW_RESPONSE_HEADER.test(key)) return;
     outHeaders.append(key, value);
   });
-  outHeaders.set('cache-control', 'no-store');
+  // no-transform: Next/nginx/پروکسی محلی (مثل 127.0.0.1:10808) حق gzip دوباره ندارند.
+  outHeaders.set('cache-control', 'no-store, no-transform');
+  outHeaders.delete('content-encoding');
+  outHeaders.delete('content-length');
+  outHeaders.set('x-karvita-proxy', 'nest-raw');
 
   const body = await upstream.arrayBuffer();
 
-  return new NextResponse(body, {
+  const response = new NextResponse(body, {
     status: upstream.status,
     headers: outHeaders,
   });
+  response.headers.delete('content-encoding');
+  return response;
 }
