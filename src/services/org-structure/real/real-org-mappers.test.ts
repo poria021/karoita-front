@@ -2,18 +2,23 @@ import { describe, expect, it } from 'vitest';
 
 import {
   firstRelationTitle,
+  nestCatalogCount,
   nestRelationFiltersIgnored,
   nestRelationId,
   nestRelationTitle,
   nestUsersCount,
   resolveRoleLabel,
   toOrgCity,
+  toOrgCityListItem,
   toOrgDistrict,
+  toOrgDistrictListItem,
   toOrgFaculty,
   toOrgMajorListItem,
   toOrgMajorListItemForRole,
   toOrgProvince,
+  toOrgProvinceListItem,
   toOrgSchool,
+  toOrgSchoolListItem,
 } from '@/services/org-structure/real/real-org-mappers';
 
 describe('nestRelationId / nestRelationTitle', () => {
@@ -324,11 +329,122 @@ describe('toOrgSchool — defensive field resolution + gender normalization', ()
 });
 
 describe('nestUsersCount', () => {
-  it('prefers usersCount then users_count then users array length', () => {
+  it('prefers usersCount then live userCount then users_count then users array length', () => {
     expect(nestUsersCount({ usersCount: 3 })).toBe(3);
+    expect(nestUsersCount({ userCount: 5 })).toBe(5);
     expect(nestUsersCount({ users_count: 2 })).toBe(2);
     expect(nestUsersCount({ users: [{}, {}] })).toBe(2);
     expect(nestUsersCount({})).toBeUndefined();
+  });
+});
+
+describe('nestCatalogCount', () => {
+  it('picks the first finite non-negative count', () => {
+    expect(nestCatalogCount(undefined, 19, 0)).toBe(19);
+    expect(nestCatalogCount(0, 3)).toBe(0);
+    expect(nestCatalogCount()).toBeUndefined();
+  });
+});
+
+describe('toOrgProvinceListItem — live GET /admin/provinces counts', () => {
+  it('maps university/district/school/user counts onto table columns', () => {
+    expect(
+      toOrgProvinceListItem({
+        id: '6a8fbd899dd4b76b91bbd7a5',
+        title: 'سیشبسب',
+        universityCount: 19,
+        educationalDistrictCount: 6,
+        schoolCount: 3,
+        userCount: 1,
+      })
+    ).toEqual({
+      id: '6a8fbd899dd4b76b91bbd7a5',
+      name: 'سیشبسب',
+      kind: 'province',
+      campusesCount: 19,
+      districtsCount: 6,
+      schoolsCount: 3,
+      usersCount: 1,
+      deleteBlocked: true,
+    });
+  });
+});
+
+describe('toOrgCityListItem — live GET /admin/cities counts', () => {
+  it('maps nested province title plus school/user counts', () => {
+    expect(
+      toOrgCityListItem({
+        id: '6a8fcb3a9dd4b76b91bbd7b8',
+        title: 'سشبسی',
+        province: { id: '6a8fbd899dd4b76b91bbd7a5', title: 'سیشبسب' },
+        schoolCount: 3,
+        userCount: 0,
+      })
+    ).toEqual({
+      id: '6a8fcb3a9dd4b76b91bbd7b8',
+      name: 'سشبسی',
+      kind: 'city',
+      provinceId: '6a8fbd899dd4b76b91bbd7a5',
+      provinceName: 'سیشبسب',
+      schoolsCount: 3,
+      usersCount: 0,
+      deleteBlocked: true,
+    });
+  });
+});
+
+describe('toOrgDistrictListItem — live GET /admin/educations counts', () => {
+  it('maps nested province/city titles plus school/user counts', () => {
+    expect(
+      toOrgDistrictListItem({
+        id: '6a8fc3cb9dd4b76b91bbd7b2',
+        title: 'سیبسیش',
+        province: { id: '6a8fbd899dd4b76b91bbd7a5', title: 'سیشبسب' },
+        city: { id: '6a8fcb3a9dd4b76b91bbd7b8', title: 'سشبسی' },
+        schoolCount: 3,
+        userCount: 0,
+      })
+    ).toEqual({
+      id: '6a8fc3cb9dd4b76b91bbd7b2',
+      name: 'سیبسیش',
+      kind: 'district',
+      provinceId: '6a8fbd899dd4b76b91bbd7a5',
+      cityId: '6a8fcb3a9dd4b76b91bbd7b8',
+      provinceName: 'سیشبسب',
+      cityName: 'سشبسی',
+      schoolsCount: 3,
+      usersCount: 0,
+      deleteBlocked: true,
+    });
+  });
+});
+
+describe('toOrgSchoolListItem — live GET /admin/schools row', () => {
+  it('maps populated education and live userCount', () => {
+    expect(
+      toOrgSchoolListItem({
+        id: '6a8fc4009dd4b76b91bbd7b6',
+        title: 'لیبلسب',
+        genderType: 'Boy',
+        province: { id: '6a8fbd899dd4b76b91bbd7a5', title: 'سیشبسب' },
+        city: { id: '6a8fcb3a9dd4b76b91bbd7b8', title: 'سشبسی' },
+        education: { id: '6a8fc3cb9dd4b76b91bbd7b2', title: 'سیبسیش' },
+        userCount: 0,
+      })
+    ).toEqual({
+      id: '6a8fc4009dd4b76b91bbd7b6',
+      name: 'لیبلسب',
+      kind: 'school',
+      gender: 'male',
+      provinceId: '6a8fbd899dd4b76b91bbd7a5',
+      cityId: '6a8fcb3a9dd4b76b91bbd7b8',
+      districtId: '6a8fc3cb9dd4b76b91bbd7b2',
+      provinceName: 'سیشبسب',
+      cityName: 'سشبسی',
+      districtName: 'سیبسیش',
+      usersCount: 0,
+      deleteBlocked: false,
+    });
   });
 });
 

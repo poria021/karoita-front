@@ -135,6 +135,25 @@ describe('organization options — Nest typeahead', () => {
     expect(result.items).toEqual([{ id: 'c1', label: 'ری' }]);
   });
 
+  it('forwards title to GET /admin/provinces/{id}/cities when searching', async () => {
+    fetchAllNestProvinces.mockResolvedValue([{ id: 'p1', title: 'تهران' }]);
+    listCitiesByProvince.mockResolvedValue([
+      { id: 'c1', title: 'ری' },
+      { id: 'c2', title: 'کرج' },
+    ]);
+
+    const result = await fetchOrganizationOptionsFromApi({
+      type: 'city',
+      page: 1,
+      limit: 10,
+      province: 'تهران',
+      query: 'ری',
+    });
+
+    expect(listCitiesByProvince).toHaveBeenCalledWith('p1', { title: 'ری' });
+    expect(result.items).toEqual([{ id: 'c1', label: 'ری' }]);
+  });
+
   it('scopes districts by city id when city is present (Nest city→educations)', async () => {
     fetchAllNestProvinces.mockResolvedValue([{ id: 'p1', title: 'تهران' }]);
     listCitiesByProvince.mockResolvedValue([{ id: 'c1', title: 'ری' }]);

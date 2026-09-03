@@ -10,11 +10,18 @@ export type NestPagedList<T> = {
   hasNextPage: boolean;
 };
 
+/** GET /admin/provinces — شمارش‌های لایو `universityCount` / `educationalDistrictCount` / `schoolCount` / `userCount`. */
 export type NestProvince = {
   id: string;
   title: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  universityCount?: number;
+  educationalDistrictCount?: number;
+  schoolCount?: number;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
 };
 
 export type NestCreateProvinceDto = {
@@ -39,14 +46,18 @@ export type NestNamedRef = {
 /** FK که Nest ممکن است رشته بگذارد یا به NestNamedRef populate کند. */
 export type NestRelationId = string | NestNamedRef | null;
 
-/** GET شهر: `province` آبجکت است (گاهی `{}`)؛ POST/PATCH از `province_id` تخت استفاده می‌کند. */
+/** GET شهر: `province` آبجکت است (گاهی `{ id: null }`)؛ POST/PATCH از `province_id` تخت استفاده می‌کند. */
 export type NestCity = {
   id: string;
   title: string;
   province_id?: string;
-  province?: { id?: string; title?: string } | null;
-  createdAt: string;
-  updatedAt: string;
+  province?: { id?: string | null; title?: string } | null;
+  schoolCount?: number;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type NestCreateCityDto = {
@@ -83,6 +94,10 @@ export type NestEducationalDistrict = {
   city_id?: string;
   province?: NestNamedRef | null;
   city?: NestNamedRef | null;
+  schoolCount?: number;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -105,7 +120,10 @@ export type NestUpdateSchoolDto = {
   gender?: string;
 };
 
-/** GET /admin/schools: جنسیت `genderType` است؛ `education` معمولاً `{}` و `educationId` نیست — منطقه را از کوئری `educationId` بگیر. */
+/**
+ * GET /admin/schools: آرایهٔ خام با `userCount` و `education` پرشده.
+ * GET /admin/schools/all: پاکت `{ data, hasNextPage }`؛ `userCount` معمولاً نیست و رابطه ممکن است `{}` باشد.
+ */
 export type NestSchool = {
   id: string;
   title: string;
@@ -125,6 +143,9 @@ export type NestSchool = {
   /** نام‌های جایگزین serializer روی بعضی کپی‌های Nest. */
   educationalDistrict?: NestNamedRef | null;
   district?: NestNamedRef | null;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -167,6 +188,9 @@ export type NestRole = {
   id: string;
   title?: string;
   title_fa?: string;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
 };
 
 /** GET /admin/roles/{roleId}/degrees — برخلاف /admin/degreeee فیلد `role` ندارد. */
@@ -406,4 +430,25 @@ export function parseNestPagedList<T>(raw: unknown): NestPagedList<T> {
     }
   }
   return { data: [], hasNextPage: false };
+}
+
+/**
+ * مثل `parseNestPagedList`، ولی اگر لایو آرایهٔ کامل بدهد (GET /admin/schools)
+ * صفحه را سمت کلاینت می‌بُرد تا infinite scroll گیر نکند.
+ */
+export function parseNestMaybePagedList<T>(
+  raw: unknown,
+  page?: number,
+  limit?: number
+): NestPagedList<T> {
+  if (Array.isArray(raw) && limit && limit > 0) {
+    const safePage = Math.max(1, page ?? 1);
+    const start = (safePage - 1) * limit;
+    const slice = raw.slice(start, start + limit) as T[];
+    return {
+      data: slice,
+      hasNextPage: start + slice.length < raw.length,
+    };
+  }
+  return parseNestPagedList<T>(raw);
 }

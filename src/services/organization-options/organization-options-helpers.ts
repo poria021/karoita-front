@@ -223,7 +223,11 @@ export async function fetchOrganizationOptionsFromApi(
             const provinceId = await resolveProvinceId(provinceName);
             if (!provinceId) continue;
             matchedAnyProvince = true;
-            const cities = await adminCatalogApi.listCitiesByProvince(provinceId);
+            const cities = q
+              ? await adminCatalogApi.listCitiesByProvince(provinceId, {
+                  title: q,
+                })
+              : await adminCatalogApi.listCitiesByProvince(provinceId);
             const filtered = q ? cities.filter((c) => c.title.includes(q)) : cities;
             merged.push(...filtered.map((c) => ({ id: c.id, label: c.title })));
           }

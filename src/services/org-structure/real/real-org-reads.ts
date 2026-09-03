@@ -11,12 +11,16 @@ import {
   nestUsersCount,
   resolveRoleLabel,
   toOrgCity,
+  toOrgCityListItem,
   toOrgDistrict,
+  toOrgDistrictListItem,
   toOrgFaculty,
   toOrgMajorListItem,
   toOrgMajorListItemForRole,
   toOrgProvince,
   toOrgSchool,
+  toOrgSchoolListItem,
+  toOrgProvinceListItem,
 } from '@/services/org-structure/real/real-org-mappers';
 import { isLinkedUserDeleteBlocked } from '@/services/org-structure/org-structure-delete-rules';
 import {
@@ -127,11 +131,7 @@ async function listRealPageRaw(
       limit,
       ...(query ? { filters: query } : {}),
     });
-    const items: OrgStructureListItem[] = data.map((p) => ({
-      ...toOrgProvince(p),
-      kind: 'province' as const,
-      deleteBlocked: false,
-    }));
+    const items: OrgStructureListItem[] = data.map(toOrgProvinceListItem);
     return {
       items,
       total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
@@ -145,12 +145,7 @@ async function listRealPageRaw(
       limit,
       ...(query ? { filters: query } : {}),
     });
-    const items: OrgStructureListItem[] = data.map((c) => ({
-      ...toOrgCity(c),
-      kind: 'city' as const,
-      deleteBlocked: false,
-      provinceName: firstRelationTitle(c.province, c.province_id),
-    }));
+    const items: OrgStructureListItem[] = data.map(toOrgCityListItem);
     return {
       items,
       total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
@@ -164,16 +159,9 @@ async function listRealPageRaw(
       limit,
       title: query || undefined,
     });
-    const items: OrgStructureListItem[] = data.map((d) => {
-      const mapped = toOrgDistrict(d);
-      return overlayOrgRelationLabels({
-        ...mapped,
-        kind: 'district' as const,
-        deleteBlocked: false,
-        provinceName: firstRelationTitle(d.province, d.provinceId, d.province_id),
-        cityName: firstRelationTitle(d.city, d.cityId, d.city_id),
-      });
-    });
+    const items: OrgStructureListItem[] = data.map((d) =>
+      overlayOrgRelationLabels(toOrgDistrictListItem(d))
+    );
     return {
       items,
       total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
@@ -182,28 +170,15 @@ async function listRealPageRaw(
   }
 
   if (options.tab === 'schools') {
-    const { data, hasNextPage } = await adminCatalogApi.listSchools({
+    // GET /admin/schools شمارش کاربر و education پرشده دارد؛ /all معمولاً `userCount` ندارد.
+    const { data, hasNextPage } = await adminCatalogApi.listSchoolsCatalog({
       page,
       limit,
       title: query || undefined,
     });
-    const items: OrgStructureListItem[] = data.map((s) => {
-      const mapped = toOrgSchool(s);
-      return overlayOrgRelationLabels({
-        ...mapped,
-        kind: 'school' as const,
-        deleteBlocked: false,
-        provinceName: firstRelationTitle(s.province, s.provinceId, s.province_id),
-        cityName: firstRelationTitle(s.city, s.cityId, s.city_id),
-        districtName: firstRelationTitle(
-          s.education,
-          s.educationId,
-          s.education_id,
-          s.educationalDistrict,
-          s.district
-        ),
-      });
-    });
+    const items: OrgStructureListItem[] = data.map((s) =>
+      overlayOrgRelationLabels(toOrgSchoolListItem(s))
+    );
     return {
       items,
       total: estimateHasNextPageTotal(offset, items.length, hasNextPage),

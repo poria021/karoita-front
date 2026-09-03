@@ -3,7 +3,7 @@ import {
   toNestTitleFilterSearchParams,
   toSearchParams,
 } from '@/services/nest-search-params';
-import { parseNestPagedList } from '@/types/nest-admin';
+import { parseNestMaybePagedList, parseNestPagedList } from '@/types/nest-admin';
 import type {
   NestAdminPageQuery,
   NestCity,
@@ -141,10 +141,16 @@ export const adminCatalogApi = {
   deleteCity(id: string, token?: string) {
     return apiClient.deleteMaybeJson<null>(NEST_ADMIN_PATHS.cityById(id), token);
   },
-  listCitiesByProvince(provinceId: string, token?: string) {
+  /** GET /admin/provinces/{id}/cities?title= — آرایهٔ خام. */
+  listCitiesByProvince(
+    provinceId: string,
+    query: { title?: string } = {},
+    token?: string
+  ) {
     return apiClient.getJson<NestCity[]>(
       NEST_ADMIN_PATHS.provinceCities(provinceId),
-      token
+      token,
+      { searchParams: toSearchParams({ title: query.title }) }
     );
   },
 
@@ -193,6 +199,18 @@ export const adminCatalogApi = {
 
   createSchool(body: NestCreateSchoolDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.schools, body, token);
+  },
+  /**
+   * GET /admin/schools — آرایهٔ خام با `userCount` و `education` پرشده.
+   * اگر page/limit را نادیده بگیرد و کل لیست را بدهد، سمت کلاینت صفحه می‌شود.
+   */
+  async listSchoolsCatalog(query: NestSchoolListQuery = {}, token?: string) {
+    const raw = await apiClient.getJson<unknown>(
+      NEST_ADMIN_PATHS.schools,
+      token,
+      { searchParams: toSearchParams(query) }
+    );
+    return parseNestMaybePagedList<NestSchool>(raw, query.page, query.limit);
   },
   /** GET /admin/schools/all — `{ data, hasNextPage }` + فیلتر والد. */
   async listSchools(query: NestSchoolListQuery = {}, token?: string) {
