@@ -16,9 +16,9 @@
     "lint:ds": "node scripts/check-no-ui-imports.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
-    "test:e2e:a11y": "playwright test e2e/a11y-smoke.spec.ts e2e/a11y-components.spec.ts",
-    "test:e2e:install": "playwright install chromium",
+    "test:e2e": "node ./node_modules/@playwright/test/cli.js test",
+    "test:e2e:a11y": "node ./node_modules/@playwright/test/cli.js test e2e/a11y-smoke.spec.ts e2e/a11y-components.spec.ts",
+    "test:e2e:install": "node ./node_modules/@playwright/test/cli.js install chromium",
     "analyze": "node ./scripts/analyze-bundle.mjs"
   },
   "dependencies": {
