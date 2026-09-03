@@ -2,8 +2,8 @@
 
 import { Suspense, useEffect, useState, type ReactNode } from 'react';
 
-import { KvAlert } from '@/components/shared/KvAlert';
-import { KvButton } from '@/components/shared/KvButton';
+import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
+import { PublicRouteStatusActions } from '@/components/shared/route-status/PublicRouteStatusActions';
 import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { UnauthenticatedRedirect } from '@/components/shared/shell/UnauthenticatedRedirect';
 import { AuthService } from '@/services/auth.service';
@@ -43,20 +43,13 @@ function BootLoader({ label = BOOT_LABEL }: { label?: string }) {
 
 function RestoreErrorScreen({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="kv-brand-atmosphere kv-blueprint-bg flex min-h-dvh items-center justify-center p-kv-section">
-      <div className="w-full max-w-md">
-        <KvAlert
-          variant="warning"
-          title="برقراری ارتباط با سرور ممکن نیست"
-          description="نشست شما حفظ شده است. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
-          actions={
-            <KvButton type="button" color="cta" onClick={onRetry}>
-              تلاش دوباره
-            </KvButton>
-          }
-        />
-      </div>
-    </div>
+    <KvRouteStatus
+      kind="offline"
+      title="برقراری ارتباط با سرور ممکن نیست"
+      description="نشست شما حفظ شده است. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
+      hint="پس از وصل شدن ارتباط، تلاش مجدد را بزنید. خروج از حساب لازم نیست."
+      actions={<PublicRouteStatusActions onReset={onRetry} />}
+    />
   );
 }
 
