@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -9,6 +10,7 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTableCell } from '@/components/shared/table/KvTable';
+import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import type {
   CreateLandingSocialInput,
   LandingSocial,
@@ -55,6 +57,31 @@ export function LandingCmsSocialsPanel({
     mode: 'onSubmit',
   });
 
+  // پیش‌نویس محلی فقط برای فیلدهای متنی (فایل آیکون هرگز serialize نمی‌شود).
+  const {
+    value: socialDraft,
+    hasDraft: hasSocialDraft,
+    setValue: setSocialDraft,
+    clearDraft: clearSocialDraft,
+  } = useLocalFormDraft<{ name: string; link: string }>({
+    key: 'landing-cms-social-form',
+    initialValue: { name: '', link: '' },
+    debounceMs: 400,
+  });
+
+  useEffect(() => {
+    if (!hasSocialDraft) return;
+    form.reset({ name: socialDraft.name, link: socialDraft.link, iconImage: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // از form.watch عمداً استفاده نمی‌شود (React Compiler این پروژه آن را
+  // غیرقابل-memoize می‌داند)؛ به‌جایش داخل onChange خود register مقدار فعلی را می‌خوانیم.
+  const syncSocialDraftFromForm = useCallback(() => {
+    const values = form.getValues();
+    setSocialDraft({ name: values.name ?? '', link: values.link ?? '' });
+  }, [form, setSocialDraft]);
+
   const submit = form.handleSubmit((values) => {
     onCreate({
       name: values.name,
@@ -62,6 +89,7 @@ export function LandingCmsSocialsPanel({
       iconImage: values.iconImage ?? null,
     });
     form.reset({ name: '', link: '', iconImage: null });
+    clearSocialDraft();
   });
 
   return (
@@ -103,7 +131,7 @@ export function LandingCmsSocialsPanel({
           required
           placeholder="مثال: روبیکا / بله / ایتا"
           error={form.formState.errors.name?.message}
-          {...form.register('name')}
+          {...form.register('name', { onChange: syncSocialDraftFromForm })}
         />
 
         <KvTextField
@@ -114,7 +142,7 @@ export function LandingCmsSocialsPanel({
           scriptGuard="none"
           placeholder="مثال: https://eitaa.com/..."
           error={form.formState.errors.link?.message}
-          {...form.register('link')}
+          {...form.register('link', { onChange: syncSocialDraftFromForm })}
         />
 
         <KvButton

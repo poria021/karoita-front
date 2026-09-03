@@ -15,6 +15,17 @@ export function resolveAuthSurface(raw: string | undefined): AuthSurface {
   return raw === 'admin' ? 'admin' : 'user';
 }
 
+export function isAuthSurface(raw: string | undefined): raw is AuthSurface {
+  return raw === 'admin' || raw === 'user';
+}
+
+/** echo سطح از `/api/auth/refresh` برای restore بعد از F5؛ حدس `user` ممنوع. */
+export function echoedAuthSurface(raw: unknown): AuthSurface | null {
+  if (!isRecord(raw)) return null;
+  if (raw.surface === 'admin' || raw.surface === 'user') return raw.surface;
+  return null;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

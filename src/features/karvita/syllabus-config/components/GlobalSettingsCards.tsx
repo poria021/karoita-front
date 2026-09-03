@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
@@ -98,11 +98,8 @@ function SettingsMetricCard({
 }) {
   const [baseline, setBaseline] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isLoading) setBaseline(null);
-  }, [isLoading]);
-
-  const isDirty = baseline !== null && value !== baseline;
+  const effectiveBaseline = isLoading ? null : baseline;
+  const isDirty = effectiveBaseline !== null && value !== effectiveBaseline;
 
   return (
     <KvCard>

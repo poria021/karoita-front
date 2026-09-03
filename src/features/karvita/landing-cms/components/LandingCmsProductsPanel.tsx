@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -9,6 +10,7 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { KvImageDocUploader } from '@/components/shared/fields/KvImageDocUploader';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTableCell } from '@/components/shared/table/KvTable';
+import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import type {
   CreateLandingProductInput,
   LandingProduct,
@@ -57,6 +59,31 @@ export function LandingCmsProductsPanel({
     mode: 'onSubmit',
   });
 
+  // پیش‌نویس محلی فقط برای فیلدهای متنی (فایل لوگو هرگز serialize نمی‌شود).
+  const {
+    value: productDraft,
+    hasDraft: hasProductDraft,
+    setValue: setProductDraft,
+    clearDraft: clearProductDraft,
+  } = useLocalFormDraft<{ title: string; link: string }>({
+    key: 'landing-cms-product-form',
+    initialValue: { title: '', link: '' },
+    debounceMs: 400,
+  });
+
+  useEffect(() => {
+    if (!hasProductDraft) return;
+    form.reset({ title: productDraft.title, link: productDraft.link, logoImage: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // از form.watch عمداً استفاده نمی‌شود (React Compiler این پروژه آن را
+  // غیرقابل-memoize می‌داند)؛ به‌جایش داخل onChange خود register مقدار فعلی را می‌خوانیم.
+  const syncProductDraftFromForm = useCallback(() => {
+    const values = form.getValues();
+    setProductDraft({ title: values.title ?? '', link: values.link ?? '' });
+  }, [form, setProductDraft]);
+
   const submit = form.handleSubmit((values) => {
     onCreate({
       title: values.title,
@@ -64,6 +91,7 @@ export function LandingCmsProductsPanel({
       logoImage: values.logoImage,
     });
     form.reset({ title: '', link: '', logoImage: null });
+    clearProductDraft();
   });
 
   return (
@@ -107,7 +135,7 @@ export function LandingCmsProductsPanel({
           required
           placeholder="مثال: پرتال پژوهشگران"
           error={form.formState.errors.title?.message}
-          {...form.register('title')}
+          {...form.register('title', { onChange: syncProductDraftFromForm })}
         />
 
         <KvTextField
@@ -118,7 +146,7 @@ export function LandingCmsProductsPanel({
           scriptGuard="none"
           placeholder="مثال: /auth/login یا https://..."
           error={form.formState.errors.link?.message}
-          {...form.register('link')}
+          {...form.register('link', { onChange: syncProductDraftFromForm })}
         />
 
         <KvButton

@@ -54,9 +54,28 @@ describe('writeRealAuthTokens — set-tokens persistence', () => {
     await writeRealAuthTokens(TOKENS, 'user');
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(init.body)) as Record<string, unknown>;
+    expect(body).toEqual({
+      refreshToken: TOKENS.refreshToken,
+      surface: 'user',
+    });
+    expect(body).not.toHaveProperty('accessToken');
     expect(readRealAccessToken()).toBe(TOKENS.token);
     expect(readRealAuthSurface()).toBe('user');
     expect(document.cookie).toContain(`${AUTH_COOKIE_NAME}=1`);
+    expect(document.cookie).not.toContain('karvita_surface=');
+  });
+
+  it('persists admin surface in memory without a readable karvita_surface cookie', async () => {
+    fetchMock.mockResolvedValue(fakeResponse(true));
+
+    await writeRealAuthTokens(TOKENS, 'admin');
+
+    expect(readRealAuthSurface()).toBe('admin');
+    expect(document.cookie).not.toContain('karvita_surface=');
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(String(init.body))).toMatchObject({ surface: 'admin' });
   });
 
   it('retries a transient network failure and succeeds on the second attempt', async () => {

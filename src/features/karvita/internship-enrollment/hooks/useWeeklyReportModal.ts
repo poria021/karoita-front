@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import {
   scheduleOptimisticMutation,
   scheduleUndoableLocalChange,
@@ -50,6 +51,18 @@ export function useWeeklyReportModal({
   void open;
 
   const enrollment = state.enrollment;
+  const {
+    value: draftValue,
+    hasDraft: hasWeeklyReportDraft,
+    setValue: setWeeklyReportDraft,
+    clearDraft: clearWeeklyReportDraft,
+  } = useLocalFormDraft<{
+    text: string;
+    files: InternshipWeeklyReportFile[];
+  }>({
+    key: week ? `weekly-report:${week.id}` : 'weekly-report:placeholder',
+    initialValue: { text: '', files: [] },
+  });
   const [editorWeekId, setEditorWeekId] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [files, setFiles] = useState<InternshipWeeklyReportFile[]>([]);
@@ -60,6 +73,13 @@ export function useWeeklyReportModal({
     text: string;
     files: InternshipWeeklyReportFile[];
   } | null>(null);
+
+  const syncDraft = useCallback(
+    (nextText: string, nextFiles: InternshipWeeklyReportFile[]) => {
+      setWeeklyReportDraft({ text: nextText, files: cloneFiles(nextFiles) });
+    },
+    [setWeeklyReportDraft]
+  );
 
   const resetForm = useCallback(
     (force = false) => {
@@ -77,6 +97,12 @@ export function useWeeklyReportModal({
       const draft = undoDraftRef.current;
       setEditorWeekId(week.id);
 
+      if (hasWeeklyReportDraft) {
+        setText(draftValue.text);
+        setFiles(cloneFiles(draftValue.files));
+        return;
+      }
+
       if (draft && draft.weekId === week.id) {
         setText(draft.text);
         setFiles(cloneFiles(draft.files));
@@ -87,7 +113,7 @@ export function useWeeklyReportModal({
       setText(week.text ?? '');
       setFiles(cloneFiles(week.files));
     },
-    [editorWeekId, week]
+    [draftValue, editorWeekId, hasWeeklyReportDraft, week]
   );
 
   const lockContext = useMemo(() => {
@@ -116,9 +142,13 @@ export function useWeeklyReportModal({
   const addFiles = useCallback(
     (incoming: InternshipWeeklyReportFile[]) => {
       if (locked) return;
-      setFiles((prev) => [...prev, ...incoming]);
+      setFiles((prev) => {
+        const next = [...prev, ...incoming];
+        syncDraft(text, next);
+        return next;
+      });
     },
-    [locked]
+    [locked, syncDraft, text]
   );
 
   const removeFile = useCallback(
@@ -134,15 +164,18 @@ export function useWeeklyReportModal({
         apply: () => {
           setFiles((prev) => {
             snapshot = prev;
-            return prev.filter((file) => file.id !== fileId);
+            const next = prev.filter((file) => file.id !== fileId);
+            syncDraft(text, next);
+            return next;
           });
         },
         revert: () => {
           setFiles(snapshot);
+          syncDraft(text, snapshot);
         },
       });
     },
-    [locked]
+    [locked, syncDraft, text]
   );
 
   const assertNonEmpty = useCallback(() => {
@@ -173,6 +206,7 @@ export function useWeeklyReportModal({
         files,
       });
 
+      clearWeeklyReportDraft();
       toast.success('گزارش با موفقیت به عنوان پیش‌نویس ذخیره گردید.');
       await onSaved();
       onClose();
@@ -186,6 +220,7 @@ export function useWeeklyReportModal({
   }, [
     actor,
     assertNonEmpty,
+    clearWeeklyReportDraft,
     enrollment,
     files,
     locked,
@@ -232,6 +267,7 @@ export function useWeeklyReportModal({
       commit: () => InternshipEnrollmentService.submitWeeklyReport(payload),
       onCommitted: async () => {
         undoDraftRef.current = null;
+        clearWeeklyReportDraft();
         await onSaved();
       },
       onError: (error) => {
@@ -247,6 +283,7 @@ export function useWeeklyReportModal({
   }, [
     actor,
     assertNonEmpty,
+    clearWeeklyReportDraft,
     enrollment,
     files,
     locked,
@@ -263,7 +300,10 @@ export function useWeeklyReportModal({
   return {
     title,
     text,
-    setText,
+    setText: (nextText: string) => {
+      setText(nextText);
+      syncDraft(nextText, files);
+    },
     files,
     addFiles,
     removeFile,

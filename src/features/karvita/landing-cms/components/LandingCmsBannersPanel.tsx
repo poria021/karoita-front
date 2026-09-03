@@ -1,6 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useCallback, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import dynamic from 'next/dynamic';
 
@@ -9,6 +10,7 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTableCell } from '@/components/shared/table/KvTable';
+import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 
 import type {
   CreateLandingBannerInput,
@@ -70,6 +72,32 @@ export function LandingCmsBannersPanel({
     mode: 'onSubmit',
   });
 
+  // پیش‌نویس محلی فقط برای فیلدهای متنی (فایل تصویر هرگز serialize نمی‌شود).
+  const {
+    value: bannerDraft,
+    hasDraft: hasBannerDraft,
+    setValue: setBannerDraft,
+    clearDraft: clearBannerDraft,
+  } = useLocalFormDraft<{ title: string; link: string }>({
+    key: 'landing-cms-banner-form',
+    initialValue: { title: '', link: '' },
+    debounceMs: 400,
+  });
+
+  useEffect(() => {
+    if (!hasBannerDraft) return;
+    form.reset({ title: bannerDraft.title, link: bannerDraft.link, image: null });
+    // فقط یک‌بار موقع mount، تا حین تایپ کاربر بازنویسی نشود.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // از form.watch عمداً استفاده نمی‌شود (React Compiler این پروژه آن را
+  // غیرقابل-memoize می‌داند)؛ به‌جایش داخل onChange خود register مقدار فعلی را می‌خوانیم.
+  const syncBannerDraftFromForm = useCallback(() => {
+    const values = form.getValues();
+    setBannerDraft({ title: values.title ?? '', link: values.link ?? '' });
+  }, [form, setBannerDraft]);
+
   const submit = form.handleSubmit((values) => {
     onCreate({
       title: values.title,
@@ -77,6 +105,7 @@ export function LandingCmsBannersPanel({
       image: values.image,
     });
     form.reset({ title: '', link: '', image: null });
+    clearBannerDraft();
   });
 
   return (
@@ -118,7 +147,7 @@ export function LandingCmsBannersPanel({
           required
           placeholder="مثال: بنر اطلاع‌رسانی کارورزی"
           error={form.formState.errors.title?.message}
-          {...form.register('title')}
+          {...form.register('title', { onChange: syncBannerDraftFromForm })}
         />
 
         <KvTextField
@@ -129,7 +158,7 @@ export function LandingCmsBannersPanel({
           scriptGuard="none"
           placeholder="مثال: #internship یا https://..."
           error={form.formState.errors.link?.message}
-          {...form.register('link')}
+          {...form.register('link', { onChange: syncBannerDraftFromForm })}
         />
 
         <KvButton

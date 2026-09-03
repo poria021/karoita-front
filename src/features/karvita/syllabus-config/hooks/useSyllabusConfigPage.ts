@@ -70,6 +70,7 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     selectedCourse,
     setSelectedTermId,
     setSelectedCourse,
+    weeks,
     setWeeks,
     setHasUnsavedChanges,
     loadTermContext,

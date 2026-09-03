@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { KvButton } from '@/components/shared/KvButton';
 import {
@@ -55,9 +55,7 @@ export function DailyApprovalBulkExtendModal({
     preferredCourse,
   });
   const options = catalog.weekOptions;
-  const selectedCourseId = catalog.selectedCourse?.id ?? '';
   const selectedCourseFilter = catalog.selectedCourse?.courseFilter;
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
   const [error, setError] = useState<string | undefined>();
 
   const baselineKey = useMemo(() => {
@@ -74,10 +72,7 @@ export function DailyApprovalBulkExtendModal({
     [baselineKey]
   );
 
-  useEffect(() => {
-    setSelectedValues(baselineKey ? baselineKey.split(',') : []);
-    setError(undefined);
-  }, [baselineKey, selectedCourseId]);
+  const [selectedValues, setSelectedValues] = useState<string[]>(() => baselineExtendedValues);
 
   const resetForm = useCallback(() => {
     setSelectedValues(baselineExtendedValues);

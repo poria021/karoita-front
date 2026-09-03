@@ -16,6 +16,7 @@ import {
   pickNestRoleDto,
   type NestRoleDto,
 } from '@/services/auth/real/nest-auth-role';
+import { echoedAuthSurface } from '@/services/auth/real/refresh-route-helpers';
 import {
   clearRealAuthTokens,
   readRealAccessToken,
@@ -28,9 +29,9 @@ import { useUserStore } from '@/store/useUserStore';
 import type { Session, User, UserRole } from '@/types/auth';
 import type { NestAuthUpdateDto } from '@/types/nest-users';
 
-/** سطح سشن: در مرورگر از کوکی؛ بیرون `'user'`. */
-function currentSurface(): 'admin' | 'user' {
-  return readRealAuthSurface() ?? 'user';
+/** سطح سشن از حافظه؛ بدون حدس `'user'`. */
+function currentSurface(): 'admin' | 'user' | null {
+  return readRealAuthSurface();
 }
 
 const NEST_AUTH_LIVE = true;
@@ -152,7 +153,7 @@ async function resolveNestRoleDto(role: UserRole): Promise<NestRoleDto> {
 
 async function applyNestLoginResponse(raw: unknown, fallbackMobile?: string): Promise<User> {
   const parsed = extractNestLoginResponse(raw, fallbackMobile);
-  await writeRealAuthTokens(parsed.tokens);
+  await writeRealAuthTokens(parsed.tokens, 'user');
   dispatchSessionToStore({ user: parsed.user, token: parsed.tokens.token, expiresAt: parsed.expiresAt });
   return parsed.user;
 }
@@ -243,6 +244,58 @@ export async function realVerifyAdminGateOtp(mobile: string, otp: string): Promi
 
 let refreshInFlight: Promise<Session | null> | null = null;
 
+export type SessionFailureKind = 'dead' | 'transient';
+
+const TRANSIENT_RESTORE_MESSAGE =
+  'برقراری ارتباط با سرور ممکن نیست. اتصال را بررسی کنید و دوباره تلاش کنید.';
+
+/** نشست مرده است — باید خروج و پاک کردن presence. */
+export class SessionDeadError extends Error {
+  readonly kind = 'dead' as const;
+
+  constructor(message: string, readonly cause?: unknown) {
+    super(message);
+    this.name = 'SessionDeadError';
+  }
+}
+
+/**
+ * بازیابی نشست نامشخص است (شبکه/۵xx). presence را پاک نکن و به لاگین نفرست.
+ */
+export class SessionTransientError extends Error {
+  readonly kind = 'transient' as const;
+
+  constructor(message: string, readonly cause?: unknown) {
+    super(message);
+    this.name = 'SessionTransientError';
+  }
+}
+
+export function isDeadSessionHttpStatus(status: number | undefined): boolean {
+  return status === 401 || status === 403;
+}
+
+export function isSessionTransientError(
+  error: unknown
+): error is SessionTransientError {
+  return error instanceof SessionTransientError;
+}
+
+export function toSessionTransientError(error: unknown): SessionTransientError {
+  if (error instanceof SessionTransientError) return error;
+  const message =
+    error instanceof ApiClientError && error.message
+      ? error.message
+      : TRANSIENT_RESTORE_MESSAGE;
+  return new SessionTransientError(message, error);
+}
+
+function markSessionDead(): null {
+  clearRealAuthTokens();
+  dispatchSessionToStore(null);
+  return null;
+}
+
 export function realRefreshToken(_refreshToken?: string): Promise<Session | null> {
   void _refreshToken;
   if (typeof window === 'undefined') return Promise.resolve(null);
@@ -265,15 +318,13 @@ async function performRealRefresh(): Promise<Session | null> {
       credentials: 'include',
     });
 
-    // رفرش باطل → پاکسازی فوری
-    if (res.status === 401 || res.status === 403) {
-      clearRealAuthTokens();
-      dispatchSessionToStore(null);
-      return null;
+    // رفرش باطل → پاکسازی فوری (کلاس الف)
+    if (isDeadSessionHttpStatus(res.status)) {
+      return markSessionDead();
     }
 
     if (!res.ok) {
-      throw new ApiClientError(`تمدید نشست ناموفق: ${res.status}`);
+      throw new SessionTransientError(TRANSIENT_RESTORE_MESSAGE, res.status);
     }
 
     const raw: unknown = await res.json();
@@ -295,10 +346,13 @@ async function performRealRefresh(): Promise<Session | null> {
       return session;
     }
 
-    // fallback: Nest فقط توکن داد و `me` در Route شکست خورد
+    // fallback: Nest فقط توکن داد و `me` در Route شکست خورد — سطح را حدس نزن
     try {
       const tokens = extractNestRefreshTokens(raw);
-      const surface = currentSurface();
+      const surface = echoedAuthSurface(raw);
+      if (!surface) {
+        return markSessionDead();
+      }
       await writeRealAuthTokens(tokens, surface);
 
       const fallbackSession = await realFetchSession(existingMobile, tokens.token);
@@ -306,20 +360,23 @@ async function performRealRefresh(): Promise<Session | null> {
         dispatchSessionToStore(fallbackSession);
         return fallbackSession;
       }
-    } catch {
-      // نه token نه user — به پاکسازی پایین می‌افتد
+    } catch (error) {
+      if (error instanceof ApiClientError && isDeadSessionHttpStatus(error.status)) {
+        return markSessionDead();
+      }
+      throw toSessionTransientError(error);
     }
 
-    clearRealAuthTokens();
-    dispatchSessionToStore(null);
-    return null;
+    return markSessionDead();
   } catch (error) {
-    if (error instanceof ApiClientError && error.status === 401) {
-      clearRealAuthTokens();
-      dispatchSessionToStore(null);
-      return null;
+    if (error instanceof SessionTransientError) throw error;
+    if (error instanceof SessionDeadError) {
+      return markSessionDead();
     }
-    throw error;
+    if (error instanceof ApiClientError && isDeadSessionHttpStatus(error.status)) {
+      return markSessionDead();
+    }
+    throw toSessionTransientError(error);
   }
 }
 
@@ -353,9 +410,12 @@ export async function realDeleteMe(token?: string): Promise<void> {
 export async function realSignOut(): Promise<void> {
   guard('real-auth.bridge.logout');
   const surface = currentSurface();
-  const logoutPath = surface === 'admin' ? REAL_AUTH_PATHS.adminLogout : REAL_AUTH_PATHS.logout;
   try {
-    await apiClient.postJson(logoutPath, {});
+    if (surface === 'admin') {
+      await apiClient.postJson(REAL_AUTH_PATHS.adminLogout, {});
+    } else if (surface === 'user') {
+      await apiClient.postJson(REAL_AUTH_PATHS.logout, {});
+    }
   } finally {
     clearRealAuthTokens();
   }
@@ -371,10 +431,9 @@ export async function realFetchSession(
 
   // اینجا refresh نزن — caller باید token بدهد؛ OTP بدون سشن refresh الکی می‌زند
   const accessToken = explicitAccessToken ?? readRealAccessToken();
-  if (!accessToken) return null;
+  if (!accessToken || !surface) return null;
 
   try {
-    // سطح از کوکی؛ مسیر `me` ادمین و کاربر جداست
     const sessionPath = surface === 'admin' ? REAL_AUTH_PATHS.adminSession : REAL_AUTH_PATHS.session;
     const raw = await apiClient.getJson<unknown>(sessionPath, accessToken);
 
