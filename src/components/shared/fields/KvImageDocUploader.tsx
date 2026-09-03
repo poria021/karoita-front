@@ -191,21 +191,19 @@ export function KvImageDocUploader({
   const id = idProp ?? generatedId;
   const [isCompressing, setIsCompressing] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
-  /** بعد از حذف، `existingUrl` والد را نادیده بگیر تا دراپ‌زون برای فایل جدید باز شود. */
-  const [existingDismissed, setExistingDismissed] = useState(false);
-
-  useEffect(() => {
-    setExistingDismissed(false);
-  }, [existingUrl]);
+  /** URL والد که کاربر حذف کرده؛ با عوض شدن `existingUrl` دوباره نمایش داده می‌شود. */
+  const [dismissedExistingUrl, setDismissedExistingUrl] = useState<
+    string | null
+  >(null);
 
   const blobUrl = useMemo(
     () => (value ? URL.createObjectURL(value) : null),
     [value]
   );
   const resolvedExistingUrl = useMemo(() => {
-    if (existingDismissed) return null;
-    return resolveNestFileUrl(existingUrl) ?? existingUrl ?? null;
-  }, [existingDismissed, existingUrl]);
+    if (!existingUrl || existingUrl === dismissedExistingUrl) return null;
+    return resolveNestFileUrl(existingUrl) ?? existingUrl;
+  }, [dismissedExistingUrl, existingUrl]);
 
   useEffect(() => {
     return () => {
@@ -299,10 +297,10 @@ export function KvImageDocUploader({
       event.preventDefault();
       event.stopPropagation();
       setLocalError(null);
-      setExistingDismissed(true);
+      setDismissedExistingUrl(existingUrl ?? null);
       onChange(null, null);
     },
-    [onChange]
+    [existingUrl, onChange]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

@@ -15,7 +15,7 @@ import { makeQueryClient } from '@/lib/query-client';
 
 config.autoAddCss = false;
 
-/** ترجیح سیستم و ذخیره‌شده روی احراز، مارکتینگ و داشبورد اعمال می‌شود. */
+/** Apply the stored theme preference and the system default across auth, marketing, and dashboard UI. */
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(makeQueryClient);
 

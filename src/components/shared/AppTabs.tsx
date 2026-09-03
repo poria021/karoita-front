@@ -33,7 +33,7 @@ const GRID_COLS_CLASS: Record<AppTabsGridCols, string> = {
   4: 'grid-cols-4',
 };
 
-/** زیر `lg` گرید داخل همان ترک؛ از `lg` ردیف hug مثل تب داشبورد. */
+/** Use a grid below lg and switch to a compact row at larger breakpoints. */
 const LIST_RESPONSIVE_GRID = (cols: AppTabsGridCols) =>
   [
     LIST_BASE,
@@ -44,7 +44,7 @@ const LIST_RESPONSIVE_GRID = (cols: AppTabsGridCols) =>
     kvScrollAreaHiddenClassName,
   ].join(' ');
 
-/** داشبورد تا تبلت تمام‌عرض؛ از `lg` hug. */
+/** Full-width on smaller screens, compact hug layout from lg upward. */
 const LIST_HUG = [
   'w-full self-stretch',
   'lg:inline-flex lg:w-fit lg:max-w-full lg:self-start lg:justify-start',
@@ -65,14 +65,14 @@ const TRIGGER_BASE = [
   '[&_svg]:pointer-events-none [&_svg]:shrink-0',
 ].join(' ');
 
-/** پر فعال — در دارک جوهر سفید خالص (استثنای تب). */
+/** Active tabs use a clean surface style, except for the brand-accented variation. */
 const TRIGGER_ACTIVE_SURFACE = [
   'data-[state=active]:border-kv-border data-[state=active]:bg-kv-surface data-[state=active]:text-kv-text',
   'dark:data-[state=active]:border-kv-border-strong dark:data-[state=active]:bg-kv-surface-subtle dark:data-[state=active]:text-kv-text-bright',
   'data-[state=active]:shadow-kv-raised',
 ].join(' ');
 
-/** @deprecated به‌جای `surface` نگذارید؛ فقط کال‌سایت تأکید برند. */
+/** @deprecated Prefer `surface`; only use this for brand emphasis in a few edge cases. */
 const TRIGGER_ACTIVE_BRAND = [
   'data-[state=active]:border-kv-brand data-[state=active]:bg-kv-brand data-[state=active]:text-kv-brand-fg',
   'data-[state=active]:shadow-kv-raised data-[state=active]:shadow-kv-brand/15',
@@ -83,7 +83,7 @@ const TRIGGER_ROW_SIZE = [
   'md:gap-2 md:px-3.5 md:py-2 md:min-h-10',
 ].join(' ');
 
-/** `fullWidth` احراز — پد فشرده‌تر، همان سایز تایپ. */
+/** Compact padding for full-width tabs while keeping the same text sizing. */
 const TRIGGER_ROW_SIZE_COMPACT = [
   'flex-1 gap-1 px-1.5 py-1.5 min-h-9',
   'md:gap-1.5 md:px-2 md:py-1.5 md:min-h-9',
@@ -110,10 +110,10 @@ function useAppTabsContext() {
 }
 
 export type AppTabsProps = React.ComponentProps<typeof Tabs> & {
-  /** ترک کشیده و تریگر هم‌عرض (کارت احراز)؛ توکن استایل یکی می‌ماند. */
+  /** Stretch the tabs and match trigger widths for auth cards. */
   fullWidth?: boolean;
   activeTone?: AppTabsActiveTone;
-  /** زیر `lg` گرید N ستونه؛ از `lg` ردیف hug — تمام‌عرض اجباری نیست. */
+  /** Use an N-column grid below lg and switch to a compact row above it. */
   gridCols?: AppTabsGridCols;
 };
 

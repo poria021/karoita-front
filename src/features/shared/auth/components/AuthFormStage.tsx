@@ -3,8 +3,7 @@
 import { useLayoutEffect, useRef, type ReactNode } from 'react';
 
 /**
- * ارتفاع اسلات auth حداقل به اندازهٔ فرم جاری می‌ماند (بدون برش)
- * و وقتی فرم کوتاه‌تر شود min-height را نرم پایین می‌آورد.
+ * Keep the auth stage tall enough to avoid layout jumps while the current form changes.
  */
 export function AuthFormStage({
   stageKey,

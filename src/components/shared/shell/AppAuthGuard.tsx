@@ -24,7 +24,7 @@ type BootState = 'pending' | RuntimeAuthBoot;
 
 const BOOT_LABEL = 'لطفا منتظر بمانید…';
 
-/** نگاشت refresh واقعی به boot — بدون حدس لاگین‌نشده روی خطای گذرا. */
+/** Map a real refresh result to the app boot state without guessing login on transient errors. */
 export async function resolveRealAuthRestoreBoot(
   refresh: () => Promise<Session | null>
 ): Promise<RuntimeAuthBoot> {

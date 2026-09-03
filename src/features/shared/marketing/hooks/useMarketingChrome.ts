@@ -17,16 +17,12 @@ const EMPTY_CHROME: MarketingChromeData = {
 
 type MarketingChromeState = {
   data: MarketingChromeData;
-  /**
-   * فقط وقتی بذر SSR نبوده و اولین خواندن کلاینت هنوز تمام نشده `false` است.
-   */
+  /** `false` until the client has finished its first hydration-aware read. */
   isReady: boolean;
 };
 
 /**
- * chrome مارکتینگ از `LandingCmsService`.
- * `initialChrome` از RSC را ترجیح بده تا HTML اول crawlپذیر باشد؛
- * refresh کلاینت ویرایش ادمین موک در localStorage را بعد از mount می‌گیرد.
+ * Load marketing chrome from a cached client source and prefer the SSR seed when present.
  */
 export function useMarketingChrome(
   initialChrome?: MarketingChromeData
