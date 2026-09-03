@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { readNestApiBaseUrl } from '@/lib/nest-proxy';
 
-const SKIP_HEADER =
-  /^(host|connection|keep-alive|proxy-authenticate|proxy-authorization|te|trailer|transfer-encoding|upgrade|cookie|content-length|content-encoding)$/i;
+/** هدرهایی که از مرورگر به Nest نباید بروند. */
+const SKIP_REQUEST_HEADER =
+  /^(host|connection|keep-alive|proxy-authenticate|proxy-authorization|te|trailer|transfer-encoding|upgrade|cookie|content-length|content-encoding|accept-encoding)$/i;
+
+/**
+ * فقط این‌ها به مرورگر برگردند.
+ * `content-encoding` را هرگز کپی نکن — Node ممکن است gzip را باز کند
+ * و هدر را نگه دارد؛ مرورگر بعد `ERR_CONTENT_DECODING_FAILED` می‌دهد
+ * و ky آن را `TypeError` شبکه می‌بیند.
+ */
+const ALLOW_RESPONSE_HEADER =
+  /^(content-type|cache-control|retry-after|www-authenticate|location)$/i;
 
 function isUnsafePathSegment(segment: string): boolean {
   return segment === '..' || segment.includes('/') || segment.includes('\\');
@@ -30,9 +40,11 @@ export async function forwardToNestApi(
 
   const headers = new Headers();
   request.headers.forEach((value, key) => {
-    if (SKIP_HEADER.test(key)) return;
+    if (SKIP_REQUEST_HEADER.test(key)) return;
     headers.set(key, value);
   });
+  // Nest را مجبور کن JSON خام بدهد تا gzip/br با بدنهٔ بازشده قاطی نشود.
+  headers.set('accept-encoding', 'identity');
 
   const init: RequestInit = {
     method: request.method,
@@ -57,11 +69,14 @@ export async function forwardToNestApi(
 
   const outHeaders = new Headers();
   upstream.headers.forEach((value, key) => {
-    if (SKIP_HEADER.test(key) || key.toLowerCase() === 'set-cookie') return;
+    if (!ALLOW_RESPONSE_HEADER.test(key)) return;
     outHeaders.append(key, value);
   });
+  outHeaders.set('cache-control', 'no-store');
 
-  return new NextResponse(upstream.body, {
+  const body = await upstream.arrayBuffer();
+
+  return new NextResponse(body, {
     status: upstream.status,
     headers: outHeaders,
   });
