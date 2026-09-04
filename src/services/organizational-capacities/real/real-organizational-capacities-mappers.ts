@@ -218,15 +218,18 @@ export function toCapacityCourseFromLesson(input: {
   const title = nestLessonTitle(input.lesson);
   const lessonId = nestEntityId(input.lesson);
   const existsOnServer = input.row != null;
+  // GET خالی = استاد هنوز تعیین نکرده؛ درس را پر نکن — ظرفیت ۰ و هفته خالی.
   const rawCapacity = existsOnServer
     ? asFiniteNumber(input.row?.capacity, Number.NaN)
-    : asFiniteNumber(input.lesson.capacity, Number.NaN);
-  const total = Number.isFinite(rawCapacity)
-    ? Math.min(Math.max(0, rawCapacity), input.maxCapacity)
-    : input.maxCapacity;
-  const selectedDays = nestDaysToSelectedDays(
-    existsOnServer ? input.row?.days : input.lesson.days
-  );
+    : Number.NaN;
+  const total = existsOnServer
+    ? Number.isFinite(rawCapacity)
+      ? Math.min(Math.max(0, rawCapacity), input.maxCapacity)
+      : 0
+    : 0;
+  const selectedDays = existsOnServer
+    ? nestDaysToSelectedDays(input.row?.days)
+    : [];
   return {
     id: lessonId,
     title: title || 'درس',

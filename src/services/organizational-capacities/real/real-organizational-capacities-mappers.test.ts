@@ -73,8 +73,8 @@ describe('real organizational capacity mappers', () => {
       row: null,
     });
     expect(course.existsOnServer).toBe(false);
-    expect(course.total).toBe(15);
-    expect(course.selectedDays).toEqual(['sat']);
+    expect(course.total).toBe(0);
+    expect(course.selectedDays).toEqual([]);
 
     const dto = toWriteDto({
       professorId: 'prof-1',
