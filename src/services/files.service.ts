@@ -1,10 +1,13 @@
 import { requireNestTransport } from '@/services/require-nest-transport';
 import { filesApi } from '@/services/files/files.api';
+import { fileUploadUserMessage } from '@/services/files/parse-nest-file-upload';
 import type {
   NestFileResponseDto,
   NestFileType,
   NestFileUploadDto,
 } from '@/types/nest-users';
+
+export { fileUploadUserMessage } from '@/services/files/parse-nest-file-upload';
 
 /**
  * Facade فایل Nest: POST `/v1/files/upload` → PUT signed URL → PATCH `/v1/files/{id}/confirm`.
@@ -30,23 +33,26 @@ export const FilesService = {
   ): Promise<NestFileType> {
     requireNestTransport('FilesService.uploadFile');
 
-    const sourceFile = originalFile ?? file;
-    const safeName = nestUploadFileName(sourceFile.name);
-    const mimeType = nestUploadMimeType(file, sourceFile.name);
+    try {
+      const sourceFile = originalFile ?? file;
+      const safeName = nestUploadFileName(sourceFile.name);
+      const mimeType = nestUploadMimeType(file, sourceFile.name);
 
-    const { file: fileRef, uploadSignedUrl } = await filesApi.upload(
-      { fileName: safeName, fileSize: file.size, mimeType },
-      token
-    );
+      const { file: fileRef, uploadSignedUrl } = await filesApi.upload(
+        { fileName: safeName, fileSize: file.size, mimeType },
+        token
+      );
 
-    await filesApi.uploadToSignedUrl(uploadSignedUrl, file, mimeType);
-    await filesApi.confirm(fileRef.id, token);
+      await filesApi.uploadToSignedUrl(uploadSignedUrl, file, mimeType);
+      await filesApi.confirm(fileRef.id, token);
 
-    // path برگشتی معمولاً کلید S3 است؛ origin همان signed PUT را برای پیش‌نمایش مطلق نگه می‌داریم.
-    return {
-      ...fileRef,
-      path: absoluteObjectUrlFromSignedUrl(uploadSignedUrl) ?? fileRef.path,
-    };
+      return {
+        ...fileRef,
+        path: absoluteObjectUrlFromSignedUrl(uploadSignedUrl) ?? fileRef.path,
+      };
+    } catch (error) {
+      throw new Error(fileUploadUserMessage(error));
+    }
   },
 };
 

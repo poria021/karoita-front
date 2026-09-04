@@ -15,7 +15,7 @@ import { KvTextField } from '@/components/shared/fields/KvTextField';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useUserStore } from '@/store/useUserStore';
 import type { User } from '@/types/auth';
-import { FilesService } from '@/services/files.service';
+import { FilesService, fileUploadUserMessage } from '@/services/files.service';
 import { faIcons } from '@/utils/iconMap';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import { isMockApiMode } from '@/lib/api-mode';
@@ -122,11 +122,8 @@ export function IdentityForm({
       setOriginalDocument(null);
       onSaved?.();
     } catch (error) {
-      setSubmitError(
-        error instanceof Error
-          ? error.message
-          : 'ذخیره اطلاعات با خطا مواجه شد. لطفاً دوباره تلاش کنید.'
-      );
+      setSubmitError(fileUploadUserMessage(error));
+    }
     }
   });
 

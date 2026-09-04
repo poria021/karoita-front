@@ -6,6 +6,12 @@
 export type NestFileType = {
   id: string;
   path: string;
+  originalName?: string;
+  mimeType?: string;
+  size?: number;
+  uploadedById?: string;
+  status?: string;
+  confirmedAt?: string;
 };
 
 export type NestRole = {
