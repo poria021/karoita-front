@@ -7,6 +7,8 @@ import {
 } from '@/lib/post-commit-refresh';
 
 export const UNDOABLE_MUTATION_DEFAULT_MS = 5_000;
+/** حذف با `deferCommit`: تا این مدت «لغو» درخواست بک‌اند را نمی‌فرستد. */
+export const UNDOABLE_DEFERRED_COMMIT_MS = 3_000;
 
 export type UndoableToastTone = 'default' | 'success' | 'error' | 'warning';
 
@@ -117,11 +119,13 @@ export function scheduleUndoableMutation<T>(
   let commitFailed = false;
   let committedResult: T | undefined;
 
-  const durationMs = options.durationMs ?? UNDOABLE_MUTATION_DEFAULT_MS;
   const undoLabel = options.undoLabel ?? 'لغو';
   const description = options.description;
   const tone = options.tone ?? 'default';
   const deferCommit = options.deferCommit ?? false;
+  const durationMs =
+    options.durationMs ??
+    (deferCommit ? UNDOABLE_DEFERRED_COMMIT_MS : UNDOABLE_MUTATION_DEFAULT_MS);
 
   options.apply();
 

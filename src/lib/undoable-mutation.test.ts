@@ -19,6 +19,7 @@ vi.mock('sonner', () => ({
 
 import { PostCommitRefreshError } from '@/lib/post-commit-refresh';
 import {
+  UNDOABLE_DEFERRED_COMMIT_MS,
   scheduleOptimisticMutation,
   scheduleUndoableLocalChange,
   scheduleUndoableMutation,
@@ -161,6 +162,13 @@ describe('scheduleUndoableMutation', () => {
 
     expect(apply).toHaveBeenCalledTimes(1);
     expect(commit).not.toHaveBeenCalled();
+
+    const toastMockWithDuration = toastMock as unknown as {
+      mock: { calls: Array<[unknown, { duration?: number }]> };
+    };
+    expect(toastMockWithDuration.mock.calls[0]?.[1]?.duration).toBe(
+      UNDOABLE_DEFERRED_COMMIT_MS
+    );
 
     // شبیه‌سازی بسته شدن خودکار toast
     const toastMockWithCalls = toastMock as unknown as {
