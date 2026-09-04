@@ -7,19 +7,13 @@ import {
   KvTextField,
   type KvTextFieldSize,
 } from '@/components/shared/fields/KvTextField';
-import {
-  persianToEnglishDigits,
-  toPersianDigits,
-} from '@/utils/persianDigits';
+import { toPersianDigits } from '@/utils/persianDigits';
+import { sanitizeIranMobileNationalInput } from '@/utils/iranMobileField';
 import {
   LATIN_LETTERS_NOT_ALLOWED_MESSAGE,
   containsLatinLetters,
 } from '@/utils/persianPersonName';
 import { cn } from '@/lib/utils';
-
-function filterDigits(rawValue: string): string {
-  return persianToEnglishDigits(rawValue).replace(/\D/g, '');
-}
 
 /**
  * پیشوند «۹۸+» — رنگ متن باید در حالت قفل، هم‌رنگ سایر متن‌های قفل‌شده
@@ -87,15 +81,15 @@ export const KvMobileNumberField = React.forwardRef<
 ) {
   const isControlled = value !== undefined;
   const [uncontrolledEnglish, setUncontrolledEnglish] = React.useState(() =>
-    filterDigits(defaultValue ?? '').slice(0, 10)
+    sanitizeIranMobileNationalInput(defaultValue ?? '')
   );
   const [latinScriptError, setLatinScriptError] = React.useState<
     string | undefined
   >();
 
-  const englishValue = (
-    isControlled ? filterDigits(value ?? '') : uncontrolledEnglish
-  ).slice(0, 10);
+  const englishValue = isControlled
+    ? sanitizeIranMobileNationalInput(value ?? '')
+    : uncontrolledEnglish;
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (locked) {
@@ -110,7 +104,7 @@ export const KvMobileNumberField = React.forwardRef<
       setLatinScriptError(undefined);
     }
 
-    const next = filterDigits(raw).slice(0, 10);
+    const next = sanitizeIranMobileNationalInput(raw);
     if (!isControlled) {
       setUncontrolledEnglish(next);
     }
