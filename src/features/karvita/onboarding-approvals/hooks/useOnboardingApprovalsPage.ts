@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import {
   resolveListSearchQuery,
@@ -76,7 +77,7 @@ export function useOnboardingApprovalsPage() {
   }, [tab, query, province, setChrome]);
 
   const provincesQuery = useQuery({
-    queryKey: ['onboarding-approvals', 'provinces'],
+    queryKey: DASHBOARD_QUERY.onboardingApprovalsProvinces,
     queryFn: () => OnboardingApprovalsService.listProvinces(),
     staleTime: QUERY_STALE_MS.module,
     retry: false,

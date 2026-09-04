@@ -7,13 +7,16 @@ import { toast } from 'sonner';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
+import {
+  invalidateOrganizationDirectoryConsumers,
+} from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
 } from '@/lib/search-debounce';
 import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
-import { IS_MOCK_MODE } from '@/lib/api-mode';
 import {
   ORG_STRUCTURE_PAGE_SIZE,
   OrgStructureService,
@@ -157,6 +160,7 @@ export function useOrgStructurePage() {
     await queryClient.invalidateQueries({
       queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE],
     });
+    await invalidateOrganizationDirectoryConsumers(queryClient);
     // ۳. refetch — هر دو cache پاک شده‌اند، Nest داده تازه برمی‌گردونه
     await list.reload();
   }, [queryClient, list]);

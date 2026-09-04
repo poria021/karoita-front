@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { notifyIfPostCommitRefreshFailure } from '@/lib/post-commit-refresh';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { unknownErrorMessage } from '@/lib/unknown-error-message';
@@ -34,14 +35,14 @@ type CapacitiesChrome = {
 };
 
 function capacitiesTermsKey(kind: OrganizationalCapacityKind) {
-  return ['org-capacities', 'terms', kind] as const;
+  return DASHBOARD_QUERY.orgCapacitiesTerms(kind);
 }
 
 function capacitiesSnapshotKey(
   kind: OrganizationalCapacityKind,
   termId: string
 ) {
-  return ['org-capacities', 'snapshot', kind, termId] as const;
+  return DASHBOARD_QUERY.orgCapacitiesSnapshot(kind, termId);
 }
 
 function courseDraftSignature(

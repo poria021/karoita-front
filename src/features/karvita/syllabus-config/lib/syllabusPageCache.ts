@@ -1,5 +1,9 @@
 import type { QueryClient } from '@tanstack/react-query';
 
+import {
+  DASHBOARD_QUERY,
+  invalidateAcademicTermConsumers,
+} from '@/lib/dashboard-query-keys';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
   AcademicTerm,
@@ -15,7 +19,7 @@ export function cacheKeyFor(section: SyllabusConfigSubTab): string {
 }
 
 /** کلید مشترک snapshot بین تنظیمات ترم و ارائه سرفصل. */
-export const syllabusSnapshotQueryKey = ['syllabus-config', 'snapshot'] as const;
+export const syllabusSnapshotQueryKey = DASHBOARD_QUERY.syllabusSnapshot;
 
 export const SYLLABUS_DASHBOARD_CACHE_PREFIX = 'syllabus-config::';
 
@@ -46,6 +50,7 @@ export function publishSyllabusSnapshot(
 ): void {
   queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
   syncSyllabusDashboardTerms(snapshot.terms);
+  void invalidateAcademicTermConsumers(queryClient);
 }
 
 export function patchCachedSyllabusTerms(
@@ -57,6 +62,7 @@ export function patchCachedSyllabusTerms(
     (old) => (old ? { ...old, terms } : old)
   );
   syncSyllabusDashboardTerms(terms);
+  void invalidateAcademicTermConsumers(queryClient);
 }
 
 export type PendingNavigation =

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useLayoutEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { unknownErrorMessage } from '@/lib/unknown-error-message';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
@@ -57,7 +58,7 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
 
   const query = useQuery({
     queryKey: [
-      'internship-enrollment',
+      ...DASHBOARD_QUERY.internshipEnrollment,
       actor?.id ?? 'anon',
       actor?.role ?? 'none',
       resolved?.level ?? level,

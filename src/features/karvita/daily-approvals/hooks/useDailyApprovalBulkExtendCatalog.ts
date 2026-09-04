@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
 import type {
@@ -29,7 +30,7 @@ export function useDailyApprovalBulkExtendCatalog({
   const [lessonId, setLessonId] = useState('');
 
   const coursesQuery = useQuery({
-    queryKey: ['daily-approvals', 'courses', kind, termId],
+    queryKey: DASHBOARD_QUERY.dailyApprovalsCourses(kind, termId),
     queryFn: () => DailyApprovalsService.listCourses({ kind, termId }),
     enabled: open && Boolean(termId),
     staleTime: QUERY_STALE_MS.module,
