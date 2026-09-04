@@ -1,10 +1,9 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { type Dispatch, type SetStateAction, useEffect } from 'react';
+import { type Dispatch, type SetStateAction } from 'react';
 import { toast } from 'sonner';
 
-import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import { notifyIfPostCommitRefreshFailure } from '@/lib/post-commit-refresh';
 import { scheduleLocalChange, scheduleUndoableLocalChange } from '@/lib/undoable-mutation';
 import {
@@ -26,6 +25,7 @@ type UseSyllabusWeeksEditorArgs = {
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: Dispatch<SetStateAction<boolean>>;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
+  clearSyllabusWeeksDraft: () => void;
 };
 
 export function useSyllabusWeeksEditor({
@@ -36,41 +36,9 @@ export function useSyllabusWeeksEditor({
   hasUnsavedChanges,
   setHasUnsavedChanges,
   setIsSaving,
+  clearSyllabusWeeksDraft,
 }: UseSyllabusWeeksEditorArgs) {
   const queryClient = useQueryClient();
-  const {
-    value: persistedWeeksDraft,
-    hasDraft: hasSyllabusWeeksDraft,
-    setValue: setSyllabusWeeksDraft,
-    clearDraft: clearSyllabusWeeksDraft,
-  } = useLocalFormDraft<SyllabusWeek[]>({
-    key:
-      selectedTermId && selectedCourse
-        ? `syllabus-weeks:${selectedTermId}:${selectedCourse.id}`
-        : 'syllabus-weeks:placeholder',
-    initialValue: [],
-    debounceMs: 400,
-  });
-
-  useEffect(() => {
-    if (!selectedTermId || !selectedCourse || !hasUnsavedChanges) return;
-    setSyllabusWeeksDraft(weeks);
-  }, [hasUnsavedChanges, selectedCourse, selectedTermId, setSyllabusWeeksDraft, weeks]);
-
-  useEffect(() => {
-    if (!selectedTermId || !selectedCourse || hasUnsavedChanges) return;
-    if (!hasSyllabusWeeksDraft || !persistedWeeksDraft.length) return;
-
-    toast.warning('پیش‌نویس ذخیره‌نشده‌ای دارید — بازیابی شود؟', {
-      action: {
-        label: 'بازیابی',
-        onClick: () => {
-          setWeeks(persistedWeeksDraft);
-          setHasUnsavedChanges(true);
-        },
-      },
-    });
-  }, [hasSyllabusWeeksDraft, hasUnsavedChanges, persistedWeeksDraft, selectedCourse, selectedTermId, setHasUnsavedChanges, setWeeks]);
 
   function ensureCourseSelected() {
     if (!selectedTermId || !selectedCourse) {
@@ -181,8 +149,8 @@ export function useSyllabusWeeksEditor({
         weeks,
       });
       publishSyllabusSnapshot(queryClient, snapshot);
-      setHasUnsavedChanges(false);
       clearSyllabusWeeksDraft();
+      setHasUnsavedChanges(false);
       try {
         const nextWeeks = await SyllabusConfigService.getWeeks(
           selectedTermId,
@@ -195,8 +163,8 @@ export function useSyllabusWeeksEditor({
       toast.success('برنامه سرفصل‌های هفتگی با موفقیت ثبت نهایی شد.');
     } catch (err) {
       if (notifyIfPostCommitRefreshFailure(err)) {
-        setHasUnsavedChanges(false);
         clearSyllabusWeeksDraft();
+        setHasUnsavedChanges(false);
         return;
       }
       toast.error(errorMessage(err, 'ثبت نهایی سرفصل ناموفق بود.'));

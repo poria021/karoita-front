@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type { CourseCatalogItem, SyllabusWeek } from '@/types/syllabus-config';
 
@@ -22,10 +21,10 @@ type UseSyllabusUnsavedNavigationArgs = {
   selectedCourse: CourseCatalogItem | null;
   setSelectedTermId: (termId: string) => void;
   setSelectedCourse: (course: CourseCatalogItem | null) => void;
-  weeks: SyllabusWeek[];
   setWeeks: (weeks: SyllabusWeek[]) => void;
   setHasUnsavedChanges: (value: boolean) => void;
   loadTermContext: (termId: string, preferredCourseId?: string) => Promise<unknown>;
+  clearSyllabusWeeksDraft: () => void;
 };
 
 /**
@@ -37,46 +36,13 @@ export function useSyllabusUnsavedNavigation({
   selectedCourse,
   setSelectedTermId,
   setSelectedCourse,
-  weeks,
   setWeeks,
   setHasUnsavedChanges,
   loadTermContext,
+  clearSyllabusWeeksDraft,
 }: UseSyllabusUnsavedNavigationArgs) {
   const [pendingNavigation, setPendingNavigation] =
     useState<PendingNavigation>(null);
-  const {
-    value: persistedWeeksDraft,
-    hasDraft: hasSyllabusWeeksDraft,
-    setValue: setSyllabusWeeksDraft,
-    clearDraft: clearSyllabusWeeksDraft,
-  } = useLocalFormDraft<SyllabusWeek[]>({
-    key:
-      selectedTermId && selectedCourse
-        ? `syllabus-weeks:${selectedTermId}:${selectedCourse.id}`
-        : 'syllabus-weeks:placeholder',
-    initialValue: [],
-    debounceMs: 400,
-  });
-
-  useEffect(() => {
-    if (!selectedTermId || !selectedCourse || !hasUnsavedChanges) return;
-    setSyllabusWeeksDraft(weeks);
-  }, [hasUnsavedChanges, selectedCourse, selectedTermId, setSyllabusWeeksDraft, weeks]);
-
-  useEffect(() => {
-    if (!selectedTermId || !selectedCourse || hasUnsavedChanges) return;
-    if (!hasSyllabusWeeksDraft || !persistedWeeksDraft.length) return;
-
-    toast.warning('پیش‌نویس ذخیره‌نشده‌ای دارید — بازیابی شود؟', {
-      action: {
-        label: 'بازیابی',
-        onClick: () => {
-          setWeeks(persistedWeeksDraft);
-          setHasUnsavedChanges(true);
-        },
-      },
-    });
-  }, [hasSyllabusWeeksDraft, hasUnsavedChanges, persistedWeeksDraft, selectedCourse, selectedTermId, setHasUnsavedChanges, setWeeks]);
 
   useEffect(() => {
     function onBeforeUnload(event: BeforeUnloadEvent) {
@@ -107,8 +73,8 @@ export function useSyllabusUnsavedNavigation({
         course.id
       );
       setWeeks(nextWeeks);
-      setHasUnsavedChanges(false);
       clearSyllabusWeeksDraft();
+      setHasUnsavedChanges(false);
     } catch (err) {
       toast.error(errorMessage(err, 'بارگذاری سرفصل ناموفق بود.'));
     }
