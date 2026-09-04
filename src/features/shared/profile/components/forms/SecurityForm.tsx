@@ -86,10 +86,7 @@ export function SecurityForm({
     setFeedback(null);
     setIsBusy(true);
     try {
-      await AuthService.updateMe({
-        oldPassword: data.oldPassword,
-        password: data.newPassword,
-      });
+      await AuthService.setPassword(data.oldPassword, data.newPassword);
       changeForm.reset({
         oldPassword: '',
         newPassword: '',

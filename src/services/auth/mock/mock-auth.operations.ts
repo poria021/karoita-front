@@ -201,3 +201,10 @@ export function mockUpdateMe(body: NestAuthUpdateDto): User {
 
   return toPublicUser(updated);
 }
+
+export function mockSetPassword(
+  oldPassword: string,
+  newPassword: string
+): void {
+  mockUpdateMe({ oldPassword, password: newPassword });
+}

@@ -135,3 +135,9 @@ export type NestAuthUpdateDto = {
   password?: string;
   oldPassword?: string;
 };
+
+/** `POST /v1/auth/set/password` — تغییر رمز وقتی حساب از قبل رمز دارد. */
+export type NestSetPasswordDto = {
+  oldPassword: string;
+  newPassword: string;
+};

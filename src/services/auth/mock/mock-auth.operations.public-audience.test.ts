@@ -13,6 +13,7 @@ import {
   mockSendLoginOtp,
   mockResetPassword,
   mockUpdateMe,
+  mockSetPassword,
 } from '@/services/auth/mock/mock-auth.operations';
 import {
   findMockUserById,
@@ -146,6 +147,22 @@ describe('mockUpdateMe (PATCH /auth/me)', () => {
     mockUpdateMe({ oldPassword: MOCK_USER_PASSWORD, password: 'newPass12' });
 
     expect(findMockUserById(seed.id)?.password).toBe('newPass12');
+    expect(findMockUserById(seed.id)?.hasPassword).toBe(true);
+  });
+
+  it('set/password updates the stored password when the current one matches', () => {
+    const seed = AUTH_MOCK_USERS.find((u) => u.role !== 'super_admin');
+    expect(seed).toBeTruthy();
+    if (!seed) return;
+
+    useUserStore.getState().setUser(toPublicUser(seed));
+    const currentPassword = findMockUserById(seed.id)?.password;
+    expect(currentPassword).toBeTruthy();
+    if (!currentPassword) return;
+
+    mockSetPassword(currentPassword, 'setPass12');
+
+    expect(findMockUserById(seed.id)?.password).toBe('setPass12');
     expect(findMockUserById(seed.id)?.hasPassword).toBe(true);
   });
 });

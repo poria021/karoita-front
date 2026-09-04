@@ -25,6 +25,7 @@ import {
   mockSendForgotPasswordOtp,
   mockSendLoginOtp,
   mockSetInitialPassword,
+  mockSetPassword,
   mockUpdateMe,
   mockVerifyAdminGateOtp,
   mockVerifyLoginOtp,
@@ -40,6 +41,7 @@ import {
   realLoginWithCredentials,
   realRegister,
   realResetPassword,
+  realSetPassword,
   realSendAdminGateOtp,
   realSendForgotPasswordOtp,
   realSendLoginOtp,
@@ -132,6 +134,15 @@ export class AuthService {
     if (newPassword.trim().length < PASSWORD_MIN_LENGTH) throw new Error(PASSWORD_MIN_LENGTH_MESSAGE);
     if (IS_MOCK_MODE) { mockSetInitialPassword(mobile, newPassword); return; }
     await AuthService.updateMe({ password: newPassword });
+  }
+
+  static async setPassword(oldPassword: string, newPassword: string): Promise<void> {
+    if (newPassword.trim().length < PASSWORD_MIN_LENGTH) throw new Error(PASSWORD_MIN_LENGTH_MESSAGE);
+    if (IS_MOCK_MODE) {
+      mockSetPassword(oldPassword, newPassword);
+      return;
+    }
+    await realSetPassword({ oldPassword, newPassword });
   }
 
   static async updateMe(body: NestAuthUpdateDto): Promise<User> {

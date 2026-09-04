@@ -27,7 +27,7 @@ import {
 import { dispatchSessionToStore } from '@/services/auth/mock/mock-auth.store';
 import { useUserStore } from '@/store/useUserStore';
 import type { Session, User, UserRole } from '@/types/auth';
-import type { NestAuthUpdateDto } from '@/types/nest-users';
+import type { NestAuthUpdateDto, NestSetPasswordDto } from '@/types/nest-users';
 
 /** سطح سشن از حافظه؛ بدون حدس `'user'`. */
 function currentSurface(): 'admin' | 'user' | null {
@@ -56,6 +56,7 @@ export const REAL_AUTH_PATHS = {
   registerOtpVerify: 'v1/auth/phone/register/verify-otp',
   forgotSend: 'v1/auth/forgot/password',
   forgotReset: 'v1/auth/reset/password',
+  setPassword: 'v1/auth/set/password',
   adminOtpSend: 'v1/admin/auth/phone/login/request-otp',
   adminOtpVerify: 'v1/admin/auth/phone/login/verify-otp',
   adminRefresh: 'v1/admin/auth/refresh',
@@ -227,6 +228,14 @@ export async function realResetPassword(mobile: string, otp: string, newPassword
     ...toPhoneBody(mobile),
     otp,
     password: newPassword,
+  });
+}
+
+export async function realSetPassword(body: NestSetPasswordDto): Promise<void> {
+  guard('real-auth.bridge.setPassword');
+  await apiClient.postMaybeJson(REAL_AUTH_PATHS.setPassword, {
+    oldPassword: body.oldPassword,
+    newPassword: body.newPassword,
   });
 }
 

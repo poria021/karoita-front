@@ -337,3 +337,37 @@ describe('refreshRealSession — 401 روی /auth/me پس از access token در
     expect(document.cookie).not.toContain(`${AUTH_COOKIE_NAME}=1`);
   });
 });
+
+describe('realSetPassword', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.test');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('POSTs oldPassword and newPassword to v1/auth/set/password', async () => {
+    const { REAL_AUTH_PATHS, realSetPassword } = await import(
+      '@/services/auth/real/real-auth.bridge'
+    );
+    const { apiClient } = await import('@/services/api-client');
+    const postMaybeJson = vi
+      .spyOn(apiClient, 'postMaybeJson')
+      .mockResolvedValue(null);
+
+    expect(REAL_AUTH_PATHS.setPassword).toBe('v1/auth/set/password');
+    await realSetPassword({
+      oldPassword: '9192050927',
+      newPassword: 'newPassword123',
+    });
+
+    expect(postMaybeJson).toHaveBeenCalledWith('v1/auth/set/password', {
+      oldPassword: '9192050927',
+      newPassword: 'newPassword123',
+    });
+    postMaybeJson.mockRestore();
+  });
+});
