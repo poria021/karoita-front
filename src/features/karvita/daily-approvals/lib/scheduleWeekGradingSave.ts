@@ -10,7 +10,6 @@ export type DailyApprovalGradingTarget = {
 type ScheduleWeekGradingSaveArgs<T> = {
   gradingTarget: DailyApprovalGradingTarget | null;
   message: string;
-  errorFallback: string;
   setGradingTarget: (next: DailyApprovalGradingTarget | null) => void;
   commit: (target: DailyApprovalGradingTarget) => Promise<T>;
   onCommitted: () => Promise<void>;
@@ -22,7 +21,6 @@ type ScheduleWeekGradingSaveArgs<T> = {
 export function scheduleWeekGradingSave<T>({
   gradingTarget,
   message,
-  errorFallback,
   setGradingTarget,
   commit,
   onCommitted,
@@ -41,7 +39,9 @@ export function scheduleWeekGradingSave<T>({
     commit: () => commit(target),
     onCommitted,
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : errorFallback);
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      }
     },
   });
 }

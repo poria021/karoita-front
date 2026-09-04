@@ -143,9 +143,9 @@ export function scheduleUndoableMutation<T>(
         options.onError(error);
         return undefined;
       }
-      toast.error(
-        error instanceof Error ? error.message : 'عملیات ناموفق بود.'
-      );
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      }
       return undefined;
     }
   };
@@ -178,9 +178,9 @@ export function scheduleUndoableMutation<T>(
               options.revert();
               options.onUndone?.();
             } catch (error) {
-              toast.error(
-                error instanceof Error ? error.message : 'لغو عملیات ناموفق بود.'
-              );
+              if (error instanceof Error && error.message) {
+                toast.error(error.message);
+              }
             }
           } else {
             // deferred: `commit` هنوز نرفته؛ فقط UI برگردد
@@ -257,9 +257,9 @@ export function scheduleOptimisticMutation<T>(
       if (options.onError) {
         options.onError(error);
       } else {
-        toast.error(
-          error instanceof Error ? error.message : 'عملیات ناموفق بود.'
-        );
+        if (error instanceof Error && error.message) {
+          toast.error(error.message);
+        }
       }
     }
   })();

@@ -158,7 +158,7 @@ export function useDailyApprovalsActions({
         },
         onError: (error) => {
           toast.error(
-            error instanceof Error ? error.message : 'حذف کارورز ناموفق بود.'
+            error instanceof Error ? error.message : ''
           );
         },
       });
@@ -174,7 +174,6 @@ export function useDailyApprovalsActions({
           input.score === null
             ? 'بازخورد ذخیره شد؛ گزارش به وضعیت «نیازمند ویرایش» تغییر یافت.'
             : 'نمره نهایی گزارش با موفقیت ثبت شد.',
-        errorFallback: 'ثبت ارزیابی استاد ناموفق بود.',
         setGradingTarget,
         commit: async (target) => {
           setActionBusy(true);
@@ -206,7 +205,6 @@ export function useDailyApprovalsActions({
         gradingTarget,
         message:
           'ارزیابی با موفقیت ثبت نهایی شد و گزارش در وضعیت تایید قرار گرفت.',
-        errorFallback: 'ثبت ارزیابی معلم راهنما ناموفق بود.',
         setGradingTarget,
         commit: async (target) => {
           setActionBusy(true);
@@ -237,7 +235,6 @@ export function useDailyApprovalsActions({
       scheduleWeekGradingSave({
         gradingTarget,
         message: 'ارزیابی توصیفی مدیر مدرسه با موفقیت ثبت نهایی شد.',
-        errorFallback: 'ثبت ارزیابی مدیر مدرسه ناموفق بود.',
         setGradingTarget,
         commit: async (target) => {
           setActionBusy(true);
@@ -331,7 +328,7 @@ export function useDailyApprovalsActions({
         },
         onError: (error) => {
           toast.error(
-            error instanceof Error ? error.message : 'تمدید گروهی ناموفق بود.'
+            error instanceof Error ? error.message : ''
           );
         },
       });

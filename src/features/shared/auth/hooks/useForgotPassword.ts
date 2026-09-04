@@ -69,7 +69,7 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
       forgotOtpResetForm.reset({ otp: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
       forgotMobileForm.setError('mobile', {
-        message: readAuthErrorMessage(error, 'ارسال کد بازیابی ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     }
   });
@@ -89,7 +89,7 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
       });
     } catch (error) {
       forgotOtpResetForm.setError('otp', {
-        message: readAuthErrorMessage(error, 'ارسال مجدد کد ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     } finally {
       setIsResendingForgotOtp(false);
@@ -105,7 +105,7 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
       );
       onComplete(pendingForgotMobile);
     } catch (error) {
-      const message = readAuthErrorMessage(error, 'تغییر رمز عبور ناموفق بود.');
+      const message = readAuthErrorMessage(error);
       if (isOtpAuthError(error)) {
         forgotOtpResetForm.setError('otp', { message }, { shouldFocus: true });
         forgotOtpResetForm.clearErrors(['newPassword', 'confirmPassword']);

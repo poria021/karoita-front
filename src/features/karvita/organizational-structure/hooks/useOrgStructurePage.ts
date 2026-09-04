@@ -179,7 +179,7 @@ export function useOrgStructurePage() {
         },
         onError: (error) => {
           toast.error(
-            error instanceof Error ? error.message : 'افزودن ساختار ناموفق بود.'
+            error instanceof Error ? error.message : ''
           );
         },
       });

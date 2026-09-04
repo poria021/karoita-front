@@ -212,7 +212,7 @@ export function useWeeklyReportModal({
       onClose();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'ذخیره پیش‌نویس ناموفق بود.'
+        error instanceof Error ? error.message : ''
       );
     } finally {
       setIsSavingDraft(false);

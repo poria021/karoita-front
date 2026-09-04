@@ -174,7 +174,7 @@ export async function realLoginWithCredentials(mobile: string, password: string)
 
 export async function realSendLoginOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.loginOtpSend');
-  await apiClient.postJson(REAL_AUTH_PATHS.loginOtpSend, toPhoneBody(mobile));
+  await apiClient.postMaybeJson(REAL_AUTH_PATHS.loginOtpSend, toPhoneBody(mobile));
 }
 
 export async function realVerifyLoginOtp(mobile: string, otp: string): Promise<User> {
@@ -232,7 +232,7 @@ export async function realResetPassword(mobile: string, otp: string, newPassword
 
 export async function realSendAdminGateOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.adminOtpSend');
-  await apiClient.postJson(REAL_AUTH_PATHS.adminOtpSend, toAdminOtpSendBody(mobile));
+  await apiClient.postMaybeJson(REAL_AUTH_PATHS.adminOtpSend, toAdminOtpSendBody(mobile));
 }
 
 export async function realVerifyAdminGateOtp(mobile: string, otp: string): Promise<User> {

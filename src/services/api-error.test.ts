@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { TimeoutError } from 'ky';
 
 import {
-  EMPTY_HTTP_ERROR_MESSAGE,
   extractApiMessage,
   localizeApiError,
   mapHttpError,
@@ -83,23 +82,21 @@ describe('localizeApiError — server text only', () => {
   });
 
   it('does not invent a domain message when the body is empty', () => {
-    expect(localizeApiError(null, 404, LOGIN_VERIFY_OTP_URL)).toBe(
-      EMPTY_HTTP_ERROR_MESSAGE
-    );
-    expect(localizeApiError(null, 400, SEMESTER_URL)).toBe(
-      EMPTY_HTTP_ERROR_MESSAGE
-    );
-    expect(localizeApiError(null, 404)).toBe(EMPTY_HTTP_ERROR_MESSAGE);
+    expect(
+      localizeApiError(null, 404, LOGIN_VERIFY_OTP_URL, 'Not Found')
+    ).toBe('Not Found');
+    expect(localizeApiError(null, 400, SEMESTER_URL)).toBe('400');
+    expect(localizeApiError(null, 404)).toBe('404');
   });
 });
 
 describe('mapHttpError — timeout vs network', () => {
-  it('maps TimeoutError to a generic timeout message, not the auth-network copy', async () => {
+  it('passes through the transport error message without rewriting it', async () => {
     const timeout = new TimeoutError(
       new Request('https://api.example.com/v1/users')
     );
     await expect(mapHttpError(timeout)).rejects.toMatchObject({
-      message: 'پاسخ سرویس بیش از حد طول کشید. لطفاً دوباره تلاش کنید.',
+      message: timeout.message,
     });
   });
 });

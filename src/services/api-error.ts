@@ -15,9 +15,6 @@ export class ApiClientError extends Error {
   }
 }
 
-/** فقط وقتی بدنهٔ HTTP پیامی ندارد — نه ترجمهٔ دامنه. */
-export const EMPTY_HTTP_ERROR_MESSAGE = 'عملیات ناموفق بود.';
-
 function isRecord(value: unknown): boolean {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -79,13 +76,21 @@ export function extractApiMessage(payload: unknown): string | null {
   return null;
 }
 
-/** پیام HTTP سرور؛ اگر بدنه خالی باشد فقط یک fallback خنثی. `url` برای سازگاری callerها مانده. */
+/**
+ * فقط متن خود ریسپانس: بدنهٔ Nest، وگرنه statusText، وگرنه کد وضعیت.
+ * فرانت پیام دامنه نمی‌سازد.
+ */
 export function localizeApiError(
   payload: unknown,
-  _status: number,
-  _url?: string
+  status: number,
+  _url?: string,
+  httpStatusText?: string
 ): string {
-  return extractApiMessage(payload) ?? EMPTY_HTTP_ERROR_MESSAGE;
+  const fromBody = extractApiMessage(payload);
+  if (fromBody) return fromBody;
+  const fromStatusText = httpStatusText?.trim();
+  if (fromStatusText) return fromStatusText;
+  return String(status);
 }
 
 export async function mapHttpError(error: unknown): Promise<never> {
@@ -105,7 +110,12 @@ export async function mapHttpError(error: unknown): Promise<never> {
       );
     }
     throw new ApiClientError(
-      localizeApiError(payload, error.response.status, error.response.url),
+      localizeApiError(
+        payload,
+        error.response.status,
+        error.response.url,
+        error.response.statusText
+      ),
       error.response.status,
       payload
     );
@@ -113,27 +123,13 @@ export async function mapHttpError(error: unknown): Promise<never> {
 
   if (error instanceof ApiClientError) throw error;
 
-  if (error instanceof TimeoutError) {
-    throw new ApiClientError(
-      'پاسخ سرویس بیش از حد طول کشید. لطفاً دوباره تلاش کنید.'
-    );
+  if (error instanceof TimeoutError || error instanceof NetworkError) {
+    throw new ApiClientError(error.message);
   }
 
-  if (error instanceof NetworkError) {
-    throw new ApiClientError(
-      'ارتباط با سرویس برقرار نشد. اتصال را بررسی کنید و دوباره تلاش کنید.'
-    );
+  if (error instanceof Error && error.message) {
+    throw new ApiClientError(error.message);
   }
 
-  if (error instanceof TypeError) {
-    throw new ApiClientError(
-      'ارتباط با سرویس برقرار نشد. اتصال را بررسی کنید و دوباره تلاش کنید.'
-    );
-  }
-
-  throw new ApiClientError(
-    error instanceof Error && error.message
-      ? error.message
-      : EMPTY_HTTP_ERROR_MESSAGE
-  );
+  throw new ApiClientError(String(error));
 }
