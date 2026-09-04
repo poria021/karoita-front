@@ -173,7 +173,12 @@ export function WeeklySyllabusTable({
           size="md"
           className="w-full sm:w-auto"
           loading={isSaving}
-          disabled={!hasUnsavedChanges || isSaving || isLoading}
+          disabled={
+            !hasUnsavedChanges ||
+            isSaving ||
+            isLoading ||
+            weeks.length === 0
+          }
           onClick={onSave}
         >
           ثبت نهایی و انتشار برنامه به کاربران

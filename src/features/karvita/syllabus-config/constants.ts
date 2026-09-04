@@ -6,6 +6,11 @@
 import type { AcademicTermType } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
 
+/** ایزولهٔ LTR تا رقم/بازه در سلکت RTL برعکس دیده نشود. */
+export function ltrIsolate(value: string): string {
+  return `\u2066${value}\u2069`;
+}
+
 export const SEMESTER_PREFIX_OPTIONS = [
   'نیم‌سال اول',
   'نیم‌سال دوم',
@@ -41,11 +46,11 @@ export const COURSE_OFFERING_AUDIENCE_TABS: {
 ];
 
 export const WEEK_WEIGHT_OPTIONS = [
-  { value: 1, label: '۱ - خیلی کم' },
-  { value: 2, label: '۲ - کم' },
-  { value: 3, label: '۳ - متوسط' },
-  { value: 4, label: '۴ - زیاد' },
-  { value: 5, label: '۵ - خیلی زیاد' },
+  { value: 1, label: `${ltrIsolate('۱')} - خیلی کم` },
+  { value: 2, label: `${ltrIsolate('۲')} - کم` },
+  { value: 3, label: `${ltrIsolate('۳')} - متوسط` },
+  { value: 4, label: `${ltrIsolate('۴')} - زیاد` },
+  { value: 5, label: `${ltrIsolate('۵')} - خیلی زیاد` },
 ] as const;
 
 export function defaultPrefixForType(type: AcademicTermType): string {
@@ -74,5 +79,5 @@ export function parseTermTitleParts(title: string): {
 export function formatTermOptionLabel(title: string): string {
   const { prefix, academicYear } = parseTermTitleParts(title);
   if (!academicYear) return toPersianDigits(title);
-  return `${toPersianDigits(prefix)} · ${toPersianDigits(academicYear)}`;
+  return `${toPersianDigits(prefix)} · ${ltrIsolate(toPersianDigits(academicYear))}`;
 }

@@ -5,6 +5,7 @@ import {
   parseNestLessonWeekList,
   parseNestSemester,
   planNestWeekWrites,
+  toNestLessonWeeksBody,
   toNestSemesterDto,
   toNestSemesterWriteDto,
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
@@ -133,7 +134,7 @@ export async function updateRealTermGates(
 }
 
 /**
- * پیکربندی اول: `POST /admin/weeks`.
+ * پیکربندی اول: `PUT /admin/lessons/{id}/weeks` با همان تعداد سطر ادیتور.
  * بعد از GET غیرخالی: فقط `PATCH` برای بایگانی/بازیابی.
  */
 export async function saveRealSyllabusWeeks(
@@ -143,6 +144,18 @@ export async function saveRealSyllabusWeeks(
   const remote = parseNestLessonWeekList(
     await adminCatalogApi.listWeeksByLesson(lessonId)
   );
+
+  if (remote.length === 0) {
+    if (input.weeks.length === 0) {
+      throw new ApiClientError('برای ثبت سرفصل حداقل یک هفته لازم است.');
+    }
+    await adminCatalogApi.putLessonWeeks(
+      lessonId,
+      toNestLessonWeeksBody(input.weeks)
+    );
+    return reloadAfterWrite(() => getRealSyllabusSnapshot());
+  }
+
   const plan = planNestWeekWrites(lessonId, input.weeks, remote);
 
   for (const id of plan.deletions) {

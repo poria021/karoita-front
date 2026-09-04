@@ -9,6 +9,7 @@ import {
   KvSelectTrigger,
   KvSelectValue,
 } from '@/components/shared/fields/KvSelect';
+import { formatTermOptionLabel } from '@/features/karvita/syllabus-config/constants';
 import { KvFeatureIntro } from '@/components/shared/shell/KvFeatureIntro';
 import { faIcons } from '@/utils/iconMap';
 
@@ -57,7 +58,7 @@ export function DailyApprovalsWorkspaceHeader({
                   <KvSelectContent>
                     {terms.map((term) => (
                       <KvSelectItem key={term.id} value={term.id}>
-                        {term.title}
+                        {formatTermOptionLabel(term.title)}
                       </KvSelectItem>
                     ))}
                   </KvSelectContent>

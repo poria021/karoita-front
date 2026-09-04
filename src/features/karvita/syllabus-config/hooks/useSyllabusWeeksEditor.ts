@@ -142,6 +142,10 @@ export function useSyllabusWeeksEditor({
 
   async function saveSyllabus() {
     if (!selectedTermId || !selectedCourse || !hasUnsavedChanges) return;
+    if (weeks.length === 0) {
+      toast.error('برای ثبت سرفصل حداقل یک هفته اضافه کنید.');
+      return;
+    }
     setIsSaving(true);
     try {
       const courseOfferingId = SyllabusConfigService.resolveOfferingId(

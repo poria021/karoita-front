@@ -20,6 +20,7 @@ import {
   SEMESTER_PREFIX_OPTIONS,
   TERM_TYPE_OPTIONS,
   displayAcademicYear,
+  formatTermOptionLabel,
 } from '../constants';
 
 interface TermFormCardProps {
@@ -82,7 +83,7 @@ export function TermFormCard({
           value={editTermId || '__new__'}
           displayValue={
             editTermId
-              ? `ویرایش دوره: ${toPersianDigits(
+              ? `ویرایش دوره: ${formatTermOptionLabel(
                   terms.find((term) => term.id === editTermId)?.title ?? ''
                 )}`
               : '-- ایجاد و تعریف دوره تحصیلی جدید --'
@@ -96,7 +97,7 @@ export function TermFormCard({
           </KvSelectItem>
           {terms.map((term) => (
             <KvSelectItem key={term.id} value={term.id}>
-              ویرایش دوره: {toPersianDigits(term.title)}
+              ویرایش دوره: {formatTermOptionLabel(term.title)}
             </KvSelectItem>
           ))}
         </KvSelectField>
