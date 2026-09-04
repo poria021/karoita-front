@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import type { SyllabusWeek } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
 
+import { SYLLABUS_WEEK_DELETE_ENABLED } from '../constants';
 import { WeeklySyllabusWeekRow } from './WeeklySyllabusWeekRow';
 
 interface WeeklySyllabusTableProps {
@@ -89,10 +90,18 @@ export function WeeklySyllabusTable({
             appearance="ghost"
             size="sm"
             className="w-full text-kv-danger sm:w-auto"
-            disabled={!canEdit || !hasLastWeek}
+            disabled={
+              !SYLLABUS_WEEK_DELETE_ENABLED || !canEdit || !hasLastWeek
+            }
             aria-label="حذف آخرین هفته"
+            title={
+              SYLLABUS_WEEK_DELETE_ENABLED
+                ? undefined
+                : 'حذف هفته وقتی مسیر DELETE روی سرور آماده شود فعال می‌شود.'
+            }
             onClick={() => {
-              if (lastWeek) onDeleteWeek(lastWeek);
+              if (!SYLLABUS_WEEK_DELETE_ENABLED || !lastWeek) return;
+              onDeleteWeek(lastWeek);
             }}
             icon={
               <FaIcon

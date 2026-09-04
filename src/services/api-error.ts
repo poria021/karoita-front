@@ -122,9 +122,7 @@ function collectFromMessageField(message: unknown): string[] {
     const nested = cleanMessage(rec.message);
     if (nested) return [nested];
   }
-  return Object.values(rec).flatMap((item) =>
-    typeof item === 'string' && cleanMessage(item) ? [item.trim()] : []
-  );
+  return collectValidationStrings(rec, 1);
 }
 
 function collectFromRecord(rec: Record<string, unknown>, depth: number): string[] {
@@ -153,7 +151,9 @@ function collectFromRecord(rec: Record<string, unknown>, depth: number): string[
   }
   if (typeof rec.detail === 'string') pushAll(collectFromMessageField(rec.detail));
 
-  if (Array.isArray(rec.errors) || asRecord(rec.errors)) {
+  if (typeof rec.errors === 'string') {
+    pushAll(collectFromMessageField(rec.errors));
+  } else if (Array.isArray(rec.errors) || asRecord(rec.errors)) {
     pushAll(collectValidationStrings(rec.errors, 0));
   }
 
@@ -170,7 +170,21 @@ function collectFromRecord(rec: Record<string, unknown>, depth: number): string[
 
 /** متن خام Nest: `message` / `errors` / `error` / `detail` — بدون بازنویسی. */
 export function extractApiMessage(payload: unknown): string | null {
-  if (typeof payload === 'string') return cleanMessage(payload);
+  if (typeof payload === 'string') {
+    const trimmed = payload.trim();
+    if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+      try {
+        return extractApiMessage(JSON.parse(trimmed));
+      } catch {
+        return cleanMessage(trimmed);
+      }
+    }
+    return cleanMessage(trimmed);
+  }
+
+  if (Array.isArray(payload)) {
+    return joinMessages(collectValidationStrings(payload, 0));
+  }
 
   const rec = asRecord(payload);
   if (!rec) return null;
@@ -195,20 +209,32 @@ export function localizeApiError(
   return String(status);
 }
 
+async function readHttpErrorPayload(error: HTTPError): Promise<unknown> {
+  // ky 2 puts the parsed JSON on `error.data` and already consumed the stream.
+  if (error.data !== undefined) return error.data;
+
+  let rawText: string | null = null;
+  try {
+    rawText = await error.response.text();
+    const trimmed = rawText.trim();
+    if (!trimmed) return null;
+    try {
+      return JSON.parse(trimmed) as unknown;
+    } catch {
+      return trimmed;
+    }
+  } catch {
+    return rawText?.trim() || null;
+  }
+}
+
 export async function mapHttpError(error: unknown): Promise<never> {
   if (error instanceof HTTPError) {
-    let payload: unknown = null;
-    let rawText: string | null = null;
-    try {
-      rawText = await error.response.text();
-      payload = rawText.trim() ? JSON.parse(rawText) : rawText.trim() || null;
-    } catch {
-      payload = rawText?.trim() || null;
-    }
+    const payload = await readHttpErrorPayload(error);
     if (process.env.NODE_ENV !== 'production') {
       console.error(
         `[api-error] HTTP ${error.response.status} → ${error.response.url}`,
-        payload ?? rawText
+        payload
       );
     }
     throw new ApiClientError(

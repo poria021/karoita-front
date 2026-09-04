@@ -210,9 +210,19 @@ export function parseNestLessonWeek(raw: unknown): NestLessonWeek | null {
   };
 }
 
+function unwrapWeekList(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  const doc = unwrapNestDoc(raw);
+  if (!doc) return [];
+  for (const key of ['weeks', 'data', 'items', 'result'] as const) {
+    const value = doc[key];
+    if (Array.isArray(value)) return value;
+  }
+  return [];
+}
+
 export function parseNestLessonWeekList(raw: unknown): NestLessonWeek[] {
-  if (!Array.isArray(raw)) return [];
-  return raw
+  return unwrapWeekList(raw)
     .map(parseNestLessonWeek)
     .filter((week): week is NestLessonWeek => week !== null)
     .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
@@ -402,16 +412,25 @@ export function toNestLessonWeeksBody(weeks: SyllabusWeek[]): NestPutLessonWeeks
 export type NestWeekWritePlan = {
   creates: NestCreateWeekDto[];
   updates: Array<{ id: string; body: NestUpdateWeekDto }>;
-  /** هفته‌ای که از ادیتور حذف شده — اول PATCH می‌شود تا priority ۱…N آزاد شود. */
-  retirements: Array<{ id: string; body: NestUpdateWeekDto }>;
+  /** هفته‌ای که از ادیتور حذف شده — `DELETE /admin/weeks/{id}`. */
+  deletions: string[];
 };
 
-/** بالاتر از طول معمول ترم تا با priority زنده برخورد نکند. */
-const RETIRED_WEEK_PRIORITY_BASE = 10_000;
+function remoteIsActive(week: NestLessonWeek): boolean {
+  return week.status !== false;
+}
+
+function patchBody(
+  lessonId: string,
+  priority: number,
+  status: boolean
+): NestUpdateWeekDto {
+  return { lessonId, priority, status };
+}
 
 /**
  * ردیف جدید `POST /admin/weeks`؛ موجود `PATCH /admin/weeks/{id}`.
- * هفتهٔ حذف‌شده از ادیتور با `status: false` بایگانی می‌شود — Nest در این دسته DELETE هفته ندارد.
+ * حذف از ادیتور `DELETE` است؛ آرشیو داخل جدول PATCH با `status: false` است.
  */
 export function planNestWeekWrites(
   lessonId: string,
@@ -426,37 +445,55 @@ export function planNestWeekWrites(
   const used = new Set<string>();
   const creates: NestCreateWeekDto[] = [];
   const updates: Array<{ id: string; body: NestUpdateWeekDto }> = [];
-  const retirements: Array<{ id: string; body: NestUpdateWeekDto }> = [];
+  const deletions: string[] = [];
+
+  function queueUpdate(
+    id: string,
+    priority: number,
+    status: boolean
+  ) {
+    used.add(id);
+    const current = remoteById.get(id);
+    if (
+      current &&
+      (current.priority ?? 0) === priority &&
+      remoteIsActive(current) === status
+    ) {
+      return;
+    }
+    updates.push({ id, body: patchBody(lessonId, priority, status) });
+  }
 
   weeks.forEach((week, index) => {
     const priority = index + 1;
     const status = week.status === 'active';
-    if (isNestObjectId(week.id)) {
-      used.add(week.id);
-      updates.push({
-        id: week.id,
-        body: { lessonId, priority, status },
-      });
+    if (isNestObjectId(week.id) && remoteById.has(week.id)) {
+      queueUpdate(week.id, priority, status);
       return;
     }
+
+    const byPriority = [...remoteById.entries()].find(
+      ([id, row]) => !used.has(id) && (row.priority ?? 0) === priority
+    );
+    if (byPriority) {
+      queueUpdate(byPriority[0], priority, status);
+      return;
+    }
+
+    if (isNestObjectId(week.id)) {
+      queueUpdate(week.id, priority, status);
+      return;
+    }
+
     creates.push({ lessonId, priority, status });
   });
 
-  let retiredSlot = RETIRED_WEEK_PRIORITY_BASE;
   for (const [id] of remoteById) {
     if (used.has(id)) continue;
-    retiredSlot += 1;
-    retirements.push({
-      id,
-      body: {
-        lessonId,
-        priority: retiredSlot,
-        status: false,
-      },
-    });
+    deletions.push(id);
   }
 
-  return { creates, updates, retirements };
+  return { creates, updates, deletions };
 }
 
 export function mergeTermsWithLessonBundles(

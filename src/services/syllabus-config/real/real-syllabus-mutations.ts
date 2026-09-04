@@ -134,7 +134,7 @@ export async function updateRealTermGates(
 
 /**
  * `POST /admin/weeks` برای ردیف جدید؛ `PATCH /admin/weeks/{id}` برای موجود.
- * اول هفتهٔ حذف‌شده از ادیتور بایگانی می‌شود تا priority یکتا آزاد شود.
+ * هفتهٔ حذف‌شده از ادیتور `DELETE /admin/weeks/{id}` است.
  */
 export async function saveRealSyllabusWeeks(
   input: SaveSyllabusWeeksInput
@@ -145,8 +145,8 @@ export async function saveRealSyllabusWeeks(
   );
   const plan = planNestWeekWrites(lessonId, input.weeks, remote);
 
-  for (const row of plan.retirements) {
-    await adminCatalogApi.updateWeek(row.id, row.body);
+  for (const id of plan.deletions) {
+    await adminCatalogApi.deleteWeek(id);
   }
   for (const row of plan.updates) {
     await adminCatalogApi.updateWeek(row.id, row.body);

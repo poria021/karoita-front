@@ -40,6 +40,9 @@ export const COURSE_OFFERING_AUDIENCE_TABS: {
   { value: 'modular', label: 'پودمانی' },
 ];
 
+/** تا `DELETE /admin/weeks/{id}` روی لایو نباشد دکمهٔ «آخرین هفته» خاموش است. */
+export const SYLLABUS_WEEK_DELETE_ENABLED = false;
+
 export const WEEK_WEIGHT_OPTIONS = [
   { value: 1, label: '۱ - خیلی کم' },
   { value: 2, label: '۲ - کم' },

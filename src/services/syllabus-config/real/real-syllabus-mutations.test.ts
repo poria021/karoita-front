@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const listWeeksByLesson = vi.fn();
 const createWeek = vi.fn();
 const updateWeek = vi.fn();
+const deleteWeek = vi.fn();
 const getRealSyllabusSnapshot = vi.fn();
 
 vi.mock('@/services/admin-catalog/admin-catalog.api', () => ({
@@ -10,6 +11,7 @@ vi.mock('@/services/admin-catalog/admin-catalog.api', () => ({
     listWeeksByLesson: (...args: unknown[]) => listWeeksByLesson(...args),
     createWeek: (...args: unknown[]) => createWeek(...args),
     updateWeek: (...args: unknown[]) => updateWeek(...args),
+    deleteWeek: (...args: unknown[]) => deleteWeek(...args),
   },
 }));
 
@@ -35,13 +37,58 @@ describe('saveRealSyllabusWeeks', () => {
     listWeeksByLesson.mockReset();
     createWeek.mockReset();
     updateWeek.mockReset();
+    deleteWeek.mockReset();
     getRealSyllabusSnapshot.mockReset();
     getRealSyllabusSnapshot.mockResolvedValue(SNAPSHOT);
     createWeek.mockResolvedValue(null);
     updateWeek.mockResolvedValue(null);
+    deleteWeek.mockResolvedValue(null);
   });
 
-  it('retires missing remote weeks, PATCHes Nest ids, then POSTs drafts', async () => {
+  it('POSTs only a new trailing week and skips unchanged remote rows', async () => {
+    const lessonId = '6a8e2b51d2187e0f2fdb784c';
+    listWeeksByLesson.mockResolvedValue([
+      {
+        id: '6a9164b4c208454ddf32ec92',
+        lessonId,
+        priority: 1,
+        status: true,
+      },
+    ]);
+
+    await saveRealSyllabusWeeks({
+      courseOfferingId: lessonId,
+      termId: '6a8e2b51d2187e0f2fdb784d',
+      courseCatalogId: lessonId,
+      weeks: [
+        {
+          id: '6a9164b4c208454ddf32ec92',
+          suffix: 'هفته 1',
+          title: 'هفته 1',
+          weight: 3,
+          status: 'active',
+        },
+        {
+          id: 'week_local_2',
+          suffix: 'هفته 2',
+          title: 'هفته 2',
+          weight: 3,
+          status: 'active',
+        },
+      ],
+    });
+
+    expect(updateWeek).not.toHaveBeenCalled();
+    expect(deleteWeek).not.toHaveBeenCalled();
+    expect(createWeek).toHaveBeenCalledWith({
+      lessonId,
+      priority: 2,
+      status: true,
+    });
+    expect(listWeeksByLesson).toHaveBeenCalledWith(lessonId);
+  });
+
+  it('DELETEs leftover remote weeks removed from the editor', async () => {
     const lessonId = '6a8e2b51d2187e0f2fdb784c';
     listWeeksByLesson.mockResolvedValue([
       {
@@ -70,29 +117,12 @@ describe('saveRealSyllabusWeeks', () => {
           weight: 3,
           status: 'active',
         },
-        {
-          id: 'week_local_2',
-          suffix: 'هفته 2',
-          title: 'هفته 2',
-          weight: 3,
-          status: 'active',
-        },
       ],
     });
 
-    expect(updateWeek.mock.calls[0]).toEqual([
-      '6a9164b4c208454ddf32ec93',
-      { lessonId, priority: 10_001, status: false },
-    ]);
-    expect(updateWeek.mock.calls[1]).toEqual([
-      '6a9164b4c208454ddf32ec92',
-      { lessonId, priority: 1, status: true },
-    ]);
-    expect(createWeek).toHaveBeenCalledWith({
-      lessonId,
-      priority: 2,
-      status: true,
-    });
-    expect(listWeeksByLesson).toHaveBeenCalledWith(lessonId);
+    expect(createWeek).not.toHaveBeenCalled();
+    expect(updateWeek).not.toHaveBeenCalled();
+    expect(deleteWeek).toHaveBeenCalledTimes(1);
+    expect(deleteWeek).toHaveBeenCalledWith('6a9164b4c208454ddf32ec93');
   });
 });

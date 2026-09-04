@@ -347,7 +347,7 @@ export type NestCreateWeekDto = {
   status: boolean;
 };
 
-/** PATCH `/admin/weeks/{id}` — لایو ۲۰۴؛ بدنه مثل create. */
+/** PATCH `/admin/weeks/{id}` — لایو ۲۰۴؛ `lessonId` نفرست (forbidNonWhitelisted). */
 export type NestUpdateWeekDto = {
   lessonId?: string;
   priority?: number;

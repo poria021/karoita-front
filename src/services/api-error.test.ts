@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TimeoutError } from 'ky';
+import { HTTPError, TimeoutError } from 'ky';
 
 import {
   extractApiMessage,
@@ -28,6 +28,12 @@ describe('extractApiMessage', () => {
     expect(
       extractApiMessage({ errors: [{ message: 'province_id is required' }] })
     ).toBe('province_id is required');
+    expect(
+      extractApiMessage({
+        status: 422,
+        errors: { lessonId: 'lessonId must be a mongodb id' },
+      })
+    ).toBe('lessonId must be a mongodb id');
   });
 
   it('falls through to detail then error', () => {
@@ -69,10 +75,10 @@ describe('extractApiMessage', () => {
     ).toBe('title should not be empty');
     expect(
       extractApiMessage({
-        statusCode: 400,
-        errors: { cityId: ['cityId must be a mongodb id'] },
+        status: 422,
+        errors: { lessonId: 'lessonId must be a mongodb id' },
       })
-    ).toBe('cityId must be a mongodb id');
+    ).toBe('lessonId must be a mongodb id');
   });
 
   it('reads nested data/error objects and fa locale maps', () => {
@@ -142,6 +148,31 @@ describe('mapHttpError — timeout vs network', () => {
     );
     await expect(mapHttpError(timeout)).rejects.toMatchObject({
       message: timeout.message,
+    });
+  });
+});
+
+describe('mapHttpError — ky 2 consumed body', () => {
+  it('reads Nest errors from HTTPError.data instead of the status code', async () => {
+    const payload = {
+      status: 422,
+      errors: { lessonId: 'lessonId must be a mongodb id' },
+    };
+    const response = new Response(JSON.stringify(payload), {
+      status: 422,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    await response.arrayBuffer();
+    const error = new HTTPError(
+      response,
+      new Request(SEMESTER_URL, { method: 'POST' }),
+      { method: 'POST', timeout: 10_000 } as never
+    );
+    error.data = payload;
+
+    await expect(mapHttpError(error)).rejects.toMatchObject({
+      message: 'lessonId must be a mongodb id',
+      status: 422,
     });
   });
 });

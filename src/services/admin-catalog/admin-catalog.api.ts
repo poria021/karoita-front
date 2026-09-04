@@ -400,6 +400,11 @@ export const adminCatalogApi = {
     );
   },
 
+  /** DELETE /admin/weeks/{id} — حذف هفته از درس. */
+  deleteWeek(id: string, token?: string) {
+    return apiClient.deleteMaybeJson<null>(NEST_ADMIN_PATHS.weekById(id), token);
+  },
+
   /** POST /admin/settings — ردیف جدید؛ لایو ۲۰۴. GET بعدی آخرین را می‌دهد. */
   createAcademicSettings(body: NestCreateAcademicSettingsDto, token?: string) {
     return apiClient.postMaybeJson<null>(
