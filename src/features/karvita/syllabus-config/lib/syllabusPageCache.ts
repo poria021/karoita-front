@@ -78,6 +78,7 @@ export type SyllabusPageCache = {
   selectedCourse: CourseCatalogItem | null;
   courses: CourseCatalogItem[];
   weeks: SyllabusWeek[];
+  isWeeksPublished?: boolean;
   offeredCatalogIds: string[];
   professorCapacity: string;
   passingThreshold: string;

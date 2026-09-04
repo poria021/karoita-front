@@ -22,6 +22,8 @@ type UseSyllabusWeeksEditorArgs = {
   selectedCourse: CourseCatalogItem | null;
   weeks: SyllabusWeek[];
   setWeeks: Dispatch<SetStateAction<SyllabusWeek[]>>;
+  isWeeksPublished: boolean;
+  setIsWeeksPublished: Dispatch<SetStateAction<boolean>>;
   hasUnsavedChanges: boolean;
   setHasUnsavedChanges: Dispatch<SetStateAction<boolean>>;
   setIsSaving: Dispatch<SetStateAction<boolean>>;
@@ -33,6 +35,8 @@ export function useSyllabusWeeksEditor({
   selectedCourse,
   weeks,
   setWeeks,
+  isWeeksPublished,
+  setIsWeeksPublished,
   hasUnsavedChanges,
   setHasUnsavedChanges,
   setIsSaving,
@@ -97,6 +101,7 @@ export function useSyllabusWeeksEditor({
 
   function addWeek() {
     if (!ensureCourseSelected()) return;
+    if (isWeeksPublished) return;
     const n = weeks.length + 1;
     const label = `هفته ${n}`;
     const next: SyllabusWeek = {
@@ -118,6 +123,7 @@ export function useSyllabusWeeksEditor({
 
   function deleteWeek(target: SyllabusWeek) {
     if (!ensureCourseSelected()) return;
+    if (isWeeksPublished) return;
     const previous = weeks;
     const label = toPersianDigits(target.title || target.suffix);
 
@@ -151,14 +157,19 @@ export function useSyllabusWeeksEditor({
       publishSyllabusSnapshot(queryClient, snapshot);
       clearSyllabusWeeksDraft();
       setHasUnsavedChanges(false);
+      setIsWeeksPublished(true);
       try {
-        const nextWeeks = await SyllabusConfigService.getWeeks(
+        const loaded = await SyllabusConfigService.getWeeks(
           selectedTermId,
           selectedCourse.id
         );
-        setWeeks(nextWeeks);
-      } catch {
-        // ذخیره موفق بود؛ شناسهٔ هفته تا GET بعدی محلی می‌ماند.
+        setWeeks(loaded.weeks);
+        setIsWeeksPublished(loaded.isPublished);
+        if (loaded.serverAlert) {
+          toast.error(loaded.serverAlert);
+        }
+      } catch (err) {
+        toast.error(errorMessage(err, 'بارگذاری سرفصل پس از ثبت ناموفق بود.'));
       }
       toast.success('برنامه سرفصل‌های هفتگی با موفقیت ثبت نهایی شد.');
     } catch (err) {

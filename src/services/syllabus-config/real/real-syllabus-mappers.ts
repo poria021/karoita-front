@@ -1,3 +1,4 @@
+import { extractApiMessage } from '@/services/api-error';
 import type {
   NestAcademicSettings,
   NestCreateSemesterDto,
@@ -228,6 +229,34 @@ export function parseNestLessonWeekList(raw: unknown): NestLessonWeek[] {
     .sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
 }
 
+function nestWeeksServerAlert(raw: unknown): string | null {
+  if (Array.isArray(raw) || !isRecord(raw)) return null;
+  const doc = unwrapNestDoc(raw);
+  if (!doc) return null;
+  const hasErrorField =
+    doc.success === false ||
+    doc.error !== undefined ||
+    (Array.isArray(doc.errors) && doc.errors.length > 0);
+  if (!hasErrorField) return null;
+  return extractApiMessage(raw);
+}
+
+export type NestLessonWeeksGet = {
+  weeks: NestLessonWeek[];
+  isPublished: boolean;
+  serverAlert: string | null;
+};
+
+/** پاسخ GET هفته‌های درس: آرایه، یا پاکت با `data`/`weeks` و خطاهای سرور. */
+export function parseNestLessonWeeksGet(raw: unknown): NestLessonWeeksGet {
+  const weeks = parseNestLessonWeekList(raw);
+  return {
+    weeks,
+    isPublished: weeks.length > 0,
+    serverAlert: nestWeeksServerAlert(raw),
+  };
+}
+
 /**
  * سال تحصیلی لایو مخلوط است (`۱۴۰۵-۱۴۰۶`، `1405-1407`، `۱۴۰۵ -۱۴۰7`).
  * state فرم و payload نوشتن همیشه `YYYY-YYYY` انگلیسی است.
@@ -429,8 +458,8 @@ function patchBody(
 }
 
 /**
- * ردیف جدید `POST /admin/weeks`؛ موجود `PATCH /admin/weeks/{id}`.
- * حذف از ادیتور `DELETE` است؛ آرشیو داخل جدول PATCH با `status: false` است.
+ * پیکربندی اول (GET خالی): فقط `POST`.
+ * بعد از ثبت، GET هفته دارد: فقط `PATCH` (بایگانی/بازیابی)؛ افزودن و حذف نیست.
  */
 export function planNestWeekWrites(
   lessonId: string,
@@ -491,6 +520,10 @@ export function planNestWeekWrites(
   for (const [id] of remoteById) {
     if (used.has(id)) continue;
     deletions.push(id);
+  }
+
+  if (remote.length > 0) {
+    return { creates: [], updates, deletions: [] };
   }
 
   return { creates, updates, deletions };

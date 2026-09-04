@@ -28,6 +28,17 @@ export type SyllabusWeek = {
   status: SyllabusWeekStatus;
 };
 
+/**
+ * GET `/admin/weeks/lesson/{id}` خالی = پیکربندی اول (افزودن/حذف).
+ * اگر هفته برگردد ساختار قفل است و فقط بایگانی/بازیابی مجاز است.
+ */
+export type LessonWeeksLoad = {
+  weeks: SyllabusWeek[];
+  isPublished: boolean;
+  /** متن خطا/هشدار خود پاسخ GET، اگر پاکت داشته باشد. */
+  serverAlert: string | null;
+};
+
 /** آیتم کاتالوگ درس — هویت پایدار `id`؛ عنوان فقط نمایش. */
 export type CourseCatalogItem = {
   id: string;

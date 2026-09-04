@@ -20,7 +20,6 @@ import { cn } from '@/lib/utils';
 import type { SyllabusWeek } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
 
-import { SYLLABUS_WEEK_DELETE_ENABLED } from '../constants';
 import { WeeklySyllabusWeekRow } from './WeeklySyllabusWeekRow';
 
 interface WeeklySyllabusTableProps {
@@ -29,6 +28,7 @@ interface WeeklySyllabusTableProps {
   isLoading: boolean;
   hasUnsavedChanges: boolean;
   isSaving: boolean;
+  isWeeksPublished: boolean;
   className?: string;
   onWeightChange: (weekId: string, weight: number) => void;
   onArchiveWeek: (week: SyllabusWeek) => void;
@@ -44,6 +44,7 @@ export function WeeklySyllabusTable({
   isLoading,
   hasUnsavedChanges,
   isSaving,
+  isWeeksPublished,
   className,
   onWeightChange,
   onArchiveWeek,
@@ -54,8 +55,12 @@ export function WeeklySyllabusTable({
 }: WeeklySyllabusTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, weeks.length);
   const canEdit = Boolean(courseTitle) && !isLoading;
+  const canChangeWeekSet = canEdit && !isWeeksPublished;
   const lastWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
   const hasLastWeek = Boolean(lastWeek);
+  const structureLockedHint = isWeeksPublished
+    ? 'پس از ثبت نهایی فقط بایگانی هفته ممکن است.'
+    : undefined;
 
   return (
     <KvCard
@@ -77,7 +82,8 @@ export function WeeklySyllabusTable({
             color="success"
             size="sm"
             className="w-full sm:w-auto"
-            disabled={!canEdit}
+            disabled={!canChangeWeekSet}
+            title={structureLockedHint}
             onClick={onAddWeek}
             icon={<FaIcon icon={faIcons.plus} size="xs" />}
           >
@@ -90,17 +96,11 @@ export function WeeklySyllabusTable({
             appearance="ghost"
             size="sm"
             className="w-full text-kv-danger sm:w-auto"
-            disabled={
-              !SYLLABUS_WEEK_DELETE_ENABLED || !canEdit || !hasLastWeek
-            }
+            disabled={!canChangeWeekSet || !hasLastWeek}
             aria-label="حذف آخرین هفته"
-            title={
-              SYLLABUS_WEEK_DELETE_ENABLED
-                ? undefined
-                : 'حذف هفته وقتی مسیر DELETE روی سرور آماده شود فعال می‌شود.'
-            }
+            title={structureLockedHint}
             onClick={() => {
-              if (!SYLLABUS_WEEK_DELETE_ENABLED || !lastWeek) return;
+              if (!canChangeWeekSet || !lastWeek) return;
               onDeleteWeek(lastWeek);
             }}
             icon={

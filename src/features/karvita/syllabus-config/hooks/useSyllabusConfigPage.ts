@@ -32,6 +32,8 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     setCourses,
     weeks,
     setWeeks,
+    isWeeksPublished,
+    setIsWeeksPublished,
     hasUnsavedChanges,
     setHasUnsavedChanges,
     offeredCatalogIds,
@@ -81,6 +83,7 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     setSelectedTermId,
     setSelectedCourse,
     setWeeks,
+    setIsWeeksPublished,
     setHasUnsavedChanges,
     loadTermContext,
     clearSyllabusWeeksDraft: weeksDraft.clearDraft,
@@ -100,6 +103,7 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
       setSelectedCourse(null);
       setCourses([]);
       setWeeks([]);
+      setIsWeeksPublished(false);
       setOfferedCatalogIds(new Set());
       weeksDraft.clearDraft();
       setHasUnsavedChanges(false);
@@ -116,6 +120,7 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     offeredCatalogIds,
     setTerms,
     setWeeks,
+    setIsWeeksPublished,
     setOfferedCatalogIds,
     setHasUnsavedChanges,
   });
@@ -125,6 +130,8 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     selectedCourse,
     weeks,
     setWeeks,
+    isWeeksPublished,
+    setIsWeeksPublished,
     hasUnsavedChanges,
     setHasUnsavedChanges,
     setIsSaving,
@@ -157,6 +164,7 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     selectCourse: navigation.selectCourse,
     offeredCatalogIds,
     weeks,
+    isWeeksPublished,
     hasUnsavedChanges,
     isLoading,
     isSaving,

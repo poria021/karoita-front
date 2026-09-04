@@ -8,7 +8,7 @@ import {
   lessonsOfTerm,
   mergeTermsWithLessonBundles,
   parseNestAcademicSettings,
-  parseNestLessonWeekList,
+  parseNestLessonWeeksGet,
   parseNestSemester,
   parseNestSemesterBundle,
   parseNestSemesterList,
@@ -23,8 +23,8 @@ import type {
   AcademicTerm,
   CourseCatalogItem,
   CourseOfferingListItem,
+  LessonWeeksLoad,
   SyllabusConfigSnapshot,
-  SyllabusWeek,
 } from '@/types/syllabus-config';
 import type { NestSemesterWithLessons } from '@/types/nest-admin';
 
@@ -135,26 +135,24 @@ export async function listRealOfferingsForTerm(
 }
 
 /**
- * `GET /admin/weeks/lesson/{lessonId}`. اگر خالی بود، هفته‌های تو در تو روی
- * `GET /admin/semesters_all` (تا وقتی PUT به مسیر درس ننشیند بعضی کپی‌ها خالی‌اند).
+ * `GET /admin/weeks/lesson/{lessonId}` منبع قفل ساختار است.
+ * خالی = هنوز پیکربندی نشده؛ غیرخالی = فقط بایگانی.
  */
 export async function getRealWeeksForLesson(
-  termId: string,
+  _termId: string,
   lessonId: string
-): Promise<SyllabusWeek[]> {
-  const rows = parseNestLessonWeekList(
+): Promise<LessonWeeksLoad> {
+  const parsed = parseNestLessonWeeksGet(
     await adminCatalogApi.listWeeksByLesson(lessonId)
   );
-  if (rows.length > 0) {
-    return rows.map((week, index) =>
-      toSyllabusWeek(week, index, DEFAULT_WEEK_WEIGHT)
-    );
+  if (parsed.serverAlert && !parsed.isPublished) {
+    throw new ApiClientError(parsed.serverAlert);
   }
-  const scoped = lessonsOfTerm(await listRealSemesterBundles(), termId);
-  const lesson = scoped?.lessons.find(
-    (item) => (item.id || item._id) === lessonId
-  );
-  return parseNestLessonWeekList(lesson?.weeks ?? []).map((week, index) =>
-    toSyllabusWeek(week, index, DEFAULT_WEEK_WEIGHT)
-  );
+  return {
+    weeks: parsed.weeks.map((week, index) =>
+      toSyllabusWeek(week, index, DEFAULT_WEEK_WEIGHT)
+    ),
+    isPublished: parsed.isPublished,
+    serverAlert: parsed.isPublished ? parsed.serverAlert : null,
+  };
 }

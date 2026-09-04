@@ -45,16 +45,9 @@ describe('saveRealSyllabusWeeks', () => {
     deleteWeek.mockResolvedValue(null);
   });
 
-  it('POSTs only a new trailing week and skips unchanged remote rows', async () => {
+  it('POSTs only when GET is empty; extra local weeks on a published set are ignored', async () => {
     const lessonId = '6a8e2b51d2187e0f2fdb784c';
-    listWeeksByLesson.mockResolvedValue([
-      {
-        id: '6a9164b4c208454ddf32ec92',
-        lessonId,
-        priority: 1,
-        status: true,
-      },
-    ]);
+    listWeeksByLesson.mockResolvedValue([]);
 
     await saveRealSyllabusWeeks({
       courseOfferingId: lessonId,
@@ -62,7 +55,7 @@ describe('saveRealSyllabusWeeks', () => {
       courseCatalogId: lessonId,
       weeks: [
         {
-          id: '6a9164b4c208454ddf32ec92',
+          id: 'week_local_1',
           suffix: 'هفته 1',
           title: 'هفته 1',
           weight: 3,
@@ -80,15 +73,11 @@ describe('saveRealSyllabusWeeks', () => {
 
     expect(updateWeek).not.toHaveBeenCalled();
     expect(deleteWeek).not.toHaveBeenCalled();
-    expect(createWeek).toHaveBeenCalledWith({
-      lessonId,
-      priority: 2,
-      status: true,
-    });
+    expect(createWeek).toHaveBeenCalledTimes(2);
     expect(listWeeksByLesson).toHaveBeenCalledWith(lessonId);
   });
 
-  it('DELETEs leftover remote weeks removed from the editor', async () => {
+  it('does not DELETE leftover remote weeks after the set is published', async () => {
     const lessonId = '6a8e2b51d2187e0f2fdb784c';
     listWeeksByLesson.mockResolvedValue([
       {
@@ -122,7 +111,6 @@ describe('saveRealSyllabusWeeks', () => {
 
     expect(createWeek).not.toHaveBeenCalled();
     expect(updateWeek).not.toHaveBeenCalled();
-    expect(deleteWeek).toHaveBeenCalledTimes(1);
-    expect(deleteWeek).toHaveBeenCalledWith('6a9164b4c208454ddf32ec93');
+    expect(deleteWeek).not.toHaveBeenCalled();
   });
 });

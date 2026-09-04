@@ -133,8 +133,8 @@ export async function updateRealTermGates(
 }
 
 /**
- * `POST /admin/weeks` برای ردیف جدید؛ `PATCH /admin/weeks/{id}` برای موجود.
- * هفتهٔ حذف‌شده از ادیتور `DELETE /admin/weeks/{id}` است.
+ * پیکربندی اول: `POST /admin/weeks`.
+ * بعد از GET غیرخالی: فقط `PATCH` برای بایگانی/بازیابی.
  */
 export async function saveRealSyllabusWeeks(
   input: SaveSyllabusWeeksInput

@@ -61,6 +61,7 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
               offeredCatalogIds={page.offeredCatalogIds}
               toggleCourseOffering={page.toggleCourseOffering}
               weeks={page.weeks}
+              isWeeksPublished={page.isWeeksPublished}
               isLoading={page.isLoading}
               hasUnsavedChanges={page.hasUnsavedChanges}
               isSaving={page.isSaving}

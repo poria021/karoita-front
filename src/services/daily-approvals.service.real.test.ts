@@ -24,16 +24,26 @@ vi.mock(
 );
 
 vi.mock('@/services/syllabus-config/real/real-syllabus-reads', () => ({
-  getRealWeeksForLesson: vi.fn(async () => [
-    { id: 'w1', suffix: 'هفته 1', title: 'هفته 1', weight: 3, status: 'active' },
-    {
-      id: 'w2',
-      suffix: 'هفته 2',
-      title: 'هفته 2',
-      weight: 3,
-      status: 'archived',
-    },
-  ]),
+  getRealWeeksForLesson: vi.fn(async () => ({
+    weeks: [
+      {
+        id: 'w1',
+        suffix: 'هفته 1',
+        title: 'هفته 1',
+        weight: 3,
+        status: 'active',
+      },
+      {
+        id: 'w2',
+        suffix: 'هفته 2',
+        title: 'هفته 2',
+        weight: 3,
+        status: 'archived',
+      },
+    ],
+    isPublished: true,
+    serverAlert: null,
+  })),
 }));
 
 describe('DailyApprovalsService real fail-closed', () => {

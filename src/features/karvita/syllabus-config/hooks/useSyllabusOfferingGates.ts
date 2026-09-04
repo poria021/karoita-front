@@ -23,6 +23,7 @@ type UseSyllabusOfferingGatesArgs = {
   offeredCatalogIds: Set<string>;
   setTerms: Dispatch<SetStateAction<AcademicTerm[]>>;
   setWeeks: Dispatch<SetStateAction<SyllabusWeek[]>>;
+  setIsWeeksPublished: Dispatch<SetStateAction<boolean>>;
   setOfferedCatalogIds: Dispatch<SetStateAction<Set<string>>>;
   setHasUnsavedChanges: Dispatch<SetStateAction<boolean>>;
 };
@@ -34,6 +35,7 @@ export function useSyllabusOfferingGates({
   offeredCatalogIds,
   setTerms,
   setWeeks,
+  setIsWeeksPublished,
   setOfferedCatalogIds,
   setHasUnsavedChanges,
 }: UseSyllabusOfferingGatesArgs) {
@@ -57,11 +59,15 @@ export function useSyllabusOfferingGates({
     const offerings = await SyllabusConfigService.listOfferings(selectedTermId);
     setOfferedCatalogIds(offeredCatalogIdsFromList(offerings));
     if (selectedCourse?.id === course.id) {
-      const nextWeeks = await SyllabusConfigService.getWeeks(
+      const loaded = await SyllabusConfigService.getWeeks(
         selectedTermId,
         course.id
       );
-      setWeeks(nextWeeks);
+      setWeeks(loaded.weeks);
+      setIsWeeksPublished(loaded.isPublished);
+      if (loaded.serverAlert) {
+        toast.error(loaded.serverAlert);
+      }
       setHasUnsavedChanges(false);
     }
   }

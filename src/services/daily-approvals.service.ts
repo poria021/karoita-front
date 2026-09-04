@@ -109,7 +109,7 @@ export const DailyApprovalsService = {
     courseFilter: Exclude<DailyApprovalCourseFilter, 'all'>;
   }): Promise<DailyApprovalWeekOption[]> {
     if (!isMockApiMode()) {
-      const weeks = await getRealWeeksForLesson(input.termId, input.lessonId);
+      const { weeks } = await getRealWeeksForLesson(input.termId, input.lessonId);
       return toDailyApprovalWeekOptions(
         weeks.filter((week) => week.status !== 'archived')
       );

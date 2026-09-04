@@ -23,6 +23,7 @@ type CourseOfferingsPanelProps = Pick<
   | 'offeredCatalogIds'
   | 'toggleCourseOffering'
   | 'weeks'
+  | 'isWeeksPublished'
   | 'isLoading'
   | 'hasUnsavedChanges'
   | 'isSaving'
@@ -81,6 +82,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
         <WeeklySyllabusTable
           courseTitle={selectedCourse?.title ?? null}
           weeks={weeks}
+          isWeeksPublished={hasAudienceTerm ? props.isWeeksPublished : false}
           isLoading={props.isLoading}
           hasUnsavedChanges={props.hasUnsavedChanges}
           isSaving={props.isSaving}

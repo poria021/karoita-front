@@ -51,6 +51,7 @@ import type {
   CourseOfferingKind,
   CourseOfferingListItem,
   DeactivateOfferingInput,
+  LessonWeeksLoad,
   SaveSyllabusWeeksInput,
   SyllabusConfigSnapshot,
   SyllabusWeek,
@@ -217,16 +218,21 @@ export const SyllabusConfigService = {
   async getWeeks(
     termId: string,
     courseCatalogId: string
-  ): Promise<SyllabusWeek[]> {
+  ): Promise<LessonWeeksLoad> {
     gateSyllabus();
     if (!IS_MOCK_MODE) {
       return getRealWeeksForLesson(termId, courseCatalogId);
     }
-    return readWeeksFromSnapshot(
+    const weeks = readWeeksFromSnapshot(
       readSyllabusSnapshot(),
       termId,
       courseCatalogId
     );
+    return {
+      weeks,
+      isPublished: weeks.length > 0,
+      serverAlert: null,
+    };
   },
 
   /** `PATCH /admin/lessons/:id/status` با `{ status: true }` */

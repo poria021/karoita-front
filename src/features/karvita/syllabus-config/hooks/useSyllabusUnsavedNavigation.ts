@@ -22,6 +22,7 @@ type UseSyllabusUnsavedNavigationArgs = {
   setSelectedTermId: (termId: string) => void;
   setSelectedCourse: (course: CourseCatalogItem | null) => void;
   setWeeks: (weeks: SyllabusWeek[]) => void;
+  setIsWeeksPublished: (value: boolean) => void;
   setHasUnsavedChanges: (value: boolean) => void;
   loadTermContext: (termId: string, preferredCourseId?: string) => Promise<unknown>;
   clearSyllabusWeeksDraft: () => void;
@@ -37,6 +38,7 @@ export function useSyllabusUnsavedNavigation({
   setSelectedTermId,
   setSelectedCourse,
   setWeeks,
+  setIsWeeksPublished,
   setHasUnsavedChanges,
   loadTermContext,
   clearSyllabusWeeksDraft,
@@ -68,11 +70,15 @@ export function useSyllabusUnsavedNavigation({
     if (!selectedTermId) return;
     setSelectedCourse(course);
     try {
-      const nextWeeks = await SyllabusConfigService.getWeeks(
+      const loaded = await SyllabusConfigService.getWeeks(
         selectedTermId,
         course.id
       );
-      setWeeks(nextWeeks);
+      setWeeks(loaded.weeks);
+      setIsWeeksPublished(loaded.isPublished);
+      if (loaded.serverAlert) {
+        toast.error(loaded.serverAlert);
+      }
       clearSyllabusWeeksDraft();
       setHasUnsavedChanges(false);
     } catch (err) {

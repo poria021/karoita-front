@@ -3,6 +3,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
+import { toast } from 'sonner';
+
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type {
@@ -31,6 +33,7 @@ type TermContextResult = {
   courses: CourseCatalogItem[];
   selectedCourse: CourseCatalogItem | null;
   weeks: SyllabusWeek[];
+  isWeeksPublished: boolean;
   offeredCatalogIds: Set<string>;
 };
 
@@ -49,6 +52,7 @@ export function useSyllabusPageLoader({
     selectedCourse,
     courses,
     weeks,
+    isWeeksPublished,
     offeredCatalogIds,
     hasUnsavedChanges,
     setTerms,
@@ -56,6 +60,7 @@ export function useSyllabusPageLoader({
     setSelectedCourse,
     setCourses,
     setWeeks,
+    setIsWeeksPublished,
     setHasUnsavedChanges,
     setOfferedCatalogIds,
     setProfessorCapacity,
@@ -76,6 +81,7 @@ export function useSyllabusPageLoader({
     selectedCourse,
     courses,
     weeks,
+    isWeeksPublished,
     offeredCatalogIds,
     hasUnsavedChanges,
   });
@@ -91,6 +97,7 @@ export function useSyllabusPageLoader({
       selectedCourse,
       courses,
       weeks,
+      isWeeksPublished,
       offeredCatalogIds,
       hasUnsavedChanges,
     };
@@ -98,6 +105,7 @@ export function useSyllabusPageLoader({
     audience,
     courses,
     hasUnsavedChanges,
+    isWeeksPublished,
     offeredCatalogIds,
     selectedCourse,
     selectedTermId,
@@ -118,6 +126,7 @@ export function useSyllabusPageLoader({
       selectedCourse: current.selectedCourse,
       courses: current.courses,
       weeks: current.weeks,
+      isWeeksPublished: current.isWeeksPublished,
       offeredCatalogIds: [...current.offeredCatalogIds],
       hasUnsavedChanges: current.hasUnsavedChanges,
     };
@@ -129,12 +138,14 @@ export function useSyllabusPageLoader({
     setSelectedCourse(pane.selectedCourse);
     setCourses(pane.courses);
     setWeeks(pane.weeks);
+    setIsWeeksPublished(pane.isWeeksPublished);
     setOfferedCatalogIds(offered);
     setHasUnsavedChanges(pane.hasUnsavedChanges);
     return {
       courses: pane.courses,
       selectedCourse: pane.selectedCourse,
       weeks: pane.weeks,
+      isWeeksPublished: pane.isWeeksPublished,
       offeredCatalogIds: offered,
     };
   }
@@ -145,6 +156,7 @@ export function useSyllabusPageLoader({
       selectedCourse: result.selectedCourse,
       courses: result.courses,
       weeks: result.weeks,
+      isWeeksPublished: result.isWeeksPublished,
       offeredCatalogIds: [...result.offeredCatalogIds],
       hasUnsavedChanges: false,
     };
@@ -206,22 +218,16 @@ export function useSyllabusPageLoader({
       setSelectedTermId(termId);
 
       let nextWeeks: SyllabusWeek[] = [];
-      if (nextCourse && snapshot) {
-        nextWeeks = SyllabusConfigService.weeksFromSnapshot(
-          snapshot,
-          termId,
-          nextCourse.id
-        );
-        setWeeks(nextWeeks);
-      } else if (!nextCourse) {
+      let nextPublished = false;
+      if (!nextCourse) {
         setWeeks([]);
+        setIsWeeksPublished(false);
       }
 
       setHasUnsavedChanges(false);
-      setIsLoading(false);
 
       if (nextCourse) {
-        const remoteWeeks = await SyllabusConfigService.getWeeks(
+        const loaded = await SyllabusConfigService.getWeeks(
           termId,
           nextCourse.id
         );
@@ -230,17 +236,24 @@ export function useSyllabusPageLoader({
             courses: courseList,
             selectedCourse: nextCourse,
             weeks: nextWeeks,
+            isWeeksPublished: nextPublished,
             offeredCatalogIds: offered,
           };
         }
-        nextWeeks = remoteWeeks;
-        setWeeks(remoteWeeks);
+        nextWeeks = loaded.weeks;
+        nextPublished = loaded.isPublished;
+        setWeeks(loaded.weeks);
+        setIsWeeksPublished(loaded.isPublished);
+        if (loaded.serverAlert) {
+          toast.error(loaded.serverAlert);
+        }
       }
 
       const result: TermContextResult = {
         courses: courseList,
         selectedCourse: nextCourse,
         weeks: nextWeeks,
+        isWeeksPublished: nextPublished,
         offeredCatalogIds: offered,
       };
       rememberTermPane(result, termId);
@@ -292,6 +305,7 @@ export function useSyllabusPageLoader({
         selectedCourse: null,
         courses: [],
         weeks: [],
+        isWeeksPublished: false,
         offeredCatalogIds: new Set(),
         professorCapacity: String(snapshot.globalProfessorCapacity),
         passingThreshold: String(snapshot.passingScoreThreshold),
@@ -310,6 +324,7 @@ export function useSyllabusPageLoader({
         selectedCourse: ctx.selectedCourse,
         courses: ctx.courses,
         weeks: ctx.weeks,
+        isWeeksPublished: ctx.isWeeksPublished,
         offeredCatalogIds: ctx.offeredCatalogIds,
         professorCapacity: String(snapshot.globalProfessorCapacity),
         passingThreshold: String(snapshot.passingScoreThreshold),
@@ -318,6 +333,7 @@ export function useSyllabusPageLoader({
       setCourses([]);
       setSelectedCourse(null);
       setWeeks([]);
+      setIsWeeksPublished(false);
       setOfferedCatalogIds(new Set());
       setHasUnsavedChanges(false);
       setIsLoading(false);
@@ -328,6 +344,7 @@ export function useSyllabusPageLoader({
         selectedCourse: null,
         courses: [],
         weeks: [],
+        isWeeksPublished: false,
         offeredCatalogIds: new Set(),
         professorCapacity: String(snapshot.globalProfessorCapacity),
         passingThreshold: String(snapshot.passingScoreThreshold),

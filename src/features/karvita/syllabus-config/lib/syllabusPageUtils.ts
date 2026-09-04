@@ -36,6 +36,7 @@ export type SyllabusTermPane = {
   selectedCourse: CourseCatalogItem | null;
   courses: CourseCatalogItem[];
   weeks: SyllabusWeek[];
+  isWeeksPublished: boolean;
   offeredCatalogIds: string[];
   hasUnsavedChanges: boolean;
 };
