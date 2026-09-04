@@ -124,7 +124,6 @@ export function IdentityForm({
     } catch (error) {
       setSubmitError(fileUploadUserMessage(error));
     }
-    }
   });
 
   const isBusy = form.formState.isSubmitting;
