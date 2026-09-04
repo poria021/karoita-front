@@ -292,7 +292,7 @@ export const SyllabusConfigService = {
     });
   },
 
-  /** `PUT /admin/lessons/{lessonId}/weeks` — جایگزینی همهٔ هفته‌های درس. */
+  /** `POST /admin/weeks` و `PATCH /admin/weeks/{id}` برای درس انتخاب‌شده. */
   async saveSyllabusWeeks(
     input: SaveSyllabusWeeksInput
   ): Promise<SyllabusConfigSnapshot> {

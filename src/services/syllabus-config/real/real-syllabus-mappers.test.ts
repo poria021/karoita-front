@@ -307,11 +307,13 @@ describe('real-syllabus-mappers offerings', () => {
           status: true,
         },
       },
+    ]);
+    expect(plan.retirements).toEqual([
       {
         id: '6a9164b4c208454ddf32ec93',
         body: {
           lessonId: '6a8e2b51d2187e0f2fdb784c',
-          priority: 2,
+          priority: 10_001,
           status: false,
         },
       },

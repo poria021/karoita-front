@@ -402,7 +402,12 @@ export function toNestLessonWeeksBody(weeks: SyllabusWeek[]): NestPutLessonWeeks
 export type NestWeekWritePlan = {
   creates: NestCreateWeekDto[];
   updates: Array<{ id: string; body: NestUpdateWeekDto }>;
+  /** هفته‌ای که از ادیتور حذف شده — اول PATCH می‌شود تا priority ۱…N آزاد شود. */
+  retirements: Array<{ id: string; body: NestUpdateWeekDto }>;
 };
+
+/** بالاتر از طول معمول ترم تا با priority زنده برخورد نکند. */
+const RETIRED_WEEK_PRIORITY_BASE = 10_000;
 
 /**
  * ردیف جدید `POST /admin/weeks`؛ موجود `PATCH /admin/weeks/{id}`.
@@ -421,6 +426,7 @@ export function planNestWeekWrites(
   const used = new Set<string>();
   const creates: NestCreateWeekDto[] = [];
   const updates: Array<{ id: string; body: NestUpdateWeekDto }> = [];
+  const retirements: Array<{ id: string; body: NestUpdateWeekDto }> = [];
 
   weeks.forEach((week, index) => {
     const priority = index + 1;
@@ -436,19 +442,21 @@ export function planNestWeekWrites(
     creates.push({ lessonId, priority, status });
   });
 
-  for (const [id, week] of remoteById) {
+  let retiredSlot = RETIRED_WEEK_PRIORITY_BASE;
+  for (const [id] of remoteById) {
     if (used.has(id)) continue;
-    updates.push({
+    retiredSlot += 1;
+    retirements.push({
       id,
       body: {
         lessonId,
-        priority: week.priority ?? 99,
+        priority: retiredSlot,
         status: false,
       },
     });
   }
 
-  return { creates, updates };
+  return { creates, updates, retirements };
 }
 
 export function mergeTermsWithLessonBundles(

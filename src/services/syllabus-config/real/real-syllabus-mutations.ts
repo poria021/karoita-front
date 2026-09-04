@@ -2,8 +2,9 @@ import { reloadAfterWrite } from '@/lib/post-commit-refresh';
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import { ApiClientError } from '@/services/api-error';
 import {
+  parseNestLessonWeekList,
   parseNestSemester,
-  toNestLessonWeeksBody,
+  planNestWeekWrites,
   toNestSemesterDto,
   toNestSemesterWriteDto,
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
@@ -132,15 +133,27 @@ export async function updateRealTermGates(
 }
 
 /**
- * `PUT /admin/lessons/{lessonId}/weeks` — جایگزینی همهٔ هفته‌ها در یک رفت‌وبرگشت.
- * POST/PATCH تکی `/admin/weeks` برای به‌روزرسانی جزئی در HTTP مانده‌اند.
+ * `POST /admin/weeks` برای ردیف جدید؛ `PATCH /admin/weeks/{id}` برای موجود.
+ * اول هفتهٔ حذف‌شده از ادیتور بایگانی می‌شود تا priority یکتا آزاد شود.
  */
 export async function saveRealSyllabusWeeks(
   input: SaveSyllabusWeeksInput
 ): Promise<SyllabusConfigSnapshot> {
-  await adminCatalogApi.putLessonWeeks(
-    input.courseCatalogId,
-    toNestLessonWeeksBody(input.weeks)
+  const lessonId = input.courseCatalogId;
+  const remote = parseNestLessonWeekList(
+    await adminCatalogApi.listWeeksByLesson(lessonId)
   );
+  const plan = planNestWeekWrites(lessonId, input.weeks, remote);
+
+  for (const row of plan.retirements) {
+    await adminCatalogApi.updateWeek(row.id, row.body);
+  }
+  for (const row of plan.updates) {
+    await adminCatalogApi.updateWeek(row.id, row.body);
+  }
+  for (const body of plan.creates) {
+    await adminCatalogApi.createWeek(body);
+  }
+
   return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
