@@ -46,6 +46,51 @@ describe('extractApiMessage', () => {
       })
     ).toBe('capacity must not exceed generalProfessorCapacity');
   });
+
+  it('prefers errors/constraints over a generic HTTP message so the toast is not 400', () => {
+    expect(
+      extractApiMessage({
+        statusCode: 400,
+        message: 'Bad Request',
+        error: 'Bad Request',
+        errors: { title: 'این عنوان قبلاً ثبت شده است.' },
+      })
+    ).toBe('این عنوان قبلاً ثبت شده است.');
+    expect(
+      extractApiMessage({
+        statusCode: 400,
+        message: [
+          {
+            property: 'title',
+            constraints: { isNotEmpty: 'title should not be empty' },
+          },
+        ],
+      })
+    ).toBe('title should not be empty');
+    expect(
+      extractApiMessage({
+        statusCode: 400,
+        errors: { cityId: ['cityId must be a mongodb id'] },
+      })
+    ).toBe('cityId must be a mongodb id');
+  });
+
+  it('reads nested data/error objects and fa locale maps', () => {
+    expect(
+      extractApiMessage({
+        statusCode: 400,
+        data: { message: 'ظرفیت از حد مجاز بیشتر است.' },
+      })
+    ).toBe('ظرفیت از حد مجاز بیشتر است.');
+    expect(
+      extractApiMessage({
+        error: { message: 'ترم تکراری است.', code: 'SEMESTER_DUPLICATE' },
+      })
+    ).toBe('ترم تکراری است.');
+    expect(
+      extractApiMessage({ message: { fa: 'کد تایید نامعتبر است.', en: 'invalid otp' } })
+    ).toBe('کد تایید نامعتبر است.');
+  });
 });
 
 describe('localizeApiError — server text only', () => {
