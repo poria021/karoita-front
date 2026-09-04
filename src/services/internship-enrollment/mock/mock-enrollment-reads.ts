@@ -21,6 +21,7 @@ import {
   buildWeeklySessions,
 } from '@/services/internship-enrollment/mock/mock-enrollment-weekly';
 import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
+import { catalogIdForKind } from '@/services/syllabus-config/syllabus-mappers';
 import {
   pickActiveTermForKind,
   resolveEnrollmentSyllabusContext,
@@ -123,6 +124,7 @@ export function resolveEnrollmentPageState(
     courseName: courseNameForKind(kind),
     termTitle: context.termTitle,
     termId: context.termId,
+    lessonId: catalogIdForKind(kind, level),
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'
         ? buildEnrollmentSummary({

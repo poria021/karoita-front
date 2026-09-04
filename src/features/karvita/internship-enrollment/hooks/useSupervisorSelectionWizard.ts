@@ -49,6 +49,8 @@ export function useSupervisorSelectionWizard({
       query: listQuery,
       province,
       college,
+      semesterId: state.termId,
+      lessonId: state.lessonId ?? undefined,
     })
       .then((items) => {
         if (!cancelled) setSupervisors(items);
@@ -79,6 +81,8 @@ export function useSupervisorSelectionWizard({
     started,
     state.kind,
     state.level,
+    state.lessonId,
+    state.termId,
   ]);
 
   const handleProvinceChange = useCallback(

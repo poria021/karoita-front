@@ -186,6 +186,8 @@ export type InternshipEnrollmentPageState = {
   courseName: string;
   termTitle: string;
   termId: string;
+  /** شناسهٔ درس Nest برای GET professors؛ در mock همان catalog id است. */
+  lessonId: string | null;
   enrollment: InternshipEnrollmentSummary | null;
   selection: {
     scope: InternshipSelectionScope;
@@ -211,6 +213,8 @@ export type ListEligibleSupervisorsInput = {
   query: string;
   province: string;
   college: string;
+  semesterId?: string;
+  lessonId?: string;
 };
 
 export type EnrollWithSupervisorInput = {

@@ -16,6 +16,10 @@ import {
   saveWeeklyReportDraft,
   submitWeeklyReport,
 } from '@/services/internship-enrollment/mock/mock-enrollment-store';
+import {
+  getRealEnrollmentPageState,
+  listRealEligibleSupervisors,
+} from '@/services/internship-enrollment/real/real-enrollment-reads';
 import type {
   AssignDelayedSchoolMentorInput,
   EnrollWithSupervisorInput,
@@ -45,7 +49,8 @@ function gateEnrollment(): 'mock' | never {
 }
 
 /**
- * ثبت‌نام کارورزی / مهارت‌آموزی. در real fail-closed است؛ ویرایشگر PDF هفته هنوز mock است.
+ * ثبت‌نام کارورزی / مهارت‌آموزی.
+ * real: ترم باز و فهرست استاد از `student-enrollments`؛ ثبت‌نام و گزارش هفته هنوز stub است.
  */
 export const InternshipEnrollmentService = {
   /** نقش → نوع درس؛ در Nest هم همین نگاشت پایدار است. */
@@ -70,17 +75,24 @@ export const InternshipEnrollmentService = {
     };
   },
 
-  /** ترم و گیت‌ها از snapshot سرفصل می‌آیند، نه از Nest جدا. */
+  /** real: GET `open-course-selection`؛ mock: snapshot سرفصل. */
   async getEnrollmentPageState(
     input: GetEnrollmentPageStateInput
   ): Promise<InternshipEnrollmentPageState> {
+    if (!isMockApiMode()) {
+      return getRealEnrollmentPageState(input);
+    }
     gateEnrollment();
     return resolveEnrollmentPageState(input);
   },
 
+  /** real: GET `professors?semesterId=&lessonId=`؛ فیلتر استان/پردیس/سرچ سمت کلاینت. */
   async listEligibleSupervisors(
     input: ListEligibleSupervisorsInput
   ): Promise<InternshipSupervisor[]> {
+    if (!isMockApiMode()) {
+      return listRealEligibleSupervisors(input);
+    }
     gateEnrollment();
     return listEligibleSupervisors(input);
   },
