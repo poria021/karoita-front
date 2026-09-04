@@ -1,5 +1,9 @@
 import { apiClient } from '@/services/api-client';
-import type { NestFileResponseDto, NestFileUploadDto } from '@/types/nest-users';
+import type {
+  NestFileResponseDto,
+  NestFileType,
+  NestFileUploadDto,
+} from '@/types/nest-users';
 
 /** POST `/api/v1/files/upload`. */
 export const NEST_FILES_PATH = 'v1/files/upload';
@@ -15,8 +19,13 @@ export const filesApi = {
 
   /**
    * مرحله ۲ — PUT مستقیم روی signed URL بدون auth؛ S3/MinIO این را می‌سنجد نه Nest.
+   * `contentType` باید همان `mimeType` مرحلهٔ presign باشد.
    */
-  async uploadToSignedUrl(signedUrl: string, file: File): Promise<void> {
+  async uploadToSignedUrl(
+    signedUrl: string,
+    file: File,
+    contentType: string
+  ): Promise<void> {
     const controller = new AbortController();
     const timeoutId = setTimeout(
       () => controller.abort(),
@@ -26,7 +35,7 @@ export const filesApi = {
       const res = await fetch(signedUrl, {
         method: 'PUT',
         body: file,
-        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        headers: { 'Content-Type': contentType },
         signal: controller.signal,
       });
       if (!res.ok) {
@@ -49,5 +58,14 @@ export const filesApi = {
     } finally {
       clearTimeout(timeoutId);
     }
+  },
+
+  /** مرحله ۳ — PATCH `/api/v1/files/{id}/confirm` بعد از PUT موفق روی S3. */
+  confirm(fileId: string, token?: string) {
+    return apiClient.patchMaybeJson<NestFileType>(
+      `v1/files/${encodeURIComponent(fileId)}/confirm`,
+      {},
+      token
+    );
   },
 };

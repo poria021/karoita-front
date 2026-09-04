@@ -7,7 +7,7 @@ import type {
 } from '@/types/nest-users';
 
 /**
- * Facade فایل Nest — آپلود دومرحله‌ای: POST `/v1/files/upload` بعد PUT روی `uploadSignedUrl`.
+ * Facade فایل Nest: POST `/v1/files/upload` → PUT signed URL → PATCH `/v1/files/{id}/confirm`.
  */
 export const FilesService = {
   /** فقط presigned URL؛ فایل را آپلود نمی‌کند. */
@@ -20,8 +20,8 @@ export const FilesService = {
   },
 
   /**
-   * آپلود کامل: presign، PUT روی S3، برگرداندن `{ id, path }` برای PATCH `/users/{id}`.
-   * اسم فایل اصلی (jpg/png) را به Nest بده — فقط extension برای presign است؛ محتوا ممکن است compress باشد.
+   * آپلود کامل: presign با mimeType، PUT روی S3، confirm، برگرداندن `{ id, path }`.
+   * اسم فایل اصلی را به Nest بده؛ mimeType از بایت‌های در حال آپلود است (ممکن است compress باشد).
    */
   async uploadFile(
     file: File,
@@ -32,13 +32,15 @@ export const FilesService = {
 
     const sourceFile = originalFile ?? file;
     const safeName = nestUploadFileName(sourceFile.name);
+    const mimeType = nestUploadMimeType(file, sourceFile.name);
 
     const { file: fileRef, uploadSignedUrl } = await filesApi.upload(
-      { fileName: safeName, fileSize: file.size },
+      { fileName: safeName, fileSize: file.size, mimeType },
       token
     );
 
-    await filesApi.uploadToSignedUrl(uploadSignedUrl, file);
+    await filesApi.uploadToSignedUrl(uploadSignedUrl, file, mimeType);
+    await filesApi.confirm(fileRef.id, token);
 
     // path برگشتی معمولاً کلید S3 است؛ origin همان signed PUT را برای پیش‌نمایش مطلق نگه می‌داریم.
     return {
@@ -51,6 +53,31 @@ export const FilesService = {
 /** Nest فقط extension اسم را برای presign می‌سنجد؛ فایل compress ممکن است بدون پسوند باشد. */
 export function nestUploadFileName(sourceName: string): string {
   return sourceName.includes('.') ? sourceName : `${sourceName}.jpg`;
+}
+
+const MIME_BY_EXTENSION: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+  pdf: 'application/pdf',
+};
+
+/**
+ * `File.type` گاهی خالی است؛ Nest `mimeType` را string اجباری می‌خواهد.
+ * نوع را از بایت‌های در حال آپلود بگیر، نه فقط از اسم فایل اصلی.
+ */
+export function nestUploadMimeType(file: File, originalName?: string): string {
+  const fromBrowser = file.type.trim();
+  if (fromBrowser) return fromBrowser;
+
+  const name = originalName || file.name;
+  const ext = name.includes('.')
+    ? name.slice(name.lastIndexOf('.') + 1).toLowerCase()
+    : '';
+  return MIME_BY_EXTENSION[ext] ?? 'application/octet-stream';
 }
 
 export function absoluteObjectUrlFromSignedUrl(signedUrl: string): string | null {

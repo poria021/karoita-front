@@ -113,6 +113,7 @@ export type NestUsersListQuery = {
 export type NestFileUploadDto = {
   fileName: string;
   fileSize: number;
+  mimeType: string;
 };
 
 export type NestFileResponseDto = {
