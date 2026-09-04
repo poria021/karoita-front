@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { hasEdgeClientSession } from '@/lib/edge-session';
 import { isAllowedSignedUploadTarget } from '@/lib/signed-upload-target';
+import { storageFetchUrlCandidates } from '@/services/files/resolve-nest-file-url';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -38,8 +39,41 @@ function contentTypeFromUpstream(upstream: Response, target: string): string {
   return 'image/jpeg';
 }
 
+function looksLikeStorageError(contentType: string, buffer: ArrayBuffer): boolean {
+  if (contentType.includes('xml') || contentType.includes('json')) return true;
+  const head = new TextDecoder('utf-8', { fatal: false })
+    .decode(buffer.slice(0, 256))
+    .trimStart()
+    .toLowerCase();
+  return (
+    head.startsWith('<?xml') ||
+    head.includes('<errormessage>') ||
+    head.includes('<error>') ||
+    head.includes('invalidaccesskeyid')
+  );
+}
+
+async function fetchStorageObject(
+  target: string,
+  signal: AbortSignal
+): Promise<{ buffer: ArrayBuffer; contentType: string } | null> {
+  const upstream = await fetch(target, {
+    method: 'GET',
+    redirect: 'manual',
+    cache: 'no-store',
+    signal,
+  });
+  if (!upstream.ok) return null;
+  const buffer = await upstream.arrayBuffer();
+  if (buffer.byteLength === 0 || buffer.byteLength > MAX_BYTES) return null;
+  const contentType = contentTypeFromUpstream(upstream, target);
+  if (looksLikeStorageError(contentType, buffer)) return null;
+  return { buffer, contentType };
+}
+
 /**
  * GET مدرک از باکت S3 با نشست همین دامنه — `<img>` نمی‌تواند Bearer به Nest/S3 بفرستد.
+ * Nest اغلب GetObject را روی `*.amazonaws.com` امضا می‌کند؛ بایت را از `NEXT_PUBLIC_S3_URL` می‌خوانیم.
  */
 export async function GET(request: NextRequest) {
   if (!hasEdgeClientSession(request.cookies)) {
@@ -47,49 +81,31 @@ export async function GET(request: NextRequest) {
   }
 
   const target = decodeSrc(request.nextUrl.searchParams.get('src'));
-  if (!target || !isAllowedSignedUploadTarget(target)) {
+  const candidates = storageFetchUrlCandidates(target).filter((url) =>
+    isAllowedSignedUploadTarget(url)
+  );
+  if (!target || candidates.length === 0) {
     return NextResponse.json({ message: 'آدرس فایل مجاز نیست.' }, { status: 400 });
   }
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
   try {
-    const upstream = await fetch(target, {
-      method: 'GET',
-      redirect: 'manual',
-      cache: 'no-store',
-      signal: controller.signal,
-    });
-    if (!upstream.ok) {
-      return NextResponse.json(
-        { message: 'دریافت فایل از فضای ذخیره‌سازی ناموفق بود.' },
-        { status: 502 }
-      );
+    for (const url of candidates) {
+      const result = await fetchStorageObject(url, controller.signal);
+      if (!result) continue;
+      return new NextResponse(result.buffer, {
+        status: 200,
+        headers: {
+          'content-type': result.contentType,
+          'cache-control': 'private, max-age=60, no-transform',
+        },
+      });
     }
-
-    const buffer = await upstream.arrayBuffer();
-    if (buffer.byteLength === 0 || buffer.byteLength > MAX_BYTES) {
-      return NextResponse.json(
-        { message: 'فایل مدرک نامعتبر است.' },
-        { status: 502 }
-      );
-    }
-
-    const contentType = contentTypeFromUpstream(upstream, target);
-    if (contentType.includes('xml') || contentType.includes('json')) {
-      return NextResponse.json(
-        { message: 'دریافت فایل از فضای ذخیره‌سازی ناموفق بود.' },
-        { status: 502 }
-      );
-    }
-
-    return new NextResponse(buffer, {
-      status: 200,
-      headers: {
-        'content-type': contentType,
-        'cache-control': 'private, max-age=60, no-transform',
-      },
-    });
+    return NextResponse.json(
+      { message: 'دریافت فایل از فضای ذخیره‌سازی ناموفق بود.' },
+      { status: 502 }
+    );
   } catch (error) {
     const aborted =
       (typeof DOMException !== 'undefined' &&

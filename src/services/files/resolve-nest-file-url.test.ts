@@ -30,7 +30,16 @@ describe('resolveNestFileUrl', () => {
         'https://docs.s3.amazonaws.com/abc-uuid.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=EXAMPLE%2F20200101%2Fus-east-1%2Fs3%2Faws4_request',
         { s3Base: 'https://files.example.hs3.ir' }
       )
-    ).toBe('https://files.example.hs3.ir/docs/abc-uuid.jpg');
+    ).toBe('https://files.example.hs3.ir/abc-uuid.jpg');
+  });
+
+  it('rebases Nest GetObject URLs that used the dummy AWS virtual host', () => {
+    expect(
+      resolveNestFileUrl(
+        'https://file.s3.us-east-1.amazonaws.com/d45d8be46cd91c9b612d4.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=abc',
+        { s3Base: 'https://karvita-bncdf.hs3.ir' }
+      )
+    ).toBe('https://karvita-bncdf.hs3.ir/d45d8be46cd91c9b612d4.jpg');
   });
 
   it('rebases path-style Amazon S3 URLs onto the public origin', () => {
@@ -82,6 +91,17 @@ describe('toSameOriginMediaUrl', () => {
     vi.stubEnv('NEXT_PUBLIC_S3_URL', 'https://files.example.com');
     expect(toSameOriginMediaUrl('https://files.example.com/id-doc.jpg')).toBe(
       '/api/files/media?src=https%3A%2F%2Ffiles.example.com%2Fid-doc.jpg'
+    );
+  });
+
+  it('rewrites a dummy AWS GetObject host before wrapping the proxy src', () => {
+    vi.stubEnv('NEXT_PUBLIC_S3_URL', 'https://karvita-bncdf.hs3.ir');
+    expect(
+      toSameOriginMediaUrl(
+        'https://file.s3.us-east-1.amazonaws.com/d45d8be46cd91c9b612d4.jpg?X-Amz-Signature=abc'
+      )
+    ).toBe(
+      '/api/files/media?src=https%3A%2F%2Fkarvita-bncdf.hs3.ir%2Fd45d8be46cd91c9b612d4.jpg'
     );
   });
 

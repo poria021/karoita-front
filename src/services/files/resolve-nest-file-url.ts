@@ -47,38 +47,65 @@ function hasAwsSignatureQuery(url: URL): boolean {
 
 /**
  * Nest `FileType` GET را روی endpoint پیش‌فرض AWS (`*.amazonaws.com`) امضا می‌کند حتی اگر باکت S3-compatible باشد.
- * باز کردن آن URL کلید غیرآمازون را به Amazon می‌فرستد → `InvalidAccessKeyId`. مبدأ را به `NEXT_PUBLIC_S3_URL` برگردان.
+ * امضا برای Host آمازون است؛ روی `NEXT_PUBLIC_S3_URL` باید بدون query و با کلید آبجکت GET شود.
  */
 function rebaseAwsUrlToPublicS3(raw: string, s3Base: string): string {
-  if (!s3Base) return raw;
-  let parsed: URL;
+  const candidates = storageFetchUrlCandidates(raw, { s3Base });
+  return candidates[0] ?? raw;
+}
+
+/**
+ * URLهایی که سرور باید برای GET بایت امتحان کند.
+ * `bucket.s3.amazonaws.com/key` معمولاً کلید را روی مبدأ عمومی باکت می‌گذارد، نه روی خود آمازون.
+ */
+export function storageFetchUrlCandidates(
+  raw: string,
+  bases?: { s3Base?: string }
+): string[] {
+  const trimmed = raw.trim();
+  if (!trimmed) return [];
+
+  const s3Base = trimSlash(bases?.s3Base ?? envS3Base());
+  const seen = new Set<string>();
+  const out: string[] = [];
+
+  const add = (value: string) => {
+    const url = value.trim();
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    out.push(url);
+  };
+
+  let parsed: URL | null = null;
   try {
-    parsed = new URL(raw);
+    parsed = new URL(trimmed);
   } catch {
-    return raw;
+    add(trimmed);
+    return out;
   }
 
-  const publicOrigin = new URL(s3Base.endsWith('/') ? s3Base : `${s3Base}/`).origin;
-
-  if (isAwsS3Host(parsed.hostname)) {
+  if (isAwsS3Host(parsed.hostname) && s3Base) {
+    const key = parsed.pathname.replace(/^\/+/, '');
+    if (key) add(`${s3Base}/${key}`);
     const bucket = virtualHostedS3Bucket(parsed.hostname);
-    let objectPath = parsed.pathname || '/';
-    if (
-      bucket &&
-      objectPath !== `/${bucket}` &&
-      !objectPath.startsWith(`/${bucket}/`)
-    ) {
-      objectPath = `/${bucket}${objectPath.startsWith('/') ? objectPath : `/${objectPath}`}`;
+    if (bucket && key && !key.startsWith(`${bucket}/`)) {
+      add(`${s3Base}/${bucket}/${key}`);
     }
-    return `${trimSlash(s3Base)}/${objectPath.replace(/^\/+/, '')}`;
+    return out;
   }
 
-  // امضای GET روی همان مبدأ باکت را نگه دار؛ بدون query روی باکت خصوصی تصویر خالی است.
+  const publicOrigin = s3Base
+    ? new URL(s3Base.endsWith('/') ? s3Base : `${s3Base}/`).origin
+    : '';
   if (parsed.origin === publicOrigin && hasAwsSignatureQuery(parsed)) {
-    return parsed.toString();
+    add(parsed.toString());
+    parsed.search = '';
+    add(parsed.toString());
+    return out;
   }
 
-  return raw;
+  add(trimmed);
+  return out;
 }
 
 /**
@@ -89,8 +116,14 @@ export function toSameOriginMediaUrl(url: string): string {
   if (!trimmed) return trimmed;
   if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return trimmed;
   if (trimmed.startsWith(FILE_MEDIA_PATH)) return trimmed;
-  if (!isAllowedSignedUploadTarget(trimmed)) return trimmed;
-  return `${FILE_MEDIA_PATH}?src=${encodeURIComponent(trimmed)}`;
+  const resolved = resolveNestFileUrl(trimmed) ?? trimmed;
+  const wrapTarget = isAllowedSignedUploadTarget(resolved)
+    ? resolved
+    : isAllowedSignedUploadTarget(trimmed)
+      ? trimmed
+      : null;
+  if (!wrapTarget) return resolved;
+  return `${FILE_MEDIA_PATH}?src=${encodeURIComponent(wrapTarget)}`;
 }
 
 /**

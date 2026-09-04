@@ -55,4 +55,33 @@ describe('GET /api/files/media', () => {
       expect.objectContaining({ method: 'GET' })
     );
   });
+
+  it('rebases a dummy AWS GetObject URL onto the public bucket before fetching', async () => {
+    vi.stubEnv('NEXT_PUBLIC_S3_URL', 'https://karvita-bncdf.hs3.ir');
+    const bytes = new Uint8Array([1, 2, 3]);
+    const upstream = vi.fn(
+      async () =>
+        new Response(bytes, {
+          status: 200,
+          headers: { 'content-type': 'image/jpeg' },
+        })
+    );
+    vi.stubGlobal('fetch', upstream);
+
+    const response = await GET(
+      mediaRequest(
+        'https://file.s3.us-east-1.amazonaws.com/d45d8be46cd91c9b612d4.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=abc'
+      )
+    );
+
+    expect(response.status).toBe(200);
+    expect(upstream).toHaveBeenCalledWith(
+      'https://karvita-bncdf.hs3.ir/d45d8be46cd91c9b612d4.jpg',
+      expect.objectContaining({ method: 'GET' })
+    );
+    expect(upstream).not.toHaveBeenCalledWith(
+      expect.stringContaining('amazonaws.com'),
+      expect.anything()
+    );
+  });
 });
