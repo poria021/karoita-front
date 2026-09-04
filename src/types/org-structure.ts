@@ -128,3 +128,40 @@ export type OrgStructureListItem = {
   /** حالت real: id نقش وصل‌شده برای پیش‌پر کردن فرم ویرایش. */
   roleId?: string;
 };
+
+export type OrgStructureListPage = {
+  items: OrgStructureListItem[];
+  total: number;
+  hasMore: boolean;
+};
+
+export type UpsertProvinceInput = { name: string };
+export type UpsertCityInput = { name: string; provinceId: string };
+export type UpsertFacultyInput = {
+  name: string;
+  provinceId: string;
+  /** فرم پردیس شهر ندارد؛ لایهٔ real در صورت نیاز پر می‌کند. */
+  cityId?: string;
+};
+export type UpsertDistrictInput = {
+  name: string;
+  provinceId: string;
+  /** اختیاری: استان بدون شهر، منطقه در سطح استان می‌سازد. */
+  cityId?: string;
+};
+export type UpsertSchoolInput = {
+  name: string;
+  provinceId: string;
+  /** اختیاری مثل منطقه/پردیس — مدرسه بدون شهر. */
+  cityId?: string;
+  /** منطقه آموزشی اختیاری است. */
+  districtId?: string;
+  gender: OrgSchoolGender;
+};
+export type UpsertMajorInput = {
+  name: string;
+  /** فقط mock — `mockUpsertMajor` لازم دارد. */
+  audience?: OrgMajorAudience;
+  /** فقط real — شاخهٔ Nest در `OrgStructureService.upsertMajor`. */
+  roleId?: string;
+};

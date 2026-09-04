@@ -1,6 +1,7 @@
 import {
   assertRealModeRejectsMockSecret,
   IS_MOCK_MODE,
+  isMockApiMode,
   throwRealModeNotImplemented,
 } from '@/lib/api-mode';
 import {
@@ -34,6 +35,7 @@ import {
 import {
   dispatchSessionToStore,
   readSessionMeta,
+  tryRestoreMockSession,
 } from '@/services/auth/mock/mock-auth.store';
 import {
   realDeleteMe,
@@ -55,6 +57,10 @@ import {
   isDeadSessionHttpStatus,
   type OtpCooldownResult,
 } from '@/services/auth/real/real-auth.bridge';
+import {
+  isSessionTransientError,
+  SessionTransientError,
+} from '@/services/auth/session-errors';
 import { ApiClientError } from '@/services/api-client';
 import {
   clearRealAuthTokens,
@@ -62,6 +68,8 @@ import {
   readRealAccessToken,
   readRealTokenExpiresAt,
 } from '@/services/auth/real/real-auth.tokens';
+
+export { isSessionTransientError, SessionTransientError };
 
 export interface RegisterPayload {
   mobile: string;
@@ -267,5 +275,31 @@ export class AuthService {
 
   static getMockOtpHint(): string | null {
     return IS_MOCK_MODE ? MOCK_OTP_CODE : null;
+  }
+
+  /**
+   * بازیابی boot نشست برای گارد UI.
+   * mock و real فقط اینجا شاخه می‌شوند — UI مستقیم mock/real را import نکند.
+   */
+  static async restoreBootSession(): Promise<
+    'authenticated' | 'unauthenticated' | 'error'
+  > {
+    if (isMockApiMode()) {
+      const quick = AuthService.validateSession();
+      if (quick) return 'authenticated';
+      const restored = tryRestoreMockSession();
+      return restored ? 'authenticated' : 'unauthenticated';
+    }
+
+    const quick = AuthService.peekSession();
+    if (quick) return 'authenticated';
+
+    try {
+      const restored = await AuthService.refreshRealSession();
+      if (restored) return 'authenticated';
+    } catch (error) {
+      if (isSessionTransientError(error)) return 'error';
+    }
+    return 'unauthenticated';
   }
 }

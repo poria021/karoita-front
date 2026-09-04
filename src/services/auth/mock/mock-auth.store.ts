@@ -2,8 +2,7 @@ import Cookies from 'js-cookie';
 
 import { assertMockApiMode, isMockApiMode } from '@/lib/api-mode';
 import { MOCK_SESSION_MARKER } from '@/lib/config';
-import { setRuntimeAuthBoot } from '@/store/sessionBoot';
-import { keepLocalIdentityPreview } from '@/services/auth/keep-local-identity-preview';
+import { dispatchSessionToStore as dispatchSessionChrome } from '@/services/auth/dispatch-session';
 import { useUserStore } from '@/store/useUserStore';
 import type { Session, User } from '@/types/auth';
 
@@ -362,20 +361,12 @@ export function buildMockSession(user: User): Session {
   };
 }
 
+/**
+ * Zustand + ماندگاری mock (cookie / session meta).
+ * لایهٔ real فقط `dispatch-session` را صدا می‌زند.
+ */
 export function dispatchSessionToStore(session: Session | null): void {
-  const store = useUserStore.getState();
-  if (!session) {
-    store.setUser(null);
-  } else {
-    store.setUser(keepLocalIdentityPreview(store.activeUser, session.user));
-  }
-
-  if (session) {
-    store.setHasHydrated(true);
-    setRuntimeAuthBoot('authenticated');
-  } else {
-    setRuntimeAuthBoot('unauthenticated');
-  }
+  dispatchSessionChrome(session);
 
   if (!isMockApiMode()) return;
 

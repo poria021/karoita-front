@@ -22,8 +22,6 @@ import {
   OrgStructureService,
   type OrgStructureListItem,
 } from '@/services/org-structure.service';
-import { flushBareListCache } from '@/services/org-structure/real/real-org-reads';
-import { rememberOrgRelationLabels } from '@/services/org-structure/real/org-relation-label-overlay';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import {
   orgEntityKindFromTab,
@@ -153,9 +151,7 @@ export function useOrgStructurePage() {
    */
   const invalidateAndReload = useCallback(async () => {
     // ۱. hard-flush bareListCache (in-memory, خارج از react-query)
-    if (!IS_MOCK_MODE) {
-      flushBareListCache();
-    }
+    OrgStructureService.flushListCache();
     // ۲. باطل‌سازی react-query cache برای تمام کلیدهای org-structure
     await queryClient.invalidateQueries({
       queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE],
@@ -174,7 +170,7 @@ export function useOrgStructurePage() {
       scheduleOptimisticMutation({
         message: `${tabConfig.addLabel} «${label}» افزوده شد.`,
         apply: () => {
-          rememberOrgRelationLabels([label], labels ?? {});
+          OrgStructureService.rememberRelationLabels([label], labels ?? {});
         },
         revert: () => undefined,
         commit: () => submitOrgEntity(tab, values, null),

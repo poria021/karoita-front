@@ -19,40 +19,23 @@ import type {
   OrgMajorAudience,
   OrgProvince,
   OrgSchool,
-  OrgSchoolGender,
   OrgStructureEntityKind,
+  UpsertCityInput,
+  UpsertDistrictInput,
+  UpsertFacultyInput,
+  UpsertMajorInput,
+  UpsertProvinceInput,
+  UpsertSchoolInput,
 } from '@/types/org-structure';
 
-export type UpsertProvinceInput = { name: string };
-export type UpsertCityInput = { name: string; provinceId: string };
-export type UpsertFacultyInput = {
-  name: string;
-  provinceId: string;
-  /** اختیاری مثل منطقه/مدرسه — پردیس بدون شهر. */
-  cityId?: string;
-};
-export type UpsertDistrictInput = {
-  name: string;
-  provinceId: string;
-  /** اختیاری: استان بدون شهر، منطقه در سطح استان می‌سازد. */
-  cityId?: string;
-};
-export type UpsertSchoolInput = {
-  name: string;
-  provinceId: string;
-  /** اختیاری مثل منطقه/پردیس — مدرسه بدون شهر. */
-  cityId?: string;
-  /** منطقه آموزشی اختیاری است. */
-  districtId?: string;
-  gender: OrgSchoolGender;
-};
-export type UpsertMajorInput = {
-  name: string;
-  /** فقط mock — `mockUpsertMajor` لازم دارد. */
-  audience?: OrgMajorAudience;
-  /** فقط real — شاخهٔ Nest در `OrgStructureService.upsertMajor`. */
-  roleId?: string;
-};
+export type {
+  UpsertCityInput,
+  UpsertDistrictInput,
+  UpsertFacultyInput,
+  UpsertMajorInput,
+  UpsertProvinceInput,
+  UpsertSchoolInput,
+} from '@/types/org-structure';
 
 function newId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;

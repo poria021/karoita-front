@@ -5,7 +5,7 @@ import {
   AUTH_ERR_OLD_PASSWORD_WRONG,
   AUTH_ERR_SESSION_REQUIRED,
   AUTH_ERR_USER_NOT_FOUND,
-} from '@/services/auth/real/auth-error-messages';
+} from '@/services/auth/auth-error-messages';
 import {
   mockLoginWithCredentials,
   mockSendAdminGateOtp,

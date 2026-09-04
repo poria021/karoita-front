@@ -3,7 +3,7 @@ import { ApiClientError } from '@/services/api-error';
 import {
   DEFAULT_WEEK_WEIGHT,
   getTodayJalaliSlash,
-} from '@/services/syllabus-config/mock/mock-syllabus-store';
+} from '@/services/syllabus-config/syllabus-term-gates';
 import {
   lessonsOfTerm,
   mergeTermsWithLessonBundles,

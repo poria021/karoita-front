@@ -32,7 +32,6 @@ import {
   flushRealDeleteBlockedCache,
   getRealDeleteBlockedSets,
 } from '@/services/org-structure/real/real-org-delete-blocked';
-import type { OrgStructureListItem, OrgStructureListPage } from '@/services/org-structure/mock/mock-org-query';
 import type {
   OrgCity,
   OrgDistrict,
@@ -41,6 +40,8 @@ import type {
   OrgRole,
   OrgSchool,
   OrgStructureEntityKind,
+  OrgStructureListItem,
+  OrgStructureListPage,
   OrgStructureSnapshot,
   OrgStructureSubTab,
 } from '@/types/org-structure';

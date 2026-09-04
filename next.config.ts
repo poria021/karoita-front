@@ -45,6 +45,8 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // gzip این سرور + gzip اینگرس = ERR_CONTENT_DECODING_FAILED روی /api/nest.
   compress: false,
+  // undici را باندل نکن — Agent/connectTimeout باید از پکیج واقعی بیاید.
+  serverExternalPackages: ['undici'],
   turbopack: {},
   async headers() {
     // داخل headers() بساز — NODE_ENV اینجا development است، نه موقع transpile کانفیگ.

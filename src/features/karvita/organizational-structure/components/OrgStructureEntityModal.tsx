@@ -14,8 +14,10 @@ import {
 } from '@/components/shared/KvDialog';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { notifyIfPostCommitRefreshFailure, notifyPostCommitRefreshFailure } from '@/lib/post-commit-refresh';
-import type { OrgStructureListItem } from '@/services/org-structure.service';
-import { rememberOrgRelationLabels } from '@/services/org-structure/real/org-relation-label-overlay';
+import {
+  OrgStructureService,
+  type OrgStructureListItem,
+} from '@/services/org-structure.service';
 import type {
   OrgStructureEntityKind,
   OrgStructureSubTab,
@@ -87,7 +89,10 @@ export function OrgStructureEntityModal({
 
     if (isEdit) {
       try {
-        rememberOrgRelationLabels([editId ?? undefined, label], labels);
+        OrgStructureService.rememberRelationLabels(
+          [editId ?? undefined, label],
+          labels
+        );
         await submitOrgEntity(tab, values, editId);
         toast.success(`${tabConfig.addLabel} «${label}» به‌روزرسانی شد.`);
         try {

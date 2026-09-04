@@ -6,7 +6,7 @@ import type { User } from '@/types/auth';
 import type { ProfileDto } from '@/types/profile';
 
 import { buildNestUpdateUserBody } from '../profile-real-payload';
-import { ProfileServiceError } from './profile.mappers';
+import { ProfileServiceError } from '@/services/profile/profile.mappers';
 
 /**
  * `GET /api/v1/auth/me` (`NestUserDto`) → `ProfileDto`.
@@ -139,28 +139,6 @@ export async function requestProfile(
     // `PUT` هم `ProfileDto` و هم User کامل (`docUrl`) برمی‌گرداند تا store ذخیره کند.
     const nestUser = mapNestAuthUser(raw);
     return { profileDto: nestUserToProfileDto(raw), nestUser };
-  } catch (error) {
-    if (error instanceof ApiClientError) {
-      throw new ProfileServiceError(error.message, error.status);
-    }
-    throw error;
-  }
-}
-
-export async function requestIdentityDocument(
-  documentBase64: string,
-  token?: string
-): Promise<void> {
-  if (!apiClient.isConfigured) {
-    throw new ProfileServiceError('آدرس سرویس پروفایل پیکربندی نشده است.');
-  }
-
-  try {
-    await apiClient.putJson<unknown>(
-      'profile/identity-document',
-      { documentBase64 },
-      token
-    );
   } catch (error) {
     if (error instanceof ApiClientError) {
       throw new ProfileServiceError(error.message, error.status);

@@ -44,6 +44,10 @@ vi.mock('@/services/syllabus-config/real/real-syllabus-reads', () => ({
     isPublished: true,
     serverAlert: null,
   })),
+  getRealAcademicSettings: vi.fn(async () => ({
+    globalProfessorCapacity: 30,
+    passingScoreThreshold: 70,
+  })),
 }));
 
 describe('DailyApprovalsService real fail-closed', () => {
@@ -81,9 +85,9 @@ describe('DailyApprovalsService real fail-closed', () => {
     expect(listRealCapacityCourses).toHaveBeenCalledWith('internship', 'sem-1');
     expect(getRealWeeksForLesson).toHaveBeenCalledWith('sem-1', 'l1');
 
-    await expect(DailyApprovalsService.getPassingScoreThreshold()).rejects.toThrow(
-      REAL_MODE_NOT_IMPLEMENTED
-    );
+    await expect(
+      DailyApprovalsService.getPassingScoreThreshold()
+    ).resolves.toBe(70);
     await expect(
       DailyApprovalsService.listPage({
         kind: 'internship',

@@ -6,7 +6,7 @@ import {
   mergeRecordIntoUser,
   parseProfile,
   ProfileServiceError,
-} from '@/services/profile/real/profile.mappers';
+} from '@/services/profile/profile.mappers';
 import type { User } from '@/types/auth';
 
 const studentProfile = {

@@ -7,6 +7,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { assertSameOriginPost } from '@/lib/auth-origin-guard';
 import { readNestApiBaseUrl } from '@/lib/nest-proxy';
 import {
+  fetchNestUpstream,
+  logNestUpstreamFailure,
+} from '@/lib/nest-upstream-fetch';
+import {
   LEGACY_ACCESS_COOKIE_NAME,
   REAL_REFRESH_COOKIE_NAME,
   REAL_REFRESH_COOKIE_OPTIONS,
@@ -35,10 +39,9 @@ async function fetchSessionUser(
   surface: AuthSurface,
 ): Promise<Record<string, unknown> | null> {
   try {
-    const res = await fetch(`${baseUrl}/${NEST_SESSION_PATHS[surface]}`, {
+    const res = await fetchNestUpstream(`${baseUrl}/${NEST_SESSION_PATHS[surface]}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${accessToken}` },
-      cache: 'no-store',
     });
     if (!res.ok) return null;
     const json: unknown = await res.json();
@@ -100,16 +103,15 @@ export async function POST(request: NextRequest) {
     if (process.env.NODE_ENV !== 'production') {
       console.log('[/api/auth/refresh] → POST', `${nestApiUrl}/${nestRefreshPath}`);
     }
-    nestResponse = await fetch(`${nestApiUrl}/${nestRefreshPath}`, {
+    nestResponse = await fetchNestUpstream(`${nestApiUrl}/${nestRefreshPath}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${refreshToken}` },
-      cache: 'no-store',
     });
     if (process.env.NODE_ENV !== 'production') {
       console.log('[/api/auth/refresh] ← Nest status:', nestResponse.status);
     }
   } catch (err) {
-    console.error('[/api/auth/refresh] fetch to Nest failed:', err);
+    logNestUpstreamFailure('/api/auth/refresh', err);
     return NextResponse.json(
       { error: 'ارتباط با سرویس احراز هویت برقرار نشد.' },
       { status: 502 }

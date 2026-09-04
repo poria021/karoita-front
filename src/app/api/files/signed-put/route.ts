@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { assertSameOriginPost } from '@/lib/auth-origin-guard';
+import { fetchNestUpstream } from '@/lib/nest-upstream-fetch';
 import {
   SIGNED_PUT_URL_HEADER,
   isAllowedSignedUploadTarget,
@@ -51,12 +52,11 @@ export async function PUT(request: NextRequest) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
   try {
-    const upstream = await fetch(signedUrl, {
+    const upstream = await fetchNestUpstream(signedUrl, {
       method: 'PUT',
       body,
       headers: { 'Content-Type': contentType },
       redirect: 'manual',
-      cache: 'no-store',
       signal: controller.signal,
     });
     if (!upstream.ok) {

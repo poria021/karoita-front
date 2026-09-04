@@ -68,6 +68,39 @@ describe('forwardToNestApi', () => {
     expect(headers.get('accept-encoding')).toBe('identity');
   });
 
+  it('does not forward browser Origin / sec-fetch / x-forwarded to Nest', async () => {
+    vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
+    const nestFetch = vi.fn().mockResolvedValue(
+      new Response('{"ok":true}', {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    );
+    vi.stubGlobal('fetch', nestFetch);
+
+    const req = new NextRequest('http://localhost/api/nest/v1/auth/roles', {
+      headers: {
+        authorization: 'Bearer t',
+        origin: 'http://localhost:3001',
+        referer: 'http://localhost:3001/auth/login',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
+        'x-forwarded-host': 'localhost:3001',
+        'x-forwarded-proto': 'http',
+      },
+    });
+    await forwardToNestApi(req, ['v1', 'auth', 'roles']);
+
+    const [, init] = nestFetch.mock.calls[0] as [string, RequestInit];
+    const headers = new Headers(init.headers);
+    expect(headers.get('authorization')).toBe('Bearer t');
+    expect(headers.get('origin')).toBeNull();
+    expect(headers.get('referer')).toBeNull();
+    expect(headers.get('sec-fetch-mode')).toBeNull();
+    expect(headers.get('x-forwarded-host')).toBeNull();
+    expect(headers.get('accept-encoding')).toBe('identity');
+  });
+
   it('does not forward the browser Accept-Encoding to Nest', async () => {
     vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
     const nestFetch = vi.fn().mockResolvedValue(

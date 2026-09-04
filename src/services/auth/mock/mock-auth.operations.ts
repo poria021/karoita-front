@@ -15,7 +15,7 @@ import {
   AUTH_ERR_PUBLIC_AUTH_ADMIN_BLOCKED,
   AUTH_ERR_SESSION_REQUIRED,
   AUTH_ERR_USER_NOT_FOUND,
-} from '@/services/auth/real/auth-error-messages';
+} from '@/services/auth/auth-error-messages';
 import {
   buildMockSession,
   dispatchSessionToStore,

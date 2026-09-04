@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { hasEdgeClientSession } from '@/lib/edge-session';
+import { fetchNestUpstream } from '@/lib/nest-upstream-fetch';
 import { isAllowedSignedUploadTarget } from '@/lib/signed-upload-target';
 import { storageFetchUrlCandidates } from '@/services/files/resolve-nest-file-url';
 
@@ -57,10 +58,9 @@ async function fetchStorageObject(
   target: string,
   signal: AbortSignal
 ): Promise<{ buffer: ArrayBuffer; contentType: string } | null> {
-  const upstream = await fetch(target, {
+  const upstream = await fetchNestUpstream(target, {
     method: 'GET',
     redirect: 'manual',
-    cache: 'no-store',
     signal,
   });
   if (!upstream.ok) return null;

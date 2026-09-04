@@ -1,4 +1,4 @@
-import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { isMockApiMode } from '@/lib/api-mode';
 import { assertMockClientIsStaffAdmin } from '@/services/mock/mock-authz';
 import {
   mockCreateBanner,
@@ -16,6 +16,7 @@ import {
   readLandingProducts,
   readLandingSocials,
 } from '@/services/landing-cms/mock/mock-landing-cms.store';
+import { assertLandingCmsRealReady } from '@/services/landing-cms/real/real-landing-cms';
 import type {
   CreateLandingBannerInput,
   CreateLandingProductInput,
@@ -27,13 +28,13 @@ import type {
 
 function gatePublicRead(surface: string): void {
   if (!isMockApiMode()) {
-    throwRealModeNotImplemented(surface);
+    assertLandingCmsRealReady(surface);
   }
 }
 
 function gateAdminWrite(surface: string): void {
   if (!isMockApiMode()) {
-    throwRealModeNotImplemented(surface);
+    assertLandingCmsRealReady(surface);
   }
   assertMockClientIsStaffAdmin();
 }

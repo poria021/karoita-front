@@ -7,7 +7,7 @@ import {
 import {
   listTermsForDailyApprovalKind,
   readDailyApprovalPassingScoreThreshold,
-} from '@/services/syllabus-config/syllabus-daily-approvals-reads';
+} from '@/services/syllabus-config/mock/mock-syllabus-daily-approvals-reads';
 import type {
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,

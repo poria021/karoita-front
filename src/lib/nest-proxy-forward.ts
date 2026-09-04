@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { readNestApiBaseUrl } from '@/lib/nest-proxy';
+import {
+  fetchNestUpstream,
+  logNestUpstreamFailure,
+} from '@/lib/nest-upstream-fetch';
 
-/** هدرهایی که از مرورگر به Nest نباید بروند. */
+/**
+ * هدر مرورگر را به Nest نفرست — Origin لوکال / sec-fetch / x-forwarded
+ * روی گیت‌وی Darkube اتصال را قطع می‌کند و ky فقط ۵۰۲ می‌بیند.
+ */
 const SKIP_REQUEST_HEADER =
-  /^(host|connection|keep-alive|proxy-authenticate|proxy-authorization|te|trailer|transfer-encoding|upgrade|cookie|content-length|content-encoding|accept-encoding)$/i;
+  /^(host|connection|keep-alive|proxy-authenticate|proxy-authorization|te|trailer|transfer-encoding|upgrade|cookie|content-length|content-encoding|accept-encoding|origin|referer|sec-fetch-.*|sec-ch-ua.*|x-forwarded-.*|forwarded|via)$/i;
 
 /**
  * فقط این‌ها به مرورگر برگردند.
@@ -65,7 +72,6 @@ export async function forwardToNestApi(
     method: request.method,
     headers,
     redirect: 'manual',
-    cache: 'no-store',
   };
 
   if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -74,8 +80,9 @@ export async function forwardToNestApi(
 
   let upstream: Response;
   try {
-    upstream = await fetch(target, init);
-  } catch {
+    upstream = await fetchNestUpstream(target, init);
+  } catch (error) {
+    logNestUpstreamFailure('nest-proxy', error);
     return NextResponse.json(
       { message: 'ارتباط با سرویس API برقرار نشد.' },
       { status: 502 }

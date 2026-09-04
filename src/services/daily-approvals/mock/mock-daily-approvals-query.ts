@@ -2,7 +2,7 @@ import { toDailyApprovalCatalogCourses, toDailyApprovalWeekOptions } from '@/ser
 import {
   readTrainees,
 } from '@/services/daily-approvals/mock/mock-daily-approvals-persistence';
-import { listTermsForDailyApprovalKind } from '@/services/syllabus-config/syllabus-daily-approvals-reads';
+import { listTermsForDailyApprovalKind } from '@/services/syllabus-config/mock/mock-syllabus-daily-approvals-reads';
 import type {
   DailyApprovalCatalogCourse,
   DailyApprovalCourseFilter,

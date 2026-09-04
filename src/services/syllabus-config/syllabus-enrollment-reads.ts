@@ -1,6 +1,4 @@
-import {
-  isTermGateActive,
-} from '@/services/syllabus-config/mock/mock-syllabus-store';
+import { isTermGateActive } from '@/services/syllabus-config/syllabus-term-gates';
 import {
   buildCourseOfferingId,
   catalogIdForKind,

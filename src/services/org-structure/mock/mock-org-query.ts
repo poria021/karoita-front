@@ -16,18 +16,14 @@ import {
   orgEntityKindFromTab,
   type OrgMajorAudience,
   type OrgStructureListItem,
+  type OrgStructureListPage,
   type OrgStructureSnapshot,
   type OrgStructureSubTab,
 } from '@/types/org-structure';
-import {
-  DEFAULT_PAGE_LIMIT,
-  type OffsetLimitPage,
-} from '@/utils/offset-limit-page';
+import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
 // از `@/types/org-structure` re-export می‌شود تا importهای قدیمی نشکنند.
-export type { OrgStructureListItem };
-
-export type OrgStructureListPage = OffsetLimitPage<OrgStructureListItem>;
+export type { OrgStructureListItem, OrgStructureListPage };
 
 export function sortByNameFa<T extends { name: string }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.name.localeCompare(b.name, 'fa'));

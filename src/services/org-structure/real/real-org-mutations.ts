@@ -15,7 +15,7 @@ import type {
   UpsertMajorInput,
   UpsertProvinceInput,
   UpsertSchoolInput,
-} from '@/services/org-structure/mock/mock-org-mutations';
+} from '@/types/org-structure';
 import type { OrgStructureEntityKind } from '@/types/org-structure';
 
 /**

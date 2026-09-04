@@ -13,7 +13,7 @@ import {
   parseProfile,
   ProfileServiceError,
   userIdFromToken,
-} from '../real/profile.mappers';
+} from '@/services/profile/profile.mappers';
 
 function resolveMockUser(token?: string): MockAuthUserRecord {
   const tokenUserId = userIdFromToken(token);

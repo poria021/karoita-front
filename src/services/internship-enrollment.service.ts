@@ -1,4 +1,4 @@
-import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { isMockApiMode } from '@/lib/api-mode';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   clampLevel,
@@ -20,6 +20,7 @@ import {
   getRealEnrollmentPageState,
   listRealEligibleSupervisors,
 } from '@/services/internship-enrollment/real/real-enrollment-reads';
+import { assertEnrollmentWriteReady } from '@/services/internship-enrollment/real/real-enrollment-writes';
 import type {
   AssignDelayedSchoolMentorInput,
   EnrollWithSupervisorInput,
@@ -40,12 +41,15 @@ import type {
   SubmitWeeklyReportInput,
 } from '@/types/internship-enrollment';
 
-function gateEnrollment(): 'mock' | never {
+function gateEnrollmentWrite(surface: string): void {
   if (!isMockApiMode()) {
-    throwRealModeNotImplemented('InternshipEnrollmentService');
+    assertEnrollmentWriteReady(surface);
   }
   assertMockClientHasPermission('internship.select');
-  return 'mock';
+}
+
+function gateEnrollmentMock(): void {
+  assertMockClientHasPermission('internship.select');
 }
 
 /**
@@ -82,7 +86,7 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return getRealEnrollmentPageState(input);
     }
-    gateEnrollment();
+    gateEnrollmentMock();
     return resolveEnrollmentPageState(input);
   },
 
@@ -93,49 +97,51 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return listRealEligibleSupervisors(input);
     }
-    gateEnrollment();
+    gateEnrollmentMock();
     return listEligibleSupervisors(input);
   },
 
   async enrollWithSupervisor(
     input: EnrollWithSupervisorInput
   ): Promise<InternshipEnrollmentRecord> {
-    gateEnrollment();
+    gateEnrollmentWrite('InternshipEnrollmentService.enrollWithSupervisor');
     return enrollWithSupervisor(input);
   },
 
   async listDelayedSchools(
     input: ListDelayedSchoolsInput
   ): Promise<InternshipSchoolCapacity[]> {
-    gateEnrollment();
+    gateEnrollmentWrite('InternshipEnrollmentService.listDelayedSchools');
     return listDelayedSchools(input);
   },
 
   async listDelayedMentors(
     input: ListDelayedMentorsInput
   ): Promise<InternshipMentorCapacity[]> {
-    gateEnrollment();
+    gateEnrollmentWrite('InternshipEnrollmentService.listDelayedMentors');
     return listDelayedMentors(input);
   },
 
   async assignDelayedSchoolMentor(
     input: AssignDelayedSchoolMentorInput
   ): Promise<InternshipEnrollmentRecord> {
-    gateEnrollment();
+    gateEnrollmentWrite(
+      'InternshipEnrollmentService.assignDelayedSchoolMentor'
+    );
     return assignDelayedSchoolMentor(input);
   },
 
   async saveWeeklyReportDraft(
     input: SaveWeeklyReportDraftInput
   ): Promise<InternshipWeeklySession> {
-    gateEnrollment();
+    gateEnrollmentWrite('InternshipEnrollmentService.saveWeeklyReportDraft');
     return saveWeeklyReportDraft(input);
   },
 
   async submitWeeklyReport(
     input: SubmitWeeklyReportInput
   ): Promise<InternshipWeeklySession> {
-    gateEnrollment();
+    gateEnrollmentWrite('InternshipEnrollmentService.submitWeeklyReport');
     return submitWeeklyReport(input);
   },
 };

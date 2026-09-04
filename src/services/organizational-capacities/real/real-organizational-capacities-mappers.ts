@@ -12,8 +12,11 @@ import type {
   OrganizationalCapacityKind,
   OrganizationalCapacityWeekday,
 } from '@/types/organizational-capacities';
+import { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
 import { summarizeCapacityCourses } from '@/utils/organizational-capacity-math';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
+
+export { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
 
 const WEEKDAYS: readonly OrganizationalCapacityWeekday[] = [
   'sat',
@@ -111,12 +114,6 @@ export function selectedDaysToNestDays(
     .map((day) => weekdayToNestDayIndex(day))
     .filter((index) => index >= 0);
   return [...new Set(indexes)].slice(0, 1);
-}
-
-export function lessonLevelFromTitle(title: string): 1 | 2 | 3 | 4 {
-  const match = persianToEnglishDigits(title).match(/([1-4])/);
-  if (!match) return 1;
-  return Number(match[1]) as 1 | 2 | 3 | 4;
 }
 
 export function termTitleFromBundle(bundle: NestSemesterWithLessons): string {

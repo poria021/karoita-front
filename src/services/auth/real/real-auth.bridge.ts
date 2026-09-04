@@ -1,5 +1,6 @@
 import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { apiClient, ApiClientError } from '@/services/api-client';
+import { dispatchSessionToStore } from '@/services/auth/dispatch-session';
 import { parseForgotPasswordRetryAfter } from '@/services/auth/real/parse-forgot-retry-after';
 import {
   extractNestAdminLoginResponse,
@@ -24,10 +25,19 @@ import {
   readRealTokenExpiresAt,
   writeRealAuthTokens,
 } from '@/services/auth/real/real-auth.tokens';
-import { dispatchSessionToStore } from '@/services/auth/mock/mock-auth.store';
+import {
+  SessionTransientError,
+  TRANSIENT_RESTORE_MESSAGE,
+  isSessionTransientError,
+} from '@/services/auth/session-errors';
 import { useUserStore } from '@/store/useUserStore';
 import type { Session, User, UserRole } from '@/types/auth';
 import type { NestAuthUpdateDto, NestSetPasswordDto } from '@/types/nest-users';
+
+export {
+  SessionTransientError,
+  isSessionTransientError,
+} from '@/services/auth/session-errors';
 
 /** سطح سشن از حافظه؛ بدون حدس `'user'`. */
 function currentSurface(): 'admin' | 'user' | null {
@@ -255,9 +265,6 @@ let refreshInFlight: Promise<Session | null> | null = null;
 
 export type SessionFailureKind = 'dead' | 'transient';
 
-const TRANSIENT_RESTORE_MESSAGE =
-  'برقراری ارتباط با سرور ممکن نیست. اتصال را بررسی کنید و دوباره تلاش کنید.';
-
 /** نشست مرده است — باید خروج و پاک کردن presence. */
 export class SessionDeadError extends Error {
   readonly kind = 'dead' as const;
@@ -268,26 +275,8 @@ export class SessionDeadError extends Error {
   }
 }
 
-/**
- * بازیابی نشست نامشخص است (شبکه/۵xx). presence را پاک نکن و به لاگین نفرست.
- */
-export class SessionTransientError extends Error {
-  readonly kind = 'transient' as const;
-
-  constructor(message: string, readonly cause?: unknown) {
-    super(message);
-    this.name = 'SessionTransientError';
-  }
-}
-
 export function isDeadSessionHttpStatus(status: number | undefined): boolean {
   return status === 401 || status === 403;
-}
-
-export function isSessionTransientError(
-  error: unknown
-): error is SessionTransientError {
-  return error instanceof SessionTransientError;
 }
 
 export function toSessionTransientError(error: unknown): SessionTransientError {

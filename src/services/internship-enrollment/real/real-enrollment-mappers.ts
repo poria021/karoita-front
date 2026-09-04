@@ -9,7 +9,7 @@ import {
   nestLessonTitle,
   toAcademicTerm,
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
-import { lessonLevelFromTitle } from '@/services/organizational-capacities/real/real-organizational-capacities-mappers';
+import { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
 import type { NestLesson, NestSemesterWithLessons } from '@/types/nest-admin';
 import type { NestEnrollmentProfessor } from '@/types/nest-student-enrollments';
 import type {
