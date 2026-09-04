@@ -13,6 +13,7 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { notifyIfPostCommitRefreshFailure, notifyPostCommitRefreshFailure } from '@/lib/post-commit-refresh';
 import type { OrgStructureListItem } from '@/services/org-structure.service';
 import { rememberOrgRelationLabels } from '@/services/org-structure/real/org-relation-label-overlay';
 import type {
@@ -89,9 +90,13 @@ export function OrgStructureEntityModal({
         rememberOrgRelationLabels([editId ?? undefined, label], labels);
         await submitOrgEntity(tab, values, editId);
         toast.success(`${tabConfig.addLabel} «${label}» به‌روزرسانی شد.`);
-        // onSaved کش را flush و جدول را reload می‌کنه — باید await بشه
-        // تا اطمینان حاصل بشه قبل از بستن مدال، خطای راس‌اندازی catch نمی‌شه.
-        await onSaved();
+        try {
+          await onSaved();
+        } catch (refreshError) {
+          if (!notifyIfPostCommitRefreshFailure(refreshError)) {
+            notifyPostCommitRefreshFailure();
+          }
+        }
         onClose();
       } catch (err) {
         setFormError(err instanceof Error ? err.message : 'ذخیره ناموفق بود.');

@@ -19,6 +19,21 @@ function isUnsafePathSegment(segment: string): boolean {
   return segment === '..' || segment.includes('/') || segment.includes('\\');
 }
 
+/**
+ * Fetch/Next برای 204/205/304 بدنه نمی‌پذیرند — حتی `ArrayBuffer` خالی.
+ * Nest روی CRUD کاتالوگ 204 با JSON/etag می‌دهد؛ `new NextResponse(buf, { status: 204 })`
+ * `TypeError` می‌دهد، روت پروکسی می‌ترکد، مرورگر «ارتباط با سرور برقرار نشد»
+ * می‌بیند، در حالی که نوشتن روی Nest انجام شده.
+ */
+const NULL_BODY_STATUSES = new Set([204, 205, 304]);
+
+export function nestProxyResponseBody(
+  status: number,
+  body: ArrayBuffer
+): ArrayBuffer | null {
+  return NULL_BODY_STATUSES.has(status) ? null : body;
+}
+
 export async function forwardToNestApi(
   request: NextRequest,
   pathSegments: string[]
@@ -78,12 +93,33 @@ export async function forwardToNestApi(
   outHeaders.delete('content-length');
   outHeaders.set('x-karvita-proxy', 'nest-raw');
 
-  const body = await upstream.arrayBuffer();
+  let rawBody = new ArrayBuffer(0);
+  try {
+    rawBody = await upstream.arrayBuffer();
+  } catch {
+    // بعضی runtimeها خواندن بدنهٔ غیرمجاز روی 204 را رد می‌کنند.
+  }
+  const status = upstream.status;
+  const body = nestProxyResponseBody(status, rawBody);
 
-  const response = new NextResponse(body, {
-    status: upstream.status,
-    headers: outHeaders,
-  });
-  response.headers.delete('content-encoding');
-  return response;
+  try {
+    const response = new NextResponse(body, {
+      status,
+      headers: outHeaders,
+    });
+    response.headers.delete('content-encoding');
+    return response;
+  } catch {
+    // اگر وضعیت null-body هنوز هم constructor را بترکاند، بدون بدنه برگردان
+    // تا write موفق Nest به Failed to fetch تبدیل نشود.
+    if (NULL_BODY_STATUSES.has(status)) {
+      const fallback = new NextResponse(null, { status, headers: outHeaders });
+      fallback.headers.delete('content-encoding');
+      return fallback;
+    }
+    return NextResponse.json(
+      { message: 'ارتباط با سرویس API برقرار نشد.' },
+      { status: 502 }
+    );
+  }
 }
