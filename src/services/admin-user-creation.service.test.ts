@@ -259,9 +259,9 @@ describe('AdminUserCreationService (real staff admin)', () => {
     expect(adminsApi.create).not.toHaveBeenCalled();
   });
 
-  it('maps Nest 409 to the duplicate-mobile message', async () => {
+  it('surfaces the Nest 409 body instead of a frontend duplicate-mobile copy', async () => {
     vi.mocked(adminsApi.create).mockRejectedValue(
-      new ApiClientError('conflict', 409)
+      new ApiClientError('phone already exists', 409)
     );
 
     await expect(
@@ -272,7 +272,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
         password: '12345678',
         role: 'assistant_admin',
       })
-    ).rejects.toThrow(/موبایل/);
+    ).rejects.toThrow('phone already exists');
   });
 
   it('lists staff admins from GET /admin/admins', async () => {

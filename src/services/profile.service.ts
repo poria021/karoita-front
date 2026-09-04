@@ -18,7 +18,6 @@ import {
 import {
   extractApiMessage,
   extractApiPayload,
-  isPersianMessage,
   parseProfile,
   ProfileServiceError,
 } from './profile/real/profile.mappers';
@@ -141,10 +140,7 @@ export class ProfileService {
         }
         return {
           success: true,
-          message:
-            serverMessage && isPersianMessage(serverMessage)
-              ? serverMessage
-              : 'اطلاعات پروفایل شما با موفقیت ذخیره شد.',
+          message: serverMessage || 'اطلاعات پروفایل شما با موفقیت ذخیره شد.',
         };
       }
 

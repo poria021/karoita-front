@@ -1,5 +1,4 @@
 import { isMockApiMode } from '@/lib/api-mode';
-import { ApiClientError } from '@/services/api-error';
 import { mapNestAdminUser, mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
 import { isStaffAdminRole } from '@/services/auth/real/nest-auth-role';
 import { isCreatableStaffAdminRole } from '@/types/role-taxonomy';
@@ -41,17 +40,6 @@ function requireMockUserCreate(): void {
   assertMockClientHasPermission('user.create');
 }
 
-function toDuplicateMobileError(error: unknown): never {
-  if (error instanceof ApiClientError && error.status === 409) {
-    throw new ApiClientError(
-      'این شماره موبایل قبلاً در سیستم ثبت شده است.',
-      409,
-      error.payload
-    );
-  }
-  throw error;
-}
-
 export const AdminUserCreationService = {
   /**
    * آیا موبایل ثبت شده — real: GET `/api/v1/users?filters={"phone":"..."}&limit=1`.
@@ -89,12 +77,8 @@ export const AdminUserCreationService = {
             'ایجاد حساب مدیر ارشد از این فرم مجاز نیست. فقط دستیار ادمین ساخته می‌شود.'
           );
         }
-        try {
-          const raw = await adminsApi.create(toNestCreateAdminDto(input));
-          return { user: mapNestAdminUser(raw, input.mobile) };
-        } catch (error) {
-          toDuplicateMobileError(error);
-        }
+        const raw = await adminsApi.create(toNestCreateAdminDto(input));
+        return { user: mapNestAdminUser(raw, input.mobile) };
       }
 
       if (!input.userId) {
@@ -164,10 +148,6 @@ export const AdminUserCreationService = {
       requireMockUserCreate();
       return mockUpdateStaffAdmin(id, input);
     }
-    try {
-      return await adminsApi.update(id, toNestUpdateAdminDto(input));
-    } catch (error) {
-      toDuplicateMobileError(error);
-    }
+    return adminsApi.update(id, toNestUpdateAdminDto(input));
   },
 };

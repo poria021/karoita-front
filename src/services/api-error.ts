@@ -1,5 +1,6 @@
 /**
- * خطای ky → `ApiClientError` با پیام فارسی.
+ * خطای ky → `ApiClientError`.
+ * متن HTTP را از بدنهٔ Nest می‌خوانیم؛ فرانت برای پاسخ سرور پیام دامنه نمی‌سازد.
  */
 import { HTTPError, NetworkError, TimeoutError } from 'ky';
 
@@ -14,148 +15,77 @@ export class ApiClientError extends Error {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+/** فقط وقتی بدنهٔ HTTP پیامی ندارد — نه ترجمهٔ دامنه. */
+export const EMPTY_HTTP_ERROR_MESSAGE = 'عملیات ناموفق بود.';
+
+function isRecord(value: unknown): boolean {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isPersianMessage(message: string): boolean {
-  return /[\u0600-\u06FF]/.test(message);
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return isRecord(value) ? (value as Record<string, unknown>) : null;
 }
 
-function extractApiMessage(payload: unknown): string | null {
-  if (!isRecord(payload)) return null;
+function cleanMessage(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
 
-  if (typeof payload.message === 'string') return payload.message;
+function joinMessages(values: string[]): string | null {
+  const cleaned = values
+    .map((value) => value.trim())
+    .filter(Boolean);
+  return cleaned.length > 0 ? cleaned.join('، ') : null;
+}
 
-  if (Array.isArray(payload.message)) {
-    const messages = payload.message.filter(
-      (m): m is string => typeof m === 'string'
+/** متن خام Nest: `message` / `errors` / `error` / `detail` — بدون بازنویسی. */
+export function extractApiMessage(payload: unknown): string | null {
+  if (typeof payload === 'string') return cleanMessage(payload);
+
+  const rec = asRecord(payload);
+  if (!rec) return null;
+
+  if (typeof rec.message === 'string') return cleanMessage(rec.message);
+
+  if (Array.isArray(rec.message)) {
+    const fromMessage = joinMessages(
+      rec.message.filter((item): item is string => typeof item === 'string')
     );
-    return messages.length > 0 ? messages.join('، ') : null;
+    if (fromMessage) return fromMessage;
   }
 
-  if (Array.isArray(payload.errors)) {
-    const messages = payload.errors
-      .flatMap((entry) => {
+  if (Array.isArray(rec.errors)) {
+    const fromErrors = joinMessages(
+      rec.errors.flatMap((entry) => {
         if (typeof entry === 'string') return [entry];
-        if (isRecord(entry) && typeof entry.message === 'string') {
-          return [entry.message];
-        }
-        return [];
+        const item = asRecord(entry);
+        return typeof item?.message === 'string' ? [item.message] : [];
       })
-      .filter(Boolean);
-    return messages.length > 0 ? messages.join('، ') : null;
+    );
+    if (fromErrors) return fromErrors;
   }
 
-  if (isRecord(payload.errors)) {
-    const mapped = Object.entries(payload.errors)
-      .map(([key, value]) => {
-        if (typeof value !== 'string') return null;
-        const lower = value.toLowerCase();
-        // Nest فیلد OTP را `hash` می‌گذارد؛ ۴۰۴ با `invalidOtp` را پیام «منبع یافت نشد» نکن.
-        if (key.toLowerCase() === 'hash' || /invalid.?otp/i.test(value)) {
-          return 'کد تایید وارد‌شده اشتباه یا منقضی شده است.';
-        }
-        if (lower === 'notfound' || lower.includes('not found')) {
-          return 'کاربری با این شماره یافت نشد.';
-        }
-        if (/phone/i.test(value) || /11-digit/i.test(value)) {
-          return 'فرمت شماره موبایل معتبر نیست.';
-        }
-        return isPersianMessage(value) ? value : null;
-      })
-      .filter((v): v is string => Boolean(v));
-    if (mapped.length > 0) return mapped.join('، ');
+  const errors = asRecord(rec.errors);
+  if (errors) {
+    const fromErrorMap = joinMessages(
+      Object.values(errors).filter((value): value is string => typeof value === 'string')
+    );
+    if (fromErrorMap) return fromErrorMap;
   }
 
-  return typeof payload.error === 'string' ? payload.error : null;
+  if (typeof rec.detail === 'string') return cleanMessage(rec.detail);
+  if (typeof rec.error === 'string') return cleanMessage(rec.error);
+
+  return null;
 }
 
-/** Nest روی `verify-otp` برای کد اشتباه/منقضی ۴۰۴ می‌دهد — حتی با بدنهٔ خالی؛ پیام عمومی ۴۰۴ نده. */
-const OTP_VERIFY_URL_HINT = 'verify-otp';
-const OTP_RESET_URL_HINT = 'reset/password';
-
-function isOtpAuthUrl(url: string | undefined): boolean {
-  if (typeof url !== 'string') return false;
-  return url.includes(OTP_VERIFY_URL_HINT) || url.includes(OTP_RESET_URL_HINT);
-}
-
-/** `/admin/semester` و `/admin/semester/{id}` — نه `semesters_all`. */
-function isSemesterAdminUrl(url: string | undefined): boolean {
-  if (typeof url !== 'string') return false;
-  return /\/admin\/semester(?:\/|$|\?)/.test(url);
-}
-
-function isSettingsAdminUrl(url: string | undefined): boolean {
-  if (typeof url !== 'string') return false;
-  return /\/admin\/settings(?:\/|$|\?)/.test(url);
-}
-
-function isWeeksAdminUrl(url: string | undefined): boolean {
-  if (typeof url !== 'string') return false;
-  return /\/admin\/weeks(?:\/|$|\?)/.test(url);
-}
-
-function isLessonsAdminUrl(url: string | undefined): boolean {
-  if (typeof url !== 'string') return false;
-  return /\/admin\/lessons(?:\/|$|\?)/.test(url);
-}
-
-function defaultStatusMessage(status: number, url?: string): string {
-  if (status === 404 && isOtpAuthUrl(url)) {
-    return 'کد تایید وارد‌شده اشتباه یا منقضی شده است.';
-  }
-  if (status === 400) return 'اطلاعات ارسال‌شده معتبر نیست. لطفاً فیلدها را بررسی کنید.';
-  if (status === 401) return 'نشست شما منقضی شده است. لطفاً دوباره وارد شوید.';
-  if (status === 403) return 'شما اجازه انجام این عملیات را ندارید.';
-  if (status === 404) return 'منبع درخواستی یافت نشد.';
-  if (status === 409) return 'اطلاعات با داده‌های موجود تداخل دارد.';
-  if (status === 413) return 'حجم فایل ارسالی بیش از حد مجاز است.';
-  if (status === 422) return 'اطلاعات ارسال‌شده توسط سرور پذیرفته نشد. لطفاً فرم را بررسی کنید.';
-  if (status >= 500) return 'سرویس موقتاً در دسترس نیست. لطفاً کمی بعد تلاش کنید.';
-  return 'انجام عملیات با خطا مواجه شد.';
-}
-
-export function localizeApiError(payload: unknown, status: number, url?: string): string {
-  const serverMessage = extractApiMessage(payload);
-  if (serverMessage && isPersianMessage(serverMessage)) {
-    return serverMessage;
-  }
-  if (isSemesterAdminUrl(url)) {
-    if (status === 400) {
-      return 'این دوره تحصیلی تکراری است، یا ترم دیگری با همین فصل و ساختار انتخاب واحد باز دارد.';
-    }
-    if (status === 404) {
-      return 'دوره تحصیلی یافت نشد.';
-    }
-  }
-  if (isSettingsAdminUrl(url)) {
-    if (status === 404) {
-      return 'تنظیمات تحصیلی یافت نشد.';
-    }
-  }
-  if (isWeeksAdminUrl(url)) {
-    if (status === 404) {
-      return 'هفته یافت نشد.';
-    }
-  }
-  if (isLessonsAdminUrl(url)) {
-    if (status === 404) {
-      return 'درس یافت نشد.';
-    }
-    if (status === 400) {
-      if (/\/lessons\/[^/]+\/weeks/.test(url ?? '')) {
-        return 'برنامهٔ هفتگی درس معتبر نیست.';
-      }
-      const capacityHint =
-        typeof serverMessage === 'string' &&
-        /capacit|exceed|professor/i.test(serverMessage);
-      return capacityHint
-        ? 'ظرفیت درس از سقف عمومی اساتید بیشتر است.'
-        : 'اطلاعات درس معتبر نیست. ظرفیت و روزهای حضور را بررسی کنید.';
-    }
-  }
-  return defaultStatusMessage(status, url);
+/** پیام HTTP سرور؛ اگر بدنه خالی باشد فقط یک fallback خنثی. `url` برای سازگاری callerها مانده. */
+export function localizeApiError(
+  payload: unknown,
+  _status: number,
+  _url?: string
+): string {
+  return extractApiMessage(payload) ?? EMPTY_HTTP_ERROR_MESSAGE;
 }
 
 export async function mapHttpError(error: unknown): Promise<never> {
@@ -163,11 +93,10 @@ export async function mapHttpError(error: unknown): Promise<never> {
     let payload: unknown = null;
     let rawText: string | null = null;
     try {
-      // اول `text()` نه `json()` تا بدنهٔ غیرJSON (صفحهٔ ۴۰۴ Next/gateway) در لاگ گم نشود.
       rawText = await error.response.text();
-      payload = rawText.trim() ? JSON.parse(rawText) : null;
+      payload = rawText.trim() ? JSON.parse(rawText) : rawText.trim() || null;
     } catch {
-      payload = null;
+      payload = rawText?.trim() || null;
     }
     if (process.env.NODE_ENV !== 'production') {
       console.error(
@@ -192,19 +121,19 @@ export async function mapHttpError(error: unknown): Promise<never> {
 
   if (error instanceof NetworkError) {
     throw new ApiClientError(
-      'ارتباط با سرویس احراز هویت برقرار نشد. اگر همین صفحه را تازه ری‌استارت کرده‌اید، چند ثانیه صبر کنید و دوباره تلاش کنید.'
+      'ارتباط با سرویس برقرار نشد. اتصال را بررسی کنید و دوباره تلاش کنید.'
     );
   }
 
   if (error instanceof TypeError) {
     throw new ApiClientError(
-      'ارتباط با سرویس برقرار نشد. اتصال اینترنت را بررسی کنید.'
+      'ارتباط با سرویس برقرار نشد. اتصال را بررسی کنید و دوباره تلاش کنید.'
     );
   }
 
   throw new ApiClientError(
     error instanceof Error && error.message
       ? error.message
-      : 'خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.'
+      : EMPTY_HTTP_ERROR_MESSAGE
   );
 }
