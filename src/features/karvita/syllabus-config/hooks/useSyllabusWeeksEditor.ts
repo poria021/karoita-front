@@ -14,7 +14,7 @@ import {
 import type { CourseCatalogItem, SyllabusWeek } from '@/types/syllabus-config';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
+import { publishSyllabusSnapshot } from '../lib/syllabusPageCache';
 import { errorMessage } from '../lib/syllabusPageUtils';
 import { weekWeightSchema } from '../schemas/syllabus-config.schema';
 
@@ -180,7 +180,7 @@ export function useSyllabusWeeksEditor({
         courseCatalogId: selectedCourse.id,
         weeks,
       });
-      queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
+      publishSyllabusSnapshot(queryClient, snapshot);
       setHasUnsavedChanges(false);
       clearSyllabusWeeksDraft();
       try {

@@ -13,7 +13,7 @@ import type {
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
-import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
+import { publishSyllabusSnapshot } from '../lib/syllabusPageCache';
 import { errorMessage, offeredCatalogIdsFromList } from '../lib/syllabusPageUtils';
 
 type UseSyllabusOfferingGatesArgs = {
@@ -48,7 +48,7 @@ export function useSyllabusOfferingGates({
   const [pendingCourseId, setPendingCourseId] = useState<string | null>(null);
 
   function applySnapshotTerms(snapshot: SyllabusConfigSnapshot) {
-    queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
+    publishSyllabusSnapshot(queryClient, snapshot);
     setTerms(snapshot.terms);
   }
 

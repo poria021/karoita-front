@@ -338,15 +338,32 @@ export function useSyllabusPageLoader({
   useEffect(() => {
     if (!snapshotQuery.isSuccess || !snapshotQuery.data) return;
     if (appliedSnapshotAtRef.current === snapshotQuery.dataUpdatedAt) return;
-    // فقط اولین رنگ / remount — اعمال مجدد soft-refetch پس‌زمینه را رد کن.
-    if (appliedSnapshotAtRef.current !== 0) return;
 
+    const isFirstApply = appliedSnapshotAtRef.current === 0;
     const requestId = ++loadRequestIdRef.current;
     appliedSnapshotAtRef.current = snapshotQuery.dataUpdatedAt;
+    const snapshot = snapshotQuery.data;
     void (async () => {
       try {
         if (requestId !== loadRequestIdRef.current) return;
-        await applySnapshot(snapshotQuery.data);
+        if (isFirstApply) {
+          await applySnapshot(snapshot);
+        } else {
+          // mutation از ماژول دیگر / setQueryData — ترم‌ها را هم‌گام کن،
+          // ولی جدول هفته را با soft-refetch پس‌زمینه از نو نساز.
+          const previousTermId = stateRefs.current.selectedTermId;
+          const termId = applySnapshotTerms(snapshot);
+          if (
+            sectionRef.current === 'course_offerings' &&
+            termId &&
+            termId !== previousTermId
+          ) {
+            await loadTermContext(termId, undefined, {
+              snapshot,
+              force: true,
+            });
+          }
+        }
         if (requestId !== loadRequestIdRef.current) return;
         setError(null);
       } catch (err) {
@@ -355,8 +372,7 @@ export function useSyllabusPageLoader({
         setIsLoading(false);
       }
     })();
-    // عمدی: یک‌بار روی mount از کش/fetch کوئری اعمال شود
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- bootstrap روی mount از Query
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- اعمال snapshot از Query
   }, [snapshotQuery.isSuccess, snapshotQuery.data, snapshotQuery.dataUpdatedAt]);
 
   useEffect(() => {

@@ -16,7 +16,10 @@ import type {
 import { persianToEnglishDigits, toPersianDigits } from '@/utils/persianDigits';
 
 import { defaultPrefixForType, parseTermTitleParts } from '../constants';
-import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
+import {
+  patchCachedSyllabusTerms,
+  publishSyllabusSnapshot,
+} from '../lib/syllabusPageCache';
 import { errorMessage } from '../lib/syllabusPageUtils';
 import {
   professorCapacitySchema,
@@ -89,7 +92,7 @@ export function useSyllabusTermSettings({
   }
 
   function applySnapshotTerms(snapshot: SyllabusConfigSnapshot) {
-    queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
+    publishSyllabusSnapshot(queryClient, snapshot);
     setTerms(snapshot.terms);
   }
 
@@ -163,19 +166,19 @@ export function useSyllabusTermSettings({
         message: `دوره تحصیلی «${label}» به‌روز شد.`,
         apply: () => {
           snapshot = terms;
-          setTerms((prev) =>
-            prev.map((term) =>
-              term.id === targetId
-                ? {
-                    ...term,
-                    title,
-                    type: parsed.data.type,
-                    titlePrefix: parsed.data.titlePrefix,
-                    academicYear: parsed.data.academicYear,
-                  }
-                : term
-            )
+          const next = terms.map((term) =>
+            term.id === targetId
+              ? {
+                  ...term,
+                  title,
+                  type: parsed.data.type,
+                  titlePrefix: parsed.data.titlePrefix,
+                  academicYear: parsed.data.academicYear,
+                }
+              : term
           );
+          setTerms(next);
+          patchCachedSyllabusTerms(queryClient, next);
           setTermFormBaseline(
             termFormKey(
               targetId,
@@ -187,6 +190,7 @@ export function useSyllabusTermSettings({
         },
         revert: () => {
           setTerms(snapshot);
+          patchCachedSyllabusTerms(queryClient, snapshot);
         },
         commit: () =>
           SyllabusConfigService.updateTerm(targetId, parsed.data),
@@ -220,12 +224,15 @@ export function useSyllabusTermSettings({
       message: `دوره تحصیلی «${label}» ایجاد شد.`,
       apply: () => {
         snapshot = terms;
-        setTerms((prev) => [...prev, optimistic]);
+        const next = [...terms, optimistic];
+        setTerms(next);
+        patchCachedSyllabusTerms(queryClient, next);
         resetTermForm();
         setSelectedTermId(tempId);
       },
       revert: () => {
         setTerms(snapshot);
+        patchCachedSyllabusTerms(queryClient, snapshot);
         setSelectedTermId(snapshot[0]?.id ?? '');
       },
       commit: () => SyllabusConfigService.createTerm(parsed.data),
@@ -269,7 +276,9 @@ export function useSyllabusTermSettings({
       deferCommit: !IS_MOCK_MODE,
       apply: () => {
         snapshot = terms;
-        setTerms((prev) => prev.filter((term) => term.id !== target.id));
+        const next = terms.filter((term) => term.id !== target.id);
+        setTerms(next);
+        patchCachedSyllabusTerms(queryClient, next);
         resetTermForm();
         const nextId =
           snapshot.find((term) => term.id !== target.id)?.id ?? '';
@@ -277,6 +286,7 @@ export function useSyllabusTermSettings({
       },
       revert: () => {
         setTerms(snapshot);
+        patchCachedSyllabusTerms(queryClient, snapshot);
         setEditTermId(target.id);
         setTermType(target.type);
         const parts = parseTermTitleParts(target.title);

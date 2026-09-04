@@ -1,7 +1,43 @@
-import { describe, expect, it } from 'vitest';
+import { QueryClient } from '@tanstack/react-query';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { cacheKeyFor, syllabusSnapshotQueryKey, type PendingNavigation } from './syllabusPageCache';
-import type { CourseCatalogItem } from '@/types/syllabus-config';
+import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
+import type { AcademicTerm, CourseCatalogItem, SyllabusConfigSnapshot } from '@/types/syllabus-config';
+
+import {
+  cacheKeyFor,
+  patchCachedSyllabusTerms,
+  publishSyllabusSnapshot,
+  syllabusSnapshotQueryKey,
+  syncSyllabusDashboardTerms,
+  type PendingNavigation,
+  type SyllabusPageCache,
+} from './syllabusPageCache';
+
+function term(id: string, title: string): AcademicTerm {
+  return {
+    id,
+    title,
+    type: 'semester',
+    isEnrollOpen: false,
+    isTermOpen: false,
+    enrollStart: '',
+    termStart: '',
+  };
+}
+
+function emptyPage(terms: AcademicTerm[], selectedTermId: string): SyllabusPageCache {
+  return {
+    terms,
+    selectedTermId,
+    selectedCourse: null,
+    courses: [],
+    weeks: [],
+    offeredCatalogIds: [],
+    professorCapacity: '15',
+    passingThreshold: '70',
+  };
+}
 
 describe('cacheKeyFor', () => {
   it('scopes cache by syllabus section', () => {
@@ -35,5 +71,88 @@ describe('PendingNavigation hydrate shape', () => {
     };
     expect(termPending.kind).toBe('term');
     expect(coursePending.kind).toBe('course');
+  });
+});
+
+describe('syncSyllabusDashboardTerms', () => {
+  beforeEach(() => {
+    useDashboardModuleCache.setState({ data: {}, chrome: {} });
+  });
+
+  it('updates terms on every syllabus section cache and clears a deleted selection', () => {
+    const keep = term('keep', 'نیم‌سال اول');
+    const gone = term('gone', 'نیم‌سال دوم');
+    const setData = useDashboardModuleCache.getState().setData;
+    setData(cacheKeyFor('term_settings'), emptyPage([keep, gone], 'keep'));
+    setData(cacheKeyFor('course_offerings'), emptyPage([keep, gone], 'gone'));
+
+    syncSyllabusDashboardTerms([keep]);
+
+    const getData = useDashboardModuleCache.getState().getData;
+    expect(
+      getData<SyllabusPageCache>(cacheKeyFor('term_settings'))?.terms
+    ).toEqual([keep]);
+    expect(
+      getData<SyllabusPageCache>(cacheKeyFor('course_offerings'))?.selectedTermId
+    ).toBe('');
+    expect(
+      getData<SyllabusPageCache>(cacheKeyFor('course_offerings'))?.terms
+    ).toEqual([keep]);
+  });
+});
+
+describe('publishSyllabusSnapshot', () => {
+  beforeEach(() => {
+    useDashboardModuleCache.setState({ data: {}, chrome: {} });
+  });
+
+  it('writes shared query cache and sibling dashboard terms together', () => {
+    const keep = term('keep', 'نیم‌سال اول');
+    const gone = term('gone', 'نیم‌سال دوم');
+    useDashboardModuleCache
+      .getState()
+      .setData(cacheKeyFor('course_offerings'), emptyPage([keep, gone], 'gone'));
+
+    const queryClient = new QueryClient();
+    const snapshot: SyllabusConfigSnapshot = {
+      terms: [keep],
+      offerings: {},
+      internships: [],
+      globalProfessorCapacity: 12,
+      passingScoreThreshold: 70,
+    };
+    publishSyllabusSnapshot(queryClient, snapshot);
+
+    expect(
+      queryClient.getQueryData<SyllabusConfigSnapshot>(syllabusSnapshotQueryKey)
+        ?.terms
+    ).toEqual([keep]);
+    expect(
+      useDashboardModuleCache
+        .getState()
+        .getData<SyllabusPageCache>(cacheKeyFor('course_offerings'))?.terms
+    ).toEqual([keep]);
+  });
+});
+
+describe('patchCachedSyllabusTerms', () => {
+  it('patches terms on an existing query snapshot', () => {
+    const keep = term('keep', 'نیم‌سال اول');
+    const gone = term('gone', 'نیم‌سال دوم');
+    const queryClient = new QueryClient();
+    queryClient.setQueryData<SyllabusConfigSnapshot>(syllabusSnapshotQueryKey, {
+      terms: [keep, gone],
+      offerings: {},
+      internships: [],
+      globalProfessorCapacity: 12,
+      passingScoreThreshold: 70,
+    });
+
+    patchCachedSyllabusTerms(queryClient, [keep]);
+
+    expect(
+      queryClient.getQueryData<SyllabusConfigSnapshot>(syllabusSnapshotQueryKey)
+        ?.terms
+    ).toEqual([keep]);
   });
 });
