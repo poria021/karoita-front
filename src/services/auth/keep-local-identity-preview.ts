@@ -4,6 +4,11 @@ function isDataImageUrl(value: string | undefined): boolean {
   return typeof value === 'string' && value.startsWith('data:image/');
 }
 
+function isRemoteDocUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  return /^(https?:|blob:)/i.test(value) || value.startsWith('/api/files/media');
+}
+
 /**
  * `PATCH /auth/me` ممکن است فیلد سازمان را حذف کند؛ جایگزینی کامل سشن استان/شهر را تا GET بعدی پاک می‌کند.
  * آرایهٔ خالی از سرور می‌ماند؛ فقط `undefined` از سشن قبلی پر می‌شود.
@@ -33,11 +38,9 @@ export function keepLocalIdentityPreview(
   incoming: User
 ): User {
   const prev = previous?.docUrl;
-  if (
-    previous?.id === incoming.id &&
-    isDataImageUrl(prev) &&
-    !isDataImageUrl(incoming.docUrl)
-  ) {
+  if (previous?.id !== incoming.id || !isDataImageUrl(prev)) return incoming;
+  if (isRemoteDocUrl(incoming.docUrl)) return incoming;
+  if (!isDataImageUrl(incoming.docUrl)) {
     return { ...incoming, docUrl: prev };
   }
   return incoming;

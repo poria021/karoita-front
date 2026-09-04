@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import {
   isBrowsableMediaUrl,
   resolveNestFileUrl,
+  toSameOriginMediaUrl,
 } from '@/services/files/resolve-nest-file-url';
 import {
   compressImage,
@@ -202,7 +203,8 @@ export function KvImageDocUploader({
   );
   const resolvedExistingUrl = useMemo(() => {
     if (!existingUrl || existingUrl === dismissedExistingUrl) return null;
-    return resolveNestFileUrl(existingUrl) ?? existingUrl;
+    const resolved = resolveNestFileUrl(existingUrl) ?? existingUrl;
+    return resolved ? toSameOriginMediaUrl(resolved) : null;
   }, [dismissedExistingUrl, existingUrl]);
 
   useEffect(() => {

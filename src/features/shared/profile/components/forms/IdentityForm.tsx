@@ -107,9 +107,8 @@ export function IdentityForm({
         );
       }
 
-      // باکت S3 برای GET عمومی بسته است؛ پیش‌نمایش قفل‌شدهٔ خود کاربر
-      // باید از همان فایل انتخاب‌شده بماند، نه از URL ذخیره‌سازی.
-      if (identityDocument) {
+      // mock: پیش‌نمایش data-URL. real: `docUrl` از Nest/S3 از طریق `/api/files/media`.
+      if (isMockApiMode() && identityDocument) {
         const preview = await readBlobAsDataUrl(identityDocument);
         const active = useUserStore.getState().activeUser;
         if (active) {

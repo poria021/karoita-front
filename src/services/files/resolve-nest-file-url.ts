@@ -1,9 +1,15 @@
 import { NEST_BROWSER_PROXY_PATH } from '@/lib/nest-proxy';
+import {
+  FILE_MEDIA_PATH,
+  isAllowedSignedUploadTarget,
+} from '@/lib/signed-upload-target';
 
 const ABSOLUTE_MEDIA = /^(https?:|data:|blob:)/i;
 
 export function isBrowsableMediaUrl(url: string): boolean {
-  return ABSOLUTE_MEDIA.test(url.trim());
+  const trimmed = url.trim();
+  if (ABSOLUTE_MEDIA.test(trimmed)) return true;
+  return trimmed.startsWith(`${FILE_MEDIA_PATH}?`) || trimmed === FILE_MEDIA_PATH;
 }
 
 function trimSlash(value: string): string {
@@ -67,13 +73,24 @@ function rebaseAwsUrlToPublicS3(raw: string, s3Base: string): string {
     return `${trimSlash(s3Base)}/${objectPath.replace(/^\/+/, '')}`;
   }
 
-  // همان مبدأ `NEXT_PUBLIC_S3_URL` با کوئری امضا — query را بردار تا مرورگر GET عادی بزند.
+  // امضای GET روی همان مبدأ باکت را نگه دار؛ بدون query روی باکت خصوصی تصویر خالی است.
   if (parsed.origin === publicOrigin && hasAwsSignatureQuery(parsed)) {
-    parsed.search = '';
     return parsed.toString();
   }
 
   return raw;
+}
+
+/**
+ * `<img>` نمی‌تواند Bearer بفرستد؛ GET باکت را از `/api/files/media` هم‌مبدأ می‌خوانیم.
+ */
+export function toSameOriginMediaUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return trimmed;
+  if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return trimmed;
+  if (trimmed.startsWith(FILE_MEDIA_PATH)) return trimmed;
+  if (!isAllowedSignedUploadTarget(trimmed)) return trimmed;
+  return `${FILE_MEDIA_PATH}?src=${encodeURIComponent(trimmed)}`;
 }
 
 /**
@@ -91,6 +108,7 @@ export function resolveNestFileUrl(
   const apiBase = trimSlash(bases?.apiBase ?? envApiBase());
 
   if (raw.startsWith('data:') || raw.startsWith('blob:')) return raw;
+  if (raw.startsWith(FILE_MEDIA_PATH)) return raw;
 
   if (/^https?:/i.test(raw)) {
     return rebaseAwsUrlToPublicS3(raw, s3Base);

@@ -4,6 +4,8 @@
 
 export const SIGNED_PUT_PATH = '/api/files/signed-put';
 export const SIGNED_PUT_URL_HEADER = 'x-karvita-signed-url';
+/** GET تصویر/فایل از باکت خصوصی از طریق همین مبدأ (نشست لازم است). */
+export const FILE_MEDIA_PATH = '/api/files/media';
 
 function isRecordHostnameIpv4(hostname: string): number[] | null {
   const parts = hostname.split('.');

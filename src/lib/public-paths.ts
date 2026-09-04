@@ -23,8 +23,8 @@ export const publicPathsConfig = {
    * - `/docs/` مستندات
    * - `/p/` صفحات CMS عمومی بین لندینگ و ورود (نوشتهٔ ادمین)
    * - `/api/nest/` پروکسی Nest برای مرورگر
-   * - `/api/auth/` مسیرهای cookie رفرش httpOnly (set/clear/refresh) —
-   *   باید قبل از لاگین و وسط rotation در دسترس بمانند؛ `real-auth.tokens.ts`
+   * - `/api/auth/` مسیرهای cookie رفرش httpOnly (set/clear/refresh)
+   * - `/api/files/` آپلود امضا و GET مدرک (خودِ روت نشست را می‌سنجد)
    */
   prefixes: [
     '/docs/',
@@ -33,6 +33,7 @@ export const publicPathsConfig = {
     `${NEST_BROWSER_PROXY_PATH}/`,
     `${NEST_LEGACY_BROWSER_PROXY_PATH}/`,
     '/api/auth/',
+    '/api/files/',
   ] as const,
 };
 

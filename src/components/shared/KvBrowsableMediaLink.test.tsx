@@ -45,6 +45,24 @@ describe('KvBrowsableMediaLink', () => {
     expect(screen.getByRole('img', { name: 'مدرک' })).toBeDefined();
   });
 
+  it('opens a data-URL image in the lightbox (browsers block data: navigation)', async () => {
+    standalone.current = false;
+    const user = userEvent.setup();
+    render(
+      <KvBrowsableMediaLink
+        href="data:image/jpeg;base64,/9j/4AAQ"
+        alt="مدرک"
+      >
+        پیش‌نمایش
+      </KvBrowsableMediaLink>
+    );
+
+    expect(screen.queryByRole('link')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'نمایش تصویر' }));
+    expect(screen.getByRole('dialog')).toBeDefined();
+    expect(screen.getByRole('img', { name: 'مدرک' })).toBeDefined();
+  });
+
   it('keeps a new-tab link for non-image media even in PWA', () => {
     standalone.current = true;
     render(

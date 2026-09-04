@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import {
   isBrowsableMediaUrl,
   resolveNestFileUrl,
+  toSameOriginMediaUrl,
 } from '@/services/files/resolve-nest-file-url';
 import { faIcons } from '@/utils/iconMap';
 
@@ -52,7 +53,10 @@ const SIZE_CLASS: Record<KvMediaThumbSize, string> = {
  * با `openInNewTab` تصویر در مرورگر تب جدید و در PWA مودال است؛ PDF/متن تب جدید می‌ماند.
  */
 export function KvMediaThumb(props: KvMediaThumbProps) {
-  const resolvedSrc = resolveNestFileUrl(props.src) ?? props.src ?? null;
+  const resolvedSrc = (() => {
+    const raw = resolveNestFileUrl(props.src) ?? props.src ?? null;
+    return raw ? toSameOriginMediaUrl(raw) : null;
+  })();
   // تعویض src باید failed را صفر کند — remount با key معادل reset در useEffect است.
   return (
     <KvMediaThumbBody key={resolvedSrc ?? ''} {...props} resolvedSrc={resolvedSrc} />

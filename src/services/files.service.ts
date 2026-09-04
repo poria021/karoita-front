@@ -44,11 +44,23 @@ export const FilesService = {
       );
 
       await filesApi.uploadToSignedUrl(uploadSignedUrl, file, mimeType);
-      await filesApi.confirm(fileRef.id, token);
+      const confirmed = await filesApi.confirm(fileRef.id, token);
+      const confirmedPath =
+        confirmed && typeof confirmed.path === 'string' ? confirmed.path.trim() : '';
+      const objectUrl = absoluteObjectUrlFromSignedUrl(uploadSignedUrl);
+      const path =
+        (confirmedPath && /^(https?:)/i.test(confirmedPath)
+          ? confirmedPath
+          : null) ||
+        objectUrl ||
+        confirmedPath ||
+        fileRef.path;
 
       return {
         ...fileRef,
-        path: absoluteObjectUrlFromSignedUrl(uploadSignedUrl) ?? fileRef.path,
+        ...(confirmed ?? {}),
+        id: confirmed?.id || fileRef.id,
+        path,
       };
     } catch (error) {
       throw new Error(fileUploadUserMessage(error));
