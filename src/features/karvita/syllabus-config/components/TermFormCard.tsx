@@ -152,7 +152,12 @@ export function TermFormCard({
               placeholder="۱۴۰۵-۱۴۰۶"
               error={academicYearError ?? undefined}
               onChange={(event) =>
-                onTermYearChange(persianToEnglishDigits(event.target.value))
+                onTermYearChange(
+                  persianToEnglishDigits(event.target.value).replace(
+                    /[^\d-]/g,
+                    ''
+                  )
+                )
               }
             />
         </div>

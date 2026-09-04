@@ -15,8 +15,8 @@ export const termFormSchema = z.object({
     .min(1, 'سال تحصیلی الزامی است.')
     .transform(englishDigits)
     .refine(
-      (v) => /^\d{4}-\d{4}$/.test(v),
-      'سال تحصیلی باید به صورت ۱۴۰۵-۱۴۰۶ باشد.'
+      (v) => /^[\d-]+$/.test(v),
+      'سال تحصیلی فقط می‌تواند شامل عدد و خط تیره باشد.'
     ),
 });
 
