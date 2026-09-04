@@ -24,6 +24,9 @@ const nestDispatcher = new Agent({
 /**
  * Fetch سرور-به-سرور به Nest (و upstreamهای HTTPS مشابه).
  * Vitest همان `global fetch` تا stub تست‌ها بماند.
+ *
+ * undici و DOM `RequestInit`/`Response` تایپ‌های جدا دارند؛
+ * runtime سازگار است — cast از طریق `unknown`/`never` عمدی است.
  */
 export async function fetchNestUpstream(
   url: string,
@@ -43,7 +46,7 @@ export async function fetchNestUpstream(
   return undiciFetch(url, {
     ...nextInit,
     dispatcher: nestDispatcher,
-  }) as Promise<Response>;
+  } as never) as unknown as Promise<Response>;
 }
 
 export function logNestUpstreamFailure(context: string, error: unknown): void {
