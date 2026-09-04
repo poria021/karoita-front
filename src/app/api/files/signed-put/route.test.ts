@@ -31,12 +31,12 @@ describe('PUT /api/files/signed-put', () => {
     const response = await PUT(sameOriginPut(SIGNED, 'webp-bytes'));
 
     expect(response.status).toBe(204);
-    expect(upstream).toHaveBeenCalledTimes(1);
-    const [url, init] = upstream.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe(SIGNED);
-    expect(init.method).toBe('PUT');
-    expect((init.headers as Record<string, string>)['Content-Type']).toBe(
-      'image/webp'
+    expect(upstream).toHaveBeenCalledWith(
+      SIGNED,
+      expect.objectContaining({
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/webp' },
+      })
     );
   });
 
