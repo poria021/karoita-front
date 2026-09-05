@@ -64,6 +64,7 @@ const COLUMNS_BY_TAB: Record<OrgStructureSubTab, OrgStructureColumnDef[]> = {
   faculties: [
     { key: 'name', label: 'نام دانشکده یا پردیس' },
     { key: 'provinceName', label: 'استان', align: 'center' },
+    { key: 'cityName', label: 'شهر', align: 'center' },
     { key: 'usersCount', label: 'تعداد کاربران', align: 'center', countSuffix: 'نفر' },
     { key: 'actions', label: 'عملیات', align: 'center' },
   ],

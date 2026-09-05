@@ -189,6 +189,9 @@ function enrichListItem(
       provinceName: faculty
         ? (runtime.byId.province.get(faculty.provinceId)?.name ?? '—')
         : '—',
+      cityName: faculty
+        ? (runtime.byId.city.get(faculty.cityId)?.name ?? '—')
+        : '—',
     };
   }
 

@@ -236,7 +236,7 @@ describe('real-syllabus-mappers offerings', () => {
     expect(nestLessonTitle({ title: { fa: 'کارورزی ۳' } })).toBe('کارورزی ۳');
   });
 
-  it('maps weeks by priority and boolean status; PUT body drops local weight', () => {
+  it('maps Nest priority to local weight and PUT sends weight not week index', () => {
     const week = toSyllabusWeek(
       { priority: 2, status: false, title: 'جلسه دوم' },
       0,
@@ -245,8 +245,13 @@ describe('real-syllabus-mappers offerings', () => {
     expect(week).toMatchObject({
       suffix: 'جلسه دوم',
       title: 'جلسه دوم',
-      weight: 3,
+      weight: 2,
       status: 'archived',
+    });
+    expect(toSyllabusWeek({ status: true }, 8, 3)).toMatchObject({
+      suffix: 'هفته 9',
+      title: 'هفته 9',
+      weight: 3,
     });
     const body = toNestLessonWeeksBody([
       week,
@@ -259,8 +264,8 @@ describe('real-syllabus-mappers offerings', () => {
       } satisfies SyllabusWeek,
     ]);
     expect(body.weeks).toEqual([
-      { priority: 1, status: false },
-      { priority: 2, status: true },
+      { priority: 2, status: false },
+      { priority: 3, status: true },
     ]);
   });
 
@@ -293,12 +298,12 @@ describe('real-syllabus-mappers offerings', () => {
     expect(plan.creates).toEqual([
       {
         lessonId,
-        priority: 1,
+        priority: 3,
         status: true,
       },
       {
         lessonId,
-        priority: 2,
+        priority: 3,
         status: false,
       },
     ]);
@@ -326,7 +331,7 @@ describe('real-syllabus-mappers offerings', () => {
           status: 'archived',
         },
       ],
-      [{ id: '6a9164b4c208454ddf32ec92', priority: 1, status: true }]
+      [{ id: '6a9164b4c208454ddf32ec92', priority: 3, status: true }]
     );
 
     expect(plan.creates).toEqual([]);
@@ -334,7 +339,7 @@ describe('real-syllabus-mappers offerings', () => {
     expect(plan.deletions).toEqual([]);
   });
 
-  it('reuses remote week by priority instead of POSTing a duplicate', () => {
+  it('reuses remote week by list index instead of POSTing a duplicate', () => {
     const plan = planNestWeekWrites(
       '6a8e2b51d2187e0f2fdb784c',
       [
@@ -354,7 +359,7 @@ describe('real-syllabus-mappers offerings', () => {
         id: '6a9164b4c208454ddf32ec92',
         body: {
           lessonId: '6a8e2b51d2187e0f2fdb784c',
-          priority: 1,
+          priority: 3,
           status: false,
         },
       },
@@ -375,7 +380,7 @@ describe('real-syllabus-mappers offerings', () => {
         },
       ],
       [
-        { id: '6a9164b4c208454ddf32ec92', priority: 1, status: true },
+        { id: '6a9164b4c208454ddf32ec92', priority: 3, status: true },
         { id: '6a9164b4c208454ddf32ec93', priority: 2, status: true },
       ]
     );
@@ -480,10 +485,21 @@ describe('real-syllabus-mappers offerings', () => {
       },
     ])).toEqual({
       weeks: [
-        { priority: 1, status: true },
-        { priority: 2, status: false },
+        { priority: 3, status: true },
+        { priority: 3, status: false },
       ],
     });
+    expect(
+      toNestLessonWeeksBody(
+        Array.from({ length: 9 }, (_, index) => ({
+          id: `week_local_${index + 1}`,
+          suffix: `هفته ${index + 1}`,
+          title: `هفته ${index + 1}`,
+          weight: 3,
+          status: 'active' as const,
+        }))
+      ).weeks.every((week) => week.priority === 3)
+    ).toBe(true);
   });
 
   it('marks GET weeks as published and reads server errors from the envelope', () => {

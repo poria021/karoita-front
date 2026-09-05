@@ -11,7 +11,11 @@ import {
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
 import type { NestLesson, NestSemesterWithLessons } from '@/types/nest-admin';
-import type { NestEnrollmentProfessor } from '@/types/nest-student-enrollments';
+import type {
+  NestEnrollmentProfessor,
+  NestEnrollmentStatus,
+  NestStudentEnrollment,
+} from '@/types/nest-student-enrollments';
 import type {
   GetEnrollmentPageStateInput,
   InternshipCourseKind,
@@ -171,12 +175,72 @@ function registeredSummary(input: {
 }
 
 /**
+ * `schoolId`/`teacherId` در Swagger `{}` هستند — لایو یا رشتهٔ شناسه می‌دهد یا سند
+ * populated با `id`/`title`؛ این تابع هر دو را به `{id, title}` یکسان می‌کند.
+ */
+function extractNestRelation(
+  value: NestStudentEnrollment['schoolId']
+): { id: string; title: string } | null {
+  if (typeof value === 'string') {
+    const id = value.trim();
+    return id ? { id, title: '' } : null;
+  }
+  if (!isRecord(value)) return null;
+  const id = nestEntityId({
+    id: typeof value.id === 'string' ? value.id : undefined,
+    _id: typeof value._id === 'string' ? value._id : undefined,
+  });
+  if (!id) return null;
+  return { id, title: namedTitle(value) };
+}
+
+function mapNestEnrollmentStatus(
+  raw: NestEnrollmentStatus | string | undefined
+): InternshipEnrollmentSummary['status'] {
+  if (raw === 'dropped' || raw === 'completed') return raw;
+  return 'active';
+}
+
+/**
+ * خلاصهٔ ثبت‌نام واقعی از GET `/student-enrollments` — مدرسه/معلم/وضعیت واقعی است.
+ * `weeks`/`progressiveGrade` هنوز خالی می‌مانند چون `student-weeks` به فرانت وصل نشده.
+ * `supervisorName` هم فعلاً پاس‌داده می‌شود ولی هیچ‌کجا resolve نشده — DTO فقط
+ * `professorId` (شناسه) می‌دهد، نه نام؛ نگاشتِ آن به نام باید بعداً (مثلاً با
+ * `usersApi.getById`، اگر نقش دانشجو به آن دسترسی داشته باشد) اضافه شود.
+ */
+function registeredSummaryFromEnrollment(
+  input: { kind: InternshipCourseKind; level: InternshipEnrollmentLevel; termTitle: string },
+  enrollment: NestStudentEnrollment | null,
+  supervisorName: string | null
+): InternshipEnrollmentSummary {
+  const base = registeredSummary(input);
+  if (!enrollment) return base;
+
+  const school = extractNestRelation(enrollment.schoolId);
+  const mentor = extractNestRelation(enrollment.teacherId);
+
+  return {
+    ...base,
+    supervisorName: supervisorName ?? base.supervisorName,
+    schoolId: school?.id ?? null,
+    schoolName: school?.title || null,
+    mentorId: mentor?.id ?? null,
+    mentorName: mentor?.title || null,
+    status: mapNestEnrollmentStatus(enrollment.status),
+  };
+}
+
+/**
  * `lesson.status === true` یعنی همین کاربر آن درس را اخذ کرده.
  * وجود ردیف درس در لیست یعنی سرفصل برای آن سطح ارائه شده (حتی اگر status خاموش باشد).
  */
 export function toEnrollmentPageState(
   input: GetEnrollmentPageStateInput,
-  open: NestSemesterWithLessons | null
+  open: NestSemesterWithLessons | null,
+  registeredDetails?: {
+    enrollment: NestStudentEnrollment | null;
+    supervisorName: string | null;
+  }
 ): InternshipEnrollmentPageState {
   const kind = kindForRole(input.actor.role);
   const level = clampLevel(kind, input.level);
@@ -232,7 +296,11 @@ export function toEnrollmentPageState(
     lessonId,
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'
-        ? registeredSummary({ kind, level, termTitle: term.title })
+        ? registeredSummaryFromEnrollment(
+            { kind, level, termTitle: term.title },
+            registeredDetails?.enrollment ?? null,
+            registeredDetails?.supervisorName ?? null
+          )
         : null,
     selection:
       scenario === 'S3_enroll_open'

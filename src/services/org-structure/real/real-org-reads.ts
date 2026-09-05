@@ -229,6 +229,7 @@ async function listRealPageRaw(
       deleteBlocked: isLinkedUserDeleteBlocked('faculty', usersCount),
       // رفتار لایو: استان زیر `role` است نه `province`.
       provinceName: firstRelationTitle(u.province, u.role, u.provinceId),
+      cityName: firstRelationTitle(u.city, u.cityId, u.city_id),
     });
   });
   return {

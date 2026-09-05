@@ -20,7 +20,10 @@ import {
   getRealEnrollmentPageState,
   listRealEligibleSupervisors,
 } from '@/services/internship-enrollment/real/real-enrollment-reads';
-import { assertEnrollmentWriteReady } from '@/services/internship-enrollment/real/real-enrollment-writes';
+import {
+  assertEnrollmentWriteReady,
+  assignRealDelayedSchoolMentor,
+} from '@/services/internship-enrollment/real/real-enrollment-writes';
 import type {
   AssignDelayedSchoolMentorInput,
   EnrollWithSupervisorInput,
@@ -122,12 +125,18 @@ export const InternshipEnrollmentService = {
     return listDelayedMentors(input);
   },
 
+  /**
+   * real: PATCH `/student-enrollments/{id}` (فقط مدرسه/معلم).
+   * توجه: انتخاب مدرسه/معلم (`listDelayedSchools`/`listDelayedMentors`) هنوز stub
+   * است — این نوشتن آماده است ولی فلوی کامل UI تا وصل‌شدن آن دو کار نمی‌کند.
+   */
   async assignDelayedSchoolMentor(
     input: AssignDelayedSchoolMentorInput
   ): Promise<InternshipEnrollmentRecord> {
-    gateEnrollmentWrite(
-      'InternshipEnrollmentService.assignDelayedSchoolMentor'
-    );
+    if (!isMockApiMode()) {
+      return assignRealDelayedSchoolMentor(input);
+    }
+    gateEnrollmentMock();
     return assignDelayedSchoolMentor(input);
   },
 

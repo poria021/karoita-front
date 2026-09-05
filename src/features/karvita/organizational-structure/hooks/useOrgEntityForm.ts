@@ -38,8 +38,11 @@ function defaultValuesForTab(tab: OrgStructureSubTab): OrgEntityFormValues {
       ? { name: '', audience: undefined }
       : { name: '', roleId: '' };
   }
-  if (tab === 'cities' || tab === 'faculties') {
+  if (tab === 'cities') {
     return { name: '', provinceId: '' };
+  }
+  if (tab === 'faculties') {
+    return { name: '', provinceId: '', cityId: '' };
   }
   if (tab === 'schools') {
     return {
@@ -102,8 +105,8 @@ function valuesFromRow(
     return { name: row.name, provinceId: row.provinceId };
   }
   if (kind === 'faculty') {
-    if (row.provinceId === undefined) return null;
-    return { name: row.name, provinceId: row.provinceId };
+    if (row.provinceId === undefined || row.cityId === undefined) return null;
+    return { name: row.name, provinceId: row.provinceId, cityId: row.cityId };
   }
   if (kind === 'district') {
     if (row.provinceId === undefined || row.cityId === undefined) return null;
@@ -174,7 +177,7 @@ export function useOrgEntityForm({
     enabled:
       open &&
       Boolean(provinceId) &&
-      (tab === 'districts' || tab === 'schools'),
+      (tab === 'districts' || tab === 'schools' || tab === 'faculties'),
     placeholderData: keepPreviousData,
   });
 
@@ -293,8 +296,16 @@ export function useOrgEntityForm({
         }
 
         if (entityKind === 'faculty') {
-          const faculty = entity as { name: string; provinceId: string };
-          form.reset({ name: faculty.name, provinceId: faculty.provinceId });
+          const faculty = entity as {
+            name: string;
+            provinceId: string;
+            cityId: string;
+          };
+          form.reset({
+            name: faculty.name,
+            provinceId: faculty.provinceId,
+            cityId: faculty.cityId,
+          });
           return;
         }
 

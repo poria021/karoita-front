@@ -57,7 +57,11 @@ export async function upsertRealCity(
   flushBareListCache('cities');
 }
 
-/** بدون `cityId`، POST/PUT /admin/universites لایو ۴۲۲ می‌دهد؛ فرم پردیس شهر ندارد پس اولین شهر استان را می‌فرستیم. */
+/**
+ * بدون `cityId`، POST/PUT /admin/universites لایو ۴۲۲ می‌دهد. فرم پردیس شهر را
+ * انتخاب می‌کند و همیشه `cityId` می‌فرستد؛ این fallback فقط برای caller قدیمی
+ * یا حالتی که مقدار خالی برسد نگه داشته شده.
+ */
 async function resolveUniversityCityId(
   input: UpsertFacultyInput
 ): Promise<string> {

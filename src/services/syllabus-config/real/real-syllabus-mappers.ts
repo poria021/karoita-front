@@ -1,4 +1,5 @@
 import { extractApiMessage } from '@/services/api-error';
+import { DEFAULT_WEEK_WEIGHT } from '@/services/syllabus-config/syllabus-term-gates';
 import type {
   NestAcademicSettings,
   NestCreateSemesterDto,
@@ -23,6 +24,31 @@ import type {
   UpsertTermInput,
 } from '@/types/syllabus-config';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
+
+/** Nest `priority` همان ضریب اهمیت UI است؛ فقط ۱…۵. شماره هفته ایندکس آرایه است. */
+const NEST_WEEK_PRIORITY_MIN = 1;
+const NEST_WEEK_PRIORITY_MAX = 5;
+
+function nestPriorityFromWeight(
+  weight: number,
+  fallback: number = DEFAULT_WEEK_WEIGHT
+): number {
+  if (
+    Number.isInteger(weight) &&
+    weight >= NEST_WEEK_PRIORITY_MIN &&
+    weight <= NEST_WEEK_PRIORITY_MAX
+  ) {
+    return weight;
+  }
+  if (
+    Number.isInteger(fallback) &&
+    fallback >= NEST_WEEK_PRIORITY_MIN &&
+    fallback <= NEST_WEEK_PRIORITY_MAX
+  ) {
+    return fallback;
+  }
+  return DEFAULT_WEEK_WEIGHT;
+}
 
 /**
  * ترم Nest فیلد پیشوند جدا ندارد — `season` + `structure` همان است.
@@ -325,9 +351,9 @@ function semesterYear(semester: NestSemester): string {
   );
 }
 
-function weekLabel(priority: number, title?: string): string {
+function weekLabel(weekNumber: number, title?: string): string {
   const trimmed = title?.trim();
-  return trimmed || `هفته ${priority}`;
+  return trimmed || `هفته ${weekNumber}`;
 }
 
 /**
@@ -397,13 +423,13 @@ export function toSyllabusWeek(
   index: number,
   defaultWeight: number
 ): SyllabusWeek {
-  const priority = week.priority ?? index + 1;
-  const label = weekLabel(priority, week.title);
+  const weekNumber = index + 1;
+  const label = weekLabel(weekNumber, week.title);
   return {
-    id: nestEntityId(week) || `week_priority_${priority}`,
+    id: nestEntityId(week) || `week_index_${weekNumber}`,
     suffix: label,
     title: label,
-    weight: defaultWeight,
+    weight: nestPriorityFromWeight(week.priority ?? Number.NaN, defaultWeight),
     status: week.status === false ? 'archived' : 'active',
   };
 }
@@ -431,8 +457,8 @@ export function toCourseOfferingRecord(
 
 export function toNestLessonWeeksBody(weeks: SyllabusWeek[]): NestPutLessonWeeksDto {
   return {
-    weeks: weeks.map((week, index) => ({
-      priority: index + 1,
+    weeks: weeks.map((week) => ({
+      priority: nestPriorityFromWeight(week.weight),
       status: week.status === 'active',
     })),
   };
@@ -494,18 +520,16 @@ export function planNestWeekWrites(
   }
 
   weeks.forEach((week, index) => {
-    const priority = index + 1;
+    const priority = nestPriorityFromWeight(week.weight);
     const status = week.status === 'active';
     if (isNestObjectId(week.id) && remoteById.has(week.id)) {
       queueUpdate(week.id, priority, status);
       return;
     }
 
-    const byPriority = [...remoteById.entries()].find(
-      ([id, row]) => !used.has(id) && (row.priority ?? 0) === priority
-    );
-    if (byPriority) {
-      queueUpdate(byPriority[0], priority, status);
+    const remoteAtIndexId = nestEntityId(remote[index] ?? {});
+    if (remoteAtIndexId && !used.has(remoteAtIndexId)) {
+      queueUpdate(remoteAtIndexId, priority, status);
       return;
     }
 

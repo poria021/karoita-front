@@ -1,3 +1,7 @@
+import {
+  clampLevel,
+  kindForRole,
+} from '@/services/internship-enrollment/enrollment-mappers';
 import { requireNestTransport } from '@/services/require-nest-transport';
 import {
   filterSupervisorsClientSide,
@@ -9,6 +13,8 @@ import {
   studentEnrollmentsApi,
 } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { nestEntityId } from '@/services/syllabus-config/real/real-syllabus-mappers';
+import type { NestSemesterWithLessons } from '@/types/nest-admin';
+import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
 import type {
   GetEnrollmentPageStateInput,
   InternshipEnrollmentPageState,
@@ -18,12 +24,45 @@ import type {
 
 const PROFESSORS_MAX_PAGES = 40;
 
+/**
+ * جزئیات ثبت‌نام واقعی (مدرسه/معلم/وضعیت) از GET `/student-enrollments`.
+ * فقط وقتی لازم است که `open-course-selection` همین درس را «اخذ‌شده» علامت زده باشد.
+ * نام استاد راهنما اینجا resolve نمی‌شود — `professorId` فقط شناسه‌ست و
+ * Swagger فعلی endpoint جداگانه‌ای برای نگاشت آن به نام نداده.
+ */
+async function loadRegisteredEnrollmentDetails(
+  input: GetEnrollmentPageStateInput,
+  open: NestSemesterWithLessons | null
+): Promise<
+  { enrollment: NestStudentEnrollment | null; supervisorName: string | null } | undefined
+> {
+  if (!open) return undefined;
+  const kind = kindForRole(input.actor.role);
+  const level = clampLevel(kind, input.level);
+  const lesson = findLessonForLevel(open.lessons ?? [], kind, level);
+  if (lesson?.status !== true) return undefined;
+
+  const lessonId = nestEntityId(lesson);
+  if (!lessonId) return { enrollment: null, supervisorName: null };
+
+  try {
+    const rows = await studentEnrollmentsApi.listMine();
+    const enrollment =
+      rows.find((row) => (row.lessonId ?? '').trim() === lessonId) ?? null;
+    return { enrollment, supervisorName: null };
+  } catch {
+    // بهترین تلاش — نبود جزئیات نباید کل صفحه را بشکند؛ خلاصهٔ حداقلی جایگزین می‌شود.
+    return { enrollment: null, supervisorName: null };
+  }
+}
+
 export async function getRealEnrollmentPageState(
   input: GetEnrollmentPageStateInput
 ): Promise<InternshipEnrollmentPageState> {
   requireNestTransport('InternshipEnrollmentService.getEnrollmentPageState');
   const open = await studentEnrollmentsApi.getOpenCourseSelection();
-  return toEnrollmentPageState(input, open);
+  const registeredDetails = await loadRegisteredEnrollmentDetails(input, open);
+  return toEnrollmentPageState(input, open, registeredDetails);
 }
 
 export async function listRealEligibleSupervisors(

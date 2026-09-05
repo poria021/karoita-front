@@ -140,8 +140,8 @@ export type UpsertCityInput = { name: string; provinceId: string };
 export type UpsertFacultyInput = {
   name: string;
   provinceId: string;
-  /** فرم پردیس شهر ندارد؛ لایهٔ real در صورت نیاز پر می‌کند. */
-  cityId?: string;
+  /** بدون `cityId`، POST/PUT /admin/universites لایو ۴۲۲ می‌دهد؛ فرم پردیس شهر را انتخاب می‌کند. */
+  cityId: string;
 };
 export type UpsertDistrictInput = {
   name: string;

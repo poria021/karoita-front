@@ -44,10 +44,11 @@ describe('getOrgStructureColumns — tab column order', () => {
     ]);
   });
 
-  it('orders faculties as name, province, users, actions', () => {
+  it('orders faculties as name, province, city, users, actions', () => {
     expect(getOrgStructureColumns('faculties').map((c) => c.key)).toEqual([
       'name',
       'provinceName',
+      'cityName',
       'usersCount',
       'actions',
     ]);

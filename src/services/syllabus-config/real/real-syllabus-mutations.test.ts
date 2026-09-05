@@ -77,8 +77,8 @@ describe('saveRealSyllabusWeeks', () => {
 
     expect(putLessonWeeks).toHaveBeenCalledWith(lessonId, {
       weeks: [
-        { priority: 1, status: true },
-        { priority: 2, status: true },
+        { priority: 3, status: true },
+        { priority: 3, status: true },
       ],
     });
     expect(createWeek).not.toHaveBeenCalled();
@@ -93,13 +93,13 @@ describe('saveRealSyllabusWeeks', () => {
       {
         id: '6a9164b4c208454ddf32ec92',
         lessonId,
-        priority: 1,
+        priority: 3,
         status: true,
       },
       {
         id: '6a9164b4c208454ddf32ec93',
         lessonId,
-        priority: 2,
+        priority: 3,
         status: true,
       },
     ]);

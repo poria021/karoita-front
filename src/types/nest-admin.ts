@@ -266,6 +266,7 @@ export type NestLessonWeek = {
   id?: string;
   _id?: string;
   lessonId?: string;
+  /** ضریب اهمیت ۱…۵ — نه شماره هفته. */
   priority?: number;
   status?: boolean;
   title?: string;
@@ -343,6 +344,7 @@ export type NestPutLessonWeeksDto = {
 
 export type NestCreateWeekDto = {
   lessonId: string;
+  /** ضریب اهمیت ۱…۵؛ ترتیب هفته ایندکس آرایه است. */
   priority: number;
   status: boolean;
 };
