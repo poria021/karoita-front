@@ -78,7 +78,7 @@ describe('real enrollment reads', () => {
       level: 1,
     });
 
-    expect(state.scenario).toBe('S4_registered_waiting');
+    expect(state.scenario).toBe('S5_term_active');
     expect(state.enrollment?.schoolId).toBe('sch-1');
     expect(state.enrollment?.schoolName).toBe('دبیرستان نمونه');
     expect(state.enrollment?.mentorId).toBe('tch-1');

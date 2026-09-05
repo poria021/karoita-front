@@ -85,6 +85,7 @@ export async function assignRealDelayedSchoolMentor(
     enrollmentId,
     { schoolId: input.schoolId, teacherId: input.mentorId }
   );
+  // پاسخ PATCH ممکن است فقط school/teacher برگرداند؛ professor از ردیف قبلی می‌ماند.
   const row = updated ?? current;
 
   return {
@@ -99,12 +100,12 @@ export async function assignRealDelayedSchoolMentor(
       courseNameForKind(input.kind),
       input.level
     ),
-    supervisorId: row.professorId ?? null,
+    supervisorId: row.professorId ?? current.professorId ?? null,
     supervisorName: null,
     schoolId: relationId(row.schoolId) ?? input.schoolId,
     schoolName: null,
     mentorId: relationId(row.teacherId) ?? input.mentorId,
     mentorName: null,
-    status: mapEnrollmentStatus(row.status),
+    status: mapEnrollmentStatus(row.status ?? current.status),
   };
 }
