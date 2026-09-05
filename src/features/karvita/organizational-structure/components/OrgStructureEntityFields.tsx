@@ -6,7 +6,7 @@ import type {
   UseFormRegister,
   UseFormSetValue,
 } from 'react-hook-form';
-import { Controller, useWatch } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
@@ -62,16 +62,8 @@ export function OrgStructureEntityFields({
   // پردیس شهر اجباری دارد (بدون آن ثبت لایو ۴۲۲ می‌دهد)؛ منطقه/مدرسه اختیاری‌اند.
   const cityIsRequired = tab === 'faculties';
 
-  const provinceIdValue = useWatch({ control, name: 'provinceId' });
-  // پردیس تا انتخاب استان، شهر ندارد — select شهر تا آن‌موقع قفل است.
-  const cityNeedsProvinceFirst = tab === 'faculties' && !provinceIdValue;
-  const cityIsLocked =
-    needsCity && (provinceHasNoCities || cityNeedsProvinceFirst);
-  const cityLockedHint = provinceHasNoCities
-    ? 'این استان شهر ثبت‌شده‌ای ندارد.'
-    : cityNeedsProvinceFirst
-      ? 'ابتدا استان را انتخاب کنید.'
-      : undefined;
+  // همان قفل شهر منطقه/مدرسه: فقط وقتی استان انتخاب‌شده شهری ندارد.
+  const cityIsLocked = needsCity && provinceHasNoCities;
 
   const provinceField = needsProvince ? (
     <Controller
@@ -115,7 +107,9 @@ export function OrgStructureEntityFields({
           required={cityIsRequired}
           optionalHint={!cityIsRequired}
           locked={cityIsLocked}
-          hint={cityIsLocked ? cityLockedHint : undefined}
+          hint={
+            cityIsLocked ? 'این استان شهر ثبت‌شده‌ای ندارد.' : undefined
+          }
           placeholder={cityIsLocked ? '—' : 'انتخاب شهر'}
           value={cityIsLocked ? '' : (field.value || '')}
           onValueChange={
@@ -151,17 +145,8 @@ export function OrgStructureEntityFields({
         {...register('name')}
       />
 
-      {tab === 'faculties' ? (
-        <>
-          {cityField}
-          {provinceField}
-        </>
-      ) : (
-        <>
-          {provinceField}
-          {cityField}
-        </>
-      )}
+      {provinceField}
+      {cityField}
 
       {tab === 'schools' ? (
         <>
