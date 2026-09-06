@@ -12,13 +12,11 @@ export const maxDuration = 30;
 const UPSTREAM_TIMEOUT_MS = 25_000;
 const MAX_BYTES = 12 * 1024 * 1024;
 
-function decodeSrc(raw: string | null): string {
-  if (!raw?.trim()) return '';
-  try {
-    return decodeURIComponent(raw.trim());
-  } catch {
-    return raw.trim();
-  }
+// `nextUrl.searchParams.get` خودش یک‌بار decode می‌کند؛ decode دوبارهٔ اینجا escape
+// داخلیِ URL امضاشدهٔ AWS (مثل `%2F` در X-Amz-Credential) را باز می‌کرد و امضای
+// SigV4 را نامعتبر می‌کرد — S3 با 403 رد می‌کرد و پراکسی 502 برمی‌گرداند.
+function readSrcParam(raw: string | null): string {
+  return raw?.trim() ?? '';
 }
 
 function contentTypeFromUpstream(upstream: Response, target: string): string {
@@ -80,7 +78,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: 'نشست یافت نشد.' }, { status: 401 });
   }
 
-  const target = decodeSrc(request.nextUrl.searchParams.get('src'));
+  const target = readSrcParam(request.nextUrl.searchParams.get('src'));
   const candidates = storageFetchUrlCandidates(target).filter((url) =>
     isAllowedSignedUploadTarget(url)
   );
