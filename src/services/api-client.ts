@@ -11,7 +11,7 @@ import {
   KY_TIMEOUT_MS,
   resolveNestClientPrefix,
 } from '@/services/api-client-config';
-import { mapHttpError } from '@/services/api-error';
+import { ApiClientError, mapHttpError } from '@/services/api-error';
 import {
   bearerHeaders,
   handleUnauthorized,
@@ -57,7 +57,14 @@ function createKyClient(prefix: string) {
             retryCount,
             url: request.url,
           });
-          if (action === 'ignore') return;
+          if (action === 'ignore') {
+            // ۴۰۱ بعد از refresh موفق: session معتبر است ولی permission ندارد.
+            // پیام backend («نشست منقضی شد») گمراه‌کننده است؛ خطای واضح‌تری بده.
+            if (response.status === 401) {
+              throw new ApiClientError('دسترسی کافی ندارید.', 403);
+            }
+            return;
+          }
           if (action === 'logout') {
             await handleUnauthorized();
             return;
