@@ -4,7 +4,7 @@ import withPWAInit from '@ducanh2912/next-pwa';
 
 import { NEST_BROWSER_PROXY_PATH, NEST_LEGACY_BROWSER_PROXY_PATH } from './src/lib/nest-proxy';
 import { PWA_OFFLINE_PATH } from './src/lib/pwa/pwa-cache-policy';
-import { buildPwaRuntimeCaching } from './src/lib/pwa/pwa-workbox-runtime';
+import { buildPwaRuntimeCaching, buildPrecacheManifestTransform } from './src/lib/pwa/pwa-workbox-runtime';
 import { buildContentSecurityPolicy } from './src/lib/content-security-policy';
 
 function withOptionalBundleAnalyzer(config: NextConfig): NextConfig {
@@ -37,6 +37,11 @@ const withPWA = withPWAInit({
     // لینک preload اضافه از head حذف می‌شود و هشدار «preloaded but not used» می‌رود.
     inlineWorkboxRuntime: true,
     disableDevLogs: true,
+    // فایل‌های بزرگ‌تر از ۲ مگ precache نمیشن — چانک‌های سنگین فقط شبکه.
+    maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+    // فقط entry‌های اصلی Next.js precache بشن، نه همه چانک‌های پشتیبان.
+    modifyURLPrefix: {},
+    manifestTransforms: [buildPrecacheManifestTransform],
   },
 });
 

@@ -43,6 +43,37 @@ function networkOnlyOnError() {
   return { plugins: [networkOnlyErrorPlugin()] };
 }
 
+/**
+ * فقط entry‌های ضروری Next.js precache بشن:
+ * - فایل‌های `/_next/static/` با پسوند JS/CSS که در مسیر اصلی باشن
+ * - تصاویر و فونت‌های داخل `/_next/static/media/`
+ * چانک‌های lazy که نامشان با `chunks/` شروع میشه و بزرگ‌اند، فیلتر میشن.
+ *
+ * این تابع باید در `next.config.ts` ایمپورت بشه (جایی که node context داریم).
+ */
+const PRECACHE_SKIP_PATTERNS = [
+  // چانک‌های lazy-loaded — فقط وقتی لازم باشن از شبکه میان
+  /\/_next\/static\/chunks\/pages\//,
+  /\/_next\/static\/chunks\/app\//,
+  // source maps
+  /\.map$/,
+  // webpack hot-update
+  /\.hot-update\./,
+];
+
+/**
+ * از precache manifest، چانک‌های lazy و فایل‌های غیرضروری رو حذف می‌کنه.
+ * با `manifestTransforms` در workboxOptions ست میشه.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function buildPrecacheManifestTransform(entries: any[]): { manifest: any[] } {
+  return {
+    manifest: entries.filter(
+      (e: { url: string }) => !PRECACHE_SKIP_PATTERNS.some((re) => re.test(e.url))
+    ),
+  };
+}
+
 export function buildPwaRuntimeCaching(): PwaRuntimeCaching {
   return [
     {
