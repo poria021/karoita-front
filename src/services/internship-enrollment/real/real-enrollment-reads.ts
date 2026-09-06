@@ -5,6 +5,7 @@ import {
 import { requireNestTransport } from '@/services/require-nest-transport';
 import {
   filterSupervisorsClientSide,
+  findActiveEnrollmentForLesson,
   findLessonForLevel,
   toEnrollmentPageState,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
@@ -24,36 +25,63 @@ import type {
 
 const PROFESSORS_MAX_PAGES = 40;
 
+async function loadMyEnrollments(): Promise<NestStudentEnrollment[]> {
+  try {
+    return await studentEnrollmentsApi.listMine();
+  } catch {
+    return [];
+  }
+}
+
+async function resolveSupervisorName(
+  semesterId: string,
+  lessonId: string,
+  professorId: string
+): Promise<string | null> {
+  try {
+    const collected: InternshipSupervisor[] = [];
+    for (let page = 1; page <= PROFESSORS_MAX_PAGES; page += 1) {
+      const result = await studentEnrollmentsApi.listProfessors({
+        semesterId,
+        lessonId,
+        page,
+        limit: ENROLLMENT_PROFESSORS_PAGE_SIZE,
+      });
+      collected.push(...result.data);
+      if (!result.hasNextPage) break;
+    }
+    return collected.find((item) => item.id === professorId)?.name ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * جزئیات ثبت‌نام واقعی (مدرسه/معلم/وضعیت) از GET `/student-enrollments`.
- * فقط وقتی لازم است که `open-course-selection` همین درس را «اخذ‌شده» علامت زده باشد.
- * نام استاد راهنما اینجا resolve نمی‌شود — `professorId` فقط شناسه‌ست و
- * Swagger فعلی endpoint جداگانه‌ای برای نگاشت آن به نام نداده.
+ * لیست ثبت‌نام خود دانشجو معیار «اخذ شده» است — نه `lesson.status`.
+ * نام استاد در رکورد نیست؛ best-effort از GET `/professors` با `professorId`.
  */
 async function loadRegisteredEnrollmentDetails(
   input: GetEnrollmentPageStateInput,
   open: NestSemesterWithLessons | null
-): Promise<
-  { enrollment: NestStudentEnrollment | null; supervisorName: string | null } | undefined
-> {
-  if (!open) return undefined;
+): Promise<{
+  enrollments: NestStudentEnrollment[];
+  supervisorName: string | null;
+}> {
+  if (!open) return { enrollments: [], supervisorName: null };
+
+  const enrollments = await loadMyEnrollments();
   const kind = kindForRole(input.actor.role);
   const level = clampLevel(kind, input.level);
   const lesson = findLessonForLevel(open.lessons ?? [], kind, level);
-  if (lesson?.status !== true) return undefined;
+  const lessonId = lesson ? nestEntityId(lesson) : '';
+  const active = findActiveEnrollmentForLesson(enrollments, open.id, lessonId || null);
+  const professorId = active?.professorId?.trim() ?? '';
+  const supervisorName =
+    professorId && lessonId
+      ? await resolveSupervisorName(open.id, lessonId, professorId)
+      : null;
 
-  const lessonId = nestEntityId(lesson);
-  if (!lessonId) return { enrollment: null, supervisorName: null };
-
-  try {
-    const rows = await studentEnrollmentsApi.listMine();
-    const enrollment =
-      rows.find((row) => (row.lessonId ?? '').trim() === lessonId) ?? null;
-    return { enrollment, supervisorName: null };
-  } catch {
-    // بهترین تلاش — نبود جزئیات نباید کل صفحه را بشکند؛ خلاصهٔ حداقلی جایگزین می‌شود.
-    return { enrollment: null, supervisorName: null };
-  }
+  return { enrollments, supervisorName };
 }
 
 export async function getRealEnrollmentPageState(

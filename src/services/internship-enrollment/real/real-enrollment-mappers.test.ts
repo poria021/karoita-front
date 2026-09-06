@@ -63,15 +63,31 @@ describe('real enrollment mappers', () => {
     expect(state.lessonId).toBeNull();
   });
 
-  it('maps S6 when another lesson of the same kind is already taken', () => {
+  it('maps S3 when the offered lesson has status true but the student has no enrollment', () => {
     const parsed = parseOpenCourseSelection({
       ...OPEN,
-      lessons: [
-        { ...OPEN.lessons[0], status: false },
-        { ...OPEN.lessons[1], status: true },
+      lessons: [{ ...OPEN.lessons[0], status: true }, OPEN.lessons[1]],
+    });
+    const state = toEnrollmentPageState({ actor: student, level: 1 }, parsed, {
+      enrollments: [],
+    });
+    expect(state.scenario).toBe('S3_enroll_open');
+    expect(state.enrollment).toBeNull();
+  });
+
+  it('maps S6 when listMine has another lesson of the same kind', () => {
+    const parsed = parseOpenCourseSelection(OPEN);
+    const state = toEnrollmentPageState({ actor: student, level: 1 }, parsed, {
+      enrollments: [
+        {
+          id: 'enr-2',
+          lessonId: OPEN.lessons[1].id,
+          semesterId: OPEN.id,
+          professorId: 'p1',
+          status: 'active',
+        },
       ],
     });
-    const state = toEnrollmentPageState({ actor: student, level: 1 }, parsed);
     expect(state.scenario).toBe('S6_already_enrolled_elsewhere');
     expect(state.conflictEnrollment).toEqual({
       level: 2,
@@ -79,14 +95,26 @@ describe('real enrollment mappers', () => {
     });
   });
 
-  it('maps S4 with a minimal summary when the current lesson is taken', () => {
+  it('maps S4 with a summary when listMine has this lesson', () => {
     const parsed = parseOpenCourseSelection({
       ...OPEN,
       lessons: [{ ...OPEN.lessons[0], status: true }, OPEN.lessons[1]],
     });
-    const state = toEnrollmentPageState({ actor: student, level: 1 }, parsed);
+    const state = toEnrollmentPageState({ actor: student, level: 1 }, parsed, {
+      enrollments: [
+        {
+          id: 'enr-1',
+          lessonId: OPEN.lessons[0].id,
+          semesterId: OPEN.id,
+          professorId: 'p1',
+          status: 'active',
+        },
+      ],
+      supervisorName: 'سارا احمدی',
+    });
     expect(state.scenario).toBe('S4_registered_waiting');
     expect(state.enrollment?.courseTitle).toBe('کارورزی 1');
+    expect(state.enrollment?.supervisorName).toBe('سارا احمدی');
     expect(state.enrollment?.weeks).toEqual([]);
   });
 

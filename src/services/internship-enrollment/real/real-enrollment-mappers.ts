@@ -204,9 +204,7 @@ function mapNestEnrollmentStatus(
 /**
  * خلاصهٔ ثبت‌نام واقعی از GET `/student-enrollments` — مدرسه/معلم/وضعیت واقعی است.
  * `weeks`/`progressiveGrade` هنوز خالی می‌مانند چون `student-weeks` به فرانت وصل نشده.
- * `supervisorName` هم فعلاً پاس‌داده می‌شود ولی هیچ‌کجا resolve نشده — DTO فقط
- * `professorId` (شناسه) می‌دهد، نه نام؛ نگاشتِ آن به نام باید بعداً (مثلاً با
- * `usersApi.getById`، اگر نقش دانشجو به آن دسترسی داشته باشد) اضافه شود.
+ * `supervisorName` از لایهٔ reads با `professorId` روی GET `/professors` پر می‌شود.
  */
 function registeredSummaryFromEnrollment(
   input: { kind: InternshipCourseKind; level: InternshipEnrollmentLevel; termTitle: string },
@@ -230,16 +228,69 @@ function registeredSummaryFromEnrollment(
   };
 }
 
+function enrollmentLessonId(row: NestStudentEnrollment): string {
+  return (row.lessonId ?? '').trim();
+}
+
+function enrollmentSemesterId(row: NestStudentEnrollment): string {
+  return (row.semesterId ?? '').trim();
+}
+
+function isDroppedEnrollment(row: NestStudentEnrollment): boolean {
+  return row.status === 'dropped';
+}
+
 /**
- * `lesson.status === true` یعنی همین کاربر آن درس را اخذ کرده.
- * وجود ردیف درس در لیست یعنی سرفصل برای آن سطح ارائه شده (حتی اگر status خاموش باشد).
+ * ثبت‌نام فعال همین درس از GET `/student-enrollments` — نه `lesson.status`.
+ * `lesson.status` در سرفصل یعنی درس ارائه شده است (`isOffered`)، نه اخذ دانشجو.
+ */
+export function findActiveEnrollmentForLesson(
+  rows: readonly NestStudentEnrollment[],
+  semesterId: string,
+  lessonId: string | null
+): NestStudentEnrollment | null {
+  if (!semesterId || !lessonId) return null;
+  return (
+    rows.find(
+      (row) =>
+        enrollmentSemesterId(row) === semesterId &&
+        enrollmentLessonId(row) === lessonId &&
+        !isDroppedEnrollment(row)
+    ) ?? null
+  );
+}
+
+function findConflictEnrollment(
+  rows: readonly NestStudentEnrollment[],
+  lessons: NestLesson[],
+  kind: InternshipCourseKind,
+  semesterId: string,
+  currentLessonId: string | null
+): NestLesson | null {
+  const conflict = rows.find((row) => {
+    if (enrollmentSemesterId(row) !== semesterId) return false;
+    if (isDroppedEnrollment(row)) return false;
+    const otherId = enrollmentLessonId(row);
+    if (!otherId || otherId === currentLessonId) return false;
+    const otherLesson = lessons.find((lesson) => nestEntityId(lesson) === otherId);
+    if (!otherLesson) return false;
+    return lessonMatchesKind(nestLessonTitle(otherLesson), kind);
+  });
+  if (!conflict) return null;
+  const lessonId = enrollmentLessonId(conflict);
+  return lessons.find((lesson) => nestEntityId(lesson) === lessonId) ?? null;
+}
+
+/**
+ * سناریو از ترم باز + لیست ثبت‌نام خود دانشجو.
+ * وجود ردیف درس یعنی سرفصل برای آن سطح آمده؛ `lesson.status` اخذ نیست.
  */
 export function toEnrollmentPageState(
   input: GetEnrollmentPageStateInput,
   open: NestSemesterWithLessons | null,
   registeredDetails?: {
-    enrollment: NestStudentEnrollment | null;
-    supervisorName: string | null;
+    enrollments?: NestStudentEnrollment[];
+    supervisorName?: string | null;
   }
 ): InternshipEnrollmentPageState {
   const kind = kindForRole(input.actor.role);
@@ -265,17 +316,12 @@ export function toEnrollmentPageState(
   const lessons = open.lessons ?? [];
   const current = findLessonForLevel(lessons, kind, level);
   const lessonId = current ? nestEntityId(current) || null : null;
-  const registered = current?.status === true;
-  const conflictLesson = !registered
-    ? lessons.find((lesson) => {
-        if (lesson.status !== true) return false;
-        const title = nestLessonTitle(lesson);
-        return (
-          lessonMatchesKind(title, kind) &&
-          lessonLevelFromTitle(title) !== level
-        );
-      })
-    : null;
+  const mine = registeredDetails?.enrollments ?? [];
+  const active = findActiveEnrollmentForLesson(mine, open.id, lessonId);
+  const registered = Boolean(active);
+  const conflictLesson = registered
+    ? null
+    : findConflictEnrollment(mine, lessons, kind, open.id, lessonId);
 
   const scenario = conflictLesson
     ? 'S6_already_enrolled_elsewhere'
@@ -298,7 +344,7 @@ export function toEnrollmentPageState(
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'
         ? registeredSummaryFromEnrollment(
             { kind, level, termTitle: term.title },
-            registeredDetails?.enrollment ?? null,
+            active,
             registeredDetails?.supervisorName ?? null
           )
         : null,

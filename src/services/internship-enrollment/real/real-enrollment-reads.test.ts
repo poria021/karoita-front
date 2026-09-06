@@ -33,15 +33,16 @@ describe('real enrollment reads', () => {
     vi.mocked(studentEnrollmentsApi.listMine).mockReset();
   });
 
-  it('builds page state from the open semester', async () => {
+  it('builds page state from the open semester and listMine', async () => {
     vi.mocked(studentEnrollmentsApi.getOpenCourseSelection).mockResolvedValue({
       id: 'sem-1',
       season: 'one',
       structure: 'semester',
       courseSelection: true,
       startClasses: false,
-      lessons: [{ id: 'les-1', title: 'کارورزی ۱', status: false }],
+      lessons: [{ id: 'les-1', title: 'کارورزی ۱', status: true }],
     });
+    vi.mocked(studentEnrollmentsApi.listMine).mockResolvedValue([]);
 
     const state = await getRealEnrollmentPageState({
       actor: student,
@@ -49,7 +50,7 @@ describe('real enrollment reads', () => {
     });
     expect(state.scenario).toBe('S3_enroll_open');
     expect(state.lessonId).toBe('les-1');
-    expect(studentEnrollmentsApi.listMine).not.toHaveBeenCalled();
+    expect(studentEnrollmentsApi.listMine).toHaveBeenCalled();
   });
 
   it('enriches a registered lesson with real school/mentor/status from GET /student-enrollments', async () => {
@@ -72,6 +73,19 @@ describe('real enrollment reads', () => {
         status: 'active',
       },
     ]);
+    vi.mocked(studentEnrollmentsApi.listProfessors).mockResolvedValue({
+      data: [
+        {
+          id: 'prof-1',
+          name: 'سارا احمدی',
+          college: '',
+          province: '',
+          day: '',
+          capacity: 1,
+        },
+      ],
+      hasNextPage: false,
+    });
 
     const state = await getRealEnrollmentPageState({
       actor: student,
@@ -82,6 +96,7 @@ describe('real enrollment reads', () => {
     expect(state.enrollment?.schoolId).toBe('sch-1');
     expect(state.enrollment?.schoolName).toBe('دبیرستان نمونه');
     expect(state.enrollment?.mentorId).toBe('tch-1');
+    expect(state.enrollment?.supervisorName).toBe('سارا احمدی');
     expect(state.enrollment?.status).toBe('active');
   });
 
