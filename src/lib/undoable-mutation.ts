@@ -118,6 +118,11 @@ export function scheduleUndoableMutation<T>(
   let undone = false;
   let commitFailed = false;
   let committedResult: T | undefined;
+  // sonner یک toast خودکاربسته‌شده هم `onAutoClose` و هم `onDismiss` را صدا می‌زند
+  // (دومی از کسکید داخلی `removeToast` → `ToastState.dismiss`)؛ بدون این قفل
+  // `commit` دوبار می‌رود — بار دوم روی موجودیتی که همین الان حذف شده خطا می‌گیرد
+  // و `revert` ردیف حذف‌شده را برمی‌گرداند.
+  let commitStarted = false;
 
   const undoLabel = options.undoLabel ?? 'لغو';
   const description = options.description;
@@ -130,7 +135,8 @@ export function scheduleUndoableMutation<T>(
   options.apply();
 
   const runCommit = async (): Promise<T | undefined> => {
-    if (undone) return undefined;
+    if (undone || commitStarted) return undefined;
+    commitStarted = true;
     try {
       const result = await options.commit();
       committedResult = result;

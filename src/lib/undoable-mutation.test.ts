@@ -184,6 +184,42 @@ describe('scheduleUndoableMutation', () => {
     expect(revert).not.toHaveBeenCalled();
   });
 
+  it('deferCommit: ignores the extra onDismiss sonner fires after onAutoClose', async () => {
+    // sonner صدا می‌زند: هم `onAutoClose` مستقیم از تایمر، هم `onDismiss` از کسکید
+    // داخلی `removeToast` → `ToastState.dismiss` — بدون قفل `commitStarted`،
+    // `commit` دوبار می‌رفت و بار دوم (روی موجودیت حذف‌شده) با خطا `revert` می‌شد.
+    const apply = vi.fn();
+    const revert = vi.fn();
+    const commit = vi.fn(async () => 'ok');
+    const onCommitted = vi.fn();
+
+    scheduleUndoableMutation({
+      message: 'حذف شد',
+      deferCommit: true,
+      apply,
+      revert,
+      commit,
+      onCommitted,
+    });
+
+    const toastMockWithCalls = toastMock as unknown as {
+      mock: {
+        calls: Array<
+          [unknown, { onAutoClose?: () => void; onDismiss?: () => void }]
+        >;
+      };
+    };
+    const opts = toastMockWithCalls.mock.calls[0]?.[1];
+    opts?.onAutoClose?.();
+    opts?.onDismiss?.();
+
+    await vi.waitFor(() => {
+      expect(commit).toHaveBeenCalledTimes(1);
+      expect(onCommitted).toHaveBeenCalledWith('ok');
+    });
+    expect(revert).not.toHaveBeenCalled();
+  });
+
   it('does not revert when onCommitted refetch fails after a successful write', async () => {
     const apply = vi.fn();
     const revert = vi.fn();
