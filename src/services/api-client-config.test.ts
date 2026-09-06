@@ -51,7 +51,7 @@ describe('api-client real Nest transport contract', () => {
     ).toBe('https://app.example.com/api');
   });
 
-  it('refreshes once on 401, then logs out on the retry or bootstrap URL', () => {
+  it('refreshes once on 401, ignores retry 401 (permission issue), logs out on bootstrap URL', () => {
     expect(
       decideUnauthorizedAfterResponse({
         status: 200,
@@ -68,13 +68,14 @@ describe('api-client real Nest transport contract', () => {
       })
     ).toBe('refresh');
 
+    // refresh موفق شد ولی retry هم 401 → permission issue، logout نکن
     expect(
       decideUnauthorizedAfterResponse({
         status: 401,
         retryCount: 1,
         url: '/api/nest/v1/users',
       })
-    ).toBe('logout');
+    ).toBe('ignore');
 
     expect(
       decideUnauthorizedAfterResponse({

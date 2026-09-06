@@ -19,9 +19,9 @@ export function decideUnauthorizedAfterResponse(input: {
   url: string;
 }): UnauthorizedAfterResponseAction {
   if (input.status !== 401) return 'ignore';
-  if (input.retryCount > 0 || shouldSkipTokenRefresh(input.url)) {
-    return 'logout';
-  }
+  if (shouldSkipTokenRefresh(input.url)) return 'logout';
+  // refresh موفق شد ولی retry هم 401 خورد → permission issue نه session؛ logout نکن.
+  if (input.retryCount > 0) return 'ignore';
   return 'refresh';
 }
 
