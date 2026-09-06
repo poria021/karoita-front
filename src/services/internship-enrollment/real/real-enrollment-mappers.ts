@@ -323,11 +323,15 @@ export function toEnrollmentPageState(
     ? null
     : findConflictEnrollment(mine, lessons, kind, open.id, lessonId);
 
+  // انتخاب واحد فقط وقتی درسِ همین دانشجو باز باشد، نه هر درسی در ترم.
+  const lessonEnrollOpen =
+    open.courseSelection === true || Boolean(current?.courseSelection);
+
   const scenario = conflictLesson
     ? 'S6_already_enrolled_elsewhere'
     : resolveEnrollmentScenario({
         syllabusConfigured: Boolean(current),
-        enrollOpen: term.isEnrollOpen,
+        enrollOpen: lessonEnrollOpen,
         termOpen: term.isTermOpen,
         registered,
       });
