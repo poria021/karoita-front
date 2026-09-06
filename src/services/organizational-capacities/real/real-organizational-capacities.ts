@@ -163,7 +163,7 @@ export async function submitRealOrganizationalCapacities(
   });
 
   const hasData = (course: (typeof merged)[number]) =>
-    course.total > 0 || course.selectedDays.length > 0;
+    (course.total != null && course.total > 0) || course.selectedDays.length > 0;
 
   const creates = merged.filter((course) => !course.existsOnServer && hasData(course));
   const updates = merged.filter((course) => course.existsOnServer && hasData(course));
