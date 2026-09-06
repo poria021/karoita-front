@@ -56,7 +56,7 @@ export function useLandingCmsPage() {
   const getChrome = useDashboardModuleCache((s) => s.getChrome);
   const setChrome = useDashboardModuleCache((s) => s.setChrome);
   const cachedChrome = getChrome<LandingCmsChrome>(LANDING_CMS_CHROME_ID);
-  const landingTabDraft = useLocalFormDraft<{ tab: LandingCmsTab }>({
+  const { setValue: saveDraftTab } = useLocalFormDraft<{ tab: LandingCmsTab }>({
     key: 'landing-cms:tab',
     initialValue: { tab: 'banners' },
     debounceMs: 200,
@@ -91,8 +91,8 @@ export function useLandingCmsPage() {
 
   useEffect(() => {
     setChrome<LandingCmsChrome>(LANDING_CMS_CHROME_ID, { tab });
-    landingTabDraft.setValue({ tab });
-  }, [landingTabDraft, tab, setChrome]);
+    saveDraftTab({ tab });
+  }, [saveDraftTab, tab, setChrome]);
 
   const patchBundle = useCallback(
     (updater: (prev: LandingCmsBundle) => LandingCmsBundle) => {
