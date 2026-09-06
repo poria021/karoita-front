@@ -26,6 +26,7 @@ describe('live nav / admin plane', () => {
   it('only exposes implemented links in each role sidebar', () => {
     const studentMenu = getVisibleSidebarMenu('student');
     expect(studentMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
+      RouteService.karvita.dashboard(),
       'انتخاب واحد کارورزی',
     ]);
     const studentGroup = studentMenu.find(isSidebarMenuGroup);
@@ -39,6 +40,7 @@ describe('live nav / admin plane', () => {
 
     const learnerMenu = getVisibleSidebarMenu('skill_learner');
     expect(learnerMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
+      RouteService.karvita.dashboard(),
       'انتخاب واحد کارآموزی',
     ]);
     const learnerGroup = learnerMenu.find(isSidebarMenuGroup);
@@ -52,6 +54,7 @@ describe('live nav / admin plane', () => {
     expect(
       supervisorMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
     ).toEqual([
+      RouteService.karvita.dashboard(),
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.organizationalCapacities(),
     ]);
@@ -59,12 +62,31 @@ describe('live nav / admin plane', () => {
     const mentorMenu = getVisibleSidebarMenu('mentor_teacher');
     expect(
       mentorMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
-    ).toEqual([RouteService.karvita.dailyApprovals()]);
+    ).toEqual([
+      RouteService.karvita.dashboard(),
+      RouteService.karvita.dailyApprovals(),
+    ]);
 
     const principalMenu = getVisibleSidebarMenu('school_principal');
     expect(
       principalMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
-    ).toEqual([RouteService.karvita.dailyApprovals()]);
+    ).toEqual([
+      RouteService.karvita.dashboard(),
+      RouteService.karvita.dailyApprovals(),
+    ]);
+
+    for (const role of [
+      'faculty_role',
+      'regional_edu_admin',
+      'provincial_university',
+      'central_organization',
+    ] as const) {
+      expect(
+        getVisibleSidebarMenu(role).map((entry) =>
+          'path' in entry ? entry.path : entry.title
+        )
+      ).toEqual([RouteService.karvita.dashboard()]);
+    }
 
     expect(
       isLiveSidebarPath(RouteService.karvita.internshipSelection(1))
@@ -82,7 +104,9 @@ describe('live nav / admin plane', () => {
 
     const adminMenu = getVisibleSidebarMenu('super_admin');
     expect(adminMenu.map((entry) => entry.title)).toEqual([
+      'میز کار مدیریت',
       'بررسی مدارک هویتی',
+      'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
     ]);
@@ -98,7 +122,9 @@ describe('live nav / admin plane', () => {
 
     const assistantMenu = getVisibleSidebarMenu('assistant_admin');
     expect(assistantMenu.map((entry) => entry.title)).toEqual([
+      'میز کار مدیریت',
       'بررسی مدارک هویتی',
+      'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
     ]);
@@ -121,6 +147,8 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.syllabusTermSettings(),
     ]);
 
+    expect(isLiveSidebarPath(RouteService.karvita.dashboard())).toBe(true);
+    expect(isLiveSidebarPath(RouteService.karvita.adminDashboard())).toBe(true);
     expect(isLiveSidebarPath(PlannedRoutes.dailyReports())).toBe(false);
     expect(isLiveSidebarPath('/karvita/entry')).toBe(false);
     expect(isNavigableAppPath('/karvita/entry')).toBe(false);
@@ -157,10 +185,7 @@ describe('live nav / admin plane', () => {
 
   it('keeps unfinished modules navigable but off the sidebar', () => {
     const deferred = [
-      RouteService.karvita.dashboard(),
-      RouteService.karvita.adminDashboard(),
       RouteService.karvita.adminUserCreation(),
-      RouteService.karvita.landingCms(),
     ];
     for (const path of deferred) {
       expect(isLiveStaticNavPath(path)).toBe(true);
@@ -181,7 +206,7 @@ describe('live nav / admin plane', () => {
     expect(isAdminControlPlanePath(RouteService.karvita.landingCms())).toBe(
       true
     );
-    expect(isLiveSidebarPath(RouteService.karvita.landingCms())).toBe(false);
+    expect(isLiveSidebarPath(RouteService.karvita.landingCms())).toBe(true);
     expect(isNavigableAppPath('/karvita/landing-cms')).toBe(false);
     expect(RouteService.karvita.landingCms()).toBe(
       '/karvita/admin/landing-cms'
