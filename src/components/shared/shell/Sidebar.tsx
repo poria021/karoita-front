@@ -22,6 +22,7 @@ import { faIcons } from '@/utils/iconMap';
 import { SidebarNavGroup } from './SidebarNavGroup';
 import { SidebarNavLink } from './SidebarNavLink';
 import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
+import { useInternshipLockedPaths } from './useInternshipLockedPaths';
 
 export function Sidebar() {
   const activeUser = useUserStore((state) => state.activeUser);
@@ -44,6 +45,11 @@ export function Sidebar() {
   const strategy = getRoleStrategy(activeUser.role);
   const visibleMenu = getVisibleSidebarMenu(activeUser.role);
   const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
+  const enrollmentRole =
+    activeUser.role === 'student' || activeUser.role === 'skill_learner'
+      ? activeUser.role
+      : null;
+  const internshipLockedPaths = useInternshipLockedPaths(enrollmentRole);
 
   return (
     <>
@@ -119,6 +125,7 @@ export function Sidebar() {
                   pathname={pathname}
                   isCollapsed={isCollapsed}
                   locked={!modulesUnlocked}
+                  lockedPaths={modulesUnlocked ? internshipLockedPaths : undefined}
                   onNavigate={closeMobileSidebar}
                 />
               ) : (
