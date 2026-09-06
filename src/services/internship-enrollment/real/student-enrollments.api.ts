@@ -56,13 +56,30 @@ function isAbsentOpenSemester(error: unknown): boolean {
 export const studentEnrollmentsApi = {
   /**
    * POST `/api/v1/student-enrollments` — ثبت‌نام اولیه با استاد راهنما.
-   * پاسخ ۲۰۱ رکورد کامل ثبت‌نام را برمی‌گرداند.
+   * Swagger مستند ۲۰۴ (بی‌بدنه) دارد؛ اگر بدنه برگرداند همان را برمی‌گردانیم،
+   * وگرنه GET لیست می‌زنیم تا ردیف جدید را پیدا کنیم.
    */
-  async create(body: NestCreateStudentEnrollmentDto): Promise<NestStudentEnrollment> {
-    return apiClient.postJson<NestStudentEnrollment>(
+  async create(
+    body: NestCreateStudentEnrollmentDto
+  ): Promise<NestStudentEnrollment | null> {
+    const raw = await apiClient.postMaybeJson<unknown>(
       NEST_STUDENT_ENROLLMENT_PATHS.list,
       body
     );
+    if (isRecord(raw)) return raw as NestStudentEnrollment;
+    // ۲۰۴ — ردیف جدید را از لیست کاربر جاری پیدا می‌کنیم.
+    try {
+      const rows = await studentEnrollmentsApi.listMine();
+      return (
+        rows.find(
+          (row) =>
+            (row.semesterId ?? '').trim() === body.semesterId.trim() &&
+            (row.lessonId ?? '').trim() === body.lessonId.trim()
+        ) ?? null
+      );
+    } catch {
+      return null;
+    }
   },
 
   /**

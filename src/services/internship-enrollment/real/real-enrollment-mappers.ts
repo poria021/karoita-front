@@ -58,6 +58,8 @@ function asFiniteNumber(value: unknown): number | null {
 
 function namedTitle(value: unknown): string {
   if (typeof value === 'string') return value.trim();
+  // GET /professors university آرایه‌ای از {id, title} است — اولین عنصر را بگیر.
+  if (Array.isArray(value)) return namedTitle(value[0]);
   if (!isRecord(value)) return '';
   return (
     asTrimmedString(value.title) ||

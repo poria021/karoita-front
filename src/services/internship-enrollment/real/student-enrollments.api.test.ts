@@ -8,13 +8,13 @@ import {
 
 const getJson = vi.fn();
 const patchMaybeJson = vi.fn();
-const postJson = vi.fn();
+const postMaybeJson = vi.fn();
 
 vi.mock('@/services/api-client', () => ({
   apiClient: {
     getJson: (...args: unknown[]) => getJson(...args),
     patchMaybeJson: (...args: unknown[]) => patchMaybeJson(...args),
-    postJson: (...args: unknown[]) => postJson(...args),
+    postMaybeJson: (...args: unknown[]) => postMaybeJson(...args),
   },
 }));
 
@@ -22,7 +22,7 @@ describe('studentEnrollmentsApi', () => {
   beforeEach(() => {
     getJson.mockReset();
     patchMaybeJson.mockReset();
-    postJson.mockReset();
+    postMaybeJson.mockReset();
   });
 
   it('GETs open-course-selection without an api/ prefix', async () => {
@@ -134,8 +134,8 @@ describe('studentEnrollmentsApi', () => {
     await expect(studentEnrollmentsApi.getById('e1')).resolves.toBeNull();
   });
 
-  it('POSTs a new enrollment with semester, lesson, and professor', async () => {
-    postJson.mockResolvedValue({
+  it('POSTs a new enrollment and returns the body when backend responds with one', async () => {
+    postMaybeJson.mockResolvedValue({
       id: 'e1',
       professorId: 'p1',
       semesterId: 'sem-1',
@@ -148,13 +148,28 @@ describe('studentEnrollmentsApi', () => {
       professorId: 'p1',
     });
 
-    expect(postJson).toHaveBeenCalledWith('v1/student-enrollments', {
+    expect(postMaybeJson).toHaveBeenCalledWith('v1/student-enrollments', {
       semesterId: 'sem-1',
       lessonId: 'les-1',
       professorId: 'p1',
     });
-    expect(created.id).toBe('e1');
-    expect(created.professorId).toBe('p1');
+    expect(created?.id).toBe('e1');
+    expect(created?.professorId).toBe('p1');
+  });
+
+  it('POSTs a new enrollment and falls back to GET list when backend returns 204', async () => {
+    postMaybeJson.mockResolvedValue(null);
+    getJson.mockResolvedValue([
+      { id: 'e2', semesterId: 'sem-1', lessonId: 'les-1', professorId: 'p1' },
+    ]);
+
+    const created = await studentEnrollmentsApi.create({
+      semesterId: 'sem-1',
+      lessonId: 'les-1',
+      professorId: 'p1',
+    });
+
+    expect(created?.id).toBe('e2');
   });
 
   it('PATCHes school/teacher on an enrollment', async () => {
