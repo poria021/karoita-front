@@ -189,7 +189,29 @@ export function useSyllabusPageLoader({
           pane.courses.some((course) => course.title.trim().length > 0))
       ) {
         setIsLoading(false);
-        return applyTermPane(pane);
+        const result = applyTermPane(pane);
+        // اگر کش می‌گوید هفته‌ها ثبت نشده، از سرور تأیید بگیر تا cache mismatch
+        // منجر به drop شدن بی‌صدای هفته‌های جدید در planNestWeekWrites نشود.
+        if (!pane.isWeeksPublished && pane.selectedCourse) {
+          const termIdForVerify = termId;
+          const courseIdForVerify = pane.selectedCourse.id;
+          void SyllabusConfigService.getWeeks(termIdForVerify, courseIdForVerify)
+            .then((loaded) => {
+              if (!loaded.isPublished) return;
+              setWeeks(loaded.weeks);
+              setIsWeeksPublished(true);
+              const stale = termPanesRef.current[termIdForVerify];
+              if (stale) {
+                termPanesRef.current[termIdForVerify] = {
+                  ...stale,
+                  weeks: loaded.weeks,
+                  isWeeksPublished: true,
+                };
+              }
+            })
+            .catch(() => {});
+        }
+        return result;
       }
     }
 
