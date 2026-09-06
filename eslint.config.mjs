@@ -103,14 +103,29 @@ const HARDCODED_PATH_SYNTAX = [
  */
 const eslintConfig = [
   {
-    // فایل‌های build و third-party که نباید lint شوند
+    // فایل‌های build، third-party، worktreeهای Claude و زیرپوشه‌های تو در تو که نباید lint شوند
     ignores: [
       '.next/**',
       'node_modules/**',
       'coverage/**',
       'dist/**',
       'public/**',
+      '.claude/**',
+      'better-auth-starter/**',
     ],
+  },
+  {
+    // متغیرهای با پیشوند `_` عمداً بلااستفاده هستند (مثل destructure برای حذف یک کلید)
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
   },
   ...nextVitals,
   ...nextTs,

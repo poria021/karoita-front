@@ -17,12 +17,7 @@ import {
   legacyOfferingStorageKey,
   normalizeCourseTitle,
 } from '../syllabus-mappers';
-import {
-  DEFAULT_WEEK_WEIGHT,
-  getTodayJalaliSlash,
-  isJalaliSlashOnOrBefore,
-  isTermGateActive,
-} from '../syllabus-term-gates';
+import { DEFAULT_WEEK_WEIGHT } from '../syllabus-term-gates';
 
 export {
   DEFAULT_WEEK_WEIGHT,

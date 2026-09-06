@@ -28,7 +28,6 @@ import {
 import {
   SessionTransientError,
   TRANSIENT_RESTORE_MESSAGE,
-  isSessionTransientError,
 } from '@/services/auth/session-errors';
 import { useUserStore } from '@/store/useUserStore';
 import type { Session, User, UserRole } from '@/types/auth';

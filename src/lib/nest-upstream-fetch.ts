@@ -32,6 +32,7 @@ export async function fetchNestUpstream(
   url: string,
   init: RequestInit = {}
 ): Promise<Response> {
+  // `cache` یک فیلد Next.js است که undici پشتیبانی نمی‌کند؛ حذف می‌شود.
   const { cache: _cache, ...rest } = init;
   const nextInit = {
     ...rest,

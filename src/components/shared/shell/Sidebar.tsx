@@ -40,16 +40,17 @@ export function Sidebar() {
     onClose: closeMobileSidebar,
   });
 
+  const enrollmentRole =
+    activeUser?.role === 'student' || activeUser?.role === 'skill_learner'
+      ? activeUser.role
+      : null;
+  const internshipLockedPaths = useInternshipLockedPaths(enrollmentRole);
+
   if (!activeUser) return null;
 
   const strategy = getRoleStrategy(activeUser.role);
   const visibleMenu = getVisibleSidebarMenu(activeUser.role);
   const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
-  const enrollmentRole =
-    activeUser.role === 'student' || activeUser.role === 'skill_learner'
-      ? activeUser.role
-      : null;
-  const internshipLockedPaths = useInternshipLockedPaths(enrollmentRole);
 
   return (
     <>
