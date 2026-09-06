@@ -26,14 +26,14 @@ import type {
   LandingSocial,
 } from '@/types/landing-cms';
 
-function gatePublicRead(surface: string): void {
-  if (!isMockApiMode()) {
-    assertLandingCmsRealReady(surface);
-  }
+function gatePublicRead(): void {
+  // حالت real: تا وقتی API آماده نشده، mock store (localStorage) برمی‌گردونه — خالی.
+  // وقتی API آماده شد: اینجا real implementation رو فراخوانی کن.
 }
 
 function gateAdminWrite(surface: string): void {
   if (!isMockApiMode()) {
+    // نوشتن هنوز API ندارد — fail-closed تا endpoint آماده شود.
     assertLandingCmsRealReady(surface);
   }
   assertMockClientIsStaffAdmin();
@@ -44,17 +44,17 @@ function gateAdminWrite(surface: string): void {
  */
 export const LandingCmsService = {
   async listBanners(): Promise<LandingBanner[]> {
-    gatePublicRead('LandingCmsService.listBanners');
+    gatePublicRead();
     return readLandingBanners();
   },
 
   async listSocials(): Promise<LandingSocial[]> {
-    gatePublicRead('LandingCmsService.listSocials');
+    gatePublicRead();
     return readLandingSocials();
   },
 
   async listProducts(): Promise<LandingProduct[]> {
-    gatePublicRead('LandingCmsService.listProducts');
+    gatePublicRead();
     return readLandingProducts();
   },
 
