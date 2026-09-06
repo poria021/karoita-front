@@ -114,7 +114,7 @@ export function OrganizationalCapacitiesPageClient() {
       <KvConfirmationDialog
         isOpen={page.confirmOpen}
         onClose={() => page.setConfirmOpen(false)}
-        onConfirm={() => void page.submit()}
+        onConfirm={page.submit}
         title="تایید و ذخیره ظرفیت‌ها"
         description="آیا مایل به ذخیره تغییرات ظرفیت‌های پذیرش اعلام‌شده هستید؟"
         confirmText="ذخیره تغییرات"
