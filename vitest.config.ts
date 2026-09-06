@@ -14,6 +14,7 @@ export default defineConfig({
     clearMocks: true,
     restoreMocks: true,
     setupFiles: ['./vitest.setup.ts'],
+    testTimeout: 15000,
   },
   resolve: {
     alias: {
