@@ -25,6 +25,10 @@ import {
   assignRealDelayedSchoolMentor,
   enrollRealWithSupervisor,
 } from '@/services/internship-enrollment/real/real-enrollment-writes';
+import {
+  realSaveWeeklyReportDraft,
+  realSubmitWeeklyReport,
+} from '@/services/internship-enrollment/real/real-enrollment-weekly';
 import type {
   AssignDelayedSchoolMentorInput,
   EnrollWithSupervisorInput,
@@ -147,14 +151,20 @@ export const InternshipEnrollmentService = {
   async saveWeeklyReportDraft(
     input: SaveWeeklyReportDraftInput
   ): Promise<InternshipWeeklySession> {
-    gateEnrollmentWrite('InternshipEnrollmentService.saveWeeklyReportDraft');
+    if (!isMockApiMode()) {
+      return realSaveWeeklyReportDraft(input);
+    }
+    gateEnrollmentMock();
     return saveWeeklyReportDraft(input);
   },
 
   async submitWeeklyReport(
     input: SubmitWeeklyReportInput
   ): Promise<InternshipWeeklySession> {
-    gateEnrollmentWrite('InternshipEnrollmentService.submitWeeklyReport');
+    if (!isMockApiMode()) {
+      return realSubmitWeeklyReport(input);
+    }
+    gateEnrollmentMock();
     return submitWeeklyReport(input);
   },
 };

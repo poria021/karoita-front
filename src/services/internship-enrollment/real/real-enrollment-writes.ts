@@ -99,7 +99,9 @@ function relationId(value: NestStudentEnrollment['schoolId']): string | null {
 function mapEnrollmentStatus(
   status: NestStudentEnrollment['status']
 ): InternshipEnrollmentRecord['status'] {
-  return status === 'dropped' || status === 'completed' ? status : 'active';
+  if (status === 'completed') return 'completed';
+  if (status === 'dropped' || status === 'cancelled') return 'dropped';
+  return 'active';
 }
 
 /**

@@ -31,7 +31,7 @@ export type NestEnrollmentProfessor = {
   professor?: unknown;
 };
 
-export type NestEnrollmentStatus = 'active' | 'dropped' | 'completed';
+export type NestEnrollmentStatus = 'active' | 'dropped' | 'completed' | 'cancelled';
 
 /**
  * GET `/student-enrollments` (فهرست کاربر جاری) و GET `/student-enrollments/{id}`.

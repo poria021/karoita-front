@@ -197,7 +197,8 @@ function extractNestRelation(
 function mapNestEnrollmentStatus(
   raw: NestEnrollmentStatus | string | undefined
 ): InternshipEnrollmentSummary['status'] {
-  if (raw === 'dropped' || raw === 'completed') return raw;
+  if (raw === 'completed') return 'completed';
+  if (raw === 'dropped' || raw === 'cancelled') return 'dropped';
   return 'active';
 }
 
