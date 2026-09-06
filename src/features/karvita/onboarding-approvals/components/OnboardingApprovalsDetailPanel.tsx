@@ -131,14 +131,6 @@ export function OnboardingApprovalsDetailPanel({
           />
         ) : null}
 
-        <div className="px-kv-group pt-kv-group">
-          <KvMediaThumb
-            src={user.docUrl}
-            openInNewTab
-            variant="preview"
-            alt="مدرک هویتی بارگذاری‌شده"
-          />
-        </div>
         <OnboardingApprovalsUserFields user={user} />
       </KvCardContent>
     </KvCard>
