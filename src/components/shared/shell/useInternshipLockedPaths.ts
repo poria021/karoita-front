@@ -40,7 +40,7 @@ export function useInternshipLockedPaths(
     const locked = new Set<string>();
     for (let i = 1; i <= maxLevel; i++) {
       const lesson = findLessonForLevel(lessons, kind, i as 1 | 2 | 3 | 4);
-      if (!lesson || lesson.courseSelection === false) {
+      if (!lesson || lesson.status !== true) {
         locked.add(RouteService.karvita.internshipSelection(i));
       }
     }

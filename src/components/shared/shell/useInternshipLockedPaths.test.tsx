@@ -44,13 +44,13 @@ describe('useInternshipLockedPaths', () => {
   });
 
   it('locks levels whose lesson is missing from open-course-selection', async () => {
-    // فقط کارورزی ۱ در ترم باز است
+    // فقط کارورزی ۱ در ترم باز است — status=true
     getOpenCourseSelection.mockResolvedValue({
       id: 'sem-1',
       season: 'one',
       structure: 'semester',
       courseSelection: true,
-      lessons: [{ id: 'l1', title: 'کارورزی ۱', courseSelection: true }],
+      lessons: [{ id: 'l1', title: 'کارورزی ۱', status: true }],
     });
 
     const { result } = renderHook(
@@ -66,15 +66,15 @@ describe('useInternshipLockedPaths', () => {
     expect(result.current.has(internshipPath(4))).toBe(true);
   });
 
-  it('locks a level whose lesson has courseSelection=false', async () => {
+  it('locks a level whose lesson has status=false', async () => {
     getOpenCourseSelection.mockResolvedValue({
       id: 'sem-1',
       season: 'one',
       structure: 'semester',
       courseSelection: true,
       lessons: [
-        { id: 'l1', title: 'کارورزی ۱', courseSelection: true },
-        { id: 'l2', title: 'کارورزی ۲', courseSelection: false },
+        { id: 'l1', title: 'کارورزی ۱', status: true },
+        { id: 'l2', title: 'کارورزی ۲', status: false },
       ],
     });
 
@@ -111,8 +111,8 @@ describe('useInternshipLockedPaths', () => {
       structure: 'semester',
       courseSelection: true,
       lessons: [
-        { id: 'l1', title: 'کارآموزی ۱', courseSelection: true },
-        { id: 'l2', title: 'کارآموزی ۲', courseSelection: false },
+        { id: 'l1', title: 'کارآموزی ۱', status: true },
+        { id: 'l2', title: 'کارآموزی ۲', status: false },
       ],
     });
 
