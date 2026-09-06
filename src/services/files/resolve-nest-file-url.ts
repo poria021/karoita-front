@@ -40,7 +40,9 @@ function hasAwsSignatureQuery(url: URL): boolean {
   return (
     url.searchParams.has('X-Amz-Algorithm') ||
     url.searchParams.has('X-Amz-Credential') ||
+    url.searchParams.has('X-Amz-Signature') ||
     url.searchParams.has('AWSAccessKeyId') ||
+    url.searchParams.has('AccessKeyId') ||
     url.searchParams.has('Signature')
   );
 }
@@ -91,6 +93,9 @@ export function storageFetchUrlCandidates(
     if (bucket && key && !key.startsWith(`${bucket}/`)) {
       add(`${s3Base}/${bucket}/${key}`);
     }
+    // Keep the original signed URL as fallback so the media proxy can access
+    // private-bucket objects when the unsigned rebased URL returns 403.
+    if (hasAwsSignatureQuery(parsed)) add(trimmed);
     return out;
   }
 
@@ -117,10 +122,13 @@ export function toSameOriginMediaUrl(url: string): string {
   if (trimmed.startsWith('data:') || trimmed.startsWith('blob:')) return trimmed;
   if (trimmed.startsWith(FILE_MEDIA_PATH)) return trimmed;
   const resolved = resolveNestFileUrl(trimmed) ?? trimmed;
-  const wrapTarget = isAllowedSignedUploadTarget(resolved)
-    ? resolved
-    : isAllowedSignedUploadTarget(trimmed)
-      ? trimmed
+  // Prefer the original URL when it qualifies (preserves AWS signatures so the
+  // media proxy can fall back to private-bucket signed access).  Only use the
+  // rebased/resolved URL when the original doesn't pass the allowlist check.
+  const wrapTarget = isAllowedSignedUploadTarget(trimmed)
+    ? trimmed
+    : isAllowedSignedUploadTarget(resolved)
+      ? resolved
       : null;
   if (!wrapTarget) return resolved;
   return `${FILE_MEDIA_PATH}?src=${encodeURIComponent(wrapTarget)}`;

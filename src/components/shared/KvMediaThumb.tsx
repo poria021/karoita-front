@@ -8,7 +8,6 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import {
   isBrowsableMediaUrl,
-  resolveNestFileUrl,
   toSameOriginMediaUrl,
 } from '@/services/files/resolve-nest-file-url';
 import { faIcons } from '@/utils/iconMap';
@@ -53,10 +52,10 @@ const SIZE_CLASS: Record<KvMediaThumbSize, string> = {
  * با `openInNewTab` تصویر در مرورگر تب جدید و در PWA مودال است؛ PDF/متن تب جدید می‌ماند.
  */
 export function KvMediaThumb(props: KvMediaThumbProps) {
-  const resolvedSrc = (() => {
-    const raw = resolveNestFileUrl(props.src) ?? props.src ?? null;
-    return raw ? toSameOriginMediaUrl(raw) : null;
-  })();
+  // toSameOriginMediaUrl calls resolveNestFileUrl internally; calling it here first
+  // would strip the AWS signature before toSameOriginMediaUrl can use it as the
+  // media-proxy target for private-bucket fallback access.
+  const resolvedSrc = props.src ? toSameOriginMediaUrl(props.src) : null;
   // تعویض src باید failed را صفر کند — remount با key معادل reset در useEffect است.
   return (
     <KvMediaThumbBody key={resolvedSrc ?? ''} {...props} resolvedSrc={resolvedSrc} />

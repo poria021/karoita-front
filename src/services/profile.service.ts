@@ -86,10 +86,14 @@ function syncActiveUserFromNest(
   photoPublicUrl?: string
 ): User {
   const activeUser = useUserStore.getState().activeUser;
+  // Prefer the server-returned docUrl (may contain a fresh signed URL from Nest).
+  // photoPublicUrl is derived from the upload's presigned PUT URL and is unsigned;
+  // using it over the server's signed URL causes photo display failures on private buckets.
   const docUrl =
-    photoPublicUrl && isBrowsableMediaUrl(photoPublicUrl)
+    nestUser.docUrl ??
+    (photoPublicUrl && isBrowsableMediaUrl(photoPublicUrl)
       ? photoPublicUrl
-      : nestUser.docUrl;
+      : undefined);
 
   const next: User = {
     ...(activeUser ?? nestUser),

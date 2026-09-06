@@ -2,7 +2,6 @@ import { ApiClientError } from '@/services/api-client';
 import { fromNestRoleName } from '@/services/auth/real/nest-auth-role';
 import {
   isBrowsableMediaUrl,
-  resolveNestFileUrl,
 } from '@/services/files/resolve-nest-file-url';
 import type { DocStatus, Session, User } from '@/types/auth';
 
@@ -60,6 +59,11 @@ function asOptionalString(value: unknown): string | undefined {
 /**
  * Nest FileType.path در درایور S3 presigned کلید آبجکت است، نه URL عمومی.
  * اگر یکی از فیلدها از قبل http(s) باشد (signed GET) همان را ترجیح می‌دهیم.
+ *
+ * NOTE: عمداً `resolveNestFileUrl` را اینجا صدا نمی‌کنیم؛ آن تابع URL امضاشده
+ * AWS را به مبدأ عمومی باکت تبدیل می‌کند و امضا را حذف می‌کند. لایه نمایش
+ * (`toSameOriginMediaUrl` / `/api/files/media`) خودش این rebasing را بر اساس
+ * NEXT_PUBLIC_S3_URL انجام می‌دهد و امضا را به‌عنوان fallback نگه می‌دارد.
  */
 function readNestPhotoUrl(raw: Record<string, unknown>): string | undefined {
   const candidates: string[] = [];
@@ -75,9 +79,8 @@ function readNestPhotoUrl(raw: Record<string, unknown>): string | undefined {
   const photoUrl = asOptionalString(raw.photoUrl);
   if (photoUrl) candidates.push(photoUrl);
 
-  const preferred = candidates.find((item) => isBrowsableMediaUrl(item)) ?? candidates[0];
-  if (!preferred) return undefined;
-  return resolveNestFileUrl(preferred) ?? preferred;
+  // Return the raw preferred URL — display layer handles rebasing and signing.
+  return candidates.find((item) => isBrowsableMediaUrl(item)) ?? candidates[0];
 }
 
 function readOrgArray(value: unknown): string[] | undefined {
