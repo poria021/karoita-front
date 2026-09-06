@@ -8,11 +8,13 @@ import {
 
 const getJson = vi.fn();
 const patchMaybeJson = vi.fn();
+const postJson = vi.fn();
 
 vi.mock('@/services/api-client', () => ({
   apiClient: {
     getJson: (...args: unknown[]) => getJson(...args),
     patchMaybeJson: (...args: unknown[]) => patchMaybeJson(...args),
+    postJson: (...args: unknown[]) => postJson(...args),
   },
 }));
 
@@ -20,6 +22,7 @@ describe('studentEnrollmentsApi', () => {
   beforeEach(() => {
     getJson.mockReset();
     patchMaybeJson.mockReset();
+    postJson.mockReset();
   });
 
   it('GETs open-course-selection without an api/ prefix', async () => {
@@ -129,6 +132,29 @@ describe('studentEnrollmentsApi', () => {
   it('treats a 404 on getById as not found', async () => {
     getJson.mockRejectedValue(new ApiClientError('not found', 404));
     await expect(studentEnrollmentsApi.getById('e1')).resolves.toBeNull();
+  });
+
+  it('POSTs a new enrollment with semester, lesson, and professor', async () => {
+    postJson.mockResolvedValue({
+      id: 'e1',
+      professorId: 'p1',
+      semesterId: 'sem-1',
+      lessonId: 'les-1',
+    });
+
+    const created = await studentEnrollmentsApi.create({
+      semesterId: 'sem-1',
+      lessonId: 'les-1',
+      professorId: 'p1',
+    });
+
+    expect(postJson).toHaveBeenCalledWith('v1/student-enrollments', {
+      semesterId: 'sem-1',
+      lessonId: 'les-1',
+      professorId: 'p1',
+    });
+    expect(created.id).toBe('e1');
+    expect(created.professorId).toBe('p1');
   });
 
   it('PATCHes school/teacher on an enrollment', async () => {

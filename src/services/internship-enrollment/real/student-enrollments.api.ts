@@ -13,6 +13,7 @@ import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 import { parseNestPagedList } from '@/types/nest-admin';
 import type { NestSemesterWithLessons } from '@/types/nest-admin';
 import type {
+  NestCreateStudentEnrollmentDto,
   NestEnrollmentProfessor,
   NestStudentEnrollment,
   NestUpdateStudentEnrollmentDto,
@@ -53,6 +54,17 @@ function isAbsentOpenSemester(error: unknown): boolean {
 }
 
 export const studentEnrollmentsApi = {
+  /**
+   * POST `/api/v1/student-enrollments` — ثبت‌نام اولیه با استاد راهنما.
+   * پاسخ ۲۰۱ رکورد کامل ثبت‌نام را برمی‌گرداند.
+   */
+  async create(body: NestCreateStudentEnrollmentDto): Promise<NestStudentEnrollment> {
+    return apiClient.postJson<NestStudentEnrollment>(
+      NEST_STUDENT_ENROLLMENT_PATHS.list,
+      body
+    );
+  },
+
   /**
    * GET `/api/v1/student-enrollments/open-course-selection`.
    * ترم باز نباشد → `null` (۴۰۴/۲۰۴ یا بدنهٔ بدون id).

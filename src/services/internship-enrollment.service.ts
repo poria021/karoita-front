@@ -23,6 +23,7 @@ import {
 import {
   assertEnrollmentWriteReady,
   assignRealDelayedSchoolMentor,
+  enrollRealWithSupervisor,
 } from '@/services/internship-enrollment/real/real-enrollment-writes';
 import type {
   AssignDelayedSchoolMentorInput,
@@ -57,7 +58,7 @@ function gateEnrollmentMock(): void {
 
 /**
  * ثبت‌نام کارورزی / مهارت‌آموزی.
- * real: ترم باز و فهرست استاد از `student-enrollments`؛ ثبت‌نام و گزارش هفته هنوز stub است.
+ * real: ترم باز، فهرست استاد و ثبت‌نام اولیه از `student-enrollments`؛ گزارش هفته هنوز stub است.
  */
 export const InternshipEnrollmentService = {
   /** نقش → نوع درس؛ در Nest هم همین نگاشت پایدار است. */
@@ -107,7 +108,10 @@ export const InternshipEnrollmentService = {
   async enrollWithSupervisor(
     input: EnrollWithSupervisorInput
   ): Promise<InternshipEnrollmentRecord> {
-    gateEnrollmentWrite('InternshipEnrollmentService.enrollWithSupervisor');
+    if (!isMockApiMode()) {
+      return enrollRealWithSupervisor(input);
+    }
+    gateEnrollmentMock();
     return enrollWithSupervisor(input);
   },
 

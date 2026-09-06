@@ -12,17 +12,75 @@ import { nestEntityId } from '@/services/syllabus-config/real/real-syllabus-mapp
 import { normalizeEnrollmentCourseTitle } from '@/utils/enrollment-eligibility';
 import type {
   AssignDelayedSchoolMentorInput,
+  EnrollWithSupervisorInput,
   InternshipEnrollmentRecord,
 } from '@/types/internship-enrollment';
 import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
 
 /**
- * نوشتن ثبت‌نام کارورزی / گزارش هفتگی — endpoint Nest در فرانت نیست.
- * خواندن open-course-selection و professors در `real-enrollment-reads` است.
+ * ثبت‌نام هفتگی/گزارش هنوز stub است — endpoint Nest مستند‌شده‌ای ندارد.
  * تخصیص مدرسه/معلم راهنما (`assignRealDelayedSchoolMentor`) استثناست — پایین همین فایل.
+ * `enrollRealWithSupervisor` (ثبت‌نام اولیه) هم پیاده‌سازی شده — پایین همین فایل.
  */
 export function assertEnrollmentWriteReady(surface: string): never {
   throwRealModeNotImplemented(surface);
+}
+
+/**
+ * POST `/api/v1/student-enrollments` — ثبت‌نام اولیهٔ دانشجو/کارآموز با استاد راهنما.
+ *
+ * جریان:
+ * 1. ترم باز را از `open-course-selection` می‌گیریم تا `semesterId` و `lessonId` معتبر باشند.
+ * 2. درس مناسب سطح/نوع را پیدا می‌کنیم.
+ * 3. POST می‌زنیم و رکورد ثبت‌نام را برمی‌گردانیم.
+ *
+ * توجه: `supervisorName` را Nest در پاسخ POST برنمی‌گرداند — در UI از اطلاعات کش
+ * فهرست اساتید پر می‌شود.
+ */
+export async function enrollRealWithSupervisor(
+  input: EnrollWithSupervisorInput
+): Promise<InternshipEnrollmentRecord> {
+  requireNestTransport('InternshipEnrollmentService.enrollWithSupervisor');
+
+  const open = await studentEnrollmentsApi.getOpenCourseSelection();
+  if (!open) {
+    throw new ApiClientError('ترم انتخاب واحد فعالی وجود ندارد.', 404);
+  }
+
+  const lesson = findLessonForLevel(open.lessons ?? [], input.kind, input.level);
+  const lessonId = lesson ? nestEntityId(lesson) : '';
+  if (!lessonId) {
+    throw new ApiClientError(
+      'درس مناسب برای این سطح در ترم باز یافت نشد.',
+      404
+    );
+  }
+
+  const created = await studentEnrollmentsApi.create({
+    semesterId: open.id,
+    lessonId,
+    professorId: input.supervisorId,
+  });
+
+  const enrollmentId = created?.id ?? created?._id ?? '';
+
+  return {
+    id: enrollmentId,
+    userId: input.actor.id,
+    role: input.actor.role,
+    kind: input.kind,
+    level: input.level,
+    termId: open.id,
+    termTitle: '',
+    title: normalizeEnrollmentCourseTitle(courseNameForKind(input.kind), input.level),
+    supervisorId: created?.professorId ?? input.supervisorId,
+    supervisorName: null,
+    schoolId: null,
+    schoolName: null,
+    mentorId: null,
+    mentorName: null,
+    status: 'active',
+  };
 }
 
 function relationId(value: NestStudentEnrollment['schoolId']): string | null {

@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
 import {
   clampLevel,
   kindForRole,
@@ -12,11 +11,23 @@ import {
   getRealEnrollmentPageState,
   listRealEligibleSupervisors,
 } from '@/services/internship-enrollment/real/real-enrollment-reads';
+import { enrollRealWithSupervisor } from '@/services/internship-enrollment/real/real-enrollment-writes';
 
 vi.mock('@/services/internship-enrollment/real/real-enrollment-reads', () => ({
   getRealEnrollmentPageState: vi.fn(),
   listRealEligibleSupervisors: vi.fn(),
 }));
+
+vi.mock('@/services/internship-enrollment/real/real-enrollment-writes', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('@/services/internship-enrollment/real/real-enrollment-writes')
+    >();
+  return {
+    ...actual,
+    enrollRealWithSupervisor: vi.fn(),
+  };
+});
 
 describe('enrollment mappers (stable Nest contract)', () => {
   it('maps role → kind and clamps skill-learner to two levels', () => {
@@ -80,9 +91,10 @@ describe('InternshipEnrollmentService real wiring', () => {
     vi.unstubAllEnvs();
     vi.mocked(getRealEnrollmentPageState).mockReset();
     vi.mocked(listRealEligibleSupervisors).mockReset();
+    vi.mocked(enrollRealWithSupervisor).mockReset();
   });
 
-  it('uses student-enrollments reads and keeps writes stubbed', async () => {
+  it('uses student-enrollments reads and posts enrollWithSupervisor in real mode', async () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
     vi.mocked(getRealEnrollmentPageState).mockResolvedValue({
@@ -128,6 +140,23 @@ describe('InternshipEnrollmentService real wiring', () => {
     expect(getRealEnrollmentPageState).toHaveBeenCalled();
     expect(listRealEligibleSupervisors).toHaveBeenCalled();
 
+    vi.mocked(enrollRealWithSupervisor).mockResolvedValue({
+      id: 'enr-1',
+      userId: actor.id,
+      role: actor.role,
+      kind: 'internship',
+      level: 1,
+      termId: 'sem-1',
+      termTitle: '',
+      title: 'کارورزی ۱',
+      supervisorId: 'p1',
+      supervisorName: null,
+      schoolId: null,
+      schoolName: null,
+      mentorId: null,
+      mentorName: null,
+      status: 'active',
+    });
     await expect(
       InternshipEnrollmentService.enrollWithSupervisor({
         actor,
@@ -136,6 +165,7 @@ describe('InternshipEnrollmentService real wiring', () => {
         termId: 'sem-1',
         supervisorId: 'p1',
       })
-    ).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
+    ).resolves.toMatchObject({ id: 'enr-1', supervisorId: 'p1' });
+    expect(enrollRealWithSupervisor).toHaveBeenCalled();
   });
 });

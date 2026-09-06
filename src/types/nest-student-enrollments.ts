@@ -54,6 +54,15 @@ export type NestStudentEnrollment = {
   updatedAt?: string;
 };
 
+/** بدنهٔ POST `/student-enrollments` — ثبت‌نام اولیهٔ دانشجو/کارآموز با استاد راهنما. */
+export type NestCreateStudentEnrollmentDto = {
+  semesterId: string;
+  lessonId: string;
+  professorId: string;
+  schoolId?: string;
+  teacherId?: string;
+};
+
 /** بدنهٔ PATCH `/student-enrollments/{id}` — فقط مدرسه/معلم قابل تغییرند. */
 export type NestUpdateStudentEnrollmentDto = {
   schoolId?: string;
