@@ -73,13 +73,11 @@ describe('LandingCmsService (mock)', () => {
     expect(socials.some((row) => row.id === created.id)).toBe(true);
   });
 
-  it('reads resolve in real mode; writes are fail-closed until API is ready', async () => {
+  it('all methods are fail-closed in real mode until API is ready', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
-    // reads: no API call — mock store (localStorage) برمی‌گردونه
-    await expect(LandingCmsService.listBanners()).resolves.toBeDefined();
-    await expect(LandingCmsService.listSocials()).resolves.toBeDefined();
-    await expect(LandingCmsService.listProducts()).resolves.toBeDefined();
-    // writes: fail-closed تا endpoint آماده شود
+    await expect(LandingCmsService.listBanners()).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
+    await expect(LandingCmsService.listSocials()).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
+    await expect(LandingCmsService.listProducts()).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
     await expect(
       LandingCmsService.createSocial({
         name: 'x',

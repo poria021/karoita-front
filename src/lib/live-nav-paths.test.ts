@@ -202,7 +202,7 @@ describe('live nav / admin plane', () => {
     );
   });
 
-  it('treats landing CMS as admin control plane and keeps it off the sidebar', () => {
+  it('treats landing CMS as an active admin control plane and keeps it on the sidebar', () => {
     expect(isAdminControlPlanePath(RouteService.karvita.landingCms())).toBe(
       true
     );
