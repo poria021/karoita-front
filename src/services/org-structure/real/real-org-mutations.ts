@@ -1,8 +1,5 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
-import {
-  flushBareListCache,
-  listRealCities,
-} from '@/services/org-structure/real/real-org-reads';
+import { flushBareListCache } from '@/services/org-structure/real/real-org-reads';
 import { assertRealOrgDeleteAllowed } from '@/services/org-structure/real/real-org-delete-blocked';
 import {
   invalidateDistrictNameCache,
@@ -57,30 +54,11 @@ export async function upsertRealCity(
   flushBareListCache('cities');
 }
 
-/**
- * بدون `cityId`، POST/PUT /admin/universites لایو ۴۲۲ می‌دهد. فرم پردیس شهر را
- * انتخاب می‌کند و همیشه `cityId` می‌فرستد؛ این fallback فقط برای caller قدیمی
- * یا حالتی که مقدار خالی برسد نگه داشته شده.
- */
-async function resolveUniversityCityId(
-  input: UpsertFacultyInput
-): Promise<string> {
-  if (input.cityId) return input.cityId;
-  const cities = await listRealCities(input.provinceId);
-  const cityId = cities[0]?.id;
-  if (!cityId) {
-    throw new Error(
-      'این استان شهر ثبت‌شده‌ای ندارد. ابتدا یک شهر برای استان اضافه کنید.'
-    );
-  }
-  return cityId;
-}
-
 export async function upsertRealFaculty(
   input: UpsertFacultyInput,
   editId?: string
 ): Promise<void> {
-  const cityId = await resolveUniversityCityId(input);
+  const cityId = input.cityId;
   if (editId) {
     await adminCatalogApi.updateUniversity(editId, {
       title: input.name,
