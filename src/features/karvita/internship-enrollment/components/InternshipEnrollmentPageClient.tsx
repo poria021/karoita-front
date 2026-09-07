@@ -19,7 +19,7 @@ export function InternshipEnrollmentPageClient({
   const page = useInternshipEnrollmentPage(level);
 
   return (
-    <InternshipEnrollmentGuard>
+    <InternshipEnrollmentGuard isLoading={page.isLoading}>
       <KvWorkspace
         panel={false}
         className="flex min-h-0 flex-1 flex-col"

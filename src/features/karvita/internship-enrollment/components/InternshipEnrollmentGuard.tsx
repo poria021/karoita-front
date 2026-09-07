@@ -19,8 +19,10 @@ function isEnrollmentRole(
  */
 export function InternshipEnrollmentGuard({
   children,
+  isLoading = false,
 }: {
   children: ReactNode;
+  isLoading?: boolean;
 }) {
   const router = useRouter();
   const activeUser = useUserStore((state) => state.activeUser);
@@ -33,7 +35,7 @@ export function InternshipEnrollmentGuard({
     router.replace(getPostLoginPath(activeUser));
   }, [shouldRedirect, activeUser, router]);
 
-  if (!activeUser || shouldRedirect) {
+  if (!activeUser || shouldRedirect || isLoading) {
     return <DashboardAccessPlaceholder />;
   }
 
