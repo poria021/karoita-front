@@ -1,7 +1,6 @@
 'use client';
 
 import { KvAlert } from '@/components/shared/KvAlert';
-import { KvCard } from '@/components/shared/KvCard';
 import { useSupervisorSelectionWizard } from '@/features/karvita/internship-enrollment/hooks/useSupervisorSelectionWizard';
 import type {
   InternshipEnrollmentActor,
@@ -55,10 +54,7 @@ export function ScenarioEnrollOpen({
   }
 
   return (
-    <KvCard
-      padding="md"
-      className="flex min-h-0 flex-1 flex-col gap-kv-group text-start"
-    >
+    <div className="flex min-h-0 flex-1 flex-col gap-kv-group text-start">
       <SupervisorSelectionFilters
         courseName={state.courseName}
         level={state.level}
@@ -83,6 +79,6 @@ export function ScenarioEnrollOpen({
         submittingId={wizard.submittingId}
         onEnroll={wizard.enroll}
       />
-    </KvCard>
+    </div>
   );
 }
