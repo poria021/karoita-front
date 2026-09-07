@@ -1,7 +1,7 @@
 import { apiClient } from '@/services/api-client';
 import type { NestFileType } from '@/types/nest-users';
 
-const BASE = 'api/admin/social-networks';
+const BASE = 'admin/social-networks';
 
 export type NestSocialNetworkDto = {
   id: string;

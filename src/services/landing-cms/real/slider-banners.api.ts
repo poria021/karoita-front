@@ -1,7 +1,7 @@
 import { apiClient } from '@/services/api-client';
 import type { NestFileType } from '@/types/nest-users';
 
-const BASE = 'api/admin/slider-banners';
+const BASE = 'admin/slider-banners';
 
 export type NestSliderBannerDto = {
   id: string;

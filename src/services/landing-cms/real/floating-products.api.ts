@@ -1,7 +1,7 @@
 import { apiClient } from '@/services/api-client';
 import type { NestFileType } from '@/types/nest-users';
 
-const BASE = 'api/admin/floating-products';
+const BASE = 'admin/floating-products';
 
 export type NestFloatingProductDto = {
   id: string;
