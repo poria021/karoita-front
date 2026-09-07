@@ -39,15 +39,20 @@ export function useDailyApprovalBulkExtendCatalog({
   });
 
   const courses = coursesQuery.data ?? EMPTY_COURSES;
+
+  // resolvedLessonId بدون وابستگی به open محاسبه میشه تا به محض اینکه
+  // courses از API برگشت، course پیش‌فرض مشخص باشه و weeksQuery بتونه
+  // prefetch کنه — قبل از اینکه کاربر modal رو باز کنه.
   const resolvedLessonId = useMemo(() => {
-    if (!open || courses.length === 0) return lessonId || '';
     if (courses.some((course) => course.id === lessonId)) return lessonId;
+    if (courses.length === 0) return '';
     const preferred =
       preferredCourse !== 'all'
         ? courses.find((course) => course.courseFilter === preferredCourse)
         : undefined;
     return preferred?.id ?? courses[0]?.id ?? '';
-  }, [courses, lessonId, open, preferredCourse]);
+  }, [courses, lessonId, preferredCourse]);
+
   const selectedCourse =
     courses.find((course) => course.id === resolvedLessonId) ?? courses[0] ?? null;
 
@@ -66,7 +71,8 @@ export function useDailyApprovalBulkExtendCatalog({
         lessonId: selectedCourse!.id,
         courseFilter: selectedCourse!.courseFilter,
       }),
-    enabled: open && Boolean(termId) && Boolean(selectedCourse?.id),
+    // prefetch از همان لحظه‌ای که selectedCourse مشخص شد — open گیت نداره
+    enabled: Boolean(termId) && Boolean(selectedCourse?.id),
     staleTime: QUERY_STALE_MS.module,
   });
 
