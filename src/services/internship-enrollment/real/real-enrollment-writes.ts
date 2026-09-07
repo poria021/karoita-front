@@ -12,6 +12,7 @@ import { nestEntityId } from '@/services/syllabus-config/real/real-syllabus-mapp
 import { normalizeEnrollmentCourseTitle } from '@/utils/enrollment-eligibility';
 import type {
   AssignDelayedSchoolMentorInput,
+  CancelEnrollmentInput,
   EnrollWithSupervisorInput,
   InternshipEnrollmentRecord,
 } from '@/types/internship-enrollment';
@@ -81,6 +82,40 @@ export async function enrollRealWithSupervisor(
     mentorName: null,
     status: 'active',
   };
+}
+
+/**
+ * PATCH `/api/v1/student-enrollments/{id}/cancel` — لغو ثبت‌نام دانشجو.
+ * ابتدا لیست ثبت‌نام‌ها را می‌گیرد تا id را پیدا کند، سپس cancel می‌زند.
+ */
+export async function cancelRealEnrollment(
+  input: CancelEnrollmentInput
+): Promise<void> {
+  requireNestTransport('InternshipEnrollmentService.cancelEnrollment');
+
+  const [open, rows] = await Promise.all([
+    studentEnrollmentsApi.getOpenCourseSelection(),
+    studentEnrollmentsApi.listMine(),
+  ]);
+
+  const lesson = open
+    ? findLessonForLevel(open.lessons ?? [], input.kind, input.level)
+    : null;
+  const lessonId = lesson ? nestEntityId(lesson) : '';
+
+  const current =
+    rows.find((row) =>
+      lessonId
+        ? (row.lessonId ?? '').trim() === lessonId
+        : row.semesterId === input.termId
+    ) ?? null;
+
+  const enrollmentId = current?.id ?? current?._id ?? '';
+  if (!current || !enrollmentId) {
+    throw new ApiClientError('ثبت‌نام فعالی برای لغو یافت نشد.', 404);
+  }
+
+  await studentEnrollmentsApi.cancel(enrollmentId);
 }
 
 function relationId(value: NestStudentEnrollment['schoolId']): string | null {

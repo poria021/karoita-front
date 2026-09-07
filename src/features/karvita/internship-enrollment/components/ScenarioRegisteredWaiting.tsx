@@ -1,6 +1,10 @@
 'use client';
 
+import { useState } from 'react';
+import { toast } from 'sonner';
+
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
 import type { InternshipEnrollmentSummary } from '@/types/internship-enrollment';
@@ -8,6 +12,7 @@ import { faIcons } from '@/utils/iconMap';
 
 type ScenarioRegisteredWaitingProps = {
   enrollment: InternshipEnrollmentSummary;
+  onCancel?: () => Promise<void>;
 };
 
 const UNSET = 'مشخص نشده';
@@ -44,11 +49,28 @@ function DetailCell({
  */
 export function ScenarioRegisteredWaiting({
   enrollment,
+  onCancel,
 }: ScenarioRegisteredWaitingProps) {
   const supervisor = enrollment.supervisorName?.trim() || 'نامشخص';
   const school = enrollment.schoolName?.trim() || UNSET;
   const mentor = enrollment.mentorName?.trim() || UNSET;
   const days = enrollment.attendanceDaysLabel || UNSET;
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  async function handleCancel() {
+    if (!onCancel) return;
+    setIsCancelling(true);
+    try {
+      await onCancel();
+      toast.success('ثبت‌نام با موفقیت لغو شد.');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'لغو ثبت‌نام ناموفق بود.'
+      );
+    } finally {
+      setIsCancelling(false);
+    }
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-kv-group">
@@ -90,6 +112,22 @@ export function ScenarioRegisteredWaiting({
           <DetailCell label="مدرسه:" value={school} pending />
           <DetailCell label="معلم راهنما:" value={mentor} pending />
         </div>
+
+        {onCancel ? (
+          <div className="flex justify-end border-t border-kv-border pt-kv-field">
+            <KvButton
+              type="button"
+              color="error"
+              appearance="ghost"
+              size="sm"
+              loading={isCancelling}
+              icon={<FaIcon icon={faIcons.xmark} size="xs" />}
+              onClick={() => void handleCancel()}
+            >
+              لغو ثبت‌نام
+            </KvButton>
+          </div>
+        ) : null}
       </KvCard>
     </div>
   );

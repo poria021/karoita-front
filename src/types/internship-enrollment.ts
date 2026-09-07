@@ -246,3 +246,10 @@ export type AssignDelayedSchoolMentorInput = {
   schoolId: string;
   mentorId: string;
 };
+
+export type CancelEnrollmentInput = {
+  actor: InternshipEnrollmentActor;
+  kind: InternshipCourseKind;
+  level: InternshipEnrollmentLevel;
+  termId: string;
+};

@@ -18,11 +18,14 @@ import {
 } from '@/services/internship-enrollment/mock/mock-enrollment-store';
 import {
   getRealEnrollmentPageState,
+  getRealMentorCapacity,
   listRealEligibleSupervisors,
+  listRealMentorStudents,
 } from '@/services/internship-enrollment/real/real-enrollment-reads';
 import {
   assertEnrollmentWriteReady,
   assignRealDelayedSchoolMentor,
+  cancelRealEnrollment,
   enrollRealWithSupervisor,
 } from '@/services/internship-enrollment/real/real-enrollment-writes';
 import {
@@ -31,6 +34,7 @@ import {
 } from '@/services/internship-enrollment/real/real-enrollment-weekly';
 import type {
   AssignDelayedSchoolMentorInput,
+  CancelEnrollmentInput,
   EnrollWithSupervisorInput,
   GetEnrollmentPageStateInput,
   InternshipCourseKind,
@@ -48,6 +52,7 @@ import type {
   SaveWeeklyReportDraftInput,
   SubmitWeeklyReportInput,
 } from '@/types/internship-enrollment';
+import type { NestMentorCapacity, NestMentorStudentsPage } from '@/types/nest-student-enrollments';
 
 function gateEnrollmentWrite(surface: string): void {
   if (!isMockApiMode()) {
@@ -146,6 +151,35 @@ export const InternshipEnrollmentService = {
     }
     gateEnrollmentMock();
     return assignDelayedSchoolMentor(input);
+  },
+
+  /** PATCH `/student-enrollments/{id}/cancel` — لغو ثبت‌نام دانشجو. */
+  async cancelEnrollment(input: CancelEnrollmentInput): Promise<void> {
+    if (!isMockApiMode()) {
+      return cancelRealEnrollment(input);
+    }
+    gateEnrollmentMock();
+  },
+
+  /**
+   * GET `/student-enrollments/mentor/students` — فهرست دانشجویان منتور.
+   * فقط در real mode؛ mock endpoint ندارد.
+   */
+  async listMentorStudents(query: {
+    semesterId?: string;
+    lessonId?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<NestMentorStudentsPage> {
+    return listRealMentorStudents(query);
+  },
+
+  /**
+   * GET `/student-enrollments/mentor/capacity` — ظرفیت منتور در یک ترم.
+   * فقط در real mode؛ mock endpoint ندارد.
+   */
+  async getMentorCapacity(semesterId: string): Promise<NestMentorCapacity> {
+    return getRealMentorCapacity(semesterId);
   },
 
   async saveWeeklyReportDraft(

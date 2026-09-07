@@ -20,6 +20,7 @@ type InternshipEnrollmentGateProps = {
   state: InternshipEnrollmentPageState | null;
   isLoading: boolean;
   onEnrollmentComplete: () => Promise<void>;
+  onEnrollmentCancel?: () => Promise<void>;
 };
 
 /** ناحیهٔ داده — پرکنندهٔ ارتفاع مین تا قبل از فوتر. */
@@ -28,6 +29,7 @@ export function InternshipEnrollmentGate({
   state,
   isLoading,
   onEnrollmentComplete,
+  onEnrollmentCancel,
 }: InternshipEnrollmentGateProps) {
   if (isLoading) {
     return (
@@ -76,7 +78,12 @@ export function InternshipEnrollmentGate({
           />
         );
       }
-      return <ScenarioRegisteredWaiting enrollment={state.enrollment} />;
+      return (
+        <ScenarioRegisteredWaiting
+          enrollment={state.enrollment}
+          onCancel={onEnrollmentCancel}
+        />
+      );
     case 'S5_term_active':
       return actor ? (
         <ScenarioTermActive

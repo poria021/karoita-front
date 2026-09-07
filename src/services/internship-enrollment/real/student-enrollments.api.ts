@@ -15,6 +15,9 @@ import type { NestSemesterWithLessons } from '@/types/nest-admin';
 import type {
   NestCreateStudentEnrollmentDto,
   NestEnrollmentProfessor,
+  NestMentorCapacity,
+  NestMentorStudent,
+  NestMentorStudentsPage,
   NestStudentEnrollment,
   NestUpdateStudentEnrollmentDto,
 } from '@/types/nest-student-enrollments';
@@ -23,8 +26,11 @@ import type { InternshipSupervisor } from '@/types/internship-enrollment';
 export const NEST_STUDENT_ENROLLMENT_PATHS = {
   list: 'v1/student-enrollments',
   byId: (id: string) => `v1/student-enrollments/${id}`,
+  cancel: (id: string) => `v1/student-enrollments/${id}/cancel`,
   openCourseSelection: 'v1/student-enrollments/open-course-selection',
   professors: 'v1/student-enrollments/professors',
+  mentorStudents: 'v1/student-enrollments/mentor/students',
+  mentorCapacity: 'v1/student-enrollments/mentor/capacity',
 } as const;
 
 export type ListMyEnrollmentsQuery = {
@@ -167,6 +173,54 @@ export const studentEnrollmentsApi = {
       body
     );
     return isRecord(raw) ? (raw as NestStudentEnrollment) : null;
+  },
+
+  /** PATCH `/api/v1/student-enrollments/{id}/cancel` — لغو ثبت‌نام. */
+  async cancel(id: string): Promise<NestStudentEnrollment | null> {
+    const raw = await apiClient.patchMaybeJson<unknown>(
+      NEST_STUDENT_ENROLLMENT_PATHS.cancel(id),
+      {}
+    );
+    return isRecord(raw) ? (raw as NestStudentEnrollment) : null;
+  },
+
+  /**
+   * GET `/api/v1/student-enrollments/mentor/students`
+   * فهرست دانشجویان/مهارت‌آموزان متصل به منتور احراز هویت‌شده.
+   */
+  async listMentorStudents(query: {
+    page?: number;
+    limit?: number;
+    semesterId?: string;
+    lessonId?: string;
+  } = {}): Promise<NestMentorStudentsPage> {
+    const raw = await apiClient.getJson<unknown>(
+      NEST_STUDENT_ENROLLMENT_PATHS.mentorStudents,
+      undefined,
+      {
+        searchParams: toSearchParams({
+          page: query.page,
+          limit: query.limit,
+          semesterId: query.semesterId,
+          lessonId: query.lessonId,
+        }),
+      }
+    );
+    const parsed = parseNestPagedList<NestMentorStudent>(raw);
+    return { data: parsed.data, hasNextPage: parsed.hasNextPage };
+  },
+
+  /**
+   * GET `/api/v1/student-enrollments/mentor/capacity?semesterId=`
+   * خلاصهٔ ظرفیت منتور در یک ترم (کل، انتخاب‌شده، باقی‌مانده).
+   */
+  async getMentorCapacity(semesterId: string): Promise<NestMentorCapacity> {
+    const raw = await apiClient.getJson<unknown>(
+      NEST_STUDENT_ENROLLMENT_PATHS.mentorCapacity,
+      undefined,
+      { searchParams: toSearchParams({ semesterId }) }
+    );
+    return (isRecord(raw) ? raw : {}) as NestMentorCapacity;
   },
 };
 

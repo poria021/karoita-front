@@ -328,7 +328,9 @@ export function toEnrollmentPageState(
 
   // انتخاب واحد فقط وقتی درسِ همین دانشجو باز باشد — lesson.status از open-course-selection.
   const lessonEnrollOpen =
-    open.courseSelection === true || Boolean(current?.status);
+    open.courseSelection === true ||
+    Boolean(current?.courseSelection) ||
+    Boolean(current?.status);
 
   const scenario = conflictLesson
     ? 'S6_already_enrolled_elsewhere'

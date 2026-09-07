@@ -46,6 +46,7 @@ export function InternshipEnrollmentPageClient({
             state={page.state}
             isLoading={page.isLoading}
             onEnrollmentComplete={page.reload}
+            onEnrollmentCancel={page.cancelEnrollment}
           />
         )}
       </KvWorkspace>

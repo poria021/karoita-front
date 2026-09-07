@@ -68,3 +68,29 @@ export type NestUpdateStudentEnrollmentDto = {
   schoolId?: string;
   teacherId?: string;
 };
+
+/** GET `/student-enrollments/mentor/students` — یک ردیف در لیست دانشجویان منتور. */
+export type NestMentorStudent = NestStudentEnrollment & {
+  student?: {
+    id?: string;
+    firstName?: string;
+    lastName?: string;
+    phone?: string;
+    photo?: unknown;
+    roleName?: string;
+  };
+};
+
+/** پاسخ صفحه‌بندی شدهٔ GET `/student-enrollments/mentor/students`. */
+export type NestMentorStudentsPage = {
+  data: NestMentorStudent[];
+  hasNextPage: boolean;
+};
+
+/** GET `/student-enrollments/mentor/capacity` — ظرفیت منتور در یک ترم. */
+export type NestMentorCapacity = {
+  semesterId?: string;
+  allTeacherCapacity?: number;
+  selected?: number;
+  remain?: number;
+};

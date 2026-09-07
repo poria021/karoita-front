@@ -21,6 +21,10 @@ import {
 } from '@/services/daily-approvals/mock/mock-daily-approvals-store';
 import { assertDailyApprovalsMutationReady } from '@/services/daily-approvals/real/real-daily-approvals-mutations';
 import {
+  getRealDailyApprovalsMentorCapacity,
+  listRealDailyApprovals,
+} from '@/services/daily-approvals/real/real-daily-approvals-reads';
+import {
   getRealAcademicSettings,
   getRealWeeksForLesson,
 } from '@/services/syllabus-config/real/real-syllabus-reads';
@@ -31,6 +35,7 @@ import {
 } from '@/services/mock/mock-authz';
 import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
+import type { NestMentorCapacity } from '@/types/nest-student-enrollments';
 import type {
   BulkExtendDailyApprovalWeeksInput,
   BulkExtendDailyApprovalWeeksResult,
@@ -135,11 +140,16 @@ export const DailyApprovalsService = {
     input: ListDailyApprovalsInput
   ): Promise<ListDailyApprovalsPage> {
     if (!isMockApiMode()) {
-      assertDailyApprovalsMutationReady('DailyApprovalsService.listPage');
+      return listRealDailyApprovals(input);
     }
     requireDailyApprovalsReview();
     await delayMockAdminListPage();
     return listMockDailyApprovals(input);
+  },
+
+  /** GET `/student-enrollments/mentor/capacity` — ظرفیت منتور در یک ترم. */
+  async getMentorCapacity(semesterId: string): Promise<NestMentorCapacity> {
+    return getRealDailyApprovalsMentorCapacity(semesterId);
   },
 
   /** باز کردن هفته را خوانده‌شده علامت می‌زند. */

@@ -97,6 +97,16 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
     reload: async () => {
       await query.refetch();
     },
+    cancelEnrollment: async () => {
+      if (!actor || !resolved || !query.data) return;
+      await InternshipEnrollmentService.cancelEnrollment({
+        actor,
+        kind: query.data.kind,
+        level: resolved.level,
+        termId: query.data.termId,
+      });
+      await query.refetch();
+    },
   };
 }
 

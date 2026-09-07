@@ -22,6 +22,7 @@ import type {
   InternshipSupervisor,
   ListEligibleSupervisorsInput,
 } from '@/types/internship-enrollment';
+import type { NestMentorCapacity, NestMentorStudentsPage } from '@/types/nest-student-enrollments';
 
 const PROFESSORS_MAX_PAGES = 40;
 
@@ -93,6 +94,31 @@ export async function getRealEnrollmentPageState(
   return toEnrollmentPageState(input, open, registeredDetails);
 }
 
+/**
+ * GET `/api/v1/student-enrollments/mentor/students`
+ * فهرست دانشجویان/کارآموزان متصل به منتور احراز هویت‌شده.
+ */
+export async function listRealMentorStudents(query: {
+  semesterId?: string;
+  lessonId?: string;
+  page?: number;
+  limit?: number;
+}): Promise<NestMentorStudentsPage> {
+  requireNestTransport('InternshipEnrollmentService.listMentorStudents');
+  return studentEnrollmentsApi.listMentorStudents(query);
+}
+
+/**
+ * GET `/api/v1/student-enrollments/mentor/capacity?semesterId=`
+ * ظرفیت کل، انتخاب‌شده و باقی‌مانده منتور در یک ترم.
+ */
+export async function getRealMentorCapacity(
+  semesterId: string
+): Promise<NestMentorCapacity> {
+  requireNestTransport('InternshipEnrollmentService.getMentorCapacity');
+  return studentEnrollmentsApi.getMentorCapacity(semesterId);
+}
+
 export async function listRealEligibleSupervisors(
   input: ListEligibleSupervisorsInput
 ): Promise<InternshipSupervisor[]> {
@@ -124,9 +150,12 @@ export async function listRealEligibleSupervisors(
     if (!result.hasNextPage) break;
   }
 
+  // GET /professors already filters by the student's university server-side,
+  // so client-side province/college filtering is redundant and causes false negatives
+  // when the API's format differs from the actor's profile strings.
   return filterSupervisorsClientSide(collected, {
     query: input.query,
-    province: input.province,
-    college: input.college,
+    province: '',
+    college: '',
   });
 }
