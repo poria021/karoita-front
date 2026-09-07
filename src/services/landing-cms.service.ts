@@ -17,14 +17,16 @@ import {
   readLandingSocials,
 } from '@/services/landing-cms/mock/mock-landing-cms.store';
 import {
+  realCreateBanner,
   realCreateProduct,
   realCreateSocial,
+  realDeleteBanner,
   realDeleteProduct,
   realDeleteSocial,
+  realListBanners,
   realListProducts,
   realListSocials,
 } from '@/services/landing-cms/real/real-landing-cms';
-import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import type {
   CreateLandingBannerInput,
   CreateLandingProductInput,
@@ -40,7 +42,7 @@ import type {
  */
 export const LandingCmsService = {
   async listBanners(): Promise<LandingBanner[]> {
-    if (!isMockApiMode()) throwRealModeNotImplemented('LandingCmsService.listBanners');
+    if (!isMockApiMode()) return realListBanners();
     return readLandingBanners();
   },
 
@@ -55,13 +57,13 @@ export const LandingCmsService = {
   },
 
   async createBanner(input: CreateLandingBannerInput): Promise<LandingBanner> {
-    if (!isMockApiMode()) throwRealModeNotImplemented('LandingCmsService.createBanner');
+    if (!isMockApiMode()) return realCreateBanner(input);
     assertMockClientIsStaffAdmin();
     return mockCreateBanner(input);
   },
 
   async deleteBanner(id: string): Promise<void> {
-    if (!isMockApiMode()) throwRealModeNotImplemented('LandingCmsService.deleteBanner');
+    if (!isMockApiMode()) return realDeleteBanner(id);
     assertMockClientIsStaffAdmin();
     mockDeleteBanner(id);
   },

@@ -1,15 +1,18 @@
 import { FilesService } from '@/services/files.service';
 import { floatingProductsApi, type NestFloatingProductDto } from '@/services/landing-cms/real/floating-products.api';
+import { sliderBannersApi, type NestSliderBannerDto } from '@/services/landing-cms/real/slider-banners.api';
 import { socialNetworksApi, type NestSocialNetworkDto } from '@/services/landing-cms/real/social-networks.api';
 import type {
+  CreateLandingBannerInput,
   CreateLandingProductInput,
   CreateLandingSocialInput,
+  LandingBanner,
   LandingProduct,
   LandingSocial,
 } from '@/types/landing-cms';
 import type { NestFileType } from '@/types/nest-users';
 
-function toLogoImageUrl(picture: NestFileType): string {
+function toAbsoluteUrl(picture: NestFileType): string {
   const path = (picture.path ?? '').trim();
   if (!path) return '';
   if (/^https?:/i.test(path)) return path;
@@ -17,12 +20,43 @@ function toLogoImageUrl(picture: NestFileType): string {
   return base ? `${base}/${path.replace(/^\//, '')}` : path;
 }
 
+function mapSliderBanner(dto: NestSliderBannerDto): LandingBanner {
+  return {
+    id: dto.id,
+    title: dto.title,
+    link: dto.link,
+    imageUrl: toAbsoluteUrl(dto.picture),
+  };
+}
+
+export async function realListBanners(): Promise<LandingBanner[]> {
+  const items = await sliderBannersApi.listAll();
+  return items.map(mapSliderBanner);
+}
+
+export async function realCreateBanner(
+  input: CreateLandingBannerInput
+): Promise<LandingBanner> {
+  const fileRef = await FilesService.uploadFile(input.image);
+  const dto = await sliderBannersApi.create({
+    picture: { id: fileRef.id },
+    title: input.title,
+    link: input.link ?? '',
+  });
+  return mapSliderBanner(dto);
+}
+
+export async function realDeleteBanner(id: string): Promise<void> {
+  await sliderBannersApi.remove(id);
+}
+
+
 function mapFloatingProduct(dto: NestFloatingProductDto): LandingProduct {
   return {
     id: dto.id,
     title: dto.title,
     link: dto.link,
-    logoImageUrl: toLogoImageUrl(dto.picture),
+    logoImageUrl: toAbsoluteUrl(dto.picture),
     icon: '',
   };
 }
@@ -50,11 +84,7 @@ export async function realDeleteProduct(id: string): Promise<void> {
 
 function toIconImageUrl(picture: NestFileType | null): string {
   if (!picture) return '';
-  const path = (picture.path ?? '').trim();
-  if (!path) return '';
-  if (/^https?:/i.test(path)) return path;
-  const base = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
-  return base ? `${base}/${path.replace(/^\//, '')}` : path;
+  return toAbsoluteUrl(picture);
 }
 
 function mapSocialNetwork(dto: NestSocialNetworkDto): LandingSocial {
