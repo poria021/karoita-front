@@ -10,8 +10,6 @@ import { useMarketingPanel } from '../lib/marketingPanelContext';
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
 const SLIDE_DURATION = 6000;
-/** تیک پیشرفت — UI نرم بدون churn وضعیت ۲۰Hz. */
-const PROGRESS_TICK_MS = 200;
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
@@ -41,7 +39,6 @@ export function MarketingHeroCarousel({
 }: MarketingHeroCarouselProps) {
   const slides = banners;
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [progress, setProgress] = useState(0);
   // a11y: اگر کاربر کاهش حرکت خواسته، پیشروی خودکار را خاموش می‌کنیم.
   // اسلایدها با دکمه‌های تب همچنان دستی قابل انتخاب‌اند.
   const reducedMotion = useSyncExternalStore(
@@ -56,27 +53,15 @@ export function MarketingHeroCarousel({
   useEffect(() => {
     if (slides.length <= 1 || reducedMotion) return;
 
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) return 0;
-        return prev + 100 / (SLIDE_DURATION / PROGRESS_TICK_MS);
-      });
-    }, PROGRESS_TICK_MS);
-
     const slideInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-      setProgress(0);
     }, SLIDE_DURATION);
 
-    return () => {
-      clearInterval(progressInterval);
-      clearInterval(slideInterval);
-    };
+    return () => clearInterval(slideInterval);
   }, [slides.length, reducedMotion]);
 
   const handleSlideClick = (index: number) => {
     setCurrentSlide(index);
-    setProgress(0);
   };
 
   if (slides.length === 0) {
@@ -99,13 +84,14 @@ export function MarketingHeroCarousel({
       className="relative h-[260px] w-full overflow-hidden bg-kv-canvas sm:h-[360px] md:h-[460px] lg:h-[calc(100vh-4rem)] lg:max-h-[850px]"
       aria-label="بنرهای اطلاع‌رسانی اصلی"
     >
+      <style>{`@keyframes kv-carousel-progress{from{width:0%}to{width:100%}}`}</style>
       <h1 className="sr-only">
         کارویتا | سامانه جامع آموزش نظری، مهارتی و مدیریت کارورزی
       </h1>
 
       {slides.map((slide, index) => {
         // فقط وقتی ادمین CMS هنگام آپلود لینک گذاشته قابل کلیک است.
-        const target = slide.link.trim()
+        const target = (slide.link ?? '').trim()
           ? resolveMarketingNavTarget(slide.link)
           : ({ kind: 'none' } as const);
         const isActive = activeIndex === index;
@@ -203,8 +189,10 @@ export function MarketingHeroCarousel({
                 >
                   {isActive ? (
                     <div
-                      className="h-full rounded-kv-tight bg-white transition-all duration-75"
-                      style={{ width: `${progress}%` }}
+                      className="h-full rounded-kv-tight bg-white"
+                      style={{
+                        animation: `kv-carousel-progress ${SLIDE_DURATION}ms linear forwards`,
+                      }}
                       aria-hidden
                     />
                   ) : null}
