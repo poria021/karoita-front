@@ -57,6 +57,11 @@ export const shellCopy = {
     logoutCancel: 'انصراف',
     logoutError: 'خروج با خطا مواجه شد. لطفاً دوباره تلاش کنید.',
   },
+  network: {
+    offline: 'اتصال اینترنت قطع شد',
+    offlineHint: 'تا وصل شدن مجدد، فقط محتوای ذخیره‌شده در دسترس است.',
+    online: 'اتصال برقرار شد',
+  },
 } as const;
 
 export function notificationsMenuAriaLabel(unreadCount: number, unreadPersian: string): string {

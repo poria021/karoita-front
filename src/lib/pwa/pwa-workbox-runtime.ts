@@ -61,6 +61,11 @@ const PRECACHE_SKIP_PATTERNS = [
   /\.hot-update\./,
 ];
 
+// صفحه offline باید precache بشه — بدون اون، chunk load وقتی شبکه نیست شکست می‌خوره.
+const PRECACHE_FORCE_INCLUDE_PATTERNS = [
+  /\/_next\/static\/chunks\/app\/\(marketing\)\/offline\//,
+];
+
 /**
  * از precache manifest، چانک‌های lazy و فایل‌های غیرضروری رو حذف می‌کنه.
  * با `manifestTransforms` در workboxOptions ست میشه.
@@ -68,9 +73,10 @@ const PRECACHE_SKIP_PATTERNS = [
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function buildPrecacheManifestTransform(entries: any[]): { manifest: any[] } {
   return {
-    manifest: entries.filter(
-      (e: { url: string }) => !PRECACHE_SKIP_PATTERNS.some((re) => re.test(e.url))
-    ),
+    manifest: entries.filter((e: { url: string }) => {
+      if (PRECACHE_FORCE_INCLUDE_PATTERNS.some((re) => re.test(e.url))) return true;
+      return !PRECACHE_SKIP_PATTERNS.some((re) => re.test(e.url));
+    }),
   };
 }
 
