@@ -14,14 +14,19 @@ export type MarketingChromeData = {
 /**
  * فهرست chrome عمومی برای ترکیب‌های مارکتینگ.
  *
- * در حالت real هنوز endpoint لندینگ Nest پیاده نشده —
- * قبل از Facade کوتاه می‌کنیم تا هشدار `[real-mode stub]` در لاگ سرور نیاید
- * و round-trip شبکهٔ بیهوده نزند. وقتی مسیر `/landing/*` Nest آمد،
- * گارد `isMockApiMode` را بردارید تا سرویس هر دو حالت را هندل کند.
+ * در حالت real هنوز endpoint عمومی لندینگ Nest پیاده نشده —
+ * endpoint‌های موجود admin-only هستند و از مرورگر بدون auth 401 می‌زنند
+ * که handleUnauthorized را فعال و لندینگ را به login ریدایرکت می‌کند.
+ * وقتی مسیر `/landing/*` عمومی Nest آمد، گارد `isMockApiMode` و
+ * چک `window` را بردارید.
  */
 export async function loadMarketingChrome(): Promise<MarketingChromeData> {
   const { isMockApiMode } = await import('@/lib/api-mode');
   if (!isMockApiMode()) {
+    // مرورگر: endpoint عمومی لندینگ هنوز نیست — SSR seed کافیست.
+    if (typeof window !== 'undefined') {
+      return { banners: [], products: [], socials: [] };
+    }
     try {
       const [banners, products, socials] = await Promise.all([
         LandingCmsService.listBanners(),
