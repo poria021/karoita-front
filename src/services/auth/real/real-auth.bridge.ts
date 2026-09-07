@@ -306,14 +306,27 @@ export function realRefreshToken(_refreshToken?: string): Promise<Session | null
   return refreshInFlight;
 }
 
+// اگه VPN یه connection رو hang کنه بدون RST، fetch بدون signal می‌تونه دقیقه‌ها منتظر بمونه
+// و AppAuthGuard تو حالت pending بی‌نهایت گیر می‌کنه.
+const REFRESH_TIMEOUT_MS = 15_000;
+
 async function performRealRefresh(): Promise<Session | null> {
   try {
     const existingMobile = useUserStore.getState().activeUser?.mobile;
 
-    const res = await fetch('/api/auth/refresh', {
-      method: 'POST',
-      credentials: 'include',
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REFRESH_TIMEOUT_MS);
+
+    let res: Response;
+    try {
+      res = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
 
     // رفرش باطل → پاکسازی فوری (کلاس الف)
     if (isDeadSessionHttpStatus(res.status)) {
