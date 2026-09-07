@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
 import {
   listRealCapacityCourses,
@@ -55,7 +54,7 @@ describe('DailyApprovalsService real fail-closed', () => {
     vi.unstubAllEnvs();
   });
 
-  it('loads terms, courses, and weeks but keeps review routes stubbed', async () => {
+  it('loads terms, courses, and weeks in real mode', async () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
 
@@ -88,16 +87,5 @@ describe('DailyApprovalsService real fail-closed', () => {
     await expect(
       DailyApprovalsService.getPassingScoreThreshold()
     ).resolves.toBe(70);
-    await expect(
-      DailyApprovalsService.listPage({
-        kind: 'internship',
-        query: '',
-        readFilter: 'all',
-        course: 'all',
-        termId: '',
-        offset: 0,
-        limit: 20,
-      })
-    ).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
   });
 });
