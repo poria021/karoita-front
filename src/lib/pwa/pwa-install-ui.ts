@@ -33,7 +33,7 @@ export function closePwaInstallDialog(): void {
 export function isPwaInstallDismissed(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    return sessionStorage.getItem(PWA_INSTALL_DISMISS_KEY) === '1';
+    return localStorage.getItem(PWA_INSTALL_DISMISS_KEY) === '1';
   } catch {
     return false;
   }
@@ -42,9 +42,10 @@ export function isPwaInstallDismissed(): boolean {
 export function dismissPwaInstallSuggestion(): void {
   if (typeof window === 'undefined') return;
   try {
-    sessionStorage.setItem(PWA_INSTALL_DISMISS_KEY, '1');
+    // localStorage تا وقتی کاربر clear نکنه پایدار است — sessionStorage با بستن تب از بین می‌رود.
+    localStorage.setItem(PWA_INSTALL_DISMISS_KEY, '1');
   } catch {
-    // حالت خصوصی — ممکن است بنر همین نشست برگردد.
+    // حالت خصوصی — ممکن است بنر نشست بعدی برگردد.
   }
   closePwaInstallDialog();
 }
