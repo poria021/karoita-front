@@ -14,19 +14,10 @@ export type MarketingChromeData = {
 /**
  * فهرست chrome عمومی برای ترکیب‌های مارکتینگ.
  *
- * در حالت real هنوز endpoint عمومی لندینگ Nest پیاده نشده —
- * endpoint‌های موجود admin-only هستند. تا زمانی که مسیر عمومی `/landing/*`
- * در Nest فراهم شود، real mode داده‌ای بارگذاری نمی‌کند (stub).
- * وقتی endpoint عمومی آمد، بلوک stub را بردارید و realList* را صدا بزنید.
+ * real: GET /api/admin/floating-products بدون auth عمومی است (bearer برنداشته).
+ * mock: از LandingCmsService که روی in-memory store کار می‌کند.
  */
 export async function loadMarketingChrome(): Promise<MarketingChromeData> {
-  const { isMockApiMode } = await import('@/lib/api-mode');
-
-  // stub: تا endpoint عمومی لندینگ در Nest آماده شود.
-  if (!isMockApiMode()) {
-    return { banners: [], products: [], socials: [] };
-  }
-
   try {
     const [banners, products, socials] = await Promise.all([
       LandingCmsService.listBanners(),
