@@ -55,6 +55,7 @@ export function WeeklySyllabusTable({
 }: WeeklySyllabusTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, weeks.length);
   const canEdit = Boolean(courseTitle) && !isLoading;
+  const canAddWeek = canEdit;
   const canChangeWeekSet = canEdit && !isWeeksPublished;
   const lastWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
   const hasLastWeek = Boolean(lastWeek);
@@ -82,8 +83,7 @@ export function WeeklySyllabusTable({
             color="success"
             size="sm"
             className="w-full sm:w-auto"
-            disabled={!canChangeWeekSet}
-            title={structureLockedHint}
+            disabled={!canAddWeek}
             onClick={onAddWeek}
             icon={<FaIcon icon={faIcons.plus} size="xs" />}
           >
