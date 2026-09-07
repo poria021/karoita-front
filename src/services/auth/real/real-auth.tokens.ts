@@ -133,12 +133,19 @@ async function clearRefreshTokenCookie(): Promise<void> {
   // باقیماندهٔ کوکی غیر-httpOnly قدیمی
   Cookies.remove(REAL_SURFACE_COOKIE_NAME, { path: '/' });
   try {
-    await fetch('/api/auth/clear-tokens', {
-      method: 'POST',
-      credentials: 'include',
-    });
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8_000);
+    try {
+      await fetch('/api/auth/clear-tokens', {
+        method: 'POST',
+        credentials: 'include',
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(t);
+    }
   } catch {
-    // اگر Route نرسید، presence cookie پایین‌تر پاک می‌شود و proxy به login می‌فرستد.
+    // اگر Route نرسید یا timeout خورد، presence cookie پایین‌تر پاک می‌شود و proxy به login می‌فرستد.
   }
 }
 
