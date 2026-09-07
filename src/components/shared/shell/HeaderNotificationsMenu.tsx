@@ -25,6 +25,9 @@ import { formatNotificationTime } from '@/utils/formatJalaliDate';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
+/** حداقل فاصله بین دو refresh متوالی هنگام باز شدن منو (ms) */
+const NOTIFICATIONS_OPEN_COOLDOWN_MS = 30_000;
+
 /**
  * منوی اعلان‌های هدر — GET صفحهٔ اول روی ورود نشست، PATCH روی کلیک.
  */
@@ -40,10 +43,12 @@ export function HeaderNotificationsMenu() {
   const markAsRead = useNotificationsStore((state) => state.markAsRead);
   const [isOpen, setIsOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const lastFetchedAtRef = useRef<number>(0);
 
   useEffect(() => {
     if (!userId) return;
     void refresh();
+    lastFetchedAtRef.current = Date.now();
   }, [userId, refresh]);
 
   const unreadCount = notifications.filter((item) => !item.read).length;
@@ -64,7 +69,13 @@ export function HeaderNotificationsMenu() {
       open={isOpen}
       onOpenChange={(open) => {
         setIsOpen(open);
-        if (open && userId) void refresh();
+        if (open && userId) {
+          const elapsed = Date.now() - lastFetchedAtRef.current;
+          if (elapsed >= NOTIFICATIONS_OPEN_COOLDOWN_MS) {
+            void refresh();
+            lastFetchedAtRef.current = Date.now();
+          }
+        }
       }}
     >
       <KvDropdownMenuTrigger asChild>
