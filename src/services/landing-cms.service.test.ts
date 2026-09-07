@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
 import { LandingCmsService } from '@/services/landing-cms.service';
 import { resetLandingCmsStoreForTests } from '@/services/landing-cms/mock/mock-landing-cms.store';
 import {
@@ -73,16 +72,12 @@ describe('LandingCmsService (mock)', () => {
     expect(socials.some((row) => row.id === created.id)).toBe(true);
   });
 
-  it('all methods are fail-closed in real mode until API is ready', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
-    await expect(LandingCmsService.listBanners()).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
-    await expect(LandingCmsService.listSocials()).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
-    await expect(LandingCmsService.listProducts()).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
+  it('write methods guard mock authz in mock mode', async () => {
+    useUserStore.setState({ activeUser: null });
     await expect(
-      LandingCmsService.createSocial({
-        name: 'x',
-        link: 'https://example.com',
-      })
-    ).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
+      LandingCmsService.createSocial({ name: 'x', link: 'https://example.com' })
+    ).rejects.toThrow();
+    await expect(LandingCmsService.deleteBanner('bnr-1')).rejects.toThrow();
+    await expect(LandingCmsService.deleteProduct('prd-1')).rejects.toThrow();
   });
 });
