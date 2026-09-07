@@ -1,5 +1,3 @@
-import { useSyncExternalStore } from 'react';
-
 import { setRuntimeAuthBoot } from '@/store/sessionBoot';
 
 /**
@@ -58,14 +56,6 @@ export function subscribeAuthTransition(listener: () => void): () => void {
   return () => {
     listeners.delete(listener);
   };
-}
-
-export function useAuthTransitionPhase(): AuthTransitionPhase {
-  return useSyncExternalStore(
-    subscribeAuthTransition,
-    getAuthTransitionPhase,
-    getAuthTransitionPhase
-  );
 }
 
 export function runAfterPaint(callback: () => void): () => void {

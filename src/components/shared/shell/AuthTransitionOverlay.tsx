@@ -1,7 +1,7 @@
 'use client';
 
 import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
-import { useAuthTransitionPhase } from '@/store/authTransition';
+import { useAuthTransitionPhase } from '@/store/useAuthTransitionPhase';
 
 /**
  * لودر تمام‌ویوپورت فقط برای مرز احراز (ورود→داشبورد، خروج→مارکتینگ).

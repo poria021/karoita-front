@@ -7,7 +7,7 @@ import { PublicRouteStatusActions } from '@/components/shared/route-status/Publi
 import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { UnauthenticatedRedirect } from '@/components/shared/shell/UnauthenticatedRedirect';
 import { AuthService } from '@/services/auth.service';
-import { useAuthTransitionPhase } from '@/store/authTransition';
+import { useAuthTransitionPhase } from '@/store/useAuthTransitionPhase';
 import { useUserStore } from '@/store/useUserStore';
 import {
   ensureAuthRestore,

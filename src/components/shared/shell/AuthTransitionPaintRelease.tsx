@@ -5,9 +5,9 @@ import { useLayoutEffect } from 'react';
 import {
   clearAuthTransition,
   runAfterPaint,
-  useAuthTransitionPhase,
   type AuthTransitionPhase,
 } from '@/store/authTransition';
+import { useAuthTransitionPhase } from '@/store/useAuthTransitionPhase';
 
 /**
  * `overlay` احراز را بعد از commit HTML همین مسیر برمی‌دارد.
