@@ -29,10 +29,12 @@ export function useDailyApprovalBulkExtendCatalog({
 }: UseDailyApprovalBulkExtendCatalogArgs) {
   const [lessonId, setLessonId] = useState('');
 
+  // کوئری courses بدون وابستگی به open اجرا میشه تا زمانی که modal باز میشه
+  // داده از cache بیاد و waterfall courses→weeks از دید کاربر حذف بشه.
   const coursesQuery = useQuery({
     queryKey: DASHBOARD_QUERY.dailyApprovalsCourses(kind, termId),
     queryFn: () => DailyApprovalsService.listCourses({ kind, termId }),
-    enabled: open && Boolean(termId),
+    enabled: Boolean(termId),
     staleTime: QUERY_STALE_MS.module,
   });
 
