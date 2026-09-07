@@ -18,8 +18,11 @@ import {
 } from '@/services/landing-cms/mock/mock-landing-cms.store';
 import {
   realCreateProduct,
+  realCreateSocial,
   realDeleteProduct,
+  realDeleteSocial,
   realListProducts,
+  realListSocials,
 } from '@/services/landing-cms/real/real-landing-cms';
 import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import type {
@@ -42,7 +45,7 @@ export const LandingCmsService = {
   },
 
   async listSocials(): Promise<LandingSocial[]> {
-    if (!isMockApiMode()) throwRealModeNotImplemented('LandingCmsService.listSocials');
+    if (!isMockApiMode()) return realListSocials();
     return readLandingSocials();
   },
 
@@ -64,13 +67,13 @@ export const LandingCmsService = {
   },
 
   async createSocial(input: CreateLandingSocialInput): Promise<LandingSocial> {
-    if (!isMockApiMode()) throwRealModeNotImplemented('LandingCmsService.createSocial');
+    if (!isMockApiMode()) return realCreateSocial(input);
     assertMockClientIsStaffAdmin();
     return mockCreateSocial(input);
   },
 
   async deleteSocial(id: string): Promise<void> {
-    if (!isMockApiMode()) throwRealModeNotImplemented('LandingCmsService.deleteSocial');
+    if (!isMockApiMode()) return realDeleteSocial(id);
     assertMockClientIsStaffAdmin();
     mockDeleteSocial(id);
   },

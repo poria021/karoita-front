@@ -22,10 +22,13 @@ export type MarketingChromeData = {
 export async function loadMarketingChrome(): Promise<MarketingChromeData> {
   const { isMockApiMode } = await import('@/lib/api-mode');
   if (!isMockApiMode()) {
-    // banners و socials هنوز endpoint ندارند؛ فقط products از API واقعی می‌آید.
+    // banners هنوز endpoint ندارد؛ products و socials از API واقعی می‌آیند.
     try {
-      const products = await LandingCmsService.listProducts();
-      return { banners: [], products, socials: [] };
+      const [products, socials] = await Promise.all([
+        LandingCmsService.listProducts(),
+        LandingCmsService.listSocials(),
+      ]);
+      return { banners: [], products, socials };
     } catch {
       return { banners: [], products: [], socials: [] };
     }

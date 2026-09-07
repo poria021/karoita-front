@@ -1,8 +1,11 @@
 import { FilesService } from '@/services/files.service';
 import { floatingProductsApi, type NestFloatingProductDto } from '@/services/landing-cms/real/floating-products.api';
+import { socialNetworksApi, type NestSocialNetworkDto } from '@/services/landing-cms/real/social-networks.api';
 import type {
   CreateLandingProductInput,
+  CreateLandingSocialInput,
   LandingProduct,
+  LandingSocial,
 } from '@/types/landing-cms';
 import type { NestFileType } from '@/types/nest-users';
 
@@ -43,4 +46,48 @@ export async function realCreateProduct(
 
 export async function realDeleteProduct(id: string): Promise<void> {
   await floatingProductsApi.remove(id);
+}
+
+function toIconImageUrl(picture: NestFileType | null): string {
+  if (!picture) return '';
+  const path = (picture.path ?? '').trim();
+  if (!path) return '';
+  if (/^https?:/i.test(path)) return path;
+  const base = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+  return base ? `${base}/${path.replace(/^\//, '')}` : path;
+}
+
+function mapSocialNetwork(dto: NestSocialNetworkDto): LandingSocial {
+  return {
+    id: dto.id,
+    name: dto.name,
+    link: dto.link,
+    iconImageUrl: toIconImageUrl(dto.picture),
+    icon: '',
+  };
+}
+
+export async function realListSocials(): Promise<LandingSocial[]> {
+  const items = await socialNetworksApi.listAll();
+  return items.map(mapSocialNetwork);
+}
+
+export async function realCreateSocial(
+  input: CreateLandingSocialInput
+): Promise<LandingSocial> {
+  let pictureBody: { id: string } | undefined;
+  if (input.iconImage) {
+    const fileRef = await FilesService.uploadFile(input.iconImage);
+    pictureBody = { id: fileRef.id };
+  }
+  const dto = await socialNetworksApi.create({
+    ...(pictureBody ? { picture: pictureBody } : {}),
+    name: input.name,
+    link: input.link,
+  });
+  return mapSocialNetwork(dto);
+}
+
+export async function realDeleteSocial(id: string): Promise<void> {
+  await socialNetworksApi.remove(id);
 }
