@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { NOTIFICATIONS_PAGE_SIZE } from '@/services/notifications/real/notifications.api';
+import { NOTIFICATIONS_MAX_TOTAL, NOTIFICATIONS_PAGE_SIZE } from '@/services/notifications/real/notifications.api';
 import { NotificationsService } from '@/services/notifications.service';
 import type { AppNotification } from '@/types/notifications';
 
@@ -74,19 +74,21 @@ export const useNotificationsStore = create<NotificationsStore>()((set, get) => 
 
   loadMore: async () => {
     const { currentPage, hasNextPage, notifications, isLoadingMore } = get();
-    if (!hasNextPage || isLoadingMore) return;
+    if (!hasNextPage || isLoadingMore || notifications.length >= NOTIFICATIONS_MAX_TOTAL) return;
     set({ isLoadingMore: true, errorMessage: null });
     try {
       const nextPage = currentPage + 1;
+      const remaining = NOTIFICATIONS_MAX_TOTAL - notifications.length;
       const result = await NotificationsService.listPaginated({
         page: nextPage,
-        limit: NOTIFICATIONS_PAGE_SIZE,
+        limit: Math.min(NOTIFICATIONS_PAGE_SIZE, remaining),
       });
       const seen = new Set(notifications.map((item) => item.id));
       const appended = result.data.filter((item) => !seen.has(item.id));
+      const merged = [...notifications, ...appended];
       set({
-        notifications: [...notifications, ...appended],
-        hasNextPage: appended.length === 0 ? false : result.hasNextPage,
+        notifications: merged,
+        hasNextPage: merged.length < NOTIFICATIONS_MAX_TOTAL && appended.length > 0 ? result.hasNextPage : false,
         currentPage: nextPage,
         isLoadingMore: false,
       });
