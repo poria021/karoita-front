@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { PublicRouteStatusActions } from '@/components/shared/route-status/PublicRouteStatusActions';
 import { DOCUMENT_TITLE, formatDocumentTitle } from '@/lib/document-title';
+import { isChunkLoadError, tryReloadForChunkError } from '@/lib/chunk-error';
 import { reportError } from '@/lib/observability/reportError';
 
 interface MarketingErrorProps {
@@ -14,6 +15,8 @@ interface MarketingErrorProps {
 
 export default function MarketingError({ error, reset }: MarketingErrorProps) {
   useEffect(() => {
+    if (isChunkLoadError(error) && tryReloadForChunkError()) return;
+
     document.title = formatDocumentTitle(DOCUMENT_TITLE.error);
     void reportError(error, {
       source: 'marketing-error',
