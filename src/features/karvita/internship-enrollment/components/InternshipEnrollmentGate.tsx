@@ -1,6 +1,7 @@
 'use client';
 
 import { KvAlert } from '@/components/shared/KvAlert';
+import { KvCard } from '@/components/shared/KvCard';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import type {
   InternshipEnrollmentActor,
@@ -30,7 +31,9 @@ export function InternshipEnrollmentGate({
 }: InternshipEnrollmentGateProps) {
   if (isLoading) {
     return (
-      <KvBusySurface className="min-h-0 flex-1 rounded-kv-card bg-kv-surface-subtle" />
+      <KvCard padding="md" className="flex min-h-0 flex-1 flex-col">
+        <KvBusySurface className="flex-1" />
+      </KvCard>
     );
   }
 
