@@ -22,8 +22,13 @@ export type MarketingChromeData = {
 export async function loadMarketingChrome(): Promise<MarketingChromeData> {
   const { isMockApiMode } = await import('@/lib/api-mode');
   if (!isMockApiMode()) {
-    // real: مسیر لندینگ Nest هنوز نیست — chrome خالی، بدون `throwRealModeNotImplemented`.
-    return { banners: [], products: [], socials: [] };
+    // banners و socials هنوز endpoint ندارند؛ فقط products از API واقعی می‌آید.
+    try {
+      const products = await LandingCmsService.listProducts();
+      return { banners: [], products, socials: [] };
+    } catch {
+      return { banners: [], products: [], socials: [] };
+    }
   }
 
   try {
