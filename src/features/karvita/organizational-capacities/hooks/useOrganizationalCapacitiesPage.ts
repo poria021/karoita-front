@@ -89,11 +89,13 @@ export function useOrganizationalCapacitiesPage() {
     queryKey: capacitiesTermsKey('internship'),
     queryFn: () => OrganizationalCapacitiesService.listTerms('internship'),
     staleTime: QUERY_STALE_MS.module,
+    enabled: kind === 'internship',
   });
   const apprenticeshipTermsQuery = useQuery({
     queryKey: capacitiesTermsKey('apprenticeship'),
     queryFn: () => OrganizationalCapacitiesService.listTerms('apprenticeship'),
     staleTime: QUERY_STALE_MS.module,
+    enabled: kind === 'apprenticeship',
   });
   const refetchInternshipTerms = internshipTermsQuery.refetch;
   const refetchApprenticeshipTerms = apprenticeshipTermsQuery.refetch;
