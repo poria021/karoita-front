@@ -268,10 +268,21 @@ export async function listRealProvinces(): Promise<OrgProvince[]> {
   return provinces.map(toOrgProvince);
 }
 
-/** GET /admin/provinces/{id}/cities. */
+/**
+ * GET /admin/provinces/{id}/cities — لایو گاهی ۵۰۰ می‌دهد (دیده‌شده روی استان‌های
+ * واقعی). fallback: کل کاتالوگ صفحه‌بندی‌شدهٔ `/admin/cities` را بگیر و سمت
+ * کلاینت فیلتر کن — همان الگوی `fetchAllNestProvinces` برای `/admin/province/all`.
+ */
 export async function listRealCities(provinceId: string): Promise<OrgCity[]> {
-  const raw = await adminCatalogApi.listCitiesByProvince(provinceId);
-  return raw.map((c) => ({ id: c.id, name: c.title, provinceId }));
+  try {
+    const raw = await adminCatalogApi.listCitiesByProvince(provinceId);
+    return raw.map((c) => ({ id: c.id, name: c.title, provinceId }));
+  } catch {
+    const all = await fetchAllNestCities();
+    return all
+      .map(toOrgCity)
+      .filter((city) => city.provinceId === provinceId);
+  }
 }
 
 /**
