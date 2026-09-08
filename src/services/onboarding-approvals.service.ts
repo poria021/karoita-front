@@ -53,10 +53,16 @@ export const OnboardingApprovalsService = {
           (filters.offset ?? 0) / (filters.limit ?? ONBOARDING_APPROVALS_PAGE_SIZE)
         ) + 1;
 
+      const nestFilters: Record<string, unknown> = { status: nestStatus };
+      if (filters.query?.trim()) nestFilters.title = filters.query.trim();
+      if (filters.province && filters.province !== 'all') {
+        nestFilters.province = filters.province;
+      }
+
       const raw = await usersApi.list({
         page,
         limit: filters.limit ?? ONBOARDING_APPROVALS_PAGE_SIZE,
-        filters: JSON.stringify({ status: nestStatus }),
+        filters: JSON.stringify(nestFilters),
       });
 
       const users: OnboardingApprovalUser[] = raw.data.map((row) => {
