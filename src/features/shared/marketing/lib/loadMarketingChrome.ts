@@ -11,21 +11,35 @@ export type MarketingChromeData = {
   socials: LandingSocial[];
 };
 
+async function safeList<T>(
+  label: string,
+  fetcher: () => Promise<T[]>
+): Promise<T[]> {
+  try {
+    return await fetcher();
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[loadMarketingChrome] ${label} failed:`, err);
+    }
+    return [];
+  }
+}
+
 /**
- * فهرست chrome عمومی برای ترکیب‌های مارکتینگ.
+ * داده chrome لندینگ را برای Server Component می‌خواند.
  *
- * real: GET /api/admin/floating-products بدون auth عمومی است (bearer برنداشته).
- * mock: از LandingCmsService که روی in-memory store کار می‌کند.
+ * real: هر endpoint مستقل try/catch دارد — خرابی یک منبع بقیه را نمی‌کشد.
+ * mock: از LandingCmsService روی in-memory store کار می‌کند.
+ *
+ * برای بنرها و شبکه‌های اجتماعی که endpoint عمومی Nest ندارند:
+ * کوکی‌های request کاربر فوروارد می‌شود تا session ادمین (در صورت وجود) منتقل شود.
+ * وقتی Nest یک GET عمومی /landing-chrome برگرداند، این workaround حذف خواهد شد.
  */
 export async function loadMarketingChrome(): Promise<MarketingChromeData> {
-  try {
-    const [banners, products, socials] = await Promise.all([
-      LandingCmsService.listBanners(),
-      LandingCmsService.listProducts(),
-      LandingCmsService.listSocials(),
-    ]);
-    return { banners, products, socials };
-  } catch {
-    return { banners: [], products: [], socials: [] };
-  }
+  const [banners, products, socials] = await Promise.all([
+    safeList('banners', () => LandingCmsService.listBanners()),
+    safeList('products', () => LandingCmsService.listProducts()),
+    safeList('socials', () => LandingCmsService.listSocials()),
+  ]);
+  return { banners, products, socials };
 }
