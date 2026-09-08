@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   getCatalogCache,
   getCatalogCacheTtl,
+  invalidateCatalogCacheByPath,
   setCatalogCache,
 } from '@/lib/nest-catalog-cache';
 import { readNestApiBaseUrl } from '@/lib/nest-proxy';
@@ -134,6 +135,16 @@ export async function forwardToNestApi(
   }
   const status = upstream.status;
   const body = nestProxyResponseBody(status, rawBody);
+
+  // Mutation موفق روی یک cacheable path → cache مربوطه را باطل کن
+  // تا ادمین بلافاصله داده به‌روز را ببیند (نه داده stale تا انقضای TTL).
+  const isMutation = request.method === 'POST' || request.method === 'PUT' ||
+    request.method === 'PATCH' || request.method === 'DELETE';
+  if (isMutation && status >= 200 && status < 300) {
+    const matchesCatalog = getCatalogCacheTtl(suffix) !== null ||
+      getCatalogCacheTtl(pathWithQuery) !== null;
+    if (matchesCatalog) invalidateCatalogCacheByPath(suffix);
+  }
 
   // Cache miss را پر کن — فقط برای موفق‌ترین GETهای catalog (200 + JSON)
   if (request.method === 'GET' && status === 200 && rawBody.byteLength > 0) {

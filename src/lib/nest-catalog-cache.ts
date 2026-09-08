@@ -74,6 +74,18 @@ export function setCatalogCache(
   _store.set(cacheKey, { ...entry, cachedAt: Date.now() });
 }
 
+/**
+ * پس از موفقیت mutation (POST/PUT/PATCH/DELETE)، تمام cache entry‌هایی که
+ * path یکسان دارند را حذف می‌کند — بدون در نظر گرفتن query string.
+ * مثال: path='admin/schools' → هم 'admin/schools' هم 'admin/schools?page=2' پاک می‌شوند.
+ */
+export function invalidateCatalogCacheByPath(path: string): void {
+  for (const key of _store.keys()) {
+    const keyPath = key.split('?')[0];
+    if (keyPath === path) _store.delete(key);
+  }
+}
+
 /** فقط برای تست‌ها. */
 export function _clearCatalogCache(): void {
   _store.clear();
