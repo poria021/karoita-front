@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
@@ -36,6 +36,7 @@ export function useDailyApprovalBulkExtendCatalog({
     queryFn: () => DailyApprovalsService.listCourses({ kind, termId }),
     enabled: Boolean(termId),
     staleTime: QUERY_STALE_MS.module,
+    placeholderData: keepPreviousData,
   });
 
   const courses = coursesQuery.data ?? EMPTY_COURSES;
@@ -74,6 +75,7 @@ export function useDailyApprovalBulkExtendCatalog({
     // prefetch از همان لحظه‌ای که selectedCourse مشخص شد — open گیت نداره
     enabled: Boolean(termId) && Boolean(selectedCourse?.id),
     staleTime: QUERY_STALE_MS.module,
+    placeholderData: keepPreviousData,
   });
 
   const weekOptions = useMemo(

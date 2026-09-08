@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -128,6 +128,7 @@ export function useOrganizationalCapacitiesPage() {
       }),
     enabled: !termsPending,
     staleTime: QUERY_STALE_MS.module,
+    placeholderData: keepPreviousData,
   });
 
   const snapshot = snapshotData ?? null;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, type Dispatch, type SetStateAction } from 'react';
 
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
@@ -24,6 +24,7 @@ export function useDailyApprovalsTerms({
     queryKey: DASHBOARD_QUERY.dailyApprovalsTerms(kind),
     queryFn: () => DailyApprovalsService.listTerms(kind),
     staleTime: QUERY_STALE_MS.module,
+    placeholderData: keepPreviousData,
   });
   const passingQuery = useQuery({
     queryKey: DASHBOARD_QUERY.passingScoreThreshold,
