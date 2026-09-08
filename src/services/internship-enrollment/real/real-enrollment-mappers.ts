@@ -212,7 +212,8 @@ function mapNestEnrollmentStatus(
 function registeredSummaryFromEnrollment(
   input: { kind: InternshipCourseKind; level: InternshipEnrollmentLevel; termTitle: string },
   enrollment: NestStudentEnrollment | null,
-  supervisorName: string | null
+  supervisorName: string | null,
+  supervisorDay: string | null = null
 ): InternshipEnrollmentSummary {
   const base = registeredSummary(input);
   if (!enrollment) return base;
@@ -223,6 +224,7 @@ function registeredSummaryFromEnrollment(
   return {
     ...base,
     supervisorName: supervisorName ?? base.supervisorName,
+    attendanceDaysLabel: supervisorDay ?? base.attendanceDaysLabel,
     schoolId: school?.id ?? null,
     schoolName: school?.title || null,
     mentorId: mentor?.id ?? null,
@@ -294,6 +296,7 @@ export function toEnrollmentPageState(
   registeredDetails?: {
     enrollments?: NestStudentEnrollment[];
     supervisorName?: string | null;
+    supervisorDay?: string | null;
   }
 ): InternshipEnrollmentPageState {
   const kind = kindForRole(input.actor.role);
@@ -354,7 +357,8 @@ export function toEnrollmentPageState(
         ? registeredSummaryFromEnrollment(
             { kind, level, termTitle: term.title },
             active,
-            registeredDetails?.supervisorName ?? null
+            registeredDetails?.supervisorName ?? null,
+            registeredDetails?.supervisorDay ?? null
           )
         : null,
     selection:

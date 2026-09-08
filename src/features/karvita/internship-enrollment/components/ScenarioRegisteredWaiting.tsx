@@ -108,7 +108,7 @@ export function ScenarioRegisteredWaiting({
 
         <div className="grid grid-cols-1 gap-kv-pair sm:grid-cols-2 lg:grid-cols-4">
           <DetailCell label="استاد راهنما:" value={supervisor} />
-          <DetailCell label="روز های حضور:" value={days} pending />
+          <DetailCell label="روز های استاد:" value={days} pending={days === UNSET} />
           <DetailCell label="مدرسه:" value={school} pending />
           <DetailCell label="معلم راهنما:" value={mentor} pending />
         </div>

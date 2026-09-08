@@ -34,11 +34,11 @@ async function loadMyEnrollments(): Promise<NestStudentEnrollment[]> {
   }
 }
 
-async function resolveSupervisorName(
+async function resolveSupervisorInfo(
   semesterId: string,
   lessonId: string,
   professorId: string
-): Promise<string | null> {
+): Promise<{ name: string | null; day: string | null }> {
   try {
     const collected: InternshipSupervisor[] = [];
     for (let page = 1; page <= PROFESSORS_MAX_PAGES; page += 1) {
@@ -51,9 +51,13 @@ async function resolveSupervisorName(
       collected.push(...result.data);
       if (!result.hasNextPage) break;
     }
-    return collected.find((item) => item.id === professorId)?.name ?? null;
+    const found = collected.find((item) => item.id === professorId);
+    return {
+      name: found?.name ?? null,
+      day: found?.day?.trim() || null,
+    };
   } catch {
-    return null;
+    return { name: null, day: null };
   }
 }
 
@@ -67,8 +71,9 @@ async function loadRegisteredEnrollmentDetails(
 ): Promise<{
   enrollments: NestStudentEnrollment[];
   supervisorName: string | null;
+  supervisorDay: string | null;
 }> {
-  if (!open) return { enrollments: [], supervisorName: null };
+  if (!open) return { enrollments: [], supervisorName: null, supervisorDay: null };
 
   const enrollments = await loadMyEnrollments();
   const kind = kindForRole(input.actor.role);
@@ -77,12 +82,12 @@ async function loadRegisteredEnrollmentDetails(
   const lessonId = lesson ? nestEntityId(lesson) : '';
   const active = findActiveEnrollmentForLesson(enrollments, open.id, lessonId || null);
   const professorId = active?.professorId?.trim() ?? '';
-  const supervisorName =
+  const supervisorInfo =
     professorId && lessonId
-      ? await resolveSupervisorName(open.id, lessonId, professorId)
-      : null;
+      ? await resolveSupervisorInfo(open.id, lessonId, professorId)
+      : { name: null, day: null };
 
-  return { enrollments, supervisorName };
+  return { enrollments, supervisorName: supervisorInfo.name, supervisorDay: supervisorInfo.day };
 }
 
 export async function getRealEnrollmentPageState(
