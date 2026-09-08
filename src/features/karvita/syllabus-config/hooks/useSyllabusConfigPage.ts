@@ -46,8 +46,10 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const { isLoading, reload, loadTermContext, loadTermContextForUi, error } =
-    useSyllabusPageLoader({ section, state });
+  const { isLoading, reload, loadTermContext, error } = useSyllabusPageLoader({
+    section,
+    state,
+  });
   const lastTermByAudienceRef = useRef<Partial<Record<AcademicTermType, string>>>(
     {}
   );
@@ -142,7 +144,7 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     terms,
     setTerms,
     setSelectedTermId,
-    loadTermContext: loadTermContextForUi,
+    loadTermContext,
     professorCapacity,
     setProfessorCapacity,
     passingThreshold,

@@ -464,23 +464,11 @@ export function useSyllabusPageLoader({
     }
   }
 
-  async function loadTermContextForUi(
-    termId: string,
-    preferredCourseId?: string
-  ): Promise<void> {
-    if (section === 'term_settings') {
-      setSelectedTermId(termId);
-      return;
-    }
-    await loadTermContext(termId, preferredCourseId);
-  }
-
   return {
     isLoading,
     setIsLoading,
     error,
     reload,
     loadTermContext,
-    loadTermContextForUi,
   };
 }

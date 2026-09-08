@@ -41,7 +41,11 @@ type UseSyllabusTermSettingsArgs = {
   terms: AcademicTerm[];
   setTerms: Dispatch<SetStateAction<AcademicTerm[]>>;
   setSelectedTermId: Dispatch<SetStateAction<string>>;
-  loadTermContext: (termId: string) => Promise<void>;
+  loadTermContext: (
+    termId: string,
+    preferredCourseId?: string,
+    options?: { force?: boolean }
+  ) => Promise<unknown>;
   professorCapacity: string;
   setProfessorCapacity: Dispatch<SetStateAction<string>>;
   passingThreshold: string;
