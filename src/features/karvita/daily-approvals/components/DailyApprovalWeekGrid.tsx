@@ -29,6 +29,18 @@ export function DailyApprovalWeekGrid({
   compact = false,
   onSelectWeek,
 }: DailyApprovalWeekGridProps) {
+  if (trainee.weeks.length === 0) {
+    return (
+      <div
+        className={`flex w-full items-center justify-center rounded-kv-control border border-dashed border-kv-border text-xs font-bold text-kv-text-faint ${
+          compact ? 'min-h-[72px]' : 'min-h-[160px]'
+        }`}
+      >
+        هنوز هیچ هفته‌ای برای این کارآموز ثبت نشده است.
+      </div>
+    );
+  }
+
   return (
     <div
       className={
