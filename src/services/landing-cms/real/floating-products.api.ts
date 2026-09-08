@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api-client';
+import { parseNestPagedList } from '@/types/nest-admin';
 import type { NestFileType } from '@/types/nest-users';
 
 const BASE = 'admin/floating-products';
@@ -12,11 +13,6 @@ export type NestFloatingProductDto = {
   updatedAt: string;
 };
 
-type NestFloatingProductsListDto = {
-  data: NestFloatingProductDto[];
-  hasNextPage: boolean;
-};
-
 type CreateFloatingProductBody = {
   picture: { id: string };
   title: string;
@@ -24,16 +20,16 @@ type CreateFloatingProductBody = {
 };
 
 export const floatingProductsApi = {
+  /** GET /admin/floating-products — لایو گاهی به‌جای `{ data, hasNextPage }` آرایهٔ خام می‌دهد. */
   async listAll(): Promise<NestFloatingProductDto[]> {
     const all: NestFloatingProductDto[] = [];
     let page = 1;
     while (true) {
       const params = new URLSearchParams({ page: String(page), limit: '100' });
-      const res = await apiClient.getJson<NestFloatingProductsListDto>(
-        `${BASE}?${params}`
-      );
-      all.push(...res.data);
-      if (!res.hasNextPage) break;
+      const raw = await apiClient.getJson<unknown>(`${BASE}?${params}`);
+      const { data, hasNextPage } = parseNestPagedList<NestFloatingProductDto>(raw);
+      all.push(...data);
+      if (!hasNextPage) break;
       page++;
     }
     return all;

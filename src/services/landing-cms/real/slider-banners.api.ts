@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api-client';
+import { parseNestPagedList } from '@/types/nest-admin';
 import type { NestFileType } from '@/types/nest-users';
 
 const BASE = 'admin/slider-banners';
@@ -12,11 +13,6 @@ export type NestSliderBannerDto = {
   updatedAt: string;
 };
 
-type NestSliderBannersListDto = {
-  data: NestSliderBannerDto[];
-  hasNextPage: boolean;
-};
-
 type CreateSliderBannerBody = {
   picture: { id: string };
   title: string;
@@ -24,16 +20,16 @@ type CreateSliderBannerBody = {
 };
 
 export const sliderBannersApi = {
+  /** GET /admin/slider-banners — لایو گاهی به‌جای `{ data, hasNextPage }` آرایهٔ خام می‌دهد. */
   async listAll(): Promise<NestSliderBannerDto[]> {
     const all: NestSliderBannerDto[] = [];
     let page = 1;
     while (true) {
       const params = new URLSearchParams({ page: String(page), limit: '100' });
-      const res = await apiClient.getJson<NestSliderBannersListDto>(
-        `${BASE}?${params}`
-      );
-      all.push(...res.data);
-      if (!res.hasNextPage) break;
+      const raw = await apiClient.getJson<unknown>(`${BASE}?${params}`);
+      const { data, hasNextPage } = parseNestPagedList<NestSliderBannerDto>(raw);
+      all.push(...data);
+      if (!hasNextPage) break;
       page++;
     }
     return all;

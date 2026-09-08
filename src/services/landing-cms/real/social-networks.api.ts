@@ -1,4 +1,5 @@
 import { apiClient } from '@/services/api-client';
+import { parseNestPagedList } from '@/types/nest-admin';
 import type { NestFileType } from '@/types/nest-users';
 
 const BASE = 'admin/social-networks';
@@ -12,11 +13,6 @@ export type NestSocialNetworkDto = {
   updatedAt: string;
 };
 
-type NestSocialNetworksListDto = {
-  data: NestSocialNetworkDto[];
-  hasNextPage: boolean;
-};
-
 type CreateSocialNetworkBody = {
   picture?: { id: string };
   name: string;
@@ -24,16 +20,16 @@ type CreateSocialNetworkBody = {
 };
 
 export const socialNetworksApi = {
+  /** GET /admin/social-networks — لایو گاهی به‌جای `{ data, hasNextPage }` آرایهٔ خام می‌دهد. */
   async listAll(): Promise<NestSocialNetworkDto[]> {
     const all: NestSocialNetworkDto[] = [];
     let page = 1;
     while (true) {
       const params = new URLSearchParams({ page: String(page), limit: '100' });
-      const res = await apiClient.getJson<NestSocialNetworksListDto>(
-        `${BASE}?${params}`
-      );
-      all.push(...res.data);
-      if (!res.hasNextPage) break;
+      const raw = await apiClient.getJson<unknown>(`${BASE}?${params}`);
+      const { data, hasNextPage } = parseNestPagedList<NestSocialNetworkDto>(raw);
+      all.push(...data);
+      if (!hasNextPage) break;
       page++;
     }
     return all;
