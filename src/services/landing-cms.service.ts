@@ -23,6 +23,9 @@ import {
   realDeleteBanner,
   realDeleteProduct,
   realDeleteSocial,
+  realListBanners,
+  realListProducts,
+  realListSocials,
 } from '@/services/landing-cms/real/real-landing-cms';
 import type {
   CreateLandingBannerInput,
@@ -35,21 +38,21 @@ import type {
 
 /**
  * CMS لندینگ (بنر / شبکه اجتماعی / محصول شناور).
- * محصولات شناور: real وصل است. بنر و شبکهٔ اجتماعی هنوز فقط mock.
+ * بنر / شبکهٔ اجتماعی / محصول شناور: همه real وصل است.
  */
 export const LandingCmsService = {
   async listBanners(): Promise<LandingBanner[]> {
-    if (!isMockApiMode()) return [];
+    if (!isMockApiMode()) return realListBanners();
     return readLandingBanners();
   },
 
   async listSocials(): Promise<LandingSocial[]> {
-    if (!isMockApiMode()) return [];
+    if (!isMockApiMode()) return realListSocials();
     return readLandingSocials();
   },
 
   async listProducts(): Promise<LandingProduct[]> {
-    if (!isMockApiMode()) return [];
+    if (!isMockApiMode()) return realListProducts();
     return readLandingProducts();
   },
 

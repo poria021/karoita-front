@@ -41,6 +41,11 @@ export async function realCreateBanner(
   return mapSliderBanner(dto);
 }
 
+export async function realListBanners(): Promise<LandingBanner[]> {
+  const dtos = await sliderBannersApi.listAll();
+  return dtos.map(mapSliderBanner);
+}
+
 export async function realDeleteBanner(id: string): Promise<void> {
   await sliderBannersApi.remove(id);
 }
@@ -66,6 +71,11 @@ export async function realCreateProduct(
     link: input.link,
   });
   return mapFloatingProduct(dto);
+}
+
+export async function realListProducts(): Promise<LandingProduct[]> {
+  const dtos = await floatingProductsApi.listAll();
+  return dtos.map(mapFloatingProduct);
 }
 
 export async function realDeleteProduct(id: string): Promise<void> {
@@ -101,6 +111,11 @@ export async function realCreateSocial(
     link: input.link,
   });
   return mapSocialNetwork(dto);
+}
+
+export async function realListSocials(): Promise<LandingSocial[]> {
+  const dtos = await socialNetworksApi.listAll();
+  return dtos.map(mapSocialNetwork);
 }
 
 export async function realDeleteSocial(id: string): Promise<void> {

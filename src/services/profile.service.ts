@@ -21,7 +21,7 @@ import {
   getMockProfile,
   updateMockIdentityDocument,
   updateMockProfile,
-} from './profile/mock/profile.mock';
+} from '@/services/profile/mock/profile.mock';
 
 const MOCK_DELAY_MS = 350;
 const MAX_IDENTITY_BASE64_CHARS = 1_100_000;
