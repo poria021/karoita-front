@@ -125,6 +125,9 @@ export function LandingCmsProductsPanel({
               invalidTypeMessage={LANDING_PRODUCT_LOGO_INVALID_TYPE}
               helperText={LANDING_PRODUCT_LOGO_MAX_SIZE_HELPER}
               previewAlt="پیش‌نمایش لوگوی محصول"
+              // فشرده‌سازی پیش‌فرض همیشه به WebP تبدیل می‌کند؛ چون اسکیمای این فرم
+              // فقط PNG/SVG را قبول می‌کند، فایل معتبر با فشرده‌سازی رد می‌شد.
+              compress={false}
             />
           )}
         />
