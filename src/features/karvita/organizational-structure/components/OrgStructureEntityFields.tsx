@@ -141,7 +141,7 @@ export function OrgStructureEntityFields({
         required
         placeholder={namePlaceholder}
         error={errors.name?.message}
-        scriptGuard="persian-name"
+        scriptGuard={tab === 'districts' ? 'no-latin' : 'persian-name'}
         {...register('name')}
       />
 
