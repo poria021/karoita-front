@@ -22,7 +22,7 @@ type UseDailyApprovalBulkExtendCatalogArgs = {
 };
 
 export function useDailyApprovalBulkExtendCatalog({
-  open,
+  open: _open,
   kind,
   termId,
   preferredCourse,

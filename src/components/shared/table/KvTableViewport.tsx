@@ -80,8 +80,6 @@ export function KvTableViewport({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-    // onEndReached از dep حذف شده — ref آن را sync می‌کند تا observer هر render rebuild نشود
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMore, isLoadingMore, isBusy, resetKey]);
 
   return (
