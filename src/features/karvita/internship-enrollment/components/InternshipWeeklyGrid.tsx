@@ -126,6 +126,16 @@ export function InternshipWeeklyGrid({
   enrollmentStatus,
   onWeekSelect,
 }: InternshipWeeklyGridProps) {
+  if (weeks.length === 0) {
+    return (
+      <div className="space-y-kv-group">
+        <div className="flex min-h-[160px] w-full items-center justify-center rounded-kv-control border border-dashed border-kv-border text-xs font-bold text-kv-text-faint">
+          هنوز هیچ هفته‌ای برای این دوره ثبت نشده است.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-kv-group">
       <div className="grid grid-cols-2 gap-kv-inline sm:grid-cols-4">
