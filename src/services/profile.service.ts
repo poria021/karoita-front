@@ -30,8 +30,8 @@ export interface UpdateOnboardingProfilePayload {
   role: UserRole;
   firstName: string;
   lastName: string;
-  province?: string[];
-  college?: string[];
+  province?: string | string[];
+  college?: string | string[];
   major?: string;
   studentId?: string;
   skillCode?: string;

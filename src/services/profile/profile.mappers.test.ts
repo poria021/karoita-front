@@ -13,8 +13,8 @@ const studentProfile = {
   role: 'student' as const,
   firstName: 'امیرحسین',
   lastName: 'کریمی',
-  province: ['تهران'],
-  college: ['پردیس شهید باهنر تهران'],
+  province: 'تهران',
+  college: 'پردیس شهید باهنر تهران',
   major: 'آموزش ابتدایی',
   studentId: '1234',
 };
