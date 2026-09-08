@@ -19,6 +19,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(root, './src'),
+      // Next.js server-only packages that do not exist in the vitest/jsdom runtime.
+      // Tests that exercise code paths importing these modules need the stubs below;
+      // actual behaviour is exercised by Next.js build and e2e tests.
+      'server-only': path.resolve(root, './src/__mocks__/server-only.ts'),
+      'next/headers': path.resolve(root, './src/__mocks__/next-headers.ts'),
     },
   },
 });
