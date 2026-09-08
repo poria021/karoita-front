@@ -162,6 +162,14 @@ export const SyllabusConfigService = {
       ) {
         return null;
       }
+      // صفر offering برای این ترم لزوماً یعنی «واقعاً درسی ندارد» نیست —
+      // ممکن است ترم تازه ساخته شده و snapshot هنوز lesson/offering آن را
+      // association نکرده باشد. اعتماد کورکورانه به این حالت باعث می‌شود
+      // `loadTermContext` هیچ‌وقت `listCoursesAndOfferingsForTerm` (که واقعاً
+      // `admin/semesters_all` را تازه می‌زند) صدا نزند و جدول درس‌ها خالی بماند.
+      if (records.length === 0) {
+        return null;
+      }
       return { courses, offerings };
     }
     return {
