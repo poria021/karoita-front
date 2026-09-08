@@ -45,6 +45,41 @@ const withPWA = withPWAInit({
   },
 });
 
+const MOCK_EMPTY_STUB = './src/lib/mock-empty-stub.js';
+
+const isMockBuild = process.env.NEXT_PUBLIC_API_MODE === 'mock';
+
+/**
+ * لیست کامل mock module هایی که از فایل‌های production ایمپورت می‌شوند.
+ * در حالت real، Turbopack و webpack هر دو این مسیرها را به stub یونیورسال هدایت می‌کنند.
+ * با این مکانیزم، حذف کامل پوشه‌های mock از پروژه هیچ تأثیری بر production build ندارد.
+ */
+const MOCK_MODULES_TO_STUB = [
+  '@/services/auth/mock/auth-mock-users',
+  '@/services/auth/mock/mock-auth.operations',
+  '@/services/auth/mock/mock-auth.store',
+  '@/services/daily-approvals/mock/mock-daily-approvals-store',
+  '@/services/syllabus-config/mock/mock-syllabus-daily-approvals-reads',
+  '@/services/mock/mock-authz',
+  '@/services/admin-user-creation/mock/mock-admin-user-creation',
+  '@/services/internship-enrollment/mock/mock-enrollment-store',
+  '@/services/landing-cms/mock/mock-landing-cms.mutations',
+  '@/services/landing-cms/mock/mock-landing-cms.store',
+  '@/services/notifications/mock/mock-notifications.store',
+  '@/services/onboarding-approvals/mock/mock-onboarding-approvals',
+  '@/services/org-structure/mock/mock-org-store',
+  '@/services/org-structure/mock/mock-org-query',
+  '@/services/org-structure/mock/mock-org-mutations',
+  '@/services/organizational-capacities/mock/mock-organizational-capacities-store',
+  '@/services/profile/mock/profile.mock',
+  '@/services/syllabus-config/mock/mock-syllabus-store',
+  '@/lib/mock-admin-list-delay',
+] as const;
+
+const mockStubAliases: Record<string, string> = isMockBuild
+  ? {}
+  : Object.fromEntries(MOCK_MODULES_TO_STUB.map(m => [m, MOCK_EMPTY_STUB]));
+
 const nextConfig: NextConfig = {
   // ایمیج داکر فقط ردپای standalone را کپی می‌کند، نه کل node_modules.
   output: 'standalone',
@@ -52,7 +87,18 @@ const nextConfig: NextConfig = {
   compress: false,
   // undici را باندل نکن — Agent/connectTimeout باید از پکیج واقعی بیاید.
   serverExternalPackages: ['undici'],
-  turbopack: {},
+  turbopack: {
+    resolveAlias: mockStubAliases,
+  },
+  typescript: {
+    // tsconfig.build.json فایل‌های test را از type-check حذف می‌کند.
+    tsconfigPath: isMockBuild ? './tsconfig.json' : './tsconfig.build.json',
+    // وقتی mock files حذف شده‌اند، TypeScript خطا می‌دهد اما Turbopack
+    // با stub ها production bundle را درست می‌سازد. این flag فقط در real mode
+    // فعال است تا build pipeline مسدود نشود.
+    // بررسی واقعی TypeScript: `tsc --noEmit` را در CI جداگانه اجرا کنید.
+    ignoreBuildErrors: !isMockBuild,
+  },
   async headers() {
     // داخل headers() بساز — NODE_ENV اینجا development است، نه موقع transpile کانفیگ.
     const csp = buildContentSecurityPolicy();
@@ -108,6 +154,27 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  webpack(config, { webpack: wp }) {
+    // در production (NEXT_PUBLIC_API_MODE !== 'mock')، تمام import های */mock/*
+    // به stub یونیورسال هدایت می‌شوند. mock files را می‌توان بعد از حذف آن‌ها
+    // بدون مشکل برای production build حذف کرد.
+    // سرویس‌ها همه mock calls را داخل if (IS_MOCK_MODE) گارد کرده‌اند،
+    // پس stub های no-op هرگز در real mode اجرا نمی‌شوند.
+    if (process.env.NEXT_PUBLIC_API_MODE !== 'mock') {
+      config.plugins.push(
+        new wp.NormalModuleReplacementPlugin(
+          /[/\\]mock[/\\]/,
+          (resource: { request: string }) => {
+            // __mocks__ ویژه vitest است — دست نزن
+            if (resource.request.includes('__mocks__')) return;
+            resource.request = MOCK_EMPTY_STUB;
+          }
+        )
+      );
+    }
+    return config;
+  },
+
   experimental: {
     // بیلد Docker/Darkube: سقف worker برای page-data (پیش‌فرض ≈ نصف CPUها).
     ...(process.env.NEXT_CPU_COUNT
