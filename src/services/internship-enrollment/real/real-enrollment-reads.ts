@@ -155,12 +155,9 @@ export async function listRealEligibleSupervisors(
     if (!result.hasNextPage) break;
   }
 
-  // GET /professors already filters by the student's university server-side,
-  // so client-side province/college filtering is redundant and causes false negatives
-  // when the API's format differs from the actor's profile strings.
   return filterSupervisorsClientSide(collected, {
     query: input.query,
-    province: '',
-    college: '',
+    province: input.province ?? '',
+    college: input.college ?? '',
   });
 }
