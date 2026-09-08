@@ -78,6 +78,11 @@ export function setCatalogCache(
  * وقتی mutation روی sub-resource می‌رود (مثل PATCH admin/semester/{id})
  * باید list مربوطه (admin/semester) هم پاک شود.
  * این قوانین cascade را مشخص می‌کنند: path mutate‌شده → path‌هایی که باید invalidate شوند.
+ *
+ * الگوهای CACHEABLE فقط مسیر برهنهٔ لیست را match می‌کنند (`admin/educations`).
+ * PATCH/PUT/DELETE هر entity تکی روی `admin/educations/{id}` می‌رود که match نمی‌شود —
+ * بدون این cascade، لیست تا انقضای TTL (تا ۱ ساعت) کش stale برمی‌گرداند و ویرایش/حذف
+ * در UI «اثر نمی‌کند» تا mutation بعدی روی مسیر برهنه (مثلاً create) کش را پاک کند.
  */
 const MUTATION_CASCADE: Array<{ test: RegExp; also: string[] }> = [
   // PATCH/DELETE روی یک ترم → list ترم‌ها + bundle درس‌ها
@@ -94,6 +99,40 @@ const MUTATION_CASCADE: Array<{ test: RegExp; also: string[] }> = [
   {
     test: /^admin\/weeks\//,
     also: ['admin/semesters_all'],
+  },
+  // PATCH/DELETE استان تکی → لیست‌های استان
+  {
+    test: /^admin\/provinces\/.+/,
+    also: ['admin/provinces', 'admin/province/all'],
+  },
+  // PATCH/DELETE شهر تکی → لیست شهر
+  {
+    test: /^admin\/cities\/.+/,
+    also: ['admin/cities'],
+  },
+  // PATCH/DELETE منطقهٔ آموزشی تکی → لیست مناطق
+  {
+    test: /^admin\/educations\/.+/,
+    also: ['admin/educations'],
+  },
+  // PUT مدرسه با `/` قبل از id؛ DELETE بدون `/` (`admin/schools{id}` — ببین schoolDeleteById).
+  {
+    test: /^admin\/schools\/.+/,
+    also: ['admin/schools', 'admin/schools/all'],
+  },
+  {
+    test: /^admin\/schools[^/]+$/,
+    also: ['admin/schools', 'admin/schools/all'],
+  },
+  // PATCH/DELETE پردیس تکی → لیست پردیس
+  {
+    test: /^admin\/universites\/.+/,
+    also: ['admin/universites'],
+  },
+  // PUT/DELETE رشته نوشتنش `admin/degree/{id}` است؛ لیست کش‌شده `admin/degreeee` (۴ تا e، مسیر متفاوت).
+  {
+    test: /^admin\/degree\/.+/,
+    also: ['admin/degreeee'],
   },
 ];
 
