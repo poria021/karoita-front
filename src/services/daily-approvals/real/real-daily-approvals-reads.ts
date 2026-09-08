@@ -45,10 +45,16 @@ const EMPTY_GRADE: DailyApprovalProgressiveGrade = {
   statusLabel: 'در جریان',
 };
 
+type LessonLookup = Map<
+  string,
+  { courseKey: Exclude<DailyApprovalCourseFilter, 'all'>; courseTitle: string }
+>;
+
 function mapRow(
   row: NestMentorStudent,
-  courseKey: Exclude<DailyApprovalCourseFilter, 'all'>,
-  input: ListDailyApprovalsInput
+  fallbackCourseKey: Exclude<DailyApprovalCourseFilter, 'all'>,
+  input: ListDailyApprovalsInput,
+  lessonLookup: LessonLookup
 ): DailyApprovalTrainee {
   const id = row.id ?? row._id ?? row.studentId ?? '';
   const firstName = row.student?.firstName ?? '';
@@ -57,6 +63,11 @@ function mapRow(
     [firstName, lastName].filter(Boolean).join(' ') || 'نامشخص';
   const status: DailyApprovalTraineeStatus =
     row.status === 'dropped' || row.status === 'cancelled' ? 'dropped' : 'active';
+
+  const lessonId = typeof row.lessonId === 'string' ? row.lessonId : undefined;
+  const resolved = lessonId ? lessonLookup.get(lessonId) : undefined;
+  const courseKey = resolved?.courseKey ?? fallbackCourseKey;
+  const courseTitle = resolved?.courseTitle ?? '';
 
   return {
     id,
@@ -67,7 +78,7 @@ function mapRow(
     kind: input.kind,
     level: LEVEL_MAP[courseKey] ?? 1,
     courseKey,
-    courseTitle: '',
+    courseTitle,
     termId: input.termId,
     termTitle: '',
     status,
@@ -88,23 +99,28 @@ export async function listRealDailyApprovals(
 ): Promise<ListDailyApprovalsPage> {
   requireNestTransport('DailyApprovalsService.listPage');
 
-  let lessonId: string | undefined;
-  const courseKey: Exclude<DailyApprovalCourseFilter, 'all'> =
+  const fallbackCourseKey: Exclude<DailyApprovalCourseFilter, 'all'> =
     input.course === 'all'
       ? input.kind === 'internship'
         ? 'intern1'
         : 'appr1'
       : input.course;
 
-  if (input.course !== 'all') {
-    try {
-      const courses = await listRealCapacityCourses(input.kind, input.termId);
-      const catalog = toDailyApprovalCatalogCourses(input.kind, courses);
-      const matched = catalog.find((c) => c.courseFilter === input.course);
-      lessonId = matched?.id;
-    } catch {
-      // بدون lessonId ادامه می‌دهیم؛ Nest همه درس‌های ترم را برمی‌گرداند
+  // کاتالوگ رو همیشه میگیریم — هم برای فیلتر lessonId، هم برای پر کردن courseTitle هر ردیف
+  const lessonLookup: LessonLookup = new Map();
+  let lessonId: string | undefined;
+
+  try {
+    const courses = await listRealCapacityCourses(input.kind, input.termId);
+    const catalog = toDailyApprovalCatalogCourses(input.kind, courses);
+    for (const c of catalog) {
+      lessonLookup.set(c.id, { courseKey: c.courseFilter, courseTitle: c.title });
     }
+    if (input.course !== 'all') {
+      lessonId = catalog.find((c) => c.courseFilter === input.course)?.id;
+    }
+  } catch {
+    // بدون کاتالوگ ادامه می‌دهیم؛ courseTitle خالی می‌ماند
   }
 
   const page =
@@ -117,7 +133,9 @@ export async function listRealDailyApprovals(
     limit: input.limit,
   });
 
-  let trainees = result.data.map((row) => mapRow(row, courseKey, input));
+  let trainees = result.data.map((row) =>
+    mapRow(row, fallbackCourseKey, input, lessonLookup)
+  );
 
   // فیلتر متنی — API جستجوی نام ندارد، سمت کلاینت اعمال می‌شود
   const q = input.query.trim().toLowerCase();
