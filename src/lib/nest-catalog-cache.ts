@@ -85,6 +85,13 @@ export function setCatalogCache(
  * در UI «اثر نمی‌کند» تا mutation بعدی روی مسیر برهنه (مثلاً create) کش را پاک کند.
  */
 const MUTATION_CASCADE: Array<{ test: RegExp; also: string[] }> = [
+  // POST ساخت ترم جدید (بدون id) → bundle درس‌ها هم عوض می‌شود (کارورزی/کارآموزی
+  // پیش‌فرض ترم تازه از همینجا می‌آید). بدون این قانون، semesters_all تا ۳۰ دقیقه
+  // پاسخ stale (قبل از ساخت ترم) می‌دهد و جدول درس‌های ترم تازه خالی می‌ماند.
+  {
+    test: /^admin\/semester$/,
+    also: ['admin/semesters_all'],
+  },
   // PATCH/DELETE روی یک ترم → list ترم‌ها + bundle درس‌ها
   {
     test: /^admin\/semester\/.+/,
