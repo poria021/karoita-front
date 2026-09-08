@@ -77,9 +77,13 @@ export async function buildNestUpdateUserBody(
   /** شناسهٔ فایل بعد از آپلود S3 — اگر باشد به `NestUpdateUserDto.photo` می‌رود. */
   photoFileId?: string
 ): Promise<NestUpdateUserDto> {
-  const provinceNames = 'province' in data ? (data.province ?? []) : [];
+  const provinceNames = 'province' in data
+    ? (typeof data.province === 'string' ? (data.province ? [data.province] : []) : (data.province ?? []))
+    : [];
   const districtNames = 'district' in data ? (data.district ?? []) : [];
-  const collegeNames  = 'college'  in data ? (data.college  ?? []) : [];
+  const collegeNames  = 'college' in data
+    ? (typeof data.college === 'string' ? (data.college ? [data.college] : []) : (data.college ?? []))
+    : [];
   const cityNames     = 'city'     in data ? (data.city     ?? []) : [];
   const schoolNames   = 'school'   in data ? (data.school   ?? []) : [];
   const majorName     = 'major'    in data ? data.major : undefined;

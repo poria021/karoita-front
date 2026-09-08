@@ -41,6 +41,23 @@ const MULTI_ORGANIZATION_FIELDS = new Set<OrganizationField>([
   'school',
 ]);
 
+/** برای این نقش‌ها، province و college تک‌انتخابی هستند. */
+const SINGLE_SELECT_ROLES = new Set<UserRole>(['student', 'skill_learner']);
+
+function isMultiField(role: UserRole, name: OrganizationField): boolean {
+  if (SINGLE_SELECT_ROLES.has(role) && (name === 'province' || name === 'college')) {
+    return false;
+  }
+  return MULTI_ORGANIZATION_FIELDS.has(name);
+}
+
+function getEmptyValue(role: UserRole, field: OrganizationField): string | string[] {
+  if (SINGLE_SELECT_ROLES.has(role) && (field === 'province' || field === 'college')) {
+    return '';
+  }
+  return [];
+}
+
 function asStringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === 'string')
@@ -84,7 +101,7 @@ function RoleOrganizationSelect({
 }) {
   const form = useFormContext<ProfileSchema>();
   const optional = isOptionalOrganizationField(role, name);
-  const isMulti = MULTI_ORGANIZATION_FIELDS.has(name);
+  const isMulti = isMultiField(role, name);
 
   return (
     <KvFormField
@@ -109,7 +126,7 @@ function RoleOrganizationSelect({
             onChange={(next) => {
               field.onChange(next);
               for (const dependent of DEPENDENCIES[name] ?? []) {
-                form.setValue(dependent, [], {
+                form.setValue(dependent, getEmptyValue(role, dependent), {
                   shouldDirty: true,
                   shouldValidate: false,
                 });
@@ -130,7 +147,15 @@ function RoleOrganizationSelect({
             error={fieldState.error?.message}
             dependsOn={dependsOn}
             role={role}
-            onChange={(value) => field.onChange(value)}
+            onChange={(value) => {
+              field.onChange(value);
+              for (const dependent of DEPENDENCIES[name] ?? []) {
+                form.setValue(dependent, getEmptyValue(role, dependent), {
+                  shouldDirty: true,
+                  shouldValidate: false,
+                });
+              }
+            }}
           />
         )
       }
@@ -151,13 +176,15 @@ export function DynamicRoleFields({
     (name) => name !== 'major'
   );
 
-  const province = asStringArray(
-    useWatch({
-      control: form.control,
-      name: 'province',
-      disabled: section !== 'organization',
-    })
-  );
+  const rawProvince = useWatch({
+    control: form.control,
+    name: 'province',
+    disabled: section !== 'organization',
+  });
+  const province =
+    typeof rawProvince === 'string'
+      ? rawProvince ? [rawProvince] : []
+      : asStringArray(rawProvince);
   const city = asStringArray(
     useWatch({
       control: form.control,

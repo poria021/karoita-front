@@ -200,11 +200,16 @@ export class ProfileService {
       return next;
     }
 
+    const toArray = (v: string | string[] | undefined): string[] | undefined =>
+      typeof v === 'string' ? (v ? [v] : []) : v;
+
     await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
     const updated = patchMockAuthUser(
       { id: activeUser.id },
       {
         ...validatedData,
+        province: toArray('province' in validatedData ? validatedData.province : undefined),
+        college: 'college' in validatedData ? toArray(validatedData.college) : undefined,
         ...approvalFields(validatedData.role, {
           approved: activeUser.approved,
           docStatus: activeUser.docStatus,

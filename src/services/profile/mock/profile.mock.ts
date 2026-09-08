@@ -50,10 +50,15 @@ export function updateMockProfile(
   // اگر قبلاً `approved` بوده، ویرایش سازمانی او را به `pending_admin` برنگرداند.
   const keepApproved = !isSuperAdmin && current.docStatus === 'approved';
 
+  const toArray = (v: string | string[] | undefined): string[] | undefined =>
+    typeof v === 'string' ? (v ? [v] : []) : v;
+
   patchMockAuthUser(
     { id: current.id },
     {
       ...validatedData,
+      province: toArray('province' in validatedData ? validatedData.province : undefined),
+      college: 'college' in validatedData ? toArray(validatedData.college) : undefined,
       approved: isSuperAdmin || keepApproved,
       docStatus: isSuperAdmin
         ? 'approved'

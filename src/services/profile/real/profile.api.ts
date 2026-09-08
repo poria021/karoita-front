@@ -22,8 +22,8 @@ function nestUserToProfileDto(raw: unknown): ProfileDto {
         return {
           role: 'student',
           ...base,
-          province: user.province ?? [],
-          college: user.college ?? [],
+          province: user.province?.[0] ?? '',
+          college: user.college?.[0] ?? '',
           major: user.major ?? '',
           studentId: user.studentId ?? '',
         };
@@ -31,8 +31,8 @@ function nestUserToProfileDto(raw: unknown): ProfileDto {
         return {
           role: 'skill_learner',
           ...base,
-          province: user.province ?? [],
-          college: user.college ?? [],
+          province: user.province?.[0] ?? '',
+          college: user.college?.[0] ?? '',
           major: user.major ?? '',
           skillCode: user.skillCode ?? '',
         };
