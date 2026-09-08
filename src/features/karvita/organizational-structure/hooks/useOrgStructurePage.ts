@@ -161,6 +161,21 @@ export function useOrgStructurePage() {
     await list.reload();
   }, [queryClient, list]);
 
+  /**
+   * بعد از حذف موفق: کش flush + invalidate بدون reload فوری.
+   * patchItems قبلاً آیتم را از UI حذف کرده؛ reload فوری خطرناک است چون
+   * بکند ممکن است response کشیده‌شده را برگرداند و آیتم دوباره ظاهر شود.
+   * React Query کش را stale علامت می‌زند — refetch بعدی (ناوبری، تب‌سوئیچ)
+   * داده تازه می‌گیرد.
+   */
+  const invalidateAfterDelete = useCallback(async () => {
+    OrgStructureService.flushListCache();
+    await queryClient.invalidateQueries({
+      queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE],
+    });
+    await invalidateOrganizationDirectoryConsumers(queryClient);
+  }, [queryClient]);
+
   const patchItems = list.patchItems;
 
   const scheduleCreate = useCallback(
@@ -218,7 +233,7 @@ export function useOrgStructurePage() {
         },
         commit: () => OrgStructureService.deleteEntity(row.kind, row.id),
         onCommitted: async () => {
-          await invalidateAndReload();
+          await invalidateAfterDelete();
         },
         onError: (error) => {
           toast.error(
@@ -229,7 +244,7 @@ export function useOrgStructurePage() {
         },
       });
     },
-    [patchItems, invalidateAndReload]
+    [patchItems, invalidateAfterDelete]
   );
 
   const handleLoadMore = useCallback(() => {
