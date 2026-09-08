@@ -1,4 +1,5 @@
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import type { NextConfig } from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
@@ -45,7 +46,14 @@ const withPWA = withPWAInit({
   },
 });
 
+// نسبی-از-ریشه برای Turbopack `resolveAlias` (که همین‌طور resolve می‌کند).
 const MOCK_EMPTY_STUB = './src/lib/mock-empty-stub.js';
+// مطلق برای webpack `NormalModuleReplacementPlugin` — `resource.request` نسبت‌به
+// پوشهٔ فایل importکننده resolve می‌شود، نه ریشهٔ پروژه؛ مسیر نسبی اینجا
+// «Module not found» می‌دهد چون بیرون از پوشهٔ importکننده دنبالش می‌گردد.
+const MOCK_EMPTY_STUB_ABSOLUTE = fileURLToPath(
+  new URL(MOCK_EMPTY_STUB, import.meta.url)
+);
 
 const isMockBuild = process.env.NEXT_PUBLIC_API_MODE === 'mock';
 
@@ -167,7 +175,7 @@ const nextConfig: NextConfig = {
           (resource: { request: string }) => {
             // __mocks__ ویژه vitest است — دست نزن
             if (resource.request.includes('__mocks__')) return;
-            resource.request = MOCK_EMPTY_STUB;
+            resource.request = MOCK_EMPTY_STUB_ABSOLUTE;
           }
         )
       );
