@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
+import { _clearCatalogCache } from '@/lib/nest-catalog-cache';
 import {
   forwardToNestApi,
   nestProxyResponseBody,
@@ -27,6 +28,7 @@ describe('forwardToNestApi', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+    _clearCatalogCache();
   });
 
   it('rejects path traversal', async () => {

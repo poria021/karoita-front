@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import {
+  getCatalogCache,
+  getCatalogCacheTtl,
+  setCatalogCache,
+} from '@/lib/nest-catalog-cache';
 import { readNestApiBaseUrl } from '@/lib/nest-proxy';
 import {
   fetchNestUpstream,
@@ -58,7 +63,28 @@ export async function forwardToNestApi(
   }
 
   const suffix = pathSegments.join('/');
-  const target = `${base}/${suffix}${request.nextUrl.search}`;
+  const pathWithQuery = `${suffix}${request.nextUrl.search}`;
+  const target = `${base}/${pathWithQuery}`;
+
+  // Cache hit: فقط برای GET‌های catalog — endpoint‌هایی که داده‌شان برای همه
+  // کاربران یکسان است. POST/PATCH/DELETE هرگز cache نمی‌شوند.
+  if (request.method === 'GET') {
+    const ttlMs = getCatalogCacheTtl(pathWithQuery);
+    if (ttlMs !== null) {
+      const cached = getCatalogCache(pathWithQuery);
+      if (cached) {
+        const ttlSec = Math.floor(ttlMs / 1000);
+        return new NextResponse(cached.body, {
+          status: cached.status,
+          headers: {
+            'content-type': cached.contentType,
+            'cache-control': `public, s-maxage=${ttlSec}, stale-while-revalidate=${Math.floor(ttlSec / 2)}`,
+            'x-karvita-proxy': 'nest-catalog-cache',
+          },
+        });
+      }
+    }
+  }
 
   const headers = new Headers();
   request.headers.forEach((value, key) => {
@@ -108,6 +134,23 @@ export async function forwardToNestApi(
   }
   const status = upstream.status;
   const body = nestProxyResponseBody(status, rawBody);
+
+  // Cache miss را پر کن — فقط برای موفق‌ترین GETهای catalog (200 + JSON)
+  if (request.method === 'GET' && status === 200 && rawBody.byteLength > 0) {
+    const ttlMs = getCatalogCacheTtl(pathWithQuery);
+    if (ttlMs !== null) {
+      const contentType = upstream.headers.get('content-type') ?? 'application/json';
+      if (contentType.includes('json')) {
+        const bodyText = new TextDecoder().decode(rawBody);
+        setCatalogCache(pathWithQuery, {
+          body: bodyText,
+          contentType,
+          status,
+          ttlMs,
+        });
+      }
+    }
+  }
 
   try {
     const response = new NextResponse(body, {
