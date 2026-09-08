@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { useLayoutEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -74,6 +74,7 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
     },
     enabled: Boolean(actor) && levelAllowed,
     staleTime: QUERY_STALE_MS.module,
+    placeholderData: keepPreviousData,
   });
 
   const isLoading =
