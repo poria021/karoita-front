@@ -14,7 +14,10 @@ import type {
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
-import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
+import {
+  getSyllabusTermPaneEpoch,
+  syllabusSnapshotQueryKey,
+} from '../lib/syllabusPageCache';
 import {
   errorMessage,
   offeredCatalogIdsFromList,
@@ -73,6 +76,7 @@ export function useSyllabusPageLoader({
   const [error, setError] = useState<string | null>(null);
   const loadRequestIdRef = useRef(0);
   const appliedSnapshotAtRef = useRef(0);
+  const termPaneEpochRef = useRef(getSyllabusTermPaneEpoch());
   const termPanesRef = useRef<Record<string, SyllabusTermPane>>({});
   const sectionRef = useRef(section);
   const stateRefs = useRef({
@@ -181,7 +185,10 @@ export function useSyllabusPageLoader({
       stashCurrentTermPane();
     }
 
-    if (!options?.force) {
+    const termPaneEpoch = getSyllabusTermPaneEpoch();
+    const paneIsFresh = termPaneEpochRef.current === termPaneEpoch;
+
+    if (!options?.force && paneIsFresh) {
       const pane = termPanesRef.current[termId];
       if (
         pane &&
@@ -219,6 +226,8 @@ export function useSyllabusPageLoader({
     const fromSnapshot = snapshot
       ? SyllabusConfigService.termContextFromSnapshot(snapshot, termId)
       : null;
+
+    termPaneEpochRef.current = getSyllabusTermPaneEpoch();
 
     if (!fromSnapshot) {
       setIsLoading(true);
@@ -373,6 +382,10 @@ export function useSyllabusPageLoader({
       });
     }
   }
+
+  useEffect(() => {
+    termPaneEpochRef.current = getSyllabusTermPaneEpoch();
+  }, [section, snapshotQuery.dataUpdatedAt]);
 
   useEffect(() => {
     if (!snapshotQuery.isSuccess || !snapshotQuery.data) return;

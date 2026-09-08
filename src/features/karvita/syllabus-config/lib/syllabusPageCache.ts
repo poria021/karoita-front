@@ -44,12 +44,24 @@ export function syncSyllabusDashboardTerms(terms: AcademicTerm[]): void {
   }
 }
 
+let syllabusTermPaneEpoch = 0;
+
+export function getSyllabusTermPaneEpoch(): number {
+  return syllabusTermPaneEpoch;
+}
+
+export function invalidateSyllabusTermPanes(): number {
+  syllabusTermPaneEpoch += 1;
+  return syllabusTermPaneEpoch;
+}
+
 export function publishSyllabusSnapshot(
   queryClient: QueryClient,
   snapshot: SyllabusConfigSnapshot
 ): void {
   queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
   syncSyllabusDashboardTerms(snapshot.terms);
+  invalidateSyllabusTermPanes();
   void invalidateAcademicTermConsumers(queryClient);
 }
 
@@ -62,6 +74,7 @@ export function patchCachedSyllabusTerms(
     (old) => (old ? { ...old, terms } : old)
   );
   syncSyllabusDashboardTerms(terms);
+  invalidateSyllabusTermPanes();
   void invalidateAcademicTermConsumers(queryClient);
 }
 

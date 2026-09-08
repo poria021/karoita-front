@@ -6,6 +6,8 @@ import type { AcademicTerm, CourseCatalogItem, SyllabusConfigSnapshot } from '@/
 
 import {
   cacheKeyFor,
+  getSyllabusTermPaneEpoch,
+  invalidateSyllabusTermPanes,
   patchCachedSyllabusTerms,
   publishSyllabusSnapshot,
   syllabusSnapshotQueryKey,
@@ -154,5 +156,15 @@ describe('patchCachedSyllabusTerms', () => {
       queryClient.getQueryData<SyllabusConfigSnapshot>(syllabusSnapshotQueryKey)
         ?.terms
     ).toEqual([keep]);
+  });
+});
+
+describe('invalidateSyllabusTermPanes', () => {
+  it('increments the pane generation so stale cached term panes are ignored', () => {
+    const before = getSyllabusTermPaneEpoch();
+    const next = invalidateSyllabusTermPanes();
+
+    expect(next).toBe(before + 1);
+    expect(getSyllabusTermPaneEpoch()).toBe(before + 1);
   });
 });

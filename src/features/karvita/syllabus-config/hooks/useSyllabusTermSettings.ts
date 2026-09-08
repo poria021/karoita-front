@@ -17,6 +17,7 @@ import { persianToEnglishDigits, toPersianDigits } from '@/utils/persianDigits';
 
 import { defaultPrefixForType, parseTermTitleParts } from '../constants';
 import {
+  invalidateSyllabusTermPanes,
   patchCachedSyllabusTerms,
   publishSyllabusSnapshot,
 } from '../lib/syllabusPageCache';
@@ -195,9 +196,10 @@ export function useSyllabusTermSettings({
         commit: () =>
           SyllabusConfigService.updateTerm(targetId, parsed.data),
         onCommitted: async (result) => {
+          invalidateSyllabusTermPanes();
           applySnapshotTerms(result);
           setSelectedTermId(targetId);
-          await loadTermContext(targetId);
+          await loadTermContext(targetId, undefined, { force: true });
         },
         onError: (err) => {
           toast.error(errorMessage(err, 'به‌روزرسانی دوره تحصیلی ناموفق بود.'));
@@ -237,6 +239,7 @@ export function useSyllabusTermSettings({
       },
       commit: () => SyllabusConfigService.createTerm(parsed.data),
       onCommitted: async (result) => {
+        invalidateSyllabusTermPanes();
         applySnapshotTerms(result);
         const previousIds = new Set(snapshot.map((term) => term.id));
         const created =
@@ -253,7 +256,7 @@ export function useSyllabusTermSettings({
           );
         const nextId = created?.id ?? result.terms[0]?.id ?? '';
         setSelectedTermId(nextId);
-        if (nextId) await loadTermContext(nextId);
+        if (nextId) await loadTermContext(nextId, undefined, { force: true });
       },
       onError: (err) => {
         toast.error(errorMessage(err, 'ایجاد دوره تحصیلی ناموفق بود.'));
@@ -300,10 +303,11 @@ export function useSyllabusTermSettings({
       },
       commit: () => SyllabusConfigService.deleteTerm(target.id),
       onCommitted: async (result) => {
+        invalidateSyllabusTermPanes();
         applySnapshotTerms(result);
         const nextId = result.terms[0]?.id ?? '';
         setSelectedTermId(nextId);
-        if (nextId) await loadTermContext(nextId);
+        if (nextId) await loadTermContext(nextId, undefined, { force: true });
       },
       onError: (err) => {
         toast.error(errorMessage(err, 'حذف دوره تحصیلی ناموفق بود.'));
