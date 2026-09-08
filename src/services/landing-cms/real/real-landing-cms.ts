@@ -1,4 +1,3 @@
-import { nestServerGetAllPages } from '@/lib/nest-server-fetch';
 import { FilesService } from '@/services/files.service';
 import { floatingProductsApi, type NestFloatingProductDto } from '@/services/landing-cms/real/floating-products.api';
 import { sliderBannersApi, type NestSliderBannerDto } from '@/services/landing-cms/real/slider-banners.api';
@@ -30,11 +29,6 @@ function mapSliderBanner(dto: NestSliderBannerDto): LandingBanner {
   };
 }
 
-export async function realListBanners(): Promise<LandingBanner[]> {
-  const items = await nestServerGetAllPages<NestSliderBannerDto>('admin/slider-banners');
-  return items.map(mapSliderBanner);
-}
-
 export async function realCreateBanner(
   input: CreateLandingBannerInput
 ): Promise<LandingBanner> {
@@ -60,11 +54,6 @@ function mapFloatingProduct(dto: NestFloatingProductDto): LandingProduct {
     logoImageUrl: toAbsoluteUrl(dto.picture),
     icon: '',
   };
-}
-
-export async function realListProducts(): Promise<LandingProduct[]> {
-  const items = await nestServerGetAllPages<NestFloatingProductDto>('admin/floating-products');
-  return items.map(mapFloatingProduct);
 }
 
 export async function realCreateProduct(
@@ -96,11 +85,6 @@ function mapSocialNetwork(dto: NestSocialNetworkDto): LandingSocial {
     iconImageUrl: toIconImageUrl(dto.picture),
     icon: '',
   };
-}
-
-export async function realListSocials(): Promise<LandingSocial[]> {
-  const items = await nestServerGetAllPages<NestSocialNetworkDto>('admin/social-networks');
-  return items.map(mapSocialNetwork);
 }
 
 export async function realCreateSocial(

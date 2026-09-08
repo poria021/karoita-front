@@ -23,9 +23,6 @@ import {
   realDeleteBanner,
   realDeleteProduct,
   realDeleteSocial,
-  realListBanners,
-  realListProducts,
-  realListSocials,
 } from '@/services/landing-cms/real/real-landing-cms';
 import type {
   CreateLandingBannerInput,
@@ -42,17 +39,17 @@ import type {
  */
 export const LandingCmsService = {
   async listBanners(): Promise<LandingBanner[]> {
-    if (!isMockApiMode()) return realListBanners();
+    if (!isMockApiMode()) return [];
     return readLandingBanners();
   },
 
   async listSocials(): Promise<LandingSocial[]> {
-    if (!isMockApiMode()) return realListSocials();
+    if (!isMockApiMode()) return [];
     return readLandingSocials();
   },
 
   async listProducts(): Promise<LandingProduct[]> {
-    if (!isMockApiMode()) return realListProducts();
+    if (!isMockApiMode()) return [];
     return readLandingProducts();
   },
 
