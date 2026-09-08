@@ -4,6 +4,7 @@ import {
   getCatalogCache,
   getCatalogCacheTtl,
   invalidateCatalogCacheByPath,
+  isMutationCacheRelated,
   setCatalogCache,
 } from '@/lib/nest-catalog-cache';
 import { readNestApiBaseUrl } from '@/lib/nest-proxy';
@@ -141,9 +142,9 @@ export async function forwardToNestApi(
   const isMutation = request.method === 'POST' || request.method === 'PUT' ||
     request.method === 'PATCH' || request.method === 'DELETE';
   if (isMutation && status >= 200 && status < 300) {
-    const matchesCatalog = getCatalogCacheTtl(suffix) !== null ||
-      getCatalogCacheTtl(pathWithQuery) !== null;
-    if (matchesCatalog) invalidateCatalogCacheByPath(suffix);
+    if (isMutationCacheRelated(suffix) || isMutationCacheRelated(pathWithQuery)) {
+      invalidateCatalogCacheByPath(suffix);
+    }
   }
 
   // Cache miss را پر کن — فقط برای موفق‌ترین GETهای catalog (200 + JSON)

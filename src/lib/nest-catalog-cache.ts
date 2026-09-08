@@ -75,15 +75,56 @@ export function setCatalogCache(
 }
 
 /**
- * پس از موفقیت mutation (POST/PUT/PATCH/DELETE)، تمام cache entry‌هایی که
- * path یکسان دارند را حذف می‌کند — بدون در نظر گرفتن query string.
- * مثال: path='admin/schools' → هم 'admin/schools' هم 'admin/schools?page=2' پاک می‌شوند.
+ * وقتی mutation روی sub-resource می‌رود (مثل PATCH admin/semester/{id})
+ * باید list مربوطه (admin/semester) هم پاک شود.
+ * این قوانین cascade را مشخص می‌کنند: path mutate‌شده → path‌هایی که باید invalidate شوند.
+ */
+const MUTATION_CASCADE: Array<{ test: RegExp; also: string[] }> = [
+  // PATCH/DELETE روی یک ترم → list ترم‌ها + bundle درس‌ها
+  {
+    test: /^admin\/semester\/.+/,
+    also: ['admin/semester', 'admin/semesters_all'],
+  },
+  // PATCH وضعیت/ظرفیت/روز درس → bundle درس‌ها
+  {
+    test: /^admin\/lessons\//,
+    also: ['admin/semesters_all'],
+  },
+  // PATCH/DELETE هفته → bundle درس‌ها
+  {
+    test: /^admin\/weeks\//,
+    also: ['admin/semesters_all'],
+  },
+];
+
+/**
+ * پس از موفقیت mutation، cache مربوطه را پاک می‌کند.
+ * علاوه بر exact match، sub-resource های ترم/درس/هفته نیز list parent را invalidate می‌کنند.
  */
 export function invalidateCatalogCacheByPath(path: string): void {
+  // ۱. exact match (رفتار قبلی)
   for (const key of _store.keys()) {
     const keyPath = key.split('?')[0];
     if (keyPath === path) _store.delete(key);
   }
+  // ۲. cascade: path‌هایی که باید به‌خاطر این mutation پاک شوند
+  for (const { test, also } of MUTATION_CASCADE) {
+    if (!test.test(path)) continue;
+    for (const target of also) {
+      for (const key of _store.keys()) {
+        if (key.split('?')[0] === target) _store.delete(key);
+      }
+    }
+  }
+}
+
+/**
+ * آیا این mutation باید cache را باطل کند؟
+ * علاوه بر exact cacheable path، sub-resource‌هایی که cascade rule دارند هم true برمی‌گردانند.
+ */
+export function isMutationCacheRelated(path: string): boolean {
+  if (getCatalogCacheTtl(path) !== null) return true;
+  return MUTATION_CASCADE.some(({ test }) => test.test(path));
 }
 
 /** فقط برای تست‌ها. */
