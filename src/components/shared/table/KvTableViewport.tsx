@@ -58,8 +58,13 @@ export function KvTableViewport({
     if (root) root.scrollTop = 0;
   }, [resetKey]);
 
+  const onEndReachedRef = React.useRef(onEndReached);
+  React.useLayoutEffect(() => {
+    onEndReachedRef.current = onEndReached;
+  });
+
   React.useEffect(() => {
-    if (!onEndReached || !hasMore || isLoadingMore || isBusy) return;
+    if (!onEndReachedRef.current || !hasMore || isLoadingMore || isBusy) return;
     const root = rootRef.current;
     const sentinel = sentinelRef.current;
     if (!root || !sentinel) return;
@@ -67,7 +72,7 @@ export function KvTableViewport({
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries.some((entry) => entry.isIntersecting)) {
-          onEndReached();
+          onEndReachedRef.current?.();
         }
       },
       { root, rootMargin: '96px', threshold: 0 }
@@ -75,7 +80,9 @@ export function KvTableViewport({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [onEndReached, hasMore, isLoadingMore, isBusy, resetKey]);
+    // onEndReached از dep حذف شده — ref آن را sync می‌کند تا observer هر render rebuild نشود
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, isLoadingMore, isBusy, resetKey]);
 
   return (
     <KvScrollArea

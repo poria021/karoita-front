@@ -1,5 +1,7 @@
 'use client';
 
+import dynamic from 'next/dynamic';
+
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvCard } from '@/components/shared/KvCard';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
@@ -8,12 +10,26 @@ import type {
   InternshipEnrollmentPageState,
 } from '@/types/internship-enrollment';
 
-import { ScenarioAlreadyEnrolled } from './ScenarioAlreadyEnrolled';
 import { ScenarioEnrollClosed } from './ScenarioEnrollClosed';
-import { ScenarioEnrollOpen } from './ScenarioEnrollOpen';
-import { ScenarioRegisteredWaiting } from './ScenarioRegisteredWaiting';
 import { ScenarioSyllabusBlocked } from './ScenarioSyllabusBlocked';
-import { ScenarioTermActive } from './ScenarioTermActive';
+
+// سناریوهای سنگین‌تر lazy load می‌شوند — فقط یکی در هر بار رندر می‌شود
+const ScenarioEnrollOpen = dynamic(
+  () => import('./ScenarioEnrollOpen').then((m) => ({ default: m.ScenarioEnrollOpen })),
+  { ssr: false }
+);
+const ScenarioRegisteredWaiting = dynamic(
+  () => import('./ScenarioRegisteredWaiting').then((m) => ({ default: m.ScenarioRegisteredWaiting })),
+  { ssr: false }
+);
+const ScenarioTermActive = dynamic(
+  () => import('./ScenarioTermActive').then((m) => ({ default: m.ScenarioTermActive })),
+  { ssr: false }
+);
+const ScenarioAlreadyEnrolled = dynamic(
+  () => import('./ScenarioAlreadyEnrolled').then((m) => ({ default: m.ScenarioAlreadyEnrolled })),
+  { ssr: false }
+);
 
 type InternshipEnrollmentGateProps = {
   actor: InternshipEnrollmentActor | null;
