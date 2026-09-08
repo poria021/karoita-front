@@ -1,3 +1,6 @@
+// محتوای لندینگ از CMS ادمین می‌آید — نباید در build بیک شود
+export const dynamic = 'force-dynamic';
+
 import type { Metadata } from 'next';
 
 import { MarketingHomePage } from '@/features/shared/marketing/components/MarketingHomePage';
