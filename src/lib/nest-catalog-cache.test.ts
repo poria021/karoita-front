@@ -71,4 +71,10 @@ describe('invalidateCatalogCacheByPath — bare create paths (no id)', () => {
     invalidateCatalogCacheByPath('admin/degree');
     expect(getCatalogCache('admin/degreeee')).toBeNull();
   });
+
+  it('creating a week (POST admin/weeks) also busts semesters_all', () => {
+    seed('admin/semesters_all?structure=semester');
+    invalidateCatalogCacheByPath('admin/weeks');
+    expect(getCatalogCache('admin/semesters_all?structure=semester')).toBeNull();
+  });
 });

@@ -102,6 +102,11 @@ const MUTATION_CASCADE: Array<{ test: RegExp; also: string[] }> = [
     test: /^admin\/lessons\//,
     also: ['admin/semesters_all'],
   },
+  // POST ساخت هفتهٔ جدید (بدون id، `createWeek`) → bundle درس‌ها هم عوض می‌شود.
+  {
+    test: /^admin\/weeks$/,
+    also: ['admin/semesters_all'],
+  },
   // PATCH/DELETE هفته → bundle درس‌ها
   {
     test: /^admin\/weeks\//,
