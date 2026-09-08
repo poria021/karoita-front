@@ -107,6 +107,12 @@ const MUTATION_CASCADE: Array<{ test: RegExp; also: string[] }> = [
     test: /^admin\/weeks\//,
     also: ['admin/semesters_all'],
   },
+  // POST ساخت استان جدید (بدون id) → لیست کامل هم عوض می‌شود؛ فقط match دقیق
+  // خودِ `admin/provinces` را پاک می‌کند، `admin/province/all` را نه.
+  {
+    test: /^admin\/provinces$/,
+    also: ['admin/province/all'],
+  },
   // PATCH/DELETE استان تکی → لیست‌های استان
   {
     test: /^admin\/provinces\/.+/,
@@ -122,6 +128,12 @@ const MUTATION_CASCADE: Array<{ test: RegExp; also: string[] }> = [
     test: /^admin\/educations\/.+/,
     also: ['admin/educations'],
   },
+  // POST ساخت مدرسه جدید (بدون id) → فقط match دقیق خودِ `admin/schools` را
+  // پاک می‌کند، `admin/schools/all` را نه.
+  {
+    test: /^admin\/schools$/,
+    also: ['admin/schools/all'],
+  },
   // PUT مدرسه با `/` قبل از id؛ DELETE بدون `/` (`admin/schools{id}` — ببین schoolDeleteById).
   {
     test: /^admin\/schools\/.+/,
@@ -135,6 +147,12 @@ const MUTATION_CASCADE: Array<{ test: RegExp; also: string[] }> = [
   {
     test: /^admin\/universites\/.+/,
     also: ['admin/universites'],
+  },
+  // POST ساخت رشتهٔ جدید `admin/degree` (بدون id) است؛ چون لیست کش‌شده
+  // `admin/degreeee` (۴ تا e) اسم متفاوتی دارد، حتی match دقیق هم آن را پاک نمی‌کند.
+  {
+    test: /^admin\/degree$/,
+    also: ['admin/degreeee'],
   },
   // PUT/DELETE رشته نوشتنش `admin/degree/{id}` است؛ لیست کش‌شده `admin/degreeee` (۴ تا e، مسیر متفاوت).
   {

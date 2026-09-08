@@ -1,6 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import { isMutationCacheRelated } from '@/lib/nest-catalog-cache';
+import {
+  _clearCatalogCache,
+  getCatalogCache,
+  invalidateCatalogCacheByPath,
+  isMutationCacheRelated,
+  setCatalogCache,
+} from '@/lib/nest-catalog-cache';
 
 describe('isMutationCacheRelated', () => {
   it('flags exact-path mutations (create) as cache-related', () => {
@@ -24,5 +30,45 @@ describe('isMutationCacheRelated', () => {
   it('does not flag unrelated paths', () => {
     expect(isMutationCacheRelated('admin/professor-capacities')).toBe(false);
     expect(isMutationCacheRelated('v1/some/other/path')).toBe(false);
+  });
+});
+
+describe('invalidateCatalogCacheByPath — bare create paths (no id)', () => {
+  beforeEach(() => {
+    _clearCatalogCache();
+  });
+
+  function seed(path: string) {
+    setCatalogCache(path, { body: '[]', contentType: 'application/json', status: 200, ttlMs: 60_000 });
+  }
+
+  it('creating a term (POST admin/semester) also busts semesters_all', () => {
+    seed('admin/semester');
+    seed('admin/semesters_all?structure=semester');
+    invalidateCatalogCacheByPath('admin/semester');
+    expect(getCatalogCache('admin/semester')).toBeNull();
+    expect(getCatalogCache('admin/semesters_all?structure=semester')).toBeNull();
+  });
+
+  it('creating a province (POST admin/provinces) also busts admin/province/all', () => {
+    seed('admin/provinces');
+    seed('admin/province/all');
+    invalidateCatalogCacheByPath('admin/provinces');
+    expect(getCatalogCache('admin/provinces')).toBeNull();
+    expect(getCatalogCache('admin/province/all')).toBeNull();
+  });
+
+  it('creating a school (POST admin/schools) also busts admin/schools/all', () => {
+    seed('admin/schools');
+    seed('admin/schools/all');
+    invalidateCatalogCacheByPath('admin/schools');
+    expect(getCatalogCache('admin/schools')).toBeNull();
+    expect(getCatalogCache('admin/schools/all')).toBeNull();
+  });
+
+  it('creating a degree (POST admin/degree) also busts the mismatched admin/degreeee list', () => {
+    seed('admin/degreeee');
+    invalidateCatalogCacheByPath('admin/degree');
+    expect(getCatalogCache('admin/degreeee')).toBeNull();
   });
 });
