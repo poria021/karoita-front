@@ -190,11 +190,10 @@ export function useSyllabusPageLoader({
 
     if (!options?.force && paneIsFresh) {
       const pane = termPanesRef.current[termId];
-      if (
-        pane &&
-        (pane.courses.length === 0 ||
-          pane.courses.some((course) => course.title.trim().length > 0))
-      ) {
+      // پانل خالی (صفر درس) هرگز به‌عنوان کش معتبر پذیرفته نمی‌شود، چون ممکن
+      // است ترم به‌تازگی ساخته شده و offering هایش هنوز از سرور نرسیده باشند؛
+      // در آن صورت باید دوباره از admin/semesters_all فچ شود (مثل termContextFromSnapshot).
+      if (pane && pane.courses.length > 0) {
         setIsLoading(false);
         const result = applyTermPane(pane);
         // اگر کش می‌گوید هفته‌ها ثبت نشده، از سرور تأیید بگیر تا cache mismatch
