@@ -18,6 +18,8 @@ interface MemoryTokens {
   refreshToken: string;
   tokenExpires: number;
   surface: AuthSurface;
+  /** زمان نوشتن توکن (epoch ms) — برای تشخیص freshness و جلوگیری از /auth/me اضافه. */
+  writtenAt: number;
 }
 
 let _mem: MemoryTokens | null = null;
@@ -163,6 +165,7 @@ export async function writeRealAuthTokens(
     refreshToken: tokens.refreshToken,
     tokenExpires: tokens.tokenExpires,
     surface,
+    writtenAt: Date.now(),
   };
   setPresenceCookie();
 
@@ -188,6 +191,13 @@ export function readRealAccessToken(): string | null {
   if (!_mem) return null;
   if (_mem.tokenExpires <= Date.now() + ACCESS_REFRESH_SKEW_MS) return null;
   return _mem.token;
+}
+
+// True if the token was written less than windowMs ago — caller can skip /auth/me
+// when both this and peekSession() return truthy (token just issued, store still valid).
+export function isRealTokenFresh(windowMs: number): boolean {
+  if (!_mem) return false;
+  return Date.now() - _mem.writtenAt < windowMs;
 }
 
 // The refresh token is kept in memory only for the route refresh flow; a fresh tab reads it from the cookie instead.

@@ -311,6 +311,8 @@ describe('refreshRealSession — 401 روی /auth/me پس از access token در
   });
 
   it('اگر /auth/me با 401 رد شود، session پاک و null برمی‌گردد', async () => {
+    vi.useFakeTimers();
+
     // اول access token را با یک refresh موفق به حافظه بیاور
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -324,6 +326,9 @@ describe('refreshRealSession — 401 روی /auth/me پس از access token در
     );
     await realRefreshToken();
 
+    // زمان را از پنجره freshness عبور بده تا refreshRealSession به /auth/me برود
+    vi.advanceTimersByTime(6 * 60_000);
+
     // حالا /auth/me را mock کن تا ApiClientError با ستاتوس 401 پرتاب کند
     const { AuthService } = await import('@/services/auth.service');
     const { apiClient, ApiClientError } = await import('@/services/api-client');
@@ -333,6 +338,7 @@ describe('refreshRealSession — 401 روی /auth/me پس از access token در
     );
 
     const result = await AuthService.refreshRealSession();
+    vi.useRealTimers();
     expect(result).toBeNull();
     expect(document.cookie).not.toContain(`${AUTH_COOKIE_NAME}=1`);
   });

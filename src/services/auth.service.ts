@@ -64,6 +64,7 @@ import {
 import { ApiClientError } from '@/services/api-client';
 import {
   clearRealAuthTokens,
+  isRealTokenFresh,
   peekRealAuthTokens,
   readRealAccessToken,
   readRealTokenExpiresAt,
@@ -79,6 +80,9 @@ export interface RegisterPayload {
 function rejectMockOtpInReal(otp: string): void {
   assertRealModeRejectsMockSecret(otp, MOCK_OTP_CODE, 'OTP');
 }
+
+/** حداکثر عمر توکن که refreshRealSession بدون /auth/me به store اعتماد می‌کند. */
+const TOKEN_ME_SKIP_MS = 5 * 60_000; // 5 دقیقه
 
 export class AuthService {
   static async loginWithCredentials(mobile: string, password: string): Promise<User> {
@@ -237,6 +241,13 @@ export class AuthService {
     if (IS_MOCK_MODE) return AuthService.peekSession();
 
     if (readRealAccessToken()) {
+      // Fast-path: توکن تازه‌ست (< TOKEN_ME_SKIP_MS) و session هنوز در store هست →
+      // /auth/me اضافه نزن. پس از page refresh این شاخه هرگز فعال نمی‌شود چون
+      // _mem پاک است. در همان session، login/refresh هر دو _mem و Zustand را با هم
+      // می‌نویسند؛ این guard فقط edge-case reset-store-without-logout را می‌پوشاند.
+      const stored = AuthService.peekSession();
+      if (stored && isRealTokenFresh(TOKEN_ME_SKIP_MS)) return stored;
+
       try {
         const session = await realFetchSession();
         if (session) {
