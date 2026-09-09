@@ -109,7 +109,7 @@ export type NestCreateSchoolDto = {
   /** اختیاری در نوشتن — مدرسه بدون منطقه. */
   educationId?: string;
   title: string;
-  gender: string;
+  genderType: string;
 };
 
 export type NestUpdateSchoolDto = {
@@ -117,7 +117,7 @@ export type NestUpdateSchoolDto = {
   cityId?: string;
   educationId?: string;
   title?: string;
-  gender?: string;
+  genderType?: string;
 };
 
 /**

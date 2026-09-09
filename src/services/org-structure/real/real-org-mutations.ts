@@ -108,8 +108,8 @@ export async function upsertRealSchool(
   input: UpsertSchoolInput,
   editId?: string
 ): Promise<void> {
-  // enum جنسیت Nest: 'Boy' | 'Girl'
-  const gender = input.gender === 'female' ? 'Girl' : 'Boy';
+  // enum جنسیت Nest: 'Boy' | 'Girl'؛ نام فیلد در DTO لایو `genderType` است نه `gender`.
+  const genderType = input.gender === 'female' ? 'Girl' : 'Boy';
   const cityId = input.cityId || undefined;
   const educationId = input.districtId || undefined;
   const body = {
@@ -117,7 +117,7 @@ export async function upsertRealSchool(
     provinceId: input.provinceId,
     ...(cityId ? { cityId } : {}),
     ...(educationId ? { educationId } : {}),
-    gender,
+    genderType,
   };
   if (editId) {
     await adminCatalogApi.updateSchool(editId, body);
