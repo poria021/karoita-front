@@ -59,12 +59,7 @@ export function ScenarioEnrollOpen({
         courseName={state.courseName}
         level={state.level}
         query={wizard.query}
-        province={wizard.province}
-        college={wizard.college}
-        scope={wizard.scope}
         onQueryChange={wizard.setQuery}
-        onProvinceChange={wizard.onProvinceChange}
-        onCollegeChange={wizard.onCollegeChange}
       />
 
       <SupervisorSelectionTable
