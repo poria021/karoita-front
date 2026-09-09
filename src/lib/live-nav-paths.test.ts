@@ -118,6 +118,7 @@ describe('live nav / admin plane', () => {
     const orgGroup = groups.find((g) => g.title === 'مدیریت سازمانی');
     expect(orgGroup?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.organizationalStructure(),
+      RouteService.karvita.adminUserCreation(),
     ]);
 
     const assistantMenu = getVisibleSidebarMenu('assistant_admin');
@@ -183,22 +184,15 @@ describe('live nav / admin plane', () => {
     );
   });
 
-  it('keeps unfinished modules navigable but off the sidebar', () => {
-    const deferred = [
-      RouteService.karvita.adminUserCreation(),
-    ];
-    for (const path of deferred) {
-      expect(isLiveStaticNavPath(path)).toBe(true);
-      expect(isLiveSidebarPath(path)).toBe(false);
-    }
-  });
-
-  it('treats admin user creation as admin control plane', () => {
+  it('treats admin user creation as admin control plane and shows it in the sidebar', () => {
     expect(
       isAdminControlPlanePath(RouteService.karvita.adminUserCreation())
     ).toBe(true);
+    expect(isLiveStaticNavPath(RouteService.karvita.adminUserCreation())).toBe(
+      true
+    );
     expect(isLiveSidebarPath(RouteService.karvita.adminUserCreation())).toBe(
-      false
+      true
     );
   });
 
