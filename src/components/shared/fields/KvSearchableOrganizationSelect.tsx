@@ -206,9 +206,15 @@ export const KvSearchableOrganizationSelect = forwardRef<
   // `query` اولیه همان `singleValue` تا تک‌انتخابی بعد از mount مقدار را نشان دهد.
   const [query, setQuery] = useState(singleValue ?? '');
   const [prevSingleValue, setPrevSingleValue] = useState(singleValue);
+  // وقتی کاربر در حال تایپ است، تایپ خودش باعث `onChange('')` به والد می‌شود؛
+  // بدون این پرچم همان تغییرِ خودمان در رندر بعدی `query` تازه‌تایپ‌شده را با '' جایگزین می‌کرد
+  // (کاراکترها گم/جابه‌جا می‌شدند). فقط تغییرات واقعاً بیرونی باید `query` را sync کنند.
+  const [isEditing, setIsEditing] = useState(false);
   if (!isMulti && singleValue !== prevSingleValue) {
     setPrevSingleValue(singleValue);
-    setQuery(singleValue ?? '');
+    if (!isEditing) {
+      setQuery(singleValue ?? '');
+    }
   }
 
   useEffect(() => {
@@ -218,6 +224,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
         !rootRef.current?.contains(event.target)
       ) {
         setOpen(false);
+        setIsEditing(false);
         // جستجوی نیمه‌کاره را به مقدار انتخاب‌شده برگردان
         if (!isMulti) {
           setQuery((props as SingleSelectProps).value ?? '');
@@ -273,6 +280,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
       // چندانتخابی باز می‌ماند تا چند مورد پشت‌سرهم انتخاب شوند
       setQuery('');
     } else {
+      setIsEditing(false);
       setQuery(option.label);
       (props as SingleSelectProps).onChange(option.label);
       setOpen(false);
@@ -537,6 +545,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
         onFocus={() => setOpen(true)}
         onChange={(event) => {
           const val = event.target.value;
+          setIsEditing(true);
           setQuery(val);
           if ((props as SingleSelectProps).value) {
             (props as SingleSelectProps).onChange('');
