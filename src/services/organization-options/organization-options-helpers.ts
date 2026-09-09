@@ -4,11 +4,13 @@ import {
   fetchAllNestEducations,
   fetchAllNestProvinces,
   fetchAllNestSchools,
+  fetchAllNestUniversities,
 } from '@/services/admin-catalog/admin-catalog.api';
 import {
   toDegreeCatalogRoleTitle,
   toMockMajorAudience,
 } from '@/services/organization-options/degree-catalog-role';
+import { toOrgFaculty } from '@/services/org-structure/real/real-org-mappers';
 import { OrgStructureService } from '@/services/org-structure.service';
 import type { UserRole } from '@/types/auth';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
@@ -341,6 +343,31 @@ export async function fetchOrganizationOptionsFromApi(
 
       case 'college': {
         const q = params.query?.trim() || undefined;
+        const provinceNames = toNameList(params.province);
+
+        // GET /admin/universites فیلتر provinceId/cityId ندارد؛ کل کاتالوگ را
+        // می‌گیریم و سمت کلاینت با id استان populated روی هر ردیف فیلتر می‌کنیم.
+        if (provinceNames.length > 0) {
+          const provinceIds = new Set<string>();
+          for (const name of provinceNames) {
+            const id = await resolveProvinceId(name);
+            if (id) provinceIds.add(id);
+          }
+          if (provinceIds.size > 0) {
+            const all = await fetchAllNestUniversities({ title: q });
+            const filtered = all
+              .map(toOrgFaculty)
+              .filter((u) => provinceIds.has(u.provinceId));
+            return paginateBare(
+              dedupeOptions(
+                filtered.map((u) => ({ id: u.id, label: u.name }))
+              ),
+              params.page,
+              params.limit
+            );
+          }
+        }
+
         const { data, hasNextPage } = await adminCatalogApi.listUniversities({
           title: q,
           page: params.page,
