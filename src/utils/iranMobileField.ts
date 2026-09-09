@@ -13,6 +13,9 @@ export const IRAN_MOBILE_REQUIRED_MESSAGE = 'شماره موبایل الزام�
 export const IRAN_MOBILE_FORMAT_MESSAGE =
   'فرمت شماره موبایل معتبر نیست (۱۰ رقم بدون صفر اول).';
 
+export const IRAN_MOBILE_PREFIX_MESSAGE =
+  'شماره موبایل باید با رقم ۹ شروع شود (صفر اول نیازی نیست).';
+
 /**
  * رقم‌های ملی برای فیلد «۹۸+»: صفر اول و رقم‌های غیر۹ در ابتدا حذف می‌شوند.
  */
@@ -24,6 +27,16 @@ export function sanitizeIranMobileNationalInput(rawValue: string): string {
     return fromNine;
   }
   return '';
+}
+
+/**
+ * true وقتی اولین رقم معنادار (بعد از حذف صفرهای ابتدایی) چیزی جز ۹ باشد؛
+ * برای نمایش پیام خطای زنده به‌جای حذف بی‌صدای ورودی.
+ */
+export function hasInvalidIranMobilePrefix(rawValue: string): boolean {
+  const digits = persianToEnglishDigits(rawValue).replace(/\D/g, '');
+  const withoutLeadingZeros = digits.replace(/^0+/, '');
+  return withoutLeadingZeros !== '' && withoutLeadingZeros[0] !== '9';
 }
 
 /**
