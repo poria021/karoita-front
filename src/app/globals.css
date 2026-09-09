@@ -652,6 +652,28 @@
 }
 
 /*
+ * Sidebar-only: scrollbar thumb stays transparent until the sidebar is
+ * hovered/focused, so the panel looks chrome-free at rest.
+ */
+.kv-sidebar-scroll {
+  scrollbar-color: transparent transparent;
+}
+
+.kv-sidebar-scroll:hover,
+.kv-sidebar-scroll:focus-within {
+  scrollbar-color: var(--kv-border-strong) transparent;
+}
+
+.kv-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.kv-sidebar-scroll:hover::-webkit-scrollbar-thumb,
+.kv-sidebar-scroll:focus-within::-webkit-scrollbar-thumb {
+  background: var(--kv-border-strong);
+}
+
+/*
  * Overlay lists: ltr host so the bar sits on the physical right in RTL.
  * Children stay RTL. Appearance is the global recipe above — do not restyle.
  */
