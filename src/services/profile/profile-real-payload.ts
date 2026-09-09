@@ -100,7 +100,7 @@ export async function buildNestUpdateUserBody(
     educationalDistrictsIds,
   ] = await Promise.all([
     resolveLabelsToIds('province', provinceNames),
-    resolveLabelsToIds('college',  collegeNames),
+    resolveLabelsToIds('college',  collegeNames, { province: primaryProvince }),
     majorName
       ? resolveLabelToId('major', majorName, { role: data.role }).then((id) =>
           id ? [id] : []
