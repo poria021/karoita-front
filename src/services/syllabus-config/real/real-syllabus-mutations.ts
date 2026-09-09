@@ -135,7 +135,8 @@ export async function updateRealTermGates(
 
 /**
  * پیکربندی اول: `PUT /admin/lessons/{id}/weeks` با همان تعداد سطر ادیتور.
- * بعد از GET غیرخالی: فقط `PATCH` برای بایگانی/بازیابی.
+ * بعد از GET غیرخالی: هفته‌های محلی جدید `POST` می‌شوند (افزودن)، هفته‌های
+ * موجود فقط `PATCH` می‌شوند (بایگانی/بازیابی)؛ حذف هفتهٔ ثبت‌شده انجام نمی‌شود.
  */
 export async function saveRealSyllabusWeeks(
   input: SaveSyllabusWeeksInput

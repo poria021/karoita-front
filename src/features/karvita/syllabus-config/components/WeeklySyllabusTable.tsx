@@ -60,7 +60,7 @@ export function WeeklySyllabusTable({
   const lastWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
   const hasLastWeek = Boolean(lastWeek);
   const structureLockedHint = isWeeksPublished
-    ? 'پس از ثبت نهایی فقط بایگانی هفته ممکن است.'
+    ? 'پس از ثبت نهایی، هفته‌های موجود قابل حذف نیستند؛ فقط بایگانی/بازیابی و افزودن هفته جدید ممکن است.'
     : undefined;
 
   return (

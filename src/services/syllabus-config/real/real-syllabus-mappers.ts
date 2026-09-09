@@ -485,7 +485,8 @@ function patchBody(
 
 /**
  * پیکربندی اول (GET خالی): فقط `POST`.
- * بعد از ثبت، GET هفته دارد: فقط `PATCH` (بایگانی/بازیابی)؛ افزودن و حذف نیست.
+ * بعد از ثبت، GET هفته دارد: هفته‌های محلی جدید هم `POST` می‌شوند (افزودن مجاز است)،
+ * ولی هفته‌های ثبت‌شده حذف نمی‌شوند — فقط `PATCH` (بایگانی/بازیابی) روی آن‌ها اعمال می‌شود.
  */
 export function planNestWeekWrites(
   lessonId: string,
@@ -547,7 +548,7 @@ export function planNestWeekWrites(
   }
 
   if (remote.length > 0) {
-    return { creates: [], updates, deletions: [] };
+    return { creates, updates, deletions: [] };
   }
 
   return { creates, updates, deletions };

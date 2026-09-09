@@ -311,7 +311,7 @@ describe('real-syllabus-mappers offerings', () => {
     expect(plan.deletions).toEqual([]);
   });
 
-  it('ignores extra local weeks after GET already returned a published set', () => {
+  it('POSTs extra local weeks appended after GET already returned a published set', () => {
     const lessonId = '6a8e2b51d2187e0f2fdb784c';
     const plan = planNestWeekWrites(
       lessonId,
@@ -334,7 +334,9 @@ describe('real-syllabus-mappers offerings', () => {
       [{ id: '6a9164b4c208454ddf32ec92', priority: 3, status: true }]
     );
 
-    expect(plan.creates).toEqual([]);
+    expect(plan.creates).toEqual([
+      { lessonId, priority: 3, status: false },
+    ]);
     expect(plan.updates).toEqual([]);
     expect(plan.deletions).toEqual([]);
   });

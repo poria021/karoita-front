@@ -101,7 +101,6 @@ export function useSyllabusWeeksEditor({
 
   function addWeek() {
     if (!ensureCourseSelected()) return;
-    if (isWeeksPublished) return;
     const n = weeks.length + 1;
     const label = `هفته ${n}`;
     const next: SyllabusWeek = {
