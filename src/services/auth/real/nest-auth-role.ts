@@ -40,6 +40,11 @@ const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   supervisor_professor: 'mentor',
   mentor_teacher: 'teacher',
   school_principal: 'school_admin',
+  // نقش‌های سازمانی — برای GET /admin/account-users/roles (ایجاد حساب سازمانی).
+  central_organization: 'central_org',
+  provincial_university: 'provincial_admin',
+  faculty_role: 'manager',
+  regional_edu_admin: 'regional_admin',
 };
 
 // Admin account role mapping for Nest's admin endpoints.
@@ -65,7 +70,7 @@ export function pickNestRoleDto(
   const match = roles.find((entry) => entry.name === name);
   if (!match?.id) {
     throw new Error(
-      'شناسه نقش از سرور یافت نشد. لیست نقش‌ها را از GET /auth/roles بررسی کنید.'
+      `شناسه نقش «${name}» در لیست نقش‌های دریافتی از سرور یافت نشد.`
     );
   }
   return { id: match.id, name: match.name };
