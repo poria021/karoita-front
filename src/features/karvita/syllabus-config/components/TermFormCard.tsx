@@ -74,6 +74,7 @@ export function TermFormCard({
   const activeTermTypeOption =
     TERM_TYPE_OPTIONS.find((option) => option.value === termType) ??
     TERM_TYPE_OPTIONS[0]!;
+  const termsForActiveType = terms.filter((term) => term.type === termType);
 
   return (
     <KvCard>
@@ -84,33 +85,6 @@ export function TermFormCard({
             {isEditing ? 'ویرایش دوره تحصیلی' : 'تعریف و ساختارسازی ترم جدید'}
           </KvTypography>
         </div>
-
-        <KvSelectField
-          label="عملیات در حال انجام"
-          required
-          size="md"
-          disabled={isLoading}
-          value={editTermId || '__new__'}
-          displayValue={
-            editTermId
-              ? `ویرایش دوره: ${formatTermOptionLabel(
-                  terms.find((term) => term.id === editTermId)?.title ?? ''
-                )}`
-              : '-- ایجاد و تعریف دوره تحصیلی جدید --'
-          }
-          onValueChange={(value) =>
-            onSelectEditTerm(value === '__new__' ? '' : value)
-          }
-        >
-          <KvSelectItem value="__new__">
-            -- ایجاد و تعریف دوره تحصیلی جدید --
-          </KvSelectItem>
-          {terms.map((term) => (
-            <KvSelectItem key={term.id} value={term.id}>
-              ویرایش دوره: {formatTermOptionLabel(term.title)}
-            </KvSelectItem>
-          ))}
-        </KvSelectField>
 
         <KvFieldFrame
           id="syllabus-term-type"
@@ -141,6 +115,33 @@ export function TermFormCard({
             </AppTabsList>
           </AppTabs>
         </KvFieldFrame>
+
+        <KvSelectField
+          label={`عملیات در حال انجام (${activeTermTypeOption.shortLabel})`}
+          required
+          size="md"
+          disabled={isLoading}
+          value={editTermId || '__new__'}
+          displayValue={
+            editTermId
+              ? `ویرایش دوره: ${formatTermOptionLabel(
+                  terms.find((term) => term.id === editTermId)?.title ?? ''
+                )}`
+              : `-- ایجاد ${activeTermTypeOption.shortLabel} جدید --`
+          }
+          onValueChange={(value) =>
+            onSelectEditTerm(value === '__new__' ? '' : value)
+          }
+        >
+          <KvSelectItem value="__new__">
+            -- ایجاد {activeTermTypeOption.shortLabel} جدید --
+          </KvSelectItem>
+          {termsForActiveType.map((term) => (
+            <KvSelectItem key={term.id} value={term.id}>
+              ویرایش دوره: {formatTermOptionLabel(term.title)}
+            </KvSelectItem>
+          ))}
+        </KvSelectField>
 
         <div className="space-y-kv-group rounded-kv-control border border-kv-border-muted bg-kv-surface-subtle/60 p-kv-group">
           <div className="flex items-center gap-1.5">

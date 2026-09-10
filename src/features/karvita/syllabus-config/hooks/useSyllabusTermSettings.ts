@@ -85,15 +85,15 @@ export function useSyllabusTermSettings({
     setAcademicYearError(null);
   }
 
-  function resetTermForm() {
-    const prefix = defaultPrefixForType('semester');
+  function resetTermForm(type: AcademicTermType = 'semester') {
+    const prefix = defaultPrefixForType(type);
     setEditTermId('');
-    setTermType('semester');
+    setTermType(type);
     setTermPrefix(prefix);
     setTermYearState('');
     setTermFormError(null);
     setAcademicYearError(null);
-    setTermFormBaseline(termFormKey('', 'semester', prefix, ''));
+    setTermFormBaseline(termFormKey('', type, prefix, ''));
   }
 
   function applySnapshotTerms(snapshot: SyllabusConfigSnapshot) {
@@ -116,7 +116,8 @@ export function useSyllabusTermSettings({
 
   function selectEditTerm(termId: string) {
     if (!termId) {
-      resetTermForm();
+      // نوع تبِ فعلی حفظ می‌شود؛ برگشت به «ایجاد جدید» به معنای تغییر نوع دوره نیست.
+      resetTermForm(termType);
       return;
     }
     const match = terms.find((t) => t.id === termId);
@@ -132,6 +133,11 @@ export function useSyllabusTermSettings({
   }
 
   function onTermTypeChange(type: AcademicTermType) {
+    // انتخاب دوره در حال ویرایش با نوع دیگر معنا ندارد؛ فرم را برای همان نوع خالی کن.
+    if (editingTerm && editingTerm.type !== type) {
+      resetTermForm(type);
+      return;
+    }
     setTermType(type);
     setTermPrefix(defaultPrefixForType(type));
   }
@@ -233,7 +239,8 @@ export function useSyllabusTermSettings({
         const next = [...terms, optimistic];
         setTerms(next);
         patchCachedSyllabusTerms(queryClient, next);
-        resetTermForm();
+        // نوع انتخاب‌شده حفظ می‌شود تا کاربر بتواند پشت‌سرهم چند بازه از همان نوع بسازد.
+        resetTermForm(parsed.data.type);
         setSelectedTermId(tempId);
       },
       revert: () => {
@@ -286,7 +293,7 @@ export function useSyllabusTermSettings({
         const next = terms.filter((term) => term.id !== target.id);
         setTerms(next);
         patchCachedSyllabusTerms(queryClient, next);
-        resetTermForm();
+        resetTermForm(target.type);
         const nextId =
           snapshot.find((term) => term.id !== target.id)?.id ?? '';
         setSelectedTermId(nextId);
