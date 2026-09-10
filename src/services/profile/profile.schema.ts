@@ -79,8 +79,6 @@ const cityField = requiredOrgArrayField(
   'لطفاً حداقل یک شهر تابعه را انتخاب کنید.'
 );
 
-const optionalCityField = optionalOrgArrayField();
-
 const studentIdField = requiredNumericIdField({
   requiredMessage: 'شماره دانشجویی الزامی است.',
   invalidMessage: 'شماره دانشجویی باید حداقل ۴ رقم عددی باشد.',
@@ -141,7 +139,7 @@ export const mentorTeacherProfileSchema = identityNameSchema.extend({
   district: optionalOrgArrayField(),
   school: optionalOrgArrayField(),
   personalCode: personalCodeField,
-  city: optionalCityField,
+  city: cityField,
 });
 
 export const schoolPrincipalProfileSchema = identityNameSchema.extend({
@@ -150,7 +148,7 @@ export const schoolPrincipalProfileSchema = identityNameSchema.extend({
   district: optionalOrgArrayField(),
   school: optionalOrgArrayField(),
   personalCode: personalCodeField,
-  city: optionalCityField,
+  city: cityField,
 });
 
 export const regionalEduAdminProfileSchema = identityNameSchema.extend({
