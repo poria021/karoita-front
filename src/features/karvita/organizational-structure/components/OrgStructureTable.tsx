@@ -94,7 +94,7 @@ function renderDataCell(
       return (
         <KvTableCell key={column.key} align={column.align}>
           {row.gender ? (
-            <Badge variant={row.gender === 'male' ? 'info' : 'brand'}>
+            <Badge variant="default">
               {getSchoolGenderLabel(row.gender)}
             </Badge>
           ) : (
