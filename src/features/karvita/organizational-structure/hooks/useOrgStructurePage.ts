@@ -181,25 +181,60 @@ export function useOrgStructurePage() {
   const scheduleCreate = useCallback(
     (values: OrgEntityFormValues, labels?: OrgEntityOptimisticLabels) => {
       const label = values.name.trim();
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const optimisticItem: OrgStructureListItem = {
+        id: tempId,
+        name: label,
+        kind: orgEntityKindFromTab(tab),
+        // تا تأیید بکند، حذف ردیف موقت مجاز نیست.
+        deleteBlocked: true,
+        provinceId: values.provinceId,
+        cityId: values.cityId,
+        districtId: values.districtId,
+        gender: values.gender,
+        audience: values.audience,
+        roleId: values.roleId,
+        provinceName: labels?.provinceName,
+        cityName: labels?.cityName,
+        districtName: labels?.districtName,
+        roleName: labels?.roleName,
+      };
+
+      let snapshot: OrgStructureListItem[] = [];
+      let snapshotTotal = 0;
 
       scheduleOptimisticMutation({
         message: `${tabConfig.addLabel} «${label}» افزوده شد.`,
         apply: () => {
           OrgStructureService.rememberRelationLabels([label], labels ?? {});
+          patchItems(
+            (prev) => {
+              snapshot = prev;
+              return [optimisticItem, ...prev];
+            },
+            (prevTotal) => {
+              snapshotTotal = prevTotal;
+              return prevTotal + 1;
+            }
+          );
         },
-        revert: () => undefined,
+        revert: () => {
+          patchItems(() => snapshot, () => snapshotTotal);
+        },
         commit: () => submitOrgEntity(tab, values, null),
         onCommitted: async () => {
           await invalidateAndReload();
         },
         onError: (error) => {
           toast.error(
-            error instanceof Error ? error.message : ''
+            error instanceof Error
+              ? error.message
+              : `افزودن «${label}» به ساختار سازمانی ناموفق بود.`
           );
         },
       });
     },
-    [invalidateAndReload, tab, tabConfig.addLabel]
+    [invalidateAndReload, patchItems, tab, tabConfig.addLabel]
   );
 
   const requestDelete = useCallback(
