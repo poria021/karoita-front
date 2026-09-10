@@ -54,7 +54,7 @@ export function Header() {
           />
 
           <div className="flex min-w-0 items-center gap-kv-inline">
-            <KarvitaBrandMark className="p-1.5 sm:p-2" />
+            <KarvitaBrandMark />
             <HeaderBrandWordmark />
             <span className="sr-only">
               کارویتا — پنل کاربری - {strategy.label}
