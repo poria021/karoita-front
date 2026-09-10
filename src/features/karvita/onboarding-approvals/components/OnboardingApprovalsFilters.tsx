@@ -8,13 +8,14 @@ import {
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
+import type { OnboardingApprovalProvince } from '@/types/onboarding-approvals';
 
 interface OnboardingApprovalsFiltersProps {
   query: string;
   onQueryChange: (value: string) => void;
   province: string;
   onProvinceChange: (value: string) => void;
-  provinces: string[];
+  provinces: OnboardingApprovalProvince[];
   searchPlaceholder?: string;
 }
 
@@ -47,9 +48,9 @@ export function OnboardingApprovalsFilters({
           placeholder="همه استان‌ها"
         >
           <KvSelectItem value="all">همه استان‌ها</KvSelectItem>
-          {Array.from(new Set(provinces)).map((name) => (
-            <KvSelectItem key={name} value={name}>
-              {name}
+          {provinces.map(({ id, title }) => (
+            <KvSelectItem key={id} value={id}>
+              {title}
             </KvSelectItem>
           ))}
         </KvSelectField>

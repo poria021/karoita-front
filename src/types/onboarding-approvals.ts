@@ -18,7 +18,12 @@ export type ListOnboardingApprovalsFilters = {
   limit?: number;
 };
 
+export type OnboardingApprovalProvince = {
+  id: string;
+  title: string;
+};
+
 export type ListOnboardingApprovalsPage =
   OffsetLimitPage<OnboardingApprovalUser> & {
-    provinces: string[];
+    provinces: OnboardingApprovalProvince[];
   };

@@ -13,6 +13,7 @@ import { usersApi } from '@/services/users/users.api';
 import type {
   ListOnboardingApprovalsFilters,
   ListOnboardingApprovalsPage,
+  OnboardingApprovalProvince,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 import {
@@ -54,9 +55,9 @@ export const OnboardingApprovalsService = {
         ) + 1;
 
       const nestFilters: Record<string, unknown> = { status: nestStatus };
-      if (filters.query?.trim()) nestFilters.title = filters.query.trim();
+      if (filters.query?.trim()) nestFilters.firstName = filters.query.trim();
       if (filters.province && filters.province !== 'all') {
-        nestFilters.province = filters.province;
+        nestFilters.provinceId = filters.province;
       }
 
       const raw = await usersApi.list({
@@ -90,7 +91,7 @@ export const OnboardingApprovalsService = {
 
     return {
       ...page,
-      provinces: collectProvinces(),
+      provinces: collectProvinces().map((title) => ({ id: title, title })),
     };
   },
 
@@ -165,16 +166,23 @@ export const OnboardingApprovalsService = {
     });
   },
 
-  async listProvinces(): Promise<string[]> {
+  async listProvinces(): Promise<OnboardingApprovalProvince[]> {
     if (!IS_MOCK_MODE) {
       const { adminCatalogApi } = await import(
         '@/services/admin-catalog/admin-catalog.api'
       );
       const provinces = await adminCatalogApi.getAllProvinces();
-      return Array.from(new Set(provinces.map((p) => p.title)));
+      const seen = new Set<string>();
+      return provinces
+        .filter((p) => {
+          if (seen.has(p.id)) return false;
+          seen.add(p.id);
+          return true;
+        })
+        .map((p) => ({ id: p.id, title: p.title }));
     }
     requireOnboardingReview();
-    return collectProvinces();
+    return collectProvinces().map((title) => ({ id: title, title }));
   },
 
   /** در mock به store کاربران وصل می‌شود؛ real تا SSE خالی است. */
