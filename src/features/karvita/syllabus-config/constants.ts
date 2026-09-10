@@ -25,14 +25,20 @@ export const MODULAR_PREFIX_OPTIONS = [
 export const TERM_TYPE_OPTIONS: {
   value: AcademicTermType;
   label: string;
+  shortLabel: string;
+  description: string;
 }[] = [
   {
     value: 'semester',
     label: 'ترمی (دانشجو / کارورزی)',
+    shortLabel: 'ترمی',
+    description: 'برای مخاطب دانشجو / کارورزی — بازه‌بندی به‌صورت نیم‌سال.',
   },
   {
     value: 'modular',
     label: 'پودمانی (مهارت‌آموز / کارآموزی)',
+    shortLabel: 'پودمانی',
+    description: 'برای مخاطب مهارت‌آموز / کارآموزی — بازه‌بندی به‌صورت پودمان.',
   },
 ];
 
