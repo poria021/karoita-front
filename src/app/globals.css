@@ -818,7 +818,7 @@ input[readonly]:-webkit-autofill {
 .kv-brand-mark {
   display: block;
   flex-shrink: 0;
-  aspect-ratio: 906 / 688;
+  aspect-ratio: 750 / 950;
   background-color: currentColor;
   -webkit-mask-image: var(--kv-brand-mark);
   -webkit-mask-repeat: no-repeat;
