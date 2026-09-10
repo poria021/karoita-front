@@ -18,6 +18,9 @@ export {
 export const LANDING_BANNER_MAX_SIZE_HELPER =
   'PNG، JPG تا ۲ مگابایت — نسبت ۲۱:۹ (مثلاً ۱۹۲۰×۸۲۳) با سوژه/متن در وسط کادر، چون در موبایل و تبلت دو طرف تصویر برش می‌خورد';
 
+/** بنر هیرو full-bleed تا عرض مانیتور دسکتاپ کش می‌آید؛ پیش‌فرض ۱۰۰۰px کامپرسور برای این مورد کافی نیست. */
+export const LANDING_BANNER_COMPRESS_MAX_WIDTH = 1920;
+
 /** نشان داک محصول — فقط SVG/PNG (لوگوی رنگی). */
 export const LANDING_PRODUCT_LOGO_MAX_SIZE_HELPER =
   'فقط SVG یا PNG تا ۵۱۲ کیلوبایت';

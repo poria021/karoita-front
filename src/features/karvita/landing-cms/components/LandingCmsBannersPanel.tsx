@@ -20,6 +20,7 @@ import { faIcons } from '@/utils/iconMap';
 
 import {
   getLandingCmsTabConfig,
+  LANDING_BANNER_COMPRESS_MAX_WIDTH,
   LANDING_BANNER_MAX_SIZE_HELPER,
   LANDING_BANNER_MAX_SIZE_MB,
 } from '../constants';
@@ -137,6 +138,7 @@ export function LandingCmsBannersPanel({
               maxSizeMb={LANDING_BANNER_MAX_SIZE_MB}
               helperText={LANDING_BANNER_MAX_SIZE_HELPER}
               previewAlt="پیش‌نمایش بنر"
+              compressMaxWidth={LANDING_BANNER_COMPRESS_MAX_WIDTH}
             />
           )}
         />
