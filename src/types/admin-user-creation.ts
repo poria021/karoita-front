@@ -72,3 +72,26 @@ export type StaffAdminsPage = {
   data: StaffAdminAccount[];
   hasNextPage: boolean;
 };
+
+/**
+ * ردیف GET /api/v1/admin/account-users — حساب سازمانی به شکل `User` فرانت.
+ */
+export type OrgAccountUser = User;
+
+export type OrgAccountUsersPage = {
+  data: OrgAccountUser[];
+  hasNextPage: boolean;
+};
+
+export type UpdateOrganizationalUserInput = {
+  firstName: string;
+  lastName: string;
+  mobile: string;
+  /** خالی/غایب یعنی رمز عوض نمی‌شود. */
+  password?: string;
+  role: OrgAccountRole;
+  province?: string;
+  city?: string;
+  college?: string;
+  district?: string;
+};

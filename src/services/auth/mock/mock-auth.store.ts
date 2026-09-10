@@ -259,6 +259,16 @@ export function patchMockAuthUser(
   return updated;
 }
 
+export function removeMockUser(id: string): void {
+  assertMockApiMode();
+  const users = readMockUsers();
+  const next = users.filter((user) => user.id !== id);
+  if (next.length === users.length) {
+    throw new Error('کاربری برای حذف یافت نشد.');
+  }
+  writeMockUsers(next);
+}
+
 export function resetMockAuthStoreForTests(
   users: MockAuthUserRecord[] = AUTH_MOCK_USERS
 ): void {
