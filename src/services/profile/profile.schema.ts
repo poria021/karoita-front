@@ -75,9 +75,6 @@ const majorField = requiredTextField('لطفاً رشته تحصیلی خود ر
 const districtField = requiredOrgArrayField(
   'لطفاً حداقل یک منطقه آموزشی را انتخاب کنید.'
 );
-const schoolField = requiredOrgArrayField(
-  'لطفاً حداقل یک مدرسه محل خدمت را انتخاب کنید.'
-);
 const cityField = requiredOrgArrayField(
   'لطفاً حداقل یک شهر تابعه را انتخاب کنید.'
 );
@@ -141,8 +138,8 @@ export const supervisorProfessorProfileSchema = identityNameSchema.extend({
 export const mentorTeacherProfileSchema = identityNameSchema.extend({
   role: z.literal('mentor_teacher'),
   province: provinceField,
-  district: districtField,
-  school: schoolField,
+  district: optionalOrgArrayField(),
+  school: optionalOrgArrayField(),
   personalCode: personalCodeField,
   city: optionalCityField,
 });
@@ -150,8 +147,8 @@ export const mentorTeacherProfileSchema = identityNameSchema.extend({
 export const schoolPrincipalProfileSchema = identityNameSchema.extend({
   role: z.literal('school_principal'),
   province: provinceField,
-  district: districtField,
-  school: schoolField,
+  district: optionalOrgArrayField(),
+  school: optionalOrgArrayField(),
   personalCode: personalCodeField,
   city: optionalCityField,
 });
