@@ -16,7 +16,7 @@ export {
 /** اسلاید بنر/هیرو — سقف رایج CMS وب قبل از فشرده‌سازی کلاینت. */
 
 export const LANDING_BANNER_MAX_SIZE_HELPER =
-  'PNG، JPG تا ۲ مگابایت';
+  'PNG، JPG تا ۲ مگابایت — نسبت ۲۱:۹ (مثلاً ۱۹۲۰×۸۲۳) با سوژه/متن در وسط کادر، چون در موبایل و تبلت دو طرف تصویر برش می‌خورد';
 
 /** نشان داک محصول — فقط SVG/PNG (لوگوی رنگی). */
 export const LANDING_PRODUCT_LOGO_MAX_SIZE_HELPER =

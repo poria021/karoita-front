@@ -68,7 +68,7 @@ export function MarketingHeroCarousel({
     return (
       <section
         id="hero"
-        className="relative flex h-[260px] w-full items-center justify-center overflow-hidden bg-kv-canvas sm:h-[360px] md:h-[460px] lg:h-[calc(100vh-4rem)] lg:max-h-[850px]"
+        className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-kv-canvas sm:aspect-video lg:aspect-[21/9]"
         aria-label="بنرهای اطلاع‌رسانی اصلی"
       >
         <h1 className="sr-only">
@@ -81,7 +81,7 @@ export function MarketingHeroCarousel({
   return (
     <section
       id="hero"
-      className="relative h-[260px] w-full overflow-hidden bg-kv-canvas sm:h-[360px] md:h-[460px] lg:h-[calc(100vh-4rem)] lg:max-h-[850px]"
+      className="relative aspect-[4/3] w-full overflow-hidden bg-kv-canvas sm:aspect-video lg:aspect-[21/9]"
       aria-label="بنرهای اطلاع‌رسانی اصلی"
     >
       <style>{`@keyframes kv-carousel-progress{from{width:0%}to{width:100%}}`}</style>
