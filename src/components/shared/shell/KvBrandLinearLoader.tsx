@@ -37,7 +37,7 @@ export function KvBrandLinearLoader({
       <span aria-hidden="true" className="kv-brand-mark size-10 text-kv-brand sm:size-12" />
 
       <div className="flex w-40 flex-col items-center gap-kv-field sm:w-48">
-        <div className="kv-linear-indeterminate h-1 w-full overflow-hidden rounded-full bg-kv-brand-soft" />
+        <div className="kv-linear-indeterminate h-1 w-full overflow-hidden rounded-full bg-kv-brand/20" />
         {label ? (
           <KvTypography variant="overline" tone="muted" align="center">
             {label}

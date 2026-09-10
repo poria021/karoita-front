@@ -179,8 +179,8 @@ export function MarketingHeroCarousel({
                   onClick={() => handleSlideClick(index)}
                   className={`block rounded-kv-tight backdrop-blur-sm transition-all ${
                     isActive
-                      ? 'relative h-1 w-6 overflow-hidden bg-white/50 shadow-kv-soft sm:h-1.5 sm:w-8'
-                      : 'size-1 bg-white/50 shadow-kv-soft hover:bg-white sm:size-1.5'
+                      ? 'relative h-1 w-6 overflow-hidden bg-kv-brand/20 shadow-kv-soft sm:h-1.5 sm:w-8'
+                      : 'size-1 bg-kv-brand/20 shadow-kv-soft hover:bg-white sm:size-1.5'
                   }`}
                   role="tab"
                   aria-selected={isActive}
