@@ -13,7 +13,6 @@ import { KvSwitch } from '@/components/shared/fields/KvSwitch';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
-import { isTermGateActive } from '@/services/syllabus-config.service';
 import type { AcademicTerm, AcademicTermType } from '@/types/syllabus-config';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faIcons } from '@/utils/iconMap';
@@ -45,14 +44,8 @@ export function TermGateCards({
   onToggleEnroll,
   onToggleTermOpen,
 }: TermGateCardsProps) {
-  const enrollActive = isTermGateActive(
-    Boolean(selectedTerm?.isEnrollOpen),
-    selectedTerm?.enrollStart ?? ''
-  );
-  const termActive = isTermGateActive(
-    Boolean(selectedTerm?.isTermOpen),
-    selectedTerm?.termStart ?? ''
-  );
+  const enrollOn = Boolean(selectedTerm?.isEnrollOpen);
+  const termOn = Boolean(selectedTerm?.isTermOpen);
 
   return (
     <div className="grid grid-cols-1 items-stretch gap-kv-group sm:grid-cols-2">
@@ -64,8 +57,8 @@ export function TermGateCards({
             ? `شروع: ${toPersianDigits(selectedTerm.enrollStart)}`
             : 'تاریخ شروع ثبت نشده'
         }
-        switchOn={Boolean(selectedTerm?.isEnrollOpen)}
-        active={enrollActive}
+        switchOn={enrollOn}
+        active={enrollOn}
         onToggle={onToggleEnroll}
         disabled={!selectedTerm || enrollPending || isLoading}
         isLoading={isLoading || enrollPending}
@@ -79,8 +72,8 @@ export function TermGateCards({
             ? `شروع: ${toPersianDigits(selectedTerm.termStart)}`
             : 'تاریخ شروع ثبت نشده'
         }
-        switchOn={Boolean(selectedTerm?.isTermOpen)}
-        active={termActive}
+        switchOn={termOn}
+        active={termOn}
         onToggle={onToggleTermOpen}
         disabled={!selectedTerm || termOpenPending || isLoading}
         isLoading={isLoading || termOpenPending}
