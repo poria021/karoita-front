@@ -421,10 +421,11 @@ export async function realSignOut(): Promise<void> {
   guard('real-auth.bridge.logout');
   const surface = currentSurface();
   try {
+    // لایو ۲۰۴ بدون بدنه می‌دهد؛ `postJson` روی `.json()` پاسخ خالی می‌ترکد — از `postMaybeJson` استفاده کن.
     if (surface === 'admin') {
-      await apiClient.postJson(REAL_AUTH_PATHS.adminLogout, {});
+      await apiClient.postMaybeJson(REAL_AUTH_PATHS.adminLogout, {});
     } else if (surface === 'user') {
-      await apiClient.postJson(REAL_AUTH_PATHS.logout, {});
+      await apiClient.postMaybeJson(REAL_AUTH_PATHS.logout, {});
     }
   } finally {
     clearRealAuthTokens();
