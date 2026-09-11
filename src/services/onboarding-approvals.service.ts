@@ -18,6 +18,7 @@ import type {
 } from '@/types/onboarding-approvals';
 import {
   DEFAULT_PAGE_LIMIT,
+  estimateHasNextPageTotal,
   sliceOffsetLimitPage,
 } from '@/utils/offset-limit-page';
 
@@ -73,7 +74,11 @@ export const OnboardingApprovalsService = {
 
       return {
         items: users,
-        total: users.length,
+        total: estimateHasNextPageTotal(
+          filters.offset ?? 0,
+          users.length,
+          raw.hasNextPage
+        ),
         hasMore: raw.hasNextPage,
         provinces: [],
       };
