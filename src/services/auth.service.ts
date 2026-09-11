@@ -10,6 +10,7 @@ import {
 } from '@/services/auth/keep-local-identity-preview';
 import { MOCK_OTP_CODE } from '@/services/auth/mock/auth-mock-users';
 import { DEFAULT_FORGOT_RETRY_AFTER_SECONDS } from '@/services/auth/real/parse-forgot-retry-after';
+import { reportError } from '@/lib/observability/reportError';
 import type { Session, User, UserRole } from '@/types/auth';
 import type { NestAuthUpdateDto } from '@/types/nest-users';
 import { useUserStore } from '@/store/useUserStore';
@@ -179,7 +180,11 @@ export class AuthService {
 
   static async logout(): Promise<void> {
     if (!IS_MOCK_MODE) {
-      try { await realSignOut(); } catch { /* realSignOut handles cleanup */ }
+      try {
+        await realSignOut();
+      } catch (err) {
+        void reportError(err, { source: 'AuthService.logout' });
+      }
     }
     dispatchSessionToStore(null);
   }
