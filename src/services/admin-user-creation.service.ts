@@ -159,6 +159,9 @@ export const AdminUserCreationService = {
 
   /**
    * GET /api/v1/admin/account-users?page=&limit=&role= — offset/limit برای جدول حساب‌های سازمانی.
+   * فعلاً هیچ صفحه‌ای این متد (و getOrgAccountUser/updateOrgAccountUser/removeOrgAccountUser
+   * پایین‌تر) را صدا نمی‌زند — عمداً بدون UI مانده تا وقتی صفحهٔ مدیریت حساب‌های سازمانی ساخته شود؛
+   * ناقص یا فراموش‌شده نیست.
    */
   async listOrgAccountUsers(args: {
     offset: number;
