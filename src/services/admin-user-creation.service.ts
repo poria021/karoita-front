@@ -187,13 +187,20 @@ export const AdminUserCreationService = {
     };
   },
 
-  /** GET /api/v1/admin/account-users/{id} */
+  /**
+   * GET /api/v1/admin/account-users/{id} — لایو روی id نامعتبر/حذف‌شده ۲۰۰ با
+   * بدنهٔ `null` می‌دهد نه ۴۰۴؛ همان پیام «یافت نشد» mock را می‌دهیم تا قرارداد
+   * دو حالت یکی بماند (ببین account-users.api.ts).
+   */
   async getOrgAccountUser(id: string): Promise<OrgAccountUser> {
     if (isMockApiMode()) {
       requireMockUserCreate();
       return mockGetOrgAccountUser(id);
     }
     const raw = await accountUsersApi.getById(id);
+    if (!raw) {
+      throw new Error('حساب کاربری سازمانی یافت نشد.');
+    }
     return mapNestAccountUser(raw);
   },
 
