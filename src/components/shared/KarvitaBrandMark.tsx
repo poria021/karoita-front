@@ -13,7 +13,7 @@ export function KarvitaBrandMark({ className }: KarvitaBrandMarkProps) {
         'inline-flex shrink-0 items-center justify-center rounded-kv-control',
         // لایت همان جوهر برند؛ در دارک `--kv-brand-fg` تیره است و مارک را خراب می‌کند.
         'bg-kv-brand text-kv-brand-fg dark:text-kv-text-bright shadow-kv-raised shadow-kv-brand/20',
-        'size-8 p-1.5 sm:size-9 sm:p-2',
+        'size-8 p-0.5 sm:size-9',
         className
       )}
     >
