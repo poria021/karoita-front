@@ -176,12 +176,11 @@ export type NestDegree = {
   users_count?: number;
 };
 
-/** GET /admin/degreeee — `{ data, hasNextPage }` + page/limit/title. */
+/** GET /admin/degreeee — `{ data, hasNextPage }` + page/limit/title؛ `sort` در OpenAPI لایو تعریف نشده. */
 export type NestDegreeListQuery = {
   page?: number;
   limit?: number;
   title?: string;
-  sort?: string;
 };
 
 /** GET /admin/roles: `title` کلید انگلیسی، `title_fa` برچسب فارسی؛ resolveRoleLabel اول `title_fa` را می‌گیرد. */
@@ -397,15 +396,16 @@ export type NestAdminPageQuery = {
   sort?: string;
 };
 
+/** `sort` در OpenAPI لایو برای این endpoint تعریف نشده — نفرست. */
 export type NestEducationListQuery = {
   page?: number;
   limit?: number;
   provinceId?: string;
   cityId?: string;
   title?: string;
-  sort?: string;
 };
 
+/** `sort` در OpenAPI لایو برای این endpoint تعریف نشده — نفرست. */
 export type NestSchoolListQuery = {
   page?: number;
   limit?: number;
@@ -413,14 +413,13 @@ export type NestSchoolListQuery = {
   cityId?: string;
   educationId?: string;
   title?: string;
-  sort?: string;
 };
 
+/** `sort` در OpenAPI لایو برای این endpoint تعریف نشده — نفرست. */
 export type NestUniversityListQuery = {
   page?: number;
   limit?: number;
   title?: string;
-  sort?: string;
 };
 
 /** Envelope `{ data, hasNextPage }` — یا آرایهٔ خام قدیمی اگر Nest هنوز آن را بدهد. */

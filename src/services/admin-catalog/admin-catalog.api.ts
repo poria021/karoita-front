@@ -48,8 +48,10 @@ import type {
 } from '@/types/nest-admin';
 
 /**
- * مرتب‌سازی الفبایی استاندارد برای همه لیست‌های ادمین — پشتیبانی در OpenAPI لایو.
- * ارسال صریح جلوی رفتار نامعلوم پیش‌فرض سمت Nest را می‌گیرد.
+ * مرتب‌سازی الفبایی — فقط `/admin/provinces` و `/admin/cities` این پارامتر را
+ * در OpenAPI لایو تعریف کرده‌اند (چک‌شده روی `/docs-json`). endpointهای دیگر
+ * (educations, schools, degreeee, universites) اصلاً `sort` ندارند؛ ارسال آن
+ * می‌تواند رد شود یا نادیده گرفته شود — عمداً فقط همین دو مسیر را می‌فرستیم.
  */
 const TITLE_ASC_SORT = '[{"orderBy":"title","order":"ASC"}]';
 
@@ -163,12 +165,15 @@ export const adminCatalogApi = {
   createEducation(body: NestCreateEducationalDistrictDto, token?: string) {
     return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.educations, body, token);
   },
-  /** GET /admin/educations — `{ data, hasNextPage }` + page/limit/provinceId/cityId/title. */
+  /**
+   * GET /admin/educations — `{ data, hasNextPage }` + page/limit/provinceId/cityId/title.
+   * بدون پارامتر `sort` در OpenAPI؛ ارسالش نمی‌کنیم.
+   */
   async listEducations(query: NestEducationListQuery = {}, token?: string) {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.educations,
       token,
-      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
+      { searchParams: toSearchParams(query) }
     );
     return parseNestPagedList<NestEducationalDistrict>(raw);
   },
@@ -214,16 +219,16 @@ export const adminCatalogApi = {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.schools,
       token,
-      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
+      { searchParams: toSearchParams(query) }
     );
     return parseNestMaybePagedList<NestSchool>(raw, query.page, query.limit);
   },
-  /** GET /admin/schools/all — `{ data, hasNextPage }` + فیلتر والد. */
+  /** GET /admin/schools/all — `{ data, hasNextPage }` + فیلتر والد؛ بدون `sort` در OpenAPI. */
   async listSchools(query: NestSchoolListQuery = {}, token?: string) {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.schoolsAll,
       token,
-      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
+      { searchParams: toSearchParams(query) }
     );
     return parseNestPagedList<NestSchool>(raw);
   },
@@ -243,12 +248,15 @@ export const adminCatalogApi = {
   createDegree(body: NestCreateDegreeDto, token?: string) {
     return apiClient.postMaybeJson<unknown>(NEST_ADMIN_PATHS.degree, body, token);
   },
-  /** GET /admin/degreeee — `{ data, hasNextPage }`؛ هر ردیف `role: { id, title }`. */
+  /**
+   * GET /admin/degreeee — `{ data, hasNextPage }`؛ هر ردیف `role: { id, title }`.
+   * بدون پارامتر `sort` در OpenAPI؛ ارسالش نمی‌کنیم.
+   */
   async listDegrees(query: NestDegreeListQuery = {}, token?: string) {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.degreesWithRole,
       token,
-      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
+      { searchParams: toSearchParams(query) }
     );
     return parseNestPagedList<NestDegree>(raw);
   },
@@ -282,7 +290,7 @@ export const adminCatalogApi = {
       token
     );
   },
-  /** GET /admin/universites — `{ data, hasNextPage }` (املای لایو). */
+  /** GET /admin/universites — `{ data, hasNextPage }` (املای لایو)؛ بدون `sort` در OpenAPI. */
   async listUniversities(
     query: NestUniversityListQuery = {},
     token?: string
@@ -290,7 +298,7 @@ export const adminCatalogApi = {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.universities,
       token,
-      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
+      { searchParams: toSearchParams(query) }
     );
     return parseNestPagedList<NestUniversity>(raw);
   },
