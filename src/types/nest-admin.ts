@@ -293,10 +293,9 @@ export type NestSemesterWithLessons = NestSemester & {
   lessons?: NestLesson[];
 };
 
+/** تست‌شده روی لایو — `UpdateLessonStatusDto` فقط `status` دارد؛ ظرفیت/روز به `professor-capacities` منتقل شده. */
 export type NestPatchLessonStatusDto = {
   status?: boolean;
-  capacity?: number;
-  days?: number[];
 };
 
 /**
@@ -328,15 +327,13 @@ export type NestProfessorCapacitiesQuery = {
 };
 
 /**
- * آیتم PATCH `/admin/lessons/status` (آرایه).
- * `capacity` نباید از آخرین `generalProfessorCapacity` بیشتر باشد (اگر تنظیمات خالی باشد سقف لایو ۱۵ است).
- * `days`: ۰=شنبه … ۵=پنجشنبه؛ یکتا.
+ * آیتم PATCH `/admin/lessons/status` (آرایه) — `UpdateLessonItemDto` تست‌شده روی لایو.
+ * `capacity`/`days` اینجا نیست؛ آن‌ها فیلدهای `professor-capacities` هستند
+ * (ببین `NestProfessorCapacityWriteDto`)، نه این DTO.
  */
 export type NestUpdateLessonItemDto = {
   id: string;
   status?: boolean;
-  capacity?: number;
-  days?: number[];
 };
 
 export type NestPutLessonWeeksDto = {

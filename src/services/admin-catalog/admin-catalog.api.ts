@@ -414,7 +414,13 @@ export const adminCatalogApi = {
     );
   },
 
-  /** DELETE /admin/weeks/{id} — حذف هفته از درس. */
+  /**
+   * DELETE /admin/weeks/{id} — تست‌شده روی محیط لایو: این مسیر اصلاً وجود ندارد
+   * (۴۰۴ «Cannot DELETE»؛ فقط PATCH روی `/admin/weeks/{id}` تعریف شده).
+   * فعلاً هیچ‌جا صدا زده نمی‌شود — `planNestWeekWrites` عمداً `deletions` را
+   * همیشه خالی برمی‌گرداند (ببین real-syllabus-mappers.ts). اگر آن رفتار
+   * تغییر کند، این متد باید حذف/جایگزین شود، نه فعال.
+   */
   deleteWeek(id: string, token?: string) {
     return apiClient.deleteMaybeJson<null>(NEST_ADMIN_PATHS.weekById(id), token);
   },
