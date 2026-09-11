@@ -53,6 +53,8 @@ export function mapNestAccountUser(
     city: readTitles(row.city),
     district: readTitles(row.educationalDistrict),
     school: readTitles(row.school),
+    province: readTitles(row.province),
+    college: readTitles(row.university),
   };
 }
 

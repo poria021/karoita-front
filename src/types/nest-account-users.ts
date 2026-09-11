@@ -11,29 +11,45 @@ export type NestAccountUserRoleDto = {
   is_other_role?: boolean;
 };
 
+/** لایو معمولاً فقط `id` می‌دهد؛ `name` را ندیدیم — اختیاری نگه داشتیم. */
 export type NestAccountUserStatusDto = {
   id: string;
-  name: string;
+  name?: string;
 };
 
+/** `city`/`educationalDistrict`/`school` از `id` استفاده می‌کنند؛ `province`/`university` از `_id` (رفتار لایو، تست‌شده). */
 export type NestAccountUserTitleRef = {
-  id: string;
+  id?: string;
+  _id?: string;
   title: string;
 };
 
+/**
+ * پاسخ POST/GET/PATCH `/api/v1/admin/account-users` — روی محیط لایو تست شد
+ * (۱۱ سپتامبر ۲۰۲۶). `province`/`university`/`degree`/`documentStatus` در
+ * پاسخ واقعی هستند ولی قبلاً در تایپ نبودند.
+ */
 export type NestAccountUserDto = {
   id: string;
   phone: string;
   provider?: string;
-  socialId?: string;
-  firstName: string;
-  lastName: string;
+  socialId?: string | null;
+  firstName?: string;
+  lastName?: string;
   role: NestAccountUserRoleDto;
   status?: NestAccountUserStatusDto;
   userUniqueId?: string;
   city?: NestAccountUserTitleRef[] | null;
+  province?: NestAccountUserTitleRef[] | null;
   educationalDistrict?: NestAccountUserTitleRef[] | null;
   school?: NestAccountUserTitleRef[] | null;
+  university?: NestAccountUserTitleRef[] | null;
+  degree?: NestAccountUserTitleRef | null;
+  /**
+   * لایو این مقدار را با کیس متفاوت از enum کاربران عمومی برمی‌گرداند
+   * (مثلاً `"notInit"` نه `"NOTINIT"`) — قبل از مصرف با `.toUpperCase()` نرمال کن.
+   */
+  documentStatus?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;

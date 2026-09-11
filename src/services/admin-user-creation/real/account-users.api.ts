@@ -43,7 +43,10 @@ export const accountUsersApi = {
     return apiClient.getJson<unknown>(NEST_ACCOUNT_USERS_PATHS.roles, token);
   },
 
-  /** GET /api/v1/admin/account-users/{id} */
+  /**
+   * GET /api/v1/admin/account-users/{id} — روی id نامعتبر/حذف‌شده لایو ۲۰۰ با
+   * بدنهٔ `null` می‌دهد (نه ۴۰۴). caller باید قبل از مصرف null بودن را چک کند.
+   */
   getById(id: string, token?: string) {
     return apiClient.getJson<NestAccountUserDto>(
       NEST_ACCOUNT_USERS_PATHS.byId(id),
