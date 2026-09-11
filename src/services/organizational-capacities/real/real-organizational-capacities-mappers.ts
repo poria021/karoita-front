@@ -30,13 +30,13 @@ const WEEKDAYS: readonly OrganizationalCapacityWeekday[] = [
 const SEMESTER_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   one: 'نیم‌سال اول',
   two: 'نیم‌سال دوم',
-  three: 'تابستان',
+  summer: 'تابستان',
 };
 
 const MODULAR_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   one: 'پودمان اول',
   two: 'پودمان دوم',
-  three: 'پودمان دوم',
+  summer: 'پودمان دوم',
 };
 
 /** کارورزی → `GET semesters_all?structure=semester`؛ کارآموزی → `podmani`. */
@@ -55,7 +55,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isSeason(value: unknown): value is NestSemesterSeason {
-  return value === 'one' || value === 'two' || value === 'three';
+  return value === 'one' || value === 'two' || value === 'summer';
 }
 
 function asFiniteNumber(value: unknown, fallback = 0): number {

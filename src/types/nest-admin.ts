@@ -240,7 +240,8 @@ export type NestUniversity = {
  * GET `/admin/semesters_all` ممکن است `academicYears` جمع باشد و گیت را ندهد —
  * آن‌ها را از GET `/admin/semester` بخوان. PATCH ممکن است سند خام mongoose بدهد.
  */
-export type NestSemesterSeason = 'one' | 'two' | 'three';
+/** مقدار سوم `season` روی OpenAPI لایو `summer` است، نه `three` — تست‌شده با POST واقعی (۴۲۲ روی `three`، ۲۰۴ روی `summer`). */
+export type NestSemesterSeason = 'one' | 'two' | 'summer';
 
 /**
  * مقدار `structure` در POST/PATCH `/admin/semester` و کوئری

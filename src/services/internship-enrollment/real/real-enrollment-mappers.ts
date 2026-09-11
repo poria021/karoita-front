@@ -120,7 +120,7 @@ export function parseOpenCourseSelection(
     academicYears:
       typeof doc.academicYears === 'string' ? doc.academicYears : undefined,
     season:
-      doc.season === 'two' || doc.season === 'three' ? doc.season : 'one',
+      doc.season === 'two' || doc.season === 'summer' ? doc.season : 'one',
     structure:
       typeof doc.structure === 'string' && doc.structure
         ? (doc.structure as NestSemesterWithLessons['structure'])

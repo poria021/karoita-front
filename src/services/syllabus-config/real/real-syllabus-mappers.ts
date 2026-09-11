@@ -58,14 +58,14 @@ function nestPriorityFromWeight(
 const SEMESTER_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   one: 'نیم‌سال اول',
   two: 'نیم‌سال دوم',
-  three: 'تابستان',
+  summer: 'تابستان',
 };
 
 const MODULAR_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   one: 'پودمان اول',
   two: 'پودمان دوم',
   // فرم پودمانی تابستان ندارد — به دوم برمی‌گردیم.
-  three: 'پودمان دوم',
+  summer: 'پودمان دوم',
 };
 
 export function nestEntityId(row: { id?: string; _id?: string }): string {
@@ -157,7 +157,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isSeason(value: unknown): value is NestSemesterSeason {
-  return value === 'one' || value === 'two' || value === 'three';
+  return value === 'one' || value === 'two' || value === 'summer';
 }
 
 /** `_id.buffer` سند خام mongoose را به hex ۲۴ کاراکتری برمی‌گرداند. */
