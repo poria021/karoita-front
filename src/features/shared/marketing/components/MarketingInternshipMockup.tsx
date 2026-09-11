@@ -1,5 +1,4 @@
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { faIcons } from '@/utils/iconMap';
 
 /** قاب تزئینی محصول — مطابق موک کارورزی Landing-2 (ستون چپ). */
@@ -12,9 +11,8 @@ export function MarketingInternshipMockup() {
           dir="rtl"
         >
           <div className="flex items-center gap-2">
-            <KarvitaBrandMark className="size-6 rounded-kv-control p-1" />
             <span className="text-xs font-black text-kv-text">
-              مدیریت کارورزی کارویتا
+              سامانه کارورزی کارویتا
             </span>
           </div>
 
@@ -194,14 +192,15 @@ export function MarketingInternshipMockup() {
         </div>
       </div>
 
-      <div className="absolute -top-8 end-[1%] z-20 w-[210px] cursor-default rounded-kv-card bg-kv-text/95 p-4 text-kv-canvas shadow-kv-overlay backdrop-blur-md transition-transform duration-300 hover:scale-105 sm:w-[230px] lg:end-[2%]">
+      <div className="absolute -top-8 end-[1%] z-20 w-[210px] cursor-default rounded-kv-card border border-kv-border-muted bg-kv-surface/95 p-4 text-kv-canvas shadow-kv-overlay backdrop-blur-md transition-transform duration-300 hover:scale-105 sm:w-[230px] lg:end-[2%]">
         <div className="mb-2 flex items-center gap-2.5">
           <div>
-            <h4 className="text-xs font-black">مربی راهنما (مدرسه)</h4>
-            <p className="text-xs text-kv-canvas/50">ارزیابی عملکرد کلاسی</p>
+            <h4 className="text-xs font-black text-kv-text">مربی راهنما (مدرسه)</h4>
+            <p className="text-xs text-kv-text/50">ارزیابی عملکرد کلاسی</p>
           </div>
         </div>
-        <p className="text-xs font-semibold leading-relaxed text-kv-canvas/80">
+        <hr />
+        <p className="pt-2 text-xs font-semibold leading-relaxed text-kv-text/80">
           «طرح درس اجرا شده با تسلط بالا و مدیریت عالی کلاس همراه بود.»
         </p>
       </div>
