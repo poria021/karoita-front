@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
@@ -56,69 +56,88 @@ export function useSyllabusUnsavedNavigation({
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [hasUnsavedChanges]);
 
-  async function commitSelectTerm(termId: string) {
-    try {
-      setSelectedTermId(termId);
-      await loadTermContext(termId);
-      clearSyllabusWeeksDraft();
-    } catch (err) {
-      toast.error(errorMessage(err, 'انتخاب ترم ناموفق بود.'));
-    }
-  }
-
-  async function commitSelectCourse(course: CourseCatalogItem) {
-    if (!selectedTermId) return;
-    setSelectedCourse(course);
-    try {
-      const loaded = await SyllabusConfigService.getWeeks(
-        selectedTermId,
-        course.id
-      );
-      setWeeks(loaded.weeks);
-      setIsWeeksPublished(loaded.isPublished);
-      if (loaded.serverAlert) {
-        toast.error(loaded.serverAlert);
+  const commitSelectTerm = useCallback(
+    async (termId: string) => {
+      try {
+        setSelectedTermId(termId);
+        await loadTermContext(termId);
+        clearSyllabusWeeksDraft();
+      } catch (err) {
+        toast.error(errorMessage(err, 'انتخاب ترم ناموفق بود.'));
       }
-      clearSyllabusWeeksDraft();
-      setHasUnsavedChanges(false);
-    } catch (err) {
-      toast.error(errorMessage(err, 'بارگذاری سرفصل ناموفق بود.'));
-    }
-  }
+    },
+    [setSelectedTermId, loadTermContext, clearSyllabusWeeksDraft]
+  );
 
-  function requestSelectTerm(termId: string) {
-    const decision = decideUnsavedTermSelect(
-      termId,
+  const commitSelectCourse = useCallback(
+    async (course: CourseCatalogItem) => {
+      if (!selectedTermId) return;
+      setSelectedCourse(course);
+      try {
+        const loaded = await SyllabusConfigService.getWeeks(
+          selectedTermId,
+          course.id
+        );
+        setWeeks(loaded.weeks);
+        setIsWeeksPublished(loaded.isPublished);
+        if (loaded.serverAlert) {
+          toast.error(loaded.serverAlert);
+        }
+        clearSyllabusWeeksDraft();
+        setHasUnsavedChanges(false);
+      } catch (err) {
+        toast.error(errorMessage(err, 'بارگذاری سرفصل ناموفق بود.'));
+      }
+    },
+    [
       selectedTermId,
-      hasUnsavedChanges
-    );
-    if (decision === 'noop') return;
-    if (decision === 'defer') {
-      setPendingNavigation(pendingTermNavigation(termId));
-      return;
-    }
-    void commitSelectTerm(termId);
-  }
+      setSelectedCourse,
+      setWeeks,
+      setIsWeeksPublished,
+      clearSyllabusWeeksDraft,
+      setHasUnsavedChanges,
+    ]
+  );
 
-  function requestSelectCourse(course: CourseCatalogItem) {
-    const decision = decideUnsavedCourseSelect(
-      course.id,
-      selectedCourse?.id,
-      hasUnsavedChanges
-    );
-    if (decision === 'noop') return;
-    if (decision === 'defer') {
-      setPendingNavigation(pendingCourseNavigation(course));
-      return;
-    }
-    void commitSelectCourse(course);
-  }
+  const requestSelectTerm = useCallback(
+    (termId: string) => {
+      const decision = decideUnsavedTermSelect(
+        termId,
+        selectedTermId,
+        hasUnsavedChanges
+      );
+      if (decision === 'noop') return;
+      if (decision === 'defer') {
+        setPendingNavigation(pendingTermNavigation(termId));
+        return;
+      }
+      void commitSelectTerm(termId);
+    },
+    [selectedTermId, hasUnsavedChanges, commitSelectTerm]
+  );
 
-  function clearPendingNavigation() {
+  const requestSelectCourse = useCallback(
+    (course: CourseCatalogItem) => {
+      const decision = decideUnsavedCourseSelect(
+        course.id,
+        selectedCourse?.id,
+        hasUnsavedChanges
+      );
+      if (decision === 'noop') return;
+      if (decision === 'defer') {
+        setPendingNavigation(pendingCourseNavigation(course));
+        return;
+      }
+      void commitSelectCourse(course);
+    },
+    [selectedCourse, hasUnsavedChanges, commitSelectCourse]
+  );
+
+  const clearPendingNavigation = useCallback(() => {
     setPendingNavigation(null);
-  }
+  }, []);
 
-  async function confirmDiscardAndNavigate() {
+  const confirmDiscardAndNavigate = useCallback(async () => {
     const pending = pendingNavigation;
     setPendingNavigation(null);
     if (!pending) return;
@@ -128,7 +147,7 @@ export function useSyllabusUnsavedNavigation({
       return;
     }
     await commitSelectCourse(pending.course);
-  }
+  }, [pendingNavigation, commitSelectTerm, commitSelectCourse]);
 
   return {
     pendingNavigation,

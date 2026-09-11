@@ -1,5 +1,7 @@
 'use client';
 
+import { useMemo } from 'react';
+
 import { AppTabs, AppTabsList, AppTabsTrigger } from '@/components/shared/AppTabs';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -74,7 +76,10 @@ export function TermFormCard({
   const activeTermTypeOption =
     TERM_TYPE_OPTIONS.find((option) => option.value === termType) ??
     TERM_TYPE_OPTIONS[0]!;
-  const termsForActiveType = terms.filter((term) => term.type === termType);
+  const termsForActiveType = useMemo(
+    () => terms.filter((term) => term.type === termType),
+    [terms, termType]
+  );
 
   return (
     <KvCard>
