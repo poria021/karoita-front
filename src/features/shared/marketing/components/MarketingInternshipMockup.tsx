@@ -1,5 +1,4 @@
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { faIcons } from '@/utils/iconMap';
 
 /** قاب تزئینی محصول — مطابق موک کارورزی Landing-2 (ستون چپ). */
@@ -12,7 +11,9 @@ export function MarketingInternshipMockup() {
           dir="rtl"
         >
           <div className="flex items-center gap-2">
-            <KarvitaBrandMark className="size-6 rounded-kv-control p-1" />
+            <div className="flex size-6 select-none items-center justify-center rounded-kv-control bg-kv-brand text-xs font-black text-kv-brand-fg">
+              K
+            </div>
             <span className="text-xs font-black text-kv-text">
               مدیریت کارورزی کارویتا
             </span>
