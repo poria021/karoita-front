@@ -181,6 +181,7 @@ export type NestDegreeListQuery = {
   page?: number;
   limit?: number;
   title?: string;
+  sort?: string;
 };
 
 /** GET /admin/roles: `title` کلید انگلیسی، `title_fa` برچسب فارسی؛ resolveRoleLabel اول `title_fa` را می‌گیرد. */
@@ -392,6 +393,8 @@ export type NestAdminPageQuery = {
   limit?: number;
   /** جستجو بر اساس عنوان — مطابق پارامتر `filters` در OpenAPI */
   filters?: string;
+  /** مرتب‌سازی — مثال: `[{"orderBy":"title","order":"ASC"}]` */
+  sort?: string;
 };
 
 export type NestEducationListQuery = {
@@ -400,6 +403,7 @@ export type NestEducationListQuery = {
   provinceId?: string;
   cityId?: string;
   title?: string;
+  sort?: string;
 };
 
 export type NestSchoolListQuery = {
@@ -409,12 +413,14 @@ export type NestSchoolListQuery = {
   cityId?: string;
   educationId?: string;
   title?: string;
+  sort?: string;
 };
 
 export type NestUniversityListQuery = {
   page?: number;
   limit?: number;
   title?: string;
+  sort?: string;
 };
 
 /** Envelope `{ data, hasNextPage }` — یا آرایهٔ خام قدیمی اگر Nest هنوز آن را بدهد. */

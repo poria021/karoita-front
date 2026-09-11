@@ -48,6 +48,12 @@ import type {
 } from '@/types/nest-admin';
 
 /**
+ * مرتب‌سازی الفبایی استاندارد برای همه لیست‌های ادمین — پشتیبانی در OpenAPI لایو.
+ * ارسال صریح جلوی رفتار نامعلوم پیش‌فرض سمت Nest را می‌گیرد.
+ */
+const TITLE_ASC_SORT = '[{"orderBy":"title","order":"ASC"}]';
+
+/**
  * مسیرها نسبت به `NEXT_PUBLIC_API_URL` (`.../api`).
  * املای `universites` و `degreeee` و DELETE مدرسه بدون `/` با OpenAPI لایو یکی است.
  */
@@ -97,7 +103,7 @@ export const adminCatalogApi = {
     return apiClient.getJson<NestPagedList<NestProvince>>(
       NEST_ADMIN_PATHS.provinces,
       token,
-      { searchParams: toNestTitleFilterSearchParams(query) }
+      { searchParams: toNestTitleFilterSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
     );
   },
   /** GET /admin/province/all?title= — آرایهٔ خام، بدون پاکت paging و بدون timestamp روی ردیف. */
@@ -125,7 +131,7 @@ export const adminCatalogApi = {
   /** GET /admin/cities — همان شکل generated-controller استان‌ها؛ `filters` JSON آبجکت-رشته. */
   listCities(query: NestAdminPageQuery = {}, token?: string) {
     return apiClient.getJson<NestPagedList<NestCity>>(NEST_ADMIN_PATHS.cities, token, {
-      searchParams: toNestTitleFilterSearchParams(query),
+      searchParams: toNestTitleFilterSearchParams({ ...query, sort: TITLE_ASC_SORT }),
     });
   },
   getCity(id: string, token?: string) {
@@ -162,7 +168,7 @@ export const adminCatalogApi = {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.educations,
       token,
-      { searchParams: toSearchParams(query) }
+      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
     );
     return parseNestPagedList<NestEducationalDistrict>(raw);
   },
@@ -208,7 +214,7 @@ export const adminCatalogApi = {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.schools,
       token,
-      { searchParams: toSearchParams(query) }
+      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
     );
     return parseNestMaybePagedList<NestSchool>(raw, query.page, query.limit);
   },
@@ -217,7 +223,7 @@ export const adminCatalogApi = {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.schoolsAll,
       token,
-      { searchParams: toSearchParams(query) }
+      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
     );
     return parseNestPagedList<NestSchool>(raw);
   },
@@ -242,7 +248,7 @@ export const adminCatalogApi = {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.degreesWithRole,
       token,
-      { searchParams: toSearchParams(query) }
+      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
     );
     return parseNestPagedList<NestDegree>(raw);
   },
@@ -284,7 +290,7 @@ export const adminCatalogApi = {
     const raw = await apiClient.getJson<unknown>(
       NEST_ADMIN_PATHS.universities,
       token,
-      { searchParams: toSearchParams(query) }
+      { searchParams: toSearchParams({ ...query, sort: TITLE_ASC_SORT }) }
     );
     return parseNestPagedList<NestUniversity>(raw);
   },
