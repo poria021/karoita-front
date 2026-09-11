@@ -9,7 +9,7 @@
   /* معرفی فونت وزیرمتن به عنوان فونت بدون‌سریف پیش‌فرض Tailwind v4 */
   --font-sans: var(--font-vazirmatn), sans-serif;
   /* Official geometric mark — transparent; PNG may be brand-colored for favicon/PWA. */
-  --kv-brand-mark: url("/brand/karvita-mark.png");
+  --kv-brand-mark: url("/brand/main-logo.png");
 
   --radius-sm: var(--radius-kv-tight);
   --radius-md: var(--radius-kv-control);
@@ -814,7 +814,6 @@ input[readonly]:-webkit-autofill {
 .kv-brand-mark {
   display: block;
   flex-shrink: 0;
-  aspect-ratio: 906 / 688;
   background-color: currentColor;
   -webkit-mask-image: var(--kv-brand-mark);
   -webkit-mask-repeat: no-repeat;

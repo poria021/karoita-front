@@ -21,7 +21,7 @@ export function MarketingFooter({ socials }: MarketingFooterProps) {
         <div className="grid grid-cols-1 gap-8 pb-8 lg:grid-cols-12">
           <div className="space-y-5 lg:col-span-7">
             <MarketingPanelHomeLink className="flex items-center gap-3.5 transition-opacity hover:opacity-80">
-              <KarvitaBrandMark className="size-12 rounded-kv-card p-2" />
+              <KarvitaBrandMark className="!size-14 rounded-kv-card p-1" />
               <span className="text-3xl font-black leading-none tracking-tight text-kv-text">
                 کارویتا
               </span>
