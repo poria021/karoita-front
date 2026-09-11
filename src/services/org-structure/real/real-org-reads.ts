@@ -32,6 +32,7 @@ import {
   flushRealDeleteBlockedCache,
   getRealDeleteBlockedSets,
 } from '@/services/org-structure/real/real-org-delete-blocked';
+import { sortByNameFa } from '@/services/org-structure/org-structure-sort';
 import type {
   OrgCity,
   OrgDistrict,
@@ -160,8 +161,8 @@ async function listRealPageRaw(
       limit,
       title: query || undefined,
     });
-    const items: OrgStructureListItem[] = data.map((d) =>
-      overlayOrgRelationLabels(toOrgDistrictListItem(d))
+    const items: OrgStructureListItem[] = sortByNameFa(
+      data.map((d) => overlayOrgRelationLabels(toOrgDistrictListItem(d)))
     );
     return {
       items,
@@ -177,8 +178,8 @@ async function listRealPageRaw(
       limit,
       title: query || undefined,
     });
-    const items: OrgStructureListItem[] = data.map((s) =>
-      overlayOrgRelationLabels(toOrgSchoolListItem(s))
+    const items: OrgStructureListItem[] = sortByNameFa(
+      data.map((s) => overlayOrgRelationLabels(toOrgSchoolListItem(s)))
     );
     return {
       items,
@@ -200,12 +201,14 @@ async function listRealPageRaw(
     const roleMap = new Map(
       roles.map((r) => [r.id, { title: r.title, title_fa: r.title_fa }])
     );
-    const items: OrgStructureListItem[] = data.map((d) => {
-      const enrichedRole = d.role?.id
-        ? { ...d.role, ...(roleMap.get(d.role.id) ?? {}) }
-        : d.role;
-      return toOrgMajorListItem({ ...d, role: enrichedRole });
-    });
+    const items: OrgStructureListItem[] = sortByNameFa(
+      data.map((d) => {
+        const enrichedRole = d.role?.id
+          ? { ...d.role, ...(roleMap.get(d.role.id) ?? {}) }
+          : d.role;
+        return toOrgMajorListItem({ ...d, role: enrichedRole });
+      })
+    );
     return {
       items,
       total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
@@ -219,19 +222,21 @@ async function listRealPageRaw(
     limit,
     title: query || undefined,
   });
-  const items: OrgStructureListItem[] = data.map((u) => {
-    const mapped = toOrgFaculty(u);
-    const usersCount = nestUsersCount(u);
-    return overlayOrgRelationLabels({
-      ...mapped,
-      kind: 'faculty' as const,
-      usersCount,
-      deleteBlocked: isLinkedUserDeleteBlocked('faculty', usersCount),
-      // رفتار لایو: استان زیر `role` است نه `province`.
-      provinceName: firstRelationTitle(u.province, u.role, u.provinceId),
-      cityName: firstRelationTitle(u.city, u.cityId, u.city_id),
-    });
-  });
+  const items: OrgStructureListItem[] = sortByNameFa(
+    data.map((u) => {
+      const mapped = toOrgFaculty(u);
+      const usersCount = nestUsersCount(u);
+      return overlayOrgRelationLabels({
+        ...mapped,
+        kind: 'faculty' as const,
+        usersCount,
+        deleteBlocked: isLinkedUserDeleteBlocked('faculty', usersCount),
+        // رفتار لایو: استان زیر `role` است نه `province`.
+        provinceName: firstRelationTitle(u.province, u.role, u.provinceId),
+        cityName: firstRelationTitle(u.city, u.cityId, u.city_id),
+      });
+    })
+  );
   return {
     items,
     total: estimateHasNextPageTotal(offset, items.length, hasNextPage),
