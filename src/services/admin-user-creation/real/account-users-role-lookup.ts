@@ -19,12 +19,19 @@ import type { OrgManagementRole } from '@/types/role-taxonomy';
  * نقش‌های نهایی رو داره (یا تست‌ها که mock درست می‌دن)، بی‌اثره و همون مسیر اصلی
  * pickNestRoleDto اجرا میشه. `regional_edu_admin` عمداً اینجا نیست چون نقش چهارم
  * هنوز روی بک‌اند اضافه نشده. وقتی بک‌اند نهایی شد: این override و کل این بلاک حذف بشه.
+ *
+ * ایمنی production: این override فقط در محیط غیر production فعاله (ALLOW_TEMP_ORG_ROLE_OVERRIDE).
+ * در production اگه نقش واقعی در لیست نبود، به‌جای map کردن بی‌صدا به placeholder،
+ * خطای صریح پرتاب می‌شود (رجوع کنید به pickNestRoleDto) — یعنی اگر placeholderها به اشتباه
+ * در محیط واقعی دیده بشن، ثبت کاربر fail می‌شود به‌جای ثبت در سازمان اشتباه.
  */
 const TEMP_ORG_ROLE_TITLE_OVERRIDE: Partial<Record<OrgManagementRole, string>> = {
   central_organization: 'other1',
   provincial_university: 'other2',
   faculty_role: 'other3',
 };
+
+const ALLOW_TEMP_ORG_ROLE_OVERRIDE = process.env.NODE_ENV !== 'production';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -53,7 +60,9 @@ function parseOrganizationalRoleList(raw: unknown): NestRoleDto[] {
 export async function resolveOrganizationalRoleId(
   role: OrgManagementRole
 ): Promise<string> {
-  const overrideTitle = TEMP_ORG_ROLE_TITLE_OVERRIDE[role];
+  const overrideTitle = ALLOW_TEMP_ORG_ROLE_OVERRIDE
+    ? TEMP_ORG_ROLE_TITLE_OVERRIDE[role]
+    : undefined;
   let lastError: unknown;
 
   for (let attempt = 0; attempt < 2; attempt++) {
