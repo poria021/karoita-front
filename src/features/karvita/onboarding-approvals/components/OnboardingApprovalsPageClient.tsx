@@ -1,7 +1,7 @@
 'use client';
 
-import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 
@@ -34,7 +34,19 @@ export function OnboardingApprovalsPageClient() {
           />
         }
         toolbar={
-          <>
+          page.error ? (
+            <KvRouteStatus
+              kind="error"
+              layout="inset"
+              title="بارگذاری پرونده‌ها ناموفق بود"
+              description={page.error}
+              actions={
+                <KvButton type="button" color="cta" onClick={page.reload}>
+                  تلاش مجدد
+                </KvButton>
+              }
+            />
+          ) : (
             <div className="lg:hidden">
               <OnboardingApprovalsFilters
                 query={page.query}
@@ -45,24 +57,7 @@ export function OnboardingApprovalsPageClient() {
                 searchPlaceholder="جستجوی نام یا کد ملی..."
               />
             </div>
-            {page.error ? (
-              <KvAlert
-                variant="error"
-                title="بارگذاری پرونده‌ها ناموفق بود"
-                description={page.error}
-                actions={
-                  <KvButton
-                    type="button"
-                    appearance="secondary"
-                    size="sm"
-                    onClick={page.reload}
-                  >
-                    تلاش مجدد
-                  </KvButton>
-                }
-              />
-            ) : null}
-          </>
+          )
         }
         primary={
           page.error ? null : (
