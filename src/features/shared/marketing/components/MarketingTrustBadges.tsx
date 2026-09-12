@@ -48,7 +48,7 @@ export function MarketingTrustBadges() {
               <span className="flex w-10 shrink-0 items-center justify-center rounded-kv-control border border-kv-border bg-kv-surface text-kv-text shadow-kv-soft sm:w-11">
                 <FaIcon icon={stat.icon} size="lg" className="sm:text-xl" />
               </span>
-              <div className="flex flex-col justify-center text-right">
+              <div className="flex flex-col justify-center text-end">
                 <span className="text-xs font-black leading-tight text-kv-text">
                   {stat.title}
                 </span>

@@ -52,7 +52,7 @@ export function MarketingBenefitsSection() {
           <div className="rounded-kv-card border border-kv-border-muted bg-kv-surface-subtle p-6 shadow-kv-soft sm:p-10">
             <AppTabsContent value="hq" className="mt-0">
               <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-                <div className="space-y-4 text-right lg:col-span-6">
+                <div className="space-y-4 text-end lg:col-span-6">
                   <span className="inline-block rounded-kv-control bg-kv-brand-soft px-3 py-1 text-xs font-extrabold text-kv-brand-soft-fg">
                     مدیریت کلان و سیاست‌گذاری
                   </span>
@@ -96,7 +96,7 @@ export function MarketingBenefitsSection() {
                   <div className="flex items-center justify-between border-b border-kv-border-muted pb-2 text-xs font-black text-kv-text">
                     <span>کنسول مدیریت سازمان مرکزی</span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-right">
+                  <div className="grid grid-cols-2 gap-2 text-end">
                     <div className="rounded-kv-control border border-kv-brand-border bg-kv-brand-soft/50 p-3">
                       <span className="block text-xs font-extrabold text-kv-text-subtle">
                         پردیس‌های فعال
@@ -120,7 +120,7 @@ export function MarketingBenefitsSection() {
 
             <AppTabsContent value="region" className="mt-0">
               <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-                <div className="space-y-4 text-right lg:col-span-6">
+                <div className="space-y-4 text-end lg:col-span-6">
                   <span className="inline-block rounded-kv-control bg-kv-success-soft px-3 py-1 text-xs font-extrabold text-kv-success-soft-fg">
                     نظارت میدانی و پذیرش مدارس
                   </span>
@@ -179,7 +179,7 @@ export function MarketingBenefitsSection() {
 
             <AppTabsContent value="exec" className="mt-0">
               <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-                <div className="space-y-4 text-right lg:col-span-6">
+                <div className="space-y-4 text-end lg:col-span-6">
                   <span className="inline-block rounded-kv-control bg-kv-info-soft px-3 py-1 text-xs font-extrabold text-kv-info-soft-fg">
                     اجرایی، آموزشی و مهارتی
                   </span>

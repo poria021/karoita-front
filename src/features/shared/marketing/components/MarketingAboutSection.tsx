@@ -43,7 +43,7 @@ export function MarketingAboutSection() {
             </svg>
 
             <div className="absolute inset-0">
-              <div className="absolute left-1/2 top-[-2%] flex -translate-x-1/2 flex-col items-center">
+              <div className="absolute start-1/2 top-[-2%] flex -translate-x-1/2 flex-col items-center">
                 <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-brand-border bg-kv-surface text-xl text-kv-brand shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.buildingColumns} />
                 </div>
@@ -52,7 +52,7 @@ export function MarketingAboutSection() {
                 </span>
               </div>
 
-              <div className="absolute left-1/4 top-[74%] flex -translate-x-1/2 flex-col items-center">
+              <div className="absolute start-1/4 top-[74%] flex -translate-x-1/2 flex-col items-center">
                 <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-success-border bg-kv-surface text-xl text-kv-success shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.school} />
                 </div>
@@ -61,7 +61,7 @@ export function MarketingAboutSection() {
                 </span>
               </div>
 
-              <div className="absolute right-2 top-[63%] flex -translate-x-2 flex-col items-center">
+              <div className="absolute end-2 top-[63%] flex -translate-x-2 flex-col items-center">
                 <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-info-border bg-kv-surface text-xl text-kv-info shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.graduationCap} />
                 </div>
@@ -79,7 +79,7 @@ export function MarketingAboutSection() {
             </div>
           </div>
 
-          <div className="relative space-y-6 text-right lg:col-span-7">
+          <div className="relative space-y-6 text-end lg:col-span-7">
             <span className="inline-flex items-center gap-1.5 rounded-kv-control border border-kv-border-muted bg-kv-surface/80 px-3 py-1 text-xs font-black uppercase tracking-wider text-kv-text-secondary shadow-kv-soft">
               <span className="size-1.5 rounded-full bg-kv-brand" /> درباره کارویتا
             </span>

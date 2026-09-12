@@ -122,7 +122,7 @@ export function MarketingInternshipMockup() {
               </div>
 
               <div className="flex-grow overflow-auto">
-                <table className="w-full text-right text-xs">
+                <table className="w-full text-end text-xs">
                   <thead>
                     <tr className="border-b border-kv-border-muted text-kv-text-subtle">
                       <th className="w-10 pb-1 font-bold">#</th>
