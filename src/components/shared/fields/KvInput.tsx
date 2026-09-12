@@ -34,7 +34,18 @@ export function KvInput({
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (isNumberField) {
-      event.target.value = persianToEnglishDigits(event.target.value);
+      const input = event.target;
+      const cursorPos = input.selectionStart ?? input.value.length;
+      const raw = input.value;
+      const next = persianToEnglishDigits(raw);
+      if (next !== raw) {
+        // تبدیل رقم‌به‌رقم است (طول تغییر نمی‌کند)، ولی نوشتن مستقیم روی
+        // `.value` مکان‌نما را به انتهای متن می‌برد؛ باید صراحتاً برگردانیم.
+        input.value = next;
+        onChange?.(event);
+        input.setSelectionRange(cursorPos, cursorPos);
+        return;
+      }
     }
     onChange?.(event);
   };

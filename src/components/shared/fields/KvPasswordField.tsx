@@ -75,11 +75,28 @@ export const KvPasswordField = React.forwardRef<
   };
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = event.target.value;
+    const input = event.target;
+    const cursorPos = input.selectionStart ?? input.value.length;
+    const raw = input.value;
+
     if (containsPersianOrArabicScript(raw)) {
-      event.target.value = stripPersianOrArabicScript(raw);
+      const next = stripPersianOrArabicScript(raw);
       setPersianScriptError(PASSWORD_LATIN_ONLY_HINT);
-    } else if (persianScriptError) {
+
+      // طول رشته با حذف کاراکترهای فارسی/عربی کم می‌شود؛ مکان‌نما را متناسب
+      // با تعداد حذف‌شده جابه‌جا می‌کنیم تا به انتهای متن پرش نکند.
+      const removedChars = raw.length - next.length;
+      const nextCursor = Math.max(
+        0,
+        Math.min(next.length, cursorPos - removedChars)
+      );
+      input.value = next;
+      onChange?.(event);
+      input.setSelectionRange(nextCursor, nextCursor);
+      return;
+    }
+
+    if (persianScriptError) {
       setPersianScriptError(undefined);
     }
     onChange?.(event);

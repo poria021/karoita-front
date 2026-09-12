@@ -224,26 +224,32 @@ export const KvTextField = React.forwardRef<HTMLInputElement, KvTextFieldProps>(
         return;
       }
 
-      const raw = event.target.value;
+      const input = event.target;
+      const cursorPos = input.selectionStart ?? input.value.length;
+      const raw = input.value;
       const { value: next, blockedLatin } = applyPersianTextScriptGuard(
         raw,
         resolvedGuard
       );
+
       if (blockedLatin) {
-        event.target.value = next;
         setLatinScriptError(LATIN_LETTERS_NOT_ALLOWED_MESSAGE);
-      } else if (resolvedGuard === 'persian-name' && next !== raw) {
-        event.target.value = next;
-        if (latinScriptError) {
-          setLatinScriptError(undefined);
-        }
-      } else if (next !== raw) {
-        event.target.value = next;
-        if (latinScriptError) {
-          setLatinScriptError(undefined);
-        }
       } else if (latinScriptError) {
         setLatinScriptError(undefined);
+      }
+
+      if (next !== raw) {
+        // طول رشته با حذف کاراکترهای غیرمجاز کم می‌شود؛ مکان‌نما را متناسب
+        // با تعداد حذف‌شده جابه‌جا می‌کنیم تا به انتهای متن پرش نکند.
+        const removedChars = raw.length - next.length;
+        const nextCursor = Math.max(
+          0,
+          Math.min(next.length, cursorPos - removedChars)
+        );
+        input.value = next;
+        onChange?.(event);
+        input.setSelectionRange(nextCursor, nextCursor);
+        return;
       }
 
       onChange?.(event);
