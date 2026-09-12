@@ -76,12 +76,6 @@ export async function POST(request: NextRequest) {
   const surface: AuthSurface = resolveAuthSurface(rawSurface);
   const nestRefreshPath = NEST_REFRESH_PATHS[surface];
 
-  if (process.env.NODE_ENV !== 'production') {
-    const allCookies = request.cookies.getAll();
-    console.log('[/api/auth/refresh] cookies present:', allCookies.map(c => c.name));
-    console.log('[/api/auth/refresh] rt present:', !!refreshToken, '| surface:', surface);
-  }
-
   if (!refreshToken) {
     return NextResponse.json(
       { error: 'نشست منقضی شده است.' },
@@ -100,16 +94,10 @@ export async function POST(request: NextRequest) {
   let nestResponse: Response;
   try {
     // Nest روی refresh، `Authorization: Bearer` را به‌عنوان refresh می‌گیرد نه access.
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[/api/auth/refresh] → POST', `${nestApiUrl}/${nestRefreshPath}`);
-    }
     nestResponse = await fetchNestUpstream(`${nestApiUrl}/${nestRefreshPath}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${refreshToken}` },
     });
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('[/api/auth/refresh] ← Nest status:', nestResponse.status);
-    }
   } catch (err) {
     logNestUpstreamFailure('/api/auth/refresh', err);
     return NextResponse.json(
@@ -120,12 +108,6 @@ export async function POST(request: NextRequest) {
 
   if (nestResponse.status === 401 || nestResponse.status === 403) {
     // رفرش باطل — کوکی فاسد را پاک کن تا کلاینت به login برود.
-    if (process.env.NODE_ENV !== 'production') {
-      try {
-        const errBody = await nestResponse.clone().text();
-        console.log('[/api/auth/refresh] Nest 401/403 body:', errBody);
-      } catch {}
-    }
     const expired = NextResponse.json(
       { error: 'نشست منقضی شده است.' },
       { status: 401 }
