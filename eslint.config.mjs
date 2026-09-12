@@ -1,5 +1,8 @@
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
+import { fileURLToPath } from 'node:url';
+
+const tsconfigRootDir = fileURLToPath(new URL('.', import.meta.url));
 
 /**
  * UI محصول نباید رنگ را در TS/TSX هاردکد کند.
@@ -156,6 +159,22 @@ const eslintConfig = [
     ignores: ['src/lib/pwa/pwa-chrome-color.ts'],
     rules: {
       'no-restricted-syntax': ['error', ...COLOR_RESTRICTED_SYNTAX],
+    },
+  },
+  /**
+   * لینت type-aware برای گیر انداختن promise های رهاشده (بدون await/catch) —
+   * کلاسی از باگ که بدون این، فقط با بازبینی دستی پیدا می‌شود.
+   */
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        project: './tsconfig.json',
+        tsconfigRootDir,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
     },
   },
   /**
