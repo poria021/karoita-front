@@ -11,7 +11,12 @@ let originalPushState: History['pushState'] | null = null;
 let originalReplaceState: History['replaceState'] | null = null;
 
 function emit(): void {
-  for (const listener of listeners) listener();
+  // زمان‌بندی به میکروتسک بعدی: pushState/replaceState گاهی داخل
+  // useInsertionEffect صدا زده می‌شود (مثلاً HistoryUpdater خود Next.js)
+  // و React اجازه‌ی زمان‌بندی آپدیت استیت را در همان فاز نمی‌دهد.
+  queueMicrotask(() => {
+    for (const listener of listeners) listener();
+  });
 }
 
 function installHistoryBridge(): void {
