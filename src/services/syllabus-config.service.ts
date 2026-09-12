@@ -1,8 +1,7 @@
 import {
   DEFAULT_WEEK_WEIGHT,
-  getAcademicYearOptions,
   isTermGateActive,
-} from '@/services/syllabus-config/mock/mock-syllabus-store';
+} from '@/services/syllabus-config/syllabus-term-gates';
 import type { EnrollmentSyllabusContext } from '@/services/syllabus-config/syllabus-enrollment-reads';
 
 import { courseOfferingQueries } from './syllabus-config/service/course-offering-queries';
@@ -23,5 +22,5 @@ export const SyllabusConfigService = {
   ...settingsMutations,
 };
 
-export { DEFAULT_WEEK_WEIGHT, getAcademicYearOptions, isTermGateActive };
+export { DEFAULT_WEEK_WEIGHT, isTermGateActive };
 export type { EnrollmentSyllabusContext };

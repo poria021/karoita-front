@@ -36,11 +36,14 @@ export const snapshotQueries = {
     return cloneSnapshot(readSyllabusSnapshot());
   },
 
+  /** تا آمدن endpoint واقعی سال تحصیلی، در حالت real لیست خالی برمی‌گرداند. */
   getAcademicYears(): string[] {
+    if (!IS_MOCK_MODE) return [];
     return getAcademicYearOptions();
   },
 
   getDefaultAcademicYear(): string {
+    if (!IS_MOCK_MODE) return '';
     return getAcademicYearOptions()[1] ?? getAcademicYearOptions()[0] ?? '';
   },
 
