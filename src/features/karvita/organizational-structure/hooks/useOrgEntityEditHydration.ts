@@ -143,10 +143,11 @@ export function useOrgEntityEditHydration({
     }
 
     // فقط fallback: ردیف قابل‌استفاده نیست (mock کلید FK ندارد).
+    let cancelled = false;
     const fetchTimer = window.setTimeout(() => {
       void (async () => {
         const entity = await OrgStructureService.getEntity(entityKind, editId);
-        if (!entity) return;
+        if (!entity || cancelled) return;
 
         if (entityKind === 'province') {
           form.reset({ name: entity.name });
@@ -205,7 +206,10 @@ export function useOrgEntityEditHydration({
       })();
     }, 0);
 
-    return () => window.clearTimeout(fetchTimer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(fetchTimer);
+    };
   }, [editId, editRow, entityKind, form, open, tab]);
 
   useEffect(() => {
