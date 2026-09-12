@@ -8,7 +8,7 @@ import {
   keepLocalIdentityPreview,
   retainSessionOrgFields,
 } from '@/services/auth/keep-local-identity-preview';
-import { MOCK_OTP_CODE } from '@/services/auth/mock/auth-mock-users';
+import { KNOWN_TEST_OTP_CODE } from '@/services/auth/known-test-otp';
 import { DEFAULT_FORGOT_RETRY_AFTER_SECONDS } from '@/services/auth/real/parse-forgot-retry-after';
 import { reportError } from '@/lib/observability/reportError';
 import type { Session, User, UserRole } from '@/types/auth';
@@ -79,7 +79,7 @@ export interface RegisterPayload {
 }
 
 function rejectMockOtpInReal(otp: string): void {
-  assertRealModeRejectsMockSecret(otp, MOCK_OTP_CODE, 'OTP');
+  assertRealModeRejectsMockSecret(otp, KNOWN_TEST_OTP_CODE, 'OTP');
 }
 
 /** حداکثر عمر توکن که refreshRealSession بدون /auth/me به store اعتماد می‌کند. */
@@ -290,7 +290,7 @@ export class AuthService {
   }
 
   static getMockOtpHint(): string | null {
-    return IS_MOCK_MODE ? MOCK_OTP_CODE : null;
+    return IS_MOCK_MODE ? KNOWN_TEST_OTP_CODE : null;
   }
 
   /**
