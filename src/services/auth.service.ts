@@ -4,6 +4,7 @@ import {
   isMockApiMode,
   throwRealModeNotImplemented,
 } from '@/lib/api-mode';
+import { dispatchSessionToStore } from '@/services/auth/dispatch-session';
 import {
   keepLocalIdentityPreview,
   retainSessionOrgFields,
@@ -34,7 +35,6 @@ import {
   mockVerifyRegistrationOtp,
 } from '@/services/auth/mock/mock-auth.operations';
 import {
-  dispatchSessionToStore,
   readSessionMeta,
   tryRestoreMockSession,
 } from '@/services/auth/mock/mock-auth.store';
