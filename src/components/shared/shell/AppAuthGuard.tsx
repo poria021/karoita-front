@@ -28,6 +28,7 @@ function RestoreErrorScreen({ onRetry }: { onRetry: () => void }) {
   return (
     <KvRouteStatus
       kind="offline"
+      code="502"
       title="برقراری ارتباط با سرور ممکن نیست"
       description="نشست شما حفظ شده است. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
       hint="پس از وصل شدن ارتباط، تلاش مجدد را بزنید. خروج از حساب لازم نیست."
