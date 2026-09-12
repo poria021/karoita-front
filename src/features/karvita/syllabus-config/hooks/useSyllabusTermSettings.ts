@@ -74,6 +74,9 @@ export function useSyllabusTermSettings({
   const [termFormBaseline, setTermFormBaseline] = useState(() =>
     termFormKey('', 'semester', defaultPrefixForType('semester'), '')
   );
+  const [pendingDeleteTermId, setPendingDeleteTermId] = useState<string | null>(
+    null
+  );
 
   const editingTerm = terms.find((t) => t.id === editTermId) ?? null;
   const isTermFormDirty =
@@ -276,10 +279,11 @@ export function useSyllabusTermSettings({
   }
 
   function requestDeleteTerm() {
-    if (!editingTerm) return;
+    if (!editingTerm || pendingDeleteTermId) return;
 
     const target = editingTerm;
     let snapshot = terms;
+    setPendingDeleteTermId(target.id);
 
     scheduleUndoableMutation({
       tone: 'error',
@@ -312,7 +316,15 @@ export function useSyllabusTermSettings({
         );
         setSelectedTermId(target.id);
       },
-      commit: () => SyllabusConfigService.deleteTerm(target.id),
+      // pendingDeleteTermId هم روی موفقیت هم شکست باید آزاد شود، حتی وقتی
+      // post-commit refresh شکست بخورد و نه onCommitted نه onError صدا زده شوند.
+      commit: async () => {
+        try {
+          return await SyllabusConfigService.deleteTerm(target.id);
+        } finally {
+          setPendingDeleteTermId(null);
+        }
+      },
       onCommitted: async (result) => {
         invalidateSyllabusTermPanes();
         applySnapshotTerms(result);
