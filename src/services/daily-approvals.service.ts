@@ -1,4 +1,4 @@
-import { isMockApiMode } from '@/lib/api-mode';
+import { isMockApiMode, isStrictRealApiMode } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import { listRealCapacityCourses, listRealCapacityTerms } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import {
@@ -63,7 +63,7 @@ const REVIEW_ROLES = new Set<UserRole>([
 ]);
 
 function requireDailyApprovalsReview(): void {
-  if (!isMockApiMode()) {
+  if (isStrictRealApiMode()) {
     assertDailyApprovalsMutationReady('DailyApprovalsService');
   }
   assertMockClientHasPermission('daily-approval.review');
@@ -157,7 +157,7 @@ export const DailyApprovalsService = {
     traineeId: string;
     weekId: string;
   }): Promise<DailyApprovalTrainee> {
-    if (!isMockApiMode()) {
+    if (isStrictRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.openWeek');
     }
     requireDailyApprovalsReview();
@@ -167,7 +167,7 @@ export const DailyApprovalsService = {
   async updateWeekEvaluation(
     input: UpdateDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
-    if (!isMockApiMode()) {
+    if (isStrictRealApiMode()) {
       assertDailyApprovalsMutationReady(
         'DailyApprovalsService.updateWeekEvaluation'
       );
@@ -183,7 +183,7 @@ export const DailyApprovalsService = {
   async updateMentorWeekEvaluation(
     input: UpdateMentorDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
-    if (!isMockApiMode()) {
+    if (isStrictRealApiMode()) {
       assertDailyApprovalsMutationReady(
         'DailyApprovalsService.updateMentorWeekEvaluation'
       );
@@ -199,7 +199,7 @@ export const DailyApprovalsService = {
   async updatePrincipalWeekEvaluation(
     input: UpdatePrincipalDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
-    if (!isMockApiMode()) {
+    if (isStrictRealApiMode()) {
       assertDailyApprovalsMutationReady(
         'DailyApprovalsService.updatePrincipalWeekEvaluation'
       );
@@ -215,7 +215,7 @@ export const DailyApprovalsService = {
   async extendWeek(
     input: ExtendDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
-    if (!isMockApiMode()) {
+    if (isStrictRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.extendWeek');
     }
     requireReviewRole('supervisor_professor');
@@ -226,7 +226,7 @@ export const DailyApprovalsService = {
   async bulkExtendWeeks(
     input: BulkExtendDailyApprovalWeeksInput
   ): Promise<BulkExtendDailyApprovalWeeksResult> {
-    if (!isMockApiMode()) {
+    if (isStrictRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.bulkExtendWeeks');
     }
     requireReviewRole('supervisor_professor');
@@ -242,10 +242,15 @@ export const DailyApprovalsService = {
     });
   },
 
+  /**
+   * تست شد: `PATCH student-enrollments/{id}/cancel` سمت Nest صراحتاً رد می‌کند —
+   * «فقط دانشجو می‌تواند ثبت‌نام را لغو کند». یعنی استاد راهنما با این endpoint
+   * نمی‌تواند enrollment کاربر دیگری را لغو کند؛ باید endpoint/پرمیشن جدا از بک‌اند بیاید.
+   */
   async dropTrainee(
     input: DropDailyApprovalTraineeInput
   ): Promise<DailyApprovalTrainee> {
-    if (!isMockApiMode()) {
+    if (isStrictRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.dropTrainee');
     }
     requireReviewRole('supervisor_professor');
@@ -257,7 +262,7 @@ export const DailyApprovalsService = {
   async restoreTrainee(
     trainee: DailyApprovalTrainee
   ): Promise<DailyApprovalTrainee> {
-    if (!isMockApiMode()) {
+    if (isStrictRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.restoreTrainee');
     }
     requireReviewRole('supervisor_professor');

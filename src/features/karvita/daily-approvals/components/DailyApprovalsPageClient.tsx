@@ -2,6 +2,11 @@
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import {
+  DemoDataBadge,
+  IS_DEMO_FALLBACK_ACTIVE,
+  IS_REAL_MODE_STUB_ACTIVE,
+} from '@/components/shared/RealModeStubNotice';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 import { useUserStore } from '@/store/useUserStore';
 
@@ -57,6 +62,22 @@ export function DailyApprovalsPageClient() {
         onQueryChange={page.setQuery}
         onCourseChange={page.changeCourse}
       />
+      {IS_REAL_MODE_STUB_ACTIVE ? (
+        <KvAlert
+          variant="warning"
+          title="عملیات این صفحه هنوز به API واقعی وصل نیست"
+          description="باز کردن گزارش هفته، ثبت نمره، حذف/بازگردانی کارورز و تمدید هفته‌ها فعلاً فقط در حالت شبیه‌ساز (mock) کار می‌کنند."
+        />
+      ) : null}
+      {IS_DEMO_FALLBACK_ACTIVE ? (
+        <div className="flex items-center gap-kv-pair">
+          <DemoDataBadge />
+          <span className="text-xs text-kv-text-secondary">
+            عملیات این صفحه (باز کردن هفته، ثبت نمره، حذف/تمدید) هنوز به Nest
+            وصل نشده و روی داده‌ی نمایشی اجرا می‌شود.
+          </span>
+        </div>
+      ) : null}
       {page.error ? (
         <KvAlert
           variant="error"

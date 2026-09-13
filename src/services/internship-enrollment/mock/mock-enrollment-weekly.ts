@@ -309,5 +309,6 @@ export function buildEnrollmentSummary(input: {
     isTermArchived: isArchivedTerm(input.termTitle),
     weeks: input.weeks,
     progressiveGrade: buildProgressiveGrade(input.weeks),
+    weeksAreReal: false,
   };
 }

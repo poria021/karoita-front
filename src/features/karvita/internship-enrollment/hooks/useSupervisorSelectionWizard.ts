@@ -9,6 +9,7 @@ import {
   SEARCH_DEBOUNCE_MS,
 } from '@/lib/search-debounce';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
+import { cacheSupervisorName } from '@/services/internship-enrollment/real/supervisor-name-cache';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
@@ -116,6 +117,10 @@ export function useSupervisorSelectionWizard({
           termId: state.termId,
           supervisorId,
         });
+        // همین لحظه که استاد هنوز در لیست ظرفیت‌دار قابل‌مشاهده است اسمش را کش
+        // می‌کنیم — بعد از پر شدن ظرفیتش دیگر از GET `/professors` قابل بازیابی نیست.
+        const chosen = supervisors.find((item) => item.id === supervisorId);
+        if (chosen) cacheSupervisorName(chosen.id, chosen.name);
         toast.success('اخذ واحد و انتخاب استاد با موفقیت انجام شد.');
         setStarted(false);
         await onEnrollmentComplete();
@@ -129,7 +134,7 @@ export function useSupervisorSelectionWizard({
         setSubmittingId(null);
       }
     },
-    [actor, onEnrollmentComplete, state.kind, state.level, state.termId]
+    [actor, onEnrollmentComplete, state.kind, state.level, state.termId, supervisors]
   );
 
   return {

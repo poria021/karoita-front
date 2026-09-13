@@ -3,6 +3,7 @@
  * Swagger: PATCH start/submit بدنه ندارند؛ POST submissions `CreateContentDto` می‌گیرد.
  */
 import { apiClient } from '@/services/api-client';
+import type { NestStudentWeekSubmission } from '@/types/nest-student-enrollments';
 
 export const NEST_STUDENT_WEEKS_PATHS = {
   start: (id: string) => `v1/student-weeks/${id}/start`,
@@ -38,5 +39,13 @@ export const studentWeeksApi = {
       NEST_STUDENT_WEEKS_PATHS.submissions(weekId),
       body
     );
+  },
+
+  /** GET /api/v1/student-weeks/{id}/submissions — تاریخچهٔ ارسال‌های این هفته. */
+  async listSubmissions(weekId: string): Promise<NestStudentWeekSubmission[]> {
+    const raw = await apiClient.getJson<unknown>(
+      NEST_STUDENT_WEEKS_PATHS.submissions(weekId)
+    );
+    return Array.isArray(raw) ? (raw as NestStudentWeekSubmission[]) : [];
   },
 };

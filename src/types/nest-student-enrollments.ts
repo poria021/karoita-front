@@ -94,3 +94,45 @@ export type NestMentorCapacity = {
   selected?: number;
   remain?: number;
 };
+
+/**
+ * ردیف GET `/student-enrollments/{id}/weeks`. Swagger enum کامل `status` را مستند
+ * نکرده (نمونه‌های دیده‌شده: `pending`, `in_progress`)؛ mapper به‌جای اتکا به این
+ * رشته، وضعیت UI را از `score`/`submittedAt`/`startedAt` استخراج می‌کند.
+ */
+export type NestStudentWeek = {
+  id?: string;
+  _id?: string;
+  enrollmentId?: string;
+  weekId?:
+    | string
+    | { id?: string; _id?: string; lessonId?: string; priority?: number; status?: boolean };
+  status?: string;
+  score?: number | null;
+  scoreGivenBy?: string | null;
+  scoreGivenAt?: string | null;
+  startedAt?: string | null;
+  submittedAt?: string | null;
+  completedAt?: string | null;
+};
+
+/** GET `/student-enrollments/{id}/score-summary`. */
+export type NestScoreSummary = {
+  totalScore: number;
+  scoredWeeks: number;
+  totalWeeks: number;
+  maximumScore: number;
+};
+
+/** ردیف GET/POST `/student-weeks/{id}/submissions`. */
+export type NestStudentWeekSubmission = {
+  id?: string;
+  _id?: string;
+  studentWeekId?: string;
+  submittedById?: string;
+  text?: string;
+  fileIds?: string[];
+  files?: unknown[];
+  createdAt?: string;
+  updatedAt?: string;
+};

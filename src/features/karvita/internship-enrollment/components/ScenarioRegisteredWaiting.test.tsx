@@ -26,6 +26,7 @@ const BASE_ENROLLMENT: InternshipEnrollmentSummary = {
   isTermArchived: false,
   weeks: [],
   progressiveGrade: { gradedCount: 0, final20: null },
+  weeksAreReal: false,
 };
 
 describe('ScenarioRegisteredWaiting', () => {

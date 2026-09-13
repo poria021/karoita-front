@@ -55,12 +55,18 @@ const MOCK_EMPTY_STUB_ABSOLUTE = fileURLToPath(
   new URL(MOCK_EMPTY_STUB, import.meta.url)
 );
 
-const isMockBuild = process.env.NEXT_PUBLIC_API_MODE === 'mock';
+// production واقعی: NODE_ENV در `next build` این‌طور ست می‌شود، نه در `next dev`.
+const isProductionBuild = process.env.NODE_ENV === 'production';
+// real mode محلی (dev) هم به فایل‌های mock نیاز دارد (fallback برای endpointهای
+// پیاده‌نشده، هرگز در production) — پس فقط real+production این استثنا را ندارد.
+const isMockBuild =
+  process.env.NEXT_PUBLIC_API_MODE === 'mock' || !isProductionBuild;
 
 /**
  * لیست کامل mock module هایی که از فایل‌های production ایمپورت می‌شوند.
- * در حالت real، Turbopack و webpack هر دو این مسیرها را به stub یونیورسال هدایت می‌کنند.
- * با این مکانیزم، حذف کامل پوشه‌های mock از پروژه هیچ تأثیری بر production build ندارد.
+ * فقط در real mode + production واقعی، Turbopack و webpack این مسیرها را به
+ * stub یونیورسال هدایت می‌کنند. با این مکانیزم، حذف کامل پوشه‌های mock از پروژه
+ * هیچ تأثیری بر production build ندارد.
  */
 const MOCK_MODULES_TO_STUB = [
   '@/services/auth/mock/auth-mock-users',
@@ -71,6 +77,7 @@ const MOCK_MODULES_TO_STUB = [
   '@/services/mock/mock-authz',
   '@/services/admin-user-creation/mock/mock-admin-user-creation',
   '@/services/internship-enrollment/mock/mock-enrollment-store',
+  '@/services/internship-enrollment/mock/mock-enrollment-weekly',
   '@/services/landing-cms/mock/mock-landing-cms.mutations',
   '@/services/landing-cms/mock/mock-landing-cms.store',
   '@/services/notifications/mock/mock-notifications.store',

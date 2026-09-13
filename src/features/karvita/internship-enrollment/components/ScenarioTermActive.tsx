@@ -9,6 +9,12 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
+import {
+  DemoDataBadge,
+  IS_DEMO_FALLBACK_ACTIVE,
+  IS_REAL_MODE_STUB_ACTIVE,
+  RealModeStubBadge,
+} from '@/components/shared/RealModeStubNotice';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
@@ -224,6 +230,25 @@ export function ScenarioTermActive({
             دانلود کارنامه (PDF)
           </KvButton>
         </div>
+
+        {IS_REAL_MODE_STUB_ACTIVE && !enrollment.weeksAreReal ? (
+          <div className="flex items-center gap-kv-pair">
+            <RealModeStubBadge />
+            <span className="text-xs text-kv-text-secondary">
+              فهرست هفته‌ها هنوز از API واقعی خوانده نمی‌شود؛ به همین دلیل اینجا
+              خالی نشان داده می‌شود، نه به این معنی که هفته‌ای ثبت نشده است.
+            </span>
+          </div>
+        ) : null}
+        {IS_DEMO_FALLBACK_ACTIVE && !enrollment.weeksAreReal ? (
+          <div className="flex items-center gap-kv-pair">
+            <DemoDataBadge />
+            <span className="text-xs text-kv-text-secondary">
+              فهرست هفته‌ها هنوز به Nest وصل نشده؛ کارت‌های زیر داده‌ی نمایشی
+              هستند، نه گزارش واقعی شما.
+            </span>
+          </div>
+        ) : null}
 
         <InternshipWeeklyGrid
           weeks={enrollment.weeks}

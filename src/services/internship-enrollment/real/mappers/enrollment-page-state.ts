@@ -25,6 +25,7 @@ import {
   findActiveEnrollmentForLesson,
   findConflictEnrollment,
   registeredSummaryFromEnrollment,
+  type RealWeeklyData,
 } from './enrollment-summary';
 
 export function realSelectionScope(
@@ -56,6 +57,7 @@ export function toEnrollmentPageState(
     enrollments?: NestStudentEnrollment[];
     supervisorName?: string | null;
     supervisorDay?: string | null;
+    realWeeklyData?: RealWeeklyData;
   }
 ): InternshipEnrollmentPageState {
   const kind = kindForRole(input.actor.role);
@@ -114,10 +116,17 @@ export function toEnrollmentPageState(
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'
         ? registeredSummaryFromEnrollment(
-            { kind, level, termTitle: term.title },
+            {
+              kind,
+              level,
+              termTitle: term.title,
+              termId: open.id,
+              userId: input.actor.id,
+            },
             active,
             registeredDetails?.supervisorName ?? null,
-            registeredDetails?.supervisorDay ?? null
+            registeredDetails?.supervisorDay ?? null,
+            registeredDetails?.realWeeklyData
           )
         : null,
     selection:

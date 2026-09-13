@@ -8,6 +8,10 @@ import {
   KvCardContent,
 } from '@/components/shared/KvCard';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
+import {
+  IS_REAL_MODE_STUB_ACTIVE,
+  RealModeStubTooltip,
+} from '@/components/shared/RealModeStubNotice';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
@@ -94,18 +98,22 @@ export function DailyApprovalsMobileWorkspace({
                   <div className="flex shrink-0 items-center gap-kv-pair">
                     <DailyApprovalUnreadBadge trainee={trainee} />
                     {canDrop ? (
-                      <KvButton
-                        type="button"
-                        color="error"
-                        appearance="ghost"
-                        size="icon-xs"
-                        aria-label="حذف کارورز از کلاس"
-                        disabled={
-                          page.actionBusy || trainee.status === 'dropped'
-                        }
-                        onClick={() => void page.dropTrainee(trainee)}
-                        icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
-                      />
+                      <RealModeStubTooltip message="حذف کارورز هنوز به API واقعی وصل نشده است.">
+                        <KvButton
+                          type="button"
+                          color="error"
+                          appearance="ghost"
+                          size="icon-xs"
+                          aria-label="حذف کارورز از کلاس"
+                          disabled={
+                            page.actionBusy ||
+                            trainee.status === 'dropped' ||
+                            IS_REAL_MODE_STUB_ACTIVE
+                          }
+                          onClick={() => void page.dropTrainee(trainee)}
+                          icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
+                        />
+                      </RealModeStubTooltip>
                     ) : null}
                     <button
                       type="button"

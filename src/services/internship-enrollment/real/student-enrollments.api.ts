@@ -18,7 +18,9 @@ import type {
   NestMentorCapacity,
   NestMentorStudent,
   NestMentorStudentsPage,
+  NestScoreSummary,
   NestStudentEnrollment,
+  NestStudentWeek,
   NestUpdateStudentEnrollmentDto,
 } from '@/types/nest-student-enrollments';
 import type { InternshipSupervisor } from '@/types/internship-enrollment';
@@ -27,8 +29,11 @@ export const NEST_STUDENT_ENROLLMENT_PATHS = {
   list: 'v1/student-enrollments',
   byId: (id: string) => `v1/student-enrollments/${id}`,
   cancel: (id: string) => `v1/student-enrollments/${id}/cancel`,
+  weeks: (id: string) => `v1/student-enrollments/${id}/weeks`,
+  scoreSummary: (id: string) => `v1/student-enrollments/${id}/score-summary`,
   openCourseSelection: 'v1/student-enrollments/open-course-selection',
   professors: 'v1/student-enrollments/professors',
+  teachers: 'v1/student-enrollments/teachers',
   mentorStudents: 'v1/student-enrollments/mentor/students',
   mentorCapacity: 'v1/student-enrollments/mentor/capacity',
 } as const;
@@ -132,6 +137,20 @@ export const studentEnrollmentsApi = {
   },
 
   /**
+   * GET `/api/v1/student-enrollments/teachers?schoolId=` — معلمان ناظر یک مدرسه.
+   * پاسخ در Swagger بدون schema است؛ هم آرایهٔ خام و هم پاکت `{data, hasNextPage}`
+   * را با `parseNestPagedList` می‌پذیریم تا هر شکلی که لایو داد نشکند.
+   */
+  async listTeachers(schoolId: string): Promise<unknown[]> {
+    const raw = await apiClient.getJson<unknown>(
+      NEST_STUDENT_ENROLLMENT_PATHS.teachers,
+      undefined,
+      { searchParams: toSearchParams({ schoolId }) }
+    );
+    return parseNestPagedList<unknown>(raw).data;
+  },
+
+  /**
    * GET `/api/v1/student-enrollments` — لیست ثبت‌نام‌های کاربر جاری.
    * Swagger نمونه‌اش آرایهٔ خام است (نه پاکت `{data, hasNextPage}`)؛
    * `parseNestPagedList` هر دو شکل را می‌پذیرد تا اگر لایو پاکت داد نشکند.
@@ -145,6 +164,20 @@ export const studentEnrollmentsApi = {
       { searchParams: toSearchParams({ page: query.page, limit: query.limit }) }
     );
     return parseNestPagedList<NestStudentEnrollment>(raw).data;
+  },
+
+  /** GET `/api/v1/student-enrollments/{id}/weeks` — تایم‌لاین هفته‌های این ثبت‌نام. */
+  async listWeeks(id: string): Promise<NestStudentWeek[]> {
+    const raw = await apiClient.getJson<unknown>(NEST_STUDENT_ENROLLMENT_PATHS.weeks(id));
+    return Array.isArray(raw) ? (raw as NestStudentWeek[]) : [];
+  },
+
+  /** GET `/api/v1/student-enrollments/{id}/score-summary`. */
+  async getScoreSummary(id: string): Promise<NestScoreSummary | null> {
+    const raw = await apiClient.getJson<unknown>(
+      NEST_STUDENT_ENROLLMENT_PATHS.scoreSummary(id)
+    );
+    return isRecord(raw) ? (raw as NestScoreSummary) : null;
   },
 
   /** GET `/api/v1/student-enrollments/{id}`. ۴۰۴ → `null`. */

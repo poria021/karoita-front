@@ -1,11 +1,16 @@
+import { allowsMockFallback } from '@/lib/api-mode';
 import {
   courseNameForKind,
 } from '@/services/internship-enrollment/enrollment-mappers';
+import { buildWeeklySessions } from '@/services/internship-enrollment/mock/mock-enrollment-weekly';
 import { nestEntityId, nestLessonTitle } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import type { NestLesson } from '@/types/nest-admin';
 import type {
   NestEnrollmentStatus,
+  NestScoreSummary,
   NestStudentEnrollment,
+  NestStudentWeek,
+  NestStudentWeekSubmission,
 } from '@/types/nest-student-enrollments';
 import type {
   InternshipCourseKind,
@@ -16,12 +21,34 @@ import { normalizeEnrollmentCourseTitle } from '@/utils/enrollment-eligibility';
 
 import { isRecord, namedTitle } from './primitives';
 import { lessonMatchesKind } from './lesson-matching';
+import { mapRealProgressiveGrade, mapRealWeeklySessions } from './weekly-sessions';
+
+export type RealWeeklyData = {
+  weeks: NestStudentWeek[];
+  scoreSummary: NestScoreSummary | null;
+  latestSubmissionByWeekId: ReadonlyMap<string, NestStudentWeekSubmission>;
+};
 
 function registeredSummary(input: {
   kind: InternshipCourseKind;
   level: InternshipEnrollmentLevel;
   termTitle: string;
+  termId?: string;
+  userId?: string;
 }): InternshipEnrollmentSummary {
+  // `student-weeks` هنوز به فرانت وصل نشده؛ در real mode محلی (dev) به‌جای خالی
+  // ماندن، از همان تولیدکننده‌ی mock برای نمایش کارت هفته‌ها استفاده می‌کنیم.
+  // در real mode واقعی (production) هرگز اجرا نمی‌شود.
+  const weeks =
+    allowsMockFallback() && input.termId && input.userId
+      ? buildWeeklySessions({
+          kind: input.kind,
+          level: input.level,
+          termId: input.termId,
+          userId: input.userId,
+        })
+      : [];
+
   return {
     supervisorName: null,
     attendanceDaysLabel: '',
@@ -37,8 +64,9 @@ function registeredSummary(input: {
     status: 'active',
     removalPending: false,
     isTermArchived: false,
-    weeks: [],
+    weeks,
     progressiveGrade: { gradedCount: 0, final20: null },
+    weeksAreReal: false,
   };
 }
 
@@ -72,20 +100,33 @@ function mapNestEnrollmentStatus(
 
 /**
  * خلاصهٔ ثبت‌نام واقعی از GET `/student-enrollments` — مدرسه/معلم/وضعیت واقعی است.
- * `weeks`/`progressiveGrade` هنوز خالی می‌مانند چون `student-weeks` به فرانت وصل نشده.
+ * `weeks`/`progressiveGrade` وقتی `realWeeklyData` داده شود (از GET `weeks` +
+ * `score-summary`) واقعی‌اند؛ وگرنه در demo mode با `buildWeeklySessions` mock
+ * پر می‌شوند (نیازمند termId/userId)، یا خالی می‌مانند.
  * `supervisorName` از لایهٔ reads با `professorId` روی GET `/professors` پر می‌شود.
  */
 export function registeredSummaryFromEnrollment(
-  input: { kind: InternshipCourseKind; level: InternshipEnrollmentLevel; termTitle: string },
+  input: {
+    kind: InternshipCourseKind;
+    level: InternshipEnrollmentLevel;
+    termTitle: string;
+    termId?: string;
+    userId?: string;
+  },
   enrollment: NestStudentEnrollment | null,
   supervisorName: string | null,
-  supervisorDay: string | null = null
+  supervisorDay: string | null = null,
+  realWeeklyData?: RealWeeklyData
 ): InternshipEnrollmentSummary {
   const base = registeredSummary(input);
   if (!enrollment) return base;
 
   const school = extractNestRelation(enrollment.schoolId);
   const mentor = extractNestRelation(enrollment.teacherId);
+
+  const mappedWeeks = realWeeklyData
+    ? mapRealWeeklySessions(realWeeklyData.weeks, realWeeklyData.latestSubmissionByWeekId)
+    : base.weeks;
 
   return {
     ...base,
@@ -96,6 +137,11 @@ export function registeredSummaryFromEnrollment(
     mentorId: mentor?.id ?? null,
     mentorName: mentor?.title || null,
     status: mapNestEnrollmentStatus(enrollment.status),
+    weeks: mappedWeeks,
+    progressiveGrade: realWeeklyData
+      ? mapRealProgressiveGrade(realWeeklyData.scoreSummary)
+      : base.progressiveGrade,
+    weeksAreReal: Boolean(realWeeklyData),
   };
 }
 
@@ -108,7 +154,7 @@ function enrollmentSemesterId(row: NestStudentEnrollment): string {
 }
 
 function isDroppedEnrollment(row: NestStudentEnrollment): boolean {
-  return row.status === 'dropped';
+  return row.status === 'dropped' || row.status === 'cancelled';
 }
 
 /**

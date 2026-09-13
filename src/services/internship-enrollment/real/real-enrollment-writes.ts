@@ -104,10 +104,13 @@ export async function cancelRealEnrollment(
   const lessonId = lesson ? nestEntityId(lesson) : '';
 
   const current =
-    rows.find((row) =>
-      lessonId
-        ? (row.lessonId ?? '').trim() === lessonId
-        : row.semesterId === input.termId
+    rows.find(
+      (row) =>
+        row.status !== 'dropped' &&
+        row.status !== 'cancelled' &&
+        (lessonId
+          ? (row.lessonId ?? '').trim() === lessonId
+          : row.semesterId === input.termId)
     ) ?? null;
 
   const enrollmentId = current?.id ?? current?._id ?? '';
@@ -144,10 +147,8 @@ function mapEnrollmentStatus(
  * Nest شناسهٔ ثبت‌نام را از ورودی نمی‌گیرد؛ باید اول از GET `/student-enrollments`
  * (لیست کاربر جاری) ردیفِ همین درس/ترم را پیدا کرد، بعد PATCH زد.
  *
- * توجه: `listDelayedSchools` / `listDelayedMentors` (فهرست مدرسه/معلم قابل انتخاب)
- * هنوز endpoint مستند‌شده‌ای ندارند و همچنان stub هستند — یعنی این تابع آماده است
- * ولی فلوی UI کامل (`useDelayedSchoolMentorAssignment`) تا وصل‌شدن آن دو هنوز در
- * حالت real کار نمی‌کند.
+ * `listDelayedSchools` (GET `/admin/schools`) و `listDelayedMentors`
+ * (GET `/student-enrollments/teachers`) هر دو وصل شده‌اند.
  */
 export async function assignRealDelayedSchoolMentor(
   input: AssignDelayedSchoolMentorInput
@@ -165,10 +166,13 @@ export async function assignRealDelayedSchoolMentor(
   const lessonId = lesson ? nestEntityId(lesson) : '';
 
   const current =
-    rows.find((row) =>
-      lessonId
-        ? (row.lessonId ?? '').trim() === lessonId
-        : row.semesterId === input.termId
+    rows.find(
+      (row) =>
+        row.status !== 'dropped' &&
+        row.status !== 'cancelled' &&
+        (lessonId
+          ? (row.lessonId ?? '').trim() === lessonId
+          : row.semesterId === input.termId)
     ) ?? null;
 
   const enrollmentId = current?.id ?? current?._id ?? '';

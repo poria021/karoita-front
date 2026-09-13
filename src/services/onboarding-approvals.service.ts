@@ -1,4 +1,4 @@
-import { IS_MOCK_MODE, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { IS_MOCK_MODE, isStrictRealApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import { subscribeMockAuthUsers } from '@/services/auth/mock/mock-auth.store';
 import { mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
@@ -190,9 +190,9 @@ export const OnboardingApprovalsService = {
     return collectProvinces().map((title) => ({ id: title, title }));
   },
 
-  /** در mock به store کاربران وصل می‌شود؛ real تا SSE خالی است. */
+  /** در mock و real محلی (dev) به store کاربران وصل می‌شود؛ real واقعی production تا SSE خالی است. */
   subscribeDirectoryChanges(listener: () => void): () => void {
-    if (!IS_MOCK_MODE) {
+    if (isStrictRealApiMode()) {
       return () => {};
     }
     return subscribeMockAuthUsers(listener);

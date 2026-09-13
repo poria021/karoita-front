@@ -10,6 +10,10 @@ import {
   KvSelectValue,
 } from '@/components/shared/fields/KvSelect';
 import { formatTermOptionLabel } from '@/features/karvita/syllabus-config/constants';
+import {
+  IS_REAL_MODE_STUB_ACTIVE,
+  RealModeStubTooltip,
+} from '@/components/shared/RealModeStubNotice';
 import { KvFeatureIntro } from '@/components/shared/shell/KvFeatureIntro';
 import { faIcons } from '@/utils/iconMap';
 
@@ -70,18 +74,20 @@ export function DailyApprovalsWorkspaceHeader({
               )}
             </div>
             {showBulkExtend ? (
-              <KvButton
-                type="button"
-                color="violet"
-                appearance="ghost"
-                size="md"
-                className="order-2 lg:order-1"
-                disabled={bulkExtendDisabled}
-                icon={<FaIcon icon={faIcons.unlockKeyhole} size="xs" />}
-                onClick={onBulkExtendClick}
-              >
-                تمدید گروهی مهلت ارسال گزارش
-              </KvButton>
+              <RealModeStubTooltip message="تمدید گروهی هنوز به API واقعی وصل نشده است.">
+                <KvButton
+                  type="button"
+                  color="violet"
+                  appearance="ghost"
+                  size="md"
+                  className="order-2 lg:order-1"
+                  disabled={bulkExtendDisabled || IS_REAL_MODE_STUB_ACTIVE}
+                  icon={<FaIcon icon={faIcons.unlockKeyhole} size="xs" />}
+                  onClick={onBulkExtendClick}
+                >
+                  تمدید گروهی مهلت ارسال گزارش
+                </KvButton>
+              </RealModeStubTooltip>
             ) : null}
           </>
         }

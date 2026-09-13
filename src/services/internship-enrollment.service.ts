@@ -19,11 +19,12 @@ import {
 import {
   getRealEnrollmentPageState,
   getRealMentorCapacity,
+  listRealDelayedMentors,
+  listRealDelayedSchools,
   listRealEligibleSupervisors,
   listRealMentorStudents,
 } from '@/services/internship-enrollment/real/real-enrollment-reads';
 import {
-  assertEnrollmentWriteReady,
   assignRealDelayedSchoolMentor,
   cancelRealEnrollment,
   enrollRealWithSupervisor,
@@ -53,13 +54,6 @@ import type {
   SubmitWeeklyReportInput,
 } from '@/types/internship-enrollment';
 import type { NestMentorCapacity, NestMentorStudentsPage } from '@/types/nest-student-enrollments';
-
-function gateEnrollmentWrite(surface: string): void {
-  if (!isMockApiMode()) {
-    assertEnrollmentWriteReady(surface);
-  }
-  assertMockClientHasPermission('internship.select');
-}
 
 function gateEnrollmentMock(): void {
   assertMockClientHasPermission('internship.select');
@@ -124,24 +118,32 @@ export const InternshipEnrollmentService = {
     return enrollWithSupervisor(input);
   },
 
+  /** real: GET `/admin/schools` فیلترشده روی استان کاربر — فقط برای دراپ‌باکس؛ mock: snapshot ظرفیت‌دار. */
   async listDelayedSchools(
     input: ListDelayedSchoolsInput
   ): Promise<InternshipSchoolCapacity[]> {
-    gateEnrollmentWrite('InternshipEnrollmentService.listDelayedSchools');
+    if (!isMockApiMode()) {
+      return listRealDelayedSchools(input);
+    }
+    gateEnrollmentMock();
     return listDelayedSchools(input);
   },
 
+  /** real: GET `/student-enrollments/teachers?schoolId=` — فقط برای دراپ‌باکس؛ mock: snapshot ظرفیت‌دار. */
   async listDelayedMentors(
     input: ListDelayedMentorsInput
   ): Promise<InternshipMentorCapacity[]> {
-    gateEnrollmentWrite('InternshipEnrollmentService.listDelayedMentors');
+    if (!isMockApiMode()) {
+      return listRealDelayedMentors(input);
+    }
+    gateEnrollmentMock();
     return listDelayedMentors(input);
   },
 
   /**
    * real: PATCH `/student-enrollments/{id}` (فقط مدرسه/معلم).
-   * توجه: انتخاب مدرسه/معلم (`listDelayedSchools`/`listDelayedMentors`) هنوز stub
-   * است — این نوشتن آماده است ولی فلوی کامل UI تا وصل‌شدن آن دو کار نمی‌کند.
+   * `listDelayedSchools` (GET `/admin/schools`) و `listDelayedMentors`
+   * (GET `/student-enrollments/teachers`) هر دو وصل شده‌اند.
    */
   async assignDelayedSchoolMentor(
     input: AssignDelayedSchoolMentorInput

@@ -4,6 +4,10 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { KvButton } from '@/components/shared/KvButton';
 import {
+  IS_REAL_MODE_STUB_ACTIVE,
+  RealModeStubTooltip,
+} from '@/components/shared/RealModeStubNotice';
+import {
   KvDialog,
   KvDialogContent,
   KvDialogDescription,
@@ -83,7 +87,8 @@ export function DailyApprovalWeekGradingModal({
 
   const saveDisabled =
     modal.disabled ||
-    (role === 'mentor_teacher' && modal.mentorFeedbackEmpty);
+    (role === 'mentor_teacher' && modal.mentorFeedbackEmpty) ||
+    IS_REAL_MODE_STUB_ACTIVE;
 
   return (
     <KvDialog
@@ -172,22 +177,24 @@ export function DailyApprovalWeekGradingModal({
             لغو
           </KvButton>
 
-          <KvButton
-            type="button"
-            color={
-              role === 'supervisor_professor' &&
-              modal.scoreInput.trim() === ''
-                ? 'warning'
-                : 'success'
-            }
-            appearance="solid"
-            size="md"
-            disabled={saveDisabled}
-            loading={actionBusy}
-            onClick={() => void modal.save()}
-          >
-            {saveLabel}
-          </KvButton>
+          <RealModeStubTooltip message="ثبت نمره/ارزیابی هنوز به API واقعی وصل نشده است.">
+            <KvButton
+              type="button"
+              color={
+                role === 'supervisor_professor' &&
+                modal.scoreInput.trim() === ''
+                  ? 'warning'
+                  : 'success'
+              }
+              appearance="solid"
+              size="md"
+              disabled={saveDisabled}
+              loading={actionBusy}
+              onClick={() => void modal.save()}
+            >
+              {saveLabel}
+            </KvButton>
+          </RealModeStubTooltip>
         </KvDialogFooter>
       </KvDialogContent>
     </KvDialog>

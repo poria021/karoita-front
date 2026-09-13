@@ -177,6 +177,8 @@ export type InternshipEnrollmentSummary = {
   isTermArchived: boolean;
   weeks: InternshipWeeklySession[];
   progressiveGrade: InternshipProgressiveGrade;
+  /** false یعنی `weeks`/`progressiveGrade` از mock fallback آمده‌اند، نه GET واقعی. */
+  weeksAreReal: boolean;
 };
 
 export type InternshipEnrollmentPageState = {
