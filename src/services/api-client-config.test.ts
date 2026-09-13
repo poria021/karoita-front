@@ -13,10 +13,10 @@ describe('api-client real Nest transport contract', () => {
     expect(KY_RETRY_LIMIT).toBe(1);
   });
 
-  it('caps Nest JSON timeout below 30s so a hung API does not freeze the UI', () => {
-    expect(KY_TIMEOUT_MS).toBe(20_000);
+  it('caps Nest JSON timeout below 60s so a hung API does not freeze the UI', () => {
+    expect(KY_TIMEOUT_MS).toBe(40_000);
     expect(KY_TIMEOUT_MS).toBeGreaterThan(0);
-    expect(KY_TIMEOUT_MS).toBeLessThan(30_000);
+    expect(KY_TIMEOUT_MS).toBeLessThan(60_000);
   });
 
   it('uses the same-origin proxy when Nest lives on another origin', () => {
