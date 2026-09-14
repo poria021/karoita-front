@@ -1,12 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  allowsMockFallback,
   assertMockApiMode,
   assertRealModeRejectsMockSecret,
   isMockApiMode,
   isRealApiMode,
-  isStrictRealApiMode,
   MOCK_MODE_LABEL,
   REAL_MODE_NOT_IMPLEMENTED,
   resolveApiMode,
@@ -91,26 +89,23 @@ describe('assertMockApiMode / mock secrets in real', () => {
   });
 });
 
-describe('isStrictRealApiMode / allowsMockFallback', () => {
-  it('real + production is strict (no mock fallback)', () => {
+describe('isRealApiMode fail-closed in dev and production', () => {
+  it('real + production is fail-closed', () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('VERCEL_ENV', '');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
-    expect(isStrictRealApiMode()).toBe(true);
-    expect(allowsMockFallback()).toBe(false);
+    expect(isRealApiMode()).toBe(true);
   });
 
-  it('real + local dev allows mock fallback for unimplemented endpoints', () => {
+  it('real + local dev is also fail-closed (no mock fallback)', () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
-    expect(isStrictRealApiMode()).toBe(false);
-    expect(allowsMockFallback()).toBe(true);
+    expect(isRealApiMode()).toBe(true);
   });
 
-  it('mock mode always allows fallback', () => {
+  it('mock mode is not real', () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
-    expect(isStrictRealApiMode()).toBe(false);
-    expect(allowsMockFallback()).toBe(true);
+    expect(isRealApiMode()).toBe(false);
   });
 });

@@ -6,8 +6,6 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvSearchableCombobox } from '@/components/shared/fields/KvSearchableCombobox';
 import {
-  DemoDataBadge,
-  IS_DEMO_FALLBACK_ACTIVE,
   IS_REAL_MODE_STUB_ACTIVE,
   RealModeStubBadge,
 } from '@/components/shared/RealModeStubNotice';
@@ -55,15 +53,6 @@ export function DelayedSchoolMentorAssignment({
           <RealModeStubBadge />
           <span className="text-xs text-kv-text-secondary">
             فهرست مدرسه/معلم همکار هنوز به API واقعی وصل نیست.
-          </span>
-        </div>
-      ) : null}
-      {IS_DEMO_FALLBACK_ACTIVE ? (
-        <div className="mb-kv-pair flex items-center gap-kv-pair">
-          <DemoDataBadge />
-          <span className="text-xs text-kv-text-secondary">
-            فهرست مدرسه/معلم همکار هنوز به Nest وصل نشده؛ این‌جا با داده‌ی نمایشی
-            پر شده است.
           </span>
         </div>
       ) : null}

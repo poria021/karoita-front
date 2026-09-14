@@ -15,6 +15,7 @@ import {
 } from '@/services/admin-user-creation/mock/mock-admin-user-creation';
 import { accountUsersApi } from '@/services/admin-user-creation/real/account-users.api';
 import { resolveOrganizationalRoleId } from '@/services/admin-user-creation/real/account-users-role-lookup';
+import { resolveOrgAccountLocationIds } from '@/services/admin-user-creation/real/account-users-org-fields-lookup';
 import { mapNestAccountUser } from '@/services/admin-user-creation/real/account-users.mappers';
 import {
   toNestCreateAccountUserDto,
@@ -100,9 +101,12 @@ export const AdminUserCreationService = {
         throw new Error('این نقش برای ایجاد حساب سازمانی پشتیبانی نمی‌شود.');
       }
 
-      const roleId = await resolveOrganizationalRoleId(input.role);
+      const [roleId, locationIds] = await Promise.all([
+        resolveOrganizationalRoleId(input.role),
+        resolveOrgAccountLocationIds(input),
+      ]);
       const raw = await accountUsersApi.create(
-        toNestCreateAccountUserDto(input, roleId)
+        toNestCreateAccountUserDto({ ...input, ...locationIds }, roleId)
       );
       return { user: mapNestAccountUser(raw, input.mobile) };
     }
@@ -216,10 +220,13 @@ export const AdminUserCreationService = {
     if (!isOrgManagementRole(input.role)) {
       throw new Error('این نقش از مسیر ویرایش حساب سازمانی پشتیبانی نمی‌شود.');
     }
-    const roleId = await resolveOrganizationalRoleId(input.role);
+    const [roleId, locationIds] = await Promise.all([
+      resolveOrganizationalRoleId(input.role),
+      resolveOrgAccountLocationIds(input),
+    ]);
     const raw = await accountUsersApi.update(
       id,
-      toNestUpdateAccountUserDto(input, roleId)
+      toNestUpdateAccountUserDto({ ...input, ...locationIds }, roleId)
     );
     return mapNestAccountUser(raw, input.mobile);
   },

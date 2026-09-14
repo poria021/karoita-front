@@ -2,11 +2,8 @@
  * تعیین حالت API (`mock` | `real`) از روی env.
  * در production حالت mock صریحاً ممنوع است (fail-closed).
  *
- * توجه: خود `real` هم دو رفتار دارد —
- * - در production: کاملاً fail-closed. هر endpoint پیاده‌نشده throw می‌کند.
- * - در dev (real محلی روی بک‌اند واقعی): هر جا endpoint پیاده نشده، به‌جای throw
- *   از همان داده‌ساز mock استفاده می‌شود (`allowsMockFallback`) تا بدون بلاک‌شدن
- *   بشه دید تو UI چی هست، ولی این هرگز وارد production نمی‌شود.
+ * `real` همیشه fail-closed است — چه در dev چه در production — هر endpoint
+ * پیاده‌نشده throw می‌کند. هیچ داده‌ی نمایشی/mock fallback در real mode وجود ندارد.
  */
 
 export type ApiMode = 'mock' | 'real';
@@ -57,20 +54,6 @@ export function isMockApiMode(): boolean {
 
 export function isRealApiMode(): boolean {
   return resolveApiMode() === 'real';
-}
-
-/** real + production — تنها جایی که فایل‌کلوز واقعی اعمال می‌شود. */
-export function isStrictRealApiMode(): boolean {
-  return isRealApiMode() && isProductionRuntime();
-}
-
-/**
- * true در `mock`، و در `real` محلی (dev) — یعنی جایی که قفل‌های «endpoint پیاده
- * نشده» باید داده‌ی شبیه‌سازی‌شده را به‌جای throw برگردانند. فقط `real` در
- * production بیرون از این محدوده است (fail-closed واقعی).
- */
-export function allowsMockFallback(): boolean {
-  return !isStrictRealApiMode();
 }
 
 /**

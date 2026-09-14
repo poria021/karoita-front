@@ -1,4 +1,4 @@
-import { isMockApiMode, isStrictRealApiMode } from '@/lib/api-mode';
+import { isMockApiMode, isRealApiMode } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import { listRealCapacityCourses, listRealCapacityTerms } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import {
@@ -63,7 +63,7 @@ const REVIEW_ROLES = new Set<UserRole>([
 ]);
 
 function requireDailyApprovalsReview(): void {
-  if (isStrictRealApiMode()) {
+  if (isRealApiMode()) {
     assertDailyApprovalsMutationReady('DailyApprovalsService');
   }
   assertMockClientHasPermission('daily-approval.review');
@@ -157,7 +157,7 @@ export const DailyApprovalsService = {
     traineeId: string;
     weekId: string;
   }): Promise<DailyApprovalTrainee> {
-    if (isStrictRealApiMode()) {
+    if (isRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.openWeek');
     }
     requireDailyApprovalsReview();
@@ -167,7 +167,7 @@ export const DailyApprovalsService = {
   async updateWeekEvaluation(
     input: UpdateDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
-    if (isStrictRealApiMode()) {
+    if (isRealApiMode()) {
       assertDailyApprovalsMutationReady(
         'DailyApprovalsService.updateWeekEvaluation'
       );
@@ -183,7 +183,7 @@ export const DailyApprovalsService = {
   async updateMentorWeekEvaluation(
     input: UpdateMentorDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
-    if (isStrictRealApiMode()) {
+    if (isRealApiMode()) {
       assertDailyApprovalsMutationReady(
         'DailyApprovalsService.updateMentorWeekEvaluation'
       );
@@ -199,7 +199,7 @@ export const DailyApprovalsService = {
   async updatePrincipalWeekEvaluation(
     input: UpdatePrincipalDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
-    if (isStrictRealApiMode()) {
+    if (isRealApiMode()) {
       assertDailyApprovalsMutationReady(
         'DailyApprovalsService.updatePrincipalWeekEvaluation'
       );
@@ -215,7 +215,7 @@ export const DailyApprovalsService = {
   async extendWeek(
     input: ExtendDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
-    if (isStrictRealApiMode()) {
+    if (isRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.extendWeek');
     }
     requireReviewRole('supervisor_professor');
@@ -226,7 +226,7 @@ export const DailyApprovalsService = {
   async bulkExtendWeeks(
     input: BulkExtendDailyApprovalWeeksInput
   ): Promise<BulkExtendDailyApprovalWeeksResult> {
-    if (isStrictRealApiMode()) {
+    if (isRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.bulkExtendWeeks');
     }
     requireReviewRole('supervisor_professor');
@@ -250,7 +250,7 @@ export const DailyApprovalsService = {
   async dropTrainee(
     input: DropDailyApprovalTraineeInput
   ): Promise<DailyApprovalTrainee> {
-    if (isStrictRealApiMode()) {
+    if (isRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.dropTrainee');
     }
     requireReviewRole('supervisor_professor');
@@ -262,7 +262,7 @@ export const DailyApprovalsService = {
   async restoreTrainee(
     trainee: DailyApprovalTrainee
   ): Promise<DailyApprovalTrainee> {
-    if (isStrictRealApiMode()) {
+    if (isRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.restoreTrainee');
     }
     requireReviewRole('supervisor_professor');

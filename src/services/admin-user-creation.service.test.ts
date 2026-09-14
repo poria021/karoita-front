@@ -45,6 +45,19 @@ vi.mock('@/services/users/users.api', () => ({
   },
 }));
 
+// resolveOrgAccountLocationIds resolves the form's province/city/district labels
+// against this — echo the query back as both id and label so existing
+// province/city/district test fixtures ('prov-1', 'city-1', ...) still round-trip.
+vi.mock('@/services/organization-options.service', () => ({
+  OrganizationOptionsService: {
+    getOptions: vi.fn(async ({ query }: { query?: string }) => ({
+      items: query ? [{ id: query, label: query }] : [],
+      hasMore: false,
+      page: 1,
+    })),
+  },
+}));
+
 describe('AdminUserCreationService (mock)', () => {
   beforeEach(() => {
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
@@ -265,14 +278,14 @@ describe('AdminUserCreationService (real staff admin)', () => {
 
   it('does not call /admin/admins for organizational roles', async () => {
     vi.mocked(accountUsersApi.listRoles).mockResolvedValue([
-      { id: 'role-central', name: 'central_org' },
+      { id: 'role-central', name: 'organization_center' },
     ]);
     vi.mocked(accountUsersApi.create).mockResolvedValue({
       id: 'acc-1',
       phone: '09111111113',
       firstName: 'سارا',
       lastName: 'محمدی',
-      role: { id: 'role-central', name: 'central_org' },
+      role: { id: 'role-central', name: 'organization_center' },
       status: { id: 'st-1', name: 'active' },
       createdAt: '2026-08-28T11:38:05.046Z',
       updatedAt: '2026-08-28T11:38:05.046Z',
@@ -291,15 +304,15 @@ describe('AdminUserCreationService (real staff admin)', () => {
 
   it('POSTs /api/v1/admin/account-users for an organizational role, resolving the role id first', async () => {
     vi.mocked(accountUsersApi.listRoles).mockResolvedValue([
-      { id: 'role-regional', name: 'regional_admin' },
-      { id: 'role-central', name: 'central_org' },
+      { id: 'role-regional', name: 'school_district' },
+      { id: 'role-central', name: 'organization_center' },
     ]);
     vi.mocked(accountUsersApi.create).mockResolvedValue({
       id: 'acc-2',
       phone: '09111111115',
       firstName: 'سارا',
       lastName: 'محمدی',
-      role: { id: 'role-regional', name: 'regional_admin' },
+      role: { id: 'role-regional', name: 'school_district' },
       status: { id: 'st-1', name: 'active' },
       city: [{ id: 'c-1', title: 'تهران' }],
       educationalDistrict: [{ id: 'd-1', title: 'منطقه ۲' }],
@@ -338,7 +351,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
 
   it('rejects organizational creation when the role id cannot be resolved', async () => {
     vi.mocked(accountUsersApi.listRoles).mockResolvedValue([
-      { id: 'role-central', name: 'central_org' },
+      { id: 'role-central', name: 'organization_center' },
     ]);
 
     await expect(
@@ -451,7 +464,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
           phone: '09111111113',
           firstName: 'سارا',
           lastName: 'محمدی',
-          role: { id: 'role-central', name: 'central_org' },
+          role: { id: 'role-central', name: 'organization_center' },
           status: { id: 'st-1', name: 'active' },
           createdAt: '2026-08-28T11:38:05.046Z',
           updatedAt: '2026-08-28T11:38:05.046Z',
@@ -482,7 +495,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
       phone: '09111111113',
       firstName: 'سارا',
       lastName: 'محمدی',
-      role: { id: 'role-central', name: 'central_org' },
+      role: { id: 'role-central', name: 'organization_center' },
       status: { id: 'st-1', name: 'active' },
       createdAt: '2026-08-28T11:38:05.046Z',
       updatedAt: '2026-08-28T11:38:05.046Z',
@@ -496,14 +509,14 @@ describe('AdminUserCreationService (real staff admin)', () => {
 
   it('PATCHes /admin/account-users/{id} after resolving the role id', async () => {
     vi.mocked(accountUsersApi.listRoles).mockResolvedValue([
-      { id: 'role-provincial', name: 'provincial_admin' },
+      { id: 'role-provincial', name: 'university_province' },
     ]);
     vi.mocked(accountUsersApi.update).mockResolvedValue({
       id: 'acc-1',
       phone: '09111111113',
       firstName: 'علی',
       lastName: 'رضایی',
-      role: { id: 'role-provincial', name: 'provincial_admin' },
+      role: { id: 'role-provincial', name: 'university_province' },
       status: { id: 'st-1', name: 'active' },
       createdAt: '2026-08-28T11:38:05.046Z',
       updatedAt: '2026-08-28T11:38:05.046Z',

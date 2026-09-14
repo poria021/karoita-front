@@ -115,9 +115,9 @@ describe('real enrollment mappers', () => {
     expect(state.scenario).toBe('S4_registered_waiting');
     expect(state.enrollment?.courseTitle).toBe('کارورزی 1');
     expect(state.enrollment?.supervisorName).toBe('سارا احمدی');
-    // `student-weeks` هنوز به فرانت وصل نشده؛ خارج از real+production
-    // (اینجا: تست) به‌جای خالی ماندن با mock پر می‌شود (رجوع به enrollment-summary.ts).
-    expect(state.enrollment?.weeks.length).toBeGreaterThan(0);
+    // `student-weeks` هنوز به فرانت وصل نشده؛ بدون `realWeeklyData` خالی می‌ماند
+    // (رجوع به enrollment-summary.ts) — دیگر با mock پر نمی‌شود.
+    expect(state.enrollment?.weeks).toEqual([]);
   });
 
   it('returns S1 when Nest has no open semester', () => {

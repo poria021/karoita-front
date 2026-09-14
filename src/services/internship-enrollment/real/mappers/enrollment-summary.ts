@@ -1,8 +1,6 @@
-import { allowsMockFallback } from '@/lib/api-mode';
 import {
   courseNameForKind,
 } from '@/services/internship-enrollment/enrollment-mappers';
-import { buildWeeklySessions } from '@/services/internship-enrollment/mock/mock-enrollment-weekly';
 import { nestEntityId, nestLessonTitle } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import type { NestLesson } from '@/types/nest-admin';
 import type {
@@ -36,19 +34,6 @@ function registeredSummary(input: {
   termId?: string;
   userId?: string;
 }): InternshipEnrollmentSummary {
-  // `student-weeks` هنوز به فرانت وصل نشده؛ در real mode محلی (dev) به‌جای خالی
-  // ماندن، از همان تولیدکننده‌ی mock برای نمایش کارت هفته‌ها استفاده می‌کنیم.
-  // در real mode واقعی (production) هرگز اجرا نمی‌شود.
-  const weeks =
-    allowsMockFallback() && input.termId && input.userId
-      ? buildWeeklySessions({
-          kind: input.kind,
-          level: input.level,
-          termId: input.termId,
-          userId: input.userId,
-        })
-      : [];
-
   return {
     supervisorName: null,
     attendanceDaysLabel: '',
@@ -64,7 +49,7 @@ function registeredSummary(input: {
     status: 'active',
     removalPending: false,
     isTermArchived: false,
-    weeks,
+    weeks: [],
     progressiveGrade: { gradedCount: 0, final20: null },
     weeksAreReal: false,
   };
@@ -101,8 +86,7 @@ function mapNestEnrollmentStatus(
 /**
  * خلاصهٔ ثبت‌نام واقعی از GET `/student-enrollments` — مدرسه/معلم/وضعیت واقعی است.
  * `weeks`/`progressiveGrade` وقتی `realWeeklyData` داده شود (از GET `weeks` +
- * `score-summary`) واقعی‌اند؛ وگرنه در demo mode با `buildWeeklySessions` mock
- * پر می‌شوند (نیازمند termId/userId)، یا خالی می‌مانند.
+ * `score-summary`) واقعی‌اند؛ وگرنه خالی می‌مانند.
  * `supervisorName` از لایهٔ reads با `professorId` روی GET `/professors` پر می‌شود.
  */
 export function registeredSummaryFromEnrollment(
