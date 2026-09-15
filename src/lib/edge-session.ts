@@ -10,10 +10,7 @@ import { AUTH_COOKIE_NAME, MOCK_SESSION_MARKER } from '@/lib/config';
  * یا سیگنال dev.
  */
 export function shouldHonorMockSessionMarker(): boolean {
-  if (
-    process.env.NODE_ENV === 'production' ||
-    process.env.VERCEL_ENV === 'production'
-  ) {
+  if (process.env.NODE_ENV === 'production') {
     return false;
   }
   const mode = process.env.NEXT_PUBLIC_API_MODE?.trim().toLowerCase();
