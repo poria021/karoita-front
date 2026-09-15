@@ -45,13 +45,6 @@ describe('resolveApiMode', () => {
     expect(() => resolveApiMode()).toThrow(MOCK_MODE_LABEL);
   });
 
-  it('fail-closes when mock is set under VERCEL_ENV=production', () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    vi.stubEnv('VERCEL_ENV', 'production');
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
-    expect(() => resolveApiMode()).toThrow(MOCK_MODE_LABEL);
-  });
-
   it('rejects invalid NEXT_PUBLIC_API_MODE values', () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'staging');

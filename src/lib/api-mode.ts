@@ -16,10 +16,7 @@ function readRawMode(): string | undefined {
 }
 
 function isProductionRuntime(): boolean {
-  return (
-    process.env.NODE_ENV === 'production' ||
-    process.env.VERCEL_ENV === 'production'
-  );
+  return process.env.NODE_ENV === 'production';
 }
 
 export function resolveApiMode(): ApiMode {
