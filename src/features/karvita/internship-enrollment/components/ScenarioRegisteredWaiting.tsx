@@ -17,17 +17,32 @@ type ScenarioRegisteredWaitingProps = {
 
 const UNSET = 'مشخص نشده';
 
+/** چرا روز حضور استاد نامشخص مانده — برای یک تولتیپ روشن به‌جای سکوت. */
+const ATTENDANCE_DAYS_UNAVAILABLE_HINT: Record<
+  NonNullable<InternshipEnrollmentSummary['attendanceDaysUnavailableReason']>,
+  string
+> = {
+  'capacity-exhausted':
+    'ظرفیت این استاد تکمیل شده و دیگر در فهرست ثبت‌نام نیست؛ روز حضور از این طریق در دسترس نبود.',
+  error: 'در دریافت روز حضور خطایی رخ داد؛ لطفاً بعداً دوباره امتحان کنید.',
+};
+
 function DetailCell({
   label,
   value,
   pending,
+  hint,
 }: {
   label: string;
   value: string;
   pending?: boolean;
+  hint?: string;
 }) {
   return (
-    <div className="flex flex-col gap-kv-pair rounded-kv-panel border border-kv-border bg-kv-surface-subtle p-kv-field">
+    <div
+      className="flex flex-col gap-kv-pair rounded-kv-panel border border-kv-border bg-kv-surface-subtle p-kv-field"
+      title={hint}
+    >
       <KvTypography variant="caption" tone="muted" as="span">
         {label}
       </KvTypography>
@@ -55,6 +70,10 @@ export function ScenarioRegisteredWaiting({
   const school = enrollment.schoolName?.trim() || UNSET;
   const mentor = enrollment.mentorName?.trim() || UNSET;
   const days = enrollment.attendanceDaysLabel || UNSET;
+  const daysHint =
+    days === UNSET && enrollment.attendanceDaysUnavailableReason
+      ? ATTENDANCE_DAYS_UNAVAILABLE_HINT[enrollment.attendanceDaysUnavailableReason]
+      : undefined;
   const [isCancelling, setIsCancelling] = useState(false);
 
   async function handleCancel() {
@@ -108,9 +127,14 @@ export function ScenarioRegisteredWaiting({
 
         <div className="grid grid-cols-1 gap-kv-pair sm:grid-cols-2 lg:grid-cols-4">
           <DetailCell label="استاد راهنما:" value={supervisor} />
-          <DetailCell label="روز های استاد:" value={days} pending={days === UNSET} />
-          <DetailCell label="مدرسه:" value={school} pending />
-          <DetailCell label="معلم راهنما:" value={mentor} pending />
+          <DetailCell
+            label="روز های استاد:"
+            value={days}
+            pending={days === UNSET}
+            hint={daysHint}
+          />
+          <DetailCell label="مدرسه:" value={school} pending={school === UNSET} />
+          <DetailCell label="معلم راهنما:" value={mentor} pending={mentor === UNSET} />
         </div>
 
         {onCancel ? (

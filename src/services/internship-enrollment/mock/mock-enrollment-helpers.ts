@@ -37,7 +37,7 @@ export function getSupervisorList(input: {
       name: seed.name,
       college: seed.college,
       province: seed.province,
-      day: seed.day,
+      days: seed.days,
       readOnly: seed.readOnly,
       capacity:
         seed.totalCapacity === null

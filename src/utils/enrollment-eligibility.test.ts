@@ -22,7 +22,7 @@ const supervisors = [
     name: 'دکتر سارا احمدی',
     college: 'پردیس شهید باهنر تهران',
     province: 'تهران',
-    day: 'شنبه',
+    days: ['شنبه'],
     capacity: 1,
   },
   {
@@ -30,7 +30,7 @@ const supervisors = [
     name: 'دکتر مریم احمدی',
     college: 'پردیس شهید باهنر تهران',
     province: 'تهران',
-    day: 'شنبه',
+    days: ['شنبه'],
     capacity: null,
     readOnly: true,
   },
@@ -39,7 +39,7 @@ const supervisors = [
     name: 'دکتر نادر رحیمی',
     college: 'پردیس شهید باهنر اصفهان',
     province: 'اصفهان',
-    day: 'دوشنبه',
+    days: ['دوشنبه'],
     capacity: 2,
   },
   {
@@ -47,7 +47,7 @@ const supervisors = [
     name: 'دکتر لیلا فرهادی',
     college: 'پردیس شهید باهنر تهران',
     province: 'تهران',
-    day: 'سه‌شنبه',
+    days: ['سه‌شنبه'],
     capacity: 0,
   },
 ];

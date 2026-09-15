@@ -39,6 +39,16 @@ export function namedTitle(value: unknown): string {
   );
 }
 
+/** برخلاف `namedTitle` (مدرسه/استان)، سند استاد/کاربر معمولاً firstName/lastName دارد نه title. */
+export function personDisplayName(value: unknown): string {
+  if (typeof value === 'string') return value.trim();
+  if (!isRecord(value)) return '';
+  const first = asTrimmedString(value.firstName);
+  const last = asTrimmedString(value.lastName);
+  const full = [first, last].filter(Boolean).join(' ').trim();
+  return full || asTrimmedString(value.name) || namedTitle(value);
+}
+
 export function firstOf(
   value: string | string[] | undefined,
   fallback: string

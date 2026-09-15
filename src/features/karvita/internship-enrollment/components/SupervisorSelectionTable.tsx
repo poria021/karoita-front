@@ -49,7 +49,6 @@ export function SupervisorSelectionTable({
               <KvTableRowIndexHead />
               <KvTableHead>نام کامل استاد</KvTableHead>
               <KvTableHead>پردیس محل استقرار</KvTableHead>
-              <KvTableHead align="center">استان</KvTableHead>
               <KvTableHead align="center">روز حضور مجاز</KvTableHead>
               <KvTableHead align="center">ظرفیت باقیمانده</KvTableHead>
               <KvTableHead align="center">انتخاب و ثبت‌نام</KvTableHead>
@@ -57,9 +56,9 @@ export function SupervisorSelectionTable({
           </KvTableHeader>
           <KvTableBody>
             {isLoading ? (
-              <KvTableBusy colSpan={7} />
+              <KvTableBusy colSpan={6} />
             ) : supervisors.length === 0 ? (
-              <KvTableEmpty colSpan={7}>
+              <KvTableEmpty colSpan={6}>
                 <KvEmptyState title="موردی یافت نشد" />
               </KvTableEmpty>
             ) : (
@@ -68,9 +67,14 @@ export function SupervisorSelectionTable({
                   <KvTableRowIndexCell index={index} />
                   <KvTableCell emphasis>{supervisor.name}</KvTableCell>
                   <KvTableCell>{supervisor.college}</KvTableCell>
-                  <KvTableCell align="center">{supervisor.province}</KvTableCell>
                   <KvTableCell align="center">
-                    <Badge variant="brand">{supervisor.day}</Badge>
+                    <div className="flex flex-wrap items-center justify-center gap-kv-pair">
+                      {supervisor.days.map((day) => (
+                        <Badge key={day} variant="brand">
+                          {day}
+                        </Badge>
+                      ))}
+                    </div>
                   </KvTableCell>
                   <KvTableCell align="center" emphasis>
                     {capacityLabel(supervisor.capacity)}

@@ -5,6 +5,7 @@ import {
 } from '@/services/internship-enrollment/enrollment-mappers';
 import {
   findLessonForLevel,
+  resolveEnrollmentProfessor,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { requireNestTransport } from '@/services/require-nest-transport';
@@ -35,8 +36,11 @@ export function assertEnrollmentWriteReady(surface: string): never {
  * 2. درس مناسب سطح/نوع را پیدا می‌کنیم.
  * 3. POST می‌زنیم و رکورد ثبت‌نام را برمی‌گردانیم.
  *
- * توجه: `supervisorName` را Nest در پاسخ POST برنمی‌گرداند — در UI از اطلاعات کش
- * فهرست اساتید پر می‌شود.
+ * توجه: طبق OpenAPI زندهٔ بک‌اند، پاسخ POST همیشه ۲۰۴ (بی‌بدنه) است؛
+ * `studentEnrollmentsApi.create` این را با یک GET لیست جبران می‌کند (ببین
+ * `student-enrollments.api.ts`) — یعنی `created` همان ردیف `GET /student-enrollments`
+ * است و طبق `StudentEnrollmentListItemDto` فیلد populated `professor` را دارد؛
+ * `resolveEnrollmentProfessor` همان را اولویت می‌دهد، بدون درخواست اضافه.
  */
 export async function enrollRealWithSupervisor(
   input: EnrollWithSupervisorInput
@@ -64,6 +68,7 @@ export async function enrollRealWithSupervisor(
   });
 
   const enrollmentId = created?.id ?? created?._id ?? '';
+  const createdProfessor = resolveEnrollmentProfessor(created);
 
   return {
     id: enrollmentId,
@@ -74,8 +79,8 @@ export async function enrollRealWithSupervisor(
     termId: open.id,
     termTitle: '',
     title: normalizeEnrollmentCourseTitle(courseNameForKind(input.kind), input.level),
-    supervisorId: created?.professorId ?? input.supervisorId,
-    supervisorName: null,
+    supervisorId: createdProfessor?.id ?? input.supervisorId,
+    supervisorName: createdProfessor?.name ?? null,
     schoolId: null,
     schoolName: null,
     mentorId: null,
@@ -119,19 +124,6 @@ export async function cancelRealEnrollment(
   }
 
   await studentEnrollmentsApi.cancel(enrollmentId);
-}
-
-function relationId(value: NestStudentEnrollment['schoolId']): string | null {
-  if (typeof value === 'string') {
-    const id = value.trim();
-    return id || null;
-  }
-  if (value && typeof value === 'object') {
-    const record = value as { id?: string; _id?: string };
-    const id = record.id ?? record._id;
-    return typeof id === 'string' && id ? id : null;
-  }
-  return null;
 }
 
 function mapEnrollmentStatus(
@@ -184,8 +176,19 @@ export async function assignRealDelayedSchoolMentor(
     enrollmentId,
     { schoolId: input.schoolId, teacherId: input.mentorId }
   );
-  // پاسخ PATCH ممکن است فقط school/teacher برگرداند؛ professor از ردیف قبلی می‌ماند.
+  // پاسخ PATCH (`StudentEnrollment`) فقط `professorId` خام دارد، نه فیلد
+  // populated `professor` — یعنی `resolveEnrollmentProfessor(row)` تقریباً
+  // همیشه یک آبجکت غیر-null با `name: null` برمی‌گرداند (نه واقعاً `null`)،
+  // پس `??` به‌تنهایی هرگز به `current` (که populated و اسم واقعی دارد) نمی‌رسد.
+  // استاد ناظر با این تخصیص عوض نمی‌شود، پس صریحاً اول دنبال یک `name` واقعی
+  // می‌گردیم؛ فقط اگر هیچ‌کدام اسم نداشتند، به id-only ردیف تازه‌تر برمی‌گردیم.
   const row = updated ?? current;
+  const rowProfessor = resolveEnrollmentProfessor(row);
+  const currentProfessor = resolveEnrollmentProfessor(current);
+  const professor =
+    rowProfessor?.name != null
+      ? rowProfessor
+      : (currentProfessor ?? rowProfessor);
 
   return {
     id: enrollmentId,
@@ -199,11 +202,17 @@ export async function assignRealDelayedSchoolMentor(
       courseNameForKind(input.kind),
       input.level
     ),
-    supervisorId: row.professorId ?? current.professorId ?? null,
-    supervisorName: null,
-    schoolId: relationId(row.schoolId) ?? input.schoolId,
+    supervisorId: professor?.id ?? null,
+    supervisorName: professor?.name ?? null,
+    // مستقیماً از `input` — PATCH دقیقاً همین `schoolId`/`mentorId` را فرستاده و
+    // اگر بدون خطا برگشته یعنی همین مقدار اعمال شده. خواندنش از پاسخ PATCH
+    // (`row.schoolId`) ریسک نمایش مقدار قدیمی را دارد اگر `updated` یک روز
+    // بدون بدنه برگردد (`row` آن‌وقت به `current` — ردیف *قبل از* این PATCH —
+    // fallback می‌کند)؛ طبق Swagger فعلی این اتفاق نمی‌افتد، ولی چون `input`
+    // همیشه دقیق و در دسترس است، دلیلی برای ریسک اضافه (حتی نظری) نیست.
+    schoolId: input.schoolId,
     schoolName: null,
-    mentorId: relationId(row.teacherId) ?? input.mentorId,
+    mentorId: input.mentorId,
     mentorName: null,
     status: mapEnrollmentStatus(row.status ?? current.status),
   };

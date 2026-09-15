@@ -5,10 +5,6 @@ import { useId, useState } from 'react';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvSearchableCombobox } from '@/components/shared/fields/KvSearchableCombobox';
-import {
-  IS_REAL_MODE_STUB_ACTIVE,
-  RealModeStubBadge,
-} from '@/components/shared/RealModeStubNotice';
 import { useDelayedSchoolMentorAssignment } from '@/features/karvita/internship-enrollment/hooks/useDelayedSchoolMentorAssignment';
 import type {
   InternshipEnrollmentActor,
@@ -40,22 +36,13 @@ export function DelayedSchoolMentorAssignment({
   const mentorFieldId = useId();
   const [schoolOpen, setSchoolOpen] = useState(false);
   const [mentorOpen, setMentorOpen] = useState(false);
-  const mentorLocked = disabled || IS_REAL_MODE_STUB_ACTIVE || !assignment.selectedSchool;
-  const realModeDisabled = disabled || IS_REAL_MODE_STUB_ACTIVE;
+  const mentorLocked = disabled || !assignment.selectedSchool;
 
   return (
     <fieldset
-      disabled={realModeDisabled}
+      disabled={disabled}
       className="mt-kv-pair flex w-full flex-col rounded-kv-card border border-dashed border-kv-brand-border bg-kv-brand-soft/70 p-kv-group shadow-kv-raised lg:max-w-[750px]"
     >
-      {IS_REAL_MODE_STUB_ACTIVE ? (
-        <div className="mb-kv-pair flex items-center gap-kv-pair">
-          <RealModeStubBadge />
-          <span className="text-xs text-kv-text-secondary">
-            فهرست مدرسه/معلم همکار هنوز به API واقعی وصل نیست.
-          </span>
-        </div>
-      ) : null}
       <div className="mb-kv-group w-full border-b border-kv-brand/20 pb-kv-group">
         <div className="flex w-full flex-col items-stretch gap-kv-inline text-xs text-kv-text-secondary lg:flex-row lg:items-center">
           <div className="flex w-full shrink-0 items-center justify-between border-b border-kv-border pb-kv-pair font-medium select-none lg:w-auto lg:justify-start lg:border-b-0 lg:pb-0">
@@ -77,7 +64,7 @@ export function DelayedSchoolMentorAssignment({
               className="w-full"
               value={assignment.schoolQuery}
               placeholder="جستجوی نام مدرسه..."
-              disabled={realModeDisabled}
+              disabled={disabled}
               open={schoolOpen}
               isLoading={assignment.isLoadingSchools}
               emptyLabel="مدرسه‌ای در حوزهٔ شما یافت نشد."
@@ -159,7 +146,7 @@ export function DelayedSchoolMentorAssignment({
           className="sm:w-auto"
           loading={assignment.isSubmitting}
           disabled={
-            realModeDisabled ||
+            disabled ||
             !assignment.selectedSchool ||
             !assignment.selectedMentor
           }

@@ -13,6 +13,7 @@ import { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
 import type { NestSemesterWithLessons } from '@/types/nest-admin';
 import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
 import type {
+  AttendanceDaysUnavailableReason,
   GetEnrollmentPageStateInput,
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
@@ -57,6 +58,9 @@ export function toEnrollmentPageState(
     enrollments?: NestStudentEnrollment[];
     supervisorName?: string | null;
     supervisorDay?: string | null;
+    supervisorDayUnavailableReason?: AttendanceDaysUnavailableReason | null;
+    schoolName?: string | null;
+    mentorName?: string | null;
     realWeeklyData?: RealWeeklyData;
   }
 ): InternshipEnrollmentPageState {
@@ -124,8 +128,14 @@ export function toEnrollmentPageState(
               userId: input.actor.id,
             },
             active,
-            registeredDetails?.supervisorName ?? null,
-            registeredDetails?.supervisorDay ?? null,
+            {
+              supervisorName: registeredDetails?.supervisorName ?? null,
+              supervisorDay: registeredDetails?.supervisorDay ?? null,
+              supervisorDayUnavailableReason:
+                registeredDetails?.supervisorDayUnavailableReason ?? null,
+              schoolName: registeredDetails?.schoolName ?? null,
+              mentorName: registeredDetails?.mentorName ?? null,
+            },
             registeredDetails?.realWeeklyData
           )
         : null,

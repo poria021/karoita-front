@@ -35,8 +35,18 @@ export type NestEnrollmentStatus = 'active' | 'dropped' | 'completed' | 'cancell
 
 /**
  * GET `/student-enrollments` (فهرست کاربر جاری) و GET `/student-enrollments/{id}`.
- * `schoolId`/`teacherId`/`completedAt` در Swagger `{}` هستند — یعنی ممکن است رشتهٔ
- * شناسه یا سند populated (با `id`/`title`) باشند؛ هر دو حالت باید پشتیبانی شود.
+ *
+ * طبق OpenAPI زندهٔ بک‌اند (`/docs-json` روی `backenddev.darkube.ir`، تأیید
+ * ۱۴۰۵/۰۶/۲۳)، این دو اندپوینت دو شکل متفاوت دارند:
+ * - لیست (`GET /student-enrollments`, schema `StudentEnrollmentListItemDto`):
+ *   `schoolId`/`teacherId`/`professorId` همیشه رشتهٔ id خام‌اند، **و کنارشان**
+ *   سه فیلد جدای populated `school`/`teacher`/`professor` هم می‌آید که اسم را
+ *   دارد — این منبع اصلی نام‌هاست، نه یک query جدا.
+ * - تک‌ردیف/PATCH (schema `StudentEnrollment`): فقط id خام دارد، فیلدهای
+ *   populated بالا را ندارد.
+ * mapperها (`resolveEnrollmentSchool`/`resolveEnrollmentMentor`/
+ * `resolveEnrollmentProfessor` در `enrollment-summary.ts`) این تفاوت را با
+ * اولویت به فیلد populated و fallback به id خام پوشش می‌دهند.
  */
 export type NestStudentEnrollment = {
   id?: string;
@@ -46,7 +56,20 @@ export type NestStudentEnrollment = {
   lessonId?: string;
   schoolId?: string | { id?: string; _id?: string; title?: string; name?: string } | null;
   teacherId?: string | { id?: string; _id?: string; title?: string; name?: string } | null;
-  professorId?: string;
+  /**
+   * روی برخی پاسخ‌ها Nest این فیلد را populate می‌کند (سند استاد به‌جای رشتهٔ
+   * id)؛ mapper هر دو حالت را می‌پذیرد — ببین `extractNestProfessor`.
+   */
+  professorId?:
+    | string
+    | { id?: string; _id?: string; firstName?: string; lastName?: string; name?: string }
+    | null;
+  /** فقط روی پاسخ لیست هست (`StudentEnrollmentListItemDto.school`). */
+  school?: { id?: string; title?: string | null } | null;
+  /** فقط روی پاسخ لیست هست (`StudentEnrollmentListItemDto.teacher`). */
+  teacher?: { id?: string; firstName?: string | null; lastName?: string | null } | null;
+  /** فقط روی پاسخ لیست هست (`StudentEnrollmentListItemDto.professor`). */
+  professor?: { id?: string; firstName?: string | null; lastName?: string | null } | null;
   status?: NestEnrollmentStatus | string;
   startedAt?: string;
   completedAt?: string | null;

@@ -17,14 +17,14 @@ function professorDisplayName(row: Record<string, unknown>): string {
   return full || asTrimmedString(row.name);
 }
 
-function professorDayLabel(row: Record<string, unknown>): string {
+function professorDayLabels(row: Record<string, unknown>): string[] {
   const labeled = asTrimmedString(row.day);
-  if (labeled) return labeled;
+  if (labeled) return [labeled];
   const days = Array.isArray(row.days) ? row.days : [];
-  const first = days.find(
-    (item): item is number => typeof item === 'number' && item >= 0 && item <= 5
-  );
-  return first === undefined ? '' : (NEST_DAY_FA[first] ?? '');
+  return days
+    .filter((item): item is number => typeof item === 'number' && item >= 0 && item <= 5)
+    .map((item) => NEST_DAY_FA[item])
+    .filter((label): label is string => Boolean(label));
 }
 
 function professorRemaining(row: Record<string, unknown>): number | null {
@@ -54,7 +54,7 @@ export function mapEnrollmentProfessor(
       namedTitle(row.college) ||
       namedTitle(row.campus),
     province: namedTitle(row.province),
-    day: professorDayLabel(row),
+    days: professorDayLabels(row),
     capacity: professorRemaining(row),
   };
 }

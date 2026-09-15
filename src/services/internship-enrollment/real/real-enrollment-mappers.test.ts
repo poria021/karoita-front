@@ -143,7 +143,7 @@ describe('real enrollment mappers', () => {
       name: 'سارا احمدی',
       college: 'پردیس شهید باهنر تهران',
       province: 'تهران',
-      day: 'شنبه',
+      days: ['شنبه'],
       capacity: 3,
     });
 
@@ -170,7 +170,7 @@ describe('real enrollment mappers', () => {
         name: 'سارا احمدی',
         college: 'پردیس تهران',
         province: 'تهران',
-        day: 'شنبه',
+        days: ['شنبه'],
         capacity: 1,
       },
       {
@@ -178,7 +178,7 @@ describe('real enrollment mappers', () => {
         name: 'نادر رحیمی',
         college: '',
         province: '',
-        day: '',
+        days: [],
         capacity: 1,
       },
     ];

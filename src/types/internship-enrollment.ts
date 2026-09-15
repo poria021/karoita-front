@@ -48,7 +48,7 @@ export type InternshipSupervisor = {
   name: string;
   college: string;
   province: string;
-  day: string;
+  days: string[];
   capacity: InternshipCapacity;
   readOnly?: boolean;
 };
@@ -163,9 +163,18 @@ export type InternshipSelectionScope = {
   canChangeScope: boolean;
 };
 
+/**
+ * چرا `attendanceDaysLabel` خالی مانده — فقط وقتی معنا دارد که آن رشته خالی
+ * باشد. `'capacity-exhausted'` یعنی استاد به‌خاطر پر شدن ظرفیتش از GET
+ * `/professors` (تنها منبع این فیلد) خارج شده؛ `'error'` یعنی خودِ درخواست
+ * fail شده. UI از این‌ها برای یک متن/تولتیپ روشن‌تر به‌جای سکوت استفاده می‌کند.
+ */
+export type AttendanceDaysUnavailableReason = 'capacity-exhausted' | 'error';
+
 export type InternshipEnrollmentSummary = {
   supervisorName: string | null;
   attendanceDaysLabel: string;
+  attendanceDaysUnavailableReason?: AttendanceDaysUnavailableReason | null;
   schoolId: string | null;
   schoolName: string | null;
   mentorId: string | null;

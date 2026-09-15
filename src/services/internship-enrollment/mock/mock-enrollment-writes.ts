@@ -204,9 +204,10 @@ export function assignDelayedSchoolMentor(
     throw new Error('معلم ناظر انتخاب‌شده در دسترس نیست.');
   }
 
-  const supervisorDay =
-    SUPERVISOR_SEEDS.find((item) => item.id === record.supervisorId)?.day ??
-    PLACEHOLDER_UNSET;
+  const supervisorSeed = SUPERVISOR_SEEDS.find((item) => item.id === record.supervisorId);
+  const supervisorDay = supervisorSeed?.days.length
+    ? supervisorSeed.days.join('، ')
+    : PLACEHOLDER_UNSET;
   const updatedRecord: InternshipEnrollmentRecord = {
     ...record,
     schoolId: school.id,
