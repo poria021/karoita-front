@@ -21,7 +21,7 @@ export function MarketingPwaInstallChip() {
         <FaIcon icon={faIcons.tabletScreenButton} size="xs" />
         <FaIcon icon={faIcons.desktop} size="xs" />
       </div>
-      <span className="flex flex-col text-end">
+      <span className="flex flex-col text-start">
         <span className="text-xs font-black text-kv-text">
           {shellCopy.account.installAppPwa}
         </span>
