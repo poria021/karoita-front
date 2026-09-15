@@ -11,6 +11,9 @@ import { toPersianDigits } from '@/utils/persianDigits';
 /** حدنصاب قبولی گزارش روی مقیاس ۰–۱۰۰ (مرجع mock). */
 export const DAILY_APPROVAL_PASSING_SCORE = 70;
 
+/** تمدید گروهی هفته هنوز به API واقعی وصل نشده — فعلاً پشت این فلگ خاموش است. */
+export const DAILY_APPROVALS_BULK_EXTEND_ENABLED = false;
+
 /** رونوشت chrome ماژول ارزیابی گزارش‌ها. */
 export const DAILY_APPROVALS_FEATURE = {
   title: 'ارزیابی و ممیزی نهایی گزارش‌ها',
@@ -221,7 +224,7 @@ export const WEEK_LEGEND_ITEMS: readonly {
   [
     'locked_future',
     'overdue',
-    'extended',
+    // 'extended', // تمدید گروهی هفته فعلاً غیرفعال است — در UI نمایش داده نمی‌شود.
     'draft',
     'pending',
     'needs_edit',

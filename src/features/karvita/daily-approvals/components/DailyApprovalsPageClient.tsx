@@ -6,6 +6,7 @@ import { IS_REAL_MODE_STUB_ACTIVE } from '@/components/shared/RealModeStubNotice
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 import { useUserStore } from '@/store/useUserStore';
 
+import { DAILY_APPROVALS_BULK_EXTEND_ENABLED } from '../constants';
 import { useDailyApprovalsPage } from '../hooks/useDailyApprovalsPage';
 import {
   canBulkExtendDailyApprovalWeeks,
@@ -25,7 +26,8 @@ export function DailyApprovalsPageClient() {
   const page = useDailyApprovalsPage();
   const role = useUserStore((state) => state.activeUser?.role);
   const canDrop = canDropDailyApprovalTrainee(role);
-  const canBulkExtend = canBulkExtendDailyApprovalWeeks(role);
+  const canBulkExtend =
+    DAILY_APPROVALS_BULK_EXTEND_ENABLED && canBulkExtendDailyApprovalWeeks(role);
   const hasActiveFilters =
     page.query.trim().length > 0 || page.course !== 'all';
 

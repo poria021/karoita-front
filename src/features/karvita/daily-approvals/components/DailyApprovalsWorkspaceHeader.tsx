@@ -17,7 +17,7 @@ import {
 import { KvFeatureIntro } from '@/components/shared/shell/KvFeatureIntro';
 import { faIcons } from '@/utils/iconMap';
 
-import { DAILY_APPROVALS_FEATURE } from '../constants';
+import { DAILY_APPROVALS_BULK_EXTEND_ENABLED, DAILY_APPROVALS_FEATURE } from '../constants';
 
 type DailyApprovalsWorkspaceHeaderProps = {
   termId: string;
@@ -32,9 +32,9 @@ export function DailyApprovalsWorkspaceHeader({
   termId,
   terms,
   onTermChange,
-  showBulkExtend = false,
+  showBulkExtend,
   onBulkExtendClick,
-  bulkExtendDisabled = false,
+  bulkExtendDisabled,
 }: DailyApprovalsWorkspaceHeaderProps) {
   const selectedTermId = terms.some((term) => term.id === termId)
     ? termId
@@ -73,7 +73,7 @@ export function DailyApprovalsWorkspaceHeader({
                 </div>
               )}
             </div>
-            {showBulkExtend ? (
+            {DAILY_APPROVALS_BULK_EXTEND_ENABLED && showBulkExtend ? (
               <RealModeStubTooltip message="تمدید گروهی هنوز به API واقعی وصل نشده است.">
                 <KvButton
                   type="button"
