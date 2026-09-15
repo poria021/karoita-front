@@ -271,6 +271,22 @@ export function useOrganizationalCapacitiesPage() {
     [patchLocalCourse, snapshot]
   );
 
+  const requestSubmit = useCallback(() => {
+    if (!snapshot) return;
+    const incomplete = snapshot.courses.find((course) => {
+      const hasCapacity = Boolean(course.total && course.total > 0);
+      const hasDay = course.selectedDays.length > 0;
+      return hasCapacity !== hasDay;
+    });
+    if (incomplete) {
+      toast.error(
+        `برای درس «${incomplete.title}» هم ظرفیت پذیرش و هم روز حضور را کامل وارد کنید.`
+      );
+      return;
+    }
+    setConfirmOpen(true);
+  }, [snapshot]);
+
   const submit = useCallback(async () => {
     if (!snapshot) return;
     setActionBusy(true);
@@ -324,6 +340,7 @@ export function useOrganizationalCapacitiesPage() {
     setExpandedCourseId,
     updateCourseTotal,
     toggleDay,
+    requestSubmit,
     submit,
   };
 }

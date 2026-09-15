@@ -103,7 +103,7 @@ export function OrganizationalCapacitiesPageClient() {
               disabled={page.actionBusy || !page.isDirty || fieldsLocked}
               loading={page.actionBusy}
               icon={<FaIcon icon={faIcons.cloudArrowUp} size="xs" />}
-              onClick={() => page.setConfirmOpen(true)}
+              onClick={page.requestSubmit}
             >
               ثبت و ذخیره تغییرات ظرفیت‌ها
             </KvButton>
