@@ -1,4 +1,3 @@
-import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { ApiClientError } from '@/services/api-error';
 import {
   courseNameForKind,
@@ -18,15 +17,6 @@ import type {
   InternshipEnrollmentRecord,
 } from '@/types/internship-enrollment';
 import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
-
-/**
- * ثبت‌نام هفتگی/گزارش هنوز stub است — endpoint Nest مستند‌شده‌ای ندارد.
- * تخصیص مدرسه/معلم راهنما (`assignRealDelayedSchoolMentor`) استثناست — پایین همین فایل.
- * `enrollRealWithSupervisor` (ثبت‌نام اولیه) هم پیاده‌سازی شده — پایین همین فایل.
- */
-export function assertEnrollmentWriteReady(surface: string): never {
-  throwRealModeNotImplemented(surface);
-}
 
 /**
  * POST `/api/v1/student-enrollments` — ثبت‌نام اولیهٔ دانشجو/کارآموز با استاد راهنما.

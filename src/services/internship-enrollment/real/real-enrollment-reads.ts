@@ -3,15 +3,19 @@ import {
   kindForRole,
 } from '@/services/internship-enrollment/enrollment-mappers';
 import { requireNestTransport } from '@/services/require-nest-transport';
+import { reportError } from '@/lib/observability/reportError';
+import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
+import { resolveWeekFeedback } from '@/services/internship-enrollment/real/mappers/week-feedback';
 import {
   filterSupervisorsClientSide,
-  findActiveEnrollmentForLesson,
+  findEnrolmentHistoryForLevel,
   findLessonForLevel,
   resolveEnrollmentMentor,
   resolveEnrollmentProfessor,
   resolveEnrollmentSchool,
   studentWeekId,
   toEnrollmentPageState,
+  type EnrolmentHistoryEntry,
   type RealWeeklyData,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
 import { firstOf, personDisplayName } from '@/services/internship-enrollment/real/mappers/primitives';
@@ -31,11 +35,7 @@ import { studentWeeksApi } from '@/services/internship-enrollment/real/student-w
 import { educationSchoolApi } from '@/services/admin-catalog/resources/education-school.api';
 import { usersApi } from '@/services/users/users.api';
 import { nestEntityId } from '@/services/syllabus-config/real/real-syllabus-mappers';
-import type { NestSemesterWithLessons } from '@/types/nest-admin';
-import type {
-  NestStudentEnrollment,
-  NestStudentWeekSubmission,
-} from '@/types/nest-student-enrollments';
+import type { NestStudentWeekSubmission } from '@/types/nest-student-enrollments';
 import type {
   AttendanceDaysUnavailableReason,
   GetEnrollmentPageStateInput,
@@ -43,17 +43,26 @@ import type {
   InternshipMentorCapacity,
   InternshipSchoolCapacity,
   InternshipSupervisor,
+  InternshipWeeklyReportFeedback,
   ListDelayedMentorsInput,
   ListDelayedSchoolsInput,
   ListEligibleSupervisorsInput,
 } from '@/types/internship-enrollment';
-import type { NestMentorCapacity, NestMentorStudentsPage } from '@/types/nest-student-enrollments';
+import type {
+  NestMentorCapacity,
+  NestMentorStudentsPage,
+  NestSemesterEnrolmentsByTerm,
+} from '@/types/nest-student-enrollments';
 
 const PROFESSORS_MAX_PAGES = 40;
 
-async function loadMyEnrollments(): Promise<NestStudentEnrollment[]> {
+/**
+ * Best-effort — اگر `by-semester` fail شود، صفحه نباید کامل بترکد؛ به‌جای آن
+ * دانشجو در هیچ level ثبت‌نام‌شده حساب نمی‌شود (مثل رفتار قبلیِ `listMine`).
+ */
+async function loadEnrolmentsBySemester(): Promise<NestSemesterEnrolmentsByTerm[]> {
   try {
-    return await studentEnrollmentsApi.listMine();
+    return await studentEnrollmentsApi.listBySemester();
   } catch {
     return [];
   }
@@ -138,11 +147,15 @@ async function resolveSchoolName(schoolId: string): Promise<string | null> {
 }
 
 /**
- * برای هر هفته آخرین submission رو best-effort می‌گیرد — یه هفته که هنوز
- * ارسالی نداشته باعث شکست کل صفحه نمی‌شود.
+ * برای هر هفته آخرین submission *خودِ دانشجو* رو best-effort می‌گیرد. این لیست
+ * روی همین endpoint بین نقش‌ها مشترک است (مثلاً امتیاز معلم/مدیر مدرسه هم قرار
+ * است از همین‌جا ثبت شود) — فیلتر روی `submittedById` لازم است تا رکورد یه نقش
+ * دیگر به‌جای گزارش خودِ دانشجو نمایش داده نشود. `studentId` نامشخص → رفتار قدیم
+ * (آخرین ردیف، فارغ از فرستنده) به‌عنوان fallback امن‌تر از هیچ‌چیز.
  */
 async function loadLatestSubmissionByWeekId(
-  weeks: RealWeeklyData['weeks']
+  weeks: RealWeeklyData['weeks'],
+  studentId: string | undefined
 ): Promise<Map<string, NestStudentWeekSubmission>> {
   const result = new Map<string, NestStudentWeekSubmission>();
   await Promise.all(
@@ -151,7 +164,10 @@ async function loadLatestSubmissionByWeekId(
       if (!id) return;
       try {
         const submissions = await studentWeeksApi.listSubmissions(id);
-        const latest = submissions[submissions.length - 1];
+        const own = studentId
+          ? submissions.filter((s) => s.submittedById === studentId)
+          : submissions;
+        const latest = own[own.length - 1];
         if (latest) result.set(id, latest);
       } catch {
         // best-effort — یه هفته بدون تاریخچه نباید بقیه رو بترکونه.
@@ -161,35 +177,70 @@ async function loadLatestSubmissionByWeekId(
   return result;
 }
 
+/**
+ * برای هر هفته بازخورد متنی استاد/معلم/مدیر رو از گفتگوی همان هفته می‌خواند
+ * (best-effort — یه هفته بدون گفتگو یا بدون بازخورد نباید بقیه رو بترکونه).
+ */
+async function loadFeedbackByWeekId(
+  weeks: RealWeeklyData['weeks'],
+  enrollmentId: string,
+  knownRoles: { professorId?: string | null; mentorId?: string | null }
+): Promise<Map<string, InternshipWeeklyReportFeedback>> {
+  const result = new Map<string, InternshipWeeklyReportFeedback>();
+  await Promise.all(
+    weeks.map(async (week) => {
+      const id = studentWeekId(week);
+      if (!id) return;
+      try {
+        const messages = await loadWeekConversationMessages(enrollmentId, id);
+        const feedback = resolveWeekFeedback(messages, knownRoles);
+        if (feedback) result.set(id, feedback);
+      } catch {
+        // best-effort
+      }
+    })
+  );
+  return result;
+}
+
 /** GET `weeks` + `score-summary` این ثبت‌نام؛ شکست کامل → `undefined` (فراخوان به fallback برمی‌گردد). */
-async function loadRealWeeklyData(enrollmentId: string): Promise<RealWeeklyData | undefined> {
+async function loadRealWeeklyData(
+  enrollmentId: string,
+  studentId: string | undefined,
+  knownRoles: { professorId?: string | null; mentorId?: string | null }
+): Promise<RealWeeklyData | undefined> {
   try {
     const [weeks, scoreSummary] = await Promise.all([
       studentEnrollmentsApi.listWeeks(enrollmentId),
       studentEnrollmentsApi.getScoreSummary(enrollmentId),
     ]);
-    const latestSubmissionByWeekId = await loadLatestSubmissionByWeekId(weeks);
-    return { weeks, scoreSummary, latestSubmissionByWeekId };
-  } catch {
+    const [latestSubmissionByWeekId, feedbackByWeekId] = await Promise.all([
+      loadLatestSubmissionByWeekId(weeks, studentId),
+      loadFeedbackByWeekId(weeks, enrollmentId, knownRoles),
+    ]);
+    return { weeks, scoreSummary, latestSubmissionByWeekId, feedbackByWeekId };
+  } catch (error) {
+    // برخلاف بقیهٔ fallbackهای این فایل، این شکست باید جایی ثبت شود — UI با
+    // دیدن `weeksAreReal: false` پیام «خطا در خواندن» نشان می‌دهد، نه سکوت.
+    void reportError(error, {
+      source: 'InternshipEnrollment.loadRealWeeklyData',
+      extra: { enrollmentId },
+    });
     return undefined;
   }
 }
 
 /**
- * لیست ثبت‌نام خود دانشجو معیار «اخذ شده» است — نه `lesson.status`.
- * `GET /student-enrollments` (لیست) طبق OpenAPI زندهٔ بک‌اند همیشه اسم مدرسه/
- * معلم/استاد را در فیلدهای populated `school`/`teacher`/`professor` هم برمی‌گرداند
- * (`resolveEnrollmentSchool`/`resolveEnrollmentMentor`/`resolveEnrollmentProfessor`)
- * — این مسیر معمول است، بدون هیچ درخواست اضافه. فقط اگر آن فیلد خالی بود (fallback
- * دفاعی برای تغییر احتمالی شکل پاسخ)، از `GET /users/{id}` یا `GET /admin/schools`
- * جبران می‌شود. «روز حضور» استثناست: هیچ‌جای دیگری جز `GET /professors` موجود
- * نیست (و آن هم به ظرفیت باقی‌ماندهٔ استاد وابسته است).
+ * تاریخچهٔ ثبت‌نام این level (از `by-semester`) معیار «اخذ شده» است — نه
+ * `lesson.status`، و مستقل از این‌که ترم فعلی باز باشد یا نه (`enrolment` هر
+ * درس همراه مدرسه/معلم/استاد populated می‌آید، مثل پاسخ لیست قدیمی). «روز
+ * حضور» استثناست و فقط برای ثبت‌نامِ همین ترمِ باز قابل‌حل است — هیچ‌جای
+ * دیگری جز `GET /professors` (که فقط ترم باز را می‌شناسد) موجود نیست.
  */
 async function loadRegisteredEnrollmentDetails(
-  input: GetEnrollmentPageStateInput,
-  open: NestSemesterWithLessons | null
+  activeEntry: EnrolmentHistoryEntry | null,
+  isActiveInOpenTerm: boolean
 ): Promise<{
-  enrollments: NestStudentEnrollment[];
   supervisorName: string | null;
   supervisorDay: string | null;
   supervisorDayUnavailableReason: AttendanceDaysUnavailableReason | null;
@@ -197,24 +248,10 @@ async function loadRegisteredEnrollmentDetails(
   mentorName: string | null;
   realWeeklyData?: RealWeeklyData;
 }> {
-  if (!open) {
-    return {
-      enrollments: [],
-      supervisorName: null,
-      supervisorDay: null,
-      supervisorDayUnavailableReason: null,
-      schoolName: null,
-      mentorName: null,
-    };
-  }
-
-  const enrollments = await loadMyEnrollments();
-  const kind = kindForRole(input.actor.role);
-  const level = clampLevel(kind, input.level);
-  const lesson = findLessonForLevel(open.lessons ?? [], kind, level);
-  const lessonId = lesson ? nestEntityId(lesson) : '';
-  const active = findActiveEnrollmentForLesson(enrollments, open.id, lessonId || null);
+  const active = activeEntry?.enrolment ?? null;
+  const lessonId = activeEntry?.lesson.id ?? '';
   const enrollmentId = active?.id ?? active?._id ?? '';
+  const studentId = active?.studentId;
 
   const professor = resolveEnrollmentProfessor(active);
   const school = resolveEnrollmentSchool(active);
@@ -227,8 +264,8 @@ async function loadRegisteredEnrollmentDetails(
         : professor?.id
           ? resolveUserDisplayName(professor.id)
           : Promise.resolve(null),
-      professor?.id && lessonId
-        ? resolveSupervisorDay(open.id, lessonId, professor.id)
+      isActiveInOpenTerm && professor?.id && lessonId && activeEntry
+        ? resolveSupervisorDay(activeEntry.semesterId, lessonId, professor.id)
         : Promise.resolve<SupervisorDayResult>({ day: null, unavailableReason: null }),
       school?.title || !school?.id
         ? Promise.resolve(school?.title || null)
@@ -236,11 +273,15 @@ async function loadRegisteredEnrollmentDetails(
       mentor?.title || !mentor?.id
         ? Promise.resolve(mentor?.title || null)
         : resolveUserDisplayName(mentor.id),
-      enrollmentId ? loadRealWeeklyData(enrollmentId) : Promise.resolve(undefined),
+      enrollmentId
+        ? loadRealWeeklyData(enrollmentId, studentId, {
+            professorId: professor?.id,
+            mentorId: mentor?.id,
+          })
+        : Promise.resolve(undefined),
     ]);
 
   return {
-    enrollments,
     supervisorName,
     supervisorDay: supervisorDayResult.day,
     supervisorDayUnavailableReason: supervisorDayResult.unavailableReason,
@@ -254,9 +295,22 @@ export async function getRealEnrollmentPageState(
   input: GetEnrollmentPageStateInput
 ): Promise<InternshipEnrollmentPageState> {
   requireNestTransport('InternshipEnrollmentService.getEnrollmentPageState');
-  const open = await studentEnrollmentsApi.getOpenCourseSelection();
-  const registeredDetails = await loadRegisteredEnrollmentDetails(input, open);
-  return toEnrollmentPageState(input, open, registeredDetails);
+  const [open, semesters] = await Promise.all([
+    studentEnrollmentsApi.getOpenCourseSelection(),
+    loadEnrolmentsBySemester(),
+  ]);
+
+  const kind = kindForRole(input.actor.role);
+  const level = clampLevel(kind, input.level);
+  const history = findEnrolmentHistoryForLevel(semesters, kind, level);
+  const activeEntry = history.find((entry) => entry.enrolment.status === 'active') ?? null;
+  const isActiveInOpenTerm = Boolean(open) && activeEntry?.semesterId === open?.id;
+
+  const registeredDetails = await loadRegisteredEnrollmentDetails(
+    activeEntry,
+    isActiveInOpenTerm
+  );
+  return toEnrollmentPageState(input, open, semesters, registeredDetails);
 }
 
 /**

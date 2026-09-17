@@ -2,11 +2,62 @@
  * DTOهای پورتال دانشجو/مهارت‌آموز — GET `/api/v1/student-enrollments/*`.
  * شکل استاد لایو ممکن است کاربر Nest یا ردیف ظرفیت populated باشد؛ mapper هر دو را می‌پذیرد.
  */
-import type { NestLesson, NestSemesterWithLessons } from '@/types/nest-admin';
+import type {
+  NestLesson,
+  NestSemester,
+  NestSemesterWithLessons,
+} from '@/types/nest-admin';
+
+/**
+ * ردیف `lessons` در GET `/student-enrollments/open-course-selection`.
+ * طبق OpenAPI زندهٔ بک‌اند (تأیید ۱۴۰۵/۰۶/۲۵)، این اندپوینت به‌جای
+ * `courseSelection` روی هر درس، `canSelect`/`blockReason` می‌دهد — گیت واقعی
+ * «آیا این دانشجو می‌تواند همین درس را انتخاب کند» همین دو فیلدند (محاسبهٔ
+ * بک‌اند، شامل قبولی/رد در ترم‌های قبلی)، نه `status`/`courseSelection`.
+ */
+export type NestOpenCourseSelectionLesson = NestLesson & {
+  /** false یعنی این دانشجو/کارآموز فعلاً حق انتخاب این درس را ندارد. */
+  canSelect?: boolean;
+  /** علت غیرقابل‌انتخاب بودن وقتی `canSelect === false` — تنها مقدار دیدهاشده: `in_progress`. enum کامل مستند نیست. */
+  blockReason?: string | null;
+};
 
 /** GET `/student-enrollments/open-course-selection` — ترم باز + درس‌ها. */
 export type NestOpenCourseSelection = NestSemesterWithLessons & {
-  lessons: NestLesson[];
+  lessons: NestOpenCourseSelectionLesson[];
+};
+
+/**
+ * ردیف `lessons` در GET `/student-enrollments/by-semester` — برخلاف
+ * `open-course-selection`، `canSelect`/`blockReason` ندارد، ولی `enrolment`ِ
+ * خودِ دانشجو در همین درس را (اگر باشد) مستقیم چسبانده — شامل نیم‌سال‌های
+ * بسته‌شدهٔ قبلی هم می‌شود، نه فقط نیم‌سال باز.
+ */
+export type NestSemesterLessonWithEnrolment = {
+  id?: string;
+  semesterId?: string;
+  title?: string;
+  status?: boolean;
+  enrolment?: NestStudentEnrollment | null;
+};
+
+/**
+ * GET `/student-enrollments/by-semester` — همهٔ نیم‌سال‌ها (نه فقط باز) با
+ * درس‌ها، هرکدام همراه با ثبت‌نام خودِ دانشجو در همان درس (اگر باشد). بدون
+ * صفحه‌بندی. جایگزین `GET /student-enrollments` برای پیداکردن سابقهٔ
+ * ثبت‌نامِ دانشجو در یک level خاص در طول زمان — چون بر خلاف پاسخ خام لیست،
+ * اینجا `lessonId` با `title` واقعی همراه است و می‌شود level را تشخیص داد.
+ */
+export type NestSemesterEnrolmentsByTerm = Pick<
+  NestSemester,
+  'id' | 'season' | 'structure'
+> & {
+  academicYears?: string;
+  courseSelection?: boolean;
+  startCourseSelection?: string;
+  startClasses?: boolean;
+  startClassesAt?: string;
+  lessons: NestSemesterLessonWithEnrolment[];
 };
 
 /** ردیف GET `/student-enrollments/professors` — فیلدها اختیاری چون Swagger نمونهٔ پر ندارد. */

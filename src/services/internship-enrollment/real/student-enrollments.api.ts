@@ -11,14 +11,15 @@ import {
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
 import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 import { parseNestPagedList } from '@/types/nest-admin';
-import type { NestSemesterWithLessons } from '@/types/nest-admin';
 import type {
   NestCreateStudentEnrollmentDto,
   NestEnrollmentProfessor,
   NestMentorCapacity,
   NestMentorStudent,
   NestMentorStudentsPage,
+  NestOpenCourseSelection,
   NestScoreSummary,
+  NestSemesterEnrolmentsByTerm,
   NestStudentEnrollment,
   NestStudentWeek,
   NestUpdateStudentEnrollmentDto,
@@ -32,6 +33,7 @@ export const NEST_STUDENT_ENROLLMENT_PATHS = {
   weeks: (id: string) => `v1/student-enrollments/${id}/weeks`,
   scoreSummary: (id: string) => `v1/student-enrollments/${id}/score-summary`,
   openCourseSelection: 'v1/student-enrollments/open-course-selection',
+  bySemester: 'v1/student-enrollments/by-semester',
   professors: 'v1/student-enrollments/professors',
   teachers: 'v1/student-enrollments/teachers',
   mentorStudents: 'v1/student-enrollments/mentor/students',
@@ -97,7 +99,7 @@ export const studentEnrollmentsApi = {
    * GET `/api/v1/student-enrollments/open-course-selection`.
    * ترم باز نباشد → `null` (۴۰۴/۲۰۴ یا بدنهٔ بدون id).
    */
-  async getOpenCourseSelection(): Promise<NestSemesterWithLessons | null> {
+  async getOpenCourseSelection(): Promise<NestOpenCourseSelection | null> {
     try {
       const raw = await apiClient.getJson<unknown>(
         NEST_STUDENT_ENROLLMENT_PATHS.openCourseSelection
@@ -107,6 +109,18 @@ export const studentEnrollmentsApi = {
       if (isAbsentOpenSemester(error)) return null;
       throw error;
     }
+  },
+
+  /**
+   * GET `/api/v1/student-enrollments/by-semester` — همهٔ نیم‌سال‌ها با درس‌ها،
+   * هرکدام همراه با ثبت‌نام خودِ دانشجو در همان درس (اگر باشد). بدون صفحه‌بندی.
+   * جایگزین `listMine()` برای پیداکردن سابقهٔ ثبت‌نامِ یک level در طول زمان.
+   */
+  async listBySemester(): Promise<NestSemesterEnrolmentsByTerm[]> {
+    const raw = await apiClient.getJson<unknown>(
+      NEST_STUDENT_ENROLLMENT_PATHS.bySemester
+    );
+    return Array.isArray(raw) ? (raw as NestSemesterEnrolmentsByTerm[]) : [];
   },
 
   /**

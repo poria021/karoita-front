@@ -10,8 +10,10 @@ import {
   toAcademicTerm,
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
-import type { NestSemesterWithLessons } from '@/types/nest-admin';
-import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
+import type {
+  NestOpenCourseSelection,
+  NestSemesterEnrolmentsByTerm,
+} from '@/types/nest-student-enrollments';
 import type {
   AttendanceDaysUnavailableReason,
   GetEnrollmentPageStateInput,
@@ -21,13 +23,12 @@ import type {
 } from '@/types/internship-enrollment';
 
 import { firstOf } from './primitives';
-import { findLessonForLevel } from './lesson-matching';
 import {
-  findActiveEnrollmentForLesson,
-  findConflictEnrollment,
-  registeredSummaryFromEnrollment,
-  type RealWeeklyData,
-} from './enrollment-summary';
+  findConflictLessonInSemester,
+  findEnrolmentHistoryForLevel,
+  findLessonForLevel,
+} from './lesson-matching';
+import { registeredSummaryFromEnrollment, type RealWeeklyData } from './enrollment-summary';
 
 export function realSelectionScope(
   actor: InternshipEnrollmentActor
@@ -48,14 +49,18 @@ export function realSelectionScope(
 }
 
 /**
- * سناریو از ترم باز + لیست ثبت‌نام خود دانشجو.
- * وجود ردیف درس یعنی سرفصل برای آن سطح آمده؛ `lesson.status` اخذ نیست.
+ * سناریو از ترم باز (`open-course-selection`، فقط برای `canSelect`/گیت انتخاب) +
+ * تاریخچهٔ ثبت‌نام این level در همهٔ نیم‌سال‌ها (`by-semester`، نه فقط باز).
+ * وجود ردیف درس در ترم باز یعنی سرفصل برای این سطح آمده؛ `lesson.status` اخذ نیست.
+ * «ثبت‌نام‌شده» بودن دیگر به بازبودن ترم فعلی گره نخورده — اگر دانشجو در هر
+ * نیم‌سالی (حتی بسته‌شده) ثبت‌نام `active` غیرکنسل‌شده برای همین level داشته
+ * باشد، صفحهٔ گزارش همان را نشان می‌دهد، نه صفحهٔ انتخاب واحد.
  */
 export function toEnrollmentPageState(
   input: GetEnrollmentPageStateInput,
-  open: NestSemesterWithLessons | null,
+  open: NestOpenCourseSelection | null,
+  semesters: readonly NestSemesterEnrolmentsByTerm[],
   registeredDetails?: {
-    enrollments?: NestStudentEnrollment[];
     supervisorName?: string | null;
     supervisorDay?: string | null;
     supervisorDayUnavailableReason?: AttendanceDaysUnavailableReason | null;
@@ -68,66 +73,80 @@ export function toEnrollmentPageState(
   const level = clampLevel(kind, input.level);
   const courseName = courseNameForKind(kind);
 
-  if (!open) {
-    return {
-      scenario: 'S1_syllabus_blocked',
-      kind,
-      level,
-      courseName,
-      termTitle: 'نیم‌سال جاری',
-      termId: '',
-      lessonId: null,
-      enrollment: null,
-      selection: null,
-      conflictEnrollment: null,
-    };
-  }
+  const openLessons = open?.lessons ?? [];
+  const current = findLessonForLevel(openLessons, kind, level);
+  const currentLessonId = current ? nestEntityId(current) || null : null;
 
-  const term = toAcademicTerm(open, { lessons: open.lessons ?? [] });
-  const lessons = open.lessons ?? [];
-  const current = findLessonForLevel(lessons, kind, level);
-  const lessonId = current ? nestEntityId(current) || null : null;
-  const mine = registeredDetails?.enrollments ?? [];
-  const active = findActiveEnrollmentForLesson(mine, open.id, lessonId);
-  const registered = Boolean(active);
+  const history = findEnrolmentHistoryForLevel(semesters, kind, level);
+  const activeEntry =
+    history.find((entry) => entry.enrolment.status === 'active') ?? null;
+  const registered = Boolean(activeEntry);
+
+  const openSemesterEntry = open
+    ? semesters.find((semester) => semester.id === open.id)
+    : undefined;
   const conflictLesson = registered
     ? null
-    : findConflictEnrollment(mine, lessons, kind, open.id, lessonId);
+    : findConflictLessonInSemester(openSemesterEntry, kind, currentLessonId);
 
-  // انتخاب واحد فقط وقتی درسِ همین دانشجو باز باشد — lesson.status از open-course-selection.
+  // انتخاب واحد فقط وقتی بک‌اند صریحاً اجازه بدهد — `canSelect` نتیجهٔ
+  // محاسبهٔ بک‌اند است (شامل قبولی/رد در ترم‌های قبلی)، پس اگر صراحتاً false
+  // بود، status/courseSelection دیگر معنایی ندارند.
   const lessonEnrollOpen =
-    open.courseSelection === true ||
-    Boolean(current?.courseSelection) ||
-    Boolean(current?.status);
+    current?.canSelect !== false &&
+    (open?.courseSelection === true ||
+      Boolean(current?.courseSelection) ||
+      Boolean(current?.status));
+
+  const isActiveInOpenTerm = Boolean(open) && activeEntry?.semesterId === open?.id;
+  const openTerm = open ? toAcademicTerm(open, { lessons: openLessons }) : null;
+  // نیم‌سال بسته‌شده یعنی کلاس‌هایش قطعاً شروع شده — برخلاف نیم‌سال باز که
+  // ممکن است `startClasses` هنوز false باشد (باید منتظر S4 ماند).
+  const activeTermOpen = activeEntry
+    ? isActiveInOpenTerm
+      ? Boolean(openTerm?.isTermOpen)
+      : true
+    : false;
 
   const scenario = conflictLesson
     ? 'S6_already_enrolled_elsewhere'
     : resolveEnrollmentScenario({
-        syllabusConfigured: Boolean(current),
+        syllabusConfigured: registered || Boolean(current),
         enrollOpen: lessonEnrollOpen,
-        termOpen: term.isTermOpen,
+        termOpen: activeTermOpen,
         registered,
       });
+
+  const activeSemesterEntry =
+    activeEntry && !isActiveInOpenTerm
+      ? semesters.find((semester) => semester.id === activeEntry.semesterId)
+      : undefined;
+  const activeTermTitle = activeEntry
+    ? isActiveInOpenTerm
+      ? (openTerm?.title ?? '')
+      : (activeSemesterEntry ? toAcademicTerm(activeSemesterEntry).title : '')
+    : (openTerm?.title ?? 'نیم‌سال جاری');
+  const activeTermId = activeEntry ? activeEntry.semesterId : (open?.id ?? '');
 
   return {
     scenario,
     kind,
     level,
     courseName,
-    termTitle: term.title,
-    termId: open.id,
-    lessonId,
+    termTitle: activeTermTitle,
+    termId: activeTermId,
+    lessonId: activeEntry ? (activeEntry.lesson.id ?? null) : currentLessonId,
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'
         ? registeredSummaryFromEnrollment(
             {
               kind,
               level,
-              termTitle: term.title,
-              termId: open.id,
+              termTitle: activeTermTitle,
+              termId: activeTermId,
               userId: input.actor.id,
             },
-            active,
+            activeEntry?.enrolment ?? null,
             {
               supervisorName: registeredDetails?.supervisorName ?? null,
               supervisorDay: registeredDetails?.supervisorDay ?? null,

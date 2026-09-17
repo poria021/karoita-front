@@ -52,6 +52,35 @@ describe('studentEnrollmentsApi', () => {
     ).resolves.toBeNull();
   });
 
+  it('GETs by-semester with no query params and returns the raw array', async () => {
+    getJson.mockResolvedValue([
+      {
+        id: 'sem-1',
+        season: 'one',
+        structure: 'semester',
+        lessons: [
+          { id: 'les-1', semesterId: 'sem-1', title: 'کارورزی ۱', status: true, enrolment: null },
+        ],
+      },
+    ]);
+
+    const semesters = await studentEnrollmentsApi.listBySemester();
+
+    expect(getJson).toHaveBeenCalledWith(
+      'v1/student-enrollments/by-semester'
+    );
+    expect(NEST_STUDENT_ENROLLMENT_PATHS.bySemester).toBe(
+      'v1/student-enrollments/by-semester'
+    );
+    expect(semesters).toHaveLength(1);
+    expect(semesters[0]?.lessons[0]?.enrolment).toBeNull();
+  });
+
+  it('returns an empty array from by-semester when the response is not an array', async () => {
+    getJson.mockResolvedValue(null);
+    await expect(studentEnrollmentsApi.listBySemester()).resolves.toEqual([]);
+  });
+
   it('GETs professors with semesterId and lessonId', async () => {
     getJson.mockResolvedValue({
       data: [

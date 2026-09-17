@@ -100,6 +100,10 @@ export type InternshipWeeklyReportFeedback = {
   advisor?: string;
   mentor?: string;
   principal?: string;
+  /** زمان (ISO) آخرین پیام متنی همان نقش — برای نمایش تاریخ زیر هر باکس بازخورد. */
+  advisorAt?: string;
+  mentorAt?: string;
+  principalAt?: string;
   mentorRating?: InternshipCompetencyRating;
   principalRating?: InternshipCompetencyRating;
 };
@@ -112,6 +116,8 @@ export type InternshipWeeklySession = {
   isExtended?: boolean;
   text?: string;
   files?: InternshipWeeklyReportFile[];
+  /** زمان (ISO) آخرین ارسال گزارش خودِ دانشجو برای این هفته. */
+  reportSubmittedAt?: string | null;
   feedback?: InternshipWeeklyReportFeedback;
 };
 

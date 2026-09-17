@@ -1,8 +1,7 @@
 import {
   courseNameForKind,
 } from '@/services/internship-enrollment/enrollment-mappers';
-import { nestEntityId, nestLessonTitle } from '@/services/syllabus-config/real/real-syllabus-mappers';
-import type { NestLesson } from '@/types/nest-admin';
+import { nestEntityId } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import type {
   NestEnrollmentStatus,
   NestScoreSummary,
@@ -15,17 +14,18 @@ import type {
   InternshipCourseKind,
   InternshipEnrollmentLevel,
   InternshipEnrollmentSummary,
+  InternshipWeeklyReportFeedback,
 } from '@/types/internship-enrollment';
 import { normalizeEnrollmentCourseTitle } from '@/utils/enrollment-eligibility';
 
 import { isRecord, namedTitle, personDisplayName } from './primitives';
-import { lessonMatchesKind } from './lesson-matching';
 import { mapRealProgressiveGrade, mapRealWeeklySessions } from './weekly-sessions';
 
 export type RealWeeklyData = {
   weeks: NestStudentWeek[];
   scoreSummary: NestScoreSummary | null;
   latestSubmissionByWeekId: ReadonlyMap<string, NestStudentWeekSubmission>;
+  feedbackByWeekId: ReadonlyMap<string, InternshipWeeklyReportFeedback>;
 };
 
 function registeredSummary(input: {
@@ -181,7 +181,11 @@ export function registeredSummaryFromEnrollment(
   const mentor = resolveEnrollmentMentor(enrollment);
 
   const mappedWeeks = realWeeklyData
-    ? mapRealWeeklySessions(realWeeklyData.weeks, realWeeklyData.latestSubmissionByWeekId)
+    ? mapRealWeeklySessions(
+        realWeeklyData.weeks,
+        realWeeklyData.latestSubmissionByWeekId,
+        realWeeklyData.feedbackByWeekId
+      )
     : base.weeks;
 
   const attendanceDaysLabel = resolvedNames.supervisorDay ?? base.attendanceDaysLabel;
@@ -207,55 +211,3 @@ export function registeredSummaryFromEnrollment(
   };
 }
 
-function enrollmentLessonId(row: NestStudentEnrollment): string {
-  return (row.lessonId ?? '').trim();
-}
-
-function enrollmentSemesterId(row: NestStudentEnrollment): string {
-  return (row.semesterId ?? '').trim();
-}
-
-function isDroppedEnrollment(row: NestStudentEnrollment): boolean {
-  return row.status === 'dropped' || row.status === 'cancelled';
-}
-
-/**
- * ثبت‌نام فعال همین درس از GET `/student-enrollments` — نه `lesson.status`.
- * `lesson.status` در سرفصل یعنی درس ارائه شده است (`isOffered`)، نه اخذ دانشجو.
- */
-export function findActiveEnrollmentForLesson(
-  rows: readonly NestStudentEnrollment[],
-  semesterId: string,
-  lessonId: string | null
-): NestStudentEnrollment | null {
-  if (!semesterId || !lessonId) return null;
-  return (
-    rows.find(
-      (row) =>
-        enrollmentSemesterId(row) === semesterId &&
-        enrollmentLessonId(row) === lessonId &&
-        !isDroppedEnrollment(row)
-    ) ?? null
-  );
-}
-
-export function findConflictEnrollment(
-  rows: readonly NestStudentEnrollment[],
-  lessons: NestLesson[],
-  kind: InternshipCourseKind,
-  semesterId: string,
-  currentLessonId: string | null
-): NestLesson | null {
-  const conflict = rows.find((row) => {
-    if (enrollmentSemesterId(row) !== semesterId) return false;
-    if (isDroppedEnrollment(row)) return false;
-    const otherId = enrollmentLessonId(row);
-    if (!otherId || otherId === currentLessonId) return false;
-    const otherLesson = lessons.find((lesson) => nestEntityId(lesson) === otherId);
-    if (!otherLesson) return false;
-    return lessonMatchesKind(nestLessonTitle(otherLesson), kind);
-  });
-  if (!conflict) return null;
-  const lessonId = enrollmentLessonId(conflict);
-  return lessons.find((lesson) => nestEntityId(lesson) === lessonId) ?? null;
-}

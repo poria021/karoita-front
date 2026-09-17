@@ -310,6 +310,7 @@ export function useWeeklyReportModal({
     locked,
     lockNotice,
     feedback: week?.feedback,
+    reportSubmittedAt: week?.reportSubmittedAt ?? null,
     busy,
     isSavingDraft,
     isSubmitting,

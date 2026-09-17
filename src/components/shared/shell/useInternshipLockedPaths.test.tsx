@@ -4,11 +4,13 @@ import type { ReactNode } from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const getOpenCourseSelection = vi.fn();
+const listBySemester = vi.fn();
 
 vi.mock('@/services/internship-enrollment/real/student-enrollments.api', () => ({
   studentEnrollmentsApi: {
     getOpenCourseSelection: (...args: unknown[]) =>
       getOpenCourseSelection(...args),
+    listBySemester: (...args: unknown[]) => listBySemester(...args),
   },
 }));
 
@@ -33,6 +35,7 @@ function internshipPath(level: number) {
 describe('useInternshipLockedPaths', () => {
   beforeEach(() => {
     getOpenCourseSelection.mockReset();
+    listBySemester.mockReset().mockResolvedValue([]);
   });
 
   it('returns empty set when role is null', () => {
@@ -41,6 +44,7 @@ describe('useInternshipLockedPaths', () => {
     });
     expect(result.current.size).toBe(0);
     expect(getOpenCourseSelection).not.toHaveBeenCalled();
+    expect(listBySemester).not.toHaveBeenCalled();
   });
 
   it('locks levels whose lesson is missing from open-course-selection', async () => {
@@ -87,6 +91,49 @@ describe('useInternshipLockedPaths', () => {
 
     expect(result.current.has(internshipPath(1))).toBe(false);
     expect(result.current.has(internshipPath(2))).toBe(true);
+  });
+
+  it('unlocks a level the student already took before, even though admin has not opened it this term (passed, failed, or cancelled all count)', async () => {
+    getOpenCourseSelection.mockResolvedValue({
+      id: 'sem-2',
+      season: 'one',
+      structure: 'semester',
+      courseSelection: true,
+      lessons: [
+        { id: 'l1', title: 'کارورزی ۱', status: true },
+        { id: 'l2', title: 'کارورزی ۲', status: false },
+        { id: 'l3', title: 'کارورزی ۳', status: false },
+      ],
+    });
+    listBySemester.mockResolvedValue([
+      {
+        id: 'sem-1',
+        season: 'one',
+        structure: 'semester',
+        lessons: [
+          {
+            id: 'old-l2',
+            semesterId: 'sem-1',
+            title: 'کارورزی ۲',
+            status: true,
+            // کنسل‌شده هم یعنی «قبلاً باهاش کار داشته» — باید باز بماند
+            enrolment: { id: 'e1', semesterId: 'sem-1', lessonId: 'old-l2', status: 'cancelled' },
+          },
+        ],
+      },
+    ]);
+
+    const { result } = renderHook(
+      () => useInternshipLockedPaths('student'),
+      { wrapper }
+    );
+
+    await waitFor(() => expect(listBySemester).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.has(internshipPath(3))).toBe(true));
+
+    expect(result.current.has(internshipPath(1))).toBe(false); // status:true همین ترم
+    expect(result.current.has(internshipPath(2))).toBe(false); // قبلاً گرفته بوده (کنسل‌شده)
+    expect(result.current.has(internshipPath(3))).toBe(true); // نه باز شده، نه قبلاً گرفته
   });
 
   it('locks all 4 levels when open-course-selection returns null', async () => {

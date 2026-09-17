@@ -1,5 +1,6 @@
 import type {
   InternshipProgressiveGrade,
+  InternshipWeeklyReportFeedback,
   InternshipWeeklyReportFile,
   InternshipWeeklySession,
   InternshipWeeklySessionState,
@@ -19,20 +20,32 @@ export function studentWeekId(week: NestStudentWeek): string {
 /**
  * Swagger enum کامل `status` هفته را مستند نکرده (نمونه‌های دیده‌شده صرفاً
  * `pending`/`in_progress`)؛ به‌جای اتکا به این رشته، وضعیت UI را از
- * `score`/`submittedAt` استخراج می‌کنیم — این فیلدها همیشه معنای ثابتی دارند.
+ * `score`/`submittedAt`/بازخورد استاد استخراج می‌کنیم — این فیلدها همیشه معنای
+ * ثابتی دارند.
  *
  * هفته‌ای که هنوز `startedAt` ندارد را «قفلِ آینده» نمی‌گیریم — هیچ فیلدی از Nest
  * مشخص نمی‌کند کدام هفته الان باز است، و خودِ `PATCH .../start` وقتی زود باشد
  * با خطای روشن («Classes have not started yet») رد می‌شود؛ پس هفته را باز/قابل‌کلیک
  * نشان می‌دهیم و تصمیم نهایی را به همان خطای بک‌اند می‌سپاریم.
+ *
+ * `needs_edit`: طبق سناریوی محصول، استاد راهنما یا نمره ثبت می‌کند (`graded`) یا
+ * بازخورد متنی می‌دهد — این دو عمل متقابلاً منحصرند، یعنی وجود بازخورد استاد
+ * بدون نمره یعنی گزارش رد شده و دانشجو باید دوباره ارسال کند. `needsEdit` را
+ * فراخوان از قبل با مقایسهٔ زمانِ آخرین پیام استاد و آخرین ارسال دانشجو محاسبه
+ * می‌کند (ببین `mapRealWeeklySessions`) — وگرنه بعد از اولین بازخورد، هفته تا
+ * ابد `needs_edit` می‌ماند حتی اگر دانشجو دوباره گزارش داده باشد.
  */
-function mapWeekStatus(week: NestStudentWeek): InternshipWeeklySessionState {
+export function mapWeekStatus(
+  week: NestStudentWeek,
+  needsEdit = false
+): InternshipWeeklySessionState {
   if (week.score !== null && week.score !== undefined) return 'graded';
+  if (needsEdit) return 'needs_edit';
   if (week.submittedAt) return 'pending';
   return 'draft';
 }
 
-function mapSubmissionFiles(
+export function mapSubmissionFiles(
   submission: NestStudentWeekSubmission | undefined
 ): InternshipWeeklyReportFile[] {
   const raw = submission?.files;
@@ -76,18 +89,28 @@ function mapSubmissionFiles(
  */
 export function mapRealWeeklySessions(
   weeks: readonly NestStudentWeek[],
-  latestSubmissionByWeekId: ReadonlyMap<string, NestStudentWeekSubmission>
+  latestSubmissionByWeekId: ReadonlyMap<string, NestStudentWeekSubmission>,
+  feedbackByWeekId: ReadonlyMap<string, InternshipWeeklyReportFeedback> = new Map()
 ): InternshipWeeklySession[] {
   return weeks.map((week, index) => {
     const id = studentWeekId(week);
     const latest = latestSubmissionByWeekId.get(id);
+    const feedback = feedbackByWeekId.get(id);
+    const advisorMessageAt = feedback?.advisorAt ?? null;
+    // پیام استاد فقط تا وقتی «رد» حساب می‌شود که دانشجو از آن موقع دوباره
+    // ارسال نکرده باشد — وگرنه بعد از اصلاح، هفته اشتباهاً needs_edit می‌ماند.
+    const needsEdit = Boolean(
+      advisorMessageAt && (!latest?.createdAt || advisorMessageAt > latest.createdAt)
+    );
     return {
       id,
       title: `هفته ${index + 1}`,
-      status: mapWeekStatus(week),
+      status: mapWeekStatus(week, needsEdit),
       score: typeof week.score === 'number' ? week.score : null,
       text: latest?.text ?? '',
       files: mapSubmissionFiles(latest),
+      reportSubmittedAt: latest?.createdAt ?? null,
+      feedback,
     };
   });
 }

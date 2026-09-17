@@ -61,7 +61,7 @@ function gateEnrollmentMock(): void {
 
 /**
  * ثبت‌نام کارورزی / مهارت‌آموزی.
- * real: ترم باز، فهرست استاد و ثبت‌نام اولیه از `student-enrollments`؛ گزارش هفته هنوز stub است.
+ * real: ترم باز، فهرست استاد، ثبت‌نام اولیه از `student-enrollments` و گزارش هفتگی از `student-weeks` — همه پیاده‌سازی شده‌اند.
  */
 export const InternshipEnrollmentService = {
   /** نقش → نوع درس؛ در Nest هم همین نگاشت پایدار است. */

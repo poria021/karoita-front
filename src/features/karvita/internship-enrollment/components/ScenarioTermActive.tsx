@@ -9,10 +9,7 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
-import {
-  IS_REAL_MODE_STUB_ACTIVE,
-  RealModeStubBadge,
-} from '@/components/shared/RealModeStubNotice';
+import { IS_REAL_MODE_STUB_ACTIVE } from '@/components/shared/RealModeStubNotice';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
@@ -230,13 +227,11 @@ export function ScenarioTermActive({
         </div>
 
         {IS_REAL_MODE_STUB_ACTIVE && !enrollment.weeksAreReal ? (
-          <div className="flex items-center gap-kv-pair">
-            <RealModeStubBadge />
-            <span className="text-xs text-kv-text-secondary">
-              فهرست هفته‌ها هنوز از API واقعی خوانده نمی‌شود؛ به همین دلیل اینجا
-              خالی نشان داده می‌شود، نه به این معنی که هفته‌ای ثبت نشده است.
-            </span>
-          </div>
+          <KvAlert
+            variant="error"
+            title="فهرست هفته‌ها بارگذاری نشد"
+            description="در خواندن هفته‌ها و نمرات این ثبت‌نام از سرور خطایی رخ داد؛ به این معنی نیست که گزارشی ثبت نشده. لطفاً صفحه را دوباره بارگذاری کنید."
+          />
         ) : null}
 
         <InternshipWeeklyGrid

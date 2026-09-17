@@ -8,6 +8,7 @@ import {
   toEnrollmentPageState,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
 import type { InternshipEnrollmentActor } from '@/types/internship-enrollment';
+import type { NestSemesterEnrolmentsByTerm } from '@/types/nest-student-enrollments';
 
 const student: InternshipEnrollmentActor = {
   id: 'u1',
@@ -20,8 +21,8 @@ const student: InternshipEnrollmentActor = {
 const OPEN = {
   id: '6a9a4c2dd62f2b45691e5616',
   academicYear: '۱۴۰۵-۱۴۰۶',
-  season: 'one',
-  structure: 'semester',
+  season: 'one' as const,
+  structure: 'semester' as const,
   courseSelection: true,
   startClasses: false,
   lessons: [
@@ -40,6 +41,19 @@ const OPEN = {
   ],
 };
 
+/** نمونهٔ `by-semester` منطبق با `OPEN` — بدون `enrolment` روی هیچ درسی. */
+const SEMESTERS_EMPTY: NestSemesterEnrolmentsByTerm[] = [
+  {
+    id: OPEN.id,
+    season: OPEN.season,
+    structure: OPEN.structure,
+    academicYears: OPEN.academicYear,
+    courseSelection: OPEN.courseSelection,
+    startClasses: OPEN.startClasses,
+    lessons: OPEN.lessons.map((lesson) => ({ ...lesson, enrolment: null })),
+  },
+];
+
 describe('real enrollment mappers', () => {
   it('parses open-course-selection and maps S3 when the lesson exists', () => {
     const parsed = parseOpenCourseSelection(OPEN);
@@ -48,7 +62,11 @@ describe('real enrollment mappers', () => {
       '6a9a4c2dd62f2b45691e5617'
     );
 
-    const state = toEnrollmentPageState({ actor: student, level: 1 }, parsed);
+    const state = toEnrollmentPageState(
+      { actor: student, level: 1 },
+      parsed,
+      SEMESTERS_EMPTY
+    );
     expect(state.scenario).toBe('S3_enroll_open');
     expect(state.termId).toBe('6a9a4c2dd62f2b45691e5616');
     expect(state.lessonId).toBe('6a9a4c2dd62f2b45691e5617');
@@ -58,9 +76,29 @@ describe('real enrollment mappers', () => {
 
   it('maps S1 when the current level is missing from the open term', () => {
     const parsed = parseOpenCourseSelection(OPEN);
-    const state = toEnrollmentPageState({ actor: student, level: 4 }, parsed);
+    const state = toEnrollmentPageState(
+      { actor: student, level: 4 },
+      parsed,
+      SEMESTERS_EMPTY
+    );
     expect(state.scenario).toBe('S1_syllabus_blocked');
     expect(state.lessonId).toBeNull();
+  });
+
+  it('blocks selection when canSelect is explicitly false on the open lesson', () => {
+    const parsed = parseOpenCourseSelection({
+      ...OPEN,
+      lessons: [
+        { ...OPEN.lessons[0], canSelect: false, blockReason: 'in_progress' },
+        OPEN.lessons[1],
+      ],
+    });
+    const state = toEnrollmentPageState(
+      { actor: student, level: 1 },
+      parsed,
+      SEMESTERS_EMPTY
+    );
+    expect(state.scenario).toBe('S2_enroll_closed');
   });
 
   it('maps S3 when the offered lesson has status true but the student has no enrollment', () => {
@@ -68,26 +106,40 @@ describe('real enrollment mappers', () => {
       ...OPEN,
       lessons: [{ ...OPEN.lessons[0], status: true }, OPEN.lessons[1]],
     });
-    const state = toEnrollmentPageState({ actor: student, level: 1 }, parsed, {
-      enrollments: [],
-    });
+    const state = toEnrollmentPageState(
+      { actor: student, level: 1 },
+      parsed,
+      SEMESTERS_EMPTY
+    );
     expect(state.scenario).toBe('S3_enroll_open');
     expect(state.enrollment).toBeNull();
   });
 
-  it('maps S6 when listMine has another lesson of the same kind', () => {
+  it('maps S6 when the student has another lesson of the same kind in the open semester', () => {
     const parsed = parseOpenCourseSelection(OPEN);
-    const state = toEnrollmentPageState({ actor: student, level: 1 }, parsed, {
-      enrollments: [
-        {
-          id: 'enr-2',
-          lessonId: OPEN.lessons[1].id,
-          semesterId: OPEN.id,
-          professorId: 'p1',
-          status: 'active',
-        },
-      ],
-    });
+    const semesters: NestSemesterEnrolmentsByTerm[] = [
+      {
+        ...SEMESTERS_EMPTY[0],
+        lessons: [
+          SEMESTERS_EMPTY[0].lessons[0],
+          {
+            ...SEMESTERS_EMPTY[0].lessons[1],
+            enrolment: {
+              id: 'enr-2',
+              lessonId: OPEN.lessons[1].id,
+              semesterId: OPEN.id,
+              professorId: 'p1',
+              status: 'active',
+            },
+          },
+        ],
+      },
+    ];
+    const state = toEnrollmentPageState(
+      { actor: student, level: 1 },
+      parsed,
+      semesters
+    );
     expect(state.scenario).toBe('S6_already_enrolled_elsewhere');
     expect(state.conflictEnrollment).toEqual({
       level: 2,
@@ -95,23 +147,36 @@ describe('real enrollment mappers', () => {
     });
   });
 
-  it('maps S4 with a summary when listMine has this lesson', () => {
+  it('maps S4 with a summary when the student has an active enrolment in this lesson', () => {
     const parsed = parseOpenCourseSelection({
       ...OPEN,
       lessons: [{ ...OPEN.lessons[0], status: true }, OPEN.lessons[1]],
     });
-    const state = toEnrollmentPageState({ actor: student, level: 1 }, parsed, {
-      enrollments: [
-        {
-          id: 'enr-1',
-          lessonId: OPEN.lessons[0].id,
-          semesterId: OPEN.id,
-          professorId: 'p1',
-          status: 'active',
-        },
-      ],
-      supervisorName: 'سارا احمدی',
-    });
+    const semesters: NestSemesterEnrolmentsByTerm[] = [
+      {
+        ...SEMESTERS_EMPTY[0],
+        lessons: [
+          {
+            ...SEMESTERS_EMPTY[0].lessons[0],
+            status: true,
+            enrolment: {
+              id: 'enr-1',
+              lessonId: OPEN.lessons[0].id,
+              semesterId: OPEN.id,
+              professorId: 'p1',
+              status: 'active',
+            },
+          },
+          SEMESTERS_EMPTY[0].lessons[1],
+        ],
+      },
+    ];
+    const state = toEnrollmentPageState(
+      { actor: student, level: 1 },
+      parsed,
+      semesters,
+      { supervisorName: 'سارا احمدی' }
+    );
     expect(state.scenario).toBe('S4_registered_waiting');
     expect(state.enrollment?.courseTitle).toBe('کارورزی 1');
     expect(state.enrollment?.supervisorName).toBe('سارا احمدی');
@@ -120,9 +185,44 @@ describe('real enrollment mappers', () => {
     expect(state.enrollment?.weeks).toEqual([]);
   });
 
-  it('returns S1 when Nest has no open semester', () => {
+  it('shows the report page for a past, closed term where the student is still active', () => {
+    const closedSemester: NestSemesterEnrolmentsByTerm = {
+      id: 'closed-term-1',
+      season: 'two',
+      structure: 'semester',
+      academicYears: '۱۴۰۴-۱۴۰۵',
+      courseSelection: false,
+      startClasses: true,
+      lessons: [
+        {
+          id: 'closed-lesson-1',
+          semesterId: 'closed-term-1',
+          title: 'کارورزی ۱',
+          status: true,
+          enrolment: {
+            id: 'enr-old',
+            lessonId: 'closed-lesson-1',
+            semesterId: 'closed-term-1',
+            professorId: 'p1',
+            status: 'active',
+          },
+        },
+      ],
+    };
+    // ترم جدیدی هنوز باز نشده — دقیقاً همان سناریویی که با کد قدیمی گم می‌شد.
+    const state = toEnrollmentPageState(
+      { actor: student, level: 1 },
+      null,
+      [closedSemester]
+    );
+    expect(state.scenario).toBe('S5_term_active');
+    expect(state.termId).toBe('closed-term-1');
+    expect(state.termTitle).toContain('1404-1405');
+  });
+
+  it('returns S1 when Nest has no open semester and no enrolment history', () => {
     expect(parseOpenCourseSelection({})).toBeNull();
-    const state = toEnrollmentPageState({ actor: student, level: 1 }, null);
+    const state = toEnrollmentPageState({ actor: student, level: 1 }, null, []);
     expect(state.scenario).toBe('S1_syllabus_blocked');
     expect(state.termId).toBe('');
   });

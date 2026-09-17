@@ -9,6 +9,7 @@ export const NEST_STUDENT_WEEKS_PATHS = {
   start: (id: string) => `v1/student-weeks/${id}/start`,
   submit: (id: string) => `v1/student-weeks/${id}/submit`,
   submissions: (id: string) => `v1/student-weeks/${id}/submissions`,
+  score: (id: string) => `v1/student-weeks/${id}/score`,
 } as const;
 
 export type NestCreateContentDto = {
@@ -47,5 +48,13 @@ export const studentWeeksApi = {
       NEST_STUDENT_WEEKS_PATHS.submissions(weekId)
     );
     return Array.isArray(raw) ? (raw as NestStudentWeekSubmission[]) : [];
+  },
+
+  /** PATCH /api/v1/student-weeks/{id}/score — نمرهٔ استاد راهنما؛ پاسخ بدون بدنه. */
+  score(weekId: string, score: number): Promise<unknown> {
+    return apiClient.patchMaybeJson<unknown>(
+      NEST_STUDENT_WEEKS_PATHS.score(weekId),
+      { score }
+    );
   },
 };
