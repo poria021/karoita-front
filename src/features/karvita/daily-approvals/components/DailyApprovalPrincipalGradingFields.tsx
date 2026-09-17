@@ -11,10 +11,13 @@ import {
   DAILY_APPROVAL_COMPETENCY_OPTIONS,
 } from '../constants';
 
+/** Radix `Select.Item` مقدار رشتهٔ خالی را قبول نمی‌کند — برای «بدون امتیاز» یک sentinel لازم است. */
+const NO_RATING_VALUE = '__none__';
+
 type DailyApprovalPrincipalGradingFieldsProps = {
-  principalRating: DailyApprovalCompetencyRating;
+  principalRating: DailyApprovalCompetencyRating | null;
   principalFeedback: string;
-  onPrincipalRatingChange: (value: DailyApprovalCompetencyRating) => void;
+  onPrincipalRatingChange: (value: DailyApprovalCompetencyRating | null) => void;
   onPrincipalFeedbackChange: (value: string) => void;
 };
 
@@ -33,11 +36,16 @@ export function DailyApprovalPrincipalGradingFields({
       </div>
 
       <KvSelectField
-        label="سطح شایستگی کارورز:"
-        value={principalRating}
-        displayValue={competencyRatingLabel(principalRating)}
+        label="سطح شایستگی کارورز (اختیاری):"
+        placeholder="بدون امتیاز"
+        value={principalRating ?? NO_RATING_VALUE}
+        displayValue={principalRating ? competencyRatingLabel(principalRating) : 'بدون امتیاز'}
         contentClassName="z-[150]"
         onValueChange={(value) => {
+          if (value === NO_RATING_VALUE) {
+            onPrincipalRatingChange(null);
+            return;
+          }
           if (
             value === '1' ||
             value === '2' ||
@@ -49,13 +57,13 @@ export function DailyApprovalPrincipalGradingFields({
           }
         }}
       >
+        <KvSelectItem value={NO_RATING_VALUE}>بدون امتیاز</KvSelectItem>
         {DAILY_APPROVAL_COMPETENCY_OPTIONS.map((option) => (
           <KvSelectItem key={option.value} value={option.value}>
             {option.label}
           </KvSelectItem>
         ))}
       </KvSelectField>
-
       <KvTextArea
         label="توضیحات و بازخورد کتبی مدیریت مدرسه (اختیاری):"
         value={principalFeedback}

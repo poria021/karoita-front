@@ -1,12 +1,10 @@
 'use client';
 
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { KvButton } from '@/components/shared/KvButton';
-import {
-  IS_REAL_MODE_STUB_ACTIVE,
-  RealModeStubTooltip,
-} from '@/components/shared/RealModeStubNotice';
+import { KvTypography } from '@/components/shared/KvTypography';
 import {
   KvDialog,
   KvDialogContent,
@@ -20,13 +18,57 @@ import type {
   DailyApprovalTrainee,
   DailyApprovalWeek,
 } from '@/types/daily-approvals';
+import type { InternshipCompetencyRating } from '@/types/internship-enrollment';
 import type { UserRole } from '@/types/auth';
+import { faIcons } from '@/utils/iconMap';
+import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
+import { competencyRatingLabel } from '../constants';
 import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekGradingModal';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
 import { DailyApprovalPrincipalGradingFields } from './DailyApprovalPrincipalGradingFields';
 import { DailyApprovalSupervisorGradingFields } from './DailyApprovalSupervisorGradingFields';
 import { DailyApprovalWeekReportReadonly } from './DailyApprovalWeekReportReadonly';
+
+function FeedbackHistoryBlock({
+  title,
+  icon,
+  body,
+  rating,
+  at,
+}: {
+  title: string;
+  icon: (typeof faIcons)[keyof typeof faIcons];
+  body: string;
+  rating?: InternshipCompetencyRating;
+  at?: string;
+}) {
+  const atLabel = formatJalaliDateTimeDisplay(at);
+  return (
+    <KvAlert
+      variant="info"
+      title={title}
+      icon={<FaIcon icon={icon} size="sm" />}
+      description={
+        <div className="flex flex-col gap-kv-pair">
+          {rating ? (
+            <KvTypography variant="body" as="p" weight="bold">
+              سطح شایستگی: {competencyRatingLabel(rating)}
+            </KvTypography>
+          ) : null}
+          <KvTypography variant="body" as="p">
+            {body}
+          </KvTypography>
+          {atLabel ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              {atLabel}
+            </KvTypography>
+          ) : null}
+        </div>
+      }
+    />
+  );
+}
 
 type DailyApprovalWeekGradingModalProps = {
   open: boolean;
@@ -47,7 +89,7 @@ type DailyApprovalWeekGradingModalProps = {
   }) => Promise<void>;
   onSavePrincipal: (input: {
     principalFeedback: string;
-    principalRating: DailyApprovalCompetencyRating;
+    principalRating: DailyApprovalCompetencyRating | null;
   }) => Promise<void>;
 };
 
@@ -85,10 +127,31 @@ export function DailyApprovalWeekGradingModal({
         ? 'ثبت نهایی ارزیابی مربی'
         : 'ثبت نهایی ارزیابی مدیر';
 
+  // هر سه مسیر به بک‌اند واقعی وصل‌اند: نمرهٔ استاد → `PATCH student-weeks/{id}/score`؛
+  // رد بدون نمره (استاد) و بازخورد+امتیاز معلم/مدیر → `POST conversations/{id}/messages`
+  // (ببین `scoreRealDailyApprovalWeek`/`submitMentorFeedbackReal`/`submitPrincipalFeedbackReal`).
+  // معلم راهنما امتیاز الزامی دارد (بازخورد اختیاری)؛ مدیر مدرسه هردو اختیاری‌اند
+  // (اعتبارسنجی «حداقل یکی» در خودِ `save()` با toast انجام می‌شود).
   const saveDisabled =
-    modal.disabled ||
-    (role === 'mentor_teacher' && modal.mentorFeedbackEmpty) ||
-    IS_REAL_MODE_STUB_ACTIVE;
+    modal.disabled || (role === 'mentor_teacher' && modal.mentorRatingMissing);
+
+  const saveButton = (
+    <KvButton
+      type="button"
+      color={
+        role === 'supervisor_professor' && modal.scoreInput.trim() === ''
+          ? 'warning'
+          : 'success'
+      }
+      appearance="solid"
+      size="md"
+      disabled={saveDisabled}
+      loading={actionBusy}
+      onClick={() => void modal.save()}
+    >
+      {saveLabel}
+    </KvButton>
+  );
 
   return (
     <KvDialog
@@ -131,6 +194,37 @@ export function DailyApprovalWeekGradingModal({
               className="min-w-0 space-y-kv-group border-0 p-0"
             >
               <DailyApprovalWeekReportReadonly week={week} />
+
+              {/* بازخورد استاد همیشه اینجا نمایش داده می‌شود — DailyApprovalSupervisorGradingFields
+                  آن را (چون فیلد قابل‌ویرایش خودِ استاد است) دوباره نشان نمی‌دهد.
+                  بازخورد معلم/مدیر فقط برای بازبین‌های غیرِ استاد اینجا می‌آید — برای استاد
+                  همین دو مورد با امتیاز و تاریخ در DailyApprovalSupervisorGradingFields هست. */}
+              {week.feedback.advisor ? (
+                <FeedbackHistoryBlock
+                  title="بازخورد استاد راهنما:"
+                  icon={faIcons.userTie}
+                  body={week.feedback.advisor}
+                  at={week.feedback.advisorAt}
+                />
+              ) : null}
+              {role !== 'supervisor_professor' && week.feedback.mentor ? (
+                <FeedbackHistoryBlock
+                  title="بازخورد معلم راهنما:"
+                  icon={faIcons.chalkboardUser}
+                  body={week.feedback.mentor}
+                  rating={week.feedback.mentorRating}
+                  at={week.feedback.mentorAt}
+                />
+              ) : null}
+              {role !== 'supervisor_professor' && week.feedback.principal ? (
+                <FeedbackHistoryBlock
+                  title="بازخورد مدیر مدرسه:"
+                  icon={faIcons.school}
+                  body={week.feedback.principal}
+                  rating={week.feedback.principalRating}
+                  at={week.feedback.principalAt}
+                />
+              ) : null}
 
               {role === 'supervisor_professor' ? (
                 <DailyApprovalSupervisorGradingFields
@@ -177,24 +271,7 @@ export function DailyApprovalWeekGradingModal({
             لغو
           </KvButton>
 
-          <RealModeStubTooltip message="ثبت نمره/ارزیابی هنوز به API واقعی وصل نشده است.">
-            <KvButton
-              type="button"
-              color={
-                role === 'supervisor_professor' &&
-                modal.scoreInput.trim() === ''
-                  ? 'warning'
-                  : 'success'
-              }
-              appearance="solid"
-              size="md"
-              disabled={saveDisabled}
-              loading={actionBusy}
-              onClick={() => void modal.save()}
-            >
-              {saveLabel}
-            </KvButton>
-          </RealModeStubTooltip>
+          {saveButton}
         </KvDialogFooter>
       </KvDialogContent>
     </KvDialog>

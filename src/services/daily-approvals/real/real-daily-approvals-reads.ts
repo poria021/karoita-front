@@ -1,14 +1,31 @@
 import {
   toDailyApprovalCatalogCourses,
 } from '@/services/daily-approvals/daily-approval-catalog-mappers';
+import { DAILY_APPROVAL_PASSING_SCORE } from '@/features/karvita/daily-approvals/constants';
+import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/mock/daily-approval-derived';
+import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
+import { conversationsApi } from '@/services/conversations/real/conversations.api';
+import { resolveWeekFeedback } from '@/services/internship-enrollment/real/mappers/week-feedback';
 import { listRealCapacityCourses } from '@/services/organizational-capacities/real/real-organizational-capacities';
+import { getRealAcademicSettings } from '@/services/syllabus-config/real/real-syllabus-reads';
+import {
+  mapWeekStatus,
+  studentWeekId,
+} from '@/services/internship-enrollment/real/real-enrollment-mappers';
+import { mapSubmissionFiles } from '@/services/internship-enrollment/real/mappers/weekly-sessions';
+import { resolveEnrollmentMentor } from '@/services/internship-enrollment/real/mappers/enrollment-summary';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
+import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
 import { requireNestTransport } from '@/services/require-nest-transport';
+import type { UserRole } from '@/types/auth';
 import type {
+  DailyApprovalAttachment,
   DailyApprovalCourseFilter,
   DailyApprovalProgressiveGrade,
   DailyApprovalTrainee,
   DailyApprovalTraineeStatus,
+  DailyApprovalWeek,
+  DailyApprovalWeekDetail,
   ListDailyApprovalsInput,
   ListDailyApprovalsPage,
 } from '@/types/daily-approvals';
@@ -16,6 +33,7 @@ import type { InternshipEnrollmentLevel } from '@/types/internship-enrollment';
 import type {
   NestMentorStudent,
   NestMentorCapacity,
+  NestStudentWeek,
 } from '@/types/nest-student-enrollments';
 import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
 
@@ -75,6 +93,9 @@ function mapRow(
     identifier: row.student?.phone ?? id,
     major: '',
     schoolName: extractSchoolName(row.schoolId),
+    // برای تشخیص پیام معلم در گفتگوی هفته وقتی استاد راهنما مودال را باز
+    // می‌کند — ببین loadRealDailyApprovalWeekDetail پایین همین فایل.
+    teacherId: resolveEnrollmentMentor(row)?.id ?? null,
     kind: input.kind,
     level: LEVEL_MAP[courseKey] ?? 1,
     courseKey,
@@ -85,14 +106,63 @@ function mapRow(
     unreadCount: 0,
     hasSubmitted: false,
     progressiveGrade: EMPTY_GRADE,
+    // زیر پر می‌شود — ببین loadRealDailyApprovalWeeks در listRealDailyApprovals.
     weeks: [],
   };
 }
 
 /**
+ * GET `/student-enrollments/{id}/weeks` → کارت‌های هفتهٔ همین فراگیر برای گرید نمره‌دهی.
+ * متن/فایل هر هفته اینجا خوانده نمی‌شود (یعنی N نامزد × M هفته درخواستِ
+ * submissions اضافه می‌شد که برای یک لیست صفحه‌بندی‌شده سنگین است) — مودال
+ * نمره‌دهی برای همین یک هفته، جدا و به‌درخواست، متن/فایل را می‌خواند.
+ * best-effort: شکست خواندن هفته‌های یک فراگیر نباید کل صفحه را بترکاند.
+ */
+function mapDailyApprovalWeek(week: NestStudentWeek, index: number): DailyApprovalWeek {
+  return {
+    id: studentWeekId(week),
+    weekNumber: index + 1,
+    status: mapWeekStatus(week),
+    score: typeof week.score === 'number' ? week.score : null,
+    text: '',
+    files: [],
+    feedback: {},
+    readBySupervisor: false,
+  };
+}
+
+async function loadRealDailyApprovalWeeks(
+  enrollmentId: string
+): Promise<DailyApprovalWeek[]> {
+  if (!enrollmentId) return [];
+  try {
+    const weeks = await studentEnrollmentsApi.listWeeks(enrollmentId);
+    return weeks.map(mapDailyApprovalWeek);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * جمع `unreadCount` همهٔ گفتگوهای این ثبت‌نام برای بازبین جاری — چون
+ * `DailyApprovalWeek.readBySupervisor` روی داده واقعی همیشه `false` می‌ماند
+ * (هیچ فیلد «خوانده‌شده» در پاسخ `weeks` نیست)، محاسبهٔ unreadCount مشترک
+ * mock (`withDerivedDailyApprovalTrainee`) از روی همان فیلد همیشه همه‌چیز را
+ * «نخوانده» نشان می‌داد؛ این تابع مقدار واقعی را جایگزین می‌کند.
+ */
+async function loadRealUnreadCount(enrollmentId: string): Promise<number> {
+  if (!enrollmentId) return 0;
+  try {
+    const conversations = await conversationsApi.listByEnrollment(enrollmentId);
+    return conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0);
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * GET `/api/v1/student-enrollments/mentor/students`
  * لیست فراگیران منتور برای ماژول ارزیابی گزارش‌ها.
- * weekly report data (هفته‌ها / نمرات) تا وصل‌شدن endpoint مربوطه خالی می‌ماند.
  */
 export async function listRealDailyApprovals(
   input: ListDailyApprovalsInput
@@ -110,18 +180,25 @@ export async function listRealDailyApprovals(
   const lessonLookup: LessonLookup = new Map();
   let lessonId: string | undefined;
 
-  try {
-    const courses = await listRealCapacityCourses(input.kind, input.termId);
-    const catalog = toDailyApprovalCatalogCourses(input.kind, courses);
-    for (const c of catalog) {
-      lessonLookup.set(c.id, { courseKey: c.courseFilter, courseTitle: c.title });
-    }
-    if (input.course !== 'all') {
-      lessonId = catalog.find((c) => c.courseFilter === input.course)?.id;
-    }
-  } catch {
-    // بدون کاتالوگ ادامه می‌دهیم؛ courseTitle خالی می‌ماند
-  }
+  const [, passingScoreThreshold] = await Promise.all([
+    (async () => {
+      try {
+        const courses = await listRealCapacityCourses(input.kind, input.termId);
+        const catalog = toDailyApprovalCatalogCourses(input.kind, courses);
+        for (const c of catalog) {
+          lessonLookup.set(c.id, { courseKey: c.courseFilter, courseTitle: c.title });
+        }
+        if (input.course !== 'all') {
+          lessonId = catalog.find((c) => c.courseFilter === input.course)?.id;
+        }
+      } catch {
+        // بدون کاتالوگ ادامه می‌دهیم؛ courseTitle خالی می‌ماند
+      }
+    })(),
+    getRealAcademicSettings().then(
+      (settings) => settings.passingScoreThreshold || DAILY_APPROVAL_PASSING_SCORE
+    ),
+  ]);
 
   const page =
     input.limit > 0 ? Math.floor(input.offset / input.limit) + 1 : 1;
@@ -154,6 +231,24 @@ export async function listRealDailyApprovals(
     trainees = trainees.filter((t) => t.status === 'active');
   }
 
+  // بعد از فیلترها — هفته‌ها و unreadCount را فقط برای ردیف‌هایی که واقعاً
+  // نمایش داده می‌شوند می‌خوانیم.
+  const [weeksByTrainee, unreadByTrainee] = await Promise.all([
+    Promise.all(trainees.map((t) => loadRealDailyApprovalWeeks(t.id))),
+    Promise.all(trainees.map((t) => loadRealUnreadCount(t.id))),
+  ]);
+  // نمرهٔ پیش‌رونده/برچسب وضعیت از همان هفته‌های واقعی محاسبه می‌شود — همان
+  // تابع خالصی که store mock استفاده می‌کند (ببین کامنت بالای خودش)؛
+  // unreadCount را بعداً با مقدار واقعی گفتگو (بالا) جایگزین می‌کنیم چون
+  // آن تابع فقط از `readBySupervisor` (همیشه false در داده واقعی) می‌خواند.
+  trainees = trainees.map((t, index) => ({
+    ...withDerivedDailyApprovalTrainee(
+      { ...t, weeks: weeksByTrainee[index] },
+      passingScoreThreshold
+    ),
+    unreadCount: unreadByTrainee[index],
+  }));
+
   const base = input.offset + trainees.length;
   return {
     items: trainees,
@@ -172,4 +267,41 @@ export async function getRealDailyApprovalsMentorCapacity(
 ): Promise<NestMentorCapacity> {
   requireNestTransport('DailyApprovalsService.getMentorCapacity');
   return studentEnrollmentsApi.getMentorCapacity(semesterId);
+}
+
+export type LoadDailyApprovalWeekDetailInput = {
+  /** enrollment id — همان `trainee.id` در این ماژول. */
+  enrollmentId: string;
+  weekId: string;
+  role: UserRole | null | undefined;
+  /** `trainee.teacherId` — برای تشخیص پیام معلم وقتی استاد راهنما مودال را باز می‌کند. */
+  teacherId?: string | null;
+};
+
+/**
+ * فقط به‌درخواست (موقع باز شدن مودال نمره‌دهی یک هفتهٔ خاص) صدا زده می‌شود —
+ * نه در لیست (ببین کامنت `mapDailyApprovalWeek` بالا). دو چیز جدا می‌خواند:
+ * ۱) آخرین submission همین student-week برای متن/فایل/زمان گزارش دانشجو.
+ * ۲) پیام‌های گفتگوی همین هفته برای بازخورد/امتیاز/زمانِ استاد/معلم/مدیر —
+ * با همان `resolveWeekFeedback` که سمت خواندنِ دانشجو استفاده می‌شود، تا هر سه
+ * نقش (نه فقط نقشی که مودال را باز کرده) و زمانِ هرکدام را ببینند؛ نقش فرستنده
+ * از `senderId.role` می‌آید (لایو تأیید شد)، نه مقایسهٔ id با کاربر جاری.
+ */
+export async function loadRealDailyApprovalWeekDetail(
+  input: LoadDailyApprovalWeekDetailInput
+): Promise<DailyApprovalWeekDetail> {
+  requireNestTransport('DailyApprovalsService.loadWeekDetail');
+
+  const [submissions, messages] = await Promise.all([
+    studentWeeksApi.listSubmissions(input.weekId).catch(() => []),
+    loadWeekConversationMessages(input.enrollmentId, input.weekId),
+  ]);
+  const latestSubmission = submissions[submissions.length - 1];
+
+  return {
+    text: latestSubmission?.text ?? '',
+    files: mapSubmissionFiles(latestSubmission) as DailyApprovalAttachment[],
+    submittedAt: latestSubmission?.createdAt ?? null,
+    feedback: resolveWeekFeedback(messages, { mentorId: input.teacherId }) ?? {},
+  };
 }

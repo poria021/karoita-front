@@ -9,6 +9,7 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import type { DailyApprovalWeek } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
+import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
 import {
   competencyRatingLabel,
@@ -73,9 +74,16 @@ export function DailyApprovalSupervisorGradingFields({
             ) : null}
           </div>
           {week.feedback.mentor ? (
-            <KvTypography variant="caption" tone="muted" as="p">
-              {week.feedback.mentor}
-            </KvTypography>
+            <div className="space-y-1">
+              <KvTypography variant="caption" tone="muted" as="p">
+                {week.feedback.mentor}
+              </KvTypography>
+              {formatJalaliDateTimeDisplay(week.feedback.mentorAt) ? (
+                <KvTypography variant="caption" tone="muted" as="p">
+                  {formatJalaliDateTimeDisplay(week.feedback.mentorAt)}
+                </KvTypography>
+              ) : null}
+            </div>
           ) : (
             <KvAlert
               variant="error"
@@ -97,9 +105,16 @@ export function DailyApprovalSupervisorGradingFields({
             ) : null}
           </div>
           {week.feedback.principal ? (
-            <KvTypography variant="caption" tone="muted" as="p">
-              {week.feedback.principal}
-            </KvTypography>
+            <div className="space-y-1">
+              <KvTypography variant="caption" tone="muted" as="p">
+                {week.feedback.principal}
+              </KvTypography>
+              {formatJalaliDateTimeDisplay(week.feedback.principalAt) ? (
+                <KvTypography variant="caption" tone="muted" as="p">
+                  {formatJalaliDateTimeDisplay(week.feedback.principalAt)}
+                </KvTypography>
+              ) : null}
+            </div>
           ) : (
             <KvTypography variant="caption" tone="muted" weight="bold" as="p">
               ارزیابی توصیفی مدیر مدرسه هنوز ثبت نشده است.
@@ -127,6 +142,11 @@ export function DailyApprovalSupervisorGradingFields({
           placeholder="بازخورد آموزشی خود را در این بخش بنویسید..."
           onChange={(event) => onAdvisorFeedbackChange(event.target.value)}
         />
+        <KvTypography variant="caption" tone="muted" as="p">
+          این بازخورد فقط وقتی ذخیره می‌شود که نمره را خالی بگذارید (یعنی رد
+          گزارش و نیازمند اصلاح)؛ اگر نمره وارد کنید، فقط همان نمره ثبت
+          می‌شود.
+        </KvTypography>
       </div>
 
       <div

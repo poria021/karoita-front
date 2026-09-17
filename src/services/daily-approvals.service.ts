@@ -19,10 +19,17 @@ import {
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,
 } from '@/services/daily-approvals/mock/mock-daily-approvals-store';
-import { assertDailyApprovalsMutationReady } from '@/services/daily-approvals/real/real-daily-approvals-mutations';
+import {
+  assertDailyApprovalsMutationReady,
+  markRealDailyApprovalWeekOpened,
+  scoreRealDailyApprovalWeek,
+  submitMentorFeedbackReal,
+  submitPrincipalFeedbackReal,
+} from '@/services/daily-approvals/real/real-daily-approvals-mutations';
 import {
   getRealDailyApprovalsMentorCapacity,
   listRealDailyApprovals,
+  loadRealDailyApprovalWeekDetail,
 } from '@/services/daily-approvals/real/real-daily-approvals-reads';
 import {
   getRealAcademicSettings,
@@ -43,6 +50,7 @@ import type {
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
   DailyApprovalTrainee,
+  DailyApprovalWeekDetail,
   DailyApprovalWeekOption,
   DropDailyApprovalTraineeInput,
   ExtendDailyApprovalWeekInput,
@@ -79,6 +87,47 @@ function requireReviewRole(role: UserRole): void {
   if (!actor || actor.role !== role) {
     throw new Error(MOCK_AUTHZ_DENIED);
   }
+}
+
+/**
+ * shape خالی `DailyApprovalTrainee` برای mutationهای real که فقط پاسخ خالی
+ * بک‌اند را دارند (score/conversations بدنهٔ مفید برنمی‌گردانند). فراخوان
+ * (`useDailyApprovalsActions`) مقدار برگشتی را دور می‌ریزد و بعد از ثبت
+ * `list.reload()` می‌زند — این فقط برای رعایت قرارداد تایپ متد سرویس است.
+ */
+function emptyDailyApprovalStub(
+  traineeId: string,
+  weekId: string
+): DailyApprovalTrainee {
+  return {
+    id: traineeId,
+    traineeName: '',
+    identifier: '',
+    major: '',
+    schoolName: null,
+    kind: 'internship',
+    level: 1,
+    courseKey: 'intern1',
+    courseTitle: '',
+    termId: '',
+    termTitle: '',
+    status: 'active',
+    unreadCount: 0,
+    hasSubmitted: true,
+    progressiveGrade: { gradedCount: 0, final20: null, statusLabel: 'در جریان' },
+    weeks: [
+      {
+        id: weekId,
+        weekNumber: 0,
+        status: 'graded',
+        score: null,
+        text: '',
+        files: [],
+        feedback: {},
+        readBySupervisor: false,
+      },
+    ],
+  };
 }
 
 /**
@@ -158,19 +207,46 @@ export const DailyApprovalsService = {
     weekId: string;
   }): Promise<DailyApprovalTrainee> {
     if (isRealApiMode()) {
-      assertDailyApprovalsMutationReady('DailyApprovalsService.openWeek');
+      await markRealDailyApprovalWeekOpened(input);
+      return emptyDailyApprovalStub(input.traineeId, input.weekId);
     }
     requireDailyApprovalsReview();
     return markMockWeekRead(input);
   },
 
+  /**
+   * فقط real — گزارش دانشجو (متن/فایل) + بازخورد قبلی نقش جاری را برای همین
+   * یک هفته می‌خواند؛ mock همیشه این داده را از قبل توی `trainee.weeks` دارد
+   * پس اینجا چیزی نمی‌خواند (خالی برگرداندن در mock باعث پاک‌شدن داده‌ی
+   * موجود نمی‌شود چون فراخوان فقط در real mode این متد را صدا می‌زند —
+   * ببین `openWeekGrading` در `useDailyApprovalsActions`).
+   */
+  async loadWeekDetail(input: {
+    traineeId: string;
+    weekId: string;
+    role: UserRole | null | undefined;
+    teacherId?: string | null;
+  }): Promise<DailyApprovalWeekDetail> {
+    return loadRealDailyApprovalWeekDetail({
+      enrollmentId: input.traineeId,
+      weekId: input.weekId,
+      role: input.role,
+      teacherId: input.teacherId,
+    });
+  },
+
+  /**
+   * real: `PATCH student-weeks/{id}/score` — فقط نمرهٔ عددی، بدون متن بازخورد
+   * (هنوز جای واقعی ندارد). شیءِ برگشتی فقط برای رعایت قرارداد تایپه — تنها
+   * فراخوان این متد (`useDailyApprovalsActions`) مقدارش را دور می‌ریزد و برای
+   * تصویر واقعی بعد از ثبت `list.reload()` می‌زند.
+   */
   async updateWeekEvaluation(
     input: UpdateDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
     if (isRealApiMode()) {
-      assertDailyApprovalsMutationReady(
-        'DailyApprovalsService.updateWeekEvaluation'
-      );
+      await scoreRealDailyApprovalWeek(input);
+      return emptyDailyApprovalStub(input.traineeId, input.weekId);
     }
     requireReviewRole('supervisor_professor');
     await new Promise((resolve) => setTimeout(resolve, 250));
@@ -180,13 +256,18 @@ export const DailyApprovalsService = {
     });
   },
 
+  /**
+   * real: امتیاز شایستگی (الزامی) + بازخورد متنی (اختیاری) معلم راهنما را
+   * به‌عنوان یک پیام در گفتگوی هفته (`conversations`) می‌فرستد — ببین
+   * `submitMentorFeedbackReal`. شیءِ برگشتی فقط برای رعایت قرارداد تایپه؛
+   * فراخوان بعد از ثبت `list.reload()` می‌زند.
+   */
   async updateMentorWeekEvaluation(
     input: UpdateMentorDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
     if (isRealApiMode()) {
-      assertDailyApprovalsMutationReady(
-        'DailyApprovalsService.updateMentorWeekEvaluation'
-      );
+      await submitMentorFeedbackReal(input);
+      return emptyDailyApprovalStub(input.traineeId, input.weekId);
     }
     requireReviewRole('mentor_teacher');
     await new Promise((resolve) => setTimeout(resolve, 250));
@@ -196,13 +277,17 @@ export const DailyApprovalsService = {
     });
   },
 
+  /**
+   * real: بازخورد توصیفی و/یا امتیاز شایستگی مدیر مدرسه (هر دو اختیاری، ولی
+   * حداقل یکی الزامی) را به‌عنوان پیام در گفتگوی هفته می‌فرستد — ببین
+   * `submitPrincipalFeedbackReal`.
+   */
   async updatePrincipalWeekEvaluation(
     input: UpdatePrincipalDailyApprovalWeekInput
   ): Promise<DailyApprovalTrainee> {
     if (isRealApiMode()) {
-      assertDailyApprovalsMutationReady(
-        'DailyApprovalsService.updatePrincipalWeekEvaluation'
-      );
+      await submitPrincipalFeedbackReal(input);
+      return emptyDailyApprovalStub(input.traineeId, input.weekId);
     }
     requireReviewRole('school_principal');
     await new Promise((resolve) => setTimeout(resolve, 250));

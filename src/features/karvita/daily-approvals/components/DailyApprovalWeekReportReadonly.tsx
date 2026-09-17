@@ -7,6 +7,7 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import type { DailyApprovalWeek } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
+import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
 type DailyApprovalWeekReportReadonlyProps = {
   week: DailyApprovalWeek;
@@ -18,13 +19,21 @@ export function DailyApprovalWeekReportReadonly({
   const reportText =
     week.text.trim() ||
     'هنوز گزارشی توسط فراگیر ثبت نشده یا به صورت پیش‌نویس است.';
+  const submittedAtLabel = formatJalaliDateTimeDisplay(week.submittedAt);
 
   return (
     <div className="space-y-kv-group">
       <div className="space-y-kv-pair">
-        <KvTypography variant="subtitle" as="h4">
-          ۱. متن کامل گزارش ارسالی فراگیر:
-        </KvTypography>
+        <div className="flex items-center justify-between gap-kv-pair">
+          <KvTypography variant="subtitle" as="h4">
+            ۱. متن کامل گزارش ارسالی فراگیر:
+          </KvTypography>
+          {submittedAtLabel ? (
+            <KvTypography variant="caption" tone="muted" as="span">
+              تاریخ ارسال: {submittedAtLabel}
+            </KvTypography>
+          ) : null}
+        </div>
         <KvScrollArea className="max-h-36 overflow-y-auto rounded-kv-control border border-kv-border bg-kv-surface-muted p-kv-group text-justify">
           <KvTypography variant="body" as="p">
             {reportText}

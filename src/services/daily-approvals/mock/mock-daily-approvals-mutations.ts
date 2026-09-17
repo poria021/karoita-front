@@ -74,8 +74,8 @@ export function updateMockMentorDailyApprovalWeek(
   if (weekIndex < 0) throw new Error('گزارش هفته یافت نشد.');
 
   const mentorFeedback = input.mentorFeedback.trim();
-  if (!mentorFeedback) {
-    throw new Error('ثبت بازخورد متنی معلم راهنما الزامی است.');
+  if (!input.mentorRating) {
+    throw new Error('ثبت امتیاز شایستگی معلم راهنما الزامی است.');
   }
 
   const nextWeeks = [...trainee.weeks];
@@ -85,7 +85,7 @@ export function updateMockMentorDailyApprovalWeek(
     isExtended: false,
     feedback: {
       ...trainee.weeks[weekIndex]!.feedback,
-      mentor: mentorFeedback,
+      ...(mentorFeedback ? { mentor: mentorFeedback } : {}),
       mentorRating: input.mentorRating,
     },
     readBySupervisor: true,
@@ -112,13 +112,20 @@ export function updateMockPrincipalDailyApprovalWeek(
   const weekIndex = trainee.weeks.findIndex((week) => week.id === input.weekId);
   if (weekIndex < 0) throw new Error('گزارش هفته یافت نشد.');
 
+  const principalFeedback = input.principalFeedback.trim();
+  if (!principalFeedback && input.principalRating === null) {
+    throw new Error('ثبت امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
+  }
+
   const nextWeeks = [...trainee.weeks];
   nextWeeks[weekIndex] = {
     ...trainee.weeks[weekIndex]!,
     feedback: {
       ...trainee.weeks[weekIndex]!.feedback,
-      principal: input.principalFeedback.trim(),
-      principalRating: input.principalRating,
+      ...(principalFeedback ? { principal: principalFeedback } : {}),
+      ...(input.principalRating !== null
+        ? { principalRating: input.principalRating }
+        : {}),
     },
     readBySupervisor: true,
   };

@@ -3,15 +3,17 @@
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
-import { IS_MOCK_MODE } from '@/lib/api-mode';
+import { IS_MOCK_MODE, isRealApiMode } from '@/lib/api-mode';
 import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
+import { useUserStore } from '@/store/useUserStore';
 import type {
   DailyApprovalCompetencyRating,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
   DailyApprovalTrainee,
   DailyApprovalWeek,
+  DailyApprovalWeekDetail,
 } from '@/types/daily-approvals';
 
 import {
@@ -36,11 +38,17 @@ export function useDailyApprovalsActions({
   kind,
   termId,
 }: UseDailyApprovalsActionsArgs) {
+  const role = useUserStore((state) => state.activeUser?.role);
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(
     null
   );
   const [gradingTarget, setGradingTarget] =
     useState<DailyApprovalGradingTarget | null>(null);
+  const [weekDetail, setWeekDetail] = useState<{
+    traineeId: string;
+    weekId: string;
+    detail: DailyApprovalWeekDetail;
+  } | null>(null);
   const [bulkExtendOpen, setBulkExtendOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
 
@@ -48,9 +56,25 @@ export function useDailyApprovalsActions({
     list.items.find((row) => row.id === selectedTraineeId) ?? null;
   const gradingTrainee =
     list.items.find((row) => row.id === gradingTarget?.traineeId) ?? null;
-  const gradingWeek =
+  const gradingWeekRaw =
     gradingTrainee?.weeks.find((week) => week.id === gradingTarget?.weekId) ??
     null;
+  // فقط real — گزارش دانشجو/بازخورد قبلی را که در لیست خالی می‌آید (ببین
+  // کامنت mapDailyApprovalWeek) با نتیجهٔ loadWeekDetail جایگزین می‌کند؛
+  // چک traineeId/weekId مانع نشتِ جزئیات هفتهٔ قبلی حین بارگذاری هفتهٔ جدید می‌شود.
+  const gradingWeek =
+    gradingWeekRaw &&
+    weekDetail &&
+    weekDetail.traineeId === gradingTarget?.traineeId &&
+    weekDetail.weekId === gradingTarget?.weekId
+      ? {
+          ...gradingWeekRaw,
+          text: weekDetail.detail.text,
+          files: weekDetail.detail.files,
+          submittedAt: weekDetail.detail.submittedAt,
+          feedback: weekDetail.detail.feedback,
+        }
+      : gradingWeekRaw;
 
   const clearSelection = useCallback(() => {
     setSelectedTraineeId(null);
@@ -63,6 +87,7 @@ export function useDailyApprovalsActions({
 
   const closeWeekGrading = useCallback(() => {
     setGradingTarget(null);
+    setWeekDetail(null);
   }, []);
 
   const openWeekGrading = useCallback(
@@ -76,6 +101,25 @@ export function useDailyApprovalsActions({
       }
       setSelectedTraineeId(trainee.id);
       setGradingTarget({ traineeId: trainee.id, weekId: week.id });
+      setWeekDetail(null);
+
+      // best-effort، جدا از باز شدن مودال — اگر خواندن گزارش/بازخورد قبلی
+      // خطا بدهد، مودال بدون آن‌ها هم باز می‌شود (توست جدا نمی‌زنیم).
+      if (isRealApiMode()) {
+        void DailyApprovalsService.loadWeekDetail({
+          traineeId: trainee.id,
+          weekId: week.id,
+          role,
+          teacherId: trainee.teacherId,
+        })
+          .then((detail) => {
+            setWeekDetail({ traineeId: trainee.id, weekId: week.id, detail });
+          })
+          .catch(() => {
+            // گزارش/بازخورد قبلی نمایش داده نمی‌شود؛ ثبت بازخورد جدید همچنان کار می‌کند.
+          });
+      }
+
       setActionBusy(true);
       try {
         await DailyApprovalsService.openWeek({
@@ -93,7 +137,7 @@ export function useDailyApprovalsActions({
         setActionBusy(false);
       }
     },
-    [list]
+    [list, role]
   );
 
   const dropTrainee = useCallback(
@@ -230,7 +274,7 @@ export function useDailyApprovalsActions({
   const savePrincipalWeek = useCallback(
     async (input: {
       principalFeedback: string;
-      principalRating: DailyApprovalCompetencyRating;
+      principalRating: DailyApprovalCompetencyRating | null;
     }) => {
       scheduleWeekGradingSave({
         gradingTarget,
