@@ -122,7 +122,6 @@ export function useSupervisorSelectionWizard({
         const chosen = supervisors.find((item) => item.id === supervisorId);
         if (chosen) cacheSupervisorName(chosen.id, chosen.name);
         toast.success('اخذ واحد و انتخاب استاد با موفقیت انجام شد.');
-        setStarted(false);
         await onEnrollmentComplete();
       } catch (error) {
         toast.error(
