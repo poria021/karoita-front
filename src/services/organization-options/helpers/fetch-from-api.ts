@@ -130,27 +130,32 @@ export async function fetchOrganizationOptionsFromApi(
       }
 
       case 'school': {
-        let provinceId: string | undefined;
-        let educationId: string | undefined;
         const q = params.query?.trim() || undefined;
 
         const provinceNames = toNameList(params.province);
         const districtNames = toNameList(params.district);
 
-        if (provinceNames[0]) {
-          provinceId = await resolveProvinceId(provinceNames[0]);
-        }
-
         if (districtNames.length > 0) {
+          // منطقه به یک استان مشخص تعلق دارد؛ اگر provinceId استان دیگری هم پاس شود،
+          // AND شدنش با educationId نتیجهٔ آن منطقه را در بک‌اند خالی می‌کند.
           const merged: OrganizationOption[] = [];
           for (const districtName of districtNames) {
             const edId = await resolveDistrictId(districtName);
             if (!edId) continue;
-            const raw = await fetchAllNestSchools({
-              provinceId,
-              educationId: edId,
-              title: q,
-            });
+            const raw = await fetchAllNestSchools({ educationId: edId, title: q });
+            merged.push(...raw.map((s) => ({ id: s.id, label: s.title })));
+          }
+          if (merged.length > 0) {
+            return paginateBare(dedupeOptions(merged), params.page, params.limit);
+          }
+        }
+
+        if (provinceNames.length > 0) {
+          const merged: OrganizationOption[] = [];
+          for (const provinceName of provinceNames) {
+            const provinceId = await resolveProvinceId(provinceName);
+            if (!provinceId) continue;
+            const raw = await fetchAllNestSchools({ provinceId, title: q });
             merged.push(...raw.map((s) => ({ id: s.id, label: s.title })));
           }
           if (merged.length > 0) {
@@ -159,8 +164,6 @@ export async function fetchOrganizationOptionsFromApi(
         }
 
         const { data, hasNextPage } = await adminCatalogApi.listSchools({
-          provinceId,
-          educationId,
           title: q,
           page: params.page,
           limit: params.limit,
