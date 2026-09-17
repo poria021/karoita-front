@@ -1,5 +1,5 @@
 import { isMockApiMode } from '@/lib/api-mode';
-import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/mock/daily-approval-derived';
+import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/daily-approval-derived';
 import {
   TRAINEE_SEEDS,
   WEEK_STATE_CYCLE,

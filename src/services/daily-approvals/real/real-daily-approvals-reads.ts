@@ -2,7 +2,7 @@ import {
   toDailyApprovalCatalogCourses,
 } from '@/services/daily-approvals/daily-approval-catalog-mappers';
 import { DAILY_APPROVAL_PASSING_SCORE } from '@/features/karvita/daily-approvals/constants';
-import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/mock/daily-approval-derived';
+import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/daily-approval-derived';
 import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
 import { resolveWeekFeedback } from '@/services/internship-enrollment/real/mappers/week-feedback';

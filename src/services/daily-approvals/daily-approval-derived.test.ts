@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   computeDailyApprovalProgressiveGrade,
   withDerivedDailyApprovalTrainee,
-} from '@/services/daily-approvals/mock/daily-approval-derived';
+} from '@/services/daily-approvals/daily-approval-derived';
 import type { DailyApprovalTrainee, DailyApprovalWeek } from '@/types/daily-approvals';
 
 function week(
