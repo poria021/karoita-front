@@ -185,7 +185,7 @@ export function MarketingInternshipMockup() {
           </div>
         </div>
 
-        <div className="absolute bottom-5 right-[-88px] z-20 w-[210px] cursor-default rounded-kv-card border border-kv-border-muted bg-kv-surface/95 p-4 shadow-kv-overlay backdrop-blur-md">
+        <div className="absolute bottom-5 start-[-88px] z-20 w-[210px] cursor-default rounded-kv-card border border-kv-border-muted bg-kv-surface/95 p-4 shadow-kv-overlay backdrop-blur-md">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-black text-kv-text">
               پیشرفت مهارت تدریس
@@ -202,7 +202,7 @@ export function MarketingInternshipMockup() {
           </div>
         </div>
 
-        <div className="absolute -top-8 left-[-102px] z-20 w-[230px] cursor-default rounded-kv-card border border-kv-border-muted bg-kv-surface/95 p-4 text-kv-canvas shadow-kv-overlay backdrop-blur-md">
+        <div className="absolute -top-8 end-[-102px] z-20 w-[230px] cursor-default rounded-kv-card border border-kv-border-muted bg-kv-surface/95 p-4 text-kv-canvas shadow-kv-overlay backdrop-blur-md">
           <div className="mb-2 flex items-center gap-2.5">
             <div>
               <h4 className="text-xs font-black text-kv-text">
