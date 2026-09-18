@@ -133,7 +133,10 @@ export function useWeeklyReportModal({
     [draftValue, editorWeekId, hasWeeklyReportDraft, undoDraft, week]
   );
 
-  const resetKey = open ? (week?.id ?? '__no-week__') : null;
+  // قبلاً resetKey به `open` هم وابسته بود، یعنی حتی reopen همون هفته هم
+  // باعث resetForm کامل فرم می‌شد. حالا فقط با تغییر واقعیِ هویت هفته ریست
+  // می‌شود، نه هر بار که مودال باز/بسته می‌شود.
+  const resetKey = week?.id ?? null;
   const [lastResetKey, setLastResetKey] = useState<string | null>(null);
   if (resetKey !== lastResetKey) {
     setLastResetKey(resetKey);

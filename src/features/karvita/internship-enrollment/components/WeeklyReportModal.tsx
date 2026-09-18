@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
+
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import {
   KvDialog,
   KvDialogContent,
@@ -92,23 +95,49 @@ export function WeeklyReportModal({
   onReopen,
   onWeekUpdated,
 }: WeeklyReportModalProps) {
+  // `week` در والد همزمان با بسته‌شدن مودال null می‌شود (یک state واحد برای
+  // open/week)، پس اگر مستقیماً به هوک پاس بدیم، هر بار reopen حتی برای همون
+  // هفته باعث resetForm کامل فرم می‌شد (به نظر می‌رسید داده دوباره لود شده).
+  // آخرین هفتهٔ معتبر رو نگه می‌داریم تا هویت هفته فقط با تغییر واقعیِ هفته
+  // عوض بشه، نه با باز/بسته شدن مودال.
+  const [lastWeek, setLastWeek] = useState<InternshipWeeklySession | null>(null);
+  if (week && week !== lastWeek) {
+    setLastWeek(week);
+  }
+  const effectiveWeek = week ?? lastWeek;
+
   const modal = useWeeklyReportModal({
     actor,
     state,
-    week,
+    week: effectiveWeek,
     open,
     onClose,
     onReopen,
     onWeekUpdated,
   });
 
+  if (!effectiveWeek) {
+    if (!open) return null;
+
+    // اولین باری که مودال باز می‌شه ولی هفته هنوز از والد نرسیده (مثلاً هنوز
+    // در حال بارگذاری لیست هفته‌هاست)، به‌جای خالی نشون دادن مودال همون
+    // اسپینر/متن لودینگ جدول‌ها رو نشون بده.
+    return (
+      <KvDialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
+        <KvDialogContent size="lg" className="max-w-[640px]" showCloseButton>
+          <KvDialogHeader>
+            <KvDialogTitle className="sr-only">در حال بارگذاری گزارش هفتگی</KvDialogTitle>
+          </KvDialogHeader>
+          <KvBusySurface className="min-h-[240px]" />
+        </KvDialogContent>
+      </KvDialog>
+    );
+  }
+
   return (
     <KvDialog
       open={open}
       onOpenChange={(next) => {
-        if (next) {
-          modal.resetForm();
-        }
         if (!next && !modal.busy) onClose();
       }}
     >
