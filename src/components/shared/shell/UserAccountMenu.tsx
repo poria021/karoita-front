@@ -204,7 +204,7 @@ export function UserAccountMenu({
               type="button"
               aria-label={`منوی حساب ${name}`}
               className={cn(
-                'flex h-11 max-w-[12rem] items-center gap-kv-pair rounded-kv-control px-kv-pair',
+                'flex h-11 max-w-[12rem] items-center gap-kv-pair overflow-hidden rounded-kv-control px-kv-pair',
                 'bg-kv-surface-subtle/60 text-kv-text',
                 'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20'
               )}
@@ -212,8 +212,8 @@ export function UserAccountMenu({
               <span className="relative flex size-8 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand/10 text-kv-brand-soft-fg">
                 <FaIcon icon={faIcons.user} size="sm" />
               </span>
-              <span className="hidden min-w-0 sm:flex sm:flex-col sm:items-start sm:text-start">
-                <KvTypography variant="subtitle" as="span" truncate>
+              <span className="hidden min-w-0 sm:flex sm:flex-1 sm:flex-col sm:items-start sm:text-start">
+                <KvTypography variant="subtitle" as="span" truncate className="block w-full">
                   {name}
                 </KvTypography>
               </span>

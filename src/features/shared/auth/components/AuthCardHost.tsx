@@ -65,7 +65,7 @@ export function AuthCardHost() {
       )}
     >
       {isPwa ? (
-        <div className="absolute top-[calc(var(--spacing-kv-group)+var(--spacing-kv-inset))] start-0 z-10 sm:top-[calc(var(--spacing-kv-section)+var(--spacing-kv-inset))]">
+        <div className="absolute top-[calc(var(--spacing-kv-group)+var(--spacing-kv-inset))] end-0 z-10 sm:top-[calc(var(--spacing-kv-section)+var(--spacing-kv-inset))]">
           <AuthPwaBackButton />
         </div>
       ) : null}
