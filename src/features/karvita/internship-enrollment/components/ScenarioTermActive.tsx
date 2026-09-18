@@ -36,6 +36,7 @@ type ScenarioTermActiveProps = {
   actor: InternshipEnrollmentActor;
   state: InternshipEnrollmentPageState;
   onAssignmentComplete: () => Promise<void>;
+  onWeekUpdated: (week: InternshipWeeklySession) => void;
   termHistory: InternshipEnrollmentTermHistoryEntry[];
   selectedTermId: string;
   onSelectTerm: (termId: string) => void;
@@ -155,6 +156,7 @@ export function ScenarioTermActive({
   actor,
   state,
   onAssignmentComplete,
+  onWeekUpdated,
   termHistory,
   selectedTermId,
   onSelectTerm,
@@ -353,7 +355,7 @@ export function ScenarioTermActive({
         }}
         onClose={() => setActiveWeek(null)}
         onReopen={setActiveWeek}
-        onSaved={onAssignmentComplete}
+        onWeekUpdated={onWeekUpdated}
       />
     </div>
   );

@@ -47,6 +47,7 @@ export function InternshipEnrollmentPageClient({
             isLoading={page.isLoading}
             onEnrollmentComplete={page.reload}
             onEnrollmentCancel={page.cancelEnrollment}
+            onWeekUpdated={page.updateWeekLocally}
             termHistory={page.termHistory}
             selectedTermId={page.selectedTermId}
             onSelectTerm={page.onSelectTerm}

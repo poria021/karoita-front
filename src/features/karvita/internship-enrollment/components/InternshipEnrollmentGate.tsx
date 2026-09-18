@@ -10,6 +10,7 @@ import type {
   InternshipEnrollmentPageState,
   InternshipEnrollmentSummary,
   InternshipEnrollmentTermHistoryEntry,
+  InternshipWeeklySession,
 } from '@/types/internship-enrollment';
 
 import { ScenarioEnrollClosed } from './ScenarioEnrollClosed';
@@ -39,6 +40,7 @@ type InternshipEnrollmentGateProps = {
   isLoading: boolean;
   onEnrollmentComplete: () => Promise<void>;
   onEnrollmentCancel?: () => Promise<void>;
+  onWeekUpdated: (week: InternshipWeeklySession) => void;
   termHistory: InternshipEnrollmentTermHistoryEntry[];
   selectedTermId: string;
   onSelectTerm: (termId: string) => void;
@@ -55,6 +57,7 @@ export function InternshipEnrollmentGate({
   isLoading,
   onEnrollmentComplete,
   onEnrollmentCancel,
+  onWeekUpdated,
   termHistory,
   selectedTermId,
   onSelectTerm,
@@ -122,6 +125,7 @@ export function InternshipEnrollmentGate({
           actor={actor}
           state={state}
           onAssignmentComplete={onEnrollmentComplete}
+          onWeekUpdated={onWeekUpdated}
           termHistory={termHistory}
           selectedTermId={selectedTermId}
           onSelectTerm={onSelectTerm}

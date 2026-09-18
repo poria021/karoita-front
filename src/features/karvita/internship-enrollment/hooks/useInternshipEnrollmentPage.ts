@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query';
 import { useLayoutEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -13,7 +13,9 @@ import { useUserStore } from '@/store/useUserStore';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentLevel,
+  InternshipEnrollmentPageState,
   InternshipEnrollmentRole,
+  InternshipWeeklySession,
 } from '@/types/internship-enrollment';
 
 function isEnrollmentRole(
@@ -24,6 +26,7 @@ function isEnrollmentRole(
 
 export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const activeUser = useUserStore((s) => s.activeUser);
   const role = isEnrollmentRole(activeUser?.role) ? activeUser.role : null;
   const actor = useMemo<InternshipEnrollmentActor | null>(
@@ -56,13 +59,15 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
     }
   }, [role, level, resolved, router]);
 
+  const queryKey = [
+    ...DASHBOARD_QUERY.internshipEnrollment,
+    actor?.id ?? 'anon',
+    actor?.role ?? 'none',
+    resolved?.level ?? level,
+  ];
+
   const query = useQuery({
-    queryKey: [
-      ...DASHBOARD_QUERY.internshipEnrollment,
-      actor?.id ?? 'anon',
-      actor?.role ?? 'none',
-      resolved?.level ?? level,
-    ],
+    queryKey,
     queryFn: () => {
       if (!actor || !resolved) {
         throw new Error('بارگذاری وضعیت انتخاب واحد ناموفق بود.');
@@ -155,6 +160,31 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
         : null,
     reload: async () => {
       await query.refetch();
+    },
+    // بعد از ذخیره/ارسال گزارش هفتگی، به‌جای refetch کامل صفحه (که برای هر
+    // ۱۶ هفته یک GET گفتگو + پیام می‌زند)، فقط همان یک هفتهٔ تغییریافته را در
+    // کش پچ می‌کنیم — نتیجهٔ mutation از قبل session کامل آن هفته را دارد.
+    updateWeekLocally: (week: InternshipWeeklySession) => {
+      queryClient.setQueryData<InternshipEnrollmentPageState>(queryKey, (prev) => {
+        if (!prev?.enrollment) return prev;
+        return {
+          ...prev,
+          enrollment: {
+            ...prev.enrollment,
+            weeks: prev.enrollment.weeks.map((w) =>
+              w.id === week.id
+                ? {
+                    ...w,
+                    status: week.status,
+                    text: week.text,
+                    files: week.files,
+                    reportSubmittedAt: week.reportSubmittedAt,
+                  }
+                : w
+            ),
+          },
+        };
+      });
     },
     cancelEnrollment: async () => {
       if (!actor || !resolved || !query.data) return;

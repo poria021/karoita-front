@@ -31,7 +31,7 @@ type UseWeeklyReportModalInput = {
   open: boolean;
   onClose: () => void;
   onReopen: (week: InternshipWeeklySession) => void;
-  onSaved: () => Promise<void>;
+  onWeekUpdated: (week: InternshipWeeklySession) => void;
 };
 
 function cloneFiles(
@@ -64,7 +64,7 @@ export function useWeeklyReportModal({
   open,
   onClose,
   onReopen,
-  onSaved,
+  onWeekUpdated,
 }: UseWeeklyReportModalInput) {
   void open;
 
@@ -214,7 +214,7 @@ export function useWeeklyReportModal({
     setIsSavingDraft(true);
 
     try {
-      await InternshipEnrollmentService.saveWeeklyReportDraft({
+      const savedWeek = await InternshipEnrollmentService.saveWeeklyReportDraft({
         actor,
         kind: state.kind,
         level: state.level,
@@ -227,7 +227,7 @@ export function useWeeklyReportModal({
 
       clearWeeklyReportDraft();
       toast.success('گزارش با موفقیت به عنوان پیش‌نویس ذخیره گردید.');
-      await onSaved();
+      onWeekUpdated(savedWeek);
       onClose();
     } catch (error) {
       toast.error(
@@ -244,7 +244,7 @@ export function useWeeklyReportModal({
     files,
     locked,
     onClose,
-    onSaved,
+    onWeekUpdated,
     state.kind,
     state.level,
     state.termId,
@@ -285,10 +285,10 @@ export function useWeeklyReportModal({
         onReopen(reopenWeek);
       },
       commit: () => InternshipEnrollmentService.submitWeeklyReport(payload),
-      onCommitted: async () => {
+      onCommitted: async (submittedWeek) => {
         undoDraftRef.current = null;
         clearWeeklyReportDraft();
-        await onSaved();
+        onWeekUpdated(submittedWeek);
       },
       onError: (error) => {
         toast.error(
@@ -309,7 +309,7 @@ export function useWeeklyReportModal({
     locked,
     onClose,
     onReopen,
-    onSaved,
+    onWeekUpdated,
     state.kind,
     state.level,
     state.termId,

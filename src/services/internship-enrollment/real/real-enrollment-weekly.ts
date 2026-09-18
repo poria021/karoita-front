@@ -37,6 +37,7 @@ function buildOptimisticWeekSession(
     score: null,
     text: input.text,
     files: input.files,
+    reportSubmittedAt: status === 'pending' ? new Date().toISOString() : null,
   };
 }
 
