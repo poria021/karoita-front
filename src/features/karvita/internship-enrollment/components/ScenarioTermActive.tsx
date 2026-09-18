@@ -120,7 +120,10 @@ function EnrollmentMeta({
   );
 }
 
-/** سلکت‌باکس نیم‌سال — فقط وقتی بیش از یک نیم‌سال در تاریخچه باشد نمایش داده می‌شود. */
+/**
+ * سلکت‌باکس نیم‌سال — همیشه نمایش داده می‌شود؛ وقتی تاریخچه فقط یک نیم‌سال
+ * دارد دیزیبل است (که وجودش معلوم باشد)، و با دو یا چند نیم‌سال فعال می‌شود.
+ */
 function TermHistorySelect({
   termHistory,
   selectedTermId,
@@ -130,11 +133,16 @@ function TermHistorySelect({
   selectedTermId: string;
   onSelectTerm: (termId: string) => void;
 }) {
-  if (termHistory.length <= 1) return null;
+  if (termHistory.length === 0) return null;
+  const isDisabled = termHistory.length <= 1;
 
   return (
     <div className="w-full sm:w-56">
-      <KvSelect value={selectedTermId} onValueChange={onSelectTerm}>
+      <KvSelect
+        value={selectedTermId}
+        onValueChange={onSelectTerm}
+        disabled={isDisabled}
+      >
         <KvSelectTrigger aria-label="نیم‌سال تحصیلی">
           <KvSelectValue placeholder="نیم‌سال تحصیلی" />
         </KvSelectTrigger>
