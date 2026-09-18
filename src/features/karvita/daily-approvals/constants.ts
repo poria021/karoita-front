@@ -223,7 +223,7 @@ export const WEEK_LEGEND_ITEMS: readonly {
 }[] = (
   [
     'locked_future',
-    'overdue',
+    // 'overdue', // بج «منقضی شده» فعلاً در راهنمای وضعیت نمایش داده نمی‌شود.
     // 'extended', // تمدید گروهی هفته فعلاً غیرفعال است — در UI نمایش داده نمی‌شود.
     'draft',
     'pending',
