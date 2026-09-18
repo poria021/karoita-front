@@ -55,7 +55,10 @@ export function DailyApprovalWeekGrid({
           week.status === 'graded' && week.score !== null ? week.score : null;
         const label =
           week.status === 'draft' ? draftCardLabel(week) : visual.label;
-        const locked = week.status === 'locked_future';
+        // تا وقتی دانشجو گزارشی نفرستاده (status === 'draft')، استاد/معلم
+        // راهنما/مدیر مدرسه چیزی برای بازخورد دادن ندارند — ببین
+        // openWeekGrading برای گارد اصلی.
+        const locked = week.status === 'locked_future' || week.status === 'draft';
         const selected = selectedWeekId === week.id;
 
         return (
