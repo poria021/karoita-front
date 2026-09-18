@@ -252,9 +252,32 @@ export function ScenarioTermActive({
       ? '---'
       : `${toPersianDigits(enrollment.progressiveGrade.final20)}/۲۰`;
 
+  const karnamehBox = (
+    <div className="flex w-full flex-row items-center justify-between gap-kv-group rounded-kv-control border border-kv-border bg-kv-surface px-kv-group py-kv-field text-start shadow-kv-raised lg:w-auto lg:min-w-[260px]">
+      <div className="flex flex-col gap-0.5 ps-kv-pair pe-kv-pair">
+        <KvTypography variant="caption" tone="muted" as="span" weight="bold">
+          {isViewingHistory ? 'کارنامه تحصیلی نیم‌سال' : 'کارنامه تحصیلی جاری'}
+        </KvTypography>
+        <KvTypography variant="caption" tone="muted" as="p">
+          وضعیت:{' '}
+          <span className="font-bold text-kv-text-secondary">
+            {enrollment.isTermArchived ? 'پایان‌یافته' : 'در جریان'}
+          </span>
+        </KvTypography>
+      </div>
+      <Badge
+        variant={
+          enrollment.progressiveGrade.gradedCount > 0 ? 'success' : 'default'
+        }
+        className="font-sans font-bold"
+      >
+        نمره: {grade}
+      </Badge>
+    </div>
+  );
+
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-kv-group">
-      {termSelect}
       <SuccessNotice enrollment={enrollment} />
       {suspended ? (
         <KvAlert
@@ -279,34 +302,7 @@ export function ScenarioTermActive({
           )}
 
           <div className="flex shrink-0 items-center justify-end">
-            <div className="flex w-full flex-row items-center justify-between gap-kv-group rounded-kv-control border border-kv-border bg-kv-surface px-kv-group py-kv-field text-start shadow-kv-raised lg:w-auto lg:min-w-[260px]">
-              <div className="flex flex-col gap-0.5 ps-kv-pair pe-kv-pair">
-                <KvTypography
-                  variant="caption"
-                  tone="muted"
-                  as="span"
-                  weight="bold"
-                >
-                  {isViewingHistory ? 'کارنامه تحصیلی نیم‌سال' : 'کارنامه تحصیلی جاری'}
-                </KvTypography>
-                <KvTypography variant="caption" tone="muted" as="p">
-                  وضعیت:{' '}
-                  <span className="font-bold text-kv-text-secondary">
-                    {enrollment.isTermArchived ? 'پایان‌یافته' : 'در جریان'}
-                  </span>
-                </KvTypography>
-              </div>
-              <Badge
-                variant={
-                  enrollment.progressiveGrade.gradedCount > 0
-                    ? 'success'
-                    : 'default'
-                }
-                className="font-sans font-bold"
-              >
-                نمره: {grade}
-              </Badge>
-            </div>
+            {termSelect}
           </div>
         </div>
       </KvCard>
@@ -322,18 +318,21 @@ export function ScenarioTermActive({
               {reportTitle}
             </KvTypography>
           </div>
-          <KvButton
-            type="button"
-            color="error"
-            appearance="solid"
-            size="sm"
-            icon={<FaIcon icon={faIcons.filePdf} size="sm" />}
-            onClick={() =>
-              toast.message('دریافت فایل PDF در نسخهٔ فعلی در دسترس نیست.')
-            }
-          >
-            دانلود کارنامه (PDF)
-          </KvButton>
+          <div className="flex flex-col items-stretch gap-kv-group sm:flex-row sm:items-center">
+            <KvButton
+              type="button"
+              color="error"
+              appearance="solid"
+              size="sm"
+              icon={<FaIcon icon={faIcons.filePdf} size="sm" />}
+              onClick={() =>
+                toast.message('دریافت فایل PDF در نسخهٔ فعلی در دسترس نیست.')
+              }
+            >
+              دانلود کارنامه (PDF)
+            </KvButton>
+            {karnamehBox}
+          </div>
         </div>
 
         {IS_REAL_MODE_STUB_ACTIVE && !enrollment.weeksAreReal ? (
