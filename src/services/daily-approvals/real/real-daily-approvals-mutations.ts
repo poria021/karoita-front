@@ -47,8 +47,10 @@ export async function markRealDailyApprovalWeekOpened(input: {
  * `score: null` یعنی رد با بازخورد («نیازمند ویرایش») — طبق سناریوی محصول این
  * دو عمل متقابلاً منحصرند، پس اینجا نمره ثبت نمی‌شود، فقط بازخورد متنی استاد
  * روی `POST /conversations/{id}/messages` می‌رود؛ همان مکانیزمی که
- * `submitMentorFeedbackReal`/`submitPrincipalFeedbackReal` هم استفاده می‌کنند
- * و دانشجو با مقایسهٔ زمانِ همین پیام در `mapWeekStatus` آن را رد تشخیص می‌دهد.
+ * `submitMentorFeedbackReal`/`submitPrincipalFeedbackReal` هم استفاده می‌کنند.
+ * تشخیص «رد» دیگر با مقایسهٔ زمانِ پیام نیست — بک‌اند خودش `mentorStatus` را
+ * `'send'` می‌کند و `mapWeekStatus` از همان فیلد (به‌همراه `status` کلی هفته)
+ * رنگ کارت را مشتق می‌کند.
  * نقش استاد/دسترسی را خودِ Nest چک می‌کند (نه فرانت).
  */
 export async function scoreRealDailyApprovalWeek(

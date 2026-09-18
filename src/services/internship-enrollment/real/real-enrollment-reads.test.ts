@@ -586,7 +586,14 @@ describe('real enrollment reads', () => {
       })
     );
     vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([
-      { id: 'week-1', enrollmentId: 'enr-1', submittedAt: '2026-01-01T00:00:00.000Z' },
+      {
+        id: 'week-1',
+        enrollmentId: 'enr-1',
+        submittedAt: '2026-01-01T00:00:00.000Z',
+        status: 'in_progress',
+        mentorStatus: 'send',
+        studentStatus: 'send',
+      },
     ]);
     vi.mocked(loadWeekConversationMessages).mockResolvedValue([
       {
@@ -620,7 +627,15 @@ describe('real enrollment reads', () => {
       })
     );
     vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([
-      { id: 'week-1', enrollmentId: 'enr-1', submittedAt: '2026-01-03T00:00:00.000Z' },
+      {
+        id: 'week-1',
+        enrollmentId: 'enr-1',
+        submittedAt: '2026-01-03T00:00:00.000Z',
+        status: 'in_progress',
+        // دانشجو دوباره ارسال کرده و بک‌اند mentorStatus را پاک کرده — دیگر رد نیست.
+        mentorStatus: null,
+        studentStatus: 'send',
+      },
     ]);
     // بازخورد رد استاد در 01-02، ولی دانشجو در 01-03 (بعدش) دوباره ارسال کرده.
     vi.mocked(loadWeekConversationMessages).mockResolvedValue([

@@ -60,6 +60,9 @@ export type DailyApprovalWeek = {
   feedback: InternshipWeeklyReportFeedback;
   readBySupervisor: boolean;
   isExtended?: boolean;
+  /** فیلد خام `teacherStatus`/`schoolAdminStatus` — برای قفل‌شدن مودال خودِ همان نقش. */
+  teacherStatus?: 'send' | null;
+  schoolAdminStatus?: 'send' | null;
 };
 
 export type DailyApprovalProgressiveGrade = {

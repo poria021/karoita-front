@@ -14,7 +14,6 @@ import { getRealAcademicSettings } from '@/services/syllabus-config/real/real-sy
 import {
   mapWeekStatus,
   studentWeekId,
-  weekTemplateId,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
 import { resolveEnrollmentMentor } from '@/services/internship-enrollment/real/mappers/enrollment-summary';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
@@ -120,32 +119,25 @@ function mapRow(
  * submissions اضافه می‌شد که برای یک لیست صفحه‌بندی‌شده سنگین است) — مودال
  * نمره‌دهی برای همین یک هفته، جدا و به‌درخواست، متن/فایل را می‌خواند.
  *
- * `week.submittedAt`/`score` هم مثل سمت دانشجو (ببین `mapRealWeeklySessions`)
- * دیگر توسط ارسال گزارش ست نمی‌شوند — گزارش فقط پیام روی گفتگوی هفته پست
- * می‌شود. برای این‌که کارت این هفته بعد از ارسال دانشجو رنگش عوض شود، بدون
- * یک `GET messages` جداگانه به‌ازای هر هفته (سنگین)، از همان گفتگوهایی که
- * برای `unreadCount` این ثبت‌نام یک‌بار خوانده‌ایم (`conversationsApi.listByEnrollment`)
- * استفاده می‌کنیم: اگر گفتگوی این هفته حداقل یک پیام داشته باشد
- * (`lastMessageSequence > 0`)، یعنی دانشجو گزارشی پست کرده.
+ * رنگ/وضعیت کارت و نمره از چهار فیلد صریح `mentorStatus`/`teacherStatus`/
+ * `studentStatus` و `status` کلی هفته مشتق می‌شوند (ببین `mapWeekStatus`)، نه
+ * از حدس‌زدن روی گفتگو. `teacherStatus`/`schoolAdminStatus` خام هم روی
+ * `DailyApprovalWeek` می‌مانند تا مودال ارزیابی معلم راهنما/مدیر مدرسه بتواند
+ * قفل‌بودن فرم خودش را تشخیص دهد (ببین `useDailyApprovalWeekGradingModal`).
  */
-function mapDailyApprovalWeek(
-  week: NestStudentWeek,
-  index: number,
-  weekConversationsByTemplateId: ReadonlyMap<string, NestConversation>
-): DailyApprovalWeek {
-  const templateId = weekTemplateId(week);
-  const conversation = templateId ? weekConversationsByTemplateId.get(templateId) : undefined;
-  const hasStudentSubmission = Boolean(conversation && conversation.lastMessageSequence > 0);
-
+function mapDailyApprovalWeek(week: NestStudentWeek, index: number): DailyApprovalWeek {
+  const completed = week.status === 'completed';
   return {
     id: studentWeekId(week),
     weekNumber: index + 1,
-    status: mapWeekStatus(week, false, hasStudentSubmission),
-    score: typeof week.score === 'number' ? week.score : null,
+    status: mapWeekStatus(week),
+    score: completed && typeof week.score === 'number' ? week.score : null,
     text: '',
     files: [],
     feedback: {},
     readBySupervisor: false,
+    teacherStatus: week.teacherStatus ?? null,
+    schoolAdminStatus: week.schoolAdminStatus ?? null,
   };
 }
 
@@ -166,20 +158,12 @@ async function loadRealEnrollmentConversations(
 }
 
 async function loadRealDailyApprovalWeeks(
-  enrollmentId: string,
-  conversations: readonly NestConversation[]
+  enrollmentId: string
 ): Promise<DailyApprovalWeek[]> {
   if (!enrollmentId) return [];
   try {
-    const weekConversationsByTemplateId = new Map(
-      conversations
-        .filter((c) => c.type === 'week' && c.weekId)
-        .map((c) => [c.weekId as string, c] as const)
-    );
     const weeks = await studentEnrollmentsApi.listWeeks(enrollmentId);
-    return weeks.map((week, index) =>
-      mapDailyApprovalWeek(week, index, weekConversationsByTemplateId)
-    );
+    return weeks.map((week, index) => mapDailyApprovalWeek(week, index));
   } catch {
     return [];
   }
@@ -268,15 +252,13 @@ export async function listRealDailyApprovals(
   }
 
   // بعد از فیلترها — گفتگوها/هفته‌ها و unreadCount را فقط برای ردیف‌هایی که
-  // واقعاً نمایش داده می‌شوند می‌خوانیم؛ گفتگوهای هر فراگیر یک‌بار خوانده و هم
-  // برای وضعیت هفته‌ها هم برای unreadCount استفاده می‌شود.
+  // واقعاً نمایش داده می‌شوند می‌خوانیم؛ گفتگوهای هر فراگیر برای unreadCount
+  // یک‌بار خوانده می‌شود.
   const conversationsByTrainee = await Promise.all(
     trainees.map((t) => loadRealEnrollmentConversations(t.id))
   );
   const weeksByTrainee = await Promise.all(
-    trainees.map((t, index) =>
-      loadRealDailyApprovalWeeks(t.id, conversationsByTrainee[index] ?? [])
-    )
+    trainees.map((t) => loadRealDailyApprovalWeeks(t.id))
   );
   const unreadByTrainee = conversationsByTrainee.map((conversations) =>
     sumUnreadCount(conversations)

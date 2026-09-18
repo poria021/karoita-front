@@ -31,38 +31,25 @@ export function weekTemplateId(week: NestStudentWeek): string | null {
 }
 
 /**
- * Swagger enum کامل `status` هفته را مستند نکرده (نمونه‌های دیده‌شده صرفاً
- * `pending`/`in_progress`)؛ به‌جای اتکا به این رشته، وضعیت UI را از
- * `score`/`submittedAt`/بازخورد استاد استخراج می‌کنیم — این فیلدها همیشه معنای
- * ثابتی دارند.
- *
- * هفته‌ای که هنوز `startedAt` ندارد را «قفلِ آینده» نمی‌گیریم — هیچ فیلدی از Nest
- * مشخص نمی‌کند کدام هفته الان باز است، و خودِ `PATCH .../start` وقتی زود باشد
- * با خطای روشن («Classes have not started yet») رد می‌شود؛ پس هفته را باز/قابل‌کلیک
- * نشان می‌دهیم و تصمیم نهایی را به همان خطای بک‌اند می‌سپاریم.
- *
- * `needs_edit`: طبق سناریوی محصول، استاد راهنما یا نمره ثبت می‌کند (`graded`) یا
- * بازخورد متنی می‌دهد — این دو عمل متقابلاً منحصرند، یعنی وجود بازخورد استاد
- * بدون نمره یعنی گزارش رد شده و دانشجو باید دوباره ارسال کند. `needsEdit` را
- * فراخوان از قبل با مقایسهٔ زمانِ آخرین پیام استاد و آخرین ارسال دانشجو محاسبه
- * می‌کند (ببین `mapRealWeeklySessions`) — وگرنه بعد از اولین بازخورد، هفته تا
- * ابد `needs_edit` می‌ماند حتی اگر دانشجو دوباره گزارش داده باشد.
+ * رنگ/وضعیت کارت از چهار فیلد صریح `mentorStatus`/`teacherStatus`/
+ * `schoolAdminStatus`/`studentStatus` (هرکدام `'send'` یا `null`) به‌همراه
+ * `status` کلی هفته مشتق می‌شود. اولویت همیشه با استاد راهنماست
+ * (`mentorStatus`, نقش `supervisor_professor`) — حتی اگر معلم راهنما
+ * (`teacherStatus`, نقش `mentor_teacher`) قبلاً تایید کرده باشد، اقدام استاد
+ * رنگ نهایی کارت را تعیین می‌کند:
+ * ۱. `mentorStatus === 'send'` → `needs_edit` اگر هفته هنوز `in_progress`ست
+ *    (استاد خواسته دانشجو ویرایش کند)، یا `graded` اگر `completed`ست (نمرهٔ
+ *    نهایی ثبت شده).
+ * ۲. وگرنه `teacherStatus === 'send'` → `approved` («تایید معلم»).
+ * ۳. وگرنه `studentStatus === 'send'` → `pending` (گزارش ارسال شده، منتظر بررسی).
+ * ۴. وگرنه `draft` (هنوز هیچ اقدامی نشده).
  */
-/**
- * `week.submittedAt` هرگز توسط این فلو ست نمی‌شود — گزارش دانشجو دیگر از
- * `PATCH student-weeks/{id}/submit` (حذف‌شده) نمی‌آید، بلکه فقط یک پیام روی
- * گفتگوی هفته پست می‌شود (ببین `realSubmitWeeklyReport`). پس منبع درستِ
- * «ارسال شده» همان وجود آخرین پیامِ دانشجو (`hasStudentSubmission`) است، نه
- * این فیلد که برای این مسیر همیشه خالی می‌ماند.
- */
-export function mapWeekStatus(
-  week: NestStudentWeek,
-  needsEdit = false,
-  hasStudentSubmission = false
-): InternshipWeeklySessionState {
-  if (week.score !== null && week.score !== undefined) return 'graded';
-  if (needsEdit) return 'needs_edit';
-  if (hasStudentSubmission || week.submittedAt) return 'pending';
+export function mapWeekStatus(week: NestStudentWeek): InternshipWeeklySessionState {
+  if (week.mentorStatus === 'send') {
+    return week.status === 'completed' ? 'graded' : 'needs_edit';
+  }
+  if (week.teacherStatus === 'send') return 'approved';
+  if (week.studentStatus === 'send') return 'pending';
   return 'draft';
 }
 
@@ -84,17 +71,12 @@ export function mapRealWeeklySessions(
     const id = studentWeekId(week);
     const latest = latestSubmissionByWeekId.get(id);
     const feedback = feedbackByWeekId.get(id);
-    const advisorMessageAt = feedback?.advisorAt ?? null;
-    // پیام استاد فقط تا وقتی «رد» حساب می‌شود که دانشجو از آن موقع دوباره
-    // ارسال نکرده باشد — وگرنه بعد از اصلاح، هفته اشتباهاً needs_edit می‌ماند.
-    const needsEdit = Boolean(
-      advisorMessageAt && (!latest?.createdAt || advisorMessageAt > latest.createdAt)
-    );
+    const completed = week.status === 'completed';
     return {
       id,
       title: `هفته ${index + 1}`,
-      status: mapWeekStatus(week, needsEdit, Boolean(latest)),
-      score: typeof week.score === 'number' ? week.score : null,
+      status: mapWeekStatus(week),
+      score: completed && typeof week.score === 'number' ? week.score : null,
       text: latest?.text ?? '',
       files: latest?.files ?? [],
       reportSubmittedAt: latest?.createdAt ?? null,

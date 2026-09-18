@@ -70,7 +70,10 @@ describe('listRealDailyApprovals', () => {
     });
     vi.mocked(studentEnrollmentsApi.listWeeks).mockImplementation(async (id: string) =>
       id === 'e1'
-        ? [{ id: 'w1', score: 90 }, { id: 'w2', score: null }]
+        ? [
+            { id: 'w1', status: 'completed', mentorStatus: 'send', score: 90 },
+            { id: 'w2', status: 'in_progress', score: null },
+          ]
         : []
     );
 
@@ -95,8 +98,8 @@ describe('listRealDailyApprovals', () => {
       hasNextPage: false,
     });
     vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([
-      { id: 'w1', score: 90, submittedAt: '2026-01-01T00:00:00.000Z' },
-      { id: 'w2', score: 80, submittedAt: '2026-01-02T00:00:00.000Z' },
+      { id: 'w1', status: 'completed', mentorStatus: 'send', score: 90, submittedAt: '2026-01-01T00:00:00.000Z' },
+      { id: 'w2', status: 'completed', mentorStatus: 'send', score: 80, submittedAt: '2026-01-02T00:00:00.000Z' },
     ]);
 
     const page = await listRealDailyApprovals(baseInput);

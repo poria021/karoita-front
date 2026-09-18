@@ -176,9 +176,11 @@ export type NestMentorCapacity = {
 };
 
 /**
- * ردیف GET `/student-enrollments/{id}/weeks`. Swagger enum کامل `status` را مستند
- * نکرده (نمونه‌های دیده‌شده: `pending`, `in_progress`)؛ mapper به‌جای اتکا به این
- * رشته، وضعیت UI را از `score`/`submittedAt`/`startedAt` استخراج می‌کند.
+ * ردیف GET `/student-enrollments/{id}/weeks`. `status` کلی هفته `'in_progress'`
+ * یا `'completed'` است؛ وضعیت UI/رنگ کارت از چهار فیلد صریح
+ * `mentorStatus`/`teacherStatus`/`schoolAdminStatus`/`studentStatus`
+ * (هرکدام `'send'` یا `null`) به‌همراه همین `status` مشتق می‌شود — ببین
+ * `mapWeekStatus`.
  */
 export type NestStudentWeek = {
   id?: string;
@@ -188,6 +190,13 @@ export type NestStudentWeek = {
     | string
     | { id?: string; _id?: string; lessonId?: string; priority?: number; status?: boolean };
   status?: string;
+  /** استاد راهنما (نقش `supervisor_professor`) — اولویت اول رنگ کارت. */
+  mentorStatus?: 'send' | null;
+  /** معلم راهنما (نقش `mentor_teacher`). */
+  teacherStatus?: 'send' | null;
+  /** مدیر مدرسه (نقش `school_principal`). */
+  schoolAdminStatus?: 'send' | null;
+  studentStatus?: 'send' | null;
   score?: number | null;
   scoreGivenBy?: string | null;
   scoreGivenAt?: string | null;
