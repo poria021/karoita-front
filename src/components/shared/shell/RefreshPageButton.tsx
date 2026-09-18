@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -15,6 +16,7 @@ import { faIcons } from '@/utils/iconMap';
 export function RefreshPageButton() {
   const isStandalone = usePwaStandalone();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [spinning, setSpinning] = useState(false);
 
   if (!isStandalone) return null;
@@ -22,6 +24,9 @@ export function RefreshPageButton() {
   async function handleRefresh() {
     if (spinning) return;
     setSpinning(true);
+    // صفحات ماژول‌ها عمدتاً داده را از React Query می‌گیرند، نه از Server Component —
+    // router.refresh() به‌تنهایی کش React Query را دست نمی‌زند.
+    await queryClient.invalidateQueries();
     router.refresh();
     await new Promise((r) => setTimeout(r, 700));
     setSpinning(false);
