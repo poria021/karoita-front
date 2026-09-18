@@ -130,7 +130,6 @@ export function useDailyApprovalsActions({
           traineeId: trainee.id,
           weekId: week.id,
         });
-        await list.reload();
       } catch (error) {
         toast.error(
           error instanceof Error
@@ -140,6 +139,13 @@ export function useDailyApprovalsActions({
       } finally {
         setActionBusy(false);
       }
+
+      // رفرش unreadCount/وضعیت جدول در پس‌زمینه — مودال (و loading state آن
+      // که به actionBusy وصل است) منتظرش نمی‌ماند. این رفرش کل صفحه (هر
+      // فراگیر × چند درخواست) را دوباره می‌خواند، پس نباید باز شدن مودال یک
+      // فراگیر را بلاک کند؛ قبلاً همین `await list.reload()` باعث می‌شد
+      // مودال تا پایان رفرش کل لیست در حالت loading/غیرقابل‌بستن بماند.
+      void list.reload();
     },
     [list, role]
   );
