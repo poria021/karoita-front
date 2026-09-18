@@ -74,6 +74,37 @@ export function termTitleForHistoryEntry(
   return semesterEntry ? toAcademicTerm(semesterEntry).title : '';
 }
 
+/**
+ * ثبت‌نامی که باید به‌عنوان «فعلی» صفحه در نظر گرفته شود: یا ثبت‌نام واقعاً
+ * `active`، یا — وقتی درسِ باز فعلی `blockReason: 'passed'` دارد (دانشجو این
+ * level را قبلاً قبول شده) — آخرین رکورد `completed` همان level (بر اساس
+ * `createdAt`، برای وقتی چندبار افتاده و بالاخره قبول شده). این تابع هم برای
+ * ساخت خودِ page state (`toEnrollmentPageState`) هم برای واکشیِ جزئیات
+ * (`loadRegisteredEnrollmentDetails` در `real-enrollment-reads.ts`) استفاده
+ * می‌شود تا هر دو دقیقاً روی یک ثبت‌نام توافق داشته باشند.
+ */
+export function resolveEffectiveEnrollmentEntry(
+  current: { canSelect?: boolean; blockReason?: string | null } | null,
+  history: readonly EnrolmentHistoryEntry[]
+): EnrolmentHistoryEntry | null {
+  const activeEntry =
+    history.find((entry) => entry.enrolment.status === 'active') ?? null;
+  if (activeEntry) return activeEntry;
+
+  if (current?.canSelect !== false || current?.blockReason !== 'passed') {
+    return null;
+  }
+  return (
+    history
+      .filter((entry) => entry.enrolment.status === 'completed')
+      .sort(
+        (a, b) =>
+          new Date(b.enrolment.createdAt ?? 0).getTime() -
+          new Date(a.enrolment.createdAt ?? 0).getTime()
+      )[0] ?? null
+  );
+}
+
 export function toEnrollmentPageState(
   input: GetEnrollmentPageStateInput,
   open: NestOpenCourseSelection | null,
@@ -96,9 +127,8 @@ export function toEnrollmentPageState(
   const currentLessonId = current ? nestEntityId(current) || null : null;
 
   const history = findEnrolmentHistoryForLevel(semesters, kind, level);
-  const activeEntry =
-    history.find((entry) => entry.enrolment.status === 'active') ?? null;
-  const registered = Boolean(activeEntry);
+  const effectiveEntry = resolveEffectiveEnrollmentEntry(current, history);
+  const registered = Boolean(effectiveEntry);
 
   const openSemesterEntry = open
     ? semesters.find((semester) => semester.id === open.id)
@@ -116,11 +146,13 @@ export function toEnrollmentPageState(
       Boolean(current?.courseSelection) ||
       Boolean(current?.status));
 
-  const isActiveInOpenTerm = Boolean(open) && activeEntry?.semesterId === open?.id;
+  const isActiveInOpenTerm = Boolean(open) && effectiveEntry?.semesterId === open?.id;
   const openTerm = open ? toAcademicTerm(open, { lessons: openLessons }) : null;
   // نیم‌سال بسته‌شده یعنی کلاس‌هایش قطعاً شروع شده — برخلاف نیم‌سال باز که
-  // ممکن است `startClasses` هنوز false باشد (باید منتظر S4 ماند).
-  const activeTermOpen = activeEntry
+  // ممکن است `startClasses` هنوز false باشد (باید منتظر S4 ماند). ترمِ
+  // قبول‌شده (`passedHistoryEntry`) هم همیشه «باز» گرفته می‌شود چون فقط
+  // تاریخچه/گزارش نمایش داده می‌شود، نه انتظار برای شروع کلاس.
+  const activeTermOpen = effectiveEntry
     ? isActiveInOpenTerm
       ? Boolean(openTerm?.isTermOpen)
       : true
@@ -136,15 +168,15 @@ export function toEnrollmentPageState(
       });
 
   const activeSemesterEntry =
-    activeEntry && !isActiveInOpenTerm
-      ? semesters.find((semester) => semester.id === activeEntry.semesterId)
+    effectiveEntry && !isActiveInOpenTerm
+      ? semesters.find((semester) => semester.id === effectiveEntry.semesterId)
       : undefined;
-  const activeTermTitle = activeEntry
+  const activeTermTitle = effectiveEntry
     ? isActiveInOpenTerm
       ? (openTerm?.title ?? '')
       : (activeSemesterEntry ? toAcademicTerm(activeSemesterEntry).title : '')
     : (openTerm?.title ?? 'نیم‌سال جاری');
-  const activeTermId = activeEntry ? activeEntry.semesterId : (open?.id ?? '');
+  const activeTermId = effectiveEntry ? effectiveEntry.semesterId : (open?.id ?? '');
 
   const termHistory: InternshipEnrollmentTermHistoryEntry[] = history.map(
     (entry) => ({
@@ -161,7 +193,7 @@ export function toEnrollmentPageState(
     courseName,
     termTitle: activeTermTitle,
     termId: activeTermId,
-    lessonId: activeEntry ? (activeEntry.lesson.id ?? null) : currentLessonId,
+    lessonId: effectiveEntry ? (effectiveEntry.lesson.id ?? null) : currentLessonId,
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'
         ? registeredSummaryFromEnrollment(
@@ -172,7 +204,7 @@ export function toEnrollmentPageState(
               termId: activeTermId,
               userId: input.actor.id,
             },
-            activeEntry?.enrolment ?? null,
+            effectiveEntry?.enrolment ?? null,
             {
               supervisorName: registeredDetails?.supervisorName ?? null,
               supervisorDay: registeredDetails?.supervisorDay ?? null,

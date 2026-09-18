@@ -15,6 +15,7 @@ import {
   findEnrolmentHistoryForLevel,
   findLessonForLevel,
   registeredSummaryFromEnrollment,
+  resolveEffectiveEnrollmentEntry,
   resolveEnrollmentMentor,
   resolveEnrollmentProfessor,
   resolveEnrollmentSchool,
@@ -284,11 +285,12 @@ export async function getRealEnrollmentPageState(
   const kind = kindForRole(input.actor.role);
   const level = clampLevel(kind, input.level);
   const history = findEnrolmentHistoryForLevel(semesters, kind, level);
-  const activeEntry = history.find((entry) => entry.enrolment.status === 'active') ?? null;
-  const isActiveInOpenTerm = Boolean(open) && activeEntry?.semesterId === open?.id;
+  const current = findLessonForLevel(open?.lessons ?? [], kind, level);
+  const effectiveEntry = resolveEffectiveEnrollmentEntry(current, history);
+  const isActiveInOpenTerm = Boolean(open) && effectiveEntry?.semesterId === open?.id;
 
   const registeredDetails = await loadRegisteredEnrollmentDetails(
-    activeEntry,
+    effectiveEntry,
     isActiveInOpenTerm
   );
   return toEnrollmentPageState(input, open, semesters, registeredDetails);

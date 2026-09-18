@@ -18,8 +18,14 @@ import type {
 export type NestOpenCourseSelectionLesson = NestLesson & {
   /** false یعنی این دانشجو/کارآموز فعلاً حق انتخاب این درس را ندارد. */
   canSelect?: boolean;
-  /** علت غیرقابل‌انتخاب بودن وقتی `canSelect === false` — تنها مقدار دیدهاشده: `in_progress`. enum کامل مستند نیست. */
-  blockReason?: string | null;
+  /**
+   * علت غیرقابل‌انتخاب بودن وقتی `canSelect === false`. طبق Swagger زندهٔ
+   * بک‌اند (`OpenCourseSelectionLessonDto.blockReason`, تأیید ۱۴۰۵/۰۶/۲۷)
+   * enum کامل `'in_progress' | 'passed'` است — `'passed'` یعنی دانشجو این
+   * level را قبلاً قبول شده و باید به‌جای انتخاب واحد جدید، تاریخچهٔ همان ترمِ
+   * قبول‌شده را ببیند (ببین `toEnrollmentPageState`).
+   */
+  blockReason?: 'in_progress' | 'passed' | (string & {}) | null;
 };
 
 /** GET `/student-enrollments/open-course-selection` — ترم باز + درس‌ها. */
