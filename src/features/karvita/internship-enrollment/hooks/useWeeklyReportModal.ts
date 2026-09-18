@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
@@ -133,6 +133,13 @@ export function useWeeklyReportModal({
     },
     [draftValue, editorWeekId, hasWeeklyReportDraft, week]
   );
+
+  useEffect(() => {
+    if (open) {
+      resetForm();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, week?.id]);
 
   const lockContext = useMemo(() => {
     if (!week || !enrollment) return null;
