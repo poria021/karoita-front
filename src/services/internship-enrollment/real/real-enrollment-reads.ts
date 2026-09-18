@@ -5,7 +5,11 @@ import {
 import { requireNestTransport } from '@/services/require-nest-transport';
 import { reportError } from '@/lib/observability/reportError';
 import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
-import { resolveWeekFeedback } from '@/services/internship-enrollment/real/mappers/week-feedback';
+import {
+  resolveLatestStudentSubmission,
+  resolveWeekFeedback,
+  type WeekStudentSubmissionPreview,
+} from '@/services/internship-enrollment/real/mappers/week-feedback';
 import {
   filterSupervisorsClientSide,
   findEnrolmentHistoryForLevel,
@@ -31,11 +35,9 @@ import {
   ENROLLMENT_PROFESSORS_PAGE_SIZE,
   studentEnrollmentsApi,
 } from '@/services/internship-enrollment/real/student-enrollments.api';
-import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
 import { educationSchoolApi } from '@/services/admin-catalog/resources/education-school.api';
 import { usersApi } from '@/services/users/users.api';
 import { nestEntityId } from '@/services/syllabus-config/real/real-syllabus-mappers';
-import type { NestStudentWeekSubmission } from '@/types/nest-student-enrollments';
 import type {
   AttendanceDaysUnavailableReason,
   GetEnrollmentPageStateInput,
@@ -147,66 +149,44 @@ async function resolveSchoolName(schoolId: string): Promise<string | null> {
 }
 
 /**
- * برای هر هفته آخرین submission *خودِ دانشجو* رو best-effort می‌گیرد. این لیست
- * روی همین endpoint بین نقش‌ها مشترک است (مثلاً امتیاز معلم/مدیر مدرسه هم قرار
- * است از همین‌جا ثبت شود) — فیلتر روی `submittedById` لازم است تا رکورد یه نقش
- * دیگر به‌جای گزارش خودِ دانشجو نمایش داده نشود. `studentId` نامشخص → رفتار قدیم
- * (آخرین ردیف، فارغ از فرستنده) به‌عنوان fallback امن‌تر از هیچ‌چیز.
+ * برای هر هفته، هم آخرین پیامِ *خودِ دانشجو* (گزارش) هم بازخورد متنی
+ * استاد/معلم/مدیر را از همان یک گفتگوی هفته می‌خواند (یک `GET messages` به‌جای
+ * دو تا). `GET /student-weeks/{id}/submissions` دیگر روی بک‌اند وجود ندارد
+ * (۴۰۴ «Cannot GET ...» — تأیید‌شده روی `karoita.darkube.ir`)، پس گزارش
+ * دانشجو هم مثل بازخورد از `resolveLatestStudentSubmission` روی همین پیام‌ها
+ * می‌آید. best-effort: یه هفته بدون گفتگو یا خطای شبکه نباید بقیه رو بترکونه.
  */
-async function loadLatestSubmissionByWeekId(
-  weeks: RealWeeklyData['weeks'],
-  studentId: string | undefined
-): Promise<Map<string, NestStudentWeekSubmission>> {
-  const result = new Map<string, NestStudentWeekSubmission>();
-  await Promise.all(
-    weeks.map(async (week) => {
-      const id = studentWeekId(week);
-      if (!id) return;
-      try {
-        const submissions = await studentWeeksApi.listSubmissions(id);
-        const own = studentId
-          ? submissions.filter((s) => s.submittedById === studentId)
-          : submissions;
-        const latest = own[own.length - 1];
-        if (latest) result.set(id, latest);
-      } catch {
-        // best-effort — یه هفته بدون تاریخچه نباید بقیه رو بترکونه.
-      }
-    })
-  );
-  return result;
-}
-
-/**
- * برای هر هفته بازخورد متنی استاد/معلم/مدیر رو از گفتگوی همان هفته می‌خواند
- * (best-effort — یه هفته بدون گفتگو یا بدون بازخورد نباید بقیه رو بترکونه).
- */
-async function loadFeedbackByWeekId(
+async function loadWeekConversationDataByWeekId(
   weeks: RealWeeklyData['weeks'],
   enrollmentId: string,
   knownRoles: { professorId?: string | null; mentorId?: string | null }
-): Promise<Map<string, InternshipWeeklyReportFeedback>> {
-  const result = new Map<string, InternshipWeeklyReportFeedback>();
+): Promise<{
+  latestSubmissionByWeekId: Map<string, WeekStudentSubmissionPreview>;
+  feedbackByWeekId: Map<string, InternshipWeeklyReportFeedback>;
+}> {
+  const latestSubmissionByWeekId = new Map<string, WeekStudentSubmissionPreview>();
+  const feedbackByWeekId = new Map<string, InternshipWeeklyReportFeedback>();
   await Promise.all(
     weeks.map(async (week) => {
       const id = studentWeekId(week);
       if (!id) return;
       try {
-        const messages = await loadWeekConversationMessages(enrollmentId, id);
+        const messages = await loadWeekConversationMessages(enrollmentId, id, weeks);
+        const submission = resolveLatestStudentSubmission(messages, knownRoles);
+        if (submission) latestSubmissionByWeekId.set(id, submission);
         const feedback = resolveWeekFeedback(messages, knownRoles);
-        if (feedback) result.set(id, feedback);
+        if (feedback) feedbackByWeekId.set(id, feedback);
       } catch {
         // best-effort
       }
     })
   );
-  return result;
+  return { latestSubmissionByWeekId, feedbackByWeekId };
 }
 
 /** GET `weeks` + `score-summary` این ثبت‌نام؛ شکست کامل → `undefined` (فراخوان به fallback برمی‌گردد). */
 async function loadRealWeeklyData(
   enrollmentId: string,
-  studentId: string | undefined,
   knownRoles: { professorId?: string | null; mentorId?: string | null }
 ): Promise<RealWeeklyData | undefined> {
   try {
@@ -214,10 +194,8 @@ async function loadRealWeeklyData(
       studentEnrollmentsApi.listWeeks(enrollmentId),
       studentEnrollmentsApi.getScoreSummary(enrollmentId),
     ]);
-    const [latestSubmissionByWeekId, feedbackByWeekId] = await Promise.all([
-      loadLatestSubmissionByWeekId(weeks, studentId),
-      loadFeedbackByWeekId(weeks, enrollmentId, knownRoles),
-    ]);
+    const { latestSubmissionByWeekId, feedbackByWeekId } =
+      await loadWeekConversationDataByWeekId(weeks, enrollmentId, knownRoles);
     return { weeks, scoreSummary, latestSubmissionByWeekId, feedbackByWeekId };
   } catch (error) {
     // برخلاف بقیهٔ fallbackهای این فایل، این شکست باید جایی ثبت شود — UI با
@@ -251,7 +229,6 @@ async function loadRegisteredEnrollmentDetails(
   const active = activeEntry?.enrolment ?? null;
   const lessonId = activeEntry?.lesson.id ?? '';
   const enrollmentId = active?.id ?? active?._id ?? '';
-  const studentId = active?.studentId;
 
   const professor = resolveEnrollmentProfessor(active);
   const school = resolveEnrollmentSchool(active);
@@ -274,7 +251,7 @@ async function loadRegisteredEnrollmentDetails(
         ? Promise.resolve(mentor?.title || null)
         : resolveUserDisplayName(mentor.id),
       enrollmentId
-        ? loadRealWeeklyData(enrollmentId, studentId, {
+        ? loadRealWeeklyData(enrollmentId, {
             professorId: professor?.id,
             mentorId: mentor?.id,
           })

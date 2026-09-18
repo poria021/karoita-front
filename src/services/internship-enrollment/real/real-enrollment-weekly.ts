@@ -1,11 +1,14 @@
 /**
  * گزارش هفتگی دانشجو — real mode.
- * جریان ذخیره: start → addSubmission.
- * جریان ارسال: start → addSubmission → submit.
- * backend پاسخ بدون بدنه می‌دهد؛ نتیجه optimistic از ورودی ساخته می‌شود.
+ * طبق OpenAPI زندهٔ بک‌اند، `student-weeks/{id}/start`, `/submit`, `/submissions`
+ * دیگر وجود ندارند (۴۰۴ «Cannot PATCH ...» — نه خطای کسب‌وکار، خطای نبودِ route).
+ * گزارش دانشجو هم مثل بازخورد استاد/معلم/مدیر از همان مکانیزم گفتگوی هفته
+ * می‌گذرد: `POST /conversations/{id}/messages` (ببین `real-daily-approvals-mutations.ts`).
+ * پاسخ بدون بدنهٔ مفید است؛ نتیجه optimistic از ورودی ساخته می‌شود.
  */
 import { requireNestTransport } from '@/services/require-nest-transport';
-import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
+import { conversationsApi } from '@/services/conversations/real/conversations.api';
+import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import type {
   InternshipWeeklySession,
   SaveWeeklyReportDraftInput,
@@ -30,8 +33,11 @@ export async function realSaveWeeklyReportDraft(
   input: SaveWeeklyReportDraftInput
 ): Promise<InternshipWeeklySession> {
   requireNestTransport('InternshipEnrollmentService.saveWeeklyReportDraft');
-  await studentWeeksApi.start(input.weekId);
-  await studentWeeksApi.addSubmission(input.weekId, {
+  const conversationId = await findWeekConversationId(
+    input.enrollmentId,
+    input.weekId
+  );
+  await conversationsApi.postMessage(conversationId, {
     text: input.text || undefined,
     fileIds: input.files.map((f) => f.id),
   });
@@ -42,11 +48,13 @@ export async function realSubmitWeeklyReport(
   input: SubmitWeeklyReportInput
 ): Promise<InternshipWeeklySession> {
   requireNestTransport('InternshipEnrollmentService.submitWeeklyReport');
-  await studentWeeksApi.start(input.weekId);
-  await studentWeeksApi.addSubmission(input.weekId, {
+  const conversationId = await findWeekConversationId(
+    input.enrollmentId,
+    input.weekId
+  );
+  await conversationsApi.postMessage(conversationId, {
     text: input.text || undefined,
     fileIds: input.files.map((f) => f.id),
   });
-  await studentWeeksApi.submit(input.weekId);
   return buildOptimisticWeekSession(input, 'pending');
 }

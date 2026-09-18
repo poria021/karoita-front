@@ -5,7 +5,6 @@ import {
   listRealEligibleSupervisors,
 } from '@/services/internship-enrollment/real/real-enrollment-reads';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
-import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
 import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { educationSchoolApi } from '@/services/admin-catalog/resources/education-school.api';
 import { usersApi } from '@/services/users/users.api';
@@ -41,12 +40,6 @@ vi.mock('@/services/admin-catalog/resources/education-school.api', () => ({
 vi.mock('@/services/users/users.api', () => ({
   usersApi: {
     getById: vi.fn(),
-  },
-}));
-
-vi.mock('@/services/internship-enrollment/real/student-weeks.api', () => ({
-  studentWeeksApi: {
-    listSubmissions: vi.fn(),
   },
 }));
 
@@ -97,7 +90,6 @@ describe('real enrollment reads', () => {
       hasNextPage: false,
     });
     vi.mocked(usersApi.getById).mockReset();
-    vi.mocked(studentWeeksApi.listSubmissions).mockReset().mockResolvedValue([]);
     vi.mocked(loadWeekConversationMessages).mockReset().mockResolvedValue([]);
   });
 
@@ -482,16 +474,29 @@ describe('real enrollment reads', () => {
     vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([
       { id: 'week-1', enrollmentId: 'enr-1' },
     ]);
-    vi.mocked(studentWeeksApi.listSubmissions).mockResolvedValue([
+    vi.mocked(loadWeekConversationMessages).mockResolvedValue([
       {
-        id: 'sub-1',
-        submittedById: 'u1',
+        id: 'm1',
+        conversationId: 'c1',
+        senderId: { id: 'u1', role: 'student' },
         text: 'گزارش خودم',
         fileIds: [],
         files: [],
+        sequence: 1,
         createdAt: '2026-01-01T09:00:00.000Z',
+        updatedAt: '2026-01-01T09:00:00.000Z',
       },
-      { id: 'sub-2', submittedById: 'tch-1', text: 'باید اصلاح شود', fileIds: [], files: [] },
+      {
+        id: 'm2',
+        conversationId: 'c1',
+        senderId: { id: 'tch-1', role: 'mentor' },
+        text: 'باید اصلاح شود',
+        fileIds: [],
+        files: [],
+        sequence: 2,
+        createdAt: '2026-01-01T10:00:00.000Z',
+        updatedAt: '2026-01-01T10:00:00.000Z',
+      },
     ]);
 
     const state = await getRealEnrollmentPageState({ actor: student, level: 1 });
@@ -618,35 +623,39 @@ describe('real enrollment reads', () => {
       { id: 'week-1', enrollmentId: 'enr-1', submittedAt: '2026-01-03T00:00:00.000Z' },
     ]);
     // بازخورد رد استاد در 01-02، ولی دانشجو در 01-03 (بعدش) دوباره ارسال کرده.
-    vi.mocked(studentWeeksApi.listSubmissions).mockResolvedValue([
-      {
-        id: 'sub-1',
-        submittedById: 'u1',
-        text: 'نسخهٔ اول',
-        fileIds: [],
-        files: [],
-        createdAt: '2026-01-01T00:00:00.000Z',
-      },
-      {
-        id: 'sub-2',
-        submittedById: 'u1',
-        text: 'نسخهٔ اصلاح‌شده',
-        fileIds: [],
-        files: [],
-        createdAt: '2026-01-03T00:00:00.000Z',
-      },
-    ]);
     vi.mocked(loadWeekConversationMessages).mockResolvedValue([
       {
         id: 'm1',
+        conversationId: 'c1',
+        senderId: { id: 'u1', role: 'student' },
+        text: 'نسخهٔ اول',
+        fileIds: [],
+        files: [],
+        sequence: 1,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'm2',
         conversationId: 'c1',
         senderId: { id: 'prof-1', role: 'mentor' },
         text: 'لطفاً اصلاح کن',
         fileIds: [],
         files: [],
-        sequence: 1,
+        sequence: 2,
         createdAt: '2026-01-02T00:00:00.000Z',
         updatedAt: '2026-01-02T00:00:00.000Z',
+      },
+      {
+        id: 'm3',
+        conversationId: 'c1',
+        senderId: { id: 'u1', role: 'student' },
+        text: 'نسخهٔ اصلاح‌شده',
+        fileIds: [],
+        files: [],
+        sequence: 3,
+        createdAt: '2026-01-03T00:00:00.000Z',
+        updatedAt: '2026-01-03T00:00:00.000Z',
       },
     ]);
 

@@ -13,6 +13,7 @@ afterEach(() => {
 });
 
 const BASE_ENROLLMENT: InternshipEnrollmentSummary = {
+  enrollmentId: 'enr1',
   supervisorName: 'دکتر احمدی',
   attendanceDaysLabel: 'شنبه و یکشنبه',
   schoolId: 's1',

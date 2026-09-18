@@ -7,7 +7,6 @@ import type {
   NestScoreSummary,
   NestStudentEnrollment,
   NestStudentWeek,
-  NestStudentWeekSubmission,
 } from '@/types/nest-student-enrollments';
 import type {
   AttendanceDaysUnavailableReason,
@@ -20,11 +19,12 @@ import { normalizeEnrollmentCourseTitle } from '@/utils/enrollment-eligibility';
 
 import { isRecord, namedTitle, personDisplayName } from './primitives';
 import { mapRealProgressiveGrade, mapRealWeeklySessions } from './weekly-sessions';
+import type { WeekStudentSubmissionPreview } from './week-feedback';
 
 export type RealWeeklyData = {
   weeks: NestStudentWeek[];
   scoreSummary: NestScoreSummary | null;
-  latestSubmissionByWeekId: ReadonlyMap<string, NestStudentWeekSubmission>;
+  latestSubmissionByWeekId: ReadonlyMap<string, WeekStudentSubmissionPreview>;
   feedbackByWeekId: ReadonlyMap<string, InternshipWeeklyReportFeedback>;
 };
 
@@ -36,6 +36,7 @@ function registeredSummary(input: {
   userId?: string;
 }): InternshipEnrollmentSummary {
   return {
+    enrollmentId: '',
     supervisorName: null,
     attendanceDaysLabel: '',
     attendanceDaysUnavailableReason: null,
@@ -192,6 +193,7 @@ export function registeredSummaryFromEnrollment(
 
   return {
     ...base,
+    enrollmentId: nestEntityId(enrollment) || base.enrollmentId,
     supervisorName: resolvedNames.supervisorName ?? base.supervisorName,
     attendanceDaysLabel,
     // فقط وقتی معنا دارد که روز نداریم — اگر روز موجود بود، دلیل نبودنش بی‌ربط است.

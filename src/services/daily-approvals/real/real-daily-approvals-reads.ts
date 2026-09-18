@@ -5,17 +5,18 @@ import { DAILY_APPROVAL_PASSING_SCORE } from '@/features/karvita/daily-approvals
 import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/daily-approval-derived';
 import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
-import { resolveWeekFeedback } from '@/services/internship-enrollment/real/mappers/week-feedback';
+import {
+  resolveLatestStudentSubmission,
+  resolveWeekFeedback,
+} from '@/services/internship-enrollment/real/mappers/week-feedback';
 import { listRealCapacityCourses } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import { getRealAcademicSettings } from '@/services/syllabus-config/real/real-syllabus-reads';
 import {
   mapWeekStatus,
   studentWeekId,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
-import { mapSubmissionFiles } from '@/services/internship-enrollment/real/mappers/weekly-sessions';
 import { resolveEnrollmentMentor } from '@/services/internship-enrollment/real/mappers/enrollment-summary';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
-import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
 import { requireNestTransport } from '@/services/require-nest-transport';
 import type { UserRole } from '@/types/auth';
 import type {
@@ -280,28 +281,28 @@ export type LoadDailyApprovalWeekDetailInput = {
 
 /**
  * فقط به‌درخواست (موقع باز شدن مودال نمره‌دهی یک هفتهٔ خاص) صدا زده می‌شود —
- * نه در لیست (ببین کامنت `mapDailyApprovalWeek` بالا). دو چیز جدا می‌خواند:
- * ۱) آخرین submission همین student-week برای متن/فایل/زمان گزارش دانشجو.
- * ۲) پیام‌های گفتگوی همین هفته برای بازخورد/امتیاز/زمانِ استاد/معلم/مدیر —
- * با همان `resolveWeekFeedback` که سمت خواندنِ دانشجو استفاده می‌شود، تا هر سه
- * نقش (نه فقط نقشی که مودال را باز کرده) و زمانِ هرکدام را ببینند؛ نقش فرستنده
- * از `senderId.role` می‌آید (لایو تأیید شد)، نه مقایسهٔ id با کاربر جاری.
+ * نه در لیست (ببین کامنت `mapDailyApprovalWeek` بالا). یک `GET messages` روی
+ * گفتگوی هفته می‌خواند و از همان‌جا دو چیز استخراج می‌کند:
+ * ۱) آخرین پیامِ خودِ دانشجو برای متن/فایل/زمان گزارش (`resolveLatestStudentSubmission`)
+ *    — جایگزین `GET /student-weeks/{id}/submissions` که دیگر روی بک‌اند وجود
+ *    ندارد (۴۰۴ «Cannot GET ...»، تأیید‌شده روی `karoita.darkube.ir`).
+ * ۲) بازخورد/امتیاز/زمانِ استاد/معلم/مدیر با همان `resolveWeekFeedback` که سمت
+ * خواندنِ دانشجو استفاده می‌شود، تا هر سه نقش و زمانِ هرکدام را ببینند؛ نقش
+ * فرستنده از `senderId.role` می‌آید (لایو تأیید شد)، نه مقایسهٔ id با کاربر جاری.
  */
 export async function loadRealDailyApprovalWeekDetail(
   input: LoadDailyApprovalWeekDetailInput
 ): Promise<DailyApprovalWeekDetail> {
   requireNestTransport('DailyApprovalsService.loadWeekDetail');
 
-  const [submissions, messages] = await Promise.all([
-    studentWeeksApi.listSubmissions(input.weekId).catch(() => []),
-    loadWeekConversationMessages(input.enrollmentId, input.weekId),
-  ]);
-  const latestSubmission = submissions[submissions.length - 1];
+  const messages = await loadWeekConversationMessages(input.enrollmentId, input.weekId);
+  const knownRoles = { mentorId: input.teacherId };
+  const latestSubmission = resolveLatestStudentSubmission(messages, knownRoles);
 
   return {
     text: latestSubmission?.text ?? '',
-    files: mapSubmissionFiles(latestSubmission) as DailyApprovalAttachment[],
+    files: (latestSubmission?.files ?? []) as DailyApprovalAttachment[],
     submittedAt: latestSubmission?.createdAt ?? null,
-    feedback: resolveWeekFeedback(messages, { mentorId: input.teacherId }) ?? {},
+    feedback: resolveWeekFeedback(messages, knownRoles) ?? {},
   };
 }

@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { listRealDailyApprovals, loadRealDailyApprovalWeekDetail } from './real-daily-approvals-reads';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
-import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
 import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
 import { listRealCapacityCourses } from '@/services/organizational-capacities/real/real-organizational-capacities';
@@ -20,12 +19,6 @@ vi.mock('@/services/internship-enrollment/real/student-enrollments.api', () => (
   studentEnrollmentsApi: {
     listMentorStudents: vi.fn(),
     listWeeks: vi.fn(),
-  },
-}));
-
-vi.mock('@/services/internship-enrollment/real/student-weeks.api', () => ({
-  studentWeeksApi: {
-    listSubmissions: vi.fn(),
   },
 }));
 
@@ -173,22 +166,22 @@ describe('listRealDailyApprovals', () => {
 
 describe('loadRealDailyApprovalWeekDetail', () => {
   beforeEach(() => {
-    vi.mocked(studentWeeksApi.listSubmissions).mockReset().mockResolvedValue([]);
     vi.mocked(loadWeekConversationMessages).mockReset().mockResolvedValue([]);
   });
 
   it('returns the report submission time and feedback from all three roles, not just the viewer’s own', async () => {
-    vi.mocked(studentWeeksApi.listSubmissions).mockResolvedValue([
+    vi.mocked(loadWeekConversationMessages).mockResolvedValue([
       {
         id: 'sub-1',
-        submittedById: 's1',
+        conversationId: 'c1',
+        senderId: { id: 's1', role: 'student' },
         text: 'گزارش فراگیر',
         fileIds: [],
         files: [],
+        sequence: 1,
         createdAt: '2026-01-01T08:00:00.000Z',
+        updatedAt: '2026-01-01T08:00:00.000Z',
       },
-    ]);
-    vi.mocked(loadWeekConversationMessages).mockResolvedValue([
       {
         id: 'm1',
         conversationId: 'c1',
@@ -197,7 +190,7 @@ describe('loadRealDailyApprovalWeekDetail', () => {
         fileIds: [],
         files: [],
         rating: 4,
-        sequence: 1,
+        sequence: 2,
         createdAt: '2026-01-01T09:00:00.000Z',
         updatedAt: '2026-01-01T09:00:00.000Z',
       },
@@ -209,7 +202,7 @@ describe('loadRealDailyApprovalWeekDetail', () => {
         fileIds: [],
         files: [],
         rating: 5,
-        sequence: 2,
+        sequence: 3,
         createdAt: '2026-01-01T10:00:00.000Z',
         updatedAt: '2026-01-01T10:00:00.000Z',
       },

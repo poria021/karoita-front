@@ -34,6 +34,7 @@ describe('internship-enrollment mock helpers', () => {
         kind: 'internship',
         level: 1,
         termId: 'term_sem',
+        enrollmentId: 'enr1',
         weekId: 'week-1',
         text: '   ',
         files: [],

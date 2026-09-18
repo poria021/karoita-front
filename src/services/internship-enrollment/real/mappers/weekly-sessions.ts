@@ -1,20 +1,33 @@
 import type {
   InternshipProgressiveGrade,
   InternshipWeeklyReportFeedback,
-  InternshipWeeklyReportFile,
   InternshipWeeklySession,
   InternshipWeeklySessionState,
 } from '@/types/internship-enrollment';
 import type {
   NestScoreSummary,
   NestStudentWeek,
-  NestStudentWeekSubmission,
 } from '@/types/nest-student-enrollments';
 
-import { isRecord } from './primitives';
+import type { WeekStudentSubmissionPreview } from './week-feedback';
 
 export function studentWeekId(week: NestStudentWeek): string {
   return week.id ?? week._id ?? '';
+}
+
+/**
+ * شناسهٔ *تعریفِ* هفته در سرفصل (`week.weekId.id`) — نه شناسهٔ رکورد هفتهٔ
+ * دانشجو (`week.id`، خروجیِ `studentWeekId`). لایو تأیید شد: `NestConversation.weekId`
+ * با همین شناسه پر می‌شود، نه با `studentWeekId` — قبلاً این دو با هم اشتباه
+ * گرفته می‌شدند و `findWeekConversationId` هیچ‌وقت گفتگوی درست را پیدا نمی‌کرد
+ * (همیشه می‌افتاد روی fallback گفتگوی `general`، پس همهٔ هفته‌ها روی یک گفتگوی
+ * مشترک می‌خواندند/می‌نوشتند). ببین `findWeekConversationId`.
+ */
+export function weekTemplateId(week: NestStudentWeek): string | null {
+  const raw = week.weekId;
+  if (!raw) return null;
+  if (typeof raw === 'string') return raw || null;
+  return raw.id ?? raw._id ?? null;
 }
 
 /**
@@ -45,39 +58,6 @@ export function mapWeekStatus(
   return 'draft';
 }
 
-export function mapSubmissionFiles(
-  submission: NestStudentWeekSubmission | undefined
-): InternshipWeeklyReportFile[] {
-  const raw = submission?.files;
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((item): InternshipWeeklyReportFile | null => {
-      if (!isRecord(item)) return null;
-      const id =
-        typeof item.id === 'string'
-          ? item.id
-          : typeof item._id === 'string'
-            ? item._id
-            : '';
-      if (!id) return null;
-      const name =
-        typeof item.name === 'string'
-          ? item.name
-          : typeof item.filename === 'string'
-            ? item.filename
-            : '';
-      const sizeBytes = typeof item.size === 'number' ? item.size : null;
-      const sizeMb =
-        typeof item.sizeMb === 'number'
-          ? item.sizeMb
-          : sizeBytes !== null
-            ? sizeBytes / (1024 * 1024)
-            : 0;
-      return { id, name, sizeMb };
-    })
-    .filter((item): item is InternshipWeeklyReportFile => item !== null);
-}
-
 /**
  * GET `/student-enrollments/{id}/weeks` → کارت‌های تایم‌لاین گزارش هفتگی.
  * متن/فایل هر هفته از آخرین submission همان `student-week` پر می‌شود.
@@ -89,7 +69,7 @@ export function mapSubmissionFiles(
  */
 export function mapRealWeeklySessions(
   weeks: readonly NestStudentWeek[],
-  latestSubmissionByWeekId: ReadonlyMap<string, NestStudentWeekSubmission>,
+  latestSubmissionByWeekId: ReadonlyMap<string, WeekStudentSubmissionPreview>,
   feedbackByWeekId: ReadonlyMap<string, InternshipWeeklyReportFeedback> = new Map()
 ): InternshipWeeklySession[] {
   return weeks.map((week, index) => {
@@ -108,7 +88,7 @@ export function mapRealWeeklySessions(
       status: mapWeekStatus(week, needsEdit),
       score: typeof week.score === 'number' ? week.score : null,
       text: latest?.text ?? '',
-      files: mapSubmissionFiles(latest),
+      files: latest?.files ?? [],
       reportSubmittedAt: latest?.createdAt ?? null,
       feedback,
     };

@@ -293,6 +293,7 @@ export function buildEnrollmentSummary(input: {
 }): InternshipEnrollmentSummary {
   const record = input.record;
   return {
+    enrollmentId: record?.id ?? '',
     supervisorName: input.supervisorName,
     attendanceDaysLabel: record?.attendanceDaysLabel ?? PLACEHOLDER_UNSET,
     schoolId: record?.schoolId ?? null,

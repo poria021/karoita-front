@@ -126,6 +126,8 @@ export type SaveWeeklyReportDraftInput = {
   kind: InternshipCourseKind;
   level: InternshipEnrollmentLevel;
   termId: string;
+  /** شناسهٔ ثبت‌نام Nest — برای پیداکردن گفتگوی هفته (`POST /conversations/{id}/messages`) لازم است. */
+  enrollmentId: string;
   weekId: string;
   text: string;
   files: InternshipWeeklyReportFile[];
@@ -178,6 +180,8 @@ export type InternshipSelectionScope = {
 export type AttendanceDaysUnavailableReason = 'capacity-exhausted' | 'error';
 
 export type InternshipEnrollmentSummary = {
+  /** شناسهٔ ثبت‌نام Nest (`student-enrollments/{id}`) — برای پیداکردن گفتگوی هفته لازم است. mock: خالی. */
+  enrollmentId: string;
   supervisorName: string | null;
   attendanceDaysLabel: string;
   attendanceDaysUnavailableReason?: AttendanceDaysUnavailableReason | null;
