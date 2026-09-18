@@ -114,6 +114,8 @@ export function mapMessageAttachments(
       id: file.id,
       name: fileNameFromPath(file.path ?? ''),
       sizeMb: 0,
+      // خام نگه داشته می‌شود؛ `toSameOriginMediaUrl` در لایه نمایش (نه اینجا) resolve می‌کند.
+      url: file.path,
     }));
 }
 

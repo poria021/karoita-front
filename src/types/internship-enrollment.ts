@@ -91,6 +91,8 @@ export type InternshipWeeklyReportFile = {
   /** مگابایت اعشاری انگلیسی در قرارداد داده؛ نمایش با `toPersianDigits`. */
   sizeMb: number;
   mimeType?: string;
+  /** مسیر/کلید خام فایل (نه URL نهایی) — لایه نمایش با `toSameOriginMediaUrl` resolve می‌کند. */
+  url?: string;
 };
 
 /** سطح شایستگی ۱–۵ (ASCII) — نمایش فارسی فقط در UI. */
