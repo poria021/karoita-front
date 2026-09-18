@@ -2,10 +2,6 @@
 
 import { KvButton } from '@/components/shared/KvButton';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
-import {
-  IS_REAL_MODE_STUB_ACTIVE,
-  RealModeStubBadge,
-} from '@/components/shared/RealModeStubNotice';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 
@@ -69,15 +65,6 @@ export function OnboardingApprovalsPageClient() {
         }
         primary={
           <>
-            {IS_REAL_MODE_STUB_ACTIVE ? (
-              <div className="mb-kv-pair flex items-center gap-kv-pair">
-                <RealModeStubBadge />
-                <span className="text-xs text-kv-text-secondary">
-                  به‌روزرسانی زندهٔ فهرست در حالت real هنوز فعال نیست؛ برای دیدن
-                  تغییرات جدید صفحه را دوباره بارگذاری کنید.
-                </span>
-              </div>
-            ) : null}
             <OnboardingApprovalsFilters
               query={page.query}
               onQueryChange={page.setQuery}
