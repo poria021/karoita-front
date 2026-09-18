@@ -9,11 +9,22 @@
 import { requireNestTransport } from '@/services/require-nest-transport';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
 import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
+import { isMongoObjectId } from '@/utils/mongoId';
 import type {
   InternshipWeeklySession,
   SaveWeeklyReportDraftInput,
   SubmitWeeklyReportInput,
 } from '@/types/internship-enrollment';
+
+/**
+ * پیش‌نویس‌های محلی (`localStorage`) ممکن است از قبل از اتصال به بک‌اند واقعی
+ * باقی مانده باشند و آی‌دی فایل ساختگی (UUID) داشته باشند. Nest برای
+ * `fileIds` فقط Mongo ObjectId قبول می‌کند وگرنه ۴۲۲ می‌دهد؛ آی‌دی‌های نامعتبر
+ * را همین‌جا حذف می‌کنیم تا ارسال گزارش با یک فایل خراب کلاً بلاک نشود.
+ */
+function validFileIds(files: SaveWeeklyReportDraftInput['files']): string[] {
+  return files.map((f) => f.id).filter(isMongoObjectId);
+}
 
 function buildOptimisticWeekSession(
   input: SaveWeeklyReportDraftInput,
@@ -39,7 +50,7 @@ export async function realSaveWeeklyReportDraft(
   );
   await conversationsApi.postMessage(conversationId, {
     text: input.text || undefined,
-    fileIds: input.files.map((f) => f.id),
+    fileIds: validFileIds(input.files),
   });
   return buildOptimisticWeekSession(input, 'draft');
 }
@@ -54,7 +65,7 @@ export async function realSubmitWeeklyReport(
   );
   await conversationsApi.postMessage(conversationId, {
     text: input.text || undefined,
-    fileIds: input.files.map((f) => f.id),
+    fileIds: validFileIds(input.files),
   });
   return buildOptimisticWeekSession(input, 'pending');
 }

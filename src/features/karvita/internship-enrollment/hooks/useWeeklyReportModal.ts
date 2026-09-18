@@ -15,6 +15,7 @@ import type {
   InternshipWeeklyReportFile,
   InternshipWeeklySession,
 } from '@/types/internship-enrollment';
+import { isMongoObjectId } from '@/utils/mongoId';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import {
@@ -37,6 +38,23 @@ function cloneFiles(
   files: InternshipWeeklyReportFile[] | undefined
 ): InternshipWeeklyReportFile[] {
   return (files ?? []).map((file) => ({ ...file }));
+}
+
+/**
+ * پیش‌نویس‌های محلی قدیمی ممکن است ضمیمهٔ ساختگی (UUID، از قبل از اتصال به
+ * بک‌اند واقعی) داشته باشند که ارسال گزارش را با ۴۲۲ رد می‌کند. این‌جا قبل از
+ * نمایش در مودال حذفشان می‌کنیم تا کاربر بفهمد باید دوباره ضمیمه کند.
+ */
+function dropStaleAttachments(
+  files: InternshipWeeklyReportFile[]
+): InternshipWeeklyReportFile[] {
+  const valid = files.filter((file) => isMongoObjectId(file.id));
+  if (valid.length !== files.length) {
+    toast.error(
+      'یک یا چند ضمیمهٔ قدیمی این گزارش دیگر معتبر نیست و حذف شد؛ لطفاً دوباره ضمیمه کنید.'
+    );
+  }
+  return valid;
 }
 
 export function useWeeklyReportModal({
@@ -99,19 +117,19 @@ export function useWeeklyReportModal({
 
       if (hasWeeklyReportDraft) {
         setText(draftValue.text);
-        setFiles(cloneFiles(draftValue.files));
+        setFiles(dropStaleAttachments(cloneFiles(draftValue.files)));
         return;
       }
 
       if (draft && draft.weekId === week.id) {
         setText(draft.text);
-        setFiles(cloneFiles(draft.files));
+        setFiles(dropStaleAttachments(cloneFiles(draft.files)));
         undoDraftRef.current = null;
         return;
       }
 
       setText(week.text ?? '');
-      setFiles(cloneFiles(week.files));
+      setFiles(dropStaleAttachments(cloneFiles(week.files)));
     },
     [draftValue, editorWeekId, hasWeeklyReportDraft, week]
   );
