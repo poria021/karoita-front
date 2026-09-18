@@ -140,6 +140,12 @@ export function useDailyApprovalWeekGradingModal({
   const dropped = trainee?.status === 'dropped';
   const disabled = dropped || actionBusy;
   const mentorRatingMissing = mentorRating === null;
+  // معلم راهنما و مدیر مدرسه فقط یک بار می‌توانند روی هر گزارش نظر ثبت کنند —
+  // وقتی قبلاً ثبت شده، فرم ورودی مخفی می‌شود تا امکان ثبت مجدد/تغییر نباشد.
+  const mentorAlreadySubmitted = Boolean(week?.feedback.mentorRating);
+  const principalAlreadySubmitted = Boolean(
+    week?.feedback.principalRating || week?.feedback.principal?.trim()
+  );
   const title = trainee ? modalTitle(role, trainee.traineeName) : '';
   const subtitle =
     trainee && week
@@ -213,6 +219,8 @@ export function useDailyApprovalWeekGradingModal({
     dropped,
     disabled,
     mentorRatingMissing,
+    mentorAlreadySubmitted,
+    principalAlreadySubmitted,
     advisorFeedback,
     setAdvisorFeedback: (next: string) => {
       setAdvisorFeedback(next);

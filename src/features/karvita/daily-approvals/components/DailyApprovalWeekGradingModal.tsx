@@ -132,10 +132,14 @@ export function DailyApprovalWeekGradingModal({
   // (ببین `scoreRealDailyApprovalWeek`/`submitMentorFeedbackReal`/`submitPrincipalFeedbackReal`).
   // معلم راهنما امتیاز الزامی دارد (بازخورد اختیاری)؛ مدیر مدرسه هردو اختیاری‌اند
   // (اعتبارسنجی «حداقل یکی» در خودِ `save()` با toast انجام می‌شود).
+  const alreadySubmitted =
+    (role === 'mentor_teacher' && modal.mentorAlreadySubmitted) ||
+    (role === 'school_principal' && modal.principalAlreadySubmitted);
+
   const saveDisabled =
     modal.disabled || (role === 'mentor_teacher' && modal.mentorRatingMissing);
 
-  const saveButton = (
+  const saveButton = alreadySubmitted ? null : (
     <KvButton
       type="button"
       color={
@@ -238,7 +242,7 @@ export function DailyApprovalWeekGradingModal({
                 />
               ) : null}
 
-              {role === 'mentor_teacher' ? (
+              {role === 'mentor_teacher' && !modal.mentorAlreadySubmitted ? (
                 <DailyApprovalMentorGradingFields
                   mentorRating={modal.mentorRating}
                   mentorFeedback={modal.mentorFeedback}
@@ -247,7 +251,7 @@ export function DailyApprovalWeekGradingModal({
                 />
               ) : null}
 
-              {role === 'school_principal' ? (
+              {role === 'school_principal' && !modal.principalAlreadySubmitted ? (
                 <DailyApprovalPrincipalGradingFields
                   principalRating={modal.principalRating}
                   principalFeedback={modal.principalFeedback}
