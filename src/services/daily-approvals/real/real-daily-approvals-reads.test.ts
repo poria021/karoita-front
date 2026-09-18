@@ -19,6 +19,7 @@ vi.mock('@/services/internship-enrollment/real/student-enrollments.api', () => (
   studentEnrollmentsApi: {
     listMentorStudents: vi.fn(),
     listWeeks: vi.fn(),
+    getScoreSummary: vi.fn(),
   },
 }));
 
@@ -54,6 +55,7 @@ describe('listRealDailyApprovals', () => {
     vi.mocked(listRealCapacityCourses).mockReset().mockResolvedValue([]);
     vi.mocked(studentEnrollmentsApi.listMentorStudents).mockReset();
     vi.mocked(studentEnrollmentsApi.listWeeks).mockReset();
+    vi.mocked(studentEnrollmentsApi.getScoreSummary).mockReset().mockResolvedValue(null);
     vi.mocked(conversationsApi.listByEnrollment).mockReset().mockResolvedValue([]);
     vi.mocked(getRealAcademicSettings)
       .mockReset()
@@ -92,7 +94,7 @@ describe('listRealDailyApprovals', () => {
     expect(second?.weeks).toEqual([]);
   });
 
-  it('computes progressiveGrade from the real weeks instead of always showing "در جریان"', async () => {
+  it('computes progressiveGrade from the backend score-summary, not a client-side average', async () => {
     vi.mocked(studentEnrollmentsApi.listMentorStudents).mockResolvedValue({
       data: [{ id: 'e1', studentId: 's1', status: 'active' }],
       hasNextPage: false,
@@ -101,13 +103,37 @@ describe('listRealDailyApprovals', () => {
       { id: 'w1', status: 'completed', mentorStatus: 'send', score: 90, submittedAt: '2026-01-01T00:00:00.000Z' },
       { id: 'w2', status: 'completed', mentorStatus: 'send', score: 80, submittedAt: '2026-01-02T00:00:00.000Z' },
     ]);
+    vi.mocked(studentEnrollmentsApi.getScoreSummary).mockResolvedValue({
+      totalScore: 170,
+      scoredWeeks: 2,
+      totalWeeks: 2,
+      maximumScore: 200,
+    });
 
     const page = await listRealDailyApprovals(baseInput);
 
     const trainee = page.items.find((t) => t.id === 'e1');
+    expect(studentEnrollmentsApi.getScoreSummary).toHaveBeenCalledWith('e1');
     expect(trainee?.progressiveGrade.gradedCount).toBe(2);
     expect(trainee?.progressiveGrade.final20).toBe(17);
     expect(trainee?.progressiveGrade.statusLabel).toBe('قبول');
+  });
+
+  it('shows "در جریان" when the student has submitted but score-summary has no graded weeks yet', async () => {
+    vi.mocked(studentEnrollmentsApi.listMentorStudents).mockResolvedValue({
+      data: [{ id: 'e1', studentId: 's1', status: 'active' }],
+      hasNextPage: false,
+    });
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([
+      { id: 'w1', status: 'in_progress', studentStatus: 'send', submittedAt: '2026-01-01T00:00:00.000Z' },
+    ]);
+    vi.mocked(studentEnrollmentsApi.getScoreSummary).mockResolvedValue(null);
+
+    const page = await listRealDailyApprovals(baseInput);
+
+    const trainee = page.items.find((t) => t.id === 'e1');
+    expect(trainee?.progressiveGrade.final20).toBeNull();
+    expect(trainee?.progressiveGrade.statusLabel).toBe('در جریان');
   });
 
   it('sums real conversation unreadCount per trainee instead of always reporting 0', async () => {

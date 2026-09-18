@@ -32,6 +32,42 @@ export function computeDailyApprovalProgressiveGrade(
   };
 }
 
+/** آیا فراگیر حداقل یک هفته را از حالت پیش‌نویس/قفل خارج کرده — مشترک مسیر mock و real. */
+export function computeHasSubmitted(weeks: DailyApprovalWeek[]): boolean {
+  return weeks.some(
+    (week) =>
+      week.status !== 'draft' &&
+      week.status !== 'locked_future' &&
+      week.status !== 'locked_dropped'
+  );
+}
+
+/**
+ * نمرهٔ پیش‌رونده از روی `score-summary` بک‌اند (همان endpoint‌ای که داشبورد
+ * دانشجو استفاده می‌کند) — برای مسیر real، به‌جای میانگین‌گیری سمت کلاینت روی
+ * هفته‌ها (`computeDailyApprovalProgressiveGrade`)، تا نمرهٔ استاد و دانشجو
+ * یک منبع محاسبه داشته باشند.
+ */
+export function buildDailyApprovalProgressiveGradeFromSummary(
+  summary: { totalScore: number; scoredWeeks: number; maximumScore: number } | null,
+  traineeStatus: DailyApprovalTrainee['status'],
+  passingScoreThreshold: number
+): DailyApprovalProgressiveGrade {
+  if (traineeStatus === 'dropped') {
+    return { gradedCount: 0, final20: null, statusLabel: 'حذف' };
+  }
+  if (!summary || summary.maximumScore <= 0 || summary.scoredWeeks <= 0) {
+    return { gradedCount: summary?.scoredWeeks ?? 0, final20: null, statusLabel: 'فاقد نمره' };
+  }
+  const final20 = Math.round((summary.totalScore / summary.maximumScore) * 20 * 100) / 100;
+  const thresholdOn20 = (passingScoreThreshold / 100) * 20;
+  return {
+    gradedCount: summary.scoredWeeks,
+    final20,
+    statusLabel: final20 >= thresholdOn20 ? 'قبول' : 'مردود',
+  };
+}
+
 export function deriveDailyApprovalTraineeFields(
   trainee: DailyApprovalTrainee,
   passingScoreThreshold: number
@@ -39,12 +75,7 @@ export function deriveDailyApprovalTraineeFields(
   DailyApprovalTrainee,
   'hasSubmitted' | 'unreadCount' | 'progressiveGrade'
 > {
-  const hasSubmitted = trainee.weeks.some(
-    (week) =>
-      week.status !== 'draft' &&
-      week.status !== 'locked_future' &&
-      week.status !== 'locked_dropped'
-  );
+  const hasSubmitted = computeHasSubmitted(trainee.weeks);
   const unreadCount = trainee.weeks.filter(
     (week) =>
       week.status !== 'draft' &&

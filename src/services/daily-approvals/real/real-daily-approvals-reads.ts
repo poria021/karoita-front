@@ -2,7 +2,10 @@ import {
   toDailyApprovalCatalogCourses,
 } from '@/services/daily-approvals/daily-approval-catalog-mappers';
 import { DAILY_APPROVAL_PASSING_SCORE } from '@/features/karvita/daily-approvals/constants';
-import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/daily-approval-derived';
+import {
+  buildDailyApprovalProgressiveGradeFromSummary,
+  computeHasSubmitted,
+} from '@/services/daily-approvals/daily-approval-derived';
 import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
 import {
@@ -35,6 +38,7 @@ import type { NestConversation } from '@/types/nest-conversations';
 import type {
   NestMentorStudent,
   NestMentorCapacity,
+  NestScoreSummary,
   NestStudentWeek,
 } from '@/types/nest-student-enrollments';
 import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
@@ -170,6 +174,23 @@ async function loadRealDailyApprovalWeeks(
 }
 
 /**
+ * GET `/student-enrollments/{id}/score-summary` — همان endpointای که داشبورد
+ * دانشجو نمرهٔ کارنامهٔ جاری‌اش را از آن می‌گیرد؛ اینجا هم برای همان فراگیر
+ * صدا زده می‌شود تا نمرهٔ استاد و دانشجو از یک منبع (بک‌اند) محاسبه شوند، نه
+ * میانگین‌گیری جداگانهٔ سمت کلاینت.
+ */
+async function loadRealDailyApprovalScoreSummary(
+  enrollmentId: string
+): Promise<NestScoreSummary | null> {
+  if (!enrollmentId) return null;
+  try {
+    return await studentEnrollmentsApi.getScoreSummary(enrollmentId);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * جمع `unreadCount` همهٔ گفتگوهای این ثبت‌نام برای بازبین جاری — چون
  * `DailyApprovalWeek.readBySupervisor` روی داده واقعی همیشه `false` می‌ماند
  * (هیچ فیلد «خوانده‌شده» در پاسخ `weeks` نیست)، محاسبهٔ unreadCount مشترک
@@ -260,20 +281,35 @@ export async function listRealDailyApprovals(
   const weeksByTrainee = await Promise.all(
     trainees.map((t) => loadRealDailyApprovalWeeks(t.id))
   );
+  const scoreSummaryByTrainee = await Promise.all(
+    trainees.map((t) => loadRealDailyApprovalScoreSummary(t.id))
+  );
   const unreadByTrainee = conversationsByTrainee.map((conversations) =>
     sumUnreadCount(conversations)
   );
-  // نمرهٔ پیش‌رونده/برچسب وضعیت از همان هفته‌های واقعی محاسبه می‌شود — همان
-  // تابع خالصی که store mock استفاده می‌کند (ببین کامنت بالای خودش)؛
-  // unreadCount را بعداً با مقدار واقعی گفتگو (بالا) جایگزین می‌کنیم چون
-  // آن تابع فقط از `readBySupervisor` (همیشه false در داده واقعی) می‌خواند.
-  trainees = trainees.map((t, index) => ({
-    ...withDerivedDailyApprovalTrainee(
-      { ...t, weeks: weeksByTrainee[index] },
+  // نمرهٔ پیش‌رونده از `score-summary` بک‌اند می‌آید (همان منبعی که داشبورد
+  // دانشجو استفاده می‌کند) — نه از میانگین‌گیری سمت کلاینت روی هفته‌ها، تا
+  // عدد نمایش‌داده‌شده به استاد و دانشجو یکی باشد؛ hasSubmitted/unreadCount
+  // همچنان از هفته‌ها/گفتگوهای واقعی مشتق می‌شوند.
+  trainees = trainees.map((t, index) => {
+    const weeks = weeksByTrainee[index];
+    const hasSubmitted = computeHasSubmitted(weeks);
+    let progressiveGrade = buildDailyApprovalProgressiveGradeFromSummary(
+      scoreSummaryByTrainee[index],
+      t.status,
       passingScoreThreshold
-    ),
-    unreadCount: unreadByTrainee[index],
-  }));
+    );
+    if (t.status !== 'dropped' && hasSubmitted && progressiveGrade.gradedCount === 0) {
+      progressiveGrade = { ...progressiveGrade, statusLabel: 'در جریان' };
+    }
+    return {
+      ...t,
+      weeks,
+      hasSubmitted,
+      unreadCount: unreadByTrainee[index],
+      progressiveGrade,
+    };
+  });
 
   const base = input.offset + trainees.length;
   return {
