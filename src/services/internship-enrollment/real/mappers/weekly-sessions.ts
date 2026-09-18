@@ -31,23 +31,22 @@ export function weekTemplateId(week: NestStudentWeek): string | null {
 }
 
 /**
- * رنگ/وضعیت کارت از چهار فیلد صریح `mentorStatus`/`teacherStatus`/
- * `schoolAdminStatus`/`studentStatus` (هرکدام `'send'` یا `null`) به‌همراه
- * `status` کلی هفته مشتق می‌شود. اولویت همیشه با استاد راهنماست
- * (`mentorStatus`, نقش `supervisor_professor`) — حتی اگر معلم راهنما
- * (`teacherStatus`, نقش `mentor_teacher`) قبلاً تایید کرده باشد، اقدام استاد
- * رنگ نهایی کارت را تعیین می‌کند:
- * ۱. `mentorStatus === 'send'` → `needs_edit` اگر هفته هنوز `in_progress`ست
- *    (استاد خواسته دانشجو ویرایش کند)، یا `graded` اگر `completed`ست (نمرهٔ
- *    نهایی ثبت شده).
- * ۲. وگرنه `teacherStatus === 'send'` → `approved` («تایید معلم»).
- * ۳. وگرنه `studentStatus === 'send'` → `pending` (گزارش ارسال شده، منتظر بررسی).
- * ۴. وگرنه `draft` (هنوز هیچ اقدامی نشده).
+ * رنگ/وضعیت کارت از `status` کلی هفته به‌همراه سه فیلد صریح
+ * `mentorStatus`/`teacherStatus`/`studentStatus` مشتق می‌شود. اولویت بررسی:
+ * ۱. `status === 'completed'` → `graded` (نمره نهایی ثبت شده — صرف‌نظر از
+ *    مقدار `mentorStatus`؛ روی دادهٔ واقعی وقتی استاد نمره می‌دهد
+ *    `mentorStatus` مقداری مثل `'score'` می‌گیرد، نه `'send'`، پس چک کردن
+ *    `status` باید همیشه اول انجام شود).
+ * ۲. وگرنه `mentorStatus === 'send'` → `needs_edit` (استاد راهنما، نقش
+ *    `supervisor_professor`، خواسته دانشجو ویرایش کند).
+ * ۳. وگرنه `teacherStatus === 'send'` → `approved` («تایید معلم»، نقش
+ *    `mentor_teacher`).
+ * ۴. وگرنه `studentStatus === 'send'` → `pending` (گزارش ارسال شده، منتظر بررسی).
+ * ۵. وگرنه `draft` (هنوز هیچ اقدامی نشده).
  */
 export function mapWeekStatus(week: NestStudentWeek): InternshipWeeklySessionState {
-  if (week.mentorStatus === 'send') {
-    return week.status === 'completed' ? 'graded' : 'needs_edit';
-  }
+  if (week.status === 'completed') return 'graded';
+  if (week.mentorStatus === 'send') return 'needs_edit';
   if (week.teacherStatus === 'send') return 'approved';
   if (week.studentStatus === 'send') return 'pending';
   return 'draft';

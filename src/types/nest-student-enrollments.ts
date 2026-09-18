@@ -177,10 +177,10 @@ export type NestMentorCapacity = {
 
 /**
  * ردیف GET `/student-enrollments/{id}/weeks`. `status` کلی هفته `'in_progress'`
- * یا `'completed'` است؛ وضعیت UI/رنگ کارت از چهار فیلد صریح
- * `mentorStatus`/`teacherStatus`/`schoolAdminStatus`/`studentStatus`
- * (هرکدام `'send'` یا `null`) به‌همراه همین `status` مشتق می‌شود — ببین
- * `mapWeekStatus`.
+ * یا `'completed'` است و همیشه اولین چیزی‌ست که برای رنگ کارت چک می‌شود
+ * (`completed` → گریدشده، صرف‌نظر از مقدار سه فیلد پایین). اگر `completed`
+ * نبود، وضعیت UI/رنگ کارت از `mentorStatus`/`teacherStatus`/`studentStatus`
+ * مشتق می‌شود — ببین `mapWeekStatus`.
  */
 export type NestStudentWeek = {
   id?: string;
@@ -190,8 +190,13 @@ export type NestStudentWeek = {
     | string
     | { id?: string; _id?: string; lessonId?: string; priority?: number; status?: boolean };
   status?: string;
-  /** استاد راهنما (نقش `supervisor_professor`) — اولویت اول رنگ کارت. */
-  mentorStatus?: 'send' | null;
+  /**
+   * استاد راهنما (نقش `supervisor_professor`). `'send'` یعنی خواسته دانشجو
+   * ویرایش کند؛ روی دادهٔ واقعی وقتی `status` کلی `completed`ست این فیلد
+   * مقداری مثل `'score'` هم می‌گیرد (نه فقط `'send'`/`null`) — برای همین
+   * `mapWeekStatus` همیشه اول `status` را چک می‌کند، نه این فیلد را.
+   */
+  mentorStatus?: string | null;
   /** معلم راهنما (نقش `mentor_teacher`). */
   teacherStatus?: 'send' | null;
   /** مدیر مدرسه (نقش `school_principal`). */
