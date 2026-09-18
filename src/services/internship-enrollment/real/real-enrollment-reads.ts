@@ -14,10 +14,12 @@ import {
   filterSupervisorsClientSide,
   findEnrolmentHistoryForLevel,
   findLessonForLevel,
+  registeredSummaryFromEnrollment,
   resolveEnrollmentMentor,
   resolveEnrollmentProfessor,
   resolveEnrollmentSchool,
   studentWeekId,
+  termTitleForHistoryEntry,
   toEnrollmentPageState,
   type EnrolmentHistoryEntry,
   type RealWeeklyData,
@@ -37,11 +39,13 @@ import {
 } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { educationSchoolApi } from '@/services/admin-catalog/resources/education-school.api';
 import { usersApi } from '@/services/users/users.api';
-import { nestEntityId } from '@/services/syllabus-config/real/real-syllabus-mappers';
+import { nestEntityId, toAcademicTerm } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import type {
   AttendanceDaysUnavailableReason,
   GetEnrollmentPageStateInput,
+  GetEnrollmentTermReportInput,
   InternshipEnrollmentPageState,
+  InternshipEnrollmentSummary,
   InternshipMentorCapacity,
   InternshipSchoolCapacity,
   InternshipSupervisor,
@@ -288,6 +292,55 @@ export async function getRealEnrollmentPageState(
     isActiveInOpenTerm
   );
   return toEnrollmentPageState(input, open, semesters, registeredDetails);
+}
+
+/**
+ * گزارش یک نیم‌سالِ مشخص از تاریخچهٔ این level — برای سلکت‌باکس نیم‌سال‌های
+ * قبلی در صفحهٔ گزارش. همان قطعات `getRealEnrollmentPageState` (که فقط
+ * فعال‌ترین ثبت‌نام را می‌سازد) را روی یک ردیف دلخواهِ `history` تکرار می‌کند.
+ */
+export async function getRealEnrollmentTermReport(
+  input: GetEnrollmentTermReportInput
+): Promise<InternshipEnrollmentSummary | null> {
+  requireNestTransport('InternshipEnrollmentService.getEnrollmentTermReport');
+  const [open, semesters] = await Promise.all([
+    studentEnrollmentsApi.getOpenCourseSelection(),
+    loadEnrolmentsBySemester(),
+  ]);
+
+  const kind = kindForRole(input.actor.role);
+  const level = clampLevel(kind, input.level);
+  const history = findEnrolmentHistoryForLevel(semesters, kind, level);
+  const entry = history.find((item) => item.semesterId === input.termId) ?? null;
+  if (!entry) return null;
+
+  const isActiveInOpenTerm = Boolean(open) && entry.semesterId === open?.id;
+  const registeredDetails = await loadRegisteredEnrollmentDetails(
+    entry,
+    isActiveInOpenTerm
+  );
+  const openTerm = open ? toAcademicTerm(open, { lessons: open.lessons ?? [] }) : null;
+  const termTitle = termTitleForHistoryEntry(entry, open, openTerm, semesters);
+
+  const summary = registeredSummaryFromEnrollment(
+    { kind, level, termTitle, termId: entry.semesterId, userId: input.actor.id },
+    entry.enrolment,
+    {
+      supervisorName: registeredDetails.supervisorName,
+      supervisorDay: registeredDetails.supervisorDay,
+      supervisorDayUnavailableReason: registeredDetails.supervisorDayUnavailableReason,
+      schoolName: registeredDetails.schoolName,
+      mentorName: registeredDetails.mentorName,
+    },
+    registeredDetails.realWeeklyData
+  );
+
+  // نیم‌سالی که «فعال»/جاری نیست را قفل (فقط‌خواندنی) نشان بده، حتی اگر
+  // بک‌اند به‌هردلیل `isTermArchived` معادلی برنگرداند.
+  return {
+    ...summary,
+    isTermArchived: !isActiveInOpenTerm || entry.enrolment.status !== 'active',
+  };
 }
 
 /**

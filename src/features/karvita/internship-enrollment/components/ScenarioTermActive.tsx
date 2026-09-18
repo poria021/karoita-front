@@ -5,14 +5,24 @@ import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { FaIcon } from '@/components/shared/FaIcon';
+import {
+  KvSelect,
+  KvSelectContent,
+  KvSelectItem,
+  KvSelectTrigger,
+  KvSelectValue,
+} from '@/components/shared/fields/KvSelect';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { IS_REAL_MODE_STUB_ACTIVE } from '@/components/shared/RealModeStubNotice';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
+  InternshipEnrollmentSummary,
+  InternshipEnrollmentTermHistoryEntry,
   InternshipWeeklySession,
 } from '@/types/internship-enrollment';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -26,15 +36,20 @@ type ScenarioTermActiveProps = {
   actor: InternshipEnrollmentActor;
   state: InternshipEnrollmentPageState;
   onAssignmentComplete: () => Promise<void>;
+  termHistory: InternshipEnrollmentTermHistoryEntry[];
+  selectedTermId: string;
+  onSelectTerm: (termId: string) => void;
+  isViewingHistory: boolean;
+  viewedEnrollment: InternshipEnrollmentSummary | null;
+  isLoadingViewedTerm: boolean;
+  viewedTermError: string | null;
 };
 
 function SuccessNotice({
-  state,
+  enrollment,
 }: {
-  state: InternshipEnrollmentPageState;
+  enrollment: InternshipEnrollmentSummary;
 }) {
-  const enrollment = state.enrollment;
-  if (!enrollment) return null;
   const isCompleted = enrollment.status === 'completed';
   const isArchived = enrollment.isTermArchived;
   if (!isCompleted && !isArchived) return null;
@@ -57,13 +72,10 @@ function SuccessNotice({
 }
 
 function EnrollmentMeta({
-  state,
+  enrollment,
 }: {
-  state: InternshipEnrollmentPageState;
+  enrollment: InternshipEnrollmentSummary;
 }) {
-  const enrollment = state.enrollment;
-  if (!enrollment) return null;
-
   return (
     <div className="flex min-w-0 flex-grow flex-col gap-kv-pair text-start text-xs font-medium text-kv-text-secondary">
       <div className="flex flex-wrap items-center gap-x-kv-group gap-y-kv-pair">
@@ -107,17 +119,55 @@ function EnrollmentMeta({
   );
 }
 
+/** سلکت‌باکس نیم‌سال — فقط وقتی بیش از یک نیم‌سال در تاریخچه باشد نمایش داده می‌شود. */
+function TermHistorySelect({
+  termHistory,
+  selectedTermId,
+  onSelectTerm,
+}: {
+  termHistory: InternshipEnrollmentTermHistoryEntry[];
+  selectedTermId: string;
+  onSelectTerm: (termId: string) => void;
+}) {
+  if (termHistory.length <= 1) return null;
+
+  return (
+    <div className="w-full sm:w-56">
+      <KvSelect value={selectedTermId} onValueChange={onSelectTerm}>
+        <KvSelectTrigger aria-label="نیم‌سال تحصیلی">
+          <KvSelectValue placeholder="نیم‌سال تحصیلی" />
+        </KvSelectTrigger>
+        <KvSelectContent>
+          {termHistory.map((term) => (
+            <KvSelectItem key={term.termId} value={term.termId}>
+              {toPersianDigits(term.termTitle)}
+              {term.status === 'completed' ? ' (پایان‌یافته)' : ''}
+              {term.status === 'dropped' ? ' (حذف‌شده)' : ''}
+            </KvSelectItem>
+          ))}
+        </KvSelectContent>
+      </KvSelect>
+    </div>
+  );
+}
+
 export function ScenarioTermActive({
   actor,
   state,
   onAssignmentComplete,
+  termHistory,
+  selectedTermId,
+  onSelectTerm,
+  isViewingHistory,
+  viewedEnrollment,
+  isLoadingViewedTerm,
+  viewedTermError,
 }: ScenarioTermActiveProps) {
-  const enrollment = state.enrollment;
   const [activeWeek, setActiveWeek] = useState<InternshipWeeklySession | null>(
     null
   );
 
-  if (!enrollment) {
+  if (!state.enrollment) {
     return (
       <KvAlert
         variant="error"
@@ -127,11 +177,60 @@ export function ScenarioTermActive({
     );
   }
 
+  const termSelect = (
+    <TermHistorySelect
+      termHistory={termHistory}
+      selectedTermId={selectedTermId}
+      onSelectTerm={onSelectTerm}
+    />
+  );
+
+  if (isViewingHistory && isLoadingViewedTerm) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-kv-group">
+        {termSelect}
+        <KvCard padding="md" className="flex min-h-0 flex-1 flex-col">
+          <KvBusySurface className="flex-1" />
+        </KvCard>
+      </div>
+    );
+  }
+
+  if (isViewingHistory && viewedTermError) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-kv-group">
+        {termSelect}
+        <KvAlert
+          variant="error"
+          title="بارگذاری گزارش این نیم‌سال ناموفق بود"
+          description={viewedTermError}
+        />
+      </div>
+    );
+  }
+
+  if (isViewingHistory && !viewedEnrollment) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-kv-group">
+        {termSelect}
+        <KvAlert
+          variant="info"
+          title="گزارشی برای این نیم‌سال یافت نشد"
+          description="رکورد ثبت‌نامی برای این نیم‌سال در دسترس نیست."
+        />
+      </div>
+    );
+  }
+
+  const enrollment = viewedEnrollment ?? state.enrollment;
+
   const suspended =
-    enrollment.status === 'dropped' || enrollment.removalPending;
+    !isViewingHistory &&
+    (state.enrollment.status === 'dropped' || state.enrollment.removalPending);
   const showAssignment =
-    (!enrollment.schoolId || enrollment.schoolId === '999') &&
-    enrollment.status !== 'dropped';
+    !isViewingHistory &&
+    (!state.enrollment.schoolId || state.enrollment.schoolId === '999') &&
+    state.enrollment.status !== 'dropped';
   const reportTitle =
     enrollment.status === 'completed'
       ? 'گزارش هفتگی جلسات پاس‌شده'
@@ -145,7 +244,8 @@ export function ScenarioTermActive({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-kv-group">
-      <SuccessNotice state={state} />
+      {termSelect}
+      <SuccessNotice enrollment={enrollment} />
       {suspended ? (
         <KvAlert
           variant="error"
@@ -161,11 +261,11 @@ export function ScenarioTermActive({
               actor={actor}
               state={state}
               supervisorName={enrollment.supervisorName ?? 'نامشخص'}
-              disabled={enrollment.removalPending}
+              disabled={state.enrollment.removalPending}
               onAssignmentComplete={onAssignmentComplete}
             />
           ) : (
-            <EnrollmentMeta state={state} />
+            <EnrollmentMeta enrollment={enrollment} />
           )}
 
           <div className="flex shrink-0 items-center justify-end">
@@ -177,7 +277,7 @@ export function ScenarioTermActive({
                   as="span"
                   weight="bold"
                 >
-                  کارنامه تحصیلی جاری
+                  {isViewingHistory ? 'کارنامه تحصیلی نیم‌سال' : 'کارنامه تحصیلی جاری'}
                 </KvTypography>
                 <KvTypography variant="caption" tone="muted" as="p">
                   وضعیت:{' '}
@@ -245,7 +345,12 @@ export function ScenarioTermActive({
         open={Boolean(activeWeek)}
         week={activeWeek}
         actor={actor}
-        state={state}
+        state={{
+          ...state,
+          termId: isViewingHistory ? selectedTermId : state.termId,
+          termTitle: enrollment.termTitle,
+          enrollment,
+        }}
         onClose={() => setActiveWeek(null)}
         onReopen={setActiveWeek}
         onSaved={onAssignmentComplete}

@@ -140,7 +140,7 @@ export function resolveEnrollmentProfessor(
   return extractNestProfessor(row.professor) ?? extractNestProfessor(row.professorId);
 }
 
-function mapNestEnrollmentStatus(
+export function mapNestEnrollmentStatus(
   raw: NestEnrollmentStatus | string | undefined
 ): InternshipEnrollmentSummary['status'] {
   if (raw === 'completed') return 'completed';

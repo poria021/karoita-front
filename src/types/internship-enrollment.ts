@@ -200,6 +200,13 @@ export type InternshipEnrollmentSummary = {
   weeksAreReal: boolean;
 };
 
+/** یک ردیف تاریخچهٔ ثبت‌نام این level — برای سلکت‌باکس نیم‌سال در صفحهٔ گزارش. */
+export type InternshipEnrollmentTermHistoryEntry = {
+  termId: string;
+  termTitle: string;
+  status: InternshipEnrollmentRecordStatus;
+};
+
 export type InternshipEnrollmentPageState = {
   scenario: InternshipEnrollmentScenario;
   kind: InternshipCourseKind;
@@ -210,6 +217,8 @@ export type InternshipEnrollmentPageState = {
   /** شناسهٔ درس Nest برای GET professors؛ در mock همان catalog id است. */
   lessonId: string | null;
   enrollment: InternshipEnrollmentSummary | null;
+  /** همهٔ نیم‌سال‌هایی که دانشجو در این level ثبت‌نام غیرکنسل‌شده داشته (شامل نیم‌سال جاری). */
+  termHistory: InternshipEnrollmentTermHistoryEntry[];
   selection: {
     scope: InternshipSelectionScope;
     wasDropped: boolean;
@@ -225,6 +234,13 @@ export type InternshipEnrollmentPageState = {
 export type GetEnrollmentPageStateInput = {
   actor: InternshipEnrollmentActor;
   level: InternshipEnrollmentLevel;
+};
+
+/** گزارش یک نیم‌سال مشخص از تاریخچهٔ دانشجو — برای سلکت‌باکس نیم‌سال‌های قبلی. */
+export type GetEnrollmentTermReportInput = {
+  actor: InternshipEnrollmentActor;
+  level: InternshipEnrollmentLevel;
+  termId: string;
 };
 
 export type ListEligibleSupervisorsInput = {

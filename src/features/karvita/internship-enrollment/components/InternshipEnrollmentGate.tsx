@@ -8,6 +8,8 @@ import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
+  InternshipEnrollmentSummary,
+  InternshipEnrollmentTermHistoryEntry,
 } from '@/types/internship-enrollment';
 
 import { ScenarioEnrollClosed } from './ScenarioEnrollClosed';
@@ -37,6 +39,13 @@ type InternshipEnrollmentGateProps = {
   isLoading: boolean;
   onEnrollmentComplete: () => Promise<void>;
   onEnrollmentCancel?: () => Promise<void>;
+  termHistory: InternshipEnrollmentTermHistoryEntry[];
+  selectedTermId: string;
+  onSelectTerm: (termId: string) => void;
+  isViewingHistory: boolean;
+  viewedEnrollment: InternshipEnrollmentSummary | null;
+  isLoadingViewedTerm: boolean;
+  viewedTermError: string | null;
 };
 
 /** ناحیهٔ داده — پرکنندهٔ ارتفاع مین تا قبل از فوتر. */
@@ -46,6 +55,13 @@ export function InternshipEnrollmentGate({
   isLoading,
   onEnrollmentComplete,
   onEnrollmentCancel,
+  termHistory,
+  selectedTermId,
+  onSelectTerm,
+  isViewingHistory,
+  viewedEnrollment,
+  isLoadingViewedTerm,
+  viewedTermError,
 }: InternshipEnrollmentGateProps) {
   if (isLoading) {
     return (
@@ -106,6 +122,13 @@ export function InternshipEnrollmentGate({
           actor={actor}
           state={state}
           onAssignmentComplete={onEnrollmentComplete}
+          termHistory={termHistory}
+          selectedTermId={selectedTermId}
+          onSelectTerm={onSelectTerm}
+          isViewingHistory={isViewingHistory}
+          viewedEnrollment={viewedEnrollment}
+          isLoadingViewedTerm={isLoadingViewedTerm}
+          viewedTermError={viewedTermError}
         />
       ) : (
         <KvAlert

@@ -47,6 +47,13 @@ export function InternshipEnrollmentPageClient({
             isLoading={page.isLoading}
             onEnrollmentComplete={page.reload}
             onEnrollmentCancel={page.cancelEnrollment}
+            termHistory={page.termHistory}
+            selectedTermId={page.selectedTermId}
+            onSelectTerm={page.onSelectTerm}
+            isViewingHistory={page.isViewingHistory}
+            viewedEnrollment={page.viewedEnrollment}
+            isLoadingViewedTerm={page.isLoadingViewedTerm}
+            viewedTermError={page.viewedTermError}
           />
         )}
       </KvWorkspace>

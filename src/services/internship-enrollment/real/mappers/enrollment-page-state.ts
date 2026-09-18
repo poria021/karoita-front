@@ -19,6 +19,7 @@ import type {
   GetEnrollmentPageStateInput,
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
+  InternshipEnrollmentTermHistoryEntry,
   InternshipSelectionScope,
 } from '@/types/internship-enrollment';
 
@@ -27,8 +28,13 @@ import {
   findConflictLessonInSemester,
   findEnrolmentHistoryForLevel,
   findLessonForLevel,
+  type EnrolmentHistoryEntry,
 } from './lesson-matching';
-import { registeredSummaryFromEnrollment, type RealWeeklyData } from './enrollment-summary';
+import {
+  mapNestEnrollmentStatus,
+  registeredSummaryFromEnrollment,
+  type RealWeeklyData,
+} from './enrollment-summary';
 
 export function realSelectionScope(
   actor: InternshipEnrollmentActor
@@ -56,6 +62,18 @@ export function realSelectionScope(
  * نیم‌سالی (حتی بسته‌شده) ثبت‌نام `active` غیرکنسل‌شده برای همین level داشته
  * باشد، صفحهٔ گزارش همان را نشان می‌دهد، نه صفحهٔ انتخاب واحد.
  */
+/** عنوان نیم‌سال یک ردیف تاریخچه — نیم‌سال باز از `open`، بقیه از `semesters`. */
+export function termTitleForHistoryEntry(
+  entry: EnrolmentHistoryEntry,
+  open: NestOpenCourseSelection | null,
+  openTerm: { title: string } | null,
+  semesters: readonly NestSemesterEnrolmentsByTerm[]
+): string {
+  if (open && entry.semesterId === open.id) return openTerm?.title ?? '';
+  const semesterEntry = semesters.find((s) => s.id === entry.semesterId);
+  return semesterEntry ? toAcademicTerm(semesterEntry).title : '';
+}
+
 export function toEnrollmentPageState(
   input: GetEnrollmentPageStateInput,
   open: NestOpenCourseSelection | null,
@@ -128,6 +146,14 @@ export function toEnrollmentPageState(
     : (openTerm?.title ?? 'نیم‌سال جاری');
   const activeTermId = activeEntry ? activeEntry.semesterId : (open?.id ?? '');
 
+  const termHistory: InternshipEnrollmentTermHistoryEntry[] = history.map(
+    (entry) => ({
+      termId: entry.semesterId,
+      termTitle: termTitleForHistoryEntry(entry, open, openTerm, semesters),
+      status: mapNestEnrollmentStatus(entry.enrolment.status),
+    })
+  );
+
   return {
     scenario,
     kind,
@@ -158,6 +184,7 @@ export function toEnrollmentPageState(
             registeredDetails?.realWeeklyData
           )
         : null,
+    termHistory,
     selection:
       scenario === 'S3_enroll_open'
         ? {

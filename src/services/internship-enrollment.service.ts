@@ -13,11 +13,13 @@ import {
   listDelayedSchools,
   listEligibleSupervisors,
   resolveEnrollmentPageState,
+  resolveEnrollmentTermReport,
   saveWeeklyReportDraft,
   submitWeeklyReport,
 } from '@/services/internship-enrollment/mock/mock-enrollment-store';
 import {
   getRealEnrollmentPageState,
+  getRealEnrollmentTermReport,
   getRealMentorCapacity,
   listRealDelayedMentors,
   listRealDelayedSchools,
@@ -38,11 +40,13 @@ import type {
   CancelEnrollmentInput,
   EnrollWithSupervisorInput,
   GetEnrollmentPageStateInput,
+  GetEnrollmentTermReportInput,
   InternshipCourseKind,
   InternshipEnrollmentLevel,
   InternshipEnrollmentPageState,
   InternshipEnrollmentRecord,
   InternshipEnrollmentRole,
+  InternshipEnrollmentSummary,
   InternshipMentorCapacity,
   InternshipSchoolCapacity,
   InternshipSupervisor,
@@ -95,6 +99,17 @@ export const InternshipEnrollmentService = {
     }
     gateEnrollmentMock();
     return resolveEnrollmentPageState(input);
+  },
+
+  /** برای سلکت‌باکس نیم‌سال‌های قبلی — گزارش یک نیم‌سالِ مشخص از تاریخچهٔ همین level. */
+  async getEnrollmentTermReport(
+    input: GetEnrollmentTermReportInput
+  ): Promise<InternshipEnrollmentSummary | null> {
+    if (!isMockApiMode()) {
+      return getRealEnrollmentTermReport(input);
+    }
+    gateEnrollmentMock();
+    return resolveEnrollmentTermReport(input);
   },
 
   /** real: GET `professors?semesterId=&lessonId=`؛ فیلتر استان/پردیس/سرچ سمت کلاینت. */

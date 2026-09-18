@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
-import { useLayoutEffect, useMemo } from 'react';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
@@ -83,6 +83,50 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
     query.data == null &&
     (query.isPending || query.isFetching);
 
+  // نیم‌سال انتخاب‌شده در سلکت‌باکس تاریخچه — پیش‌فرض همیشه نیم‌سال جاری صفحه.
+  // «تنظیم state حین رندر» به‌جای افکت (الگوی رسمی ری‌اکت) تا با عوض شدن
+  // نیم‌سال جاری (`query.data.termId`)، انتخاب کاربر ریست شود بدون یک رندر اضافه.
+  const [manualSelectedTermId, setManualSelectedTermId] = useState<
+    string | null
+  >(null);
+  const [lastSeenTermId, setLastSeenTermId] = useState<string | null>(null);
+  if (query.data && query.data.termId !== lastSeenTermId) {
+    setLastSeenTermId(query.data.termId);
+    setManualSelectedTermId(null);
+  }
+  const selectedTermId = manualSelectedTermId ?? query.data?.termId ?? '';
+
+  const termHistory = query.data?.termHistory ?? [];
+  const isViewingHistory = Boolean(
+    query.data && selectedTermId && selectedTermId !== query.data.termId
+  );
+
+  const historyQuery = useQuery({
+    queryKey: [
+      ...DASHBOARD_QUERY.internshipEnrollment,
+      'term-report',
+      actor?.id ?? 'anon',
+      resolved?.level ?? level,
+      selectedTermId ?? 'none',
+    ],
+    queryFn: () => {
+      if (!actor || !resolved || !selectedTermId) {
+        throw new Error('بارگذاری گزارش نیم‌سال ناموفق بود.');
+      }
+      return InternshipEnrollmentService.getEnrollmentTermReport({
+        actor,
+        level: resolved.level,
+        termId: selectedTermId,
+      });
+    },
+    enabled: Boolean(actor && resolved && isViewingHistory),
+    staleTime: QUERY_STALE_MS.module,
+  });
+
+  const viewedEnrollment = isViewingHistory
+    ? (historyQuery.data ?? null)
+    : (query.data?.enrollment ?? null);
+
   return {
     role,
     actor,
@@ -95,6 +139,20 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
           'بارگذاری وضعیت انتخاب واحد ناموفق بود.'
         )
       : null,
+    termHistory,
+    selectedTermId,
+    onSelectTerm: setManualSelectedTermId,
+    isViewingHistory,
+    viewedEnrollment,
+    isLoadingViewedTerm:
+      isViewingHistory && historyQuery.isFetching && historyQuery.data == null,
+    viewedTermError:
+      isViewingHistory && historyQuery.error
+        ? unknownErrorMessage(
+            historyQuery.error,
+            'بارگذاری گزارش نیم‌سال ناموفق بود.'
+          )
+        : null,
     reload: async () => {
       await query.refetch();
     },

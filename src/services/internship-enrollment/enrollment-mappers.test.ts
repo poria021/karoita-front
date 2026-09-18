@@ -106,6 +106,7 @@ describe('InternshipEnrollmentService real wiring', () => {
       termId: 'sem-1',
       lessonId: 'les-1',
       enrollment: null,
+      termHistory: [],
       selection: null,
       conflictEnrollment: null,
     });
