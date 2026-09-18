@@ -133,6 +133,7 @@ export function DailyApprovalWeekGradingModal({
   // معلم راهنما امتیاز الزامی دارد (بازخورد اختیاری)؛ مدیر مدرسه هردو اختیاری‌اند
   // (اعتبارسنجی «حداقل یکی» در خودِ `save()` با toast انجام می‌شود).
   const alreadySubmitted =
+    (role === 'supervisor_professor' && modal.supervisorLocked) ||
     (role === 'mentor_teacher' && modal.mentorAlreadySubmitted) ||
     (role === 'school_principal' && modal.principalAlreadySubmitted);
 
@@ -230,7 +231,7 @@ export function DailyApprovalWeekGradingModal({
                 />
               ) : null}
 
-              {role === 'supervisor_professor' ? (
+              {role === 'supervisor_professor' && !modal.supervisorLocked ? (
                 <DailyApprovalSupervisorGradingFields
                   week={week}
                   schoolName={trainee.schoolName}

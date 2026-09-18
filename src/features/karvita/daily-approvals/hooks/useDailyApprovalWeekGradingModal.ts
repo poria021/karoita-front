@@ -140,12 +140,19 @@ export function useDailyApprovalWeekGradingModal({
   const dropped = trainee?.status === 'dropped';
   const disabled = dropped || actionBusy;
   const mentorRatingMissing = mentorRating === null;
+  // هفته وقتی `graded` است که استاد راهنما نمرهٔ نهایی داده — از آن به بعد
+  // مودال هر سه نقش دیگر فقط‌نمایشی می‌شود (cascade)، صرف‌نظر از اینکه خودشان
+  // قبلاً نظر ثبت کرده باشند یا نه.
+  const weekCompleted = week?.status === 'graded';
   // معلم راهنما و مدیر مدرسه فقط یک بار می‌توانند روی هر گزارش نظر ثبت کنند —
-  // وقتی قبلاً ثبت شده، فرم ورودی مخفی می‌شود تا امکان ثبت مجدد/تغییر نباشد.
-  const mentorAlreadySubmitted = Boolean(week?.feedback.mentorRating);
-  const principalAlreadySubmitted = Boolean(
-    week?.feedback.principalRating || week?.feedback.principal?.trim()
-  );
+  // با ثبت `teacherStatus`/`schoolAdminStatus === 'send'` فرم ورودی مخفی
+  // می‌شود تا امکان ثبت مجدد/تغییر نباشد.
+  const mentorAlreadySubmitted = weekCompleted || week?.teacherStatus === 'send';
+  const principalAlreadySubmitted = weekCompleted || week?.schoolAdminStatus === 'send';
+  // استاد راهنما برخلاف دو نقش بالا یک‌بارمصرف نیست — می‌تواند چندبار بازخورد
+  // اصلاحی (رد بدون نمره) بفرستد؛ فقط با ثبت نمرهٔ نهایی (هفته `graded` می‌شود)
+  // مودالش قفل می‌شود.
+  const supervisorLocked = weekCompleted;
   const title = trainee ? modalTitle(role, trainee.traineeName) : '';
   const subtitle =
     trainee && week
@@ -221,6 +228,7 @@ export function useDailyApprovalWeekGradingModal({
     mentorRatingMissing,
     mentorAlreadySubmitted,
     principalAlreadySubmitted,
+    supervisorLocked,
     advisorFeedback,
     setAdvisorFeedback: (next: string) => {
       setAdvisorFeedback(next);
