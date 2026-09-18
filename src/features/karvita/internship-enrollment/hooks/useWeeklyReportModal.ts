@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
@@ -86,7 +86,7 @@ export function useWeeklyReportModal({
   const [files, setFiles] = useState<InternshipWeeklyReportFile[]>([]);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const undoDraftRef = useRef<{
+  const [undoDraft, setUndoDraft] = useState<{
     weekId: string;
     text: string;
     files: InternshipWeeklyReportFile[];
@@ -112,7 +112,6 @@ export function useWeeklyReportModal({
         return;
       }
 
-      const draft = undoDraftRef.current;
       setEditorWeekId(week.id);
 
       if (hasWeeklyReportDraft) {
@@ -121,25 +120,27 @@ export function useWeeklyReportModal({
         return;
       }
 
-      if (draft && draft.weekId === week.id) {
-        setText(draft.text);
-        setFiles(dropStaleAttachments(cloneFiles(draft.files)));
-        undoDraftRef.current = null;
+      if (undoDraft && undoDraft.weekId === week.id) {
+        setText(undoDraft.text);
+        setFiles(dropStaleAttachments(cloneFiles(undoDraft.files)));
+        setUndoDraft(null);
         return;
       }
 
       setText(week.text ?? '');
       setFiles(dropStaleAttachments(cloneFiles(week.files)));
     },
-    [draftValue, editorWeekId, hasWeeklyReportDraft, week]
+    [draftValue, editorWeekId, hasWeeklyReportDraft, undoDraft, week]
   );
 
-  useEffect(() => {
-    if (open) {
+  const resetKey = open ? (week?.id ?? '__no-week__') : null;
+  const [lastResetKey, setLastResetKey] = useState<string | null>(null);
+  if (resetKey !== lastResetKey) {
+    setLastResetKey(resetKey);
+    if (resetKey !== null) {
       resetForm();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, week?.id]);
+  }
 
   const lockContext = useMemo(() => {
     if (!week || !enrollment) return null;
@@ -281,11 +282,11 @@ export function useWeeklyReportModal({
     scheduleOptimisticMutation({
       message: 'گزارش نهایی شده و جهت دریافت بازخورد ارسال گردید.',
       apply: () => {
-        undoDraftRef.current = {
+        setUndoDraft({
           weekId: week.id,
           text,
           files: cloneFiles(files),
-        };
+        });
         onClose();
       },
       revert: () => {
@@ -293,7 +294,7 @@ export function useWeeklyReportModal({
       },
       commit: () => InternshipEnrollmentService.submitWeeklyReport(payload),
       onCommitted: async (submittedWeek) => {
-        undoDraftRef.current = null;
+        setUndoDraft(null);
         clearWeeklyReportDraft();
         onWeekUpdated(submittedWeek);
       },
