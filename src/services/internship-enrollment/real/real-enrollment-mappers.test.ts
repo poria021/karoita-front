@@ -220,6 +220,42 @@ describe('real enrollment mappers', () => {
     expect(state.termTitle).toContain('1404-1405');
   });
 
+  it('shows the report page for a past completed term even when the student failed it', () => {
+    const closedSemester: NestSemesterEnrolmentsByTerm = {
+      id: 'closed-term-2',
+      season: 'two',
+      structure: 'semester',
+      academicYears: '۱۴۰۴-۱۴۰۵',
+      courseSelection: false,
+      startClasses: true,
+      lessons: [
+        {
+          id: 'closed-lesson-2',
+          semesterId: 'closed-term-2',
+          title: 'کارورزی ۱',
+          status: true,
+          enrolment: {
+            id: 'enr-failed',
+            lessonId: 'closed-lesson-2',
+            semesterId: 'closed-term-2',
+            professorId: 'p1',
+            status: 'completed',
+          },
+        },
+      ],
+    };
+    // نه انتخاب واحد باز است نه ترم جدیدی — فقط یک ترم گذشته با وضعیت
+    // `completed` (چه قبول شده باشد چه رد) — باید صفحهٔ گزارش‌نویسی همان
+    // ترم را ببیند، نه اینکه ماژول برایش کلاً غیرفعال باشد.
+    const state = toEnrollmentPageState(
+      { actor: student, level: 1 },
+      null,
+      [closedSemester]
+    );
+    expect(state.scenario).toBe('S5_term_active');
+    expect(state.termId).toBe('closed-term-2');
+  });
+
   it('returns S1 when Nest has no open semester and no enrolment history', () => {
     expect(parseOpenCourseSelection({})).toBeNull();
     const state = toEnrollmentPageState({ actor: student, level: 1 }, null, []);

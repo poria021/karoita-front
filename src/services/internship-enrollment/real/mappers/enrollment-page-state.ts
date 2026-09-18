@@ -76,10 +76,14 @@ export function termTitleForHistoryEntry(
 
 /**
  * ثبت‌نامی که باید به‌عنوان «فعلی» صفحه در نظر گرفته شود: یا ثبت‌نام واقعاً
- * `active`، یا — وقتی درسِ باز فعلی `blockReason: 'passed'` دارد (دانشجو این
- * level را قبلاً قبول شده) — آخرین رکورد `completed` همان level (بر اساس
- * `createdAt`، برای وقتی چندبار افتاده و بالاخره قبول شده). این تابع هم برای
- * ساخت خودِ page state (`toEnrollmentPageState`) هم برای واکشیِ جزئیات
+ * `active`، یا — وقتی انتخاب واحد برای این level فعلاً باز نیست (یا اصلاً
+ * درسی در ترم باز برایش نیست، یا `canSelect` صریحاً `false` است — چه علتش
+ * `passed` باشد چه `in_progress` چه هر دلیل دیگر) — آخرین رکورد `completed`
+ * همان level (بر اساس `createdAt`، برای وقتی چندبار افتاده و بالاخره قبول
+ * شده، یا حتی هیچ‌وقت قبول نشده). این یعنی چه دانشجو این level را قبول شده
+ * باشد چه رد، تا وقتی پنجرهٔ انتخاب واحد برایش دوباره باز نشده، صفحهٔ
+ * گزارش‌نویسیِ همان ثبت‌نامِ قبلی را می‌بیند نه صفحهٔ انتخاب واحد. این تابع هم
+ * برای ساخت خودِ page state (`toEnrollmentPageState`) هم برای واکشیِ جزئیات
  * (`loadRegisteredEnrollmentDetails` در `real-enrollment-reads.ts`) استفاده
  * می‌شود تا هر دو دقیقاً روی یک ثبت‌نام توافق داشته باشند.
  */
@@ -91,7 +95,7 @@ export function resolveEffectiveEnrollmentEntry(
     history.find((entry) => entry.enrolment.status === 'active') ?? null;
   if (activeEntry) return activeEntry;
 
-  if (current?.canSelect !== false || current?.blockReason !== 'passed') {
+  if (current && current.canSelect !== false) {
     return null;
   }
   return (
