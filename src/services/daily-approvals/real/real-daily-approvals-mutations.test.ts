@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  dropRealDailyApprovalTrainee,
   markRealDailyApprovalWeekOpened,
   submitMentorFeedbackReal,
   submitPrincipalFeedbackReal,
 } from './real-daily-approvals-mutations';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
 import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
+import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 
 vi.mock('@/services/require-nest-transport', () => ({
   requireNestTransport: vi.fn(),
@@ -14,6 +16,10 @@ vi.mock('@/services/require-nest-transport', () => ({
 
 vi.mock('@/services/internship-enrollment/real/student-weeks.api', () => ({
   studentWeeksApi: { score: vi.fn() },
+}));
+
+vi.mock('@/services/internship-enrollment/real/student-enrollments.api', () => ({
+  studentEnrollmentsApi: { cancel: vi.fn(async () => null) },
 }));
 
 vi.mock('@/services/conversations/real/conversations.api', () => ({
@@ -134,5 +140,13 @@ describe('markRealDailyApprovalWeekOpened', () => {
       markRealDailyApprovalWeekOpened({ traineeId: 't1', weekId: 'w1' })
     ).resolves.toBeUndefined();
     expect(conversationsApi.markRead).not.toHaveBeenCalled();
+  });
+});
+
+describe('dropRealDailyApprovalTrainee', () => {
+  it('cancels the student enrollment by id', async () => {
+    await dropRealDailyApprovalTrainee('enrollment-1');
+
+    expect(studentEnrollmentsApi.cancel).toHaveBeenCalledWith('enrollment-1');
   });
 });

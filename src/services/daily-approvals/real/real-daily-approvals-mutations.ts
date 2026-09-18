@@ -1,6 +1,7 @@
 import { throwRealModeNotImplemented } from '@/lib/api-mode';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
 import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
+import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
 import { requireNestTransport } from '@/services/require-nest-transport';
 import type {
@@ -72,6 +73,17 @@ export async function scoreRealDailyApprovalWeek(
     input.weekId
   );
   await conversationsApi.postMessage(conversationId, { text });
+}
+
+/**
+ * PATCH `/api/v1/student-enrollments/{id}/cancel` — حذف کارورز از کلاس توسط
+ * استاد راهنما. `traineeId` همان id ثبت‌نام است (`NestMentorStudent.id`).
+ */
+export async function dropRealDailyApprovalTrainee(
+  traineeId: string
+): Promise<void> {
+  requireNestTransport('DailyApprovalsService.dropTrainee');
+  await studentEnrollmentsApi.cancel(traineeId);
 }
 
 /** ASCII '1'..'5' → عدد ۱ تا ۵ برای بدنهٔ `POST /conversations/{id}/messages`. */

@@ -20,10 +20,6 @@ import {
   KvTableRowIndexHead,
 } from '@/components/shared/table/KvTableRowIndex';
 import { KvTableViewport } from '@/components/shared/table/KvTableViewport';
-import {
-  IS_REAL_MODE_STUB_ACTIVE,
-  RealModeStubTooltip,
-} from '@/components/shared/RealModeStubNotice';
 import type { DailyApprovalTrainee } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -160,22 +156,16 @@ export function DailyApprovalsTable({
                       align="center"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      <RealModeStubTooltip message="حذف کارورز هنوز به API واقعی وصل نشده است.">
-                        <KvButton
-                          type="button"
-                          color="error"
-                          appearance="ghost"
-                          size="icon-xs"
-                          aria-label="حذف کارورز از کلاس"
-                          disabled={
-                            actionBusy ||
-                            trainee.status === 'dropped' ||
-                            IS_REAL_MODE_STUB_ACTIVE
-                          }
-                          onClick={() => onDrop(trainee)}
-                          icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
-                        />
-                      </RealModeStubTooltip>
+                      <KvButton
+                        type="button"
+                        color="error"
+                        appearance="ghost"
+                        size="icon-xs"
+                        aria-label="حذف کارورز از کلاس"
+                        disabled={actionBusy || trainee.status === 'dropped'}
+                        onClick={() => onDrop(trainee)}
+                        icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
+                      />
                     </KvTableCell>
                   ) : null}
                 </KvTableRow>

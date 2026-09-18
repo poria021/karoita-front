@@ -21,6 +21,7 @@ import {
 } from '@/services/daily-approvals/mock/mock-daily-approvals-store';
 import {
   assertDailyApprovalsMutationReady,
+  dropRealDailyApprovalTrainee,
   markRealDailyApprovalWeekOpened,
   scoreRealDailyApprovalWeek,
   submitMentorFeedbackReal,
@@ -327,16 +328,13 @@ export const DailyApprovalsService = {
     });
   },
 
-  /**
-   * تست شد: `PATCH student-enrollments/{id}/cancel` سمت Nest صراحتاً رد می‌کند —
-   * «فقط دانشجو می‌تواند ثبت‌نام را لغو کند». یعنی استاد راهنما با این endpoint
-   * نمی‌تواند enrollment کاربر دیگری را لغو کند؛ باید endpoint/پرمیشن جدا از بک‌اند بیاید.
-   */
+  /** real: `PATCH student-enrollments/{id}/cancel` — حذف کارورز از کلاس. */
   async dropTrainee(
     input: DropDailyApprovalTraineeInput
   ): Promise<DailyApprovalTrainee> {
     if (isRealApiMode()) {
-      assertDailyApprovalsMutationReady('DailyApprovalsService.dropTrainee');
+      await dropRealDailyApprovalTrainee(input.traineeId);
+      return emptyDailyApprovalStub(input.traineeId, '');
     }
     requireReviewRole('supervisor_professor');
     await new Promise((resolve) => setTimeout(resolve, 200));
