@@ -108,13 +108,6 @@ function EnrollmentMeta({
             </span>
           </>
         ) : null}
-        <span className="hidden text-kv-text-faint md:inline">|</span>
-        <span className="flex w-full items-center justify-between gap-kv-inline sm:w-auto sm:justify-start">
-          <span>نیم‌سال:</span>
-          <strong className="rounded-kv-control border border-kv-border bg-kv-surface-muted px-2 py-0.5 text-xs font-bold text-kv-text">
-            {toPersianDigits(enrollment.termTitle)}
-          </strong>
-        </span>
       </div>
     </div>
   );
