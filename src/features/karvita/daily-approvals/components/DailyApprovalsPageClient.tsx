@@ -2,7 +2,6 @@
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
-import { IS_REAL_MODE_STUB_ACTIVE } from '@/components/shared/RealModeStubNotice';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 import { useUserStore } from '@/store/useUserStore';
 
@@ -60,13 +59,6 @@ export function DailyApprovalsPageClient() {
         onQueryChange={page.setQuery}
         onCourseChange={page.changeCourse}
       />
-      {IS_REAL_MODE_STUB_ACTIVE ? (
-        <KvAlert
-          variant="warning"
-          title="بخشی از عملیات این صفحه هنوز به API واقعی وصل نیست"
-          description="ثبت نمرهٔ استاد راهنما و بازخورد متنی مربی/مدیر مدرسه وصل است (سطح شایستگی ۱ تا ۵ فعلاً ذخیره نمی‌شود). علامت‌زدن گزارش به‌عنوان خوانده‌شده، حذف/بازگردانی کارورز و تمدید هفته‌ها فعلاً فقط در حالت شبیه‌ساز (mock) کار می‌کنند."
-        />
-      ) : null}
       {page.error ? (
         <KvAlert
           variant="error"
