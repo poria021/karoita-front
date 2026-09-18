@@ -14,6 +14,7 @@ import { getRealAcademicSettings } from '@/services/syllabus-config/real/real-sy
 import {
   mapWeekStatus,
   studentWeekId,
+  weekTemplateId,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
 import { resolveEnrollmentMentor } from '@/services/internship-enrollment/real/mappers/enrollment-summary';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
@@ -31,6 +32,7 @@ import type {
   ListDailyApprovalsPage,
 } from '@/types/daily-approvals';
 import type { InternshipEnrollmentLevel } from '@/types/internship-enrollment';
+import type { NestConversation } from '@/types/nest-conversations';
 import type {
   NestMentorStudent,
   NestMentorCapacity,
@@ -117,13 +119,28 @@ function mapRow(
  * متن/فایل هر هفته اینجا خوانده نمی‌شود (یعنی N نامزد × M هفته درخواستِ
  * submissions اضافه می‌شد که برای یک لیست صفحه‌بندی‌شده سنگین است) — مودال
  * نمره‌دهی برای همین یک هفته، جدا و به‌درخواست، متن/فایل را می‌خواند.
- * best-effort: شکست خواندن هفته‌های یک فراگیر نباید کل صفحه را بترکاند.
+ *
+ * `week.submittedAt`/`score` هم مثل سمت دانشجو (ببین `mapRealWeeklySessions`)
+ * دیگر توسط ارسال گزارش ست نمی‌شوند — گزارش فقط پیام روی گفتگوی هفته پست
+ * می‌شود. برای این‌که کارت این هفته بعد از ارسال دانشجو رنگش عوض شود، بدون
+ * یک `GET messages` جداگانه به‌ازای هر هفته (سنگین)، از همان گفتگوهایی که
+ * برای `unreadCount` این ثبت‌نام یک‌بار خوانده‌ایم (`conversationsApi.listByEnrollment`)
+ * استفاده می‌کنیم: اگر گفتگوی این هفته حداقل یک پیام داشته باشد
+ * (`lastMessageSequence > 0`)، یعنی دانشجو گزارشی پست کرده.
  */
-function mapDailyApprovalWeek(week: NestStudentWeek, index: number): DailyApprovalWeek {
+function mapDailyApprovalWeek(
+  week: NestStudentWeek,
+  index: number,
+  weekConversationsByTemplateId: ReadonlyMap<string, NestConversation>
+): DailyApprovalWeek {
+  const templateId = weekTemplateId(week);
+  const conversation = templateId ? weekConversationsByTemplateId.get(templateId) : undefined;
+  const hasStudentSubmission = Boolean(conversation && conversation.lastMessageSequence > 0);
+
   return {
     id: studentWeekId(week),
     weekNumber: index + 1,
-    status: mapWeekStatus(week),
+    status: mapWeekStatus(week, false, hasStudentSubmission),
     score: typeof week.score === 'number' ? week.score : null,
     text: '',
     files: [],
@@ -132,13 +149,37 @@ function mapDailyApprovalWeek(week: NestStudentWeek, index: number): DailyApprov
   };
 }
 
-async function loadRealDailyApprovalWeeks(
+/**
+ * همهٔ گفتگوهای این ثبت‌نام را یک‌بار می‌خواند — هم برای جمع `unreadCount`
+ * (ببین کامنت پایین) هم برای وضعیت «ارسال شده» هر هفته در `mapDailyApprovalWeek`،
+ * تا به‌جای N درخواست (یکی به‌ازای هر هفته) فقط یک درخواست به‌ازای هر فراگیر بزنیم.
+ */
+async function loadRealEnrollmentConversations(
   enrollmentId: string
+): Promise<NestConversation[]> {
+  if (!enrollmentId) return [];
+  try {
+    return await conversationsApi.listByEnrollment(enrollmentId);
+  } catch {
+    return [];
+  }
+}
+
+async function loadRealDailyApprovalWeeks(
+  enrollmentId: string,
+  conversations: readonly NestConversation[]
 ): Promise<DailyApprovalWeek[]> {
   if (!enrollmentId) return [];
   try {
+    const weekConversationsByTemplateId = new Map(
+      conversations
+        .filter((c) => c.type === 'week' && c.weekId)
+        .map((c) => [c.weekId as string, c] as const)
+    );
     const weeks = await studentEnrollmentsApi.listWeeks(enrollmentId);
-    return weeks.map(mapDailyApprovalWeek);
+    return weeks.map((week, index) =>
+      mapDailyApprovalWeek(week, index, weekConversationsByTemplateId)
+    );
   } catch {
     return [];
   }
@@ -151,14 +192,8 @@ async function loadRealDailyApprovalWeeks(
  * mock (`withDerivedDailyApprovalTrainee`) از روی همان فیلد همیشه همه‌چیز را
  * «نخوانده» نشان می‌داد؛ این تابع مقدار واقعی را جایگزین می‌کند.
  */
-async function loadRealUnreadCount(enrollmentId: string): Promise<number> {
-  if (!enrollmentId) return 0;
-  try {
-    const conversations = await conversationsApi.listByEnrollment(enrollmentId);
-    return conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0);
-  } catch {
-    return 0;
-  }
+function sumUnreadCount(conversations: readonly NestConversation[]): number {
+  return conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0);
 }
 
 /**
@@ -232,12 +267,20 @@ export async function listRealDailyApprovals(
     trainees = trainees.filter((t) => t.status === 'active');
   }
 
-  // بعد از فیلترها — هفته‌ها و unreadCount را فقط برای ردیف‌هایی که واقعاً
-  // نمایش داده می‌شوند می‌خوانیم.
-  const [weeksByTrainee, unreadByTrainee] = await Promise.all([
-    Promise.all(trainees.map((t) => loadRealDailyApprovalWeeks(t.id))),
-    Promise.all(trainees.map((t) => loadRealUnreadCount(t.id))),
-  ]);
+  // بعد از فیلترها — گفتگوها/هفته‌ها و unreadCount را فقط برای ردیف‌هایی که
+  // واقعاً نمایش داده می‌شوند می‌خوانیم؛ گفتگوهای هر فراگیر یک‌بار خوانده و هم
+  // برای وضعیت هفته‌ها هم برای unreadCount استفاده می‌شود.
+  const conversationsByTrainee = await Promise.all(
+    trainees.map((t) => loadRealEnrollmentConversations(t.id))
+  );
+  const weeksByTrainee = await Promise.all(
+    trainees.map((t, index) =>
+      loadRealDailyApprovalWeeks(t.id, conversationsByTrainee[index] ?? [])
+    )
+  );
+  const unreadByTrainee = conversationsByTrainee.map((conversations) =>
+    sumUnreadCount(conversations)
+  );
   // نمرهٔ پیش‌رونده/برچسب وضعیت از همان هفته‌های واقعی محاسبه می‌شود — همان
   // تابع خالصی که store mock استفاده می‌کند (ببین کامنت بالای خودش)؛
   // unreadCount را بعداً با مقدار واقعی گفتگو (بالا) جایگزین می‌کنیم چون

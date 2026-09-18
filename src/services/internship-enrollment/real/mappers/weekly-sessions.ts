@@ -48,13 +48,21 @@ export function weekTemplateId(week: NestStudentWeek): string | null {
  * می‌کند (ببین `mapRealWeeklySessions`) — وگرنه بعد از اولین بازخورد، هفته تا
  * ابد `needs_edit` می‌ماند حتی اگر دانشجو دوباره گزارش داده باشد.
  */
+/**
+ * `week.submittedAt` هرگز توسط این فلو ست نمی‌شود — گزارش دانشجو دیگر از
+ * `PATCH student-weeks/{id}/submit` (حذف‌شده) نمی‌آید، بلکه فقط یک پیام روی
+ * گفتگوی هفته پست می‌شود (ببین `realSubmitWeeklyReport`). پس منبع درستِ
+ * «ارسال شده» همان وجود آخرین پیامِ دانشجو (`hasStudentSubmission`) است، نه
+ * این فیلد که برای این مسیر همیشه خالی می‌ماند.
+ */
 export function mapWeekStatus(
   week: NestStudentWeek,
-  needsEdit = false
+  needsEdit = false,
+  hasStudentSubmission = false
 ): InternshipWeeklySessionState {
   if (week.score !== null && week.score !== undefined) return 'graded';
   if (needsEdit) return 'needs_edit';
-  if (week.submittedAt) return 'pending';
+  if (hasStudentSubmission || week.submittedAt) return 'pending';
   return 'draft';
 }
 
@@ -85,7 +93,7 @@ export function mapRealWeeklySessions(
     return {
       id,
       title: `هفته ${index + 1}`,
-      status: mapWeekStatus(week, needsEdit),
+      status: mapWeekStatus(week, needsEdit, Boolean(latest)),
       score: typeof week.score === 'number' ? week.score : null,
       text: latest?.text ?? '',
       files: latest?.files ?? [],
