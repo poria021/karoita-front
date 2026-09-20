@@ -73,8 +73,12 @@ function currentSystemWeekNumber(weeks: InternshipWeeklySession[]): number {
   const firstFuture = weeks.findIndex(
     (week) => week.status === 'locked_future'
   );
-  if (firstFuture <= 0) return Math.max(1, weeks.length);
-  return firstFuture;
+  // firstFuture === -1 یعنی هیچ هفته‌ای قفل نیست (همه باز/جلوترند) → هفته
+  // جاری = آخرین هفته. firstFuture === 0 یعنی خودِ هفته‌ی اول هنوز باز نشده →
+  // هفته جاری باید ۱ باشد، نه آخرین هفته (این دو حالت قبلاً با `<= 0` قاطی
+  // می‌شدند و حالت دوم اشتباه شماره‌ی آخرین هفته را برمی‌گرداند).
+  if (firstFuture === -1) return Math.max(1, weeks.length);
+  return Math.max(1, firstFuture);
 }
 
 export function getWeeklyReportLockNotice(
