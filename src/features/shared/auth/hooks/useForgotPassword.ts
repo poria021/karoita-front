@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 
 import { AuthService } from '@/services/auth.service';
 
@@ -103,6 +104,7 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
         data.otp,
         data.newPassword
       );
+      toast.success('رمز عبور با موفقیت تغییر کرد.');
       onComplete(pendingForgotMobile);
     } catch (error) {
       const message = readAuthErrorMessage(error);
