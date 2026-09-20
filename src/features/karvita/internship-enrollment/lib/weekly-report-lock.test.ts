@@ -82,7 +82,7 @@ describe('weekly-report-lock', () => {
       removalPending: false,
       isTermArchived: false,
     });
-    expect(future.title).toContain('آغاز نشده');
+    expect(future.title).toContain('باز نشده');
 
     const overdue = getWeeklyReportLockNotice({
       week: week({ id: '5', status: 'overdue' }),

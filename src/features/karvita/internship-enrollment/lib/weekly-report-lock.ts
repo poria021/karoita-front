@@ -85,9 +85,9 @@ export function getWeeklyReportLockNotice(
   if (state === 'locked_future') {
     const currentWeek = currentSystemWeekNumber(context.weeks);
     return {
-      title: `این هفته هنوز آغاز نشده است (قفل زمانی - هفته جاری سیستم: هفته ${toPersianDigits(currentWeek)})`,
+      title: `این هفته هنوز باز نشده است (هفتهٔ جاری: هفته ${toPersianDigits(currentWeek)})`,
       description:
-        'طبق تقویم آموزشی نیم‌سال جاری، شما هنوز مجاز به ثبت گزارش برای این هفته نیستید.',
+        'برای باز شدن این هفته، ابتدا باید گزارش هفتهٔ قبل را ارسال کرده باشید.',
       variant: 'info',
     };
   }

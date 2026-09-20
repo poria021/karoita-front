@@ -52,6 +52,29 @@ export function mapWeekStatus(week: NestStudentWeek): InternshipWeeklySessionSta
   return 'draft';
 }
 
+/** دانشجو حداقل یک‌بار گزارش این هفته را فرستاده — چه هنوز در جریان بررسی، چه گریدشده. */
+function hasStudentSubmittedWeek(week: NestStudentWeek): boolean {
+  return week.status === 'completed' || week.studentStatus === 'send';
+}
+
+/**
+ * قفل ترتیبیِ کارت‌ها: هفتهٔ اول همیشه باز است؛ هفته‌های بعدی تا وقتی گزارش
+ * هفتهٔ *قبلی* ارسال نشده «هنوز باز نشده» (`locked_future`) نمایش داده می‌شوند.
+ * این جایگزین قفل زمانیِ قبلی (تقویم آموزشی) است که به تصمیم بک‌اند غیرفعال
+ * شد — ببین کامنت بالای `SESSION_VISUALS` در `InternshipWeeklyGrid`.
+ * فقط وقتی خودِ هفته هنوز `draft`ه قفل می‌شود؛ اگر قبل از این قانون گزارشی
+ * برایش ثبت شده (دادهٔ قدیمی/استثنا)، همان وضعیت واقعی‌اش نشان داده می‌شود
+ * تا کار واقعی دانشجو پشت قفل پنهان نشود.
+ */
+function isSequentiallyLocked(
+  weeks: readonly NestStudentWeek[],
+  index: number,
+  ownStatus: InternshipWeeklySessionState
+): boolean {
+  if (index === 0 || ownStatus !== 'draft') return false;
+  return !hasStudentSubmittedWeek(weeks[index - 1]);
+}
+
 /**
  * GET `/student-enrollments/{id}/weeks` → کارت‌های تایم‌لاین گزارش هفتگی.
  * متن/فایل هر هفته از آخرین submission همان `student-week` پر می‌شود.
@@ -59,7 +82,8 @@ export function mapWeekStatus(week: NestStudentWeek): InternshipWeeklySessionSta
  * شماره‌گذاری از موقعیت آرایه است، نه `weekId.priority` — روی دیتای واقعی دیده شد
  * که `priority` برای همهٔ هفته‌های یک درس یکسان می‌آید (فیلد دیگری‌ست، شمارهٔ هفته
  * نیست)؛ ترتیب برگشتی خودِ Nest (بر اساس زمان ایجاد) منبع درستِ شماره‌گذاریه، و همین
- * شماره باید با اندیس کارت تو `InternshipWeeklyGrid` یکی بماند.
+ * شماره باید با اندیس کارت تو `InternshipWeeklyGrid` یکی بماند. همین ترتیب مبنای
+ * قفل ترتیبی (`isSequentiallyLocked`) هم هست.
  */
 export function mapRealWeeklySessions(
   weeks: readonly NestStudentWeek[],
@@ -71,10 +95,14 @@ export function mapRealWeeklySessions(
     const latest = latestSubmissionByWeekId.get(id);
     const feedback = feedbackByWeekId.get(id);
     const completed = week.status === 'completed';
+    const ownStatus = mapWeekStatus(week);
+    const status = isSequentiallyLocked(weeks, index, ownStatus)
+      ? 'locked_future'
+      : ownStatus;
     return {
       id,
       title: `هفته ${index + 1}`,
-      status: mapWeekStatus(week),
+      status,
       score: completed && typeof week.score === 'number' ? week.score : null,
       text: latest?.text ?? '',
       files: latest?.files ?? [],

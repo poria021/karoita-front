@@ -20,21 +20,22 @@ type SessionVisual = {
   icon: (typeof faIcons)[keyof typeof faIcons];
 };
 
-// طبق تصمیم بک‌اند، هفته‌ها همیشه باز هستند و دیگر وضعیت «هنوز شروع نشده»
-// (locked_future) یا «منقضی شده» (overdue) از سرور برنمی‌گردد؛ کارت/راهنمای
-// مربوط به این دو حالت فعلاً کامنت شده تا در UI نمایش داده نشوند.
+// locked_future الان سمت کلاینت و بر اساس قفل ترتیبی (ارسال‌نشدنِ گزارش هفتهٔ
+// قبل) محاسبه می‌شود — ببین isSequentiallyLocked در weekly-sessions.ts. قفل
+// زمانیِ قبلی (تقویم آموزشی) طبق تصمیم بک‌اند غیرفعال ماند؛ overdue هم هنوز از
+// سرور برنمی‌گردد، برای همین کامنت باقی می‌ماند.
 const SESSION_VISUALS: Partial<
   Record<InternshipWeeklySessionState, SessionVisual>
 > = {
-  // locked_future: {
-  //   label: 'قفل',
-  //   legendLabel: 'قفل',
-  //   className:
-  //     'border-kv-border bg-kv-surface-muted text-kv-text-faint shadow-none opacity-70',
-  //   hoverClassName:
-  //     'cursor-not-allowed enabled:hover:bg-inherit enabled:hover:text-inherit',
-  //   icon: faIcons.lock,
-  // },
+  locked_future: {
+    label: 'هنوز باز نشده',
+    legendLabel: 'هنوز باز نشده',
+    className:
+      'border-kv-border bg-kv-surface-muted text-kv-text-faint shadow-none opacity-70',
+    hoverClassName:
+      'cursor-not-allowed enabled:hover:bg-inherit enabled:hover:text-inherit',
+    icon: faIcons.lock,
+  },
   // overdue: {
   //   label: 'منقضی شده',
   //   legendLabel: 'منقضی شده',
@@ -146,8 +147,8 @@ export function InternshipWeeklyGrid({
       <div className="grid grid-cols-2 gap-kv-inline sm:grid-cols-4">
         {weeks.map((week, index) => {
           const status = effectiveWeeklySessionState(week, enrollmentStatus);
-          // locked_future/overdue دیگر از سرور نمی‌آید؛ در صورت بروز، به‌جای
-          // کرش، ظاهر پیش‌فرض (draft) نمایش داده می‌شود.
+          // overdue دیگر از سرور نمی‌آید؛ در صورت بروز، به‌جای کرش، ظاهر
+          // پیش‌فرض (draft) نمایش داده می‌شود.
           const visual = SESSION_VISUALS[status] ?? SESSION_VISUALS.draft!;
           const hasScore = status === 'graded' && week.score != null;
           const score = hasScore ? week.score : null;
@@ -163,9 +164,9 @@ export function InternshipWeeklyGrid({
               size="md"
               className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-control border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName}`}
               aria-label={`نمایش گزارش هفته ${toPersianDigits(index + 1)}`}
-              // disabled={status === 'locked_future'} — قفل زمانی هفته غیرفعال شد
+              disabled={status === 'locked_future'}
               onClick={() => {
-                // if (status === 'locked_future') return; — قفل زمانی هفته غیرفعال شد
+                if (status === 'locked_future') return;
                 onWeekSelect?.(week);
               }}
             >
