@@ -3,6 +3,7 @@
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { useUserStore } from '@/store/useUserStore';
 
 import { DAILY_APPROVALS_BULK_EXTEND_ENABLED } from '../constants';
@@ -23,6 +24,7 @@ import { DailyApprovalWeekGradingModal } from './DailyApprovalWeekGradingModal';
 
 export function DailyApprovalsPageClient() {
   const page = useDailyApprovalsPage();
+  useRegisterPageRefresh(page.reload);
   const role = useUserStore((state) => state.activeUser?.role);
   const canDrop = canDropDailyApprovalTrainee(role);
   const canBulkExtend =

@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { AuthTransitionPaintRelease } from '@/components/shared/shell/AuthTransitionPaintRelease';
 import { DashboardFooter } from '@/components/shared/shell/DashboardFooter';
 import { ModulePageHeader } from '@/components/shared/shell/ModulePageHeader';
+import { PageRefreshProvider } from '@/components/shared/shell/PageRefreshContext';
 import { PullToRefresh } from '@/components/shared/shell/PullToRefresh';
 import { DASHBOARD_MAIN_ID } from '@/components/shared/shell/SkipToMainContent';
 import { cn } from '@/lib/utils';
@@ -28,10 +29,12 @@ export function DashboardMainViewport({
           className
         )}
       >
-        <ModulePageHeader />
-        <div className="flex min-h-0 w-full flex-1 flex-col pt-kv-pair">
-          {children}
-        </div>
+        <PageRefreshProvider>
+          <ModulePageHeader />
+          <div className="flex min-h-0 w-full flex-1 flex-col pt-kv-pair">
+            {children}
+          </div>
+        </PageRefreshProvider>
         <DashboardFooter />
         <AuthTransitionPaintRelease when="entering" />
       </main>

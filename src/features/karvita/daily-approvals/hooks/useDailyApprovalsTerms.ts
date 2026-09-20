@@ -44,6 +44,10 @@ export function useDailyApprovalsTerms({
     });
   }, [setTermId, termsQuery.data, termsQuery.isSuccess]);
 
+  const refetchTerms = async () => {
+    await Promise.all([termsQuery.refetch(), passingQuery.refetch()]);
+  };
+
   return {
     terms,
     termsReady,
@@ -56,6 +60,7 @@ export function useDailyApprovalsTerms({
       typeof passingQuery.data === 'number' && Number.isFinite(passingQuery.data)
         ? passingQuery.data
         : DAILY_APPROVAL_PASSING_SCORE,
+    refetchTerms,
   };
 }
 

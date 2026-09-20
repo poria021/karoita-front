@@ -51,7 +51,20 @@ function statusForWeek(index: number): InternshipWeeklySessionState {
     'extended',
     'overdue',
   ];
-  return seededStates[index] ?? 'locked_future';
+  return seededStates[index] ?? 'draft';
+}
+
+function hasStudentSubmittedWeek(status: InternshipWeeklySessionState): boolean {
+  return status === 'approved' || status === 'pending' || status === 'needs_edit' || status === 'extended' || status === 'graded';
+}
+
+function isSequentiallyLocked(
+  statuses: InternshipWeeklySessionState[],
+  index: number,
+  ownStatus: InternshipWeeklySessionState
+): boolean {
+  if (index === 0 || ownStatus !== 'draft') return false;
+  return !hasStudentSubmittedWeek(statuses[index - 1]);
 }
 
 function weekReportKey(input: {
@@ -119,10 +132,35 @@ export function buildWeeklySessions(input: {
         }));
 
   const snapshot = readSnapshot();
+  const reports = snapshot.weekReports ?? {};
 
+  // First pass: calculate base statuses (seeded or from overrides)
+  const baseStatuses: InternshipWeeklySessionState[] = weeks.map(
+    (week, index) => {
+      if (week.status === 'archived') return 'archived';
+      const reportKey = weekReportKey({
+        userId: input.userId,
+        termId: input.termId,
+        kind: input.kind,
+        level: input.level,
+        weekId: week.id,
+      });
+      const override = reportKey in reports ? reports[reportKey] : undefined;
+      return override?.status ?? statusForWeek(index);
+    }
+  );
+
+  // Second pass: apply sequential locking based on actual base statuses
   return weeks.map((week, index) => {
-    const seededStatus: InternshipWeeklySessionState =
-      week.status === 'archived' ? 'archived' : statusForWeek(index);
+    const seededStatus: InternshipWeeklySessionState = statusForWeek(index);
+    const baseStatus: InternshipWeeklySessionState = baseStatuses[index];
+    const status: InternshipWeeklySessionState = isSequentiallyLocked(
+      baseStatuses,
+      index,
+      baseStatus
+    )
+      ? 'locked_future'
+      : baseStatus;
     const reportKey = weekReportKey({
       userId: input.userId,
       termId: input.termId,
@@ -130,10 +168,7 @@ export function buildWeeklySessions(input: {
       level: input.level,
       weekId: week.id,
     });
-    const reports = snapshot.weekReports ?? {};
     const override = reportKey in reports ? reports[reportKey] : undefined;
-    const status: InternshipWeeklySessionState =
-      override?.status ?? seededStatus;
     const feedback = override?.feedback ?? seededFeedbackForStatus(status);
     const text = override?.text ?? seededTextForStatus(status);
     const files = override?.files ?? [];

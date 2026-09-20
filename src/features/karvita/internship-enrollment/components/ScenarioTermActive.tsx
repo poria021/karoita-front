@@ -322,7 +322,7 @@ export function ScenarioTermActive({
                 toast.message('دریافت فایل PDF در نسخهٔ فعلی در دسترس نیست.')
               }
             >
-              دانلود کارنامه (PDF)
+              دانلود کارنامه
             </KvButton>
             {karnamehBox}
           </div>
