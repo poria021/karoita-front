@@ -1,8 +1,33 @@
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { weekTemplateId } from '@/services/internship-enrollment/real/mappers/weekly-sessions';
-import type { NestMessage } from '@/types/nest-conversations';
+import type { NestConversation, NestMessage } from '@/types/nest-conversations';
 import type { NestStudentWeek } from '@/types/nest-student-enrollments';
+
+/**
+ * دو یا چند فراخوانِ هم‌زمان `findWeekConversationId` برای همان
+ * `enrollmentId` (مثلاً `loadWeekDetail` + `openWeek` که با باز شدن مودال
+ * نمره‌دهی پشت‌سرهم صدا زده می‌شوند) نباید هرکدام جدا `GET conversations` و
+ * `GET weeks` بزنند. این کش فقط درخواستِ در-حالِ-پرواز را به فراخوان‌های
+ * هم‌زمان بعدی می‌دهد؛ به‌محض settle شدن (موفق یا خطا) از کش پاک می‌شود، پس
+ * هیچ دادهٔ بیات/کهنه‌ای برای فراخوان‌های بعدیِ غیرهم‌زمان سرو نمی‌شود.
+ */
+function dedupeInFlight<T>(
+  cache: Map<string, Promise<T>>,
+  key: string,
+  load: () => Promise<T>
+): Promise<T> {
+  const existing = cache.get(key);
+  if (existing) return existing;
+  const promise = load().finally(() => {
+    cache.delete(key);
+  });
+  cache.set(key, promise);
+  return promise;
+}
+
+const inFlightConversationsByEnrollment = new Map<string, Promise<NestConversation[]>>();
+const inFlightWeeksByEnrollment = new Map<string, Promise<NestStudentWeek[]>>();
 
 /**
  * گفتگوی مختص این هفته را پیدا می‌کند. Swagger برای `conversations` هیچ
@@ -27,8 +52,14 @@ export async function findWeekConversationId(
   knownWeeks?: readonly NestStudentWeek[]
 ): Promise<string> {
   const [conversations, weeks] = await Promise.all([
-    conversationsApi.listByEnrollment(enrollmentId),
-    knownWeeks ? Promise.resolve(knownWeeks) : studentEnrollmentsApi.listWeeks(enrollmentId),
+    dedupeInFlight(inFlightConversationsByEnrollment, enrollmentId, () =>
+      conversationsApi.listByEnrollment(enrollmentId)
+    ),
+    knownWeeks
+      ? Promise.resolve(knownWeeks)
+      : dedupeInFlight(inFlightWeeksByEnrollment, enrollmentId, () =>
+          studentEnrollmentsApi.listWeeks(enrollmentId)
+        ),
   ]);
 
   const week = weeks.find((w) => (w.id ?? w._id) === studentWeekId);

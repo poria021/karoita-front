@@ -12,7 +12,7 @@ type ScheduleWeekGradingSaveArgs<T> = {
   message: string;
   setGradingTarget: (next: DailyApprovalGradingTarget | null) => void;
   commit: (target: DailyApprovalGradingTarget) => Promise<T>;
-  onCommitted: () => Promise<void>;
+  onCommitted: (target: DailyApprovalGradingTarget) => Promise<void>;
 };
 
 /**
@@ -37,7 +37,7 @@ export function scheduleWeekGradingSave<T>({
       setGradingTarget(target);
     },
     commit: () => commit(target),
-    onCommitted,
+    onCommitted: () => onCommitted(target),
     onError: (error) => {
       if (error instanceof Error && error.message) {
         toast.error(error.message);

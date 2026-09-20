@@ -76,6 +76,34 @@ export function useDailyApprovalsActions({
         }
       : gradingWeekRaw;
 
+  // بعد از باز کردن/نمره‌دادن یک هفته، به‌جای `list.reload()` (که در real mode
+  // کل صفحهٔ جاری را دوباره می‌خواند — ۳ درخواست به‌ازای هر فراگیرِ نمایش
+  // داده‌شده) فقط همان یک فراگیر را دوباره می‌خوانیم و در کش لیست پچ می‌کنیم.
+  // mock mode چون local/بی‌هزینه است و mutationها همین الان state را عوض
+  // کرده‌اند، رفتار قبلی (`list.reload()`) را نگه می‌داریم.
+  const refreshTraineeDerived = useCallback(
+    async (traineeId: string, status: DailyApprovalTrainee['status']) => {
+      if (!isRealApiMode()) {
+        await list.reload();
+        return;
+      }
+      try {
+        const derived = await DailyApprovalsService.refreshTraineeDerived({
+          traineeId,
+          status,
+        });
+        list.patchItems((prev) =>
+          prev.map((row) => (row.id === traineeId ? { ...row, ...derived } : row))
+        );
+      } catch {
+        // best-effort — اگر رفرشِ سبکِ این یک ردیف خطا بدهد، UI با آخرین
+        // state (optimistic/قبلی) می‌ماند؛ toast جدا نمی‌زنیم چون خودِ
+        // mutation (باز کردن هفته/ثبت نمره) already موفق بوده.
+      }
+    },
+    [list]
+  );
+
   const clearSelection = useCallback(() => {
     setSelectedTraineeId(null);
     setGradingTarget(null);
@@ -140,14 +168,13 @@ export function useDailyApprovalsActions({
         setActionBusy(false);
       }
 
-      // رفرش unreadCount/وضعیت جدول در پس‌زمینه — مودال (و loading state آن
-      // که به actionBusy وصل است) منتظرش نمی‌ماند. این رفرش کل صفحه (هر
-      // فراگیر × چند درخواست) را دوباره می‌خواند، پس نباید باز شدن مودال یک
-      // فراگیر را بلاک کند؛ قبلاً همین `await list.reload()` باعث می‌شد
-      // مودال تا پایان رفرش کل لیست در حالت loading/غیرقابل‌بستن بماند.
-      void list.reload();
+      // رفرش unreadCount/وضعیت این فراگیر در پس‌زمینه — مودال (و loading
+      // state آن که به actionBusy وصل است) منتظرش نمی‌ماند؛ قبلاً همین
+      // `await list.reload()` باعث می‌شد مودال تا پایان رفرش کل لیست در حالت
+      // loading/غیرقابل‌بستن بماند.
+      void refreshTraineeDerived(trainee.id, trainee.status);
     },
-    [list, role]
+    [refreshTraineeDerived, role]
   );
 
   const dropTrainee = useCallback(
@@ -204,9 +231,11 @@ export function useDailyApprovalsActions({
             setActionBusy(false);
           }
         },
-        onCommitted: async () => {
-          await list.reload();
-        },
+        // onCommitted عمداً حذف رفرش ندارد — patchItems بالا در `apply` از قبل
+        // ردیف را حذف و total را کم کرده؛ حذف موفق چیز دیگری برای رفرش کردن
+        // در بقیهٔ صفحه ندارد، پس `list.reload()` اینجا فقط ۳×N درخواستِ
+        // بی‌فایده بود. «لغو» (`onUndone`) همچنان reload می‌زند چون بعد از
+        // احیای فراگیر داده‌های واقعی (هفته‌ها/گفتگوها) باید از سرور بیایند.
         onUndone: () => {
           void list.reload();
         },
@@ -242,12 +271,15 @@ export function useDailyApprovalsActions({
             setActionBusy(false);
           }
         },
-        onCommitted: async () => {
-          await list.reload();
+        onCommitted: async (target) => {
+          await refreshTraineeDerived(
+            target.traineeId,
+            gradingTrainee?.status ?? 'active'
+          );
         },
       });
     },
-    [gradingTarget, list]
+    [gradingTarget, gradingTrainee, refreshTraineeDerived]
   );
 
   const saveMentorWeek = useCallback(
@@ -273,12 +305,15 @@ export function useDailyApprovalsActions({
             setActionBusy(false);
           }
         },
-        onCommitted: async () => {
-          await list.reload();
+        onCommitted: async (target) => {
+          await refreshTraineeDerived(
+            target.traineeId,
+            gradingTrainee?.status ?? 'active'
+          );
         },
       });
     },
-    [gradingTarget, list]
+    [gradingTarget, gradingTrainee, refreshTraineeDerived]
   );
 
   const savePrincipalWeek = useCallback(
@@ -303,12 +338,15 @@ export function useDailyApprovalsActions({
             setActionBusy(false);
           }
         },
-        onCommitted: async () => {
-          await list.reload();
+        onCommitted: async (target) => {
+          await refreshTraineeDerived(
+            target.traineeId,
+            gradingTrainee?.status ?? 'active'
+          );
         },
       });
     },
-    [gradingTarget, list]
+    [gradingTarget, gradingTrainee, refreshTraineeDerived]
   );
 
   const openBulkExtend = useCallback(() => {

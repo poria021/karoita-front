@@ -201,6 +201,51 @@ function sumUnreadCount(conversations: readonly NestConversation[]): number {
   return conversations.reduce((sum, c) => sum + (c.unreadCount ?? 0), 0);
 }
 
+export type DailyApprovalTraineeDerived = Pick<
+  DailyApprovalTrainee,
+  'weeks' | 'hasSubmitted' | 'unreadCount' | 'progressiveGrade'
+>;
+
+/**
+ * هفته‌ها/unreadCount/نمرهٔ پیش‌رونده یک فراگیر را می‌خواند — منطق مشترکِ
+ * `listRealDailyApprovals` (برای همهٔ ردیف‌های یک صفحه) و
+ * `refreshRealDailyApprovalTraineeDerived` (برای پچ محلیِ فقط یک ردیف بعد از
+ * یک mutation، بدون رفرشِ کل صفحه).
+ */
+async function deriveDailyApprovalTraineeFields(
+  enrollmentId: string,
+  status: DailyApprovalTraineeStatus,
+  passingScoreThreshold: number
+): Promise<DailyApprovalTraineeDerived> {
+  const [conversations, weeks, scoreSummary] = await Promise.all([
+    loadRealEnrollmentConversations(enrollmentId),
+    loadRealDailyApprovalWeeks(enrollmentId),
+    loadRealDailyApprovalScoreSummary(enrollmentId),
+  ]);
+
+  const hasSubmitted = computeHasSubmitted(weeks);
+  let progressiveGrade = buildDailyApprovalProgressiveGradeFromSummary(
+    scoreSummary,
+    status,
+    passingScoreThreshold
+  );
+  if (status !== 'dropped' && hasSubmitted && progressiveGrade.gradedCount === 0) {
+    progressiveGrade = { ...progressiveGrade, statusLabel: 'در جریان' };
+  }
+
+  return {
+    weeks,
+    hasSubmitted,
+    unreadCount: sumUnreadCount(conversations),
+    progressiveGrade,
+  };
+}
+
+async function resolvePassingScoreThreshold(): Promise<number> {
+  const settings = await getRealAcademicSettings();
+  return settings.passingScoreThreshold || DAILY_APPROVAL_PASSING_SCORE;
+}
+
 /**
  * GET `/api/v1/student-enrollments/mentor/students`
  * لیست فراگیران منتور برای ماژول ارزیابی گزارش‌ها.
@@ -236,9 +281,7 @@ export async function listRealDailyApprovals(
         // بدون کاتالوگ ادامه می‌دهیم؛ courseTitle خالی می‌ماند
       }
     })(),
-    getRealAcademicSettings().then(
-      (settings) => settings.passingScoreThreshold || DAILY_APPROVAL_PASSING_SCORE
-    ),
+    resolvePassingScoreThreshold(),
   ]);
 
   const page =
@@ -272,44 +315,18 @@ export async function listRealDailyApprovals(
     trainees = trainees.filter((t) => t.status === 'active');
   }
 
-  // بعد از فیلترها — گفتگوها/هفته‌ها و unreadCount را فقط برای ردیف‌هایی که
-  // واقعاً نمایش داده می‌شوند می‌خوانیم؛ گفتگوهای هر فراگیر برای unreadCount
-  // یک‌بار خوانده می‌شود.
-  const conversationsByTrainee = await Promise.all(
-    trainees.map((t) => loadRealEnrollmentConversations(t.id))
+  // بعد از فیلترها — گفتگوها/هفته‌ها و نمره را فقط برای ردیف‌هایی که واقعاً
+  // نمایش داده می‌شوند می‌خوانیم؛ منطق مشترک با `refreshRealDailyApprovalTraineeDerived`
+  // (پچ محلی فقط یک ردیف بعد از mutation، بدون این رفت‌وبرگشتِ کامل صفحه).
+  const derivedByTrainee = await Promise.all(
+    trainees.map((t) =>
+      deriveDailyApprovalTraineeFields(t.id, t.status, passingScoreThreshold)
+    )
   );
-  const weeksByTrainee = await Promise.all(
-    trainees.map((t) => loadRealDailyApprovalWeeks(t.id))
-  );
-  const scoreSummaryByTrainee = await Promise.all(
-    trainees.map((t) => loadRealDailyApprovalScoreSummary(t.id))
-  );
-  const unreadByTrainee = conversationsByTrainee.map((conversations) =>
-    sumUnreadCount(conversations)
-  );
-  // نمرهٔ پیش‌رونده از `score-summary` بک‌اند می‌آید (همان منبعی که داشبورد
-  // دانشجو استفاده می‌کند) — نه از میانگین‌گیری سمت کلاینت روی هفته‌ها، تا
-  // عدد نمایش‌داده‌شده به استاد و دانشجو یکی باشد؛ hasSubmitted/unreadCount
-  // همچنان از هفته‌ها/گفتگوهای واقعی مشتق می‌شوند.
-  trainees = trainees.map((t, index) => {
-    const weeks = weeksByTrainee[index];
-    const hasSubmitted = computeHasSubmitted(weeks);
-    let progressiveGrade = buildDailyApprovalProgressiveGradeFromSummary(
-      scoreSummaryByTrainee[index],
-      t.status,
-      passingScoreThreshold
-    );
-    if (t.status !== 'dropped' && hasSubmitted && progressiveGrade.gradedCount === 0) {
-      progressiveGrade = { ...progressiveGrade, statusLabel: 'در جریان' };
-    }
-    return {
-      ...t,
-      weeks,
-      hasSubmitted,
-      unreadCount: unreadByTrainee[index],
-      progressiveGrade,
-    };
-  });
+  trainees = trainees.map((t, index) => ({
+    ...t,
+    ...derivedByTrainee[index],
+  }));
 
   const base = input.offset + trainees.length;
   return {
@@ -318,6 +335,25 @@ export async function listRealDailyApprovals(
     hasMore: result.hasNextPage,
     terms: [],
   };
+}
+
+/**
+ * هفته‌ها/unreadCount/نمرهٔ پیش‌رونده *فقط یک* فراگیر را دوباره می‌خواند (۳
+ * درخواست) — برای پچ محلیِ همان یک ردیف در `list.items` بعد از یک mutation
+ * (باز کردن هفته، ثبت نمره/بازخورد)، به‌جای `listRealDailyApprovals` کامل که
+ * برای *همهٔ* فراگیرانِ صفحهٔ جاری ۳ درخواست به‌ازای هر نفر می‌زند.
+ */
+export async function refreshRealDailyApprovalTraineeDerived(
+  enrollmentId: string,
+  status: DailyApprovalTraineeStatus
+): Promise<DailyApprovalTraineeDerived> {
+  requireNestTransport('DailyApprovalsService.refreshTraineeDerived');
+  const passingScoreThreshold = await resolvePassingScoreThreshold();
+  return deriveDailyApprovalTraineeFields(
+    enrollmentId,
+    status,
+    passingScoreThreshold
+  );
 }
 
 /**

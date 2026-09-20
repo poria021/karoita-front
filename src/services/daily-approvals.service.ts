@@ -31,6 +31,8 @@ import {
   getRealDailyApprovalsMentorCapacity,
   listRealDailyApprovals,
   loadRealDailyApprovalWeekDetail,
+  refreshRealDailyApprovalTraineeDerived,
+  type DailyApprovalTraineeDerived,
 } from '@/services/daily-approvals/real/real-daily-approvals-reads';
 import {
   getRealAcademicSettings,
@@ -51,6 +53,7 @@ import type {
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
   DailyApprovalTrainee,
+  DailyApprovalTraineeStatus,
   DailyApprovalWeekDetail,
   DailyApprovalWeekOption,
   DropDailyApprovalTraineeInput,
@@ -234,6 +237,19 @@ export const DailyApprovalsService = {
       role: input.role,
       teacherId: input.teacherId,
     });
+  },
+
+  /**
+   * فقط real — هفته‌ها/unreadCount/نمرهٔ پیش‌رونده *فقط یک* فراگیر را دوباره
+   * می‌خواند (۳ درخواست) تا فراخوان بتواند بعد از یک mutation فقط همان یک
+   * ردیف را در کشِ لیست پچ کند، به‌جای `listPage` کامل برای کل صفحه — ببین
+   * `refreshTraineeDerived` در `useDailyApprovalsActions`.
+   */
+  async refreshTraineeDerived(input: {
+    traineeId: string;
+    status: DailyApprovalTraineeStatus;
+  }): Promise<DailyApprovalTraineeDerived> {
+    return refreshRealDailyApprovalTraineeDerived(input.traineeId, input.status);
   },
 
   /**

@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { listRealDailyApprovals, loadRealDailyApprovalWeekDetail } from './real-daily-approvals-reads';
+import {
+  listRealDailyApprovals,
+  loadRealDailyApprovalWeekDetail,
+  refreshRealDailyApprovalTraineeDerived,
+} from './real-daily-approvals-reads';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
@@ -190,6 +194,67 @@ describe('listRealDailyApprovals', () => {
 
     expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledTimes(1);
     expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledWith('e1');
+  });
+});
+
+describe('refreshRealDailyApprovalTraineeDerived', () => {
+  beforeEach(() => {
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockReset();
+    vi.mocked(studentEnrollmentsApi.getScoreSummary).mockReset().mockResolvedValue(null);
+    vi.mocked(conversationsApi.listByEnrollment).mockReset().mockResolvedValue([]);
+    vi.mocked(getRealAcademicSettings)
+      .mockReset()
+      .mockResolvedValue({ globalProfessorCapacity: 30, passingScoreThreshold: 70 });
+  });
+
+  it('re-reads only the one trainee (weeks + conversations + score-summary), not the whole mentor list', async () => {
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([
+      { id: 'w1', status: 'completed', mentorStatus: 'send', score: 90 },
+    ]);
+    vi.mocked(conversationsApi.listByEnrollment).mockResolvedValue([
+      { unreadCount: 2 } as never,
+    ]);
+    vi.mocked(studentEnrollmentsApi.getScoreSummary).mockResolvedValue({
+      totalScore: 90,
+      scoredWeeks: 1,
+      totalWeeks: 1,
+      maximumScore: 100,
+    });
+
+    const derived = await refreshRealDailyApprovalTraineeDerived('e1', 'active');
+
+    expect(studentEnrollmentsApi.listMentorStudents).not.toHaveBeenCalled();
+    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledTimes(1);
+    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledWith('e1');
+    expect(conversationsApi.listByEnrollment).toHaveBeenCalledTimes(1);
+    expect(conversationsApi.listByEnrollment).toHaveBeenCalledWith('e1');
+    expect(studentEnrollmentsApi.getScoreSummary).toHaveBeenCalledTimes(1);
+    expect(studentEnrollmentsApi.getScoreSummary).toHaveBeenCalledWith('e1');
+    expect(derived.weeks).toHaveLength(1);
+    expect(derived.unreadCount).toBe(2);
+    expect(derived.progressiveGrade.gradedCount).toBe(1);
+  });
+
+  it('matches listRealDailyApprovals for the same trainee (same derivation, single vs. batch)', async () => {
+    vi.mocked(studentEnrollmentsApi.listMentorStudents).mockReset().mockResolvedValue({
+      data: [{ id: 'e1', studentId: 's1', status: 'active' }],
+      hasNextPage: false,
+    });
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([
+      { id: 'w1', status: 'in_progress', studentStatus: 'send', submittedAt: '2026-01-01T00:00:00.000Z' },
+    ]);
+
+    const page = await listRealDailyApprovals(baseInput);
+    const fromList = page.items.find((t) => t.id === 'e1');
+
+    const derived = await refreshRealDailyApprovalTraineeDerived('e1', 'active');
+
+    expect(derived).toEqual({
+      weeks: fromList?.weeks,
+      hasSubmitted: fromList?.hasSubmitted,
+      unreadCount: fromList?.unreadCount,
+      progressiveGrade: fromList?.progressiveGrade,
+    });
   });
 });
 

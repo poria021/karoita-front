@@ -107,6 +107,26 @@ describe('findWeekConversationId', () => {
     expect(id).toBe('conv-week-2');
     expect(studentEnrollmentsApi.listWeeks).not.toHaveBeenCalled();
   });
+
+  it('dedupes concurrent calls for the same enrollment into a single GET conversations + GET weeks', async () => {
+    // مثل باز کردن مودال نمره‌دهی: `loadWeekDetail` و `openWeek` تقریباً
+    // هم‌زمان برای همان enrollment این تابع را صدا می‌زنند.
+    const [id1, id2] = await Promise.all([
+      findWeekConversationId('enr-1', 'sw-week-1'),
+      findWeekConversationId('enr-1', 'sw-week-2'),
+    ]);
+    expect(id1).toBe('conv-week-1');
+    expect(id2).toBe('conv-week-2');
+    expect(conversationsApi.listByEnrollment).toHaveBeenCalledTimes(1);
+    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not dedupe two genuinely separate (non-overlapping) calls', async () => {
+    await findWeekConversationId('enr-1', 'sw-week-1');
+    await findWeekConversationId('enr-1', 'sw-week-2');
+    expect(conversationsApi.listByEnrollment).toHaveBeenCalledTimes(2);
+    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('loadWeekConversationMessages', () => {
