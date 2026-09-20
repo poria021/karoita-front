@@ -138,4 +138,50 @@ describe('writeRealAuthTokens — set-tokens persistence', () => {
     expect(readRealAccessToken()).toBeNull();
     expect(document.cookie).not.toContain(`${AUTH_COOKIE_NAME}=1`);
   }, 10_000);
+
+  it('does not clear a newer session when an older, superseded write later fails', async () => {
+    const OLD_TOKENS: NestLoginTokens = {
+      token: 'old-access',
+      refreshToken: 'old-refresh',
+      tokenExpires: Date.now() + 15 * 60 * 1000,
+    };
+    const NEW_TOKENS: NestLoginTokens = {
+      token: 'new-access',
+      refreshToken: 'new-refresh',
+      tokenExpires: Date.now() + 15 * 60 * 1000,
+    };
+
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes('/api/auth/set-tokens')) {
+        const body = JSON.parse(String(init?.body)) as { refreshToken: string };
+        // شبیه‌سازی رفرش پس‌زمینه‌ای که همیشه fail می‌شود (شبکه قطع)، درحالی‌که
+        // لاگین/OTP جدید (توکن دیگر) بی‌درنگ موفق می‌شود.
+        if (body.refreshToken === OLD_TOKENS.refreshToken) {
+          throw new TypeError('network down');
+        }
+        return fakeResponse(true);
+      }
+      return fakeResponse(true); // clear-tokens، اگر صدا زده شود
+    });
+
+    // رفرش قدیمی شروع می‌شود ولی هنوز await نمی‌شود — اولین تلاشش pending می‌ماند.
+    const staleWrite = writeRealAuthTokens(OLD_TOKENS, 'user');
+
+    // بلافاصله یک سشن جدید (لاگین/OTP دیگر) موفق ثبت می‌شود.
+    await writeRealAuthTokens(NEW_TOKENS, 'user');
+    expect(readRealAccessToken()).toBe(NEW_TOKENS.token);
+
+    // حالا رفرش قدیمی بعد از تمام تلاش‌ها fail می‌شود.
+    await expect(staleWrite).rejects.toThrow('ورود کامل نشد');
+
+    // سشن جدید نباید پاک شده باشد.
+    expect(readRealAccessToken()).toBe(NEW_TOKENS.token);
+    expect(document.cookie).toContain(`${AUTH_COOKIE_NAME}=1`);
+
+    const clearTokenCalls = fetchMock.mock.calls.filter(([input]) =>
+      String(input).includes('/api/auth/clear-tokens')
+    );
+    expect(clearTokenCalls).toHaveLength(0);
+  }, 10_000);
 });

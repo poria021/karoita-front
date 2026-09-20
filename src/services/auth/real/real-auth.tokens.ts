@@ -23,6 +23,9 @@ interface MemoryTokens {
 }
 
 let _mem: MemoryTokens | null = null;
+// شمارندهٔ نسل هر نوشتن — برای تشخیص اینکه آیا یک `writeRealAuthTokens` دیگر
+// (رفرش پس‌زمینه/لاگین جدید) بین شروع و شکستِ این فراخوانی، سشن را عوض کرده.
+let _writeGeneration = 0;
 
 /** اگر Nest `tokenExpires` را epoch-ثانیه بدهد، توکن همیشه منقضی دیده می‌شود — JWT `exp` رایج است. */
 function warnIfTokenExpiresLooksLikeSeconds(tokenExpires: number): void {
@@ -160,6 +163,7 @@ export async function writeRealAuthTokens(
   surface: AuthSurface,
 ): Promise<void> {
   warnIfTokenExpiresLooksLikeSeconds(tokens.tokenExpires);
+  const generation = ++_writeGeneration;
   _mem = {
     token: tokens.token,
     refreshToken: tokens.refreshToken,
@@ -173,8 +177,13 @@ export async function writeRealAuthTokens(
     // فقط `karvita_rt` + `karvita_surface` httpOnly؛ access در حافظه می‌ماند
     await persistRefreshTokenInCookie(tokens.refreshToken, surface);
   } catch (error) {
-    // rollback: اگر set-tokens جزئی موفق بود، clear-tokens هم بزن
-    clearRealAuthTokens();
+    // rollback: اگر set-tokens جزئی موفق بود، clear-tokens هم بزن — ولی فقط
+    // اگر در همین فاصله یک writeRealAuthTokens دیگر (رفرش پس‌زمینه/لاگین
+    // جدید) سشن را عوض نکرده باشد؛ وگرنه پاک کردن اینجا سشن معتبر جدید را
+    // (هم حافظه هم کوکی httpOnly سرور) از بین می‌برد، نه سشن خودمان را.
+    if (_writeGeneration === generation) {
+      clearRealAuthTokens();
+    }
     throw error;
   }
 }
