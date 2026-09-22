@@ -53,6 +53,8 @@ export type DailyApprovalWeek = {
   weekNumber: number;
   status: DailyApprovalWeekState;
   score: number | null;
+  /** نمرهٔ وزن‌دار این هفته از Nest (`weightedScore`) — برای نمایش «وزن این هفته» در هدر مودال. */
+  weightedScore?: number | null;
   text: string;
   files: DailyApprovalAttachment[];
   /** زمان (ISO) آخرین ارسال گزارش فراگیر برای این هفته. */

@@ -115,6 +115,8 @@ export type InternshipWeeklySession = {
   title: string;
   status: InternshipWeeklySessionState;
   score: number | null;
+  /** نمرهٔ وزن‌دار این هفته از Nest (`weightedScore`) — برای نمایش «وزن این هفته» در هدر مودال. */
+  weightedScore?: number | null;
   isExtended?: boolean;
   text?: string;
   files?: InternshipWeeklyReportFile[];

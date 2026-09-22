@@ -78,6 +78,8 @@ function buildWeek(
     weekNumber,
     status,
     score: status === 'graded' ? 70 + ((traineeIndex + weekNumber) % 25) : null,
+    weightedScore:
+      status === 'graded' ? 70 + ((traineeIndex + weekNumber) % 25) : null,
     text: submitted
       ? 'در این هفته مشاهده تدریس، تهیه طرح درس و اجرای بخشی از کلاس با تمرکز بر مشارکت فراگیران انجام شد. بازخوردهای دریافت‌شده برای اصلاح زمان‌بندی فعالیت‌ها ثبت شده است.'
       : '',

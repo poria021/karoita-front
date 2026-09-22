@@ -46,20 +46,22 @@ export function computeHasSubmitted(weeks: DailyApprovalWeek[]): boolean {
  * نمرهٔ پیش‌رونده از روی `score-summary` بک‌اند (همان endpoint‌ای که داشبورد
  * دانشجو استفاده می‌کند) — برای مسیر real، به‌جای میانگین‌گیری سمت کلاینت روی
  * هفته‌ها (`computeDailyApprovalProgressiveGrade`)، تا نمرهٔ استاد و دانشجو
- * یک منبع محاسبه داشته باشند.
+ * یک منبع محاسبه داشته باشند. نمرهٔ نهایی مستقیماً از `weightedScore` بک‌اند
+ * خوانده می‌شود — هیچ محاسبه‌ای (تقسیم بر maximumScore و غیره) سمت کلاینت
+ * انجام نمی‌شود.
  */
 export function buildDailyApprovalProgressiveGradeFromSummary(
-  summary: { totalScore: number; scoredWeeks: number; maximumScore: number } | null,
+  summary: { scoredWeeks: number; weightedScore: number } | null,
   traineeStatus: DailyApprovalTrainee['status'],
   passingScoreThreshold: number
 ): DailyApprovalProgressiveGrade {
   if (traineeStatus === 'dropped') {
     return { gradedCount: 0, final20: null, statusLabel: 'حذف' };
   }
-  if (!summary || summary.maximumScore <= 0 || summary.scoredWeeks <= 0) {
+  if (!summary || summary.scoredWeeks <= 0) {
     return { gradedCount: summary?.scoredWeeks ?? 0, final20: null, statusLabel: 'فاقد نمره' };
   }
-  const final20 = Math.round((summary.totalScore / summary.maximumScore) * 20 * 100) / 100;
+  const final20 = summary.weightedScore;
   const thresholdOn20 = (passingScoreThreshold / 100) * 20;
   return {
     gradedCount: summary.scoredWeeks,

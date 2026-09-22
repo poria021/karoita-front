@@ -104,6 +104,7 @@ export function mapRealWeeklySessions(
       title: `هفته ${index + 1}`,
       status,
       score: completed && typeof week.score === 'number' ? week.score : null,
+      weightedScore: typeof week.weightedScore === 'number' ? week.weightedScore : null,
       text: latest?.text ?? '',
       files: latest?.files ?? [],
       reportSubmittedAt: latest?.createdAt ?? null,
@@ -112,13 +113,16 @@ export function mapRealWeeklySessions(
   });
 }
 
-/** GET `/student-enrollments/{id}/score-summary` → نمرهٔ تجمیعی از ۲۰. */
+/**
+ * GET `/student-enrollments/{id}/score-summary` → نمرهٔ تجمیعی از ۲۰.
+ * نمرهٔ نهایی مستقیماً از `weightedScore` بک‌اند خوانده می‌شود — هیچ محاسبه‌ای
+ * (تقسیم بر maximumScore و غیره) سمت کلاینت انجام نمی‌شود.
+ */
 export function mapRealProgressiveGrade(
   summary: NestScoreSummary | null
 ): InternshipProgressiveGrade {
-  if (!summary || summary.maximumScore <= 0 || summary.scoredWeeks <= 0) {
+  if (!summary || summary.scoredWeeks <= 0) {
     return { gradedCount: summary?.scoredWeeks ?? 0, final20: null };
   }
-  const final20 = Math.round((summary.totalScore / summary.maximumScore) * 20 * 100) / 100;
-  return { gradedCount: summary.scoredWeeks, final20 };
+  return { gradedCount: summary.scoredWeeks, final20: summary.weightedScore };
 }

@@ -178,6 +178,7 @@ export function buildWeeklySessions(input: {
       title: week.title || week.suffix || `هفته ${index + 1}`,
       status,
       score: status === 'graded' ? 92 : null,
+      weightedScore: status === 'graded' ? 92 * week.weight : null,
       isExtended: status === 'extended' || seededStatus === 'extended',
       text,
       files,

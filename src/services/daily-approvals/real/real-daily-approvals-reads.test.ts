@@ -112,6 +112,7 @@ describe('listRealDailyApprovals', () => {
       scoredWeeks: 2,
       totalWeeks: 2,
       maximumScore: 200,
+      weightedScore: 17,
     });
 
     const page = await listRealDailyApprovals(baseInput);
@@ -219,6 +220,7 @@ describe('refreshRealDailyApprovalTraineeDerived', () => {
       scoredWeeks: 1,
       totalWeeks: 1,
       maximumScore: 100,
+      weightedScore: 18,
     });
 
     const derived = await refreshRealDailyApprovalTraineeDerived('e1', 'active');

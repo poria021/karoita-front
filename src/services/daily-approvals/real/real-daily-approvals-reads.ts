@@ -136,6 +136,7 @@ function mapDailyApprovalWeek(week: NestStudentWeek, index: number): DailyApprov
     weekNumber: index + 1,
     status: mapWeekStatus(week),
     score: completed && typeof week.score === 'number' ? week.score : null,
+    weightedScore: typeof week.weightedScore === 'number' ? week.weightedScore : null,
     text: '',
     files: [],
     feedback: {},

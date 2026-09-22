@@ -203,6 +203,8 @@ export type NestStudentWeek = {
   schoolAdminStatus?: 'send' | null;
   studentStatus?: 'send' | null;
   score?: number | null;
+  /** نمرهٔ وزن‌دار این هفته (نمره × وزن هفته) — تنها فیلد وزن که Nest برمی‌گرداند. */
+  weightedScore?: number | null;
   scoreGivenBy?: string | null;
   scoreGivenAt?: string | null;
   startedAt?: string | null;
@@ -216,6 +218,8 @@ export type NestScoreSummary = {
   scoredWeeks: number;
   totalWeeks: number;
   maximumScore: number;
+  /** نمرهٔ نهایی از ۲۰ — همین‌طور مستقیم نمایش داده می‌شود، سمت کلاینت حساب نمی‌شود. */
+  weightedScore: number;
 };
 
 /** ردیف GET/POST `/student-weeks/{id}/submissions`. */

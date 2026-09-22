@@ -157,6 +157,11 @@ export function WeeklyReportModal({
           <KvDialogDescription className="sr-only">
             ویرایش یا مشاهده گزارش هفتگی کارورزی
           </KvDialogDescription>
+          {typeof effectiveWeek.weightedScore === 'number' ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              وزن این هفته: {effectiveWeek.weightedScore}
+            </KvTypography>
+          ) : null}
         </KvDialogHeader>
 
         <KvScrollArea className="max-h-[min(70vh,560px)] overflow-y-auto pe-kv-micro [direction:ltr]">

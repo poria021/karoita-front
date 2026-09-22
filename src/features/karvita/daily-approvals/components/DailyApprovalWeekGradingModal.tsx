@@ -213,6 +213,11 @@ export function DailyApprovalWeekGradingModal({
         <KvDialogHeader>
           <KvDialogTitle>{modal.title}</KvDialogTitle>
           <KvDialogDescription>{modal.subtitle}</KvDialogDescription>
+          {typeof effectiveWeek.weightedScore === 'number' ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              وزن این هفته: {effectiveWeek.weightedScore}
+            </KvTypography>
+          ) : null}
         </KvDialogHeader>
 
         <KvScrollArea className="-mx-kv-stack max-h-[min(70vh,560px)] overflow-y-auto px-kv-stack [direction:ltr] sm:-mx-kv-section sm:px-kv-section">
