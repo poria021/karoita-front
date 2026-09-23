@@ -13,10 +13,12 @@ import { usersApi } from '@/services/users/users.api';
 import type {
   ListOnboardingApprovalsFilters,
   ListOnboardingApprovalsPage,
+  OnboardingApprovalProvince,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
 import {
   DEFAULT_PAGE_LIMIT,
+  estimateHasNextPageTotal,
   sliceOffsetLimitPage,
 } from '@/utils/offset-limit-page';
 
@@ -53,10 +55,16 @@ export const OnboardingApprovalsService = {
           (filters.offset ?? 0) / (filters.limit ?? ONBOARDING_APPROVALS_PAGE_SIZE)
         ) + 1;
 
+      const nestFilters: Record<string, unknown> = { status: nestStatus };
+      if (filters.query?.trim()) nestFilters.firstName = filters.query.trim();
+      if (filters.province && filters.province !== 'all') {
+        nestFilters.provinceId = filters.province;
+      }
+
       const raw = await usersApi.list({
         page,
         limit: filters.limit ?? ONBOARDING_APPROVALS_PAGE_SIZE,
-        filters: JSON.stringify({ status: nestStatus }),
+        filters: JSON.stringify(nestFilters),
       });
 
       const users: OnboardingApprovalUser[] = raw.data.map((row) => {
@@ -66,7 +74,11 @@ export const OnboardingApprovalsService = {
 
       return {
         items: users,
-        total: users.length,
+        total: estimateHasNextPageTotal(
+          filters.offset ?? 0,
+          users.length,
+          raw.hasNextPage
+        ),
         hasMore: raw.hasNextPage,
         provinces: [],
       };
@@ -84,7 +96,7 @@ export const OnboardingApprovalsService = {
 
     return {
       ...page,
-      provinces: collectProvinces(),
+      provinces: collectProvinces().map((title) => ({ id: title, title })),
     };
   },
 
@@ -159,19 +171,26 @@ export const OnboardingApprovalsService = {
     });
   },
 
-  async listProvinces(): Promise<string[]> {
+  async listProvinces(): Promise<OnboardingApprovalProvince[]> {
     if (!IS_MOCK_MODE) {
       const { adminCatalogApi } = await import(
         '@/services/admin-catalog/admin-catalog.api'
       );
       const provinces = await adminCatalogApi.getAllProvinces();
-      return Array.from(new Set(provinces.map((p) => p.title)));
+      const seen = new Set<string>();
+      return provinces
+        .filter((p) => {
+          if (seen.has(p.id)) return false;
+          seen.add(p.id);
+          return true;
+        })
+        .map((p) => ({ id: p.id, title: p.title }));
     }
     requireOnboardingReview();
-    return collectProvinces();
+    return collectProvinces().map((title) => ({ id: title, title }));
   },
 
-  /** در mock به store کاربران وصل می‌شود؛ real تا SSE خالی است. */
+  /** فقط در mock به store کاربران وصل می‌شود؛ در real mode تا SSE خالی است. */
   subscribeDirectoryChanges(listener: () => void): () => void {
     if (!IS_MOCK_MODE) {
       return () => {};

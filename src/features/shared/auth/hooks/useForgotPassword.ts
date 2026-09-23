@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 
 import { AuthService } from '@/services/auth.service';
 
@@ -69,7 +70,7 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
       forgotOtpResetForm.reset({ otp: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
       forgotMobileForm.setError('mobile', {
-        message: readAuthErrorMessage(error, 'ارسال کد بازیابی ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     }
   });
@@ -89,7 +90,7 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
       });
     } catch (error) {
       forgotOtpResetForm.setError('otp', {
-        message: readAuthErrorMessage(error, 'ارسال مجدد کد ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     } finally {
       setIsResendingForgotOtp(false);
@@ -103,9 +104,10 @@ export function useForgotPassword({ onComplete }: UseForgotPasswordOptions) {
         data.otp,
         data.newPassword
       );
+      toast.success('رمز عبور با موفقیت تغییر کرد.');
       onComplete(pendingForgotMobile);
     } catch (error) {
-      const message = readAuthErrorMessage(error, 'تغییر رمز عبور ناموفق بود.');
+      const message = readAuthErrorMessage(error);
       if (isOtpAuthError(error)) {
         forgotOtpResetForm.setError('otp', { message }, { shouldFocus: true });
         forgotOtpResetForm.clearErrors(['newPassword', 'confirmPassword']);

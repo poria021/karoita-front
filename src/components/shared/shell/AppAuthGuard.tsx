@@ -7,35 +7,18 @@ import { PublicRouteStatusActions } from '@/components/shared/route-status/Publi
 import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { UnauthenticatedRedirect } from '@/components/shared/shell/UnauthenticatedRedirect';
 import { AuthService } from '@/services/auth.service';
-import { useAuthTransitionPhase } from '@/store/authTransition';
+import { useAuthTransitionPhase } from '@/store/useAuthTransitionPhase';
 import { useUserStore } from '@/store/useUserStore';
-import { isMockApiMode } from '@/lib/api-mode';
-import { tryRestoreMockSession } from '@/services/auth/mock/mock-auth.store';
-import { isSessionTransientError } from '@/services/auth/real/real-auth.bridge';
 import {
   ensureAuthRestore,
   getRuntimeAuthBoot,
   resetRuntimeAuthBoot,
   type RuntimeAuthBoot,
 } from '@/store/sessionBoot';
-import type { Session } from '@/types/auth';
 
 type BootState = 'pending' | RuntimeAuthBoot;
 
 const BOOT_LABEL = 'لطفا منتظر بمانید…';
-
-/** Map a real refresh result to the app boot state without guessing login on transient errors. */
-export async function resolveRealAuthRestoreBoot(
-  refresh: () => Promise<Session | null>
-): Promise<RuntimeAuthBoot> {
-  try {
-    const restored = await refresh();
-    if (restored) return 'authenticated';
-  } catch (error) {
-    if (isSessionTransientError(error)) return 'error';
-  }
-  return 'unauthenticated';
-}
 
 function BootLoader({ label = BOOT_LABEL }: { label?: string }) {
   return <KvBrandLinearLoader fullViewport label={label} />;
@@ -45,26 +28,13 @@ function RestoreErrorScreen({ onRetry }: { onRetry: () => void }) {
   return (
     <KvRouteStatus
       kind="offline"
+      code="502"
       title="برقراری ارتباط با سرور ممکن نیست"
       description="نشست شما حفظ شده است. اتصال اینترنت را بررسی کنید و دوباره تلاش کنید."
       hint="پس از وصل شدن ارتباط، تلاش مجدد را بزنید. خروج از حساب لازم نیست."
       actions={<PublicRouteStatusActions onReset={onRetry} />}
     />
   );
-}
-
-async function restoreSession(): Promise<RuntimeAuthBoot> {
-  if (isMockApiMode()) {
-    const quick = AuthService.validateSession();
-    if (quick) return 'authenticated';
-    const restored = tryRestoreMockSession();
-    return restored ? 'authenticated' : 'unauthenticated';
-  }
-
-  const quick = AuthService.peekSession();
-  if (quick) return 'authenticated';
-
-  return resolveRealAuthRestoreBoot(() => AuthService.refreshRealSession());
 }
 
 function AppAuthGuardInner({ children }: { children: ReactNode }) {
@@ -80,10 +50,12 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
     if (!hasHydrated) return;
 
     let cancelled = false;
-    void ensureAuthRestore(restoreSession).then((next) => {
-      if (cancelled) return;
-      setBoot(next);
-    });
+    void ensureAuthRestore(() => AuthService.restoreBootSession()).then(
+      (next) => {
+        if (cancelled) return;
+        setBoot(next);
+      }
+    );
 
     return () => {
       cancelled = true;
@@ -93,7 +65,9 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
   const retryRestore = () => {
     resetRuntimeAuthBoot();
     setBoot('pending');
-    void ensureAuthRestore(restoreSession).then(setBoot);
+    void ensureAuthRestore(() => AuthService.restoreBootSession()).then(
+      setBoot
+    );
   };
 
   if (phase === 'leaving') {

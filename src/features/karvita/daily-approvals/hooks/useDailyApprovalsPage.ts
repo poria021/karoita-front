@@ -114,7 +114,7 @@ export function useDailyApprovalsPage() {
       list.clearLoadMoreError();
       void list.loadMore();
     },
-    reload: () => void list.reload(),
+    reload: () => Promise.all([list.reload(), terms.refetchTerms()]),
     selectedTrainee: actions.selectedTrainee,
     selectTrainee: actions.selectTrainee,
     actionBusy: actions.actionBusy,

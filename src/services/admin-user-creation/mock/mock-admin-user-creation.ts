@@ -2,6 +2,7 @@ import {
   mockMobileExists,
   patchMockAuthUser,
   readMockUsers,
+  removeMockUser,
   toPublicUser,
   writeMockUsers,
 } from '@/services/auth/mock/mock-auth.store';
@@ -10,11 +11,14 @@ import type {
   CreateOrganizationalUserInput,
   CreateOrganizationalUserResult,
   OrgAccountRole,
+  OrgAccountUser,
   StaffAdminAccount,
+  UpdateOrganizationalUserInput,
   UpdateStaffAdminInput,
 } from '@/types/admin-user-creation';
 import {
   isCreatableStaffAdminRole,
+  isOrgManagementRole,
   isStaffAdminRole,
 } from '@/types/role-taxonomy';
 import { sliceOffsetLimitPage } from '@/utils/offset-limit-page';
@@ -181,4 +185,79 @@ export function mockUpdateStaffAdmin(
     }
   );
   return toStaffAdminAccount(updated);
+}
+
+/** GET /api/v1/admin/account-users — شبیه‌سازی محلی، فقط نقش‌های سازمانی (بدون ادمین/مدیر ارشد). */
+export function mockListOrgAccountUsers(
+  offset: number,
+  limit: number,
+  role?: OrgAccountRole
+) {
+  const rows = readMockUsers()
+    .filter((record) => isOrgManagementRole(record.role))
+    .filter((record) => !role || record.role === role)
+    .map(toPublicUser);
+  return sliceOffsetLimitPage(rows, offset, limit);
+}
+
+export function mockGetOrgAccountUser(id: string): OrgAccountUser {
+  const record = readMockUsers().find(
+    (item) => item.id === id && isOrgManagementRole(item.role)
+  );
+  if (!record) {
+    throw new Error('حساب کاربری سازمانی یافت نشد.');
+  }
+  return toPublicUser(record);
+}
+
+export function mockUpdateOrgAccountUser(
+  id: string,
+  input: UpdateOrganizationalUserInput
+): OrgAccountUser {
+  const record = readMockUsers().find(
+    (item) => item.id === id && isOrgManagementRole(item.role)
+  );
+  if (!record) {
+    throw new Error('حساب کاربری سازمانی یافت نشد.');
+  }
+  if (!isOrgManagementRole(input.role)) {
+    throw new Error('این نقش از مسیر ویرایش حساب سازمانی پشتیبانی نمی‌شود.');
+  }
+
+  const mobile = normalizeMobile(input.mobile);
+  if (!/^9\d{9}$/.test(mobile)) {
+    throw new Error('فرمت شماره موبایل معتبر نیست (۱۰ رقم بدون صفر اول).');
+  }
+  if (mobile !== record.mobile && mockMobileExists(mobile)) {
+    throw new Error('این شماره موبایل قبلاً در سیستم ثبت شده است.');
+  }
+
+  const org = buildOrgFields(input.role, {
+    ...input,
+    mobile,
+    password: input.password ?? record.password,
+  });
+
+  const updated = patchMockAuthUser(
+    { id },
+    {
+      firstName: input.firstName.trim(),
+      lastName: input.lastName.trim(),
+      mobile,
+      role: input.role,
+      ...(input.password?.trim() ? { password: input.password.trim() } : {}),
+      ...org,
+    }
+  );
+  return toPublicUser(updated);
+}
+
+export function mockRemoveOrgAccountUser(id: string): void {
+  const record = readMockUsers().find(
+    (item) => item.id === id && isOrgManagementRole(item.role)
+  );
+  if (!record) {
+    throw new Error('حساب کاربری سازمانی یافت نشد.');
+  }
+  removeMockUser(id);
 }

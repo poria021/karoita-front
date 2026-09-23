@@ -16,7 +16,8 @@ export const NEST_NOTIFICATIONS_PATHS = {
   markRead: (id: string) => `v1/notifications/${id}/read`,
 } as const;
 
-export const NOTIFICATIONS_PAGE_SIZE = 20;
+export const NOTIFICATIONS_PAGE_SIZE = 10;
+export const NOTIFICATIONS_MAX_TOTAL = 20;
 
 export type ListNotificationsQuery = {
   page?: number;

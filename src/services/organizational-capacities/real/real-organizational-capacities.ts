@@ -162,8 +162,11 @@ export async function submitRealOrganizationalCapacities(
     };
   });
 
-  const creates = merged.filter((course) => !course.existsOnServer);
-  const updates = merged.filter((course) => course.existsOnServer);
+  const hasData = (course: (typeof merged)[number]) =>
+    (course.total != null && course.total > 0) || course.selectedDays.length > 0;
+
+  const creates = merged.filter((course) => !course.existsOnServer && hasData(course));
+  const updates = merged.filter((course) => course.existsOnServer && hasData(course));
 
   const toBody = (course: (typeof merged)[number]) =>
     toWriteDto({

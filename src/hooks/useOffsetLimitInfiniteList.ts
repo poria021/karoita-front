@@ -123,6 +123,8 @@ export function useOffsetLimitInfiniteList<T>({
       updater: (prev: T[]) => T[],
       totalUpdater?: (prevTotal: number, nextItems: T[]) => number
     ) => {
+      // هر fetch در حال اجرا را cancel کن تا نتیجه سرور، تغییر optimistic را overwrite نکند.
+      void queryClient.cancelQueries({ queryKey, fetchStatus: 'fetching' });
       queryClient.setQueryData<OffsetLimitInfiniteData<T>>(queryKey, (old) => {
         const prevItems = flattenOffsetLimitPages(old);
         const prevTotal =

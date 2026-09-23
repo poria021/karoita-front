@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import {
+  getCatalogCache,
+  getCatalogCacheTtl,
+  invalidateCatalogCacheByPath,
+  isMutationCacheRelated,
+  setCatalogCache,
+} from '@/lib/nest-catalog-cache';
 import { readNestApiBaseUrl } from '@/lib/nest-proxy';
+import {
+  fetchNestUpstream,
+  logNestUpstreamFailure,
+} from '@/lib/nest-upstream-fetch';
 
-/** هدرهایی که از مرورگر به Nest نباید بروند. */
+/**
+ * هدر مرورگر را به Nest نفرست — Origin لوکال / sec-fetch / x-forwarded
+ * روی گیت‌وی Darkube اتصال را قطع می‌کند و ky فقط ۵۰۲ می‌بیند.
+ */
 const SKIP_REQUEST_HEADER =
-  /^(host|connection|keep-alive|proxy-authenticate|proxy-authorization|te|trailer|transfer-encoding|upgrade|cookie|content-length|content-encoding|accept-encoding)$/i;
+  /^(host|connection|keep-alive|proxy-authenticate|proxy-authorization|te|trailer|transfer-encoding|upgrade|cookie|content-length|content-encoding|accept-encoding|origin|referer|sec-fetch-.*|sec-ch-ua.*|x-forwarded-.*|forwarded|via)$/i;
 
 /**
  * فقط این‌ها به مرورگر برگردند.
@@ -17,6 +31,21 @@ const ALLOW_RESPONSE_HEADER =
 
 function isUnsafePathSegment(segment: string): boolean {
   return segment === '..' || segment.includes('/') || segment.includes('\\');
+}
+
+/**
+ * Fetch/Next برای 204/205/304 بدنه نمی‌پذیرند — حتی `ArrayBuffer` خالی.
+ * Nest روی CRUD کاتالوگ 204 با JSON/etag می‌دهد؛ `new NextResponse(buf, { status: 204 })`
+ * `TypeError` می‌دهد، روت پروکسی می‌ترکد، مرورگر «ارتباط با سرور برقرار نشد»
+ * می‌بیند، در حالی که نوشتن روی Nest انجام شده.
+ */
+const NULL_BODY_STATUSES = new Set([204, 205, 304]);
+
+export function nestProxyResponseBody(
+  status: number,
+  body: ArrayBuffer
+): ArrayBuffer | null {
+  return NULL_BODY_STATUSES.has(status) ? null : body;
 }
 
 export async function forwardToNestApi(
@@ -36,7 +65,28 @@ export async function forwardToNestApi(
   }
 
   const suffix = pathSegments.join('/');
-  const target = `${base}/${suffix}${request.nextUrl.search}`;
+  const pathWithQuery = `${suffix}${request.nextUrl.search}`;
+  const target = `${base}/${pathWithQuery}`;
+
+  // Cache hit: فقط برای GET‌های catalog — endpoint‌هایی که داده‌شان برای همه
+  // کاربران یکسان است. POST/PATCH/DELETE هرگز cache نمی‌شوند.
+  if (request.method === 'GET') {
+    const ttlMs = getCatalogCacheTtl(pathWithQuery);
+    if (ttlMs !== null) {
+      const cached = getCatalogCache(pathWithQuery);
+      if (cached) {
+        const ttlSec = Math.floor(ttlMs / 1000);
+        return new NextResponse(cached.body, {
+          status: cached.status,
+          headers: {
+            'content-type': cached.contentType,
+            'cache-control': `public, s-maxage=${ttlSec}, stale-while-revalidate=${Math.floor(ttlSec / 2)}`,
+            'x-karvita-proxy': 'nest-catalog-cache',
+          },
+        });
+      }
+    }
+  }
 
   const headers = new Headers();
   request.headers.forEach((value, key) => {
@@ -50,7 +100,6 @@ export async function forwardToNestApi(
     method: request.method,
     headers,
     redirect: 'manual',
-    cache: 'no-store',
   };
 
   if (request.method !== 'GET' && request.method !== 'HEAD') {
@@ -59,8 +108,9 @@ export async function forwardToNestApi(
 
   let upstream: Response;
   try {
-    upstream = await fetch(target, init);
-  } catch {
+    upstream = await fetchNestUpstream(target, init);
+  } catch (error) {
+    logNestUpstreamFailure('nest-proxy', error);
     return NextResponse.json(
       { message: 'ارتباط با سرویس API برقرار نشد.' },
       { status: 502 }
@@ -78,12 +128,60 @@ export async function forwardToNestApi(
   outHeaders.delete('content-length');
   outHeaders.set('x-karvita-proxy', 'nest-raw');
 
-  const body = await upstream.arrayBuffer();
+  let rawBody = new ArrayBuffer(0);
+  try {
+    rawBody = await upstream.arrayBuffer();
+  } catch {
+    // بعضی runtimeها خواندن بدنهٔ غیرمجاز روی 204 را رد می‌کنند.
+  }
+  const status = upstream.status;
+  const body = nestProxyResponseBody(status, rawBody);
 
-  const response = new NextResponse(body, {
-    status: upstream.status,
-    headers: outHeaders,
-  });
-  response.headers.delete('content-encoding');
-  return response;
+  // Mutation موفق روی یک cacheable path → cache مربوطه را باطل کن
+  // تا ادمین بلافاصله داده به‌روز را ببیند (نه داده stale تا انقضای TTL).
+  const isMutation = request.method === 'POST' || request.method === 'PUT' ||
+    request.method === 'PATCH' || request.method === 'DELETE';
+  if (isMutation && status >= 200 && status < 300) {
+    if (isMutationCacheRelated(suffix) || isMutationCacheRelated(pathWithQuery)) {
+      invalidateCatalogCacheByPath(suffix);
+    }
+  }
+
+  // Cache miss را پر کن — فقط برای موفق‌ترین GETهای catalog (200 + JSON)
+  if (request.method === 'GET' && status === 200 && rawBody.byteLength > 0) {
+    const ttlMs = getCatalogCacheTtl(pathWithQuery);
+    if (ttlMs !== null) {
+      const contentType = upstream.headers.get('content-type') ?? 'application/json';
+      if (contentType.includes('json')) {
+        const bodyText = new TextDecoder().decode(rawBody);
+        setCatalogCache(pathWithQuery, {
+          body: bodyText,
+          contentType,
+          status,
+          ttlMs,
+        });
+      }
+    }
+  }
+
+  try {
+    const response = new NextResponse(body, {
+      status,
+      headers: outHeaders,
+    });
+    response.headers.delete('content-encoding');
+    return response;
+  } catch {
+    // اگر وضعیت null-body هنوز هم constructor را بترکاند، بدون بدنه برگردان
+    // تا write موفق Nest به Failed to fetch تبدیل نشود.
+    if (NULL_BODY_STATUSES.has(status)) {
+      const fallback = new NextResponse(null, { status, headers: outHeaders });
+      fallback.headers.delete('content-encoding');
+      return fallback;
+    }
+    return NextResponse.json(
+      { message: 'ارتباط با سرویس API برقرار نشد.' },
+      { status: 502 }
+    );
+  }
 }

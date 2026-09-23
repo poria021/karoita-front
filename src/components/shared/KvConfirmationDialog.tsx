@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 
 import {
   AlertDialog,
@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { buttonVariants } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
 export type KvConfirmationDialogProps = {
@@ -41,21 +42,25 @@ export function KvConfirmationDialog({
   children,
 }: KvConfirmationDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // ref برای خوندن همزمان در handleOpenChange — state بچ‌شده دیر کامیت می‌شه
+  const isSubmittingRef = useRef(false);
 
   const busy = isSubmitting || confirmDisabled;
 
   const handleConfirm = async () => {
     if (busy) return;
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     try {
       await onConfirm();
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };
 
   const handleOpenChange = (open: boolean) => {
-    if (!open && isOpen && !busy) {
+    if (!open && isOpen && !isSubmittingRef.current && !confirmDisabled) {
       onClose();
     }
   };
@@ -90,7 +95,12 @@ export function KvConfirmationDialog({
                 })
             )}
           >
-            {isSubmitting ? 'لطفاً صبر کنید...' : confirmText}
+            {isSubmitting ? (
+              <>
+                <Spinner className="size-4" aria-hidden="true" />
+                لطفاً صبر کنید...
+              </>
+            ) : confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

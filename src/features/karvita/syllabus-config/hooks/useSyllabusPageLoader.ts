@@ -3,6 +3,8 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 
+import { toast } from 'sonner';
+
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 import type {
@@ -12,7 +14,10 @@ import type {
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
-import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
+import {
+  getSyllabusTermPaneEpoch,
+  syllabusSnapshotQueryKey,
+} from '../lib/syllabusPageCache';
 import {
   errorMessage,
   offeredCatalogIdsFromList,
@@ -31,6 +36,7 @@ type TermContextResult = {
   courses: CourseCatalogItem[];
   selectedCourse: CourseCatalogItem | null;
   weeks: SyllabusWeek[];
+  isWeeksPublished: boolean;
   offeredCatalogIds: Set<string>;
 };
 
@@ -49,6 +55,7 @@ export function useSyllabusPageLoader({
     selectedCourse,
     courses,
     weeks,
+    isWeeksPublished,
     offeredCatalogIds,
     hasUnsavedChanges,
     setTerms,
@@ -56,6 +63,7 @@ export function useSyllabusPageLoader({
     setSelectedCourse,
     setCourses,
     setWeeks,
+    setIsWeeksPublished,
     setHasUnsavedChanges,
     setOfferedCatalogIds,
     setProfessorCapacity,
@@ -68,6 +76,7 @@ export function useSyllabusPageLoader({
   const [error, setError] = useState<string | null>(null);
   const loadRequestIdRef = useRef(0);
   const appliedSnapshotAtRef = useRef(0);
+  const termPaneEpochRef = useRef(getSyllabusTermPaneEpoch());
   const termPanesRef = useRef<Record<string, SyllabusTermPane>>({});
   const sectionRef = useRef(section);
   const stateRefs = useRef({
@@ -76,6 +85,7 @@ export function useSyllabusPageLoader({
     selectedCourse,
     courses,
     weeks,
+    isWeeksPublished,
     offeredCatalogIds,
     hasUnsavedChanges,
   });
@@ -91,6 +101,7 @@ export function useSyllabusPageLoader({
       selectedCourse,
       courses,
       weeks,
+      isWeeksPublished,
       offeredCatalogIds,
       hasUnsavedChanges,
     };
@@ -98,6 +109,7 @@ export function useSyllabusPageLoader({
     audience,
     courses,
     hasUnsavedChanges,
+    isWeeksPublished,
     offeredCatalogIds,
     selectedCourse,
     selectedTermId,
@@ -118,6 +130,7 @@ export function useSyllabusPageLoader({
       selectedCourse: current.selectedCourse,
       courses: current.courses,
       weeks: current.weeks,
+      isWeeksPublished: current.isWeeksPublished,
       offeredCatalogIds: [...current.offeredCatalogIds],
       hasUnsavedChanges: current.hasUnsavedChanges,
     };
@@ -129,12 +142,14 @@ export function useSyllabusPageLoader({
     setSelectedCourse(pane.selectedCourse);
     setCourses(pane.courses);
     setWeeks(pane.weeks);
+    setIsWeeksPublished(pane.isWeeksPublished);
     setOfferedCatalogIds(offered);
     setHasUnsavedChanges(pane.hasUnsavedChanges);
     return {
       courses: pane.courses,
       selectedCourse: pane.selectedCourse,
       weeks: pane.weeks,
+      isWeeksPublished: pane.isWeeksPublished,
       offeredCatalogIds: offered,
     };
   }
@@ -145,6 +160,7 @@ export function useSyllabusPageLoader({
       selectedCourse: result.selectedCourse,
       courses: result.courses,
       weeks: result.weeks,
+      isWeeksPublished: result.isWeeksPublished,
       offeredCatalogIds: [...result.offeredCatalogIds],
       hasUnsavedChanges: false,
     };
@@ -169,15 +185,39 @@ export function useSyllabusPageLoader({
       stashCurrentTermPane();
     }
 
-    if (!options?.force) {
+    const termPaneEpoch = getSyllabusTermPaneEpoch();
+    const paneIsFresh = termPaneEpochRef.current === termPaneEpoch;
+
+    if (!options?.force && paneIsFresh) {
       const pane = termPanesRef.current[termId];
-      if (
-        pane &&
-        (pane.courses.length === 0 ||
-          pane.courses.some((course) => course.title.trim().length > 0))
-      ) {
+      // پانل خالی (صفر درس) هرگز به‌عنوان کش معتبر پذیرفته نمی‌شود، چون ممکن
+      // است ترم به‌تازگی ساخته شده و offering هایش هنوز از سرور نرسیده باشند؛
+      // در آن صورت باید دوباره از admin/semesters_all فچ شود (مثل termContextFromSnapshot).
+      if (pane && pane.courses.length > 0) {
         setIsLoading(false);
-        return applyTermPane(pane);
+        const result = applyTermPane(pane);
+        // اگر کش می‌گوید هفته‌ها ثبت نشده، از سرور تأیید بگیر تا cache mismatch
+        // منجر به drop شدن بی‌صدای هفته‌های جدید در planNestWeekWrites نشود.
+        if (!pane.isWeeksPublished && pane.selectedCourse) {
+          const termIdForVerify = termId;
+          const courseIdForVerify = pane.selectedCourse.id;
+          void SyllabusConfigService.getWeeks(termIdForVerify, courseIdForVerify)
+            .then((loaded) => {
+              if (!loaded.isPublished) return;
+              setWeeks(loaded.weeks);
+              setIsWeeksPublished(true);
+              const stale = termPanesRef.current[termIdForVerify];
+              if (stale) {
+                termPanesRef.current[termIdForVerify] = {
+                  ...stale,
+                  weeks: loaded.weeks,
+                  isWeeksPublished: true,
+                };
+              }
+            })
+            .catch(() => {});
+        }
+        return result;
       }
     }
 
@@ -185,6 +225,8 @@ export function useSyllabusPageLoader({
     const fromSnapshot = snapshot
       ? SyllabusConfigService.termContextFromSnapshot(snapshot, termId)
       : null;
+
+    termPaneEpochRef.current = getSyllabusTermPaneEpoch();
 
     if (!fromSnapshot) {
       setIsLoading(true);
@@ -206,22 +248,16 @@ export function useSyllabusPageLoader({
       setSelectedTermId(termId);
 
       let nextWeeks: SyllabusWeek[] = [];
-      if (nextCourse && snapshot) {
-        nextWeeks = SyllabusConfigService.weeksFromSnapshot(
-          snapshot,
-          termId,
-          nextCourse.id
-        );
-        setWeeks(nextWeeks);
-      } else if (!nextCourse) {
+      let nextPublished = false;
+      if (!nextCourse) {
         setWeeks([]);
+        setIsWeeksPublished(false);
       }
 
       setHasUnsavedChanges(false);
-      setIsLoading(false);
 
       if (nextCourse) {
-        const remoteWeeks = await SyllabusConfigService.getWeeks(
+        const loaded = await SyllabusConfigService.getWeeks(
           termId,
           nextCourse.id
         );
@@ -230,17 +266,24 @@ export function useSyllabusPageLoader({
             courses: courseList,
             selectedCourse: nextCourse,
             weeks: nextWeeks,
+            isWeeksPublished: nextPublished,
             offeredCatalogIds: offered,
           };
         }
-        nextWeeks = remoteWeeks;
-        setWeeks(remoteWeeks);
+        nextWeeks = loaded.weeks;
+        nextPublished = loaded.isPublished;
+        setWeeks(loaded.weeks);
+        setIsWeeksPublished(loaded.isPublished);
+        if (loaded.serverAlert) {
+          toast.error(loaded.serverAlert);
+        }
       }
 
       const result: TermContextResult = {
         courses: courseList,
         selectedCourse: nextCourse,
         weeks: nextWeeks,
+        isWeeksPublished: nextPublished,
         offeredCatalogIds: offered,
       };
       rememberTermPane(result, termId);
@@ -292,6 +335,7 @@ export function useSyllabusPageLoader({
         selectedCourse: null,
         courses: [],
         weeks: [],
+        isWeeksPublished: false,
         offeredCatalogIds: new Set(),
         professorCapacity: String(snapshot.globalProfessorCapacity),
         passingThreshold: String(snapshot.passingScoreThreshold),
@@ -310,6 +354,7 @@ export function useSyllabusPageLoader({
         selectedCourse: ctx.selectedCourse,
         courses: ctx.courses,
         weeks: ctx.weeks,
+        isWeeksPublished: ctx.isWeeksPublished,
         offeredCatalogIds: ctx.offeredCatalogIds,
         professorCapacity: String(snapshot.globalProfessorCapacity),
         passingThreshold: String(snapshot.passingScoreThreshold),
@@ -318,6 +363,7 @@ export function useSyllabusPageLoader({
       setCourses([]);
       setSelectedCourse(null);
       setWeeks([]);
+      setIsWeeksPublished(false);
       setOfferedCatalogIds(new Set());
       setHasUnsavedChanges(false);
       setIsLoading(false);
@@ -328,6 +374,7 @@ export function useSyllabusPageLoader({
         selectedCourse: null,
         courses: [],
         weeks: [],
+        isWeeksPublished: false,
         offeredCatalogIds: new Set(),
         professorCapacity: String(snapshot.globalProfessorCapacity),
         passingThreshold: String(snapshot.passingScoreThreshold),
@@ -336,17 +383,38 @@ export function useSyllabusPageLoader({
   }
 
   useEffect(() => {
+    termPaneEpochRef.current = getSyllabusTermPaneEpoch();
+  }, [section, snapshotQuery.dataUpdatedAt]);
+
+  useEffect(() => {
     if (!snapshotQuery.isSuccess || !snapshotQuery.data) return;
     if (appliedSnapshotAtRef.current === snapshotQuery.dataUpdatedAt) return;
-    // فقط اولین رنگ / remount — اعمال مجدد soft-refetch پس‌زمینه را رد کن.
-    if (appliedSnapshotAtRef.current !== 0) return;
 
+    const isFirstApply = appliedSnapshotAtRef.current === 0;
     const requestId = ++loadRequestIdRef.current;
     appliedSnapshotAtRef.current = snapshotQuery.dataUpdatedAt;
+    const snapshot = snapshotQuery.data;
     void (async () => {
       try {
         if (requestId !== loadRequestIdRef.current) return;
-        await applySnapshot(snapshotQuery.data);
+        if (isFirstApply) {
+          await applySnapshot(snapshot);
+        } else {
+          // mutation از ماژول دیگر / setQueryData — ترم‌ها را هم‌گام کن،
+          // ولی جدول هفته را با soft-refetch پس‌زمینه از نو نساز.
+          const previousTermId = stateRefs.current.selectedTermId;
+          const termId = applySnapshotTerms(snapshot);
+          if (
+            sectionRef.current === 'course_offerings' &&
+            termId &&
+            termId !== previousTermId
+          ) {
+            await loadTermContext(termId, undefined, {
+              snapshot,
+              force: true,
+            });
+          }
+        }
         if (requestId !== loadRequestIdRef.current) return;
         setError(null);
       } catch (err) {
@@ -355,8 +423,7 @@ export function useSyllabusPageLoader({
         setIsLoading(false);
       }
     })();
-    // عمدی: یک‌بار روی mount از کش/fetch کوئری اعمال شود
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- bootstrap روی mount از Query
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- اعمال snapshot از Query
   }, [snapshotQuery.isSuccess, snapshotQuery.data, snapshotQuery.dataUpdatedAt]);
 
   useEffect(() => {
@@ -396,23 +463,11 @@ export function useSyllabusPageLoader({
     }
   }
 
-  async function loadTermContextForUi(
-    termId: string,
-    preferredCourseId?: string
-  ): Promise<void> {
-    if (section === 'term_settings') {
-      setSelectedTermId(termId);
-      return;
-    }
-    await loadTermContext(termId, preferredCourseId);
-  }
-
   return {
     isLoading,
     setIsLoading,
     error,
     reload,
     loadTermContext,
-    loadTermContextForUi,
   };
 }

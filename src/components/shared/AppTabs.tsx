@@ -126,10 +126,13 @@ function AppTabs({
   gridCols,
   ...props
 }: AppTabsProps) {
+  const contextValue = React.useMemo(
+    () => ({ fullWidth, activeTone, gridCols: gridCols ?? null }),
+    [fullWidth, activeTone, gridCols]
+  );
+
   return (
-    <AppTabsContext.Provider
-      value={{ fullWidth, activeTone, gridCols: gridCols ?? null }}
-    >
+    <AppTabsContext.Provider value={contextValue}>
       <Tabs
         data-slot="app-tabs"
         data-full-width={fullWidth || undefined}

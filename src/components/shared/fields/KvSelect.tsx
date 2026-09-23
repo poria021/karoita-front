@@ -62,8 +62,9 @@ export function KvSelectTrigger({
         '[&_svg]:pointer-events-none [&_svg]:shrink-0',
         '[&_svg]:text-kv-text-placeholder',
         'disabled:[&_svg]:text-kv-text-disabled',
-        '*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex',
-        '*:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-kv-pair',
+        '*:data-[slot=select-value]:block *:data-[slot=select-value]:line-clamp-1',
+        '*:data-[slot=select-value]:overflow-hidden *:data-[slot=select-value]:text-start',
+        '*:data-[slot=select-value]:[unicode-bidi:isolate]',
         className
       )}
       {...props}

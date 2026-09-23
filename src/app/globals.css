@@ -9,7 +9,7 @@
   /* معرفی فونت وزیرمتن به عنوان فونت بدون‌سریف پیش‌فرض Tailwind v4 */
   --font-sans: var(--font-vazirmatn), sans-serif;
   /* Official geometric mark — transparent; PNG may be brand-colored for favicon/PWA. */
-  --kv-brand-mark: url("/brand/karvita-mark.png");
+  --kv-brand-mark: url("/brand/main-logo.png");
 
   --radius-sm: var(--radius-kv-tight);
   --radius-md: var(--radius-kv-control);
@@ -652,6 +652,28 @@
 }
 
 /*
+ * Sidebar-only: scrollbar thumb stays transparent until the sidebar is
+ * hovered/focused, so the panel looks chrome-free at rest.
+ */
+.kv-sidebar-scroll {
+  scrollbar-color: transparent transparent;
+}
+
+.kv-sidebar-scroll:hover,
+.kv-sidebar-scroll:focus-within {
+  scrollbar-color: var(--kv-border-strong) transparent;
+}
+
+.kv-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.kv-sidebar-scroll:hover::-webkit-scrollbar-thumb,
+.kv-sidebar-scroll:focus-within::-webkit-scrollbar-thumb {
+  background: var(--kv-border-strong);
+}
+
+/*
  * Overlay lists: ltr host so the bar sits on the physical right in RTL.
  * Children stay RTL. Appearance is the global recipe above — do not restyle.
  */
@@ -740,15 +762,11 @@ input[readonly]:-webkit-autofill {
 }
 
 /*
- * Brand signature: soft institutional wash for auth + marketing canvases.
+ * Brand signature: quiet flat canvas for auth + marketing canvases.
  * Dashboard shells must NOT use this (stay quiet canvas).
  */
 .kv-brand-atmosphere {
   background-color: var(--kv-canvas);
-  background-image:
-    radial-gradient(ellipse 110% 75% at 50% -15%, var(--kv-brand-soft), transparent 58%),
-    radial-gradient(ellipse 55% 40% at 100% 100%, var(--kv-brand-soft-hover), transparent 55%),
-    radial-gradient(ellipse 45% 35% at 0% 85%, var(--kv-brand-soft), transparent 50%);
 }
 
 @keyframes kv-auth-enter {
@@ -762,8 +780,24 @@ input[readonly]:-webkit-autofill {
   }
 }
 
+@keyframes kv-panel-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-0.75rem);
+  }
+}
+
 .kv-auth-enter {
   animation: kv-auth-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kv-panel-exit {
+  animation: kv-panel-exit 300ms cubic-bezier(0.4, 0, 0.6, 1) both;
+  pointer-events: none;
 }
 
 /*
@@ -796,7 +830,6 @@ input[readonly]:-webkit-autofill {
 .kv-brand-mark {
   display: block;
   flex-shrink: 0;
-  aspect-ratio: 906 / 688;
   background-color: currentColor;
   -webkit-mask-image: var(--kv-brand-mark);
   -webkit-mask-repeat: no-repeat;
@@ -906,7 +939,8 @@ input[readonly]:-webkit-autofill {
 @media (prefers-reduced-motion: reduce) {
   .kv-auth-enter,
   .kv-auth-enter-delay,
-  .kv-auth-enter-late {
+  .kv-auth-enter-late,
+  .kv-panel-exit {
     animation: none;
   }
 }
@@ -937,28 +971,22 @@ input[readonly]:-webkit-autofill {
 }
 
 /*
- * Both classes on one node: keep the grid AND the brand wash.
+ * Both classes on one node: keep the grid, drop the brand wash.
  * Separate rules each set `background-image`, so without this the later
  * class would wipe the other (marketing shell, login select, loaders).
  */
 .kv-brand-atmosphere.kv-blueprint-bg {
   background-image:
     linear-gradient(to right, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(203, 213, 225, 0.22) 1px, transparent 1px),
-    radial-gradient(ellipse 110% 75% at 50% -15%, var(--kv-brand-soft), transparent 58%),
-    radial-gradient(ellipse 55% 40% at 100% 100%, var(--kv-brand-soft-hover), transparent 55%),
-    radial-gradient(ellipse 45% 35% at 0% 85%, var(--kv-brand-soft), transparent 50%);
-  background-size: 72px 72px, 72px 72px, auto, auto, auto;
-  background-position: center top, center top, 0 0, 0 0, 0 0;
+    linear-gradient(to bottom, rgba(203, 213, 225, 0.22) 1px, transparent 1px);
+  background-size: 72px 72px, 72px 72px;
+  background-position: center top, center top;
 }
 
 .dark .kv-brand-atmosphere.kv-blueprint-bg {
   background-image:
     linear-gradient(to right, hsl(220 14% 70% / 0.02) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(220 14% 70% / 0.02) 1px, transparent 1px),
-    radial-gradient(ellipse 110% 75% at 50% -15%, var(--kv-brand-soft), transparent 58%),
-    radial-gradient(ellipse 55% 40% at 100% 100%, var(--kv-brand-soft-hover), transparent 55%),
-    radial-gradient(ellipse 45% 35% at 0% 85%, var(--kv-brand-soft), transparent 50%);
+    linear-gradient(to bottom, hsl(220 14% 70% / 0.02) 1px, transparent 1px);
 }
 
 /*

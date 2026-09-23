@@ -14,6 +14,7 @@ import { useSyllabusPageLoader } from './useSyllabusPageLoader';
 import { useSyllabusPageState } from './useSyllabusPageState';
 import { useSyllabusTermSettings } from './useSyllabusTermSettings';
 import { useSyllabusUnsavedNavigation } from './useSyllabusUnsavedNavigation';
+import { useSyllabusWeeksDraft } from './useSyllabusWeeksDraft';
 import { useSyllabusWeeksEditor } from './useSyllabusWeeksEditor';
 
 export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
@@ -31,6 +32,8 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     setCourses,
     weeks,
     setWeeks,
+    isWeeksPublished,
+    setIsWeeksPublished,
     hasUnsavedChanges,
     setHasUnsavedChanges,
     offeredCatalogIds,
@@ -43,8 +46,10 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const { isLoading, reload, loadTermContext, loadTermContextForUi, error } =
-    useSyllabusPageLoader({ section, state });
+  const { isLoading, reload, loadTermContext, error } = useSyllabusPageLoader({
+    section,
+    state,
+  });
   const lastTermByAudienceRef = useRef<Partial<Record<AcademicTermType, string>>>(
     {}
   );
@@ -64,16 +69,26 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     selectedCourse && offeredCatalogIds.has(selectedCourse.id)
   );
 
+  const weeksDraft = useSyllabusWeeksDraft({
+    selectedTermId,
+    selectedCourse,
+    weeks,
+    setWeeks,
+    hasUnsavedChanges,
+    setHasUnsavedChanges,
+  });
+
   const navigation = useSyllabusUnsavedNavigation({
     hasUnsavedChanges,
     selectedTermId,
     selectedCourse,
     setSelectedTermId,
     setSelectedCourse,
-    weeks,
     setWeeks,
+    setIsWeeksPublished,
     setHasUnsavedChanges,
     loadTermContext,
+    clearSyllabusWeeksDraft: weeksDraft.clearDraft,
   });
 
   function changeAudience(next: AcademicTermType) {
@@ -90,7 +105,9 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
       setSelectedCourse(null);
       setCourses([]);
       setWeeks([]);
+      setIsWeeksPublished(false);
       setOfferedCatalogIds(new Set());
+      weeksDraft.clearDraft();
       setHasUnsavedChanges(false);
       return;
     }
@@ -105,6 +122,7 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     offeredCatalogIds,
     setTerms,
     setWeeks,
+    setIsWeeksPublished,
     setOfferedCatalogIds,
     setHasUnsavedChanges,
   });
@@ -114,16 +132,19 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     selectedCourse,
     weeks,
     setWeeks,
+    isWeeksPublished,
+    setIsWeeksPublished,
     hasUnsavedChanges,
     setHasUnsavedChanges,
     setIsSaving,
+    clearSyllabusWeeksDraft: weeksDraft.clearDraft,
   });
 
   const termSettings = useSyllabusTermSettings({
     terms,
     setTerms,
     setSelectedTermId,
-    loadTermContext: loadTermContextForUi,
+    loadTermContext,
     professorCapacity,
     setProfessorCapacity,
     passingThreshold,
@@ -145,6 +166,7 @@ export function useSyllabusConfigPage(section: SyllabusConfigSubTab) {
     selectCourse: navigation.selectCourse,
     offeredCatalogIds,
     weeks,
+    isWeeksPublished,
     hasUnsavedChanges,
     isLoading,
     isSaving,

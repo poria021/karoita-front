@@ -19,8 +19,8 @@ import { useOtpCountdown } from './useOtpCountdown';
 
 export type RegisterStep = 1 | 2;
 
-function readErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
+function readErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : '';
 }
 
 export function useRegisterForm() {
@@ -74,7 +74,7 @@ export function useRegisterForm() {
       setStep(2);
       otpForm.reset({ otp: '' });
     } catch (error) {
-      setFormMessage({ type: 'error', text: readErrorMessage(error, 'ثبت‌نام ناموفق بود.') });
+      setFormMessage({ type: 'error', text: readErrorMessage(error) });
     }
   });
 
@@ -93,7 +93,7 @@ export function useRegisterForm() {
       router.push(RouteService.karvita.profile(pendingRole));
     } catch (error) {
       otpForm.setError('otp', {
-        message: readErrorMessage(error, 'تایید کد ناموفق بود.'),
+        message: readErrorMessage(error),
       });
     }
   });
@@ -113,7 +113,7 @@ export function useRegisterForm() {
       setFormMessage({ type: 'success', text: 'کد تایید دوباره ارسال شد.' });
     } catch (error) {
       otpForm.setError('otp', {
-        message: readErrorMessage(error, 'ارسال مجدد کد ناموفق بود.'),
+        message: readErrorMessage(error),
       });
     } finally {
       setIsResendingOtp(false);

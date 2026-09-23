@@ -40,6 +40,9 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     () => cached?.courses ?? []
   );
   const [weeks, setWeeks] = useState<SyllabusWeek[]>(() => cached?.weeks ?? []);
+  const [isWeeksPublished, setIsWeeksPublished] = useState(
+    () => cached?.isWeeksPublished ?? false
+  );
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [offeredCatalogIds, setOfferedCatalogIds] = useState<Set<string>>(
     () => new Set(cached?.offeredCatalogIds ?? [])
@@ -58,6 +61,7 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     selectedCourse?: CourseCatalogItem | null;
     courses?: CourseCatalogItem[];
     weeks?: SyllabusWeek[];
+    isWeeksPublished?: boolean;
     offeredCatalogIds: Set<string>;
     professorCapacity?: string;
     passingThreshold?: string;
@@ -72,6 +76,7 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
           : selectedCourse,
       courses: next.courses ?? courses,
       weeks: next.weeks ?? weeks,
+      isWeeksPublished: next.isWeeksPublished ?? isWeeksPublished,
       offeredCatalogIds: [...next.offeredCatalogIds],
       professorCapacity: next.professorCapacity ?? professorCapacity,
       passingThreshold: next.passingThreshold ?? passingThreshold,
@@ -87,6 +92,7 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
       selectedCourse,
       courses,
       weeks,
+      isWeeksPublished,
       offeredCatalogIds: [...offeredCatalogIds],
       professorCapacity,
       passingThreshold,
@@ -99,6 +105,7 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     selectedCourse,
     courses,
     weeks,
+    isWeeksPublished,
     offeredCatalogIds,
     professorCapacity,
     passingThreshold,
@@ -119,6 +126,8 @@ export function useSyllabusPageState(section: SyllabusConfigSubTab) {
     setCourses,
     weeks,
     setWeeks,
+    isWeeksPublished,
+    setIsWeeksPublished,
     hasUnsavedChanges,
     setHasUnsavedChanges,
     offeredCatalogIds,

@@ -14,7 +14,7 @@ function InternshipBlueprintArt() {
       aria-hidden
     >
       <svg
-        className="absolute left-1/2 top-1/2 h-[900px] w-[1440px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.18]"
+        className="absolute start-1/2 top-1/2 h-[900px] w-[1440px] max-w-none -translate-x-1/2 -translate-y-1/2 opacity-[0.18]"
         viewBox="0 0 1440 900"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -152,7 +152,7 @@ export function MarketingInternshipSection() {
 
       <div className="relative z-10 mx-auto max-w-7xl px-kv-inset sm:px-kv-page">
         <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-          <div className="space-y-6 text-right lg:col-span-5">
+          <div className="space-y-6 text-start lg:col-span-5">
             <span className="inline-flex items-center gap-1.5 rounded-kv-control border border-kv-border-muted bg-kv-surface/80 px-3 py-1 text-xs font-black uppercase tracking-wider text-kv-text-secondary shadow-kv-soft">
               <span className="size-1.5 rounded-full bg-kv-brand" /> سامانه جامع
               کارآموزی و کارورزی

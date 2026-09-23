@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
+
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import {
   KvDialog,
   KvDialogContent,
@@ -16,6 +19,7 @@ import { KvMultiFileDropzone } from '@/components/shared/fields/KvMultiFileDropz
 import { KvTextArea } from '@/components/shared/fields/KvTextArea';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useWeeklyReportModal } from '@/features/karvita/internship-enrollment/hooks/useWeeklyReportModal';
+import { competencyRatingLabel } from '@/features/karvita/daily-approvals/constants';
 import {
   WEEKLY_REPORT_ACCEPT,
   WEEKLY_REPORT_ACCEPT_LABEL,
@@ -24,11 +28,13 @@ import {
   WEEKLY_REPORT_MAX_TOTAL_SIZE_MB,
 } from '@/services/internship-enrollment/weekly-report-attachment-limits';
 import type {
+  InternshipCompetencyRating,
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
   InternshipWeeklySession,
 } from '@/types/internship-enrollment';
 import { faIcons } from '@/utils/iconMap';
+import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
 type WeeklyReportModalProps = {
   open: boolean;
@@ -37,27 +43,44 @@ type WeeklyReportModalProps = {
   state: InternshipEnrollmentPageState;
   onClose: () => void;
   onReopen: (week: InternshipWeeklySession) => void;
-  onSaved: () => Promise<void>;
+  onWeekUpdated: (week: InternshipWeeklySession) => void;
 };
 
 function FeedbackBlock({
   title,
   icon,
   body,
+  rating,
+  at,
 }: {
   title: string;
   icon: (typeof faIcons)[keyof typeof faIcons];
   body: string;
+  rating?: InternshipCompetencyRating;
+  at?: string;
 }) {
+  const atLabel = formatJalaliDateTimeDisplay(at);
   return (
     <KvAlert
       variant="warning"
       title={title}
       icon={<FaIcon icon={icon} size="sm" />}
       description={
-        <KvTypography variant="body" as="p">
-          {body}
-        </KvTypography>
+        <div className="flex flex-col gap-kv-pair">
+          {rating ? (
+            <KvTypography variant="body" as="p" weight="bold">
+              سطح شایستگی: {competencyRatingLabel(rating)}
+            </KvTypography>
+          ) : null}
+          <KvTypography variant="body" as="p">
+            {body}
+          </KvTypography>
+          {atLabel ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              {atLabel}
+            </KvTypography>
+          ) : null}
+        </div>
       }
     />
   );
@@ -70,25 +93,51 @@ export function WeeklyReportModal({
   state,
   onClose,
   onReopen,
-  onSaved,
+  onWeekUpdated,
 }: WeeklyReportModalProps) {
+  // `week` در والد همزمان با بسته‌شدن مودال null می‌شود (یک state واحد برای
+  // open/week)، پس اگر مستقیماً به هوک پاس بدیم، هر بار reopen حتی برای همون
+  // هفته باعث resetForm کامل فرم می‌شد (به نظر می‌رسید داده دوباره لود شده).
+  // آخرین هفتهٔ معتبر رو نگه می‌داریم تا هویت هفته فقط با تغییر واقعیِ هفته
+  // عوض بشه، نه با باز/بسته شدن مودال.
+  const [lastWeek, setLastWeek] = useState<InternshipWeeklySession | null>(null);
+  if (week && week !== lastWeek) {
+    setLastWeek(week);
+  }
+  const effectiveWeek = week ?? lastWeek;
+
   const modal = useWeeklyReportModal({
     actor,
     state,
-    week,
+    week: effectiveWeek,
     open,
     onClose,
     onReopen,
-    onSaved,
+    onWeekUpdated,
   });
+
+  if (!effectiveWeek) {
+    if (!open) return null;
+
+    // اولین باری که مودال باز می‌شه ولی هفته هنوز از والد نرسیده (مثلاً هنوز
+    // در حال بارگذاری لیست هفته‌هاست)، به‌جای خالی نشون دادن مودال همون
+    // اسپینر/متن لودینگ جدول‌ها رو نشون بده.
+    return (
+      <KvDialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
+        <KvDialogContent size="lg" className="max-w-[640px]" showCloseButton>
+          <KvDialogHeader>
+            <KvDialogTitle className="sr-only">در حال بارگذاری گزارش هفتگی</KvDialogTitle>
+          </KvDialogHeader>
+          <KvBusySurface className="min-h-[240px]" />
+        </KvDialogContent>
+      </KvDialog>
+    );
+  }
 
   return (
     <KvDialog
       open={open}
       onOpenChange={(next) => {
-        if (next) {
-          modal.resetForm();
-        }
         if (!next && !modal.busy) onClose();
       }}
     >
@@ -108,6 +157,11 @@ export function WeeklyReportModal({
           <KvDialogDescription className="sr-only">
             ویرایش یا مشاهده گزارش هفتگی کارورزی
           </KvDialogDescription>
+          {typeof effectiveWeek.weightedScore === 'number' ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              وزن این هفته: {effectiveWeek.weightedScore}
+            </KvTypography>
+          ) : null}
         </KvDialogHeader>
 
         <KvScrollArea className="max-h-[min(70vh,560px)] overflow-y-auto pe-kv-micro [direction:ltr]">
@@ -125,6 +179,7 @@ export function WeeklyReportModal({
               title="بازخورد استاد راهنما:"
               icon={faIcons.userTie}
               body={modal.feedback.advisor}
+              at={modal.feedback.advisorAt}
             />
           ) : null}
           {modal.feedback?.mentor ? (
@@ -132,6 +187,8 @@ export function WeeklyReportModal({
               title="بازخورد معلم راهنما:"
               icon={faIcons.chalkboardUser}
               body={modal.feedback.mentor}
+              rating={modal.feedback.mentorRating}
+              at={modal.feedback.mentorAt}
             />
           ) : null}
           {modal.feedback?.principal ? (
@@ -139,7 +196,15 @@ export function WeeklyReportModal({
               title="بازخورد مدیر مدرسه:"
               icon={faIcons.school}
               body={modal.feedback.principal}
+              rating={modal.feedback.principalRating}
+              at={modal.feedback.principalAt}
             />
+          ) : null}
+
+          {modal.reportSubmittedAt ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              تاریخ ارسال گزارش: {formatJalaliDateTimeDisplay(modal.reportSubmittedAt)}
+            </KvTypography>
           ) : null}
 
           <div className={modal.locked ? 'opacity-60' : undefined}>

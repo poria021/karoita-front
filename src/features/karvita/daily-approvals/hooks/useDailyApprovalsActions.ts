@@ -3,15 +3,17 @@
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
-import { IS_MOCK_MODE } from '@/lib/api-mode';
+import { IS_MOCK_MODE, isRealApiMode } from '@/lib/api-mode';
 import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
+import { useUserStore } from '@/store/useUserStore';
 import type {
   DailyApprovalCompetencyRating,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
   DailyApprovalTrainee,
   DailyApprovalWeek,
+  DailyApprovalWeekDetail,
 } from '@/types/daily-approvals';
 
 import {
@@ -36,11 +38,17 @@ export function useDailyApprovalsActions({
   kind,
   termId,
 }: UseDailyApprovalsActionsArgs) {
+  const role = useUserStore((state) => state.activeUser?.role);
   const [selectedTraineeId, setSelectedTraineeId] = useState<string | null>(
     null
   );
   const [gradingTarget, setGradingTarget] =
     useState<DailyApprovalGradingTarget | null>(null);
+  const [weekDetail, setWeekDetail] = useState<{
+    traineeId: string;
+    weekId: string;
+    detail: DailyApprovalWeekDetail;
+  } | null>(null);
   const [bulkExtendOpen, setBulkExtendOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
 
@@ -48,9 +56,53 @@ export function useDailyApprovalsActions({
     list.items.find((row) => row.id === selectedTraineeId) ?? null;
   const gradingTrainee =
     list.items.find((row) => row.id === gradingTarget?.traineeId) ?? null;
-  const gradingWeek =
+  const gradingWeekRaw =
     gradingTrainee?.weeks.find((week) => week.id === gradingTarget?.weekId) ??
     null;
+  // فقط real — گزارش دانشجو/بازخورد قبلی را که در لیست خالی می‌آید (ببین
+  // کامنت mapDailyApprovalWeek) با نتیجهٔ loadWeekDetail جایگزین می‌کند؛
+  // چک traineeId/weekId مانع نشتِ جزئیات هفتهٔ قبلی حین بارگذاری هفتهٔ جدید می‌شود.
+  const gradingWeek =
+    gradingWeekRaw &&
+    weekDetail &&
+    weekDetail.traineeId === gradingTarget?.traineeId &&
+    weekDetail.weekId === gradingTarget?.weekId
+      ? {
+          ...gradingWeekRaw,
+          text: weekDetail.detail.text,
+          files: weekDetail.detail.files,
+          submittedAt: weekDetail.detail.submittedAt,
+          feedback: weekDetail.detail.feedback,
+        }
+      : gradingWeekRaw;
+
+  // بعد از باز کردن/نمره‌دادن یک هفته، به‌جای `list.reload()` (که در real mode
+  // کل صفحهٔ جاری را دوباره می‌خواند — ۳ درخواست به‌ازای هر فراگیرِ نمایش
+  // داده‌شده) فقط همان یک فراگیر را دوباره می‌خوانیم و در کش لیست پچ می‌کنیم.
+  // mock mode چون local/بی‌هزینه است و mutationها همین الان state را عوض
+  // کرده‌اند، رفتار قبلی (`list.reload()`) را نگه می‌داریم.
+  const refreshTraineeDerived = useCallback(
+    async (traineeId: string, status: DailyApprovalTrainee['status']) => {
+      if (!isRealApiMode()) {
+        await list.reload();
+        return;
+      }
+      try {
+        const derived = await DailyApprovalsService.refreshTraineeDerived({
+          traineeId,
+          status,
+        });
+        list.patchItems((prev) =>
+          prev.map((row) => (row.id === traineeId ? { ...row, ...derived } : row))
+        );
+      } catch {
+        // best-effort — اگر رفرشِ سبکِ این یک ردیف خطا بدهد، UI با آخرین
+        // state (optimistic/قبلی) می‌ماند؛ toast جدا نمی‌زنیم چون خودِ
+        // mutation (باز کردن هفته/ثبت نمره) already موفق بوده.
+      }
+    },
+    [list]
+  );
 
   const clearSelection = useCallback(() => {
     setSelectedTraineeId(null);
@@ -63,6 +115,7 @@ export function useDailyApprovalsActions({
 
   const closeWeekGrading = useCallback(() => {
     setGradingTarget(null);
+    setWeekDetail(null);
   }, []);
 
   const openWeekGrading = useCallback(
@@ -70,19 +123,41 @@ export function useDailyApprovalsActions({
       if (
         week.status === 'locked_future' ||
         week.status === 'locked_dropped' ||
-        week.status === 'archived'
+        week.status === 'archived' ||
+        // دانشجو هنوز گزارشی برای این هفته نفرستاده (studentStatus خالی) —
+        // تا وقتی گزارشی نیست، استاد/معلم راهنما/مدیر مدرسه چیزی برای
+        // بازخورد دادن ندارند.
+        week.status === 'draft'
       ) {
         return;
       }
       setSelectedTraineeId(trainee.id);
       setGradingTarget({ traineeId: trainee.id, weekId: week.id });
+      setWeekDetail(null);
+
+      // best-effort، جدا از باز شدن مودال — اگر خواندن گزارش/بازخورد قبلی
+      // خطا بدهد، مودال بدون آن‌ها هم باز می‌شود (توست جدا نمی‌زنیم).
+      if (isRealApiMode()) {
+        void DailyApprovalsService.loadWeekDetail({
+          traineeId: trainee.id,
+          weekId: week.id,
+          role,
+          teacherId: trainee.teacherId,
+        })
+          .then((detail) => {
+            setWeekDetail({ traineeId: trainee.id, weekId: week.id, detail });
+          })
+          .catch(() => {
+            // گزارش/بازخورد قبلی نمایش داده نمی‌شود؛ ثبت بازخورد جدید همچنان کار می‌کند.
+          });
+      }
+
       setActionBusy(true);
       try {
         await DailyApprovalsService.openWeek({
           traineeId: trainee.id,
           weekId: week.id,
         });
-        await list.reload();
       } catch (error) {
         toast.error(
           error instanceof Error
@@ -92,8 +167,14 @@ export function useDailyApprovalsActions({
       } finally {
         setActionBusy(false);
       }
+
+      // رفرش unreadCount/وضعیت این فراگیر در پس‌زمینه — مودال (و loading
+      // state آن که به actionBusy وصل است) منتظرش نمی‌ماند؛ قبلاً همین
+      // `await list.reload()` باعث می‌شد مودال تا پایان رفرش کل لیست در حالت
+      // loading/غیرقابل‌بستن بماند.
+      void refreshTraineeDerived(trainee.id, trainee.status);
     },
-    [list]
+    [refreshTraineeDerived, role]
   );
 
   const dropTrainee = useCallback(
@@ -150,15 +231,17 @@ export function useDailyApprovalsActions({
             setActionBusy(false);
           }
         },
-        onCommitted: async () => {
-          await list.reload();
-        },
+        // onCommitted عمداً حذف رفرش ندارد — patchItems بالا در `apply` از قبل
+        // ردیف را حذف و total را کم کرده؛ حذف موفق چیز دیگری برای رفرش کردن
+        // در بقیهٔ صفحه ندارد، پس `list.reload()` اینجا فقط ۳×N درخواستِ
+        // بی‌فایده بود. «لغو» (`onUndone`) همچنان reload می‌زند چون بعد از
+        // احیای فراگیر داده‌های واقعی (هفته‌ها/گفتگوها) باید از سرور بیایند.
         onUndone: () => {
           void list.reload();
         },
         onError: (error) => {
           toast.error(
-            error instanceof Error ? error.message : 'حذف کارورز ناموفق بود.'
+            error instanceof Error ? error.message : ''
           );
         },
       });
@@ -174,7 +257,6 @@ export function useDailyApprovalsActions({
           input.score === null
             ? 'بازخورد ذخیره شد؛ گزارش به وضعیت «نیازمند ویرایش» تغییر یافت.'
             : 'نمره نهایی گزارش با موفقیت ثبت شد.',
-        errorFallback: 'ثبت ارزیابی استاد ناموفق بود.',
         setGradingTarget,
         commit: async (target) => {
           setActionBusy(true);
@@ -189,12 +271,15 @@ export function useDailyApprovalsActions({
             setActionBusy(false);
           }
         },
-        onCommitted: async () => {
-          await list.reload();
+        onCommitted: async (target) => {
+          await refreshTraineeDerived(
+            target.traineeId,
+            gradingTrainee?.status ?? 'active'
+          );
         },
       });
     },
-    [gradingTarget, list]
+    [gradingTarget, gradingTrainee, refreshTraineeDerived]
   );
 
   const saveMentorWeek = useCallback(
@@ -206,7 +291,6 @@ export function useDailyApprovalsActions({
         gradingTarget,
         message:
           'ارزیابی با موفقیت ثبت نهایی شد و گزارش در وضعیت تایید قرار گرفت.',
-        errorFallback: 'ثبت ارزیابی معلم راهنما ناموفق بود.',
         setGradingTarget,
         commit: async (target) => {
           setActionBusy(true);
@@ -221,23 +305,25 @@ export function useDailyApprovalsActions({
             setActionBusy(false);
           }
         },
-        onCommitted: async () => {
-          await list.reload();
+        onCommitted: async (target) => {
+          await refreshTraineeDerived(
+            target.traineeId,
+            gradingTrainee?.status ?? 'active'
+          );
         },
       });
     },
-    [gradingTarget, list]
+    [gradingTarget, gradingTrainee, refreshTraineeDerived]
   );
 
   const savePrincipalWeek = useCallback(
     async (input: {
       principalFeedback: string;
-      principalRating: DailyApprovalCompetencyRating;
+      principalRating: DailyApprovalCompetencyRating | null;
     }) => {
       scheduleWeekGradingSave({
         gradingTarget,
         message: 'ارزیابی توصیفی مدیر مدرسه با موفقیت ثبت نهایی شد.',
-        errorFallback: 'ثبت ارزیابی مدیر مدرسه ناموفق بود.',
         setGradingTarget,
         commit: async (target) => {
           setActionBusy(true);
@@ -252,12 +338,15 @@ export function useDailyApprovalsActions({
             setActionBusy(false);
           }
         },
-        onCommitted: async () => {
-          await list.reload();
+        onCommitted: async (target) => {
+          await refreshTraineeDerived(
+            target.traineeId,
+            gradingTrainee?.status ?? 'active'
+          );
         },
       });
     },
-    [gradingTarget, list]
+    [gradingTarget, gradingTrainee, refreshTraineeDerived]
   );
 
   const openBulkExtend = useCallback(() => {
@@ -331,7 +420,7 @@ export function useDailyApprovalsActions({
         },
         onError: (error) => {
           toast.error(
-            error instanceof Error ? error.message : 'تمدید گروهی ناموفق بود.'
+            error instanceof Error ? error.message : ''
           );
         },
       });

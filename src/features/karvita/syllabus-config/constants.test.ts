@@ -12,10 +12,10 @@ describe('syllabus-config term title helpers', () => {
 
   it('formats course-offerings option as عنوان بازه · سال تحصیلی', () => {
     expect(formatTermOptionLabel('نیم‌سال اول 1405-1406')).toBe(
-      'نیم‌سال اول · ۱۴۰۵-۱۴۰۶'
+      'نیم‌سال اول · \u2066۱۴۰۵-۱۴۰۶\u2069'
     );
     expect(formatTermOptionLabel('پودمان اول 1404-1405')).toBe(
-      'پودمان اول · ۱۴۰۴-۱۴۰۵'
+      'پودمان اول · \u2066۱۴۰۴-۱۴۰۵\u2069'
     );
   });
 });

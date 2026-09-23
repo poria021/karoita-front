@@ -7,20 +7,21 @@ import { toast } from 'sonner';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
+import {
+  invalidateOrganizationDirectoryConsumers,
+} from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
 } from '@/lib/search-debounce';
 import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
-import { IS_MOCK_MODE } from '@/lib/api-mode';
 import {
   ORG_STRUCTURE_PAGE_SIZE,
   OrgStructureService,
   type OrgStructureListItem,
 } from '@/services/org-structure.service';
-import { flushBareListCache } from '@/services/org-structure/real/real-org-reads';
-import { rememberOrgRelationLabels } from '@/services/org-structure/real/org-relation-label-overlay';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import {
   orgEntityKindFromTab,
@@ -150,41 +151,90 @@ export function useOrgStructurePage() {
    */
   const invalidateAndReload = useCallback(async () => {
     // ۱. hard-flush bareListCache (in-memory, خارج از react-query)
-    if (!IS_MOCK_MODE) {
-      flushBareListCache();
-    }
+    OrgStructureService.flushListCache();
     // ۲. باطل‌سازی react-query cache برای تمام کلیدهای org-structure
     await queryClient.invalidateQueries({
       queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE],
     });
+    await invalidateOrganizationDirectoryConsumers(queryClient);
     // ۳. refetch — هر دو cache پاک شده‌اند، Nest داده تازه برمی‌گردونه
     await list.reload();
   }, [queryClient, list]);
+
+  /**
+   * بعد از حذف موفق: کش flush + invalidate بدون reload فوری.
+   * patchItems قبلاً آیتم را از UI حذف کرده؛ reload فوری خطرناک است چون
+   * بکند ممکن است response کشیده‌شده را برگرداند و آیتم دوباره ظاهر شود.
+   * React Query کش را stale علامت می‌زند — refetch بعدی (ناوبری، تب‌سوئیچ)
+   * داده تازه می‌گیرد.
+   */
+  const invalidateAfterDelete = useCallback(async () => {
+    OrgStructureService.flushListCache();
+    await queryClient.invalidateQueries({
+      queryKey: [ORG_STRUCTURE_CACHE_NAMESPACE],
+    });
+    await invalidateOrganizationDirectoryConsumers(queryClient);
+  }, [queryClient]);
 
   const patchItems = list.patchItems;
 
   const scheduleCreate = useCallback(
     (values: OrgEntityFormValues, labels?: OrgEntityOptimisticLabels) => {
       const label = values.name.trim();
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const optimisticItem: OrgStructureListItem = {
+        id: tempId,
+        name: label,
+        kind: orgEntityKindFromTab(tab),
+        // تا تأیید بکند، حذف ردیف موقت مجاز نیست.
+        deleteBlocked: true,
+        provinceId: values.provinceId,
+        cityId: values.cityId,
+        districtId: values.districtId,
+        gender: values.gender,
+        audience: values.audience,
+        roleId: values.roleId,
+        provinceName: labels?.provinceName,
+        cityName: labels?.cityName,
+        districtName: labels?.districtName,
+        roleName: labels?.roleName,
+      };
+
+      let snapshot: OrgStructureListItem[] = [];
+      let snapshotTotal = 0;
 
       scheduleOptimisticMutation({
         message: `${tabConfig.addLabel} «${label}» افزوده شد.`,
         apply: () => {
-          rememberOrgRelationLabels([label], labels ?? {});
+          OrgStructureService.rememberRelationLabels([label], labels ?? {});
+          patchItems(
+            (prev) => {
+              snapshot = prev;
+              return [optimisticItem, ...prev];
+            },
+            (prevTotal) => {
+              snapshotTotal = prevTotal;
+              return prevTotal + 1;
+            }
+          );
         },
-        revert: () => undefined,
+        revert: () => {
+          patchItems(() => snapshot, () => snapshotTotal);
+        },
         commit: () => submitOrgEntity(tab, values, null),
         onCommitted: async () => {
           await invalidateAndReload();
         },
         onError: (error) => {
           toast.error(
-            error instanceof Error ? error.message : 'افزودن ساختار ناموفق بود.'
+            error instanceof Error
+              ? error.message
+              : `افزودن «${label}» به ساختار سازمانی ناموفق بود.`
           );
         },
       });
     },
-    [invalidateAndReload, tab, tabConfig.addLabel]
+    [invalidateAndReload, patchItems, tab, tabConfig.addLabel]
   );
 
   const requestDelete = useCallback(
@@ -218,7 +268,7 @@ export function useOrgStructurePage() {
         },
         commit: () => OrgStructureService.deleteEntity(row.kind, row.id),
         onCommitted: async () => {
-          await invalidateAndReload();
+          await invalidateAfterDelete();
         },
         onError: (error) => {
           toast.error(
@@ -229,7 +279,7 @@ export function useOrgStructurePage() {
         },
       });
     },
-    [patchItems, invalidateAndReload]
+    [patchItems, invalidateAfterDelete]
   );
 
   const handleLoadMore = useCallback(() => {

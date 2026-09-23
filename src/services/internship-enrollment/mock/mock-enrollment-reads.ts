@@ -21,15 +21,18 @@ import {
   buildWeeklySessions,
 } from '@/services/internship-enrollment/mock/mock-enrollment-weekly';
 import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
+import { catalogIdForKind } from '@/services/syllabus-config/syllabus-mappers';
 import {
   pickActiveTermForKind,
   resolveEnrollmentSyllabusContext,
 } from '@/services/syllabus-config/syllabus-enrollment-reads';
 import type {
   GetEnrollmentPageStateInput,
+  GetEnrollmentTermReportInput,
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
   InternshipEnrollmentScenario,
+  InternshipEnrollmentSummary,
   InternshipMentorCapacity,
   InternshipSchoolCapacity,
   InternshipSupervisor,
@@ -123,6 +126,7 @@ export function resolveEnrollmentPageState(
     courseName: courseNameForKind(kind),
     termTitle: context.termTitle,
     termId: context.termId,
+    lessonId: catalogIdForKind(kind, level),
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'
         ? buildEnrollmentSummary({
@@ -134,6 +138,16 @@ export function resolveEnrollmentPageState(
             weeks,
           })
         : null,
+    // mock فقط یک نیم‌سال (جاری) نگه می‌دارد — بدون تاریخچهٔ چندترمی واقعی.
+    termHistory: record
+      ? [
+          {
+            termId: context.termId,
+            termTitle: context.termTitle,
+            status: record.status ?? 'active',
+          },
+        ]
+      : [],
     selection:
       scenario === 'S3_enroll_open'
         ? {
@@ -149,6 +163,22 @@ export function resolveEnrollmentPageState(
         }
       : null,
   };
+}
+
+/**
+ * mock فقط یک نیم‌سال (جاری) دارد — پس فقط وقتی `termId` همان نیم‌سال جاری
+ * باشد گزارش برمی‌گردد، برای بقیه `null` (سلکت‌باکس نیم‌سال‌های قبلی در mock
+ * همیشه یک گزینه دارد).
+ */
+export function resolveEnrollmentTermReport(
+  input: GetEnrollmentTermReportInput
+): InternshipEnrollmentSummary | null {
+  const state = resolveEnrollmentPageState({
+    actor: input.actor,
+    level: input.level,
+  });
+  if (state.termId !== input.termId) return null;
+  return state.enrollment;
 }
 
 export function listEligibleSupervisors(

@@ -52,7 +52,7 @@ export function DelayedSchoolMentorAssignment({
             </strong>
           </div>
 
-          <div className="relative z-40 flex w-full flex-col items-start sm:flex-row sm:items-center lg:flex-1">
+          <div className="relative z-20 flex w-full flex-col items-start sm:flex-row sm:items-center lg:flex-1">
             <label
               htmlFor={schoolFieldId}
               className="mb-1 shrink-0 font-bold sm:mb-0 sm:me-kv-pair"
@@ -94,7 +94,7 @@ export function DelayedSchoolMentorAssignment({
             />
           </div>
 
-          <div className="relative z-30 flex w-full flex-col items-start sm:flex-row sm:items-center lg:flex-1">
+          <div className="relative z-10 flex w-full flex-col items-start sm:flex-row sm:items-center lg:flex-1">
             <label
               htmlFor={mentorFieldId}
               className="mb-1 shrink-0 font-bold sm:mb-0 sm:me-kv-pair"

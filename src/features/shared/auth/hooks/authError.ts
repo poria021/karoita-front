@@ -1,7 +1,7 @@
 import { ApiClientError } from '@/services/api-client';
 
-export function readAuthErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
+export function readAuthErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : '';
 }
 
 /** خطاهای OTP روی verify-otp یا reset/password — برای نمایش روی فیلد کد. */

@@ -103,7 +103,7 @@ export function OrganizationalCapacitiesPageClient() {
               disabled={page.actionBusy || !page.isDirty || fieldsLocked}
               loading={page.actionBusy}
               icon={<FaIcon icon={faIcons.cloudArrowUp} size="xs" />}
-              onClick={() => page.setConfirmOpen(true)}
+              onClick={page.requestSubmit}
             >
               ثبت و ذخیره تغییرات ظرفیت‌ها
             </KvButton>
@@ -114,7 +114,7 @@ export function OrganizationalCapacitiesPageClient() {
       <KvConfirmationDialog
         isOpen={page.confirmOpen}
         onClose={() => page.setConfirmOpen(false)}
-        onConfirm={() => void page.submit()}
+        onConfirm={page.submit}
         title="تایید و ذخیره ظرفیت‌ها"
         description="آیا مایل به ذخیره تغییرات ظرفیت‌های پذیرش اعلام‌شده هستید؟"
         confirmText="ذخیره تغییرات"

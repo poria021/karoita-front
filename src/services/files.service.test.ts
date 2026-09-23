@@ -4,10 +4,12 @@ import {
   absoluteObjectUrlFromSignedUrl,
   FilesService,
   nestUploadFileName,
+  nestUploadMimeType,
 } from '@/services/files.service';
 
 const upload = vi.fn();
 const uploadToSignedUrl = vi.fn();
+const confirm = vi.fn();
 
 vi.mock('@/services/require-nest-transport', () => ({
   requireNestTransport: vi.fn(),
@@ -17,6 +19,7 @@ vi.mock('@/services/files/files.api', () => ({
   filesApi: {
     upload: (...args: unknown[]) => upload(...args),
     uploadToSignedUrl: (...args: unknown[]) => uploadToSignedUrl(...args),
+    confirm: (...args: unknown[]) => confirm(...args),
   },
 }));
 
@@ -24,11 +27,18 @@ describe('FilesService real two-step upload', () => {
   beforeEach(() => {
     upload.mockReset();
     uploadToSignedUrl.mockReset();
+    confirm.mockReset();
   });
 
   it('keeps the original extension for Nest and strips query from the public path', () => {
     expect(nestUploadFileName('id-card.png')).toBe('id-card.png');
     expect(nestUploadFileName('blob')).toBe('blob.jpg');
+    expect(nestUploadMimeType(new File(['x'], 'a.png', { type: 'image/png' }))).toBe(
+      'image/png'
+    );
+    expect(nestUploadMimeType(new File(['x'], 'blob'), 'card.WEBP')).toBe(
+      'image/webp'
+    );
     expect(
       absoluteObjectUrlFromSignedUrl(
         'https://s3.example.com/bucket/abc.jpg?X-Amz-Signature=sig'
@@ -43,6 +53,7 @@ describe('FilesService real two-step upload', () => {
       uploadSignedUrl: 'https://s3.example.com/abc.jpg?sig=1',
     });
     uploadToSignedUrl.mockResolvedValue(undefined);
+    confirm.mockResolvedValue({ id: 'file-1', path: 'abc.jpg' });
 
     const compressed = new File(['tiny'], 'blob', { type: 'image/jpeg' });
     const original = new File(['full'], 'card.PNG', { type: 'image/png' });
@@ -54,13 +65,19 @@ describe('FilesService real two-step upload', () => {
     );
 
     expect(upload).toHaveBeenCalledWith(
-      { fileName: 'card.PNG', fileSize: compressed.size },
+      {
+        fileName: 'card.PNG',
+        fileSize: compressed.size,
+        mimeType: 'image/jpeg',
+      },
       'access-token'
     );
     expect(uploadToSignedUrl).toHaveBeenCalledWith(
       'https://s3.example.com/abc.jpg?sig=1',
-      compressed
+      compressed,
+      'image/jpeg'
     );
+    expect(confirm).toHaveBeenCalledWith('file-1', 'access-token');
     expect(result).toEqual({
       id: 'file-1',
       path: 'https://s3.example.com/abc.jpg',

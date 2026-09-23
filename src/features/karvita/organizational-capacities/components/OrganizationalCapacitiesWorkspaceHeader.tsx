@@ -7,6 +7,7 @@ import {
   KvSelectTrigger,
   KvSelectValue,
 } from '@/components/shared/fields/KvSelect';
+import { formatTermOptionLabel } from '@/features/karvita/syllabus-config/constants';
 import { KvFeatureIntro } from '@/components/shared/shell/KvFeatureIntro';
 
 import { CAPACITY_FEATURE } from '../constants';
@@ -49,7 +50,7 @@ export function OrganizationalCapacitiesWorkspaceHeader({
                 <KvSelectContent>
                   {terms.map((term) => (
                     <KvSelectItem key={term.id} value={term.id}>
-                      {term.title}
+                      {formatTermOptionLabel(term.title)}
                     </KvSelectItem>
                   ))}
                 </KvSelectContent>

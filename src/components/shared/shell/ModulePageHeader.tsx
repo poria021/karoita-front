@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvBreadcrumb } from '@/components/shared/shell/KvBreadcrumb';
 import { PageHeader } from '@/components/shared/shell/PageHeader';
+import { RefreshPageButton } from '@/components/shared/shell/RefreshPageButton';
 import { useUserStore } from '@/store/useUserStore';
 import { getModuleBreadcrumb } from '@/utils/moduleBreadcrumb';
 import { faIcons } from '@/utils/iconMap';
@@ -30,6 +31,7 @@ export function ModulePageHeader() {
       title={meta.title}
       breadcrumb={<KvBreadcrumb items={crumbs} />}
       icon={<FaIcon icon={icon} size="lg" />}
+      actions={<RefreshPageButton />}
       className="mb-kv-group shrink-0"
     />
   );

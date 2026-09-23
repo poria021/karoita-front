@@ -1,6 +1,9 @@
 /**
  * تعیین حالت API (`mock` | `real`) از روی env.
  * در production حالت mock صریحاً ممنوع است (fail-closed).
+ *
+ * `real` همیشه fail-closed است — چه در dev چه در production — هر endpoint
+ * پیاده‌نشده throw می‌کند. هیچ داده‌ی نمایشی/mock fallback در real mode وجود ندارد.
  */
 
 export type ApiMode = 'mock' | 'real';
@@ -13,10 +16,7 @@ function readRawMode(): string | undefined {
 }
 
 function isProductionRuntime(): boolean {
-  return (
-    process.env.NODE_ENV === 'production' ||
-    process.env.VERCEL_ENV === 'production'
-  );
+  return process.env.NODE_ENV === 'production';
 }
 
 export function resolveApiMode(): ApiMode {

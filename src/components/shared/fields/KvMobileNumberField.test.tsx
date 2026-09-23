@@ -37,8 +37,19 @@ describe('KvMobileNumberField', () => {
 
     fireEvent.change(input, { target: { value: '۰۹۱۲۳۴۵۶۷۸' } });
 
-    expect(onEmitted).toHaveBeenLastCalledWith('0912345678');
-    expect(input.value).toBe(toPersianDigits('0912345678'));
+    expect(onEmitted).toHaveBeenLastCalledWith('912345678');
+    expect(input.value).toBe(toPersianDigits('912345678'));
+  });
+
+  it('does not accept a leading zero as the first typed digit', () => {
+    const onEmitted = vi.fn();
+    render(<ControlledMobile onEmitted={onEmitted} />);
+    const input = document.getElementById('mobile-field') as HTMLInputElement;
+
+    fireEvent.change(input, { target: { value: '۰' } });
+
+    expect(onEmitted).toHaveBeenLastCalledWith('');
+    expect(input.value).toBe('');
   });
 
   it('keeps English digits English in the onChange contract', () => {

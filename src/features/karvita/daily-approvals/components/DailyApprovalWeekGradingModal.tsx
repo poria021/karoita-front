@@ -1,8 +1,13 @@
 'use client';
 
+import { useState } from 'react';
+
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
+import { KvTypography } from '@/components/shared/KvTypography';
 import {
   KvDialog,
   KvDialogContent,
@@ -16,13 +21,57 @@ import type {
   DailyApprovalTrainee,
   DailyApprovalWeek,
 } from '@/types/daily-approvals';
+import type { InternshipCompetencyRating } from '@/types/internship-enrollment';
 import type { UserRole } from '@/types/auth';
+import { faIcons } from '@/utils/iconMap';
+import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
+import { competencyRatingLabel } from '../constants';
 import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekGradingModal';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
 import { DailyApprovalPrincipalGradingFields } from './DailyApprovalPrincipalGradingFields';
 import { DailyApprovalSupervisorGradingFields } from './DailyApprovalSupervisorGradingFields';
 import { DailyApprovalWeekReportReadonly } from './DailyApprovalWeekReportReadonly';
+
+function FeedbackHistoryBlock({
+  title,
+  icon,
+  body,
+  rating,
+  at,
+}: {
+  title: string;
+  icon: (typeof faIcons)[keyof typeof faIcons];
+  body: string;
+  rating?: InternshipCompetencyRating;
+  at?: string;
+}) {
+  const atLabel = formatJalaliDateTimeDisplay(at);
+  return (
+    <KvAlert
+      variant="info"
+      title={title}
+      icon={<FaIcon icon={icon} size="sm" />}
+      description={
+        <div className="flex flex-col gap-kv-pair">
+          {rating ? (
+            <KvTypography variant="body" as="p" weight="bold">
+              سطح شایستگی: {competencyRatingLabel(rating)}
+            </KvTypography>
+          ) : null}
+          <KvTypography variant="body" as="p">
+            {body}
+          </KvTypography>
+          {atLabel ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              {atLabel}
+            </KvTypography>
+          ) : null}
+        </div>
+      }
+    />
+  );
+}
 
 type DailyApprovalWeekGradingModalProps = {
   open: boolean;
@@ -43,7 +92,7 @@ type DailyApprovalWeekGradingModalProps = {
   }) => Promise<void>;
   onSavePrincipal: (input: {
     principalFeedback: string;
-    principalRating: DailyApprovalCompetencyRating;
+    principalRating: DailyApprovalCompetencyRating | null;
   }) => Promise<void>;
 };
 
@@ -59,10 +108,25 @@ export function DailyApprovalWeekGradingModal({
   onSaveMentor,
   onSavePrincipal,
 }: DailyApprovalWeekGradingModalProps) {
+  // مودال قبلاً با `if (!trainee || !week) return null` کاملاً unmount می‌شد؛
+  // چون trainee/week در والد با بسته‌شدن مودال بلافاصله null می‌شوند، این باعث
+  // می‌شد کل state فرم/هوک هر بار از صفر ساخته شود و به نظر برسد داده دوباره
+  // لود شده. اینجا آخرین مقدار معتبر را نگه می‌داریم تا فقط نمایش Dialog با
+  // `open` کنترل شود، نه mount/unmount کل کامپوننت.
+  const [lastTarget, setLastTarget] = useState<{
+    trainee: DailyApprovalTrainee;
+    week: DailyApprovalWeek;
+  } | null>(null);
+  if (trainee && week && (trainee !== lastTarget?.trainee || week !== lastTarget?.week)) {
+    setLastTarget({ trainee, week });
+  }
+  const effectiveTrainee = trainee ?? lastTarget?.trainee ?? null;
+  const effectiveWeek = week ?? lastTarget?.week ?? null;
+
   const modal = useDailyApprovalWeekGradingModal({
     role,
-    trainee,
-    week,
+    trainee: effectiveTrainee,
+    week: effectiveWeek,
     actionBusy,
     onClose,
     onSaveSupervisor,
@@ -70,7 +134,23 @@ export function DailyApprovalWeekGradingModal({
     onSavePrincipal,
   });
 
-  if (!trainee || !week) return null;
+  if (!effectiveTrainee || !effectiveWeek) {
+    if (!open) return null;
+
+    // اولین باری که مودال باز می‌شه ولی trainee/week هنوز از لیست والد آماده
+    // نشده (مثلاً لیست هنوز در حال بارگذاری است)، به‌جای خالی نشون دادن مودال
+    // همون اسپینر/متن لودینگ جدول‌ها رو نشون بده.
+    return (
+      <KvDialog open={open} onOpenChange={(next) => { if (!next && !actionBusy) onClose(); }}>
+        <KvDialogContent size="lg" className="max-w-[640px]" showCloseButton>
+          <KvDialogHeader>
+            <KvDialogTitle className="sr-only">در حال بارگذاری ارزیابی</KvDialogTitle>
+          </KvDialogHeader>
+          <KvBusySurface className="min-h-[240px]" />
+        </KvDialogContent>
+      </KvDialog>
+    );
+  }
 
   const saveLabel =
     role === 'supervisor_professor'
@@ -81,17 +161,41 @@ export function DailyApprovalWeekGradingModal({
         ? 'ثبت نهایی ارزیابی مربی'
         : 'ثبت نهایی ارزیابی مدیر';
 
+  // هر سه مسیر به بک‌اند واقعی وصل‌اند: نمرهٔ استاد → `PATCH student-weeks/{id}/score`؛
+  // رد بدون نمره (استاد) و بازخورد+امتیاز معلم/مدیر → `POST conversations/{id}/messages`
+  // (ببین `scoreRealDailyApprovalWeek`/`submitMentorFeedbackReal`/`submitPrincipalFeedbackReal`).
+  // معلم راهنما امتیاز الزامی دارد (بازخورد اختیاری)؛ مدیر مدرسه هردو اختیاری‌اند
+  // (اعتبارسنجی «حداقل یکی» در خودِ `save()` با toast انجام می‌شود).
+  const alreadySubmitted =
+    (role === 'supervisor_professor' && modal.supervisorLocked) ||
+    (role === 'mentor_teacher' && modal.mentorAlreadySubmitted) ||
+    (role === 'school_principal' && modal.principalAlreadySubmitted);
+
   const saveDisabled =
-    modal.disabled ||
-    (role === 'mentor_teacher' && modal.mentorFeedbackEmpty);
+    modal.disabled || (role === 'mentor_teacher' && modal.mentorRatingMissing);
+
+  const saveButton = alreadySubmitted ? null : (
+    <KvButton
+      type="button"
+      color={
+        role === 'supervisor_professor' && modal.scoreInput.trim() === ''
+          ? 'warning'
+          : 'success'
+      }
+      appearance="solid"
+      size="md"
+      disabled={saveDisabled}
+      loading={actionBusy}
+      onClick={() => void modal.save()}
+    >
+      {saveLabel}
+    </KvButton>
+  );
 
   return (
     <KvDialog
       open={open}
       onOpenChange={(next) => {
-        if (next) {
-          modal.resetForm();
-        }
         if (!next && !actionBusy) onClose();
       }}
     >
@@ -109,6 +213,11 @@ export function DailyApprovalWeekGradingModal({
         <KvDialogHeader>
           <KvDialogTitle>{modal.title}</KvDialogTitle>
           <KvDialogDescription>{modal.subtitle}</KvDialogDescription>
+          {typeof effectiveWeek.weightedScore === 'number' ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              وزن این هفته: {effectiveWeek.weightedScore}
+            </KvTypography>
+          ) : null}
         </KvDialogHeader>
 
         <KvScrollArea className="-mx-kv-stack max-h-[min(70vh,560px)] overflow-y-auto px-kv-stack [direction:ltr] sm:-mx-kv-section sm:px-kv-section">
@@ -125,12 +234,43 @@ export function DailyApprovalWeekGradingModal({
               disabled={modal.disabled}
               className="min-w-0 space-y-kv-group border-0 p-0"
             >
-              <DailyApprovalWeekReportReadonly week={week} />
+              <DailyApprovalWeekReportReadonly week={effectiveWeek} />
 
-              {role === 'supervisor_professor' ? (
+              {/* بازخورد استاد همیشه اینجا نمایش داده می‌شود — DailyApprovalSupervisorGradingFields
+                  آن را (چون فیلد قابل‌ویرایش خودِ استاد است) دوباره نشان نمی‌دهد.
+                  بازخورد معلم/مدیر فقط برای بازبین‌های غیرِ استاد اینجا می‌آید — برای استاد
+                  همین دو مورد با امتیاز و تاریخ در DailyApprovalSupervisorGradingFields هست. */}
+              {effectiveWeek.feedback.advisor ? (
+                <FeedbackHistoryBlock
+                  title="بازخورد استاد راهنما:"
+                  icon={faIcons.userTie}
+                  body={effectiveWeek.feedback.advisor}
+                  at={effectiveWeek.feedback.advisorAt}
+                />
+              ) : null}
+              {role !== 'supervisor_professor' && effectiveWeek.feedback.mentor ? (
+                <FeedbackHistoryBlock
+                  title="بازخورد معلم راهنما:"
+                  icon={faIcons.chalkboardUser}
+                  body={effectiveWeek.feedback.mentor}
+                  rating={effectiveWeek.feedback.mentorRating}
+                  at={effectiveWeek.feedback.mentorAt}
+                />
+              ) : null}
+              {role !== 'supervisor_professor' && effectiveWeek.feedback.principal ? (
+                <FeedbackHistoryBlock
+                  title="بازخورد مدیر مدرسه:"
+                  icon={faIcons.school}
+                  body={effectiveWeek.feedback.principal}
+                  rating={effectiveWeek.feedback.principalRating}
+                  at={effectiveWeek.feedback.principalAt}
+                />
+              ) : null}
+
+              {role === 'supervisor_professor' && !modal.supervisorLocked ? (
                 <DailyApprovalSupervisorGradingFields
-                  week={week}
-                  schoolName={trainee.schoolName}
+                  week={effectiveWeek}
+                  schoolName={effectiveTrainee.schoolName}
                   advisorFeedback={modal.advisorFeedback}
                   scoreInput={modal.scoreInput}
                   passingScoreThreshold={passingScoreThreshold}
@@ -139,7 +279,7 @@ export function DailyApprovalWeekGradingModal({
                 />
               ) : null}
 
-              {role === 'mentor_teacher' ? (
+              {role === 'mentor_teacher' && !modal.mentorAlreadySubmitted ? (
                 <DailyApprovalMentorGradingFields
                   mentorRating={modal.mentorRating}
                   mentorFeedback={modal.mentorFeedback}
@@ -148,7 +288,7 @@ export function DailyApprovalWeekGradingModal({
                 />
               ) : null}
 
-              {role === 'school_principal' ? (
+              {role === 'school_principal' && !modal.principalAlreadySubmitted ? (
                 <DailyApprovalPrincipalGradingFields
                   principalRating={modal.principalRating}
                   principalFeedback={modal.principalFeedback}
@@ -172,22 +312,7 @@ export function DailyApprovalWeekGradingModal({
             لغو
           </KvButton>
 
-          <KvButton
-            type="button"
-            color={
-              role === 'supervisor_professor' &&
-              modal.scoreInput.trim() === ''
-                ? 'warning'
-                : 'success'
-            }
-            appearance="solid"
-            size="md"
-            disabled={saveDisabled}
-            loading={actionBusy}
-            onClick={() => void modal.save()}
-          >
-            {saveLabel}
-          </KvButton>
+          {saveButton}
         </KvDialogFooter>
       </KvDialogContent>
     </KvDialog>

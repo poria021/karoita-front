@@ -11,6 +11,9 @@ import {
   kvDropzoneSurfaceClass,
 } from '@/components/shared/fields/kvDropzoneSurface';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { apiClient } from '@/services/api-client';
+import { FilesService, fileUploadUserMessage } from '@/services/files.service';
+import { isMockApiMode } from '@/lib/api-mode';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -68,12 +71,13 @@ export function KvMultiFileDropzone({
   const generatedId = useId();
   const id = idProp ?? generatedId;
   const [localError, setLocalError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const currentTotalMb = files.reduce((sum, file) => sum + file.sizeMb, 0);
 
   const onDrop = useCallback(
-    (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
-      if (disabled) return;
+    async (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
+      if (disabled || isUploading) return;
       setLocalError(null);
 
       if (rejectedFiles.length > 0) {
@@ -92,7 +96,7 @@ export function KvMultiFileDropzone({
 
       if (acceptedFiles.length === 0) return;
 
-      const next: KvAttachmentItem[] = [];
+      const toUpload: File[] = [];
       let runningTotal = currentTotalMb;
 
       for (const file of acceptedFiles) {
@@ -110,12 +114,45 @@ export function KvMultiFileDropzone({
           break;
         }
         runningTotal += sizeMb;
-        next.push({
-          id: createAttachmentId(),
-          name: file.name,
-          sizeMb,
-          mimeType: file.type || undefined,
-        });
+        toUpload.push(file);
+      }
+
+      if (toUpload.length === 0) return;
+
+      /** حالت mock هیچ اعتبارسنجی mongodb id ندارد؛ فقط real باید واقعاً آپلود شود. */
+      const useRealUpload = !isMockApiMode() && apiClient.isConfigured;
+
+      setIsUploading(true);
+      const next: KvAttachmentItem[] = [];
+      try {
+        for (const file of toUpload) {
+          const sizeMb = toSizeMb(file.size);
+          if (!useRealUpload) {
+            next.push({
+              id: createAttachmentId(),
+              name: file.name,
+              sizeMb,
+              mimeType: file.type || undefined,
+            });
+            continue;
+          }
+
+          try {
+            const uploaded = await FilesService.uploadFile(file);
+            next.push({
+              id: uploaded.id,
+              name: file.name,
+              sizeMb,
+              mimeType: file.type || undefined,
+            });
+          } catch (error) {
+            toast.error(
+              `آپلود فایل "${file.name}" ناموفق بود: ${fileUploadUserMessage(error)}`
+            );
+          }
+        }
+      } finally {
+        setIsUploading(false);
       }
 
       if (next.length === 0) return;
@@ -130,6 +167,7 @@ export function KvMultiFileDropzone({
       currentTotalMb,
       disabled,
       invalidTypeMessage,
+      isUploading,
       maxFileSizeMb,
       maxTotalSizeMb,
       onAdd,
@@ -141,10 +179,10 @@ export function KvMultiFileDropzone({
     accept,
     maxSize: maxFileSizeMb * 1024 * 1024,
     multiple: true,
-    disabled,
-    noClick: disabled,
-    noDrag: disabled,
-    noKeyboard: disabled,
+    disabled: disabled || isUploading,
+    noClick: disabled || isUploading,
+    noDrag: disabled || isUploading,
+    noKeyboard: disabled || isUploading,
   });
 
   return (
@@ -152,32 +190,38 @@ export function KvMultiFileDropzone({
       <div
         {...getRootProps()}
         className={kvDropzoneSurfaceClass({
-          disabled,
-          isDragActive: disabled ? false : isDragActive,
+          disabled: disabled || isUploading,
+          isDragActive: disabled || isUploading ? false : isDragActive,
           error: Boolean(localError),
         })}
       >
         <input {...getInputProps()} id={id} />
         <span
           className={kvDropzoneIconClass({
-            disabled,
-            isDragActive: disabled ? false : isDragActive,
+            disabled: disabled || isUploading,
+            isDragActive: disabled || isUploading ? false : isDragActive,
           })}
         >
-          <FaIcon icon={faIcons.cloudArrowUp} size="sm" />
+          <FaIcon
+            icon={isUploading ? faIcons.spinner : faIcons.cloudArrowUp}
+            size="sm"
+            spin={isUploading}
+          />
         </span>
         <KvTypography
           variant="subtitle"
           weight="black"
-          tone={disabled ? 'disabled' : 'default'}
+          tone={disabled || isUploading ? 'disabled' : 'default'}
           as="p"
           align="center"
         >
-          {disabled
-            ? 'ضمیمه فایل در این وضعیت فقط قابل مشاهده است'
-            : isDragActive
-              ? 'فایل را اینجا رها کنید'
-              : 'کشیدن و رها کردن فایل‌ها یا کلیک جهت انتخاب'}
+          {isUploading
+            ? 'در حال بارگذاری فایل...'
+            : disabled
+              ? 'ضمیمه فایل در این وضعیت فقط قابل مشاهده است'
+              : isDragActive
+                ? 'فایل را اینجا رها کنید'
+                : 'کشیدن و رها کردن فایل‌ها یا کلیک جهت انتخاب'}
         </KvTypography>
         <KvTypography
           variant="caption"

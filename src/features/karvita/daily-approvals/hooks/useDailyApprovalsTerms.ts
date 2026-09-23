@@ -1,7 +1,10 @@
 'use client';
 
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useEffect, type Dispatch, type SetStateAction } from 'react';
 
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
+import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
 import type { DailyApprovalCourseKind } from '@/types/daily-approvals';
 
@@ -12,68 +15,52 @@ type UseDailyApprovalsTermsArgs = {
   setTermId: Dispatch<SetStateAction<string>>;
 };
 
-/** بارگذاری فهرست ترم + حدنصاب قبولی برای kind فعال. */
+/** فهرست ترم + حدنصاب قبولی — Query تا بعد از mutation سرفصل invalidate شود. */
 export function useDailyApprovalsTerms({
   kind,
   setTermId,
 }: UseDailyApprovalsTermsArgs) {
-  const [terms, setTerms] = useState<Array<{ id: string; title: string }>>([]);
-  const [termsReady, setTermsReady] = useState(false);
-  const [termsError, setTermsError] = useState<string | null>(null);
-  const [passingScoreThreshold, setPassingScoreThreshold] = useState(
-    DAILY_APPROVAL_PASSING_SCORE
-  );
+  const termsQuery = useQuery({
+    queryKey: DASHBOARD_QUERY.dailyApprovalsTerms(kind),
+    queryFn: () => DailyApprovalsService.listTerms(kind),
+    staleTime: QUERY_STALE_MS.module,
+    placeholderData: keepPreviousData,
+  });
+  const passingQuery = useQuery({
+    queryKey: DASHBOARD_QUERY.passingScoreThreshold,
+    queryFn: () => DailyApprovalsService.getPassingScoreThreshold(),
+    staleTime: QUERY_STALE_MS.module,
+  });
+
+  const terms = termsQuery.data ?? [];
+  const termsReady = termsQuery.isFetched || termsQuery.isError;
 
   useEffect(() => {
-    let cancelled = false;
+    if (!termsQuery.isSuccess || !termsQuery.data) return;
+    const nextTerms = termsQuery.data;
+    setTermId((current) => {
+      if (nextTerms.some((term) => term.id === current)) return current;
+      return nextTerms[0]?.id ?? '';
+    });
+  }, [setTermId, termsQuery.data, termsQuery.isSuccess]);
 
-    void DailyApprovalsService.listTerms(kind)
-      .then((nextTerms) => {
-        if (cancelled) return;
-
-        setTerms(nextTerms);
-        setTermsError(null);
-        setTermId((current) => {
-          if (nextTerms.some((term) => term.id === current)) return current;
-          return nextTerms[0]?.id ?? '';
-        });
-        setTermsReady(true);
-      })
-      .catch((error: unknown) => {
-        if (cancelled) return;
-
-        setTerms([]);
-        setTermId('');
-        setTermsError(
-          error instanceof Error
-            ? error.message
-            : 'بارگذاری نیم‌سال‌ها ناموفق بود.'
-        );
-        setTermsReady(true);
-      });
-
-    void DailyApprovalsService.getPassingScoreThreshold()
-      .then((threshold) => {
-        if (cancelled) return;
-        setPassingScoreThreshold(
-          Number.isFinite(threshold) ? threshold : DAILY_APPROVAL_PASSING_SCORE
-        );
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setPassingScoreThreshold(DAILY_APPROVAL_PASSING_SCORE);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [kind, setTermId]);
+  const refetchTerms = async () => {
+    await Promise.all([termsQuery.refetch(), passingQuery.refetch()]);
+  };
 
   return {
     terms,
     termsReady,
-    termsError,
-    passingScoreThreshold,
+    termsError: termsQuery.error
+      ? termsQuery.error instanceof Error
+        ? termsQuery.error.message
+        : 'بارگذاری نیم‌سال‌ها ناموفق بود.'
+      : null,
+    passingScoreThreshold:
+      typeof passingQuery.data === 'number' && Number.isFinite(passingQuery.data)
+        ? passingQuery.data
+        : DAILY_APPROVAL_PASSING_SCORE,
+    refetchTerms,
   };
 }
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   formatJalaliDate,
+  formatJalaliDateTimeDisplay,
   formatJalaliSlashDisplay,
   formatNotificationTime,
 } from '@/utils/formatJalaliDate';
@@ -18,6 +19,19 @@ describe('formatJalaliDate', () => {
     expect(parts[1]).toMatch(/^[۰-۹]+$/);
     expect(parts[2]).toMatch(/^[^\d۰-۹]+$/);
     expect(parts[3]).toMatch(/^[۰-۹]+$/);
+  });
+});
+
+describe('formatJalaliDateTimeDisplay', () => {
+  it('formats a jalali date with the time, all in Persian digits', () => {
+    const formatted = formatJalaliDateTimeDisplay('2026-07-22T10:05:00.000Z');
+    expect(formatted).toMatch(/^[۰-۹]+\/[۰-۹]+\/[۰-۹]+ - [۰-۹]+:[۰-۹]+$/);
+  });
+
+  it('returns an empty string for missing or invalid input', () => {
+    expect(formatJalaliDateTimeDisplay(null)).toBe('');
+    expect(formatJalaliDateTimeDisplay(undefined)).toBe('');
+    expect(formatJalaliDateTimeDisplay('not-a-date')).toBe('');
   });
 });
 

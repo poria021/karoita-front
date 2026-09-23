@@ -6,9 +6,12 @@ import { shouldSkipTokenRefresh } from '@/services/api-token';
 export const KY_RETRY_LIMIT = 1;
 
 /**
- * timeout JSON/Nest؛ آپلود S3 جداست — این را بالا نبر تا شبکهٔ بد UI را hang نکند.
+ * timeout JSON/Nest؛ آپلود S3 جداست.
+ * مسیر مرورگر→Next→Darkube گاهی حتی برای یک PATCH ساده از ۲۰ ثانیه رد می‌شود
+ * (سرور جواب ۲۰۰ می‌دهد ولی دیرتر از abort مرورگر می‌رسد)؛ ۴۰ ثانیه فرصت کافی
+ * به این مسیر کند می‌دهد بدون اینکه UI را برای خطاهای واقعی خیلی طولانی hang کند.
  */
-export const KY_TIMEOUT_MS = 20_000;
+export const KY_TIMEOUT_MS = 40_000;
 
 export type UnauthorizedAfterResponseAction = 'ignore' | 'logout' | 'refresh';
 
@@ -19,9 +22,9 @@ export function decideUnauthorizedAfterResponse(input: {
   url: string;
 }): UnauthorizedAfterResponseAction {
   if (input.status !== 401) return 'ignore';
-  if (input.retryCount > 0 || shouldSkipTokenRefresh(input.url)) {
-    return 'logout';
-  }
+  if (shouldSkipTokenRefresh(input.url)) return 'logout';
+  // refresh موفق شد ولی retry هم 401 خورد → permission issue نه session؛ logout نکن.
+  if (input.retryCount > 0) return 'ignore';
   return 'refresh';
 }
 

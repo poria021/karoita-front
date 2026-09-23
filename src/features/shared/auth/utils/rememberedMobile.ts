@@ -1,4 +1,4 @@
-import { persianToEnglishDigits } from '@/utils/persianDigits';
+import { sanitizeIranMobileNationalInput } from '@/utils/iranMobileField';
 
 const REMEMBERED_MOBILE_KEY = 'karvita_remembered_mobile';
 
@@ -7,10 +7,7 @@ function isBrowser(): boolean {
 }
 
 export function normalizeRememberedMobile(raw: string): string {
-  const digits = persianToEnglishDigits(raw).replace(/\D/g, '').slice(0, 10);
-  if (digits.length === 10 && digits.startsWith('9')) return digits;
-  if (digits.length === 11 && digits.startsWith('09')) return digits.slice(1);
-  return digits.length > 0 ? digits.slice(0, 10) : '';
+  return sanitizeIranMobileNationalInput(raw);
 }
 
 export function readRememberedMobile(): string {

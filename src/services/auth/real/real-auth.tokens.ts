@@ -18,9 +18,14 @@ interface MemoryTokens {
   refreshToken: string;
   tokenExpires: number;
   surface: AuthSurface;
+  /** زمان نوشتن توکن (epoch ms) — برای تشخیص freshness و جلوگیری از /auth/me اضافه. */
+  writtenAt: number;
 }
 
 let _mem: MemoryTokens | null = null;
+// شمارندهٔ نسل هر نوشتن — برای تشخیص اینکه آیا یک `writeRealAuthTokens` دیگر
+// (رفرش پس‌زمینه/لاگین جدید) بین شروع و شکستِ این فراخوانی، سشن را عوض کرده.
+let _writeGeneration = 0;
 
 /** اگر Nest `tokenExpires` را epoch-ثانیه بدهد، توکن همیشه منقضی دیده می‌شود — JWT `exp` رایج است. */
 function warnIfTokenExpiresLooksLikeSeconds(tokenExpires: number): void {
@@ -133,12 +138,19 @@ async function clearRefreshTokenCookie(): Promise<void> {
   // باقیماندهٔ کوکی غیر-httpOnly قدیمی
   Cookies.remove(REAL_SURFACE_COOKIE_NAME, { path: '/' });
   try {
-    await fetch('/api/auth/clear-tokens', {
-      method: 'POST',
-      credentials: 'include',
-    });
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8_000);
+    try {
+      await fetch('/api/auth/clear-tokens', {
+        method: 'POST',
+        credentials: 'include',
+        signal: ctrl.signal,
+      });
+    } finally {
+      clearTimeout(t);
+    }
   } catch {
-    // اگر Route نرسید، presence cookie پایین‌تر پاک می‌شود و proxy به login می‌فرستد.
+    // اگر Route نرسید یا timeout خورد، presence cookie پایین‌تر پاک می‌شود و proxy به login می‌فرستد.
   }
 }
 
@@ -151,11 +163,13 @@ export async function writeRealAuthTokens(
   surface: AuthSurface,
 ): Promise<void> {
   warnIfTokenExpiresLooksLikeSeconds(tokens.tokenExpires);
+  const generation = ++_writeGeneration;
   _mem = {
     token: tokens.token,
     refreshToken: tokens.refreshToken,
     tokenExpires: tokens.tokenExpires,
     surface,
+    writtenAt: Date.now(),
   };
   setPresenceCookie();
 
@@ -163,8 +177,13 @@ export async function writeRealAuthTokens(
     // فقط `karvita_rt` + `karvita_surface` httpOnly؛ access در حافظه می‌ماند
     await persistRefreshTokenInCookie(tokens.refreshToken, surface);
   } catch (error) {
-    // rollback: اگر set-tokens جزئی موفق بود، clear-tokens هم بزن
-    clearRealAuthTokens();
+    // rollback: اگر set-tokens جزئی موفق بود، clear-tokens هم بزن — ولی فقط
+    // اگر در همین فاصله یک writeRealAuthTokens دیگر (رفرش پس‌زمینه/لاگین
+    // جدید) سشن را عوض نکرده باشد؛ وگرنه پاک کردن اینجا سشن معتبر جدید را
+    // (هم حافظه هم کوکی httpOnly سرور) از بین می‌برد، نه سشن خودمان را.
+    if (_writeGeneration === generation) {
+      clearRealAuthTokens();
+    }
     throw error;
   }
 }
@@ -181,6 +200,13 @@ export function readRealAccessToken(): string | null {
   if (!_mem) return null;
   if (_mem.tokenExpires <= Date.now() + ACCESS_REFRESH_SKEW_MS) return null;
   return _mem.token;
+}
+
+// True if the token was written less than windowMs ago — caller can skip /auth/me
+// when both this and peekSession() return truthy (token just issued, store still valid).
+export function isRealTokenFresh(windowMs: number): boolean {
+  if (!_mem) return false;
+  return Date.now() - _mem.writtenAt < windowMs;
 }
 
 // The refresh token is kept in memory only for the route refresh flow; a fresh tab reads it from the cookie instead.

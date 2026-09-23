@@ -30,7 +30,7 @@ type UseDailyApprovalWeekGradingModalInput = {
   }) => Promise<void>;
   onSavePrincipal: (input: {
     principalFeedback: string;
-    principalRating: DailyApprovalCompetencyRating;
+    principalRating: DailyApprovalCompetencyRating | null;
   }) => Promise<void>;
 };
 
@@ -48,13 +48,15 @@ function modalTitle(
 }
 
 // تابع کمکی برای آماده‌سازی مقادیر اولیه (بیرون از هوک برای جلوگیری از رندرهای بیهوده)
+// امتیاز پیش‌فرض روی «انتخاب‌نشده» می‌ماند (نه ۵) — چون معلم باید واقعاً یک
+// مقدار انتخاب کند، و مدیر مدرسه اصلاً مجبور نیست امتیاز بدهد.
 function getInitialGradingForm(week: DailyApprovalWeek | null) {
   return {
     advisorFeedback: week?.feedback.advisor ?? '',
     scoreInput: week?.score === null ? '' : String(week?.score ?? ''),
-    mentorRating: (week?.feedback.mentorRating ?? '5') as DailyApprovalCompetencyRating,
+    mentorRating: (week?.feedback.mentorRating ?? null) as DailyApprovalCompetencyRating | null,
     mentorFeedback: week?.feedback.mentor ?? '',
-    principalRating: (week?.feedback.principalRating ?? '5') as DailyApprovalCompetencyRating,
+    principalRating: (week?.feedback.principalRating ?? null) as DailyApprovalCompetencyRating | null,
     principalFeedback: week?.feedback.principal ?? '',
   };
 }
@@ -99,14 +101,14 @@ export function useDailyApprovalWeekGradingModal({
   const [scoreInput, setScoreInput] = useState(
     () => getInitialGradingForm(week).scoreInput
   );
-  const [mentorRating, setMentorRating] = useState<DailyApprovalCompetencyRating>(
+  const [mentorRating, setMentorRating] = useState<DailyApprovalCompetencyRating | null>(
     () => getInitialGradingForm(week).mentorRating
   );
   const [mentorFeedback, setMentorFeedback] = useState(
     () => getInitialGradingForm(week).mentorFeedback
   );
   const [principalRating, setPrincipalRating] =
-    useState<DailyApprovalCompetencyRating>(
+    useState<DailyApprovalCompetencyRating | null>(
       () => getInitialGradingForm(week).principalRating
     );
   const [principalFeedback, setPrincipalFeedback] = useState(
@@ -137,7 +139,20 @@ export function useDailyApprovalWeekGradingModal({
 
   const dropped = trainee?.status === 'dropped';
   const disabled = dropped || actionBusy;
-  const mentorFeedbackEmpty = mentorFeedback.trim() === '';
+  const mentorRatingMissing = mentorRating === null;
+  // هفته وقتی `graded` است که استاد راهنما نمرهٔ نهایی داده — از آن به بعد
+  // مودال هر سه نقش دیگر فقط‌نمایشی می‌شود (cascade)، صرف‌نظر از اینکه خودشان
+  // قبلاً نظر ثبت کرده باشند یا نه.
+  const weekCompleted = week?.status === 'graded';
+  // معلم راهنما و مدیر مدرسه فقط یک بار می‌توانند روی هر گزارش نظر ثبت کنند —
+  // با ثبت `teacherStatus`/`schoolAdminStatus === 'send'` فرم ورودی مخفی
+  // می‌شود تا امکان ثبت مجدد/تغییر نباشد.
+  const mentorAlreadySubmitted = weekCompleted || week?.teacherStatus === 'send';
+  const principalAlreadySubmitted = weekCompleted || week?.schoolAdminStatus === 'send';
+  // استاد راهنما برخلاف دو نقش بالا یک‌بارمصرف نیست — می‌تواند چندبار بازخورد
+  // اصلاحی (رد بدون نمره) بفرستد؛ فقط با ثبت نمرهٔ نهایی (هفته `graded` می‌شود)
+  // مودالش قفل می‌شود.
+  const supervisorLocked = weekCompleted;
   const title = trainee ? modalTitle(role, trainee.traineeName) : '';
   const subtitle =
     trainee && week
@@ -169,8 +184,8 @@ export function useDailyApprovalWeekGradingModal({
     }
 
     if (role === 'mentor_teacher') {
-      if (mentorFeedbackEmpty) {
-        toast.error('ثبت بازخورد متنی معلم راهنما الزامی است.');
+      if (mentorRating === null) {
+        toast.error('ثبت امتیاز شایستگی معلم راهنما الزامی است.');
         return;
       }
       await onSaveMentor({ mentorFeedback, mentorRating });
@@ -179,6 +194,10 @@ export function useDailyApprovalWeekGradingModal({
     }
 
     if (role === 'school_principal') {
+      if (!principalFeedback.trim() && principalRating === null) {
+        toast.error('لطفاً امتیاز یا بازخورد توصیفی را ثبت نمایید.');
+        return;
+      }
       await onSavePrincipal({ principalFeedback, principalRating });
       clearGradingDraft();
     }
@@ -206,7 +225,10 @@ export function useDailyApprovalWeekGradingModal({
     subtitle,
     dropped,
     disabled,
-    mentorFeedbackEmpty,
+    mentorRatingMissing,
+    mentorAlreadySubmitted,
+    principalAlreadySubmitted,
+    supervisorLocked,
     advisorFeedback,
     setAdvisorFeedback: (next: string) => {
       setAdvisorFeedback(next);

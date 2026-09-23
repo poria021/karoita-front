@@ -19,6 +19,7 @@ vi.mock('sonner', () => ({
 
 import { PostCommitRefreshError } from '@/lib/post-commit-refresh';
 import {
+  UNDOABLE_DEFERRED_COMMIT_MS,
   scheduleOptimisticMutation,
   scheduleUndoableLocalChange,
   scheduleUndoableMutation,
@@ -162,12 +163,55 @@ describe('scheduleUndoableMutation', () => {
     expect(apply).toHaveBeenCalledTimes(1);
     expect(commit).not.toHaveBeenCalled();
 
+    const toastMockWithDuration = toastMock as unknown as {
+      mock: { calls: Array<[unknown, { duration?: number }]> };
+    };
+    expect(toastMockWithDuration.mock.calls[0]?.[1]?.duration).toBe(
+      UNDOABLE_DEFERRED_COMMIT_MS
+    );
+
     // شبیه‌سازی بسته شدن خودکار toast
     const toastMockWithCalls = toastMock as unknown as {
       mock: { calls: Array<[unknown, { onAutoClose?: () => void }]> };
     };
     const opts = toastMockWithCalls.mock.calls[0]?.[1];
     opts?.onAutoClose?.();
+
+    await vi.waitFor(() => {
+      expect(commit).toHaveBeenCalledTimes(1);
+      expect(onCommitted).toHaveBeenCalledWith('ok');
+    });
+    expect(revert).not.toHaveBeenCalled();
+  });
+
+  it('deferCommit: ignores the extra onDismiss sonner fires after onAutoClose', async () => {
+    // sonner صدا می‌زند: هم `onAutoClose` مستقیم از تایمر، هم `onDismiss` از کسکید
+    // داخلی `removeToast` → `ToastState.dismiss` — بدون قفل `commitStarted`،
+    // `commit` دوبار می‌رفت و بار دوم (روی موجودیت حذف‌شده) با خطا `revert` می‌شد.
+    const apply = vi.fn();
+    const revert = vi.fn();
+    const commit = vi.fn(async () => 'ok');
+    const onCommitted = vi.fn();
+
+    scheduleUndoableMutation({
+      message: 'حذف شد',
+      deferCommit: true,
+      apply,
+      revert,
+      commit,
+      onCommitted,
+    });
+
+    const toastMockWithCalls = toastMock as unknown as {
+      mock: {
+        calls: Array<
+          [unknown, { onAutoClose?: () => void; onDismiss?: () => void }]
+        >;
+      };
+    };
+    const opts = toastMockWithCalls.mock.calls[0]?.[1];
+    opts?.onAutoClose?.();
+    opts?.onDismiss?.();
 
     await vi.waitFor(() => {
       expect(commit).toHaveBeenCalledTimes(1);

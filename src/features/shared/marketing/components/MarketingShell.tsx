@@ -40,9 +40,10 @@ function MarketingShellChrome({
         <MarketingProductsDock products={products} />
         <MarketingHeader loginHref={loginHref} overlayHeader={overlayHeader} />
 
+        {/* pt-[89px]: ارتفاع واقعی هدر دو ردیفه (ردیف لوگو + ردیف ناو موبایل) زیر lg، نه فقط h-14 */}
         <main
           className={`flex w-full flex-1 flex-col ${
-            overlayHeader ? 'pt-14 lg:pt-0' : 'pt-14 lg:pt-16'
+            overlayHeader ? 'pt-[89px] lg:pt-0' : 'pt-[89px] lg:pt-16'
           }`}
         >
           {children}

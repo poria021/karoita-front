@@ -6,9 +6,11 @@ import type {
   OrgSchool,
 } from '@/types/org-structure';
 import type {
+  NestCity,
   NestDegree,
   NestDegreeByRole,
   NestEducationalDistrict,
+  NestProvince,
   NestProvinceLite,
   NestSchool,
   NestUniversity,
@@ -84,16 +86,124 @@ export function nestUsersCount(row: {
   return undefined;
 }
 
+/** اولین عدد نامنفی بین نام‌های فیلد لایو (`schoolCount` / `universityCount` / …). */
+export function nestCatalogCount(
+  ...candidates: Array<number | undefined>
+): number | undefined {
+  for (const value of candidates) {
+    if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+function withLinkedCounts(
+  kind: OrgStructureListItem['kind'],
+  counts: Pick<
+    OrgStructureListItem,
+    'campusesCount' | 'districtsCount' | 'schoolsCount' | 'usersCount'
+  >
+): Pick<
+  OrgStructureListItem,
+  | 'campusesCount'
+  | 'districtsCount'
+  | 'schoolsCount'
+  | 'usersCount'
+  | 'deleteBlocked'
+> {
+  const campusesCount = counts.campusesCount;
+  const districtsCount = counts.districtsCount;
+  const schoolsCount = counts.schoolsCount;
+  const usersCount = counts.usersCount;
+  return {
+    campusesCount,
+    districtsCount,
+    schoolsCount,
+    usersCount,
+    deleteBlocked:
+      isLinkedUserDeleteBlocked(kind, usersCount) ||
+      (kind === 'province' &&
+        ((campusesCount ?? 0) > 0 ||
+          (districtsCount ?? 0) > 0 ||
+          (schoolsCount ?? 0) > 0)) ||
+      (kind === 'city' && (schoolsCount ?? 0) > 0) ||
+      (kind === 'district' && (schoolsCount ?? 0) > 0),
+  };
+}
+
+/** ردیف جدول استان از GET /admin/provinces. */
+export function toOrgProvinceListItem(p: NestProvince): OrgStructureListItem {
+  return {
+    ...toOrgProvince(p),
+    kind: 'province',
+    ...withLinkedCounts('province', {
+      campusesCount: nestCatalogCount(p.universityCount),
+      districtsCount: nestCatalogCount(p.educationalDistrictCount),
+      schoolsCount: nestCatalogCount(p.schoolCount),
+      usersCount: nestUsersCount(p),
+    }),
+  };
+}
+
+/** ردیف جدول شهر از GET /admin/cities. */
+export function toOrgCityListItem(c: NestCity): OrgStructureListItem {
+  return {
+    ...toOrgCity(c),
+    kind: 'city',
+    provinceName: firstRelationTitle(c.province, c.province_id),
+    ...withLinkedCounts('city', {
+      schoolsCount: nestCatalogCount(c.schoolCount),
+      usersCount: nestUsersCount(c),
+    }),
+  };
+}
+
+/** ردیف جدول منطقه از GET /admin/educations. */
+export function toOrgDistrictListItem(
+  d: NestEducationalDistrict
+): OrgStructureListItem {
+  return {
+    ...toOrgDistrict(d),
+    kind: 'district',
+    provinceName: firstRelationTitle(d.province, d.provinceId, d.province_id),
+    cityName: firstRelationTitle(d.city, d.cityId, d.city_id),
+    ...withLinkedCounts('district', {
+      schoolsCount: nestCatalogCount(d.schoolCount),
+      usersCount: nestUsersCount(d),
+    }),
+  };
+}
+
+/** ردیف جدول مدرسه از GET /admin/schools یا /admin/schools/all. */
+export function toOrgSchoolListItem(s: NestSchool): OrgStructureListItem {
+  return {
+    ...toOrgSchool(s),
+    kind: 'school',
+    deleteBlocked: false,
+    usersCount: nestUsersCount(s),
+    provinceName: firstRelationTitle(s.province, s.provinceId, s.province_id),
+    cityName: firstRelationTitle(s.city, s.cityId, s.city_id),
+    districtName: firstRelationTitle(
+      s.education,
+      s.educationId,
+      s.education_id,
+      s.educationalDistrict,
+      s.district
+    ),
+  };
+}
+
 export function toOrgProvince(p: NestProvinceLite): OrgProvince {
   return { id: p.id, name: p.title };
 }
 
-/** GET لایو `province` را آبجکت می‌گذارد (گاهی `{}`) نه `province_id` تختِ DTO نوشتن. */
+/** GET لایو `province` را آبجکت می‌گذارد (گاهی `{ id: null }`) نه `province_id` تختِ DTO نوشتن. */
 export function toOrgCity(c: {
   id: string;
   title: string;
   province_id?: string;
-  province?: { id?: string; title?: string } | null;
+  province?: { id?: string | null; title?: string } | null;
 }): OrgCity {
   return {
     id: c.id,

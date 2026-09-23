@@ -29,6 +29,18 @@ export function DailyApprovalWeekGrid({
   compact = false,
   onSelectWeek,
 }: DailyApprovalWeekGridProps) {
+  if (trainee.weeks.length === 0) {
+    return (
+      <div
+        className={`flex w-full items-center justify-center rounded-kv-control border border-dashed border-kv-border text-xs font-bold text-kv-text-faint ${
+          compact ? 'min-h-[72px]' : 'min-h-[160px]'
+        }`}
+      >
+        هنوز هیچ هفته‌ای برای این کارآموز ثبت نشده است.
+      </div>
+    );
+  }
+
   return (
     <div
       className={
@@ -43,7 +55,10 @@ export function DailyApprovalWeekGrid({
           week.status === 'graded' && week.score !== null ? week.score : null;
         const label =
           week.status === 'draft' ? draftCardLabel(week) : visual.label;
-        const locked = week.status === 'locked_future';
+        // تا وقتی دانشجو گزارشی نفرستاده (status === 'draft')، استاد/معلم
+        // راهنما/مدیر مدرسه چیزی برای بازخورد دادن ندارند — ببین
+        // openWeekGrading برای گارد اصلی.
+        const locked = week.status === 'locked_future' || week.status === 'draft';
         const selected = selectedWeekId === week.id;
 
         return (

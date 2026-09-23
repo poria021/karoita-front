@@ -53,11 +53,18 @@ export type DailyApprovalWeek = {
   weekNumber: number;
   status: DailyApprovalWeekState;
   score: number | null;
+  /** نمرهٔ وزن‌دار این هفته از Nest (`weightedScore`) — برای نمایش «وزن این هفته» در هدر مودال. */
+  weightedScore?: number | null;
   text: string;
   files: DailyApprovalAttachment[];
+  /** زمان (ISO) آخرین ارسال گزارش فراگیر برای این هفته. */
+  submittedAt?: string | null;
   feedback: InternshipWeeklyReportFeedback;
   readBySupervisor: boolean;
   isExtended?: boolean;
+  /** فیلد خام `teacherStatus`/`schoolAdminStatus` — برای قفل‌شدن مودال خودِ همان نقش. */
+  teacherStatus?: 'send' | null;
+  schoolAdminStatus?: 'send' | null;
 };
 
 export type DailyApprovalProgressiveGrade = {
@@ -83,6 +90,16 @@ export type DailyApprovalTrainee = {
   hasSubmitted: boolean;
   progressiveGrade: DailyApprovalProgressiveGrade;
   weeks: DailyApprovalWeek[];
+  /** فقط real — برای تشخیص پیام معلم در گفتگوی هفته (ببین `loadRealDailyApprovalWeekDetail`). */
+  teacherId?: string | null;
+};
+
+/** جزئیات یک هفته که فقط به‌درخواست (موقع باز شدن مودال) خوانده می‌شود، نه در لیست. */
+export type DailyApprovalWeekDetail = {
+  text: string;
+  files: DailyApprovalAttachment[];
+  submittedAt?: string | null;
+  feedback: InternshipWeeklyReportFeedback;
 };
 
 export type ListDailyApprovalsInput = {
@@ -107,6 +124,7 @@ export type UpdateDailyApprovalWeekInput = {
   advisorFeedback: string;
 };
 
+/** برای معلم راهنما امتیاز الزامی است؛ بازخورد متنی اختیاری. */
 export type UpdateMentorDailyApprovalWeekInput = {
   traineeId: string;
   weekId: string;
@@ -114,11 +132,12 @@ export type UpdateMentorDailyApprovalWeekInput = {
   mentorRating: DailyApprovalCompetencyRating;
 };
 
+/** برای مدیر مدرسه امتیاز اختیاری است — می‌تواند فقط یکی از امتیاز/بازخورد را ثبت کند. */
 export type UpdatePrincipalDailyApprovalWeekInput = {
   traineeId: string;
   weekId: string;
   principalFeedback: string;
-  principalRating: DailyApprovalCompetencyRating;
+  principalRating: DailyApprovalCompetencyRating | null;
 };
 
 export type ExtendDailyApprovalWeekInput = {

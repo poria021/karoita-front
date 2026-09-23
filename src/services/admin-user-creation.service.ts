@@ -1,15 +1,26 @@
 import { isMockApiMode } from '@/lib/api-mode';
-import { ApiClientError } from '@/services/api-error';
-import { mapNestAdminUser, mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
+import { mapNestAdminUser } from '@/services/auth/real/nest-auth-mappers';
 import { isStaffAdminRole } from '@/services/auth/real/nest-auth-role';
-import { isCreatableStaffAdminRole } from '@/types/role-taxonomy';
+import { isCreatableStaffAdminRole, isOrgManagementRole } from '@/types/role-taxonomy';
 import {
   mockCheckMobileAvailable,
   mockCreateOrganizationalUser,
+  mockGetOrgAccountUser,
   mockGetStaffAdmin,
+  mockListOrgAccountUsers,
   mockListStaffAdmins,
+  mockRemoveOrgAccountUser,
+  mockUpdateOrgAccountUser,
   mockUpdateStaffAdmin,
 } from '@/services/admin-user-creation/mock/mock-admin-user-creation';
+import { accountUsersApi } from '@/services/admin-user-creation/real/account-users.api';
+import { resolveOrganizationalRoleId } from '@/services/admin-user-creation/real/account-users-role-lookup';
+import { resolveOrgAccountLocationIds } from '@/services/admin-user-creation/real/account-users-org-fields-lookup';
+import { mapNestAccountUser } from '@/services/admin-user-creation/real/account-users.mappers';
+import {
+  toNestCreateAccountUserDto,
+  toNestUpdateAccountUserDto,
+} from '@/services/admin-user-creation/real/to-nest-account-user';
 import { adminsApi } from '@/services/admin-user-creation/real/admins.api';
 import {
   nestPhonesMatch,
@@ -23,7 +34,10 @@ import type {
   CreateOrganizationalUserInput,
   CreateOrganizationalUserResult,
   MobileAvailabilityResult,
+  OrgAccountRole,
+  OrgAccountUser,
   StaffAdminAccount,
+  UpdateOrganizationalUserInput,
   UpdateStaffAdminInput,
 } from '@/types/admin-user-creation';
 import {
@@ -34,22 +48,12 @@ import {
 /**
  * ایجاد حساب توسط مدیر ارشد.
  * ادمین: POST/GET/PUT `/api/v1/admin/admins` (`role: admin|superadmin`، PUT `status: 2|1`).
- * سازمانی: چک موبایل با GET `/api/v1/users?filters=`؛ PATCH `/users/{id}` نقش را روی کاربر موجود می‌گذارد.
+ * سازمانی: POST/GET/PATCH/DELETE `/api/v1/admin/account-users`؛ `role` بدنه شناسهٔ نقش
+ * است که از GET `/account-users/roles` گرفته می‌شود (نه اسم نقش).
  */
 
 function requireMockUserCreate(): void {
   assertMockClientHasPermission('user.create');
-}
-
-function toDuplicateMobileError(error: unknown): never {
-  if (error instanceof ApiClientError && error.status === 409) {
-    throw new ApiClientError(
-      'این شماره موبایل قبلاً در سیستم ثبت شده است.',
-      409,
-      error.payload
-    );
-  }
-  throw error;
 }
 
 export const AdminUserCreationService = {
@@ -77,10 +81,10 @@ export const AdminUserCreationService = {
 
   /**
    * ادمین: POST /admin/admins بدون password (CreateAdmin فیلد ندارد).
-   * سازمانی real هنوز `userId` کاربر موجود از جریان auth می‌خواهد.
+   * سازمانی: شناسهٔ نقش از GET /account-users/roles گرفته و POST /account-users زده می‌شود.
    */
   async createOrganizationalUser(
-    input: CreateOrganizationalUserInput & { userId?: string }
+    input: CreateOrganizationalUserInput
   ): Promise<CreateOrganizationalUserResult> {
     if (!isMockApiMode()) {
       if (isStaffAdminRole(input.role)) {
@@ -89,32 +93,22 @@ export const AdminUserCreationService = {
             'ایجاد حساب مدیر ارشد از این فرم مجاز نیست. فقط دستیار ادمین ساخته می‌شود.'
           );
         }
-        try {
-          const raw = await adminsApi.create(toNestCreateAdminDto(input));
-          return { user: mapNestAdminUser(raw, input.mobile) };
-        } catch (error) {
-          toDuplicateMobileError(error);
-        }
+        const raw = await adminsApi.create(toNestCreateAdminDto(input));
+        return { user: mapNestAdminUser(raw, input.mobile) };
       }
 
-      if (!input.userId) {
-        throw new Error(
-          'برای ایجاد حساب سازمانی در حالت واقعی، شناسه کاربر (userId) الزامی است.'
-        );
+      if (!isOrgManagementRole(input.role)) {
+        throw new Error('این نقش برای ایجاد حساب سازمانی پشتیبانی نمی‌شود.');
       }
-      const raw = await usersApi.update(input.userId, {
-        firstName: input.firstName,
-        lastName: input.lastName,
-        documentStatus: 'CONFIRM',
-        provinceId: '',
-        universityId: '',
-        degreeId: '',
-        userUniqueId: '',
-        cityIds: [],
-        schoolIds: [],
-        educationalDistrictsIds: [],
-      });
-      return { user: mapNestAuthUser(raw) };
+
+      const [roleId, locationIds] = await Promise.all([
+        resolveOrganizationalRoleId(input.role),
+        resolveOrgAccountLocationIds(input),
+      ]);
+      const raw = await accountUsersApi.create(
+        toNestCreateAccountUserDto({ ...input, ...locationIds }, roleId)
+      );
+      return { user: mapNestAccountUser(raw, input.mobile) };
     }
     requireMockUserCreate();
     return mockCreateOrganizationalUser(input);
@@ -164,10 +158,86 @@ export const AdminUserCreationService = {
       requireMockUserCreate();
       return mockUpdateStaffAdmin(id, input);
     }
-    try {
-      return await adminsApi.update(id, toNestUpdateAdminDto(input));
-    } catch (error) {
-      toDuplicateMobileError(error);
+    return adminsApi.update(id, toNestUpdateAdminDto(input));
+  },
+
+  /**
+   * GET /api/v1/admin/account-users?page=&limit=&role= — offset/limit برای جدول حساب‌های سازمانی.
+   * فعلاً هیچ صفحه‌ای این متد (و getOrgAccountUser/updateOrgAccountUser/removeOrgAccountUser
+   * پایین‌تر) را صدا نمی‌زند — عمداً بدون UI مانده تا وقتی صفحهٔ مدیریت حساب‌های سازمانی ساخته شود؛
+   * ناقص یا فراموش‌شده نیست.
+   */
+  async listOrgAccountUsers(args: {
+    offset: number;
+    limit: number;
+    role?: OrgAccountRole;
+  }): Promise<OffsetLimitPage<OrgAccountUser>> {
+    if (isMockApiMode()) {
+      requireMockUserCreate();
+      return mockListOrgAccountUsers(args.offset, args.limit, args.role);
     }
+
+    const page = Math.floor(args.offset / args.limit) + 1;
+    const result = await accountUsersApi.list({
+      page,
+      limit: args.limit,
+      role: args.role,
+    });
+    const items = result.data.map((row) => mapNestAccountUser(row));
+    return {
+      items,
+      total: estimateHasNextPageTotal(args.offset, items.length, result.hasNextPage),
+      hasMore: result.hasNextPage,
+    };
+  },
+
+  /**
+   * GET /api/v1/admin/account-users/{id} — لایو روی id نامعتبر/حذف‌شده ۲۰۰ با
+   * بدنهٔ `null` می‌دهد نه ۴۰۴؛ همان پیام «یافت نشد» mock را می‌دهیم تا قرارداد
+   * دو حالت یکی بماند (ببین account-users.api.ts).
+   */
+  async getOrgAccountUser(id: string): Promise<OrgAccountUser> {
+    if (isMockApiMode()) {
+      requireMockUserCreate();
+      return mockGetOrgAccountUser(id);
+    }
+    const raw = await accountUsersApi.getById(id);
+    if (!raw) {
+      throw new Error('حساب کاربری سازمانی یافت نشد.');
+    }
+    return mapNestAccountUser(raw);
+  },
+
+  /** PATCH /api/v1/admin/account-users/{id} */
+  async updateOrgAccountUser(
+    id: string,
+    input: UpdateOrganizationalUserInput
+  ): Promise<OrgAccountUser> {
+    if (isMockApiMode()) {
+      requireMockUserCreate();
+      return mockUpdateOrgAccountUser(id, input);
+    }
+    if (!isOrgManagementRole(input.role)) {
+      throw new Error('این نقش از مسیر ویرایش حساب سازمانی پشتیبانی نمی‌شود.');
+    }
+    const [roleId, locationIds] = await Promise.all([
+      resolveOrganizationalRoleId(input.role),
+      resolveOrgAccountLocationIds(input),
+    ]);
+    const raw = await accountUsersApi.update(
+      id,
+      toNestUpdateAccountUserDto({ ...input, ...locationIds }, roleId)
+    );
+    return mapNestAccountUser(raw, input.mobile);
+  },
+
+  /** DELETE /api/v1/admin/account-users/{id} — لایو ۲۰۴. */
+  async removeOrgAccountUser(id: string): Promise<void> {
+    if (isMockApiMode()) {
+      requireMockUserCreate();
+      mockRemoveOrgAccountUser(id);
+      return;
+    }
+    await accountUsersApi.remove(id);
   },
 };

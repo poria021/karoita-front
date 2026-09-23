@@ -6,17 +6,26 @@
 export type NestFileType = {
   id: string;
   path: string;
+  originalName?: string;
+  mimeType?: string;
+  size?: number;
+  uploadedById?: string;
+  status?: string;
+  confirmedAt?: string;
 };
 
 export type NestRole = {
   id: string;
   name: string;
+  is_other_role?: boolean;
 };
 
 export type NestStatus = {
   id: string;
   name: string;
 };
+
+export type NestUserRelationRef = { id: string; title: string };
 
 export type NestUserDto = {
   id: string;
@@ -29,9 +38,9 @@ export type NestUserDto = {
   role: NestRole;
   status: NestStatus;
   userUniqueId: string;
-  city: unknown;
-  educationalDistrict: unknown;
-  school: unknown;
+  city: NestUserRelationRef[] | null;
+  educationalDistrict: NestUserRelationRef[] | null;
+  school: NestUserRelationRef[] | null;
   documentStatus?: NestDocumentStatus;
   /** شکل GET تأیید نشده (آرایه یا تک‌آبجکت) — ببین readRejectMessage در nest-auth-mappers.ts. */
   rejectDescription?: NestRejectDescription[] | NestRejectDescription;
@@ -93,7 +102,7 @@ export type NestUpdateUserDto = {
   schoolIds?: string[];
   educationalDistrictsIds?: string[];
   userUniqueId?: string;
-  documentStatus: NestDocumentStatus;
+  documentStatus?: NestDocumentStatus;
   /** مثال PATCH در Swagger تک‌آبجکت است نه آرایه. */
   rejectDescription?: NestRejectDescription;
   password?: string;
@@ -113,6 +122,7 @@ export type NestUsersListQuery = {
 export type NestFileUploadDto = {
   fileName: string;
   fileSize: number;
+  mimeType: string;
 };
 
 export type NestFileResponseDto = {
@@ -127,4 +137,10 @@ export type NestAuthUpdateDto = {
   email?: string;
   password?: string;
   oldPassword?: string;
+};
+
+/** `POST /v1/auth/set/password` — تغییر رمز وقتی حساب از قبل رمز دارد. */
+export type NestSetPasswordDto = {
+  oldPassword: string;
+  newPassword: string;
 };

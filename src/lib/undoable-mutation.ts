@@ -7,6 +7,8 @@ import {
 } from '@/lib/post-commit-refresh';
 
 export const UNDOABLE_MUTATION_DEFAULT_MS = 5_000;
+/** حذف با `deferCommit`: تا این مدت «لغو» درخواست بک‌اند را نمی‌فرستد. */
+export const UNDOABLE_DEFERRED_COMMIT_MS = 3_000;
 
 export type UndoableToastTone = 'default' | 'success' | 'error' | 'warning';
 
@@ -116,17 +118,25 @@ export function scheduleUndoableMutation<T>(
   let undone = false;
   let commitFailed = false;
   let committedResult: T | undefined;
+  // sonner یک toast خودکاربسته‌شده هم `onAutoClose` و هم `onDismiss` را صدا می‌زند
+  // (دومی از کسکید داخلی `removeToast` → `ToastState.dismiss`)؛ بدون این قفل
+  // `commit` دوبار می‌رود — بار دوم روی موجودیتی که همین الان حذف شده خطا می‌گیرد
+  // و `revert` ردیف حذف‌شده را برمی‌گرداند.
+  let commitStarted = false;
 
-  const durationMs = options.durationMs ?? UNDOABLE_MUTATION_DEFAULT_MS;
   const undoLabel = options.undoLabel ?? 'لغو';
   const description = options.description;
   const tone = options.tone ?? 'default';
   const deferCommit = options.deferCommit ?? false;
+  const durationMs =
+    options.durationMs ??
+    (deferCommit ? UNDOABLE_DEFERRED_COMMIT_MS : UNDOABLE_MUTATION_DEFAULT_MS);
 
   options.apply();
 
   const runCommit = async (): Promise<T | undefined> => {
-    if (undone) return undefined;
+    if (undone || commitStarted) return undefined;
+    commitStarted = true;
     try {
       const result = await options.commit();
       committedResult = result;
@@ -143,9 +153,9 @@ export function scheduleUndoableMutation<T>(
         options.onError(error);
         return undefined;
       }
-      toast.error(
-        error instanceof Error ? error.message : 'عملیات ناموفق بود.'
-      );
+      if (error instanceof Error && error.message) {
+        toast.error(error.message);
+      }
       return undefined;
     }
   };
@@ -178,9 +188,9 @@ export function scheduleUndoableMutation<T>(
               options.revert();
               options.onUndone?.();
             } catch (error) {
-              toast.error(
-                error instanceof Error ? error.message : 'لغو عملیات ناموفق بود.'
-              );
+              if (error instanceof Error && error.message) {
+                toast.error(error.message);
+              }
             }
           } else {
             // deferred: `commit` هنوز نرفته؛ فقط UI برگردد
@@ -257,9 +267,9 @@ export function scheduleOptimisticMutation<T>(
       if (options.onError) {
         options.onError(error);
       } else {
-        toast.error(
-          error instanceof Error ? error.message : 'عملیات ناموفق بود.'
-        );
+        if (error instanceof Error && error.message) {
+          toast.error(error.message);
+        }
       }
     }
   })();

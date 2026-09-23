@@ -19,6 +19,11 @@ function requiredOrgArrayField(requiredMessage: string) {
   return z.array(z.string().trim().min(1)).min(1, requiredMessage);
 }
 
+/** فیلد تک‌انتخابی سازمانی — الزامی. */
+function requiredOrgStringField(requiredMessage: string) {
+  return z.string().trim().min(1, requiredMessage);
+}
+
 /** فیلد چندانتخابی سازمانی — اختیاری (می‌تواند خالی بماند). */
 function optionalOrgArrayField() {
   return z.array(z.string().trim().min(1)).optional();
@@ -60,18 +65,19 @@ const provinceField = requiredOrgArrayField(
 const collegeField = requiredOrgArrayField(
   'لطفاً حداقل یک دانشکده / پردیس را انتخاب کنید.'
 );
+const provinceSingleField = requiredOrgStringField(
+  'لطفاً استان محل سکونت را انتخاب کنید.'
+);
+const collegeSingleField = requiredOrgStringField(
+  'لطفاً دانشکده / پردیس را انتخاب کنید.'
+);
 const majorField = requiredTextField('لطفاً رشته تحصیلی خود را انتخاب کنید.');
 const districtField = requiredOrgArrayField(
   'لطفاً حداقل یک منطقه آموزشی را انتخاب کنید.'
 );
-const schoolField = requiredOrgArrayField(
-  'لطفاً حداقل یک مدرسه محل خدمت را انتخاب کنید.'
-);
 const cityField = requiredOrgArrayField(
   'لطفاً حداقل یک شهر تابعه را انتخاب کنید.'
 );
-
-const optionalCityField = optionalOrgArrayField();
 
 const studentIdField = requiredNumericIdField({
   requiredMessage: 'شماره دانشجویی الزامی است.',
@@ -105,16 +111,16 @@ const adminOnlyProfileSchema = identityNameSchema.extend({
 
 export const studentProfileSchema = identityNameSchema.extend({
   role: z.literal('student'),
-  province: provinceField,
-  college: collegeField,
+  province: provinceSingleField,
+  college: collegeSingleField,
   major: majorField,
   studentId: studentIdField,
 });
 
 export const skillLearnerProfileSchema = identityNameSchema.extend({
   role: z.literal('skill_learner'),
-  province: provinceField,
-  college: collegeField,
+  province: provinceSingleField,
+  college: collegeSingleField,
   major: majorField,
   skillCode: skillCodeField,
 });
@@ -130,19 +136,19 @@ export const supervisorProfessorProfileSchema = identityNameSchema.extend({
 export const mentorTeacherProfileSchema = identityNameSchema.extend({
   role: z.literal('mentor_teacher'),
   province: provinceField,
-  district: districtField,
-  school: schoolField,
+  district: optionalOrgArrayField(),
+  school: optionalOrgArrayField(),
   personalCode: personalCodeField,
-  city: optionalCityField,
+  city: cityField,
 });
 
 export const schoolPrincipalProfileSchema = identityNameSchema.extend({
   role: z.literal('school_principal'),
   province: provinceField,
-  district: districtField,
-  school: schoolField,
+  district: optionalOrgArrayField(),
+  school: optionalOrgArrayField(),
   personalCode: personalCodeField,
-  city: optionalCityField,
+  city: cityField,
 });
 
 export const regionalEduAdminProfileSchema = identityNameSchema.extend({

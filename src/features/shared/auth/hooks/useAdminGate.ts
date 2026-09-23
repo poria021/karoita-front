@@ -72,7 +72,7 @@ export function useAdminGate() {
       }
     } catch (error) {
       mobileForm.setError('mobile', {
-        message: readAuthErrorMessage(error, 'ارسال کد تایید ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     }
   });
@@ -86,7 +86,7 @@ export function useAdminGate() {
       );
     } catch (error) {
       otpForm.setError('otp', {
-        message: readAuthErrorMessage(error, 'تایید کد ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     }
   });
@@ -101,7 +101,7 @@ export function useAdminGate() {
       otpForm.reset({ otp: '' });
     } catch (error) {
       otpForm.setError('otp', {
-        message: readAuthErrorMessage(error, 'ارسال مجدد کد ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     } finally {
       setIsResending(false);

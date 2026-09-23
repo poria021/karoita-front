@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import {
   isBrowsableMediaUrl,
   resolveNestFileUrl,
+  toSameOriginMediaUrl,
 } from '@/services/files/resolve-nest-file-url';
 import {
   compressImage,
@@ -61,6 +62,8 @@ export type KvImageDocUploaderProps = {
    * SVG حتی با `true` هم فشرده نمی‌شود.
    */
   compress?: boolean;
+  /** حداکثر عرض خروجی فشرده‌سازی (پیش‌فرض ۱۰۰۰px، برای تصاویر full-bleed مثل بنر هیرو باید بزرگ‌تر باشد). */
+  compressMaxWidth?: number;
   /**
    * `false` کروم پنل دور دراپ‌زون را برمی‌دارد؛ لیبل از `KvFieldFrame` می‌ماند.
    */
@@ -184,6 +187,7 @@ export function KvImageDocUploader({
   },
   invalidTypeMessage = 'فقط فایل‌های تصویری (JPEG، PNG) مجاز هستند.',
   compress = true,
+  compressMaxWidth = 1000,
   framed = true,
   previewFit = 'contain',
 }: KvImageDocUploaderProps) {
@@ -202,7 +206,8 @@ export function KvImageDocUploader({
   );
   const resolvedExistingUrl = useMemo(() => {
     if (!existingUrl || existingUrl === dismissedExistingUrl) return null;
-    return resolveNestFileUrl(existingUrl) ?? existingUrl;
+    const resolved = resolveNestFileUrl(existingUrl) ?? existingUrl;
+    return resolved ? toSameOriginMediaUrl(resolved) : null;
   }, [dismissedExistingUrl, existingUrl]);
 
   useEffect(() => {
@@ -272,7 +277,7 @@ export function KvImageDocUploader({
       try {
         setIsCompressing(true);
         const compressedFile = await compressImage(file, {
-          maxWidth: 1000,
+          maxWidth: compressMaxWidth,
           quality: 0.7,
           format: 'image/webp',
           allowJpegFallback: false,
@@ -289,7 +294,7 @@ export function KvImageDocUploader({
         setIsCompressing(false);
       }
     },
-    [compress, disabled, invalidTypeMessage, maxSizeMb, onChange]
+    [compress, compressMaxWidth, disabled, invalidTypeMessage, maxSizeMb, onChange]
   );
 
   const handleRemove = useCallback(

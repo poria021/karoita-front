@@ -19,7 +19,7 @@ type MarketingHomePageProps = {
  */
 export function MarketingHomePage({ initialChrome }: MarketingHomePageProps) {
   return (
-    <MarketingShell initialChrome={initialChrome} overlayHeader>
+    <MarketingShell initialChrome={initialChrome}>
       <MarketingHomeHero />
       <MarketingTrustBadges />
 

@@ -5,6 +5,7 @@
 import {
   faArrowLeft,
   faArrowRight,
+  faArrowsRotate,
   faBars,
   faBell,
   faBookOpen,
@@ -96,6 +97,7 @@ import {
 export const faIcons = {
   arrowLeft: faArrowLeft,
   arrowRight: faArrowRight,
+  arrowsRotate: faArrowsRotate,
   bars: faBars,
   bell: faBell,
   bookOpen: faBookOpen,

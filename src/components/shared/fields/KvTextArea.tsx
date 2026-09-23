@@ -127,21 +127,32 @@ export const KvTextArea = React.forwardRef<
       return;
     }
 
-    const raw = event.target.value;
+    const textarea = event.target;
+    const cursorPos = textarea.selectionStart ?? textarea.value.length;
+    const raw = textarea.value;
     const { value: next, blockedLatin } = applyPersianTextScriptGuard(
       raw,
       scriptGuard
     );
+
     if (blockedLatin) {
-      event.target.value = next;
       setLatinScriptError(LATIN_LETTERS_NOT_ALLOWED_MESSAGE);
-    } else if (next !== raw) {
-      event.target.value = next;
-      if (latinScriptError) {
-        setLatinScriptError(undefined);
-      }
     } else if (latinScriptError) {
       setLatinScriptError(undefined);
+    }
+
+    if (next !== raw) {
+      // طول رشته با حذف کاراکترهای غیرمجاز کم می‌شود؛ مکان‌نما را متناسب
+      // با تعداد حذف‌شده جابه‌جا می‌کنیم تا به انتهای متن پرش نکند.
+      const removedChars = raw.length - next.length;
+      const nextCursor = Math.max(
+        0,
+        Math.min(next.length, cursorPos - removedChars)
+      );
+      textarea.value = next;
+      onChange?.(event);
+      textarea.setSelectionRange(nextCursor, nextCursor);
+      return;
     }
 
     onChange?.(event);

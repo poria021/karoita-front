@@ -13,7 +13,7 @@ import {
 } from '../constants';
 
 type DailyApprovalMentorGradingFieldsProps = {
-  mentorRating: DailyApprovalCompetencyRating;
+  mentorRating: DailyApprovalCompetencyRating | null;
   mentorFeedback: string;
   onMentorRatingChange: (value: DailyApprovalCompetencyRating) => void;
   onMentorFeedbackChange: (value: string) => void;
@@ -33,37 +33,45 @@ export function DailyApprovalMentorGradingFields({
         </KvTypography>
       </div>
 
-      <KvSelectField
-        label="سطح شایستگی کارورز:"
-        value={mentorRating}
-        displayValue={competencyRatingLabel(mentorRating)}
-        contentClassName="z-[150]"
-        onValueChange={(value) => {
-          if (
-            value === '1' ||
-            value === '2' ||
-            value === '3' ||
-            value === '4' ||
-            value === '5'
-          ) {
-            onMentorRatingChange(value);
-          }
-        }}
-      >
-        {DAILY_APPROVAL_COMPETENCY_OPTIONS.map((option) => (
-          <KvSelectItem key={option.value} value={option.value}>
-            {option.label}
-          </KvSelectItem>
-        ))}
-      </KvSelectField>
-
       <div className="space-y-kv-pair">
         <div className="flex items-center justify-between gap-kv-pair">
           <KvTypography variant="label" as="span">
-            شرح بازخورد متنی (الزامی):
+            سطح شایستگی کارورز (الزامی):
           </KvTypography>
-          <Badge variant="danger">تکمیل این بخش اجباری است</Badge>
+          {mentorRating === null ? (
+            <Badge variant="danger">تکمیل این بخش اجباری است</Badge>
+          ) : null}
         </div>
+        <KvSelectField
+          label={false}
+          placeholder="انتخاب کنید"
+          value={mentorRating ?? ''}
+          displayValue={mentorRating ? competencyRatingLabel(mentorRating) : ''}
+          contentClassName="z-[150]"
+          onValueChange={(value) => {
+            if (
+              value === '1' ||
+              value === '2' ||
+              value === '3' ||
+              value === '4' ||
+              value === '5'
+            ) {
+              onMentorRatingChange(value);
+            }
+          }}
+        >
+          {DAILY_APPROVAL_COMPETENCY_OPTIONS.map((option) => (
+            <KvSelectItem key={option.value} value={option.value}>
+              {option.label}
+            </KvSelectItem>
+          ))}
+        </KvSelectField>
+      </div>
+
+      <div className="space-y-kv-pair">
+        <KvTypography variant="label" as="span">
+          شرح بازخورد متنی (اختیاری):
+        </KvTypography>
         <KvTextArea
           label={false}
           value={mentorFeedback}

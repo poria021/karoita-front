@@ -59,6 +59,23 @@ export function PwaBoot() {
       }
     });
 
+    const OFFLINE_TOAST_ID = 'karvita-network-offline';
+    const onOffline = () => {
+      toast.error(shellCopy.network.offline, {
+        id: OFFLINE_TOAST_ID,
+        duration: Infinity,
+        description: shellCopy.network.offlineHint,
+      });
+    };
+    const onOnline = () => {
+      toast.dismiss(OFFLINE_TOAST_ID);
+      toast.success(shellCopy.network.online, { duration: 3000 });
+    };
+    window.addEventListener('offline', onOffline);
+    window.addEventListener('online', onOnline);
+
+    if (!navigator.onLine) onOffline();
+
     let hadController = Boolean(navigator.serviceWorker.controller);
     const onControllerChange = () => {
       if (!hadController) {
@@ -78,6 +95,8 @@ export function PwaBoot() {
     );
 
     return () => {
+      window.removeEventListener('offline', onOffline);
+      window.removeEventListener('online', onOnline);
       navigator.serviceWorker.removeEventListener(
         'controllerchange',
         onControllerChange

@@ -22,6 +22,7 @@ import { faIcons } from '@/utils/iconMap';
 import { SidebarNavGroup } from './SidebarNavGroup';
 import { SidebarNavLink } from './SidebarNavLink';
 import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
+import { useInternshipLockedPaths } from './useInternshipLockedPaths';
 
 export function Sidebar() {
   const activeUser = useUserStore((state) => state.activeUser);
@@ -38,6 +39,12 @@ export function Sidebar() {
     drawerRef,
     onClose: closeMobileSidebar,
   });
+
+  const enrollmentRole =
+    activeUser?.role === 'student' || activeUser?.role === 'skill_learner'
+      ? activeUser.role
+      : null;
+  const internshipLockedPaths = useInternshipLockedPaths(enrollmentRole);
 
   if (!activeUser) return null;
 
@@ -82,7 +89,8 @@ export function Sidebar() {
           className={cn(
             'group/sidebar flex h-full min-h-0 w-full shrink-0 flex-col overflow-y-auto border-e border-kv-border/80 bg-kv-surface',
             'lg:h-auto lg:overflow-hidden lg:border lg:border-kv-border/80 lg:rounded-kv-shell',
-            kvScrollAreaClassName
+            kvScrollAreaClassName,
+            'kv-sidebar-scroll'
           )}
         >
           <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">
@@ -107,6 +115,7 @@ export function Sidebar() {
           <nav
             className={cn(
               kvScrollAreaClassName,
+              'kv-sidebar-scroll',
               'flex-1 space-y-kv-inline overflow-y-auto p-kv-group lg:overflow-y-visible lg:p-kv-inline lg:pt-kv-stack lg:pb-kv-page'
             )}
             aria-label="منوی اصلی"
@@ -119,6 +128,7 @@ export function Sidebar() {
                   pathname={pathname}
                   isCollapsed={isCollapsed}
                   locked={!modulesUnlocked}
+                  lockedPaths={modulesUnlocked ? internshipLockedPaths : undefined}
                   onNavigate={closeMobileSidebar}
                 />
               ) : (

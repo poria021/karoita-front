@@ -7,19 +7,17 @@ import {
   KvTextField,
   type KvTextFieldSize,
 } from '@/components/shared/fields/KvTextField';
+import { toPersianDigits } from '@/utils/persianDigits';
 import {
-  persianToEnglishDigits,
-  toPersianDigits,
-} from '@/utils/persianDigits';
+  IRAN_MOBILE_PREFIX_MESSAGE,
+  hasInvalidIranMobilePrefix,
+  sanitizeIranMobileNationalInput,
+} from '@/utils/iranMobileField';
 import {
   LATIN_LETTERS_NOT_ALLOWED_MESSAGE,
   containsLatinLetters,
 } from '@/utils/persianPersonName';
 import { cn } from '@/lib/utils';
-
-function filterDigits(rawValue: string): string {
-  return persianToEnglishDigits(rawValue).replace(/\D/g, '');
-}
 
 /**
  * پیشوند «۹۸+» — رنگ متن باید در حالت قفل، هم‌رنگ سایر متن‌های قفل‌شده
@@ -87,15 +85,16 @@ export const KvMobileNumberField = React.forwardRef<
 ) {
   const isControlled = value !== undefined;
   const [uncontrolledEnglish, setUncontrolledEnglish] = React.useState(() =>
-    filterDigits(defaultValue ?? '').slice(0, 10)
+    sanitizeIranMobileNationalInput(defaultValue ?? '')
   );
   const [latinScriptError, setLatinScriptError] = React.useState<
     string | undefined
   >();
+  const [prefixError, setPrefixError] = React.useState<string | undefined>();
 
-  const englishValue = (
-    isControlled ? filterDigits(value ?? '') : uncontrolledEnglish
-  ).slice(0, 10);
+  const englishValue = isControlled
+    ? sanitizeIranMobileNationalInput(value ?? '')
+    : uncontrolledEnglish;
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (locked) {
@@ -103,20 +102,37 @@ export const KvMobileNumberField = React.forwardRef<
       return;
     }
 
-    const raw = event.target.value;
+    const input = event.target;
+    const cursorPos = input.selectionStart ?? input.value.length;
+    const raw = input.value;
     if (containsLatinLetters(raw)) {
       setLatinScriptError(LATIN_LETTERS_NOT_ALLOWED_MESSAGE);
     } else if (latinScriptError) {
       setLatinScriptError(undefined);
     }
 
-    const next = filterDigits(raw).slice(0, 10);
+    if (hasInvalidIranMobilePrefix(raw)) {
+      setPrefixError(IRAN_MOBILE_PREFIX_MESSAGE);
+    } else if (prefixError) {
+      setPrefixError(undefined);
+    }
+
+    const next = sanitizeIranMobileNationalInput(raw);
     if (!isControlled) {
       setUncontrolledEnglish(next);
     }
 
-    event.target.value = next;
+    // چون طول رشته ممکن است کم شود (حذف صفر اول)، مکان‌نما را متناسب
+    // با تعداد کاراکترهای حذف‌شده جابه‌جا می‌کنیم، نه اینکه به انتها بپرد.
+    const removedChars = raw.length - next.length;
+    const nextCursor = Math.max(0, Math.min(next.length, cursorPos - removedChars));
+
+    input.value = next;
     onChange?.(event);
+
+    const displayValue = toPersianDigits(next);
+    input.value = displayValue;
+    input.setSelectionRange(nextCursor, nextCursor);
   };
 
   return (
@@ -140,7 +156,7 @@ export const KvMobileNumberField = React.forwardRef<
       onFocus={onFocus}
       onChange={handleChange}
       scriptGuard="none"
-      error={latinScriptError ?? error}
+      error={latinScriptError ?? prefixError ?? error}
       startAddon={buildPlus98Addon(locked)}
     />
   );

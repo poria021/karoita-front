@@ -26,6 +26,8 @@ export type SidebarNavGroupProps = {
   pathname: string;
   isCollapsed: boolean;
   locked: boolean;
+  /** مسیرهایی که فارغ از وضعیت گروه، به‌صورت مستقل قفل هستند (مثل سطح‌های انتخاب واحد). */
+  lockedPaths?: ReadonlySet<string>;
   onNavigate: () => void;
   textSize?: KvShellRailTextSize;
 };
@@ -35,6 +37,7 @@ export function SidebarNavGroup({
   pathname,
   isCollapsed,
   locked,
+  lockedPaths,
   onNavigate,
   textSize = 'compact',
 }: SidebarNavGroupProps) {
@@ -64,7 +67,7 @@ export function SidebarNavGroup({
               item={child}
               isActive={!locked && pathname === child.path}
               isCollapsed
-              locked={locked}
+              locked={locked || Boolean(lockedPaths?.has(child.path))}
               onNavigate={onNavigate}
               textSize={textSize}
             />
@@ -82,6 +85,7 @@ export function SidebarNavGroup({
             }}
             pathname={pathname}
             locked={locked}
+            lockedPaths={lockedPaths}
             onNavigate={onNavigate}
             isCollapsed={false}
             textSize={textSize}
@@ -103,6 +107,7 @@ export function SidebarNavGroup({
       }}
       pathname={pathname}
       locked={locked}
+      lockedPaths={lockedPaths}
       onNavigate={onNavigate}
       isCollapsed={false}
       textSize={textSize}
@@ -118,6 +123,7 @@ function ExpandedGroupChrome({
   onToggle,
   pathname,
   locked,
+  lockedPaths,
   onNavigate,
   isCollapsed,
   textSize,
@@ -129,6 +135,7 @@ function ExpandedGroupChrome({
   onToggle: () => void;
   pathname: string;
   locked: boolean;
+  lockedPaths?: ReadonlySet<string>;
   onNavigate: () => void;
   isCollapsed: boolean;
   textSize: KvShellRailTextSize;
@@ -210,7 +217,7 @@ function ExpandedGroupChrome({
               item={child}
               isActive={!locked && pathname === child.path}
               isCollapsed={isCollapsed}
-              locked={locked}
+              locked={locked || Boolean(lockedPaths?.has(child.path))}
               onNavigate={onNavigate}
               nested
               textSize={textSize}

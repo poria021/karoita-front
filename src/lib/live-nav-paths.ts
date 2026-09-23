@@ -56,12 +56,7 @@ const INDEX_REDIRECT_MODULE_PATHS: readonly string[] = [
  * مسیر، لاگین، ریکاوری و بردکرامب سر جایشان می‌مانند.
  * برای نمایش دوباره، همان مسیر را از این مجموعه بردارید — آیتم نقش از قبل هست.
  */
-const SIDEBAR_DEFERRED_PATHS: ReadonlySet<string> = new Set([
-  RouteService.karvita.dashboard(),
-  RouteService.karvita.adminDashboard(),
-  RouteService.karvita.adminUserCreation(),
-  RouteService.karvita.landingCms(),
-]);
+const SIDEBAR_DEFERRED_PATHS: ReadonlySet<string> = new Set([]);
 
 /**
  * زیرمجموعهٔ سایدبار: مسیرهای شِل از `LIVE_STATIC_NAV_PATHS` منهای deferred.

@@ -11,15 +11,15 @@ export const SITE_TITLE =
 export const SITE_DESCRIPTION =
   'سامانه کارویتا؛ زیرساخت هوشمند آموزش نظری و مهارتی برای دانشگاه‌ها، آموزش‌و‌پرورش و مدیریت یکپارچه کارورزی در سراسر کشور.';
 
-export const SITE_OG_IMAGE = '/brand/karvita-wordmark.png';
+export const SITE_OG_IMAGE = '/brand/main-logo.png';
 
-/** Favicon — مربع با نسبت طبیعی مارک (`public/brand/favicon.png`). */
 export const SITE_FAVICON = '/brand/favicon.png';
 
 export const SITE_FAVICON_SIZES = [
   { url: '/brand/favicon-32.png', sizes: '32x32' },
   { url: '/brand/favicon-48.png', sizes: '48x48' },
-  { url: SITE_FAVICON, sizes: '64x64' },
+  { url: '/brand/favicon.png', sizes: '64x64' },
+  { url: '/brand/pwa-icon-192.png', sizes: '192x192' },
 ] as const;
 
 export function getSiteUrl(): URL {

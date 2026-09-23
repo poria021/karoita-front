@@ -49,6 +49,34 @@ export function formatJalaliSlashDisplay(date: Date = new Date()): string {
 }
 
 /**
+ * جلالی همراه ساعت برای نمایش دقیق یک رویداد (نه نسبی): `۱۴۰۴/۴/۳۱ - ۱۴:۰۵`.
+ * ورودی نامعتبر/خالی → رشتهٔ خالی (فراخوان تصمیم می‌گیرد که اصلاً نمایش ندهد).
+ */
+export function formatJalaliDateTimeDisplay(value: Date | string | null | undefined): string {
+  if (!value) return '';
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const dateParts = new Intl.DateTimeFormat('en-US', {
+    calendar: 'persian',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(date);
+  const year = dateParts.find((part) => part.type === 'year')?.value ?? '';
+  const month = dateParts.find((part) => part.type === 'month')?.value ?? '';
+  const day = dateParts.find((part) => part.type === 'day')?.value ?? '';
+
+  const time = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+
+  return toPersianDigits(`${year}/${month}/${day} - ${time}`);
+}
+
+/**
  * زمان اعلان: تا یک هفته نسبی («۵ دقیقه قبل»)، بعد از آن تاریخ جلالی اسلش.
  */
 export function formatNotificationTime(

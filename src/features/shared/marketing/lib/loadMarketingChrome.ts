@@ -11,29 +11,35 @@ export type MarketingChromeData = {
   socials: LandingSocial[];
 };
 
+async function safeList<T>(
+  label: string,
+  fetcher: () => Promise<T[]>
+): Promise<T[]> {
+  try {
+    return await fetcher();
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`[loadMarketingChrome] ${label} failed:`, err);
+    }
+    return [];
+  }
+}
+
 /**
- * فهرست chrome عمومی برای ترکیب‌های مارکتینگ.
+ * داده chrome لندینگ را برای Server Component می‌خواند.
  *
- * در حالت real هنوز endpoint لندینگ Nest پیاده نشده —
- * قبل از Facade کوتاه می‌کنیم تا هشدار `[real-mode stub]` در لاگ سرور نیاید
- * و round-trip شبکهٔ بیهوده نزند. وقتی مسیر `/landing/*` Nest آمد،
- * گارد `isMockApiMode` را بردارید تا سرویس هر دو حالت را هندل کند.
+ * real: هر endpoint مستقل try/catch دارد — خرابی یک منبع بقیه را نمی‌کشد.
+ * mock: از LandingCmsService روی in-memory store کار می‌کند.
+ *
+ * برای بنرها و شبکه‌های اجتماعی که endpoint عمومی Nest ندارند:
+ * کوکی‌های request کاربر فوروارد می‌شود تا session ادمین (در صورت وجود) منتقل شود.
+ * وقتی Nest یک GET عمومی /landing-chrome برگرداند، این workaround حذف خواهد شد.
  */
 export async function loadMarketingChrome(): Promise<MarketingChromeData> {
-  const { isMockApiMode } = await import('@/lib/api-mode');
-  if (!isMockApiMode()) {
-    // real: مسیر لندینگ Nest هنوز نیست — chrome خالی، بدون `throwRealModeNotImplemented`.
-    return { banners: [], products: [], socials: [] };
-  }
-
-  try {
-    const [banners, products, socials] = await Promise.all([
-      LandingCmsService.listBanners(),
-      LandingCmsService.listProducts(),
-      LandingCmsService.listSocials(),
-    ]);
-    return { banners, products, socials };
-  } catch {
-    return { banners: [], products: [], socials: [] };
-  }
+  const [banners, products, socials] = await Promise.all([
+    safeList('banners', () => LandingCmsService.listBanners()),
+    safeList('products', () => LandingCmsService.listProducts()),
+    safeList('socials', () => LandingCmsService.listSocials()),
+  ]);
+  return { banners, products, socials };
 }

@@ -63,13 +63,12 @@ describe('nest-auth-mappers', () => {
     expect(user.adminRequestMessage).toBeUndefined();
   });
 
-  it('maps photo.path S3 keys to a public object URL', () => {
-    vi.stubEnv('NEXT_PUBLIC_S3_URL', 'https://files.example.com');
+  it('returns photo.path as-is so the display layer can keep signed URLs', () => {
     const user = mapNestAuthUser({
       ...nestUser,
       photo: { id: 'file-1', path: 'abc-uuid.jpg' },
     });
-    expect(user.docUrl).toBe('https://files.example.com/abc-uuid.jpg');
+    expect(user.docUrl).toBe('abc-uuid.jpg');
   });
 
   it('prefers an already-absolute photo.url over a storage key', () => {

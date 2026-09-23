@@ -1,14 +1,17 @@
 import {
   assertRealModeRejectsMockSecret,
   IS_MOCK_MODE,
+  isMockApiMode,
   throwRealModeNotImplemented,
 } from '@/lib/api-mode';
+import { dispatchSessionToStore } from '@/services/auth/dispatch-session';
 import {
   keepLocalIdentityPreview,
   retainSessionOrgFields,
 } from '@/services/auth/keep-local-identity-preview';
-import { MOCK_OTP_CODE } from '@/services/auth/mock/auth-mock-users';
+import { KNOWN_TEST_OTP_CODE } from '@/services/auth/known-test-otp';
 import { DEFAULT_FORGOT_RETRY_AFTER_SECONDS } from '@/services/auth/real/parse-forgot-retry-after';
+import { reportError } from '@/lib/observability/reportError';
 import type { Session, User, UserRole } from '@/types/auth';
 import type { NestAuthUpdateDto } from '@/types/nest-users';
 import { useUserStore } from '@/store/useUserStore';
@@ -25,14 +28,15 @@ import {
   mockSendForgotPasswordOtp,
   mockSendLoginOtp,
   mockSetInitialPassword,
+  mockSetPassword,
   mockUpdateMe,
   mockVerifyAdminGateOtp,
   mockVerifyLoginOtp,
   mockVerifyRegistrationOtp,
 } from '@/services/auth/mock/mock-auth.operations';
 import {
-  dispatchSessionToStore,
   readSessionMeta,
+  tryRestoreMockSession,
 } from '@/services/auth/mock/mock-auth.store';
 import {
   realDeleteMe,
@@ -40,6 +44,7 @@ import {
   realLoginWithCredentials,
   realRegister,
   realResetPassword,
+  realSetPassword,
   realSendAdminGateOtp,
   realSendForgotPasswordOtp,
   realSendLoginOtp,
@@ -53,13 +58,20 @@ import {
   isDeadSessionHttpStatus,
   type OtpCooldownResult,
 } from '@/services/auth/real/real-auth.bridge';
+import {
+  isSessionTransientError,
+  SessionTransientError,
+} from '@/services/auth/session-errors';
 import { ApiClientError } from '@/services/api-client';
 import {
   clearRealAuthTokens,
+  isRealTokenFresh,
   peekRealAuthTokens,
   readRealAccessToken,
   readRealTokenExpiresAt,
 } from '@/services/auth/real/real-auth.tokens';
+
+export { isSessionTransientError, SessionTransientError };
 
 export interface RegisterPayload {
   mobile: string;
@@ -67,8 +79,11 @@ export interface RegisterPayload {
 }
 
 function rejectMockOtpInReal(otp: string): void {
-  assertRealModeRejectsMockSecret(otp, MOCK_OTP_CODE, 'OTP');
+  assertRealModeRejectsMockSecret(otp, KNOWN_TEST_OTP_CODE, 'OTP');
 }
+
+/** حداکثر عمر توکن که refreshRealSession بدون /auth/me به store اعتماد می‌کند. */
+const TOKEN_ME_SKIP_MS = 5 * 60_000; // 5 دقیقه
 
 export class AuthService {
   static async loginWithCredentials(mobile: string, password: string): Promise<User> {
@@ -134,6 +149,15 @@ export class AuthService {
     await AuthService.updateMe({ password: newPassword });
   }
 
+  static async setPassword(oldPassword: string, newPassword: string): Promise<void> {
+    if (newPassword.trim().length < PASSWORD_MIN_LENGTH) throw new Error(PASSWORD_MIN_LENGTH_MESSAGE);
+    if (IS_MOCK_MODE) {
+      mockSetPassword(oldPassword, newPassword);
+      return;
+    }
+    await realSetPassword({ oldPassword, newPassword });
+  }
+
   static async updateMe(body: NestAuthUpdateDto): Promise<User> {
     const previous = useUserStore.getState().activeUser;
     const incoming = IS_MOCK_MODE
@@ -156,7 +180,11 @@ export class AuthService {
 
   static async logout(): Promise<void> {
     if (!IS_MOCK_MODE) {
-      try { await realSignOut(); } catch { /* realSignOut handles cleanup */ }
+      try {
+        await realSignOut();
+      } catch (err) {
+        void reportError(err, { source: 'AuthService.logout' });
+      }
     }
     dispatchSessionToStore(null);
   }
@@ -218,6 +246,13 @@ export class AuthService {
     if (IS_MOCK_MODE) return AuthService.peekSession();
 
     if (readRealAccessToken()) {
+      // Fast-path: توکن تازه‌ست (< TOKEN_ME_SKIP_MS) و session هنوز در store هست →
+      // /auth/me اضافه نزن. پس از page refresh این شاخه هرگز فعال نمی‌شود چون
+      // _mem پاک است. در همان session، login/refresh هر دو _mem و Zustand را با هم
+      // می‌نویسند؛ این guard فقط edge-case reset-store-without-logout را می‌پوشاند.
+      const stored = AuthService.peekSession();
+      if (stored && isRealTokenFresh(TOKEN_ME_SKIP_MS)) return stored;
+
       try {
         const session = await realFetchSession();
         if (session) {
@@ -255,6 +290,32 @@ export class AuthService {
   }
 
   static getMockOtpHint(): string | null {
-    return IS_MOCK_MODE ? MOCK_OTP_CODE : null;
+    return IS_MOCK_MODE ? KNOWN_TEST_OTP_CODE : null;
+  }
+
+  /**
+   * بازیابی boot نشست برای گارد UI.
+   * mock و real فقط اینجا شاخه می‌شوند — UI مستقیم mock/real را import نکند.
+   */
+  static async restoreBootSession(): Promise<
+    'authenticated' | 'unauthenticated' | 'error'
+  > {
+    if (isMockApiMode()) {
+      const quick = AuthService.validateSession();
+      if (quick) return 'authenticated';
+      const restored = tryRestoreMockSession();
+      return restored ? 'authenticated' : 'unauthenticated';
+    }
+
+    const quick = AuthService.peekSession();
+    if (quick) return 'authenticated';
+
+    try {
+      const restored = await AuthService.refreshRealSession();
+      if (restored) return 'authenticated';
+    } catch (error) {
+      if (isSessionTransientError(error)) return 'error';
+    }
+    return 'unauthenticated';
   }
 }

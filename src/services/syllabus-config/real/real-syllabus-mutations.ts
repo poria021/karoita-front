@@ -2,7 +2,9 @@ import { reloadAfterWrite } from '@/lib/post-commit-refresh';
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
 import { ApiClientError } from '@/services/api-error';
 import {
+  parseNestLessonWeekList,
   parseNestSemester,
+  planNestWeekWrites,
   toNestLessonWeeksBody,
   toNestSemesterDto,
   toNestSemesterWriteDto,
@@ -132,15 +134,40 @@ export async function updateRealTermGates(
 }
 
 /**
- * `PUT /admin/lessons/{lessonId}/weeks` — جایگزینی همهٔ هفته‌ها در یک رفت‌وبرگشت.
- * POST/PATCH تکی `/admin/weeks` برای به‌روزرسانی جزئی در HTTP مانده‌اند.
+ * پیکربندی اول: `PUT /admin/lessons/{id}/weeks` با همان تعداد سطر ادیتور.
+ * بعد از GET غیرخالی: هفته‌های محلی جدید `POST` می‌شوند (افزودن)، هفته‌های
+ * موجود فقط `PATCH` می‌شوند (بایگانی/بازیابی)؛ حذف هفتهٔ ثبت‌شده انجام نمی‌شود.
  */
 export async function saveRealSyllabusWeeks(
   input: SaveSyllabusWeeksInput
 ): Promise<SyllabusConfigSnapshot> {
-  await adminCatalogApi.putLessonWeeks(
-    input.courseCatalogId,
-    toNestLessonWeeksBody(input.weeks)
+  const lessonId = input.courseCatalogId;
+  const remote = parseNestLessonWeekList(
+    await adminCatalogApi.listWeeksByLesson(lessonId)
   );
+
+  if (remote.length === 0) {
+    if (input.weeks.length === 0) {
+      throw new ApiClientError('برای ثبت سرفصل حداقل یک هفته لازم است.');
+    }
+    await adminCatalogApi.putLessonWeeks(
+      lessonId,
+      toNestLessonWeeksBody(input.weeks)
+    );
+    return reloadAfterWrite(() => getRealSyllabusSnapshot());
+  }
+
+  const plan = planNestWeekWrites(lessonId, input.weeks, remote);
+
+  for (const id of plan.deletions) {
+    await adminCatalogApi.deleteWeek(id);
+  }
+  for (const row of plan.updates) {
+    await adminCatalogApi.updateWeek(row.id, row.body);
+  }
+  for (const body of plan.creates) {
+    await adminCatalogApi.createWeek(body);
+  }
+
   return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }

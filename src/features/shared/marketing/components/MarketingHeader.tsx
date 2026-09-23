@@ -59,9 +59,7 @@ export function MarketingHeader({
           className="group flex items-center gap-kv-inline focus:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring"
           aria-label="صفحه اصلی کارویتا"
         >
-          <div className="flex size-8 items-center justify-center rounded-kv-control bg-kv-brand text-white shadow-kv-raised">
-            <KarvitaBrandMark className="h-5 w-auto p-0.5" />
-          </div>
+          <KarvitaBrandMark className="size-8" />
           <div className="flex flex-col">
             <span
               className={`text-base font-black leading-none tracking-tight sm:text-lg ${headerTextClass}`}

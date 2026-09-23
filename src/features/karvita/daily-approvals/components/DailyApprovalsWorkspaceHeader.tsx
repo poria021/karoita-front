@@ -9,10 +9,15 @@ import {
   KvSelectTrigger,
   KvSelectValue,
 } from '@/components/shared/fields/KvSelect';
+import { formatTermOptionLabel } from '@/features/karvita/syllabus-config/constants';
+import {
+  IS_REAL_MODE_STUB_ACTIVE,
+  RealModeStubTooltip,
+} from '@/components/shared/RealModeStubNotice';
 import { KvFeatureIntro } from '@/components/shared/shell/KvFeatureIntro';
 import { faIcons } from '@/utils/iconMap';
 
-import { DAILY_APPROVALS_FEATURE } from '../constants';
+import { DAILY_APPROVALS_BULK_EXTEND_ENABLED, DAILY_APPROVALS_FEATURE } from '../constants';
 
 type DailyApprovalsWorkspaceHeaderProps = {
   termId: string;
@@ -27,9 +32,9 @@ export function DailyApprovalsWorkspaceHeader({
   termId,
   terms,
   onTermChange,
-  showBulkExtend = false,
+  showBulkExtend,
   onBulkExtendClick,
-  bulkExtendDisabled = false,
+  bulkExtendDisabled,
 }: DailyApprovalsWorkspaceHeaderProps) {
   const selectedTermId = terms.some((term) => term.id === termId)
     ? termId
@@ -57,7 +62,7 @@ export function DailyApprovalsWorkspaceHeader({
                   <KvSelectContent>
                     {terms.map((term) => (
                       <KvSelectItem key={term.id} value={term.id}>
-                        {term.title}
+                        {formatTermOptionLabel(term.title)}
                       </KvSelectItem>
                     ))}
                   </KvSelectContent>
@@ -68,19 +73,21 @@ export function DailyApprovalsWorkspaceHeader({
                 </div>
               )}
             </div>
-            {showBulkExtend ? (
-              <KvButton
-                type="button"
-                color="violet"
-                appearance="ghost"
-                size="md"
-                className="order-2 lg:order-1"
-                disabled={bulkExtendDisabled}
-                icon={<FaIcon icon={faIcons.unlockKeyhole} size="xs" />}
-                onClick={onBulkExtendClick}
-              >
-                تمدید گروهی مهلت ارسال گزارش
-              </KvButton>
+            {DAILY_APPROVALS_BULK_EXTEND_ENABLED && showBulkExtend ? (
+              <RealModeStubTooltip message="تمدید گروهی هنوز به API واقعی وصل نشده است.">
+                <KvButton
+                  type="button"
+                  color="violet"
+                  appearance="ghost"
+                  size="md"
+                  className="order-2 lg:order-1"
+                  disabled={bulkExtendDisabled || IS_REAL_MODE_STUB_ACTIVE}
+                  icon={<FaIcon icon={faIcons.unlockKeyhole} size="xs" />}
+                  onClick={onBulkExtendClick}
+                >
+                  تمدید گروهی مهلت ارسال گزارش
+                </KvButton>
+              </RealModeStubTooltip>
             ) : null}
           </>
         }

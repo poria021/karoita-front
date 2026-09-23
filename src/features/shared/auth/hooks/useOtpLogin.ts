@@ -59,7 +59,7 @@ export function useOtpLogin({ onSuccess }: UseOtpLoginOptions) {
       otpCodeForm.reset({ otp: '' });
     } catch (error) {
       otpMobileForm.setError('mobile', {
-        message: readAuthErrorMessage(error, 'ارسال کد تایید ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     }
   });
@@ -70,7 +70,7 @@ export function useOtpLogin({ onSuccess }: UseOtpLoginOptions) {
       await onSuccess();
     } catch (error) {
       otpCodeForm.setError('otp', {
-        message: readAuthErrorMessage(error, 'تایید کد ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     }
   });
@@ -85,7 +85,7 @@ export function useOtpLogin({ onSuccess }: UseOtpLoginOptions) {
       otpCodeForm.reset({ otp: '' });
     } catch (error) {
       otpCodeForm.setError('otp', {
-        message: readAuthErrorMessage(error, 'ارسال مجدد کد ناموفق بود.'),
+        message: readAuthErrorMessage(error),
       });
     } finally {
       setIsResendingOtp(false);

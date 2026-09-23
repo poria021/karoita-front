@@ -36,6 +36,20 @@ describe('keepLocalIdentityPreview', () => {
     const incoming = { ...baseUser, id: 'u2', docUrl: 'abc.jpg' };
     expect(keepLocalIdentityPreview(previous, incoming).docUrl).toBe('abc.jpg');
   });
+
+  it('prefers a same-origin media URL over a leftover data preview', () => {
+    const previous = {
+      ...baseUser,
+      docUrl: 'data:image/webp;base64,abc',
+    };
+    const incoming = {
+      ...baseUser,
+      docUrl: '/api/files/media?src=https%3A%2F%2Ffiles.example.com%2Fa.jpg',
+    };
+    expect(keepLocalIdentityPreview(previous, incoming).docUrl).toBe(
+      incoming.docUrl
+    );
+  });
 });
 
 describe('retainSessionOrgFields', () => {

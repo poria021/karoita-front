@@ -1,5 +1,7 @@
 'use client';
 
+import { memo } from 'react';
+
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
@@ -94,7 +96,7 @@ function renderDataCell(
       return (
         <KvTableCell key={column.key} align={column.align}>
           {row.gender ? (
-            <Badge variant={row.gender === 'male' ? 'info' : 'brand'}>
+            <Badge variant="default">
               {getSchoolGenderLabel(row.gender)}
             </Badge>
           ) : (
@@ -138,6 +140,67 @@ function renderDataCell(
       return null;
   }
 }
+
+interface OrgStructureTableRowProps {
+  row: OrgStructureListItem;
+  index: number;
+  columns: OrgStructureColumnDef[];
+  onEdit: (row: OrgStructureListItem) => void;
+  onDelete: (row: OrgStructureListItem) => void;
+}
+
+const OrgStructureTableRow = memo(function OrgStructureTableRow({
+  row,
+  index,
+  columns,
+  onEdit,
+  onDelete,
+}: OrgStructureTableRowProps) {
+  return (
+    <KvTableRow>
+      <KvTableRowIndexCell index={index} />
+      {columns.map((column) => {
+        if (column.key === 'actions') {
+          return (
+            <KvTableCell key={column.key} align="center">
+              <div className="flex items-center justify-center gap-1.5">
+                <KvButton
+                  type="button"
+                  color="neutral"
+                  appearance="ghost"
+                  size="icon-xs"
+                  aria-label="ویرایش"
+                  onClick={() => onEdit(row)}
+                  icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
+                />
+                <KvButton
+                  type="button"
+                  color="error"
+                  appearance="ghost"
+                  size="icon-xs"
+                  aria-label={
+                    row.deleteBlocked
+                      ? 'حذف غیرفعال است چون واحدهای وابسته وجود دارد'
+                      : 'حذف'
+                  }
+                  title={
+                    row.deleteBlocked
+                      ? 'حذف به‌خاطر وابستگی رکوردهای مرتبط ممکن نیست'
+                      : undefined
+                  }
+                  disabled={row.deleteBlocked}
+                  onClick={() => onDelete(row)}
+                  icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+                />
+              </div>
+            </KvTableCell>
+          );
+        }
+        return renderDataCell(column, row);
+      })}
+    </KvTableRow>
+  );
+});
 
 export function OrgStructureTable({
   tabConfig,
@@ -238,52 +301,14 @@ export function OrgStructureTable({
               </KvTableEmpty>
             ) : (
               items.map((row, index) => (
-                <KvTableRow key={row.id}>
-                  <KvTableRowIndexCell index={index} />
-                  {columns.map((column) => {
-                    if (column.key === 'actions') {
-                      return (
-                        <KvTableCell key={column.key} align="center">
-                          <div className="flex items-center justify-center gap-1.5">
-                            <KvButton
-                              type="button"
-                              color="neutral"
-                              appearance="ghost"
-                              size="icon-xs"
-                              aria-label="ویرایش"
-                              onClick={() => onEdit(row)}
-                              icon={
-                                <FaIcon icon={faIcons.penToSquare} size="xs" />
-                              }
-                            />
-                            <KvButton
-                              type="button"
-                              color="error"
-                              appearance="ghost"
-                              size="icon-xs"
-                              aria-label={
-                                row.deleteBlocked
-                                  ? 'حذف غیرفعال است چون واحدهای وابسته وجود دارد'
-                                  : 'حذف'
-                              }
-                              title={
-                                row.deleteBlocked
-                                  ? 'حذف به‌خاطر وابستگی رکوردهای مرتبط ممکن نیست'
-                                  : undefined
-                              }
-                              disabled={row.deleteBlocked}
-                              onClick={() => onDelete(row)}
-                              icon={
-                                <FaIcon icon={faIcons.trashCan} size="xs" />
-                              }
-                            />
-                          </div>
-                        </KvTableCell>
-                      );
-                    }
-                    return renderDataCell(column, row);
-                  })}
-                </KvTableRow>
+                <OrgStructureTableRow
+                  key={row.id}
+                  row={row}
+                  index={index}
+                  columns={columns}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
               ))
             )}
           </KvTableBody>

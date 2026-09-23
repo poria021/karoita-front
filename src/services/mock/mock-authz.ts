@@ -1,4 +1,4 @@
-import { isMockApiMode } from '@/lib/api-mode';
+import { isRealApiMode } from '@/lib/api-mode';
 import { useUserStore } from '@/store/useUserStore';
 import {
   hasPermission,
@@ -13,8 +13,9 @@ export const MOCK_AUTHZ_DENIED =
 export const MOCK_SIMULATOR_ONLY =
   'این مسیر فقط در حالت شبیه‌ساز محلی (mock) در دسترس است، نه API واقعی Nest.';
 
+/** real mode (چه dev چه production) مسدود است — mock فقط در حالت mock در دسترس است. */
 export function assertMockSimulator(): void {
-  if (!isMockApiMode()) {
+  if (isRealApiMode()) {
     throw new Error(MOCK_SIMULATOR_ONLY);
   }
 }

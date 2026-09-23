@@ -12,8 +12,11 @@ import type {
   OrganizationalCapacityKind,
   OrganizationalCapacityWeekday,
 } from '@/types/organizational-capacities';
+import { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
 import { summarizeCapacityCourses } from '@/utils/organizational-capacity-math';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
+
+export { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
 
 const WEEKDAYS: readonly OrganizationalCapacityWeekday[] = [
   'sat',
@@ -27,13 +30,13 @@ const WEEKDAYS: readonly OrganizationalCapacityWeekday[] = [
 const SEMESTER_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   one: 'نیم‌سال اول',
   two: 'نیم‌سال دوم',
-  three: 'تابستان',
+  summer: 'تابستان',
 };
 
 const MODULAR_SEASON_PREFIXES: Record<NestSemesterSeason, string> = {
   one: 'پودمان اول',
   two: 'پودمان دوم',
-  three: 'پودمان دوم',
+  summer: 'پودمان دوم',
 };
 
 /** کارورزی → `GET semesters_all?structure=semester`؛ کارآموزی → `podmani`. */
@@ -52,7 +55,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isSeason(value: unknown): value is NestSemesterSeason {
-  return value === 'one' || value === 'two' || value === 'three';
+  return value === 'one' || value === 'two' || value === 'summer';
 }
 
 function asFiniteNumber(value: unknown, fallback = 0): number {
@@ -111,12 +114,6 @@ export function selectedDaysToNestDays(
     .map((day) => weekdayToNestDayIndex(day))
     .filter((index) => index >= 0);
   return [...new Set(indexes)].slice(0, 1);
-}
-
-export function lessonLevelFromTitle(title: string): 1 | 2 | 3 | 4 {
-  const match = persianToEnglishDigits(title).match(/([1-4])/);
-  if (!match) return 1;
-  return Number(match[1]) as 1 | 2 | 3 | 4;
 }
 
 export function termTitleFromBundle(bundle: NestSemesterWithLessons): string {
@@ -218,15 +215,18 @@ export function toCapacityCourseFromLesson(input: {
   const title = nestLessonTitle(input.lesson);
   const lessonId = nestEntityId(input.lesson);
   const existsOnServer = input.row != null;
+  // GET خالی = استاد هنوز تعیین نکرده؛ درس را پر نکن — ظرفیت ۰ و هفته خالی.
   const rawCapacity = existsOnServer
     ? asFiniteNumber(input.row?.capacity, Number.NaN)
-    : asFiniteNumber(input.lesson.capacity, Number.NaN);
-  const total = Number.isFinite(rawCapacity)
-    ? Math.min(Math.max(0, rawCapacity), input.maxCapacity)
-    : input.maxCapacity;
-  const selectedDays = nestDaysToSelectedDays(
-    existsOnServer ? input.row?.days : input.lesson.days
-  );
+    : Number.NaN;
+  const total = existsOnServer
+    ? Number.isFinite(rawCapacity)
+      ? Math.min(Math.max(0, rawCapacity), input.maxCapacity)
+      : 0
+    : 0;
+  const selectedDays = existsOnServer
+    ? nestDaysToSelectedDays(input.row?.days)
+    : [];
   return {
     id: lessonId,
     title: title || 'درس',

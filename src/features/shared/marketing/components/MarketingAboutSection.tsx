@@ -3,10 +3,10 @@ import { faIcons } from '@/utils/iconMap';
 
 export function MarketingAboutSection() {
   return (
-    <section className="relative w-full overflow-hidden ">
+    <section className="relative w-full overflow-visible">
       <div className="relative z-10 mx-auto max-w-7xl px-kv-inset sm:px-kv-page">
         <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12 lg:gap-16">
-          <div className="group relative flex h-100 w-full shrink-0 items-center justify-center rounded-full lg:col-span-5">
+          <div className="group relative mx-auto flex aspect-square w-full max-w-100 shrink-0 items-center justify-center rounded-full lg:col-span-5">
             <div className="absolute size-90 rounded-full border border-kv-border-muted bg-kv-surface/60" />
 
             <svg
@@ -17,7 +17,7 @@ export function MarketingAboutSection() {
                 x1="200"
                 y1="200"
                 x2="200"
-                y2="60"
+                y2="20"
                 stroke="currentColor"
                 strokeWidth="2"
                 className="kv-data-flow text-kv-border-strong"
@@ -25,8 +25,8 @@ export function MarketingAboutSection() {
               <line
                 x1="200"
                 y1="200"
-                x2="345"
-                y2="260"
+                x2="366"
+                y2="269"
                 stroke="currentColor"
                 strokeWidth="2"
                 className="kv-data-flow text-kv-border-strong"
@@ -34,8 +34,8 @@ export function MarketingAboutSection() {
               <line
                 x1="200"
                 y1="200"
-                x2="90"
-                y2="295"
+                x2="64"
+                y2="318"
                 stroke="currentColor"
                 strokeWidth="2"
                 className="kv-data-flow text-kv-border-strong"
@@ -43,29 +43,29 @@ export function MarketingAboutSection() {
             </svg>
 
             <div className="absolute inset-0">
-              <div className="absolute left-1/2 top-[-2%] flex -translate-x-1/2 flex-col items-center">
+              <div className="absolute end-1/2 top-[5%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
                 <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-brand-border bg-kv-surface text-xl text-kv-brand shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.buildingColumns} />
                 </div>
-                <span className="mt-1 rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">
+                <span className="mt-1 whitespace-nowrap rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">
                   پردیس‌های دانشگاهی
                 </span>
               </div>
 
-              <div className="absolute left-1/4 top-[74%] flex -translate-x-1/2 flex-col items-center">
+              <div className="absolute end-[91.6%] top-[67.2%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
                 <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-success-border bg-kv-surface text-xl text-kv-success shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.school} />
                 </div>
-                <span className="mt-1 rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">
+                <span className="mt-1 whitespace-nowrap rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">
                   محیط مدارس و اجرا
                 </span>
               </div>
 
-              <div className="absolute right-2 top-[63%] flex -translate-x-2 flex-col items-center">
+              <div className="absolute end-[15.9%] top-[79.4%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
                 <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-info-border bg-kv-surface text-xl text-kv-info shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.graduationCap} />
                 </div>
-                <span className="mt-1 rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">
+                <span className="mt-1 whitespace-nowrap rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">
                   کارورزان و دانشجو‌معلمان
                 </span>
               </div>
@@ -79,7 +79,7 @@ export function MarketingAboutSection() {
             </div>
           </div>
 
-          <div className="relative space-y-6 text-right lg:col-span-7">
+          <div className="relative space-y-6 text-start lg:col-span-7">
             <span className="inline-flex items-center gap-1.5 rounded-kv-control border border-kv-border-muted bg-kv-surface/80 px-3 py-1 text-xs font-black uppercase tracking-wider text-kv-text-secondary shadow-kv-soft">
               <span className="size-1.5 rounded-full bg-kv-brand" /> درباره کارویتا
             </span>

@@ -1,8 +1,5 @@
 import { adminCatalogApi } from '@/services/admin-catalog/admin-catalog.api';
-import {
-  flushBareListCache,
-  listRealCities,
-} from '@/services/org-structure/real/real-org-reads';
+import { flushBareListCache } from '@/services/org-structure/real/real-org-reads';
 import { assertRealOrgDeleteAllowed } from '@/services/org-structure/real/real-org-delete-blocked';
 import {
   invalidateDistrictNameCache,
@@ -15,7 +12,7 @@ import type {
   UpsertMajorInput,
   UpsertProvinceInput,
   UpsertSchoolInput,
-} from '@/services/org-structure/mock/mock-org-mutations';
+} from '@/types/org-structure';
 import type { OrgStructureEntityKind } from '@/types/org-structure';
 
 /**
@@ -57,26 +54,11 @@ export async function upsertRealCity(
   flushBareListCache('cities');
 }
 
-/** بدون `cityId`، POST/PUT /admin/universites لایو ۴۲۲ می‌دهد؛ فرم پردیس شهر ندارد پس اولین شهر استان را می‌فرستیم. */
-async function resolveUniversityCityId(
-  input: UpsertFacultyInput
-): Promise<string> {
-  if (input.cityId) return input.cityId;
-  const cities = await listRealCities(input.provinceId);
-  const cityId = cities[0]?.id;
-  if (!cityId) {
-    throw new Error(
-      'این استان شهر ثبت‌شده‌ای ندارد. ابتدا یک شهر برای استان اضافه کنید.'
-    );
-  }
-  return cityId;
-}
-
 export async function upsertRealFaculty(
   input: UpsertFacultyInput,
   editId?: string
 ): Promise<void> {
-  const cityId = await resolveUniversityCityId(input);
+  const cityId = input.cityId;
   if (editId) {
     await adminCatalogApi.updateUniversity(editId, {
       title: input.name,
@@ -126,8 +108,8 @@ export async function upsertRealSchool(
   input: UpsertSchoolInput,
   editId?: string
 ): Promise<void> {
-  // enum جنسیت Nest: 'Boy' | 'Girl'
-  const gender = input.gender === 'female' ? 'Girl' : 'Boy';
+  // enum جنسیت Nest: 'Boy' | 'Girl'؛ نام فیلد در DTO لایو `genderType` است نه `gender`.
+  const genderType = input.gender === 'female' ? 'Girl' : 'Boy';
   const cityId = input.cityId || undefined;
   const educationId = input.districtId || undefined;
   const body = {
@@ -135,7 +117,7 @@ export async function upsertRealSchool(
     provinceId: input.provinceId,
     ...(cityId ? { cityId } : {}),
     ...(educationId ? { educationId } : {}),
-    gender,
+    genderType,
   };
   if (editId) {
     await adminCatalogApi.updateSchool(editId, body);

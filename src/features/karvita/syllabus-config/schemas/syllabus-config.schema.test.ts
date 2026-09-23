@@ -32,6 +32,27 @@ describe('syllabus-config schemas', () => {
     }
   });
 
+  it('accepts academic years that are only digits and hyphens', () => {
+    const parsed = termFormSchema.safeParse({
+      type: 'semester',
+      titlePrefix: 'نیم‌سال اول',
+      academicYear: '۱۴۰۵-۶',
+    });
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.academicYear).toBe('1405-6');
+    }
+  });
+
+  it('rejects academic years with letters', () => {
+    const parsed = termFormSchema.safeParse({
+      type: 'semester',
+      titlePrefix: 'نیم‌سال اول',
+      academicYear: '1405-abc',
+    });
+    expect(parsed.success).toBe(false);
+  });
+
   it('parses capacity and threshold with persian digits', () => {
     expect(
       professorCapacitySchema.safeParse({ capacity: '۱۵' }).success

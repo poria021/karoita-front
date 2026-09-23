@@ -323,7 +323,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
   },
 
   faculty_role: {
-    label: 'دانشکده',
+    label: 'مدیر دانشکده',
     badge: 'مدیریت پردیس تابعه',
     roleIcon: 'fa-university',
     layoutWidthClass: 'max-w-none',

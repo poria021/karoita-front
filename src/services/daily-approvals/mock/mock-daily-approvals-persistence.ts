@@ -1,5 +1,5 @@
 import { isMockApiMode } from '@/lib/api-mode';
-import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/mock/daily-approval-derived';
+import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/daily-approval-derived';
 import {
   TRAINEE_SEEDS,
   WEEK_STATE_CYCLE,
@@ -7,7 +7,7 @@ import {
 import {
   listTermsForDailyApprovalKind,
   readDailyApprovalPassingScoreThreshold,
-} from '@/services/syllabus-config/syllabus-daily-approvals-reads';
+} from '@/services/syllabus-config/mock/mock-syllabus-daily-approvals-reads';
 import type {
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
@@ -78,6 +78,8 @@ function buildWeek(
     weekNumber,
     status,
     score: status === 'graded' ? 70 + ((traineeIndex + weekNumber) % 25) : null,
+    weightedScore:
+      status === 'graded' ? 70 + ((traineeIndex + weekNumber) % 25) : null,
     text: submitted
       ? 'در این هفته مشاهده تدریس، تهیه طرح درس و اجرای بخشی از کلاس با تمرکز بر مشارکت فراگیران انجام شد. بازخوردهای دریافت‌شده برای اصلاح زمان‌بندی فعالیت‌ها ثبت شده است.'
       : '',

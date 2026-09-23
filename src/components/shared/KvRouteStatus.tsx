@@ -23,6 +23,8 @@ export type KvRouteStatusProps = {
   /** `page` = بوم تمام‌ویوپورت؛ `inset` = داخل شل داشبورد. */
   layout?: 'page' | 'inset';
   className?: string;
+  /** کد واقعیِ status وقتی caller آن را می‌داند — پیش‌فرض از KIND_META[kind]. */
+  code?: string;
 };
 
 const KIND_META: Record<
@@ -58,9 +60,11 @@ export function KvRouteStatus({
   actions,
   layout = 'page',
   className,
+  code,
 }: KvRouteStatusProps) {
   const meta = KIND_META[kind];
   const isPage = layout === 'page';
+  const displayCode = code ?? meta.code;
 
   return (
     <div
@@ -78,7 +82,7 @@ export function KvRouteStatus({
       role={meta.role}
     >
       <KvRouteStatusBackdrop />
-      <KvRouteStatusCodeBackdrop code={meta.code} layout={layout} />
+      <KvRouteStatusCodeBackdrop code={displayCode} layout={layout} />
 
       <div
         className={cn(
@@ -130,7 +134,7 @@ export function KvRouteStatus({
         <div className="relative z-[1] flex max-w-lg flex-col items-center gap-kv-group">
           <div className="flex flex-col items-center gap-kv-pair">
             <KvTypography variant="overline" tone="muted" as="p">
-              کد وضعیت {toPersianDigits(meta.code)}
+              کد وضعیت {toPersianDigits(displayCode)}
             </KvTypography>
             <KvTypography variant="title" as="h1" weight="black">
               {title}

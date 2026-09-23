@@ -1,4 +1,4 @@
-import { lessonLevelFromTitle } from '@/services/organizational-capacities/real/real-organizational-capacities-mappers';
+import { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
 import type {
   DailyApprovalCatalogCourse,
   DailyApprovalCourseFilter,

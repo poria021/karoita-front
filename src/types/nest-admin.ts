@@ -10,11 +10,18 @@ export type NestPagedList<T> = {
   hasNextPage: boolean;
 };
 
+/** GET /admin/provinces — شمارش‌های لایو `universityCount` / `educationalDistrictCount` / `schoolCount` / `userCount`. */
 export type NestProvince = {
   id: string;
   title: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  universityCount?: number;
+  educationalDistrictCount?: number;
+  schoolCount?: number;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
 };
 
 export type NestCreateProvinceDto = {
@@ -39,14 +46,18 @@ export type NestNamedRef = {
 /** FK که Nest ممکن است رشته بگذارد یا به NestNamedRef populate کند. */
 export type NestRelationId = string | NestNamedRef | null;
 
-/** GET شهر: `province` آبجکت است (گاهی `{}`)؛ POST/PATCH از `province_id` تخت استفاده می‌کند. */
+/** GET شهر: `province` آبجکت است (گاهی `{ id: null }`)؛ POST/PATCH از `province_id` تخت استفاده می‌کند. */
 export type NestCity = {
   id: string;
   title: string;
   province_id?: string;
-  province?: { id?: string; title?: string } | null;
-  createdAt: string;
-  updatedAt: string;
+  province?: { id?: string | null; title?: string } | null;
+  schoolCount?: number;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type NestCreateCityDto = {
@@ -83,6 +94,10 @@ export type NestEducationalDistrict = {
   city_id?: string;
   province?: NestNamedRef | null;
   city?: NestNamedRef | null;
+  schoolCount?: number;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -94,7 +109,7 @@ export type NestCreateSchoolDto = {
   /** اختیاری در نوشتن — مدرسه بدون منطقه. */
   educationId?: string;
   title: string;
-  gender: string;
+  genderType: string;
 };
 
 export type NestUpdateSchoolDto = {
@@ -102,10 +117,13 @@ export type NestUpdateSchoolDto = {
   cityId?: string;
   educationId?: string;
   title?: string;
-  gender?: string;
+  genderType?: string;
 };
 
-/** GET /admin/schools: جنسیت `genderType` است؛ `education` معمولاً `{}` و `educationId` نیست — منطقه را از کوئری `educationId` بگیر. */
+/**
+ * GET /admin/schools: آرایهٔ خام با `userCount` و `education` پرشده.
+ * GET /admin/schools/all: پاکت `{ data, hasNextPage }`؛ `userCount` معمولاً نیست و رابطه ممکن است `{}` باشد.
+ */
 export type NestSchool = {
   id: string;
   title: string;
@@ -125,6 +143,9 @@ export type NestSchool = {
   /** نام‌های جایگزین serializer روی بعضی کپی‌های Nest. */
   educationalDistrict?: NestNamedRef | null;
   district?: NestNamedRef | null;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -155,7 +176,7 @@ export type NestDegree = {
   users_count?: number;
 };
 
-/** GET /admin/degreeee — `{ data, hasNextPage }` + page/limit/title. */
+/** GET /admin/degreeee — `{ data, hasNextPage }` + page/limit/title؛ `sort` در OpenAPI لایو تعریف نشده. */
 export type NestDegreeListQuery = {
   page?: number;
   limit?: number;
@@ -167,6 +188,9 @@ export type NestRole = {
   id: string;
   title?: string;
   title_fa?: string;
+  userCount?: number;
+  usersCount?: number;
+  users_count?: number;
 };
 
 /** GET /admin/roles/{roleId}/degrees — برخلاف /admin/degreeee فیلد `role` ندارد. */
@@ -216,7 +240,8 @@ export type NestUniversity = {
  * GET `/admin/semesters_all` ممکن است `academicYears` جمع باشد و گیت را ندهد —
  * آن‌ها را از GET `/admin/semester` بخوان. PATCH ممکن است سند خام mongoose بدهد.
  */
-export type NestSemesterSeason = 'one' | 'two' | 'three';
+/** مقدار سوم `season` روی OpenAPI لایو `summer` است، نه `three` — تست‌شده با POST واقعی (۴۲۲ روی `three`، ۲۰۴ روی `summer`). */
+export type NestSemesterSeason = 'one' | 'two' | 'summer';
 
 /**
  * مقدار `structure` در POST/PATCH `/admin/semester` و کوئری
@@ -242,6 +267,7 @@ export type NestLessonWeek = {
   id?: string;
   _id?: string;
   lessonId?: string;
+  /** ضریب اهمیت ۱…۵ — نه شماره هفته. */
   priority?: number;
   status?: boolean;
   title?: string;
@@ -267,10 +293,9 @@ export type NestSemesterWithLessons = NestSemester & {
   lessons?: NestLesson[];
 };
 
+/** تست‌شده روی لایو — `UpdateLessonStatusDto` فقط `status` دارد؛ ظرفیت/روز به `professor-capacities` منتقل شده. */
 export type NestPatchLessonStatusDto = {
   status?: boolean;
-  capacity?: number;
-  days?: number[];
 };
 
 /**
@@ -302,15 +327,13 @@ export type NestProfessorCapacitiesQuery = {
 };
 
 /**
- * آیتم PATCH `/admin/lessons/status` (آرایه).
- * `capacity` نباید از آخرین `generalProfessorCapacity` بیشتر باشد (اگر تنظیمات خالی باشد سقف لایو ۱۵ است).
- * `days`: ۰=شنبه … ۵=پنجشنبه؛ یکتا.
+ * آیتم PATCH `/admin/lessons/status` (آرایه) — `UpdateLessonItemDto` تست‌شده روی لایو.
+ * `capacity`/`days` اینجا نیست؛ آن‌ها فیلدهای `professor-capacities` هستند
+ * (ببین `NestProfessorCapacityWriteDto`)، نه این DTO.
  */
 export type NestUpdateLessonItemDto = {
   id: string;
   status?: boolean;
-  capacity?: number;
-  days?: number[];
 };
 
 export type NestPutLessonWeeksDto = {
@@ -319,11 +342,12 @@ export type NestPutLessonWeeksDto = {
 
 export type NestCreateWeekDto = {
   lessonId: string;
+  /** ضریب اهمیت ۱…۵؛ ترتیب هفته ایندکس آرایه است. */
   priority: number;
   status: boolean;
 };
 
-/** PATCH `/admin/weeks/{id}` — لایو ۲۰۴؛ بدنه مثل create. */
+/** PATCH `/admin/weeks/{id}` — لایو ۲۰۴؛ `lessonId` نفرست (forbidNonWhitelisted). */
 export type NestUpdateWeekDto = {
   lessonId?: string;
   priority?: number;
@@ -366,8 +390,11 @@ export type NestAdminPageQuery = {
   limit?: number;
   /** جستجو بر اساس عنوان — مطابق پارامتر `filters` در OpenAPI */
   filters?: string;
+  /** مرتب‌سازی — مثال: `[{"orderBy":"title","order":"ASC"}]` */
+  sort?: string;
 };
 
+/** `sort` در OpenAPI لایو برای این endpoint تعریف نشده — نفرست. */
 export type NestEducationListQuery = {
   page?: number;
   limit?: number;
@@ -376,6 +403,7 @@ export type NestEducationListQuery = {
   title?: string;
 };
 
+/** `sort` در OpenAPI لایو برای این endpoint تعریف نشده — نفرست. */
 export type NestSchoolListQuery = {
   page?: number;
   limit?: number;
@@ -385,6 +413,7 @@ export type NestSchoolListQuery = {
   title?: string;
 };
 
+/** `sort` در OpenAPI لایو برای این endpoint تعریف نشده — نفرست. */
 export type NestUniversityListQuery = {
   page?: number;
   limit?: number;
@@ -406,4 +435,25 @@ export function parseNestPagedList<T>(raw: unknown): NestPagedList<T> {
     }
   }
   return { data: [], hasNextPage: false };
+}
+
+/**
+ * مثل `parseNestPagedList`، ولی اگر لایو آرایهٔ کامل بدهد (GET /admin/schools)
+ * صفحه را سمت کلاینت می‌بُرد تا infinite scroll گیر نکند.
+ */
+export function parseNestMaybePagedList<T>(
+  raw: unknown,
+  page?: number,
+  limit?: number
+): NestPagedList<T> {
+  if (Array.isArray(raw) && limit && limit > 0) {
+    const safePage = Math.max(1, page ?? 1);
+    const start = (safePage - 1) * limit;
+    const slice = raw.slice(start, start + limit) as T[];
+    return {
+      data: slice,
+      hasNextPage: start + slice.length < raw.length,
+    };
+  }
+  return parseNestPagedList<T>(raw);
 }

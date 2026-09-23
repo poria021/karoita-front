@@ -1,12 +1,30 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
 import {
   listRealCapacityCourses,
   listRealCapacityTerms,
 } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import { getRealWeeksForLesson } from '@/services/syllabus-config/real/real-syllabus-reads';
+import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
+import { conversationsApi } from '@/services/conversations/real/conversations.api';
+import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
+
+vi.mock('@/services/internship-enrollment/real/student-weeks.api', () => ({
+  studentWeeksApi: {
+    score: vi.fn(async () => undefined),
+  },
+}));
+
+vi.mock('@/services/conversations/real/conversations.api', () => ({
+  conversationsApi: {
+    postMessage: vi.fn(async () => undefined),
+  },
+}));
+
+vi.mock('@/services/daily-approvals/real/real-daily-approvals-conversations', () => ({
+  findWeekConversationId: vi.fn(async () => 'conv-1'),
+}));
 
 vi.mock(
   '@/services/organizational-capacities/real/real-organizational-capacities',
@@ -24,16 +42,30 @@ vi.mock(
 );
 
 vi.mock('@/services/syllabus-config/real/real-syllabus-reads', () => ({
-  getRealWeeksForLesson: vi.fn(async () => [
-    { id: 'w1', suffix: 'هفته 1', title: 'هفته 1', weight: 3, status: 'active' },
-    {
-      id: 'w2',
-      suffix: 'هفته 2',
-      title: 'هفته 2',
-      weight: 3,
-      status: 'archived',
-    },
-  ]),
+  getRealWeeksForLesson: vi.fn(async () => ({
+    weeks: [
+      {
+        id: 'w1',
+        suffix: 'هفته 1',
+        title: 'هفته 1',
+        weight: 3,
+        status: 'active',
+      },
+      {
+        id: 'w2',
+        suffix: 'هفته 2',
+        title: 'هفته 2',
+        weight: 3,
+        status: 'archived',
+      },
+    ],
+    isPublished: true,
+    serverAlert: null,
+  })),
+  getRealAcademicSettings: vi.fn(async () => ({
+    globalProfessorCapacity: 30,
+    passingScoreThreshold: 70,
+  })),
 }));
 
 describe('DailyApprovalsService real fail-closed', () => {
@@ -41,7 +73,7 @@ describe('DailyApprovalsService real fail-closed', () => {
     vi.unstubAllEnvs();
   });
 
-  it('loads terms, courses, and weeks but keeps review routes stubbed', async () => {
+  it('loads terms, courses, and weeks in real mode', async () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
 
@@ -71,19 +103,59 @@ describe('DailyApprovalsService real fail-closed', () => {
     expect(listRealCapacityCourses).toHaveBeenCalledWith('internship', 'sem-1');
     expect(getRealWeeksForLesson).toHaveBeenCalledWith('sem-1', 'l1');
 
-    await expect(DailyApprovalsService.getPassingScoreThreshold()).rejects.toThrow(
-      REAL_MODE_NOT_IMPLEMENTED
-    );
     await expect(
-      DailyApprovalsService.listPage({
-        kind: 'internship',
-        query: '',
-        readFilter: 'all',
-        course: 'all',
-        termId: '',
-        offset: 0,
-        limit: 20,
+      DailyApprovalsService.getPassingScoreThreshold()
+    ).resolves.toBe(70);
+  });
+
+  it('scores a week via PATCH student-weeks/{id}/score in real mode', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    vi.mocked(studentWeeksApi.score).mockClear();
+
+    await DailyApprovalsService.updateWeekEvaluation({
+      traineeId: 't1',
+      weekId: 'w1',
+      score: 87.5,
+      advisorFeedback: 'متن بازخورد که هنوز جایی برای ذخیره ندارد',
+    });
+
+    expect(studentWeeksApi.score).toHaveBeenCalledWith('w1', 87.5);
+  });
+
+  it('rejects a report without a score by posting the advisor feedback to the week conversation', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    vi.mocked(studentWeeksApi.score).mockClear();
+    vi.mocked(conversationsApi.postMessage).mockClear();
+
+    await DailyApprovalsService.updateWeekEvaluation({
+      traineeId: 't1',
+      weekId: 'w1',
+      score: null,
+      advisorFeedback: 'فقط بازخورد، بدون نمره',
+    });
+
+    expect(studentWeeksApi.score).not.toHaveBeenCalled();
+    expect(findWeekConversationId).toHaveBeenCalledWith('t1', 'w1');
+    expect(conversationsApi.postMessage).toHaveBeenCalledWith('conv-1', {
+      text: 'فقط بازخورد، بدون نمره',
+    });
+  });
+
+  it('rejects an empty advisor feedback with no score instead of silently posting nothing', async () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    vi.mocked(conversationsApi.postMessage).mockClear();
+
+    await expect(
+      DailyApprovalsService.updateWeekEvaluation({
+        traineeId: 't1',
+        weekId: 'w1',
+        score: null,
+        advisorFeedback: '   ',
       })
-    ).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
+    ).rejects.toThrow(/بازخورد متنی الزامی است/);
+    expect(conversationsApi.postMessage).not.toHaveBeenCalled();
   });
 });

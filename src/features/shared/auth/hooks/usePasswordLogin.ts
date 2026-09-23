@@ -51,10 +51,7 @@ export function usePasswordLogin({ onSuccess }: UsePasswordLoginOptions) {
 
       await onSuccess();
     } catch (error) {
-      const message = readAuthErrorMessage(
-        error,
-        'شماره موبایل یا رمز عبور نادرست است.'
-      );
+      const message = readAuthErrorMessage(error);
 
       if (message === 'کاربری با این شماره یافت نشد.') {
         passwordForm.setError('mobile', { message }, { shouldFocus: true });

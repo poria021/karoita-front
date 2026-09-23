@@ -1,5 +1,7 @@
 'use client';
 
+import { memo } from 'react';
+
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
@@ -24,7 +26,7 @@ type WeeklySyllabusWeekRowProps = {
   onRestoreWeek: (week: SyllabusWeek) => void;
 };
 
-export function WeeklySyllabusWeekRow({
+export const WeeklySyllabusWeekRow = memo(function WeeklySyllabusWeekRow({
   week,
   index,
   disabled = false,
@@ -102,4 +104,4 @@ export function WeeklySyllabusWeekRow({
       </KvTableCell>
     </KvTableRow>
   );
-}
+});

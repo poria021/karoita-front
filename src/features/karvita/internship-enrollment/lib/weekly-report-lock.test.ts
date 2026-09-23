@@ -82,7 +82,9 @@ describe('weekly-report-lock', () => {
       removalPending: false,
       isTermArchived: false,
     });
-    expect(future.title).toContain('آغاز نشده');
+    expect(future.title).toContain('باز نشده');
+    // firstFuture (index 2) → هفته جاری ۲ (آخرین هفته‌ی باز/جلوتر، نه ۳).
+    expect(future.title).toContain('هفته ۲');
 
     const overdue = getWeeklyReportLockNotice({
       week: week({ id: '5', status: 'overdue' }),
@@ -101,5 +103,21 @@ describe('weekly-report-lock', () => {
       isTermArchived: false,
     });
     expect(pending.variant).toBe('warning');
+  });
+
+  it('reports week 1 as the current week when week 1 itself is not open yet (not the last week)', () => {
+    const notOpenedWeeks = [
+      week({ id: '1', status: 'locked_future' }),
+      week({ id: '2', status: 'locked_future' }),
+      week({ id: '3', status: 'locked_future' }),
+    ];
+    const notice = getWeeklyReportLockNotice({
+      week: notOpenedWeeks[0]!,
+      weeks: notOpenedWeeks,
+      enrollmentStatus: 'active',
+      removalPending: false,
+      isTermArchived: false,
+    });
+    expect(notice.title).toContain('هفته ۱');
   });
 });

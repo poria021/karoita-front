@@ -311,6 +311,8 @@ describe('refreshRealSession — 401 روی /auth/me پس از access token در
   });
 
   it('اگر /auth/me با 401 رد شود، session پاک و null برمی‌گردد', async () => {
+    vi.useFakeTimers();
+
     // اول access token را با یک refresh موفق به حافظه بیاور
     fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -324,6 +326,9 @@ describe('refreshRealSession — 401 روی /auth/me پس از access token در
     );
     await realRefreshToken();
 
+    // زمان را از پنجره freshness عبور بده تا refreshRealSession به /auth/me برود
+    vi.advanceTimersByTime(6 * 60_000);
+
     // حالا /auth/me را mock کن تا ApiClientError با ستاتوس 401 پرتاب کند
     const { AuthService } = await import('@/services/auth.service');
     const { apiClient, ApiClientError } = await import('@/services/api-client');
@@ -333,7 +338,42 @@ describe('refreshRealSession — 401 روی /auth/me پس از access token در
     );
 
     const result = await AuthService.refreshRealSession();
+    vi.useRealTimers();
     expect(result).toBeNull();
     expect(document.cookie).not.toContain(`${AUTH_COOKIE_NAME}=1`);
+  });
+});
+
+describe('realSetPassword', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://api.example.test');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('POSTs oldPassword and newPassword to v1/auth/set/password', async () => {
+    const { REAL_AUTH_PATHS, realSetPassword } = await import(
+      '@/services/auth/real/real-auth.bridge'
+    );
+    const { apiClient } = await import('@/services/api-client');
+    const postMaybeJson = vi
+      .spyOn(apiClient, 'postMaybeJson')
+      .mockResolvedValue(null);
+
+    expect(REAL_AUTH_PATHS.setPassword).toBe('v1/auth/set/password');
+    await realSetPassword({
+      oldPassword: '9192050927',
+      newPassword: 'newPassword123',
+    });
+
+    expect(postMaybeJson).toHaveBeenCalledWith('v1/auth/set/password', {
+      oldPassword: '9192050927',
+      newPassword: 'newPassword123',
+    });
+    postMaybeJson.mockRestore();
   });
 });

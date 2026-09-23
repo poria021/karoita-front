@@ -4,6 +4,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { SEARCH_DEBOUNCE_MS } from '@/lib/search-debounce';
 import {
@@ -71,7 +72,7 @@ export function useOrganizationOptions({
     fetchNextPage,
   } = useInfiniteQuery({
     queryKey: [
-      'org-options',
+      ...DASHBOARD_QUERY.orgOptions,
       type,
       debouncedQuery,
       provinceKey,

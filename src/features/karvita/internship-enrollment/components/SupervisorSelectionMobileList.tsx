@@ -51,7 +51,13 @@ export function SupervisorSelectionMobileList({
                   {supervisor.college}
                 </KvTypography>
               </div>
-              <Badge variant="brand">{supervisor.day}</Badge>
+              <div className="flex flex-wrap items-center justify-end gap-kv-pair">
+                {supervisor.days.map((day) => (
+                  <Badge key={day} variant="brand">
+                    {day}
+                  </Badge>
+                ))}
+              </div>
             </div>
 
             <div className="flex items-center justify-between gap-kv-inline border-t border-dashed border-kv-border pt-kv-field">

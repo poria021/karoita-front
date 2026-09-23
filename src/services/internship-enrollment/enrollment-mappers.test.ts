@@ -7,7 +7,27 @@ import {
   resolveEnrollmentScenario,
 } from '@/services/internship-enrollment/enrollment-mappers';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
-import { REAL_MODE_NOT_IMPLEMENTED } from '@/lib/api-mode';
+import {
+  getRealEnrollmentPageState,
+  listRealEligibleSupervisors,
+} from '@/services/internship-enrollment/real/real-enrollment-reads';
+import { enrollRealWithSupervisor } from '@/services/internship-enrollment/real/real-enrollment-writes';
+
+vi.mock('@/services/internship-enrollment/real/real-enrollment-reads', () => ({
+  getRealEnrollmentPageState: vi.fn(),
+  listRealEligibleSupervisors: vi.fn(),
+}));
+
+vi.mock('@/services/internship-enrollment/real/real-enrollment-writes', async (importOriginal) => {
+  const actual =
+    await importOriginal<
+      typeof import('@/services/internship-enrollment/real/real-enrollment-writes')
+    >();
+  return {
+    ...actual,
+    enrollRealWithSupervisor: vi.fn(),
+  };
+});
 
 describe('enrollment mappers (stable Nest contract)', () => {
   it('maps role → kind and clamps skill-learner to two levels', () => {
@@ -66,23 +86,87 @@ describe('enrollment mappers (stable Nest contract)', () => {
   });
 });
 
-describe('InternshipEnrollmentService real fail-closed', () => {
+describe('InternshipEnrollmentService real wiring', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
+    vi.mocked(getRealEnrollmentPageState).mockReset();
+    vi.mocked(listRealEligibleSupervisors).mockReset();
+    vi.mocked(enrollRealWithSupervisor).mockReset();
   });
 
-  it('does not invent enrollment data when Nest routes are absent', async () => {
+  it('uses student-enrollments reads and posts enrollWithSupervisor in real mode', async () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    vi.mocked(getRealEnrollmentPageState).mockResolvedValue({
+      scenario: 'S3_enroll_open',
+      kind: 'internship',
+      level: 1,
+      courseName: 'کارورزی',
+      termTitle: 'نیم‌سال اول 1405-1406',
+      termId: 'sem-1',
+      lessonId: 'les-1',
+      enrollment: null,
+      termHistory: [],
+      selection: null,
+      conflictEnrollment: null,
+    });
+    vi.mocked(listRealEligibleSupervisors).mockResolvedValue([]);
+
+    const actor = {
+      id: 'u1',
+      role: 'student' as const,
+      approved: true,
+    };
     await expect(
       InternshipEnrollmentService.getEnrollmentPageState({
-        actor: {
-          id: 'u1',
-          role: 'student',
-          approved: true,
-        },
+        actor,
         level: 1,
       })
-    ).rejects.toThrow(REAL_MODE_NOT_IMPLEMENTED);
+    ).resolves.toMatchObject({
+      scenario: 'S3_enroll_open',
+      lessonId: 'les-1',
+    });
+    await expect(
+      InternshipEnrollmentService.listEligibleSupervisors({
+        actor,
+        kind: 'internship',
+        level: 1,
+        query: '',
+        province: '',
+        college: '',
+        semesterId: 'sem-1',
+        lessonId: 'les-1',
+      })
+    ).resolves.toEqual([]);
+    expect(getRealEnrollmentPageState).toHaveBeenCalled();
+    expect(listRealEligibleSupervisors).toHaveBeenCalled();
+
+    vi.mocked(enrollRealWithSupervisor).mockResolvedValue({
+      id: 'enr-1',
+      userId: actor.id,
+      role: actor.role,
+      kind: 'internship',
+      level: 1,
+      termId: 'sem-1',
+      termTitle: '',
+      title: 'کارورزی ۱',
+      supervisorId: 'p1',
+      supervisorName: null,
+      schoolId: null,
+      schoolName: null,
+      mentorId: null,
+      mentorName: null,
+      status: 'active',
+    });
+    await expect(
+      InternshipEnrollmentService.enrollWithSupervisor({
+        actor,
+        kind: 'internship',
+        level: 1,
+        termId: 'sem-1',
+        supervisorId: 'p1',
+      })
+    ).resolves.toMatchObject({ id: 'enr-1', supervisorId: 'p1' });
+    expect(enrollRealWithSupervisor).toHaveBeenCalled();
   });
 });

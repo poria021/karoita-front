@@ -41,12 +41,12 @@ type DefaultValuesFactory = (user: User) => ProfileSchema;
 const PROFILE_DEFAULTS: Record<UserRole, DefaultValuesFactory> = {
   student: (user) => ({
     role: 'student', firstName: user.firstName, lastName: user.lastName,
-    province: user.province ?? [], college: user.college ?? [],
+    province: user.province?.[0] ?? '', college: user.college?.[0] ?? '',
     major: user.major ?? '', studentId: user.studentId ?? '',
   }),
   skill_learner: (user) => ({
     role: 'skill_learner', firstName: user.firstName, lastName: user.lastName,
-    province: user.province ?? [], college: user.college ?? [],
+    province: user.province?.[0] ?? '', college: user.college?.[0] ?? '',
     major: user.major ?? '', skillCode: user.skillCode ?? '',
   }),
   supervisor_professor: (user) => ({

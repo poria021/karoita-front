@@ -12,10 +12,7 @@ import {
   kvOverlayItemClassName,
   kvOverlayListScrollClassName,
   kvOverlayPanelClassName,
-  kvOverlaySectionTopDividerClassName,
 } from '@/components/shared/kvOverlayMenu';
-import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
 import {
   useOrganizationOptions,
   type OrganizationDependsOn,
@@ -30,35 +27,14 @@ import { faIcons } from '@/utils/iconMap';
 import type { UserRole } from '@/types/auth';
 import type { OrganizationField } from '@/utils/roleFieldStrategy';
 
-/**
- * تریگر چندانتخابی — همان کروم `KvCheckboxMultiSelect` تا ظاهر یکی بماند.
- */
-const multiTriggerClassName = cn(
-  'flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-kv-pair rounded-kv-control',
-  'border border-kv-border bg-kv-field px-2 py-1',
-  'font-sans text-xs font-bold text-kv-text-secondary shadow-none',
-  'outline-none transition-[color,background-color,border-color,box-shadow]',
-  'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
-  'data-[state=open]:border-kv-brand data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15'
-);
-
-/** قفل — همان توکن‌های `KvTextField` / `KvSelectField`. */
-const multiTriggerLockedClassName = cn(
-  'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled',
-  'text-kv-text-disabled [&_svg]:text-kv-text-disabled',
-  'focus-visible:border-kv-border-disabled focus-visible:ring-0',
-  'data-[state=open]:border-kv-border-disabled data-[state=open]:ring-0'
-);
-
-/** ردیف چک‌باکس — همان `DropdownMenuCheckboxItem`. */
-function multiCheckboxItemClassName(isSelected: boolean): string {
-  return cn(
-    'relative flex cursor-pointer items-center gap-2 rounded-kv-control py-kv-pair ps-8 pe-2',
-    'text-xs font-bold outline-none select-none',
-    'data-[selected=true]:bg-kv-brand-soft data-[selected=true]:text-kv-brand-soft-fg',
-    isSelected && 'bg-kv-brand-soft text-kv-brand-soft-fg'
-  );
-}
+import { isBlockedByMissingDependency } from './organization-select/dependency';
+import { OrganizationOptionsList } from './organization-select/OrganizationOptionsList';
+import { SelectionChip } from './organization-select/SelectionChip';
+import {
+  multiCheckboxItemClassName,
+  multiTriggerClassName,
+  multiTriggerLockedClassName,
+} from './organization-select/styles';
 
 export type KvSearchableOrganizationSelectProps =
   | SingleSelectProps
@@ -88,87 +64,6 @@ type MultiSelectProps = BaseProps & {
   value: string[];
   onChange: (value: string[]) => void;
 };
-
-function isDependencyValue(value: string | string[] | undefined): boolean {
-  if (!value) return false;
-  if (Array.isArray(value)) return value.length > 0;
-  return value.trim().length > 0;
-}
-
-/**
- * بدون والد لازم fetch نکن. اگر `dependsOn` پاس نشود فیلد مستقل است.
- */
-function isBlockedByMissingDependency(
-  type: OrganizationField,
-  dependsOn: OrganizationDependsOn | undefined
-): boolean {
-  if (!dependsOn) return false;
-
-  switch (type) {
-    case 'city':
-      return !isDependencyValue(dependsOn.province);
-    case 'district':
-      return (
-        !isDependencyValue(dependsOn.province) &&
-        !isDependencyValue(dependsOn.city)
-      );
-    case 'school':
-      return (
-        !isDependencyValue(dependsOn.province) &&
-        !isDependencyValue(dependsOn.city) &&
-        !isDependencyValue(dependsOn.district)
-      );
-    case 'college':
-      // بدون `province` هم fetch می‌شود (فیلتر فقط عنوان).
-      return false;
-    default:
-      return false;
-  }
-}
-
-function SelectionChip({
-  label,
-  onRemove,
-  disabled = false,
-}: {
-  label: string;
-  onRemove: () => void;
-  disabled?: boolean;
-}) {
-  if (disabled) {
-    return (
-      <span className="min-w-0 truncate text-kv-text-disabled">
-        {label}
-      </span>
-    );
-  }
-
-  return (
-    <Badge
-      variant="brand"
-      className="max-w-full gap-0.5 rounded-kv-tight px-1.5 py-0.5 pe-0.5 font-medium leading-none"
-    >
-      <span className="min-w-0 truncate">{label}</span>
-      <button
-        type="button"
-        tabIndex={-1}
-        aria-label={`حذف ${label}`}
-        onPointerDown={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-        }}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onRemove();
-        }}
-        className="inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-kv-tight text-kv-brand-soft-fg outline-none transition-colors hover:bg-kv-brand/15 focus-visible:ring-2 focus-visible:ring-kv-ring/30"
-      >
-        <FaIcon icon={faIcons.xmark} size="2xs" />
-      </button>
-    </Badge>
-  );
-}
 
 export const KvSearchableOrganizationSelect = forwardRef<
   HTMLInputElement,
@@ -206,9 +101,15 @@ export const KvSearchableOrganizationSelect = forwardRef<
   // `query` اولیه همان `singleValue` تا تک‌انتخابی بعد از mount مقدار را نشان دهد.
   const [query, setQuery] = useState(singleValue ?? '');
   const [prevSingleValue, setPrevSingleValue] = useState(singleValue);
+  // وقتی کاربر در حال تایپ است، تایپ خودش باعث `onChange('')` به والد می‌شود؛
+  // بدون این پرچم همان تغییرِ خودمان در رندر بعدی `query` تازه‌تایپ‌شده را با '' جایگزین می‌کرد
+  // (کاراکترها گم/جابه‌جا می‌شدند). فقط تغییرات واقعاً بیرونی باید `query` را sync کنند.
+  const [isEditing, setIsEditing] = useState(false);
   if (!isMulti && singleValue !== prevSingleValue) {
     setPrevSingleValue(singleValue);
-    setQuery(singleValue ?? '');
+    if (!isEditing) {
+      setQuery(singleValue ?? '');
+    }
   }
 
   useEffect(() => {
@@ -218,6 +119,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
         !rootRef.current?.contains(event.target)
       ) {
         setOpen(false);
+        setIsEditing(false);
         // جستجوی نیمه‌کاره را به مقدار انتخاب‌شده برگردان
         if (!isMulti) {
           setQuery((props as SingleSelectProps).value ?? '');
@@ -273,6 +175,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
       // چندانتخابی باز می‌ماند تا چند مورد پشت‌سرهم انتخاب شوند
       setQuery('');
     } else {
+      setIsEditing(false);
       setQuery(option.label);
       (props as SingleSelectProps).onChange(option.label);
       setOpen(false);
@@ -406,99 +309,37 @@ export const KvSearchableOrganizationSelect = forwardRef<
                   onPointerLeave={edgeScroll.onPointerLeave}
                   className={cn(kvOverlayListScrollClassName, 'p-1 outline-none')}
                 >
-                  {isLoading ? (
-                    <div className="flex items-center justify-center gap-kv-pair px-3.5 py-3">
-                      <Spinner className="size-3.5" aria-hidden="true" />
-                      <KvTypography variant="caption" as="span">
-                        در حال بارگذاری...
-                      </KvTypography>
-                    </div>
-                  ) : loadError ? (
-                    <div className="px-3.5 py-2.5 text-center">
-                      <KvTypography variant="error" align="center">
-                        خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
-                      </KvTypography>
-                    </div>
-                  ) : blockedByParent ? (
-                    <div className="px-3.5 py-2.5 text-center">
-                      <KvTypography variant="caption" align="center">
-                        {type === 'city'
-                          ? 'ابتدا استان را انتخاب کنید.'
-                          : type === 'district'
-                          ? 'ابتدا استان یا شهر را انتخاب کنید.'
-                          : type === 'school'
-                          ? 'ابتدا استان، شهر یا منطقه را انتخاب کنید.'
-                          : 'ابتدا فیلد والد را انتخاب کنید.'}
-                      </KvTypography>
-                    </div>
-                  ) : items.length > 0 ? (
-                    <>
-                      {items.map((option) => {
-                        const isSelected = selectedLabels.includes(option.label);
-                        return (
-                          <Command.Item
-                            key={option.id}
-                            value={`${option.id}::${option.label}`}
-                            role="option"
-                            aria-selected={isSelected}
-                            onSelect={() => handleSelect(option)}
-                            className={multiCheckboxItemClassName(isSelected)}
-                          >
-                            <span className="pointer-events-none absolute start-2 flex size-3.5 items-center justify-center">
-                              {isSelected ? (
-                                <FaIcon icon={faIcons.check} size="sm" />
-                              ) : null}
-                            </span>
-                            {option.label}
-                          </Command.Item>
-                        );
-                      })}
-
-                      {isLoadingMore ? (
-                        <div
-                          className={cn(
-                            'flex items-center justify-center gap-kv-pair px-3.5 py-2.5',
-                            kvOverlaySectionTopDividerClassName
-                          )}
-                        >
-                          <Spinner className="size-3.5" aria-hidden="true" />
-                          <KvTypography variant="caption" as="span">
-                            در حال بارگذاری...
-                          </KvTypography>
-                        </div>
-                      ) : hasMore ? (
+                  <OrganizationOptionsList
+                    type={type}
+                    isLoading={isLoading}
+                    loadError={loadError}
+                    blockedByParent={blockedByParent}
+                    items={items}
+                    isLoadingMore={isLoadingMore}
+                    hasMore={hasMore}
+                    reachedLimit={reachedLimit}
+                    onLoadMore={loadMore}
+                    renderItem={(option) => {
+                      const isSelected = selectedLabels.includes(option.label);
+                      return (
                         <Command.Item
-                          value="__load-more__"
-                          onSelect={() => loadMore()}
-                          className={cn(
-                            'cursor-pointer rounded-kv-control px-3.5 py-2.5 text-center text-xs font-bold outline-none data-[selected=true]:bg-kv-surface-muted',
-                            kvOverlaySectionTopDividerClassName
-                          )}
+                          key={option.id}
+                          value={`${option.id}::${option.label}`}
+                          role="option"
+                          aria-selected={isSelected}
+                          onSelect={() => handleSelect(option)}
+                          className={multiCheckboxItemClassName(isSelected)}
                         >
-                          <KvTypography variant="label" tone="brand" as="span">
-                            نمایش ۱۰ مورد بعدی
-                          </KvTypography>
+                          <span className="pointer-events-none absolute start-2 flex size-3.5 items-center justify-center">
+                            {isSelected ? (
+                              <FaIcon icon={faIcons.check} size="sm" />
+                            ) : null}
+                          </span>
+                          {option.label}
                         </Command.Item>
-                      ) : reachedLimit ? (
-                        <div
-                          className={cn(
-                            'px-3.5 py-2.5 text-center',
-                            kvOverlaySectionTopDividerClassName
-                          )}
-                        >
-                          <KvTypography variant="caption" align="center">
-                            نتایج زیاد است؛ جستجو را دقیق‌تر کنید.
-                          </KvTypography>
-                        </div>
-                      ) : null}
-                    </>
-                  ) : (
-                    <Command.Empty className="px-3.5 py-2.5 text-center">
-                      <KvTypography variant="caption" align="center">
-                        نتیجه‌ای یافت نشد.
-                      </KvTypography>
-                    </Command.Empty>
-                  )}
+                      );
+                    }}
+                  />
                 </Command.List>
 
                 <KvOverlayScrollMoreCue
@@ -537,6 +378,7 @@ export const KvSearchableOrganizationSelect = forwardRef<
         onFocus={() => setOpen(true)}
         onChange={(event) => {
           const val = event.target.value;
+          setIsEditing(true);
           setQuery(val);
           if ((props as SingleSelectProps).value) {
             (props as SingleSelectProps).onChange('');
@@ -563,93 +405,31 @@ export const KvSearchableOrganizationSelect = forwardRef<
             onPointerLeave={edgeScroll.onPointerLeave}
             className={cn(kvOverlayListScrollClassName, 'outline-none')}
           >
-            {isLoading ? (
-              <div className="flex items-center justify-center gap-kv-pair px-3.5 py-3">
-                <Spinner className="size-3.5" aria-hidden="true" />
-                <KvTypography variant="caption" as="span">
-                  در حال بارگذاری...
-                </KvTypography>
-              </div>
-            ) : loadError ? (
-              <div className="px-3.5 py-2.5 text-center">
-                <KvTypography variant="error" align="center">
-                  خطا در دریافت گزینه‌ها. دوباره تلاش کنید.
-                </KvTypography>
-              </div>
-            ) : blockedByParent ? (
-              <div className="px-3.5 py-2.5 text-center">
-                <KvTypography variant="caption" align="center">
-                  {type === 'city'
-                    ? 'ابتدا استان را انتخاب کنید.'
-                    : type === 'district'
-                    ? 'ابتدا استان یا شهر را انتخاب کنید.'
-                    : type === 'school'
-                    ? 'ابتدا استان، شهر یا منطقه را انتخاب کنید.'
-                    : 'ابتدا فیلد والد را انتخاب کنید.'}
-                </KvTypography>
-              </div>
-            ) : items.length > 0 ? (
-              <>
-                {items.map((option) => (
-                  <Command.Item
-                    key={option.id}
-                    value={`${option.id}::${option.label}`}
-                    onSelect={() => handleSelect(option)}
-                    className={cn(
-                      kvOverlayItemClassName('cursor-pointer text-start outline-none')
-                    )}
-                  >
-                    <KvTypography variant="label" as="span">
-                      {option.label}
-                    </KvTypography>
-                  </Command.Item>
-                ))}
-
-                {isLoadingMore ? (
-                  <div
-                    className={cn(
-                      'flex items-center justify-center gap-kv-pair px-3.5 py-2.5',
-                      kvOverlaySectionTopDividerClassName
-                    )}
-                  >
-                    <Spinner className="size-3.5" aria-hidden="true" />
-                    <KvTypography variant="caption" as="span">
-                      در حال بارگذاری...
-                    </KvTypography>
-                  </div>
-                ) : hasMore ? (
-                  <Command.Item
-                    value="__load-more__"
-                    onSelect={() => loadMore()}
-                    className={cn(
-                      'cursor-pointer px-3.5 py-2.5 text-center outline-none data-[selected=true]:bg-kv-surface-muted',
-                      kvOverlaySectionTopDividerClassName
-                    )}
-                  >
-                    <KvTypography variant="label" tone="brand" as="span">
-                      نمایش ۱۰ مورد بعدی
-                    </KvTypography>
-                  </Command.Item>
-                ) : reachedLimit ? (
-                  <div
-                    className={cn(
-                      'px-3.5 py-2.5 text-center',
-                      kvOverlaySectionTopDividerClassName
-                    )}
-                  >
-                    <KvTypography variant="caption" align="center">
-                      نتایج زیاد است؛ جستجو را دقیق‌تر کنید.
-                    </KvTypography>
-                  </div>
-                ) : null}
-              </>
-            ) : (
-              <Command.Empty className="px-3.5 py-2.5 text-center">
-                <KvTypography variant="caption" align="center">
-                  نتیجه‌ای یافت نشد.
-                </KvTypography>
-              </Command.Empty>
-            )}
+            <OrganizationOptionsList
+              type={type}
+              isLoading={isLoading}
+              loadError={loadError}
+              blockedByParent={blockedByParent}
+              items={items}
+              isLoadingMore={isLoadingMore}
+              hasMore={hasMore}
+              reachedLimit={reachedLimit}
+              onLoadMore={loadMore}
+              renderItem={(option) => (
+                <Command.Item
+                  key={option.id}
+                  value={`${option.id}::${option.label}`}
+                  onSelect={() => handleSelect(option)}
+                  className={cn(
+                    kvOverlayItemClassName('cursor-pointer text-start outline-none')
+                  )}
+                >
+                  <KvTypography variant="label" as="span">
+                    {option.label}
+                  </KvTypography>
+                </Command.Item>
+              )}
+            />
           </Command.List>
 
           <KvOverlayScrollMoreCue

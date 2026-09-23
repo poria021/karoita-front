@@ -45,13 +45,6 @@ describe('resolveApiMode', () => {
     expect(() => resolveApiMode()).toThrow(MOCK_MODE_LABEL);
   });
 
-  it('fail-closes when mock is set under VERCEL_ENV=production', () => {
-    vi.stubEnv('NODE_ENV', 'development');
-    vi.stubEnv('VERCEL_ENV', 'production');
-    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
-    expect(() => resolveApiMode()).toThrow(MOCK_MODE_LABEL);
-  });
-
   it('rejects invalid NEXT_PUBLIC_API_MODE values', () => {
     vi.stubEnv('NODE_ENV', 'development');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'staging');
@@ -86,5 +79,26 @@ describe('assertMockApiMode / mock secrets in real', () => {
     expect(() => throwRealModeNotImplemented('TestFacade.method')).toThrow(
       REAL_MODE_NOT_IMPLEMENTED
     );
+  });
+});
+
+describe('isRealApiMode fail-closed in dev and production', () => {
+  it('real + production is fail-closed', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('VERCEL_ENV', '');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    expect(isRealApiMode()).toBe(true);
+  });
+
+  it('real + local dev is also fail-closed (no mock fallback)', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    expect(isRealApiMode()).toBe(true);
+  });
+
+  it('mock mode is not real', () => {
+    vi.stubEnv('NODE_ENV', 'development');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
+    expect(isRealApiMode()).toBe(false);
   });
 });

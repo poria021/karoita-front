@@ -1,12 +1,34 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
-import { forwardToNestApi } from '@/lib/nest-proxy-forward';
+import { _clearCatalogCache } from '@/lib/nest-catalog-cache';
+import {
+  forwardToNestApi,
+  nestProxyResponseBody,
+} from '@/lib/nest-proxy-forward';
+
+describe('nestProxyResponseBody', () => {
+  const payload = new TextEncoder().encode('{"title":"tehran"}').buffer;
+
+  it('drops the body for 204/205/304 so NextResponse cannot throw', () => {
+    expect(nestProxyResponseBody(204, payload)).toBeNull();
+    expect(nestProxyResponseBody(205, payload)).toBeNull();
+    expect(nestProxyResponseBody(304, payload)).toBeNull();
+    expect(nestProxyResponseBody(204, new ArrayBuffer(0))).toBeNull();
+  });
+
+  it('keeps the body for ordinary success and error statuses', () => {
+    expect(nestProxyResponseBody(200, payload)).toBe(payload);
+    expect(nestProxyResponseBody(201, payload)).toBe(payload);
+    expect(nestProxyResponseBody(422, payload)).toBe(payload);
+  });
+});
 
 describe('forwardToNestApi', () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+    _clearCatalogCache();
   });
 
   it('rejects path traversal', async () => {
@@ -45,6 +67,39 @@ describe('forwardToNestApi', () => {
     const headers = new Headers(init.headers);
     expect(headers.get('authorization')).toBe('Bearer t');
     expect(headers.get('cookie')).toBeNull();
+    expect(headers.get('accept-encoding')).toBe('identity');
+  });
+
+  it('does not forward browser Origin / sec-fetch / x-forwarded to Nest', async () => {
+    vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
+    const nestFetch = vi.fn().mockResolvedValue(
+      new Response('{"ok":true}', {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    );
+    vi.stubGlobal('fetch', nestFetch);
+
+    const req = new NextRequest('http://localhost/api/nest/v1/auth/roles', {
+      headers: {
+        authorization: 'Bearer t',
+        origin: 'http://localhost:3001',
+        referer: 'http://localhost:3001/auth/login',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'same-origin',
+        'x-forwarded-host': 'localhost:3001',
+        'x-forwarded-proto': 'http',
+      },
+    });
+    await forwardToNestApi(req, ['v1', 'auth', 'roles']);
+
+    const [, init] = nestFetch.mock.calls[0] as [string, RequestInit];
+    const headers = new Headers(init.headers);
+    expect(headers.get('authorization')).toBe('Bearer t');
+    expect(headers.get('origin')).toBeNull();
+    expect(headers.get('referer')).toBeNull();
+    expect(headers.get('sec-fetch-mode')).toBeNull();
+    expect(headers.get('x-forwarded-host')).toBeNull();
     expect(headers.get('accept-encoding')).toBe('identity');
   });
 
@@ -93,5 +148,44 @@ describe('forwardToNestApi', () => {
     expect(res.headers.get('x-karvita-proxy')).toBe('nest-raw');
     expect(res.headers.get('cache-control')).toBe('no-store, no-transform');
     await expect(res.json()).resolves.toEqual({ ok: true });
+  });
+
+  it('forwards Nest 204 with a body as a real 204 without throwing', async () => {
+    vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
+    const payload = new TextEncoder().encode('{"title":"tehran"}');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 204,
+        headers: new Headers({
+          'content-type': 'application/json',
+          etag: 'W/"80-l3vj2/XZnebeBAhCvCVk+lgG6ww"',
+        }),
+        arrayBuffer: async () => payload.buffer,
+      })
+    );
+
+    const req = new NextRequest('http://localhost/api/nest/admin/provinces', {
+      method: 'POST',
+    });
+    const res = await forwardToNestApi(req, ['admin', 'provinces']);
+
+    expect(res.status).toBe(204);
+    await expect(res.text()).resolves.toBe('');
+  });
+
+  it('forwards Nest 204 with an empty body without throwing', async () => {
+    vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+    );
+
+    const req = new NextRequest('http://localhost/api/nest/admin/provinces/1', {
+      method: 'PATCH',
+    });
+    const res = await forwardToNestApi(req, ['admin', 'provinces', '1']);
+
+    expect(res.status).toBe(204);
   });
 });

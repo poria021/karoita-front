@@ -14,7 +14,7 @@ export const SUPERVISOR_SEEDS: SupervisorSeed[] = [
     name: 'دکتر سارا احمدی',
     college: 'پردیس شهید باهنر تهران',
     province: 'تهران',
-    day: 'شنبه',
+    days: ['شنبه'],
     totalCapacity: 3,
   },
   {
@@ -22,7 +22,7 @@ export const SUPERVISOR_SEEDS: SupervisorSeed[] = [
     name: 'دکتر نادر رحیمی',
     college: 'پردیس شهید باهنر تهران',
     province: 'تهران',
-    day: 'دوشنبه',
+    days: ['دوشنبه'],
     totalCapacity: null,
   },
   {
@@ -30,7 +30,7 @@ export const SUPERVISOR_SEEDS: SupervisorSeed[] = [
     name: 'دکتر لیلا فرهادی',
     college: 'پردیس شهید باهنر اصفهان',
     province: 'اصفهان',
-    day: 'سه‌شنبه',
+    days: ['سه‌شنبه'],
     totalCapacity: 2,
   },
   {
@@ -38,7 +38,7 @@ export const SUPERVISOR_SEEDS: SupervisorSeed[] = [
     name: 'دکتر مینا حیدری',
     college: 'پردیس شهید باهنر تهران',
     province: 'تهران',
-    day: 'چهارشنبه',
+    days: ['چهارشنبه'],
     totalCapacity: 5,
     readOnly: true,
   },
@@ -47,7 +47,7 @@ export const SUPERVISOR_SEEDS: SupervisorSeed[] = [
     name: 'دکتر کامران حسینی',
     college: 'پردیس شهید باهنر تهران',
     province: 'تهران',
-    day: 'پنج‌شنبه',
+    days: ['پنج‌شنبه'],
     totalCapacity: 0,
   },
 ];

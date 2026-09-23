@@ -48,7 +48,7 @@ export type InternshipSupervisor = {
   name: string;
   college: string;
   province: string;
-  day: string;
+  days: string[];
   capacity: InternshipCapacity;
   readOnly?: boolean;
 };
@@ -91,6 +91,8 @@ export type InternshipWeeklyReportFile = {
   /** مگابایت اعشاری انگلیسی در قرارداد داده؛ نمایش با `toPersianDigits`. */
   sizeMb: number;
   mimeType?: string;
+  /** مسیر/کلید خام فایل (نه URL نهایی) — لایه نمایش با `toSameOriginMediaUrl` resolve می‌کند. */
+  url?: string;
 };
 
 /** سطح شایستگی ۱–۵ (ASCII) — نمایش فارسی فقط در UI. */
@@ -100,6 +102,10 @@ export type InternshipWeeklyReportFeedback = {
   advisor?: string;
   mentor?: string;
   principal?: string;
+  /** زمان (ISO) آخرین پیام متنی همان نقش — برای نمایش تاریخ زیر هر باکس بازخورد. */
+  advisorAt?: string;
+  mentorAt?: string;
+  principalAt?: string;
   mentorRating?: InternshipCompetencyRating;
   principalRating?: InternshipCompetencyRating;
 };
@@ -109,9 +115,13 @@ export type InternshipWeeklySession = {
   title: string;
   status: InternshipWeeklySessionState;
   score: number | null;
+  /** نمرهٔ وزن‌دار این هفته از Nest (`weightedScore`) — برای نمایش «وزن این هفته» در هدر مودال. */
+  weightedScore?: number | null;
   isExtended?: boolean;
   text?: string;
   files?: InternshipWeeklyReportFile[];
+  /** زمان (ISO) آخرین ارسال گزارش خودِ دانشجو برای این هفته. */
+  reportSubmittedAt?: string | null;
   feedback?: InternshipWeeklyReportFeedback;
 };
 
@@ -120,6 +130,8 @@ export type SaveWeeklyReportDraftInput = {
   kind: InternshipCourseKind;
   level: InternshipEnrollmentLevel;
   termId: string;
+  /** شناسهٔ ثبت‌نام Nest — برای پیداکردن گفتگوی هفته (`POST /conversations/{id}/messages`) لازم است. */
+  enrollmentId: string;
   weekId: string;
   text: string;
   files: InternshipWeeklyReportFile[];
@@ -163,9 +175,20 @@ export type InternshipSelectionScope = {
   canChangeScope: boolean;
 };
 
+/**
+ * چرا `attendanceDaysLabel` خالی مانده — فقط وقتی معنا دارد که آن رشته خالی
+ * باشد. `'capacity-exhausted'` یعنی استاد به‌خاطر پر شدن ظرفیتش از GET
+ * `/professors` (تنها منبع این فیلد) خارج شده؛ `'error'` یعنی خودِ درخواست
+ * fail شده. UI از این‌ها برای یک متن/تولتیپ روشن‌تر به‌جای سکوت استفاده می‌کند.
+ */
+export type AttendanceDaysUnavailableReason = 'capacity-exhausted' | 'error';
+
 export type InternshipEnrollmentSummary = {
+  /** شناسهٔ ثبت‌نام Nest (`student-enrollments/{id}`) — برای پیداکردن گفتگوی هفته لازم است. mock: خالی. */
+  enrollmentId: string;
   supervisorName: string | null;
   attendanceDaysLabel: string;
+  attendanceDaysUnavailableReason?: AttendanceDaysUnavailableReason | null;
   schoolId: string | null;
   schoolName: string | null;
   mentorId: string | null;
@@ -177,6 +200,15 @@ export type InternshipEnrollmentSummary = {
   isTermArchived: boolean;
   weeks: InternshipWeeklySession[];
   progressiveGrade: InternshipProgressiveGrade;
+  /** false یعنی `weeks`/`progressiveGrade` از mock fallback آمده‌اند، نه GET واقعی. */
+  weeksAreReal: boolean;
+};
+
+/** یک ردیف تاریخچهٔ ثبت‌نام این level — برای سلکت‌باکس نیم‌سال در صفحهٔ گزارش. */
+export type InternshipEnrollmentTermHistoryEntry = {
+  termId: string;
+  termTitle: string;
+  status: InternshipEnrollmentRecordStatus;
 };
 
 export type InternshipEnrollmentPageState = {
@@ -186,7 +218,11 @@ export type InternshipEnrollmentPageState = {
   courseName: string;
   termTitle: string;
   termId: string;
+  /** شناسهٔ درس Nest برای GET professors؛ در mock همان catalog id است. */
+  lessonId: string | null;
   enrollment: InternshipEnrollmentSummary | null;
+  /** همهٔ نیم‌سال‌هایی که دانشجو در این level ثبت‌نام غیرکنسل‌شده داشته (شامل نیم‌سال جاری). */
+  termHistory: InternshipEnrollmentTermHistoryEntry[];
   selection: {
     scope: InternshipSelectionScope;
     wasDropped: boolean;
@@ -204,6 +240,13 @@ export type GetEnrollmentPageStateInput = {
   level: InternshipEnrollmentLevel;
 };
 
+/** گزارش یک نیم‌سال مشخص از تاریخچهٔ دانشجو — برای سلکت‌باکس نیم‌سال‌های قبلی. */
+export type GetEnrollmentTermReportInput = {
+  actor: InternshipEnrollmentActor;
+  level: InternshipEnrollmentLevel;
+  termId: string;
+};
+
 export type ListEligibleSupervisorsInput = {
   actor: InternshipEnrollmentActor;
   kind: InternshipCourseKind;
@@ -211,6 +254,8 @@ export type ListEligibleSupervisorsInput = {
   query: string;
   province: string;
   college: string;
+  semesterId?: string;
+  lessonId?: string;
 };
 
 export type EnrollWithSupervisorInput = {
@@ -241,4 +286,11 @@ export type AssignDelayedSchoolMentorInput = {
   termId: string;
   schoolId: string;
   mentorId: string;
+};
+
+export type CancelEnrollmentInput = {
+  actor: InternshipEnrollmentActor;
+  kind: InternshipCourseKind;
+  level: InternshipEnrollmentLevel;
+  termId: string;
 };

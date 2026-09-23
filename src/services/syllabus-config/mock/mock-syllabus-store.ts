@@ -17,6 +17,14 @@ import {
   legacyOfferingStorageKey,
   normalizeCourseTitle,
 } from '../syllabus-mappers';
+import { DEFAULT_WEEK_WEIGHT } from '../syllabus-term-gates';
+
+export {
+  DEFAULT_WEEK_WEIGHT,
+  getTodayJalaliSlash,
+  isJalaliSlashOnOrBefore,
+  isTermGateActive,
+} from '../syllabus-term-gates';
 
 const STORAGE_KEY = 'karvita_mock_syllabus_config_v3';
 const LEGACY_STORAGE_KEY_V2 = 'karvita_mock_syllabus_config_v2';
@@ -24,7 +32,6 @@ const LEGACY_STORAGE_KEY = 'karvita_mock_syllabus_config_v1';
 
 export const INTERNSHIP_DEFAULT_WEEKS = 16;
 export const APPRENTICESHIP_DEFAULT_WEEKS = 8;
-export const DEFAULT_WEEK_WEIGHT = 3;
 
 let memorySnapshot: SyllabusConfigSnapshot | null = null;
 
@@ -340,37 +347,7 @@ export function getAcademicYearOptions(date: Date = new Date()): string[] {
   return list;
 }
 
-/** امروز جلالی با ارقام انگلیسی `YYYY/MM/DD` برای state/API */
-export function getTodayJalaliSlash(date: Date = new Date()): string {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    calendar: 'persian',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(date);
-  const year = parts.find((part) => part.type === 'year')?.value ?? '';
-  const month = parts.find((part) => part.type === 'month')?.value ?? '';
-  const day = parts.find((part) => part.type === 'day')?.value ?? '';
-  return `${year}/${month}/${day}`;
-}
-
-export function isJalaliSlashOnOrBefore(
-  candidate: string,
-  reference: string
-): boolean {
-  const left = persianToEnglishDigits(candidate.trim());
-  const right = persianToEnglishDigits(reference.trim());
-  if (!left || !right) return false;
-  return left <= right;
-}
-
-export function isTermGateActive(
-  isOpen: boolean,
-  startDate: string,
-  today: string = getTodayJalaliSlash()
-): boolean {
-  return isOpen && isJalaliSlashOnOrBefore(startDate, today);
-}
+/** امروز جلالی با ارقام انگلیسی `YYYY/MM/DD` برای state/API — به `syllabus-term-gates` منتقل شد. */
 
 export {
   getCatalogForTermType as getCoursesForTermType,

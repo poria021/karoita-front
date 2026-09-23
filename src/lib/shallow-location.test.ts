@@ -34,11 +34,13 @@ describe('shallow-location', () => {
     replaceSpy.mockRestore();
   });
 
-  it('notifies subscribers when search changes through replaceState', () => {
+  it('notifies subscribers when search changes through replaceState', async () => {
     const listener = vi.fn();
     const unsubscribe = subscribeShallowLocation(listener);
 
     replaceShallowHref('/org?tab=districts');
+    // emit() defers to a microtask so it never fires during useInsertionEffect.
+    await Promise.resolve();
 
     expect(listener).toHaveBeenCalled();
     expect(getShallowLocationSearch()).toBe('?tab=districts');

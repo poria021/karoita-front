@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
@@ -15,6 +15,7 @@ import type {
   InternshipWeeklyReportFile,
   InternshipWeeklySession,
 } from '@/types/internship-enrollment';
+import { isMongoObjectId } from '@/utils/mongoId';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import {
@@ -30,13 +31,30 @@ type UseWeeklyReportModalInput = {
   open: boolean;
   onClose: () => void;
   onReopen: (week: InternshipWeeklySession) => void;
-  onSaved: () => Promise<void>;
+  onWeekUpdated: (week: InternshipWeeklySession) => void;
 };
 
 function cloneFiles(
   files: InternshipWeeklyReportFile[] | undefined
 ): InternshipWeeklyReportFile[] {
   return (files ?? []).map((file) => ({ ...file }));
+}
+
+/**
+ * پیش‌نویس‌های محلی قدیمی ممکن است ضمیمهٔ ساختگی (UUID، از قبل از اتصال به
+ * بک‌اند واقعی) داشته باشند که ارسال گزارش را با ۴۲۲ رد می‌کند. این‌جا قبل از
+ * نمایش در مودال حذفشان می‌کنیم تا کاربر بفهمد باید دوباره ضمیمه کند.
+ */
+function dropStaleAttachments(
+  files: InternshipWeeklyReportFile[]
+): InternshipWeeklyReportFile[] {
+  const valid = files.filter((file) => isMongoObjectId(file.id));
+  if (valid.length !== files.length) {
+    toast.error(
+      'یک یا چند ضمیمهٔ قدیمی این گزارش دیگر معتبر نیست و حذف شد؛ لطفاً دوباره ضمیمه کنید.'
+    );
+  }
+  return valid;
 }
 
 export function useWeeklyReportModal({
@@ -46,7 +64,7 @@ export function useWeeklyReportModal({
   open,
   onClose,
   onReopen,
-  onSaved,
+  onWeekUpdated,
 }: UseWeeklyReportModalInput) {
   void open;
 
@@ -68,7 +86,7 @@ export function useWeeklyReportModal({
   const [files, setFiles] = useState<InternshipWeeklyReportFile[]>([]);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const undoDraftRef = useRef<{
+  const [undoDraft, setUndoDraft] = useState<{
     weekId: string;
     text: string;
     files: InternshipWeeklyReportFile[];
@@ -94,27 +112,38 @@ export function useWeeklyReportModal({
         return;
       }
 
-      const draft = undoDraftRef.current;
       setEditorWeekId(week.id);
 
       if (hasWeeklyReportDraft) {
         setText(draftValue.text);
-        setFiles(cloneFiles(draftValue.files));
+        setFiles(dropStaleAttachments(cloneFiles(draftValue.files)));
         return;
       }
 
-      if (draft && draft.weekId === week.id) {
-        setText(draft.text);
-        setFiles(cloneFiles(draft.files));
-        undoDraftRef.current = null;
+      if (undoDraft && undoDraft.weekId === week.id) {
+        setText(undoDraft.text);
+        setFiles(dropStaleAttachments(cloneFiles(undoDraft.files)));
+        setUndoDraft(null);
         return;
       }
 
       setText(week.text ?? '');
-      setFiles(cloneFiles(week.files));
+      setFiles(dropStaleAttachments(cloneFiles(week.files)));
     },
-    [draftValue, editorWeekId, hasWeeklyReportDraft, week]
+    [draftValue, editorWeekId, hasWeeklyReportDraft, undoDraft, week]
   );
+
+  // قبلاً resetKey به `open` هم وابسته بود، یعنی حتی reopen همون هفته هم
+  // باعث resetForm کامل فرم می‌شد. حالا فقط با تغییر واقعیِ هویت هفته ریست
+  // می‌شود، نه هر بار که مودال باز/بسته می‌شود.
+  const resetKey = week?.id ?? null;
+  const [lastResetKey, setLastResetKey] = useState<string | null>(null);
+  if (resetKey !== lastResetKey) {
+    setLastResetKey(resetKey);
+    if (resetKey !== null) {
+      resetForm();
+    }
+  }
 
   const lockContext = useMemo(() => {
     if (!week || !enrollment) return null;
@@ -196,11 +225,12 @@ export function useWeeklyReportModal({
     setIsSavingDraft(true);
 
     try {
-      await InternshipEnrollmentService.saveWeeklyReportDraft({
+      const savedWeek = await InternshipEnrollmentService.saveWeeklyReportDraft({
         actor,
         kind: state.kind,
         level: state.level,
         termId: state.termId,
+        enrollmentId: enrollment.enrollmentId,
         weekId: week.id,
         text,
         files,
@@ -208,11 +238,11 @@ export function useWeeklyReportModal({
 
       clearWeeklyReportDraft();
       toast.success('گزارش با موفقیت به عنوان پیش‌نویس ذخیره گردید.');
-      await onSaved();
+      onWeekUpdated(savedWeek);
       onClose();
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'ذخیره پیش‌نویس ناموفق بود.'
+        error instanceof Error ? error.message : ''
       );
     } finally {
       setIsSavingDraft(false);
@@ -225,7 +255,7 @@ export function useWeeklyReportModal({
     files,
     locked,
     onClose,
-    onSaved,
+    onWeekUpdated,
     state.kind,
     state.level,
     state.termId,
@@ -244,6 +274,7 @@ export function useWeeklyReportModal({
       kind: state.kind,
       level: state.level,
       termId: state.termId,
+      enrollmentId: enrollment.enrollmentId,
       weekId: week.id,
       text,
       files: cloneFiles(files),
@@ -254,21 +285,21 @@ export function useWeeklyReportModal({
     scheduleOptimisticMutation({
       message: 'گزارش نهایی شده و جهت دریافت بازخورد ارسال گردید.',
       apply: () => {
-        undoDraftRef.current = {
+        setUndoDraft({
           weekId: week.id,
           text,
           files: cloneFiles(files),
-        };
+        });
         onClose();
       },
       revert: () => {
         onReopen(reopenWeek);
       },
       commit: () => InternshipEnrollmentService.submitWeeklyReport(payload),
-      onCommitted: async () => {
-        undoDraftRef.current = null;
+      onCommitted: async (submittedWeek) => {
+        setUndoDraft(null);
         clearWeeklyReportDraft();
-        await onSaved();
+        onWeekUpdated(submittedWeek);
       },
       onError: (error) => {
         toast.error(
@@ -289,7 +320,7 @@ export function useWeeklyReportModal({
     locked,
     onClose,
     onReopen,
-    onSaved,
+    onWeekUpdated,
     state.kind,
     state.level,
     state.termId,
@@ -310,6 +341,7 @@ export function useWeeklyReportModal({
     locked,
     lockNotice,
     feedback: week?.feedback,
+    reportSubmittedAt: week?.reportSubmittedAt ?? null,
     busy,
     isSavingDraft,
     isSubmitting,

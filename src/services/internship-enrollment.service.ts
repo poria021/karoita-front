@@ -1,4 +1,4 @@
-import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { isMockApiMode } from '@/lib/api-mode';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   clampLevel,
@@ -13,18 +13,40 @@ import {
   listDelayedSchools,
   listEligibleSupervisors,
   resolveEnrollmentPageState,
+  resolveEnrollmentTermReport,
   saveWeeklyReportDraft,
   submitWeeklyReport,
 } from '@/services/internship-enrollment/mock/mock-enrollment-store';
+import {
+  getRealEnrollmentPageState,
+  getRealEnrollmentTermReport,
+  getRealMentorCapacity,
+  listRealDelayedMentors,
+  listRealDelayedSchools,
+  listRealEligibleSupervisors,
+  listRealMentorStudents,
+} from '@/services/internship-enrollment/real/real-enrollment-reads';
+import {
+  assignRealDelayedSchoolMentor,
+  cancelRealEnrollment,
+  enrollRealWithSupervisor,
+} from '@/services/internship-enrollment/real/real-enrollment-writes';
+import {
+  realSaveWeeklyReportDraft,
+  realSubmitWeeklyReport,
+} from '@/services/internship-enrollment/real/real-enrollment-weekly';
 import type {
   AssignDelayedSchoolMentorInput,
+  CancelEnrollmentInput,
   EnrollWithSupervisorInput,
   GetEnrollmentPageStateInput,
+  GetEnrollmentTermReportInput,
   InternshipCourseKind,
   InternshipEnrollmentLevel,
   InternshipEnrollmentPageState,
   InternshipEnrollmentRecord,
   InternshipEnrollmentRole,
+  InternshipEnrollmentSummary,
   InternshipMentorCapacity,
   InternshipSchoolCapacity,
   InternshipSupervisor,
@@ -35,17 +57,15 @@ import type {
   SaveWeeklyReportDraftInput,
   SubmitWeeklyReportInput,
 } from '@/types/internship-enrollment';
+import type { NestMentorCapacity, NestMentorStudentsPage } from '@/types/nest-student-enrollments';
 
-function gateEnrollment(): 'mock' | never {
-  if (!isMockApiMode()) {
-    throwRealModeNotImplemented('InternshipEnrollmentService');
-  }
+function gateEnrollmentMock(): void {
   assertMockClientHasPermission('internship.select');
-  return 'mock';
 }
 
 /**
- * ثبت‌نام کارورزی / مهارت‌آموزی. در real fail-closed است؛ ویرایشگر PDF هفته هنوز mock است.
+ * ثبت‌نام کارورزی / مهارت‌آموزی.
+ * real: ترم باز، فهرست استاد، ثبت‌نام اولیه از `student-enrollments` و گزارش هفتگی از `student-weeks` — همه پیاده‌سازی شده‌اند.
  */
 export const InternshipEnrollmentService = {
   /** نقش → نوع درس؛ در Nest هم همین نگاشت پایدار است. */
@@ -70,60 +90,132 @@ export const InternshipEnrollmentService = {
     };
   },
 
-  /** ترم و گیت‌ها از snapshot سرفصل می‌آیند، نه از Nest جدا. */
+  /** real: GET `open-course-selection`؛ mock: snapshot سرفصل. */
   async getEnrollmentPageState(
     input: GetEnrollmentPageStateInput
   ): Promise<InternshipEnrollmentPageState> {
-    gateEnrollment();
+    if (!isMockApiMode()) {
+      return getRealEnrollmentPageState(input);
+    }
+    gateEnrollmentMock();
     return resolveEnrollmentPageState(input);
   },
 
+  /** برای سلکت‌باکس نیم‌سال‌های قبلی — گزارش یک نیم‌سالِ مشخص از تاریخچهٔ همین level. */
+  async getEnrollmentTermReport(
+    input: GetEnrollmentTermReportInput
+  ): Promise<InternshipEnrollmentSummary | null> {
+    if (!isMockApiMode()) {
+      return getRealEnrollmentTermReport(input);
+    }
+    gateEnrollmentMock();
+    return resolveEnrollmentTermReport(input);
+  },
+
+  /** real: GET `professors?semesterId=&lessonId=`؛ فیلتر استان/پردیس/سرچ سمت کلاینت. */
   async listEligibleSupervisors(
     input: ListEligibleSupervisorsInput
   ): Promise<InternshipSupervisor[]> {
-    gateEnrollment();
+    if (!isMockApiMode()) {
+      return listRealEligibleSupervisors(input);
+    }
+    gateEnrollmentMock();
     return listEligibleSupervisors(input);
   },
 
   async enrollWithSupervisor(
     input: EnrollWithSupervisorInput
   ): Promise<InternshipEnrollmentRecord> {
-    gateEnrollment();
+    if (!isMockApiMode()) {
+      return enrollRealWithSupervisor(input);
+    }
+    gateEnrollmentMock();
     return enrollWithSupervisor(input);
   },
 
+  /** real: GET `/admin/schools` فیلترشده روی استان کاربر — فقط برای دراپ‌باکس؛ mock: snapshot ظرفیت‌دار. */
   async listDelayedSchools(
     input: ListDelayedSchoolsInput
   ): Promise<InternshipSchoolCapacity[]> {
-    gateEnrollment();
+    if (!isMockApiMode()) {
+      return listRealDelayedSchools(input);
+    }
+    gateEnrollmentMock();
     return listDelayedSchools(input);
   },
 
+  /** real: GET `/student-enrollments/teachers?schoolId=` — فقط برای دراپ‌باکس؛ mock: snapshot ظرفیت‌دار. */
   async listDelayedMentors(
     input: ListDelayedMentorsInput
   ): Promise<InternshipMentorCapacity[]> {
-    gateEnrollment();
+    if (!isMockApiMode()) {
+      return listRealDelayedMentors(input);
+    }
+    gateEnrollmentMock();
     return listDelayedMentors(input);
   },
 
+  /**
+   * real: PATCH `/student-enrollments/{id}` (فقط مدرسه/معلم).
+   * `listDelayedSchools` (GET `/admin/schools`) و `listDelayedMentors`
+   * (GET `/student-enrollments/teachers`) هر دو وصل شده‌اند.
+   */
   async assignDelayedSchoolMentor(
     input: AssignDelayedSchoolMentorInput
   ): Promise<InternshipEnrollmentRecord> {
-    gateEnrollment();
+    if (!isMockApiMode()) {
+      return assignRealDelayedSchoolMentor(input);
+    }
+    gateEnrollmentMock();
     return assignDelayedSchoolMentor(input);
+  },
+
+  /** PATCH `/student-enrollments/{id}/cancel` — لغو ثبت‌نام دانشجو. */
+  async cancelEnrollment(input: CancelEnrollmentInput): Promise<void> {
+    if (!isMockApiMode()) {
+      return cancelRealEnrollment(input);
+    }
+    gateEnrollmentMock();
+  },
+
+  /**
+   * GET `/student-enrollments/mentor/students` — فهرست دانشجویان منتور.
+   * فقط در real mode؛ mock endpoint ندارد.
+   */
+  async listMentorStudents(query: {
+    semesterId?: string;
+    lessonId?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<NestMentorStudentsPage> {
+    return listRealMentorStudents(query);
+  },
+
+  /**
+   * GET `/student-enrollments/mentor/capacity` — ظرفیت منتور در یک ترم.
+   * فقط در real mode؛ mock endpoint ندارد.
+   */
+  async getMentorCapacity(semesterId: string): Promise<NestMentorCapacity> {
+    return getRealMentorCapacity(semesterId);
   },
 
   async saveWeeklyReportDraft(
     input: SaveWeeklyReportDraftInput
   ): Promise<InternshipWeeklySession> {
-    gateEnrollment();
+    if (!isMockApiMode()) {
+      return realSaveWeeklyReportDraft(input);
+    }
+    gateEnrollmentMock();
     return saveWeeklyReportDraft(input);
   },
 
   async submitWeeklyReport(
     input: SubmitWeeklyReportInput
   ): Promise<InternshipWeeklySession> {
-    gateEnrollment();
+    if (!isMockApiMode()) {
+      return realSubmitWeeklyReport(input);
+    }
+    gateEnrollmentMock();
     return submitWeeklyReport(input);
   },
 };

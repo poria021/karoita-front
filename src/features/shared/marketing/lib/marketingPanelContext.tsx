@@ -5,10 +5,13 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
 } from 'react';
+
+const PANEL_EXIT_MS = 300;
 
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 
@@ -88,10 +91,13 @@ export function MarketingPanelProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(timer);
   }, [pendingScrollId, activePanel]);
 
+  const value = useMemo(
+    () => ({ activePanel, openPanel, bumpPanelActivity }),
+    [activePanel, openPanel, bumpPanelActivity]
+  );
+
   return (
-    <MarketingPanelContext.Provider
-      value={{ activePanel, openPanel, bumpPanelActivity }}
-    >
+    <MarketingPanelContext.Provider value={value}>
       {children}
     </MarketingPanelContext.Provider>
   );
@@ -119,6 +125,45 @@ export function MarketingPanel({
   const { activePanel, bumpPanelActivity } = useMarketingPanel();
   const panelRef = useRef<HTMLElement>(null);
   const isOpen = activePanel === id;
+  const [isExiting, setIsExiting] = useState(false);
+  const exitTimerRef = useRef<number | null>(null);
+  // `mounted` هیچ‌وقت state جدا نیست: تا زمانی که پنل باز است یا در حال
+  // انیمیشن خروج، باید mount بماند؛ در غیر این صورت باید بلافاصله حذف شود.
+  const mounted = isOpen || isExiting;
+
+  useEffect(() => {
+    // هماهنگ‌سازی state محلی انیمیشن با prop خارجی (`isOpen`) و تایمر CSS
+    // transition؛ این مقدار نمی‌تواند در زمان رندر مشتق شود چون باید بین چند
+    // رندر (طول عمر انیمیشن خروج) پایدار بماند.
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (isOpen) {
+      // بازشدن دوباره (حتی وسط انیمیشن خروج) → لغو تایمر خروج و بازگشت فوری.
+      if (exitTimerRef.current != null) {
+        window.clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+      setIsExiting(false);
+      return;
+    }
+    if (activePanel !== null) {
+      // جابه‌جایی مستقیم به پنل دیگر → پنهان‌شدن فوری بدون انیمیشن خروج.
+      setIsExiting(false);
+      return;
+    }
+    // بسته‌شدن کامل (بدون پنل جایگزین) → پخش انیمیشن خروج، سپس unmount.
+    setIsExiting(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+    exitTimerRef.current = window.setTimeout(() => {
+      setIsExiting(false);
+      exitTimerRef.current = null;
+    }, PANEL_EXIT_MS);
+    return () => {
+      if (exitTimerRef.current != null) {
+        window.clearTimeout(exitTimerRef.current);
+        exitTimerRef.current = null;
+      }
+    };
+  }, [isOpen, activePanel]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -150,12 +195,12 @@ export function MarketingPanel({
     <section
       ref={panelRef}
       id={id}
-      hidden={!isOpen}
+      hidden={!mounted}
       // تب به پنل بسته نرود؛ markup برای خزنده‌ها بماند.
       inert={!isOpen ? true : undefined}
       className={
-        isOpen
-          ? `kv-auth-enter flex min-h-dvh w-full scroll-mt-0 items-center justify-center overflow-y-auto border-t border-kv-border-muted ${kvScrollAreaClassName}`
+        mounted
+          ? `${isExiting ? 'kv-panel-exit' : 'kv-auth-enter'} flex min-h-dvh w-full scroll-mt-0 items-center justify-center overflow-y-auto border-t border-kv-border-muted ${kvScrollAreaClassName}`
           : undefined
       }
     >

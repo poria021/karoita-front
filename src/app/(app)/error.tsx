@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { AppRouteStatusActions } from '@/components/shared/route-status/AppRouteStatusActions';
 import { DOCUMENT_TITLE, formatDocumentTitle } from '@/lib/document-title';
+import { isChunkLoadError, tryReloadForChunkError } from '@/lib/chunk-error';
 import { reportError } from '@/lib/observability/reportError';
 
 interface AppErrorProps {
@@ -14,6 +15,8 @@ interface AppErrorProps {
 
 export default function AppError({ error, reset }: AppErrorProps) {
   useEffect(() => {
+    if (isChunkLoadError(error) && tryReloadForChunkError()) return;
+
     document.title = formatDocumentTitle(DOCUMENT_TITLE.error);
     void reportError(error, {
       source: 'app-error',

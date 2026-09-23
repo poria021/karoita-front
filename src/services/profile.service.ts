@@ -1,4 +1,4 @@
-import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { isMockApiMode } from '@/lib/api-mode';
 import { ApiClientError } from '@/services/api-client';
 import { AuthService } from '@/services/auth.service';
 import {
@@ -11,22 +11,17 @@ import { useUserStore } from '@/store/useUserStore';
 import type { DocStatus, User, UserRole } from '@/types/auth';
 import { isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
-import {
-  requestIdentityDocument,
-  requestProfile,
-} from './profile/real/profile.api';
+import { requestProfile } from './profile/real/profile.api';
 import {
   extractApiMessage,
-  extractApiPayload,
-  isPersianMessage,
   parseProfile,
   ProfileServiceError,
-} from './profile/real/profile.mappers';
+} from './profile/profile.mappers';
 import {
   getMockProfile,
   updateMockIdentityDocument,
   updateMockProfile,
-} from './profile/mock/profile.mock';
+} from '@/services/profile/mock/profile.mock';
 
 const MOCK_DELAY_MS = 350;
 const MAX_IDENTITY_BASE64_CHARS = 1_100_000;
@@ -35,8 +30,8 @@ export interface UpdateOnboardingProfilePayload {
   role: UserRole;
   firstName: string;
   lastName: string;
-  province?: string[];
-  college?: string[];
+  province?: string | string[];
+  college?: string | string[];
   major?: string;
   studentId?: string;
   skillCode?: string;
@@ -85,15 +80,44 @@ function friendlyError(error: unknown): Error {
   );
 }
 
+function syncActiveUserFromNest(
+  nestUser: User,
+  role: UserRole,
+  photoPublicUrl?: string
+): User {
+  const activeUser = useUserStore.getState().activeUser;
+  // Prefer the server-returned docUrl (may contain a fresh signed URL from Nest).
+  // photoPublicUrl is derived from the upload's presigned PUT URL and is unsigned;
+  // using it over the server's signed URL causes photo display failures on private buckets.
+  const docUrl =
+    nestUser.docUrl ??
+    (photoPublicUrl && isBrowsableMediaUrl(photoPublicUrl)
+      ? photoPublicUrl
+      : undefined);
+
+  const next: User = {
+    ...(activeUser ?? nestUser),
+    ...nestUser,
+    ...(docUrl ? { docUrl } : {}),
+    ...approvalFields(role, {
+      approved: nestUser.approved,
+      docStatus: nestUser.docStatus,
+    }),
+  };
+  useUserStore.getState().setUser(next);
+  return next;
+}
+
 /**
- * نمای پروفایل و پچ آنبوردینگ. شکل DTO در mock و real یکی است.
+ * نمای پروفایل و پچ آنبوردینگ.
+ * real: فقط Nest (`GET/PATCH v1/auth/me` + `PATCH v1/users/{id}` + Files برای مدرک).
  */
 export class ProfileService {
   static async getProfile(token?: string): Promise<ProfileDto> {
     try {
       if (!isMockApiMode()) {
         const { profileDto } = await requestProfile('GET', token);
-        return parseProfile(extractApiPayload(profileDto));
+        return parseProfile(profileDto);
       }
 
       await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
@@ -115,36 +139,28 @@ export class ProfileService {
       const validatedData = parseProfile(data);
 
       if (!isMockApiMode()) {
+        // نام/عکس روی auth/me؛ فیلد سازمانی روی users/{id}.
         await AuthService.updateMe({
           firstName: validatedData.firstName,
           lastName: validatedData.lastName,
           ...(photoFileId ? { photo: { id: photoFileId } } : {}),
         });
-        const { profileDto: payload, nestUser } = await requestProfile('PUT', token, validatedData, photoFileId);
-        const serverMessage = extractApiMessage(payload);
-        const activeUser = useUserStore.getState().activeUser;
-        if (activeUser) {
-          const nestDocUrl = nestUser?.docUrl;
-          const docUrl =
-            photoPublicUrl && isBrowsableMediaUrl(photoPublicUrl)
-              ? photoPublicUrl
-              : nestDocUrl;
-          useUserStore.getState().setUser({
-            ...activeUser,
-            ...validatedData,
-            ...(docUrl ? { docUrl } : {}),
-            ...approvalFields(validatedData.role, {
-              approved: activeUser.approved,
-              docStatus: activeUser.docStatus,
-            }),
-          });
+        const { profileDto: payload, nestUser } = await requestProfile(
+          'PUT',
+          token,
+          validatedData,
+          photoFileId
+        );
+        if (!nestUser) {
+          throw new ProfileServiceError(
+            'پاسخ پروفایل از سرور نامعتبر است.'
+          );
         }
+        syncActiveUserFromNest(nestUser, validatedData.role, photoPublicUrl);
+        const serverMessage = extractApiMessage(payload);
         return {
           success: true,
-          message:
-            serverMessage && isPersianMessage(serverMessage)
-              ? serverMessage
-              : 'اطلاعات پروفایل شما با موفقیت ذخیره شد.',
+          message: serverMessage || 'اطلاعات پروفایل شما با موفقیت ذخیره شد.',
         };
       }
 
@@ -155,7 +171,7 @@ export class ProfileService {
     }
   }
 
-  /** ارسال آنبوردینگ در real همان `updateProfile` است. */
+  /** real: همان `updateProfile` → Nest؛ mock: پچ store. */
   static async updateOnboardingProfile(
     payload: UpdateOnboardingProfilePayload
   ): Promise<User> {
@@ -176,16 +192,24 @@ export class ProfileService {
       await ProfileService.updateProfile(validatedData);
       const next = useUserStore.getState().activeUser;
       if (!next) {
-        throwRealModeNotImplemented('ProfileService.updateOnboardingProfile');
+        throw new ProfileServiceError(
+          'نشست کاربری یافت نشد. لطفاً دوباره وارد شوید.',
+          401
+        );
       }
       return next;
     }
+
+    const toArray = (v: string | string[] | undefined): string[] | undefined =>
+      typeof v === 'string' ? (v ? [v] : []) : v;
 
     await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
     const updated = patchMockAuthUser(
       { id: activeUser.id },
       {
         ...validatedData,
+        province: toArray('province' in validatedData ? validatedData.province : undefined),
+        college: 'college' in validatedData ? toArray(validatedData.college) : undefined,
         ...approvalFields(validatedData.role, {
           approved: activeUser.approved,
           docStatus: activeUser.docStatus,
@@ -196,7 +220,10 @@ export class ProfileService {
     return toPublicUser(updated);
   }
 
-  /** فقط data-URL از نوع WebP. */
+  /**
+   * mock: data-URL WebP در store.
+   * real: این متد Nest ندارد — UI باید `FilesService.uploadFile` + `updateProfile(..., photoFileId)` بزند.
+   */
   static async updateIdentityDocument(
     documentBase64: string,
     token?: string
@@ -213,8 +240,9 @@ export class ProfileService {
       }
 
       if (!isMockApiMode()) {
-        await requestIdentityDocument(documentBase64, token);
-        return;
+        throw new ProfileServiceError(
+          'در حالت اتصال به Nest، مدرک هویتی فقط از مسیر آپلود فایل و ذخیرهٔ پروفایل ثبت می‌شود.'
+        );
       }
 
       await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));

@@ -1,55 +1,116 @@
 import { describe, expect, it } from 'vitest';
-import { TimeoutError } from 'ky';
+import { HTTPError, TimeoutError } from 'ky';
 
-import { localizeApiError, mapHttpError } from '@/services/api-error';
+import {
+  extractApiMessage,
+  localizeApiError,
+  mapHttpError,
+} from '@/services/api-error';
 
-const LOGIN_VERIFY_OTP_URL = 'http://localhost:3000/api/nest/v1/auth/phone/login/verify-otp';
-const ADMIN_VERIFY_OTP_URL = 'http://localhost:3000/api/nest/v1/admin/auth/phone/login/verify-otp';
-const SOME_OTHER_URL = 'http://localhost:3000/api/nest/v1/auth/me';
+const LOGIN_VERIFY_OTP_URL =
+  'http://localhost:3000/api/nest/v1/auth/phone/login/verify-otp';
+const SEMESTER_URL = 'https://backenddev.darkube.ir/api/admin/semester';
+const LESSON_STATUS_URL =
+  'https://backenddev.darkube.ir/api/admin/lessons/6a8e2b51d2187e0f2fdb784b/status';
 
-/** رگرسیون: Nest کد OTP اشتباه را ۴۰۴ می‌دهد؛ حتی بدون `{ errors.hash }` پیام «منبع یافت نشد» نباشد. */
-describe('localizeApiError — OTP verify 404 mapping', () => {
-  it('maps a 404 with no parseable body on verify-otp to the wrong-code message', () => {
-    expect(localizeApiError(null, 404, LOGIN_VERIFY_OTP_URL)).toBe(
-      'کد تایید وارد‌شده اشتباه یا منقضی شده است.'
-    );
-  });
-
-  it('maps a 404 with an unrelated/generic body on verify-otp to the wrong-code message', () => {
+describe('extractApiMessage', () => {
+  it('reads Nest message string and class-validator arrays', () => {
+    expect(extractApiMessage({ message: 'Not Found' })).toBe('Not Found');
     expect(
-      localizeApiError({ statusCode: 404, message: 'Not Found', error: 'Not Found' }, 404, LOGIN_VERIFY_OTP_URL)
-    ).toBe('کد تایید وارد‌شده اشتباه یا منقضی شده است.');
+      extractApiMessage({ message: ['title should not be empty', 'cityId must be a mongodb id'] })
+    ).toBe('title should not be empty، cityId must be a mongodb id');
   });
 
-  it('still maps the documented Nest shape ({ errors: { hash } }) to the wrong-code message', () => {
-    expect(
-      localizeApiError({ errors: { hash: 'invalidOtp.' } }, 404, LOGIN_VERIFY_OTP_URL)
-    ).toBe('کد تایید وارد‌شده اشتباه یا منقضی شده است.');
-  });
-
-  it('applies the same mapping on the admin verify-otp endpoint', () => {
-    expect(localizeApiError(null, 404, ADMIN_VERIFY_OTP_URL)).toBe(
-      'کد تایید وارد‌شده اشتباه یا منقضی شده است.'
+  it('reads errors map and array without rewriting values', () => {
+    expect(extractApiMessage({ errors: { hash: 'invalidOtp.' } })).toBe(
+      'invalidOtp.'
     );
+    expect(
+      extractApiMessage({ errors: [{ message: 'province_id is required' }] })
+    ).toBe('province_id is required');
+    expect(
+      extractApiMessage({
+        status: 422,
+        errors: { lessonId: 'lessonId must be a mongodb id' },
+      })
+    ).toBe('lessonId must be a mongodb id');
   });
 
-  it('does NOT hijack 404s from unrelated endpoints', () => {
-    expect(localizeApiError(null, 404, SOME_OTHER_URL)).toBe('منبع درخواستی یافت نشد.');
+  it('falls through to detail then error', () => {
+    expect(extractApiMessage({ detail: 'semester already open' })).toBe(
+      'semester already open'
+    );
+    expect(extractApiMessage({ error: 'Bad Request' })).toBe('Bad Request');
   });
 
-  it('does NOT hijack 404s when the url is missing entirely (no regression on existing callers)', () => {
-    expect(localizeApiError(null, 404)).toBe('منبع درخواستی یافت نشد.');
+  it('prefers message over the generic Nest error field', () => {
+    expect(
+      extractApiMessage({
+        message: 'capacity must not exceed generalProfessorCapacity',
+        error: 'Bad Request',
+        statusCode: 400,
+      })
+    ).toBe('capacity must not exceed generalProfessorCapacity');
+  });
+
+  it('prefers errors/constraints over a generic HTTP message so the toast is not 400', () => {
+    expect(
+      extractApiMessage({
+        statusCode: 400,
+        message: 'Bad Request',
+        error: 'Bad Request',
+        errors: { title: 'این عنوان قبلاً ثبت شده است.' },
+      })
+    ).toBe('این عنوان قبلاً ثبت شده است.');
+    expect(
+      extractApiMessage({
+        statusCode: 400,
+        message: [
+          {
+            property: 'title',
+            constraints: { isNotEmpty: 'title should not be empty' },
+          },
+        ],
+      })
+    ).toBe('title should not be empty');
+    expect(
+      extractApiMessage({
+        status: 422,
+        errors: { lessonId: 'lessonId must be a mongodb id' },
+      })
+    ).toBe('lessonId must be a mongodb id');
+  });
+
+  it('reads nested data/error objects and fa locale maps', () => {
+    expect(
+      extractApiMessage({
+        statusCode: 400,
+        data: { message: 'ظرفیت از حد مجاز بیشتر است.' },
+      })
+    ).toBe('ظرفیت از حد مجاز بیشتر است.');
+    expect(
+      extractApiMessage({
+        error: { message: 'ترم تکراری است.', code: 'SEMESTER_DUPLICATE' },
+      })
+    ).toBe('ترم تکراری است.');
+    expect(
+      extractApiMessage({ message: { fa: 'کد تایید نامعتبر است.', en: 'invalid otp' } })
+    ).toBe('کد تایید نامعتبر است.');
   });
 });
 
-const SEMESTER_URL = 'https://backenddev.darkube.ir/api/admin/semester';
-const SEMESTER_BY_ID_URL =
-  'https://backenddev.darkube.ir/api/admin/semester/6a96bc5ec0dbacb9d068188b';
-const SEMESTERS_ALL_URL =
-  'https://backenddev.darkube.ir/api/admin/semesters_all?structure=podmani';
-
-describe('localizeApiError — admin semester 400/404', () => {
-  it('maps duplicate/conflict 400 on POST and PATCH semester', () => {
+describe('localizeApiError — server text only', () => {
+  it('shows the Nest body even when it is English', () => {
+    expect(
+      localizeApiError(
+        { statusCode: 404, message: 'Not Found', error: 'Not Found' },
+        404,
+        LOGIN_VERIFY_OTP_URL
+      )
+    ).toBe('Not Found');
+    expect(
+      localizeApiError({ errors: { hash: 'invalidOtp.' } }, 404, LOGIN_VERIFY_OTP_URL)
+    ).toBe('invalidOtp.');
     expect(
       localizeApiError(
         {
@@ -60,86 +121,58 @@ describe('localizeApiError — admin semester 400/404', () => {
         SEMESTER_URL
       )
     ).toBe(
-      'این دوره تحصیلی تکراری است، یا ترم دیگری با همین فصل و ساختار انتخاب واحد باز دارد.'
+      'Duplicate semester, or another semester with the same season and structure already has course selection open.'
     );
-    expect(localizeApiError(null, 400, SEMESTER_BY_ID_URL)).toBe(
-      'این دوره تحصیلی تکراری است، یا ترم دیگری با همین فصل و ساختار انتخاب واحد باز دارد.'
-    );
-  });
-
-  it('maps 404 on semester by id, without hijacking semesters_all', () => {
-    expect(localizeApiError(null, 404, SEMESTER_BY_ID_URL)).toBe(
-      'دوره تحصیلی یافت نشد.'
-    );
-    expect(localizeApiError(null, 404, SEMESTERS_ALL_URL)).toBe(
-      'منبع درخواستی یافت نشد.'
-    );
-  });
-});
-
-const SETTINGS_URL = 'https://backenddev.darkube.ir/api/admin/settings';
-const WEEK_BY_ID_URL =
-  'https://backenddev.darkube.ir/api/admin/weeks/6a96c14fc0dbacb9d06818a1';
-const WEEKS_BY_LESSON_URL =
-  'https://backenddev.darkube.ir/api/admin/weeks/lesson/6a96bc5ec0dbacb9d068188b';
-const LESSON_STATUS_URL =
-  'https://backenddev.darkube.ir/api/admin/lessons/6a8e2b51d2187e0f2fdb784b/status';
-const LESSONS_BULK_STATUS_URL =
-  'https://backenddev.darkube.ir/api/admin/lessons/status';
-const LESSON_WEEKS_PUT_URL =
-  'https://backenddev.darkube.ir/api/admin/lessons/6a8e2b51d2187e0f2fdb784b/weeks';
-
-describe('localizeApiError — settings, weeks, lessons', () => {
-  it('maps settings 404', () => {
-    expect(localizeApiError(null, 404, SETTINGS_URL)).toBe(
-      'تنظیمات تحصیلی یافت نشد.'
-    );
-  });
-
-  it('maps weeks 404 on by-id and by-lesson', () => {
-    expect(localizeApiError(null, 404, WEEK_BY_ID_URL)).toBe('هفته یافت نشد.');
-    expect(localizeApiError(null, 404, WEEKS_BY_LESSON_URL)).toBe(
-      'هفته یافت نشد.'
-    );
-  });
-
-  it('maps lesson not-found and capacity-exceeded', () => {
-    expect(
-      localizeApiError(
-        {
-          message: 'Lesson with id 6a8e2b51d2187e0f2fdb784b not found',
-          error: 'Not Found',
-          statusCode: 404,
-        },
-        404,
-        LESSON_STATUS_URL
-      )
-    ).toBe('درس یافت نشد.');
-    expect(
-      localizeApiError(
-        { message: 'Lesson(s) not found: 66c7a9b3e8f5a12345678901' },
-        404,
-        LESSONS_BULK_STATUS_URL
-      )
-    ).toBe('درس یافت نشد.');
     expect(
       localizeApiError(
         { message: 'capacity must not exceed generalProfessorCapacity' },
         400,
         LESSON_STATUS_URL
       )
-    ).toBe('ظرفیت درس از سقف عمومی اساتید بیشتر است.');
-    expect(localizeApiError(null, 400, LESSON_WEEKS_PUT_URL)).toBe(
-      'برنامهٔ هفتگی درس معتبر نیست.'
-    );
+    ).toBe('capacity must not exceed generalProfessorCapacity');
+  });
+
+  it('does not invent a domain message when the body is empty', () => {
+    expect(
+      localizeApiError(null, 404, LOGIN_VERIFY_OTP_URL, 'Not Found')
+    ).toBe('Not Found');
+    expect(localizeApiError(null, 400, SEMESTER_URL)).toBe('400');
+    expect(localizeApiError(null, 404)).toBe('404');
   });
 });
 
 describe('mapHttpError — timeout vs network', () => {
-  it('maps TimeoutError to a generic timeout message, not the auth-network copy', async () => {
-    const timeout = new TimeoutError(new Request('https://api.example.com/v1/users'));
+  it('passes through the transport error message without rewriting it', async () => {
+    const timeout = new TimeoutError(
+      new Request('https://api.example.com/v1/users')
+    );
     await expect(mapHttpError(timeout)).rejects.toMatchObject({
-      message: 'پاسخ سرویس بیش از حد طول کشید. لطفاً دوباره تلاش کنید.',
+      message: timeout.message,
+    });
+  });
+});
+
+describe('mapHttpError — ky 2 consumed body', () => {
+  it('reads Nest errors from HTTPError.data instead of the status code', async () => {
+    const payload = {
+      status: 422,
+      errors: { lessonId: 'lessonId must be a mongodb id' },
+    };
+    const response = new Response(JSON.stringify(payload), {
+      status: 422,
+      headers: { 'Content-Type': 'application/json' },
+    });
+    await response.arrayBuffer();
+    const error = new HTTPError(
+      response,
+      new Request(SEMESTER_URL, { method: 'POST' }),
+      { method: 'POST', timeout: 10_000 } as never
+    );
+    error.data = payload;
+
+    await expect(mapHttpError(error)).rejects.toMatchObject({
+      message: 'lessonId must be a mongodb id',
+      status: 422,
     });
   });
 });

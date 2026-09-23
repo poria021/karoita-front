@@ -56,11 +56,82 @@ export function OrgStructureEntityFields({
     tab === 'faculties' ||
     tab === 'districts' ||
     tab === 'schools';
-  const needsCity = tab === 'districts' || tab === 'schools';
+  const needsCity =
+    tab === 'faculties' || tab === 'districts' || tab === 'schools';
 
-  // شهر در منطقه / مدرسه اختیاری است. پردیس فقط استان می‌خواهد.
-  // اگر استان شهری نداشته باشد فیلد قفل می‌شود.
+  // پردیس شهر اجباری دارد (بدون آن ثبت لایو ۴۲۲ می‌دهد)؛ منطقه/مدرسه اختیاری‌اند.
+  const cityIsRequired = tab === 'faculties';
+
+  // همان قفل شهر منطقه/مدرسه: فقط وقتی استان انتخاب‌شده شهری ندارد.
   const cityIsLocked = needsCity && provinceHasNoCities;
+
+  const provinceField = needsProvince ? (
+    <Controller
+      key="province"
+      name="provinceId"
+      control={control}
+      render={({ field }) => (
+        <KvSelectField
+          id="org-entity-province"
+          label="استان"
+          required
+          error={errors.provinceId?.message}
+          placeholder="انتخاب استان"
+          value={field.value || ''}
+          onValueChange={(value) => {
+            field.onChange(value);
+            setValue('cityId', '');
+            setValue('districtId', '');
+          }}
+          contentClassName={SELECT_IN_DIALOG_Z}
+        >
+          {provinces.map((p) => (
+            <KvSelectItem key={p.id} value={p.id}>
+              {p.name}
+            </KvSelectItem>
+          ))}
+        </KvSelectField>
+      )}
+    />
+  ) : null;
+
+  const cityField = needsCity ? (
+    <Controller
+      key="city"
+      name="cityId"
+      control={control}
+      render={({ field }) => (
+        <KvSelectField
+          id="org-entity-city"
+          label="شهر"
+          required={cityIsRequired}
+          optionalHint={!cityIsRequired}
+          locked={cityIsLocked}
+          hint={
+            cityIsLocked ? 'این استان شهر ثبت‌شده‌ای ندارد.' : undefined
+          }
+          placeholder={cityIsLocked ? '—' : 'انتخاب شهر'}
+          value={cityIsLocked ? '' : (field.value || '')}
+          onValueChange={
+            cityIsLocked
+              ? undefined
+              : (value) => {
+                  field.onChange(value);
+                  setValue('districtId', '');
+                }
+          }
+          error={cityIsLocked ? undefined : errors.cityId?.message}
+          contentClassName={SELECT_IN_DIALOG_Z}
+        >
+          {cities.map((c) => (
+            <KvSelectItem key={c.id} value={c.id}>
+              {c.name}
+            </KvSelectItem>
+          ))}
+        </KvSelectField>
+      )}
+    />
+  ) : null;
 
   return (
     <>
@@ -70,76 +141,14 @@ export function OrgStructureEntityFields({
         required
         placeholder={namePlaceholder}
         error={errors.name?.message}
-        scriptGuard="persian-name"
+        scriptGuard={
+          tab === 'districts' || tab === 'schools' ? 'no-latin' : 'persian-name'
+        }
         {...register('name')}
       />
 
-      {needsProvince ? (
-        <Controller
-          name="provinceId"
-          control={control}
-          render={({ field }) => (
-            <KvSelectField
-              id="org-entity-province"
-              label="استان"
-              required
-              error={errors.provinceId?.message}
-              placeholder="انتخاب استان"
-              value={field.value || ''}
-              onValueChange={(value) => {
-                field.onChange(value);
-                setValue('cityId', '');
-                setValue('districtId', '');
-              }}
-              contentClassName={SELECT_IN_DIALOG_Z}
-            >
-              {provinces.map((p) => (
-                <KvSelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
-          )}
-        />
-      ) : null}
-
-      {needsCity ? (
-        <Controller
-          name="cityId"
-          control={control}
-          render={({ field }) => (
-            <KvSelectField
-              id="org-entity-city"
-              label="شهر"
-              optionalHint
-              locked={cityIsLocked}
-              hint={
-                cityIsLocked
-                  ? 'این استان شهر ثبت‌شده‌ای ندارد.'
-                  : undefined
-              }
-              placeholder={cityIsLocked ? '—' : 'انتخاب شهر'}
-              value={cityIsLocked ? '' : (field.value || '')}
-              onValueChange={
-                cityIsLocked
-                  ? undefined
-                  : (value) => {
-                      field.onChange(value);
-                      setValue('districtId', '');
-                    }
-              }
-              error={cityIsLocked ? undefined : errors.cityId?.message}
-              contentClassName={SELECT_IN_DIALOG_Z}
-            >
-              {cities.map((c) => (
-                <KvSelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </KvSelectItem>
-              ))}
-            </KvSelectField>
-          )}
-        />
-      ) : null}
+      {provinceField}
+      {cityField}
 
       {tab === 'schools' ? (
         <>

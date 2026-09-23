@@ -17,14 +17,16 @@ export const cityFormSchema = z.object({
   provinceId: z.string().min(1, 'انتخاب استان الزامی است.'),
 });
 
+/** بدون `cityId`، POST/PUT /admin/universites لایو ۴۲۲ می‌دهد؛ برخلاف منطقه/مدرسه اینجا شهر اجباری است. */
 export const facultyFormSchema = z.object({
   name: nameField,
   provinceId: z.string().min(1, 'انتخاب استان الزامی است.'),
+  cityId: z.string().min(1, 'انتخاب شهر الزامی است.'),
 });
 
 /**
  * `cityId` در فرم منطقه / مدرسه اختیاری است — همان قانون و برچسب «(اختیاری)».
- * پردیس فیلد شهر ندارد. استان اجباری می‌ماند.
+ * استان اجباری می‌ماند.
  */
 export const districtFormSchema = z.object({
   name: nameField,

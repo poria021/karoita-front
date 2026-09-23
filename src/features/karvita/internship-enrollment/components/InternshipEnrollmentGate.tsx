@@ -1,24 +1,53 @@
 'use client';
 
+import dynamic from 'next/dynamic';
+
 import { KvAlert } from '@/components/shared/KvAlert';
+import { KvCard } from '@/components/shared/KvCard';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import type {
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
+  InternshipEnrollmentSummary,
+  InternshipEnrollmentTermHistoryEntry,
+  InternshipWeeklySession,
 } from '@/types/internship-enrollment';
 
-import { ScenarioAlreadyEnrolled } from './ScenarioAlreadyEnrolled';
 import { ScenarioEnrollClosed } from './ScenarioEnrollClosed';
-import { ScenarioEnrollOpen } from './ScenarioEnrollOpen';
-import { ScenarioRegisteredWaiting } from './ScenarioRegisteredWaiting';
 import { ScenarioSyllabusBlocked } from './ScenarioSyllabusBlocked';
-import { ScenarioTermActive } from './ScenarioTermActive';
+
+// سناریوهای سنگین‌تر lazy load می‌شوند — فقط یکی در هر بار رندر می‌شود
+const ScenarioEnrollOpen = dynamic(
+  () => import('./ScenarioEnrollOpen').then((m) => ({ default: m.ScenarioEnrollOpen })),
+  { ssr: false }
+);
+const ScenarioRegisteredWaiting = dynamic(
+  () => import('./ScenarioRegisteredWaiting').then((m) => ({ default: m.ScenarioRegisteredWaiting })),
+  { ssr: false }
+);
+const ScenarioTermActive = dynamic(
+  () => import('./ScenarioTermActive').then((m) => ({ default: m.ScenarioTermActive })),
+  { ssr: false }
+);
+const ScenarioAlreadyEnrolled = dynamic(
+  () => import('./ScenarioAlreadyEnrolled').then((m) => ({ default: m.ScenarioAlreadyEnrolled })),
+  { ssr: false }
+);
 
 type InternshipEnrollmentGateProps = {
   actor: InternshipEnrollmentActor | null;
   state: InternshipEnrollmentPageState | null;
   isLoading: boolean;
   onEnrollmentComplete: () => Promise<void>;
+  onEnrollmentCancel?: () => Promise<void>;
+  onWeekUpdated: (week: InternshipWeeklySession) => void;
+  termHistory: InternshipEnrollmentTermHistoryEntry[];
+  selectedTermId: string;
+  onSelectTerm: (termId: string) => void;
+  isViewingHistory: boolean;
+  viewedEnrollment: InternshipEnrollmentSummary | null;
+  isLoadingViewedTerm: boolean;
+  viewedTermError: string | null;
 };
 
 /** ناحیهٔ داده — پرکنندهٔ ارتفاع مین تا قبل از فوتر. */
@@ -27,10 +56,21 @@ export function InternshipEnrollmentGate({
   state,
   isLoading,
   onEnrollmentComplete,
+  onEnrollmentCancel,
+  onWeekUpdated,
+  termHistory,
+  selectedTermId,
+  onSelectTerm,
+  isViewingHistory,
+  viewedEnrollment,
+  isLoadingViewedTerm,
+  viewedTermError,
 }: InternshipEnrollmentGateProps) {
   if (isLoading) {
     return (
-      <KvBusySurface className="min-h-0 flex-1 rounded-kv-card bg-kv-surface-subtle" />
+      <KvCard padding="md" className="flex min-h-0 flex-1 flex-col">
+        <KvBusySurface className="flex-1" />
+      </KvCard>
     );
   }
 
@@ -73,13 +113,26 @@ export function InternshipEnrollmentGate({
           />
         );
       }
-      return <ScenarioRegisteredWaiting enrollment={state.enrollment} />;
+      return (
+        <ScenarioRegisteredWaiting
+          enrollment={state.enrollment}
+          onCancel={onEnrollmentCancel}
+        />
+      );
     case 'S5_term_active':
       return actor ? (
         <ScenarioTermActive
           actor={actor}
           state={state}
           onAssignmentComplete={onEnrollmentComplete}
+          onWeekUpdated={onWeekUpdated}
+          termHistory={termHistory}
+          selectedTermId={selectedTermId}
+          onSelectTerm={onSelectTerm}
+          isViewingHistory={isViewingHistory}
+          viewedEnrollment={viewedEnrollment}
+          isLoadingViewedTerm={isLoadingViewedTerm}
+          viewedTermError={viewedTermError}
         />
       ) : (
         <KvAlert

@@ -20,28 +20,34 @@ type SessionVisual = {
   icon: (typeof faIcons)[keyof typeof faIcons];
 };
 
-const SESSION_VISUALS: Record<InternshipWeeklySessionState, SessionVisual> = {
+// locked_future الان سمت کلاینت و بر اساس قفل ترتیبی (ارسال‌نشدنِ گزارش هفتهٔ
+// قبل) محاسبه می‌شود — ببین isSequentiallyLocked در weekly-sessions.ts. قفل
+// زمانیِ قبلی (تقویم آموزشی) طبق تصمیم بک‌اند غیرفعال ماند؛ overdue هم هنوز از
+// سرور برنمی‌گردد، برای همین کامنت باقی می‌ماند.
+const SESSION_VISUALS: Partial<
+  Record<InternshipWeeklySessionState, SessionVisual>
+> = {
   locked_future: {
-    label: 'قفل',
-    legendLabel: 'قفل',
+    label: 'هنوز باز نشده',
+    legendLabel: 'هنوز باز نشده',
     className:
       'border-kv-border bg-kv-surface-muted text-kv-text-faint shadow-none opacity-70',
     hoverClassName:
       'cursor-not-allowed enabled:hover:bg-inherit enabled:hover:text-inherit',
     icon: faIcons.lock,
   },
-  overdue: {
-    label: 'منقضی شده',
-    legendLabel: 'منقضی شده',
-    className:
-      'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
-    hoverClassName:
-      'enabled:hover:bg-kv-danger-soft-hover enabled:hover:text-kv-danger-soft-fg',
-    icon: faIcons.clockRotateLeft,
-  },
+  // overdue: {
+  //   label: 'منقضی شده',
+  //   legendLabel: 'منقضی شده',
+  //   className:
+  //     'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
+  //   hoverClassName:
+  //     'enabled:hover:bg-kv-danger-soft-hover enabled:hover:text-kv-danger-soft-fg',
+  //   icon: faIcons.clockRotateLeft,
+  // },
   extended: {
     label: 'تمدید',
-    legendLabel: 'تمدید',
+    // legendLabel حذف شد — تمدید گروهی هفته فعلاً غیرفعال است و در راهنما نمایش داده نمی‌شود.
     className:
       'border-kv-violet-border bg-kv-violet-soft text-kv-violet-soft-fg',
     hoverClassName:
@@ -126,13 +132,26 @@ export function InternshipWeeklyGrid({
   enrollmentStatus,
   onWeekSelect,
 }: InternshipWeeklyGridProps) {
+  if (weeks.length === 0) {
+    return (
+      <div className="space-y-kv-group">
+        <div className="flex min-h-[160px] w-full items-center justify-center rounded-kv-control border border-dashed border-kv-border text-xs font-bold text-kv-text-faint">
+          هنوز هیچ هفته‌ای برای این دوره ثبت نشده است.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-kv-group">
       <div className="grid grid-cols-2 gap-kv-inline sm:grid-cols-4">
         {weeks.map((week, index) => {
           const status = effectiveWeeklySessionState(week, enrollmentStatus);
-          const visual = SESSION_VISUALS[status];
-          const score = status === 'graded' ? (week.score ?? 92) : null;
+          // overdue دیگر از سرور نمی‌آید؛ در صورت بروز، به‌جای کرش، ظاهر
+          // پیش‌فرض (draft) نمایش داده می‌شود.
+          const visual = SESSION_VISUALS[status] ?? SESSION_VISUALS.draft!;
+          const hasScore = status === 'graded' && week.score != null;
+          const score = hasScore ? week.score : null;
           const label =
             status === 'draft' ? draftCardLabel(week) : visual.label;
 
@@ -164,6 +183,10 @@ export function InternshipWeeklyGrid({
                 {score !== null ? (
                   <span className="block w-full text-xs font-black leading-snug">
                     {toPersianDigits(score)}/۱۰۰
+                  </span>
+                ) : status === 'graded' ? (
+                  <span className="block w-full text-xs font-bold leading-snug text-kv-text-faint">
+                    نمره ثبت نشده
                   </span>
                 ) : null}
               </span>

@@ -13,12 +13,15 @@ export type NestRoleName =
   | 'mentor'
   | 'teacher'
   | 'school_admin'
-  | 'manager'
   | 'admin'
   | 'superadmin'
-  | 'regional_admin'
-  | 'provincial_admin'
-  | 'central_org'
+  | 'organization_center'
+  | 'university_province'
+  | 'university'
+  | 'school_district'
+  // 'school_district_all' («آموزش و پرورش کل»): فعلاً نیازی نداریم، تا وقتی نقش
+  // متناظرش سمت فرانت اضافه بشه استفاده نمی‌شه.
+  // | 'school_district_all'
   | 'super_admin';
 
 export type NestRoleDto = {
@@ -40,6 +43,12 @@ const FE_ROLE_TO_NEST_NAME: Partial<Record<UserRole, NestRoleName>> = {
   supervisor_professor: 'mentor',
   mentor_teacher: 'teacher',
   school_principal: 'school_admin',
+  // نقش‌های سازمانی — برای GET /admin/account-users/roles (ایجاد حساب سازمانی).
+  central_organization: 'organization_center',
+  provincial_university: 'university_province',
+  // `university` روی بک‌اند همان «دانشکده» (faculty_role در UI) است — تأیید شده.
+  faculty_role: 'university',
+  regional_edu_admin: 'school_district',
 };
 
 // Admin account role mapping for Nest's admin endpoints.
@@ -65,7 +74,7 @@ export function pickNestRoleDto(
   const match = roles.find((entry) => entry.name === name);
   if (!match?.id) {
     throw new Error(
-      'شناسه نقش از سرور یافت نشد. لیست نقش‌ها را از GET /auth/roles بررسی کنید.'
+      `شناسه نقش «${name}» در لیست نقش‌های دریافتی از سرور یافت نشد.`
     );
   }
   return { id: match.id, name: match.name };
@@ -78,12 +87,12 @@ const NEST_NAME_TO_FE_ROLE: Record<NestRoleName, UserRole> = {
   mentor: 'supervisor_professor',
   teacher: 'mentor_teacher',
   school_admin: 'school_principal',
-  manager: 'faculty_role',
   admin: 'assistant_admin',
   superadmin: 'super_admin',
-  regional_admin: 'regional_edu_admin',
-  provincial_admin: 'provincial_university',
-  central_org: 'central_organization',
+  organization_center: 'central_organization',
+  university_province: 'provincial_university',
+  university: 'faculty_role',
+  school_district: 'regional_edu_admin',
   super_admin: 'super_admin',
 };
 

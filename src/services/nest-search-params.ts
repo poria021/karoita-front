@@ -19,6 +19,7 @@ export function toNestTitleFilterSearchParams(query: {
   page?: number;
   limit?: number;
   filters?: string;
+  sort?: string;
 }): NonNullable<KyOptions['searchParams']> {
   const { filters, ...rest } = query;
   return toSearchParams({

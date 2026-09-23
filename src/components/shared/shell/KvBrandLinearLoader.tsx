@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvTypography } from '@/components/shared/KvTypography';
 
 interface KvBrandLinearLoaderProps {
@@ -34,10 +35,10 @@ export function KvBrandLinearLoader({
       aria-live="polite"
       aria-busy="true"
     >
-      <span aria-hidden="true" className="kv-brand-mark size-10 text-kv-brand sm:size-12" />
+      <KarvitaBrandMark className="size-12 p-2 sm:size-14" />
 
       <div className="flex w-40 flex-col items-center gap-kv-field sm:w-48">
-        <div className="kv-linear-indeterminate h-1 w-full overflow-hidden rounded-full bg-kv-brand-soft" />
+        <div className="kv-linear-indeterminate h-1 w-full overflow-hidden rounded-full bg-kv-brand/20" />
         {label ? (
           <KvTypography variant="overline" tone="muted" align="center">
             {label}

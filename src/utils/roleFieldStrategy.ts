@@ -89,7 +89,7 @@ export function isOptionalOrganizationField(
   field: OrganizationField
 ): boolean {
   return (
-    field === 'city' &&
+    (field === 'district' || field === 'school') &&
     (role === 'mentor_teacher' || role === 'school_principal')
   );
 }

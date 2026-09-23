@@ -23,6 +23,7 @@ type CourseOfferingsPanelProps = Pick<
   | 'offeredCatalogIds'
   | 'toggleCourseOffering'
   | 'weeks'
+  | 'isWeeksPublished'
   | 'isLoading'
   | 'hasUnsavedChanges'
   | 'isSaving'
@@ -59,10 +60,8 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
           offeredCatalogIds={props.offeredCatalogIds}
           isLoading={props.isLoading}
           pendingCourseId={props.pendingCourseId}
-          onSelectCourse={(course) => void props.selectCourse(course)}
-          onToggleOffering={(course) =>
-            void props.toggleCourseOffering(course)
-          }
+          onSelectCourse={props.selectCourse}
+          onToggleOffering={props.toggleCourseOffering}
         />
       </div>
 
@@ -81,6 +80,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
         <WeeklySyllabusTable
           courseTitle={selectedCourse?.title ?? null}
           weeks={weeks}
+          isWeeksPublished={hasAudienceTerm ? props.isWeeksPublished : false}
           isLoading={props.isLoading}
           hasUnsavedChanges={props.hasUnsavedChanges}
           isSaving={props.isSaving}

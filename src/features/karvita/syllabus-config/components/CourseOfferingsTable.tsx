@@ -1,5 +1,7 @@
 'use client';
 
+import { memo } from 'react';
+
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import {
@@ -30,6 +32,65 @@ interface CourseOfferingsTableProps {
   onSelectCourse: (course: CourseCatalogItem) => void;
   onToggleOffering: (course: CourseCatalogItem) => void;
 }
+
+interface CourseOfferingsTableRowProps {
+  course: CourseCatalogItem;
+  index: number;
+  offered: boolean;
+  selected: boolean;
+  pending: boolean;
+  isLoading: boolean;
+  hasPendingCourse: boolean;
+  onSelectCourse: (course: CourseCatalogItem) => void;
+  onToggleOffering: (course: CourseCatalogItem) => void;
+}
+
+const CourseOfferingsTableRow = memo(function CourseOfferingsTableRow({
+  course,
+  index,
+  offered,
+  selected,
+  pending,
+  isLoading,
+  hasPendingCourse,
+  onSelectCourse,
+  onToggleOffering,
+}: CourseOfferingsTableRowProps) {
+  return (
+    <KvTableRow
+      interactive
+      selected={selected}
+      onClick={() => {
+        if (!isLoading) onSelectCourse(course);
+      }}
+    >
+      <KvTableRowIndexCell index={index} />
+      <KvTableCell emphasis={selected}>{course.title}</KvTableCell>
+      <KvTableCell align="center" onClick={(e) => e.stopPropagation()}>
+        <KvButton
+          type="button"
+          color={offered ? 'success' : 'error'}
+          appearance="ghost"
+          size="xs"
+          className="min-w-16"
+          disabled={isLoading || hasPendingCourse}
+          aria-pressed={offered}
+          aria-busy={pending || undefined}
+          aria-label={`وضعیت ارائه ${course.title}: ${offered ? 'فعال' : 'غیرفعال'}`}
+          onClick={() => onToggleOffering(course)}
+        >
+          {pending ? (
+            <Spinner className="size-3.5 text-current" aria-hidden="true" />
+          ) : offered ? (
+            'فعال'
+          ) : (
+            'غیرفعال'
+          )}
+        </KvButton>
+      </KvTableCell>
+    </KvTableRow>
+  );
+});
 
 export function CourseOfferingsTable({
   courses,
@@ -67,52 +128,20 @@ export function CourseOfferingsTable({
               </KvTypography>
             </KvTableEmpty>
           ) : (
-            courses.map((course, index) => {
-              const offered = offeredCatalogIds.has(course.id);
-              const selected = selectedCourseId === course.id;
-              const pending = pendingCourseId === course.id;
-              return (
-                <KvTableRow
-                  key={course.id}
-                  interactive
-                  selected={selected}
-                  onClick={() => {
-                    if (!isLoading) onSelectCourse(course);
-                  }}
-                >
-                  <KvTableRowIndexCell index={index} />
-                  <KvTableCell emphasis={selected}>{course.title}</KvTableCell>
-                  <KvTableCell
-                    align="center"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <KvButton
-                      type="button"
-                      color={offered ? 'success' : 'error'}
-                      appearance="ghost"
-                      size="xs"
-                      className="min-w-16"
-                      disabled={isLoading || Boolean(pendingCourseId)}
-                      aria-pressed={offered}
-                      aria-busy={pending || undefined}
-                      aria-label={`وضعیت ارائه ${course.title}: ${offered ? 'فعال' : 'غیرفعال'}`}
-                      onClick={() => onToggleOffering(course)}
-                    >
-                      {pending ? (
-                        <Spinner
-                          className="size-3.5 text-current"
-                          aria-hidden="true"
-                        />
-                      ) : offered ? (
-                        'فعال'
-                      ) : (
-                        'غیرفعال'
-                      )}
-                    </KvButton>
-                  </KvTableCell>
-                </KvTableRow>
-              );
-            })
+            courses.map((course, index) => (
+              <CourseOfferingsTableRow
+                key={course.id}
+                course={course}
+                index={index}
+                offered={offeredCatalogIds.has(course.id)}
+                selected={selectedCourseId === course.id}
+                pending={pendingCourseId === course.id}
+                isLoading={isLoading}
+                hasPendingCourse={Boolean(pendingCourseId)}
+                onSelectCourse={onSelectCourse}
+                onToggleOffering={onToggleOffering}
+              />
+            ))
           )}
         </KvTableBody>
       </KvTable>

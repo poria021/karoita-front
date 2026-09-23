@@ -1,7 +1,8 @@
+import { KNOWN_TEST_OTP_CODE } from '@/services/auth/known-test-otp';
 import type { DocStatus, User, UserRole } from '@/types/auth';
 
 
-export const MOCK_OTP_CODE = '12345';
+export const MOCK_OTP_CODE = KNOWN_TEST_OTP_CODE;
 
 export const MOCK_USER_PASSWORD = '12345678';
 

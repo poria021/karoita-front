@@ -11,6 +11,7 @@ import {
   normalizeAcademicYear,
   parseNestAcademicSettings,
   parseNestLessonWeekList,
+  parseNestLessonWeeksGet,
   parseNestSemester,
   toAcademicSettings,
   toAcademicTerm,
@@ -235,7 +236,7 @@ describe('real-syllabus-mappers offerings', () => {
     expect(nestLessonTitle({ title: { fa: 'کارورزی ۳' } })).toBe('کارورزی ۳');
   });
 
-  it('maps weeks by priority and boolean status; PUT body drops local weight', () => {
+  it('maps Nest priority to local weight and PUT sends weight not week index', () => {
     const week = toSyllabusWeek(
       { priority: 2, status: false, title: 'جلسه دوم' },
       0,
@@ -244,8 +245,13 @@ describe('real-syllabus-mappers offerings', () => {
     expect(week).toMatchObject({
       suffix: 'جلسه دوم',
       title: 'جلسه دوم',
-      weight: 3,
+      weight: 2,
       status: 'archived',
+    });
+    expect(toSyllabusWeek({ status: true }, 8, 3)).toMatchObject({
+      suffix: 'هفته 9',
+      title: 'هفته 9',
+      weight: 3,
     });
     const body = toNestLessonWeeksBody([
       week,
@@ -258,17 +264,57 @@ describe('real-syllabus-mappers offerings', () => {
       } satisfies SyllabusWeek,
     ]);
     expect(body.weeks).toEqual([
-      { priority: 1, status: false },
-      { priority: 2, status: true },
+      { priority: 2, status: false },
+      { priority: 3, status: true },
     ]);
   });
 
-  it('plans POST for draft weeks and PATCH for Nest ids', () => {
+  it('POSTs all draft weeks when GET is still empty', () => {
     expect(isNestObjectId('6a9164b4c208454ddf32ec92')).toBe(true);
     expect(isNestObjectId('week_1')).toBe(false);
 
+    const lessonId = '6a8e2b51d2187e0f2fdb784c';
     const plan = planNestWeekWrites(
-      '6a8e2b51d2187e0f2fdb784c',
+      lessonId,
+      [
+        {
+          id: 'week_local_1',
+          suffix: 'هفته 1',
+          title: 'هفته 1',
+          weight: 3,
+          status: 'active',
+        },
+        {
+          id: 'week_local_2',
+          suffix: 'هفته 2',
+          title: 'هفته 2',
+          weight: 3,
+          status: 'archived',
+        },
+      ],
+      []
+    );
+
+    expect(plan.creates).toEqual([
+      {
+        lessonId,
+        priority: 3,
+        status: true,
+      },
+      {
+        lessonId,
+        priority: 3,
+        status: false,
+      },
+    ]);
+    expect(plan.updates).toEqual([]);
+    expect(plan.deletions).toEqual([]);
+  });
+
+  it('POSTs extra local weeks appended after GET already returned a published set', () => {
+    const lessonId = '6a8e2b51d2187e0f2fdb784c';
+    const plan = planNestWeekWrites(
+      lessonId,
       [
         {
           id: '6a9164b4c208454ddf32ec92',
@@ -285,37 +331,64 @@ describe('real-syllabus-mappers offerings', () => {
           status: 'archived',
         },
       ],
-      [
-        { id: '6a9164b4c208454ddf32ec92', priority: 1, status: true },
-        { id: '6a9164b4c208454ddf32ec93', priority: 2, status: true },
-      ]
+      [{ id: '6a9164b4c208454ddf32ec92', priority: 3, status: true }]
     );
 
     expect(plan.creates).toEqual([
-      {
-        lessonId: '6a8e2b51d2187e0f2fdb784c',
-        priority: 2,
-        status: false,
-      },
+      { lessonId, priority: 3, status: false },
     ]);
+    expect(plan.updates).toEqual([]);
+    expect(plan.deletions).toEqual([]);
+  });
+
+  it('reuses remote week by list index instead of POSTing a duplicate', () => {
+    const plan = planNestWeekWrites(
+      '6a8e2b51d2187e0f2fdb784c',
+      [
+        {
+          id: 'week_priority_1',
+          suffix: 'هفته 1',
+          title: 'هفته 1',
+          weight: 3,
+          status: 'archived',
+        },
+      ],
+      [{ id: '6a9164b4c208454ddf32ec92', priority: 1, status: true }]
+    );
+    expect(plan.creates).toEqual([]);
     expect(plan.updates).toEqual([
       {
         id: '6a9164b4c208454ddf32ec92',
         body: {
           lessonId: '6a8e2b51d2187e0f2fdb784c',
-          priority: 1,
-          status: true,
-        },
-      },
-      {
-        id: '6a9164b4c208454ddf32ec93',
-        body: {
-          lessonId: '6a8e2b51d2187e0f2fdb784c',
-          priority: 2,
+          priority: 3,
           status: false,
         },
       },
     ]);
+    expect(plan.deletions).toEqual([]);
+  });
+
+  it('does not delete leftover remote weeks after the set is published', () => {
+    const plan = planNestWeekWrites(
+      '6a8e2b51d2187e0f2fdb784c',
+      [
+        {
+          id: '6a9164b4c208454ddf32ec92',
+          suffix: 'هفته 1',
+          title: 'هفته 1',
+          weight: 3,
+          status: 'active',
+        },
+      ],
+      [
+        { id: '6a9164b4c208454ddf32ec92', priority: 3, status: true },
+        { id: '6a9164b4c208454ddf32ec93', priority: 2, status: true },
+      ]
+    );
+    expect(plan.creates).toEqual([]);
+    expect(plan.updates).toEqual([]);
+    expect(plan.deletions).toEqual([]);
   });
 
   it('keeps listed semester gates when semesters_all omits them', () => {
@@ -385,6 +458,18 @@ describe('real-syllabus-mappers offerings', () => {
       },
     ]);
     expect(rows.map((week) => week.priority)).toEqual([1, 2]);
+    expect(
+      parseNestLessonWeekList({
+        data: [
+          {
+            id: '6a96c14fc0dbacb9d06818a2',
+            status: true,
+            lessonId: '6a96bc5ec0dbacb9d068188b',
+            priority: 1,
+          },
+        ],
+      }).map((week) => week.id)
+    ).toEqual(['6a96c14fc0dbacb9d06818a2']);
     expect(toNestLessonWeeksBody([
       {
         id: 'week_local',
@@ -402,9 +487,41 @@ describe('real-syllabus-mappers offerings', () => {
       },
     ])).toEqual({
       weeks: [
-        { priority: 1, status: true },
-        { priority: 2, status: false },
+        { priority: 3, status: true },
+        { priority: 3, status: false },
       ],
     });
+    expect(
+      toNestLessonWeeksBody(
+        Array.from({ length: 9 }, (_, index) => ({
+          id: `week_local_${index + 1}`,
+          suffix: `هفته ${index + 1}`,
+          title: `هفته ${index + 1}`,
+          weight: 3,
+          status: 'active' as const,
+        }))
+      ).weeks.every((week) => week.priority === 3)
+    ).toBe(true);
+  });
+
+  it('marks GET weeks as published and reads server errors from the envelope', () => {
+    expect(parseNestLessonWeeksGet([])).toEqual({
+      weeks: [],
+      isPublished: false,
+      serverAlert: null,
+    });
+    expect(
+      parseNestLessonWeeksGet({
+        data: [
+          {
+            id: '6a96c14fc0dbacb9d06818a2',
+            status: true,
+            lessonId: '6a96bc5ec0dbacb9d068188b',
+            priority: 1,
+          },
+        ],
+        error: 'سرفصل این درس قبلاً ثبت شده است.',
+      }).serverAlert
+    ).toBe('سرفصل این درس قبلاً ثبت شده است.');
   });
 });

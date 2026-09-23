@@ -15,7 +15,7 @@ import type { OrganizationField } from '@/utils/roleFieldStrategy';
 async function resolveLabelToId(
   type: OrganizationField,
   label: string | undefined,
-  scope?: { province?: string; district?: string; role?: UserRole }
+  scope?: { province?: string; city?: string; district?: string; role?: UserRole }
 ): Promise<string> {
   const trimmed = label?.trim();
   if (!trimmed) return '';
@@ -27,6 +27,7 @@ async function resolveLabelToId(
       page: 1,
       limit: 25,
       province: scope?.province,
+      city: scope?.city,
       district: scope?.district,
       role: scope?.role,
     });
@@ -49,7 +50,7 @@ async function resolveLabelToId(
 async function resolveLabelsToIds(
   type: OrganizationField,
   labels: string[] | undefined,
-  scope?: { province?: string; district?: string; role?: UserRole }
+  scope?: { province?: string; city?: string; district?: string; role?: UserRole }
 ): Promise<string[]> {
   if (!labels?.length) return [];
   const ids = await Promise.all(
@@ -77,14 +78,19 @@ export async function buildNestUpdateUserBody(
   /** شناسهٔ فایل بعد از آپلود S3 — اگر باشد به `NestUpdateUserDto.photo` می‌رود. */
   photoFileId?: string
 ): Promise<NestUpdateUserDto> {
-  const provinceNames = 'province' in data ? (data.province ?? []) : [];
+  const provinceNames = 'province' in data
+    ? (typeof data.province === 'string' ? (data.province ? [data.province] : []) : (data.province ?? []))
+    : [];
   const districtNames = 'district' in data ? (data.district ?? []) : [];
-  const collegeNames  = 'college'  in data ? (data.college  ?? []) : [];
+  const collegeNames  = 'college' in data
+    ? (typeof data.college === 'string' ? (data.college ? [data.college] : []) : (data.college ?? []))
+    : [];
   const cityNames     = 'city'     in data ? (data.city     ?? []) : [];
   const schoolNames   = 'school'   in data ? (data.school   ?? []) : [];
   const majorName     = 'major'    in data ? data.major : undefined;
 
   const primaryProvince  = provinceNames[0];
+  const primaryCity      = cityNames[0];
   const primaryDistrict  = districtNames[0];
 
   const [
@@ -96,7 +102,7 @@ export async function buildNestUpdateUserBody(
     educationalDistrictsIds,
   ] = await Promise.all([
     resolveLabelsToIds('province', provinceNames),
-    resolveLabelsToIds('college',  collegeNames),
+    resolveLabelsToIds('college',  collegeNames, { province: primaryProvince }),
     majorName
       ? resolveLabelToId('major', majorName, { role: data.role }).then((id) =>
           id ? [id] : []
@@ -104,7 +110,7 @@ export async function buildNestUpdateUserBody(
       : Promise.resolve([] as string[]),
     resolveLabelsToIds('city',     cityNames,    { province: primaryProvince }),
     resolveLabelsToIds('school',   schoolNames,  { province: primaryProvince, district: primaryDistrict }),
-    resolveLabelsToIds('district', districtNames,{ province: primaryProvince }),
+    resolveLabelsToIds('district', districtNames,{ province: primaryProvince, city: primaryCity }),
   ]);
 
   const userUniqueId =

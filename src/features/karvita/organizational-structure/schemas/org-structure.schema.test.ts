@@ -44,14 +44,24 @@ describe('org-structure form schemas', () => {
     ).toBe(true);
   });
 
-  it('requires faculty province and does not use city', () => {
+  it('requires faculty province and city', () => {
     expect(
       facultyFormSchema.safeParse({ name: 'پردیس مرکزی', provinceId: '' })
         .success
     ).toBe(false);
     expect(
-      facultyFormSchema.safeParse({ name: 'پردیس مرکزی', provinceId: 'p1' })
-        .success
+      facultyFormSchema.safeParse({
+        name: 'پردیس مرکزی',
+        provinceId: 'p1',
+        cityId: '',
+      }).success
+    ).toBe(false);
+    expect(
+      facultyFormSchema.safeParse({
+        name: 'پردیس مرکزی',
+        provinceId: 'p1',
+        cityId: 'c1',
+      }).success
     ).toBe(true);
   });
 

@@ -1,4 +1,4 @@
-import { isMockApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { isMockApiMode } from '@/lib/api-mode';
 import { assertMockClientIsStaffAdmin } from '@/services/mock/mock-authz';
 import {
   mockCreateBanner,
@@ -16,6 +16,17 @@ import {
   readLandingProducts,
   readLandingSocials,
 } from '@/services/landing-cms/mock/mock-landing-cms.store';
+import {
+  realCreateBanner,
+  realCreateProduct,
+  realCreateSocial,
+  realDeleteBanner,
+  realDeleteProduct,
+  realDeleteSocial,
+  realListBanners,
+  realListProducts,
+  realListSocials,
+} from '@/services/landing-cms/real/real-landing-cms';
 import type {
   CreateLandingBannerInput,
   CreateLandingProductInput,
@@ -25,67 +36,61 @@ import type {
   LandingSocial,
 } from '@/types/landing-cms';
 
-function gatePublicRead(surface: string): void {
-  if (!isMockApiMode()) {
-    throwRealModeNotImplemented(surface);
-  }
-}
-
-function gateAdminWrite(surface: string): void {
-  if (!isMockApiMode()) {
-    throwRealModeNotImplemented(surface);
-  }
-  assertMockClientIsStaffAdmin();
-}
-
 /**
- * CMS لندینگ (بنر / شبکه اجتماعی / محصول شناور). شاخهٔ real fail-closed است.
+ * CMS لندینگ (بنر / شبکه اجتماعی / محصول شناور).
+ * بنر / شبکهٔ اجتماعی / محصول شناور: همه real وصل است.
  */
 export const LandingCmsService = {
   async listBanners(): Promise<LandingBanner[]> {
-    gatePublicRead('LandingCmsService.listBanners');
+    if (!isMockApiMode()) return realListBanners();
     return readLandingBanners();
   },
 
   async listSocials(): Promise<LandingSocial[]> {
-    gatePublicRead('LandingCmsService.listSocials');
+    if (!isMockApiMode()) return realListSocials();
     return readLandingSocials();
   },
 
   async listProducts(): Promise<LandingProduct[]> {
-    gatePublicRead('LandingCmsService.listProducts');
+    if (!isMockApiMode()) return realListProducts();
     return readLandingProducts();
   },
 
   async createBanner(input: CreateLandingBannerInput): Promise<LandingBanner> {
-    gateAdminWrite('LandingCmsService.createBanner');
+    if (!isMockApiMode()) return realCreateBanner(input);
+    assertMockClientIsStaffAdmin();
     return mockCreateBanner(input);
   },
 
   async deleteBanner(id: string): Promise<void> {
-    gateAdminWrite('LandingCmsService.deleteBanner');
+    if (!isMockApiMode()) return realDeleteBanner(id);
+    assertMockClientIsStaffAdmin();
     mockDeleteBanner(id);
   },
 
   async createSocial(input: CreateLandingSocialInput): Promise<LandingSocial> {
-    gateAdminWrite('LandingCmsService.createSocial');
+    if (!isMockApiMode()) return realCreateSocial(input);
+    assertMockClientIsStaffAdmin();
     return mockCreateSocial(input);
   },
 
   async deleteSocial(id: string): Promise<void> {
-    gateAdminWrite('LandingCmsService.deleteSocial');
+    if (!isMockApiMode()) return realDeleteSocial(id);
+    assertMockClientIsStaffAdmin();
     mockDeleteSocial(id);
   },
 
   async createProduct(
     input: CreateLandingProductInput
   ): Promise<LandingProduct> {
-    gateAdminWrite('LandingCmsService.createProduct');
+    if (!isMockApiMode()) return realCreateProduct(input);
+    assertMockClientIsStaffAdmin();
     return mockCreateProduct(input);
   },
 
   async deleteProduct(id: string): Promise<void> {
-    gateAdminWrite('LandingCmsService.deleteProduct');
+    if (!isMockApiMode()) return realDeleteProduct(id);
+    assertMockClientIsStaffAdmin();
     mockDeleteProduct(id);
   },
 

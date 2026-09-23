@@ -1,7 +1,9 @@
 'use client';
 
+import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
+
 /**
- * بوم خالی تا گیت نشست/نقش redirect را حل کند.
+ * لودر تا گیت نشست/نقش redirect را حل کند.
  * اسکلتون داده نیست؛ برای ناوبار داخل داشبورد هم نیست.
  */
 export function DashboardAccessPlaceholder({
@@ -11,14 +13,9 @@ export function DashboardAccessPlaceholder({
   fullViewport?: boolean;
 } = {}) {
   return (
-    <div
-      className={
-        fullViewport
-          ? 'min-h-dvh w-full bg-kv-canvas'
-          : 'min-h-40 w-full bg-kv-canvas'
-      }
-      aria-busy="true"
-      aria-live="polite"
+    <KvBrandLinearLoader
+      fullViewport={fullViewport}
+      className={fullViewport ? undefined : 'flex-1'}
     />
   );
 }

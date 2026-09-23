@@ -154,7 +154,8 @@ export function AdminSidebar() {
           <aside
             className={cn(
               'flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden',
-              kvScrollAreaClassName
+              kvScrollAreaClassName,
+              'kv-sidebar-scroll'
             )}
           >
             <SidebarNavList
@@ -166,7 +167,8 @@ export function AdminSidebar() {
               textSize="legible"
               className={cn(
                 'lg:overflow-y-auto',
-                kvScrollAreaClassName
+                kvScrollAreaClassName,
+                'kv-sidebar-scroll'
               )}
             />
 

@@ -1,9 +1,13 @@
 'use client';
 
+import { useMemo } from 'react';
+
+import { AppTabs, AppTabsList, AppTabsTrigger } from '@/components/shared/AppTabs';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvCardTitleIcon } from '@/components/shared/KvCardTitleIcon';
+import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvTextField } from '@/components/shared/fields/KvTextField';
@@ -20,7 +24,13 @@ import {
   SEMESTER_PREFIX_OPTIONS,
   TERM_TYPE_OPTIONS,
   displayAcademicYear,
+  formatTermOptionLabel,
 } from '../constants';
+
+const TERM_TYPE_ICONS: Record<AcademicTermType, typeof faIcons.graduationCap> = {
+  semester: faIcons.graduationCap,
+  modular: faIcons.screwdriverWrench,
+};
 
 interface TermFormCardProps {
   terms: AcademicTerm[];
@@ -63,6 +73,13 @@ export function TermFormCard({
   const prefixOptions =
     termType === 'modular' ? MODULAR_PREFIX_OPTIONS : SEMESTER_PREFIX_OPTIONS;
   const canSubmit = isEditing ? isDirty : isDirty || !termYear.trim();
+  const activeTermTypeOption =
+    TERM_TYPE_OPTIONS.find((option) => option.value === termType) ??
+    TERM_TYPE_OPTIONS[0]!;
+  const termsForActiveType = useMemo(
+    () => terms.filter((term) => term.type === termType),
+    [terms, termType]
+  );
 
   return (
     <KvCard>
@@ -74,70 +91,95 @@ export function TermFormCard({
           </KvTypography>
         </div>
 
+        <KvFieldFrame
+          id="syllabus-term-type"
+          fieldId="syllabus-term-type-tabs"
+          label="نوع ساختار دوره"
+          required
+          hint={activeTermTypeOption.description}
+        >
+          <AppTabs
+            id="syllabus-term-type-tabs"
+            value={termType}
+            onValueChange={(value) =>
+              onTermTypeChange(value as AcademicTermType)
+            }
+            gridCols={2}
+          >
+            <AppTabsList aria-label="نوع ساختار دوره">
+              {TERM_TYPE_OPTIONS.map((option) => (
+                <AppTabsTrigger
+                  key={option.value}
+                  value={option.value}
+                  disabled={isLoading}
+                >
+                  <FaIcon icon={TERM_TYPE_ICONS[option.value]} size="xs" />
+                  {option.shortLabel}
+                </AppTabsTrigger>
+              ))}
+            </AppTabsList>
+          </AppTabs>
+        </KvFieldFrame>
+
         <KvSelectField
-          label="عملیات در حال انجام"
+          label={`عملیات در حال انجام (${activeTermTypeOption.shortLabel})`}
           required
           size="md"
           disabled={isLoading}
           value={editTermId || '__new__'}
           displayValue={
             editTermId
-              ? `ویرایش دوره: ${toPersianDigits(
+              ? `ویرایش دوره: ${formatTermOptionLabel(
                   terms.find((term) => term.id === editTermId)?.title ?? ''
                 )}`
-              : '-- ایجاد و تعریف دوره تحصیلی جدید --'
+              : `-- ایجاد ${activeTermTypeOption.shortLabel} جدید --`
           }
           onValueChange={(value) =>
             onSelectEditTerm(value === '__new__' ? '' : value)
           }
         >
           <KvSelectItem value="__new__">
-            -- ایجاد و تعریف دوره تحصیلی جدید --
+            -- ایجاد {activeTermTypeOption.shortLabel} جدید --
           </KvSelectItem>
-          {terms.map((term) => (
+          {termsForActiveType.map((term) => (
             <KvSelectItem key={term.id} value={term.id}>
-              ویرایش دوره: {toPersianDigits(term.title)}
+              ویرایش دوره: {formatTermOptionLabel(term.title)}
             </KvSelectItem>
           ))}
         </KvSelectField>
 
-        <KvSelectField
-          label="نوع ساختار دوره"
-          required
-          size="md"
-          disabled={isLoading}
-          value={termType}
-          onValueChange={(value) =>
-            onTermTypeChange(value as AcademicTermType)
-          }
-        >
-          {TERM_TYPE_OPTIONS.map((option) => (
-            <KvSelectItem key={option.value} value={option.value}>
-              {option.label}
-            </KvSelectItem>
-          ))}
-        </KvSelectField>
+        <div className="space-y-kv-group rounded-kv-control border border-kv-border-muted bg-kv-surface-subtle/60 p-kv-group">
+          <div className="flex items-center gap-1.5">
+            <FaIcon
+              icon={TERM_TYPE_ICONS[termType]}
+              size="xs"
+              className="text-kv-brand-soft-fg"
+            />
+            <KvTypography variant="caption" weight="bold" tone="muted">
+              تنظیمات بازه برای «{activeTermTypeOption.shortLabel}»
+            </KvTypography>
+          </div>
 
-        <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
-          <KvSelectField
-            label={
-              termType === 'modular'
-                ? 'عنوان بازه پودمان'
-                : 'عنوان بازه نیم‌سال'
-            }
-            required
-            size="md"
-            disabled={isLoading}
-            value={termPrefix}
-            displayValue={toPersianDigits(termPrefix)}
-            onValueChange={onTermPrefixChange}
-          >
-            {prefixOptions.map((prefix) => (
-              <KvSelectItem key={prefix} value={prefix}>
-                {toPersianDigits(prefix)}
-              </KvSelectItem>
-            ))}
-          </KvSelectField>
+          <div className="grid grid-cols-1 gap-kv-group sm:grid-cols-2">
+            <KvSelectField
+              label={
+                termType === 'modular'
+                  ? 'عنوان بازه پودمان'
+                  : 'عنوان بازه نیم‌سال'
+              }
+              required
+              size="md"
+              disabled={isLoading}
+              value={termPrefix}
+              displayValue={toPersianDigits(termPrefix)}
+              onValueChange={onTermPrefixChange}
+            >
+              {prefixOptions.map((prefix) => (
+                <KvSelectItem key={prefix} value={prefix}>
+                  {toPersianDigits(prefix)}
+                </KvSelectItem>
+              ))}
+            </KvSelectField>
 
             <KvTextField
               id="syllabus-term-academic-year"
@@ -151,9 +193,15 @@ export function TermFormCard({
               placeholder="۱۴۰۵-۱۴۰۶"
               error={academicYearError ?? undefined}
               onChange={(event) =>
-                onTermYearChange(persianToEnglishDigits(event.target.value))
+                onTermYearChange(
+                  persianToEnglishDigits(event.target.value).replace(
+                    /[^\d-]/g,
+                    ''
+                  )
+                )
               }
             />
+          </div>
         </div>
 
         {formError ? (

@@ -8,8 +8,6 @@ import {
 import {
   listLabelsForField as queryLabelsForField,
   queryOrgListPage,
-  type OrgStructureListItem,
-  type OrgStructureListPage,
 } from '@/services/org-structure/mock/mock-org-query';
 import {
   mockDeleteEntity,
@@ -23,12 +21,6 @@ import {
   mockUpsertMajor,
   mockUpsertProvince,
   mockUpsertSchool,
-  type UpsertCityInput,
-  type UpsertDistrictInput,
-  type UpsertFacultyInput,
-  type UpsertMajorInput,
-  type UpsertProvinceInput,
-  type UpsertSchoolInput,
 } from '@/services/org-structure/mock/mock-org-mutations';
 import {
   deleteRealEntity,
@@ -40,6 +32,11 @@ import {
   upsertRealSchool,
 } from '@/services/org-structure/real/real-org-mutations';
 import {
+  rememberOrgRelationLabels,
+  type OrgRelationLabelOverlay,
+} from '@/services/org-structure/real/org-relation-label-overlay';
+import {
+  flushBareListCache,
   getRealEntity,
   getRealSnapshot,
   listRealCities,
@@ -59,8 +56,16 @@ import type {
   OrgRole,
   OrgSchool,
   OrgStructureEntityKind,
+  OrgStructureListItem,
+  OrgStructureListPage,
   OrgStructureSnapshot,
   OrgStructureSubTab,
+  UpsertCityInput,
+  UpsertDistrictInput,
+  UpsertFacultyInput,
+  UpsertMajorInput,
+  UpsertProvinceInput,
+  UpsertSchoolInput,
 } from '@/types/org-structure';
 import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
@@ -272,5 +277,23 @@ export const OrgStructureService = {
     }
     requireMockOrgManage();
     mockDeleteEntity(kind, id);
+  },
+
+  /** فقط real: کش لیست خام بعد از mutation — در mock no-op. */
+  flushListCache(tab?: OrgStructureSubTab): void {
+    if (IS_MOCK_MODE) return;
+    flushBareListCache(tab);
+  },
+
+  /**
+   * فقط real: برچسب روابط را برای ردیف تازه/ویرایش‌شده نگه می‌دارد
+   * (Nest تو در تو province/city برنمی‌گرداند).
+   */
+  rememberRelationLabels(
+    keys: Array<string | undefined>,
+    labels: OrgRelationLabelOverlay
+  ): void {
+    if (IS_MOCK_MODE) return;
+    rememberOrgRelationLabels(keys, labels);
   },
 };

@@ -16,7 +16,11 @@ import type {
 import { persianToEnglishDigits, toPersianDigits } from '@/utils/persianDigits';
 
 import { defaultPrefixForType, parseTermTitleParts } from '../constants';
-import { syllabusSnapshotQueryKey } from '../lib/syllabusPageCache';
+import {
+  invalidateSyllabusTermPanes,
+  patchCachedSyllabusTerms,
+  publishSyllabusSnapshot,
+} from '../lib/syllabusPageCache';
 import { errorMessage } from '../lib/syllabusPageUtils';
 import {
   professorCapacitySchema,
@@ -37,7 +41,11 @@ type UseSyllabusTermSettingsArgs = {
   terms: AcademicTerm[];
   setTerms: Dispatch<SetStateAction<AcademicTerm[]>>;
   setSelectedTermId: Dispatch<SetStateAction<string>>;
-  loadTermContext: (termId: string) => Promise<void>;
+  loadTermContext: (
+    termId: string,
+    preferredCourseId?: string,
+    options?: { force?: boolean }
+  ) => Promise<unknown>;
   professorCapacity: string;
   setProfessorCapacity: Dispatch<SetStateAction<string>>;
   passingThreshold: string;
@@ -66,6 +74,9 @@ export function useSyllabusTermSettings({
   const [termFormBaseline, setTermFormBaseline] = useState(() =>
     termFormKey('', 'semester', defaultPrefixForType('semester'), '')
   );
+  const [pendingDeleteTermId, setPendingDeleteTermId] = useState<string | null>(
+    null
+  );
 
   const editingTerm = terms.find((t) => t.id === editTermId) ?? null;
   const isTermFormDirty =
@@ -77,19 +88,19 @@ export function useSyllabusTermSettings({
     setAcademicYearError(null);
   }
 
-  function resetTermForm() {
-    const prefix = defaultPrefixForType('semester');
+  function resetTermForm(type: AcademicTermType = 'semester') {
+    const prefix = defaultPrefixForType(type);
     setEditTermId('');
-    setTermType('semester');
+    setTermType(type);
     setTermPrefix(prefix);
     setTermYearState('');
     setTermFormError(null);
     setAcademicYearError(null);
-    setTermFormBaseline(termFormKey('', 'semester', prefix, ''));
+    setTermFormBaseline(termFormKey('', type, prefix, ''));
   }
 
   function applySnapshotTerms(snapshot: SyllabusConfigSnapshot) {
-    queryClient.setQueryData(syllabusSnapshotQueryKey, snapshot);
+    publishSyllabusSnapshot(queryClient, snapshot);
     setTerms(snapshot.terms);
   }
 
@@ -108,7 +119,8 @@ export function useSyllabusTermSettings({
 
   function selectEditTerm(termId: string) {
     if (!termId) {
-      resetTermForm();
+      // نوع تبِ فعلی حفظ می‌شود؛ برگشت به «ایجاد جدید» به معنای تغییر نوع دوره نیست.
+      resetTermForm(termType);
       return;
     }
     const match = terms.find((t) => t.id === termId);
@@ -124,6 +136,11 @@ export function useSyllabusTermSettings({
   }
 
   function onTermTypeChange(type: AcademicTermType) {
+    // انتخاب دوره در حال ویرایش با نوع دیگر معنا ندارد؛ فرم را برای همان نوع خالی کن.
+    if (editingTerm && editingTerm.type !== type) {
+      resetTermForm(type);
+      return;
+    }
     setTermType(type);
     setTermPrefix(defaultPrefixForType(type));
   }
@@ -163,19 +180,19 @@ export function useSyllabusTermSettings({
         message: `دوره تحصیلی «${label}» به‌روز شد.`,
         apply: () => {
           snapshot = terms;
-          setTerms((prev) =>
-            prev.map((term) =>
-              term.id === targetId
-                ? {
-                    ...term,
-                    title,
-                    type: parsed.data.type,
-                    titlePrefix: parsed.data.titlePrefix,
-                    academicYear: parsed.data.academicYear,
-                  }
-                : term
-            )
+          const next = terms.map((term) =>
+            term.id === targetId
+              ? {
+                  ...term,
+                  title,
+                  type: parsed.data.type,
+                  titlePrefix: parsed.data.titlePrefix,
+                  academicYear: parsed.data.academicYear,
+                }
+              : term
           );
+          setTerms(next);
+          patchCachedSyllabusTerms(queryClient, next);
           setTermFormBaseline(
             termFormKey(
               targetId,
@@ -187,13 +204,15 @@ export function useSyllabusTermSettings({
         },
         revert: () => {
           setTerms(snapshot);
+          patchCachedSyllabusTerms(queryClient, snapshot);
         },
         commit: () =>
           SyllabusConfigService.updateTerm(targetId, parsed.data),
         onCommitted: async (result) => {
+          invalidateSyllabusTermPanes();
           applySnapshotTerms(result);
           setSelectedTermId(targetId);
-          await loadTermContext(targetId);
+          await loadTermContext(targetId, undefined, { force: true });
         },
         onError: (err) => {
           toast.error(errorMessage(err, 'به‌روزرسانی دوره تحصیلی ناموفق بود.'));
@@ -220,16 +239,21 @@ export function useSyllabusTermSettings({
       message: `دوره تحصیلی «${label}» ایجاد شد.`,
       apply: () => {
         snapshot = terms;
-        setTerms((prev) => [...prev, optimistic]);
-        resetTermForm();
+        const next = [...terms, optimistic];
+        setTerms(next);
+        patchCachedSyllabusTerms(queryClient, next);
+        // نوع انتخاب‌شده حفظ می‌شود تا کاربر بتواند پشت‌سرهم چند بازه از همان نوع بسازد.
+        resetTermForm(parsed.data.type);
         setSelectedTermId(tempId);
       },
       revert: () => {
         setTerms(snapshot);
+        patchCachedSyllabusTerms(queryClient, snapshot);
         setSelectedTermId(snapshot[0]?.id ?? '');
       },
       commit: () => SyllabusConfigService.createTerm(parsed.data),
       onCommitted: async (result) => {
+        invalidateSyllabusTermPanes();
         applySnapshotTerms(result);
         const previousIds = new Set(snapshot.map((term) => term.id));
         const created =
@@ -246,7 +270,7 @@ export function useSyllabusTermSettings({
           );
         const nextId = created?.id ?? result.terms[0]?.id ?? '';
         setSelectedTermId(nextId);
-        if (nextId) await loadTermContext(nextId);
+        if (nextId) await loadTermContext(nextId, undefined, { force: true });
       },
       onError: (err) => {
         toast.error(errorMessage(err, 'ایجاد دوره تحصیلی ناموفق بود.'));
@@ -255,10 +279,11 @@ export function useSyllabusTermSettings({
   }
 
   function requestDeleteTerm() {
-    if (!editingTerm) return;
+    if (!editingTerm || pendingDeleteTermId) return;
 
     const target = editingTerm;
     let snapshot = terms;
+    setPendingDeleteTermId(target.id);
 
     scheduleUndoableMutation({
       tone: 'error',
@@ -269,14 +294,17 @@ export function useSyllabusTermSettings({
       deferCommit: !IS_MOCK_MODE,
       apply: () => {
         snapshot = terms;
-        setTerms((prev) => prev.filter((term) => term.id !== target.id));
-        resetTermForm();
+        const next = terms.filter((term) => term.id !== target.id);
+        setTerms(next);
+        patchCachedSyllabusTerms(queryClient, next);
+        resetTermForm(target.type);
         const nextId =
           snapshot.find((term) => term.id !== target.id)?.id ?? '';
         setSelectedTermId(nextId);
       },
       revert: () => {
         setTerms(snapshot);
+        patchCachedSyllabusTerms(queryClient, snapshot);
         setEditTermId(target.id);
         setTermType(target.type);
         const parts = parseTermTitleParts(target.title);
@@ -288,12 +316,21 @@ export function useSyllabusTermSettings({
         );
         setSelectedTermId(target.id);
       },
-      commit: () => SyllabusConfigService.deleteTerm(target.id),
+      // pendingDeleteTermId هم روی موفقیت هم شکست باید آزاد شود، حتی وقتی
+      // post-commit refresh شکست بخورد و نه onCommitted نه onError صدا زده شوند.
+      commit: async () => {
+        try {
+          return await SyllabusConfigService.deleteTerm(target.id);
+        } finally {
+          setPendingDeleteTermId(null);
+        }
+      },
       onCommitted: async (result) => {
+        invalidateSyllabusTermPanes();
         applySnapshotTerms(result);
         const nextId = result.terms[0]?.id ?? '';
         setSelectedTermId(nextId);
-        if (nextId) await loadTermContext(nextId);
+        if (nextId) await loadTermContext(nextId, undefined, { force: true });
       },
       onError: (err) => {
         toast.error(errorMessage(err, 'حذف دوره تحصیلی ناموفق بود.'));

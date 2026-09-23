@@ -1,10 +1,11 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { notifyIfPostCommitRefreshFailure } from '@/lib/post-commit-refresh';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { unknownErrorMessage } from '@/lib/unknown-error-message';
@@ -34,14 +35,14 @@ type CapacitiesChrome = {
 };
 
 function capacitiesTermsKey(kind: OrganizationalCapacityKind) {
-  return ['org-capacities', 'terms', kind] as const;
+  return DASHBOARD_QUERY.orgCapacitiesTerms(kind);
 }
 
 function capacitiesSnapshotKey(
   kind: OrganizationalCapacityKind,
   termId: string
 ) {
-  return ['org-capacities', 'snapshot', kind, termId] as const;
+  return DASHBOARD_QUERY.orgCapacitiesSnapshot(kind, termId);
 }
 
 function courseDraftSignature(
@@ -88,11 +89,13 @@ export function useOrganizationalCapacitiesPage() {
     queryKey: capacitiesTermsKey('internship'),
     queryFn: () => OrganizationalCapacitiesService.listTerms('internship'),
     staleTime: QUERY_STALE_MS.module,
+    enabled: kind === 'internship',
   });
   const apprenticeshipTermsQuery = useQuery({
     queryKey: capacitiesTermsKey('apprenticeship'),
     queryFn: () => OrganizationalCapacitiesService.listTerms('apprenticeship'),
     staleTime: QUERY_STALE_MS.module,
+    enabled: kind === 'apprenticeship',
   });
   const refetchInternshipTerms = internshipTermsQuery.refetch;
   const refetchApprenticeshipTerms = apprenticeshipTermsQuery.refetch;
@@ -125,6 +128,7 @@ export function useOrganizationalCapacitiesPage() {
       }),
     enabled: !termsPending,
     staleTime: QUERY_STALE_MS.module,
+    placeholderData: keepPreviousData,
   });
 
   const snapshot = snapshotData ?? null;
@@ -267,6 +271,22 @@ export function useOrganizationalCapacitiesPage() {
     [patchLocalCourse, snapshot]
   );
 
+  const requestSubmit = useCallback(() => {
+    if (!snapshot) return;
+    const incomplete = snapshot.courses.find((course) => {
+      const hasCapacity = Boolean(course.total && course.total > 0);
+      const hasDay = course.selectedDays.length > 0;
+      return hasCapacity !== hasDay;
+    });
+    if (incomplete) {
+      toast.error(
+        `برای درس «${incomplete.title}» هم ظرفیت پذیرش و هم روز حضور را کامل وارد کنید.`
+      );
+      return;
+    }
+    setConfirmOpen(true);
+  }, [snapshot]);
+
   const submit = useCallback(async () => {
     if (!snapshot) return;
     setActionBusy(true);
@@ -320,6 +340,7 @@ export function useOrganizationalCapacitiesPage() {
     setExpandedCourseId,
     updateCourseTotal,
     toggleDay,
+    requestSubmit,
     submit,
   };
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -10,8 +9,6 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvForm } from '@/components/shared/fields/KvForm';
 import { AuthService } from '@/services/auth.service';
-import { forgotHref } from '@/features/shared/auth/lib/authHrefs';
-import { writeAuthFlowMobilePrefill } from '@/features/shared/auth/utils/authFlowMobilePrefill';
 
 import {
   securityChangePasswordSchema,
@@ -19,6 +16,7 @@ import {
   type SecurityChangePasswordSchema,
   type SecurityPasswordSchema,
 } from '../../schemas/security.schema';
+import { useProfileForgotPassword } from '../../hooks/useProfileForgotPassword';
 import { SecurityChangePasswordFlow } from './SecurityChangePasswordFlow';
 import { SecurityPasswordPairFields } from './SecurityPasswordPairFields';
 
@@ -35,7 +33,6 @@ export function SecurityForm({
   disabled = false,
   onPasswordRegistered,
 }: SecurityFormProps) {
-  const pathname = usePathname();
   const [passwordJustRegistered, setPasswordJustRegistered] = useState(false);
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error' | 'info';
@@ -44,6 +41,16 @@ export function SecurityForm({
   const [isBusy, setIsBusy] = useState(false);
 
   const hasExistingPassword = hasPassword || passwordJustRegistered;
+
+  const forgotPassword = useProfileForgotPassword({
+    mobile,
+    onComplete: () => {
+      setFeedback({
+        type: 'success',
+        message: 'رمز عبور با موفقیت به‌روزرسانی شد.',
+      });
+    },
+  });
 
   const passwordForm = useForm<SecurityPasswordSchema>({
     resolver: zodResolver(securityPasswordSchema),
@@ -86,10 +93,7 @@ export function SecurityForm({
     setFeedback(null);
     setIsBusy(true);
     try {
-      await AuthService.updateMe({
-        oldPassword: data.oldPassword,
-        password: data.newPassword,
-      });
+      await AuthService.setPassword(data.oldPassword, data.newPassword);
       changeForm.reset({
         oldPassword: '',
         newPassword: '',
@@ -151,8 +155,7 @@ export function SecurityForm({
             changeForm={changeForm}
             isBusy={isBusy}
             isDisabled={isDisabled}
-            forgotHref={forgotHref({ returnUrl: pathname })}
-            onPrepareForgot={() => writeAuthFlowMobilePrefill(mobile)}
+            forgotPassword={forgotPassword}
             onSubmit={saveChangedPassword}
           />
         )}

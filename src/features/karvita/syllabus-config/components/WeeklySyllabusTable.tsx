@@ -28,6 +28,7 @@ interface WeeklySyllabusTableProps {
   isLoading: boolean;
   hasUnsavedChanges: boolean;
   isSaving: boolean;
+  isWeeksPublished: boolean;
   className?: string;
   onWeightChange: (weekId: string, weight: number) => void;
   onArchiveWeek: (week: SyllabusWeek) => void;
@@ -43,6 +44,7 @@ export function WeeklySyllabusTable({
   isLoading,
   hasUnsavedChanges,
   isSaving,
+  isWeeksPublished,
   className,
   onWeightChange,
   onArchiveWeek,
@@ -53,8 +55,13 @@ export function WeeklySyllabusTable({
 }: WeeklySyllabusTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, weeks.length);
   const canEdit = Boolean(courseTitle) && !isLoading;
+  const canAddWeek = canEdit;
+  const canChangeWeekSet = canEdit && !isWeeksPublished;
   const lastWeek = weeks.length > 0 ? weeks[weeks.length - 1] : null;
   const hasLastWeek = Boolean(lastWeek);
+  const structureLockedHint = isWeeksPublished
+    ? 'پس از ثبت نهایی، هفته‌های موجود قابل حذف نیستند؛ فقط بایگانی/بازیابی و افزودن هفته جدید ممکن است.'
+    : undefined;
 
   return (
     <KvCard
@@ -76,7 +83,7 @@ export function WeeklySyllabusTable({
             color="success"
             size="sm"
             className="w-full sm:w-auto"
-            disabled={!canEdit}
+            disabled={!canAddWeek}
             onClick={onAddWeek}
             icon={<FaIcon icon={faIcons.plus} size="xs" />}
           >
@@ -89,10 +96,12 @@ export function WeeklySyllabusTable({
             appearance="ghost"
             size="sm"
             className="w-full text-kv-danger sm:w-auto"
-            disabled={!canEdit || !hasLastWeek}
+            disabled={!canChangeWeekSet || !hasLastWeek}
             aria-label="حذف آخرین هفته"
+            title={structureLockedHint}
             onClick={() => {
-              if (lastWeek) onDeleteWeek(lastWeek);
+              if (!canChangeWeekSet || !lastWeek) return;
+              onDeleteWeek(lastWeek);
             }}
             icon={
               <FaIcon
@@ -164,7 +173,12 @@ export function WeeklySyllabusTable({
           size="md"
           className="w-full sm:w-auto"
           loading={isSaving}
-          disabled={!hasUnsavedChanges || isSaving || isLoading}
+          disabled={
+            !hasUnsavedChanges ||
+            isSaving ||
+            isLoading ||
+            weeks.length === 0
+          }
           onClick={onSave}
         >
           ثبت نهایی و انتشار برنامه به کاربران
