@@ -76,7 +76,7 @@ Mapper را در `real/` نگه دارید. نام فیلد Nest (`fname`, `phon
 
 - واحد: Vitest کنار فایل (`*.test.ts`). mapper و schema اولویت دارند.
 - E2E: Playwright فقط حالت mock (`pnpm test:e2e`). اول هر `next dev` دیگر را ببندید؛ Next ۱۶ یک اینستنس بیشتر راه نمی‌دهد.
-- ورود ادمین در E2E از `/auth/admin-gate` است.
+- ورود ادمین در E2E از `/admin` است.
 
 ## UI
 

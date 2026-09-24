@@ -8,7 +8,7 @@ import { RouteService } from '../src/services/route.service';
 
 /**
  * دود: مارکتینگ → شل ورود عمومی → OTP گیت ادمین → ساختار سازمانی.
- * سوپرادمین روی `/auth/login` عمومی عمداً بلاک است؛ از `admin-gate` استفاده کن.
+ * سوپرادمین روی `/auth/login` عمومی عمداً بلاک است؛ از `/admin` استفاده کن.
  * موبایل/OTP از mock مشترک است؛ راز ساختگی نگذار.
  */
 async function fillMobile(page: Page, selector: string, mobile: string) {

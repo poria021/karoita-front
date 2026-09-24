@@ -46,7 +46,7 @@ Access token در حافظهٔ ماژول است (نه `localStorage`) چون XS
 
 - داده در `localStorage` / حافظهٔ ماژول شبیه‌ساز است.
 - OTP ثابت از `src/services/auth/mock/auth-mock-users.ts` (`MOCK_OTP_CODE`).
-- ورود ادمین از `/auth/admin-gate` است؛ `/auth/login` نقش ادمین را عمداً رد می‌کند.
+- ورود ادمین از `/admin` است؛ `/auth/login` نقش ادمین را عمداً رد می‌کند.
 - مجوزهای mock نمایشی‌اند (`mock-authz`). اختیار واقعی همیشه سمت Nest است.
 
 ## وضعیت اتصال Nest (واقعی در برابر شبیه‌ساز)
