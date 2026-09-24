@@ -48,7 +48,7 @@ pnpm dev
 | `pnpm test` | Vitest |
 | `pnpm test:e2e` | دود Playwright فقط در حالت mock |
 
-E2E سرور را روی `127.0.0.1:3000` بالا می‌آورد. قبلش هر `next dev` دیگر این مخزن را ببندید — Next ۱۶ فقط یک اینستنس می‌پذیرد. ورود ادمین در تست از `/auth/admin-gate` است، نه `/auth/login`. جزئیات در [`docs/contributing.md`](docs/contributing.md).
+E2E سرور را روی `127.0.0.1:3000` بالا می‌آورد. قبلش هر `next dev` دیگر این مخزن را ببندید — Next ۱۶ فقط یک اینستنس می‌پذیرد. ورود ادمین در تست از `/admin` است، نه `/auth/login`. جزئیات در [`docs/contributing.md`](docs/contributing.md).
 
 ## متغیرهای محیطی
 

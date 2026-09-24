@@ -8,6 +8,7 @@ import {
  */
 
 const AUTH_BASE = '/auth';
+const ADMIN_GATE_PATH = '/admin';
 const KARVITA_BASE = '/karvita';
 const KARVITA_ADMIN_BASE = `${KARVITA_BASE}/admin`;
 const KARVITA_ADMIN_DASHBOARD = `${KARVITA_ADMIN_BASE}/dashboard`;
@@ -23,7 +24,11 @@ function normalizeAppPath(pathname: string): string {
 
 export function isAuthPath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
-  return path === AUTH_BASE || path.startsWith(`${AUTH_BASE}/`);
+  return (
+    path === AUTH_BASE ||
+    path.startsWith(`${AUTH_BASE}/`) ||
+    path === ADMIN_GATE_PATH
+  );
 }
 
 /** سطح CMS عمومی زیر `/p` — نه ادیتور ادمین. */
@@ -70,7 +75,7 @@ export const RouteService = {
     login: (): string => `${AUTH_BASE}/login`,
     register: (): string => `${AUTH_BASE}/register`,
     forgot: (): string => `${AUTH_BASE}/forgot`,
-    adminGate: (): string => `${AUTH_BASE}/admin-gate`,
+    adminGate: (): string => ADMIN_GATE_PATH,
     isAuthPath,
   },
 

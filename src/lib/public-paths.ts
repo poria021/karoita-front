@@ -13,6 +13,7 @@ const MARKETING_PUBLIC_EXACT = [
   RouteService.marketing.home(),
   RouteService.marketing.loginSelect(),
   RouteService.marketing.offline(),
+  RouteService.auth.adminGate(),
 ] as const;
 
 export const publicPathsConfig = {
