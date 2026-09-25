@@ -11,7 +11,7 @@ export function HeaderBrandWordmark({
 
   return (
     <div className="flex min-w-0 flex-col items-start justify-center gap-1.5">
-      <KvTypography variant="title" weight="black" as="h1">
+      <KvTypography variant="title" tone="brand" weight="black" as="h1">
         کارویتا
       </KvTypography>
       <KvTypography

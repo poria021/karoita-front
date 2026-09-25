@@ -11,7 +11,7 @@ export const SITE_TITLE =
 export const SITE_DESCRIPTION =
   'سامانه کارویتا؛ زیرساخت هوشمند آموزش نظری و مهارتی برای دانشگاه‌ها، آموزش‌و‌پرورش و مدیریت یکپارچه کارورزی در سراسر کشور.';
 
-export const SITE_OG_IMAGE = '/brand/main-logo.png';
+export const SITE_OG_IMAGE = '/brand/og-image.png';
 
 export const SITE_FAVICON = '/brand/favicon.png';
 

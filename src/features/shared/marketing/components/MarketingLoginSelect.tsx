@@ -101,11 +101,9 @@ function PwaHeader() {
   return (
     <header className="flex w-full items-center justify-between border-b border-kv-border-muted px-kv-page py-kv-section sm:px-kv-screen">
       {/* سمت راست — برند */}
-      <div className="flex items-center gap-kv-inline">
-        <div className="flex size-8 items-center justify-center rounded-kv-control bg-kv-brand text-white shadow-kv-raised">
-          <KarvitaBrandMark className="h-5 w-auto p-0.5" />
-        </div>
-        <span className="text-base font-black leading-none tracking-tight text-kv-text">
+      <div className="flex items-center gap-2 text-xl">
+        <KarvitaBrandMark className="!h-[1.15em] !w-auto" />
+        <span className="font-black leading-[1.15] tracking-tight text-kv-brand">
           کارویتا
         </span>
       </div>
@@ -136,7 +134,7 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
     >
       <div className="relative z-10 flex min-h-dvh w-full max-w-7xl flex-col justify-between px-kv-page sm:px-kv-screen">
         {isPwa && <PwaHeader />}
-        <div className="mx-auto my-auto w-full space-y-kv-section text-center">
+        <div className="mx-auto my-auto w-full space-y-kv-section py-8 text-center sm:py-12">
           <div className="space-y-kv-block pb-kv-group">
           {isPwa && (
             <span className="inline-flex items-center rounded-lg border border-kv-brand-border bg-kv-brand-soft px-kv-group py-kv-inline text-sm font-bold text-kv-brand-soft-fg">
@@ -144,11 +142,14 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
             </span>
           )}
           {!isPwa && (
-            <div className="flex items-center justify-center gap-kv-inline">
-              <div className="flex size-12 items-center justify-center rounded-kv-control bg-kv-brand text-white shadow-kv-raised">
-                <KarvitaBrandMark className="h-7 w-auto p-0.5" />
-              </div>
-              <KvTypography variant="display" weight="black" as="span">
+            <div className="flex items-center justify-center gap-2 text-3xl sm:text-4xl">
+              <KarvitaBrandMark className="!h-[1.15em] !w-auto" />
+              <KvTypography
+                variant="display"
+                weight="black"
+                as="span"
+                className="text-kv-brand"
+              >
                 کارویتا
               </KvTypography>
             </div>
