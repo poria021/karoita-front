@@ -42,9 +42,7 @@ export function MarketingHeader({
   }, [overlayHeader]);
 
   const headerShouldBeTransparent = overlayHeader && isHomePage && !isScrolled;
-  const headerTextClass = headerShouldBeTransparent
-    ? 'text-white'
-    : 'text-kv-text';
+  const headerTextClass = 'text-kv-brand';
 
   return (
     <header
@@ -56,7 +54,7 @@ export function MarketingHeader({
     >
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-kv-group border-none px-kv-inset sm:px-kv-page lg:h-16">
         <MarketingPanelHomeLink
-          className="group flex items-center gap-kv-inline focus:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring"
+          className="group flex items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring"
           aria-label="صفحه اصلی کارویتا"
         >
           <KarvitaBrandMark className="size-8" />

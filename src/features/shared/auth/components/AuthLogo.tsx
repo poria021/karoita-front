@@ -8,9 +8,14 @@ interface AuthLogoProps {
 export function AuthLogo({ subtitle }: AuthLogoProps) {
   return (
     <div className="mb-kv-section mt-kv-inset flex flex-col items-center text-center ">
-      <div className="flex items-center gap-kv-inline">
-        <KarvitaBrandMark />
-        <KvTypography variant="display" tone="brand" weight="black" as="span">
+      <div className="flex items-center gap-2 text-3xl sm:text-4xl">
+        <KarvitaBrandMark className="!h-[1.15em] !w-auto" />
+        <KvTypography
+          variant="display"
+          weight="black"
+          as="span"
+          className="text-kv-brand"
+        >
           کارویتا
         </KvTypography>
       </div>
