@@ -35,11 +35,11 @@ const ALLOWED_EXTENSIONS =new Set(
   COURSE_MATERIAL_ACCEPT.split(',').map((ext) => ext.slice(1))
 );
 
-/** استاد ناظر برای کارورزی؛ مربی/معلم راهنما برای کارآموزی. */
+/** فقط استاد راهنما فایل درس بارگذاری می‌کند؛ معلم/مدیر مدرسه نه. */
 export function canPublishCourseMaterials(
   role: UserRole | string | null | undefined
 ): boolean {
-  return role === 'supervisor_professor' || role === 'mentor_teacher';
+  return role === 'supervisor_professor';
 }
 
 export function fileExtension(name: string): string {
@@ -80,7 +80,7 @@ export function validateCourseMaterialInput(
   authorRole: UserRole | string | null | undefined
 ): string | null {
   if (!canPublishCourseMaterials(authorRole)) {
-    return 'بارگذاری فایل فقط برای استاد یا مربی درس مجاز است.';
+    return 'بارگذاری فایل فقط برای استاد راهنما مجاز است.';
   }
   if (!input.courseKey) return 'درس را انتخاب کنید.';
   const title = input.title.trim();

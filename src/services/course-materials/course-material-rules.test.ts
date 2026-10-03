@@ -17,9 +17,10 @@ const base = {
 };
 
 describe('course-material-rules', () => {
-  it('فقط استاد و مربی منتشر می‌کنند', () => {
+  it('فقط استاد راهنما منتشر می‌کند', () => {
     expect(canPublishCourseMaterials('supervisor_professor')).toBe(true);
-    expect(canPublishCourseMaterials('mentor_teacher')).toBe(true);
+    expect(canPublishCourseMaterials('mentor_teacher')).toBe(false);
+    expect(canPublishCourseMaterials('school_principal')).toBe(false);
     expect(canPublishCourseMaterials('student')).toBe(false);
     expect(canPublishCourseMaterials(undefined)).toBe(false);
   });
@@ -43,7 +44,7 @@ describe('course-material-rules', () => {
       )
     ).toMatch(/حجم/);
     expect(
-      validateCourseMaterialInput({ ...base, title: ' ' }, 'mentor_teacher')
+      validateCourseMaterialInput({ ...base, title: ' ' }, 'supervisor_professor')
     ).toBe('عنوان الزامی است.');
   });
 

@@ -1,7 +1,7 @@
 import type { UserRole } from '@/types/auth';
 import type { InternshipCourseKind } from '@/types/internship-enrollment';
 
-/** جزوه/فایل آموزشی که استاد (کارورزی) یا مربی (کارآموزی) برای فراگیران درس منتشر می‌کند. */
+/** جزوه/فایل آموزشی که استاد راهنما برای فراگیران درس منتشر می‌کند. */
 export interface CourseMaterial {
   id: string;
   kind: InternshipCourseKind;

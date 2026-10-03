@@ -33,7 +33,7 @@ function errorMessage(error: unknown): string {
     : 'عملیات ناموفق بود. دوباره تلاش کنید.';
 }
 
-/** فهرست جزوه/فایل‌های منتشرشده + دکمهٔ افزودن (فرم در مودال) — ویژهٔ استاد و مربی. */
+/** فهرست جزوه/فایل‌های منتشرشده + دکمهٔ افزودن (فرم در مودال) — ویژهٔ استاد راهنما. */
 export function CourseMaterialsPublisherBox({
   kind,
   courses,

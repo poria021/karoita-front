@@ -19,7 +19,7 @@ type CourseMaterialsLearnerBoxProps = {
 };
 
 /**
- * جزوه‌ها و فایل‌هایی که استاد/مربی برای این درس گذاشته — در صفحهٔ گزارش فراگیر.
+ * جزوه‌ها و فایل‌هایی که استاد راهنما برای این درس گذاشته — در صفحهٔ گزارش فراگیر.
  * real mode تا آمدن endpoint خطا می‌دهد؛ آن وقت باکس بی‌صدا پنهان می‌ماند.
  */
 export function CourseMaterialsLearnerBox({
