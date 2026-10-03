@@ -16,6 +16,7 @@ export type DashboardModuleKey =
   | 'syllabus-course-catalog'
   | 'daily-approvals'
   | 'capacities'
+  | 'announcements'
   | 'internship-level'
   | 'profile';
 
@@ -34,6 +35,7 @@ const MODULE_PATH: Record<DashboardModuleKey, string | ((role?: string) => strin
     'syllabus-course-catalog': RouteService.karvita.syllabusCourseCatalog(),
     'daily-approvals': RouteService.karvita.dailyApprovals(),
     capacities: RouteService.karvita.organizationalCapacities(),
+    announcements: RouteService.karvita.announcements(),
     'internship-level': RouteService.karvita.internshipSelection(1),
     profile: (role = 'student') => RouteService.karvita.profile(role),
   };

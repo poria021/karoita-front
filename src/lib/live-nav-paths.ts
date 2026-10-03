@@ -40,6 +40,7 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.syllabusCourseCatalog(),
   RouteService.karvita.dailyApprovals(),
   RouteService.karvita.organizationalCapacities(),
+  RouteService.karvita.announcements(),
   ...INTERNSHIP_LEVEL_PATHS,
 ];
 

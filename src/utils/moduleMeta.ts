@@ -144,10 +144,10 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'تعریف دامنه‌های سازمانی (Scope)، ارتقای موقت نقش و ویرایش مجوزهای ممیزی کاربران.',
     icon: 'fa-user-gear',
   },
-  [PlannedRoutes.manageAds()]: {
-    title: 'پنل انتشارات و اعلانات',
+  [RouteService.karvita.announcements()]: {
+    title: 'اطلاعیه‌ها و تبلیغات',
     description:
-      'بخش مدیریت عالی انتشارات، اعلانات استانی و اخبار رسمی سامانه جامع کارویتا.',
+      'انتشار اطلاعیه برای داشبورد نقش‌های زیرمجموعه؛ تبلیغات فقط توسط مدیر ارشد و دستیارانش.',
     icon: 'fa-bullhorn',
   },
   [RouteService.karvita.internshipSelection()]: {

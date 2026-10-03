@@ -80,6 +80,7 @@ const MOCK_MODULES_TO_STUB = [
   '@/services/internship-enrollment/mock/mock-enrollment-weekly',
   '@/services/landing-cms/mock/mock-landing-cms.mutations',
   '@/services/landing-cms/mock/mock-landing-cms.store',
+  '@/services/bulletins/mock/mock-bulletins-store',
   '@/services/notifications/mock/mock-notifications.store',
   '@/services/onboarding-approvals/mock/mock-onboarding-approvals',
   '@/services/org-structure/mock/mock-org-store',

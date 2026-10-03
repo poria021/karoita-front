@@ -57,6 +57,7 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.dashboard(),
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.organizationalCapacities(),
+      RouteService.karvita.announcements(),
     ]);
 
     const mentorMenu = getVisibleSidebarMenu('mentor_teacher');
@@ -65,6 +66,7 @@ describe('live nav / admin plane', () => {
     ).toEqual([
       RouteService.karvita.dashboard(),
       RouteService.karvita.dailyApprovals(),
+      RouteService.karvita.announcements(),
     ]);
 
     const principalMenu = getVisibleSidebarMenu('school_principal');
@@ -73,6 +75,7 @@ describe('live nav / admin plane', () => {
     ).toEqual([
       RouteService.karvita.dashboard(),
       RouteService.karvita.dailyApprovals(),
+      RouteService.karvita.announcements(),
     ]);
 
     for (const role of [
@@ -85,7 +88,10 @@ describe('live nav / admin plane', () => {
         getVisibleSidebarMenu(role).map((entry) =>
           'path' in entry ? entry.path : entry.title
         )
-      ).toEqual([RouteService.karvita.dashboard()]);
+      ).toEqual([
+        RouteService.karvita.dashboard(),
+        RouteService.karvita.announcements(),
+      ]);
     }
 
     expect(
@@ -109,6 +115,7 @@ describe('live nav / admin plane', () => {
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
+      'اطلاعیه‌ها و تبلیغات',
     ]);
 
     const groups = adminMenu.filter(isSidebarMenuGroup);
@@ -128,6 +135,7 @@ describe('live nav / admin plane', () => {
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
+      'اطلاعیه‌ها و تبلیغات',
     ]);
     expect(
       assistantMenu

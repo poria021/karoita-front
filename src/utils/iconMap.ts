@@ -4,6 +4,7 @@
  */
 import {
   faArrowLeft,
+  faArrowUpRightFromSquare,
   faArrowRight,
   faArrowsRotate,
   faBars,
@@ -39,6 +40,8 @@ import {
   faEyeSlash,
   faAward,
   faFile,
+  faFileAudio,
+  faFileLines,
   faFileContract,
   faFileInvoice,
   faFilePdf,
@@ -96,6 +99,7 @@ import {
 
 export const faIcons = {
   arrowLeft: faArrowLeft,
+  arrowUpRightFromSquare: faArrowUpRightFromSquare,
   arrowRight: faArrowRight,
   arrowsRotate: faArrowsRotate,
   bars: faBars,
@@ -130,6 +134,8 @@ export const faIcons = {
   eye: faEye,
   eyeSlash: faEyeSlash,
   file: faFile,
+  fileAudio: faFileAudio,
+  fileLines: faFileLines,
   fileContract: faFileContract,
   fileInvoice: faFileInvoice,
   filePdf: faFilePdf,

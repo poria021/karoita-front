@@ -33,9 +33,15 @@ const COMPARATIVE_REPORTS_ITEM: SidebarMenuItem = {
 };
 
 const MANAGE_ADS_ITEM: SidebarMenuItem = {
-  title: 'مدیریت انتشارات و اعلانات',
-  path: PlannedRoutes.manageAds(),
+  title: 'اطلاعیه‌ها و تبلیغات',
+  path: RouteService.karvita.announcements(),
   icon: 'fa-bullhorn',
+};
+
+/** پنل‌های غیرستادی فقط اطلاعیه منتشر می‌کنند (تبلیغ مخصوص ستاد مدیر ارشد است). */
+const MANAGE_ANNOUNCEMENTS_ITEM: SidebarMenuItem = {
+  ...MANAGE_ADS_ITEM,
+  title: 'انتشار اطلاعیه',
 };
 
 function omitSidebarPaths(
@@ -243,6 +249,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: RouteService.karvita.organizationalCapacities(),
         icon: 'fa-chart-pie',
       },
+      MANAGE_ANNOUNCEMENTS_ITEM,
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
@@ -267,6 +274,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: RouteService.karvita.dailyApprovals(),
         icon: 'fa-clipboard-check',
       },
+      MANAGE_ANNOUNCEMENTS_ITEM,
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
@@ -296,6 +304,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: PlannedRoutes.studentsList(),
         icon: 'fa-user-group',
       },
+      MANAGE_ANNOUNCEMENTS_ITEM,
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
@@ -321,6 +330,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
+      MANAGE_ANNOUNCEMENTS_ITEM,
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
     ],
@@ -337,7 +347,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
       DASHBOARD_ITEM,
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
-      MANAGE_ADS_ITEM,
+      MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
   },
@@ -357,7 +367,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
       },
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
-      MANAGE_ADS_ITEM,
+      MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
@@ -394,7 +404,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
       DASHBOARD_ITEM,
       STANDARD_REPORTS_ITEM,
       COMPARATIVE_REPORTS_ITEM,
-      MANAGE_ADS_ITEM,
+      MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
   },

@@ -21,7 +21,6 @@ export const PlannedRoutes = {
   termLifecycle: (): string => '/karvita/term-lifecycle',
   locations: (): string => '/karvita/locations',
   userPermissions: (): string => '/karvita/permissions',
-  manageAds: (): string => '/karvita/ads',
   internshipDetail: (internshipId: string): string =>
     `/karvita/internships/${internshipId}`,
 } as const;
@@ -37,7 +36,6 @@ export const PLANNED_STATIC_ROUTE_PATHS: readonly string[] = [
   PlannedRoutes.termLifecycle(),
   PlannedRoutes.locations(),
   PlannedRoutes.userPermissions(),
-  PlannedRoutes.manageAds(),
 ] as const;
 
 export function isPlannedStaticRoute(pathname: string): boolean {

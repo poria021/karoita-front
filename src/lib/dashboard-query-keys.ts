@@ -21,6 +21,13 @@ export const DASHBOARD_QUERY = {
   internshipEnrollment: ['internship-enrollment'] as const,
   orgOptions: ['org-options'] as const,
   onboardingApprovalsProvinces: ['onboarding-approvals', 'provinces'] as const,
+  /** پیشوند مشترک داشبورد و صفحهٔ مدیریت — بعد از mutation هر دو باطل شوند. */
+  bulletins: ['bulletins'] as const,
+  bulletinsDashboard: ['bulletins', 'dashboard'] as const,
+  bulletinsManaged: ['bulletins', 'managed'] as const,
+  courseMaterials: ['course-materials'] as const,
+  courseMaterialsReceived: ['course-materials', 'received'] as const,
+  courseMaterialsManaged: ['course-materials', 'managed'] as const,
 } as const;
 
 /** Capacity, daily-approvals, and enrollment all read Nest semesters. */
