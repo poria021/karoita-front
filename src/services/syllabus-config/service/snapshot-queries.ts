@@ -14,6 +14,7 @@ import {
   getCatalogForTermType,
   listOfferingsForTerm,
 } from '@/services/syllabus-config/syllabus-mappers';
+import { courseDefinitionsOf } from '@/services/syllabus-config/course-catalog';
 import { catalogKindForTermType } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import { getRealSyllabusSnapshot } from '@/services/syllabus-config/real/real-syllabus-reads';
 import type {
@@ -120,7 +121,7 @@ export const snapshotQueries = {
       return { courses, offerings };
     }
     return {
-      courses: getCatalogForTermType(term.type),
+      courses: getCatalogForTermType(term.type, courseDefinitionsOf(snapshot)),
       offerings: listOfferingsForTerm(snapshot, termId),
     };
   },

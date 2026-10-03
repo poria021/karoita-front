@@ -87,3 +87,23 @@ export function formatTermOptionLabel(title: string): string {
   if (!academicYear) return toPersianDigits(title);
   return `${toPersianDigits(prefix)} · ${ltrIsolate(toPersianDigits(academicYear))}`;
 }
+
+/** اختصاص درس به پنل: ترمی = کارورزی/دانشجو، پودمانی = کارآموزی/مهارت‌آموز. */
+export const COURSE_AUDIENCE_OPTIONS: {
+  value: AcademicTermType;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: 'semester',
+    label: 'کارورزی (ترمی)',
+    description:
+      'در پنل دانشجو / کارورزی و ارائهٔ ترم‌های نیم‌سالی نمایش داده می‌شود.',
+  },
+  {
+    value: 'modular',
+    label: 'کارآموزی (پودمانی)',
+    description:
+      'در پنل مهارت‌آموز / کارآموزی و ارائهٔ ترم‌های پودمانی نمایش داده می‌شود.',
+  },
+];

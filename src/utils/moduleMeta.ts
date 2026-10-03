@@ -109,6 +109,12 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'فعال‌سازی ارائه دروس ترم و ویرایش سرفصل هفتگی هر درس در نیم‌سال جاری.',
     icon: 'fa-sliders',
   },
+  [RouteService.karvita.syllabusCourseCatalog()]: {
+    title: 'تعریف دروس',
+    description:
+      'تعریف درس‌ها و زیرمجموعه‌هایشان و اختصاص هر درس به پنل کارورزی (ترمی) یا کارآموزی (پودمانی).',
+    icon: 'fa-book-open',
+  },
   [RouteService.karvita.syllabusTermSettings()]: {
     title: 'تنظیمات عمومی ترم‌ها',
     description:

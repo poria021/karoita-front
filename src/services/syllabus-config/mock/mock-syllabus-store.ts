@@ -1,6 +1,7 @@
 import { isMockApiMode } from '@/lib/api-mode';
 import type {
   AcademicTerm,
+  CourseDefinition,
   CourseOfferingKind,
   CourseOfferingRecord,
   SyllabusConfigSnapshot,
@@ -17,6 +18,10 @@ import {
   legacyOfferingStorageKey,
   normalizeCourseTitle,
 } from '../syllabus-mappers';
+import {
+  cloneDefaultCourseDefinitions,
+  courseDefinitionsOf,
+} from '../course-catalog';
 import { DEFAULT_WEEK_WEIGHT } from '../syllabus-term-gates';
 
 export {
@@ -106,6 +111,7 @@ function buildSeedSnapshot(): SyllabusConfigSnapshot {
     internships: [],
     globalProfessorCapacity: 15,
     passingScoreThreshold: 70,
+    courseCatalog: cloneDefaultCourseDefinitions(),
   };
 }
 
@@ -118,6 +124,7 @@ type LegacySnapshot = {
   globalProfessorCapacity: number;
   passingScoreThreshold: number;
   selectedTermTitle?: string;
+  courseCatalog?: CourseDefinition[];
 };
 
 function isCourseOfferingRecord(
@@ -131,6 +138,10 @@ export function migrateLegacySnapshot(
   raw: LegacySnapshot
 ): SyllabusConfigSnapshot {
   const offerings: Record<string, CourseOfferingRecord> = {};
+  // snapshot قبل از کاتالوگ داینامیک → seed همان دروس ثابت قبلی.
+  const courseCatalog = Array.isArray(raw.courseCatalog)
+    ? raw.courseCatalog
+    : cloneDefaultCourseDefinitions();
 
   for (const [key, value] of Object.entries(raw.offerings ?? {})) {
     if (isCourseOfferingRecord(value)) {
@@ -153,7 +164,7 @@ export function migrateLegacySnapshot(
     const courseTitle = parts.slice(1).join('::');
     const term = raw.terms.find((t) => t.title === termTitle);
     if (!term) continue;
-    const catalog = findCatalogByTitle(term.type, courseTitle);
+    const catalog = findCatalogByTitle(term.type, courseTitle, courseCatalog);
     if (!catalog) continue;
     const id = buildCourseOfferingId(term.id, catalog.id);
     const weeks = structuredClone(value.weeks ?? []);
@@ -172,6 +183,7 @@ export function migrateLegacySnapshot(
     internships: raw.internships ?? [],
     globalProfessorCapacity: raw.globalProfessorCapacity ?? 15,
     passingScoreThreshold: raw.passingScoreThreshold ?? 70,
+    courseCatalog,
   };
 }
 
@@ -268,7 +280,11 @@ export function readWeeksFromSnapshot(
   }
   const term = snapshot.terms.find((t) => t.id === termId);
   if (!term) return [];
-  const catalog = findCatalogById(term.type, courseCatalogId);
+  const catalog = findCatalogById(
+    term.type,
+    courseCatalogId,
+    courseDefinitionsOf(snapshot)
+  );
   if (!catalog) return [];
   const count = defaultWeekCount(catalog.type);
   return buildSeedWeeks(count, 'active');

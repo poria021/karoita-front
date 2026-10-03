@@ -44,6 +44,37 @@ export type CourseCatalogItem = {
   id: string;
   title: string;
   type: CourseOfferingKind;
+  /** وقتی آیتم زیرمجموعهٔ یک درس است؛ درس مستقل این دو را ندارد. */
+  groupId?: string;
+  groupTitle?: string;
+};
+
+/** زیرمجموعهٔ درس (مثل «کارورزی ۱») — هر کدام یک ماژول قابل ارائه است. */
+export type CourseSubModule = {
+  id: string;
+  title: string;
+};
+
+/**
+ * درسی که مدیر ارشد تعریف می‌کند.
+ * با زیرمجموعه = فقط عنوان گروه است و زیرمجموعه‌ها ارائه می‌شوند؛
+ * بدون زیرمجموعه = خود درس یک ماژول مستقل است.
+ * `audience` تعیین می‌کند درس در پنل کارورزی (ترمی) یا کارآموزی (پودمانی) باشد.
+ */
+export type CourseDefinition = {
+  id: string;
+  title: string;
+  audience: AcademicTermType;
+  isActive: boolean;
+  subModules: CourseSubModule[];
+};
+
+export type UpsertCourseDefinitionInput = {
+  title: string;
+  audience: AcademicTermType;
+  isActive: boolean;
+  /** `id` برای زیرمجموعهٔ موجود؛ ردیف تازه بدون `id` می‌آید. */
+  subModules: Array<{ id?: string; title: string }>;
 };
 
 /** ارائهٔ درس در یک ترم (Nest: courseOfferingId / lesson id). */
@@ -83,6 +114,8 @@ export type SyllabusConfigSnapshot = {
   internships: MockInternshipRecord[];
   globalProfessorCapacity: number;
   passingScoreThreshold: number;
+  /** کاتالوگ دروس داینامیک (فعلاً فقط mock). نبودنش = seed پیش‌فرض کارورزی/کارآموزی. */
+  courseCatalog?: CourseDefinition[];
 };
 
 export type UpsertTermInput = {

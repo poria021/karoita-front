@@ -144,6 +144,7 @@ describe('live nav / admin plane', () => {
 
     const syllabusGroup = groups.find((g) => g.title === 'مدیریت ترم و سرفصل');
     expect(syllabusGroup?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.syllabusCourseCatalog(),
       RouteService.karvita.syllabusCourseOfferings(),
       RouteService.karvita.syllabusTermSettings(),
     ]);
@@ -165,6 +166,9 @@ describe('live nav / admin plane', () => {
   it('treats syllabus modules as admin control plane', () => {
     expect(
       isAdminControlPlanePath(RouteService.karvita.syllabusCourseOfferings())
+    ).toBe(true);
+    expect(
+      isAdminControlPlanePath(RouteService.karvita.syllabusCourseCatalog())
     ).toBe(true);
     expect(
       isAdminControlPlanePath(RouteService.karvita.syllabusTermSettings())

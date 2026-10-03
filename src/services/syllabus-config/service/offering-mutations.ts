@@ -4,6 +4,7 @@ import {
   deactivateOfferingInSnapshot,
   mutateSyllabusSnapshot,
 } from '@/services/syllabus-config/mock/mock-syllabus-store';
+import { courseDefinitionsOf } from '@/services/syllabus-config/course-catalog';
 import { findCatalogById } from '@/services/syllabus-config/syllabus-mappers';
 import {
   activateRealOffering,
@@ -31,7 +32,11 @@ export const offeringMutations = {
     return mutateSyllabusSnapshot((draft) => {
       const term = draft.terms.find((t) => t.id === input.termId);
       if (!term) throw new Error('ترم انتخاب‌شده یافت نشد.');
-      const catalog = findCatalogById(term.type, input.courseCatalogId);
+      const catalog = findCatalogById(
+        term.type,
+        input.courseCatalogId,
+        courseDefinitionsOf(draft)
+      );
       if (!catalog) throw new Error('درس کاتالوگ یافت نشد.');
       activateOfferingInSnapshot(
         draft,
@@ -71,7 +76,11 @@ export const offeringMutations = {
       if (!existing) {
         const term = draft.terms.find((t) => t.id === input.termId);
         if (!term) throw new Error('ترم انتخاب‌شده یافت نشد.');
-        const catalog = findCatalogById(term.type, input.courseCatalogId);
+        const catalog = findCatalogById(
+          term.type,
+          input.courseCatalogId,
+          courseDefinitionsOf(draft)
+        );
         if (!catalog) throw new Error('درس کاتالوگ یافت نشد.');
         draft.offerings[input.courseOfferingId] = {
           id: input.courseOfferingId,

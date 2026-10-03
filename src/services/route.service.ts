@@ -96,6 +96,9 @@ export const RouteService = {
       `${KARVITA_ADMIN_BASE}/syllabus/course-offerings`,
     syllabusTermSettings: (): string =>
       `${KARVITA_ADMIN_BASE}/syllabus/term-settings`,
+    /** تعریف داینامیک دروس و زیرمجموعه‌ها توسط مدیر ارشد. */
+    syllabusCourseCatalog: (): string =>
+      `${KARVITA_ADMIN_BASE}/syllabus/courses`,
     onboardingApprovals: (
       tab?: 'pending_admin' | 'approved' | 'rejected'
     ): string => {

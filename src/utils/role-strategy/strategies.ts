@@ -101,6 +101,11 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     defaultOpen: true,
     children: [
       {
+        title: 'تعریف دروس',
+        path: RouteService.karvita.syllabusCourseCatalog(),
+        icon: 'fa-book-open',
+      },
+      {
         title: 'ارائه و سرفصل دروس',
         path: RouteService.karvita.syllabusCourseOfferings(),
         icon: 'fa-sliders',
@@ -371,6 +376,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     sidebarMenu: omitSidebarPaths(SENIOR_ADMIN_SIDEBAR_MENU, [
       RouteService.karvita.adminUserCreation(),
       RouteService.karvita.syllabusTermSettings(),
+      RouteService.karvita.syllabusCourseCatalog(),
     ]),
     permissions: SENIOR_ADMIN_PERMISSIONS.filter(
       (permission) =>

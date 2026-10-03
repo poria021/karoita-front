@@ -7,6 +7,7 @@ import type { QueryClient } from '@tanstack/react-query';
  */
 export const DASHBOARD_QUERY = {
   syllabusSnapshot: ['syllabus-config', 'snapshot'] as const,
+  syllabusCourseCatalog: ['syllabus-config', 'course-catalog'] as const,
   passingScoreThreshold: ['syllabus-config', 'passing-threshold'] as const,
   orgCapacities: ['org-capacities'] as const,
   orgCapacitiesTerms: (kind: string) =>
