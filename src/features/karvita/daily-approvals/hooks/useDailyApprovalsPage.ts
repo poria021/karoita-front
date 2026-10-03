@@ -99,6 +99,7 @@ export function useDailyApprovalsPage() {
   return {
     kind,
     courseTitle: courseModule?.title ?? null,
+    courseModuleId: courseModule?.id ?? null,
     showKindTabs,
     changeKind,
     query,
@@ -135,6 +136,7 @@ export function useDailyApprovalsPage() {
     openWeekGrading: actions.openWeekGrading,
     closeWeekGrading: actions.closeWeekGrading,
     saveSupervisorWeek: actions.saveSupervisorWeek,
+    forwardWeek: actions.forwardWeek,
     saveMentorWeek: actions.saveMentorWeek,
     savePrincipalWeek: actions.savePrincipalWeek,
     bulkExtendOpen: actions.bulkExtendOpen,

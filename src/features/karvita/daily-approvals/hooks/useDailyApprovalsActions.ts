@@ -11,6 +11,7 @@ import type {
   DailyApprovalCompetencyRating,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
+  DailyApprovalForwardTarget,
   DailyApprovalTrainee,
   DailyApprovalWeek,
   DailyApprovalWeekDetail,
@@ -287,6 +288,46 @@ export function useDailyApprovalsActions({
     [gradingTarget, gradingTrainee, refreshTraineeDerived]
   );
 
+  /** استاد گزارش هفتهٔ بازشده را برای معلم/مدیر ارجاع می‌دهد؛ مودال باز می‌ماند. */
+  const forwardWeek = useCallback(
+    async (target: DailyApprovalForwardTarget) => {
+      if (!gradingTarget) return;
+      setActionBusy(true);
+      try {
+        await DailyApprovalsService.forwardWeek({ ...gradingTarget, target });
+        list.patchItems((prev) =>
+          prev.map((row) =>
+            row.id === gradingTarget.traineeId
+              ? {
+                  ...row,
+                  weeks: row.weeks.map((week) =>
+                    week.id === gradingTarget.weekId
+                      ? {
+                          ...week,
+                          forwardedTo: [
+                            ...new Set([...(week.forwardedTo ?? []), target]),
+                          ],
+                        }
+                      : week
+                  ),
+                }
+              : row
+          )
+        );
+        toast.success(
+          target === 'mentor'
+            ? 'گزارش برای معلم راهنما ارسال شد.'
+            : 'گزارش برای مدیر مدرسه ارسال شد.'
+        );
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '');
+      } finally {
+        setActionBusy(false);
+      }
+    },
+    [gradingTarget, list]
+  );
+
   const saveMentorWeek = useCallback(
     async (input: {
       mentorFeedback: string;
@@ -447,6 +488,7 @@ export function useDailyApprovalsActions({
     openWeekGrading,
     closeWeekGrading,
     saveSupervisorWeek,
+    forwardWeek,
     saveMentorWeek,
     savePrincipalWeek,
     bulkExtendOpen,

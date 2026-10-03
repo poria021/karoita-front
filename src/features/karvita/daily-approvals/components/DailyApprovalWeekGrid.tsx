@@ -7,6 +7,7 @@ import type {
   DailyApprovalWeek,
 } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
+import { FORWARD_TARGET_LABEL } from '@/services/daily-approvals/forward-visibility';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { getWeekVisual } from '../constants';
@@ -94,13 +95,26 @@ export function DailyApprovalWeekGrid({
                   {toPersianDigits(score)}/۱۰۰
                 </span>
               ) : null}
+              {week.forwardedTo && week.forwardedTo.length > 0 ? (
+                <span
+                  className="flex w-full items-center"
+                  title={`ارجاع‌شده به ${week.forwardedTo
+                    .map((target) => FORWARD_TARGET_LABEL[target])
+                    .join(' و ')}`}
+                  role="img"
+                  aria-label="ارجاع‌شده"
+                >
+                  <FaIcon icon={faIcons.paperPlane} size="xs" />
+                </span>
+              ) : null}
               {score !== null && week.schoolVisited ? (
                 <span
-                  className="flex w-full items-center gap-1 text-[11px] font-bold leading-snug"
+                  className="flex w-full items-center"
                   title="استاد راهنما در این جلسه به مدرسه رفته است"
+                  role="img"
+                  aria-label="استاد راهنما در این جلسه به مدرسه رفته است"
                 >
                   <FaIcon icon={faIcons.school} size="xs" />
-                  بازدید از مدرسه
                 </span>
               ) : null}
             </span>

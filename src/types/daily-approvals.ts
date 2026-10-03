@@ -50,6 +50,9 @@ export type DailyApprovalAttachment = InternshipWeeklyReportFile & {
   url?: string;
 };
 
+/** مقصد ارجاع گزارش از طرف استاد راهنما. */
+export type DailyApprovalForwardTarget = 'mentor' | 'principal';
+
 export type DailyApprovalWeek = {
   id: string;
   weekNumber: number;
@@ -69,6 +72,11 @@ export type DailyApprovalWeek = {
   schoolAdminStatus?: 'send' | null;
   /** استاد راهنما در این جلسه به مدرسه رفته و بازدید حضوری داشته است. */
   schoolVisited?: boolean;
+  /**
+   * مقصدهایی که استاد گزارش را برایشان فرستاده؛ معلم/مدیر مدرسه فقط گزارش
+   * ارجاع‌شده به خودشان را می‌بینند. فقط mock تا آمدن endpoint ارجاع در Nest.
+   */
+  forwardedTo?: DailyApprovalForwardTarget[];
 };
 
 export type DailyApprovalProgressiveGrade = {
@@ -133,6 +141,12 @@ export type UpdateDailyApprovalWeekInput = {
   advisorFeedback: string;
   /** همراه نمرهٔ نهایی ثبت می‌شود: استاد در این جلسه به مدرسه رفته است. */
   schoolVisited?: boolean;
+};
+
+export type ForwardDailyApprovalWeekInput = {
+  traineeId: string;
+  weekId: string;
+  target: DailyApprovalForwardTarget;
 };
 
 /** برای معلم راهنما امتیاز الزامی است؛ بازخورد متنی اختیاری. */

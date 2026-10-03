@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
@@ -17,6 +18,7 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import type {
+  DailyApprovalForwardTarget,
   DailyApprovalCompetencyRating,
   DailyApprovalTrainee,
   DailyApprovalWeek,
@@ -28,6 +30,7 @@ import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
 import { competencyRatingLabel } from '../constants';
 import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekGradingModal';
+import { DailyApprovalForwardPanel } from './DailyApprovalForwardPanel';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
 import { DailyApprovalPrincipalGradingFields } from './DailyApprovalPrincipalGradingFields';
 import { DailyApprovalSupervisorGradingFields } from './DailyApprovalSupervisorGradingFields';
@@ -82,6 +85,7 @@ type DailyApprovalWeekGradingModalProps = {
   /** حد نصاب قبولی سیستم (۰–۱۰۰) از تنظیمات عمومی ترم‌ها. */
   passingScoreThreshold?: number;
   onClose: () => void;
+  onForward: (target: DailyApprovalForwardTarget) => void;
   onSaveSupervisor: (input: {
     score: number | null;
     advisorFeedback: string;
@@ -106,6 +110,7 @@ export function DailyApprovalWeekGradingModal({
   actionBusy,
   passingScoreThreshold,
   onClose,
+  onForward,
   onSaveSupervisor,
   onSaveMentor,
   onSavePrincipal,
@@ -213,19 +218,26 @@ export function DailyApprovalWeekGradingModal({
         }}
       >
         <KvDialogHeader>
-          <KvDialogTitle>{modal.title}</KvDialogTitle>
-          <KvDialogDescription>{modal.subtitle}</KvDialogDescription>
-          {effectiveWeek.status === 'graded' && effectiveWeek.schoolVisited ? (
-            <KvTypography variant="caption" tone="success" weight="bold" as="p">
-              <FaIcon icon={faIcons.school} size="xs" /> استاد راهنما در این
-              جلسه به مدرسه رفته و بازدید داشته است.
-            </KvTypography>
-          ) : null}
-          {typeof effectiveWeek.weightedScore === 'number' ? (
-            <KvTypography variant="caption" tone="muted" as="p">
-              وزن این هفته: {effectiveWeek.weightedScore}
-            </KvTypography>
-          ) : null}
+          <div className="flex items-start justify-between gap-kv-pair">
+            <div className="min-w-0 space-y-1">
+              <KvDialogTitle>{modal.title}</KvDialogTitle>
+              <KvDialogDescription>{modal.subtitle}</KvDialogDescription>
+              {typeof effectiveWeek.weightedScore === 'number' ? (
+                <KvTypography variant="caption" tone="muted" as="p">
+                  وزن این هفته: {effectiveWeek.weightedScore}
+                </KvTypography>
+              ) : null}
+            </div>
+            {effectiveWeek.status === 'graded' && effectiveWeek.schoolVisited ? (
+              <span
+                className="inline-flex shrink-0 items-center gap-1 rounded-full bg-kv-success-soft px-2 py-0.5 text-xs font-bold text-kv-success-soft-fg"
+                title="استاد راهنما در این جلسه به مدرسه رفته و بازدید داشته است."
+              >
+                <FaIcon icon={faIcons.school} size="xs" />
+                بازدید از مدرسه
+              </span>
+            ) : null}
+          </div>
         </KvDialogHeader>
 
         <KvScrollArea className="-mx-kv-stack max-h-[min(70vh,560px)] overflow-y-auto px-kv-stack [direction:ltr] sm:-mx-kv-section sm:px-kv-section">
@@ -272,6 +284,15 @@ export function DailyApprovalWeekGradingModal({
                   body={effectiveWeek.feedback.principal}
                   rating={effectiveWeek.feedback.principalRating}
                   at={effectiveWeek.feedback.principalAt}
+                />
+              ) : null}
+
+              {role === 'supervisor_professor' && IS_MOCK_MODE ? (
+                <DailyApprovalForwardPanel
+                  week={effectiveWeek}
+                  readOnly={modal.supervisorLocked}
+                  busy={actionBusy}
+                  onForward={onForward}
                 />
               ) : null}
 

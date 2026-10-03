@@ -9,6 +9,7 @@ import type {
   BulkExtendDailyApprovalWeeksResult,
   DailyApprovalTrainee,
   DailyApprovalWeek,
+  ForwardDailyApprovalWeekInput,
   UpdateDailyApprovalWeekInput,
   UpdateMentorDailyApprovalWeekInput,
   UpdatePrincipalDailyApprovalWeekInput,
@@ -53,6 +54,45 @@ export function updateMockDailyApprovalWeek(
 
   const nextWeeks = [...trainee.weeks];
   nextWeeks[weekIndex] = nextWeek;
+  const nextTrainee = withDerived({ ...trainee, weeks: nextWeeks });
+  const nextTrainees = [...trainees];
+  nextTrainees[traineeIndex] = nextTrainee;
+  writeTrainees(nextTrainees);
+  return structuredClone(nextTrainee);
+}
+
+/** استاد گزارش یک هفته را برای معلم راهنما یا مدیر مدرسه ارجاع می‌دهد (قبل از نمرهٔ نهایی). */
+export function forwardMockDailyApprovalWeek(
+  input: ForwardDailyApprovalWeekInput
+): DailyApprovalTrainee {
+  const trainees = readTrainees();
+  const traineeIndex = trainees.findIndex((row) => row.id === input.traineeId);
+  if (traineeIndex < 0) throw new Error('کارورز موردنظر یافت نشد.');
+  const trainee = trainees[traineeIndex]!;
+  if (trainee.status === 'dropped') {
+    throw new Error('این کارورز از کلاس آموزشی اخراج شده است.');
+  }
+
+  const weekIndex = trainee.weeks.findIndex((week) => week.id === input.weekId);
+  if (weekIndex < 0) throw new Error('گزارش هفته یافت نشد.');
+  const week = trainee.weeks[weekIndex]!;
+  if (
+    week.status === 'draft' ||
+    week.status === 'locked_future' ||
+    week.status === 'locked_dropped' ||
+    week.status === 'archived'
+  ) {
+    throw new Error('برای این هفته هنوز گزارشی ارسال نشده است.');
+  }
+  if (week.status === 'graded') {
+    throw new Error('نمرهٔ نهایی ثبت شده و ارجاع دیگر ممکن نیست.');
+  }
+
+  const nextWeeks = [...trainee.weeks];
+  nextWeeks[weekIndex] = {
+    ...week,
+    forwardedTo: [...new Set([...(week.forwardedTo ?? []), input.target])],
+  };
   const nextTrainee = withDerived({ ...trainee, weeks: nextWeeks });
   const nextTrainees = [...trainees];
   nextTrainees[traineeIndex] = nextTrainee;
