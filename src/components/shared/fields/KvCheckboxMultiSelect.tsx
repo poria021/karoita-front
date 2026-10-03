@@ -27,6 +27,8 @@ export type KvCheckboxMultiSelectProps = {
   values: string[];
   onValuesChange: (next: string[]) => void;
   placeholder?: string;
+  /** برچسب گزینهٔ «انتخاب همه» بالای فهرست؛ نبودنش = بدون این گزینه. */
+  selectAllLabel?: string;
   disabled?: boolean;
   error?: string;
   className?: string;
@@ -40,6 +42,7 @@ export function KvCheckboxMultiSelect({
   values,
   onValuesChange,
   placeholder = 'انتخاب کنید',
+  selectAllLabel,
   disabled = false,
   error,
   className,
@@ -62,6 +65,9 @@ export function KvCheckboxMultiSelect({
     }
     onValuesChange(values.filter((item) => item !== value));
   };
+
+  const allSelected =
+    options.length > 0 && options.every((option) => values.includes(option.value));
 
   const removeValue = (event: SyntheticEvent, value: string) => {
     event.preventDefault();
@@ -147,6 +153,20 @@ export function KvCheckboxMultiSelect({
           aria-label="گزینه‌های انتخاب‌شده"
           className="max-h-64 w-[var(--radix-dropdown-menu-trigger-width)] min-w-[14rem] p-0"
         >
+          {selectAllLabel && options.length > 0 ? (
+            <DropdownMenuCheckboxItem
+              checked={allSelected}
+              role="option"
+              aria-selected={allSelected}
+              onSelect={(event) => event.preventDefault()}
+              onCheckedChange={(next) =>
+                onValuesChange(next === true ? options.map((o) => o.value) : [])
+              }
+              className="rounded-kv-control border-b border-kv-border-muted py-kv-pair text-xs font-black"
+            >
+              {selectAllLabel}
+            </DropdownMenuCheckboxItem>
+          ) : null}
           {options.map((option) => {
             const checked = values.includes(option.value);
             return (

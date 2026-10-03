@@ -111,7 +111,6 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             <KvImageDocUploader
               id="bulletin-image"
               label="تصویر تبلیغ"
-              optionalHint
               disabled={isSaving}
               value={form.imageFile}
               existingUrl={form.imageUrl || null}
@@ -123,12 +122,11 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             />
           ) : null}
 
+          {!isAd ? (
           <KvTextArea
             id="bulletin-body"
             label="متن"
-            required={!isAd}
-            optionalHint={isAd}
-            hint={isAd ? 'تبلیغ می‌تواند فقط تصویر، فقط متن یا هر دو باشد.' : undefined}
+            required
             rows={5}
             scriptGuard="none"
             locked={isSaving}
@@ -136,6 +134,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             maxLength={BULLETIN_BODY_MAX}
             onChange={(event) => props.patchForm({ body: event.target.value })}
           />
+          ) : null}
 
           {isAd ? (
             <KvTextField
@@ -163,6 +162,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
               options={props.audienceOptions}
               values={form.audienceRoles}
               placeholder="نقش‌های مخاطب را انتخاب کنید"
+              selectAllLabel="همه"
               onValuesChange={(next) =>
                 props.patchForm({ audienceRoles: next as UserRole[] })
               }

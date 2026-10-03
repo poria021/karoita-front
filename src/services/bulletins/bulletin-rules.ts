@@ -155,16 +155,16 @@ export function validateBulletinInput(
   if (title.length > BULLETIN_TITLE_MAX) {
     return `عنوان حداکثر ${BULLETIN_TITLE_MAX} نویسه است.`;
   }
+  const isAd = input.kind === 'advertisement';
   const body = input.body.trim();
-  const hasImage = input.kind === 'advertisement' && Boolean(input.imageUrl);
-  // تبلیغ با تصویر می‌تواند بی‌متن باشد؛ اطلاعیه همیشه متن می‌خواهد.
-  if (!body && !hasImage) {
-    return input.kind === 'advertisement'
-      ? 'متن یا تصویر تبلیغ را وارد کنید.'
-      : 'متن الزامی است.';
-  }
-  if (body.length > BULLETIN_BODY_MAX) {
-    return `متن حداکثر ${BULLETIN_BODY_MAX} نویسه است.`;
+  // تبلیغ فقط عنوان، تصویر، لینک و مخاطب دارد؛ اطلاعیه متن می‌خواهد.
+  if (isAd) {
+    if (!input.imageUrl) return 'تصویر تبلیغ الزامی است.';
+  } else {
+    if (!body) return 'متن الزامی است.';
+    if (body.length > BULLETIN_BODY_MAX) {
+      return `متن حداکثر ${BULLETIN_BODY_MAX} نویسه است.`;
+    }
   }
   if (input.audienceRoles.length === 0) {
     return 'دست‌کم یک مخاطب انتخاب کنید.';
@@ -207,7 +207,7 @@ export function buildBulletin(
     id: existing?.id ?? newBulletinId(),
     kind: input.kind,
     title: input.title.trim(),
-    body: input.body.trim(),
+    body: isAd ? '' : input.body.trim(),
     ...(link ? { linkUrl: link } : {}),
     ...(image ? { imageUrl: image } : {}),
     authorRole: existing?.authorRole ?? author.role,

@@ -22,11 +22,10 @@ import { useUserStore } from '@/store/useUserStore';
 import type { BulletinKind } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
-import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 import { useBulletinsManagePage } from '../hooks/useBulletinsManagePage';
-import { BulletinCard } from './BulletinCard';
 import { BulletinFormModal } from './BulletinFormModal';
+import { BulletinsTable } from './BulletinsTable';
 
 /** فقط نقش‌هایی که زیرمجموعه دارند؛ بقیه به میز کار خودشان برمی‌گردند. */
 function BulletinsPublisherGuard({ children }: { children: ReactNode }) {
@@ -143,45 +142,11 @@ function BulletinsManageContent() {
             }
           />
         ) : (
-          <ul className="grid list-none gap-kv-pair lg:grid-cols-2">
-            {page.listRows.map((row) => (
-              <li key={row.id}>
-                <BulletinCard
-                  bulletin={row}
-                  actions={
-                    <>
-                      <KvButton
-                        type="button"
-                        appearance="text"
-                        color="neutral"
-                        size="sm"
-                        aria-label={`ویرایش «${row.title}»`}
-                        icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
-                        onClick={() => page.startEdit(row)}
-                      />
-                      <KvButton
-                        type="button"
-                        appearance="text"
-                        color="error"
-                        size="sm"
-                        aria-label={`حذف «${row.title}»`}
-                        icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
-                        onClick={() => page.requestDelete(row)}
-                      />
-                    </>
-                  }
-                  footer={
-                    <KvTypography variant="caption" tone="muted" as="p">
-                      مخاطبان:{' '}
-                      {row.audienceRoles
-                        .map((role) => getRoleStrategy(role).label)
-                        .join('، ')}
-                    </KvTypography>
-                  }
-                />
-              </li>
-            ))}
-          </ul>
+          <BulletinsTable
+            rows={page.listRows}
+            onEdit={page.startEdit}
+            onDelete={page.requestDelete}
+          />
         )}
       </KvWorkspace>
 

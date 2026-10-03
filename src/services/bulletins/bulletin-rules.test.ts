@@ -85,13 +85,17 @@ describe('bulletin-rules', () => {
     );
     expect(
       validateBulletinInput(
-        input({ kind: 'advertisement', linkUrl: 'javascript:alert(1)' }),
+        input({
+          kind: 'advertisement',
+          imageUrl: 'data:image/png;base64,AAAA',
+          linkUrl: 'javascript:alert(1)',
+        }),
         'super_admin'
       )
     ).toMatch(/لینک/);
   });
 
-  it('ads may be image-only; announcements still need text', () => {
+  it('ads need an image and no text; announcements still need text', () => {
     const img = 'data:image/png;base64,AAAA';
     expect(
       validateBulletinInput(
