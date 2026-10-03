@@ -17,6 +17,9 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
+import { CourseMaterialsLearnerBox } from '@/features/karvita/course-materials/components/CourseMaterialsLearnerBox';
+import { evaluationCourseFilterId } from '@/services/syllabus-config/course-catalog';
+import { catalogIdForKind } from '@/services/syllabus-config/syllabus-mappers';
 import { IS_REAL_MODE_STUB_ACTIVE } from '@/components/shared/RealModeStubNotice';
 import type {
   InternshipEnrollmentActor,
@@ -299,6 +302,14 @@ export function ScenarioTermActive({
           </div>
         </div>
       </KvCard>
+
+      {/* کلید درس هم‌تراز با فیلتر درس صفحهٔ ارزیابی استاد (`intern1` / leaf داینامیک). */}
+      <CourseMaterialsLearnerBox
+        kind={state.kind}
+        courseKey={evaluationCourseFilterId(
+          state.lessonId ?? catalogIdForKind(state.kind, state.level)
+        )}
+      />
 
       <KvCard padding="md" className="space-y-kv-group">
         <div className="flex flex-col justify-between gap-kv-field border-b border-kv-border pb-kv-group sm:flex-row sm:items-center">

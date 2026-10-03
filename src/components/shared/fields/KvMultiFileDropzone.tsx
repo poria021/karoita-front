@@ -34,6 +34,8 @@ export type KvMultiFileDropzoneProps = {
   acceptLabel?: string;
   invalidTypeMessage?: string;
   onAdd: (files: KvAttachmentItem[]) => void;
+  /** همان فایل‌های افزوده‌شده (هم‌ترتیب `onAdd`) برای مصرف‌کننده‌ای که بایت‌ها را لازم دارد. */
+  onAddFiles?: (files: File[]) => void;
   onRemove: (fileId: string) => void;
 };
 
@@ -66,6 +68,7 @@ export function KvMultiFileDropzone({
   acceptLabel = 'فرمت‌های مجاز: PDF، TXT و ZIP تا سقف ۵ مگابایت',
   invalidTypeMessage = 'فرمت فایل انتخابی مجاز نیست. فقط PDF، TXT یا ZIP مجاز است.',
   onAdd,
+  onAddFiles,
   onRemove,
 }: KvMultiFileDropzoneProps) {
   const generatedId = useId();
@@ -124,6 +127,7 @@ export function KvMultiFileDropzone({
 
       setIsUploading(true);
       const next: KvAttachmentItem[] = [];
+      const nextFiles: File[] = [];
       try {
         for (const file of toUpload) {
           const sizeMb = toSizeMb(file.size);
@@ -134,6 +138,7 @@ export function KvMultiFileDropzone({
               sizeMb,
               mimeType: file.type || undefined,
             });
+            nextFiles.push(file);
             continue;
           }
 
@@ -145,6 +150,7 @@ export function KvMultiFileDropzone({
               sizeMb,
               mimeType: file.type || undefined,
             });
+            nextFiles.push(file);
           } catch (error) {
             toast.error(
               `آپلود فایل "${file.name}" ناموفق بود: ${fileUploadUserMessage(error)}`
@@ -157,6 +163,7 @@ export function KvMultiFileDropzone({
 
       if (next.length === 0) return;
       onAdd(next);
+      onAddFiles?.(nextFiles);
       toast.success(
         next.length === 1
           ? `فایل "${next[0]!.name}" با موفقیت ضمیمه گردید.`
@@ -171,6 +178,7 @@ export function KvMultiFileDropzone({
       maxFileSizeMb,
       maxTotalSizeMb,
       onAdd,
+      onAddFiles,
     ]
   );
 

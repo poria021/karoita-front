@@ -4,6 +4,9 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
+import { CourseMaterialsPublisherBox } from '@/features/karvita/course-materials/components/CourseMaterialsPublisherBox';
+import { canPublishCourseMaterials } from '@/services/course-materials/course-material-rules';
+import { evaluationCourseFilterId } from '@/services/syllabus-config/course-catalog';
 import { useUserStore } from '@/store/useUserStore';
 
 import { DAILY_APPROVALS_BULK_EXTEND_ENABLED } from '../constants';
@@ -31,6 +34,20 @@ export function DailyApprovalsPageClient() {
     DAILY_APPROVALS_BULK_EXTEND_ENABLED && canBulkExtendDailyApprovalWeeks(role);
   const hasActiveFilters =
     page.query.trim().length > 0 || page.course !== 'all';
+
+  // کلید درس فایل‌ها همان فیلتر درس است تا با صفحهٔ گزارش‌نویسی فراگیر یکی باشد.
+  const subCourses = page.courseOptions.filter((option) => option.value !== 'all');
+  const materialCourses =
+    subCourses.length > 0
+      ? subCourses
+      : page.courseModuleId
+        ? [
+            {
+              value: evaluationCourseFilterId(page.courseModuleId),
+              label: page.courseTitle ?? '',
+            },
+          ]
+        : [];
 
   const clearFilters = () => {
     page.setQuery('');
@@ -95,6 +112,7 @@ export function DailyApprovalsPageClient() {
             ) : undefined
           }
           toolbar={
+            <>
             <DailyApprovalsWorkspaceHeader
               termId={page.termId}
               courseTitle={page.courseTitle}
@@ -104,6 +122,14 @@ export function DailyApprovalsPageClient() {
               onBulkExtendClick={page.openBulkExtend}
               bulkExtendDisabled={page.actionBusy || !page.termId}
             />
+            {canPublishCourseMaterials(role) ? (
+              <CourseMaterialsPublisherBox
+                kind={page.kind}
+                courses={materialCourses}
+                activeCourse={page.course}
+              />
+            ) : null}
+            </>
           }
           primary={
             <div className="space-y-kv-group">
