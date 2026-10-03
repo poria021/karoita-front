@@ -42,6 +42,7 @@ export function updateMockDailyApprovalWeek(
     ...trainee.weeks[weekIndex]!,
     status: hasScore ? 'graded' : 'needs_edit',
     score: hasScore ? input.score : null,
+    schoolVisited: hasScore ? input.schoolVisited === true : false,
     isExtended: false,
     feedback: {
       ...trainee.weeks[weekIndex]!.feedback,
@@ -113,8 +114,9 @@ export function updateMockPrincipalDailyApprovalWeek(
   if (weekIndex < 0) throw new Error('گزارش هفته یافت نشد.');
 
   const principalFeedback = input.principalFeedback.trim();
-  if (!principalFeedback && input.principalRating === null) {
-    throw new Error('ثبت امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
+  const attendance = input.principalAttendance ?? [];
+  if (!principalFeedback && input.principalRating === null && attendance.length === 0) {
+    throw new Error('ثبت حضور، امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
   }
 
   const nextWeeks = [...trainee.weeks];
@@ -126,6 +128,7 @@ export function updateMockPrincipalDailyApprovalWeek(
       ...(input.principalRating !== null
         ? { principalRating: input.principalRating }
         : {}),
+      ...(attendance.length > 0 ? { principalAttendance: [...attendance].sort() } : {}),
     },
     readBySupervisor: true,
   };

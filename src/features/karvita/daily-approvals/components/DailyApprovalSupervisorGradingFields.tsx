@@ -21,10 +21,12 @@ type DailyApprovalSupervisorGradingFieldsProps = {
   schoolName: string | null;
   advisorFeedback: string;
   scoreInput: string;
+  schoolVisited: boolean;
   /** حد نصاب قبولی سیستم از تنظیمات ترم (۰–۱۰۰). */
   passingScoreThreshold?: number;
   onAdvisorFeedbackChange: (value: string) => void;
   onScoreInputChange: (value: string) => void;
+  onSchoolVisitedChange: (value: boolean) => void;
 };
 
 export function DailyApprovalSupervisorGradingFields({
@@ -32,9 +34,11 @@ export function DailyApprovalSupervisorGradingFields({
   schoolName,
   advisorFeedback,
   scoreInput,
+  schoolVisited,
   passingScoreThreshold = DAILY_APPROVAL_PASSING_SCORE,
   onAdvisorFeedbackChange,
   onScoreInputChange,
+  onSchoolVisitedChange,
 }: DailyApprovalSupervisorGradingFieldsProps) {
   const threshold = Number.isFinite(passingScoreThreshold)
     ? passingScoreThreshold
@@ -189,6 +193,25 @@ export function DailyApprovalSupervisorGradingFields({
           />
         </div>
       </div>
+
+      <label className="flex cursor-pointer items-start gap-kv-pair rounded-kv-control border border-kv-border bg-kv-surface-muted p-kv-group">
+        <input
+          type="checkbox"
+          className="mt-0.5 size-4 shrink-0 accent-kv-brand"
+          checked={schoolVisited}
+          disabled={!hasScore}
+          onChange={(event) => onSchoolVisitedChange(event.target.checked)}
+        />
+        <span className="space-y-1">
+          <KvTypography variant="caption" weight="bold" as="span">
+            در این جلسه به مدرسه رفته‌ام و بازدید حضوری داشته‌ام.
+          </KvTypography>
+          <KvTypography variant="caption" tone="muted" as="p">
+            همراه با تایید نهایی نمره ثبت می‌شود و روی کارت هفته نمایش داده
+            می‌شود.
+          </KvTypography>
+        </span>
+      </label>
     </div>
   );
 }

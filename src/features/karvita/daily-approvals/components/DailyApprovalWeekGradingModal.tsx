@@ -85,6 +85,7 @@ type DailyApprovalWeekGradingModalProps = {
   onSaveSupervisor: (input: {
     score: number | null;
     advisorFeedback: string;
+    schoolVisited: boolean;
   }) => Promise<void>;
   onSaveMentor: (input: {
     mentorFeedback: string;
@@ -93,6 +94,7 @@ type DailyApprovalWeekGradingModalProps = {
   onSavePrincipal: (input: {
     principalFeedback: string;
     principalRating: DailyApprovalCompetencyRating | null;
+    principalAttendance: string[];
   }) => Promise<void>;
 };
 
@@ -213,6 +215,12 @@ export function DailyApprovalWeekGradingModal({
         <KvDialogHeader>
           <KvDialogTitle>{modal.title}</KvDialogTitle>
           <KvDialogDescription>{modal.subtitle}</KvDialogDescription>
+          {effectiveWeek.status === 'graded' && effectiveWeek.schoolVisited ? (
+            <KvTypography variant="caption" tone="success" weight="bold" as="p">
+              <FaIcon icon={faIcons.school} size="xs" /> استاد راهنما در این
+              جلسه به مدرسه رفته و بازدید داشته است.
+            </KvTypography>
+          ) : null}
           {typeof effectiveWeek.weightedScore === 'number' ? (
             <KvTypography variant="caption" tone="muted" as="p">
               وزن این هفته: {effectiveWeek.weightedScore}
@@ -273,6 +281,8 @@ export function DailyApprovalWeekGradingModal({
                   schoolName={effectiveTrainee.schoolName}
                   advisorFeedback={modal.advisorFeedback}
                   scoreInput={modal.scoreInput}
+                  schoolVisited={modal.schoolVisited}
+                  onSchoolVisitedChange={modal.setSchoolVisited}
                   passingScoreThreshold={passingScoreThreshold}
                   onAdvisorFeedbackChange={modal.setAdvisorFeedback}
                   onScoreInputChange={modal.handleScoreInputChange}
@@ -294,6 +304,9 @@ export function DailyApprovalWeekGradingModal({
                   principalFeedback={modal.principalFeedback}
                   onPrincipalRatingChange={modal.setPrincipalRating}
                   onPrincipalFeedbackChange={modal.setPrincipalFeedback}
+                  attendanceDays={modal.attendanceDays}
+                  attendanceDates={modal.principalAttendance}
+                  onAttendanceDatesChange={modal.setPrincipalAttendance}
                 />
               ) : null}
             </fieldset>

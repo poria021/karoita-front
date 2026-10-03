@@ -250,7 +250,11 @@ export function useDailyApprovalsActions({
   );
 
   const saveSupervisorWeek = useCallback(
-    async (input: { score: number | null; advisorFeedback: string }) => {
+    async (input: {
+      score: number | null;
+      advisorFeedback: string;
+      schoolVisited: boolean;
+    }) => {
       scheduleWeekGradingSave({
         gradingTarget,
         message:
@@ -266,6 +270,7 @@ export function useDailyApprovalsActions({
               weekId: target.weekId,
               score: input.score,
               advisorFeedback: input.advisorFeedback,
+              schoolVisited: input.schoolVisited,
             });
           } finally {
             setActionBusy(false);
@@ -320,6 +325,7 @@ export function useDailyApprovalsActions({
     async (input: {
       principalFeedback: string;
       principalRating: DailyApprovalCompetencyRating | null;
+      principalAttendance: string[];
     }) => {
       scheduleWeekGradingSave({
         gradingTarget,
@@ -333,6 +339,7 @@ export function useDailyApprovalsActions({
               weekId: target.weekId,
               principalFeedback: input.principalFeedback,
               principalRating: input.principalRating,
+              principalAttendance: input.principalAttendance,
             });
           } finally {
             setActionBusy(false);

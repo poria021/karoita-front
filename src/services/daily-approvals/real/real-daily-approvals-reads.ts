@@ -143,6 +143,7 @@ function mapDailyApprovalWeek(week: NestStudentWeek, index: number): DailyApprov
     readBySupervisor: false,
     teacherStatus: week.teacherStatus ?? null,
     schoolAdminStatus: week.schoolAdminStatus ?? null,
+    schoolVisited: week.schoolVisited === true,
   };
 }
 

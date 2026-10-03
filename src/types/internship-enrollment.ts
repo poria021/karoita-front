@@ -111,6 +111,8 @@ export type InternshipWeeklyReportFeedback = {
   principalAt?: string;
   mentorRating?: InternshipCompetencyRating;
   principalRating?: InternshipCompetencyRating;
+  /** روزهایی (`YYYY-MM-DD`) که مدیر مدرسه حضور کارورز در مدرسه را تأیید کرده. */
+  principalAttendance?: string[];
 };
 
 export type InternshipWeeklySession = {

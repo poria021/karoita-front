@@ -6,6 +6,7 @@ import type {
   DailyApprovalTrainee,
   DailyApprovalWeek,
 } from '@/types/daily-approvals';
+import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { getWeekVisual } from '../constants';
@@ -91,6 +92,15 @@ export function DailyApprovalWeekGrid({
               {score !== null ? (
                 <span className="block w-full text-xs font-black leading-snug">
                   {toPersianDigits(score)}/۱۰۰
+                </span>
+              ) : null}
+              {score !== null && week.schoolVisited ? (
+                <span
+                  className="flex w-full items-center gap-1 text-[11px] font-bold leading-snug"
+                  title="استاد راهنما در این جلسه به مدرسه رفته است"
+                >
+                  <FaIcon icon={faIcons.school} size="xs" />
+                  بازدید از مدرسه
                 </span>
               ) : null}
             </span>

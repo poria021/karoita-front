@@ -205,6 +205,8 @@ export type NestStudentWeek = {
   score?: number | null;
   /** نمرهٔ وزن‌دار این هفته (نمره × وزن هفته) — تنها فیلد وزن که Nest برمی‌گرداند. */
   weightedScore?: number | null;
+  /** بازدید حضوری استاد راهنما از مدرسه در این جلسه. */
+  schoolVisited?: boolean | null;
   scoreGivenBy?: string | null;
   scoreGivenAt?: string | null;
   startedAt?: string | null;

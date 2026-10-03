@@ -67,6 +67,8 @@ export type DailyApprovalWeek = {
   /** فیلد خام `teacherStatus`/`schoolAdminStatus` — برای قفل‌شدن مودال خودِ همان نقش. */
   teacherStatus?: 'send' | null;
   schoolAdminStatus?: 'send' | null;
+  /** استاد راهنما در این جلسه به مدرسه رفته و بازدید حضوری داشته است. */
+  schoolVisited?: boolean;
 };
 
 export type DailyApprovalProgressiveGrade = {
@@ -129,6 +131,8 @@ export type UpdateDailyApprovalWeekInput = {
   /** ASCII ۰–۱۰۰؛ خالی/`null` + بازخورد → `needs_edit`. */
   score: number | null;
   advisorFeedback: string;
+  /** همراه نمرهٔ نهایی ثبت می‌شود: استاد در این جلسه به مدرسه رفته است. */
+  schoolVisited?: boolean;
 };
 
 /** برای معلم راهنما امتیاز الزامی است؛ بازخورد متنی اختیاری. */
@@ -145,6 +149,8 @@ export type UpdatePrincipalDailyApprovalWeekInput = {
   weekId: string;
   principalFeedback: string;
   principalRating: DailyApprovalCompetencyRating | null;
+  /** روزهای تأییدشدهٔ حضور در مدرسه (`YYYY-MM-DD`) — اختیاری. */
+  principalAttendance?: string[];
 };
 
 export type ExtendDailyApprovalWeekInput = {

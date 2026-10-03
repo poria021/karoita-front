@@ -6,6 +6,7 @@ import { KvTextArea } from '@/components/shared/fields/KvTextArea';
 import { KvTypography } from '@/components/shared/KvTypography';
 import type { DailyApprovalCompetencyRating } from '@/types/daily-approvals';
 
+import type { PrincipalAttendanceDay } from '../lib/principalAttendanceDays';
 import {
   competencyRatingLabel,
   DAILY_APPROVAL_COMPETENCY_OPTIONS,
@@ -19,6 +20,9 @@ type DailyApprovalPrincipalGradingFieldsProps = {
   principalFeedback: string;
   onPrincipalRatingChange: (value: DailyApprovalCompetencyRating | null) => void;
   onPrincipalFeedbackChange: (value: string) => void;
+  attendanceDays: PrincipalAttendanceDay[];
+  attendanceDates: string[];
+  onAttendanceDatesChange: (value: string[]) => void;
 };
 
 export function DailyApprovalPrincipalGradingFields({
@@ -26,6 +30,9 @@ export function DailyApprovalPrincipalGradingFields({
   principalFeedback,
   onPrincipalRatingChange,
   onPrincipalFeedbackChange,
+  attendanceDays,
+  attendanceDates,
+  onAttendanceDatesChange,
 }: DailyApprovalPrincipalGradingFieldsProps) {
   return (
     <div className="space-y-kv-group rounded-kv-panel border-2 border-kv-brand/25 bg-kv-brand-soft/40 p-kv-section shadow-kv-soft">
@@ -34,6 +41,44 @@ export function DailyApprovalPrincipalGradingFields({
           ارزیابی توصیفی مدیریت مدرسه
         </KvTypography>
       </div>
+
+      <fieldset className="space-y-kv-pair border-0 p-0">
+        <legend className="mb-kv-pair">
+          <KvTypography variant="body" as="span">
+            تأیید حضور کارورز در مدرسه در این هفته:
+          </KvTypography>
+        </legend>
+        <div className="grid grid-cols-1 gap-kv-pair sm:grid-cols-2">
+          {attendanceDays.map((day) => {
+            const checked = attendanceDates.includes(day.isoDate);
+            return (
+              <label
+                key={day.isoDate}
+                className="flex cursor-pointer items-center gap-kv-pair rounded-kv-control border border-kv-brand/20 bg-kv-surface px-kv-stack py-kv-pair"
+              >
+                <input
+                  type="checkbox"
+                  className="size-4 shrink-0 accent-kv-brand"
+                  checked={checked}
+                  onChange={(event) =>
+                    onAttendanceDatesChange(
+                      event.target.checked
+                        ? [...attendanceDates, day.isoDate]
+                        : attendanceDates.filter((iso) => iso !== day.isoDate)
+                    )
+                  }
+                />
+                <KvTypography variant="body" as="span">
+                  {day.weekdayLabel}
+                </KvTypography>
+                <KvTypography variant="caption" tone="muted" as="span">
+                  {day.dateLabel}
+                </KvTypography>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
 
       <KvSelectField
         label="سطح شایستگی کارورز (اختیاری):"

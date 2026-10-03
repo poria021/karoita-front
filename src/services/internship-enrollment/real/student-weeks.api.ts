@@ -14,10 +14,14 @@ export const NEST_STUDENT_WEEKS_PATHS = {
 
 export const studentWeeksApi = {
   /** PATCH /api/v1/student-weeks/{id}/score — نمرهٔ استاد راهنما؛ پاسخ بدون بدنه. */
-  score(weekId: string, score: number): Promise<unknown> {
+  score(
+    weekId: string,
+    score: number,
+    schoolVisited = false
+  ): Promise<unknown> {
     return apiClient.patchMaybeJson<unknown>(
       NEST_STUDENT_WEEKS_PATHS.score(weekId),
-      { score }
+      { score, schoolVisited }
     );
   },
 };
