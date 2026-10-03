@@ -28,7 +28,6 @@ type CourseForm = {
   editId: string;
   title: string;
   audience: AcademicTermType;
-  isActive: boolean;
   hasSubModules: boolean;
   subModules: SubModuleDraft[];
 };
@@ -44,7 +43,6 @@ function emptyForm(audience: AcademicTermType): CourseForm {
     editId: '',
     title: '',
     audience,
-    isActive: true,
     hasSubModules: false,
     subModules: [],
   };
@@ -55,7 +53,6 @@ function formFromCourse(course: CourseDefinition): CourseForm {
     editId: course.id,
     title: course.title,
     audience: course.audience,
-    isActive: course.isActive,
     hasSubModules: course.subModules.length > 0,
     subModules: course.subModules.map((sub) => ({
       key: nextDraftKey(),
@@ -69,7 +66,8 @@ function toInput(form: CourseForm): UpsertCourseDefinitionInput {
   return {
     title: form.title,
     audience: form.audience,
-    isActive: form.isActive,
+    // فعال/غیرفعال‌سازی در این ماژول نیست؛ هر درس تعریف‌شده فعال است.
+    isActive: true,
     subModules: form.hasSubModules
       ? form.subModules.map((sub) => ({ id: sub.id, title: sub.title }))
       : [],
@@ -97,7 +95,7 @@ export function useCourseCatalogPage() {
   );
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [pendingActiveId, setPendingActiveId] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<CourseDefinition | null>(
     null
   );
@@ -127,17 +125,28 @@ export function useCourseCatalogPage() {
     setFormError(null);
   }
 
+  function openCreate() {
+    resetForm(listAudience);
+    setModalOpen(true);
+  }
+
   function startEdit(course: CourseDefinition) {
     const next = formFromCourse(course);
     setForm(next);
     setBaseline(formSignature(next));
     setFormError(null);
-    setListAudience(course.audience);
+    setModalOpen(true);
+  }
+
+  /** حین ذخیره بسته نمی‌شود تا نتیجه از دست نرود. */
+  function closeModal() {
+    if (isSaving) return;
+    setModalOpen(false);
+    resetForm();
   }
 
   function changeListAudience(audience: AcademicTermType) {
     setListAudience(audience);
-    if (!isEditing && !isDirty) resetForm(audience);
   }
 
   function setHasSubModules(hasSubModules: boolean) {
@@ -234,39 +243,12 @@ export function useCourseCatalogPage() {
           : `درس «${input.title.trim()}» تعریف شد.`
       );
       setListAudience(input.audience);
+      setModalOpen(false);
       resetForm(input.audience);
     } catch (err) {
       setFormError(errorMessage(err, 'ذخیرهٔ درس ناموفق بود.'));
     } finally {
       setIsSaving(false);
-    }
-  }
-
-  async function toggleCourseActive(course: CourseDefinition, isActive: boolean) {
-    if (pendingActiveId) return;
-    setPendingActiveId(course.id);
-    try {
-      const snapshot = await SyllabusConfigService.setCourseDefinitionActive(
-        course.id,
-        isActive
-      );
-      applySnapshot(snapshot);
-      if (form.editId === course.id) {
-        setForm((prev) => ({ ...prev, isActive }));
-        setBaseline((prev) => {
-          const parsed = JSON.parse(prev) as UpsertCourseDefinitionInput;
-          return JSON.stringify({ ...parsed, isActive });
-        });
-      }
-      toast.success(
-        isActive
-          ? `درس «${course.title}» فعال شد و در ارائهٔ دروس دیده می‌شود.`
-          : `درس «${course.title}» غیرفعال شد.`
-      );
-    } catch (err) {
-      toast.error(errorMessage(err, 'تغییر وضعیت درس ناموفق بود.'));
-    } finally {
-      setPendingActiveId(null);
     }
   }
 
@@ -283,7 +265,10 @@ export function useCourseCatalogPage() {
         target.id
       );
       applySnapshot(snapshot);
-      if (form.editId === target.id) resetForm(target.audience);
+      if (form.editId === target.id) {
+        setModalOpen(false);
+        resetForm(target.audience);
+      }
       toast.warning(`درس «${target.title}» حذف شد.`);
     } catch (err) {
       toast.error(errorMessage(err, 'حذف درس ناموفق بود.'));
@@ -298,6 +283,9 @@ export function useCourseCatalogPage() {
     changeListAudience,
     audienceCounts,
     listCourses,
+    modalOpen,
+    openCreate,
+    closeModal,
     form,
     isEditing,
     isDirty,
@@ -312,8 +300,6 @@ export function useCourseCatalogPage() {
     removeSubModule,
     moveSubModule,
     saveCourse,
-    pendingActiveId,
-    toggleCourseActive,
     deleteTarget,
     requestDelete,
     clearDelete: () => setDeleteTarget(null),

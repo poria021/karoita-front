@@ -8,6 +8,7 @@ import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { unknownErrorMessage } from '@/lib/unknown-error-message';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
+import { isDynamicEnrollmentLevel } from '@/services/syllabus-config/course-catalog';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import type {
@@ -50,14 +51,17 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
     return InternshipEnrollmentService.resolveLevelForRole(actor.role, level);
   }, [actor, level]);
 
-  const levelAllowed = Boolean(resolved && level <= resolved.maxLevel);
+  const isDynamicLevel = isDynamicEnrollmentLevel(level);
+  const levelAllowed = Boolean(
+    resolved && (isDynamicLevel || level <= resolved.maxLevel)
+  );
 
   useLayoutEffect(() => {
     if (!role || !resolved) return;
-    if (level > resolved.maxLevel) {
+    if (!isDynamicLevel && level > resolved.maxLevel) {
       router.replace(RouteService.karvita.internshipSelection(resolved.maxLevel));
     }
-  }, [role, level, resolved, router]);
+  }, [role, level, isDynamicLevel, resolved, router]);
 
   const queryKey = [
     ...DASHBOARD_QUERY.internshipEnrollment,

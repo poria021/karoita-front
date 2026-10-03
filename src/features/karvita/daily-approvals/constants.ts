@@ -5,6 +5,8 @@ import type {
   DailyApprovalReadFilter,
   DailyApprovalWeekState,
 } from '@/types/daily-approvals';
+import { evaluationCourseFilterId } from '@/services/syllabus-config/course-catalog';
+import type { CourseDefinition } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -93,8 +95,42 @@ const APPRENTICESHIP_COURSES: readonly {
   { value: 'appr2', label: 'کارآموزی ۲' },
 ];
 
-export function getDailyApprovalCourseOptions(kind: DailyApprovalCourseKind) {
-  return kind === 'internship' ? INTERNSHIP_COURSES : APPRENTICESHIP_COURSES;
+export type DailyApprovalCourseOption = {
+  value: DailyApprovalCourseFilter;
+  label: string;
+};
+
+/** شناسهٔ ماژول‌های قابل ارزیابی یک درس: زیرمجموعه‌ها، یا خود درس اگر زیرمجموعه ندارد. */
+export function evaluationScopeKeys(courseModule: CourseDefinition): string[] {
+  const leafIds =
+    courseModule.subModules.length > 0
+      ? courseModule.subModules.map((sub) => sub.id)
+      : [courseModule.id];
+  return leafIds.map(evaluationCourseFilterId);
+}
+
+/**
+ * فیلتر بالای جدول. با درس داینامیک (mock) فقط زیرمجموعه‌های همان درس می‌آید؛
+ * بدون آن (real) فهرست ثابت قبلی. مقدار گزینه از `evaluationCourseFilterId` می‌آید تا
+ * داده‌ی mock قدیمی (`intern1`) فیلتر شود.
+ */
+export function getDailyApprovalCourseOptions(
+  kind: DailyApprovalCourseKind,
+  courseModule: CourseDefinition | null = null
+): readonly DailyApprovalCourseOption[] {
+  if (!courseModule) {
+    return kind === 'internship' ? INTERNSHIP_COURSES : APPRENTICESHIP_COURSES;
+  }
+  if (courseModule.subModules.length === 0) {
+    return [{ value: 'all', label: toPersianDigits(courseModule.title) }];
+  }
+  return [
+    { value: 'all', label: 'همه زیرمجموعه‌ها' },
+    ...courseModule.subModules.map((sub) => ({
+      value: evaluationCourseFilterId(sub.id),
+      label: toPersianDigits(sub.title),
+    })),
+  ];
 }
 
 /** هم‌تراز با `SESSION_VISUALS` انتخاب واحد (پنل گزارش‌نویسی). */

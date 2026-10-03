@@ -44,10 +44,9 @@ describe('course catalog mutations (mock)', () => {
     expect(project.map((c) => c.title)).toEqual(['پروژه الف', 'پروژه ب']);
   });
 
-  it('blocks deleting or deactivating a course with an active offering', async () => {
+  it('blocks deleting a course while one of its modules is offered', async () => {
     await offeringMutations.activateOffering({ termId: 'term_1', courseCatalogId: 'course_internship_1' });
     await expect(courseCatalogMutations.deleteCourseDefinition('course_internship')).rejects.toThrow();
-    await expect(courseCatalogMutations.setCourseDefinitionActive('course_internship', false)).rejects.toThrow();
 
     await offeringMutations.deactivateOffering({
       courseOfferingId: buildCourseOfferingId('term_1', 'course_internship_1'),

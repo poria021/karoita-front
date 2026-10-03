@@ -7,10 +7,36 @@ import type {
   InternshipSupervisor,
 } from '@/types/internship-enrollment';
 
+import { courseNameForKind } from '@/services/internship-enrollment/enrollment-mappers';
+import {
+  courseDefinitionsOf,
+  findLeafByEnrollmentLevel,
+  isDynamicEnrollmentLevel,
+} from '@/services/syllabus-config/course-catalog';
+import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
+import { normalizeEnrollmentCourseTitle } from '@/utils/enrollment-eligibility';
 import type { EnrollmentSnapshot } from '@/services/internship-enrollment/mock/mock-enrollment-persistence';
 import { SUPERVISOR_SEEDS } from '@/services/internship-enrollment/mock/mock-enrollment-seeds';
 
 export const PLACEHOLDER_UNSET = 'مشخص نشده';
+
+/**
+ * عنوان درس یک سطح: leaf داینامیک عنوان کاتالوگ را دارد؛ سطح ثابت همان «نوع + شماره».
+ */
+export function courseTitleForLevel(
+  kind: InternshipCourseKind,
+  level: InternshipEnrollmentLevel
+): string {
+  if (isDynamicEnrollmentLevel(level)) {
+    const leaf = findLeafByEnrollmentLevel(
+      courseDefinitionsOf(readSyllabusSnapshot()),
+      kind === 'apprenticeship' ? 'modular' : 'semester',
+      level
+    );
+    if (leaf) return leaf.title;
+  }
+  return normalizeEnrollmentCourseTitle(courseNameForKind(kind), level);
+}
 
 export function capacityKey(
   termId: string,

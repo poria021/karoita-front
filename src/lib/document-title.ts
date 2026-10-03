@@ -67,7 +67,7 @@ export function resolveBrowserTabTitle(
   const internshipMatch = /^\/karvita\/internships\/(\d+)$/.exec(path);
   if (internshipMatch) {
     const level = Number(internshipMatch[1]);
-    if (level >= 1 && level <= 4) {
+    if (level >= 1) {
       return formatDocumentTitle(
         getModuleMeta(RouteService.karvita.internshipSelection(level), role)
           .title

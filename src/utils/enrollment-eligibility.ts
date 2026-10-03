@@ -7,10 +7,25 @@ import type {
   InternshipSchoolCapacity,
   InternshipSupervisor,
 } from '@/types/internship-enrollment';
+import { isDynamicEnrollmentLevel } from '@/services/syllabus-config/course-catalog';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 export function hasAvailableCapacity(capacity: InternshipCapacity | undefined): boolean {
   return capacity === null || (typeof capacity === 'number' && capacity > 0);
+}
+
+/**
+ * ظرفیت مدرسه/معلم برای یک سطح. سطح مجازیِ leaf داینامیک در seed ظرفیت ندارد؛
+ * mock آن را نامحدود (`null`) می‌گیرد تا ثبت‌نام درس تازه قفل نشود.
+ */
+export function capacityForLevel(
+  capacities: Partial<Record<number, InternshipCapacity>>,
+  level: InternshipEnrollmentLevel
+): InternshipCapacity | undefined {
+  const configured = capacities[level];
+  // `null` یعنی نامحدود، پس با `??` جا نمی‌افتد.
+  if (configured !== undefined) return configured;
+  return isDynamicEnrollmentLevel(level) ? null : undefined;
 }
 
 export function normalizeEnrollmentCourseTitle(
@@ -55,13 +70,14 @@ export function hasEligibleSchoolMentorCascade(input: {
           (Array.isArray(actor.district) ? actor.district.length === 0 : false) ||
           actorFieldIncludes(actor.district, school.district)));
 
-    if (!isInDefaultScope || !hasAvailableCapacity(school.capacities[level])) {
+    if (!isInDefaultScope || !hasAvailableCapacity(capacityForLevel(school.capacities, level))) {
       return false;
     }
 
     return mentors.some(
       (mentor) =>
-        mentor.schoolId === school.id && hasAvailableCapacity(mentor.capacities[level])
+        mentor.schoolId === school.id &&
+        hasAvailableCapacity(capacityForLevel(mentor.capacities, level))
     );
   });
 }

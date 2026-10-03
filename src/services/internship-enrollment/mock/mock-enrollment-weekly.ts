@@ -1,9 +1,9 @@
 import {
   clampLevel,
-  courseNameForKind,
   kindForRole,
 } from '@/services/internship-enrollment/enrollment-mappers';
 import {
+  courseTitleForLevel,
   findRecord,
   isArchivedTerm,
   PLACEHOLDER_UNSET,
@@ -24,9 +24,10 @@ import {
   readSyllabusSnapshot,
 } from '@/services/syllabus-config/mock/mock-syllabus-store';
 import {
-  buildCourseOfferingId,
-  catalogIdForKind,
-} from '@/services/syllabus-config/syllabus-mappers';
+  courseDefinitionsOf,
+  leafIdForEnrollmentLevel,
+} from '@/services/syllabus-config/course-catalog';
+import { buildCourseOfferingId } from '@/services/syllabus-config/syllabus-mappers';
 import type {
   InternshipCourseKind,
   InternshipEnrollmentLevel,
@@ -40,7 +41,6 @@ import type {
   SaveWeeklyReportDraftInput,
   SubmitWeeklyReportInput,
 } from '@/types/internship-enrollment';
-import { normalizeEnrollmentCourseTitle } from '@/utils/enrollment-eligibility';
 
 function statusForWeek(index: number): InternshipWeeklySessionState {
   const seededStates: InternshipWeeklySessionState[] = [
@@ -112,7 +112,11 @@ export function buildWeeklySessions(input: {
   const syllabus = readSyllabusSnapshot();
   const offeringId = buildCourseOfferingId(
     input.termId,
-    catalogIdForKind(input.kind, input.level)
+    leafIdForEnrollmentLevel(
+      courseDefinitionsOf(syllabus),
+      input.kind,
+      input.level
+    )
   );
   const offering = syllabus.offerings[offeringId];
   // بعد از ذخیرهٔ سرفصل، تعداد کارت = ردیف‌های همان ارائه.
@@ -336,10 +340,7 @@ export function buildEnrollmentSummary(input: {
     schoolName: record?.schoolName ?? null,
     mentorId: record?.mentorId ?? null,
     mentorName: record?.mentorName ?? null,
-    courseTitle: normalizeEnrollmentCourseTitle(
-      courseNameForKind(input.kind),
-      input.level
-    ),
+    courseTitle: courseTitleForLevel(input.kind, input.level),
     termTitle: input.termTitle,
     status: record?.status ?? 'active',
     removalPending: Boolean(record?.removalPending),

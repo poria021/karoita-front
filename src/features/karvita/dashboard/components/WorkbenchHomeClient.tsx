@@ -12,6 +12,7 @@ import {
   shouldShowOnboardingChecklist,
 } from '@/utils/onboardingProgress';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
+import { useSidebarMenu } from '@/components/shared/shell/useSidebarMenu';
 import { getLiveWorkbenchShortcuts } from '@/utils/workbenchShortcuts';
 
 export type WorkbenchHomeProps = {
@@ -40,10 +41,11 @@ export function WorkbenchHomeClient({
   emptyDescription,
 }: WorkbenchHomeProps) {
   const activeUser = useUserStore((state) => state.activeUser);
+  const menu = useSidebarMenu(activeUser?.role);
   if (!activeUser) return null;
 
   const strategy = getRoleStrategy(activeUser.role);
-  const shortcuts = getLiveWorkbenchShortcuts(activeUser.role);
+  const shortcuts = getLiveWorkbenchShortcuts(activeUser.role, menu);
   const displayName =
     [activeUser.firstName, activeUser.lastName].filter(Boolean).join(' ') ||
     strategy.label;

@@ -7,6 +7,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
+import { HeaderBrandWordmark } from '@/components/shared/shell/HeaderBrandWordmark';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
@@ -14,7 +15,6 @@ import { useUserStore } from '@/store/useUserStore';
 import {
   areKarvitaModulesUnlocked,
   getRoleStrategy,
-  getVisibleSidebarMenu,
   isSidebarMenuGroup,
 } from '@/utils/RoleStrategyMap';
 import { faIcons } from '@/utils/iconMap';
@@ -23,6 +23,7 @@ import { SidebarNavGroup } from './SidebarNavGroup';
 import { SidebarNavLink } from './SidebarNavLink';
 import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
 import { useInternshipLockedPaths } from './useInternshipLockedPaths';
+import { useSidebarMenu, useSidebarSearch } from './useSidebarMenu';
 
 export function Sidebar() {
   const activeUser = useUserStore((state) => state.activeUser);
@@ -45,11 +46,12 @@ export function Sidebar() {
       ? activeUser.role
       : null;
   const internshipLockedPaths = useInternshipLockedPaths(enrollmentRole);
+  const visibleMenu = useSidebarMenu(activeUser?.role);
+  const search = useSidebarSearch();
 
   if (!activeUser) return null;
 
   const strategy = getRoleStrategy(activeUser.role);
-  const visibleMenu = getVisibleSidebarMenu(activeUser.role);
   const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
 
   return (
@@ -96,6 +98,7 @@ export function Sidebar() {
           <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">
             <div className="flex min-w-0 items-center gap-kv-inline">
               <KarvitaBrandMark />
+              <HeaderBrandWordmark textSize="legible" />
               <h2 id={drawerTitleId} className="sr-only">
                 کارویتا — پنل کاربری - {strategy.label}
               </h2>
@@ -126,6 +129,7 @@ export function Sidebar() {
                   key={`group:${entry.title}`}
                   group={entry}
                   pathname={pathname}
+                  search={search}
                   isCollapsed={isCollapsed}
                   locked={!modulesUnlocked}
                   lockedPaths={modulesUnlocked ? internshipLockedPaths : undefined}

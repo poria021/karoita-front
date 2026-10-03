@@ -1,3 +1,4 @@
+import { isDynamicEnrollmentLevel } from '@/services/syllabus-config/course-catalog';
 import type {
   InternshipCourseKind,
   InternshipEnrollmentLevel,
@@ -24,6 +25,8 @@ export function clampLevel(
   kind: InternshipCourseKind,
   level: InternshipEnrollmentLevel
 ): InternshipEnrollmentLevel {
+  // سطح مجازی leaf داینامیک (mock) سقف ۴/۲ ندارد؛ Nest هرگز چنین سطحی نمی‌سازد.
+  if (isDynamicEnrollmentLevel(level)) return level;
   const max = maxLevelForKind(kind);
   if (level < 1) return 1;
   if (level > max) return max as InternshipEnrollmentLevel;

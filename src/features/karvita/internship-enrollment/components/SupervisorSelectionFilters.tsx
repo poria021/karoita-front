@@ -6,6 +6,8 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 type SupervisorSelectionFiltersProps = {
   courseName: string;
+  /** عنوان کامل درس داینامیک؛ نبودنش = «نام نوع + شماره‌ی سطح». */
+  courseTitle?: string;
   level: number;
   query: string;
   onQueryChange: (value: string) => void;
@@ -13,6 +15,7 @@ type SupervisorSelectionFiltersProps = {
 
 export function SupervisorSelectionFilters({
   courseName,
+  courseTitle,
   level,
   query,
   onQueryChange,
@@ -22,7 +25,10 @@ export function SupervisorSelectionFilters({
       <div className="flex flex-col items-stretch gap-kv-pair sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-1 text-start">
           <KvTypography variant="subtitle" as="h2">
-            اخذ واحد {courseName} {toPersianDigits(level)}
+            اخذ واحد{' '}
+            {courseTitle
+              ? toPersianDigits(courseTitle)
+              : `${courseName} ${toPersianDigits(level)}`}
           </KvTypography>
           <KvTypography variant="caption" tone="muted" as="p">
             استاد راهنمای مدنظر خود را انتخاب کرده و ثبت نهایی را بزنید.

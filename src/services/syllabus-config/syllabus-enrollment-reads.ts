@@ -1,8 +1,9 @@
 import { isTermGateActive } from '@/services/syllabus-config/syllabus-term-gates';
 import {
-  buildCourseOfferingId,
-  catalogIdForKind,
-} from '@/services/syllabus-config/syllabus-mappers';
+  courseDefinitionsOf,
+  leafIdForEnrollmentLevel,
+} from '@/services/syllabus-config/course-catalog';
+import { buildCourseOfferingId } from '@/services/syllabus-config/syllabus-mappers';
 import type {
   AcademicTerm,
   CourseOfferingKind,
@@ -42,7 +43,7 @@ export function isCourseOfferedInTerm(
 ): boolean {
   const offeringId = buildCourseOfferingId(
     term.id,
-    catalogIdForKind(kind, level)
+    leafIdForEnrollmentLevel(courseDefinitionsOf(snapshot), kind, level)
   );
   const offering = snapshot.offerings[offeringId];
   return Boolean(offering?.isOffered);

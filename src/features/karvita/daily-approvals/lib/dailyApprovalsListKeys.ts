@@ -12,7 +12,9 @@ export function dailyApprovalsListResetKey(
   readFilter: DailyApprovalReadFilter,
   course: DailyApprovalCourseFilter,
   termId: string,
-  query: string
+  query: string,
+  moduleId = ''
 ): string {
-  return `${kind}::${readFilter}::${course}::${termId}::${query}`;
+  const base = `${kind}::${readFilter}::${course}::${termId}::${query}`;
+  return moduleId ? `${base}::${moduleId}` : base;
 }

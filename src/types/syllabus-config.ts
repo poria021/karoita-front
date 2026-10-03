@@ -53,6 +53,11 @@ export type CourseCatalogItem = {
 export type CourseSubModule = {
   id: string;
   title: string;
+  /**
+   * سطح عددی پایدار برای مسیر/داده‌ی ثبت‌نام mock (`/internships/:level`).
+   * leaf های seed (`course_*_N`) ندارند و همان N هستند؛ leaf تازه از ۱۰۱ به بالا می‌گیرد.
+   */
+  level?: number;
 };
 
 /**
@@ -67,6 +72,8 @@ export type CourseDefinition = {
   audience: AcademicTermType;
   isActive: boolean;
   subModules: CourseSubModule[];
+  /** سطح ثبت‌نام وقتی درس زیرمجموعه ندارد و خودش leaf است (مثل `CourseSubModule.level`). */
+  level?: number;
 };
 
 export type UpsertCourseDefinitionInput = {
@@ -116,6 +123,8 @@ export type SyllabusConfigSnapshot = {
   passingScoreThreshold: number;
   /** کاتالوگ دروس داینامیک (فعلاً فقط mock). نبودنش = seed پیش‌فرض کارورزی/کارآموزی. */
   courseCatalog?: CourseDefinition[];
+  /** آخرین سطح ثبت‌نامِ داده‌شده به leaf داینامیک؛ شمارنده‌ی یکنوا تا سطح حذف‌شده دوباره استفاده نشود. */
+  courseLevelSeq?: number;
 };
 
 export type UpsertTermInput = {

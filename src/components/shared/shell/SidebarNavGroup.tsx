@@ -16,6 +16,7 @@ import {
 } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 import type { SidebarMenuGroup } from '@/utils/RoleStrategyMap';
+import { resolveActiveSidebarPath } from '@/utils/role-strategy/sidebar-active';
 import { faIcons } from '@/utils/iconMap';
 
 import { resolveSidebarIcon } from './resolveSidebarIcon';
@@ -24,6 +25,8 @@ import { SidebarNavLink } from './SidebarNavLink';
 export type SidebarNavGroupProps = {
   group: SidebarMenuGroup;
   pathname: string;
+  /** query فعلی؛ برای آیتم‌هایی که مسیرشان پارامتر دارد (`?kind=…&course=…`). */
+  search?: string;
   isCollapsed: boolean;
   locked: boolean;
   /** مسیرهایی که فارغ از وضعیت گروه، به‌صورت مستقل قفل هستند (مثل سطح‌های انتخاب واحد). */
@@ -35,14 +38,21 @@ export type SidebarNavGroupProps = {
 export function SidebarNavGroup({
   group,
   pathname,
+  search = '',
   isCollapsed,
   locked,
   lockedPaths,
   onNavigate,
   textSize = 'compact',
 }: SidebarNavGroupProps) {
-  const childActive =
-    !locked && group.children.some((child) => child.path === pathname);
+  const activePath = locked
+    ? null
+    : resolveActiveSidebarPath(
+        group.children.map((child) => child.path),
+        pathname,
+        search
+      );
+  const childActive = activePath !== null;
   // گروه با زیرماژول از ابتدا باز باشد تا فرزندان دیده شوند.
   const [open, setOpen] = useState(true);
   const [prevChildActive, setPrevChildActive] = useState(childActive);
@@ -65,7 +75,7 @@ export function SidebarNavGroup({
             <SidebarNavLink
               key={child.path}
               item={child}
-              isActive={!locked && pathname === child.path}
+              isActive={activePath === child.path}
               isCollapsed
               locked={locked || Boolean(lockedPaths?.has(child.path))}
               onNavigate={onNavigate}
@@ -83,7 +93,7 @@ export function SidebarNavGroup({
               if (locked) return;
               setOpen((value) => !value);
             }}
-            pathname={pathname}
+            activePath={activePath}
             locked={locked}
             lockedPaths={lockedPaths}
             onNavigate={onNavigate}
@@ -105,7 +115,7 @@ export function SidebarNavGroup({
         if (locked) return;
         setOpen((value) => !value);
       }}
-      pathname={pathname}
+      activePath={activePath}
       locked={locked}
       lockedPaths={lockedPaths}
       onNavigate={onNavigate}
@@ -121,7 +131,7 @@ function ExpandedGroupChrome({
   groupId,
   open,
   onToggle,
-  pathname,
+  activePath,
   locked,
   lockedPaths,
   onNavigate,
@@ -133,15 +143,14 @@ function ExpandedGroupChrome({
   groupId: string;
   open: boolean;
   onToggle: () => void;
-  pathname: string;
+  activePath: string | null;
   locked: boolean;
   lockedPaths?: ReadonlySet<string>;
   onNavigate: () => void;
   isCollapsed: boolean;
   textSize: KvShellRailTextSize;
 }) {
-  const childActive =
-    !locked && group.children.some((child) => child.path === pathname);
+  const childActive = !locked && activePath !== null;
 
   return (
     <div className="space-y-kv-nav-tight">
@@ -215,7 +224,7 @@ function ExpandedGroupChrome({
             <SidebarNavLink
               key={child.path}
               item={child}
-              isActive={!locked && pathname === child.path}
+              isActive={!locked && activePath === child.path}
               isCollapsed={isCollapsed}
               locked={locked || Boolean(lockedPaths?.has(child.path))}
               onNavigate={onNavigate}

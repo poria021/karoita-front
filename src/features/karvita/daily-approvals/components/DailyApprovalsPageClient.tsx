@@ -87,14 +87,17 @@ export function DailyApprovalsPageClient() {
         <KvSplitWorkspace
           ratio="5/7"
           tabs={
-            <DailyApprovalsCourseTabs
-              value={page.kind}
-              onChange={page.changeKind}
-            />
+            page.showKindTabs ? (
+              <DailyApprovalsCourseTabs
+                value={page.kind}
+                onChange={page.changeKind}
+              />
+            ) : undefined
           }
           toolbar={
             <DailyApprovalsWorkspaceHeader
               termId={page.termId}
+              courseTitle={page.courseTitle}
               terms={page.terms}
               onTermChange={page.changeTerm}
               showBulkExtend={canBulkExtend}

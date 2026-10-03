@@ -1,5 +1,6 @@
 import { IS_MOCK_MODE } from '@/lib/api-mode';
 import {
+  assignEnrollmentLevels,
   buildCourseDefinition,
   cloneDefaultCourseDefinitions,
   leafIdsOfCourse,
@@ -13,7 +14,6 @@ import {
   createRealCourseDefinition,
   deleteRealCourseDefinition,
   listRealCourseDefinitions,
-  setRealCourseDefinitionActive,
   updateRealCourseDefinition,
 } from '@/services/syllabus-config/real/real-course-catalog';
 import type {
@@ -79,7 +79,9 @@ export const courseCatalogMutations = {
       const catalog = ensureCatalog(draft);
       const error = validateCourseDefinitionInput(input, catalog);
       if (error) throw new Error(error);
-      catalog.push(buildCourseDefinition(input));
+      const created = buildCourseDefinition(input);
+      assignEnrollmentLevels(draft, created);
+      catalog.push(created);
     });
   },
 
@@ -99,6 +101,7 @@ export const courseCatalogMutations = {
       if (error) throw new Error(error);
 
       const next = buildCourseDefinition(input, existing);
+      assignEnrollmentLevels(draft, next);
       const nextLeafIds = new Set(next.isActive ? leafIdsOfCourse(next) : []);
       const audienceChanged = next.audience !== existing.audience;
       const droppedLeafIds = leafIdsOfCourse(existing).filter(
@@ -107,21 +110,6 @@ export const courseCatalogMutations = {
       assertNoActiveOfferings(draft, droppedLeafIds, 'این تغییر');
 
       catalog[catalog.indexOf(existing)] = next;
-    });
-  },
-
-  async setCourseDefinitionActive(
-    id: string,
-    isActive: boolean
-  ): Promise<SyllabusConfigSnapshot> {
-    gateSyllabusTermSettings();
-    if (!IS_MOCK_MODE) return setRealCourseDefinitionActive(id, isActive);
-    return mutateSyllabusSnapshot((draft) => {
-      const course = findCourseOrThrow(ensureCatalog(draft), id);
-      if (!isActive) {
-        assertNoActiveOfferings(draft, leafIdsOfCourse(course), 'غیرفعال کردن درس');
-      }
-      course.isActive = isActive;
     });
   },
 

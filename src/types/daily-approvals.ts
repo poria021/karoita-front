@@ -26,7 +26,9 @@ export type DailyApprovalCourseFilter =
   | 'intern3'
   | 'intern4'
   | 'appr1'
-  | 'appr2';
+  | 'appr2'
+  // درس داینامیک مدیر ارشد: شناسهٔ leaf کاتالوگ (mock). Nest فعلاً فقط شناسه‌های بالا را می‌شناسد.
+  | (string & {});
 
 export type DailyApprovalCatalogCourse = {
   id: string;
@@ -107,6 +109,11 @@ export type ListDailyApprovalsInput = {
   query: string;
   readFilter: DailyApprovalReadFilter;
   course: DailyApprovalCourseFilter;
+  /**
+   * محدودهٔ درس انتخاب‌شده در ماژول (شناسهٔ فیلتر زیرمجموعه‌ها). وقتی `course` برابر `all` است
+   * فقط همین‌ها دیده می‌شوند. فقط mock؛ real فیلتر درس را از `lessonId` می‌گیرد و نادیده‌اش می‌گیرد.
+   */
+  scopeKeys?: readonly string[];
   termId: string;
   offset: number;
   limit: number;

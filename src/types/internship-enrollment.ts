@@ -8,7 +8,10 @@ import type { User } from '@/types/auth';
 export type InternshipCourseKind = 'internship' | 'apprenticeship';
 
 /** سطح درس — ASCII در مسیر/داده؛ نمایش با `toPersianDigits`. */
-export type InternshipEnrollmentLevel = 1 | 2 | 3 | 4;
+/**
+ * ۱..۴ سطح‌های ثابت Nest/seed؛ اعداد بالاتر (از ۱۰۱) سطح مجازیِ leaf داینامیک مدیر ارشد و فقط در mock‌اند.
+ */
+export type InternshipEnrollmentLevel = number;
 
 /**
  * سناریوهای Phase 1–2:
@@ -216,6 +219,8 @@ export type InternshipEnrollmentPageState = {
   kind: InternshipCourseKind;
   level: InternshipEnrollmentLevel;
   courseName: string;
+  /** عنوان کامل درس داینامیک (mock)؛ نبودنش = «نام نوع + شماره‌ی سطح». */
+  courseTitle?: string;
   termTitle: string;
   termId: string;
   /** شناسهٔ درس Nest برای GET professors؛ در mock همان catalog id است. */

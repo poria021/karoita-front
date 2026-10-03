@@ -1,5 +1,11 @@
 import { PlannedRoutes } from '@/services/planned-routes';
 import { RouteService } from '@/services/route.service';
+import {
+  courseDefinitionsOf,
+  findLeafByEnrollmentLevel,
+  isDynamicEnrollmentLevel,
+} from '@/services/syllabus-config/course-catalog';
+import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
 import type { UserRole } from '@/types/auth';
 import {
   getRoleStrategy,
@@ -257,11 +263,34 @@ function isProfilePath(path: string): boolean {
   return /^\/karvita\/[^/]+\/profile$/.test(path);
 }
 
+/**
+ * عنوان صفحهٔ انتخاب واحد یک درس داینامیک (سطح مجازی بالای ۱۰۰) از کاتالوگ mock.
+ * کاتالوگ فقط در mock داینامیک است؛ در real یا سرور leaf پیدا نمی‌شود و همان عنوان عمومی می‌ماند.
+ */
+function resolveDynamicEnrollmentMeta(path: string): ModuleMeta | null {
+  const match = /^\/karvita\/internships\/(\d+)$/.exec(path);
+  if (!match) return null;
+  const level = Number(match[1]);
+  if (!isDynamicEnrollmentLevel(level)) return null;
+  const definitions = courseDefinitionsOf(readSyllabusSnapshot());
+  const leaf =
+    findLeafByEnrollmentLevel(definitions, 'semester', level) ??
+    findLeafByEnrollmentLevel(definitions, 'modular', level);
+  if (!leaf) return null;
+  return {
+    ...MODULE_META_BY_PATH[RouteService.karvita.internshipSelection(1)]!,
+    title: leaf.title,
+  };
+}
+
 export function getModuleMeta(
   pathname: string,
   role?: UserRole | null
 ): ModuleMeta {
   const path = normalizePath(pathname);
+
+  const dynamicEnrollment = resolveDynamicEnrollmentMeta(path);
+  if (dynamicEnrollment) return dynamicEnrollment;
 
   if (isProfilePath(path)) {
     return PROFILE_META;

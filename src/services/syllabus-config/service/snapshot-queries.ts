@@ -18,7 +18,9 @@ import { courseDefinitionsOf } from '@/services/syllabus-config/course-catalog';
 import { catalogKindForTermType } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import { getRealSyllabusSnapshot } from '@/services/syllabus-config/real/real-syllabus-reads';
 import type {
+  AcademicTermType,
   CourseCatalogItem,
+  CourseDefinition,
   CourseOfferingKind,
   CourseOfferingListItem,
   SyllabusConfigSnapshot,
@@ -35,6 +37,19 @@ export const snapshotQueries = {
       return getRealSyllabusSnapshot();
     }
     return cloneSnapshot(readSyllabusSnapshot());
+  },
+
+  /**
+   * درس‌های فعال تعریف‌شدهٔ مدیر ارشد برای یک مخاطب، با زیرمجموعه‌هایشان.
+   * خوانندهٔ مصرفی (سایدبار/ارزیابی) — گارد ادمین ندارد. در real تا آمدن API خالی
+   * برمی‌گردد و مصرف‌کننده به فهرست پیش‌فرض برمی‌گردد.
+   */
+  getActiveCourseDefinitions(audience: AcademicTermType): CourseDefinition[] {
+    gateSyllabusConsumerRead();
+    if (!IS_MOCK_MODE) return [];
+    return courseDefinitionsOf(readSyllabusSnapshot()).filter(
+      (course) => course.isActive && course.audience === audience
+    );
   },
 
   /** تا آمدن endpoint واقعی سال تحصیلی، در حالت real لیست خالی برمی‌گرداند. */

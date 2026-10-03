@@ -5,6 +5,7 @@ import {
   resolveEnrollmentScenario,
 } from '@/services/internship-enrollment/enrollment-mappers';
 import {
+  courseTitleForLevel,
   findRecord,
   getScope,
   getSupervisorList,
@@ -21,7 +22,10 @@ import {
   buildWeeklySessions,
 } from '@/services/internship-enrollment/mock/mock-enrollment-weekly';
 import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
-import { catalogIdForKind } from '@/services/syllabus-config/syllabus-mappers';
+import {
+  courseDefinitionsOf,
+  leafIdForEnrollmentLevel,
+} from '@/services/syllabus-config/course-catalog';
 import {
   pickActiveTermForKind,
   resolveEnrollmentSyllabusContext,
@@ -41,6 +45,7 @@ import type {
   ListEligibleSupervisorsInput,
 } from '@/types/internship-enrollment';
 import {
+  capacityForLevel,
   filterEligibleSupervisors,
   findConflictingActiveTermEnrollment,
   hasAvailableCapacity,
@@ -124,9 +129,10 @@ export function resolveEnrollmentPageState(
     kind,
     level,
     courseName: courseNameForKind(kind),
+    courseTitle: courseTitleForLevel(kind, level),
     termTitle: context.termTitle,
     termId: context.termId,
-    lessonId: catalogIdForKind(kind, level),
+    lessonId: leafIdForEnrollmentLevel(courseDefinitionsOf(syllabus), kind, level),
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'
         ? buildEnrollmentSummary({
@@ -220,12 +226,12 @@ export function listDelayedSchools(
   return SCHOOLS.filter(
     (school) =>
       isSchoolInActorScope(school, input.actor) &&
-      hasAvailableCapacity(school.capacities[input.level]) &&
+      hasAvailableCapacity(capacityForLevel(school.capacities, input.level)) &&
       matchesDelayedSearch(school.name, input.query) &&
       MENTORS.some(
         (mentor) =>
           mentor.schoolId === school.id &&
-          hasAvailableCapacity(mentor.capacities[input.level])
+          hasAvailableCapacity(capacityForLevel(mentor.capacities, input.level))
       )
   );
 }
@@ -237,7 +243,7 @@ export function listDelayedMentors(
   if (
     !school ||
     !isSchoolInActorScope(school, input.actor) ||
-    !hasAvailableCapacity(school.capacities[input.level])
+    !hasAvailableCapacity(capacityForLevel(school.capacities, input.level))
   ) {
     return [];
   }
@@ -245,7 +251,7 @@ export function listDelayedMentors(
   return MENTORS.filter(
     (mentor) =>
       mentor.schoolId === school.id &&
-      hasAvailableCapacity(mentor.capacities[input.level]) &&
+      hasAvailableCapacity(capacityForLevel(mentor.capacities, input.level)) &&
       matchesDelayedSearch(mentor.name, input.query)
   );
 }

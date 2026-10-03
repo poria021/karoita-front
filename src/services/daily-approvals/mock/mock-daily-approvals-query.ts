@@ -94,6 +94,10 @@ export function listMockDailyApprovals(
     .filter((trainee) => matchesQuery(trainee, input.query))
     .filter((trainee) => matchesReadFilter(trainee, input.readFilter))
     .filter((trainee) => matchesCourse(trainee, input.course))
+    .filter(
+      (trainee) =>
+        !input.scopeKeys || input.scopeKeys.includes(trainee.courseKey)
+    )
     .sort((left, right) => {
       if (left.status === 'dropped' && right.status !== 'dropped') return 1;
       if (right.status === 'dropped' && left.status !== 'dropped') return -1;

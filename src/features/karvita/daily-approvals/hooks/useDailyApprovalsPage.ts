@@ -28,6 +28,10 @@ export function useDailyApprovalsPage() {
     setReadFilter,
     course,
     setCourse,
+    courseModule,
+    setModuleId,
+    showKindTabs,
+    scopeKeys,
     termId,
     setTermId,
     listQuery,
@@ -44,6 +48,7 @@ export function useDailyApprovalsPage() {
     listQuery,
     readFilter,
     course,
+    scopeKeys,
     termId,
     termsReady: terms.termsReady,
     resetKey,
@@ -60,9 +65,11 @@ export function useDailyApprovalsPage() {
     (next: DailyApprovalCourseKind) => {
       setKind(next);
       setCourse('all');
+      // درس پنل قبلی در پنل جدید معنا ندارد؛ hook درس اول پنل جدید را می‌گذارد.
+      setModuleId(null);
       clearSelection();
     },
-    [clearSelection, setCourse, setKind]
+    [clearSelection, setCourse, setKind, setModuleId]
   );
 
   const changeReadFilter = useCallback(
@@ -91,6 +98,8 @@ export function useDailyApprovalsPage() {
 
   return {
     kind,
+    courseTitle: courseModule?.title ?? null,
+    showKindTabs,
     changeKind,
     query,
     setQuery,

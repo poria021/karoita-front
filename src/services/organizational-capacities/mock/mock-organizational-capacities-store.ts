@@ -2,6 +2,7 @@ import { isMockApiMode } from '@/lib/api-mode';
 import {
   courseDefinitionsOf,
   flattenCourseCatalog,
+  legacyLeafId,
 } from '@/services/syllabus-config/course-catalog';
 import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
 import { summarizeCapacityCourses } from '@/utils/organizational-capacity-math';
@@ -46,13 +47,6 @@ function maxCapacityFromSyllabus(): number {
   return Number.isFinite(value) && value > 0 ? value : 15;
 }
 
-/** شناسهٔ قدیمی seed ظرفیت قبل از کاتالوگ داینامیک؛ فقط برای نگه‌داشتن ظرفیت ذخیره‌شده. */
-function legacyCourseId(catalogId: string): string | null {
-  const match = /^course_(internship|apprenticeship)_(\d+)$/.exec(catalogId);
-  if (!match) return null;
-  return `${match[1] === 'internship' ? 'intern' : 'appr'}${match[2]}`;
-}
-
 /**
  * درس‌های ظرفیت = درس‌های فعال کاتالوگ برای همین مخاطب (زیرمجموعه‌ها تخت شده).
  * ظرفیت/روز قبلاً ذخیره‌شده با `id` حفظ می‌شود؛ درس تازه seed می‌گیرد.
@@ -68,7 +62,7 @@ function reconcileCourses(
   const byId = new Map(existing.map((course) => [course.id, course]));
   return catalog.map((item, index) => {
     const saved =
-      byId.get(item.id) ?? byId.get(legacyCourseId(item.id) ?? '');
+      byId.get(item.id) ?? byId.get(legacyLeafId(item.id) ?? '');
     return {
       total: 15,
       confirmed: kind === 'internship' ? (index === 0 ? 2 : index === 1 ? 1 : 0) : index === 0 ? 1 : 0,

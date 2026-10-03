@@ -1,22 +1,80 @@
 'use client';
 
+import {
+  AppTabs,
+  AppTabsList,
+  AppTabsTrigger,
+} from '@/components/shared/AppTabs';
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
-import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
+import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
+import type { AcademicTermType } from '@/types/syllabus-config';
+import { faIcons } from '@/utils/iconMap';
+import { toPersianDigits } from '@/utils/persianDigits';
 
+import { COURSE_AUDIENCE_OPTIONS } from '../../constants';
 import { useCourseCatalogPage } from '../../hooks/useCourseCatalogPage';
-import { CourseDefinitionFormCard } from './CourseDefinitionFormCard';
-import { CourseDefinitionsList } from './CourseDefinitionsList';
+import { CourseDefinitionModal } from './CourseDefinitionModal';
+import { CourseDefinitionsTable } from './CourseDefinitionsTable';
 
-/** صفحهٔ تعریف دروس — خروجی‌اش منبع جدول «ارائه و سرفصل دروس» است. */
+/** صفحهٔ تعریف دروس — جدول با فیلتر ترمی/پودمانی؛ افزودن و ویرایش در مودال. */
 export function CourseCatalogModule() {
   const page = useCourseCatalogPage();
 
   return (
     <SuperAdminModuleGuard>
-      <KvWorkspace panel={false}>
+      <KvWorkspace
+        panel={false}
+        tabs={
+          <div className="mb-kv-pair">
+            <AppTabs
+              value={page.listAudience}
+              onValueChange={(value) =>
+                page.changeListAudience(value as AcademicTermType)
+              }
+              gridCols={2}
+            >
+              <AppTabsList aria-label="فیلتر پنل دروس">
+                {COURSE_AUDIENCE_OPTIONS.map((option) => (
+                  <AppTabsTrigger key={option.value} value={option.value}>
+                    {option.label} (
+                    {toPersianDigits(String(page.audienceCounts[option.value]))})
+                  </AppTabsTrigger>
+                ))}
+              </AppTabsList>
+            </AppTabs>
+          </div>
+        }
+        toolbar={
+          <div className="flex flex-col justify-start gap-kv-group pt-kv-pair lg:flex-row lg:items-center lg:justify-between lg:ps-kv-group">
+            <div className="flex min-w-0 flex-col items-start gap-kv-field text-start">
+              <KvTypography variant="subtitle" weight="bold" as="h3">
+                تعریف دروس
+              </KvTypography>
+              <KvTypography variant="caption" tone="muted">
+                درس‌ها و زیرمجموعه‌هایشان را تعریف کنید؛ هر درس در «ارائه و
+                سرفصل دروس»، «ظرفیت‌ها» و «ارزیابی گزارش‌ها» دیده می‌شود.
+              </KvTypography>
+            </div>
+            <KvButton
+              type="button"
+              color="cta"
+              appearance="solid"
+              className="w-full shrink-0 lg:w-auto"
+              disabled={page.isLoading || Boolean(page.error)}
+              onClick={page.openCreate}
+              icon={<FaIcon icon={faIcons.plus} size="xs" />}
+              iconPosition="start"
+            >
+              افزودن درس
+            </KvButton>
+          </div>
+        }
+      >
         {page.error ? (
           <KvAlert
             variant="error"
@@ -34,46 +92,33 @@ export function CourseCatalogModule() {
             }
           />
         ) : (
-          <div className="flex w-full justify-center">
-            <div className="grid w-full grid-cols-1 items-start gap-kv-group lg:max-w-5xl lg:grid-cols-12 xl:max-w-6xl">
-              <div className="lg:col-span-5">
-                <CourseDefinitionFormCard
-                  form={page.form}
-                  isEditing={page.isEditing}
-                  isDirty={page.isDirty}
-                  formError={page.formError}
-                  isSaving={page.isSaving}
-                  isLoading={page.isLoading}
-                  patchForm={page.patchForm}
-                  resetForm={page.resetForm}
-                  setHasSubModules={page.setHasSubModules}
-                  addSubModule={page.addSubModule}
-                  updateSubModule={page.updateSubModule}
-                  removeSubModule={page.removeSubModule}
-                  moveSubModule={page.moveSubModule}
-                  saveCourse={page.saveCourse}
-                  requestDelete={page.requestDelete}
-                  listCourses={page.listCourses}
-                />
-              </div>
-              <div className="lg:col-span-7">
-                <CourseDefinitionsList
-                  listAudience={page.listAudience}
-                  changeListAudience={page.changeListAudience}
-                  audienceCounts={page.audienceCounts}
-                  listCourses={page.listCourses}
-                  isLoading={page.isLoading}
-                  form={page.form}
-                  startEdit={page.startEdit}
-                  requestDelete={page.requestDelete}
-                  pendingActiveId={page.pendingActiveId}
-                  toggleCourseActive={page.toggleCourseActive}
-                />
-              </div>
-            </div>
-          </div>
+          <CourseDefinitionsTable
+            courses={page.listCourses}
+            audience={page.listAudience}
+            isLoading={page.isLoading}
+            onAdd={page.openCreate}
+            onEdit={page.startEdit}
+            onDelete={page.requestDelete}
+          />
         )}
       </KvWorkspace>
+
+      <CourseDefinitionModal
+        modalOpen={page.modalOpen}
+        closeModal={page.closeModal}
+        form={page.form}
+        isEditing={page.isEditing}
+        isDirty={page.isDirty}
+        formError={page.formError}
+        isSaving={page.isSaving}
+        patchForm={page.patchForm}
+        setHasSubModules={page.setHasSubModules}
+        addSubModule={page.addSubModule}
+        updateSubModule={page.updateSubModule}
+        removeSubModule={page.removeSubModule}
+        moveSubModule={page.moveSubModule}
+        saveCourse={page.saveCourse}
+      />
 
       <KvConfirmationDialog
         isOpen={Boolean(page.deleteTarget)}

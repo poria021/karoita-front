@@ -57,6 +57,7 @@ export function ScenarioEnrollOpen({
     <div className="flex min-h-0 flex-1 flex-col gap-kv-group text-start">
       <SupervisorSelectionFilters
         courseName={state.courseName}
+        courseTitle={state.courseTitle}
         level={state.level}
         query={wizard.query}
         onQueryChange={wizard.setQuery}

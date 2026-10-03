@@ -19,6 +19,7 @@ import {
   normalizeCourseTitle,
 } from '../syllabus-mappers';
 import {
+  assignEnrollmentLevels,
   cloneDefaultCourseDefinitions,
   courseDefinitionsOf,
 } from '../course-catalog';
@@ -125,6 +126,7 @@ type LegacySnapshot = {
   passingScoreThreshold: number;
   selectedTermTitle?: string;
   courseCatalog?: CourseDefinition[];
+  courseLevelSeq?: number;
 };
 
 function isCourseOfferingRecord(
@@ -177,14 +179,18 @@ export function migrateLegacySnapshot(
     };
   }
 
-  return {
+  const migrated: SyllabusConfigSnapshot = {
     terms: raw.terms ?? [],
     offerings,
     internships: raw.internships ?? [],
     globalProfessorCapacity: raw.globalProfessorCapacity ?? 15,
     passingScoreThreshold: raw.passingScoreThreshold ?? 70,
     courseCatalog,
+    courseLevelSeq: raw.courseLevelSeq,
   };
+  // دروسی که قبل از سطح ثبت‌نام ذخیره شده‌اند (یا leaf تازه) سطح پایدار می‌گیرند.
+  for (const course of courseCatalog) assignEnrollmentLevels(migrated, course);
+  return migrated;
 }
 
 function persist(snapshot: SyllabusConfigSnapshot): void {

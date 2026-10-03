@@ -21,6 +21,7 @@ type UseDailyApprovalsListArgs = {
   listQuery: string;
   readFilter: DailyApprovalReadFilter;
   course: DailyApprovalCourseFilter;
+  scopeKeys?: readonly string[];
   termId: string;
   termsReady: boolean;
   resetKey: string;
@@ -32,6 +33,7 @@ export function useDailyApprovalsList({
   listQuery,
   readFilter,
   course,
+  scopeKeys,
   termId,
   termsReady,
   resetKey,
@@ -51,12 +53,13 @@ export function useDailyApprovalsList({
         query: listQuery,
         readFilter,
         course,
+        scopeKeys,
         termId,
         offset,
         limit,
       });
     },
-    [course, kind, listQuery, readFilter, termId, termsReady]
+    [course, kind, listQuery, readFilter, scopeKeys, termId, termsReady]
   );
 
   const list = useOffsetLimitInfiniteList<DailyApprovalTrainee>({
