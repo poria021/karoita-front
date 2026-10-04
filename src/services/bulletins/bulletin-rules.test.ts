@@ -8,8 +8,6 @@ import {
   canPublishAdvertisements,
   canPublishAnnouncements,
   canReceiveBulletins,
-  isBulletinOwnedBy,
-  isBulletinVisibleTo,
   validateBulletinInput,
 } from './bulletin-rules';
 
@@ -44,32 +42,11 @@ describe('bulletin-rules', () => {
     expect(canPublishAnnouncements('skill_learner')).toBe(false);
   });
 
-  it('announcement reaches only subordinate roles', () => {
-    const row = announcement();
-    expect(isBulletinVisibleTo(row, 'student')).toBe(true);
-    expect(isBulletinVisibleTo(row, 'provincial_university')).toBe(false);
-    expect(isBulletinVisibleTo(row, 'skill_learner')).toBe(false);
-    // مخاطب ذخیره‌شدهٔ خارج از سلسله‌مراتب نشت نمی‌کند.
-    expect(
-      isBulletinVisibleTo(
-        announcement({ audienceRoles: ['central_organization'] }),
-        'central_organization'
-      )
-    ).toBe(false);
-  });
-
   it('super admin is the only role nobody announces to', () => {
     expect(canReceiveBulletins('super_admin')).toBe(false);
     expect(canReceiveBulletins('assistant_admin')).toBe(true);
     expect(canReceiveBulletins('student')).toBe(true);
     expect(audienceRolesFor('student', 'announcement')).toEqual([]);
-  });
-
-  it('staff admins share ownership; other panels own their own rows', () => {
-    const adminRow = announcement({ authorRole: 'super_admin' });
-    expect(isBulletinOwnedBy(adminRow, 'assistant_admin')).toBe(true);
-    expect(isBulletinOwnedBy(adminRow, 'faculty_role')).toBe(false);
-    expect(isBulletinOwnedBy(announcement(), 'provincial_university')).toBe(false);
   });
 
   it('validates kind, audience and link', () => {

@@ -1,10 +1,6 @@
 import { isMockApiMode } from '@/lib/api-mode';
 import { ApiClientError } from '@/services/api-client';
 import { AuthService } from '@/services/auth.service';
-import {
-  patchMockAuthUser,
-  toPublicUser,
-} from '@/services/auth/mock/mock-auth.store';
 import { isBrowsableMediaUrl } from '@/services/files/resolve-nest-file-url';
 import type { ProfileDto } from '@/types/profile';
 import { useUserStore } from '@/store/useUserStore';
@@ -18,12 +14,11 @@ import {
   ProfileServiceError,
 } from './profile/profile.mappers';
 import {
+  applyMockIdentityDocument,
+  applyMockProfile,
   getMockProfile,
-  updateMockIdentityDocument,
-  updateMockProfile,
-} from '@/services/profile/mock/profile.mock';
+} from '@/services/profile/mock/profile.fixtures';
 
-const MOCK_DELAY_MS = 350;
 const MAX_IDENTITY_BASE64_CHARS = 1_100_000;
 
 export interface UpdateOnboardingProfilePayload {
@@ -120,8 +115,7 @@ export class ProfileService {
         return parseProfile(profileDto);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-      return getMockProfile(token);
+      return getMockProfile();
     } catch (error) {
       throw friendlyError(error);
     }
@@ -164,8 +158,11 @@ export class ProfileService {
         };
       }
 
-      await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-      return updateMockProfile(validatedData, token);
+      applyMockProfile(validatedData);
+      return {
+        success: true,
+        message: 'اطلاعات پروفایل شما با موفقیت ذخیره شد.',
+      };
     } catch (error) {
       throw friendlyError(error);
     }
@@ -200,24 +197,7 @@ export class ProfileService {
       return next;
     }
 
-    const toArray = (v: string | string[] | undefined): string[] | undefined =>
-      typeof v === 'string' ? (v ? [v] : []) : v;
-
-    await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-    const updated = patchMockAuthUser(
-      { id: activeUser.id },
-      {
-        ...validatedData,
-        province: toArray('province' in validatedData ? validatedData.province : undefined),
-        college: 'college' in validatedData ? toArray(validatedData.college) : undefined,
-        ...approvalFields(validatedData.role, {
-          approved: activeUser.approved,
-          docStatus: activeUser.docStatus,
-        }),
-        lastChange: Date.now(),
-      }
-    );
-    return toPublicUser(updated);
+    return applyMockProfile(validatedData);
   }
 
   /**
@@ -226,7 +206,7 @@ export class ProfileService {
    */
   static async updateIdentityDocument(
     documentBase64: string,
-    token?: string
+    _token?: string
   ): Promise<void> {
     try {
       if (!documentBase64.startsWith('data:image/webp;base64,')) {
@@ -245,8 +225,7 @@ export class ProfileService {
         );
       }
 
-      await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-      updateMockIdentityDocument(documentBase64, token);
+      applyMockIdentityDocument(documentBase64);
     } catch (error) {
       throw friendlyError(error);
     }

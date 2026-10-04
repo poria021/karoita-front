@@ -1,27 +1,13 @@
 import { IS_MOCK_MODE } from '@/lib/api-mode';
-import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
-import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
-  cloneSnapshot,
-  readOrgSnapshot,
-} from '@/services/org-structure/mock/mock-org-store';
-import {
-  listLabelsForField as queryLabelsForField,
-  queryOrgListPage,
-} from '@/services/org-structure/mock/mock-org-query';
-import {
-  mockDeleteEntity,
-  mockGetEntity,
-  mockListCities,
-  mockListDistricts,
-  mockListProvinces,
-  mockUpsertCity,
-  mockUpsertDistrict,
-  mockUpsertFaculty,
-  mockUpsertMajor,
-  mockUpsertProvince,
-  mockUpsertSchool,
-} from '@/services/org-structure/mock/mock-org-mutations';
+  mockOrgCities,
+  mockOrgDistricts,
+  mockOrgEntity,
+  mockOrgLabelsForField,
+  mockOrgListPage,
+  mockOrgProvinces,
+  mockOrgSnapshot,
+} from '@/services/org-structure/mock/org-structure.fixtures';
 import {
   deleteRealEntity,
   upsertRealCity,
@@ -89,17 +75,9 @@ export type OrgStructureListPageOptions = {
   query?: string;
 };
 
-function requireMockOrgManage(): void {
-  if (!IS_MOCK_MODE) {
-    // حالت real — گارد mock را رد کن؛ شاخهٔ Nest جدا است.
-    return;
-  }
-  assertMockClientHasPermission('organization.manage');
-}
-
 /**
  * Facade ساختار سازمانی — لیست صفحه‌بندی‌شده و CRUD.
- * این فایل فقط `IS_MOCK_MODE` و گارد مجوز است؛ mock به `mock-org-*` و real به `real-org-*`.
+ * mock: فقط داده‌ی ثابت (نوشتن‌ها چیزی ذخیره نمی‌کنند)؛ real به `real-org-*`.
  * رشته در Nest یعنی `degree` (`/admin/degreeee`)؛ پردیس یعنی `universites`.
  */
 export const OrgStructureService = {
@@ -108,8 +86,7 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return getRealSnapshot();
     }
-    requireMockOrgManage();
-    return cloneSnapshot(readOrgSnapshot());
+    return mockOrgSnapshot();
   },
 
   /** لیست صفحه‌بندی‌شده؛ رشته → GET /admin/degreeee، پردیس → GET /admin/universites. */
@@ -124,9 +101,7 @@ export const OrgStructureService = {
       return listRealPage({ tab: options.tab, offset, limit, query });
     }
 
-    requireMockOrgManage();
-    await delayMockAdminListPage();
-    return queryOrgListPage(options.tab, query, offset, limit);
+    return mockOrgListPage(options.tab, query, offset, limit);
   },
 
   /** شهر از GET /admin/cities/{id}؛ استان/پردیس get-by-id ندارند. */
@@ -145,8 +120,7 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return getRealEntity(kind, id);
     }
-    requireMockOrgManage();
-    return mockGetEntity(kind, id);
+    return mockOrgEntity(kind, id);
   },
 
   /** همهٔ استان‌ها — real صفحات GET /admin/provinces را جمع می‌کند. */
@@ -154,8 +128,7 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return listRealProvinces();
     }
-    requireMockOrgManage();
-    return mockListProvinces();
+    return mockOrgProvinces();
   },
 
   /** شهرهای یک استان — real: GET /admin/provinces/{id}/cities. */
@@ -163,8 +136,7 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return listRealCities(provinceId);
     }
-    requireMockOrgManage();
-    return mockListCities(provinceId);
+    return mockOrgCities(provinceId);
   },
 
   /** مناطق — real: GET /admin/educations?provinceId (بدون cityId؛ لایو ۵۰۰ می‌دهد). */
@@ -175,8 +147,7 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return listRealDistricts(provinceId, cityId);
     }
-    requireMockOrgManage();
-    return mockListDistricts(provinceId, cityId);
+    return mockOrgDistricts(provinceId, cityId);
   },
 
   /** برچسب typeahead پروفایل — فقط mock؛ real از OrganizationOptionsService. */
@@ -187,7 +158,7 @@ export const OrgStructureService = {
     majorAudience?: OrgMajorAudience
   ): string[] {
     if (!IS_MOCK_MODE) return [];
-    return queryLabelsForField(field, provinceName, districtName, majorAudience);
+    return mockOrgLabelsForField(field, provinceName, districtName, majorAudience);
   },
 
   /** GET /admin/roles — نقش‌هایی که رشته می‌تواند به آن‌ها وصل شود؛ mock خالی. */
@@ -215,8 +186,6 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return upsertRealProvince(input, editId);
     }
-    requireMockOrgManage();
-    mockUpsertProvince(input, editId);
   },
 
   /** POST/PATCH /admin/cities. */
@@ -224,8 +193,6 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return upsertRealCity(input, editId);
     }
-    requireMockOrgManage();
-    mockUpsertCity(input, editId);
   },
 
   /** POST/PUT /admin/universites — university Nest همان تب پردیس است. */
@@ -236,8 +203,6 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return upsertRealFaculty(input, editId);
     }
-    requireMockOrgManage();
-    mockUpsertFaculty(input, editId);
   },
 
   /** POST/PUT /admin/educations. */
@@ -248,8 +213,6 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return upsertRealDistrict(input, editId);
     }
-    requireMockOrgManage();
-    mockUpsertDistrict(input, editId);
   },
 
   /** POST/PUT /admin/schools. */
@@ -257,8 +220,6 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return upsertRealSchool(input, editId);
     }
-    requireMockOrgManage();
-    mockUpsertSchool(input, editId);
   },
 
   /** POST/PUT /admin/degree. */
@@ -266,8 +227,6 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return upsertRealMajor(input, editId);
     }
-    requireMockOrgManage();
-    mockUpsertMajor(input, editId);
   },
 
   /** DELETE /admin/{kind}/{id} — مدرسه بدون `/` قبل از id. */
@@ -275,8 +234,6 @@ export const OrgStructureService = {
     if (!IS_MOCK_MODE) {
       return deleteRealEntity(kind, id);
     }
-    requireMockOrgManage();
-    mockDeleteEntity(kind, id);
   },
 
   /** فقط real: کش لیست خام بعد از mutation — در mock no-op. */

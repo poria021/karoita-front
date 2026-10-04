@@ -98,37 +98,6 @@ export function canReceiveBulletins(
   );
 }
 
-/**
- * مالکیت پنل: مدیر ارشد و دستیار یک ستاد مشترک‌اند و موارد هم را مدیریت می‌کنند؛
- * بقیه فقط موارد نقش خودشان را.
- */
-export function isBulletinOwnedBy(
-  bulletin: Pick<Bulletin, 'authorRole'>,
-  role: UserRole | string | null | undefined
-): boolean {
-  if (isStaffAdminRole(role)) return isStaffAdminRole(bulletin.authorRole);
-  return bulletin.authorRole === role;
-}
-
-/**
- * آیا این مورد در داشبورد نقش بیننده دیده می‌شود؟ مخاطب ذخیره‌شده
- * دوباره با سلسله‌مراتب فعلی قطع داده می‌شود تا دادهٔ قدیمی به نقش بالادست نشت نکند.
- */
-export function isBulletinVisibleTo(
-  bulletin: Bulletin,
-  viewerRole: UserRole | string | null | undefined
-): boolean {
-  if (!viewerRole) return false;
-  const role = viewerRole as UserRole;
-  if (!bulletin.audienceRoles.includes(role)) return false;
-  return audienceRolesFor(bulletin.authorRole, bulletin.kind).includes(role);
-}
-
-/** جدیدترین اول. */
-export function sortBulletins(rows: readonly Bulletin[]): Bulletin[] {
-  return [...rows].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-}
-
 function isSafeHttpUrl(value: string): boolean {
   try {
     const url = new URL(value);

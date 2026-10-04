@@ -5,11 +5,7 @@ import {
   type ListNotificationsQuery,
   type NotificationsPage,
 } from '@/services/notifications/real/notifications.api';
-import {
-  markAllMockNotificationsAsRead,
-  markMockNotificationAsRead,
-  readMockNotifications,
-} from '@/services/notifications/mock/mock-notifications.store';
+import { mockNotifications } from '@/services/notifications/mock/notifications.fixtures';
 import type { AppNotification } from '@/types/notifications';
 
 const MARK_ALL_PAGE_SIZE = 50;
@@ -34,7 +30,7 @@ export class NotificationsService {
   /** hydrate همزمان فقط mock؛ real تا اولین fetch خالی است. */
   static getSnapshot(): AppNotification[] {
     if (!isMockApiMode()) return [];
-    return readMockNotifications();
+    return mockNotifications();
   }
 
   static async list(
@@ -48,7 +44,7 @@ export class NotificationsService {
     query: ListNotificationsQuery = {}
   ): Promise<NotificationsPage> {
     if (isMockApiMode()) {
-      return { data: readMockNotifications(), hasNextPage: false };
+      return { data: mockNotifications(), hasNextPage: false };
     }
     return notificationsApi.list(query);
   }
@@ -61,8 +57,8 @@ export class NotificationsService {
     notificationId: string
   ): Promise<AppNotification | null> {
     if (isMockApiMode()) {
-      const list = markMockNotificationAsRead(notificationId);
-      return list.find((item) => item.id === notificationId) ?? null;
+      const item = mockNotifications().find((n) => n.id === notificationId);
+      return item ? { ...item, read: true } : null;
     }
     return notificationsApi.markAsRead(notificationId);
   }
@@ -73,7 +69,7 @@ export class NotificationsService {
   static async markAllAsRead(): Promise<NotificationsPage> {
     if (isMockApiMode()) {
       return {
-        data: markAllMockNotificationsAsRead(),
+        data: mockNotifications().map((item) => ({ ...item, read: true })),
         hasNextPage: false,
       };
     }

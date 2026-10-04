@@ -120,7 +120,7 @@ describe('DailyApprovalsService real fail-closed', () => {
       advisorFeedback: 'متن بازخورد که هنوز جایی برای ذخیره ندارد',
     });
 
-    expect(studentWeeksApi.score).toHaveBeenCalledWith('w1', 87.5);
+    expect(studentWeeksApi.score).toHaveBeenCalledWith('w1', 87.5, false);
   });
 
   it('rejects a report without a score by posting the advisor feedback to the week conversation', async () => {

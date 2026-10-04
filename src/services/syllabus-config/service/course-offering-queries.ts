@@ -1,6 +1,9 @@
 import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { courseDefinitionsOf } from '@/services/syllabus-config/course-catalog';
-import { readSyllabusSnapshot, readWeeksFromSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
+import {
+  mockSyllabusSnapshot,
+  readWeeksFromSnapshot,
+} from '@/services/syllabus-config/mock/syllabus.fixtures';
 import {
   getCatalogForTermType,
   listOfferingsForTerm,
@@ -17,17 +20,14 @@ import type {
   LessonWeeksLoad,
 } from '@/types/syllabus-config';
 
-import { gateSyllabus } from './gates';
-
 export const courseOfferingQueries = {
   /** `GET /admin/semesters_all` — درس و پرچم ارائه در یک رفت‌وبرگشت. */
   async listCoursesAndOfferingsForTerm(termId: string): Promise<{
     courses: CourseCatalogItem[];
     offerings: CourseOfferingListItem[];
   }> {
-    gateSyllabus();
     if (!IS_MOCK_MODE) return getRealTermCourseContext(termId);
-    const snapshot = readSyllabusSnapshot();
+    const snapshot = mockSyllabusSnapshot();
     const term = snapshot.terms.find((t) => t.id === termId) ?? null;
     if (!term) return { courses: [], offerings: [] };
     return {
@@ -37,9 +37,8 @@ export const courseOfferingQueries = {
   },
 
   async listCoursesForTerm(termId: string): Promise<CourseCatalogItem[]> {
-    gateSyllabus();
     if (!IS_MOCK_MODE) return listRealCoursesForTerm(termId);
-    const snapshot = readSyllabusSnapshot();
+    const snapshot = mockSyllabusSnapshot();
     const term = snapshot.terms.find((t) => t.id === termId) ?? null;
     if (!term) return [];
     return getCatalogForTermType(term.type, courseDefinitionsOf(snapshot));
@@ -47,21 +46,19 @@ export const courseOfferingQueries = {
 
   /** در Nest پرچم ارائه همان `lesson.status` است. */
   async listOfferings(termId: string): Promise<CourseOfferingListItem[]> {
-    gateSyllabus();
     if (!IS_MOCK_MODE) return listRealOfferingsForTerm(termId);
-    return listOfferingsForTerm(readSyllabusSnapshot(), termId);
+    return listOfferingsForTerm(mockSyllabusSnapshot(), termId);
   },
 
   async getWeeks(
     termId: string,
     courseCatalogId: string
   ): Promise<LessonWeeksLoad> {
-    gateSyllabus();
     if (!IS_MOCK_MODE) {
       return getRealWeeksForLesson(termId, courseCatalogId);
     }
     const weeks = readWeeksFromSnapshot(
-      readSyllabusSnapshot(),
+      mockSyllabusSnapshot(),
       termId,
       courseCatalogId
     );

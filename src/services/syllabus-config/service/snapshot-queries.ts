@@ -1,10 +1,9 @@
 import { IS_MOCK_MODE } from '@/lib/api-mode';
 import {
-  cloneSnapshot,
   getAcademicYearOptions,
-  readSyllabusSnapshot,
+  mockSyllabusSnapshot,
   readWeeksFromSnapshot,
-} from '@/services/syllabus-config/mock/mock-syllabus-store';
+} from '@/services/syllabus-config/mock/syllabus.fixtures';
 import {
   resolveEnrollmentSyllabusContext,
   type EnrollmentSyllabusContext,
@@ -27,16 +26,13 @@ import type {
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
-import { gateSyllabusConsumerRead, gateSyllabus } from './gates';
-
 export const snapshotQueries = {
   /** `GET /admin/semester` + `GET /admin/semesters_all` + `GET /admin/settings` */
   async getSnapshot(): Promise<SyllabusConfigSnapshot> {
-    gateSyllabus();
     if (!IS_MOCK_MODE) {
       return getRealSyllabusSnapshot();
     }
-    return cloneSnapshot(readSyllabusSnapshot());
+    return mockSyllabusSnapshot();
   },
 
   /**
@@ -45,9 +41,8 @@ export const snapshotQueries = {
    * برمی‌گردد و مصرف‌کننده به فهرست پیش‌فرض برمی‌گردد.
    */
   getActiveCourseDefinitions(audience: AcademicTermType): CourseDefinition[] {
-    gateSyllabusConsumerRead();
     if (!IS_MOCK_MODE) return [];
-    return courseDefinitionsOf(readSyllabusSnapshot()).filter(
+    return courseDefinitionsOf(mockSyllabusSnapshot()).filter(
       (course) => course.isActive && course.audience === audience
     );
   },
@@ -68,7 +63,6 @@ export const snapshotQueries = {
     kind: CourseOfferingKind,
     level: number
   ): Promise<EnrollmentSyllabusContext> {
-    gateSyllabusConsumerRead();
     if (!IS_MOCK_MODE) {
       return {
         term: null,
@@ -79,16 +73,15 @@ export const snapshotQueries = {
         termOpen: false,
       };
     }
-    return resolveEnrollmentSyllabusContext(readSyllabusSnapshot(), kind, level);
+    return resolveEnrollmentSyllabusContext(mockSyllabusSnapshot(), kind, level);
   },
 
   async getPassingScoreThreshold(): Promise<number> {
-    gateSyllabusConsumerRead();
     if (!IS_MOCK_MODE) {
       const snapshot = await getRealSyllabusSnapshot();
       return snapshot.passingScoreThreshold;
     }
-    return readSyllabusSnapshot().passingScoreThreshold;
+    return mockSyllabusSnapshot().passingScoreThreshold;
   },
 
   /** از snapshot موجود؛ HTTP اضافه نمی‌زند. */

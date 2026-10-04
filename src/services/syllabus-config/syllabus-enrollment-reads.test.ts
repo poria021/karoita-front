@@ -1,17 +1,33 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import {
-  activateOfferingInSnapshot,
-  getTodayJalaliSlash,
-  resetSyllabusSnapshotForTests,
-  writeSyllabusSnapshot,
-} from '@/services/syllabus-config/mock/mock-syllabus-store';
+import { getTodayJalaliSlash } from '@/services/syllabus-config/syllabus-term-gates';
+import { buildCourseOfferingId } from '@/services/syllabus-config/syllabus-mappers';
 import {
   isCourseOfferedInTerm,
   pickActiveTermForKind,
   resolveEnrollmentSyllabusContext,
 } from '@/services/syllabus-config/syllabus-enrollment-reads';
-import type { SyllabusConfigSnapshot } from '@/types/syllabus-config';
+import type {
+  CourseOfferingKind,
+  SyllabusConfigSnapshot,
+} from '@/types/syllabus-config';
+
+function activateOffering(
+  draft: SyllabusConfigSnapshot,
+  termId: string,
+  courseCatalogId: string,
+  type: CourseOfferingKind
+): void {
+  const id = buildCourseOfferingId(termId, courseCatalogId);
+  draft.offerings[id] = {
+    id,
+    termId,
+    courseCatalogId,
+    type,
+    isOffered: true,
+    weeks: [],
+  };
+}
 
 function emptySnapshot(): SyllabusConfigSnapshot {
   return {
@@ -43,14 +59,6 @@ function emptySnapshot(): SyllabusConfigSnapshot {
 }
 
 describe('syllabus enrollment reads', () => {
-  beforeEach(() => {
-    resetSyllabusSnapshotForTests(emptySnapshot());
-  });
-
-  afterEach(() => {
-    resetSyllabusSnapshotForTests(null);
-  });
-
   it('picks semester for internship and modular for apprenticeship', () => {
     const snapshot = emptySnapshot();
     expect(pickActiveTermForKind(snapshot, 'internship')?.type).toBe('semester');
@@ -64,7 +72,7 @@ describe('syllabus enrollment reads', () => {
     const term = draft.terms[0]!;
     expect(isCourseOfferedInTerm(draft, term, 'internship', 1)).toBe(false);
 
-    activateOfferingInSnapshot(draft, term.id, 'course_internship_1', 'internship');
+    activateOffering(draft, term.id, 'course_internship_1', 'internship');
     expect(isCourseOfferedInTerm(draft, term, 'internship', 1)).toBe(true);
   });
 
@@ -74,7 +82,7 @@ describe('syllabus enrollment reads', () => {
     const term = draft.terms[0]!;
     term.isEnrollOpen = true;
     term.enrollStart = today;
-    activateOfferingInSnapshot(draft, term.id, 'course_internship_2', 'internship');
+    activateOffering(draft, term.id, 'course_internship_2', 'internship');
 
     const context = resolveEnrollmentSyllabusContext(draft, 'internship', 2);
     expect(context.syllabusConfigured).toBe(true);
@@ -83,13 +91,4 @@ describe('syllabus enrollment reads', () => {
     expect(context.termId).toBe(term.id);
   });
 
-  it('persists modular term in seeded snapshot writes', () => {
-    writeSyllabusSnapshot(emptySnapshot());
-    const context = resolveEnrollmentSyllabusContext(
-      emptySnapshot(),
-      'apprenticeship',
-      1
-    );
-    expect(context.term?.type).toBe('modular');
-  });
 });

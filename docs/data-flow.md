@@ -12,7 +12,7 @@
 
 ```
 صفحه (app/)  →  فیچر (features/)  →  Facade (services/*.service.ts)
-                                      ├─ mock/   شبیه‌ساز localStorage
+                                      ├─ mock/   داده‌ی ثابت (fixtures)
                                       └─ real/   apiClient → Nest
                                               ↑
                                     مرورگر: /api/nest  (و /__nest-api → همان)
@@ -44,10 +44,10 @@ Access token در حافظهٔ ماژول است (نه `localStorage`) چون XS
 
 ## حالت mock
 
-- داده در `localStorage` / حافظهٔ ماژول شبیه‌ساز است.
+- فقط داده‌ی ثابت (`mock/*.fixtures.ts`)؛ هیچ ذخیره‌سازی یا ارتباط بین صفحات نیست و ایجاد/ویرایش/حذف چیزی را تغییر نمی‌دهد.
 - OTP ثابت از `src/services/auth/mock/auth-mock-users.ts` (`MOCK_OTP_CODE`).
 - ورود ادمین از `/admin` است؛ `/auth/login` نقش ادمین را عمداً رد می‌کند.
-- مجوزهای mock نمایشی‌اند (`mock-authz`). اختیار واقعی همیشه سمت Nest است.
+- در mock بررسی مجوز نیست؛ اختیار واقعی همیشه سمت Nest است.
 
 ## وضعیت اتصال Nest (واقعی در برابر شبیه‌ساز)
 

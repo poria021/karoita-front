@@ -22,22 +22,19 @@ import {
 
 import {
   mockLoginWithCredentials,
-  mockRegister,
   mockResetPassword,
   mockSendAdminGateOtp,
-  mockSendForgotPasswordOtp,
   mockSendLoginOtp,
-  mockSetInitialPassword,
-  mockSetPassword,
   mockUpdateMe,
   mockVerifyAdminGateOtp,
   mockVerifyLoginOtp,
   mockVerifyRegistrationOtp,
 } from '@/services/auth/mock/mock-auth.operations';
 import {
+  dispatchSessionToStore as dispatchMockSessionToStore,
   readSessionMeta,
   tryRestoreMockSession,
-} from '@/services/auth/mock/mock-auth.store';
+} from '@/services/auth/mock/mock-auth.session';
 import {
   realDeleteMe,
   realFetchSession,
@@ -85,6 +82,18 @@ function rejectMockOtpInReal(otp: string): void {
 /** حداکثر عمر توکن که refreshRealSession بدون /auth/me به store اعتماد می‌کند. */
 const TOKEN_ME_SKIP_MS = 5 * 60_000; // 5 دقیقه
 
+/**
+ * پاک‌کردن نشست: در mock باید کوکی/متای نشست mock هم پاک شود (dispatch مشترک فقط
+ * Zustand را صفر می‌کند)، وگرنه بعد از reload کاربر دوباره وارد می‌شود.
+ */
+function clearSessionFromStore(): void {
+  if (IS_MOCK_MODE) {
+    dispatchMockSessionToStore(null);
+    return;
+  }
+  dispatchSessionToStore(null);
+}
+
 export class AuthService {
   static async loginWithCredentials(mobile: string, password: string): Promise<User> {
     if (IS_MOCK_MODE) return mockLoginWithCredentials(mobile, password);
@@ -114,10 +123,7 @@ export class AuthService {
   }
 
   static async register(payload: RegisterPayload): Promise<OtpCooldownResult> {
-    if (IS_MOCK_MODE) {
-      mockRegister(payload.mobile);
-      return { retryAfterSeconds: DEFAULT_FORGOT_RETRY_AFTER_SECONDS };
-    }
+    if (IS_MOCK_MODE) return { retryAfterSeconds: DEFAULT_FORGOT_RETRY_AFTER_SECONDS };
     return realRegister(payload.mobile, payload.role);
   }
 
@@ -131,30 +137,27 @@ export class AuthService {
     mobile: string
   ): Promise<OtpCooldownResult> {
     if (IS_MOCK_MODE) {
-      mockSendForgotPasswordOtp(mobile);
+      mockSendLoginOtp(mobile);
       return { retryAfterSeconds: DEFAULT_FORGOT_RETRY_AFTER_SECONDS };
     }
     return realSendForgotPasswordOtp(mobile);
   }
 
   static async resetPassword(mobile: string, otp: string, newPassword: string): Promise<void> {
-    if (IS_MOCK_MODE) { mockResetPassword(mobile, otp, newPassword); return; }
+    if (IS_MOCK_MODE) { mockResetPassword(mobile, otp); return; }
     rejectMockOtpInReal(otp);
     return realResetPassword(mobile, otp, newPassword);
   }
 
   static async setInitialPassword(mobile: string, newPassword: string): Promise<void> {
     if (newPassword.trim().length < PASSWORD_MIN_LENGTH) throw new Error(PASSWORD_MIN_LENGTH_MESSAGE);
-    if (IS_MOCK_MODE) { mockSetInitialPassword(mobile, newPassword); return; }
+    if (IS_MOCK_MODE) return;
     await AuthService.updateMe({ password: newPassword });
   }
 
   static async setPassword(oldPassword: string, newPassword: string): Promise<void> {
     if (newPassword.trim().length < PASSWORD_MIN_LENGTH) throw new Error(PASSWORD_MIN_LENGTH_MESSAGE);
-    if (IS_MOCK_MODE) {
-      mockSetPassword(oldPassword, newPassword);
-      return;
-    }
+    if (IS_MOCK_MODE) return;
     await realSetPassword({ oldPassword, newPassword });
   }
 
@@ -186,7 +189,7 @@ export class AuthService {
         void reportError(err, { source: 'AuthService.logout' });
       }
     }
-    dispatchSessionToStore(null);
+    clearSessionFromStore();
   }
 
   static peekSession(): Session | null {
@@ -216,7 +219,7 @@ export class AuthService {
     if (IS_MOCK_MODE) {
       const meta = readSessionMeta();
       if (!meta || new Date(meta.expiresAt).getTime() <= Date.now()) {
-        dispatchSessionToStore(null);
+        clearSessionFromStore();
         return null;
       }
       return { user: activeUser, token: meta.token, expiresAt: meta.expiresAt };

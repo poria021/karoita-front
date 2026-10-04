@@ -1,9 +1,8 @@
 import {
   findMockUserById,
-  patchMockAuthUser,
   readMockUsers,
   toPublicUser,
-} from '@/services/auth/mock/mock-auth.store';
+} from '@/services/auth/mock/mock-auth.session';
 import type { User } from '@/types/auth';
 import type {
   ListOnboardingApprovalsFilters,
@@ -11,7 +10,7 @@ import type {
 } from '@/types/onboarding-approvals';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
-export function toApprovalUser(user: User): OnboardingApprovalUser {
+function toApprovalUser(user: User): OnboardingApprovalUser {
   const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
   return {
     ...user,
@@ -38,7 +37,7 @@ function matchesQuery(user: User, rawQuery: string): boolean {
   return haystack.includes(q);
 }
 
-export function listFilteredUsers(
+export function mockApprovalUsers(
   filters: Omit<ListOnboardingApprovalsFilters, 'offset' | 'limit'>
 ): OnboardingApprovalUser[] {
   const province =
@@ -57,7 +56,7 @@ export function listFilteredUsers(
     .map((record) => toApprovalUser(toPublicUser(record)));
 }
 
-export function collectProvinces(): string[] {
+export function mockApprovalProvinces(): string[] {
   const names = new Set<string>();
   for (const user of readMockUsers()) {
     if (user.docStatus === 'not_submitted' || !user.province) {
@@ -70,27 +69,18 @@ export function collectProvinces(): string[] {
   return Array.from(names).sort((a, b) => a.localeCompare(b, 'fa'));
 }
 
-export function patchApprovalUser(
+/** بدون state: کاربر وصله‌شده فقط برگردانده می‌شود و ذخیره نمی‌شود. */
+export function mockApprovalResult(
   userId: string,
   patch: Partial<User>
 ): OnboardingApprovalUser {
-  const updated = patchMockAuthUser(
-    { id: userId },
-    {
-      ...patch,
-      lastChange: Date.now(),
-      ...(patch.docStatus === 'approved'
-        ? { adminRequestMessage: undefined }
-        : {}),
-    }
-  );
-
-  return toApprovalUser(toPublicUser(updated));
-}
-
-export function requireExistingMockUser(userId: string): void {
   const current = findMockUserById(userId);
   if (!current) {
     throw new Error('کاربر موردنظر یافت نشد.');
   }
+  return toApprovalUser({
+    ...toPublicUser(current),
+    ...patch,
+    lastChange: Date.now(),
+  });
 }

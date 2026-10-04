@@ -249,7 +249,7 @@ export function useOrgStructurePage() {
         message: `«${row.name}» از ساختار سازمانی حذف شد.`,
         undoLabel: 'لغو',
         // real mode: commit تا بسته‌شدن toast به تأخیر می‌افتد تا «لغو» واقعی باشد.
-        // mock mode: commit فوری لازم است تا داده در localStorage قبل از reload ذخیره شود.
+        // mock mode: چیزی ذخیره نمی‌شود، پس commit فوری است.
         deferCommit: !IS_MOCK_MODE,
         apply: () => {
           patchItems(

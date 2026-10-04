@@ -29,7 +29,7 @@ async function safeList<T>(
  * داده chrome لندینگ را برای Server Component می‌خواند.
  *
  * real: هر endpoint مستقل try/catch دارد — خرابی یک منبع بقیه را نمی‌کشد.
- * mock: از LandingCmsService روی in-memory store کار می‌کند.
+ * mock: داده‌ی ثابت از LandingCmsService.
  *
  * برای بنرها و شبکه‌های اجتماعی که endpoint عمومی Nest ندارند:
  * کوکی‌های request کاربر فوروارد می‌شود تا session ادمین (در صورت وجود) منتقل شود.

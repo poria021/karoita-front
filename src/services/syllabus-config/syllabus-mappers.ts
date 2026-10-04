@@ -15,14 +15,6 @@ import {
   flattenCourseCatalog,
 } from './course-catalog';
 
-/** کلید قدیمی mock: `C::${termTitle}::${normalizedCourseTitle}` */
-export function legacyOfferingStorageKey(
-  termTitle: string,
-  courseTitle: string
-): string {
-  return `C::${termTitle}::${normalizeCourseTitle(courseTitle)}`;
-}
-
 export function normalizeCourseTitle(title: string): string {
   return persianToEnglishDigits(title).trim();
 }

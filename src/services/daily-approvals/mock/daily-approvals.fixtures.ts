@@ -1,28 +1,52 @@
-import { isMockApiMode } from '@/lib/api-mode';
 import { withDerivedDailyApprovalTrainee } from '@/services/daily-approvals/daily-approval-derived';
+import {
+  toDailyApprovalCatalogCourses,
+  toDailyApprovalWeekOptions,
+} from '@/services/daily-approvals/daily-approval-catalog-mappers';
 import {
   TRAINEE_SEEDS,
   WEEK_STATE_CYCLE,
-} from '@/services/daily-approvals/mock/mock-daily-approvals-seeds';
-import {
-  listTermsForDailyApprovalKind,
-  readDailyApprovalPassingScoreThreshold,
-} from '@/services/syllabus-config/mock/mock-syllabus-daily-approvals-reads';
+} from '@/services/daily-approvals/mock/daily-approvals.seeds';
+import { mockSyllabusSnapshot } from '@/services/syllabus-config/mock/syllabus.fixtures';
 import type {
+  BulkExtendDailyApprovalWeeksResult,
+  DailyApprovalCatalogCourse,
+  DailyApprovalReadFilter,
+  DailyApprovalWeekOption,
+  ListDailyApprovalsInput,
+  ListDailyApprovalsPage,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
   DailyApprovalTrainee,
   DailyApprovalWeek,
   DailyApprovalWeekState,
 } from '@/types/daily-approvals';
+import { sliceOffsetLimitPage } from '@/utils/offset-limit-page';
+import { persianToEnglishDigits } from '@/utils/persianDigits';
 
-const STORAGE_KEY = 'karvita_mock_daily_approvals_v4';
+/** داده‌ی ثابت حالت mock — هیچ state یا ذخیره‌سازی‌ای ندارد. */
+
+const PASSING_SCORE_THRESHOLD = 70;
+
+/** کارورزی → ترم نیم‌سال؛ مهارت‌آموزی → پودمانی. */
+export function mockDailyApprovalTerms(
+  kind: DailyApprovalCourseKind
+): Array<{ id: string; title: string }> {
+  const type = kind === 'apprenticeship' ? 'modular' : 'semester';
+  return mockSyllabusSnapshot()
+    .terms.filter((term) => term.type === type)
+    .map((term) => ({ id: term.id, title: term.title }));
+}
+
+export function mockDailyApprovalPassingScore(): number {
+  return PASSING_SCORE_THRESHOLD;
+}
 
 function defaultTermForKind(kind: DailyApprovalCourseKind): {
   id: string;
   title: string;
 } {
-  const terms = listTermsForDailyApprovalKind(kind);
+  const terms = mockDailyApprovalTerms(kind);
   if (terms[0]) return terms[0];
   return kind === 'apprenticeship'
     ? { id: 'term_modular_1', title: 'دوره مهارتی' }
@@ -128,11 +152,8 @@ function buildWeek(
   };
 }
 
-export function withDerived(trainee: DailyApprovalTrainee): DailyApprovalTrainee {
-  return withDerivedDailyApprovalTrainee(
-    trainee,
-    readDailyApprovalPassingScoreThreshold()
-  );
+function withDerived(trainee: DailyApprovalTrainee): DailyApprovalTrainee {
+  return withDerivedDailyApprovalTrainee(trainee, PASSING_SCORE_THRESHOLD);
 }
 
 function buildSeedTrainee(index: number): DailyApprovalTrainee {
@@ -172,54 +193,90 @@ function buildSeedTrainee(index: number): DailyApprovalTrainee {
   });
 }
 
-const SEED_TRAINEES: DailyApprovalTrainee[] = TRAINEE_SEEDS.map((_, index) =>
-  buildSeedTrainee(index)
-);
+let trainees: DailyApprovalTrainee[] | null = null;
 
-let memoryTrainees: DailyApprovalTrainee[] | null = null;
-
-function isBrowser(): boolean {
-  return typeof window !== 'undefined';
+export function mockDailyApprovalTrainees(): DailyApprovalTrainee[] {
+  trainees ??= TRAINEE_SEEDS.map((_, index) => buildSeedTrainee(index));
+  return structuredClone(trainees);
 }
 
-export function readTrainees(): DailyApprovalTrainee[] {
-  if (memoryTrainees) return memoryTrainees.map(withDerived);
-
-  if (isBrowser() && isMockApiMode()) {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        memoryTrainees = JSON.parse(raw) as DailyApprovalTrainee[];
-        return memoryTrainees.map(withDerived);
-      }
-    } catch {
-      // دادهٔ خراب شبیه‌ساز به seed برمی‌گردد.
-    }
-  }
-
-  memoryTrainees = structuredClone(SEED_TRAINEES);
-  return memoryTrainees.map(withDerived);
+/** فراگیر ثابت با شناسهٔ داده‌شده (یا اولین فراگیر) — برای پاسخ عملیات نوشتن در mock. */
+export function mockDailyApprovalTrainee(traineeId: string): DailyApprovalTrainee {
+  const all = mockDailyApprovalTrainees();
+  return all.find((row) => row.id === traineeId) ?? all[0]!;
 }
 
-export function writeTrainees(trainees: DailyApprovalTrainee[]): void {
-  memoryTrainees = structuredClone(trainees.map(withDerived));
-  if (isBrowser() && isMockApiMode()) {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryTrainees));
-  }
+const MOCK_INTERNSHIP_COURSES = [
+  { id: 'intern1', title: 'کارورزی ۱' },
+  { id: 'intern2', title: 'کارورزی ۲' },
+  { id: 'intern3', title: 'کارورزی ۳' },
+  { id: 'intern4', title: 'کارورزی ۴' },
+];
+
+const MOCK_APPRENTICESHIP_COURSES = [
+  { id: 'appr1', title: 'کارآموزی ۱' },
+  { id: 'appr2', title: 'کارآموزی ۲' },
+];
+
+export function mockDailyApprovalCourses(
+  kind: DailyApprovalCourseKind
+): DailyApprovalCatalogCourse[] {
+  return toDailyApprovalCatalogCourses(
+    kind,
+    kind === 'internship' ? MOCK_INTERNSHIP_COURSES : MOCK_APPRENTICESHIP_COURSES
+  );
 }
 
-export function resetMockDailyApprovalsForTests(
-  trainees?: DailyApprovalTrainee[] | null
-): void {
-  memoryTrainees = trainees ? structuredClone(trainees) : null;
-  if (isBrowser()) {
-    if (trainees == null) {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } else {
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(memoryTrainees)
-      );
-    }
-  }
+export function mockDailyApprovalWeeks(
+  kind: DailyApprovalCourseKind
+): DailyApprovalWeekOption[] {
+  const count = kind === 'internship' ? 16 : 8;
+  return toDailyApprovalWeekOptions(
+    Array.from({ length: count }, (_, index) => ({ title: `هفته ${index + 1}` }))
+  );
 }
+
+function matchesQuery(trainee: DailyApprovalTrainee, rawQuery: string): boolean {
+  const query = persianToEnglishDigits(rawQuery).trim().toLocaleLowerCase('fa');
+  if (!query) return true;
+  return persianToEnglishDigits(
+    [trainee.traineeName, trainee.identifier, trainee.courseTitle, trainee.major]
+      .join(' ')
+      .toLocaleLowerCase('fa')
+  ).includes(query);
+}
+
+function matchesReadFilter(
+  trainee: DailyApprovalTrainee,
+  readFilter: DailyApprovalReadFilter
+): boolean {
+  if (readFilter === 'all') return true;
+  if (readFilter === 'dropped') return trainee.status === 'dropped';
+  if (trainee.status === 'dropped') return false;
+  if (readFilter === 'unread') return trainee.unreadCount > 0;
+  return trainee.hasSubmitted && trainee.unreadCount === 0;
+}
+
+export function mockDailyApprovalsPage(
+  input: ListDailyApprovalsInput
+): ListDailyApprovalsPage {
+  const filtered = mockDailyApprovalTrainees()
+    .filter((row) => row.kind === input.kind)
+    .filter((row) => !input.termId || row.termId === input.termId)
+    .filter((row) => matchesQuery(row, input.query))
+    .filter((row) => matchesReadFilter(row, input.readFilter))
+    .filter((row) => input.course === 'all' || row.courseKey === input.course)
+    .filter(
+      (row) => !input.scopeKeys || input.scopeKeys.includes(row.courseKey)
+    );
+  return {
+    ...sliceOffsetLimitPage(filtered, input.offset, input.limit),
+    terms: mockDailyApprovalTerms(input.kind),
+  };
+}
+
+export const MOCK_BULK_EXTEND_RESULT: BulkExtendDailyApprovalWeeksResult = {
+  affectedTraineeCount: 0,
+  extendedPairCount: 0,
+  revokedPairCount: 0,
+};

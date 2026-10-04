@@ -1,14 +1,10 @@
-import { IS_MOCK_MODE, throwRealModeNotImplemented } from '@/lib/api-mode';
-import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
-import { subscribeMockAuthUsers } from '@/services/auth/mock/mock-auth.store';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
-import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
-  collectProvinces,
-  listFilteredUsers,
-  patchApprovalUser,
-  requireExistingMockUser,
-} from '@/services/onboarding-approvals/mock/mock-onboarding-approvals';
+  mockApprovalProvinces,
+  mockApprovalResult,
+  mockApprovalUsers,
+} from '@/services/onboarding-approvals/mock/onboarding-approvals.fixtures';
 import { usersApi } from '@/services/users/users.api';
 import type {
   ListOnboardingApprovalsFilters,
@@ -23,13 +19,6 @@ import {
 } from '@/utils/offset-limit-page';
 
 export const ONBOARDING_APPROVALS_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
-
-function requireOnboardingReview(): void {
-  if (!IS_MOCK_MODE) {
-    throwRealModeNotImplemented('OnboardingApprovalsService');
-  }
-  assertMockClientHasPermission('onboarding.review');
-}
 
 /** نگاشت `docStatus` فرانت به فیلتر `status` در Nest. */
 function nestStatusLabel(
@@ -84,10 +73,7 @@ export const OnboardingApprovalsService = {
       };
     }
 
-    requireOnboardingReview();
-    await delayMockAdminListPage();
-
-    const all = listFilteredUsers(filters);
+    const all = mockApprovalUsers(filters);
     const page = sliceOffsetLimitPage(
       all,
       filters.offset ?? 0,
@@ -96,7 +82,7 @@ export const OnboardingApprovalsService = {
 
     return {
       ...page,
-      provinces: collectProvinces().map((title) => ({ id: title, title })),
+      provinces: mockApprovalProvinces().map((title) => ({ id: title, title })),
     };
   },
 
@@ -116,10 +102,7 @@ export const OnboardingApprovalsService = {
       return { ...u, fullName: `${u.firstName} ${u.lastName}`.trim() };
     }
 
-    requireOnboardingReview();
-    requireExistingMockUser(userId);
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    return patchApprovalUser(userId, {
+    return mockApprovalResult(userId, {
       docStatus: 'approved',
       approved: true,
       adminRequestMessage: undefined,
@@ -155,19 +138,10 @@ export const OnboardingApprovalsService = {
       return { ...u, fullName: `${u.firstName} ${u.lastName}`.trim() };
     }
 
-    requireOnboardingReview();
-    const trimmed = reason.trim();
-    if (!trimmed) {
-      throw new Error(
-        'لطفاً علت نقص یا عدم تایید مدارک را بنویسید یا انتخاب کنید.'
-      );
-    }
-    requireExistingMockUser(userId);
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    return patchApprovalUser(userId, {
+    return mockApprovalResult(userId, {
       docStatus: 'rejected',
       approved: false,
-      adminRequestMessage: trimmed,
+      adminRequestMessage: reason.trim(),
     });
   },
 
@@ -186,15 +160,7 @@ export const OnboardingApprovalsService = {
         })
         .map((p) => ({ id: p.id, title: p.title }));
     }
-    requireOnboardingReview();
-    return collectProvinces().map((title) => ({ id: title, title }));
+    return mockApprovalProvinces().map((title) => ({ id: title, title }));
   },
 
-  /** فقط در mock به store کاربران وصل می‌شود؛ در real mode تا SSE خالی است. */
-  subscribeDirectoryChanges(listener: () => void): () => void {
-    if (!IS_MOCK_MODE) {
-      return () => {};
-    }
-    return subscribeMockAuthUsers(listener);
-  },
 };

@@ -6,11 +6,7 @@ import {
   realListProductsServer,
   realListSocialsServer,
 } from '@/services/landing-cms/real/real-landing-cms.reads';
-import {
-  readLandingBanners,
-  readLandingProducts,
-  readLandingSocials,
-} from '@/services/landing-cms/mock/mock-landing-cms.store';
+import { buildLandingCmsSeed } from '@/services/landing-cms/landing-cms-seed';
 
 import type { MarketingChromeData } from './loadMarketingChrome';
 
@@ -27,11 +23,7 @@ async function safeList<T>(label: string, fetcher: () => Promise<T[]>): Promise<
 
 export async function loadMarketingChromeServer(): Promise<MarketingChromeData> {
   if (isMockApiMode()) {
-    return {
-      banners: readLandingBanners(),
-      products: readLandingProducts(),
-      socials: readLandingSocials(),
-    };
+    return buildLandingCmsSeed();
   }
   const [banners, products, socials] = await Promise.all([
     safeList('banners', realListBannersServer),

@@ -11,7 +11,6 @@ import { isStaffAdminRole, isSuperAdminRole } from '@/utils/RoleStrategyMap';
 
 import {
   AUTH_ERR_ADMIN_GATE_ONLY,
-  AUTH_ERR_OLD_PASSWORD_WRONG,
   AUTH_ERR_PUBLIC_AUTH_ADMIN_BLOCKED,
   AUTH_ERR_SESSION_REQUIRED,
   AUTH_ERR_USER_NOT_FOUND,
@@ -21,12 +20,8 @@ import {
   dispatchSessionToStore,
   findMockUserById,
   findMockUserByMobile,
-  mockMobileExists,
-  patchMockAuthUser,
-  readMockUsers,
   toPublicUser,
-  writeMockUsers,
-} from '@/services/auth/mock/mock-auth.store';
+} from '@/services/auth/mock/mock-auth.session';
 
 export function assertMockOtp(otp: string): void {
   assertMockApiMode();
@@ -55,25 +50,6 @@ function requirePublicUserByMobile(mobile: string): MockAuthUserRecord {
   const record = requireUserByMobile(mobile);
   assertPublicAuthAudience(record);
   return record;
-}
-
-function updateUserPassword(mobile: string, newPassword: string): void {
-  const users = readMockUsers();
-  const current = findMockUserByMobile(mobile);
-  if (!current) {
-    throw new Error(AUTH_ERR_USER_NOT_FOUND);
-  }
-  const updatedUsers = users.map((candidate) =>
-    candidate.mobile === mobile
-      ? { ...candidate, password: newPassword, hasPassword: true }
-      : candidate
-  );
-  writeMockUsers(updatedUsers);
-
-  const activeUser = useUserStore.getState().activeUser;
-  if (activeUser?.mobile === mobile) {
-    useUserStore.getState().setUser({ ...activeUser, hasPassword: true });
-  }
 }
 
 export function mockLoginWithCredentials(
@@ -118,12 +94,6 @@ export function mockVerifyAdminGateOtp(mobile: string, otp: string): User {
   return user;
 }
 
-export function mockRegister(mobile: string): void {
-  if (mockMobileExists(mobile)) {
-    throw new Error('کاربری با این شماره موبایل قبلاً ثبت‌نام کرده است.');
-  }
-}
-
 export function mockVerifyRegistrationOtp(
   mobile: string,
   otp: string,
@@ -133,7 +103,6 @@ export function mockVerifyRegistrationOtp(
   if (isSuperAdminRole(role)) {
     throw new Error(AUTH_ERR_PUBLIC_AUTH_ADMIN_BLOCKED);
   }
-  const users = readMockUsers();
   const newRecord: MockAuthUserRecord = {
     id: `#U-${Date.now()}`,
     firstName: '',
@@ -145,33 +114,17 @@ export function mockVerifyRegistrationOtp(
     password: MOCK_USER_PASSWORD,
     hasPassword: false,
   };
-  writeMockUsers([...users, newRecord]);
   const user = toPublicUser(newRecord);
   dispatchSessionToStore(buildMockSession(user));
   return user;
 }
 
-export function mockSendForgotPasswordOtp(mobile: string): void {
-  requirePublicUserByMobile(mobile);
-}
-
-export function mockResetPassword(
-  mobile: string,
-  otp: string,
-  newPassword: string
-): void {
+export function mockResetPassword(mobile: string, otp: string): void {
   assertMockOtp(otp);
   requirePublicUserByMobile(mobile);
-  updateUserPassword(mobile, newPassword);
 }
 
-export function mockSetInitialPassword(
-  mobile: string,
-  newPassword: string
-): void {
-  updateUserPassword(mobile, newPassword);
-}
-
+/** بدون state: فقط نام/نام‌خانوادگی را روی کاربر فعال برمی‌گرداند و ذخیره نمی‌کند. */
 export function mockUpdateMe(body: NestAuthUpdateDto): User {
   assertMockApiMode();
   const activeUser = useUserStore.getState().activeUser;
@@ -184,27 +137,10 @@ export function mockUpdateMe(body: NestAuthUpdateDto): User {
     throw new Error(AUTH_ERR_USER_NOT_FOUND);
   }
 
-  if (body.password && record.hasPassword && body.oldPassword !== record.password) {
-    throw new Error(AUTH_ERR_OLD_PASSWORD_WRONG);
-  }
-
-  const updated = patchMockAuthUser(
-    { id: record.id },
-    {
-      ...(typeof body.firstName === 'string' ? { firstName: body.firstName } : {}),
-      ...(typeof body.lastName === 'string' ? { lastName: body.lastName } : {}),
-      ...(body.password
-        ? { password: body.password, hasPassword: true }
-        : {}),
-    }
-  );
-
-  return toPublicUser(updated);
-}
-
-export function mockSetPassword(
-  oldPassword: string,
-  newPassword: string
-): void {
-  mockUpdateMe({ oldPassword, password: newPassword });
+  return {
+    ...toPublicUser(record),
+    ...(typeof body.firstName === 'string' ? { firstName: body.firstName } : {}),
+    ...(typeof body.lastName === 'string' ? { lastName: body.lastName } : {}),
+    ...(body.password ? { hasPassword: true } : {}),
+  };
 }

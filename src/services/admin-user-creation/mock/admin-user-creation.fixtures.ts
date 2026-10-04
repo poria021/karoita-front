@@ -1,11 +1,12 @@
 import {
-  mockMobileExists,
-  patchMockAuthUser,
+  findMockUserByMobile,
   readMockUsers,
-  removeMockUser,
   toPublicUser,
-  writeMockUsers,
-} from '@/services/auth/mock/mock-auth.store';
+} from '@/services/auth/mock/mock-auth.session';
+
+function mockMobileExists(mobile: string): boolean {
+  return Boolean(findMockUserByMobile(mobile));
+}
 import type { MockAuthUserRecord } from '@/services/auth/mock/auth-mock-users';
 import type {
   CreateOrganizationalUserInput,
@@ -61,6 +62,7 @@ function buildOrgFields(
   };
 }
 
+/** بدون state: رکورد ساخته‌شده فقط برگردانده می‌شود و ذخیره نمی‌شود. */
 export function mockCreateOrganizationalUser(
   input: CreateOrganizationalUserInput
 ): CreateOrganizationalUserResult {
@@ -111,11 +113,10 @@ export function mockCreateOrganizationalUser(
     ...org,
   };
 
-  writeMockUsers([...readMockUsers(), record]);
   return { user: toPublicUser(record) };
 }
 
-export function mockCheckMobileAvailable(mobile: string): boolean {
+export function mockMobileAvailable(mobile: string): boolean {
   const normalized = normalizeMobile(mobile);
   if (!/^9\d{9}$/.test(normalized)) {
     return true;
@@ -174,16 +175,14 @@ export function mockUpdateStaffAdmin(
     throw new Error('این شماره موبایل قبلاً در سیستم ثبت شده است.');
   }
 
-  const updated = patchMockAuthUser(
-    { id },
-    {
-      firstName: input.firstName.trim(),
-      lastName: input.lastName.trim(),
-      mobile,
-      role: input.role,
-      approved: input.active,
-    }
-  );
+  const updated: MockAuthUserRecord = {
+    ...record,
+    firstName: input.firstName.trim(),
+    lastName: input.lastName.trim(),
+    mobile,
+    role: input.role,
+    approved: input.active,
+  };
   return toStaffAdminAccount(updated);
 }
 
@@ -238,26 +237,13 @@ export function mockUpdateOrgAccountUser(
     password: input.password ?? record.password,
   });
 
-  const updated = patchMockAuthUser(
-    { id },
-    {
-      firstName: input.firstName.trim(),
-      lastName: input.lastName.trim(),
-      mobile,
-      role: input.role,
-      ...(input.password?.trim() ? { password: input.password.trim() } : {}),
-      ...org,
-    }
-  );
+  const updated: MockAuthUserRecord = {
+    ...record,
+    firstName: input.firstName.trim(),
+    lastName: input.lastName.trim(),
+    mobile,
+    role: input.role,
+    ...org,
+  };
   return toPublicUser(updated);
-}
-
-export function mockRemoveOrgAccountUser(id: string): void {
-  const record = readMockUsers().find(
-    (item) => item.id === id && isOrgManagementRole(item.role)
-  );
-  if (!record) {
-    throw new Error('حساب کاربری سازمانی یافت نشد.');
-  }
-  removeMockUser(id);
 }
