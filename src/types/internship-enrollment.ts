@@ -166,6 +166,8 @@ export type InternshipEnrollmentRecord = {
   mentorName: string | null;
   attendanceDaysLabel?: string;
   status?: InternshipEnrollmentRecordStatus;
+  /** mock: نتیجهٔ ثبت‌نام `completed` — معادل قبولی (`finalScore` ≥ حد نصاب) در بک‌اند. */
+  passed?: boolean;
   removalPending?: boolean;
   wasDropped?: boolean;
   droppedSupervisorName?: string;

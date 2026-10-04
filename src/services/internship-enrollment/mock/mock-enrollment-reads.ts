@@ -136,7 +136,15 @@ export function resolveEnrollmentPageState(
     kind,
     level,
   });
-  const current = context.syllabusConfigured ? {} : null;
+  // معادل `canSelect: false, blockReason: 'passed'` بک‌اند: این level قبلاً قبول شده.
+  const passedBefore = history.some(
+    (entry) => entry.record.status === 'completed' && entry.record.passed === true
+  );
+  const current = context.syllabusConfigured
+    ? passedBefore
+      ? { canSelect: false, blockReason: 'passed' }
+      : {}
+    : null;
   const effectiveEntry = resolveEffectiveEnrollmentEntry(
     current,
     history,

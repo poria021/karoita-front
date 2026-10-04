@@ -158,4 +158,29 @@ describe('enrollment in a course defined by the super admin (mock)', () => {
     expect(state.termId).toBe('old-term');
     expect(state.scenario).toBe('S5_term_active');
   });
+
+  it('lets a student who failed a completed term re-select the level (canSelect true)', async () => {
+    await setUpProjectCourse();
+    resetEnrollmentSnapshotForTests({
+      records: [{ ...staleRecord(101), status: 'completed', passed: false }],
+      confirmedCapacity: {},
+      weekReports: {},
+    });
+    const state = resolveEnrollmentPageState({ actor: ACTOR, level: 101 });
+    expect(state.scenario).toBe('S3_enroll_open');
+    expect(state.termHistory.map((h) => h.status)).toEqual(['completed']);
+  });
+
+  it('locks selection and shows the old report when the level was already passed', async () => {
+    await setUpProjectCourse();
+    resetEnrollmentSnapshotForTests({
+      records: [{ ...staleRecord(101), status: 'completed', passed: true }],
+      confirmedCapacity: {},
+      weekReports: {},
+    });
+    const state = resolveEnrollmentPageState({ actor: ACTOR, level: 101 });
+    expect(state.termId).toBe('old-term');
+    expect(state.scenario).toBe('S5_term_active');
+    expect(state.selection).toBeNull();
+  });
 });
