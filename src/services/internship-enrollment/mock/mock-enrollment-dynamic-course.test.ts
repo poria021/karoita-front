@@ -113,4 +113,49 @@ describe('enrollment in a course defined by the super admin (mock)', () => {
     const state = resolveEnrollmentPageState({ actor: ACTOR, level: 102 });
     expect(state.scenario).toBe('S1_syllabus_blocked');
   });
+
+  function staleRecord(level: 101 | 102) {
+    return {
+      id: 'enr-old-' + level,
+      userId: ACTOR.id,
+      role: ACTOR.role,
+      kind: 'internship' as const,
+      level,
+      termId: 'old-term',
+      termTitle: 'نیم‌سال قدیمی',
+      title: 'پروژه',
+      supervisorId: 'sup-rahimi',
+      supervisorName: 'استاد',
+      schoolName: null,
+      mentorName: null,
+      status: 'active' as const,
+    };
+  }
+
+  it('does not let a stale active enrolment from a past term block the new term (like real)', async () => {
+    await setUpProjectCourse();
+    resetEnrollmentSnapshotForTests({
+      records: [staleRecord(101)],
+      confirmedCapacity: {},
+      weekReports: {},
+    });
+
+    const state = resolveEnrollmentPageState({ actor: ACTOR, level: 101 });
+    expect(state.scenario).toBe('S3_enroll_open');
+    expect(state.termId).not.toBe('old-term');
+    expect(state.termHistory.map((h) => h.termId)).toEqual(['old-term']);
+  });
+
+  it('still shows the old term report when the level is not offered in the open term', async () => {
+    await setUpProjectCourse();
+    resetEnrollmentSnapshotForTests({
+      records: [staleRecord(102)],
+      confirmedCapacity: {},
+      weekReports: {},
+    });
+
+    const state = resolveEnrollmentPageState({ actor: ACTOR, level: 102 });
+    expect(state.termId).toBe('old-term');
+    expect(state.scenario).toBe('S5_term_active');
+  });
 });

@@ -87,11 +87,16 @@ export function termTitleForHistoryEntry(
  * (`loadRegisteredEnrollmentDetails` در `real-enrollment-reads.ts`) استفاده
  * می‌شود تا هر دو دقیقاً روی یک ثبت‌نام توافق داشته باشند.
  */
-export function resolveEffectiveEnrollmentEntry(
+export function resolveEffectiveEnrollmentEntry<
+  T extends {
+    semesterId: string;
+    enrolment: { status?: string | null; createdAt?: string | null };
+  },
+>(
   current: { canSelect?: boolean; blockReason?: string | null } | null,
-  history: readonly EnrolmentHistoryEntry[],
+  history: readonly T[],
   openSemesterId?: string | null
-): EnrolmentHistoryEntry | null {
+): T | null {
   // ثبت‌نام `active` در همین ترمِ باز همیشه «فعلی» است.
   const activeInOpenTerm =
     (openSemesterId
