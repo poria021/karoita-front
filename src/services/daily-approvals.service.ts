@@ -1,18 +1,25 @@
 import { isMockApiMode, isRealApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import { listRealCapacityCourses, listRealCapacityTerms } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import {
   toDailyApprovalCatalogCourses,
   toDailyApprovalWeekOptions,
 } from '@/services/daily-approvals/daily-approval-catalog-mappers';
 import {
-  MOCK_BULK_EXTEND_RESULT,
-  mockDailyApprovalCourses,
-  mockDailyApprovalPassingScore,
-  mockDailyApprovalsPage,
-  mockDailyApprovalTerms,
-  mockDailyApprovalTrainee,
-  mockDailyApprovalWeeks,
-} from '@/services/daily-approvals/mock/daily-approvals.fixtures';
+  bulkExtendMockDailyApprovalWeeks,
+  dropMockDailyApprovalTrainee,
+  extendMockDailyApprovalWeek,
+  forwardMockDailyApprovalWeek,
+  listMockDailyApprovalCourses,
+  listMockDailyApprovalWeeks,
+  listMockDailyApprovals,
+  listTermsForDailyApprovalKind,
+  markMockWeekRead,
+  restoreMockDailyApprovalTrainee,
+  updateMockDailyApprovalWeek,
+  updateMockMentorDailyApprovalWeek,
+  updateMockPrincipalDailyApprovalWeek,
+} from '@/services/daily-approvals/mock/mock-daily-approvals-store';
 import {
   assertDailyApprovalsMutationReady,
   dropRealDailyApprovalTrainee,
@@ -32,6 +39,13 @@ import {
   getRealAcademicSettings,
   getRealWeeksForLesson,
 } from '@/services/syllabus-config/real/real-syllabus-reads';
+import { forwardTargetForRole, maskUnforwardedWeeks } from '@/services/daily-approvals/forward-visibility';
+import { readDailyApprovalPassingScoreThreshold } from '@/services/syllabus-config/mock/mock-syllabus-daily-approvals-reads';
+import {
+  assertMockClientHasPermission,
+  MOCK_AUTHZ_DENIED,
+} from '@/services/mock/mock-authz';
+import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
 import type { NestMentorCapacity } from '@/types/nest-student-enrollments';
 import type {
@@ -56,6 +70,31 @@ import type {
 import { DEFAULT_PAGE_LIMIT } from '@/utils/offset-limit-page';
 
 export const DAILY_APPROVALS_PAGE_SIZE = DEFAULT_PAGE_LIMIT;
+
+const REVIEW_ROLES = new Set<UserRole>([
+  'supervisor_professor',
+  'mentor_teacher',
+  'school_principal',
+]);
+
+function requireDailyApprovalsReview(): void {
+  if (isRealApiMode()) {
+    assertDailyApprovalsMutationReady('DailyApprovalsService');
+  }
+  assertMockClientHasPermission('daily-approval.review');
+  const actor = useUserStore.getState().activeUser;
+  if (!actor || !REVIEW_ROLES.has(actor.role)) {
+    throw new Error(MOCK_AUTHZ_DENIED);
+  }
+}
+
+function requireReviewRole(role: UserRole): void {
+  requireDailyApprovalsReview();
+  const actor = useUserStore.getState().activeUser;
+  if (!actor || actor.role !== role) {
+    throw new Error(MOCK_AUTHZ_DENIED);
+  }
+}
 
 /**
  * shape خالی `DailyApprovalTrainee` برای mutationهای real که فقط پاسخ خالی
@@ -110,7 +149,8 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       return listRealCapacityTerms(kind);
     }
-    return mockDailyApprovalTerms(kind);
+    requireDailyApprovalsReview();
+    return listTermsForDailyApprovalKind(kind);
   },
 
   async listCourses(input: {
@@ -123,7 +163,8 @@ export const DailyApprovalsService = {
         await listRealCapacityCourses(input.kind, input.termId)
       );
     }
-    return mockDailyApprovalCourses(input.kind);
+    requireDailyApprovalsReview();
+    return listMockDailyApprovalCourses(input.kind);
   },
 
   async listWeeks(input: {
@@ -138,7 +179,8 @@ export const DailyApprovalsService = {
         weeks.filter((week) => week.status !== 'archived')
       );
     }
-    return mockDailyApprovalWeeks(input.kind);
+    requireDailyApprovalsReview();
+    return listMockDailyApprovalWeeks(input.kind, input.courseFilter);
   },
 
   async getPassingScoreThreshold(): Promise<number> {
@@ -146,7 +188,8 @@ export const DailyApprovalsService = {
       const settings = await getRealAcademicSettings();
       return settings.passingScoreThreshold;
     }
-    return mockDailyApprovalPassingScore();
+    requireDailyApprovalsReview();
+    return readDailyApprovalPassingScoreThreshold();
   },
 
   async listPage(
@@ -155,7 +198,17 @@ export const DailyApprovalsService = {
     if (!isMockApiMode()) {
       return listRealDailyApprovals(input);
     }
-    return mockDailyApprovalsPage(input);
+    requireDailyApprovalsReview();
+    await delayMockAdminListPage();
+    const page = listMockDailyApprovals(input);
+    const role = useUserStore.getState().activeUser?.role;
+    if (!forwardTargetForRole(role)) return page;
+    // معلم/مدیر فقط هفته‌های ارجاع‌شده را می‌بینند.
+    const threshold = readDailyApprovalPassingScoreThreshold();
+    return {
+      ...page,
+      items: page.items.map((row) => maskUnforwardedWeeks(row, role, threshold)),
+    };
   },
 
   /**
@@ -168,7 +221,9 @@ export const DailyApprovalsService = {
     if (isRealApiMode()) {
       throwRealModeNotImplemented('DailyApprovalsService.forwardWeek');
     }
-    return mockDailyApprovalTrainee(input.traineeId);
+    requireReviewRole('supervisor_professor');
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return forwardMockDailyApprovalWeek(input);
   },
 
   /** GET `/student-enrollments/mentor/capacity` — ظرفیت منتور در یک ترم. */
@@ -185,7 +240,8 @@ export const DailyApprovalsService = {
       await markRealDailyApprovalWeekOpened(input);
       return emptyDailyApprovalStub(input.traineeId, input.weekId);
     }
-    return mockDailyApprovalTrainee(input.traineeId);
+    requireDailyApprovalsReview();
+    return markMockWeekRead(input);
   },
 
   /**
@@ -235,7 +291,12 @@ export const DailyApprovalsService = {
       await scoreRealDailyApprovalWeek(input);
       return emptyDailyApprovalStub(input.traineeId, input.weekId);
     }
-    return mockDailyApprovalTrainee(input.traineeId);
+    requireReviewRole('supervisor_professor');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return updateMockDailyApprovalWeek({
+      ...input,
+      advisorFeedback: input.advisorFeedback.trim(),
+    });
   },
 
   /**
@@ -251,7 +312,12 @@ export const DailyApprovalsService = {
       await submitMentorFeedbackReal(input);
       return emptyDailyApprovalStub(input.traineeId, input.weekId);
     }
-    return mockDailyApprovalTrainee(input.traineeId);
+    requireReviewRole('mentor_teacher');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return updateMockMentorDailyApprovalWeek({
+      ...input,
+      mentorFeedback: input.mentorFeedback.trim(),
+    });
   },
 
   /**
@@ -266,7 +332,12 @@ export const DailyApprovalsService = {
       await submitPrincipalFeedbackReal(input);
       return emptyDailyApprovalStub(input.traineeId, input.weekId);
     }
-    return mockDailyApprovalTrainee(input.traineeId);
+    requireReviewRole('school_principal');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return updateMockPrincipalDailyApprovalWeek({
+      ...input,
+      principalFeedback: input.principalFeedback.trim(),
+    });
   },
 
   async extendWeek(
@@ -275,16 +346,28 @@ export const DailyApprovalsService = {
     if (isRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.extendWeek');
     }
-    return mockDailyApprovalTrainee(input.traineeId);
+    requireReviewRole('supervisor_professor');
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return extendMockDailyApprovalWeek(input);
   },
 
   async bulkExtendWeeks(
-    _input: BulkExtendDailyApprovalWeeksInput
+    input: BulkExtendDailyApprovalWeeksInput
   ): Promise<BulkExtendDailyApprovalWeeksResult> {
     if (isRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.bulkExtendWeeks');
     }
-    return MOCK_BULK_EXTEND_RESULT;
+    requireReviewRole('supervisor_professor');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return bulkExtendMockDailyApprovalWeeks({
+      ...input,
+      weekNumbers: input.weekNumbers.map((weekNumber) =>
+        Number(String(weekNumber))
+      ),
+      revokeWeekNumbers: (input.revokeWeekNumbers ?? []).map((weekNumber) =>
+        Number(String(weekNumber))
+      ),
+    });
   },
 
   /** real: `PATCH student-enrollments/{id}/cancel` — حذف کارورز از کلاس. */
@@ -295,7 +378,9 @@ export const DailyApprovalsService = {
       await dropRealDailyApprovalTrainee(input.traineeId);
       return emptyDailyApprovalStub(input.traineeId, '');
     }
-    return mockDailyApprovalTrainee(input.traineeId);
+    requireReviewRole('supervisor_professor');
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    return dropMockDailyApprovalTrainee(input.traineeId);
   },
 
   /** برگرداندن snapshot قبل از حذف (فقط mock). */
@@ -305,6 +390,8 @@ export const DailyApprovalsService = {
     if (isRealApiMode()) {
       assertDailyApprovalsMutationReady('DailyApprovalsService.restoreTrainee');
     }
-    return trainee;
+    requireReviewRole('supervisor_professor');
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    return restoreMockDailyApprovalTrainee(trainee);
   },
 };

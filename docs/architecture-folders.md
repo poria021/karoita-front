@@ -38,7 +38,7 @@ components/  hooks/  schemas/  lib/
 src/services/
   {domain}.service.ts     # public Facade (stable import path)
   {domain}/               # mock/real helpers for that domain only
-  mock/                   # (removed) mock data now lives in `{domain}/mock/*.fixtures.ts`
+  mock/                   # ONLY true cross-domain mock helpers (e.g. mock-authz)
   route.service.ts
   planned-routes.ts
   api-client.ts
@@ -46,8 +46,8 @@ src/services/
 
 Examples:
 
-- `auth.service.ts` + `auth/` (`auth-mock-users`, `mock-auth.session`, …)
-- `org-structure.service.ts` + `org-structure/` (`mock/org-structure.fixtures`, …)
+- `auth.service.ts` + `auth/` (`auth-mock-users`, `mock-auth.store`, …)
+- `org-structure.service.ts` + `org-structure/` (`org-structure-seed`, stores, …)
 - `onboarding-approvals.service.ts` + `onboarding-approvals/`
 - `admin-user-creation.service.ts` + `admin-user-creation/`
 - `organization-options.service.ts` + `organization-options/`

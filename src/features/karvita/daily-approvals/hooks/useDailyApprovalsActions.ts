@@ -191,7 +191,7 @@ export function useDailyApprovalsActions({
         message: 'وضعیت کارورز به حذف تغییر یافت.',
         undoLabel: 'لغو',
         // real mode: commit تا بسته‌شدن toast به تأخیر می‌افتد تا «لغو» واقعی باشد.
-        // mock mode: چیزی ذخیره نمی‌شود، پس commit فوری است.
+        // mock mode: commit فوری لازم است تا داده در localStorage قبل از reload ذخیره شود.
         deferCommit: !IS_MOCK_MODE,
         apply: () => {
           list.patchItems(

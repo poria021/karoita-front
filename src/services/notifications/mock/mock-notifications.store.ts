@@ -43,7 +43,30 @@ const SEED: readonly AppNotification[] = [
   },
 ];
 
-/** داده‌ی ثابت حالت mock — هیچ state یا ذخیره‌سازی‌ای ندارد. */
-export function mockNotifications(): AppNotification[] {
-  return SEED.map((item) => ({ ...item }));
+let notifications: AppNotification[] = SEED.map((item) => ({ ...item }));
+
+function cloneList(): AppNotification[] {
+  return notifications.map((item) => ({ ...item }));
+}
+
+export function readMockNotifications(): AppNotification[] {
+  return cloneList();
+}
+
+export function markMockNotificationAsRead(
+  notificationId: string
+): AppNotification[] {
+  notifications = notifications.map((item) =>
+    item.id === notificationId ? { ...item, read: true } : item
+  );
+  return cloneList();
+}
+
+export function markAllMockNotificationsAsRead(): AppNotification[] {
+  notifications = notifications.map((item) => ({ ...item, read: true }));
+  return cloneList();
+}
+
+export function resetMockNotificationsForTests(): void {
+  notifications = SEED.map((item) => ({ ...item }));
 }

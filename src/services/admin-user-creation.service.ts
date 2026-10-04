@@ -3,15 +3,16 @@ import { mapNestAdminUser } from '@/services/auth/real/nest-auth-mappers';
 import { isStaffAdminRole } from '@/services/auth/real/nest-auth-role';
 import { isCreatableStaffAdminRole, isOrgManagementRole } from '@/types/role-taxonomy';
 import {
+  mockCheckMobileAvailable,
   mockCreateOrganizationalUser,
   mockGetOrgAccountUser,
   mockGetStaffAdmin,
   mockListOrgAccountUsers,
   mockListStaffAdmins,
-  mockMobileAvailable,
+  mockRemoveOrgAccountUser,
   mockUpdateOrgAccountUser,
   mockUpdateStaffAdmin,
-} from '@/services/admin-user-creation/mock/admin-user-creation.fixtures';
+} from '@/services/admin-user-creation/mock/mock-admin-user-creation';
 import { accountUsersApi } from '@/services/admin-user-creation/real/account-users.api';
 import { resolveOrganizationalRoleId } from '@/services/admin-user-creation/real/account-users-role-lookup';
 import { resolveOrgAccountLocationIds } from '@/services/admin-user-creation/real/account-users-org-fields-lookup';
@@ -27,6 +28,7 @@ import {
   toNestCreateAdminDto,
   toNestUpdateAdminDto,
 } from '@/services/admin-user-creation/real/to-nest-admin-create';
+import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import { usersApi } from '@/services/users/users.api';
 import type {
   CreateOrganizationalUserInput,
@@ -50,6 +52,10 @@ import {
  * است که از GET `/account-users/roles` گرفته می‌شود (نه اسم نقش).
  */
 
+function requireMockUserCreate(): void {
+  assertMockClientHasPermission('user.create');
+}
+
 export const AdminUserCreationService = {
   /**
    * آیا موبایل ثبت شده — real: GET `/api/v1/users?filters={"phone":"..."}&limit=1`.
@@ -69,7 +75,8 @@ export const AdminUserCreationService = {
         available: !rows.some((row) => nestPhonesMatch(row.phone, mobile)),
       };
     }
-    return { available: mockMobileAvailable(mobile) };
+    requireMockUserCreate();
+    return { available: mockCheckMobileAvailable(mobile) };
   },
 
   /**
@@ -103,6 +110,7 @@ export const AdminUserCreationService = {
       );
       return { user: mapNestAccountUser(raw, input.mobile) };
     }
+    requireMockUserCreate();
     return mockCreateOrganizationalUser(input);
   },
 
@@ -115,6 +123,7 @@ export const AdminUserCreationService = {
     limit: number;
   }): Promise<OffsetLimitPage<StaffAdminAccount>> {
     if (isMockApiMode()) {
+      requireMockUserCreate();
       return mockListStaffAdmins(args.offset, args.limit);
     }
 
@@ -134,6 +143,7 @@ export const AdminUserCreationService = {
   /** GET /api/v1/admin/admins/{id} */
   async getStaffAdmin(id: string): Promise<StaffAdminAccount> {
     if (isMockApiMode()) {
+      requireMockUserCreate();
       return mockGetStaffAdmin(id);
     }
     return adminsApi.getById(id);
@@ -145,6 +155,7 @@ export const AdminUserCreationService = {
     input: UpdateStaffAdminInput
   ): Promise<StaffAdminAccount> {
     if (isMockApiMode()) {
+      requireMockUserCreate();
       return mockUpdateStaffAdmin(id, input);
     }
     return adminsApi.update(id, toNestUpdateAdminDto(input));
@@ -162,6 +173,7 @@ export const AdminUserCreationService = {
     role?: OrgAccountRole;
   }): Promise<OffsetLimitPage<OrgAccountUser>> {
     if (isMockApiMode()) {
+      requireMockUserCreate();
       return mockListOrgAccountUsers(args.offset, args.limit, args.role);
     }
 
@@ -186,6 +198,7 @@ export const AdminUserCreationService = {
    */
   async getOrgAccountUser(id: string): Promise<OrgAccountUser> {
     if (isMockApiMode()) {
+      requireMockUserCreate();
       return mockGetOrgAccountUser(id);
     }
     const raw = await accountUsersApi.getById(id);
@@ -201,6 +214,7 @@ export const AdminUserCreationService = {
     input: UpdateOrganizationalUserInput
   ): Promise<OrgAccountUser> {
     if (isMockApiMode()) {
+      requireMockUserCreate();
       return mockUpdateOrgAccountUser(id, input);
     }
     if (!isOrgManagementRole(input.role)) {
@@ -219,7 +233,11 @@ export const AdminUserCreationService = {
 
   /** DELETE /api/v1/admin/account-users/{id} — لایو ۲۰۴. */
   async removeOrgAccountUser(id: string): Promise<void> {
-    if (isMockApiMode()) return;
+    if (isMockApiMode()) {
+      requireMockUserCreate();
+      mockRemoveOrgAccountUser(id);
+      return;
+    }
     await accountUsersApi.remove(id);
   },
 };

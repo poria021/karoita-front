@@ -4,6 +4,8 @@ import {
   buildCourseMaterial,
   canPublishCourseMaterials,
   COURSE_MATERIAL_MAX_BYTES,
+  isCourseMaterialForCourse,
+  isCourseMaterialOwnedBy,
   validateCourseMaterialInput,
 } from './course-material-rules';
 
@@ -62,5 +64,11 @@ describe('course-material-rules', () => {
       { id: 'u1', role: 'supervisor_professor', name: 'استاد' }
     );
     expect(material.title).toBe('t');
+    expect(isCourseMaterialOwnedBy(material, 'u1')).toBe(true);
+    expect(isCourseMaterialOwnedBy(material, 'u2')).toBe(false);
+    expect(isCourseMaterialForCourse(material, 'internship', 'intern1')).toBe(true);
+    expect(isCourseMaterialForCourse(material, 'apprenticeship', 'intern1')).toBe(
+      false
+    );
   });
 });

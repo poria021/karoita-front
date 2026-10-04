@@ -11,6 +11,9 @@ export const MOCK_SUPER_ADMIN_MOBILE = '9123456786';
 /** سوپروایزر تأییدشده برای smoke/e2e ماژول ظرفیت و تأیید روزانه. */
 export const MOCK_SUPERVISOR_MOBILE = '9123456787';
 
+/** با تغییر شکل seed بالا ببر تا mock در localStorage دوباره hydrate شود. */
+export const MOCK_USERS_SEED_VERSION = '10';
+
 export interface MockAuthUserRecord extends User {
   password: string;
   hasPassword: boolean;

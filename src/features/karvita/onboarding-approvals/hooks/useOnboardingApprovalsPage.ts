@@ -122,6 +122,12 @@ export function useOnboardingApprovalsPage() {
     clearLoadMoreError,
   } = list;
 
+  useEffect(() => {
+    return OnboardingApprovalsService.subscribeDirectoryChanges(() => {
+      void reload();
+    });
+  }, [reload]);
+
   const selectedUser =
     items.find((user) => user.id === selectedId) ?? null;
 

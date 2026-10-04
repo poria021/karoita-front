@@ -1,4 +1,5 @@
 import { isMockApiMode } from '@/lib/api-mode';
+import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   clampLevel,
   courseNameForKind,
@@ -6,13 +7,16 @@ import {
   maxLevelForKind,
 } from '@/services/internship-enrollment/enrollment-mappers';
 import {
-  mockEnrollmentPageState,
-  mockEnrollmentRecord,
-  mockMentors,
-  mockSchools,
-  mockSupervisors,
-  mockWeeklySession,
-} from '@/services/internship-enrollment/mock/enrollment.fixtures';
+  assignDelayedSchoolMentor,
+  enrollWithSupervisor,
+  listDelayedMentors,
+  listDelayedSchools,
+  listEligibleSupervisors,
+  resolveEnrollmentPageState,
+  resolveEnrollmentTermReport,
+  saveWeeklyReportDraft,
+  submitWeeklyReport,
+} from '@/services/internship-enrollment/mock/mock-enrollment-store';
 import {
   getRealEnrollmentPageState,
   getRealEnrollmentTermReport,
@@ -55,6 +59,10 @@ import type {
 } from '@/types/internship-enrollment';
 import type { NestMentorCapacity, NestMentorStudentsPage } from '@/types/nest-student-enrollments';
 
+function gateEnrollmentMock(): void {
+  assertMockClientHasPermission('internship.select');
+}
+
 /**
  * ثبت‌نام کارورزی / مهارت‌آموزی.
  * real: ترم باز، فهرست استاد، ثبت‌نام اولیه از `student-enrollments` و گزارش هفتگی از `student-weeks` — همه پیاده‌سازی شده‌اند.
@@ -89,7 +97,8 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return getRealEnrollmentPageState(input);
     }
-    return mockEnrollmentPageState(input);
+    gateEnrollmentMock();
+    return resolveEnrollmentPageState(input);
   },
 
   /** برای سلکت‌باکس نیم‌سال‌های قبلی — گزارش یک نیم‌سالِ مشخص از تاریخچهٔ همین level. */
@@ -99,8 +108,8 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return getRealEnrollmentTermReport(input);
     }
-    const state = mockEnrollmentPageState(input);
-    return state.termId === input.termId ? state.enrollment : null;
+    gateEnrollmentMock();
+    return resolveEnrollmentTermReport(input);
   },
 
   /** real: GET `professors?semesterId=&lessonId=`؛ فیلتر استان/پردیس/سرچ سمت کلاینت. */
@@ -110,7 +119,8 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return listRealEligibleSupervisors(input);
     }
-    return mockSupervisors();
+    gateEnrollmentMock();
+    return listEligibleSupervisors(input);
   },
 
   async enrollWithSupervisor(
@@ -119,7 +129,8 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return enrollRealWithSupervisor(input);
     }
-    return mockEnrollmentRecord(input);
+    gateEnrollmentMock();
+    return enrollWithSupervisor(input);
   },
 
   /** real: GET `/admin/schools` فیلترشده روی استان کاربر — فقط برای دراپ‌باکس؛ mock: snapshot ظرفیت‌دار. */
@@ -129,7 +140,8 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return listRealDelayedSchools(input);
     }
-    return mockSchools();
+    gateEnrollmentMock();
+    return listDelayedSchools(input);
   },
 
   /** real: GET `/student-enrollments/teachers?schoolId=` — فقط برای دراپ‌باکس؛ mock: snapshot ظرفیت‌دار. */
@@ -139,7 +151,8 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return listRealDelayedMentors(input);
     }
-    return mockMentors(input.schoolId);
+    gateEnrollmentMock();
+    return listDelayedMentors(input);
   },
 
   /**
@@ -153,7 +166,8 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return assignRealDelayedSchoolMentor(input);
     }
-    return mockEnrollmentRecord(input);
+    gateEnrollmentMock();
+    return assignDelayedSchoolMentor(input);
   },
 
   /** PATCH `/student-enrollments/{id}/cancel` — لغو ثبت‌نام دانشجو. */
@@ -161,6 +175,7 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return cancelRealEnrollment(input);
     }
+    gateEnrollmentMock();
   },
 
   /**
@@ -190,7 +205,8 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return realSaveWeeklyReportDraft(input);
     }
-    return mockWeeklySession(input, 'draft');
+    gateEnrollmentMock();
+    return saveWeeklyReportDraft(input);
   },
 
   async submitWeeklyReport(
@@ -199,6 +215,7 @@ export const InternshipEnrollmentService = {
     if (!isMockApiMode()) {
       return realSubmitWeeklyReport(input);
     }
-    return mockWeeklySession(input, 'pending');
+    gateEnrollmentMock();
+    return submitWeeklyReport(input);
   },
 };

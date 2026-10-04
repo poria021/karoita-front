@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { isMockApiMode } from '@/lib/api-mode';
+import { LandingCmsService } from '@/services/landing-cms.service';
 
 import {
   loadMarketingChrome,
@@ -54,8 +55,13 @@ export function useMarketingChrome(
 
     void refresh();
 
+    const unsubscribe = LandingCmsService.subscribeChromeChanges(() => {
+      void refresh();
+    });
+
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -1,6 +1,17 @@
 import { IS_MOCK_MODE } from '@/lib/api-mode';
-import { buildCourseMaterial } from '@/services/course-materials/course-material-rules';
-import { mockCourseMaterials } from '@/services/course-materials/mock/course-materials.fixtures';
+import {
+  buildCourseMaterial,
+  isCourseMaterialForCourse,
+  isCourseMaterialOwnedBy,
+  sortCourseMaterials,
+  validateCourseMaterialInput,
+} from '@/services/course-materials/course-material-rules';
+import {
+  mockSessionAuthor,
+  mutateMockCourseMaterials,
+  readFileAsDataUrl,
+  readMockCourseMaterials,
+} from '@/services/course-materials/mock/mock-course-materials-store';
 import {
   deleteRealCourseMaterial,
   listRealManagedCourseMaterials,
@@ -15,7 +26,7 @@ import type { InternshipCourseKind } from '@/types/internship-enrollment';
 
 /**
  * جزوه و فایل درس: استاد راهنما منتشر می‌کند، فراگیران درس می‌بینند و دانلود می‌کنند.
- * UI فقط همین Facade را صدا می‌زند. mock: فقط داده‌ی ثابت؛ نوشتن‌ها چیزی ذخیره نمی‌کنند.
+ * UI فقط همین Facade را صدا می‌زند. فعلاً فقط mock؛ real تا آمدن endpoint fail-closed است.
  */
 export const CourseMaterialsService = {
   /** فایل‌های یک درس برای فراگیر. */
@@ -24,18 +35,31 @@ export const CourseMaterialsService = {
     courseKey: string
   ): Promise<CourseMaterial[]> {
     if (!IS_MOCK_MODE) return listRealReceivedCourseMaterials(kind, courseKey);
-    return mockCourseMaterials(kind, courseKey);
+    return sortCourseMaterials(
+      readMockCourseMaterials().filter((row) =>
+        isCourseMaterialForCourse(row, kind, courseKey)
+      )
+    );
   },
 
   /** فایل‌هایی که کاربر جاری منتشر کرده است. */
   async listManaged(): Promise<CourseMaterial[]> {
     if (!IS_MOCK_MODE) return listRealManagedCourseMaterials();
-    return mockCourseMaterials();
+    const author = mockSessionAuthor();
+    return sortCourseMaterials(
+      readMockCourseMaterials().filter((row) =>
+        isCourseMaterialOwnedBy(row, author.id)
+      )
+    );
   },
 
   async publish(input: PublishCourseMaterialInput): Promise<CourseMaterial> {
     if (!IS_MOCK_MODE) return publishRealCourseMaterial(input);
-    return buildCourseMaterial(
+    const author = mockSessionAuthor();
+    const error = validateCourseMaterialInput(input, author.role);
+    if (error) throw new Error(error);
+    const fileUrl = await readFileAsDataUrl(input.file);
+    const created = buildCourseMaterial(
       {
         kind: input.kind,
         courseKey: input.courseKey,
@@ -45,14 +69,23 @@ export const CourseMaterialsService = {
         fileName: input.file.name,
         mimeType: input.file.type || 'application/octet-stream',
         sizeBytes: input.file.size,
-        fileUrl: '',
+        fileUrl,
       },
-      { id: 'mock-supervisor', role: 'supervisor_professor', name: 'استاد راهنما' }
+      author
     );
+    mutateMockCourseMaterials((draft) => {
+      draft.push(created);
+    });
+    return created;
   },
 
   async delete(id: string): Promise<void> {
     if (!IS_MOCK_MODE) return deleteRealCourseMaterial(id);
-    void id;
+    const author = mockSessionAuthor();
+    const row = readMockCourseMaterials().find((item) => item.id === id);
+    if (!row || !isCourseMaterialOwnedBy(row, author.id)) {
+      throw new Error('فایل یافت نشد یا متعلق به شما نیست.');
+    }
+    mutateMockCourseMaterials((draft) => draft.filter((item) => item.id !== id));
   },
 };

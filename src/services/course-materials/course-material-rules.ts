@@ -7,7 +7,7 @@ import type { InternshipCourseKind } from '@/types/internship-enrollment';
 
 export const COURSE_MATERIAL_TITLE_MAX = 120;
 export const COURSE_MATERIAL_DESCRIPTION_MAX = 500;
-/** سقف حجم فایل جزوه. */
+/** سقف mock: فایل به‌صورت data URL در localStorage می‌ماند. */
 export const COURSE_MATERIAL_MAX_BYTES = 2 * 1024 * 1024;
 
 export const COURSE_MATERIAL_ACCEPT =
@@ -45,6 +45,28 @@ export function canPublishCourseMaterials(
 export function fileExtension(name: string): string {
   const idx = name.lastIndexOf('.');
   return idx < 0 ? '' : name.slice(idx + 1).toLowerCase();
+}
+
+export function isCourseMaterialOwnedBy(
+  material: Pick<CourseMaterial, 'authorId'>,
+  authorId: string | null | undefined
+): boolean {
+  return Boolean(authorId) && material.authorId === authorId;
+}
+
+export function isCourseMaterialForCourse(
+  material: Pick<CourseMaterial, 'kind' | 'courseKey'>,
+  kind: InternshipCourseKind,
+  courseKey: string
+): boolean {
+  return material.kind === kind && material.courseKey === courseKey;
+}
+
+/** جدیدترین اول. */
+export function sortCourseMaterials(
+  rows: readonly CourseMaterial[]
+): CourseMaterial[] {
+  return [...rows].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 /** پیام فارسی برای فرم؛ `null` یعنی معتبر. */

@@ -1,11 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AdminUserCreationService } from '@/services/admin-user-creation.service';
+import { OnboardingApprovalsService } from '@/services/onboarding-approvals.service';
 import { adminsApi } from '@/services/admin-user-creation/real/admins.api';
 import { accountUsersApi } from '@/services/admin-user-creation/real/account-users.api';
 import { ApiClientError } from '@/services/api-error';
 import { usersApi } from '@/services/users/users.api';
-import { MOCK_SUPER_ADMIN_MOBILE } from '@/services/auth/mock/auth-mock-users';
+import {
+  readMockUsers,
+  resetMockAuthStoreForTests,
+} from '@/services/auth/mock/mock-auth.store';
+import {
+  AUTH_MOCK_USERS,
+  MOCK_SUPER_ADMIN_MOBILE,
+} from '@/services/auth/mock/auth-mock-users';
+import { useUserStore } from '@/store/useUserStore';
 
 vi.mock('@/services/admin-user-creation/real/admins.api', () => ({
   adminsApi: {
@@ -53,13 +62,27 @@ describe('AdminUserCreationService (mock)', () => {
   beforeEach(() => {
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
     vi.stubEnv('NODE_ENV', 'development');
+    resetMockAuthStoreForTests(AUTH_MOCK_USERS.map((u) => ({ ...u })));
+    useUserStore.getState().setUser({
+      id: '#MOCK-SA',
+      firstName: 'مدیر',
+      lastName: 'ارشد',
+      mobile: MOCK_SUPER_ADMIN_MOBILE,
+      role: 'super_admin',
+      approved: true,
+      docStatus: 'approved',
+      hasPassword: true,
+    });
   });
 
   afterEach(() => {
     vi.unstubAllEnvs();
+    resetMockAuthStoreForTests();
+    useUserStore.setState({ activeUser: null });
   });
 
-  it('returns the created organizational user without persisting it', async () => {
+  it('creates an approved organizational user', async () => {
+    const before = readMockUsers().length;
     const result = await AdminUserCreationService.createOrganizationalUser({
       firstName: 'سارا',
       lastName: 'محمدی',
@@ -71,12 +94,66 @@ describe('AdminUserCreationService (mock)', () => {
     expect(result.user.role).toBe('central_organization');
     expect(result.user.approved).toBe(true);
     expect(result.user.docStatus).toBe('approved');
+    expect(result.user.hasPassword).toBe(true);
+    expect(readMockUsers()).toHaveLength(before + 1);
 
-    const free = await AdminUserCreationService.checkMobileAvailable('9111111111');
-    expect(free.available).toBe(true);
+    const approved = await OnboardingApprovalsService.listPage({
+      status: 'approved',
+      query: '9111111111',
+      province: 'all',
+      offset: 0,
+      limit: 20,
+    });
+    expect(approved.items.some((user) => user.id === result.user.id)).toBe(true);
   });
 
-  it('reports mobile availability from the static users', async () => {
+  it('puts a created staff admin on the approved identity tab', async () => {
+    const result = await AdminUserCreationService.createOrganizationalUser({
+      firstName: 'سارا',
+      lastName: 'محمدی',
+      mobile: '9111111199',
+      password: '12345678',
+      role: 'assistant_admin',
+    });
+
+    expect(result.user.approved).toBe(true);
+    expect(result.user.docStatus).toBe('approved');
+
+    const approved = await OnboardingApprovalsService.listPage({
+      status: 'approved',
+      query: '9111111199',
+      province: 'all',
+      offset: 0,
+      limit: 20,
+    });
+    expect(approved.items.some((user) => user.id === result.user.id)).toBe(true);
+  });
+
+  it('rejects creating super_admin', async () => {
+    await expect(
+      AdminUserCreationService.createOrganizationalUser({
+        firstName: 'سارا',
+        lastName: 'محمدی',
+        mobile: '9111111188',
+        password: '12345678',
+        role: 'super_admin',
+      } as never)
+    ).rejects.toThrow(/مدیر ارشد/);
+  });
+
+  it('rejects duplicate mobile', async () => {
+    await expect(
+      AdminUserCreationService.createOrganizationalUser({
+        firstName: 'سارا',
+        lastName: 'محمدی',
+        mobile: MOCK_SUPER_ADMIN_MOBILE,
+        password: '12345678',
+        role: 'assistant_admin',
+      })
+    ).rejects.toThrow(/موبایل/);
+  });
+
+  it('reports mobile availability', async () => {
     const taken = await AdminUserCreationService.checkMobileAvailable(
       MOCK_SUPER_ADMIN_MOBILE
     );
@@ -88,36 +165,36 @@ describe('AdminUserCreationService (mock)', () => {
     expect(free.available).toBe(true);
   });
 
-  it('lists staff admins from the static users', async () => {
+  it('lists staff admins from the mock store', async () => {
     const page = await AdminUserCreationService.listStaffAdmins({
       offset: 0,
       limit: 20,
     });
     expect(page.items.length).toBeGreaterThan(0);
-    expect(
-      page.items.every(
-        (item) => item.role === 'super_admin' || item.role === 'assistant_admin'
-      )
-    ).toBe(true);
+    expect(page.items.every((item) => item.role === 'super_admin' || item.role === 'assistant_admin')).toBe(true);
   });
 
-  it('gets a staff admin by id from the static users', async () => {
+  it('gets a staff admin by id from the mock store', async () => {
     const page = await AdminUserCreationService.listStaffAdmins({
       offset: 0,
       limit: 20,
     });
-    const first = page.items[0]!;
+    const first = page.items[0];
+    expect(first).toBeTruthy();
+    if (!first) return;
     const detail = await AdminUserCreationService.getStaffAdmin(first.id);
     expect(detail.id).toBe(first.id);
     expect(detail.mobile).toBe(first.mobile);
   });
 
-  it('returns the updated staff admin without persisting it', async () => {
+  it('updates a staff admin in the mock store', async () => {
     const page = await AdminUserCreationService.listStaffAdmins({
       offset: 0,
       limit: 20,
     });
-    const first = page.items[0]!;
+    const first = page.items[0];
+    expect(first).toBeTruthy();
+    if (!first) return;
 
     const updated = await AdminUserCreationService.updateStaffAdmin(first.id, {
       firstName: 'علی',
@@ -128,6 +205,8 @@ describe('AdminUserCreationService (mock)', () => {
     });
 
     expect(updated.firstName).toBe('علی');
+    expect(updated.lastName).toBe('رضایی');
+    expect(updated.role).toBe(first.role);
     expect(updated.statusName).toBe('inactive');
   });
 });

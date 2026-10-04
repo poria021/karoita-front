@@ -5,7 +5,7 @@ import type { Session } from '@/types/auth';
 
 /**
  * همگام‌سازی سشن با Zustand — مشترک mock و real.
- * ماندگاری نشست mock (cookie) فقط در `mock-auth.session` است.
+ * ماندگاری mock (cookie / localStorage) فقط در `mock-auth.store` است.
  */
 export function dispatchSessionToStore(session: Session | null): void {
   const store = useUserStore.getState();

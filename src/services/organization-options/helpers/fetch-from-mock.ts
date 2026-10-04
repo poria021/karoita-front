@@ -11,6 +11,8 @@ import {
   type ResolvedOptionsRequest,
 } from './types';
 
+const MOCK_DELAY_MS = 220;
+
 function toOptions(labels: string[]): OrganizationOption[] {
   return labels.map((label) => ({ id: label, label }));
 }
@@ -53,9 +55,21 @@ function collectLabels(
   return merged;
 }
 
-export function fetchOrganizationOptionsFromMock(
+export async function fetchOrganizationOptionsFromMock(
   params: ResolvedOptionsRequest
-): OrganizationOptionsResult {
+): Promise<OrganizationOptionsResult> {
+  await new Promise<void>((resolve, reject) => {
+    const timer = window.setTimeout(resolve, MOCK_DELAY_MS);
+    params.signal?.addEventListener(
+      'abort',
+      () => {
+        window.clearTimeout(timer);
+        reject(new DOMException('Aborted', 'AbortError'));
+      },
+      { once: true }
+    );
+  });
+
   const provinceNames = toNameList(params.province);
   const districtNames = toNameList(params.district);
   const labels = collectLabels(
