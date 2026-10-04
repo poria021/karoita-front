@@ -44,15 +44,52 @@ describe('course catalog mutations (mock)', () => {
     expect(project.map((c) => c.title)).toEqual(['پروژه الف', 'پروژه ب']);
   });
 
-  it('blocks deleting a course while one of its modules is offered', async () => {
+  it('never hard-deletes a course that was ever offered, even after deactivating it', async () => {
+    const offeringId = buildCourseOfferingId('term_1', 'course_internship_1');
     await offeringMutations.activateOffering({ termId: 'term_1', courseCatalogId: 'course_internship_1' });
-    await expect(courseCatalogMutations.deleteCourseDefinition('course_internship')).rejects.toThrow();
+    await expect(courseCatalogMutations.deleteCourseDefinition('course_internship')).rejects.toThrow(/بایگانی/);
 
-    await offeringMutations.deactivateOffering({
-      courseOfferingId: buildCourseOfferingId('term_1', 'course_internship_1'),
+    await offeringMutations.deactivateOffering({ courseOfferingId: offeringId });
+    await expect(courseCatalogMutations.deleteCourseDefinition('course_internship')).rejects.toThrow(/بایگانی/);
+
+    // سابقهٔ ارائه (و سرفصل‌های ترم) دست‌نخورده می‌ماند.
+    const defs = await courseCatalogMutations.listCourseDefinitions();
+    expect(defs.some((c) => c.id === 'course_internship')).toBe(true);
+    const snapshot = await courseCatalogMutations.updateCourseDefinition('course_internship', {
+      title: 'کارورزی',
+      audience: 'semester',
+      isActive: false,
+      subModules: defs.find((c) => c.id === 'course_internship')!.subModules,
     });
-    const snapshot = await courseCatalogMutations.deleteCourseDefinition('course_internship');
-    expect(snapshot.courseCatalog?.some((c) => c.id === 'course_internship')).toBe(false);
+    expect(snapshot.offerings[offeringId]).toBeDefined();
+  });
+
+  it('hard-deletes a course that has no offering or syllabus anywhere', async () => {
+    const created = await courseCatalogMutations.createCourseDefinition({
+      title: 'درس اشتباه',
+      audience: 'semester',
+      isActive: true,
+      subModules: [],
+    });
+    const id = created.courseCatalog!.find((c) => c.title === 'درس اشتباه')!.id;
+    const snapshot = await courseCatalogMutations.deleteCourseDefinition(id);
+    expect(snapshot.courseCatalog?.some((c) => c.id === id)).toBe(false);
+  });
+
+  it('an archived course no longer shows up for new terms but keeps its past offering', async () => {
+    const offeringId = buildCourseOfferingId('term_1', 'course_internship_1');
+    await offeringMutations.activateOffering({ termId: 'term_1', courseCatalogId: 'course_internship_1' });
+    await offeringMutations.deactivateOffering({ courseOfferingId: offeringId });
+    const defs = await courseCatalogMutations.listCourseDefinitions();
+    const internship = defs.find((c) => c.id === 'course_internship')!;
+    await courseCatalogMutations.updateCourseDefinition('course_internship', {
+      title: internship.title,
+      audience: internship.audience,
+      isActive: false,
+      subModules: internship.subModules,
+    });
     expect(await courseOfferingQueries.listCoursesForTerm('term_1')).toHaveLength(0);
+    const snapshot = await courseCatalogMutations.listCourseDefinitions();
+    expect(snapshot.find((c) => c.id === 'course_internship')?.isActive).toBe(false);
   });
 });

@@ -86,15 +86,15 @@ describe('DailyApprovalsService real fail-closed', () => {
         termId: 'sem-1',
       })
     ).resolves.toEqual([
-      { id: 'l1', title: 'کارورزی ۱', courseFilter: 'intern1' },
-      { id: 'l2', title: 'کارورزی ۲', courseFilter: 'intern2' },
+      { id: 'l1', title: 'کارورزی ۱', courseFilter: 'l1' },
+      { id: 'l2', title: 'کارورزی ۲', courseFilter: 'l2' },
     ]);
     await expect(
       DailyApprovalsService.listWeeks({
         kind: 'internship',
         termId: 'sem-1',
         lessonId: 'l1',
-        courseFilter: 'intern1',
+        courseFilter: 'l1',
       })
     ).resolves.toEqual([
       { value: '1', label: 'هفته ۱', weekNumber: 1 },

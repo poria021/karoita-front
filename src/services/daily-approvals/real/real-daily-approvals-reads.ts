@@ -1,5 +1,5 @@
 import {
-  toDailyApprovalCatalogCourses,
+  toDailyApprovalRealCatalogCourses,
 } from '@/services/daily-approvals/daily-approval-catalog-mappers';
 import { DAILY_APPROVAL_PASSING_SCORE } from '@/features/karvita/daily-approvals/constants';
 import {
@@ -18,6 +18,7 @@ import {
   mapWeekStatus,
   studentWeekId,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
+import { strictLessonLevelFromTitle } from '@/services/internship-enrollment/real/mappers/lesson-matching';
 import { resolveEnrollmentMentor } from '@/services/internship-enrollment/real/mappers/enrollment-summary';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { requireNestTransport } from '@/services/require-nest-transport';
@@ -71,7 +72,11 @@ const EMPTY_GRADE: DailyApprovalProgressiveGrade = {
 
 type LessonLookup = Map<
   string,
-  { courseKey: Exclude<DailyApprovalCourseFilter, 'all'>; courseTitle: string }
+  {
+    courseKey: Exclude<DailyApprovalCourseFilter, 'all'>;
+    courseTitle: string;
+    level: number;
+  }
 >;
 
 function mapRow(
@@ -90,7 +95,7 @@ function mapRow(
 
   const lessonId = typeof row.lessonId === 'string' ? row.lessonId : undefined;
   const resolved = lessonId ? lessonLookup.get(lessonId) : undefined;
-  const courseKey = resolved?.courseKey ?? fallbackCourseKey;
+  const courseKey = resolved?.courseKey ?? lessonId ?? fallbackCourseKey;
   const courseTitle = resolved?.courseTitle ?? '';
 
   return {
@@ -103,7 +108,7 @@ function mapRow(
     // می‌کند — ببین loadRealDailyApprovalWeekDetail پایین همین فایل.
     teacherId: resolveEnrollmentMentor(row)?.id ?? null,
     kind: input.kind,
-    level: LEVEL_MAP[courseKey] ?? 1,
+    level: resolved?.level ?? LEVEL_MAP[courseKey] ?? 1,
     courseKey,
     courseTitle,
     termId: input.termId,
@@ -264,20 +269,21 @@ export async function listRealDailyApprovals(
         : 'appr1'
       : input.course;
 
-  // کاتالوگ رو همیشه میگیریم — هم برای فیلتر lessonId، هم برای پر کردن courseTitle هر ردیف
+  // فیلتر درس در real خودِ `lessonId` است (از `listCourses` همان ترم)، نه کلید ثابت.
+  const lessonId = input.course === 'all' ? undefined : input.course;
+  // کاتالوگ فقط برای پر کردن courseTitle/courseKey هر ردیف
   const lessonLookup: LessonLookup = new Map();
-  let lessonId: string | undefined;
 
   const [, passingScoreThreshold] = await Promise.all([
     (async () => {
       try {
         const courses = await listRealCapacityCourses(input.kind, input.termId);
-        const catalog = toDailyApprovalCatalogCourses(input.kind, courses);
-        for (const c of catalog) {
-          lessonLookup.set(c.id, { courseKey: c.courseFilter, courseTitle: c.title });
-        }
-        if (input.course !== 'all') {
-          lessonId = catalog.find((c) => c.courseFilter === input.course)?.id;
+        for (const c of toDailyApprovalRealCatalogCourses(courses)) {
+          lessonLookup.set(c.id, {
+            courseKey: c.courseFilter,
+            courseTitle: c.title,
+            level: strictLessonLevelFromTitle(c.title) ?? 1,
+          });
         }
       } catch {
         // بدون کاتالوگ ادامه می‌دهیم؛ courseTitle خالی می‌ماند

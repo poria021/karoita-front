@@ -5,6 +5,7 @@ import type { CourseDefinition } from '@/types/syllabus-config';
 import {
   evaluationScopeKeys,
   getDailyApprovalCourseOptions,
+  getRealDailyApprovalCourseOptions,
 } from './constants';
 
 const WITH_SUBS: CourseDefinition = {
@@ -27,7 +28,7 @@ const STANDALONE: CourseDefinition = {
 };
 
 describe('daily approvals course options', () => {
-  it('keeps the static list without a dynamic course (real mode)', () => {
+  it('keeps the static legacy list without a dynamic course (mock fixtures)', () => {
     expect(getDailyApprovalCourseOptions('internship').map((o) => o.value)).toEqual(
       ['all', 'intern1', 'intern2', 'intern3', 'intern4']
     );
@@ -48,5 +49,16 @@ describe('daily approvals course options', () => {
       1
     );
     expect(evaluationScopeKeys(STANDALONE)).toEqual(['crs_workshop']);
+  });
+
+  it('real mode lists one option per lesson of the term, valued by lessonId', () => {
+    const options = getRealDailyApprovalCourseOptions([
+      { id: 'les_1', title: 'کارورزی ۱', courseFilter: 'les_1' },
+      { id: 'les_9', title: 'کارگاه تدریس', courseFilter: 'les_9' },
+    ]);
+    expect(options.map((o) => o.value)).toEqual(['all', 'les_1', 'les_9']);
+    expect(getRealDailyApprovalCourseOptions([]).map((o) => o.value)).toEqual([
+      'all',
+    ]);
   });
 });

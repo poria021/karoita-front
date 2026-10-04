@@ -89,15 +89,31 @@ export function termTitleForHistoryEntry(
  */
 export function resolveEffectiveEnrollmentEntry(
   current: { canSelect?: boolean; blockReason?: string | null } | null,
-  history: readonly EnrolmentHistoryEntry[]
+  history: readonly EnrolmentHistoryEntry[],
+  openSemesterId?: string | null
 ): EnrolmentHistoryEntry | null {
+  // ثبت‌نام `active` در همین ترمِ باز همیشه «فعلی» است.
+  const activeInOpenTerm =
+    (openSemesterId
+      ? history.find(
+          (entry) =>
+            entry.enrolment.status === 'active' &&
+            entry.semesterId === openSemesterId
+        )
+      : null) ?? null;
+  if (activeInOpenTerm) return activeInOpenTerm;
+
+  // درس این level در ترم باز قابل انتخاب است: ثبت‌نامِ `active` مانده از ترم‌های
+  // قبل (بک‌اند فقط وقتی همهٔ هفته‌ها نمره بگیرند `completed` می‌کند، نه با بسته
+  // شدن ترم) نباید جلوی انتخاب واحد ترم جدید را بگیرد؛ در `termHistory` می‌ماند.
+  if (current && current.canSelect !== false) {
+    return null;
+  }
+
   const activeEntry =
     history.find((entry) => entry.enrolment.status === 'active') ?? null;
   if (activeEntry) return activeEntry;
 
-  if (current && current.canSelect !== false) {
-    return null;
-  }
   return (
     history
       .filter((entry) => entry.enrolment.status === 'completed')
@@ -131,7 +147,11 @@ export function toEnrollmentPageState(
   const currentLessonId = current ? nestEntityId(current) || null : null;
 
   const history = findEnrolmentHistoryForLevel(semesters, kind, level);
-  const effectiveEntry = resolveEffectiveEnrollmentEntry(current, history);
+  const effectiveEntry = resolveEffectiveEnrollmentEntry(
+    current,
+    history,
+    open?.id
+  );
   const registered = Boolean(effectiveEntry);
 
   const openSemesterEntry = open

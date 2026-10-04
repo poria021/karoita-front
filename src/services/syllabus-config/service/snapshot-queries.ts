@@ -15,7 +15,10 @@ import {
   listOfferingsForTerm,
 } from '@/services/syllabus-config/syllabus-mappers';
 import { courseDefinitionsOf } from '@/services/syllabus-config/course-catalog';
-import { catalogKindForTermType } from '@/services/syllabus-config/real/real-syllabus-mappers';
+import {
+  catalogKindForTermType,
+  realLessonIdFor,
+} from '@/services/syllabus-config/real/real-syllabus-mappers';
 import { getRealSyllabusSnapshot } from '@/services/syllabus-config/real/real-syllabus-reads';
 import type {
   AcademicTermType,
@@ -155,7 +158,7 @@ export const snapshotQueries = {
   },
 
   resolveOfferingId(termId: string, courseCatalogId: string): string {
-    if (!IS_MOCK_MODE) return courseCatalogId;
+    if (!IS_MOCK_MODE) return realLessonIdFor(termId, courseCatalogId);
     return buildCourseOfferingId(termId, courseCatalogId);
   },
 };

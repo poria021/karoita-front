@@ -4,6 +4,7 @@ import {
   errorMessage,
   offeredCatalogIdsFromList,
   resolveAudienceTermId,
+  termDeleteBlockReason,
 } from './syllabusPageUtils';
 
 describe('errorMessage', () => {
@@ -82,5 +83,32 @@ describe('resolveAudienceTermId', () => {
     expect(resolveAudienceTermId(pool, undefined)).toBe('term_mod_1');
     expect(resolveAudienceTermId(pool, 'term_gone')).toBe('term_mod_1');
     expect(resolveAudienceTermId([], 'term_mod_1')).toBe('');
+  });
+});
+
+describe('termDeleteBlockReason', () => {
+  const term = { title: 'نیم‌سال اول ۱۴۰۴', isEnrollOpen: false, isTermOpen: false };
+  const offering = (isOffered: boolean) => ({
+    courseOfferingId: 'o',
+    courseCatalogId: 'c',
+    title: 'کارورزی ۱',
+    type: 'internship' as const,
+    isOffered,
+  });
+
+  it('allows deleting a closed term with no offered course', () => {
+    expect(termDeleteBlockReason(term, [offering(false)])).toBeNull();
+    expect(termDeleteBlockReason(term, [])).toBeNull();
+  });
+
+  it('blocks a term that still has an offered course, with the count', () => {
+    const reason = termDeleteBlockReason(term, [offering(true), offering(true)]);
+    expect(reason).toContain('2 ارائه');
+    expect(reason).toContain('غیرفعال');
+  });
+
+  it('blocks a term whose gates are still open', () => {
+    expect(termDeleteBlockReason({ ...term, isEnrollOpen: true }, [])).toContain('ببندید');
+    expect(termDeleteBlockReason({ ...term, isTermOpen: true }, [])).toContain('ببندید');
   });
 });

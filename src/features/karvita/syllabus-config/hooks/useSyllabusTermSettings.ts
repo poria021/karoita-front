@@ -21,7 +21,7 @@ import {
   patchCachedSyllabusTerms,
   publishSyllabusSnapshot,
 } from '../lib/syllabusPageCache';
-import { errorMessage } from '../lib/syllabusPageUtils';
+import { errorMessage, termDeleteBlockReason } from '../lib/syllabusPageUtils';
 import {
   professorCapacitySchema,
   passingThresholdSchema,
@@ -278,12 +278,38 @@ export function useSyllabusTermSettings({
     });
   }
 
-  function requestDeleteTerm() {
+  /** قبل از حذف، سابقهٔ ترم را می‌سنجد؛ اگر نشد بررسی کرد، حذف نمی‌کند (fail-closed). */
+  async function guardedDeleteTerm() {
     if (!editingTerm || pendingDeleteTermId) return;
 
     const target = editingTerm;
-    let snapshot = terms;
     setPendingDeleteTermId(target.id);
+    try {
+      const { offerings } =
+        await SyllabusConfigService.listCoursesAndOfferingsForTerm(target.id);
+      const reason = termDeleteBlockReason(target, offerings);
+      if (reason) {
+        toast.error(reason);
+        setPendingDeleteTermId(null);
+        return;
+      }
+    } catch (err) {
+      toast.error(
+        errorMessage(err, 'بررسی سابقهٔ دوره ناموفق بود؛ دوره حذف نشد.')
+      );
+      setPendingDeleteTermId(null);
+      return;
+    }
+
+    startTermDelete(target);
+  }
+
+  function requestDeleteTerm() {
+    void guardedDeleteTerm();
+  }
+
+  function startTermDelete(target: AcademicTerm) {
+    let snapshot = terms;
 
     scheduleUndoableMutation({
       tone: 'error',

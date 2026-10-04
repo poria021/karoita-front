@@ -30,6 +30,21 @@ export function toDailyApprovalCatalogCourses(
   }));
 }
 
+/**
+ * کاتالوگ حالت real: فیلتر هر درس همان `lessonId` ارائهٔ همان ترم است.
+ * برخلاف `toDailyApprovalCatalogCourses` (فقط mock، با کلیدهای ثابت `intern1…`)
+ * هیچ‌چیز از عنوان حدس زده نمی‌شود، پس درس تازهٔ مدیر ارشد خودکار فیلتر می‌شود.
+ */
+export function toDailyApprovalRealCatalogCourses(
+  rows: Array<{ id: string; title: string }>
+): DailyApprovalCatalogCourse[] {
+  return rows.map((row) => ({
+    id: row.id,
+    title: row.title,
+    courseFilter: row.id,
+  }));
+}
+
 export function toDailyApprovalWeekOptions(
   weeks: Array<{ title?: string }>
 ): DailyApprovalWeekOption[] {

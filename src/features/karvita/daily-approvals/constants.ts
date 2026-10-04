@@ -1,4 +1,5 @@
 import type {
+  DailyApprovalCatalogCourse,
   DailyApprovalCompetencyRating,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
@@ -110,8 +111,8 @@ export function evaluationScopeKeys(courseModule: CourseDefinition): string[] {
 }
 
 /**
- * فیلتر بالای جدول. با درس داینامیک (mock) فقط زیرمجموعه‌های همان درس می‌آید؛
- * بدون آن (real) فهرست ثابت قبلی. مقدار گزینه از `evaluationCourseFilterId` می‌آید تا
+ * فیلتر بالای جدول — فقط mock (در real ببین `getRealDailyApprovalCourseOptions`).
+ * با درس داینامیک فقط زیرمجموعه‌های همان درس می‌آید؛ بدون آن فهرست ثابت قبلی. مقدار گزینه از `evaluationCourseFilterId` می‌آید تا
  * داده‌ی mock قدیمی (`intern1`) فیلتر شود.
  */
 export function getDailyApprovalCourseOptions(
@@ -129,6 +130,22 @@ export function getDailyApprovalCourseOptions(
     ...courseModule.subModules.map((sub) => ({
       value: evaluationCourseFilterId(sub.id),
       label: toPersianDigits(sub.title),
+    })),
+  ];
+}
+
+/**
+ * فیلتر درس حالت real: «همه» + یک گزینه برای هر lesson همان ترم (مقدار = `lessonId`).
+ * درس تازه‌ای که مدیر ارشد بسازد بدون تغییر کد در فیلتر می‌آید.
+ */
+export function getRealDailyApprovalCourseOptions(
+  courses: readonly DailyApprovalCatalogCourse[]
+): readonly DailyApprovalCourseOption[] {
+  return [
+    { value: 'all', label: 'همه دروس' },
+    ...courses.map((course) => ({
+      value: course.courseFilter,
+      label: toPersianDigits(course.title),
     })),
   ];
 }

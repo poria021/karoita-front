@@ -286,7 +286,11 @@ export async function getRealEnrollmentPageState(
   const level = clampLevel(kind, input.level);
   const history = findEnrolmentHistoryForLevel(semesters, kind, level);
   const current = findLessonForLevel(open?.lessons ?? [], kind, level);
-  const effectiveEntry = resolveEffectiveEnrollmentEntry(current, history);
+  const effectiveEntry = resolveEffectiveEnrollmentEntry(
+    current,
+    history,
+    open?.id
+  );
   const isActiveInOpenTerm = Boolean(open) && effectiveEntry?.semesterId === open?.id;
 
   const registeredDetails = await loadRegisteredEnrollmentDetails(

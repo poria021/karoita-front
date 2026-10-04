@@ -59,6 +59,21 @@ function assertNoActiveOfferings(
   );
 }
 
+function assertNoOfferingHistory(
+  draft: SyllabusConfigSnapshot,
+  leafIds: string[]
+): void {
+  const leaves = new Set(leafIds);
+  const used = Object.values(draft.offerings).find((offering) =>
+    leaves.has(offering.courseCatalogId)
+  );
+  if (!used) return;
+  const term = draft.terms.find((row) => row.id === used.termId);
+  throw new Error(
+    `این درس در «${term?.title ?? 'یکی از ترم‌ها'}» ارائه یا سرفصل دارد و سابقه‌اش باید حفظ شود؛ به‌جای حذف، آن را بایگانی کنید.`
+  );
+}
+
 export const courseCatalogMutations = {
   /** همهٔ دروس تعریف‌شده (فعال و غیرفعال) برای صفحهٔ تعریف دروس. */
   async listCourseDefinitions(): Promise<CourseDefinition[]> {
@@ -113,20 +128,20 @@ export const courseCatalogMutations = {
     });
   },
 
+  /**
+   * حذف واقعی فقط برای درسی است که هیچ ارائه/سرفصلی در هیچ ترمی ندارد (مثلاً اشتباه ساخته شده).
+   * درسی که حتی یک‌بار در ترمی ارائه یا سرفصل‌بندی شده سابقه دارد؛ حذفش
+   * ارائه‌ها و سرفصل ترم‌های گذشته را هم پاک می‌کرد، پس باید بایگانی شود
+   * (`isActive: false` از `updateCourseDefinition`). ارائه‌ای هرگز اینجا پاک نمی‌شود.
+   */
   async deleteCourseDefinition(id: string): Promise<SyllabusConfigSnapshot> {
     gateSyllabusTermSettings();
     if (!IS_MOCK_MODE) return deleteRealCourseDefinition(id);
     return mutateSyllabusSnapshot((draft) => {
       const catalog = ensureCatalog(draft);
       const course = findCourseOrThrow(catalog, id);
-      const leafIds = leafIdsOfCourse(course);
-      assertNoActiveOfferings(draft, leafIds, 'حذف درس');
+      assertNoOfferingHistory(draft, leafIdsOfCourse(course));
       draft.courseCatalog = catalog.filter((row) => row.id !== id);
-      // سرفصل‌های غیرفعال ماژول حذف‌شده یتیم نمانند.
-      const removed = new Set(leafIds);
-      for (const [key, offering] of Object.entries(draft.offerings)) {
-        if (removed.has(offering.courseCatalogId)) delete draft.offerings[key];
-      }
     });
   },
 };

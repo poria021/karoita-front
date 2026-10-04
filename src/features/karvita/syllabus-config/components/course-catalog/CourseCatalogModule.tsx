@@ -99,6 +99,7 @@ export function CourseCatalogModule() {
             onAdd={page.openCreate}
             onEdit={page.startEdit}
             onDelete={page.requestDelete}
+            onToggleArchive={page.toggleArchive}
           />
         )}
       </KvWorkspace>
@@ -131,7 +132,7 @@ export function CourseCatalogModule() {
                 page.deleteTarget.subModules.length > 0
                   ? ' و همهٔ زیرمجموعه‌هایش'
                   : ''
-              } حذف می‌شود و سرفصل‌های ذخیره‌شده‌اش هم پاک می‌شود. آیا ادامه می‌دهید؟`
+              } برای همیشه حذف می‌شود. این فقط برای درسی است که هنوز در هیچ ترمی ارائه یا سرفصل‌بندی نشده؛ اگر سابقه داشته باشد حذف نمی‌شود و باید آن را بایگانی کنید. آیا ادامه می‌دهید؟`
             : ''
         }
         confirmText="حذف"

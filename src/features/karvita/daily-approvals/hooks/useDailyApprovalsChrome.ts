@@ -1,5 +1,6 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
@@ -8,6 +9,10 @@ import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
 } from '@/lib/search-debounce';
+import { isMockApiMode } from '@/lib/api-mode';
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
+import { QUERY_STALE_MS } from '@/lib/query-stale';
+import { DailyApprovalsService } from '@/services/daily-approvals.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
   DailyApprovalCourseFilter,
@@ -15,7 +20,11 @@ import type {
   DailyApprovalReadFilter,
 } from '@/types/daily-approvals';
 
-import { getDailyApprovalCourseOptions, evaluationScopeKeys } from '../constants';
+import {
+  evaluationScopeKeys,
+  getDailyApprovalCourseOptions,
+  getRealDailyApprovalCourseOptions,
+} from '../constants';
 import { useDailyApprovalModule } from './useDailyApprovalModule';
 import {
   DAILY_APPROVALS_CHROME_ID,
@@ -54,9 +63,22 @@ export function useDailyApprovalsChrome() {
   );
   const { courseModule, hasDynamicCourses, setModuleId } =
     useDailyApprovalModule(kind);
+  const [termId, setTermId] = useState(() => cachedChrome?.termId ?? '');
+  // real: گزینه‌های درس از lessonهای همین ترم می‌آید (مقدار = lessonId)، نه لیست ثابت.
+  const isRealCatalog = !isMockApiMode();
+  const termCoursesQuery = useQuery({
+    queryKey: DASHBOARD_QUERY.dailyApprovalsCourses(kind, termId),
+    queryFn: () => DailyApprovalsService.listCourses({ kind, termId }),
+    enabled: isRealCatalog && Boolean(termId),
+    staleTime: QUERY_STALE_MS.module,
+  });
+  const termCourses = termCoursesQuery.data;
   const courseOptions = useMemo(
-    () => getDailyApprovalCourseOptions(kind, courseModule),
-    [kind, courseModule]
+    () =>
+      isRealCatalog
+        ? getRealDailyApprovalCourseOptions(termCourses ?? [])
+        : getDailyApprovalCourseOptions(kind, courseModule),
+    [isRealCatalog, termCourses, kind, courseModule]
   );
   const scopeKeys = useMemo(
     () => (courseModule ? evaluationScopeKeys(courseModule) : undefined),
@@ -67,7 +89,6 @@ export function useDailyApprovalsChrome() {
   const course = courseOptions.some((option) => option.value === rawCourse)
     ? rawCourse
     : 'all';
-  const [termId, setTermId] = useState(() => cachedChrome?.termId ?? '');
 
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const listQuery = resolveListSearchQuery(query, debouncedQuery);

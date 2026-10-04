@@ -34,6 +34,7 @@ type CourseDefinitionsTableProps = {
   onAdd: () => void;
   onEdit: (course: CourseDefinition) => void;
   onDelete: (course: CourseDefinition) => void;
+  onToggleArchive: (course: CourseDefinition) => void;
 };
 
 type RowProps = {
@@ -41,6 +42,7 @@ type RowProps = {
   index: number;
   onEdit: (course: CourseDefinition) => void;
   onDelete: (course: CourseDefinition) => void;
+  onToggleArchive: (course: CourseDefinition) => void;
 };
 
 const CourseDefinitionRow = memo(function CourseDefinitionRow({
@@ -48,12 +50,20 @@ const CourseDefinitionRow = memo(function CourseDefinitionRow({
   index,
   onEdit,
   onDelete,
+  onToggleArchive,
 }: RowProps) {
   const subCount = course.subModules.length;
   return (
     <KvTableRow>
       <KvTableRowIndexCell index={index} />
-      <KvTableCell emphasis>{toPersianDigits(course.title)}</KvTableCell>
+      <KvTableCell emphasis>
+        {toPersianDigits(course.title)}
+        {course.isActive ? null : (
+          <span className="ms-2 text-xs font-normal text-kv-text-muted">
+            (بایگانی‌شده)
+          </span>
+        )}
+      </KvTableCell>
       <KvTableCell align="center">
         {subCount > 0 ? toPersianDigits(String(subCount)) : '—'}
       </KvTableCell>
@@ -68,6 +78,15 @@ const CourseDefinitionRow = memo(function CourseDefinitionRow({
             onClick={() => onEdit(course)}
             icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
           />
+          <KvButton
+            type="button"
+            color="neutral"
+            appearance="ghost"
+            size="xs"
+            onClick={() => onToggleArchive(course)}
+          >
+            {course.isActive ? 'بایگانی' : 'بازیابی'}
+          </KvButton>
           <KvButton
             type="button"
             color="error"
@@ -90,6 +109,7 @@ export function CourseDefinitionsTable({
   onAdd,
   onEdit,
   onDelete,
+  onToggleArchive,
 }: CourseDefinitionsTableProps) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, courses.length);
 
@@ -134,6 +154,7 @@ export function CourseDefinitionsTable({
                 index={index}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onToggleArchive={onToggleArchive}
               />
             ))
           )}

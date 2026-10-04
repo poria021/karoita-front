@@ -2,7 +2,7 @@ import { isMockApiMode, isRealApiMode, throwRealModeNotImplemented } from '@/lib
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import { listRealCapacityCourses, listRealCapacityTerms } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import {
-  toDailyApprovalCatalogCourses,
+  toDailyApprovalRealCatalogCourses,
   toDailyApprovalWeekOptions,
 } from '@/services/daily-approvals/daily-approval-catalog-mappers';
 import {
@@ -158,8 +158,7 @@ export const DailyApprovalsService = {
     termId: string;
   }): Promise<DailyApprovalCatalogCourse[]> {
     if (!isMockApiMode()) {
-      return toDailyApprovalCatalogCourses(
-        input.kind,
+      return toDailyApprovalRealCatalogCourses(
         await listRealCapacityCourses(input.kind, input.termId)
       );
     }

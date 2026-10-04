@@ -28,6 +28,8 @@ type CourseForm = {
   editId: string;
   title: string;
   audience: AcademicTermType;
+  /** `false` = بایگانی‌شده؛ ویرایش عنوان نباید آن را دوباره فعال کند. */
+  isActive: boolean;
   hasSubModules: boolean;
   subModules: SubModuleDraft[];
 };
@@ -43,6 +45,7 @@ function emptyForm(audience: AcademicTermType): CourseForm {
     editId: '',
     title: '',
     audience,
+    isActive: true,
     hasSubModules: false,
     subModules: [],
   };
@@ -53,6 +56,7 @@ function formFromCourse(course: CourseDefinition): CourseForm {
     editId: course.id,
     title: course.title,
     audience: course.audience,
+    isActive: course.isActive,
     hasSubModules: course.subModules.length > 0,
     subModules: course.subModules.map((sub) => ({
       key: nextDraftKey(),
@@ -66,8 +70,7 @@ function toInput(form: CourseForm): UpsertCourseDefinitionInput {
   return {
     title: form.title,
     audience: form.audience,
-    // فعال/غیرفعال‌سازی در این ماژول نیست؛ هر درس تعریف‌شده فعال است.
-    isActive: true,
+    isActive: form.isActive,
     subModules: form.hasSubModules
       ? form.subModules.map((sub) => ({ id: sub.id, title: sub.title }))
       : [],
@@ -252,6 +255,38 @@ export function useCourseCatalogPage() {
     }
   }
 
+  /** بایگانی/بازیابی: درس و سابقه‌اش می‌ماند، فقط از ترم‌های جدید کنار می‌رود. */
+  async function toggleArchive(course: CourseDefinition) {
+    const nextActive = !course.isActive;
+    try {
+      const snapshot = await SyllabusConfigService.updateCourseDefinition(
+        course.id,
+        {
+          title: course.title,
+          audience: course.audience,
+          isActive: nextActive,
+          subModules: course.subModules.map((sub) => ({
+            id: sub.id,
+            title: sub.title,
+          })),
+        }
+      );
+      applySnapshot(snapshot);
+      toast.success(
+        nextActive
+          ? `درس «${course.title}» بازیابی شد.`
+          : `درس «${course.title}» بایگانی شد؛ سابقهٔ ترم‌های گذشته حفظ می‌شود.`
+      );
+    } catch (err) {
+      toast.error(
+        errorMessage(
+          err,
+          nextActive ? 'بازیابی درس ناموفق بود.' : 'بایگانی درس ناموفق بود.'
+        )
+      );
+    }
+  }
+
   function requestDelete(course: CourseDefinition) {
     setDeleteTarget(course);
   }
@@ -301,6 +336,7 @@ export function useCourseCatalogPage() {
     moveSubModule,
     saveCourse,
     deleteTarget,
+    toggleArchive,
     requestDelete,
     clearDelete: () => setDeleteTarget(null),
     confirmDelete,

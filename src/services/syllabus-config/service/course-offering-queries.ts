@@ -5,6 +5,7 @@ import {
   getCatalogForTermType,
   listOfferingsForTerm,
 } from '@/services/syllabus-config/syllabus-mappers';
+import { realLessonIdFor } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import {
   getRealTermCourseContext,
   getRealWeeksForLesson,
@@ -58,7 +59,10 @@ export const courseOfferingQueries = {
   ): Promise<LessonWeeksLoad> {
     gateSyllabus();
     if (!IS_MOCK_MODE) {
-      return getRealWeeksForLesson(termId, courseCatalogId);
+      return getRealWeeksForLesson(
+        termId,
+        realLessonIdFor(termId, courseCatalogId)
+      );
     }
     const weeks = readWeeksFromSnapshot(
       readSyllabusSnapshot(),

@@ -22,6 +22,18 @@ function weekLabel(weekNumber: number, title?: string): string {
   return trimmed || `هفته ${weekNumber}`;
 }
 
+/**
+ * تنها نقطهٔ تبدیل «درس کاتالوگ در یک ترم» به `lessonId` Nest.
+ * Nest هنوز کاتالوگ ندارد و هر `Lesson` خودش ارائهٔ یک ترم است (`semesterId` دارد)،
+ * پس فعلاً شناسهٔ کاتالوگ در حالت real همان `lessonId` است. وقتی کاتالوگ
+ * (`Course` + `Lesson.courseId`) در بکند آمد فقط همین تابع باید lesson همان
+ * ترم را پیدا کند؛ هیچ نوشته‌ای نباید `courseCatalogId` را مستقیم به API بدهد.
+ */
+export function realLessonIdFor(termId: string, courseCatalogId: string): string {
+  void termId;
+  return courseCatalogId;
+}
+
 export function toCourseCatalogItem(
   lesson: NestLesson,
   termType: AcademicTermType
