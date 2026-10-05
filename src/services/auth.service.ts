@@ -4,7 +4,6 @@ import {
   isMockApiMode,
   throwRealModeNotImplemented,
 } from '@/lib/api-mode';
-import { dispatchSessionToStore } from '@/services/auth/dispatch-session';
 import {
   keepLocalIdentityPreview,
   retainSessionOrgFields,
@@ -34,7 +33,9 @@ import {
   mockVerifyLoginOtp,
   mockVerifyRegistrationOtp,
 } from '@/services/auth/mock/mock-auth.operations';
+// نسخهٔ mock-aware: در real فقط Zustand، در mock کوکی marker و session meta را هم همگام می‌کند.
 import {
+  dispatchSessionToStore,
   readSessionMeta,
   tryRestoreMockSession,
 } from '@/services/auth/mock/mock-auth.store';
