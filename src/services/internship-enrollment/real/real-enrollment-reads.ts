@@ -13,6 +13,7 @@ import {
 import {
   filterSupervisorsClientSide,
   findEnrolmentHistoryForLevel,
+  preferLatestEnrolments,
   findLessonForLevel,
   registeredSummaryFromEnrollment,
   resolveEffectiveEnrollmentEntry,
@@ -69,7 +70,16 @@ const PROFESSORS_MAX_PAGES = 40;
  */
 async function loadEnrolmentsBySemester(): Promise<NestSemesterEnrolmentsByTerm[]> {
   try {
-    return await studentEnrollmentsApi.listBySemester();
+    const semesters = await studentEnrollmentsApi.listBySemester();
+    // best-effort: `by-semester` برای هر (ترم، درس) فقط یک ردیف دارد و بعد از
+    // مردودی، ثبت‌نام مجدد را پنهان می‌کند — ببین `preferLatestEnrolments`.
+    let rows: Awaited<ReturnType<typeof studentEnrollmentsApi.listMine>> = [];
+    try {
+      rows = (await studentEnrollmentsApi.listMine()) ?? [];
+    } catch {
+      rows = [];
+    }
+    return preferLatestEnrolments(semesters, rows);
   } catch {
     return [];
   }

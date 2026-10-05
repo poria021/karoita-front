@@ -99,6 +99,46 @@ function isNonCancelledEnrolment(status: NestStudentEnrollment['status']): boole
   return status !== 'cancelled' && status !== 'dropped';
 }
 
+/**
+ * `by-semester` برای هر (ترم، درس) فقط *یک* `enrolment` می‌دهد؛ وقتی دانشجو
+ * همان درس را بعد از مردودی دوباره می‌گیرد، بک‌اند ردیف قدیمی را نگه می‌دارد و
+ * ثبت‌نام تازه دیده نمی‌شود. لیست کامل `GET /student-enrollments` همهٔ ردیف‌ها
+ * را دارد، پس برای هر (ترم، درس) ردیف مؤثر را از آن برمی‌داریم: `active` اول،
+ * بعد جدیدترین غیرلغوشده؛ اگر ردیفی نبود همان `enrolment` اصلی می‌ماند.
+ */
+export function preferLatestEnrolments(
+  semesters: readonly NestSemesterEnrolmentsByTerm[],
+  rows: readonly NestStudentEnrollment[]
+): NestSemesterEnrolmentsByTerm[] {
+  const best = new Map<string, NestStudentEnrollment>();
+  const time = (row: NestStudentEnrollment) =>
+    new Date(row.createdAt ?? 0).getTime();
+  for (const row of rows) {
+    if (!row.semesterId || !row.lessonId) continue;
+    if (!isNonCancelledEnrolment(row.status)) continue;
+    const key = `${row.semesterId}:${row.lessonId}`;
+    const prev = best.get(key);
+    const rowActive = row.status === 'active';
+    const prevActive = prev?.status === 'active';
+    if (
+      !prev ||
+      (rowActive && !prevActive) ||
+      (rowActive === prevActive && time(row) > time(prev))
+    ) {
+      best.set(key, row);
+    }
+  }
+  if (best.size === 0) return [...semesters];
+
+  return semesters.map((semester) => ({
+    ...semester,
+    lessons: (semester.lessons ?? []).map((lesson) => {
+      const row = lesson.id ? best.get(`${semester.id}:${lesson.id}`) : undefined;
+      return row ? { ...lesson, enrolment: row } : lesson;
+    }),
+  }));
+}
+
 /** یک ردیف تاریخچهٔ ثبت‌نام یک level خاص — از GET `by-semester`. */
 export type EnrolmentHistoryEntry = {
   semesterId: string;
