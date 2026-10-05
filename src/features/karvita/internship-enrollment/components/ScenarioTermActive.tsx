@@ -104,7 +104,9 @@ function CompletionNotice({
 function outcomeLabel(enrollment: InternshipEnrollmentSummary): string {
   if (enrollment.outcome === 'passed') return 'قبول';
   if (enrollment.outcome === 'failed') return 'مردود';
-  return enrollment.isTermArchived ? 'پایان‌یافته' : 'در جریان';
+  return enrollment.status === 'completed' || enrollment.isTermArchived
+    ? 'پایان‌یافته'
+    : 'در جریان';
 }
 
 function EnrollmentMeta({
@@ -233,7 +235,9 @@ export function ScenarioTermActive({
     !isViewingHistory &&
     current !== null &&
     (!current.schoolId || current.schoolId === '999') &&
-    current.status !== 'dropped';
+    current.status !== 'dropped' &&
+    current.status !== 'completed' &&
+    !current.isTermArchived;
   const reportTitle =
     enrollment.status === 'completed'
       ? enrollment.outcome === 'failed'
