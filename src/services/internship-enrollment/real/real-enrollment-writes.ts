@@ -80,6 +80,36 @@ export async function enrollRealWithSupervisor(
 }
 
 /**
+ * ردیف ثبت‌نامِ قابل‌تغییر (لغو / تخصیص مدرسه). همان درس ممکن است در چند ترم
+ * ردیف داشته باشد (مثلاً ترم قبلی مردود/پایان‌یافته + ثبت‌نام تازه)؛ صفحه ردیفِ
+ * ترم `termId` را نشان می‌دهد، پس نوشتن هم باید روی همان ردیف برود نه اولین
+ * ردیف هم‌درس. اولویت: ترم جاری و غیر `completed` ← ترم جاری ← غیر `completed`.
+ */
+function pickMutableEnrollmentRow(
+  rows: readonly NestStudentEnrollment[],
+  lessonId: string,
+  termId: string
+): NestStudentEnrollment | null {
+  const candidates = rows.filter(
+    (row) =>
+      row.status !== 'dropped' &&
+      row.status !== 'cancelled' &&
+      (lessonId
+        ? (row.lessonId ?? '').trim() === lessonId
+        : row.semesterId === termId)
+  );
+  return (
+    candidates.find(
+      (row) => row.semesterId === termId && row.status !== 'completed'
+    ) ??
+    candidates.find((row) => row.semesterId === termId) ??
+    candidates.find((row) => row.status !== 'completed') ??
+    candidates[0] ??
+    null
+  );
+}
+
+/**
  * PATCH `/api/v1/student-enrollments/{id}/cancel` — لغو ثبت‌نام دانشجو.
  * ابتدا لیست ثبت‌نام‌ها را می‌گیرد تا id را پیدا کند، سپس cancel می‌زند.
  */
@@ -98,15 +128,7 @@ export async function cancelRealEnrollment(
     : null;
   const lessonId = lesson ? nestEntityId(lesson) : '';
 
-  const current =
-    rows.find(
-      (row) =>
-        row.status !== 'dropped' &&
-        row.status !== 'cancelled' &&
-        (lessonId
-          ? (row.lessonId ?? '').trim() === lessonId
-          : row.semesterId === input.termId)
-    ) ?? null;
+  const current = pickMutableEnrollmentRow(rows, lessonId, input.termId);
 
   const enrollmentId = current?.id ?? current?._id ?? '';
   if (!current || !enrollmentId) {
@@ -147,15 +169,7 @@ export async function assignRealDelayedSchoolMentor(
     : null;
   const lessonId = lesson ? nestEntityId(lesson) : '';
 
-  const current =
-    rows.find(
-      (row) =>
-        row.status !== 'dropped' &&
-        row.status !== 'cancelled' &&
-        (lessonId
-          ? (row.lessonId ?? '').trim() === lessonId
-          : row.semesterId === input.termId)
-    ) ?? null;
+  const current = pickMutableEnrollmentRow(rows, lessonId, input.termId);
 
   const enrollmentId = current?.id ?? current?._id ?? '';
   if (!current || !enrollmentId) {
