@@ -76,6 +76,9 @@ export type InternshipEnrollmentRecordStatus =
   | 'dropped'
   | 'completed';
 
+/** نتیجهٔ ثبت‌نامِ `completed` — از `isPass` بک‌اند (`finalScore` ≥ حد نصاب، موقع بستن ترم). */
+export type InternshipEnrollmentOutcome = 'passed' | 'failed';
+
 export type InternshipWeeklySessionState =
   | 'draft'
   | 'pending'
@@ -203,6 +206,8 @@ export type InternshipEnrollmentSummary = {
   courseTitle: string;
   termTitle: string;
   status: InternshipEnrollmentRecordStatus;
+  /** `null` یعنی نامعلوم: ثبت‌نام هنوز `completed` نیست، یا بک‌اند `isPass` نداده. */
+  outcome?: InternshipEnrollmentOutcome | null;
   removalPending: boolean;
   isTermArchived: boolean;
   weeks: InternshipWeeklySession[];
@@ -216,6 +221,7 @@ export type InternshipEnrollmentTermHistoryEntry = {
   termId: string;
   termTitle: string;
   status: InternshipEnrollmentRecordStatus;
+  outcome?: InternshipEnrollmentOutcome | null;
 };
 
 export type InternshipEnrollmentPageState = {

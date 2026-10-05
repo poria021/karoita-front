@@ -5,13 +5,6 @@ import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
 import { FaIcon } from '@/components/shared/FaIcon';
-import {
-  KvSelect,
-  KvSelectContent,
-  KvSelectItem,
-  KvSelectTrigger,
-  KvSelectValue,
-} from '@/components/shared/fields/KvSelect';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
@@ -33,6 +26,7 @@ import { faIcons } from '@/utils/iconMap';
 
 import { DelayedSchoolMentorAssignment } from './DelayedSchoolMentorAssignment';
 import { InternshipWeeklyGrid } from './InternshipWeeklyGrid';
+import { TermHistorySelect } from './TermHistorySelect';
 import { WeeklyReportModal } from './WeeklyReportModal';
 
 type ScenarioTermActiveProps = {
@@ -49,30 +43,68 @@ type ScenarioTermActiveProps = {
   viewedTermError: string | null;
 };
 
-function SuccessNotice({
+/**
+ * پیام پایان درس/نیم‌سال. «با موفقیت» فقط وقتی گفته می‌شود که بک‌اند قبولی را
+ * صریحاً داده باشد (`outcome: 'passed'`)؛ `completed` به‌تنهایی یعنی ترم بسته
+ * شده، نه قبولی.
+ */
+function CompletionNotice({
   enrollment,
 }: {
   enrollment: InternshipEnrollmentSummary;
 }) {
   const isCompleted = enrollment.status === 'completed';
-  const isArchived = enrollment.isTermArchived;
-  if (!isCompleted && !isArchived) return null;
+  if (!isCompleted && !enrollment.isTermArchived) return null;
 
   const grade =
     enrollment.progressiveGrade.final20 === null
       ? '---'
       : toPersianDigits(enrollment.progressiveGrade.final20);
-  const description = isCompleted
-    ? `این درس در نیم‌سال ${toPersianDigits(enrollment.termTitle)} با نمره نهایی ${grade} از ۲۰ با موفقیت ثبت قطعی شده است.`
-    : 'این نیم‌سال تحصیلی خاتمه یافته و پرونده دوره با موفقیت ثبت نهایی گردیده است. گزارش‌ها و نمرات ثبت‌شده شما در ادامه قابل دسترسی است.';
+  const termTitle = toPersianDigits(enrollment.termTitle);
+
+  if (!isCompleted) {
+    return (
+      <KvAlert
+        variant="info"
+        title="این نیم‌سال به پایان رسیده است"
+        description="این نیم‌سال تحصیلی خاتمه یافته است. گزارش‌ها و نمرات ثبت‌شدهٔ شما در ادامه قابل دسترسی است."
+      />
+    );
+  }
+
+  if (enrollment.outcome === 'failed') {
+    return (
+      <KvAlert
+        variant="error"
+        title="این درس را در این نیم‌سال نگذرانده‌اید"
+        description={`نمرهٔ نهایی شما در ${termTitle} به حد نصاب قبولی نرسید (نمره: ${grade} از ۲۰). برای گذراندن این درس باید آن را در نیم‌سال بعد دوباره انتخاب کنید.`}
+      />
+    );
+  }
+
+  if (enrollment.outcome === 'passed') {
+    return (
+      <KvAlert
+        variant="success"
+        title="شما این درس را با موفقیت گذرانده‌اید"
+        description={`این درس در ${termTitle} با نمره نهایی ${grade} از ۲۰ با موفقیت ثبت قطعی شده است.`}
+      />
+    );
+  }
 
   return (
     <KvAlert
-      variant="success"
-      title="شما این ترم را با موفقیت به پایان رسانده‌اید"
-      description={description}
+      variant="info"
+      title="این درس به پایان رسیده است"
+      description={`پروندهٔ این درس در ${termTitle} با نمره نهایی ${grade} از ۲۰ ثبت قطعی شده است.`}
     />
   );
+}
+
+function outcomeLabel(enrollment: InternshipEnrollmentSummary): string {
+  if (enrollment.outcome === 'passed') return 'قبول';
+  if (enrollment.outcome === 'failed') return 'مردود';
+  return enrollment.isTermArchived ? 'پایان‌یافته' : 'در جریان';
 }
 
 function EnrollmentMeta({
@@ -116,46 +148,6 @@ function EnrollmentMeta({
   );
 }
 
-/**
- * سلکت‌باکس نیم‌سال — همیشه نمایش داده می‌شود؛ وقتی تاریخچه فقط یک نیم‌سال
- * دارد دیزیبل است (که وجودش معلوم باشد)، و با دو یا چند نیم‌سال فعال می‌شود.
- */
-function TermHistorySelect({
-  termHistory,
-  selectedTermId,
-  onSelectTerm,
-}: {
-  termHistory: InternshipEnrollmentTermHistoryEntry[];
-  selectedTermId: string;
-  onSelectTerm: (termId: string) => void;
-}) {
-  if (termHistory.length === 0) return null;
-  const isDisabled = termHistory.length <= 1;
-
-  return (
-    <div className="w-full sm:w-56">
-      <KvSelect
-        value={selectedTermId}
-        onValueChange={onSelectTerm}
-        disabled={isDisabled}
-      >
-        <KvSelectTrigger aria-label="نیم‌سال تحصیلی">
-          <KvSelectValue placeholder="نیم‌سال تحصیلی" />
-        </KvSelectTrigger>
-        <KvSelectContent>
-          {termHistory.map((term) => (
-            <KvSelectItem key={term.termId} value={term.termId}>
-              {toPersianDigits(term.termTitle)}
-              {term.status === 'completed' ? ' (پایان‌یافته)' : ''}
-              {term.status === 'dropped' ? ' (حذف‌شده)' : ''}
-            </KvSelectItem>
-          ))}
-        </KvSelectContent>
-      </KvSelect>
-    </div>
-  );
-}
-
 export function ScenarioTermActive({
   actor,
   state,
@@ -172,16 +164,6 @@ export function ScenarioTermActive({
   const [activeWeek, setActiveWeek] = useState<InternshipWeeklySession | null>(
     null
   );
-
-  if (!state.enrollment) {
-    return (
-      <KvAlert
-        variant="error"
-        title="جزئیات ثبت‌نام در دسترس نیست"
-        description="رکورد ثبت‌نام برای این سطح یافت نشد."
-      />
-    );
-  }
 
   const termSelect = (
     <TermHistorySelect
@@ -215,7 +197,22 @@ export function ScenarioTermActive({
     );
   }
 
-  if (isViewingHistory && !viewedEnrollment) {
+  // از S3 (هنوز ثبت‌نامی در ترم باز نیست) هم فقط برای مشاهدهٔ تاریخچه به اینجا
+  // می‌رسیم، پس `state.enrollment` فقط وقتی لازم است که تاریخچه نمی‌بینیم.
+  const current = state.enrollment;
+  const enrollment = isViewingHistory ? viewedEnrollment : current;
+
+  if (!enrollment && !isViewingHistory) {
+    return (
+      <KvAlert
+        variant="error"
+        title="جزئیات ثبت‌نام در دسترس نیست"
+        description="رکورد ثبت‌نام برای این سطح یافت نشد."
+      />
+    );
+  }
+
+  if (!enrollment) {
     return (
       <div className="flex min-h-0 flex-1 flex-col gap-kv-group">
         {termSelect}
@@ -228,18 +225,20 @@ export function ScenarioTermActive({
     );
   }
 
-  const enrollment = viewedEnrollment ?? state.enrollment;
-
   const suspended =
     !isViewingHistory &&
-    (state.enrollment.status === 'dropped' || state.enrollment.removalPending);
+    current !== null &&
+    (current.status === 'dropped' || current.removalPending);
   const showAssignment =
     !isViewingHistory &&
-    (!state.enrollment.schoolId || state.enrollment.schoolId === '999') &&
-    state.enrollment.status !== 'dropped';
+    current !== null &&
+    (!current.schoolId || current.schoolId === '999') &&
+    current.status !== 'dropped';
   const reportTitle =
     enrollment.status === 'completed'
-      ? 'گزارش هفتگی جلسات پاس‌شده'
+      ? enrollment.outcome === 'failed'
+        ? 'گزارش هفتگی جلسات'
+        : 'گزارش هفتگی جلسات پاس‌شده'
       : enrollment.isTermArchived
         ? 'گزارش هفتگی جلسات'
         : 'گزارش هفتگی جلسات و نمرات مستمر';
@@ -257,13 +256,17 @@ export function ScenarioTermActive({
         <KvTypography variant="caption" tone="muted" as="p">
           وضعیت:{' '}
           <span className="font-bold text-kv-text-secondary">
-            {enrollment.isTermArchived ? 'پایان‌یافته' : 'در جریان'}
+            {outcomeLabel(enrollment)}
           </span>
         </KvTypography>
       </div>
       <Badge
         variant={
-          enrollment.progressiveGrade.gradedCount > 0 ? 'success' : 'default'
+          enrollment.outcome === 'failed'
+            ? 'danger'
+            : enrollment.progressiveGrade.gradedCount > 0
+              ? 'success'
+              : 'default'
         }
         className="font-sans font-bold"
       >
@@ -274,7 +277,7 @@ export function ScenarioTermActive({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-kv-group">
-      <SuccessNotice enrollment={enrollment} />
+      <CompletionNotice enrollment={enrollment} />
       {suspended ? (
         <KvAlert
           variant="error"
@@ -290,7 +293,7 @@ export function ScenarioTermActive({
               actor={actor}
               state={state}
               supervisorName={enrollment.supervisorName ?? 'نامشخص'}
-              disabled={state.enrollment.removalPending}
+              disabled={current?.removalPending ?? false}
               onAssignmentComplete={onAssignmentComplete}
             />
           ) : (

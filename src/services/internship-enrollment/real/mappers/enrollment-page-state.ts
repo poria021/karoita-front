@@ -1,6 +1,7 @@
 import {
   clampLevel,
   courseNameForKind,
+  enrollmentOutcome,
   kindForRole,
   resolveEnrollmentScenario,
 } from '@/services/internship-enrollment/enrollment-mappers';
@@ -208,11 +209,15 @@ export function toEnrollmentPageState(
   const activeTermId = effectiveEntry ? effectiveEntry.semesterId : (open?.id ?? '');
 
   const termHistory: InternshipEnrollmentTermHistoryEntry[] = history.map(
-    (entry) => ({
-      termId: entry.semesterId,
-      termTitle: termTitleForHistoryEntry(entry, open, openTerm, semesters),
-      status: mapNestEnrollmentStatus(entry.enrolment.status),
-    })
+    (entry) => {
+      const status = mapNestEnrollmentStatus(entry.enrolment.status);
+      return {
+        termId: entry.semesterId,
+        termTitle: termTitleForHistoryEntry(entry, open, openTerm, semesters),
+        status,
+        outcome: enrollmentOutcome(status, entry.enrolment.isPass),
+      };
+    }
   );
 
   return {

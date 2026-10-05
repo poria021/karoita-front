@@ -1,6 +1,7 @@
 import {
   clampLevel,
   courseNameForKind,
+  enrollmentOutcome,
   kindForRole,
   resolveEnrollmentScenario,
 } from '@/services/internship-enrollment/enrollment-mappers';
@@ -227,6 +228,7 @@ export function resolveEnrollmentPageState(
           ? context.termTitle
           : entry.record.termTitle,
       status: entry.record.status ?? 'active',
+      outcome: enrollmentOutcome(entry.record.status, entry.record.passed),
     })),
     selection:
       scenario === 'S3_enroll_open'

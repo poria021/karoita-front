@@ -1,5 +1,6 @@
 import {
   clampLevel,
+  enrollmentOutcome,
   kindForRole,
 } from '@/services/internship-enrollment/enrollment-mappers';
 import {
@@ -343,6 +344,7 @@ export function buildEnrollmentSummary(input: {
     courseTitle: courseTitleForLevel(input.kind, input.level),
     termTitle: input.termTitle,
     status: record?.status ?? 'active',
+    outcome: enrollmentOutcome(record?.status, record?.passed),
     removalPending: Boolean(record?.removalPending),
     isTermArchived: isArchivedTerm(input.termTitle),
     weeks: input.weeks,

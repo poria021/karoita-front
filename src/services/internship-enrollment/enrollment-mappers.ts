@@ -2,6 +2,7 @@ import { isDynamicEnrollmentLevel } from '@/services/syllabus-config/course-cata
 import type {
   InternshipCourseKind,
   InternshipEnrollmentLevel,
+  InternshipEnrollmentOutcome,
   InternshipEnrollmentRecordStatus,
   InternshipEnrollmentRole,
   InternshipEnrollmentScenario,
@@ -11,6 +12,18 @@ export function kindForRole(
   role: InternshipEnrollmentRole
 ): InternshipCourseKind {
   return role === 'skill_learner' ? 'apprenticeship' : 'internship';
+}
+
+/**
+ * نتیجهٔ قبولی/ردِ یک ثبت‌نام — مشترک real (`isPass`) و mock (`passed`).
+ * فقط ثبت‌نامِ `completed` نتیجه دارد؛ نبودن پرچم یعنی نامعلوم، نه قبول.
+ */
+export function enrollmentOutcome(
+  status: InternshipEnrollmentRecordStatus | undefined,
+  isPass: boolean | null | undefined
+): InternshipEnrollmentOutcome | null {
+  if (status !== 'completed' || typeof isPass !== 'boolean') return null;
+  return isPass ? 'passed' : 'failed';
 }
 
 export function courseNameForKind(kind: InternshipCourseKind): string {

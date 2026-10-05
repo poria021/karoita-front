@@ -128,6 +128,12 @@ export type NestStudentEnrollment = {
   /** فقط روی پاسخ لیست هست (`StudentEnrollmentListItemDto.professor`). */
   professor?: { id?: string; firstName?: string | null; lastName?: string | null } | null;
   status?: NestEnrollmentStatus | string;
+  /**
+   * قبولی، فقط روی ثبت‌نامِ `completed` (موقع بستن ترم پر می‌شود). روی سند
+   * ذخیره می‌شود ولی `StudentEnrollmentListItemDto` هنوز آن را برنمی‌گرداند؛
+   * تا آن موقع `undefined` است و نتیجه «نامعلوم» نمایش داده می‌شود.
+   */
+  isPass?: boolean | null;
   startedAt?: string;
   completedAt?: string | null;
   createdAt?: string;
