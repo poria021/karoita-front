@@ -67,7 +67,7 @@ export function buildContentSecurityPolicy(): string {
       ...sentryConnectOriginsFromEnv(),
       ...(webhookOrigin ? [webhookOrigin] : []),
       ...(analyticsOrigin ? [analyticsOrigin] : []),
-      // websocket HMR: localhost و 127.0.0.1 و IPv6 — تب Playwright/Cursor یکی نیستند.
+      // websocket HMR: localhost و 127.0.0.1 (منبع IPv6 `[::1]:*` در سینتکس CSP نامعتبر است و نادیده گرفته می‌شود) — تب Playwright/Cursor یکی نیستند.
       ...(isDev
         ? [
             'ws://localhost:*',
@@ -76,9 +76,6 @@ export function buildContentSecurityPolicy(): string {
             'ws://127.0.0.1:*',
             'wss://127.0.0.1:*',
             'http://127.0.0.1:*',
-            'ws://[::1]:*',
-            'wss://[::1]:*',
-            'http://[::1]:*',
           ]
         : []),
     ],
