@@ -1,10 +1,13 @@
 'use client';
 
+import { log } from 'node:console';
 import { useEffect } from 'react';
 
 /** موقت: لاگ env سمت مرورگر (فقط NEXT_PUBLIC_* در باندل می‌آید). بعد از دیباگ حذف شود. */
 export function EnvDebugLog() {
   useEffect(() => {
+    console.log('poooria adroit savad kiihi');
+    
     console.log('[env-debug][client]', {
       NEXT_PUBLIC_API_MODE: process.env.NEXT_PUBLIC_API_MODE,
       NEXT_PUBLIC_IS_DEV: process.env.NEXT_PUBLIC_IS_DEV,
