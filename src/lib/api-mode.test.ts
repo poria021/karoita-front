@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   assertMockApiMode,
   assertRealModeRejectsMockSecret,
+  isMockAllowedInProduction,
   isMockApiMode,
   isRealApiMode,
   MOCK_MODE_LABEL,
@@ -43,6 +44,21 @@ describe('resolveApiMode', () => {
     vi.stubEnv('VERCEL_ENV', '');
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
     expect(() => resolveApiMode()).toThrow(MOCK_MODE_LABEL);
+  });
+
+  it('allows mock in production only with the explicit demo flag', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
+    vi.stubEnv('NEXT_PUBLIC_ALLOW_MOCK_IN_PROD', 'true');
+    expect(resolveApiMode()).toBe('mock');
+    expect(isMockAllowedInProduction()).toBe(true);
+  });
+
+  it('demo flag alone does not turn on mock in production', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', '');
+    vi.stubEnv('NEXT_PUBLIC_ALLOW_MOCK_IN_PROD', 'true');
+    expect(resolveApiMode()).toBe('real');
   });
 
   it('rejects invalid NEXT_PUBLIC_API_MODE values', () => {

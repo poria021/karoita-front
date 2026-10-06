@@ -19,12 +19,21 @@ function isProductionRuntime(): boolean {
   return process.env.NODE_ENV === 'production';
 }
 
+/**
+ * استثنای صریح برای ایمیج نمایشی (دموی ماکت برای تیم). فقط با
+ * `NEXT_PUBLIC_ALLOW_MOCK_IN_PROD=true` موقع بیلد (Dockerfile.mock) فعال می‌شود؛
+ * ایمیج اصلی (`Dockerfile`) این را ست نمی‌کند و همچنان fail-closed است.
+ */
+export function isMockAllowedInProduction(): boolean {
+  return process.env.NEXT_PUBLIC_ALLOW_MOCK_IN_PROD === 'true';
+}
+
 export function resolveApiMode(): ApiMode {
   const raw = readRawMode();
   const isProd = isProductionRuntime();
 
   if (raw === 'mock') {
-    if (isProd) {
+    if (isProd && !isMockAllowedInProduction()) {
       throw new Error(
         `حالت ${MOCK_MODE_LABEL} در production مجاز نیست. NEXT_PUBLIC_API_MODE=real و NEXT_PUBLIC_API_URL را تنظیم کنید.`
       );

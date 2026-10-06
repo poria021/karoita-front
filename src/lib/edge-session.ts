@@ -10,10 +10,13 @@ import { AUTH_COOKIE_NAME, MOCK_SESSION_MARKER } from '@/lib/config';
  * یا سیگنال dev.
  */
 export function shouldHonorMockSessionMarker(): boolean {
-  if (process.env.NODE_ENV === 'production') {
-    return false;
-  }
   const mode = process.env.NEXT_PUBLIC_API_MODE?.trim().toLowerCase();
+  if (process.env.NODE_ENV === 'production') {
+    // فقط ایمیج نمایشی ماکت (Dockerfile.mock) که هر دو پرچم را صریح ست کرده.
+    return (
+      mode === 'mock' && process.env.NEXT_PUBLIC_ALLOW_MOCK_IN_PROD === 'true'
+    );
+  }
   if (mode === 'real') return false;
   if (mode === 'mock') return true;
   if (process.env.NEXT_PUBLIC_IS_DEV === 'true') return true;

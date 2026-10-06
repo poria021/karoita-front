@@ -49,6 +49,17 @@ describe('shouldHonorMockSessionMarker', () => {
     expect(shouldHonorMockSessionMarker()).toBe(false);
   });
 
+  it('در production فقط با mock صریح + پرچم ایمیج نمایشی می‌پذیرد', () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'mock');
+    vi.stubEnv('NEXT_PUBLIC_ALLOW_MOCK_IN_PROD', '');
+    expect(shouldHonorMockSessionMarker()).toBe(false);
+    vi.stubEnv('NEXT_PUBLIC_ALLOW_MOCK_IN_PROD', 'true');
+    expect(shouldHonorMockSessionMarker()).toBe(true);
+    vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
+    expect(shouldHonorMockSessionMarker()).toBe(false);
+  });
+
   it('در development با mode خالی (پیش‌فرض mock) می‌پذیرد', () => {
     vi.stubEnv('NEXT_PUBLIC_API_MODE', '');
     vi.stubEnv('NODE_ENV', 'development');
