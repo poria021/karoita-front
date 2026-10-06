@@ -6,13 +6,18 @@
  * پیاده‌نشده throw می‌کند. هیچ داده‌ی نمایشی/mock fallback در real mode وجود ندارد.
  */
 
+import {
+  readRuntimeAllowMockInProd,
+  readRuntimeApiMode,
+} from '@/lib/runtime-config';
+
 export type ApiMode = 'mock' | 'real';
 
 export const MOCK_MODE_LABEL = 'شبیه‌ساز محلی (mock)';
 
 function readRawMode(): string | undefined {
-  const raw = process.env.NEXT_PUBLIC_API_MODE?.trim().toLowerCase();
-  return raw || undefined;
+  // runtime (APP_API_MODE / window.__KV_RUNTIME__) → وگرنه مقدار بیلد.
+  return readRuntimeApiMode();
 }
 
 function isProductionRuntime(): boolean {
@@ -20,12 +25,12 @@ function isProductionRuntime(): boolean {
 }
 
 /**
- * استثنای صریح برای ایمیج نمایشی (دموی ماکت برای تیم). فقط با
- * `NEXT_PUBLIC_ALLOW_MOCK_IN_PROD=true` موقع بیلد (Dockerfile.mock) فعال می‌شود؛
- * ایمیج اصلی (`Dockerfile`) این را ست نمی‌کند و همچنان fail-closed است.
+ * استثنای صریح برای محیط نمایشی (دموی ماکت برای تیم). mock در production فقط وقتی
+ * مجاز است که `APP_ALLOW_MOCK_IN_PROD=true` (یا `NEXT_PUBLIC_ALLOW_MOCK_IN_PROD`)
+ * صریحاً ست شده باشد؛ بدون آن حتی با `APP_API_MODE=mock` هم fail-closed است.
  */
 export function isMockAllowedInProduction(): boolean {
-  return process.env.NEXT_PUBLIC_ALLOW_MOCK_IN_PROD === 'true';
+  return readRuntimeAllowMockInProd();
 }
 
 export function resolveApiMode(): ApiMode {

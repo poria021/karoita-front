@@ -1,4 +1,8 @@
 import { AUTH_COOKIE_NAME, MOCK_SESSION_MARKER } from '@/lib/config';
+import {
+  readRuntimeAllowMockInProd,
+  readRuntimeApiMode,
+} from '@/lib/runtime-config';
 
 /**
  * آیا Edge اجازه دارد cookie شبیه‌ساز (`karvita_mock_session`) را به‌عنوان
@@ -10,12 +14,10 @@ import { AUTH_COOKIE_NAME, MOCK_SESSION_MARKER } from '@/lib/config';
  * یا سیگنال dev.
  */
 export function shouldHonorMockSessionMarker(): boolean {
-  const mode = process.env.NEXT_PUBLIC_API_MODE?.trim().toLowerCase();
+  const mode = readRuntimeApiMode();
   if (process.env.NODE_ENV === 'production') {
-    // فقط ایمیج نمایشی ماکت (Dockerfile.mock) که هر دو پرچم را صریح ست کرده.
-    return (
-      mode === 'mock' && process.env.NEXT_PUBLIC_ALLOW_MOCK_IN_PROD === 'true'
-    );
+    // فقط محیط نمایشی که هر دو پرچم runtime را صریح ست کرده.
+    return mode === 'mock' && readRuntimeAllowMockInProd();
   }
   if (mode === 'real') return false;
   if (mode === 'mock') return true;

@@ -113,6 +113,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" suppressHydrationWarning>
+      <head>
+        {/* همزمان و قبل از باندل‌ها: حالت mock/real را از env پاد می‌گذارد (route داینامیک). */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="/runtime-config.js" />
+      </head>
       <body
         className={`${vazirmatn.variable} font-sans antialiased bg-kv-canvas`}
       >

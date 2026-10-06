@@ -59,8 +59,12 @@ const MOCK_EMPTY_STUB_ABSOLUTE = fileURLToPath(
 const isProductionBuild = process.env.NODE_ENV === 'production';
 // real mode محلی (dev) هم به فایل‌های mock نیاز دارد (fallback برای endpointهای
 // پیاده‌نشده، هرگز در production) — پس فقط real+production این استثنا را ندارد.
+// `INCLUDE_MOCKS=true`: ایمیج «قابل‌سوییچ» (dev/staging) — فایل‌های mock داخل باندل
+// می‌مانند و حالت mock/real موقع اجرا با `APP_API_MODE` انتخاب می‌شود.
 const isMockBuild =
-  process.env.NEXT_PUBLIC_API_MODE === 'mock' || !isProductionBuild;
+  process.env.NEXT_PUBLIC_API_MODE === 'mock' ||
+  process.env.INCLUDE_MOCKS === 'true' ||
+  !isProductionBuild;
 
 /**
  * لیست کامل mock module هایی که از فایل‌های production ایمپورت می‌شوند.
@@ -177,7 +181,7 @@ const nextConfig: NextConfig = {
     // بدون مشکل برای production build حذف کرد.
     // سرویس‌ها همه mock calls را داخل if (IS_MOCK_MODE) گارد کرده‌اند،
     // پس stub های no-op هرگز در real mode اجرا نمی‌شوند.
-    if (process.env.NEXT_PUBLIC_API_MODE !== 'mock') {
+    if (!isMockBuild) {
       config.plugins.push(
         new wp.NormalModuleReplacementPlugin(
           /[/\\]mock[/\\]/,
