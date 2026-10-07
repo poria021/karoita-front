@@ -34,6 +34,7 @@ type UseDailyApprovalWeekGradingModalInput = {
     principalFeedback: string;
     principalRating: DailyApprovalCompetencyRating | null;
     principalAttendance: string[];
+    principalSupervisorVisits: string[];
   }) => Promise<void>;
 };
 
@@ -62,6 +63,7 @@ function getInitialGradingForm(week: DailyApprovalWeek | null) {
     principalRating: (week?.feedback.principalRating ?? null) as DailyApprovalCompetencyRating | null,
     principalFeedback: week?.feedback.principal ?? '',
     principalAttendance: week?.feedback.principalAttendance ?? [],
+    principalSupervisorVisits: week?.feedback.principalSupervisorVisits ?? [],
   };
 }
 
@@ -125,6 +127,9 @@ export function useDailyApprovalWeekGradingModal({
   const [principalAttendance, setPrincipalAttendance] = useState<string[]>(
     () => getInitialGradingForm(week).principalAttendance
   );
+  const [principalSupervisorVisits, setPrincipalSupervisorVisits] = useState<string[]>(
+    () => getInitialGradingForm(week).principalSupervisorVisits
+  );
   const attendanceDays = getPrincipalAttendanceDays(week?.submittedAt);
 
   const resetForm = useCallback(() => {
@@ -138,7 +143,8 @@ export function useDailyApprovalWeekGradingModal({
     setPrincipalRating(initial.principalRating);
     setPrincipalFeedback(restored?.principalFeedback ?? initial.principalFeedback);
     setPrincipalAttendance(initial.principalAttendance);
-  }, [draftValue, hasGradingDraft, week]);
+    setPrincipalSupervisorVisits(initial.principalSupervisorVisits);
+  },[draftValue, hasGradingDraft, week]);
 
   // هر بار trainee/week عوض بشه (نه فقط موقع باز شدن مودال) فرم رو ریست کن —
   // طبق الگوی رسمی React این کار مستقیم حین رندر انجام می‌شه، نه با
@@ -216,12 +222,18 @@ export function useDailyApprovalWeekGradingModal({
       if (
         !principalFeedback.trim() &&
         principalRating === null &&
-        principalAttendance.length === 0
+        principalAttendance.length === 0 &&
+        principalSupervisorVisits.length === 0
       ) {
-        toast.error('لطفاً حضور، امتیاز یا بازخورد توصیفی را ثبت نمایید.');
+        toast.error('لطفاً حضور، بازدید استاد، امتیاز یا بازخورد توصیفی را ثبت نمایید.');
         return;
       }
-      await onSavePrincipal({ principalFeedback, principalRating, principalAttendance });
+      await onSavePrincipal({
+        principalFeedback,
+        principalRating,
+        principalAttendance,
+        principalSupervisorVisits,
+      });
       clearGradingDraft();
     }
   };
@@ -282,6 +294,8 @@ export function useDailyApprovalWeekGradingModal({
     attendanceDays,
     principalAttendance,
     setPrincipalAttendance,
+    principalSupervisorVisits,
+    setPrincipalSupervisorVisits,
     resetForm,
     save,
     close: onClose,

@@ -3,7 +3,10 @@ import { conversationsApi } from '@/services/conversations/real/conversations.ap
 import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
-import { formatPrincipalAttendanceSummary } from '@/features/karvita/daily-approvals/lib/principalAttendanceDays';
+import {
+  formatPrincipalAttendanceSummary,
+  formatPrincipalSupervisorVisitSummary,
+} from '@/features/karvita/daily-approvals/lib/principalAttendanceDays';
 import { requireNestTransport } from '@/services/require-nest-transport';
 import type {
   DailyApprovalCompetencyRating,
@@ -129,11 +132,18 @@ export async function submitPrincipalFeedbackReal(
   const attendanceSummary = formatPrincipalAttendanceSummary(
     input.principalAttendance ?? []
   );
-  const text = [input.principalFeedback.trim(), attendanceSummary]
+  const supervisorVisitSummary = formatPrincipalSupervisorVisitSummary(
+    input.principalSupervisorVisits ?? []
+  );
+  const text = [
+    input.principalFeedback.trim(),
+    attendanceSummary,
+    supervisorVisitSummary,
+  ]
     .filter(Boolean)
     .join('\n\n');
   if (!text && input.principalRating === null) {
-    throw new Error('ثبت حضور، امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
+    throw new Error('ثبت حضور، بازدید استاد، امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
   }
   const conversationId = await findWeekConversationId(
     input.traineeId,

@@ -99,6 +99,7 @@ type DailyApprovalWeekGradingModalProps = {
     principalFeedback: string;
     principalRating: DailyApprovalCompetencyRating | null;
     principalAttendance: string[];
+    principalSupervisorVisits: string[];
   }) => Promise<void>;
 };
 
@@ -328,6 +329,8 @@ export function DailyApprovalWeekGradingModal({
                   attendanceDays={modal.attendanceDays}
                   attendanceDates={modal.principalAttendance}
                   onAttendanceDatesChange={modal.setPrincipalAttendance}
+                  supervisorVisitDates={modal.principalSupervisorVisits}
+                  onSupervisorVisitDatesChange={modal.setPrincipalSupervisorVisits}
                 />
               ) : null}
             </fieldset>

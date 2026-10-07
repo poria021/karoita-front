@@ -47,6 +47,17 @@ export function getPrincipalAttendanceDays(
 
 /** متن خلاصهٔ حضور برای ضمیمه‌شدن به پیام بازخورد مدیر (بک‌اند فیلد جدا ندارد). */
 export function formatPrincipalAttendanceSummary(isoDates: readonly string[]): string {
+  return formatDaysSummary('تأیید حضور کارورز در مدرسه', isoDates);
+}
+
+/** مشابه حضور کارورز، برای روزهایی که مدیر بازدید استاد راهنما از مدرسه را تأیید کرده. */
+export function formatPrincipalSupervisorVisitSummary(
+  isoDates: readonly string[]
+): string {
+  return formatDaysSummary('تأیید بازدید استاد راهنما از مدرسه', isoDates);
+}
+
+function formatDaysSummary(label: string, isoDates: readonly string[]): string {
   if (isoDates.length === 0) return '';
   const weekdayFormat = new Intl.DateTimeFormat('fa-IR', { weekday: 'long' });
   const dateFormat = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
@@ -59,5 +70,5 @@ export function formatPrincipalAttendanceSummary(isoDates: readonly string[]): s
     const date = new Date(y!, m! - 1, d!);
     return `${weekdayFormat.format(date)} ${dateFormat.format(date)}`;
   });
-  return `تأیید حضور کارورز در مدرسه: ${parts.join('، ')}`;
+  return `${label}: ${parts.join('، ')}`;
 }

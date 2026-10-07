@@ -155,8 +155,14 @@ export function updateMockPrincipalDailyApprovalWeek(
 
   const principalFeedback = input.principalFeedback.trim();
   const attendance = input.principalAttendance ?? [];
-  if (!principalFeedback && input.principalRating === null && attendance.length === 0) {
-    throw new Error('ثبت حضور، امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
+  const supervisorVisits = input.principalSupervisorVisits ?? [];
+  if (
+    !principalFeedback &&
+    input.principalRating === null &&
+    attendance.length === 0 &&
+    supervisorVisits.length === 0
+  ) {
+    throw new Error('ثبت حضور، بازدید استاد، امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
   }
 
   const nextWeeks = [...trainee.weeks];
@@ -169,6 +175,9 @@ export function updateMockPrincipalDailyApprovalWeek(
         ? { principalRating: input.principalRating }
         : {}),
       ...(attendance.length > 0 ? { principalAttendance: [...attendance].sort() } : {}),
+      ...(supervisorVisits.length > 0
+        ? { principalSupervisorVisits: [...supervisorVisits].sort() }
+        : {}),
     },
     readBySupervisor: true,
   };

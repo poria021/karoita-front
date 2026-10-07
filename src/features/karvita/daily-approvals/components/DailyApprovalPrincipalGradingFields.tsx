@@ -23,7 +23,58 @@ type DailyApprovalPrincipalGradingFieldsProps = {
   attendanceDays: PrincipalAttendanceDay[];
   attendanceDates: string[];
   onAttendanceDatesChange: (value: string[]) => void;
+  supervisorVisitDates: string[];
+  onSupervisorVisitDatesChange: (value: string[]) => void;
 };
+
+function DayCheckboxGroup({
+  legend,
+  days,
+  selected,
+  onChange,
+}: {
+  legend: string;
+  days: PrincipalAttendanceDay[];
+  selected: string[];
+  onChange: (value: string[]) => void;
+}) {
+  return (
+    <fieldset className="space-y-kv-pair border-0 p-0">
+      <legend className="mb-kv-pair">
+        <KvTypography variant="body" as="span">
+          {legend}
+        </KvTypography>
+      </legend>
+      <div className="grid grid-cols-1 gap-kv-pair sm:grid-cols-2">
+        {days.map((day) => (
+          <label
+            key={day.isoDate}
+            className="flex cursor-pointer items-center gap-kv-pair rounded-kv-control border border-kv-brand/20 bg-kv-surface px-kv-stack py-kv-pair"
+          >
+            <input
+              type="checkbox"
+              className="size-4 shrink-0 accent-kv-brand"
+              checked={selected.includes(day.isoDate)}
+              onChange={(event) =>
+                onChange(
+                  event.target.checked
+                    ? [...selected, day.isoDate]
+                    : selected.filter((iso) => iso !== day.isoDate)
+                )
+              }
+            />
+            <KvTypography variant="body" as="span">
+              {day.weekdayLabel}
+            </KvTypography>
+            <KvTypography variant="caption" tone="muted" as="span">
+              {day.dateLabel}
+            </KvTypography>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
 
 export function DailyApprovalPrincipalGradingFields({
   principalRating,
@@ -33,6 +84,8 @@ export function DailyApprovalPrincipalGradingFields({
   attendanceDays,
   attendanceDates,
   onAttendanceDatesChange,
+  supervisorVisitDates,
+  onSupervisorVisitDatesChange,
 }: DailyApprovalPrincipalGradingFieldsProps) {
   return (
     <div className="space-y-kv-group rounded-kv-panel border-2 border-kv-brand/25 bg-kv-brand-soft/40 p-kv-section shadow-kv-soft">
@@ -42,43 +95,19 @@ export function DailyApprovalPrincipalGradingFields({
         </KvTypography>
       </div>
 
-      <fieldset className="space-y-kv-pair border-0 p-0">
-        <legend className="mb-kv-pair">
-          <KvTypography variant="body" as="span">
-            تأیید حضور کارورز در مدرسه در این هفته:
-          </KvTypography>
-        </legend>
-        <div className="grid grid-cols-1 gap-kv-pair sm:grid-cols-2">
-          {attendanceDays.map((day) => {
-            const checked = attendanceDates.includes(day.isoDate);
-            return (
-              <label
-                key={day.isoDate}
-                className="flex cursor-pointer items-center gap-kv-pair rounded-kv-control border border-kv-brand/20 bg-kv-surface px-kv-stack py-kv-pair"
-              >
-                <input
-                  type="checkbox"
-                  className="size-4 shrink-0 accent-kv-brand"
-                  checked={checked}
-                  onChange={(event) =>
-                    onAttendanceDatesChange(
-                      event.target.checked
-                        ? [...attendanceDates, day.isoDate]
-                        : attendanceDates.filter((iso) => iso !== day.isoDate)
-                    )
-                  }
-                />
-                <KvTypography variant="body" as="span">
-                  {day.weekdayLabel}
-                </KvTypography>
-                <KvTypography variant="caption" tone="muted" as="span">
-                  {day.dateLabel}
-                </KvTypography>
-              </label>
-            );
-          })}
-        </div>
-      </fieldset>
+      <DayCheckboxGroup
+        legend="تأیید حضور کارورز در مدرسه در این هفته:"
+        days={attendanceDays}
+        selected={attendanceDates}
+        onChange={onAttendanceDatesChange}
+      />
+
+      <DayCheckboxGroup
+        legend="تأیید بازدید استاد راهنما از مدرسه در این هفته (روزهایی که استاد به مدرسه آمده):"
+        days={attendanceDays}
+        selected={supervisorVisitDates}
+        onChange={onSupervisorVisitDatesChange}
+      />
 
       <KvSelectField
         label="سطح شایستگی کارورز (اختیاری):"

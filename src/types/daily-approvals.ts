@@ -165,6 +165,8 @@ export type UpdatePrincipalDailyApprovalWeekInput = {
   principalRating: DailyApprovalCompetencyRating | null;
   /** روزهای تأییدشدهٔ حضور در مدرسه (`YYYY-MM-DD`) — اختیاری. */
   principalAttendance?: string[];
+  /** روزهای (`YYYY-MM-DD`) تأییدشدهٔ بازدید استاد راهنما از مدرسه — اختیاری. */
+  principalSupervisorVisits?: string[];
 };
 
 export type ExtendDailyApprovalWeekInput = {

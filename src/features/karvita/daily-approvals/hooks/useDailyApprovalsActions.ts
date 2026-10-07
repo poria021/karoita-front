@@ -367,6 +367,7 @@ export function useDailyApprovalsActions({
       principalFeedback: string;
       principalRating: DailyApprovalCompetencyRating | null;
       principalAttendance: string[];
+      principalSupervisorVisits: string[];
     }) => {
       scheduleWeekGradingSave({
         gradingTarget,
@@ -381,6 +382,7 @@ export function useDailyApprovalsActions({
               principalFeedback: input.principalFeedback,
               principalRating: input.principalRating,
               principalAttendance: input.principalAttendance,
+              principalSupervisorVisits: input.principalSupervisorVisits,
             });
           } finally {
             setActionBusy(false);
