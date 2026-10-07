@@ -100,6 +100,19 @@ export function mockVerifyLoginOtp(mobile: string, otp: string): User {
   return user;
 }
 
+export function mockLoginAdminWithPassword(mobile: string, password: string): User {
+  const record = findMockUserByMobile(mobile);
+  if (!record || !isStaffAdminRole(record.role)) {
+    throw new Error(AUTH_ERR_ADMIN_GATE_ONLY);
+  }
+  if (record.password !== password) {
+    throw new Error('شماره موبایل یا رمز عبور اشتباه است.');
+  }
+  const user = toPublicUser(record);
+  dispatchSessionToStore(buildMockSession(user));
+  return user;
+}
+
 export function mockSendAdminGateOtp(mobile: string): void {
   const record = findMockUserByMobile(mobile);
   if (!record || !isStaffAdminRole(record.role)) {

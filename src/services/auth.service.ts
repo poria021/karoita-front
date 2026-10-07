@@ -20,6 +20,7 @@ import {
 } from '@/utils/passwordInput';
 
 import {
+  mockLoginAdminWithPassword,
   mockLoginWithCredentials,
   mockRegister,
   mockResetPassword,
@@ -42,6 +43,7 @@ import {
 import {
   realDeleteMe,
   realFetchSession,
+  realLoginAdminWithPassword,
   realLoginWithCredentials,
   realRegister,
   realResetPassword,
@@ -101,6 +103,11 @@ export class AuthService {
     if (IS_MOCK_MODE) return mockVerifyLoginOtp(mobile, otp);
     rejectMockOtpInReal(otp);
     return realVerifyLoginOtp(mobile, otp);
+  }
+
+  static async loginAdminWithPassword(mobile: string, password: string): Promise<User> {
+    if (IS_MOCK_MODE) return mockLoginAdminWithPassword(mobile, password);
+    return realLoginAdminWithPassword(mobile, password);
   }
 
   static async sendAdminGateOtp(mobile: string): Promise<void> {

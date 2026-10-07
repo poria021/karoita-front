@@ -10,15 +10,24 @@ import { AuthService } from '@/services/auth.service';
 import { resolvePostAuthPath } from '@/services/post-login-path';
 import { beginEnteringApp } from '@/store/authTransition';
 
-import { mobileSchema, otpSchema, type MobileSchema, type OtpSchema } from '../schemas/auth.schema';
+import {
+  adminPasswordLoginSchema,
+  mobileSchema,
+  otpSchema,
+  type AdminPasswordLoginSchema,
+  type MobileSchema,
+  type OtpSchema,
+} from '../schemas/auth.schema';
 import { readAuthErrorMessage } from './authError';
 import { useOtpCountdown } from './useOtpCountdown';
 
 export type AdminGateStep = 1 | 2;
+export type AdminGateMode = 'password' | 'otp';
 
 export function useAdminGate() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [mode, setMode] = useState<AdminGateMode>('password');
   const [step, setStep] = useState<AdminGateStep>(1);
   const [pendingMobile, setPendingMobile] = useState('');
   const [isResending, setIsResending] = useState(false);
@@ -37,6 +46,54 @@ export function useAdminGate() {
     reValidateMode: 'onChange',
     defaultValues: { otp: '' },
   });
+
+  const passwordForm = useForm<AdminPasswordLoginSchema>({
+    resolver: zodResolver(adminPasswordLoginSchema),
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
+    defaultValues: { mobile: '', password: '' },
+  });
+
+  const submitPassword = passwordForm.handleSubmit(async (data) => {
+    try {
+      const user = await AuthService.loginAdminWithPassword(data.mobile, data.password);
+      passwordForm.setValue('password', '', {
+        shouldDirty: false,
+        shouldValidate: false,
+      });
+      beginEnteringApp();
+      router.replace(
+        resolvePostAuthPath(user, searchParams.get(RETURN_URL_PARAM))
+      );
+    } catch (error) {
+      const message = readAuthErrorMessage(error);
+      passwordForm.setError('mobile', { message }, { shouldFocus: true });
+      passwordForm.setError('password', { message });
+    }
+  });
+
+  const switchToOtpMode = useCallback(() => {
+    const mobile = passwordForm.getValues('mobile');
+    if (mobile) {
+      mobileForm.setValue('mobile', mobile, {
+        shouldDirty: false,
+        shouldValidate: false,
+      });
+    }
+    setStep(1);
+    setMode('otp');
+  }, [mobileForm, passwordForm]);
+
+  const switchToPasswordMode = useCallback(() => {
+    const mobile = mobileForm.getValues('mobile');
+    if (mobile) {
+      passwordForm.setValue('mobile', mobile, {
+        shouldDirty: false,
+        shouldValidate: false,
+      });
+    }
+    setMode('password');
+  }, [mobileForm, passwordForm]);
 
   const goBackToMobileStep = useCallback(() => {
     setStep(1);
@@ -109,6 +166,12 @@ export function useAdminGate() {
   }, [countdown, isResending, pendingMobile, otpForm]);
 
   return {
+    mode,
+    switchToOtpMode,
+    switchToPasswordMode,
+    passwordForm,
+    submitPassword,
+    isSubmittingPassword: passwordForm.formState.isSubmitting,
     step,
     pendingMobile,
     mobileForm,

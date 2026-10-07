@@ -11,7 +11,11 @@ export {
   realResetPassword,
   realSetPassword,
 } from './bridge/password';
-export { realSendAdminGateOtp, realVerifyAdminGateOtp } from './bridge/admin-gate';
+export {
+  realLoginAdminWithPassword,
+  realSendAdminGateOtp,
+  realVerifyAdminGateOtp,
+} from './bridge/admin-gate';
 export {
   SessionTransientError,
   isSessionTransientError,

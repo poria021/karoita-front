@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useAdminGate } from '../hooks/useAdminGate';
 import { AdminGateMobileStep } from './AdminGateMobileStep';
 import { AdminGateOtpStep } from './AdminGateOtpStep';
+import { AdminGatePasswordStep } from './AdminGatePasswordStep';
 import { AuthLogo } from './AuthLogo';
 
 export function AdminGateCard() {
@@ -19,7 +20,9 @@ export function AdminGateCard() {
       <div className="p-kv-inset sm:p-kv-page">
         <AuthLogo subtitle="درگاه امن ورود مدیریت ارشد سامانه" />
 
-        {gate.step === 1 ? (
+        {gate.mode === 'password' ? (
+          <AdminGatePasswordStep gate={gate} />
+        ) : gate.step === 1 ? (
           <AdminGateMobileStep gate={gate} />
         ) : (
           <AdminGateOtpStep gate={gate} />
