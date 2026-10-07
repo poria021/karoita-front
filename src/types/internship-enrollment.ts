@@ -124,6 +124,8 @@ export type InternshipWeeklySession = {
   id: string;
   title: string;
   status: InternshipWeeklySessionState;
+  /** هفته در سرفصل بایگانی شده (`weekId.status === false`). */
+  isArchived?: boolean;
   score: number | null;
   /** نمرهٔ وزن‌دار این هفته از Nest (`weightedScore`) — برای نمایش «وزن این هفته» در هدر مودال. */
   weightedScore?: number | null;

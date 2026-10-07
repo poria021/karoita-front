@@ -31,6 +31,17 @@ export function weekTemplateId(week: NestStudentWeek): string | null {
 }
 
 /**
+ * بایگانی‌بودن هفته از `weekId.status` (boolean، روی سند `Week` تعریف سرفصل) —
+ * `false` یعنی بایگانی (همان نگاشتی که سرفصل ادمین استفاده می‌کند). وقتی `weekId`
+ * populate نشده (رشته) یا `status` نیامده، قابل‌تشخیص نیست و `false` برمی‌گردد.
+ */
+export function isWeekArchived(week: NestStudentWeek): boolean {
+  const raw = week.weekId;
+  if (!raw || typeof raw === 'string') return false;
+  return raw.status === false;
+}
+
+/**
  * رنگ/وضعیت کارت از `status` کلی هفته به‌همراه سه فیلد صریح
  * `mentorStatus`/`teacherStatus`/`studentStatus` مشتق می‌شود. اولویت بررسی:
  * ۱. `status === 'completed'` → `graded` (نمره نهایی ثبت شده — صرف‌نظر از
@@ -103,6 +114,7 @@ export function mapRealWeeklySessions(
       id,
       title: `هفته ${index + 1}`,
       status,
+      isArchived: isWeekArchived(week),
       score: completed && typeof week.score === 'number' ? week.score : null,
       weightedScore: typeof week.weightedScore === 'number' ? week.weightedScore : null,
       text: latest?.text ?? '',

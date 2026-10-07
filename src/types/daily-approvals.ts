@@ -72,6 +72,8 @@ export type DailyApprovalWeek = {
   schoolAdminStatus?: 'send' | null;
   /** استاد راهنما در این جلسه به مدرسه رفته و بازدید حضوری داشته است. */
   schoolVisited?: boolean;
+  /** هفته در سرفصل بایگانی شده (`weekId.status === false`). */
+  isArchived?: boolean;
   /**
    * مقصدهایی که استاد گزارش را برایشان فرستاده؛ معلم/مدیر مدرسه فقط گزارش
    * ارجاع‌شده به خودشان را می‌بینند. فقط mock تا آمدن endpoint ارجاع در Nest.

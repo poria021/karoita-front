@@ -16,6 +16,7 @@ import { listRealCapacityCourses } from '@/services/organizational-capacities/re
 import { getRealAcademicSettings } from '@/services/syllabus-config/real/real-syllabus-reads';
 import {
   mapWeekStatus,
+  isWeekArchived,
   studentWeekId,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
 import { strictLessonLevelFromTitle } from '@/services/internship-enrollment/real/mappers/lesson-matching';
@@ -149,6 +150,7 @@ function mapDailyApprovalWeek(week: NestStudentWeek, index: number): DailyApprov
     teacherStatus: week.teacherStatus ?? null,
     schoolAdminStatus: week.schoolAdminStatus ?? null,
     schoolVisited: week.schoolVisited === true,
+    isArchived: isWeekArchived(week),
   };
 }
 
