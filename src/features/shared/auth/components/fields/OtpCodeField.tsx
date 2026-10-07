@@ -5,6 +5,7 @@ import type { ChangeEvent } from 'react';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
 import { KvTextField } from '@/components/shared/fields/KvTextField';
+import { useWebOtp } from '../../hooks/useWebOtp';
 import {
   persianToEnglishDigits,
   toPersianDigits,
@@ -57,6 +58,12 @@ export function OtpCodeField({
     event.target.value = next;
     void onChange(event);
   };
+
+  useWebOtp((code) => {
+    const next = filterDigits(code).slice(0, 5);
+    setLocalValue(next);
+    void onChange({ target: { name, value: next }, type: 'change' });
+  }, !locked);
 
   return (
     <div>
