@@ -93,28 +93,15 @@ describe('submitMentorFeedbackReal / submitPrincipalFeedbackReal', () => {
     });
   });
 
-  it('lets the principal submit only text, with no rating', async () => {
-    await submitPrincipalFeedbackReal({
-      traineeId: 't1',
-      weekId: 'w1',
-      principalFeedback: 'توضیح بدون امتیاز',
-      principalRating: null,
-    });
-
-    expect(conversationsApi.postMessage).toHaveBeenCalledWith('conv-1', {
-      text: 'توضیح بدون امتیاز',
-    });
-  });
-
-  it('rejects a principal submission with neither rating nor text', async () => {
+  it('rejects a principal submission without a rating, even when text is given', async () => {
     await expect(
       submitPrincipalFeedbackReal({
         traineeId: 't1',
         weekId: 'w1',
-        principalFeedback: '   ',
+        principalFeedback: 'توضیح بدون امتیاز',
         principalRating: null,
       })
-    ).rejects.toThrow(/امتیاز یا بازخورد/);
+    ).rejects.toThrow(/امتیاز/);
     expect(conversationsApi.postMessage).not.toHaveBeenCalled();
   });
 });

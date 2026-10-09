@@ -219,13 +219,8 @@ export function useDailyApprovalWeekGradingModal({
     }
 
     if (role === 'school_principal') {
-      if (
-        !principalFeedback.trim() &&
-        principalRating === null &&
-        principalAttendance.length === 0 &&
-        principalSupervisorVisits.length === 0
-      ) {
-        toast.error('لطفاً حضور، بازدید استاد، امتیاز یا بازخورد توصیفی را ثبت نمایید.');
+      if (principalRating === null) {
+        toast.error('ثبت سطح شایستگی کارورز توسط مدیر مدرسه الزامی است.');
         return;
       }
       await onSavePrincipal({

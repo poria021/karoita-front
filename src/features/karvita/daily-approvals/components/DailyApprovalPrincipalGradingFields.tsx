@@ -1,5 +1,6 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvTextArea } from '@/components/shared/fields/KvTextArea';
@@ -12,13 +13,10 @@ import {
   DAILY_APPROVAL_COMPETENCY_OPTIONS,
 } from '../constants';
 
-/** Radix `Select.Item` مقدار رشتهٔ خالی را قبول نمی‌کند — برای «بدون امتیاز» یک sentinel لازم است. */
-const NO_RATING_VALUE = '__none__';
-
 type DailyApprovalPrincipalGradingFieldsProps = {
   principalRating: DailyApprovalCompetencyRating | null;
   principalFeedback: string;
-  onPrincipalRatingChange: (value: DailyApprovalCompetencyRating | null) => void;
+  onPrincipalRatingChange: (value: DailyApprovalCompetencyRating) => void;
   onPrincipalFeedbackChange: (value: string) => void;
   attendanceDays: PrincipalAttendanceDay[];
   attendanceDates: string[];
@@ -109,35 +107,40 @@ export function DailyApprovalPrincipalGradingFields({
         onChange={onSupervisorVisitDatesChange}
       />
 
-      <KvSelectField
-        label="سطح شایستگی کارورز (اختیاری):"
-        placeholder="بدون امتیاز"
-        value={principalRating ?? NO_RATING_VALUE}
-        displayValue={principalRating ? competencyRatingLabel(principalRating) : 'بدون امتیاز'}
-        contentClassName="z-[150]"
-        onValueChange={(value) => {
-          if (value === NO_RATING_VALUE) {
-            onPrincipalRatingChange(null);
-            return;
-          }
-          if (
-            value === '1' ||
-            value === '2' ||
-            value === '3' ||
-            value === '4' ||
-            value === '5'
-          ) {
-            onPrincipalRatingChange(value);
-          }
-        }}
-      >
-        <KvSelectItem value={NO_RATING_VALUE}>بدون امتیاز</KvSelectItem>
-        {DAILY_APPROVAL_COMPETENCY_OPTIONS.map((option) => (
-          <KvSelectItem key={option.value} value={option.value}>
-            {option.label}
-          </KvSelectItem>
-        ))}
-      </KvSelectField>
+      <div className="space-y-kv-pair">
+        <div className="flex items-center justify-between gap-kv-pair">
+          <KvTypography variant="label" as="span">
+            سطح شایستگی کارورز (الزامی):
+          </KvTypography>
+          {principalRating === null ? (
+            <Badge variant="danger">تکمیل این بخش اجباری است</Badge>
+          ) : null}
+        </div>
+        <KvSelectField
+          label={false}
+          placeholder="انتخاب کنید"
+          value={principalRating ?? ''}
+          displayValue={principalRating ? competencyRatingLabel(principalRating) : ''}
+          contentClassName="z-[150]"
+          onValueChange={(value) => {
+            if (
+              value === '1' ||
+              value === '2' ||
+              value === '3' ||
+              value === '4' ||
+              value === '5'
+            ) {
+              onPrincipalRatingChange(value);
+            }
+          }}
+        >
+          {DAILY_APPROVAL_COMPETENCY_OPTIONS.map((option) => (
+            <KvSelectItem key={option.value} value={option.value}>
+              {option.label}
+            </KvSelectItem>
+          ))}
+        </KvSelectField>
+      </div>
       <KvTextArea
         label="توضیحات و بازخورد کتبی مدیریت مدرسه (اختیاری):"
         value={principalFeedback}

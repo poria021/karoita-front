@@ -120,9 +120,8 @@ export async function submitMentorFeedbackReal(
 }
 
 /**
- * POST `/api/v1/conversations/{id}/messages` — هم بازخورد توصیفی هم امتیاز
- * شایستگی (۱ تا ۵) مدیر مدرسه اختیاری‌اند؛ فقط ثبت هر دو با هم خالی مجاز نیست
- * (همین‌جا و در فرم اعتبارسنجی می‌شود).
+ * POST `/api/v1/conversations/{id}/messages` — امتیاز شایستگی (۱ تا ۵) مدیر
+ * مدرسه الزامی است و بازخورد توصیفی اختیاری (همین‌جا و در فرم اعتبارسنجی می‌شود).
  */
 export async function submitPrincipalFeedbackReal(
   input: UpdatePrincipalDailyApprovalWeekInput
@@ -142,8 +141,8 @@ export async function submitPrincipalFeedbackReal(
   ]
     .filter(Boolean)
     .join('\n\n');
-  if (!text && input.principalRating === null) {
-    throw new Error('ثبت حضور، بازدید استاد، امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
+  if (input.principalRating === null) {
+    throw new Error('ثبت امتیاز شایستگی مدیر مدرسه الزامی است.');
   }
   const conversationId = await findWeekConversationId(
     input.traineeId,
@@ -151,8 +150,6 @@ export async function submitPrincipalFeedbackReal(
   );
   await conversationsApi.postMessage(conversationId, {
     ...(text ? { text } : {}),
-    ...(input.principalRating !== null
-      ? { rating: ratingToNumber(input.principalRating) }
-      : {}),
+    rating: ratingToNumber(input.principalRating),
   });
 }
