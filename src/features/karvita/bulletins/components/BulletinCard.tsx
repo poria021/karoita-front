@@ -37,15 +37,6 @@ export function BulletinPanelBadge({ bulletin }: { bulletin: Bulletin }) {
 export function BulletinCard({ bulletin, actions, footer }: BulletinCardProps) {
   return (
     <article className="flex flex-col gap-kv-pair rounded-kv-control border border-kv-border bg-kv-surface p-kv-group text-start">
-      {bulletin.imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- data URL در mock؛ next/image اعمال نمی‌شود
-        <img
-          src={bulletin.imageUrl}
-          alt={bulletin.title}
-          loading="lazy"
-          className="aspect-[16/7] w-full rounded-kv-control bg-kv-surface-muted object-cover"
-        />
-      ) : null}
       <div className="flex flex-wrap items-center justify-between gap-kv-pair">
         <div className="flex min-w-0 flex-wrap items-center gap-kv-pair">
           <BulletinPanelBadge bulletin={bulletin} />

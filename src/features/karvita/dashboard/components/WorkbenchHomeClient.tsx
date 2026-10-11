@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { OnboardingChecklist } from '@/components/shared/shell/OnboardingChecklist';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { DashboardBulletinsBoard } from '@/features/karvita/bulletins/components/DashboardBulletinsBoard';
 import { useUserStore } from '@/store/useUserStore';
 import { faIcons } from '@/utils/iconMap';
 import {
@@ -15,6 +14,8 @@ import {
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import { useSidebarMenu } from '@/components/shared/shell/useSidebarMenu';
 import { getLiveWorkbenchShortcuts } from '@/utils/workbenchShortcuts';
+
+import { DashboardWidgetGrid } from './DashboardWidgetGrid';
 
 export type WorkbenchHomeProps = {
   /** خط خوشامد زیر عنوان (رونوشت مستقل از نقش). */
@@ -35,7 +36,7 @@ function resolveShortcutIcon(iconName?: string) {
 }
 
 /**
- * میز کار سازمانی آرام — خوشامد، اطلاعیه‌ها/تبلیغات پنل بالادست و میان‌بر ماژول‌های زنده.
+ * میز کار سازمانی آرام — خوشامد، ویجت‌های پنل (تبلیغ ستاد، اطلاعیه‌ها، …) و میان‌بر ماژول‌های زنده.
  */
 export function WorkbenchHomeClient({
   subtitle,
@@ -72,7 +73,7 @@ export function WorkbenchHomeClient({
 
       {progress ? <OnboardingChecklist progress={progress} /> : null}
 
-      <DashboardBulletinsBoard role={activeUser.role} />
+      <DashboardWidgetGrid role={activeUser.role} />
 
       {shortcuts.length === 0 ? (
         <div className="rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section">

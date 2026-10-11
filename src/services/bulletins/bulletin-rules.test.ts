@@ -8,6 +8,7 @@ import {
   canPublishAdvertisements,
   canPublishAnnouncements,
   canReceiveBulletins,
+  dashboardBulletinSources,
   isBulletinOwnedBy,
   isBulletinVisibleTo,
   validateBulletinInput,
@@ -132,5 +133,24 @@ describe('bulletin-rules', () => {
     expect(next.authorName).toBe('A');
     expect(next.title).toBe('جدید');
     expect(next.createdAt).toBe(existing.createdAt);
+  });
+
+  it('every panel gets an ad and an announcements source on the dashboard', () => {
+    expect(dashboardBulletinSources('super_admin')).toEqual({
+      advertisement: 'published',
+      announcement: 'published',
+    });
+    expect(dashboardBulletinSources('assistant_admin')).toEqual({
+      advertisement: 'published',
+      announcement: 'received',
+    });
+    expect(dashboardBulletinSources('student')).toEqual({
+      advertisement: 'received',
+      announcement: 'received',
+    });
+    expect(dashboardBulletinSources('school_principal')).toEqual({
+      advertisement: 'received',
+      announcement: 'received',
+    });
   });
 });

@@ -117,7 +117,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
               onChange={(file) => props.setImageFile(file)}
               maxSizeMb={AD_IMAGE_MAX_SIZE_MB}
               compressMaxWidth={AD_IMAGE_COMPRESS_MAX_WIDTH}
-              helperText={`JPG، PNG یا WebP — حداکثر ${AD_IMAGE_MAX_SIZE_MB} مگابایت`}
+              helperText={`تصویر مربعی (۱:۱) — JPG، PNG یا WebP، حداکثر ${AD_IMAGE_MAX_SIZE_MB} مگابایت`}
               previewAlt="پیش‌نمایش تصویر تبلیغ"
             />
           ) : null}
@@ -169,7 +169,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             />
             <KvTypography variant="caption" tone="muted" as="p">
               {isAd
-                ? 'تبلیغ در میز کار نقش‌های انتخاب‌شده نمایش داده می‌شود.'
+                ? 'تبلیغ در باکس مربعی تبلیغات میز کار نقش‌های انتخاب‌شده نمایش داده می‌شود.'
                 : 'اطلاعیه در باکس «اطلاعیه‌ها»ی میز کار نقش‌های زیرمجموعهٔ انتخاب‌شده، با بج نام پنل شما نمایش داده می‌شود.'}
             </KvTypography>
           </div>

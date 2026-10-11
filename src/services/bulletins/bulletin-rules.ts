@@ -98,6 +98,22 @@ export function canReceiveBulletins(
   );
 }
 
+/** «دریافتی» = منتشرشده برای این نقش؛ «منتشرشده» = موارد خود پنل (پیش‌نمایش). */
+export type DashboardBulletinSource = 'received' | 'published';
+
+/**
+ * هر پنل در میز کار باکس تبلیغ و باکس اطلاعیه دارد. ستاد تبلیغ‌دهنده است و
+ * تبلیغ خودش را پیش‌نمایش می‌بیند؛ مدیر ارشد بالادستی ندارد و اطلاعیه‌های خودش را می‌بیند.
+ */
+export function dashboardBulletinSources(
+  role: UserRole | string | null | undefined
+): { advertisement: DashboardBulletinSource; announcement: DashboardBulletinSource } {
+  return {
+    advertisement: canPublishAdvertisements(role) ? 'published' : 'received',
+    announcement: canReceiveBulletins(role) ? 'received' : 'published',
+  };
+}
+
 /**
  * مالکیت پنل: مدیر ارشد و دستیار یک ستاد مشترک‌اند و موارد هم را مدیریت می‌کنند؛
  * بقیه فقط موارد نقش خودشان را.
