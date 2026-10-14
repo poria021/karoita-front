@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -14,6 +14,7 @@ import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import type {
   CreateLandingSocialInput,
   LandingSocial,
+  UpdateLandingSocialInput,
 } from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
 
@@ -28,6 +29,7 @@ import {
   type SocialFormInput,
   type SocialFormValues,
 } from '../schemas/landing-cms.schema';
+import { LandingCmsEditDialog } from './LandingCmsEditDialog';
 import { LandingCmsEntityTable } from './LandingCmsEntityTable';
 import { LandingCmsMediaThumb } from './LandingCmsMediaThumb';
 
@@ -37,10 +39,22 @@ const SOCIAL_COLUMNS = [
   { key: 'link', label: 'لینک اختصاصی' },
 ] as const;
 
+const SOCIAL_EDIT_FIELDS = [
+  { name: 'name', label: 'نام شبکه اجتماعی', required: true },
+  {
+    name: 'link',
+    label: 'لینک شبکه اجتماعی',
+    required: true,
+    dir: 'ltr',
+    placeholder: 'مثال: https://eitaa.com/...',
+  },
+] as const;
+
 type LandingCmsSocialsPanelProps = {
   items: LandingSocial[];
   isLoading: boolean;
   onCreate: (input: CreateLandingSocialInput) => void;
+  onUpdate: (input: UpdateLandingSocialInput) => void;
   onRequestDelete: (target: LandingCmsDeleteTarget) => void;
 };
 
@@ -48,9 +62,11 @@ export function LandingCmsSocialsPanel({
   items,
   isLoading,
   onCreate,
+  onUpdate,
   onRequestDelete,
 }: LandingCmsSocialsPanelProps) {
   const tabConfig = getLandingCmsTabConfig('socials');
+  const [editing, setEditing] = useState<LandingSocial | null>(null);
   const form = useForm<SocialFormInput, unknown, SocialFormValues>({
     resolver: zodResolver(socialFormSchema),
     defaultValues: { name: '', link: '', iconImage: null },
@@ -165,6 +181,10 @@ export function LandingCmsSocialsPanel({
           emptyTitle={tabConfig.emptyTitle}
           emptyDescription={tabConfig.emptyDescription}
           deleteAriaLabel={(row) => `حذف شبکه ${row.name}`}
+          onEdit={(row) => {
+            if (!row.id.startsWith('temp-')) setEditing(row);
+          }}
+          editAriaLabel={(row) => `ویرایش شبکه ${row.name}`}
           onDelete={(row) =>
             onRequestDelete({
               kind: 'socials',
@@ -192,6 +212,31 @@ export function LandingCmsSocialsPanel({
           )}
         />
       </div>
+
+      <LandingCmsEditDialog
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title="ویرایش شبکه اجتماعی"
+        description={editing ? `«${editing.name}» — تغییرات روی فوتر صفحهٔ اصلی اعمال می‌شود.` : ''}
+        fields={SOCIAL_EDIT_FIELDS}
+        initial={{ name: editing?.name ?? '', link: editing?.link ?? '' }}
+        image={{
+          existingUrl: editing?.iconImageUrl ?? '',
+          label: 'آیکون شبکه (اختیاری)',
+          helperText: `${LANDING_SOCIAL_ICON_MAX_SIZE_HELPER} — بدون آیکون، آیکون پیش‌فرض نمایش داده می‌شود.`,
+          maxSizeMb: LANDING_ICON_MAX_SIZE_MB,
+          previewAlt: 'پیش‌نمایش آیکون شبکه',
+          mode: 'removable',
+        }}
+        onSave={(changes) => {
+          if (!editing) return;
+          onUpdate({
+            id: editing.id,
+            ...changes.text,
+            ...(changes.image !== undefined ? { iconImage: changes.image } : {}),
+          });
+        }}
+      />
     </div>
   );
 }

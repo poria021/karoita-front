@@ -56,6 +56,7 @@ export function LandingCmsPageClient() {
             items={page.socials}
             isLoading={page.isLoading}
             onCreate={page.scheduleCreateSocial}
+            onUpdate={page.scheduleUpdateSocial}
             onRequestDelete={page.requestDelete}
           />
         ) : null}
