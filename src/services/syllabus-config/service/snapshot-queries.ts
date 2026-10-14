@@ -19,6 +19,7 @@ import {
   catalogKindForTermType,
   realLessonIdFor,
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
+import { listRealCourseDefinitions } from '@/services/syllabus-config/real/real-course-catalog';
 import { getRealSyllabusSnapshot } from '@/services/syllabus-config/real/real-syllabus-reads';
 import type {
   AcademicTermType,
@@ -53,6 +54,17 @@ export const snapshotQueries = {
     return courseDefinitionsOf(readSyllabusSnapshot()).filter(
       (course) => course.isActive && course.audience === audience
     );
+  },
+
+  /**
+   * همهٔ درس‌های تعریف‌شده برای مصرف‌کننده‌ها (سایدبار/ارزیابی) — بدون گارد ادمین.
+   * real: `GET /v1/original-lessons`؛ شکل خروجی همان `listCourseDefinitions` صفحهٔ
+   * تعریف دروس است تا هر دو روی یک query key (`syllabusCourseCatalog`) بنشینند.
+   */
+  async listCourseDefinitionsForConsumers(): Promise<CourseDefinition[]> {
+    gateSyllabusConsumerRead();
+    if (!IS_MOCK_MODE) return listRealCourseDefinitions();
+    return structuredClone([...courseDefinitionsOf(readSyllabusSnapshot())]);
   },
 
   /** تا آمدن endpoint واقعی سال تحصیلی، در حالت real لیست خالی برمی‌گرداند. */
