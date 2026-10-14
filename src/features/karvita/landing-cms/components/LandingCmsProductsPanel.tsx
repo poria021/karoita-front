@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -14,6 +14,7 @@ import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import type {
   CreateLandingProductInput,
   LandingProduct,
+  UpdateLandingProductInput,
 } from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
 
@@ -30,6 +31,7 @@ import {
   type ProductFormInput,
   type ProductFormValues,
 } from '../schemas/landing-cms.schema';
+import { LandingCmsEditDialog } from './LandingCmsEditDialog';
 import { LandingCmsEntityTable } from './LandingCmsEntityTable';
 import { LandingCmsMediaThumb } from './LandingCmsMediaThumb';
 
@@ -39,10 +41,22 @@ const PRODUCT_COLUMNS = [
   { key: 'link', label: 'لینک هدایت' },
 ] as const;
 
+const PRODUCT_EDIT_FIELDS = [
+  { name: 'title', label: 'عنوان محصول', required: true, minLength: 2 },
+  {
+    name: 'link',
+    label: 'لینک هدایت هنگام کلیک',
+    required: true,
+    dir: 'ltr',
+    placeholder: 'مثال: /auth/login یا https://...',
+  },
+] as const;
+
 type LandingCmsProductsPanelProps = {
   items: LandingProduct[];
   isLoading: boolean;
   onCreate: (input: CreateLandingProductInput) => void;
+  onUpdate: (input: UpdateLandingProductInput) => void;
   onRequestDelete: (target: LandingCmsDeleteTarget) => void;
 };
 
@@ -50,9 +64,11 @@ export function LandingCmsProductsPanel({
   items,
   isLoading,
   onCreate,
+  onUpdate,
   onRequestDelete,
 }: LandingCmsProductsPanelProps) {
   const tabConfig = getLandingCmsTabConfig('products');
+  const [editing, setEditing] = useState<LandingProduct | null>(null);
   const form = useForm<ProductFormInput, unknown, ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: { title: '', link: '', logoImage: null },
@@ -172,6 +188,10 @@ export function LandingCmsProductsPanel({
           emptyTitle={tabConfig.emptyTitle}
           emptyDescription={tabConfig.emptyDescription}
           deleteAriaLabel={(row) => `حذف محصول ${row.title}`}
+          onEdit={(row) => {
+            if (!row.id.startsWith('temp-')) setEditing(row);
+          }}
+          editAriaLabel={(row) => `ویرایش محصول ${row.title}`}
           onDelete={(row) =>
             onRequestDelete({
               kind: 'products',
@@ -199,6 +219,35 @@ export function LandingCmsProductsPanel({
           )}
         />
       </div>
+
+      <LandingCmsEditDialog
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title="ویرایش محصول شناور"
+        description={editing ? `«${editing.title}» — تغییرات روی داک شناور صفحهٔ اصلی اعمال می‌شود.` : ''}
+        fields={PRODUCT_EDIT_FIELDS}
+        initial={{ title: editing?.title ?? '', link: editing?.link ?? '' }}
+        image={{
+          existingUrl: editing?.logoImageUrl ?? '',
+          label: 'لوگوی محصول',
+          helperText: `${LANDING_PRODUCT_LOGO_MAX_SIZE_HELPER} — برای تعویض، لوگوی جدید را بکشید یا انتخاب کنید.`,
+          maxSizeMb: LANDING_ICON_MAX_SIZE_MB,
+          previewAlt: 'پیش‌نمایش لوگوی محصول',
+          mode: 'required',
+          accept: LANDING_PRODUCT_LOGO_ACCEPT,
+          invalidTypeMessage: LANDING_PRODUCT_LOGO_INVALID_TYPE,
+          // مثل فرم افزودن: فشرده‌سازی به WebP فایل PNG/SVG معتبر را رد می‌کرد.
+          compress: false,
+        }}
+        onSave={(changes) => {
+          if (!editing) return;
+          onUpdate({
+            id: editing.id,
+            ...changes.text,
+            ...(changes.image ? { logoImage: changes.image } : {}),
+          });
+        }}
+      />
     </div>
   );
 }

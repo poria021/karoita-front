@@ -65,6 +65,7 @@ export function LandingCmsPageClient() {
             items={page.products}
             isLoading={page.isLoading}
             onCreate={page.scheduleCreateProduct}
+            onUpdate={page.scheduleUpdateProduct}
             onRequestDelete={page.requestDelete}
           />
         ) : null}
