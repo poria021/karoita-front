@@ -64,6 +64,11 @@ export async function scoreRealDailyApprovalWeek(
   requireNestTransport('DailyApprovalsService.updateWeekEvaluation');
 
   if (input.score !== null) {
+    // حضور استاد قبل از نمره می‌رود تا اگر رد شد، نمره‌ای نیمه‌کاره ثبت نشود
+    // و کاربر بتواند با همان مودال دوباره تلاش کند.
+    if (input.schoolVisited === true) {
+      await studentWeeksApi.setMentorPresent(input.weekId, true);
+    }
     await studentWeeksApi.score(
       input.weekId,
       input.score,
