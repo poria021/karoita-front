@@ -10,6 +10,7 @@ import { apiClient } from '@/services/api-client';
 
 export const NEST_STUDENT_WEEKS_PATHS = {
   score: (id: string) => `v1/student-weeks/${id}/score`,
+  mentorPresent: (id: string) => `v1/student-weeks/${id}/mentor-present`,
 } as const;
 
 export const studentWeeksApi = {
@@ -22,6 +23,17 @@ export const studentWeeksApi = {
     return apiClient.patchMaybeJson<unknown>(
       NEST_STUDENT_WEEKS_PATHS.score(weekId),
       { score, schoolVisited }
+    );
+  },
+
+  /** PATCH /api/v1/student-weeks/{id}/mentor-present — اعلام حضور استاد راهنما در مدرسه (فقط mentor)؛ پاسخ بدون بدنه. */
+  setMentorPresent(
+    weekId: string,
+    isMentorPresent: boolean
+  ): Promise<unknown> {
+    return apiClient.patchMaybeJson<unknown>(
+      NEST_STUDENT_WEEKS_PATHS.mentorPresent(weekId),
+      { isMentorPresent }
     );
   },
 };
