@@ -2,11 +2,13 @@
  * دادهٔ اولیهٔ نمایشی. فقط برای توسعهٔ محلی؛ هیچ‌کدام از این مقادیر داده‌ی واقعی نیست.
  * رمز حساب‌های تستی همان مقدار تستی پروژه است و جایی جز این seed استفاده نمی‌شود.
  */
+import { createTermLessons, type TermLessonsMode } from './handlers/syllabus';
 import {
   newId,
   nowIso,
   type Store,
   type StoredFile,
+  type StoredSemester,
 } from './store';
 
 export const SEED_PASSWORD = '12345678';
@@ -60,7 +62,7 @@ export function addSeedFile(
   return file;
 }
 
-export function seedStore(store: Store): void {
+export function seedStore(store: Store, termLessons: TermLessonsMode = 'fixed'): void {
   const adminId = newId();
   store.admins.set(adminId, {
     id: adminId,
@@ -135,6 +137,40 @@ export function seedStore(store: Store): void {
       createdAt,
       updatedAt: createdAt,
     });
+  }
+
+  // «تعریف دروس»: همان وضعیت بک‌اند dev — یک درس مستقل ترمی.
+  const lessonId = newId();
+  store.originalLessons.set(lessonId, {
+    id: lessonId,
+    type: 'semester',
+    mainTitle: 'بیسی',
+    lessonTitle: 'بیسی',
+    status: 'active',
+    createdAt,
+    updatedAt: createdAt,
+  });
+
+  store.settings.push({
+    id: newId(),
+    generalProfessorCapacity: 30,
+    systemPassingScore: 60,
+    createdAt,
+  });
+
+  for (const structure of ['semester', 'podmani'] as const) {
+    const semester: StoredSemester = {
+      id: newId(),
+      season: 'one',
+      structure,
+      academicYear: '۱۴۰۵-۱۴۰۶',
+      courseSelection: false,
+      startClasses: false,
+      createdAt,
+      updatedAt: createdAt,
+    };
+    store.semesters.set(semester.id, semester);
+    createTermLessons(store, semester, termLessons);
   }
 
   store.notifications.push({

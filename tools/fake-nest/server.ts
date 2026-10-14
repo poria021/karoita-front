@@ -13,6 +13,8 @@ import { registerAuthRoutes } from './handlers/auth';
 import { registerFileRoutes } from './handlers/files';
 import { registerLandingRoutes } from './handlers/landing';
 import { registerNotificationRoutes } from './handlers/notifications';
+import { registerOriginalLessonRoutes } from './handlers/original-lessons';
+import { registerSyllabusRoutes, type TermLessonsMode } from './handlers/syllabus';
 import { HttpError, type RouteResult } from './http';
 import {
   HTTP_METHODS,
@@ -35,6 +37,8 @@ export type FakeNestOptions = {
   delayMs?: number;
   seed?: boolean;
   quiet?: boolean;
+  /** درس‌های ترم جدید از کجا بیایند؛ ببین `handlers/syllabus.ts`. */
+  termLessons?: TermLessonsMode;
 };
 
 export type FakeNest = {
@@ -124,14 +128,17 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
   const port = options.port ?? 4000;
   const strict = options.strict ?? true;
   let publicUrl = options.publicUrl ?? `http://localhost:${port}`;
+  const termLessons = options.termLessons ?? 'fixed';
   const store = createStore(publicUrl);
-  if (options.seed ?? true) seedStore(store);
+  if (options.seed ?? true) seedStore(store, termLessons);
 
   const router = new Router();
   registerAuthRoutes(router, store);
   registerFileRoutes(router, store);
   registerLandingRoutes(router, store);
   registerNotificationRoutes(router, store);
+  registerOriginalLessonRoutes(router, store);
+  registerSyllabusRoutes(router, store, { termLessons });
 
   const log = (line: string) => {
     if (!options.quiet) console.info(`[fake-nest] ${line}`);
@@ -167,7 +174,7 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
     }
     if (pathname === '/__fake/reset' && method === 'POST') {
       clearStore(store);
-      seedStore(store);
+      seedStore(store, termLessons);
       finish(response, { status: 204 }, method, pathname, startedAt);
       return;
     }
