@@ -164,6 +164,8 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
     const method = (request.method ?? 'GET').toUpperCase();
     const url = new URL(request.url ?? '/', publicUrl);
     const { pathname } = url;
+    // لاگ با query تا ببینی صفحه چه فیلتری فرستاده.
+    const logPath = `${pathname}${url.search}`;
     applyCors(request, response);
 
     if (method === 'OPTIONS') {
@@ -173,13 +175,13 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
 
     // کنترل توسعه — خارج از Swagger.
     if (pathname === '/__fake/health') {
-      finish(response, { status: 200, body: { ok: true } }, method, pathname, startedAt);
+      finish(response, { status: 200, body: { ok: true } }, method, logPath, startedAt);
       return;
     }
     if (pathname === '/__fake/reset' && method === 'POST') {
       clearStore(store);
       seedAll(store, termLessons);
-      finish(response, { status: 204 }, method, pathname, startedAt);
+      finish(response, { status: 204 }, method, logPath, startedAt);
       return;
     }
 
@@ -188,13 +190,13 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
     if (storageMatch) {
       const file = store.files.get(storageMatch[1]!);
       if (!file) {
-        finish(response, { status: 404, body: { message: 'Not Found' } }, method, pathname, startedAt);
+        finish(response, { status: 404, body: { message: 'Not Found' } }, method, logPath, startedAt);
         return;
       }
       if (method === 'PUT') {
         file.bytes = await readRawBody(request);
         file.size = file.bytes.length;
-        finish(response, { status: 200 }, method, pathname, startedAt);
+        finish(response, { status: 200 }, method, logPath, startedAt);
         return;
       }
       if (method === 'GET' && file.bytes) {
@@ -206,7 +208,7 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
         log(`GET ${pathname} → 200 (${Date.now() - startedAt}ms)`);
         return;
       }
-      finish(response, { status: 404, body: { message: 'Not Found' } }, method, pathname, startedAt);
+      finish(response, { status: 404, body: { message: 'Not Found' } }, method, logPath, startedAt);
       return;
     }
 
@@ -225,7 +227,7 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
           },
         },
         method,
-        pathname,
+        logPath,
         startedAt
       );
       return;
@@ -277,7 +279,7 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
           const detail = `Fake-Nest contract violation on ${method} ${route.specPath}: ${errors.join('; ')}`;
           log(detail);
           if (strict) {
-            finish(response, { status: 500, body: { message: detail } }, method, pathname, startedAt);
+            finish(response, { status: 500, body: { message: detail } }, method, logPath, startedAt);
             return;
           }
         }
@@ -289,14 +291,14 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
       if (options.delayMs) {
         await new Promise((resolve) => setTimeout(resolve, options.delayMs));
       }
-      finish(response, result, method, pathname, startedAt);
+      finish(response, result, method, logPath, startedAt);
     } catch (error) {
       if (error instanceof HttpError) {
-        finish(response, { status: error.status, body: error.toBody() }, method, pathname, startedAt);
+        finish(response, { status: error.status, body: error.toBody() }, method, logPath, startedAt);
         return;
       }
       log(`unexpected error: ${error instanceof Error ? error.stack : String(error)}`);
-      finish(response, { status: 500, body: { message: 'Internal Server Error' } }, method, pathname, startedAt);
+      finish(response, { status: 500, body: { message: 'Internal Server Error' } }, method, logPath, startedAt);
     }
   }
 
