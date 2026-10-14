@@ -4,7 +4,6 @@ import { useCallback } from 'react';
 
 import type {
   DailyApprovalCourseFilter,
-  DailyApprovalCourseKind,
   DailyApprovalReadFilter,
 } from '@/types/daily-approvals';
 
@@ -21,7 +20,6 @@ export function useDailyApprovalsPage() {
   const chrome = useDailyApprovalsChrome();
   const {
     kind,
-    setKind,
     query,
     setQuery,
     readFilter,
@@ -29,8 +27,6 @@ export function useDailyApprovalsPage() {
     course,
     setCourse,
     courseModule,
-    setModuleId,
-    showKindTabs,
     scopeKeys,
     termId,
     setTermId,
@@ -61,17 +57,6 @@ export function useDailyApprovalsPage() {
 
   const { clearSelection } = actions;
 
-  const changeKind = useCallback(
-    (next: DailyApprovalCourseKind) => {
-      setKind(next);
-      setCourse('all');
-      // درس پنل قبلی در پنل جدید معنا ندارد؛ hook درس اول پنل جدید را می‌گذارد.
-      setModuleId(null);
-      clearSelection();
-    },
-    [clearSelection, setCourse, setKind, setModuleId]
-  );
-
   const changeReadFilter = useCallback(
     (next: DailyApprovalReadFilter) => {
       setReadFilter(next);
@@ -100,8 +85,6 @@ export function useDailyApprovalsPage() {
     kind,
     courseTitle: courseModule?.title ?? null,
     courseModuleId: courseModule?.id ?? null,
-    showKindTabs,
-    changeKind,
     query,
     setQuery,
     readFilter,

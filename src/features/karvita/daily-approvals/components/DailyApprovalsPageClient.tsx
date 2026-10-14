@@ -17,7 +17,6 @@ import {
 } from '../lib/dailyApprovalsAccess';
 import { DailyApprovalBulkExtendModal } from './DailyApprovalBulkExtendModal';
 import { DailyApprovalDetailPanel } from './DailyApprovalDetailPanel';
-import { DailyApprovalsCourseTabs } from './DailyApprovalsCourseTabs';
 import { DailyApprovalsFilters } from './DailyApprovalsFilters';
 import { DailyApprovalsGuard } from './DailyApprovalsGuard';
 import { DailyApprovalsMobileWorkspace } from './DailyApprovalsMobileWorkspace';
@@ -103,14 +102,6 @@ export function DailyApprovalsPageClient() {
       <>
         <KvSplitWorkspace
           ratio="5/7"
-          tabs={
-            page.showKindTabs ? (
-              <DailyApprovalsCourseTabs
-                value={page.kind}
-                onChange={page.changeKind}
-              />
-            ) : undefined
-          }
           toolbar={
             <>
             <DailyApprovalsWorkspaceHeader

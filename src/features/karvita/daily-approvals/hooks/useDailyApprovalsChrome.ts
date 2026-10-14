@@ -51,7 +51,8 @@ export function useDailyApprovalsChrome() {
     DAILY_APPROVALS_CHROME_ID
   );
 
-  const [kind, setKind] = useSyncedUrlParam<DailyApprovalCourseKind>({
+  // نوع دوره فقط از URL (لینک‌های سایدبار) می‌آید؛ تب جداگانه‌ای در صفحه نیست.
+  const [kind] = useSyncedUrlParam<DailyApprovalCourseKind>({
     name: 'kind',
     allowed: DAILY_APPROVAL_KIND_KEYS,
     defaultValue: 'internship',
@@ -61,7 +62,7 @@ export function useDailyApprovalsChrome() {
   const [readFilter, setReadFilter] = useState<DailyApprovalReadFilter>(
     () => cachedChrome?.readFilter ?? 'all'
   );
-  const { courseModule, hasDynamicCourses, setModuleId } =
+  const { courseModule, setModuleId } =
     useDailyApprovalModule(kind);
   const [termId, setTermId] = useState(() => cachedChrome?.termId ?? '');
   // real: گزینه‌های درس از lessonهای همین ترم می‌آید (مقدار = lessonId)، نه لیست ثابت.
@@ -111,7 +112,6 @@ export function useDailyApprovalsChrome() {
 
   return {
     kind,
-    setKind,
     query,
     setQuery,
     readFilter,
@@ -119,7 +119,6 @@ export function useDailyApprovalsChrome() {
     course,
     setCourse,
     courseModule,
-    showKindTabs: !hasDynamicCourses,
     setModuleId,
     scopeKeys,
     termId,
