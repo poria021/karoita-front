@@ -19,6 +19,7 @@ import {
   type CourseMaterialCourseOption,
 } from './CourseMaterialFormModal';
 import { CourseMaterialRow } from './CourseMaterialRow';
+import { CourseMaterialsLoadError } from './CourseMaterialsLoadError';
 
 type CourseMaterialsPublisherBoxProps = {
   kind: InternshipCourseKind;
@@ -60,9 +61,6 @@ export function CourseMaterialsPublisherBox({
     onError: (err) => toast.error(errorMessage(err)),
   });
 
-  // خطای خواندن (مثلاً نقش بدون دسترسی) — بخش بی‌صدا پنهان می‌ماند.
-  if (managed.isError) return null;
-
   // real نوع درس را برنمی‌گرداند؛ کلید درس‌های همین صفحه هم برای kind کافی است.
   const courseLabels = new Map(courses.map((course) => [course.value, course.label]));
   const rows = (managed.data ?? [])
@@ -85,7 +83,12 @@ export function CourseMaterialsPublisherBox({
           <KvTypography variant="subtitle" as="h3">
             جزوه و فایل درس
           </KvTypography>
-          {rows.length > 0 ? (
+          {managed.isError ? (
+        <CourseMaterialsLoadError
+          retrying={managed.isFetching}
+          onRetry={() => void managed.refetch()}
+        />
+      ) : rows.length > 0 ? (
             <KvTypography variant="caption" tone="muted" as="span">
               ({toPersianDigits(String(rows.length))})
             </KvTypography>

@@ -12,6 +12,7 @@ import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { CourseMaterialRow } from './CourseMaterialRow';
+import { CourseMaterialsLoadError } from './CourseMaterialsLoadError';
 
 type CourseMaterialsLearnerBoxProps = {
   kind: InternshipCourseKind;
@@ -20,7 +21,7 @@ type CourseMaterialsLearnerBoxProps = {
 
 /**
  * جزوه‌ها و فایل‌هایی که استاد راهنما برای این درس گذاشته — در صفحهٔ گزارش فراگیر.
- * real: GET `/v1/lessons/{lessonId}/mentor-files`؛ در خطا باکس بی‌صدا پنهان می‌ماند.
+ * real: GET `/v1/lessons/{lessonId}/mentor-files`؛ در خطا پیام + «تلاش دوباره».
  */
 export function CourseMaterialsLearnerBox({
   kind,
@@ -33,7 +34,6 @@ export function CourseMaterialsLearnerBox({
     retry: false,
   });
 
-  if (query.isError) return null;
   const rows = query.data ?? [];
 
   return (
@@ -54,7 +54,12 @@ export function CourseMaterialsLearnerBox({
           </KvTypography>
         ) : null}
       </header>
-      {query.isLoading ? (
+      {query.isError ? (
+        <CourseMaterialsLoadError
+          retrying={query.isFetching}
+          onRetry={() => void query.refetch()}
+        />
+      ) : query.isLoading ? (
         <KvTypography variant="caption" tone="muted" as="p">
           در حال بارگذاری فایل‌ها…
         </KvTypography>
