@@ -25,6 +25,7 @@ import {
   getDailyApprovalCourseOptions,
   getRealDailyApprovalCourseOptions,
 } from '../constants';
+import { filterTermCoursesByModule } from '../lib/filterTermCoursesByModule';
 import { useDailyApprovalModule } from './useDailyApprovalModule';
 import {
   DAILY_APPROVALS_CHROME_ID,
@@ -77,7 +78,9 @@ export function useDailyApprovalsChrome() {
   const courseOptions = useMemo(
     () =>
       isRealCatalog
-        ? getRealDailyApprovalCourseOptions(termCourses ?? [])
+        ? getRealDailyApprovalCourseOptions(
+            filterTermCoursesByModule(termCourses ?? [], courseModule)
+          )
         : getDailyApprovalCourseOptions(kind, courseModule),
     [isRealCatalog, termCourses, kind, courseModule]
   );

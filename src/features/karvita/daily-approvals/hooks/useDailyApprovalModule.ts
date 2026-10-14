@@ -10,7 +10,7 @@ import {
   replaceShallowHref,
   subscribeShallowLocation,
 } from '@/lib/shallow-location';
-import { SyllabusConfigService } from '@/services/syllabus-config.service';
+import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
 import type { DailyApprovalCourseKind } from '@/types/daily-approvals';
 import type { CourseDefinition } from '@/types/syllabus-config';
 import { EVALUATION_MODULE_PARAM } from '@/utils/role-strategy/evaluation-menu';
@@ -18,7 +18,7 @@ import { EVALUATION_MODULE_PARAM } from '@/utils/role-strategy/evaluation-menu';
 /**
  * درس انتخاب‌شدهٔ ماژول ارزیابی (`?module=`): لینک ساب‌تایتل سایدبار همین پارامتر را می‌گذارد.
  * نبودن یا ناشناخته بودنش = اولین درس فعال همان پنل و URL هم‌گام می‌شود.
- * بدون درس داینامیک (real) درس انتخابی همیشه `null` است و صفحه مثل قبل کار می‌کند.
+ * درس‌ها از «تعریف دروس» می‌آیند (real: `original-lessons`)؛ بدون درس، انتخابی `null` است.
  * نوشتن از `window.location` تازه می‌خواند تا بعد از `setKind` پارامتر `kind` را زیر پا نگذارد.
  */
 export function useDailyApprovalModule(kind: DailyApprovalCourseKind) {
@@ -29,21 +29,9 @@ export function useDailyApprovalModule(kind: DailyApprovalCourseKind) {
     getShallowLocationSearchServerSnapshot
   );
 
-  const courses = useMemo<CourseDefinition[]>(
-    () =>
-      SyllabusConfigService.getActiveCourseDefinitions(
-        kind === 'internship' ? 'semester' : 'modular'
-      ),
-    [kind]
-  );
-
-  /** با درس داینامیک هر درس خودش پنل را مشخص می‌کند؛ تب نوع دوره فقط وقتی لازم است که فهرستی نباشد. */
-  const hasDynamicCourses = useMemo(
-    () =>
-      SyllabusConfigService.getActiveCourseDefinitions('semester').length > 0 ||
-      SyllabusConfigService.getActiveCourseDefinitions('modular').length > 0,
-    []
-  );
+  const definitions = useActiveCourseDefinitions();
+  const courses: CourseDefinition[] =
+    kind === 'internship' ? definitions.semester : definitions.modular;
 
   const raw = useMemo(
     () => new URLSearchParams(search).get(EVALUATION_MODULE_PARAM),
@@ -74,5 +62,5 @@ export function useDailyApprovalModule(kind: DailyApprovalCourseKind) {
     if (courseModule && raw !== courseModule.id) writeModule(courseModule.id);
   }, [courseModule, raw, writeModule]);
 
-  return { courseModule, courses, hasDynamicCourses, setModuleId: writeModule };
+  return { courseModule, courses, setModuleId: writeModule };
 }
