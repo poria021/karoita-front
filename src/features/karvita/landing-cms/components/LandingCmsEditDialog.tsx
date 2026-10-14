@@ -195,6 +195,11 @@ function EditForm<K extends string>({
             <KvTypography variant="caption" tone="muted" as="p">
               تصویر جدید جایگزین تصویر فعلی می‌شود.
             </KvTypography>
+          ) : image.existingUrl && !imageCleared ? (
+            // تا تصویر فعلی برداشته نشود دراپ‌زون نمایش داده نمی‌شود؛ مسیر تعویض را بگو.
+            <KvTypography variant="caption" tone="muted" as="p">
+              برای تعویض تصویر، روی «حذف» بزنید و تصویر جدید را انتخاب کنید.
+            </KvTypography>
           ) : null}
         </div>
 
