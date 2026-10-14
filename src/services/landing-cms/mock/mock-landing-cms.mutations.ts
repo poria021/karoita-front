@@ -16,6 +16,9 @@ import type {
   LandingBanner,
   LandingProduct,
   LandingSocial,
+  UpdateLandingBannerInput,
+  UpdateLandingProductInput,
+  UpdateLandingSocialInput,
 } from '@/types/landing-cms';
 import {
   compressImageToBase64,
@@ -78,6 +81,33 @@ export async function mockCreateBanner(
   return banner;
 }
 
+function requireText(value: string | undefined, message: string): string | undefined {
+  if (value === undefined) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed) throw new Error(message);
+  return trimmed;
+}
+
+export async function mockUpdateBanner(
+  input: UpdateLandingBannerInput
+): Promise<LandingBanner> {
+  const snapshot = readLandingCmsSnapshot();
+  const current = snapshot.banners.find((row) => row.id === input.id);
+  if (!current) throw new Error('بنر موردنظر یافت نشد.');
+  const title = requireText(input.title, 'وارد کردن عنوان بنر الزامی است.');
+  const next: LandingBanner = {
+    ...current,
+    ...(title !== undefined ? { title } : {}),
+    ...(input.link !== undefined ? { link: input.link.trim() } : {}),
+    ...(input.image ? { imageUrl: await encodeImageFile(input.image) } : {}),
+  };
+  writeLandingCmsSnapshot({
+    ...snapshot,
+    banners: snapshot.banners.map((row) => (row.id === input.id ? next : row)),
+  });
+  return next;
+}
+
 export function mockDeleteBanner(id: string): void {
   const snapshot = readLandingCmsSnapshot();
   writeLandingCmsSnapshot({
@@ -119,6 +149,30 @@ export async function mockCreateSocial(
   return social;
 }
 
+export async function mockUpdateSocial(
+  input: UpdateLandingSocialInput
+): Promise<LandingSocial> {
+  const snapshot = readLandingCmsSnapshot();
+  const current = snapshot.socials.find((row) => row.id === input.id);
+  if (!current) throw new Error('شبکه اجتماعی موردنظر یافت نشد.');
+  const name = requireText(input.name, 'وارد کردن نام شبکه اجتماعی الزامی است.');
+  const link = requireText(input.link, 'وارد کردن لینک شبکه اجتماعی الزامی است.');
+  let iconImageUrl = current.iconImageUrl;
+  if (input.iconImage === null) iconImageUrl = '';
+  else if (input.iconImage) iconImageUrl = await encodeImageFile(input.iconImage);
+  const next: LandingSocial = {
+    ...current,
+    ...(name !== undefined ? { name } : {}),
+    ...(link !== undefined ? { link } : {}),
+    iconImageUrl,
+  };
+  writeLandingCmsSnapshot({
+    ...snapshot,
+    socials: snapshot.socials.map((row) => (row.id === input.id ? next : row)),
+  });
+  return next;
+}
+
 export function mockDeleteSocial(id: string): void {
   const snapshot = readLandingCmsSnapshot();
   writeLandingCmsSnapshot({
@@ -157,6 +211,29 @@ export async function mockCreateProduct(
     products: [...snapshot.products, product],
   });
   return product;
+}
+
+export async function mockUpdateProduct(
+  input: UpdateLandingProductInput
+): Promise<LandingProduct> {
+  const snapshot = readLandingCmsSnapshot();
+  const current = snapshot.products.find((row) => row.id === input.id);
+  if (!current) throw new Error('محصول موردنظر یافت نشد.');
+  const title = requireText(input.title, 'وارد کردن عنوان محصول الزامی است.');
+  const link = requireText(input.link, 'وارد کردن لینک محصول الزامی است.');
+  const next: LandingProduct = {
+    ...current,
+    ...(title !== undefined ? { title } : {}),
+    ...(link !== undefined ? { link } : {}),
+    ...(input.logoImage
+      ? { logoImageUrl: await encodeProductLogo(input.logoImage) }
+      : {}),
+  };
+  writeLandingCmsSnapshot({
+    ...snapshot,
+    products: snapshot.products.map((row) => (row.id === input.id ? next : row)),
+  });
+  return next;
 }
 
 export function mockDeleteProduct(id: string): void {

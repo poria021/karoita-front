@@ -7,6 +7,9 @@ import {
   mockDeleteBanner,
   mockDeleteProduct,
   mockDeleteSocial,
+  mockUpdateBanner,
+  mockUpdateProduct,
+  mockUpdateSocial,
 } from '@/services/landing-cms/mock/mock-landing-cms.mutations';
 import {
   invalidateLandingCmsMemory,
@@ -26,6 +29,9 @@ import {
   realListBanners,
   realListProducts,
   realListSocials,
+  realUpdateBanner,
+  realUpdateProduct,
+  realUpdateSocial,
 } from '@/services/landing-cms/real/real-landing-cms';
 import type {
   CreateLandingBannerInput,
@@ -34,6 +40,9 @@ import type {
   LandingBanner,
   LandingProduct,
   LandingSocial,
+  UpdateLandingBannerInput,
+  UpdateLandingProductInput,
+  UpdateLandingSocialInput,
 } from '@/types/landing-cms';
 
 /**
@@ -62,6 +71,12 @@ export const LandingCmsService = {
     return mockCreateBanner(input);
   },
 
+  async updateBanner(input: UpdateLandingBannerInput): Promise<LandingBanner> {
+    if (!isMockApiMode()) return realUpdateBanner(input);
+    assertMockClientIsStaffAdmin();
+    return mockUpdateBanner(input);
+  },
+
   async deleteBanner(id: string): Promise<void> {
     if (!isMockApiMode()) return realDeleteBanner(id);
     assertMockClientIsStaffAdmin();
@@ -72,6 +87,12 @@ export const LandingCmsService = {
     if (!isMockApiMode()) return realCreateSocial(input);
     assertMockClientIsStaffAdmin();
     return mockCreateSocial(input);
+  },
+
+  async updateSocial(input: UpdateLandingSocialInput): Promise<LandingSocial> {
+    if (!isMockApiMode()) return realUpdateSocial(input);
+    assertMockClientIsStaffAdmin();
+    return mockUpdateSocial(input);
   },
 
   async deleteSocial(id: string): Promise<void> {
@@ -86,6 +107,12 @@ export const LandingCmsService = {
     if (!isMockApiMode()) return realCreateProduct(input);
     assertMockClientIsStaffAdmin();
     return mockCreateProduct(input);
+  },
+
+  async updateProduct(input: UpdateLandingProductInput): Promise<LandingProduct> {
+    if (!isMockApiMode()) return realUpdateProduct(input);
+    assertMockClientIsStaffAdmin();
+    return mockUpdateProduct(input);
   },
 
   async deleteProduct(id: string): Promise<void> {

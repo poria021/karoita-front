@@ -80,4 +80,25 @@ describe('LandingCmsService (mock)', () => {
     await expect(LandingCmsService.deleteBanner('bnr-1')).rejects.toThrow();
     await expect(LandingCmsService.deleteProduct('prd-1')).rejects.toThrow();
   });
+it('updates only the given banner fields and keeps the image', async () => {
+    const before = (await LandingCmsService.listBanners()).find((r) => r.id === 'bnr-1')!;
+    await LandingCmsService.updateBanner({ id: 'bnr-1', title: '  عنوان تازه ' });
+    const after = (await LandingCmsService.listBanners()).find((r) => r.id === 'bnr-1')!;
+    expect(after.title).toBe('عنوان تازه');
+    expect(after.link).toBe(before.link);
+    expect(after.imageUrl).toBe(before.imageUrl);
+  });
+
+  it('rejects clearing a required product field', async () => {
+    await expect(
+      LandingCmsService.updateProduct({ id: 'prd-1', link: '  ' })
+    ).rejects.toThrow(/لینک/);
+  });
+
+  it('removes a social icon when iconImage is null', async () => {
+    await LandingCmsService.updateSocial({ id: 'soc-1', iconImage: null, name: 'تلگرام' });
+    const row = (await LandingCmsService.listSocials()).find((r) => r.id === 'soc-1')!;
+    expect(row.iconImageUrl).toBe('');
+    expect(row.name).toBe('تلگرام');
+  });
 });

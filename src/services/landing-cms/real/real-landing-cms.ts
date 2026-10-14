@@ -9,6 +9,9 @@ import type {
   LandingBanner,
   LandingProduct,
   LandingSocial,
+  UpdateLandingBannerInput,
+  UpdateLandingProductInput,
+  UpdateLandingSocialInput,
 } from '@/types/landing-cms';
 import type { NestFileType } from '@/types/nest-users';
 
@@ -46,6 +49,21 @@ export async function realListBanners(): Promise<LandingBanner[]> {
   return dtos.map(mapSliderBanner);
 }
 
+/** PATCH جزئی؛ تصویر فقط اگر عوض شده باشد آپلود می‌شود. */
+export async function realUpdateBanner(
+  input: UpdateLandingBannerInput
+): Promise<LandingBanner> {
+  const picture = input.image
+    ? { id: (await FilesService.uploadFile(input.image)).id }
+    : undefined;
+  const dto = await sliderBannersApi.update(input.id, {
+    ...(picture ? { picture } : {}),
+    ...(input.title !== undefined ? { title: input.title.trim() } : {}),
+    ...(input.link !== undefined ? { link: input.link.trim() } : {}),
+  });
+  return mapSliderBanner(dto);
+}
+
 export async function realDeleteBanner(id: string): Promise<void> {
   await sliderBannersApi.remove(id);
 }
@@ -76,6 +94,20 @@ export async function realCreateProduct(
 export async function realListProducts(): Promise<LandingProduct[]> {
   const dtos = await floatingProductsApi.listAll();
   return dtos.map(mapFloatingProduct);
+}
+
+export async function realUpdateProduct(
+  input: UpdateLandingProductInput
+): Promise<LandingProduct> {
+  const picture = input.logoImage
+    ? { id: (await FilesService.uploadFile(input.logoImage)).id }
+    : undefined;
+  const dto = await floatingProductsApi.update(input.id, {
+    ...(picture ? { picture } : {}),
+    ...(input.title !== undefined ? { title: input.title.trim() } : {}),
+    ...(input.link !== undefined ? { link: input.link.trim() } : {}),
+  });
+  return mapFloatingProduct(dto);
 }
 
 export async function realDeleteProduct(id: string): Promise<void> {
@@ -116,6 +148,23 @@ export async function realCreateSocial(
 export async function realListSocials(): Promise<LandingSocial[]> {
   const dtos = await socialNetworksApi.listAll();
   return dtos.map(mapSocialNetwork);
+}
+
+/** `iconImage: null` آیکون را حذف می‌کند (`picture: null`)؛ `undefined` یعنی دست نخورد. */
+export async function realUpdateSocial(
+  input: UpdateLandingSocialInput
+): Promise<LandingSocial> {
+  let picture: { id: string } | null | undefined;
+  if (input.iconImage === null) picture = null;
+  else if (input.iconImage) {
+    picture = { id: (await FilesService.uploadFile(input.iconImage)).id };
+  }
+  const dto = await socialNetworksApi.update(input.id, {
+    ...(picture !== undefined ? { picture } : {}),
+    ...(input.name !== undefined ? { name: input.name.trim() } : {}),
+    ...(input.link !== undefined ? { link: input.link.trim() } : {}),
+  });
+  return mapSocialNetwork(dto);
 }
 
 export async function realDeleteSocial(id: string): Promise<void> {
