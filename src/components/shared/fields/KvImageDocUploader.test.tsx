@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -39,6 +39,18 @@ describe('KvImageDocUploader', () => {
     await user.click(screen.getByRole('button', { name: 'حذف' }));
 
     expect(screen.queryByAltText('پیش‌نمایش مدرک ارسالی')).toBeNull();
+    expect(screen.getByText('کلیک یا رها کردن تصویر')).toBeTruthy();
+  });
+
+  it('keeps the remove action when the current image fails to load, so it can still be replaced', async () => {
+    const user = userEvent.setup();
+    render(<Harness existingUrl="https://cdn.example/broken.jpg" />);
+
+    fireEvent.error(screen.getByAltText('پیش‌نمایش مدرک ارسالی'));
+
+    expect(screen.getByText('تصویر بارگذاری نشد')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: 'حذف' }));
+
     expect(screen.getByText('کلیک یا رها کردن تصویر')).toBeTruthy();
   });
 });
