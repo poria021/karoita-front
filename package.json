@@ -10,6 +10,8 @@
     "dev:clean": "node ./scripts/clean-next-cache.mjs && next dev",
     "build": "next build --webpack",
     "start": "next start",
+    "fake-api": "tsx tools/fake-nest/main.ts",
+    "fake-api:sync": "tsx tools/fake-nest/sync-openapi.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0 && node scripts/check-hardcoded-colors.mjs && node scripts/check-no-ui-imports.mjs && node scripts/check-edge-proxy.mjs && node scripts/check-auth-origin-guard.mjs && node scripts/check-nest-proxy-route.mjs && node scripts/check-mock-leak.mjs && node scripts/check-physical-tailwind-rtl.mjs && node scripts/check-no-raw-nav.mjs && node scripts/check-no-db-orm.mjs",
     "lint:colors": "node scripts/check-hardcoded-colors.mjs",

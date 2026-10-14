@@ -54,7 +54,17 @@
     ],
     "responses": {
      "200": {
-      "description": "List of mentor lesson file records"
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/MentorLessonFileResponseDto"
+         }
+        }
+       }
+      }
      }
     },
     "security": [
@@ -128,7 +138,17 @@
     ],
     "responses": {
      "200": {
-      "description": "List of mentor lesson file records"
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/MentorLessonFileResponseDto"
+         }
+        }
+       }
+      }
      }
     },
     "security": [
@@ -5964,12 +5984,74 @@
      },
      "description": {
       "type": "string",
-      "maxLength": 2000
+      "maxLength": 2000,
+      "description": "Optional description"
      }
     },
     "required": [
      "lessonId",
      "fileIds"
+    ]
+   },
+   "FileObjectDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "path": {
+      "type": "string",
+      "description": "Full URL to the file"
+     },
+     "confirmedAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     }
+    },
+    "required": [
+     "id",
+     "path"
+    ]
+   },
+   "MentorLessonFileResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "professorId": {
+      "type": "string"
+     },
+     "lessonId": {
+      "type": "string"
+     },
+     "description": {
+      "type": "string",
+      "nullable": true
+     },
+     "files": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/FileObjectDto"
+      }
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "professorId",
+     "lessonId",
+     "files",
+     "createdAt",
+     "updatedAt"
     ]
    },
    "FileUploadDto": {
