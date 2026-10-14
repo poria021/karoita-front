@@ -15,7 +15,6 @@ import { getVisibleSidebarMenu } from '@/utils/RoleStrategyMap';
 import { withEnrollmentSubModules } from '@/utils/role-strategy/enrollment-menu';
 import { withEvaluationSubModules } from '@/utils/role-strategy/evaluation-menu';
 
-import { useEnrollableLessonCourses } from './useEnrollableLessonCourses';
 
 /** query فعلی (بدون ناوبری Next) تا لینک‌های دارای `?kind=&course=` درست فعال شوند. */
 export function useSidebarSearch(): string {
@@ -46,18 +45,16 @@ function learnerKind(
  * - ارزیابی (استاد/معلم/مدیر مدرسه): هر درس فعالِ «تعریف دروس» یک ساب‌تایتل.
  *   real: خالی، در حال بارگذاری یا خطا → فقط لینک تخت ماژول (نام ساختگی نمی‌آید)؛
  *   mock خالی → دو لینک پیش‌فرض.
- * - انتخاب واحد (دانشجو/مهارت‌آموز): mock از «تعریف دروس»؛ real از lessonهای
- *   واقعی ترم (Nest هنوز درس ترم را به تعریف دروس وصل نکرده). هیچ درسی → گروه
- *   حذف؛ خطا یا در حال بارگذاری → منوی ایستا تا ناوبری قطع نشود.
+ * - انتخاب واحد (دانشجو/مهارت‌آموز): هر دو حالت از «تعریف دروس». real و بدون درس
+ *   (یا درس بدون سطح) → گروه انتخاب واحد نمی‌آید؛ mock خالی → منوی ایستا.
  * منوی ایستا دست‌نخورده می‌ماند (عنوان صفحه/بردکرامب از آن است).
  */
 export function useSidebarMenu(role: UserRole | string | null | undefined) {
   const mock = isMockApiMode();
   const kind = learnerKind(role);
   const definitions = useActiveCourseDefinitions(
-    mock || REVIEW_ROLES.has(role ?? '')
+    mock || REVIEW_ROLES.has(role ?? '') || kind !== null
   );
-  const enrollable = useEnrollableLessonCourses(mock ? null : kind);
 
   return useMemo(() => {
     const visible = getVisibleSidebarMenu(role);
@@ -69,14 +66,10 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
     );
     if (!kind) return evaluated;
 
-    if (mock) {
-      return withEnrollmentSubModules(
-        evaluated,
-        kind === 'internship' ? definitions.semester : definitions.modular
-      );
-    }
-    return withEnrollmentSubModules(evaluated, enrollable.courses, {
-      whenEmpty: enrollable.status === 'ready' ? 'remove' : 'keep',
-    });
-  }, [role, mock, kind, definitions, enrollable]);
+    return withEnrollmentSubModules(
+      evaluated,
+      kind === 'internship' ? definitions.semester : definitions.modular,
+      { whenEmpty: mock ? 'keep' : 'remove' }
+    );
+  }, [role, mock, kind, definitions]);
 }
