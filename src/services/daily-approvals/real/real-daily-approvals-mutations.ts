@@ -99,6 +99,12 @@ export async function dropRealDailyApprovalTrainee(
   await studentEnrollmentsApi.cancel(traineeId);
 }
 
+/** `YYYY-MM-DD` های انتخاب‌شده → ISO نیمه‌شب محلیِ زودترین روز. */
+function earliestDayIso(isoDates: readonly string[]): string {
+  const [y, m, d] = [...isoDates].sort()[0]!.split('-').map(Number);
+  return new Date(y!, m! - 1, d!).toISOString();
+}
+
 /** ASCII '1'..'5' → عدد ۱ تا ۵ برای بدنهٔ `POST /conversations/{id}/messages`. */
 function ratingToNumber(rating: DailyApprovalCompetencyRating): number {
   return Number(rating);
@@ -127,18 +133,41 @@ export async function submitMentorFeedbackReal(
 /**
  * POST `/api/v1/conversations/{id}/messages` — امتیاز شایستگی (۱ تا ۵) مدیر
  * مدرسه الزامی است و بازخورد توصیفی اختیاری (همین‌جا و در فرم اعتبارسنجی می‌شود).
+ * روزهای حضور کارورز/بازدید استاد هم با
+ * PATCH `/student-weeks/{id}/approve-student-present` و `approve-mentor-present` ثبت می‌شوند.
  */
 export async function submitPrincipalFeedbackReal(
   input: UpdatePrincipalDailyApprovalWeekInput
 ): Promise<void> {
   requireNestTransport('DailyApprovalsService.updatePrincipalWeekEvaluation');
-  // Nest فیلد جدایی برای حضور ندارد — خلاصهٔ روزهای تأییدشده به متن پیام ضمیمه می‌شود.
-  const attendanceSummary = formatPrincipalAttendanceSummary(
-    input.principalAttendance ?? []
-  );
-  const supervisorVisitSummary = formatPrincipalSupervisorVisitSummary(
-    input.principalSupervisorVisits ?? []
-  );
+  if (input.principalRating === null) {
+    throw new Error('ثبت امتیاز شایستگی مدیر مدرسه الزامی است.');
+  }
+  const attendance = input.principalAttendance ?? [];
+  const supervisorVisits = input.principalSupervisorVisits ?? [];
+
+  // تأیید حضورها قبل از پیام می‌رود تا اگر رد شد، پیام یک‌بارمصرف مدیر
+  // (`schoolAdminStatus`) ثبت نشود و بتواند با همان مودال دوباره تلاش کند.
+  // Nest فقط یک زمان برای هر حضور نگه می‌دارد → اولین روز تأییدشده.
+  if (attendance.length > 0) {
+    await studentWeeksApi.approveStudentPresent(
+      input.weekId,
+      true,
+      earliestDayIso(attendance)
+    );
+  }
+  if (supervisorVisits.length > 0) {
+    await studentWeeksApi.approveMentorPresent(
+      input.weekId,
+      true,
+      earliestDayIso(supervisorVisits)
+    );
+  }
+
+  // همهٔ روزها (نه فقط اولی) به‌صورت متن هم در پیام می‌ماند.
+  const attendanceSummary = formatPrincipalAttendanceSummary(attendance);
+  const supervisorVisitSummary =
+    formatPrincipalSupervisorVisitSummary(supervisorVisits);
   const text = [
     input.principalFeedback.trim(),
     attendanceSummary,
@@ -146,9 +175,6 @@ export async function submitPrincipalFeedbackReal(
   ]
     .filter(Boolean)
     .join('\n\n');
-  if (input.principalRating === null) {
-    throw new Error('ثبت امتیاز شایستگی مدیر مدرسه الزامی است.');
-  }
   const conversationId = await findWeekConversationId(
     input.traineeId,
     input.weekId

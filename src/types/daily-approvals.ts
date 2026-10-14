@@ -72,6 +72,16 @@ export type DailyApprovalWeek = {
   schoolAdminStatus?: 'send' | null;
   /** استاد راهنما در این جلسه به مدرسه رفته و بازدید حضوری داشته است. */
   schoolVisited?: boolean;
+  /** استاد راهنما حضورش در مدرسه را اعلام کرده (`isMentorPresent`). */
+  mentorPresent?: boolean;
+  /** تأیید مدیر مدرسه بر حضور استاد راهنما و زمان آن (ISO). */
+  mentorPresenceApproved?: boolean;
+  mentorPresentAt?: string | null;
+  /** تأیید مدیر مدرسه بر حضور کارورز و زمان آن (ISO). */
+  studentPresenceApproved?: boolean;
+  studentPresentAt?: string | null;
+  /** استاد راهنما اجازه داده این کارورز گزارش‌های هم‌کلاسی‌ها را ببیند. */
+  canWatchOthers?: boolean;
   /** هفته در سرفصل بایگانی شده (`weekId.status === false`). */
   isArchived?: boolean;
   /**

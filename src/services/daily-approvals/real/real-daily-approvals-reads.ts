@@ -150,6 +150,12 @@ function mapDailyApprovalWeek(week: NestStudentWeek, index: number): DailyApprov
     teacherStatus: week.teacherStatus ?? null,
     schoolAdminStatus: week.schoolAdminStatus ?? null,
     schoolVisited: week.schoolVisited === true,
+    mentorPresent: week.isMentorPresent === true,
+    mentorPresenceApproved: week.isApprovedBySchoolAdminMentorPresent === true,
+    mentorPresentAt: week.mentorPresentAt ?? null,
+    studentPresenceApproved: week.isApprovedBySchoolAdminStudentPresent === true,
+    studentPresentAt: week.studentPresentAt ?? null,
+    canWatchOthers: week.canWatchOthers === true,
     isArchived: isWeekArchived(week),
   };
 }

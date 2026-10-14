@@ -213,6 +213,17 @@ export type NestStudentWeek = {
   weightedScore?: number | null;
   /** بازدید حضوری استاد راهنما از مدرسه در این جلسه. */
   schoolVisited?: boolean | null;
+  /**
+   * فیلدهای حضور/دسترسی — هم‌نام بدنهٔ PATCHهای `mentor-present`/
+   * `approve-*-present`/`can-watch-others`. در `StudentWeekResponseDto` مستند
+   * نشده‌اند، پس همه اختیاری‌اند و نبودشان یعنی «نامشخص».
+   */
+  isMentorPresent?: boolean | null;
+  isApprovedBySchoolAdminMentorPresent?: boolean | null;
+  mentorPresentAt?: string | null;
+  isApprovedBySchoolAdminStudentPresent?: boolean | null;
+  studentPresentAt?: string | null;
+  canWatchOthers?: boolean | null;
   scoreGivenBy?: string | null;
   scoreGivenAt?: string | null;
   startedAt?: string | null;

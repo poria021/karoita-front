@@ -44,6 +44,10 @@ export function updateMockDailyApprovalWeek(
     status: hasScore ? 'graded' : 'needs_edit',
     score: hasScore ? input.score : null,
     schoolVisited: hasScore ? input.schoolVisited === true : false,
+    // real همراه بازدید `mentor-present` را هم می‌فرستد.
+    mentorPresent:
+      trainee.weeks[weekIndex]!.mentorPresent === true ||
+      (hasScore && input.schoolVisited === true),
     isExtended: false,
     feedback: {
       ...trainee.weeks[weekIndex]!.feedback,
@@ -163,6 +167,13 @@ export function updateMockPrincipalDailyApprovalWeek(
   const nextWeeks = [...trainee.weeks];
   nextWeeks[weekIndex] = {
     ...trainee.weeks[weekIndex]!,
+    // هم‌راستا با real: approve-student-present / approve-mentor-present با زودترین روز.
+    ...(attendance.length > 0
+      ? { studentPresenceApproved: true, studentPresentAt: [...attendance].sort()[0] }
+      : {}),
+    ...(supervisorVisits.length > 0
+      ? { mentorPresenceApproved: true, mentorPresentAt: [...supervisorVisits].sort()[0] }
+      : {}),
     feedback: {
       ...trainee.weeks[weekIndex]!.feedback,
       ...(principalFeedback ? { principal: principalFeedback } : {}),

@@ -32,6 +32,7 @@ import { competencyRatingLabel } from '../constants';
 import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekGradingModal';
 import { DailyApprovalForwardPanel } from './DailyApprovalForwardPanel';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
+import { DailyApprovalPresenceStatus } from './DailyApprovalPresenceStatus';
 import { DailyApprovalPrincipalGradingFields } from './DailyApprovalPrincipalGradingFields';
 import { DailyApprovalSupervisorGradingFields } from './DailyApprovalSupervisorGradingFields';
 import { DailyApprovalWeekReportReadonly } from './DailyApprovalWeekReportReadonly';
@@ -257,6 +258,8 @@ export function DailyApprovalWeekGradingModal({
             >
               <DailyApprovalWeekReportReadonly week={effectiveWeek} />
 
+              <DailyApprovalPresenceStatus week={effectiveWeek} />
+
               {/* بازخورد استاد همیشه اینجا نمایش داده می‌شود — DailyApprovalSupervisorGradingFields
                   آن را (چون فیلد قابل‌ویرایش خودِ استاد است) دوباره نشان نمی‌دهد.
                   بازخورد معلم/مدیر فقط برای بازبین‌های غیرِ استاد اینجا می‌آید — برای استاد
@@ -331,6 +334,10 @@ export function DailyApprovalWeekGradingModal({
                   onAttendanceDatesChange={modal.setPrincipalAttendance}
                   supervisorVisitDates={modal.principalSupervisorVisits}
                   onSupervisorVisitDatesChange={modal.setPrincipalSupervisorVisits}
+                  mentorDeclaredPresence={
+                    effectiveWeek.mentorPresent === true ||
+                    effectiveWeek.schoolVisited === true
+                  }
                 />
               ) : null}
             </fieldset>

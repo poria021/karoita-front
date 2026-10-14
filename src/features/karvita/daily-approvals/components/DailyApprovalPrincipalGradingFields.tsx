@@ -1,5 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
+
 import { Badge } from '@/components/ui/badge';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
@@ -23,15 +25,19 @@ type DailyApprovalPrincipalGradingFieldsProps = {
   onAttendanceDatesChange: (value: string[]) => void;
   supervisorVisitDates: string[];
   onSupervisorVisitDatesChange: (value: string[]) => void;
+  /** استاد راهنما حضورش را اعلام کرده — راهنمای مدیر برای تأیید. */
+  mentorDeclaredPresence?: boolean;
 };
 
 function DayCheckboxGroup({
   legend,
+  hint,
   days,
   selected,
   onChange,
 }: {
   legend: string;
+  hint?: ReactNode;
   days: PrincipalAttendanceDay[];
   selected: string[];
   onChange: (value: string[]) => void;
@@ -43,6 +49,7 @@ function DayCheckboxGroup({
           {legend}
         </KvTypography>
       </legend>
+      {hint}
       <div className="grid grid-cols-1 gap-kv-pair sm:grid-cols-2">
         {days.map((day) => (
           <label
@@ -84,6 +91,7 @@ export function DailyApprovalPrincipalGradingFields({
   onAttendanceDatesChange,
   supervisorVisitDates,
   onSupervisorVisitDatesChange,
+  mentorDeclaredPresence = false,
 }: DailyApprovalPrincipalGradingFieldsProps) {
   return (
     <div className="space-y-kv-group rounded-kv-panel border-2 border-kv-brand/25 bg-kv-brand-soft/40 p-kv-section shadow-kv-soft">
@@ -102,6 +110,13 @@ export function DailyApprovalPrincipalGradingFields({
 
       <DayCheckboxGroup
         legend="تأیید بازدید استاد راهنما از مدرسه در این هفته (روزهایی که استاد به مدرسه آمده):"
+        hint={
+          mentorDeclaredPresence ? (
+            <Badge variant="warning" className="mb-kv-pair">
+              استاد راهنما حضور خود در مدرسه را برای این هفته اعلام کرده است
+            </Badge>
+          ) : null
+        }
         days={attendanceDays}
         selected={supervisorVisitDates}
         onChange={onSupervisorVisitDatesChange}
