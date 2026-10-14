@@ -20,12 +20,12 @@ import type { NestMentorLessonFile } from '@/types/nest-mentor-lesson-files';
  * Nest عنوان جدا ندارد — عنوان ردیف نام فایل است، مثل فرم.
  */
 
+/** Swagger: هر دو GET آرایهٔ ساده برمی‌گردانند؛ هر شکل دیگر خطای قرارداد است. */
 function asRecords(raw: unknown): NestMentorLessonFile[] {
-  if (Array.isArray(raw)) return raw as NestMentorLessonFile[];
-  if (raw && typeof raw === 'object' && Array.isArray((raw as { data?: unknown }).data)) {
-    return (raw as { data: NestMentorLessonFile[] }).data;
+  if (!Array.isArray(raw)) {
+    throw new Error('پاسخ فایل‌های درس از سرور نامعتبر است.');
   }
-  return [];
+  return raw as NestMentorLessonFile[];
 }
 
 function newestFirst(rows: CourseMaterial[]): CourseMaterial[] {
@@ -80,26 +80,29 @@ export async function publishRealCourseMaterial(
     ...(description ? { description } : {}),
   });
 
+  // پاسخ POST در Swagger مستند نیست؛ ردیف را از چیزی که خودمان می‌دانیم می‌سازیم
+  // (نام/نوع/حجم از فایل انتخابی کاربر، چون بک‌اند نمی‌دهد).
+  const now = new Date().toISOString();
   const [row] = mapMentorLessonFileRecord(
     {
-      ...created,
+      id: created.id,
+      professorId: created.professorId ?? '',
       lessonId: input.courseKey,
       description,
-      files: [
-        {
-          id: uploaded.id,
-          path: uploaded.path,
-          fileName: input.file.name,
-          mimeType: input.file.type || undefined,
-          fileSize: input.file.size,
-        },
-      ],
-      createdAt: created?.createdAt ?? new Date().toISOString(),
+      files: [{ id: uploaded.id, path: uploaded.path }],
+      createdAt: created.createdAt ?? now,
+      updatedAt: created.updatedAt ?? now,
     },
     { kind: input.kind, courseLabel: input.courseLabel }
   );
   if (!row) throw new Error('ثبت فایل درس ناموفق بود.');
-  return row;
+  return {
+    ...row,
+    title: input.file.name,
+    fileName: input.file.name,
+    mimeType: input.file.type || row.mimeType,
+    sizeBytes: input.file.size,
+  };
 }
 
 export async function deleteRealCourseMaterial(id: string): Promise<void> {

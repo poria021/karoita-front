@@ -1,23 +1,31 @@
 import { describe, expect, it } from 'vitest';
 
+import type { NestMentorLessonFile } from '@/types/nest-mentor-lesson-files';
+
 import { mapMentorLessonFileRecord } from './mentor-lesson-file-mappers';
 
+function record(overrides: Partial<NestMentorLessonFile> = {}): NestMentorLessonFile {
+  return {
+    id: 'rec1',
+    professorId: 'prof1',
+    lessonId: 'lesson1',
+    description: ' جزوه ',
+    files: [
+      { id: 'f1', path: 'https://cdn.example/uploads/a%20b.pdf?X-Amz-Signature=x' },
+      { id: 'f2', path: 'https://cdn.example/uploads/pic.png', confirmedAt: null },
+    ],
+    createdAt: '2026-10-10T00:00:00.000Z',
+    updatedAt: '2026-10-10T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
 describe('mapMentorLessonFileRecord', () => {
-  it('maps a record with populated files to one row per file, keeping the record id', () => {
-    const rows = mapMentorLessonFileRecord(
-      {
-        id: 'rec1',
-        lessonId: 'lesson1',
-        mentorId: { id: 'm1', firstName: 'علی', lastName: 'رضایی' },
-        description: ' جزوه ',
-        fileIds: [
-          { id: 'f1', path: 'uploads/a%20b.pdf' },
-          { id: 'f2', path: 'uploads/pic.png', fileSize: 2048 },
-        ],
-        createdAt: '2026-10-10T00:00:00.000Z',
-      },
-      { kind: 'internship', courseLabel: 'کارورزی ۱' }
-    );
+  it('maps each file to a row, keeping the record id for deletion', () => {
+    const rows = mapMentorLessonFileRecord(record(), {
+      kind: 'internship',
+      courseLabel: 'کارورزی ۱',
+    });
 
     expect(rows).toHaveLength(2);
     expect(rows[0]).toMatchObject({
@@ -28,28 +36,32 @@ describe('mapMentorLessonFileRecord', () => {
       title: 'a b.pdf',
       description: 'جزوه',
       mimeType: 'application/pdf',
-      fileUrl: 'uploads/a%20b.pdf',
-      authorId: 'm1',
-      authorName: 'علی رضایی',
+      fileUrl: 'https://cdn.example/uploads/a%20b.pdf?X-Amz-Signature=x',
+      authorId: 'prof1',
+      sizeBytes: 0,
+      createdAt: '2026-10-10T00:00:00.000Z',
     });
-    expect(rows[1]).toMatchObject({ mimeType: 'image/png', sizeBytes: 2048 });
+    expect(rows[1]).toMatchObject({ id: 'rec1:f2', mimeType: 'image/png' });
   });
 
-  it('uses the record id as row id for a single file and tolerates bare file ids', () => {
+  it('uses the record id as the row id for a single file', () => {
     const rows = mapMentorLessonFileRecord(
-      { id: 'rec2', lessonId: { id: 'lesson2', title: 'کارآموزی' }, fileIds: ['f9'] },
+      record({ files: [{ id: 'f9', path: 'https://cdn.example/notes' }], description: null }),
       { kind: 'apprenticeship' }
     );
 
     expect(rows).toEqual([
       expect.objectContaining({
-        id: 'rec2',
-        recordId: 'rec2',
-        courseKey: 'lesson2',
-        courseLabel: 'کارآموزی',
-        fileUrl: '',
-        title: 'فایل درس',
+        id: 'rec1',
+        recordId: 'rec1',
+        description: '',
+        mimeType: 'application/octet-stream',
+        courseLabel: '',
       }),
     ]);
+  });
+
+  it('returns no rows for a record without files', () => {
+    expect(mapMentorLessonFileRecord(record({ files: [] }), { kind: 'internship' })).toEqual([]);
   });
 });

@@ -26,11 +26,19 @@ vi.mock('@/services/files.service', () => ({
 
 vi.mock('@/services/mentor-lesson-files.api', () => ({
   mentorLessonFilesApi: {
-    create: vi.fn(async () => ({ id: 'rec-1' })),
+    create: vi.fn(async () => ({ id: 'rec-1', professorId: 'prof-1' })),
     list: vi.fn(async () => []),
     remove: vi.fn(async () => null),
     listForStudent: vi.fn(async () => [
-      { id: 'rec-1', fileIds: [{ id: 'file-1', path: 'uploads/notes.pdf' }] },
+      {
+        id: 'rec-1',
+        professorId: 'prof-1',
+        lessonId: 'lesson-1',
+        description: null,
+        files: [{ id: 'file-1', path: 'https://cdn.example/uploads/notes.pdf' }],
+        createdAt: '2026-10-10T00:00:00.000Z',
+        updatedAt: '2026-10-10T00:00:00.000Z',
+      },
     ]),
   },
 }));
@@ -61,6 +69,9 @@ describe('real course materials', () => {
       courseKey: 'lesson-1',
       title: 'notes.pdf',
       fileUrl: 'uploads/notes.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 1,
+      authorId: 'prof-1',
     });
   });
 
