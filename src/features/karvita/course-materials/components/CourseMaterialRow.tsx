@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { toSameOriginMediaUrl } from '@/services/files/resolve-nest-file-url';
 import type { CourseMaterial } from '@/types/course-materials';
 import { formatFileSize } from '@/utils/compressor';
 import { formatNotificationTime } from '@/utils/formatJalaliDate';
@@ -28,7 +29,7 @@ function MaterialPreview({ material }: { material: CourseMaterial }) {
     return (
       // eslint-disable-next-line @next/next/no-img-element -- data URL در mock؛ next/image اعمال نمی‌شود
       <img
-        src={material.fileUrl}
+        src={toSameOriginMediaUrl(material.fileUrl)}
         alt=""
         loading="lazy"
         className="size-10 shrink-0 rounded-kv-control border border-kv-border bg-kv-surface-muted object-cover"
@@ -54,11 +55,15 @@ export function CourseMaterialRow({
   const subtitle = [
     showCourse ? material.courseLabel : null,
     material.description || null,
-    toPersianDigits(formatFileSize(material.sizeBytes)),
-    formatNotificationTime(material.createdAt),
+    material.sizeBytes > 0
+      ? toPersianDigits(formatFileSize(material.sizeBytes))
+      : null,
+    material.createdAt ? formatNotificationTime(material.createdAt) : null,
   ]
     .filter(Boolean)
     .join(' · ');
+
+  const href = material.fileUrl ? toSameOriginMediaUrl(material.fileUrl) : '';
 
   return (
     <div className="flex items-center gap-kv-pair rounded-kv-control border border-kv-border bg-kv-surface p-kv-pair text-start">
@@ -72,14 +77,25 @@ export function CourseMaterialRow({
         </KvTypography>
       </div>
       <div className="flex shrink-0 items-center gap-1">
-        <a
-          href={material.fileUrl}
-          download={material.fileName}
-          aria-label={`دانلود ${material.title}`}
-          className="inline-flex size-9 items-center justify-center rounded-kv-control text-kv-brand hover:bg-kv-brand-soft focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
-        >
-          <FaIcon icon={faIcons.download} size="sm" />
-        </a>
+        {href ? (
+          <a
+            href={href}
+            download={material.fileName}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`دانلود ${material.title}`}
+            className="inline-flex size-9 items-center justify-center rounded-kv-control text-kv-brand hover:bg-kv-brand-soft focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
+          >
+            <FaIcon icon={faIcons.download} size="sm" />
+          </a>
+        ) : (
+          <span
+            title="لینک دانلود هنوز آماده نیست"
+            className="inline-flex size-9 items-center justify-center text-kv-text-secondary opacity-50"
+          >
+            <FaIcon icon={faIcons.download} size="sm" />
+          </span>
+        )}
         {actions}
       </div>
     </div>

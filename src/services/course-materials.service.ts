@@ -26,7 +26,7 @@ import type { InternshipCourseKind } from '@/types/internship-enrollment';
 
 /**
  * جزوه و فایل درس: استاد راهنما منتشر می‌کند، فراگیران درس می‌بینند و دانلود می‌کنند.
- * UI فقط همین Facade را صدا می‌زند. فعلاً فقط mock؛ real تا آمدن endpoint fail-closed است.
+ * UI فقط همین Facade را صدا می‌زند. real روی `/v1/mentor-lesson-files` (ببین `real-course-materials`).
  */
 export const CourseMaterialsService = {
   /** فایل‌های یک درس برای فراگیر. */

@@ -1,4 +1,5 @@
 import type { UserRole } from '@/types/auth';
+import { toPersianDigits } from '@/utils/persianDigits';
 import type {
   CourseMaterial,
   CourseMaterialAuthor,
@@ -9,6 +10,12 @@ export const COURSE_MATERIAL_TITLE_MAX = 120;
 export const COURSE_MATERIAL_DESCRIPTION_MAX = 500;
 /** سقف mock: فایل به‌صورت data URL در localStorage می‌ماند. */
 export const COURSE_MATERIAL_MAX_BYTES = 2 * 1024 * 1024;
+/** سقف real: بایت‌ها روی S3 می‌روند (presign `v1/files/upload`)، نه localStorage. */
+export const COURSE_MATERIAL_REAL_MAX_BYTES = 20 * 1024 * 1024;
+
+export function courseMaterialMaxBytes(mock: boolean): number {
+  return mock ? COURSE_MATERIAL_MAX_BYTES : COURSE_MATERIAL_REAL_MAX_BYTES;
+}
 
 export const COURSE_MATERIAL_ACCEPT =
   '.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.png,.jpg,.jpeg,.mp4,.mp3';
@@ -77,7 +84,8 @@ export function validateCourseMaterialInput(
     description: string;
     file: Pick<File, 'name' | 'size'> | null;
   },
-  authorRole: UserRole | string | null | undefined
+  authorRole: UserRole | string | null | undefined,
+  maxBytes: number = COURSE_MATERIAL_MAX_BYTES
 ): string | null {
   if (!canPublishCourseMaterials(authorRole)) {
     return 'بارگذاری فایل فقط برای استاد راهنما مجاز است.';
@@ -96,8 +104,8 @@ export function validateCourseMaterialInput(
     return 'فرمت فایل مجاز نیست.';
   }
   if (input.file.size <= 0) return 'فایل خالی است.';
-  if (input.file.size > COURSE_MATERIAL_MAX_BYTES) {
-    return 'حجم فایل بیش از ۲ مگابایت است.';
+  if (input.file.size > maxBytes) {
+    return `حجم فایل بیش از ${toPersianDigits(String(Math.round(maxBytes / (1024 * 1024))))} مگابایت است.`;
   }
   return null;
 }

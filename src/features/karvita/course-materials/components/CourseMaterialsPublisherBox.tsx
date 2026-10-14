@@ -60,10 +60,17 @@ export function CourseMaterialsPublisherBox({
     onError: (err) => toast.error(errorMessage(err)),
   });
 
-  // endpoint واقعی هنوز نیست؛ بخش بی‌صدا پنهان می‌ماند.
+  // خطای خواندن (مثلاً نقش بدون دسترسی) — بخش بی‌صدا پنهان می‌ماند.
   if (managed.isError) return null;
 
-  const rows = (managed.data ?? []).filter((row) => row.kind === kind);
+  // real نوع درس را برنمی‌گرداند؛ کلید درس‌های همین صفحه هم برای kind کافی است.
+  const courseLabels = new Map(courses.map((course) => [course.value, course.label]));
+  const rows = (managed.data ?? [])
+    .filter((row) => courseLabels.has(row.courseKey))
+    .map((row) => ({
+      ...row,
+      courseLabel: courseLabels.get(row.courseKey) || row.courseLabel,
+    }));
 
   return (
     <section
@@ -109,7 +116,7 @@ export function CourseMaterialsPublisherBox({
                     size="sm"
                     aria-label={`حذف ${material.title}`}
                     disabled={remove.isPending}
-                    onClick={() => remove.mutate(material.id)}
+                    onClick={() => remove.mutate(material.recordId ?? material.id)}
                   >
                     <FaIcon icon={faIcons.trashCan} size="xs" />
                   </KvButton>

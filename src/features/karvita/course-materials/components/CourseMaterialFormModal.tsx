@@ -21,16 +21,21 @@ import {
 import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { KvSelectField } from '@/components/shared/fields/KvSelectField';
 import { KvTextArea } from '@/components/shared/fields/KvTextArea';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import {
   COURSE_MATERIAL_ACCEPT_MAP,
   COURSE_MATERIAL_DESCRIPTION_MAX,
-  COURSE_MATERIAL_MAX_BYTES,
+  courseMaterialMaxBytes,
   validateCourseMaterialInput,
 } from '@/services/course-materials/course-material-rules';
 import { CourseMaterialsService } from '@/services/course-materials.service';
 import { useUserStore } from '@/store/useUserStore';
 import type { InternshipCourseKind } from '@/types/internship-enrollment';
+import { toPersianDigits } from '@/utils/persianDigits';
+
+const MAX_BYTES = courseMaterialMaxBytes(IS_MOCK_MODE);
+const MAX_MB = MAX_BYTES / (1024 * 1024);
 
 export type CourseMaterialCourseOption = { value: string; label: string };
 
@@ -111,7 +116,8 @@ function FormContent({
   function submit() {
     const error = validateCourseMaterialInput(
       { courseKey, title: file?.name ?? '', description, file },
-      role
+      role,
+      MAX_BYTES
     );
     if (error) {
       setFormError(error);
@@ -184,9 +190,9 @@ function FormContent({
         <KvMultiFileDropzone
           files={attachment}
           disabled={busy}
-          maxFileSizeMb={COURSE_MATERIAL_MAX_BYTES / (1024 * 1024)}
+          maxFileSizeMb={MAX_MB}
           accept={COURSE_MATERIAL_ACCEPT_MAP}
-          acceptLabel="PDF، Word، PowerPoint، Excel، متن، ZIP، تصویر، ویدیو و صوت — حداکثر ۲ مگابایت"
+          acceptLabel={`PDF، Word، PowerPoint، Excel، متن، ZIP، تصویر، ویدیو و صوت — حداکثر ${toPersianDigits(String(MAX_MB))} مگابایت`}
           invalidTypeMessage="فرمت فایل انتخابی مجاز نیست."
           onAdd={(items) => {
             // فقط یک فایل در هر مورد؛ فایل جدید جایگزین قبلی می‌شود.

@@ -20,7 +20,7 @@ type CourseMaterialsLearnerBoxProps = {
 
 /**
  * جزوه‌ها و فایل‌هایی که استاد راهنما برای این درس گذاشته — در صفحهٔ گزارش فراگیر.
- * real mode تا آمدن endpoint خطا می‌دهد؛ آن وقت باکس بی‌صدا پنهان می‌ماند.
+ * real: GET `/v1/lessons/{lessonId}/mentor-files`؛ در خطا باکس بی‌صدا پنهان می‌ماند.
  */
 export function CourseMaterialsLearnerBox({
   kind,

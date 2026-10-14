@@ -4,6 +4,8 @@ import type { InternshipCourseKind } from '@/types/internship-enrollment';
 /** جزوه/فایل آموزشی که استاد راهنما برای فراگیران درس منتشر می‌کند. */
 export interface CourseMaterial {
   id: string;
+  /** فقط real: شناسهٔ رکورد `mentor-lesson-files` برای DELETE (هر رکورد ممکن است چند فایل داشته باشد). */
+  recordId?: string;
   kind: InternshipCourseKind;
   /** کلید درس هم‌تراز با فیلتر درس صفحهٔ ارزیابی (`evaluationCourseFilterId`). */
   courseKey: string;
