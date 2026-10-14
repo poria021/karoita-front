@@ -21,6 +21,7 @@ export {
   forwardMockDailyApprovalWeek,
   markMockWeekRead,
   restoreMockDailyApprovalTrainee,
+  setMockDailyApprovalCanWatchOthers,
   updateMockDailyApprovalWeek,
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,

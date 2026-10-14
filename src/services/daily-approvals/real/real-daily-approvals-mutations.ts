@@ -184,3 +184,15 @@ export async function submitPrincipalFeedbackReal(
     rating: ratingToNumber(input.principalRating),
   });
 }
+
+/**
+ * PATCH `/api/v1/student-weeks/{id}/can-watch-others` — استاد راهنما اجازه
+ * می‌دهد این کارورز گزارش‌های هم‌کلاسی‌هایش را ببیند. نقش را Nest چک می‌کند.
+ */
+export async function setRealDailyApprovalCanWatchOthers(input: {
+  weekId: string;
+  canWatchOthers: boolean;
+}): Promise<void> {
+  requireNestTransport('DailyApprovalsService.setCanWatchOthers');
+  await studentWeeksApi.setCanWatchOthers(input.weekId, input.canWatchOthers);
+}

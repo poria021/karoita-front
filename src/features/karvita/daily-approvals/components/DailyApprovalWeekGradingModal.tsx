@@ -30,6 +30,7 @@ import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
 import { competencyRatingLabel } from '../constants';
 import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekGradingModal';
+import { DailyApprovalCanWatchOthersToggle } from './DailyApprovalCanWatchOthersToggle';
 import { DailyApprovalForwardPanel } from './DailyApprovalForwardPanel';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
 import { DailyApprovalPresenceStatus } from './DailyApprovalPresenceStatus';
@@ -87,6 +88,7 @@ type DailyApprovalWeekGradingModalProps = {
   passingScoreThreshold?: number;
   onClose: () => void;
   onForward: (target: DailyApprovalForwardTarget) => void;
+  onCanWatchOthersChange: (value: boolean) => Promise<void>;
   onSaveSupervisor: (input: {
     score: number | null;
     advisorFeedback: string;
@@ -113,6 +115,7 @@ export function DailyApprovalWeekGradingModal({
   passingScoreThreshold,
   onClose,
   onForward,
+  onCanWatchOthersChange,
   onSaveSupervisor,
   onSaveMentor,
   onSavePrincipal,
@@ -249,6 +252,13 @@ export function DailyApprovalWeekGradingModal({
                 variant="error"
                 title="این کارورز از کلاس آموزشی اخراج شده است!"
                 description="به علت اخراج تحصیلی توسط استاد راهنما، فرآیند ارزیابی این کارورز متوقف و پنل ارزیابی فریز گردیده است."
+              />
+            ) : null}
+
+            {role === 'supervisor_professor' && !modal.dropped ? (
+              <DailyApprovalCanWatchOthersToggle
+                checked={effectiveWeek.canWatchOthers === true}
+                onChange={onCanWatchOthersChange}
               />
             ) : null}
 

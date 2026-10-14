@@ -16,6 +16,7 @@ import {
   listTermsForDailyApprovalKind,
   markMockWeekRead,
   restoreMockDailyApprovalTrainee,
+  setMockDailyApprovalCanWatchOthers,
   updateMockDailyApprovalWeek,
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,
@@ -25,6 +26,7 @@ import {
   dropRealDailyApprovalTrainee,
   markRealDailyApprovalWeekOpened,
   scoreRealDailyApprovalWeek,
+  setRealDailyApprovalCanWatchOthers,
   submitMentorFeedbackReal,
   submitPrincipalFeedbackReal,
 } from '@/services/daily-approvals/real/real-daily-approvals-mutations';
@@ -337,6 +339,21 @@ export const DailyApprovalsService = {
       ...input,
       principalFeedback: input.principalFeedback.trim(),
     });
+  },
+
+  /** استاد راهنما: اجازهٔ دیدن گزارش هم‌کلاسی‌ها برای این هفتهٔ کارورز. */
+  async setCanWatchOthers(input: {
+    traineeId: string;
+    weekId: string;
+    canWatchOthers: boolean;
+  }): Promise<void> {
+    if (isRealApiMode()) {
+      await setRealDailyApprovalCanWatchOthers(input);
+      return;
+    }
+    requireReviewRole('supervisor_professor');
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    setMockDailyApprovalCanWatchOthers(input);
   },
 
   async extendWeek(

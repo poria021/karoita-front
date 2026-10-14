@@ -372,3 +372,32 @@ export function markMockWeekRead(input: {
   writeTrainees(nextTrainees);
   return structuredClone(nextTrainee);
 }
+
+/** هم‌راستا با real: PATCH `student-weeks/{id}/can-watch-others`. */
+export function setMockDailyApprovalCanWatchOthers(input: {
+  traineeId: string;
+  weekId: string;
+  canWatchOthers: boolean;
+}): DailyApprovalTrainee {
+  const trainees = readTrainees();
+  const traineeIndex = trainees.findIndex((row) => row.id === input.traineeId);
+  if (traineeIndex < 0) throw new Error('کارورز موردنظر یافت نشد.');
+  const trainee = trainees[traineeIndex]!;
+  if (trainee.status === 'dropped') {
+    throw new Error('این کارورز از کلاس آموزشی اخراج شده است.');
+  }
+
+  const weekIndex = trainee.weeks.findIndex((week) => week.id === input.weekId);
+  if (weekIndex < 0) throw new Error('گزارش هفته یافت نشد.');
+
+  const nextWeeks = [...trainee.weeks];
+  nextWeeks[weekIndex] = {
+    ...trainee.weeks[weekIndex]!,
+    canWatchOthers: input.canWatchOthers,
+  };
+  const nextTrainee = withDerived({ ...trainee, weeks: nextWeeks });
+  const nextTrainees = [...trainees];
+  nextTrainees[traineeIndex] = nextTrainee;
+  writeTrainees(nextTrainees);
+  return structuredClone(nextTrainee);
+}

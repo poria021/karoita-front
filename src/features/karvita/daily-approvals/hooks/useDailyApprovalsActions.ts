@@ -328,6 +328,52 @@ export function useDailyApprovalsActions({
     [gradingTarget, list]
   );
 
+  /**
+   * استاد راهنما: اجازهٔ دیدن گزارش هم‌کلاسی‌ها برای این هفتهٔ کارورز.
+   * optimistic — مودال قفل نمی‌شود؛ اگر Nest رد کرد مقدار قبلی برمی‌گردد.
+   */
+  const setCanWatchOthers = useCallback(
+    async (canWatchOthers: boolean) => {
+      if (!gradingTarget) return;
+      const target = gradingTarget;
+      const patch = (value: boolean) =>
+        list.patchItems((prev) =>
+          prev.map((row) =>
+            row.id === target.traineeId
+              ? {
+                  ...row,
+                  weeks: row.weeks.map((week) =>
+                    week.id === target.weekId
+                      ? { ...week, canWatchOthers: value }
+                      : week
+                  ),
+                }
+              : row
+          )
+        );
+      patch(canWatchOthers);
+      try {
+        await DailyApprovalsService.setCanWatchOthers({
+          ...target,
+          canWatchOthers,
+        });
+        toast.success(
+          canWatchOthers
+            ? 'دسترسی مشاهدهٔ گزارش هم‌کلاسی‌ها فعال شد.'
+            : 'دسترسی مشاهدهٔ گزارش هم‌کلاسی‌ها غیرفعال شد.'
+        );
+      } catch (error) {
+        patch(!canWatchOthers);
+        toast.error(
+          error instanceof Error && error.message
+            ? error.message
+            : 'تغییر دسترسی مشاهده ناموفق بود.'
+        );
+      }
+    },
+    [gradingTarget, list]
+  );
+
   const saveMentorWeek = useCallback(
     async (input: {
       mentorFeedback: string;
@@ -491,6 +537,7 @@ export function useDailyApprovalsActions({
     closeWeekGrading,
     saveSupervisorWeek,
     forwardWeek,
+    setCanWatchOthers,
     saveMentorWeek,
     savePrincipalWeek,
     bulkExtendOpen,

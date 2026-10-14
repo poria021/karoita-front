@@ -4,6 +4,7 @@ import {
   dropRealDailyApprovalTrainee,
   markRealDailyApprovalWeekOpened,
   scoreRealDailyApprovalWeek,
+  setRealDailyApprovalCanWatchOthers,
   submitMentorFeedbackReal,
   submitPrincipalFeedbackReal,
 } from './real-daily-approvals-mutations';
@@ -22,6 +23,7 @@ vi.mock('@/services/internship-enrollment/real/student-weeks.api', () => ({
     setMentorPresent: vi.fn(),
     approveStudentPresent: vi.fn(),
     approveMentorPresent: vi.fn(),
+    setCanWatchOthers: vi.fn(),
   },
 }));
 
@@ -246,5 +248,13 @@ describe('submitPrincipalFeedbackReal presence approvals', () => {
       submitPrincipalFeedbackReal({ ...base, principalAttendance: ['2026-10-10'] })
     ).rejects.toThrow('403');
     expect(conversationsApi.postMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe('setRealDailyApprovalCanWatchOthers', () => {
+  it('forwards the flag to student-weeks can-watch-others', async () => {
+    await setRealDailyApprovalCanWatchOthers({ weekId: 'w1', canWatchOthers: true });
+
+    expect(studentWeeksApi.setCanWatchOthers).toHaveBeenCalledWith('w1', true);
   });
 });
