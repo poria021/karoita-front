@@ -44,7 +44,8 @@ function learnerKind(
 /**
  * منوی قابل‌نمایش نقش با درس‌های واقعی:
  * - ارزیابی (استاد/معلم/مدیر مدرسه): هر درس فعالِ «تعریف دروس» یک ساب‌تایتل.
- *   real و خالی → فقط لینک تخت ماژول؛ خطای API → دو لینک پیش‌فرض.
+ *   real: خالی، در حال بارگذاری یا خطا → فقط لینک تخت ماژول (نام ساختگی نمی‌آید)؛
+ *   mock خالی → دو لینک پیش‌فرض.
  * - انتخاب واحد (دانشجو/مهارت‌آموز): mock از «تعریف دروس»؛ real از lessonهای
  *   واقعی ترم (Nest هنوز درس ترم را به تعریف دروس وصل نکرده). هیچ درسی → گروه
  *   حذف؛ خطا یا در حال بارگذاری → منوی ایستا تا ناوبری قطع نشود.
@@ -63,7 +64,8 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
     const evaluated = withEvaluationSubModules(
       visible,
       { semester: definitions.semester, modular: definitions.modular },
-      { whenEmpty: !mock && definitions.status === 'ready' ? 'flat' : 'defaults' }
+      // real: هرگز نام ساختگی نشان نده؛ در خطا/بارگذاری هم فقط لینک ساده می‌ماند.
+      { whenEmpty: mock ? 'defaults' : 'flat' }
     );
     if (!kind) return evaluated;
 
