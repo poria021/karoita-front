@@ -245,7 +245,7 @@ describe("آپلود فایل", () => {
 });
 
 describe("CMS لندینگ", () => {
-  it("GET عمومی است ولی نوشتن توکن ادمین می‌خواهد", async () => {
+  it("GET عمومی است ولی نوشتن توکن می‌خواهد", async () => {
     const list = await call(
       "GET",
       "/api/admin/slider-banners?page=1&limit=100",
@@ -258,15 +258,6 @@ describe("CMS لندینگ", () => {
     });
     expect(noToken.status).toBe(401);
 
-    const login = await call("POST", "/api/v1/auth/phone/login/password", {
-      body: { phone: SEED_MENTOR_PHONE, password: SEED_PASSWORD },
-    });
-    const userToken = (login.json as { token: string }).token;
-    const forbidden = await call("POST", "/api/admin/slider-banners", {
-      token: userToken,
-      body: { picture: { id: "x" }, title: "test" },
-    });
-    expect(forbidden.status).toBe(403);
   });
 
   it("صفحه‌بندی hasNextPage را درست می‌دهد", async () => {

@@ -118,10 +118,6 @@ function expectedTokenKind(specPath: string): Session['kind'] {
   return specPath.endsWith('/auth/refresh') ? 'refresh' : 'access';
 }
 
-function isAdminOnly(specPath: string): boolean {
-  return specPath.startsWith('/api/admin/') || specPath.startsWith('/api/v1/admin/');
-}
-
 function bearerSession(request: IncomingMessage, store: Store): Session | null {
   const header = request.headers.authorization;
   if (!header?.startsWith('Bearer ')) return null;
@@ -242,9 +238,8 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
         if (!session || session.kind !== expectedTokenKind(route.specPath)) {
           throw new HttpError(401, 'Unauthorized');
         }
-        if (isAdminOnly(route.specPath) && session.surface !== 'admin') {
-          throw new HttpError(403, 'Forbidden');
-        }
+        // نقش را فقط جایی چک می‌کنیم که Swagger گفته («mentor only» و …)؛ مسیر `/api/admin/*`
+        // نقش خاصی نمی‌خواهد (استاد از همین‌ها برای انتخاب‌گر ترم و ظرفیت استفاده می‌کند).
       }
 
       let body: unknown;

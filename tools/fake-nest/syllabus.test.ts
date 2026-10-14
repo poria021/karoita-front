@@ -64,6 +64,23 @@ describe('احراز هویت', () => {
   });
 });
 
+describe('دسترسی نقش‌ها', () => {
+  it('مسیرهای /api/admin برای استاد هم باز است (انتخاب‌گر ترم و ظرفیت)', async () => {
+    const login = await h.call('POST', '/api/v1/auth/phone/login/password', {
+      body: { phone: '9123456787', password: '12345678' },
+    });
+    const mentorToken = (login.json as { token: string }).token;
+    for (const path of [
+      '/api/admin/semesters_all',
+      '/api/admin/settings',
+      '/api/admin/semester',
+      '/api/admin/professor-capacities',
+    ]) {
+      expect((await h.call('GET', path, { token: mentorToken })).status, path).toBe(200);
+    }
+  });
+});
+
 describe('ترم', () => {
   it('seed دو ترم دارد: ترمی باز (برای انتخاب واحد) و پودمانی بسته', async () => {
     const rows = await semesters();
