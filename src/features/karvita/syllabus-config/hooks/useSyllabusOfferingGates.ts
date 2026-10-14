@@ -13,6 +13,8 @@ import type {
   SyllabusWeek,
 } from '@/types/syllabus-config';
 
+import { toPersianDigits } from '@/utils/persianDigits';
+
 import { publishSyllabusSnapshot } from '../lib/syllabusPageCache';
 import { errorMessage, offeredCatalogIdsFromList } from '../lib/syllabusPageUtils';
 
@@ -48,6 +50,10 @@ export function useSyllabusOfferingGates({
   const [pendingEnroll, setPendingEnroll] = useState(false);
   const [pendingTermOpen, setPendingTermOpen] = useState(false);
   const [pendingCourseId, setPendingCourseId] = useState<string | null>(null);
+  const [pendingBulkStatus, setPendingBulkStatus] = useState<boolean | null>(null);
+  const [bulkDeactivateTarget, setBulkDeactivateTarget] = useState<
+    CourseCatalogItem[] | null
+  >(null);
 
   const applySnapshotTerms = useCallback(
     (snapshot: SyllabusConfigSnapshot) => {
@@ -277,6 +283,71 @@ export function useSyllabusOfferingGates({
     await applyDeactivateCourse(course);
   }, [deactivateCourseTarget, applyDeactivateCourse]);
 
+  /** `PATCH /admin/lessons/status` — یک درخواست برای همهٔ درس‌های داده‌شده. */
+  const applyBulkStatus = useCallback(
+    async (courses: CourseCatalogItem[], status: boolean) => {
+      if (!selectedTermId || courses.length === 0) return;
+      setPendingBulkStatus(status);
+      const ids = courses.map((course) => course.id);
+      try {
+        const snapshot = await SyllabusConfigService.setOfferingsStatus({
+          termId: selectedTermId,
+          courseCatalogIds: ids,
+          status,
+        });
+        applySnapshotTerms(snapshot);
+        const offerings = await SyllabusConfigService.listOfferings(selectedTermId);
+        setOfferedCatalogIds(offeredCatalogIdsFromList(offerings));
+        const count = toPersianDigits(String(courses.length));
+        if (status) {
+          toast.success(`ارائهٔ ${count} درس در این نیم‌سال فعال شد.`);
+        } else {
+          toast.warning(`ارائهٔ ${count} درس در این نیم‌سال متوقف شد.`);
+        }
+      } catch (err) {
+        if (notifyIfPostCommitRefreshFailure(err)) {
+          setOfferedCatalogIds((prev) => {
+            const next = new Set(prev);
+            for (const id of ids) {
+              if (status) next.add(id);
+              else next.delete(id);
+            }
+            return next;
+          });
+          return;
+        }
+        toast.error(errorMessage(err, 'تغییر گروهی وضعیت ارائه ناموفق بود.'));
+      } finally {
+        setPendingBulkStatus(null);
+      }
+    },
+    [selectedTermId, applySnapshotTerms, setOfferedCatalogIds]
+  );
+
+  /** فعال‌سازی گروهی بی‌درنگ؛ توقف گروهی تأیید می‌خواهد (مثل توقف تکی). */
+  const requestBulkCourseOffering = useCallback(
+    (courses: CourseCatalogItem[], status: boolean) => {
+      if (pendingCourseId || pendingBulkStatus !== null || courses.length === 0) {
+        return;
+      }
+      if (status) {
+        void applyBulkStatus(courses, true);
+        return;
+      }
+      setBulkDeactivateTarget(courses);
+    },
+    [pendingCourseId, pendingBulkStatus, applyBulkStatus]
+  );
+
+  const confirmBulkDeactivate = useCallback(async () => {
+    if (!bulkDeactivateTarget) return;
+    const courses = bulkDeactivateTarget;
+    setBulkDeactivateTarget(null);
+    await applyBulkStatus(courses, false);
+  }, [bulkDeactivateTarget, applyBulkStatus]);
+
+  const clearBulkDeactivate = useCallback(() => setBulkDeactivateTarget(null), []);
+
   const clearGateClose = useCallback(() => setGateCloseTarget(null), []);
   const clearDeactivateCourse = useCallback(
     () => setDeactivateCourseTarget(null),
@@ -296,5 +367,10 @@ export function useSyllabusOfferingGates({
     pendingEnroll,
     pendingTermOpen,
     pendingCourseId,
+    setCourseOfferingsStatus: requestBulkCourseOffering,
+    pendingBulkStatus,
+    bulkDeactivateTarget,
+    clearBulkDeactivate,
+    confirmBulkDeactivate,
   };
 }

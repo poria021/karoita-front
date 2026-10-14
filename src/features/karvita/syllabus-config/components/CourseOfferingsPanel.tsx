@@ -24,6 +24,8 @@ type CourseOfferingsPanelProps = Pick<
   | 'selectCourse'
   | 'offeredCatalogIds'
   | 'toggleCourseOffering'
+  | 'setCourseOfferingsStatus'
+  | 'pendingBulkStatus'
   | 'weeks'
   | 'isWeeksPublished'
   | 'isLoading'
@@ -71,6 +73,8 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
           pendingCourseId={props.pendingCourseId}
           onSelectCourse={props.selectCourse}
           onToggleOffering={props.toggleCourseOffering}
+          pendingBulkStatus={hasAudienceTerm ? props.pendingBulkStatus : null}
+          onSetAllOfferings={props.setCourseOfferingsStatus}
         />
       </div>
 

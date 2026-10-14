@@ -5,16 +5,21 @@ import {
   mutateSyllabusSnapshot,
 } from '@/services/syllabus-config/mock/mock-syllabus-store';
 import { courseDefinitionsOf } from '@/services/syllabus-config/course-catalog';
-import { findCatalogById } from '@/services/syllabus-config/syllabus-mappers';
+import {
+  buildCourseOfferingId,
+  findCatalogById,
+} from '@/services/syllabus-config/syllabus-mappers';
 import {
   activateRealOffering,
   deactivateRealOffering,
   saveRealSyllabusWeeks,
+  setRealOfferingsStatus,
 } from '@/services/syllabus-config/real/real-syllabus-mutations';
 import type {
   ActivateOfferingInput,
   DeactivateOfferingInput,
   SaveSyllabusWeeksInput,
+  SetOfferingsStatusInput,
   SyllabusConfigSnapshot,
 } from '@/types/syllabus-config';
 
@@ -60,6 +65,36 @@ export const offeringMutations = {
         throw new Error('ارائهٔ درس یافت نشد.');
       }
       deactivateOfferingInSnapshot(draft, input.courseOfferingId);
+    });
+  },
+
+  /** `PATCH /admin/lessons/status` — ارائهٔ گروهی چند درس ترم. */
+  async setOfferingsStatus(
+    input: SetOfferingsStatusInput
+  ): Promise<SyllabusConfigSnapshot> {
+    gateSyllabus();
+    if (!IS_MOCK_MODE) {
+      return setRealOfferingsStatus(input);
+    }
+    return mutateSyllabusSnapshot((draft) => {
+      const term = draft.terms.find((t) => t.id === input.termId);
+      if (!term) throw new Error('ترم انتخاب‌شده یافت نشد.');
+      for (const courseCatalogId of input.courseCatalogIds) {
+        if (input.status) {
+          const catalog = findCatalogById(
+            term.type,
+            courseCatalogId,
+            courseDefinitionsOf(draft)
+          );
+          if (!catalog) continue;
+          activateOfferingInSnapshot(draft, input.termId, courseCatalogId, catalog.type);
+        } else {
+          const offeringId = buildCourseOfferingId(input.termId, courseCatalogId);
+          if (draft.offerings[offeringId]) {
+            deactivateOfferingInSnapshot(draft, offeringId);
+          }
+        }
+      }
     });
   },
 

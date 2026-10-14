@@ -18,6 +18,7 @@ import type {
   ActivateOfferingInput,
   DeactivateOfferingInput,
   SaveSyllabusWeeksInput,
+  SetOfferingsStatusInput,
   SyllabusConfigSnapshot,
   UpdateTermGatesInput,
   UpsertTermInput,
@@ -103,6 +104,20 @@ export async function deactivateRealOffering(
   await adminCatalogApi.patchLessonStatus(input.courseOfferingId, {
     status: false,
   });
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
+}
+
+/** `PATCH /admin/lessons/status` — یک درخواست برای همهٔ درس‌ها (آرایهٔ `UpdateLessonItemDto`). */
+export async function setRealOfferingsStatus(
+  input: SetOfferingsStatusInput
+): Promise<SyllabusConfigSnapshot> {
+  if (input.courseCatalogIds.length === 0) return getRealSyllabusSnapshot();
+  await adminCatalogApi.patchLessonsStatus(
+    input.courseCatalogIds.map((courseCatalogId) => ({
+      id: realLessonIdFor(input.termId, courseCatalogId),
+      status: input.status,
+    }))
+  );
   return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 

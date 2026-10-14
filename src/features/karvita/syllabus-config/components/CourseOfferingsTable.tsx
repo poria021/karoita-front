@@ -35,6 +35,10 @@ interface CourseOfferingsTableProps {
   pendingCourseId?: string | null;
   onSelectCourse: (course: CourseCatalogItem) => void;
   onToggleOffering: (course: CourseCatalogItem) => void;
+  /** وضعیت درخواست گروهی جاری (`true` فعال‌سازی، `false` توقف) یا `null`. */
+  pendingBulkStatus?: boolean | null;
+  /** `PATCH /admin/lessons/status` روی درس‌هایی که وضعیتشان باید عوض شود. */
+  onSetAllOfferings?: (courses: CourseCatalogItem[], status: boolean) => void;
 }
 
 interface CourseOfferingsTableRowProps {
@@ -144,7 +148,13 @@ export function CourseOfferingsTable({
   pendingCourseId = null,
   onSelectCourse,
   onToggleOffering,
+  pendingBulkStatus = null,
+  onSetAllOfferings,
 }: CourseOfferingsTableProps) {
+  const bulkBusy = pendingBulkStatus !== null;
+  const inactiveCourses = courses.filter((course) => !offeredCatalogIds.has(course.id));
+  const activeCourses = courses.filter((course) => offeredCatalogIds.has(course.id));
+  const bulkDisabled = isLoading || Boolean(pendingCourseId) || bulkBusy;
   const bodyPhase = getAdminTableBodyPhase(isLoading, courses.length);
   const segments = useMemo(() => segmentCourses(courses), [courses]);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(
@@ -170,7 +180,7 @@ export function CourseOfferingsTable({
         selected={selectedCourseId === course.id}
         pending={pendingCourseId === course.id}
         isLoading={isLoading}
-        hasPendingCourse={Boolean(pendingCourseId)}
+        hasPendingCourse={Boolean(pendingCourseId) || bulkBusy}
         nested={nested}
         onSelectCourse={onSelectCourse}
         onToggleOffering={onToggleOffering}
@@ -179,6 +189,53 @@ export function CourseOfferingsTable({
   }
 
   return (
+    <div className="flex h-full flex-col gap-kv-pair">
+      {onSetAllOfferings && courses.length > 0 ? (
+        <div
+          role="toolbar"
+          aria-label="عملیات گروهی ارائه دروس"
+          className="flex flex-wrap items-center justify-between gap-kv-pair rounded-kv-control border border-kv-border bg-kv-surface-subtle/60 px-3 py-2"
+        >
+          <KvTypography variant="caption" tone="muted" as="span">
+            {toPersianDigits(String(activeCourses.length))} از{' '}
+            {toPersianDigits(String(courses.length))} درس فعال
+          </KvTypography>
+          <div className="flex items-center gap-1">
+            <KvButton
+              type="button"
+              color="success"
+              appearance="ghost"
+              size="xs"
+              disabled={bulkDisabled || inactiveCourses.length === 0}
+              aria-busy={pendingBulkStatus === true || undefined}
+              onClick={() => onSetAllOfferings(inactiveCourses, true)}
+            >
+              {pendingBulkStatus === true ? (
+                <Spinner className="size-3.5 text-current" aria-hidden="true" />
+              ) : (
+                <FaIcon icon={faIcons.circleCheck} size="xs" />
+              )}
+              فعال‌سازی همه
+            </KvButton>
+            <KvButton
+              type="button"
+              color="error"
+              appearance="ghost"
+              size="xs"
+              disabled={bulkDisabled || activeCourses.length === 0}
+              aria-busy={pendingBulkStatus === false || undefined}
+              onClick={() => onSetAllOfferings(activeCourses, false)}
+            >
+              {pendingBulkStatus === false ? (
+                <Spinner className="size-3.5 text-current" aria-hidden="true" />
+              ) : (
+                <FaIcon icon={faIcons.circleXmark} size="xs" />
+              )}
+              توقف همه
+            </KvButton>
+          </div>
+        </div>
+      ) : null}
     <KvTableViewport
       resetKey="course-offerings"
       isBusy={isLoading && courses.length === 0}
@@ -250,5 +307,6 @@ export function CourseOfferingsTable({
         </KvTableBody>
       </KvTable>
     </KvTableViewport>
+    </div>
   );
 }

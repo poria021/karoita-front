@@ -142,6 +142,13 @@ export type DeactivateOfferingInput = {
   courseOfferingId: string;
 };
 
+/** فعال/غیرفعال‌سازی گروهی ارائهٔ چند درس یک ترم — `PATCH /admin/lessons/status`. */
+export type SetOfferingsStatusInput = {
+  termId: string;
+  courseCatalogIds: string[];
+  status: boolean;
+};
+
 export type SaveSyllabusWeeksInput = {
   courseOfferingId: string;
   /** برای upsert وقتی ارائه هنوز ساخته نشده (پیکربندی سرفصل قبل از فعال‌سازی). */

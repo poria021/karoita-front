@@ -93,3 +93,31 @@ describe('course catalog mutations (mock)', () => {
     expect(snapshot.find((c) => c.id === 'course_internship')?.isActive).toBe(false);
   });
 });
+
+describe('offeringMutations.setOfferingsStatus (mock)', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    resetSyllabusSnapshotForTests(null);
+  });
+
+  it('activates and then deactivates several courses at once', async () => {
+    const ids = ['course_internship_1', 'course_internship_2'];
+    let snapshot = await offeringMutations.setOfferingsStatus({
+      termId: 'term_1',
+      courseCatalogIds: ids,
+      status: true,
+    });
+    for (const id of ids) {
+      expect(snapshot.offerings[buildCourseOfferingId('term_1', id)]?.isOffered).toBe(true);
+    }
+
+    snapshot = await offeringMutations.setOfferingsStatus({
+      termId: 'term_1',
+      courseCatalogIds: ids,
+      status: false,
+    });
+    for (const id of ids) {
+      expect(snapshot.offerings[buildCourseOfferingId('term_1', id)]?.isOffered).toBe(false);
+    }
+  });
+});
