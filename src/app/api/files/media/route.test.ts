@@ -56,6 +56,47 @@ describe('GET /api/files/media', () => {
     );
   });
 
+  it('serves an SVG logo — image/svg+xml is not an S3 error', async () => {
+    vi.stubEnv('NEXT_PUBLIC_S3_URL', 'https://files.example.com');
+    const svg = '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"/>';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(svg, { status: 200, headers: { 'content-type': 'image/svg+xml' } }))
+    );
+
+    const response = await GET(mediaRequest('https://files.example.com/logo.svg'));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('image/svg+xml');
+    expect(await response.text()).toBe(svg);
+  });
+
+  it('still rejects an S3 XML error body', async () => {
+    vi.stubEnv('NEXT_PUBLIC_S3_URL', 'https://files.example.com');
+    const error = '<?xml version="1.0"?><Error><Code>AccessDenied</Code><Message>Denied</Message></Error>';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(error, { status: 200, headers: { 'content-type': 'application/xml' } }))
+    );
+
+    const response = await GET(mediaRequest('https://files.example.com/a.jpg'));
+
+    expect(response.status).toBe(502);
+  });
+
+  it('rejects an S3 error served with an image content type', async () => {
+    vi.stubEnv('NEXT_PUBLIC_S3_URL', 'https://files.example.com');
+    const error = '<?xml version="1.0"?><Error><Code>NoSuchKey</Code></Error>';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(error, { status: 200, headers: { 'content-type': 'image/svg+xml' } }))
+    );
+
+    const response = await GET(mediaRequest('https://files.example.com/a.svg'));
+
+    expect(response.status).toBe(502);
+  });
+
   it('rebases a dummy AWS GetObject URL onto the public bucket before fetching', async () => {
     vi.stubEnv('NEXT_PUBLIC_S3_URL', 'https://karvita-bncdf.hs3.ir');
     const bytes = new Uint8Array([1, 2, 3]);
