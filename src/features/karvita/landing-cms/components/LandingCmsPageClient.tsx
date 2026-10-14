@@ -46,6 +46,7 @@ export function LandingCmsPageClient() {
             items={page.banners}
             isLoading={page.isLoading}
             onCreate={page.scheduleCreateBanner}
+            onUpdate={page.scheduleUpdateBanner}
             onRequestDelete={page.requestDelete}
           />
         ) : null}

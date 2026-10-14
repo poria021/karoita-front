@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import dynamic from 'next/dynamic';
 
@@ -15,6 +15,7 @@ import { useLocalFormDraft } from '@/hooks/useLocalFormDraft';
 import type {
   CreateLandingBannerInput,
   LandingBanner,
+  UpdateLandingBannerInput,
 } from '@/types/landing-cms';
 import { faIcons } from '@/utils/iconMap';
 
@@ -30,6 +31,7 @@ import {
   type BannerFormInput,
   type BannerFormValues,
 } from '../schemas/landing-cms.schema';
+import { LandingCmsEditDialog } from './LandingCmsEditDialog';
 import { LandingCmsEntityTable } from './LandingCmsEntityTable';
 import { LandingCmsMediaThumb } from './LandingCmsMediaThumb';
 
@@ -53,10 +55,21 @@ const BANNER_COLUMNS = [
   { key: 'link', label: 'لینک هدف' },
 ] as const;
 
+const BANNER_EDIT_FIELDS = [
+  { name: 'title', label: 'عنوان / توضیحات بنر', required: true, minLength: 2 },
+  {
+    name: 'link',
+    label: 'لینک هدف',
+    dir: 'ltr',
+    placeholder: 'مثال: #internship یا https://...',
+  },
+] as const;
+
 type LandingCmsBannersPanelProps = {
   items: LandingBanner[];
   isLoading: boolean;
   onCreate: (input: CreateLandingBannerInput) => void;
+  onUpdate: (input: UpdateLandingBannerInput) => void;
   onRequestDelete: (target: LandingCmsDeleteTarget) => void;
 };
 
@@ -64,9 +77,11 @@ export function LandingCmsBannersPanel({
   items,
   isLoading,
   onCreate,
+  onUpdate,
   onRequestDelete,
 }: LandingCmsBannersPanelProps) {
   const tabConfig = getLandingCmsTabConfig('banners');
+  const [editing, setEditing] = useState<LandingBanner | null>(null);
   const form = useForm<BannerFormInput, unknown, BannerFormValues>({
     resolver: zodResolver(bannerFormSchema),
     defaultValues: { title: '', link: '', image: null },
@@ -183,6 +198,11 @@ export function LandingCmsBannersPanel({
           emptyTitle={tabConfig.emptyTitle}
           emptyDescription={tabConfig.emptyDescription}
           deleteAriaLabel={(row) => `حذف بنر ${row.title}`}
+          // ردیف تازه‌ساز (هنوز id موقت دارد) قابل ویرایش نیست.
+          onEdit={(row) => {
+            if (!row.id.startsWith('temp-')) setEditing(row);
+          }}
+          editAriaLabel={(row) => `ویرایش بنر ${row.title}`}
           onDelete={(row) =>
             onRequestDelete({
               kind: 'banners',
@@ -210,6 +230,32 @@ export function LandingCmsBannersPanel({
           )}
         />
       </div>
+
+      <LandingCmsEditDialog
+        open={editing !== null}
+        onClose={() => setEditing(null)}
+        title="ویرایش بنر"
+        description={editing ? `«${editing.title}» — تغییرات بلافاصله روی اسلایدر صفحهٔ اصلی اعمال می‌شود.` : ''}
+        fields={BANNER_EDIT_FIELDS}
+        initial={{ title: editing?.title ?? '', link: editing?.link ?? '' }}
+        image={{
+          existingUrl: editing?.imageUrl ?? '',
+          label: 'تصویر بنر',
+          helperText: `${LANDING_BANNER_MAX_SIZE_HELPER} — برای تعویض، تصویر جدید را بکشید یا انتخاب کنید.`,
+          maxSizeMb: LANDING_BANNER_MAX_SIZE_MB,
+          previewAlt: 'پیش‌نمایش بنر',
+          mode: 'required',
+          compressMaxWidth: LANDING_BANNER_COMPRESS_MAX_WIDTH,
+        }}
+        onSave={(changes) => {
+          if (!editing) return;
+          onUpdate({
+            id: editing.id,
+            ...changes.text,
+            ...(changes.image ? { image: changes.image } : {}),
+          });
+        }}
+      />
     </div>
   );
 }

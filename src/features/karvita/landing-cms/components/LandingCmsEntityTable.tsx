@@ -40,6 +40,9 @@ type LandingCmsEntityTableProps<T extends { id: string }> = {
   renderCells: (item: T, index: number) => ReactNode;
   onDelete: (item: T) => void;
   deleteAriaLabel: (item: T) => string;
+  /** ویرایش: هم دکمهٔ مداد و هم کلیک/Enter روی خود ردیف. */
+  onEdit?: (item: T) => void;
+  editAriaLabel?: (item: T) => string;
 };
 
 export function LandingCmsEntityTable<T extends { id: string }>({
@@ -52,6 +55,8 @@ export function LandingCmsEntityTable<T extends { id: string }>({
   renderCells,
   onDelete,
   deleteAriaLabel,
+  onEdit,
+  editAriaLabel,
 }: LandingCmsEntityTableProps<T>) {
   const bodyPhase = getAdminTableBodyPhase(isLoading, items.length);
   const colSpan = columns.length + 2;
@@ -76,7 +81,7 @@ export function LandingCmsEntityTable<T extends { id: string }>({
                 {column.label}
               </KvTableHead>
             ))}
-            <KvTableHead align="center" className="w-16">
+            <KvTableHead align="center" className={onEdit ? 'w-24' : 'w-16'}>
               عملیات
             </KvTableHead>
           </KvTableRow>
@@ -93,10 +98,32 @@ export function LandingCmsEntityTable<T extends { id: string }>({
           ) : null}
           {bodyPhase === 'rows'
             ? items.map((item, index) => (
-                <KvTableRow key={item.id}>
+                <KvTableRow
+                  key={item.id}
+                  interactive={Boolean(onEdit)}
+                  onClick={onEdit ? () => onEdit(item) : undefined}
+                >
                   <KvTableRowIndexCell index={index} />
                   {renderCells(item, index)}
-                  <KvTableCell align="center">
+                  <KvTableCell
+                    align="center"
+                    // دکمه‌ها نباید کلیک ردیف (ویرایش) را هم اجرا کنند.
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                    {onEdit ? (
+                      <KvButton
+                        type="button"
+                        color="neutral"
+                        appearance="ghost"
+                        size="icon-xs"
+                        aria-label={editAriaLabel?.(item) ?? 'ویرایش'}
+                        title="ویرایش"
+                        onClick={() => onEdit(item)}
+                        icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
+                      />
+                    ) : null}
                     <KvButton
                       type="button"
                       color="error"
@@ -104,8 +131,10 @@ export function LandingCmsEntityTable<T extends { id: string }>({
                       size="icon-xs"
                       aria-label={deleteAriaLabel(item)}
                       onClick={() => onDelete(item)}
+                      title="حذف"
                       icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
                     />
+                    </div>
                   </KvTableCell>
                 </KvTableRow>
               ))

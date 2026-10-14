@@ -19,6 +19,9 @@ import type {
   LandingBanner,
   LandingProduct,
   LandingSocial,
+  UpdateLandingBannerInput,
+  UpdateLandingProductInput,
+  UpdateLandingSocialInput,
 } from '@/types/landing-cms';
 
 import { LANDING_CMS_TABS, type LandingCmsTab } from '../constants';
@@ -231,6 +234,121 @@ export function useLandingCmsPage() {
     [patchBundle, reload]
   );
 
+  /**
+   * ویرایش optimistic: ردیف فوراً عوض می‌شود؛ اگر Nest رد کرد به مقدار قبلی برمی‌گردد.
+   * `key` یکی از سه آرایهٔ bundle است و `patchRow` ردیف تازه را از قبلی می‌سازد.
+   */
+  const scheduleUpdate = useCallback(
+    <K extends keyof LandingCmsBundle>(options: {
+      key: K;
+      id: string;
+      patchRow: (row: LandingCmsBundle[K][number]) => LandingCmsBundle[K][number];
+      previewUrl?: string;
+      message: string;
+      errorMessage: string;
+      commit: () => Promise<unknown>;
+    }) => {
+      let snapshot = [] as LandingCmsBundle[K];
+      const previewUrl = options.previewUrl ?? '';
+      scheduleOptimisticMutation({
+        message: options.message,
+        apply: () => {
+          patchBundle((prev) => {
+            snapshot = prev[options.key];
+            const rows = prev[options.key] as Array<LandingCmsBundle[K][number]>;
+            return {
+              ...prev,
+              [options.key]: rows.map((row) =>
+                row.id === options.id ? options.patchRow(row) : row
+              ),
+            };
+          });
+        },
+        revert: () => {
+          revokeIfBlob(previewUrl);
+          patchBundle((prev) => ({ ...prev, [options.key]: snapshot }));
+        },
+        commit: options.commit,
+        onCommitted: async () => {
+          revokeIfBlob(previewUrl);
+          await reload();
+        },
+        onError: (err) => {
+          toast.error(unknownErrorMessage(err, options.errorMessage));
+        },
+      });
+    },
+    [patchBundle, reload]
+  );
+
+  const scheduleUpdateBanner = useCallback(
+    (input: UpdateLandingBannerInput) => {
+      const previewUrl = input.image ? URL.createObjectURL(input.image) : undefined;
+      scheduleUpdate({
+        key: 'banners',
+        id: input.id,
+        previewUrl,
+        patchRow: (row) => ({
+          ...row,
+          ...(input.title !== undefined ? { title: input.title.trim() } : {}),
+          ...(input.link !== undefined ? { link: input.link.trim() } : {}),
+          ...(previewUrl ? { imageUrl: previewUrl } : {}),
+        }),
+        message: 'تغییرات بنر ذخیره شد.',
+        errorMessage: 'ویرایش بنر ناموفق بود.',
+        commit: () => LandingCmsService.updateBanner(input),
+      });
+    },
+    [scheduleUpdate]
+  );
+
+  const scheduleUpdateSocial = useCallback(
+    (input: UpdateLandingSocialInput) => {
+      const previewUrl = input.iconImage
+        ? URL.createObjectURL(input.iconImage)
+        : undefined;
+      scheduleUpdate({
+        key: 'socials',
+        id: input.id,
+        previewUrl,
+        patchRow: (row) => ({
+          ...row,
+          ...(input.name !== undefined ? { name: input.name.trim() } : {}),
+          ...(input.link !== undefined ? { link: input.link.trim() } : {}),
+          ...(input.iconImage === null ? { iconImageUrl: '' } : {}),
+          ...(previewUrl ? { iconImageUrl: previewUrl } : {}),
+        }),
+        message: 'تغییرات شبکه اجتماعی ذخیره شد.',
+        errorMessage: 'ویرایش شبکه اجتماعی ناموفق بود.',
+        commit: () => LandingCmsService.updateSocial(input),
+      });
+    },
+    [scheduleUpdate]
+  );
+
+  const scheduleUpdateProduct = useCallback(
+    (input: UpdateLandingProductInput) => {
+      const previewUrl = input.logoImage
+        ? URL.createObjectURL(input.logoImage)
+        : undefined;
+      scheduleUpdate({
+        key: 'products',
+        id: input.id,
+        previewUrl,
+        patchRow: (row) => ({
+          ...row,
+          ...(input.title !== undefined ? { title: input.title.trim() } : {}),
+          ...(input.link !== undefined ? { link: input.link.trim() } : {}),
+          ...(previewUrl ? { logoImageUrl: previewUrl } : {}),
+        }),
+        message: 'تغییرات محصول ذخیره شد.',
+        errorMessage: 'ویرایش محصول ناموفق بود.',
+        commit: () => LandingCmsService.updateProduct(input),
+      });
+    },
+    [scheduleUpdate]
+  );
+
   const requestDelete = useCallback(
     (target: LandingCmsDeleteTarget) => {
       let bannersSnapshot: LandingBanner[] = [];
@@ -319,6 +437,9 @@ export function useLandingCmsPage() {
     scheduleCreateBanner,
     scheduleCreateSocial,
     scheduleCreateProduct,
+    scheduleUpdateBanner,
+    scheduleUpdateSocial,
+    scheduleUpdateProduct,
     requestDelete,
   };
 }
