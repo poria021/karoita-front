@@ -96,3 +96,33 @@ describe('withEvaluationSubModules', () => {
     ]);
   });
 });
+
+describe('withEvaluationSubModules whenEmpty', () => {
+  it('keeps the flat module link when real definitions are genuinely empty', () => {
+    const result = withEvaluationSubModules(
+      MENU,
+      { semester: [], modular: [] },
+      { whenEmpty: 'flat' }
+    );
+    expect(result).toBe(MENU);
+    expect(isSidebarMenuGroup(result[1]!)).toBe(false);
+  });
+
+  it('still falls back to the two default links by default', () => {
+    const group = evaluationGroup(
+      withEvaluationSubModules(MENU, { semester: [], modular: [] })
+    );
+    expect(group.children.map((child) => child.title)).toEqual(['کارورزی', 'کارآموزی']);
+  });
+
+  it('ignores whenEmpty when there are courses', () => {
+    const group = evaluationGroup(
+      withEvaluationSubModules(
+        MENU,
+        { semester: [course('c1', 'پروژه', 'semester')], modular: [] },
+        { whenEmpty: 'flat' }
+      )
+    );
+    expect(group.children.map((child) => child.title)).toEqual(['پروژه']);
+  });
+});

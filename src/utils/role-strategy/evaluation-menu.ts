@@ -56,14 +56,18 @@ function childForCourse(
 
 /**
  * `semester` / `modular` = درس‌های فعال هر پنل (کارورزی / کارآموزی).
- * هر دو خالی (real بدون API) → دو لینک پیش‌فرض.
+ * هر دو خالی:
+ * - `whenEmpty: 'defaults'` (پیش‌فرض؛ mock یا خطای API) → دو لینک کارورزی/کارآموزی.
+ * - `whenEmpty: 'flat'` (real، «تعریف دروس» واقعاً خالی) → همان لینک تخت ماژول،
+ *   بدون ساب‌تایتل ساختگی.
  */
 export function withEvaluationSubModules(
   menu: SidebarMenuEntry[],
   courses: {
     semester: readonly CourseDefinition[];
     modular: readonly CourseDefinition[];
-  }
+  },
+  options: { whenEmpty?: 'defaults' | 'flat' } = {}
 ): SidebarMenuEntry[] {
   const semesterTitles = new Set(courses.semester.map((c) => c.title.trim()));
   const sharedTitles = new Set(
@@ -87,6 +91,9 @@ export function withEvaluationSubModules(
       )
     ),
   ];
+  if (dynamicChildren.length === 0 && options.whenEmpty === 'flat') {
+    return menu;
+  }
   const children =
     dynamicChildren.length > 0 ? dynamicChildren : [...DEFAULT_CHILDREN];
 

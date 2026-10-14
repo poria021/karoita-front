@@ -82,3 +82,11 @@ describe('withEnrollmentSubModules', () => {
     );
   });
 });
+
+describe('withEnrollmentSubModules whenEmpty', () => {
+  it('removes the enrollment group when real lessons are genuinely empty', () => {
+    const result = withEnrollmentSubModules(STUDENT_MENU, [], { whenEmpty: 'remove' });
+    expect(titles(result)).not.toContain('انتخاب واحد کارورزی');
+    expect(result.length).toBe(STUDENT_MENU.length - 1);
+  });
+});

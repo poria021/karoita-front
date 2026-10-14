@@ -16,7 +16,9 @@ import {
  * گروه ایستای «انتخاب واحد کارورزی/کارآموزی» دانشجو و مهارت‌آموز را در رندر
  * سایدبار با درس‌های فعال مدیر ارشد جایگزین می‌کند: هر درس یک عنوان است و
  * زیرمجموعه‌هایش ساب‌ماژول‌های آن؛ درس بدون زیرمجموعه خودش یک آیتم مستقل.
- * بدون درس داینامیک (real) منوی ایستا دست‌نخورده می‌ماند.
+ * بدون درس:
+ * - `whenEmpty: 'keep'` (پیش‌فرض؛ mock یا خطای API) → منوی ایستا دست‌نخورده.
+ * - `whenEmpty: 'remove'` (real، هیچ درسی برای انتخاب نیست) → گروه انتخاب واحد حذف.
  */
 const INTERNSHIP_BASE = RouteService.karvita.internshipSelection();
 
@@ -48,9 +50,14 @@ function itemFor(
 
 export function withEnrollmentSubModules(
   menu: SidebarMenuEntry[],
-  courses: readonly CourseDefinition[]
+  courses: readonly CourseDefinition[],
+  options: { whenEmpty?: 'keep' | 'remove' } = {}
 ): SidebarMenuEntry[] {
-  if (courses.length === 0) return menu;
+  if (courses.length === 0) {
+    return options.whenEmpty === 'remove'
+      ? menu.filter((entry) => !isEnrollmentGroup(entry))
+      : menu;
+  }
 
   const next: SidebarMenuEntry[] = [];
   let replaced = false;
