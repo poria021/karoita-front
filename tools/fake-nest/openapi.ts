@@ -49,6 +49,20 @@ const KNOWN_SPEC_GAPS: ReadonlySet<string> = new Set([
   'User.photo',
 ]);
 
+/**
+ * فیلدهایی که Swagger نوعشان را غلط نوشته ولی بک‌اند زنده مقدار درست می‌دهد:
+ * شناسه/تاریخ‌های ثبت‌نام `object` تایپ شده‌اند، و `weekId` هفته‌ی دانشجو (طبق خلاصه‌ی
+ * خود Swagger «populated with its week definition») سند هفته است نه string.
+ * فقط بررسی نوع این فیلدها رد می‌شود؛ الزامی/null بودن هنوز چک می‌شود.
+ */
+const KNOWN_TYPE_GAPS: ReadonlySet<string> = new Set([
+  'StudentEnrollment.schoolId',
+  'StudentEnrollment.teacherId',
+  'StudentEnrollment.completedAt',
+  'StudentEnrollment.schoolAdminId',
+  'StudentWeekResponseDto.weekId',
+]);
+
 export function listOperations(): Array<{ method: HttpMethod; path: string }> {
   const out: Array<{ method: HttpMethod; path: string }> = [];
   for (const [path, item] of Object.entries(doc.paths)) {
@@ -176,6 +190,7 @@ export function validateAgainstSchema(
         if (childValue === null && KNOWN_SPEC_GAPS.has(`${owner}.${key}`)) {
           continue;
         }
+        if (childValue !== null && KNOWN_TYPE_GAPS.has(`${owner}.${key}`)) continue;
         errors.push(
           ...validateAgainstSchema(childValue, child, `${at}.${key}`)
         );

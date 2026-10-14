@@ -65,10 +65,13 @@ describe('احراز هویت', () => {
 });
 
 describe('ترم', () => {
-  it('seed دو ترم (ترمی و پودمانی) با گیت‌های بسته دارد', async () => {
+  it('seed دو ترم دارد: ترمی باز (برای انتخاب واحد) و پودمانی بسته', async () => {
     const rows = await semesters();
     expect(rows.map((row) => row.structure).sort()).toEqual(['podmani', 'semester']);
-    expect(rows.every((row) => !row.courseSelection && !row.startClasses)).toBe(true);
+    const termly = rows.find((row) => row.structure === 'semester')!;
+    const podmani = rows.find((row) => row.structure === 'podmani')!;
+    expect(termly).toMatchObject({ courseSelection: true, startClasses: true });
+    expect(podmani).toMatchObject({ courseSelection: false, startClasses: false });
   });
 
   it('semesters_all فیلتر structure را اعمال می‌کند و academicYears جمع می‌دهد، بدون گیت', async () => {
@@ -188,7 +191,8 @@ describe('درس‌های ترم', () => {
 
   it('تغییر گروهی همه‌یا‌هیچ است: یک شناسهٔ ناموجود هیچ‌چیز را عوض نمی‌کند', async () => {
     const [bundle] = await bundles('semester');
-    const target = bundle!.lessons[0]!;
+    // درس اول در seed فعال است؛ درسی را می‌خواهیم که بسته است تا «بدون تغییر» معنی بدهد.
+    const target = bundle!.lessons.find((lesson) => !lesson.status)!;
     const result = await h.call('PATCH', '/api/admin/lessons/status', {
       token,
       body: [{ id: target.id, status: true }, { id: 'missing', status: true }],
@@ -278,7 +282,8 @@ describe('تنظیمات عمومی', () => {
 describe('ظرفیت استاد', () => {
   async function ids() {
     const [bundle] = await bundles('semester');
-    return { semesterId: bundle!.id, lessonId: bundle!.lessons[0]!.id };
+    // درس اول ظرفیت seed دارد؛ این تست‌ها روی درس دوم کار می‌کنند.
+    return { semesterId: bundle!.id, lessonId: bundle!.lessons[1]!.id };
   }
 
   it('ثبت، فیلتر و ویرایش ظرفیت', async () => {
@@ -297,8 +302,14 @@ describe('ظرفیت استاد', () => {
     expect(
       (await h.call('PUT', '/api/admin/professor-capacities', { token, body: [{ ...item, capacity: 20 }] })).status
     ).toBe(204);
-    const updated = (await h.call('GET', `/api/admin/professor-capacities?semesterId=${semesterId}`, { token }))
-      .json as Array<{ capacity: number }>;
+    const updated = (
+      await h.call(
+        'GET',
+        `/api/admin/professor-capacities?semesterId=${semesterId}&lessonId=${lessonId}`,
+        { token }
+      )
+    ).json as Array<{ capacity: number }>;
+    expect(updated).toHaveLength(1);
     expect(updated[0]!.capacity).toBe(20);
   });
 

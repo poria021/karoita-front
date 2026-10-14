@@ -30,6 +30,8 @@ export type StoredUser = {
   roleName: string;
   roleId: string;
   password: string;
+  /** مدرسهٔ معلم راهنما / مدیر مدرسه (برای فیلتر `teachers` و `mentor/students`). */
+  schoolId?: string;
 };
 
 export type StoredFile = {
@@ -137,6 +139,94 @@ export type StoredProfessorCapacity = {
   days: number[];
 };
 
+export type StoredSchool = { id: string; title: string };
+
+export type EnrollmentStatus = 'active' | 'completed' | 'cancelled';
+
+export type StoredEnrollment = {
+  id: string;
+  studentId: string;
+  semesterId: string;
+  lessonId: string;
+  schoolId: string | null;
+  teacherId: string | null;
+  professorId: string;
+  status: EnrollmentStatus;
+  startedAt: string;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StudentWeekStatus = 'pending' | 'in_progress' | 'submitted' | 'completed';
+
+/**
+ * هفتهٔ یک ثبت‌نام. فیلدهای `*Status` در Swagger نیست ولی بک‌اند زنده می‌دهد و
+ * فرانت (`mapWeekStatus`) روی آن‌ها رنگ کارت را می‌سازد: `send` یعنی آن نقش
+ * پیام فرستاده؛ `mentorStatus` بعد از نمره‌دهی `score` می‌شود.
+ */
+export type StoredStudentWeek = {
+  id: string;
+  enrollmentId: string;
+  /** شناسهٔ تعریف هفته (`StoredWeek.id`). */
+  weekId: string;
+  status: StudentWeekStatus;
+  score: number | null;
+  weightedScore: number | null;
+  scoreGivenBy: string | null;
+  scoreGivenAt: string | null;
+  startedAt: string | null;
+  submittedAt: string | null;
+  completedAt: string | null;
+  studentStatus: 'send' | null;
+  mentorStatus: 'send' | 'score' | null;
+  teacherStatus: 'send' | null;
+  schoolAdminStatus: 'send' | null;
+  schoolVisited: boolean;
+  isMentorPresent: boolean;
+  isApprovedBySchoolAdminMentorPresent: boolean;
+  mentorPresentAt: string | null;
+  isApprovedBySchoolAdminStudentPresent: boolean;
+  studentPresentAt: string | null;
+  canWatchOthers: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StoredConversation = {
+  id: string;
+  enrollmentId: string;
+  /** شناسهٔ تعریف هفته؛ برای گفتگوی `general` خالی. */
+  weekId: string | null;
+  type: 'general' | 'week';
+  readStates: Map<string, { lastReadSequence: number; lastReadAt: string }>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StoredMessage = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderRole: string;
+  text: string | null;
+  fileIds: string[];
+  rating: number | null;
+  sequence: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StoredMentorLessonFile = {
+  id: string;
+  professorId: string;
+  lessonId: string;
+  description: string | null;
+  fileIds: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Store = {
   /** آدرس عمومی سرور جعلی (برای `path` فایل‌ها و آدرس امضاشده). */
   publicUrl: string;
@@ -155,6 +245,12 @@ export type Store = {
   settings: StoredSettings[];
   originalLessons: Map<string, StoredOriginalLesson>;
   professorCapacities: Map<string, StoredProfessorCapacity>;
+  schools: Map<string, StoredSchool>;
+  enrollments: Map<string, StoredEnrollment>;
+  studentWeeks: Map<string, StoredStudentWeek>;
+  conversations: Map<string, StoredConversation>;
+  messages: StoredMessage[];
+  mentorLessonFiles: Map<string, StoredMentorLessonFile>;
 };
 
 /** شناسهٔ ۲۴ کاراکتری hex شبیه ObjectId مونگو. */
@@ -183,6 +279,12 @@ export function createStore(publicUrl: string): Store {
     settings: [],
     originalLessons: new Map(),
     professorCapacities: new Map(),
+    schools: new Map(),
+    enrollments: new Map(),
+    studentWeeks: new Map(),
+    conversations: new Map(),
+    messages: [],
+    mentorLessonFiles: new Map(),
   };
 }
 
@@ -205,6 +307,12 @@ export function clearStore(store: Store): void {
   store.settings.length = 0;
   store.originalLessons.clear();
   store.professorCapacities.clear();
+  store.schools.clear();
+  store.enrollments.clear();
+  store.studentWeeks.clear();
+  store.conversations.clear();
+  store.messages.length = 0;
+  store.mentorLessonFiles.clear();
 }
 
 /** صفحه‌بندی هم‌شکل Nest: `{ data, hasNextPage }`. */

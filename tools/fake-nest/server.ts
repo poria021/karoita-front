@@ -10,10 +10,14 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 
 import { registerAuthRoutes } from './handlers/auth';
+import { registerConversationRoutes } from './handlers/conversations';
+import { registerEnrollmentRoutes } from './handlers/enrollments';
 import { registerFileRoutes } from './handlers/files';
 import { registerLandingRoutes } from './handlers/landing';
+import { registerMentorFileRoutes } from './handlers/mentor-files';
 import { registerNotificationRoutes } from './handlers/notifications';
 import { registerOriginalLessonRoutes } from './handlers/original-lessons';
+import { registerStudentWeekRoutes } from './handlers/student-weeks';
 import { registerSyllabusRoutes, type TermLessonsMode } from './handlers/syllabus';
 import { HttpError, type RouteResult } from './http';
 import {
@@ -25,7 +29,7 @@ import {
   type HttpMethod,
 } from './openapi';
 import { Router } from './router';
-import { seedStore } from './seed';
+import { seedAll } from './seed-all';
 import { clearStore, createStore, type Session, type Store } from './store';
 
 export type FakeNestOptions = {
@@ -130,7 +134,7 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
   let publicUrl = options.publicUrl ?? `http://localhost:${port}`;
   const termLessons = options.termLessons ?? 'fixed';
   const store = createStore(publicUrl);
-  if (options.seed ?? true) seedStore(store, termLessons);
+  if (options.seed ?? true) seedAll(store, termLessons);
 
   const router = new Router();
   registerAuthRoutes(router, store);
@@ -139,6 +143,10 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
   registerNotificationRoutes(router, store);
   registerOriginalLessonRoutes(router, store);
   registerSyllabusRoutes(router, store, { termLessons });
+  registerEnrollmentRoutes(router, store);
+  registerStudentWeekRoutes(router, store);
+  registerConversationRoutes(router, store);
+  registerMentorFileRoutes(router, store);
 
   const log = (line: string) => {
     if (!options.quiet) console.info(`[fake-nest] ${line}`);
@@ -174,7 +182,7 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
     }
     if (pathname === '/__fake/reset' && method === 'POST') {
       clearStore(store);
-      seedStore(store, termLessons);
+      seedAll(store, termLessons);
       finish(response, { status: 204 }, method, pathname, startedAt);
       return;
     }
