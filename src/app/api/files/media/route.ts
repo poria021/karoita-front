@@ -38,14 +38,22 @@ function contentTypeFromUpstream(upstream: Response, target: string): string {
   return 'image/jpeg';
 }
 
+/**
+ * خطای S3 بدنهٔ XML است. `image/svg+xml` هم «xml» دارد ولی لوگوی معتبر است (فرم محصول
+ * شناور SVG را مجاز می‌داند)؛ پس برای SVG فقط خود عنصر خطا ملاک است، نه نوع محتوا
+ * یا اعلان `<?xml` که SVG هم می‌تواند داشته باشد.
+ */
 function looksLikeStorageError(contentType: string, buffer: ArrayBuffer): boolean {
-  if (contentType.includes('xml') || contentType.includes('json')) return true;
+  const isSvg = contentType === 'image/svg+xml';
+  if (!isSvg && (contentType.includes('xml') || contentType.includes('json'))) {
+    return true;
+  }
   const head = new TextDecoder('utf-8', { fatal: false })
     .decode(buffer.slice(0, 256))
     .trimStart()
     .toLowerCase();
   return (
-    head.startsWith('<?xml') ||
+    (!isSvg && head.startsWith('<?xml')) ||
     head.includes('<errormessage>') ||
     head.includes('<error>') ||
     head.includes('invalidaccesskeyid')

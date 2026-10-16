@@ -13,6 +13,13 @@ export type NestSliderBannerDto = {
   updatedAt: string;
 };
 
+/** PATCH /admin/slider-banners/{id} — بدنهٔ جزئی؛ فقط فیلدهای عوض‌شده. */
+export type UpdateSliderBannerBody = {
+  picture?: { id: string };
+  title?: string;
+  link?: string | null;
+};
+
 type CreateSliderBannerBody = {
   picture: { id: string };
   title: string;
@@ -37,6 +44,10 @@ export const sliderBannersApi = {
 
   async create(body: CreateSliderBannerBody): Promise<NestSliderBannerDto> {
     return apiClient.postJson<NestSliderBannerDto>(BASE, body);
+  },
+
+  async update(id: string, body: UpdateSliderBannerBody): Promise<NestSliderBannerDto> {
+    return apiClient.patchJson<NestSliderBannerDto>(`${BASE}/${encodeURIComponent(id)}`, body);
   },
 
   async remove(id: string): Promise<void> {

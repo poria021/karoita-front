@@ -1,34 +1,16 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import type { LandingBanner } from '@/types/landing-cms';
 
 import { useMarketingPanel } from '../lib/marketingPanelContext';
 import { resolveMarketingNavTarget } from '../lib/marketingLinks';
 
 const SLIDE_DURATION = 6000;
-
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
-
-/**
- * خواندن ترجیح کاهش حرکت از طریق useSyncExternalStore — الگوی پیشنهادی React
- * برای منابع خارجی مثل matchMedia، بدون setState-in-effect و بدون hydration mismatch.
- * getServerSnapshot در SSR مقدار امن (بدون کاهش حرکت) برمی‌گرداند.
- */
-function subscribeReducedMotion(notify: () => void): () => void {
-  const query = window.matchMedia(REDUCED_MOTION_QUERY);
-  query.addEventListener('change', notify);
-  return () => query.removeEventListener('change', notify);
-}
-function readReducedMotion(): boolean {
-  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
-}
-function readReducedMotionServer(): boolean {
-  return false;
-}
 
 type MarketingHeroCarouselProps = {
   banners: LandingBanner[];
@@ -41,11 +23,7 @@ export function MarketingHeroCarousel({
   const [currentSlide, setCurrentSlide] = useState(0);
   // a11y: اگر کاربر کاهش حرکت خواسته، پیشروی خودکار را خاموش می‌کنیم.
   // اسلایدها با دکمه‌های تب همچنان دستی قابل انتخاب‌اند.
-  const reducedMotion = useSyncExternalStore(
-    subscribeReducedMotion,
-    readReducedMotion,
-    readReducedMotionServer,
-  );
+  const reducedMotion = usePrefersReducedMotion();
   const { openPanel } = useMarketingPanel();
   const activeIndex =
     slides.length === 0 ? 0 : Math.min(currentSlide, slides.length - 1);

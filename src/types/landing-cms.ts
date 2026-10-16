@@ -52,6 +52,32 @@ export type CreateLandingProductInput = {
   icon?: string;
 };
 
+/**
+ * ویرایش جزئی (PATCH) — فقط فیلدهای عوض‌شده فرستاده می‌شوند.
+ * فایل تصویر فقط وقتی کاربر تصویر جدید انتخاب کرده باشد.
+ */
+export type UpdateLandingBannerInput = {
+  id: string;
+  title?: string;
+  link?: string;
+  image?: File;
+};
+
+export type UpdateLandingSocialInput = {
+  id: string;
+  name?: string;
+  link?: string;
+  /** `File` = آیکون جدید؛ `null` = حذف آیکون و بازگشت به آیکون پیش‌فرض. */
+  iconImage?: File | null;
+};
+
+export type UpdateLandingProductInput = {
+  id: string;
+  title?: string;
+  link?: string;
+  logoImage?: File;
+};
+
 export type LandingCmsSnapshot = {
   banners: LandingBanner[];
   socials: LandingSocial[];

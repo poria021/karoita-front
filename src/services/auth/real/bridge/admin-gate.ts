@@ -5,6 +5,16 @@ import type { User } from '@/types/auth';
 import { applyNestAdminLoginResponse, applyNestLoginResponse } from './login';
 import { guard, REAL_AUTH_PATHS, toAdminOtpSendBody, toPhoneBody } from './shared';
 
+export async function realLoginAdminWithPassword(mobile: string, password: string): Promise<User> {
+  guard('real-auth.bridge.adminLoginPassword');
+  const raw = await apiClient.postJson<unknown>(REAL_AUTH_PATHS.adminLoginPassword, {
+    ...toPhoneBody(mobile),
+    password,
+  });
+  if (looksLikeNestAdminLoginResponse(raw)) return applyNestAdminLoginResponse(raw, mobile);
+  return applyNestLoginResponse(raw, mobile);
+}
+
 export async function realSendAdminGateOtp(mobile: string): Promise<void> {
   guard('real-auth.bridge.adminOtpSend');
   await apiClient.postMaybeJson(REAL_AUTH_PATHS.adminOtpSend, toAdminOtpSendBody(mobile));

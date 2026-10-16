@@ -13,6 +13,14 @@ export type NestSocialNetworkDto = {
   updatedAt: string;
 };
 
+/** PATCH /admin/social-networks/{id} — بدنهٔ جزئی؛ فقط فیلدهای عوض‌شده. */
+export type UpdateSocialNetworkBody = {
+  /** `null` آیکون را برمی‌دارد. */
+  picture?: { id: string } | null;
+  name?: string;
+  link?: string;
+};
+
 type CreateSocialNetworkBody = {
   picture?: { id: string };
   name: string;
@@ -37,6 +45,10 @@ export const socialNetworksApi = {
 
   async create(body: CreateSocialNetworkBody): Promise<NestSocialNetworkDto> {
     return apiClient.postJson<NestSocialNetworkDto>(BASE, body);
+  },
+
+  async update(id: string, body: UpdateSocialNetworkBody): Promise<NestSocialNetworkDto> {
+    return apiClient.patchJson<NestSocialNetworkDto>(`${BASE}/${encodeURIComponent(id)}`, body);
   },
 
   async remove(id: string): Promise<void> {

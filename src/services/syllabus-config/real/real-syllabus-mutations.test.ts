@@ -6,6 +6,7 @@ const createWeek = vi.fn();
 const updateWeek = vi.fn();
 const deleteWeek = vi.fn();
 const getRealSyllabusSnapshot = vi.fn();
+const patchLessonsStatus = vi.fn();
 
 vi.mock('@/services/admin-catalog/admin-catalog.api', () => ({
   adminCatalogApi: {
@@ -14,6 +15,7 @@ vi.mock('@/services/admin-catalog/admin-catalog.api', () => ({
     createWeek: (...args: unknown[]) => createWeek(...args),
     updateWeek: (...args: unknown[]) => updateWeek(...args),
     deleteWeek: (...args: unknown[]) => deleteWeek(...args),
+    patchLessonsStatus: (...args: unknown[]) => patchLessonsStatus(...args),
   },
 }));
 
@@ -23,7 +25,10 @@ vi.mock('@/services/syllabus-config/real/real-syllabus-reads', () => ({
     getRealSyllabusSnapshot(...args),
 }));
 
-import { saveRealSyllabusWeeks } from '@/services/syllabus-config/real/real-syllabus-mutations';
+import {
+  saveRealSyllabusWeeks,
+  setRealOfferingsStatus,
+} from '@/services/syllabus-config/real/real-syllabus-mutations';
 import type { SyllabusConfigSnapshot } from '@/types/syllabus-config';
 
 const SNAPSHOT: SyllabusConfigSnapshot = {
@@ -123,5 +128,32 @@ describe('saveRealSyllabusWeeks', () => {
     expect(createWeek).not.toHaveBeenCalled();
     expect(updateWeek).not.toHaveBeenCalled();
     expect(deleteWeek).not.toHaveBeenCalled();
+  });
+});
+
+describe('setRealOfferingsStatus', () => {
+  beforeEach(() => {
+    patchLessonsStatus.mockReset().mockResolvedValue(null);
+    getRealSyllabusSnapshot.mockReset().mockResolvedValue(SNAPSHOT);
+  });
+
+  it('sends one bulk PATCH with every lesson id and the status', async () => {
+    await setRealOfferingsStatus({
+      termId: 't1',
+      courseCatalogIds: ['l1', 'l2'],
+      status: true,
+    });
+
+    expect(patchLessonsStatus).toHaveBeenCalledTimes(1);
+    expect(patchLessonsStatus).toHaveBeenCalledWith([
+      { id: 'l1', status: true },
+      { id: 'l2', status: true },
+    ]);
+  });
+
+  it('skips the request when no lesson is given', async () => {
+    await setRealOfferingsStatus({ termId: 't1', courseCatalogIds: [], status: false });
+
+    expect(patchLessonsStatus).not.toHaveBeenCalled();
   });
 });

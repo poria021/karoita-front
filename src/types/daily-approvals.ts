@@ -26,7 +26,9 @@ export type DailyApprovalCourseFilter =
   | 'intern3'
   | 'intern4'
   | 'appr1'
-  | 'appr2';
+  | 'appr2'
+  // درس داینامیک مدیر ارشد: شناسهٔ leaf کاتالوگ (mock). Nest فعلاً فقط شناسه‌های بالا را می‌شناسد.
+  | (string & {});
 
 export type DailyApprovalCatalogCourse = {
   id: string;
@@ -48,6 +50,9 @@ export type DailyApprovalAttachment = InternshipWeeklyReportFile & {
   url?: string;
 };
 
+/** مقصد ارجاع گزارش از طرف استاد راهنما. */
+export type DailyApprovalForwardTarget = 'mentor' | 'principal';
+
 export type DailyApprovalWeek = {
   id: string;
   weekNumber: number;
@@ -65,6 +70,25 @@ export type DailyApprovalWeek = {
   /** فیلد خام `teacherStatus`/`schoolAdminStatus` — برای قفل‌شدن مودال خودِ همان نقش. */
   teacherStatus?: 'send' | null;
   schoolAdminStatus?: 'send' | null;
+  /** استاد راهنما در این جلسه به مدرسه رفته و بازدید حضوری داشته است. */
+  schoolVisited?: boolean;
+  /** استاد راهنما حضورش در مدرسه را اعلام کرده (`isMentorPresent`). */
+  mentorPresent?: boolean;
+  /** تأیید مدیر مدرسه بر حضور استاد راهنما و زمان آن (ISO). */
+  mentorPresenceApproved?: boolean;
+  mentorPresentAt?: string | null;
+  /** تأیید مدیر مدرسه بر حضور کارورز و زمان آن (ISO). */
+  studentPresenceApproved?: boolean;
+  studentPresentAt?: string | null;
+  /** استاد راهنما اجازه داده این کارورز گزارش‌های هم‌کلاسی‌ها را ببیند. */
+  canWatchOthers?: boolean;
+  /** هفته در سرفصل بایگانی شده (`weekId.status === false`). */
+  isArchived?: boolean;
+  /**
+   * مقصدهایی که استاد گزارش را برایشان فرستاده؛ معلم/مدیر مدرسه فقط گزارش
+   * ارجاع‌شده به خودشان را می‌بینند. فقط mock تا آمدن endpoint ارجاع در Nest.
+   */
+  forwardedTo?: DailyApprovalForwardTarget[];
 };
 
 export type DailyApprovalProgressiveGrade = {
@@ -107,6 +131,11 @@ export type ListDailyApprovalsInput = {
   query: string;
   readFilter: DailyApprovalReadFilter;
   course: DailyApprovalCourseFilter;
+  /**
+   * محدودهٔ درس انتخاب‌شده در ماژول (شناسهٔ فیلتر زیرمجموعه‌ها). وقتی `course` برابر `all` است
+   * فقط همین‌ها دیده می‌شوند. فقط mock؛ real فیلتر درس را از `lessonId` می‌گیرد و نادیده‌اش می‌گیرد.
+   */
+  scopeKeys?: readonly string[];
   termId: string;
   offset: number;
   limit: number;
@@ -122,6 +151,14 @@ export type UpdateDailyApprovalWeekInput = {
   /** ASCII ۰–۱۰۰؛ خالی/`null` + بازخورد → `needs_edit`. */
   score: number | null;
   advisorFeedback: string;
+  /** همراه نمرهٔ نهایی ثبت می‌شود: استاد در این جلسه به مدرسه رفته است. */
+  schoolVisited?: boolean;
+};
+
+export type ForwardDailyApprovalWeekInput = {
+  traineeId: string;
+  weekId: string;
+  target: DailyApprovalForwardTarget;
 };
 
 /** برای معلم راهنما امتیاز الزامی است؛ بازخورد متنی اختیاری. */
@@ -138,6 +175,10 @@ export type UpdatePrincipalDailyApprovalWeekInput = {
   weekId: string;
   principalFeedback: string;
   principalRating: DailyApprovalCompetencyRating | null;
+  /** روزهای تأییدشدهٔ حضور در مدرسه (`YYYY-MM-DD`) — اختیاری. */
+  principalAttendance?: string[];
+  /** روزهای (`YYYY-MM-DD`) تأییدشدهٔ بازدید استاد راهنما از مدرسه — اختیاری. */
+  principalSupervisorVisits?: string[];
 };
 
 export type ExtendDailyApprovalWeekInput = {

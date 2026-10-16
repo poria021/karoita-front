@@ -46,6 +46,7 @@ export function LandingCmsPageClient() {
             items={page.banners}
             isLoading={page.isLoading}
             onCreate={page.scheduleCreateBanner}
+            onUpdate={page.scheduleUpdateBanner}
             onRequestDelete={page.requestDelete}
           />
         ) : null}
@@ -55,6 +56,7 @@ export function LandingCmsPageClient() {
             items={page.socials}
             isLoading={page.isLoading}
             onCreate={page.scheduleCreateSocial}
+            onUpdate={page.scheduleUpdateSocial}
             onRequestDelete={page.requestDelete}
           />
         ) : null}
@@ -64,6 +66,7 @@ export function LandingCmsPageClient() {
             items={page.products}
             isLoading={page.isLoading}
             onCreate={page.scheduleCreateProduct}
+            onUpdate={page.scheduleUpdateProduct}
             onRequestDelete={page.requestDelete}
           />
         ) : null}

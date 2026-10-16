@@ -8,7 +8,10 @@ import type { User } from '@/types/auth';
 export type InternshipCourseKind = 'internship' | 'apprenticeship';
 
 /** سطح درس — ASCII در مسیر/داده؛ نمایش با `toPersianDigits`. */
-export type InternshipEnrollmentLevel = 1 | 2 | 3 | 4;
+/**
+ * ۱..۴ سطح‌های ثابت Nest/seed؛ اعداد بالاتر (از ۱۰۱) سطح مجازیِ leaf داینامیک مدیر ارشد و فقط در mock‌اند.
+ */
+export type InternshipEnrollmentLevel = number;
 
 /**
  * سناریوهای Phase 1–2:
@@ -73,6 +76,9 @@ export type InternshipEnrollmentRecordStatus =
   | 'dropped'
   | 'completed';
 
+/** نتیجهٔ ثبت‌نامِ `completed` — از `isPass` بک‌اند (`finalScore` ≥ حد نصاب، موقع بستن ترم). */
+export type InternshipEnrollmentOutcome = 'passed' | 'failed';
+
 export type InternshipWeeklySessionState =
   | 'draft'
   | 'pending'
@@ -108,12 +114,18 @@ export type InternshipWeeklyReportFeedback = {
   principalAt?: string;
   mentorRating?: InternshipCompetencyRating;
   principalRating?: InternshipCompetencyRating;
+  /** روزهایی (`YYYY-MM-DD`) که مدیر مدرسه حضور کارورز در مدرسه را تأیید کرده. */
+  principalAttendance?: string[];
+  /** روزهایی (`YYYY-MM-DD`) که مدیر مدرسه تأیید کرده استاد راهنما به مدرسه آمده است. */
+  principalSupervisorVisits?: string[];
 };
 
 export type InternshipWeeklySession = {
   id: string;
   title: string;
   status: InternshipWeeklySessionState;
+  /** هفته در سرفصل بایگانی شده (`weekId.status === false`). */
+  isArchived?: boolean;
   score: number | null;
   /** نمرهٔ وزن‌دار این هفته از Nest (`weightedScore`) — برای نمایش «وزن این هفته» در هدر مودال. */
   weightedScore?: number | null;
@@ -161,6 +173,8 @@ export type InternshipEnrollmentRecord = {
   mentorName: string | null;
   attendanceDaysLabel?: string;
   status?: InternshipEnrollmentRecordStatus;
+  /** mock: نتیجهٔ ثبت‌نام `completed` — معادل قبولی (`finalScore` ≥ حد نصاب) در بک‌اند. */
+  passed?: boolean;
   removalPending?: boolean;
   wasDropped?: boolean;
   droppedSupervisorName?: string;
@@ -196,6 +210,8 @@ export type InternshipEnrollmentSummary = {
   courseTitle: string;
   termTitle: string;
   status: InternshipEnrollmentRecordStatus;
+  /** `null` یعنی نامعلوم: ثبت‌نام هنوز `completed` نیست، یا بک‌اند `isPass` نداده. */
+  outcome?: InternshipEnrollmentOutcome | null;
   removalPending: boolean;
   isTermArchived: boolean;
   weeks: InternshipWeeklySession[];
@@ -209,6 +225,7 @@ export type InternshipEnrollmentTermHistoryEntry = {
   termId: string;
   termTitle: string;
   status: InternshipEnrollmentRecordStatus;
+  outcome?: InternshipEnrollmentOutcome | null;
 };
 
 export type InternshipEnrollmentPageState = {
@@ -216,6 +233,8 @@ export type InternshipEnrollmentPageState = {
   kind: InternshipCourseKind;
   level: InternshipEnrollmentLevel;
   courseName: string;
+  /** عنوان کامل درس داینامیک (mock)؛ نبودنش = «نام نوع + شماره‌ی سطح». */
+  courseTitle?: string;
   termTitle: string;
   termId: string;
   /** شناسهٔ درس Nest برای GET professors؛ در mock همان catalog id است. */

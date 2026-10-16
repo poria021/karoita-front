@@ -23,6 +23,8 @@ import { SecurityPasswordPairFields } from './SecurityPasswordPairFields';
 export interface SecurityFormProps {
   mobile: string;
   hasPassword?: boolean;
+  /** false برای ادمین‌ها: مسیر OTP فراموشی رمز فقط برای کاربران عادی وجود دارد. */
+  allowForgotPassword?: boolean;
   disabled?: boolean;
   onPasswordRegistered?: () => void;
 }
@@ -30,6 +32,7 @@ export interface SecurityFormProps {
 export function SecurityForm({
   mobile,
   hasPassword = true,
+  allowForgotPassword = true,
   disabled = false,
   onPasswordRegistered,
 }: SecurityFormProps) {
@@ -155,7 +158,7 @@ export function SecurityForm({
             changeForm={changeForm}
             isBusy={isBusy}
             isDisabled={isDisabled}
-            forgotPassword={forgotPassword}
+            forgotPassword={allowForgotPassword ? forgotPassword : undefined}
             onSubmit={saveChangedPassword}
           />
         )}

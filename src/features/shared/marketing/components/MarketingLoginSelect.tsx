@@ -57,7 +57,7 @@ function ProductMark({ product }: { product: LandingProduct }) {
         <img
           src={product.logoImageUrl}
           alt=""
-          className="size-full object-cover"
+          className="size-full object-contain p-1"
         />
       );
     }
@@ -68,7 +68,7 @@ function ProductMark({ product }: { product: LandingProduct }) {
         alt=""
         width={48}
         height={48}
-        className="size-full object-cover"
+        className="size-full object-contain p-1"
       />
     );
   }

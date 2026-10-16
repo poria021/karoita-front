@@ -3,19 +3,28 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   dropRealDailyApprovalTrainee,
   markRealDailyApprovalWeekOpened,
+  scoreRealDailyApprovalWeek,
+  setRealDailyApprovalCanWatchOthers,
   submitMentorFeedbackReal,
   submitPrincipalFeedbackReal,
 } from './real-daily-approvals-mutations';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
 import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
+import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
 
 vi.mock('@/services/require-nest-transport', () => ({
   requireNestTransport: vi.fn(),
 }));
 
 vi.mock('@/services/internship-enrollment/real/student-weeks.api', () => ({
-  studentWeeksApi: { score: vi.fn() },
+  studentWeeksApi: {
+    score: vi.fn(),
+    setMentorPresent: vi.fn(),
+    approveStudentPresent: vi.fn(),
+    approveMentorPresent: vi.fn(),
+    setCanWatchOthers: vi.fn(),
+  },
 }));
 
 vi.mock('@/services/internship-enrollment/real/student-enrollments.api', () => ({
@@ -93,28 +102,15 @@ describe('submitMentorFeedbackReal / submitPrincipalFeedbackReal', () => {
     });
   });
 
-  it('lets the principal submit only text, with no rating', async () => {
-    await submitPrincipalFeedbackReal({
-      traineeId: 't1',
-      weekId: 'w1',
-      principalFeedback: 'توضیح بدون امتیاز',
-      principalRating: null,
-    });
-
-    expect(conversationsApi.postMessage).toHaveBeenCalledWith('conv-1', {
-      text: 'توضیح بدون امتیاز',
-    });
-  });
-
-  it('rejects a principal submission with neither rating nor text', async () => {
+  it('rejects a principal submission without a rating, even when text is given', async () => {
     await expect(
       submitPrincipalFeedbackReal({
         traineeId: 't1',
         weekId: 'w1',
-        principalFeedback: '   ',
+        principalFeedback: 'توضیح بدون امتیاز',
         principalRating: null,
       })
-    ).rejects.toThrow(/امتیاز یا بازخورد/);
+    ).rejects.toThrow(/امتیاز/);
     expect(conversationsApi.postMessage).not.toHaveBeenCalled();
   });
 });
@@ -148,5 +144,117 @@ describe('dropRealDailyApprovalTrainee', () => {
     await dropRealDailyApprovalTrainee('enrollment-1');
 
     expect(studentEnrollmentsApi.cancel).toHaveBeenCalledWith('enrollment-1');
+  });
+});
+
+describe('scoreRealDailyApprovalWeek', () => {
+  beforeEach(() => {
+    vi.mocked(studentWeeksApi.score).mockReset();
+    vi.mocked(studentWeeksApi.setMentorPresent).mockReset();
+  });
+
+  const base = { traineeId: 't1', weekId: 'w1', advisorFeedback: '' };
+
+  it('sends mentor-present before the score when the school was visited', async () => {
+    const calls: string[] = [];
+    vi.mocked(studentWeeksApi.setMentorPresent).mockImplementation(async () => {
+      calls.push('mentor-present');
+    });
+    vi.mocked(studentWeeksApi.score).mockImplementation(async () => {
+      calls.push('score');
+    });
+
+    await scoreRealDailyApprovalWeek({ ...base, score: 90, schoolVisited: true });
+
+    expect(studentWeeksApi.setMentorPresent).toHaveBeenCalledWith('w1', true);
+    expect(studentWeeksApi.score).toHaveBeenCalledWith('w1', 90, true);
+    expect(calls).toEqual(['mentor-present', 'score']);
+  });
+
+  it('skips mentor-present when the school was not visited', async () => {
+    await scoreRealDailyApprovalWeek({ ...base, score: 80, schoolVisited: false });
+
+    expect(studentWeeksApi.setMentorPresent).not.toHaveBeenCalled();
+    expect(studentWeeksApi.score).toHaveBeenCalledWith('w1', 80, false);
+  });
+
+  it('does not save the score when mentor-present fails', async () => {
+    vi.mocked(studentWeeksApi.setMentorPresent).mockRejectedValue(new Error('403'));
+
+    await expect(
+      scoreRealDailyApprovalWeek({ ...base, score: 70, schoolVisited: true })
+    ).rejects.toThrow('403');
+    expect(studentWeeksApi.score).not.toHaveBeenCalled();
+  });
+});
+
+describe('submitPrincipalFeedbackReal presence approvals', () => {
+  beforeEach(() => {
+    vi.mocked(conversationsApi.postMessage).mockReset();
+    vi.mocked(studentWeeksApi.approveStudentPresent).mockReset();
+    vi.mocked(studentWeeksApi.approveMentorPresent).mockReset();
+  });
+
+  const base = {
+    traineeId: 't1',
+    weekId: 'w1',
+    principalFeedback: '',
+    principalRating: '4' as const,
+  };
+
+  it('approves student and mentor presence with the earliest day, before the message', async () => {
+    const calls: string[] = [];
+    vi.mocked(studentWeeksApi.approveStudentPresent).mockImplementation(async () => {
+      calls.push('student');
+    });
+    vi.mocked(studentWeeksApi.approveMentorPresent).mockImplementation(async () => {
+      calls.push('mentor');
+    });
+    vi.mocked(conversationsApi.postMessage).mockImplementation(async () => {
+      calls.push('message');
+    });
+
+    await submitPrincipalFeedbackReal({
+      ...base,
+      principalAttendance: ['2026-10-12', '2026-10-10'],
+      principalSupervisorVisits: ['2026-10-11'],
+    });
+
+    expect(studentWeeksApi.approveStudentPresent).toHaveBeenCalledWith(
+      'w1',
+      true,
+      new Date(2026, 9, 10).toISOString()
+    );
+    expect(studentWeeksApi.approveMentorPresent).toHaveBeenCalledWith(
+      'w1',
+      true,
+      new Date(2026, 9, 11).toISOString()
+    );
+    expect(calls).toEqual(['student', 'mentor', 'message']);
+  });
+
+  it('skips approvals when no day is selected', async () => {
+    await submitPrincipalFeedbackReal(base);
+
+    expect(studentWeeksApi.approveStudentPresent).not.toHaveBeenCalled();
+    expect(studentWeeksApi.approveMentorPresent).not.toHaveBeenCalled();
+    expect(conversationsApi.postMessage).toHaveBeenCalled();
+  });
+
+  it('does not post the one-shot message when an approval fails', async () => {
+    vi.mocked(studentWeeksApi.approveStudentPresent).mockRejectedValue(new Error('403'));
+
+    await expect(
+      submitPrincipalFeedbackReal({ ...base, principalAttendance: ['2026-10-10'] })
+    ).rejects.toThrow('403');
+    expect(conversationsApi.postMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe('setRealDailyApprovalCanWatchOthers', () => {
+  it('forwards the flag to student-weeks can-watch-others', async () => {
+    await setRealDailyApprovalCanWatchOthers({ weekId: 'w1', canWatchOthers: true });
+
+    expect(studentWeeksApi.setCanWatchOthers).toHaveBeenCalledWith('w1', true);
   });
 });

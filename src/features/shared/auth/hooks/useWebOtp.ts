@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface OTPCredential extends Credential {
   code: string;
@@ -11,6 +11,11 @@ interface ExtendedCredentialRequestOptions extends CredentialRequestOptions {
 }
 
 export function useWebOtp(onOtpReceived: (code: string) => void, active: boolean = false) {
+  const callbackRef = useRef(onOtpReceived);
+  useEffect(() => {
+    callbackRef.current = onOtpReceived;
+  });
+
   useEffect(() => {
     if (typeof window === 'undefined' || !('OTPCredential' in window) || !active) {
       return undefined;
@@ -28,7 +33,7 @@ export function useWebOtp(onOtpReceived: (code: string) => void, active: boolean
       .then((credential) => {
         const otpCredential = credential as OTPCredential;
         if (otpCredential && otpCredential.code) {
-          onOtpReceived(otpCredential.code);
+          callbackRef.current(otpCredential.code);
         }
       })
       .catch((err) => {
@@ -38,5 +43,5 @@ export function useWebOtp(onOtpReceived: (code: string) => void, active: boolean
     return () => {
       abortController.abort();
     };
-  }, [onOtpReceived, active]);
+  }, [active]);
 }

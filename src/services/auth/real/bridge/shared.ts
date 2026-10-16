@@ -30,6 +30,8 @@ export const REAL_AUTH_PATHS = {
   forgotSend: 'v1/auth/forgot/password',
   forgotReset: 'v1/auth/reset/password',
   setPassword: 'v1/auth/set/password',
+  adminSetPassword: 'v1/admin/auth/set/password',
+  adminLoginPassword: 'v1/admin/auth/phone/login/password',
   adminOtpSend: 'v1/admin/auth/phone/login/request-otp',
   adminOtpVerify: 'v1/admin/auth/phone/login/verify-otp',
   adminRefresh: 'v1/admin/auth/refresh',

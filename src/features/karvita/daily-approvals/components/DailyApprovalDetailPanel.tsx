@@ -5,6 +5,7 @@ import {
   KvCard,
   KvCardContent,
 } from '@/components/shared/KvCard';
+import { useUserStore } from '@/store/useUserStore';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { KvTypography } from '@/components/shared/KvTypography';
@@ -29,6 +30,7 @@ export function DailyApprovalDetailPanel({
   selectedWeekId = null,
   onSelectWeek,
 }: DailyApprovalDetailPanelProps) {
+  const role = useUserStore((state) => state.activeUser?.role);
   if (!trainee) {
     return (
       <KvCard tone="muted" fill className="min-h-[450px] shadow-none">
@@ -102,6 +104,7 @@ export function DailyApprovalDetailPanel({
         <DailyApprovalWeekGrid
           trainee={trainee}
           selectedWeekId={selectedWeekId}
+          role={role}
           onSelectWeek={onSelectWeek}
         />
         <DailyApprovalWeekLegend />

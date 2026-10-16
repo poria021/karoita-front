@@ -381,6 +381,44 @@ describe('real enrollment reads', () => {
     expect(state.enrollment?.attendanceDaysUnavailableReason).toBeNull();
   });
 
+  it('applies client-side province/college filtering when the real backend returns a mixed list', async () => {
+    vi.mocked(studentEnrollmentsApi.listProfessors)
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: 'same-province',
+            name: 'استاد هم‌استان',
+            college: 'پردیس شهید باهنر تهران',
+            province: 'تهران',
+            days: ['شنبه'],
+            capacity: 1,
+          },
+          {
+            id: 'different-province',
+            name: 'استاد دیگر استان',
+            college: 'پردیس اصفهان',
+            province: 'اصفهان',
+            days: ['دوشنبه'],
+            capacity: 1,
+          },
+        ],
+        hasNextPage: false,
+      });
+
+    const list = await listRealEligibleSupervisors({
+      actor: student,
+      kind: 'internship',
+      level: 1,
+      query: '',
+      province: 'تهران',
+      college: 'پردیس شهید باهنر تهران',
+      semesterId: 'sem-1',
+      lessonId: 'les-1',
+    });
+
+    expect(list.map((item) => item.id)).toEqual(['same-province']);
+  });
+
   it('falls back to null names when GET /users/{id} fails (best-effort, does not crash the page)', async () => {
     vi.mocked(studentEnrollmentsApi.getOpenCourseSelection).mockResolvedValue({
       id: 'sem-1',

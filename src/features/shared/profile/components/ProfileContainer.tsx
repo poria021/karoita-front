@@ -19,6 +19,7 @@ import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
 import { faIcons } from '@/utils/iconMap';
+import { isStaffAdminRole } from '@/utils/role-strategy/helpers';
 
 import { ProfileStatusAlert } from './alerts/ProfileStatusAlert';
 import { IdentityForm } from './forms/IdentityForm';
@@ -57,7 +58,6 @@ const PROFILE_UI_STRATEGY_OVERRIDES: Partial<
   assistant_admin: { showStatusAlerts: false },
   central_organization: { showStatusAlerts: false },
   super_admin: {
-    showSecurityTab: false,
     showStatusAlerts: false,
     lockIdentityAfterSubmit: false,
     showDocUploader: false,
@@ -194,6 +194,8 @@ function ProfileContainerInner({ role }: ProfileContainerProps) {
             <SecurityForm
               mobile={activeUser.mobile}
               hasPassword={activeUser.hasPassword !== false}
+              // بک‌اند endpoint فراموشی رمز برای ادمین ندارد؛ ریست با سوپرادمین.
+              allowForgotPassword={!isStaffAdminRole(activeUser.role)}
             />
           </AppTabsContent>
         </AppTabs>

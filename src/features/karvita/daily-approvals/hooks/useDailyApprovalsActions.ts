@@ -11,6 +11,7 @@ import type {
   DailyApprovalCompetencyRating,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
+  DailyApprovalForwardTarget,
   DailyApprovalTrainee,
   DailyApprovalWeek,
   DailyApprovalWeekDetail,
@@ -127,7 +128,9 @@ export function useDailyApprovalsActions({
         // دانشجو هنوز گزارشی برای این هفته نفرستاده (studentStatus خالی) —
         // تا وقتی گزارشی نیست، استاد/معلم راهنما/مدیر مدرسه چیزی برای
         // بازخورد دادن ندارند.
-        week.status === 'draft'
+        week.status === 'draft' ||
+        ((role === 'mentor_teacher' || role === 'school_principal') &&
+          week.canWatchOthers === false)
       ) {
         return;
       }
@@ -250,7 +253,11 @@ export function useDailyApprovalsActions({
   );
 
   const saveSupervisorWeek = useCallback(
-    async (input: { score: number | null; advisorFeedback: string }) => {
+    async (input: {
+      score: number | null;
+      advisorFeedback: string;
+      schoolVisited: boolean;
+    }) => {
       scheduleWeekGradingSave({
         gradingTarget,
         message:
@@ -266,6 +273,7 @@ export function useDailyApprovalsActions({
               weekId: target.weekId,
               score: input.score,
               advisorFeedback: input.advisorFeedback,
+              schoolVisited: input.schoolVisited,
             });
           } finally {
             setActionBusy(false);
@@ -280,6 +288,92 @@ export function useDailyApprovalsActions({
       });
     },
     [gradingTarget, gradingTrainee, refreshTraineeDerived]
+  );
+
+  /** استاد گزارش هفتهٔ بازشده را برای معلم/مدیر ارجاع می‌دهد؛ مودال باز می‌ماند. */
+  const forwardWeek = useCallback(
+    async (target: DailyApprovalForwardTarget) => {
+      if (!gradingTarget) return;
+      setActionBusy(true);
+      try {
+        await DailyApprovalsService.forwardWeek({ ...gradingTarget, target });
+        list.patchItems((prev) =>
+          prev.map((row) =>
+            row.id === gradingTarget.traineeId
+              ? {
+                  ...row,
+                  weeks: row.weeks.map((week) =>
+                    week.id === gradingTarget.weekId
+                      ? {
+                          ...week,
+                          forwardedTo: [
+                            ...new Set([...(week.forwardedTo ?? []), target]),
+                          ],
+                        }
+                      : week
+                  ),
+                }
+              : row
+          )
+        );
+        toast.success(
+          target === 'mentor'
+            ? 'گزارش برای معلم راهنما ارسال شد.'
+            : 'گزارش برای مدیر مدرسه ارسال شد.'
+        );
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : '');
+      } finally {
+        setActionBusy(false);
+      }
+    },
+    [gradingTarget, list]
+  );
+
+  /**
+   * استاد راهنما: اجازهٔ دیدن گزارش هم‌کلاسی‌ها برای این هفتهٔ کارورز.
+   * optimistic — مودال قفل نمی‌شود؛ اگر Nest رد کرد مقدار قبلی برمی‌گردد.
+   */
+  const setCanWatchOthers = useCallback(
+    async (canWatchOthers: boolean) => {
+      if (!gradingTarget) return;
+      const target = gradingTarget;
+      const patch = (value: boolean) =>
+        list.patchItems((prev) =>
+          prev.map((row) =>
+            row.id === target.traineeId
+              ? {
+                  ...row,
+                  weeks: row.weeks.map((week) =>
+                    week.id === target.weekId
+                      ? { ...week, canWatchOthers: value }
+                      : week
+                  ),
+                }
+              : row
+          )
+        );
+      patch(canWatchOthers);
+      try {
+        await DailyApprovalsService.setCanWatchOthers({
+          ...target,
+          canWatchOthers,
+        });
+        toast.success(
+          canWatchOthers
+            ? 'دسترسی مشاهدهٔ گزارش هم‌کلاسی‌ها فعال شد.'
+            : 'دسترسی مشاهدهٔ گزارش هم‌کلاسی‌ها غیرفعال شد.'
+        );
+      } catch (error) {
+        patch(!canWatchOthers);
+        toast.error(
+          error instanceof Error && error.message
+            ? error.message
+            : 'تغییر دسترسی مشاهده ناموفق بود.'
+        );
+      }
+    },
+    [gradingTarget, list]
   );
 
   const saveMentorWeek = useCallback(
@@ -320,6 +414,8 @@ export function useDailyApprovalsActions({
     async (input: {
       principalFeedback: string;
       principalRating: DailyApprovalCompetencyRating | null;
+      principalAttendance: string[];
+      principalSupervisorVisits: string[];
     }) => {
       scheduleWeekGradingSave({
         gradingTarget,
@@ -333,6 +429,8 @@ export function useDailyApprovalsActions({
               weekId: target.weekId,
               principalFeedback: input.principalFeedback,
               principalRating: input.principalRating,
+              principalAttendance: input.principalAttendance,
+              principalSupervisorVisits: input.principalSupervisorVisits,
             });
           } finally {
             setActionBusy(false);
@@ -440,6 +538,8 @@ export function useDailyApprovalsActions({
     openWeekGrading,
     closeWeekGrading,
     saveSupervisorWeek,
+    forwardWeek,
+    setCanWatchOthers,
     saveMentorWeek,
     savePrincipalWeek,
     bulkExtendOpen,

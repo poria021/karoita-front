@@ -13,6 +13,13 @@ export type NestFloatingProductDto = {
   updatedAt: string;
 };
 
+/** PATCH /admin/floating-products/{id} — بدنهٔ جزئی؛ فقط فیلدهای عوض‌شده. */
+export type UpdateFloatingProductBody = {
+  picture?: { id: string };
+  title?: string;
+  link?: string;
+};
+
 type CreateFloatingProductBody = {
   picture: { id: string };
   title: string;
@@ -37,6 +44,10 @@ export const floatingProductsApi = {
 
   async create(body: CreateFloatingProductBody): Promise<NestFloatingProductDto> {
     return apiClient.postJson<NestFloatingProductDto>(BASE, body);
+  },
+
+  async update(id: string, body: UpdateFloatingProductBody): Promise<NestFloatingProductDto> {
+    return apiClient.patchJson<NestFloatingProductDto>(`${BASE}/${encodeURIComponent(id)}`, body);
   },
 
   async remove(id: string): Promise<void> {

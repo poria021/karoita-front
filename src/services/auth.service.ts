@@ -4,7 +4,6 @@ import {
   isMockApiMode,
   throwRealModeNotImplemented,
 } from '@/lib/api-mode';
-import { dispatchSessionToStore } from '@/services/auth/dispatch-session';
 import {
   keepLocalIdentityPreview,
   retainSessionOrgFields,
@@ -21,6 +20,7 @@ import {
 } from '@/utils/passwordInput';
 
 import {
+  mockLoginAdminWithPassword,
   mockLoginWithCredentials,
   mockRegister,
   mockResetPassword,
@@ -34,13 +34,16 @@ import {
   mockVerifyLoginOtp,
   mockVerifyRegistrationOtp,
 } from '@/services/auth/mock/mock-auth.operations';
+// نسخهٔ mock-aware: در real فقط Zustand، در mock کوکی marker و session meta را هم همگام می‌کند.
 import {
+  dispatchSessionToStore,
   readSessionMeta,
   tryRestoreMockSession,
 } from '@/services/auth/mock/mock-auth.store';
 import {
   realDeleteMe,
   realFetchSession,
+  realLoginAdminWithPassword,
   realLoginWithCredentials,
   realRegister,
   realResetPassword,
@@ -100,6 +103,11 @@ export class AuthService {
     if (IS_MOCK_MODE) return mockVerifyLoginOtp(mobile, otp);
     rejectMockOtpInReal(otp);
     return realVerifyLoginOtp(mobile, otp);
+  }
+
+  static async loginAdminWithPassword(mobile: string, password: string): Promise<User> {
+    if (IS_MOCK_MODE) return mockLoginAdminWithPassword(mobile, password);
+    return realLoginAdminWithPassword(mobile, password);
   }
 
   static async sendAdminGateOtp(mobile: string): Promise<void> {

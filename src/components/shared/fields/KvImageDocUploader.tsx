@@ -99,8 +99,21 @@ function KvImageDocPreviewSurface({
           className="text-kv-text-faint"
         />
         <KvTypography variant="caption" tone="muted" as="p">
-          تصویر مدرک بارگذاری نشد
+          تصویر بارگذاری نشد
         </KvTypography>
+        {/* بدون این، تصویر خراب/ناموجود غیرقابل‌تعویض بود (نه حذف، نه دراپ‌زون). */}
+        {!disabled ? (
+          <KvButton
+            type="button"
+            onClick={onRemove}
+            color="error"
+            appearance="ghost"
+            size="sm"
+            icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+          >
+            حذف
+          </KvButton>
+        ) : null}
       </div>
     );
   }

@@ -22,4 +22,11 @@ describe('daily approvals list contracts', () => {
       dashboardListCacheKey(DAILY_APPROVALS_CACHE_NAMESPACE, resetKey)
     ).toBe('daily-approvals::internship::unread::intern1::term_2::مریم');
   });
+  it('separates the list cache per selected course module', () => {
+    const base = dailyApprovalsListResetKey('internship', 'all', 'all', 't', '');
+    const a = dailyApprovalsListResetKey('internship', 'all', 'all', 't', '', 'crs_a');
+    const b = dailyApprovalsListResetKey('internship', 'all', 'all', 't', '', 'crs_b');
+    expect(a).not.toBe(base);
+    expect(a).not.toBe(b);
+  });
 });

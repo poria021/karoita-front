@@ -2,7 +2,6 @@ import {
   nestEntityId,
   nestLessonTitle,
 } from '@/services/syllabus-config/real/real-syllabus-mappers';
-import { lessonLevelFromTitle } from '@/utils/lessonLevelFromTitle';
 import type {
   InternshipCourseKind,
   InternshipEnrollmentLevel,
@@ -28,18 +27,39 @@ export function lessonMatchesKind(
   return /کارورزی/.test(title) || /intern/i.test(normalized);
 }
 
+/**
+ * سطح درس از عنوان، سخت‌گیرانه: اولین عدد مستقل ۱…۹ (نه رقمی از سال مثل ۱۴۰۴).
+ * عنوان بی‌عدد `null` می‌دهد تا به‌اشتباه «سطح ۱» حساب نشود — برخلاف
+ * `lessonLevelFromTitle` که برای نمایش، پیش‌فرض ۱ برمی‌گرداند.
+ */
+export function strictLessonLevelFromTitle(title: string): number | null {
+  for (const match of persianToEnglishDigits(title).matchAll(/\d+/g)) {
+    const value = Number(match[0]);
+    if (value >= 1 && value <= 9) return value;
+  }
+  return null;
+}
+
+/**
+ * تنها نقطهٔ تطبیق lesson Nest با level مسیر (`/internships/:level`).
+ * چون هر ترم lesson خودش را دارد و `lessonId` بین ترم‌ها پایدار نیست، و Nest
+ * هنوز شناسهٔ کاتالوگ (`courseId`) روی lesson نمی‌دهد، فعلاً ناچار عنوان است.
+ * وقتی کاتالوگ بکند آمد فقط همین تابع باید به `courseId` تکیه کند.
+ */
+export function lessonMatchesLevel(
+  lesson: { title?: string; name?: string; title_fa?: string },
+  kind: InternshipCourseKind,
+  level: InternshipEnrollmentLevel
+): boolean {
+  const title = nestLessonTitle(lesson);
+  return lessonMatchesKind(title, kind) && strictLessonLevelFromTitle(title) === level;
+}
+
 /** جنریک تا فیلدهای اضافهٔ شکل خاص هر endpoint (`canSelect`, `enrolment`, ...) از دست نرود. */
 export function findLessonForLevel<
   T extends { title?: string; name?: string; title_fa?: string },
 >(lessons: T[], kind: InternshipCourseKind, level: InternshipEnrollmentLevel): T | null {
-  return (
-    lessons.find((lesson) => {
-      const title = nestLessonTitle(lesson);
-      return (
-        lessonMatchesKind(title, kind) && lessonLevelFromTitle(title) === level
-      );
-    }) ?? null
-  );
+  return lessons.find((lesson) => lessonMatchesLevel(lesson, kind, level)) ?? null;
 }
 
 export function parseOpenCourseSelection(
@@ -79,6 +99,46 @@ function isNonCancelledEnrolment(status: NestStudentEnrollment['status']): boole
   return status !== 'cancelled' && status !== 'dropped';
 }
 
+/**
+ * `by-semester` برای هر (ترم، درس) فقط *یک* `enrolment` می‌دهد؛ وقتی دانشجو
+ * همان درس را بعد از مردودی دوباره می‌گیرد، بک‌اند ردیف قدیمی را نگه می‌دارد و
+ * ثبت‌نام تازه دیده نمی‌شود. لیست کامل `GET /student-enrollments` همهٔ ردیف‌ها
+ * را دارد، پس برای هر (ترم، درس) ردیف مؤثر را از آن برمی‌داریم: `active` اول،
+ * بعد جدیدترین غیرلغوشده؛ اگر ردیفی نبود همان `enrolment` اصلی می‌ماند.
+ */
+export function preferLatestEnrolments(
+  semesters: readonly NestSemesterEnrolmentsByTerm[],
+  rows: readonly NestStudentEnrollment[]
+): NestSemesterEnrolmentsByTerm[] {
+  const best = new Map<string, NestStudentEnrollment>();
+  const time = (row: NestStudentEnrollment) =>
+    new Date(row.createdAt ?? 0).getTime();
+  for (const row of rows) {
+    if (!row.semesterId || !row.lessonId) continue;
+    if (!isNonCancelledEnrolment(row.status)) continue;
+    const key = `${row.semesterId}:${row.lessonId}`;
+    const prev = best.get(key);
+    const rowActive = row.status === 'active';
+    const prevActive = prev?.status === 'active';
+    if (
+      !prev ||
+      (rowActive && !prevActive) ||
+      (rowActive === prevActive && time(row) > time(prev))
+    ) {
+      best.set(key, row);
+    }
+  }
+  if (best.size === 0) return [...semesters];
+
+  return semesters.map((semester) => ({
+    ...semester,
+    lessons: (semester.lessons ?? []).map((lesson) => {
+      const row = lesson.id ? best.get(`${semester.id}:${lesson.id}`) : undefined;
+      return row ? { ...lesson, enrolment: row } : lesson;
+    }),
+  }));
+}
+
 /** یک ردیف تاریخچهٔ ثبت‌نام یک level خاص — از GET `by-semester`. */
 export type EnrolmentHistoryEntry = {
   semesterId: string;
@@ -99,12 +159,9 @@ export function findEnrolmentHistoryForLevel(
 ): EnrolmentHistoryEntry[] {
   const history: EnrolmentHistoryEntry[] = [];
   for (const semester of semesters) {
-    const lesson = (semester.lessons ?? []).find((candidate) => {
-      const title = nestLessonTitle(candidate);
-      return (
-        lessonMatchesKind(title, kind) && lessonLevelFromTitle(title) === level
-      );
-    });
+    const lesson = (semester.lessons ?? []).find((candidate) =>
+      lessonMatchesLevel(candidate, kind, level)
+    );
     if (lesson?.enrolment && isNonCancelledEnrolment(lesson.enrolment.status)) {
       history.push({ semesterId: semester.id, lesson, enrolment: lesson.enrolment });
     }
@@ -127,12 +184,9 @@ export function hasAnyEnrolmentForLevel(
   level: InternshipEnrollmentLevel
 ): boolean {
   return semesters.some((semester) => {
-    const lesson = (semester.lessons ?? []).find((candidate) => {
-      const title = nestLessonTitle(candidate);
-      return (
-        lessonMatchesKind(title, kind) && lessonLevelFromTitle(title) === level
-      );
-    });
+    const lesson = (semester.lessons ?? []).find((candidate) =>
+      lessonMatchesLevel(candidate, kind, level)
+    );
     return Boolean(lesson?.enrolment);
   });
 }

@@ -11,8 +11,8 @@ import {
   type WeekStudentSubmissionPreview,
 } from '@/services/internship-enrollment/real/mappers/week-feedback';
 import {
-  filterSupervisorsClientSide,
   findEnrolmentHistoryForLevel,
+  preferLatestEnrolments,
   findLessonForLevel,
   registeredSummaryFromEnrollment,
   resolveEffectiveEnrollmentEntry,
@@ -30,6 +30,7 @@ import {
   filterSchoolsClientSide,
   mapNestSchool,
 } from '@/services/internship-enrollment/real/mappers/school-mapping';
+import { filterSupervisorsClientSide } from '@/services/internship-enrollment/real/mappers/professor-mapping';
 import {
   filterTeachersClientSide,
   mapEnrollmentTeacher,
@@ -69,7 +70,16 @@ const PROFESSORS_MAX_PAGES = 40;
  */
 async function loadEnrolmentsBySemester(): Promise<NestSemesterEnrolmentsByTerm[]> {
   try {
-    return await studentEnrollmentsApi.listBySemester();
+    const semesters = await studentEnrollmentsApi.listBySemester();
+    // best-effort: `by-semester` برای هر (ترم، درس) فقط یک ردیف دارد و بعد از
+    // مردودی، ثبت‌نام مجدد را پنهان می‌کند — ببین `preferLatestEnrolments`.
+    let rows: Awaited<ReturnType<typeof studentEnrollmentsApi.listMine>> = [];
+    try {
+      rows = (await studentEnrollmentsApi.listMine()) ?? [];
+    } catch {
+      rows = [];
+    }
+    return preferLatestEnrolments(semesters, rows);
   } catch {
     return [];
   }
@@ -286,7 +296,11 @@ export async function getRealEnrollmentPageState(
   const level = clampLevel(kind, input.level);
   const history = findEnrolmentHistoryForLevel(semesters, kind, level);
   const current = findLessonForLevel(open?.lessons ?? [], kind, level);
-  const effectiveEntry = resolveEffectiveEnrollmentEntry(current, history);
+  const effectiveEntry = resolveEffectiveEnrollmentEntry(
+    current,
+    history,
+    open?.id
+  );
   const isActiveInOpenTerm = Boolean(open) && effectiveEntry?.semesterId === open?.id;
 
   const registeredDetails = await loadRegisteredEnrollmentDetails(
@@ -447,7 +461,7 @@ export async function listRealEligibleSupervisors(
 
   return filterSupervisorsClientSide(collected, {
     query: input.query,
-    province: input.province ?? '',
-    college: input.college ?? '',
+    province: input.province,
+    college: input.college,
   });
 }

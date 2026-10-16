@@ -5,6 +5,7 @@ import {
   parseNestLessonWeekList,
   parseNestSemester,
   planNestWeekWrites,
+  realLessonIdFor,
   toNestLessonWeeksBody,
   toNestSemesterDto,
   toNestSemesterWriteDto,
@@ -17,6 +18,7 @@ import type {
   ActivateOfferingInput,
   DeactivateOfferingInput,
   SaveSyllabusWeeksInput,
+  SetOfferingsStatusInput,
   SyllabusConfigSnapshot,
   UpdateTermGatesInput,
   UpsertTermInput,
@@ -89,9 +91,10 @@ export async function setRealPassingThreshold(
 export async function activateRealOffering(
   input: ActivateOfferingInput
 ): Promise<SyllabusConfigSnapshot> {
-  await adminCatalogApi.patchLessonStatus(input.courseCatalogId, {
-    status: true,
-  });
+  await adminCatalogApi.patchLessonStatus(
+    realLessonIdFor(input.termId, input.courseCatalogId),
+    { status: true }
+  );
   return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
@@ -101,6 +104,20 @@ export async function deactivateRealOffering(
   await adminCatalogApi.patchLessonStatus(input.courseOfferingId, {
     status: false,
   });
+  return reloadAfterWrite(() => getRealSyllabusSnapshot());
+}
+
+/** `PATCH /admin/lessons/status` — یک درخواست برای همهٔ درس‌ها (آرایهٔ `UpdateLessonItemDto`). */
+export async function setRealOfferingsStatus(
+  input: SetOfferingsStatusInput
+): Promise<SyllabusConfigSnapshot> {
+  if (input.courseCatalogIds.length === 0) return getRealSyllabusSnapshot();
+  await adminCatalogApi.patchLessonsStatus(
+    input.courseCatalogIds.map((courseCatalogId) => ({
+      id: realLessonIdFor(input.termId, courseCatalogId),
+      status: input.status,
+    }))
+  );
   return reloadAfterWrite(() => getRealSyllabusSnapshot());
 }
 
@@ -141,7 +158,8 @@ export async function updateRealTermGates(
 export async function saveRealSyllabusWeeks(
   input: SaveSyllabusWeeksInput
 ): Promise<SyllabusConfigSnapshot> {
-  const lessonId = input.courseCatalogId;
+  // ارائه در Nest همان lesson است؛ `resolveOfferingId` آن را از کاتالوگ ساخته.
+  const lessonId = input.courseOfferingId;
   const remote = parseNestLessonWeekList(
     await adminCatalogApi.listWeeksByLesson(lessonId)
   );

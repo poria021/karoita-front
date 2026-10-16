@@ -144,6 +144,17 @@ describe('studentEnrollmentsApi', () => {
     expect(rows[0]?.id).toBe('e1');
   });
 
+  it('keeps week cards visible when the live API wraps weeks in {data, hasNextPage}', async () => {
+    getJson.mockResolvedValue({
+      data: [{ id: 'w1', enrollmentId: 'e1', status: 'in_progress' }],
+      hasNextPage: false,
+    });
+
+    const weeks = await studentEnrollmentsApi.listWeeks('e1');
+    expect(getJson).toHaveBeenCalledWith('v1/student-enrollments/e1/weeks');
+    expect(weeks[0]?.id).toBe('w1');
+  });
+
   it('GETs a single enrollment by id', async () => {
     getJson.mockResolvedValue({ id: 'e1', semesterId: 'sem-1' });
 

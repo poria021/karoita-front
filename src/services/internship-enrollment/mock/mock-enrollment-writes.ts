@@ -1,6 +1,7 @@
-import { clampLevel, courseNameForKind } from '@/services/internship-enrollment/enrollment-mappers';
+import { clampLevel } from '@/services/internship-enrollment/enrollment-mappers';
 import {
   capacityKey,
+  courseTitleForLevel,
   findRecord,
   getScope,
   getSupervisorList,
@@ -30,7 +31,6 @@ import type {
 import {
   filterEligibleSupervisors,
   hasStudentTermEnrollmentConflict,
-  normalizeEnrollmentCourseTitle,
 } from '@/utils/enrollment-eligibility';
 
 export function enrollWithSupervisor(
@@ -123,7 +123,7 @@ export function enrollWithSupervisor(
     level,
     termId,
     termTitle: context.termTitle,
-    title: normalizeEnrollmentCourseTitle(courseNameForKind(kind), level),
+    title: courseTitleForLevel(kind, level),
     supervisorId: supervisor.id,
     supervisorName: supervisor.name,
     schoolId: null,

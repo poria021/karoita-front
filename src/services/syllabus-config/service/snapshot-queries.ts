@@ -14,10 +14,17 @@ import {
   getCatalogForTermType,
   listOfferingsForTerm,
 } from '@/services/syllabus-config/syllabus-mappers';
-import { catalogKindForTermType } from '@/services/syllabus-config/real/real-syllabus-mappers';
+import { courseDefinitionsOf } from '@/services/syllabus-config/course-catalog';
+import {
+  catalogKindForTermType,
+  realLessonIdFor,
+} from '@/services/syllabus-config/real/real-syllabus-mappers';
+import { listRealCourseDefinitions } from '@/services/syllabus-config/real/real-course-catalog';
 import { getRealSyllabusSnapshot } from '@/services/syllabus-config/real/real-syllabus-reads';
 import type {
+  AcademicTermType,
   CourseCatalogItem,
+  CourseDefinition,
   CourseOfferingKind,
   CourseOfferingListItem,
   SyllabusConfigSnapshot,
@@ -34,6 +41,30 @@ export const snapshotQueries = {
       return getRealSyllabusSnapshot();
     }
     return cloneSnapshot(readSyllabusSnapshot());
+  },
+
+  /**
+   * درس‌های فعال تعریف‌شدهٔ مدیر ارشد برای یک مخاطب، با زیرمجموعه‌هایشان.
+   * خوانندهٔ مصرفی (سایدبار/ارزیابی) — گارد ادمین ندارد. در real تا آمدن API خالی
+   * برمی‌گردد و مصرف‌کننده به فهرست پیش‌فرض برمی‌گردد.
+   */
+  getActiveCourseDefinitions(audience: AcademicTermType): CourseDefinition[] {
+    gateSyllabusConsumerRead();
+    if (!IS_MOCK_MODE) return [];
+    return courseDefinitionsOf(readSyllabusSnapshot()).filter(
+      (course) => course.isActive && course.audience === audience
+    );
+  },
+
+  /**
+   * همهٔ درس‌های تعریف‌شده برای مصرف‌کننده‌ها (سایدبار/ارزیابی) — بدون گارد ادمین.
+   * real: `GET /v1/original-lessons`؛ شکل خروجی همان `listCourseDefinitions` صفحهٔ
+   * تعریف دروس است تا هر دو روی یک query key (`syllabusCourseCatalog`) بنشینند.
+   */
+  async listCourseDefinitionsForConsumers(): Promise<CourseDefinition[]> {
+    gateSyllabusConsumerRead();
+    if (!IS_MOCK_MODE) return listRealCourseDefinitions();
+    return structuredClone([...courseDefinitionsOf(readSyllabusSnapshot())]);
   },
 
   /** تا آمدن endpoint واقعی سال تحصیلی، در حالت real لیست خالی برمی‌گرداند. */
@@ -120,7 +151,7 @@ export const snapshotQueries = {
       return { courses, offerings };
     }
     return {
-      courses: getCatalogForTermType(term.type),
+      courses: getCatalogForTermType(term.type, courseDefinitionsOf(snapshot)),
       offerings: listOfferingsForTerm(snapshot, termId),
     };
   },
@@ -139,7 +170,7 @@ export const snapshotQueries = {
   },
 
   resolveOfferingId(termId: string, courseCatalogId: string): string {
-    if (!IS_MOCK_MODE) return courseCatalogId;
+    if (!IS_MOCK_MODE) return realLessonIdFor(termId, courseCatalogId);
     return buildCourseOfferingId(termId, courseCatalogId);
   },
 };

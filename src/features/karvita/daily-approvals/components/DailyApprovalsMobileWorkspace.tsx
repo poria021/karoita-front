@@ -10,6 +10,7 @@ import {
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { useUserStore } from '@/store/useUserStore';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -32,6 +33,8 @@ export function DailyApprovalsMobileWorkspace({
   hasActiveFilters,
   onClearFilters,
 }: DailyApprovalsMobileWorkspaceProps) {
+  const role = useUserStore((state) => state.activeUser?.role);
+
   return (
     <div className="space-y-kv-group">
       <DailyApprovalsFilters
@@ -133,6 +136,7 @@ export function DailyApprovalsMobileWorkspace({
                     <DailyApprovalWeekGrid
                       trainee={trainee}
                       compact
+                      role={role}
                       selectedWeekId={
                         page.gradingTrainee?.id === trainee.id
                           ? page.gradingWeek?.id ?? null

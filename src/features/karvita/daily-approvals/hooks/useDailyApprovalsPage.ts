@@ -4,7 +4,6 @@ import { useCallback } from 'react';
 
 import type {
   DailyApprovalCourseFilter,
-  DailyApprovalCourseKind,
   DailyApprovalReadFilter,
 } from '@/types/daily-approvals';
 
@@ -21,13 +20,14 @@ export function useDailyApprovalsPage() {
   const chrome = useDailyApprovalsChrome();
   const {
     kind,
-    setKind,
     query,
     setQuery,
     readFilter,
     setReadFilter,
     course,
     setCourse,
+    courseModule,
+    scopeKeys,
     termId,
     setTermId,
     listQuery,
@@ -44,6 +44,7 @@ export function useDailyApprovalsPage() {
     listQuery,
     readFilter,
     course,
+    scopeKeys,
     termId,
     termsReady: terms.termsReady,
     resetKey,
@@ -55,15 +56,6 @@ export function useDailyApprovalsPage() {
   });
 
   const { clearSelection } = actions;
-
-  const changeKind = useCallback(
-    (next: DailyApprovalCourseKind) => {
-      setKind(next);
-      setCourse('all');
-      clearSelection();
-    },
-    [clearSelection, setCourse, setKind]
-  );
 
   const changeReadFilter = useCallback(
     (next: DailyApprovalReadFilter) => {
@@ -91,7 +83,8 @@ export function useDailyApprovalsPage() {
 
   return {
     kind,
-    changeKind,
+    courseTitle: courseModule?.title ?? null,
+    courseModuleId: courseModule?.id ?? null,
     query,
     setQuery,
     readFilter,
@@ -126,6 +119,8 @@ export function useDailyApprovalsPage() {
     openWeekGrading: actions.openWeekGrading,
     closeWeekGrading: actions.closeWeekGrading,
     saveSupervisorWeek: actions.saveSupervisorWeek,
+    forwardWeek: actions.forwardWeek,
+    setCanWatchOthers: actions.setCanWatchOthers,
     saveMentorWeek: actions.saveMentorWeek,
     savePrincipalWeek: actions.savePrincipalWeek,
     bulkExtendOpen: actions.bulkExtendOpen,

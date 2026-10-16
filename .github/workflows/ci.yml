@@ -30,7 +30,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
+      # تست‌های واحد روی mock نوشته شده‌اند (مثل .env.local لوکال)؛ فقط build روی real می‌رود.
       - run: pnpm test
+        env:
+          NEXT_PUBLIC_API_MODE: mock
       - run: pnpm build
 
   e2e:

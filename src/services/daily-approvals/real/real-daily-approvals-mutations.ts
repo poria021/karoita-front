@@ -3,6 +3,10 @@ import { conversationsApi } from '@/services/conversations/real/conversations.ap
 import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
+import {
+  formatPrincipalAttendanceSummary,
+  formatPrincipalSupervisorVisitSummary,
+} from '@/features/karvita/daily-approvals/lib/principalAttendanceDays';
 import { requireNestTransport } from '@/services/require-nest-transport';
 import type {
   DailyApprovalCompetencyRating,
@@ -60,7 +64,16 @@ export async function scoreRealDailyApprovalWeek(
   requireNestTransport('DailyApprovalsService.updateWeekEvaluation');
 
   if (input.score !== null) {
-    await studentWeeksApi.score(input.weekId, input.score);
+    // حضور استاد قبل از نمره می‌رود تا اگر رد شد، نمره‌ای نیمه‌کاره ثبت نشود
+    // و کاربر بتواند با همان مودال دوباره تلاش کند.
+    if (input.schoolVisited === true) {
+      await studentWeeksApi.setMentorPresent(input.weekId, true);
+    }
+    await studentWeeksApi.score(
+      input.weekId,
+      input.score,
+      input.schoolVisited === true
+    );
     return;
   }
 
@@ -84,6 +97,12 @@ export async function dropRealDailyApprovalTrainee(
 ): Promise<void> {
   requireNestTransport('DailyApprovalsService.dropTrainee');
   await studentEnrollmentsApi.cancel(traineeId);
+}
+
+/** `YYYY-MM-DD` های انتخاب‌شده → ISO نیمه‌شب محلیِ زودترین روز. */
+function earliestDayIso(isoDates: readonly string[]): string {
+  const [y, m, d] = [...isoDates].sort()[0]!.split('-').map(Number);
+  return new Date(y!, m! - 1, d!).toISOString();
 }
 
 /** ASCII '1'..'5' → عدد ۱ تا ۵ برای بدنهٔ `POST /conversations/{id}/messages`. */
@@ -112,26 +131,68 @@ export async function submitMentorFeedbackReal(
 }
 
 /**
- * POST `/api/v1/conversations/{id}/messages` — هم بازخورد توصیفی هم امتیاز
- * شایستگی (۱ تا ۵) مدیر مدرسه اختیاری‌اند؛ فقط ثبت هر دو با هم خالی مجاز نیست
- * (همین‌جا و در فرم اعتبارسنجی می‌شود).
+ * POST `/api/v1/conversations/{id}/messages` — امتیاز شایستگی (۱ تا ۵) مدیر
+ * مدرسه الزامی است و بازخورد توصیفی اختیاری (همین‌جا و در فرم اعتبارسنجی می‌شود).
+ * روزهای حضور کارورز/بازدید استاد هم با
+ * PATCH `/student-weeks/{id}/approve-student-present` و `approve-mentor-present` ثبت می‌شوند.
  */
 export async function submitPrincipalFeedbackReal(
   input: UpdatePrincipalDailyApprovalWeekInput
 ): Promise<void> {
   requireNestTransport('DailyApprovalsService.updatePrincipalWeekEvaluation');
-  const text = input.principalFeedback.trim();
-  if (!text && input.principalRating === null) {
-    throw new Error('ثبت امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
+  if (input.principalRating === null) {
+    throw new Error('ثبت امتیاز شایستگی مدیر مدرسه الزامی است.');
   }
+  const attendance = input.principalAttendance ?? [];
+  const supervisorVisits = input.principalSupervisorVisits ?? [];
+
+  // تأیید حضورها قبل از پیام می‌رود تا اگر رد شد، پیام یک‌بارمصرف مدیر
+  // (`schoolAdminStatus`) ثبت نشود و بتواند با همان مودال دوباره تلاش کند.
+  // Nest فقط یک زمان برای هر حضور نگه می‌دارد → اولین روز تأییدشده.
+  if (attendance.length > 0) {
+    await studentWeeksApi.approveStudentPresent(
+      input.weekId,
+      true,
+      earliestDayIso(attendance)
+    );
+  }
+  if (supervisorVisits.length > 0) {
+    await studentWeeksApi.approveMentorPresent(
+      input.weekId,
+      true,
+      earliestDayIso(supervisorVisits)
+    );
+  }
+
+  // همهٔ روزها (نه فقط اولی) به‌صورت متن هم در پیام می‌ماند.
+  const attendanceSummary = formatPrincipalAttendanceSummary(attendance);
+  const supervisorVisitSummary =
+    formatPrincipalSupervisorVisitSummary(supervisorVisits);
+  const text = [
+    input.principalFeedback.trim(),
+    attendanceSummary,
+    supervisorVisitSummary,
+  ]
+    .filter(Boolean)
+    .join('\n\n');
   const conversationId = await findWeekConversationId(
     input.traineeId,
     input.weekId
   );
   await conversationsApi.postMessage(conversationId, {
     ...(text ? { text } : {}),
-    ...(input.principalRating !== null
-      ? { rating: ratingToNumber(input.principalRating) }
-      : {}),
+    rating: ratingToNumber(input.principalRating),
   });
+}
+
+/**
+ * PATCH `/api/v1/student-weeks/{id}/can-watch-others` — استاد راهنما اجازه
+ * می‌دهد این کارورز گزارش‌های هم‌کلاسی‌هایش را ببیند. نقش را Nest چک می‌کند.
+ */
+export async function setRealDailyApprovalCanWatchOthers(input: {
+  weekId: string;
+  canWatchOthers: boolean;
+}): Promise<void> {
+  requireNestTransport('DailyApprovalsService.setCanWatchOthers');
+  await studentWeeksApi.setCanWatchOthers(input.weekId, input.canWatchOthers);
 }

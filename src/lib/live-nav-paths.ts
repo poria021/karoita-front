@@ -17,6 +17,11 @@ const INTERNSHIP_LEVEL_PATHS: readonly string[] = [
   RouteService.karvita.internshipSelection(4),
 ];
 
+function isInternshipLevelPath(pathname: string): boolean {
+  const path = normalizePath(pathname);
+  return /^\/karvita\/internships\/\d+$/.test(path);
+}
+
 /**
  * مسیرهایی که واقعاً صفحه زنده دارند.
  * منوی سایدبار فقط لینک‌های live را نشان دهد تا 404 اعلام‌نشده نرود.
@@ -37,8 +42,10 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.landingCms(),
   RouteService.karvita.syllabusCourseOfferings(),
   RouteService.karvita.syllabusTermSettings(),
+  RouteService.karvita.syllabusCourseCatalog(),
   RouteService.karvita.dailyApprovals(),
   RouteService.karvita.organizationalCapacities(),
+  RouteService.karvita.announcements(),
   ...INTERNSHIP_LEVEL_PATHS,
 ];
 
@@ -71,12 +78,14 @@ const LIVE_SIDEBAR_PATH_SET: ReadonlySet<string> = new Set(
 );
 
 export function isLiveStaticNavPath(pathname: string): boolean {
-  return LIVE_STATIC_NAV_PATHS.includes(normalizePath(pathname));
+  const path = normalizePath(pathname);
+  return LIVE_STATIC_NAV_PATHS.includes(path) || isInternshipLevelPath(path);
 }
 
 /** مسیرهایی که در سایدبار احراز‌شده دیده می‌شوند — `Set` برای جست‌وجوی O(1). */
 export function isLiveSidebarPath(pathname: string): boolean {
-  return LIVE_SIDEBAR_PATH_SET.has(normalizePath(pathname));
+  const path = normalizePath(pathname);
+  return LIVE_SIDEBAR_PATH_SET.has(path) || isInternshipLevelPath(path);
 }
 
 export function isKarvitaProfilePath(pathname: string): boolean {

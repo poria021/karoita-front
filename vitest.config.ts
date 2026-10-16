@@ -10,7 +10,7 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     environment: 'jsdom',
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
+    include: ['src/**/*.{test,spec}.{ts,tsx}', 'tools/**/*.{test,spec}.ts'],
     clearMocks: true,
     restoreMocks: true,
     setupFiles: ['./vitest.setup.ts'],

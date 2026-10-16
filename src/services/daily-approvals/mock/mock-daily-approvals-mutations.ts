@@ -9,6 +9,7 @@ import type {
   BulkExtendDailyApprovalWeeksResult,
   DailyApprovalTrainee,
   DailyApprovalWeek,
+  ForwardDailyApprovalWeekInput,
   UpdateDailyApprovalWeekInput,
   UpdateMentorDailyApprovalWeekInput,
   UpdatePrincipalDailyApprovalWeekInput,
@@ -42,6 +43,11 @@ export function updateMockDailyApprovalWeek(
     ...trainee.weeks[weekIndex]!,
     status: hasScore ? 'graded' : 'needs_edit',
     score: hasScore ? input.score : null,
+    schoolVisited: hasScore ? input.schoolVisited === true : false,
+    // real همراه بازدید `mentor-present` را هم می‌فرستد.
+    mentorPresent:
+      trainee.weeks[weekIndex]!.mentorPresent === true ||
+      (hasScore && input.schoolVisited === true),
     isExtended: false,
     feedback: {
       ...trainee.weeks[weekIndex]!.feedback,
@@ -52,6 +58,45 @@ export function updateMockDailyApprovalWeek(
 
   const nextWeeks = [...trainee.weeks];
   nextWeeks[weekIndex] = nextWeek;
+  const nextTrainee = withDerived({ ...trainee, weeks: nextWeeks });
+  const nextTrainees = [...trainees];
+  nextTrainees[traineeIndex] = nextTrainee;
+  writeTrainees(nextTrainees);
+  return structuredClone(nextTrainee);
+}
+
+/** استاد گزارش یک هفته را برای معلم راهنما یا مدیر مدرسه ارجاع می‌دهد (قبل از نمرهٔ نهایی). */
+export function forwardMockDailyApprovalWeek(
+  input: ForwardDailyApprovalWeekInput
+): DailyApprovalTrainee {
+  const trainees = readTrainees();
+  const traineeIndex = trainees.findIndex((row) => row.id === input.traineeId);
+  if (traineeIndex < 0) throw new Error('کارورز موردنظر یافت نشد.');
+  const trainee = trainees[traineeIndex]!;
+  if (trainee.status === 'dropped') {
+    throw new Error('این کارورز از کلاس آموزشی اخراج شده است.');
+  }
+
+  const weekIndex = trainee.weeks.findIndex((week) => week.id === input.weekId);
+  if (weekIndex < 0) throw new Error('گزارش هفته یافت نشد.');
+  const week = trainee.weeks[weekIndex]!;
+  if (
+    week.status === 'draft' ||
+    week.status === 'locked_future' ||
+    week.status === 'locked_dropped' ||
+    week.status === 'archived'
+  ) {
+    throw new Error('برای این هفته هنوز گزارشی ارسال نشده است.');
+  }
+  if (week.status === 'graded') {
+    throw new Error('نمرهٔ نهایی ثبت شده و ارجاع دیگر ممکن نیست.');
+  }
+
+  const nextWeeks = [...trainee.weeks];
+  nextWeeks[weekIndex] = {
+    ...week,
+    forwardedTo: [...new Set([...(week.forwardedTo ?? []), input.target])],
+  };
   const nextTrainee = withDerived({ ...trainee, weeks: nextWeeks });
   const nextTrainees = [...trainees];
   nextTrainees[traineeIndex] = nextTrainee;
@@ -113,18 +158,29 @@ export function updateMockPrincipalDailyApprovalWeek(
   if (weekIndex < 0) throw new Error('گزارش هفته یافت نشد.');
 
   const principalFeedback = input.principalFeedback.trim();
-  if (!principalFeedback && input.principalRating === null) {
-    throw new Error('ثبت امتیاز یا بازخورد توصیفی مدیر مدرسه الزامی است.');
+  const attendance = input.principalAttendance ?? [];
+  const supervisorVisits = input.principalSupervisorVisits ?? [];
+  if (input.principalRating === null) {
+    throw new Error('ثبت امتیاز شایستگی مدیر مدرسه الزامی است.');
   }
 
   const nextWeeks = [...trainee.weeks];
   nextWeeks[weekIndex] = {
     ...trainee.weeks[weekIndex]!,
+    // هم‌راستا با real: approve-student-present / approve-mentor-present با زودترین روز.
+    ...(attendance.length > 0
+      ? { studentPresenceApproved: true, studentPresentAt: [...attendance].sort()[0] }
+      : {}),
+    ...(supervisorVisits.length > 0
+      ? { mentorPresenceApproved: true, mentorPresentAt: [...supervisorVisits].sort()[0] }
+      : {}),
     feedback: {
       ...trainee.weeks[weekIndex]!.feedback,
       ...(principalFeedback ? { principal: principalFeedback } : {}),
-      ...(input.principalRating !== null
-        ? { principalRating: input.principalRating }
+      principalRating: input.principalRating,
+      ...(attendance.length > 0 ? { principalAttendance: [...attendance].sort() } : {}),
+      ...(supervisorVisits.length > 0
+        ? { principalSupervisorVisits: [...supervisorVisits].sort() }
         : {}),
     },
     readBySupervisor: true,
@@ -309,6 +365,35 @@ export function markMockWeekRead(input: {
   nextWeeks[weekIndex] = {
     ...nextWeeks[weekIndex]!,
     readBySupervisor: true,
+  };
+  const nextTrainee = withDerived({ ...trainee, weeks: nextWeeks });
+  const nextTrainees = [...trainees];
+  nextTrainees[traineeIndex] = nextTrainee;
+  writeTrainees(nextTrainees);
+  return structuredClone(nextTrainee);
+}
+
+/** هم‌راستا با real: PATCH `student-weeks/{id}/can-watch-others`. */
+export function setMockDailyApprovalCanWatchOthers(input: {
+  traineeId: string;
+  weekId: string;
+  canWatchOthers: boolean;
+}): DailyApprovalTrainee {
+  const trainees = readTrainees();
+  const traineeIndex = trainees.findIndex((row) => row.id === input.traineeId);
+  if (traineeIndex < 0) throw new Error('کارورز موردنظر یافت نشد.');
+  const trainee = trainees[traineeIndex]!;
+  if (trainee.status === 'dropped') {
+    throw new Error('این کارورز از کلاس آموزشی اخراج شده است.');
+  }
+
+  const weekIndex = trainee.weeks.findIndex((week) => week.id === input.weekId);
+  if (weekIndex < 0) throw new Error('گزارش هفته یافت نشد.');
+
+  const nextWeeks = [...trainee.weeks];
+  nextWeeks[weekIndex] = {
+    ...trainee.weeks[weekIndex]!,
+    canWatchOthers: input.canWatchOthers,
   };
   const nextTrainee = withDerived({ ...trainee, weeks: nextWeeks });
   const nextTrainees = [...trainees];

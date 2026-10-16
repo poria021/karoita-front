@@ -7,10 +7,25 @@ import type {
   InternshipSchoolCapacity,
   InternshipSupervisor,
 } from '@/types/internship-enrollment';
+import { isDynamicEnrollmentLevel } from '@/services/syllabus-config/course-catalog';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 export function hasAvailableCapacity(capacity: InternshipCapacity | undefined): boolean {
   return capacity === null || (typeof capacity === 'number' && capacity > 0);
+}
+
+/**
+ * ظرفیت مدرسه/معلم برای یک سطح. سطح مجازیِ leaf داینامیک در seed ظرفیت ندارد؛
+ * mock آن را نامحدود (`null`) می‌گیرد تا ثبت‌نام درس تازه قفل نشود.
+ */
+export function capacityForLevel(
+  capacities: Partial<Record<number, InternshipCapacity>>,
+  level: InternshipEnrollmentLevel
+): InternshipCapacity | undefined {
+  const configured = capacities[level];
+  // `null` یعنی نامحدود، پس با `??` جا نمی‌افتد.
+  if (configured !== undefined) return configured;
+  return isDynamicEnrollmentLevel(level) ? null : undefined;
 }
 
 export function normalizeEnrollmentCourseTitle(
@@ -55,15 +70,25 @@ export function hasEligibleSchoolMentorCascade(input: {
           (Array.isArray(actor.district) ? actor.district.length === 0 : false) ||
           actorFieldIncludes(actor.district, school.district)));
 
-    if (!isInDefaultScope || !hasAvailableCapacity(school.capacities[level])) {
+    if (!isInDefaultScope || !hasAvailableCapacity(capacityForLevel(school.capacities, level))) {
       return false;
     }
 
     return mentors.some(
       (mentor) =>
-        mentor.schoolId === school.id && hasAvailableCapacity(mentor.capacities[level])
+        mentor.schoolId === school.id &&
+        hasAvailableCapacity(capacityForLevel(mentor.capacities, level))
     );
   });
+}
+
+function normalizeSelectionValue(value: unknown): string {
+  if (Array.isArray(value)) return normalizeSelectionValue(value[0]);
+  if (typeof value === 'string') {
+    return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('fa-IR');
+  }
+  if (typeof value === 'number') return String(value);
+  return '';
 }
 
 export function filterEligibleSupervisors(input: {
@@ -77,14 +102,18 @@ export function filterEligibleSupervisors(input: {
   mentors: InternshipMentorCapacity[];
 }): InternshipSupervisor[] {
   const normalizedQuery = input.query.trim().toLocaleLowerCase('fa-IR');
+  const normalizedProvince = normalizeSelectionValue(input.province);
+  const normalizedCollege = normalizeSelectionValue(input.college);
   const hasCascade = hasEligibleSchoolMentorCascade(input);
 
   if (!hasCascade) return [];
 
   return input.supervisors.filter((supervisor) => {
     if (supervisor.readOnly || !hasAvailableCapacity(supervisor.capacity)) return false;
-    if (input.college && supervisor.college !== input.college) return false;
-    if (input.province && supervisor.province !== input.province) return false;
+    const supervisorCollege = normalizeSelectionValue(supervisor.college);
+    const supervisorProvince = normalizeSelectionValue(supervisor.province);
+    if (normalizedCollege && supervisorCollege && supervisorCollege !== normalizedCollege) return false;
+    if (normalizedProvince && supervisorProvince && supervisorProvince !== normalizedProvince) return false;
     return (
       !normalizedQuery ||
       supervisor.name.toLocaleLowerCase('fa-IR').includes(normalizedQuery)

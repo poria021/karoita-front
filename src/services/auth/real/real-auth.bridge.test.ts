@@ -376,4 +376,26 @@ describe('realSetPassword', () => {
     });
     postMaybeJson.mockRestore();
   });
+
+  it('POSTs to v1/admin/auth/set/password when the admin surface is active', async () => {
+    const tokens = await import('@/services/auth/real/real-auth.tokens');
+    vi.spyOn(tokens, 'readRealAuthSurface').mockReturnValue('admin');
+    const { REAL_AUTH_PATHS, realSetPassword } = await import(
+      '@/services/auth/real/real-auth.bridge'
+    );
+    const { apiClient } = await import('@/services/api-client');
+    const postMaybeJson = vi
+      .spyOn(apiClient, 'postMaybeJson')
+      .mockResolvedValue(null);
+
+    expect(REAL_AUTH_PATHS.adminSetPassword).toBe('v1/admin/auth/set/password');
+    await realSetPassword({ oldPassword: 'old-pass-1', newPassword: 'newPassword123' });
+
+    expect(postMaybeJson).toHaveBeenCalledWith('v1/admin/auth/set/password', {
+      oldPassword: 'old-pass-1',
+      newPassword: 'newPassword123',
+    });
+    postMaybeJson.mockRestore();
+    vi.restoreAllMocks();
+  });
 });

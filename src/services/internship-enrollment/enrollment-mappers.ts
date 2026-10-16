@@ -1,6 +1,8 @@
+import { isDynamicEnrollmentLevel } from '@/services/syllabus-config/course-catalog';
 import type {
   InternshipCourseKind,
   InternshipEnrollmentLevel,
+  InternshipEnrollmentOutcome,
   InternshipEnrollmentRecordStatus,
   InternshipEnrollmentRole,
   InternshipEnrollmentScenario,
@@ -10,6 +12,18 @@ export function kindForRole(
   role: InternshipEnrollmentRole
 ): InternshipCourseKind {
   return role === 'skill_learner' ? 'apprenticeship' : 'internship';
+}
+
+/**
+ * نتیجهٔ قبولی/ردِ یک ثبت‌نام — مشترک real (`isPass`) و mock (`passed`).
+ * فقط ثبت‌نامِ `completed` نتیجه دارد؛ نبودن پرچم یعنی نامعلوم، نه قبول.
+ */
+export function enrollmentOutcome(
+  status: InternshipEnrollmentRecordStatus | undefined,
+  isPass: boolean | null | undefined
+): InternshipEnrollmentOutcome | null {
+  if (status !== 'completed' || typeof isPass !== 'boolean') return null;
+  return isPass ? 'passed' : 'failed';
 }
 
 export function courseNameForKind(kind: InternshipCourseKind): string {
@@ -24,6 +38,8 @@ export function clampLevel(
   kind: InternshipCourseKind,
   level: InternshipEnrollmentLevel
 ): InternshipEnrollmentLevel {
+  // سطح مجازی leaf داینامیک (mock) سقف ۴/۲ ندارد؛ Nest هرگز چنین سطحی نمی‌سازد.
+  if (isDynamicEnrollmentLevel(level)) return level;
   const max = maxLevelForKind(kind);
   if (level < 1) return 1;
   if (level > max) return max as InternshipEnrollmentLevel;

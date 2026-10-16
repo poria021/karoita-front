@@ -102,6 +102,26 @@ describe('enrollment eligibility', () => {
     ).toEqual([]);
   });
 
+  it('treats province labels with extra whitespace as the same province', () => {
+    expect(
+      filterEligibleSupervisors({
+        supervisors: [
+          {
+            ...supervisors[0]!,
+            province: ' تهران ',
+          },
+        ],
+        actor: student,
+        level: 1,
+        query: '',
+        province: 'تهران',
+        college: 'پردیس شهید باهنر تهران',
+        schools,
+        mentors,
+      }).map((supervisor) => supervisor.id)
+    ).toEqual(['eligible']);
+  });
+
   it('normalizes stored course titles and prevents a second student course', () => {
     expect(normalizeEnrollmentCourseTitle('کارورزی', 2)).toBe('کارورزی 2');
     expect(toPersianDigits(normalizeEnrollmentCourseTitle('کارورزی', 2))).toBe(

@@ -63,7 +63,8 @@ export function PageHeader({
   return (
     <header
       className={cn(
-        'flex flex-row items-center justify-between gap-kv-inline pb-kv-group',
+        // عنوان و بردکرامب بلند روی موبایل روی هم نیفتند؛ بردکرامب به خط بعد می‌رود.
+        'flex flex-row flex-wrap items-center justify-between gap-x-kv-inline gap-y-kv-pair pb-kv-group',
         className
       )}
     >

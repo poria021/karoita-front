@@ -6,6 +6,7 @@ import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import type { SyllabusConfigSubTab } from '@/types/syllabus-config';
+import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useSyllabusConfigPage } from '../hooks/useSyllabusConfigPage';
 import { CourseOfferingsPanel } from './CourseOfferingsPanel';
@@ -60,6 +61,8 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
               selectCourse={page.selectCourse}
               offeredCatalogIds={page.offeredCatalogIds}
               toggleCourseOffering={page.toggleCourseOffering}
+              setCourseOfferingsStatus={page.setCourseOfferingsStatus}
+              pendingBulkStatus={page.pendingBulkStatus}
               weeks={page.weeks}
               isWeeksPublished={page.isWeeksPublished}
               isLoading={page.isLoading}
@@ -144,6 +147,21 @@ function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
                 : ''
             }
             confirmText="غیرفعال کردن"
+            cancelText="انصراف"
+            confirmVariant="destructive"
+          />
+
+          <KvConfirmationDialog
+            isOpen={Boolean(page.bulkDeactivateTarget)}
+            onClose={page.clearBulkDeactivate}
+            onConfirm={page.confirmBulkDeactivate}
+            title="غیرفعال‌سازی گروهی ارائه دروس"
+            description={
+              page.bulkDeactivateTarget
+                ? `ارائهٔ ${toPersianDigits(String(page.bulkDeactivateTarget.length))} درس فعال در نیم‌سال جاری یکجا متوقف می‌شود و فراگیران دیگر نمی‌توانند آن‌ها را انتخاب کنند. آیا ادامه می‌دهید؟`
+                : ''
+            }
+            confirmText="غیرفعال کردن همه"
             cancelText="انصراف"
             confirmVariant="destructive"
           />

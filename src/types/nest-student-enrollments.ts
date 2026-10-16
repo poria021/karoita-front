@@ -128,6 +128,12 @@ export type NestStudentEnrollment = {
   /** فقط روی پاسخ لیست هست (`StudentEnrollmentListItemDto.professor`). */
   professor?: { id?: string; firstName?: string | null; lastName?: string | null } | null;
   status?: NestEnrollmentStatus | string;
+  /**
+   * قبولی، فقط روی ثبت‌نامِ `completed` (موقع بستن ترم پر می‌شود). روی سند
+   * ذخیره می‌شود ولی `StudentEnrollmentListItemDto` هنوز آن را برنمی‌گرداند؛
+   * تا آن موقع `undefined` است و نتیجه «نامعلوم» نمایش داده می‌شود.
+   */
+  isPass?: boolean | null;
   startedAt?: string;
   completedAt?: string | null;
   createdAt?: string;
@@ -205,6 +211,19 @@ export type NestStudentWeek = {
   score?: number | null;
   /** نمرهٔ وزن‌دار این هفته (نمره × وزن هفته) — تنها فیلد وزن که Nest برمی‌گرداند. */
   weightedScore?: number | null;
+  /** بازدید حضوری استاد راهنما از مدرسه در این جلسه. */
+  schoolVisited?: boolean | null;
+  /**
+   * فیلدهای حضور/دسترسی — هم‌نام بدنهٔ PATCHهای `mentor-present`/
+   * `approve-*-present`/`can-watch-others`. در `StudentWeekResponseDto` مستند
+   * نشده‌اند، پس همه اختیاری‌اند و نبودشان یعنی «نامشخص».
+   */
+  isMentorPresent?: boolean | null;
+  isApprovedBySchoolAdminMentorPresent?: boolean | null;
+  mentorPresentAt?: string | null;
+  isApprovedBySchoolAdminStudentPresent?: boolean | null;
+  studentPresentAt?: string | null;
+  canWatchOthers?: boolean | null;
   scoreGivenBy?: string | null;
   scoreGivenAt?: string | null;
   startedAt?: string | null;

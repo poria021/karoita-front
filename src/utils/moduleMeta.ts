@@ -1,5 +1,11 @@
 import { PlannedRoutes } from '@/services/planned-routes';
 import { RouteService } from '@/services/route.service';
+import {
+  courseDefinitionsOf,
+  findLeafByEnrollmentLevel,
+  isDynamicEnrollmentLevel,
+} from '@/services/syllabus-config/course-catalog';
+import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
 import type { UserRole } from '@/types/auth';
 import {
   getRoleStrategy,
@@ -109,6 +115,12 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'فعال‌سازی ارائه دروس ترم و ویرایش سرفصل هفتگی هر درس در نیم‌سال جاری.',
     icon: 'fa-sliders',
   },
+  [RouteService.karvita.syllabusCourseCatalog()]: {
+    title: 'تعریف دروس',
+    description:
+      'تعریف درس‌ها و زیرمجموعه‌هایشان و اختصاص هر درس به پنل کارورزی (ترمی) یا کارآموزی (پودمانی).',
+    icon: 'fa-book-open',
+  },
   [RouteService.karvita.syllabusTermSettings()]: {
     title: 'تنظیمات عمومی ترم‌ها',
     description:
@@ -132,10 +144,10 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'تعریف دامنه‌های سازمانی (Scope)، ارتقای موقت نقش و ویرایش مجوزهای ممیزی کاربران.',
     icon: 'fa-user-gear',
   },
-  [PlannedRoutes.manageAds()]: {
-    title: 'پنل انتشارات و اعلانات',
+  [RouteService.karvita.announcements()]: {
+    title: 'اطلاعیه‌ها و تبلیغات',
     description:
-      'بخش مدیریت عالی انتشارات، اعلانات استانی و اخبار رسمی سامانه جامع کارویتا.',
+      'انتشار اطلاعیه برای داشبورد نقش‌های زیرمجموعه؛ تبلیغات فقط توسط مدیر ارشد و دستیارانش.',
     icon: 'fa-bullhorn',
   },
   [RouteService.karvita.internshipSelection()]: {
@@ -251,11 +263,34 @@ function isProfilePath(path: string): boolean {
   return /^\/karvita\/[^/]+\/profile$/.test(path);
 }
 
+/**
+ * عنوان صفحهٔ انتخاب واحد یک درس داینامیک (سطح مجازی بالای ۱۰۰) از کاتالوگ mock.
+ * کاتالوگ فقط در mock داینامیک است؛ در real یا سرور leaf پیدا نمی‌شود و همان عنوان عمومی می‌ماند.
+ */
+function resolveDynamicEnrollmentMeta(path: string): ModuleMeta | null {
+  const match = /^\/karvita\/internships\/(\d+)$/.exec(path);
+  if (!match) return null;
+  const level = Number(match[1]);
+  if (!isDynamicEnrollmentLevel(level)) return null;
+  const definitions = courseDefinitionsOf(readSyllabusSnapshot());
+  const leaf =
+    findLeafByEnrollmentLevel(definitions, 'semester', level) ??
+    findLeafByEnrollmentLevel(definitions, 'modular', level);
+  if (!leaf) return null;
+  return {
+    ...MODULE_META_BY_PATH[RouteService.karvita.internshipSelection(1)]!,
+    title: leaf.title,
+  };
+}
+
 export function getModuleMeta(
   pathname: string,
   role?: UserRole | null
 ): ModuleMeta {
   const path = normalizePath(pathname);
+
+  const dynamicEnrollment = resolveDynamicEnrollmentMeta(path);
+  if (dynamicEnrollment) return dynamicEnrollment;
 
   if (isProfilePath(path)) {
     return PROFILE_META;

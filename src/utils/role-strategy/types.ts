@@ -7,6 +7,8 @@ export interface SidebarMenuItem {
   icon: string;
   /** نشان سطح درس فارسی روی `icon` (کارورزی/کارآموزی ۱…). */
   iconBadge?: number;
+  /** آیتم برای نمایش ولی غیرقابل کلیک تا درس در ترم فعلی فعال شود. */
+  disabled?: boolean;
 }
 
 export interface SidebarMenuGroup {

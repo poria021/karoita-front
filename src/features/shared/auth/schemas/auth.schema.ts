@@ -50,6 +50,12 @@ export const loginSchema = mobileSchema.extend({
 
 export type LoginSchema = z.infer<typeof loginSchema>;
 
+export const adminPasswordLoginSchema = mobileSchema.extend({
+  password: passwordFieldSchema,
+});
+
+export type AdminPasswordLoginSchema = z.infer<typeof adminPasswordLoginSchema>;
+
 export const forgotResetSchema = z
   .object({
     newPassword: passwordFieldSchema,

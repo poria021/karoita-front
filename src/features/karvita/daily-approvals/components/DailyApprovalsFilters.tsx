@@ -47,26 +47,28 @@ export function DailyApprovalsFilters({
         />
       </div>
 
-      <div className={mobile ? 'w-full' : 'w-full min-w-0 flex-1'}>
-        <KvSelect
-          value={course}
-          onValueChange={(value) => {
-            const option = courseOptions.find((item) => item.value === value);
-            if (option) onCourseChange(option.value);
-          }}
-        >
-          <KvSelectTrigger aria-label="فیلتر درس">
-            <KvSelectValue />
-          </KvSelectTrigger>
-          <KvSelectContent>
-            {courseOptions.map((option) => (
-              <KvSelectItem key={option.value} value={option.value}>
-                {option.label}
-              </KvSelectItem>
-            ))}
-          </KvSelectContent>
-        </KvSelect>
-      </div>
+      {courseOptions.length > 1 ? (
+        <div className={mobile ? 'w-full' : 'w-full min-w-0 flex-1'}>
+          <KvSelect
+            value={course}
+            onValueChange={(value) => {
+              const option = courseOptions.find((item) => item.value === value);
+              if (option) onCourseChange(option.value);
+            }}
+          >
+            <KvSelectTrigger aria-label="فیلتر درس">
+              <KvSelectValue />
+            </KvSelectTrigger>
+            <KvSelectContent>
+              {courseOptions.map((option) => (
+                <KvSelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </KvSelectItem>
+              ))}
+            </KvSelectContent>
+          </KvSelect>
+        </div>
+      ) : null}
     </div>
   );
 }

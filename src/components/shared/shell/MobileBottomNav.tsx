@@ -10,13 +10,14 @@ import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store/useUserStore';
 import {
   areKarvitaModulesUnlocked,
-  getVisibleSidebarMenu,
   isSidebarMenuGroup,
 } from '@/utils/RoleStrategyMap';
+import { resolveActiveSidebarPath } from '@/utils/role-strategy/sidebar-active';
 import type { SidebarMenuEntry, SidebarMenuItem } from '@/utils/RoleStrategyMap';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 import { resolveSidebarIcon } from './resolveSidebarIcon';
+import { useSidebarMenu, useSidebarSearch } from './useSidebarMenu';
 
 function flattenAllItems(entries: SidebarMenuEntry[]): SidebarMenuItem[] {
   const result: SidebarMenuItem[] = [];
@@ -34,12 +35,18 @@ function flattenAllItems(entries: SidebarMenuEntry[]): SidebarMenuItem[] {
 export function MobileBottomNav() {
   const activeUser = useUserStore((state) => state.activeUser);
   const pathname = usePathname();
+  const search = useSidebarSearch();
+  const visibleMenu = useSidebarMenu(activeUser?.role);
 
   if (!activeUser) return null;
 
-  const visibleMenu = getVisibleSidebarMenu(activeUser.role);
   const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
   const allItems = flattenAllItems(visibleMenu);
+  const activePath = resolveActiveSidebarPath(
+    allItems.map((item) => item.path),
+    pathname,
+    search
+  );
 
   if (allItems.length === 0) return null;
 
@@ -56,7 +63,7 @@ export function MobileBottomNav() {
           )}
         >
           {allItems.map((item) => {
-            const isActive = pathname === item.path;
+            const isActive = activePath === item.path;
             const isLocked = !modulesUnlocked;
             const icon = resolveSidebarIcon(item.icon);
             const hasCourseBadge = typeof item.iconBadge === 'number';

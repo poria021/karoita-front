@@ -1,4 +1,9 @@
 import { isMockApiMode } from '@/lib/api-mode';
+import {
+  courseDefinitionsOf,
+  flattenCourseCatalog,
+  legacyLeafId,
+} from '@/services/syllabus-config/course-catalog';
 import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
 import { summarizeCapacityCourses } from '@/utils/organizational-capacity-math';
 import type {
@@ -42,29 +47,34 @@ function maxCapacityFromSyllabus(): number {
   return Number.isFinite(value) && value > 0 ? value : 15;
 }
 
-function buildSeedCourses(
-  kind: OrganizationalCapacityKind
+/**
+ * درس‌های ظرفیت = درس‌های فعال کاتالوگ برای همین مخاطب (زیرمجموعه‌ها تخت شده).
+ * ظرفیت/روز قبلاً ذخیره‌شده با `id` حفظ می‌شود؛ درس تازه seed می‌گیرد.
+ */
+function reconcileCourses(
+  kind: OrganizationalCapacityKind,
+  existing: readonly OrganizationalCapacityCourse[]
 ): OrganizationalCapacityCourse[] {
-  if (kind === 'internship') {
-    return [1, 2, 3, 4].map((level) => ({
-      id: `intern${level}`,
-      title: `کارورزی ${level}`,
-      kind: 'internship' as const,
-      level: level as 1 | 2 | 3 | 4,
+  const catalog = flattenCourseCatalog(
+    courseDefinitionsOf(readSyllabusSnapshot()),
+    termTypeForKind(kind)
+  );
+  const byId = new Map(existing.map((course) => [course.id, course]));
+  return catalog.map((item, index) => {
+    const saved =
+      byId.get(item.id) ?? byId.get(legacyLeafId(item.id) ?? '');
+    return {
       total: 15,
-      confirmed: level === 1 ? 2 : level === 2 ? 1 : 0,
+      confirmed: kind === 'internship' ? (index === 0 ? 2 : index === 1 ? 1 : 0) : index === 0 ? 1 : 0,
       selectedDays: ['sat'] as OrganizationalCapacityWeekday[],
-    }));
-  }
-  return [1, 2].map((level) => ({
-    id: `appr${level}`,
-    title: `کارآموزی ${level}`,
-    kind: 'apprenticeship' as const,
-    level: level as 1 | 2,
-    total: 15,
-    confirmed: level === 1 ? 1 : 0,
-    selectedDays: ['sat'] as OrganizationalCapacityWeekday[],
-  }));
+      ...saved,
+      id: item.id,
+      title: item.title,
+      kind,
+      groupId: item.groupId,
+      groupTitle: item.groupTitle,
+    };
+  });
 }
 
 let memoryStore: StoreShape | null = null;
@@ -110,14 +120,15 @@ function ensureBucket(
   if (!store[termId]) store[termId] = {};
   const key = actorKey(actorId, kind);
   const existing = store[termId]![key];
-  if (existing) return structuredClone(existing);
-  const created: ActorBucket = {
-    status: 'draft',
-    courses: buildSeedCourses(kind),
+  const next: ActorBucket = {
+    status: existing?.status ?? 'draft',
+    courses: reconcileCourses(kind, existing?.courses ?? []),
   };
-  store[termId]![key] = structuredClone(created);
-  writeStore(store);
-  return created;
+  if (!existing || JSON.stringify(existing) !== JSON.stringify(next)) {
+    store[termId]![key] = structuredClone(next);
+    writeStore(store);
+  }
+  return next;
 }
 
 function resolveTerm(

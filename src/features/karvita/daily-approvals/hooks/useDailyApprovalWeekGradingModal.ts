@@ -13,6 +13,7 @@ import type { UserRole } from '@/types/auth';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { normalizeDailyApprovalScoreInput } from '../lib/dailyApprovalScore';
+import { getPrincipalAttendanceDays } from '../lib/principalAttendanceDays';
 
 type UseDailyApprovalWeekGradingModalInput = {
   role: UserRole | null | undefined;
@@ -23,6 +24,7 @@ type UseDailyApprovalWeekGradingModalInput = {
   onSaveSupervisor: (input: {
     score: number | null;
     advisorFeedback: string;
+    schoolVisited: boolean;
   }) => Promise<void>;
   onSaveMentor: (input: {
     mentorFeedback: string;
@@ -31,6 +33,8 @@ type UseDailyApprovalWeekGradingModalInput = {
   onSavePrincipal: (input: {
     principalFeedback: string;
     principalRating: DailyApprovalCompetencyRating | null;
+    principalAttendance: string[];
+    principalSupervisorVisits: string[];
   }) => Promise<void>;
 };
 
@@ -58,6 +62,8 @@ function getInitialGradingForm(week: DailyApprovalWeek | null) {
     mentorFeedback: week?.feedback.mentor ?? '',
     principalRating: (week?.feedback.principalRating ?? null) as DailyApprovalCompetencyRating | null,
     principalFeedback: week?.feedback.principal ?? '',
+    principalAttendance: week?.feedback.principalAttendance ?? [],
+    principalSupervisorVisits: week?.feedback.principalSupervisorVisits ?? [],
   };
 }
 
@@ -101,6 +107,9 @@ export function useDailyApprovalWeekGradingModal({
   const [scoreInput, setScoreInput] = useState(
     () => getInitialGradingForm(week).scoreInput
   );
+  const [schoolVisited, setSchoolVisited] = useState(
+    () => week?.schoolVisited === true
+  );
   const [mentorRating, setMentorRating] = useState<DailyApprovalCompetencyRating | null>(
     () => getInitialGradingForm(week).mentorRating
   );
@@ -115,16 +124,27 @@ export function useDailyApprovalWeekGradingModal({
     () => getInitialGradingForm(week).principalFeedback
   );
 
+  const [principalAttendance, setPrincipalAttendance] = useState<string[]>(
+    () => getInitialGradingForm(week).principalAttendance
+  );
+  const [principalSupervisorVisits, setPrincipalSupervisorVisits] = useState<string[]>(
+    () => getInitialGradingForm(week).principalSupervisorVisits
+  );
+  const attendanceDays = getPrincipalAttendanceDays(week?.submittedAt);
+
   const resetForm = useCallback(() => {
     const initial = getInitialGradingForm(week);
     const restored = hasGradingDraft ? draftValue : null;
     setAdvisorFeedback(restored?.advisorFeedback ?? initial.advisorFeedback);
     setScoreInput(restored?.scoreInput ?? initial.scoreInput);
+    setSchoolVisited(week?.schoolVisited === true);
     setMentorRating(initial.mentorRating);
     setMentorFeedback(restored?.mentorFeedback ?? initial.mentorFeedback);
     setPrincipalRating(initial.principalRating);
     setPrincipalFeedback(restored?.principalFeedback ?? initial.principalFeedback);
-  }, [draftValue, hasGradingDraft, week]);
+    setPrincipalAttendance(initial.principalAttendance);
+    setPrincipalSupervisorVisits(initial.principalSupervisorVisits);
+  },[draftValue, hasGradingDraft, week]);
 
   // هر بار trainee/week عوض بشه (نه فقط موقع باز شدن مودال) فرم رو ریست کن —
   // طبق الگوی رسمی React این کار مستقیم حین رندر انجام می‌شه، نه با
@@ -178,7 +198,12 @@ export function useDailyApprovalWeekGradingModal({
         }
         score = parsed;
       }
-      await onSaveSupervisor({ score, advisorFeedback });
+      await onSaveSupervisor({
+        score,
+        advisorFeedback,
+        // بازدید فقط همراه نمرهٔ نهایی (تایید) معنا دارد، نه رد اصلاحی.
+        schoolVisited: score !== null && schoolVisited,
+      });
       clearGradingDraft();
       return;
     }
@@ -194,11 +219,16 @@ export function useDailyApprovalWeekGradingModal({
     }
 
     if (role === 'school_principal') {
-      if (!principalFeedback.trim() && principalRating === null) {
-        toast.error('لطفاً امتیاز یا بازخورد توصیفی را ثبت نمایید.');
+      if (principalRating === null) {
+        toast.error('ثبت سطح شایستگی کارورز توسط مدیر مدرسه الزامی است.');
         return;
       }
-      await onSavePrincipal({ principalFeedback, principalRating });
+      await onSavePrincipal({
+        principalFeedback,
+        principalRating,
+        principalAttendance,
+        principalSupervisorVisits,
+      });
       clearGradingDraft();
     }
   };
@@ -240,6 +270,8 @@ export function useDailyApprovalWeekGradingModal({
       setScoreInput(next);
       persistGradingDraft({ scoreInput: next });
     },
+    schoolVisited,
+    setSchoolVisited,
     mentorRating,
     setMentorRating,
     mentorFeedback,
@@ -254,6 +286,11 @@ export function useDailyApprovalWeekGradingModal({
       setPrincipalFeedback(next);
       persistGradingDraft({ principalFeedback: next });
     },
+    attendanceDays,
+    principalAttendance,
+    setPrincipalAttendance,
+    principalSupervisorVisits,
+    setPrincipalSupervisorVisits,
     resetForm,
     save,
     close: onClose,

@@ -66,6 +66,7 @@ function normalizeAccessPath(pathname: string): string {
 const ASSISTANT_ADMIN_BLOCKED_PATHS = new Set([
   RouteService.karvita.adminUserCreation(),
   RouteService.karvita.syllabusTermSettings(),
+  RouteService.karvita.syllabusCourseCatalog(),
 ]);
 
 function isAssistantAdminBlockedPath(pathname: string): boolean {
@@ -74,7 +75,7 @@ function isAssistantAdminBlockedPath(pathname: string): boolean {
 
 /**
  * دستیار مدیر ارشد ماژول‌های اجرایی مدیر ارشد را می‌بیند،
- * به‌جز ایجاد حساب سازمانی و تنظیمات عمومی ترم.
+ * به‌جز ایجاد حساب سازمانی، تنظیمات عمومی ترم و تعریف دروس.
  */
 export function canAccessAdminControlPlane(
   role: UserRole | string | null | undefined,

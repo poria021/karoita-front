@@ -1,5 +1,7 @@
 'use client';
 
+import type { CourseCatalogItem } from '@/types/syllabus-config';
+
 import type { UseSyllabusConfigPageReturn } from '../hooks/useSyllabusConfigPage';
 import { CourseOfferingsTable } from './CourseOfferingsTable';
 import { TermGateCards, TermSemesterCard } from './TermStatusCards';
@@ -22,6 +24,8 @@ type CourseOfferingsPanelProps = Pick<
   | 'selectCourse'
   | 'offeredCatalogIds'
   | 'toggleCourseOffering'
+  | 'setCourseOfferingsStatus'
+  | 'pendingBulkStatus'
   | 'weeks'
   | 'isWeeksPublished'
   | 'isLoading'
@@ -34,6 +38,13 @@ type CourseOfferingsPanelProps = Pick<
   | 'deleteWeek'
   | 'saveSyllabus'
 >;
+
+/** «سرگروه — زیرمجموعه»، مگر عنوان زیرمجموعه خودش با نام گروه شروع شود. */
+function courseDisplayTitle(course: CourseCatalogItem): string {
+  const group = course.groupTitle?.trim();
+  if (!group || course.title.trim().startsWith(group)) return course.title;
+  return `${group} — ${course.title}`;
+}
 
 export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
   const hasAudienceTerm = Boolean(props.selectedAudienceTerm);
@@ -62,6 +73,8 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
           pendingCourseId={props.pendingCourseId}
           onSelectCourse={props.selectCourse}
           onToggleOffering={props.toggleCourseOffering}
+          pendingBulkStatus={hasAudienceTerm ? props.pendingBulkStatus : null}
+          onSetAllOfferings={props.setCourseOfferingsStatus}
         />
       </div>
 
@@ -78,7 +91,7 @@ export function CourseOfferingsPanel(props: CourseOfferingsPanelProps) {
 
       <div className="order-3 lg:order-3 lg:col-span-8">
         <WeeklySyllabusTable
-          courseTitle={selectedCourse?.title ?? null}
+          courseTitle={selectedCourse ? courseDisplayTitle(selectedCourse) : null}
           weeks={weeks}
           isWeeksPublished={hasAudienceTerm ? props.isWeeksPublished : false}
           isLoading={props.isLoading}

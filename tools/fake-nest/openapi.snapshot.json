@@ -1,0 +1,9229 @@
+{
+ "openapi": "3.0.0",
+ "paths": {
+  "/api/v1/mentor-lesson-files": {
+   "post": {
+    "description": "Mentor uploads one or more files linked to a lesson with an optional description.",
+    "operationId": "MentorController_create_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateMentorLessonFileDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Created mentor lesson file record"
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Upload files for a lesson (mentor only)",
+    "tags": [
+     "Mentor lesson files"
+    ]
+   },
+   "get": {
+    "operationId": "MentorController_findAll_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/MentorLessonFileResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get all file uploads by the authenticated mentor",
+    "tags": [
+     "Mentor lesson files"
+    ]
+   }
+  },
+  "/api/v1/mentor-lesson-files/{id}": {
+   "delete": {
+    "operationId": "MentorController_remove_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Delete a mentor lesson file record (mentor only)",
+    "tags": [
+     "Mentor lesson files"
+    ]
+   }
+  },
+  "/api/v1/lessons/{lessonId}/mentor-files": {
+   "get": {
+    "operationId": "MentorController_findByLessonForStudent_v1",
+    "parameters": [
+     {
+      "name": "lessonId",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/MentorLessonFileResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get mentor's uploaded files for a lesson (student/trainee only). Returns files uploaded by the student's assigned professor for that lesson.",
+    "tags": [
+     "Mentor lesson files"
+    ]
+   }
+  },
+  "/api/v1/files/upload": {
+   "post": {
+    "operationId": "FilesS3PresignedController_uploadFile_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FileUploadDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FileResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Files"
+    ]
+   }
+  },
+  "/api/v1/files/{id}/confirm": {
+   "patch": {
+    "operationId": "FilesS3PresignedController_confirmUpload_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Files"
+    ]
+   }
+  },
+  "/api/v1/original-lessons": {
+   "post": {
+    "operationId": "OriginalLessonsController_createBulk_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/BulkCreateOriginalLessonDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/OriginalLesson"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Originallessons"
+    ]
+   },
+   "get": {
+    "operationId": "OriginalLessonsController_findAll_v1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "mainTitle",
+      "required": false,
+      "in": "query",
+      "description": "Filter lessons by main title",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "status",
+      "required": false,
+      "in": "query",
+      "description": "Filter lessons by status",
+      "schema": {
+       "type": "string",
+       "enum": [
+        "active",
+        "deactive"
+       ]
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationOriginalLessonResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Originallessons"
+    ]
+   }
+  },
+  "/api/v1/original-lessons/{id}": {
+   "get": {
+    "operationId": "OriginalLessonsController_findById_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OriginalLesson"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Originallessons"
+    ]
+   },
+   "patch": {
+    "operationId": "OriginalLessonsController_update_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateOriginalLessonDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OriginalLesson"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Originallessons"
+    ]
+   },
+   "delete": {
+    "operationId": "OriginalLessonsController_remove_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Originallessons"
+    ]
+   }
+  },
+  "/api/admin/floating-products": {
+   "post": {
+    "description": "Upload the logo first via POST /v1/files/upload, then send the returned file id as picture.id.",
+    "operationId": "FloatingProductsController_create",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateFloatingProductDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FloatingProduct"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Add a floating product",
+    "tags": [
+     "Admin floating products"
+    ]
+   },
+   "get": {
+    "operationId": "FloatingProductsController_findAll",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationFloatingProductResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "summary": "List floating products",
+    "tags": [
+     "Admin floating products"
+    ]
+   }
+  },
+  "/api/admin/floating-products/{id}": {
+   "get": {
+    "operationId": "FloatingProductsController_findById",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FloatingProduct"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Admin floating products"
+    ]
+   },
+   "patch": {
+    "operationId": "FloatingProductsController_update",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateFloatingProductDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/FloatingProduct"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin floating products"
+    ]
+   },
+   "delete": {
+    "operationId": "FloatingProductsController_remove",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin floating products"
+    ]
+   }
+  },
+  "/api/admin/provinces": {
+   "post": {
+    "operationId": "AdminController_createProvinace",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateProvinaceDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   },
+   "get": {
+    "operationId": "AdminController_findAll",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "filters",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "sort",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "default": "[{\"orderBy\":\"title\",\"order\":\"ASC\"}]",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/ProvinceWithStatsResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/province/all": {
+   "get": {
+    "operationId": "AdminController_getAllProvinceWithoutPagination",
+    "parameters": [
+     {
+      "name": "title",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "example": "tehran",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/provinces/{id}": {
+   "patch": {
+    "operationId": "AdminController_updateProvinace",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "example": "6a564077b9a91e544e095fa3",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateProvinaceDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   },
+   "delete": {
+    "operationId": "AdminController_deleteProvince",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "example": "6a564077b9a91e544e095fa3",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/cities": {
+   "post": {
+    "operationId": "AdminController_createCity",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateCityDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   },
+   "get": {
+    "operationId": "AdminController_getAllCities",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "filters",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "sort",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "default": "[{\"orderBy\":\"title\",\"order\":\"ASC\"}]",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/CityWithStatsResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/cities/{id}": {
+   "get": {
+    "operationId": "AdminController_getCity",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   },
+   "patch": {
+    "operationId": "AdminController_updateCity",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "example": "6a564077b9a91e544e095fa3",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateCityDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   },
+   "delete": {
+    "operationId": "AdminController_deleteCity",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "example": "6a564077b9a91e544e095fa3",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/provinces/{id}/cities": {
+   "get": {
+    "operationId": "AdminController_getCityByProvinceId",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "example": "6a564077b9a91e544e095fa3",
+       "type": "string"
+      }
+     },
+     {
+      "name": "title",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "example": "tehran",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/educations": {
+   "post": {
+    "operationId": "AdminController_create",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateEducationalDistrictDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create educational district",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "get": {
+    "operationId": "AdminController_findAllEducation",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "provinceId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "cityId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "title",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/EducationalDistrictWithStatsResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get all educational districts",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/cities/{id}/educations": {
+   "get": {
+    "operationId": "AdminController_getAllEducations",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/province/{id}/educations": {
+   "get": {
+    "operationId": "AdminController_getAllEducationsByProvince",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/educations/{id}": {
+   "put": {
+    "operationId": "AdminController_update",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateEducationalDistrictDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update educational district",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "delete": {
+    "operationId": "AdminController_remove",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Delete educational district",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/schools": {
+   "post": {
+    "operationId": "AdminController_creatSchool",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateSchoolDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create school",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "get": {
+    "operationId": "AdminController_findAllSchool",
+    "parameters": [
+     {
+      "name": "provinceId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "cityId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "educationId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "title",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "example": "high",
+       "type": "string"
+      }
+     },
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/SchoolWithStatsResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get all schools",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/schools/all": {
+   "get": {
+    "operationId": "AdminController_findAllSchoolAll",
+    "parameters": [
+     {
+      "name": "provinceId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "cityId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "educationId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "title",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "example": "high",
+       "type": "string"
+      }
+     },
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/schools/{id}": {
+   "put": {
+    "operationId": "AdminController_updateSchool",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateSchoolDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update school",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/schools{id}": {
+   "delete": {
+    "operationId": "AdminController_removeSchool",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Delete school",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/degree": {
+   "post": {
+    "operationId": "AdminController_createDegree",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateDegreeDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create degree",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/roles": {
+   "get": {
+    "operationId": "AdminController_getRoles",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/RoleWithStatsResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/roles/{roleId}/degrees": {
+   "get": {
+    "operationId": "AdminController_findByRole",
+    "parameters": [
+     {
+      "name": "roleId",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/degree/{id}": {
+   "put": {
+    "operationId": "AdminController_updateDegree",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateDegreeDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update degree",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "delete": {
+    "operationId": "AdminController_removeDegree",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Delete degree",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/degreeee": {
+   "get": {
+    "operationId": "AdminController_findAllDegree1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "title",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "example": "software",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get all degrees with role",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/universites": {
+   "post": {
+    "operationId": "AdminController_createUniversity",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateUniversityDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create university",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "get": {
+    "operationId": "AdminController_findAllUniversity",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "title",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "example": "Tehran",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/UniversityWithStatsResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get all universities",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/universites/{id}": {
+   "put": {
+    "operationId": "AdminController_updateUniversity",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateUniversityDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update university",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "delete": {
+    "operationId": "AdminController_removeUniversity",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Delete university",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/semester": {
+   "post": {
+    "operationId": "AdminController_createSemester",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateSemesterDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Semester successfully created."
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create a semester",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "get": {
+    "operationId": "AdminController_findAllSemester",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "List of semesters."
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get all semesters",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/semester/{id}": {
+   "get": {
+    "operationId": "AdminController_findOneSemester",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "example": "66c7a9b3e8f5a12345678901",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Semester found."
+     },
+     "404": {
+      "description": "Semester not found."
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get semester by ID",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "patch": {
+    "operationId": "AdminController_updateSemester",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "example": "66c7a9b3e8f5a12345678901",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateSemesterDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Semester successfully updated."
+     },
+     "400": {
+      "description": "Duplicate semester, or another semester with the same season and structure already has course selection open."
+     },
+     "404": {
+      "description": "Semester not found."
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update semester",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "delete": {
+    "operationId": "AdminController_removeSemester",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "example": "66c7a9b3e8f5a12345678901",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Semester successfully deleted."
+     },
+     "404": {
+      "description": "Semester not found."
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Delete semester",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/settings": {
+   "post": {
+    "operationId": "AdminController_createsettings",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateAcademicSettingDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Academic settings successfully created."
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create academic settings",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "get": {
+    "operationId": "AdminController_findLatest",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Returns the latest inserted academic settings."
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get latest academic settings",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/weeks": {
+   "post": {
+    "operationId": "AdminController_createWeek",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateWeekDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create a week",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/weeks/{id}": {
+   "patch": {
+    "operationId": "AdminController_updateWeek",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateWeekDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update a week",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/weeks/lesson/{lessonId}": {
+   "get": {
+    "operationId": "AdminController_findByLessonId",
+    "parameters": [
+     {
+      "name": "lessonId",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get all weeks of a lesson",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/lessons/status": {
+   "patch": {
+    "description": "Body is an array of lesson status updates.",
+    "operationId": "AdminController_bulkUpdateLessonsStatus",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "array",
+        "items": {
+         "$ref": "#/components/schemas/UpdateLessonItemDto"
+        }
+       },
+       "examples": {
+        "statusTable": {
+         "value": [
+          {
+           "id": "66c7a9b3e8f5a12345678901",
+           "status": true
+          },
+          {
+           "id": "66c7a9b3e8f5a12345678902",
+           "status": false
+          }
+         ]
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Bulk update lesson status",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/lessons/{id}/status": {
+   "patch": {
+    "operationId": "AdminController_updateLessonsStatus",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateLessonStatusDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update a single lesson status",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/professor-capacities": {
+   "post": {
+    "description": "Body is an array of professor-lesson capacity rows. One document per professor and lesson. Capacity must not exceed latest generalProfessorCapacity. Days are 0–5 (Sat–Thu).",
+    "operationId": "AdminController_createProfessorCapacities",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "array",
+        "items": {
+         "$ref": "#/components/schemas/ProfessorCapacityItemDto"
+        }
+       },
+       "examples": {
+        "create": {
+         "value": [
+          {
+           "professorId": "66c7a9b3e8f5a12345678900",
+           "lessonId": "66c7a9b3e8f5a12345678901",
+           "semesterId": "66c7a9b3e8f5a12345678902",
+           "days": [
+            0
+           ],
+           "capacity": 15
+          }
+         ]
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create professor capacities",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "put": {
+    "description": "Updates existing rows matched by professorId + lessonId. Capacity must not exceed latest generalProfessorCapacity.",
+    "operationId": "AdminController_updateProfessorCapacities",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "type": "array",
+        "items": {
+         "$ref": "#/components/schemas/ProfessorCapacityItemDto"
+        }
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update existing professor capacities",
+    "tags": [
+     "Admin"
+    ]
+   },
+   "get": {
+    "operationId": "AdminController_findProfessorCapacities",
+    "parameters": [
+     {
+      "name": "lessonId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "example": "66c7a9b3e8f5a12345678902",
+       "type": "string"
+      }
+     },
+     {
+      "name": "semesterId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "example": "66c7a9b3e8f5a12345678903",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Professor capacity rows matching lessonId and/or semesterId",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/ProfessorCapacityResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List professor capacities by lesson and/or semester",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/lessons/{lessonId}/weeks": {
+   "put": {
+    "description": "Replaces the lesson week list. Repeated priorities are stored as separate weeks.",
+    "operationId": "AdminController_syncWeeks",
+    "parameters": [
+     {
+      "name": "lessonId",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateLessonWeeksDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create or update all weeks of a lesson",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/admin/semesters_all": {
+   "get": {
+    "operationId": "AdminController_findAllSemestrSLessonsWeeks",
+    "parameters": [
+     {
+      "name": "structure",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "enum": [
+        "semester",
+        "podmani"
+       ],
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get semesters with lessons and weeks",
+    "tags": [
+     "Admin"
+    ]
+   }
+  },
+  "/api/v1/admin/auth/phone/login/password": {
+   "post": {
+    "operationId": "AdminAuthController_loginWithPassword_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthEmailLoginDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AdminLoginResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Admin Auth"
+    ]
+   }
+  },
+  "/api/v1/admin/auth/phone/login/request-otp": {
+   "post": {
+    "operationId": "AdminAuthController_requestOtp_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthPhoneLoginRequestDTO"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoginOtpResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Admin Auth"
+    ]
+   }
+  },
+  "/api/v1/admin/auth/phone/login/verify-otp": {
+   "post": {
+    "operationId": "AdminAuthController_verifyOtp_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthConfirmPhoneDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/AdminLoginResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Admin Auth"
+    ]
+   }
+  },
+  "/api/v1/admin/auth/set/password": {
+   "post": {
+    "operationId": "AdminAuthController_setPassword_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthSetPasswordDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin Auth"
+    ]
+   }
+  },
+  "/api/v1/admin/auth/me": {
+   "get": {
+    "operationId": "AdminAuthController_me_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Admin"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin Auth"
+    ]
+   }
+  },
+  "/api/v1/admin/auth/refresh": {
+   "post": {
+    "operationId": "AdminAuthController_refresh_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RefreshResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin Auth"
+    ]
+   }
+  },
+  "/api/v1/admin/auth/logout": {
+   "post": {
+    "operationId": "AdminAuthController_logout_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin Auth"
+    ]
+   }
+  },
+  "/api/v1/admin/admins": {
+   "post": {
+    "operationId": "AdminsController_create_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateAdminDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Admin"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admins"
+    ]
+   },
+   "get": {
+    "operationId": "AdminsController_findAll_v1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationAdminResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admins"
+    ]
+   }
+  },
+  "/api/v1/admin/admins/{id}": {
+   "get": {
+    "operationId": "AdminsController_findById_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Admin"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admins"
+    ]
+   },
+   "put": {
+    "operationId": "AdminsController_update_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateAdminDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Admin"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admins"
+    ]
+   }
+  },
+  "/api/v1/notifications": {
+   "get": {
+    "operationId": "NotificationsController_findAll_v1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationNotificationResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Notifications"
+    ]
+   }
+  },
+  "/api/v1/notifications/{id}/read": {
+   "patch": {
+    "operationId": "NotificationsController_markAsRead_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Notification"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Notifications"
+    ]
+   }
+  },
+  "/api/admin/social-networks": {
+   "post": {
+    "description": "Upload the icon first via POST /v1/files/upload, then send the returned file id as picture.id. Picture is optional.",
+    "operationId": "SocialNetworksController_create",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateSocialNetworkDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SocialNetwork"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Add a social network",
+    "tags": [
+     "Admin social networks"
+    ]
+   },
+   "get": {
+    "operationId": "SocialNetworksController_findAll",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationSocialNetworkResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "summary": "List social networks",
+    "tags": [
+     "Admin social networks"
+    ]
+   }
+  },
+  "/api/admin/social-networks/{id}": {
+   "get": {
+    "operationId": "SocialNetworksController_findById",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SocialNetwork"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Admin social networks"
+    ]
+   },
+   "patch": {
+    "operationId": "SocialNetworksController_update",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateSocialNetworkDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SocialNetwork"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin social networks"
+    ]
+   },
+   "delete": {
+    "operationId": "SocialNetworksController_remove",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin social networks"
+    ]
+   }
+  },
+  "/api/admin/slider-banners": {
+   "post": {
+    "description": "Upload the image first via POST /v1/files/upload, then send the returned file id as picture.id.",
+    "operationId": "SliderBannersController_create",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateSliderBannerDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SliderBanner"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Add a slider banner",
+    "tags": [
+     "Admin slider banners"
+    ]
+   },
+   "get": {
+    "operationId": "SliderBannersController_findAll",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationSliderBannerResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "summary": "List slider banners",
+    "tags": [
+     "Admin slider banners"
+    ]
+   }
+  },
+  "/api/admin/slider-banners/{id}": {
+   "get": {
+    "operationId": "SliderBannersController_findById",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SliderBanner"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Admin slider banners"
+    ]
+   },
+   "patch": {
+    "operationId": "SliderBannersController_update",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateSliderBannerDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SliderBanner"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin slider banners"
+    ]
+   },
+   "delete": {
+    "operationId": "SliderBannersController_remove",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin slider banners"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments": {
+   "post": {
+    "operationId": "StudentEnrollmentsController_createEnrollment_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateEnrollmentDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Student enrollments"
+    ]
+   },
+   "get": {
+    "operationId": "StudentEnrollmentsController_listEnrollments_v1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "$ref": "#/components/schemas/Object"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "$ref": "#/components/schemas/Object"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/StudentEnrollmentListItemDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List enrollments for the authenticated user with school, teacher, and professor details",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/by-semester": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_listEnrollmentsBySemester_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/SemesterEnrollmentsResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List all semesters with their lessons, each annotated with the authenticated user's own enrolment (if any). No pagination.",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/open-course-selection": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_getOpenCourseSelection_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OpenCourseSelectionResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get the open semester and its lessons for students and trainees",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/professors": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_listProfessors_v1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "$ref": "#/components/schemas/Object"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "$ref": "#/components/schemas/Object"
+      }
+     },
+     {
+      "name": "semesterId",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "lessonId",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationEnrollmentProfessorResponseDtoResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List professors for a lesson who share the student/trainee university and have capacity",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/teachers": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_listTeachers_v1",
+    "parameters": [
+     {
+      "name": "schoolId",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/OpenCourseSelectionTeacherResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List teachers for a lesson who share the student/trainee university and have capacity",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/mentor/students": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_listMentorStudents_v1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "$ref": "#/components/schemas/Object"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "$ref": "#/components/schemas/Object"
+      }
+     },
+     {
+      "name": "semesterId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "lessonId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationMentorStudentEnrollmentResponseDtoResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List students and trainees enrolled with the authenticated mentor/professor, teacher, or school admin (scoped to the caller's own professorId/teacherId/school)",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/mentor/capacity": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_getMentorCapacity_v1",
+    "parameters": [
+     {
+      "name": "semesterId",
+      "required": true,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MentorCapacityResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get mentor capacity summary for a semester (total, selected, remaining)",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/{id}": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_getEnrollment_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StudentEnrollment"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get a single enrollment by id",
+    "tags": [
+     "Student enrollments"
+    ]
+   },
+   "patch": {
+    "operationId": "StudentEnrollmentsController_updateEnrollmentAssignment_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateEnrollmentAssignmentDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StudentEnrollment"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update enrollment school and/or teacher",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/{id}/cancel": {
+   "patch": {
+    "operationId": "StudentEnrollmentsController_cancelEnrollment_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/{id}/weeks": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_listWeeks_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/StudentWeekResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List student weeks for an enrollment, each populated with its week definition",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-enrollments/{id}/score-summary": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_scoreSummary_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ScoreSummaryResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Get score summary for an enrollment (total, scored weeks, maximum possible)",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-weeks/{id}/score": {
+   "patch": {
+    "operationId": "StudentEnrollmentsController_scoreWeek_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ScoreStudentWeekDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-weeks/{id}/mentor-present": {
+   "patch": {
+    "operationId": "StudentEnrollmentsController_setMentorPresent_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SetMentorPresentDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Set mentor present flag (mentor only)",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-weeks/{id}/approve-mentor-present": {
+   "patch": {
+    "operationId": "StudentEnrollmentsController_approveMentorPresent_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ApproveMentorPresentDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Approve mentor presence and optionally set mentor present time (school_admin only)",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-weeks/{id}/approve-student-present": {
+   "patch": {
+    "operationId": "StudentEnrollmentsController_approveStudentPresent_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ApproveStudentPresentDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Approve student presence and optionally set student present time (school_admin only)",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/student-weeks/{id}/can-watch-others": {
+   "patch": {
+    "operationId": "StudentEnrollmentsController_setCanWatchOthers_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SetCanWatchOthersDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Set can-watch-others flag (mentor only)",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/conversations": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_listConversations_v1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "$ref": "#/components/schemas/Object"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "$ref": "#/components/schemas/Object"
+      }
+     },
+     {
+      "name": "enrollmentId",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": {
+          "$ref": "#/components/schemas/ConversationResponseDto"
+         }
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List conversations for the authenticated user, optionally filtered by enrollmentId",
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/conversations/{id}/messages": {
+   "get": {
+    "operationId": "StudentEnrollmentsController_listMessages_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "name": "beforeSequence",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "minimum": 1,
+       "type": "number"
+      }
+     },
+     {
+      "name": "afterSequence",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "minimum": 0,
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "$ref": "#/components/schemas/Object"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/MessageListResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List messages in a conversation (cursor-paginated by sequence)",
+    "tags": [
+     "Student enrollments"
+    ]
+   },
+   "post": {
+    "operationId": "StudentEnrollmentsController_sendMessage_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateContentDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/conversations/{id}/read": {
+   "patch": {
+    "operationId": "StudentEnrollmentsController_markConversationRead_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Student enrollments"
+    ]
+   }
+  },
+  "/api/v1/users": {
+   "get": {
+    "operationId": "UsersController_findAll_v1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "filters",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "default": {
+        "status": "NOTINIT"
+       },
+       "example": "{\"status\":\"PENDING\"}",
+       "type": "string"
+      }
+     },
+     {
+      "name": "sort",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationUserResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Users"
+    ]
+   }
+  },
+  "/api/v1/users/{id}": {
+   "get": {
+    "operationId": "UsersController_findOne_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/User"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Users"
+    ]
+   },
+   "patch": {
+    "description": "Role-based location fields: teacher/school_admin accept provinceIds, cityIds, schoolIds, educationalDistrictsIds (arrays). mentor accepts provinceIds and universityIds (arrays). student/trainee may optionally send provinceId and/or universityId (and degreeId).",
+    "operationId": "UsersController_update_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateUserDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/User"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update user",
+    "tags": [
+     "Users"
+    ]
+   },
+   "delete": {
+    "operationId": "UsersController_remove_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Users"
+    ]
+   }
+  },
+  "/api/v1/admin/account-users": {
+   "post": {
+    "description": "Manual registration with required fname, lname, phone, password and role. province, city and educationDistrict are optional.",
+    "operationId": "AccountUsersController_create_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/CreateAccountUserDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/User"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Create a user account",
+    "tags": [
+     "Admin account users"
+    ]
+   },
+   "get": {
+    "operationId": "AccountUsersController_findAll_v1",
+    "parameters": [
+     {
+      "name": "page",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "limit",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "type": "number"
+      }
+     },
+     {
+      "name": "role",
+      "required": false,
+      "in": "query",
+      "schema": {
+       "default": "others",
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/InfinityPaginationUserResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List user accounts",
+    "tags": [
+     "Admin account users"
+    ]
+   }
+  },
+  "/api/v1/admin/account-users/roles": {
+   "get": {
+    "description": "Use these ids for the role field when creating an account.",
+    "operationId": "AccountUsersController_getRoles_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "List organizational roles",
+    "tags": [
+     "Admin account users"
+    ]
+   }
+  },
+  "/api/v1/admin/account-users/{id}": {
+   "get": {
+    "operationId": "AccountUsersController_findOne_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/User"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin account users"
+    ]
+   },
+   "patch": {
+    "operationId": "AccountUsersController_update_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/UpdateAccountUserDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/User"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "summary": "Update a user account",
+    "tags": [
+     "Admin account users"
+    ]
+   },
+   "delete": {
+    "operationId": "AccountUsersController_remove_v1",
+    "parameters": [
+     {
+      "name": "id",
+      "required": true,
+      "in": "path",
+      "schema": {
+       "type": "string"
+      }
+     },
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Admin account users"
+    ]
+   }
+  },
+  "/api/v1/auth/phone/login/password": {
+   "post": {
+    "operationId": "AuthController_login_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthEmailLoginDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoginResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/phone/login/request-otp": {
+   "post": {
+    "operationId": "AuthController_loginRequestOpt_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthPhoneLoginRequestDTO"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoginOtpResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/phone/login/verify-otp": {
+   "post": {
+    "operationId": "AuthController_loginPhoneVerify_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthConfirmPhoneDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoginResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/phone/register/request-otp": {
+   "post": {
+    "operationId": "AuthController_register_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthRegisterLoginDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoginOtpResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/phone/register/verify-otp": {
+   "post": {
+    "operationId": "AuthController_confirmEmail_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthConfirmPhoneDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/forgot/password": {
+   "post": {
+    "operationId": "AuthController_forgotPassword_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthForgotPasswordDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/LoginOtpResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/reset/password": {
+   "post": {
+    "operationId": "AuthController_resetPassword_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthResetPasswordDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/set/password": {
+   "post": {
+    "operationId": "AuthController_setPassword_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthSetPasswordDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/me": {
+   "get": {
+    "operationId": "AuthController_me_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/User"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Auth"
+    ]
+   },
+   "patch": {
+    "operationId": "AuthController_update_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/AuthUpdateDto"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/User"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Auth"
+    ]
+   },
+   "delete": {
+    "operationId": "AuthController_delete_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/refresh": {
+   "post": {
+    "operationId": "AuthController_refresh_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RefreshResponseDto"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/logout": {
+   "post": {
+    "operationId": "AuthController_logout_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": ""
+     }
+    },
+    "security": [
+     {
+      "bearer": []
+     }
+    ],
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/api/v1/auth/roles": {
+   "get": {
+    "operationId": "AuthController_getRoles_v1",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Auth"
+    ]
+   }
+  },
+  "/": {
+   "get": {
+    "operationId": "HomeController_appInfo",
+    "parameters": [
+     {
+      "in": "header",
+      "required": false,
+      "name": "x-custom-lang",
+      "schema": {
+       "example": "en"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": ""
+     }
+    },
+    "tags": [
+     "Home"
+    ]
+   }
+  }
+ },
+ "info": {
+  "title": "API",
+  "description": "API docs",
+  "version": "1.0",
+  "contact": {}
+ },
+ "tags": [],
+ "servers": [],
+ "components": {
+  "securitySchemes": {
+   "bearer": {
+    "scheme": "bearer",
+    "bearerFormat": "JWT",
+    "type": "http"
+   }
+  },
+  "schemas": {
+   "CreateMentorLessonFileDto": {
+    "type": "object",
+    "properties": {
+     "lessonId": {
+      "type": "string",
+      "description": "Lesson ID from the lessons collection"
+     },
+     "fileIds": {
+      "description": "Array of uploaded file IDs",
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Optional description"
+     }
+    },
+    "required": [
+     "lessonId",
+     "fileIds"
+    ]
+   },
+   "FileObjectDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "path": {
+      "type": "string",
+      "description": "Full URL to the file"
+     },
+     "confirmedAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     }
+    },
+    "required": [
+     "id",
+     "path"
+    ]
+   },
+   "MentorLessonFileResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "professorId": {
+      "type": "string"
+     },
+     "lessonId": {
+      "type": "string"
+     },
+     "description": {
+      "type": "string",
+      "nullable": true
+     },
+     "files": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/FileObjectDto"
+      }
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "professorId",
+     "lessonId",
+     "files",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "FileUploadDto": {
+    "type": "object",
+    "properties": {
+     "fileName": {
+      "type": "string",
+      "example": "image.jpg"
+     },
+     "fileSize": {
+      "type": "number",
+      "example": 138722
+     },
+     "mimeType": {
+      "type": "string",
+      "example": "image/jpeg"
+     }
+    },
+    "required": [
+     "fileName",
+     "fileSize",
+     "mimeType"
+    ]
+   },
+   "FileType": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "path": {
+      "type": "string"
+     },
+     "originalName": {
+      "type": "string"
+     },
+     "mimeType": {
+      "type": "string"
+     },
+     "size": {
+      "type": "number"
+     },
+     "uploadedById": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "pending",
+       "confirmed"
+      ]
+     },
+     "confirmedAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     }
+    },
+    "required": [
+     "id",
+     "path",
+     "originalName",
+     "mimeType",
+     "size",
+     "uploadedById",
+     "status"
+    ]
+   },
+   "FileResponseDto": {
+    "type": "object",
+    "properties": {
+     "file": {
+      "$ref": "#/components/schemas/FileType"
+     },
+     "uploadSignedUrl": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "file",
+     "uploadSignedUrl"
+    ]
+   },
+   "LessonItemDto": {
+    "type": "object",
+    "properties": {
+     "lessonTitle": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "lessonTitle"
+    ]
+   },
+   "OriginalLessonGroupDto": {
+    "type": "object",
+    "properties": {
+     "mainTitle": {
+      "type": "string"
+     },
+     "lessons": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/LessonItemDto"
+      }
+     }
+    },
+    "required": [
+     "mainTitle",
+     "lessons"
+    ]
+   },
+   "BulkCreateOriginalLessonDto": {
+    "type": "object",
+    "properties": {
+     "type": {
+      "type": "string",
+      "enum": [
+       "semester",
+       "podmani"
+      ]
+     },
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/OriginalLessonGroupDto"
+      }
+     }
+    },
+    "required": [
+     "type",
+     "data"
+    ]
+   },
+   "OriginalLesson": {
+    "type": "object",
+    "properties": {
+     "status": {
+      "type": "string",
+      "enum": [
+       "active",
+       "deactive"
+      ],
+      "default": "active",
+      "nullable": false
+     },
+     "type": {
+      "type": "string",
+      "enum": [
+       "semester",
+       "podmani"
+      ],
+      "nullable": false
+     },
+     "mainTitle": {
+      "type": "string",
+      "nullable": false
+     },
+     "lessonTitle": {
+      "type": "string",
+      "nullable": false
+     },
+     "id": {
+      "type": "string"
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "status",
+     "type",
+     "mainTitle",
+     "lessonTitle",
+     "id",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "InfinityPaginationOriginalLessonResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/OriginalLesson"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean",
+      "example": true
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "UpdateOriginalLessonDto": {
+    "type": "object",
+    "properties": {
+     "status": {
+      "type": "string",
+      "enum": [
+       "active",
+       "deactive"
+      ],
+      "default": "active"
+     },
+     "type": {
+      "type": "string",
+      "enum": [
+       "semester",
+       "podmani"
+      ]
+     },
+     "mainTitle": {
+      "type": "string"
+     },
+     "lessonTitle": {
+      "type": "string"
+     }
+    }
+   },
+   "FileDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string",
+      "example": "6a6a248d3658ebdb00736180"
+     }
+    },
+    "required": [
+     "id"
+    ]
+   },
+   "CreateFloatingProductDto": {
+    "type": "object",
+    "properties": {
+     "picture": {
+      "description": "Uploaded logo id from POST /v1/files/upload",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileDto"
+       }
+      ]
+     },
+     "title": {
+      "type": "string",
+      "example": "Login"
+     },
+     "link": {
+      "type": "string",
+      "example": "/auth/login"
+     }
+    },
+    "required": [
+     "picture",
+     "title",
+     "link"
+    ]
+   },
+   "FloatingProduct": {
+    "type": "object",
+    "properties": {
+     "link": {
+      "type": "string",
+      "nullable": false
+     },
+     "title": {
+      "type": "string",
+      "nullable": false
+     },
+     "picture": {
+      "nullable": false,
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileType"
+       }
+      ]
+     },
+     "id": {
+      "type": "string"
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "link",
+     "title",
+     "picture",
+     "id",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "InfinityPaginationFloatingProductResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/FloatingProduct"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean",
+      "example": true
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "UpdateFloatingProductDto": {
+    "type": "object",
+    "properties": {
+     "picture": {
+      "description": "Uploaded logo id from POST /v1/files/upload",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileDto"
+       }
+      ]
+     },
+     "title": {
+      "type": "string",
+      "example": "Login"
+     },
+     "link": {
+      "type": "string",
+      "example": "/auth/login"
+     }
+    }
+   },
+   "CreateProvinaceDto": {
+    "type": "object",
+    "properties": {
+     "title": {
+      "type": "string",
+      "example": "tehran"
+     }
+    },
+    "required": [
+     "title"
+    ]
+   },
+   "ProvinceWithStatsResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "universityCount": {
+      "type": "number",
+      "description": "Connected campuses (universities)"
+     },
+     "educationalDistrictCount": {
+      "type": "number",
+      "description": "Subordinate educational districts"
+     },
+     "schoolCount": {
+      "type": "number",
+      "description": "Partner schools"
+     },
+     "userCount": {
+      "type": "number",
+      "description": "Total users linked to this province"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "universityCount",
+     "educationalDistrictCount",
+     "schoolCount",
+     "userCount"
+    ]
+   },
+   "UpdateProvinaceDto": {
+    "type": "object",
+    "properties": {
+     "title": {
+      "type": "string",
+      "example": "tehran"
+     }
+    },
+    "required": [
+     "title"
+    ]
+   },
+   "CreateCityDto": {
+    "type": "object",
+    "properties": {
+     "title": {
+      "type": "string",
+      "example": "tehran"
+     },
+     "province_id": {
+      "type": "string",
+      "example": "60c72b2f9b1d4c0015b8d9a1"
+     }
+    },
+    "required": [
+     "title",
+     "province_id"
+    ]
+   },
+   "CityProvinceSummaryDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "title"
+    ]
+   },
+   "CityWithStatsResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "province": {
+      "$ref": "#/components/schemas/CityProvinceSummaryDto"
+     },
+     "schoolCount": {
+      "type": "number",
+      "description": "Partner schools"
+     },
+     "userCount": {
+      "type": "number",
+      "description": "Total users linked to this city"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "province",
+     "schoolCount",
+     "userCount"
+    ]
+   },
+   "UpdateCityDto": {
+    "type": "object",
+    "properties": {
+     "title": {
+      "type": "string",
+      "example": "new title"
+     }
+    },
+    "required": [
+     "title"
+    ]
+   },
+   "CreateEducationalDistrictDto": {
+    "type": "object",
+    "properties": {
+     "provinceId": {
+      "type": "string"
+     },
+     "cityId": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "provinceId",
+     "cityId",
+     "title"
+    ]
+   },
+   "EntitySummaryDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "title"
+    ]
+   },
+   "EducationalDistrictWithStatsResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "province": {
+      "$ref": "#/components/schemas/EntitySummaryDto"
+     },
+     "city": {
+      "$ref": "#/components/schemas/EntitySummaryDto"
+     },
+     "schoolCount": {
+      "type": "number"
+     },
+     "userCount": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "province",
+     "city",
+     "schoolCount",
+     "userCount"
+    ]
+   },
+   "UpdateEducationalDistrictDto": {
+    "type": "object",
+    "properties": {
+     "provinceId": {
+      "type": "string"
+     },
+     "cityId": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     }
+    }
+   },
+   "CreateSchoolDto": {
+    "type": "object",
+    "properties": {
+     "provinceId": {
+      "type": "string",
+      "example": "685eb6c1fd83c18b7dd4e5d1"
+     },
+     "cityId": {
+      "type": "string",
+      "example": "685eb71afd83c18b7dd4e5d9"
+     },
+     "educationId": {
+      "type": "string",
+      "example": "685eb71afd83c18b7dd4e600"
+     },
+     "title": {
+      "type": "string",
+      "example": "Tehran High School No 1"
+     },
+     "genderType": {
+      "type": "string",
+      "example": "Boy"
+     }
+    },
+    "required": [
+     "provinceId",
+     "cityId",
+     "educationId",
+     "title",
+     "genderType"
+    ]
+   },
+   "SchoolWithStatsResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "genderType": {
+      "type": "string"
+     },
+     "province": {
+      "$ref": "#/components/schemas/EntitySummaryDto"
+     },
+     "city": {
+      "$ref": "#/components/schemas/EntitySummaryDto"
+     },
+     "education": {
+      "$ref": "#/components/schemas/EntitySummaryDto"
+     },
+     "userCount": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "genderType",
+     "province",
+     "city",
+     "education",
+     "userCount"
+    ]
+   },
+   "InfinityPaginationResponseDto": {
+    "type": "object",
+    "properties": {}
+   },
+   "UpdateSchoolDto": {
+    "type": "object",
+    "properties": {
+     "provinceId": {
+      "type": "string",
+      "example": "685eb6c1fd83c18b7dd4e5d1"
+     },
+     "cityId": {
+      "type": "string",
+      "example": "685eb71afd83c18b7dd4e5d9"
+     },
+     "educationId": {
+      "type": "string",
+      "example": "685eb71afd83c18b7dd4e600"
+     },
+     "title": {
+      "type": "string",
+      "example": "Tehran High School No 1"
+     },
+     "genderType": {
+      "type": "string",
+      "example": "Boy"
+     }
+    }
+   },
+   "CreateDegreeDto": {
+    "type": "object",
+    "properties": {
+     "roleId": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string",
+      "example": "Software Engineer"
+     }
+    },
+    "required": [
+     "roleId",
+     "title"
+    ]
+   },
+   "RoleWithStatsResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "title_fa": {
+      "type": "string"
+     },
+     "userCount": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "title_fa",
+     "userCount"
+    ]
+   },
+   "UpdateDegreeDto": {
+    "type": "object",
+    "properties": {
+     "roleId": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string",
+      "example": "Software Engineer"
+     }
+    }
+   },
+   "CreateUniversityDto": {
+    "type": "object",
+    "properties": {
+     "title": {
+      "type": "string"
+     },
+     "provinceId": {
+      "type": "string"
+     },
+     "cityId": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "title",
+     "provinceId",
+     "cityId"
+    ]
+   },
+   "UniversityWithStatsResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "province": {
+      "$ref": "#/components/schemas/EntitySummaryDto"
+     },
+     "city": {
+      "$ref": "#/components/schemas/EntitySummaryDto"
+     },
+     "userCount": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "province",
+     "city",
+     "userCount"
+    ]
+   },
+   "UpdateUniversityDto": {
+    "type": "object",
+    "properties": {
+     "title": {
+      "type": "string"
+     },
+     "provinceId": {
+      "type": "string"
+     },
+     "cityId": {
+      "type": "string"
+     }
+    }
+   },
+   "CreateSemesterDto": {
+    "type": "object",
+    "properties": {
+     "season": {
+      "type": "string",
+      "enum": [
+       "one",
+       "two",
+       "summer"
+      ],
+      "example": "one",
+      "description": "Semester season"
+     },
+     "structure": {
+      "type": "string",
+      "enum": [
+       "semester",
+       "podmani"
+      ],
+      "example": "semester",
+      "description": "kind of structure"
+     },
+     "academicYear": {
+      "type": "string",
+      "example": "۱۴۰۵-۱۴۰۶",
+      "description": "Academic year"
+     },
+     "courseSelection": {
+      "type": "boolean",
+      "example": false,
+      "default": false
+     },
+     "startClasses": {
+      "type": "boolean",
+      "example": false,
+      "default": false
+     }
+    },
+    "required": [
+     "season",
+     "structure",
+     "academicYear"
+    ]
+   },
+   "UpdateSemesterDto": {
+    "type": "object",
+    "properties": {
+     "season": {
+      "type": "string",
+      "enum": [
+       "one",
+       "two",
+       "summer"
+      ],
+      "example": "one",
+      "description": "Semester season"
+     },
+     "structure": {
+      "type": "string",
+      "enum": [
+       "semester",
+       "podmani"
+      ],
+      "example": "semester",
+      "description": "kind of structure"
+     },
+     "academicYear": {
+      "type": "string",
+      "example": "۱۴۰۵-۱۴۰۶",
+      "description": "Academic year"
+     },
+     "courseSelection": {
+      "type": "boolean",
+      "example": false,
+      "default": false
+     },
+     "startClasses": {
+      "type": "boolean",
+      "example": false,
+      "default": false
+     }
+    }
+   },
+   "CreateAcademicSettingDto": {
+    "type": "object",
+    "properties": {
+     "generalProfessorCapacity": {
+      "type": "number",
+      "example": 30,
+      "description": "سقف عمومی ظرفیت اساتید"
+     },
+     "systemPassingScore": {
+      "type": "number",
+      "example": 60,
+      "description": "حد نصاب قبولی سیستم از ۱۰۰"
+     }
+    },
+    "required": [
+     "generalProfessorCapacity",
+     "systemPassingScore"
+    ]
+   },
+   "CreateWeekDto": {
+    "type": "object",
+    "properties": {
+     "lessonId": {
+      "type": "string",
+      "example": "66a845abc4852fbfc63d4234e"
+     },
+     "priority": {
+      "type": "number",
+      "enum": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "example": 1
+     },
+     "status": {
+      "type": "boolean",
+      "example": false,
+      "default": false
+     }
+    },
+    "required": [
+     "lessonId",
+     "priority",
+     "status"
+    ]
+   },
+   "UpdateWeekDto": {
+    "type": "object",
+    "properties": {
+     "lessonId": {
+      "type": "string",
+      "example": "66a845abc4852fbfc63d4234e"
+     },
+     "priority": {
+      "type": "number",
+      "enum": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "example": 1
+     },
+     "status": {
+      "type": "boolean",
+      "example": false,
+      "default": false
+     }
+    }
+   },
+   "UpdateLessonItemDto": {
+    "type": "object",
+    "properties": {
+     "status": {
+      "type": "boolean",
+      "example": true
+     },
+     "id": {
+      "type": "string",
+      "example": "66c7a9b3e8f5a12345678901",
+      "description": "Lesson MongoDB id"
+     }
+    },
+    "required": [
+     "id"
+    ]
+   },
+   "UpdateLessonStatusDto": {
+    "type": "object",
+    "properties": {
+     "status": {
+      "type": "boolean",
+      "example": true
+     }
+    }
+   },
+   "ProfessorCapacityItemDto": {
+    "type": "object",
+    "properties": {
+     "professorId": {
+      "type": "string",
+      "example": "66c7a9b3e8f5a12345678901",
+      "description": "Professor (user) MongoDB id"
+     },
+     "lessonId": {
+      "type": "string",
+      "example": "66c7a9b3e8f5a12345678902",
+      "description": "Lesson MongoDB id"
+     },
+     "semesterId": {
+      "type": "string",
+      "example": "66c7a9b3e8f5a12345678903",
+      "description": "Semester MongoDB id"
+     },
+     "capacity": {
+      "type": "number",
+      "example": 14,
+      "description": "Admission capacity. Must not exceed latest generalProfessorCapacity."
+     },
+     "days": {
+      "example": [
+       0,
+       1
+      ],
+      "description": "Attendance days: 0=Saturday … 5=Thursday. One or more unique values.",
+      "type": "array",
+      "items": {
+       "type": "number"
+      }
+     }
+    },
+    "required": [
+     "professorId",
+     "lessonId",
+     "semesterId",
+     "capacity",
+     "days"
+    ]
+   },
+   "ProfessorCapacityResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string",
+      "example": "66c7a9b3e8f5a1234567890a",
+      "description": "Professor capacity document id"
+     },
+     "professorId": {
+      "type": "string",
+      "example": "66c7a9b3e8f5a12345678901",
+      "description": "Professor (user) MongoDB id"
+     },
+     "lessonId": {
+      "type": "string",
+      "example": "66c7a9b3e8f5a12345678902",
+      "description": "Lesson MongoDB id"
+     },
+     "semesterId": {
+      "type": "string",
+      "example": "66c7a9b3e8f5a12345678903",
+      "description": "Semester MongoDB id"
+     },
+     "capacity": {
+      "type": "number",
+      "example": 14,
+      "description": "Admission capacity"
+     },
+     "days": {
+      "example": [
+       0,
+       1
+      ],
+      "description": "Attendance days: 0=Saturday … 5=Thursday",
+      "type": "array",
+      "items": {
+       "type": "number"
+      }
+     }
+    },
+    "required": [
+     "id",
+     "professorId",
+     "lessonId",
+     "semesterId",
+     "capacity",
+     "days"
+    ]
+   },
+   "WeekItemDto": {
+    "type": "object",
+    "properties": {
+     "priority": {
+      "type": "number",
+      "enum": [
+       1,
+       2,
+       3,
+       4,
+       5
+      ],
+      "example": 1
+     },
+     "status": {
+      "type": "boolean",
+      "example": false
+     }
+    },
+    "required": [
+     "priority",
+     "status"
+    ]
+   },
+   "UpdateLessonWeeksDto": {
+    "type": "object",
+    "properties": {
+     "weeks": {
+      "example": [
+       {
+        "priority": 1,
+        "status": true
+       },
+       {
+        "priority": 1,
+        "status": false
+       },
+       {
+        "priority": 2,
+        "status": true
+       },
+       {
+        "priority": 2,
+        "status": true
+       }
+      ],
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/WeekItemDto"
+      }
+     }
+    },
+    "required": [
+     "weeks"
+    ]
+   },
+   "AuthEmailLoginDto": {
+    "type": "object",
+    "properties": {
+     "phone": {
+      "type": "string",
+      "example": "9386951413"
+     },
+     "password": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "phone",
+     "password"
+    ]
+   },
+   "Status": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "name": {
+      "type": "string",
+      "example": "active"
+     }
+    },
+    "required": [
+     "id",
+     "name"
+    ]
+   },
+   "Admin": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "fname": {
+      "type": "string"
+     },
+     "lname": {
+      "type": "string"
+     },
+     "phone": {
+      "type": "string"
+     },
+     "status": {
+      "$ref": "#/components/schemas/Status"
+     },
+     "role": {
+      "type": "string",
+      "enum": [
+       "superadmin",
+       "admin"
+      ]
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "fname",
+     "lname",
+     "phone",
+     "status",
+     "role",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "AdminLoginResponseDto": {
+    "type": "object",
+    "properties": {
+     "token": {
+      "type": "string"
+     },
+     "refreshToken": {
+      "type": "string"
+     },
+     "tokenExpires": {
+      "type": "number"
+     },
+     "admin": {
+      "$ref": "#/components/schemas/Admin"
+     }
+    },
+    "required": [
+     "token",
+     "refreshToken",
+     "tokenExpires",
+     "admin"
+    ]
+   },
+   "AuthPhoneLoginRequestDTO": {
+    "type": "object",
+    "properties": {
+     "phone": {
+      "type": "string",
+      "example": "9386951413"
+     }
+    },
+    "required": [
+     "phone"
+    ]
+   },
+   "LoginOtpResponseDto": {
+    "type": "object",
+    "properties": {
+     "time": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "time"
+    ]
+   },
+   "AuthConfirmPhoneDto": {
+    "type": "object",
+    "properties": {
+     "otp": {
+      "type": "string",
+      "example": "12345"
+     },
+     "phone": {
+      "type": "string",
+      "example": "09386951413"
+     }
+    },
+    "required": [
+     "otp",
+     "phone"
+    ]
+   },
+   "AuthSetPasswordDto": {
+    "type": "object",
+    "properties": {
+     "oldPassword": {
+      "type": "string",
+      "example": "09386951413"
+     },
+     "newPassword": {
+      "type": "string",
+      "example": "newPassword123"
+     }
+    },
+    "required": [
+     "oldPassword",
+     "newPassword"
+    ]
+   },
+   "RefreshResponseDto": {
+    "type": "object",
+    "properties": {
+     "token": {
+      "type": "string"
+     },
+     "refreshToken": {
+      "type": "string"
+     },
+     "tokenExpires": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "token",
+     "refreshToken",
+     "tokenExpires"
+    ]
+   },
+   "CreateAdminDto": {
+    "type": "object",
+    "properties": {
+     "fname": {
+      "type": "string",
+      "example": "Ali"
+     },
+     "lname": {
+      "type": "string",
+      "example": "Rezaei"
+     },
+     "phone": {
+      "type": "string",
+      "example": "09386951413"
+     },
+     "role": {
+      "type": "string",
+      "enum": [
+       "superadmin",
+       "admin"
+      ],
+      "example": "admin"
+     },
+     "password": {
+      "type": "string",
+      "example": "password123"
+     }
+    },
+    "required": [
+     "fname",
+     "lname",
+     "phone",
+     "role"
+    ]
+   },
+   "InfinityPaginationAdminResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/Admin"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean",
+      "example": true
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "UpdateAdminDto": {
+    "type": "object",
+    "properties": {
+     "fname": {
+      "type": "string",
+      "example": "Ali"
+     },
+     "lname": {
+      "type": "string",
+      "example": "Rezaei"
+     },
+     "phone": {
+      "type": "string",
+      "example": "09386951413"
+     },
+     "role": {
+      "type": "string",
+      "enum": [
+       "superadmin",
+       "admin"
+      ]
+     },
+     "status": {
+      "type": "number",
+      "enum": [
+       1,
+       2
+      ],
+      "example": 2,
+      "description": "Set to inactive to deactivate the admin"
+     },
+     "password": {
+      "type": "string"
+     }
+    }
+   },
+   "Notification": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "body": {
+      "type": "string"
+     },
+     "audience": {
+      "type": "string",
+      "enum": [
+       "all",
+       "role",
+       "user"
+      ]
+     },
+     "targetRoles": {
+      "nullable": true,
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "userId": {
+      "type": "string",
+      "nullable": true
+     },
+     "readByUserIds": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "metadata": {
+      "type": "string",
+      "nullable": true
+     },
+     "isRead": {
+      "type": "boolean",
+      "description": "Whether the current user has read this notification"
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "title",
+     "body",
+     "audience",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "InfinityPaginationNotificationResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/Notification"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean",
+      "example": true
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "CreateSocialNetworkDto": {
+    "type": "object",
+    "properties": {
+     "picture": {
+      "nullable": true,
+      "description": "Uploaded icon id from POST /v1/files/upload",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileDto"
+       }
+      ]
+     },
+     "name": {
+      "type": "string",
+      "example": "Telegram"
+     },
+     "link": {
+      "type": "string",
+      "example": "https://t.me/example"
+     }
+    },
+    "required": [
+     "name",
+     "link"
+    ]
+   },
+   "SocialNetwork": {
+    "type": "object",
+    "properties": {
+     "link": {
+      "type": "string",
+      "nullable": false
+     },
+     "name": {
+      "type": "string",
+      "nullable": false
+     },
+     "picture": {
+      "nullable": true,
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileType"
+       }
+      ]
+     },
+     "id": {
+      "type": "string"
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "link",
+     "name",
+     "picture",
+     "id",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "InfinityPaginationSocialNetworkResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/SocialNetwork"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean",
+      "example": true
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "UpdateSocialNetworkDto": {
+    "type": "object",
+    "properties": {
+     "picture": {
+      "nullable": true,
+      "description": "Uploaded icon id from POST /v1/files/upload",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileDto"
+       }
+      ]
+     },
+     "name": {
+      "type": "string",
+      "example": "Telegram"
+     },
+     "link": {
+      "type": "string",
+      "example": "https://t.me/example"
+     }
+    }
+   },
+   "CreateSliderBannerDto": {
+    "type": "object",
+    "properties": {
+     "picture": {
+      "description": "Uploaded file id from POST /v1/files/upload",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileDto"
+       }
+      ]
+     },
+     "title": {
+      "type": "string",
+      "example": "Entrance exam banner"
+     },
+     "link": {
+      "type": "string",
+      "nullable": true,
+      "example": "https://example.com/campaign"
+     }
+    },
+    "required": [
+     "picture",
+     "title"
+    ]
+   },
+   "SliderBanner": {
+    "type": "object",
+    "properties": {
+     "link": {
+      "type": "string",
+      "nullable": true
+     },
+     "title": {
+      "type": "string",
+      "nullable": false
+     },
+     "picture": {
+      "nullable": false,
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileType"
+       }
+      ]
+     },
+     "id": {
+      "type": "string"
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "link",
+     "title",
+     "picture",
+     "id",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "InfinityPaginationSliderBannerResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/SliderBanner"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean",
+      "example": true
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "UpdateSliderBannerDto": {
+    "type": "object",
+    "properties": {
+     "picture": {
+      "description": "Uploaded file id from POST /v1/files/upload",
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileDto"
+       }
+      ]
+     },
+     "title": {
+      "type": "string",
+      "example": "Entrance exam banner"
+     },
+     "link": {
+      "type": "string",
+      "nullable": true,
+      "example": "https://example.com/campaign"
+     }
+    }
+   },
+   "CreateEnrollmentDto": {
+    "type": "object",
+    "properties": {
+     "semesterId": {
+      "type": "string"
+     },
+     "lessonId": {
+      "type": "string"
+     },
+     "schoolId": {
+      "type": "string"
+     },
+     "teacherId": {
+      "type": "string"
+     },
+     "professorId": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "semesterId",
+     "lessonId",
+     "professorId"
+    ]
+   },
+   "Object": {
+    "type": "object",
+    "properties": {}
+   },
+   "EnrollmentSchoolSummaryDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string",
+      "nullable": true
+     }
+    },
+    "required": [
+     "id"
+    ]
+   },
+   "EnrollmentPersonSummaryDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "firstName": {
+      "type": "string",
+      "nullable": true
+     },
+     "lastName": {
+      "type": "string",
+      "nullable": true
+     }
+    },
+    "required": [
+     "id"
+    ]
+   },
+   "StudentEnrollmentListItemDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "studentId": {
+      "type": "string"
+     },
+     "semesterId": {
+      "type": "string"
+     },
+     "lessonId": {
+      "type": "string"
+     },
+     "schoolId": {
+      "type": "string",
+      "nullable": true
+     },
+     "teacherId": {
+      "type": "string",
+      "nullable": true
+     },
+     "professorId": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "active",
+       "completed",
+       "cancelled"
+      ]
+     },
+     "startedAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "completedAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "school": {
+      "nullable": true,
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/EnrollmentSchoolSummaryDto"
+       }
+      ]
+     },
+     "teacher": {
+      "nullable": true,
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/EnrollmentPersonSummaryDto"
+       }
+      ]
+     },
+     "professor": {
+      "nullable": true,
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/EnrollmentPersonSummaryDto"
+       }
+      ]
+     }
+    },
+    "required": [
+     "id",
+     "studentId",
+     "semesterId",
+     "lessonId",
+     "professorId",
+     "status",
+     "startedAt",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "SemesterLessonEnrollmentDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "semesterId": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "status": {
+      "type": "boolean"
+     },
+     "enrolment": {
+      "nullable": true,
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/StudentEnrollmentListItemDto"
+       }
+      ]
+     }
+    },
+    "required": [
+     "id",
+     "semesterId",
+     "title",
+     "status"
+    ]
+   },
+   "SemesterEnrollmentsResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "season": {
+      "type": "string",
+      "enum": [
+       "one",
+       "two",
+       "summer"
+      ]
+     },
+     "structure": {
+      "type": "string",
+      "enum": [
+       "semester",
+       "podmani"
+      ]
+     },
+     "academicYears": {
+      "type": "string",
+      "example": "۱۴۰۵-۱۴۰۶"
+     },
+     "courseSelection": {
+      "type": "boolean"
+     },
+     "startCourseSelection": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     },
+     "startClasses": {
+      "type": "boolean"
+     },
+     "startClassesAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     },
+     "lessons": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/SemesterLessonEnrollmentDto"
+      }
+     }
+    },
+    "required": [
+     "id",
+     "season",
+     "structure",
+     "academicYears",
+     "courseSelection",
+     "startClasses",
+     "lessons"
+    ]
+   },
+   "OpenCourseSelectionLessonDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "semesterId": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     },
+     "status": {
+      "type": "boolean"
+     },
+     "canSelect": {
+      "type": "boolean"
+     },
+     "blockReason": {
+      "type": "string",
+      "enum": [
+       "in_progress",
+       "passed"
+      ],
+      "nullable": true
+     }
+    },
+    "required": [
+     "id",
+     "semesterId",
+     "title",
+     "status",
+     "canSelect"
+    ]
+   },
+   "OpenCourseSelectionResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "academicYear": {
+      "type": "string",
+      "example": "۱۴۰۵-۱۴۰۶"
+     },
+     "season": {
+      "type": "string",
+      "enum": [
+       "one",
+       "two",
+       "summer"
+      ]
+     },
+     "structure": {
+      "type": "string",
+      "enum": [
+       "semester",
+       "podmani"
+      ]
+     },
+     "courseSelection": {
+      "type": "boolean"
+     },
+     "startClasses": {
+      "type": "boolean"
+     },
+     "lessons": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/OpenCourseSelectionLessonDto"
+      }
+     }
+    },
+    "required": [
+     "id",
+     "academicYear",
+     "season",
+     "structure",
+     "courseSelection",
+     "startClasses",
+     "lessons"
+    ]
+   },
+   "EnrollmentProfessorUniversityDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     }
+    }
+   },
+   "EnrollmentProfessorResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "firstName": {
+      "type": "string",
+      "nullable": true
+     },
+     "lastName": {
+      "type": "string",
+      "nullable": true
+     },
+     "photo": {
+      "nullable": true,
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileType"
+       }
+      ]
+     },
+     "university": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/EnrollmentProfessorUniversityDto"
+      }
+     },
+     "capacity": {
+      "type": "number"
+     },
+     "days": {
+      "example": [
+       0,
+       1,
+       2
+      ],
+      "type": "array",
+      "items": {
+       "type": "number"
+      }
+     }
+    },
+    "required": [
+     "id",
+     "capacity",
+     "days"
+    ]
+   },
+   "InfinityPaginationEnrollmentProfessorResponseDtoResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/EnrollmentProfessorResponseDto"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean",
+      "example": true
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "OpenCourseSelectionTeacherResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "firstName": {
+      "type": "string"
+     },
+     "lastName": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "firstName",
+     "lastName"
+    ]
+   },
+   "MentorStudentSummaryDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "firstName": {
+      "type": "string",
+      "nullable": true
+     },
+     "lastName": {
+      "type": "string",
+      "nullable": true
+     },
+     "phone": {
+      "type": "string",
+      "nullable": true
+     },
+     "photo": {
+      "nullable": true,
+      "allOf": [
+       {
+        "$ref": "#/components/schemas/FileType"
+       }
+      ]
+     },
+     "roleName": {
+      "type": "string",
+      "nullable": true
+     }
+    },
+    "required": [
+     "id"
+    ]
+   },
+   "MentorStudentEnrollmentResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "studentId": {
+      "type": "string"
+     },
+     "semesterId": {
+      "type": "string"
+     },
+     "lessonId": {
+      "type": "string"
+     },
+     "schoolId": {
+      "type": "string",
+      "nullable": true
+     },
+     "teacherId": {
+      "type": "string",
+      "nullable": true
+     },
+     "professorId": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "active",
+       "completed",
+       "cancelled"
+      ]
+     },
+     "startedAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "completedAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "student": {
+      "$ref": "#/components/schemas/MentorStudentSummaryDto"
+     }
+    },
+    "required": [
+     "id",
+     "studentId",
+     "semesterId",
+     "lessonId",
+     "professorId",
+     "status",
+     "startedAt",
+     "createdAt",
+     "updatedAt",
+     "student"
+    ]
+   },
+   "InfinityPaginationMentorStudentEnrollmentResponseDtoResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/MentorStudentEnrollmentResponseDto"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean",
+      "example": true
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "MentorCapacityResponseDto": {
+    "type": "object",
+    "properties": {
+     "semesterId": {
+      "type": "string"
+     },
+     "allTeacherCapacity": {
+      "type": "number",
+      "description": "Sum of published capacity across all lessons for this mentor in the semester"
+     },
+     "selected": {
+      "type": "number",
+      "description": "Number of active student/trainee enrollments using this mentor capacity"
+     },
+     "remain": {
+      "type": "number",
+      "description": "Remaining unused capacity (allTeacherCapacity - selected)"
+     }
+    },
+    "required": [
+     "semesterId",
+     "allTeacherCapacity",
+     "selected",
+     "remain"
+    ]
+   },
+   "StudentEnrollment": {
+    "type": "object",
+    "properties": {
+     "schoolAdminId": {
+      "type": "object",
+      "nullable": true
+     },
+     "id": {
+      "type": "string"
+     },
+     "studentId": {
+      "type": "string"
+     },
+     "semesterId": {
+      "type": "string"
+     },
+     "lessonId": {
+      "type": "string"
+     },
+     "schoolId": {
+      "type": "object",
+      "nullable": true
+     },
+     "teacherId": {
+      "type": "object",
+      "nullable": true
+     },
+     "professorId": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "active",
+       "completed",
+       "cancelled"
+      ]
+     },
+     "startedAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "completedAt": {
+      "type": "object",
+      "nullable": true
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "studentId",
+     "semesterId",
+     "lessonId",
+     "professorId",
+     "status",
+     "startedAt",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "UpdateEnrollmentAssignmentDto": {
+    "type": "object",
+    "properties": {
+     "schoolId": {
+      "type": "string"
+     },
+     "teacherId": {
+      "type": "string"
+     }
+    }
+   },
+   "StudentWeekResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "enrollmentId": {
+      "type": "string"
+     },
+     "weekId": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "pending",
+       "in_progress",
+       "submitted",
+       "completed"
+      ]
+     },
+     "score": {
+      "type": "number",
+      "nullable": true
+     },
+     "weightedScore": {
+      "type": "number",
+      "nullable": true
+     },
+     "scoreGivenBy": {
+      "type": "string",
+      "nullable": true
+     },
+     "scoreGivenAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     },
+     "startedAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     },
+     "submittedAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     },
+     "completedAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "enrollmentId",
+     "weekId",
+     "status",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "ScoreSummaryResponseDto": {
+    "type": "object",
+    "properties": {
+     "totalScore": {
+      "type": "number"
+     },
+     "scoredWeeks": {
+      "type": "number"
+     },
+     "totalWeeks": {
+      "type": "number"
+     },
+     "maximumScore": {
+      "type": "number"
+     },
+     "weightedScore": {
+      "type": "number"
+     }
+    },
+    "required": [
+     "totalScore",
+     "scoredWeeks",
+     "totalWeeks",
+     "maximumScore",
+     "weightedScore"
+    ]
+   },
+   "ScoreStudentWeekDto": {
+    "type": "object",
+    "properties": {
+     "score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+     }
+    },
+    "required": [
+     "score"
+    ]
+   },
+   "SetMentorPresentDto": {
+    "type": "object",
+    "properties": {
+     "isMentorPresent": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "isMentorPresent"
+    ]
+   },
+   "ApproveMentorPresentDto": {
+    "type": "object",
+    "properties": {
+     "isApprovedBySchoolAdminMentorPresent": {
+      "type": "boolean"
+     },
+     "mentorPresentAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "isApprovedBySchoolAdminMentorPresent"
+    ]
+   },
+   "ApproveStudentPresentDto": {
+    "type": "object",
+    "properties": {
+     "isApprovedBySchoolAdminStudentPresent": {
+      "type": "boolean"
+     },
+     "studentPresentAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "isApprovedBySchoolAdminStudentPresent"
+    ]
+   },
+   "SetCanWatchOthersDto": {
+    "type": "object",
+    "properties": {
+     "canWatchOthers": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "canWatchOthers"
+    ]
+   },
+   "ConversationReadStateDto": {
+    "type": "object",
+    "properties": {
+     "userId": {
+      "type": "string"
+     },
+     "lastReadSequence": {
+      "type": "number"
+     },
+     "lastReadAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     }
+    },
+    "required": [
+     "userId",
+     "lastReadSequence"
+    ]
+   },
+   "ConversationResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "enrollmentId": {
+      "type": "string"
+     },
+     "weekId": {
+      "type": "string",
+      "nullable": true
+     },
+     "participantIds": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "type": {
+      "type": "string",
+      "enum": [
+       "general",
+       "week"
+      ]
+     },
+     "lastMessageSequence": {
+      "type": "number"
+     },
+     "lastMessageAt": {
+      "format": "date-time",
+      "type": "string",
+      "nullable": true
+     },
+     "readStates": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/ConversationReadStateDto"
+      }
+     },
+     "unreadCount": {
+      "type": "number",
+      "description": "Unread messages count for the authenticated user"
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "enrollmentId",
+     "participantIds",
+     "type",
+     "lastMessageSequence",
+     "readStates",
+     "unreadCount",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "MessageSenderDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "role": {
+      "type": "string",
+      "nullable": true
+     }
+    },
+    "required": [
+     "id"
+    ]
+   },
+   "SubmissionFileDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "path": {
+      "type": "string",
+      "nullable": true
+     }
+    },
+    "required": [
+     "id"
+    ]
+   },
+   "MessageResponseDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "conversationId": {
+      "type": "string"
+     },
+     "senderId": {
+      "$ref": "#/components/schemas/MessageSenderDto"
+     },
+     "text": {
+      "type": "string",
+      "nullable": true
+     },
+     "fileIds": {
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "files": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/SubmissionFileDto"
+      }
+     },
+     "rating": {
+      "type": "number",
+      "nullable": true,
+      "minimum": 1,
+      "maximum": 5
+     },
+     "sequence": {
+      "type": "number"
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "conversationId",
+     "senderId",
+     "fileIds",
+     "files",
+     "sequence",
+     "createdAt",
+     "updatedAt"
+    ]
+   },
+   "MessageListResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/MessageResponseDto"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean"
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "CreateContentDto": {
+    "type": "object",
+    "properties": {
+     "text": {
+      "type": "string",
+      "maxLength": 10000
+     },
+     "fileIds": {
+      "default": [],
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "rating": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5
+     }
+    }
+   },
+   "Role": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string"
+     },
+     "name": {
+      "type": "string",
+      "example": "admin"
+     },
+     "is_other_role": {
+      "type": "boolean",
+      "example": false
+     }
+    },
+    "required": [
+     "id",
+     "name",
+     "is_other_role"
+    ]
+   },
+   "User": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "string",
+      "example": "6a464e7adaa37bf381a40555"
+     },
+     "phone": {
+      "type": "string",
+      "example": "john.doe@example.com"
+     },
+     "provider": {
+      "type": "string",
+      "example": "email"
+     },
+     "socialId": {
+      "type": "string",
+      "example": "1234567890"
+     },
+     "firstName": {
+      "type": "string",
+      "example": "John"
+     },
+     "lastName": {
+      "type": "string",
+      "example": "Doe"
+     },
+     "photo": {
+      "$ref": "#/components/schemas/FileType"
+     },
+     "role": {
+      "$ref": "#/components/schemas/Role"
+     },
+     "status": {
+      "$ref": "#/components/schemas/Status"
+     },
+     "userUniqueId": {
+      "type": "string",
+      "example": "1234567890"
+     },
+     "city": {
+      "example": [
+       {
+        "id": "...",
+        "title": "tehran"
+       }
+      ],
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "educationalDistrict": {
+      "example": [
+       {
+        "id": "...",
+        "title": "tehran 2"
+       }
+      ],
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "school": {
+      "example": [
+       {
+        "id": "...",
+        "title": "tehrani"
+       }
+      ],
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "createdAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "updatedAt": {
+      "format": "date-time",
+      "type": "string"
+     },
+     "deletedAt": {
+      "format": "date-time",
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "phone",
+     "provider",
+     "socialId",
+     "firstName",
+     "lastName",
+     "photo",
+     "role",
+     "status",
+     "userUniqueId",
+     "city",
+     "educationalDistrict",
+     "school",
+     "createdAt",
+     "updatedAt",
+     "deletedAt"
+    ]
+   },
+   "InfinityPaginationUserResponseDto": {
+    "type": "object",
+    "properties": {
+     "data": {
+      "type": "array",
+      "items": {
+       "$ref": "#/components/schemas/User"
+      }
+     },
+     "hasNextPage": {
+      "type": "boolean",
+      "example": true
+     }
+    },
+    "required": [
+     "data",
+     "hasNextPage"
+    ]
+   },
+   "RoleDto": {
+    "type": "object",
+    "properties": {
+     "name": {
+      "type": "string",
+      "enum": [
+       1,
+       2,
+       "manager",
+       "student",
+       "trainee",
+       "mentor",
+       "teacher",
+       "school_admin",
+       "admin"
+      ],
+      "example": "student"
+     },
+     "id": {
+      "type": "string",
+      "example": "6a43982fceda93d39f5d3493"
+     }
+    },
+    "required": [
+     "name",
+     "id"
+    ]
+   },
+   "StatusDto": {
+    "type": "object",
+    "properties": {
+     "id": {
+      "type": "object"
+     }
+    },
+    "required": [
+     "id"
+    ]
+   },
+   "UpdateUserDto": {
+    "type": "object",
+    "properties": {
+     "password": {
+      "type": "string"
+     },
+     "firstName": {
+      "type": "string",
+      "example": "John"
+     },
+     "lastName": {
+      "type": "string",
+      "example": "Doe"
+     },
+     "photo": {
+      "$ref": "#/components/schemas/FileDto"
+     },
+     "role": {
+      "$ref": "#/components/schemas/RoleDto"
+     },
+     "status": {
+      "$ref": "#/components/schemas/StatusDto"
+     },
+     "provinceId": {
+      "type": "string",
+      "example": "6a64b79595e942371bd6b89d"
+     },
+     "provinceIds": {
+      "example": [
+       "6a64b79595e942371bd6b89d",
+       "6a748d820392c25b24096397"
+      ],
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "universityId": {
+      "type": "string",
+      "example": "6a748d820392c25b24096397"
+     },
+     "universityIds": {
+      "example": [
+       "6a748d820392c25b24096397",
+       "6a678374240b5825505b12b9"
+      ],
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "degreeId": {
+      "type": "string",
+      "example": "6a678374240b5825505b12b9"
+     },
+     "userUniqueId": {
+      "type": "string",
+      "example": "5072344332"
+     },
+     "cityIds": {
+      "example": [
+       "6a64b7e91779bb2eec586ff1",
+       "6a68b8e056394dc50154099f"
+      ],
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "schoolIds": {
+      "example": [
+       "6a68b8e056394dc50154099f",
+       "6a6750c52c1e407287bf1c43"
+      ],
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "educationalDistrictsIds": {
+      "example": [
+       "6a6750c52c1e407287bf1c43",
+       "6a64b79595e942371bd6b89d"
+      ],
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     },
+     "documentStatus": {
+      "type": "string",
+      "example": "CONFIRM",
+      "enum": [
+       "PENDING",
+       "CONFIRM",
+       "REJECT",
+       "NOTINIT"
+      ]
+     },
+     "rejectDescription": {
+      "example": {
+       "id": 1,
+       "description": "some things"
+      },
+      "type": "array",
+      "items": {
+       "type": "string"
+      }
+     }
+    },
+    "required": [
+     "provinceIds",
+     "universityIds",
+     "degreeId",
+     "userUniqueId",
+     "cityIds",
+     "schoolIds",
+     "educationalDistrictsIds",
+     "documentStatus",
+     "rejectDescription"
+    ]
+   },
+   "CreateAccountUserDto": {
+    "type": "object",
+    "properties": {
+     "fname": {
+      "type": "string",
+      "example": "علی"
+     },
+     "lname": {
+      "type": "string",
+      "example": "رضایی"
+     },
+     "phone": {
+      "type": "string",
+      "example": "9129220792"
+     },
+     "password": {
+      "type": "string",
+      "example": "123456"
+     },
+     "role": {
+      "type": "string",
+      "example": "6a89a7f8864f70463b97c184",
+      "description": "Selected organizational role id from GET /auth/roles"
+     },
+     "province": {
+      "type": "string",
+      "example": "6a64b79595e942371bd6b89d"
+     },
+     "city": {
+      "type": "string",
+      "example": "6a64b7e91779bb2eec586ff1"
+     },
+     "educationDistrict": {
+      "type": "string",
+      "example": "6a6750c52c1e407287bf1c43",
+      "description": "Connected educational district id (education-district)"
+     }
+    },
+    "required": [
+     "fname",
+     "lname",
+     "phone",
+     "password",
+     "role"
+    ]
+   },
+   "UpdateAccountUserDto": {
+    "type": "object",
+    "properties": {
+     "fname": {
+      "type": "string",
+      "example": "علی"
+     },
+     "lname": {
+      "type": "string",
+      "example": "رضایی"
+     },
+     "phone": {
+      "type": "string",
+      "example": "9129220792"
+     },
+     "password": {
+      "type": "string",
+      "example": "123456"
+     },
+     "role": {
+      "type": "string",
+      "example": "6a89a7f8864f70463b97c184",
+      "description": "Selected organizational role id from GET /auth/roles"
+     },
+     "province": {
+      "type": "string",
+      "example": "6a64b79595e942371bd6b89d"
+     },
+     "city": {
+      "type": "string",
+      "example": "6a64b7e91779bb2eec586ff1"
+     },
+     "educationDistrict": {
+      "type": "string",
+      "example": "6a6750c52c1e407287bf1c43",
+      "description": "Connected educational district id (education-district)"
+     }
+    }
+   },
+   "LoginResponseDto": {
+    "type": "object",
+    "properties": {
+     "token": {
+      "type": "string"
+     },
+     "refreshToken": {
+      "type": "string"
+     },
+     "tokenExpires": {
+      "type": "number"
+     },
+     "user": {
+      "$ref": "#/components/schemas/User"
+     }
+    },
+    "required": [
+     "token",
+     "refreshToken",
+     "tokenExpires",
+     "user"
+    ]
+   },
+   "AuthRegisterLoginDto": {
+    "type": "object",
+    "properties": {
+     "phone": {
+      "type": "string",
+      "example": "9386951413"
+     },
+     "role": {
+      "$ref": "#/components/schemas/RoleDto"
+     }
+    },
+    "required": [
+     "phone",
+     "role"
+    ]
+   },
+   "AuthForgotPasswordDto": {
+    "type": "object",
+    "properties": {
+     "phone": {
+      "type": "string",
+      "example": "09386951413"
+     }
+    },
+    "required": [
+     "phone"
+    ]
+   },
+   "AuthResetPasswordDto": {
+    "type": "object",
+    "properties": {
+     "phone": {
+      "type": "string",
+      "example": "09386951413"
+     },
+     "otp": {
+      "type": "string",
+      "example": "12345"
+     },
+     "password": {
+      "type": "string",
+      "example": "newPassword123"
+     }
+    },
+    "required": [
+     "phone",
+     "otp",
+     "password"
+    ]
+   },
+   "AuthUpdateDto": {
+    "type": "object",
+    "properties": {
+     "photo": {
+      "$ref": "#/components/schemas/FileDto"
+     },
+     "firstName": {
+      "type": "string",
+      "example": "John"
+     },
+     "lastName": {
+      "type": "string",
+      "example": "Doe"
+     },
+     "email": {
+      "type": "string",
+      "example": "new.email@example.com"
+     },
+     "password": {
+      "type": "string"
+     },
+     "oldPassword": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ }
+}

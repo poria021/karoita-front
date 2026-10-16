@@ -42,6 +42,27 @@ Access token در حافظهٔ ماژول است (نه `localStorage`) چون XS
 
 **تلهٔ ky:** `retry.limit` باید `1` بماند. اگر `0` شود، هوک afterResponse بدنهٔ POST/PATCH را از دست می‌دهد و refresh بی‌صدا خراب می‌شود. توضیح کامل در خود `api-client.ts` است.
 
+## سرور جعلی Nest (`tools/fake-nest`)
+
+برای کار بدون بک‌اند، به‌جای حالت mock داخل برنامه، یک سرور جعلی با همان قرارداد HTTP اجرا کنید و برنامه را در حالت real به آن وصل کنید (ADR شمارهٔ ۱۳):
+
+```bash
+pnpm fake-api                       # روی http://localhost:4000/api
+# .env.local
+NEXT_PUBLIC_API_MODE=real
+NEXT_PUBLIC_API_URL=http://localhost:4000/api
+BACKEND_INTERNAL_URL=http://localhost:4000/api
+```
+
+- ورود تستی (ادمین و استاد راهنما) هنگام بالا آمدن در لاگ چاپ می‌شود.
+- پاسخ‌ها در برابر Swagger اعتبارسنجی می‌شوند؛ `FAKE_NEST_STRICT=false` فقط هشدار می‌دهد.
+- `POST /__fake/reset` داده را به seed برمی‌گرداند.
+- ورود تستی همه‌ی نقش‌ها در لاگ بالا آمدن چاپ می‌شود (ادمین، استاد راهنما؛ دانشجوها، معلم و مدیر مدرسه در `seed-enrollments.ts`، همه با همان رمز تستی).
+- پروکسی `/api/nest` پاسخ بعضی GETهای کاتالوگ (مثل `semesters_all`) را در حافظه‌ی سرور Next کش می‌کند؛ بعد از ریستارت سرور جعلی، Next را هم ریستارت کنید وگرنه شناسه‌های قدیمی دیده می‌شود.
+- درس‌های ترمِ تازه در Swagger مستند نیستند؛ پیش‌فرض همان رفتار دیده‌شدهٔ بک‌اند است (فهرست ثابت کارورزی/کارآموزی). `FAKE_NEST_TERM_LESSONS=original` تغییر درخواستی را شبیه‌سازی می‌کند: ساخت از «تعریف دروس» فعال با `originalLessonId`.
+- بعد از تغییر بک‌اند: `pnpm fake-api:sync` و سپس `pnpm test`.
+- endpoint جدید: فقط با مسیر دقیق Swagger در `tools/fake-nest/handlers/` ثبت کنید و تست قرارداد بنویسید.
+
 ## حالت mock
 
 - داده در `localStorage` / حافظهٔ ماژول شبیه‌ساز است.
@@ -61,14 +82,14 @@ Access token در حافظهٔ ماژول است (نه `localStorage`) چون XS
 | `UsersService` | وصل | CRUD کاربران Nest |
 | `OrgStructureService` | وصل | استان/شهر/منطقه/مدرسه/دانشکده/رشته |
 | `OrganizationOptionsService` | وصل | typeahead فرم پروفایل و ادمین |
-| `SyllabusConfigService` | نسبی | ترم CRUD/گیت، `settings`، `semesters_all`، ارائه درس و `PUT weeks` وصل؛ context انتخاب واحد هنوز mock است |
+| `SyllabusConfigService` | نسبی | ترم CRUD/گیت، `settings`، `semesters_all`، ارائه درس و `PUT weeks` وصل؛ context انتخاب واحد هنوز mock است. تعریف داینامیک دروس (`*CourseDefinition*`) قطع — real fail-closed |
 | `OnboardingApprovalsService` | وصل | صف مدرک از طریق `GET/PATCH /users` |
 | `NotificationsService` | وصل | GET/PATCH `v1/notifications` — هدر روی ورود hydrate می‌شود |
 | `AdminUserCreationService` | نسبی | ستادی: `POST /admin/admins` (بدون رمز). سازمانی: کاربر باید از قبل وجود داشته باشد (`userId`) |
 | `DailyApprovalsService` | نسبی | picker نیم‌سال/درس از `GET semesters_all`؛ هفته از `GET weeks/lesson`؛ mutationهای نمره هنوز fail-closed |
 | `InternshipEnrollmentService` | قطع | همین‌طور — صفحه حذف نشود |
 | `OrganizationalCapacitiesService` | وصل | استاد راهنما: `GET semesters_all` + `GET/POST/PUT professor-capacities` |
-| `LandingCmsService` | قطع | ادمین CMS fail-closed؛ لندینگ عمومی در real کروم خالی می‌دهد تا Nest برسد |
+| `LandingCmsService` | وصل | بنر/محصول شناور/شبکهٔ اجتماعی: لیست، ساخت، ویرایش جزئی، حذف |
 | `AdminCatalogService` | مرده | استفاده نشود؛ HTTP کاتالوگ از `admin-catalog.api.ts` است |
 
 ## کش لیست

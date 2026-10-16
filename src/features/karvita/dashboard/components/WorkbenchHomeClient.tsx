@@ -12,7 +12,10 @@ import {
   shouldShowOnboardingChecklist,
 } from '@/utils/onboardingProgress';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
+import { useSidebarMenu } from '@/components/shared/shell/useSidebarMenu';
 import { getLiveWorkbenchShortcuts } from '@/utils/workbenchShortcuts';
+
+import { DashboardWidgetGrid } from './DashboardWidgetGrid';
 
 export type WorkbenchHomeProps = {
   /** خط خوشامد زیر عنوان (رونوشت مستقل از نقش). */
@@ -33,17 +36,18 @@ function resolveShortcutIcon(iconName?: string) {
 }
 
 /**
- * میز کار سازمانی آرام — فقط خوشامد + میان‌بر ماژول‌های زنده.
+ * میز کار سازمانی آرام — خوشامد، ویجت‌های پنل (تبلیغ ستاد، اطلاعیه‌ها، …) و میان‌بر ماژول‌های زنده.
  */
 export function WorkbenchHomeClient({
   subtitle,
   emptyDescription,
 }: WorkbenchHomeProps) {
   const activeUser = useUserStore((state) => state.activeUser);
+  const menu = useSidebarMenu(activeUser?.role);
   if (!activeUser) return null;
 
   const strategy = getRoleStrategy(activeUser.role);
-  const shortcuts = getLiveWorkbenchShortcuts(activeUser.role);
+  const shortcuts = getLiveWorkbenchShortcuts(activeUser.role, menu);
   const displayName =
     [activeUser.firstName, activeUser.lastName].filter(Boolean).join(' ') ||
     strategy.label;
@@ -68,6 +72,8 @@ export function WorkbenchHomeClient({
       </header>
 
       {progress ? <OnboardingChecklist progress={progress} /> : null}
+
+      <DashboardWidgetGrid role={activeUser.role} />
 
       {shortcuts.length === 0 ? (
         <div className="rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section">

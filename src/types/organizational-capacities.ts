@@ -19,12 +19,18 @@ export type OrganizationalCapacityCourse = {
   id: string;
   title: string;
   kind: OrganizationalCapacityKind;
-  level: 1 | 2 | 3 | 4;
+  /** فقط از عنوان درس واقعی Nest پارس می‌شود؛ درس داینامیک mock سطح ندارد. */
+  level?: number;
+  /** زیرمجموعهٔ یک درس؛ درس مستقل این دو را ندارد. */
+  groupId?: string;
+  groupTitle?: string;
   /** ارقام ASCII؛ `null` = نامحدود (نقش‌های غیر استاد راهنما در مرجع). */
   total: number | null;
   confirmed: number;
   /** استاد راهنما: حداکثر یک روز. */
   selectedDays: OrganizationalCapacityWeekday[];
+  /** درس فعال برای ارائه در این ترم؛ `false` = فقط نمایش، بدون ویرایش. */
+  isActive?: boolean;
   /** ردیف Nest از قبل وجود دارد → ذخیره با PUT نه POST. */
   existsOnServer?: boolean;
 };

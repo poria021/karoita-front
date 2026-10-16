@@ -43,7 +43,7 @@ test.describe('supervisor capacities smoke', () => {
       page.getByRole('tablist', { name: 'نوع ظرفیت پذیرش' })
     ).toBeVisible({ timeout: 30_000 });
     await expect(
-      page.getByRole('tab', { name: 'ظرفیت کارورزی' })
+      page.getByRole('tab', { name: 'ترمی' })
     ).toBeVisible();
     await expect(
       page.getByRole('heading', { name: 'پیکربندی ظرفیت', exact: true })

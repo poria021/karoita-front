@@ -164,9 +164,9 @@ export function InternshipWeeklyGrid({
               size="md"
               className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-control border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName}`}
               aria-label={`نمایش گزارش هفته ${toPersianDigits(index + 1)}`}
-              disabled={status === 'locked_future'}
+              disabled={status === 'locked_future' || status === 'archived'}
               onClick={() => {
-                if (status === 'locked_future') return;
+                if (status === 'locked_future' || status === 'archived') return;
                 onWeekSelect?.(week);
               }}
             >

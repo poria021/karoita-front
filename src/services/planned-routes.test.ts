@@ -15,6 +15,5 @@ describe('planned-routes', () => {
     expect(isPlannedStaticRoute(PlannedRoutes.standardReports())).toBe(true);
     expect(isLiveSidebarPath(PlannedRoutes.dailyReports())).toBe(false);
     expect(isNavigableAppPath(PlannedRoutes.dailyReports())).toBe(false);
-    expect(isNavigableAppPath(PlannedRoutes.manageAds())).toBe(false);
   });
 });

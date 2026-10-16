@@ -3,7 +3,7 @@ import { parseForgotPasswordRetryAfter } from '@/services/auth/real/parse-forgot
 import type { NestSetPasswordDto } from '@/types/nest-users';
 
 import type { OtpCooldownResult } from './registration';
-import { guard, REAL_AUTH_PATHS, toPhoneBody } from './shared';
+import { currentSurface, guard, REAL_AUTH_PATHS, toPhoneBody } from './shared';
 
 export async function realSendForgotPasswordOtp(
   mobile: string
@@ -27,7 +27,9 @@ export async function realResetPassword(mobile: string, otp: string, newPassword
 
 export async function realSetPassword(body: NestSetPasswordDto): Promise<void> {
   guard('real-auth.bridge.setPassword');
-  await apiClient.postMaybeJson(REAL_AUTH_PATHS.setPassword, {
+  const path =
+    currentSurface() === 'admin' ? REAL_AUTH_PATHS.adminSetPassword : REAL_AUTH_PATHS.setPassword;
+  await apiClient.postMaybeJson(path, {
     oldPassword: body.oldPassword,
     newPassword: body.newPassword,
   });

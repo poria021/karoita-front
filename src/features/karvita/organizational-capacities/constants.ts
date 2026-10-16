@@ -7,8 +7,8 @@ export const CAPACITY_KIND_TABS: readonly {
   value: OrganizationalCapacityKind;
   label: string;
 }[] = [
-  { value: 'internship', label: 'ظرفیت کارورزی' },
-  { value: 'apprenticeship', label: 'ظرفیت کارآموزی' },
+  { value: 'internship', label: 'ترمی' },
+  { value: 'apprenticeship', label: 'پودمانی' },
 ];
 
 export const CAPACITY_FEATURE = {

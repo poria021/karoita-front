@@ -21,6 +21,8 @@ import { DAILY_APPROVALS_BULK_EXTEND_ENABLED, DAILY_APPROVALS_FEATURE } from '..
 
 type DailyApprovalsWorkspaceHeaderProps = {
   termId: string;
+  /** درس انتخاب‌شده‌ی ماژول (ساب‌تایتل سایدبار)؛ خالی = عنوان کلی. */
+  courseTitle?: string | null;
   terms: Array<{ id: string; title: string }>;
   onTermChange: (termId: string) => void;
   showBulkExtend?: boolean;
@@ -30,6 +32,7 @@ type DailyApprovalsWorkspaceHeaderProps = {
 
 export function DailyApprovalsWorkspaceHeader({
   termId,
+  courseTitle,
   terms,
   onTermChange,
   showBulkExtend,
@@ -46,7 +49,11 @@ export function DailyApprovalsWorkspaceHeader({
       className="border-b border-kv-border pb-kv-group"
     >
       <KvFeatureIntro
-        title={DAILY_APPROVALS_FEATURE.title}
+        title={
+          courseTitle
+            ? `${DAILY_APPROVALS_FEATURE.title} — ${courseTitle}`
+            : DAILY_APPROVALS_FEATURE.title
+        }
         description={DAILY_APPROVALS_FEATURE.description}
         actions={
           <>

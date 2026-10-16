@@ -1,5 +1,6 @@
 import {
   courseNameForKind,
+  enrollmentOutcome,
 } from '@/services/internship-enrollment/enrollment-mappers';
 import { nestEntityId } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import type {
@@ -205,6 +206,10 @@ export function registeredSummaryFromEnrollment(
     mentorId: mentor?.id ?? null,
     mentorName: resolvedNames.mentorName || mentor?.title || null,
     status: mapNestEnrollmentStatus(enrollment.status),
+    outcome: enrollmentOutcome(
+      mapNestEnrollmentStatus(enrollment.status),
+      enrollment.isPass
+    ),
     weeks: mappedWeeks,
     progressiveGrade: realWeeklyData
       ? mapRealProgressiveGrade(realWeeklyData.scoreSummary)

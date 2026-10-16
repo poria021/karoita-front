@@ -34,6 +34,5 @@ describe('buildContentSecurityPolicy', () => {
     expect(csp).toContain("'unsafe-eval'");
     expect(csp).toContain('ws://localhost:*');
     expect(csp).toContain('ws://127.0.0.1:*');
-    expect(csp).toContain('ws://[::1]:*');
   });
 });

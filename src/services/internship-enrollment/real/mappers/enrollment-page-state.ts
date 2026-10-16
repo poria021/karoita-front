@@ -1,6 +1,7 @@
 import {
   clampLevel,
   courseNameForKind,
+  enrollmentOutcome,
   kindForRole,
   resolveEnrollmentScenario,
 } from '@/services/internship-enrollment/enrollment-mappers';
@@ -87,17 +88,38 @@ export function termTitleForHistoryEntry(
  * (`loadRegisteredEnrollmentDetails` در `real-enrollment-reads.ts`) استفاده
  * می‌شود تا هر دو دقیقاً روی یک ثبت‌نام توافق داشته باشند.
  */
-export function resolveEffectiveEnrollmentEntry(
+export function resolveEffectiveEnrollmentEntry<
+  T extends {
+    semesterId: string;
+    enrolment: { status?: string | null; createdAt?: string | null };
+  },
+>(
   current: { canSelect?: boolean; blockReason?: string | null } | null,
-  history: readonly EnrolmentHistoryEntry[]
-): EnrolmentHistoryEntry | null {
+  history: readonly T[],
+  openSemesterId?: string | null
+): T | null {
+  // ثبت‌نام `active` در همین ترمِ باز همیشه «فعلی» است.
+  const activeInOpenTerm =
+    (openSemesterId
+      ? history.find(
+          (entry) =>
+            entry.enrolment.status === 'active' &&
+            entry.semesterId === openSemesterId
+        )
+      : null) ?? null;
+  if (activeInOpenTerm) return activeInOpenTerm;
+
+  // درس این level در ترم باز قابل انتخاب است: ثبت‌نامِ `active` مانده از ترم‌های
+  // قبل (بک‌اند فقط وقتی همهٔ هفته‌ها نمره بگیرند `completed` می‌کند، نه با بسته
+  // شدن ترم) نباید جلوی انتخاب واحد ترم جدید را بگیرد؛ در `termHistory` می‌ماند.
+  if (current && current.canSelect !== false) {
+    return null;
+  }
+
   const activeEntry =
     history.find((entry) => entry.enrolment.status === 'active') ?? null;
   if (activeEntry) return activeEntry;
 
-  if (current && current.canSelect !== false) {
-    return null;
-  }
   return (
     history
       .filter((entry) => entry.enrolment.status === 'completed')
@@ -131,7 +153,11 @@ export function toEnrollmentPageState(
   const currentLessonId = current ? nestEntityId(current) || null : null;
 
   const history = findEnrolmentHistoryForLevel(semesters, kind, level);
-  const effectiveEntry = resolveEffectiveEnrollmentEntry(current, history);
+  const effectiveEntry = resolveEffectiveEnrollmentEntry(
+    current,
+    history,
+    open?.id
+  );
   const registered = Boolean(effectiveEntry);
 
   const openSemesterEntry = open
@@ -183,11 +209,15 @@ export function toEnrollmentPageState(
   const activeTermId = effectiveEntry ? effectiveEntry.semesterId : (open?.id ?? '');
 
   const termHistory: InternshipEnrollmentTermHistoryEntry[] = history.map(
-    (entry) => ({
-      termId: entry.semesterId,
-      termTitle: termTitleForHistoryEntry(entry, open, openTerm, semesters),
-      status: mapNestEnrollmentStatus(entry.enrolment.status),
-    })
+    (entry) => {
+      const status = mapNestEnrollmentStatus(entry.enrolment.status);
+      return {
+        termId: entry.semesterId,
+        termTitle: termTitleForHistoryEntry(entry, open, openTerm, semesters),
+        status,
+        outcome: enrollmentOutcome(status, entry.enrolment.isPass),
+      };
+    }
   );
 
   return {

@@ -1,9 +1,11 @@
 import { IS_MOCK_MODE } from '@/lib/api-mode';
+import { courseDefinitionsOf } from '@/services/syllabus-config/course-catalog';
 import { readSyllabusSnapshot, readWeeksFromSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
 import {
   getCatalogForTermType,
   listOfferingsForTerm,
 } from '@/services/syllabus-config/syllabus-mappers';
+import { realLessonIdFor } from '@/services/syllabus-config/real/real-syllabus-mappers';
 import {
   getRealTermCourseContext,
   getRealWeeksForLesson,
@@ -30,7 +32,7 @@ export const courseOfferingQueries = {
     const term = snapshot.terms.find((t) => t.id === termId) ?? null;
     if (!term) return { courses: [], offerings: [] };
     return {
-      courses: getCatalogForTermType(term.type),
+      courses: getCatalogForTermType(term.type, courseDefinitionsOf(snapshot)),
       offerings: listOfferingsForTerm(snapshot, termId),
     };
   },
@@ -41,7 +43,7 @@ export const courseOfferingQueries = {
     const snapshot = readSyllabusSnapshot();
     const term = snapshot.terms.find((t) => t.id === termId) ?? null;
     if (!term) return [];
-    return getCatalogForTermType(term.type);
+    return getCatalogForTermType(term.type, courseDefinitionsOf(snapshot));
   },
 
   /** در Nest پرچم ارائه همان `lesson.status` است. */
@@ -57,7 +59,10 @@ export const courseOfferingQueries = {
   ): Promise<LessonWeeksLoad> {
     gateSyllabus();
     if (!IS_MOCK_MODE) {
-      return getRealWeeksForLesson(termId, courseCatalogId);
+      return getRealWeeksForLesson(
+        termId,
+        realLessonIdFor(termId, courseCatalogId)
+      );
     }
     const weeks = readWeeksFromSnapshot(
       readSyllabusSnapshot(),

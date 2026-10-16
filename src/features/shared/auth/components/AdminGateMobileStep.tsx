@@ -2,6 +2,7 @@
 
 import { Controller } from 'react-hook-form';
 
+import { KvButton } from '@/components/shared/KvButton';
 import { KvMobileNumberField } from '@/components/shared/fields/KvMobileNumberField';
 
 import type { UseAdminGateReturn } from '../hooks/useAdminGate';
@@ -14,7 +15,13 @@ interface AdminGateMobileStepProps {
 }
 
 export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
-  const { mobileForm, requestOtp, isRequestingOtp, secondsUntilResend } = gate;
+  const {
+    mobileForm,
+    requestOtp,
+    isRequestingOtp,
+    secondsUntilResend,
+    switchToPasswordMode,
+  } = gate;
   const { control, formState } = mobileForm;
   const hasActiveCountdown = secondsUntilResend > 0;
 
@@ -51,6 +58,16 @@ export function AdminGateMobileStep({ gate }: AdminGateMobileStepProps) {
       >
         {hasActiveCountdown ? 'ادامه (کد قبلاً ارسال شده)' : 'ارسال کد تایید'}
       </AuthSubmitButton>
+
+      <KvButton
+        type="button"
+        appearance="secondary"
+        fullWidth
+        disabled={isRequestingOtp}
+        onClick={switchToPasswordMode}
+      >
+        ورود با رمز عبور
+      </KvButton>
     </AuthBusyForm>
   );
 }

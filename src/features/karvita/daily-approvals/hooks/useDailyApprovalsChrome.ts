@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
@@ -8,6 +9,10 @@ import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
 } from '@/lib/search-debounce';
+import { isMockApiMode } from '@/lib/api-mode';
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
+import { QUERY_STALE_MS } from '@/lib/query-stale';
+import { DailyApprovalsService } from '@/services/daily-approvals.service';
 import { useDashboardModuleCache } from '@/store/useDashboardModuleCache';
 import type {
   DailyApprovalCourseFilter,
@@ -15,7 +20,12 @@ import type {
   DailyApprovalReadFilter,
 } from '@/types/daily-approvals';
 
-import { getDailyApprovalCourseOptions } from '../constants';
+import {
+  evaluationScopeKeys,
+  getDailyApprovalCourseOptions,
+  getRealDailyApprovalCourseOptions,
+} from '../constants';
+import { useDailyApprovalModule } from './useDailyApprovalModule';
 import {
   DAILY_APPROVALS_CHROME_ID,
   dailyApprovalsListResetKey,
@@ -30,7 +40,6 @@ export type DailyApprovalsChrome = {
   kind: DailyApprovalCourseKind;
   query: string;
   readFilter: DailyApprovalReadFilter;
-  course: DailyApprovalCourseFilter;
   termId: string;
 };
 
@@ -42,7 +51,8 @@ export function useDailyApprovalsChrome() {
     DAILY_APPROVALS_CHROME_ID
   );
 
-  const [kind, setKind] = useSyncedUrlParam<DailyApprovalCourseKind>({
+  // نوع دوره فقط از URL (لینک‌های سایدبار) می‌آید؛ تب جداگانه‌ای در صفحه نیست.
+  const [kind] = useSyncedUrlParam<DailyApprovalCourseKind>({
     name: 'kind',
     allowed: DAILY_APPROVAL_KIND_KEYS,
     defaultValue: 'internship',
@@ -52,10 +62,34 @@ export function useDailyApprovalsChrome() {
   const [readFilter, setReadFilter] = useState<DailyApprovalReadFilter>(
     () => cachedChrome?.readFilter ?? 'all'
   );
-  const [course, setCourse] = useState<DailyApprovalCourseFilter>(
-    () => cachedChrome?.course ?? 'all'
-  );
+  const { courseModule, setModuleId } =
+    useDailyApprovalModule(kind);
   const [termId, setTermId] = useState(() => cachedChrome?.termId ?? '');
+  // real: گزینه‌های درس از lessonهای همین ترم می‌آید (مقدار = lessonId)، نه لیست ثابت.
+  const isRealCatalog = !isMockApiMode();
+  const termCoursesQuery = useQuery({
+    queryKey: DASHBOARD_QUERY.dailyApprovalsCourses(kind, termId),
+    queryFn: () => DailyApprovalsService.listCourses({ kind, termId }),
+    enabled: isRealCatalog && Boolean(termId),
+    staleTime: QUERY_STALE_MS.module,
+  });
+  const termCourses = termCoursesQuery.data;
+  const courseOptions = useMemo(
+    () =>
+      isRealCatalog
+        ? getRealDailyApprovalCourseOptions(termCourses ?? [])
+        : getDailyApprovalCourseOptions(kind, courseModule),
+    [isRealCatalog, termCourses, kind, courseModule]
+  );
+  const scopeKeys = useMemo(
+    () => (courseModule ? evaluationScopeKeys(courseModule) : undefined),
+    [courseModule]
+  );
+  const [rawCourse, setCourse] = useState<DailyApprovalCourseFilter>('all');
+  // زیرمجموعهٔ درس قبلی در درس/پنل دیگر معنا ندارد.
+  const course = courseOptions.some((option) => option.value === rawCourse)
+    ? rawCourse
+    : 'all';
 
   const debouncedQuery = useDebouncedValue(query, SEARCH_DEBOUNCE_MS);
   const listQuery = resolveListSearchQuery(query, debouncedQuery);
@@ -64,29 +98,29 @@ export function useDailyApprovalsChrome() {
     readFilter,
     course,
     termId,
-    listQuery
+    listQuery,
+    courseModule?.id
   );
-  const courseOptions = getDailyApprovalCourseOptions(kind);
-
   useEffect(() => {
     setChrome<DailyApprovalsChrome>(DAILY_APPROVALS_CHROME_ID, {
       kind,
       query,
       readFilter,
-      course,
       termId,
     });
-  }, [course, kind, query, readFilter, setChrome, termId]);
+  }, [kind, query, readFilter, setChrome, termId]);
 
   return {
     kind,
-    setKind,
     query,
     setQuery,
     readFilter,
     setReadFilter,
     course,
     setCourse,
+    courseModule,
+    setModuleId,
+    scopeKeys,
     termId,
     setTermId,
     listQuery,
