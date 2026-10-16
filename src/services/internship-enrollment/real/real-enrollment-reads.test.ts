@@ -381,7 +381,7 @@ describe('real enrollment reads', () => {
     expect(state.enrollment?.attendanceDaysUnavailableReason).toBeNull();
   });
 
-  it('does not apply client-side province/college filtering when the backend is the authority', async () => {
+  it('applies client-side province/college filtering when the real backend returns a mixed list', async () => {
     vi.mocked(studentEnrollmentsApi.listProfessors)
       .mockResolvedValueOnce({
         data: [
@@ -416,7 +416,7 @@ describe('real enrollment reads', () => {
       lessonId: 'les-1',
     });
 
-    expect(list.map((item) => item.id)).toEqual(['same-province', 'different-province']);
+    expect(list.map((item) => item.id)).toEqual(['same-province']);
   });
 
   it('falls back to null names when GET /users/{id} fails (best-effort, does not crash the page)', async () => {

@@ -2,6 +2,7 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import type { UserRole } from '@/types/auth';
 import type {
   DailyApprovalTrainee,
   DailyApprovalWeek,
@@ -16,6 +17,7 @@ type DailyApprovalWeekGridProps = {
   trainee: DailyApprovalTrainee;
   selectedWeekId?: string | null;
   compact?: boolean;
+  role?: UserRole | null;
   onSelectWeek?: (week: DailyApprovalWeek) => void;
 };
 
@@ -29,6 +31,7 @@ export function DailyApprovalWeekGrid({
   trainee,
   selectedWeekId = null,
   compact = false,
+  role,
   onSelectWeek,
 }: DailyApprovalWeekGridProps) {
   if (trainee.weeks.length === 0) {
@@ -52,15 +55,24 @@ export function DailyApprovalWeekGrid({
       }
     >
       {trainee.weeks.map((week) => {
-        const visual = getWeekVisual(week.status);
+        const blockedForObserver =
+          (role === 'mentor_teacher' || role === 'school_principal') &&
+          week.canWatchOthers === false;
+        const visual = getWeekVisual(blockedForObserver ? 'draft' : week.status);
         const score =
           week.status === 'graded' && week.score !== null ? week.score : null;
         const label =
-          week.status === 'draft' ? draftCardLabel(week) : visual.label;
-        // تا وقتی دانشجو گزارشی نفرستاده (status === 'draft')، استاد/معلم
-        // راهنما/مدیر مدرسه چیزی برای بازخورد دادن ندارند — ببین
-        // openWeekGrading برای گارد اصلی.
-        const locked = week.status === 'locked_future' || week.status === 'draft';
+          blockedForObserver
+            ? 'قفل شده'
+            : week.status === 'draft'
+              ? draftCardLabel(week)
+              : visual.label;
+        // تا وقتی دانشجو گزارشی نفرستاده (status === 'draft') یا اجازهٔ مشاهده
+        // برای معلم/مدیر مدرسه غیرفعال است، کارت باید باز نشود.
+        const locked =
+          week.status === 'locked_future' ||
+          week.status === 'draft' ||
+          blockedForObserver;
         const selected = selectedWeekId === week.id;
 
         return (

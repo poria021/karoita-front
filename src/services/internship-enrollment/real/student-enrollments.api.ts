@@ -180,10 +180,15 @@ export const studentEnrollmentsApi = {
     return parseNestPagedList<NestStudentEnrollment>(raw).data;
   },
 
-  /** GET `/api/v1/student-enrollments/{id}/weeks` — تایم‌لاین هفته‌های این ثبت‌نام. */
+  /** GET `/api/v1/student-enrollments/{id}/weeks` — تایم‌لاین هفته‌های این ثبت‌نام.
+   * لایو ممکن است آرایهٔ خام برگرداند یا پاکت `{ data, hasNextPage }` — هر دو
+   * را می‌پذیریم تا کارت‌های هفته در همهٔ نقش‌ها نمایش داده شوند.
+   */
   async listWeeks(id: string): Promise<NestStudentWeek[]> {
-    const raw = await apiClient.getJson<unknown>(NEST_STUDENT_ENROLLMENT_PATHS.weeks(id));
-    return Array.isArray(raw) ? (raw as NestStudentWeek[]) : [];
+    const raw = await apiClient.getJson<unknown>(
+      NEST_STUDENT_ENROLLMENT_PATHS.weeks(id)
+    );
+    return parseNestPagedList<NestStudentWeek>(raw).data;
   },
 
   /** GET `/api/v1/student-enrollments/{id}/score-summary`. */

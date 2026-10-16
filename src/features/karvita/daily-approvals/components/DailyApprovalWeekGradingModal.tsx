@@ -30,7 +30,6 @@ import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
 import { competencyRatingLabel } from '../constants';
 import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekGradingModal';
-import { DailyApprovalCanWatchOthersToggle } from './DailyApprovalCanWatchOthersToggle';
 import { DailyApprovalForwardPanel } from './DailyApprovalForwardPanel';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
 import { DailyApprovalPresenceStatus } from './DailyApprovalPresenceStatus';
@@ -255,13 +254,6 @@ export function DailyApprovalWeekGradingModal({
               />
             ) : null}
 
-            {role === 'supervisor_professor' && !modal.dropped ? (
-              <DailyApprovalCanWatchOthersToggle
-                checked={effectiveWeek.canWatchOthers === true}
-                onChange={onCanWatchOthersChange}
-              />
-            ) : null}
-
             <fieldset
               disabled={modal.disabled}
               className="min-w-0 space-y-kv-group border-0 p-0"
@@ -317,7 +309,9 @@ export function DailyApprovalWeekGradingModal({
                   advisorFeedback={modal.advisorFeedback}
                   scoreInput={modal.scoreInput}
                   schoolVisited={modal.schoolVisited}
+                  canWatchOthers={effectiveWeek.canWatchOthers === true}
                   onSchoolVisitedChange={modal.setSchoolVisited}
+                  onCanWatchOthersChange={onCanWatchOthersChange}
                   passingScoreThreshold={passingScoreThreshold}
                   onAdvisorFeedbackChange={modal.setAdvisorFeedback}
                   onScoreInputChange={modal.handleScoreInputChange}

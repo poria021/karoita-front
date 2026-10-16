@@ -128,7 +128,9 @@ export function useDailyApprovalsActions({
         // دانشجو هنوز گزارشی برای این هفته نفرستاده (studentStatus خالی) —
         // تا وقتی گزارشی نیست، استاد/معلم راهنما/مدیر مدرسه چیزی برای
         // بازخورد دادن ندارند.
-        week.status === 'draft'
+        week.status === 'draft' ||
+        ((role === 'mentor_teacher' || role === 'school_principal') &&
+          week.canWatchOthers === false)
       ) {
         return;
       }

@@ -22,11 +22,13 @@ type DailyApprovalSupervisorGradingFieldsProps = {
   advisorFeedback: string;
   scoreInput: string;
   schoolVisited: boolean;
+  canWatchOthers: boolean;
   /** حد نصاب قبولی سیستم از تنظیمات ترم (۰–۱۰۰). */
   passingScoreThreshold?: number;
   onAdvisorFeedbackChange: (value: string) => void;
   onScoreInputChange: (value: string) => void;
   onSchoolVisitedChange: (value: boolean) => void;
+  onCanWatchOthersChange: (value: boolean) => Promise<void>;
 };
 
 export function DailyApprovalSupervisorGradingFields({
@@ -35,10 +37,12 @@ export function DailyApprovalSupervisorGradingFields({
   advisorFeedback,
   scoreInput,
   schoolVisited,
+  canWatchOthers,
   passingScoreThreshold = DAILY_APPROVAL_PASSING_SCORE,
   onAdvisorFeedbackChange,
   onScoreInputChange,
   onSchoolVisitedChange,
+  onCanWatchOthersChange,
 }: DailyApprovalSupervisorGradingFieldsProps) {
   const threshold = Number.isFinite(passingScoreThreshold)
     ? passingScoreThreshold
@@ -194,24 +198,44 @@ export function DailyApprovalSupervisorGradingFields({
         </div>
       </div>
 
-      <label className="flex cursor-pointer items-start gap-kv-pair rounded-kv-control border border-kv-border bg-kv-surface-muted p-kv-group">
-        <input
-          type="checkbox"
-          className="mt-0.5 size-4 shrink-0 accent-kv-brand"
-          checked={schoolVisited}
-          disabled={!hasScore}
-          onChange={(event) => onSchoolVisitedChange(event.target.checked)}
-        />
-        <span className="space-y-1">
-          <KvTypography variant="caption" weight="bold" as="span">
-            در این جلسه به مدرسه رفته‌ام و بازدید حضوری داشته‌ام.
-          </KvTypography>
-          <KvTypography variant="caption" tone="muted" as="p">
-            همراه با تایید نهایی نمره ثبت می‌شود و روی کارت هفته نمایش داده
-            می‌شود.
-          </KvTypography>
-        </span>
-      </label>
+      <div className="space-y-kv-pair">
+        <label className="flex cursor-pointer items-start gap-kv-pair rounded-kv-control border border-kv-border bg-kv-surface-muted p-kv-group">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-4 shrink-0 accent-kv-brand"
+            checked={schoolVisited}
+            disabled={!hasScore}
+            onChange={(event) => onSchoolVisitedChange(event.target.checked)}
+          />
+          <span className="space-y-1">
+            <KvTypography variant="caption" weight="bold" as="span">
+              در این جلسه به مدرسه رفته‌ام و بازدید حضوری داشته‌ام.
+            </KvTypography>
+            <KvTypography variant="caption" tone="muted" as="p">
+              همراه با تایید نهایی نمره ثبت می‌شود و روی کارت هفته نمایش داده
+              می‌شود.
+            </KvTypography>
+          </span>
+        </label>
+
+        <label className="flex cursor-pointer items-start gap-kv-pair rounded-kv-control border border-kv-border bg-kv-surface-muted p-kv-group">
+          <input
+            type="checkbox"
+            className="mt-0.5 size-4 shrink-0 accent-kv-brand"
+            checked={canWatchOthers}
+            onChange={(event) => void onCanWatchOthersChange(event.target.checked)}
+          />
+          <span className="space-y-1">
+            <KvTypography variant="caption" weight="bold" as="span">
+              مشاهده معلم و مدیر مدرسه
+            </KvTypography>
+            <KvTypography variant="caption" tone="muted" as="p">
+              با فعال‌سازی، معلم راهنما و مدیر مدرسه می‌توانند گزارش این هفته را
+              ببینند.
+            </KvTypography>
+          </span>
+        </label>
+      </div>
     </div>
   );
 }

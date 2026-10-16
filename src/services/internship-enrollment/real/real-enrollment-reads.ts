@@ -30,6 +30,7 @@ import {
   filterSchoolsClientSide,
   mapNestSchool,
 } from '@/services/internship-enrollment/real/mappers/school-mapping';
+import { filterSupervisorsClientSide } from '@/services/internship-enrollment/real/mappers/professor-mapping';
 import {
   filterTeachersClientSide,
   mapEnrollmentTeacher,
@@ -458,5 +459,9 @@ export async function listRealEligibleSupervisors(
     if (!result.hasNextPage) break;
   }
 
-  return collected;
+  return filterSupervisorsClientSide(collected, {
+    query: input.query,
+    province: input.province,
+    college: input.college,
+  });
 }
