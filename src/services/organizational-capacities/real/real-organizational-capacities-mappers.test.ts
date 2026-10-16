@@ -91,6 +91,21 @@ describe('real organizational capacity mappers', () => {
     });
   });
 
+  it('marks lessons as inactive when the Nest lesson is archived', () => {
+    const course = toCapacityCourseFromLesson({
+      lesson: {
+        id: 'lesson-1',
+        title: 'کارورزی ۱',
+        status: false,
+      },
+      kind: 'internship',
+      maxCapacity: 15,
+      row: null,
+    });
+
+    expect(course.isActive).toBe(false);
+  });
+
   it('clamps existing capacity to generalProfessorCapacity', () => {
     const course = toCapacityCourseFromLesson({
       lesson: { id: 'lesson-1', title: 'کارورزی ۱', capacity: 30 },

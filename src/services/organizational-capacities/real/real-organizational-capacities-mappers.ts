@@ -214,6 +214,7 @@ export function toCapacityCourseFromLesson(input: {
 }): OrganizationalCapacityCourse {
   const title = nestLessonTitle(input.lesson);
   const lessonId = nestEntityId(input.lesson);
+  const isActive = input.lesson.status !== false;
   const existsOnServer = input.row != null;
   // GET خالی = استاد هنوز تعیین نکرده؛ درس را پر نکن — ظرفیت ۰ و هفته خالی.
   const rawCapacity = existsOnServer
@@ -235,6 +236,7 @@ export function toCapacityCourseFromLesson(input: {
     total,
     confirmed: 0,
     selectedDays,
+    isActive,
     existsOnServer,
   };
 }

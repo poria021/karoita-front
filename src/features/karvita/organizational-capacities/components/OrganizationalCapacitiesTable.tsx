@@ -78,6 +78,8 @@ export function OrganizationalCapacitiesTable({
     index: number,
     nested = false
   ) {
+    const isCourseActive = course.isActive ?? true;
+    const rowDisabled = locked || !isCourseActive;
     return (
       <KvTableRow key={course.id}>
         <KvTableRowIndexCell index={index} />
@@ -85,7 +87,8 @@ export function OrganizationalCapacitiesTable({
           <span
             className={cn(
               'block',
-              nested && 'border-s-2 border-kv-brand/25 ps-3'
+              nested && 'border-s-2 border-kv-brand/25 ps-3',
+              !isCourseActive && 'text-kv-text-faint opacity-70'
             )}
           >
             {course.title}
@@ -95,7 +98,7 @@ export function OrganizationalCapacitiesTable({
           <OrganizationalCapacitiesTotalField
             value={course.total}
             maxCapacity={maxCapacity}
-            locked={locked}
+            locked={rowDisabled}
             className="mx-auto"
             onChange={(value) => onTotalChange(course.id, value)}
           />
@@ -108,7 +111,7 @@ export function OrganizationalCapacitiesTable({
         <KvTableCell align="center">
           <OrganizationalCapacitiesDayToggles
             selectedDays={course.selectedDays}
-            disabled={locked}
+            disabled={rowDisabled}
             className="justify-center"
             onToggle={(day) => onToggleDay(course.id, day)}
           />
