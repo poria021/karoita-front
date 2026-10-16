@@ -77,7 +77,7 @@ export function SidebarNavGroup({
               item={child}
               isActive={activePath === child.path}
               isCollapsed
-              locked={locked || Boolean(lockedPaths?.has(child.path))}
+              locked={locked || Boolean(lockedPaths?.has(child.path)) || Boolean(child.disabled)}
               onNavigate={onNavigate}
               textSize={textSize}
             />
@@ -226,7 +226,7 @@ function ExpandedGroupChrome({
               item={child}
               isActive={!locked && activePath === child.path}
               isCollapsed={isCollapsed}
-              locked={locked || Boolean(lockedPaths?.has(child.path))}
+              locked={locked || Boolean(lockedPaths?.has(child.path)) || Boolean(child.disabled)}
               onNavigate={onNavigate}
               nested
               textSize={textSize}

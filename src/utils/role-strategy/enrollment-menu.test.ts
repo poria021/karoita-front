@@ -84,6 +84,29 @@ describe('withEnrollmentSubModules', () => {
       '/karvita/internships/103'
     );
   });
+
+  it('keeps defined-but-inactive courses visible and marks them disabled', () => {
+    const inactiveProject: CourseDefinition = {
+      ...PROJECT,
+      id: 'crs_inactive_project',
+      isActive: false,
+    };
+
+    const menu = withEnrollmentSubModules(STUDENT_MENU, [inactiveProject]);
+    const project = menu.find((entry) => entry.title === 'انتخاب واحد پروژه');
+    expect(project).toBeTruthy();
+    if (!project) return;
+
+    if (!isSidebarMenuGroup(project)) {
+      expect(project).toMatchObject({
+        title: 'انتخاب واحد پروژه',
+        disabled: true,
+      });
+      return;
+    }
+
+    expect(project.children.every((child) => child.disabled === true)).toBe(true);
+  });
 });
 
 describe('withEnrollmentSubModules whenEmpty', () => {

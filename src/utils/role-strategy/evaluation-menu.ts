@@ -51,6 +51,7 @@ function childForCourse(
       course.id
     ),
     icon: kind === 'internship' ? 'fa-graduation-cap' : 'fa-user-gear',
+    disabled: !course.isActive,
   };
 }
 

@@ -30,8 +30,9 @@ export function useDailyApprovalModule(kind: DailyApprovalCourseKind) {
   );
 
   const definitions = useActiveCourseDefinitions();
-  const courses: CourseDefinition[] =
+  const allCourses: CourseDefinition[] =
     kind === 'internship' ? definitions.semester : definitions.modular;
+  const courses = allCourses.filter((course) => course.isActive);
 
   const raw = useMemo(
     () => new URLSearchParams(search).get(EVALUATION_MODULE_PARAM),

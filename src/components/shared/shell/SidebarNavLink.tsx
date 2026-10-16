@@ -37,21 +37,22 @@ export function SidebarNavLink({
 }: SidebarNavLinkProps) {
   const itemIcon = resolveSidebarIcon(item.icon);
   const hasCourseBadge = typeof item.iconBadge === 'number';
+  const isDisabled = locked || Boolean(item.disabled);
   /** سایدبار باز: فرزند `L2` گلولهٔ آرام. ریل جمع: آیکن دوره. */
   const useBullet = nested && !isCollapsed;
   const hoverTitle = isCollapsed
-    ? locked
+    ? isDisabled
       ? `${item.title} (غیرفعال)`
       : item.title
     : undefined;
 
-  const iconTone = locked
+  const iconTone = isDisabled
     ? 'text-kv-text-faint'
     : isActive
       ? 'text-kv-brand'
       : 'text-kv-text-faint group-hover:text-kv-text-subtle';
 
-  const bulletTone = locked
+  const bulletTone = isDisabled
     ? 'bg-kv-border-strong'
     : isActive
       ? 'bg-kv-brand'
@@ -104,7 +105,7 @@ export function SidebarNavLink({
     useBullet ? 'px-3 py-2' : 'py-2.5',
     !useBullet && (isCollapsed ? 'px-3.5 lg:px-0' : 'px-3.5'),
     isCollapsed ? 'justify-start lg:justify-center' : 'justify-start text-start',
-    locked
+    isDisabled
       ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
       : isActive
         ? /* فوکوس درخت — پر نرم + بردر داخلی روی هر ماژول فعال */
@@ -118,13 +119,13 @@ export function SidebarNavLink({
             'cursor-pointer border border-transparent font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
   );
 
-  if (locked) {
+  if (isDisabled) {
     return (
       <button
         type="button"
         disabled
         aria-disabled="true"
-        aria-label={`${item.title} — غیرفعال تا تأیید مدارک`}
+        aria-label={locked ? `${item.title} — غیرفعال تا تأیید مدارک` : `${item.title} — غیرفعال`}
         title={hoverTitle}
         className={className}
       >

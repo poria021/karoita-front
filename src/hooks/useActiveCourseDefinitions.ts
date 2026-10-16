@@ -45,11 +45,11 @@ export function useActiveCourseDefinitions(
   });
 
   return useMemo(() => {
-    const active = (query.data ?? EMPTY).filter((course) => course.isActive);
+    const all = query.data ?? EMPTY;
     return {
       status: query.isError ? 'error' : query.data ? 'ready' : 'loading',
-      semester: active.filter((course) => course.audience === 'semester'),
-      modular: active.filter((course) => course.audience === 'modular'),
+      semester: all.filter((course) => course.audience === 'semester'),
+      modular: all.filter((course) => course.audience === 'modular'),
     };
   }, [query.data, query.isError]);
 }

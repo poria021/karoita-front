@@ -70,14 +70,16 @@ export function withEnrollmentSubModules(
     replaced = true;
     for (const course of courses) {
       const title = `انتخاب واحد ${course.title}`;
+      const disabled = !course.isActive;
       if (course.subModules.length === 0) {
         const item = itemFor(course, entry.icon);
-        if (item) next.push({ ...item, title });
+        if (item) next.push({ ...item, title, disabled });
         continue;
       }
       const children = course.subModules
         .map((sub) => itemFor(sub, entry.icon))
-        .filter((item): item is SidebarMenuItem => item !== null);
+        .filter((item): item is SidebarMenuItem => item !== null)
+        .map((item) => ({ ...item, disabled }));
       if (children.length === 0) continue;
       next.push({
         kind: 'group',
