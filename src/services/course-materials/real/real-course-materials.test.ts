@@ -5,6 +5,7 @@ import {
   listRealReceivedCourseMaterials,
   publishRealCourseMaterial,
 } from './real-course-materials';
+import { ApiClientError } from '@/services/api-error';
 import { FilesService } from '@/services/files.service';
 import { mentorLessonFilesApi } from '@/services/mentor-lesson-files.api';
 
@@ -94,6 +95,26 @@ describe('real course materials', () => {
 
     expect(mentorLessonFilesApi.listForStudent).toHaveBeenCalledWith('lesson-1');
     expect(rows[0]).toMatchObject({ courseKey: 'lesson-1', title: 'notes.pdf' });
+  });
+
+  it('treats 404 (nothing uploaded yet) as an empty list, not an error', async () => {
+    vi.mocked(mentorLessonFilesApi.listForStudent).mockRejectedValueOnce(
+      new ApiClientError('Not Found', 404)
+    );
+
+    await expect(
+      listRealReceivedCourseMaterials('internship', 'lesson-1')
+    ).resolves.toEqual([]);
+  });
+
+  it('still throws for non-404 failures so the retry state shows', async () => {
+    vi.mocked(mentorLessonFilesApi.listForStudent).mockRejectedValueOnce(
+      new ApiClientError('Internal Server Error', 500)
+    );
+
+    await expect(
+      listRealReceivedCourseMaterials('internship', 'lesson-1')
+    ).rejects.toMatchObject({ status: 500 });
   });
 
   it('deletes by record id', async () => {

@@ -1,3 +1,4 @@
+import { ApiClientError } from '@/services/api-error';
 import { mapMentorLessonFileRecord } from '@/services/course-materials/real/mentor-lesson-file-mappers';
 import {
   COURSE_MATERIAL_REAL_MAX_BYTES,
@@ -38,7 +39,17 @@ export async function listRealReceivedCourseMaterials(
 ): Promise<CourseMaterial[]> {
   requireNestTransport('CourseMaterialsService.listReceived');
   if (!courseKey) return [];
-  const raw = await mentorLessonFilesApi.listForStudent(courseKey);
+
+  let raw: unknown;
+  try {
+    raw = await mentorLessonFilesApi.listForStudent(courseKey);
+  } catch (error) {
+    // وقتی استاد هنوز چیزی بارگذاری نکرده، بک‌اند ۴۰۴ می‌دهد — خطا نیست،
+    // یعنی لیست خالی (UI حالت «خالی» را نشان می‌دهد، نه خطا + تلاش دوباره).
+    if (error instanceof ApiClientError && error.status === 404) return [];
+    throw error;
+  }
+
   return newestFirst(
     asRecords(raw).flatMap((record) =>
       mapMentorLessonFileRecord(record, { kind }).map((row) => ({

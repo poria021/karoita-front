@@ -21,7 +21,8 @@ type CourseMaterialsLearnerBoxProps = {
 
 /**
  * جزوه‌ها و فایل‌هایی که استاد راهنما برای این درس گذاشته — در صفحهٔ گزارش فراگیر.
- * real: GET `/v1/lessons/{lessonId}/mentor-files`؛ در خطا پیام + «تلاش دوباره».
+ * real: GET `/v1/lessons/{lessonId}/mentor-files`. ۴۰۴ یعنی هنوز فایلی نیست و
+ * در Facade به لیست خالی تبدیل می‌شود (حالت «خالی»)؛ فقط خطای واقعی پیام + «تلاش دوباره» دارد.
  */
 export function CourseMaterialsLearnerBox({
   kind,
