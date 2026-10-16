@@ -69,7 +69,9 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
     return withEnrollmentSubModules(
       evaluated,
       kind === 'internship' ? definitions.semester : definitions.modular,
-      { whenEmpty: mock ? 'keep' : 'remove' }
+      // در حالت real داده ممکن است در لحظه هنوز برنگشته باشد؛ برای جلوگیری از
+      // خالی شدن کامل منوی انتخاب واحد، منوی ایستا را نگه می‌داریم.
+      { whenEmpty: 'keep' }
     );
   }, [role, mock, kind, definitions]);
 }

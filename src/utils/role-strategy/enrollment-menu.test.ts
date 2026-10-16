@@ -1,5 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 
+import { useSidebarMenu } from '@/components/shared/shell/useSidebarMenu';
+import * as activeCourseDefinitionsModule from '@/hooks/useActiveCourseDefinitions';
 import { RouteService } from '@/services/route.service';
 import { cloneDefaultCourseDefinitions } from '@/services/syllabus-config/course-catalog';
 import type { CourseDefinition } from '@/types/syllabus-config';
@@ -88,5 +91,17 @@ describe('withEnrollmentSubModules whenEmpty', () => {
     const result = withEnrollmentSubModules(STUDENT_MENU, [], { whenEmpty: 'remove' });
     expect(titles(result)).not.toContain('انتخاب واحد کارورزی');
     expect(result.length).toBe(STUDENT_MENU.length - 1);
+  });
+
+  it('keeps the static student enrollment group when the real API has not hydrated yet', () => {
+    vi.spyOn(activeCourseDefinitionsModule, 'useActiveCourseDefinitions').mockReturnValue({
+      status: 'ready',
+      semester: [],
+      modular: [],
+    });
+
+    const { result } = renderHook(() => useSidebarMenu('student'));
+
+    expect(result.current.find((entry) => entry.title === 'انتخاب واحد کارورزی')).toBeTruthy();
   });
 });
