@@ -19,6 +19,12 @@ async function fillMobile(page: Page, selector: string, mobile: string) {
 
 async function loginAsMockSuperAdminViaGate(page: Page): Promise<void> {
   await page.goto(RouteService.auth.adminGate());
+
+  // گیت ادمین پیش‌فرض روی «رمز عبور» باز می‌شود؛ برای مسیر OTP اول به آن حالت می‌رویم.
+  await page
+    .getByRole('button', { name: /ورود با رمز یکبار مصرف/ })
+    .click({ timeout: 30_000 });
+
   await expect(page.locator('#admin-gate-mobile')).toBeVisible({
     timeout: 30_000,
   });
