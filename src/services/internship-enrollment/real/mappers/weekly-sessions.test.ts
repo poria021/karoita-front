@@ -61,4 +61,15 @@ describe('mapRealWeeklySessions — sequential lock', () => {
     expect(mapped[1]!.status).toBe('draft');
     expect(mapped[2]!.status).toBe('locked_future');
   });
+
+  it('skips archived weeks in the sequential lock and keeps the first week after them open', () => {
+    const weeks = [
+      week({ id: '1', studentStatus: 'send' }),
+      week({ id: '2', weekId: { id: 'w-2', status: false } }),
+      week({ id: '3' }),
+    ];
+    const mapped = mapRealWeeklySessions(weeks, emptyMaps.latest, emptyMaps.feedback);
+    expect(mapped[1]!.status).toBe('archived');
+    expect(mapped[2]!.status).toBe('draft');
+  });
 });

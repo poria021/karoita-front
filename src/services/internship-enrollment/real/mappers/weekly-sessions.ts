@@ -77,13 +77,25 @@ function hasStudentSubmittedWeek(week: NestStudentWeek): boolean {
  * برایش ثبت شده (دادهٔ قدیمی/استثنا)، همان وضعیت واقعی‌اش نشان داده می‌شود
  * تا کار واقعی دانشجو پشت قفل پنهان نشود.
  */
+function previousNonArchivedIndex(
+  weeks: readonly NestStudentWeek[],
+  index: number
+): number {
+  for (let i = index - 1; i >= 0; i -= 1) {
+    if (!isWeekArchived(weeks[i])) return i;
+  }
+  return -1;
+}
+
 function isSequentiallyLocked(
   weeks: readonly NestStudentWeek[],
   index: number,
   ownStatus: InternshipWeeklySessionState
 ): boolean {
   if (index === 0 || ownStatus !== 'draft') return false;
-  return !hasStudentSubmittedWeek(weeks[index - 1]);
+  const previousIndex = previousNonArchivedIndex(weeks, index);
+  if (previousIndex === -1) return false;
+  return !hasStudentSubmittedWeek(weeks[previousIndex]);
 }
 
 /**
@@ -106,15 +118,18 @@ export function mapRealWeeklySessions(
     const latest = latestSubmissionByWeekId.get(id);
     const feedback = feedbackByWeekId.get(id);
     const completed = week.status === 'completed';
-    const ownStatus = mapWeekStatus(week);
-    const status = isSequentiallyLocked(weeks, index, ownStatus)
-      ? 'locked_future'
-      : ownStatus;
+    const archived = isWeekArchived(week);
+    const ownStatus = archived ? 'archived' : mapWeekStatus(week);
+    const status = archived
+      ? 'archived'
+      : isSequentiallyLocked(weeks, index, ownStatus)
+        ? 'locked_future'
+        : ownStatus;
     return {
       id,
       title: `هفته ${index + 1}`,
       status,
-      isArchived: isWeekArchived(week),
+      isArchived: archived,
       score: completed && typeof week.score === 'number' ? week.score : null,
       weightedScore: typeof week.weightedScore === 'number' ? week.weightedScore : null,
       text: latest?.text ?? '',

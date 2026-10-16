@@ -27,6 +27,7 @@ export function effectiveWeeklySessionState(
 ): InternshipWeeklySessionState {
   if (enrollmentStatus === 'completed') return 'graded';
   if (enrollmentStatus === 'dropped') return 'locked_dropped';
+  if (week.isArchived || week.status === 'archived') return 'archived';
   return week.status;
 }
 
