@@ -11,7 +11,6 @@ import {
   type WeekStudentSubmissionPreview,
 } from '@/services/internship-enrollment/real/mappers/week-feedback';
 import {
-  filterSupervisorsClientSide,
   findEnrolmentHistoryForLevel,
   preferLatestEnrolments,
   findLessonForLevel,
@@ -459,9 +458,5 @@ export async function listRealEligibleSupervisors(
     if (!result.hasNextPage) break;
   }
 
-  return filterSupervisorsClientSide(collected, {
-    query: input.query,
-    province: input.province ?? '',
-    college: input.college ?? '',
-  });
+  return collected;
 }
