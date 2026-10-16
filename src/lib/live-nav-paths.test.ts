@@ -97,6 +97,9 @@ describe('live nav / admin plane', () => {
     expect(
       isLiveSidebarPath(RouteService.karvita.internshipSelection(1))
     ).toBe(true);
+    expect(
+      isLiveSidebarPath(RouteService.karvita.internshipSelection(101))
+    ).toBe(true);
     expect(isLiveSidebarPath(RouteService.karvita.dailyApprovals())).toBe(true);
     expect(
       isLiveSidebarPath(RouteService.karvita.organizationalCapacities())
