@@ -10,6 +10,9 @@ import type {
   UpsertCourseDefinitionInput,
 } from '@/types/syllabus-config';
 
+import { DYNAMIC_ENROLLMENT_LEVEL_BASE } from '@/services/syllabus-config/course-catalog';
+import { persianToEnglishDigits } from '@/utils/persianDigits';
+
 /**
  * Nest هر زیرمجموعه را یک ردیف تخت (`mainTitle` + `lessonTitle`) نگه می‌دارد؛
  * UI یک «درس» با آرایهٔ `subModules` می‌خواهد. شناسهٔ گروه سمت سرور وجود ندارد،
@@ -38,6 +41,15 @@ export function courseGroupId(type: OriginalLessonType, mainTitle: string): stri
  * (همان شکلی که `toNestBulkCreateBody` برای درس مستقل می‌نویسد).
  * درس وقتی بایگانی است که هیچ ردیف `active` نداشته باشد.
  */
+function inferEnrollmentLevelFromTitle(title: string, index: number): number {
+  const normalized = persianToEnglishDigits(title);
+  const explicit = [...normalized.matchAll(/\d+/g)]
+    .map((match) => Number(match[0]))
+    .find((value) => value >= 1 && value <= 9);
+
+  return explicit ?? (DYNAMIC_ENROLLMENT_LEVEL_BASE + index + 1);
+}
+
 export function groupOriginalLessons(
   rows: readonly NestOriginalLesson[]
 ): CourseDefinition[] {
@@ -59,14 +71,21 @@ export function groupOriginalLessons(
     const standalone =
       group.rows.length === 1 &&
       group.rows[0]!.lessonTitle.trim() === group.title;
+    const fallbackLevel = inferEnrollmentLevelFromTitle(group.title, 0);
+
     return {
       id,
       title: group.title,
       audience: group.audience,
       isActive: group.rows.some((row) => row.status === 'active'),
+      ...(standalone ? { level: fallbackLevel } : {}),
       subModules: standalone
         ? []
-        : group.rows.map((row) => ({ id: row.id, title: row.lessonTitle.trim() })),
+        : group.rows.map((row, index) => ({
+            id: row.id,
+            title: row.lessonTitle.trim(),
+            level: inferEnrollmentLevelFromTitle(row.lessonTitle.trim(), index),
+          })),
     };
   });
 }

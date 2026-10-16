@@ -54,6 +54,30 @@ describe('groupOriginalLessons', () => {
     expect(course!.subModules).toEqual([]);
   });
 
+  it('سطح زیرمجموعه‌ها را از عنوان یا ترتیب داینامیک می‌گیرد تا سایدبار درس‌ها رندر شود', () => {
+    const [course] = groupOriginalLessons([
+      row({ id: 'a', mainTitle: 'کارورزی', lessonTitle: 'کارورزی ۲' }),
+      row({ id: 'b', mainTitle: 'کارورزی', lessonTitle: 'کارورزی ۳' }),
+    ]);
+
+    expect(course).toMatchObject({
+      audience: 'semester',
+      subModules: [
+        { id: 'a', title: 'کارورزی ۲', level: 2 },
+        { id: 'b', title: 'کارورزی ۳', level: 3 },
+      ],
+    });
+  });
+
+  it('هنگام نبود عدد در عنوان، سطح داینامیک به ترتیب ۱۰۱، ۱۰۲، ... می‌گیرد', () => {
+    const [course] = groupOriginalLessons([
+      row({ id: 'a', mainTitle: 'کارگاه', lessonTitle: 'جلسه اول' }),
+      row({ id: 'b', mainTitle: 'کارگاه', lessonTitle: 'جلسه دوم' }),
+    ]);
+
+    expect(course?.subModules.map((sub) => sub.level)).toEqual([101, 102]);
+  });
+
   it('درس فقط وقتی بایگانی است که همهٔ ردیف‌ها deactive باشند', () => {
     const [mixed] = groupOriginalLessons([
       row({ id: 'a', status: 'deactive' }),
