@@ -4,6 +4,16 @@ import type { InternshipSupervisor } from '@/types/internship-enrollment';
 
 import { asFiniteNumber, asTrimmedString, isRecord, namedTitle, NEST_DAY_FA } from './primitives';
 
+function normalizeComparableText(value: unknown): string {
+  const direct = Array.isArray(value) ? value[0] : value;
+  if (typeof direct === 'string') {
+    return direct.trim().replace(/\s+/g, ' ').toLocaleLowerCase('fa-IR');
+  }
+  if (typeof direct === 'number') return String(direct);
+  if (isRecord(direct)) return normalizeComparableText(namedTitle(direct));
+  return '';
+}
+
 function unwrapProfessor(raw: NestEnrollmentProfessor): Record<string, unknown> {
   const nested = isRecord(raw.professor) ? raw.professor : null;
   return { ...(nested ?? {}), ...raw };
@@ -64,15 +74,17 @@ export function filterSupervisorsClientSide(
   input: { query: string; province: string; college: string }
 ): InternshipSupervisor[] {
   const query = input.query.trim().toLocaleLowerCase('fa-IR');
+  const normalizedProvince = normalizeComparableText(input.province);
+  const normalizedCollege = normalizeComparableText(input.college);
+
   return supervisors.filter((item) => {
-    if (
-      input.province &&
-      item.province &&
-      item.province !== input.province
-    ) {
+    const itemProvince = normalizeComparableText(item.province);
+    const itemCollege = normalizeComparableText(item.college);
+
+    if (normalizedProvince && itemProvince && itemProvince !== normalizedProvince) {
       return false;
     }
-    if (input.college && item.college && item.college !== input.college) {
+    if (normalizedCollege && itemCollege && itemCollege !== normalizedCollege) {
       return false;
     }
     if (!query) return true;

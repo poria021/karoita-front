@@ -82,6 +82,15 @@ export function hasEligibleSchoolMentorCascade(input: {
   });
 }
 
+function normalizeSelectionValue(value: unknown): string {
+  if (Array.isArray(value)) return normalizeSelectionValue(value[0]);
+  if (typeof value === 'string') {
+    return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('fa-IR');
+  }
+  if (typeof value === 'number') return String(value);
+  return '';
+}
+
 export function filterEligibleSupervisors(input: {
   supervisors: InternshipSupervisor[];
   actor: InternshipEnrollmentActor;
@@ -93,14 +102,18 @@ export function filterEligibleSupervisors(input: {
   mentors: InternshipMentorCapacity[];
 }): InternshipSupervisor[] {
   const normalizedQuery = input.query.trim().toLocaleLowerCase('fa-IR');
+  const normalizedProvince = normalizeSelectionValue(input.province);
+  const normalizedCollege = normalizeSelectionValue(input.college);
   const hasCascade = hasEligibleSchoolMentorCascade(input);
 
   if (!hasCascade) return [];
 
   return input.supervisors.filter((supervisor) => {
     if (supervisor.readOnly || !hasAvailableCapacity(supervisor.capacity)) return false;
-    if (input.college && supervisor.college !== input.college) return false;
-    if (input.province && supervisor.province !== input.province) return false;
+    const supervisorCollege = normalizeSelectionValue(supervisor.college);
+    const supervisorProvince = normalizeSelectionValue(supervisor.province);
+    if (normalizedCollege && supervisorCollege && supervisorCollege !== normalizedCollege) return false;
+    if (normalizedProvince && supervisorProvince && supervisorProvince !== normalizedProvince) return false;
     return (
       !normalizedQuery ||
       supervisor.name.toLocaleLowerCase('fa-IR').includes(normalizedQuery)
