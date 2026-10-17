@@ -4,6 +4,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import {
   KvTable,
   KvTableBody,
@@ -12,6 +13,8 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import { KvTableBusy } from '@/components/shared/table/KvTableBusy';
+import { KvTableEmpty } from '@/components/shared/table/KvTableEmpty';
 import {
   KvTableRowIndexCell,
   KvTableRowIndexHead,
@@ -29,6 +32,9 @@ type BulletinsTableProps = {
   rows: Bulletin[];
   /** ستون «عکس» فقط برای تبلیغات نمایش داده می‌شود. */
   kind: BulletinKind;
+  isLoading: boolean;
+  /** عنوان حالت خالی؛ جدول (با سرستون) همیشه نمایش داده می‌شود. */
+  emptyTitle: string;
   /** نشان استان فقط برای پنل‌هایی که مخاطب را روی استان محدود می‌کنند. */
   showProvinces: boolean;
   onEdit: (row: Bulletin) => void;
@@ -40,6 +46,8 @@ type BulletinsTableProps = {
 export function BulletinsTable({
   rows,
   kind,
+  isLoading,
+  emptyTitle,
   showProvinces,
   onEdit,
   onToggleActive,
@@ -47,10 +55,11 @@ export function BulletinsTable({
 }: BulletinsTableProps) {
   const isAd = kind === 'advertisement';
   const colCount = isAd ? 6 : 5;
+  const bodyPhase = getAdminTableBodyPhase(isLoading, rows.length);
 
   return (
-    <KvTableViewport>
-      <KvTable>
+    <KvTableViewport resetKey={kind} hasMore={false} isBusy={isLoading}>
+      <KvTable scrollable={false}>
         <KvTableHeader>
           <KvTableRow>
             <KvTableRowIndexHead />
@@ -62,12 +71,12 @@ export function BulletinsTable({
           </KvTableRow>
         </KvTableHeader>
         <KvTableBody>
-          {rows.length === 0 ? (
-            <KvTableRow>
-              <KvTableCell colSpan={colCount}>
-                <KvEmptyState title="موردی یافت نشد" />
-              </KvTableCell>
-            </KvTableRow>
+          {bodyPhase === 'busy' ? (
+            <KvTableBusy colSpan={colCount} />
+          ) : bodyPhase === 'empty' ? (
+            <KvTableEmpty colSpan={colCount}>
+              <KvEmptyState title={emptyTitle} />
+            </KvTableEmpty>
           ) : (
             rows.map((row, index) => {
               const roleLabels = row.audienceRoles
@@ -136,7 +145,9 @@ export function BulletinsTable({
                         </Badge>
                       </span>
                       {showProvinces ? (
-                        <span title={allProvinces ? undefined : row.provinces.join('، ')}>
+                        <span
+                          title={allProvinces ? undefined : row.provinces.join('، ')}
+                        >
                           <Badge variant="info">
                             {allProvinces
                               ? 'همه استان‌ها'
@@ -150,38 +161,40 @@ export function BulletinsTable({
                     {formatNotificationTime(row.createdAt)}
                   </KvTableCell>
                   <KvTableCell align="center">
-                    <div className="flex items-center justify-center gap-1">
+                    <div className="flex items-center justify-center gap-1.5">
                       <KvButton
                         type="button"
-                        appearance="text"
                         color="neutral"
-                        size="sm"
-                        aria-label={`ویرایش «${row.title}»`}
-                        icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
+                        appearance="ghost"
+                        size="icon-xs"
+                        aria-label={`ویرایش ${row.title}`}
+                        title="ویرایش"
                         onClick={() => onEdit(row)}
+                        icon={<FaIcon icon={faIcons.penToSquare} size="xs" />}
                       />
                       <KvButton
                         type="button"
-                        appearance="text"
                         color="neutral"
-                        size="sm"
+                        appearance="ghost"
+                        size="xs"
                         aria-label={
                           row.isActive
-                            ? `غیرفعال‌سازی «${row.title}»`
-                            : `فعال‌سازی «${row.title}»`
+                            ? `غیرفعال‌سازی ${row.title}`
+                            : `فعال‌سازی ${row.title}`
                         }
-                        aria-pressed={row.isActive}
-                        icon={<FaIcon icon={faIcons.powerOff} size="xs" />}
                         onClick={() => onToggleActive(row)}
-                      />
+                      >
+                        {row.isActive ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
+                      </KvButton>
                       <KvButton
                         type="button"
-                        appearance="text"
                         color="error"
-                        size="sm"
-                        aria-label={`حذف «${row.title}»`}
-                        icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+                        appearance="ghost"
+                        size="icon-xs"
+                        aria-label={`حذف ${row.title}`}
+                        title="حذف"
                         onClick={() => onDelete(row)}
+                        icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
                       />
                     </div>
                   </KvTableCell>
