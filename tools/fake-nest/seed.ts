@@ -14,6 +14,8 @@ import {
 export const SEED_PASSWORD = '12345678';
 export const SEED_ADMIN_PHONE = '9123456786';
 export const SEED_MENTOR_PHONE = '9123456787';
+/** دستیار مدیر ارشد (نقش Nest: `admin`) — پنل ستادی دوم. */
+export const SEED_ASSISTANT_PHONE = '9123456785';
 
 const ROLE_IDS: Record<string, string> = {
   student: '6a43982fceda93d39f5d3493',
@@ -70,6 +72,16 @@ export function seedStore(store: Store, termLessons: TermLessonsMode = 'fixed'):
     lname: 'سیستم',
     phone: SEED_ADMIN_PHONE,
     role: 'superadmin',
+    password: SEED_PASSWORD,
+  });
+
+  const assistantId = newId();
+  store.admins.set(assistantId, {
+    id: assistantId,
+    fname: 'دستیار',
+    lname: 'مدیر ارشد',
+    phone: SEED_ASSISTANT_PHONE,
+    role: 'admin',
     password: SEED_PASSWORD,
   });
 
