@@ -33,6 +33,11 @@ function newestFirst(rows: CourseMaterial[]): CourseMaterial[] {
   return [...rows].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+/** ۴۰۴ از این endpointها یعنی «هنوز چیزی بارگذاری نشده» — لیست خالی، نه خطا. */
+function isEmptyListError(error: unknown): boolean {
+  return error instanceof ApiClientError && error.status === 404;
+}
+
 export async function listRealReceivedCourseMaterials(
   kind: InternshipCourseKind,
   courseKey: string
@@ -44,9 +49,7 @@ export async function listRealReceivedCourseMaterials(
   try {
     raw = await mentorLessonFilesApi.listForStudent(courseKey);
   } catch (error) {
-    // وقتی استاد هنوز چیزی بارگذاری نکرده، بک‌اند ۴۰۴ می‌دهد — خطا نیست،
-    // یعنی لیست خالی (UI حالت «خالی» را نشان می‌دهد، نه خطا + تلاش دوباره).
-    if (error instanceof ApiClientError && error.status === 404) return [];
+    if (isEmptyListError(error)) return [];
     throw error;
   }
 
@@ -63,7 +66,16 @@ export async function listRealReceivedCourseMaterials(
 /** `kind` روی پاسخ Nest نیست — فیلتر درس در UI با `courseKey` انجام می‌شود. */
 export async function listRealManagedCourseMaterials(): Promise<CourseMaterial[]> {
   requireNestTransport('CourseMaterialsService.listManaged');
-  const raw = await mentorLessonFilesApi.list();
+
+  let raw: unknown;
+  try {
+    raw = await mentorLessonFilesApi.list();
+  } catch (error) {
+    // وقتی استاد هنوز چیزی بارگذاری نکرده، بک‌اند ۴۰۴ می‌دهد → empty state.
+    if (isEmptyListError(error)) return [];
+    throw error;
+  }
+
   return newestFirst(
     asRecords(raw).flatMap((record) =>
       mapMentorLessonFileRecord(record, { kind: 'internship' })

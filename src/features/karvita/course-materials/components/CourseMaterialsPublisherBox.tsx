@@ -83,12 +83,7 @@ export function CourseMaterialsPublisherBox({
           <KvTypography variant="subtitle" as="h3">
             جزوه و فایل درس
           </KvTypography>
-          {managed.isError ? (
-        <CourseMaterialsLoadError
-          retrying={managed.isFetching}
-          onRetry={() => void managed.refetch()}
-        />
-      ) : rows.length > 0 ? (
+          {!managed.isError && rows.length > 0 ? (
             <KvTypography variant="caption" tone="muted" as="span">
               ({toPersianDigits(String(rows.length))})
             </KvTypography>
@@ -105,7 +100,12 @@ export function CourseMaterialsPublisherBox({
         </KvButton>
       </header>
 
-      {rows.length > 0 ? (
+      {managed.isError ? (
+        <CourseMaterialsLoadError
+          retrying={managed.isFetching}
+          onRetry={() => void managed.refetch()}
+        />
+      ) : rows.length > 0 ? (
         <ul className="flex max-h-72 list-none flex-col gap-kv-pair overflow-y-auto">
           {rows.map((material) => (
             <li key={material.id}>
