@@ -121,7 +121,10 @@ function assertValid(input: UpsertBody, authorRole: string): void {
   else if (input.audienceRoles.some((role) => !allowed.includes(role))) {
     errors.audienceRoles = 'audience is outside your sub-roles';
   }
-  if (input.provinces.length === 0) errors.provinces = 'at least one province';
+  // فقط ستاد مخاطب استانی دارد؛ بقیهٔ پنل‌ها استان نمی‌فرستند.
+  if (STAFF_ROLES.has(authorRole) && input.provinces.length === 0) {
+    errors.provinces = 'at least one province';
+  }
   const link = input.linkUrl?.trim();
   if (input.kind === 'advertisement' && link && !isHttpUrl(link)) {
     errors.linkUrl = 'link must start with http:// or https://';
@@ -167,7 +170,9 @@ function applyInput(
     ...(link ? { linkUrl: link } : {}),
     ...(isAd && input.imageUrl ? { imageUrl: input.imageUrl } : {}),
     audienceRoles: [...new Set(input.audienceRoles)],
-    provinces: [...new Set(input.provinces.map((title) => title.trim()).filter(Boolean))],
+    provinces: STAFF_ROLES.has(base.authorRole)
+      ? [...new Set(input.provinces.map((title) => title.trim()).filter(Boolean))]
+      : [],
     updatedAt: nowIso(),
   };
 }

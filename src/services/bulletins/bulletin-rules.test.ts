@@ -116,9 +116,36 @@ describe('bulletin-rules', () => {
     expect(validateBulletinInput(input({ audienceRoles: [] }), 'faculty_role')).toMatch(
       /مخاطب/
     );
-    expect(validateBulletinInput(input({ provinces: [] }), 'faculty_role')).toMatch(
+    expect(validateBulletinInput(input({ provinces: [] }), 'super_admin')).toMatch(
       /استان/
     );
+    // پنل‌های غیرستادی باکس استان ندارند؛ استان خالی معتبر است.
+    expect(validateBulletinInput(input({ provinces: [] }), 'faculty_role')).toBeNull();
+    expect(
+      validateBulletinInput(
+        input({ provinces: [], audienceRoles: ['student'] }),
+        'supervisor_professor'
+      )
+    ).toBeNull();
+    expect(
+      validateBulletinInput(
+        input({ provinces: [], audienceRoles: ['skill_learner'] }),
+        'mentor_teacher'
+      )
+    ).toBeNull();
+    expect(
+      validateBulletinInput(
+        input({ provinces: [], audienceRoles: ['mentor_teacher', 'skill_learner'] }),
+        'school_principal'
+      )
+    ).toBeNull();
+    // مخاطب فقط از زیرمجموعه‌ها: معلم راهنما نمی‌تواند به دانشجو اطلاعیه بدهد.
+    expect(
+      validateBulletinInput(
+        input({ provinces: [], audienceRoles: ['student'] }),
+        'mentor_teacher'
+      )
+    ).toMatch(/مخاطب/);
     expect(
       validateBulletinInput(
         input({
@@ -173,9 +200,11 @@ describe('bulletin-rules', () => {
   });
 
   it('new rows start active; editing keeps status and the original author panel', () => {
-    const created = buildBulletin(input(), { role: 'faculty_role', name: 'x' });
+    const created = buildBulletin(input(), { role: 'super_admin', name: 'x' });
     expect(created.isActive).toBe(true);
     expect(created.provinces).toEqual(['تهران']);
+    // پنل غیرستادی استان ذخیره نمی‌کند حتی اگر ورودی داشته باشد.
+    expect(buildBulletin(input(), { role: 'faculty_role', name: 'x' }).provinces).toEqual([]);
 
     const existing = announcement({ authorRole: 'super_admin', authorName: 'A', isActive: false });
     const next = buildBulletin(

@@ -145,6 +145,7 @@ function BulletinsManageContent() {
           <BulletinsTable
             rows={page.listRows}
             kind={page.activeTab}
+            showProvinces={page.canTargetProvinces}
             onEdit={page.startEdit}
             onToggleActive={page.toggleActive}
             onDelete={page.requestDelete}
@@ -161,6 +162,7 @@ function BulletinsManageContent() {
         formError={page.formError}
         isSaving={page.isSaving}
         audienceOptions={page.audienceOptions}
+        canTargetProvinces={page.canTargetProvinces}
         provinceOptions={page.provinceOptions}
         isProvincesLoading={page.isProvincesLoading}
         patchForm={page.patchForm}

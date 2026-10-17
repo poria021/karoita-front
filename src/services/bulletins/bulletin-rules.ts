@@ -69,6 +69,17 @@ export function canPublishAdvertisements(
   return isStaffAdminRole(role);
 }
 
+/**
+ * فقط ستاد (مدیر ارشد و دستیار) مخاطب را روی استان هم محدود می‌کند. بقیهٔ پنل‌ها
+ * (استاد/معلم راهنما، مدیر مدرسه، دانشکده، …) فقط نقش‌های زیرمجموعه را انتخاب می‌کنند؛
+ * دامنهٔ سازمانی را Nest از خود پنل می‌گیرد و `provinces` برایشان همیشه خالی است.
+ */
+export function canTargetProvinces(
+  role: UserRole | string | null | undefined
+): boolean {
+  return isStaffAdminRole(role);
+}
+
 export function audienceRolesFor(
   role: UserRole | string | null | undefined,
   kind: BulletinKind
@@ -214,7 +225,7 @@ export function validateBulletinInput(
   if (input.audienceRoles.some((role) => !allowed.includes(role))) {
     return 'مخاطب انتخاب‌شده زیرمجموعهٔ پنل شما نیست.';
   }
-  if (input.provinces.length === 0) {
+  if (canTargetProvinces(authorRole) && input.provinces.length === 0) {
     return 'دست‌کم یک استان انتخاب کنید.';
   }
   const link = input.linkUrl?.trim();
@@ -258,9 +269,9 @@ export function buildBulletin(
     authorRole: existing?.authorRole ?? author.role,
     authorName: existing?.authorName ?? author.name,
     audienceRoles: [...new Set(input.audienceRoles)],
-    provinces: [
-      ...new Set(input.provinces.map((title) => title.trim()).filter(Boolean)),
-    ],
+    provinces: canTargetProvinces(existing?.authorRole ?? author.role)
+      ? [...new Set(input.provinces.map((title) => title.trim()).filter(Boolean))]
+      : [],
     isActive: existing?.isActive ?? true,
     createdAt: existing?.createdAt ?? stamp,
     updatedAt: stamp,

@@ -9,6 +9,7 @@ import { QUERY_STALE_MS } from '@/lib/query-stale';
 import {
   audienceRolesFor,
   canPublishAdvertisements,
+  canTargetProvinces,
   validateBulletinInput,
 } from '@/services/bulletins/bulletin-rules';
 import { BulletinsService } from '@/services/bulletins.service';
@@ -71,6 +72,7 @@ export function useBulletinsManagePage() {
   const queryClient = useQueryClient();
   const role = useUserStore((state) => state.activeUser?.role);
   const canAds = canPublishAdvertisements(role);
+  const showProvinces = canTargetProvinces(role);
 
   const query = useQuery({
     queryKey: [...DASHBOARD_QUERY.bulletinsManaged, role],
@@ -109,7 +111,7 @@ export function useBulletinsManagePage() {
     queryFn: () => BulletinsService.listProvinceOptions(),
     staleTime: QUERY_STALE_MS.module,
     retry: false,
-    enabled: modalOpen,
+    enabled: modalOpen && showProvinces,
   });
 
   const rows = useMemo(() => query.data ?? [], [query.data]);
@@ -236,6 +238,7 @@ export function useBulletinsManagePage() {
 
   return {
     canAds,
+    canTargetProvinces: showProvinces,
     activeTab,
     setTab,
     counts,

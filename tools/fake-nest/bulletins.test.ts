@@ -2,7 +2,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { PROPOSED_PATHS } from './openapi';
-import { SEED_MENTOR_PHONE, SEED_PASSWORD } from './seed';
+import { SEED_ASSISTANT_PHONE, SEED_MENTOR_PHONE, SEED_PASSWORD } from './seed';
 import { startFake, type FakeHarness } from './test-helpers';
 
 type Bulletin = {
@@ -17,6 +17,7 @@ type Bulletin = {
 
 let h: FakeHarness;
 let admin: string;
+let assistant: string;
 let mentor: string;
 let student: string;
 
@@ -48,6 +49,11 @@ afterAll(async () => {
 beforeEach(async () => {
   await h.reset();
   admin = await h.adminToken();
+  const assistantLogin = await h.call('POST', '/api/v1/admin/auth/phone/login/password', {
+    body: { phone: SEED_ASSISTANT_PHONE, password: SEED_PASSWORD },
+  });
+  expect(assistantLogin.status).toBe(200);
+  assistant = (assistantLogin.json as { token: string }).token;
   mentor = await userToken(`0${SEED_MENTOR_PHONE}`);
   student = await userToken('09123456781');
 });
@@ -98,6 +104,22 @@ describe('bulletins (قرارداد پیشنهادی)', () => {
     expect(okRow.status).toBe(201);
   });
 
+  it('پنل‌های غیرستادی بدون استان منتشر می‌کنند؛ فقط ستاد استان را الزامی دارد', async () => {
+    const mentorRow = await h.call('POST', '/api/v1/bulletins', {
+      token: mentor,
+      body: ad({ kind: 'announcement', audienceRoles: ['student'], provinces: [] }),
+    });
+    expect(mentorRow.status).toBe(201);
+    expect((mentorRow.json as Bulletin).provinces).toEqual([]);
+
+    // حتی اگر استان بفرستد ذخیره نمی‌شود.
+    const withProvince = await h.call('POST', '/api/v1/bulletins', {
+      token: mentor,
+      body: ad({ kind: 'announcement', audienceRoles: ['student'], provinces: ['قم'] }),
+    });
+    expect((withProvince.json as Bulletin).provinces).toEqual([]);
+  });
+
   it('استان الزامی است و پنل دیگر نمی‌تواند ویرایش/حذف کند', async () => {
     const noProvince = await h.call('POST', '/api/v1/bulletins', {
       token: admin,
@@ -109,6 +131,37 @@ describe('bulletins (قرارداد پیشنهادی)', () => {
       .json as Bulletin;
     expect((await h.call('DELETE', `/api/v1/bulletins/${id}`, { token: mentor })).status).toBe(404);
     expect((await h.call('DELETE', `/api/v1/bulletins/${id}`, { token: admin })).status).toBe(204);
+  });
+
+  it('دستیار مدیر ارشد با مدیر ارشد یک ستاد مشترک است', async () => {
+    const seeded = (await h.call('GET', '/api/v1/bulletins/managed', { token: admin }))
+      .json as Bulletin[];
+    const seededAd = seeded.find((row) => row.kind === 'advertisement')!;
+
+    // دستیار موارد مدیر ارشد را می‌بیند، ویرایش، غیرفعال و حذف می‌کند؛ نویسندهٔ اصلی عوض نمی‌شود.
+    const managed = (await h.call('GET', '/api/v1/bulletins/managed', { token: assistant }))
+      .json as Bulletin[];
+    expect(managed.map((row) => row.id)).toContain(seededAd.id);
+
+    const edited = await h.call('PATCH', `/api/v1/bulletins/${seededAd.id}`, {
+      token: assistant,
+      body: ad({ title: 'ویرایش توسط دستیار' }),
+    });
+    expect(edited.status).toBe(200);
+    expect((edited.json as Bulletin).authorRole).toBe('superadmin');
+
+    // دستیار هم تبلیغ منتشر می‌کند و مدیر ارشد آن را در مدیریت می‌بیند.
+    const created = await h.call('POST', '/api/v1/bulletins', { token: assistant, body: ad() });
+    expect(created.status).toBe(201);
+    expect((created.json as Bulletin).authorRole).toBe('admin');
+    const { id } = created.json as Bulletin;
+    const seenByAdmin = (await h.call('GET', '/api/v1/bulletins/managed', { token: admin }))
+      .json as Bulletin[];
+    expect(seenByAdmin.map((row) => row.id)).toContain(id);
+
+    expect(
+      (await h.call('DELETE', `/api/v1/bulletins/${id}`, { token: assistant })).status
+    ).toBe(204);
   });
 
   it('فهرست استان‌ها برای انتخابگر مخاطب', async () => {

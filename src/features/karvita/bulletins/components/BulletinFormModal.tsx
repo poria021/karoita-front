@@ -50,6 +50,7 @@ type BulletinFormModalProps = Pick<
   | 'formError'
   | 'isSaving'
   | 'audienceOptions'
+  | 'canTargetProvinces'
   | 'provinceOptions'
   | 'isProvincesLoading'
   | 'patchForm'
@@ -85,7 +86,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             {props.isEditing ? `ویرایش ${noun}` : `انتشار ${noun} جدید`}
           </KvDialogTitle>
           <KvDialogDescription className="sr-only">
-            فرم {noun}: نقش و استان مخاطبان، عنوان و {isAd ? 'توضیحات یا تصویر' : 'متن'}
+            فرم {noun}: نقش مخاطبان، عنوان و {isAd ? 'توضیحات یا تصویر' : 'متن'}
           </KvDialogDescription>
         </KvDialogHeader>
 
@@ -118,21 +119,23 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             </KvTypography>
           </div>
 
-          <KvCheckboxMultiSelect
-            id="bulletin-provinces"
-            label="استان‌ها"
-            required
-            disabled={isSaving || props.isProvincesLoading}
-            options={props.provinceOptions}
-            values={form.provinces}
-            placeholder={
-              props.isProvincesLoading
-                ? 'در حال بارگذاری استان‌ها…'
-                : 'استان‌های مخاطب را انتخاب کنید'
-            }
-            selectAllLabel="همه"
-            onValuesChange={(next) => props.patchForm({ provinces: next })}
-          />
+          {props.canTargetProvinces ? (
+            <KvCheckboxMultiSelect
+              id="bulletin-provinces"
+              label="استان‌ها"
+              required
+              disabled={isSaving || props.isProvincesLoading}
+              options={props.provinceOptions}
+              values={form.provinces}
+              placeholder={
+                props.isProvincesLoading
+                  ? 'در حال بارگذاری استان‌ها…'
+                  : 'استان‌های مخاطب را انتخاب کنید'
+              }
+              selectAllLabel="همه"
+              onValuesChange={(next) => props.patchForm({ provinces: next })}
+            />
+          ) : null}
 
           <KvTextField
             id="bulletin-title"

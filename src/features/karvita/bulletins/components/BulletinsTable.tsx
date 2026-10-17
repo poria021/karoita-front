@@ -29,6 +29,8 @@ type BulletinsTableProps = {
   rows: Bulletin[];
   /** ستون «عکس» فقط برای تبلیغات نمایش داده می‌شود. */
   kind: BulletinKind;
+  /** نشان استان فقط برای پنل‌هایی که مخاطب را روی استان محدود می‌کنند. */
+  showProvinces: boolean;
   onEdit: (row: Bulletin) => void;
   onToggleActive: (row: Bulletin) => void;
   onDelete: (row: Bulletin) => void;
@@ -38,6 +40,7 @@ type BulletinsTableProps = {
 export function BulletinsTable({
   rows,
   kind,
+  showProvinces,
   onEdit,
   onToggleActive,
   onDelete,
@@ -132,13 +135,15 @@ export function BulletinsTable({
                           {toPersianDigits(String(row.audienceRoles.length))} نقش
                         </Badge>
                       </span>
-                      <span title={allProvinces ? undefined : row.provinces.join('، ')}>
-                        <Badge variant="info">
-                          {allProvinces
-                            ? 'همه استان‌ها'
-                            : `${toPersianDigits(String(row.provinces.length))} استان`}
-                        </Badge>
-                      </span>
+                      {showProvinces ? (
+                        <span title={allProvinces ? undefined : row.provinces.join('، ')}>
+                          <Badge variant="info">
+                            {allProvinces
+                              ? 'همه استان‌ها'
+                              : `${toPersianDigits(String(row.provinces.length))} استان`}
+                          </Badge>
+                        </span>
+                      ) : null}
                     </div>
                   </KvTableCell>
                   <KvTableCell align="center">
