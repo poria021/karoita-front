@@ -11,6 +11,7 @@ import {
   dashboardBulletinSources,
   isBulletinOwnedBy,
   isBulletinVisibleTo,
+  normalizeBulletin,
   validateBulletinInput,
 } from './bulletin-rules';
 
@@ -22,6 +23,8 @@ const announcement = (patch: Partial<Bulletin> = {}): Bulletin => ({
   authorRole: 'faculty_role',
   authorName: 'x',
   audienceRoles: ['student', 'supervisor_professor'],
+  provinces: ['تهران'],
+  isActive: true,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
   ...patch,
@@ -32,6 +35,7 @@ const input = (patch: Partial<UpsertBulletinInput> = {}): UpsertBulletinInput =>
   title: 'عنوان',
   body: 'متن',
   audienceRoles: ['student'],
+  provinces: ['تهران'],
   ...patch,
 });
 
@@ -59,6 +63,34 @@ describe('bulletin-rules', () => {
     ).toBe(false);
   });
 
+  it('inactive bulletins are hidden from every audience', () => {
+    expect(isBulletinVisibleTo(announcement({ isActive: false }), 'student')).toBe(false);
+    expect(isBulletinVisibleTo(announcement({ isActive: true }), 'student')).toBe(true);
+  });
+
+  it('province audience matches viewer provinces; empty means all provinces', () => {
+    const row = announcement({ provinces: ['تهران', 'قم'] });
+    expect(isBulletinVisibleTo(row, 'student', ['قم'])).toBe(true);
+    expect(isBulletinVisibleTo(row, 'student', ['یزد'])).toBe(false);
+    // بیننده بدون استان فقط موارد بدون محدودیت استان را می‌بیند.
+    expect(isBulletinVisibleTo(row, 'student', [])).toBe(false);
+    // ندادن استان بیننده = بدون فیلتر استان.
+    expect(isBulletinVisibleTo(row, 'student')).toBe(true);
+    // دادهٔ قدیمی بدون استان برای همهٔ استان‌ها دیده می‌شود.
+    expect(isBulletinVisibleTo(announcement({ provinces: [] }), 'student', ['یزد'])).toBe(
+      true
+    );
+    expect(isBulletinVisibleTo(announcement({ provinces: [] }), 'student', [])).toBe(true);
+  });
+
+  it('normalizes legacy rows saved without provinces or status', () => {
+    const legacy = { ...announcement(), provinces: undefined, isActive: undefined };
+    const row = normalizeBulletin(legacy as unknown as Bulletin);
+    expect(row.provinces).toEqual([]);
+    expect(row.isActive).toBe(true);
+    expect(normalizeBulletin(announcement({ isActive: false })).isActive).toBe(false);
+  });
+
   it('super admin is the only role nobody announces to', () => {
     expect(canReceiveBulletins('super_admin')).toBe(false);
     expect(canReceiveBulletins('assistant_admin')).toBe(true);
@@ -73,7 +105,7 @@ describe('bulletin-rules', () => {
     expect(isBulletinOwnedBy(announcement(), 'provincial_university')).toBe(false);
   });
 
-  it('validates kind, audience and link', () => {
+  it('validates kind, audience, provinces and link', () => {
     expect(validateBulletinInput(input(), 'faculty_role')).toBeNull();
     expect(
       validateBulletinInput(input({ kind: 'advertisement' }), 'faculty_role')
@@ -83,6 +115,9 @@ describe('bulletin-rules', () => {
     ).toMatch(/زیرمجموعه/);
     expect(validateBulletinInput(input({ audienceRoles: [] }), 'faculty_role')).toMatch(
       /مخاطب/
+    );
+    expect(validateBulletinInput(input({ provinces: [] }), 'faculty_role')).toMatch(
+      /استان/
     );
     expect(
       validateBulletinInput(
@@ -96,17 +131,26 @@ describe('bulletin-rules', () => {
     ).toMatch(/لینک/);
   });
 
-  it('ads need an image and no text; announcements still need text', () => {
+  it('ads need a description or an image; announcements still need text', () => {
     const img = 'data:image/png;base64,AAAA';
+    // فقط تصویر
     expect(
       validateBulletinInput(
         input({ kind: 'advertisement', body: '', imageUrl: img, audienceRoles: ['student'] }),
         'super_admin'
       )
     ).toBeNull();
+    // فقط توضیحات
+    expect(
+      validateBulletinInput(
+        input({ kind: 'advertisement', body: 'توضیح', audienceRoles: ['student'] }),
+        'super_admin'
+      )
+    ).toBeNull();
+    // هیچ‌کدام
     expect(
       validateBulletinInput(input({ kind: 'advertisement', body: '' }), 'super_admin')
-    ).toMatch(/تصویر/);
+    ).toMatch(/توضیحات یا تصویر/);
     expect(validateBulletinInput(input({ body: '', imageUrl: img }), 'faculty_role')).toMatch(
       /متن/
     );
@@ -116,16 +160,26 @@ describe('bulletin-rules', () => {
         'super_admin'
       )
     ).toMatch(/تصویر/);
-    // تصویر روی اطلاعیه ذخیره نمی‌شود.
+    // تصویر روی اطلاعیه ذخیره نمی‌شود؛ ولی توضیحات تبلیغ نگه داشته می‌شود.
     expect(
       buildBulletin(input({ imageUrl: img }), { role: 'faculty_role', name: 'x' }).imageUrl
     ).toBeUndefined();
+    expect(
+      buildBulletin(
+        input({ kind: 'advertisement', body: ' توضیح ', imageUrl: img }),
+        { role: 'super_admin', name: 'x' }
+      ).body
+    ).toBe('توضیح');
   });
 
-  it('editing keeps the original author panel', () => {
-    const existing = announcement({ authorRole: 'super_admin', authorName: 'A' });
+  it('new rows start active; editing keeps status and the original author panel', () => {
+    const created = buildBulletin(input(), { role: 'faculty_role', name: 'x' });
+    expect(created.isActive).toBe(true);
+    expect(created.provinces).toEqual(['تهران']);
+
+    const existing = announcement({ authorRole: 'super_admin', authorName: 'A', isActive: false });
     const next = buildBulletin(
-      input({ title: ' جدید ' }),
+      input({ title: ' جدید ', provinces: ['قم', 'قم', ' '] }),
       { role: 'assistant_admin', name: 'B' },
       existing
     );
@@ -133,6 +187,8 @@ describe('bulletin-rules', () => {
     expect(next.authorName).toBe('A');
     expect(next.title).toBe('جدید');
     expect(next.createdAt).toBe(existing.createdAt);
+    expect(next.isActive).toBe(false);
+    expect(next.provinces).toEqual(['قم']);
   });
 
   it('every panel gets an ad and an announcements source on the dashboard', () => {

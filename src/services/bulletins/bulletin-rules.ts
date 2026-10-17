@@ -126,17 +126,43 @@ export function isBulletinOwnedBy(
   return bulletin.authorRole === role;
 }
 
+/** دادهٔ قدیمی localStorage بدون استان/وضعیت را به شکل فعلی برمی‌گرداند. */
+export function normalizeBulletin(row: Bulletin): Bulletin {
+  return {
+    ...row,
+    provinces: Array.isArray(row.provinces) ? row.provinces : [],
+    isActive: row.isActive !== false,
+  };
+}
+
+/**
+ * استان بیننده با استان‌های مخاطب می‌خواند؟ ندادن `viewerProvinces` = بدون فیلتر استان.
+ * مخاطب خالی (دادهٔ قدیمی) یعنی همهٔ استان‌ها؛ بیننده‌ای که استانی ندارد
+ * فقط موارد بدون محدودیت استان را می‌بیند.
+ */
+function matchesProvinces(
+  provinces: readonly string[],
+  viewerProvinces: readonly string[] | undefined
+): boolean {
+  if (viewerProvinces === undefined || provinces.length === 0) return true;
+  return viewerProvinces.some((title) => provinces.includes(title));
+}
+
 /**
  * آیا این مورد در داشبورد نقش بیننده دیده می‌شود؟ مخاطب ذخیره‌شده
  * دوباره با سلسله‌مراتب فعلی قطع داده می‌شود تا دادهٔ قدیمی به نقش بالادست نشت نکند.
+ * مورد غیرفعال برای هیچ مخاطبی نمایش داده نمی‌شود.
  */
 export function isBulletinVisibleTo(
   bulletin: Bulletin,
-  viewerRole: UserRole | string | null | undefined
+  viewerRole: UserRole | string | null | undefined,
+  viewerProvinces?: readonly string[]
 ): boolean {
   if (!viewerRole) return false;
+  if (bulletin.isActive === false) return false;
   const role = viewerRole as UserRole;
   if (!bulletin.audienceRoles.includes(role)) return false;
+  if (!matchesProvinces(bulletin.provinces ?? [], viewerProvinces)) return false;
   return audienceRolesFor(bulletin.authorRole, bulletin.kind).includes(role);
 }
 
@@ -173,20 +199,23 @@ export function validateBulletinInput(
   }
   const isAd = input.kind === 'advertisement';
   const body = input.body.trim();
-  // تبلیغ فقط عنوان، تصویر، لینک و مخاطب دارد؛ اطلاعیه متن می‌خواهد.
+  // تبلیغ: توضیحات یا تصویر (یکی کافی است)؛ اطلاعیه: متن الزامی است.
   if (isAd) {
-    if (!input.imageUrl) return 'تصویر تبلیغ الزامی است.';
-  } else {
-    if (!body) return 'متن الزامی است.';
-    if (body.length > BULLETIN_BODY_MAX) {
-      return `متن حداکثر ${BULLETIN_BODY_MAX} نویسه است.`;
-    }
+    if (!body && !input.imageUrl) return 'توضیحات یا تصویر تبلیغ الزامی است.';
+  } else if (!body) {
+    return 'متن الزامی است.';
+  }
+  if (body.length > BULLETIN_BODY_MAX) {
+    return `متن حداکثر ${BULLETIN_BODY_MAX} نویسه است.`;
   }
   if (input.audienceRoles.length === 0) {
     return 'دست‌کم یک مخاطب انتخاب کنید.';
   }
   if (input.audienceRoles.some((role) => !allowed.includes(role))) {
     return 'مخاطب انتخاب‌شده زیرمجموعهٔ پنل شما نیست.';
+  }
+  if (input.provinces.length === 0) {
+    return 'دست‌کم یک استان انتخاب کنید.';
   }
   const link = input.linkUrl?.trim();
   if (input.kind === 'advertisement' && link && !isSafeHttpUrl(link)) {
@@ -223,12 +252,16 @@ export function buildBulletin(
     id: existing?.id ?? newBulletinId(),
     kind: input.kind,
     title: input.title.trim(),
-    body: isAd ? '' : input.body.trim(),
+    body: input.body.trim(),
     ...(link ? { linkUrl: link } : {}),
     ...(image ? { imageUrl: image } : {}),
     authorRole: existing?.authorRole ?? author.role,
     authorName: existing?.authorName ?? author.name,
     audienceRoles: [...new Set(input.audienceRoles)],
+    provinces: [
+      ...new Set(input.provinces.map((title) => title.trim()).filter(Boolean)),
+    ],
+    isActive: existing?.isActive ?? true,
     createdAt: existing?.createdAt ?? stamp,
     updatedAt: stamp,
   };
