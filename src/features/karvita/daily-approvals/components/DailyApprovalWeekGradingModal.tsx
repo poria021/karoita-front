@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 
-import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
@@ -18,7 +17,6 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import type {
-  DailyApprovalForwardTarget,
   DailyApprovalCompetencyRating,
   DailyApprovalTrainee,
   DailyApprovalWeek,
@@ -30,7 +28,6 @@ import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
 import { competencyRatingLabel } from '../constants';
 import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekGradingModal';
-import { DailyApprovalForwardPanel } from './DailyApprovalForwardPanel';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
 import { DailyApprovalPresenceStatus } from './DailyApprovalPresenceStatus';
 import { DailyApprovalPrincipalGradingFields } from './DailyApprovalPrincipalGradingFields';
@@ -86,7 +83,6 @@ type DailyApprovalWeekGradingModalProps = {
   /** حد نصاب قبولی سیستم (۰–۱۰۰) از تنظیمات عمومی ترم‌ها. */
   passingScoreThreshold?: number;
   onClose: () => void;
-  onForward: (target: DailyApprovalForwardTarget) => void;
   onCanWatchOthersChange: (value: boolean) => Promise<void>;
   onSaveSupervisor: (input: {
     score: number | null;
@@ -113,7 +109,6 @@ export function DailyApprovalWeekGradingModal({
   actionBusy,
   passingScoreThreshold,
   onClose,
-  onForward,
   onCanWatchOthersChange,
   onSaveSupervisor,
   onSaveMentor,
@@ -290,15 +285,6 @@ export function DailyApprovalWeekGradingModal({
                   body={effectiveWeek.feedback.principal}
                   rating={effectiveWeek.feedback.principalRating}
                   at={effectiveWeek.feedback.principalAt}
-                />
-              ) : null}
-
-              {role === 'supervisor_professor' && IS_MOCK_MODE ? (
-                <DailyApprovalForwardPanel
-                  week={effectiveWeek}
-                  readOnly={modal.supervisorLocked}
-                  busy={actionBusy}
-                  onForward={onForward}
                 />
               ) : null}
 

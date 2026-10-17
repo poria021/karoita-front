@@ -18,7 +18,6 @@ export {
   bulkExtendMockDailyApprovalWeeks,
   dropMockDailyApprovalTrainee,
   extendMockDailyApprovalWeek,
-  forwardMockDailyApprovalWeek,
   markMockWeekRead,
   restoreMockDailyApprovalTrainee,
   setMockDailyApprovalCanWatchOthers,

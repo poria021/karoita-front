@@ -46,7 +46,13 @@ export function DailyApprovalWeekReportReadonly({
         <KvTypography variant="caption" tone="muted" as="h4">
           ضمائم و پیوست‌های گزارش:
         </KvTypography>
-        {week.files.length > 0 ? (
+        {week.filesHidden ? (
+          <div className="rounded-kv-control border border-dashed border-kv-border bg-kv-surface-muted p-kv-group text-center">
+            <KvTypography variant="caption" tone="muted" weight="bold">
+              فایل‌های پیوست این گزارش هنوز توسط استاد راهنما در دسترس شما قرار نگرفته است.
+            </KvTypography>
+          </div>
+        ) : week.files.length > 0 ? (
           <ul className="grid grid-cols-1 gap-kv-pair sm:grid-cols-2">
             {week.files.map((file) => {
               const href = file.url ? toSameOriginMediaUrl(file.url) : null;

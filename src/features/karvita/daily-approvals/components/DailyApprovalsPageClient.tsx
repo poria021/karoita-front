@@ -169,7 +169,6 @@ export function DailyApprovalsPageClient() {
           passingScoreThreshold={page.passingScoreThreshold}
           onClose={page.closeWeekGrading}
           onSaveSupervisor={page.saveSupervisorWeek}
-          onForward={page.forwardWeek}
           onCanWatchOthersChange={page.setCanWatchOthers}
           onSaveMentor={page.saveMentorWeek}
           onSavePrincipal={page.savePrincipalWeek}

@@ -1,4 +1,4 @@
-import { isMockApiMode, isRealApiMode, throwRealModeNotImplemented } from '@/lib/api-mode';
+import { isMockApiMode, isRealApiMode } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
 import { listRealCapacityCourses, listRealCapacityTerms } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import {
@@ -9,7 +9,6 @@ import {
   bulkExtendMockDailyApprovalWeeks,
   dropMockDailyApprovalTrainee,
   extendMockDailyApprovalWeek,
-  forwardMockDailyApprovalWeek,
   listMockDailyApprovalCourses,
   listMockDailyApprovalWeeks,
   listMockDailyApprovals,
@@ -41,7 +40,11 @@ import {
   getRealAcademicSettings,
   getRealWeeksForLesson,
 } from '@/services/syllabus-config/real/real-syllabus-reads';
-import { forwardTargetForRole, maskUnforwardedWeeks } from '@/services/daily-approvals/forward-visibility';
+import {
+  isAttachmentObserverRole,
+  maskDetailAttachments,
+  maskTraineeAttachments,
+} from '@/services/daily-approvals/attachment-visibility';
 import { readDailyApprovalPassingScoreThreshold } from '@/services/syllabus-config/mock/mock-syllabus-daily-approvals-reads';
 import {
   assertMockClientHasPermission,
@@ -62,7 +65,6 @@ import type {
   DailyApprovalWeekOption,
   DropDailyApprovalTraineeInput,
   ExtendDailyApprovalWeekInput,
-  ForwardDailyApprovalWeekInput,
   ListDailyApprovalsInput,
   ListDailyApprovalsPage,
   UpdateDailyApprovalWeekInput,
@@ -203,28 +205,13 @@ export const DailyApprovalsService = {
     await delayMockAdminListPage();
     const page = listMockDailyApprovals(input);
     const role = useUserStore.getState().activeUser?.role;
-    if (!forwardTargetForRole(role)) return page;
-    // معلم/مدیر فقط هفته‌های ارجاع‌شده را می‌بینند.
+    if (!isAttachmentObserverRole(role)) return page;
+    // گزارش برای هر سه نقش می‌رود؛ فایل پیوست تا اجازهٔ استاد (canWatchOthers) فقط دست استاد است.
     const threshold = readDailyApprovalPassingScoreThreshold();
     return {
       ...page,
-      items: page.items.map((row) => maskUnforwardedWeeks(row, role, threshold)),
+      items: page.items.map((row) => maskTraineeAttachments(row, role, threshold)),
     };
-  },
-
-  /**
-   * استاد راهنما گزارش یک هفته را برای معلم یا مدیر مدرسه ارجاع می‌دهد.
-   * فقط mock؛ real تا آمدن endpoint در Nest fail-closed است.
-   */
-  async forwardWeek(
-    input: ForwardDailyApprovalWeekInput
-  ): Promise<DailyApprovalTrainee> {
-    if (isRealApiMode()) {
-      throwRealModeNotImplemented('DailyApprovalsService.forwardWeek');
-    }
-    requireReviewRole('supervisor_professor');
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return forwardMockDailyApprovalWeek(input);
   },
 
   /** GET `/student-enrollments/mentor/capacity` — ظرفیت منتور در یک ترم. */
@@ -257,13 +244,16 @@ export const DailyApprovalsService = {
     weekId: string;
     role: UserRole | null | undefined;
     teacherId?: string | null;
+    /** کلید استاد راهنما؛ فایل پیوست برای معلم/مدیر مدرسه فقط وقتی true است باز می‌شود. */
+    canWatchOthers?: boolean;
   }): Promise<DailyApprovalWeekDetail> {
-    return loadRealDailyApprovalWeekDetail({
+    const detail = await loadRealDailyApprovalWeekDetail({
       enrollmentId: input.traineeId,
       weekId: input.weekId,
       role: input.role,
       teacherId: input.teacherId,
     });
+    return maskDetailAttachments(detail, input.role, input.canWatchOthers);
   },
 
   /**
@@ -341,7 +331,7 @@ export const DailyApprovalsService = {
     });
   },
 
-  /** استاد راهنما: اجازهٔ دیدن گزارش هم‌کلاسی‌ها برای این هفتهٔ کارورز. */
+  /** استاد راهنما: کلید `canWatchOthers` — باز/بسته‌کردن فایل پیوست این هفته برای معلم راهنما و مدیر مدرسه. */
   async setCanWatchOthers(input: {
     traineeId: string;
     weekId: string;

@@ -119,7 +119,6 @@ export function useDailyApprovalsPage() {
     openWeekGrading: actions.openWeekGrading,
     closeWeekGrading: actions.closeWeekGrading,
     saveSupervisorWeek: actions.saveSupervisorWeek,
-    forwardWeek: actions.forwardWeek,
     setCanWatchOthers: actions.setCanWatchOthers,
     saveMentorWeek: actions.saveMentorWeek,
     savePrincipalWeek: actions.savePrincipalWeek,

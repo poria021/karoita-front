@@ -11,7 +11,6 @@ import type {
   DailyApprovalCompetencyRating,
   DailyApprovalCourseFilter,
   DailyApprovalCourseKind,
-  DailyApprovalForwardTarget,
   DailyApprovalTrainee,
   DailyApprovalWeek,
   DailyApprovalWeekDetail,
@@ -72,6 +71,7 @@ export function useDailyApprovalsActions({
           ...gradingWeekRaw,
           text: weekDetail.detail.text,
           files: weekDetail.detail.files,
+          filesHidden: weekDetail.detail.filesHidden,
           submittedAt: weekDetail.detail.submittedAt,
           feedback: weekDetail.detail.feedback,
         }
@@ -128,9 +128,7 @@ export function useDailyApprovalsActions({
         // دانشجو هنوز گزارشی برای این هفته نفرستاده (studentStatus خالی) —
         // تا وقتی گزارشی نیست، استاد/معلم راهنما/مدیر مدرسه چیزی برای
         // بازخورد دادن ندارند.
-        week.status === 'draft' ||
-        ((role === 'mentor_teacher' || role === 'school_principal') &&
-          week.canWatchOthers === false)
+        week.status === 'draft'
       ) {
         return;
       }
@@ -146,6 +144,7 @@ export function useDailyApprovalsActions({
           weekId: week.id,
           role,
           teacherId: trainee.teacherId,
+          canWatchOthers: week.canWatchOthers,
         })
           .then((detail) => {
             setWeekDetail({ traineeId: trainee.id, weekId: week.id, detail });
@@ -290,48 +289,8 @@ export function useDailyApprovalsActions({
     [gradingTarget, gradingTrainee, refreshTraineeDerived]
   );
 
-  /** استاد گزارش هفتهٔ بازشده را برای معلم/مدیر ارجاع می‌دهد؛ مودال باز می‌ماند. */
-  const forwardWeek = useCallback(
-    async (target: DailyApprovalForwardTarget) => {
-      if (!gradingTarget) return;
-      setActionBusy(true);
-      try {
-        await DailyApprovalsService.forwardWeek({ ...gradingTarget, target });
-        list.patchItems((prev) =>
-          prev.map((row) =>
-            row.id === gradingTarget.traineeId
-              ? {
-                  ...row,
-                  weeks: row.weeks.map((week) =>
-                    week.id === gradingTarget.weekId
-                      ? {
-                          ...week,
-                          forwardedTo: [
-                            ...new Set([...(week.forwardedTo ?? []), target]),
-                          ],
-                        }
-                      : week
-                  ),
-                }
-              : row
-          )
-        );
-        toast.success(
-          target === 'mentor'
-            ? 'گزارش برای معلم راهنما ارسال شد.'
-            : 'گزارش برای مدیر مدرسه ارسال شد.'
-        );
-      } catch (error) {
-        toast.error(error instanceof Error ? error.message : '');
-      } finally {
-        setActionBusy(false);
-      }
-    },
-    [gradingTarget, list]
-  );
-
   /**
-   * استاد راهنما: اجازهٔ دیدن گزارش هم‌کلاسی‌ها برای این هفتهٔ کارورز.
+   * استاد راهنما: کلید `canWatchOthers` — فایل پیوست این هفته برای معلم راهنما و مدیر مدرسه.
    * optimistic — مودال قفل نمی‌شود؛ اگر Nest رد کرد مقدار قبلی برمی‌گردد.
    */
   const setCanWatchOthers = useCallback(
@@ -361,8 +320,8 @@ export function useDailyApprovalsActions({
         });
         toast.success(
           canWatchOthers
-            ? 'دسترسی مشاهدهٔ گزارش هم‌کلاسی‌ها فعال شد.'
-            : 'دسترسی مشاهدهٔ گزارش هم‌کلاسی‌ها غیرفعال شد.'
+            ? 'فایل‌های پیوست برای معلم راهنما و مدیر مدرسه باز شد.'
+            : 'فایل‌های پیوست دوباره فقط برای شما قابل مشاهده است.'
         );
       } catch (error) {
         patch(!canWatchOthers);
@@ -538,7 +497,6 @@ export function useDailyApprovalsActions({
     openWeekGrading,
     closeWeekGrading,
     saveSupervisorWeek,
-    forwardWeek,
     setCanWatchOthers,
     saveMentorWeek,
     savePrincipalWeek,

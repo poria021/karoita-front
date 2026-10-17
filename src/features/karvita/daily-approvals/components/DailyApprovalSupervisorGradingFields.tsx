@@ -227,11 +227,11 @@ export function DailyApprovalSupervisorGradingFields({
           />
           <span className="space-y-1">
             <KvTypography variant="caption" weight="bold" as="span">
-              مشاهده معلم و مدیر مدرسه
+              نمایش فایل‌های پیوست به معلم راهنما و مدیر مدرسه
             </KvTypography>
             <KvTypography variant="caption" tone="muted" as="p">
-              با فعال‌سازی، معلم راهنما و مدیر مدرسه می‌توانند گزارش این هفته را
-              ببینند.
+              متن گزارش همان لحظهٔ ارسال برای هر سه نفر می‌رود، اما فایل‌های پیوست
+              تا وقتی این گزینه را فعال نکنید فقط برای شما قابل مشاهده است.
             </KvTypography>
           </span>
         </label>
