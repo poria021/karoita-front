@@ -5,10 +5,12 @@
 # اگر Darkube فقط NEXT_PUBLIC_API_URL را موقع run بدهد، entrypoint آن را
 # به BACKEND_INTERNAL_URL کپی می‌کند.
 #
-# ایمیج قابل‌سوییچ mock/real (dev/staging) — یک بار بیلد، سوییچ فقط با env پاد:
-#   docker build --build-arg INCLUDE_MOCKS=true -t karvita-frontend .
+# ایمیج قابل‌سوییچ mock/real — پیش‌فرض: یک بار بیلد (بدون build-arg اضافه)، سوییچ فقط با env پاد:
+#   docker build -t karvita-frontend .
 #   mock: -e APP_API_MODE=mock -e APP_ALLOW_MOCK_IN_PROD=true
 #   real: -e APP_API_MODE=real -e BACKEND_INTERNAL_URL=https://api.example.com/api
+# بدون هیچ env حالت اجرا `real` است (fail-closed)؛ mock فقط با هر دو پرچم بالا.
+# برای ایمیج پروداکشن «خالص» (بدون فایل‌های mock در باندل): --build-arg INCLUDE_MOCKS=false
 #
 # نمونه:
 #   docker build -t karvita-frontend \
@@ -33,8 +35,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ARG NEXT_PUBLIC_API_MODE=real
-# true → فایل‌های mock داخل ایمیج می‌مانند و حالت با env پاد (APP_API_MODE) سوییچ می‌شود.
-ARG INCLUDE_MOCKS=false
+# true (پیش‌فرض) → فایل‌های mock داخل ایمیج می‌مانند و حالت با env پاد (APP_API_MODE) سوییچ می‌شود.
+# false → mockها از باندل حذف می‌شوند؛ ایمیج فقط real است.
+ARG INCLUDE_MOCKS=true
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_S3_URL

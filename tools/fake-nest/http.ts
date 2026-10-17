@@ -14,6 +14,11 @@ export type RouteContext = {
   body: unknown;
   /** `null` برای endpointهای بدون نیاز به توکن یا توکن نامعتبر. */
   session: Session | null;
+  /**
+   * فقط برای مسیرهای `openapi.proposed.json`: وقتی برنامه روی بک‌اند واقعی است، توکن واقعی
+   * در این سرور شناخته‌شده نیست؛ پروکسی نقش/نام کاربر را با `x-karvita-actor` می‌فرستد.
+   */
+  fakeActor?: { role: string; name: string };
 };
 
 export type RouteResult = { status: number; body?: unknown };

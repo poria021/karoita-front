@@ -5,6 +5,7 @@
  * (`type`، `properties`، `required`، `items`، `enum`، `nullable`، `allOf`، `$ref`).
  */
 import snapshot from './openapi.snapshot.json';
+import proposed from './openapi.proposed.json';
 
 export type SchemaObject = {
   $ref?: string;
@@ -33,6 +34,27 @@ type OpenApiDocument = {
 };
 
 const doc = snapshot as unknown as OpenApiDocument;
+
+/**
+ * مسیرهای «پیشنهادی» که هنوز در Swagger بک‌اند نیستند (`openapi.proposed.json`).
+ * اگر بک‌اند همان مسیر را منتشر کرد و snapshot آن را گرفت، اینجا خطا می‌دهیم تا
+ * نسخهٔ پیشنهادی بی‌صدا نسخهٔ واقعی را نپوشاند و فایل پیشنهادی پاک شود.
+ */
+const proposedDoc = proposed as unknown as {
+  paths: OpenApiDocument['paths'];
+  schemas: OpenApiDocument['components']['schemas'];
+};
+for (const [path, item] of Object.entries(proposedDoc.paths)) {
+  if (doc.paths[path]) {
+    throw new Error(
+      `Fake-Nest: ${path} هم در snapshot هست هم در openapi.proposed.json؛ از فایل پیشنهادی حذفش کنید.`
+    );
+  }
+  doc.paths[path] = item;
+}
+Object.assign(doc.components.schemas, proposedDoc.schemas);
+
+export const PROPOSED_PATHS: readonly string[] = Object.keys(proposedDoc.paths);
 
 export const HTTP_METHODS = ['get', 'post', 'put', 'patch', 'delete'] as const;
 export type HttpMethod = (typeof HTTP_METHODS)[number];

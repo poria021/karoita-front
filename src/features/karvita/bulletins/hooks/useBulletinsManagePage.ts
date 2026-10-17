@@ -9,6 +9,7 @@ import { QUERY_STALE_MS } from '@/lib/query-stale';
 import {
   audienceRolesFor,
   canPublishAdvertisements,
+  canTargetProvinces,
   validateBulletinInput,
 } from '@/services/bulletins/bulletin-rules';
 import { BulletinsService } from '@/services/bulletins.service';
@@ -22,6 +23,7 @@ type BulletinForm = {
   editId: string;
   kind: BulletinKind;
   title: string;
+  /** متن اطلاعیه، یا توضیحات تبلیغ (اختیاری وقتی تصویر هست). */
   body: string;
   linkUrl: string;
   /** تصویر ذخیره‌شده (ویرایش) — با حذف تصویر خالی می‌شود. */
@@ -29,6 +31,8 @@ type BulletinForm = {
   /** فایل تازه انتخاب‌شده؛ موقع ذخیره به data URL تبدیل می‌شود. */
   imageFile: File | null;
   audienceRoles: UserRole[];
+  /** عنوان استان‌های مخاطب. */
+  provinces: string[];
 };
 
 function errorMessage(error: unknown): string {
@@ -44,6 +48,7 @@ function toInput(form: BulletinForm): UpsertBulletinInput {
       ? { linkUrl: form.linkUrl, imageUrl: form.imageUrl }
       : {}),
     audienceRoles: form.audienceRoles,
+    provinces: form.provinces,
   };
 }
 
@@ -67,6 +72,7 @@ export function useBulletinsManagePage() {
   const queryClient = useQueryClient();
   const role = useUserStore((state) => state.activeUser?.role);
   const canAds = canPublishAdvertisements(role);
+  const showProvinces = canTargetProvinces(role);
 
   const query = useQuery({
     queryKey: [...DASHBOARD_QUERY.bulletinsManaged, role],
@@ -89,6 +95,7 @@ export function useBulletinsManagePage() {
     imageFile: null,
     // پیش‌فرض: همهٔ زیرمجموعه‌ها.
     audienceRoles: [...audienceRolesFor(role, kind)],
+    provinces: [],
   });
 
   const [form, setForm] = useState<BulletinForm>(() => emptyForm('announcement'));
@@ -97,6 +104,15 @@ export function useBulletinsManagePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Bulletin | null>(null);
+
+  // فهرست استان‌ها فقط وقتی فرم باز می‌شود گرفته می‌شود؛ بعد از CRUD استان باطل می‌شود.
+  const provincesQuery = useQuery({
+    queryKey: [...DASHBOARD_QUERY.orgOptions, 'bulletin-provinces'],
+    queryFn: () => BulletinsService.listProvinceOptions(),
+    staleTime: QUERY_STALE_MS.module,
+    retry: false,
+    enabled: modalOpen && showProvinces,
+  });
 
   const rows = useMemo(() => query.data ?? [], [query.data]);
   const listRows = useMemo(
@@ -117,6 +133,12 @@ export function useBulletinsManagePage() {
       })),
     [role, form.kind]
   );
+
+  // استانی که قبلاً ذخیره شده ولی دیگر در کاتالوگ نیست هم در گزینه‌ها می‌ماند تا بی‌صدا حذف نشود.
+  const provinceOptions = useMemo(() => {
+    const titles = [...new Set([...(provincesQuery.data ?? []), ...form.provinces])];
+    return titles.map((title) => ({ value: title, label: title }));
+  }, [provincesQuery.data, form.provinces]);
 
   function openForm(next: BulletinForm) {
     setForm(next);
@@ -139,6 +161,7 @@ export function useBulletinsManagePage() {
       imageUrl: bulletin.imageUrl ?? '',
       imageFile: null,
       audienceRoles: [...bulletin.audienceRoles],
+      provinces: [...bulletin.provinces],
     });
   }
 
@@ -189,6 +212,17 @@ export function useBulletinsManagePage() {
     }
   }
 
+  async function toggleActive(bulletin: Bulletin) {
+    const next = !bulletin.isActive;
+    try {
+      await BulletinsService.setBulletinActive(bulletin.id, next);
+      toast.success(next ? 'فعال شد.' : 'غیرفعال شد.');
+      await invalidate();
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
+  }
+
   async function confirmDelete() {
     if (!deleteTarget) return;
     try {
@@ -204,6 +238,7 @@ export function useBulletinsManagePage() {
 
   return {
     canAds,
+    canTargetProvinces: showProvinces,
     activeTab,
     setTab,
     counts,
@@ -218,12 +253,15 @@ export function useBulletinsManagePage() {
     isSaving,
     modalOpen,
     audienceOptions,
+    provinceOptions,
+    isProvincesLoading: provincesQuery.isLoading,
     openCreate,
     startEdit,
     closeModal,
     patchForm,
     setImageFile,
     saveBulletin,
+    toggleActive,
     deleteTarget,
     requestDelete: setDeleteTarget,
     clearDelete: () => setDeleteTarget(null),

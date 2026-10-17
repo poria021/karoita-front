@@ -1,5 +1,6 @@
 'use client';
 
+import { KvTypography } from '@/components/shared/KvTypography';
 import { canPublishAnnouncements } from '@/services/bulletins/bulletin-rules';
 import type { UserRole } from '@/types/auth';
 
@@ -10,11 +11,23 @@ import { DashboardAnnouncementsBox } from './DashboardAnnouncementsBox';
 /**
  * ردیف بالای میز کار همهٔ پنل‌ها: باکس ۱×۱ تبلیغ ستاد + باکس اطلاعیه‌ها.
  * از md به بالا ارتفاع ردیف را مربع تبلیغ تعیین می‌کند و لیست اطلاعیه داخل آن اسکرول می‌خورد.
- * real mode تا آمدن endpoint خطا می‌دهد؛ آن وقت ردیف بی‌صدا پنهان می‌ماند.
+ * real mode روی سرور جعلی (`pnpm fake-api`) کامل کار می‌کند؛ اگر endpoint در بک‌اند زنده
+ * هنوز نباشد، به‌جای پنهان‌شدن بی‌صدای ردیف یک پیام ملایم نشان داده می‌شود.
  */
 export function DashboardBulletinsBoard({ role }: { role: UserRole }) {
   const data = useDashboardBulletins(role);
-  if (data.isError) return null;
+  if (data.isError) {
+    return (
+      <section
+        aria-label="اطلاعیه‌ها و تبلیغات"
+        className="rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised"
+      >
+        <KvTypography variant="body" tone="muted" as="p">
+          اطلاعیه‌ها و تبلیغات فعلاً در دسترس نیست؛ کمی بعد دوباره تلاش کنید.
+        </KvTypography>
+      </section>
+    );
+  }
 
   return (
     <div className="grid gap-kv-group md:grid-cols-2 lg:grid-cols-3">

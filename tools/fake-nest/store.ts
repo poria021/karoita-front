@@ -80,6 +80,25 @@ export type StoredNotification = {
   readByUserIds: string[];
 };
 
+/** اطلاعیه/تبلیغ؛ نقش‌ها نام‌های Nest هستند. قرارداد: openapi.proposed.json */
+export type StoredBulletin = {
+  id: string;
+  kind: 'announcement' | 'advertisement';
+  title: string;
+  body: string;
+  linkUrl?: string;
+  imageUrl?: string;
+  authorRole: string;
+  authorName: string;
+  audienceRoles: string[];
+  provinces: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type StoredProvince = { id: string; title: string };
+
 export type TermStructure = 'semester' | 'podmani';
 
 export type StoredSemester = {
@@ -251,6 +270,8 @@ export type Store = {
   conversations: Map<string, StoredConversation>;
   messages: StoredMessage[];
   mentorLessonFiles: Map<string, StoredMentorLessonFile>;
+  bulletins: StoredBulletin[];
+  provinces: Map<string, StoredProvince>;
 };
 
 /** شناسهٔ ۲۴ کاراکتری hex شبیه ObjectId مونگو. */
@@ -285,6 +306,8 @@ export function createStore(publicUrl: string): Store {
     conversations: new Map(),
     messages: [],
     mentorLessonFiles: new Map(),
+    bulletins: [],
+    provinces: new Map(),
   };
 }
 
@@ -313,6 +336,8 @@ export function clearStore(store: Store): void {
   store.conversations.clear();
   store.messages.length = 0;
   store.mentorLessonFiles.clear();
+  store.bulletins.length = 0;
+  store.provinces.clear();
 }
 
 /** صفحه‌بندی هم‌شکل Nest: `{ data, hasNextPage }`. */

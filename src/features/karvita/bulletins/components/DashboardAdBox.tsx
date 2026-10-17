@@ -30,6 +30,7 @@ const BOX_CLASS =
 /**
  * باکس ۱×۱ تبلیغات ستاد — چند تبلیغ به‌صورت چرخشی در همان قاب مربعی.
  * با hover/فوکوس یا ترجیح کاهش حرکت، پیشروی خودکار متوقف می‌شود.
+ * تبلیغ بدون تصویر، توضیحاتش را داخل قاب نشان می‌دهد.
  */
 export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxProps) {
   const [current, setCurrent] = useState(0);
@@ -114,6 +115,12 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
                 loading={index === 0 ? 'eager' : 'lazy'}
                 className="size-full object-cover"
               />
+            ) : ad.body ? (
+              <div className="flex size-full items-center justify-center px-kv-group pb-24 pt-12 text-center">
+                <KvTypography variant="body" tone="muted" as="p">
+                  <span className="line-clamp-6 whitespace-pre-line">{ad.body}</span>
+                </KvTypography>
+              </div>
             ) : (
               <div className="flex size-full items-center justify-center text-kv-empty-icon">
                 <FaIcon icon={faIcons.image} size="xl" />
@@ -132,6 +139,11 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
           <KvTypography variant="subtitle" as="h3">
             <span className="line-clamp-2">{shown.title}</span>
           </KvTypography>
+          {shown.imageUrl && shown.body ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              <span className="line-clamp-2">{shown.body}</span>
+            </KvTypography>
+          ) : null}
           {shown.linkUrl ? (
             <a
               href={shown.linkUrl}

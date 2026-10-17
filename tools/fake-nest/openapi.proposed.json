@@ -1,0 +1,184 @@
+{
+ "_note": "قرارداد پیشنهادی فرانت برای اطلاعیه/تبلیغ — هنوز در Swagger بک‌اند نیست. این فایل جدا از openapi.snapshot.json است تا `pnpm fake-api:sync` پاکش نکند. وقتی بک‌اند همین مسیرها را در Swagger گذاشت، از این فایل حذف کنید (openapi.ts اگر مسیر در هر دو باشد خطا می‌دهد).",
+ "paths": {
+  "/api/v1/bulletins": {
+   "get": {
+    "summary": "[proposed] اطلاعیه/تبلیغ‌های فعال قابل نمایش برای کاربر جاری (نقش + سلسله‌مراتب)",
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": { "$ref": "#/components/schemas/BulletinResponseDto" }
+        }
+       }
+      }
+     }
+    },
+    "security": [{ "bearer": [] }],
+    "tags": ["Bulletins (proposed)"]
+   },
+   "post": {
+    "summary": "[proposed] انتشار اطلاعیه/تبلیغ توسط پنل جاری",
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": { "$ref": "#/components/schemas/UpsertBulletinDto" }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": { "$ref": "#/components/schemas/BulletinResponseDto" }
+       }
+      }
+     }
+    },
+    "security": [{ "bearer": [] }],
+    "tags": ["Bulletins (proposed)"]
+   }
+  },
+  "/api/v1/bulletins/managed": {
+   "get": {
+    "summary": "[proposed] موارد منتشرشدهٔ پنل جاری (فعال و غیرفعال) برای صفحهٔ مدیریت",
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": {
+         "type": "array",
+         "items": { "$ref": "#/components/schemas/BulletinResponseDto" }
+        }
+       }
+      }
+     }
+    },
+    "security": [{ "bearer": [] }],
+    "tags": ["Bulletins (proposed)"]
+   }
+  },
+  "/api/v1/bulletins/{id}": {
+   "patch": {
+    "summary": "[proposed] ویرایش اطلاعیه/تبلیغ (نوع و نویسندهٔ اصلی ثابت می‌ماند)",
+    "parameters": [
+     { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": { "$ref": "#/components/schemas/UpsertBulletinDto" }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": { "$ref": "#/components/schemas/BulletinResponseDto" }
+       }
+      }
+     }
+    },
+    "security": [{ "bearer": [] }],
+    "tags": ["Bulletins (proposed)"]
+   },
+   "delete": {
+    "summary": "[proposed] حذف",
+    "parameters": [
+     { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+    ],
+    "responses": { "204": { "description": "" } },
+    "security": [{ "bearer": [] }],
+    "tags": ["Bulletins (proposed)"]
+   }
+  },
+  "/api/v1/bulletins/{id}/active": {
+   "patch": {
+    "summary": "[proposed] فعال/غیرفعال‌سازی؛ مورد غیرفعال حذف نمی‌شود و فقط از میز کار مخاطبان پنهان است",
+    "parameters": [
+     { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": { "$ref": "#/components/schemas/SetBulletinActiveDto" }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "",
+      "content": {
+       "application/json": {
+        "schema": { "$ref": "#/components/schemas/BulletinResponseDto" }
+       }
+      }
+     }
+    },
+    "security": [{ "bearer": [] }],
+    "tags": ["Bulletins (proposed)"]
+   }
+  }
+ },
+ "schemas": {
+  "UpsertBulletinDto": {
+   "type": "object",
+   "required": ["kind", "title", "body", "audienceRoles", "provinces"],
+   "properties": {
+    "kind": { "type": "string", "enum": ["announcement", "advertisement"] },
+    "title": { "type": "string" },
+    "body": { "type": "string" },
+    "linkUrl": { "type": "string", "nullable": true },
+    "imageUrl": { "type": "string", "nullable": true },
+    "audienceRoles": { "type": "array", "items": { "type": "string" } },
+    "provinces": { "type": "array", "items": { "type": "string" } }
+   }
+  },
+  "SetBulletinActiveDto": {
+   "type": "object",
+   "required": ["isActive"],
+   "properties": { "isActive": { "type": "boolean" } }
+  },
+  "BulletinResponseDto": {
+   "type": "object",
+   "required": [
+    "id",
+    "kind",
+    "title",
+    "body",
+    "authorRole",
+    "authorName",
+    "audienceRoles",
+    "provinces",
+    "isActive",
+    "createdAt",
+    "updatedAt"
+   ],
+   "properties": {
+    "id": { "type": "string" },
+    "kind": { "type": "string", "enum": ["announcement", "advertisement"] },
+    "title": { "type": "string" },
+    "body": { "type": "string" },
+    "linkUrl": { "type": "string", "nullable": true },
+    "imageUrl": { "type": "string", "nullable": true },
+    "authorRole": { "type": "string" },
+    "authorName": { "type": "string" },
+    "audienceRoles": { "type": "array", "items": { "type": "string" } },
+    "provinces": { "type": "array", "items": { "type": "string" } },
+    "isActive": { "type": "boolean" },
+    "createdAt": { "type": "string" },
+    "updatedAt": { "type": "string" }
+   }
+  }
+ }
+}

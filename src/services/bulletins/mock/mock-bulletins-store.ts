@@ -1,4 +1,5 @@
 import { isMockApiMode } from '@/lib/api-mode';
+import { normalizeBulletin } from '@/services/bulletins/bulletin-rules';
 import { assertMockSimulator, MOCK_AUTHZ_DENIED } from '@/services/mock/mock-authz';
 import { useUserStore } from '@/store/useUserStore';
 import type { Bulletin, BulletinAuthor } from '@/types/bulletins';
@@ -39,6 +40,9 @@ function buildSeed(): Bulletin[] {
       authorRole: 'super_admin',
       authorName: 'مدیر ارشد',
       audienceRoles: ['central_organization', ...SEED_FULL_AUDIENCE],
+      // خالی = همهٔ استان‌ها
+      provinces: [],
+      isActive: true,
       createdAt: at(30),
       updatedAt: at(30),
     },
@@ -50,6 +54,8 @@ function buildSeed(): Bulletin[] {
       authorRole: 'central_organization',
       authorName: 'سازمان مرکزی',
       audienceRoles: [...SEED_FULL_AUDIENCE],
+      provinces: [],
+      isActive: true,
       createdAt: at(6),
       updatedAt: at(6),
     },
@@ -73,7 +79,8 @@ export function readMockBulletins(): Bulletin[] {
       if (raw) {
         const parsed: unknown = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          memory = parsed as Bulletin[];
+          // ردیف‌های قدیمی بدون استان/وضعیت را به شکل فعلی برسان.
+          memory = (parsed as Bulletin[]).map(normalizeBulletin);
           return structuredClone(memory);
         }
       }
@@ -108,4 +115,10 @@ export function mockSessionAuthor(): BulletinAuthor {
     [user.firstName, user.lastName].filter(Boolean).join(' ') ||
     getRoleStrategy(user.role).label;
   return { role: user.role, name };
+}
+
+/** استان‌های کاربر فعال؛ برای فیلتر مخاطب استانی در داشبورد mock. */
+export function mockSessionProvinces(): string[] {
+  assertMockSimulator();
+  return [...(useUserStore.getState().activeUser?.province ?? [])];
 }

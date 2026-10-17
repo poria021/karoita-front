@@ -12,7 +12,6 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
-import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
@@ -123,28 +122,15 @@ function BulletinsManageContent() {
               </KvButton>
             }
           />
-        ) : page.isLoading ? (
-          <KvTypography variant="caption" tone="muted" as="p">
-            در حال بارگذاری…
-          </KvTypography>
-        ) : page.listRows.length === 0 ? (
-          <KvEmptyState
-            title={`هنوز ${noun}ی منتشر نکرده‌اید`}
-            actions={
-              <KvButton
-                type="button"
-                appearance="secondary"
-                size="sm"
-                onClick={page.openCreate}
-              >
-                {`انتشار ${noun}`}
-              </KvButton>
-            }
-          />
         ) : (
           <BulletinsTable
             rows={page.listRows}
+            kind={page.activeTab}
+            isLoading={page.isLoading}
+            emptyTitle={`هنوز ${noun}ی منتشر نکرده‌اید`}
+            showProvinces={page.canTargetProvinces}
             onEdit={page.startEdit}
+            onToggleActive={page.toggleActive}
             onDelete={page.requestDelete}
           />
         )}
@@ -159,6 +145,9 @@ function BulletinsManageContent() {
         formError={page.formError}
         isSaving={page.isSaving}
         audienceOptions={page.audienceOptions}
+        canTargetProvinces={page.canTargetProvinces}
+        provinceOptions={page.provinceOptions}
+        isProvincesLoading={page.isProvincesLoading}
         patchForm={page.patchForm}
         setImageFile={page.setImageFile}
         saveBulletin={page.saveBulletin}
