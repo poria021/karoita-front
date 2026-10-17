@@ -23,6 +23,7 @@ import { registerSyllabusRoutes, type TermLessonsMode } from './handlers/syllabu
 import { HttpError, type RouteResult } from './http';
 import {
   HTTP_METHODS,
+  PROPOSED_PATHS,
   operationRequiresAuth,
   requestBodySchema,
   successResponseSchema,
@@ -117,6 +118,19 @@ function toFieldErrors(errors: string[]): Record<string, string> {
 /** access برای همه؛ refresh فقط روی `/auth/refresh` (Nest همان را Bearer می‌گیرد). */
 function expectedTokenKind(specPath: string): Session['kind'] {
   return specPath.endsWith('/auth/refresh') ? 'refresh' : 'access';
+}
+
+/** `x-karvita-actor` (JSON با encodeURIComponent) — فقط برای مسیرهای پیشنهادی. */
+function readFakeActor(request: IncomingMessage): { role: string; name: string } | null {
+  const raw = request.headers['x-karvita-actor'];
+  if (typeof raw !== 'string' || !raw) return null;
+  try {
+    const parsed = JSON.parse(decodeURIComponent(raw)) as { role?: unknown; name?: unknown };
+    if (typeof parsed.role !== 'string' || !parsed.role) return null;
+    return { role: parsed.role, name: typeof parsed.name === 'string' ? parsed.name : '' };
+  } catch {
+    return null;
+  }
 }
 
 function bearerSession(request: IncomingMessage, store: Store): Session | null {
@@ -238,7 +252,9 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
     const { route, params } = matched;
     try {
       const session = bearerSession(request, store);
-      if (operationRequiresAuth(lower, route.specPath)) {
+      const fakeActor =
+        !session && PROPOSED_PATHS.includes(route.specPath) ? readFakeActor(request) : null;
+      if (operationRequiresAuth(lower, route.specPath) && !fakeActor) {
         if (!session || session.kind !== expectedTokenKind(route.specPath)) {
           throw new HttpError(401, 'Unauthorized');
         }
@@ -272,6 +288,7 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
         query: url.searchParams,
         body,
         session,
+        ...(fakeActor ? { fakeActor } : {}),
       });
 
       const contract = successResponseSchema(lower, route.specPath);

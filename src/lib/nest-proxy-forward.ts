@@ -29,6 +29,23 @@ const SKIP_REQUEST_HEADER =
 const ALLOW_RESPONSE_HEADER =
   /^(content-type|cache-control|retry-after|www-authenticate|location)$/i;
 
+/** هدر نقش/نام کاربر برای سرور جعلیِ مسیرهای پیشنهادی؛ هرگز به Nest واقعی نرود. */
+const FAKE_ACTOR_HEADER = 'x-karvita-actor';
+
+/** مسیرهایی که هنوز در Swagger بک‌اند نیستند (`tools/fake-nest/openapi.proposed.json`). */
+const PROPOSED_NEST_PATH = /^v1\/bulletins(\/|$)/;
+
+/**
+ * فقط در توسعه: اگر `FAKE_PROPOSED_API_URL` ست باشد، مسیرهای پیشنهادی (اطلاعیه/تبلیغ)
+ * به سرور جعلی می‌روند و بقیهٔ مسیرها همچنان به Nest واقعی. در production هرگز فعال نیست.
+ */
+function readFakeProposedBase(suffix: string): string | null {
+  if (process.env.NODE_ENV === 'production') return null;
+  if (!PROPOSED_NEST_PATH.test(suffix)) return null;
+  const raw = process.env.FAKE_PROPOSED_API_URL?.trim();
+  return raw ? raw.replace(/\/+$/, '') : null;
+}
+
 function isUnsafePathSegment(segment: string): boolean {
   return segment === '..' || segment.includes('/') || segment.includes('\\');
 }
@@ -56,7 +73,9 @@ export async function forwardToNestApi(
     return NextResponse.json({ message: 'مسیر نامعتبر است.' }, { status: 400 });
   }
 
-  const base = readNestApiBaseUrl();
+  const suffix = pathSegments.join('/');
+  const fakeBase = readFakeProposedBase(suffix);
+  const base = fakeBase ?? readNestApiBaseUrl();
   if (!base) {
     return NextResponse.json(
       { message: 'آدرس سرویس API پیکربندی نشده است.' },
@@ -64,7 +83,6 @@ export async function forwardToNestApi(
     );
   }
 
-  const suffix = pathSegments.join('/');
   const pathWithQuery = `${suffix}${request.nextUrl.search}`;
   const target = `${base}/${pathWithQuery}`;
 
@@ -91,6 +109,7 @@ export async function forwardToNestApi(
   const headers = new Headers();
   request.headers.forEach((value, key) => {
     if (SKIP_REQUEST_HEADER.test(key)) return;
+    if (!fakeBase && key.toLowerCase() === FAKE_ACTOR_HEADER) return;
     headers.set(key, value);
   });
   // Nest را مجبور کن JSON خام بدهد تا gzip/br با بدنهٔ بازشده قاطی نشود.

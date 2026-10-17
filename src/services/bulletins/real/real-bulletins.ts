@@ -6,8 +6,10 @@ import {
   toNestRoleName,
 } from '@/services/auth/real/nest-auth-role';
 import { sortBulletins } from '@/services/bulletins/bulletin-rules';
+import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
 import type { Bulletin, BulletinKind, UpsertBulletinInput } from '@/types/bulletins';
+import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 /**
  * اطلاعیه/تبلیغ روی Nest. مسیرها نسبت به `NEXT_PUBLIC_API_URL` (`.../api`) هستند.
@@ -44,6 +46,25 @@ function toNestBulletinRole(role: UserRole): string {
   return isStaffAdminRole(role) ? toNestAdminAccountRole(role) : toNestRoleName(role);
 }
 
+/**
+ * نقش/نام کاربر جاری برای پروکسی؛ فقط وقتی `FAKE_PROPOSED_API_URL` سمت سرور ست باشد
+ * به سرور جعلی می‌رسد (توکن واقعی Nest در آن شناخته‌شده نیست). در غیر این صورت پروکسی حذفش می‌کند.
+ */
+function fakeActorOptions(): { headers: Record<string, string> } {
+  const user = useUserStore.getState().activeUser;
+  if (!user) return { headers: {} };
+  const name =
+    [user.firstName, user.lastName].filter(Boolean).join(' ') ||
+    getRoleStrategy(user.role).label;
+  return {
+    headers: {
+      'x-karvita-actor': encodeURIComponent(
+        JSON.stringify({ role: toNestBulletinRole(user.role), name })
+      ),
+    },
+  };
+}
+
 export function mapNestBulletin(row: NestBulletin): Bulletin {
   return {
     id: row.id,
@@ -75,12 +96,20 @@ function toNestBody(input: UpsertBulletinInput) {
 }
 
 export async function listRealDashboardBulletins(): Promise<Bulletin[]> {
-  const rows = await apiClient.getJson<NestBulletin[]>(NEST_BULLETINS_PATHS.list);
+  const rows = await apiClient.getJson<NestBulletin[]>(
+    NEST_BULLETINS_PATHS.list,
+    undefined,
+    fakeActorOptions()
+  );
   return sortBulletins(rows.map(mapNestBulletin));
 }
 
 export async function listRealManagedBulletins(): Promise<Bulletin[]> {
-  const rows = await apiClient.getJson<NestBulletin[]>(NEST_BULLETINS_PATHS.managed);
+  const rows = await apiClient.getJson<NestBulletin[]>(
+    NEST_BULLETINS_PATHS.managed,
+    undefined,
+    fakeActorOptions()
+  );
   return sortBulletins(rows.map(mapNestBulletin));
 }
 
@@ -89,7 +118,9 @@ export async function createRealBulletin(
 ): Promise<Bulletin> {
   const row = await apiClient.postJson<NestBulletin>(
     NEST_BULLETINS_PATHS.list,
-    toNestBody(input)
+    toNestBody(input),
+    undefined,
+    fakeActorOptions()
   );
   return mapNestBulletin(row);
 }
@@ -100,7 +131,9 @@ export async function updateRealBulletin(
 ): Promise<Bulletin> {
   const row = await apiClient.patchJson<NestBulletin>(
     NEST_BULLETINS_PATHS.byId(id),
-    toNestBody(input)
+    toNestBody(input),
+    undefined,
+    fakeActorOptions()
   );
   return mapNestBulletin(row);
 }
@@ -111,13 +144,19 @@ export async function setRealBulletinActive(
 ): Promise<Bulletin> {
   const row = await apiClient.patchJson<NestBulletin>(
     NEST_BULLETINS_PATHS.active(id),
-    { isActive }
+    { isActive },
+    undefined,
+    fakeActorOptions()
   );
   return mapNestBulletin(row);
 }
 
 export async function deleteRealBulletin(id: string): Promise<void> {
-  await apiClient.deleteMaybeJson<null>(NEST_BULLETINS_PATHS.byId(id));
+  await apiClient.deleteMaybeJson<null>(
+    NEST_BULLETINS_PATHS.byId(id),
+    undefined,
+    fakeActorOptions()
+  );
 }
 
 /** عنوان استان‌ها برای انتخاب مخاطب — از کاتالوگ ادمین Nest (`GET /admin/province/all`). */

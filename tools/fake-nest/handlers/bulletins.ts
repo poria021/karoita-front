@@ -53,7 +53,8 @@ function audienceFor(role: string, kind: StoredBulletin['kind']): readonly strin
   return ANNOUNCEMENT_AUDIENCE[role] ?? [];
 }
 
-function actorOf(store: Store, session: Session | null): Actor {
+function actorOf(store: Store, session: Session | null, fakeActor?: Actor): Actor {
+  if (!session && fakeActor) return fakeActor;
   if (!session) throw new HttpError(401, 'Unauthorized');
   if (session.surface === 'admin') {
     const admin = store.admins.get(session.accountId);
@@ -185,17 +186,17 @@ export function registerBulletinRoutes(router: Router, store: Store): void {
   };
 
   router.register('get', '/api/v1/bulletins', (context) => {
-    const actor = actorOf(store, context.session);
+    const actor = actorOf(store, context.session, context.fakeActor);
     return ok(newestFirst(store.bulletins.filter((row) => isVisibleTo(row, actor.role))).map(dto));
   });
 
   router.register('get', '/api/v1/bulletins/managed', (context) => {
-    const actor = actorOf(store, context.session);
+    const actor = actorOf(store, context.session, context.fakeActor);
     return ok(newestFirst(store.bulletins.filter((row) => isOwnedBy(row, actor.role))).map(dto));
   });
 
   router.register('post', '/api/v1/bulletins', (context) => {
-    const actor = actorOf(store, context.session);
+    const actor = actorOf(store, context.session, context.fakeActor);
     const input = context.body as UpsertBody;
     assertValid(input, actor.role);
     const now = nowIso();
@@ -211,7 +212,7 @@ export function registerBulletinRoutes(router: Router, store: Store): void {
   });
 
   router.register('patch', '/api/v1/bulletins/{id}', (context) => {
-    const actor = actorOf(store, context.session);
+    const actor = actorOf(store, context.session, context.fakeActor);
     const existing = findOwned(context.params.id!, actor.role);
     const input = context.body as UpsertBody;
     if (existing.kind !== input.kind) {
@@ -225,7 +226,7 @@ export function registerBulletinRoutes(router: Router, store: Store): void {
   });
 
   router.register('patch', '/api/v1/bulletins/{id}/active', (context) => {
-    const actor = actorOf(store, context.session);
+    const actor = actorOf(store, context.session, context.fakeActor);
     const existing = findOwned(context.params.id!, actor.role);
     const { isActive } = context.body as { isActive: boolean };
     existing.isActive = isActive;
@@ -234,7 +235,7 @@ export function registerBulletinRoutes(router: Router, store: Store): void {
   });
 
   router.register('delete', '/api/v1/bulletins/{id}', (context) => {
-    const actor = actorOf(store, context.session);
+    const actor = actorOf(store, context.session, context.fakeActor);
     const existing = findOwned(context.params.id!, actor.role);
     store.bulletins.splice(store.bulletins.indexOf(existing), 1);
     return noContent();
