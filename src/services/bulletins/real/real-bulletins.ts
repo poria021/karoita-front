@@ -30,7 +30,25 @@ export async function updateRealBulletin(
   throwRealModeNotImplemented('BulletinsService.updateBulletin');
 }
 
+export async function setRealBulletinActive(
+  id: string,
+  isActive: boolean
+): Promise<Bulletin> {
+  void id;
+  void isActive;
+  throwRealModeNotImplemented('BulletinsService.setBulletinActive');
+}
+
 export async function deleteRealBulletin(id: string): Promise<void> {
   void id;
   throwRealModeNotImplemented('BulletinsService.deleteBulletin');
+}
+
+/** عنوان استان‌ها برای انتخاب مخاطب — از کاتالوگ ادمین Nest که همین حالا لایو است. */
+export async function listRealProvinceTitles(): Promise<string[]> {
+  const { adminCatalogApi } = await import(
+    '@/services/admin-catalog/admin-catalog.api'
+  );
+  const provinces = await adminCatalogApi.getAllProvinces();
+  return [...new Set(provinces.map((province) => province.title))];
 }

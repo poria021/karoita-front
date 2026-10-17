@@ -8,6 +8,7 @@ import {
 } from '@/services/bulletins/bulletin-rules';
 import {
   mockSessionAuthor,
+  mockSessionProvinces,
   mutateMockBulletins,
   readMockBulletins,
 } from '@/services/bulletins/mock/mock-bulletins-store';
@@ -16,8 +17,11 @@ import {
   deleteRealBulletin,
   listRealDashboardBulletins,
   listRealManagedBulletins,
+  listRealProvinceTitles,
+  setRealBulletinActive,
   updateRealBulletin,
 } from '@/services/bulletins/real/real-bulletins';
+import { OrgStructureService } from '@/services/org-structure.service';
 import type { Bulletin, UpsertBulletinInput } from '@/types/bulletins';
 
 function findOwnedOrThrow(rows: Bulletin[], id: string): Bulletin {
@@ -34,22 +38,31 @@ function findOwnedOrThrow(rows: Bulletin[], id: string): Bulletin {
  * فعلاً فقط mock؛ real تا آمدن endpoint در Nest fail-closed است.
  */
 export const BulletinsService = {
-  /** موارد قابل نمایش در داشبورد کاربر جاری (اطلاعیهٔ بالادست + تبلیغ ستاد). */
+  /** موارد فعال و قابل نمایش در داشبورد کاربر جاری (نقش + استان). */
   async listDashboardBulletins(): Promise<Bulletin[]> {
     if (!IS_MOCK_MODE) return listRealDashboardBulletins();
     const { role } = mockSessionAuthor();
+    const provinces = mockSessionProvinces();
     return sortBulletins(
-      readMockBulletins().filter((row) => isBulletinVisibleTo(row, role))
+      readMockBulletins().filter((row) =>
+        isBulletinVisibleTo(row, role, provinces)
+      )
     );
   },
 
-  /** موارد منتشرشدهٔ پنل جاری برای صفحهٔ مدیریت. */
+  /** موارد منتشرشدهٔ پنل جاری (فعال و غیرفعال) برای صفحهٔ مدیریت. */
   async listManagedBulletins(): Promise<Bulletin[]> {
     if (!IS_MOCK_MODE) return listRealManagedBulletins();
     const { role } = mockSessionAuthor();
     return sortBulletins(
       readMockBulletins().filter((row) => isBulletinOwnedBy(row, role))
     );
+  },
+
+  /** عنوان همهٔ استان‌ها برای انتخاب مخاطب در فرم. */
+  async listProvinceOptions(): Promise<string[]> {
+    if (!IS_MOCK_MODE) return listRealProvinceTitles();
+    return OrgStructureService.listLabelsForField('province');
   },
 
   async createBulletin(input: UpsertBulletinInput): Promise<Bulletin> {
@@ -82,6 +95,22 @@ export const BulletinsService = {
     mutateMockBulletins((draft) =>
       draft.map((row) => (row.id === id ? updated : row))
     );
+    return updated;
+  },
+
+  /** فعال/غیرفعال‌سازی؛ مورد غیرفعال حذف نمی‌شود و فقط از میز کار مخاطبان پنهان می‌ماند. */
+  async setBulletinActive(id: string, isActive: boolean): Promise<Bulletin> {
+    if (!IS_MOCK_MODE) return setRealBulletinActive(id, isActive);
+    findOwnedOrThrow(readMockBulletins(), id);
+    let updated: Bulletin | undefined;
+    mutateMockBulletins((draft) =>
+      draft.map((row) => {
+        if (row.id !== id) return row;
+        updated = { ...row, isActive, updatedAt: new Date().toISOString() };
+        return updated;
+      })
+    );
+    if (!updated) throw new Error('مورد موردنظر یافت نشد.');
     return updated;
   },
 
