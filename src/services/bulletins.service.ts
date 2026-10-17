@@ -35,7 +35,8 @@ function findOwnedOrThrow(rows: Bulletin[], id: string): Bulletin {
 
 /**
  * اطلاعیه‌ها و تبلیغات. UI فقط همین Facade را صدا می‌زند.
- * فعلاً فقط mock؛ real تا آمدن endpoint در Nest fail-closed است.
+ * real با قرارداد پیشنهادی (`tools/fake-nest/openapi.proposed.json`) روی سرور جعلی (`pnpm fake-api`) کار می‌کند؛
+ * تا آمدن endpoint واقعی در Nest، روی بک‌اند زنده خطای شبکه/۴۰۴ می‌دهد.
  */
 export const BulletinsService = {
   /** موارد فعال و قابل نمایش در داشبورد کاربر جاری (نقش + استان). */

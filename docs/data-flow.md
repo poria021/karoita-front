@@ -62,6 +62,7 @@ BACKEND_INTERNAL_URL=http://localhost:4000/api
 - درس‌های ترمِ تازه در Swagger مستند نیستند؛ پیش‌فرض همان رفتار دیده‌شدهٔ بک‌اند است (فهرست ثابت کارورزی/کارآموزی). `FAKE_NEST_TERM_LESSONS=original` تغییر درخواستی را شبیه‌سازی می‌کند: ساخت از «تعریف دروس» فعال با `originalLessonId`.
 - بعد از تغییر بک‌اند: `pnpm fake-api:sync` و سپس `pnpm test`.
 - endpoint جدید: فقط با مسیر دقیق Swagger در `tools/fake-nest/handlers/` ثبت کنید و تست قرارداد بنویسید.
+- **قرارداد پیشنهادی (هنوز بدون Swagger):** اطلاعیه/تبلیغ (`/api/v1/bulletins*`) در `tools/fake-nest/openapi.proposed.json` تعریف شده تا UI در حالت real دیده شود. این فایل از `fake-api:sync` پاک نمی‌شود؛ وقتی بک‌اند همین مسیرها را در Swagger گذاشت، از آن فایل حذفشان کنید (وگرنه `openapi.ts` خطا می‌دهد) و `real-bulletins.ts` را با قرارداد واقعی تطبیق دهید.
 
 ## حالت mock
 
