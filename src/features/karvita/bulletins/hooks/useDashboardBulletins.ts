@@ -33,9 +33,12 @@ export function useDashboardBulletins(role: UserRole) {
     enabled: needs('published'),
   });
 
+  // فهرست «منتشرشده» غیرفعال‌ها را هم دارد؛ در میز کار فقط موارد فعال نمایش داده می‌شود.
   const rowsFor = (kind: BulletinKind): Bulletin[] => {
     const query = sources[kind] === 'received' ? received : published;
-    return (query.data ?? []).filter((row) => row.kind === kind);
+    return (query.data ?? []).filter(
+      (row) => row.kind === kind && row.isActive
+    );
   };
 
   return {

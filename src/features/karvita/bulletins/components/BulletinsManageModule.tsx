@@ -144,7 +144,9 @@ function BulletinsManageContent() {
         ) : (
           <BulletinsTable
             rows={page.listRows}
+            kind={page.activeTab}
             onEdit={page.startEdit}
+            onToggleActive={page.toggleActive}
             onDelete={page.requestDelete}
           />
         )}
@@ -159,6 +161,8 @@ function BulletinsManageContent() {
         formError={page.formError}
         isSaving={page.isSaving}
         audienceOptions={page.audienceOptions}
+        provinceOptions={page.provinceOptions}
+        isProvincesLoading={page.isProvincesLoading}
         patchForm={page.patchForm}
         setImageFile={page.setImageFile}
         saveBulletin={page.saveBulletin}

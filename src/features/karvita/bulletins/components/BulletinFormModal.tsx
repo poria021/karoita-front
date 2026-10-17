@@ -50,6 +50,8 @@ type BulletinFormModalProps = Pick<
   | 'formError'
   | 'isSaving'
   | 'audienceOptions'
+  | 'provinceOptions'
+  | 'isProvincesLoading'
   | 'patchForm'
   | 'setImageFile'
   | 'saveBulletin'
@@ -83,7 +85,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             {props.isEditing ? `ویرایش ${noun}` : `انتشار ${noun} جدید`}
           </KvDialogTitle>
           <KvDialogDescription className="sr-only">
-            فرم {noun}: عنوان، متن و مخاطبان
+            فرم {noun}: نقش و استان مخاطبان، عنوان و {isAd ? 'توضیحات یا تصویر' : 'متن'}
           </KvDialogDescription>
         </KvDialogHeader>
 
@@ -95,6 +97,43 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             void props.saveBulletin();
           }}
         >
+          <div className="flex flex-col gap-kv-field">
+            <KvCheckboxMultiSelect
+              id="bulletin-audience"
+              label="نقش‌ها"
+              required
+              disabled={isSaving}
+              options={props.audienceOptions}
+              values={form.audienceRoles}
+              placeholder="نقش‌های مخاطب را انتخاب کنید"
+              selectAllLabel="همه"
+              onValuesChange={(next) =>
+                props.patchForm({ audienceRoles: next as UserRole[] })
+              }
+            />
+            <KvTypography variant="caption" tone="muted" as="p">
+              {isAd
+                ? 'تبلیغ در باکس مربعی تبلیغات میز کار نقش‌های انتخاب‌شده نمایش داده می‌شود.'
+                : 'اطلاعیه در باکس «اطلاعیه‌ها»ی میز کار نقش‌های زیرمجموعهٔ انتخاب‌شده، با بج نام پنل شما نمایش داده می‌شود.'}
+            </KvTypography>
+          </div>
+
+          <KvCheckboxMultiSelect
+            id="bulletin-provinces"
+            label="استان‌ها"
+            required
+            disabled={isSaving || props.isProvincesLoading}
+            options={props.provinceOptions}
+            values={form.provinces}
+            placeholder={
+              props.isProvincesLoading
+                ? 'در حال بارگذاری استان‌ها…'
+                : 'استان‌های مخاطب را انتخاب کنید'
+            }
+            selectAllLabel="همه"
+            onValuesChange={(next) => props.patchForm({ provinces: next })}
+          />
+
           <KvTextField
             id="bulletin-title"
             label="عنوان"
@@ -106,6 +145,25 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             maxLength={BULLETIN_TITLE_MAX}
             onChange={(event) => props.patchForm({ title: event.target.value })}
           />
+
+          <div className="flex flex-col gap-kv-field">
+            <KvTextArea
+              id="bulletin-body"
+              label={isAd ? 'توضیحات' : 'متن'}
+              required={!isAd}
+              rows={isAd ? 3 : 5}
+              scriptGuard="none"
+              locked={isSaving}
+              value={form.body}
+              maxLength={BULLETIN_BODY_MAX}
+              onChange={(event) => props.patchForm({ body: event.target.value })}
+            />
+            {isAd ? (
+              <KvTypography variant="caption" tone="muted" as="p">
+                توضیحات یا تصویر (یا هر دو) را وارد کنید؛ یکی از این دو الزامی است.
+              </KvTypography>
+            ) : null}
+          </div>
 
           {isAd ? (
             <KvImageDocUploader
@@ -120,20 +178,6 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
               helperText={`تصویر مربعی (۱:۱) — JPG، PNG یا WebP، حداکثر ${AD_IMAGE_MAX_SIZE_MB} مگابایت`}
               previewAlt="پیش‌نمایش تصویر تبلیغ"
             />
-          ) : null}
-
-          {!isAd ? (
-          <KvTextArea
-            id="bulletin-body"
-            label="متن"
-            required
-            rows={5}
-            scriptGuard="none"
-            locked={isSaving}
-            value={form.body}
-            maxLength={BULLETIN_BODY_MAX}
-            onChange={(event) => props.patchForm({ body: event.target.value })}
-          />
           ) : null}
 
           {isAd ? (
@@ -152,27 +196,6 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
               }
             />
           ) : null}
-
-          <div className="flex flex-col gap-kv-field">
-            <KvCheckboxMultiSelect
-              id="bulletin-audience"
-              label="مخاطبان"
-              required
-              disabled={isSaving}
-              options={props.audienceOptions}
-              values={form.audienceRoles}
-              placeholder="نقش‌های مخاطب را انتخاب کنید"
-              selectAllLabel="همه"
-              onValuesChange={(next) =>
-                props.patchForm({ audienceRoles: next as UserRole[] })
-              }
-            />
-            <KvTypography variant="caption" tone="muted" as="p">
-              {isAd
-                ? 'تبلیغ در باکس مربعی تبلیغات میز کار نقش‌های انتخاب‌شده نمایش داده می‌شود.'
-                : 'اطلاعیه در باکس «اطلاعیه‌ها»ی میز کار نقش‌های زیرمجموعهٔ انتخاب‌شده، با بج نام پنل شما نمایش داده می‌شود.'}
-            </KvTypography>
-          </div>
 
           {props.formError ? (
             <div role="alert">
