@@ -16,10 +16,18 @@ import {
 import type {
   GetOrganizationalCapacitiesInput,
   OrganizationalCapacitiesSnapshot,
+  OrganizationalCapacityCatalog,
+  OrganizationalCapacityCourse,
   OrganizationalCapacityKind,
   SubmitOrganizationalCapacitiesInput,
 } from '@/types/organizational-capacities';
-import type { NestSemesterWithLessons } from '@/types/nest-admin';
+import type {
+  NestProfessorCapacity,
+  NestSemesterWithLessons,
+} from '@/types/nest-admin';
+
+/** کاتالوگی که حتماً `bundles` و `maxCapacity` دارد (real). */
+type RealCatalog = Required<OrganizationalCapacityCatalog>;
 
 async function listSemesterBundles(
   kind: OrganizationalCapacityKind
@@ -53,6 +61,35 @@ async function maxProfessorCapacity(): Promise<number> {
   }
 }
 
+/**
+ * لود اولیهٔ صفحه: `GET semesters_all` + `GET settings` — هرکدام یک‌بار.
+ * نتیجه در react-query cache می‌ماند و به `getRealOrganizationalCapacities` /
+ * `submitRealOrganizationalCapacities` پاس داده می‌شود تا دوباره خوانده نشوند.
+ */
+export async function loadRealCapacityCatalog(
+  kind: OrganizationalCapacityKind
+): Promise<RealCatalog> {
+  const [bundles, maxCapacity] = await Promise.all([
+    listSemesterBundles(kind),
+    maxProfessorCapacity(),
+  ]);
+  return { terms: termsFromBundles(bundles), bundles, maxCapacity };
+}
+
+async function resolveCatalog(
+  kind: OrganizationalCapacityKind,
+  provided?: OrganizationalCapacityCatalog
+): Promise<RealCatalog> {
+  if (provided?.bundles && provided.maxCapacity != null) {
+    return {
+      terms: provided.terms,
+      bundles: provided.bundles,
+      maxCapacity: provided.maxCapacity,
+    };
+  }
+  return loadRealCapacityCatalog(kind);
+}
+
 export async function listRealCapacityTerms(
   kind: OrganizationalCapacityKind
 ): Promise<Array<{ id: string; title: string }>> {
@@ -75,15 +112,19 @@ export async function listRealCapacityCourses(
     .filter((course) => course.id);
 }
 
+/**
+ * ظرفیت‌های استاد برای یک ترم.
+ * با `input.catalog` فقط یک GET (`professor-capacities?semesterId=`) می‌زند؛
+ * بدون آن اول کاتالوگ (semesters_all + settings) را هم می‌خواند.
+ */
 export async function getRealOrganizationalCapacities(
   input: GetOrganizationalCapacitiesInput,
   professorId: string
 ): Promise<OrganizationalCapacitiesSnapshot> {
-  const [bundles, maxCapacity] = await Promise.all([
-    listSemesterBundles(input.kind),
-    maxProfessorCapacity(),
-  ]);
-  const terms = termsFromBundles(bundles);
+  const { bundles, maxCapacity, terms } = await resolveCatalog(
+    input.kind,
+    input.catalog
+  );
   const bundle =
     bundles.find((row) => row.id === input.termId) ?? bundles[0] ?? null;
   if (!bundle) {
@@ -98,33 +139,28 @@ export async function getRealOrganizationalCapacities(
   }
 
   const lessons = bundle.lessons ?? [];
-  const capacityLists = await Promise.all(
-    lessons.map((lesson) => {
-      const lessonId = nestEntityId(lesson);
-      if (!lessonId) return Promise.resolve([]);
-      return adminCatalogApi
-        .listProfessorCapacities({
-          lessonId,
-          semesterId: bundle.id,
-        })
-        .then((raw) => parseNestProfessorCapacityList(raw));
-    })
-  );
 
-  const courses = lessons.flatMap((lesson, index) => {
+  // فقط یک GET برای کل ترم (`?semesterId=` بدون `lessonId`).
+  // ردیف هر درس را سمت کلاینت با professorId + lessonId پیدا می‌کنیم.
+  const capacityRows = parseNestProfessorCapacityList(
+    await adminCatalogApi.listProfessorCapacities({ semesterId: bundle.id })
+  );
+  const rowByLessonId = new Map<string, NestProfessorCapacity>();
+  for (const item of capacityRows) {
+    if (item.professorId !== professorId) continue;
+    if (item.semesterId !== bundle.id) continue;
+    rowByLessonId.set(item.lessonId, item);
+  }
+
+  const courses = lessons.flatMap((lesson) => {
     const lessonId = nestEntityId(lesson);
     if (!lessonId) return [];
-    const row =
-      capacityLists[index]?.find(
-        (item) =>
-          item.professorId === professorId && item.lessonId === lessonId
-      ) ?? null;
     return [
       toCapacityCourseFromLesson({
         lesson,
         kind: input.kind,
         maxCapacity,
-        row,
+        row: rowByLessonId.get(lessonId) ?? null,
       }),
     ];
   });
@@ -139,42 +175,61 @@ export async function getRealOrganizationalCapacities(
   });
 }
 
+type SubmitRow = {
+  course: Pick<OrganizationalCapacityCourse, 'id' | 'total' | 'selectedDays'>;
+  existsOnServer: boolean;
+};
+
+/**
+ * الگوی ثابت: عملیات نوشتن (POST/PUT) → یک GET برای بازخوانی.
+ * کاتالوگ و وضعیت `existsOnServer` از snapshot کلاینت می‌آید، پس پیش از نوشتن
+ * هیچ GET اضافه‌ای نمی‌رود. فقط اگر کلاینت این داده‌ها را نداد، یک خواندن fallback می‌شود.
+ */
 export async function submitRealOrganizationalCapacities(
   input: SubmitOrganizationalCapacitiesInput,
   professorId: string
 ): Promise<OrganizationalCapacitiesSnapshot> {
-  const current = await getRealOrganizationalCapacities(
-    { kind: input.kind, termId: input.termId },
-    professorId
-  );
-  if (!current.termId) {
+  const catalog = await resolveCatalog(input.kind, input.catalog);
+  const bundle =
+    catalog.bundles.find((row) => row.id === input.termId) ??
+    catalog.bundles[0] ??
+    null;
+  if (!bundle) {
     throw new ApiClientError('دوره تحصیلی یافت نشد.', 404);
   }
+  const semesterId = bundle.id;
+  const maxCapacity = input.maxCapacity ?? catalog.maxCapacity;
 
-  const byId = new Map(input.courses.map((row) => [row.courseId, row]));
-  const merged = current.courses.map((course) => {
-    const patch = byId.get(course.id);
-    if (!patch) return course;
-    return {
-      ...course,
+  let serverState: Map<string, boolean> | null = null;
+  if (input.courses.some((course) => course.existsOnServer === undefined)) {
+    // fallback: کلاینت وضعیت سرور را نفرستاده
+    const current = await getRealOrganizationalCapacities(
+      { kind: input.kind, termId: semesterId, catalog },
+      professorId
+    );
+    serverState = new Map(
+      current.courses.map((course) => [course.id, Boolean(course.existsOnServer)])
+    );
+  }
+
+  const rows: SubmitRow[] = input.courses.map((patch) => ({
+    course: {
+      id: patch.courseId,
       total: patch.total,
       selectedDays: patch.selectedDays.slice(0, 1),
-    };
-  });
+    },
+    existsOnServer:
+      patch.existsOnServer ?? serverState?.get(patch.courseId) ?? false,
+  }));
 
-  const hasData = (course: (typeof merged)[number]) =>
+  const hasData = ({ course }: SubmitRow) =>
     (course.total != null && course.total > 0) || course.selectedDays.length > 0;
 
-  const creates = merged.filter((course) => !course.existsOnServer && hasData(course));
-  const updates = merged.filter((course) => course.existsOnServer && hasData(course));
+  const creates = rows.filter((row) => !row.existsOnServer && hasData(row));
+  const updates = rows.filter((row) => row.existsOnServer && hasData(row));
 
-  const toBody = (course: (typeof merged)[number]) =>
-    toWriteDto({
-      professorId,
-      semesterId: current.termId,
-      course,
-      maxCapacity: current.maxCapacity,
-    });
+  const toBody = ({ course }: SubmitRow) =>
+    toWriteDto({ professorId, semesterId, course, maxCapacity });
 
   // خالی = هنوز ردیفی نیست → POST؛ ردیف موجود با professorId+lessonId → PUT.
   if (creates.length > 0) {
@@ -184,9 +239,10 @@ export async function submitRealOrganizationalCapacities(
     await adminCatalogApi.updateProfessorCapacities(updates.map(toBody));
   }
 
+  // بعد از نوشتن دقیقاً یک GET (کاتالوگ از cache می‌آید).
   return reloadAfterWrite(() =>
     getRealOrganizationalCapacities(
-      { kind: input.kind, termId: current.termId },
+      { kind: input.kind, termId: semesterId, catalog },
       professorId
     )
   );

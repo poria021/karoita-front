@@ -34,6 +34,7 @@ type CapacitiesChrome = {
   termId: string;
 };
 
+/** کلید کاتالوگ (ترم‌ها + درس‌ها + سقف عمومی) — کلید قدیمی «terms» برای invalidate حفظ شده. */
 function capacitiesTermsKey(kind: OrganizationalCapacityKind) {
   return DASHBOARD_QUERY.orgCapacitiesTerms(kind);
 }
@@ -85,28 +86,41 @@ export function useOrganizationalCapacitiesPage() {
     setChrome<CapacitiesChrome>(CHROME_ID, { kind, termId });
   }, [kind, setChrome, termId]);
 
-  const internshipTermsQuery = useQuery({
+  const internshipCatalogQuery = useQuery({
     queryKey: capacitiesTermsKey('internship'),
-    queryFn: () => OrganizationalCapacitiesService.listTerms('internship'),
+    queryFn: () => OrganizationalCapacitiesService.loadCatalog('internship'),
     staleTime: QUERY_STALE_MS.module,
     enabled: kind === 'internship',
   });
-  const apprenticeshipTermsQuery = useQuery({
+  const apprenticeshipCatalogQuery = useQuery({
     queryKey: capacitiesTermsKey('apprenticeship'),
-    queryFn: () => OrganizationalCapacitiesService.listTerms('apprenticeship'),
+    queryFn: () => OrganizationalCapacitiesService.loadCatalog('apprenticeship'),
     staleTime: QUERY_STALE_MS.module,
     enabled: kind === 'apprenticeship',
   });
-  const refetchInternshipTerms = internshipTermsQuery.refetch;
-  const refetchApprenticeshipTerms = apprenticeshipTermsQuery.refetch;
 
   const termsQuery =
-    kind === 'internship' ? internshipTermsQuery : apprenticeshipTermsQuery;
-  const termsData = termsQuery.data;
+    kind === 'internship' ? internshipCatalogQuery : apprenticeshipCatalogQuery;
+  const refetchCatalog = termsQuery.refetch;
+  const catalogData = termsQuery.data;
   const termsError = termsQuery.error;
   const termsPending = termsQuery.isPending;
 
-  const terms = useMemo(() => termsData ?? [], [termsData]);
+  const terms = useMemo(() => catalogData?.terms ?? [], [catalogData]);
+
+  /**
+   * کاتالوگ را از cache می‌خواند؛ اگر تازه است شبکه نمی‌رود، اگر همزمان در حال
+   * fetch است به همان promise می‌پیوندد (semesters_all/settings دوبار نمی‌خورند).
+   */
+  const readCatalog = useCallback(
+    (catalogKind: OrganizationalCapacityKind) =>
+      queryClient.fetchQuery({
+        queryKey: capacitiesTermsKey(catalogKind),
+        queryFn: () => OrganizationalCapacitiesService.loadCatalog(catalogKind),
+        staleTime: QUERY_STALE_MS.module,
+      }),
+    [queryClient]
+  );
 
   const resolvedTermId = useMemo(() => {
     if (terms.some((term) => term.id === termId)) return termId;
@@ -121,11 +135,14 @@ export function useOrganizationalCapacitiesPage() {
     refetch: refetchSnapshot,
   } = useQuery({
     queryKey: capacitiesSnapshotKey(kind, resolvedTermId),
-    queryFn: () =>
-      OrganizationalCapacitiesService.getSnapshot({
+    queryFn: async () => {
+      const catalog = await readCatalog(kind);
+      return OrganizationalCapacitiesService.getSnapshot({
         kind,
         termId: resolvedTermId,
-      }),
+        catalog,
+      });
+    },
     enabled: !termsPending,
     staleTime: QUERY_STALE_MS.module,
     placeholderData: keepPreviousData,
@@ -159,10 +176,9 @@ export function useOrganizationalCapacitiesPage() {
     baselineRef.current = null;
     baselineKeyRef.current = '';
     setIsDirty(false);
-    void refetchInternshipTerms();
-    void refetchApprenticeshipTerms();
-    void refetchSnapshot();
-  }, [refetchApprenticeshipTerms, refetchInternshipTerms, refetchSnapshot]);
+    // فقط kind فعلی؛ اول کاتالوگ، بعد ظرفیت‌ها (کاتالوگ تازه از cache می‌آید).
+    void refetchCatalog().then(() => refetchSnapshot());
+  }, [refetchCatalog, refetchSnapshot]);
 
   const changeKind = useCallback(
     (next: OrganizationalCapacityKind) => {
@@ -291,13 +307,19 @@ export function useOrganizationalCapacitiesPage() {
     if (!snapshot) return;
     setActionBusy(true);
     try {
+      // کاتالوگ از cache (بدون شبکه) + existsOnServer از snapshot → قبل از
+      // POST/PUT هیچ GET اضافه‌ای نمی‌رود؛ بعد از نوشتن فقط یک GET بازخوانی.
+      const catalog = await readCatalog(kind);
       const next = await OrganizationalCapacitiesService.submit({
         kind,
         termId: snapshot.termId,
+        catalog,
+        maxCapacity: snapshot.maxCapacity,
         courses: snapshot.courses.map((course) => ({
           courseId: course.id,
           total: course.total,
           selectedDays: course.selectedDays,
+          existsOnServer: course.existsOnServer,
         })),
       });
       setSnapshotData(next);
@@ -319,7 +341,7 @@ export function useOrganizationalCapacitiesPage() {
     } finally {
       setActionBusy(false);
     }
-  }, [kind, setSnapshotData, snapshot]);
+  }, [kind, readCatalog, setSnapshotData, snapshot]);
 
   return {
     kind,
