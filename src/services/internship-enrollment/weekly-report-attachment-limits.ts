@@ -9,21 +9,35 @@ export const WEEKLY_REPORT_ACCEPT = {
   'application/zip': ['.zip'],
   'application/x-zip-compressed': ['.zip'],
   'application/x-zip': ['.zip'],
+  'image/png': ['.png'],
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/webp': ['.webp'],
 } as const;
 
 export const WEEKLY_REPORT_ACCEPT_LABEL =
-  'فرمت‌های مجاز: PDF، TXT و ZIP تا سقف ۵ مگابایت';
+  'فرمت‌های مجاز: PDF، TXT، ZIP و تصویر (PNG، JPG، WEBP) تا سقف ۵ مگابایت';
 
 export const WEEKLY_REPORT_INVALID_TYPE_MESSAGE =
-  'فرمت فایل انتخابی مجاز نیست. فقط PDF، TXT یا ZIP مجاز است.';
+  'فرمت فایل انتخابی مجاز نیست. فقط PDF، TXT، ZIP یا تصویر (PNG، JPG، WEBP) مجاز است.';
 
-const ALLOWED_EXTENSIONS = new Set(['.pdf', '.txt', '.zip']);
+const ALLOWED_EXTENSIONS = new Set([
+  '.pdf',
+  '.txt',
+  '.zip',
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.webp',
+]);
 const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
   'text/plain',
   'application/zip',
   'application/x-zip-compressed',
   'application/x-zip',
+  'image/png',
+  'image/jpeg',
+  'image/webp',
 ]);
 
 export function isAllowedWeeklyReportAttachment(file: {

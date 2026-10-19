@@ -28,6 +28,7 @@ import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
 import { competencyRatingLabel } from '../constants';
 import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekGradingModal';
+import { DailyApprovalCanWatchOthersToggle } from './DailyApprovalCanWatchOthersToggle';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
 import { DailyApprovalPresenceStatus } from './DailyApprovalPresenceStatus';
 import { DailyApprovalPrincipalGradingFields } from './DailyApprovalPrincipalGradingFields';
@@ -161,7 +162,9 @@ export function DailyApprovalWeekGradingModal({
   const saveLabel =
     role === 'supervisor_professor'
       ? modal.scoreInput.trim() === ''
-        ? 'ثبت بازخورد اصلاحی'
+        ? modal.advisorFeedback.trim() === '' && modal.schoolVisited
+          ? 'ثبت حضور در مدرسه'
+          : 'ثبت بازخورد اصلاحی'
         : 'ثبت و تایید نهایی نمره'
       : role === 'mentor_teacher'
         ? 'ثبت نهایی ارزیابی مربی'
@@ -227,7 +230,7 @@ export function DailyApprovalWeekGradingModal({
                 </KvTypography>
               ) : null}
             </div>
-            {effectiveWeek.status === 'graded' && effectiveWeek.schoolVisited ? (
+            {effectiveWeek.schoolVisited || effectiveWeek.mentorPresent ? (
               <span
                 className="inline-flex shrink-0 items-center gap-1 rounded-full bg-kv-success-soft px-2 py-0.5 text-xs font-bold text-kv-success-soft-fg"
                 title="استاد راهنما در این جلسه به مدرسه رفته و بازدید داشته است."
@@ -285,6 +288,15 @@ export function DailyApprovalWeekGradingModal({
                   body={effectiveWeek.feedback.principal}
                   rating={effectiveWeek.feedback.principalRating}
                   at={effectiveWeek.feedback.principalAt}
+                />
+              ) : null}
+
+              {role === 'supervisor_professor' && modal.supervisorLocked ? (
+                <DailyApprovalCanWatchOthersToggle
+                  title="نمایش فایل‌های پیوست به معلم راهنما و مدیر مدرسه"
+                  description="متن گزارش برای هر سه نفر قابل مشاهده است؛ فایل‌های پیوست تا وقتی این گزینه فعال نباشد فقط برای شما باز می‌شود. تغییر فوراً ذخیره می‌شود."
+                  checked={effectiveWeek.canWatchOthers === true}
+                  onChange={onCanWatchOthersChange}
                 />
               ) : null}
 

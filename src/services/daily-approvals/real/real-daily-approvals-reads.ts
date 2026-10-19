@@ -419,3 +419,23 @@ export async function loadRealDailyApprovalWeekDetail(
     feedback: resolveWeekFeedback(messages, knownRoles) ?? {},
   };
 }
+
+/**
+ * کلید تازهٔ `canWatchOthers` یک هفته را مستقیم از سرور می‌خواند.
+ * مقدار داخل لیست ممکن است کهنه باشد (استاد بعد از آخرین بارگذاری لیست تیک را
+ * زده یا برداشته) و قفل پیوست معلم/مدیر باید لحظهٔ باز شدن کارت معتبر باشد.
+ * fail-closed: خطا یا نبودن هفته → false (پیوست پنهان می‌ماند).
+ */
+export async function readRealWeekCanWatchOthers(
+  enrollmentId: string,
+  weekId: string
+): Promise<boolean> {
+  if (!enrollmentId || !weekId) return false;
+  try {
+    const weeks = await studentEnrollmentsApi.listWeeks(enrollmentId);
+    const week = weeks.find((item) => studentWeekId(item) === weekId);
+    return week?.canWatchOthers === true;
+  } catch {
+    return false;
+  }
+}

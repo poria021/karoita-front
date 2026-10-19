@@ -9,8 +9,18 @@ describe('weekly-report-attachment-limits', () => {
     expect(isAllowedWeeklyReportAttachment({ name: 'pack.zip' })).toBe(true);
   });
 
+  it('allows images by extension and mime', () => {
+    expect(isAllowedWeeklyReportAttachment({ name: 'photo.png' })).toBe(true);
+    expect(isAllowedWeeklyReportAttachment({ name: 'IMG_1.JPG' })).toBe(true);
+    expect(isAllowedWeeklyReportAttachment({ name: 'scan.jpeg' })).toBe(true);
+    expect(isAllowedWeeklyReportAttachment({ name: 'pic.webp' })).toBe(true);
+    expect(
+      isAllowedWeeklyReportAttachment({ name: 'camera', mimeType: 'image/jpeg' })
+    ).toBe(true);
+  });
+
   it('rejects other types', () => {
-    expect(isAllowedWeeklyReportAttachment({ name: 'photo.png' })).toBe(false);
+    expect(isAllowedWeeklyReportAttachment({ name: 'anim.gif' })).toBe(false);
     expect(isAllowedWeeklyReportAttachment({ name: 'clip.mp4' })).toBe(false);
     expect(isAllowedWeeklyReportAttachment({ name: 'doc.docx' })).toBe(false);
   });

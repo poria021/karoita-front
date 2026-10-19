@@ -63,7 +63,14 @@ export function DailyApprovalWeekReportReadonly({
                 >
                   <div className="flex min-w-0 items-center gap-kv-pair">
                     <span className="flex size-8 shrink-0 items-center justify-center rounded-kv-control border border-kv-border bg-kv-surface-muted text-kv-danger">
-                      <FaIcon icon={faIcons.filePdf} size="xs" />
+                      <FaIcon
+                        icon={
+                          /\.(png|jpe?g|webp)$/i.test(file.name)
+                            ? faIcons.image
+                            : faIcons.filePdf
+                        }
+                        size="xs"
+                      />
                     </span>
                     <div className="min-w-0">
                       <KvTypography variant="subtitle" as="p" truncate>

@@ -204,7 +204,6 @@ export function DailyApprovalSupervisorGradingFields({
             type="checkbox"
             className="mt-0.5 size-4 shrink-0 accent-kv-brand"
             checked={schoolVisited}
-            disabled={!hasScore}
             onChange={(event) => onSchoolVisitedChange(event.target.checked)}
           />
           <span className="space-y-1">
@@ -212,8 +211,8 @@ export function DailyApprovalSupervisorGradingFields({
               در این جلسه به مدرسه رفته‌ام و بازدید حضوری داشته‌ام.
             </KvTypography>
             <KvTypography variant="caption" tone="muted" as="p">
-              همراه با تایید نهایی نمره ثبت می‌شود و روی کارت هفته نمایش داده
-              می‌شود.
+              مستقل از نمره است؛ با زدن دکمهٔ ثبت اعمال می‌شود تا مدیر مدرسه
+              بتواند آن را تأیید کند.
             </KvTypography>
           </span>
         </label>

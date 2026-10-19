@@ -108,7 +108,7 @@ export function useDailyApprovalWeekGradingModal({
     () => getInitialGradingForm(week).scoreInput
   );
   const [schoolVisited, setSchoolVisited] = useState(
-    () => week?.schoolVisited === true
+    () => week?.schoolVisited === true || week?.mentorPresent === true
   );
   const [mentorRating, setMentorRating] = useState<DailyApprovalCompetencyRating | null>(
     () => getInitialGradingForm(week).mentorRating
@@ -137,7 +137,7 @@ export function useDailyApprovalWeekGradingModal({
     const restored = hasGradingDraft ? draftValue : null;
     setAdvisorFeedback(restored?.advisorFeedback ?? initial.advisorFeedback);
     setScoreInput(restored?.scoreInput ?? initial.scoreInput);
-    setSchoolVisited(week?.schoolVisited === true);
+    setSchoolVisited(week?.schoolVisited === true || week?.mentorPresent === true);
     setMentorRating(initial.mentorRating);
     setMentorFeedback(restored?.mentorFeedback ?? initial.mentorFeedback);
     setPrincipalRating(initial.principalRating);
@@ -185,8 +185,8 @@ export function useDailyApprovalWeekGradingModal({
     if (role === 'supervisor_professor') {
       const trimmed = scoreInput.trim();
       const feedback = advisorFeedback.trim();
-      if (!trimmed && !feedback) {
-        toast.error('لطفاً نمره یا توضیحات بازخورد را ثبت نمایید.');
+      if (!trimmed && !feedback && !schoolVisited) {
+        toast.error('لطفاً نمره، توضیحات بازخورد یا تیک حضور در مدرسه را ثبت نمایید.');
         return;
       }
       let score: number | null = null;
@@ -201,8 +201,8 @@ export function useDailyApprovalWeekGradingModal({
       await onSaveSupervisor({
         score,
         advisorFeedback,
-        // بازدید فقط همراه نمرهٔ نهایی (تایید) معنا دارد، نه رد اصلاحی.
-        schoolVisited: score !== null && schoolVisited,
+        // حضور در مدرسه به نمره و بازخورد وابسته نیست و با زدن دکمهٔ ثبت اعمال می‌شود.
+        schoolVisited,
       });
       clearGradingDraft();
       return;

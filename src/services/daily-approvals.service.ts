@@ -33,6 +33,7 @@ import {
   getRealDailyApprovalsMentorCapacity,
   listRealDailyApprovals,
   loadRealDailyApprovalWeekDetail,
+  readRealWeekCanWatchOthers,
   refreshRealDailyApprovalTraineeDerived,
   type DailyApprovalTraineeDerived,
 } from '@/services/daily-approvals/real/real-daily-approvals-reads';
@@ -247,13 +248,20 @@ export const DailyApprovalsService = {
     /** کلید استاد راهنما؛ فایل پیوست برای معلم/مدیر مدرسه فقط وقتی true است باز می‌شود. */
     canWatchOthers?: boolean;
   }): Promise<DailyApprovalWeekDetail> {
-    const detail = await loadRealDailyApprovalWeekDetail({
-      enrollmentId: input.traineeId,
-      weekId: input.weekId,
-      role: input.role,
-      teacherId: input.teacherId,
-    });
-    return maskDetailAttachments(detail, input.role, input.canWatchOthers);
+    // معلم/مدیر: کلید `canWatchOthers` را لحظهٔ باز شدن کارت تازه از سرور می‌خوانیم،
+    // نه از کش لیست — وگرنه تیکِ تازهٔ استاد یک بار دیرتر اعمال می‌شد.
+    const [detail, canWatchOthers] = await Promise.all([
+      loadRealDailyApprovalWeekDetail({
+        enrollmentId: input.traineeId,
+        weekId: input.weekId,
+        role: input.role,
+        teacherId: input.teacherId,
+      }),
+      isAttachmentObserverRole(input.role)
+        ? readRealWeekCanWatchOthers(input.traineeId, input.weekId)
+        : Promise.resolve(input.canWatchOthers),
+    ]);
+    return maskDetailAttachments(detail, input.role, canWatchOthers);
   },
 
   /**

@@ -93,7 +93,7 @@ export function DailyApprovalWeekGrid({
                   {toPersianDigits(score)}/۱۰۰
                 </span>
               ) : null}
-              {score !== null && week.schoolVisited ? (
+              {week.schoolVisited || week.mentorPresent ? (
                 <span
                   className="flex w-full items-center"
                   title="استاد راهنما در این جلسه به مدرسه رفته است"

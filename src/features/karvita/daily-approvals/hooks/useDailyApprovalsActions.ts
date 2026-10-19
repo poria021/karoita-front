@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { IS_MOCK_MODE, isRealApiMode } from '@/lib/api-mode';
 import { scheduleOptimisticMutation, scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
+import { maskWeekAttachments } from '@/services/daily-approvals/attachment-visibility';
 import { useUserStore } from '@/store/useUserStore';
 import type {
   DailyApprovalCompetencyRating,
@@ -75,7 +76,10 @@ export function useDailyApprovalsActions({
           submittedAt: weekDetail.detail.submittedAt,
           feedback: weekDetail.detail.feedback,
         }
-      : gradingWeekRaw;
+      : gradingWeekRaw
+        ? // تا رسیدن جزئیات (یا اگر خواندنش خطا داد) پیوستِ معلم/مدیر نباید «بدون ضمیمه» نشان داده شود.
+          maskWeekAttachments(gradingWeekRaw, role)
+        : null;
 
   // بعد از باز کردن/نمره‌دادن یک هفته، به‌جای `list.reload()` (که در real mode
   // کل صفحهٔ جاری را دوباره می‌خواند — ۳ درخواست به‌ازای هر فراگیرِ نمایش
@@ -261,7 +265,9 @@ export function useDailyApprovalsActions({
         gradingTarget,
         message:
           input.score === null
-            ? 'بازخورد ذخیره شد؛ گزارش به وضعیت «نیازمند ویرایش» تغییر یافت.'
+            ? input.advisorFeedback.trim() === ''
+              ? 'حضور شما در مدرسه ثبت شد.'
+              : 'بازخورد ذخیره شد؛ گزارش به وضعیت «نیازمند ویرایش» تغییر یافت.'
             : 'نمره نهایی گزارش با موفقیت ثبت شد.',
         setGradingTarget,
         commit: async (target) => {

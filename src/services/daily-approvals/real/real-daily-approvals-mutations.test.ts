@@ -258,3 +258,70 @@ describe('setRealDailyApprovalCanWatchOthers', () => {
     expect(studentWeeksApi.setCanWatchOthers).toHaveBeenCalledWith('w1', true);
   });
 });
+
+describe('scoreRealDailyApprovalWeek school visit is independent of the score', () => {
+  beforeEach(() => {
+    vi.mocked(studentWeeksApi.score).mockReset();
+    vi.mocked(studentWeeksApi.setMentorPresent).mockReset();
+    vi.mocked(conversationsApi.postMessage).mockClear();
+  });
+
+  const base = { traineeId: 't1', weekId: 'w1' };
+
+  it('records only the visit when there is no score and no feedback', async () => {
+    await scoreRealDailyApprovalWeek({ ...base, score: null, advisorFeedback: '', schoolVisited: true });
+
+    expect(studentWeeksApi.setMentorPresent).toHaveBeenCalledWith('w1', true);
+    expect(studentWeeksApi.score).not.toHaveBeenCalled();
+    expect(conversationsApi.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('records the visit and still posts the feedback when the score is empty', async () => {
+    await scoreRealDailyApprovalWeek({ ...base, score: null, advisorFeedback: 'اصلاح شود', schoolVisited: true });
+
+    expect(studentWeeksApi.setMentorPresent).toHaveBeenCalledWith('w1', true);
+    expect(conversationsApi.postMessage).toHaveBeenCalledWith('conv-1', { text: 'اصلاح شود' });
+    expect(studentWeeksApi.score).not.toHaveBeenCalled();
+  });
+
+  it('still rejects an empty submission when the visit is not ticked', async () => {
+    await expect(
+      scoreRealDailyApprovalWeek({ ...base, score: null, advisorFeedback: '', schoolVisited: false })
+    ).rejects.toThrow(/بازخورد متنی الزامی است/);
+    expect(studentWeeksApi.setMentorPresent).not.toHaveBeenCalled();
+  });
+});
+
+describe('submitPrincipalFeedbackReal message text', () => {
+  beforeEach(() => {
+    vi.mocked(conversationsApi.postMessage).mockReset();
+  });
+
+  it('posts only the principal feedback — no attendance or visit lines are appended', async () => {
+    await submitPrincipalFeedbackReal({
+      traineeId: 't1',
+      weekId: 'w1',
+      principalFeedback: 'عملکرد مناسب بود',
+      principalRating: '4',
+      principalAttendance: ['2026-10-10'],
+      principalSupervisorVisits: ['2026-10-11'],
+    });
+
+    expect(conversationsApi.postMessage).toHaveBeenCalledWith('conv-1', {
+      text: 'عملکرد مناسب بود',
+      rating: 4,
+    });
+  });
+
+  it('sends no text at all when the principal wrote none, even with days selected', async () => {
+    await submitPrincipalFeedbackReal({
+      traineeId: 't1',
+      weekId: 'w1',
+      principalFeedback: '',
+      principalRating: '5',
+      principalSupervisorVisits: ['2026-10-11'],
+    });
+
+    expect(conversationsApi.postMessage).toHaveBeenCalledWith('conv-1', { rating: 5 });
+  });
+});
