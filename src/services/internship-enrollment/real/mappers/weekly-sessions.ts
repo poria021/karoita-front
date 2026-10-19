@@ -55,9 +55,15 @@ export function isWeekArchived(week: NestStudentWeek): boolean {
  * ۴. وگرنه `studentStatus === 'send'` → `pending` (گزارش ارسال شده، منتظر بررسی).
  * ۵. وگرنه `draft` (هنوز هیچ اقدامی نشده).
  */
-export function mapWeekStatus(week: NestStudentWeek): InternshipWeeklySessionState {
+export function mapWeekStatus(
+  week: NestStudentWeek,
+  options: { rejectionSuperseded?: boolean } = {}
+): InternshipWeeklySessionState {
   if (week.status === 'completed') return 'graded';
-  if (week.mentorStatus === 'send') return 'needs_edit';
+  // mentorStatus === 'send' ورودی خام بک‌اند است و بعد از ارسال دوبارهٔ دانشجو
+  // همیشه پاک نمی‌شود؛ اگر دانشجو بعد از بازخورد رد استاد دوباره ارسال کرده
+  // (rejectionSuperseded)، دیگر «نیازمند ویرایش» نیست.
+  if (week.mentorStatus === 'send' && !options.rejectionSuperseded) return 'needs_edit';
   if (week.teacherStatus === 'send') return 'approved';
   if (week.studentStatus === 'send') return 'pending';
   return 'draft';
@@ -66,6 +72,31 @@ export function mapWeekStatus(week: NestStudentWeek): InternshipWeeklySessionSta
 /** دانشجو حداقل یک‌بار گزارش این هفته را فرستاده — چه هنوز در جریان بررسی، چه گریدشده. */
 function hasStudentSubmittedWeek(week: NestStudentWeek): boolean {
   return week.status === 'completed' || week.studentStatus === 'send';
+}
+
+function toTimestamp(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const time = Date.parse(value);
+  return Number.isNaN(time) ? null : time;
+}
+
+/**
+ * آیا دانشجو بعد از آخرین بازخورد استاد راهنما دوباره گزارش فرستاده؟
+ * بک‌اند بعد از ارسال دوباره همیشه mentorStatus را از send پاک نمی‌کند، پس
+ * کارت هفته برای استاد/معلم/مدیر روی «نیازمند ویرایش» گیر می‌کرد. اینجا زمان
+ * آخرین بازخورد استاد با زمان‌های ارسال دانشجو (submittedAt هفته و آخرین پیام
+ * دانشجو در گفتگوی هفته) مقایسه می‌شود.
+ */
+export function isAdvisorRejectionSuperseded(
+  advisorFeedbackAt: string | null | undefined,
+  studentSubmittedAt: ReadonlyArray<string | null | undefined>
+): boolean {
+  const advisorAt = toTimestamp(advisorFeedbackAt);
+  if (advisorAt === null) return false;
+  return studentSubmittedAt.some((value) => {
+    const time = toTimestamp(value);
+    return time !== null && time > advisorAt;
+  });
 }
 
 /**
@@ -119,7 +150,13 @@ export function mapRealWeeklySessions(
     const feedback = feedbackByWeekId.get(id);
     const completed = week.status === 'completed';
     const archived = isWeekArchived(week);
-    const ownStatus = archived ? 'archived' : mapWeekStatus(week);
+    const rejectionSuperseded = isAdvisorRejectionSuperseded(feedback?.advisorAt, [
+      week.submittedAt,
+      latest?.createdAt,
+    ]);
+    const ownStatus = archived
+      ? 'archived'
+      : mapWeekStatus(week, { rejectionSuperseded });
     const status = archived
       ? 'archived'
       : isSequentiallyLocked(weeks, index, ownStatus)

@@ -12,9 +12,14 @@ import {
   resolveLatestStudentSubmission,
   resolveWeekFeedback,
 } from '@/services/internship-enrollment/real/mappers/week-feedback';
-import { listRealCapacityCourses } from '@/services/organizational-capacities/real/real-organizational-capacities';
+import {
+  listRealCapacityCourses,
+  listRealCapacityTerms,
+} from '@/services/organizational-capacities/real/real-organizational-capacities';
+import { nestStructureForCapacityKind } from '@/services/organizational-capacities/real/real-organizational-capacities-mappers';
 import { getRealAcademicSettings } from '@/services/syllabus-config/real/real-syllabus-reads';
 import {
+  isAdvisorRejectionSuperseded,
   mapWeekStatus,
   isWeekArchived,
   studentWeekId,
@@ -28,6 +33,7 @@ import type {
   DailyApprovalAttachment,
   DailyApprovalCourseFilter,
   DailyApprovalProgressiveGrade,
+  DailyApprovalTermOption,
   DailyApprovalTrainee,
   DailyApprovalTraineeStatus,
   DailyApprovalWeek,
@@ -44,6 +50,33 @@ import type {
   NestStudentWeek,
 } from '@/types/nest-student-enrollments';
 import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
+
+/**
+ * فهرست نیم‌سال‌ها برای سلکت‌باکس استاد/معلم/مدیر مدرسه — همان منطق صفحهٔ گزارش‌نویسی
+ * دانشجو: نیم‌سالِ باز از `GET /student-enrollments/open-course-selection` گرفته می‌شود و
+ * هر نیم‌سالِ دیگر «پایان‌یافته» (آرشیو) حساب می‌شود (ببین `isActiveInOpenTerm` در
+ * `real-enrollment-reads.ts`). اگر درخواست خطا بدهد یا ساختار نیم‌سالِ باز با نوع این
+ * ماژول (کارورزی/کارآموزی) نخواند، وضعیت نامعلوم است و `ended` ست نمی‌شود.
+ */
+export async function listRealDailyApprovalTerms(
+  kind: ListDailyApprovalsInput['kind']
+): Promise<DailyApprovalTermOption[]> {
+  const [terms, open] = await Promise.all([
+    listRealCapacityTerms(kind),
+    studentEnrollmentsApi.getOpenCourseSelection().catch(() => undefined),
+  ]);
+  if (open === undefined) return terms;
+
+  if (open) {
+    const expected = nestStructureForCapacityKind(kind);
+    const structure = String(open.structure);
+    const sameKind =
+      structure === expected || (expected === 'podmani' && structure === 'modular');
+    if (!sameKind) return terms;
+  }
+
+  return terms.map((term) => ({ ...term, ended: !open || term.id !== open.id }));
+}
 
 function extractSchoolName(
   schoolId: NestStudentEnrollment['schoolId']
@@ -135,12 +168,16 @@ function mapRow(
  * `DailyApprovalWeek` می‌مانند تا مودال ارزیابی معلم راهنما/مدیر مدرسه بتواند
  * قفل‌بودن فرم خودش را تشخیص دهد (ببین `useDailyApprovalWeekGradingModal`).
  */
-function mapDailyApprovalWeek(week: NestStudentWeek, index: number): DailyApprovalWeek {
+function mapDailyApprovalWeek(
+  week: NestStudentWeek,
+  index: number,
+  rejectionSuperseded = false
+): DailyApprovalWeek {
   const completed = week.status === 'completed';
   return {
     id: studentWeekId(week),
     weekNumber: index + 1,
-    status: mapWeekStatus(week),
+    status: mapWeekStatus(week, { rejectionSuperseded }),
     score: completed && typeof week.score === 'number' ? week.score : null,
     weightedScore: typeof week.weightedScore === 'number' ? week.weightedScore : null,
     text: '',
@@ -176,13 +213,48 @@ async function loadRealEnrollmentConversations(
   }
 }
 
+/**
+ * هفته‌هایی که بک‌اند هنوز mentorStatus را send نگه داشته ولی دانشجو بعد از
+ * بازخورد رد استاد دوباره ارسال کرده. فقط برای هفته‌های نیازمند ویرایش گفتگو
+ * خوانده می‌شود (نه همهٔ هفته‌ها) تا هزینهٔ درخواست اضافه محدود بماند.
+ */
+async function findSupersededRejectionWeekIds(
+  enrollmentId: string,
+  weeks: readonly NestStudentWeek[]
+): Promise<Set<string>> {
+  const candidates = weeks.filter(
+    (week) =>
+      week.status !== 'completed' &&
+      week.mentorStatus === 'send' &&
+      !isWeekArchived(week)
+  );
+  const ids = await Promise.all(
+    candidates.map(async (week) => {
+      const id = studentWeekId(week);
+      const messages = await loadWeekConversationMessages(enrollmentId, id, weeks);
+      const feedback = resolveWeekFeedback(messages, {});
+      const latestSubmission = resolveLatestStudentSubmission(messages, {});
+      return isAdvisorRejectionSuperseded(feedback?.advisorAt, [
+        week.submittedAt,
+        latestSubmission?.createdAt,
+      ])
+        ? id
+        : null;
+    })
+  );
+  return new Set(ids.filter((id): id is string => id !== null));
+}
+
 async function loadRealDailyApprovalWeeks(
   enrollmentId: string
 ): Promise<DailyApprovalWeek[]> {
   if (!enrollmentId) return [];
   try {
     const weeks = await studentEnrollmentsApi.listWeeks(enrollmentId);
-    return weeks.map((week, index) => mapDailyApprovalWeek(week, index));
+    const superseded = await findSupersededRejectionWeekIds(enrollmentId, weeks);
+    return weeks.map((week, index) =>
+      mapDailyApprovalWeek(week, index, superseded.has(studentWeekId(week)))
+    );
   } catch {
     return [];
   }

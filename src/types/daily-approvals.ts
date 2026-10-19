@@ -50,6 +50,13 @@ export type DailyApprovalAttachment = InternshipWeeklyReportFile & {
   url?: string;
 };
 
+/** گزینهٔ سلکت‌باکس نیم‌سال؛ `ended` فقط وقتی معلوم باشد (از API نیم‌سال باز) پر می‌شود. */
+export type DailyApprovalTermOption = {
+  id: string;
+  title: string;
+  ended?: boolean;
+};
+
 export type DailyApprovalWeek = {
   id: string;
   weekNumber: number;

@@ -1,6 +1,6 @@
 import { isMockApiMode, isRealApiMode } from '@/lib/api-mode';
 import { delayMockAdminListPage } from '@/lib/mock-admin-list-delay';
-import { listRealCapacityCourses, listRealCapacityTerms } from '@/services/organizational-capacities/real/real-organizational-capacities';
+import { listRealCapacityCourses } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import {
   toDailyApprovalRealCatalogCourses,
   toDailyApprovalWeekOptions,
@@ -31,6 +31,7 @@ import {
 } from '@/services/daily-approvals/real/real-daily-approvals-mutations';
 import {
   getRealDailyApprovalsMentorCapacity,
+  listRealDailyApprovalTerms,
   listRealDailyApprovals,
   loadRealDailyApprovalWeekDetail,
   readRealWeekCanWatchOthers,
@@ -62,6 +63,7 @@ import type {
   DailyApprovalCourseKind,
   DailyApprovalTrainee,
   DailyApprovalTraineeStatus,
+  DailyApprovalTermOption,
   DailyApprovalWeekDetail,
   DailyApprovalWeekOption,
   DropDailyApprovalTraineeInput,
@@ -150,9 +152,9 @@ export const DailyApprovalsService = {
   /** کارورزی → `structure=semester`؛ کارآموزی → `podmani` — همان کلید ظرفیت. */
   async listTerms(
     kind: DailyApprovalCourseKind
-  ): Promise<Array<{ id: string; title: string }>> {
+  ): Promise<DailyApprovalTermOption[]> {
     if (!isMockApiMode()) {
-      return listRealCapacityTerms(kind);
+      return listRealDailyApprovalTerms(kind);
     }
     requireDailyApprovalsReview();
     return listTermsForDailyApprovalKind(kind);
