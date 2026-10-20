@@ -50,8 +50,12 @@ export type DailyApprovalAttachment = InternshipWeeklyReportFile & {
   url?: string;
 };
 
-/** مقصد ارجاع گزارش از طرف استاد راهنما. */
-export type DailyApprovalForwardTarget = 'mentor' | 'principal';
+/** گزینهٔ سلکت‌باکس نیم‌سال؛ `ended` فقط وقتی معلوم باشد (از API نیم‌سال باز) پر می‌شود. */
+export type DailyApprovalTermOption = {
+  id: string;
+  title: string;
+  ended?: boolean;
+};
 
 export type DailyApprovalWeek = {
   id: string;
@@ -80,15 +84,16 @@ export type DailyApprovalWeek = {
   /** تأیید مدیر مدرسه بر حضور کارورز و زمان آن (ISO). */
   studentPresenceApproved?: boolean;
   studentPresentAt?: string | null;
-  /** استاد راهنما اجازه داده این کارورز گزارش‌های هم‌کلاسی‌ها را ببیند. */
+  /**
+   * کلید `canWatchOthers` (پیش‌فرض false): متن و نمرهٔ گزارش همان لحظهٔ ارسال برای استاد راهنما،
+   * معلم راهنما و مدیر مدرسه می‌رود، اما «فایل‌های پیوست» فقط دست استاد راهنماست تا وقتی
+   * استاد این کلید را true کند — بعد برای معلم راهنما و مدیر مدرسه هم باز می‌شود.
+   */
   canWatchOthers?: boolean;
+  /** فایل‌های پیوست این هفته برای نقش جاری پنهان شده (کلید `canWatchOthers` خاموش است). */
+  filesHidden?: boolean;
   /** هفته در سرفصل بایگانی شده (`weekId.status === false`). */
   isArchived?: boolean;
-  /**
-   * مقصدهایی که استاد گزارش را برایشان فرستاده؛ معلم/مدیر مدرسه فقط گزارش
-   * ارجاع‌شده به خودشان را می‌بینند. فقط mock تا آمدن endpoint ارجاع در Nest.
-   */
-  forwardedTo?: DailyApprovalForwardTarget[];
 };
 
 export type DailyApprovalProgressiveGrade = {
@@ -122,6 +127,8 @@ export type DailyApprovalTrainee = {
 export type DailyApprovalWeekDetail = {
   text: string;
   files: DailyApprovalAttachment[];
+  /** فایل‌های پیوست برای نقش جاری پنهان شده (`canWatchOthers` خاموش). */
+  filesHidden?: boolean;
   submittedAt?: string | null;
   feedback: InternshipWeeklyReportFeedback;
 };
@@ -153,12 +160,6 @@ export type UpdateDailyApprovalWeekInput = {
   advisorFeedback: string;
   /** همراه نمرهٔ نهایی ثبت می‌شود: استاد در این جلسه به مدرسه رفته است. */
   schoolVisited?: boolean;
-};
-
-export type ForwardDailyApprovalWeekInput = {
-  traineeId: string;
-  weekId: string;
-  target: DailyApprovalForwardTarget;
 };
 
 /** برای معلم راهنما امتیاز الزامی است؛ بازخورد متنی اختیاری. */

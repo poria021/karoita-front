@@ -31,6 +31,25 @@ export function effectiveWeeklySessionState(
   return week.status;
 }
 
+// وقتی ترم تمام شده (completed)، effectiveWeeklySessionState همهٔ هفته‌ها را
+// graded برمی‌گرداند؛ اما هفته‌هایی که فراگیر هرگز گزارششان را نفرستاده نباید
+// سبز نشان داده شوند. این تابع همان هفته‌ها را تشخیص می‌دهد.
+const NEVER_SUBMITTED_STATES = new Set<InternshipWeeklySessionState>([
+  'draft',
+  'extended',
+  'locked_future',
+  'overdue',
+]);
+
+export function isWeekNotSubmittedAfterTermEnd(
+  week: InternshipWeeklySession,
+  enrollmentStatus: InternshipEnrollmentRecordStatus
+): boolean {
+  if (enrollmentStatus !== 'completed') return false;
+  if (week.isArchived || week.status === 'archived') return false;
+  return NEVER_SUBMITTED_STATES.has(week.status);
+}
+
 export type WeeklyReportLockContext = {
   week: InternshipWeeklySession;
   weeks: InternshipWeeklySession[];

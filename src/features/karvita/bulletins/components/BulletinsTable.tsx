@@ -3,7 +3,6 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
-import { KvTypography } from '@/components/shared/KvTypography';
 import { getAdminTableBodyPhase } from '@/components/shared/table/adminTableBodyPhase';
 import {
   KvTable,
@@ -64,7 +63,7 @@ export function BulletinsTable({
           <KvTableRow>
             <KvTableRowIndexHead />
             {isAd ? <KvTableHead align="center">عکس</KvTableHead> : null}
-            <KvTableHead>نام</KvTableHead>
+            <KvTableHead>عنوان</KvTableHead>
             <KvTableHead align="center">مخاطب</KvTableHead>
             <KvTableHead align="center">تاریخ</KvTableHead>
             <KvTableHead align="center">عملیات</KvTableHead>
@@ -117,24 +116,12 @@ export function BulletinsTable({
                   <KvTableCell emphasis>
                     <div
                       className={cn(
-                        'flex min-w-0 flex-col items-start gap-1',
+                        'flex min-w-0 items-center gap-kv-pair',
                         dimmed && 'opacity-60'
                       )}
                     >
-                      <div className="flex min-w-0 items-center gap-kv-pair">
-                        <span className="line-clamp-1">{row.title}</span>
-                        {dimmed ? <Badge variant="default">غیرفعال</Badge> : null}
-                      </div>
-                      {row.body ? (
-                        <KvTypography
-                          variant="caption"
-                          tone="muted"
-                          as="span"
-                          className="line-clamp-1 max-w-[16rem] font-normal"
-                        >
-                          {row.body}
-                        </KvTypography>
-                      ) : null}
+                      <span className="line-clamp-1">{row.title}</span>
+                      {dimmed ? <Badge variant="default">غیرفعال</Badge> : null}
                     </div>
                   </KvTableCell>
                   <KvTableCell align="center">

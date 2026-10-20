@@ -3,10 +3,6 @@ import { conversationsApi } from '@/services/conversations/real/conversations.ap
 import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
-import {
-  formatPrincipalAttendanceSummary,
-  formatPrincipalSupervisorVisitSummary,
-} from '@/features/karvita/daily-approvals/lib/principalAttendanceDays';
 import { requireNestTransport } from '@/services/require-nest-transport';
 import type {
   DailyApprovalCompetencyRating,
@@ -77,8 +73,17 @@ export async function scoreRealDailyApprovalWeek(
     return;
   }
 
+  // حضور استاد در مدرسه به نمره وابسته نیست — با زدن دکمهٔ ثبت همین‌جا اعمال می‌شود
+  // تا مدیر مدرسه بتواند تأییدش کند (idempotent؛ اگر بعدش پیام رد شد، دوباره امتحان می‌شود).
+  const visited = input.schoolVisited === true;
+  if (visited) {
+    await studentWeeksApi.setMentorPresent(input.weekId, true);
+  }
+
   const text = input.advisorFeedback.trim();
   if (!text) {
+    // فقط ثبت حضور: نه نمره، نه بازخورد — پیامی هم به گفتگو نمی‌رود.
+    if (visited) return;
     throw new Error('برای رد گزارش بدون نمره، ثبت بازخورد متنی الزامی است.');
   }
   const conversationId = await findWeekConversationId(
@@ -164,17 +169,10 @@ export async function submitPrincipalFeedbackReal(
     );
   }
 
-  // همهٔ روزها (نه فقط اولی) به‌صورت متن هم در پیام می‌ماند.
-  const attendanceSummary = formatPrincipalAttendanceSummary(attendance);
-  const supervisorVisitSummary =
-    formatPrincipalSupervisorVisitSummary(supervisorVisits);
-  const text = [
-    input.principalFeedback.trim(),
-    attendanceSummary,
-    supervisorVisitSummary,
-  ]
-    .filter(Boolean)
-    .join('\n\n');
+  // فقط متن بازخورد خودِ مدیر در پیام می‌رود؛ روزهای حضور/بازدید جداگانه با
+  // approve-student-present / approve-mentor-present ثبت می‌شوند و نباید به
+  // متن گزارش اضافه شوند (در مودال استاد راهنما دیده می‌شد).
+  const text = input.principalFeedback.trim();
   const conversationId = await findWeekConversationId(
     input.traineeId,
     input.weekId
@@ -183,6 +181,27 @@ export async function submitPrincipalFeedbackReal(
     ...(text ? { text } : {}),
     rating: ratingToNumber(input.principalRating),
   });
+}
+
+/**
+ * فقط تأیید روزهای بازدید استاد راهنما از مدرسه توسط مدیر مدرسه
+ * (PATCH `/student-weeks/{id}/approve-mentor-present`). بعد از نمرهٔ نهایی
+ * استاد، ارزیابی یک‌بارمصرف مدیر قفل است و پیام/امتیاز جدید نمی‌رود؛ ولی تأیید
+ * بازدید استاد مستقل از آن است و باید همچنان قابل ثبت باشد.
+ */
+export async function approveRealPrincipalSupervisorVisits(input: {
+  weekId: string;
+  supervisorVisits: string[];
+}): Promise<void> {
+  requireNestTransport('DailyApprovalsService.updatePrincipalSupervisorVisits');
+  if (input.supervisorVisits.length === 0) {
+    throw new Error('حداقل یک روز بازدید استاد راهنما را انتخاب کنید.');
+  }
+  await studentWeeksApi.approveMentorPresent(
+    input.weekId,
+    true,
+    earliestDayIso(input.supervisorVisits)
+  );
 }
 
 /**

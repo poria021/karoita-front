@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   listRealDailyApprovals,
   loadRealDailyApprovalWeekDetail,
+  readRealWeekCanWatchOthers,
   refreshRealDailyApprovalTraineeDerived,
 } from './real-daily-approvals-reads';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
@@ -323,5 +324,29 @@ describe('loadRealDailyApprovalWeekDetail', () => {
       principalAt: '2026-01-01T10:00:00.000Z',
       principalRating: '5',
     });
+  });
+});
+
+describe('readRealWeekCanWatchOthers', () => {
+  beforeEach(() => {
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockReset();
+  });
+
+  it('reads the fresh flag of the requested week only', async () => {
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([
+      { id: 'w1', canWatchOthers: true },
+      { id: 'w2', canWatchOthers: false },
+    ]);
+
+    await expect(readRealWeekCanWatchOthers('e1', 'w1')).resolves.toBe(true);
+    await expect(readRealWeekCanWatchOthers('e1', 'w2')).resolves.toBe(false);
+  });
+
+  it('fails closed when the week is missing or the request fails', async () => {
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValueOnce([{ id: 'w1', canWatchOthers: true }]);
+    await expect(readRealWeekCanWatchOthers('e1', 'unknown')).resolves.toBe(false);
+
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockRejectedValueOnce(new Error('network down'));
+    await expect(readRealWeekCanWatchOthers('e1', 'w1')).resolves.toBe(false);
   });
 });

@@ -7,7 +7,7 @@ import {
 } from '@/services/organizational-capacities/mock/mock-organizational-capacities-store';
 import {
   getRealOrganizationalCapacities,
-  listRealCapacityTerms,
+  loadRealCapacityCatalog,
   submitRealOrganizationalCapacities,
 } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import {
@@ -18,6 +18,7 @@ import { useUserStore } from '@/store/useUserStore';
 import type {
   GetOrganizationalCapacitiesInput,
   OrganizationalCapacitiesSnapshot,
+  OrganizationalCapacityCatalog,
   OrganizationalCapacityKind,
   SubmitOrganizationalCapacitiesInput,
   UpdateOrganizationalCapacityCourseInput,
@@ -39,17 +40,19 @@ function requireProfessorId(): string {
 
 /**
  * ظرفیت جذب استاد راهنما.
- * real: `GET semesters_all` برای درس‌ها، سپس `GET/POST/PUT professor-capacities`.
+ * real: لود = `GET semesters_all` + `GET settings` (یک‌بار، در cache) + `GET professor-capacities`؛
+ * ذخیره = `POST/PUT professor-capacities` + یک `GET` بازخوانی.
  */
 export const OrganizationalCapacitiesService = {
-  async listTerms(
+  /** ترم‌ها (+ در real: درس‌ها و سقف عمومی). یک‌بار می‌خوانی و cache می‌کنی. */
+  async loadCatalog(
     kind: OrganizationalCapacityKind
-  ): Promise<Array<{ id: string; title: string }>> {
+  ): Promise<OrganizationalCapacityCatalog> {
     if (!isMockApiMode()) {
-      return listRealCapacityTerms(kind);
+      return loadRealCapacityCatalog(kind);
     }
     requireProfessorId();
-    return listTermsForCapacityKind(kind);
+    return { terms: listTermsForCapacityKind(kind) };
   },
 
   async getSnapshot(

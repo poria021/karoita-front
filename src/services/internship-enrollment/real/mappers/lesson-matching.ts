@@ -191,6 +191,79 @@ export function hasAnyEnrolmentForLevel(
   });
 }
 
+/** یک leaf کاتالوگ: سطح عددی مسیر (`/internships/:level`) + عنوان درس. */
+export type EnrollmentLeafRef = {
+  level: InternshipEnrollmentLevel;
+  title: string;
+};
+
+type TitledLesson = { title?: string; name?: string; title_fa?: string };
+
+/** عنوان برای مقایسه: ارقام انگلیسی و فاصله‌های یکنواخت. */
+function normalizeLessonTitle(title: string): string {
+  return persianToEnglishDigits(title).replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * lesson مربوط به یک leaf: اول با سطح (کارورزی/کارآموزی ۱…۹)، و اگر نشد با عنوانِ
+ * یکسان. درس‌های تازهٔ کاتالوگ (مثل «پروژه») رقم سطح ندارند و فقط با عنوان قابل
+ * تطبیق‌اند — تا وقتی Nest شناسهٔ کاتالوگ (`courseId`) روی lesson ندهد همین تنها راه است.
+ */
+export function findLessonForLeaf<T extends TitledLesson>(
+  lessons: readonly T[],
+  kind: InternshipCourseKind,
+  leaf: EnrollmentLeafRef
+): T | null {
+  const byLevel = lessons.find((lesson) =>
+    lessonMatchesLevel(lesson, kind, leaf.level)
+  );
+  if (byLevel) return byLevel;
+  const wanted = normalizeLessonTitle(leaf.title);
+  if (!wanted) return null;
+  return (
+    lessons.find(
+      (lesson) => normalizeLessonTitle(nestLessonTitle(lesson)) === wanted
+    ) ?? null
+  );
+}
+
+/** سطح‌های leaf هایی که lessonشان همین الان در ترم باز ارائه شده (`status: true`). */
+export function openLevelsFromLessons<
+  T extends TitledLesson & { status?: unknown },
+>(
+  lessons: readonly T[],
+  kind: InternshipCourseKind,
+  leaves: readonly EnrollmentLeafRef[]
+): Set<number> {
+  const levels = new Set<number>();
+  for (const leaf of leaves) {
+    if (findLessonForLeaf(lessons, kind, leaf)?.status === true) {
+      levels.add(leaf.level);
+    }
+  }
+  return levels;
+}
+
+/**
+ * سطح‌های leaf هایی که کاربر قبلاً — در هر نیم‌سال و با هر نتیجه‌ای (قبول، رد، حتی
+ * لغوشده) — در آن‌ها ثبت‌نام داشته. مثل `hasAnyEnrolmentForLevel` ولی برای leaf های
+ * کاتالوگ (تطبیق با سطح یا عنوان).
+ */
+export function enrolledLevelsFromSemesters(
+  semesters: readonly NestSemesterEnrolmentsByTerm[],
+  kind: InternshipCourseKind,
+  leaves: readonly EnrollmentLeafRef[]
+): Set<number> {
+  const levels = new Set<number>();
+  for (const leaf of leaves) {
+    const taken = semesters.some((semester) =>
+      Boolean(findLessonForLeaf(semester.lessons ?? [], kind, leaf)?.enrolment)
+    );
+    if (taken) levels.add(leaf.level);
+  }
+  return levels;
+}
+
 /**
  * درسِ هم‌نوع دیگری (نه همین level) که دانشجو همین نیم‌سال ثبت‌نام
  * غیرکنسل‌شده دارد — برای S6 (بن‌بست اخذ چند level هم‌زمان تو یک ترم).

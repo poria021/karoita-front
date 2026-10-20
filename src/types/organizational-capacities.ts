@@ -1,3 +1,5 @@
+import type { NestSemesterWithLessons } from '@/types/nest-admin';
+
 export type OrganizationalCapacityKind = 'internship' | 'apprenticeship';
 
 export type OrganizationalCapacitySubmissionStatus =
@@ -50,9 +52,21 @@ export type OrganizationalCapacitiesSnapshot = {
   terms: Array<{ id: string; title: string }>;
 };
 
+/**
+ * کاتالوگ ترم‌ها — یک‌بار لود و در react-query cache می‌شود.
+ * real: `semesters_all` + `settings`؛ mock فقط `terms`.
+ */
+export type OrganizationalCapacityCatalog = {
+  terms: Array<{ id: string; title: string }>;
+  bundles?: NestSemesterWithLessons[];
+  maxCapacity?: number;
+};
+
 export type GetOrganizationalCapacitiesInput = {
   kind: OrganizationalCapacityKind;
   termId: string;
+  /** اگر داده شود، فقط GET ظرفیت‌ها زده می‌شود (نه semesters_all/settings). */
+  catalog?: OrganizationalCapacityCatalog;
 };
 
 export type UpdateOrganizationalCapacityCourseInput = {
@@ -70,5 +84,11 @@ export type SubmitOrganizationalCapacitiesInput = {
     courseId: string;
     total: number | null;
     selectedDays: OrganizationalCapacityWeekday[];
+    /** از snapshot کلاینت؛ اگر نباشد، real یک GET برای تشخیص POST/PUT می‌زند. */
+    existsOnServer?: boolean;
   }>;
+  /** از snapshot کلاینت. */
+  maxCapacity?: number;
+  /** کاتالوگ cache‌شده؛ اگر نباشد، real خودش یک‌بار می‌خواند. */
+  catalog?: OrganizationalCapacityCatalog;
 };

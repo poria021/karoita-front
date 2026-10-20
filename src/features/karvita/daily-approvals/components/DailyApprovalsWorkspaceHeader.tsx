@@ -23,7 +23,7 @@ type DailyApprovalsWorkspaceHeaderProps = {
   termId: string;
   /** درس انتخاب‌شده‌ی ماژول (ساب‌تایتل سایدبار)؛ خالی = عنوان کلی. */
   courseTitle?: string | null;
-  terms: Array<{ id: string; title: string }>;
+  terms: Array<{ id: string; title: string; ended?: boolean }>;
   onTermChange: (termId: string) => void;
   showBulkExtend?: boolean;
   onBulkExtendClick?: () => void;
@@ -70,6 +70,7 @@ export function DailyApprovalsWorkspaceHeader({
                     {terms.map((term) => (
                       <KvSelectItem key={term.id} value={term.id}>
                         {formatTermOptionLabel(term.title)}
+                        {term.ended ? ' (پایان‌یافته)' : ''}
                       </KvSelectItem>
                     ))}
                   </KvSelectContent>

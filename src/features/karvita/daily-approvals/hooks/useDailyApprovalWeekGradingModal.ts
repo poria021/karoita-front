@@ -36,6 +36,10 @@ type UseDailyApprovalWeekGradingModalInput = {
     principalAttendance: string[];
     principalSupervisorVisits: string[];
   }) => Promise<void>;
+  /** فقط تأیید روزهای بازدید استاد — وقتی ارزیابی اصلی مدیر قفل شده است. */
+  onSavePrincipalVisits: (input: {
+    principalSupervisorVisits: string[];
+  }) => Promise<void>;
 };
 
 function modalTitle(
@@ -76,6 +80,7 @@ export function useDailyApprovalWeekGradingModal({
   onSaveSupervisor,
   onSaveMentor,
   onSavePrincipal,
+  onSavePrincipalVisits,
 }: UseDailyApprovalWeekGradingModalInput) {
   const {
     value: draftValue,
@@ -108,7 +113,7 @@ export function useDailyApprovalWeekGradingModal({
     () => getInitialGradingForm(week).scoreInput
   );
   const [schoolVisited, setSchoolVisited] = useState(
-    () => week?.schoolVisited === true
+    () => week?.schoolVisited === true || week?.mentorPresent === true
   );
   const [mentorRating, setMentorRating] = useState<DailyApprovalCompetencyRating | null>(
     () => getInitialGradingForm(week).mentorRating
@@ -137,7 +142,7 @@ export function useDailyApprovalWeekGradingModal({
     const restored = hasGradingDraft ? draftValue : null;
     setAdvisorFeedback(restored?.advisorFeedback ?? initial.advisorFeedback);
     setScoreInput(restored?.scoreInput ?? initial.scoreInput);
-    setSchoolVisited(week?.schoolVisited === true);
+    setSchoolVisited(week?.schoolVisited === true || week?.mentorPresent === true);
     setMentorRating(initial.mentorRating);
     setMentorFeedback(restored?.mentorFeedback ?? initial.mentorFeedback);
     setPrincipalRating(initial.principalRating);
@@ -185,8 +190,8 @@ export function useDailyApprovalWeekGradingModal({
     if (role === 'supervisor_professor') {
       const trimmed = scoreInput.trim();
       const feedback = advisorFeedback.trim();
-      if (!trimmed && !feedback) {
-        toast.error('لطفاً نمره یا توضیحات بازخورد را ثبت نمایید.');
+      if (!trimmed && !feedback && !schoolVisited) {
+        toast.error('لطفاً نمره، توضیحات بازخورد یا تیک حضور در مدرسه را ثبت نمایید.');
         return;
       }
       let score: number | null = null;
@@ -201,8 +206,8 @@ export function useDailyApprovalWeekGradingModal({
       await onSaveSupervisor({
         score,
         advisorFeedback,
-        // بازدید فقط همراه نمرهٔ نهایی (تایید) معنا دارد، نه رد اصلاحی.
-        schoolVisited: score !== null && schoolVisited,
+        // حضور در مدرسه به نمره و بازخورد وابسته نیست و با زدن دکمهٔ ثبت اعمال می‌شود.
+        schoolVisited,
       });
       clearGradingDraft();
       return;
@@ -219,6 +224,17 @@ export function useDailyApprovalWeekGradingModal({
     }
 
     if (role === 'school_principal') {
+      // ارزیابی مدیر قبلاً ثبت/قفل شده (مثلاً بعد از نمرهٔ نهایی استاد): فقط
+      // تأیید روزهای بازدید استاد مجاز است، نه پیام/امتیاز دوباره.
+      if (principalAlreadySubmitted) {
+        if (principalSupervisorVisits.length === 0) {
+          toast.error('لطفاً حداقل یک روز بازدید استاد راهنما را انتخاب کنید.');
+          return;
+        }
+        await onSavePrincipalVisits({ principalSupervisorVisits });
+        clearGradingDraft();
+        return;
+      }
       if (principalRating === null) {
         toast.error('ثبت سطح شایستگی کارورز توسط مدیر مدرسه الزامی است.');
         return;

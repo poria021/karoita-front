@@ -2,13 +2,11 @@
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
-import type { UserRole } from '@/types/auth';
 import type {
   DailyApprovalTrainee,
   DailyApprovalWeek,
 } from '@/types/daily-approvals';
 import { faIcons } from '@/utils/iconMap';
-import { FORWARD_TARGET_LABEL } from '@/services/daily-approvals/forward-visibility';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { getWeekVisual } from '../constants';
@@ -17,7 +15,6 @@ type DailyApprovalWeekGridProps = {
   trainee: DailyApprovalTrainee;
   selectedWeekId?: string | null;
   compact?: boolean;
-  role?: UserRole | null;
   onSelectWeek?: (week: DailyApprovalWeek) => void;
 };
 
@@ -31,7 +28,6 @@ export function DailyApprovalWeekGrid({
   trainee,
   selectedWeekId = null,
   compact = false,
-  role,
   onSelectWeek,
 }: DailyApprovalWeekGridProps) {
   if (trainee.weeks.length === 0) {
@@ -55,24 +51,14 @@ export function DailyApprovalWeekGrid({
       }
     >
       {trainee.weeks.map((week) => {
-        const blockedForObserver =
-          (role === 'mentor_teacher' || role === 'school_principal') &&
-          week.canWatchOthers === false;
-        const visual = getWeekVisual(blockedForObserver ? 'draft' : week.status);
+        const visual = getWeekVisual(week.status);
         const score =
           week.status === 'graded' && week.score !== null ? week.score : null;
         const label =
-          blockedForObserver
-            ? 'قفل شده'
-            : week.status === 'draft'
-              ? draftCardLabel(week)
-              : visual.label;
-        // تا وقتی دانشجو گزارشی نفرستاده (status === 'draft') یا اجازهٔ مشاهده
-        // برای معلم/مدیر مدرسه غیرفعال است، کارت باید باز نشود.
+          week.status === 'draft' ? draftCardLabel(week) : visual.label;
+        // تا وقتی دانشجو گزارشی نفرستاده (status === 'draft') کارت باز نمی‌شود.
         const locked =
-          week.status === 'locked_future' ||
-          week.status === 'draft' ||
-          blockedForObserver;
+          week.status === 'locked_future' || week.status === 'draft';
         const selected = selectedWeekId === week.id;
 
         return (
@@ -107,19 +93,7 @@ export function DailyApprovalWeekGrid({
                   {toPersianDigits(score)}/۱۰۰
                 </span>
               ) : null}
-              {week.forwardedTo && week.forwardedTo.length > 0 ? (
-                <span
-                  className="flex w-full items-center"
-                  title={`ارجاع‌شده به ${week.forwardedTo
-                    .map((target) => FORWARD_TARGET_LABEL[target])
-                    .join(' و ')}`}
-                  role="img"
-                  aria-label="ارجاع‌شده"
-                >
-                  <FaIcon icon={faIcons.paperPlane} size="xs" />
-                </span>
-              ) : null}
-              {score !== null && week.schoolVisited ? (
+              {week.schoolVisited || week.mentorPresent ? (
                 <span
                   className="flex w-full items-center"
                   title="استاد راهنما در این جلسه به مدرسه رفته است"

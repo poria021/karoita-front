@@ -10,6 +10,8 @@ import { faIcons } from '@/utils/iconMap';
 type DailyApprovalCanWatchOthersToggleProps = {
   checked: boolean;
   disabled?: boolean;
+  title?: string;
+  description?: string;
   onChange: (value: boolean) => Promise<void>;
 };
 
@@ -20,6 +22,8 @@ type DailyApprovalCanWatchOthersToggleProps = {
 export function DailyApprovalCanWatchOthersToggle({
   checked,
   disabled = false,
+  title = 'مشاهدهٔ گزارش هم‌کلاسی‌ها',
+  description = 'با فعال‌سازی، این کارورز می‌تواند گزارش‌های این هفتهٔ سایر کارورزان کلاس را برای الگوگیری ببیند. تغییر فوراً ذخیره می‌شود.',
   onChange,
 }: DailyApprovalCanWatchOthersToggleProps) {
   const [pending, setPending] = useState(false);
@@ -32,16 +36,15 @@ export function DailyApprovalCanWatchOthersToggle({
         </span>
         <div className="min-w-0 space-y-0.5">
           <KvTypography variant="label" as="p">
-            مشاهدهٔ گزارش هم‌کلاسی‌ها
+            {title}
           </KvTypography>
           <KvTypography variant="caption" tone="muted" as="p">
-            با فعال‌سازی، این کارورز می‌تواند گزارش‌های این هفتهٔ سایر کارورزان
-            کلاس را برای الگوگیری ببیند. تغییر فوراً ذخیره می‌شود.
+            {description}
           </KvTypography>
         </div>
       </div>
       <KvSwitch
-        aria-label="اجازهٔ مشاهدهٔ گزارش هم‌کلاسی‌ها"
+        aria-label={title}
         checked={checked}
         disabled={disabled || pending}
         onCheckedChange={(next) => {

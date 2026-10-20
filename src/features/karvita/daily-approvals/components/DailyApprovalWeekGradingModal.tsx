@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 
-import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
@@ -18,7 +17,6 @@ import {
   KvDialogTitle,
 } from '@/components/shared/KvDialog';
 import type {
-  DailyApprovalForwardTarget,
   DailyApprovalCompetencyRating,
   DailyApprovalTrainee,
   DailyApprovalWeek,
@@ -30,10 +28,13 @@ import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
 
 import { competencyRatingLabel } from '../constants';
 import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekGradingModal';
-import { DailyApprovalForwardPanel } from './DailyApprovalForwardPanel';
+import { DailyApprovalCanWatchOthersToggle } from './DailyApprovalCanWatchOthersToggle';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
 import { DailyApprovalPresenceStatus } from './DailyApprovalPresenceStatus';
-import { DailyApprovalPrincipalGradingFields } from './DailyApprovalPrincipalGradingFields';
+import {
+  DailyApprovalPrincipalGradingFields,
+  DailyApprovalPrincipalVisitFields,
+} from './DailyApprovalPrincipalGradingFields';
 import { DailyApprovalSupervisorGradingFields } from './DailyApprovalSupervisorGradingFields';
 import { DailyApprovalWeekReportReadonly } from './DailyApprovalWeekReportReadonly';
 
@@ -86,7 +87,6 @@ type DailyApprovalWeekGradingModalProps = {
   /** حد نصاب قبولی سیستم (۰–۱۰۰) از تنظیمات عمومی ترم‌ها. */
   passingScoreThreshold?: number;
   onClose: () => void;
-  onForward: (target: DailyApprovalForwardTarget) => void;
   onCanWatchOthersChange: (value: boolean) => Promise<void>;
   onSaveSupervisor: (input: {
     score: number | null;
@@ -103,6 +103,9 @@ type DailyApprovalWeekGradingModalProps = {
     principalAttendance: string[];
     principalSupervisorVisits: string[];
   }) => Promise<void>;
+  onSavePrincipalVisits: (input: {
+    principalSupervisorVisits: string[];
+  }) => Promise<void>;
 };
 
 export function DailyApprovalWeekGradingModal({
@@ -113,11 +116,11 @@ export function DailyApprovalWeekGradingModal({
   actionBusy,
   passingScoreThreshold,
   onClose,
-  onForward,
   onCanWatchOthersChange,
   onSaveSupervisor,
   onSaveMentor,
   onSavePrincipal,
+  onSavePrincipalVisits,
 }: DailyApprovalWeekGradingModalProps) {
   // مودال قبلاً با `if (!trainee || !week) return null` کاملاً unmount می‌شد؛
   // چون trainee/week در والد با بسته‌شدن مودال بلافاصله null می‌شوند، این باعث
@@ -143,6 +146,7 @@ export function DailyApprovalWeekGradingModal({
     onSaveSupervisor,
     onSaveMentor,
     onSavePrincipal,
+    onSavePrincipalVisits,
   });
 
   if (!effectiveTrainee || !effectiveWeek) {
@@ -166,24 +170,34 @@ export function DailyApprovalWeekGradingModal({
   const saveLabel =
     role === 'supervisor_professor'
       ? modal.scoreInput.trim() === ''
-        ? 'ثبت بازخورد اصلاحی'
+        ? modal.advisorFeedback.trim() === '' && modal.schoolVisited
+          ? 'ثبت حضور در مدرسه'
+          : 'ثبت بازخورد اصلاحی'
         : 'ثبت و تایید نهایی نمره'
       : role === 'mentor_teacher'
         ? 'ثبت نهایی ارزیابی مربی'
-        : 'ثبت نهایی ارزیابی مدیر';
+        : role === 'school_principal' && modal.principalAlreadySubmitted
+          ? 'ثبت بازدید استاد'
+          : 'ثبت نهایی ارزیابی مدیر';
 
   // هر سه مسیر به بک‌اند واقعی وصل‌اند: نمرهٔ استاد → `PATCH student-weeks/{id}/score`؛
   // رد بدون نمره (استاد) و بازخورد+امتیاز معلم/مدیر → `POST conversations/{id}/messages`
   // (ببین `scoreRealDailyApprovalWeek`/`submitMentorFeedbackReal`/`submitPrincipalFeedbackReal`).
   // معلم راهنما امتیاز الزامی دارد (بازخورد اختیاری)؛ مدیر مدرسه هردو اختیاری‌اند
   // (اعتبارسنجی «حداقل یکی» در خودِ `save()` با toast انجام می‌شود).
+  // مدیر مدرسه بعد از قفل‌شدن ارزیابی‌اش (مثلاً با نمرهٔ نهایی استاد) هنوز
+  // می‌تواند روزهای بازدید استاد را تأیید کند، پس دکمهٔ ثبتش مخفی نمی‌شود.
+  const principalVisitsOnly =
+    role === 'school_principal' && modal.principalAlreadySubmitted;
+
   const alreadySubmitted =
     (role === 'supervisor_professor' && modal.supervisorLocked) ||
-    (role === 'mentor_teacher' && modal.mentorAlreadySubmitted) ||
-    (role === 'school_principal' && modal.principalAlreadySubmitted);
+    (role === 'mentor_teacher' && modal.mentorAlreadySubmitted);
 
   const saveDisabled =
-    modal.disabled || (role === 'mentor_teacher' && modal.mentorRatingMissing);
+    modal.disabled ||
+    (role === 'mentor_teacher' && modal.mentorRatingMissing) ||
+    (principalVisitsOnly && modal.principalSupervisorVisits.length === 0);
 
   const saveButton = alreadySubmitted ? null : (
     <KvButton
@@ -232,7 +246,7 @@ export function DailyApprovalWeekGradingModal({
                 </KvTypography>
               ) : null}
             </div>
-            {effectiveWeek.status === 'graded' && effectiveWeek.schoolVisited ? (
+            {effectiveWeek.schoolVisited || effectiveWeek.mentorPresent ? (
               <span
                 className="inline-flex shrink-0 items-center gap-1 rounded-full bg-kv-success-soft px-2 py-0.5 text-xs font-bold text-kv-success-soft-fg"
                 title="استاد راهنما در این جلسه به مدرسه رفته و بازدید داشته است."
@@ -293,12 +307,12 @@ export function DailyApprovalWeekGradingModal({
                 />
               ) : null}
 
-              {role === 'supervisor_professor' && IS_MOCK_MODE ? (
-                <DailyApprovalForwardPanel
-                  week={effectiveWeek}
-                  readOnly={modal.supervisorLocked}
-                  busy={actionBusy}
-                  onForward={onForward}
+              {role === 'supervisor_professor' && modal.supervisorLocked ? (
+                <DailyApprovalCanWatchOthersToggle
+                  title="نمایش فایل‌های پیوست به معلم راهنما و مدیر مدرسه"
+                  description="متن گزارش برای هر سه نفر قابل مشاهده است؛ فایل‌های پیوست تا وقتی این گزینه فعال نباشد فقط برای شما باز می‌شود. تغییر فوراً ذخیره می‌شود."
+                  checked={effectiveWeek.canWatchOthers === true}
+                  onChange={onCanWatchOthersChange}
                 />
               ) : null}
 
@@ -324,6 +338,18 @@ export function DailyApprovalWeekGradingModal({
                   mentorFeedback={modal.mentorFeedback}
                   onMentorRatingChange={modal.setMentorRating}
                   onMentorFeedbackChange={modal.setMentorFeedback}
+                />
+              ) : null}
+
+              {principalVisitsOnly ? (
+                <DailyApprovalPrincipalVisitFields
+                  attendanceDays={modal.attendanceDays}
+                  supervisorVisitDates={modal.principalSupervisorVisits}
+                  onSupervisorVisitDatesChange={modal.setPrincipalSupervisorVisits}
+                  mentorDeclaredPresence={
+                    effectiveWeek.mentorPresent === true ||
+                    effectiveWeek.schoolVisited === true
+                  }
                 />
               ) : null}
 

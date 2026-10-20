@@ -7,6 +7,7 @@ import {
 } from '@/services/organizational-capacities/real/real-organizational-capacities';
 import { getRealWeeksForLesson } from '@/services/syllabus-config/real/real-syllabus-reads';
 import { studentWeeksApi } from '@/services/internship-enrollment/real/student-weeks.api';
+import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
 import { findWeekConversationId } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 
@@ -19,6 +20,12 @@ vi.mock('@/services/internship-enrollment/real/student-weeks.api', () => ({
 vi.mock('@/services/conversations/real/conversations.api', () => ({
   conversationsApi: {
     postMessage: vi.fn(async () => undefined),
+  },
+}));
+
+vi.mock('@/services/internship-enrollment/real/student-enrollments.api', () => ({
+  studentEnrollmentsApi: {
+    getOpenCourseSelection: vi.fn(async () => ({ id: 'sem-1', structure: 'semester' })),
   },
 }));
 
@@ -78,8 +85,23 @@ describe('DailyApprovalsService real fail-closed', () => {
     vi.stubEnv('NEXT_PUBLIC_API_MODE', 'real');
 
     await expect(DailyApprovalsService.listTerms('internship')).resolves.toEqual(
-      [{ id: 'sem-1', title: 'نیم‌سال اول' }]
+      [{ id: 'sem-1', title: 'نیم‌سال اول', ended: false }]
     );
+    // نیم‌سال باز یک ترم دیگر است → این ترم «پایان‌یافته» حساب می‌شود (مثل صفحهٔ دانشجو).
+    vi.mocked(studentEnrollmentsApi.getOpenCourseSelection).mockResolvedValueOnce({
+      id: 'sem-2',
+      structure: 'semester',
+    } as never);
+    await expect(DailyApprovalsService.listTerms('internship')).resolves.toEqual([
+      { id: 'sem-1', title: 'نیم‌سال اول', ended: true },
+    ]);
+    // اگر API خطا بدهد وضعیت نامعلوم است و ended ست نمی‌شود.
+    vi.mocked(studentEnrollmentsApi.getOpenCourseSelection).mockRejectedValueOnce(
+      new Error('403')
+    );
+    await expect(DailyApprovalsService.listTerms('internship')).resolves.toEqual([
+      { id: 'sem-1', title: 'نیم‌سال اول' },
+    ]);
     await expect(
       DailyApprovalsService.listCourses({
         kind: 'internship',

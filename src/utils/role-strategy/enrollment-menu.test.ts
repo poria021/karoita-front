@@ -1,4 +1,6 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
+import { createElement, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { useSidebarMenu } from '@/components/shared/shell/useSidebarMenu';
@@ -107,6 +109,64 @@ describe('withEnrollmentSubModules', () => {
 
     expect(project.children.every((child) => child.disabled === true)).toBe(true);
   });
+
+  function projectChildren(menu: SidebarMenuEntry[]) {
+    const project = menu.find((entry) => entry.title === 'انتخاب واحد پروژه');
+    if (!project || !isSidebarMenuGroup(project)) {
+      throw new Error('expected the project group');
+    }
+    return project.children;
+  }
+
+  it('disables a leaf that is not offered in the current term', () => {
+    const menu = withEnrollmentSubModules(STUDENT_MENU, [PROJECT], {
+      offeredLevels: new Set([101]),
+    });
+    expect(projectChildren(menu).map((c) => [c.title, c.disabled])).toEqual([
+      ['پروژه الف', false],
+      ['پروژه ب', true],
+    ]);
+  });
+
+  it('keeps a not-offered leaf enabled when the learner took it before', () => {
+    const menu = withEnrollmentSubModules(STUDENT_MENU, [PROJECT], {
+      offeredLevels: new Set<number>(),
+      enrolledLevels: new Set([102]),
+    });
+    expect(projectChildren(menu).map((c) => c.disabled)).toEqual([true, false]);
+  });
+
+  it('keeps an inactive course enabled only for the leaves taken before', () => {
+    const menu = withEnrollmentSubModules(
+      STUDENT_MENU,
+      [{ ...PROJECT, isActive: false }],
+      { enrolledLevels: new Set([101]) }
+    );
+    expect(projectChildren(menu).map((c) => c.disabled)).toEqual([false, true]);
+  });
+
+  it('only checks the catalog flag while the offering is still unknown', () => {
+    const menu = withEnrollmentSubModules(STUDENT_MENU, [PROJECT], {
+      offeredLevels: null,
+    });
+    expect(projectChildren(menu).every((c) => c.disabled === false)).toBe(true);
+  });
+
+  it('applies the same rule to a course without sub-modules', () => {
+    const find = (menu: SidebarMenuEntry[]) =>
+      menu.find((entry) => entry.title === 'انتخاب واحد کارگاه');
+
+    const notOffered = withEnrollmentSubModules(STUDENT_MENU, [WORKSHOP], {
+      offeredLevels: new Set<number>(),
+    });
+    expect(find(notOffered)).toMatchObject({ disabled: true });
+
+    const taken = withEnrollmentSubModules(STUDENT_MENU, [WORKSHOP], {
+      offeredLevels: new Set<number>(),
+      enrolledLevels: new Set([103]),
+    });
+    expect(find(taken)).toMatchObject({ disabled: false });
+  });
 });
 
 describe('withEnrollmentSubModules whenEmpty', () => {
@@ -123,7 +183,17 @@ describe('withEnrollmentSubModules whenEmpty', () => {
       modular: [],
     });
 
-    const { result } = renderHook(() => useSidebarMenu('student'));
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(
+        QueryClientProvider,
+        {
+          client: new QueryClient({
+            defaultOptions: { queries: { retry: false } },
+          }),
+        },
+        children
+      );
+    const { result } = renderHook(() => useSidebarMenu('student'), { wrapper });
 
     expect(result.current.find((entry) => entry.title === 'انتخاب واحد کارورزی')).toBeTruthy();
   });

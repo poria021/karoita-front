@@ -346,3 +346,34 @@ export function listDelayedMentors(
       matchesDelayedSearch(mentor.name, input.query)
   );
 }
+
+/**
+ * وضعیت leaf های منوی کناری یک کاربر: کدام سطح‌ها همین الان در ترم جاری ارائه
+ * شده‌اند (همان شرط S1) و در کدام‌ها قبلاً — هر ترم، هر نتیجه‌ای (قبول، رد، حتی
+ * لغوشده) — ثبت‌نام واقعی داشته. معادل mock دو query مشترک سایدبار در real.
+ */
+export function listLeafAvailability(input: {
+  userId: string;
+  kind: InternshipCourseKind;
+  levels: readonly InternshipEnrollmentLevel[];
+}): { offered: number[]; enrolled: number[] } {
+  const syllabus = readSyllabusSnapshot();
+  const takenLevels = new Set(
+    readSnapshot()
+      .records.filter(
+        (record) =>
+          record.userId === input.userId &&
+          record.kind === input.kind &&
+          Boolean(record.supervisorId)
+      )
+      .map((record) => record.level)
+  );
+  return {
+    offered: input.levels.filter(
+      (level) =>
+        resolveEnrollmentSyllabusContext(syllabus, input.kind, level)
+          .syllabusConfigured
+    ),
+    enrolled: input.levels.filter((level) => takenLevels.has(level)),
+  };
+}

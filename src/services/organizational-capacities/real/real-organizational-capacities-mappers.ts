@@ -244,7 +244,7 @@ export function toCapacityCourseFromLesson(input: {
 export function toWriteDto(input: {
   professorId: string;
   semesterId: string;
-  course: OrganizationalCapacityCourse;
+  course: Pick<OrganizationalCapacityCourse, 'id' | 'total' | 'selectedDays'>;
   maxCapacity: number;
 }): NestProfessorCapacityWriteDto {
   const capacity = Math.min(

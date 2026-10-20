@@ -69,6 +69,22 @@ function messageDto(store: Store, message: StoredMessage) {
   };
 }
 
+/** فایل پیوست پیام‌های دانشجو تا اجازهٔ استاد (`canWatchOthers`) برای معلم/مدیر مدرسه پنهان است. */
+function attachmentsHiddenFor(store: Store, user: StoredUser, conversation: StoredConversation): boolean {
+  if (user.roleName !== 'teacher' && user.roleName !== 'school_admin') return false;
+  if (conversation.type !== 'week' || !conversation.weekId) return false;
+  const week = [...store.studentWeeks.values()].find(
+    (row) => row.enrollmentId === conversation.enrollmentId && row.weekId === conversation.weekId
+  );
+  return week?.canWatchOthers !== true;
+}
+
+function withoutStudentFiles(message: ReturnType<typeof messageDto>): ReturnType<typeof messageDto> {
+  const role = message.senderId.role;
+  if (role !== 'student' && role !== 'trainee') return message;
+  return { ...message, fileIds: [], files: [] };
+}
+
 function loadConversation(store: Store, user: StoredUser, id: string): StoredConversation {
   const conversation = store.conversations.get(id);
   if (!conversation) throw new HttpError(404, 'Conversation not found');
@@ -94,6 +110,11 @@ export function registerConversationRoutes(router: Router, store: Store): void {
     const user = requireUser(store, context);
     const conversation = loadConversation(store, user, context.params.id!);
     const all = messagesOf(store, conversation.id);
+    const hideFiles = attachmentsHiddenFor(store, user, conversation);
+    const toDto = (message: StoredMessage) => {
+      const dto = messageDto(store, message);
+      return hideFiles ? withoutStudentFiles(dto) : dto;
+    };
     const before = Number(context.query.get('beforeSequence')) || null;
     const after = Number(context.query.get('afterSequence')) || null;
     const limit = Math.min(
@@ -104,13 +125,13 @@ export function registerConversationRoutes(router: Router, store: Store): void {
     if (after !== null) {
       const newer = all.filter((message) => message.sequence > after);
       return ok({
-        data: newer.slice(0, limit).map((message) => messageDto(store, message)),
+        data: newer.slice(0, limit).map(toDto),
         hasNextPage: newer.length > limit,
       });
     }
     const older = before === null ? all : all.filter((message) => message.sequence < before);
     return ok({
-      data: older.slice(-limit).map((message) => messageDto(store, message)),
+      data: older.slice(-limit).map(toDto),
       hasNextPage: older.length > limit,
     });
   });
