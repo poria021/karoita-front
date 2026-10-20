@@ -10,7 +10,10 @@ import type {
 import { toPersianDigits } from '@/utils/persianDigits';
 import { faIcons } from '@/utils/iconMap';
 
-import { effectiveWeeklySessionState } from '../lib/weekly-report-lock';
+import {
+  effectiveWeeklySessionState,
+  isWeekNotSubmittedAfterTermEnd,
+} from '../lib/weekly-report-lock';
 
 type SessionVisual = {
   label: string;
@@ -115,6 +118,16 @@ const SESSION_VISUALS: Partial<
   },
 };
 
+// کارتِ هفته‌ای که تا پایان ترم گزارشش ارسال نشده (به‌جای سبزِ «نمره نهایی»).
+const NOT_SUBMITTED_VISUAL: SessionVisual = {
+  label: 'ارسال نشده',
+  legendLabel: 'ارسال نشده',
+  className: 'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
+  hoverClassName:
+    'enabled:hover:bg-kv-danger-soft-hover enabled:hover:text-kv-danger-soft-fg',
+  icon: faIcons.triangleExclamation,
+};
+
 function draftCardLabel(week: InternshipWeeklySession): string {
   const hasText = Boolean(week.text?.trim());
   const hasFiles = (week.files?.length ?? 0) > 0;
@@ -149,11 +162,21 @@ export function InternshipWeeklyGrid({
           const status = effectiveWeeklySessionState(week, enrollmentStatus);
           // overdue دیگر از سرور نمی‌آید؛ در صورت بروز، به‌جای کرش، ظاهر
           // پیش‌فرض (draft) نمایش داده می‌شود.
-          const visual = SESSION_VISUALS[status] ?? SESSION_VISUALS.draft!;
-          const hasScore = status === 'graded' && week.score != null;
+          const notSubmitted = isWeekNotSubmittedAfterTermEnd(
+            week,
+            enrollmentStatus
+          );
+          const visual = notSubmitted
+            ? NOT_SUBMITTED_VISUAL
+            : (SESSION_VISUALS[status] ?? SESSION_VISUALS.draft!);
+          const hasScore =
+            !notSubmitted && status === 'graded' && week.score != null;
           const score = hasScore ? week.score : null;
-          const label =
-            status === 'draft' ? draftCardLabel(week) : visual.label;
+          const label = notSubmitted
+            ? visual.label
+            : status === 'draft'
+              ? draftCardLabel(week)
+              : visual.label;
 
           return (
             <KvButton
@@ -184,7 +207,7 @@ export function InternshipWeeklyGrid({
                   <span className="block w-full text-xs font-black leading-snug">
                     {toPersianDigits(score)}/۱۰۰
                   </span>
-                ) : status === 'graded' ? (
+                ) : !notSubmitted && status === 'graded' ? (
                   <span className="block w-full text-xs font-bold leading-snug text-kv-text-faint">
                     نمره ثبت نشده
                   </span>
@@ -196,8 +219,11 @@ export function InternshipWeeklyGrid({
       </div>
 
       <div className="flex flex-wrap items-center gap-x-kv-group gap-y-kv-pair border-t border-kv-border pt-kv-group text-xs font-bold text-kv-text-faint">
-        {Object.entries(SESSION_VISUALS)
-          .filter(([, visual]) => visual.legendLabel)
+        {[
+          ...Object.entries(SESSION_VISUALS),
+          ['not_submitted', NOT_SUBMITTED_VISUAL] as const,
+        ]
+          .filter(([, visual]) => visual?.legendLabel)
           .map(([status, visual]) => (
             <span key={status} className="flex items-center gap-kv-pair">
               <span
