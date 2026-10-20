@@ -185,7 +185,7 @@ export function enrollmentLevelOfLeaf(
   return storedLevel ?? null;
 }
 
-type EnrollmentLeaf = {
+export type EnrollmentLeaf = {
   id: string;
   title: string;
   groupTitle?: string;
@@ -208,6 +208,16 @@ function enrollmentLeavesOf(course: CourseDefinition): EnrollmentLeaf[] {
       ? []
       : [{ id: leaf.id, title: leaf.title, groupTitle: leaf.groupTitle, level }];
   });
+}
+
+/**
+ * همهٔ leaf های قابل ثبت‌نام (دارای سطح) یک فهرست درس — برای تطبیق وضعیت ارائه و
+ * سابقهٔ ثبت‌نام کاربر با آیتم‌های منو.
+ */
+export function enrollmentLeavesOfCourses(
+  courses: readonly CourseDefinition[]
+): EnrollmentLeaf[] {
+  return courses.flatMap((course) => enrollmentLeavesOf(course));
 }
 
 /** leaf فعال یک مخاطب با سطح ثبت‌نام مشخص — `null` وقتی چنین سطحی تعریف/فعال نیست. */

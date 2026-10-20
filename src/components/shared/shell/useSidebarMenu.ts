@@ -9,11 +9,15 @@ import {
   getShallowLocationSearchServerSnapshot,
   subscribeShallowLocation,
 } from '@/lib/shallow-location';
+import { enrollmentLeavesOfCourses } from '@/services/syllabus-config/course-catalog';
 import type { UserRole } from '@/types/auth';
 import type { InternshipCourseKind } from '@/types/internship-enrollment';
+import type { CourseDefinition } from '@/types/syllabus-config';
 import { getVisibleSidebarMenu } from '@/utils/RoleStrategyMap';
 import { withEnrollmentSubModules } from '@/utils/role-strategy/enrollment-menu';
 import { withEvaluationSubModules } from '@/utils/role-strategy/evaluation-menu';
+
+import { useEnrollmentLeafAvailability } from './useEnrollmentLeafAvailability';
 
 
 /** query فعلی (بدون ناوبری Next) تا لینک‌های دارای `?kind=&course=` درست فعال شوند. */
@@ -31,6 +35,8 @@ const REVIEW_ROLES = new Set<string>([
   'mentor_teacher',
   'school_principal',
 ]);
+
+const NO_COURSES: readonly CourseDefinition[] = [];
 
 function learnerKind(
   role: UserRole | string | null | undefined
@@ -55,6 +61,22 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
   const definitions = useActiveCourseDefinitions(
     mock || REVIEW_ROLES.has(role ?? '') || kind !== null
   );
+  const learnerCourses =
+    kind === 'internship'
+      ? definitions.semester
+      : kind === 'apprenticeship'
+        ? definitions.modular
+        : NO_COURSES;
+  const leaves = useMemo(
+    () => enrollmentLeavesOfCourses(learnerCourses),
+    [learnerCourses]
+  );
+  // دانشجو/مهارت‌آموز: درس غیرفعال یا ارائه‌نشده در ترم جاری غیرفعال می‌شود،
+  // مگر اینکه قبلاً آن را برداشته باشد.
+  const availability = useEnrollmentLeafAvailability(
+    role === 'student' || role === 'skill_learner' ? role : null,
+    leaves
+  );
 
   return useMemo(() => {
     const visible = getVisibleSidebarMenu(role);
@@ -68,10 +90,10 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
 
     return withEnrollmentSubModules(
       evaluated,
-      kind === 'internship' ? definitions.semester : definitions.modular,
+      learnerCourses,
       // در حالت real داده ممکن است در لحظه هنوز برنگشته باشد؛ برای جلوگیری از
       // خالی شدن کامل منوی انتخاب واحد، منوی ایستا را نگه می‌داریم.
-      { whenEmpty: 'keep' }
+      { whenEmpty: 'keep', ...availability }
     );
-  }, [role, mock, kind, definitions]);
+  }, [role, mock, kind, definitions, learnerCourses, availability]);
 }

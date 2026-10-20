@@ -64,7 +64,7 @@ export function MobileBottomNav() {
         >
           {allItems.map((item) => {
             const isActive = activePath === item.path;
-            const isLocked = !modulesUnlocked;
+            const isLocked = !modulesUnlocked || Boolean(item.disabled);
             const icon = resolveSidebarIcon(item.icon);
             const hasCourseBadge = typeof item.iconBadge === 'number';
 

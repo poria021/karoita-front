@@ -15,6 +15,7 @@ export {
   listDelayedMentors,
   listDelayedSchools,
   listEligibleSupervisors,
+  listLeafAvailability,
   resolveEnrollmentPageState,
   resolveEnrollmentTermReport,
 } from '@/services/internship-enrollment/mock/mock-enrollment-reads';

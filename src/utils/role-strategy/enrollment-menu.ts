@@ -36,7 +36,8 @@ function isEnrollmentGroup(entry: SidebarMenuEntry): entry is SidebarMenuGroup {
  */
 function itemFor(
   leaf: { id: string; title: string; level?: number },
-  icon: string
+  icon: string,
+  isDisabled: (level: number) => boolean
 ): SidebarMenuItem | null {
   const level = enrollmentLevelOfLeaf(leaf.id, leaf.level);
   if (level === null) return null;
@@ -44,20 +45,46 @@ function itemFor(
     title: leaf.title,
     path: RouteService.karvita.internshipSelection(level),
     icon,
+    disabled: isDisabled(level),
     ...(legacyLeafId(leaf.id) ? { iconBadge: level } : {}),
   };
 }
 
+export type EnrollmentMenuOptions = {
+  whenEmpty?: 'keep' | 'remove';
+  /**
+   * سطح‌هایی که همین الان در ترم جاری ارائه (سرفصل) شده‌اند. `null` یا نبودن یعنی
+   * هنوز نامعلوم است و فقط فعال‌بودن درس در «تعریف دروس» بررسی می‌شود.
+   */
+  offeredLevels?: ReadonlySet<number> | null;
+  /**
+   * سطح‌هایی که کاربر قبلاً (هر ترم، هر نتیجه‌ای — قبول، رد، حتی لغوشده) در آن‌ها
+   * ثبت‌نام داشته. این آیتم‌ها هیچ‌وقت غیرفعال نمی‌شوند تا گزارش و تاریخچه‌شان در
+   * دسترس بماند.
+   */
+  enrolledLevels?: ReadonlySet<number>;
+};
+
 export function withEnrollmentSubModules(
   menu: SidebarMenuEntry[],
   courses: readonly CourseDefinition[],
-  options: { whenEmpty?: 'keep' | 'remove' } = {}
+  options: EnrollmentMenuOptions = {}
 ): SidebarMenuEntry[] {
   if (courses.length === 0) {
     return options.whenEmpty === 'remove'
       ? menu.filter((entry) => !isEnrollmentGroup(entry))
       : menu;
   }
+
+  const { offeredLevels = null, enrolledLevels } = options;
+  // غیرفعال: درس در «تعریف دروس» غیرفعال است یا در ترم جاری ارائه نشده —
+  // مگر اینکه کاربر قبلاً این سطح را برداشته باشد.
+  const isLeafDisabled = (course: CourseDefinition, level: number): boolean => {
+    if (enrolledLevels?.has(level)) return false;
+    return (
+      !course.isActive || (offeredLevels !== null && !offeredLevels.has(level))
+    );
+  };
 
   const next: SidebarMenuEntry[] = [];
   let replaced = false;
@@ -70,16 +97,15 @@ export function withEnrollmentSubModules(
     replaced = true;
     for (const course of courses) {
       const title = `انتخاب واحد ${course.title}`;
-      const disabled = !course.isActive;
+      const isDisabled = (level: number) => isLeafDisabled(course, level);
       if (course.subModules.length === 0) {
-        const item = itemFor(course, entry.icon);
-        if (item) next.push({ ...item, title, disabled });
+        const item = itemFor(course, entry.icon, isDisabled);
+        if (item) next.push({ ...item, title });
         continue;
       }
       const children = course.subModules
-        .map((sub) => itemFor(sub, entry.icon))
-        .filter((item): item is SidebarMenuItem => item !== null)
-        .map((item) => ({ ...item, disabled }));
+        .map((sub) => itemFor(sub, entry.icon, isDisabled))
+        .filter((item): item is SidebarMenuItem => item !== null);
       if (children.length === 0) continue;
       next.push({
         kind: 'group',

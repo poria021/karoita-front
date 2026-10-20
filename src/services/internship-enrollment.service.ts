@@ -1,4 +1,4 @@
-import { isMockApiMode } from '@/lib/api-mode';
+import { assertMockApiMode, isMockApiMode } from '@/lib/api-mode';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   clampLevel,
@@ -12,6 +12,7 @@ import {
   listDelayedMentors,
   listDelayedSchools,
   listEligibleSupervisors,
+  listLeafAvailability,
   resolveEnrollmentPageState,
   resolveEnrollmentTermReport,
   saveWeeklyReportDraft,
@@ -176,6 +177,23 @@ export const InternshipEnrollmentService = {
       return cancelRealEnrollment(input);
     }
     gateEnrollmentMock();
+  },
+
+  /**
+   * وضعیت leaf های منوی کناری برای یک کاربر (فقط mock): کدام سطح‌ها همین الان در
+   * ترم جاری ارائه شده‌اند و در کدام‌ها قبلاً ثبت‌نام داشته (هر ترم، هر نتیجه‌ای).
+   * real همین دو را از دو query مشترک سایدبار (`open-course-selection` و
+   * `by-semester`) می‌سازد (`useEnrollmentLeafAvailability`)، پس این متد در real
+   * صدا زده نمی‌شود و درخواست اضافه‌ای نمی‌رود.
+   */
+  async getLeafAvailability(input: {
+    userId: string;
+    kind: InternshipCourseKind;
+    levels: readonly InternshipEnrollmentLevel[];
+  }): Promise<{ offered: number[]; enrolled: number[] }> {
+    assertMockApiMode();
+    gateEnrollmentMock();
+    return listLeafAvailability(input);
   },
 
   /**
