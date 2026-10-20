@@ -412,6 +412,36 @@ export function useDailyApprovalsActions({
     [gradingTarget, gradingTrainee, refreshTraineeDerived]
   );
 
+  /** مدیر مدرسه: ثبت فقط روزهای بازدید استاد (وقتی ارزیابی اصلی‌اش قفل شده). */
+  const savePrincipalSupervisorVisits = useCallback(
+    async (input: { principalSupervisorVisits: string[] }) => {
+      scheduleWeekGradingSave({
+        gradingTarget,
+        message: 'بازدید استاد راهنما از مدرسه ثبت شد.',
+        setGradingTarget,
+        commit: async (target) => {
+          setActionBusy(true);
+          try {
+            await DailyApprovalsService.updatePrincipalSupervisorVisits({
+              traineeId: target.traineeId,
+              weekId: target.weekId,
+              supervisorVisits: input.principalSupervisorVisits,
+            });
+          } finally {
+            setActionBusy(false);
+          }
+        },
+        onCommitted: async (target) => {
+          await refreshTraineeDerived(
+            target.traineeId,
+            gradingTrainee?.status ?? 'active'
+          );
+        },
+      });
+    },
+    [gradingTarget, gradingTrainee, refreshTraineeDerived]
+  );
+
   const openBulkExtend = useCallback(() => {
     setBulkExtendOpen(true);
   }, []);
@@ -506,6 +536,7 @@ export function useDailyApprovalsActions({
     setCanWatchOthers,
     saveMentorWeek,
     savePrincipalWeek,
+    savePrincipalSupervisorVisits,
     bulkExtendOpen,
     openBulkExtend,
     closeBulkExtend,

@@ -184,6 +184,27 @@ export async function submitPrincipalFeedbackReal(
 }
 
 /**
+ * فقط تأیید روزهای بازدید استاد راهنما از مدرسه توسط مدیر مدرسه
+ * (PATCH `/student-weeks/{id}/approve-mentor-present`). بعد از نمرهٔ نهایی
+ * استاد، ارزیابی یک‌بارمصرف مدیر قفل است و پیام/امتیاز جدید نمی‌رود؛ ولی تأیید
+ * بازدید استاد مستقل از آن است و باید همچنان قابل ثبت باشد.
+ */
+export async function approveRealPrincipalSupervisorVisits(input: {
+  weekId: string;
+  supervisorVisits: string[];
+}): Promise<void> {
+  requireNestTransport('DailyApprovalsService.updatePrincipalSupervisorVisits');
+  if (input.supervisorVisits.length === 0) {
+    throw new Error('حداقل یک روز بازدید استاد راهنما را انتخاب کنید.');
+  }
+  await studentWeeksApi.approveMentorPresent(
+    input.weekId,
+    true,
+    earliestDayIso(input.supervisorVisits)
+  );
+}
+
+/**
  * PATCH `/api/v1/student-weeks/{id}/can-watch-others` — استاد راهنما اجازه
  * می‌دهد این کارورز گزارش‌های هم‌کلاسی‌هایش را ببیند. نقش را Nest چک می‌کند.
  */

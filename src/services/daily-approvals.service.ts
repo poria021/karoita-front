@@ -19,8 +19,10 @@ import {
   updateMockDailyApprovalWeek,
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,
+  updateMockPrincipalSupervisorVisits,
 } from '@/services/daily-approvals/mock/mock-daily-approvals-store';
 import {
+  approveRealPrincipalSupervisorVisits,
   assertDailyApprovalsMutationReady,
   dropRealDailyApprovalTrainee,
   markRealDailyApprovalWeekOpened,
@@ -339,6 +341,27 @@ export const DailyApprovalsService = {
       ...input,
       principalFeedback: input.principalFeedback.trim(),
     });
+  },
+
+  /**
+   * مدیر مدرسه: فقط تأیید روزهای بازدید استاد راهنما — حتی بعد از نمرهٔ نهایی
+   * و قفل‌شدنِ ارزیابی مدیر. پیام/امتیازی ثبت نمی‌شود.
+   */
+  async updatePrincipalSupervisorVisits(input: {
+    traineeId: string;
+    weekId: string;
+    supervisorVisits: string[];
+  }): Promise<DailyApprovalTrainee> {
+    if (isRealApiMode()) {
+      await approveRealPrincipalSupervisorVisits({
+        weekId: input.weekId,
+        supervisorVisits: input.supervisorVisits,
+      });
+      return emptyDailyApprovalStub(input.traineeId, input.weekId);
+    }
+    requireReviewRole('school_principal');
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return updateMockPrincipalSupervisorVisits(input);
   },
 
   /** استاد راهنما: کلید `canWatchOthers` — باز/بسته‌کردن فایل پیوست این هفته برای معلم راهنما و مدیر مدرسه. */

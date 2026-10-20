@@ -36,6 +36,10 @@ type UseDailyApprovalWeekGradingModalInput = {
     principalAttendance: string[];
     principalSupervisorVisits: string[];
   }) => Promise<void>;
+  /** فقط تأیید روزهای بازدید استاد — وقتی ارزیابی اصلی مدیر قفل شده است. */
+  onSavePrincipalVisits: (input: {
+    principalSupervisorVisits: string[];
+  }) => Promise<void>;
 };
 
 function modalTitle(
@@ -76,6 +80,7 @@ export function useDailyApprovalWeekGradingModal({
   onSaveSupervisor,
   onSaveMentor,
   onSavePrincipal,
+  onSavePrincipalVisits,
 }: UseDailyApprovalWeekGradingModalInput) {
   const {
     value: draftValue,
@@ -219,6 +224,17 @@ export function useDailyApprovalWeekGradingModal({
     }
 
     if (role === 'school_principal') {
+      // ارزیابی مدیر قبلاً ثبت/قفل شده (مثلاً بعد از نمرهٔ نهایی استاد): فقط
+      // تأیید روزهای بازدید استاد مجاز است، نه پیام/امتیاز دوباره.
+      if (principalAlreadySubmitted) {
+        if (principalSupervisorVisits.length === 0) {
+          toast.error('لطفاً حداقل یک روز بازدید استاد راهنما را انتخاب کنید.');
+          return;
+        }
+        await onSavePrincipalVisits({ principalSupervisorVisits });
+        clearGradingDraft();
+        return;
+      }
       if (principalRating === null) {
         toast.error('ثبت سطح شایستگی کارورز توسط مدیر مدرسه الزامی است.');
         return;

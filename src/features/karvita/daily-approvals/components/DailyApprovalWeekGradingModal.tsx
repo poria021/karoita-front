@@ -31,7 +31,10 @@ import { useDailyApprovalWeekGradingModal } from '../hooks/useDailyApprovalWeekG
 import { DailyApprovalCanWatchOthersToggle } from './DailyApprovalCanWatchOthersToggle';
 import { DailyApprovalMentorGradingFields } from './DailyApprovalMentorGradingFields';
 import { DailyApprovalPresenceStatus } from './DailyApprovalPresenceStatus';
-import { DailyApprovalPrincipalGradingFields } from './DailyApprovalPrincipalGradingFields';
+import {
+  DailyApprovalPrincipalGradingFields,
+  DailyApprovalPrincipalVisitFields,
+} from './DailyApprovalPrincipalGradingFields';
 import { DailyApprovalSupervisorGradingFields } from './DailyApprovalSupervisorGradingFields';
 import { DailyApprovalWeekReportReadonly } from './DailyApprovalWeekReportReadonly';
 
@@ -100,6 +103,9 @@ type DailyApprovalWeekGradingModalProps = {
     principalAttendance: string[];
     principalSupervisorVisits: string[];
   }) => Promise<void>;
+  onSavePrincipalVisits: (input: {
+    principalSupervisorVisits: string[];
+  }) => Promise<void>;
 };
 
 export function DailyApprovalWeekGradingModal({
@@ -114,6 +120,7 @@ export function DailyApprovalWeekGradingModal({
   onSaveSupervisor,
   onSaveMentor,
   onSavePrincipal,
+  onSavePrincipalVisits,
 }: DailyApprovalWeekGradingModalProps) {
   // مودال قبلاً با `if (!trainee || !week) return null` کاملاً unmount می‌شد؛
   // چون trainee/week در والد با بسته‌شدن مودال بلافاصله null می‌شوند، این باعث
@@ -139,6 +146,7 @@ export function DailyApprovalWeekGradingModal({
     onSaveSupervisor,
     onSaveMentor,
     onSavePrincipal,
+    onSavePrincipalVisits,
   });
 
   if (!effectiveTrainee || !effectiveWeek) {
@@ -168,20 +176,28 @@ export function DailyApprovalWeekGradingModal({
         : 'ثبت و تایید نهایی نمره'
       : role === 'mentor_teacher'
         ? 'ثبت نهایی ارزیابی مربی'
-        : 'ثبت نهایی ارزیابی مدیر';
+        : role === 'school_principal' && modal.principalAlreadySubmitted
+          ? 'ثبت بازدید استاد'
+          : 'ثبت نهایی ارزیابی مدیر';
 
   // هر سه مسیر به بک‌اند واقعی وصل‌اند: نمرهٔ استاد → `PATCH student-weeks/{id}/score`؛
   // رد بدون نمره (استاد) و بازخورد+امتیاز معلم/مدیر → `POST conversations/{id}/messages`
   // (ببین `scoreRealDailyApprovalWeek`/`submitMentorFeedbackReal`/`submitPrincipalFeedbackReal`).
   // معلم راهنما امتیاز الزامی دارد (بازخورد اختیاری)؛ مدیر مدرسه هردو اختیاری‌اند
   // (اعتبارسنجی «حداقل یکی» در خودِ `save()` با toast انجام می‌شود).
+  // مدیر مدرسه بعد از قفل‌شدن ارزیابی‌اش (مثلاً با نمرهٔ نهایی استاد) هنوز
+  // می‌تواند روزهای بازدید استاد را تأیید کند، پس دکمهٔ ثبتش مخفی نمی‌شود.
+  const principalVisitsOnly =
+    role === 'school_principal' && modal.principalAlreadySubmitted;
+
   const alreadySubmitted =
     (role === 'supervisor_professor' && modal.supervisorLocked) ||
-    (role === 'mentor_teacher' && modal.mentorAlreadySubmitted) ||
-    (role === 'school_principal' && modal.principalAlreadySubmitted);
+    (role === 'mentor_teacher' && modal.mentorAlreadySubmitted);
 
   const saveDisabled =
-    modal.disabled || (role === 'mentor_teacher' && modal.mentorRatingMissing);
+    modal.disabled ||
+    (role === 'mentor_teacher' && modal.mentorRatingMissing) ||
+    (principalVisitsOnly && modal.principalSupervisorVisits.length === 0);
 
   const saveButton = alreadySubmitted ? null : (
     <KvButton
@@ -322,6 +338,18 @@ export function DailyApprovalWeekGradingModal({
                   mentorFeedback={modal.mentorFeedback}
                   onMentorRatingChange={modal.setMentorRating}
                   onMentorFeedbackChange={modal.setMentorFeedback}
+                />
+              ) : null}
+
+              {principalVisitsOnly ? (
+                <DailyApprovalPrincipalVisitFields
+                  attendanceDays={modal.attendanceDays}
+                  supervisorVisitDates={modal.principalSupervisorVisits}
+                  onSupervisorVisitDatesChange={modal.setPrincipalSupervisorVisits}
+                  mentorDeclaredPresence={
+                    effectiveWeek.mentorPresent === true ||
+                    effectiveWeek.schoolVisited === true
+                  }
                 />
               ) : null}
 

@@ -24,4 +24,5 @@ export {
   updateMockDailyApprovalWeek,
   updateMockMentorDailyApprovalWeek,
   updateMockPrincipalDailyApprovalWeek,
+  updateMockPrincipalSupervisorVisits,
 } from '@/services/daily-approvals/mock/mock-daily-approvals-mutations';

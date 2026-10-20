@@ -81,6 +81,51 @@ function DayCheckboxGroup({
   );
 }
 
+type DailyApprovalPrincipalVisitFieldsProps = {
+  attendanceDays: PrincipalAttendanceDay[];
+  supervisorVisitDates: string[];
+  onSupervisorVisitDatesChange: (value: string[]) => void;
+  mentorDeclaredPresence?: boolean;
+};
+
+/**
+ * بعد از نمرهٔ نهایی استاد ارزیابی مدیر قفل می‌شود، ولی تأیید روزهای بازدید
+ * استاد از مدرسه هنوز باید باز باشد — این بلوک فقط همان چک‌باکس‌ها را نشان می‌دهد.
+ */
+export function DailyApprovalPrincipalVisitFields({
+  attendanceDays,
+  supervisorVisitDates,
+  onSupervisorVisitDatesChange,
+  mentorDeclaredPresence = false,
+}: DailyApprovalPrincipalVisitFieldsProps) {
+  return (
+    <div className="space-y-kv-group rounded-kv-panel border-2 border-kv-brand/25 bg-kv-brand-soft/40 p-kv-section shadow-kv-soft">
+      <div className="flex items-center gap-kv-pair border-b border-kv-brand/20 pb-kv-pair">
+        <KvTypography variant="subtitle" as="h4" tone="brand">
+          بازدید استاد راهنما از مدرسه
+        </KvTypography>
+      </div>
+      <KvTypography variant="caption" tone="muted" as="p">
+        ارزیابی شما برای این هفته نهایی شده است؛ فقط تأیید روزهای بازدید استاد
+        هنوز قابل ثبت است.
+      </KvTypography>
+      <DayCheckboxGroup
+        legend="تأیید بازدید استاد راهنما از مدرسه در این هفته (روزهایی که استاد به مدرسه آمده):"
+        hint={
+          mentorDeclaredPresence ? (
+            <Badge variant="warning" className="mb-kv-pair">
+              استاد راهنما حضور خود در مدرسه را برای این هفته اعلام کرده است
+            </Badge>
+          ) : null
+        }
+        days={attendanceDays}
+        selected={supervisorVisitDates}
+        onChange={onSupervisorVisitDatesChange}
+      />
+    </div>
+  );
+}
+
 export function DailyApprovalPrincipalGradingFields({
   principalRating,
   principalFeedback,

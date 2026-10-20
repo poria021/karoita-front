@@ -122,6 +122,7 @@ export function useDailyApprovalsPage() {
     setCanWatchOthers: actions.setCanWatchOthers,
     saveMentorWeek: actions.saveMentorWeek,
     savePrincipalWeek: actions.savePrincipalWeek,
+    savePrincipalSupervisorVisits: actions.savePrincipalSupervisorVisits,
     bulkExtendOpen: actions.bulkExtendOpen,
     openBulkExtend: actions.openBulkExtend,
     closeBulkExtend: actions.closeBulkExtend,

@@ -163,6 +163,44 @@ export function updateMockPrincipalDailyApprovalWeek(
   return structuredClone(nextTrainee);
 }
 
+/** هم‌راستا با real: فقط تأیید روزهای بازدید استاد (بدون پیام/امتیاز مدیر). */
+export function updateMockPrincipalSupervisorVisits(input: {
+  traineeId: string;
+  weekId: string;
+  supervisorVisits: string[];
+}): DailyApprovalTrainee {
+  const trainees = readTrainees();
+  const traineeIndex = trainees.findIndex((row) => row.id === input.traineeId);
+  if (traineeIndex < 0) throw new Error('کارورز موردنظر یافت نشد.');
+  const trainee = trainees[traineeIndex]!;
+  if (trainee.status === 'dropped') {
+    throw new Error('این کارورز از کلاس آموزشی اخراج شده است.');
+  }
+  const weekIndex = trainee.weeks.findIndex((week) => week.id === input.weekId);
+  if (weekIndex < 0) throw new Error('گزارش هفته یافت نشد.');
+  if (input.supervisorVisits.length === 0) {
+    throw new Error('حداقل یک روز بازدید استاد راهنما را انتخاب کنید.');
+  }
+
+  const current = trainee.weeks[weekIndex]!;
+  const sorted = [...input.supervisorVisits].sort();
+  const nextWeeks = [...trainee.weeks];
+  nextWeeks[weekIndex] = {
+    ...current,
+    mentorPresenceApproved: true,
+    mentorPresentAt: sorted[0],
+    feedback: {
+      ...current.feedback,
+      principalSupervisorVisits: sorted,
+    },
+  };
+  const nextTrainee = withDerived({ ...trainee, weeks: nextWeeks });
+  const nextTrainees = [...trainees];
+  nextTrainees[traineeIndex] = nextTrainee;
+  writeTrainees(nextTrainees);
+  return structuredClone(nextTrainee);
+}
+
 function applyExtendToWeek(week: DailyApprovalWeek): DailyApprovalWeek {
   return {
     ...week,
