@@ -60,8 +60,9 @@ const ANNOUNCEMENT_AUDIENCE: Record<UserRole, readonly UserRole[]> = {
 const ADVERTISEMENT_AUDIENCE: readonly UserRole[] =
   ANNOUNCEMENT_AUDIENCE.assistant_admin;
 
-export const BULLETIN_TITLE_MAX = 120;
-export const BULLETIN_BODY_MAX = 1000;
+/** سقف OpenAPI Nest (`CreateAdvertisementDto`). */
+export const BULLETIN_TITLE_MAX = 50;
+export const BULLETIN_BODY_MAX = 250;
 
 export function canPublishAdvertisements(
   role: UserRole | string | null | undefined
@@ -182,6 +183,12 @@ export function sortBulletins(rows: readonly Bulletin[]): Bulletin[] {
   return [...rows].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+/** لینک تبلیغ: مسیر داخلی (`/…`) یا http(s) مطلق — هم‌ارز قرارداد Nest. */
+function isSafeAdLink(value: string): boolean {
+  if (value.startsWith('/') && !value.startsWith('//')) return true;
+  return isSafeHttpUrl(value);
+}
+
 function isSafeHttpUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -210,9 +217,10 @@ export function validateBulletinInput(
   }
   const isAd = input.kind === 'advertisement';
   const body = input.body.trim();
+  const hasImage = Boolean(input.imageFile || input.imageUrl);
   // تبلیغ: توضیحات یا تصویر (یکی کافی است)؛ اطلاعیه: متن الزامی است.
   if (isAd) {
-    if (!body && !input.imageUrl) return 'توضیحات یا تصویر تبلیغ الزامی است.';
+    if (!body && !hasImage) return 'توضیحات یا تصویر تبلیغ الزامی است.';
   } else if (!body) {
     return 'متن الزامی است.';
   }
@@ -229,15 +237,17 @@ export function validateBulletinInput(
     return 'دست‌کم یک استان انتخاب کنید.';
   }
   const link = input.linkUrl?.trim();
-  if (input.kind === 'advertisement' && link && !isSafeHttpUrl(link)) {
-    return 'لینک باید با http:// یا https:// شروع شود.';
+  if (input.kind === 'advertisement' && link && !isSafeAdLink(link)) {
+    return 'لینک باید مسیر داخلی (/…) یا http:// و https:// باشد.';
   }
   const image = input.imageUrl;
   if (
     input.kind === 'advertisement' &&
     image &&
+    !input.imageFile &&
     !/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(image) &&
-    !isSafeHttpUrl(image)
+    !isSafeHttpUrl(image) &&
+    !image.startsWith('/api/files/media')
   ) {
     return 'فرمت تصویر تبلیغ معتبر نیست.';
   }
@@ -258,6 +268,9 @@ export function buildBulletin(
   const isAd = input.kind === 'advertisement';
   const link = isAd ? input.linkUrl?.trim() : '';
   const image = isAd ? input.imageUrl : '';
+  const format = isAd
+    ? (existing?.format ?? (image ? 'image' : 'text'))
+    : 'text';
   // نویسنده/زمان ایجاد اصلی می‌ماند؛ ویرایش دستیار، تبلیغ مدیر ارشد را تصاحب نمی‌کند.
   return {
     id: existing?.id ?? newBulletinId(),
@@ -266,6 +279,7 @@ export function buildBulletin(
     body: input.body.trim(),
     ...(link ? { linkUrl: link } : {}),
     ...(image ? { imageUrl: image } : {}),
+    format,
     authorRole: existing?.authorRole ?? author.role,
     authorName: existing?.authorName ?? author.name,
     audienceRoles: [...new Set(input.audienceRoles)],

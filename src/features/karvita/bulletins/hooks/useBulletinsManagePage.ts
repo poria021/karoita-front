@@ -16,7 +16,6 @@ import { BulletinsService } from '@/services/bulletins.service';
 import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
 import type { Bulletin, BulletinKind, UpsertBulletinInput } from '@/types/bulletins';
-import { fileToDataUrl } from '@/utils/compressor';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 type BulletinForm = {
@@ -28,7 +27,7 @@ type BulletinForm = {
   linkUrl: string;
   /** تصویر ذخیره‌شده (ویرایش) — با حذف تصویر خالی می‌شود. */
   imageUrl: string;
-  /** فایل تازه انتخاب‌شده؛ موقع ذخیره به data URL تبدیل می‌شود. */
+  /** فایل تازه؛ Facade در mock به data URL و در real به FilesService می‌سپارد. */
   imageFile: File | null;
   audienceRoles: UserRole[];
   /** عنوان استان‌های مخاطب. */
@@ -45,7 +44,11 @@ function toInput(form: BulletinForm): UpsertBulletinInput {
     title: form.title,
     body: form.body,
     ...(form.kind === 'advertisement'
-      ? { linkUrl: form.linkUrl, imageUrl: form.imageUrl }
+      ? {
+          linkUrl: form.linkUrl,
+          imageUrl: form.imageUrl,
+          ...(form.imageFile ? { imageFile: form.imageFile } : {}),
+        }
       : {}),
     audienceRoles: form.audienceRoles,
     provinces: form.provinces,
@@ -56,16 +59,9 @@ function formSignature(form: BulletinForm): string {
   const file = form.imageFile;
   return JSON.stringify({
     ...toInput(form),
+    imageFile: undefined,
     file: file ? `${file.name}:${file.size}:${file.lastModified}` : null,
   });
-}
-
-async function resolveInput(form: BulletinForm): Promise<UpsertBulletinInput> {
-  const input = toInput(form);
-  if (form.kind === 'advertisement' && form.imageFile) {
-    input.imageUrl = await fileToDataUrl(form.imageFile);
-  }
-  return input;
 }
 
 export function useBulletinsManagePage() {
@@ -188,7 +184,7 @@ export function useBulletinsManagePage() {
     if (!role) return;
     setIsSaving(true);
     try {
-      const input = await resolveInput(form);
+      const input = toInput(form);
       const error = validateBulletinInput(input, role);
       if (error) {
         setFormError(error);

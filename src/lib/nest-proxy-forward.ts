@@ -32,18 +32,13 @@ const ALLOW_RESPONSE_HEADER =
 /** هدر نقش/نام کاربر برای سرور جعلیِ مسیرهای پیشنهادی؛ هرگز به Nest واقعی نرود. */
 const FAKE_ACTOR_HEADER = 'x-karvita-actor';
 
-/** مسیرهایی که هنوز در Swagger بک‌اند نیستند (`tools/fake-nest/openapi.proposed.json`). */
-const PROPOSED_NEST_PATH = /^v1\/bulletins(\/|$)/;
-
 /**
- * فقط در توسعه: اگر `FAKE_PROPOSED_API_URL` ست باشد، مسیرهای پیشنهادی (اطلاعیه/تبلیغ)
- * به سرور جعلی می‌روند و بقیهٔ مسیرها همچنان به Nest واقعی. در production هرگز فعال نیست.
+ * فقط در توسعه: اگر `FAKE_PROPOSED_API_URL` ست باشد، مسیرهای proposed به سرور جعلی
+ * می‌روند. فعلاً هیچ pathای proposed برای divert نداریم (اطلاعیه/تبلیغ Nest واقعی است).
  */
-function readFakeProposedBase(suffix: string): string | null {
+function readFakeProposedBase(_suffix: string): string | null {
   if (process.env.NODE_ENV === 'production') return null;
-  if (!PROPOSED_NEST_PATH.test(suffix)) return null;
-  const raw = process.env.FAKE_PROPOSED_API_URL?.trim();
-  return raw ? raw.replace(/\/+$/, '') : null;
+  return null;
 }
 
 function isUnsafePathSegment(segment: string): boolean {

@@ -46,7 +46,7 @@ export function useDashboardBulletins(role: UserRole) {
     announcements: rowsFor('announcement'),
     sources,
     isLoading: received.isLoading || published.isLoading,
-    /** real mode تا آمدن endpoint خطا می‌دهد؛ آن وقت باکس‌ها بی‌صدا پنهان می‌مانند. */
+    /** خطای شبکه/۴۰۱؛ باکس‌ها پیام خطا نشان می‌دهند. */
     isError: received.isError || published.isError,
   };
 }

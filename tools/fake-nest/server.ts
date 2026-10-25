@@ -10,7 +10,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 
 import { registerAuthRoutes } from './handlers/auth';
-import { registerBulletinRoutes } from './handlers/bulletins';
+import { registerAdvertisementRoutes } from './handlers/advertisements';
 import { registerConversationRoutes } from './handlers/conversations';
 import { registerEnrollmentRoutes } from './handlers/enrollments';
 import { registerFileRoutes } from './handlers/files';
@@ -158,7 +158,7 @@ export function createFakeNest(options: FakeNestOptions = {}): FakeNest {
   registerStudentWeekRoutes(router, store);
   registerConversationRoutes(router, store);
   registerMentorFileRoutes(router, store);
-  registerBulletinRoutes(router, store);
+  registerAdvertisementRoutes(router, store);
 
   const log = (line: string) => {
     if (!options.quiet) console.info(`[fake-nest] ${line}`);

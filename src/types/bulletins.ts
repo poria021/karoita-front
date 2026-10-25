@@ -3,6 +3,9 @@ import type { UserRole } from '@/types/auth';
 /** اطلاعیه از هر پنلی که زیرمجموعه دارد؛ تبلیغ فقط از مدیر ارشد و دستیار. */
 export type BulletinKind = 'announcement' | 'advertisement';
 
+/** هم‌ارز Nest `format`؛ در mock از وجود تصویر مشتق می‌شود. */
+export type BulletinFormat = 'text' | 'image';
+
 export interface Bulletin {
   id: string;
   kind: BulletinKind;
@@ -11,8 +14,10 @@ export interface Bulletin {
   body: string;
   /** لینک اختیاری «اطلاعات بیشتر» — فقط برای تبلیغ. */
   linkUrl?: string;
-  /** تصویر تبلیغ (data URL در mock) — فقط برای تبلیغ. */
+  /** تصویر تبلیغ (data URL در mock؛ URL رسانه در real) — فقط برای تبلیغ. */
   imageUrl?: string;
+  /** از Nest؛ در ویرایش real برای قفل بودن format لازم است. */
+  format?: BulletinFormat;
   /** پنل منتشرکننده — بج روی کارت داشبورد از لیبل همین نقش است. */
   authorRole: UserRole;
   authorName: string;
@@ -30,7 +35,10 @@ export type UpsertBulletinInput = {
   title: string;
   body: string;
   linkUrl?: string;
+  /** تصویر قبلی (ویرایش بدون فایل جدید). */
   imageUrl?: string;
+  /** فایل تازه؛ در real با FilesService آپلود می‌شود، در mock به data URL. */
+  imageFile?: File;
   audienceRoles: UserRole[];
   provinces: string[];
 };
