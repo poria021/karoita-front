@@ -22,7 +22,7 @@ beforeEach(async () => {
 });
 
 describe('fake-nest advertisements', () => {
-  it('lists sidebar ads and infos for the current user', async () => {
+  it('lists sidebar ads for admin and hides role-mismatched infos from outsiders', async () => {
     const token = await adminToken();
     const ads = await call(
       'GET',
@@ -36,10 +36,29 @@ describe('fake-nest advertisements', () => {
     );
     expect(ads.status).toBe(200);
     expect(infos.status).toBe(200);
-    expect(Array.isArray(ads.json)).toBe(true);
-    expect(Array.isArray(infos.json)).toBe(true);
     expect((ads.json as unknown[]).length).toBeGreaterThan(0);
     expect((infos.json as unknown[]).length).toBeGreaterThan(0);
+
+    // ساخت info فقط برای student؛ ادمین نباید ببیند.
+    const created = await call('POST', '/api/admin/advertisements', {
+      token,
+      body: {
+        title: 'فقط دانشجو',
+        type: 'info',
+        format: 'text',
+        body: 'مخفی از ادمین در لیست عمومی',
+        placement: 'sidebar',
+        targetRoles: ['student'],
+      },
+    });
+    expect(created.status).toBe(201);
+    const after = await call(
+      'GET',
+      '/api/v1/advertisements?type=info&placement=sidebar',
+      { token }
+    );
+    const ids = (after.json as { id: string }[]).map((row) => row.id);
+    expect(ids).not.toContain((created.json as { id: string }).id);
   });
 
   it('creates info, toggles activation, and records a click', async () => {

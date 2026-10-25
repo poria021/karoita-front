@@ -8,17 +8,8 @@ export function seedAdvertisementModule(store: Store): void {
   const at = (hoursAgo: number) =>
     new Date(now - hoursAgo * 3_600_000).toISOString();
 
-  const adAudience = [
-    'organization_center',
-    'university_province',
-    'university',
-    'school_district',
-    'school_admin',
-    'mentor',
-    'teacher',
-    'student',
-    'trainee',
-  ];
+  // ads: [] = همهٔ نقش‌ها (قرارداد Nest). info seed برای دانشجو تا فیلتر نقش تست‌پذیر بماند.
+  const studentAudience = ['student', 'trainee'];
 
   const rows: StoredAdvertisement[] = [
     {
@@ -30,7 +21,7 @@ export function seedAdvertisementModule(store: Store): void {
       link: 'https://example.com/webinar',
       placement: 'sidebar',
       imageId: null,
-      targetRoles: adAudience,
+      targetRoles: [],
       targetProvinceIds: [],
       targetUniversityIds: [],
       targetUserIds: [],
@@ -52,7 +43,8 @@ export function seedAdvertisementModule(store: Store): void {
       link: null,
       placement: 'sidebar',
       imageId: null,
-      targetRoles: adAudience,
+      // برای ادمین هم در seed دیده شود تا smoke GET عمومی پاس شود.
+      targetRoles: [...studentAudience, 'admin', 'superadmin', 'organization_center'],
       targetProvinceIds: [],
       targetUniversityIds: [],
       targetUserIds: [],

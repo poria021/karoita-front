@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  DASHBOARD_AD_PLACEMENTS,
   kindToNestType,
   mapAdminAdvertisement,
   nestTypeToKind,
+  resolveProvinceIds,
   toCreateBody,
   toUpdateBody,
 } from './advertisement-mappers';
@@ -29,6 +31,10 @@ describe('advertisement-mappers', () => {
     expect(nestTypeToKind('info')).toBe('announcement');
   });
 
+  it('reads both dashboard placements', () => {
+    expect(DASHBOARD_AD_PLACEMENTS).toEqual(['sidebar', 'hero']);
+  });
+
   it('builds create body for info with province ids', () => {
     const body = toCreateBody(baseInput(), {
       provinceTitleToId: new Map([['تهران', 'prov-1']]),
@@ -42,11 +48,18 @@ describe('advertisement-mappers', () => {
     expect(body.link).toBeUndefined();
   });
 
+  it('rejects unknown province titles instead of dropping them', () => {
+    expect(() =>
+      resolveProvinceIds(['تهران', 'ناموجود'], new Map([['تهران', 'prov-1']]))
+    ).toThrow(/ناموجود/);
+  });
+
   it('requires image id for image ads', () => {
     expect(() =>
       toCreateBody(
         baseInput({
           kind: 'advertisement',
+          provinces: [],
           imageUrl: 'https://cdn.example/a.png',
         }),
         { provinceTitleToId: new Map() }
@@ -86,6 +99,7 @@ describe('advertisement-mappers', () => {
       toUpdateBody(
         baseInput({
           kind: 'advertisement',
+          provinces: [],
           imageFile: new File(['x'], 'a.png', { type: 'image/png' }),
         }),
         {

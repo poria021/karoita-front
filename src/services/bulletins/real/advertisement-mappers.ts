@@ -30,8 +30,36 @@ import type {
 import type { NestFileType } from '@/types/nest-users';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
-/** جای نمایش باکس‌های میز کار تا وقتی UI انتخاب placement ندارد. */
+/** پیش‌فرض ساخت از UI میز کار (تا وقتی فرم placement ندارد). */
 export const DASHBOARD_AD_PLACEMENT: NestAdvertisementPlacement = 'sidebar';
+
+/** هر دو جای Nest را برای داشبورد می‌خوانیم تا `hero` از قلم نیفتد. */
+export const DASHBOARD_AD_PLACEMENTS: readonly NestAdvertisementPlacement[] = [
+  'sidebar',
+  'hero',
+];
+
+/** عنوان استان‌های فرم → id؛ عنوان ناموجود را بی‌صدا حذف نمی‌کنیم. */
+export function resolveProvinceIds(
+  titles: readonly string[],
+  provinceTitleToId: Map<string, string>
+): string[] {
+  const missing: string[] = [];
+  const ids: string[] = [];
+  for (const raw of titles) {
+    const title = raw.trim();
+    if (!title) continue;
+    const id = provinceTitleToId.get(title);
+    if (!id) missing.push(title);
+    else ids.push(id);
+  }
+  if (missing.length > 0) {
+    throw new Error(
+      `استان‌های انتخاب‌شده در کاتالوگ پیدا نشد: ${missing.join('، ')}`
+    );
+  }
+  return ids;
+}
 
 export function kindToNestType(kind: BulletinKind): NestAdvertisementType {
   return kind === 'advertisement' ? 'ads' : 'info';
@@ -79,13 +107,18 @@ function authorFromNest(createdByRole: string | null | undefined): {
   };
 }
 
+/**
+ * DTO عمومی Nest زمان ساخت ندارد؛ ترتیب را لایهٔ list حفظ می‌کند و اینجا
+ * فقط برای سازگاری نوع، یک stamp پایدار از id می‌سازد (نه epoch مشترک).
+ */
 export function mapPublicAdvertisement(
   dto: NestPublicAdvertisementDto,
   provinceTitles: string[] = []
 ): Bulletin {
   const { authorRole, authorName } = authorFromNest(dto.createdByRole);
-  const stamp = new Date(0).toISOString();
   const imageUrl = imageUrlFromNest(dto.image);
+  // stamp ساختگی فقط برای فیلد اجباری؛ sort داشبورد روی لیست public اعمال نمی‌شود.
+  const stamp = `pub:${dto.id}`;
   return {
     id: dto.id,
     kind: nestTypeToKind(dto.type),
@@ -167,9 +200,7 @@ export function toCreateBody(
   const type = kindToNestType(input.kind);
   const format = resolveFormat(input.kind, input);
   const roles = input.audienceRoles.map(toNestBulletinRole);
-  const provinceIds = input.provinces
-    .map((title) => opts.provinceTitleToId.get(title.trim()))
-    .filter((id): id is string => Boolean(id));
+  const provinceIds = resolveProvinceIds(input.provinces, opts.provinceTitleToId);
 
   const body: NestCreateAdvertisementBody = {
     title: input.title.trim(),
@@ -207,9 +238,7 @@ export function toUpdateBody(
   const type = kindToNestType(input.kind);
   const format = resolveFormat(input.kind, input, opts.existingFormat);
   const roles = input.audienceRoles.map(toNestBulletinRole);
-  const provinceIds = input.provinces
-    .map((title) => opts.provinceTitleToId.get(title.trim()))
-    .filter((id): id is string => Boolean(id));
+  const provinceIds = resolveProvinceIds(input.provinces, opts.provinceTitleToId);
 
   if (
     type === 'ads' &&

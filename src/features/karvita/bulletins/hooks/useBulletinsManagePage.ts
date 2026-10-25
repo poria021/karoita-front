@@ -185,7 +185,12 @@ export function useBulletinsManagePage() {
     setIsSaving(true);
     try {
       const input = toInput(form);
-      const error = validateBulletinInput(input, role);
+      // ویرایش: سلسله‌مراتب مخاطب با نقش نویسندهٔ اصلی (نه لزوماً نقش جاری).
+      const validateAs =
+        (form.editId
+          ? rows.find((row) => row.id === form.editId)?.authorRole
+          : null) ?? role;
+      const error = validateBulletinInput(input, validateAs);
       if (error) {
         setFormError(error);
         return;

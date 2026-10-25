@@ -26,6 +26,18 @@ function actorRole(store: Store, session: Session): string {
   return user?.roleName ?? 'student';
 }
 
+/** خالی = همهٔ نقش‌ها (مثل Nest برای ads). */
+function isVisibleToRole(row: StoredAdvertisement, role: string): boolean {
+  if (!row.isActive) return false;
+  if (row.targetRoles.length === 0) return true;
+  return row.targetRoles.includes(role);
+}
+
+function isOwnedByRole(row: StoredAdvertisement, role: string): boolean {
+  if (STAFF_ROLES.has(role) && STAFF_ROLES.has(row.createdByRole)) return true;
+  return row.createdByRole === role;
+}
+
 function statusOf(row: StoredAdvertisement): 'active' | 'inactive' | 'expired' {
   return row.isActive ? 'active' : 'inactive';
 }
@@ -154,7 +166,8 @@ function validateCreate(
 
 export function registerAdvertisementRoutes(router: Router, store: Store): void {
   router.register('get', '/api/v1/advertisements', (context) => {
-    requireSession(context);
+    const session = requireSession(context);
+    const role = actorRole(store, session);
     const type = context.query.get('type');
     const placement = context.query.get('placement');
     if (type !== 'ads' && type !== 'info') {
@@ -165,7 +178,9 @@ export function registerAdvertisementRoutes(router: Router, store: Store): void 
     }
     const rows = store.advertisements.filter(
       (row) =>
-        row.isActive && row.type === type && row.placement === placement
+        row.type === type &&
+        row.placement === placement &&
+        isVisibleToRole(row, role)
     );
     for (const row of rows) row.impressionCount += 1;
     return ok(rows.map((row) => toPublicDto(store, row)));
@@ -179,8 +194,9 @@ export function registerAdvertisementRoutes(router: Router, store: Store): void 
   });
 
   router.register('get', '/api/admin/advertisements', (context) => {
-    requireSession(context);
-    let rows = [...store.advertisements];
+    const session = requireSession(context);
+    const role = actorRole(store, session);
+    let rows = store.advertisements.filter((row) => isOwnedByRole(row, role));
     const type = context.query.get('type');
     if (type === 'ads' || type === 'info') {
       rows = rows.filter((row) => row.type === type);

@@ -3,9 +3,13 @@
  * `type=info` = اطلاعیه، `type=ads` = تبلیغ؛ هر دو زیر `/admin/advertisements` و نمایش زیر `/v1/advertisements`.
  * UI فقط `BulletinsService` را صدا می‌زند؛ تغییر قرارداد Nest فقط همین پوشه را لمس کند.
  */
-import { sortBulletins } from '@/services/bulletins/bulletin-rules';
 import {
-  DASHBOARD_AD_PLACEMENT,
+  isBulletinOwnedBy,
+  sortBulletins,
+  validateBulletinInput,
+} from '@/services/bulletins/bulletin-rules';
+import {
+  DASHBOARD_AD_PLACEMENTS,
   mapAdminAdvertisement,
   mapPublicAdvertisement,
   resolveImageFileId,
@@ -14,7 +18,13 @@ import {
 } from '@/services/bulletins/real/advertisement-mappers';
 import { advertisementsApi } from '@/services/bulletins/real/advertisements.api';
 import { FilesService } from '@/services/files.service';
+import { useUserStore } from '@/store/useUserStore';
 import type { Bulletin, UpsertBulletinInput } from '@/types/bulletins';
+import type {
+  NestAdvertisementPlacement,
+  NestAdvertisementType,
+  NestPublicAdvertisementDto,
+} from '@/types/nest-advertisements';
 
 async function provinceMaps(): Promise<{
   titleToId: Map<string, string>;
@@ -36,34 +46,62 @@ async function provinceMaps(): Promise<{
   return { titleToId, idToTitle };
 }
 
+/** یک type را برای همهٔ placementهای داشبورد می‌گیرد و با id یکتا ادغام می‌کند. */
+async function listVisibleDeduped(
+  type: NestAdvertisementType,
+  placements: readonly NestAdvertisementPlacement[]
+): Promise<NestPublicAdvertisementDto[]> {
+  const batches = await Promise.all(
+    placements.map((placement) =>
+      advertisementsApi.listVisible({ type, placement })
+    )
+  );
+  const seen = new Set<string>();
+  const out: NestPublicAdvertisementDto[] = [];
+  for (const batch of batches) {
+    for (const row of batch) {
+      if (seen.has(row.id)) continue;
+      seen.add(row.id);
+      out.push(row);
+    }
+  }
+  return out;
+}
+
 export async function listRealDashboardBulletins(): Promise<Bulletin[]> {
   const [ads, infos] = await Promise.all([
-    advertisementsApi.listVisible({
-      type: 'ads',
-      placement: DASHBOARD_AD_PLACEMENT,
-    }),
-    advertisementsApi.listVisible({
-      type: 'info',
-      placement: DASHBOARD_AD_PLACEMENT,
-    }),
+    listVisibleDeduped('ads', DASHBOARD_AD_PLACEMENTS),
+    listVisibleDeduped('info', DASHBOARD_AD_PLACEMENTS),
   ]);
-  return sortBulletins([
+  // ترتیب پاسخ Nest را نگه می‌داریم؛ sort روی stamp ساختگی public معنی ندارد.
+  return [
     ...ads.map((row) => mapPublicAdvertisement(row)),
     ...infos.map((row) => mapPublicAdvertisement(row)),
-  ]);
+  ];
 }
 
 export async function listRealManagedBulletins(): Promise<Bulletin[]> {
+  const role = useUserStore.getState().activeUser?.role;
   const [{ idToTitle }, rows] = await Promise.all([
     provinceMaps(),
     advertisementsApi.listManaged(),
   ]);
-  return sortBulletins(rows.map((row) => mapAdminAdvertisement(row, idToTitle)));
+  const mapped = rows.map((row) => mapAdminAdvertisement(row, idToTitle));
+  // اگر Nest همه را برگرداند، همان قاعدهٔ mock (مالکیت پنل) را اعمال می‌کنیم.
+  const owned = role
+    ? mapped.filter((row) => isBulletinOwnedBy(row, role))
+    : mapped;
+  return sortBulletins(owned);
 }
 
 export async function createRealBulletin(
   input: UpsertBulletinInput
 ): Promise<Bulletin> {
+  const role = useUserStore.getState().activeUser?.role;
+  if (!role) throw new Error('نشست کاربری یافت نشد.');
+  const validationError = validateBulletinInput(input, role);
+  if (validationError) throw new Error(validationError);
+
   const { titleToId, idToTitle } = await provinceMaps();
   const imageId = await resolveImageFileId(input, (file) =>
     FilesService.uploadFile(file)
@@ -80,15 +118,27 @@ export async function updateRealBulletin(
   id: string,
   input: UpsertBulletinInput
 ): Promise<Bulletin> {
+  const role = useUserStore.getState().activeUser?.role;
   const { titleToId, idToTitle } = await provinceMaps();
-  const existing = await advertisementsApi.getOne(id);
+  const existingDto = await advertisementsApi.getOne(id);
+  const existing = mapAdminAdvertisement(existingDto, idToTitle);
+  if (role && !isBulletinOwnedBy(existing, role)) {
+    throw new Error('مورد موردنظر یافت نشد یا متعلق به پنل شما نیست.');
+  }
+  if (existing.kind !== input.kind) {
+    throw new Error('نوع مورد (اطلاعیه/تبلیغ) قابل تغییر نیست.');
+  }
+  // سلسله‌مراتب مخاطب با نقش نویسندهٔ اصلی، نه لزوماً ویرایشگر جاری.
+  const validationError = validateBulletinInput(input, existing.authorRole);
+  if (validationError) throw new Error(validationError);
+
   const imageId = await resolveImageFileId(input, (file) =>
     FilesService.uploadFile(file)
   );
   const body = toUpdateBody(input, {
     provinceTitleToId: titleToId,
     imageId,
-    existingFormat: existing.format,
+    existingFormat: existingDto.format,
   });
   const row = await advertisementsApi.update(id, body);
   return mapAdminAdvertisement(row, idToTitle);
