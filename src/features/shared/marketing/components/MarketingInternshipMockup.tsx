@@ -24,8 +24,8 @@ export function MarketingInternshipMockup() {
 
             <div className="flex shrink-0 items-center gap-3">
               <div className="flex flex-col gap-0.5 text-start text-xs font-bold text-kv-text-muted">
-                <div className="h-1.5 w-12 rounded bg-kv-border" />
-                <div className="h-1 w-8 rounded bg-kv-border-muted" />
+                <div className="h-1.5 w-12 rounded-kv-tight bg-kv-border" />
+                <div className="h-1 w-8 rounded-kv-tight bg-kv-border-muted" />
               </div>
               <span className="text-xs text-kv-border">|</span>
               <span className="text-kv-text-subtle" aria-hidden>
@@ -36,7 +36,7 @@ export function MarketingInternshipMockup() {
                 className="flex items-center gap-1 text-xs font-black text-kv-danger"
                 aria-hidden
               >
-                <div className="h-1.5 w-3 rounded bg-kv-danger-soft" />
+                <div className="h-1.5 w-3 rounded-kv-tight bg-kv-danger-soft" />
                 <FaIcon icon={faIcons.powerOff} size="2xs" />
               </span>
             </div>
@@ -46,7 +46,7 @@ export function MarketingInternshipMockup() {
             className="flex h-[calc(100%-40px)] w-full gap-2.5 bg-kv-surface-subtle p-2.5"
             dir="rtl"
           >
-            <div className="flex w-[18%] shrink-0 flex-col gap-2.5 rounded-kv-control bg-kv-surface p-1.5">
+            <div className="flex w-[18%] shrink-0 flex-col gap-2.5 rounded-kv-panel bg-kv-surface p-1.5">
               <div className="h-px bg-kv-border-muted" />
               <nav className="space-y-2" aria-hidden>
                 <div className="flex items-center gap-1 text-kv-brand">
@@ -55,7 +55,7 @@ export function MarketingInternshipMockup() {
                     size="2xs"
                     className="w-3 text-center"
                   />
-                  <div className="h-1 w-1/2 rounded bg-kv-brand-soft" />
+                  <div className="h-1 w-1/2 rounded-kv-tight bg-kv-brand-soft" />
                 </div>
                 <div className="flex items-center gap-1 text-kv-text-subtle">
                   <FaIcon
@@ -63,7 +63,7 @@ export function MarketingInternshipMockup() {
                     size="2xs"
                     className="w-3 text-center"
                   />
-                  <div className="h-1 w-2/3 rounded bg-kv-border-muted" />
+                  <div className="h-1 w-2/3 rounded-kv-tight bg-kv-border-muted" />
                 </div>
                 <div className="flex items-center gap-1 text-kv-text-subtle">
                   <FaIcon
@@ -71,7 +71,7 @@ export function MarketingInternshipMockup() {
                     size="2xs"
                     className="w-3 text-center"
                   />
-                  <div className="h-1 w-1/3 rounded bg-kv-border-muted" />
+                  <div className="h-1 w-1/3 rounded-kv-tight bg-kv-border-muted" />
                 </div>
                 <div className="flex items-center gap-1 text-kv-text-subtle">
                   <FaIcon
@@ -79,14 +79,14 @@ export function MarketingInternshipMockup() {
                     size="2xs"
                     className="w-3 text-center"
                   />
-                  <div className="h-1 w-1/2 rounded bg-kv-border-muted" />
+                  <div className="h-1 w-1/2 rounded-kv-tight bg-kv-border-muted" />
                 </div>
               </nav>
             </div>
 
             <div className="flex w-[82%] flex-col gap-2.5 overflow-hidden">
               <div className="grid shrink-0 grid-cols-3 gap-2 whitespace-nowrap">
-                <div className="flex flex-col gap-1 rounded-kv-control border border-kv-border-muted bg-kv-surface p-2">
+                <div className="flex flex-col gap-1 rounded-kv-panel border border-kv-border-muted bg-kv-surface p-2">
                   <div className="flex items-center gap-1 text-kv-brand">
                     <FaIcon icon={faIcons.paperPlane} size="2xs" />
                     <div className="text-xs font-black text-kv-text">
@@ -94,7 +94,7 @@ export function MarketingInternshipMockup() {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1 rounded-kv-control border border-kv-border-muted bg-kv-surface p-2">
+                <div className="flex flex-col gap-1 rounded-kv-panel border border-kv-border-muted bg-kv-surface p-2">
                   <div className="flex items-center gap-1 text-kv-success">
                     <FaIcon icon={faIcons.circleCheck} size="2xs" />
                     <div className="text-xs font-black text-kv-text">
@@ -102,7 +102,7 @@ export function MarketingInternshipMockup() {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col gap-1 rounded-kv-control border border-kv-border-muted bg-kv-surface p-2">
+                <div className="flex flex-col gap-1 rounded-kv-panel border border-kv-border-muted bg-kv-surface p-2">
                   <div className="flex items-center gap-1 text-kv-warning">
                     <FaIcon icon={faIcons.clock} size="2xs" />
                     <div className="text-xs font-black text-kv-text">
@@ -112,7 +112,7 @@ export function MarketingInternshipMockup() {
                 </div>
               </div>
 
-              <div className="flex flex-grow flex-col gap-1.5 overflow-hidden rounded-kv-control border border-kv-border-muted bg-kv-surface p-2.5">
+              <div className="flex flex-grow flex-col gap-1.5 overflow-hidden rounded-kv-panel border border-kv-border-muted bg-kv-surface p-2.5">
                 <div className="flex shrink-0 items-center justify-between border-b border-kv-border-muted pb-1">
                   <div className="flex w-1/3 items-center gap-1">
                     <FaIcon
@@ -120,7 +120,7 @@ export function MarketingInternshipMockup() {
                       size="2xs"
                       className="text-kv-brand"
                     />
-                    <div className="h-1.5 w-1/2 rounded bg-kv-border" />
+                    <div className="h-1.5 w-1/2 rounded-kv-tight bg-kv-border" />
                   </div>
                   <span className="text-xs font-bold text-kv-text-subtle">
                     آخرین وضعیت
@@ -146,10 +146,10 @@ export function MarketingInternshipMockup() {
                       <tr>
                         <td className="py-1 font-mono">۱</td>
                         <td className="py-1">
-                          <div className="h-1 w-12 rounded bg-kv-border" />
+                          <div className="h-1 w-12 rounded-kv-tight bg-kv-border" />
                         </td>
                         <td className="py-1">
-                          <div className="h-1 w-16 rounded bg-kv-border-muted" />
+                          <div className="h-1 w-16 rounded-kv-tight bg-kv-border-muted" />
                         </td>
                         <td className="py-1 text-center">
                           <span className="inline-block rounded-kv-control bg-kv-success-soft px-1 text-xs font-black text-kv-success">
@@ -163,10 +163,10 @@ export function MarketingInternshipMockup() {
                       <tr>
                         <td className="py-1 font-mono">۲</td>
                         <td className="py-1">
-                          <div className="h-1 w-14 rounded bg-kv-border" />
+                          <div className="h-1 w-14 rounded-kv-tight bg-kv-border" />
                         </td>
                         <td className="py-1">
-                          <div className="h-1 w-12 rounded bg-kv-border-muted" />
+                          <div className="h-1 w-12 rounded-kv-tight bg-kv-border-muted" />
                         </td>
                         <td className="py-1 text-center">
                           <span className="inline-block rounded-kv-control bg-kv-warning-soft px-1 text-xs font-black text-kv-warning">

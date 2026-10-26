@@ -137,7 +137,7 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
         <div className="mx-auto my-auto w-full space-y-kv-section py-8 text-center sm:py-12">
           <div className="space-y-kv-block pb-kv-group">
           {isPwa && (
-            <span className="inline-flex items-center rounded-lg border border-kv-brand-border bg-kv-brand-soft px-kv-group py-kv-inline text-sm font-bold text-kv-brand-soft-fg">
+            <span className="inline-flex items-center rounded-kv-control border border-kv-brand-border bg-kv-brand-soft px-kv-group py-kv-inline text-sm font-bold text-kv-brand-soft-fg">
               درگاه ورود یکپارچه سامانه کارویتا
             </span>
           )}
@@ -188,7 +188,7 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
             {products.map((product) => {
               const target = resolveProductLoginHref(product);
               const cardClass =
-                'group flex min-h-[168px] w-full cursor-pointer flex-col items-center gap-kv-group rounded-kv-panel border border-kv-border-muted bg-kv-surface p-kv-group text-center shadow-kv-raised transition-all duration-200 hover:border-kv-brand sm:min-h-[180px]';
+                'group flex min-h-[168px] w-full cursor-pointer flex-col items-center gap-kv-group rounded-kv-card border border-kv-border-muted bg-kv-surface p-kv-group text-center shadow-kv-raised transition-all duration-200 hover:border-kv-brand sm:min-h-[180px]';
 
               const inner = (
                 <>

@@ -92,7 +92,7 @@ export function MarketingBenefitsSection() {
                     </li>
                   </ul>
                 </div>
-                <div className="space-y-3 rounded-kv-card border border-kv-border-muted bg-kv-surface p-5 shadow-kv-soft lg:col-span-6">
+                <div className="space-y-3 rounded-kv-panel border border-kv-border-muted bg-kv-surface p-5 shadow-kv-soft lg:col-span-6">
                   <div className="flex items-center justify-between border-b border-kv-border-muted pb-2 text-xs font-black text-kv-text">
                     <span>کنسول مدیریت سازمان مرکزی</span>
                   </div>
@@ -159,7 +159,7 @@ export function MarketingBenefitsSection() {
                     </li>
                   </ul>
                 </div>
-                <div className="space-y-3 rounded-kv-card border border-kv-border-muted bg-kv-surface p-5 shadow-kv-soft lg:col-span-6">
+                <div className="space-y-3 rounded-kv-panel border border-kv-border-muted bg-kv-surface p-5 shadow-kv-soft lg:col-span-6">
                   <div className="flex items-center justify-between border-b border-kv-border-muted pb-2 text-xs font-black text-kv-text">
                     <span>پنل مانیتورینگ مدارس منطقه</span>
                   </div>
@@ -222,7 +222,7 @@ export function MarketingBenefitsSection() {
                     </li>
                   </ul>
                 </div>
-                <div className="space-y-3 rounded-kv-card border border-kv-border-muted bg-kv-surface p-5 shadow-kv-soft lg:col-span-6">
+                <div className="space-y-3 rounded-kv-panel border border-kv-border-muted bg-kv-surface p-5 shadow-kv-soft lg:col-span-6">
                   <div className="flex items-center justify-between border-b border-kv-border-muted pb-2 text-xs font-black text-kv-text">
                     <span>کادر ارزیابی و بازخورد کلاسی</span>
                   </div>

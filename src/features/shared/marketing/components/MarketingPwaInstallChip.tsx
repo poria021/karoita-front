@@ -16,7 +16,7 @@ export function MarketingPwaInstallChip() {
       className="group inline-flex items-center gap-3 rounded-kv-control border-2 border-kv-brand-border bg-kv-surface px-4 py-2.5 text-start transition-colors hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30"
       aria-label={shellCopy.account.installApp}
     >
-      <div className="flex items-center gap-1.5 rounded-sm bg-kv-brand-soft px-2.5 py-1.5 text-xs font-black text-kv-brand">
+      <div className="flex items-center gap-1.5 rounded-kv-tight bg-kv-brand-soft px-2.5 py-1.5 text-xs font-black text-kv-brand">
         <FaIcon icon={faIcons.mobileScreen} size="xs" />
         <FaIcon icon={faIcons.tabletScreenButton} size="xs" />
         <FaIcon icon={faIcons.desktop} size="xs" />

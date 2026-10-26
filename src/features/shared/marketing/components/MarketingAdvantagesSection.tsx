@@ -26,8 +26,8 @@ export function MarketingAdvantagesSection() {
 
         <div className="relative z-10 mx-auto max-w-5xl">
           <div className="relative flex flex-col items-center gap-6 lg:flex-row lg:gap-0">
-            <div className="relative z-10 w-full opacity-90 grayscale transition-all duration-500 hover:grayscale-0 lg:-ms-4 lg:w-1/2 lg:rounded-e-none lg:rounded-s-[1.5rem]">
-              <div className="rounded-kv-card border border-kv-border-muted bg-kv-surface/50 p-6 backdrop-blur-md sm:p-8 lg:rounded-e-none lg:rounded-s-[1.5rem]">
+            <div className="relative z-10 w-full opacity-90 grayscale transition-all duration-500 hover:grayscale-0 lg:-ms-4 lg:w-1/2">
+              <div className="rounded-kv-card border border-kv-border-muted bg-kv-surface/50 p-6 backdrop-blur-md sm:p-8">
                 <div className="absolute inset-x-10 top-0 h-0.5 bg-[repeating-linear-gradient(to_left,currentColor,currentColor_4px,transparent_4px,transparent_8px)] text-kv-border" />
 
                 <div className="mb-8 flex items-center justify-between border-b border-dashed border-kv-border pb-4">
