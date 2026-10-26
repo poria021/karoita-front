@@ -8,7 +8,7 @@ vi.mock('@/services/auth/real/real-auth.bridge', () => ({
 }));
 
 vi.mock('@/services/auth/real/real-auth.tokens', () => ({
-  readRealAccessToken: (...args: unknown[]) => readRealAccessToken(...args),
+  readRealAccessToken: () => readRealAccessToken(),
 }));
 
 import {
