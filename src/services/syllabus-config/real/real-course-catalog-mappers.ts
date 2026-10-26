@@ -40,14 +40,17 @@ export function courseGroupId(type: OriginalLessonType, mainTitle: string): stri
  * گروهی با یک ردیف که `lessonTitle` آن با `mainTitle` برابر است، درسِ بدون زیرمجموعه حساب می‌شود
  * (همان شکلی که `toNestBulkCreateBody` برای درس مستقل می‌نویسد).
  * درس وقتی بایگانی است که هیچ ردیف `active` نداشته باشد.
+ *
+ * سطح ثبت‌نام: عدد ۱..۹ داخل عنوان (مثل «کارورزی ۲»)؛ وگرنه شمارندهٔ سراسری از ۱۰۱
+ * تا چند درس/زیرمجموعه path یکسان (`/internships/101`) نگیرند و چند آیتم سایدبار هم‌زمان
+ * فعال نشوند.
  */
-function inferEnrollmentLevelFromTitle(title: string, index: number): number {
+function explicitEnrollmentLevelFromTitle(title: string): number | null {
   const normalized = persianToEnglishDigits(title);
   const explicit = [...normalized.matchAll(/\d+/g)]
     .map((match) => Number(match[0]))
     .find((value) => value >= 1 && value <= 9);
-
-  return explicit ?? (DYNAMIC_ENROLLMENT_LEVEL_BASE + index + 1);
+  return explicit ?? null;
 }
 
 export function groupOriginalLessons(
@@ -67,24 +70,27 @@ export function groupOriginalLessons(
     }
   }
 
+  let nextDynamicLevel = DYNAMIC_ENROLLMENT_LEVEL_BASE;
+  const levelFor = (title: string): number =>
+    explicitEnrollmentLevelFromTitle(title) ?? (++nextDynamicLevel);
+
   return [...groups.entries()].map(([id, group]) => {
     const standalone =
       group.rows.length === 1 &&
       group.rows[0]!.lessonTitle.trim() === group.title;
-    const fallbackLevel = inferEnrollmentLevelFromTitle(group.title, 0);
 
     return {
       id,
       title: group.title,
       audience: group.audience,
       isActive: group.rows.some((row) => row.status === 'active'),
-      ...(standalone ? { level: fallbackLevel } : {}),
+      ...(standalone ? { level: levelFor(group.title) } : {}),
       subModules: standalone
         ? []
-        : group.rows.map((row, index) => ({
+        : group.rows.map((row) => ({
             id: row.id,
             title: row.lessonTitle.trim(),
-            level: inferEnrollmentLevelFromTitle(row.lessonTitle.trim(), index),
+            level: levelFor(row.lessonTitle.trim()),
           })),
     };
   });

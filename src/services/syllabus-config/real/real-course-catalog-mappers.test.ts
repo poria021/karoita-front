@@ -78,6 +78,32 @@ describe('groupOriginalLessons', () => {
     expect(course?.subModules.map((sub) => sub.level)).toEqual([101, 102]);
   });
 
+  it('سطح داینامیک بین چند درس یکتا است تا چند آیتم سایدبار path یکسان نگیرند', () => {
+    const courses = groupOriginalLessons([
+      row({ id: 'a', mainTitle: 'سیتسب', lessonTitle: 'سیتسب' }),
+      row({ id: 'b', mainTitle: 'کارگاه', lessonTitle: 'کارگاه' }),
+      row({
+        id: 'c',
+        mainTitle: 'ظظظظ',
+        lessonTitle: 'ظظظظ الف',
+      }),
+      row({
+        id: 'd',
+        mainTitle: 'ظظظظ',
+        lessonTitle: 'ظظظظ ب',
+      }),
+    ]);
+
+    const levels = courses.flatMap((course) =>
+      course.subModules.length > 0
+        ? course.subModules.map((sub) => sub.level)
+        : [course.level]
+    );
+
+    expect(levels).toEqual([101, 102, 103, 104]);
+    expect(new Set(levels).size).toBe(levels.length);
+  });
+
   it('درس فقط وقتی بایگانی است که همهٔ ردیف‌ها deactive باشند', () => {
     const [mixed] = groupOriginalLessons([
       row({ id: 'a', status: 'deactive' }),
