@@ -69,6 +69,7 @@ import { ApiClientError } from '@/services/api-client';
 import {
   clearRealAuthTokens,
   isRealTokenFresh,
+  msUntilAccessRefreshNeeded as readMsUntilAccessRefreshNeeded,
   peekRealAuthTokens,
   readRealAccessToken,
   readRealTokenExpiresAt,
@@ -242,6 +243,15 @@ export class AuthService {
   static async refreshAccessToken(): Promise<Session | null> {
     if (IS_MOCK_MODE) return AuthService.peekSession();
     return realRefreshToken();
+  }
+
+  /**
+   * فاصله تا refresh پیش‌دستانهٔ access (با skew).
+   * `null` = توکنی در حافظه نیست یا mock — keep-alive تصمیم می‌گیرد.
+   */
+  static msUntilAccessRefreshNeeded(): number | null {
+    if (IS_MOCK_MODE) return null;
+    return readMsUntilAccessRefreshNeeded();
   }
 
   /**
