@@ -43,7 +43,7 @@ export type KvImageDocUploaderProps = {
    * URL تصویر قبلاً آپلودشده. با `value=null` پیش‌نمایش از همین URL است.
    */
   existingUrl?: string | null;
-  /** `originalFile` برای پسوند واقعی — فایل فشرده معمولاً webp است. */
+  /** `originalFile` برای پسوند واقعی — فایل فشرده معمولاً JPEG است (سازگار با Nest). */
   onChange: (file: File | null, originalFile?: File | null) => void;
   label?: string | false;
   labelIcon?: ReactNode;
@@ -62,6 +62,10 @@ export type KvImageDocUploaderProps = {
    * SVG حتی با `true` هم فشرده نمی‌شود.
    */
   compress?: boolean;
+  /**
+   * فرمت خروجی فشرده‌سازی. پیش‌فرض JPEG — Nest `image/webp` را در `/v1/files/upload` رد می‌کند.
+   */
+  compressFormat?: 'image/webp' | 'image/jpeg' | 'image/png';
   /** حداکثر عرض خروجی فشرده‌سازی (پیش‌فرض ۱۰۰۰px، برای تصاویر full-bleed مثل بنر هیرو باید بزرگ‌تر باشد). */
   compressMaxWidth?: number;
   /**
@@ -200,6 +204,7 @@ export function KvImageDocUploader({
   },
   invalidTypeMessage = 'فقط فایل‌های تصویری (JPEG، PNG) مجاز هستند.',
   compress = true,
+  compressFormat = 'image/jpeg',
   compressMaxWidth = 1000,
   framed = true,
   previewFit = 'contain',
@@ -292,8 +297,9 @@ export function KvImageDocUploader({
         const compressedFile = await compressImage(file, {
           maxWidth: compressMaxWidth,
           quality: 0.7,
-          format: 'image/webp',
-          allowJpegFallback: false,
+          format: compressFormat,
+          // اگر مرورگر WebP نسازد، JPEG بماند تا mime با whitelist Nest یکی باشد.
+          allowJpegFallback: compressFormat === 'image/webp',
         });
         onChange(compressedFile, file);
       } catch (err) {
@@ -307,7 +313,15 @@ export function KvImageDocUploader({
         setIsCompressing(false);
       }
     },
-    [compress, compressMaxWidth, disabled, invalidTypeMessage, maxSizeMb, onChange]
+    [
+      compress,
+      compressFormat,
+      compressMaxWidth,
+      disabled,
+      invalidTypeMessage,
+      maxSizeMb,
+      onChange,
+    ]
   );
 
   const handleRemove = useCallback(
