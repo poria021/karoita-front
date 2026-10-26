@@ -19,6 +19,11 @@ import {
   BULLETIN_BODY_MAX,
   BULLETIN_TITLE_MAX,
 } from '@/services/bulletins/bulletin-rules';
+import {
+  NEST_IMAGE_UPLOAD_ACCEPT,
+  NEST_IMAGE_UPLOAD_INVALID_TYPE,
+  nestImageUploadHelperText,
+} from '@/services/files/nest-image-upload-limits';
 import type { UserRole } from '@/types/auth';
 
 import type { UseBulletinsManagePageReturn } from '../hooks/useBulletinsManagePage';
@@ -50,8 +55,10 @@ type BulletinFormModalProps = Pick<
   | 'formError'
   | 'isSaving'
   | 'audienceOptions'
+  | 'audienceValues'
   | 'canTargetProvinces'
   | 'provinceOptions'
+  | 'provinceValues'
   | 'isProvincesLoading'
   | 'patchForm'
   | 'setImageFile'
@@ -105,7 +112,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
               required
               disabled={isSaving}
               options={props.audienceOptions}
-              values={form.audienceRoles}
+              values={props.audienceValues}
               placeholder="نقش‌های مخاطب را انتخاب کنید"
               selectAllLabel="همه"
               onValuesChange={(next) =>
@@ -126,7 +133,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
               required
               disabled={isSaving || props.isProvincesLoading}
               options={props.provinceOptions}
-              values={form.provinces}
+              values={props.provinceValues}
               placeholder={
                 props.isProvincesLoading
                   ? 'در حال بارگذاری استان‌ها…'
@@ -178,7 +185,10 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
               onChange={(file) => props.setImageFile(file)}
               maxSizeMb={AD_IMAGE_MAX_SIZE_MB}
               compressMaxWidth={AD_IMAGE_COMPRESS_MAX_WIDTH}
-              helperText={`تصویر مربعی (۱:۱) — JPG، PNG یا WebP، حداکثر ${AD_IMAGE_MAX_SIZE_MB} مگابایت`}
+              compressFormat="image/jpeg"
+              accept={NEST_IMAGE_UPLOAD_ACCEPT}
+              invalidTypeMessage={NEST_IMAGE_UPLOAD_INVALID_TYPE}
+              helperText={`تصویر مربعی (۱:۱) — ${nestImageUploadHelperText(AD_IMAGE_MAX_SIZE_MB)}`}
               previewAlt="پیش‌نمایش تصویر تبلیغ"
             />
           ) : null}

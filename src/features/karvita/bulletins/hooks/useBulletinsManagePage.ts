@@ -12,6 +12,10 @@ import {
   canTargetProvinces,
   validateBulletinInput,
 } from '@/services/bulletins/bulletin-rules';
+import {
+  buildProvinceSelectOptions,
+  canonicalizeProvinceTitles,
+} from '@/services/bulletins/province-select';
 import { BulletinsService } from '@/services/bulletins.service';
 import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
@@ -38,7 +42,10 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'عملیات ناموفق بود.';
 }
 
-function toInput(form: BulletinForm): UpsertBulletinInput {
+function toInput(
+  form: BulletinForm,
+  provinceCatalog: readonly string[] = []
+): UpsertBulletinInput {
   return {
     kind: form.kind,
     title: form.title,
@@ -51,7 +58,7 @@ function toInput(form: BulletinForm): UpsertBulletinInput {
         }
       : {}),
     audienceRoles: form.audienceRoles,
-    provinces: form.provinces,
+    provinces: canonicalizeProvinceTitles(form.provinces, provinceCatalog),
   };
 }
 
@@ -130,11 +137,23 @@ export function useBulletinsManagePage() {
     [role, form.kind]
   );
 
+  // فقط نقش‌های مجاز فعلی؛ نقش اضافی Nest در شرط «همه» نویز ایجاد نکند.
+  const audienceValues = useMemo(() => {
+    const allowed = new Set(audienceOptions.map((option) => option.value));
+    return form.audienceRoles.filter((item) => allowed.has(item));
+  }, [form.audienceRoles, audienceOptions]);
+
+  const provinceCatalog = provincesQuery.data ?? [];
+  // عنوان فرم را با کاتالوگ هم‌تراز می‌کنیم تا شرط «همه» به‌خاطر ی/ک یا فاصله نشکند.
+  const provinceValues = useMemo(
+    () => canonicalizeProvinceTitles(form.provinces, provinceCatalog),
+    [form.provinces, provinceCatalog]
+  );
   // استانی که قبلاً ذخیره شده ولی دیگر در کاتالوگ نیست هم در گزینه‌ها می‌ماند تا بی‌صدا حذف نشود.
-  const provinceOptions = useMemo(() => {
-    const titles = [...new Set([...(provincesQuery.data ?? []), ...form.provinces])];
-    return titles.map((title) => ({ value: title, label: title }));
-  }, [provincesQuery.data, form.provinces]);
+  const provinceOptions = useMemo(
+    () => buildProvinceSelectOptions(provinceCatalog, form.provinces),
+    [provinceCatalog, form.provinces]
+  );
 
   function openForm(next: BulletinForm) {
     setForm(next);
@@ -184,7 +203,7 @@ export function useBulletinsManagePage() {
     if (!role) return;
     setIsSaving(true);
     try {
-      const input = toInput(form);
+      const input = toInput(form, provinceCatalog);
       // ویرایش: سلسله‌مراتب مخاطب با نقش نویسندهٔ اصلی (نه لزوماً نقش جاری).
       const validateAs =
         (form.editId
@@ -254,7 +273,9 @@ export function useBulletinsManagePage() {
     isSaving,
     modalOpen,
     audienceOptions,
+    audienceValues,
     provinceOptions,
+    provinceValues,
     isProvincesLoading: provincesQuery.isLoading,
     openCreate,
     startEdit,
