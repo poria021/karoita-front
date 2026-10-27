@@ -143,7 +143,10 @@ export function useBulletinsManagePage() {
     return form.audienceRoles.filter((item) => allowed.has(item));
   }, [form.audienceRoles, audienceOptions]);
 
-  const provinceCatalog = provincesQuery.data ?? [];
+  const provinceCatalog = useMemo(
+    () => provincesQuery.data ?? [],
+    [provincesQuery.data]
+  );
   // عنوان فرم را با کاتالوگ هم‌تراز می‌کنیم تا شرط «همه» به‌خاطر ی/ک یا فاصله نشکند.
   const provinceValues = useMemo(
     () => canonicalizeProvinceTitles(form.provinces, provinceCatalog),
