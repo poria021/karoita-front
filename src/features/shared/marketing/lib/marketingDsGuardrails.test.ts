@@ -37,4 +37,20 @@ describe('marketing DS guardrails', () => {
 
     expect(offenders).toEqual([]);
   });
+
+  it('uses only kv radius tokens (or rounded-full) — no Tailwind/arbitrary corners', () => {
+    // Nested shape law: card → panel → control → tight; full only for circles/pills.
+    const banned =
+      /(?<![\w-])rounded(?:-(?:none|sm|md|lg|xl|2xl|3xl|\[)|-[tlbrxy]{1,2}-)|\brounded(?![-\w])/;
+
+    const offenders: string[] = [];
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8');
+      if (banned.test(source)) {
+        offenders.push(path.relative(process.cwd(), file));
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
 });

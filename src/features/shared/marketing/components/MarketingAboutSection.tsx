@@ -44,7 +44,7 @@ export function MarketingAboutSection() {
 
             <div className="absolute inset-0">
               <div className="absolute end-1/2 top-[5%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-                <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-brand-border bg-kv-surface text-xl text-kv-brand shadow-kv-raised transition hover:scale-110">
+                <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-control border border-kv-brand-border bg-kv-surface text-xl text-kv-brand shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.buildingColumns} />
                 </div>
                 <span className="mt-1 whitespace-nowrap rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">
@@ -53,7 +53,7 @@ export function MarketingAboutSection() {
               </div>
 
               <div className="absolute end-[91.6%] top-[67.2%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-                <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-success-border bg-kv-surface text-xl text-kv-success shadow-kv-raised transition hover:scale-110">
+                <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-control border border-kv-success-border bg-kv-surface text-xl text-kv-success shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.school} />
                 </div>
                 <span className="mt-1 whitespace-nowrap rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">
@@ -62,7 +62,7 @@ export function MarketingAboutSection() {
               </div>
 
               <div className="absolute end-[15.9%] top-[79.4%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center">
-                <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-card border border-kv-info-border bg-kv-surface text-xl text-kv-info shadow-kv-raised transition hover:scale-110">
+                <div className="relative z-10 flex size-12 cursor-default items-center justify-center rounded-kv-control border border-kv-info-border bg-kv-surface text-xl text-kv-info shadow-kv-raised transition hover:scale-110">
                   <FaIcon icon={faIcons.graduationCap} />
                 </div>
                 <span className="mt-1 whitespace-nowrap rounded-kv-control border border-kv-border-muted bg-kv-surface px-2 py-0.5 text-xs font-black text-kv-text-muted">

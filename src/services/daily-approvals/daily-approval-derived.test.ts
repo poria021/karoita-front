@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildDailyApprovalProgressiveGradeFromSummary,
   computeDailyApprovalProgressiveGrade,
   withDerivedDailyApprovalTrainee,
 } from '@/services/daily-approvals/daily-approval-derived';
@@ -50,6 +51,22 @@ describe('computeDailyApprovalProgressiveGrade', () => {
       gradedCount: 2,
       final20: 14,
       statusLabel: 'مردود',
+    });
+  });
+});
+
+describe('buildDailyApprovalProgressiveGradeFromSummary', () => {
+  it('rounds weightedScore to two decimal places', () => {
+    expect(
+      buildDailyApprovalProgressiveGradeFromSummary(
+        { scoredWeeks: 3, weightedScore: 17.333333333 },
+        'active',
+        70
+      )
+    ).toEqual({
+      gradedCount: 3,
+      final20: 17.33,
+      statusLabel: 'قبول',
     });
   });
 });

@@ -61,7 +61,7 @@ export function buildDailyApprovalProgressiveGradeFromSummary(
   if (!summary || summary.scoredWeeks <= 0) {
     return { gradedCount: summary?.scoredWeeks ?? 0, final20: null, statusLabel: 'فاقد نمره' };
   }
-  const final20 = summary.weightedScore;
+  const final20 = Number(summary.weightedScore.toFixed(2));
   const thresholdOn20 = (passingScoreThreshold / 100) * 20;
   return {
     gradedCount: summary.scoredWeeks,

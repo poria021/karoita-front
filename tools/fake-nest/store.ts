@@ -80,19 +80,26 @@ export type StoredNotification = {
   readByUserIds: string[];
 };
 
-/** اطلاعیه/تبلیغ؛ نقش‌ها نام‌های Nest هستند. قرارداد: openapi.proposed.json */
-export type StoredBulletin = {
+/** تبلیغ/اطلاعیه؛ نقش‌ها نام‌های Nest هستند. قرارداد: Advertisements در proposed/snapshot. */
+export type StoredAdvertisement = {
   id: string;
-  kind: 'announcement' | 'advertisement';
+  type: 'ads' | 'info';
+  format: 'text' | 'image';
   title: string;
   body: string;
-  linkUrl?: string;
-  imageUrl?: string;
-  authorRole: string;
-  authorName: string;
-  audienceRoles: string[];
-  provinces: string[];
+  link: string | null;
+  placement: 'hero' | 'sidebar';
+  imageId: string | null;
+  targetRoles: string[];
+  targetProvinceIds: string[];
+  targetUniversityIds: string[];
+  targetUserIds: string[];
   isActive: boolean;
+  clickCount: number;
+  impressionCount: number;
+  startsAt: string;
+  endsAt: string | null;
+  createdByRole: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -270,7 +277,7 @@ export type Store = {
   conversations: Map<string, StoredConversation>;
   messages: StoredMessage[];
   mentorLessonFiles: Map<string, StoredMentorLessonFile>;
-  bulletins: StoredBulletin[];
+  advertisements: StoredAdvertisement[];
   provinces: Map<string, StoredProvince>;
 };
 
@@ -306,7 +313,7 @@ export function createStore(publicUrl: string): Store {
     conversations: new Map(),
     messages: [],
     mentorLessonFiles: new Map(),
-    bulletins: [],
+    advertisements: [],
     provinces: new Map(),
   };
 }
@@ -336,7 +343,7 @@ export function clearStore(store: Store): void {
   store.conversations.clear();
   store.messages.length = 0;
   store.mentorLessonFiles.clear();
-  store.bulletins.length = 0;
+  store.advertisements.length = 0;
   store.provinces.clear();
 }
 

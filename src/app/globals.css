@@ -209,13 +209,14 @@
   /*
    * Karvita semantic radius (`rounded-kv-*`) — nested shape law (MD3 / enterprise):
    * each nesting level steps down so the child never exceeds the parent.
+   * Marketing home: one token per role — never mix Tailwind rounded-* / arbitrary px.
    *
-   *   tight   2px  — micro (checkbox)
-   *   control 6px  — fields, buttons, selects, badges, tabs, table frames, KvCard
+   *   tight   2px  — micro (checkbox, skeleton bars, nested chip insets)
+   *   control 6px  — fields, buttons, selects, badges, tabs, icon wells, dock
    *   table   = control (alias — keep class name stable for table chrome)
-   *   panel  12px  — alerts, dropdowns (surfaces larger than form chrome)
+   *   panel  12px  — nested content panels inside a card (never match parent card)
    *   shell  12px  — layout wells (sidebar, main viewport)
-   *   card   16px  — auth / marketing / modal overlays (outside dashboard shell)
+   *   card   16px  — marketing / auth / modal outer surfaces
    *
    * Exception: `rounded-full` only for true circles/pills (avatar, switch, dots).
    */

@@ -34,6 +34,44 @@ export type KvCheckboxMultiSelectProps = {
   className?: string;
 };
 
+function SelectedValueBadge({
+  label,
+  disabled,
+  onRemove,
+}: {
+  label: string;
+  disabled: boolean;
+  onRemove: (event: SyntheticEvent) => void;
+}) {
+  return (
+    <Badge
+      variant="brand"
+      className="max-w-full gap-0.5 rounded-kv-tight px-1.5 py-0.5 pe-0.5 font-medium leading-none"
+    >
+      <span className="min-w-0 truncate">{label}</span>
+      <button
+        type="button"
+        tabIndex={-1}
+        aria-label={`حذف ${label}`}
+        disabled={disabled}
+        className={cn(
+          'inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-kv-tight',
+          'text-kv-brand-soft-fg hover:bg-kv-brand/15',
+          'outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30',
+          'disabled:pointer-events-none disabled:opacity-50'
+        )}
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onClick={onRemove}
+      >
+        <FaIcon icon={faIcons.xmark} size="2xs" />
+      </button>
+    </Badge>
+  );
+}
+
 export function KvCheckboxMultiSelect({
   id,
   label = false,
@@ -53,13 +91,15 @@ export function KvCheckboxMultiSelect({
   const listboxId = `${fieldId}-listbox`;
   const [isOpen, setIsOpen] = useState(false);
 
-  const selectedOptions = values
-    .map((value) => options.find((option) => option.value === value))
-    .filter((option): option is KvCheckboxMultiSelectOption => Boolean(option));
+  // ترتیب options حفظ می‌شود؛ تکراری‌های values باعث غلط شدن شرط «همه» نمی‌شوند.
+  const selectedValueSet = new Set(values);
+  const selectedOptions = options.filter((option) =>
+    selectedValueSet.has(option.value)
+  );
 
   const toggleValue = (value: string, checked: boolean) => {
     if (checked) {
-      if (values.includes(value)) return;
+      if (selectedValueSet.has(value)) return;
       onValuesChange([...values, value]);
       return;
     }
@@ -67,13 +107,23 @@ export function KvCheckboxMultiSelect({
   };
 
   const allSelected =
-    options.length > 0 && options.every((option) => values.includes(option.value));
+    options.length > 0 && selectedOptions.length === options.length;
+  // چند گزینهٔ کامل = یک بج «همه» به‌جای ردیف بج‌ها.
+  const showAllBadge = allSelected && options.length > 1;
+  const allBadgeLabel = selectAllLabel ?? 'همه';
 
   const removeValue = (event: SyntheticEvent, value: string) => {
     event.preventDefault();
     event.stopPropagation();
     if (disabled) return;
     toggleValue(value, false);
+  };
+
+  const clearAll = (event: SyntheticEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (disabled) return;
+    onValuesChange([]);
   };
 
   return (
@@ -91,51 +141,39 @@ export function KvCheckboxMultiSelect({
             aria-invalid={error ? true : undefined}
             aria-disabled={disabled || undefined}
             className={cn(
-            'flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-kv-pair rounded-kv-control',
-            'border border-kv-border bg-kv-field px-2 py-1',
-            'font-sans text-xs font-bold text-kv-text-secondary shadow-none',
-            'outline-none transition-[color,background-color,border-color,box-shadow]',
-            'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
-            'data-[state=open]:border-kv-brand data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15',
-            disabled
-              ? 'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled [&_svg]:text-kv-text-disabled focus-visible:border-kv-border-disabled focus-visible:ring-0'
-              : 'can-hover:not-focus-visible:hover:border-kv-border-hover data-[state=open]:hover:border-kv-brand',
-            !disabled && selectedOptions.length === 0 && 'ps-3.5 text-kv-text-placeholder',
-            disabled && 'ps-3.5',
+              'flex min-h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-kv-pair rounded-kv-control',
+              'border border-kv-border bg-kv-field px-2 py-1',
+              'font-sans text-xs font-bold text-kv-text-secondary shadow-none',
+              'outline-none transition-[color,background-color,border-color,box-shadow]',
+              'focus-visible:border-kv-brand focus-visible:ring-[3px] focus-visible:ring-kv-ring/15',
+              'data-[state=open]:border-kv-brand data-[state=open]:ring-[3px] data-[state=open]:ring-kv-ring/15',
+              disabled
+                ? 'cursor-not-allowed border-kv-border-disabled bg-kv-field-disabled text-kv-text-disabled [&_svg]:text-kv-text-disabled focus-visible:border-kv-border-disabled focus-visible:ring-0'
+                : 'can-hover:not-focus-visible:hover:border-kv-border-hover data-[state=open]:hover:border-kv-brand',
+              !disabled && selectedOptions.length === 0 && 'ps-3.5 text-kv-text-placeholder',
+              disabled && 'ps-3.5',
               className
             )}
           >
             <span className="flex min-w-0 flex-1 flex-wrap items-center gap-1 text-start">
-              {selectedOptions.length === 0
-                ? placeholder
-                : selectedOptions.map((option) => (
-                    <Badge
-                      key={option.value}
-                      variant="brand"
-                      className="max-w-full gap-0.5 rounded-kv-tight px-1.5 py-0.5 pe-0.5 font-medium leading-none"
-                    >
-                      <span className="min-w-0 truncate">{option.label}</span>
-                      <button
-                        type="button"
-                        tabIndex={-1}
-                        aria-label={`حذف ${option.label}`}
-                        disabled={disabled}
-                        className={cn(
-                          'inline-flex size-4 shrink-0 cursor-pointer items-center justify-center rounded-kv-tight',
-                          'text-kv-brand-soft-fg hover:bg-kv-brand/15',
-                          'outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30',
-                          'disabled:pointer-events-none disabled:opacity-50'
-                        )}
-                        onPointerDown={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                        }}
-                        onClick={(event) => removeValue(event, option.value)}
-                      >
-                        <FaIcon icon={faIcons.xmark} size="2xs" />
-                      </button>
-                    </Badge>
-                  ))}
+              {selectedOptions.length === 0 ? (
+                placeholder
+              ) : showAllBadge ? (
+                <SelectedValueBadge
+                  label={allBadgeLabel}
+                  disabled={disabled}
+                  onRemove={clearAll}
+                />
+              ) : (
+                selectedOptions.map((option) => (
+                  <SelectedValueBadge
+                    key={option.value}
+                    label={option.label}
+                    disabled={disabled}
+                    onRemove={(event) => removeValue(event, option.value)}
+                  />
+                ))
+              )}
             </span>
 
             <FaIcon
@@ -168,7 +206,7 @@ export function KvCheckboxMultiSelect({
             </DropdownMenuCheckboxItem>
           ) : null}
           {options.map((option) => {
-            const checked = values.includes(option.value);
+            const checked = selectedValueSet.has(option.value);
             return (
               <DropdownMenuCheckboxItem
                 key={option.value}

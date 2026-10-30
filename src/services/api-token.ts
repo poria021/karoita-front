@@ -42,11 +42,20 @@ export function bearerHeaders(token?: string): HeadersInit {
   };
 }
 
-/** Bearer صریح یا access حافظه؛ اینجا refresh نزن — OTP بدون سشن `/api/auth/refresh` الکی می‌زند. */
+/**
+ * Bearer صریح یا access حافظه.
+ * اگر keep-alive/۴۰۱ همین الان در حال rotate است، به همان promise بپیوند —
+ * وگرنه کلیک اول بعد از idle با توکن خالی می‌رود و یک RTT اضافه ۴۰۱ می‌پردازد.
+ * اینجا خودت refresh شروع نکن — OTP بدون سشن `/api/auth/refresh` الکی می‌زند.
+ */
 export async function resolveBearerToken(
   explicit?: string
 ): Promise<string | undefined> {
   if (explicit) return explicit;
+  if (typeof window !== 'undefined' && browserRotateAccessPromise) {
+    const rotated = await browserRotateAccessPromise;
+    if (rotated) return rotated;
+  }
   try {
     const { readRealAccessToken } = await import(
       '@/services/auth/real/real-auth.tokens'

@@ -1,169 +1,170 @@
-import { apiClient } from '@/services/api-client';
+/**
+ * اطلاعیه/تبلیغ روی Nest واقعی.
+ * `type=info` = اطلاعیه، `type=ads` = تبلیغ؛ هر دو زیر `/admin/advertisements` و نمایش زیر `/v1/advertisements`.
+ * UI فقط `BulletinsService` را صدا می‌زند؛ تغییر قرارداد Nest فقط همین پوشه را لمس کند.
+ */
 import {
-  fromNestRoleName,
-  isStaffAdminRole,
-  toNestAdminAccountRole,
-  toNestRoleName,
-} from '@/services/auth/real/nest-auth-role';
-import { sortBulletins } from '@/services/bulletins/bulletin-rules';
+  isBulletinOwnedBy,
+  sortBulletins,
+  validateBulletinInput,
+} from '@/services/bulletins/bulletin-rules';
+import {
+  DASHBOARD_AD_PLACEMENTS,
+  mapAdminAdvertisement,
+  mapPublicAdvertisement,
+  resolveImageFileId,
+  toCreateBody,
+  toUpdateBody,
+} from '@/services/bulletins/real/advertisement-mappers';
+import { advertisementsApi } from '@/services/bulletins/real/advertisements.api';
+import { FilesService } from '@/services/files.service';
 import { useUserStore } from '@/store/useUserStore';
-import type { UserRole } from '@/types/auth';
-import type { Bulletin, BulletinKind, UpsertBulletinInput } from '@/types/bulletins';
-import { getRoleStrategy } from '@/utils/RoleStrategyMap';
+import type { Bulletin, UpsertBulletinInput } from '@/types/bulletins';
+import type {
+  NestAdvertisementPlacement,
+  NestAdvertisementType,
+  NestPublicAdvertisementDto,
+} from '@/types/nest-advertisements';
 
-/**
- * اطلاعیه/تبلیغ روی Nest. مسیرها نسبت به `NEXT_PUBLIC_API_URL` (`.../api`) هستند.
- *
- * ⚠️ این endpointها هنوز در Swagger بک‌اند نیستند؛ قرارداد پیشنهادی در
- * `tools/fake-nest/openapi.proposed.json` است و سرور جعلی (`pnpm fake-api`) آن را سرو می‌کند.
- * وقتی بک‌اند شکل دیگری منتشر کرد، فقط این فایل (و mapperها) عوض شود؛ شکل Facade ثابت می‌ماند.
- */
-export const NEST_BULLETINS_PATHS = {
-  list: 'v1/bulletins',
-  managed: 'v1/bulletins/managed',
-  byId: (id: string) => `v1/bulletins/${id}`,
-  active: (id: string) => `v1/bulletins/${id}/active`,
-} as const;
-
-type NestBulletin = {
-  id: string;
-  kind: BulletinKind;
-  title: string;
-  body: string;
-  linkUrl?: string | null;
-  imageUrl?: string | null;
-  authorRole: string;
-  authorName: string;
-  audienceRoles: string[];
-  provinces: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
-
-/** ستاد روی Nest `admin`/`superadmin` است؛ بقیه نام‌های عادی نقش. */
-function toNestBulletinRole(role: UserRole): string {
-  return isStaffAdminRole(role) ? toNestAdminAccountRole(role) : toNestRoleName(role);
+async function provinceMaps(): Promise<{
+  titleToId: Map<string, string>;
+  idToTitle: Map<string, string>;
+}> {
+  const { adminCatalogApi } = await import(
+    '@/services/admin-catalog/admin-catalog.api'
+  );
+  const provinces = await adminCatalogApi.getAllProvinces();
+  const titleToId = new Map<string, string>();
+  const idToTitle = new Map<string, string>();
+  for (const province of provinces) {
+    const title = province.title?.trim();
+    const id = province.id?.trim();
+    if (!title || !id) continue;
+    titleToId.set(title, id);
+    idToTitle.set(id, title);
+  }
+  return { titleToId, idToTitle };
 }
 
-/**
- * نقش/نام کاربر جاری برای پروکسی؛ فقط وقتی `FAKE_PROPOSED_API_URL` سمت سرور ست باشد
- * به سرور جعلی می‌رسد (توکن واقعی Nest در آن شناخته‌شده نیست). در غیر این صورت پروکسی حذفش می‌کند.
- */
-function fakeActorOptions(): { headers: Record<string, string> } {
-  const user = useUserStore.getState().activeUser;
-  if (!user) return { headers: {} };
-  const name =
-    [user.firstName, user.lastName].filter(Boolean).join(' ') ||
-    getRoleStrategy(user.role).label;
-  return {
-    headers: {
-      'x-karvita-actor': encodeURIComponent(
-        JSON.stringify({ role: toNestBulletinRole(user.role), name })
-      ),
-    },
-  };
-}
-
-export function mapNestBulletin(row: NestBulletin): Bulletin {
-  return {
-    id: row.id,
-    kind: row.kind,
-    title: row.title,
-    body: row.body,
-    ...(row.linkUrl ? { linkUrl: row.linkUrl } : {}),
-    ...(row.imageUrl ? { imageUrl: row.imageUrl } : {}),
-    authorRole: fromNestRoleName(row.authorRole),
-    authorName: row.authorName,
-    audienceRoles: row.audienceRoles.map(fromNestRoleName),
-    provinces: row.provinces ?? [],
-    isActive: row.isActive !== false,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  };
-}
-
-function toNestBody(input: UpsertBulletinInput) {
-  return {
-    kind: input.kind,
-    title: input.title,
-    body: input.body,
-    ...(input.linkUrl ? { linkUrl: input.linkUrl } : {}),
-    ...(input.imageUrl ? { imageUrl: input.imageUrl } : {}),
-    audienceRoles: input.audienceRoles.map(toNestBulletinRole),
-    provinces: input.provinces,
-  };
+/** یک type را برای همهٔ placementهای داشبورد می‌گیرد و با id یکتا ادغام می‌کند. */
+async function listVisibleDeduped(
+  type: NestAdvertisementType,
+  placements: readonly NestAdvertisementPlacement[]
+): Promise<NestPublicAdvertisementDto[]> {
+  const batches = await Promise.all(
+    placements.map((placement) =>
+      advertisementsApi.listVisible({ type, placement })
+    )
+  );
+  const seen = new Set<string>();
+  const out: NestPublicAdvertisementDto[] = [];
+  for (const batch of batches) {
+    for (const row of batch) {
+      if (seen.has(row.id)) continue;
+      seen.add(row.id);
+      out.push(row);
+    }
+  }
+  return out;
 }
 
 export async function listRealDashboardBulletins(): Promise<Bulletin[]> {
-  const rows = await apiClient.getJson<NestBulletin[]>(
-    NEST_BULLETINS_PATHS.list,
-    undefined,
-    fakeActorOptions()
-  );
-  return sortBulletins(rows.map(mapNestBulletin));
+  const [ads, infos] = await Promise.all([
+    listVisibleDeduped('ads', DASHBOARD_AD_PLACEMENTS),
+    listVisibleDeduped('info', DASHBOARD_AD_PLACEMENTS),
+  ]);
+  // ترتیب پاسخ Nest را نگه می‌داریم؛ sort روی stamp ساختگی public معنی ندارد.
+  return [
+    ...ads.map((row) => mapPublicAdvertisement(row)),
+    ...infos.map((row) => mapPublicAdvertisement(row)),
+  ];
 }
 
 export async function listRealManagedBulletins(): Promise<Bulletin[]> {
-  const rows = await apiClient.getJson<NestBulletin[]>(
-    NEST_BULLETINS_PATHS.managed,
-    undefined,
-    fakeActorOptions()
-  );
-  return sortBulletins(rows.map(mapNestBulletin));
+  const role = useUserStore.getState().activeUser?.role;
+  const [{ idToTitle }, rows] = await Promise.all([
+    provinceMaps(),
+    advertisementsApi.listManaged(),
+  ]);
+  const mapped = rows.map((row) => mapAdminAdvertisement(row, idToTitle));
+  // اگر Nest همه را برگرداند، همان قاعدهٔ mock (مالکیت پنل) را اعمال می‌کنیم.
+  const owned = role
+    ? mapped.filter((row) => isBulletinOwnedBy(row, role))
+    : mapped;
+  return sortBulletins(owned);
 }
 
 export async function createRealBulletin(
   input: UpsertBulletinInput
 ): Promise<Bulletin> {
-  const row = await apiClient.postJson<NestBulletin>(
-    NEST_BULLETINS_PATHS.list,
-    toNestBody(input),
-    undefined,
-    fakeActorOptions()
+  const role = useUserStore.getState().activeUser?.role;
+  if (!role) throw new Error('نشست کاربری یافت نشد.');
+  const validationError = validateBulletinInput(input, role);
+  if (validationError) throw new Error(validationError);
+
+  const { titleToId, idToTitle } = await provinceMaps();
+  const imageId = await resolveImageFileId(input, (file) =>
+    FilesService.uploadFile(file)
   );
-  return mapNestBulletin(row);
+  const body = toCreateBody(input, {
+    provinceTitleToId: titleToId,
+    imageId,
+  });
+  const row = await advertisementsApi.create(body);
+  return mapAdminAdvertisement(row, idToTitle);
 }
 
 export async function updateRealBulletin(
   id: string,
   input: UpsertBulletinInput
 ): Promise<Bulletin> {
-  const row = await apiClient.patchJson<NestBulletin>(
-    NEST_BULLETINS_PATHS.byId(id),
-    toNestBody(input),
-    undefined,
-    fakeActorOptions()
+  const role = useUserStore.getState().activeUser?.role;
+  const { titleToId, idToTitle } = await provinceMaps();
+  const existingDto = await advertisementsApi.getOne(id);
+  const existing = mapAdminAdvertisement(existingDto, idToTitle);
+  if (role && !isBulletinOwnedBy(existing, role)) {
+    throw new Error('مورد موردنظر یافت نشد یا متعلق به پنل شما نیست.');
+  }
+  if (existing.kind !== input.kind) {
+    throw new Error('نوع مورد (اطلاعیه/تبلیغ) قابل تغییر نیست.');
+  }
+  // سلسله‌مراتب مخاطب با نقش نویسندهٔ اصلی، نه لزوماً ویرایشگر جاری.
+  const validationError = validateBulletinInput(input, existing.authorRole);
+  if (validationError) throw new Error(validationError);
+
+  const imageId = await resolveImageFileId(input, (file) =>
+    FilesService.uploadFile(file)
   );
-  return mapNestBulletin(row);
+  const body = toUpdateBody(input, {
+    provinceTitleToId: titleToId,
+    imageId,
+    existingFormat: existingDto.format,
+  });
+  const row = await advertisementsApi.update(id, body);
+  return mapAdminAdvertisement(row, idToTitle);
 }
 
 export async function setRealBulletinActive(
   id: string,
   isActive: boolean
 ): Promise<Bulletin> {
-  const row = await apiClient.patchJson<NestBulletin>(
-    NEST_BULLETINS_PATHS.active(id),
-    { isActive },
-    undefined,
-    fakeActorOptions()
-  );
-  return mapNestBulletin(row);
+  const [{ idToTitle }, row] = await Promise.all([
+    provinceMaps(),
+    advertisementsApi.setActive(id, { isActive }),
+  ]);
+  return mapAdminAdvertisement(row, idToTitle);
 }
 
 export async function deleteRealBulletin(id: string): Promise<void> {
-  await apiClient.deleteMaybeJson<null>(
-    NEST_BULLETINS_PATHS.byId(id),
-    undefined,
-    fakeActorOptions()
-  );
+  await advertisementsApi.remove(id);
 }
 
-/** عنوان استان‌ها برای انتخاب مخاطب — از کاتالوگ ادمین Nest (`GET /admin/province/all`). */
+export async function recordRealAdvertisementClick(id: string): Promise<void> {
+  await advertisementsApi.recordClick(id);
+}
+
+/** عنوان استان‌ها برای انتخاب مخاطب — از کاتالوگ ادمین Nest. */
 export async function listRealProvinceTitles(): Promise<string[]> {
-  const { adminCatalogApi } = await import(
-    '@/services/admin-catalog/admin-catalog.api'
-  );
-  const provinces = await adminCatalogApi.getAllProvinces();
-  return [...new Set(provinces.map((province) => province.title))];
+  const { titleToId } = await provinceMaps();
+  return [...titleToId.keys()].sort((a, b) => a.localeCompare(b, 'fa'));
 }

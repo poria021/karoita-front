@@ -145,8 +145,10 @@ function BulletinsManageContent() {
         formError={page.formError}
         isSaving={page.isSaving}
         audienceOptions={page.audienceOptions}
+        audienceValues={page.audienceValues}
         canTargetProvinces={page.canTargetProvinces}
         provinceOptions={page.provinceOptions}
+        provinceValues={page.provinceValues}
         isProvincesLoading={page.isProvincesLoading}
         patchForm={page.patchForm}
         setImageFile={page.setImageFile}

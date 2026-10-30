@@ -8,6 +8,7 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { cn } from '@/lib/utils';
+import { BulletinsService } from '@/services/bulletins.service';
 import { RouteService } from '@/services/route.service';
 import type { Bulletin } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
@@ -16,6 +17,10 @@ import { toPersianDigits } from '@/utils/persianDigits';
 import { BulletinPanelBadge } from './BulletinCard';
 
 const SLIDE_DURATION = 6000;
+
+function isExternalAdLink(url: string): boolean {
+  return /^https?:\/\//i.test(url);
+}
 
 type DashboardAdBoxProps = {
   ads: Bulletin[];
@@ -147,9 +152,13 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
           {shown.linkUrl ? (
             <a
               href={shown.linkUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...(isExternalAdLink(shown.linkUrl)
+                ? { target: '_blank', rel: 'noopener noreferrer' }
+                : {})}
               className="inline-flex w-fit items-center gap-1 text-xs font-bold text-kv-brand hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
+              onClick={() => {
+                void BulletinsService.recordAdvertisementClick(shown.id);
+              }}
             >
               اطلاعات بیشتر
               <FaIcon icon={faIcons.arrowUpRightFromSquare} size="xs" />

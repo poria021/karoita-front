@@ -1,0 +1,26 @@
+import type { ReportFilterDef } from './types';
+
+export const REPORT_FILTER_DEFS: Record<string, ReportFilterDef> = {
+  termId: { key: 'termId', label: 'ترم / پودمان', type: 'select', options: ['نیم‌سال دوم ۱۴۰۵-۱۴۰۶', 'نیم‌سال اول ۱۴۰۵-۱۴۰۶', 'پودمان چهارم'] },
+  audience: { key: 'audience', label: 'نظام آموزشی', type: 'select', options: ['ترمی', 'پودمانی'] },
+  courseId: { key: 'courseId', label: 'عنوان درس', type: 'select', options: ['کارورزی ۱', 'کارورزی ۲', 'کارآموزی ۱'] },
+  provinceId: { key: 'provinceId', label: 'استان', type: 'select', options: ['تهران', 'اصفهان', 'فارس'] },
+  cityId: { key: 'cityId', label: 'شهر', type: 'select', options: ['تهران', 'ری', 'اصفهان'] },
+  districtId: { key: 'districtId', label: 'منطقه', type: 'select', options: ['ناحیه ۱', 'ناحیه ۲'] },
+  schoolId: { key: 'schoolId', label: 'مدرسه', type: 'select', options: ['البرز', 'فجر', 'بهشتی'] },
+  collegeId: { key: 'collegeId', label: 'دانشکده', type: 'select', options: ['پردیس باهنر', 'پردیس شرافت'] },
+  majorId: { key: 'majorId', label: 'رشته', type: 'select', options: ['آموزش ابتدایی', 'مهارت‌آموزی'] },
+  mentorId: { key: 'mentorId', label: 'معلم راهنما', type: 'select', options: ['مرتضی ملکی', 'سارا اکبری'] },
+  principalId: { key: 'principalId', label: 'مدیر مدرسه', type: 'select', options: ['عباس پناهی', 'حسن رضایی'] },
+  supervisorId: { key: 'supervisorId', label: 'استاد راهنما', type: 'select', options: ['دکتر کریمی', 'دکتر رضایی'] },
+  traineeId: { key: 'traineeId', label: 'فراگیر', type: 'text' },
+  gender: { key: 'gender', label: 'جنسیت مدرسه', type: 'select', options: ['پسرانه', 'دخترانه'] },
+  weekday: { key: 'weekday', label: 'روز کارورزی', type: 'select', options: ['شنبه', 'یکشنبه', 'دوشنبه'] },
+  dateFrom: { key: 'dateFrom', label: 'از تاریخ', type: 'text' },
+  dateTo: { key: 'dateTo', label: 'تا تاریخ', type: 'text' },
+  minScore: { key: 'minScore', label: 'حداقل نمره', type: 'text' },
+  maxScore: { key: 'maxScore', label: 'حداکثر نمره', type: 'text' },
+  weekStatus: { key: 'weekStatus', label: 'وضعیت هفته', type: 'select', options: ['ارسال‌شده', 'معوق', 'تمدیدشده'] },
+  feedbackRole: { key: 'feedbackRole', label: 'نقش بازخورد', type: 'select', options: ['معلم', 'مدیر', 'استاد'] },
+  minTrainees: { key: 'minTrainees', label: 'حداقل کارورز', type: 'text' },
+};

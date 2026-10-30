@@ -12,11 +12,14 @@ import {
   canTargetProvinces,
   validateBulletinInput,
 } from '@/services/bulletins/bulletin-rules';
+import {
+  buildProvinceSelectOptions,
+  canonicalizeProvinceTitles,
+} from '@/services/bulletins/province-select';
 import { BulletinsService } from '@/services/bulletins.service';
 import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
 import type { Bulletin, BulletinKind, UpsertBulletinInput } from '@/types/bulletins';
-import { fileToDataUrl } from '@/utils/compressor';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
 type BulletinForm = {
@@ -28,7 +31,7 @@ type BulletinForm = {
   linkUrl: string;
   /** تصویر ذخیره‌شده (ویرایش) — با حذف تصویر خالی می‌شود. */
   imageUrl: string;
-  /** فایل تازه انتخاب‌شده؛ موقع ذخیره به data URL تبدیل می‌شود. */
+  /** فایل تازه؛ Facade در mock به data URL و در real به FilesService می‌سپارد. */
   imageFile: File | null;
   audienceRoles: UserRole[];
   /** عنوان استان‌های مخاطب. */
@@ -39,16 +42,23 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'عملیات ناموفق بود.';
 }
 
-function toInput(form: BulletinForm): UpsertBulletinInput {
+function toInput(
+  form: BulletinForm,
+  provinceCatalog: readonly string[] = []
+): UpsertBulletinInput {
   return {
     kind: form.kind,
     title: form.title,
     body: form.body,
     ...(form.kind === 'advertisement'
-      ? { linkUrl: form.linkUrl, imageUrl: form.imageUrl }
+      ? {
+          linkUrl: form.linkUrl,
+          imageUrl: form.imageUrl,
+          ...(form.imageFile ? { imageFile: form.imageFile } : {}),
+        }
       : {}),
     audienceRoles: form.audienceRoles,
-    provinces: form.provinces,
+    provinces: canonicalizeProvinceTitles(form.provinces, provinceCatalog),
   };
 }
 
@@ -56,16 +66,9 @@ function formSignature(form: BulletinForm): string {
   const file = form.imageFile;
   return JSON.stringify({
     ...toInput(form),
+    imageFile: undefined,
     file: file ? `${file.name}:${file.size}:${file.lastModified}` : null,
   });
-}
-
-async function resolveInput(form: BulletinForm): Promise<UpsertBulletinInput> {
-  const input = toInput(form);
-  if (form.kind === 'advertisement' && form.imageFile) {
-    input.imageUrl = await fileToDataUrl(form.imageFile);
-  }
-  return input;
 }
 
 export function useBulletinsManagePage() {
@@ -134,11 +137,26 @@ export function useBulletinsManagePage() {
     [role, form.kind]
   );
 
+  // فقط نقش‌های مجاز فعلی؛ نقش اضافی Nest در شرط «همه» نویز ایجاد نکند.
+  const audienceValues = useMemo(() => {
+    const allowed = new Set(audienceOptions.map((option) => option.value));
+    return form.audienceRoles.filter((item) => allowed.has(item));
+  }, [form.audienceRoles, audienceOptions]);
+
+  const provinceCatalog = useMemo(
+    () => provincesQuery.data ?? [],
+    [provincesQuery.data]
+  );
+  // عنوان فرم را با کاتالوگ هم‌تراز می‌کنیم تا شرط «همه» به‌خاطر ی/ک یا فاصله نشکند.
+  const provinceValues = useMemo(
+    () => canonicalizeProvinceTitles(form.provinces, provinceCatalog),
+    [form.provinces, provinceCatalog]
+  );
   // استانی که قبلاً ذخیره شده ولی دیگر در کاتالوگ نیست هم در گزینه‌ها می‌ماند تا بی‌صدا حذف نشود.
-  const provinceOptions = useMemo(() => {
-    const titles = [...new Set([...(provincesQuery.data ?? []), ...form.provinces])];
-    return titles.map((title) => ({ value: title, label: title }));
-  }, [provincesQuery.data, form.provinces]);
+  const provinceOptions = useMemo(
+    () => buildProvinceSelectOptions(provinceCatalog, form.provinces),
+    [provinceCatalog, form.provinces]
+  );
 
   function openForm(next: BulletinForm) {
     setForm(next);
@@ -188,8 +206,13 @@ export function useBulletinsManagePage() {
     if (!role) return;
     setIsSaving(true);
     try {
-      const input = await resolveInput(form);
-      const error = validateBulletinInput(input, role);
+      const input = toInput(form, provinceCatalog);
+      // ویرایش: سلسله‌مراتب مخاطب با نقش نویسندهٔ اصلی (نه لزوماً نقش جاری).
+      const validateAs =
+        (form.editId
+          ? rows.find((row) => row.id === form.editId)?.authorRole
+          : null) ?? role;
+      const error = validateBulletinInput(input, validateAs);
       if (error) {
         setFormError(error);
         return;
@@ -253,7 +276,9 @@ export function useBulletinsManagePage() {
     isSaving,
     modalOpen,
     audienceOptions,
+    audienceValues,
     provinceOptions,
+    provinceValues,
     isProvincesLoading: provincesQuery.isLoading,
     openCreate,
     startEdit,

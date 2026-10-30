@@ -62,7 +62,7 @@ BACKEND_INTERNAL_URL=http://localhost:4000/api
 - درس‌های ترمِ تازه در Swagger مستند نیستند؛ پیش‌فرض همان رفتار دیده‌شدهٔ بک‌اند است (فهرست ثابت کارورزی/کارآموزی). `FAKE_NEST_TERM_LESSONS=original` تغییر درخواستی را شبیه‌سازی می‌کند: ساخت از «تعریف دروس» فعال با `originalLessonId`.
 - بعد از تغییر بک‌اند: `pnpm fake-api:sync` و سپس `pnpm test`.
 - endpoint جدید: فقط با مسیر دقیق Swagger در `tools/fake-nest/handlers/` ثبت کنید و تست قرارداد بنویسید.
-- **قرارداد پیشنهادی (هنوز بدون Swagger):** اطلاعیه/تبلیغ (`/api/v1/bulletins*`) در `tools/fake-nest/openapi.proposed.json` تعریف شده تا UI در حالت real دیده شود. این فایل از `fake-api:sync` پاک نمی‌شود؛ وقتی بک‌اند همین مسیرها را در Swagger گذاشت، از آن فایل حذفشان کنید (وگرنه `openapi.ts` خطا می‌دهد) و `real-bulletins.ts` را با قرارداد واقعی تطبیق دهید.
+- **اطلاعیه/تبلیغ:** روی Nest واقعی با `type=ads|info` زیر `/api/v1/advertisements` و `/api/admin/advertisements` است. تا وقتی `pnpm fake-api:sync` این مسیرها را به snapshot نیاورد، تعریفشان در `openapi.proposed.json` می‌ماند.
 
 ## حالت mock
 
@@ -91,6 +91,7 @@ BACKEND_INTERNAL_URL=http://localhost:4000/api
 | `InternshipEnrollmentService` | قطع | همین‌طور — صفحه حذف نشود |
 | `OrganizationalCapacitiesService` | وصل | استاد راهنما: `GET semesters_all` + `GET/POST/PUT professor-capacities` |
 | `LandingCmsService` | وصل | بنر/محصول شناور/شبکهٔ اجتماعی: لیست، ساخت، ویرایش جزئی، حذف |
+| `BulletinsService` | وصل | اطلاعیه=`info` / تبلیغ=`ads`؛ نمایش `v1/advertisements`؛ مدیریت `admin/advertisements`؛ تصویر با `FilesService`؛ کلیک `.../clicks` |
 | `AdminCatalogService` | مرده | استفاده نشود؛ HTTP کاتالوگ از `admin-catalog.api.ts` است |
 
 ## کش لیست

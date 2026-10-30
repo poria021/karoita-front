@@ -59,7 +59,7 @@ function CompletionNotice({
   const grade =
     enrollment.progressiveGrade.final20 === null
       ? '---'
-      : toPersianDigits(enrollment.progressiveGrade.final20);
+      : toPersianDigits(enrollment.progressiveGrade.final20.toFixed(2));
   const termTitle = toPersianDigits(enrollment.termTitle);
 
   if (!isCompleted) {
@@ -249,7 +249,7 @@ export function ScenarioTermActive({
   const grade =
     enrollment.progressiveGrade.final20 === null
       ? '---'
-      : `${toPersianDigits(enrollment.progressiveGrade.final20)}/۲۰`;
+      : `${toPersianDigits(enrollment.progressiveGrade.final20.toFixed(2))}/۲۰`;
 
   const karnamehBox = (
     <div className="flex w-full flex-row items-center justify-between gap-kv-group rounded-kv-control border border-kv-border bg-kv-surface px-kv-group py-kv-field text-start shadow-kv-raised lg:w-auto lg:min-w-[260px]">

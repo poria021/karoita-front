@@ -5,6 +5,7 @@ import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { PublicRouteStatusActions } from '@/components/shared/route-status/PublicRouteStatusActions';
 import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
+import { SessionKeepAlive } from '@/components/shared/shell/SessionKeepAlive';
 import { UnauthenticatedRedirect } from '@/components/shared/shell/UnauthenticatedRedirect';
 import { AuthService } from '@/services/auth.service';
 import { useAuthTransitionPhase } from '@/store/useAuthTransitionPhase';
@@ -78,7 +79,12 @@ function AppAuthGuardInner({ children }: { children: ReactNode }) {
     if (!activeUser) {
       return <BootLoader />;
     }
-    return <>{children}</>;
+    return (
+      <>
+        <SessionKeepAlive />
+        {children}
+      </>
+    );
   }
 
   if (boot === 'unauthenticated') {

@@ -71,7 +71,11 @@ describe('useOrgStructurePage — scheduleCreate optimistic add', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // debounce جستجو (۳۰۰ms) نباید بعد از teardown jsdom setState بزند.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 350));
+    });
     resetShallowLocationForTests();
     window.history.replaceState(null, '', '/');
   });
@@ -84,7 +88,9 @@ describe('useOrgStructurePage — scheduleCreate optimistic add', () => {
       })
     );
 
-    const { result } = renderHook(() => useOrgStructurePage(), { wrapper });
+    const { result, unmount } = renderHook(() => useOrgStructurePage(), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.items).toHaveLength(1));
 
@@ -101,6 +107,7 @@ describe('useOrgStructurePage — scheduleCreate optimistic add', () => {
 
     resolveUpsert();
     await waitFor(() => expect(listPageMock).toHaveBeenCalledTimes(2));
+    unmount();
   });
 
   it('removes the row and shows an error toast when the backend rejects it', async () => {
@@ -111,7 +118,9 @@ describe('useOrgStructurePage — scheduleCreate optimistic add', () => {
       })
     );
 
-    const { result } = renderHook(() => useOrgStructurePage(), { wrapper });
+    const { result, unmount } = renderHook(() => useOrgStructurePage(), {
+      wrapper,
+    });
 
     await waitFor(() => expect(result.current.items).toHaveLength(1));
 
@@ -135,5 +144,6 @@ describe('useOrgStructurePage — scheduleCreate optimistic add', () => {
     );
     // ردیف باقی‌مانده باید همان ردیف اصلی باشد، نه ردیف موقت.
     expect(result.current.items[0]?.id).toBe('p1');
+    unmount();
   });
 });

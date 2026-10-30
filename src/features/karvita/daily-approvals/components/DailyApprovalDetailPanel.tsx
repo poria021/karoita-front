@@ -48,7 +48,7 @@ export function DailyApprovalDetailPanel({
   const grade =
     trainee.progressiveGrade.final20 === null
       ? '---'
-      : `${toPersianDigits(trainee.progressiveGrade.final20)}/۲۰`;
+      : `${toPersianDigits(trainee.progressiveGrade.final20.toFixed(2))}/۲۰`;
 
   return (
     <KvCard tone="surface" fill className="min-h-[450px] shadow-none" padding="md">

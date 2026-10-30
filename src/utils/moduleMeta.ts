@@ -89,14 +89,14 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'افزودن دانشجویان و مهارت‌آموزان جدید، تفکیک بر اساس نوع دوره، ویرایش مشخصات و مدارک ثبت‌نام.',
     icon: 'fa-user-group',
   },
-  [PlannedRoutes.standardReports()]: {
+  [RouteService.karvita.standardReports()]: {
     title: 'گزارش‌های استاندارد سیستمی',
     description:
       'گزارش‌گیری متمرکز بر نمرات، ساعات کارگاهی، لاگ‌های سیستمی و وضعیت تکمیل گزارش‌ها.',
     icon: 'fa-file-invoice',
     showSemester: true,
   },
-  [PlannedRoutes.comparativeReports()]: {
+  [RouteService.karvita.comparativeReports()]: {
     title: 'تحلیل مقایسه‌ای عملکرد',
     description:
       'رصد رقابتی و مقایسه عملکرد دانشکده‌ها، اساتید، مدارس و فراگیران بر اساس شاخص‌های آموزشی.',
@@ -303,7 +303,7 @@ export function getModuleMeta(
     return MODULE_META_BY_PATH[path] ?? FALLBACK_META;
   }
 
-  if (path === PlannedRoutes.standardReports()) {
+  if (path === RouteService.karvita.standardReports()) {
     const base = MODULE_META_BY_PATH[path] ?? FALLBACK_META;
     if (role && STANDARD_REPORTS_DESC_BY_ROLE[role]) {
       return {

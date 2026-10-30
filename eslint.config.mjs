@@ -114,6 +114,8 @@ const eslintConfig = [
       'dist/**',
       'public/**',
       '.claude/**',
+      '.tmp*/**',
+      'docs/**',
       'better-auth-starter/**',
     ],
   },
@@ -137,6 +139,13 @@ const eslintConfig = [
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-explicit-any': 'off',
+    },
+  },
+  {
+    // پلاگین jsx-a11y فقط در بلاک filesدار nextVitals ثبت شده؛ بدون files
+    // ESLint ۹ می‌گوید plugin پیدا نشد، و با redefine هم تداخل می‌کند.
+    files: ['**/*.{js,jsx,mjs,ts,tsx,mts,cts}'],
+    rules: {
       /* a11y را از پیش‌فرض نکست سخت‌تر کن بدون اینکه فایل‌های نامرتبط را قفل کند. */
       'jsx-a11y/alt-text': 'error',
       'jsx-a11y/aria-props': 'error',

@@ -157,6 +157,15 @@ async function clearRefreshTokenCookie(): Promise<void> {
 // Treat a token as expired before the 401 threshold so the app refreshes early.
 const ACCESS_REFRESH_SKEW_MS = 60_000;
 
+/**
+ * فاصله تا زمان refresh پیش‌دستانه (با skew).
+ * `null` = توکنی در حافظه نیست؛ منفی یا صفر = الان باید refresh شود.
+ */
+export function msUntilAccessRefreshNeeded(): number | null {
+  if (!_mem) return null;
+  return _mem.tokenExpires - Date.now() - ACCESS_REFRESH_SKEW_MS;
+}
+
 // After login or refresh, keep access in memory and store the refresh token in httpOnly cookies.
 export async function writeRealAuthTokens(
   tokens: NestLoginTokens,
