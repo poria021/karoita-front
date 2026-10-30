@@ -188,5 +188,8 @@ export function mapRealProgressiveGrade(
   if (!summary || summary.scoredWeeks <= 0) {
     return { gradedCount: summary?.scoredWeeks ?? 0, final20: null };
   }
-  return { gradedCount: summary.scoredWeeks, final20: summary.weightedScore };
+  return {
+    gradedCount: summary.scoredWeeks,
+    final20: Number(summary.weightedScore.toFixed(2)),
+  };
 }
