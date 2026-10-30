@@ -138,6 +138,9 @@ export const RouteService = {
       const base = '/karvita/announcements';
       return tab ? appendSearchParam(base, 'tab', tab) : base;
     },
+    /** گزارش‌های استاندارد سند مهر — فیلتر/ستون نقش‌محور. */
+    standardReports: (): string => '/karvita/reports',
+    comparativeReports: (): string => '/karvita/reports/comparative',
 
     isAdminControlPlanePath,
     isAppShellPath,

@@ -22,13 +22,13 @@ const ADMIN_DASHBOARD_ITEM: SidebarMenuItem = {
 
 const STANDARD_REPORTS_ITEM: SidebarMenuItem = {
   title: 'گزارش‌های استاندارد',
-  path: PlannedRoutes.standardReports(),
+  path: RouteService.karvita.standardReports(),
   icon: 'fa-file-invoice',
 };
 
 const COMPARATIVE_REPORTS_ITEM: SidebarMenuItem = {
   title: 'گزارش‌های مقایسه‌ای',
-  path: PlannedRoutes.comparativeReports(),
+  path: RouteService.karvita.comparativeReports(),
   icon: 'fa-chart-column',
 };
 

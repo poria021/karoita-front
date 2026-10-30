@@ -16,7 +16,9 @@ export const PlannedRoutes = {
   academicEvaluation: (): string => '/karvita/academic-evaluation',
   traineesManagement: (): string => '/karvita/trainees',
   studentsList: (): string => '/karvita/students',
+  /** @deprecated زنده شد — از `RouteService.karvita.standardReports` استفاده کنید. */
   standardReports: (): string => '/karvita/reports',
+  /** @deprecated زنده شد — از `RouteService.karvita.comparativeReports` استفاده کنید. */
   comparativeReports: (): string => '/karvita/reports/comparative',
   termLifecycle: (): string => '/karvita/term-lifecycle',
   locations: (): string => '/karvita/locations',
@@ -31,8 +33,6 @@ export const PLANNED_STATIC_ROUTE_PATHS: readonly string[] = [
   PlannedRoutes.academicEvaluation(),
   PlannedRoutes.traineesManagement(),
   PlannedRoutes.studentsList(),
-  PlannedRoutes.standardReports(),
-  PlannedRoutes.comparativeReports(),
   PlannedRoutes.termLifecycle(),
   PlannedRoutes.locations(),
   PlannedRoutes.userPermissions(),
