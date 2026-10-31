@@ -58,8 +58,6 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.organizationalCapacities(),
       RouteService.karvita.announcements(),
-      RouteService.karvita.standardReports(),
-      RouteService.karvita.comparativeReports(),
     ]);
 
     const mentorMenu = getVisibleSidebarMenu('mentor_teacher');
@@ -69,8 +67,6 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.dashboard(),
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.announcements(),
-      RouteService.karvita.standardReports(),
-      RouteService.karvita.comparativeReports(),
     ]);
 
     const principalMenu = getVisibleSidebarMenu('school_principal');
@@ -80,8 +76,6 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.dashboard(),
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.announcements(),
-      RouteService.karvita.standardReports(),
-      RouteService.karvita.comparativeReports(),
     ]);
 
     expect(
@@ -90,8 +84,6 @@ describe('live nav / admin plane', () => {
       )
     ).toEqual([
       RouteService.karvita.dashboard(),
-      RouteService.karvita.standardReports(),
-      RouteService.karvita.comparativeReports(),
       RouteService.karvita.announcements(),
     ]);
 
@@ -104,8 +96,6 @@ describe('live nav / admin plane', () => {
         'path' in entry ? entry.path : entry.title
       );
       expect(paths).toContain(RouteService.karvita.dashboard());
-      expect(paths).toContain(RouteService.karvita.standardReports());
-      expect(paths).toContain(RouteService.karvita.comparativeReports());
       expect(paths).toContain(RouteService.karvita.announcements());
     }
 
@@ -134,8 +124,6 @@ describe('live nav / admin plane', () => {
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
       'اطلاعیه‌ها و تبلیغات',
-      'گزارش‌های استاندارد',
-      'گزارش‌های مقایسه‌ای',
     ]);
 
     const groups = adminMenu.filter(isSidebarMenuGroup);
@@ -156,8 +144,6 @@ describe('live nav / admin plane', () => {
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
       'اطلاعیه‌ها و تبلیغات',
-      'گزارش‌های استاندارد',
-      'گزارش‌های مقایسه‌ای',
     ]);
     expect(
       assistantMenu

@@ -89,20 +89,6 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'افزودن دانشجویان و مهارت‌آموزان جدید، تفکیک بر اساس نوع دوره، ویرایش مشخصات و مدارک ثبت‌نام.',
     icon: 'fa-user-group',
   },
-  [RouteService.karvita.standardReports()]: {
-    title: 'گزارش‌های استاندارد سیستمی',
-    description:
-      'گزارش‌گیری متمرکز بر نمرات، ساعات کارگاهی، لاگ‌های سیستمی و وضعیت تکمیل گزارش‌ها.',
-    icon: 'fa-file-invoice',
-    showSemester: true,
-  },
-  [RouteService.karvita.comparativeReports()]: {
-    title: 'تحلیل مقایسه‌ای عملکرد',
-    description:
-      'رصد رقابتی و مقایسه عملکرد دانشکده‌ها، اساتید، مدارس و فراگیران بر اساس شاخص‌های آموزشی.',
-    icon: 'fa-chart-column',
-    showSemester: true,
-  },
   [PlannedRoutes.termLifecycle()]: {
     title: 'مدیریت بازه‌ها و چرخه ترم',
     description:
@@ -244,15 +230,6 @@ const DASHBOARD_META_BY_ROLE: Partial<Record<UserRole, ModuleMeta>> = {
   },
 };
 
-const STANDARD_REPORTS_DESC_BY_ROLE: Partial<Record<UserRole, string>> = {
-  regional_edu_admin:
-    'سامانه نظارت بر عملکرد مدارس تابعه، توزیع ظرفیت‌های آموزشی، پایش معلمان راهنما و آمار کارورزان منطقه.',
-  school_principal:
-    'گزارش‌گیری متمرکز بر ارزیابی‌های کیفی، نمرات پایانی کارورزان و عملکرد مربیان مدرسه تابعه.',
-  supervisor_professor:
-    'رصد پیشرفت تحصیلی کارورزان کلاس جاری، نمره‌دهی هفتگی و آمار تکالیف تحویلی.',
-};
-
 function normalizePath(pathname: string): string {
   if (!pathname) return '/';
   const trimmed = pathname.replace(/\/+$/, '');
@@ -301,17 +278,6 @@ export function getModuleMeta(
       return DASHBOARD_META_BY_ROLE[role]!;
     }
     return MODULE_META_BY_PATH[path] ?? FALLBACK_META;
-  }
-
-  if (path === RouteService.karvita.standardReports()) {
-    const base = MODULE_META_BY_PATH[path] ?? FALLBACK_META;
-    if (role && STANDARD_REPORTS_DESC_BY_ROLE[role]) {
-      return {
-        ...base,
-        description: STANDARD_REPORTS_DESC_BY_ROLE[role]!,
-      };
-    }
-    return base;
   }
 
   const exact = MODULE_META_BY_PATH[path];

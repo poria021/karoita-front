@@ -20,18 +20,6 @@ const ADMIN_DASHBOARD_ITEM: SidebarMenuItem = {
   icon: 'fa-home',
 };
 
-const STANDARD_REPORTS_ITEM: SidebarMenuItem = {
-  title: 'گزارش‌های استاندارد',
-  path: RouteService.karvita.standardReports(),
-  icon: 'fa-file-invoice',
-};
-
-const COMPARATIVE_REPORTS_ITEM: SidebarMenuItem = {
-  title: 'گزارش‌های مقایسه‌ای',
-  path: RouteService.karvita.comparativeReports(),
-  icon: 'fa-chart-column',
-};
-
 const MANAGE_ADS_ITEM: SidebarMenuItem = {
   title: 'اطلاعیه‌ها و تبلیغات',
   path: RouteService.karvita.announcements(),
@@ -124,8 +112,6 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     ],
   },
   MANAGE_ADS_ITEM,
-  STANDARD_REPORTS_ITEM,
-  COMPARATIVE_REPORTS_ITEM,
 ];
 
 const SENIOR_ADMIN_PERMISSIONS = [
@@ -137,7 +123,6 @@ const SENIOR_ADMIN_PERMISSIONS = [
   'syllabus.term-settings',
   'organization.manage',
   'ads.manage',
-  'reports.view',
 ] as const;
 
 /**
@@ -250,14 +235,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         icon: 'fa-chart-pie',
       },
       MANAGE_ANNOUNCEMENTS_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
       'daily-approval.review',
       'capacity.configure',
-      'reports.view',
     ],
   },
 
@@ -275,10 +257,8 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         icon: 'fa-clipboard-check',
       },
       MANAGE_ANNOUNCEMENTS_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'daily-approval.review', 'reports.view'],
+    permissions: ['dashboard.view', 'daily-approval.review'],
   },
 
   school_principal: {
@@ -305,15 +285,12 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         icon: 'fa-user-group',
       },
       MANAGE_ANNOUNCEMENTS_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
       'daily-approval.review',
       'trainee.manage',
       'student.manage',
-      'reports.view',
     ],
   },
 
@@ -331,10 +308,8 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         icon: 'fa-map',
       },
       MANAGE_ANNOUNCEMENTS_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'location.manage', 'reports.view'],
+    permissions: ['dashboard.view', 'location.manage'],
   },
 
   faculty_role: {
@@ -345,11 +320,9 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
+    permissions: ['dashboard.view', 'ads.manage'],
   },
 
   provincial_university: {
@@ -365,14 +338,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
       'location.manage',
-      'reports.view',
       'ads.manage',
     ],
   },
@@ -402,11 +372,9 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
+    permissions: ['dashboard.view', 'ads.manage'],
   },
 
   super_admin: {

@@ -16,8 +16,6 @@ describe('getLiveWorkbenchShortcuts', () => {
     expect(paths).toContain(RouteService.karvita.adminUserCreation());
     expect(paths).toContain(RouteService.karvita.landingCms());
     expect(paths).toContain(RouteService.karvita.syllabusCourseOfferings());
-    expect(paths).toContain(RouteService.karvita.standardReports());
-    expect(paths).toContain(RouteService.karvita.comparativeReports());
   });
 
   it('gives assistant_admin live shortcuts except org accounts and term settings', () => {

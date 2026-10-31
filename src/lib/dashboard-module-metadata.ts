@@ -17,8 +17,6 @@ export type DashboardModuleKey =
   | 'daily-approvals'
   | 'capacities'
   | 'announcements'
-  | 'reports'
-  | 'reports-comparative'
   | 'internship-level'
   | 'profile';
 
@@ -38,8 +36,6 @@ const MODULE_PATH: Record<DashboardModuleKey, string | ((role?: string) => strin
     'daily-approvals': RouteService.karvita.dailyApprovals(),
     capacities: RouteService.karvita.organizationalCapacities(),
     announcements: RouteService.karvita.announcements(),
-    reports: RouteService.karvita.standardReports(),
-    'reports-comparative': RouteService.karvita.comparativeReports(),
     'internship-level': RouteService.karvita.internshipSelection(1),
     profile: (role = 'student') => RouteService.karvita.profile(role),
   };
