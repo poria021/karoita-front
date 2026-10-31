@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  isPlannedStaticRoute,
   PlannedRoutes,
   PLANNED_STATIC_ROUTE_PATHS,
 } from '@/services/planned-routes';
