@@ -28,6 +28,8 @@ export const DASHBOARD_QUERY = {
   courseMaterials: ['course-materials'] as const,
   courseMaterialsReceived: ['course-materials', 'received'] as const,
   courseMaterialsManaged: ['course-materials', 'managed'] as const,
+  mentorTeacherReports: ['daily-approvals', 'mentor-teacher-reports'] as const,
+  schoolPrincipalReports: ['daily-approvals', 'school-principal-reports'] as const,
 } as const;
 
 /** Capacity, daily-approvals, and enrollment all read Nest semesters. */

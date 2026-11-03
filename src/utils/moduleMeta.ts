@@ -78,6 +78,55 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
     icon: 'fa-clipboard-check',
     showSemester: true,
   },
+  [RouteService.karvita.mentorReports()]: {
+    title: 'گزارش‌گیری معلم راهنما',
+    description:
+      'نمای کلی گزارش‌های هفتگی کارورزان، نمرات، بازخوردهای اخیر و وضعیت روند تحویل گزارش‌های معلم راهنما.',
+    icon: 'fa-clipboard-list',
+    showSemester: true,
+  },
+  [RouteService.karvita.principalReports()]: {
+    title: 'گزارش‌گیری مدیر مدرسه',
+    description:
+      'نمای کلی گزارش‌های هفتگی کارورزان، وضعیت بازبینی‌ها، بازخورد مدیر مدرسه و روند ارزیابی نهایی در سطح مدرسه.',
+    icon: 'fa-clipboard-list',
+    showSemester: true,
+  },
+  [RouteService.karvita.regionalReports()]: {
+    title: 'گزارش‌گیری آموزش و پرورش منطقه',
+    description:
+      'نمای کلی ارزیابی گزارش‌های مدارس تابعه، نرخ تکمیل، بازخوردهای منطقه‌ای و روند پایش عملکرد آموزشی و اجرایی منطقه.',
+    icon: 'fa-clipboard-list',
+    showSemester: true,
+  },
+  [RouteService.karvita.facultyReports()]: {
+    title: 'گزارش‌گیری مدیر دانشکده',
+    description:
+      'نمای کلی عملکرد مدارس تابعه، مرور گزارش‌های آموزشی، وضعیت تکمیل و بازخوردهای پردیس در سطح دانشکده.',
+    icon: 'fa-clipboard-list',
+    showSemester: true,
+  },
+  [RouteService.karvita.provincialReports()]: {
+    title: 'گزارش‌گیری دانشگاه استانی',
+    description:
+      'نمای کلی عملکرد پردیس‌های تابعه، نرخ تکمیل گزارش‌ها، وضعیت مناطق و روند ارزیابی‌های استانی در سطوح کلان.',
+    icon: 'fa-clipboard-list',
+    showSemester: true,
+  },
+  [RouteService.karvita.centralReports()]: {
+    title: 'گزارش‌گیری سازمان مرکزی',
+    description:
+      'نمای کلی عملکرد کل نظام آموزشی، شاخص‌های کلان، وضعیت مناطق و پردیس‌ها و روند ارزیابی‌های ستادی و کشوری.',
+    icon: 'fa-clipboard-list',
+    showSemester: true,
+  },
+  [RouteService.karvita.adminReports()]: {
+    title: 'گزارش‌گیری مدیر ارشد',
+    description:
+      'نمای کلی وضعیت کلی سامانه، شاخص‌های مدیریتی، گزارش‌های ستادی، عملکرد مناطق و وضعیت تحویل تصمیمات حاکمیتی.',
+    icon: 'fa-clipboard-list',
+    showSemester: true,
+  },
   [PlannedRoutes.traineesManagement()]: {
     title: 'مدیریت کارورزان',
     description: 'صفحه مدیریت و پایش فرآیندهای مدیریت کارورزان.',
@@ -123,6 +172,12 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
     description:
       'تأیید صلاحیت هویتی و مدارک کارورزان و مربیان جهت فعال‌سازی پنل کاربری.',
     icon: 'fa-id-card',
+  },
+  [RouteService.karvita.userPermissions()]: {
+    title: 'مدیریت دسترسی‌های پویا (RBAC)',
+    description:
+      'تعریف دامنه‌های سازمانی (Scope)، ارتقای موقت نقش و ویرایش مجوزهای ممیزی کاربران.',
+    icon: 'fa-user-gear',
   },
   [PlannedRoutes.userPermissions()]: {
     title: 'مدیریت دسترسی‌های پویا (RBAC)',

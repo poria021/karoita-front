@@ -31,7 +31,6 @@ export const PLANNED_STATIC_ROUTE_PATHS: readonly string[] = [
   PlannedRoutes.studentsList(),
   PlannedRoutes.termLifecycle(),
   PlannedRoutes.locations(),
-  PlannedRoutes.userPermissions(),
 ] as const;
 
 export function isPlannedStaticRoute(pathname: string): boolean {

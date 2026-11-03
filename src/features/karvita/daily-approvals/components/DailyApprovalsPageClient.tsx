@@ -23,6 +23,7 @@ import { DailyApprovalsMobileWorkspace } from './DailyApprovalsMobileWorkspace';
 import { DailyApprovalsTable } from './DailyApprovalsTable';
 import { DailyApprovalsWorkspaceHeader } from './DailyApprovalsWorkspaceHeader';
 import { DailyApprovalWeekGradingModal } from './DailyApprovalWeekGradingModal';
+import { MentorTeacherReportsPreview } from './MentorTeacherReportsPreview';
 
 export function DailyApprovalsPageClient() {
   const page = useDailyApprovalsPage();
@@ -52,6 +53,8 @@ export function DailyApprovalsPageClient() {
     page.setQuery('');
     page.changeCourse('all');
   };
+  const showMentorTeacherPreview =
+    role === 'mentor_teacher' && page.trainees.length === 0 && !page.error;
 
   const detail = (
     <DailyApprovalDetailPanel
@@ -125,7 +128,9 @@ export function DailyApprovalsPageClient() {
           primary={
             <div className="space-y-kv-group">
               {listChrome}
-              {page.error ? null : (
+              {showMentorTeacherPreview ? (
+                <MentorTeacherReportsPreview />
+              ) : page.error ? null : (
                 <DailyApprovalsTable
                   trainees={page.trainees}
                   selectedId={page.selectedTrainee?.id ?? null}
@@ -146,10 +151,12 @@ export function DailyApprovalsPageClient() {
               )}
             </div>
           }
-          secondary={page.error ? null : detail}
+          secondary={showMentorTeacherPreview ? null : page.error ? null : detail}
           mobile={
             page.error ? (
               listChrome
+            ) : showMentorTeacherPreview ? (
+              <MentorTeacherReportsPreview />
             ) : (
               <DailyApprovalsMobileWorkspace
                 page={page}

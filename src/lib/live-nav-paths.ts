@@ -36,6 +36,7 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.auth.adminGate(),
   RouteService.karvita.dashboard(),
   RouteService.karvita.adminDashboard(),
+  RouteService.karvita.userPermissions(),
   RouteService.karvita.organizationalStructure(),
   RouteService.karvita.adminUserCreation(),
   RouteService.karvita.onboardingApprovals(),

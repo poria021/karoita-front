@@ -61,13 +61,18 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     icon: 'fa-id-card',
   },
   {
+    title: 'گزارش‌گیری مدیر ارشد',
+    path: RouteService.karvita.adminReports(),
+    icon: 'fa-clipboard-list',
+  },
+  {
     title: 'مدیریت محتوای لندینگ',
     path: RouteService.karvita.landingCms(),
     icon: 'fa-bullhorn',
   },
   {
     title: 'مدیریت دسترسی‌ها',
-    path: PlannedRoutes.userPermissions(),
+    path: RouteService.karvita.userPermissions(),
     icon: 'fa-user-gear',
   },
   {
@@ -225,6 +230,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     sidebarMenu: [
       DASHBOARD_ITEM,
       {
+        title: 'گزارش‌گیری استاد راهنما',
+        path: RouteService.karvita.mentorReports(),
+        icon: 'fa-clipboard-list',
+      },
+      {
         title: 'ارزیابی گزارش‌های فراگیران',
         path: RouteService.karvita.dailyApprovals(),
         icon: 'fa-clipboard-check',
@@ -252,6 +262,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     sidebarMenu: [
       DASHBOARD_ITEM,
       {
+        title: 'گزارش‌گیری معلم راهنما',
+        path: RouteService.karvita.mentorReports(),
+        icon: 'fa-clipboard-list',
+      },
+      {
         title: 'ارزیابی گزارش‌های فراگیران',
         path: RouteService.karvita.dailyApprovals(),
         icon: 'fa-clipboard-check',
@@ -269,6 +284,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      {
+        title: 'گزارش‌گیری مدیر مدرسه',
+        path: RouteService.karvita.principalReports(),
+        icon: 'fa-clipboard-list',
+      },
       {
         title: 'ارزیابی گزارش‌های فراگیران',
         path: RouteService.karvita.dailyApprovals(),
@@ -303,6 +323,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     sidebarMenu: [
       DASHBOARD_ITEM,
       {
+        title: 'گزارش‌گیری آموزش و پرورش منطقه',
+        path: RouteService.karvita.regionalReports(),
+        icon: 'fa-clipboard-list',
+      },
+      {
         title: 'مکان‌ها و مناطق',
         path: PlannedRoutes.locations(),
         icon: 'fa-map',
@@ -320,6 +345,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      {
+        title: 'گزارش‌گیری مدیر دانشکده',
+        path: RouteService.karvita.facultyReports(),
+        icon: 'fa-clipboard-list',
+      },
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'ads.manage'],
@@ -333,6 +363,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      {
+        title: 'گزارش‌گیری دانشگاه استانی',
+        path: RouteService.karvita.provincialReports(),
+        icon: 'fa-clipboard-list',
+      },
       {
         title: 'مکان‌ها و پردیس‌ها',
         path: PlannedRoutes.locations(),
@@ -372,6 +407,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      {
+        title: 'گزارش‌گیری سازمان مرکزی',
+        path: RouteService.karvita.centralReports(),
+        icon: 'fa-clipboard-list',
+      },
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'ads.manage'],
