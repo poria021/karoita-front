@@ -110,7 +110,7 @@ export function UserPermissionsPageClient() {
         <div className="overflow-x-auto">
           <table className="min-w-full border-separate border-spacing-y-2 text-sm">
             <thead>
-              <tr className="text-right text-kv-muted">
+              <tr className="text-start text-kv-muted">
                 <th className="px-2 py-2">نقش</th>
                 <th className="px-2 py-2">استان</th>
                 <th className="px-2 py-2">گزارش</th>

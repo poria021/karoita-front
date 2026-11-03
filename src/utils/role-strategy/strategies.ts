@@ -71,11 +71,6 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     icon: 'fa-bullhorn',
   },
   {
-    title: 'مدیریت دسترسی‌ها',
-    path: RouteService.karvita.userPermissions(),
-    icon: 'fa-user-gear',
-  },
-  {
     kind: 'group',
     title: 'مدیریت سازمانی',
     icon: 'fa-network-wired',
