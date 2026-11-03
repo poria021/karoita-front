@@ -55,6 +55,7 @@ describe('live nav / admin plane', () => {
       supervisorMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
     ).toEqual([
       RouteService.karvita.dashboard(),
+      RouteService.karvita.mentorReports(),
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.organizationalCapacities(),
       RouteService.karvita.announcements(),
@@ -65,6 +66,7 @@ describe('live nav / admin plane', () => {
       mentorMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
     ).toEqual([
       RouteService.karvita.dashboard(),
+      RouteService.karvita.mentorReports(),
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.announcements(),
     ]);
@@ -74,6 +76,7 @@ describe('live nav / admin plane', () => {
       principalMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
     ).toEqual([
       RouteService.karvita.dashboard(),
+      RouteService.karvita.principalReports(),
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.announcements(),
     ]);
@@ -84,6 +87,7 @@ describe('live nav / admin plane', () => {
       )
     ).toEqual([
       RouteService.karvita.dashboard(),
+      RouteService.karvita.facultyReports(),
       RouteService.karvita.announcements(),
     ]);
 
@@ -96,6 +100,15 @@ describe('live nav / admin plane', () => {
         'path' in entry ? entry.path : entry.title
       );
       expect(paths).toContain(RouteService.karvita.dashboard());
+      if (role === 'regional_edu_admin') {
+        expect(paths).toContain(RouteService.karvita.regionalReports());
+      }
+      if (role === 'provincial_university') {
+        expect(paths).toContain(RouteService.karvita.provincialReports());
+      }
+      if (role === 'central_organization') {
+        expect(paths).toContain(RouteService.karvita.centralReports());
+      }
       expect(paths).toContain(RouteService.karvita.announcements());
     }
 
@@ -120,6 +133,7 @@ describe('live nav / admin plane', () => {
     expect(adminMenu.map((entry) => entry.title)).toEqual([
       'میز کار مدیریت',
       'بررسی مدارک هویتی',
+      'گزارش‌گیری مدیر ارشد',
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
@@ -140,6 +154,7 @@ describe('live nav / admin plane', () => {
     expect(assistantMenu.map((entry) => entry.title)).toEqual([
       'میز کار مدیریت',
       'بررسی مدارک هویتی',
+      'گزارش‌گیری مدیر ارشد',
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
