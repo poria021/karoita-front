@@ -18,7 +18,6 @@ export const PlannedRoutes = {
   studentsList: (): string => '/karvita/students',
   termLifecycle: (): string => '/karvita/term-lifecycle',
   locations: (): string => '/karvita/locations',
-  userPermissions: (): string => '/karvita/permissions',
   internshipDetail: (internshipId: string): string =>
     `/karvita/internships/${internshipId}`,
 } as const;

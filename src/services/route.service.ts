@@ -82,8 +82,6 @@ export const RouteService = {
   karvita: {
     dashboard: (): string => '/karvita/dashboard',
     adminDashboard: (): string => KARVITA_ADMIN_DASHBOARD,
-    adminReports: (): string => `${KARVITA_ADMIN_BASE}/reports`,
-    userPermissions: (): string => '/karvita/permissions',
     profile: (role: string): string => `/karvita/${role}/profile`,
     profileSecurity: (role: string): string =>
       `/karvita/${role}/profile?tab=security`,
@@ -92,12 +90,6 @@ export const RouteService = {
       const base = '/karvita/daily-approvals';
       return kind ? appendSearchParam(base, 'kind', kind) : base;
     },
-    mentorReports: (): string => '/karvita/mentor-reports',
-    principalReports: (): string => '/karvita/principal-reports',
-    regionalReports: (): string => '/karvita/regional-reports',
-    facultyReports: (): string => '/karvita/faculty-reports',
-    provincialReports: (): string => '/karvita/provincial-reports',
-    centralReports: (): string => '/karvita/central-reports',
     /** ایندکس سرفصل redirect است؛ UI زنده زیر `/admin/syllabus/*`. */
     syllabusConfig: (): string => `${KARVITA_ADMIN_BASE}/syllabus`,
     syllabusCourseOfferings: (): string =>

@@ -5,7 +5,6 @@ import {
   isSidebarMenuGroup,
   type RoleStrategyMap,
   type SidebarMenuEntry,
-  type SidebarMenuGroup,
   type SidebarMenuItem,
 } from '@/utils/role-strategy/types';
 
@@ -32,61 +31,6 @@ const MANAGE_ANNOUNCEMENTS_ITEM: SidebarMenuItem = {
   ...MANAGE_ADS_ITEM,
   title: 'انتشار اطلاعیه',
 };
-
-function makeReportsSidebarGroup(activePath?: string): SidebarMenuGroup {
-  const children: SidebarMenuItem[] = [
-    {
-      title: 'گزارش‌گیری استاد راهنما',
-      path: RouteService.karvita.mentorReports(),
-      icon: 'fa-clipboard-list',
-      disabled: activePath !== RouteService.karvita.mentorReports(),
-    },
-    {
-      title: 'گزارش‌گیری مدیر مدرسه',
-      path: RouteService.karvita.principalReports(),
-      icon: 'fa-clipboard-list',
-      disabled: activePath !== RouteService.karvita.principalReports(),
-    },
-    {
-      title: 'گزارش‌گیری آموزش و پرورش منطقه',
-      path: RouteService.karvita.regionalReports(),
-      icon: 'fa-clipboard-list',
-      disabled: activePath !== RouteService.karvita.regionalReports(),
-    },
-    {
-      title: 'گزارش‌گیری مدیر دانشکده',
-      path: RouteService.karvita.facultyReports(),
-      icon: 'fa-clipboard-list',
-      disabled: activePath !== RouteService.karvita.facultyReports(),
-    },
-    {
-      title: 'گزارش‌گیری دانشگاه استانی',
-      path: RouteService.karvita.provincialReports(),
-      icon: 'fa-clipboard-list',
-      disabled: activePath !== RouteService.karvita.provincialReports(),
-    },
-    {
-      title: 'گزارش‌گیری سازمان مرکزی',
-      path: RouteService.karvita.centralReports(),
-      icon: 'fa-clipboard-list',
-      disabled: activePath !== RouteService.karvita.centralReports(),
-    },
-    {
-      title: 'گزارش‌گیری مدیر ارشد',
-      path: RouteService.karvita.adminReports(),
-      icon: 'fa-clipboard-list',
-      disabled: activePath !== RouteService.karvita.adminReports(),
-    },
-  ];
-
-  return {
-    kind: 'group',
-    title: 'گزارش‌گیری',
-    icon: 'fa-clipboard-list',
-    defaultOpen: true,
-    children,
-  };
-}
 
 function omitSidebarPaths(
   menu: readonly SidebarMenuEntry[],
@@ -116,7 +60,6 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     path: RouteService.karvita.onboardingApprovals(),
     icon: 'fa-id-card',
   },
-  makeReportsSidebarGroup(RouteService.karvita.adminReports()),
   {
     title: 'مدیریت محتوای لندینگ',
     path: RouteService.karvita.landingCms(),
@@ -169,7 +112,6 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
 const SENIOR_ADMIN_PERMISSIONS = [
   'dashboard.view',
   'onboarding.review',
-  'permission.manage',
   'user.create',
   'syllabus.manage',
   'syllabus.term-settings',
@@ -276,7 +218,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      makeReportsSidebarGroup(RouteService.karvita.mentorReports()),
       {
         title: 'ارزیابی گزارش‌های فراگیران',
         path: RouteService.karvita.dailyApprovals(),
@@ -304,7 +245,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      makeReportsSidebarGroup(RouteService.karvita.mentorReports()),
       {
         title: 'ارزیابی گزارش‌های فراگیران',
         path: RouteService.karvita.dailyApprovals(),
@@ -323,7 +263,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      makeReportsSidebarGroup(RouteService.karvita.principalReports()),
       {
         title: 'ارزیابی گزارش‌های فراگیران',
         path: RouteService.karvita.dailyApprovals(),
@@ -357,7 +296,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      makeReportsSidebarGroup(RouteService.karvita.regionalReports()),
       {
         title: 'مکان‌ها و مناطق',
         path: PlannedRoutes.locations(),
@@ -376,7 +314,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      makeReportsSidebarGroup(RouteService.karvita.facultyReports()),
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'ads.manage'],
@@ -390,7 +327,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      makeReportsSidebarGroup(RouteService.karvita.provincialReports()),
       {
         title: 'مکان‌ها و پردیس‌ها',
         path: PlannedRoutes.locations(),
@@ -430,7 +366,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      makeReportsSidebarGroup(RouteService.karvita.centralReports()),
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'ads.manage'],

@@ -15,14 +15,6 @@ export type DashboardModuleKey =
   | 'syllabus-term-settings'
   | 'syllabus-course-catalog'
   | 'daily-approvals'
-  | 'mentor-reports'
-  | 'principal-reports'
-  | 'regional-reports'
-  | 'faculty-reports'
-  | 'provincial-reports'
-  | 'central-reports'
-  | 'admin-reports'
-  | 'user-permissions'
   | 'capacities'
   | 'announcements'
   | 'internship-level'
@@ -42,14 +34,6 @@ const MODULE_PATH: Record<DashboardModuleKey, string | ((role?: string) => strin
     'syllabus-term-settings': RouteService.karvita.syllabusTermSettings(),
     'syllabus-course-catalog': RouteService.karvita.syllabusCourseCatalog(),
     'daily-approvals': RouteService.karvita.dailyApprovals(),
-    'mentor-reports': RouteService.karvita.mentorReports(),
-    'principal-reports': RouteService.karvita.principalReports(),
-    'regional-reports': RouteService.karvita.regionalReports(),
-    'faculty-reports': RouteService.karvita.facultyReports(),
-    'provincial-reports': RouteService.karvita.provincialReports(),
-    'central-reports': RouteService.karvita.centralReports(),
-    'admin-reports': RouteService.karvita.adminReports(),
-    'user-permissions': RouteService.karvita.userPermissions(),
     capacities: RouteService.karvita.organizationalCapacities(),
     announcements: RouteService.karvita.announcements(),
     'internship-level': RouteService.karvita.internshipSelection(1),

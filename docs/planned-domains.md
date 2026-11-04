@@ -14,7 +14,6 @@ When a domain is ready to build, add all of the following in the same change:
 | Domain | Intent |
 |--------|--------|
 | `ad-engine` | Publications / ads management (see PlannedRoutes manage-ads) |
-| `reporting` | Standard and comparative reports |
 | `forms-wizard` | Multi-step form wizard infrastructure |
 
 See also `docs/architecture-folders.md` for the target folder tree.

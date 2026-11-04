@@ -36,7 +36,6 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.auth.adminGate(),
   RouteService.karvita.dashboard(),
   RouteService.karvita.adminDashboard(),
-  RouteService.karvita.userPermissions(),
   RouteService.karvita.organizationalStructure(),
   RouteService.karvita.adminUserCreation(),
   RouteService.karvita.onboardingApprovals(),
@@ -45,13 +44,6 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.syllabusTermSettings(),
   RouteService.karvita.syllabusCourseCatalog(),
   RouteService.karvita.dailyApprovals(),
-  RouteService.karvita.mentorReports(),
-  RouteService.karvita.principalReports(),
-  RouteService.karvita.regionalReports(),
-  RouteService.karvita.facultyReports(),
-  RouteService.karvita.provincialReports(),
-  RouteService.karvita.centralReports(),
-  RouteService.karvita.adminReports(),
   RouteService.karvita.organizationalCapacities(),
   RouteService.karvita.announcements(),
   ...INTERNSHIP_LEVEL_PATHS,
@@ -67,24 +59,12 @@ const INDEX_REDIRECT_MODULE_PATHS: readonly string[] = [
 ];
 
 /**
- * صفحات زنده که تا تکمیل UI در سایدبار نیستند.
- * مسیر، لاگین، ریکاوری و بردکرامب سر جایشان می‌مانند.
- * برای نمایش دوباره، همان مسیر را از این مجموعه بردارید — آیتم نقش از قبل هست.
- */
-const SIDEBAR_DEFERRED_PATHS: ReadonlySet<string> = new Set([
-  RouteService.karvita.userPermissions(),
-]);
-
-/**
- * زیرمجموعهٔ سایدبار: مسیرهای شِل از `LIVE_STATIC_NAV_PATHS` منهای deferred.
- * از همان لیست مشتق می‌شود تا صفحهٔ جدید `/karvita/*` کاندید سایدبار باشد مگر در
- * `SIDEBAR_DEFERRED_PATHS`. مسیرهای مارکتینگ و auth بیرون می‌مانند؛ سایدبار فقط
- * داخل شِل احراز‌شده (`/(app)/karvita/*`) رندر می‌شود.
+ * زیرمجموعهٔ سایدبار: مسیرهای شِل از `LIVE_STATIC_NAV_PATHS`.
+ * مسیرهای مارکتینگ و auth بیرون می‌مانند؛ سایدبار فقط داخل شِل احراز‌شده
+ * (`/(app)/karvita/*`) رندر می‌شود.
  */
 const LIVE_SIDEBAR_PATH_SET: ReadonlySet<string> = new Set(
-  LIVE_STATIC_NAV_PATHS.filter(
-    (p) => p.startsWith('/karvita/') && !SIDEBAR_DEFERRED_PATHS.has(p)
-  )
+  LIVE_STATIC_NAV_PATHS.filter((p) => p.startsWith('/karvita/'))
 );
 
 export function isLiveStaticNavPath(pathname: string): boolean {

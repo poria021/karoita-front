@@ -239,7 +239,7 @@ export function MarketingLoginSelect({ products }: MarketingLoginSelectProps) {
 
         <div className="w-full border-t border-kv-border-muted py-kv-section text-center">
           <KvTypography variant="overline" tone="muted" weight="bold" align="center">
-            سامانه جامع آموزش نظری، مهارتی و مدیریت دسترسی‌های کارویتا © ۱۴۰۵
+            سامانه جامع آموزش نظری و مهارتی کارویتا © ۱۴۰۵
           </KvTypography>
         </div>
       </div>

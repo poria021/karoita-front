@@ -12,32 +12,8 @@ import {
   getVisibleSidebarMenu,
   isSidebarMenuGroup,
 } from '@/utils/RoleStrategyMap';
-import type { SidebarMenuGroup } from '@/utils/role-strategy/types';
 
 describe('live nav / admin plane', () => {
-  it('keeps the reporting module visible as a fixed group with inactive report children disabled', () => {
-    const mentorMenu = getVisibleSidebarMenu('mentor_teacher');
-    const reportsGroup = mentorMenu.find(
-      (entry): entry is SidebarMenuGroup =>
-        isSidebarMenuGroup(entry) &&
-        entry.title === 'گزارش‌گیری' &&
-        entry.children.some(
-          (child) => child.path === RouteService.karvita.mentorReports()
-        )
-    );
-
-    expect(reportsGroup).toBeDefined();
-    expect(reportsGroup?.children.map((child) => [child.path, child.disabled ?? false])).toEqual([
-      [RouteService.karvita.mentorReports(), false],
-      [RouteService.karvita.principalReports(), true],
-      [RouteService.karvita.regionalReports(), true],
-      [RouteService.karvita.facultyReports(), true],
-      [RouteService.karvita.provincialReports(), true],
-      [RouteService.karvita.centralReports(), true],
-      [RouteService.karvita.adminReports(), true],
-    ]);
-  });
-
   it('treats org structure as admin control plane', () => {
     expect(
       isAdminControlPlanePath(RouteService.karvita.organizationalStructure())
@@ -79,7 +55,6 @@ describe('live nav / admin plane', () => {
       supervisorMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
     ).toEqual([
       RouteService.karvita.dashboard(),
-      'گزارش‌گیری',
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.organizationalCapacities(),
       RouteService.karvita.announcements(),
@@ -90,7 +65,6 @@ describe('live nav / admin plane', () => {
       mentorMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
     ).toEqual([
       RouteService.karvita.dashboard(),
-      'گزارش‌گیری',
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.announcements(),
     ]);
@@ -100,7 +74,6 @@ describe('live nav / admin plane', () => {
       principalMenu.map((entry) => ('path' in entry ? entry.path : entry.title))
     ).toEqual([
       RouteService.karvita.dashboard(),
-      'گزارش‌گیری',
       RouteService.karvita.dailyApprovals(),
       RouteService.karvita.announcements(),
     ]);
@@ -111,7 +84,6 @@ describe('live nav / admin plane', () => {
       )
     ).toEqual([
       RouteService.karvita.dashboard(),
-      'گزارش‌گیری',
       RouteService.karvita.announcements(),
     ]);
 
@@ -125,36 +97,7 @@ describe('live nav / admin plane', () => {
         'path' in entry ? entry.path : entry.title
       );
       expect(paths).toContain(RouteService.karvita.dashboard());
-      expect(paths).toContain('گزارش‌گیری');
-      const reportsGroup = menu.find(
-        (entry): entry is SidebarMenuGroup =>
-          isSidebarMenuGroup(entry) && entry.title === 'گزارش‌گیری'
-      );
-      expect(reportsGroup).toBeDefined();
-      if (role === 'regional_edu_admin') {
-        expect(reportsGroup?.children).toContainEqual(
-          expect.objectContaining({
-            path: RouteService.karvita.regionalReports(),
-            disabled: false,
-          })
-        );
-      }
-      if (role === 'provincial_university') {
-        expect(reportsGroup?.children).toContainEqual(
-          expect.objectContaining({
-            path: RouteService.karvita.provincialReports(),
-            disabled: false,
-          })
-        );
-      }
-      if (role === 'central_organization') {
-        expect(reportsGroup?.children).toContainEqual(
-          expect.objectContaining({
-            path: RouteService.karvita.centralReports(),
-            disabled: false,
-          })
-        );
-      }
+      expect(paths).not.toContain('گزارش‌گیری');
       expect(paths).toContain(RouteService.karvita.announcements());
     }
 
@@ -179,7 +122,6 @@ describe('live nav / admin plane', () => {
     expect(adminMenu.map((entry) => entry.title)).toEqual([
       'میز کار مدیریت',
       'بررسی مدارک هویتی',
-      'گزارش‌گیری',
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
@@ -187,11 +129,10 @@ describe('live nav / admin plane', () => {
     ]);
 
     const groups = adminMenu.filter(isSidebarMenuGroup);
-    expect(groups).toHaveLength(3);
+    expect(groups).toHaveLength(2);
     expect(groups.every((g) => g.defaultOpen)).toBe(true);
 
     expect(groups.map((g) => g.title)).toEqual([
-      'گزارش‌گیری',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
     ]);
@@ -206,7 +147,6 @@ describe('live nav / admin plane', () => {
     expect(assistantMenu.map((entry) => entry.title)).toEqual([
       'میز کار مدیریت',
       'بررسی مدارک هویتی',
-      'گزارش‌گیری',
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
@@ -319,4 +259,3 @@ describe('live nav / admin plane', () => {
     expect(isLiveSidebarPath(RouteService.auth.forgot())).toBe(false);
   });
 });
-
