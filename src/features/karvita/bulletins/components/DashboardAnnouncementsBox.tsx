@@ -7,7 +7,10 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
-import type { DashboardBulletinSource } from '@/services/bulletins/bulletin-rules';
+import {
+  DASHBOARD_ANNOUNCEMENTS_PREVIEW_LIMIT,
+  type DashboardBulletinSource,
+} from '@/services/bulletins/bulletin-rules';
 import { RouteService } from '@/services/route.service';
 import type { Bulletin } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
@@ -21,6 +24,8 @@ type DashboardAnnouncementsBoxProps = {
   source: DashboardBulletinSource;
   /** پنل زیرمجموعه دارد → میان‌بر «مدیریت» در سربرگ. */
   canPublish: boolean;
+  /** گیرندۀ اطلاعیه → «مشاهده همه» به تب دریافتی‌ها (مدیر ارشد نه). */
+  canReceive: boolean;
   className?: string;
   style?: CSSProperties;
 };
@@ -31,10 +36,12 @@ export function DashboardAnnouncementsBox({
   isLoading,
   source,
   canPublish,
+  canReceive,
   className,
   style,
 }: DashboardAnnouncementsBoxProps) {
   const isPublished = source === 'published';
+  const preview = announcements.slice(0, DASHBOARD_ANNOUNCEMENTS_PREVIEW_LIMIT);
 
   return (
     <section
@@ -53,34 +60,43 @@ export function DashboardAnnouncementsBox({
           <KvTypography variant="subtitle" as="h3" id="dashboard-announcements-title">
             {isPublished ? 'اطلاعیه‌های منتشرشدهٔ شما' : 'اطلاعیه‌ها'}
           </KvTypography>
-          {announcements.length > 0 ? (
+          {preview.length > 0 ? (
             <KvTypography variant="caption" tone="muted" as="span">
-              ({toPersianDigits(String(announcements.length))})
+              ({toPersianDigits(String(preview.length))})
             </KvTypography>
           ) : null}
         </div>
-        {canPublish ? (
-          <KvButton asChild color="neutral" appearance="text" size="xs">
-            <Link href={RouteService.karvita.announcements('announcement')}>
-              مدیریت
-            </Link>
-          </KvButton>
-        ) : null}
+        <div className="flex shrink-0 items-center gap-kv-micro">
+          {canReceive ? (
+            <KvButton asChild color="neutral" appearance="text" size="xs">
+              <Link href={RouteService.karvita.announcements('received')}>
+                مشاهده همه
+              </Link>
+            </KvButton>
+          ) : null}
+          {canPublish ? (
+            <KvButton asChild color="neutral" appearance="text" size="xs">
+              <Link href={RouteService.karvita.announcements('announcement')}>
+                مدیریت
+              </Link>
+            </KvButton>
+          ) : null}
+        </div>
       </header>
 
       {isLoading ? (
         <KvTypography variant="caption" tone="muted" as="p">
           در حال بارگذاری اطلاعیه‌ها…
         </KvTypography>
-      ) : announcements.length === 0 ? (
+      ) : preview.length === 0 ? (
         <KvTypography variant="body" tone="muted" as="p">
           {isPublished
             ? 'هنوز اطلاعیه‌ای برای زیرمجموعه‌ها منتشر نکرده‌اید.'
             : 'فعلاً اطلاعیه‌ای برای شما منتشر نشده است.'}
         </KvTypography>
       ) : (
-        <ul className="flex min-h-0 flex-1 list-none flex-col overflow-y-auto">
-          {announcements.map((item) => (
+        <ul className="flex min-h-0 flex-1 list-none flex-col divide-y divide-kv-border/40 overflow-y-auto">
+          {preview.map((item) => (
             <li key={item.id}>
               <BulletinCard bulletin={item} />
             </li>

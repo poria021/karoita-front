@@ -10,7 +10,10 @@ import {
   WORKBENCH_WELCOME_SPAN,
 } from '@/lib/workbench-grid';
 import { cn } from '@/lib/utils';
-import { canPublishAnnouncements } from '@/services/bulletins/bulletin-rules';
+import {
+  canPublishAnnouncements,
+  canReceiveBulletins,
+} from '@/services/bulletins/bulletin-rules';
 import type { UserRole } from '@/types/auth';
 
 import { useDashboardBulletins } from '../hooks/useDashboardBulletins';
@@ -24,9 +27,8 @@ type DashboardBulletinsBoardProps = {
 };
 
 /**
- * سلول‌های ردیف بالای میز کار داخل گرید والد (`WorkbenchHomeClient`):
- * leading (راست) → اطلاعیه‌ها (وسط) → تبلیغ سایدبار (چپ).
- * خوش‌آمد و اطلاعیه‌ها ارتفاع ثابت مشترک دارند (کوتاه‌تر از تبلیغ).
+ * سلول‌های ردیف بالای میز کار داخل گرید والد:
+ * leading → اطلاعیه‌ها → تبلیغ — اندازه‌ها مثل قبل؛ موبایل ستونی.
  */
 export function DashboardBulletinsBoard({
   role,
@@ -53,6 +55,7 @@ export function DashboardBulletinsBoard({
       isLoading={data.isLoading}
       source={data.sources.announcement}
       canPublish={canPublishAnnouncements(role)}
+      canReceive={canReceiveBulletins(role)}
       className={WORKBENCH_ANNOUNCEMENTS_SPAN}
       style={WORKBENCH_SIDE_PANEL_STYLE}
     />

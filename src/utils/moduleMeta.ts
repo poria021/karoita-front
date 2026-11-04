@@ -125,9 +125,9 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
     icon: 'fa-id-card',
   },
   [RouteService.karvita.announcements()]: {
-    title: 'اطلاعیه‌ها و تبلیغات',
+    title: 'اطلاعیه‌ها و اعلانات',
     description:
-      'انتشار اطلاعیه برای داشبورد نقش‌های زیرمجموعه؛ تبلیغات فقط توسط مدیر ارشد و دستیارانش.',
+      'انتشار و دریافت اطلاعیه؛ تبلیغات ستاد مدیریت؛ اعلان‌های سیستم.',
     icon: 'fa-bullhorn',
   },
   [RouteService.karvita.internshipSelection()]: {

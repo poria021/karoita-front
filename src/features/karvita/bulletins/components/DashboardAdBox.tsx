@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -17,23 +17,10 @@ import { toPersianDigits } from '@/utils/persianDigits';
 const SLIDE_DURATION = 6000;
 
 /**
- * ابعاد ثابت باکس تبلیغ میز کار (مستطیل عمودی).
- * کل قاب پس‌زمینهٔ تصویری است؛ نوار عنوان/لینک روی خودِ عکس می‌نشیند.
+ * نسبت ثابت ۳:۴ داخل سلول ۳۰۰px دسکتاپ (≡ ۳۰۰×۴۰۰).
+ * روی موبایل عرض سلول جمع می‌شود و نسبت حفظ می‌ماند.
  */
-export const DASHBOARD_AD_WIDTH_PX = 300;
-export const DASHBOARD_AD_HEIGHT_PX = 330;
-/** ارتفاع ناحیهٔ عنوان/لینک روی پایین تصویر. */
-export const DASHBOARD_AD_META_HEIGHT_PX = 80;
-
-const BOX_STYLE: CSSProperties = {
-  width: DASHBOARD_AD_WIDTH_PX,
-  height: DASHBOARD_AD_HEIGHT_PX,
-  minWidth: DASHBOARD_AD_WIDTH_PX,
-  minHeight: DASHBOARD_AD_HEIGHT_PX,
-  maxWidth: DASHBOARD_AD_WIDTH_PX,
-  maxHeight: DASHBOARD_AD_HEIGHT_PX,
-  flexShrink: 0,
-};
+export const DASHBOARD_AD_ASPECT_CLASS = 'aspect-[3/4]';
 
 function isExternalAdLink(url: string): boolean {
   return /^https?:\/\//i.test(url);
@@ -46,12 +33,13 @@ type DashboardAdBoxProps = {
   isPublisher: boolean;
 };
 
-const BOX_CLASS =
-  'relative overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface-muted shadow-kv-soft';
+const BOX_CLASS = cn(
+  'relative w-full overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface-muted shadow-kv-soft',
+  DASHBOARD_AD_ASPECT_CLASS
+);
 
 /**
- * باکس تبلیغ سایدبار میز کار — اندازهٔ ثابت ۳۰۰×۳۳۰؛
- * عکس تمام پس‌زمینه را پر می‌کند و عنوان/لینک روی پایین تصویر است.
+ * باکس تبلیغ سایدبار — پر کردن سلول گرید با نسبت ثابت ۳:۴.
  */
 export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxProps) {
   const [current, setCurrent] = useState(0);
@@ -69,16 +57,13 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
   }, [count, paused, reducedMotion]);
 
   if (isLoading) {
-    return (
-      <div className={cn(BOX_CLASS, 'animate-pulse')} style={BOX_STYLE} aria-hidden />
-    );
+    return <div className={cn(BOX_CLASS, 'animate-pulse')} aria-hidden />;
   }
 
   if (count === 0) {
     return (
       <section
         aria-label="تبلیغات"
-        style={BOX_STYLE}
         className={cn(
           BOX_CLASS,
           'flex flex-col items-center justify-center gap-kv-pair border-dashed p-kv-group text-center shadow-none'
@@ -107,7 +92,6 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
     <section
       aria-roledescription="carousel"
       aria-label="تبلیغات"
-      style={BOX_STYLE}
       className={BOX_CLASS}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -182,10 +166,7 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
       ) : null}
 
       {/* عنوان و لینک روی خودِ تصویر — بدون پس‌زمینهٔ جدا */}
-      <div
-        className="absolute inset-x-0 bottom-0 z-10 flex flex-col justify-end gap-1 bg-gradient-to-t from-kv-text/75 via-kv-text/35 to-transparent px-2.5 pb-2.5 pt-10"
-        style={{ minHeight: DASHBOARD_AD_META_HEIGHT_PX }}
-      >
+      <div className="absolute inset-x-0 bottom-0 z-10 flex min-h-[20%] flex-col justify-end gap-1 bg-gradient-to-t from-kv-text/75 via-kv-text/35 to-transparent px-2.5 pb-2.5 pt-10">
         <p className="line-clamp-2 text-sm font-bold leading-snug text-kv-canvas">
           {shown.title}
         </p>

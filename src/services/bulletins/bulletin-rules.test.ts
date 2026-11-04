@@ -3,15 +3,19 @@ import { describe, expect, it } from 'vitest';
 import type { Bulletin, UpsertBulletinInput } from '@/types/bulletins';
 
 import {
+  announcementsHubTabsFor,
   audienceRolesFor,
   buildBulletin,
+  canAccessAnnouncementsHub,
   canPublishAdvertisements,
   canPublishAnnouncements,
   canReceiveBulletins,
   dashboardBulletinSources,
+  defaultAnnouncementsHubTab,
   isBulletinOwnedBy,
   isBulletinVisibleTo,
   normalizeBulletin,
+  showsAnnouncementsHubNotifications,
   validateBulletinInput,
 } from './bulletin-rules';
 
@@ -96,6 +100,37 @@ describe('bulletin-rules', () => {
     expect(canReceiveBulletins('assistant_admin')).toBe(true);
     expect(canReceiveBulletins('student')).toBe(true);
     expect(audienceRolesFor('student', 'announcement')).toEqual([]);
+  });
+
+  it('hub tabs follow publish / receive / learner rules', () => {
+    expect(announcementsHubTabsFor('super_admin')).toEqual([
+      'announcement',
+      'advertisement',
+    ]);
+    expect(defaultAnnouncementsHubTab('super_admin')).toBe('announcement');
+    expect(announcementsHubTabsFor('assistant_admin')).toEqual([
+      'announcement',
+      'advertisement',
+      'received',
+    ]);
+    expect(announcementsHubTabsFor('faculty_role')).toEqual([
+      'announcement',
+      'received',
+    ]);
+    expect(announcementsHubTabsFor('student')).toEqual([
+      'received',
+      'notifications',
+    ]);
+    expect(defaultAnnouncementsHubTab('student')).toBe('received');
+    expect(announcementsHubTabsFor('skill_learner')).toEqual([
+      'received',
+      'notifications',
+    ]);
+    expect(showsAnnouncementsHubNotifications('student')).toBe(false);
+    expect(showsAnnouncementsHubNotifications('faculty_role')).toBe(true);
+    expect(showsAnnouncementsHubNotifications('super_admin')).toBe(false);
+    expect(canAccessAnnouncementsHub('student')).toBe(true);
+    expect(canAccessAnnouncementsHub('super_admin')).toBe(true);
   });
 
   it('staff admins share ownership; other panels own their own rows', () => {

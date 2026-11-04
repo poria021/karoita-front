@@ -5,7 +5,10 @@ import type {
   BulletinKind,
   UpsertBulletinInput,
 } from '@/types/bulletins';
-import { isStaffAdminRole } from '@/types/role-taxonomy';
+import {
+  isLearnerDashboardRole,
+  isStaffAdminRole,
+} from '@/types/role-taxonomy';
 
 /**
  * سلسله‌مراتب انتشار اطلاعیه — اطلاعیهٔ هر پنل فقط در داشبورد نقش‌های زیرمجموعه‌اش دیده می‌شود.
@@ -108,6 +111,58 @@ export function canReceiveBulletins(
   return Object.values(ANNOUNCEMENT_AUDIENCE).some((audience) =>
     audience.includes(role as UserRole)
   );
+}
+
+/** تب‌های هاب `/karvita/announcements` — هم‌تراز RouteService.karvita.announcements. */
+export type AnnouncementsHubTab =
+  | 'announcement'
+  | 'advertisement'
+  | 'received'
+  | 'notifications';
+
+/** سقف پیش‌نمایش باکس میز کار (صفحهٔ API هنوز صفحه‌بندی ندارد). */
+export const DASHBOARD_ANNOUNCEMENTS_PREVIEW_LIMIT = 20;
+
+/** صفحهٔ هاب: هر بار ۲۰ مورد؛ اسکرول داخل باکس موارد بعدی را می‌آورد. */
+export const HUB_INBOX_PAGE_SIZE = 20;
+
+/** دسترسی به هاب: ناشر یا گیرندۀ اطلاعیه. */
+export function canAccessAnnouncementsHub(
+  role: UserRole | string | null | undefined
+): boolean {
+  return canPublishAnnouncements(role) || canReceiveBulletins(role);
+}
+
+/**
+ * باکس اعلان کنار دریافتی — برای گیرنده‌های غیر دانشجو/مهارت‌آموز.
+ * دانشجو و مهارت‌آموز تب جدا «اعلان‌های سیستم» دارند.
+ */
+export function showsAnnouncementsHubNotifications(
+  role: UserRole | string | null | undefined
+): boolean {
+  return canReceiveBulletins(role) && !isLearnerDashboardRole(role);
+}
+
+/**
+ * تب‌های مجاز هاب بر اساس نقش.
+ * مدیر ارشد: فقط انتشار؛ دانشجو/مهارت‌آموز: دریافتی + اعلان؛ ناشران: انتشار (+ تبلیغ) + دریافتی.
+ */
+export function announcementsHubTabsFor(
+  role: UserRole | string | null | undefined
+): AnnouncementsHubTab[] {
+  const tabs: AnnouncementsHubTab[] = [];
+  if (canPublishAnnouncements(role)) tabs.push('announcement');
+  if (canPublishAdvertisements(role)) tabs.push('advertisement');
+  if (canReceiveBulletins(role)) tabs.push('received');
+  if (isLearnerDashboardRole(role)) tabs.push('notifications');
+  return tabs;
+}
+
+export function defaultAnnouncementsHubTab(
+  role: UserRole | string | null | undefined
+): AnnouncementsHubTab {
+  const tabs = announcementsHubTabsFor(role);
+  return tabs[0] ?? 'received';
 }
 
 /** «دریافتی» = منتشرشده برای این نقش؛ «منتشرشده» = موارد خود پنل (پیش‌نمایش). */

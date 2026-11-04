@@ -21,15 +21,21 @@ const ADMIN_DASHBOARD_ITEM: SidebarMenuItem = {
 };
 
 const MANAGE_ADS_ITEM: SidebarMenuItem = {
-  title: 'اطلاعیه‌ها و تبلیغات',
+  title: 'اطلاعیه‌ها و اعلانات',
   path: RouteService.karvita.announcements(),
   icon: 'fa-bullhorn',
 };
 
-/** پنل‌های غیرستادی فقط اطلاعیه منتشر می‌کنند (تبلیغ مخصوص ستاد مدیر ارشد است). */
+/** پنل‌های غیرستادی — همان مسیر هاب؛ عنوان ماژول یکسان است. */
 const MANAGE_ANNOUNCEMENTS_ITEM: SidebarMenuItem = {
   ...MANAGE_ADS_ITEM,
-  title: 'انتشار اطلاعیه',
+};
+
+/** دانشجو/مهارت‌آموز — مشاهدهٔ دریافتی‌ها و اعلان‌ها (بدون انتشار). */
+const INBOX_ANNOUNCEMENTS_ITEM: SidebarMenuItem = {
+  title: 'اطلاعیه‌ها و اعلان‌ها',
+  path: RouteService.karvita.announcements(),
+  icon: 'fa-bullhorn',
 };
 
 function omitSidebarPaths(
@@ -164,6 +170,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
           },
         ],
       },
+      INBOX_ANNOUNCEMENTS_ITEM,
       {
         title: 'گزارش روزانه',
         path: PlannedRoutes.dailyReports(),
@@ -201,6 +208,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
           },
         ],
       },
+      INBOX_ANNOUNCEMENTS_ITEM,
       {
         title: 'گزارش روزانه',
         path: PlannedRoutes.dailyReports(),

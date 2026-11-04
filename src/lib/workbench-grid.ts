@@ -1,15 +1,16 @@
 import type { CSSProperties } from 'react';
 
 /**
- * گرید مشترک ماژول میز کار همهٔ پنل‌ها — یک ریتم ستون/فاصله برای ویجت‌ها و میان‌برها.
- * از md به بالا: خوش‌آمد | اطلاعیه‌ها | تبلیغ با عرض ثابت.
+ * گرید میز کار — دسکتاپ همان اندازه‌های قبلی؛ موبایل تک‌ستونه و جمع می‌شود.
+ *
+ * md+: خوش‌آمد (1fr) | اطلاعیه‌ها (1.35fr) | تبلیغ (۳۰۰px ثابت)
+ * موبایل: یک ستون، روی هم
  */
 export const WORKBENCH_GRID_CLASS =
   'grid w-full grid-cols-1 gap-kv-group md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_auto] md:items-start';
 
 /**
- * ارتفاع ثابت مشترک خوش‌آمد و اطلاعیه‌ها — کمتر از باکس تبلیغ (۳۳۰px).
- * تبلیغ جدا و بلندتر می‌ماند؛ این دو ستون هم‌ارتفاع و کوتاه‌ترند.
+ * ارتفاع مشترک خوش‌آمد و اطلاعیه‌ها — کوتاه‌تر از تبلیغ ۳۰۰×۴۰۰ (نسبت ۳:۴).
  */
 export const WORKBENCH_SIDE_PANEL_HEIGHT_PX = 240;
 
@@ -19,22 +20,22 @@ export const WORKBENCH_SIDE_PANEL_STYLE: CSSProperties = {
   maxHeight: WORKBENCH_SIDE_PANEL_HEIGHT_PX,
 };
 
-/** خوش‌آمد — ستون راست (اول در RTL). */
-export const WORKBENCH_WELCOME_SPAN = 'min-h-0 min-w-0';
+/** خوش‌آمد — ستون راست (اول در RTL) */
+export const WORKBENCH_WELCOME_SPAN = 'min-h-0 min-w-0 w-full';
 
-/** اطلاعیه‌ها — وسط؛ هم‌ارتفاع با خوش‌آمد. */
-export const WORKBENCH_ANNOUNCEMENTS_SPAN = 'min-h-0 min-w-0';
+/** اطلاعیه‌ها — وسط */
+export const WORKBENCH_ANNOUNCEMENTS_SPAN = 'min-h-0 min-w-0 w-full';
 
 /**
- * تبلیغ سایدبار — ستون چپ (آخر در RTL).
- * خودِ باکس ۳۰۰×۳۳۰ ثابت است؛ این سلول فقط جایش را در گرید مشخص می‌کند.
+ * تبلیغ — ستون چپ (آخر در RTL).
+ * دسکتاپ: سلول auto به عرض ۳۰۰px؛ موبایل: سقف ۳۰۰ و وسط‌چین.
  */
 export const WORKBENCH_AD_SPAN =
-  'w-[300px] shrink-0 justify-self-center md:justify-self-end';
+  'w-full max-w-[300px] justify-self-center md:w-[300px] md:max-w-none md:justify-self-end';
 
-/** ردیف تمام‌عرض زیر ویجت‌های بالا (چک‌لیست، میان‌برها، …). */
+/** ردیف تمام‌عرض (چک‌لیست، میان‌برها، …) */
 export const WORKBENCH_FULL_SPAN = 'min-w-0 md:col-span-full';
 
-/** گرید داخلی میان‌برها — هم‌ریتم با گرید اصلی. */
+/** گرید داخلی میان‌برها */
 export const WORKBENCH_SHORTCUTS_GRID_CLASS =
   'grid list-none gap-kv-group sm:grid-cols-2 lg:grid-cols-3';

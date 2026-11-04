@@ -38,8 +38,9 @@ export function BulletinPanelBadge({ bulletin }: { bulletin: Bulletin }) {
 }
 
 /**
- * ردیف اطلاعیهٔ میز کار: بج + تاریخ در یک سطر، عنوان زیرش، توضیحات با دکمهٔ کشویی (پیش‌فرض بسته).
- * بدون باکس بردردار — فقط جداکنندهٔ زیر هر پیام.
+ * ردیف اطلاعیه — دقیقاً همان چیدمان باکس اعلان‌های سیستم:
+ * عنوان راست، تاریخ/دکمهٔ توضیحات چپ، متن زیر عنوان.
+ * تفاوت: متن کشویی است و دکمه جای تاریخ می‌نشیند.
  */
 export function BulletinCard({
   bulletin,
@@ -54,56 +55,35 @@ export function BulletinCard({
   return (
     <article
       className={cn(
-        'flex flex-col gap-kv-pair border-b border-kv-border py-kv-group text-start last:border-b-0',
+        'flex w-full flex-col gap-kv-micro py-kv-group text-start',
         className
       )}
     >
-      <div className="flex flex-wrap items-center justify-between gap-kv-pair">
-        <div className="flex min-w-0 flex-wrap items-center gap-kv-pair">
-          <BulletinPanelBadge bulletin={bulletin} />
+      <div className="flex w-full items-start gap-kv-inline">
+        <div className="min-w-0 flex-1 break-words pe-kv-pair">
           {actions ? (
-            <div className="flex shrink-0 items-center gap-1">{actions}</div>
+            <div className="mb-kv-micro flex shrink-0 items-center gap-1">
+              {actions}
+            </div>
           ) : null}
-        </div>
-        <KvTypography variant="caption" tone="muted" as="span" className="shrink-0">
-          {formatNotificationTime(bulletin.createdAt)}
-        </KvTypography>
-      </div>
-
-      <KvTypography variant="subtitle" as="h4">
-        {bulletin.title}
-      </KvTypography>
-
-      {hasDetails ? (
-        <div className="flex flex-col gap-kv-pair">
-          <KvButton
-            type="button"
-            color="neutral"
-            appearance="text"
-            size="xs"
-            className="self-start"
-            aria-expanded={open}
-            aria-controls={bodyId}
-            iconPosition="end"
-            icon={
-              <FaIcon
-                icon={faIcons.chevronDown}
-                size="xs"
-                className={cn(
-                  'transition-transform motion-reduce:transition-none',
-                  open && 'rotate-180'
-                )}
-              />
-            }
-            onClick={() => setOpen((prev) => !prev)}
+          <KvTypography
+            variant="caption"
+            tone="muted"
+            weight="bold"
+            as="h4"
+            className="block"
           >
-            {open ? 'بستن توضیحات' : 'مشاهده توضیحات'}
-          </KvButton>
-
-          {open ? (
-            <div id={bodyId} className="flex flex-col gap-kv-pair">
+            {bulletin.title}
+          </KvTypography>
+          {hasDetails && open ? (
+            <div id={bodyId} className="mt-kv-micro flex flex-col gap-kv-micro">
               {bulletin.body ? (
-                <KvTypography variant="body" tone="muted" as="p">
+                <KvTypography
+                  variant="caption"
+                  tone="muted"
+                  as="p"
+                  className="block"
+                >
                   <span className="whitespace-pre-line">{bulletin.body}</span>
                 </KvTypography>
               ) : null}
@@ -120,10 +100,44 @@ export function BulletinCard({
               ) : null}
             </div>
           ) : null}
+          {footer ? <div className="mt-kv-micro">{footer}</div> : null}
         </div>
-      ) : null}
 
-      {footer}
+        {hasDetails ? (
+          <KvButton
+            type="button"
+            color="neutral"
+            appearance="text"
+            size="xs"
+            className="shrink-0"
+            aria-expanded={open}
+            aria-controls={bodyId}
+            iconPosition="end"
+            icon={
+              <FaIcon
+                icon={faIcons.chevronDown}
+                size="xs"
+                className={cn(
+                  'transition-transform motion-reduce:transition-none',
+                  open && 'rotate-180'
+                )}
+              />
+            }
+            onClick={() => setOpen((prev) => !prev)}
+          >
+            {open ? 'بستن' : 'توضیحات'}
+          </KvButton>
+        ) : (
+          <span
+            className="origin-top-end shrink-0 scale-[0.85] whitespace-nowrap opacity-70"
+            dir="rtl"
+          >
+            <KvTypography variant="overline" tone="disabled" as="span">
+              {formatNotificationTime(bulletin.createdAt)}
+            </KvTypography>
+          </span>
+        )}
+      </div>
     </article>
   );
 }

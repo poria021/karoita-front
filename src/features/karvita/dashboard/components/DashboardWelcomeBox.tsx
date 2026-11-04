@@ -43,12 +43,8 @@ export function DashboardWelcomeBox({
       <KarvitaBrandMark
         className="kv-welcome-mark pointer-events-none absolute -end-1 top-3 size-24 text-kv-brand opacity-[0.08] sm:size-28"
       />
-      <span
-        aria-hidden
-        className="absolute inset-y-3 start-0 w-1 rounded-e-kv-tight bg-kv-brand"
-      />
 
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-kv-group px-kv-group py-kv-group ps-[1.15rem]">
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-kv-group p-kv-group">
         <header className="kv-welcome-enter shrink-0">
           <h3
             id="dashboard-welcome-title"
@@ -56,10 +52,6 @@ export function DashboardWelcomeBox({
           >
             {displayName} خوش آمدید
           </h3>
-          <span
-            aria-hidden
-            className="mt-2 block h-0.5 w-10 rounded-full bg-kv-brand"
-          />
         </header>
 
         <div className="kv-welcome-enter-delay flex min-h-0 flex-1 flex-col gap-kv-pair overflow-y-auto">

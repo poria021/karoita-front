@@ -133,8 +133,13 @@ export const RouteService = {
       const base = `${KARVITA_ADMIN_BASE}/landing-cms`;
       return tab ? appendSearchParam(base, 'tab', tab) : base;
     },
-    /** انتشار اطلاعیه (هر پنل بالادست) و تبلیغ (فقط ستاد مدیر ارشد). */
-    announcements: (tab?: 'announcement' | 'advertisement'): string => {
+    /**
+     * هاب اطلاعیه/تبلیغ/دریافتی/اعلان.
+     * تب‌های مجاز نقش‌محورند — `announcementsHubTabsFor` در bulletin-rules.
+     */
+    announcements: (
+      tab?: 'announcement' | 'advertisement' | 'received' | 'notifications'
+    ): string => {
       const base = '/karvita/announcements';
       return tab ? appendSearchParam(base, 'tab', tab) : base;
     },

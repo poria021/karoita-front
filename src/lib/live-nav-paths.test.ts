@@ -28,6 +28,7 @@ describe('live nav / admin plane', () => {
     expect(studentMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
       'انتخاب واحد کارورزی',
+      RouteService.karvita.announcements(),
     ]);
     const studentGroup = studentMenu.find(isSidebarMenuGroup);
     expect(studentGroup?.defaultOpen).toBe(true);
@@ -42,6 +43,7 @@ describe('live nav / admin plane', () => {
     expect(learnerMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
       'انتخاب واحد کارآموزی',
+      RouteService.karvita.announcements(),
     ]);
     const learnerGroup = learnerMenu.find(isSidebarMenuGroup);
     expect(learnerGroup?.defaultOpen).toBe(true);
@@ -125,7 +127,7 @@ describe('live nav / admin plane', () => {
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
-      'اطلاعیه‌ها و تبلیغات',
+      'اطلاعیه‌ها و اعلانات',
     ]);
 
     const groups = adminMenu.filter(isSidebarMenuGroup);
@@ -150,7 +152,7 @@ describe('live nav / admin plane', () => {
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
-      'اطلاعیه‌ها و تبلیغات',
+      'اطلاعیه‌ها و اعلانات',
     ]);
     expect(
       assistantMenu

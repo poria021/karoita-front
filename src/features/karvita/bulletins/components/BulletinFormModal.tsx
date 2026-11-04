@@ -188,7 +188,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
               compressFormat="image/jpeg"
               accept={NEST_IMAGE_UPLOAD_ACCEPT}
               invalidTypeMessage={NEST_IMAGE_UPLOAD_INVALID_TYPE}
-              helperText={`تصویر تمام‌قاب تبلیغ (۳۰۰×۳۳۰) — عنوان و لینک روی خود تصویر نمایش داده می‌شوند — ${nestImageUploadHelperText(AD_IMAGE_MAX_SIZE_MB)}`}
+              helperText={`تصویر تمام‌قاب تبلیغ (نسبت ۳:۴ در قاب ۳۰۰px) — عنوان و لینک روی خود تصویر — ${nestImageUploadHelperText(AD_IMAGE_MAX_SIZE_MB)}`}
               previewAlt="پیش‌نمایش تصویر تبلیغ"
             />
           ) : null}
