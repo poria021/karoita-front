@@ -22,7 +22,8 @@ const EMPTY: CourseDefinition[] = [];
 let sessionCatalogCache: CourseDefinition[] | undefined;
 
 /**
- * درس‌های فعال «تعریف دروس» (مدیر ارشد)، تفکیک‌شده بر اساس پنل.
+ * کاتالوگ «تعریف دروس» برای سایدبار/ارزیابی (فعال و غیرفعال)، تفکیک‌شده بر اساس پنل.
+ * غیرفعال‌ها در منو می‌مانند و `disabled` می‌شوند مگر سابقهٔ دسترسی/ثبت‌نام.
  * real: `GET /v1/original-lessons`؛ mock: snapshot محلی. روی همان query key
  * صفحهٔ تعریف دروس می‌نشیند تا ویرایش ادمین فوراً سایدبار را هم به‌روز کند.
  */
@@ -36,13 +37,11 @@ export function useActiveCourseDefinitions(
     enabled,
     staleTime: QUERY_STALE_MS.module,
     retry: false,
-    // mock همگام است؛ بدون این، سایدبار یک لحظه منوی پیش‌فرض را نشان می‌داد.
+    // mock همگام است؛ همهٔ درس‌ها (حتی غیرفعال) تا سایدبار بتواند disabled نشان دهد.
     ...(mock
       ? {
-          initialData: () => [
-            ...SyllabusConfigService.getActiveCourseDefinitions('semester'),
-            ...SyllabusConfigService.getActiveCourseDefinitions('modular'),
-          ],
+          initialData: () =>
+            SyllabusConfigService.getCourseDefinitionsForConsumers(),
         }
       : {
           // real: اگر قبلاً در این نشست لود شده، همان را فوری نشان بده (بدون seed ایستا).
