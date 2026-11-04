@@ -88,12 +88,13 @@ export async function forwardToNestApi(
     if (ttlMs !== null) {
       const cached = getCatalogCache(pathWithQuery);
       if (cached) {
-        const ttlSec = Math.floor(ttlMs / 1000);
+        // فقط Map درونی پروکسی کش است — به مرورگر/CDN نگویید public کش کند
+        // (وگرنه بعد از invalidate سمت سرور هم لایهٔ میانی stale می‌ماند).
         return new NextResponse(cached.body, {
           status: cached.status,
           headers: {
             'content-type': cached.contentType,
-            'cache-control': `public, s-maxage=${ttlSec}, stale-while-revalidate=${Math.floor(ttlSec / 2)}`,
+            'cache-control': 'no-store, no-transform',
             'x-karvita-proxy': 'nest-catalog-cache',
           },
         });

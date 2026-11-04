@@ -3,10 +3,26 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   _clearCatalogCache,
   getCatalogCache,
+  getCatalogCacheTtl,
   invalidateCatalogCacheByPath,
   isMutationCacheRelated,
   setCatalogCache,
 } from '@/lib/nest-catalog-cache';
+
+describe('getCatalogCacheTtl', () => {
+  it('keeps academic term catalog short-lived so new semesters show quickly', () => {
+    expect(getCatalogCacheTtl('admin/semester')).toBe(60_000);
+    expect(getCatalogCacheTtl('admin/semesters_all?structure=semester')).toBe(
+      60_000
+    );
+    expect(getCatalogCacheTtl('admin/settings')).toBe(60_000);
+  });
+
+  it('keeps geo / policy catalogs long-lived', () => {
+    expect(getCatalogCacheTtl('admin/provinces')).toBe(60 * 60_000);
+    expect(getCatalogCacheTtl('admin/roles')).toBe(60 * 60_000);
+  });
+});
 
 describe('isMutationCacheRelated', () => {
   it('flags exact-path mutations (create) as cache-related', () => {
