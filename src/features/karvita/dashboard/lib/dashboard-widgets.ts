@@ -6,7 +6,10 @@ import type { UserRole } from '@/types/auth';
  */
 export type DashboardWidgetId = 'bulletins';
 
-/** پهنا در گرید سه‌ستونهٔ دسکتاپ؛ در موبایل همه تمام‌عرض‌اند. */
+/**
+ * پهنای منطقی ویجت در گرید ۱۲ستونهٔ میز کار (`@/lib/workbench-grid`).
+ * رندر واقعی ستون‌ها داخل خود ویجت است (مثلاً bulletins سه سلول می‌سازد).
+ */
 export type DashboardWidgetSpan = 'third' | 'two-thirds' | 'full';
 
 export type DashboardWidget = {
@@ -14,7 +17,7 @@ export type DashboardWidget = {
   span: DashboardWidgetSpan;
 };
 
-/** مشترک همهٔ پنل‌ها، همیشه بالای میز کار: تبلیغ ستاد + اطلاعیه‌ها. */
+/** مشترک همهٔ پنل‌ها، همیشه بالای میز کار: خوش‌آمد + اطلاعیه‌ها + تبلیغ. */
 const COMMON_WIDGETS: readonly DashboardWidget[] = [
   { id: 'bulletins', span: 'full' },
 ];

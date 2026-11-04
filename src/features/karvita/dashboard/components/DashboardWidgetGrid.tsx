@@ -1,42 +1,72 @@
 'use client';
 
-import type { ComponentType } from 'react';
-
 import { DashboardBulletinsBoard } from '@/features/karvita/bulletins/components/DashboardBulletinsBoard';
-import { cn } from '@/lib/utils';
 import type { UserRole } from '@/types/auth';
 
 import {
   getDashboardWidgets,
   type DashboardWidgetId,
-  type DashboardWidgetSpan,
 } from '../lib/dashboard-widgets';
+import { DashboardWelcomeBox } from './DashboardWelcomeBox';
 
-const WIDGET_COMPONENTS: Record<
-  DashboardWidgetId,
-  ComponentType<{ role: UserRole }>
-> = {
-  bulletins: DashboardBulletinsBoard,
+type DashboardWidgetGridProps = {
+  role: UserRole;
+  welcomeName: string;
+  welcomeSubtitle: string;
 };
 
-const SPAN_CLASS: Record<DashboardWidgetSpan, string> = {
-  third: '',
-  'two-thirds': 'lg:col-span-2',
-  full: 'lg:col-span-3',
-};
-
-/** گرید ویجت‌های میز کار — فهرست هر نقش از `getDashboardWidgets`. */
-export function DashboardWidgetGrid({ role }: { role: UserRole }) {
+/**
+ * سلول‌های ویجت میز کار برای قرار گرفتن داخل `WORKBENCH_GRID_CLASS`.
+ * خودِ گرید بیرونی در `WorkbenchHomeClient` است تا میان‌برها هم همان ریتم را بگیرند.
+ */
+export function DashboardWidgetGrid({
+  role,
+  welcomeName,
+  welcomeSubtitle,
+}: DashboardWidgetGridProps) {
   return (
-    <div className="grid gap-kv-section lg:grid-cols-3">
-      {getDashboardWidgets(role).map((widget) => {
-        const Widget = WIDGET_COMPONENTS[widget.id];
-        return (
-          <div key={widget.id} className={cn('min-w-0', SPAN_CLASS[widget.span])}>
-            <Widget role={role} />
-          </div>
-        );
-      })}
-    </div>
+    <>
+      {getDashboardWidgets(role).map((widget) => (
+        <DashboardWidget
+          key={widget.id}
+          id={widget.id}
+          role={role}
+          welcomeName={welcomeName}
+          welcomeSubtitle={welcomeSubtitle}
+        />
+      ))}
+    </>
   );
+}
+
+function DashboardWidget({
+  id,
+  role,
+  welcomeName,
+  welcomeSubtitle,
+}: {
+  id: DashboardWidgetId;
+  role: UserRole;
+  welcomeName: string;
+  welcomeSubtitle: string;
+}) {
+  switch (id) {
+    case 'bulletins':
+      return (
+        <DashboardBulletinsBoard
+          role={role}
+          leading={
+            <DashboardWelcomeBox
+              displayName={welcomeName}
+              subtitle={welcomeSubtitle}
+              className="h-full"
+            />
+          }
+        />
+      );
+    default: {
+      const _exhaustive: never = id;
+      return _exhaustive;
+    }
+  }
 }

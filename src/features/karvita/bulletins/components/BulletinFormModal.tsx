@@ -121,7 +121,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
             />
             <KvTypography variant="caption" tone="muted" as="p">
               {isAd
-                ? 'تبلیغ در باکس مربعی تبلیغات میز کار نقش‌های انتخاب‌شده نمایش داده می‌شود.'
+                ? 'تبلیغ در باکس عمودی سایدبار میز کار نمایش داده می‌شود؛ تصویر ۳۰۰×۲۵۰ و عنوان/لینک زیر آن.'
                 : 'اطلاعیه در باکس «اطلاعیه‌ها»ی میز کار نقش‌های زیرمجموعهٔ انتخاب‌شده، با بج نام پنل شما نمایش داده می‌شود.'}
             </KvTypography>
           </div>
@@ -188,7 +188,7 @@ export function BulletinFormModal(props: BulletinFormModalProps) {
               compressFormat="image/jpeg"
               accept={NEST_IMAGE_UPLOAD_ACCEPT}
               invalidTypeMessage={NEST_IMAGE_UPLOAD_INVALID_TYPE}
-              helperText={`تصویر مربعی (۱:۱) — ${nestImageUploadHelperText(AD_IMAGE_MAX_SIZE_MB)}`}
+              helperText={`تصویر تمام‌قاب تبلیغ (۳۰۰×۳۳۰) — عنوان و لینک روی خود تصویر نمایش داده می‌شوند — ${nestImageUploadHelperText(AD_IMAGE_MAX_SIZE_MB)}`}
               previewAlt="پیش‌نمایش تصویر تبلیغ"
             />
           ) : null}

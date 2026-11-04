@@ -825,6 +825,50 @@ input[readonly]:-webkit-autofill {
 }
 
 /*
+ * Welcome panel — quiet enter + soft watermark drift (workbench).
+ */
+@keyframes kv-welcome-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kv-welcome-mark-drift {
+  from {
+    transform: translateY(0) rotate(0deg);
+  }
+  to {
+    transform: translateY(-0.35rem) rotate(-2deg);
+  }
+}
+
+.kv-welcome-enter {
+  animation: kv-welcome-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kv-welcome-enter-delay {
+  animation: kv-welcome-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
+}
+
+.kv-welcome-mark {
+  animation: kv-welcome-mark-drift 5.5s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-welcome-enter,
+  .kv-welcome-enter-delay,
+  .kv-welcome-mark {
+    animation: none;
+  }
+}
+
+/*
  * Official Karvita mark — transparent silhouette; color via currentColor
  * (e.g. text-kv-brand). No baked background.
  */

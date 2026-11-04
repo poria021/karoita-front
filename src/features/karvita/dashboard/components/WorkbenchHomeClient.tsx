@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { OnboardingChecklist } from '@/components/shared/shell/OnboardingChecklist';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { useSidebarMenu } from '@/components/shared/shell/useSidebarMenu';
 import { useUserStore } from '@/store/useUserStore';
 import { faIcons } from '@/utils/iconMap';
 import {
@@ -12,8 +13,14 @@ import {
   shouldShowOnboardingChecklist,
 } from '@/utils/onboardingProgress';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
-import { useSidebarMenu } from '@/components/shared/shell/useSidebarMenu';
 import { getLiveWorkbenchShortcuts } from '@/utils/workbenchShortcuts';
+
+import {
+  WORKBENCH_FULL_SPAN,
+  WORKBENCH_GRID_CLASS,
+  WORKBENCH_SHORTCUTS_GRID_CLASS,
+} from '@/lib/workbench-grid';
+import { cn } from '@/lib/utils';
 
 import { DashboardWidgetGrid } from './DashboardWidgetGrid';
 
@@ -36,7 +43,7 @@ function resolveShortcutIcon(iconName?: string) {
 }
 
 /**
- * میز کار سازمانی آرام — خوشامد، ویجت‌های پنل (تبلیغ ستاد، اطلاعیه‌ها، …) و میان‌بر ماژول‌های زنده.
+ * میز کار سازمانی آرام — یک گرید مشترک برای خوش‌آمد، اطلاعیه‌ها، تبلیغ و میان‌برها.
  */
 export function WorkbenchHomeClient({
   subtitle,
@@ -61,22 +68,26 @@ export function WorkbenchHomeClient({
     : null;
 
   return (
-    <div className="flex w-full flex-col gap-kv-section">
-      <header className="flex flex-col gap-kv-pair">
-        <KvTypography variant="title" as="h2">
-          خوش آمدید، {displayName}
-        </KvTypography>
-        <KvTypography variant="body" tone="muted" as="p">
-          {subtitle}
-        </KvTypography>
-      </header>
+    <div className={WORKBENCH_GRID_CLASS}>
+      {progress ? (
+        <div className={WORKBENCH_FULL_SPAN}>
+          <OnboardingChecklist progress={progress} />
+        </div>
+      ) : null}
 
-      {progress ? <OnboardingChecklist progress={progress} /> : null}
-
-      <DashboardWidgetGrid role={activeUser.role} />
+      <DashboardWidgetGrid
+        role={activeUser.role}
+        welcomeName={displayName}
+        welcomeSubtitle={subtitle}
+      />
 
       {shortcuts.length === 0 ? (
-        <div className="rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section">
+        <div
+          className={cn(
+            WORKBENCH_FULL_SPAN,
+            'rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section'
+          )}
+        >
           <KvTypography variant="subtitle" as="p">
             میان‌بر فعالی نیست
           </KvTypography>
@@ -87,8 +98,8 @@ export function WorkbenchHomeClient({
           </div>
         </div>
       ) : (
-        <nav aria-label="میان‌برهای میز کار">
-          <ul className="grid list-none gap-kv-pair sm:grid-cols-2 lg:grid-cols-3">
+        <nav aria-label="میان‌برهای میز کار" className={WORKBENCH_FULL_SPAN}>
+          <ul className={WORKBENCH_SHORTCUTS_GRID_CLASS}>
             {shortcuts.map((item) => {
               const icon = resolveShortcutIcon(item.icon);
               return (

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -14,9 +14,26 @@ import type { Bulletin } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-import { BulletinPanelBadge } from './BulletinCard';
-
 const SLIDE_DURATION = 6000;
+
+/**
+ * ابعاد ثابت باکس تبلیغ میز کار (مستطیل عمودی).
+ * کل قاب پس‌زمینهٔ تصویری است؛ نوار عنوان/لینک روی خودِ عکس می‌نشیند.
+ */
+export const DASHBOARD_AD_WIDTH_PX = 300;
+export const DASHBOARD_AD_HEIGHT_PX = 330;
+/** ارتفاع ناحیهٔ عنوان/لینک روی پایین تصویر. */
+export const DASHBOARD_AD_META_HEIGHT_PX = 80;
+
+const BOX_STYLE: CSSProperties = {
+  width: DASHBOARD_AD_WIDTH_PX,
+  height: DASHBOARD_AD_HEIGHT_PX,
+  minWidth: DASHBOARD_AD_WIDTH_PX,
+  minHeight: DASHBOARD_AD_HEIGHT_PX,
+  maxWidth: DASHBOARD_AD_WIDTH_PX,
+  maxHeight: DASHBOARD_AD_HEIGHT_PX,
+  flexShrink: 0,
+};
 
 function isExternalAdLink(url: string): boolean {
   return /^https?:\/\//i.test(url);
@@ -30,12 +47,11 @@ type DashboardAdBoxProps = {
 };
 
 const BOX_CLASS =
-  'relative aspect-square w-full overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface-muted shadow-kv-raised';
+  'relative overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface-muted shadow-kv-soft';
 
 /**
- * باکس ۱×۱ تبلیغات ستاد — چند تبلیغ به‌صورت چرخشی در همان قاب مربعی.
- * با hover/فوکوس یا ترجیح کاهش حرکت، پیشروی خودکار متوقف می‌شود.
- * تبلیغ بدون تصویر، توضیحاتش را داخل قاب نشان می‌دهد.
+ * باکس تبلیغ سایدبار میز کار — اندازهٔ ثابت ۳۰۰×۳۳۰؛
+ * عکس تمام پس‌زمینه را پر می‌کند و عنوان/لینک روی پایین تصویر است.
  */
 export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxProps) {
   const [current, setCurrent] = useState(0);
@@ -53,26 +69,29 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
   }, [count, paused, reducedMotion]);
 
   if (isLoading) {
-    return <div className={cn(BOX_CLASS, 'animate-pulse')} aria-hidden />;
+    return (
+      <div className={cn(BOX_CLASS, 'animate-pulse')} style={BOX_STYLE} aria-hidden />
+    );
   }
 
   if (count === 0) {
     return (
       <section
         aria-label="تبلیغات"
+        style={BOX_STYLE}
         className={cn(
           BOX_CLASS,
-          'flex flex-col items-center justify-center gap-kv-group border-dashed p-kv-group text-center shadow-none'
+          'flex flex-col items-center justify-center gap-kv-pair border-dashed p-kv-group text-center shadow-none'
         )}
       >
-        <span className="flex size-12 items-center justify-center rounded-full bg-kv-warning-soft text-kv-warning-soft-fg">
-          <FaIcon icon={faIcons.bullhorn} />
+        <span className="flex size-9 items-center justify-center rounded-kv-control bg-kv-warning-soft text-kv-warning-soft-fg">
+          <FaIcon icon={faIcons.bullhorn} size="sm" />
         </span>
-        <KvTypography variant="body" tone="muted" as="p">
-          {isPublisher ? 'هنوز تبلیغی منتشر نکرده‌اید.' : 'فعلاً تبلیغی برای نمایش نیست.'}
+        <KvTypography variant="caption" tone="muted" as="p">
+          {isPublisher ? 'هنوز تبلیغی منتشر نشده.' : 'تبلیغی برای نمایش نیست.'}
         </KvTypography>
         {isPublisher ? (
-          <KvButton asChild appearance="secondary" size="sm">
+          <KvButton asChild appearance="secondary" size="xs">
             <Link href={RouteService.karvita.announcements('advertisement')}>
               انتشار تبلیغ
             </Link>
@@ -82,13 +101,13 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
     );
   }
 
-  const go = (delta: number) => setCurrent((active + delta + count) % count);
   const shown = ads[active];
 
   return (
     <section
       aria-roledescription="carousel"
       aria-label="تبلیغات"
+      style={BOX_STYLE}
       className={BOX_CLASS}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -120,75 +139,70 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
                 loading={index === 0 ? 'eager' : 'lazy'}
                 className="size-full object-cover"
               />
-            ) : ad.body ? (
-              <div className="flex size-full items-center justify-center px-kv-group pb-24 pt-12 text-center">
-                <KvTypography variant="body" tone="muted" as="p">
-                  <span className="line-clamp-6 whitespace-pre-line">{ad.body}</span>
-                </KvTypography>
-              </div>
             ) : (
-              <div className="flex size-full items-center justify-center text-kv-empty-icon">
-                <FaIcon icon={faIcons.image} size="xl" />
+              <div className="flex size-full items-center justify-center bg-kv-surface-muted px-kv-group pb-20 text-center">
+                <KvTypography variant="caption" tone="muted" as="p">
+                  <span className="line-clamp-6 whitespace-pre-line">
+                    {ad.body || ad.title}
+                  </span>
+                </KvTypography>
               </div>
             )}
           </div>
         );
       })}
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex p-kv-pair">
-        <BulletinPanelBadge bulletin={shown} />
-      </div>
+      <span className="pointer-events-none absolute start-2 top-2 z-10 rounded-kv-tight bg-kv-canvas/90 px-1.5 py-0.5 text-[10px] font-bold text-kv-text-muted shadow-kv-soft">
+        تبلیغ
+      </span>
 
-      <div className="absolute inset-x-0 bottom-0 flex items-end gap-kv-pair border-t border-kv-border bg-kv-surface/95 p-kv-group">
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <KvTypography variant="subtitle" as="h3">
-            <span className="line-clamp-2">{shown.title}</span>
-          </KvTypography>
-          {shown.imageUrl && shown.body ? (
-            <KvTypography variant="caption" tone="muted" as="p">
-              <span className="line-clamp-2">{shown.body}</span>
-            </KvTypography>
-          ) : null}
-          {shown.linkUrl ? (
-            <a
-              href={shown.linkUrl}
-              {...(isExternalAdLink(shown.linkUrl)
-                ? { target: '_blank', rel: 'noopener noreferrer' }
-                : {})}
-              className="inline-flex w-fit items-center gap-1 text-xs font-bold text-kv-brand hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
-              onClick={() => {
-                void BulletinsService.recordAdvertisementClick(shown.id);
-              }}
-            >
-              اطلاعات بیشتر
-              <FaIcon icon={faIcons.arrowUpRightFromSquare} size="xs" />
-            </a>
-          ) : null}
+      {count > 1 ? (
+        <div
+          className="absolute end-2 top-2 z-10 flex gap-1"
+          role="tablist"
+          aria-label="انتخاب تبلیغ"
+        >
+          {ads.map((ad, index) => (
+            <button
+              key={ad.id}
+              type="button"
+              role="tab"
+              aria-selected={index === active}
+              aria-label={`تبلیغ ${toPersianDigits(String(index + 1))}`}
+              className={cn(
+                'size-1.5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-kv-ring/40',
+                index === active
+                  ? 'bg-kv-canvas shadow-kv-soft'
+                  : 'bg-kv-canvas/45 hover:bg-kv-canvas/75'
+              )}
+              onClick={() => setCurrent(index)}
+            />
+          ))}
         </div>
-        {count > 1 ? (
-          <div className="flex shrink-0 items-center">
-            <KvButton
-              type="button"
-              color="neutral"
-              appearance="text"
-              size="xs"
-              aria-label="تبلیغ قبلی"
-              icon={<FaIcon icon={faIcons.chevronRight} size="xs" />}
-              onClick={() => go(-1)}
-            />
-            <KvTypography variant="caption" tone="muted" as="span">
-              {toPersianDigits(String(active + 1))}/{toPersianDigits(String(count))}
-            </KvTypography>
-            <KvButton
-              type="button"
-              color="neutral"
-              appearance="text"
-              size="xs"
-              aria-label="تبلیغ بعدی"
-              icon={<FaIcon icon={faIcons.chevronLeft} size="xs" />}
-              onClick={() => go(1)}
-            />
-          </div>
+      ) : null}
+
+      {/* عنوان و لینک روی خودِ تصویر — بدون پس‌زمینهٔ جدا */}
+      <div
+        className="absolute inset-x-0 bottom-0 z-10 flex flex-col justify-end gap-1 bg-gradient-to-t from-kv-text/75 via-kv-text/35 to-transparent px-2.5 pb-2.5 pt-10"
+        style={{ minHeight: DASHBOARD_AD_META_HEIGHT_PX }}
+      >
+        <p className="line-clamp-2 text-sm font-bold leading-snug text-kv-canvas">
+          {shown.title}
+        </p>
+        {shown.linkUrl ? (
+          <a
+            href={shown.linkUrl}
+            {...(isExternalAdLink(shown.linkUrl)
+              ? { target: '_blank', rel: 'noopener noreferrer' }
+              : {})}
+            onClick={() => {
+              void BulletinsService.recordAdvertisementClick(shown.id);
+            }}
+            className="inline-flex w-fit items-center gap-1 text-xs font-bold text-kv-canvas underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/30"
+          >
+            اطلاعات بیشتر
+            <FaIcon icon={faIcons.arrowUpRightFromSquare} size="xs" />
+          </a>
         ) : null}
       </div>
     </section>

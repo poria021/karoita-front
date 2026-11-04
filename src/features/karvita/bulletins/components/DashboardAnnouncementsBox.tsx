@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { CSSProperties } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
@@ -21,6 +22,7 @@ type DashboardAnnouncementsBoxProps = {
   /** پنل زیرمجموعه دارد → میان‌بر «مدیریت» در سربرگ. */
   canPublish: boolean;
   className?: string;
+  style?: CSSProperties;
 };
 
 /** باکس «اطلاعیه‌ها»ی میز کار — اطلاعیهٔ پنل‌های بالادست با بج نام پنل منتشرکننده. */
@@ -30,18 +32,20 @@ export function DashboardAnnouncementsBox({
   source,
   canPublish,
   className,
+  style,
 }: DashboardAnnouncementsBoxProps) {
   const isPublished = source === 'published';
 
   return (
     <section
       aria-labelledby="dashboard-announcements-title"
+      style={style}
       className={cn(
-        'flex flex-col gap-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised',
+        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised',
         className
       )}
     >
-      <header className="flex items-center gap-kv-inline">
+      <header className="flex shrink-0 items-center gap-kv-inline">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
           <FaIcon icon={faIcons.bell} size="sm" />
         </span>
@@ -75,7 +79,7 @@ export function DashboardAnnouncementsBox({
             : 'فعلاً اطلاعیه‌ای برای شما منتشر نشده است.'}
         </KvTypography>
       ) : (
-        <ul className="flex min-h-0 flex-1 list-none flex-col gap-kv-pair overflow-y-auto">
+        <ul className="flex min-h-0 flex-1 list-none flex-col overflow-y-auto">
           {announcements.map((item) => (
             <li key={item.id}>
               <BulletinCard bulletin={item} />
