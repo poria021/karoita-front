@@ -129,6 +129,19 @@ describe('bulletin-rules', () => {
     ).toBeNull();
     expect(
       validateBulletinInput(
+        input({
+          provinces: [],
+          audienceRoles: ['student', 'skill_learner'],
+        }),
+        'supervisor_professor'
+      )
+    ).toBeNull();
+    expect(audienceRolesFor('supervisor_professor', 'announcement')).toEqual([
+      'student',
+      'skill_learner',
+    ]);
+    expect(
+      validateBulletinInput(
         input({ provinces: [], audienceRoles: ['skill_learner'] }),
         'mentor_teacher'
       )

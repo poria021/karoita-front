@@ -50,7 +50,7 @@ const ANNOUNCEMENT_AUDIENCE: Record<UserRole, readonly UserRole[]> = {
   faculty_role: ['supervisor_professor', 'student'],
   regional_edu_admin: ['school_principal', 'mentor_teacher', 'skill_learner'],
   school_principal: ['mentor_teacher', 'skill_learner'],
-  supervisor_professor: ['student'],
+  supervisor_professor: ['student', 'skill_learner'],
   mentor_teacher: ['skill_learner'],
   student: [],
   skill_learner: [],
