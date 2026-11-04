@@ -38,6 +38,7 @@ describe('getLiveWorkbenchShortcuts', () => {
       RouteService.karvita.internshipSelection(2),
       RouteService.karvita.internshipSelection(3),
       RouteService.karvita.internshipSelection(4),
+      RouteService.karvita.announcements(),
     ]);
     expect(paths).not.toContain(PlannedRoutes.dailyReports());
   });
