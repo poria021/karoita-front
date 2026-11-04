@@ -6,6 +6,7 @@ import { AdminShellHeader } from '@/components/shared/shell/AdminShellHeader';
 import { AdminSidebar } from '@/components/shared/shell/AdminSidebar';
 import { DashboardMainViewport } from '@/components/shared/shell/DashboardMainViewport';
 import { Header } from '@/components/shared/shell/Header';
+import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoader';
 import { Sidebar } from '@/components/shared/shell/Sidebar';
 import {
   kvShellAdminMainGutterClassName,
@@ -14,6 +15,7 @@ import {
   kvShellContentPadXClassName,
   kvShellLearnerDashboardWidthClassName,
 } from '@/components/shared/shell/shellChrome';
+import { useShellCatalogReady } from '@/components/shared/shell/useShellCatalogReady';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
@@ -29,9 +31,17 @@ interface DashboardChromeProps {
 /**
  * شل اپ: ادمین ستادی ریل تمام‌قد شروع (لوگو در ریل؛ هدر و `main` خالی می‌کنند).
  * نقش‌های دیگر همان پشتهٔ هدر سپس سایدبار کارتی.
+ * روی ریلود، تا کاتالوگ منوی پویا آماده نشود لودر برند می‌ماند (بدون فلش سایدبار).
  */
 export function DashboardChrome({ children }: DashboardChromeProps) {
   const role = useUserStore((state) => state.activeUser?.role);
+  const catalogReady = useShellCatalogReady();
+
+  if (!catalogReady) {
+    return (
+      <KvBrandLinearLoader fullViewport label="لطفا منتظر بمانید…" />
+    );
+  }
 
   if (isStaffAdminRole(role)) {
     return <AdminDashboardChrome>{children}</AdminDashboardChrome>;

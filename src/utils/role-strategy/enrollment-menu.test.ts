@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { useSidebarMenu } from '@/components/shared/shell/useSidebarMenu';
 import * as activeCourseDefinitionsModule from '@/hooks/useActiveCourseDefinitions';
+import * as apiMode from '@/lib/api-mode';
 import { RouteService } from '@/services/route.service';
 import { cloneDefaultCourseDefinitions } from '@/services/syllabus-config/course-catalog';
 import type { CourseDefinition } from '@/types/syllabus-config';
@@ -12,6 +13,13 @@ import type { CourseDefinition } from '@/types/syllabus-config';
 import { withEnrollmentSubModules } from './enrollment-menu';
 import { ROLE_STRATEGY_MAP } from './strategies';
 import { isSidebarMenuGroup, type SidebarMenuEntry } from './types';
+
+vi.mock('@/components/shared/shell/useEnrollmentLeafAvailability', () => ({
+  useEnrollmentLeafAvailability: () => ({
+    offeredLevels: null,
+    enrolledLevels: undefined,
+  }),
+}));
 
 const STUDENT_MENU = ROLE_STRATEGY_MAP.student.sidebarMenu;
 
@@ -67,10 +75,10 @@ describe('withEnrollmentSubModules', () => {
     ]);
     expect(titles(menu)).toEqual([
       'میز کار',
+      'اطلاعیه‌ها و اعلان‌ها',
       'انتخاب واحد کارورزی',
       'انتخاب واحد پروژه',
       'انتخاب واحد کارگاه',
-      'اطلاعیه‌ها و اعلان‌ها',
       'گزارش روزانه',
     ]);
 
@@ -171,19 +179,17 @@ describe('withEnrollmentSubModules', () => {
 });
 
 describe('withEnrollmentSubModules whenEmpty', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('removes the enrollment group when real lessons are genuinely empty', () => {
     const result = withEnrollmentSubModules(STUDENT_MENU, [], { whenEmpty: 'remove' });
     expect(titles(result)).not.toContain('انتخاب واحد کارورزی');
     expect(result.length).toBe(STUDENT_MENU.length - 1);
   });
 
-  it('keeps the static student enrollment group when the real API has not hydrated yet', () => {
-    vi.spyOn(activeCourseDefinitionsModule, 'useActiveCourseDefinitions').mockReturnValue({
-      status: 'ready',
-      semester: [],
-      modular: [],
-    });
-
+  function renderStudentMenu() {
     const wrapper = ({ children }: { children: ReactNode }) =>
       createElement(
         QueryClientProvider,
@@ -194,8 +200,98 @@ describe('withEnrollmentSubModules whenEmpty', () => {
         },
         children
       );
-    const { result } = renderHook(() => useSidebarMenu('student'), { wrapper });
+    return renderHook(() => useSidebarMenu('student'), { wrapper });
+  }
+
+  it('hides the static student enrollment seed when real catalog is ready but empty', () => {
+    vi.spyOn(apiMode, 'isMockApiMode').mockReturnValue(false);
+    vi.spyOn(activeCourseDefinitionsModule, 'useActiveCourseDefinitions').mockReturnValue({
+      status: 'ready',
+      semester: [],
+      modular: [],
+    });
+
+    const { result } = renderStudentMenu();
+
+    expect(result.current.find((entry) => entry.title === 'انتخاب واحد کارورزی')).toBeFalsy();
+  });
+
+  it('keeps the static student enrollment seed when the real catalog request fails', () => {
+    vi.spyOn(apiMode, 'isMockApiMode').mockReturnValue(false);
+    vi.spyOn(activeCourseDefinitionsModule, 'useActiveCourseDefinitions').mockReturnValue({
+      status: 'error',
+      semester: [],
+      modular: [],
+    });
+
+    const { result } = renderStudentMenu();
 
     expect(result.current.find((entry) => entry.title === 'انتخاب واحد کارورزی')).toBeTruthy();
+  });
+});
+
+describe('useSidebarMenu review roles', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function renderReviewMenu(
+    role: 'supervisor_professor' | 'mentor_teacher' | 'school_principal'
+  ) {
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(
+        QueryClientProvider,
+        {
+          client: new QueryClient({
+            defaultOptions: { queries: { retry: false } },
+          }),
+        },
+        children
+      );
+    return renderHook(() => useSidebarMenu(role), { wrapper });
+  }
+
+  it('keeps the flat ارزیابی link when real catalog is ready but empty', () => {
+    vi.spyOn(apiMode, 'isMockApiMode').mockReturnValue(false);
+    vi.spyOn(
+      activeCourseDefinitionsModule,
+      'useActiveCourseDefinitions'
+    ).mockReturnValue({
+      status: 'ready',
+      semester: [],
+      modular: [],
+    });
+
+    const { result } = renderReviewMenu('supervisor_professor');
+    const entry = result.current.find(
+      (item) => item.title === 'ارزیابی گزارش‌های فراگیران'
+    );
+
+    expect(entry).toBeTruthy();
+    expect(isSidebarMenuGroup(entry!)).toBe(false);
+  });
+
+  it('falls back to default کارورزی/کارآموزی when the real catalog request fails', () => {
+    vi.spyOn(apiMode, 'isMockApiMode').mockReturnValue(false);
+    vi.spyOn(
+      activeCourseDefinitionsModule,
+      'useActiveCourseDefinitions'
+    ).mockReturnValue({
+      status: 'error',
+      semester: [],
+      modular: [],
+    });
+
+    const { result } = renderReviewMenu('mentor_teacher');
+    const entry = result.current.find(
+      (item) => item.title === 'ارزیابی گزارش‌های فراگیران'
+    );
+
+    expect(isSidebarMenuGroup(entry!)).toBe(true);
+    if (!isSidebarMenuGroup(entry!)) return;
+    expect(entry.children.map((child) => child.title)).toEqual([
+      'کارورزی',
+      'کارآموزی',
+    ]);
   });
 });

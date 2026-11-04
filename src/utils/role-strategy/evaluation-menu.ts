@@ -61,6 +61,7 @@ function childForCourse(
  * - `whenEmpty: 'defaults'` (پیش‌فرض؛ mock یا خطای API) → دو لینک کارورزی/کارآموزی.
  * - `whenEmpty: 'flat'` (real، «تعریف دروس» واقعاً خالی) → همان لینک تخت ماژول،
  *   بدون ساب‌تایتل ساختگی.
+ * - `whenEmpty: 'omit'` → آیتم ارزیابی حذف (بوت شل معمولاً قبل از paint صبر می‌کند).
  */
 export function withEvaluationSubModules(
   menu: SidebarMenuEntry[],
@@ -68,7 +69,7 @@ export function withEvaluationSubModules(
     semester: readonly CourseDefinition[];
     modular: readonly CourseDefinition[];
   },
-  options: { whenEmpty?: 'defaults' | 'flat' } = {}
+  options: { whenEmpty?: 'defaults' | 'flat' | 'omit' } = {}
 ): SidebarMenuEntry[] {
   const semesterTitles = new Set(courses.semester.map((c) => c.title.trim()));
   const sharedTitles = new Set(
@@ -92,8 +93,13 @@ export function withEvaluationSubModules(
       )
     ),
   ];
-  if (dynamicChildren.length === 0 && options.whenEmpty === 'flat') {
-    return menu;
+  if (dynamicChildren.length === 0) {
+    if (options.whenEmpty === 'flat') return menu;
+    if (options.whenEmpty === 'omit') {
+      return menu.filter(
+        (entry) => isSidebarMenuGroup(entry) || entry.path !== EVALUATION_PATH
+      );
+    }
   }
   const children =
     dynamicChildren.length > 0 ? dynamicChildren : [...DEFAULT_CHILDREN];

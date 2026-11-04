@@ -34,11 +34,11 @@ describe('getLiveWorkbenchShortcuts', () => {
     const shortcuts = getLiveWorkbenchShortcuts('student');
     const paths = shortcuts.map((item) => item.path);
     expect(paths).toEqual([
+      RouteService.karvita.announcements(),
       RouteService.karvita.internshipSelection(1),
       RouteService.karvita.internshipSelection(2),
       RouteService.karvita.internshipSelection(3),
       RouteService.karvita.internshipSelection(4),
-      RouteService.karvita.announcements(),
     ]);
     expect(paths).not.toContain(PlannedRoutes.dailyReports());
   });

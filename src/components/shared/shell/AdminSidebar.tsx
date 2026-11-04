@@ -21,10 +21,10 @@ import { useUserStore } from '@/store/useUserStore';
 import {
   areKarvitaModulesUnlocked,
   getRoleStrategy,
-  getVisibleSidebarMenu,
 } from '@/utils/RoleStrategyMap';
 import { faIcons } from '@/utils/iconMap';
 
+import { useSidebarMenu } from './useSidebarMenu';
 import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
 
 /**
@@ -48,10 +48,11 @@ export function AdminSidebar() {
     onClose: closeMobileSidebar,
   });
 
+  const visibleMenu = useSidebarMenu(activeUser?.role);
+
   if (!activeUser) return null;
 
   const strategy = getRoleStrategy(activeUser.role);
-  const visibleMenu = getVisibleSidebarMenu(activeUser.role);
   const modulesUnlocked = areKarvitaModulesUnlocked(activeUser);
 
   return (

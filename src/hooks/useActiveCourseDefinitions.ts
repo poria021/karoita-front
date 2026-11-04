@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { isMockApiMode } from '@/lib/api-mode';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
@@ -17,6 +17,9 @@ export type ActiveCourseDefinitions = {
 };
 
 const EMPTY: CourseDefinition[] = [];
+
+/** کش جلسه برای جلوگیری از فلش منوی ایستا بین ناوبری‌ها در real. */
+let sessionCatalogCache: CourseDefinition[] | undefined;
 
 /**
  * درس‌های فعال «تعریف دروس» (مدیر ارشد)، تفکیک‌شده بر اساس پنل.
@@ -41,8 +44,16 @@ export function useActiveCourseDefinitions(
             ...SyllabusConfigService.getActiveCourseDefinitions('modular'),
           ],
         }
-      : {}),
+      : {
+          // real: اگر قبلاً در این نشست لود شده، همان را فوری نشان بده (بدون seed ایستا).
+          placeholderData: () => sessionCatalogCache,
+        }),
   });
+
+  useEffect(() => {
+    if (mock || !query.isSuccess || !query.data) return;
+    sessionCatalogCache = query.data;
+  }, [mock, query.data, query.isSuccess]);
 
   return useMemo(() => {
     const all = query.data ?? EMPTY;

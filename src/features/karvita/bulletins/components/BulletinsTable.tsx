@@ -161,18 +161,30 @@ export function BulletinsTable({
                       />
                       <KvButton
                         type="button"
-                        color="neutral"
+                        color={row.isActive ? 'warning' : 'neutral'}
                         appearance="ghost"
-                        size="xs"
+                        size="icon-xs"
                         aria-label={
                           row.isActive
-                            ? `غیرفعال‌سازی ${row.title}`
-                            : `فعال‌سازی ${row.title}`
+                            ? `آرشیو ${row.title}`
+                            : `بازیابی ${row.title}`
                         }
+                        title={row.isActive ? 'آرشیو' : 'بازیابی'}
                         onClick={() => onToggleActive(row)}
-                      >
-                        {row.isActive ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
-                      </KvButton>
+                        icon={
+                          <FaIcon
+                            icon={
+                              row.isActive
+                                ? faIcons.folderOpen
+                                : faIcons.clockRotateLeft
+                            }
+                            size="xs"
+                            className={
+                              row.isActive ? 'text-kv-warning' : undefined
+                            }
+                          />
+                        }
+                      />
                       <KvButton
                         type="button"
                         color="error"

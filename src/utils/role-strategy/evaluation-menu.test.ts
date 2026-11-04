@@ -108,6 +108,15 @@ describe('withEvaluationSubModules whenEmpty', () => {
     expect(isSidebarMenuGroup(result[1]!)).toBe(false);
   });
 
+  it('omits the evaluation item while the real catalog is still loading', () => {
+    const result = withEvaluationSubModules(
+      MENU,
+      { semester: [], modular: [] },
+      { whenEmpty: 'omit' }
+    );
+    expect(result.map((entry) => entry.title)).toEqual(['میز کار']);
+  });
+
   it('still falls back to the two default links by default', () => {
     const group = evaluationGroup(
       withEvaluationSubModules(MENU, { semester: [], modular: [] })

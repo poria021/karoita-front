@@ -22,6 +22,11 @@ vi.mock('@/components/shared/shell/DashboardMainViewport', () => ({
     <main>{children}</main>
   ),
 }));
+const catalogReadyState = vi.hoisted(() => ({ ready: true }));
+
+vi.mock('@/components/shared/shell/useShellCatalogReady', () => ({
+  useShellCatalogReady: () => catalogReadyState.ready,
+}));
 
 import { DashboardChrome } from '@/components/shared/shell/DashboardChrome';
 
@@ -40,11 +45,32 @@ function user(role: User['role']): User {
 describe('DashboardChrome', () => {
   afterEach(() => {
     cleanup();
+    catalogReadyState.ready = true;
     useUserStore.setState({
       activeUser: null,
       isAuthenticated: false,
       hasHydrated: true,
     });
+  });
+
+  it('keeps the brand loader until the shell catalog is ready', () => {
+    catalogReadyState.ready = false;
+    useUserStore.setState({
+      activeUser: user('supervisor_professor'),
+      isAuthenticated: true,
+      hasHydrated: true,
+    });
+
+    render(
+      <DashboardChrome>
+        <span>محتوا</span>
+      </DashboardChrome>
+    );
+
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByText('لطفا منتظر بمانید…')).toBeInTheDocument();
+    expect(screen.queryByText('محتوا')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('org-rail')).not.toBeInTheDocument();
   });
 
   it.each(['super_admin', 'assistant_admin'] as const)(

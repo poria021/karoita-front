@@ -138,6 +138,8 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      // قبل از انتخاب واحد تا زیر گروه بازِ کارورزی پنهان نماند.
+      INBOX_ANNOUNCEMENTS_ITEM,
       {
         kind: 'group',
         title: 'انتخاب واحد کارورزی',
@@ -170,7 +172,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
           },
         ],
       },
-      INBOX_ANNOUNCEMENTS_ITEM,
       {
         title: 'گزارش روزانه',
         path: PlannedRoutes.dailyReports(),
@@ -188,6 +189,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      INBOX_ANNOUNCEMENTS_ITEM,
       {
         kind: 'group',
         title: 'انتخاب واحد کارآموزی',
@@ -208,7 +210,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
           },
         ],
       },
-      INBOX_ANNOUNCEMENTS_ITEM,
       {
         title: 'گزارش روزانه',
         path: PlannedRoutes.dailyReports(),
