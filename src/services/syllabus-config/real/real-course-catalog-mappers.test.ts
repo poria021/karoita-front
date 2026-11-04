@@ -114,7 +114,14 @@ describe('groupOriginalLessons', () => {
       row({ id: 'b', status: 'deactive', lessonTitle: 'هندسه' }),
     ]);
     expect(mixed!.isActive).toBe(true);
+    expect(mixed!.subModules.map((sub) => [sub.title, sub.isActive])).toEqual([
+      ['جبر', false],
+      ['هندسه', true],
+    ]);
     expect(archived!.isActive).toBe(false);
+    expect(archived!.subModules.every((sub) => sub.isActive === false)).toBe(
+      true
+    );
   });
 });
 

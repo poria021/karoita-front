@@ -91,6 +91,7 @@ export function groupOriginalLessons(
             id: row.id,
             title: row.lessonTitle.trim(),
             level: levelFor(row.lessonTitle.trim()),
+            isActive: row.status === 'active',
           })),
     };
   });

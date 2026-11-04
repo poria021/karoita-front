@@ -58,6 +58,11 @@ export type CourseSubModule = {
    * leaf های seed (`course_*_N`) ندارند و همان N هستند؛ leaf تازه از ۱۰۱ به بالا می‌گیرد.
    */
   level?: number;
+  /**
+   * وضعیت ردیف Nest (`active`/`deactive`). نبودن = فعال فرض می‌شود.
+   * اگر خودِ درس غیرفعال باشد، همهٔ زیرمجموعه‌ها در منو غیرفعال‌اند مگر سابقه.
+   */
+  isActive?: boolean;
 };
 
 /**
