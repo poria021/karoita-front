@@ -134,4 +134,24 @@ describe('withEvaluationSubModules whenEmpty', () => {
     );
     expect(group.children.map((child) => child.title)).toEqual(['پروژه']);
   });
+
+  it('disables inactive courses unless they were kept from prior access', () => {
+    const inactive = {
+      ...course('c-off', 'کارگاه خاموش', 'semester'),
+      isActive: false,
+    };
+    const disabled = evaluationGroup(
+      withEvaluationSubModules(MENU, { semester: [inactive], modular: [] })
+    );
+    expect(disabled.children.map((child) => child.disabled)).toEqual([true]);
+
+    const kept = evaluationGroup(
+      withEvaluationSubModules(
+        MENU,
+        { semester: [inactive], modular: [] },
+        { keptCourseIds: new Set(['c-off']) }
+      )
+    );
+    expect(kept.children.map((child) => child.disabled)).toEqual([false]);
+  });
 });
