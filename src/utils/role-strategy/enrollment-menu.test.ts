@@ -127,6 +127,48 @@ describe('withEnrollmentSubModules', () => {
     return project.children;
   }
 
+  it('disables only the inactive submodule while keeping an active sibling enabled', () => {
+    const mixed: CourseDefinition = {
+      ...PROJECT,
+      subModules: [
+        { id: 'crs_project_m_1', title: 'پروژه الف', level: 101, isActive: true },
+        { id: 'crs_project_m_2', title: 'پروژه ب', level: 102, isActive: false },
+      ],
+    };
+    const menu = withEnrollmentSubModules(STUDENT_MENU, [mixed], {
+      offeredLevels: new Set([101, 102]),
+    });
+    expect(projectChildren(menu).map((c) => [c.title, c.disabled])).toEqual([
+      ['پروژه الف', false],
+      ['پروژه ب', true],
+    ]);
+  });
+
+  it('keeps an inactive submodule enabled when the learner took it before', () => {
+    const mixed: CourseDefinition = {
+      ...PROJECT,
+      isActive: false,
+      subModules: [
+        {
+          id: 'crs_project_m_1',
+          title: 'پروژه الف',
+          level: 101,
+          isActive: false,
+        },
+        {
+          id: 'crs_project_m_2',
+          title: 'پروژه ب',
+          level: 102,
+          isActive: false,
+        },
+      ],
+    };
+    const menu = withEnrollmentSubModules(STUDENT_MENU, [mixed], {
+      enrolledLevels: new Set([102]),
+    });
+    expect(projectChildren(menu).map((c) => c.disabled)).toEqual([true, false]);
+  });
+
   it('disables a leaf that is not offered in the current term', () => {
     const menu = withEnrollmentSubModules(STUDENT_MENU, [PROJECT], {
       offeredLevels: new Set([101]),

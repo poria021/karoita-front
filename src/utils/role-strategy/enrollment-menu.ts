@@ -34,10 +34,18 @@ function isEnrollmentGroup(entry: SidebarMenuEntry): entry is SidebarMenuGroup {
  * leaf seed قدیمی همان سطح ۱..۴ است؛ leaf تازه سطح مجازیِ ذخیره‌شده‌اش را دارد
  * (`/internships/:level`). leaf بدون سطح هنوز قابل ثبت‌نام نیست و در منو نمی‌آید.
  */
+type EnrollmentLeaf = {
+  id: string;
+  title: string;
+  level?: number;
+  /** وضعیت خودِ leaf؛ نبودن یعنی از وضعیت درس ارث می‌برد. */
+  isActive?: boolean;
+};
+
 function itemFor(
-  leaf: { id: string; title: string; level?: number },
+  leaf: EnrollmentLeaf,
   icon: string,
-  isDisabled: (level: number) => boolean
+  isDisabled: (leaf: EnrollmentLeaf, level: number) => boolean
 ): SidebarMenuItem | null {
   const level = enrollmentLevelOfLeaf(leaf.id, leaf.level);
   if (level === null) return null;
@@ -45,7 +53,7 @@ function itemFor(
     title: leaf.title,
     path: RouteService.karvita.internshipSelection(level),
     icon,
-    disabled: isDisabled(level),
+    disabled: isDisabled(leaf, level),
     ...(legacyLeafId(leaf.id) ? { iconBadge: level } : {}),
   };
 }
@@ -54,7 +62,7 @@ export type EnrollmentMenuOptions = {
   whenEmpty?: 'keep' | 'remove';
   /**
    * سطح‌هایی که همین الان در ترم جاری ارائه (سرفصل) شده‌اند. `null` یا نبودن یعنی
-   * هنوز نامعلوم است و فقط فعال‌بودن درس در «تعریف دروس» بررسی می‌شود.
+   * هنوز نامعلوم است و فقط فعال‌بودن درس/زیرماژول در «تعریف دروس» بررسی می‌شود.
    */
   offeredLevels?: ReadonlySet<number> | null;
   /**
@@ -77,12 +85,18 @@ export function withEnrollmentSubModules(
   }
 
   const { offeredLevels = null, enrolledLevels } = options;
-  // غیرفعال: درس در «تعریف دروس» غیرفعال است یا در ترم جاری ارائه نشده —
-  // مگر اینکه کاربر قبلاً این سطح را برداشته باشد.
-  const isLeafDisabled = (course: CourseDefinition, level: number): boolean => {
+  // غیرفعال: درس یا زیرماژول در «تعریف دروس» خاموش است یا در ترم جاری ارائه نشده —
+  // مگر اینکه کاربر قبلاً همان سطح را برداشته باشد.
+  const isLeafDisabled = (
+    course: CourseDefinition,
+    leaf: EnrollmentLeaf,
+    level: number
+  ): boolean => {
     if (enrolledLevels?.has(level)) return false;
+    const moduleActive = leaf.isActive ?? course.isActive;
     return (
-      !course.isActive || (offeredLevels !== null && !offeredLevels.has(level))
+      !moduleActive ||
+      (offeredLevels !== null && !offeredLevels.has(level))
     );
   };
 
@@ -97,7 +111,8 @@ export function withEnrollmentSubModules(
     replaced = true;
     for (const course of courses) {
       const title = `انتخاب واحد ${course.title}`;
-      const isDisabled = (level: number) => isLeafDisabled(course, level);
+      const isDisabled = (leaf: EnrollmentLeaf, level: number) =>
+        isLeafDisabled(course, leaf, level);
       if (course.subModules.length === 0) {
         const item = itemFor(course, entry.icon, isDisabled);
         if (item) next.push({ ...item, title });
