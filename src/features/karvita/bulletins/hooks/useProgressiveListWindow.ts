@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { HUB_INBOX_PAGE_SIZE } from '@/services/bulletins/bulletin-rules';
 
@@ -21,10 +21,13 @@ export function useProgressiveListWindow<T extends Identifiable>(
   }, [items]);
 
   const [visibleCount, setVisibleCount] = useState(pageSize);
+  const [seenResetKey, setSeenResetKey] = useState(resetKey);
 
-  useEffect(() => {
+  // وقتی منبع لیست عوض شد، پنجره را بدون effect ریست کن (الگوی React).
+  if (seenResetKey !== resetKey) {
+    setSeenResetKey(resetKey);
     setVisibleCount(pageSize);
-  }, [resetKey, pageSize]);
+  }
 
   const visible = items.slice(0, visibleCount);
   const hasMore = visibleCount < items.length;
