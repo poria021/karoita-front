@@ -165,9 +165,9 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
         </div>
       ) : null}
 
-      {/* عنوان و لینک روی خودِ تصویر — بدون پس‌زمینهٔ جدا */}
-      <div className="absolute inset-x-0 bottom-0 z-10 flex min-h-[20%] flex-col justify-end gap-1 bg-gradient-to-t from-kv-text/75 via-kv-text/35 to-transparent px-2.5 pb-2.5 pt-10">
-        <p className="line-clamp-2 text-sm font-bold leading-snug text-kv-canvas">
+      {/* گرادیان پایین = بک‌گراند مین (canvas) در لایت و دارک */}
+      <div className="absolute inset-x-0 bottom-0 z-10 flex min-h-[20%] flex-col justify-end gap-1 bg-gradient-to-t from-kv-canvas via-kv-canvas/85 to-transparent px-2.5 pb-2.5 pt-10">
+        <p className="line-clamp-2 text-sm font-bold leading-snug text-kv-text">
           {shown.title}
         </p>
         {shown.linkUrl ? (
@@ -179,7 +179,7 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
             onClick={() => {
               void BulletinsService.recordAdvertisementClick(shown.id);
             }}
-            className="inline-flex w-fit items-center gap-1 text-xs font-bold text-kv-canvas underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/30"
+            className="inline-flex w-fit items-center gap-1 text-xs font-bold text-kv-text underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/30"
           >
             اطلاعات بیشتر
             <FaIcon icon={faIcons.arrowUpRightFromSquare} size="xs" />
