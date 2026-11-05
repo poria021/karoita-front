@@ -175,6 +175,10 @@ describe('bulletin-rules', () => {
       'student',
       'skill_learner',
     ]);
+    expect(audienceRolesFor('school_principal', 'announcement')).toEqual([
+      'student',
+      'skill_learner',
+    ]);
     expect(
       validateBulletinInput(
         input({ provinces: [], audienceRoles: ['skill_learner'] }),
@@ -183,7 +187,7 @@ describe('bulletin-rules', () => {
     ).toBeNull();
     expect(
       validateBulletinInput(
-        input({ provinces: [], audienceRoles: ['mentor_teacher', 'skill_learner'] }),
+        input({ provinces: [], audienceRoles: ['student', 'skill_learner'] }),
         'school_principal'
       )
     ).toBeNull();

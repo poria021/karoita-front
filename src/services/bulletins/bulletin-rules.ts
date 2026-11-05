@@ -52,7 +52,7 @@ const ANNOUNCEMENT_AUDIENCE: Record<UserRole, readonly UserRole[]> = {
   provincial_university: ['faculty_role', 'supervisor_professor', 'student'],
   faculty_role: ['supervisor_professor', 'student'],
   regional_edu_admin: ['school_principal', 'mentor_teacher', 'skill_learner'],
-  school_principal: ['mentor_teacher', 'skill_learner'],
+  school_principal: ['student', 'skill_learner'],
   supervisor_professor: ['student', 'skill_learner'],
   mentor_teacher: ['skill_learner'],
   student: [],
