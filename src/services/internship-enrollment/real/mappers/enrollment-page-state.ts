@@ -27,8 +27,9 @@ import type {
 import { firstOf } from './primitives';
 import {
   findConflictLessonInSemester,
-  findEnrolmentHistoryForLevel,
-  findLessonForLevel,
+  findEnrolmentHistoryForLeaf,
+  findLessonForLeaf,
+  type EnrollmentLeafRef,
   type EnrolmentHistoryEntry,
 } from './lesson-matching';
 import {
@@ -142,17 +143,20 @@ export function toEnrollmentPageState(
     schoolName?: string | null;
     mentorName?: string | null;
     realWeeklyData?: RealWeeklyData;
-  }
+  },
+  /** عنوان کاتالوگ برای leaf داینامیک؛ بدون آن فقط سطح کلاسیک ۱…۹ match می‌شود. */
+  leaf?: EnrollmentLeafRef
 ): InternshipEnrollmentPageState {
   const kind = kindForRole(input.actor.role);
   const level = clampLevel(kind, input.level);
   const courseName = courseNameForKind(kind);
+  const leafRef: EnrollmentLeafRef = leaf ?? { level, title: '' };
 
   const openLessons = open?.lessons ?? [];
-  const current = findLessonForLevel(openLessons, kind, level);
+  const current = findLessonForLeaf(openLessons, kind, leafRef);
   const currentLessonId = current ? nestEntityId(current) || null : null;
 
-  const history = findEnrolmentHistoryForLevel(semesters, kind, level);
+  const history = findEnrolmentHistoryForLeaf(semesters, kind, leafRef);
   const effectiveEntry = resolveEffectiveEnrollmentEntry(
     current,
     history,
@@ -225,6 +229,7 @@ export function toEnrollmentPageState(
     kind,
     level,
     courseName,
+    ...(leafRef.title ? { courseTitle: leafRef.title } : {}),
     termTitle: activeTermTitle,
     termId: activeTermId,
     lessonId: effectiveEntry ? (effectiveEntry.lesson.id ?? null) : currentLessonId,

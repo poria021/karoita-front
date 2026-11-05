@@ -4,6 +4,8 @@ import type { NestSemesterEnrolmentsByTerm } from '@/types/nest-student-enrollme
 
 import {
   enrolledLevelsFromSemesters,
+  findConflictLessonInSemester,
+  findEnrolmentHistoryForLeaf,
   findLessonForLeaf,
   findLessonForLevel,
   lessonMatchesLevel,
@@ -100,5 +102,58 @@ describe('enrolledLevelsFromSemesters', () => {
       ]
     );
     expect([...levels].sort((a, b) => a - b)).toEqual([2, 101]);
+  });
+});
+
+describe('findEnrolmentHistoryForLeaf', () => {
+  it('finds dynamic catalog lessons by title when the level is virtual', () => {
+    const history = findEnrolmentHistoryForLeaf(
+      [
+        semester([
+          {
+            id: 'lp',
+            title: 'پروژه الف',
+            enrolment: { id: 'e1', status: 'active' },
+          },
+        ]),
+      ],
+      'internship',
+      PROJECT_A
+    );
+    expect(history).toHaveLength(1);
+    expect(history[0]?.lesson.id).toBe('lp');
+  });
+});
+
+describe('findConflictLessonInSemester', () => {
+  it('treats a dynamic catalog enrolment as a same-term conflict', () => {
+    const conflict = findConflictLessonInSemester(
+      semester([
+        {
+          id: 'lp',
+          title: 'one',
+          enrolment: { id: 'e1', status: 'active' },
+        },
+        { id: 'l2', title: 'two', enrolment: null },
+      ]),
+      'internship',
+      'l2'
+    );
+    expect(conflict?.id).toBe('lp');
+  });
+
+  it('still ignores apprenticeship lessons when resolving internship conflicts', () => {
+    const conflict = findConflictLessonInSemester(
+      semester([
+        {
+          id: 'la',
+          title: 'کارآموزی ۱',
+          enrolment: { id: 'e1', status: 'active' },
+        },
+      ]),
+      'internship',
+      null
+    );
+    expect(conflict).toBeNull();
   });
 });
