@@ -173,6 +173,8 @@ export function mapRealWeeklySessions(
       files: latest?.files ?? [],
       reportSubmittedAt: latest?.createdAt ?? null,
       feedback,
+      studentPresenceApproved:
+        week.isApprovedBySchoolAdminStudentPresent === true,
     };
   });
 }

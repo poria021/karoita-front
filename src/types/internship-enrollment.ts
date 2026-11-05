@@ -135,6 +135,8 @@ export type InternshipWeeklySession = {
   /** زمان (ISO) آخرین ارسال گزارش خودِ دانشجو برای این هفته. */
   reportSubmittedAt?: string | null;
   feedback?: InternshipWeeklyReportFeedback;
+  /** تأیید مدیر مدرسه بر حضور کارورز در مدرسه (`isApprovedBySchoolAdminStudentPresent`). */
+  studentPresenceApproved?: boolean;
 };
 
 export type SaveWeeklyReportDraftInput = {
