@@ -190,6 +190,19 @@ export async function resolveImageFileId(
   return uploaded.id;
 }
 
+/**
+ * پنل‌های غیرستادی باکس استان ندارند و `provinces` خالی می‌فرستند.
+ * Nest برای `@IsOptional` + `@ArrayMinSize(1)` آرایهٔ خالی را رد می‌کند ولی
+ * فیلد غایب را می‌پذیرد و دامنه را از خود پنل برمی‌دارد — پس خالی را نمی‌فرستیم.
+ */
+function optionalTargetProvinceIds(
+  titles: readonly string[],
+  provinceTitleToId: Map<string, string>
+): string[] | undefined {
+  const provinceIds = resolveProvinceIds(titles, provinceTitleToId);
+  return provinceIds.length > 0 ? provinceIds : undefined;
+}
+
 export function toCreateBody(
   input: UpsertBulletinInput,
   opts: {
@@ -200,7 +213,10 @@ export function toCreateBody(
   const type = kindToNestType(input.kind);
   const format = resolveFormat(input.kind, input);
   const roles = input.audienceRoles.map(toNestBulletinRole);
-  const provinceIds = resolveProvinceIds(input.provinces, opts.provinceTitleToId);
+  const provinceIds = optionalTargetProvinceIds(
+    input.provinces,
+    opts.provinceTitleToId
+  );
 
   const body: NestCreateAdvertisementBody = {
     title: input.title.trim(),
@@ -209,8 +225,8 @@ export function toCreateBody(
     body: nestBodyText(input),
     placement: DASHBOARD_AD_PLACEMENT,
     targetRoles: roles,
-    targetProvinceIds: provinceIds,
     isActive: true,
+    ...(provinceIds ? { targetProvinceIds: provinceIds } : {}),
   };
 
   if (type === 'ads') {
@@ -238,7 +254,10 @@ export function toUpdateBody(
   const type = kindToNestType(input.kind);
   const format = resolveFormat(input.kind, input, opts.existingFormat);
   const roles = input.audienceRoles.map(toNestBulletinRole);
-  const provinceIds = resolveProvinceIds(input.provinces, opts.provinceTitleToId);
+  const provinceIds = optionalTargetProvinceIds(
+    input.provinces,
+    opts.provinceTitleToId
+  );
 
   if (
     type === 'ads' &&
@@ -255,7 +274,7 @@ export function toUpdateBody(
     body: nestBodyText(input),
     placement: DASHBOARD_AD_PLACEMENT,
     targetRoles: roles,
-    targetProvinceIds: provinceIds,
+    ...(provinceIds ? { targetProvinceIds: provinceIds } : {}),
   };
 
   if (type === 'ads') {

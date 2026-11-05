@@ -48,6 +48,19 @@ describe('advertisement-mappers', () => {
     expect(body.link).toBeUndefined();
   });
 
+  it('omits targetProvinceIds when provinces are empty (non-staff panels)', () => {
+    const body = toCreateBody(baseInput({ provinces: [] }), {
+      provinceTitleToId: new Map(),
+    });
+    expect(body.targetProvinceIds).toBeUndefined();
+    expect(body.targetRoles).toContain('student');
+
+    const update = toUpdateBody(baseInput({ provinces: [] }), {
+      provinceTitleToId: new Map(),
+    });
+    expect(update.targetProvinceIds).toBeUndefined();
+  });
+
   it('rejects unknown province titles instead of dropping them', () => {
     expect(() =>
       resolveProvinceIds(['تهران', 'ناموجود'], new Map([['تهران', 'prov-1']]))

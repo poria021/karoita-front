@@ -26,6 +26,13 @@ import type {
   NestPublicAdvertisementDto,
 } from '@/types/nest-advertisements';
 
+function emptyProvinceMaps(): {
+  titleToId: Map<string, string>;
+  idToTitle: Map<string, string>;
+} {
+  return { titleToId: new Map(), idToTitle: new Map() };
+}
+
 async function provinceMaps(): Promise<{
   titleToId: Map<string, string>;
   idToTitle: Map<string, string>;
@@ -44,6 +51,30 @@ async function provinceMaps(): Promise<{
     idToTitle.set(id, title);
   }
   return { titleToId, idToTitle };
+}
+
+/** پنل غیرستادی استان انتخاب نمی‌کند؛ کاتالوگ ادمین را لازم ندارد و ممکن است به آن دسترسی هم نداشته باشد. */
+async function provinceMapsIfNeeded(
+  provinceTitles: readonly string[]
+): Promise<{
+  titleToId: Map<string, string>;
+  idToTitle: Map<string, string>;
+}> {
+  const needsCatalog = provinceTitles.some((title) => title.trim());
+  if (!needsCatalog) return emptyProvinceMaps();
+  return provinceMaps();
+}
+
+/** لیست/فعال‌سازی: بدون کاتالوگ هم id خام نشان داده می‌شود؛ خطا کل صفحه را نبیند. */
+async function provinceMapsBestEffort(): Promise<{
+  titleToId: Map<string, string>;
+  idToTitle: Map<string, string>;
+}> {
+  try {
+    return await provinceMaps();
+  } catch {
+    return emptyProvinceMaps();
+  }
 }
 
 /** یک type را برای همهٔ placementهای داشبورد می‌گیرد و با id یکتا ادغام می‌کند. */
@@ -83,7 +114,7 @@ export async function listRealDashboardBulletins(): Promise<Bulletin[]> {
 export async function listRealManagedBulletins(): Promise<Bulletin[]> {
   const role = useUserStore.getState().activeUser?.role;
   const [{ idToTitle }, rows] = await Promise.all([
-    provinceMaps(),
+    provinceMapsBestEffort(),
     advertisementsApi.listManaged(),
   ]);
   const mapped = rows.map((row) => mapAdminAdvertisement(row, idToTitle));
@@ -102,7 +133,7 @@ export async function createRealBulletin(
   const validationError = validateBulletinInput(input, role);
   if (validationError) throw new Error(validationError);
 
-  const { titleToId, idToTitle } = await provinceMaps();
+  const { titleToId, idToTitle } = await provinceMapsIfNeeded(input.provinces);
   const imageId = await resolveImageFileId(input, (file) =>
     FilesService.uploadFile(file)
   );
@@ -119,7 +150,7 @@ export async function updateRealBulletin(
   input: UpsertBulletinInput
 ): Promise<Bulletin> {
   const role = useUserStore.getState().activeUser?.role;
-  const { titleToId, idToTitle } = await provinceMaps();
+  const { titleToId, idToTitle } = await provinceMapsIfNeeded(input.provinces);
   const existingDto = await advertisementsApi.getOne(id);
   const existing = mapAdminAdvertisement(existingDto, idToTitle);
   if (role && !isBulletinOwnedBy(existing, role)) {
@@ -149,7 +180,7 @@ export async function setRealBulletinActive(
   isActive: boolean
 ): Promise<Bulletin> {
   const [{ idToTitle }, row] = await Promise.all([
-    provinceMaps(),
+    provinceMapsBestEffort(),
     advertisementsApi.setActive(id, { isActive }),
   ]);
   return mapAdminAdvertisement(row, idToTitle);
