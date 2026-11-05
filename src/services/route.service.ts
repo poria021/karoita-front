@@ -37,6 +37,16 @@ export function isMarketingCmsPath(pathname: string): boolean {
   return path === MARKETING_CMS_BASE || path.startsWith(`${MARKETING_CMS_BASE}/`);
 }
 
+const COURSE_MATERIALS_PATH = /^\/karvita\/internships\/(\d+)\/materials$/;
+
+/** سطح عددی مسیر جزوات؛ مسیرهای دیگر `null`. */
+export function courseMaterialsLevel(pathname: string): number | null {
+  const match = COURSE_MATERIALS_PATH.exec(normalizeAppPath(pathname));
+  if (!match) return null;
+  const level = Number(match[1]);
+  return Number.isInteger(level) && level >= 1 ? level : null;
+}
+
 /** پوستهٔ داشبورد `/(app)` — سوییچ تم هدر اینجاست. */
 export function isAppShellPath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
@@ -110,6 +120,9 @@ export const RouteService = {
       level == null
         ? '/karvita/internships'
         : `/karvita/internships/${level}`,
+    /** صندوق جزوات همان درس — یک URL برای هر سطح. */
+    courseMaterials: (level: number): string =>
+      `/karvita/internships/${level}/materials`,
     organizationalCapacities: (
       kind?: 'internship' | 'apprenticeship'
     ): string => {

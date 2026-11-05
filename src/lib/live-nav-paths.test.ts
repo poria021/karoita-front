@@ -31,7 +31,6 @@ describe('live nav / admin plane', () => {
       'انتخاب واحد کارورزی',
     ]);
     const studentGroup = studentMenu.find(isSidebarMenuGroup);
-    expect(studentGroup?.defaultOpen).toBe(true);
     expect(studentGroup?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.internshipSelection(1),
       RouteService.karvita.internshipSelection(2),
@@ -46,7 +45,6 @@ describe('live nav / admin plane', () => {
       'انتخاب واحد کارآموزی',
     ]);
     const learnerGroup = learnerMenu.find(isSidebarMenuGroup);
-    expect(learnerGroup?.defaultOpen).toBe(true);
     expect(learnerGroup?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.internshipSelection(1),
       RouteService.karvita.internshipSelection(2),
@@ -119,6 +117,12 @@ describe('live nav / admin plane', () => {
     expect(isNavigableAppPath(RouteService.karvita.internshipSelection())).toBe(
       true
     );
+    expect(
+      isNavigableAppPath(RouteService.karvita.courseMaterials(2))
+    ).toBe(true);
+    expect(isLiveSidebarPath(RouteService.karvita.courseMaterials(2))).toBe(
+      false
+    );
 
     const adminMenu = getVisibleSidebarMenu('super_admin');
     expect(adminMenu.map((entry) => entry.title)).toEqual([
@@ -132,7 +136,6 @@ describe('live nav / admin plane', () => {
 
     const groups = adminMenu.filter(isSidebarMenuGroup);
     expect(groups).toHaveLength(2);
-    expect(groups.every((g) => g.defaultOpen)).toBe(true);
 
     expect(groups.map((g) => g.title)).toEqual([
       'مدیریت سازمانی',

@@ -1,4 +1,4 @@
-import { RouteService } from '@/services/route.service';
+import { courseMaterialsLevel, RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import {
   getRoleStrategy,
@@ -53,6 +53,21 @@ export function getModuleBreadcrumb(
   const path = normalizePath(pathname);
   const home = resolveHomeItem(role);
   const menu = getRoleStrategy(role).sidebarMenu;
+
+  const materialsLevel = courseMaterialsLevel(path);
+  if (materialsLevel != null) {
+    const coursePath = RouteService.karvita.internshipSelection(materialsLevel);
+    const courseTrail = getModuleBreadcrumb(coursePath, role);
+    const courseCrumb = courseTrail[courseTrail.length - 1];
+    return [
+      ...courseTrail.slice(0, -1),
+      {
+        label: courseCrumb?.label ?? getModuleMeta(coursePath, role).title,
+        href: coursePath,
+      },
+      { label: 'جزوات' },
+    ];
+  }
 
   if (isProfilePath(path)) {
     return [

@@ -1,4 +1,5 @@
 import {
+  courseMaterialsLevel,
   isAdminControlPlanePath,
   RouteService,
 } from '@/services/route.service';
@@ -87,6 +88,7 @@ export { isAdminControlPlanePath };
 export function isNavigableAppPath(pathname: string): boolean {
   const path = normalizePath(pathname);
   if (isKarvitaProfilePath(path)) return true;
+  if (courseMaterialsLevel(path) != null) return true;
   if (INDEX_REDIRECT_MODULE_PATHS.includes(path)) return true;
   return isLiveStaticNavPath(path);
 }

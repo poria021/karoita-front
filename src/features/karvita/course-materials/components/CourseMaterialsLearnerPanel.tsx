@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -22,7 +23,8 @@ import { CourseMaterialsLoadError } from './CourseMaterialsLoadError';
 type CourseMaterialsLearnerPanelProps = {
   kind: InternshipCourseKind;
   courseKey: string;
-  onBack: () => void;
+  /** صفحهٔ درس همین سطح. */
+  backHref: string;
   /** بعد از علامت‌زدن دیده‌شده (برای خاموش کردن بج دکمه). */
   onSeen?: () => void;
 };
@@ -33,7 +35,7 @@ type CourseMaterialsLearnerPanelProps = {
 export function CourseMaterialsLearnerPanel({
   kind,
   courseKey,
-  onBack,
+  backHref,
   onSeen,
 }: CourseMaterialsLearnerPanelProps) {
   const userId = useUserStore((state) => state.activeUser?.id ?? '');
@@ -63,15 +65,16 @@ export function CourseMaterialsLearnerPanel({
       <header className="flex flex-wrap items-center justify-between gap-kv-pair border-b border-kv-border-muted pb-kv-group">
         <div className="flex min-w-0 items-center gap-kv-inline">
           <KvButton
-            type="button"
+            asChild
             color="neutral"
             appearance="ghost"
             size="sm"
             aria-label="بازگشت به گزارش‌نویسی"
-            onClick={onBack}
-            icon={<FaIcon icon={faIcons.arrowRight} size="sm" />}
           >
-            بازگشت
+            <Link href={backHref} prefetch>
+              <FaIcon icon={faIcons.arrowRight} size="sm" />
+              بازگشت
+            </Link>
           </KvButton>
           <span
             className="hidden h-5 w-px bg-kv-border-muted sm:inline"

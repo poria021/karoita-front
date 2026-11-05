@@ -1,5 +1,5 @@
 import { PlannedRoutes } from '@/services/planned-routes';
-import { RouteService } from '@/services/route.service';
+import { courseMaterialsLevel, RouteService } from '@/services/route.service';
 import {
   courseDefinitionsOf,
   findLeafByEnrollmentLevel,
@@ -259,6 +259,19 @@ export function getModuleMeta(
   role?: UserRole | null
 ): ModuleMeta {
   const path = normalizePath(pathname);
+
+  const materialsLevel = courseMaterialsLevel(path);
+  if (materialsLevel != null) {
+    const parent = getModuleMeta(
+      RouteService.karvita.internshipSelection(materialsLevel),
+      role
+    );
+    return {
+      ...parent,
+      title: `جزوات ${parent.title}`,
+      description: `فایل‌های درسی ${parent.title}.`,
+    };
+  }
 
   const dynamicEnrollment = resolveDynamicEnrollmentMeta(path);
   if (dynamicEnrollment) return dynamicEnrollment;
