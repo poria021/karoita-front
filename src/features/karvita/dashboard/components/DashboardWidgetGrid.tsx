@@ -7,6 +7,7 @@ import {
   getDashboardWidgets,
   type DashboardWidgetId,
 } from '../lib/dashboard-widgets';
+import { DashboardLearnerDesk } from './DashboardLearnerDesk';
 import { DashboardWelcomeBox } from './DashboardWelcomeBox';
 
 type DashboardWidgetGridProps = {
@@ -64,6 +65,8 @@ function DashboardWidget({
           }
         />
       );
+    case 'learner_desk':
+      return <DashboardLearnerDesk />;
     default: {
       const _exhaustive: never = id;
       return _exhaustive;

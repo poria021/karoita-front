@@ -67,61 +67,77 @@ export function WorkbenchHomeClient({
       })
     : null;
 
+  const learnerWorkbench =
+    activeUser.role === 'student' || activeUser.role === 'skill_learner';
+
   return (
     <div className={WORKBENCH_GRID_CLASS}>
+      {/* دانشجو/مهارت‌آموز: خوش‌آمد بالاتر از چک‌لیست و بقیهٔ ویجت‌ها */}
+      {learnerWorkbench ? (
+        <DashboardWidgetGrid
+          role={activeUser.role}
+          welcomeName={displayName}
+          welcomeSubtitle={subtitle}
+        />
+      ) : null}
+
       {progress ? (
         <div className={WORKBENCH_FULL_SPAN}>
           <OnboardingChecklist progress={progress} />
         </div>
       ) : null}
 
-      <DashboardWidgetGrid
-        role={activeUser.role}
-        welcomeName={displayName}
-        welcomeSubtitle={subtitle}
-      />
+      {!learnerWorkbench ? (
+        <DashboardWidgetGrid
+          role={activeUser.role}
+          welcomeName={displayName}
+          welcomeSubtitle={subtitle}
+        />
+      ) : null}
 
-      {shortcuts.length === 0 ? (
-        <div
-          className={cn(
-            WORKBENCH_FULL_SPAN,
-            'rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section'
-          )}
-        >
-          <KvTypography variant="subtitle" as="p">
-            میان‌بر فعالی نیست
-          </KvTypography>
-          <div className="mt-kv-pair">
-            <KvTypography variant="body" tone="muted" as="p">
-              {emptyDescription}
+      {!learnerWorkbench ? (
+        shortcuts.length === 0 ? (
+          <div
+            className={cn(
+              WORKBENCH_FULL_SPAN,
+              'rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section'
+            )}
+          >
+            <KvTypography variant="subtitle" as="p">
+              میان‌بر فعالی نیست
             </KvTypography>
+            <div className="mt-kv-pair">
+              <KvTypography variant="body" tone="muted" as="p">
+                {emptyDescription}
+              </KvTypography>
+            </div>
           </div>
-        </div>
-      ) : (
-        <nav aria-label="میان‌برهای میز کار" className={WORKBENCH_FULL_SPAN}>
-          <ul className={WORKBENCH_SHORTCUTS_GRID_CLASS}>
-            {shortcuts.map((item) => {
-              const icon = resolveShortcutIcon(item.icon);
-              return (
-                <li key={item.path}>
-                  <Link
-                    href={item.path}
-                    prefetch
-                    className="flex min-h-11 items-center gap-kv-inline rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group text-start shadow-kv-raised transition-colors hover:border-kv-border-strong hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
-                  >
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
-                      <FaIcon icon={icon} size="sm" />
-                    </span>
-                    <KvTypography variant="subtitle" as="span" truncate>
-                      {item.title}
-                    </KvTypography>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      )}
+        ) : (
+          <nav aria-label="میان‌برهای میز کار" className={WORKBENCH_FULL_SPAN}>
+            <ul className={WORKBENCH_SHORTCUTS_GRID_CLASS}>
+              {shortcuts.map((item) => {
+                const icon = resolveShortcutIcon(item.icon);
+                return (
+                  <li key={item.path}>
+                    <Link
+                      href={item.path}
+                      prefetch
+                      className="flex min-h-11 items-center gap-kv-inline rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group text-start shadow-kv-raised transition-colors hover:border-kv-border-strong hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20"
+                    >
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
+                        <FaIcon icon={icon} size="sm" />
+                      </span>
+                      <KvTypography variant="subtitle" as="span" truncate>
+                        {item.title}
+                      </KvTypography>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        )
+      ) : null}
     </div>
   );
 }
