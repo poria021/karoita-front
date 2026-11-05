@@ -21,6 +21,10 @@ import {
   SCHOOLS,
   SUPERVISOR_SEEDS,
 } from '@/services/internship-enrollment/mock/mock-enrollment-seeds';
+import {
+  courseDefinitionsOf,
+  siblingEnrollmentLeaves,
+} from '@/services/syllabus-config/course-catalog';
 import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-syllabus-store';
 import { resolveEnrollmentSyllabusContext } from '@/services/syllabus-config/syllabus-enrollment-reads';
 import type {
@@ -55,6 +59,11 @@ export function enrollWithSupervisor(
   }
 
   const snapshot = readSnapshot();
+  const siblingLevels = siblingEnrollmentLeaves(
+    courseDefinitionsOf(syllabus),
+    kind === 'apprenticeship' ? 'modular' : 'semester',
+    level
+  ).map((leaf) => leaf.level);
   if (
     hasStudentTermEnrollmentConflict({
       records: snapshot.records,
@@ -62,10 +71,11 @@ export function enrollWithSupervisor(
       kind,
       level,
       termId,
+      siblingLevels,
     })
   ) {
     throw new Error(
-      'شما در این نیم‌سال تحصیلی مجاز به اخذ بیش از یک درس کارورزی نیستید.'
+      'شما مجاز به اخذ بیش از یک زیرمجموعه از همین درس در یک نیم‌سال نیستید.'
     );
   }
 

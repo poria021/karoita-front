@@ -126,7 +126,7 @@ describe('findEnrolmentHistoryForLeaf', () => {
 });
 
 describe('findConflictLessonInSemester', () => {
-  it('treats a dynamic catalog enrolment as a same-term conflict', () => {
+  it('conflicts only with sibling leaves of the same catalog course', () => {
     const conflict = findConflictLessonInSemester(
       semester([
         {
@@ -137,22 +137,40 @@ describe('findConflictLessonInSemester', () => {
         { id: 'l2', title: 'two', enrolment: null },
       ]),
       'internship',
-      'l2'
+      'l2',
+      [{ level: 101, title: 'one' }]
     );
     expect(conflict?.id).toBe('lp');
   });
 
-  it('still ignores apprenticeship lessons when resolving internship conflicts', () => {
+  it('ignores enrolments from a different catalog course group', () => {
     const conflict = findConflictLessonInSemester(
       semester([
         {
-          id: 'la',
-          title: 'کارآموزی ۱',
+          id: 'other',
+          title: 'alpha',
           enrolment: { id: 'e1', status: 'active' },
         },
       ]),
       'internship',
-      null
+      null,
+      [{ level: 101, title: 'one' }]
+    );
+    expect(conflict).toBeNull();
+  });
+
+  it('returns null when there are no siblings to conflict with', () => {
+    const conflict = findConflictLessonInSemester(
+      semester([
+        {
+          id: 'lp',
+          title: 'one',
+          enrolment: { id: 'e1', status: 'active' },
+        },
+      ]),
+      'internship',
+      null,
+      []
     );
     expect(conflict).toBeNull();
   });

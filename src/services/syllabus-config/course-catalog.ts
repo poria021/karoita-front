@@ -234,6 +234,25 @@ export function findLeafByEnrollmentLevel(
   return null;
 }
 
+/**
+ * سایر leafهای همان درسِ کاتالوگ (زیرمجموعه‌های هم‌گروه)، بدون خودِ `level`.
+ * برای S6 دانشجو: تعارض فقط داخل همین گروه است، نه بین دو درس جدا مثل test1 و test2.
+ * درسِ بدون زیرمجموعه → آرایهٔ خالی (تعارضی نیست).
+ */
+export function siblingEnrollmentLeaves(
+  definitions: readonly CourseDefinition[],
+  audience: AcademicTermType,
+  level: number
+): EnrollmentLeaf[] {
+  for (const course of definitions) {
+    if (course.audience !== audience) continue;
+    const leaves = enrollmentLeavesOf(course);
+    if (!leaves.some((leaf) => leaf.level === level)) continue;
+    return leaves.filter((leaf) => leaf.level !== level);
+  }
+  return [];
+}
+
 /** شناسه‌ی کاتالوگِ سطح؛ بدون leaf مطابق همان نام‌گذاری seed قدیمی. */
 export function leafIdForEnrollmentLevel(
   definitions: readonly CourseDefinition[],

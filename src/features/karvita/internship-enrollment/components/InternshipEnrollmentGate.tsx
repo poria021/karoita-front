@@ -199,8 +199,8 @@ export function InternshipEnrollmentGate({
       ) : (
         <KvAlert
           variant="info"
-          title="در درس دیگری انتخاب واحد کرده‌اید"
-          description="امکان شروع فعالیت در این ماژول وجود ندارد."
+          title="در زیرمجموعهٔ دیگری از این درس انتخاب واحد کرده‌اید"
+          description="امکان اخذ زیرمجموعهٔ دیگر از همین درس وجود ندارد."
         />
       );
     default:

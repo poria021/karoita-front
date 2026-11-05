@@ -278,39 +278,26 @@ export function enrolledLevelsFromSemesters(
 }
 
 /**
- * آیا عنوان درس متعلق به kind است، یا درس داینامیک بدون برچسب kind صریح
- * (مثل «one» / «پروژه الف») که نباید به‌عنوان kind مقابل رد شود.
- */
-function lessonCountsAsKindConflict(
-  title: string,
-  kind: InternshipCourseKind
-): boolean {
-  if (lessonMatchesKind(title, kind)) return true;
-  const otherKind: InternshipCourseKind =
-    kind === 'internship' ? 'apprenticeship' : 'internship';
-  if (lessonMatchesKind(title, otherKind)) return false;
-  // عنوان بدون کارورزی/کارآموزی — leaf داینامیک کاتالوگ در همین ترم
-  return Boolean(normalizeLessonTitle(title));
-}
-
-/**
- * درسِ هم‌نوع دیگری (نه همین level) که دانشجو همین نیم‌سال ثبت‌نام
- * غیرکنسل‌شده دارد — برای S6 (بن‌بست اخذ چند level هم‌زمان تو یک ترم).
- * درس‌های داینامیک بدون واژهٔ کارورزی/کارآموزی در عنوان هم شمرده می‌شوند.
+ * ثبت‌نام فعال روی یکی از leafهای هم‌گروه (سایر زیرمجموعه‌های همان درس کاتالوگ).
+ * برای S6 دانشجو — تعارض بین‌گروهی (مثل test1 و test2) عمداً نیست.
+ * `siblingLeaves` خالی → بدون تعارض.
  */
 export function findConflictLessonInSemester(
   semester: NestSemesterEnrolmentsByTerm | undefined,
   kind: InternshipCourseKind,
-  currentLessonId: string | null
+  currentLessonId: string | null,
+  siblingLeaves: readonly EnrollmentLeafRef[]
 ): NestSemesterLessonWithEnrolment | null {
-  if (!semester) return null;
+  if (!semester || siblingLeaves.length === 0) return null;
   return (
     (semester.lessons ?? []).find((lesson) => {
       if (!lesson.enrolment || !isNonCancelledEnrolment(lesson.enrolment.status)) {
         return false;
       }
       if (currentLessonId && lesson.id === currentLessonId) return false;
-      return lessonCountsAsKindConflict(nestLessonTitle(lesson), kind);
+      return siblingLeaves.some(
+        (leaf) => findLessonForLeaf([lesson], kind, leaf) !== null
+      );
     }) ?? null
   );
 }

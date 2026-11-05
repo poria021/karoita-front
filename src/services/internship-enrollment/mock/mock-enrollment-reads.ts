@@ -26,6 +26,7 @@ import { readSyllabusSnapshot } from '@/services/syllabus-config/mock/mock-sylla
 import {
   courseDefinitionsOf,
   leafIdForEnrollmentLevel,
+  siblingEnrollmentLeaves,
 } from '@/services/syllabus-config/course-catalog';
 import {
   pickActiveTermForKind,
@@ -180,6 +181,11 @@ export function resolveEnrollmentPageState(
     termId: activeTermId,
     userId: input.actor.id,
   });
+  const siblingLevels = siblingEnrollmentLeaves(
+    courseDefinitionsOf(syllabus),
+    kind === 'apprenticeship' ? 'modular' : 'semester',
+    level
+  ).map((leaf) => leaf.level);
   const conflictRecord = !registered
     ? findConflictingActiveTermEnrollment({
         records: snapshot.records,
@@ -187,6 +193,7 @@ export function resolveEnrollmentPageState(
         kind,
         level,
         termId: context.termId,
+        siblingLevels,
       })
     : null;
   const scenario: InternshipEnrollmentScenario = conflictRecord

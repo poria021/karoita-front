@@ -145,7 +145,9 @@ export function toEnrollmentPageState(
     realWeeklyData?: RealWeeklyData;
   },
   /** عنوان کاتالوگ برای leaf داینامیک؛ بدون آن فقط سطح کلاسیک ۱…۹ match می‌شود. */
-  leaf?: EnrollmentLeafRef
+  leaf?: EnrollmentLeafRef,
+  /** سایر زیرمجموعه‌های همان درس — S6 فقط برای دانشجو و فقط روی همین لیست. */
+  siblingLeaves: readonly EnrollmentLeafRef[] = []
 ): InternshipEnrollmentPageState {
   const kind = kindForRole(input.actor.role);
   const level = clampLevel(kind, input.level);
@@ -167,9 +169,16 @@ export function toEnrollmentPageState(
   const openSemesterEntry = open
     ? semesters.find((semester) => semester.id === open.id)
     : undefined;
-  const conflictLesson = registered
-    ? null
-    : findConflictLessonInSemester(openSemesterEntry, kind, currentLessonId);
+  // S6 فقط دانشجو + فقط هم‌گروه کاتالوگ؛ مهارت‌آموز و درس‌های گروه دیگر آزادند.
+  const conflictLesson =
+    !registered && input.actor.role === 'student'
+      ? findConflictLessonInSemester(
+          openSemesterEntry,
+          kind,
+          currentLessonId,
+          siblingLeaves
+        )
+      : null;
 
   // انتخاب واحد فقط وقتی بک‌اند صریحاً اجازه بدهد — `canSelect` نتیجهٔ
   // محاسبهٔ بک‌اند است (شامل قبولی/رد در ترم‌های قبلی)، پس اگر صراحتاً false
