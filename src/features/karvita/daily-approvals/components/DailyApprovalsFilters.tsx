@@ -8,6 +8,7 @@ import {
   KvSelectTrigger,
   KvSelectValue,
 } from '@/components/shared/fields/KvSelect';
+import { cn } from '@/lib/utils';
 import type { DailyApprovalCourseFilter } from '@/types/daily-approvals';
 
 type DailyApprovalsFiltersProps = {
@@ -32,11 +33,11 @@ export function DailyApprovalsFilters({
 }: DailyApprovalsFiltersProps) {
   return (
     <div
-      className={
+      className={cn(
         mobile
-          ? 'space-y-kv-group rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group'
-          : 'flex w-full flex-col items-stretch gap-kv-pair lg:flex-row lg:items-center'
-      }
+          ? 'space-y-kv-group rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group shadow-kv-soft'
+          : 'flex w-full flex-col items-stretch gap-kv-pair rounded-kv-control bg-kv-surface-subtle/80 p-kv-pair lg:flex-row lg:items-center'
+      )}
     >
       <div className={mobile ? 'w-full' : 'w-full min-w-0 flex-[2]'}>
         <KvSearchField
@@ -56,7 +57,10 @@ export function DailyApprovalsFilters({
               if (option) onCourseChange(option.value);
             }}
           >
-            <KvSelectTrigger aria-label="فیلتر درس">
+            <KvSelectTrigger
+              aria-label="فیلتر درس"
+              className="bg-kv-surface shadow-kv-soft"
+            >
               <KvSelectValue />
             </KvSelectTrigger>
             <KvSelectContent>

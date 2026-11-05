@@ -10,6 +10,7 @@ import {
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -44,11 +45,11 @@ export function DailyApprovalsMobileWorkspace({
       />
 
       {page.isLoading ? (
-        <KvCard>
+        <KvCard className="border-kv-border/70 shadow-kv-soft">
           <KvBusySurface className="rounded-kv-control" />
         </KvCard>
       ) : page.trainees.length === 0 ? (
-        <KvCard padding="md">
+        <KvCard padding="md" className="border-kv-border/70 shadow-kv-soft">
           <KvEmptyState
             title="کارورزی مطابق فیلترها پیدا نشد"
             description="عبارت جستجو یا فیلترهای پایش را تغییر دهید."
@@ -71,7 +72,14 @@ export function DailyApprovalsMobileWorkspace({
         page.trainees.map((trainee) => {
           const expanded = page.selectedTrainee?.id === trainee.id;
           return (
-            <KvCard key={trainee.id} padding="sm">
+            <KvCard
+              key={trainee.id}
+              padding="sm"
+              className={cn(
+                'border-kv-border/70 shadow-kv-soft transition-[border-color,box-shadow]',
+                expanded && 'border-kv-brand-border ring-[3px] ring-kv-brand/15'
+              )}
+            >
               <KvCardContent padding="none" className="space-y-kv-group">
                 <div className="flex w-full items-center justify-between gap-kv-group text-start">
                   <button
@@ -109,7 +117,7 @@ export function DailyApprovalsMobileWorkspace({
                     ) : null}
                     <button
                       type="button"
-                      className="inline-flex size-8 items-center justify-center"
+                      className="inline-flex size-8 items-center justify-center rounded-kv-control text-kv-text-faint transition-colors hover:bg-kv-surface-muted hover:text-kv-text"
                       aria-label={expanded ? 'بستن جزئیات' : 'باز کردن جزئیات'}
                       onClick={() =>
                         page.selectTrainee(expanded ? null : trainee)
@@ -118,21 +126,21 @@ export function DailyApprovalsMobileWorkspace({
                       <FaIcon
                         icon={faIcons.chevronDown}
                         size="2xs"
-                        className={
-                          expanded
-                            ? 'rotate-180 text-kv-brand'
-                            : 'text-kv-text-faint'
-                        }
+                        className={cn(
+                          'transition-transform',
+                          expanded && 'rotate-180 text-kv-brand'
+                        )}
                       />
                     </button>
                   </div>
                 </div>
 
                 {expanded ? (
-                  <div className="space-y-kv-group border-t border-kv-border pt-kv-group">
+                  <div className="space-y-kv-group border-t border-kv-border-muted pt-kv-group">
                     <DailyApprovalWeekGrid
                       trainee={trainee}
                       compact
+                      showLegend={false}
                       selectedWeekId={
                         page.gradingTrainee?.id === trainee.id
                           ? page.gradingWeek?.id ?? null
