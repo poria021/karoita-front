@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
@@ -23,11 +23,18 @@ export function useLearnerMaterialsBadge(
   courseKey: string
 ) {
   const userId = useUserStore((state) => state.activeUser?.id ?? '');
-  const [seenAt, setSeenAt] = useState<string | null>(null);
-
-  useEffect(() => {
-    setSeenAt(readMaterialsSeenAt(userId, courseKey));
-  }, [userId, courseKey]);
+  const storageKey = `${userId}::${courseKey}`;
+  const [seenState, setSeenState] = useState(() => ({
+    key: storageKey,
+    seenAt: readMaterialsSeenAt(userId, courseKey),
+  }));
+  // هم‌تراز با تغییر user/course بدون effect (الگوی adjust state during render).
+  if (seenState.key !== storageKey) {
+    setSeenState({
+      key: storageKey,
+      seenAt: readMaterialsSeenAt(userId, courseKey),
+    });
+  }
 
   const query = useQuery({
     queryKey: [...DASHBOARD_QUERY.courseMaterialsReceived, kind, courseKey],
@@ -37,12 +44,15 @@ export function useLearnerMaterialsBadge(
     enabled: Boolean(courseKey),
   });
 
-  const materials = query.data ?? [];
-  const newCount = countNewCourseMaterials(materials, seenAt);
+  const materials = useMemo(() => query.data ?? [], [query.data]);
+  const newCount = countNewCourseMaterials(materials, seenState.seenAt);
 
   const markSeen = useCallback(() => {
     markCourseMaterialsSeen(userId, courseKey, materials);
-    setSeenAt(readMaterialsSeenAt(userId, courseKey));
+    setSeenState({
+      key: `${userId}::${courseKey}`,
+      seenAt: readMaterialsSeenAt(userId, courseKey),
+    });
   }, [userId, courseKey, materials]);
 
   return {

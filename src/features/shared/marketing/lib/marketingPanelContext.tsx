@@ -46,7 +46,10 @@ export function MarketingPanelProvider({ children }: { children: ReactNode }) {
   const idleTimerRef = useRef<number | null>(null);
   const homeScrollTimerRef = useRef<number | null>(null);
   const activePanelRef = useRef<MarketingPanelId | null>(null);
-  activePanelRef.current = activePanel;
+
+  useEffect(() => {
+    activePanelRef.current = activePanel;
+  }, [activePanel]);
 
   const clearIdleTimer = useCallback(() => {
     if (idleTimerRef.current != null) {
@@ -131,10 +134,6 @@ export function MarketingPanelProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!pendingScrollId) return;
-    if (pendingScrollId === 'hero') {
-      setPendingScrollId(null);
-      return;
-    }
 
     const targetId = pendingScrollId;
     // دو فریم صبر کن تا پنل هدف mount/اندازه شود، بعد اسکرول نرم.
