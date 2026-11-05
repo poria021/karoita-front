@@ -34,7 +34,7 @@ type DashboardAdBoxProps = {
 };
 
 const BOX_CLASS = cn(
-  'relative w-full overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface-muted shadow-kv-soft',
+  'relative w-full overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface-muted shadow-kv-soft',
   DASHBOARD_AD_ASPECT_CLASS
 );
 

@@ -22,7 +22,7 @@ type BulletinsNotificationsPanelProps = {
 };
 
 /**
- * باکس اعلان‌های سیستم — بولت قرمز برای خوانده‌نشده + دکمهٔ «خواندم».
+ * باکس اعلان‌های سیستم — بولت برای خوانده‌نشده + دکمهٔ «خواندم».
  */
 export function BulletinsNotificationsPanel({
   defaultOpen = false,
@@ -62,7 +62,7 @@ export function BulletinsNotificationsPanel({
       title="اعلان‌های سیستم"
       count={notifications.length}
       defaultOpen={defaultOpen}
-      icon={<FaIcon icon={faIcons.bell} size="sm" />}
+      icon={<FaIcon icon={faIcons.circleInfo} size="sm" />}
       headerAction={
         unreadCount > 0 ? (
           <KvButton
@@ -80,7 +80,7 @@ export function BulletinsNotificationsPanel({
       }
     >
       {errorMessage ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center">
+        <div className="flex min-h-0 flex-1 items-center justify-center p-kv-pair">
           <KvAlert
             variant="error"
             title="بارگذاری ناموفق بود"
@@ -126,7 +126,7 @@ export function BulletinsNotificationsPanel({
               </KvTypography>
             </div>
           ) : (
-            <ul className="flex list-none flex-col divide-y divide-kv-border/40">
+            <ul className="flex list-none flex-col divide-y divide-kv-border-muted">
               {notifications.map((notification) => {
                 const isUnread = !notification.read;
                 const showBody = isExpandableNotification(notification);
@@ -136,7 +136,7 @@ export function BulletinsNotificationsPanel({
                     <div className="flex w-full items-start gap-kv-inline">
                       {isUnread ? (
                         <span
-                          className="mt-1.5 size-1.5 shrink-0 rounded-full bg-kv-danger"
+                          className="mt-1.5 size-1.5 shrink-0 rounded-full bg-kv-brand"
                           aria-label="خوانده‌نشده"
                         />
                       ) : (
@@ -148,10 +148,13 @@ export function BulletinsNotificationsPanel({
                       <div className="min-w-0 flex-1 break-words pe-kv-pair">
                         <KvTypography
                           variant="caption"
-                          tone="muted"
                           weight="bold"
                           as="span"
-                          className="block"
+                          className={
+                            isUnread
+                              ? 'block text-kv-text'
+                              : 'block text-kv-text-secondary'
+                          }
                         >
                           {notification.title}
                         </KvTypography>
@@ -160,7 +163,7 @@ export function BulletinsNotificationsPanel({
                             variant="caption"
                             tone="muted"
                             as="span"
-                            className="mt-kv-micro block"
+                            className="mt-kv-micro block leading-relaxed"
                           >
                             {notification.body}
                           </KvTypography>

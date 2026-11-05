@@ -48,20 +48,29 @@ export function DashboardAnnouncementsBox({
       aria-labelledby="dashboard-announcements-title"
       style={style}
       className={cn(
-        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised',
+        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group shadow-kv-soft',
         className
       )}
     >
-      <header className="flex shrink-0 items-center gap-kv-inline">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
+      <header className="flex shrink-0 items-center gap-kv-inline border-b border-kv-border-muted pb-kv-group">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand-soft-fg">
           <FaIcon icon={faIcons.bell} size="sm" />
         </span>
         <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-kv-pair">
-          <KvTypography variant="subtitle" as="h3" id="dashboard-announcements-title">
+          <KvTypography
+            variant="subtitle"
+            as="h3"
+            id="dashboard-announcements-title"
+          >
             {isPublished ? 'اطلاعیه‌های منتشرشدهٔ شما' : 'اطلاعیه‌ها'}
           </KvTypography>
           {preview.length > 0 ? (
-            <KvTypography variant="caption" tone="muted" as="span">
+            <KvTypography
+              variant="caption"
+              tone="muted"
+              as="span"
+              className="font-medium"
+            >
               ({toPersianDigits(String(preview.length))})
             </KvTypography>
           ) : null}
@@ -95,10 +104,13 @@ export function DashboardAnnouncementsBox({
             : 'فعلاً اطلاعیه‌ای برای شما منتشر نشده است.'}
         </KvTypography>
       ) : (
-        <ul className="flex min-h-0 flex-1 list-none flex-col divide-y divide-kv-border/40 overflow-y-auto">
+        <ul className="flex min-h-0 flex-1 list-none flex-col divide-y divide-kv-border-muted overflow-y-auto">
           {preview.map((item) => (
             <li key={item.id}>
-              <BulletinCard bulletin={item} />
+              <BulletinCard
+                bulletin={item}
+                showPanelBadge={!isPublished}
+              />
             </li>
           ))}
         </ul>

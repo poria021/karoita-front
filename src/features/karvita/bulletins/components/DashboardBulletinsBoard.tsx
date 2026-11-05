@@ -42,7 +42,7 @@ export function DashboardBulletinsBoard({
       style={WORKBENCH_SIDE_PANEL_STYLE}
       className={cn(
         WORKBENCH_ANNOUNCEMENTS_SPAN,
-        'flex flex-col justify-center overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised'
+        'flex flex-col justify-center overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group shadow-kv-soft'
       )}
     >
       <KvTypography variant="body" tone="muted" as="p">

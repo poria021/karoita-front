@@ -40,12 +40,12 @@ export function HubInboxBox({
     <section
       aria-labelledby={titleId}
       className={cn(
-        'flex flex-col gap-kv-group overflow-hidden rounded-kv-panel border border-kv-border bg-kv-surface p-kv-group shadow-kv-raised',
+        'flex flex-col gap-kv-group overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group shadow-kv-soft',
         'lg:h-[min(28rem,70dvh)]',
         open ? 'h-[min(28rem,70dvh)]' : 'h-auto min-h-0'
       )}
     >
-      <header className="flex shrink-0 items-center gap-kv-inline border-b border-kv-border pb-kv-group">
+      <header className="flex shrink-0 items-center gap-kv-inline border-b border-kv-border-muted pb-kv-group">
         <button
           type="button"
           className={cn(
@@ -58,7 +58,7 @@ export function HubInboxBox({
           aria-controls={panelId}
           onClick={() => setOpen((prev) => !prev)}
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand-soft-fg">
             {icon}
           </span>
           <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-kv-pair">
@@ -66,7 +66,12 @@ export function HubInboxBox({
               {title}
             </KvTypography>
             {count != null && count > 0 ? (
-              <KvTypography variant="caption" tone="muted" as="span">
+              <KvTypography
+                variant="caption"
+                tone="muted"
+                as="span"
+                className="font-medium"
+              >
                 ({toPersianDigits(String(count))})
               </KvTypography>
             ) : null}

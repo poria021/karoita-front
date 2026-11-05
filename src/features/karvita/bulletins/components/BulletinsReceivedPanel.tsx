@@ -7,6 +7,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { Spinner } from '@/components/ui/spinner';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { BulletinsService } from '@/services/bulletins.service';
@@ -58,7 +59,7 @@ export function BulletinsReceivedPanel() {
       icon={<FaIcon icon={faIcons.bell} size="sm" />}
     >
       {error ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center">
+        <div className="flex min-h-0 flex-1 items-center justify-center p-kv-pair">
           <KvAlert
             variant="error"
             title="بارگذاری ناموفق بود"
@@ -76,7 +77,12 @@ export function BulletinsReceivedPanel() {
           />
         </div>
       ) : query.isLoading ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center">
+        <div
+          className="flex min-h-0 flex-1 flex-col items-center justify-center gap-kv-pair"
+          role="status"
+          aria-label="در حال بارگذاری دریافتی‌ها"
+        >
+          <Spinner className="size-5 text-kv-brand" aria-hidden="true" />
           <KvTypography variant="caption" tone="muted" as="p">
             در حال بارگذاری دریافتی‌ها…
           </KvTypography>
@@ -91,7 +97,7 @@ export function BulletinsReceivedPanel() {
         <ul
           ref={listRef}
           onScroll={onListScroll}
-          className="flex min-h-0 flex-1 list-none flex-col divide-y divide-kv-border/40 overflow-y-auto overscroll-contain"
+          className="flex min-h-0 flex-1 list-none flex-col divide-y divide-kv-border-muted overflow-y-auto overscroll-contain"
         >
           {visible.map((item) => (
             <li key={item.id}>

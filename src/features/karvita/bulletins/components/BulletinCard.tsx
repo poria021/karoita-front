@@ -17,6 +17,8 @@ type BulletinCardProps = {
   actions?: ReactNode;
   /** زیر متن — مثلاً لیست مخاطبان در صفحهٔ مدیریت. */
   footer?: ReactNode;
+  /** بج نقش منتشرکننده — برای دریافتی‌ها روشن؛ برای لیست خودِ ناشر خاموش. */
+  showPanelBadge?: boolean;
   className?: string;
 };
 
@@ -27,8 +29,8 @@ export function BulletinPanelBadge({ bulletin }: { bulletin: Bulletin }) {
     <span
       className={
         isAd
-          ? 'inline-flex shrink-0 items-center gap-1 rounded-full bg-kv-warning-soft px-2 py-0.5 text-xs font-bold text-kv-warning-soft-fg'
-          : 'inline-flex shrink-0 items-center gap-1 rounded-full bg-kv-brand-soft px-2 py-0.5 text-xs font-bold text-kv-brand-soft-fg'
+          ? 'inline-flex shrink-0 items-center gap-1 rounded-kv-control bg-kv-warning-soft px-2 py-0.5 text-xs font-bold text-kv-warning-soft-fg'
+          : 'inline-flex shrink-0 items-center gap-1 rounded-kv-control bg-kv-brand-soft px-2 py-0.5 text-xs font-bold text-kv-brand-soft-fg'
       }
     >
       <FaIcon icon={isAd ? faIcons.bullhorn : faIcons.bell} size="xs" />
@@ -38,14 +40,13 @@ export function BulletinPanelBadge({ bulletin }: { bulletin: Bulletin }) {
 }
 
 /**
- * ردیف اطلاعیه — دقیقاً همان چیدمان باکس اعلان‌های سیستم:
- * عنوان راست، تاریخ/دکمهٔ توضیحات چپ، متن زیر عنوان.
- * تفاوت: متن کشویی است و دکمه جای تاریخ می‌نشیند.
+ * ردیف اطلاعیه — عنوان راست، تاریخ/دکمهٔ توضیحات چپ، متن کشویی زیر عنوان.
  */
 export function BulletinCard({
   bulletin,
   actions,
   footer,
+  showPanelBadge = true,
   className,
 }: BulletinCardProps) {
   const [open, setOpen] = useState(false);
@@ -66,23 +67,27 @@ export function BulletinCard({
               {actions}
             </div>
           ) : null}
+          {showPanelBadge ? (
+            <div className="mb-kv-micro flex flex-wrap items-center gap-kv-pair">
+              <BulletinPanelBadge bulletin={bulletin} />
+            </div>
+          ) : null}
           <KvTypography
             variant="caption"
-            tone="muted"
             weight="bold"
             as="h4"
-            className="block"
+            className="block text-kv-text-secondary"
           >
             {bulletin.title}
           </KvTypography>
           {hasDetails && open ? (
-            <div id={bodyId} className="mt-kv-micro flex flex-col gap-kv-micro">
+            <div id={bodyId} className="mt-kv-pair flex flex-col gap-kv-micro">
               {bulletin.body ? (
                 <KvTypography
                   variant="caption"
                   tone="muted"
                   as="p"
-                  className="block"
+                  className="block leading-relaxed"
                 >
                   <span className="whitespace-pre-line">{bulletin.body}</span>
                 </KvTypography>

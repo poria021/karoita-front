@@ -4,7 +4,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
-import { KvTypography } from '@/components/shared/KvTypography';
+import { KvFeatureIntro } from '@/components/shared/shell/KvFeatureIntro';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import type { BulletinKind } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
@@ -13,9 +13,21 @@ import { useBulletinsManagePage } from '../hooks/useBulletinsManagePage';
 import { BulletinFormModal } from './BulletinFormModal';
 import { BulletinsTable } from './BulletinsTable';
 
-const TAB_LABEL: Record<BulletinKind, string> = {
-  announcement: 'اطلاعیه‌های منتشرشده',
-  advertisement: 'تبلیغات',
+const TAB_COPY: Record<
+  BulletinKind,
+  { title: string; description: string; noun: string }
+> = {
+  announcement: {
+    title: 'اطلاعیه‌های منتشرشده',
+    description:
+      'اطلاعیه‌ها در باکس میز کار نقش‌های مخاطب با نام پنل شما نمایش داده می‌شوند.',
+    noun: 'اطلاعیه',
+  },
+  advertisement: {
+    title: 'تبلیغات',
+    description: 'تبلیغات در میز کار همهٔ پنل‌های انتخاب‌شده نمایش داده می‌شود.',
+    noun: 'تبلیغ',
+  },
 };
 
 type BulletinsComposePanelProps = {
@@ -25,36 +37,33 @@ type BulletinsComposePanelProps = {
 /** پنل انتشار — جدول + فرم مودال برای تب announcement / advertisement. */
 export function BulletinsComposePanel({ kind }: BulletinsComposePanelProps) {
   const page = useBulletinsManagePage(kind);
-  const noun = page.activeTab === 'advertisement' ? 'تبلیغ' : 'اطلاعیه';
+  const copy = TAB_COPY[page.activeTab];
 
   return (
     <>
       <KvWorkspace
         panel={false}
         toolbar={
-          <div className="flex flex-col justify-start gap-kv-group pt-kv-pair lg:flex-row lg:items-center lg:justify-between lg:ps-kv-group">
-            <div className="flex min-w-0 flex-col items-start gap-kv-field text-start">
-              <KvTypography variant="subtitle" weight="bold" as="h3">
-                {TAB_LABEL[page.activeTab]}
-              </KvTypography>
-              <KvTypography variant="caption" tone="muted">
-                {page.activeTab === 'advertisement'
-                  ? 'تبلیغات در میز کار همهٔ پنل‌های انتخاب‌شده نمایش داده می‌شود.'
-                  : 'اطلاعیه‌های شما در باکس «اطلاعیه‌ها»ی میز کار نقش‌های زیرمجموعه با بج نام پنل‌تان نمایش داده می‌شود.'}
-              </KvTypography>
-            </div>
-            <KvButton
-              type="button"
-              color="cta"
-              appearance="solid"
-              className="w-full shrink-0 lg:w-auto"
-              disabled={page.isLoading || Boolean(page.error)}
-              onClick={page.openCreate}
-              icon={<FaIcon icon={faIcons.plus} size="xs" />}
-              iconPosition="start"
-            >
-              {`انتشار ${noun}`}
-            </KvButton>
+          <div className="border-b border-kv-border-muted pb-kv-group">
+            <KvFeatureIntro
+              title={copy.title}
+              description={copy.description}
+              className="gap-kv-inline lg:items-center"
+              actions={
+                <KvButton
+                  type="button"
+                  color="cta"
+                  appearance="solid"
+                  className="w-full shrink-0 lg:w-auto"
+                  disabled={page.isLoading || Boolean(page.error)}
+                  onClick={page.openCreate}
+                  icon={<FaIcon icon={faIcons.plus} size="xs" />}
+                  iconPosition="start"
+                >
+                  {`انتشار ${copy.noun}`}
+                </KvButton>
+              }
+            />
           </div>
         }
       >
@@ -79,7 +88,7 @@ export function BulletinsComposePanel({ kind }: BulletinsComposePanelProps) {
             rows={page.listRows}
             kind={page.activeTab}
             isLoading={page.isLoading}
-            emptyTitle={`هنوز ${noun}ی منتشر نکرده‌اید`}
+            emptyTitle={`هنوز ${copy.noun}ی منتشر نکرده‌اید`}
             showProvinces={page.canTargetProvinces}
             onEdit={page.startEdit}
             onToggleActive={page.toggleActive}
@@ -111,7 +120,7 @@ export function BulletinsComposePanel({ kind }: BulletinsComposePanelProps) {
         isOpen={Boolean(page.deleteTarget)}
         onClose={page.clearDelete}
         onConfirm={page.confirmDelete}
-        title={`حذف ${noun}`}
+        title={`حذف ${copy.noun}`}
         description={
           page.deleteTarget
             ? `«${page.deleteTarget.title}» از میز کار همهٔ مخاطبان حذف می‌شود. آیا ادامه می‌دهید؟`

@@ -51,8 +51,8 @@ function BulletinsInboxPanels({ showNotifications }: { showNotifications: boolea
       dir="rtl"
       className={
         showNotifications
-          ? 'grid grid-cols-1 gap-kv-stack lg:grid-cols-2 lg:items-stretch'
-          : 'flex flex-col gap-kv-stack'
+          ? 'grid grid-cols-1 gap-kv-group lg:grid-cols-2 lg:items-stretch'
+          : 'flex flex-col gap-kv-group'
       }
     >
       {/* در RTL ستون اول = سمت راست: اطلاعیه‌های دریافتی */}
@@ -67,9 +67,9 @@ function BulletinsHubContent() {
   const showNotificationsBeside = showsAnnouncementsHubNotifications(page.role);
 
   return (
-    <div className="flex flex-col gap-kv-stack">
+    <div className="flex flex-col gap-kv-group">
       {page.showTabs ? (
-        <div className="mb-kv-pair">
+        <div className="border-b border-kv-border-muted pb-kv-group">
           <AppTabs
             value={page.tab}
             onValueChange={(value) =>

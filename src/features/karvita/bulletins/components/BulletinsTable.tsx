@@ -57,7 +57,13 @@ export function BulletinsTable({
   const bodyPhase = getAdminTableBodyPhase(isLoading, rows.length);
 
   return (
-    <KvTableViewport resetKey={kind} hasMore={false} isBusy={isLoading}>
+    <div className="overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface shadow-kv-soft">
+    <KvTableViewport
+      framed={false}
+      resetKey={kind}
+      hasMore={false}
+      isBusy={isLoading}
+    >
       <KvTable scrollable={false}>
         <KvTableHeader>
           <KvTableRow>
@@ -100,7 +106,7 @@ export function BulletinsTable({
                             src={row.imageUrl}
                             alt=""
                             loading="lazy"
-                            className="size-10 rounded-kv-control border border-kv-border bg-kv-surface-muted object-cover"
+                            className="size-10 rounded-kv-control border border-kv-border-muted bg-kv-surface-subtle object-cover"
                           />
                         ) : (
                           <span
@@ -204,5 +210,6 @@ export function BulletinsTable({
         </KvTableBody>
       </KvTable>
     </KvTableViewport>
+    </div>
   );
 }
