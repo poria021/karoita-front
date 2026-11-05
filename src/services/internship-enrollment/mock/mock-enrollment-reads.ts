@@ -216,6 +216,7 @@ export function resolveEnrollmentPageState(
     courseTitle: courseTitleForLevel(kind, level),
     termTitle: activeTermTitle,
     termId: activeTermId,
+    openTermId: context.termId,
     lessonId: leafIdForEnrollmentLevel(courseDefinitionsOf(syllabus), kind, level),
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'

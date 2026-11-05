@@ -3,9 +3,11 @@
 import { useQueries } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
+import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
+import { enrollmentLeavesOfCourses } from '@/services/syllabus-config/course-catalog';
 import { useUserStore } from '@/store/useUserStore';
 import type {
   InternshipEnrollmentActor,
@@ -32,6 +34,7 @@ export type LearnerWorkbenchSnapshot = {
   isError: boolean;
   nextAction: LearnerNextAction | null;
   activeCourse: LearnerActiveCourse | null;
+  openTermCourses: LearnerActiveCourse[];
   snapshots: LearnerLevelSnapshot[];
 };
 
@@ -63,14 +66,24 @@ export function useLearnerWorkbenchSnapshot(): LearnerWorkbenchSnapshot {
     return InternshipEnrollmentService.resolveLevelForRole(role, 1).maxLevel;
   }, [role]);
 
-  const levels = useMemo(
-    () =>
-      Array.from(
-        { length: maxLevel },
-        (_, index) => (index + 1) as InternshipEnrollmentLevel
+  const definitions = useActiveCourseDefinitions(Boolean(role));
+  const catalogLevels = useMemo(() => {
+    const courses =
+      role === 'skill_learner' ? definitions.modular : definitions.semester;
+    return [
+      ...new Set(
+        enrollmentLeavesOfCourses(courses).map((leaf) => leaf.level)
       ),
-    [maxLevel]
-  );
+    ].sort((a, b) => a - b);
+  }, [role, definitions.modular, definitions.semester]);
+
+  const levels = useMemo<InternshipEnrollmentLevel[]>(() => {
+    if (definitions.status === 'ready') return catalogLevels;
+    return Array.from(
+      { length: maxLevel },
+      (_, index) => (index + 1) as InternshipEnrollmentLevel
+    );
+  }, [catalogLevels, definitions.status, maxLevel]);
 
   const enabled = Boolean(actor && actor.approved && levels.length > 0);
 
@@ -130,6 +143,7 @@ export function useLearnerWorkbenchSnapshot(): LearnerWorkbenchSnapshot {
     isError,
     nextAction: models.nextAction,
     activeCourse: models.activeCourse,
+    openTermCourses: models.openTermCourses,
     snapshots,
   };
 }

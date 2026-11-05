@@ -239,6 +239,12 @@ export type InternshipEnrollmentPageState = {
   courseTitle?: string;
   termTitle: string;
   termId: string;
+  /**
+   * شناسهٔ نیم‌سال باز (`open-course-selection`). خالی یعنی ترم بازی نیست.
+   * `termId` ممکن است ثبت‌نامِ مانده از ترم قبل باشد؛ مقایسهٔ این دو یعنی
+   * انتخاب واحد همین ترم باز.
+   */
+  openTermId: string;
   /** شناسهٔ درس Nest برای GET professors؛ در mock همان catalog id است. */
   lessonId: string | null;
   enrollment: InternshipEnrollmentSummary | null;

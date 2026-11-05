@@ -25,14 +25,14 @@ describe('getDashboardWidgets', () => {
     }
   });
 
-  it('adds the learner desk under bulletins for student and skill_learner', () => {
+  it('adds the weekly grades chart under bulletins for student and skill_learner', () => {
     expect(getDashboardWidgets('student')).toEqual([
       { id: 'bulletins', span: 'full' },
-      { id: 'learner_desk', span: 'full' },
+      { id: 'learner_grades', span: 'full' },
     ]);
     expect(getDashboardWidgets('skill_learner')).toEqual([
       { id: 'bulletins', span: 'full' },
-      { id: 'learner_desk', span: 'full' },
+      { id: 'learner_grades', span: 'full' },
     ]);
     expect(getDashboardWidgets('faculty_role')).toEqual([
       { id: 'bulletins', span: 'full' },

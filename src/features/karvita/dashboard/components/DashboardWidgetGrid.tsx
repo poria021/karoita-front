@@ -7,13 +7,14 @@ import {
   getDashboardWidgets,
   type DashboardWidgetId,
 } from '../lib/dashboard-widgets';
-import { DashboardLearnerDesk } from './DashboardLearnerDesk';
+import { DashboardLearnerGradesChart } from './DashboardLearnerGradesChart';
 import { DashboardWelcomeBox } from './DashboardWelcomeBox';
 
 type DashboardWidgetGridProps = {
   role: UserRole;
   welcomeName: string;
   welcomeSubtitle: string;
+  welcomeOrgLine?: string | null;
 };
 
 /**
@@ -24,6 +25,7 @@ export function DashboardWidgetGrid({
   role,
   welcomeName,
   welcomeSubtitle,
+  welcomeOrgLine,
 }: DashboardWidgetGridProps) {
   return (
     <>
@@ -34,6 +36,7 @@ export function DashboardWidgetGrid({
           role={role}
           welcomeName={welcomeName}
           welcomeSubtitle={welcomeSubtitle}
+          welcomeOrgLine={welcomeOrgLine}
         />
       ))}
     </>
@@ -45,11 +48,13 @@ function DashboardWidget({
   role,
   welcomeName,
   welcomeSubtitle,
+  welcomeOrgLine,
 }: {
   id: DashboardWidgetId;
   role: UserRole;
   welcomeName: string;
   welcomeSubtitle: string;
+  welcomeOrgLine?: string | null;
 }) {
   switch (id) {
     case 'bulletins':
@@ -60,13 +65,14 @@ function DashboardWidget({
             <DashboardWelcomeBox
               displayName={welcomeName}
               subtitle={welcomeSubtitle}
+              orgLine={welcomeOrgLine}
               className="h-full"
             />
           }
         />
       );
-    case 'learner_desk':
-      return <DashboardLearnerDesk />;
+    case 'learner_grades':
+      return <DashboardLearnerGradesChart />;
     default: {
       const _exhaustive: never = id;
       return _exhaustive;

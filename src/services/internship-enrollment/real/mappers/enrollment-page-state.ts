@@ -241,6 +241,7 @@ export function toEnrollmentPageState(
     ...(leafRef.title ? { courseTitle: leafRef.title } : {}),
     termTitle: activeTermTitle,
     termId: activeTermId,
+    openTermId: open?.id ?? '',
     lessonId: effectiveEntry ? (effectiveEntry.lesson.id ?? null) : currentLessonId,
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'

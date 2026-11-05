@@ -340,20 +340,299 @@ export function buildLearnerActiveCourse(
   };
 }
 
+/** ثبت‌نام غیرلغوشدهٔ همین نیم‌سال باز — نه سابقهٔ ترم‌های قبل. */
+export function isOpenTermEnrollment(snapshot: LearnerLevelSnapshot): boolean {
+  const { state } = snapshot;
+  const enrollment = state.enrollment;
+  if (!enrollment || enrollment.status === 'dropped') return false;
+  if (
+    state.scenario !== 'S4_registered_waiting' &&
+    state.scenario !== 'S5_term_active'
+  ) {
+    return false;
+  }
+  if (!state.openTermId) return false;
+  return state.termId === state.openTermId;
+}
+
+/** یک کارت برای هر درسی که در نیم‌سال باز انتخاب واحد شده، به ترتیب سطح. */
+export function buildOpenTermCourses(
+  snapshots: readonly LearnerLevelSnapshot[]
+): LearnerActiveCourse[] {
+  return snapshots
+    .filter(isOpenTermEnrollment)
+    .sort((a, b) => a.level - b.level)
+    .map(buildLearnerActiveCourse);
+}
+
 export function buildLearnerWorkbenchModels(
   snapshots: readonly LearnerLevelSnapshot[]
 ): {
   focus: LearnerLevelSnapshot | null;
   nextAction: LearnerNextAction | null;
   activeCourse: LearnerActiveCourse | null;
+  openTermCourses: LearnerActiveCourse[];
 } {
   const focus = pickFocusSnapshot(snapshots);
+  const openTermCourses = buildOpenTermCourses(snapshots);
   if (!focus) {
-    return { focus: null, nextAction: null, activeCourse: null };
+    return { focus: null, nextAction: null, activeCourse: null, openTermCourses };
   }
   return {
     focus,
     nextAction: buildLearnerNextAction(focus),
     activeCourse: buildLearnerActiveCourse(focus),
+    openTermCourses,
   };
+}
+
+/** رنگ‌های سری نمودار — فقط توکن CSS، بدون هگز در TS. */
+export const LEARNER_GRADE_SERIES_COLORS = [
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
+  'var(--chart-5)',
+  'var(--kv-violet)',
+] as const;
+
+export type LearnerGradeWeekPoint = {
+  weekNumber: number;
+  weekTitle: string;
+  score: number | null;
+  status: InternshipWeeklySession['status'];
+};
+
+export type LearnerGradeSeries = {
+  id: string;
+  courseTitle: string;
+  level: InternshipEnrollmentLevel;
+  kind: InternshipCourseKind;
+  color: string;
+  weeks: LearnerGradeWeekPoint[];
+};
+
+export type LearnerGradeChartRow = {
+  weekNumber: number;
+  weekLabel: string;
+} & Record<string, number | string | null>;
+
+/**
+ * سری نمرهٔ هفتگی درس‌های نیم‌سال باز — از همان snapshotهای ثبت‌نام.
+ * فقط هفته‌های نمره‌دار روی نمودار نقطه می‌گیرند؛ بقیه null می‌مانند.
+ */
+export function buildLearnerGradeSeries(
+  snapshots: readonly LearnerLevelSnapshot[]
+): LearnerGradeSeries[] {
+  return snapshots
+    .filter(isOpenTermEnrollment)
+    .sort((a, b) => a.level - b.level)
+    .map((snapshot, index) => {
+      const course = buildLearnerActiveCourse(snapshot);
+      const weeks = (snapshot.state.enrollment?.weeks ?? []).map((week, weekIndex) => ({
+        weekNumber: weekIndex + 1,
+        weekTitle: week.title?.trim() || `هفته ${toPersianDigits(weekIndex + 1)}`,
+        score:
+          week.status === 'graded' && typeof week.score === 'number'
+            ? week.score
+            : null,
+        status: week.status,
+      }));
+
+      return {
+        id: `${course.kind}-${course.level}`,
+        courseTitle: course.courseTitle,
+        level: course.level,
+        kind: course.kind,
+        color:
+          LEARNER_GRADE_SERIES_COLORS[index % LEARNER_GRADE_SERIES_COLORS.length]!,
+        weeks,
+      };
+    });
+}
+
+/** ردیف‌های Recharts: محور X = شماره هفته، هر درس یک کلید نمره. */
+export function buildLearnerGradeChartRows(
+  series: readonly LearnerGradeSeries[]
+): LearnerGradeChartRow[] {
+  const maxWeek = series.reduce(
+    (max, item) => Math.max(max, item.weeks.length),
+    0
+  );
+  if (maxWeek === 0) return [];
+
+  const rows: LearnerGradeChartRow[] = [];
+  for (let weekNumber = 1; weekNumber <= maxWeek; weekNumber += 1) {
+    const row: LearnerGradeChartRow = {
+      weekNumber,
+      weekLabel: `هفته ${toPersianDigits(weekNumber)}`,
+    };
+    for (const item of series) {
+      const point = item.weeks[weekNumber - 1];
+      row[item.id] = point?.score ?? null;
+      row[`${item.id}__title`] = point?.weekTitle ?? row.weekLabel;
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+export type LearnerTeacherReactionRole = 'advisor' | 'mentor' | 'principal';
+
+export type LearnerCourseWeekHighlight = {
+  /** هم‌کلید با سری نمودار برای فیلتر مشترک. */
+  id: string;
+  courseTitle: string;
+  href: string;
+  color: string;
+  weekNumber: number;
+  weekTitle: string;
+  status: InternshipWeeklySession['status'];
+  score: number | null;
+  hasTeacherReaction: boolean;
+  reactionRole: LearnerTeacherReactionRole | null;
+  reactionText: string | null;
+  reactionAt: string | null;
+  supervisorName: string | null;
+  mentorName: string | null;
+};
+
+function latestUnlockedWeekIndex(weeks: readonly InternshipWeeklySession[]): number {
+  for (let index = weeks.length - 1; index >= 0; index -= 1) {
+    if (weeks[index]!.status !== 'locked_future') return index;
+  }
+  return Math.max(0, weeks.length - 1);
+}
+
+function extractTeacherReaction(week: InternshipWeeklySession): {
+  hasReaction: boolean;
+  role: LearnerTeacherReactionRole | null;
+  text: string | null;
+  at: string | null;
+} {
+  const feedback = week.feedback;
+  if (feedback?.advisor?.trim()) {
+    return {
+      hasReaction: true,
+      role: 'advisor',
+      text: feedback.advisor.trim(),
+      at: feedback.advisorAt ?? null,
+    };
+  }
+  if (feedback?.mentor?.trim()) {
+    return {
+      hasReaction: true,
+      role: 'mentor',
+      text: feedback.mentor.trim(),
+      at: feedback.mentorAt ?? null,
+    };
+  }
+  if (feedback?.principal?.trim()) {
+    return {
+      hasReaction: true,
+      role: 'principal',
+      text: feedback.principal.trim(),
+      at: feedback.principalAt ?? null,
+    };
+  }
+  if (feedback?.mentorRating || feedback?.principalRating) {
+    return {
+      hasReaction: true,
+      role: feedback.mentorRating ? 'mentor' : 'principal',
+      text: null,
+      at: feedback.mentorAt ?? feedback.principalAt ?? null,
+    };
+  }
+  if (
+    week.status === 'needs_edit' ||
+    week.status === 'graded' ||
+    week.status === 'approved'
+  ) {
+    return { hasReaction: true, role: null, text: null, at: null };
+  }
+  return { hasReaction: false, role: null, text: null, at: null };
+}
+
+/**
+ * هفتهٔ ویژهٔ کارت درس: ترجیح با آخرین هفتهٔ دارای واکنش ناظر؛
+ * وگرنه آخرین هفتهٔ باز (غیر locked_future).
+ */
+export function pickLearnerFeaturedWeek(
+  weeks: readonly InternshipWeeklySession[]
+): {
+  week: InternshipWeeklySession;
+  weekNumber: number;
+  hasTeacherReaction: boolean;
+} | null {
+  if (weeks.length === 0) return null;
+
+  const latestIndex = latestUnlockedWeekIndex(weeks);
+  const latest = weeks[latestIndex]!;
+  const latestReaction = extractTeacherReaction(latest);
+  if (latestReaction.hasReaction) {
+    return {
+      week: latest,
+      weekNumber: latestIndex + 1,
+      hasTeacherReaction: true,
+    };
+  }
+
+  for (let index = weeks.length - 1; index >= 0; index -= 1) {
+    const week = weeks[index]!;
+    if (!extractTeacherReaction(week).hasReaction) continue;
+    return {
+      week,
+      weekNumber: index + 1,
+      hasTeacherReaction: true,
+    };
+  }
+
+  return {
+    week: latest,
+    weekNumber: latestIndex + 1,
+    hasTeacherReaction: false,
+  };
+}
+
+/** یک کارت هفتهٔ ویژه برای هر درس ثبت‌نام‌شدهٔ نیم‌سال باز. */
+export function buildLearnerCourseWeekHighlights(
+  snapshots: readonly LearnerLevelSnapshot[]
+): LearnerCourseWeekHighlight[] {
+  return snapshots
+    .filter(isOpenTermEnrollment)
+    .sort((a, b) => a.level - b.level)
+    .flatMap((snapshot, index) => {
+      const course = buildLearnerActiveCourse(snapshot);
+      const weeks = snapshot.state.enrollment?.weeks ?? [];
+      const featured = pickLearnerFeaturedWeek(weeks);
+      if (!featured) return [];
+
+      const reaction = extractTeacherReaction(featured.week);
+      const highlight: LearnerCourseWeekHighlight = {
+        id: `${course.kind}-${course.level}`,
+        courseTitle: course.courseTitle,
+        href: course.href,
+        color:
+          LEARNER_GRADE_SERIES_COLORS[
+            index % LEARNER_GRADE_SERIES_COLORS.length
+          ]!,
+        weekNumber: featured.weekNumber,
+        weekTitle:
+          featured.week.title?.trim() ||
+          `هفته ${toPersianDigits(featured.weekNumber)}`,
+        status: featured.week.status,
+        score:
+          featured.week.status === 'graded' &&
+          typeof featured.week.score === 'number'
+            ? featured.week.score
+            : null,
+        hasTeacherReaction: featured.hasTeacherReaction,
+        reactionRole: reaction.role,
+        reactionText: reaction.text,
+        reactionAt: reaction.at,
+        supervisorName: course.supervisorName,
+        mentorName: course.mentorName,
+      };
+      return [highlight];
+    });
 }
