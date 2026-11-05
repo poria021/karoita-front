@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import type { InternshipWeeklySession } from '@/types/internship-enrollment';
 
 import {
+  findNextActionableWeekId,
+  getTermReportProgress,
   getWeeklyReportLockNotice,
   isWeeklyReportEditable,
   isWeeklyReportLocked,
@@ -119,5 +121,34 @@ describe('weekly-report-lock', () => {
       isTermArchived: false,
     });
     expect(notice.title).toContain('هفته ۱');
+  });
+
+  it('summarizes term report progress from week statuses', () => {
+    expect(
+      getTermReportProgress([
+        week({ id: '1', status: 'graded' }),
+        week({ id: '2', status: 'pending' }),
+        week({ id: '3', status: 'draft' }),
+        week({ id: '4', status: 'locked_future' }),
+      ])
+    ).toEqual({
+      total: 4,
+      submitted: 2,
+      progressed: 2,
+      percent: 50,
+    });
+  });
+
+  it('finds the next actionable week for highlight', () => {
+    expect(
+      findNextActionableWeekId(
+        [
+          week({ id: '1', status: 'graded' }),
+          week({ id: '2', status: 'needs_edit' }),
+          week({ id: '3', status: 'draft' }),
+        ],
+        'active'
+      )
+    ).toBe('2');
   });
 });
