@@ -72,7 +72,7 @@ export function MarketingFooter({ socials }: MarketingFooterProps) {
                   <div
                     role="img"
                     aria-label={seal.label}
-                    className="flex h-24 w-[4.75rem] select-none items-center justify-center border border-kv-border-muted bg-kv-surface-subtle px-1.5 text-center text-[10px] font-bold leading-snug text-kv-text-muted sm:h-28 sm:w-24 sm:text-xs"
+                    className="flex h-24 w-[4.75rem] select-none items-center justify-center border border-kv-border-muted bg-kv-surface-subtle px-1.5 text-center text-xs font-bold leading-snug text-kv-text-muted sm:h-28 sm:w-24"
                   >
                     {seal.label}
                   </div>
