@@ -10,6 +10,8 @@ type DashboardWelcomeBoxProps = {
   displayName: string;
   /** توضیح کوتاه پنل — موقتاً؛ جای اطلاعات ترم و وضعیت. */
   subtitle: string;
+  /** استان / دانشکده کاربر — زیر خوش‌آمد. */
+  orgLine?: string | null;
   className?: string;
   /** اسلات محتوای پایین (ترم، وضعیت، …). اگر نباشد همان subtitle نمایش داده می‌شود. */
   children?: ReactNode;
@@ -21,6 +23,7 @@ type DashboardWelcomeBoxProps = {
 export function DashboardWelcomeBox({
   displayName,
   subtitle,
+  orgLine,
   className,
   children,
 }: DashboardWelcomeBoxProps) {
@@ -41,10 +44,10 @@ export function DashboardWelcomeBox({
         className="pointer-events-none absolute -start-8 -top-10 size-36 rounded-full bg-kv-brand/[0.07] blur-2xl"
       />
       <KarvitaBrandMark
-        className="kv-welcome-mark pointer-events-none absolute -end-1 top-3 size-24 text-kv-brand opacity-[0.08] sm:size-28"
+        className="kv-welcome-mark pointer-events-none absolute -end-1 -top-1 size-24 text-kv-brand opacity-[0.08] sm:size-28"
       />
 
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-kv-group p-kv-group">
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-kv-pair p-kv-group">
         <header className="kv-welcome-enter shrink-0">
           <h3
             id="dashboard-welcome-title"
@@ -52,6 +55,16 @@ export function DashboardWelcomeBox({
           >
             {displayName} خوش آمدید
           </h3>
+          {orgLine ? (
+            <KvTypography
+              variant="caption"
+              tone="muted"
+              as="p"
+              className="mt-1 line-clamp-1 text-xs font-medium sm:text-sm"
+            >
+              {orgLine}
+            </KvTypography>
+          ) : null}
         </header>
 
         <div className="kv-welcome-enter-delay flex min-h-0 flex-1 flex-col gap-kv-pair overflow-y-auto">
@@ -60,7 +73,7 @@ export function DashboardWelcomeBox({
               variant="body"
               tone="muted"
               as="p"
-              className="line-clamp-3 text-xs leading-relaxed sm:text-sm"
+              className="line-clamp-2 text-xs leading-relaxed sm:text-sm"
             >
               {subtitle}
             </KvTypography>

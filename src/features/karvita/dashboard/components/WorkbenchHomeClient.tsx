@@ -58,6 +58,12 @@ export function WorkbenchHomeClient({
   const displayName =
     [activeUser.firstName, activeUser.lastName].filter(Boolean).join(' ') ||
     strategy.label;
+  const welcomeOrgLine = [
+    activeUser.province?.filter(Boolean).join('، '),
+    activeUser.college?.filter(Boolean).join('، '),
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const showChecklist = shouldShowOnboardingChecklist(activeUser);
   const progress = showChecklist
     ? getOnboardingProgress({
@@ -78,6 +84,7 @@ export function WorkbenchHomeClient({
           role={activeUser.role}
           welcomeName={displayName}
           welcomeSubtitle={subtitle}
+          welcomeOrgLine={welcomeOrgLine || null}
         />
       ) : null}
 
@@ -92,6 +99,7 @@ export function WorkbenchHomeClient({
           role={activeUser.role}
           welcomeName={displayName}
           welcomeSubtitle={subtitle}
+          welcomeOrgLine={welcomeOrgLine || null}
         />
       ) : null}
 
