@@ -1,13 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { cn } from '@/lib/utils';
+import { WORKBENCH_AD_ASPECT_CLASS } from '@/lib/workbench-grid';
 import { BulletinsService } from '@/services/bulletins.service';
 import { RouteService } from '@/services/route.service';
 import type { Bulletin } from '@/types/bulletins';
@@ -17,10 +18,10 @@ import { toPersianDigits } from '@/utils/persianDigits';
 const SLIDE_DURATION = 6000;
 
 /**
- * نسبت ثابت ۳:۴ داخل سلول ۳۰۰px دسکتاپ (≡ ۳۰۰×۴۰۰).
+ * نسبت عمودی سایدبار (۲۴۰×۳۲۰ = ۳:۴) — منبع واحد: `workbench-grid`.
  * روی موبایل عرض سلول جمع می‌شود و نسبت حفظ می‌ماند.
  */
-export const DASHBOARD_AD_ASPECT_CLASS = 'aspect-[3/4]';
+export const DASHBOARD_AD_ASPECT_CLASS = WORKBENCH_AD_ASPECT_CLASS;
 
 function isExternalAdLink(url: string): boolean {
   return /^https?:\/\//i.test(url);
@@ -38,29 +39,73 @@ const BOX_CLASS = cn(
   DASHBOARD_AD_ASPECT_CLASS
 );
 
+function AdSlideContent({ ad }: { ad: Bulletin }) {
+  return (
+    <>
+      {ad.imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- data URL در mock؛ next/image اعمال نمی‌شود
+        <img
+          src={ad.imageUrl}
+          alt={ad.title}
+          draggable={false}
+          className="size-full object-cover"
+        />
+      ) : (
+        <div className="flex size-full items-center justify-center bg-kv-surface-muted px-kv-group pb-24 text-center">
+          <KvTypography variant="caption" tone="muted" as="p">
+            <span className="line-clamp-6 whitespace-pre-line">
+              {ad.body || ad.title}
+            </span>
+          </KvTypography>
+        </div>
+      )}
+    </>
+  );
+}
+
 /**
- * باکس تبلیغ سایدبار — پر کردن سلول گرید با نسبت ثابت ۳:۴.
+ * باکس تبلیغ سایدبار — اسلایدر همهٔ تبلیغ‌های فعال با نسبت عمودی ۳:۴.
  */
 export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxProps) {
-  const [current, setCurrent] = useState(0);
+  const labelId = useId();
   const [paused, setPaused] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
   const count = ads.length;
+  const adsKey = ads.map((ad) => ad.id).join('|');
+  const [slide, setSlide] = useState({ key: adsKey, index: 0 });
+  const current = slide.key === adsKey ? slide.index : 0;
   const active = count === 0 ? 0 : Math.min(current, count - 1);
+  const shown = count > 0 ? ads[active] : undefined;
+
+  const setCurrent = (value: number | ((prev: number) => number)) => {
+    setSlide((prev) => {
+      const base = prev.key === adsKey ? prev.index : 0;
+      const index = typeof value === 'function' ? value(base) : value;
+      return { key: adsKey, index };
+    });
+  };
 
   useEffect(() => {
     if (count <= 1 || paused || reducedMotion) return;
     const timer = window.setInterval(() => {
-      setCurrent((prev) => (prev + 1) % count);
+      setSlide((prev) => {
+        const base = prev.key === adsKey ? prev.index : 0;
+        return { key: adsKey, index: (base + 1) % count };
+      });
     }, SLIDE_DURATION);
     return () => window.clearInterval(timer);
-  }, [count, paused, reducedMotion]);
+  }, [adsKey, count, paused, reducedMotion, active]);
+
+  const goTo = (index: number) => {
+    if (count === 0) return;
+    setCurrent(((index % count) + count) % count);
+  };
 
   if (isLoading) {
     return <div className={cn(BOX_CLASS, 'animate-pulse')} aria-hidden />;
   }
 
-  if (count === 0) {
+  if (count === 0 || !shown) {
     return (
       <section
         aria-label="تبلیغات"
@@ -86,12 +131,10 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
     );
   }
 
-  const shown = ads[active];
-
   return (
     <section
       aria-roledescription="carousel"
-      aria-label="تبلیغات"
+      aria-labelledby={labelId}
       className={BOX_CLASS}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
@@ -99,74 +142,72 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
       }}
+      onKeyDown={(event) => {
+        if (count <= 1) return;
+        if (event.key === 'ArrowLeft') {
+          event.preventDefault();
+          goTo(active + 1);
+        } else if (event.key === 'ArrowRight') {
+          event.preventDefault();
+          goTo(active - 1);
+        }
+      }}
     >
-      {ads.map((ad, index) => {
-        const isActive = index === active;
-        return (
-          <div
-            key={ad.id}
-            role="group"
-            aria-roledescription="slide"
-            aria-label={`${toPersianDigits(String(index + 1))} از ${toPersianDigits(String(count))}`}
-            aria-hidden={!isActive}
-            inert={!isActive}
-            className={cn(
-              'absolute inset-0 transition-opacity duration-500 motion-reduce:transition-none',
-              isActive ? 'opacity-100' : 'pointer-events-none opacity-0'
-            )}
-          >
-            {ad.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element -- data URL در mock؛ next/image اعمال نمی‌شود
-              <img
-                src={ad.imageUrl}
-                alt={ad.title}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                className="size-full object-cover"
-              />
-            ) : (
-              <div className="flex size-full items-center justify-center bg-kv-surface-muted px-kv-group pb-20 text-center">
-                <KvTypography variant="caption" tone="muted" as="p">
-                  <span className="line-clamp-6 whitespace-pre-line">
-                    {ad.body || ad.title}
-                  </span>
-                </KvTypography>
+      <style>{`@keyframes kv-ad-carousel-progress{from{width:0%}to{width:100%}}`}</style>
+      <span id={labelId} className="sr-only">
+        تبلیغات
+      </span>
+
+      {/* مسیر اسلاید: dir=ltr تا جابه‌جایی افقی در RTL پایدار بماند؛ متن داخل هر اسلاید rtl است. */}
+      <div className="absolute inset-0 overflow-hidden" dir="ltr">
+        <div
+          className={cn(
+            'flex h-full will-change-transform',
+            reducedMotion
+              ? ''
+              : 'transition-transform duration-500 ease-out motion-reduce:transition-none'
+          )}
+          style={{ transform: `translate3d(-${active * 100}%, 0, 0)` }}
+        >
+          {ads.map((ad, index) => {
+            const isActive = index === active;
+            return (
+              <div
+                key={ad.id}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${toPersianDigits(String(index + 1))} از ${toPersianDigits(String(count))}`}
+                aria-hidden={!isActive}
+                inert={!isActive}
+                dir="rtl"
+                className="relative h-full w-full shrink-0 grow-0 basis-full"
+              >
+                <AdSlideContent ad={ad} />
               </div>
-            )}
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      </div>
 
       <span className="pointer-events-none absolute start-2 top-2 z-10 rounded-kv-tight bg-kv-canvas/90 px-1.5 py-0.5 text-[10px] font-bold text-kv-text-muted shadow-kv-soft">
         تبلیغ
       </span>
 
       {count > 1 ? (
-        <div
-          className="absolute end-2 top-2 z-10 flex gap-1"
-          role="tablist"
-          aria-label="انتخاب تبلیغ"
-        >
-          {ads.map((ad, index) => (
-            <button
-              key={ad.id}
-              type="button"
-              role="tab"
-              aria-selected={index === active}
-              aria-label={`تبلیغ ${toPersianDigits(String(index + 1))}`}
-              className={cn(
-                'size-1.5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-kv-ring/40',
-                index === active
-                  ? 'bg-kv-canvas shadow-kv-soft'
-                  : 'bg-kv-canvas/45 hover:bg-kv-canvas/75'
-              )}
-              onClick={() => setCurrent(index)}
-            />
-          ))}
-        </div>
+        <span className="pointer-events-none absolute end-2 top-2 z-10 rounded-kv-tight bg-kv-canvas/90 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-kv-text-muted shadow-kv-soft">
+          {toPersianDigits(String(active + 1))}
+          {' / '}
+          {toPersianDigits(String(count))}
+        </span>
       ) : null}
 
       {/* گرادیان پایین = بک‌گراند مین (canvas) در لایت و دارک */}
-      <div className="absolute inset-x-0 bottom-0 z-10 flex min-h-[20%] flex-col justify-end gap-1 bg-gradient-to-t from-kv-canvas via-kv-canvas/85 to-transparent px-2.5 pb-2.5 pt-10">
+      <div
+        className={cn(
+          'absolute inset-x-0 bottom-0 z-10 flex min-h-[22%] flex-col justify-end gap-1.5 bg-gradient-to-t from-kv-canvas via-kv-canvas/85 to-transparent px-2.5 pb-2.5 pt-10',
+          count > 1 && 'pe-28'
+        )}
+      >
         <p className="line-clamp-2 text-sm font-bold leading-snug text-kv-text">
           {shown.title}
         </p>
@@ -186,6 +227,69 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
           </a>
         ) : null}
       </div>
+
+      {count > 1 ? (
+        <div className="absolute bottom-2 end-2 z-20 flex max-w-[calc(100%-1rem)] items-center gap-0.5 rounded-full bg-kv-canvas/95 p-0.5 shadow-kv-soft">
+          <button
+            type="button"
+            aria-label="تبلیغ قبلی"
+            className="flex size-6 shrink-0 items-center justify-center rounded-full text-kv-text hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-kv-ring/40"
+            onClick={() => goTo(active - 1)}
+          >
+            <FaIcon icon={faIcons.chevronRight} size="2xs" />
+          </button>
+          <div
+            className="flex min-w-0 items-center gap-1 overflow-x-auto px-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            role="tablist"
+            aria-label="انتخاب تبلیغ"
+          >
+            {ads.map((ad, index) => {
+              const isActive = index === active;
+              return (
+                <button
+                  key={ad.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-label={`تبلیغ ${toPersianDigits(String(index + 1))}`}
+                  className={cn(
+                    'rounded-full transition-all focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-kv-ring/40',
+                    isActive
+                      ? 'relative h-1.5 w-4 overflow-hidden bg-kv-text/20'
+                      : 'size-1.5 bg-kv-text/30 hover:bg-kv-text/50'
+                  )}
+                  onClick={() => goTo(index)}
+                >
+                  {isActive && !paused && !reducedMotion ? (
+                    <span
+                      key={`${ad.id}-${active}-${paused}`}
+                      className="absolute inset-y-0 start-0 rounded-full bg-kv-text"
+                      style={{
+                        animation: `kv-ad-carousel-progress ${SLIDE_DURATION}ms linear forwards`,
+                      }}
+                      aria-hidden
+                    />
+                  ) : null}
+                  {isActive && (paused || reducedMotion) ? (
+                    <span
+                      className="absolute inset-y-0 start-0 w-full rounded-full bg-kv-text"
+                      aria-hidden
+                    />
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+          <button
+            type="button"
+            aria-label="تبلیغ بعدی"
+            className="flex size-6 shrink-0 items-center justify-center rounded-full text-kv-text hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-[2px] focus-visible:ring-kv-ring/40"
+            onClick={() => goTo(active + 1)}
+          >
+            <FaIcon icon={faIcons.chevronLeft} size="2xs" />
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }
