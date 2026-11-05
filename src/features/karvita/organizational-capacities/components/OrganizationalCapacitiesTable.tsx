@@ -87,7 +87,7 @@ export function OrganizationalCapacitiesTable({
           <span
             className={cn(
               'block',
-              nested && 'border-s-2 border-kv-brand/25 ps-3',
+              nested && 'border-s-2 border-kv-brand/30 ps-3',
               !isCourseActive && 'text-kv-text-faint opacity-70'
             )}
           >
@@ -121,83 +121,108 @@ export function OrganizationalCapacitiesTable({
   }
 
   return (
-    <KvTableViewport
-      resetKey={resetKey}
-      hasMore={false}
-      isBusy={isLoading && courses.length === 0}
-      heightClassName={TABLE_VIEWPORT_HEIGHT}
-    >
-      <KvTable scrollable={false}>
-        <KvTableHeader>
-          <KvTableRow>
-            <KvTableRowIndexHead />
-            <KvTableHead>عنوان درس مجاز</KvTableHead>
-            <KvTableHead align="center">ظرفیت پذیرش</KvTableHead>
-            <KvTableHead align="center">ثبت‌نام قطعی</KvTableHead>
-            <KvTableHead align="center">روزهای حضور متقابل</KvTableHead>
-          </KvTableRow>
-        </KvTableHeader>
-        <KvTableBody>
-          {bodyPhase === 'busy' ? (
-            <KvTableBusy colSpan={COL_SPAN} fillClassName={TABLE_BODY_FILL_HEIGHT} />
-          ) : bodyPhase === 'empty' ? (
-            <KvTableEmpty colSpan={COL_SPAN} fillClassName={TABLE_BODY_FILL_HEIGHT}>
-              <KvEmptyState
-                title="درسی برای این دوره ثبت نشده"
-                description="پس از تعریف درس در «تعریف دروس»، ظرفیت اینجا نمایش داده می‌شود."
+    <div className="overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface shadow-kv-soft">
+      <KvTableViewport
+        framed={false}
+        resetKey={resetKey}
+        hasMore={false}
+        isBusy={isLoading && courses.length === 0}
+        heightClassName={TABLE_VIEWPORT_HEIGHT}
+      >
+        <KvTable scrollable={false}>
+          <KvTableHeader>
+            <KvTableRow>
+              <KvTableRowIndexHead />
+              <KvTableHead>عنوان درس مجاز</KvTableHead>
+              <KvTableHead align="center">ظرفیت پذیرش</KvTableHead>
+              <KvTableHead align="center">ثبت‌نام قطعی</KvTableHead>
+              <KvTableHead align="center">روزهای حضور متقابل</KvTableHead>
+            </KvTableRow>
+          </KvTableHeader>
+          <KvTableBody>
+            {bodyPhase === 'busy' ? (
+              <KvTableBusy
+                colSpan={COL_SPAN}
+                fillClassName={TABLE_BODY_FILL_HEIGHT}
               />
-            </KvTableEmpty>
-          ) : (
-            segments.map((segment) => {
-              if (segment.kind === 'single') {
-                return renderRow(segment.course, segment.index);
-              }
-              const isOpen = !collapsed.has(segment.groupId);
-              const total =
-                segment.summary.total === 'unlimited'
-                  ? 'نامحدود'
-                  : `${toPersianDigits(segment.summary.total)} نفر`;
-              return (
-                <Fragment key={segment.groupId}>
-                  <KvTableRow>
-                    <KvTableCell
-                      colSpan={COL_SPAN}
-                      className="bg-kv-surface-subtle/70 p-0"
-                    >
-                      <button
-                        type="button"
-                        className="flex w-full items-center justify-between gap-kv-pair px-3 py-2.5 text-start"
-                        aria-expanded={isOpen}
-                        onClick={() => toggleGroup(segment.groupId)}
+            ) : bodyPhase === 'empty' ? (
+              <KvTableEmpty
+                colSpan={COL_SPAN}
+                fillClassName={TABLE_BODY_FILL_HEIGHT}
+              >
+                <KvEmptyState
+                  title="درسی برای این دوره ثبت نشده"
+                  description="پس از تعریف درس در «تعریف دروس»، ظرفیت اینجا نمایش داده می‌شود."
+                />
+              </KvTableEmpty>
+            ) : (
+              segments.map((segment) => {
+                if (segment.kind === 'single') {
+                  return renderRow(segment.course, segment.index);
+                }
+                const isOpen = !collapsed.has(segment.groupId);
+                const total =
+                  segment.summary.total === 'unlimited'
+                    ? 'نامحدود'
+                    : `${toPersianDigits(segment.summary.total)} نفر`;
+                return (
+                  <Fragment key={segment.groupId}>
+                    <KvTableRow>
+                      <KvTableCell
+                        colSpan={COL_SPAN}
+                        className="bg-kv-surface-subtle/80 p-0"
                       >
-                        <span className="flex min-w-0 items-center gap-2">
-                          <FaIcon
-                            icon={isOpen ? faIcons.chevronUp : faIcons.chevronDown}
-                            size="xs"
-                            className="text-kv-text-faint"
-                          />
-                          <KvTypography variant="subtitle" weight="black" as="span" truncate>
-                            {segment.title}
+                        <button
+                          type="button"
+                          className="flex w-full items-center justify-between gap-kv-pair px-3 py-2.5 text-start transition-colors hover:bg-kv-surface-muted/60"
+                          aria-expanded={isOpen}
+                          onClick={() => toggleGroup(segment.groupId)}
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span
+                              aria-hidden
+                              className="size-1.5 shrink-0 rounded-full bg-kv-brand"
+                            />
+                            <FaIcon
+                              icon={
+                                isOpen ? faIcons.chevronUp : faIcons.chevronDown
+                              }
+                              size="xs"
+                              className="text-kv-text-faint"
+                            />
+                            <KvTypography
+                              variant="subtitle"
+                              weight="black"
+                              as="span"
+                              truncate
+                            >
+                              {segment.title}
+                            </KvTypography>
+                          </span>
+                          <KvTypography
+                            variant="caption"
+                            tone="muted"
+                            as="span"
+                            className="shrink-0 font-medium"
+                          >
+                            ظرفیت: {total} • ثبت‌نام:{' '}
+                            {toPersianDigits(segment.summary.confirmed)} نفر
                           </KvTypography>
-                        </span>
-                        <KvTypography variant="caption" tone="muted" as="span">
-                          ظرفیت: {total} • ثبت‌نام قطعی:{' '}
-                          {toPersianDigits(segment.summary.confirmed)} نفر
-                        </KvTypography>
-                      </button>
-                    </KvTableCell>
-                  </KvTableRow>
-                  {isOpen
-                    ? segment.items.map(({ course, index }) =>
-                        renderRow(course, index, true)
-                      )
-                    : null}
-                </Fragment>
-              );
-            })
-          )}
-        </KvTableBody>
-      </KvTable>
-    </KvTableViewport>
+                        </button>
+                      </KvTableCell>
+                    </KvTableRow>
+                    {isOpen
+                      ? segment.items.map(({ course, index }) =>
+                          renderRow(course, index, true)
+                        )
+                      : null}
+                  </Fragment>
+                );
+              })
+            )}
+          </KvTableBody>
+        </KvTable>
+      </KvTableViewport>
+    </div>
   );
 }

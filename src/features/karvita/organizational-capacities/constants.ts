@@ -14,7 +14,7 @@ export const CAPACITY_KIND_TABS: readonly {
 export const CAPACITY_FEATURE = {
   title: 'پیکربندی ظرفیت',
   description:
-    'تعیین سقف پذیرش و روز حضور هفتگی برای دروس کارورزی و کارآموزی در نیم‌سال یا پودمان انتخاب‌شده در این بخش انجام می‌شود.',
+    'سقف پذیرش و روزهای حضور هفتگی را برای دروس دورهٔ انتخاب‌شده تنظیم کنید.',
 } as const;
 
 export const CAPACITY_WEEK_DAYS: readonly {

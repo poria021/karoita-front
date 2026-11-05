@@ -6,6 +6,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
+import { cn } from '@/lib/utils';
 import type {
   OrganizationalCapacityCourse,
   OrganizationalCapacityWeekday,
@@ -52,8 +53,20 @@ export function OrganizationalCapacitiesMobileList({
 
   function renderCourse(course: OrganizationalCapacityCourse) {
     const expanded = expandedCourseId === course.id;
+    const isCourseActive = course.isActive ?? true;
+    const rowDisabled = locked || !isCourseActive;
+
     return (
-      <KvCard key={course.id} tone="surface" padding="sm">
+      <KvCard
+        key={course.id}
+        tone="surface"
+        padding="sm"
+        className={cn(
+          'border-kv-border/70 shadow-kv-soft transition-[border-color,box-shadow]',
+          expanded && 'border-kv-brand-border ring-[3px] ring-kv-brand/15',
+          !isCourseActive && 'opacity-70'
+        )}
+      >
         <KvCardContent padding="none" className="space-y-kv-group">
           <button
             type="button"
@@ -62,49 +75,64 @@ export function OrganizationalCapacitiesMobileList({
             onClick={() => onExpandedChange(expanded ? null : course.id)}
           >
             <div className="min-w-0 flex-1 space-y-kv-micro">
-              <div className="flex flex-wrap items-center gap-kv-pair">
-                <KvTypography variant="subtitle" as="h4" truncate>
-                  {course.title}
-                </KvTypography>
-              </div>
+              <KvTypography variant="subtitle" as="h4" truncate>
+                {course.title}
+              </KvTypography>
               <KvTypography variant="caption" tone="muted">
-                ظرفیت معین: {toPersianDigits(course.total ?? 0)} نفر • ثبت‌نام
-                قطعی: {toPersianDigits(course.confirmed)} نفر
+                ظرفیت: {toPersianDigits(course.total ?? 0)} نفر • ثبت‌نام قطعی:{' '}
+                {toPersianDigits(course.confirmed)} نفر
               </KvTypography>
             </div>
-            <FaIcon
-              icon={faIcons.chevronDown}
-              size="2xs"
-              className={
-                expanded
-                  ? 'mt-1 shrink-0 rotate-180 text-kv-brand'
-                  : 'mt-1 shrink-0 text-kv-text-faint'
-              }
-            />
+            <span
+              aria-hidden
+              className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-kv-control text-kv-text-faint"
+            >
+              <FaIcon
+                icon={faIcons.chevronDown}
+                size="2xs"
+                className={cn(
+                  'transition-transform',
+                  expanded && 'rotate-180 text-kv-brand'
+                )}
+              />
+            </span>
           </button>
 
           {expanded ? (
-            <div className="border-t border-kv-border pt-kv-group">
-              <div className="flex items-center justify-center gap-kv-group rounded-kv-control border border-kv-border bg-kv-surface-muted/50 p-kv-group">
+            <div className="border-t border-kv-border-muted pt-kv-group">
+              <div className="flex items-center justify-center gap-kv-group rounded-kv-control bg-kv-surface-subtle p-kv-group">
                 <div className="flex shrink-0 flex-col items-center gap-kv-micro">
-                  <KvTypography variant="caption" tone="muted" as="p" className="whitespace-nowrap">
+                  <KvTypography
+                    variant="caption"
+                    tone="muted"
+                    as="p"
+                    className="whitespace-nowrap font-medium"
+                  >
                     ظرفیت پذیرش
                   </KvTypography>
                   <OrganizationalCapacitiesTotalField
                     value={course.total}
                     maxCapacity={maxCapacity}
-                    locked={locked}
+                    locked={rowDisabled}
                     onChange={(value) => onTotalChange(course.id, value)}
                   />
                 </div>
-                <div className="h-10 w-px shrink-0 bg-kv-border" aria-hidden="true" />
+                <div
+                  className="h-10 w-px shrink-0 bg-kv-border-muted"
+                  aria-hidden="true"
+                />
                 <div className="flex min-w-0 flex-col items-center gap-kv-micro">
-                  <KvTypography variant="caption" tone="muted" as="p">
-                    روزهای حضور کلاسی
+                  <KvTypography
+                    variant="caption"
+                    tone="muted"
+                    as="p"
+                    className="font-medium"
+                  >
+                    روزهای حضور
                   </KvTypography>
                   <OrganizationalCapacitiesDayToggles
                     selectedDays={course.selectedDays}
-                    disabled={locked}
+                    disabled={rowDisabled}
                     onToggle={(day) => onToggleDay(course.id, day)}
                   />
                 </div>
@@ -119,7 +147,7 @@ export function OrganizationalCapacitiesMobileList({
   if (isLoading) {
     return (
       <div className="lg:hidden">
-        <KvCard>
+        <KvCard className="border-kv-border/70 shadow-kv-soft">
           <KvBusySurface className="h-[16rem] min-h-[16rem] max-h-[16rem] rounded-kv-control" />
         </KvCard>
       </div>
@@ -136,7 +164,12 @@ export function OrganizationalCapacitiesMobileList({
             ? 'نامحدود'
             : `${toPersianDigits(segment.summary.total)} نفر`;
         return (
-          <KvCard key={segment.groupId} tone="surface" padding="sm">
+          <KvCard
+            key={segment.groupId}
+            tone="surface"
+            padding="sm"
+            className="border-kv-border/70 shadow-kv-soft"
+          >
             <KvCardContent padding="none" className="space-y-kv-group">
               <button
                 type="button"
@@ -145,9 +178,20 @@ export function OrganizationalCapacitiesMobileList({
                 onClick={() => toggleGroup(segment.groupId)}
               >
                 <div className="min-w-0 flex-1 space-y-kv-micro">
-                  <KvTypography variant="subtitle" weight="black" as="h4" truncate>
-                    {segment.title}
-                  </KvTypography>
+                  <span className="flex min-w-0 items-center gap-kv-pair">
+                    <span
+                      aria-hidden
+                      className="size-1.5 shrink-0 rounded-full bg-kv-brand"
+                    />
+                    <KvTypography
+                      variant="subtitle"
+                      weight="black"
+                      as="h4"
+                      truncate
+                    >
+                      {segment.title}
+                    </KvTypography>
+                  </span>
                   <KvTypography variant="caption" tone="muted">
                     ظرفیت: {total} • ثبت‌نام قطعی:{' '}
                     {toPersianDigits(segment.summary.confirmed)} نفر
@@ -156,15 +200,16 @@ export function OrganizationalCapacitiesMobileList({
                 <FaIcon
                   icon={faIcons.chevronDown}
                   size="2xs"
-                  className={
+                  className={cn(
+                    'mt-1 shrink-0 transition-transform',
                     isOpen
-                      ? 'mt-1 shrink-0 rotate-180 text-kv-brand'
-                      : 'mt-1 shrink-0 text-kv-text-faint'
-                  }
+                      ? 'rotate-180 text-kv-brand'
+                      : 'text-kv-text-faint'
+                  )}
                 />
               </button>
               {isOpen ? (
-                <div className="space-y-kv-group border-t border-kv-border pt-kv-group">
+                <div className="space-y-kv-group border-t border-kv-border-muted pt-kv-group">
                   {segment.items.map(({ course }) => renderCourse(course))}
                 </div>
               ) : null}
