@@ -23,6 +23,8 @@ export type MarketingPanelId =
 
 /** پنل ناو باز بعد از این پنجرهٔ بی‌فعالیت خودکار پنهان شود. */
 const PANEL_IDLE_MS = 60_000;
+/** سقف انتظار برای پایان اسکرول نرم به خانه (fallback اگر `scrollend` نباشد). */
+const HOME_SCROLL_FALLBACK_MS = 650;
 
 type MarketingPanelContextValue = {
   activePanel: MarketingPanelId | null;
@@ -34,15 +36,29 @@ const MarketingPanelContext = createContext<MarketingPanelContextValue | null>(
   null,
 );
 
+function prefersReducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 export function MarketingPanelProvider({ children }: { children: ReactNode }) {
   const [activePanel, setActivePanel] = useState<MarketingPanelId | null>(null);
   const [pendingScrollId, setPendingScrollId] = useState<string | null>(null);
   const idleTimerRef = useRef<number | null>(null);
+  const homeScrollTimerRef = useRef<number | null>(null);
+  const activePanelRef = useRef<MarketingPanelId | null>(null);
+  activePanelRef.current = activePanel;
 
   const clearIdleTimer = useCallback(() => {
     if (idleTimerRef.current != null) {
       window.clearTimeout(idleTimerRef.current);
       idleTimerRef.current = null;
+    }
+  }, []);
+
+  const clearHomeScrollTimer = useCallback(() => {
+    if (homeScrollTimerRef.current != null) {
+      window.clearTimeout(homeScrollTimerRef.current);
+      homeScrollTimerRef.current = null;
     }
   }, []);
 
@@ -56,15 +72,49 @@ export function MarketingPanelProvider({ children }: { children: ReactNode }) {
 
   const openPanel = useCallback(
     (id: MarketingPanelId | null) => {
-      setActivePanel(id);
-      setPendingScrollId(id ?? 'hero');
-      if (id) {
-        scheduleIdleClose();
-      } else {
+      clearHomeScrollTimer();
+
+      if (id === null) {
+        setPendingScrollId(null);
         clearIdleTimer();
+
+        // اگر پنلی باز نیست، فقط نرم به بالا برو.
+        if (activePanelRef.current === null) {
+          window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+          });
+          return;
+        }
+
+        // پنل را تا پایان اسکرول باز نگه دار تا ارتفاع صفحه یک‌هو جمع نشود.
+        const finishHome = () => {
+          clearHomeScrollTimer();
+          window.removeEventListener('scrollend', finishHome);
+          setActivePanel(null);
+        };
+
+        if (prefersReducedMotion()) {
+          window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+          setActivePanel(null);
+          return;
+        }
+
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        window.addEventListener('scrollend', finishHome, { once: true });
+        homeScrollTimerRef.current = window.setTimeout(
+          finishHome,
+          HOME_SCROLL_FALLBACK_MS
+        );
+        return;
       }
+
+      setActivePanel(id);
+      setPendingScrollId(id);
+      scheduleIdleClose();
     },
-    [clearIdleTimer, scheduleIdleClose],
+    [clearHomeScrollTimer, clearIdleTimer, scheduleIdleClose],
   );
 
   const bumpPanelActivity = useCallback(() => {
@@ -73,22 +123,39 @@ export function MarketingPanelProvider({ children }: { children: ReactNode }) {
   }, [activePanel, scheduleIdleClose]);
 
   useEffect(() => {
-    return () => clearIdleTimer();
-  }, [clearIdleTimer]);
+    return () => {
+      clearIdleTimer();
+      clearHomeScrollTimer();
+    };
+  }, [clearIdleTimer, clearHomeScrollTimer]);
 
   useEffect(() => {
     if (!pendingScrollId) return;
+    if (pendingScrollId === 'hero') {
+      setPendingScrollId(null);
+      return;
+    }
 
     const targetId = pendingScrollId;
-    // یک تیک صبر کن تا پنل هدف از `hidden` درآید، بعد اسکرول.
-    const timer = window.setTimeout(() => {
-      document
-        .getElementById(targetId)
-        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setPendingScrollId(null);
-    }, 40);
+    // دو فریم صبر کن تا پنل هدف mount/اندازه شود، بعد اسکرول نرم.
+    let cancelled = false;
+    let innerRaf = 0;
+    const outerRaf = window.requestAnimationFrame(() => {
+      innerRaf = window.requestAnimationFrame(() => {
+        if (cancelled) return;
+        const el = document.getElementById(targetId);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        setPendingScrollId(null);
+      });
+    });
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(outerRaf);
+      window.cancelAnimationFrame(innerRaf);
+    };
   }, [pendingScrollId, activePanel]);
 
   const value = useMemo(
