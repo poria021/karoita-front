@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvCard } from '@/components/shared/KvCard';
-import { KvTypography } from '@/components/shared/KvTypography';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import type {
   InternshipEnrollmentActor,
@@ -16,7 +15,7 @@ import type {
 
 import { ScenarioEnrollClosed } from './ScenarioEnrollClosed';
 import { ScenarioSyllabusBlocked } from './ScenarioSyllabusBlocked';
-import { TermHistorySelect } from './TermHistorySelect';
+import { PastTermsCard } from './PastTermsCard';
 
 // سناریوهای سنگین‌تر lazy load می‌شوند — فقط یکی در هر بار رندر می‌شود
 const ScenarioEnrollOpen = dynamic(
@@ -51,40 +50,6 @@ type InternshipEnrollmentGateProps = {
   isLoadingViewedTerm: boolean;
   viewedTermError: string | null;
 };
-
-/**
- * کارت «سوابق نیم‌سال‌های قبل» بالای S3/S4 — دانشجوی مردود قبل از انتخاب واحد
- * دوباره (و تا شروع کلاس‌ها) گزارش و نمرهٔ ترم قبلش را از همین‌جا می‌بیند.
- */
-function PastTermsCard({
-  terms,
-  selectedTermId,
-  onSelectTerm,
-}: {
-  terms: InternshipEnrollmentTermHistoryEntry[];
-  selectedTermId: string;
-  onSelectTerm: (termId: string) => void;
-}) {
-  return (
-    <KvCard padding="md">
-      <div className="flex flex-col items-stretch justify-between gap-kv-group sm:flex-row sm:items-center">
-        <div className="flex flex-col gap-kv-pair text-start">
-          <KvTypography variant="subtitle" weight="bold" as="h3">
-            سوابق نیم‌سال‌های قبل
-          </KvTypography>
-          <KvTypography variant="caption" tone="muted" as="p">
-            برای مشاهدهٔ گزارش‌ها و نمرات، نیم‌سال موردنظر را انتخاب کنید.
-          </KvTypography>
-        </div>
-        <TermHistorySelect
-          termHistory={terms}
-          selectedTermId={selectedTermId}
-          onSelectTerm={onSelectTerm}
-        />
-      </div>
-    </KvCard>
-  );
-}
 
 /** ناحیهٔ داده — پرکنندهٔ ارتفاع مین تا قبل از فوتر. */
 export function InternshipEnrollmentGate({
