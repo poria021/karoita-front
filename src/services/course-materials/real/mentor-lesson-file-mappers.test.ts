@@ -64,4 +64,32 @@ describe('mapMentorLessonFileRecord', () => {
   it('returns no rows for a record without files', () => {
     expect(mapMentorLessonFileRecord(record({ files: [] }), { kind: 'internship' })).toEqual([]);
   });
+
+  it('falls back to mongoose _id when id is missing (live Nest)', () => {
+    const rows = mapMentorLessonFileRecord(
+      record({
+        id: undefined,
+        _id: 'mongo-rec',
+        files: [{ _id: 'mongo-file', path: 'https://cdn.example/x.png' }],
+      }),
+      { kind: 'internship' }
+    );
+
+    expect(rows).toEqual([
+      expect.objectContaining({
+        id: 'mongo-rec',
+        recordId: 'mongo-rec',
+        title: 'x.png',
+      }),
+    ]);
+  });
+
+  it('skips records that have neither id nor _id', () => {
+    expect(
+      mapMentorLessonFileRecord(
+        record({ id: undefined, _id: undefined, files: [{ id: 'f1', path: '/a.pdf' }] }),
+        { kind: 'internship' }
+      )
+    ).toEqual([]);
+  });
 });

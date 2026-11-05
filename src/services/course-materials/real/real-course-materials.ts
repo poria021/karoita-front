@@ -106,9 +106,14 @@ export async function publishRealCourseMaterial(
   // پاسخ POST در Swagger مستند نیست؛ ردیف را از چیزی که خودمان می‌دانیم می‌سازیم
   // (نام/نوع/حجم از فایل انتخابی کاربر، چون بک‌اند نمی‌دهد).
   const now = new Date().toISOString();
+  const createdId =
+    (typeof created.id === 'string' && created.id.trim()) ||
+    (typeof created._id === 'string' && created._id.trim()) ||
+    '';
   const [row] = mapMentorLessonFileRecord(
     {
-      id: created.id,
+      id: createdId || undefined,
+      _id: createdId || undefined,
       professorId: created.professorId ?? '',
       lessonId: input.courseKey,
       description,
@@ -130,5 +135,9 @@ export async function publishRealCourseMaterial(
 
 export async function deleteRealCourseMaterial(id: string): Promise<void> {
   requireNestTransport('CourseMaterialsService.delete');
-  await mentorLessonFilesApi.remove(id);
+  const recordId = id.trim();
+  if (!recordId || recordId === 'undefined') {
+    throw new Error('شناسهٔ فایل برای حذف نامعتبر است.');
+  }
+  await mentorLessonFilesApi.remove(recordId);
 }
