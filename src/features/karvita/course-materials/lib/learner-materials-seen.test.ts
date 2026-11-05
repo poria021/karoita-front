@@ -19,7 +19,7 @@ function material(
     sizeBytes: 1,
     fileUrl: 'https://example.com/file.pdf',
     authorId: 'u1',
-    authorRole: 'professor',
+    authorRole: 'supervisor_professor',
     authorName: 'استاد',
     createdAt: overrides.createdAt,
   };
