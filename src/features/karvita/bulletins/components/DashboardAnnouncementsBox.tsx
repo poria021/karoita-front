@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
@@ -13,7 +12,6 @@ import {
 } from '@/services/bulletins/bulletin-rules';
 import { RouteService } from '@/services/route.service';
 import type { Bulletin } from '@/types/bulletins';
-import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { BulletinCard } from './BulletinCard';
@@ -30,7 +28,89 @@ type DashboardAnnouncementsBoxProps = {
   style?: CSSProperties;
 };
 
-/** باکس «اطلاعیه‌ها»ی میز کار — اطلاعیهٔ پنل‌های بالادست با بج نام پنل منتشرکننده. */
+function CountHint({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <KvTypography
+      variant="caption"
+      tone="muted"
+      as="span"
+      className="font-medium"
+    >
+      ({toPersianDigits(String(count))})
+    </KvTypography>
+  );
+}
+
+function AnnouncementsList({
+  isLoading,
+  isPublished,
+  preview,
+}: {
+  isLoading: boolean;
+  isPublished: boolean;
+  preview: Bulletin[];
+}) {
+  if (isLoading) {
+    return (
+      <KvTypography variant="caption" tone="muted" as="p">
+        در حال بارگذاری اطلاعیه‌ها…
+      </KvTypography>
+    );
+  }
+  if (preview.length === 0) {
+    return (
+      <KvTypography variant="body" tone="muted" as="p">
+        {isPublished
+          ? 'هنوز اطلاعیه‌ای برای زیرمجموعه‌ها منتشر نکرده‌اید.'
+          : 'فعلاً اطلاعیه‌ای برای شما منتشر نشده است.'}
+      </KvTypography>
+    );
+  }
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto [direction:ltr] [scrollbar-width:thin]">
+      <ul
+        dir="rtl"
+        className="flex list-none flex-col divide-y divide-kv-border-muted [direction:rtl]"
+      >
+        {preview.map((item) => (
+          <li key={item.id}>
+            <BulletinCard bulletin={item} showPanelBadge={!isPublished} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function AnnouncementActions({
+  canReceive,
+  canPublish,
+}: {
+  canReceive: boolean;
+  canPublish: boolean;
+}) {
+  return (
+    <div className="flex shrink-0 items-center gap-kv-micro">
+      {canReceive ? (
+        <KvButton asChild color="neutral" appearance="text" size="xs">
+          <Link href={RouteService.karvita.announcements('received')}>
+            مشاهده همه
+          </Link>
+        </KvButton>
+      ) : null}
+      {canPublish ? (
+        <KvButton asChild color="neutral" appearance="text" size="xs">
+          <Link href={RouteService.karvita.announcements('announcement')}>
+            مدیریت
+          </Link>
+        </KvButton>
+      ) : null}
+    </div>
+  );
+}
+
+/** باکس «اطلاعیه‌ها»ی میز کار. */
 export function DashboardAnnouncementsBox({
   announcements,
   isLoading,
@@ -52,10 +132,7 @@ export function DashboardAnnouncementsBox({
         className
       )}
     >
-      <header className="flex shrink-0 items-center gap-kv-inline border-b border-kv-border-muted pb-kv-group">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-brand-soft text-kv-brand-soft-fg">
-          <FaIcon icon={faIcons.bell} size="sm" />
-        </span>
+      <header className="flex shrink-0 items-center gap-kv-inline">
         <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-kv-pair">
           <KvTypography
             variant="subtitle"
@@ -64,57 +141,18 @@ export function DashboardAnnouncementsBox({
           >
             {isPublished ? 'اطلاعیه‌های منتشرشدهٔ شما' : 'اطلاعیه‌ها'}
           </KvTypography>
-          {preview.length > 0 ? (
-            <KvTypography
-              variant="caption"
-              tone="muted"
-              as="span"
-              className="font-medium"
-            >
-              ({toPersianDigits(String(preview.length))})
-            </KvTypography>
-          ) : null}
+          <CountHint count={preview.length} />
         </div>
-        <div className="flex shrink-0 items-center gap-kv-micro">
-          {canReceive ? (
-            <KvButton asChild color="neutral" appearance="text" size="xs">
-              <Link href={RouteService.karvita.announcements('received')}>
-                مشاهده همه
-              </Link>
-            </KvButton>
-          ) : null}
-          {canPublish ? (
-            <KvButton asChild color="neutral" appearance="text" size="xs">
-              <Link href={RouteService.karvita.announcements('announcement')}>
-                مدیریت
-              </Link>
-            </KvButton>
-          ) : null}
-        </div>
+        <AnnouncementActions
+          canReceive={canReceive}
+          canPublish={canPublish}
+        />
       </header>
-
-      {isLoading ? (
-        <KvTypography variant="caption" tone="muted" as="p">
-          در حال بارگذاری اطلاعیه‌ها…
-        </KvTypography>
-      ) : preview.length === 0 ? (
-        <KvTypography variant="body" tone="muted" as="p">
-          {isPublished
-            ? 'هنوز اطلاعیه‌ای برای زیرمجموعه‌ها منتشر نکرده‌اید.'
-            : 'فعلاً اطلاعیه‌ای برای شما منتشر نشده است.'}
-        </KvTypography>
-      ) : (
-        <ul className="flex min-h-0 flex-1 list-none flex-col divide-y divide-kv-border-muted overflow-y-auto">
-          {preview.map((item) => (
-            <li key={item.id}>
-              <BulletinCard
-                bulletin={item}
-                showPanelBadge={!isPublished}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+      <AnnouncementsList
+        isLoading={isLoading}
+        isPublished={isPublished}
+        preview={preview}
+      />
     </section>
   );
 }

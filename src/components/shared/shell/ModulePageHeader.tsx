@@ -6,6 +6,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvBreadcrumb } from '@/components/shared/shell/KvBreadcrumb';
 import { PageHeader } from '@/components/shared/shell/PageHeader';
 import { RefreshPageButton } from '@/components/shared/shell/RefreshPageButton';
+import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import { getModuleBreadcrumb } from '@/utils/moduleBreadcrumb';
 import { faIcons } from '@/utils/iconMap';
@@ -19,9 +20,20 @@ function resolveMetaIcon(iconName?: string) {
   return faIcons[key] ?? (faIcons as Record<string, typeof faIcons.folderOpen>)[iconName] ?? faIcons.folderOpen;
 }
 
+function isWorkbenchHomePath(pathname: string): boolean {
+  return (
+    pathname === RouteService.karvita.dashboard() ||
+    pathname === RouteService.karvita.adminDashboard()
+  );
+}
+
 export function ModulePageHeader() {
   const pathname = usePathname();
   const role = useUserStore((state) => state.activeUser?.role);
+
+  // میز کار همهٔ پنل‌ها: عنوان و بردکرامب اضافه است؛ ویجت‌ها خودشان معرفی می‌کنند.
+  if (isWorkbenchHomePath(pathname)) return null;
+
   const meta = getModuleMeta(pathname, role);
   const crumbs = getModuleBreadcrumb(pathname, role);
   const icon = resolveMetaIcon(meta.icon);
