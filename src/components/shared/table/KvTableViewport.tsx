@@ -22,7 +22,7 @@ export type KvTableViewportProps = {
    */
   isBusy?: boolean;
   /**
-   * کروم پنل با توکن شعاع/بردر (`rounded-kv-control`).
+   * کروم پنل با شعاع شل و سایهٔ نرم.
    * فقط وقتی والد خودش فریم دارد خاموش کنید.
    */
   framed?: boolean;
@@ -90,7 +90,7 @@ export function KvTableViewport({
       className={cn(
         'max-w-full overscroll-contain',
         framed &&
-          'rounded-kv-control border border-kv-border bg-kv-surface shadow-kv-soft',
+          'rounded-kv-shell border border-kv-border/70 bg-kv-surface shadow-kv-soft',
         heightClassName,
         className
       )}
@@ -108,7 +108,7 @@ export function KvTableViewport({
 
         {isLoadingMore ? (
           <div
-            className="sticky bottom-0 z-10 flex items-center justify-center gap-kv-pair border-t border-kv-border bg-kv-surface/95 px-kv-group py-kv-stack backdrop-blur-sm"
+            className="sticky bottom-0 z-10 flex items-center justify-center gap-kv-pair border-t border-kv-border-muted bg-kv-surface/95 px-kv-group py-kv-stack backdrop-blur-sm"
             role="status"
             aria-live="polite"
           >
@@ -120,7 +120,7 @@ export function KvTableViewport({
         ) : null}
 
         {!hasMore && showEndMessage && !isBusy && !isLoadingMore ? (
-          <div className="py-kv-group text-center">
+          <div className="border-t border-kv-border-muted py-kv-group text-center">
             <KvTypography variant="caption" tone="muted" weight="bold">
               {endMessage}
             </KvTypography>
