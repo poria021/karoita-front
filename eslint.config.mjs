@@ -1,5 +1,6 @@
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
+import storybook from 'eslint-plugin-storybook';
 import { fileURLToPath } from 'node:url';
 
 const tsconfigRootDir = fileURLToPath(new URL('.', import.meta.url));
@@ -113,12 +114,14 @@ const eslintConfig = [
       'coverage/**',
       'dist/**',
       'public/**',
+      'storybook-static/**',
       '.claude/**',
       '.tmp*/**',
       'docs/**',
       'better-auth-starter/**',
     ],
   },
+  ...storybook.configs['flat/recommended'],
   {
     // متغیرهای با پیشوند `_` عمداً بلااستفاده هستند (مثل destructure برای حذف یک کلید)
     rules: {
