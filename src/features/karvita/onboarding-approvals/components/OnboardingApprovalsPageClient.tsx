@@ -114,6 +114,9 @@ export function OnboardingApprovalsPageClient() {
                 void page.approveUser(page.selectedUser);
               }
             }}
+            onDelete={() => {
+              if (page.selectedUser) page.deleteUser(page.selectedUser);
+            }}
           />
         }
         mobile={
@@ -137,6 +140,7 @@ export function OnboardingApprovalsPageClient() {
             }}
             onRejectReasonChange={page.setRejectReason}
             onSubmitReject={(user) => void page.submitReject(user)}
+            onDelete={(user) => page.deleteUser(user)}
             onLoadMore={page.loadMore}
             onRetryLoadMore={page.retryLoadMore}
             hasActiveFilters={hasActiveFilters}

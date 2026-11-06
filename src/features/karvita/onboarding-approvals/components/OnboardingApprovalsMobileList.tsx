@@ -7,6 +7,7 @@ import {
   KvAccordionTrigger,
   KvAccordionTriggerMeta,
 } from '@/components/shared/KvAccordion';
+import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvButtonGroup } from '@/components/shared/KvButtonGroup';
 import { KvMediaThumb } from '@/components/shared/KvMediaThumb';
@@ -16,6 +17,7 @@ import type {
   ApprovalFilterTab,
   OnboardingApprovalUser,
 } from '@/types/onboarding-approvals';
+import { faIcons } from '@/utils/iconMap';
 import { getModuleEmptyCopy } from '@/utils/moduleDiscoverability';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
@@ -57,6 +59,7 @@ interface OnboardingApprovalsMobileListProps {
   onCancelReject: () => void;
   onRejectReasonChange: (value: string) => void;
   onSubmitReject: (user: OnboardingApprovalUser) => void;
+  onDelete: (user: OnboardingApprovalUser) => void;
   onLoadMore: () => void;
   onRetryLoadMore: () => void;
   hasActiveFilters?: boolean;
@@ -80,6 +83,7 @@ export function OnboardingApprovalsMobileList({
   onCancelReject,
   onRejectReasonChange,
   onSubmitReject,
+  onDelete,
   onLoadMore,
   onRetryLoadMore,
   hasActiveFilters = false,
@@ -188,6 +192,19 @@ export function OnboardingApprovalsMobileList({
                     ) : null}
 
                     <KvButtonGroup fullWidth>
+                      <KvButton
+                        type="button"
+                        color="error"
+                        appearance="secondary"
+                        size="sm"
+                        fullWidth
+                        disabled={actionBusy}
+                        onClick={() => onDelete(user)}
+                        icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+                        iconPosition="start"
+                      >
+                        حذف کاربر
+                      </KvButton>
                       {canReject ? (
                         <KvButton
                           type="button"

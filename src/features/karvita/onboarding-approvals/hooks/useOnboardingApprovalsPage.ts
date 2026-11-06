@@ -7,8 +7,10 @@ import { toast } from 'sonner';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { useOffsetLimitInfiniteList } from '@/hooks/useOffsetLimitInfiniteList';
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
+import { IS_MOCK_MODE } from '@/lib/api-mode';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
+import { scheduleUndoableMutation } from '@/lib/undoable-mutation';
 import {
   resolveListSearchQuery,
   SEARCH_DEBOUNCE_MS,
@@ -119,6 +121,7 @@ export function useOnboardingApprovalsPage() {
     loadMoreError,
     loadMore,
     reload,
+    patchItems,
     clearLoadMoreError,
   } = list;
 
@@ -198,6 +201,56 @@ export function useOnboardingApprovalsPage() {
     [rejectReason, reload]
   );
 
+  const deleteUser = useCallback(
+    (user: OnboardingApprovalUser) => {
+      let snapshot: OnboardingApprovalUser[] = [];
+      let snapshotTotal = 0;
+      const wasSelected = selectedId === user.id;
+      const label = user.fullName?.trim() || 'این کاربر';
+
+      scheduleUndoableMutation({
+        tone: 'error',
+        message: `کاربر «${label}» حذف شد.`,
+        undoLabel: 'لغو',
+        // real: تا بسته شدن toast درخواست DELETE نمی‌رود تا «لغو» واقعی باشد.
+        // mock: حذف فوری تا قبل از reload در حافظه بماند؛ «لغو» همان رکورد را برمی‌گرداند.
+        deferCommit: !IS_MOCK_MODE,
+        apply: () => {
+          patchItems(
+            (prev) => {
+              snapshot = prev;
+              return prev.filter((item) => item.id !== user.id);
+            },
+            (prevTotal) => {
+              snapshotTotal = prevTotal;
+              return Math.max(0, prevTotal - 1);
+            }
+          );
+          if (wasSelected) {
+            setSelectedId(null);
+            setShowRejectForm(false);
+            setRejectReason('');
+          }
+        },
+        revert: () => {
+          patchItems(() => snapshot, () => snapshotTotal);
+          if (wasSelected) setSelectedId(user.id);
+        },
+        commit: () => OnboardingApprovalsService.deleteUser(user.id),
+        reverse: () => OnboardingApprovalsService.restoreUser(user.id),
+        onCommitted: async () => {
+          await reload();
+        },
+        onError: (error) => {
+          toast.error(
+            error instanceof Error ? error.message : 'حذف کاربر ناموفق بود.'
+          );
+        },
+      });
+    },
+    [patchItems, reload, selectedId]
+  );
+
   const handleLoadMore = useCallback(() => {
     void loadMore();
   }, [loadMore]);
@@ -239,6 +292,7 @@ export function useOnboardingApprovalsPage() {
     setRejectReason,
     approveUser,
     submitReject,
+    deleteUser,
   };
 }
 

@@ -34,6 +34,7 @@ interface OnboardingApprovalsDetailPanelProps {
   onCancelReject: () => void;
   onSubmitReject: () => void;
   onApprove: () => void;
+  onDelete: () => void;
 };
 
 export function OnboardingApprovalsDetailPanel({
@@ -48,6 +49,7 @@ export function OnboardingApprovalsDetailPanel({
   onCancelReject,
   onSubmitReject,
   onApprove,
+  onDelete,
 }: OnboardingApprovalsDetailPanelProps) {
   if (!user) {
     const emptyCopy = getModuleEmptyCopy('onboarding_detail');
@@ -66,8 +68,6 @@ export function OnboardingApprovalsDetailPanel({
     );
   }
 
-  const showActions = canApprove || canReject;
-
   return (
     <KvCard padding="md" fill>
       <KvCardHeader toolbar bordered>
@@ -82,38 +82,48 @@ export function OnboardingApprovalsDetailPanel({
           </KvCardDescription>
         </KvCardIdentity>
 
-        {showActions ? (
-          <KvCardAction>
-            {canReject ? (
-              <KvButton
-                type="button"
-                color="error"
-                appearance="solid"
-                size="sm"
-                disabled={actionBusy}
-                onClick={onShowRejectForm}
-                icon={<FaIcon icon={faIcons.xmark} size="xs" />}
-                iconPosition="start"
-              >
-                رد صلاحیت
-              </KvButton>
-            ) : null}
-            {canApprove ? (
-              <KvButton
-                type="button"
-                color="success"
-                appearance="solid"
-                size="sm"
-                loading={actionBusy}
-                onClick={onApprove}
-                icon={<FaIcon icon={faIcons.check} size="xs" />}
-                iconPosition="start"
-              >
-                تایید صلاحیت
-              </KvButton>
-            ) : null}
-          </KvCardAction>
-        ) : null}
+        <KvCardAction>
+          <KvButton
+            type="button"
+            color="error"
+            appearance="secondary"
+            size="sm"
+            disabled={actionBusy}
+            onClick={onDelete}
+            icon={<FaIcon icon={faIcons.trashCan} size="xs" />}
+            iconPosition="start"
+          >
+            حذف کاربر
+          </KvButton>
+          {canReject ? (
+            <KvButton
+              type="button"
+              color="error"
+              appearance="solid"
+              size="sm"
+              disabled={actionBusy}
+              onClick={onShowRejectForm}
+              icon={<FaIcon icon={faIcons.xmark} size="xs" />}
+              iconPosition="start"
+            >
+              رد صلاحیت
+            </KvButton>
+          ) : null}
+          {canApprove ? (
+            <KvButton
+              type="button"
+              color="success"
+              appearance="solid"
+              size="sm"
+              loading={actionBusy}
+              onClick={onApprove}
+              icon={<FaIcon icon={faIcons.check} size="xs" />}
+              iconPosition="start"
+            >
+              تایید صلاحیت
+            </KvButton>
+          ) : null}
+        </KvCardAction>
       </KvCardHeader>
 
       <KvCardContent
