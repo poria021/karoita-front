@@ -50,4 +50,15 @@ describe('getDashboardWidgets', () => {
       { id: 'bulletins', span: 'full' },
     ]);
   });
+
+  it('adds active term status under bulletins for senior admins', () => {
+    expect(getDashboardWidgets('super_admin')).toEqual([
+      { id: 'bulletins', span: 'full' },
+      { id: 'active_term_status', span: 'full' },
+    ]);
+    expect(getDashboardWidgets('assistant_admin')).toEqual([
+      { id: 'bulletins', span: 'full' },
+      { id: 'active_term_status', span: 'full' },
+    ]);
+  });
 });

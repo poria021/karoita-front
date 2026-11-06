@@ -24,6 +24,11 @@ export const DASHBOARD_QUERY = {
   internshipEnrollment: ['internship-enrollment'] as const,
   orgOptions: ['org-options'] as const,
   onboardingApprovalsProvinces: ['onboarding-approvals', 'provinces'] as const,
+  /** خلاصهٔ وضعیت تأیید مدارک روی میز کار مدیر ارشد. */
+  onboardingApprovalsSummary: (status: string) =>
+    ['onboarding-approvals', 'dashboard-summary', status] as const,
+  /** شمار موجودیت‌های ساختار سازمانی روی میز کار مدیر ارشد. */
+  orgStructureDashboardCounts: ['org-structure', 'dashboard-counts'] as const,
   /** پیشوند مشترک داشبورد و صفحهٔ مدیریت — بعد از mutation هر دو باطل شوند. */
   bulletins: ['bulletins'] as const,
   bulletinsDashboard: ['bulletins', 'dashboard'] as const,
@@ -59,6 +64,9 @@ export function invalidateOrganizationDirectoryConsumers(
     queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY.orgOptions }),
     queryClient.invalidateQueries({
       queryKey: DASHBOARD_QUERY.onboardingApprovalsProvinces,
+    }),
+    queryClient.invalidateQueries({
+      queryKey: DASHBOARD_QUERY.orgStructureDashboardCounts,
     }),
   ]).then(() => undefined);
 }

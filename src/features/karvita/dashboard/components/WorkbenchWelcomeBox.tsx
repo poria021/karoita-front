@@ -1,47 +1,44 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 
-type DashboardWelcomeBoxProps = {
+export type WorkbenchWelcomeBoxProps = {
+  /** نام نمایشی کاربر — در تیتر «{نام} خوش آمدید». */
   displayName: string;
-  /** استان / دانشکده کاربر — زیر خوش‌آمد. */
+  /** استان / دانشکده — زیر خوش‌آمد. */
   orgLine?: string | null;
   className?: string;
+  style?: CSSProperties;
   /** اسلات محتوای پایین (ترم، وضعیت، …). */
   children?: ReactNode;
 };
 
 /**
- * باکس خوش‌آمد میز کار — «{نام} خوش آمدید» و در صورت نیاز orgLine / children.
+ * باکس خوش‌آمد مشترک همهٔ صفحات میز کار.
  */
-export function DashboardWelcomeBox({
+export function WorkbenchWelcomeBox({
   displayName,
   orgLine,
   className,
+  style,
   children,
-}: DashboardWelcomeBoxProps) {
+}: WorkbenchWelcomeBoxProps) {
   return (
     <section
       aria-labelledby="dashboard-welcome-title"
+      style={style}
       className={cn(
-        'kv-welcome-panel relative flex h-full min-h-0 flex-col overflow-hidden rounded-kv-panel border border-kv-brand-border/70 bg-kv-surface shadow-kv-raised',
+        'kv-welcome-panel relative flex h-full min-h-0 flex-col overflow-hidden rounded-kv-panel border border-kv-border/70 bg-kv-surface shadow-kv-raised',
         className
       )}
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(145deg,var(--color-kv-brand-soft)_0%,transparent_42%,var(--color-kv-surface)_100%)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -start-8 -top-10 size-36 rounded-full bg-kv-brand/[0.07] blur-2xl"
-      />
+      <div aria-hidden className="kv-welcome-wash pointer-events-none absolute inset-0" />
       <KarvitaBrandMark
-        className="kv-welcome-mark pointer-events-none absolute -end-1 -top-1 size-24 text-kv-brand opacity-[0.08] sm:size-28"
+        className="kv-welcome-mark pointer-events-none absolute -end-1 -top-1 size-24 sm:size-28"
       />
 
       <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-kv-pair p-kv-group">

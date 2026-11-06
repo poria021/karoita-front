@@ -3,9 +3,10 @@ import type { CSSProperties } from 'react';
 /**
  * گرید میز کار — دسکتاپ همان اندازه‌های قبلی؛ موبایل تک‌ستونه و جمع می‌شود.
  *
- * md+ (پیش‌فرض نقش‌های دیگر): خوش‌آمد (1fr) | اطلاعیه‌ها (1.35fr) | تبلیغ (عرض ثابت)
- * فراگیر: گرید تودرتو خوش‌آمد+اطلاعیه|جزوه | تبلیغ
- * استاد/معلم/مدیر: یک گرید تخت — هر باکس یک سلول (خوش‌آمد، اطلاعیه، ظرفیت، مانیتورینگ، تبلیغ)
+ * md+ (نقش‌های سازمانی باقی‌مانده): خوش‌آمد (1fr) | اطلاعیه‌ها (1.35fr) | تبلیغ
+ * فراگیر: گرید پشته‌ای خوش‌آمد + (اطلاعیه|جزوه) | تبلیغ؟
+ * مدیر ارشد / دستیار: پشته مثل فراگیر — خوش‌آمد تمام‌عرض + (پرونده | ساختار) | بدون تبلیغ مدیر ارشد
+ * استاد/معلم/مدیر مدرسه: لی‌اوت یکسان — خوش‌آمد، اطلاعیه|مانیتورینگ، تبلیغ؛ ظرفیت فقط استاد
  */
 
 /**
@@ -58,6 +59,26 @@ export const WORKBENCH_LEARNER_WELCOME_STYLE: CSSProperties = {
   maxHeight: WORKBENCH_LEARNER_WELCOME_HEIGHT_PX,
 };
 
+/** ارتفاع هدف وضعیت پرونده‌ها روی دسکتاپ — ۳ برابر خوش‌آمد. */
+export const WORKBENCH_SENIOR_ONBOARDING_HEIGHT_PX =
+  WORKBENCH_LEARNER_WELCOME_HEIGHT_PX * 3;
+
+/** ارتفاع هدف ساختار سازمانی — سه‌پنجم وضعیت پرونده‌ها. */
+export const WORKBENCH_SENIOR_ORG_STRUCTURE_HEIGHT_PX =
+  (WORKBENCH_SENIOR_ONBOARDING_HEIGHT_PX * 3) / 5;
+
+/**
+ * وضعیت پرونده‌ها — موبایل تمام‌عرض؛ md+ عرض برابر محتوا.
+ */
+export const WORKBENCH_SENIOR_ONBOARDING_CLASS =
+  'h-auto min-h-[18rem] w-full max-w-full md:h-[21rem] md:min-h-[21rem] md:max-h-[21rem] md:w-fit';
+
+/**
+ * ساختار سازمانی — سقف عرض خودش؛ md+ چسبیده به لبهٔ چپ (inline-end در RTL).
+ */
+export const WORKBENCH_SENIOR_ORG_STRUCTURE_CLASS =
+  'h-auto min-h-[16rem] w-full max-w-full md:h-[12.6rem] md:min-h-[12.6rem] md:max-h-[12.6rem] md:max-w-[32rem] md:justify-self-end';
+
 /**
  * ارتفاع اطلاعیه‌های دانشجو — خوش‌آمد + فاصله + اطلاعیه = ارتفاع تبلیغ.
  */
@@ -74,30 +95,56 @@ export const WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE: CSSProperties = {
 
 /**
  * میز کار پشته‌ای فراگیر:
- * ستون راست (خوش‌آمد + اطلاعیه|جزوه) | تبلیغ باریک.
+ * ستون راست (خوش‌آمد + اطلاعیه|جزوه) | تبلیغ باریک (spot اختیاری).
  */
 export const WORKBENCH_LEARNER_TOP_GRID_CLASS =
   'grid w-full grid-cols-1 gap-kv-group md:grid-cols-[minmax(0,1fr)_240px] md:items-start';
+
+/** همان پشته بدون ستون تبلیغ — محتوا تمام‌عرض می‌شود. */
+export const WORKBENCH_LEARNER_TOP_GRID_NO_AD_CLASS =
+  'grid w-full grid-cols-1 gap-kv-group md:items-start';
 
 /** ستون راست پشته‌ای فراگیر: خوش‌آمد و ردیف اطلاعیه/جزوه زیر هم. */
 export const WORKBENCH_LEARNER_STACK_CLASS =
   'flex min-w-0 flex-col gap-kv-group';
 
 /**
- * ردیف اطلاعیه + جزوه کنار هم زیر خوش‌آمد فراگیر.
- * موبایل: زیر هم؛ md+: اطلاعیه پهن‌تر (۱.۵) ، جزوه باریک‌تر (۱).
+ * ردیف اطلاعیه + باکس کناری (جزوه / وضعیت پرونده) زیر خوش‌آمد.
+ * موبایل: زیر هم؛ md+: اطلاعیه پهن‌تر (۱.۵) ، کناری باریک‌تر (۱).
  */
 export const WORKBENCH_LEARNER_INBOX_ROW_CLASS =
   'grid min-h-0 min-w-0 w-full grid-cols-1 gap-kv-group md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]';
 
 /**
- * میز کار استاد / معلم راهنما / مدیر — گرید تخت ۴ ستون محتوا + تبلیغ:
+ * ردیف زیر خوش‌آمد مدیر ارشد — جدا از خوش‌آمد:
+ * وضعیت پرونده‌ها (عرض محتوا) | ساختار سازمانی (باقی‌مانده).
+ * موبایل زیر هم؛ md+ کنار هم. RTL: پرونده راست، ساختار چپ.
+ */
+export const WORKBENCH_SENIOR_ADMIN_ROW_CLASS =
+  'grid min-h-0 min-w-0 w-full grid-cols-1 gap-kv-group md:grid-cols-[max-content_minmax(0,1fr)] md:items-start';
+
+/**
+ * میز کار استاد / معلم راهنما / مدیر — لی‌اوت یکسان، ۴ ستون محتوا + تبلیغ:
  * [خوش‌آمد ×۴]                         [تبلیغ ↕]
  * [اطلاعیه ×۲] [مانیتورینگ ×۲]         [تبلیغ]
- * [ظرفیت ×۲] …                         …
+ * [ظرفیت ×۲] فقط استاد راهنما          …
  */
 export const WORKBENCH_EVALUATION_TOP_GRID_CLASS =
   'grid w-full min-w-0 grid-cols-1 gap-kv-group md:grid-cols-[repeat(4,minmax(0,1fr))_240px] md:items-start';
+
+/** همان گرید ارزیابی بدون ستون تبلیغ. */
+export const WORKBENCH_EVALUATION_TOP_GRID_NO_AD_CLASS =
+  'grid w-full min-w-0 grid-cols-1 gap-kv-group md:grid-cols-4 md:items-start';
+
+/**
+ * میز کار کلاسیک (نقش‌های سازمانی): خوش‌آمد | اطلاعیه | تبلیغ؟
+ * وقتی تبلیغ نیست، دو ستون محتوا تمام‌عرض می‌شوند.
+ */
+export const WORKBENCH_CLASSIC_TOP_GRID_CLASS =
+  'grid w-full grid-cols-1 gap-kv-group md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_auto] md:items-start';
+
+export const WORKBENCH_CLASSIC_TOP_GRID_NO_AD_CLASS =
+  'grid w-full grid-cols-1 gap-kv-group md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] md:items-start';
 
 export const WORKBENCH_EVAL_WELCOME_CELL =
   'min-h-0 min-w-0 w-full md:col-span-4 md:col-start-1 md:row-start-1';
@@ -105,23 +152,15 @@ export const WORKBENCH_EVAL_WELCOME_CELL =
 export const WORKBENCH_EVAL_AD_CELL =
   'w-full max-w-[240px] justify-self-center md:col-start-5 md:row-start-1 md:row-span-2 md:w-[240px] md:max-w-none md:justify-self-end';
 
-/** اطلاعیه کنار مانیتورینگ: ۲ از ۴ ستون محتوا. */
+/** اطلاعیه کنار مانیتورینگ: ۲ از ۴ ستون محتوا — مشترک هر سه نقش. */
 export const WORKBENCH_EVAL_ANNOUNCEMENTS_CELL =
   'min-h-0 min-w-0 w-full overflow-hidden md:col-span-2 md:col-start-1 md:row-start-2';
 
-/** اطلاعیه بدون ظرفیت: تمام ۴ ستون محتوا. */
-export const WORKBENCH_EVAL_ANNOUNCEMENTS_WIDE_CELL =
-  'min-h-0 min-w-0 w-full overflow-hidden md:col-span-4 md:col-start-1 md:row-start-2';
-
-/** مانیتورینگ کنار اطلاعیه: ۲ از ۴ ستون. */
+/** مانیتورینگ کنار اطلاعیه: ۲ از ۴ ستون — مشترک هر سه نقش. */
 export const WORKBENCH_EVAL_MONITOR_BESIDE_CELL =
   'min-h-0 min-w-0 w-full overflow-hidden md:col-span-2 md:col-start-3 md:row-start-2';
 
-/** مانیتورینگ زیر اطلاعیهٔ عریض (بدون ظرفیت): ۲ از ۴. */
-export const WORKBENCH_EVAL_MONITOR_WIDE_PARENT_CELL =
-  'min-h-0 min-w-0 w-full overflow-hidden md:col-span-2 md:col-start-1 md:row-start-3';
-
-/** ظرفیت زیر اطلاعیه: هم‌عرض اطلاعیه (۲ ستون). */
+/** ظرفیت زیر اطلاعیه (فقط استاد راهنما): هم‌عرض اطلاعیه. */
 export const WORKBENCH_EVAL_CAPACITY_CELL =
   'min-h-0 min-w-0 w-full overflow-hidden md:col-span-2 md:col-start-1 md:row-start-3';
 

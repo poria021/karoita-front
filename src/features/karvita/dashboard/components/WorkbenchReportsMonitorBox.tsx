@@ -12,6 +12,7 @@ import {
 } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
 import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
@@ -30,8 +31,12 @@ import {
   type EvaluationMonitorRole,
 } from '../lib/supervisor-reply-status';
 
-type DashboardSupervisorReplyStatusBoxProps = {
-  role?: EvaluationMonitorRole;
+export type WorkbenchReportsMonitorBoxProps = {
+  /**
+   * نقش ناظر ارزیابی روی میز کار:
+   * استاد راهنما / معلم راهنما / مدیر مدرسه.
+   */
+  role: EvaluationMonitorRole;
   className?: string;
   style?: CSSProperties;
 };
@@ -295,13 +300,14 @@ function MonitorCourseRail({
 }
 
 /**
- * مانیتورینگ با ریل سوایپ (فلش چپ/راست + درگ ماوس) — بدون اسکرول‌بار.
+ * باکس «مانیتورینگ گزارش‌ها»ی مشترک میز کار
+ * استاد راهنما / معلم راهنما / مدیر مدرسه — ریل سوایپ بدون اسکرول‌بار.
  */
-export function DashboardSupervisorReplyStatusBox({
-  role = 'supervisor_professor',
+export function WorkbenchReportsMonitorBox({
+  role,
   className,
   style,
-}: DashboardSupervisorReplyStatusBoxProps) {
+}: WorkbenchReportsMonitorBoxProps) {
   const { isLoading, isError, summary } =
     useDashboardSupervisorReplyStatus(role);
   const catalog = useActiveCourseDefinitions();
@@ -362,28 +368,25 @@ export function DashboardSupervisorReplyStatusBox({
           <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
         </div>
       ) : isError ? (
-        <KvTypography variant="caption" tone="muted" as="p">
-          فعلاً در دسترس نیست.
-        </KvTypography>
+        <KvEmptyState
+          title="فعلاً در دسترس نیست."
+          className="min-h-0 py-kv-pair"
+        />
       ) : !summary || summary.courses.length === 0 ? (
-        <KvTypography variant="caption" tone="muted" as="p">
-          گزارشی در چرخهٔ ارزیابی نیست.
-        </KvTypography>
+        <KvEmptyState
+          title="گزارشی در چرخهٔ ارزیابی نیست."
+          className="min-h-0 py-kv-pair"
+        />
       ) : shelf.queued.length === 0 ? (
-        <div className="flex min-h-0 flex-1 flex-col justify-center gap-kv-pair">
-          <KvTypography
-            variant="caption"
-            as="p"
-            className="font-bold text-kv-success"
-          >
-            صف خالی است
-          </KvTypography>
-          {shelf.clearCount > 0 ? (
-            <KvTypography variant="caption" tone="muted" as="p">
-              {toPersianDigits(shelf.clearCount)} درس بدون گزارش منتظر
-            </KvTypography>
-          ) : null}
-        </div>
+        <KvEmptyState
+          title="صف خالی است"
+          description={
+            shelf.clearCount > 0
+              ? `${toPersianDigits(shelf.clearCount)} درس بدون گزارش منتظر`
+              : undefined
+          }
+          className="min-h-0 py-kv-pair"
+        />
       ) : (
         <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center overflow-hidden">
           <MonitorCourseRail

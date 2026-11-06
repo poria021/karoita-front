@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import type { CSSProperties } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KvTypography } from '@/components/shared/KvTypography';
+import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { cn } from '@/lib/utils';
 import type { InternshipWeeklySessionState } from '@/types/internship-enrollment';
 import { faIcons } from '@/utils/iconMap';
@@ -62,9 +63,11 @@ const STATUS_VISUALS: Partial<
   },
 };
 
-type DashboardLearnerCourseWeekCardsProps = {
+export type WorkbenchWeekStatusBoxProps = {
+  /** پیش‌نمایش وضعیت آخرین هفتهٔ هر درس فعال. */
   highlights: LearnerCourseWeekHighlight[];
   className?: string;
+  style?: CSSProperties;
 };
 
 function statusVisual(status: InternshipWeeklySessionState): StatusVisual {
@@ -78,15 +81,18 @@ function statusVisual(status: InternshipWeeklySessionState): StatusVisual {
 }
 
 /**
- * پیش‌نمایش فشردهٔ وضعیت آخرین هفتهٔ هر درس — کلیک می‌رود به صفحهٔ درس.
+ * باکس «وضعیت هفته‌ها»ی مشترک میز کار دانشجو و مهارت‌آموز.
+ * کلیک روی هر ردیف به صفحهٔ همان درس می‌رود.
  */
-export function DashboardLearnerCourseWeekCards({
+export function WorkbenchWeekStatusBox({
   highlights,
   className,
-}: DashboardLearnerCourseWeekCardsProps) {
+  style,
+}: WorkbenchWeekStatusBoxProps) {
   return (
     <aside
       aria-label="وضعیت هفتهٔ درس‌های فعال"
+      style={style}
       className={cn(
         'flex min-h-0 min-w-0 flex-col rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section shadow-kv-soft sm:p-kv-page',
         className
@@ -99,16 +105,10 @@ export function DashboardLearnerCourseWeekCards({
       </header>
 
       {highlights.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center rounded-kv-control border border-dashed border-kv-border px-4 py-8">
-          <KvTypography
-            variant="body"
-            tone="muted"
-            as="p"
-            className="text-center text-sm"
-          >
-            هنوز درسی در نیم‌سال باز انتخاب نکرده‌اید.
-          </KvTypography>
-        </div>
+        <KvEmptyState
+          title="هنوز درسی در نیم‌سال باز انتخاب نکرده‌اید."
+          className="min-h-0 py-kv-pair"
+        />
       ) : (
         <ul className="flex max-h-[22rem] min-h-0 flex-1 flex-col gap-2 overflow-y-auto pe-1 [scrollbar-width:thin]">
           {highlights.map((item) => {

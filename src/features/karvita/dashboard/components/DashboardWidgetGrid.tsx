@@ -8,7 +8,8 @@ import {
   type DashboardWidgetId,
 } from '../lib/dashboard-widgets';
 import { DashboardLearnerGradesChart } from './DashboardLearnerGradesChart';
-import { DashboardWelcomeBox } from './DashboardWelcomeBox';
+import { WorkbenchActiveTermStatusBox } from './WorkbenchActiveTermStatusBox';
+import { WorkbenchWelcomeBox } from './WorkbenchWelcomeBox';
 
 type DashboardWidgetGridProps = {
   role: UserRole;
@@ -57,7 +58,7 @@ function DashboardWidget({
         <DashboardBulletinsBoard
           role={role}
           leading={
-            <DashboardWelcomeBox
+            <WorkbenchWelcomeBox
               displayName={welcomeName}
               orgLine={welcomeOrgLine}
               className="h-full"
@@ -67,6 +68,8 @@ function DashboardWidget({
       );
     case 'learner_grades':
       return <DashboardLearnerGradesChart />;
+    case 'active_term_status':
+      return <WorkbenchActiveTermStatusBox />;
     default: {
       const _exhaustive: never = id;
       return _exhaustive;

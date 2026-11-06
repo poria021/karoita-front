@@ -1,42 +1,33 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useId, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
-import { KvButton } from '@/components/shared/KvButton';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { cn } from '@/lib/utils';
 import { WORKBENCH_AD_ASPECT_CLASS } from '@/lib/workbench-grid';
 import { BulletinsService } from '@/services/bulletins.service';
-import { RouteService } from '@/services/route.service';
 import type { Bulletin } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 const SLIDE_DURATION = 6000;
 
-/**
- * نسبت عمودی سایدبار (۲۴۰×۳۲۰ = ۳:۴) — منبع واحد: `workbench-grid`.
- * روی موبایل عرض سلول جمع می‌شود و نسبت حفظ می‌ماند.
- */
-export const DASHBOARD_AD_ASPECT_CLASS = WORKBENCH_AD_ASPECT_CLASS;
-
 function isExternalAdLink(url: string): boolean {
   return /^https?:\/\//i.test(url);
 }
 
-type DashboardAdBoxProps = {
+export type WorkbenchAdBoxProps = {
   ads: Bulletin[];
-  isLoading: boolean;
-  /** ستاد: پیش‌نمایش تبلیغ‌های خودش + میان‌بر انتشار. */
-  isPublisher: boolean;
+  isLoading?: boolean;
+  isError?: boolean;
+  className?: string;
 };
 
 const BOX_CLASS = cn(
   'relative w-full overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface-muted shadow-kv-soft',
-  DASHBOARD_AD_ASPECT_CLASS
+  WORKBENCH_AD_ASPECT_CLASS
 );
 
 function AdSlideContent({ ad }: { ad: Bulletin }) {
@@ -64,18 +55,25 @@ function AdSlideContent({ ad }: { ad: Bulletin }) {
 }
 
 /**
- * باکس تبلیغ سایدبار — اسلایدر همهٔ تبلیغ‌های فعال با نسبت عمودی ۳:۴.
+ * باکس تبلیغ مشترک میز کار — اسلایدر با نسبت ۳:۴.
+ * الگوی spot: بدون تبلیغ فعال چیزی رندر نمی‌کند (والد ستون را حذف می‌کند).
  */
-export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxProps) {
+export function WorkbenchAdBox({
+  ads,
+  isLoading = false,
+  isError = false,
+  className,
+}: WorkbenchAdBoxProps) {
   const labelId = useId();
   const [paused, setPaused] = useState(false);
   const reducedMotion = usePrefersReducedMotion();
-  const count = ads.length;
-  const adsKey = ads.map((ad) => ad.id).join('|');
+  const visibleAds = isError ? [] : ads;
+  const count = visibleAds.length;
+  const adsKey = visibleAds.map((ad) => ad.id).join('|');
   const [slide, setSlide] = useState({ key: adsKey, index: 0 });
   const current = slide.key === adsKey ? slide.index : 0;
   const active = count === 0 ? 0 : Math.min(current, count - 1);
-  const shown = count > 0 ? ads[active] : undefined;
+  const shown = count > 0 ? visibleAds[active] : undefined;
 
   const setCurrent = (value: number | ((prev: number) => number)) => {
     setSlide((prev) => {
@@ -101,41 +99,16 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
     setCurrent(((index % count) + count) % count);
   };
 
-  if (isLoading) {
-    return <div className={cn(BOX_CLASS, 'animate-pulse')} aria-hidden />;
-  }
-
-  if (count === 0 || !shown) {
-    return (
-      <section
-        aria-label="تبلیغات"
-        className={cn(
-          BOX_CLASS,
-          'flex flex-col items-center justify-center gap-kv-pair border-dashed p-kv-group text-center shadow-none'
-        )}
-      >
-        <span className="flex size-9 items-center justify-center rounded-kv-control bg-kv-warning-soft text-kv-warning-soft-fg">
-          <FaIcon icon={faIcons.bullhorn} size="sm" />
-        </span>
-        <KvTypography variant="caption" tone="muted" as="p">
-          {isPublisher ? 'هنوز تبلیغی منتشر نشده.' : 'تبلیغی برای نمایش نیست.'}
-        </KvTypography>
-        {isPublisher ? (
-          <KvButton asChild appearance="secondary" size="xs">
-            <Link href={RouteService.karvita.announcements('advertisement')}>
-              انتشار تبلیغ
-            </Link>
-          </KvButton>
-        ) : null}
-      </section>
-    );
+  // Spot: خالی / خطا / لود بدون داده → null تا ستون گرید جمع شود.
+  if (isLoading || isError || count === 0 || !shown) {
+    return null;
   }
 
   return (
     <section
       aria-roledescription="carousel"
       aria-labelledby={labelId}
-      className={BOX_CLASS}
+      className={cn(BOX_CLASS, className)}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -169,7 +142,7 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
           )}
           style={{ transform: `translate3d(-${active * 100}%, 0, 0)` }}
         >
-          {ads.map((ad, index) => {
+          {visibleAds.map((ad, index) => {
             const isActive = index === active;
             return (
               <div
@@ -243,7 +216,7 @@ export function DashboardAdBox({ ads, isLoading, isPublisher }: DashboardAdBoxPr
             role="tablist"
             aria-label="انتخاب تبلیغ"
           >
-            {ads.map((ad, index) => {
+            {visibleAds.map((ad, index) => {
               const isActive = index === active;
               return (
                 <button
