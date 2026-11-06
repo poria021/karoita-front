@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
@@ -10,8 +11,8 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
-import { CourseMaterialsLearnerPanel } from '@/features/karvita/course-materials/components/CourseMaterialsLearnerPanel';
 import { useLearnerMaterialsBadge } from '@/features/karvita/course-materials/hooks/useLearnerMaterialsBadge';
+import { RouteService } from '@/services/route.service';
 import { evaluationCourseFilterId } from '@/services/syllabus-config/course-catalog';
 import { catalogIdForKind } from '@/services/syllabus-config/syllabus-mappers';
 import { IS_REAL_MODE_STUB_ACTIVE } from '@/components/shared/RealModeStubNotice';
@@ -180,7 +181,6 @@ export function ScenarioTermActive({
   const [activeWeek, setActiveWeek] = useState<InternshipWeeklySession | null>(
     null
   );
-  const [materialsOpen, setMaterialsOpen] = useState(false);
 
   const courseKey = evaluationCourseFilterId(
     state.lessonId ?? catalogIdForKind(state.kind, state.level)
@@ -204,17 +204,6 @@ export function ScenarioTermActive({
       statusNotice={options.statusNotice ?? null}
     />
   );
-
-  if (materialsOpen) {
-    return (
-      <CourseMaterialsLearnerPanel
-        kind={state.kind}
-        courseKey={courseKey}
-        onBack={() => setMaterialsOpen(false)}
-        onSeen={materialsBadge.markSeen}
-      />
-    );
-  }
 
   if (isViewingHistory && isLoadingViewedTerm) {
     return (
@@ -337,25 +326,24 @@ export function ScenarioTermActive({
               {reportTitle}
             </KvTypography>
             <div className="flex flex-col items-stretch gap-kv-pair sm:flex-row sm:items-center">
-              <KvButton
-                type="button"
-                color="cta"
-                appearance="ghost"
-                size="sm"
-                icon={<FaIcon icon={faIcons.folderOpen} size="sm" />}
-                onClick={() => setMaterialsOpen(true)}
-              >
-                <span className="inline-flex items-center gap-kv-pair">
-                  صندوق جزوات
-                  {materialsBadge.hasNew ? (
-                    <Badge variant="danger" className="px-1.5 py-0 text-[0.65rem]">
-                      جزوه جدید
-                      {materialsBadge.newCount > 1
-                        ? ` (${toPersianDigits(materialsBadge.newCount)})`
-                        : ''}
-                    </Badge>
-                  ) : null}
-                </span>
+              <KvButton asChild color="cta" appearance="ghost" size="sm">
+                <Link
+                  href={RouteService.karvita.courseMaterials(state.level)}
+                  prefetch
+                >
+                  <FaIcon icon={faIcons.folderOpen} size="sm" />
+                  <span className="inline-flex items-center gap-kv-pair">
+                    صندوق جزوات
+                    {materialsBadge.hasNew ? (
+                      <Badge variant="danger" className="px-1.5 py-0 text-[0.65rem]">
+                        جزوه جدید
+                        {materialsBadge.newCount > 1
+                          ? ` (${toPersianDigits(materialsBadge.newCount)})`
+                          : ''}
+                      </Badge>
+                    ) : null}
+                  </span>
+                </Link>
               </KvButton>
               <KvButton
                 type="button"

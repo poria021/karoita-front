@@ -84,7 +84,6 @@ export function useWeeklyReportModal({
   const [editorWeekId, setEditorWeekId] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [files, setFiles] = useState<InternshipWeeklyReportFile[]>([]);
-  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [undoDraft, setUndoDraft] = useState<{
     weekId: string;
@@ -166,7 +165,7 @@ export function useWeeklyReportModal({
       ? 'گزارش هفته'
       : 'ویرایش گزارش';
 
-  const busy = isSavingDraft || isSubmitting;
+  const busy = isSubmitting;
 
   const addFiles = useCallback(
     (incoming: InternshipWeeklyReportFile[]) => {
@@ -217,51 +216,6 @@ export function useWeeklyReportModal({
 
     return true;
   }, [files.length, text]);
-
-  const saveDraft = useCallback(async () => {
-    if (!week || !enrollment || locked) return;
-    if (!assertNonEmpty()) return;
-
-    setIsSavingDraft(true);
-
-    try {
-      const savedWeek = await InternshipEnrollmentService.saveWeeklyReportDraft({
-        actor,
-        kind: state.kind,
-        level: state.level,
-        termId: state.termId,
-        enrollmentId: enrollment.enrollmentId,
-        weekId: week.id,
-        text,
-        files,
-      });
-
-      clearWeeklyReportDraft();
-      toast.success('گزارش با موفقیت به عنوان پیش‌نویس ذخیره گردید.');
-      onWeekUpdated(savedWeek);
-      onClose();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : ''
-      );
-    } finally {
-      setIsSavingDraft(false);
-    }
-  }, [
-    actor,
-    assertNonEmpty,
-    clearWeeklyReportDraft,
-    enrollment,
-    files,
-    locked,
-    onClose,
-    onWeekUpdated,
-    state.kind,
-    state.level,
-    state.termId,
-    text,
-    week,
-  ]);
 
   const submitForFeedback = useCallback(async () => {
     if (!week || !enrollment || locked) return;
@@ -343,10 +297,8 @@ export function useWeeklyReportModal({
     feedback: week?.feedback,
     reportSubmittedAt: week?.reportSubmittedAt ?? null,
     busy,
-    isSavingDraft,
     isSubmitting,
     resetForm,
-    saveDraft,
     submitForFeedback,
   };
 }

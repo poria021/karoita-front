@@ -41,9 +41,9 @@ export function DelayedSchoolMentorAssignment({
   return (
     <fieldset
       disabled={disabled}
-      className="mt-kv-pair flex w-full flex-col rounded-kv-card border border-dashed border-kv-brand-border bg-kv-brand-soft/70 p-kv-group shadow-kv-raised lg:max-w-[750px]"
+      className="mt-kv-pair flex w-full flex-col rounded-kv-card border border-dashed border-kv-warning-border bg-kv-warning-soft/80 p-kv-group shadow-kv-raised lg:max-w-[750px]"
     >
-      <div className="mb-kv-group w-full border-b border-kv-brand/20 pb-kv-group">
+      <div className="mb-kv-group w-full border-b border-kv-warning-border/40 pb-kv-group">
         <div className="flex w-full flex-col items-stretch gap-kv-inline text-xs text-kv-text-secondary lg:flex-row lg:items-center">
           <div className="flex w-full shrink-0 items-center justify-between border-b border-kv-border pb-kv-pair font-medium select-none lg:w-auto lg:justify-start lg:border-b-0 lg:pb-0">
             <span>استاد راهنما:</span>
@@ -136,7 +136,19 @@ export function DelayedSchoolMentorAssignment({
         </div>
       </div>
 
-      <div className="flex w-full justify-end">
+      <div className="flex w-full flex-col items-stretch gap-kv-group sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-kv-pair text-xs text-kv-warning-soft-fg sm:max-w-[22rem] sm:items-center">
+          <span
+            className="flex size-9 shrink-0 items-center justify-center rounded-kv-control bg-kv-warning-soft text-kv-warning-soft-fg shadow-kv-soft"
+            aria-hidden
+          >
+            <FaIcon icon={faIcons.triangleExclamation} size="sm" />
+          </span>
+          <p className="leading-relaxed font-medium">
+            بعد از مشخص شدن مدرسه محل حضور و معلم آن‌ها را در این فرم ثبت نمایید
+          </p>
+        </div>
+
         <KvButton
           type="button"
           color="cta"

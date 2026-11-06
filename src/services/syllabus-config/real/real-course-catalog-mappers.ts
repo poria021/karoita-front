@@ -4,14 +4,19 @@ import type {
   NestUpdateOriginalLessonDto,
   OriginalLessonType,
 } from '@/types/nest-original-lessons';
+import type { InternshipCourseKind } from '@/types/internship-enrollment';
 import type {
   AcademicTermType,
   CourseDefinition,
   UpsertCourseDefinitionInput,
 } from '@/types/syllabus-config';
 
+import { maxLevelForKind } from '@/services/internship-enrollment/enrollment-mappers';
+import {
+  lessonMatchesKind,
+  strictLessonLevelFromTitle,
+} from '@/services/internship-enrollment/real/mappers/lesson-matching';
 import { DYNAMIC_ENROLLMENT_LEVEL_BASE } from '@/services/syllabus-config/course-catalog';
-import { persianToEnglishDigits } from '@/utils/persianDigits';
 
 /**
  * Nest هر زیرمجموعه را یک ردیف تخت (`mainTitle` + `lessonTitle`) نگه می‌دارد؛
@@ -41,16 +46,38 @@ export function courseGroupId(type: OriginalLessonType, mainTitle: string): stri
  * (همان شکلی که `toNestBulkCreateBody` برای درس مستقل می‌نویسد).
  * درس وقتی بایگانی است که هیچ ردیف `active` نداشته باشد.
  *
- * سطح ثبت‌نام: عدد ۱..۹ داخل عنوان (مثل «کارورزی ۲»)؛ وگرنه شمارندهٔ سراسری از ۱۰۱
- * تا چند درس/زیرمجموعه path یکسان (`/internships/101`) نگیرند و چند آیتم سایدبار هم‌زمان
- * فعال نشوند.
+ * سطح مسیر `/internships/:level` شناسهٔ آیتم سایدبار است، پس داخل یک مخاطب باید یکتا باشد.
+ * رقم عنوان فقط برای سری کلاسیک همان مخاطب سطح ثابت می‌ماند (کارورزی ۱…۴، کارآموزی ۱…۲)
+ * و فقط یک‌بار. «کاربست ۱» یا `test1` این رقم را نمی‌گیرند؛ شمارندهٔ یکتا از ۱۰۱ می‌گیرند
+ * تا با کارورزی ۱ هم‌مسیر نشوند و فرم یکی روی هر دو نوشته نشود.
  */
-function explicitEnrollmentLevelFromTitle(title: string): number | null {
-  const normalized = persianToEnglishDigits(title);
-  const explicit = [...normalized.matchAll(/\d+/g)]
-    .map((match) => Number(match[0]))
-    .find((value) => value >= 1 && value <= 9);
-  return explicit ?? null;
+function classicKind(audience: AcademicTermType): InternshipCourseKind {
+  return audience === 'modular' ? 'apprenticeship' : 'internship';
+}
+
+function createEnrollmentLevelAssigner(): (
+  title: string,
+  audience: AcademicTermType
+) => number {
+  const claimed = new Set<string>();
+  let nextDynamicLevel = DYNAMIC_ENROLLMENT_LEVEL_BASE;
+  return (title, audience) => {
+    const kind = classicKind(audience);
+    const explicit = strictLessonLevelFromTitle(title);
+    if (
+      explicit != null &&
+      explicit <= maxLevelForKind(kind) &&
+      lessonMatchesKind(title, kind)
+    ) {
+      const key = `${audience}:${explicit}`;
+      if (!claimed.has(key)) {
+        claimed.add(key);
+        return explicit;
+      }
+    }
+    nextDynamicLevel += 1;
+    return nextDynamicLevel;
+  };
 }
 
 export function groupOriginalLessons(
@@ -70,9 +97,7 @@ export function groupOriginalLessons(
     }
   }
 
-  let nextDynamicLevel = DYNAMIC_ENROLLMENT_LEVEL_BASE;
-  const levelFor = (title: string): number =>
-    explicitEnrollmentLevelFromTitle(title) ?? (++nextDynamicLevel);
+  const levelFor = createEnrollmentLevelAssigner();
 
   return [...groups.entries()].map(([id, group]) => {
     const standalone =
@@ -84,13 +109,13 @@ export function groupOriginalLessons(
       title: group.title,
       audience: group.audience,
       isActive: group.rows.some((row) => row.status === 'active'),
-      ...(standalone ? { level: levelFor(group.title) } : {}),
+      ...(standalone ? { level: levelFor(group.title, group.audience) } : {}),
       subModules: standalone
         ? []
         : group.rows.map((row) => ({
             id: row.id,
             title: row.lessonTitle.trim(),
-            level: levelFor(row.lessonTitle.trim()),
+            level: levelFor(row.lessonTitle.trim(), group.audience),
             isActive: row.status === 'active',
           })),
     };

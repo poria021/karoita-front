@@ -55,6 +55,12 @@ function statusForWeek(index: number): InternshipWeeklySessionState {
   return seededStates[index] ?? 'draft';
 }
 
+/** نمرهٔ نمونهٔ mock برای نمودار میز کار — کمی متفاوت بین سطوح. */
+function seededGradedScore(level: InternshipEnrollmentLevel): number {
+  const palette = [86, 74, 91, 68, 82];
+  return palette[(level - 1) % palette.length]!;
+}
+
 function hasStudentSubmittedWeek(status: InternshipWeeklySessionState): boolean {
   return status === 'approved' || status === 'pending' || status === 'needs_edit' || status === 'extended' || status === 'graded';
 }
@@ -182,8 +188,11 @@ export function buildWeeklySessions(input: {
       id: week.id,
       title: week.title || week.suffix || `هفته ${index + 1}`,
       status,
-      score: status === 'graded' ? 92 : null,
-      weightedScore: status === 'graded' ? 92 * week.weight : null,
+      score: status === 'graded' ? seededGradedScore(input.level) : null,
+      weightedScore:
+        status === 'graded'
+          ? seededGradedScore(input.level) * (week.weight ?? 1)
+          : null,
       isExtended: status === 'extended' || seededStatus === 'extended',
       text,
       files,

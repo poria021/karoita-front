@@ -22,6 +22,75 @@ import {
  */
 const INTERNSHIP_BASE = RouteService.karvita.internshipSelection();
 
+/**
+ * آیکن‌های مرتبط با درس / انتخاب واحد — فقط کلیدهایی که در `faIcons` ثبت شده‌اند.
+ * برای درس‌های بدون کلیدواژهٔ شناخته‌شده، از همین استخر به‌صورت پایدار (هش id) انتخاب می‌شود.
+ */
+const ENROLLMENT_COURSE_ICONS = [
+  'fa-graduation-cap',
+  'fa-book-open',
+  'fa-briefcase',
+  'fa-chalkboard-user',
+  'fa-clipboard-list',
+  'fa-school',
+  'fa-list-check',
+  'fa-pen-to-square',
+  'fa-folder-open',
+  'fa-award',
+  'fa-user-gear',
+  'fa-screwdriver-wrench',
+  'fa-file-contract',
+  'fa-building-columns',
+  'fa-university',
+  'fa-id-card',
+] as const;
+
+const TITLE_ICON_RULES: ReadonlyArray<{ match: RegExp; icon: string }> = [
+  { match: /کارورزی|internship/i, icon: 'fa-graduation-cap' },
+  { match: /کارآموزی|apprentice/i, icon: 'fa-briefcase' },
+  { match: /کاربست/, icon: 'fa-screwdriver-wrench' },
+  { match: /پروژه|project/i, icon: 'fa-folder-open' },
+  { match: /کارگاه|workshop/i, icon: 'fa-chalkboard-user' },
+  { match: /نظری|نظریه|theory/i, icon: 'fa-book-open' },
+  { match: /ارزیابی|evaluation/i, icon: 'fa-clipboard-list' },
+];
+
+function hashIconSeed(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+/**
+ * آیکن گروه/آیتم انتخاب واحد برای یک درس: اول از روی عنوان، وگرنه انتخاب پایدار
+ * از استخر؛ در یک رندر سعی می‌کند با درس‌های قبلی تکراری نشود.
+ */
+export function iconForEnrollmentCourse(
+  course: Pick<CourseDefinition, 'id' | 'title'>,
+  usedIcons?: Set<string>
+): string {
+  for (const rule of TITLE_ICON_RULES) {
+    if (rule.match.test(course.title)) {
+      usedIcons?.add(rule.icon);
+      return rule.icon;
+    }
+  }
+
+  const seed = course.id || course.title;
+  const start = hashIconSeed(seed) % ENROLLMENT_COURSE_ICONS.length;
+  for (let offset = 0; offset < ENROLLMENT_COURSE_ICONS.length; offset += 1) {
+    const icon =
+      ENROLLMENT_COURSE_ICONS[(start + offset) % ENROLLMENT_COURSE_ICONS.length]!;
+    if (!usedIcons?.has(icon)) {
+      usedIcons?.add(icon);
+      return icon;
+    }
+  }
+  return ENROLLMENT_COURSE_ICONS[start]!;
+}
+
 function isEnrollmentGroup(entry: SidebarMenuEntry): entry is SidebarMenuGroup {
   return (
     isSidebarMenuGroup(entry) &&
@@ -109,24 +178,25 @@ export function withEnrollmentSubModules(
       continue;
     }
     replaced = true;
+    const usedIcons = new Set<string>();
     for (const course of courses) {
       const title = `انتخاب واحد ${course.title}`;
+      const icon = iconForEnrollmentCourse(course, usedIcons);
       const isDisabled = (leaf: EnrollmentLeaf, level: number) =>
         isLeafDisabled(course, leaf, level);
       if (course.subModules.length === 0) {
-        const item = itemFor(course, entry.icon, isDisabled);
+        const item = itemFor(course, icon, isDisabled);
         if (item) next.push({ ...item, title });
         continue;
       }
       const children = course.subModules
-        .map((sub) => itemFor(sub, entry.icon, isDisabled))
+        .map((sub) => itemFor(sub, icon, isDisabled))
         .filter((item): item is SidebarMenuItem => item !== null);
       if (children.length === 0) continue;
       next.push({
         kind: 'group',
         title,
-        icon: entry.icon,
-        defaultOpen: true,
+        icon,
         children,
       });
     }

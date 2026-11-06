@@ -309,17 +309,6 @@ export function WeeklyReportModal({
               </KvButton>
               <KvButton
                 type="button"
-                color="cta"
-                appearance="ghost"
-                size="md"
-                loading={modal.isSavingDraft}
-                disabled={modal.busy}
-                onClick={() => void modal.saveDraft()}
-              >
-                ذخیره پیش‌نویس
-              </KvButton>
-              <KvButton
-                type="button"
                 color="success"
                 appearance="solid"
                 size="md"

@@ -10,7 +10,10 @@ import { RouteService } from '@/services/route.service';
 import { cloneDefaultCourseDefinitions } from '@/services/syllabus-config/course-catalog';
 import type { CourseDefinition } from '@/types/syllabus-config';
 
-import { withEnrollmentSubModules } from './enrollment-menu';
+import {
+  iconForEnrollmentCourse,
+  withEnrollmentSubModules,
+} from './enrollment-menu';
 import { ROLE_STRATEGY_MAP } from './strategies';
 import { isSidebarMenuGroup, type SidebarMenuEntry } from './types';
 
@@ -93,6 +96,71 @@ describe('withEnrollmentSubModules', () => {
     expect(isSidebarMenuGroup(workshop)).toBe(false);
     expect((workshop as { path: string }).path).toBe(
       '/karvita/internships/103'
+    );
+  });
+
+  it('gives each enrollment course a distinct thematic icon', () => {
+    const [internship] = cloneDefaultCourseDefinitions();
+    const karbast: CourseDefinition = {
+      id: 'crs_karbast',
+      title: 'کاربست',
+      audience: 'semester',
+      isActive: true,
+      subModules: [{ id: 'crs_karbast_1', title: 'کاربست ۱', level: 104 }],
+    };
+    const test1: CourseDefinition = {
+      id: 'crs_test1',
+      title: 'test1',
+      audience: 'semester',
+      isActive: true,
+      subModules: [{ id: 'crs_test1_1', title: 'test1-a', level: 105 }],
+    };
+    const test2: CourseDefinition = {
+      id: 'crs_test2',
+      title: 'test2',
+      audience: 'semester',
+      isActive: true,
+      subModules: [{ id: 'crs_test2_1', title: 'test2-a', level: 106 }],
+    };
+
+    const menu = withEnrollmentSubModules(STUDENT_MENU, [
+      internship!,
+      test1,
+      test2,
+      karbast,
+      PROJECT,
+      WORKSHOP,
+    ]);
+
+    const enrollment = menu.filter((entry) =>
+      entry.title.startsWith('انتخاب واحد ')
+    );
+    const byTitle = Object.fromEntries(
+      enrollment.map((entry) => [entry.title, entry.icon])
+    );
+
+    expect(byTitle['انتخاب واحد کارورزی']).toBe('fa-graduation-cap');
+    expect(byTitle['انتخاب واحد کاربست']).toBe('fa-screwdriver-wrench');
+    expect(byTitle['انتخاب واحد پروژه']).toBe('fa-folder-open');
+    expect(byTitle['انتخاب واحد کارگاه']).toBe('fa-chalkboard-user');
+
+    const used = new Set(['fa-graduation-cap']);
+    expect(byTitle['انتخاب واحد test1']).toBe(
+      iconForEnrollmentCourse(test1, used)
+    );
+    expect(byTitle['انتخاب واحد test2']).toBe(
+      iconForEnrollmentCourse(test2, used)
+    );
+
+    const icons = enrollment.map((entry) => entry.icon);
+    expect(new Set(icons).size).toBe(icons.length);
+
+    const project = menu.find((e) => e.title === 'انتخاب واحد پروژه');
+    if (!project || !isSidebarMenuGroup(project)) {
+      throw new Error('expected project group');
+    }
+    expect(project.children.every((child) => child.icon === project.icon)).toBe(
+      true
     );
   });
 
