@@ -13,7 +13,6 @@ import { DashboardWelcomeBox } from './DashboardWelcomeBox';
 type DashboardWidgetGridProps = {
   role: UserRole;
   welcomeName: string;
-  welcomeSubtitle: string;
   welcomeOrgLine?: string | null;
 };
 
@@ -24,7 +23,6 @@ type DashboardWidgetGridProps = {
 export function DashboardWidgetGrid({
   role,
   welcomeName,
-  welcomeSubtitle,
   welcomeOrgLine,
 }: DashboardWidgetGridProps) {
   return (
@@ -35,7 +33,6 @@ export function DashboardWidgetGrid({
           id={widget.id}
           role={role}
           welcomeName={welcomeName}
-          welcomeSubtitle={welcomeSubtitle}
           welcomeOrgLine={welcomeOrgLine}
         />
       ))}
@@ -47,13 +44,11 @@ function DashboardWidget({
   id,
   role,
   welcomeName,
-  welcomeSubtitle,
   welcomeOrgLine,
 }: {
   id: DashboardWidgetId;
   role: UserRole;
   welcomeName: string;
-  welcomeSubtitle: string;
   welcomeOrgLine?: string | null;
 }) {
   switch (id) {
@@ -64,7 +59,6 @@ function DashboardWidget({
           leading={
             <DashboardWelcomeBox
               displayName={welcomeName}
-              subtitle={welcomeSubtitle}
               orgLine={welcomeOrgLine}
               className="h-full"
             />

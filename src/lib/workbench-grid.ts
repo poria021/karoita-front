@@ -4,9 +4,8 @@ import type { CSSProperties } from 'react';
  * گرید میز کار — دسکتاپ همان اندازه‌های قبلی؛ موبایل تک‌ستونه و جمع می‌شود.
  *
  * md+ (پیش‌فرض نقش‌های دیگر): خوش‌آمد (1fr) | اطلاعیه‌ها (1.35fr) | تبلیغ (عرض ثابت)
- * دانشجو/مهارت‌آموز: گرید تودرتو در `DashboardBulletinsBoard`
- *   ستون راست: خوش‌آمد کوتاه + ردیف (اطلاعیه | جزوه) زیر هم
- *   ستون چپ: تبلیغ
+ * فراگیر: گرید تودرتو خوش‌آمد+اطلاعیه|جزوه | تبلیغ
+ * استاد/معلم/مدیر: یک گرید تخت — هر باکس یک سلول (خوش‌آمد، اطلاعیه، ظرفیت، مانیتورینگ، تبلیغ)
  */
 
 /**
@@ -35,10 +34,22 @@ export const WORKBENCH_SIDE_PANEL_STYLE: CSSProperties = {
   maxHeight: WORKBENCH_SIDE_PANEL_HEIGHT_PX,
 };
 
+/**
+ * ارتفاع باکس مانیتورینگ:
+ * p-kv-group×۲ + هدر + gap-kv-group + ریل کارت + pb-kv-pair (فاصله تا اسکرول‌بار).
+ */
+export const WORKBENCH_MONITOR_PANEL_HEIGHT_PX = 188;
+
+export const WORKBENCH_MONITOR_PANEL_STYLE: CSSProperties = {
+  height: WORKBENCH_MONITOR_PANEL_HEIGHT_PX,
+  minHeight: WORKBENCH_MONITOR_PANEL_HEIGHT_PX,
+  maxHeight: WORKBENCH_MONITOR_PANEL_HEIGHT_PX,
+};
+
 /** فاصلهٔ عمودی ستون راست دانشجو (`gap-kv-group` = 1rem). */
 export const WORKBENCH_LEARNER_STACK_GAP_PX = 16;
 
-/** ارتفاع فشردهٔ خوش‌آمد دانشجو/مهارت‌آموز (نام + استان/دانشکده + یک خط توضیح). */
+/** ارتفاع فشردهٔ خوش‌آمد (نام + استان/دانشکده). */
 export const WORKBENCH_LEARNER_WELCOME_HEIGHT_PX = 112;
 
 export const WORKBENCH_LEARNER_WELCOME_STYLE: CSSProperties = {
@@ -62,12 +73,13 @@ export const WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE: CSSProperties = {
 };
 
 /**
- * میز کار دانشجو/مهارت‌آموز: ستون راست (خوش‌آمد + اطلاعیه|جزوه) | تبلیغ باریک.
+ * میز کار پشته‌ای فراگیر:
+ * ستون راست (خوش‌آمد + اطلاعیه|جزوه) | تبلیغ باریک.
  */
 export const WORKBENCH_LEARNER_TOP_GRID_CLASS =
   'grid w-full grid-cols-1 gap-kv-group md:grid-cols-[minmax(0,1fr)_240px] md:items-start';
 
-/** ستون راست دانشجو: خوش‌آمد و ردیف اطلاعیه/جزوه زیر هم. */
+/** ستون راست پشته‌ای فراگیر: خوش‌آمد و ردیف اطلاعیه/جزوه زیر هم. */
 export const WORKBENCH_LEARNER_STACK_CLASS =
   'flex min-w-0 flex-col gap-kv-group';
 
@@ -78,7 +90,42 @@ export const WORKBENCH_LEARNER_STACK_CLASS =
 export const WORKBENCH_LEARNER_INBOX_ROW_CLASS =
   'grid min-h-0 min-w-0 w-full grid-cols-1 gap-kv-group md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]';
 
-/** خوش‌آمد — ستون راست (اول در RTL) */
+/**
+ * میز کار استاد / معلم راهنما / مدیر — گرید تخت ۴ ستون محتوا + تبلیغ:
+ * [خوش‌آمد ×۴]                         [تبلیغ ↕]
+ * [اطلاعیه ×۲] [مانیتورینگ ×۲]         [تبلیغ]
+ * [ظرفیت ×۲] …                         …
+ */
+export const WORKBENCH_EVALUATION_TOP_GRID_CLASS =
+  'grid w-full min-w-0 grid-cols-1 gap-kv-group md:grid-cols-[repeat(4,minmax(0,1fr))_240px] md:items-start';
+
+export const WORKBENCH_EVAL_WELCOME_CELL =
+  'min-h-0 min-w-0 w-full md:col-span-4 md:col-start-1 md:row-start-1';
+
+export const WORKBENCH_EVAL_AD_CELL =
+  'w-full max-w-[240px] justify-self-center md:col-start-5 md:row-start-1 md:row-span-2 md:w-[240px] md:max-w-none md:justify-self-end';
+
+/** اطلاعیه کنار مانیتورینگ: ۲ از ۴ ستون محتوا. */
+export const WORKBENCH_EVAL_ANNOUNCEMENTS_CELL =
+  'min-h-0 min-w-0 w-full overflow-hidden md:col-span-2 md:col-start-1 md:row-start-2';
+
+/** اطلاعیه بدون ظرفیت: تمام ۴ ستون محتوا. */
+export const WORKBENCH_EVAL_ANNOUNCEMENTS_WIDE_CELL =
+  'min-h-0 min-w-0 w-full overflow-hidden md:col-span-4 md:col-start-1 md:row-start-2';
+
+/** مانیتورینگ کنار اطلاعیه: ۲ از ۴ ستون. */
+export const WORKBENCH_EVAL_MONITOR_BESIDE_CELL =
+  'min-h-0 min-w-0 w-full overflow-hidden md:col-span-2 md:col-start-3 md:row-start-2';
+
+/** مانیتورینگ زیر اطلاعیهٔ عریض (بدون ظرفیت): ۲ از ۴. */
+export const WORKBENCH_EVAL_MONITOR_WIDE_PARENT_CELL =
+  'min-h-0 min-w-0 w-full overflow-hidden md:col-span-2 md:col-start-1 md:row-start-3';
+
+/** ظرفیت زیر اطلاعیه: هم‌عرض اطلاعیه (۲ ستون). */
+export const WORKBENCH_EVAL_CAPACITY_CELL =
+  'min-h-0 min-w-0 w-full overflow-hidden md:col-span-2 md:col-start-1 md:row-start-3';
+
+/** خوش‌آمد — ستون راست (اول در RTL) برای گرید ۳ستونهٔ کلاسیک */
 export const WORKBENCH_WELCOME_SPAN = 'min-h-0 min-w-0 w-full';
 
 /** اطلاعیه‌ها / جزوه‌ها — سلول‌های ردیف اینباکس */

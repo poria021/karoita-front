@@ -85,7 +85,12 @@ export function useDailyApprovalsChrome() {
     () => (courseModule ? evaluationScopeKeys(courseModule) : undefined),
     [courseModule]
   );
-  const [rawCourse, setCourse] = useState<DailyApprovalCourseFilter>('all');
+  // `?course=` از لینک مانیتورینگ میز کار؛ اگر در گزینه‌ها نبود → همه.
+  const [rawCourse, setCourse] = useState<DailyApprovalCourseFilter>(() => {
+    if (typeof window === 'undefined') return 'all';
+    const fromUrl = new URLSearchParams(window.location.search).get('course');
+    return (fromUrl as DailyApprovalCourseFilter | null) ?? 'all';
+  });
   // زیرمجموعهٔ درس قبلی در درس/پنل دیگر معنا ندارد.
   const course = courseOptions.some((option) => option.value === rawCourse)
     ? rawCourse

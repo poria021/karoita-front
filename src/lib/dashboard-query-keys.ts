@@ -18,6 +18,9 @@ export const DASHBOARD_QUERY = {
     ['daily-approvals', 'terms', kind] as const,
   dailyApprovalsCourses: (kind: string, termId: string) =>
     ['daily-approvals', 'courses', kind, termId] as const,
+  /** خلاصهٔ مانیتورینگ گزارش‌ها روی میز کار ناظران ارزیابی. */
+  supervisorReplyStatus: (role: string) =>
+    ['daily-approvals', 'dashboard-reply-status', role] as const,
   internshipEnrollment: ['internship-enrollment'] as const,
   orgOptions: ['org-options'] as const,
   onboardingApprovalsProvinces: ['onboarding-approvals', 'provinces'] as const,

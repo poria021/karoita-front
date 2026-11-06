@@ -38,4 +38,16 @@ describe('getDashboardWidgets', () => {
       { id: 'bulletins', span: 'full' },
     ]);
   });
+
+  it('keeps supervisor reply-status inside bulletins board (not a separate widget)', () => {
+    expect(getDashboardWidgets('supervisor_professor')).toEqual([
+      { id: 'bulletins', span: 'full' },
+    ]);
+    expect(getDashboardWidgets('mentor_teacher')).toEqual([
+      { id: 'bulletins', span: 'full' },
+    ]);
+    expect(getDashboardWidgets('school_principal')).toEqual([
+      { id: 'bulletins', span: 'full' },
+    ]);
+  });
 });

@@ -20,7 +20,7 @@ type DashboardAnnouncementsBoxProps = {
   announcements: Bulletin[];
   isLoading: boolean;
   source: DashboardBulletinSource;
-  /** پنل زیرمجموعه دارد → میان‌بر «مدیریت» در سربرگ. */
+  /** پنل زیرمجموعه دارد → میان‌بر «نوشتن اطلاعیه» در سربرگ. */
   canPublish: boolean;
   /** گیرندۀ اطلاعیه → «مشاهده همه» به تب دریافتی‌ها (مدیر ارشد نه). */
   canReceive: boolean;
@@ -93,16 +93,33 @@ function AnnouncementActions({
   return (
     <div className="flex shrink-0 items-center gap-kv-micro">
       {canReceive ? (
-        <KvButton asChild color="neutral" appearance="text" size="xs">
+        <KvButton
+          asChild
+          color="cta"
+          appearance="text"
+          size="xs"
+          className="text-[11px] font-bold"
+        >
           <Link href={RouteService.karvita.announcements('received')}>
             مشاهده همه
           </Link>
         </KvButton>
       ) : null}
+      {canReceive && canPublish ? (
+        <span aria-hidden className="text-[11px] font-medium text-kv-border-strong">
+          |
+        </span>
+      ) : null}
       {canPublish ? (
-        <KvButton asChild color="neutral" appearance="text" size="xs">
+        <KvButton
+          asChild
+          color="cta"
+          appearance="text"
+          size="xs"
+          className="text-[11px] font-bold"
+        >
           <Link href={RouteService.karvita.announcements('announcement')}>
-            مدیریت
+            نوشتن اطلاعیه
           </Link>
         </KvButton>
       ) : null}

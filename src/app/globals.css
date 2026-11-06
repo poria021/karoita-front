@@ -129,6 +129,10 @@
   --color-kv-danger-soft-fg: var(--kv-danger-soft-fg);
   --color-kv-danger-border: var(--kv-danger-border);
 
+  --color-kv-monitor-ink: var(--kv-monitor-ink);
+  --color-kv-monitor-ink-s: var(--kv-monitor-ink-s);
+  --color-kv-monitor-ink-l: var(--kv-monitor-ink-l);
+
   --color-kv-info: var(--kv-info);
   --color-kv-info-hover: var(--kv-info-hover);
   --color-kv-info-fg: var(--kv-info-fg);
@@ -352,6 +356,15 @@
   --kv-danger-soft-fg: hsl(343 79.7% 34.7%);
   --kv-danger-border: hsl(347 65% 55%);
 
+  /**
+   * جوهر متن کارت مانیتورینگ حرارت:
+   * همان hue کارت، اشباع متوسط، روشنایی نزدیک سیاه (مایل به مشکی).
+   * مقدار نهایی هر کارت در JS با hue همان کارت روی `--kv-monitor-ink` ست می‌شود.
+   */
+  --kv-monitor-ink-s: 42%;
+  --kv-monitor-ink-l: 14%;
+  --kv-monitor-ink: hsl(24 var(--kv-monitor-ink-s) var(--kv-monitor-ink-l));
+
   --kv-info: hsl(221 83.2% 53.3%);
   --kv-info-hover: hsl(224 76.3% 48%);
   --kv-info-fg: hsl(0 0% 100%);
@@ -494,6 +507,11 @@
   --kv-danger-soft-hover: hsl(0 35% 12%);
   --kv-danger-soft-fg:   hsl(0 52% 68%);
   --kv-danger-border:    hsl(0 32% 20%);
+
+  /* Monitor heat ink — کارت‌ها pastel روشن‌اند؛ جوهر همیشه سیر می‌ماند */
+  --kv-monitor-ink-s: 42%;
+  --kv-monitor-ink-l: 14%;
+  --kv-monitor-ink: hsl(24 var(--kv-monitor-ink-s) var(--kv-monitor-ink-l));
 
   /* ── Info ── */
   --kv-info:             hsl(213 60% 58%);
@@ -865,6 +883,39 @@ input[readonly]:-webkit-autofill {
   .kv-welcome-enter-delay,
   .kv-welcome-mark {
     animation: none;
+  }
+}
+
+/*
+ * Capacity status panel — quiet enter for workbench summary.
+ */
+@keyframes kv-capacity-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kv-capacity-enter {
+  animation: kv-capacity-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kv-capacity-enter-delay {
+  animation: kv-capacity-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-capacity-enter,
+  .kv-capacity-enter-delay {
+    animation: none;
+  }
+
+  .kv-capacity-meter-fill {
+    transition: none;
   }
 }
 

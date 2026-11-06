@@ -8,21 +8,18 @@ import { cn } from '@/lib/utils';
 
 type DashboardWelcomeBoxProps = {
   displayName: string;
-  /** توضیح کوتاه پنل — موقتاً؛ جای اطلاعات ترم و وضعیت. */
-  subtitle: string;
   /** استان / دانشکده کاربر — زیر خوش‌آمد. */
   orgLine?: string | null;
   className?: string;
-  /** اسلات محتوای پایین (ترم، وضعیت، …). اگر نباشد همان subtitle نمایش داده می‌شود. */
+  /** اسلات محتوای پایین (ترم، وضعیت، …). */
   children?: ReactNode;
 };
 
 /**
- * باکس خوش‌آمد میز کار — بالا: «{نام} خوش آمدید»؛ پایین: اطلاعات ترم و وضعیت.
+ * باکس خوش‌آمد میز کار — «{نام} خوش آمدید» و در صورت نیاز orgLine / children.
  */
 export function DashboardWelcomeBox({
   displayName,
-  subtitle,
   orgLine,
   className,
   children,
@@ -67,18 +64,11 @@ export function DashboardWelcomeBox({
           ) : null}
         </header>
 
-        <div className="kv-welcome-enter-delay flex min-h-0 flex-1 flex-col gap-kv-pair overflow-y-auto">
-          {children ?? (
-            <KvTypography
-              variant="body"
-              tone="muted"
-              as="p"
-              className="line-clamp-2 text-xs leading-relaxed sm:text-sm"
-            >
-              {subtitle}
-            </KvTypography>
-          )}
-        </div>
+        {children ? (
+          <div className="kv-welcome-enter-delay flex min-h-0 flex-1 flex-col gap-kv-pair overflow-y-auto">
+            {children}
+          </div>
+        ) : null}
       </div>
     </section>
   );

@@ -3,6 +3,9 @@ import type { UserRole } from '@/types/auth';
 /**
  * ویجت‌های میز کار. ویجت جدید = شناسه اینجا + رندرکننده در `DashboardWidgetGrid`
  * (Record کامل است؛ بدون رندرکننده tsc خطا می‌دهد) + افزودن به نقش‌های مربوط.
+ *
+ * صف پاسخ‌گویی استاد داخل ردیف اطلاعیهٔ `DashboardBulletinsBoard` است
+ * (جای وضعیت ظرفیت)، نه ویجت جدا.
  */
 export type DashboardWidgetId = 'bulletins' | 'learner_grades';
 
