@@ -29,6 +29,8 @@ export const DASHBOARD_QUERY = {
     ['onboarding-approvals', 'dashboard-summary', status] as const,
   /** شمار موجودیت‌های ساختار سازمانی روی میز کار مدیر ارشد. */
   orgStructureDashboardCounts: ['org-structure', 'dashboard-counts'] as const,
+  /** شمار کاربران به تفکیک نقش روی میز کار مدیر ارشد. */
+  roleUserDashboardCounts: ['users', 'dashboard-role-counts'] as const,
   /** پیشوند مشترک داشبورد و صفحهٔ مدیریت — بعد از mutation هر دو باطل شوند. */
   bulletins: ['bulletins'] as const,
   bulletinsDashboard: ['bulletins', 'dashboard'] as const,
