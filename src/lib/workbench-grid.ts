@@ -5,7 +5,7 @@ import type { CSSProperties } from 'react';
  *
  * md+ (نقش‌های سازمانی باقی‌مانده): خوش‌آمد (1fr) | اطلاعیه‌ها (1.35fr) | تبلیغ
  * فراگیر: گرید پشته‌ای خوش‌آمد + (اطلاعیه|جزوه) | تبلیغ؟
- * مدیر ارشد / دستیار: پشته مثل فراگیر — خوش‌آمد تمام‌عرض + (پرونده | ساختار) | بدون تبلیغ مدیر ارشد
+ * مدیر ارشد / دستیار: (خوش‌آمد | ساختار+نقش‌ها) سپس پرونده‌ها | بدون تبلیغ
  * استاد/معلم/مدیر مدرسه: لی‌اوت یکسان — خوش‌آمد، اطلاعیه|مانیتورینگ، تبلیغ؛ ظرفیت فقط استاد
  */
 
@@ -68,16 +68,16 @@ export const WORKBENCH_SENIOR_ORG_STRUCTURE_HEIGHT_PX =
   (WORKBENCH_SENIOR_ONBOARDING_HEIGHT_PX * 3) / 5;
 
 /**
- * وضعیت پرونده‌ها — موبایل تمام‌عرض؛ md+ عرض برابر محتوا.
+ * وضعیت پرونده‌ها — ارتفاع محتوا (بدون فضای خالی عمودی)؛ md+ عرض برابر محتوا.
  */
 export const WORKBENCH_SENIOR_ONBOARDING_CLASS =
-  'h-auto min-h-[18rem] w-full max-w-full md:h-[21rem] md:min-h-[21rem] md:max-h-[21rem] md:w-fit';
+  'h-auto w-full max-w-full md:w-fit';
 
 /**
- * ساختار سازمانی — سقف عرض خودش؛ md+ چسبیده به لبهٔ چپ (inline-end در RTL).
+ * ساختار سازمانی — کنار وضعیت پرونده‌ها؛ کارت‌ها عریض‌تر از مربع قبلی.
  */
 export const WORKBENCH_SENIOR_ORG_STRUCTURE_CLASS =
-  'h-auto min-h-[16rem] w-full max-w-full md:h-[12.6rem] md:min-h-[12.6rem] md:max-h-[12.6rem] md:max-w-[32rem] md:justify-self-end';
+  'h-auto min-h-[14rem] w-full max-w-full md:h-[14rem] md:w-[24rem] md:min-w-[24rem] md:max-w-[24rem]';
 
 /**
  * ارتفاع اطلاعیه‌های دانشجو — خوش‌آمد + فاصله + اطلاعیه = ارتفاع تبلیغ.
@@ -116,12 +116,22 @@ export const WORKBENCH_LEARNER_INBOX_ROW_CLASS =
   'grid min-h-0 min-w-0 w-full grid-cols-1 gap-kv-group md:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]';
 
 /**
- * ردیف زیر خوش‌آمد مدیر ارشد — جدا از خوش‌آمد:
- * وضعیت پرونده‌ها (عرض محتوا) | ساختار سازمانی (باقی‌مانده).
- * موبایل زیر هم؛ md+ کنار هم. RTL: پرونده راست، ساختار چپ.
+ * ردیف مجزای وضعیت پرونده‌ها | ستون ساختار + نقش‌ها.
  */
-export const WORKBENCH_SENIOR_ADMIN_ROW_CLASS =
-  'grid min-h-0 min-w-0 w-full grid-cols-1 gap-kv-group md:grid-cols-[max-content_minmax(0,1fr)] md:items-start';
+export const WORKBENCH_SENIOR_CASES_ORG_ROW_CLASS =
+  'grid min-h-0 min-w-0 w-full grid-cols-1 gap-kv-group md:grid-cols-[max-content_auto] md:items-start';
+
+/**
+ * ستون ساختار سازمانی + آمار نقش‌ها زیر آن.
+ */
+export const WORKBENCH_SENIOR_ORG_STRUCTURE_STACK_CLASS =
+  'flex min-w-0 w-full flex-col gap-kv-group md:w-fit md:justify-self-end';
+
+/**
+ * شمار نقش‌ها — هم‌عرض ساختار سازمانی عریض‌تر.
+ */
+export const WORKBENCH_SENIOR_ROLE_COUNTS_CLASS =
+  'h-auto min-h-[16rem] w-full max-w-full md:h-[18.9rem] md:min-h-[18.9rem] md:w-[24rem]';
 
 /**
  * میز کار استاد / معلم راهنما / مدیر — لی‌اوت یکسان، ۴ ستون محتوا + تبلیغ:

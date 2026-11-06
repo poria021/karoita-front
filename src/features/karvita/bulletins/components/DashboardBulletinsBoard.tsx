@@ -12,6 +12,7 @@ import {
 import { WorkbenchOnboardingApprovalsBox } from '@/features/karvita/dashboard/components/WorkbenchOnboardingApprovalsBox';
 import { WorkbenchOrgStructureCountsBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureCountsBox';
 import { WorkbenchReportsMonitorBox } from '@/features/karvita/dashboard/components/WorkbenchReportsMonitorBox';
+import { WorkbenchRoleUserCountsBox } from '@/features/karvita/dashboard/components/WorkbenchRoleUserCountsBox';
 import { useDashboardCourseMaterials } from '@/features/karvita/dashboard/hooks/useDashboardCourseMaterials';
 import {
   isEvaluationMonitorRole,
@@ -38,9 +39,11 @@ import {
   WORKBENCH_LEARNER_TOP_GRID_NO_AD_CLASS,
   WORKBENCH_LEARNER_WELCOME_STYLE,
   WORKBENCH_MONITOR_PANEL_STYLE,
-  WORKBENCH_SENIOR_ADMIN_ROW_CLASS,
+  WORKBENCH_SENIOR_CASES_ORG_ROW_CLASS,
   WORKBENCH_SENIOR_ONBOARDING_CLASS,
   WORKBENCH_SENIOR_ORG_STRUCTURE_CLASS,
+  WORKBENCH_SENIOR_ORG_STRUCTURE_STACK_CLASS,
+  WORKBENCH_SENIOR_ROLE_COUNTS_CLASS,
   WORKBENCH_SIDE_PANEL_STYLE,
   WORKBENCH_WELCOME_SPAN,
 } from '@/lib/workbench-grid';
@@ -146,22 +149,44 @@ function LearnerInboxRow(props: InboxProps) {
   );
 }
 
-/** ردیف پرونده‌ها | ساختار — مستقل از عرض خوش‌آمد. */
-function SeniorAdminWorkbenchRow({
+/**
+ * میز کار مدیر ارشد:
+ * خوش‌آمد
+ * گرید مجزا: وضعیت پرونده‌ها | ساختار (عریض‌تر) + نقش‌ها زیر آن
+ */
+function SeniorAdminWorkbenchLayout({
   className,
-}: Pick<InboxProps, 'className'>) {
+  leading,
+}: {
+  className: string;
+  leading: ReactNode;
+}) {
   return (
-    <div className={WORKBENCH_SENIOR_ADMIN_ROW_CLASS}>
-      <WorkbenchOnboardingApprovalsBox
-        className={cn(className, WORKBENCH_SENIOR_ONBOARDING_CLASS, 'min-w-0')}
-      />
-      <WorkbenchOrgStructureCountsBox
-        className={cn(
-          className,
-          WORKBENCH_SENIOR_ORG_STRUCTURE_CLASS,
-          'min-w-0 w-full'
-        )}
-      />
+    <div className="flex min-w-0 w-full flex-col gap-kv-group">
+      <div
+        className={cn(WORKBENCH_WELCOME_SPAN, 'w-full min-w-0')}
+        style={WORKBENCH_LEARNER_WELCOME_STYLE}
+      >
+        {leading}
+      </div>
+
+      <div className={WORKBENCH_SENIOR_CASES_ORG_ROW_CLASS}>
+        <WorkbenchOnboardingApprovalsBox
+          className={cn(className, WORKBENCH_SENIOR_ONBOARDING_CLASS, 'min-w-0')}
+        />
+        <div className={WORKBENCH_SENIOR_ORG_STRUCTURE_STACK_CLASS}>
+          <WorkbenchOrgStructureCountsBox
+            className={cn(
+              className,
+              WORKBENCH_SENIOR_ORG_STRUCTURE_CLASS,
+              'min-w-0'
+            )}
+          />
+          <WorkbenchRoleUserCountsBox
+            className={cn(className, WORKBENCH_SENIOR_ROLE_COUNTS_CLASS)}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -272,10 +297,19 @@ export function DashboardBulletinsBoard({
     );
   }
 
+  if (usesSeniorAdminWorkbenchRow(role)) {
+    return (
+      <div className={WORKBENCH_FULL_SPAN}>
+        <SeniorAdminWorkbenchLayout
+          className={inboxProps.className}
+          leading={leading}
+        />
+      </div>
+    );
+  }
+
   const announcements = learnerInbox ? (
     <LearnerInboxRow {...inboxProps} />
-  ) : usesSeniorAdminWorkbenchRow(role) ? (
-    <SeniorAdminWorkbenchRow className={inboxProps.className} />
   ) : (
     <AnnouncementsCell {...inboxProps} />
   );

@@ -34,7 +34,7 @@ function OrgMetricCard({ metric }: { metric: OrgStructureCountMetric }) {
       <p className="line-clamp-2 w-full text-[10px] font-medium leading-snug text-kv-text-muted sm:text-[11px]">
         {metric.label}
       </p>
-      <p className="font-sans text-base font-black tabular-nums leading-none tracking-tight text-kv-text sm:text-lg">
+      <p className="font-sans text-base font-normal tabular-nums leading-none tracking-tight text-kv-text sm:text-lg">
         {toPersianDigits(metric.count)}
       </p>
     </Link>
@@ -42,7 +42,7 @@ function OrgMetricCard({ metric }: { metric: OrgStructureCountMetric }) {
 }
 
 /**
- * شبکهٔ ۳×۲ کارت ساختار سازمانی — تمام فضای سلول گرید را پر می‌کند.
+ * شبکهٔ ۳×۲ کارت‌های جدا ساختار سازمانی.
  */
 export function WorkbenchOrgStructureCountsBox({
   className,
@@ -71,7 +71,7 @@ export function WorkbenchOrgStructureCountsBox({
         aria-label="در حال بارگذاری ساختار سازمانی"
         style={style}
         className={cn(
-          'grid h-full min-h-0 min-w-0 w-full grid-cols-2 gap-1.5 sm:grid-cols-3 sm:grid-rows-2 sm:gap-2',
+          'grid size-full min-h-0 min-w-0 grid-cols-2 grid-rows-3 gap-1.5 sm:grid-cols-3 sm:grid-rows-2 sm:gap-2',
           className
         )}
       >
@@ -91,7 +91,7 @@ export function WorkbenchOrgStructureCountsBox({
       role="list"
       aria-label="ساختار سازمانی"
       className={cn(
-        'grid h-full min-h-0 min-w-0 w-full grid-cols-2 gap-1.5 sm:grid-cols-3 sm:grid-rows-2 sm:gap-2',
+        'grid size-full min-h-0 min-w-0 grid-cols-2 grid-rows-3 gap-1.5 sm:grid-cols-3 sm:grid-rows-2 sm:gap-2',
         className
       )}
     >
