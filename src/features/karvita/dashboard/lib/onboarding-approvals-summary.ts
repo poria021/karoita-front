@@ -5,6 +5,79 @@ import type {
 
 export const ONBOARDING_DASHBOARD_PENDING_LIMIT = 10;
 
+/**
+ * دادهٔ موقت برای پیش‌نمایش استایل لیست — تا صف واقعی پر شود.
+ * بعداً حذف یا فقط وقتی `pendingPreview` خالی است استفاده شود.
+ */
+export const FAKE_ONBOARDING_PENDING_PREVIEW: OnboardingApprovalUser[] = [
+  {
+    id: 'fake-pending-1',
+    firstName: 'سارا',
+    lastName: 'محمدی',
+    fullName: 'سارا محمدی',
+    mobile: '09120000001',
+    role: 'student',
+    approved: false,
+    docStatus: 'pending_admin',
+    province: ['تهران'],
+  },
+  {
+    id: 'fake-pending-2',
+    firstName: 'علی',
+    lastName: 'رضایی',
+    fullName: 'علی رضایی',
+    mobile: '09120000002',
+    role: 'skill_learner',
+    approved: false,
+    docStatus: 'pending_admin',
+    province: ['اصفهان'],
+  },
+  {
+    id: 'fake-pending-3',
+    firstName: 'مریم',
+    lastName: 'حسینی',
+    fullName: 'مریم حسینی',
+    mobile: '09120000003',
+    role: 'mentor_teacher',
+    approved: false,
+    docStatus: 'pending_admin',
+    province: ['فارس'],
+  },
+  {
+    id: 'fake-pending-4',
+    firstName: 'حسین',
+    lastName: 'کریمی',
+    fullName: 'حسین کریمی',
+    mobile: '09120000004',
+    role: 'supervisor_professor',
+    approved: false,
+    docStatus: 'pending_admin',
+    province: ['خراسان رضوی'],
+  },
+  {
+    id: 'fake-pending-5',
+    firstName: 'زهرا',
+    lastName: 'احمدی',
+    fullName: 'زهرا احمدی',
+    mobile: '09120000005',
+    role: 'school_principal',
+    approved: false,
+    docStatus: 'pending_admin',
+    province: ['آذربایجان شرقی'],
+  },
+  {
+    id: 'fake-pending-6',
+    firstName: 'امیر',
+    lastName: 'نوری',
+    fullName: 'امیر نوری',
+    mobile: '09120000006',
+    role: 'student',
+    approved: false,
+    docStatus: 'pending_admin',
+    province: ['خوزستان'],
+  },
+];
+
 export type OnboardingStatusCounts = {
   pending_admin: number;
   approved: number;

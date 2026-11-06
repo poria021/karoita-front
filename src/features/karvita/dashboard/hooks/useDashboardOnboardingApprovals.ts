@@ -10,6 +10,7 @@ import type { ApprovalFilterTab } from '@/types/onboarding-approvals';
 
 import {
   buildOnboardingApprovalsSummary,
+  FAKE_ONBOARDING_PENDING_PREVIEW,
   ONBOARDING_DASHBOARD_PENDING_LIMIT,
   type OnboardingApprovalsSummary,
 } from '../lib/onboarding-approvals-summary';
@@ -65,18 +66,28 @@ export function useDashboardOnboardingApprovals(): DashboardOnboardingApprovalsS
     const approvedPage = queries[1]?.data;
     const rejectedPage = queries[2]?.data;
 
+    const realPending = pendingPage?.items ?? [];
+    // فعلاً برای دیدن استایل لیست؛ وقتی دادهٔ واقعی آمد fake را بردار.
+    const pendingPreview =
+      realPending.length > 0 ? realPending : FAKE_ONBOARDING_PENDING_PREVIEW;
+
     return buildOnboardingApprovalsSummary({
       counts: {
-        pending_admin: pendingPage?.total ?? 0,
+        pending_admin: Math.max(
+          pendingPage?.total ?? 0,
+          pendingPreview.length
+        ),
         approved: approvedPage?.total ?? 0,
         rejected: rejectedPage?.total ?? 0,
       },
-      pendingPreview: pendingPage?.items ?? [],
+      pendingPreview,
     });
   }, [dataKey, queries]);
 
   const waitingForFirstPaint =
-    queries.some((query) => query.isPending) && summary.total === 0;
+    queries.some((query) => query.isPending) &&
+    summary.pendingPreview.length === 0 &&
+    summary.total === 0;
   const hasAnyData = queries.some((query) => query.data != null);
   const allErrored = queries.every((query) => query.isError);
 

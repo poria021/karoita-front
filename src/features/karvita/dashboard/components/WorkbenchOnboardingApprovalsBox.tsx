@@ -22,25 +22,29 @@ export type WorkbenchOnboardingApprovalsBoxProps = {
 };
 
 function PendingUserRow({ user }: { user: OnboardingApprovalUser }) {
+  const roleProvince = [
+    getRoleStrategy(user.role).label,
+    user.province?.[0],
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
   return (
     <Link
       href={RouteService.karvita.onboardingApprovals('pending_admin')}
       prefetch
       className={cn(
-        'flex items-center justify-between gap-2 rounded-kv-tight px-0.5 py-1',
+        'flex items-center justify-between gap-2 rounded-kv-tight px-0.5 py-2.5',
         'transition-colors duration-200 can-hover:hover:bg-kv-surface-muted/60',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring'
       )}
       aria-label={`بررسی پرونده ${user.fullName}`}
     >
-      <span className="min-w-0">
-        <span className="block truncate font-sans text-sm font-bold leading-tight text-kv-text">
-          {user.fullName}
-        </span>
-        <span className="mt-px block truncate font-sans text-xs leading-tight text-kv-text-muted">
-          {getRoleStrategy(user.role).label}
-          {user.province?.[0] ? ` · ${user.province[0]}` : ''}
-        </span>
+      <span className="min-w-0 truncate text-start font-sans text-sm font-bold leading-tight text-kv-text">
+        {user.fullName}
+      </span>
+      <span className="shrink-0 truncate text-end font-sans text-xs leading-tight text-kv-text-muted">
+        {roleProvince}
       </span>
     </Link>
   );
@@ -101,12 +105,12 @@ function StatusDonut({
                 nameKey="label"
                 cx="50%"
                 cy="50%"
-                innerRadius="55%"
-                outerRadius="82%"
-                paddingAngle={3}
-                cornerRadius={6}
-                stroke="var(--kv-surface)"
-                strokeWidth={3}
+                innerRadius="64%"
+                outerRadius="78%"
+                paddingAngle={0}
+                cornerRadius={0}
+                stroke="none"
+                strokeWidth={0}
                 isAnimationActive
                 animationDuration={700}
                 animationEasing="ease-out"
@@ -135,7 +139,7 @@ function StatusDonut({
           </ResponsiveContainer>
         ) : (
           <div className="flex size-full items-center justify-center">
-            <div className="size-[70%] rounded-full border-[14px] border-kv-surface-muted sm:border-[16px] lg:border-[18px]" />
+            <div className="size-[70%] rounded-full border-[8px] border-kv-surface-muted sm:border-[9px] lg:border-[10px]" />
           </div>
         )}
       </div>
@@ -168,7 +172,7 @@ export function WorkbenchOnboardingApprovalsBox({
       aria-labelledby="dashboard-onboarding-approvals-title"
       style={style}
       className={cn(
-        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group shadow-kv-soft',
+        'flex min-h-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface px-kv-group py-kv-group shadow-kv-soft',
         className
       )}
     >
@@ -205,11 +209,11 @@ export function WorkbenchOnboardingApprovalsBox({
           className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
         />
       ) : (
-        <div className="grid min-h-0 w-max max-w-full flex-1 grid-cols-1 overflow-hidden sm:grid-cols-[minmax(16rem,max-content)_auto] sm:items-stretch">
+        <div className="grid min-h-0 w-max max-w-full grid-cols-1 overflow-hidden sm:grid-cols-[minmax(16rem,max-content)_auto] sm:items-start">
           {/* RTL: ستون اول راست = لیست؛ ستون دوم چپ = نمودار + راهنما */}
           <aside
             aria-label="آخرین کاربران در انتظار بررسی"
-            className="order-2 min-h-0 min-w-0 w-[18rem] max-w-full overflow-hidden sm:order-1 sm:pe-2"
+            className="order-2 min-h-0 min-w-0 w-[18rem] max-w-full overflow-hidden sm:order-1 sm:pe-4"
           >
             {summary.pendingPreview.length === 0 ? (
               <KvEmptyState
@@ -217,7 +221,7 @@ export function WorkbenchOnboardingApprovalsBox({
                 className="min-h-0 py-1"
               />
             ) : (
-              <ul className="flex h-full min-h-0 list-none flex-col divide-y divide-kv-border-muted overflow-y-auto [scrollbar-width:thin]">
+              <ul className="flex min-h-0 list-none flex-col divide-y divide-kv-border-muted overflow-y-auto [scrollbar-width:thin]">
                 {summary.pendingPreview.map((user) => (
                   <li key={user.id}>
                     <PendingUserRow user={user} />
@@ -227,7 +231,7 @@ export function WorkbenchOnboardingApprovalsBox({
             )}
           </aside>
 
-          <div className="order-1 flex min-h-0 min-w-0 flex-col items-center justify-center gap-2 border-t border-kv-border pt-2 sm:order-2 sm:border-s sm:border-t-0 sm:flex-row sm:items-center sm:gap-2 sm:ps-2 sm:pt-0">
+          <div className="order-1 flex min-h-0 min-w-0 flex-col items-center gap-2 border-t border-kv-border pt-2 sm:order-2 sm:self-start sm:border-s sm:border-t-0 sm:flex-row sm:items-center sm:gap-2 sm:ps-2 sm:pt-0 sm:pb-0">
             <StatusDonut
               segments={summary.segments}
               total={summary.total}
