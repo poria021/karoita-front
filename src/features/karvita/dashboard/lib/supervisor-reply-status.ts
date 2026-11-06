@@ -338,9 +338,12 @@ export function pendingHeatCardStyle(factor: number): {
   const sat = 58 + factor * 10;
   const light = 96 - factor * 6;
   // جوهر: همان hue، sat/l از توکن‌های --kv-monitor-ink-s / -l
+  // eslint-disable-next-line no-restricted-syntax -- طیف دینامیک pending؛ sat/l از توکن
   const ink = `hsl(${hue} var(--kv-monitor-ink-s) var(--kv-monitor-ink-l))`;
   return {
+    // eslint-disable-next-line no-restricted-syntax -- طیف دینامیک pending
     backgroundColor: `hsl(${hue} ${sat}% ${light}%)`,
+    // eslint-disable-next-line no-restricted-syntax -- طیف دینامیک pending
     borderColor: `hsl(${hue} ${sat}% ${light - 14}%)`,
     color: ink,
     '--kv-monitor-ink': ink,
