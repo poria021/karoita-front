@@ -8,7 +8,6 @@ import {
   type DashboardWidgetId,
 } from '../lib/dashboard-widgets';
 import { DashboardLearnerGradesChart } from './DashboardLearnerGradesChart';
-import { WorkbenchActiveTermStatusBox } from './WorkbenchActiveTermStatusBox';
 import { WorkbenchWelcomeBox } from './WorkbenchWelcomeBox';
 
 type DashboardWidgetGridProps = {
@@ -68,8 +67,6 @@ function DashboardWidget({
       );
     case 'learner_grades':
       return <DashboardLearnerGradesChart />;
-    case 'active_term_status':
-      return <WorkbenchActiveTermStatusBox />;
     default: {
       const _exhaustive: never = id;
       return _exhaustive;

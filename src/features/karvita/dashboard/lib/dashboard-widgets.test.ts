@@ -51,14 +51,12 @@ describe('getDashboardWidgets', () => {
     ]);
   });
 
-  it('adds active term status under bulletins for senior admins', () => {
+  it('keeps senior admin workbench inside bulletins board (no separate widgets)', () => {
     expect(getDashboardWidgets('super_admin')).toEqual([
       { id: 'bulletins', span: 'full' },
-      { id: 'active_term_status', span: 'full' },
     ]);
     expect(getDashboardWidgets('assistant_admin')).toEqual([
       { id: 'bulletins', span: 'full' },
-      { id: 'active_term_status', span: 'full' },
     ]);
   });
 });
