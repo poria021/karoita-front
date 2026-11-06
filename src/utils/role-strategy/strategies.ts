@@ -75,7 +75,6 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     kind: 'group',
     title: 'مدیریت سازمانی',
     icon: 'fa-network-wired',
-    defaultOpen: true,
     children: [
       {
         title: 'ساختار سازمانی',
@@ -93,7 +92,6 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     kind: 'group',
     title: 'مدیریت ترم و سرفصل',
     icon: 'fa-screwdriver-wrench',
-    defaultOpen: true,
     children: [
       {
         title: 'تعریف دروس',
@@ -144,7 +142,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         kind: 'group',
         title: 'انتخاب واحد کارورزی',
         icon: 'fa-graduation-cap',
-        defaultOpen: true,
         children: [
           {
             title: 'کارورزی ۱',
@@ -194,7 +191,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         kind: 'group',
         title: 'انتخاب واحد کارآموزی',
         icon: 'fa-graduation-cap',
-        defaultOpen: true,
         children: [
           {
             title: 'کارآموزی ۱',

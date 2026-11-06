@@ -125,7 +125,6 @@ export function withEvaluationSubModules(
       title: entry.title,
       icon: entry.icon,
       children,
-      defaultOpen: true,
     };
     return group;
   });

@@ -11,10 +11,12 @@ import {
 import {
   kvShellFocusRingClassName,
   kvShellRailLabelMaxClassName,
+  kvShellRailLabelMotionClassName,
   kvShellRailNavTypeClassName,
   type KvShellRailTextSize,
 } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
+import { useUIStore } from '@/store/useUIStore';
 import type { SidebarMenuGroup } from '@/utils/RoleStrategyMap';
 import { resolveActiveSidebarPath } from '@/utils/role-strategy/sidebar-active';
 import { faIcons } from '@/utils/iconMap';
@@ -52,36 +54,31 @@ export function SidebarNavGroup({
         pathname,
         search
       );
-  const childActive = activePath !== null;
-  // گروه با زیرماژول از ابتدا باز باشد تا فرزندان دیده شوند.
-  const [open, setOpen] = useState(true);
-  const [prevChildActive, setPrevChildActive] = useState(childActive);
+  // بسته شروع می‌شود. باز و بسته فقط با کلیک همین نشست است و در persist ذخیره نمی‌شود.
+  const [open, setOpen] = useState(false);
   const groupId = useId();
-
-  if (childActive !== prevChildActive) {
-    setPrevChildActive(childActive);
-    if (childActive) setOpen(true);
-  }
 
   const groupIcon = resolveSidebarIcon(group.icon);
   const disclosureOpen = locked ? false : open;
+  const expandSidebar = useUIStore((state) => state.toggleSidebarCollapsed);
 
-  // ریل جمع‌شده: فرزندان را لینک آیکن کن تا هر دو ماژول در دسترس بمانند.
+  // ریل جمع‌شدهٔ دسکتاپ: فقط سر ماژول (نه همهٔ زیرآیتم‌ها). کلیک → باز شدن ریل + افشای گروه.
   if (isCollapsed) {
     return (
       <div className="space-y-kv-inline max-lg:contents lg:block">
         <div className="hidden lg:contents">
-          {group.children.map((child) => (
-            <SidebarNavLink
-              key={child.path}
-              item={child}
-              isActive={activePath === child.path}
-              isCollapsed
-              locked={locked || Boolean(lockedPaths?.has(child.path)) || Boolean(child.disabled)}
-              onNavigate={onNavigate}
-              textSize={textSize}
-            />
-          ))}
+          <CollapsedGroupHeader
+            title={group.title}
+            groupIcon={groupIcon}
+            childActive={!locked && activePath !== null}
+            locked={locked}
+            textSize={textSize}
+            onActivate={() => {
+              if (locked) return;
+              setOpen(true);
+              expandSidebar();
+            }}
+          />
         </div>
         <div className="space-y-kv-nav-tight lg:hidden">
           <ExpandedGroupChrome
@@ -122,6 +119,67 @@ export function SidebarNavGroup({
       isCollapsed={false}
       textSize={textSize}
     />
+  );
+}
+
+function CollapsedGroupHeader({
+  title,
+  groupIcon,
+  childActive,
+  locked,
+  textSize,
+  onActivate,
+}: {
+  title: string;
+  groupIcon: IconDefinition;
+  childActive: boolean;
+  locked: boolean;
+  textSize: KvShellRailTextSize;
+  onActivate: () => void;
+}) {
+  const iconTone = locked
+    ? 'text-kv-text-faint'
+    : childActive
+      ? 'text-kv-brand'
+      : 'text-kv-text-faint group-hover:text-kv-text-subtle';
+
+  return (
+    <button
+      type="button"
+      aria-disabled={locked || undefined}
+      disabled={locked}
+      aria-label={locked ? lockedNavAriaLabel(title) : title}
+      title={locked ? lockedNavTitle(title) : title}
+      onClick={onActivate}
+      className={cn(
+        'group flex w-full items-center rounded-kv-control transition-[padding,color,background-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+        kvShellRailNavTypeClassName[textSize],
+        'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
+        'justify-start px-3.5 py-2.5 lg:justify-center lg:px-0',
+        locked
+          ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
+          : childActive
+            ? 'cursor-pointer border border-kv-brand-border bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
+            : 'cursor-pointer border border-transparent font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
+      )}
+    >
+      <span className="flex min-w-0 items-center">
+        <FaIcon
+          icon={groupIcon}
+          size="sm"
+          className={cn('w-5 shrink-0 text-center transition-colors', iconTone)}
+        />
+        <span
+          className={cn(
+            'ms-3 inline-block whitespace-nowrap opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0',
+            kvShellRailLabelMaxClassName[textSize],
+            kvShellRailLabelMotionClassName
+          )}
+        >
+          {title}
+        </span>
+      </span>
+    </button>
   );
 }
 

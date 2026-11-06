@@ -16,8 +16,6 @@ export interface SidebarMenuGroup {
   title: string;
   icon: string;
   children: SidebarMenuItem[];
-  /** گروه با زیرماژول از ابتدا باز است؛ سایدبار هم بدون این فلگ باز شروع می‌شود. */
-  defaultOpen?: boolean;
 }
 
 export type SidebarMenuEntry = SidebarMenuItem | SidebarMenuGroup;
