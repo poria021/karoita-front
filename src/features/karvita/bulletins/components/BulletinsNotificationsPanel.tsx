@@ -146,18 +146,33 @@ export function BulletinsNotificationsPanel({
                         />
                       )}
                       <div className="min-w-0 flex-1 break-words pe-kv-pair">
-                        <KvTypography
-                          variant="caption"
-                          weight="bold"
-                          as="span"
-                          className={
-                            isUnread
-                              ? 'block text-kv-text'
-                              : 'block text-kv-text-secondary'
-                          }
-                        >
-                          {notification.title}
-                        </KvTypography>
+                        <div className="flex flex-wrap items-center gap-x-kv-pair gap-y-kv-micro">
+                          <KvTypography
+                            variant="caption"
+                            weight="bold"
+                            as="span"
+                            className={
+                              isUnread
+                                ? 'text-kv-text'
+                                : 'text-kv-text-secondary'
+                            }
+                          >
+                            {notification.title}
+                          </KvTypography>
+                          {isUnread ? (
+                            <KvButton
+                              type="button"
+                              color="cta"
+                              appearance="text"
+                              size="xs"
+                              onClick={() => {
+                                void markAsRead(notification.id);
+                              }}
+                            >
+                              خواندم
+                            </KvButton>
+                          ) : null}
+                        </div>
                         {showBody ? (
                           <KvTypography
                             variant="caption"
@@ -169,35 +184,20 @@ export function BulletinsNotificationsPanel({
                           </KvTypography>
                         ) : null}
                       </div>
-                      <div className="flex shrink-0 flex-col items-end gap-kv-micro">
-                        {notification.createdAt ? (
-                          <span
-                            className="origin-top-end scale-[0.85] whitespace-nowrap opacity-70"
-                            dir="rtl"
+                      {notification.createdAt ? (
+                        <span
+                          className="origin-top-end shrink-0 scale-[0.85] whitespace-nowrap opacity-70"
+                          dir="rtl"
+                        >
+                          <KvTypography
+                            variant="overline"
+                            tone="disabled"
+                            as="span"
                           >
-                            <KvTypography
-                              variant="overline"
-                              tone="disabled"
-                              as="span"
-                            >
-                              {formatNotificationTime(notification.createdAt)}
-                            </KvTypography>
-                          </span>
-                        ) : null}
-                        {isUnread ? (
-                          <KvButton
-                            type="button"
-                            color="cta"
-                            appearance="text"
-                            size="xs"
-                            onClick={() => {
-                              void markAsRead(notification.id);
-                            }}
-                          >
-                            خواندم
-                          </KvButton>
-                        ) : null}
-                      </div>
+                            {formatNotificationTime(notification.createdAt)}
+                          </KvTypography>
+                        </span>
+                      ) : null}
                     </div>
                   </li>
                 );

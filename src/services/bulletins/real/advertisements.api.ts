@@ -33,14 +33,36 @@ export type ListAdminAdsQuery = {
   format?: NestAdvertisementFormat;
 };
 
+/** حفاظ اگر بک‌اند همیشه `hasNextPage: true` برگرداند. */
+const VISIBLE_ADS_MAX_PAGES = 50;
+
 export const advertisementsApi = {
-  /** GET /api/v1/advertisements — هر پاسخ یک impression ثبت می‌کند. */
-  listVisible(query: ListVisibleAdsQuery): Promise<NestPublicAdvertisementDto[]> {
-    const params = new URLSearchParams({
+  /**
+   * GET /api/v1/advertisements — هر پاسخ یک impression ثبت می‌کند.
+   * اگر بک‌اند صفحه‌بندی نداشته باشد آرایهٔ کامل می‌آید و همان نمایش داده می‌شود؛
+   * اگر `{ data, hasNextPage }` بدهد، تا تمام شدن صفحات ادامه می‌دهیم.
+   */
+  async listVisible(query: ListVisibleAdsQuery): Promise<NestPublicAdvertisementDto[]> {
+    const base = new URLSearchParams({
       type: query.type,
       placement: query.placement,
     });
-    return apiClient.getJson<NestPublicAdvertisementDto[]>(`${PUBLIC}?${params}`);
+    const first = await apiClient.getJson<unknown>(`${PUBLIC}?${base}`);
+    if (Array.isArray(first)) return first as NestPublicAdvertisementDto[];
+
+    const all: NestPublicAdvertisementDto[] = [];
+    let raw: unknown = first;
+    for (let page = 1; page <= VISIBLE_ADS_MAX_PAGES; page += 1) {
+      const { data, hasNextPage } = parseNestPagedList<NestPublicAdvertisementDto>(raw);
+      all.push(...data);
+      if (!hasNextPage || data.length === 0) break;
+      const params = new URLSearchParams(base);
+      params.set('page', String(page + 1));
+      params.set('limit', '100');
+      raw = await apiClient.getJson<unknown>(`${PUBLIC}?${params}`);
+      if (Array.isArray(raw)) return raw as NestPublicAdvertisementDto[];
+    }
+    return all;
   },
 
   /** POST /api/v1/advertisements/{id}/clicks */

@@ -35,7 +35,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 const NOTIFICATIONS_OPEN_COOLDOWN_MS = 30_000;
 
 /**
- * منوی اعلان‌های هدر — فقط عنوان + بولت خوانده‌نشده + «مشاهده».
+ * منوی اعلان‌های هدر — عنوان + بولت خوانده‌نشده؛ لینک به صفحهٔ اعلان‌ها.
  */
 export function HeaderNotificationsMenu() {
   const router = useRouter();
@@ -153,7 +153,7 @@ export function HeaderNotificationsMenu() {
                   goToNotificationsPage();
                 }}
               >
-                مشاهده همه
+                صفحه اعلان‌ها
               </Link>
             </KvButton>
           ) : null}
@@ -215,7 +215,7 @@ export function HeaderNotificationsMenu() {
                     className="size-1.5 shrink-0 rounded-full bg-kv-danger"
                     aria-hidden="true"
                   />
-                  <span className="min-w-0 flex-1 break-words pe-kv-pair">
+                  <span className="min-w-0 flex-1 break-words">
                     <KvTypography
                       variant="caption"
                       tone="muted"
@@ -226,16 +226,6 @@ export function HeaderNotificationsMenu() {
                       {notification.title}
                     </KvTypography>
                   </span>
-                  <KvButton
-                    type="button"
-                    color="cta"
-                    appearance="text"
-                    size="xs"
-                    className="shrink-0"
-                    onClick={goToNotificationsPage}
-                  >
-                    مشاهده
-                  </KvButton>
                 </div>
               </div>
             ))

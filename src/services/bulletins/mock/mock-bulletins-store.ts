@@ -5,7 +5,7 @@ import { useUserStore } from '@/store/useUserStore';
 import type { Bulletin, BulletinAuthor } from '@/types/bulletins';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
-const STORAGE_KEY = 'karvita_mock_bulletins_v1';
+const STORAGE_KEY = 'karvita_mock_bulletins_v2';
 
 export const BULLETINS_STORAGE_QUOTA_ERROR =
   'حجم تصاویر تبلیغات زیاد است و در حافظهٔ مرورگر ذخیره نشد. تصویر کوچک‌تری انتخاب کنید یا تبلیغ قدیمی را حذف کنید.';
@@ -37,6 +37,7 @@ function buildSeed(): Bulletin[] {
       kind: 'advertisement',
       title: 'وبینار آشنایی با سامانهٔ کارویتا',
       body: 'وبینار آموزشی کار با ماژول‌های گزارش روزانه و ارزیابی، ویژهٔ همهٔ کاربران سامانه.',
+      linkUrl: 'https://example.com/webinar',
       authorRole: 'super_admin',
       authorName: 'مدیر ارشد',
       audienceRoles: ['central_organization', ...SEED_FULL_AUDIENCE],
@@ -45,6 +46,33 @@ function buildSeed(): Bulletin[] {
       isActive: true,
       createdAt: at(30),
       updatedAt: at(30),
+    },
+    {
+      id: 'bul_seed_ad_2',
+      kind: 'advertisement',
+      title: 'راهنمای تکمیل پروفایل کارورزی',
+      body: 'پیش از ثبت گزارش روزانه، اطلاعات پروفایل و محل کارورزی را کامل کنید.',
+      linkUrl: 'https://example.com/profile-guide',
+      authorRole: 'super_admin',
+      authorName: 'مدیر ارشد',
+      audienceRoles: ['central_organization', ...SEED_FULL_AUDIENCE],
+      provinces: [],
+      isActive: true,
+      createdAt: at(18),
+      updatedAt: at(18),
+    },
+    {
+      id: 'bul_seed_ad_3',
+      kind: 'advertisement',
+      title: 'مهلت ارسال گزارش هفتگی',
+      body: 'گزارش هفتگی را تا پایان روز پنج‌شنبه در سامانه ثبت کنید تا برای تأیید ارسال شود.',
+      authorRole: 'super_admin',
+      authorName: 'مدیر ارشد',
+      audienceRoles: ['central_organization', ...SEED_FULL_AUDIENCE],
+      provinces: [],
+      isActive: true,
+      createdAt: at(8),
+      updatedAt: at(8),
     },
     {
       id: 'bul_seed_ann_1',
