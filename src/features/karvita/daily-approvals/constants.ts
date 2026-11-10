@@ -9,7 +9,10 @@ import type {
 import { evaluationCourseFilterId } from '@/services/syllabus-config/course-catalog';
 import type { CourseDefinition } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
-import { toPersianDigits } from '@/utils/persianDigits';
+import {
+  persianToEnglishDigits,
+  toPersianDigits,
+} from '@/utils/persianDigits';
 
 /** حدنصاب قبولی گزارش روی مقیاس ۰–۱۰۰ (مرجع mock). */
 export const DAILY_APPROVAL_PASSING_SCORE = 70;
@@ -134,16 +137,78 @@ export function getDailyApprovalCourseOptions(
   ];
 }
 
+/** عنوان برای تطبیق leaf کاتالوگ با درس ترم (ارقام فارسی/انگلیسی یکسان). */
+function normalizeFilterTitle(title: string): string {
+  return persianToEnglishDigits(title).replace(/\s+/g, ' ').trim();
+}
+
 /**
- * فیلتر درس حالت real: «همه» + یک گزینه برای هر lesson همان ترم (مقدار = `lessonId`).
- * درس تازه‌ای که مدیر ارشد بسازد بدون تغییر کد در فیلتر می‌آید.
+ * leafهای قابل فیلتر یک درس ماژول: زیرمجموعه‌ها، یا خود درس اگر زیرمجموعه ندارد.
+ */
+function evaluationLeavesOf(
+  courseModule: CourseDefinition
+): ReadonlyArray<{ id: string; title: string }> {
+  return courseModule.subModules.length > 0
+    ? courseModule.subModules
+    : [{ id: courseModule.id, title: courseModule.title }];
+}
+
+/**
+ * درس‌های ترم که به درس انتخاب‌شدهٔ ماژول (`?module=`) تعلق دارند.
+ * id زیرمجموعهٔ کاتالوگ (`original-lessons`) معمولاً با id درس ترم یکی نیست؛
+ * اول id، بعد عنوان نرمال‌شده — همان الگوی `findLessonForLeaf`.
+ */
+export function scopeRealCatalogCoursesToModule(
+  courses: readonly DailyApprovalCatalogCourse[],
+  courseModule: CourseDefinition | null
+): readonly DailyApprovalCatalogCourse[] {
+  if (!courseModule) return courses;
+  const leaves = evaluationLeavesOf(courseModule);
+  const ids = new Set(leaves.map((leaf) => leaf.id));
+  const titles = new Set(
+    leaves.map((leaf) => normalizeFilterTitle(leaf.title)).filter(Boolean)
+  );
+  return courses.filter(
+    (course) =>
+      ids.has(course.id) ||
+      ids.has(course.courseFilter) ||
+      titles.has(normalizeFilterTitle(course.title))
+  );
+}
+
+/**
+ * محدودهٔ `scopeKeys` حالت real: `lessonId`/`courseFilter` درس‌های ترمِ همان ماژول.
+ * وقتی `course === 'all'` فقط همین‌ها در لیست می‌مانند.
+ */
+export function evaluationRealScopeKeys(
+  courses: readonly DailyApprovalCatalogCourse[],
+  courseModule: CourseDefinition | null
+): string[] | undefined {
+  if (!courseModule) return undefined;
+  return scopeRealCatalogCoursesToModule(courses, courseModule).map(
+    (course) => course.courseFilter
+  );
+}
+
+/**
+ * فیلتر درس حالت real: فقط زیرمجموعه‌های درس انتخاب‌شدهٔ ماژول در همین ترم
+ * (مقدار = `lessonId`). بدون `courseModule` همهٔ درس‌های ترم می‌آید.
  */
 export function getRealDailyApprovalCourseOptions(
-  courses: readonly DailyApprovalCatalogCourse[]
+  courses: readonly DailyApprovalCatalogCourse[],
+  courseModule: CourseDefinition | null = null
 ): readonly DailyApprovalCourseOption[] {
+  const scoped = scopeRealCatalogCoursesToModule(courses, courseModule);
+  if (courseModule && courseModule.subModules.length === 0) {
+    return [{ value: 'all', label: toPersianDigits(courseModule.title) }];
+  }
+  const allLabel =
+    courseModule && courseModule.subModules.length > 0
+      ? 'همه زیرمجموعه‌ها'
+      : 'همه دروس';
   return [
-    { value: 'all', label: 'همه دروس' },
-    ...courses.map((course) => ({
+    { value: 'all', label: allLabel },
+    ...scoped.map((course) => ({
       value: course.courseFilter,
       label: toPersianDigits(course.title),
     })),
