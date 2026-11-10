@@ -373,6 +373,56 @@ describe('تعریف دروس (original-lessons)', () => {
     ]);
   });
 
+  it('POST با mainTitle تکراری در همان type رد می‌شود (هم‌رفتار Nest)', async () => {
+    await h.call('POST', '/api/v1/original-lessons', {
+      token,
+      body: {
+        type: 'semester',
+        data: [{ mainTitle: 'کاربست', lessons: [{ lessonTitle: 'کاربست ۱' }] }],
+      },
+    });
+    const duplicate = await h.call('POST', '/api/v1/original-lessons', {
+      token,
+      body: {
+        type: 'semester',
+        data: [{ mainTitle: 'کاربست', lessons: [{ lessonTitle: 'کاربست ۲' }] }],
+      },
+    });
+    expect(duplicate.status).toBe(400);
+    expect(duplicate.json).toMatchObject({
+      message: 'عنوان اصلی «کاربست» قبلاً تعریف شده است',
+    });
+  });
+
+  it('پس از ساخت با عنوان موقت، PATCH به mainTitle موجود زیرمجموعه را به گروه ملحق می‌کند', async () => {
+    await h.call('POST', '/api/v1/original-lessons', {
+      token,
+      body: {
+        type: 'semester',
+        data: [{ mainTitle: 'کاربست', lessons: [{ lessonTitle: 'کاربست ۱' }] }],
+      },
+    });
+    const staged = await h.call('POST', '/api/v1/original-lessons', {
+      token,
+      body: {
+        type: 'semester',
+        data: [{ mainTitle: '__kv_stg_test', lessons: [{ lessonTitle: 'کاربست ۲' }] }],
+      },
+    });
+    expect(staged.status).toBe(201);
+    const stagedId = (staged.json as Array<{ id: string }>)[0]!.id;
+    const joined = await h.call('PATCH', `/api/v1/original-lessons/${stagedId}`, {
+      token,
+      body: { mainTitle: 'کاربست' },
+    });
+    expect(joined.status).toBe(200);
+    expect(joined.json).toMatchObject({ mainTitle: 'کاربست', lessonTitle: 'کاربست ۲' });
+    const group = (
+      await h.call('GET', '/api/v1/original-lessons?mainTitle=کاربست', { token })
+    ).json as { data: Array<{ lessonTitle: string }> };
+    expect(group.data.map((row) => row.lessonTitle).sort()).toEqual(['کاربست ۱', 'کاربست ۲']);
+  });
+
   it('نوع نامعتبر ۴۲۲ است', async () => {
     const result = await h.call('POST', '/api/v1/original-lessons', {
       token,

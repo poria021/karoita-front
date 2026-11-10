@@ -155,6 +155,9 @@ export type CourseWritePlan = {
  * زیرمجموعه‌ای که `id` ردیف موجود را دارد PATCH می‌شود (فقط فیلدهای تغییرکرده)،
  * بدون `id` ردیف تازه است، و ردیفی که در فرم نیست حذف می‌شود.
  * درس بدون زیرمجموعه روی ردیف اولِ موجود می‌نشیند تا حذف و ساخت دوباره لازم نشود.
+ *
+ * اگر `create` پر باشد، لایهٔ write به‌خاطر یکتایی Nest کل گروه را
+ * یک‌جا بازسازی می‌کند (`replaceCourseGroupRows`)؛ شناسهٔ leafها عوض می‌شود.
  */
 export function planCourseUpdate(
   rows: readonly NestOriginalLesson[],
