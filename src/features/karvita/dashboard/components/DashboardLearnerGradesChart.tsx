@@ -6,7 +6,11 @@ import { DAILY_APPROVAL_PASSING_SCORE } from '@/features/karvita/daily-approvals
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { cn } from '@/lib/utils';
-import { WORKBENCH_FULL_SPAN } from '@/lib/workbench-grid';
+import {
+  WORKBENCH_FULL_ROW_PLACEMENT,
+  WORKBENCH_LEARNER_GRADES_INNER_CLASS,
+  workbenchCellClass,
+} from '@/lib/workbench-grid';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 
 import { useLearnerWorkbenchSnapshot } from '../hooks/useLearnerWorkbenchSnapshot';
@@ -18,8 +22,7 @@ import { WorkbenchWeekStatusBox } from './WorkbenchWeekStatusBox';
 import { WorkbenchWeeklyGradesBox } from './WorkbenchWeeklyGradesBox';
 
 /**
- * ردیف میز کار فراگیر: وضعیت هفته‌ها | روند نمره هفتگی.
- * فقط دانشجو و مهارت‌آموز از ویجت `learner_grades` این را می‌بینند.
+ * ردیف میز کار فراگیر: وضعیت هفته‌ها | روند نمره هفتگی — سلول تمام‌عرض شِل.
  */
 export function DashboardLearnerGradesChart() {
   const desk = useLearnerWorkbenchSnapshot();
@@ -48,8 +51,8 @@ export function DashboardLearnerGradesChart() {
   return (
     <div
       className={cn(
-        WORKBENCH_FULL_SPAN,
-        'grid grid-cols-1 gap-kv-group lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] lg:items-stretch'
+        workbenchCellClass(WORKBENCH_FULL_ROW_PLACEMENT),
+        WORKBENCH_LEARNER_GRADES_INNER_CLASS
       )}
     >
       <WorkbenchWeekStatusBox highlights={highlights} />

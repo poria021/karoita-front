@@ -17,8 +17,7 @@ type DashboardWidgetGridProps = {
 };
 
 /**
- * سلول‌های ویجت میز کار برای قرار گرفتن داخل `WORKBENCH_GRID_CLASS`.
- * خودِ گرید بیرونی در `WorkbenchHomeClient` است تا میان‌برها هم همان ریتم را بگیرند.
+ * ویجت‌های میز کار — فرزندان مستقیم شِل ۱۲ستونهٔ `WorkbenchHomeClient`.
  */
 export function DashboardWidgetGrid({
   role,

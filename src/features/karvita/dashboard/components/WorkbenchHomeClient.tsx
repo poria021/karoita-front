@@ -1,6 +1,8 @@
 'use client';
 
 import { OnboardingChecklist } from '@/components/shared/shell/OnboardingChecklist';
+import { workbenchBoardShowsAd } from '@/features/karvita/bulletins/components/DashboardBulletinsBoard';
+import { useDashboardBulletins } from '@/features/karvita/bulletins/hooks/useDashboardBulletins';
 import { useUserStore } from '@/store/useUserStore';
 import {
   getOnboardingProgress,
@@ -8,12 +10,17 @@ import {
 } from '@/utils/onboardingProgress';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 
-import { WORKBENCH_FULL_SPAN, WORKBENCH_GRID_CLASS } from '@/lib/workbench-grid';
+import {
+  WORKBENCH_FULL_ROW_PLACEMENT,
+  workbenchCellClass,
+  workbenchShellClass,
+} from '@/lib/workbench-grid';
+import type { UserRole } from '@/types/auth';
 
 import { DashboardWidgetGrid } from './DashboardWidgetGrid';
 
 /**
- * میز کار سازمانی آرام — خوش‌آمد، اطلاعیه‌ها، تبلیغ و ویجت‌های نقش.
+ * میز کار — شِل ۱۲ستونه؛ باکس‌ها با col/row-span از نقشهٔ گرید.
  */
 export function WorkbenchHomeClient() {
   const activeUser = useUserStore((state) => state.activeUser);
@@ -42,27 +49,54 @@ export function WorkbenchHomeClient() {
     activeUser.role === 'student' || activeUser.role === 'skill_learner';
 
   return (
-    <div className={WORKBENCH_GRID_CLASS}>
-      {/* دانشجو/مهارت‌آموز: خوش‌آمد بالاتر از چک‌لیست و بقیهٔ ویجت‌ها */}
+    <WorkbenchHomeShell
+      role={activeUser.role}
+      learnerWorkbench={learnerWorkbench}
+      welcomeName={displayName}
+      welcomeOrgLine={welcomeOrgLine || null}
+      progress={progress}
+    />
+  );
+}
+
+function WorkbenchHomeShell({
+  role,
+  learnerWorkbench,
+  welcomeName,
+  welcomeOrgLine,
+  progress,
+}: {
+  role: UserRole;
+  learnerWorkbench: boolean;
+  welcomeName: string;
+  welcomeOrgLine: string | null;
+  progress: ReturnType<typeof getOnboardingProgress> | null;
+}) {
+  const data = useDashboardBulletins(role);
+  const showAd = workbenchBoardShowsAd(role, data.ads);
+  const fullRowClass = workbenchCellClass(WORKBENCH_FULL_ROW_PLACEMENT);
+
+  return (
+    <div className={workbenchShellClass(showAd)}>
       {learnerWorkbench ? (
         <DashboardWidgetGrid
-          role={activeUser.role}
-          welcomeName={displayName}
-          welcomeOrgLine={welcomeOrgLine || null}
+          role={role}
+          welcomeName={welcomeName}
+          welcomeOrgLine={welcomeOrgLine}
         />
       ) : null}
 
       {progress ? (
-        <div className={WORKBENCH_FULL_SPAN}>
+        <div className={fullRowClass}>
           <OnboardingChecklist progress={progress} />
         </div>
       ) : null}
 
       {!learnerWorkbench ? (
         <DashboardWidgetGrid
-          role={activeUser.role}
-          welcomeName={displayName}
-          welcomeOrgLine={welcomeOrgLine || null}
+          role={role}
+          welcomeName={welcomeName}
+          welcomeOrgLine={welcomeOrgLine}
         />
       ) : null}
     </div>

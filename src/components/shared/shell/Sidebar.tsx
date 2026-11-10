@@ -153,6 +153,11 @@ export function Sidebar() {
             isCollapsed={isCollapsed}
             onNavigate={closeMobileSidebar}
           />
+
+          <div className="hidden shrink-0 items-center justify-center gap-kv-inline border-t border-kv-border-muted p-kv-group lg:flex">
+            <KarvitaBrandMark className="p-1" />
+            {!isCollapsed && <HeaderBrandWordmark textSize="legible" />}
+          </div>
         </aside>
 
         <KvButton

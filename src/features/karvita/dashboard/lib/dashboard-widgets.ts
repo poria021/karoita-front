@@ -10,10 +10,10 @@ import type { UserRole } from '@/types/auth';
 export type DashboardWidgetId = 'bulletins' | 'learner_grades';
 
 /**
- * پهنای منطقی ویجت در گرید ۱۲ستونهٔ میز کار (`@/lib/workbench-grid`).
- * رندر واقعی ستون‌ها داخل خود ویجت است (مثلاً bulletins سه سلول می‌سازد).
+ * ویجت سطح بالا معمولاً ردیف کامل است؛ جای هر باکس داخلش از
+ * `workbenchLayoutForRole` در `@/lib/workbench-grid` می‌آید.
  */
-export type DashboardWidgetSpan = 'third' | 'two-thirds' | 'full';
+export type DashboardWidgetSpan = 'full';
 
 export type DashboardWidget = {
   id: DashboardWidgetId;
