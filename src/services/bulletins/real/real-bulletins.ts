@@ -100,6 +100,20 @@ async function listVisibleDeduped(
 }
 
 export async function listRealDashboardBulletins(): Promise<Bulletin[]> {
+  const role = useUserStore.getState().activeUser?.role;
+  // مدیر ارشد مخاطب اطلاعیه نیست؛ روی میز کار همهٔ اطلاعیه‌های فعال ادمین را می‌بیند.
+  if (role === 'super_admin') {
+    const [{ idToTitle }, rows] = await Promise.all([
+      provinceMapsBestEffort(),
+      advertisementsApi.listManaged(),
+    ]);
+    return sortBulletins(
+      rows
+        .map((row) => mapAdminAdvertisement(row, idToTitle))
+        .filter((row) => row.kind === 'announcement' && row.isActive !== false)
+    );
+  }
+
   const [ads, infos] = await Promise.all([
     listVisibleDeduped('ads', DASHBOARD_AD_PLACEMENTS),
     listVisibleDeduped('info', DASHBOARD_AD_PLACEMENTS),

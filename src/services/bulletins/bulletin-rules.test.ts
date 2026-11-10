@@ -275,7 +275,7 @@ describe('bulletin-rules', () => {
   it('every panel gets an ad and an announcements source on the dashboard', () => {
     expect(dashboardBulletinSources('super_admin')).toEqual({
       advertisement: 'published',
-      announcement: 'published',
+      announcement: 'received',
     });
     expect(dashboardBulletinSources('assistant_admin')).toEqual({
       advertisement: 'published',
