@@ -106,7 +106,9 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     entity: 'profAtt',
     placeholder: 'نام یا کد استادی',
     fac: true,
-    first: ['q', 'term', 'province', 'city', 'faculty'],
+    period: true,
+    periodModes: false,
+    first: ['q', 'province', 'city', 'faculty'],
     more: [],
     desc: {
       term: 'درصد حضور اساتید راهنما در جلسات نیم‌سال انتخاب‌شده.',
@@ -256,6 +258,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     entity: 'provPerf',
     placeholder: 'نام استان یا رئیس',
     period: true,
+    periodModes: false,
     first: ['q'],
     more: [],
     desc: {

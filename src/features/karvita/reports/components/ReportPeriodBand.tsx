@@ -30,9 +30,9 @@ export function ReportPeriodBand({ page }: ReportPeriodBandProps) {
             if (value === 'term' || value === 'module') page.setMode(value);
           }}
         >
-          <AppTabsList aria-label="نوع دوره">
-            <AppTabsTrigger value="term">ترمی</AppTabsTrigger>
-            <AppTabsTrigger value="module">پودمانی</AppTabsTrigger>
+          <AppTabsList aria-label="نظام دوره">
+            <AppTabsTrigger value="term">نظام ترمی</AppTabsTrigger>
+            <AppTabsTrigger value="module">نظام پودمانی</AppTabsTrigger>
           </AppTabsList>
         </AppTabs>
       ) : null}
