@@ -1,3 +1,8 @@
+import {
+  isReportSlug,
+  REPORT_PAGE_DEFS,
+  themeForSlug,
+} from '@/features/karvita/reports/constants';
 import { courseMaterialsLevel, RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import {
@@ -78,6 +83,36 @@ export function getModuleBreadcrumb(
 
   if (path === home.path) {
     return [{ label: home.title }];
+  }
+
+  const adminReportsBase = RouteService.karvita.reports();
+  if (
+    path === adminReportsBase ||
+    path.startsWith(`${adminReportsBase}/`)
+  ) {
+    const slug = path.slice(adminReportsBase.length + 1);
+    const crumbs: ModuleBreadcrumbItem[] = [{ label: 'گزارش‌گیری' }];
+    if (slug && isReportSlug(slug)) {
+      const theme = themeForSlug(slug);
+      if (theme) {
+        crumbs.push({
+          label: theme.title,
+          href: RouteService.karvita.reports(theme.slugs[0]),
+        });
+      }
+      crumbs.push({ label: REPORT_PAGE_DEFS[slug].title });
+    }
+    return crumbs;
+  }
+
+  const orgReportsBase = RouteService.karvita.orgReports();
+  if (path === orgReportsBase || path.startsWith(`${orgReportsBase}/`)) {
+    const slug = path.slice(orgReportsBase.length + 1);
+    const crumbs: ModuleBreadcrumbItem[] = [{ label: 'گزارش‌گیری' }];
+    if (slug && isReportSlug(slug)) {
+      crumbs.push({ label: REPORT_PAGE_DEFS[slug].title });
+    }
+    return crumbs;
   }
 
   for (const entry of menu) {

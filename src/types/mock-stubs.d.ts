@@ -33,6 +33,16 @@ declare module '@/services/admin-user-creation/mock/*' {
   export = stub;
 }
 
+declare module '@/services/report-access/mock/*' {
+  const stub: _MockStub;
+  export = stub;
+}
+
+declare module '@/services/reports/mock/*' {
+  const stub: _MockStub;
+  export = stub;
+}
+
 declare module '@/services/internship-enrollment/mock/*' {
   const stub: _MockStub;
   export = stub;

@@ -1,3 +1,7 @@
+import {
+  isReportSlug,
+  REPORT_PAGE_DEFS,
+} from '@/features/karvita/reports/constants';
 import { PlannedRoutes } from '@/services/planned-routes';
 import { courseMaterialsLevel, RouteService } from '@/services/route.service';
 import {
@@ -178,6 +182,24 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'پنل تعریف دستی حساب‌های ارشد، سازمان‌های مرکزی، پردیس‌ها و دستیاران اجرایی سیستم.',
     icon: 'fa-user-plus',
   },
+  [RouteService.karvita.reportAccess()]: {
+    title: 'دسترسی گزارش‌ها',
+    description:
+      'تعیین گزارش‌های مجاز هر نقش سازمانی و امکان مقایسه، با بازبینی قبل از ثبت نهایی.',
+    icon: 'fa-user-shield',
+  },
+  [RouteService.karvita.reports()]: {
+    title: 'گزارش‌گیری',
+    description:
+      'گزارش‌های لیستی، حضور و غیاب و عملکرد سازمانی برای مدیر ارشد.',
+    icon: 'fa-file-invoice',
+  },
+  [RouteService.karvita.orgReports()]: {
+    title: 'گزارش‌گیری',
+    description:
+      'گزارش‌های لیستی، حضور و غیاب و عملکرد سازمانی برای سازمان مرکزی.',
+    icon: 'fa-file-invoice',
+  },
   [RouteService.karvita.landingCms()]: {
     title: 'مدیریت محتوای لندینگ',
     description:
@@ -285,6 +307,32 @@ export function getModuleMeta(
       return DASHBOARD_META_BY_ROLE[role]!;
     }
     return MODULE_META_BY_PATH[path] ?? FALLBACK_META;
+  }
+
+  const reportsBases = [
+    RouteService.karvita.reports(),
+    RouteService.karvita.orgReports(),
+  ] as const;
+  for (const reportsBase of reportsBases) {
+    if (path === reportsBase || path.startsWith(`${reportsBase}/`)) {
+      const slug = path.slice(reportsBase.length + 1);
+      if (slug && isReportSlug(slug)) {
+        const def = REPORT_PAGE_DEFS[slug];
+        return {
+          title: def.title,
+          description: def.desc.term,
+          icon: def.icon,
+        };
+      }
+      return (
+        MODULE_META_BY_PATH[reportsBase] ?? {
+          title: 'گزارش‌گیری',
+          description:
+            'گزارش‌های لیستی، حضور و غیاب و عملکرد سازمانی.',
+          icon: 'fa-file-invoice',
+        }
+      );
+    }
   }
 
   const exact = MODULE_META_BY_PATH[path];

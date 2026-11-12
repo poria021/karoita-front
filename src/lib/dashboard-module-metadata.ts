@@ -9,6 +9,8 @@ export type DashboardModuleKey =
   | 'admin-dashboard'
   | 'organizational-structure'
   | 'user-creation'
+  | 'report-access'
+  | 'reports'
   | 'onboarding-approvals'
   | 'landing-cms'
   | 'syllabus-course-offerings'
@@ -27,6 +29,8 @@ const MODULE_PATH: Record<DashboardModuleKey, string | ((role?: string) => strin
     'organizational-structure':
       RouteService.karvita.organizationalStructure(),
     'user-creation': RouteService.karvita.adminUserCreation(),
+    'report-access': RouteService.karvita.reportAccess(),
+    reports: RouteService.karvita.reports(),
     'onboarding-approvals': RouteService.karvita.onboardingApprovals(),
     'landing-cms': RouteService.karvita.landingCms(),
     'syllabus-course-offerings':

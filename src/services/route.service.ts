@@ -130,6 +130,26 @@ export const RouteService = {
       return kind ? appendSearchParam(base, 'kind', kind) : base;
     },
     adminUserCreation: (): string => `${KARVITA_ADMIN_BASE}/user-creation`,
+    /** ماتریس دسترسی گزارش‌ها — فقط مدیر ارشد. */
+    reportAccess: (): string => `${KARVITA_ADMIN_BASE}/report-access`,
+    /**
+     * گزارش‌گیری پنل مدیر ارشد.
+     * بدون اسلاگ → ایندکس (redirect به اولین گزارش)؛ با اسلاگ → صفحهٔ گزارش.
+     */
+    reports: (slug?: string): string => {
+      const base = `${KARVITA_ADMIN_BASE}/reports`;
+      if (!slug) return base;
+      return `${base}/${slug.replace(/^\/+|\/+$/g, '')}`;
+    },
+    /**
+     * گزارش‌گیری نقش‌های سازمانی (مثل سازمان مرکزی).
+     * مسیر جدا از کنترل‌پلین ادمین — هم‌تراز پروتوتایپ `/karvita/reports`.
+     */
+    orgReports: (slug?: string): string => {
+      const base = `${KARVITA_BASE}/reports`;
+      if (!slug) return base;
+      return `${base}/${slug.replace(/^\/+|\/+$/g, '')}`;
+    },
     organizationalStructure: (
       tab?:
         | 'provinces'

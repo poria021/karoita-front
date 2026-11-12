@@ -9,6 +9,7 @@ import { KvButton } from '@/components/shared/KvButton';
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { HeaderBrandWordmark } from '@/components/shared/shell/HeaderBrandWordmark';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
+import { isOrgReportsPath } from '@/features/karvita/reports/lib/report-path';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
@@ -134,6 +135,9 @@ export function Sidebar() {
                   locked={!modulesUnlocked}
                   lockedPaths={modulesUnlocked ? internshipLockedPaths : undefined}
                   onNavigate={closeMobileSidebar}
+                  defaultOpenWhenActive={entry.children.some((child) =>
+                    isOrgReportsPath(child.path)
+                  )}
                 />
               ) : (
                 <SidebarNavLink

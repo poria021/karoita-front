@@ -2,6 +2,8 @@
 
 import { useMemo, useSyncExternalStore } from 'react';
 
+import { useOrgReportAccess } from '@/features/karvita/reports/hooks/useOrgReportAccess';
+import { withOrgReportAccessMenu } from '@/features/karvita/reports/lib/org-report-access';
 import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
 import { isMockApiMode } from '@/lib/api-mode';
 import {
@@ -48,6 +50,7 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
   const mock = isMockApiMode();
   const kind = learnerKind(role);
   const definitions = useActiveCourseDefinitions();
+  const { grantedSlugs } = useOrgReportAccess();
   const learnerCourses =
     kind === 'internship'
       ? definitions.semester
@@ -66,7 +69,11 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
   );
 
   return useMemo(() => {
-    const visible = getVisibleSidebarMenu(role);
+    const visible = withOrgReportAccessMenu(
+      getVisibleSidebarMenu(role),
+      role,
+      grantedSlugs
+    );
     const evaluationWhenEmpty =
       mock || definitions.status === 'error' ? 'defaults' : 'flat';
     const evaluated = withEvaluationSubModules(
@@ -83,5 +90,13 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
       whenEmpty: enrollmentWhenEmpty,
       ...availability,
     });
-  }, [role, mock, kind, definitions, learnerCourses, availability]);
+  }, [
+    role,
+    mock,
+    kind,
+    definitions,
+    learnerCourses,
+    availability,
+    grantedSlugs,
+  ]);
 }
