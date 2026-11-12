@@ -88,11 +88,15 @@ export const StaticOptionsSelect = forwardRef<
   } = props;
 
   const isMulti = props.multi === true;
-  const selectedIds: string[] = isMulti
-    ? (props.value as string[])
-    : props.value
-      ? [props.value as string]
-      : [];
+  const selectedIds = useMemo(
+    () =>
+      isMulti
+        ? (props.value as string[])
+        : props.value
+          ? [props.value as string]
+          : [],
+    [isMulti, props.value]
+  );
 
   const selectedIdSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const labelById = useMemo(() => {

@@ -94,7 +94,15 @@ export const KvSearchableOrganizationSelect = forwardRef<
   if (isStaticSelectProps(props)) {
     return <StaticOptionsSelect ref={ref} {...props} />;
   }
+  return <OrganizationLinkedSelect ref={ref} {...props} />;
+});
 
+KvSearchableOrganizationSelect.displayName = 'KvSearchableOrganizationSelect';
+
+const OrganizationLinkedSelect = forwardRef<
+  HTMLInputElement,
+  SingleSelectProps | MultiSelectProps
+>(function OrganizationLinkedSelect(props, ref) {
   const {
     type,
     label = false,
@@ -469,4 +477,4 @@ export const KvSearchableOrganizationSelect = forwardRef<
   );
 });
 
-KvSearchableOrganizationSelect.displayName = 'KvSearchableOrganizationSelect';
+OrganizationLinkedSelect.displayName = 'OrganizationLinkedSelect';

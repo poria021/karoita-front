@@ -547,7 +547,6 @@ export function useAdminReportPage(
     if (!compareModeActive) return;
 
     let cancelled = false;
-    setCompareDraft((prev) => (prev.length ? prev : compareSelected.slice()));
 
     void (async () => {
       try {
