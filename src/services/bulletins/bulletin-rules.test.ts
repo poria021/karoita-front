@@ -171,11 +171,26 @@ describe('bulletin-rules', () => {
         'supervisor_professor'
       )
     ).toBeNull();
+    expect(audienceRolesFor('faculty_role', 'announcement')).toEqual([
+      'supervisor_professor',
+      'student',
+      'skill_learner',
+    ]);
     expect(audienceRolesFor('supervisor_professor', 'announcement')).toEqual([
       'student',
       'skill_learner',
     ]);
     expect(audienceRolesFor('school_principal', 'announcement')).toEqual([
+      'student',
+      'skill_learner',
+    ]);
+    expect(audienceRolesFor('mentor_teacher', 'announcement')).toEqual([
+      'student',
+      'skill_learner',
+    ]);
+    expect(audienceRolesFor('regional_edu_admin', 'announcement')).toEqual([
+      'school_principal',
+      'mentor_teacher',
       'student',
       'skill_learner',
     ]);
@@ -187,17 +202,16 @@ describe('bulletin-rules', () => {
     ).toBeNull();
     expect(
       validateBulletinInput(
+        input({ provinces: [], audienceRoles: ['student'] }),
+        'mentor_teacher'
+      )
+    ).toBeNull();
+    expect(
+      validateBulletinInput(
         input({ provinces: [], audienceRoles: ['student', 'skill_learner'] }),
         'school_principal'
       )
     ).toBeNull();
-    // مخاطب فقط از زیرمجموعه‌ها: معلم راهنما نمی‌تواند به دانشجو اطلاعیه بدهد.
-    expect(
-      validateBulletinInput(
-        input({ provinces: [], audienceRoles: ['student'] }),
-        'mentor_teacher'
-      )
-    ).toMatch(/مخاطب/);
     expect(
       validateBulletinInput(
         input({
