@@ -76,8 +76,8 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     icon: PAGE_ICONS.learners,
     entity: 'learner',
     placeholder: 'نام، تلفن یا رشته تحصیلی',
-    first: ['q', 'period', 'province', 'city', 'faculty'],
-    more: ['region', 'school', 'professor', 'teacher'],
+    first: ['q', 'period', 'province', 'city', 'region', 'faculty'],
+    more: ['school', 'professor', 'teacher'],
     learner: true,
     desc: {
       term:
@@ -91,8 +91,8 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     icon: PAGE_ICONS.attendance,
     entity: 'learner',
     placeholder: 'نام، تلفن یا رشته تحصیلی',
-    first: ['q', 'period', 'faculty'],
-    more: ['province', 'city', 'region', 'school', 'professor'],
+    first: ['q', 'period', 'province', 'city', 'faculty'],
+    more: ['region', 'school', 'professor', 'teacher'],
     learner: true,
     desc: {
       term: 'درصد حضور یعنی جلسات حضور تأییدشده نسبت به کل جلسات نیم‌سال انتخاب‌شده.',
@@ -121,7 +121,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     entity: 'score',
     placeholder: 'نام یا شماره تلفن',
     first: ['q', 'period'],
-    more: ['professor', 'faculty'],
+    more: ['region', 'faculty', 'school', 'professor', 'teacher'],
     learner: true,
     desc: {
       term:
@@ -149,7 +149,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     period: true,
     periodModes: false,
     first: ['q', 'province', 'city', 'region'],
-    more: [],
+    more: ['teacher'],
     desc: { term: REPORT_PAGE_META.principals.description, module: REPORT_PAGE_META.principals.description },
   },
   professors: {
@@ -181,6 +181,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     entity: 'teacherPerf',
     placeholder: 'نام، کد پرسنلی یا تلفن',
     period: true,
+    periodModes: false,
     first: ['q', 'province', 'city', 'region'],
     more: ['school'],
     desc: {
@@ -194,6 +195,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     entity: 'schoolPerf',
     placeholder: 'نام مدرسه یا مدیر',
     period: true,
+    periodModes: false,
     first: ['q', 'province', 'city', 'region'],
     more: [],
     desc: {
@@ -208,6 +210,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     placeholder: 'نام، کد استادی یا تلفن',
     fac: true,
     period: true,
+    periodModes: false,
     first: ['q', 'province', 'city', 'faculty'],
     more: [],
     desc: {
@@ -245,6 +248,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     placeholder: 'نام دانشکده یا رئیس',
     fac: true,
     period: true,
+    periodModes: false,
     first: ['q', 'province', 'city'],
     more: [],
     desc: {

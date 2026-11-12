@@ -1,4 +1,7 @@
-import { orgReportsSidebarGroup } from '@/features/karvita/reports/lib/org-report-access';
+import {
+  orgReportsSidebarEntries,
+  orgReportsSidebarGroup,
+} from '@/features/karvita/reports/lib/org-report-access';
 import { PlannedRoutes } from '@/services/planned-routes';
 import { RouteService } from '@/services/route.service';
 
@@ -320,7 +323,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
-      orgReportsSidebarGroup('regional_edu_admin'),
+      ...orgReportsSidebarEntries('regional_edu_admin'),
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'location.manage'],
@@ -353,7 +356,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
-      orgReportsSidebarGroup('provincial_university'),
+      ...orgReportsSidebarEntries('provincial_university'),
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: [
@@ -390,7 +393,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      orgReportsSidebarGroup('central_organization'),
+      ...orgReportsSidebarEntries('central_organization'),
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'ads.manage'],

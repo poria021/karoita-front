@@ -1,4 +1,5 @@
 import {
+  getColumnDefs,
   getCompareItems,
   getFilterCatalog,
   getFilterOptions,
@@ -8,6 +9,7 @@ import {
 } from '@/services/reports/mock/mock-reports-query';
 import type { ReportSlug } from '@/types/report-access';
 import type {
+  ReportColumnDef,
   ReportCompareItem,
   ReportFilterCatalog,
   ReportFilterKey,
@@ -37,6 +39,11 @@ export const ReportsService = {
     slug: ReportSlug
   ): Promise<import('@/types/reports').ReportOption[]> {
     return getFilterOptions(key, filters, slug);
+  },
+
+  /** تعریف ستون‌های گزارش — همگام؛ برای هدر جدول هنگام تعویض اسلاگ. */
+  getColumnDefs(slug: ReportSlug): ReportColumnDef[] {
+    return getColumnDefs(slug);
   },
 
   async queryReport(input: ReportQueryInput): Promise<ReportQueryResult> {

@@ -7,6 +7,7 @@ import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { MockDataBadge } from '@/components/shared/MockDataBadge';
 import { cn } from '@/lib/utils';
 import { RouteService } from '@/services/route.service';
 import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
@@ -177,14 +178,17 @@ export function WorkbenchOnboardingApprovalsBox({
       )}
     >
       <header className="flex shrink-0 items-center gap-kv-inline">
-        <KvTypography
-          variant="subtitle"
-          as="h3"
-          id="dashboard-onboarding-approvals-title"
-          className="min-w-0 flex-1 truncate"
-        >
-          وضعیت پرونده‌ها
-        </KvTypography>
+        <div className="flex min-w-0 flex-1 items-center gap-kv-pair">
+          <KvTypography
+            variant="subtitle"
+            as="h3"
+            id="dashboard-onboarding-approvals-title"
+            className="min-w-0 truncate"
+          >
+            وضعیت پرونده‌ها
+          </KvTypography>
+          <MockDataBadge />
+        </div>
         <KvButton
           asChild
           color="cta"

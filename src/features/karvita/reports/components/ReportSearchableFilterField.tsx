@@ -1,14 +1,8 @@
 'use client';
 
-import { useId, useMemo, useState } from 'react';
+import { useId, useMemo } from 'react';
 
-import { KvFieldFrame } from '@/components/shared/fields/KvFieldFrame';
-import {
-  KvSearchableCombobox,
-  type KvSearchableComboboxItem,
-} from '@/components/shared/fields/KvSearchableCombobox';
-
-const ALL_ID = '__all__';
+import { KvSearchableOrganizationSelect } from '@/components/shared/fields/KvSearchableOrganizationSelect';
 
 type FilterOption = {
   value: string;
@@ -16,78 +10,46 @@ type FilterOption = {
 };
 
 type ReportSearchableFilterFieldProps = {
-  label: string;
+  label?: string | false;
   value: string;
   options: FilterOption[];
   onChange: (value: string) => void;
+  /** پیش‌فرض true — مقدار خالی = «همه». */
+  allowClear?: boolean;
+  placeholder?: string;
 };
 
 /**
- * فیلتر پیشرفته — سلکت سرچ‌پذیر (لیبل + جستجو در گزینه‌ها، «همه» برای پاک‌کردن).
+ * فیلتر گزارش — همان سلکت چیپ‌دار پروفایل (`KvSearchableOrganizationSelect`).
  */
 export function ReportSearchableFilterField({
-  label,
+  label = false,
   value,
   options,
   onChange,
+  allowClear = true,
+  placeholder = 'همه',
 }: ReportSearchableFilterFieldProps) {
   const rawId = useId();
   const fieldId = `rp-af-${rawId.replace(/:/g, '')}`;
-  const selected = options.find((o) => o.value === value);
-  const [query, setQuery] = useState(selected?.label ?? '');
-  const [prevValue, setPrevValue] = useState(value);
-  const [isEditing, setIsEditing] = useState(false);
 
-  if (value !== prevValue) {
-    setPrevValue(value);
-    if (!isEditing) {
-      setQuery(selected?.label ?? '');
-    }
-  }
-
-  const items = useMemo((): KvSearchableComboboxItem[] => {
-    const all: KvSearchableComboboxItem[] = [
-      { id: ALL_ID, label: 'همه' },
-      ...options.map((o) => ({ id: o.value, label: o.label })),
-    ];
-    const q = query.trim();
-    if (!q || (selected && q === selected.label)) return all;
-    const needle = q.toLocaleLowerCase('fa');
-    return all.filter(
-      (item) =>
-        item.id === ALL_ID ||
-        item.label.toLocaleLowerCase('fa').includes(needle)
-    );
-  }, [options, query, selected]);
+  const selectOptions = useMemo(
+    () => options.map((o) => ({ id: o.value, label: o.label })),
+    [options]
+  );
 
   return (
-    <KvFieldFrame id={`${fieldId}-label`} fieldId={fieldId} label={label}>
-      <KvSearchableCombobox
-        id={fieldId}
-        value={query}
-        placeholder="همه"
-        items={items}
-        emptyLabel="موردی یافت نشد."
-        inputClassName="bg-kv-field"
-        onChange={(next) => {
-          setIsEditing(true);
-          setQuery(next);
-        }}
-        onSelect={(item) => {
-          setIsEditing(false);
-          if (item.id === ALL_ID) {
-            setQuery('');
-            onChange('');
-            return;
-          }
-          setQuery(item.label);
-          onChange(item.id);
-        }}
-        onDismiss={() => {
-          setIsEditing(false);
-          setQuery(selected?.label ?? '');
-        }}
-      />
-    </KvFieldFrame>
+    <KvSearchableOrganizationSelect
+      key={fieldId}
+      label={label}
+      placeholder={placeholder}
+      value={value}
+      options={selectOptions}
+      allowEmpty={allowClear}
+      emptyLabel="موردی یافت نشد."
+      onChange={(next) => {
+        onChange(next);
+      }}
+    />
   );
 }

@@ -5,11 +5,17 @@ import {
   AppTabsList,
   AppTabsTrigger,
 } from '@/components/shared/AppTabs';
-import { KvSelectField } from '@/components/shared/fields/KvSelectField';
-import { KvSelectItem } from '@/components/shared/fields/KvSelect';
+import {
+  KvSelect,
+  KvSelectContent,
+  KvSelectItem,
+  KvSelectTrigger,
+  KvSelectValue,
+} from '@/components/shared/fields/KvSelect';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { MODULES, TERMS } from '@/features/karvita/reports/constants';
 import type { AdminReportPageModel } from '@/features/karvita/reports/hooks/useAdminReportPage';
+import { toPersianDigits } from '@/utils/persianDigits';
 
 type ReportPeriodBandProps = {
   page: AdminReportPageModel;
@@ -46,18 +52,29 @@ export function ReportPeriodBand({ page }: ReportPeriodBandProps) {
             {page.def.desc[page.period.mode]}
           </KvTypography>
         </div>
-        <div className="w-full max-w-[21rem] shrink-0">
-          <KvSelectField
-            label={false}
+        <div className="w-full shrink-0 sm:w-auto sm:min-w-[16rem] sm:max-w-sm">
+          <KvSelect
             value={cur}
-            onValueChange={page.setPeriodId}
+            onValueChange={(next) => {
+              if (next) page.setPeriodId(next);
+            }}
           >
-            {list.map((o) => (
-              <KvSelectItem key={o.id} value={o.id}>
-                {o.label}
-              </KvSelectItem>
-            ))}
-          </KvSelectField>
+            <KvSelectTrigger
+              aria-label={isTerm ? 'نیم‌سال تحصیلی' : 'پودمان'}
+              className="bg-kv-surface shadow-kv-soft"
+            >
+              <KvSelectValue
+                placeholder={isTerm ? 'نیم‌سال تحصیلی' : 'پودمان'}
+              />
+            </KvSelectTrigger>
+            <KvSelectContent>
+              {list.map((option) => (
+                <KvSelectItem key={option.id} value={option.id}>
+                  {toPersianDigits(option.label)}
+                </KvSelectItem>
+              ))}
+            </KvSelectContent>
+          </KvSelect>
         </div>
       </div>
     </div>

@@ -1,9 +1,13 @@
 'use client';
 
+import { useState } from 'react';
+
 import { KvButton } from '@/components/shared/KvButton';
+import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
+import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
 
 import { getApprovalTabActions } from '../constants';
 import { useOnboardingApprovalsPage } from '../hooks/useOnboardingApprovalsPage';
@@ -15,6 +19,8 @@ import { OnboardingApprovalsTabs } from './OnboardingApprovalsTabs';
 
 export function OnboardingApprovalsPageClient() {
   const page = useOnboardingApprovalsPage();
+  const [deleteTarget, setDeleteTarget] =
+    useState<OnboardingApprovalUser | null>(null);
 
   const { canApprove, canReject } = getApprovalTabActions(page.tab);
   const hasActiveFilters =
@@ -23,6 +29,7 @@ export function OnboardingApprovalsPageClient() {
     page.setQuery('');
     page.setProvince('all');
   };
+  const deleteLabel = deleteTarget?.fullName?.trim() || 'این کاربر';
 
   if (page.error) {
     return (
@@ -115,7 +122,7 @@ export function OnboardingApprovalsPageClient() {
               }
             }}
             onDelete={() => {
-              if (page.selectedUser) page.deleteUser(page.selectedUser);
+              if (page.selectedUser) setDeleteTarget(page.selectedUser);
             }}
           />
         }
@@ -140,13 +147,29 @@ export function OnboardingApprovalsPageClient() {
             }}
             onRejectReasonChange={page.setRejectReason}
             onSubmitReject={(user) => void page.submitReject(user)}
-            onDelete={(user) => page.deleteUser(user)}
+            onDelete={(user) => setDeleteTarget(user)}
             onLoadMore={page.loadMore}
             onRetryLoadMore={page.retryLoadMore}
             hasActiveFilters={hasActiveFilters}
             onClearFilters={clearFilters}
           />
         }
+      />
+
+      <KvConfirmationDialog
+        isOpen={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          page.deleteUser(deleteTarget);
+          setDeleteTarget(null);
+        }}
+        title="حذف کاربر"
+        description={`آیا از حذف کاربر «${deleteLabel}» مطمئن هستید؟`}
+        confirmText="حذف کاربر"
+        cancelText="انصراف"
+        confirmVariant="destructive"
+        confirmDisabled={page.actionBusy}
       />
     </SuperAdminModuleGuard>
   );

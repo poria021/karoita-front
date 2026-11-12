@@ -57,7 +57,7 @@ export function ReportCompareBar({ page }: ReportCompareBarProps) {
         <KvButton
           type="button"
           disabled={n < page.compareMin}
-          onClick={() => void page.enterCompare()}
+          onClick={() => page.enterCompare()}
         >
           مقایسه‌ی {toPersianDigits(n)} مورد
         </KvButton>

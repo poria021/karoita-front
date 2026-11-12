@@ -8,62 +8,22 @@ import {
   KvFilterBarSearch,
 } from '@/components/shared/fields/KvFilterBar';
 import { KvSearchField } from '@/components/shared/fields/KvSearchField';
-import { KvSelectField } from '@/components/shared/fields/KvSelectField';
-import { KvSelectItem } from '@/components/shared/fields/KvSelect';
 import { Badge } from '@/components/ui/badge';
 import { FILTER_LABELS } from '@/features/karvita/reports/constants';
+import { ReportSearchableFilterField } from '@/features/karvita/reports/components/ReportSearchableFilterField';
 import type { AdminReportPageModel } from '@/features/karvita/reports/hooks/useAdminReportPage';
-import type { ReportFilterKey } from '@/types/reports';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { faIcons } from '@/utils/iconMap';
 import { cn } from '@/lib/utils';
 
-const ALL_VALUE = 'all';
 
 type ReportToolbarProps = {
   page: AdminReportPageModel;
 };
 
-function FilterSelect({
-  filterKey,
-  page,
-}: {
-  filterKey: ReportFilterKey;
-  page: AdminReportPageModel;
-}) {
-  const raw = page.filters[filterKey] ?? '';
-  const val = raw || ALL_VALUE;
-  const opts = page.filterOptions[filterKey] ?? [];
-  return (
-    <KvSelectField
-      label={false}
-      placeholder={FILTER_LABELS[filterKey]}
-      value={val}
-      onValueChange={(next) =>
-        page.setFilter(filterKey, next === ALL_VALUE ? '' : next)
-      }
-      displayValue={
-        raw
-          ? (opts.find((o) => o.value === raw)?.label ?? raw)
-          : FILTER_LABELS[filterKey]
-      }
-      triggerClassName={cn(
-        raw &&
-          'border-kv-brand-border bg-kv-brand-soft text-kv-brand-soft-fg'
-      )}
-    >
-      <KvSelectItem value={ALL_VALUE}>همه</KvSelectItem>
-      {opts.map((o) => (
-        <KvSelectItem key={o.value} value={o.value}>
-          {o.label}
-        </KvSelectItem>
-      ))}
-    </KvSelectField>
-  );
-}
-
 export function ReportToolbar({ page }: ReportToolbarProps) {
   const adv = page.advKeys;
+  const singleKey = adv.length === 1 ? adv[0]! : null;
 
   return (
     <KvFilterBar>
@@ -78,9 +38,15 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
         />
       </KvFilterBarSearch>
 
-      {adv.length === 1 ? (
+      {singleKey ? (
         <KvFilterBarControl width="md">
-          <FilterSelect filterKey={adv[0]!} page={page} />
+          <ReportSearchableFilterField
+            label={false}
+            placeholder={FILTER_LABELS[singleKey]}
+            value={page.filters[singleKey] ?? ''}
+            options={page.filterOptions[singleKey] ?? []}
+            onChange={(next) => page.setFilter(singleKey, next)}
+          />
         </KvFilterBarControl>
       ) : null}
 
@@ -120,13 +86,10 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
         {page.canCompare ? (
           <KvButton
             type="button"
-            appearance="secondary"
-            color="neutral"
-            onClick={() => void page.enterCompare()}
-            className={cn(
-              page.compareSelected.length > 0 &&
-                'border-kv-brand-border bg-kv-brand-soft text-kv-brand-soft-fg'
-            )}
+            color="cta"
+            appearance="ghost"
+            size="sm"
+            onClick={() => page.enterCompare()}
           >
             مقایسه
             {page.compareSelected.length > 0 ? (
@@ -141,18 +104,20 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
         ) : null}
         <KvButton
           type="button"
-          appearance="secondary"
-          color="neutral"
-          icon={<FaIcon icon={faIcons.download} size="sm" />}
+          color="error"
+          appearance="ghost"
+          size="sm"
+          icon={<FaIcon icon={faIcons.filePdf} size="sm" />}
           onClick={() => page.exportStub('PDF')}
         >
           دانلود PDF
         </KvButton>
         <KvButton
           type="button"
-          appearance="secondary"
-          color="neutral"
-          icon={<FaIcon icon={faIcons.download} size="sm" />}
+          color="success"
+          appearance="ghost"
+          size="sm"
+          icon={<FaIcon icon={faIcons.fileExcel} size="sm" />}
           onClick={() => page.exportStub('اکسل')}
         >
           دانلود اکسل

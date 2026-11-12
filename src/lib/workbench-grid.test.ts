@@ -19,16 +19,39 @@ describe('workbenchLayoutKindFor', () => {
 });
 
 describe('workbenchLayoutForRole', () => {
-  it('keeps classic welcome 5 + announcements 7', () => {
+  it('keeps classic welcome full-width then announcements half-width below', () => {
     const slots = workbenchLayoutForRole('faculty_role', { showAd: false });
     expect(workbenchSlotById(slots, 'welcome')?.placement).toMatchObject({
-      colSpan: 5,
+      colSpan: 12,
       colStart: 1,
+      rowStart: 1,
+      height: 'welcome',
     });
     expect(workbenchSlotById(slots, 'announcements')?.placement).toMatchObject({
-      colSpan: 7,
-      colStart: 6,
+      colSpan: 6,
+      colStart: 1,
+      rowStart: 2,
+      height: 'learnerAnnounce',
     });
+  });
+
+  it('puts classic ad beside welcome without stretching welcome height', () => {
+    const slots = workbenchLayoutForRole('central_organization', {
+      showAd: true,
+    });
+    expect(workbenchSlotById(slots, 'welcome')?.placement).toMatchObject({
+      colSpan: 12,
+      rowStart: 1,
+      height: 'welcome',
+    });
+    expect(workbenchSlotById(slots, 'ad')?.placement).toMatchObject({
+      colStart: 13,
+      rowStart: 1,
+      rowSpan: 1,
+    });
+    expect(workbenchSlotById(slots, 'announcements')?.placement.rowStart).toBe(
+      2
+    );
   });
 
   it('keeps learner announcements 7 | materials 5', () => {

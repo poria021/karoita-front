@@ -1,10 +1,10 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useMemo } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
-import { KvSearchableCombobox } from '@/components/shared/fields/KvSearchableCombobox';
+import { KvSearchableOrganizationSelect } from '@/components/shared/fields/KvSearchableOrganizationSelect';
 import { useDelayedSchoolMentorAssignment } from '@/features/karvita/internship-enrollment/hooks/useDelayedSchoolMentorAssignment';
 import type {
   InternshipEnrollmentActor,
@@ -32,11 +32,24 @@ export function DelayedSchoolMentorAssignment({
     state,
     onAssignmentComplete,
   });
-  const schoolFieldId = useId();
-  const mentorFieldId = useId();
-  const [schoolOpen, setSchoolOpen] = useState(false);
-  const [mentorOpen, setMentorOpen] = useState(false);
   const mentorLocked = disabled || !assignment.selectedSchool;
+
+  const schoolOptions = useMemo(
+    () =>
+      assignment.schools.map((school) => ({
+        id: school.id,
+        label: school.name,
+      })),
+    [assignment.schools]
+  );
+  const mentorOptions = useMemo(
+    () =>
+      assignment.mentors.map((mentor) => ({
+        id: mentor.id,
+        label: mentor.name,
+      })),
+    [assignment.mentors]
+  );
 
   return (
     <fieldset
@@ -53,85 +66,56 @@ export function DelayedSchoolMentorAssignment({
           </div>
 
           <div className="relative z-20 flex w-full flex-col items-start sm:flex-row sm:items-center lg:flex-1">
-            <label
-              htmlFor={schoolFieldId}
-              className="mb-1 shrink-0 font-bold sm:mb-0 sm:me-kv-pair"
-            >
+            <span className="mb-1 shrink-0 font-bold sm:mb-0 sm:me-kv-pair">
               مدرسه همکار:
-            </label>
-            <KvSearchableCombobox
-              id={schoolFieldId}
-              className="w-full"
-              value={assignment.schoolQuery}
-              placeholder="جستجوی نام مدرسه..."
-              disabled={disabled}
-              open={schoolOpen}
-              isLoading={assignment.isLoadingSchools}
-              emptyLabel="مدرسه‌ای در حوزهٔ شما یافت نشد."
-              items={assignment.schools.map((school) => ({
-                id: school.id,
-                label: school.name,
-              }))}
-              onOpenChange={(next) => {
-                setSchoolOpen(next);
-                if (next) {
-                  setMentorOpen(false);
-                  assignment.beginSchoolPick();
-                }
-              }}
-              onDismiss={assignment.validateSchoolSelection}
-              onChange={(query) => {
-                setSchoolOpen(true);
-                assignment.setSchoolSearch(query);
-              }}
-              onSelect={(item) => {
-                const school = assignment.schools.find((row) => row.id === item.id);
-                if (!school) return;
-                assignment.selectSchool(school);
-                setSchoolOpen(false);
-                setMentorOpen(false);
-              }}
-            />
+            </span>
+            <div className="w-full min-w-0 flex-1">
+              <KvSearchableOrganizationSelect
+                label={false}
+                placeholder="جستجوی نام مدرسه..."
+                locked={disabled}
+                value={assignment.selectedSchool?.id ?? ''}
+                options={schoolOptions}
+                allowEmpty
+                isLoading={assignment.isLoadingSchools}
+                emptyLabel="مدرسه‌ای در حوزهٔ شما یافت نشد."
+                onQueryChange={(query) => {
+                  assignment.setSchoolSearch(query);
+                }}
+                onChange={(id) => {
+                  if (!id) return;
+                  const school = assignment.schools.find((row) => row.id === id);
+                  if (school) assignment.selectSchool(school);
+                }}
+              />
+            </div>
           </div>
 
           <div className="relative z-10 flex w-full flex-col items-start sm:flex-row sm:items-center lg:flex-1">
-            <label
-              htmlFor={mentorFieldId}
-              className="mb-1 shrink-0 font-bold sm:mb-0 sm:me-kv-pair"
-            >
+            <span className="mb-1 shrink-0 font-bold sm:mb-0 sm:me-kv-pair">
               معلم ناظر:
-            </label>
-            <KvSearchableCombobox
-              id={mentorFieldId}
-              className="w-full"
-              value={assignment.mentorQuery}
-              placeholder="جستجوی نام مربی..."
-              disabled={mentorLocked}
-              open={mentorOpen && Boolean(assignment.selectedSchool)}
-              isLoading={assignment.isLoadingMentors}
-              emptyLabel="معلم ناظری برای این مدرسه یافت نشد."
-              items={assignment.mentors.map((mentor) => ({
-                id: mentor.id,
-                label: mentor.name,
-              }))}
-              onOpenChange={(next) => {
-                if (mentorLocked) return;
-                setMentorOpen(next);
-                if (next) setSchoolOpen(false);
-              }}
-              onDismiss={assignment.validateMentorSelection}
-              onChange={(query) => {
-                if (mentorLocked) return;
-                setMentorOpen(true);
-                assignment.setMentorSearch(query);
-              }}
-              onSelect={(item) => {
-                const mentor = assignment.mentors.find((row) => row.id === item.id);
-                if (!mentor) return;
-                assignment.selectMentor(mentor);
-                setMentorOpen(false);
-              }}
-            />
+            </span>
+            <div className="w-full min-w-0 flex-1">
+              <KvSearchableOrganizationSelect
+                label={false}
+                placeholder="جستجوی نام مربی..."
+                locked={mentorLocked}
+                value={assignment.selectedMentor?.id ?? ''}
+                options={mentorOptions}
+                allowEmpty
+                isLoading={assignment.isLoadingMentors}
+                emptyLabel="معلم ناظری برای این مدرسه یافت نشد."
+                onQueryChange={(query) => {
+                  if (mentorLocked) return;
+                  assignment.setMentorSearch(query);
+                }}
+                onChange={(id) => {
+                  if (!id) return;
+                  const mentor = assignment.mentors.find((row) => row.id === id);
+                  if (mentor) assignment.selectMentor(mentor);
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

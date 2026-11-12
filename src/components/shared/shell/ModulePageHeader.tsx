@@ -3,9 +3,14 @@
 import { usePathname } from 'next/navigation';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { MockDataBadge } from '@/components/shared/MockDataBadge';
 import { KvBreadcrumb } from '@/components/shared/shell/KvBreadcrumb';
 import { PageHeader } from '@/components/shared/shell/PageHeader';
 import { RefreshPageButton } from '@/components/shared/shell/RefreshPageButton';
+import {
+  isAdminReportsPath,
+  isOrgReportsPath,
+} from '@/features/karvita/reports/lib/report-path';
 import { RouteService } from '@/services/route.service';
 import { useUserStore } from '@/store/useUserStore';
 import { getModuleBreadcrumb } from '@/utils/moduleBreadcrumb';
@@ -27,6 +32,21 @@ function isWorkbenchHomePath(pathname: string): boolean {
   );
 }
 
+function normalizePath(pathname: string): string {
+  const withoutQuery = pathname.split('?')[0] ?? pathname;
+  const trimmed = withoutQuery.replace(/\/+$/, '');
+  return trimmed.length > 0 ? trimmed : '/';
+}
+
+/** صفحات بدون شاخهٔ real — بج ماکت کنار عنوان هدر. */
+function showsMockDataBadge(pathname: string): boolean {
+  if (isAdminReportsPath(pathname) || isOrgReportsPath(pathname)) return true;
+  const onboardingBase = normalizePath(
+    RouteService.karvita.onboardingApprovals()
+  );
+  return normalizePath(pathname) === onboardingBase;
+}
+
 export function ModulePageHeader() {
   const pathname = usePathname();
   const role = useUserStore((state) => state.activeUser?.role);
@@ -41,6 +61,7 @@ export function ModulePageHeader() {
   return (
     <PageHeader
       title={meta.title}
+      titleAddon={showsMockDataBadge(pathname) ? <MockDataBadge /> : undefined}
       breadcrumb={<KvBreadcrumb items={crumbs} />}
       icon={<FaIcon icon={icon} size="lg" />}
       actions={<RefreshPageButton />}

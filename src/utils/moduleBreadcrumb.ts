@@ -3,6 +3,7 @@ import {
   REPORT_PAGE_DEFS,
   themeForSlug,
 } from '@/features/karvita/reports/constants';
+import { usesThemedOrgReportSidebar } from '@/features/karvita/reports/lib/org-report-access';
 import { courseMaterialsLevel, RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import {
@@ -110,6 +111,13 @@ export function getModuleBreadcrumb(
     const slug = path.slice(orgReportsBase.length + 1);
     const crumbs: ModuleBreadcrumbItem[] = [{ label: 'گزارش‌گیری' }];
     if (slug && isReportSlug(slug)) {
+      const theme = themeForSlug(slug);
+      if (theme && usesThemedOrgReportSidebar(role)) {
+        crumbs.push({
+          label: theme.title,
+          href: RouteService.karvita.orgReports(theme.slugs[0]!),
+        });
+      }
       crumbs.push({ label: REPORT_PAGE_DEFS[slug].title });
     }
     return crumbs;

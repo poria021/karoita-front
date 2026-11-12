@@ -94,6 +94,7 @@ export type WorkbenchHeightToken =
   | 'side'
   | 'learnerAnnounce'
   | 'monitor'
+  | 'ad'
   | 'auto';
 
 export type WorkbenchColSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
@@ -122,6 +123,12 @@ export type WorkbenchLayoutOptions = {
   showCapacity?: boolean;
 };
 
+export const WORKBENCH_AD_ROW_STYLE: CSSProperties = {
+  height: WORKBENCH_AD_HEIGHT_PX,
+  minHeight: WORKBENCH_AD_HEIGHT_PX,
+  maxHeight: WORKBENCH_AD_HEIGHT_PX,
+};
+
 const HEIGHT_STYLE: Record<
   Exclude<WorkbenchHeightToken, 'auto'>,
   CSSProperties
@@ -130,6 +137,7 @@ const HEIGHT_STYLE: Record<
   side: WORKBENCH_SIDE_PANEL_STYLE,
   learnerAnnounce: WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE,
   monitor: WORKBENCH_MONITOR_PANEL_STYLE,
+  ad: WORKBENCH_AD_ROW_STYLE,
 };
 
 const COL_SPAN_CLASS: Record<WorkbenchColSpan, string> = {
@@ -237,15 +245,29 @@ export function workbenchAllowsAdSpot(role: UserRole): boolean {
   return workbenchLayoutKindFor(role) !== 'senior';
 }
 
+/**
+ * خوش‌آمد تمام‌عرض با ارتفاع ثابت خوش‌آمد (مثل بقیهٔ پنل‌ها؛ مستقل از تبلیغ).
+ * تبلیغ در ترک ۲۴۰px کنار ردیف اول؛ اطلاعیه‌ها ردیف دوم، نصف گرید (۶ ستون).
+ */
 function classicSlots(showAd: boolean): WorkbenchBoxSlot[] {
   const slots: WorkbenchBoxSlot[] = [
     {
       id: 'welcome',
-      placement: { colSpan: 5, colStart: 1, rowStart: 1, height: 'side' },
+      placement: {
+        colSpan: 12,
+        colStart: 1,
+        rowStart: 1,
+        height: 'welcome',
+      },
     },
     {
       id: 'announcements',
-      placement: { colSpan: 7, colStart: 6, rowStart: 1, height: 'side' },
+      placement: {
+        colSpan: 6,
+        colStart: 1,
+        rowStart: 2,
+        height: 'learnerAnnounce',
+      },
     },
   ];
   if (showAd) {

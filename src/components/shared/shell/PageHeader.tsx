@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 
 export interface PageHeaderProps {
   title?: string;
+  /** کنار عنوان (مثلاً بج ماکت). */
+  titleAddon?: ReactNode;
   description?: string;
   breadcrumb?: ReactNode;
   icon?: ReactNode;
@@ -14,6 +16,7 @@ export interface PageHeaderProps {
 
 export function PageHeader({
   title,
+  titleAddon,
   description,
   breadcrumb,
   icon,
@@ -21,7 +24,7 @@ export function PageHeader({
   className,
 }: PageHeaderProps) {
   const startSlot =
-    title || description || icon ? (
+    title || description || icon || titleAddon ? (
       <div className="flex min-w-0 items-center justify-start gap-kv-inline text-start">
         {icon ? (
           <div
@@ -31,15 +34,20 @@ export function PageHeader({
             {icon}
           </div>
         ) : null}
-        {title || description ? (
+        {title || description || titleAddon ? (
           <div className="flex min-w-0 flex-col items-start justify-center text-start">
-            {title ? (
-              <KvTypography variant="title" truncate>
-                {title}
-              </KvTypography>
+            {title || titleAddon ? (
+              <div className="flex min-w-0 max-w-full items-center gap-kv-pair">
+                {title ? (
+                  <KvTypography variant="title" truncate>
+                    {title}
+                  </KvTypography>
+                ) : null}
+                {titleAddon}
+              </div>
             ) : null}
             {description ? (
-              <div className={cn('min-w-0', title && 'mt-1')}>
+              <div className={cn('min-w-0', (title || titleAddon) && 'mt-1')}>
                 <KvTypography variant="caption" tone="muted">
                   {description}
                 </KvTypography>

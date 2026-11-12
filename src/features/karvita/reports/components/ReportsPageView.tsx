@@ -34,7 +34,7 @@ export function ReportsPageView({
   const page = useAdminReportPage(slug, pageOptions);
 
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col">
       {page.compareMode ? (
         <ReportCompareView page={page} />
       ) : (
@@ -78,6 +78,6 @@ export function ReportsPageView({
 
       <ReportAdvancedFilters page={page} />
       <ReportLearnerDialogs page={page} />
-    </>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useLayoutEffect, type ReactNode } from 'react';
+import { useLayoutEffect, useMemo, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
@@ -9,7 +9,11 @@ import { getPostLoginPath } from '@/services/post-login-path';
 import { useUserStore } from '@/store/useUserStore';
 import type { ReportSlug } from '@/types/report-access';
 
-import { isOrgReportsRole } from '../lib/org-report-access';
+import {
+  extraReportFilterKeysForRole,
+  hiddenReportFilterKeysForRole,
+  isOrgReportsRole,
+} from '../lib/org-report-access';
 import { ReportsPageView } from './ReportsPageView';
 
 function OrgReportsGuard({
@@ -53,13 +57,23 @@ type OrgReportsPageClientProps = {
 /** گزارش‌گیری نقش سازمانی — گیت و مقایسه بر اساس ماتریس دسترسی. */
 export function OrgReportsPageClient({ slug }: OrgReportsPageClientProps) {
   const access = useOrgReportAccess();
+  const activeUser = useUserStore((state) => state.activeUser);
+  const canCompare = access.canCompareSlug(slug);
+  const pageOptions = useMemo(
+    () => ({
+      canCompare,
+      hiddenFilterKeys: hiddenReportFilterKeysForRole(activeUser?.role, slug),
+      extraFilterKeys: extraReportFilterKeysForRole(activeUser?.role, slug),
+    }),
+    [activeUser?.role, canCompare, slug]
+  );
 
   return (
     <OrgReportsGuard slug={slug}>
       <ReportsPageView
         slug={slug}
         showCategoryNav={false}
-        pageOptions={{ canCompare: access.canCompareSlug(slug) }}
+        pageOptions={pageOptions}
       />
     </OrgReportsGuard>
   );

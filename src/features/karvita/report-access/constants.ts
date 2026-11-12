@@ -56,11 +56,13 @@ export const APPROVED_ROLE_PAGES: Readonly<
     'professor-attendance',
     'professors',
     'faculties',
+    'professor-performance',
     'faculty-performance',
   ],
   central_organization: [
     'learners',
     'attendance',
+    'professor-attendance',
     'teachers',
     'principals',
     'professors',
@@ -85,11 +87,7 @@ export const REPORT_ACCESS_EXTRA: Readonly<
   school_principal: ['scores', 'teachers'],
   regional_edu_admin: ['attendance', 'scores'],
   faculty_role: ['teachers', 'principals', 'schools'],
-  provincial_university: [
-    'scores',
-    'professor-performance',
-    'school-performance',
-  ],
+  provincial_university: ['scores', 'school-performance'],
   central_organization: ['scores', 'teacher-performance'],
   assistant_admin: [
     'learners',

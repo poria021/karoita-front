@@ -219,6 +219,9 @@ export function applyFilters(
   query: string
 ): ReportRow[] {
   const q = normQ(query);
+  const teacherSchoolId = filters.teacher
+    ? getReportsDb().teachers.find((t) => t.id === filters.teacher)?.school
+    : undefined;
   return rows.filter((r) => {
     if (q && !String(r.s ?? '').includes(q)) return false;
     for (const k of [
@@ -228,11 +231,18 @@ export function applyFilters(
       'school',
       'faculty',
       'professor',
-      'teacher',
       'status',
     ] as const) {
       const fv = filters[k];
       if (fv && r[k] !== undefined && r[k] !== fv) return false;
+    }
+    if (filters.teacher) {
+      if (r.teacher !== undefined) {
+        if (r.teacher !== filters.teacher) return false;
+      } else if (r.school !== undefined) {
+        // مدیران/مدارس: معلّم انتخاب‌شده باید در همان مدرسه باشد.
+        if (!teacherSchoolId || r.school !== teacherSchoolId) return false;
+      }
     }
     if (filters.major && r.major !== filters.major) return false;
     if (filters.course) {

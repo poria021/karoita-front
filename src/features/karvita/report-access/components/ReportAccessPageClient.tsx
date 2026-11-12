@@ -4,6 +4,7 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { MockDataBadge } from '@/components/shared/MockDataBadge';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
@@ -52,9 +53,12 @@ export function ReportAccessPageClient() {
         ) : (
           <KvCard padding="none" className="overflow-hidden">
             <div className="flex min-h-12 items-center justify-between gap-kv-inline border-b border-kv-border-muted px-kv-group py-kv-inline">
-              <KvTypography as="h2" variant="subtitle" weight="black">
-                گزارش‌های مجاز برای نقش
-              </KvTypography>
+              <div className="flex min-w-0 items-center gap-kv-pair">
+                <KvTypography as="h2" variant="subtitle" weight="black">
+                  گزارش‌های مجاز برای نقش
+                </KvTypography>
+                <MockDataBadge />
+              </div>
               <KvTypography as="span" variant="caption" tone="muted">
                 همه استان‌ها
               </KvTypography>

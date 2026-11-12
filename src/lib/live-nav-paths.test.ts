@@ -99,16 +99,22 @@ describe('live nav / admin plane', () => {
     const regionalMenu = getVisibleSidebarMenu('regional_edu_admin');
     expect(regionalMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
-      'گزارش‌گیری',
+      'گزارش‌های لیستی',
+      'گزارش‌های عملکرد',
       'اطلاعیه‌ها و اعلانات',
     ]);
-    const regionalReports = regionalMenu.find(isSidebarMenuGroup);
-    expect(regionalReports?.title).toBe('گزارش‌گیری');
-    expect(regionalReports?.children.map((c) => c.path)).toEqual([
+    const regionalGroups = regionalMenu.filter(isSidebarMenuGroup);
+    expect(regionalGroups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'گزارش‌های عملکرد',
+    ]);
+    expect(regionalGroups[0]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('learners'),
       RouteService.karvita.orgReports('teachers'),
       RouteService.karvita.orgReports('principals'),
       RouteService.karvita.orgReports('schools'),
+    ]);
+    expect(regionalGroups[1]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('teacher-performance'),
       RouteService.karvita.orgReports('school-performance'),
     ]);
@@ -135,40 +141,62 @@ describe('live nav / admin plane', () => {
     const provincialMenu = getVisibleSidebarMenu('provincial_university');
     expect(provincialMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
-      'گزارش‌گیری',
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
       'اطلاعیه‌ها و اعلانات',
     ]);
-    const provincialReports = provincialMenu.find(isSidebarMenuGroup);
-    expect(provincialReports?.title).toBe('گزارش‌گیری');
-    expect(provincialReports?.children.map((c) => c.path)).toEqual([
+    const provincialGroups = provincialMenu.filter(isSidebarMenuGroup);
+    expect(provincialGroups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    expect(provincialGroups[0]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('learners'),
-      RouteService.karvita.orgReports('attendance'),
-      RouteService.karvita.orgReports('professor-attendance'),
       RouteService.karvita.orgReports('professors'),
       RouteService.karvita.orgReports('faculties'),
+    ]);
+    expect(provincialGroups[1]?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('attendance'),
+      RouteService.karvita.orgReports('professor-attendance'),
+    ]);
+    expect(provincialGroups[2]?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('professor-performance'),
       RouteService.karvita.orgReports('faculty-performance'),
     ]);
 
     const centralMenu = getVisibleSidebarMenu('central_organization');
     expect(centralMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
-      'گزارش‌گیری',
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
       'اطلاعیه‌ها و اعلانات',
     ]);
-    const centralReports = centralMenu.find(isSidebarMenuGroup);
-    expect(centralReports?.title).toBe('گزارش‌گیری');
-    expect(centralReports?.children.map((c) => c.path)).toEqual([
+    const centralGroups = centralMenu.filter(isSidebarMenuGroup);
+    expect(centralGroups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    expect(centralGroups[0]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('learners'),
-      RouteService.karvita.orgReports('attendance'),
       RouteService.karvita.orgReports('teachers'),
       RouteService.karvita.orgReports('principals'),
       RouteService.karvita.orgReports('professors'),
       RouteService.karvita.orgReports('schools'),
+      RouteService.karvita.orgReports('faculties'),
+      RouteService.karvita.orgReports('provinces'),
+    ]);
+    expect(centralGroups[1]?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('attendance'),
+      RouteService.karvita.orgReports('professor-attendance'),
+    ]);
+    expect(centralGroups[2]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('teacher-performance'),
       RouteService.karvita.orgReports('school-performance'),
       RouteService.karvita.orgReports('professor-performance'),
-      RouteService.karvita.orgReports('faculties'),
-      RouteService.karvita.orgReports('provinces'),
       RouteService.karvita.orgReports('faculty-performance'),
       RouteService.karvita.orgReports('province-performance'),
     ]);
