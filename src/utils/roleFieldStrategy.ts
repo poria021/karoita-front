@@ -105,14 +105,15 @@ export function orgAccountIncludesField(
 
 /**
  * الزام فیلد فرم ایجاد حساب سازمانی.
- * منطقهٔ آموزش‌وپرورش منطقه نمایش داده می‌شود ولی اجباری نیست.
+ * منطقه آموزشی در صورت نمایش همیشه اختیاری است.
  */
 export function orgAccountRequiresField(
   role: UserRole | '',
   field: OrganizationField
 ): boolean {
   if (!orgAccountIncludesField(role, field)) return false;
-  return !(role === 'regional_edu_admin' && field === 'district');
+  if (field === 'district') return false;
+  return true;
 }
 
 export function orgAccountRequiresProvince(role: UserRole | ''): boolean {

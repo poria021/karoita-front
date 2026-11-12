@@ -202,7 +202,6 @@ export function AdminUserCreationForm({ page }: AdminUserCreationFormProps) {
               control={control}
               errors={errors}
               needsRegional={page.needsRegional}
-              districtRequired={page.districtRequired}
               needsCollege={page.needsCollege}
               needsProvinceRole={page.needsProvinceRole}
               onProvinceChange={page.onProvinceChange}

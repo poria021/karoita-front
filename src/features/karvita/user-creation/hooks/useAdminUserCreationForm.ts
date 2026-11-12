@@ -13,7 +13,6 @@ import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
   orgAccountIncludesField,
   orgAccountRequiresCollege,
-  orgAccountRequiresDistrict,
   orgAccountRequiresProvince,
 } from '@/utils/roleFieldStrategy';
 
@@ -77,7 +76,6 @@ export function useAdminUserCreationForm() {
   const needsRegional =
     orgAccountIncludesField(role, 'city') &&
     orgAccountIncludesField(role, 'district');
-  const districtRequired = orgAccountRequiresDistrict(role);
 
   useEffect(() => {
     if (!mobileComplete) {
@@ -245,7 +243,6 @@ export function useAdminUserCreationForm() {
     needsProvinceRole,
     needsCollege,
     needsRegional,
-    districtRequired,
     mobileComplete,
     mobileDuplicate,
     checkingMobile,

@@ -11,7 +11,6 @@ type AdminUserCreationOrgFieldsProps = {
   control: Control<AdminUserCreationFormInput>;
   errors: FieldErrors<AdminUserCreationFormInput>;
   needsRegional: boolean;
-  districtRequired: boolean;
   needsCollege: boolean;
   needsProvinceRole: boolean;
   onProvinceChange: (value: string) => void;
@@ -22,7 +21,6 @@ export function AdminUserCreationOrgFields({
   control,
   errors,
   needsRegional,
-  districtRequired,
   needsCollege,
   needsProvinceRole,
   onProvinceChange,
@@ -77,8 +75,7 @@ export function AdminUserCreationOrgFields({
               ref={field.ref}
               type="district"
               label="منطقه آموزشی متصل"
-              required={districtRequired}
-              optionalHint={!districtRequired}
+              optionalHint
               placeholder="جستجو و انتخاب منطقه..."
               value={field.value || ''}
               locked={!province}

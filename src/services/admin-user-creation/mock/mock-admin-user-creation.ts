@@ -31,7 +31,6 @@ import {
   orgAccountIncludesField,
   orgAccountRequiresCity,
   orgAccountRequiresCollege,
-  orgAccountRequiresDistrict,
   orgAccountRequiresProvince,
 } from '@/utils/roleFieldStrategy';
 
@@ -93,9 +92,6 @@ export function mockCreateOrganizationalUser(
   }
   if (orgAccountRequiresCity(input.role) && !org.city?.length) {
     throw new Error('انتخاب شهر تابعه الزامی است.');
-  }
-  if (orgAccountRequiresDistrict(input.role) && !org.district?.length) {
-    throw new Error('انتخاب منطقه آموزشی الزامی است.');
   }
 
   const record: MockAuthUserRecord = {
