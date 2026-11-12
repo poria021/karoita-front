@@ -128,7 +128,10 @@ export function useAdminReportPage(
     allowed: REPORT_PERIOD_MODE_VALUES,
     defaultValue: 'term',
   });
-  const [periodIds, setPeriodIds] = useState({
+  const [periodIds, setPeriodIds] = useState<{
+    termId: string;
+    moduleId: string;
+  }>({
     termId: CUR_PERIOD.term,
     moduleId: CUR_PERIOD.module,
   });
