@@ -11,7 +11,7 @@ import type { CreateOrganizationalUserInput } from '@/types/admin-user-creation'
 import { IRAN_MOBILE_PATTERN } from '@/utils/iranMobileField';
 import { persianToEnglishDigits } from '@/utils/persianDigits';
 import {
-  orgAccountRequiresCity,
+  orgAccountIncludesField,
   orgAccountRequiresCollege,
   orgAccountRequiresDistrict,
   orgAccountRequiresProvince,
@@ -75,7 +75,9 @@ export function useAdminUserCreationForm() {
   const needsProvinceRole = orgAccountRequiresProvince(role);
   const needsCollege = orgAccountRequiresCollege(role);
   const needsRegional =
-    orgAccountRequiresCity(role) && orgAccountRequiresDistrict(role);
+    orgAccountIncludesField(role, 'city') &&
+    orgAccountIncludesField(role, 'district');
+  const districtRequired = orgAccountRequiresDistrict(role);
 
   useEffect(() => {
     if (!mobileComplete) {
@@ -243,6 +245,7 @@ export function useAdminUserCreationForm() {
     needsProvinceRole,
     needsCollege,
     needsRegional,
+    districtRequired,
     mobileComplete,
     mobileDuplicate,
     checkingMobile,

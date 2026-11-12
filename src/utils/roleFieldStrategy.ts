@@ -94,13 +94,25 @@ export function isOptionalOrganizationField(
   );
 }
 
-/** الزام فیلد فرم ایجاد حساب سازمانی از `ROLE_FIELD_STRATEGY`. */
-export function orgAccountRequiresField(
+/** فیلد در فرم ایجاد حساب این نقش هست، حتی اگر اختیاری باشد. */
+export function orgAccountIncludesField(
   role: UserRole | '',
   field: OrganizationField
 ): boolean {
   if (!role) return false;
   return ROLE_FIELD_STRATEGY[role].organizationFields.includes(field);
+}
+
+/**
+ * الزام فیلد فرم ایجاد حساب سازمانی.
+ * منطقهٔ آموزش‌وپرورش منطقه نمایش داده می‌شود ولی اجباری نیست.
+ */
+export function orgAccountRequiresField(
+  role: UserRole | '',
+  field: OrganizationField
+): boolean {
+  if (!orgAccountIncludesField(role, field)) return false;
+  return !(role === 'regional_edu_admin' && field === 'district');
 }
 
 export function orgAccountRequiresProvince(role: UserRole | ''): boolean {

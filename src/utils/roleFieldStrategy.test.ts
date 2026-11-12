@@ -18,7 +18,7 @@ describe('orgAccountRequires*', () => {
 
     expect(orgAccountRequiresProvince('regional_edu_admin')).toBe(true);
     expect(orgAccountRequiresCity('regional_edu_admin')).toBe(true);
-    expect(orgAccountRequiresDistrict('regional_edu_admin')).toBe(true);
+    expect(orgAccountRequiresDistrict('regional_edu_admin')).toBe(false);
 
     expect(orgAccountRequiresProvince('central_organization')).toBe(false);
     expect(orgAccountRequiresProvince('')).toBe(false);

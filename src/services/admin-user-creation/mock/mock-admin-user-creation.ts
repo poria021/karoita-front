@@ -28,6 +28,7 @@ import {
   PASSWORD_MIN_LENGTH_MESSAGE,
 } from '@/utils/passwordInput';
 import {
+  orgAccountIncludesField,
   orgAccountRequiresCity,
   orgAccountRequiresCollege,
   orgAccountRequiresDistrict,
@@ -52,10 +53,10 @@ function buildOrgFields(
   const districtVal = input.district?.trim() ?? '';
 
   return {
-    province: orgAccountRequiresProvince(role) && provinceVal ? [provinceVal] : [],
-    city: orgAccountRequiresCity(role) && cityVal ? [cityVal] : [],
-    college: orgAccountRequiresCollege(role) && collegeVal ? [collegeVal] : [],
-    district: orgAccountRequiresDistrict(role) && districtVal ? [districtVal] : [],
+    province: orgAccountIncludesField(role, 'province') && provinceVal ? [provinceVal] : [],
+    city: orgAccountIncludesField(role, 'city') && cityVal ? [cityVal] : [],
+    college: orgAccountIncludesField(role, 'college') && collegeVal ? [collegeVal] : [],
+    district: orgAccountIncludesField(role, 'district') && districtVal ? [districtVal] : [],
     school: [],
     major: '',
   };
@@ -90,11 +91,11 @@ export function mockCreateOrganizationalUser(
   if (orgAccountRequiresCollege(input.role) && !org.college?.length) {
     throw new Error('انتخاب دانشکده / پردیس الزامی است.');
   }
-  if (
-    (orgAccountRequiresCity(input.role) && !org.city?.length) ||
-    (orgAccountRequiresDistrict(input.role) && !org.district?.length)
-  ) {
-    throw new Error('انتخاب شهر و منطقه آموزشی الزامی است.');
+  if (orgAccountRequiresCity(input.role) && !org.city?.length) {
+    throw new Error('انتخاب شهر تابعه الزامی است.');
+  }
+  if (orgAccountRequiresDistrict(input.role) && !org.district?.length) {
+    throw new Error('انتخاب منطقه آموزشی الزامی است.');
   }
 
   const record: MockAuthUserRecord = {
