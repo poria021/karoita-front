@@ -66,8 +66,11 @@ export function useReportAccessPage() {
     }
   }, []);
 
+  // بارگذاری اولیهٔ ماتریس از سرویس — state محلی بعد از resolve؛ مشتق‌پذیر از props نیست.
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     void load();
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [load]);
 
   const diffs = useMemo(

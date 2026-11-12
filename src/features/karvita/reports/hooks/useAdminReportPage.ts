@@ -89,13 +89,8 @@ export function useAdminReportPage(
   const [compareItems, setCompareItems] = useState<ReportCompareItem[]>([]);
   const [compareQ, setCompareQ] = useState('');
   const [compareCandidates, setCompareCandidates] = useState<ReportRow[]>([]);
-
-  useEffect(() => {
-    if (canCompare) return;
-    setCompareMode(false);
-    setCompareSelected([]);
-    setCompareDraft([]);
-  }, [canCompare]);
+  /** مقایسه فقط وقتی زیرمجوز/اسلاگ اجازه دهد؛ state داخلی را خاموش نگه می‌داریم. */
+  const compareModeActive = canCompare && compareMode;
 
   const reload = useCallback(async () => {
     setIsLoading(true);
@@ -122,6 +117,8 @@ export function useAdminReportPage(
     }
   }, [slug, filters, query, period, sort]);
 
+  // واکشی گزارش/فیلتر/دیالوگ — state محلی بعد از resolve سرویس؛ مشتق‌پذیر از props نیست.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     void reload();
   }, [reload]);
@@ -201,6 +198,7 @@ export function useAdminReportPage(
       cancelled = true;
     };
   }, [dialog, period]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const activeAdvCount = useMemo(
     () => advKeysOf(slug).filter((k) => Boolean(filters[k])).length,
@@ -364,7 +362,7 @@ export function useAdminReportPage(
     scoreDetail,
     dialogLoading,
     canCompare,
-    compareMode,
+    compareMode: compareModeActive,
     compareSelected,
     compareDraft,
     compareItems,

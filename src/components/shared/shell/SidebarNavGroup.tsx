@@ -1,7 +1,7 @@
 'use client';
 
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import {
@@ -58,20 +58,14 @@ export function SidebarNavGroup({
         pathname,
         search
       );
-  // بسته شروع می‌شود؛ با `defaultOpenWhenActive` اگر فرزند فعال باشد باز می‌ماند.
+  // بسته شروع می‌شود؛ با `defaultOpenWhenActive` روی مسیر فعال همیشه باز می‌ماند.
   const [open, setOpen] = useState(
     () => defaultOpenWhenActive && activePath !== null
   );
   const groupId = useId();
-
-  useEffect(() => {
-    if (defaultOpenWhenActive && activePath !== null) {
-      setOpen(true);
-    }
-  }, [activePath, defaultOpenWhenActive]);
-
   const groupIcon = resolveSidebarIcon(group.icon);
-  const disclosureOpen = locked ? false : open;
+  const forceOpen = defaultOpenWhenActive && activePath !== null;
+  const disclosureOpen = locked ? false : forceOpen || open;
   const expandSidebar = useUIStore((state) => state.toggleSidebarCollapsed);
   const reportsGroup = group.children.some((child) =>
     isAdminReportsPath(child.path)

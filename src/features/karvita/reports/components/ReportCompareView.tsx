@@ -25,10 +25,10 @@ type ReportCompareViewProps = {
 };
 
 const SERIES = [
-  'hsl(220 85% 58%)',
-  'hsl(160 58% 42%)',
-  'hsl(35 92% 52%)',
-  'hsl(290 55% 62%)',
+  'var(--chart-1)',
+  'var(--chart-2)',
+  'var(--chart-3)',
+  'var(--chart-4)',
 ];
 
 export function ReportCompareView({ page }: ReportCompareViewProps) {
