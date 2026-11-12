@@ -38,6 +38,8 @@ export const DASHBOARD_QUERY = {
   courseMaterials: ['course-materials'] as const,
   courseMaterialsReceived: ['course-materials', 'received'] as const,
   courseMaterialsManaged: ['course-materials', 'managed'] as const,
+  /** ماتریس دسترسی گزارش‌ها — سایدبار نقش‌های سازمانی و گارد صفحه. */
+  reportAccessSnapshot: ['report-access', 'snapshot'] as const,
 } as const;
 
 /** Capacity, daily-approvals, and enrollment all read Nest semesters. */
