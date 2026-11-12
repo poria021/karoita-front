@@ -1,7 +1,7 @@
 'use client';
 
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import {
@@ -15,6 +15,7 @@ import {
   kvShellRailNavTypeClassName,
   type KvShellRailTextSize,
 } from '@/components/shared/shell/shellChrome';
+import { isAdminReportsPath } from '@/features/karvita/reports/lib/report-path';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
 import type { SidebarMenuGroup } from '@/utils/RoleStrategyMap';
@@ -35,6 +36,8 @@ export type SidebarNavGroupProps = {
   lockedPaths?: ReadonlySet<string>;
   onNavigate: () => void;
   textSize?: KvShellRailTextSize;
+  /** اگر فرزند فعال باشد گروه را باز نگه دار (مثلاً ریل دوم گزارش‌ها). */
+  defaultOpenWhenActive?: boolean;
 };
 
 export function SidebarNavGroup({
@@ -46,6 +49,7 @@ export function SidebarNavGroup({
   lockedPaths,
   onNavigate,
   textSize = 'compact',
+  defaultOpenWhenActive = false,
 }: SidebarNavGroupProps) {
   const activePath = locked
     ? null
@@ -54,15 +58,30 @@ export function SidebarNavGroup({
         pathname,
         search
       );
-  // بسته شروع می‌شود. باز و بسته فقط با کلیک همین نشست است و در persist ذخیره نمی‌شود.
-  const [open, setOpen] = useState(false);
+  // بسته شروع می‌شود؛ با `defaultOpenWhenActive` اگر فرزند فعال باشد باز می‌ماند.
+  const [open, setOpen] = useState(
+    () => defaultOpenWhenActive && activePath !== null
+  );
   const groupId = useId();
+
+  useEffect(() => {
+    if (defaultOpenWhenActive && activePath !== null) {
+      setOpen(true);
+    }
+  }, [activePath, defaultOpenWhenActive]);
 
   const groupIcon = resolveSidebarIcon(group.icon);
   const disclosureOpen = locked ? false : open;
   const expandSidebar = useUIStore((state) => state.toggleSidebarCollapsed);
+  const reportsGroup = group.children.some((child) =>
+    isAdminReportsPath(child.path)
+  );
+  const reportsRouteActive = reportsGroup && isAdminReportsPath(pathname);
+  const childActive =
+    !locked && (activePath !== null || reportsRouteActive);
 
   // ریل جمع‌شدهٔ دسکتاپ: فقط سر ماژول (نه همهٔ زیرآیتم‌ها). کلیک → باز شدن ریل + افشای گروه.
+  // روی گزارش‌ها ریل دوتایی است — باز کردن ریل اصلی را تریگر نکن.
   if (isCollapsed) {
     return (
       <div className="space-y-kv-inline max-lg:contents lg:block">
@@ -70,7 +89,7 @@ export function SidebarNavGroup({
           <CollapsedGroupHeader
             title={group.title}
             groupIcon={groupIcon}
-            childActive={!locked && activePath !== null}
+            childActive={childActive}
             locked={locked}
             textSize={textSize}
             onActivate={() => {

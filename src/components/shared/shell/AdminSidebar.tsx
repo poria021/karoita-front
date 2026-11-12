@@ -1,11 +1,12 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useId, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
+import { AdminReportsSecondaryRail } from '@/components/shared/shell/AdminReportsSecondaryRail';
 import { HeaderBrandWordmark } from '@/components/shared/shell/HeaderBrandWordmark';
 import { SidebarNavList } from '@/components/shared/shell/SidebarNavList';
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
@@ -15,6 +16,7 @@ import {
   kvShellRailLabelMotionClassName,
 } from '@/components/shared/shell/shellChrome';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
+import { isAdminReportsPath } from '@/features/karvita/reports/lib/report-path';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
@@ -29,24 +31,37 @@ import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
 
 /**
  * ریل ستادی — `fixed` تمام‌قد در لبهٔ شروع (RTL = راست). برند اینجاست نه در هدر.
- * خارج از جریان؛ هدر و `main` با `kvShellAdminRailClearanceClassName` خالی می‌کنند.
- * ناوبار و دراور موبایل با `Sidebar` مشترکند (`SidebarNavList` / `useSidebarMobileDrawer`).
+ * روی گزارش‌ها: جمع = ریل آیکونی + ریل دوم؛ باز = ریل کامل و ریل دوم مخفی.
  */
 export function AdminSidebar() {
   const activeUser = useUserStore((state) => state.activeUser);
   const isCollapsed = useUIStore((state) => state.isSidebarCollapsed);
   const isMobileOpen = useUIStore((state) => state.isMobileSidebarOpen);
   const toggleCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
+  const setSidebarCollapsed = useUIStore((state) => state.setSidebarCollapsed);
   const closeMobileSidebar = useUIStore((state) => state.closeMobileSidebar);
   const pathname = usePathname();
   const drawerTitleId = useId();
   const drawerRef = useRef<HTMLDivElement>(null);
+  const wasReportsRef = useRef(false);
+  const reportsPath = isAdminReportsPath(pathname);
+  /** ریل دوم فقط وقتی ریل اصلی جمع است. */
+  const reportsDual = reportsPath && isCollapsed;
 
   useSidebarMobileDrawer({
     isMobileOpen,
     drawerRef,
     onClose: closeMobileSidebar,
   });
+
+  // ورود به گزارش‌ها → جمع کن تا ریل دوم دیده شود.
+  useEffect(() => {
+    const onReports = isAdminReportsPath(pathname);
+    if (onReports && !wasReportsRef.current) {
+      setSidebarCollapsed(true);
+    }
+    wasReportsRef.current = onReports;
+  }, [pathname, setSidebarCollapsed]);
 
   const visibleMenu = useSidebarMenu(activeUser?.role);
 
@@ -182,6 +197,8 @@ export function AdminSidebar() {
           </aside>
         </div>
       </div>
+
+      {reportsDual ? <AdminReportsSecondaryRail /> : null}
     </>
   );
 }

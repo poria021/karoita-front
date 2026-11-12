@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 
 import { AdminShellHeader } from '@/components/shared/shell/AdminShellHeader';
 import { AdminSidebar } from '@/components/shared/shell/AdminSidebar';
@@ -16,6 +17,7 @@ import {
   kvShellLearnerDashboardWidthClassName,
 } from '@/components/shared/shell/shellChrome';
 import { useShellCatalogReady } from '@/components/shared/shell/useShellCatalogReady';
+import { isAdminReportsPath } from '@/features/karvita/reports/lib/report-path';
 import { cn } from '@/lib/utils';
 import { useUIStore } from '@/store/useUIStore';
 import { useUserStore } from '@/store/useUserStore';
@@ -67,21 +69,27 @@ export function DashboardChrome({ children }: DashboardChromeProps) {
 
 function AdminDashboardChrome({ children }: DashboardChromeProps) {
   const isCollapsed = useUIStore((state) => state.isSidebarCollapsed);
+  const pathname = usePathname();
+  const reportsDual = isAdminReportsPath(pathname) && isCollapsed;
 
   return (
     <div className="flex min-h-dvh w-full flex-col bg-kv-canvas">
       <AdminSidebar />
-      <div
-        className={cn(
-          'flex min-h-0 min-w-0 w-full flex-1 flex-col',
-          kvShellAdminRailClearanceMotionClassName,
-          kvShellAdminRailClearanceClassName(isCollapsed)
-        )}
-      >
-        <AdminShellHeader />
+      <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col">
+        {/* هدر فقط ریل اصلی را خالی می‌کند؛ با ریل دوم گزارش روی آن می‌نشیند. */}
+        <div
+          className={cn(
+            kvShellAdminRailClearanceMotionClassName,
+            kvShellAdminRailClearanceClassName(isCollapsed, false)
+          )}
+        >
+          <AdminShellHeader />
+        </div>
         <div
           className={cn(
             'flex min-h-0 min-w-0 flex-1 flex-col',
+            kvShellAdminRailClearanceMotionClassName,
+            kvShellAdminRailClearanceClassName(isCollapsed, reportsDual),
             kvShellAdminMainGutterClassName
           )}
         >

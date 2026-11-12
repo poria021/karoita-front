@@ -12,6 +12,7 @@ interface UIState {
 
 interface UIActions {
   toggleSidebarCollapsed: () => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
   openMobileSidebar: () => void;
   closeMobileSidebar: () => void;
   setAccountMenuOwner: (owner: AccountMenuOwner) => void;
@@ -31,6 +32,8 @@ export const useUIStore = create<UIStore>()(
       accountMenuOwner: null,
       toggleSidebarCollapsed: () =>
         set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+      setSidebarCollapsed: (collapsed) =>
+        set({ isSidebarCollapsed: collapsed }),
       openMobileSidebar: () => set({ isMobileSidebarOpen: true }),
       closeMobileSidebar: () => set({ isMobileSidebarOpen: false }),
       setAccountMenuOwner: (owner) => set({ accountMenuOwner: owner }),

@@ -1,5 +1,6 @@
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import type { KvShellRailTextSize } from '@/components/shared/shell/shellChrome';
+import { isAdminReportsPath } from '@/features/karvita/reports/lib/report-path';
 import { cn } from '@/lib/utils';
 import {
   isSidebarMenuGroup,
@@ -56,7 +57,10 @@ export function SidebarNavList({
           <SidebarNavLink
             key={entry.path}
             item={entry}
-            isActive={pathname === entry.path}
+            isActive={
+              pathname === entry.path ||
+              (isAdminReportsPath(entry.path) && isAdminReportsPath(pathname))
+            }
             isCollapsed={isCollapsed}
             locked={!modulesUnlocked}
             onNavigate={onNavigate}
