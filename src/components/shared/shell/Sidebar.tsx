@@ -68,8 +68,10 @@ export function Sidebar() {
       />
 
       {/*
-        Wrapper مالک `sticky` و `overflow` دکمهٔ جمع است؛ پنل به شعاع شل `clip` می‌شود
+        Wrapper مالک `sticky` و دکمهٔ جمع است؛ پنل به شعاع شل `clip` می‌شود
         تا فوتر حساب گوشه‌های پایین را مربع نکند.
+        روی دسکتاپ زیر هدر sticky می‌ماند تا با اسکرول صفحه زیر هدر نرود.
+        ارتفاع کارت حداکثر تا کف ویوپورت؛ فقط nav اسکرول می‌شود و حساب پایین ثابت است.
       */}
       <div
         className={cn(
@@ -89,13 +91,11 @@ export function Sidebar() {
           aria-modal={isMobileOpen ? true : undefined}
           aria-labelledby={isMobileOpen ? drawerTitleId : undefined}
           className={cn(
-            'group/sidebar flex h-full min-h-0 w-full shrink-0 flex-col overflow-y-auto border-e border-kv-border/80 bg-kv-surface',
-            'lg:h-auto lg:overflow-hidden lg:border lg:border-kv-border/80 lg:rounded-kv-shell',
-            kvScrollAreaClassName,
-            'kv-sidebar-scroll'
+            'group/sidebar flex h-full min-h-0 w-full shrink-0 flex-col overflow-hidden border-e border-kv-border/80 bg-kv-surface',
+            'lg:h-auto lg:max-h-[calc(100dvh-4rem-(var(--spacing-kv-group)*2))] lg:border lg:border-kv-border/80 lg:rounded-kv-shell'
           )}
         >
-          <div className="flex items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">
+          <div className="flex shrink-0 items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group lg:hidden">
             <div className="flex min-w-0 items-center gap-kv-inline">
               <KarvitaBrandMark />
               <HeaderBrandWordmark textSize="legible" />
@@ -119,7 +119,7 @@ export function Sidebar() {
             className={cn(
               kvScrollAreaClassName,
               'kv-sidebar-scroll',
-              'flex-1 space-y-kv-inline overflow-y-auto p-kv-group lg:overflow-y-visible lg:p-kv-inline lg:pt-kv-stack lg:pb-kv-page'
+              'min-h-0 flex-1 space-y-kv-inline overflow-y-auto p-kv-group lg:p-kv-inline lg:pt-kv-stack lg:pb-kv-page'
             )}
             aria-label="منوی اصلی"
           >
@@ -148,15 +148,12 @@ export function Sidebar() {
             )}
           </nav>
 
-          <UserAccountMenu
-            variant="sidebar"
-            isCollapsed={isCollapsed}
-            onNavigate={closeMobileSidebar}
-          />
-
-          <div className="hidden shrink-0 items-center justify-center gap-kv-inline border-t border-kv-border-muted p-kv-group lg:flex">
-            <KarvitaBrandMark className="p-1" />
-            {!isCollapsed && <HeaderBrandWordmark textSize="legible" />}
+          <div className="shrink-0">
+            <UserAccountMenu
+              variant="sidebar"
+              isCollapsed={isCollapsed}
+              onNavigate={closeMobileSidebar}
+            />
           </div>
         </aside>
 

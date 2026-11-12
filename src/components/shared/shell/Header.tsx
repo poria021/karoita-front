@@ -1,7 +1,9 @@
 'use client';
 
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
+import { HeaderBrandWordmark } from '@/components/shared/shell/HeaderBrandWordmark';
 import { HeaderNotificationsMenu } from '@/components/shared/shell/HeaderNotificationsMenu';
 import { ThemeModeToggle } from '@/components/shared/shell/ThemeModeToggle';
 import { UserAccountMenu } from '@/components/shared/shell/UserAccountMenu';
@@ -51,9 +53,15 @@ export function Header() {
             icon={<FaIcon icon={faIcons.bars} size="sm" />}
           />
 
-          <span className="sr-only">
-            کارویتا — پنل کاربری - {strategy.label}
-          </span>
+          <div className="flex min-w-0 items-center gap-kv-inline">
+            <KarvitaBrandMark className="p-1.5 sm:p-2" />
+            <div className="hidden min-w-0 lg:block">
+              <HeaderBrandWordmark />
+            </div>
+            <span className="sr-only">
+              کارویتا — پنل کاربری - {strategy.label}
+            </span>
+          </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-kv-pair sm:gap-kv-inline">
