@@ -56,12 +56,10 @@ export function KvSheetContent({
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           'duration-[350ms]',
           SHEET_EASE,
-          // physical-ok: floating filter panel on physical left
           side === 'left' &&
-            'left-kv-group data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left',
-          // physical-ok: floating filter panel on physical right
+            'left-kv-group data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left', // physical-ok: sheet docks to physical left edge
           side === 'right' &&
-            'right-kv-group data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right',
+            'right-kv-group data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right', // physical-ok: sheet docks to physical right edge
           'motion-reduce:transition-none motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none',
           className
         )}
