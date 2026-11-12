@@ -32,14 +32,8 @@ const SERIES = [
   'var(--chart-4)',
 ];
 
-function candidateLabel(row: {
-  name?: unknown;
-  facName?: unknown;
-  schoolName?: unknown;
-}): string {
-  const name = String(row.name ?? '').trim();
-  const sub = String(row.facName ?? row.schoolName ?? '').trim();
-  return sub ? `${name} — ${sub}` : name;
+function candidateLabel(row: { name?: unknown }): string {
+  return String(row.name ?? '').trim();
 }
 
 export function ReportCompareView({ page }: ReportCompareViewProps) {
@@ -119,23 +113,16 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
               <KvTypography as="p" variant="caption" tone="muted">
                 {help}
               </KvTypography>
+              <KvTypography as="p" variant="caption" className="font-extrabold">
+                انتخاب موارد:{' '}
+                <span className="font-bold text-kv-text-muted">
+                  {toPersianDigits(n)} از {toPersianDigits(page.compareMax)}
+                </span>
+              </KvTypography>
             </div>
           </div>
 
           <div className="flex w-full shrink-0 flex-col gap-kv-pair sm:max-w-sm sm:border-s sm:border-kv-border-muted sm:ps-kv-group">
-            <div className="flex items-center justify-between gap-kv-inline">
-              <KvTypography
-                as="span"
-                variant="caption"
-                className="font-extrabold"
-              >
-                انتخاب موارد
-              </KvTypography>
-              <KvTypography as="span" variant="caption" tone="muted">
-                {toPersianDigits(n)} از {toPersianDigits(page.compareMax)}
-              </KvTypography>
-            </div>
-
             <KvSearchableOrganizationSelect
               multi
               label={false}
