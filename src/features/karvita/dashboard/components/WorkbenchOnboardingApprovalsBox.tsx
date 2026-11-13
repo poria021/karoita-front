@@ -9,6 +9,7 @@ import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { MockDataBadge } from '@/components/shared/MockDataBadge';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import { RouteService } from '@/services/route.service';
 import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -167,13 +168,17 @@ export function WorkbenchOnboardingApprovalsBox({
   const { isLoading, isError, summary } = useDashboardOnboardingApprovals();
   const [activeId, setActiveId] = useState<string | null>(null);
   const pageHref = RouteService.karvita.onboardingApprovals('pending_admin');
+  const isEmpty = isError || (!isLoading && summary.total === 0);
 
   return (
     <section
       aria-labelledby="dashboard-onboarding-approvals-title"
       style={style}
       className={cn(
-        'flex min-h-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface px-kv-group py-kv-group shadow-kv-soft',
+        'flex min-h-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        workbenchBoxToneClass(isEmpty),
+        // خطا: محتوا کوتاه است ولی باکس همان اندازهٔ عادی را نگه می‌دارد.
+        isError && 'min-h-[19rem] md:min-w-[40rem]',
         className
       )}
     >

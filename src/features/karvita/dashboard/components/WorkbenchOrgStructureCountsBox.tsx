@@ -5,6 +5,7 @@ import type { CSSProperties } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import { RouteService } from '@/services/route.service';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -55,7 +56,8 @@ export function WorkbenchOrgStructureCountsBox({
       <p
         style={style}
         className={cn(
-          'flex items-center justify-center rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group text-xs text-kv-text-muted shadow-kv-soft',
+          'flex items-center justify-center rounded-kv-shell border p-kv-group text-xs text-kv-text-muted',
+          workbenchBoxToneClass(true),
           className
         )}
       >

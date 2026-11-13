@@ -6,6 +6,7 @@ import type { CSSProperties } from 'react';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import { RouteService } from '@/services/route.service';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -107,13 +108,15 @@ export function DashboardCapacityStatusBox({
 }: DashboardCapacityStatusBoxProps) {
   const { isLoading, isError, views, insight } = useDashboardCapacityStatus();
   const href = RouteService.karvita.organizationalCapacities();
+  const isEmpty = !isLoading && (isError || views.length === 0);
 
   return (
     <section
       aria-labelledby="dashboard-capacity-status-title"
       style={style}
       className={cn(
-        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group shadow-kv-soft',
+        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border p-kv-group',
+        workbenchBoxToneClass(isEmpty),
         className
       )}
     >

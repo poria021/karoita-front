@@ -45,11 +45,12 @@ export function ReportCompareBar({ page }: ReportCompareBarProps) {
           ))}
         </div>
       </div>
-      <div className="ms-auto flex flex-wrap items-center gap-kv-pair">
+      <div className="flex w-full items-center gap-kv-pair sm:ms-auto sm:w-auto">
         <KvButton
           type="button"
           appearance="secondary"
           color="neutral"
+          className="flex-1 max-sm:min-h-11 sm:flex-none"
           onClick={page.clearCompareSelected}
         >
           پاک کردن
@@ -57,6 +58,7 @@ export function ReportCompareBar({ page }: ReportCompareBarProps) {
         <KvButton
           type="button"
           disabled={n < page.compareMin}
+          className="flex-1 max-sm:min-h-11 sm:flex-none"
           onClick={() => page.enterCompare()}
         >
           مقایسه‌ی {toPersianDigits(n)} مورد

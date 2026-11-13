@@ -43,8 +43,12 @@ type DashboardBulletinsBoardProps = {
   leading: ReactNode;
 };
 
-function hasAdSpot(role: UserRole, ads: readonly Bulletin[]): boolean {
-  return workbenchAllowsAdSpot(role) && ads.length > 0;
+/**
+ * نقش‌هایی که جایگاه تبلیغ دارند، ستون تبلیغ را همیشه نگه می‌دارند؛
+ * بدون تبلیغ فعال، جایگاه به‌صورت باکس خالی (خط‌چین) دیده می‌شود.
+ */
+function hasAdSpot(role: UserRole): boolean {
+  return workbenchAllowsAdSpot(role);
 }
 
 /**
@@ -56,7 +60,7 @@ export function DashboardBulletinsBoard({
   leading,
 }: DashboardBulletinsBoardProps) {
   const data = useDashboardBulletins(role);
-  const showAd = hasAdSpot(role, data.ads);
+  const showAd = hasAdSpot(role);
   const kind = workbenchLayoutKindFor(role);
   const showCapacity = role === 'supervisor_professor';
   const slots = workbenchLayoutForRole(role, { showAd, showCapacity });
@@ -173,7 +177,7 @@ function WorkbenchBoardCell({
     case 'ad':
       return (
         <div className={cellClass} style={cellStyle}>
-          <WorkbenchAdBox ads={ads} />
+          <WorkbenchAdBox ads={ads} isLoading={isLoading} isError={isError} />
         </div>
       );
     case 'materials':
@@ -210,9 +214,6 @@ function WorkbenchBoardCell({
   }
 }
 
-export function workbenchBoardShowsAd(
-  role: UserRole,
-  ads: readonly Bulletin[]
-): boolean {
-  return hasAdSpot(role, ads);
+export function workbenchBoardShowsAd(role: UserRole): boolean {
+  return hasAdSpot(role);
 }

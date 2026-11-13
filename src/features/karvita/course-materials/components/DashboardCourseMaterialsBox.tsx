@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import type { CourseMaterial } from '@/types/course-materials';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -40,12 +41,15 @@ export function DashboardCourseMaterialsBox({
   className,
   style,
 }: DashboardCourseMaterialsBoxProps) {
+  const isEmpty = !isLoading && materials.length === 0;
+
   return (
     <section
       aria-labelledby="dashboard-course-materials-title"
       style={style}
       className={cn(
-        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group shadow-kv-soft',
+        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border p-kv-group',
+        workbenchBoxToneClass(isEmpty),
         className
       )}
     >

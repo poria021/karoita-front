@@ -6,6 +6,7 @@ import type { CSSProperties } from 'react';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import type { InternshipWeeklySessionState } from '@/types/internship-enrollment';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -94,7 +95,8 @@ export function WorkbenchWeekStatusBox({
       aria-label="وضعیت هفتهٔ درس‌های فعال"
       style={style}
       className={cn(
-        'flex min-h-0 min-w-0 flex-col rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section shadow-kv-soft sm:p-kv-page',
+        'flex min-h-0 min-w-0 flex-col rounded-kv-panel border p-kv-section sm:p-kv-page',
+        workbenchBoxToneClass(highlights.length === 0, 'default'),
         className
       )}
     >

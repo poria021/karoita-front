@@ -8,6 +8,7 @@ import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { BulletinCard } from '@/features/karvita/bulletins/components/BulletinCard';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import {
   canPublishAnnouncements,
   canReceiveBulletins,
@@ -184,13 +185,15 @@ export function WorkbenchAnnouncementsBox({
   const preview = isError
     ? []
     : announcements.slice(0, DASHBOARD_ANNOUNCEMENTS_PREVIEW_LIMIT);
+  const isEmpty = !isLoading && (isError || preview.length === 0);
 
   return (
     <section
       aria-labelledby="dashboard-announcements-title"
       style={style}
       className={cn(
-        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group shadow-kv-soft',
+        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border p-kv-group',
+        workbenchBoxToneClass(isEmpty),
         className
       )}
     >
