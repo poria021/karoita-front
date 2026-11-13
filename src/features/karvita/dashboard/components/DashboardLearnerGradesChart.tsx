@@ -23,6 +23,7 @@ import { WorkbenchWeeklyGradesBox } from './WorkbenchWeeklyGradesBox';
 
 /**
  * ردیف میز کار فراگیر: وضعیت هفته‌ها | روند نمره هفتگی — سلول تمام‌عرض شِل.
+ * همیشه نمایان است؛ بدون داده، باکس‌ها خالی (خط‌چین) ولی هم‌اندازه می‌مانند.
  */
 export function DashboardLearnerGradesChart() {
   const desk = useLearnerWorkbenchSnapshot();
@@ -41,12 +42,6 @@ export function DashboardLearnerGradesChart() {
     typeof passingQuery.data === 'number' && Number.isFinite(passingQuery.data)
       ? passingQuery.data
       : DAILY_APPROVAL_PASSING_SCORE;
-
-  if (!desk.enabled) return null;
-
-  if (!desk.isLoading && !desk.isError && series.length === 0 && highlights.length === 0) {
-    return null;
-  }
 
   return (
     <div

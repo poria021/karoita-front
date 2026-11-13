@@ -16,7 +16,7 @@ import {
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
-export type KvSheetSide = 'left' | 'right';
+export type KvSheetSide = 'left' | 'right' | 'bottom';
 
 export type KvSheetProps = React.ComponentProps<typeof Dialog>;
 
@@ -51,8 +51,12 @@ export function KvSheetContent({
         data-side={side}
         className={cn(
           kvScrollAreaClassName,
-          'fixed top-kv-group bottom-kv-group z-[85] flex h-auto max-h-[calc(100dvh-2*var(--spacing-kv-group))] w-[min(24rem,calc(100vw-2*var(--spacing-kv-group)))] flex-col overflow-hidden',
-          'rounded-kv-card border border-kv-border bg-kv-surface text-kv-text shadow-kv-floating outline-none',
+          'fixed z-[85] flex flex-col overflow-hidden',
+          side === 'bottom'
+            ? // باتم‌شیت: تمام‌عرض، چسبیده به پایین، تا نیمهٔ ارتفاع صفحه
+              'inset-x-0 bottom-0 h-[50dvh] max-h-[50dvh] w-full rounded-t-kv-card border-x-0 border-t border-b-0 border-kv-border'
+            : 'top-kv-group bottom-kv-group h-auto max-h-[calc(100dvh-2*var(--spacing-kv-group))] w-[min(24rem,calc(100vw-2*var(--spacing-kv-group)))] rounded-kv-card border border-kv-border',
+          'bg-kv-surface text-kv-text shadow-kv-floating outline-none',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           'duration-[350ms]',
           SHEET_EASE,
@@ -60,12 +64,20 @@ export function KvSheetContent({
             'left-kv-group data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left', // physical-ok: sheet docks to physical left edge
           side === 'right' &&
             'right-kv-group data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right', // physical-ok: sheet docks to physical right edge
+          side === 'bottom' &&
+            'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom',
           'motion-reduce:transition-none motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none',
           className
         )}
         {...props}
       >
         <div className="flex min-h-0 flex-1 flex-col [direction:rtl]">
+          {side === 'bottom' ? (
+            <div
+              aria-hidden
+              className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-kv-border"
+            />
+          ) : null}
           {showCloseButton ? (
             <DialogClose
               type="button"

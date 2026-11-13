@@ -17,6 +17,7 @@ import { KvTypography } from '@/components/shared/KvTypography';
 import { Spinner } from '@/components/ui/spinner';
 import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -329,12 +330,20 @@ export function WorkbenchReportsMonitorBox({
     return { min, max };
   }, [shelf.queued]);
 
+  const isEmpty =
+    !isLoading &&
+    (isError ||
+      !summary ||
+      summary.courses.length === 0 ||
+      shelf.queued.length === 0);
+
   return (
     <section
       aria-labelledby="dashboard-reply-status-title"
       style={style}
       className={cn(
-        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface p-kv-group shadow-kv-soft',
+        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border p-kv-group',
+        workbenchBoxToneClass(isEmpty),
         className
       )}
     >

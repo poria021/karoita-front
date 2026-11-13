@@ -32,19 +32,12 @@ function isWorkbenchHomePath(pathname: string): boolean {
   );
 }
 
-function normalizePath(pathname: string): string {
-  const withoutQuery = pathname.split('?')[0] ?? pathname;
-  const trimmed = withoutQuery.replace(/\/+$/, '');
-  return trimmed.length > 0 ? trimmed : '/';
-}
-
-/** صفحات بدون شاخهٔ real — بج ماکت کنار عنوان هدر. */
+/**
+ * صفحاتی که سرویسشان هنوز شاخهٔ real ندارد — بج ماکت کنار عنوان هدر.
+ * بررسی مدارک هویتی (`OnboardingApprovalsService`) به Nest وصل است و اینجا نیست.
+ */
 function showsMockDataBadge(pathname: string): boolean {
-  if (isAdminReportsPath(pathname) || isOrgReportsPath(pathname)) return true;
-  const onboardingBase = normalizePath(
-    RouteService.karvita.onboardingApprovals()
-  );
-  return normalizePath(pathname) === onboardingBase;
+  return isAdminReportsPath(pathname) || isOrgReportsPath(pathname);
 }
 
 export function ModulePageHeader() {

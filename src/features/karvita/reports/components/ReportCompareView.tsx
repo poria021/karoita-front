@@ -16,6 +16,7 @@ import {
   KvTableHeader,
   KvTableRow,
 } from '@/components/shared/table/KvTable';
+import { ReportCompareItemCards } from '@/features/karvita/reports/components/ReportCompareItemCards';
 import type { AdminReportPageModel } from '@/features/karvita/reports/hooks/useAdminReportPage';
 import { cn } from '@/lib/utils';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -198,7 +199,16 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
             ))}
           </div>
 
-          <div className="overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface shadow-kv-soft">
+          {/* تبلت و موبایل: کارت برای هر مورد؛ دسکتاپ: جدول شاخص × مورد */}
+          <ReportCompareItemCards
+            className="lg:hidden"
+            items={page.compareItems}
+            metrics={metrics}
+            metricTitles={metricTitles}
+            series={SERIES}
+          />
+
+          <div className="hidden overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface shadow-kv-soft lg:block">
             <KvTable>
               <KvTableHeader>
                 <KvTableRow>

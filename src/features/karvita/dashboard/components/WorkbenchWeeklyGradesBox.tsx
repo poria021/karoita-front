@@ -16,6 +16,7 @@ import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { DAILY_APPROVAL_PASSING_SCORE } from '@/features/karvita/daily-approvals/constants';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import {
@@ -147,6 +148,7 @@ export function WorkbenchWeeklyGradesBox({
     [series]
   );
   const hasScores = series.some((item) => scoredValues(item).length > 0);
+  const isEmpty = isError || (!isLoading && !hasScores);
 
   const selectCourse = (id: string | null) => {
     setFocusedId(id);
@@ -157,7 +159,8 @@ export function WorkbenchWeeklyGradesBox({
       aria-label="روند نمره هفتگی"
       style={style}
       className={cn(
-        'flex min-h-0 min-w-0 flex-col rounded-kv-panel border border-kv-border bg-kv-surface p-kv-section shadow-kv-soft sm:p-kv-page',
+        'flex min-h-0 min-w-0 flex-col rounded-kv-panel border p-kv-section sm:p-kv-page',
+        workbenchBoxToneClass(isEmpty, 'default'),
         className
       )}
     >
@@ -227,7 +230,7 @@ export function WorkbenchWeeklyGradesBox({
       {isError ? (
         <KvEmptyState
           title="روند نمره فعلاً در دسترس نیست؛ کمی بعد دوباره تلاش کنید."
-          className="min-h-0 py-kv-pair"
+          className="min-h-[300px] py-kv-pair"
         />
       ) : isLoading ? (
         <div
@@ -237,161 +240,166 @@ export function WorkbenchWeeklyGradesBox({
       ) : !hasScores ? (
         <KvEmptyState
           title="هنوز نمرهٔ هفتگی ثبت نشده است. به‌محض نمره‌دهی، روند اینجا دیده می‌شود."
-          className="min-h-0 py-kv-pair"
+          className="min-h-[300px] py-kv-pair"
         />
       ) : (
-        <div dir="ltr" className="w-full" style={{ height: CHART_HEIGHT }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={rows}
-              margin={{ top: 8, right: 8, left: 0, bottom: 8 }}
-            >
-              <defs>
-                {series.map((item) => (
-                  <linearGradient
-                    key={item.id}
-                    id={`${gradientNs}-${item.id}`}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stopColor={item.color}
-                      stopOpacity={0.08}
+        <div
+          className="relative w-full flex-1"
+          style={{ minHeight: CHART_HEIGHT }}
+        >
+          <div dir="ltr" className="absolute inset-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart
+                data={rows}
+                margin={{ top: 8, right: 8, left: 0, bottom: 8 }}
+              >
+                <defs>
+                  {series.map((item) => (
+                    <linearGradient
+                      key={item.id}
+                      id={`${gradientNs}-${item.id}`}
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor={item.color}
+                        stopOpacity={0.08}
+                      />
+                      <stop
+                        offset="55%"
+                        stopColor={item.color}
+                        stopOpacity={0.025}
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={item.color}
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                  ))}
+                </defs>
+
+                <CartesianGrid
+                  stroke="var(--kv-border)"
+                  strokeOpacity={0.7}
+                  strokeWidth={1}
+                  vertical={false}
+                />
+
+                <XAxis
+                  dataKey="weekNumber"
+                  tickLine={false}
+                  axisLine={false}
+                  interval={0}
+                  angle={-40}
+                  textAnchor="end"
+                  height={52}
+                  tickMargin={6}
+                  tick={{
+                    fill: 'var(--kv-text-faint)',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    fontFamily: 'var(--font-vazirmatn), sans-serif',
+                  }}
+                  tickFormatter={(value: number) =>
+                    `هفته ${toPersianDigits(value)}`
+                  }
+                />
+
+                <YAxis
+                  domain={[0, 100]}
+                  ticks={[0, 20, 40, 60, 80, 100]}
+                  width={36}
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tick={{
+                    fill: 'var(--kv-text-faint)',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    fontFamily: 'var(--font-vazirmatn), sans-serif',
+                  }}
+                  tickFormatter={(value: number) => toPersianDigits(value)}
+                />
+
+                <ReferenceLine
+                  y={minGrade}
+                  stroke="var(--kv-text-faint)"
+                  strokeDasharray="4 6"
+                  strokeOpacity={0.35}
+                  strokeWidth={1}
+                />
+
+                <Tooltip
+                  cursor={{
+                    stroke: 'var(--kv-border-strong)',
+                    strokeWidth: 1,
+                    strokeOpacity: 0.55,
+                  }}
+                  content={
+                    <GradeTooltip
+                      seriesById={seriesById}
+                      focusedId={focusedId}
                     />
-                    <stop
-                      offset="55%"
-                      stopColor={item.color}
-                      stopOpacity={0.025}
+                  }
+                  wrapperStyle={{ outline: 'none', zIndex: 20 }}
+                />
+
+                {series.map((item) => {
+                  const faded = focusedId != null && focusedId !== item.id;
+                  const strokeOpacity = faded
+                    ? FADED_OPACITY
+                    : focusedId === item.id
+                      ? 0.85
+                      : SERIES_STROKE_OPACITY;
+                  const fillOpacity = faded ? FADED_OPACITY : 1;
+                  const dotOpacity = faded
+                    ? FADED_OPACITY
+                    : focusedId === item.id
+                      ? 0.95
+                      : SERIES_DOT_OPACITY;
+
+                  return (
+                    <Area
+                      key={item.id}
+                      type="monotone"
+                      dataKey={item.id}
+                      name={item.courseTitle}
+                      stroke={item.color}
+                      fill={`url(#${gradientNs}-${item.id})`}
+                      strokeWidth={faded ? 1.1 : focusedId === item.id ? 2 : 1.6}
+                      strokeOpacity={strokeOpacity}
+                      fillOpacity={fillOpacity}
+                      connectNulls
+                      isAnimationActive
+                      animationDuration={650}
+                      animationEasing="ease-out"
+                      dot={{
+                        r: 3.5,
+                        fill: item.color,
+                        strokeWidth: 0,
+                        fillOpacity: dotOpacity,
+                      }}
+                      activeDot={
+                        faded
+                          ? false
+                          : {
+                              r: 5,
+                              fill: item.color,
+                              fillOpacity: 0.9,
+                              stroke: 'var(--kv-surface)',
+                              strokeWidth: 2,
+                            }
+                      }
                     />
-                    <stop
-                      offset="100%"
-                      stopColor={item.color}
-                      stopOpacity={0}
-                    />
-                  </linearGradient>
-                ))}
-              </defs>
-
-              <CartesianGrid
-                stroke="var(--kv-border)"
-                strokeOpacity={0.7}
-                strokeWidth={1}
-                vertical={false}
-              />
-
-              <XAxis
-                dataKey="weekNumber"
-                tickLine={false}
-                axisLine={false}
-                interval={0}
-                angle={-40}
-                textAnchor="end"
-                height={52}
-                tickMargin={6}
-                tick={{
-                  fill: 'var(--kv-text-faint)',
-                  fontSize: 11,
-                  fontWeight: 500,
-                  fontFamily: 'var(--font-vazirmatn), sans-serif',
-                }}
-                tickFormatter={(value: number) =>
-                  `هفته ${toPersianDigits(value)}`
-                }
-              />
-
-              <YAxis
-                domain={[0, 100]}
-                ticks={[0, 20, 40, 60, 80, 100]}
-                width={36}
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                tick={{
-                  fill: 'var(--kv-text-faint)',
-                  fontSize: 12,
-                  fontWeight: 500,
-                  fontFamily: 'var(--font-vazirmatn), sans-serif',
-                }}
-                tickFormatter={(value: number) => toPersianDigits(value)}
-              />
-
-              <ReferenceLine
-                y={minGrade}
-                stroke="var(--kv-text-faint)"
-                strokeDasharray="4 6"
-                strokeOpacity={0.35}
-                strokeWidth={1}
-              />
-
-              <Tooltip
-                cursor={{
-                  stroke: 'var(--kv-border-strong)',
-                  strokeWidth: 1,
-                  strokeOpacity: 0.55,
-                }}
-                content={
-                  <GradeTooltip
-                    seriesById={seriesById}
-                    focusedId={focusedId}
-                  />
-                }
-                wrapperStyle={{ outline: 'none', zIndex: 20 }}
-              />
-
-              {series.map((item) => {
-                const faded = focusedId != null && focusedId !== item.id;
-                const strokeOpacity = faded
-                  ? FADED_OPACITY
-                  : focusedId === item.id
-                    ? 0.85
-                    : SERIES_STROKE_OPACITY;
-                const fillOpacity = faded ? FADED_OPACITY : 1;
-                const dotOpacity = faded
-                  ? FADED_OPACITY
-                  : focusedId === item.id
-                    ? 0.95
-                    : SERIES_DOT_OPACITY;
-
-                return (
-                  <Area
-                    key={item.id}
-                    type="monotone"
-                    dataKey={item.id}
-                    name={item.courseTitle}
-                    stroke={item.color}
-                    fill={`url(#${gradientNs}-${item.id})`}
-                    strokeWidth={faded ? 1.1 : focusedId === item.id ? 2 : 1.6}
-                    strokeOpacity={strokeOpacity}
-                    fillOpacity={fillOpacity}
-                    connectNulls
-                    isAnimationActive
-                    animationDuration={650}
-                    animationEasing="ease-out"
-                    dot={{
-                      r: 3.5,
-                      fill: item.color,
-                      strokeWidth: 0,
-                      fillOpacity: dotOpacity,
-                    }}
-                    activeDot={
-                      faded
-                        ? false
-                        : {
-                            r: 5,
-                            fill: item.color,
-                            fillOpacity: 0.9,
-                            stroke: 'var(--kv-surface)',
-                            strokeWidth: 2,
-                          }
-                    }
-                  />
-                );
-              })}
-            </ComposedChart>
-          </ResponsiveContainer>
+                  );
+                })}
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
     </section>

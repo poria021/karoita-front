@@ -15,6 +15,7 @@ import {
 import { FILTER_LABELS } from '@/features/karvita/reports/constants';
 import type { AdminReportPageModel } from '@/features/karvita/reports/hooks/useAdminReportPage';
 import { ReportSearchableFilterField } from '@/features/karvita/reports/components/ReportSearchableFilterField';
+import { useIsTabletUp } from '@/hooks/useMediaQuery';
 import { faIcons } from '@/utils/iconMap';
 
 type ReportAdvancedFiltersProps = {
@@ -22,12 +23,19 @@ type ReportAdvancedFiltersProps = {
 };
 
 /**
- * کشوی فیلتر پیشرفته — هم‌ساخت با ماکت `rp-drawer`؛ فیلدها سلکت سرچ‌پذیر.
+ * فیلتر پیشرفته — هم‌ساخت با ماکت `rp-drawer`؛ فیلدها سلکت سرچ‌پذیر.
+ * زیر `md` باتم‌شیت تمام‌عرض (نیمهٔ پایین صفحه)، از `md` به بالا کشوی کناری.
  */
 export function ReportAdvancedFilters({ page }: ReportAdvancedFiltersProps) {
+  // موبایل: باتم‌شیت از پایین تا نیمهٔ صفحه؛ تبلت و دسکتاپ: کشوی کناری.
+  const isMobile = !useIsTabletUp();
+
   return (
     <KvSheet open={page.advOpen} onOpenChange={(o) => page.setAdvOpen(o)}>
-      <KvSheetContent side="left" showCloseButton={false}>
+      <KvSheetContent
+        side={isMobile ? 'bottom' : 'left'}
+        showCloseButton={false}
+      >
         <KvSheetHeader>
           <div className="min-w-0">
             <KvSheetTitle>فیلتر پیشرفته</KvSheetTitle>
@@ -46,7 +54,13 @@ export function ReportAdvancedFilters({ page }: ReportAdvancedFiltersProps) {
             />
           ))}
         </KvSheetBody>
-        <KvSheetFooter>
+        <KvSheetFooter
+          style={
+            isMobile
+              ? { paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }
+              : undefined
+          }
+        >
           <KvButton
             type="button"
             fullWidth

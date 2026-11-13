@@ -3,6 +3,7 @@
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
+import { useIsTabletUp } from '@/hooks/useMediaQuery';
 import type { ReportSlug } from '@/types/report-access';
 
 import {
@@ -10,6 +11,7 @@ import {
   type UseAdminReportPageOptions,
 } from '../hooks/useAdminReportPage';
 import { ReportAdvancedFilters } from './ReportAdvancedFilters';
+import { ReportCardList } from './ReportCardList';
 import { ReportCategoryNav } from './ReportCategoryNav';
 import { ReportCompareBar } from './ReportCompareBar';
 import { ReportCompareView } from './ReportCompareView';
@@ -32,6 +34,7 @@ export function ReportsPageView({
   pageOptions,
 }: ReportsPageViewProps) {
   const page = useAdminReportPage(slug, pageOptions);
+  const showTable = useIsTabletUp();
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -68,7 +71,12 @@ export function ReportsPageView({
                   }
                 />
               ) : (
-                <ReportTable page={page} />
+                // جدول از تبلت به بالا؛ فقط موبایل کارت (فقط یکی در DOM می‌نشیند).
+                showTable ? (
+                  <ReportTable page={page} />
+                ) : (
+                  <ReportCardList page={page} />
+                )
               )}
               <ReportCompareBar page={page} />
             </section>

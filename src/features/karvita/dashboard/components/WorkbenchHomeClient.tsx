@@ -2,7 +2,6 @@
 
 import { OnboardingChecklist } from '@/components/shared/shell/OnboardingChecklist';
 import { workbenchBoardShowsAd } from '@/features/karvita/bulletins/components/DashboardBulletinsBoard';
-import { useDashboardBulletins } from '@/features/karvita/bulletins/hooks/useDashboardBulletins';
 import { useUserStore } from '@/store/useUserStore';
 import {
   getOnboardingProgress,
@@ -72,8 +71,7 @@ function WorkbenchHomeShell({
   welcomeOrgLine: string | null;
   progress: ReturnType<typeof getOnboardingProgress> | null;
 }) {
-  const data = useDashboardBulletins(role);
-  const showAd = workbenchBoardShowsAd(role, data.ads);
+  const showAd = workbenchBoardShowsAd(role);
   const fullRowClass = workbenchCellClass(WORKBENCH_FULL_ROW_PLACEMENT);
 
   return (

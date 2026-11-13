@@ -409,3 +409,20 @@ export const WORKBENCH_FULL_ROW_PLACEMENT: WorkbenchBoxPlacement = {
   colStart: 1,
   height: 'auto',
 };
+
+/**
+ * سطح باکس‌های میز کار: در حالت عادی پُر؛ در حالت خالی (empty state)
+ * بدون پس‌زمینه و با بردر خط‌چین. اندازهٔ باکس در هر دو حالت یکی می‌ماند.
+ * ضخامت بردر (`border`) و گردی گوشه را خود باکس می‌دهد.
+ */
+export function workbenchBoxToneClass(
+  isEmpty: boolean,
+  filledBorder: 'soft' | 'default' = 'soft'
+): string {
+  if (isEmpty) {
+    return 'border-dashed border-kv-border-strong bg-transparent shadow-none';
+  }
+  return filledBorder === 'soft'
+    ? 'border-kv-border/70 bg-kv-surface shadow-kv-soft'
+    : 'border-kv-border bg-kv-surface shadow-kv-soft';
+}

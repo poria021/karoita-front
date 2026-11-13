@@ -6,7 +6,10 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { cn } from '@/lib/utils';
-import { WORKBENCH_AD_ASPECT_CLASS } from '@/lib/workbench-grid';
+import {
+  WORKBENCH_AD_ASPECT_CLASS,
+  workbenchBoxToneClass,
+} from '@/lib/workbench-grid';
 import { BulletinsService } from '@/services/bulletins.service';
 import type { Bulletin } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
@@ -25,9 +28,14 @@ export type WorkbenchAdBoxProps = {
   className?: string;
 };
 
-const BOX_CLASS = cn(
-  'relative w-full overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface-muted shadow-kv-soft',
+const BOX_BASE_CLASS = cn(
+  'relative w-full overflow-hidden rounded-kv-shell border',
   WORKBENCH_AD_ASPECT_CLASS
+);
+
+const BOX_CLASS = cn(
+  BOX_BASE_CLASS,
+  'border-kv-border/70 bg-kv-surface-muted shadow-kv-soft'
 );
 
 function AdSlideContent({ ad }: { ad: Bulletin }) {
@@ -56,7 +64,7 @@ function AdSlideContent({ ad }: { ad: Bulletin }) {
 
 /**
  * باکس تبلیغ مشترک میز کار — اسلایدر با نسبت ۳:۴.
- * الگوی spot: بدون تبلیغ فعال چیزی رندر نمی‌کند (والد ستون را حذف می‌کند).
+ * بدون تبلیغ فعال (یا خطا) همان اندازهٔ ۳:۴ را نگه می‌دارد، ولی خالی و خط‌چین.
  */
 export function WorkbenchAdBox({
   ads,
@@ -99,9 +107,39 @@ export function WorkbenchAdBox({
     setCurrent(((index % count) + count) % count);
   };
 
-  // Spot: خالی / خطا / لود بدون داده → null تا ستون گرید جمع شود.
-  if (isLoading || isError || count === 0 || !shown) {
-    return null;
+  if (isLoading) {
+    return (
+      <div
+        role="status"
+        aria-label="در حال بارگذاری تبلیغات"
+        className={cn(
+          BOX_BASE_CLASS,
+          'animate-pulse border-kv-border/70 bg-kv-surface-muted',
+          className
+        )}
+      />
+    );
+  }
+
+  // خالی / خطا: همان اندازه، پس‌زمینهٔ شفاف و بردر خط‌چین.
+  if (isError || count === 0 || !shown) {
+    return (
+      <section
+        aria-label="تبلیغات"
+        className={cn(
+          BOX_BASE_CLASS,
+          'flex items-center justify-center px-kv-group text-center',
+          workbenchBoxToneClass(true),
+          className
+        )}
+      >
+        <KvTypography variant="caption" tone="muted" as="p">
+          {isError
+            ? 'تبلیغات فعلاً در دسترس نیست.'
+            : 'فعلاً تبلیغی برای نمایش نیست.'}
+        </KvTypography>
+      </section>
+    );
   }
 
   return (
