@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   COMPARE_REPORT_SLUGS,
   FILTER_LABELS,
+  REPORT_COMPARE_ENABLED,
 } from '@/features/karvita/reports/constants';
 import { ReportSearchableFilterField } from '@/features/karvita/reports/components/ReportSearchableFilterField';
 import type { AdminReportPageModel } from '@/features/karvita/reports/hooks/useAdminReportPage';
@@ -101,7 +102,8 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
 
       {/* اکشن‌ها: زیر lg گرید هم‌اندازه (هم‌عرض با ردیف بالا)، دسکتاپ flex انتهای نوار */}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(0,1fr))] gap-kv-pair lg:ms-auto lg:flex lg:flex-nowrap">
-        {COMPARE_REPORT_SLUGS.includes(page.slug) ? (
+        {REPORT_COMPARE_ENABLED &&
+        COMPARE_REPORT_SLUGS.includes(page.slug) ? (
           <KvButton
             type="button"
             color="cta"
@@ -110,13 +112,10 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
             icon={<FaIcon icon={faIcons.codeCompare} size="sm" />}
             className={cn('w-full lg:w-auto', TOUCH)}
             disabled={!page.canCompare}
-            title={
-              page.canCompare ? undefined : 'مقایسه فعلاً غیرفعال است'
-            }
             onClick={() => page.enterCompare()}
           >
             مقایسه
-            {page.canCompare && page.compareSelected.length > 0 ? (
+            {page.compareSelected.length > 0 ? (
               <Badge
                 variant="brand"
                 className="ms-1 size-[1.125rem] justify-center p-0"

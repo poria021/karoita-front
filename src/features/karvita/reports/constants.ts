@@ -11,7 +11,7 @@ export {
   REPORT_PAGE_META,
 };
 
-/** مقایسه گزارش‌ها موقتاً برای انتشار خاموش است — دکمه دیده می‌شود ولی غیرفعال. */
+/** مقایسه گزارش‌ها موقتاً برای انتشار خاموش است — دکمه و جریان مقایسه رندر نمی‌شوند. */
 export const REPORT_COMPARE_ENABLED = false;
 
 export const REPORT_THEMES = REPORT_ACCESS_THEMES;
