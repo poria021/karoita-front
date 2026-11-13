@@ -78,17 +78,36 @@ const ALL_REPORT_FILTER_KEYS: readonly ReportFilterKey[] = [
 ];
 
 /**
- * فیلترهای مجاز هر نقش برای همهٔ گزارش‌ها.
- * مدیر ارشد / سازمان مرکزی / دانشگاه استانی → بدون محدودیت (همان فیلترهای صفحه).
+ * فیلترهای مجاز هر نقش برای همهٔ گزارش‌ها (allowlist).
+ * مدیر ارشد / سازمان مرکزی → بدون محدودیت (همان فیلترهای صفحه).
  */
 const ALLOWED_REPORT_FILTERS_BY_ROLE: Partial<
   Record<UserRole, readonly ReportFilterKey[]>
 > = {
-  faculty_role: ['professor', 'school'],
   regional_edu_admin: ['school', 'teacher'],
   school_principal: ['teacher'],
   mentor_teacher: ['region', 'school'],
   supervisor_professor: ['province', 'faculty', 'school'],
+};
+
+/**
+ * فیلترهایی که از مجموعهٔ صفحه حذف می‌شوند (denylist).
+ * دانشگاه استانی: استان + معلم
+ * دانشکده: شهر + معلم
+ */
+const HIDDEN_REPORT_FILTERS_BY_ROLE: Partial<
+  Record<UserRole, readonly ReportFilterKey[]>
+> = {
+  provincial_university: ['province', 'teacher'],
+  faculty_role: ['city', 'teacher'],
+};
+
+/** فیلترهایی که روی بعضی اسلاگ‌ها برای همهٔ نقش‌ها حذف‌اند. */
+const HIDDEN_REPORT_FILTERS_BY_SLUG: Partial<
+  Record<ReportSlug, readonly ReportFilterKey[]>
+> = {
+  principals: ['teacher', 'school'],
+  schools: ['teacher', 'school'],
 };
 
 function hiddenKeysOutsideAllowlist(
@@ -96,6 +115,22 @@ function hiddenKeysOutsideAllowlist(
 ): readonly ReportFilterKey[] {
   const keep = new Set(allowed);
   return ALL_REPORT_FILTER_KEYS.filter((key) => !keep.has(key));
+}
+
+function mergeHiddenFilterKeys(
+  ...groups: Array<readonly ReportFilterKey[] | undefined>
+): readonly ReportFilterKey[] {
+  const out: ReportFilterKey[] = [];
+  const seen = new Set<ReportFilterKey>();
+  for (const group of groups) {
+    if (!group) continue;
+    for (const key of group) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(key);
+    }
+  }
+  return out;
 }
 
 export function isOrgReportsRole(
@@ -215,28 +250,43 @@ export function usesThemedOrgReportSidebar(
 
 /**
  * کلید فیلترهایی که برای نقش نباید در گزارش دیده شوند.
- * برای نقش‌های allowlist‌دار روی همهٔ اسلاگ‌ها یکسان است.
+ * allowlist/denylist نقش + حذف‌های ثابت بعضی اسلاگ‌ها.
  */
 export function hiddenReportFilterKeysForRole(
   role: UserRole | string | null | undefined,
-  _slug?: ReportSlug
+  slug?: ReportSlug
 ): readonly ReportFilterKey[] {
-  if (typeof role !== 'string') return NO_HIDDEN_REPORT_FILTERS;
+  const slugHidden =
+    slug != null ? HIDDEN_REPORT_FILTERS_BY_SLUG[slug] : undefined;
+  if (typeof role !== 'string') {
+    return slugHidden ?? NO_HIDDEN_REPORT_FILTERS;
+  }
   const allowed = ALLOWED_REPORT_FILTERS_BY_ROLE[role as UserRole];
-  if (allowed) return hiddenKeysOutsideAllowlist(allowed);
-  return NO_HIDDEN_REPORT_FILTERS;
+  const roleHidden = allowed
+    ? hiddenKeysOutsideAllowlist(allowed)
+    : (HIDDEN_REPORT_FILTERS_BY_ROLE[role as UserRole] ??
+      NO_HIDDEN_REPORT_FILTERS);
+  return mergeHiddenFilterKeys(roleHidden, slugHidden);
 }
 
 /**
  * فیلترهایی که برای نقش باید در UI باشند (حتی اگر در تعریف صفحه نباشند).
- * برای نقش‌های allowlist‌دار همان مجموعهٔ مجاز است.
+ * فقط برای نقش‌های allowlist‌دار؛ روی اسلاگ‌های خاص، teacher/school تزریق نمی‌شود.
  */
 export function extraReportFilterKeysForRole(
   role: UserRole | string | null | undefined,
-  _slug?: ReportSlug
+  slug?: ReportSlug
 ): readonly ReportFilterKey[] {
   if (typeof role !== 'string') return NO_HIDDEN_REPORT_FILTERS;
-  return ALLOWED_REPORT_FILTERS_BY_ROLE[role as UserRole] ?? NO_HIDDEN_REPORT_FILTERS;
+  const extras =
+    ALLOWED_REPORT_FILTERS_BY_ROLE[role as UserRole] ??
+    NO_HIDDEN_REPORT_FILTERS;
+  if (!extras.length) return extras;
+  const slugHidden =
+    slug != null ? HIDDEN_REPORT_FILTERS_BY_SLUG[slug] : undefined;
+  if (!slugHidden?.length) return extras;
+  const banned = new Set(slugHidden);
+  return extras.filter((key) => !banned.has(key));
 }
 
 /**

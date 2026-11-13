@@ -208,20 +208,19 @@ describe('org-report-access', () => {
       hiddenReportFilterKeysForRole('central_organization', 'attendance')
     ).toEqual([]);
 
-    expect(extraReportFilterKeysForRole('faculty_role', 'learners')).toEqual([
-      'professor',
-      'school',
-    ]);
+    expect(extraReportFilterKeysForRole('faculty_role', 'learners')).toEqual(
+      []
+    );
     expect(hiddenReportFilterKeysForRole('faculty_role', 'learners')).toEqual([
-      'province',
       'city',
-      'region',
-      'faculty',
       'teacher',
-      'course',
-      'major',
-      'status',
     ]);
+    expect(
+      hiddenReportFilterKeysForRole('provincial_university', 'learners')
+    ).toEqual(['province', 'teacher']);
+    expect(
+      extraReportFilterKeysForRole('provincial_university', 'attendance')
+    ).toEqual([]);
 
     expect(
       extraReportFilterKeysForRole('regional_edu_admin', 'teachers')
@@ -287,11 +286,33 @@ describe('org-report-access', () => {
     ]);
 
     // یکسان برای همهٔ اسلاگ‌ها
-    expect(extraReportFilterKeysForRole('faculty_role', 'attendance')).toEqual(
-      extraReportFilterKeysForRole('faculty_role', 'learners')
+    expect(hiddenReportFilterKeysForRole('faculty_role', 'attendance')).toEqual(
+      hiddenReportFilterKeysForRole('faculty_role', 'learners')
     );
+    expect(
+      hiddenReportFilterKeysForRole('provincial_university', 'professors')
+    ).toEqual(['province', 'teacher']);
     expect(
       extraReportFilterKeysForRole('school_principal', 'teacher-performance')
     ).toEqual(['teacher']);
+
+    // لیست مدیران مدارس و لیست مدارس: معلم/مدرسه برای هیچ نقشی نیست
+    expect(hiddenReportFilterKeysForRole('super_admin', 'principals')).toEqual([
+      'teacher',
+      'school',
+    ]);
+    expect(hiddenReportFilterKeysForRole('super_admin', 'schools')).toEqual([
+      'teacher',
+      'school',
+    ]);
+    expect(
+      extraReportFilterKeysForRole('regional_edu_admin', 'principals')
+    ).toEqual([]);
+    expect(
+      extraReportFilterKeysForRole('school_principal', 'schools')
+    ).toEqual([]);
+    expect(
+      extraReportFilterKeysForRole('mentor_teacher', 'principals')
+    ).toEqual(['region']);
   });
 });

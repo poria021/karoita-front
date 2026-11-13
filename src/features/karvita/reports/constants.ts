@@ -201,7 +201,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     period: true,
     periodModes: false,
     first: ['q', 'province', 'city', 'region'],
-    more: ['teacher'],
+    more: [],
     desc: { term: REPORT_PAGE_META.principals.description, module: REPORT_PAGE_META.principals.description },
   },
   professors: {
