@@ -2,6 +2,8 @@ import { notFound, redirect } from 'next/navigation';
 
 import { AdminReportsModule } from '@/features/karvita/reports/components/AdminReportsModule';
 import {
+  DEFAULT_REPORT_SLUG,
+  isEnabledReportSlug,
   isReportSlug,
   REPORT_COMPARE_ENABLED,
   REPORT_PAGE_DEFS,
@@ -39,6 +41,9 @@ export default async function AdminReportSlugPage({
 }: PageProps) {
   const { slug } = await params;
   if (!isReportSlug(slug)) notFound();
+  if (!isEnabledReportSlug(slug)) {
+    redirect(RouteService.karvita.reports(DEFAULT_REPORT_SLUG));
+  }
 
   if (!REPORT_COMPARE_ENABLED) {
     const pathname = RouteService.karvita.reports(slug);

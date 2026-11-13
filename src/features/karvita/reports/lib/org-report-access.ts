@@ -11,6 +11,8 @@ import {
 import {
   REPORT_PAGE_DEFS,
   REPORT_THEMES,
+  filterEnabledReportSlugs,
+  isEnabledReportSlug,
   isReportSlug,
 } from '@/features/karvita/reports/constants';
 import { RouteService } from '@/services/route.service';
@@ -113,6 +115,35 @@ const MENTOR_SCORES_EXTRA_FILTERS: readonly ReportFilterKey[] = [
   'region',
   'school',
 ];
+/**
+ * نمرات فراگیران — فیلترهای geo برای نقش‌های بالا:
+ * مدیر ارشد / سازمان مرکزی: استان + شهر + دانشکده
+ * دانشگاه استانی: شهر + دانشکده
+ * دانشگاه: فقط شهر
+ * بقیهٔ more صفحه (منطقه/مدرسه/…) برای این نقش‌ها مخفی می‌شود.
+ */
+const SCORES_LEGACY_MORE_FILTERS: readonly ReportFilterKey[] = [
+  'region',
+  'school',
+  'professor',
+  'teacher',
+];
+const SCORES_HIDDEN_FILTERS_BY_ROLE: Partial<
+  Record<UserRole, readonly ReportFilterKey[]>
+> = {
+  super_admin: SCORES_LEGACY_MORE_FILTERS,
+  central_organization: SCORES_LEGACY_MORE_FILTERS,
+  provincial_university: ['province', ...SCORES_LEGACY_MORE_FILTERS],
+  faculty_role: ['province', 'faculty', ...SCORES_LEGACY_MORE_FILTERS],
+};
+const SCORES_EXTRA_FILTERS_BY_ROLE: Partial<
+  Record<UserRole, readonly ReportFilterKey[]>
+> = {
+  super_admin: ['province', 'city'],
+  central_organization: ['province', 'city'],
+  provincial_university: ['city'],
+  faculty_role: ['city'],
+};
 /** اسلاگ‌هایی که برای مدیر مدرسه فیلتر معلم راهنما اضافه نمی‌شود. */
 const PRINCIPAL_NO_TEACHER_FILTER_SLUGS = new Set<ReportSlug>([
   'teacher-performance',
@@ -185,7 +216,7 @@ export function orgReportsSidebarChildren(
   role: OrgReportsRole,
   slugs: readonly ReportSlug[] = orgApprovedReportSlugs(role)
 ): SidebarMenuItem[] {
-  return slugs.map(orgReportMenuItem);
+  return filterEnabledReportSlugs(slugs).map(orgReportMenuItem);
 }
 
 /** ماژول «گزارش‌گیری» با انواع گزارش به‌صورت زیرماژول (نقش‌های غیرمرکزی). */
@@ -214,7 +245,7 @@ export function orderOrgReportSlugsForMenu(
   for (const slug of granted) {
     if (!ordered.includes(slug)) ordered.push(slug);
   }
-  return ordered;
+  return filterEnabledReportSlugs(ordered);
 }
 
 /** نقش‌هایی که گزارش‌ها را در سه ماژول تم می‌بینند. */
@@ -238,6 +269,10 @@ export function hiddenReportFilterKeysForRole(
   role: UserRole | string | null | undefined,
   slug?: ReportSlug
 ): readonly ReportFilterKey[] {
+  if (slug === 'scores' && typeof role === 'string') {
+    const scoresHidden = SCORES_HIDDEN_FILTERS_BY_ROLE[role as UserRole];
+    if (scoresHidden) return scoresHidden;
+  }
   if (!isOrgReportsRole(role)) return NO_HIDDEN_REPORT_FILTERS;
   if (slug != null) {
     const forSlug = HIDDEN_REPORT_FILTERS_BY_ROLE_SLUG[role]?.[slug];
@@ -257,6 +292,10 @@ export function extraReportFilterKeysForRole(
   if (role === 'mentor_teacher' && slug === 'scores') {
     return MENTOR_SCORES_EXTRA_FILTERS;
   }
+  if (slug === 'scores' && typeof role === 'string') {
+    const scoresExtra = SCORES_EXTRA_FILTERS_BY_ROLE[role as UserRole];
+    if (scoresExtra) return scoresExtra;
+  }
   if (role !== 'school_principal') return NO_HIDDEN_REPORT_FILTERS;
   if (slug != null && PRINCIPAL_NO_TEACHER_FILTER_SLUGS.has(slug)) {
     return NO_HIDDEN_REPORT_FILTERS;
@@ -271,13 +310,13 @@ export function extraReportFilterKeysForRole(
 export function orgReportsThemedSidebarGroups(
   slugs: readonly ReportSlug[]
 ): SidebarMenuGroup[] {
-  const allowed = new Set(slugs);
+  const allowed = new Set(filterEnabledReportSlugs(slugs));
   return REPORT_THEMES.map((theme) => ({
     kind: 'group' as const,
     title: theme.title,
     icon: REPORT_THEME_ICONS[theme.id] ?? 'fa-file-invoice',
     children: theme.slugs
-      .filter((slug) => allowed.has(slug))
+      .filter((slug) => allowed.has(slug) && isEnabledReportSlug(slug))
       .map(orgReportMenuItem),
   })).filter((group) => group.children.length > 0);
 }
@@ -311,6 +350,7 @@ export function canAccessOrgReportSlug(
   userProvinceIds: readonly string[] = []
 ): slug is ReportSlug {
   if (!isOrgReportsRole(role) || !isReportSlug(slug)) return false;
+  if (!isEnabledReportSlug(slug)) return false;
   if (!matrix) {
     return orgApprovedReportSlugs(role).includes(slug);
   }

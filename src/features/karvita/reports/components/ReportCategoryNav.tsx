@@ -6,7 +6,7 @@ import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { SidebarNavGroup } from '@/components/shared/shell/SidebarNavGroup';
 import {
   REPORT_PAGE_DEFS,
-  REPORT_THEMES,
+  enabledReportThemes,
 } from '@/features/karvita/reports/constants';
 import { reportPath } from '@/features/karvita/reports/lib/report-path';
 import type { ReportSlug } from '@/types/report-access';
@@ -27,7 +27,7 @@ export function ReportCategoryNav({ slug }: ReportCategoryNavProps) {
   const pathname = reportPath(slug);
   const groups = useMemo<SidebarMenuGroup[]>(
     () =>
-      REPORT_THEMES.map((theme) => ({
+      enabledReportThemes().map((theme) => ({
         kind: 'group' as const,
         title: theme.title,
         icon: THEME_ICONS[theme.id] ?? 'fa-file-invoice',

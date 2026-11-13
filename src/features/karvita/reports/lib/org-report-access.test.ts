@@ -264,4 +264,40 @@ describe('org-report-access', () => {
       'school',
     ]);
   });
+
+  it('scopes scores filters to province/city/faculty by senior org role', () => {
+    expect(hiddenReportFilterKeysForRole('super_admin', 'scores')).toEqual([
+      'region',
+      'school',
+      'professor',
+      'teacher',
+    ]);
+    expect(extraReportFilterKeysForRole('super_admin', 'scores')).toEqual([
+      'province',
+      'city',
+    ]);
+    expect(
+      hiddenReportFilterKeysForRole('central_organization', 'scores')
+    ).toEqual(['region', 'school', 'professor', 'teacher']);
+    expect(
+      extraReportFilterKeysForRole('central_organization', 'scores')
+    ).toEqual(['province', 'city']);
+    expect(
+      hiddenReportFilterKeysForRole('provincial_university', 'scores')
+    ).toEqual(['province', 'region', 'school', 'professor', 'teacher']);
+    expect(
+      extraReportFilterKeysForRole('provincial_university', 'scores')
+    ).toEqual(['city']);
+    expect(hiddenReportFilterKeysForRole('faculty_role', 'scores')).toEqual([
+      'province',
+      'faculty',
+      'region',
+      'school',
+      'professor',
+      'teacher',
+    ]);
+    expect(extraReportFilterKeysForRole('faculty_role', 'scores')).toEqual([
+      'city',
+    ]);
+  });
 });

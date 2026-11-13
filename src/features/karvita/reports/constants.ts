@@ -14,6 +14,12 @@ export {
 /** مقایسه گزارش‌ها موقتاً برای انتشار خاموش است — دکمه و جریان مقایسه رندر نمی‌شوند. */
 export const REPORT_COMPARE_ENABLED = false;
 
+/**
+ * گزارش نمرات فراگیران موقتاً برای همهٔ پنل‌ها خاموش است.
+ * از منو/ریل حذف می‌شود و URL مستقیم به گزارش پیش‌فرض برمی‌گردد.
+ */
+export const REPORT_SCORES_ENABLED = false;
+
 export const REPORT_THEMES = REPORT_ACCESS_THEMES;
 
 export const ALL_REPORT_SLUGS = [
@@ -39,6 +45,28 @@ const SLUG_SET = new Set<string>(ALL_REPORT_SLUGS);
 export function isReportSlug(s: string): s is ReportSlug {
   return SLUG_SET.has(s);
 }
+
+export function isEnabledReportSlug(slug: ReportSlug): boolean {
+  if (slug === 'scores') return REPORT_SCORES_ENABLED;
+  return true;
+}
+
+export function filterEnabledReportSlugs(
+  slugs: readonly ReportSlug[]
+): ReportSlug[] {
+  return slugs.filter(isEnabledReportSlug);
+}
+
+/** تم‌های گزارش برای منو/ریل — اسلاگ‌های خاموش حذف شده‌اند. */
+export function enabledReportThemes(): typeof REPORT_THEMES {
+  return REPORT_THEMES.map((theme) => ({
+    ...theme,
+    slugs: filterEnabledReportSlugs(theme.slugs),
+  })).filter((theme) => theme.slugs.length > 0);
+}
+
+export const ENABLED_REPORT_SLUGS: readonly ReportSlug[] =
+  filterEnabledReportSlugs(ALL_REPORT_SLUGS);
 
 export type ReportPageDef = {
   title: string;

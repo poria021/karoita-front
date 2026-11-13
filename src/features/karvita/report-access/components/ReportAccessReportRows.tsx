@@ -16,6 +16,7 @@ import {
   viewAccess,
   viewCompare,
 } from '@/features/karvita/report-access/lib/access-matrix';
+import { isEnabledReportSlug } from '@/features/karvita/reports/constants';
 import { cn } from '@/lib/utils';
 import type {
   ReportAccessMatrix,
@@ -53,7 +54,9 @@ export function ReportAccessReportRows({
   return (
     <div role="tabpanel" id="ac-panel" aria-labelledby={`ac-tab-${roleId}`}>
       {REPORT_ACCESS_THEMES.map((theme) => {
-        const slugs = theme.slugs.filter((slug) => catalog.includes(slug));
+        const slugs = theme.slugs.filter(
+          (slug) => catalog.includes(slug) && isEnabledReportSlug(slug)
+        );
         if (!slugs.length) return null;
 
         return (
