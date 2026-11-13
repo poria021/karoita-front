@@ -1,4 +1,7 @@
-import { ALL_REPORT_SLUGS, isReportSlug } from '@/features/karvita/reports/constants';
+import {
+  ENABLED_REPORT_SLUGS,
+  isReportSlug,
+} from '@/features/karvita/reports/constants';
 import {
   courseMaterialsLevel,
   isAdminControlPlanePath,
@@ -12,11 +15,11 @@ function normalizePath(pathname: string): string {
   return trimmed.length > 0 ? trimmed : '/';
 }
 
-const ADMIN_REPORT_PATHS: readonly string[] = ALL_REPORT_SLUGS.map((slug) =>
+const ADMIN_REPORT_PATHS: readonly string[] = ENABLED_REPORT_SLUGS.map((slug) =>
   RouteService.karvita.reports(slug)
 );
 
-const ORG_REPORT_PATHS: readonly string[] = ALL_REPORT_SLUGS.map((slug) =>
+const ORG_REPORT_PATHS: readonly string[] = ENABLED_REPORT_SLUGS.map((slug) =>
   RouteService.karvita.orgReports(slug)
 );
 

@@ -63,7 +63,6 @@ describe('live nav / admin plane', () => {
     expect(supervisorReports?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('learners'),
       RouteService.karvita.orgReports('attendance'),
-      RouteService.karvita.orgReports('scores'),
       RouteService.karvita.orgReports('teachers'),
       RouteService.karvita.orgReports('principals'),
     ]);
@@ -131,7 +130,6 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.orgReports('learners'),
       RouteService.karvita.orgReports('attendance'),
       RouteService.karvita.orgReports('professor-attendance'),
-      RouteService.karvita.orgReports('scores'),
       RouteService.karvita.orgReports('professors'),
       RouteService.karvita.orgReports('teacher-performance'),
       RouteService.karvita.orgReports('school-performance'),

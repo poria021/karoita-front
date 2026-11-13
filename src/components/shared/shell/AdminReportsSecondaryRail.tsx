@@ -12,7 +12,7 @@ import {
 } from '@/components/shared/shell/shellChrome';
 import {
   REPORT_PAGE_DEFS,
-  REPORT_THEMES,
+  enabledReportThemes,
 } from '@/features/karvita/reports/constants';
 import {
   isAdminReportsPath,
@@ -35,7 +35,7 @@ export function AdminReportsSecondaryRail() {
   const pathname = usePathname();
   const groups = useMemo<SidebarMenuGroup[]>(
     () =>
-      REPORT_THEMES.map((theme) => ({
+      enabledReportThemes().map((theme) => ({
         kind: 'group' as const,
         title: theme.title,
         icon: THEME_ICONS[theme.id] ?? 'fa-file-invoice',

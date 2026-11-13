@@ -2,6 +2,8 @@ import { notFound, redirect } from 'next/navigation';
 
 import { OrgReportsModule } from '@/features/karvita/reports/components/OrgReportsModule';
 import {
+  DEFAULT_REPORT_SLUG,
+  isEnabledReportSlug,
   isReportSlug,
   REPORT_COMPARE_ENABLED,
   REPORT_PAGE_DEFS,
@@ -42,6 +44,9 @@ export default async function OrgReportSlugPage({
 }: PageProps) {
   const { slug } = await params;
   if (!isReportSlug(slug) || !ORG_ROUTABLE_SLUGS.has(slug)) notFound();
+  if (!isEnabledReportSlug(slug)) {
+    redirect(RouteService.karvita.orgReports(DEFAULT_REPORT_SLUG));
+  }
 
   if (!REPORT_COMPARE_ENABLED) {
     const pathname = RouteService.karvita.orgReports(slug);
