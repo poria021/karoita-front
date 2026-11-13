@@ -27,8 +27,6 @@ export const APPROVED_ROLE_PAGES: Readonly<
     'learners',
     'attendance',
     'scores',
-    'teachers',
-    'principals',
   ],
   mentor_teacher: ['learners'],
   school_principal: ['learners', 'attendance', 'teacher-performance'],
