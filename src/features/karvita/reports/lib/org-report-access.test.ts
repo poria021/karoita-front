@@ -194,110 +194,100 @@ describe('org-report-access', () => {
     ]);
   });
 
-  it('hides scoped filters for regional, principal, mentor, and supervisor roles', () => {
-    expect(hiddenReportFilterKeysForRole('regional_edu_admin')).toEqual([
-      'province',
-      'city',
+  it('applies the same allowlisted filters on every report slug', () => {
+    expect(extraReportFilterKeysForRole('super_admin', 'learners')).toEqual([]);
+    expect(hiddenReportFilterKeysForRole('super_admin', 'learners')).toEqual([]);
+    expect(
+      extraReportFilterKeysForRole('central_organization', 'attendance')
+    ).toEqual([]);
+    expect(
+      hiddenReportFilterKeysForRole('central_organization', 'attendance')
+    ).toEqual([]);
+
+    expect(extraReportFilterKeysForRole('faculty_role', 'learners')).toEqual([
+      'professor',
+      'school',
     ]);
-    expect(hiddenReportFilterKeysForRole('school_principal')).toEqual([
+    expect(hiddenReportFilterKeysForRole('faculty_role', 'learners')).toEqual([
       'province',
       'city',
       'region',
-      'school',
-      'faculty',
-      'professor',
-    ]);
-    expect(hiddenReportFilterKeysForRole('mentor_teacher')).toEqual([
-      'province',
-      'city',
       'faculty',
       'teacher',
-      'professor',
+      'course',
+      'major',
+      'status',
     ]);
-    expect(hiddenReportFilterKeysForRole('supervisor_professor')).toEqual([
+
+    expect(
+      extraReportFilterKeysForRole('regional_edu_admin', 'teachers')
+    ).toEqual(['school', 'teacher']);
+    expect(
+      hiddenReportFilterKeysForRole('regional_edu_admin', 'teachers')
+    ).toEqual([
       'province',
       'city',
       'region',
+      'faculty',
       'professor',
+      'course',
+      'major',
+      'status',
     ]);
-    expect(
-      hiddenReportFilterKeysForRole('supervisor_professor', 'learners')
-    ).toEqual(['province', 'city', 'region', 'professor']);
-    expect(
-      hiddenReportFilterKeysForRole('supervisor_professor', 'scores')
-    ).toEqual(['province', 'city', 'region', 'professor']);
-    expect(
-      hiddenReportFilterKeysForRole('regional_edu_admin', 'learners')
-    ).toEqual(['province', 'city', 'faculty', 'professor']);
-    expect(
-      hiddenReportFilterKeysForRole('regional_edu_admin', 'teachers')
-    ).toEqual(['province', 'city']);
-    expect(hiddenReportFilterKeysForRole('central_organization')).toEqual([]);
-    expect(hiddenReportFilterKeysForRole('faculty_role')).toEqual([]);
-  });
 
-  it('adds teacher filter for school principal except teacher-performance', () => {
-    expect(extraReportFilterKeysForRole('school_principal', 'learners')).toEqual(
-      ['teacher']
-    );
     expect(
       extraReportFilterKeysForRole('school_principal', 'attendance')
     ).toEqual(['teacher']);
     expect(
-      extraReportFilterKeysForRole('school_principal', 'teacher-performance')
-    ).toEqual([]);
-    expect(extraReportFilterKeysForRole('regional_edu_admin', 'learners')).toEqual(
-      []
+      hiddenReportFilterKeysForRole('school_principal', 'attendance')
+    ).toEqual([
+      'province',
+      'city',
+      'region',
+      'school',
+      'faculty',
+      'professor',
+      'course',
+      'major',
+      'status',
+    ]);
+
+    expect(extraReportFilterKeysForRole('mentor_teacher', 'learners')).toEqual([
+      'region',
+      'school',
+    ]);
+    expect(hiddenReportFilterKeysForRole('mentor_teacher', 'learners')).toEqual([
+      'province',
+      'city',
+      'faculty',
+      'professor',
+      'teacher',
+      'course',
+      'major',
+      'status',
+    ]);
+
+    expect(
+      extraReportFilterKeysForRole('supervisor_professor', 'learners')
+    ).toEqual(['province', 'faculty', 'school']);
+    expect(
+      hiddenReportFilterKeysForRole('supervisor_professor', 'learners')
+    ).toEqual([
+      'city',
+      'region',
+      'professor',
+      'teacher',
+      'course',
+      'major',
+      'status',
+    ]);
+
+    // یکسان برای همهٔ اسلاگ‌ها
+    expect(extraReportFilterKeysForRole('faculty_role', 'attendance')).toEqual(
+      extraReportFilterKeysForRole('faculty_role', 'learners')
     );
-  });
-
-  it('keeps mentor scores filters aligned with learners (region + school only)', () => {
-    expect(hiddenReportFilterKeysForRole('mentor_teacher', 'scores')).toEqual([
-      'province',
-      'city',
-      'faculty',
-      'teacher',
-      'professor',
-    ]);
-    expect(extraReportFilterKeysForRole('mentor_teacher', 'scores')).toEqual([
-      'region',
-      'school',
-    ]);
-  });
-
-  it('scopes scores filters to province/city/faculty by senior org role', () => {
-    expect(hiddenReportFilterKeysForRole('super_admin', 'scores')).toEqual([
-      'region',
-      'school',
-      'professor',
-      'teacher',
-    ]);
-    expect(extraReportFilterKeysForRole('super_admin', 'scores')).toEqual([
-      'province',
-      'city',
-    ]);
     expect(
-      hiddenReportFilterKeysForRole('central_organization', 'scores')
-    ).toEqual(['region', 'school', 'professor', 'teacher']);
-    expect(
-      extraReportFilterKeysForRole('central_organization', 'scores')
-    ).toEqual(['province', 'city']);
-    expect(
-      hiddenReportFilterKeysForRole('provincial_university', 'scores')
-    ).toEqual(['province', 'region', 'school', 'professor', 'teacher']);
-    expect(
-      extraReportFilterKeysForRole('provincial_university', 'scores')
-    ).toEqual(['city']);
-    expect(hiddenReportFilterKeysForRole('faculty_role', 'scores')).toEqual([
-      'province',
-      'faculty',
-      'region',
-      'school',
-      'professor',
-      'teacher',
-    ]);
-    expect(extraReportFilterKeysForRole('faculty_role', 'scores')).toEqual([
-      'city',
-    ]);
+      extraReportFilterKeysForRole('school_principal', 'teacher-performance')
+    ).toEqual(['teacher']);
   });
 });

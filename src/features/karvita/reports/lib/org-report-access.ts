@@ -60,94 +60,43 @@ export const ORG_REPORTS_ROLES = [
 
 export type OrgReportsRole = (typeof ORG_REPORTS_ROLES)[number];
 
-/** فیلترهایی که برای نقش در UI گزارش نشان داده نمی‌شوند (اسکوپ سازمانی ثابت). */
+/** فیلترهایی که برای نقش در UI گزارش نشان داده نمی‌شوند. */
 const NO_HIDDEN_REPORT_FILTERS: readonly ReportFilterKey[] = [];
-const GEO_HIDDEN_FILTERS: readonly ReportFilterKey[] = ['province', 'city'];
-const PRINCIPAL_HIDDEN_FILTERS: readonly ReportFilterKey[] = [
+
+/** همهٔ کلیدهای فیلتر گزارش — برای ساخت allowlist نقش. */
+const ALL_REPORT_FILTER_KEYS: readonly ReportFilterKey[] = [
   'province',
   'city',
   'region',
   'school',
   'faculty',
   'professor',
-];
-const MENTOR_HIDDEN_FILTERS: readonly ReportFilterKey[] = [
-  'province',
-  'city',
-  'faculty',
   'teacher',
-  'professor',
+  'course',
+  'major',
+  'status',
 ];
-/** استاد راهنما — استان/شهر/منطقه + فیلتر خودش در همهٔ گزارش‌ها مخفی است. */
-const SUPERVISOR_HIDDEN_FILTERS: readonly ReportFilterKey[] = [
-  'province',
-  'city',
-  'region',
-  'professor',
-];
-const REGIONAL_LEARNERS_HIDDEN_FILTERS: readonly ReportFilterKey[] = [
-  'province',
-  'city',
-  'faculty',
-  'professor',
-];
-const HIDDEN_REPORT_FILTERS_BY_ROLE: Partial<
-  Record<OrgReportsRole, readonly ReportFilterKey[]>
-> = {
-  regional_edu_admin: GEO_HIDDEN_FILTERS,
-  school_principal: PRINCIPAL_HIDDEN_FILTERS,
-  mentor_teacher: MENTOR_HIDDEN_FILTERS,
-  supervisor_professor: SUPERVISOR_HIDDEN_FILTERS,
-};
 
-/** فیلترهای کامل مخفی برای ترکیب نقش + اسلاگ (مرجع پایدار). */
-const HIDDEN_REPORT_FILTERS_BY_ROLE_SLUG: Partial<
-  Record<OrgReportsRole, Partial<Record<ReportSlug, readonly ReportFilterKey[]>>>
-> = {
-  regional_edu_admin: {
-    learners: REGIONAL_LEARNERS_HIDDEN_FILTERS,
-  },
-};
-
-const TEACHER_FILTER_ONLY: readonly ReportFilterKey[] = ['teacher'];
-/** نمرات فراگیران برای معلم راهنما — همان فیلترهای باقی‌ماندهٔ لیست فراگیران. */
-const MENTOR_SCORES_EXTRA_FILTERS: readonly ReportFilterKey[] = [
-  'region',
-  'school',
-];
 /**
- * نمرات فراگیران — فیلترهای geo برای نقش‌های بالا:
- * مدیر ارشد / سازمان مرکزی: استان + شهر + دانشکده
- * دانشگاه استانی: شهر + دانشکده
- * دانشگاه: فقط شهر
- * بقیهٔ more صفحه (منطقه/مدرسه/…) برای این نقش‌ها مخفی می‌شود.
+ * فیلترهای مجاز هر نقش برای همهٔ گزارش‌ها.
+ * مدیر ارشد / سازمان مرکزی / دانشگاه استانی → بدون محدودیت (همان فیلترهای صفحه).
  */
-const SCORES_LEGACY_MORE_FILTERS: readonly ReportFilterKey[] = [
-  'region',
-  'school',
-  'professor',
-  'teacher',
-];
-const SCORES_HIDDEN_FILTERS_BY_ROLE: Partial<
+const ALLOWED_REPORT_FILTERS_BY_ROLE: Partial<
   Record<UserRole, readonly ReportFilterKey[]>
 > = {
-  super_admin: SCORES_LEGACY_MORE_FILTERS,
-  central_organization: SCORES_LEGACY_MORE_FILTERS,
-  provincial_university: ['province', ...SCORES_LEGACY_MORE_FILTERS],
-  faculty_role: ['province', 'faculty', ...SCORES_LEGACY_MORE_FILTERS],
+  faculty_role: ['professor', 'school'],
+  regional_edu_admin: ['school', 'teacher'],
+  school_principal: ['teacher'],
+  mentor_teacher: ['region', 'school'],
+  supervisor_professor: ['province', 'faculty', 'school'],
 };
-const SCORES_EXTRA_FILTERS_BY_ROLE: Partial<
-  Record<UserRole, readonly ReportFilterKey[]>
-> = {
-  super_admin: ['province', 'city'],
-  central_organization: ['province', 'city'],
-  provincial_university: ['city'],
-  faculty_role: ['city'],
-};
-/** اسلاگ‌هایی که برای مدیر مدرسه فیلتر معلم راهنما اضافه نمی‌شود. */
-const PRINCIPAL_NO_TEACHER_FILTER_SLUGS = new Set<ReportSlug>([
-  'teacher-performance',
-]);
+
+function hiddenKeysOutsideAllowlist(
+  allowed: readonly ReportFilterKey[]
+): readonly ReportFilterKey[] {
+  const keep = new Set(allowed);
+  return ALL_REPORT_FILTER_KEYS.filter((key) => !keep.has(key));
+}
 
 export function isOrgReportsRole(
   role: UserRole | string | null | undefined
@@ -264,43 +213,30 @@ export function usesThemedOrgReportSidebar(
   );
 }
 
-/** کلید فیلترهایی که برای نقش (و در صورت نیاز اسلاگ) نباید در گزارش دیده شوند. */
+/**
+ * کلید فیلترهایی که برای نقش نباید در گزارش دیده شوند.
+ * برای نقش‌های allowlist‌دار روی همهٔ اسلاگ‌ها یکسان است.
+ */
 export function hiddenReportFilterKeysForRole(
   role: UserRole | string | null | undefined,
-  slug?: ReportSlug
+  _slug?: ReportSlug
 ): readonly ReportFilterKey[] {
-  if (slug === 'scores' && typeof role === 'string') {
-    const scoresHidden = SCORES_HIDDEN_FILTERS_BY_ROLE[role as UserRole];
-    if (scoresHidden) return scoresHidden;
-  }
-  if (!isOrgReportsRole(role)) return NO_HIDDEN_REPORT_FILTERS;
-  if (slug != null) {
-    const forSlug = HIDDEN_REPORT_FILTERS_BY_ROLE_SLUG[role]?.[slug];
-    if (forSlug) return forSlug;
-  }
-  return HIDDEN_REPORT_FILTERS_BY_ROLE[role] ?? NO_HIDDEN_REPORT_FILTERS;
+  if (typeof role !== 'string') return NO_HIDDEN_REPORT_FILTERS;
+  const allowed = ALLOWED_REPORT_FILTERS_BY_ROLE[role as UserRole];
+  if (allowed) return hiddenKeysOutsideAllowlist(allowed);
+  return NO_HIDDEN_REPORT_FILTERS;
 }
 
 /**
- * فیلترهای اضافه‌ای که برای نقش روی اسلاگ باید در UI باشند
- * (حتی اگر در تعریف عمومی صفحه نباشند).
+ * فیلترهایی که برای نقش باید در UI باشند (حتی اگر در تعریف صفحه نباشند).
+ * برای نقش‌های allowlist‌دار همان مجموعهٔ مجاز است.
  */
 export function extraReportFilterKeysForRole(
   role: UserRole | string | null | undefined,
-  slug?: ReportSlug
+  _slug?: ReportSlug
 ): readonly ReportFilterKey[] {
-  if (role === 'mentor_teacher' && slug === 'scores') {
-    return MENTOR_SCORES_EXTRA_FILTERS;
-  }
-  if (slug === 'scores' && typeof role === 'string') {
-    const scoresExtra = SCORES_EXTRA_FILTERS_BY_ROLE[role as UserRole];
-    if (scoresExtra) return scoresExtra;
-  }
-  if (role !== 'school_principal') return NO_HIDDEN_REPORT_FILTERS;
-  if (slug != null && PRINCIPAL_NO_TEACHER_FILTER_SLUGS.has(slug)) {
-    return NO_HIDDEN_REPORT_FILTERS;
-  }
-  return TEACHER_FILTER_ONLY;
+  if (typeof role !== 'string') return NO_HIDDEN_REPORT_FILTERS;
+  return ALLOWED_REPORT_FILTERS_BY_ROLE[role as UserRole] ?? NO_HIDDEN_REPORT_FILTERS;
 }
 
 /**
