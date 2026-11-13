@@ -101,6 +101,67 @@ function currentSystemWeekNumber(weeks: InternshipWeeklySession[]): number {
   return Math.max(1, firstFuture);
 }
 
+const SUBMITTED_STATES = new Set<InternshipWeeklySessionState>([
+  'pending',
+  'needs_edit',
+  'approved',
+  'graded',
+]);
+
+const ACTIONABLE_STATES = new Set<InternshipWeeklySessionState>([
+  'draft',
+  'needs_edit',
+  'extended',
+]);
+
+export type TermReportProgress = {
+  total: number;
+  submitted: number;
+  progressed: number;
+  percent: number;
+};
+
+/** شمارش پیشرفت ترم برای نوار خلاصه صفحهٔ گزارش‌نویسی فراگیر. */
+export function getTermReportProgress(
+  weeks: InternshipWeeklySession[]
+): TermReportProgress {
+  const total = weeks.length;
+  if (total === 0) {
+    return { total: 0, submitted: 0, progressed: 0, percent: 0 };
+  }
+
+  let submitted = 0;
+  let progressed = 0;
+  for (const week of weeks) {
+    if (SUBMITTED_STATES.has(week.status)) submitted += 1;
+    if (week.status !== 'draft' && week.status !== 'locked_future') {
+      progressed += 1;
+    }
+  }
+
+  return {
+    total,
+    submitted,
+    progressed,
+    percent: Math.round((progressed / total) * 100),
+  };
+}
+
+/**
+ * اولین هفته‌ای که فراگیر می‌تواند الان رویش کار کند (نوشتن/ویرایش).
+ * برای رینگ «نقطه شروع» روی گرید هفته‌ها.
+ */
+export function findNextActionableWeekId(
+  weeks: InternshipWeeklySession[],
+  enrollmentStatus: InternshipEnrollmentRecordStatus
+): string | null {
+  for (const week of weeks) {
+    const status = effectiveWeeklySessionState(week, enrollmentStatus);
+    if (ACTIONABLE_STATES.has(status)) return week.id;
+  }
+  return null;
+}
+
 export function getWeeklyReportLockNotice(
   context: WeeklyReportLockContext
 ): WeeklyReportLockNotice {

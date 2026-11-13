@@ -31,14 +31,21 @@ import { isBlockedByMissingDependency } from './organization-select/dependency';
 import { OrganizationOptionsList } from './organization-select/OrganizationOptionsList';
 import { SelectionChip } from './organization-select/SelectionChip';
 import {
+  StaticOptionsSelect,
+  type StaticOptionsSelectProps,
+} from './organization-select/StaticOptionsSelect';
+import {
   multiCheckboxItemClassName,
   multiTriggerClassName,
   multiTriggerLockedClassName,
 } from './organization-select/styles';
 
+export type { KvSearchableStaticOption } from './organization-select/StaticOptionsSelect';
+
 export type KvSearchableOrganizationSelectProps =
   | SingleSelectProps
-  | MultiSelectProps;
+  | MultiSelectProps
+  | StaticSelectProps;
 
 type BaseProps = {
   type: OrganizationField;
@@ -55,20 +62,47 @@ type BaseProps = {
 
 type SingleSelectProps = BaseProps & {
   multi?: false;
+  options?: undefined;
   value: string;
   onChange: (value: string) => void;
 };
 
 type MultiSelectProps = BaseProps & {
   multi: true;
+  options?: undefined;
   value: string[];
   onChange: (value: string[]) => void;
 };
+
+/** گزینه‌های ثابت — همان UI چیپ‌دار پروفایل؛ بدون `type` سازمانی. */
+type StaticSelectProps = StaticOptionsSelectProps & {
+  type?: undefined;
+  dependsOn?: undefined;
+  role?: undefined;
+};
+
+function isStaticSelectProps(
+  props: KvSearchableOrganizationSelectProps
+): props is StaticSelectProps {
+  return Array.isArray((props as StaticSelectProps).options);
+}
 
 export const KvSearchableOrganizationSelect = forwardRef<
   HTMLInputElement,
   KvSearchableOrganizationSelectProps
 >(function KvSearchableOrganizationSelect(props, ref) {
+  if (isStaticSelectProps(props)) {
+    return <StaticOptionsSelect ref={ref} {...props} />;
+  }
+  return <OrganizationLinkedSelect ref={ref} {...props} />;
+});
+
+KvSearchableOrganizationSelect.displayName = 'KvSearchableOrganizationSelect';
+
+const OrganizationLinkedSelect = forwardRef<
+  HTMLInputElement,
+  SingleSelectProps | MultiSelectProps
+>(function OrganizationLinkedSelect(props, ref) {
   const {
     type,
     label = false,
@@ -443,4 +477,4 @@ export const KvSearchableOrganizationSelect = forwardRef<
   );
 });
 
-KvSearchableOrganizationSelect.displayName = 'KvSearchableOrganizationSelect';
+OrganizationLinkedSelect.displayName = 'OrganizationLinkedSelect';

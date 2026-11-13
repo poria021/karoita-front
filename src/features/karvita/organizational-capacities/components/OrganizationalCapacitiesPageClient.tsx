@@ -94,7 +94,7 @@ export function OrganizationalCapacitiesPageClient() {
             onToggleDay={(courseId, day) => page.toggleDay(courseId, day)}
           />
 
-          <div className="flex justify-end border-t border-kv-border pt-kv-group">
+          <div className="flex justify-end border-t border-kv-border-muted pt-kv-group">
             <KvButton
               type="button"
               color="cta"

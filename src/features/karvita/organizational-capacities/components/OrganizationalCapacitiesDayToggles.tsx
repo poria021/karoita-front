@@ -21,9 +21,11 @@ export function OrganizationalCapacitiesDayToggles({
   return (
     <div
       className={cn(
-        'flex flex-row flex-nowrap items-center justify-start gap-kv-micro',
+        'flex flex-row flex-nowrap items-center justify-start gap-0.5 sm:gap-kv-micro',
         className
       )}
+      role="group"
+      aria-label="روزهای حضور"
     >
       {CAPACITY_WEEK_DAYS.map((day) => {
         const active = selectedDays.includes(day.value);
@@ -41,8 +43,8 @@ export function OrganizationalCapacitiesDayToggles({
               'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
               'disabled:cursor-not-allowed disabled:opacity-50',
               active
-                ? 'border-kv-brand bg-kv-brand text-kv-brand-fg shadow-kv-soft'
-                : 'border-kv-border bg-kv-surface-muted text-kv-text-faint'
+                ? 'border-kv-brand-border bg-kv-brand-soft text-kv-brand-soft-fg'
+                : 'border-kv-border-muted bg-kv-surface-subtle text-kv-text-faint hover:border-kv-border hover:text-kv-text-subtle'
             )}
           >
             {day.label}

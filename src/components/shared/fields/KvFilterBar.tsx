@@ -10,6 +10,7 @@ export type KvFilterBarProps = {
 
 export type KvFilterBarSearchProps = {
   children: ReactNode;
+  className?: string;
 };
 
 export type KvFilterBarControlProps = {
@@ -33,9 +34,15 @@ export function KvFilterBar({ children }: KvFilterBarProps) {
   );
 }
 
-export function KvFilterBarSearch({ children }: KvFilterBarSearchProps) {
+export function KvFilterBarSearch({
+  children,
+  className,
+}: KvFilterBarSearchProps) {
   return (
-    <div data-slot="kv-filter-bar-search" className="w-full flex-1">
+    <div
+      data-slot="kv-filter-bar-search"
+      className={cn('w-full flex-1', className)}
+    >
       {children}
     </div>
   );

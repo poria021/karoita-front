@@ -56,7 +56,7 @@ export function KvMobileListShell({
       <KvBusySurface
         className={cn(
           matchTableViewport ? KV_TABLE_VIEWPORT_HEIGHT : 'min-h-48',
-          'rounded-kv-card',
+          'rounded-kv-shell',
           className
         )}
         label="در حال بارگذاری فهرست"
@@ -71,7 +71,7 @@ export function KvMobileListShell({
           'flex w-full flex-col',
           matchTableViewport
             ? KV_TABLE_VIEWPORT_HEIGHT
-            : 'min-h-48 rounded-kv-card border border-dashed border-kv-border bg-kv-surface-subtle',
+            : 'min-h-48 rounded-kv-shell border border-dashed border-kv-border-muted bg-kv-surface-subtle/80',
           className
         )}
       >

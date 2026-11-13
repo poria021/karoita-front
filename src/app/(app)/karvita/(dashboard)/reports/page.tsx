@@ -1,14 +1,12 @@
-import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 
-import { ReportsModule } from '@/features/karvita/reports/components/ReportsModule';
-import { dashboardModuleMetadata } from '@/lib/dashboard-module-metadata';
+import { defaultOrgReportSlug } from '@/features/karvita/reports/lib/org-report-access';
+import { RouteService } from '@/services/route.service';
 
-export const metadata = dashboardModuleMetadata('reports');
-
-export default function StandardReportsRoutePage() {
-  return (
-    <Suspense fallback={null}>
-      <ReportsModule />
-    </Suspense>
+export default function OrgReportsIndexPage() {
+  redirect(
+    RouteService.karvita.orgReports(
+      defaultOrgReportSlug('central_organization')
+    )
   );
 }

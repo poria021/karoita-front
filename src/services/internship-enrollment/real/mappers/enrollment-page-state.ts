@@ -27,8 +27,9 @@ import type {
 import { firstOf } from './primitives';
 import {
   findConflictLessonInSemester,
-  findEnrolmentHistoryForLevel,
-  findLessonForLevel,
+  findEnrolmentHistoryForLeaf,
+  findLessonForLeaf,
+  type EnrollmentLeafRef,
   type EnrolmentHistoryEntry,
 } from './lesson-matching';
 import {
@@ -142,17 +143,22 @@ export function toEnrollmentPageState(
     schoolName?: string | null;
     mentorName?: string | null;
     realWeeklyData?: RealWeeklyData;
-  }
+  },
+  /** عنوان کاتالوگ برای leaf داینامیک؛ بدون آن فقط سطح کلاسیک ۱…۹ match می‌شود. */
+  leaf?: EnrollmentLeafRef,
+  /** سایر زیرمجموعه‌های همان درس — S6 فقط برای دانشجو و فقط روی همین لیست. */
+  siblingLeaves: readonly EnrollmentLeafRef[] = []
 ): InternshipEnrollmentPageState {
   const kind = kindForRole(input.actor.role);
   const level = clampLevel(kind, input.level);
   const courseName = courseNameForKind(kind);
+  const leafRef: EnrollmentLeafRef = leaf ?? { level, title: '' };
 
   const openLessons = open?.lessons ?? [];
-  const current = findLessonForLevel(openLessons, kind, level);
+  const current = findLessonForLeaf(openLessons, kind, leafRef);
   const currentLessonId = current ? nestEntityId(current) || null : null;
 
-  const history = findEnrolmentHistoryForLevel(semesters, kind, level);
+  const history = findEnrolmentHistoryForLeaf(semesters, kind, leafRef);
   const effectiveEntry = resolveEffectiveEnrollmentEntry(
     current,
     history,
@@ -163,9 +169,16 @@ export function toEnrollmentPageState(
   const openSemesterEntry = open
     ? semesters.find((semester) => semester.id === open.id)
     : undefined;
-  const conflictLesson = registered
-    ? null
-    : findConflictLessonInSemester(openSemesterEntry, kind, currentLessonId);
+  // S6 فقط دانشجو + فقط هم‌گروه کاتالوگ؛ مهارت‌آموز و درس‌های گروه دیگر آزادند.
+  const conflictLesson =
+    !registered && input.actor.role === 'student'
+      ? findConflictLessonInSemester(
+          openSemesterEntry,
+          kind,
+          currentLessonId,
+          siblingLeaves
+        )
+      : null;
 
   // انتخاب واحد فقط وقتی بک‌اند صریحاً اجازه بدهد — `canSelect` نتیجهٔ
   // محاسبهٔ بک‌اند است (شامل قبولی/رد در ترم‌های قبلی)، پس اگر صراحتاً false
@@ -225,8 +238,10 @@ export function toEnrollmentPageState(
     kind,
     level,
     courseName,
+    ...(leafRef.title ? { courseTitle: leafRef.title } : {}),
     termTitle: activeTermTitle,
     termId: activeTermId,
+    openTermId: open?.id ?? '',
     lessonId: effectiveEntry ? (effectiveEntry.lesson.id ?? null) : currentLessonId,
     enrollment:
       scenario === 'S4_registered_waiting' || scenario === 'S5_term_active'

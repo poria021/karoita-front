@@ -57,7 +57,13 @@ export function BulletinsTable({
   const bodyPhase = getAdminTableBodyPhase(isLoading, rows.length);
 
   return (
-    <KvTableViewport resetKey={kind} hasMore={false} isBusy={isLoading}>
+    <div className="overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface shadow-kv-soft">
+    <KvTableViewport
+      framed={false}
+      resetKey={kind}
+      hasMore={false}
+      isBusy={isLoading}
+    >
       <KvTable scrollable={false}>
         <KvTableHeader>
           <KvTableRow>
@@ -100,7 +106,7 @@ export function BulletinsTable({
                             src={row.imageUrl}
                             alt=""
                             loading="lazy"
-                            className="size-10 rounded-kv-control border border-kv-border bg-kv-surface-muted object-cover"
+                            className="size-10 rounded-kv-control border border-kv-border-muted bg-kv-surface-subtle object-cover"
                           />
                         ) : (
                           <span
@@ -161,18 +167,30 @@ export function BulletinsTable({
                       />
                       <KvButton
                         type="button"
-                        color="neutral"
+                        color={row.isActive ? 'warning' : 'neutral'}
                         appearance="ghost"
-                        size="xs"
+                        size="icon-xs"
                         aria-label={
                           row.isActive
-                            ? `غیرفعال‌سازی ${row.title}`
-                            : `فعال‌سازی ${row.title}`
+                            ? `آرشیو ${row.title}`
+                            : `بازیابی ${row.title}`
                         }
+                        title={row.isActive ? 'آرشیو' : 'بازیابی'}
                         onClick={() => onToggleActive(row)}
-                      >
-                        {row.isActive ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
-                      </KvButton>
+                        icon={
+                          <FaIcon
+                            icon={
+                              row.isActive
+                                ? faIcons.folderOpen
+                                : faIcons.clockRotateLeft
+                            }
+                            size="xs"
+                            className={
+                              row.isActive ? 'text-kv-warning' : undefined
+                            }
+                          />
+                        }
+                      />
                       <KvButton
                         type="button"
                         color="error"
@@ -192,5 +210,6 @@ export function BulletinsTable({
         </KvTableBody>
       </KvTable>
     </KvTableViewport>
+    </div>
   );
 }

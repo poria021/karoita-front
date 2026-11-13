@@ -57,6 +57,16 @@ export const snapshotQueries = {
   },
 
   /**
+   * همهٔ تعریف دروس (فعال و غیرفعال) برای سایدبار — همگام، فقط mock.
+   * غیرفعال‌ها باید در منو بمانند و `disabled` شوند مگر سابقهٔ ثبت‌نام/دسترسی.
+   */
+  getCourseDefinitionsForConsumers(): CourseDefinition[] {
+    gateSyllabusConsumerRead();
+    if (!IS_MOCK_MODE) return [];
+    return structuredClone([...courseDefinitionsOf(readSyllabusSnapshot())]);
+  },
+
+  /**
    * همهٔ درس‌های تعریف‌شده برای مصرف‌کننده‌ها (سایدبار/ارزیابی) — بدون گارد ادمین.
    * real: `GET /v1/original-lessons`؛ شکل خروجی همان `listCourseDefinitions` صفحهٔ
    * تعریف دروس است تا هر دو روی یک query key (`syllabusCourseCatalog`) بنشینند.

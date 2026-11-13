@@ -2,8 +2,11 @@ import { ApiClientError } from '@/services/api-error';
 import {
   courseNameForKind,
 } from '@/services/internship-enrollment/enrollment-mappers';
+import { loadEnrollmentCatalogContext } from '@/services/internship-enrollment/real/mappers/enrollment-leaf';
 import {
-  findLessonForLevel,
+  findConflictLessonInSemester,
+  findLessonForLeaf,
+  preferLatestEnrolments,
   resolveEnrollmentProfessor,
 } from '@/services/internship-enrollment/real/real-enrollment-mappers';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
@@ -37,18 +40,47 @@ export async function enrollRealWithSupervisor(
 ): Promise<InternshipEnrollmentRecord> {
   requireNestTransport('InternshipEnrollmentService.enrollWithSupervisor');
 
-  const open = await studentEnrollmentsApi.getOpenCourseSelection();
+  const [open, catalog] = await Promise.all([
+    studentEnrollmentsApi.getOpenCourseSelection(),
+    loadEnrollmentCatalogContext(input.kind, input.level),
+  ]);
   if (!open) {
     throw new ApiClientError('ترم انتخاب واحد فعالی وجود ندارد.', 404);
   }
 
-  const lesson = findLessonForLevel(open.lessons ?? [], input.kind, input.level);
+  const lesson = findLessonForLeaf(open.lessons ?? [], input.kind, catalog.leaf);
   const lessonId = lesson ? nestEntityId(lesson) : '';
   if (!lessonId) {
     throw new ApiClientError(
       'درس مناسب برای این سطح در ترم باز یافت نشد.',
       404
     );
+  }
+
+  if (input.actor.role === 'student' && catalog.siblingLeaves.length > 0) {
+    let semesters: Awaited<
+      ReturnType<typeof studentEnrollmentsApi.listBySemester>
+    > = [];
+    try {
+      semesters = await studentEnrollmentsApi.listBySemester();
+      const mine = await studentEnrollmentsApi.listMine().catch(() => []);
+      semesters = preferLatestEnrolments(semesters, mine ?? []);
+    } catch {
+      semesters = [];
+    }
+    const openSemester = semesters.find((row) => row.id === open.id);
+    const conflict = findConflictLessonInSemester(
+      openSemester,
+      input.kind,
+      lessonId,
+      catalog.siblingLeaves
+    );
+    if (conflict) {
+      throw new ApiClientError(
+        'شما مجاز به اخذ بیش از یک زیرمجموعه از همین درس در یک نیم‌سال نیستید.',
+        400
+      );
+    }
   }
 
   const created = await studentEnrollmentsApi.create({
@@ -68,7 +100,9 @@ export async function enrollRealWithSupervisor(
     level: input.level,
     termId: open.id,
     termTitle: '',
-    title: normalizeEnrollmentCourseTitle(courseNameForKind(input.kind), input.level),
+    title:
+      catalog.leaf.title ||
+      normalizeEnrollmentCourseTitle(courseNameForKind(input.kind), input.level),
     supervisorId: createdProfessor?.id ?? input.supervisorId,
     supervisorName: createdProfessor?.name ?? null,
     schoolId: null,
@@ -118,13 +152,14 @@ export async function cancelRealEnrollment(
 ): Promise<void> {
   requireNestTransport('InternshipEnrollmentService.cancelEnrollment');
 
-  const [open, rows] = await Promise.all([
+  const [open, rows, catalog] = await Promise.all([
     studentEnrollmentsApi.getOpenCourseSelection(),
     studentEnrollmentsApi.listMine(),
+    loadEnrollmentCatalogContext(input.kind, input.level),
   ]);
 
   const lesson = open
-    ? findLessonForLevel(open.lessons ?? [], input.kind, input.level)
+    ? findLessonForLeaf(open.lessons ?? [], input.kind, catalog.leaf)
     : null;
   const lessonId = lesson ? nestEntityId(lesson) : '';
 
@@ -159,13 +194,14 @@ export async function assignRealDelayedSchoolMentor(
 ): Promise<InternshipEnrollmentRecord> {
   requireNestTransport('InternshipEnrollmentService.assignDelayedSchoolMentor');
 
-  const [open, rows] = await Promise.all([
+  const [open, rows, catalog] = await Promise.all([
     studentEnrollmentsApi.getOpenCourseSelection(),
     studentEnrollmentsApi.listMine(),
+    loadEnrollmentCatalogContext(input.kind, input.level),
   ]);
 
   const lesson = open
-    ? findLessonForLevel(open.lessons ?? [], input.kind, input.level)
+    ? findLessonForLeaf(open.lessons ?? [], input.kind, catalog.leaf)
     : null;
   const lessonId = lesson ? nestEntityId(lesson) : '';
 
@@ -202,10 +238,12 @@ export async function assignRealDelayedSchoolMentor(
     level: input.level,
     termId: input.termId,
     termTitle: '',
-    title: normalizeEnrollmentCourseTitle(
-      courseNameForKind(input.kind),
-      input.level
-    ),
+    title:
+      catalog.leaf.title ||
+      normalizeEnrollmentCourseTitle(
+        courseNameForKind(input.kind),
+        input.level
+      ),
     supervisorId: professor?.id ?? null,
     supervisorName: professor?.name ?? null,
     // مستقیماً از `input` — PATCH دقیقاً همین `schoolId`/`mentorId` را فرستاده و

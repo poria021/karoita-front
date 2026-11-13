@@ -30,6 +30,16 @@ describe('getModuleMeta', () => {
     ).toBe('کارآموزی ۲');
   });
 
+  it('titles each course materials page from its parent course', () => {
+    expect(
+      getModuleMeta(RouteService.karvita.courseMaterials(2), 'student').title
+    ).toBe('جزوات کارورزی ۲');
+    expect(
+      getModuleMeta(RouteService.karvita.courseMaterials(1), 'skill_learner')
+        .title
+    ).toBe('جزوات کارآموزی ۱');
+  });
+
   it('uses the landing CMS admin title', () => {
     expect(getModuleMeta(RouteService.karvita.landingCms()).title).toBe(
       'مدیریت محتوای لندینگ'

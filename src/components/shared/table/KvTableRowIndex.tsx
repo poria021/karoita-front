@@ -48,7 +48,11 @@ export function KvTableRowIndexCell({
       data-slot="kv-table-row-index-cell"
       align="center"
       mono
-      className={cn(INDEX_COL_CLASS, 'text-kv-text-faint', className)}
+      className={cn(
+        INDEX_COL_CLASS,
+        'text-[0.6875rem] font-medium text-kv-text-faint',
+        className
+      )}
       {...props}
     >
       {adminTableRowNumber(index, baseOffset)}

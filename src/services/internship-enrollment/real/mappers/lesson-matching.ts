@@ -146,51 +146,6 @@ export type EnrolmentHistoryEntry = {
   enrolment: NestStudentEnrollment;
 };
 
-/**
- * تاریخچهٔ کامل ثبت‌نام یک level خاص در طول زمان — همهٔ نیم‌سال‌هایی که
- * دانشجو در همان level (با همان kind) ثبت‌نام غیرکنسل‌شده داشته، نه فقط
- * نیم‌سال باز. چون `lessonId` بین ترم‌ها یکسان نیست (هر ترم درس‌های خودش را
- * می‌سازد)، تطبیق روی عنوان درس است، نه id.
- */
-export function findEnrolmentHistoryForLevel(
-  semesters: readonly NestSemesterEnrolmentsByTerm[],
-  kind: InternshipCourseKind,
-  level: InternshipEnrollmentLevel
-): EnrolmentHistoryEntry[] {
-  const history: EnrolmentHistoryEntry[] = [];
-  for (const semester of semesters) {
-    const lesson = (semester.lessons ?? []).find((candidate) =>
-      lessonMatchesLevel(candidate, kind, level)
-    );
-    if (lesson?.enrolment && isNonCancelledEnrolment(lesson.enrolment.status)) {
-      history.push({ semesterId: semester.id, lesson, enrolment: lesson.enrolment });
-    }
-  }
-  return history;
-}
-
-/**
- * آیا دانشجو تا حالا (در هر نیم‌سالی) هر نوع ثبت‌نامی — فعال، تکمیل‌شده، رد،
- * حتی کنسل‌شده توسط استاد/مدیر — برای این level داشته؟ برای قفل سایدبار:
- * سایدبار فقط درسی که مدیر ارشد همین الان باز کرده (`status: true`) را باز
- * نشان می‌دهد، *مگر* دانشجو قبلاً این level را گرفته باشد — چون آن‌وقت باید
- * بتواند برگردد و گزارش/تاریخچه‌اش را ببیند، فارغ از نتیجه یا اینکه الان
- * نوبتش هست یا نه. برخلاف `findEnrolmentHistoryForLevel`، کنسل‌شده را هم
- * می‌شمارد — برای «قبلاً باهاش کار داشته» بودن، کنسل‌شدن هم یک سابقه است.
- */
-export function hasAnyEnrolmentForLevel(
-  semesters: readonly NestSemesterEnrolmentsByTerm[],
-  kind: InternshipCourseKind,
-  level: InternshipEnrollmentLevel
-): boolean {
-  return semesters.some((semester) => {
-    const lesson = (semester.lessons ?? []).find((candidate) =>
-      lessonMatchesLevel(candidate, kind, level)
-    );
-    return Boolean(lesson?.enrolment);
-  });
-}
-
 /** یک leaf کاتالوگ: سطح عددی مسیر (`/internships/:level`) + عنوان درس. */
 export type EnrollmentLeafRef = {
   level: InternshipEnrollmentLevel;
@@ -225,6 +180,64 @@ export function findLessonForLeaf<T extends TitledLesson>(
       (lesson) => normalizeLessonTitle(nestLessonTitle(lesson)) === wanted
     ) ?? null
   );
+}
+
+/**
+ * تاریخچهٔ ثبت‌نام یک leaf (سطح مسیر + عنوان کاتالوگ) در همهٔ نیم‌سال‌ها.
+ * درس‌های کلاسیک با رقم سطح در عنوان match می‌شوند؛ درس‌های داینامیک فقط با عنوان.
+ */
+export function findEnrolmentHistoryForLeaf(
+  semesters: readonly NestSemesterEnrolmentsByTerm[],
+  kind: InternshipCourseKind,
+  leaf: EnrollmentLeafRef
+): EnrolmentHistoryEntry[] {
+  const history: EnrolmentHistoryEntry[] = [];
+  for (const semester of semesters) {
+    const lesson = findLessonForLeaf(semester.lessons ?? [], kind, leaf);
+    if (lesson?.enrolment && isNonCancelledEnrolment(lesson.enrolment.status)) {
+      history.push({ semesterId: semester.id, lesson, enrolment: lesson.enrolment });
+    }
+  }
+  return history;
+}
+
+/**
+ * تاریخچهٔ کامل ثبت‌نام یک level خاص در طول زمان — همهٔ نیم‌سال‌هایی که
+ * دانشجو در همان level (با همان kind) ثبت‌نام غیرکنسل‌شده داشته، نه فقط
+ * نیم‌سال باز. چون `lessonId` بین ترم‌ها یکسان نیست (هر ترم درس‌های خودش را
+ * می‌سازد)، تطبیق روی عنوان درس است، نه id.
+ *
+ * برای leaf داینامیک (سطح >۱۰۰ بدون رقم در عنوان Nest) از
+ * `findEnrolmentHistoryForLeaf` با عنوان کاتالوگ استفاده کنید.
+ */
+export function findEnrolmentHistoryForLevel(
+  semesters: readonly NestSemesterEnrolmentsByTerm[],
+  kind: InternshipCourseKind,
+  level: InternshipEnrollmentLevel
+): EnrolmentHistoryEntry[] {
+  return findEnrolmentHistoryForLeaf(semesters, kind, { level, title: '' });
+}
+
+/**
+ * آیا دانشجو تا حالا (در هر نیم‌سالی) هر نوع ثبت‌نامی — فعال، تکمیل‌شده، رد،
+ * حتی کنسل‌شده توسط استاد/مدیر — برای این level داشته؟ برای قفل سایدبار:
+ * سایدبار فقط درسی که مدیر ارشد همین الان باز کرده (`status: true`) را باز
+ * نشان می‌دهد، *مگر* دانشجو قبلاً این level را گرفته باشد — چون آن‌وقت باید
+ * بتواند برگردد و گزارش/تاریخچه‌اش را ببیند، فارغ از نتیجه یا اینکه الان
+ * نوبتش هست یا نه. برخلاف `findEnrolmentHistoryForLevel`، کنسل‌شده را هم
+ * می‌شمارد — برای «قبلاً باهاش کار داشته» بودن، کنسل‌شدن هم یک سابقه است.
+ */
+export function hasAnyEnrolmentForLevel(
+  semesters: readonly NestSemesterEnrolmentsByTerm[],
+  kind: InternshipCourseKind,
+  level: InternshipEnrollmentLevel
+): boolean {
+  return semesters.some((semester) => {
+    const lesson = (semester.lessons ?? []).find((candidate) =>
+      lessonMatchesLevel(candidate, kind, level)
+    );
+    return Boolean(lesson?.enrolment);
+  });
 }
 
 /** سطح‌های leaf هایی که lessonشان همین الان در ترم باز ارائه شده (`status: true`). */
@@ -265,22 +278,26 @@ export function enrolledLevelsFromSemesters(
 }
 
 /**
- * درسِ هم‌نوع دیگری (نه همین level) که دانشجو همین نیم‌سال ثبت‌نام
- * غیرکنسل‌شده دارد — برای S6 (بن‌بست اخذ چند level هم‌زمان تو یک ترم).
+ * ثبت‌نام فعال روی یکی از leafهای هم‌گروه (سایر زیرمجموعه‌های همان درس کاتالوگ).
+ * برای S6 دانشجو — تعارض بین‌گروهی (مثل test1 و test2) عمداً نیست.
+ * `siblingLeaves` خالی → بدون تعارض.
  */
 export function findConflictLessonInSemester(
   semester: NestSemesterEnrolmentsByTerm | undefined,
   kind: InternshipCourseKind,
-  currentLessonId: string | null
+  currentLessonId: string | null,
+  siblingLeaves: readonly EnrollmentLeafRef[]
 ): NestSemesterLessonWithEnrolment | null {
-  if (!semester) return null;
+  if (!semester || siblingLeaves.length === 0) return null;
   return (
     (semester.lessons ?? []).find((lesson) => {
       if (!lesson.enrolment || !isNonCancelledEnrolment(lesson.enrolment.status)) {
         return false;
       }
       if (currentLessonId && lesson.id === currentLessonId) return false;
-      return lessonMatchesKind(nestLessonTitle(lesson), kind);
+      return siblingLeaves.some(
+        (leaf) => findLessonForLeaf([lesson], kind, leaf) !== null
+      );
     }) ?? null
   );
 }

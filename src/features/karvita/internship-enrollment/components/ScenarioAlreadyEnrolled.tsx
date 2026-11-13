@@ -9,8 +9,8 @@ type ScenarioAlreadyEnrolledProps = {
 };
 
 /**
- * سناریوی ۶ — کاربر در درس دیگری از همین نیم‌سال انتخاب واحد کرده
- * و نباید دوباره وارد جریان اخذ واحد این ماژول شود.
+ * سناریوی ۶ — دانشجو در زیرمجموعهٔ دیگری از همین درس کاتالوگ ثبت‌نام فعال دارد.
+ * اخذ از درس‌های گروه دیگر (مثلاً test1 و test2) اینجا نمی‌آید.
  */
 export function ScenarioAlreadyEnrolled({
   courseTitle,
@@ -23,8 +23,8 @@ export function ScenarioAlreadyEnrolled({
     <div className="flex min-h-0 flex-1 flex-col rounded-kv-card border-2 border-dashed border-kv-border bg-kv-surface-subtle/50">
       <KvEmptyState
         tone="muted"
-        title="در درس دیگری انتخاب واحد کرده‌اید"
-        description={`شما هم‌اکنون در «${courseLabel}» برای نیم‌سال «${termLabel}» ثبت‌نام فعال دارید. تا پایان یا تعیین تکلیف همان درس، امکان شروع فعالیت و انتخاب واحد در این ماژول وجود ندارد. لطفاً از منوی سایدبار به همان درس مراجعه کنید.`}
+        title="در زیرمجموعهٔ دیگری از این درس انتخاب واحد کرده‌اید"
+        description={`شما هم‌اکنون در «${courseLabel}» برای نیم‌سال «${termLabel}» ثبت‌نام فعال دارید. تا پایان یا تعیین تکلیف همان زیرمجموعه، امکان اخذ زیرمجموعهٔ دیگر از همین درس وجود ندارد. از منوی سایدبار به همان مورد مراجعه کنید؛ اخذ درس‌های گروه دیگر مانعی ندارد.`}
       />
     </div>
   );

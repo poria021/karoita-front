@@ -197,6 +197,66 @@ describe('listRealDailyApprovals', () => {
     expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledTimes(1);
     expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledWith('e1');
   });
+
+  it('when course=all, keeps only trainees whose lesson is in scopeKeys', async () => {
+    vi.mocked(listRealCapacityCourses).mockResolvedValue([
+      { id: 'les_1', title: 'کارورزی ۱' },
+      { id: 'les_2', title: 'کارورزی ۲' },
+    ]);
+    vi.mocked(studentEnrollmentsApi.listMentorStudents).mockResolvedValue({
+      data: [
+        {
+          id: 'e1',
+          studentId: 's1',
+          status: 'active',
+          lessonId: 'les_1',
+          student: { firstName: 'سارا', lastName: 'احمدی' },
+        },
+        {
+          id: 'e2',
+          studentId: 's2',
+          status: 'active',
+          lessonId: 'les_2',
+          student: { firstName: 'نادر', lastName: 'رحیمی' },
+        },
+      ],
+      hasNextPage: false,
+    });
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([]);
+
+    const page = await listRealDailyApprovals({
+      ...baseInput,
+      scopeKeys: ['les_1'],
+    });
+
+    expect(page.items.map((t) => t.id)).toEqual(['e1']);
+    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledTimes(1);
+    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledWith('e1');
+  });
+
+  it('when course=all and scopeKeys is empty, returns no trainees', async () => {
+    vi.mocked(studentEnrollmentsApi.listMentorStudents).mockResolvedValue({
+      data: [
+        {
+          id: 'e1',
+          studentId: 's1',
+          status: 'active',
+          lessonId: 'les_1',
+          student: { firstName: 'سارا', lastName: 'احمدی' },
+        },
+      ],
+      hasNextPage: false,
+    });
+    vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([]);
+
+    const page = await listRealDailyApprovals({
+      ...baseInput,
+      scopeKeys: [],
+    });
+
+    expect(page.items).toEqual([]);
+    expect(studentEnrollmentsApi.listWeeks).not.toHaveBeenCalled();
+  });
 });
 
 describe('refreshRealDailyApprovalTraineeDerived', () => {

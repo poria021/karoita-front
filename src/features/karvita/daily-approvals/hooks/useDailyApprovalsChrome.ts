@@ -21,6 +21,7 @@ import type {
 } from '@/types/daily-approvals';
 
 import {
+  evaluationRealScopeKeys,
   evaluationScopeKeys,
   getDailyApprovalCourseOptions,
   getRealDailyApprovalCourseOptions,
@@ -74,18 +75,29 @@ export function useDailyApprovalsChrome() {
     staleTime: QUERY_STALE_MS.module,
   });
   const termCourses = termCoursesQuery.data;
+  // real: فقط زیرمجموعه‌های `?module=` از درس‌های همین ترم؛ mock از خود کاتالوگ.
   const courseOptions = useMemo(
     () =>
       isRealCatalog
-        ? getRealDailyApprovalCourseOptions(termCourses ?? [])
+        ? getRealDailyApprovalCourseOptions(termCourses ?? [], courseModule)
         : getDailyApprovalCourseOptions(kind, courseModule),
     [isRealCatalog, termCourses, kind, courseModule]
   );
   const scopeKeys = useMemo(
-    () => (courseModule ? evaluationScopeKeys(courseModule) : undefined),
-    [courseModule]
+    () =>
+      isRealCatalog
+        ? evaluationRealScopeKeys(termCourses ?? [], courseModule)
+        : courseModule
+          ? evaluationScopeKeys(courseModule)
+          : undefined,
+    [isRealCatalog, termCourses, courseModule]
   );
-  const [rawCourse, setCourse] = useState<DailyApprovalCourseFilter>('all');
+  // `?course=` از لینک مانیتورینگ میز کار؛ اگر در گزینه‌ها نبود → همه.
+  const [rawCourse, setCourse] = useState<DailyApprovalCourseFilter>(() => {
+    if (typeof window === 'undefined') return 'all';
+    const fromUrl = new URLSearchParams(window.location.search).get('course');
+    return (fromUrl as DailyApprovalCourseFilter | null) ?? 'all';
+  });
   // زیرمجموعهٔ درس قبلی در درس/پنل دیگر معنا ندارد.
   const course = courseOptions.some((option) => option.value === rawCourse)
     ? rawCourse

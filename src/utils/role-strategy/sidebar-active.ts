@@ -25,15 +25,21 @@ export function resolveActiveSidebarPath(
 
   for (const path of paths) {
     const { base, params } = splitPath(path);
-    if (base !== pathname) continue;
+    const exact = base === pathname;
+    // زیرصفحهٔ همان ماژول (مثل جزوات درس) آیتم والد را روشن نگه می‌دارد.
+    const nested =
+      !exact && params.size === 0 && pathname.startsWith(`${base}/`);
+    if (!exact && !nested) continue;
     let matches = true;
-    let weight = 0;
-    for (const [key, value] of params) {
-      if (current.get(key) !== value) {
-        matches = false;
-        break;
+    let weight = nested ? base.length : 10_000;
+    if (exact) {
+      for (const [key, value] of params) {
+        if (current.get(key) !== value) {
+          matches = false;
+          break;
+        }
+        weight += 1;
       }
-      weight += 1;
     }
     if (matches && (best === null || weight > best.weight)) {
       best = { path, weight };

@@ -18,9 +18,19 @@ export const DASHBOARD_QUERY = {
     ['daily-approvals', 'terms', kind] as const,
   dailyApprovalsCourses: (kind: string, termId: string) =>
     ['daily-approvals', 'courses', kind, termId] as const,
+  /** خلاصهٔ مانیتورینگ گزارش‌ها روی میز کار ناظران ارزیابی. */
+  supervisorReplyStatus: (role: string) =>
+    ['daily-approvals', 'dashboard-reply-status', role] as const,
   internshipEnrollment: ['internship-enrollment'] as const,
   orgOptions: ['org-options'] as const,
   onboardingApprovalsProvinces: ['onboarding-approvals', 'provinces'] as const,
+  /** خلاصهٔ وضعیت تأیید مدارک روی میز کار مدیر ارشد. */
+  onboardingApprovalsSummary: (status: string) =>
+    ['onboarding-approvals', 'dashboard-summary', status] as const,
+  /** شمار موجودیت‌های ساختار سازمانی روی میز کار مدیر ارشد. */
+  orgStructureDashboardCounts: ['org-structure', 'dashboard-counts'] as const,
+  /** شمار کاربران به تفکیک نقش روی میز کار مدیر ارشد. */
+  roleUserDashboardCounts: ['users', 'dashboard-role-counts'] as const,
   /** پیشوند مشترک داشبورد و صفحهٔ مدیریت — بعد از mutation هر دو باطل شوند. */
   bulletins: ['bulletins'] as const,
   bulletinsDashboard: ['bulletins', 'dashboard'] as const,
@@ -28,6 +38,8 @@ export const DASHBOARD_QUERY = {
   courseMaterials: ['course-materials'] as const,
   courseMaterialsReceived: ['course-materials', 'received'] as const,
   courseMaterialsManaged: ['course-materials', 'managed'] as const,
+  /** ماتریس دسترسی گزارش‌ها — سایدبار نقش‌های سازمانی و گارد صفحه. */
+  reportAccessSnapshot: ['report-access', 'snapshot'] as const,
 } as const;
 
 /** Capacity, daily-approvals, and enrollment all read Nest semesters. */
@@ -56,6 +68,9 @@ export function invalidateOrganizationDirectoryConsumers(
     queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY.orgOptions }),
     queryClient.invalidateQueries({
       queryKey: DASHBOARD_QUERY.onboardingApprovalsProvinces,
+    }),
+    queryClient.invalidateQueries({
+      queryKey: DASHBOARD_QUERY.orgStructureDashboardCounts,
     }),
   ]).then(() => undefined);
 }

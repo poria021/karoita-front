@@ -104,6 +104,60 @@ describe('groupOriginalLessons', () => {
     expect(new Set(levels).size).toBe(levels.length);
   });
 
+  it('رقم عنوان را فقط برای سری کلاسیک همان مخاطب سطح ثابت می‌کند', () => {
+    const courses = groupOriginalLessons([
+      row({ id: 'b1', mainTitle: 'کاربست', lessonTitle: 'کاربست ۱' }),
+      row({ id: 'b2', mainTitle: 'کاربست', lessonTitle: 'کاربست ۲' }),
+      row({ id: 'k1', mainTitle: 'کارورزی', lessonTitle: 'کارورزی ۱' }),
+      row({ id: 'k2', mainTitle: 'کارورزی', lessonTitle: 'کارورزی ۲' }),
+      row({ id: 't', mainTitle: 'test1', lessonTitle: 'test1' }),
+    ]);
+    const byTitle = new Map(courses.map((course) => [course.title, course]));
+
+    expect(byTitle.get('کارورزی')?.subModules.map((sub) => sub.level)).toEqual([
+      1, 2,
+    ]);
+    expect(byTitle.get('کاربست')?.subModules.map((sub) => sub.level)).toEqual([
+      101, 102,
+    ]);
+    expect(byTitle.get('test1')?.level).toBe(103);
+    expect(byTitle.get('test1')?.subModules).toEqual([]);
+  });
+
+  it('کارآموزی ۱ را با درس پودمانی هم‌رقم قاطی نمی‌کند', () => {
+    const courses = groupOriginalLessons([
+      row({
+        id: 'p1',
+        type: 'podmani',
+        mainTitle: 'کاربست',
+        lessonTitle: 'کاربست ۱',
+      }),
+      row({
+        id: 'a1',
+        type: 'podmani',
+        mainTitle: 'کارآموزی',
+        lessonTitle: 'کارآموزی ۱',
+      }),
+    ]);
+    const byTitle = new Map(courses.map((course) => [course.title, course]));
+
+    expect(byTitle.get('کارآموزی')?.subModules.map((sub) => sub.level)).toEqual([
+      1,
+    ]);
+    expect(byTitle.get('کاربست')?.subModules.map((sub) => sub.level)).toEqual([
+      101,
+    ]);
+  });
+
+  it('رقم تکراری سری کلاسیک را به سطح داینامیک می‌برد', () => {
+    const [course] = groupOriginalLessons([
+      row({ id: 'a', mainTitle: 'کارورزی', lessonTitle: 'کارورزی ۱' }),
+      row({ id: 'b', mainTitle: 'کارورزی', lessonTitle: 'کارورزی ۱ (ویژه)' }),
+    ]);
+
+    expect(course?.subModules.map((sub) => sub.level)).toEqual([1, 101]);
+  });
+
   it('درس فقط وقتی بایگانی است که همهٔ ردیف‌ها deactive باشند', () => {
     const [mixed] = groupOriginalLessons([
       row({ id: 'a', status: 'deactive' }),
@@ -114,7 +168,14 @@ describe('groupOriginalLessons', () => {
       row({ id: 'b', status: 'deactive', lessonTitle: 'هندسه' }),
     ]);
     expect(mixed!.isActive).toBe(true);
+    expect(mixed!.subModules.map((sub) => [sub.title, sub.isActive])).toEqual([
+      ['جبر', false],
+      ['هندسه', true],
+    ]);
     expect(archived!.isActive).toBe(false);
+    expect(archived!.subModules.every((sub) => sub.isActive === false)).toBe(
+      true
+    );
   });
 });
 

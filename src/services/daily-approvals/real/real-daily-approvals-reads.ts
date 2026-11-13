@@ -396,6 +396,14 @@ export async function listRealDailyApprovals(
     );
   }
 
+  // محدودهٔ ماژول (`?module=`) وقتی «همه زیرمجموعه‌ها» انتخاب است —
+  // API فقط یک `lessonId` می‌گیرد؛ بقیه سمت کلاینت مثل فیلتر نام.
+  // `scopeKeys === []` یعنی این ماژول در ترم درسی ندارد → لیست خالی.
+  if (input.course === 'all' && input.scopeKeys !== undefined) {
+    const allowed = new Set(input.scopeKeys);
+    trainees = trainees.filter((t) => allowed.has(t.courseKey));
+  }
+
   // فیلتر وضعیت
   if (input.readFilter === 'dropped') {
     trainees = trainees.filter((t) => t.status === 'dropped');

@@ -15,6 +15,7 @@ import {
   RealModeStubTooltip,
 } from '@/components/shared/RealModeStubNotice';
 import { KvFeatureIntro } from '@/components/shared/shell/KvFeatureIntro';
+import { KvTypography } from '@/components/shared/KvTypography';
 import { faIcons } from '@/utils/iconMap';
 
 import { DAILY_APPROVALS_BULK_EXTEND_ENABLED, DAILY_APPROVALS_FEATURE } from '../constants';
@@ -46,23 +47,36 @@ export function DailyApprovalsWorkspaceHeader({
   return (
     <div
       data-slot="daily-approvals-workspace-header"
-      className="border-b border-kv-border pb-kv-group"
+      className="border-b border-kv-border-muted pb-kv-group"
     >
       <KvFeatureIntro
-        title={
-          courseTitle
-            ? `${DAILY_APPROVALS_FEATURE.title} — ${courseTitle}`
-            : DAILY_APPROVALS_FEATURE.title
-        }
+        title={DAILY_APPROVALS_FEATURE.title}
         description={DAILY_APPROVALS_FEATURE.description}
+        className="gap-kv-inline lg:items-center"
         actions={
           <>
-            <div className="order-1 w-full shrink-0 lg:order-2 lg:w-52">
+            {courseTitle ? (
+              <div className="order-1 hidden min-w-0 items-center gap-kv-pair rounded-kv-control bg-kv-brand-soft px-kv-inline py-kv-pair lg:flex">
+                <span
+                  aria-hidden
+                  className="size-1.5 shrink-0 rounded-full bg-kv-brand"
+                />
+                <KvTypography
+                  variant="caption"
+                  as="span"
+                  truncate
+                  className="max-w-48 font-bold text-kv-brand-soft-fg"
+                >
+                  {courseTitle}
+                </KvTypography>
+              </div>
+            ) : null}
+            <div className="order-2 w-full shrink-0 lg:w-52">
               {selectedTermId ? (
                 <KvSelect value={selectedTermId} onValueChange={onTermChange}>
                   <KvSelectTrigger
                     aria-label="نیم‌سال تحصیلی"
-                    className="bg-kv-surface !shadow-kv-raised"
+                    className="bg-kv-surface shadow-kv-soft"
                   >
                     <KvSelectValue placeholder="نیم‌سال تحصیلی" />
                   </KvSelectTrigger>
@@ -76,7 +90,7 @@ export function DailyApprovalsWorkspaceHeader({
                   </KvSelectContent>
                 </KvSelect>
               ) : (
-                <div className="flex h-11 items-center rounded-kv-control border border-kv-border bg-kv-surface-muted px-kv-group text-xs font-bold text-kv-text-faint">
+                <div className="flex h-11 items-center rounded-kv-control border border-kv-border-muted bg-kv-surface-subtle px-kv-group text-xs font-medium text-kv-text-faint">
                   در حال بارگذاری نیم‌سال...
                 </div>
               )}
@@ -88,7 +102,7 @@ export function DailyApprovalsWorkspaceHeader({
                   color="violet"
                   appearance="ghost"
                   size="md"
-                  className="order-2 lg:order-1"
+                  className="order-3"
                   disabled={bulkExtendDisabled || IS_REAL_MODE_STUB_ACTIVE}
                   icon={<FaIcon icon={faIcons.unlockKeyhole} size="xs" />}
                   onClick={onBulkExtendClick}
@@ -100,6 +114,21 @@ export function DailyApprovalsWorkspaceHeader({
           </>
         }
       />
+      {courseTitle ? (
+        <div className="mt-kv-pair flex items-center gap-kv-pair lg:hidden">
+          <span
+            aria-hidden
+            className="size-1.5 shrink-0 rounded-full bg-kv-brand"
+          />
+          <KvTypography
+            variant="caption"
+            as="p"
+            className="font-bold text-kv-brand-soft-fg"
+          >
+            {courseTitle}
+          </KvTypography>
+        </div>
+      ) : null}
     </div>
   );
 }

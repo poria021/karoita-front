@@ -10,10 +10,11 @@ import {
   resolveWeekFeedback,
   type WeekStudentSubmissionPreview,
 } from '@/services/internship-enrollment/real/mappers/week-feedback';
+import { loadEnrollmentCatalogContext } from '@/services/internship-enrollment/real/mappers/enrollment-leaf';
 import {
-  findEnrolmentHistoryForLevel,
+  findEnrolmentHistoryForLeaf,
   preferLatestEnrolments,
-  findLessonForLevel,
+  findLessonForLeaf,
   registeredSummaryFromEnrollment,
   resolveEffectiveEnrollmentEntry,
   resolveEnrollmentMentor,
@@ -287,15 +288,16 @@ export async function getRealEnrollmentPageState(
   input: GetEnrollmentPageStateInput
 ): Promise<InternshipEnrollmentPageState> {
   requireNestTransport('InternshipEnrollmentService.getEnrollmentPageState');
-  const [open, semesters] = await Promise.all([
-    studentEnrollmentsApi.getOpenCourseSelection(),
-    loadEnrolmentsBySemester(),
-  ]);
-
   const kind = kindForRole(input.actor.role);
   const level = clampLevel(kind, input.level);
-  const history = findEnrolmentHistoryForLevel(semesters, kind, level);
-  const current = findLessonForLevel(open?.lessons ?? [], kind, level);
+  const [open, semesters, catalog] = await Promise.all([
+    studentEnrollmentsApi.getOpenCourseSelection(),
+    loadEnrolmentsBySemester(),
+    loadEnrollmentCatalogContext(kind, level),
+  ]);
+
+  const history = findEnrolmentHistoryForLeaf(semesters, kind, catalog.leaf);
+  const current = findLessonForLeaf(open?.lessons ?? [], kind, catalog.leaf);
   const effectiveEntry = resolveEffectiveEnrollmentEntry(
     current,
     history,
@@ -307,7 +309,14 @@ export async function getRealEnrollmentPageState(
     effectiveEntry,
     isActiveInOpenTerm
   );
-  return toEnrollmentPageState(input, open, semesters, registeredDetails);
+  return toEnrollmentPageState(
+    input,
+    open,
+    semesters,
+    registeredDetails,
+    catalog.leaf,
+    catalog.siblingLeaves
+  );
 }
 
 /**
@@ -319,14 +328,15 @@ export async function getRealEnrollmentTermReport(
   input: GetEnrollmentTermReportInput
 ): Promise<InternshipEnrollmentSummary | null> {
   requireNestTransport('InternshipEnrollmentService.getEnrollmentTermReport');
-  const [open, semesters] = await Promise.all([
-    studentEnrollmentsApi.getOpenCourseSelection(),
-    loadEnrolmentsBySemester(),
-  ]);
-
   const kind = kindForRole(input.actor.role);
   const level = clampLevel(kind, input.level);
-  const history = findEnrolmentHistoryForLevel(semesters, kind, level);
+  const [open, semesters, catalog] = await Promise.all([
+    studentEnrollmentsApi.getOpenCourseSelection(),
+    loadEnrolmentsBySemester(),
+    loadEnrollmentCatalogContext(kind, level),
+  ]);
+
+  const history = findEnrolmentHistoryForLeaf(semesters, kind, catalog.leaf);
   const entry = history.find((item) => item.semesterId === input.termId) ?? null;
   if (!entry) return null;
 
@@ -440,8 +450,8 @@ export async function listRealEligibleSupervisors(
     const open = await studentEnrollmentsApi.getOpenCourseSelection();
     if (!open) return [];
     semesterId = semesterId || open.id;
-    const lesson =
-      findLessonForLevel(open.lessons ?? [], input.kind, input.level);
+    const { leaf } = await loadEnrollmentCatalogContext(input.kind, input.level);
+    const lesson = findLessonForLeaf(open.lessons ?? [], input.kind, leaf);
     lessonId = lessonId || nestEntityId(lesson ?? {});
   }
 

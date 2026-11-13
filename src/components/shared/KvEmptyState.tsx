@@ -2,10 +2,8 @@
 
 import type { ReactNode } from 'react';
 
-import { FaIcon } from '@/components/shared/FaIcon';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
-import { faIcons } from '@/utils/iconMap';
 
 export type KvEmptyStateTone = 'muted' | 'danger';
 
@@ -17,12 +15,7 @@ export type KvEmptyStateProps = {
   className?: string;
 };
 
-/** آیکن تخت؛ `danger` فقط برای خالیِ مخرب. */
-const ICON_TONE_CLASS: Record<KvEmptyStateTone, string> = {
-  muted: 'text-kv-empty-icon',
-  danger: 'text-kv-danger',
-};
-
+/** empty بدون آیکن؛ تیتر `body` و توضیح `caption` — مقیاس استاندارد سیستم. */
 export function KvEmptyState({
   title,
   description,
@@ -34,27 +27,18 @@ export function KvEmptyState({
     <div
       data-slot="kv-empty-state"
       className={cn(
-        'flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center gap-kv-group px-kv-inset py-kv-block text-center',
+        'flex h-full min-h-0 w-full flex-1 flex-col items-center justify-center gap-kv-pair px-kv-inset py-kv-block text-center',
         className
       )}
       role="status"
     >
-      <div
-        className={cn(
-          'flex shrink-0 items-center justify-center',
-          ICON_TONE_CLASS[tone]
-        )}
-        aria-hidden
-      >
-        <FaIcon icon={faIcons.xmark} size="xl" />
-      </div>
       <div className="max-w-md space-y-kv-pair">
-        <KvTypography variant="title" as="h2">
+        <KvTypography variant="body" tone={tone} as="p">
           {title}
         </KvTypography>
         {description ? (
           typeof description === 'string' ? (
-            <KvTypography variant="body" tone="muted" as="p">
+            <KvTypography variant="caption" tone="muted" as="p">
               {description}
             </KvTypography>
           ) : (

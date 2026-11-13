@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
+
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
+import { CourseMaterialsManagePanel } from '@/features/karvita/course-materials/components/CourseMaterialsManagePanel';
 import { CourseMaterialsPublisherBox } from '@/features/karvita/course-materials/components/CourseMaterialsPublisherBox';
 import { canPublishCourseMaterials } from '@/services/course-materials/course-material-rules';
 import { evaluationCourseFilterId } from '@/services/syllabus-config/course-catalog';
@@ -28,6 +31,8 @@ export function DailyApprovalsPageClient() {
   const page = useDailyApprovalsPage();
   useRegisterPageRefresh(page.reload);
   const role = useUserStore((state) => state.activeUser?.role);
+  const [materialsOpen, setMaterialsOpen] = useState(false);
+  const canPublishMaterials = canPublishCourseMaterials(role);
   const canDrop = canDropDailyApprovalTrainee(role);
   const canBulkExtend =
     DAILY_APPROVALS_BULK_EXTEND_ENABLED && canBulkExtendDailyApprovalWeeks(role);
@@ -97,6 +102,19 @@ export function DailyApprovalsPageClient() {
     </div>
   );
 
+  if (materialsOpen && canPublishMaterials) {
+    return (
+      <DailyApprovalsGuard>
+        <CourseMaterialsManagePanel
+          kind={page.kind}
+          courses={materialCourses}
+          activeCourse={page.course}
+          onBack={() => setMaterialsOpen(false)}
+        />
+      </DailyApprovalsGuard>
+    );
+  }
+
   return (
     <DailyApprovalsGuard>
       <>
@@ -104,22 +122,23 @@ export function DailyApprovalsPageClient() {
           ratio="5/7"
           toolbar={
             <>
-            <DailyApprovalsWorkspaceHeader
-              termId={page.termId}
-              courseTitle={page.courseTitle}
-              terms={page.terms}
-              onTermChange={page.changeTerm}
-              showBulkExtend={canBulkExtend}
-              onBulkExtendClick={page.openBulkExtend}
-              bulkExtendDisabled={page.actionBusy || !page.termId}
-            />
-            {canPublishCourseMaterials(role) ? (
-              <CourseMaterialsPublisherBox
-                kind={page.kind}
-                courses={materialCourses}
-                activeCourse={page.course}
+              <DailyApprovalsWorkspaceHeader
+                termId={page.termId}
+                courseTitle={page.courseTitle}
+                terms={page.terms}
+                onTermChange={page.changeTerm}
+                showBulkExtend={canBulkExtend}
+                onBulkExtendClick={page.openBulkExtend}
+                bulkExtendDisabled={page.actionBusy || !page.termId}
               />
-            ) : null}
+              {canPublishMaterials ? (
+                <CourseMaterialsPublisherBox
+                  kind={page.kind}
+                  courses={materialCourses}
+                  activeCourse={page.course}
+                  onOpenManage={() => setMaterialsOpen(true)}
+                />
+              ) : null}
             </>
           }
           primary={

@@ -67,9 +67,22 @@ export const kvShellRailLabelMaxClassName: Record<KvShellRailTextSize, string> =
 
 export const kvShellAdminRailExpandedClassName = 'lg:ps-72';
 export const kvShellAdminRailCollapsedClassName = 'lg:ps-24';
+/** ریل آیکونی (`lg:w-24`) + ریل دوم گزارش (`lg:w-60`). */
+export const kvShellAdminReportsDualRailClearanceClassName =
+  'lg:ps-[calc(6rem+15rem)]';
+export const kvShellAdminReportsSecondaryRailWidthClassName = 'w-60';
+export const kvShellAdminReportsSecondaryRailOffsetClassName = 'inset-s-24';
 
-/** ریل ادمین `fixed` در لبهٔ شروع (RTL = راست). پد نه مارجین تا `w-full` از ویوپورت بیرون نزند. موبایل تمام‌عرض؛ ریل آنجا دراور است. */
-export function kvShellAdminRailClearanceClassName(isCollapsed: boolean) {
+/**
+ * ریل ادمین `fixed` در لبهٔ شروع (RTL = راست). پد نه مارجین تا `w-full` از ویوپورت بیرون نزند.
+ * موبایل تمام‌عرض؛ ریل آنجا دراور است.
+ * `reportsDual`: مسیر گزارش‌ها — خالی‌کردن برای ریل دوتایی.
+ */
+export function kvShellAdminRailClearanceClassName(
+  isCollapsed: boolean,
+  reportsDual = false
+) {
+  if (reportsDual) return kvShellAdminReportsDualRailClearanceClassName;
   return isCollapsed
     ? kvShellAdminRailCollapsedClassName
     : kvShellAdminRailExpandedClassName;

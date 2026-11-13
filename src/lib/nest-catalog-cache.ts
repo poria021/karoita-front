@@ -35,10 +35,12 @@ const CACHEABLE: Array<{ test: RegExp; ttlMs: number }> = [
   { test: /^admin\/degreeee(\?.*)?$/, ttlMs: 60 * 60_000 },
   { test: /^admin\/roles$/, ttlMs: 60 * 60_000 },
   { test: /^v1\/auth\/roles$/, ttlMs: 60 * 60_000 },
-  // لیست نیم‌سال و درس — یک بار در ابتدای ترم آپدیت می‌شود
-  { test: /^admin\/semester(\?.*)?$/, ttlMs: 30 * 60_000 },
-  { test: /^admin\/semesters_all(\?.*)?$/, ttlMs: 30 * 60_000 },
-  { test: /^admin\/settings(\?.*)?$/, ttlMs: 30 * 60_000 },
+  // کاتالوگ ترم/درس/تنظیمات آموزشی — ادمین وسط نشست می‌سازد/عوض می‌کند؛
+  // TTL بلند باعث می‌شود ترم تازه در پنل دانشجو/مهارت‌آموز دیر دیده شود.
+  // هم‌تراز با open-course-selection و QUERY_STALE_MS.module (≈۶۰ث).
+  { test: /^admin\/semester(\?.*)?$/, ttlMs: 60_000 },
+  { test: /^admin\/semesters_all(\?.*)?$/, ttlMs: 60_000 },
+  { test: /^admin\/settings(\?.*)?$/, ttlMs: 60_000 },
   // لیست اساتید یک درس — در دوره انتخاب‌واحد می‌تواند تغییر کند
   { test: /^v1\/student-enrollments\/professors(\?.*)?$/, ttlMs: 5 * 60_000 },
   // وضعیت باز/بسته‌بودن انتخاب‌واحد — باید سریع منعکس شود
@@ -86,7 +88,7 @@ export function setCatalogCache(
  */
 const MUTATION_CASCADE: Array<{ test: RegExp; also: string[] }> = [
   // POST ساخت ترم جدید (بدون id) → bundle درس‌ها هم عوض می‌شود (کارورزی/کارآموزی
-  // پیش‌فرض ترم تازه از همینجا می‌آید). بدون این قانون، semesters_all تا ۳۰ دقیقه
+  // پیش‌فرض ترم تازه از همینجا می‌آید). بدون این قانون، semesters_all تا پایان TTL
   // پاسخ stale (قبل از ساخت ترم) می‌دهد و جدول درس‌های ترم تازه خالی می‌ماند.
   {
     test: /^admin\/semester$/,

@@ -71,11 +71,17 @@ function formSignature(form: BulletinForm): string {
   });
 }
 
-export function useBulletinsManagePage() {
+/**
+ * منطق انتشار برای تب compose هاب.
+ * `kind` از URL هاب می‌آید (announcement | advertisement).
+ */
+export function useBulletinsManagePage(kind: BulletinKind = 'announcement') {
   const queryClient = useQueryClient();
   const role = useUserStore((state) => state.activeUser?.role);
   const canAds = canPublishAdvertisements(role);
   const showProvinces = canTargetProvinces(role);
+  const activeTab: BulletinKind =
+    kind === 'advertisement' && canAds ? 'advertisement' : 'announcement';
 
   const query = useQuery({
     queryKey: [...DASHBOARD_QUERY.bulletinsManaged, role],
@@ -85,23 +91,20 @@ export function useBulletinsManagePage() {
     enabled: Boolean(role),
   });
 
-  const [tab, setTab] = useState<BulletinKind>('announcement');
-  const activeTab: BulletinKind = canAds ? tab : 'announcement';
-
-  const emptyForm = (kind: BulletinKind): BulletinForm => ({
+  const emptyForm = (nextKind: BulletinKind): BulletinForm => ({
     editId: '',
-    kind,
+    kind: nextKind,
     title: '',
     body: '',
     linkUrl: '',
     imageUrl: '',
     imageFile: null,
     // پیش‌فرض: همهٔ زیرمجموعه‌ها.
-    audienceRoles: [...audienceRolesFor(role, kind)],
+    audienceRoles: [...audienceRolesFor(role, nextKind)],
     provinces: [],
   });
 
-  const [form, setForm] = useState<BulletinForm>(() => emptyForm('announcement'));
+  const [form, setForm] = useState<BulletinForm>(() => emptyForm(activeTab));
   const [baseline, setBaseline] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -263,7 +266,6 @@ export function useBulletinsManagePage() {
     canAds,
     canTargetProvinces: showProvinces,
     activeTab,
-    setTab,
     counts,
     listRows,
     isLoading: query.isLoading,

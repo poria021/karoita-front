@@ -35,13 +35,13 @@ export function TermHistorySelect({
   const isDisabled = termHistory.length <= 1;
 
   return (
-    <div className="w-full sm:w-56">
+    <div className="w-full shrink-0 sm:w-auto sm:min-w-[16rem] sm:max-w-sm">
       <KvSelect
         value={selectedTermId}
         onValueChange={onSelectTerm}
         disabled={isDisabled}
       >
-        <KvSelectTrigger aria-label="نیم‌سال تحصیلی">
+        <KvSelectTrigger aria-label="نیم‌سال تحصیلی" className="bg-kv-surface">
           <KvSelectValue placeholder="نیم‌سال تحصیلی" />
         </KvSelectTrigger>
         <KvSelectContent>

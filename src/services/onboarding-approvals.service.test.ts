@@ -62,4 +62,31 @@ describe('OnboardingApprovalsService mock — register then profile', () => {
     expect(page.items.some((user) => user.id === registered.id)).toBe(true);
     expect(page.items[0]?.id).toBe(registered.id);
   });
+
+  it('deletes a pending user and restores them on undo', async () => {
+    const admin = AUTH_MOCK_USERS.find((u) => u.role === 'super_admin');
+    expect(admin).toBeTruthy();
+    if (!admin) return;
+    useUserStore.getState().setUser(toPublicUser(admin));
+
+    await OnboardingApprovalsService.deleteUser('#MOCK-T1');
+    const afterDelete = await OnboardingApprovalsService.listPage({
+      status: 'pending_admin',
+      query: '',
+      province: 'all',
+      offset: 0,
+      limit: 50,
+    });
+    expect(afterDelete.items.some((user) => user.id === '#MOCK-T1')).toBe(false);
+
+    await OnboardingApprovalsService.restoreUser('#MOCK-T1');
+    const afterRestore = await OnboardingApprovalsService.listPage({
+      status: 'pending_admin',
+      query: '',
+      province: 'all',
+      offset: 0,
+      limit: 50,
+    });
+    expect(afterRestore.items.some((user) => user.id === '#MOCK-T1')).toBe(true);
+  });
 });

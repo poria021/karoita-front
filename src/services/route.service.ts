@@ -37,6 +37,16 @@ export function isMarketingCmsPath(pathname: string): boolean {
   return path === MARKETING_CMS_BASE || path.startsWith(`${MARKETING_CMS_BASE}/`);
 }
 
+const COURSE_MATERIALS_PATH = /^\/karvita\/internships\/(\d+)\/materials$/;
+
+/** سطح عددی مسیر جزوات؛ مسیرهای دیگر `null`. */
+export function courseMaterialsLevel(pathname: string): number | null {
+  const match = COURSE_MATERIALS_PATH.exec(normalizeAppPath(pathname));
+  if (!match) return null;
+  const level = Number(match[1]);
+  return Number.isInteger(level) && level >= 1 ? level : null;
+}
+
 /** پوستهٔ داشبورد `/(app)` — سوییچ تم هدر اینجاست. */
 export function isAppShellPath(pathname: string): boolean {
   const path = normalizeAppPath(pathname);
@@ -110,6 +120,9 @@ export const RouteService = {
       level == null
         ? '/karvita/internships'
         : `/karvita/internships/${level}`,
+    /** صندوق جزوات همان درس — یک URL برای هر سطح. */
+    courseMaterials: (level: number): string =>
+      `/karvita/internships/${level}/materials`,
     organizationalCapacities: (
       kind?: 'internship' | 'apprenticeship'
     ): string => {
@@ -117,6 +130,26 @@ export const RouteService = {
       return kind ? appendSearchParam(base, 'kind', kind) : base;
     },
     adminUserCreation: (): string => `${KARVITA_ADMIN_BASE}/user-creation`,
+    /** ماتریس دسترسی گزارش‌ها — فقط مدیر ارشد. */
+    reportAccess: (): string => `${KARVITA_ADMIN_BASE}/report-access`,
+    /**
+     * گزارش‌گیری پنل مدیر ارشد.
+     * بدون اسلاگ → ایندکس (redirect به اولین گزارش)؛ با اسلاگ → صفحهٔ گزارش.
+     */
+    reports: (slug?: string): string => {
+      const base = `${KARVITA_ADMIN_BASE}/reports`;
+      if (!slug) return base;
+      return `${base}/${slug.replace(/^\/+|\/+$/g, '')}`;
+    },
+    /**
+     * گزارش‌گیری نقش‌های سازمانی (مثل سازمان مرکزی).
+     * مسیر جدا از کنترل‌پلین ادمین — هم‌تراز پروتوتایپ `/karvita/reports`.
+     */
+    orgReports: (slug?: string): string => {
+      const base = `${KARVITA_BASE}/reports`;
+      if (!slug) return base;
+      return `${base}/${slug.replace(/^\/+|\/+$/g, '')}`;
+    },
     organizationalStructure: (
       tab?:
         | 'provinces'
@@ -133,14 +166,16 @@ export const RouteService = {
       const base = `${KARVITA_ADMIN_BASE}/landing-cms`;
       return tab ? appendSearchParam(base, 'tab', tab) : base;
     },
-    /** انتشار اطلاعیه (هر پنل بالادست) و تبلیغ (فقط ستاد مدیر ارشد). */
-    announcements: (tab?: 'announcement' | 'advertisement'): string => {
+    /**
+     * هاب اطلاعیه/تبلیغ/دریافتی/اعلان.
+     * تب‌های مجاز نقش‌محورند — `announcementsHubTabsFor` در bulletin-rules.
+     */
+    announcements: (
+      tab?: 'announcement' | 'advertisement' | 'received' | 'notifications'
+    ): string => {
       const base = '/karvita/announcements';
       return tab ? appendSearchParam(base, 'tab', tab) : base;
     },
-    /** گزارش‌های استاندارد سند مهر — فیلتر/ستون نقش‌محور. */
-    standardReports: (): string => '/karvita/reports',
-    comparativeReports: (): string => '/karvita/reports/comparative',
 
     isAdminControlPlanePath,
     isAppShellPath,

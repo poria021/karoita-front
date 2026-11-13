@@ -95,4 +95,4 @@ src/utils/
 | `docs/decisions.md` | Why this architecture |
 | `docs/contributing.md` | Feature checklist, forbidden imports, tests, UI |
 | `docs/architecture-folders.md` | This file — target tree |
-| `docs/planned-domains.md` | Future domains (ad-engine, reporting, forms-wizard) |
+| `docs/planned-domains.md` | Future domains (ad-engine, forms-wizard) |

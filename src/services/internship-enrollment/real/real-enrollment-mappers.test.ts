@@ -85,6 +85,138 @@ describe('real enrollment mappers', () => {
     expect(state.lessonId).toBeNull();
   });
 
+  it('opens S3 for a dynamic catalog leaf matched by title, not level digits', () => {
+    const open = {
+      ...OPEN,
+      lessons: [
+        {
+          id: 'dyn-one',
+          semesterId: OPEN.id,
+          title: 'one',
+          status: true,
+          courseSelection: true,
+        },
+      ],
+    };
+    const parsed = parseOpenCourseSelection(open);
+    const semesters: NestSemesterEnrolmentsByTerm[] = [
+      {
+        ...SEMESTERS_EMPTY[0],
+        lessons: open.lessons.map((lesson) => ({ ...lesson, enrolment: null })),
+      },
+    ];
+    const state = toEnrollmentPageState(
+      { actor: student, level: 101 },
+      parsed,
+      semesters,
+      undefined,
+      { level: 101, title: 'one' }
+    );
+    expect(state.scenario).toBe('S3_enroll_open');
+    expect(state.lessonId).toBe('dyn-one');
+    expect(state.courseTitle).toBe('one');
+  });
+
+  it('maps S6 when the student already enrolled in a sibling leaf of the same course', () => {
+    const open = {
+      ...OPEN,
+      lessons: [
+        {
+          id: 'dyn-one',
+          semesterId: OPEN.id,
+          title: 'one',
+          status: true,
+        },
+        {
+          id: 'dyn-two',
+          semesterId: OPEN.id,
+          title: 'two',
+          status: true,
+        },
+      ],
+    };
+    const parsed = parseOpenCourseSelection(open);
+    const semesters: NestSemesterEnrolmentsByTerm[] = [
+      {
+        ...SEMESTERS_EMPTY[0],
+        lessons: [
+          {
+            ...open.lessons[0],
+            enrolment: {
+              id: 'enr-one',
+              lessonId: 'dyn-one',
+              semesterId: OPEN.id,
+              professorId: 'p1',
+              status: 'active',
+            },
+          },
+          { ...open.lessons[1], enrolment: null },
+        ],
+      },
+    ];
+    const state = toEnrollmentPageState(
+      { actor: student, level: 102 },
+      parsed,
+      semesters,
+      undefined,
+      { level: 102, title: 'two' },
+      [{ level: 101, title: 'one' }]
+    );
+    expect(state.scenario).toBe('S6_already_enrolled_elsewhere');
+    expect(state.conflictEnrollment?.courseTitle).toBe('one');
+  });
+
+  it('keeps S3 when the other enrolment is in a different catalog course group', () => {
+    const open = {
+      ...OPEN,
+      lessons: [
+        {
+          id: 'test1-one',
+          semesterId: OPEN.id,
+          title: 'one',
+          status: true,
+          courseSelection: true,
+        },
+        {
+          id: 'test2-one',
+          semesterId: OPEN.id,
+          title: 'alpha',
+          status: true,
+          courseSelection: true,
+        },
+      ],
+    };
+    const parsed = parseOpenCourseSelection(open);
+    const semesters: NestSemesterEnrolmentsByTerm[] = [
+      {
+        ...SEMESTERS_EMPTY[0],
+        lessons: [
+          {
+            ...open.lessons[0],
+            enrolment: {
+              id: 'enr-one',
+              lessonId: 'test1-one',
+              semesterId: OPEN.id,
+              professorId: 'p1',
+              status: 'active',
+            },
+          },
+          { ...open.lessons[1], enrolment: null },
+        ],
+      },
+    ];
+    const state = toEnrollmentPageState(
+      { actor: student, level: 201 },
+      parsed,
+      semesters,
+      undefined,
+      { level: 201, title: 'alpha' },
+      [{ level: 202, title: 'beta' }]
+    );
+    expect(state.scenario).toBe('S3_enroll_open');
+    expect(state.lessonId).toBe('test2-one');
+  });
+
   it('blocks selection when canSelect is explicitly false on the open lesson', () => {
     const parsed = parseOpenCourseSelection({
       ...OPEN,
@@ -115,7 +247,7 @@ describe('real enrollment mappers', () => {
     expect(state.enrollment).toBeNull();
   });
 
-  it('maps S6 when the student has another lesson of the same kind in the open semester', () => {
+  it('maps S6 when the student has another sibling lesson of the same course', () => {
     const parsed = parseOpenCourseSelection(OPEN);
     const semesters: NestSemesterEnrolmentsByTerm[] = [
       {
@@ -138,7 +270,14 @@ describe('real enrollment mappers', () => {
     const state = toEnrollmentPageState(
       { actor: student, level: 1 },
       parsed,
-      semesters
+      semesters,
+      undefined,
+      { level: 1, title: 'کارورزی ۱' },
+      [
+        { level: 2, title: 'کارورزی ۲' },
+        { level: 3, title: 'کارورزی ۳' },
+        { level: 4, title: 'کارورزی ۴' },
+      ]
     );
     expect(state.scenario).toBe('S6_already_enrolled_elsewhere');
     expect(state.conflictEnrollment).toEqual({

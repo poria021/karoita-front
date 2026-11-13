@@ -32,18 +32,19 @@ export function OrganizationalCapacitiesWorkspaceHeader({
   return (
     <div
       data-slot="organizational-capacities-workspace-header"
-      className="border-b border-kv-border pb-kv-group"
+      className="border-b border-kv-border-muted pb-kv-group"
     >
       <KvFeatureIntro
         title={CAPACITY_FEATURE.title}
         description={CAPACITY_FEATURE.description}
+        className="gap-kv-inline lg:items-center"
         actions={
           <div className="w-full shrink-0 lg:w-52">
             {selectedTermId ? (
               <KvSelect value={selectedTermId} onValueChange={onTermChange}>
                 <KvSelectTrigger
                   aria-label="نیم‌سال تحصیلی"
-                  className="bg-kv-surface !shadow-kv-raised"
+                  className="bg-kv-surface shadow-kv-soft"
                 >
                   <KvSelectValue placeholder="نیم‌سال تحصیلی" />
                 </KvSelectTrigger>
@@ -56,7 +57,7 @@ export function OrganizationalCapacitiesWorkspaceHeader({
                 </KvSelectContent>
               </KvSelect>
             ) : (
-              <div className="flex h-11 items-center rounded-kv-control border border-kv-border bg-kv-surface-muted px-kv-group text-xs font-bold text-kv-text-faint">
+              <div className="flex h-11 items-center rounded-kv-control border border-kv-border-muted bg-kv-surface-subtle px-kv-group text-xs font-medium text-kv-text-faint">
                 {termsPending
                   ? 'در حال بارگذاری نیم‌سال...'
                   : 'نیم‌سالی یافت نشد'}

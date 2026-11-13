@@ -122,7 +122,7 @@ describe('enrollment eligibility', () => {
     ).toEqual(['eligible']);
   });
 
-  it('normalizes stored course titles and prevents a second student course', () => {
+  it('normalizes stored course titles and prevents a second sibling leaf for students', () => {
     expect(normalizeEnrollmentCourseTitle('کارورزی', 2)).toBe('کارورزی 2');
     expect(toPersianDigits(normalizeEnrollmentCourseTitle('کارورزی', 2))).toBe(
       'کارورزی ۲'
@@ -149,8 +149,37 @@ describe('enrollment eligibility', () => {
         kind: 'internship',
         level: 2,
         termId: 'term-1',
+        siblingLevels: [1, 3, 4],
       })
     ).toBe(true);
+  });
+
+  it('allows a second course from a different catalog group', () => {
+    expect(
+      hasStudentTermEnrollmentConflict({
+        records: [
+          {
+            id: 'record-1',
+            userId: student.id,
+            role: 'student',
+            kind: 'internship',
+            level: 101,
+            termId: 'term-1',
+            termTitle: 'نیم‌سال',
+            title: 'one',
+            supervisorId: 'sup-1',
+            supervisorName: 'دکتر نمونه',
+            schoolName: null,
+            mentorName: null,
+          },
+        ],
+        actor: student,
+        kind: 'internship',
+        level: 201,
+        termId: 'term-1',
+        siblingLevels: [202],
+      })
+    ).toBe(false);
   });
 
   it('keeps apprenticeship levels independent for skill learners', () => {
@@ -176,6 +205,7 @@ describe('enrollment eligibility', () => {
         kind: 'apprenticeship',
         level: 2,
         termId: 'term-1',
+        siblingLevels: [1],
       })
     ).toBe(false);
   });
@@ -204,6 +234,7 @@ describe('enrollment eligibility', () => {
         kind: 'internship',
         level: 2,
         termId: 'term-1',
+        siblingLevels: [1, 3, 4],
       })
     ).toBe(false);
   });

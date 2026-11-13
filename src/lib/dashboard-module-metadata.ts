@@ -9,6 +9,8 @@ export type DashboardModuleKey =
   | 'admin-dashboard'
   | 'organizational-structure'
   | 'user-creation'
+  | 'report-access'
+  | 'reports'
   | 'onboarding-approvals'
   | 'landing-cms'
   | 'syllabus-course-offerings'
@@ -17,8 +19,6 @@ export type DashboardModuleKey =
   | 'daily-approvals'
   | 'capacities'
   | 'announcements'
-  | 'reports'
-  | 'reports-comparative'
   | 'internship-level'
   | 'profile';
 
@@ -29,6 +29,8 @@ const MODULE_PATH: Record<DashboardModuleKey, string | ((role?: string) => strin
     'organizational-structure':
       RouteService.karvita.organizationalStructure(),
     'user-creation': RouteService.karvita.adminUserCreation(),
+    'report-access': RouteService.karvita.reportAccess(),
+    reports: RouteService.karvita.reports(),
     'onboarding-approvals': RouteService.karvita.onboardingApprovals(),
     'landing-cms': RouteService.karvita.landingCms(),
     'syllabus-course-offerings':
@@ -38,8 +40,6 @@ const MODULE_PATH: Record<DashboardModuleKey, string | ((role?: string) => strin
     'daily-approvals': RouteService.karvita.dailyApprovals(),
     capacities: RouteService.karvita.organizationalCapacities(),
     announcements: RouteService.karvita.announcements(),
-    reports: RouteService.karvita.standardReports(),
-    'reports-comparative': RouteService.karvita.comparativeReports(),
     'internship-level': RouteService.karvita.internshipSelection(1),
     profile: (role = 'student') => RouteService.karvita.profile(role),
   };

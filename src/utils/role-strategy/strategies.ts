@@ -1,3 +1,7 @@
+import {
+  orgReportsSidebarEntries,
+  orgReportsSidebarGroup,
+} from '@/features/karvita/reports/lib/org-report-access';
 import { PlannedRoutes } from '@/services/planned-routes';
 import { RouteService } from '@/services/route.service';
 
@@ -20,28 +24,22 @@ const ADMIN_DASHBOARD_ITEM: SidebarMenuItem = {
   icon: 'fa-home',
 };
 
-const STANDARD_REPORTS_ITEM: SidebarMenuItem = {
-  title: 'گزارش‌های استاندارد',
-  path: RouteService.karvita.standardReports(),
-  icon: 'fa-file-invoice',
-};
-
-const COMPARATIVE_REPORTS_ITEM: SidebarMenuItem = {
-  title: 'گزارش‌های مقایسه‌ای',
-  path: RouteService.karvita.comparativeReports(),
-  icon: 'fa-chart-column',
-};
-
 const MANAGE_ADS_ITEM: SidebarMenuItem = {
-  title: 'اطلاعیه‌ها و تبلیغات',
+  title: 'اطلاعیه‌ها و اعلانات',
   path: RouteService.karvita.announcements(),
   icon: 'fa-bullhorn',
 };
 
-/** پنل‌های غیرستادی فقط اطلاعیه منتشر می‌کنند (تبلیغ مخصوص ستاد مدیر ارشد است). */
+/** پنل‌های غیرستادی — همان مسیر هاب؛ عنوان ماژول یکسان است. */
 const MANAGE_ANNOUNCEMENTS_ITEM: SidebarMenuItem = {
   ...MANAGE_ADS_ITEM,
-  title: 'انتشار اطلاعیه',
+};
+
+/** دانشجو/مهارت‌آموز — مشاهدهٔ دریافتی‌ها و اعلان‌ها (بدون انتشار). */
+const INBOX_ANNOUNCEMENTS_ITEM: SidebarMenuItem = {
+  title: 'اطلاعیه‌ها و اعلان‌ها',
+  path: RouteService.karvita.announcements(),
+  icon: 'fa-bullhorn',
 };
 
 function omitSidebarPaths(
@@ -78,15 +76,9 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     icon: 'fa-bullhorn',
   },
   {
-    title: 'مدیریت دسترسی‌ها',
-    path: PlannedRoutes.userPermissions(),
-    icon: 'fa-user-gear',
-  },
-  {
     kind: 'group',
     title: 'مدیریت سازمانی',
     icon: 'fa-network-wired',
-    defaultOpen: true,
     children: [
       {
         title: 'ساختار سازمانی',
@@ -98,13 +90,17 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
         path: RouteService.karvita.adminUserCreation(),
         icon: 'fa-user-plus',
       },
+      {
+        title: 'دسترسی گزارش‌ها',
+        path: RouteService.karvita.reportAccess(),
+        icon: 'fa-user-shield',
+      },
     ],
   },
   {
     kind: 'group',
     title: 'مدیریت ترم و سرفصل',
     icon: 'fa-screwdriver-wrench',
-    defaultOpen: true,
     children: [
       {
         title: 'تعریف دروس',
@@ -123,21 +119,22 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
       },
     ],
   },
+  {
+    title: 'گزارش‌گیری',
+    path: RouteService.karvita.reports('learners'),
+    icon: 'fa-file-invoice',
+  },
   MANAGE_ADS_ITEM,
-  STANDARD_REPORTS_ITEM,
-  COMPARATIVE_REPORTS_ITEM,
 ];
 
 const SENIOR_ADMIN_PERMISSIONS = [
   'dashboard.view',
   'onboarding.review',
-  'permission.manage',
   'user.create',
   'syllabus.manage',
   'syllabus.term-settings',
   'organization.manage',
   'ads.manage',
-  'reports.view',
 ] as const;
 
 /**
@@ -153,11 +150,12 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      // قبل از انتخاب واحد تا زیر گروه بازِ کارورزی پنهان نماند.
+      INBOX_ANNOUNCEMENTS_ITEM,
       {
         kind: 'group',
         title: 'انتخاب واحد کارورزی',
         icon: 'fa-graduation-cap',
-        defaultOpen: true,
         children: [
           {
             title: 'کارورزی ۱',
@@ -202,11 +200,11 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      INBOX_ANNOUNCEMENTS_ITEM,
       {
         kind: 'group',
         title: 'انتخاب واحد کارآموزی',
         icon: 'fa-graduation-cap',
-        defaultOpen: true,
         children: [
           {
             title: 'کارآموزی ۱',
@@ -244,20 +242,18 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: RouteService.karvita.dailyApprovals(),
         icon: 'fa-clipboard-check',
       },
+      orgReportsSidebarGroup('supervisor_professor'),
       {
         title: 'پیکربندی ظرفیت‌ها',
         path: RouteService.karvita.organizationalCapacities(),
         icon: 'fa-chart-pie',
       },
       MANAGE_ANNOUNCEMENTS_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
       'daily-approval.review',
       'capacity.configure',
-      'reports.view',
     ],
   },
 
@@ -274,11 +270,10 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: RouteService.karvita.dailyApprovals(),
         icon: 'fa-clipboard-check',
       },
+      orgReportsSidebarGroup('mentor_teacher'),
       MANAGE_ANNOUNCEMENTS_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'daily-approval.review', 'reports.view'],
+    permissions: ['dashboard.view', 'daily-approval.review'],
   },
 
   school_principal: {
@@ -294,6 +289,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: RouteService.karvita.dailyApprovals(),
         icon: 'fa-clipboard-check',
       },
+      orgReportsSidebarGroup('school_principal'),
       {
         title: 'مدیریت کارورزان',
         path: PlannedRoutes.traineesManagement(),
@@ -305,15 +301,12 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         icon: 'fa-user-group',
       },
       MANAGE_ANNOUNCEMENTS_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
       'daily-approval.review',
       'trainee.manage',
       'student.manage',
-      'reports.view',
     ],
   },
 
@@ -330,11 +323,10 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
+      ...orgReportsSidebarEntries('regional_edu_admin'),
       MANAGE_ANNOUNCEMENTS_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'location.manage', 'reports.view'],
+    permissions: ['dashboard.view', 'location.manage'],
   },
 
   faculty_role: {
@@ -345,11 +337,10 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
+      orgReportsSidebarGroup('faculty_role'),
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
+    permissions: ['dashboard.view', 'ads.manage'],
   },
 
   provincial_university: {
@@ -365,14 +356,12 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
+      ...orgReportsSidebarEntries('provincial_university'),
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
       'location.manage',
-      'reports.view',
       'ads.manage',
     ],
   },
@@ -385,6 +374,8 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: false,
     sidebarMenu: omitSidebarPaths(SENIOR_ADMIN_SIDEBAR_MENU, [
       RouteService.karvita.adminUserCreation(),
+      RouteService.karvita.reportAccess(),
+      RouteService.karvita.reports('learners'),
       RouteService.karvita.syllabusTermSettings(),
       RouteService.karvita.syllabusCourseCatalog(),
     ]),
@@ -402,11 +393,10 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      STANDARD_REPORTS_ITEM,
-      COMPARATIVE_REPORTS_ITEM,
+      ...orgReportsSidebarEntries('central_organization'),
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
-    permissions: ['dashboard.view', 'reports.view', 'ads.manage'],
+    permissions: ['dashboard.view', 'ads.manage'],
   },
 
   super_admin: {

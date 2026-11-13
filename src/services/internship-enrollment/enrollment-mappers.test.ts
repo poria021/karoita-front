@@ -104,6 +104,7 @@ describe('InternshipEnrollmentService real wiring', () => {
       courseName: 'کارورزی',
       termTitle: 'نیم‌سال اول 1405-1406',
       termId: 'sem-1',
+      openTermId: 'sem-1',
       lessonId: 'les-1',
       enrollment: null,
       termHistory: [],

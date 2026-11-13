@@ -1,4 +1,10 @@
-import { RouteService } from '@/services/route.service';
+import {
+  isReportSlug,
+  REPORT_PAGE_DEFS,
+  themeForSlug,
+} from '@/features/karvita/reports/constants';
+import { usesThemedOrgReportSidebar } from '@/features/karvita/reports/lib/org-report-access';
+import { courseMaterialsLevel, RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import {
   getRoleStrategy,
@@ -54,6 +60,21 @@ export function getModuleBreadcrumb(
   const home = resolveHomeItem(role);
   const menu = getRoleStrategy(role).sidebarMenu;
 
+  const materialsLevel = courseMaterialsLevel(path);
+  if (materialsLevel != null) {
+    const coursePath = RouteService.karvita.internshipSelection(materialsLevel);
+    const courseTrail = getModuleBreadcrumb(coursePath, role);
+    const courseCrumb = courseTrail[courseTrail.length - 1];
+    return [
+      ...courseTrail.slice(0, -1),
+      {
+        label: courseCrumb?.label ?? getModuleMeta(coursePath, role).title,
+        href: coursePath,
+      },
+      { label: 'جزوات' },
+    ];
+  }
+
   if (isProfilePath(path)) {
     return [
       { label: home.title, href: home.path },
@@ -63,6 +84,43 @@ export function getModuleBreadcrumb(
 
   if (path === home.path) {
     return [{ label: home.title }];
+  }
+
+  const adminReportsBase = RouteService.karvita.reports();
+  if (
+    path === adminReportsBase ||
+    path.startsWith(`${adminReportsBase}/`)
+  ) {
+    const slug = path.slice(adminReportsBase.length + 1);
+    const crumbs: ModuleBreadcrumbItem[] = [{ label: 'گزارش‌گیری' }];
+    if (slug && isReportSlug(slug)) {
+      const theme = themeForSlug(slug);
+      if (theme) {
+        crumbs.push({
+          label: theme.title,
+          href: RouteService.karvita.reports(theme.slugs[0]),
+        });
+      }
+      crumbs.push({ label: REPORT_PAGE_DEFS[slug].title });
+    }
+    return crumbs;
+  }
+
+  const orgReportsBase = RouteService.karvita.orgReports();
+  if (path === orgReportsBase || path.startsWith(`${orgReportsBase}/`)) {
+    const slug = path.slice(orgReportsBase.length + 1);
+    const crumbs: ModuleBreadcrumbItem[] = [{ label: 'گزارش‌گیری' }];
+    if (slug && isReportSlug(slug)) {
+      const theme = themeForSlug(slug);
+      if (theme && usesThemedOrgReportSidebar(role)) {
+        crumbs.push({
+          label: theme.title,
+          href: RouteService.karvita.orgReports(theme.slugs[0]!),
+        });
+      }
+      crumbs.push({ label: REPORT_PAGE_DEFS[slug].title });
+    }
+    return crumbs;
   }
 
   for (const entry of menu) {

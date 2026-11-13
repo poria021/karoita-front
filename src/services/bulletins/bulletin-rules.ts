@@ -5,7 +5,10 @@ import type {
   BulletinKind,
   UpsertBulletinInput,
 } from '@/types/bulletins';
-import { isStaffAdminRole } from '@/types/role-taxonomy';
+import {
+  isLearnerDashboardRole,
+  isStaffAdminRole,
+} from '@/types/role-taxonomy';
 
 /**
  * سلسله‌مراتب انتشار اطلاعیه — اطلاعیهٔ هر پنل فقط در داشبورد نقش‌های زیرمجموعه‌اش دیده می‌شود.
@@ -47,11 +50,11 @@ const ANNOUNCEMENT_AUDIENCE: Record<UserRole, readonly UserRole[]> = {
     'skill_learner',
   ],
   provincial_university: ['faculty_role', 'supervisor_professor', 'student'],
-  faculty_role: ['supervisor_professor', 'student'],
-  regional_edu_admin: ['school_principal', 'mentor_teacher', 'skill_learner'],
-  school_principal: ['mentor_teacher', 'skill_learner'],
-  supervisor_professor: ['student'],
-  mentor_teacher: ['skill_learner'],
+  faculty_role: ['supervisor_professor', 'student', 'skill_learner'],
+  regional_edu_admin: ['school_principal', 'mentor_teacher', 'student', 'skill_learner'],
+  school_principal: ['student', 'skill_learner'],
+  supervisor_professor: ['student', 'skill_learner'],
+  mentor_teacher: ['student', 'skill_learner'],
   student: [],
   skill_learner: [],
 };
@@ -110,19 +113,75 @@ export function canReceiveBulletins(
   );
 }
 
+/** تب‌های هاب `/karvita/announcements` — هم‌تراز RouteService.karvita.announcements. */
+export type AnnouncementsHubTab =
+  | 'announcement'
+  | 'advertisement'
+  | 'received'
+  | 'notifications';
+
+/** سقف پیش‌نمایش باکس میز کار (صفحهٔ API هنوز صفحه‌بندی ندارد). */
+export const DASHBOARD_ANNOUNCEMENTS_PREVIEW_LIMIT = 20;
+
+/** صفحهٔ هاب: هر بار ۲۰ مورد؛ اسکرول داخل باکس موارد بعدی را می‌آورد. */
+export const HUB_INBOX_PAGE_SIZE = 20;
+
+/** دسترسی به هاب: ناشر یا گیرندۀ اطلاعیه. */
+export function canAccessAnnouncementsHub(
+  role: UserRole | string | null | undefined
+): boolean {
+  return canPublishAnnouncements(role) || canReceiveBulletins(role);
+}
+
+/**
+ * باکس اعلان کنار دریافتی — برای گیرنده‌های غیر دانشجو/مهارت‌آموز.
+ * دانشجو و مهارت‌آموز تب جدا «اعلان‌های سیستم» دارند.
+ */
+export function showsAnnouncementsHubNotifications(
+  role: UserRole | string | null | undefined
+): boolean {
+  return canReceiveBulletins(role) && !isLearnerDashboardRole(role);
+}
+
+/**
+ * تب‌های مجاز هاب بر اساس نقش.
+ * مدیر ارشد: فقط انتشار؛ دانشجو/مهارت‌آموز: دریافتی + اعلان؛ ناشران: انتشار (+ تبلیغ) + دریافتی.
+ */
+export function announcementsHubTabsFor(
+  role: UserRole | string | null | undefined
+): AnnouncementsHubTab[] {
+  const tabs: AnnouncementsHubTab[] = [];
+  if (canPublishAnnouncements(role)) tabs.push('announcement');
+  if (canPublishAdvertisements(role)) tabs.push('advertisement');
+  if (canReceiveBulletins(role)) tabs.push('received');
+  if (isLearnerDashboardRole(role)) tabs.push('notifications');
+  return tabs;
+}
+
+export function defaultAnnouncementsHubTab(
+  role: UserRole | string | null | undefined
+): AnnouncementsHubTab {
+  const tabs = announcementsHubTabsFor(role);
+  return tabs[0] ?? 'received';
+}
+
 /** «دریافتی» = منتشرشده برای این نقش؛ «منتشرشده» = موارد خود پنل (پیش‌نمایش). */
 export type DashboardBulletinSource = 'received' | 'published';
 
 /**
- * هر پنل در میز کار باکس تبلیغ و باکس اطلاعیه دارد. ستاد تبلیغ‌دهنده است و
- * تبلیغ خودش را پیش‌نمایش می‌بیند؛ مدیر ارشد بالادستی ندارد و اطلاعیه‌های خودش را می‌بیند.
+ * هر پنل در میز کار باکس تبلیغ و باکس اطلاعیه دارد.
+ * ستاد تبلیغ خودش را پیش‌نمایش می‌بیند.
+ * مدیر ارشد بالادستی ندارد؛ روی میز کار همهٔ اطلاعیه‌های فعال سامانه را (حالت دریافتی) می‌بیند.
  */
 export function dashboardBulletinSources(
   role: UserRole | string | null | undefined
 ): { advertisement: DashboardBulletinSource; announcement: DashboardBulletinSource } {
   return {
     advertisement: canPublishAdvertisements(role) ? 'published' : 'received',
-    announcement: canReceiveBulletins(role) ? 'received' : 'published',
+    announcement:
+      role === 'super_admin' || canReceiveBulletins(role)
+        ? 'received'
+        : 'published',
   };
 }
 

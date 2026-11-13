@@ -17,6 +17,11 @@ export type KvTableEmptyProps = {
   fillClassName?: string;
 };
 
+/**
+ * ردیف خالی/busy جدول.
+ * تایپ و رنگ سلول را ریست می‌کند تا `KvEmptyState` / `KvBusySurface`
+ * همان استایل بیرون از جدول را داشته باشند (نه text-xs/semibold سلول).
+ */
 export function KvTableEmpty({
   colSpan,
   children,
@@ -24,15 +29,19 @@ export function KvTableEmpty({
   fillClassName,
 }: KvTableEmptyProps) {
   return (
-    <KvTableRow className="in-[data-slot=kv-table-body]:hover:bg-transparent">
+    <KvTableRow className="font-normal can-hover:in-[data-slot=kv-table-body]:hover:bg-transparent">
       <KvTableCell
         colSpan={colSpan}
         align="center"
-        className={cn('h-auto min-h-0 p-0', className)}
+        className={cn(
+          'h-auto min-h-0 border-b-0 bg-transparent p-0 font-normal text-kv-text',
+          className
+        )}
       >
         <div
+          data-slot="kv-table-empty-surface"
           className={cn(
-            'flex w-full flex-col items-center justify-center text-center',
+            'flex w-full flex-col items-center justify-center text-base font-normal text-kv-text',
             fillClassName ?? KV_TABLE_EMPTY_FILL_HEIGHT
           )}
         >

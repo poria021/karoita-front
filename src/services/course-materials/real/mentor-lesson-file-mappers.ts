@@ -34,6 +34,14 @@ function mimeFromName(name: string): string {
   return MIME_BY_EXTENSION[ext] ?? 'application/octet-stream';
 }
 
+/** لایو mongoose گاهی `id` را به‌صورت `_id` می‌فرستد — بدون این، DELETE به `/undefined` می‌رود. */
+function nestEntityId(row: { id?: string; _id?: string } | null | undefined): string {
+  const id = typeof row?.id === 'string' ? row.id.trim() : '';
+  if (id) return id;
+  const underscore = typeof row?._id === 'string' ? row._id.trim() : '';
+  return underscore;
+}
+
 /**
  * هر رکورد Nest می‌تواند چند فایل داشته باشد؛ UI هر فایل را یک ردیف می‌بیند.
  * `recordId` برای DELETE (که روی کل رکورد است) نگه داشته می‌شود.
@@ -43,25 +51,31 @@ export function mapMentorLessonFileRecord(
   record: NestMentorLessonFile,
   context: { kind: InternshipCourseKind; courseLabel?: string }
 ): CourseMaterial[] {
-  return record.files.map((file) => {
+  const recordId = nestEntityId(record);
+  if (!recordId) return [];
+
+  return record.files.flatMap((file) => {
+    const fileId = nestEntityId(file);
     const fileName = fileNameFromPath(file.path);
-    return {
-      id: record.files.length > 1 ? `${record.id}:${file.id}` : record.id,
-      recordId: record.id,
-      kind: context.kind,
-      courseKey: record.lessonId,
-      courseLabel: context.courseLabel ?? '',
-      title: fileName || 'فایل درس',
-      description: (record.description ?? '').trim(),
-      fileName: fileName || 'file',
-      mimeType: mimeFromName(fileName),
-      sizeBytes: 0,
-      // آدرس کامل؛ `CourseMaterialRow` با `toSameOriginMediaUrl` resolve می‌کند.
-      fileUrl: file.path,
-      authorId: record.professorId,
-      authorRole: 'supervisor_professor',
-      authorName: '',
-      createdAt: record.createdAt,
-    };
+    return [
+      {
+        id: record.files.length > 1 && fileId ? `${recordId}:${fileId}` : recordId,
+        recordId,
+        kind: context.kind,
+        courseKey: record.lessonId,
+        courseLabel: context.courseLabel ?? '',
+        title: fileName || 'فایل درس',
+        description: (record.description ?? '').trim(),
+        fileName: fileName || 'file',
+        mimeType: mimeFromName(fileName),
+        sizeBytes: 0,
+        // آدرس کامل؛ `CourseMaterialRow` با `toSameOriginMediaUrl` resolve می‌کند.
+        fileUrl: file.path,
+        authorId: record.professorId,
+        authorRole: 'supervisor_professor' as const,
+        authorName: '',
+        createdAt: record.createdAt,
+      },
+    ];
   });
 }

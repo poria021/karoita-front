@@ -65,12 +65,16 @@ function normalizeAccessPath(pathname: string): string {
 
 const ASSISTANT_ADMIN_BLOCKED_PATHS = new Set([
   RouteService.karvita.adminUserCreation(),
+  RouteService.karvita.reportAccess(),
   RouteService.karvita.syllabusTermSettings(),
   RouteService.karvita.syllabusCourseCatalog(),
 ]);
 
 function isAssistantAdminBlockedPath(pathname: string): boolean {
-  return ASSISTANT_ADMIN_BLOCKED_PATHS.has(normalizeAccessPath(pathname));
+  const path = normalizeAccessPath(pathname);
+  if (ASSISTANT_ADMIN_BLOCKED_PATHS.has(path)) return true;
+  const reportsBase = RouteService.karvita.reports();
+  return path === reportsBase || path.startsWith(`${reportsBase}/`);
 }
 
 /**

@@ -70,6 +70,19 @@ describe('getModuleBreadcrumb', () => {
     ]);
   });
 
+  it('appends a materials crumb under the course', () => {
+    expect(
+      getModuleBreadcrumb(RouteService.karvita.courseMaterials(2), 'student')
+    ).toEqual([
+      { label: 'انتخاب واحد کارورزی' },
+      {
+        label: 'کارورزی ۲',
+        href: RouteService.karvita.internshipSelection(2),
+      },
+      { label: 'جزوات' },
+    ]);
+  });
+
   it('uses sidebar group + child for internship submodules', () => {
     expect(
       getModuleBreadcrumb(

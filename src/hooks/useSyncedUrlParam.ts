@@ -61,9 +61,22 @@ export function useSyncedUrlParam<T extends string>({
     if (typeof window !== 'undefined' && window.location.pathname !== pathname) {
       return;
     }
+    // هنگام hydrate/ناوبری، snapshot ممکن است از URL واقعی عقب باشد.
+    // اگر نوار آدرس همین حالا مقدار مجاز دارد، با fallback (مثلاً tab انتشار)
+    // روی ?tab=received بازنویسی نکن.
+    if (typeof window !== 'undefined') {
+      const liveRaw = new URLSearchParams(window.location.search).get(name);
+      if (
+        liveRaw != null &&
+        (allowed as readonly string[]).includes(liveRaw) &&
+        liveRaw !== value
+      ) {
+        return;
+      }
+    }
     if (searchParams.get(name) === value) return;
     replaceShallowHref(hrefWithSearchParam(pathname, searchParams, name, value));
-  }, [name, pathname, searchParams, value]);
+  }, [allowed, name, pathname, searchParams, value]);
 
   const setValue = useCallback(
     (next: T) => {

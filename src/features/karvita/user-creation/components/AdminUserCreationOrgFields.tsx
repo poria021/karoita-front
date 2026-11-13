@@ -75,7 +75,7 @@ export function AdminUserCreationOrgFields({
               ref={field.ref}
               type="district"
               label="منطقه آموزشی متصل"
-              required
+              optionalHint
               placeholder="جستجو و انتخاب منطقه..."
               value={field.value || ''}
               locked={!province}

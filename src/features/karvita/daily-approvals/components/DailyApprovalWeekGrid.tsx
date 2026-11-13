@@ -15,6 +15,8 @@ type DailyApprovalWeekGridProps = {
   trainee: DailyApprovalTrainee;
   selectedWeekId?: string | null;
   compact?: boolean;
+  /** وقتی legend جداگانه رندر می‌شود (مثلاً باکس titled موبایل). */
+  showLegend?: boolean;
   onSelectWeek?: (week: DailyApprovalWeek) => void;
 };
 
@@ -28,8 +30,11 @@ export function DailyApprovalWeekGrid({
   trainee,
   selectedWeekId = null,
   compact = false,
+  showLegend: _showLegend = true,
   onSelectWeek,
 }: DailyApprovalWeekGridProps) {
+  void _showLegend;
+
   if (trainee.weeks.length === 0) {
     return (
       <div
@@ -43,20 +48,13 @@ export function DailyApprovalWeekGrid({
   }
 
   return (
-    <div
-      className={
-        compact
-          ? 'grid grid-cols-2 gap-kv-inline sm:grid-cols-4'
-          : 'grid grid-cols-2 gap-kv-inline sm:grid-cols-4'
-      }
-    >
+    <div className="grid grid-cols-2 gap-kv-inline sm:grid-cols-4">
       {trainee.weeks.map((week) => {
         const visual = getWeekVisual(week.status);
         const score =
           week.status === 'graded' && week.score !== null ? week.score : null;
         const label =
           week.status === 'draft' ? draftCardLabel(week) : visual.label;
-        // تا وقتی دانشجو گزارشی نفرستاده (status === 'draft') کارت باز نمی‌شود.
         const locked =
           week.status === 'locked_future' || week.status === 'draft';
         const selected = selectedWeekId === week.id;
@@ -79,8 +77,20 @@ export function DailyApprovalWeekGrid({
             }}
           >
             <span className="flex w-full items-center justify-between gap-kv-inline">
-              <span className="text-xs font-black leading-none">
-                هفته {toPersianDigits(week.weekNumber)}
+              <span className="flex min-w-0 items-center gap-kv-pair">
+                <span className="text-xs font-black leading-none">
+                  هفته {toPersianDigits(week.weekNumber)}
+                </span>
+                {week.studentPresenceApproved ? (
+                  <span
+                    className="opacity-90"
+                    title="حضور در مدرسه تأیید شده"
+                    role="img"
+                    aria-label="حضور در مدرسه تأیید شده"
+                  >
+                    <FaIcon icon={faIcons.circleCheck} size="2xs" />
+                  </span>
+                ) : null}
               </span>
               <FaIcon icon={visual.icon} size="xs" />
             </span>

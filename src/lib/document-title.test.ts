@@ -46,5 +46,8 @@ describe('document-title', () => {
     expect(
       resolveBrowserTabTitle(RouteService.karvita.dashboard(), 'student')
     ).toBe('میز کار دانشجو | کارویتا');
+    expect(
+      resolveBrowserTabTitle(RouteService.karvita.courseMaterials(1), 'student')
+    ).toBe('جزوات کارورزی ۱ | کارویتا');
   });
 });

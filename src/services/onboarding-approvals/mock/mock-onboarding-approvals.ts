@@ -1,8 +1,11 @@
+import type { MockAuthUserRecord } from '@/services/auth/mock/auth-mock-users';
 import {
   findMockUserById,
   patchMockAuthUser,
   readMockUsers,
+  removeMockUser,
   toPublicUser,
+  writeMockUsers,
 } from '@/services/auth/mock/mock-auth.store';
 import type { User } from '@/types/auth';
 import type {
@@ -93,4 +96,28 @@ export function requireExistingMockUser(userId: string): void {
   if (!current) {
     throw new Error('کاربر موردنظر یافت نشد.');
   }
+}
+
+/** اسنپ‌شات حذف‌های اخیر تا «لغو» بتواند همان رکورد mock را برگرداند. */
+const removedApprovalUsers = new Map<string, MockAuthUserRecord>();
+
+export function deleteMockApprovalUser(userId: string): void {
+  const current = findMockUserById(userId);
+  if (!current) {
+    throw new Error('کاربر موردنظر یافت نشد.');
+  }
+  removedApprovalUsers.set(userId, { ...current });
+  removeMockUser(userId);
+}
+
+export function restoreMockApprovalUser(userId: string): void {
+  const record = removedApprovalUsers.get(userId);
+  if (!record) {
+    throw new Error('بازگردانی این کاربر ممکن نیست.');
+  }
+  const users = readMockUsers();
+  if (!users.some((user) => user.id === userId)) {
+    writeMockUsers([...users, record]);
+  }
+  removedApprovalUsers.delete(userId);
 }

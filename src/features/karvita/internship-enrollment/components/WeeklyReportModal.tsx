@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
@@ -31,10 +32,18 @@ import type {
   InternshipCompetencyRating,
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
+  InternshipEnrollmentRecordStatus,
   InternshipWeeklySession,
+  InternshipWeeklySessionState,
 } from '@/types/internship-enrollment';
 import { faIcons } from '@/utils/iconMap';
 import { formatJalaliDateTimeDisplay } from '@/utils/formatJalaliDate';
+import { toPersianDigits } from '@/utils/persianDigits';
+
+import {
+  effectiveWeeklySessionState,
+  isWeekNotSubmittedAfterTermEnd,
+} from '../lib/weekly-report-lock';
 
 type WeeklyReportModalProps = {
   open: boolean;
@@ -45,6 +54,42 @@ type WeeklyReportModalProps = {
   onReopen: (week: InternshipWeeklySession) => void;
   onWeekUpdated: (week: InternshipWeeklySession) => void;
 };
+
+type StatusBadgeMeta = {
+  label: string;
+  variant: 'default' | 'success' | 'warning' | 'danger' | 'info' | 'brand';
+};
+
+function weekStatusBadge(
+  week: InternshipWeeklySession,
+  enrollmentStatus: InternshipEnrollmentRecordStatus
+): StatusBadgeMeta {
+  if (isWeekNotSubmittedAfterTermEnd(week, enrollmentStatus)) {
+    return { label: 'ارسال نشده', variant: 'danger' };
+  }
+
+  const status = effectiveWeeklySessionState(week, enrollmentStatus);
+  const map: Partial<Record<InternshipWeeklySessionState, StatusBadgeMeta>> = {
+    locked_future: { label: 'هنوز باز نشده', variant: 'default' },
+    draft: {
+      label:
+        week.text?.trim() || (week.files?.length ?? 0) > 0
+          ? 'پیش‌نویس'
+          : 'ثبت نشده',
+      variant: 'default',
+    },
+    extended: { label: 'تمدید', variant: 'brand' },
+    pending: { label: 'ارسال شده', variant: 'info' },
+    needs_edit: { label: 'نیازمند ویرایش', variant: 'warning' },
+    approved: { label: 'تایید معلم', variant: 'success' },
+    graded: { label: 'نمره نهایی', variant: 'success' },
+    archived: { label: 'بایگانی شده', variant: 'default' },
+    locked_dropped: { label: 'حذف', variant: 'danger' },
+    overdue: { label: 'منقضی شده', variant: 'danger' },
+  };
+
+  return map[status] ?? { label: 'پیش‌نویس', variant: 'default' };
+}
 
 function FeedbackBlock({
   title,
@@ -134,6 +179,9 @@ export function WeeklyReportModal({
     );
   }
 
+  const enrollmentStatus = state.enrollment?.status ?? 'active';
+  const statusBadge = weekStatusBadge(effectiveWeek, enrollmentStatus);
+
   return (
     <KvDialog
       open={open}
@@ -153,83 +201,86 @@ export function WeeklyReportModal({
         }}
       >
         <KvDialogHeader>
-          <KvDialogTitle>{modal.title}</KvDialogTitle>
+          <div className="flex flex-wrap items-center gap-kv-pair">
+            <KvDialogTitle className="me-auto">{modal.title}</KvDialogTitle>
+            <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+          </div>
           <KvDialogDescription className="sr-only">
             ویرایش یا مشاهده گزارش هفتگی کارورزی
           </KvDialogDescription>
           {typeof effectiveWeek.weightedScore === 'number' ? (
             <KvTypography variant="caption" tone="muted" as="p">
-              وزن این هفته: {effectiveWeek.weightedScore}
+              وزن این هفته: {toPersianDigits(effectiveWeek.weightedScore)}
+            </KvTypography>
+          ) : null}
+          {modal.reportSubmittedAt ? (
+            <KvTypography variant="caption" tone="muted" as="p">
+              تاریخ ارسال گزارش:{' '}
+              {formatJalaliDateTimeDisplay(modal.reportSubmittedAt)}
             </KvTypography>
           ) : null}
         </KvDialogHeader>
 
         <KvScrollArea className="max-h-[min(70vh,560px)] overflow-y-auto pe-kv-micro [direction:ltr]">
           <div className="flex flex-col gap-kv-group [direction:rtl]">
-          {modal.locked && modal.lockNotice ? (
-            <KvAlert
-              variant={modal.lockNotice.variant}
-              title={modal.lockNotice.title}
-              description={modal.lockNotice.description}
-            />
-          ) : null}
+            {modal.locked && modal.lockNotice ? (
+              <KvAlert
+                variant={modal.lockNotice.variant}
+                title={modal.lockNotice.title}
+                description={modal.lockNotice.description}
+              />
+            ) : null}
 
-          {modal.feedback?.advisor ? (
-            <FeedbackBlock
-              title="بازخورد استاد راهنما:"
-              icon={faIcons.userTie}
-              body={modal.feedback.advisor}
-              at={modal.feedback.advisorAt}
-            />
-          ) : null}
-          {modal.feedback?.mentor ? (
-            <FeedbackBlock
-              title="بازخورد معلم راهنما:"
-              icon={faIcons.chalkboardUser}
-              body={modal.feedback.mentor}
-              rating={modal.feedback.mentorRating}
-              at={modal.feedback.mentorAt}
-            />
-          ) : null}
-          {modal.feedback?.principal ? (
-            <FeedbackBlock
-              title="بازخورد مدیر مدرسه:"
-              icon={faIcons.school}
-              body={modal.feedback.principal}
-              rating={modal.feedback.principalRating}
-              at={modal.feedback.principalAt}
-            />
-          ) : null}
+            {modal.feedback?.advisor ? (
+              <FeedbackBlock
+                title="بازخورد استاد راهنما:"
+                icon={faIcons.userTie}
+                body={modal.feedback.advisor}
+                at={modal.feedback.advisorAt}
+              />
+            ) : null}
+            {modal.feedback?.mentor ? (
+              <FeedbackBlock
+                title="بازخورد معلم راهنما:"
+                icon={faIcons.chalkboardUser}
+                body={modal.feedback.mentor}
+                rating={modal.feedback.mentorRating}
+                at={modal.feedback.mentorAt}
+              />
+            ) : null}
+            {modal.feedback?.principal ? (
+              <FeedbackBlock
+                title="بازخورد مدیر مدرسه:"
+                icon={faIcons.school}
+                body={modal.feedback.principal}
+                rating={modal.feedback.principalRating}
+                at={modal.feedback.principalAt}
+              />
+            ) : null}
 
-          {modal.reportSubmittedAt ? (
-            <KvTypography variant="caption" tone="muted" as="p">
-              تاریخ ارسال گزارش: {formatJalaliDateTimeDisplay(modal.reportSubmittedAt)}
-            </KvTypography>
-          ) : null}
+            <div className={modal.locked ? 'opacity-60' : undefined}>
+              <KvTextArea
+                label={false}
+                size="lg"
+                rows={7}
+                locked={modal.locked}
+                value={modal.text}
+                placeholder="گزارش دقیق خود را طبق سرفصل‌ها و آیین‌نگارش آموزشی در این بخش بنویسید..."
+                onChange={(event) => modal.setText(event.target.value)}
+              />
+            </div>
 
-          <div className={modal.locked ? 'opacity-60' : undefined}>
-            <KvTextArea
-              label={false}
-              size="lg"
-              rows={7}
-              locked={modal.locked}
-              value={modal.text}
-              placeholder="گزارش دقیق خود را طبق سرفصل‌ها و آیین‌نگارش آموزشی در این بخش بنویسید..."
-              onChange={(event) => modal.setText(event.target.value)}
+            <KvMultiFileDropzone
+              files={modal.files}
+              disabled={modal.locked || modal.busy}
+              maxFileSizeMb={WEEKLY_REPORT_MAX_FILE_SIZE_MB}
+              maxTotalSizeMb={WEEKLY_REPORT_MAX_TOTAL_SIZE_MB}
+              accept={WEEKLY_REPORT_ACCEPT}
+              acceptLabel={WEEKLY_REPORT_ACCEPT_LABEL}
+              invalidTypeMessage={WEEKLY_REPORT_INVALID_TYPE_MESSAGE}
+              onAdd={modal.addFiles}
+              onRemove={modal.removeFile}
             />
-          </div>
-
-          <KvMultiFileDropzone
-            files={modal.files}
-            disabled={modal.locked || modal.busy}
-            maxFileSizeMb={WEEKLY_REPORT_MAX_FILE_SIZE_MB}
-            maxTotalSizeMb={WEEKLY_REPORT_MAX_TOTAL_SIZE_MB}
-            accept={WEEKLY_REPORT_ACCEPT}
-            acceptLabel={WEEKLY_REPORT_ACCEPT_LABEL}
-            invalidTypeMessage={WEEKLY_REPORT_INVALID_TYPE_MESSAGE}
-            onAdd={modal.addFiles}
-            onRemove={modal.removeFile}
-          />
           </div>
         </KvScrollArea>
 
@@ -255,17 +306,6 @@ export function WeeklyReportModal({
                 onClick={onClose}
               >
                 انصراف
-              </KvButton>
-              <KvButton
-                type="button"
-                color="cta"
-                appearance="ghost"
-                size="md"
-                loading={modal.isSavingDraft}
-                disabled={modal.busy}
-                onClick={() => void modal.saveDraft()}
-              >
-                ذخیره پیش‌نویس
               </KvButton>
               <KvButton
                 type="button"

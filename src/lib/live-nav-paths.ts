@@ -1,4 +1,6 @@
+import { ALL_REPORT_SLUGS, isReportSlug } from '@/features/karvita/reports/constants';
 import {
+  courseMaterialsLevel,
   isAdminControlPlanePath,
   RouteService,
 } from '@/services/route.service';
@@ -8,6 +10,30 @@ function normalizePath(pathname: string): string {
   const withoutQuery = pathname.split('?')[0] ?? pathname;
   const trimmed = withoutQuery.replace(/\/+$/, '');
   return trimmed.length > 0 ? trimmed : '/';
+}
+
+const ADMIN_REPORT_PATHS: readonly string[] = ALL_REPORT_SLUGS.map((slug) =>
+  RouteService.karvita.reports(slug)
+);
+
+const ORG_REPORT_PATHS: readonly string[] = ALL_REPORT_SLUGS.map((slug) =>
+  RouteService.karvita.orgReports(slug)
+);
+
+export function isAdminReportsPath(pathname: string): boolean {
+  const path = normalizePath(pathname);
+  const base = RouteService.karvita.reports();
+  if (path === base) return true;
+  if (!path.startsWith(`${base}/`)) return false;
+  return isReportSlug(path.slice(base.length + 1));
+}
+
+export function isOrgReportsPath(pathname: string): boolean {
+  const path = normalizePath(pathname);
+  const base = RouteService.karvita.orgReports();
+  if (path === base) return true;
+  if (!path.startsWith(`${base}/`)) return false;
+  return isReportSlug(path.slice(base.length + 1));
 }
 
 const INTERNSHIP_LEVEL_PATHS: readonly string[] = [
@@ -38,6 +64,9 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.adminDashboard(),
   RouteService.karvita.organizationalStructure(),
   RouteService.karvita.adminUserCreation(),
+  RouteService.karvita.reportAccess(),
+  ...ADMIN_REPORT_PATHS,
+  ...ORG_REPORT_PATHS,
   RouteService.karvita.onboardingApprovals(),
   RouteService.karvita.landingCms(),
   RouteService.karvita.syllabusCourseOfferings(),
@@ -46,8 +75,6 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.dailyApprovals(),
   RouteService.karvita.organizationalCapacities(),
   RouteService.karvita.announcements(),
-  RouteService.karvita.standardReports(),
-  RouteService.karvita.comparativeReports(),
   ...INTERNSHIP_LEVEL_PATHS,
 ];
 
@@ -58,36 +85,38 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
 const INDEX_REDIRECT_MODULE_PATHS: readonly string[] = [
   RouteService.karvita.syllabusConfig(),
   RouteService.karvita.internshipSelection(),
+  RouteService.karvita.reports(),
+  RouteService.karvita.orgReports(),
 ];
 
 /**
- * صفحات زنده که تا تکمیل UI در سایدبار نیستند.
- * مسیر، لاگین، ریکاوری و بردکرامب سر جایشان می‌مانند.
- * برای نمایش دوباره، همان مسیر را از این مجموعه بردارید — آیتم نقش از قبل هست.
- */
-const SIDEBAR_DEFERRED_PATHS: ReadonlySet<string> = new Set([]);
-
-/**
- * زیرمجموعهٔ سایدبار: مسیرهای شِل از `LIVE_STATIC_NAV_PATHS` منهای deferred.
- * از همان لیست مشتق می‌شود تا صفحهٔ جدید `/karvita/*` کاندید سایدبار باشد مگر در
- * `SIDEBAR_DEFERRED_PATHS`. مسیرهای مارکتینگ و auth بیرون می‌مانند؛ سایدبار فقط
- * داخل شِل احراز‌شده (`/(app)/karvita/*`) رندر می‌شود.
+ * زیرمجموعهٔ سایدبار: مسیرهای شِل از `LIVE_STATIC_NAV_PATHS`.
+ * مسیرهای مارکتینگ و auth بیرون می‌مانند؛ سایدبار فقط داخل شِل احراز‌شده
+ * (`/(app)/karvita/*`) رندر می‌شود.
  */
 const LIVE_SIDEBAR_PATH_SET: ReadonlySet<string> = new Set(
-  LIVE_STATIC_NAV_PATHS.filter(
-    (p) => p.startsWith('/karvita/') && !SIDEBAR_DEFERRED_PATHS.has(p)
-  )
+  LIVE_STATIC_NAV_PATHS.filter((p) => p.startsWith('/karvita/'))
 );
 
 export function isLiveStaticNavPath(pathname: string): boolean {
   const path = normalizePath(pathname);
-  return LIVE_STATIC_NAV_PATHS.includes(path) || isInternshipLevelPath(path);
+  return (
+    LIVE_STATIC_NAV_PATHS.includes(path) ||
+    isInternshipLevelPath(path) ||
+    isAdminReportsPath(path) ||
+    isOrgReportsPath(path)
+  );
 }
 
 /** مسیرهایی که در سایدبار احراز‌شده دیده می‌شوند — `Set` برای جست‌وجوی O(1). */
 export function isLiveSidebarPath(pathname: string): boolean {
   const path = normalizePath(pathname);
-  return LIVE_SIDEBAR_PATH_SET.has(path) || isInternshipLevelPath(path);
+  return (
+    LIVE_SIDEBAR_PATH_SET.has(path) ||
+    isInternshipLevelPath(path) ||
+    isAdminReportsPath(path) ||
+    isOrgReportsPath(path)
+  );
 }
 
 export function isKarvitaProfilePath(pathname: string): boolean {
@@ -99,6 +128,7 @@ export { isAdminControlPlanePath };
 export function isNavigableAppPath(pathname: string): boolean {
   const path = normalizePath(pathname);
   if (isKarvitaProfilePath(path)) return true;
+  if (courseMaterialsLevel(path) != null) return true;
   if (INDEX_REDIRECT_MODULE_PATHS.includes(path)) return true;
   return isLiveStaticNavPath(path);
 }

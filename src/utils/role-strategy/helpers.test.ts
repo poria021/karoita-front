@@ -44,6 +44,18 @@ describe('staff admin access', () => {
     expect(
       canAccessAdminControlPlane(
         'assistant_admin',
+        RouteService.karvita.reportAccess()
+      )
+    ).toBe(false);
+    expect(
+      canAccessAdminControlPlane(
+        'assistant_admin',
+        RouteService.karvita.reports('learners')
+      )
+    ).toBe(false);
+    expect(
+      canAccessAdminControlPlane(
+        'assistant_admin',
         RouteService.karvita.syllabusTermSettings()
       )
     ).toBe(false);

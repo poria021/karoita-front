@@ -4,6 +4,8 @@ import type { NestSemesterEnrolmentsByTerm } from '@/types/nest-student-enrollme
 
 import {
   enrolledLevelsFromSemesters,
+  findConflictLessonInSemester,
+  findEnrolmentHistoryForLeaf,
   findLessonForLeaf,
   findLessonForLevel,
   lessonMatchesLevel,
@@ -100,5 +102,76 @@ describe('enrolledLevelsFromSemesters', () => {
       ]
     );
     expect([...levels].sort((a, b) => a - b)).toEqual([2, 101]);
+  });
+});
+
+describe('findEnrolmentHistoryForLeaf', () => {
+  it('finds dynamic catalog lessons by title when the level is virtual', () => {
+    const history = findEnrolmentHistoryForLeaf(
+      [
+        semester([
+          {
+            id: 'lp',
+            title: 'پروژه الف',
+            enrolment: { id: 'e1', status: 'active' },
+          },
+        ]),
+      ],
+      'internship',
+      PROJECT_A
+    );
+    expect(history).toHaveLength(1);
+    expect(history[0]?.lesson.id).toBe('lp');
+  });
+});
+
+describe('findConflictLessonInSemester', () => {
+  it('conflicts only with sibling leaves of the same catalog course', () => {
+    const conflict = findConflictLessonInSemester(
+      semester([
+        {
+          id: 'lp',
+          title: 'one',
+          enrolment: { id: 'e1', status: 'active' },
+        },
+        { id: 'l2', title: 'two', enrolment: null },
+      ]),
+      'internship',
+      'l2',
+      [{ level: 101, title: 'one' }]
+    );
+    expect(conflict?.id).toBe('lp');
+  });
+
+  it('ignores enrolments from a different catalog course group', () => {
+    const conflict = findConflictLessonInSemester(
+      semester([
+        {
+          id: 'other',
+          title: 'alpha',
+          enrolment: { id: 'e1', status: 'active' },
+        },
+      ]),
+      'internship',
+      null,
+      [{ level: 101, title: 'one' }]
+    );
+    expect(conflict).toBeNull();
+  });
+
+  it('returns null when there are no siblings to conflict with', () => {
+    const conflict = findConflictLessonInSemester(
+      semester([
+        {
+          id: 'lp',
+          title: 'one',
+          enrolment: { id: 'e1', status: 'active' },
+        },
+      ]),
+      'internship',
+      null,
+      []
+    );
+    expect(conflict).toBeNull();
   });
 });

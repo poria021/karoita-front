@@ -139,8 +139,9 @@ export type ListDailyApprovalsInput = {
   readFilter: DailyApprovalReadFilter;
   course: DailyApprovalCourseFilter;
   /**
-   * محدودهٔ درس انتخاب‌شده در ماژول (شناسهٔ فیلتر زیرمجموعه‌ها). وقتی `course` برابر `all` است
-   * فقط همین‌ها دیده می‌شوند. فقط mock؛ real فیلتر درس را از `lessonId` می‌گیرد و نادیده‌اش می‌گیرد.
+   * محدودهٔ درس انتخاب‌شده در ماژول (شناسهٔ فیلتر زیرمجموعه‌ها / `lessonId` ترم).
+   * وقتی `course` برابر `all` است فقط همین‌ها دیده می‌شوند.
+   * mock: leaf کاتالوگ؛ real: `courseFilter` درس‌های ترمِ همان ماژول.
    */
   scopeKeys?: readonly string[];
   termId: string;

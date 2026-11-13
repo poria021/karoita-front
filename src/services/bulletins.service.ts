@@ -62,6 +62,14 @@ export const BulletinsService = {
     if (!IS_MOCK_MODE) return listRealDashboardBulletins();
     const { role } = mockSessionAuthor();
     const provinces = mockSessionProvinces();
+    // مدیر ارشد مخاطب اطلاعیه نیست؛ روی میز کار همهٔ اطلاعیه‌های فعال را می‌بیند.
+    if (role === 'super_admin') {
+      return sortBulletins(
+        readMockBulletins().filter(
+          (row) => row.kind === 'announcement' && row.isActive !== false
+        )
+      );
+    }
     return sortBulletins(
       readMockBulletins().filter((row) =>
         isBulletinVisibleTo(row, role, provinces)

@@ -127,10 +127,16 @@ export function findConflictingActiveTermEnrollment(input: {
   kind: 'internship' | 'apprenticeship';
   level: InternshipEnrollmentLevel;
   termId: string;
+  /**
+   * سطوح هم‌گروه (سایر زیرمجموعه‌های همان درس کاتالوگ).
+   * خالی = بدون تعارض (درس تک‌برگ یا گروه دیگر). فقط دانشجو + کارورزی.
+   */
+  siblingLevels: readonly number[];
 }): InternshipEnrollmentRecord | null {
   if (input.actor.role !== 'student' || input.kind !== 'internship') {
     return null;
   }
+  if (input.siblingLevels.length === 0) return null;
 
   return (
     input.records.find(
@@ -138,7 +144,7 @@ export function findConflictingActiveTermEnrollment(input: {
         record.userId === input.actor.id &&
         record.termId === input.termId &&
         record.kind === 'internship' &&
-        record.level !== input.level &&
+        input.siblingLevels.includes(record.level) &&
         record.supervisorId !== null &&
         (record.status === undefined || record.status === 'active')
     ) ?? null
@@ -151,6 +157,7 @@ export function hasStudentTermEnrollmentConflict(input: {
   kind: 'internship' | 'apprenticeship';
   level: InternshipEnrollmentLevel;
   termId: string;
+  siblingLevels: readonly number[];
 }): boolean {
   return findConflictingActiveTermEnrollment(input) !== null;
 }

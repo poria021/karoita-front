@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { isMockApiMode } from '@/lib/api-mode';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
@@ -18,8 +18,12 @@ export type ActiveCourseDefinitions = {
 
 const EMPTY: CourseDefinition[] = [];
 
+/** کش جلسه برای جلوگیری از فلش منوی ایستا بین ناوبری‌ها در real. */
+let sessionCatalogCache: CourseDefinition[] | undefined;
+
 /**
- * درس‌های فعال «تعریف دروس» (مدیر ارشد)، تفکیک‌شده بر اساس پنل.
+ * کاتالوگ «تعریف دروس» برای سایدبار/ارزیابی (فعال و غیرفعال)، تفکیک‌شده بر اساس پنل.
+ * غیرفعال‌ها در منو می‌مانند و `disabled` می‌شوند مگر سابقهٔ دسترسی/ثبت‌نام.
  * real: `GET /v1/original-lessons`؛ mock: snapshot محلی. روی همان query key
  * صفحهٔ تعریف دروس می‌نشیند تا ویرایش ادمین فوراً سایدبار را هم به‌روز کند.
  */
@@ -33,16 +37,22 @@ export function useActiveCourseDefinitions(
     enabled,
     staleTime: QUERY_STALE_MS.module,
     retry: false,
-    // mock همگام است؛ بدون این، سایدبار یک لحظه منوی پیش‌فرض را نشان می‌داد.
+    // mock همگام است؛ همهٔ درس‌ها (حتی غیرفعال) تا سایدبار بتواند disabled نشان دهد.
     ...(mock
       ? {
-          initialData: () => [
-            ...SyllabusConfigService.getActiveCourseDefinitions('semester'),
-            ...SyllabusConfigService.getActiveCourseDefinitions('modular'),
-          ],
+          initialData: () =>
+            SyllabusConfigService.getCourseDefinitionsForConsumers(),
         }
-      : {}),
+      : {
+          // real: اگر قبلاً در این نشست لود شده، همان را فوری نشان بده (بدون seed ایستا).
+          placeholderData: () => sessionCatalogCache,
+        }),
   });
+
+  useEffect(() => {
+    if (mock || !query.isSuccess || !query.data) return;
+    sessionCatalogCache = query.data;
+  }, [mock, query.data, query.isSuccess]);
 
   return useMemo(() => {
     const all = query.data ?? EMPTY;

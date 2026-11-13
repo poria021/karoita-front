@@ -188,4 +188,75 @@ describe('forwardToNestApi', () => {
 
     expect(res.status).toBe(204);
   });
+
+  it('serves catalog GET from in-process cache with no-store (not public s-maxage)', async () => {
+    vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
+    const nestFetch = vi.fn().mockResolvedValue(
+      new Response('[{"id":"sem-1"}]', {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    );
+    vi.stubGlobal('fetch', nestFetch);
+
+    const url =
+      'http://localhost/api/nest/admin/semesters_all?structure=semester';
+    const segments = ['admin', 'semesters_all'];
+
+    const miss = await forwardToNestApi(new NextRequest(url), segments);
+    expect(miss.status).toBe(200);
+    expect(miss.headers.get('x-karvita-proxy')).toBe('nest-raw');
+    expect(nestFetch).toHaveBeenCalledTimes(1);
+
+    const hit = await forwardToNestApi(new NextRequest(url), segments);
+    expect(hit.status).toBe(200);
+    expect(hit.headers.get('x-karvita-proxy')).toBe('nest-catalog-cache');
+    expect(hit.headers.get('cache-control')).toBe('no-store, no-transform');
+    expect(nestFetch).toHaveBeenCalledTimes(1);
+    await expect(hit.json()).resolves.toEqual([{ id: 'sem-1' }]);
+  });
+
+  it('busts semesters_all cache after POST admin/semester through the proxy', async () => {
+    vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
+    const nestFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response('[{"id":"old"}]', {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      )
+      .mockResolvedValueOnce(new Response(null, { status: 201 }))
+      .mockResolvedValueOnce(
+        new Response('[{"id":"old"},{"id":"new"}]', {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      );
+    vi.stubGlobal('fetch', nestFetch);
+
+    const listUrl =
+      'http://localhost/api/nest/admin/semesters_all?structure=semester';
+    const listSegments = ['admin', 'semesters_all'];
+
+    await forwardToNestApi(new NextRequest(listUrl), listSegments);
+    await forwardToNestApi(
+      new NextRequest('http://localhost/api/nest/admin/semester', {
+        method: 'POST',
+        body: '{}',
+      }),
+      ['admin', 'semester']
+    );
+    const afterCreate = await forwardToNestApi(
+      new NextRequest(listUrl),
+      listSegments
+    );
+
+    expect(nestFetch).toHaveBeenCalledTimes(3);
+    expect(afterCreate.headers.get('x-karvita-proxy')).toBe('nest-raw');
+    await expect(afterCreate.json()).resolves.toEqual([
+      { id: 'old' },
+      { id: 'new' },
+    ]);
+  });
 });

@@ -80,16 +80,36 @@ describe('adminUserCreationSchema', () => {
     expect(ok.success).toBe(true);
   });
 
-  it('requires province + city + district for regional_edu_admin', () => {
-    const result = adminUserCreationSchema.safeParse({
+  it('requires province + city for regional_edu_admin and allows an empty district', () => {
+    const missingCity = adminUserCreationSchema.safeParse({
       ...base,
       role: 'regional_edu_admin',
       province: 'تهران',
-      city: 'تهران',
+      city: '',
       college: '',
       district: '',
     });
-    expect(result.success).toBe(false);
+    expect(missingCity.success).toBe(false);
+
+    const withoutDistrict = adminUserCreationSchema.safeParse({
+      ...base,
+      role: 'regional_edu_admin',
+      province: 'تهران',
+      city: 'تبریز',
+      college: '',
+      district: '',
+    });
+    expect(withoutDistrict.success).toBe(true);
+
+    const withDistrict = adminUserCreationSchema.safeParse({
+      ...base,
+      role: 'regional_edu_admin',
+      province: 'تهران',
+      city: 'تبریز',
+      college: '',
+      district: 'منطقه ۱',
+    });
+    expect(withDistrict.success).toBe(true);
   });
 
   it('rejects a leading-zero mobile like the login form', () => {

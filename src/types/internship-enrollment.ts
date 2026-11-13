@@ -20,7 +20,7 @@ export type InternshipEnrollmentLevel = number;
  * - S3: مهلت ثبت‌نام باز + هنوز ثبت‌نام نشده
  * - S4: ثبت‌نام شده + ترم هنوز شروع نشده
  * - S5: ثبت‌نام شده + ترم فعال / گزارش‌نویسی
- * - S6: در درس دیگری از همین نیم‌سال انتخاب واحد شده (جلوگیری از بن‌بست اخذ مجدد)
+ * - S6: دانشجو در زیرمجموعهٔ دیگری از *همان درس کاتالوگ* ثبت‌نام فعال دارد (بین دو درس جدا مثل test1 و test2 مجاز است؛ مهارت‌آموز این قفل را ندارد)
  */
 export type InternshipEnrollmentScenario =
   | 'S1_syllabus_blocked'
@@ -135,6 +135,8 @@ export type InternshipWeeklySession = {
   /** زمان (ISO) آخرین ارسال گزارش خودِ دانشجو برای این هفته. */
   reportSubmittedAt?: string | null;
   feedback?: InternshipWeeklyReportFeedback;
+  /** تأیید مدیر مدرسه بر حضور کارورز در مدرسه (`isApprovedBySchoolAdminStudentPresent`). */
+  studentPresenceApproved?: boolean;
 };
 
 export type SaveWeeklyReportDraftInput = {
@@ -237,6 +239,12 @@ export type InternshipEnrollmentPageState = {
   courseTitle?: string;
   termTitle: string;
   termId: string;
+  /**
+   * شناسهٔ نیم‌سال باز (`open-course-selection`). خالی یعنی ترم بازی نیست.
+   * `termId` ممکن است ثبت‌نامِ مانده از ترم قبل باشد؛ مقایسهٔ این دو یعنی
+   * انتخاب واحد همین ترم باز.
+   */
+  openTermId: string;
   /** شناسهٔ درس Nest برای GET professors؛ در mock همان catalog id است. */
   lessonId: string | null;
   enrollment: InternshipEnrollmentSummary | null;

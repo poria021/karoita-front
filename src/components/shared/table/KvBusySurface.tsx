@@ -26,7 +26,9 @@ export function KvBusySurface({
       data-slot="kv-busy-surface"
       className={cn(
         'flex w-full flex-col items-center justify-center gap-kv-pair bg-kv-surface p-kv-group',
-        tableViewport ? KV_TABLE_VIEWPORT_HEIGHT : 'min-h-40 bg-kv-canvas',
+        tableViewport
+          ? KV_TABLE_VIEWPORT_HEIGHT
+          : 'min-h-40 bg-kv-surface-subtle/50',
         className
       )}
       aria-busy="true"

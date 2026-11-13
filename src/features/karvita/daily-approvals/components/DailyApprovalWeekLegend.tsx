@@ -18,7 +18,7 @@ export function DailyApprovalWeekLegend({
     >
       {titled ? (
         <KvTypography variant="overline" as="span">
-          راهنمای وضعیت گزارشات کلاسی:
+          ??????? ????? ??????? ?????:
         </KvTypography>
       ) : null}
       <div

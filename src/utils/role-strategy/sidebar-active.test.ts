@@ -32,4 +32,18 @@ describe('resolveActiveSidebarPath', () => {
     ).toBe('/k/d?kind=apprenticeship');
     expect(resolveActiveSidebarPath(paths, '/k/d', '')).toBeNull();
   });
+
+  it('keeps the parent course active on its materials page', () => {
+    const paths = [
+      '/karvita/internships/1',
+      '/karvita/internships/10',
+      '/karvita/internships/2',
+    ];
+    expect(
+      resolveActiveSidebarPath(paths, '/karvita/internships/1/materials', '')
+    ).toBe('/karvita/internships/1');
+    expect(
+      resolveActiveSidebarPath(paths, '/karvita/internships/10/materials', '')
+    ).toBe('/karvita/internships/10');
+  });
 });

@@ -23,10 +23,6 @@ type SessionVisual = {
   icon: (typeof faIcons)[keyof typeof faIcons];
 };
 
-// locked_future الان سمت کلاینت و بر اساس قفل ترتیبی (ارسال‌نشدنِ گزارش هفتهٔ
-// قبل) محاسبه می‌شود — ببین isSequentiallyLocked در weekly-sessions.ts. قفل
-// زمانیِ قبلی (تقویم آموزشی) طبق تصمیم بک‌اند غیرفعال ماند؛ overdue هم هنوز از
-// سرور برنمی‌گردد، برای همین کامنت باقی می‌ماند.
 const SESSION_VISUALS: Partial<
   Record<InternshipWeeklySessionState, SessionVisual>
 > = {
@@ -39,18 +35,8 @@ const SESSION_VISUALS: Partial<
       'cursor-not-allowed enabled:hover:bg-inherit enabled:hover:text-inherit',
     icon: faIcons.lock,
   },
-  // overdue: {
-  //   label: 'منقضی شده',
-  //   legendLabel: 'منقضی شده',
-  //   className:
-  //     'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg',
-  //   hoverClassName:
-  //     'enabled:hover:bg-kv-danger-soft-hover enabled:hover:text-kv-danger-soft-fg',
-  //   icon: faIcons.clockRotateLeft,
-  // },
   extended: {
     label: 'تمدید',
-    // legendLabel حذف شد — تمدید گروهی هفته فعلاً غیرفعال است و در راهنما نمایش داده نمی‌شود.
     className:
       'border-kv-violet-border bg-kv-violet-soft text-kv-violet-soft-fg',
     hoverClassName:
@@ -69,8 +55,7 @@ const SESSION_VISUALS: Partial<
   pending: {
     label: 'ارسال شده',
     legendLabel: 'ارسال شده',
-    className:
-      'border-kv-info-border bg-kv-info-soft text-kv-info-soft-fg',
+    className: 'border-kv-info-border bg-kv-info-soft text-kv-info-soft-fg',
     hoverClassName:
       'enabled:hover:bg-kv-info-soft-hover enabled:hover:text-kv-info-soft-fg',
     icon: faIcons.clock,
@@ -104,21 +89,18 @@ const SESSION_VISUALS: Partial<
   archived: {
     label: 'بایگانی شده',
     className: 'border-kv-border bg-kv-surface-muted text-kv-text-faint',
-    hoverClassName:
-      'enabled:hover:bg-inherit enabled:hover:text-inherit',
+    hoverClassName: 'enabled:hover:bg-inherit enabled:hover:text-inherit',
     icon: faIcons.folderOpen,
   },
   locked_dropped: {
     label: 'حذف',
     className:
       'border-kv-danger-border bg-kv-danger-soft text-kv-danger-soft-fg opacity-55',
-    hoverClassName:
-      'enabled:hover:bg-inherit enabled:hover:text-inherit',
+    hoverClassName: 'enabled:hover:bg-inherit enabled:hover:text-inherit',
     icon: faIcons.lock,
   },
 };
 
-// کارتِ هفته‌ای که تا پایان ترم گزارشش ارسال نشده (به‌جای سبزِ «نمره نهایی»).
 const NOT_SUBMITTED_VISUAL: SessionVisual = {
   label: 'ارسال نشده',
   legendLabel: 'ارسال نشده',
@@ -137,12 +119,14 @@ function draftCardLabel(week: InternshipWeeklySession): string {
 type InternshipWeeklyGridProps = {
   weeks: InternshipWeeklySession[];
   enrollmentStatus: InternshipEnrollmentRecordStatus;
+  highlightWeekId?: string | null;
   onWeekSelect?: (week: InternshipWeeklySession) => void;
 };
 
 export function InternshipWeeklyGrid({
   weeks,
   enrollmentStatus,
+  highlightWeekId = null,
   onWeekSelect,
 }: InternshipWeeklyGridProps) {
   if (weeks.length === 0) {
@@ -160,8 +144,6 @@ export function InternshipWeeklyGrid({
       <div className="grid grid-cols-2 gap-kv-inline sm:grid-cols-4">
         {weeks.map((week, index) => {
           const status = effectiveWeeklySessionState(week, enrollmentStatus);
-          // overdue دیگر از سرور نمی‌آید؛ در صورت بروز، به‌جای کرش، ظاهر
-          // پیش‌فرض (draft) نمایش داده می‌شود.
           const notSubmitted = isWeekNotSubmittedAfterTermEnd(
             week,
             enrollmentStatus
@@ -177,6 +159,9 @@ export function InternshipWeeklyGrid({
             : status === 'draft'
               ? draftCardLabel(week)
               : visual.label;
+          const locked = status === 'locked_future' || status === 'archived';
+          const highlighted =
+            Boolean(highlightWeekId && week.id === highlightWeekId) && !locked;
 
           return (
             <KvButton
@@ -185,17 +170,31 @@ export function InternshipWeeklyGrid({
               color="neutral"
               appearance="secondary"
               size="md"
-              className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-control border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName}`}
+              className={`h-auto min-h-[95px] flex-col items-stretch justify-between gap-0 rounded-kv-control border px-kv-group pb-kv-field pt-kv-inline text-start shadow-kv-raised ${visual.className} ${visual.hoverClassName} ${
+                highlighted ? 'ring-[3px] ring-kv-ring/25' : ''
+              }`}
               aria-label={`نمایش گزارش هفته ${toPersianDigits(index + 1)}`}
-              disabled={status === 'locked_future' || status === 'archived'}
+              disabled={locked}
               onClick={() => {
-                if (status === 'locked_future' || status === 'archived') return;
+                if (locked) return;
                 onWeekSelect?.(week);
               }}
             >
               <span className="flex w-full items-center justify-between gap-kv-inline">
-                <span className="text-xs font-black leading-none">
-                  هفته {toPersianDigits(index + 1)}
+                <span className="flex min-w-0 items-center gap-kv-pair">
+                  <span className="text-xs font-black leading-none">
+                    هفته {toPersianDigits(index + 1)}
+                  </span>
+                  {week.studentPresenceApproved ? (
+                    <span
+                      className="opacity-90"
+                      title="حضور در مدرسه تأیید شده"
+                      role="img"
+                      aria-label="حضور در مدرسه تأیید شده"
+                    >
+                      <FaIcon icon={faIcons.circleCheck} size="2xs" />
+                    </span>
+                  ) : null}
                 </span>
                 <FaIcon icon={visual.icon} size="xs" />
               </span>

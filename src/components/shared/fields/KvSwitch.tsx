@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { KvLabel } from '@/components/shared/fields/KvLabel';
-import { Switch } from '@/components/ui/switch';
+import { Switch, type SwitchVisualState } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 export type KvSwitchSize = 'sm' | 'md' | 'lg';
@@ -15,6 +15,7 @@ export type KvSwitchProps = Omit<
   size?: KvSwitchSize;
   label?: string;
   labelClassName?: string;
+  visualState?: SwitchVisualState;
 };
 
 const SIZE_TO_UI: Record<KvSwitchSize, 'sm' | 'default'> = {
@@ -30,6 +31,7 @@ export function KvSwitch({
   labelClassName,
   id: idProp,
   disabled,
+  visualState,
   ...props
 }: KvSwitchProps) {
   const generatedId = React.useId();
@@ -41,6 +43,7 @@ export function KvSwitch({
       data-slot="kv-switch"
       size={SIZE_TO_UI[size]}
       disabled={disabled}
+      visualState={visualState}
       className={cn(
         size === 'lg' && 'data-[size=default]:h-8 data-[size=default]:w-14',
         className

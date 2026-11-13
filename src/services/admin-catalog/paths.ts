@@ -48,7 +48,8 @@ export const NEST_ADMIN_PATHS = {
   originalLessons: 'v1/original-lessons',
   originalLessonById: (id: string) => `v1/original-lessons/${id}`,
   mentorLessonFiles: 'v1/mentor-lesson-files',
-  mentorLessonFileById: (id: string) => `v1/mentor-lesson-files/${id}`,
+  mentorLessonFileById: (id: string) =>
+    `v1/mentor-lesson-files/${encodeURIComponent(id)}`,
   lessonMentorFiles: (lessonId: string) =>
     `v1/lessons/${lessonId}/mentor-files`,
 } as const;

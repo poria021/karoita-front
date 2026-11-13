@@ -65,26 +65,29 @@ export function DailyApprovalsTable({
   const colSpan = (canDrop ? 4 : 3) + 1;
 
   return (
-    <div className="space-y-kv-group">
+    <div className="space-y-kv-group overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface shadow-kv-soft">
       {loadMoreError ? (
-        <KvAlert
-          variant="error"
-          title="بارگذاری ادامه فهرست ناموفق بود"
-          description={loadMoreError}
-          actions={
-            <KvButton
-              type="button"
-              appearance="secondary"
-              size="sm"
-              onClick={onRetryLoadMore}
-            >
-              تلاش مجدد
-            </KvButton>
-          }
-        />
+        <div className="border-b border-kv-border-muted p-kv-group">
+          <KvAlert
+            variant="error"
+            title="بارگذاری ادامه فهرست ناموفق بود"
+            description={loadMoreError}
+            actions={
+              <KvButton
+                type="button"
+                appearance="secondary"
+                size="sm"
+                onClick={onRetryLoadMore}
+              >
+                تلاش مجدد
+              </KvButton>
+            }
+          />
+        </div>
       ) : null}
 
       <KvTableViewport
+        framed={false}
         resetKey={resetKey}
         hasMore={bodyPhase === 'rows' && hasMore}
         isLoadingMore={isLoadingMore}

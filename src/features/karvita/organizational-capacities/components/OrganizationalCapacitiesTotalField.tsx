@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 /** ظرفیت پذیرش قابل‌ویرایش — همان سطح/حاشیهٔ `KvInput`. */
 export const CAPACITY_METRIC_BOX = [
   'inline-flex h-8 w-24 shrink-0 items-center justify-center',
-  'rounded-kv-control border border-kv-border bg-kv-field',
+  'rounded-kv-control border border-kv-border-muted bg-kv-surface shadow-kv-soft',
   'text-xs font-bold text-kv-text-secondary',
 ].join(' ');
 

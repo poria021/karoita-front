@@ -7,6 +7,7 @@ import {
   kvShellAdminRailClearanceMotionClassName,
   kvShellAdminRailCollapsedClassName,
   kvShellAdminRailExpandedClassName,
+  kvShellAdminReportsDualRailClearanceClassName,
   kvShellAdminRailMotionClassName,
   kvShellAdminRailWidthMotionClassName,
   kvShellRailLabelMotionClassName,
@@ -58,8 +59,17 @@ describe('shellChrome', () => {
     expect(kvShellAdminRailClearanceClassName(true)).toBe(
       kvShellAdminRailCollapsedClassName
     );
+    expect(kvShellAdminRailClearanceClassName(true, true)).toBe(
+      kvShellAdminReportsDualRailClearanceClassName
+    );
+    expect(kvShellAdminRailClearanceClassName(false, true)).toBe(
+      kvShellAdminReportsDualRailClearanceClassName
+    );
     expect(kvShellAdminRailExpandedClassName).toContain('lg:ps-72');
     expect(kvShellAdminRailCollapsedClassName).toContain('lg:ps-24');
+    expect(kvShellAdminReportsDualRailClearanceClassName).toContain(
+      'calc(6rem+15rem)'
+    );
     expect(kvShellAdminMainGutterClassName).toBe('px-0 sm:px-kv-group');
     expect(kvScrollAreaClassName).toBe('kv-scroll-area');
     expect(kvShellAdminHeaderPadXClassName).toBe('px-kv-group');

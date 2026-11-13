@@ -1,5 +1,9 @@
+import {
+  isReportSlug,
+  REPORT_PAGE_DEFS,
+} from '@/features/karvita/reports/constants';
 import { PlannedRoutes } from '@/services/planned-routes';
-import { RouteService } from '@/services/route.service';
+import { courseMaterialsLevel, RouteService } from '@/services/route.service';
 import {
   courseDefinitionsOf,
   findLeafByEnrollmentLevel,
@@ -62,7 +66,7 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
   [RouteService.karvita.adminDashboard()]: {
     title: 'میز کار مدیریت ارشد',
     description:
-      'پنل حاکمیتی سامانه کارویتا — بررسی مدارک، دسترسی‌ها و پیکربندی سازمانی.',
+      'پنل حاکمیتی سامانه کارویتا — بررسی مدارک و پیکربندی سازمانی.',
     icon: 'fa-user-shield',
   },
   [PlannedRoutes.dailyReports()]: {
@@ -88,20 +92,6 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
     description:
       'افزودن دانشجویان و مهارت‌آموزان جدید، تفکیک بر اساس نوع دوره، ویرایش مشخصات و مدارک ثبت‌نام.',
     icon: 'fa-user-group',
-  },
-  [RouteService.karvita.standardReports()]: {
-    title: 'گزارش‌های استاندارد سیستمی',
-    description:
-      'گزارش‌گیری متمرکز بر نمرات، ساعات کارگاهی، لاگ‌های سیستمی و وضعیت تکمیل گزارش‌ها.',
-    icon: 'fa-file-invoice',
-    showSemester: true,
-  },
-  [RouteService.karvita.comparativeReports()]: {
-    title: 'تحلیل مقایسه‌ای عملکرد',
-    description:
-      'رصد رقابتی و مقایسه عملکرد دانشکده‌ها، اساتید، مدارس و فراگیران بر اساس شاخص‌های آموزشی.',
-    icon: 'fa-chart-column',
-    showSemester: true,
   },
   [PlannedRoutes.termLifecycle()]: {
     title: 'مدیریت بازه‌ها و چرخه ترم',
@@ -138,16 +128,10 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'تأیید صلاحیت هویتی و مدارک کارورزان و مربیان جهت فعال‌سازی پنل کاربری.',
     icon: 'fa-id-card',
   },
-  [PlannedRoutes.userPermissions()]: {
-    title: 'مدیریت دسترسی‌های پویا (RBAC)',
-    description:
-      'تعریف دامنه‌های سازمانی (Scope)، ارتقای موقت نقش و ویرایش مجوزهای ممیزی کاربران.',
-    icon: 'fa-user-gear',
-  },
   [RouteService.karvita.announcements()]: {
-    title: 'اطلاعیه‌ها و تبلیغات',
+    title: 'اطلاعیه‌ها و اعلانات',
     description:
-      'انتشار اطلاعیه برای داشبورد نقش‌های زیرمجموعه؛ تبلیغات فقط توسط مدیر ارشد و دستیارانش.',
+      'انتشار و دریافت اطلاعیه؛ تبلیغات ستاد مدیریت؛ اعلان‌های سیستم.',
     icon: 'fa-bullhorn',
   },
   [RouteService.karvita.internshipSelection()]: {
@@ -198,6 +182,24 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
       'پنل تعریف دستی حساب‌های ارشد، سازمان‌های مرکزی، پردیس‌ها و دستیاران اجرایی سیستم.',
     icon: 'fa-user-plus',
   },
+  [RouteService.karvita.reportAccess()]: {
+    title: 'دسترسی گزارش‌ها',
+    description:
+      'تعیین گزارش‌های مجاز هر نقش سازمانی و امکان مقایسه، با بازبینی قبل از ثبت نهایی.',
+    icon: 'fa-user-shield',
+  },
+  [RouteService.karvita.reports()]: {
+    title: 'گزارش‌گیری',
+    description:
+      'گزارش‌های لیستی، حضور و غیاب و عملکرد سازمانی برای مدیر ارشد.',
+    icon: 'fa-file-invoice',
+  },
+  [RouteService.karvita.orgReports()]: {
+    title: 'گزارش‌گیری',
+    description:
+      'گزارش‌های لیستی، حضور و غیاب و عملکرد سازمانی برای سازمان مرکزی.',
+    icon: 'fa-file-invoice',
+  },
   [RouteService.karvita.landingCms()]: {
     title: 'مدیریت محتوای لندینگ',
     description:
@@ -244,15 +246,6 @@ const DASHBOARD_META_BY_ROLE: Partial<Record<UserRole, ModuleMeta>> = {
   },
 };
 
-const STANDARD_REPORTS_DESC_BY_ROLE: Partial<Record<UserRole, string>> = {
-  regional_edu_admin:
-    'سامانه نظارت بر عملکرد مدارس تابعه، توزیع ظرفیت‌های آموزشی، پایش معلمان راهنما و آمار کارورزان منطقه.',
-  school_principal:
-    'گزارش‌گیری متمرکز بر ارزیابی‌های کیفی، نمرات پایانی کارورزان و عملکرد مربیان مدرسه تابعه.',
-  supervisor_professor:
-    'رصد پیشرفت تحصیلی کارورزان کلاس جاری، نمره‌دهی هفتگی و آمار تکالیف تحویلی.',
-};
-
 function normalizePath(pathname: string): string {
   if (!pathname) return '/';
   const trimmed = pathname.replace(/\/+$/, '');
@@ -289,6 +282,19 @@ export function getModuleMeta(
 ): ModuleMeta {
   const path = normalizePath(pathname);
 
+  const materialsLevel = courseMaterialsLevel(path);
+  if (materialsLevel != null) {
+    const parent = getModuleMeta(
+      RouteService.karvita.internshipSelection(materialsLevel),
+      role
+    );
+    return {
+      ...parent,
+      title: `جزوات ${parent.title}`,
+      description: `فایل‌های درسی ${parent.title}.`,
+    };
+  }
+
   const dynamicEnrollment = resolveDynamicEnrollmentMeta(path);
   if (dynamicEnrollment) return dynamicEnrollment;
 
@@ -303,15 +309,30 @@ export function getModuleMeta(
     return MODULE_META_BY_PATH[path] ?? FALLBACK_META;
   }
 
-  if (path === RouteService.karvita.standardReports()) {
-    const base = MODULE_META_BY_PATH[path] ?? FALLBACK_META;
-    if (role && STANDARD_REPORTS_DESC_BY_ROLE[role]) {
-      return {
-        ...base,
-        description: STANDARD_REPORTS_DESC_BY_ROLE[role]!,
-      };
+  const reportsBases = [
+    RouteService.karvita.reports(),
+    RouteService.karvita.orgReports(),
+  ] as const;
+  for (const reportsBase of reportsBases) {
+    if (path === reportsBase || path.startsWith(`${reportsBase}/`)) {
+      const slug = path.slice(reportsBase.length + 1);
+      if (slug && isReportSlug(slug)) {
+        const def = REPORT_PAGE_DEFS[slug];
+        return {
+          title: def.title,
+          description: def.desc.term,
+          icon: def.icon,
+        };
+      }
+      return (
+        MODULE_META_BY_PATH[reportsBase] ?? {
+          title: 'گزارش‌گیری',
+          description:
+            'گزارش‌های لیستی، حضور و غیاب و عملکرد سازمانی.',
+          icon: 'fa-file-invoice',
+        }
+      );
     }
-    return base;
   }
 
   const exact = MODULE_META_BY_PATH[path];

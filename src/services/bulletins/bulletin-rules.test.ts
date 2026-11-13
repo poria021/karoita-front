@@ -3,15 +3,19 @@ import { describe, expect, it } from 'vitest';
 import type { Bulletin, UpsertBulletinInput } from '@/types/bulletins';
 
 import {
+  announcementsHubTabsFor,
   audienceRolesFor,
   buildBulletin,
+  canAccessAnnouncementsHub,
   canPublishAdvertisements,
   canPublishAnnouncements,
   canReceiveBulletins,
   dashboardBulletinSources,
+  defaultAnnouncementsHubTab,
   isBulletinOwnedBy,
   isBulletinVisibleTo,
   normalizeBulletin,
+  showsAnnouncementsHubNotifications,
   validateBulletinInput,
 } from './bulletin-rules';
 
@@ -98,6 +102,37 @@ describe('bulletin-rules', () => {
     expect(audienceRolesFor('student', 'announcement')).toEqual([]);
   });
 
+  it('hub tabs follow publish / receive / learner rules', () => {
+    expect(announcementsHubTabsFor('super_admin')).toEqual([
+      'announcement',
+      'advertisement',
+    ]);
+    expect(defaultAnnouncementsHubTab('super_admin')).toBe('announcement');
+    expect(announcementsHubTabsFor('assistant_admin')).toEqual([
+      'announcement',
+      'advertisement',
+      'received',
+    ]);
+    expect(announcementsHubTabsFor('faculty_role')).toEqual([
+      'announcement',
+      'received',
+    ]);
+    expect(announcementsHubTabsFor('student')).toEqual([
+      'received',
+      'notifications',
+    ]);
+    expect(defaultAnnouncementsHubTab('student')).toBe('received');
+    expect(announcementsHubTabsFor('skill_learner')).toEqual([
+      'received',
+      'notifications',
+    ]);
+    expect(showsAnnouncementsHubNotifications('student')).toBe(false);
+    expect(showsAnnouncementsHubNotifications('faculty_role')).toBe(true);
+    expect(showsAnnouncementsHubNotifications('super_admin')).toBe(false);
+    expect(canAccessAnnouncementsHub('student')).toBe(true);
+    expect(canAccessAnnouncementsHub('super_admin')).toBe(true);
+  });
+
   it('staff admins share ownership; other panels own their own rows', () => {
     const adminRow = announcement({ authorRole: 'super_admin' });
     expect(isBulletinOwnedBy(adminRow, 'assistant_admin')).toBe(true);
@@ -129,23 +164,54 @@ describe('bulletin-rules', () => {
     ).toBeNull();
     expect(
       validateBulletinInput(
+        input({
+          provinces: [],
+          audienceRoles: ['student', 'skill_learner'],
+        }),
+        'supervisor_professor'
+      )
+    ).toBeNull();
+    expect(audienceRolesFor('faculty_role', 'announcement')).toEqual([
+      'supervisor_professor',
+      'student',
+      'skill_learner',
+    ]);
+    expect(audienceRolesFor('supervisor_professor', 'announcement')).toEqual([
+      'student',
+      'skill_learner',
+    ]);
+    expect(audienceRolesFor('school_principal', 'announcement')).toEqual([
+      'student',
+      'skill_learner',
+    ]);
+    expect(audienceRolesFor('mentor_teacher', 'announcement')).toEqual([
+      'student',
+      'skill_learner',
+    ]);
+    expect(audienceRolesFor('regional_edu_admin', 'announcement')).toEqual([
+      'school_principal',
+      'mentor_teacher',
+      'student',
+      'skill_learner',
+    ]);
+    expect(
+      validateBulletinInput(
         input({ provinces: [], audienceRoles: ['skill_learner'] }),
         'mentor_teacher'
       )
     ).toBeNull();
     expect(
       validateBulletinInput(
-        input({ provinces: [], audienceRoles: ['mentor_teacher', 'skill_learner'] }),
-        'school_principal'
-      )
-    ).toBeNull();
-    // مخاطب فقط از زیرمجموعه‌ها: معلم راهنما نمی‌تواند به دانشجو اطلاعیه بدهد.
-    expect(
-      validateBulletinInput(
         input({ provinces: [], audienceRoles: ['student'] }),
         'mentor_teacher'
       )
-    ).toMatch(/مخاطب/);
+    ).toBeNull();
+    expect(
+      validateBulletinInput(
+        input({ provinces: [], audienceRoles: ['student', 'skill_learner'] }),
+        'school_principal'
+      )
+    ).toBeNull();
     expect(
       validateBulletinInput(
         input({
@@ -223,7 +289,7 @@ describe('bulletin-rules', () => {
   it('every panel gets an ad and an announcements source on the dashboard', () => {
     expect(dashboardBulletinSources('super_admin')).toEqual({
       advertisement: 'published',
-      announcement: 'published',
+      announcement: 'received',
     });
     expect(dashboardBulletinSources('assistant_admin')).toEqual({
       advertisement: 'published',

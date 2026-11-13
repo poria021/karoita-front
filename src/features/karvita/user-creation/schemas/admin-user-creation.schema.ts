@@ -15,7 +15,6 @@ import {
 import {
   orgAccountRequiresCity,
   orgAccountRequiresCollege,
-  orgAccountRequiresDistrict,
   orgAccountRequiresProvince,
 } from '@/utils/roleFieldStrategy';
 
@@ -70,14 +69,6 @@ export const adminUserCreationSchema = z
         code: 'custom',
         path: ['city'],
         message: 'انتخاب شهر تابعه الزامی است.',
-      });
-    }
-
-    if (orgAccountRequiresDistrict(data.role) && !data.district.trim()) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['district'],
-        message: 'انتخاب منطقه آموزشی الزامی است.',
       });
     }
   });

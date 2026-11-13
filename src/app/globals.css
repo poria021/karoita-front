@@ -129,6 +129,10 @@
   --color-kv-danger-soft-fg: var(--kv-danger-soft-fg);
   --color-kv-danger-border: var(--kv-danger-border);
 
+  --color-kv-monitor-ink: var(--kv-monitor-ink);
+  --color-kv-monitor-ink-s: var(--kv-monitor-ink-s);
+  --color-kv-monitor-ink-l: var(--kv-monitor-ink-l);
+
   --color-kv-info: var(--kv-info);
   --color-kv-info-hover: var(--kv-info-hover);
   --color-kv-info-fg: var(--kv-info-fg);
@@ -352,6 +356,15 @@
   --kv-danger-soft-fg: hsl(343 79.7% 34.7%);
   --kv-danger-border: hsl(347 65% 55%);
 
+  /**
+   * جوهر متن کارت مانیتورینگ حرارت:
+   * همان hue کارت، اشباع متوسط، روشنایی نزدیک سیاه (مایل به مشکی).
+   * مقدار نهایی هر کارت در JS با hue همان کارت روی `--kv-monitor-ink` ست می‌شود.
+   */
+  --kv-monitor-ink-s: 42%;
+  --kv-monitor-ink-l: 14%;
+  --kv-monitor-ink: hsl(24 var(--kv-monitor-ink-s) var(--kv-monitor-ink-l));
+
   --kv-info: hsl(221 83.2% 53.3%);
   --kv-info-hover: hsl(224 76.3% 48%);
   --kv-info-fg: hsl(0 0% 100%);
@@ -494,6 +507,11 @@
   --kv-danger-soft-hover: hsl(0 35% 12%);
   --kv-danger-soft-fg:   hsl(0 52% 68%);
   --kv-danger-border:    hsl(0 32% 20%);
+
+  /* Monitor heat ink — کارت‌ها pastel روشن‌اند؛ جوهر همیشه سیر می‌ماند */
+  --kv-monitor-ink-s: 42%;
+  --kv-monitor-ink-l: 14%;
+  --kv-monitor-ink: hsl(24 var(--kv-monitor-ink-s) var(--kv-monitor-ink-l));
 
   /* ── Info ── */
   --kv-info:             hsl(213 60% 58%);
@@ -821,6 +839,123 @@ input[readonly]:-webkit-autofill {
 @media (prefers-reduced-motion: reduce) {
   .kv-route-status-art {
     animation: none;
+  }
+}
+
+/*
+ * Welcome panel — quiet enter + soft watermark drift (workbench).
+ * Dark: lifted neutral surface; no brand glow/border/shadow.
+ */
+@keyframes kv-welcome-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes kv-welcome-mark-drift {
+  from {
+    transform: translateY(0) rotate(0deg);
+  }
+  to {
+    transform: translateY(-0.35rem) rotate(-2deg);
+  }
+}
+
+.kv-welcome-wash {
+  background: linear-gradient(
+    145deg,
+    var(--color-kv-brand-soft) 0%,
+    transparent 42%,
+    var(--color-kv-surface) 100%
+  );
+}
+
+.kv-welcome-mark {
+  color: var(--color-kv-brand);
+  opacity: 0.09;
+  animation: kv-welcome-mark-drift 5.5s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.kv-welcome-enter {
+  animation: kv-welcome-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kv-welcome-enter-delay {
+  animation: kv-welcome-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
+}
+
+.dark .kv-welcome-panel {
+  border-color: var(--kv-border-strong);
+  background-color: var(--kv-surface-muted);
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.06),
+    var(--kv-shadow-raised);
+}
+
+.dark .kv-welcome-wash {
+  background:
+    radial-gradient(
+      120% 90% at 100% 0%,
+      hsl(220 85% 48% / 0.28) 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      145deg,
+      hsl(222 48% 18%) 0%,
+      hsl(234 8% 12% / 0.55) 48%,
+      var(--kv-surface-muted) 100%
+    );
+}
+
+.dark .kv-welcome-mark {
+  color: var(--kv-brand-soft-fg);
+  opacity: 0.22;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-welcome-enter,
+  .kv-welcome-enter-delay,
+  .kv-welcome-mark {
+    animation: none;
+  }
+}
+
+/*
+ * Capacity status panel — quiet enter for workbench summary.
+ */
+@keyframes kv-capacity-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kv-capacity-enter {
+  animation: kv-capacity-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.kv-capacity-enter-delay {
+  animation: kv-capacity-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-capacity-enter,
+  .kv-capacity-enter-delay {
+    animation: none;
+  }
+
+  .kv-capacity-meter-fill {
+    transition: none;
   }
 }
 

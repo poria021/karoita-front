@@ -47,6 +47,14 @@ export function registerOriginalLessonRoutes(router: Router, store: Store): void
     const now = nowIso();
     const created: StoredOriginalLesson[] = [];
     for (const group of body.data) {
+      // هم‌رفتار Nest: یکتایی عنوان اصلی در همان type؛ افزودن زیرمجموعه با POST مستقیم رد می‌شود.
+      const mainTitle = group.mainTitle.trim();
+      const exists = [...store.originalLessons.values()].some(
+        (row) => row.type === body.type && row.mainTitle.trim() === mainTitle
+      );
+      if (exists) {
+        throw new HttpError(400, `عنوان اصلی «${mainTitle}» قبلاً تعریف شده است`);
+      }
       for (const lesson of group.lessons) {
         const row: StoredOriginalLesson = {
           id: newId(),

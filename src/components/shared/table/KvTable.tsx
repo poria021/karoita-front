@@ -14,6 +14,7 @@ import {
 import { KvScrollArea } from '@/components/shared/KvScrollArea';
 import { cn } from '@/lib/utils';
 
+/** ارتفاع ردیف — راحت برای لمس/خواندن، بدون فشردگی ادمین قدیمی. */
 const ROW_HEIGHT = 'h-12';
 
 const ALIGN_CLASS = {
@@ -41,7 +42,7 @@ export function KvTable({
     <Table
       data-slot="kv-table"
       className={cn(
-        'w-full min-w-max border-separate border-spacing-0 text-start text-xs font-sans',
+        'w-full min-w-max border-separate border-spacing-0 text-start font-sans text-xs',
         className
       )}
       {...props}
@@ -65,7 +66,7 @@ export function KvTableHeader({
     <TableHeader
       data-slot="kv-table-header"
       className={cn(
-        'bg-kv-surface-muted font-bold text-kv-text-faint',
+        'bg-kv-surface-subtle font-bold text-kv-text-faint',
         className
       )}
       {...props}
@@ -94,7 +95,7 @@ export function KvTableFooter({
     <TableFooter
       data-slot="kv-table-footer"
       className={cn(
-        'border-t border-kv-border bg-kv-surface-muted/50 font-bold text-kv-text-faint',
+        'border-t border-kv-border-muted bg-kv-surface-subtle/80 font-bold text-kv-text-faint',
         className
       )}
       {...props}
@@ -134,12 +135,13 @@ export function KvTableRow({
       onClick={onClick}
       onKeyDown={handleKeyDown}
       className={cn(
-        'font-bold text-kv-text transition-colors',
+        'font-semibold text-kv-text transition-colors duration-150',
         // هاور دسکتاپ فقط روی ردیف بدنهٔ غیرانتخابی — انتخاب‌شده سر جایش می‌ماند.
-        'can-hover:in-[data-slot=kv-table-body]:not-data-[selected]:hover:bg-kv-surface-muted',
-        'data-[selected]:bg-kv-brand-soft data-[selected]:font-extrabold data-[selected]:text-kv-brand',
+        'can-hover:in-[data-slot=kv-table-body]:not-data-[selected]:hover:bg-kv-surface-subtle',
+        // انتخاب: fill برند نرم — وزن فونت ثابت تا عرض ستون‌ها نپرد.
+        'data-[selected]:bg-kv-brand-soft data-[selected]:text-kv-brand-soft-fg',
         interactive &&
-          'cursor-pointer active:not-data-[selected]:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring',
+          'cursor-pointer active:not-data-[selected]:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-kv-ring/30',
         className
       )}
       {...props}
@@ -165,9 +167,8 @@ export function KvTableHead({
       className={cn(
         ROW_HEIGHT,
         // `sticky` روی `th` — روی `thead` با `border-separate` در کروم کار نمی‌کند.
-        // والد overflow-x جدا هم چسبندگی را به ارتفاع کل جدول محدود می‌کند.
-        'sticky top-0 z-10 bg-kv-surface-muted',
-        'border-b border-kv-border px-3.5 py-0 font-bold whitespace-nowrap',
+        'sticky top-0 z-10 bg-kv-surface-subtle',
+        'border-b border-kv-border-muted px-3.5 py-0 text-[0.6875rem] font-bold tracking-wide whitespace-nowrap text-kv-text-faint',
         ALIGN_CLASS[align],
         className
       )}
@@ -197,10 +198,10 @@ export function KvTableCell({
       data-slot="kv-table-cell"
       className={cn(
         ROW_HEIGHT,
-        'border-b border-kv-border px-3.5 py-0 whitespace-normal text-kv-text-secondary',
+        'border-b border-kv-border-muted px-3.5 py-0 whitespace-normal text-kv-text-secondary',
         ALIGN_CLASS[align],
-        emphasis && 'font-extrabold text-kv-text',
-        mono && 'font-mono',
+        emphasis && 'font-bold text-kv-text',
+        mono && 'font-mono tabular-nums',
         className
       )}
       {...props}
@@ -215,7 +216,7 @@ export function KvTableCaption({
   return (
     <TableCaption
       data-slot="kv-table-caption"
-      className={cn('text-xs text-kv-text-faint', className)}
+      className={cn('mt-kv-group text-xs text-kv-text-faint', className)}
       {...props}
     />
   );

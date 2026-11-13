@@ -1,42 +1,74 @@
 'use client';
 
-import type { ComponentType } from 'react';
-
 import { DashboardBulletinsBoard } from '@/features/karvita/bulletins/components/DashboardBulletinsBoard';
-import { cn } from '@/lib/utils';
 import type { UserRole } from '@/types/auth';
 
 import {
   getDashboardWidgets,
   type DashboardWidgetId,
-  type DashboardWidgetSpan,
 } from '../lib/dashboard-widgets';
+import { DashboardLearnerGradesChart } from './DashboardLearnerGradesChart';
+import { WorkbenchWelcomeBox } from './WorkbenchWelcomeBox';
 
-const WIDGET_COMPONENTS: Record<
-  DashboardWidgetId,
-  ComponentType<{ role: UserRole }>
-> = {
-  bulletins: DashboardBulletinsBoard,
+type DashboardWidgetGridProps = {
+  role: UserRole;
+  welcomeName: string;
+  welcomeOrgLine?: string | null;
 };
 
-const SPAN_CLASS: Record<DashboardWidgetSpan, string> = {
-  third: '',
-  'two-thirds': 'lg:col-span-2',
-  full: 'lg:col-span-3',
-};
-
-/** گرید ویجت‌های میز کار — فهرست هر نقش از `getDashboardWidgets`. */
-export function DashboardWidgetGrid({ role }: { role: UserRole }) {
+/**
+ * ویجت‌های میز کار — فرزندان مستقیم شِل ۱۲ستونهٔ `WorkbenchHomeClient`.
+ */
+export function DashboardWidgetGrid({
+  role,
+  welcomeName,
+  welcomeOrgLine,
+}: DashboardWidgetGridProps) {
   return (
-    <div className="grid gap-kv-section lg:grid-cols-3">
-      {getDashboardWidgets(role).map((widget) => {
-        const Widget = WIDGET_COMPONENTS[widget.id];
-        return (
-          <div key={widget.id} className={cn('min-w-0', SPAN_CLASS[widget.span])}>
-            <Widget role={role} />
-          </div>
-        );
-      })}
-    </div>
+    <>
+      {getDashboardWidgets(role).map((widget) => (
+        <DashboardWidget
+          key={widget.id}
+          id={widget.id}
+          role={role}
+          welcomeName={welcomeName}
+          welcomeOrgLine={welcomeOrgLine}
+        />
+      ))}
+    </>
   );
+}
+
+function DashboardWidget({
+  id,
+  role,
+  welcomeName,
+  welcomeOrgLine,
+}: {
+  id: DashboardWidgetId;
+  role: UserRole;
+  welcomeName: string;
+  welcomeOrgLine?: string | null;
+}) {
+  switch (id) {
+    case 'bulletins':
+      return (
+        <DashboardBulletinsBoard
+          role={role}
+          leading={
+            <WorkbenchWelcomeBox
+              displayName={welcomeName}
+              orgLine={welcomeOrgLine}
+              className="h-full"
+            />
+          }
+        />
+      );
+    case 'learner_grades':
+      return <DashboardLearnerGradesChart />;
+    default: {
+      const _exhaustive: never = id;
+      return _exhaustive;
+    }
+  }
 }

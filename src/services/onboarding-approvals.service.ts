@@ -5,9 +5,11 @@ import { mapNestAuthUser } from '@/services/auth/real/nest-auth-mappers';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   collectProvinces,
+  deleteMockApprovalUser,
   listFilteredUsers,
   patchApprovalUser,
   requireExistingMockUser,
+  restoreMockApprovalUser,
 } from '@/services/onboarding-approvals/mock/mock-onboarding-approvals';
 import { usersApi } from '@/services/users/users.api';
 import type {
@@ -188,6 +190,26 @@ export const OnboardingApprovalsService = {
     }
     requireOnboardingReview();
     return collectProvinces().map((title) => ({ id: title, title }));
+  },
+
+  /**
+   * DELETE /api/v1/users/{id} — لایو ۲۰۴.
+   * در mock رکورد را برمی‌دارد و برای لغو نگه می‌دارد.
+   */
+  async deleteUser(userId: string): Promise<void> {
+    if (!IS_MOCK_MODE) {
+      await usersApi.remove(userId);
+      return;
+    }
+    requireOnboardingReview();
+    deleteMockApprovalUser(userId);
+  },
+
+  /** برگرداندن حذف mock؛ در real درخواست حذف تا بسته شدن toast اصلاً نمی‌رود. */
+  async restoreUser(userId: string): Promise<void> {
+    if (!IS_MOCK_MODE) return;
+    requireOnboardingReview();
+    restoreMockApprovalUser(userId);
   },
 
   /** فقط در mock به store کاربران وصل می‌شود؛ در real mode تا SSE خالی است. */
