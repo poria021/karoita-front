@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
+  hasReportCompareQuery,
+  hrefWithoutDisabledReportCompare,
   isReportCompareView,
   parseReportCompareIds,
   REPORT_COMPARE_IDS_PARAM,
@@ -13,6 +15,15 @@ import {
   REPORT_VIEW_PARAM,
   serializeReportCompareIds,
 } from './report-compare-url';
+
+vi.mock('@/features/karvita/reports/constants', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/features/karvita/reports/constants')>();
+  return {
+    ...actual,
+    REPORT_COMPARE_ENABLED: false,
+  };
+});
 
 describe('report-compare-url', () => {
   it('exposes the view query key and compare token', () => {
@@ -41,5 +52,34 @@ describe('report-compare-url', () => {
     expect(parseReportCompareIds(null, 4)).toEqual([]);
     expect(serializeReportCompareIds(['a', 'b', 'a'])).toBe('a,b');
     expect(serializeReportCompareIds([])).toBeNull();
+  });
+
+  it('detects compare query tokens', () => {
+    expect(
+      hasReportCompareQuery(new URLSearchParams('view=compare'))
+    ).toBe(true);
+    expect(hasReportCompareQuery(new URLSearchParams('cmp=a,b'))).toBe(true);
+    expect(hasReportCompareQuery(new URLSearchParams('tab=term'))).toBe(false);
+  });
+
+  it('strips disabled compare query back to the list report url', () => {
+    expect(
+      hrefWithoutDisabledReportCompare(
+        '/karvita/admin/reports/attendance',
+        'view=compare&cmp=a,b&tab=term'
+      )
+    ).toBe('/karvita/admin/reports/attendance?tab=term');
+    expect(
+      hrefWithoutDisabledReportCompare(
+        '/karvita/admin/reports/attendance',
+        'view=compare'
+      )
+    ).toBe('/karvita/admin/reports/attendance');
+    expect(
+      hrefWithoutDisabledReportCompare(
+        '/karvita/admin/reports/attendance',
+        'tab=term'
+      )
+    ).toBeNull();
   });
 });

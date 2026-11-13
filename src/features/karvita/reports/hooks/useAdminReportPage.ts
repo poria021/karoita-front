@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -21,6 +22,7 @@ import {
   REPORT_PAGE_DEFS,
 } from '@/features/karvita/reports/constants';
 import {
+  hrefWithoutDisabledReportCompare,
   isReportCompareView,
   parseReportCompareIds,
   REPORT_COMPARE_IDS_PARAM,
@@ -188,6 +190,18 @@ export function useAdminReportPage(
   }, [locationSearch]);
   const compareModeActive =
     canCompare && isReportCompareView(searchParams.get(REPORT_VIEW_PARAM));
+
+  // مقایسه خاموش: حتی با تایپ URL هم به لیست همان گزارش برگرد (قبل از paint).
+  useLayoutEffect(() => {
+    if (REPORT_COMPARE_ENABLED) return;
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname !== pathname) return;
+    const next = hrefWithoutDisabledReportCompare(
+      pathname,
+      window.location.search
+    );
+    if (next) replaceShallowHref(next);
+  }, [locationSearch, pathname]);
 
   const setCompareModeInUrl = useCallback(
     (on: boolean) => {
@@ -535,18 +549,7 @@ export function useAdminReportPage(
 
   // `?view=compare` روی مسیر همان گزارش؛ دیپ‌لینک و ورود از دکمهٔ مقایسه.
   useEffect(() => {
-    if (!canCompare) {
-      if (
-        typeof window !== 'undefined' &&
-        isReportCompareView(
-          new URLSearchParams(window.location.search).get(REPORT_VIEW_PARAM)
-        )
-      ) {
-        setCompareModeInUrl(false);
-      }
-      return;
-    }
-    if (!compareModeActive) return;
+    if (!canCompare || !compareModeActive) return;
 
     let cancelled = false;
 
@@ -590,7 +593,6 @@ export function useAdminReportPage(
     compareSelected,
     filters,
     period,
-    setCompareModeInUrl,
     slug,
   ]);
 
