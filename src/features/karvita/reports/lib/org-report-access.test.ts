@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
 import { buildApprovedDocument } from '@/features/karvita/report-access/lib/access-matrix';
-import { RouteService } from '@/services/route.service';
 import { isSidebarMenuGroup } from '@/utils/role-strategy/types';
 
 import {
@@ -49,9 +48,10 @@ describe('org-report-access', () => {
 
   it('gates access from matrix and rebuilds sidebar group', () => {
     const matrix = buildApprovedDocument(PIDS);
+    // ماژول گزارش‌ها خاموش است → هیچ اسلاگی قابل دسترسی نیست
     expect(
       canAccessOrgReportSlug('mentor_teacher', 'learners', matrix, ['p0'])
-    ).toBe(true);
+    ).toBe(false);
     expect(
       canAccessOrgReportSlug('mentor_teacher', 'attendance', matrix, ['p0'])
     ).toBe(false);
@@ -82,10 +82,10 @@ describe('org-report-access', () => {
       'mentor_teacher',
       ['learners', 'attendance']
     );
-    const group = withExtra.find(isSidebarMenuGroup);
-    expect(group?.children.map((c) => c.path)).toEqual([
-      RouteService.karvita.orgReports('learners'),
-      RouteService.karvita.orgReports('attendance'),
+    expect(withExtra.find(isSidebarMenuGroup)).toBeUndefined();
+    expect(withExtra.map((e) => ('path' in e ? e.path : e.title))).toEqual([
+      '/karvita/dashboard',
+      '/karvita/announcements',
     ]);
 
     const empty = withOrgReportAccessMenu(staticMenu, 'mentor_teacher', []);
@@ -97,43 +97,26 @@ describe('org-report-access', () => {
 
     expect(
       withOrgReportAccessMenu(staticMenu, 'mentor_teacher', null)
-    ).toEqual(staticMenu);
+    ).toEqual([
+      { title: 'میز کار', path: '/karvita/dashboard', icon: 'fa-home' },
+      {
+        title: 'اطلاعیه‌ها و اعلانات',
+        path: '/karvita/announcements',
+        icon: 'fa-bullhorn',
+      },
+    ]);
   });
 
-  it('splits central organization reports into themed sidebar modules', () => {
-    const groups = orgReportsSidebarEntries('central_organization');
-    expect(groups.map((g) => g.title)).toEqual([
-      'گزارش‌های لیستی',
-      'حضور و غیاب',
-      'گزارش‌های عملکرد',
-    ]);
-    expect(groups[0]?.children.map((c) => c.title)).toEqual([
-      'لیست فراگیران',
-      'لیست معلمان',
-      'لیست مدیران مدارس',
-      'لیست اساتید',
-      'لیست مدارس',
-      'لیست دانشکده‌ها',
-      'لیست استان‌ها',
-    ]);
-    expect(groups[1]?.children.map((c) => c.title)).toEqual([
-      'حضور و غیاب فراگیران',
-      'حضور و غیاب اساتید راهنما',
-    ]);
-    expect(groups[2]?.children.map((c) => c.title)).toEqual([
-      'عملکرد معلمان',
-      'عملکرد مدارس',
-      'عملکرد اساتید',
-      'عملکرد دانشکده‌ها',
-      'عملکرد استان‌ها',
-    ]);
+  it('hides themed org report sidebar modules while reports module is off', () => {
+    expect(orgReportsSidebarEntries('central_organization')).toEqual([]);
+    expect(orgReportsSidebarEntries('provincial_university')).toEqual([]);
+    expect(orgReportsSidebarEntries('regional_edu_admin')).toEqual([]);
 
     const matrix = buildApprovedDocument(PIDS);
     const granted = grantedOrgReportSlugs('central_organization', matrix, []);
     const menu = withOrgReportAccessMenu(
       [
         { title: 'میز کار', path: '/karvita/dashboard', icon: 'fa-home' },
-        ...orgReportsSidebarEntries('central_organization'),
         {
           title: 'اطلاعیه‌ها و اعلانات',
           path: '/karvita/announcements',
@@ -143,54 +126,10 @@ describe('org-report-access', () => {
       'central_organization',
       [...granted].reverse()
     );
-    const reportGroups = menu.filter(isSidebarMenuGroup);
-    expect(reportGroups.map((g) => g.title)).toEqual([
-      'گزارش‌های لیستی',
-      'حضور و غیاب',
-      'گزارش‌های عملکرد',
-    ]);
-    expect(
-      reportGroups.flatMap((g) => g.children.map((c) => c.path))
-    ).toContain(RouteService.karvita.orgReports('province-performance'));
-  });
-
-  it('splits provincial university reports into themed sidebar modules', () => {
-    const groups = orgReportsSidebarEntries('provincial_university');
-    expect(groups.map((g) => g.title)).toEqual([
-      'گزارش‌های لیستی',
-      'حضور و غیاب',
-      'گزارش‌های عملکرد',
-    ]);
-    expect(groups[0]?.children.map((c) => c.title)).toEqual([
-      'لیست فراگیران',
-      'لیست اساتید',
-      'لیست دانشکده‌ها',
-    ]);
-    expect(groups[1]?.children.map((c) => c.title)).toEqual([
-      'حضور و غیاب فراگیران',
-      'حضور و غیاب اساتید راهنما',
-    ]);
-    expect(groups[2]?.children.map((c) => c.title)).toEqual([
-      'عملکرد اساتید',
-      'عملکرد دانشکده‌ها',
-    ]);
-  });
-
-  it('splits regional edu admin reports into themed sidebar modules', () => {
-    const groups = orgReportsSidebarEntries('regional_edu_admin');
-    expect(groups.map((g) => g.title)).toEqual([
-      'گزارش‌های لیستی',
-      'گزارش‌های عملکرد',
-    ]);
-    expect(groups[0]?.children.map((c) => c.title)).toEqual([
-      'لیست فراگیران',
-      'لیست معلمان',
-      'لیست مدیران مدارس',
-      'لیست مدارس',
-    ]);
-    expect(groups[1]?.children.map((c) => c.title)).toEqual([
-      'عملکرد معلمان',
-      'عملکرد مدارس',
+    expect(menu.filter(isSidebarMenuGroup)).toEqual([]);
+    expect(menu.map((e) => ('path' in e ? e.path : e.title))).toEqual([
+      '/karvita/dashboard',
+      '/karvita/announcements',
     ]);
   });
 

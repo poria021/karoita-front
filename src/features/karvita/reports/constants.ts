@@ -11,6 +11,12 @@ export {
   REPORT_PAGE_META,
 };
 
+/**
+ * کل ماژول گزارش‌گیری (منو، ریل، صفحات، دسترسی گزارش) موقتاً روی این شاخه خاموش است.
+ * برای برگرداندن: `true` کنید.
+ */
+export const REPORTS_MODULE_ENABLED = false;
+
 /** مقایسه گزارش‌ها موقتاً برای انتشار خاموش است — دکمه و جریان مقایسه رندر نمی‌شوند. */
 export const REPORT_COMPARE_ENABLED = false;
 
@@ -47,6 +53,7 @@ export function isReportSlug(s: string): s is ReportSlug {
 }
 
 export function isEnabledReportSlug(slug: ReportSlug): boolean {
+  if (!REPORTS_MODULE_ENABLED) return false;
   if (slug === 'scores') return REPORT_SCORES_ENABLED;
   return true;
 }

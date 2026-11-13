@@ -12,6 +12,7 @@ import {
 } from '@/components/shared/shell/shellChrome';
 import {
   REPORT_PAGE_DEFS,
+  REPORTS_MODULE_ENABLED,
   enabledReportThemes,
 } from '@/features/karvita/reports/constants';
 import {
@@ -51,7 +52,7 @@ export function AdminReportsSecondaryRail() {
     []
   );
 
-  if (!isAdminReportsPath(pathname)) return null;
+  if (!REPORTS_MODULE_ENABLED || !isAdminReportsPath(pathname)) return null;
 
   return (
     <aside

@@ -1,5 +1,6 @@
 import {
   ENABLED_REPORT_SLUGS,
+  REPORTS_MODULE_ENABLED,
   isReportSlug,
 } from '@/features/karvita/reports/constants';
 import {
@@ -24,6 +25,7 @@ const ORG_REPORT_PATHS: readonly string[] = ENABLED_REPORT_SLUGS.map((slug) =>
 );
 
 export function isAdminReportsPath(pathname: string): boolean {
+  if (!REPORTS_MODULE_ENABLED) return false;
   const path = normalizePath(pathname);
   const base = RouteService.karvita.reports();
   if (path === base) return true;
@@ -32,6 +34,7 @@ export function isAdminReportsPath(pathname: string): boolean {
 }
 
 export function isOrgReportsPath(pathname: string): boolean {
+  if (!REPORTS_MODULE_ENABLED) return false;
   const path = normalizePath(pathname);
   const base = RouteService.karvita.orgReports();
   if (path === base) return true;
@@ -67,9 +70,13 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
   RouteService.karvita.adminDashboard(),
   RouteService.karvita.organizationalStructure(),
   RouteService.karvita.adminUserCreation(),
-  RouteService.karvita.reportAccess(),
-  ...ADMIN_REPORT_PATHS,
-  ...ORG_REPORT_PATHS,
+  ...(REPORTS_MODULE_ENABLED
+    ? [
+        RouteService.karvita.reportAccess(),
+        ...ADMIN_REPORT_PATHS,
+        ...ORG_REPORT_PATHS,
+      ]
+    : []),
   RouteService.karvita.onboardingApprovals(),
   RouteService.karvita.landingCms(),
   RouteService.karvita.syllabusCourseOfferings(),
@@ -88,8 +95,9 @@ export const LIVE_STATIC_NAV_PATHS: readonly string[] = [
 const INDEX_REDIRECT_MODULE_PATHS: readonly string[] = [
   RouteService.karvita.syllabusConfig(),
   RouteService.karvita.internshipSelection(),
-  RouteService.karvita.reports(),
-  RouteService.karvita.orgReports(),
+  ...(REPORTS_MODULE_ENABLED
+    ? [RouteService.karvita.reports(), RouteService.karvita.orgReports()]
+    : []),
 ];
 
 /**

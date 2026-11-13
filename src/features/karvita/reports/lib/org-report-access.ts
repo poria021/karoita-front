@@ -11,6 +11,7 @@ import {
 import {
   REPORT_PAGE_DEFS,
   REPORT_THEMES,
+  REPORTS_MODULE_ENABLED,
   filterEnabledReportSlugs,
   isEnabledReportSlug,
   isReportSlug,
@@ -36,14 +37,20 @@ const REPORT_THEME_ICONS: Record<string, string> = {
   performance: 'fa-chart-column',
 };
 
+const ORG_REPORT_GROUP_TITLES = new Set([
+  'گزارش‌گیری',
+  'گزارش‌های لیستی',
+  'حضور و غیاب',
+  'گزارش‌های عملکرد',
+]);
+
 function isOrgReportsMenuGroup(
   entry: SidebarMenuEntry
 ): entry is SidebarMenuGroup {
-  return (
-    isSidebarMenuGroup(entry) &&
-    entry.children.some((child) =>
-      child.path.startsWith(RouteService.karvita.orgReports())
-    )
+  if (!isSidebarMenuGroup(entry)) return false;
+  if (ORG_REPORT_GROUP_TITLES.has(entry.title)) return true;
+  return entry.children.some((child) =>
+    child.path.startsWith(RouteService.karvita.orgReports())
   );
 }
 
@@ -265,6 +272,7 @@ export function orgReportsSidebarEntries(
   role: OrgReportsRole,
   slugs?: readonly ReportSlug[]
 ): SidebarMenuGroup[] {
+  if (!REPORTS_MODULE_ENABLED) return [];
   const list = slugs ?? orgApprovedReportSlugs(role);
   if (usesThemedOrgReportSidebar(role)) {
     return orgReportsThemedSidebarGroups(list);
@@ -321,6 +329,9 @@ export function withOrgReportAccessMenu(
   role: UserRole | string | null | undefined,
   granted: readonly ReportSlug[] | null
 ): SidebarMenuEntry[] {
+  if (!REPORTS_MODULE_ENABLED) {
+    return menu.filter((entry) => !isOrgReportsMenuGroup(entry));
+  }
   if (!isOrgReportsRole(role) || granted === null) {
     return menu.slice();
   }
