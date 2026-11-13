@@ -63,6 +63,7 @@ describe('live nav / admin plane', () => {
     expect(supervisorReports?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('learners'),
       RouteService.karvita.orgReports('attendance'),
+      RouteService.karvita.orgReports('scores'),
     ]);
 
     const mentorMenu = getVisibleSidebarMenu('mentor_teacher');

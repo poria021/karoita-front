@@ -28,9 +28,8 @@ export function buildMockReportAccessSeedMatrix(
 ): ReportAccessMatrix {
   const matrix = buildApprovedDocument(provinceIds);
 
-  // معلم راهنما: حضور و نمرات هم اعطا شده (خارج از سند مصوب)
+  // معلم راهنما: حضور هم اعطا شده (خارج از سند مصوب)
   setAccess(matrix, 'mentor_teacher', 'attendance', provinceIds, true);
-  setAccess(matrix, 'mentor_teacher', 'scores', provinceIds, true);
 
   // استاد راهنما: امکان مقایسه روی حضور فراگیران
   setCompare(matrix, 'supervisor_professor', 'attendance', provinceIds, true);

@@ -165,7 +165,7 @@ export function orgReportsSidebarChildren(
   role: OrgReportsRole,
   slugs: readonly ReportSlug[] = orgApprovedReportSlugs(role)
 ): SidebarMenuItem[] {
-  return filterEnabledReportSlugs(slugs).map(orgReportMenuItem);
+  return filterEnabledReportSlugs(slugs, role).map(orgReportMenuItem);
 }
 
 /** ماژول «گزارش‌گیری» با انواع گزارش به‌صورت زیرماژول (نقش‌های غیرمرکزی). */
@@ -194,7 +194,7 @@ export function orderOrgReportSlugsForMenu(
   for (const slug of granted) {
     if (!ordered.includes(slug)) ordered.push(slug);
   }
-  return filterEnabledReportSlugs(ordered);
+  return filterEnabledReportSlugs(ordered, role);
 }
 
 /** نقش‌هایی که گزارش‌ها را در سه ماژول تم می‌بینند. */
@@ -244,15 +244,18 @@ export function extraReportFilterKeysForRole(
  * گزارش‌های لیستی / حضور و غیاب / گزارش‌های عملکرد
  */
 export function orgReportsThemedSidebarGroups(
-  slugs: readonly ReportSlug[]
+  slugs: readonly ReportSlug[],
+  role?: OrgReportsRole
 ): SidebarMenuGroup[] {
-  const allowed = new Set(filterEnabledReportSlugs(slugs));
+  const allowed = new Set(filterEnabledReportSlugs(slugs, role));
   return REPORT_THEMES.map((theme) => ({
     kind: 'group' as const,
     title: theme.title,
     icon: REPORT_THEME_ICONS[theme.id] ?? 'fa-file-invoice',
     children: theme.slugs
-      .filter((slug) => allowed.has(slug) && isEnabledReportSlug(slug))
+      .filter(
+        (slug) => allowed.has(slug) && isEnabledReportSlug(slug, role)
+      )
       .map(orgReportMenuItem),
   })).filter((group) => group.children.length > 0);
 }
@@ -267,7 +270,7 @@ export function orgReportsSidebarEntries(
 ): SidebarMenuGroup[] {
   const list = slugs ?? orgApprovedReportSlugs(role);
   if (usesThemedOrgReportSidebar(role)) {
-    return orgReportsThemedSidebarGroups(list);
+    return orgReportsThemedSidebarGroups(list, role);
   }
   return [orgReportsSidebarGroup(role, list)];
 }
@@ -286,7 +289,7 @@ export function canAccessOrgReportSlug(
   userProvinceIds: readonly string[] = []
 ): slug is ReportSlug {
   if (!isOrgReportsRole(role) || !isReportSlug(slug)) return false;
-  if (!isEnabledReportSlug(slug)) return false;
+  if (!isEnabledReportSlug(slug, role)) return false;
   if (!matrix) {
     return orgApprovedReportSlugs(role).includes(slug);
   }

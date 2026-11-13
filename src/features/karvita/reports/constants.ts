@@ -15,10 +15,15 @@ export {
 export const REPORT_COMPARE_ENABLED = false;
 
 /**
- * گزارش نمرات فراگیران موقتاً برای همهٔ پنل‌ها خاموش است.
- * از منو/ریل حذف می‌شود و URL مستقیم به گزارش پیش‌فرض برمی‌گردد.
+ * گزارش نمرات فراگیران به‌صورت سراسری خاموش است،
+ * مگر برای نقش‌های `REPORT_SCORES_ROLE_ALLOWLIST`.
  */
 export const REPORT_SCORES_ENABLED = false;
+
+/** نقش‌هایی که نمرات فراگیران برایشان زنده می‌ماند. */
+export const REPORT_SCORES_ROLE_ALLOWLIST = [
+  'supervisor_professor',
+] as const;
 
 export const REPORT_THEMES = REPORT_ACCESS_THEMES;
 
@@ -41,32 +46,48 @@ export const ALL_REPORT_SLUGS = [
 ] as const satisfies readonly ReportSlug[];
 
 const SLUG_SET = new Set<string>(ALL_REPORT_SLUGS);
+const SCORES_ROLE_SET = new Set<string>(REPORT_SCORES_ROLE_ALLOWLIST);
 
 export function isReportSlug(s: string): s is ReportSlug {
   return SLUG_SET.has(s);
 }
 
-export function isEnabledReportSlug(slug: ReportSlug): boolean {
-  if (slug === 'scores') return REPORT_SCORES_ENABLED;
-  return true;
+export function isEnabledReportSlug(
+  slug: ReportSlug,
+  role?: string | null
+): boolean {
+  if (slug !== 'scores') return true;
+  if (REPORT_SCORES_ENABLED) return true;
+  if (role == null) return false;
+  return SCORES_ROLE_SET.has(role);
+}
+
+/** برای live-nav: مسیر اسلاگ وقتی حداقل یک نقش مجاز باشد زنده است. */
+export function isLiveEnabledReportSlug(slug: ReportSlug): boolean {
+  if (slug !== 'scores') return true;
+  if (REPORT_SCORES_ENABLED) return true;
+  return SCORES_ROLE_SET.size > 0;
 }
 
 export function filterEnabledReportSlugs(
-  slugs: readonly ReportSlug[]
+  slugs: readonly ReportSlug[],
+  role?: string | null
 ): ReportSlug[] {
-  return slugs.filter(isEnabledReportSlug);
+  return slugs.filter((slug) => isEnabledReportSlug(slug, role));
 }
 
 /** تم‌های گزارش برای منو/ریل — اسلاگ‌های خاموش حذف شده‌اند. */
-export function enabledReportThemes(): typeof REPORT_THEMES {
+export function enabledReportThemes(
+  role?: string | null
+): typeof REPORT_THEMES {
   return REPORT_THEMES.map((theme) => ({
     ...theme,
-    slugs: filterEnabledReportSlugs(theme.slugs),
+    slugs: filterEnabledReportSlugs(theme.slugs, role),
   })).filter((theme) => theme.slugs.length > 0);
 }
 
 export const ENABLED_REPORT_SLUGS: readonly ReportSlug[] =
-  filterEnabledReportSlugs(ALL_REPORT_SLUGS);
+  ALL_REPORT_SLUGS.filter(isLiveEnabledReportSlug);
 
 export type ReportPageDef = {
   title: string;

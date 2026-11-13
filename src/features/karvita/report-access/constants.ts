@@ -42,7 +42,6 @@ export const APPROVED_ROLE_PAGES: Readonly<
     'learners',
     'attendance',
     'professor-attendance',
-    'scores',
     'professors',
     'teacher-performance',
     'school-performance',
@@ -80,18 +79,17 @@ export const APPROVED_ROLE_PAGES: Readonly<
 export const REPORT_ACCESS_EXTRA: Readonly<
   Record<ReportAccessRoleId, readonly ReportSlug[]>
 > = {
-  mentor_teacher: ['attendance', 'scores'],
+  mentor_teacher: ['attendance'],
   supervisor_professor: ['schools'],
-  school_principal: ['scores', 'teachers'],
-  regional_edu_admin: ['attendance', 'scores'],
+  school_principal: ['teachers'],
+  regional_edu_admin: ['attendance'],
   faculty_role: ['teachers', 'principals', 'schools'],
-  provincial_university: ['scores', 'school-performance'],
-  central_organization: ['scores', 'teacher-performance'],
+  provincial_university: ['school-performance'],
+  central_organization: ['teacher-performance'],
   assistant_admin: [
     'learners',
     'attendance',
     'professor-attendance',
-    'scores',
     'teachers',
     'principals',
     'professors',

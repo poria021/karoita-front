@@ -55,7 +55,7 @@ export function ReportAccessReportRows({
     <div role="tabpanel" id="ac-panel" aria-labelledby={`ac-tab-${roleId}`}>
       {REPORT_ACCESS_THEMES.map((theme) => {
         const slugs = theme.slugs.filter(
-          (slug) => catalog.includes(slug) && isEnabledReportSlug(slug)
+          (slug) => catalog.includes(slug) && isEnabledReportSlug(slug, roleId)
         );
         if (!slugs.length) return null;
 

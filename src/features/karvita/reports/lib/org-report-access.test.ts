@@ -40,6 +40,10 @@ describe('org-report-access', () => {
     expect(orgCatalogReportSlugs('mentor_teacher')).toEqual([
       'learners',
       'attendance',
+    ]);
+    expect(orgApprovedReportSlugs('supervisor_professor')).toEqual([
+      'learners',
+      'attendance',
       'scores',
     ]);
     expect(defaultOrgReportSlug('supervisor_professor')).toBe('learners');
