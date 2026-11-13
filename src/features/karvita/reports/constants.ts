@@ -11,6 +11,9 @@ export {
   REPORT_PAGE_META,
 };
 
+/** مقایسه گزارش‌ها موقتاً برای انتشار خاموش است — دکمه دیده می‌شود ولی غیرفعال. */
+export const REPORT_COMPARE_ENABLED = false;
+
 export const REPORT_THEMES = REPORT_ACCESS_THEMES;
 
 export const ALL_REPORT_SLUGS = [
