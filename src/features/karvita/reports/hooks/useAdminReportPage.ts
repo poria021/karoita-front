@@ -16,6 +16,7 @@ import {
   COMPARE_MIN,
   COMPARE_REPORT_SLUGS,
   CUR_PERIOD,
+  REPORT_COMPARE_ENABLED,
   REPORT_LIST_LIMIT,
   REPORT_PAGE_DEFS,
 } from '@/features/karvita/reports/constants';
@@ -171,7 +172,8 @@ export function useAdminReportPage(
   const [dialogLoading, setDialogLoading] = useState(false);
 
   const canCompare =
-    options?.canCompare ?? COMPARE_REPORT_SLUGS.includes(slug);
+    REPORT_COMPARE_ENABLED &&
+    (options?.canCompare ?? COMPARE_REPORT_SLUGS.includes(slug));
   const pathname = usePathname();
   const locationSearch = useSyncExternalStore(
     subscribeShallowLocation,
