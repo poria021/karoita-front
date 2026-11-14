@@ -36,6 +36,10 @@ const REPORT_THEME_ICONS: Record<string, string> = {
   performance: 'fa-chart-column',
 };
 
+/** اسلاگ‌هایی که آیتم منویشان نمایش داده می‌شود ولی غیرفعال است (`status=inactive`). */
+type DisabledReportSlugs = ReadonlySet<ReportSlug>;
+const NO_DISABLED_SLUGS: DisabledReportSlugs = new Set<ReportSlug>();
+
 function isOrgReportsMenuGroup(
   entry: SidebarMenuEntry
 ): entry is SidebarMenuGroup {
@@ -187,32 +191,40 @@ export function defaultOrgReportSlug(
   return orgApprovedReportSlugs(role)[0] ?? 'learners';
 }
 
-export function orgReportMenuItem(slug: ReportSlug): SidebarMenuItem {
+export function orgReportMenuItem(
+  slug: ReportSlug,
+  disabled = false
+): SidebarMenuItem {
   const def = REPORT_PAGE_DEFS[slug];
   return {
     title: def.title,
     path: RouteService.karvita.orgReports(slug),
     icon: def.icon,
+    ...(disabled ? { disabled: true } : {}),
   };
 }
 
 export function orgReportsSidebarChildren(
   role: OrgReportsRole,
-  slugs: readonly ReportSlug[] = orgApprovedReportSlugs(role)
+  slugs: readonly ReportSlug[] = orgApprovedReportSlugs(role),
+  disabled: DisabledReportSlugs = NO_DISABLED_SLUGS
 ): SidebarMenuItem[] {
-  return filterEnabledReportSlugs(slugs, role).map(orgReportMenuItem);
+  return filterEnabledReportSlugs(slugs, role).map((slug) =>
+    orgReportMenuItem(slug, disabled.has(slug))
+  );
 }
 
 /** ماژول «گزارش‌گیری» با انواع گزارش به‌صورت زیرماژول (نقش‌های غیرمرکزی). */
 export function orgReportsSidebarGroup(
   role: OrgReportsRole,
-  slugs?: readonly ReportSlug[]
+  slugs?: readonly ReportSlug[],
+  disabled: DisabledReportSlugs = NO_DISABLED_SLUGS
 ): SidebarMenuGroup {
   return {
     kind: 'group',
     title: 'گزارش‌گیری',
     icon: 'fa-file-invoice',
-    children: orgReportsSidebarChildren(role, slugs),
+    children: orgReportsSidebarChildren(role, slugs, disabled),
   };
 }
 
@@ -295,7 +307,8 @@ export function extraReportFilterKeysForRole(
  */
 export function orgReportsThemedSidebarGroups(
   slugs: readonly ReportSlug[],
-  role?: OrgReportsRole
+  role?: OrgReportsRole,
+  disabled: DisabledReportSlugs = NO_DISABLED_SLUGS
 ): SidebarMenuGroup[] {
   const allowed = new Set(filterEnabledReportSlugs(slugs, role));
   return REPORT_THEMES.map((theme) => ({
@@ -306,7 +319,7 @@ export function orgReportsThemedSidebarGroups(
       .filter(
         (slug) => allowed.has(slug) && isEnabledReportSlug(slug, role)
       )
-      .map(orgReportMenuItem),
+      .map((slug) => orgReportMenuItem(slug, disabled.has(slug))),
   })).filter((group) => group.children.length > 0);
 }
 
@@ -316,14 +329,17 @@ export function orgReportsThemedSidebarGroups(
  */
 export function orgReportsSidebarEntries(
   role: OrgReportsRole,
-  slugs?: readonly ReportSlug[]
+  slugs?: readonly ReportSlug[],
+  disabled: DisabledReportSlugs = NO_DISABLED_SLUGS
 ): SidebarMenuGroup[] {
   const list = slugs ?? orgApprovedReportSlugs(role);
   if (usesThemedOrgReportSidebar(role)) {
-    return orgReportsThemedSidebarGroups(list, role);
+    return orgReportsThemedSidebarGroups(list, role, disabled);
   }
-  return [orgReportsSidebarGroup(role, list)];
+  return [orgReportsSidebarGroup(role, list, disabled)];
 }
+
+/* --- مسیر ماتریس استانی (ماکت قدیمی)؛ سایدبار/گارد دیگر از این‌ها استفاده نمی‌کنند --- */
 
 export function resolveOrgUserProvinceIds(
   userProvinces: readonly string[] | undefined,
@@ -364,28 +380,65 @@ export function grantedOrgReportSlugs(
   return grantedReportSlugsForRole(matrix, role, userProvinceIds);
 }
 
+/* --- مسیر زندهٔ `GET /reports/access/me` --- */
+
 /**
- * منوی سایدبار را با اسلاگ‌های اعطاشدهٔ ماتریس هم‌تراز می‌کند.
+ * گیت صفحهٔ گزارش از روی پاسخ `/me`:
+ * فقط `status=active` اجازهٔ ورود/فراخوانی API گزارش دارد؛ `inactive` و غایب ممنوع‌اند.
+ * `granted === null` (هنوز بارگذاری نشده) → رد.
+ */
+export function isOrgReportGranted(
+  role: UserRole | string | null | undefined,
+  slug: string,
+  granted: readonly ReportSlug[] | null
+): slug is ReportSlug {
+  if (!isOrgReportsRole(role) || !isReportSlug(slug)) return false;
+  if (!isEnabledReportSlug(slug, role)) return false;
+  return granted?.includes(slug) ?? false;
+}
+
+/** مقایسه فقط روی گزارشی که فعال است و زیرمجوزش (فقط ماکت) آمده باشد. */
+export function canCompareOrgGrantedSlug(
+  role: UserRole | string | null | undefined,
+  slug: ReportSlug,
+  granted: readonly ReportSlug[] | null,
+  compare: readonly ReportSlug[]
+): boolean {
+  return isOrgReportGranted(role, slug, granted) && compare.includes(slug);
+}
+
+/**
+ * منوی سایدبار را با پاسخ `/me` هم‌تراز می‌کند.
+ * - `granted` (active): آیتم باز.
+ * - `inactive`: آیتم نمایش داده می‌شود ولی غیرفعال (`disabled`) و کلیک‌ناپذیر.
+ * - هر گزارشی که در هیچ‌کدام نیست ممنوع است و اصلاً نمایش داده نمی‌شود.
  * اگر هیچ گزارشی نماند، گروه‌های گزارش حذف می‌شوند.
  * `granted === null` → هنوز بارگذاری نشده؛ منوی ایستا دست نخورده می‌ماند.
  */
 export function withOrgReportAccessMenu(
   menu: readonly SidebarMenuEntry[],
   role: UserRole | string | null | undefined,
-  granted: readonly ReportSlug[] | null
+  granted: readonly ReportSlug[] | null,
+  inactive: readonly ReportSlug[] = []
 ): SidebarMenuEntry[] {
   if (!isOrgReportsRole(role) || granted === null) {
     return menu.slice();
   }
 
-  const ordered = orderOrgReportSlugsForMenu(role, granted);
+  const grantedSet = new Set(granted);
+  const inactiveOnly = inactive.filter((slug) => !grantedSet.has(slug));
+  const ordered = orderOrgReportSlugsForMenu(role, [
+    ...granted,
+    ...inactiveOnly,
+  ]);
+  const disabled: DisabledReportSlugs = new Set(inactiveOnly);
   const next: SidebarMenuEntry[] = [];
   let reportsInserted = false;
   for (const entry of menu) {
     if (isOrgReportsMenuGroup(entry)) {
       if (!reportsInserted) {
         if (ordered.length) {
-          next.push(...orgReportsSidebarEntries(role, ordered));
+          next.push(...orgReportsSidebarEntries(role, ordered, disabled));
         }
         reportsInserted = true;
       }

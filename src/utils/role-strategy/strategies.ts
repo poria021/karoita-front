@@ -372,10 +372,9 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     roleIcon: 'fa-user-gear',
     layoutWidthClass: 'max-w-none',
     gateModulesUntilApproved: false,
+    // ماتریس دسترسی (فقط‌خواندنی) و گزارش‌گیری در منو می‌مانند؛ سوییچ فقط سوپرادمین.
     sidebarMenu: omitSidebarPaths(SENIOR_ADMIN_SIDEBAR_MENU, [
       RouteService.karvita.adminUserCreation(),
-      RouteService.karvita.reportAccess(),
-      RouteService.karvita.reports('learners'),
       RouteService.karvita.syllabusTermSettings(),
       RouteService.karvita.syllabusCourseCatalog(),
     ]),

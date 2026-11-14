@@ -10,45 +10,25 @@ import {
   kvShellAdminReportsSecondaryRailOffsetClassName,
   kvShellAdminReportsSecondaryRailWidthClassName,
 } from '@/components/shared/shell/shellChrome';
-import {
-  REPORT_PAGE_DEFS,
-  enabledReportThemes,
-} from '@/features/karvita/reports/constants';
-import {
-  isAdminReportsPath,
-  reportPath,
-} from '@/features/karvita/reports/lib/report-path';
+import { useOrgReportAccess } from '@/features/karvita/reports/hooks/useOrgReportAccess';
+import { adminReportsMenuGroupsFromMe } from '@/features/karvita/reports/lib/admin-report-access';
+import { isAdminReportsPath } from '@/features/karvita/reports/lib/report-path';
 import { cn } from '@/lib/utils';
-import type { SidebarMenuGroup } from '@/utils/RoleStrategyMap';
-
-const THEME_ICONS: Record<string, string> = {
-  lists: 'fa-table-columns',
-  attendance: 'fa-clipboard-check',
-  performance: 'fa-chart-column',
-};
+import { useUserStore } from '@/store/useUserStore';
 
 /**
  * ریل دوم چسبیده به ریل آیکونی ادمین — فقط دسکتاپ، روی مسیر گزارش‌ها.
- * از زیر هدر اپ (`top-16`) شروع می‌شود؛ هر تم گروه باز/بسته سایدبار.
+ * منو فقط از `GET /reports/access/me` ساخته می‌شود (active باز، inactive غیرفعال، غایب مخفی).
  */
 export function AdminReportsSecondaryRail() {
   const pathname = usePathname();
-  const groups = useMemo<SidebarMenuGroup[]>(
+  const role = useUserStore((state) => state.activeUser?.role);
+  const { grantedSlugs, inactiveSlugs } = useOrgReportAccess();
+
+  const groups = useMemo(
     () =>
-      enabledReportThemes().map((theme) => ({
-        kind: 'group' as const,
-        title: theme.title,
-        icon: THEME_ICONS[theme.id] ?? 'fa-file-invoice',
-        children: theme.slugs.map((s) => {
-          const def = REPORT_PAGE_DEFS[s];
-          return {
-            title: def.title,
-            path: reportPath(s),
-            icon: def.icon,
-          };
-        }),
-      })),
-    []
+      adminReportsMenuGroupsFromMe(grantedSlugs, inactiveSlugs, role) ?? [],
+    [grantedSlugs, inactiveSlugs, role]
   );
 
   if (!isAdminReportsPath(pathname)) return null;

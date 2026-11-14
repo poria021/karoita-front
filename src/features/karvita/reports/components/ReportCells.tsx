@@ -75,7 +75,9 @@ export function cellContent(
       return <StatusBadge status={String(row.status ?? 'none')} />;
     case 'courses': {
       const ids = row.courses ?? [];
-      const firstName = ids[0] ? page.courseLabels[ids[0]] : undefined;
+      const firstName = ids[0]
+        ? (page.courseLabels[ids[0]] ?? ids[0])
+        : undefined;
       if (!firstName) return '—';
       if (ids.length < 2) return firstName;
       return (

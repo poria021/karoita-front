@@ -78,6 +78,19 @@ export function ReportsPageView({
                   <ReportCardList page={page} />
                 )
               )}
+              {!page.error && page.hasNextPage ? (
+                <div className="flex justify-center">
+                  <KvButton
+                    type="button"
+                    appearance="secondary"
+                    color="neutral"
+                    disabled={page.isLoadingMore}
+                    onClick={() => void page.loadMore()}
+                  >
+                    {page.isLoadingMore ? 'در حال بارگذاری…' : 'نمایش بیشتر'}
+                  </KvButton>
+                </div>
+              ) : null}
               <ReportCompareBar page={page} />
             </section>
           </div>

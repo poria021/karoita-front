@@ -29,6 +29,11 @@ export type ReportPeriodState = {
   mode: ReportPeriodMode;
   termId: string;
   moduleId: string;
+  /**
+   * شناسهٔ دورهٔ واقعی (Nest) وقتی کاربر دوره را انتخاب کرده؛ فقط در حالت real.
+   * خالی یعنی structure و semesterId به API فرستاده نشود.
+   */
+  semesterId?: string;
 };
 
 export type ReportOption = {
@@ -113,6 +118,8 @@ export type ReportQueryResult = {
   page: number;
   pageSize: number;
   columns: ReportColumnDef[];
+  /** فقط API واقعی: صفحهٔ بعد هست؟ (Nest شمارش کل نمی‌دهد.) */
+  hasNextPage?: boolean;
 };
 
 export type ReportFilterCatalog = {

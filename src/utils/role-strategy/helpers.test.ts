@@ -41,18 +41,19 @@ describe('staff admin access', () => {
         RouteService.karvita.adminUserCreation()
       )
     ).toBe(false);
+    // ماتریس دسترسی و گزارش‌ها برای ادمین باز است (سوییچ فقط سوپرادمین؛ منو از /me).
     expect(
       canAccessAdminControlPlane(
         'assistant_admin',
         RouteService.karvita.reportAccess()
       )
-    ).toBe(false);
+    ).toBe(true);
     expect(
       canAccessAdminControlPlane(
         'assistant_admin',
         RouteService.karvita.reports('learners')
       )
-    ).toBe(false);
+    ).toBe(true);
     expect(
       canAccessAdminControlPlane(
         'assistant_admin',

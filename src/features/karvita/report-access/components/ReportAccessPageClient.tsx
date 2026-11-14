@@ -8,30 +8,18 @@ import { MockDataBadge } from '@/components/shared/MockDataBadge';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
+import { isMockApiMode } from '@/lib/api-mode';
 
 import { useReportAccessPage } from '../hooks/useReportAccessPage';
 import { ReportAccessReportRows } from './ReportAccessReportRows';
-import { ReportAccessReviewDialog } from './ReportAccessReviewDialog';
 import { ReportAccessRoleTabs } from './ReportAccessRoleTabs';
-import { ReportAccessToolbar } from './ReportAccessToolbar';
 
 export function ReportAccessPageClient() {
   const page = useReportAccessPage();
 
   return (
     <SuperAdminModuleGuard>
-      <KvWorkspace
-        panel={false}
-        toolbar={
-          <ReportAccessToolbar
-            diffCount={page.diffs.length}
-            matchesApproved={page.matchesApproved}
-            onReset={() => void page.resetToApproved()}
-            onCancel={page.cancelChanges}
-            onReview={page.openReview}
-          />
-        }
-      >
+      <KvWorkspace panel={false}>
         {page.error ? (
           <KvAlert
             variant="error"
@@ -48,7 +36,7 @@ export function ReportAccessPageClient() {
               </KvButton>
             }
           />
-        ) : page.isLoading || !page.draft || !page.saved ? (
+        ) : page.isLoading || !page.roles.length ? (
           <KvBusySurface label="در حال دریافت ماتریس دسترسی" />
         ) : (
           <KvCard padding="none" className="overflow-hidden">
@@ -57,17 +45,14 @@ export function ReportAccessPageClient() {
                 <KvTypography as="h2" variant="subtitle" weight="black">
                   گزارش‌های مجاز برای نقش
                 </KvTypography>
-                <MockDataBadge />
+                {isMockApiMode() ? <MockDataBadge /> : null}
               </div>
-              <KvTypography as="span" variant="caption" tone="muted">
-                همه استان‌ها
-              </KvTypography>
             </div>
 
             <div className="px-kv-group pt-kv-inline">
               <ReportAccessRoleTabs
                 roleId={page.roleId}
-                dirtyRoleIds={page.dirtyRoleIds}
+                roles={page.roles}
                 onChange={page.setRoleId}
               />
             </div>
@@ -77,30 +62,21 @@ export function ReportAccessPageClient() {
               variant="caption"
               className="px-kv-group pb-kv-inline pt-kv-pair"
             >
-              تغییرها روی همه‌ی استان‌ها اعمال می‌شود.
+              {page.canEdit
+                ? 'هر تغییر سوییچ بلافاصله ثبت می‌شود. گزارش‌های پیش‌فرض همیشه فعال‌اند و گزارش‌های دارای خط تیره برای این نقش قابل اعطا نیستند.'
+                : 'فقط مدیر ارشد می‌تواند دسترسی‌ها را تغییر دهد.'}
             </KvTypography>
 
             <ReportAccessReportRows
               roleId={page.roleId}
-              saved={page.saved}
-              draft={page.draft}
-              provinceIds={page.provinceIds}
-              onToggleReport={page.toggleReport}
-              onToggleCompare={page.toggleCompare}
+              rowBySlug={page.rowBySlug}
+              canEdit={page.canEdit}
+              isPending={page.isPending}
+              onToggleReport={(slug) => void page.toggleReport(slug)}
             />
           </KvCard>
         )}
       </KvWorkspace>
-
-      <ReportAccessReviewDialog
-        open={page.reviewOpen}
-        diffs={page.diffs}
-        summary={page.formatDiffSummary(page.diffs)}
-        isSaving={page.isSaving}
-        provinceLabel={page.provinceLabel}
-        onClose={page.closeReview}
-        onConfirm={() => void page.confirmSave()}
-      />
     </SuperAdminModuleGuard>
   );
 }

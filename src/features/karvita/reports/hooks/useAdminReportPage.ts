@@ -40,7 +40,11 @@ import {
   replaceShallowHref,
   subscribeShallowLocation,
 } from '@/lib/shallow-location';
-import { ReportsService } from '@/services/reports.service';
+import {
+  isRealLearnersReport,
+  ReportsService,
+} from '@/services/reports.service';
+import { learnersDescendantKeys } from '@/services/reports/real/learners-report.api';
 import type { ReportSlug } from '@/types/report-access';
 import type {
   ReportColumnDef,
@@ -123,6 +127,8 @@ export function useAdminReportPage(
   options?: UseAdminReportPageOptions
 ) {
   const def = REPORT_PAGE_DEFS[slug];
+  /** لیست فراگیران در حالت real به Nest وصل است (آبشار، صفحه‌بندی، خروجی). */
+  const realLearners = isRealLearnersReport(slug);
   const hiddenFilterKeys =
     options?.hiddenFilterKeys ?? NO_HIDDEN_FILTER_KEYS;
   const extraFilterKeys = options?.extraFilterKeys ?? NO_EXTRA_FILTER_KEYS;
@@ -161,6 +167,11 @@ export function useAdminReportPage(
     {}
   );
   const [advOpen, setAdvOpen] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [pageNo, setPageNo] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  /** باکس‌هایی که Nest برای نقش فعلی نداده؛ مخفی می‌شوند. */
+  const [roleHiddenKeys, setRoleHiddenKeys] = useState<ReportFilterKey[]>([]);
 
   const [dialog, setDialog] = useState<
     | { type: 'courses'; learnerId: string }
@@ -270,6 +281,9 @@ export function useAdminReportPage(
     setCompareItems([]);
     setDialog(null);
     setAdvOpen(false);
+    setHasNextPage(false);
+    setPageNo(1);
+    setRoleHiddenKeys([]);
     compareHydratedRef.current = false;
     skipDraftUrlSyncRef.current = false;
     // روی mount اول، ?view=compare را برای دیپ‌لینک نگه دار؛ فقط با تعویض اسلاگ پاک کن.
@@ -311,6 +325,8 @@ export function useAdminReportPage(
         setRows(result.rows);
         setColumns(result.columns);
         setTotal(result.total);
+        setHasNextPage(result.hasNextPage ?? false);
+        setPageNo(1);
       } catch (err) {
         if (cancelled) return;
         setError(
@@ -341,6 +357,8 @@ export function useAdminReportPage(
       setRows(result.rows);
       setColumns(result.columns);
       setTotal(result.total);
+      setHasNextPage(result.hasNextPage ?? false);
+      setPageNo(1);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'بارگذاری گزارش ناموفق بود.'
@@ -351,6 +369,7 @@ export function useAdminReportPage(
   }, [slug, filters, query, period, sort]);
 
   useEffect(() => {
+    if (realLearners) return;
     let cancelled = false;
     void ReportsService.getFilterCatalog().then((catalog) => {
       if (cancelled) return;
@@ -361,15 +380,70 @@ export function useAdminReportPage(
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [realLearners]);
 
   const advKeys = useMemo(
-    () => advKeysOf(slug, hiddenFilterKeys, extraFilterKeys),
-    [slug, hiddenFilterKeys, extraFilterKeys]
+    () =>
+      advKeysOf(
+        slug,
+        [...hiddenFilterKeys, ...roleHiddenKeys],
+        extraFilterKeys
+      ),
+    [slug, hiddenFilterKeys, roleHiddenKeys, extraFilterKeys]
   );
 
   useEffect(() => {
     let cancelled = false;
+    if (realLearners) {
+      void Promise.all(
+        advKeys.map(async (key) => {
+          try {
+            const box = await ReportsService.getLearnersFilterBox(
+              key,
+              filters,
+              period
+            );
+            return [key, box] as const;
+          } catch {
+            // خطای شبکه/سرور: باکس بماند ولی بدون گزینه.
+            return [key, { status: 'ok' as const, options: [] as ReportOption[] }] as const;
+          }
+        })
+      ).then((entries) => {
+        if (cancelled) return;
+        const next: Partial<Record<ReportFilterKey, ReportOption[]>> = {};
+        const absent: ReportFilterKey[] = [];
+        const stale: ReportFilterKey[] = [];
+        for (const [key, box] of entries) {
+          if (box.status === 'absent') {
+            absent.push(key);
+          } else if (box.status === 'conflict') {
+            // ۴۰۰: انتخاب با والد جدید نمی‌خواند؛ باکس را خالی کن تا دوباره گرفته شود.
+            next[key] = [];
+            if (filters[key]) stale.push(key);
+          } else {
+            next[key] = box.options;
+          }
+        }
+        setFilterOptions(next);
+        if (absent.length > 0) {
+          setRoleHiddenKeys((prev) => [
+            ...prev,
+            ...absent.filter((key) => !prev.includes(key)),
+          ]);
+        }
+        if (stale.length > 0) {
+          setFilters((prev) => {
+            const cleaned = { ...prev };
+            for (const key of stale) delete cleaned[key];
+            return cleaned;
+          });
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
     void Promise.all(
       advKeys.map(async (key) => {
         const opts = await ReportsService.getFilterOptions(key, filters, slug);
@@ -384,12 +458,32 @@ export function useAdminReportPage(
     return () => {
       cancelled = true;
     };
-  }, [slug, filters, advKeys]);
+  }, [slug, filters, advKeys, realLearners, period]);
 
   useEffect(() => {
     if (!dialog) {
       setCourseDetail(null);
       setScoreDetail(null);
+      return;
+    }
+    // real: درس‌ها از خود ردیف می‌آیند؛ API جدا برای جزئیات نداریم.
+    if (realLearners && dialog.type === 'courses') {
+      const row = rows.find((r) => r.id === dialog.learnerId);
+      setCourseDetail(
+        row
+          ? {
+              learnerId: row.id,
+              learnerName: row.name ?? '',
+              periodLabel: '',
+              courses: (row.courses ?? []).map((title, index) => ({
+                id: String(index),
+                name: title,
+                code: '',
+              })),
+            }
+          : null
+      );
+      setDialogLoading(false);
       return;
     }
     let cancelled = false;
@@ -417,7 +511,7 @@ export function useAdminReportPage(
     return () => {
       cancelled = true;
     };
-  }, [dialog, period]);
+  }, [dialog, period, realLearners, rows]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const activeAdvCount = useMemo(
@@ -427,18 +521,22 @@ export function useAdminReportPage(
 
   const anyFilterActive = Boolean(query) || activeAdvCount > 0;
 
-  const setFilter = useCallback((key: ReportFilterKey, value: string) => {
-    setFilters((prev) => {
-      if (!value) {
-        if (prev[key] === undefined) return prev;
+  const setFilter = useCallback(
+    (key: ReportFilterKey, value: string) => {
+      setFilters((prev) => {
+        if ((prev[key] ?? '') === value) return prev;
         const next = { ...prev };
-        delete next[key];
+        if (value) next[key] = value;
+        else delete next[key];
+        // آبشار: انتخاب باکس‌های بعدی با والد جدید نمی‌خواند؛ پاک شوند.
+        if (realLearners) {
+          for (const dep of learnersDescendantKeys(key)) delete next[dep];
+        }
         return next;
-      }
-      if (prev[key] === value) return prev;
-      return { ...prev, [key]: value };
-    });
-  }, []);
+      });
+    },
+    [realLearners]
+  );
 
   const clearFilters = useCallback(() => {
     setFilters((prev) => (Object.keys(prev).length === 0 ? prev : {}));
@@ -471,9 +569,66 @@ export function useAdminReportPage(
     [periodMode]
   );
 
-  const exportStub = useCallback((format: 'PDF' | 'اکسل') => {
-    toast.message(`فایل ${format} آماده شد`);
-  }, []);
+  const exportStub = useCallback(
+    (format: 'PDF' | 'اکسل') => {
+      if (!realLearners) {
+        toast.message(`فایل ${format} آماده شد`);
+        return;
+      }
+      // همهٔ صفحه‌ها با همان فیلترهای جدول (نه فقط صفحهٔ جاری).
+      toast.promise(
+        ReportsService.exportLearners({
+          format: format === 'PDF' ? 'pdf' : 'excel',
+          filters,
+          query,
+          period,
+        }),
+        {
+          loading: `در حال آماده‌سازی فایل ${format}…`,
+          success: `فایل ${format} دانلود شد`,
+          error: (err: unknown) =>
+            err instanceof Error ? err.message : 'دریافت فایل ناموفق بود.',
+        }
+      );
+    },
+    [filters, period, query, realLearners]
+  );
+
+  const loadMore = useCallback(async () => {
+    if (!realLearners || !hasNextPage || isLoadingMore) return;
+    setIsLoadingMore(true);
+    try {
+      const next = await ReportsService.queryReport({
+        slug,
+        filters,
+        query,
+        period,
+        sort,
+        page: pageNo + 1,
+        pageSize: REPORT_LIST_LIMIT,
+      });
+      setRows((prev) => [...prev, ...next.rows]);
+      setTotal((prev) => prev + next.rows.length);
+      setHasNextPage(next.hasNextPage ?? false);
+      setPageNo(next.page);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : 'بارگذاری ردیف‌های بیشتر ناموفق بود.'
+      );
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [
+    filters,
+    hasNextPage,
+    isLoadingMore,
+    pageNo,
+    period,
+    query,
+    realLearners,
+    slug,
+    sort,
+  ]);
 
   const toggleCompareSelect = useCallback(
     (id: string) => {
@@ -637,6 +792,9 @@ export function useAdminReportPage(
     isLoading,
     error,
     reload,
+    hasNextPage,
+    isLoadingMore,
+    loadMore,
     filterOptions,
     courseLabels,
     advKeys,

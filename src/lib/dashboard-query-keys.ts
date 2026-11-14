@@ -38,8 +38,12 @@ export const DASHBOARD_QUERY = {
   courseMaterials: ['course-materials'] as const,
   courseMaterialsReceived: ['course-materials', 'received'] as const,
   courseMaterialsManaged: ['course-materials', 'managed'] as const,
-  /** ماتریس دسترسی گزارش‌ها — سایدبار نقش‌های سازمانی و گارد صفحه. */
-  reportAccessSnapshot: ['report-access', 'snapshot'] as const,
+  /** پیشوند مشترک دسترسی گزارش‌ها — بعد از PATCH سوییچ هر دو زیرکلید باطل شوند. */
+  reportAccess: ['report-access'] as const,
+  /** منوی گزارش کاربر جاری (`GET /reports/access/me`) — سایدبار و گارد صفحه. */
+  reportAccessMe: (role: string) => ['report-access', 'me', role] as const,
+  /** ماتریس همهٔ نقش‌ها (`GET /reports/access`) — صفحهٔ مدیریت دسترسی. */
+  reportAccessMatrix: ['report-access', 'matrix'] as const,
 } as const;
 
 /** Capacity, daily-approvals, and enrollment all read Nest semesters. */
