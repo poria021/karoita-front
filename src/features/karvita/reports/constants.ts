@@ -11,8 +11,8 @@ export {
   REPORT_PAGE_META,
 };
 
-/** مقایسه گزارش‌ها موقتاً برای انتشار خاموش است — دکمه و جریان مقایسه رندر نمی‌شوند. */
-export const REPORT_COMPARE_ENABLED = false;
+/** مقایسه گزارش‌ها برای اسلاگ‌های COMPARE_REPORT_SLUGS (و دسترسی سازمانی @cmp) فعال است. */
+export const REPORT_COMPARE_ENABLED = true;
 
 /**
  * گزارش نمرات فراگیران به‌صورت سراسری خاموش است،
