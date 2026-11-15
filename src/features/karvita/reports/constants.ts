@@ -23,6 +23,8 @@ export const REPORT_SCORES_ENABLED = false;
 /** نقش‌هایی که نمرات فراگیران برایشان زنده می‌ماند. */
 export const REPORT_SCORES_ROLE_ALLOWLIST = [
   'supervisor_professor',
+  // مدیر ارشد (پنل /karvita/admin/reports): بالای «عملکرد معلمان» در دستهٔ عملکرد.
+  'super_admin',
 ] as const;
 
 export const REPORT_THEMES = REPORT_ACCESS_THEMES;
