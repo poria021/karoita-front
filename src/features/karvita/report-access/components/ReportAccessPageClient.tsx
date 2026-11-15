@@ -4,11 +4,9 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { MockDataBadge } from '@/components/shared/MockDataBadge';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
-import { isMockApiMode } from '@/lib/api-mode';
 
 import { useReportAccessPage } from '../hooks/useReportAccessPage';
 import { ReportAccessReportRows } from './ReportAccessReportRows';
@@ -45,7 +43,6 @@ export function ReportAccessPageClient() {
                 <KvTypography as="h2" variant="subtitle" weight="black">
                   گزارش‌های مجاز برای نقش
                 </KvTypography>
-                {isMockApiMode() ? <MockDataBadge /> : null}
               </div>
             </div>
 

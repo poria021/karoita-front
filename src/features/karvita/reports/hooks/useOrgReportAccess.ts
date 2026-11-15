@@ -39,7 +39,7 @@ export function useOrgReportAccess() {
 
   const query = useQuery({
     queryKey: DASHBOARD_QUERY.reportAccessMe(accessRole ?? 'none'),
-    queryFn: () => ReportAccessService.getMyAccess(accessRole!),
+    queryFn: () => ReportAccessService.getMyAccess(),
     enabled: accessRole !== null,
     staleTime: 30_000,
   });
