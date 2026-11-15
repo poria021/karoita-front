@@ -528,7 +528,7 @@ export function mapListRow(raw: unknown, index: number): ReportRow | null {
       rec.principalName
     ),
     provName: pickText(rec.province, rec.provinceTitle),
-    cityName: pickText(rec.city, rec.cityTitle),
+    cityName: pickText(rec.city, rec.cityTitle, rec.cityName),
     regionName: pickText(
       rec.educationalDistrict,
       rec.educationalDistrictTitle,

@@ -73,17 +73,30 @@ function mapTeacherPerformance(
   rec: Record<string, unknown>,
   index: number
 ): ReportRow {
+  // مدرسه ممکن است آبجکت، رشته یا (در بعضی پاسخ‌ها) آرایهٔ `schools` باشد.
+  const firstSchool = Array.isArray(rec.schools) ? rec.schools[0] : undefined;
+  const schoolSource = rec.school ?? firstSchool;
   const school =
-    rec.school && typeof rec.school === 'object'
-      ? (rec.school as Record<string, unknown>)
+    schoolSource && typeof schoolSource === 'object'
+      ? (schoolSource as Record<string, unknown>)
       : {};
   return {
     ...baseRow(rec, index),
     name: pickText(rec.fullName),
     code: pickText(rec.personnelCode),
     phone: pickText(rec.phone),
-    schoolName: pickText(school.title, typeof rec.school === 'string' ? rec.school : undefined),
-    regionName: pickText(school.district),
+    schoolName: pickText(
+      school.title,
+      school.name,
+      typeof schoolSource === 'string' ? schoolSource : undefined,
+      rec.schoolTitle,
+      rec.schoolName
+    ),
+    regionName: pickText(
+      school.district,
+      rec.district,
+      rec.educationalDistrict
+    ),
     n: pickNumber(rec.learnerCount),
     resp: pickNumber(rec.responseRate),
   };
@@ -128,7 +141,7 @@ function mapFacultyPerformance(
     ...baseRow(rec, index),
     name: pickText(rec.title),
     provName: pickText(rec.province),
-    cityName: pickText(rec.city),
+    cityName: pickText(rec.city, rec.cityTitle, rec.cityName),
     att: pickNumber(rec.attendancePercent),
     resp: pickNumber(rec.responseRate),
     score: pickNumber(rec.averageScore),
