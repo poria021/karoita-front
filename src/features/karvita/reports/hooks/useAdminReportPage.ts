@@ -462,8 +462,13 @@ export function useAdminReportPage(
     };
   }, [cacheUserId, isRealApi, periodMode]);
 
+  /** نظام (ترمی/پودمانی) آخرین واکشی جدول؛ برای تشخیص تعویض تب. */
+  const lastFetchModeRef = useRef(period.mode);
+
   useEffect(() => {
     let cancelled = false;
+    const modeChanged = lastFetchModeRef.current !== period.mode;
+    lastFetchModeRef.current = period.mode;
     const cached = reportPageCache.get(reportCacheKey);
     if (cached && Date.now() - cached.at < REPORT_CACHE_TTL_MS) {
       // همین ترکیب قبلاً گرفته شده (مثلاً برگشت از تب پودمانی به ترمی) → بدون درخواست.
@@ -475,6 +480,13 @@ export function useAdminReportPage(
       setError(null);
       setIsLoading(false);
       return;
+    }
+    if (modeChanged) {
+      // تعویض تب ترمی/پودمانی: ردیف‌های نظام قبلی نباید تا رسیدن پاسخ تب جدید دیده شوند.
+      setRows([]);
+      setTotal(0);
+      setHasNextPage(false);
+      setPageNo(1);
     }
     setIsLoading(true);
     setError(null);
