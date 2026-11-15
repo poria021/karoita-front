@@ -7,7 +7,6 @@ import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { SidebarNavGroup } from '@/components/shared/shell/SidebarNavGroup';
 import {
   kvShellAdminRailWidthMotionClassName,
-  kvShellAdminReportsSecondaryRailOffsetClassName,
   kvShellAdminReportsSecondaryRailWidthClassName,
 } from '@/components/shared/shell/shellChrome';
 import { useOrgReportAccess } from '@/features/karvita/reports/hooks/useOrgReportAccess';
@@ -17,7 +16,7 @@ import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store/useUserStore';
 
 /**
- * ریل دوم چسبیده به ریل آیکونی ادمین — فقط دسکتاپ، روی مسیر گزارش‌ها.
+ * ریل دوم کنار محتوای گزارش ادمین — فقط دسکتاپ، در جریان سند (با اسکرول حرکت می‌کند).
  * منو فقط از `GET /reports/access/me` ساخته می‌شود (active باز، inactive غیرفعال، غایب مخفی).
  */
 export function AdminReportsSecondaryRail() {
@@ -38,8 +37,7 @@ export function AdminReportsSecondaryRail() {
       data-slot="kv-admin-reports-secondary-rail"
       aria-label="فهرست گزارش‌ها"
       className={cn(
-        'fixed top-16 bottom-0 z-20 hidden flex-col border-e border-t border-kv-border/80 bg-kv-surface lg:flex',
-        kvShellAdminReportsSecondaryRailOffsetClassName,
+        'relative z-20 hidden min-h-[calc(100dvh-4rem)] shrink-0 flex-col self-start border-e border-kv-border/80 bg-kv-surface lg:flex',
         kvShellAdminReportsSecondaryRailWidthClassName,
         kvShellAdminRailWidthMotionClassName
       )}
@@ -47,7 +45,7 @@ export function AdminReportsSecondaryRail() {
       <nav
         className={cn(
           kvScrollAreaClassName,
-          'flex min-h-0 flex-1 flex-col gap-kv-inline overflow-y-auto p-kv-inline pt-kv-stack pb-kv-page'
+          'flex min-h-0 flex-1 flex-col gap-kv-inline overflow-y-visible p-kv-inline pt-kv-stack pb-kv-page'
         )}
         aria-label="فهرست گزارش‌ها"
       >

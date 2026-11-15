@@ -6,7 +6,6 @@ import { useEffect, useId, useRef } from 'react';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
-import { AdminReportsSecondaryRail } from '@/components/shared/shell/AdminReportsSecondaryRail';
 import { HeaderBrandWordmark } from '@/components/shared/shell/HeaderBrandWordmark';
 import { SidebarNavList } from '@/components/shared/shell/SidebarNavList';
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
@@ -30,8 +29,8 @@ import { useSidebarMenu } from './useSidebarMenu';
 import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
 
 /**
- * ریل ستادی — `fixed` تمام‌قد در لبهٔ شروع (RTL = راست). برند اینجاست نه در هدر.
- * روی گزارش‌ها: جمع = ریل آیکونی + ریل دوم؛ باز = ریل کامل و ریل دوم مخفی.
+ * ریل ستادی — روی دسکتاپ در جریان سند (با اسکرول همراه هدر)؛ موبایل دراور `fixed`.
+ * برند اینجاست نه در هدر. روی گزارش‌ها ورود → جمع تا ریل دوم در کروم دیده شود.
  */
 export function AdminSidebar() {
   const activeUser = useUserStore((state) => state.activeUser);
@@ -44,9 +43,6 @@ export function AdminSidebar() {
   const drawerTitleId = useId();
   const drawerRef = useRef<HTMLDivElement>(null);
   const wasReportsRef = useRef(false);
-  const reportsPath = isAdminReportsPath(pathname);
-  /** ریل دوم فقط وقتی ریل اصلی جمع است. */
-  const reportsDual = reportsPath && isCollapsed;
 
   useSidebarMobileDrawer({
     isMobileOpen,
@@ -87,7 +83,7 @@ export function AdminSidebar() {
         className={cn(
           'fixed inset-y-0 inset-s-0 z-50 h-dvh',
           kvShellAdminRailWidthMotionClassName,
-          'lg:translate-x-0 lg:pointer-events-auto lg:visible',
+          'lg:static lg:inset-auto lg:z-0 lg:h-auto lg:min-h-dvh lg:shrink-0 lg:self-start lg:translate-x-0 lg:pointer-events-auto lg:visible',
           isMobileOpen
             ? 'translate-x-0'
             : 'max-lg:-translate-x-full max-lg:rtl:translate-x-full',
@@ -101,7 +97,7 @@ export function AdminSidebar() {
           role={isMobileOpen ? 'dialog' : undefined}
           aria-modal={isMobileOpen ? true : undefined}
           aria-labelledby={isMobileOpen ? drawerTitleId : undefined}
-          className="group/sidebar flex h-full min-h-0 w-full flex-col border-e border-kv-border/80 bg-kv-surface"
+          className="group/sidebar flex h-full min-h-0 w-full flex-col border-e border-kv-border/80 bg-kv-surface lg:min-h-dvh"
         >
           <div
             className={cn(
@@ -169,7 +165,7 @@ export function AdminSidebar() {
 
           <aside
             className={cn(
-              'flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden',
+              'flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-visible',
               kvScrollAreaClassName,
               'kv-sidebar-scroll'
             )}
@@ -181,11 +177,7 @@ export function AdminSidebar() {
               modulesUnlocked={modulesUnlocked}
               onNavigate={closeMobileSidebar}
               textSize="legible"
-              className={cn(
-                'lg:overflow-y-auto',
-                kvScrollAreaClassName,
-                'kv-sidebar-scroll'
-              )}
+              className={cn(kvScrollAreaClassName, 'kv-sidebar-scroll')}
             />
 
             <UserAccountMenu
@@ -197,8 +189,6 @@ export function AdminSidebar() {
           </aside>
         </div>
       </div>
-
-      {reportsDual ? <AdminReportsSecondaryRail /> : null}
     </>
   );
 }

@@ -52,7 +52,7 @@ describe('shellChrome', () => {
     expect(kvShellOverlayRowPadClassName).toContain('py-kv-nav');
   });
 
-  it('clears the fixed admin rail on the inline-start edge', () => {
+  it('exposes admin rail clearance recipes for collapsed and dual-rail widths', () => {
     expect(kvShellAdminRailClearanceClassName(false)).toBe(
       kvShellAdminRailExpandedClassName
     );

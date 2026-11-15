@@ -74,8 +74,8 @@ export const kvShellAdminReportsSecondaryRailWidthClassName = 'w-60';
 export const kvShellAdminReportsSecondaryRailOffsetClassName = 'inset-s-24';
 
 /**
- * ریل ادمین `fixed` در لبهٔ شروع (RTL = راست). پد نه مارجین تا `w-full` از ویوپورت بیرون نزند.
- * موبایل تمام‌عرض؛ ریل آنجا دراور است.
+ * پد اینلاین‌استارت وقتی ریل ادمین خارج از جریان بود (`fixed`).
+ * شل فعلی ریل را در جریان می‌گذارد؛ این کلاس‌ها برای تست/سازگاری نگه داشته شده‌اند.
  * `reportsDual`: مسیر گزارش‌ها — خالی‌کردن برای ریل دوتایی.
  */
 export function kvShellAdminRailClearanceClassName(
@@ -89,7 +89,7 @@ export function kvShellAdminRailClearanceClassName(
 }
 
 /**
- * گاتر فقط روی `main` ستون ادمین — همان `kv-group` دو طرف (RTL: از ریل و لبهٔ چپ صفحه). هدر به ریل می‌چسبد.
+ * گاتر فقط روی `main` ستون ادمین — همان `kv-group` دو طرف (RTL: از ریل و لبهٔ چپ صفحه).
  */
 export const kvShellAdminMainGutterClassName = 'px-0 sm:px-kv-group';
 
