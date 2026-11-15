@@ -47,7 +47,7 @@ describe('learners report API', () => {
     getJson.mockResolvedValue({ cities: [{ id: 'c1', title: 'شیراز' }] });
     const box = await fetchLearnersFilterBox('city', { province: 'p1' }, PERIOD);
     expect(getJson.mock.calls[0]![0]).toBe('v1/reports/filters/learners_list');
-    expect(searchParamsOf()).toEqual({ field: 'city', provinceId: 'p1' });
+    expect(searchParamsOf()).toEqual({ structure: 'semester', field: 'city', provinceId: 'p1' });
     expect(box).toEqual({
       status: 'ok',
       options: [{ value: 'c1', label: 'شیراز' }],
@@ -58,13 +58,14 @@ describe('learners report API', () => {
     getJson.mockResolvedValue({ educationalDistricts: [] });
     await fetchLearnersFilterBox('region', { province: 'p1', city: 'c1' }, PERIOD);
     expect(searchParamsOf()).toEqual({
+      structure: 'semester',
       field: 'educationalDistrict',
       provinceId: 'p1',
       cityId: 'c1',
     });
     getJson.mockResolvedValue({ universities: [] });
     await fetchLearnersFilterBox('faculty', { province: 'p1' }, PERIOD);
-    expect(searchParamsOf(1)).toEqual({ field: 'university', provinceId: 'p1' });
+    expect(searchParamsOf(1)).toEqual({ structure: 'semester', field: 'university', provinceId: 'p1' });
   });
 
   it('استاد با fullName و معلم با کلید teachers خوانده می‌شود', async () => {
@@ -79,7 +80,7 @@ describe('learners report API', () => {
   it('دوره فقط وقتی semesterId واقعی هست فرستاده می‌شود', async () => {
     getJson.mockResolvedValue({ schools: [] });
     await fetchLearnersFilterBox('school', {}, PERIOD);
-    expect(searchParamsOf()).toEqual({ field: 'school' });
+    expect(searchParamsOf()).toEqual({ structure: 'semester', field: 'school' });
 
     await fetchLearnersFilterBox(
       'school',
@@ -123,6 +124,7 @@ describe('learners report API', () => {
     });
     expect(getJson.mock.calls[0]![0]).toBe('v1/reports/learners');
     expect(searchParamsOf()).toEqual({
+      structure: 'semester',
       provinceId: 'p1',
       universityId: 'u1',
       search: 'سارا',

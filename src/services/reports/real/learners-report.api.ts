@@ -12,12 +12,18 @@
 import { apiClient, ApiClientError } from '@/services/api-client';
 import { bearerHeaders, resolveBearerToken } from '@/services/api-token';
 import { toSearchParams } from '@/services/nest-search-params';
+import {
+  EXPORT_ACCEPT,
+  saveExportResponse,
+} from '@/services/reports/real/save-export-response';
 import type {
   ReportFilterKey,
   ReportFilters,
+  ReportLearnerScoreDetail,
   ReportOption,
   ReportPeriodState,
   ReportRow,
+  ReportScoreStatus,
 } from '@/types/reports';
 
 export type LearnersReportPaths = {
@@ -41,6 +47,21 @@ export const NEST_LEARNERS_ATTENDANCE_PATHS: LearnersReportPaths = {
   table: 'v1/reports/learners/attendance',
   export: 'v1/reports/learners/attendance/export',
 };
+
+/**
+ * «نمرات فراگیران» — جدول، خروجی و جزئیات.
+ * بک‌اند باکس فیلتر ندارد و فقط search، structure، semesterId، page و limit را می‌پذیرد؛
+ * پس `filters` خالی است و با `searchOnly` فیلترها هرگز فرستاده نمی‌شوند.
+ */
+export const NEST_LEARNERS_GRADES_PATHS: LearnersReportPaths = {
+  filters: '',
+  table: 'v1/reports/learners/grades',
+  export: 'v1/reports/learners/grades/export',
+};
+
+/** `GET v1/reports/learners/grades/detail/:studentId` */
+export const NEST_LEARNER_GRADE_DETAIL_PATH =
+  'v1/reports/learners/grades/detail';
 
 /** سقف `limit` در Nest پنجاه است. */
 export const LEARNERS_PAGE_SIZE = 50;
@@ -159,25 +180,27 @@ function periodParams(period: ReportPeriodState): {
   structure?: string;
   semesterId?: string;
 } {
-  // بدون انتخاب دورهٔ واقعی چیزی نفرست؛ idهای ماکت (t0/m1) هرگز به Nest نروند.
-  if (!period.semesterId) return {};
+  // نظام انتخاب‌شده (ترمی/پودمانی) همیشه فرستاده می‌شود؛ وگرنه بک‌اند هر دو را
+  // قاطی برمی‌گرداند. `semesterId` فقط وقتی دورهٔ واقعی انتخاب شده (idهای ماکت نه).
   return {
     structure: period.mode === 'term' ? 'semester' : 'podmani',
-    semesterId: period.semesterId,
+    ...(period.semesterId ? { semesterId: period.semesterId } : {}),
   };
 }
 
 function tableQuery(
   filters: ReportFilters,
   query: string,
-  period: ReportPeriodState
+  period: ReportPeriodState,
+  searchOnly = false
 ): Record<string, string | number | undefined> {
   const q: Record<string, string | number | undefined> = {};
   for (const [key, param] of Object.entries(TABLE_FILTER_PARAMS) as [
     ReportFilterKey,
     string,
   ][]) {
-    const value = filters[key];
+    // نمرات فراگیران فیلتر سازمانی ندارد (searchOnly).
+    const value = searchOnly ? undefined : filters[key];
     // «همه» یعنی کلید اصلاً در کوئری نباشد.
     if (value) q[param] = value;
   }
@@ -348,25 +371,37 @@ export function mapLearnerRow(raw: unknown, index: number): ReportRow | null {
     pickText(rec.fullName, rec.name) ??
     (first || last ? [first, last].filter(Boolean).join(' ') : undefined);
   const id = pickText(rec.id, rec._id, rec.studentId) ?? `row-${index}`;
-  const courses = pickCourses(rec);
+  // طبق Swagger: `lessons` آبجکت { title, extraCount } است (نه آرایه).
+  const lessons =
+    rec.lessons && typeof rec.lessons === 'object' && !Array.isArray(rec.lessons)
+      ? (rec.lessons as Record<string, unknown>)
+      : null;
+  const lessonTitle = lessons ? pickText(lessons.title) : undefined;
+  const courses = lessonTitle ? [lessonTitle] : pickCourses(rec);
+  const schoolObj =
+    rec.school && typeof rec.school === 'object'
+      ? (rec.school as Record<string, unknown>)
+      : {};
 
   return {
     id,
     s: '',
     name,
     phone: pickText(rec.phone, rec.mobile, rec.phoneNumber),
-    major: pickText(rec.major, rec.field, rec.fieldOfStudy, rec.grade),
+    major: pickText(rec.degree, rec.major, rec.field, rec.fieldOfStudy, rec.grade),
     courses,
+    ...(lessons ? { courseExtraCount: pickNumber(lessons.extraCount) ?? 0 } : {}),
     facName: pickText(rec.university, rec.universityTitle, rec.faculty),
     provName: pickText(rec.province, rec.provinceTitle),
     cityName: pickText(rec.city, rec.cityTitle),
     regionName: pickText(
       rec.educationalDistrict,
       rec.educationalDistrictTitle,
+      pickText(schoolObj.district),
       rec.region
     ),
     schoolName: pickText(rec.school, rec.schoolTitle),
-    profName: pickText(rec.professor, rec.professorName),
+    profName: pickText(rec.mentor, rec.professor, rec.professorName),
     teacherName: pickText(rec.teacher, rec.teacherName),
   };
 }
@@ -419,6 +454,33 @@ export function mapLearnerAttendanceRow(
   };
 }
 
+function mapGradeStatus(value: unknown): ReportScoreStatus {
+  if (value === 'passed') return 'pass';
+  if (value === 'failed') return 'fail';
+  return 'none';
+}
+
+/**
+ * ردیف «نمرات فراگیران»:
+ * `{ id, fullName, phone, mentor, status: passed | failed | not_recorded }`
+ */
+export function mapLearnerGradeRow(
+  raw: unknown,
+  index: number
+): ReportRow | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const rec = raw as Record<string, unknown>;
+  return {
+    id: pickText(rec.id, rec._id) ?? 'row-' + index,
+    s: '',
+    name: pickText(rec.fullName),
+    phone: pickText(rec.phone),
+    // سلول متنی خالی به نام فراگیر برمی‌گردد؛ پس برای «بدون استاد» خط‌تیره می‌گذاریم.
+    profName: pickText(rec.mentor) ?? '—',
+    status: mapGradeStatus(rec.status),
+  };
+}
+
 export type LearnersPage = {
   rows: ReportRow[];
   hasNextPage: boolean;
@@ -436,6 +498,8 @@ export async function fetchLearnersPage(input: {
   paths?: LearnersReportPaths;
   /** پیش‌فرض: `mapLearnerRow`. */
   mapRow?: (raw: unknown, index: number) => ReportRow | null;
+  /** فقط search و دوره؛ فیلترهای سازمانی فرستاده نشوند (نمرات). */
+  searchOnly?: boolean;
 }): Promise<LearnersPage> {
   const limit = Math.min(input.limit ?? LEARNERS_PAGE_SIZE, LEARNERS_PAGE_SIZE);
   const raw = await apiClient.getJson<unknown>(
@@ -443,7 +507,7 @@ export async function fetchLearnersPage(input: {
     undefined,
     {
       searchParams: toSearchParams({
-        ...tableQuery(input.filters, input.query, input.period),
+        ...tableQuery(input.filters, input.query, input.period, input.searchOnly),
         page: input.page,
         limit,
       }),
@@ -491,10 +555,12 @@ export async function downloadLearnersExport(input: {
   period: ReportPeriodState;
   paths?: LearnersReportPaths;
   fileNames?: LearnersExportFileNames;
+  /** فقط search و دوره؛ فیلترهای سازمانی فرستاده نشوند (نمرات). */
+  searchOnly?: boolean;
 }): Promise<void> {
   const params = new URLSearchParams();
   const query = toSearchParams({
-    ...tableQuery(input.filters, input.query, input.period),
+    ...tableQuery(input.filters, input.query, input.period, input.searchOnly),
     format: input.format,
   }) as Record<string, string | number>;
   for (const [key, value] of Object.entries(query)) {
@@ -507,7 +573,12 @@ export async function downloadLearnersExport(input: {
     {
       method: 'GET',
       credentials: 'include',
-      headers: { ...bearerHeaders(bearer), 'x-custom-lang': 'fa' },
+      cache: 'no-store',
+      headers: {
+        ...bearerHeaders(bearer),
+        'x-custom-lang': 'fa',
+        Accept: EXPORT_ACCEPT[input.format],
+      },
     }
   );
 
@@ -524,16 +595,83 @@ export async function downloadLearnersExport(input: {
     throw new ApiClientError(message, response.status);
   }
 
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  try {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = (input.fileNames ?? EXPORT_FILE)[input.format];
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  } finally {
-    URL.revokeObjectURL(url);
-  }
+  await saveExportResponse(
+    response,
+    (input.fileNames ?? EXPORT_FILE)[input.format],
+    input.format
+  );
+}
+
+export const LEARNERS_GRADES_EXPORT_FILE: LearnersExportFileNames = {
+  excel: 'learners-grades-report.xlsx',
+  pdf: 'learners-grades-report.pdf',
+};
+
+/* ------------------------------------------------------------------ */
+/* جزئیات نمرات                                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * پاسخ `grades/detail/:studentId`:
+ * `{ studentId, lessons: [{ lessonId, title, isPass, finalScore,
+ *    weeks: [{ priority (۱ تا ۵), score }] }] }`
+ * نام فراگیر در پاسخ نیست؛ از ردیف جدول می‌آید.
+ * جلسهٔ هر درس با `priority` هفته جایگذاری می‌شود (هفتهٔ بدون نمره = null).
+ */
+export function mapLearnerGradeDetail(
+  raw: unknown,
+  learnerId: string,
+  learnerName: string
+): ReportLearnerScoreDetail {
+  const lessons = asRecord(raw).lessons;
+  const list = Array.isArray(lessons) ? lessons : [];
+  return {
+    learnerId,
+    learnerName,
+    periodLabel: '',
+    courses: list.map((item, index) => {
+      const lesson = asRecord(item);
+      const weeks = Array.isArray(lesson.weeks) ? lesson.weeks : [];
+      const sessions: (number | null)[] = [];
+      for (const week of weeks) {
+        const w = asRecord(week);
+        const score = pickNumber(w.score) ?? null;
+        const priority = pickNumber(w.priority) ?? 0;
+        if (priority > 0) {
+          while (sessions.length < priority) sessions.push(null);
+          sessions[priority - 1] = score;
+        } else {
+          sessions.push(score);
+        }
+      }
+      const got = sessions.filter((v): v is number => v !== null);
+      return {
+        // یک درس ممکن است در چند نیم‌سال تکرار شود؛ id یکتا بماند.
+        id: (pickText(lesson.lessonId) ?? 'lesson') + '-' + index,
+        name: pickText(lesson.title) ?? '',
+        average: got.length
+          ? Math.round(got.reduce((a, b) => a + b, 0) / got.length)
+          : null,
+        sessions,
+      };
+    }),
+  };
+}
+
+/** `GET /reports/learners/grades/detail/:studentId?structure=&semesterId=` */
+export async function fetchLearnerGradeDetail(
+  learnerId: string,
+  learnerName: string,
+  period: ReportPeriodState
+): Promise<ReportLearnerScoreDetail> {
+  const raw = await apiClient.getJson<unknown>(
+    NEST_LEARNER_GRADE_DETAIL_PATH + '/' + encodeURIComponent(learnerId),
+    undefined,
+    {
+      searchParams: toSearchParams(
+        period.semesterId ? { ...periodParams(period) } : {}
+      ),
+    }
+  );
+  return mapLearnerGradeDetail(raw, learnerId, learnerName);
 }

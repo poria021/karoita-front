@@ -14,6 +14,10 @@ import { apiClient, ApiClientError } from '@/services/api-client';
 import { bearerHeaders, resolveBearerToken } from '@/services/api-token';
 import { toSearchParams } from '@/services/nest-search-params';
 import {
+  EXPORT_ACCEPT,
+  saveExportResponse,
+} from '@/services/reports/real/save-export-response';
+import {
   isPerformanceReportSlug,
   mapPerformanceRow,
 } from '@/services/reports/real/performance-report.mappers';
@@ -309,11 +313,11 @@ function periodParams(period: ReportPeriodState): {
   structure?: string;
   semesterId?: string;
 } {
-  // بدون انتخاب دورهٔ واقعی چیزی نفرست؛ idهای ماکت (t0/m1) هرگز به Nest نروند.
-  if (!period.semesterId) return {};
+  // نظام انتخاب‌شده (ترمی/پودمانی) همیشه فرستاده می‌شود؛ وگرنه بک‌اند هر دو را
+  // قاطی برمی‌گرداند. `semesterId` فقط وقتی دورهٔ واقعی انتخاب شده (idهای ماکت نه).
   return {
     structure: period.mode === 'term' ? 'semester' : 'podmani',
-    semesterId: period.semesterId,
+    ...(period.semesterId ? { semesterId: period.semesterId } : {}),
   };
 }
 
@@ -514,19 +518,38 @@ export function mapListRow(raw: unknown, index: number): ReportRow | null {
     s: '',
     name,
     phone: pickText(rec.phone, rec.mobile, rec.phoneNumber),
-    head: pickText(rec.head, rec.manager, rec.principal, rec.principalName),
+    // دانشکده: `dean`، استان: `head`، مدرسه: `admin` (آبجکت) — طبق Swagger.
+    head: pickText(
+      rec.dean,
+      rec.head,
+      rec.admin,
+      rec.manager,
+      rec.principal,
+      rec.principalName
+    ),
     provName: pickText(rec.province, rec.provinceTitle),
     cityName: pickText(rec.city, rec.cityTitle),
     regionName: pickText(
       rec.educationalDistrict,
       rec.educationalDistrictTitle,
+      rec.district,
       rec.region
+    ),
+    // مدارس: `admin` = { fullName, personnelCode }.
+    principalName: pickText(rec.admin),
+    principalCode: pickText(
+      rec.admin && typeof rec.admin === 'object'
+        ? (rec.admin as Record<string, unknown>).personnelCode
+        : undefined
     ),
     facName: pickText(rec.university, rec.universityTitle, rec.faculty),
     schoolName: pickText(rec.school, rec.schoolTitle),
     profName: pickText(rec.professor, rec.professorName),
     teacherName: pickText(rec.teacher, rec.teacherName),
-    n: typeof rec.count === 'number' ? rec.count : undefined,
+    n: pickNumber(rec.learnerCount) ?? pickNumber(rec.count),
+    nT: pickNumber(rec.teacherCount),
+    nP: pickNumber(rec.professorCount),
+    nF: pickNumber(rec.facultyCount),
     // «حضور اساتید»: سه عدد جدا و یکی نیستند.
     code: pickText(rec.personnelCode),
     att: pickNumber(rec.attendancePercent),
@@ -651,7 +674,12 @@ export async function downloadListExport(
     {
       method: 'GET',
       credentials: 'include',
-      headers: { ...bearerHeaders(bearer), 'x-custom-lang': 'fa' },
+      cache: 'no-store',
+      headers: {
+        ...bearerHeaders(bearer),
+        'x-custom-lang': 'fa',
+        Accept: EXPORT_ACCEPT[input.format],
+      },
     }
   );
 
@@ -668,16 +696,9 @@ export async function downloadListExport(
     throw new ApiClientError(message, response.status);
   }
 
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  try {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = EXPORT_FILE[slug][input.format];
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  } finally {
-    URL.revokeObjectURL(url);
-  }
+  await saveExportResponse(
+    response,
+    EXPORT_FILE[slug][input.format],
+    input.format
+  );
 }

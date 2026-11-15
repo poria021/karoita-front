@@ -7,7 +7,6 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
 import { KvSearchableOrganizationSelect } from '@/components/shared/fields/KvSearchableOrganizationSelect';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { MockDataBadge } from '@/components/shared/MockDataBadge';
 import {
   KvTable,
   KvTableBody,
@@ -109,7 +108,6 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
                 <KvTypography as="h2" variant="title" id="cmp-h" truncate>
                   مقایسه‌ی {page.def.title}
                 </KvTypography>
-                <MockDataBadge />
               </div>
               <KvTypography as="p" variant="caption" tone="muted">
                 {help}

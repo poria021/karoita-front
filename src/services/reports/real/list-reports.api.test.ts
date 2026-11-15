@@ -76,7 +76,7 @@ describe('list reports API (schools/faculties/provinces/teachers/principals/prof
       period: PERIOD,
       page: 1,
     });
-    expect(searchParamsOf()).toEqual({ search: 'قم', page: 1, limit: 50 });
+    expect(searchParamsOf()).toEqual({ structure: 'semester', search: 'قم', page: 1, limit: 50 });
   });
 
   it('باکسی خارج از سقف گزارش بدون صدازدن API مخفی است', async () => {
@@ -95,6 +95,7 @@ describe('list reports API (schools/faculties/provinces/teachers/principals/prof
       page: 2,
     });
     expect(searchParamsOf()).toEqual({
+      structure: 'semester',
       provinceId: 'p1',
       educationalDistrictId: 'd1',
       search: 'نمونه',

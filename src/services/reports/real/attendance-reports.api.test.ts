@@ -99,6 +99,7 @@ describe('حضور و غیاب فراگیران', () => {
     });
     expect(getJson.mock.calls[0]![0]).toBe('v1/reports/learners/attendance');
     expect(searchParamsOf()).toEqual({
+      structure: 'semester',
       provinceId: 'p1',
       universityId: 'u1',
       schoolId: 's1',

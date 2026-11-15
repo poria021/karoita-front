@@ -118,7 +118,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
     getJson.mockResolvedValue({});
     const boxes = await fetchListFilterBoxes('school-performance', {}, NO_PERIOD);
     expect(Object.values(boxes).every((b) => b?.status === 'absent')).toBe(true);
-    expect(searchParamsOf()).toEqual({});
+    expect(searchParamsOf()).toEqual({ structure: 'semester' });
   });
 
   it('عملکرد استان‌ها هیچ باکسی ندارد و درخواستی نمی‌فرستد', async () => {
@@ -204,6 +204,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
       page: 1,
     });
     expect(searchParamsOf()).toEqual({
+      structure: 'semester',
       provinceId: 'p1',
       universityId: 'u1',
       page: 1,
@@ -220,7 +221,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
       page: 1,
     });
     expect(getJson.mock.calls[0]![0]).toBe('v1/reports/provinces/performance');
-    expect(searchParamsOf()).toEqual({ search: 'قم', page: 1, limit: 50 });
+    expect(searchParamsOf()).toEqual({ structure: 'semester', search: 'قم', page: 1, limit: 50 });
   });
 
   it('ردیف معلم: مدرسه با منطقه، تعداد فراگیر و نرخ پاسخ', () => {
