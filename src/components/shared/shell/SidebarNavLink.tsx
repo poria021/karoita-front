@@ -103,8 +103,12 @@ export function SidebarNavLink({
     kvShellRailNavTypeClassName[textSize],
     'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
     useBullet ? 'px-3 py-2' : 'py-2.5',
-    !useBullet && (isCollapsed ? 'px-3.5 lg:px-0' : 'px-3.5'),
-    isCollapsed ? 'justify-start lg:justify-center' : 'justify-start text-start',
+    // justify-content قابل انیمیت نیست؛ به‌جای پریدن به center، padding شروع (درصدِ عرض خود لینک) انیمیت می‌شود تا آیکن همزمان با عرض ریل به وسط برسد.
+    !useBullet &&
+      (isCollapsed
+        ? 'px-3.5 lg:pe-0 lg:ps-[calc((100%_-_1.25rem_-_2px)/2)]'
+        : 'px-3.5'),
+    'justify-start text-start',
     isDisabled
       ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
       : isActive

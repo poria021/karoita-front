@@ -239,7 +239,7 @@ export function UserAccountMenu({
             type="button"
             aria-label={`منوی حساب ${name}`}
             className={cn(
-              'w-full border-t border-kv-border-muted bg-kv-surface text-start transition-colors',
+              'w-full border-t border-kv-border-muted bg-kv-surface text-start transition-[padding,color,background-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
               'hover:bg-kv-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30',
               'data-[state=open]:bg-kv-surface-muted lg:rounded-b-kv-shell',
               isCollapsed ? 'p-kv-group lg:p-kv-pair' : 'p-kv-group'
@@ -249,7 +249,7 @@ export function UserAccountMenu({
               className={cn(
                 'flex items-center rounded-kv-control border border-kv-border-muted bg-kv-surface-muted transition-[padding] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
                 isCollapsed
-                  ? 'justify-start p-kv-inline lg:justify-center lg:p-kv-pair'
+                  ? 'p-kv-inline lg:py-kv-pair lg:pe-0 lg:ps-[calc((100%_-_2.25rem_-_2px)/2)]'
                   : 'p-kv-inline'
               )}
             >

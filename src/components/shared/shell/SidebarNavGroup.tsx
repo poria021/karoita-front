@@ -74,46 +74,22 @@ export function SidebarNavGroup({
   const childActive =
     !locked && (activePath !== null || reportsRouteActive);
 
-  // ریل جمع‌شدهٔ دسکتاپ: فقط سر ماژول (نه همهٔ زیرآیتم‌ها). کلیک → باز شدن ریل + افشای گروه.
-  // روی گزارش‌ها ریل دوتایی است — باز کردن ریل اصلی را تریگر نکن.
-  if (isCollapsed) {
-    return (
-      <div className="space-y-kv-inline max-lg:contents lg:block">
-        <div className="hidden lg:contents">
-          <CollapsedGroupHeader
-            title={group.title}
-            groupIcon={groupIcon}
-            childActive={childActive}
-            locked={locked}
-            textSize={textSize}
-            onActivate={() => {
-              if (locked) return;
-              setOpen(true);
-              expandSidebar();
-            }}
-          />
-        </div>
-        <div className="space-y-kv-nav-tight lg:hidden">
-          <ExpandedGroupChrome
-            group={group}
-            groupIcon={groupIcon}
-            groupId={groupId}
-            open={disclosureOpen}
-            onToggle={() => {
-              if (locked) return;
-              setOpen((value) => !value);
-            }}
-            activePath={activePath}
-            locked={locked}
-            lockedPaths={lockedPaths}
-            onNavigate={onNavigate}
-            isCollapsed={false}
-            textSize={textSize}
-          />
-        </div>
-      </div>
-    );
-  }
+  // ریل جمع‌شدهٔ دسکتاپ: همان درخت ریل باز می‌ماند و فقط لیبل/فلش/زیرمنو با ترنزیشن جمع می‌شوند
+  // (قبلاً دو کامپوننت جدا جایگزین هم می‌شد و گروه‌ها با بقیهٔ آیتم‌ها هماهنگ جمع نمی‌شدند).
+  // کلیک روی سر ماژول در ریل جمع‌شده → باز شدن ریل + افشای گروه.
+  const handleToggle = () => {
+    if (locked) return;
+    if (
+      isCollapsed &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(min-width: 64rem)').matches
+    ) {
+      setOpen(true);
+      expandSidebar();
+      return;
+    }
+    setOpen((value) => !value);
+  };
 
   return (
     <ExpandedGroupChrome
@@ -121,78 +97,16 @@ export function SidebarNavGroup({
       groupIcon={groupIcon}
       groupId={groupId}
       open={disclosureOpen}
-      onToggle={() => {
-        if (locked) return;
-        setOpen((value) => !value);
-      }}
+      onToggle={handleToggle}
       activePath={activePath}
       locked={locked}
       lockedPaths={lockedPaths}
       onNavigate={onNavigate}
       isCollapsed={false}
       textSize={textSize}
+      railCollapsed={isCollapsed}
+      railActive={childActive}
     />
-  );
-}
-
-function CollapsedGroupHeader({
-  title,
-  groupIcon,
-  childActive,
-  locked,
-  textSize,
-  onActivate,
-}: {
-  title: string;
-  groupIcon: IconDefinition;
-  childActive: boolean;
-  locked: boolean;
-  textSize: KvShellRailTextSize;
-  onActivate: () => void;
-}) {
-  const iconTone = locked
-    ? 'text-kv-text-faint'
-    : childActive
-      ? 'text-kv-brand'
-      : 'text-kv-text-faint group-hover:text-kv-text-subtle';
-
-  return (
-    <button
-      type="button"
-      aria-disabled={locked || undefined}
-      disabled={locked}
-      aria-label={locked ? lockedNavAriaLabel(title) : title}
-      title={locked ? lockedNavTitle(title) : title}
-      onClick={onActivate}
-      className={cn(
-        'group flex w-full items-center rounded-kv-control transition-[padding,color,background-color] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
-        kvShellRailNavTypeClassName[textSize],
-        'focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-kv-ring/20',
-        'justify-start px-3.5 py-2.5 lg:justify-center lg:px-0',
-        locked
-          ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
-          : childActive
-            ? 'cursor-pointer border border-kv-brand-border bg-kv-brand-soft font-semibold text-kv-brand-soft-fg'
-            : 'cursor-pointer border border-transparent font-semibold text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
-      )}
-    >
-      <span className="flex min-w-0 items-center">
-        <FaIcon
-          icon={groupIcon}
-          size="sm"
-          className={cn('w-5 shrink-0 text-center transition-colors', iconTone)}
-        />
-        <span
-          className={cn(
-            'ms-3 inline-block whitespace-nowrap opacity-100 lg:ms-0 lg:max-w-0 lg:opacity-0',
-            kvShellRailLabelMaxClassName[textSize],
-            kvShellRailLabelMotionClassName
-          )}
-        >
-          {title}
-        </span>
-      </span>
-    </button>
   );
 }
 
@@ -208,6 +122,8 @@ function ExpandedGroupChrome({
   onNavigate,
   isCollapsed,
   textSize,
+  railCollapsed = false,
+  railActive = false,
 }: {
   group: SidebarMenuGroup;
   groupIcon: IconDefinition;
@@ -220,14 +136,19 @@ function ExpandedGroupChrome({
   onNavigate: () => void;
   isCollapsed: boolean;
   textSize: KvShellRailTextSize;
+  /** ریل دسکتاپ جمع است: فقط آیکن می‌ماند (کلاس‌های `lg:`؛ موبایل همیشه باز). */
+  railCollapsed?: boolean;
+  /** سر گروه در ریل جمع‌شده فعال دیده شود (شامل مسیر گزارش‌ها). */
+  railActive?: boolean;
 }) {
   const childActive = !locked && activePath !== null;
 
   return (
-    <div className="space-y-kv-nav-tight">
+    <div className="flex flex-col">
       {/*
         افشای گروه `L1` — دکمهٔ native (کروم آکاردئون، نه `CTA`).
         وقتی ماژول قفل است خود والد مثل برگ‌ها قفل دیده می‌شود.
+        جمع‌شدن ریل: padding شروع (٪ عرض) + لیبل/فلش/زیرمنو همزمان با عرض ریل انیمیت می‌شوند.
       */}
       <button
         type="button"
@@ -237,17 +158,28 @@ function ExpandedGroupChrome({
         aria-disabled={locked || undefined}
         disabled={locked}
         aria-label={locked ? lockedNavAriaLabel(group.title) : undefined}
-        title={locked ? lockedNavTitle(group.title) : undefined}
+        title={
+          locked
+            ? lockedNavTitle(group.title)
+            : railCollapsed
+              ? group.title
+              : undefined
+        }
         onClick={onToggle}
         className={cn(
-          'group flex w-full items-center justify-between rounded-kv-control px-kv-inline py-kv-nav font-semibold transition-colors',
+          'group flex w-full items-center justify-between rounded-kv-control px-kv-inline py-kv-nav font-semibold transition-[padding,color,background-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
           kvShellRailNavTypeClassName[textSize],
           kvShellFocusRingClassName,
+          railCollapsed && 'lg:pe-0 lg:ps-[calc((100%_-_1.25rem)/2)]',
           locked
             ? 'cursor-not-allowed bg-kv-surface-muted/40 font-medium text-kv-text-faint opacity-40'
             : childActive
               ? 'text-kv-text hover:bg-kv-surface-muted'
-              : 'text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text'
+              : 'text-kv-text-secondary hover:bg-kv-surface-muted hover:text-kv-text',
+          railCollapsed &&
+            railActive &&
+            !locked &&
+            'lg:bg-kv-brand-soft lg:text-kv-brand-soft-fg lg:ring-1 lg:ring-inset lg:ring-kv-brand-border lg:hover:bg-kv-brand-soft'
         )}
       >
         <span className="flex min-w-0 items-center">
@@ -258,7 +190,7 @@ function ExpandedGroupChrome({
               'w-5 shrink-0 text-center transition-colors',
               locked
                 ? 'text-kv-text-faint'
-                : childActive
+                : childActive || (railCollapsed && railActive)
                   ? 'text-kv-brand'
                   : 'text-kv-text-faint group-hover:text-kv-text-subtle'
             )}
@@ -266,43 +198,66 @@ function ExpandedGroupChrome({
           <span
             className={cn(
               'ms-kv-inline truncate',
-              kvShellRailLabelMaxClassName[textSize]
+              kvShellRailLabelMaxClassName[textSize],
+              kvShellRailLabelMotionClassName,
+              railCollapsed && 'lg:ms-0 lg:max-w-0 lg:opacity-0'
             )}
           >
             {group.title}
           </span>
         </span>
         {!locked ? (
-          <FaIcon
-            icon={faIcons.chevronDown}
-            size="2xs"
+          <span
+            aria-hidden
             className={cn(
-              'shrink-0 text-kv-text-faint/80 transition-transform group-hover:text-kv-text-faint',
-              open && 'rotate-180'
+              'flex max-w-4 shrink-0 overflow-hidden opacity-100 transition-[max-width,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              railCollapsed && 'lg:max-w-0 lg:opacity-0'
             )}
-          />
+          >
+            <FaIcon
+              icon={faIcons.chevronDown}
+              size="2xs"
+              className={cn(
+                'shrink-0 text-kv-text-faint/80 transition-transform group-hover:text-kv-text-faint',
+                open && 'rotate-180'
+              )}
+            />
+          </span>
         ) : null}
       </button>
 
       {!locked && open ? (
         <div
-          id={`${groupId}-panel`}
-          role="group"
-          aria-labelledby={groupId}
-          className="ms-kv-group mt-kv-field space-y-kv-nav-tight overflow-hidden border-s border-kv-border-muted ps-kv-inline"
+          className={cn(
+            'grid grid-rows-[1fr] opacity-100 transition-[grid-template-rows,opacity,visibility] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+            railCollapsed && 'lg:invisible lg:grid-rows-[0fr] lg:opacity-0'
+          )}
         >
-          {group.children.map((child) => (
-            <SidebarNavLink
-              key={child.path}
-              item={child}
-              isActive={!locked && activePath === child.path}
-              isCollapsed={isCollapsed}
-              locked={locked || Boolean(lockedPaths?.has(child.path)) || Boolean(child.disabled)}
-              onNavigate={onNavigate}
-              nested
-              textSize={textSize}
-            />
-          ))}
+          <div className="min-h-0 overflow-hidden pt-kv-nav-tight">
+            <div
+              id={`${groupId}-panel`}
+              role="group"
+              aria-labelledby={groupId}
+              className="ms-kv-group mt-kv-field space-y-kv-nav-tight border-s border-kv-border-muted ps-kv-inline"
+            >
+              {group.children.map((child) => (
+                <SidebarNavLink
+                  key={child.path}
+                  item={child}
+                  isActive={!locked && activePath === child.path}
+                  isCollapsed={isCollapsed}
+                  locked={
+                    locked ||
+                    Boolean(lockedPaths?.has(child.path)) ||
+                    Boolean(child.disabled)
+                  }
+                  onNavigate={onNavigate}
+                  nested
+                  textSize={textSize}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       ) : null}
     </div>
