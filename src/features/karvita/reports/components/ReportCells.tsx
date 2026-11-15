@@ -37,18 +37,28 @@ export function cellContent(
 ) {
   switch (col.kind) {
     case 'phone':
-      return <bdi className="whitespace-nowrap">{String(row.phone ?? '')}</bdi>;
+      // کل پروژه ارقام فارسی نمایش می‌دهد؛ شماره تلفن هم مستثنی نیست.
+      return (
+        <bdi className="whitespace-nowrap">
+          {toPersianDigits(String(row.phone ?? ''))}
+        </bdi>
+      );
     case 'two-line': {
-      const primary = String(row[col.sortKey ?? col.id] ?? row.name ?? '');
+      // فیلد ناموجود باید «—» نشان دهد، نه اسم خودِ ردیف (باگ: فالبک اشتباه به row.name).
+      const rawPrimary = row[col.sortKey ?? col.id];
+      const primary =
+        rawPrimary != null && rawPrimary !== ''
+          ? toPersianDigits(String(rawPrimary))
+          : '—';
       let secondary = col.secondaryKey
-        ? String(row[col.secondaryKey] ?? '')
+        ? toPersianDigits(String(row[col.secondaryKey] ?? ''))
         : '';
       if (
         col.secondaryKey === 'regionName' &&
         row.cityName &&
         row.regionName
       ) {
-        secondary = `${row.cityName}، ${row.regionName}`;
+        secondary = toPersianDigits(`${row.cityName}، ${row.regionName}`);
       }
       return (
         <div className="flex flex-col gap-0.5">
@@ -86,27 +96,33 @@ export function cellContent(
       return <StatusBadge status={String(row.status ?? 'none')} />;
     case 'courses': {
       const ids = row.courses ?? [];
-      const firstName = ids[0]
-        ? (page.courseLabels[ids[0]] ?? ids[0])
-        : undefined;
+      const firstName = ids[0];
       if (!firstName) return '—';
       // API حضور و غیاب فقط عنوان اولین درس و تعداد بقیه را می‌دهد.
       if (typeof row.courseExtraCount === 'number') {
         return (
           <div className="flex items-center gap-2">
-            <span>{firstName}</span>
+            <span>{toPersianDigits(firstName)}</span>
             {row.courseExtraCount > 0 ? (
-              <Badge variant="default" dir="ltr">
+              <KvButton
+                type="button"
+                size="xs"
+                appearance="secondary"
+                color="cta"
+                dir="ltr"
+                aria-label={`نمایش همه‌ی درس‌های ${row.name ?? ''}`}
+                onClick={() => page.openCourses(row.id)}
+              >
                 +{toPersianDigits(row.courseExtraCount)}
-              </Badge>
+              </KvButton>
             ) : null}
           </div>
         );
       }
-      if (ids.length < 2) return firstName;
+      if (ids.length < 2) return toPersianDigits(firstName);
       return (
         <div className="flex items-center gap-2">
-          <span>{firstName}</span>
+          <span>{toPersianDigits(firstName)}</span>
           <KvButton
             type="button"
             size="xs"
@@ -139,14 +155,16 @@ export function cellContent(
       if (key === 'school' && row.schoolName) {
         return (
           <div className="flex flex-col gap-0.5">
-            <span className="font-bold">{row.schoolName}</span>
+            <span className="font-bold">{toPersianDigits(row.schoolName)}</span>
             <span className="text-xs text-kv-text-faint">
-              {row.cityName}، {row.regionName}
+              {toPersianDigits(`${row.cityName ?? ''}، ${row.regionName ?? ''}`)}
             </span>
           </div>
         );
       }
-      return String(row[key] ?? row.name ?? '—');
+      // فیلد ناموجود باید «—» نشان دهد، نه اسم خودِ ردیف (باگ: فالبک اشتباه به row.name).
+      const value = row[key];
+      return value != null && value !== '' ? toPersianDigits(String(value)) : '—';
     }
   }
 }
