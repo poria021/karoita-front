@@ -268,7 +268,10 @@ describe('live nav / admin plane', () => {
         .filter(isSidebarMenuGroup)
         .find((g) => g.title === 'مدیریت سازمانی')
         ?.children.map((c) => c.path)
-    ).toEqual([RouteService.karvita.organizationalStructure()]);
+    ).toEqual([
+      RouteService.karvita.organizationalStructure(),
+      RouteService.karvita.reportAccess(),
+    ]);
     expect(
       assistantMenu
         .filter(isSidebarMenuGroup)
