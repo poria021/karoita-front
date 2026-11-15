@@ -159,6 +159,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     placeholder: 'نام یا کد استادی',
     fac: true,
     period: true,
+    periodModes: false,
     first: ['q', 'province', 'city', 'faculty'],
     more: [],
     desc: {
@@ -232,6 +233,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     entity: 'teacherPerf',
     placeholder: 'نام، کد پرسنلی یا تلفن',
     period: true,
+    periodModes: false,
     first: ['q', 'province', 'city', 'region'],
     more: ['school', 'teacher'],
     desc: {
@@ -245,6 +247,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     entity: 'schoolPerf',
     placeholder: 'عنوان مدرسه یا نام مدیر',
     period: true,
+    periodModes: false,
     first: ['q', 'province', 'city', 'region'],
     more: ['school', 'teacher'],
     desc: {
@@ -259,6 +262,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     placeholder: 'نام، کد پرسنلی یا تلفن',
     fac: true,
     period: true,
+    periodModes: false,
     first: ['q', 'province', 'city', 'faculty'],
     more: [],
     desc: {
@@ -296,6 +300,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     placeholder: 'عنوان دانشکده یا نام مدیر دانشکده',
     fac: true,
     period: true,
+    periodModes: false,
     first: ['q', 'province', 'city'],
     more: [],
     desc: {
@@ -309,6 +314,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     entity: 'provPerf',
     placeholder: 'عنوان استان یا نام مسئول',
     period: true,
+    periodModes: false,
     first: ['q'],
     more: [],
     desc: {
@@ -328,26 +334,9 @@ export function themeIdForSlug(slug: ReportSlug): string | undefined {
   return themeForSlug(slug)?.id;
 }
 
-export const TERMS = [
-  { id: 't0', label: 'نیم‌سال اول ۱۴۰۵–۱۴۰۶ (جاری)' },
-  { id: 't1', label: 'نیم‌سال دوم ۱۴۰۴–۱۴۰۵' },
-  { id: 't2', label: 'نیم‌سال اول ۱۴۰۴–۱۴۰۵' },
-] as const;
-
-export const MODULES = [
-  { id: 'm0', label: 'پودمان ۱ — آشنایی با محیط کار' },
-  { id: 'm1', label: 'پودمان ۲ — مهارت‌های پایه (جاری)' },
-  { id: 'm2', label: 'پودمان ۳ — کارورزی تخصصی' },
-  { id: 'm3', label: 'پودمان ۴ — ارزیابی نهایی' },
-] as const;
-
-export const CUR_PERIOD = { term: 't0', module: 'm1' } as const;
-
 /** سقف واکشی یک‌بارهٔ جدول گزارش (بدون پجینیشن — فقط اسکرول). */
 export const REPORT_LIST_LIMIT = 5000;
 
-/** سازگاری سرویس ماکت؛ همان سقف لیست. */
-export const PAGE_SIZE = REPORT_LIST_LIMIT;
 export const COMPARE_MAX = 4;
 export const COMPARE_MIN = 2;
 

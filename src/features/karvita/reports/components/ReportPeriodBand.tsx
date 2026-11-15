@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import {
   AppTabs,
   AppTabsList,
@@ -13,7 +15,6 @@ import {
   KvSelectValue,
 } from '@/components/shared/fields/KvSelect';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { MODULES, TERMS } from '@/features/karvita/reports/constants';
 import type { AdminReportPageModel } from '@/features/karvita/reports/hooks/useAdminReportPage';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -27,26 +28,26 @@ const ALL_PERIODS = '__all__';
 export function ReportPeriodBand({ page }: ReportPeriodBandProps) {
   const isTerm = page.period.mode === 'term';
   const showModes = page.def.periodModes !== false;
+
+  // گزارش‌های بدون تب ترمی/پودمانی همیشه روی نظام پیش‌فرض‌اند؛ ?mode= قدیمی در URL نباید بماند.
+  const { setMode } = page;
+  useEffect(() => {
+    if (!showModes && !isTerm) setMode('term');
+  }, [showModes, isTerm, setMode]);
   const label = isTerm ? 'نیم‌سال تحصیلی' : 'پودمان';
 
-  // real: دوره‌ها از API می‌آیند و «همه» پیش‌فرض است؛ ماکت: لیست ثابت.
-  const options = page.realPeriods
-    ? [
-        {
-          id: ALL_PERIODS,
-          label: isTerm ? 'همه نیم‌سال‌ها' : 'همه پودمان‌ها',
-        },
-        ...page.periodOptions.map((option) => ({
-          id: option.value,
-          label: option.label,
-        })),
-      ]
-    : [...(isTerm ? TERMS : MODULES)];
-  const cur = page.realPeriods
-    ? page.period.semesterId || ALL_PERIODS
-    : isTerm
-      ? page.period.termId
-      : page.period.moduleId;
+  // دوره‌ها از API می‌آیند و «همه» پیش‌فرض است.
+  const options = [
+    {
+      id: ALL_PERIODS,
+      label: isTerm ? 'همه نیم‌سال‌ها' : 'همه پودمان‌ها',
+    },
+    ...page.periodOptions.map((option) => ({
+      id: option.value,
+      label: option.label,
+    })),
+  ];
+  const cur = page.period.semesterId || ALL_PERIODS;
 
   return (
     <div className="flex flex-col items-start gap-kv-inline">
