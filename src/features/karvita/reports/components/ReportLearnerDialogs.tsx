@@ -57,9 +57,11 @@ export function ReportLearnerDialogs({ page }: ReportLearnerDialogsProps) {
                     <KvTypography as="span" variant="subtitle">
                       {c.name}
                     </KvTypography>
-                    <KvTypography as="span" variant="caption" tone="muted">
-                      کد درس {c.code}
-                    </KvTypography>
+                    {c.code ? (
+                      <KvTypography as="span" variant="caption" tone="muted">
+                        کد درس {c.code}
+                      </KvTypography>
+                    ) : null}
                   </li>
                 ))}
               </ul>

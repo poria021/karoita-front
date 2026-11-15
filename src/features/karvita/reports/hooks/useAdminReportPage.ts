@@ -41,10 +41,19 @@ import {
   subscribeShallowLocation,
 } from '@/lib/shallow-location';
 import {
+  isRealApiReport,
   isRealLearnersReport,
   ReportsService,
 } from '@/services/reports.service';
-import { learnersDescendantKeys } from '@/services/reports/real/learners-report.api';
+import {
+  learnersDescendantKeys,
+  type LearnersFilterBox,
+} from '@/services/reports/real/learners-report.api';
+import { fetchReportPeriods } from '@/services/reports/real/report-periods.api';
+import {
+  isListReportSlug,
+  listReportDescendantKeys,
+} from '@/services/reports/real/list-reports.api';
 import type { ReportSlug } from '@/types/report-access';
 import type {
   ReportColumnDef,
@@ -62,6 +71,16 @@ import type {
 
 function hasPeriod(def: (typeof REPORT_PAGE_DEFS)[ReportSlug]): boolean {
   return Boolean(def.learner || def.period);
+}
+
+/** کلیدهای آبشار برای هر اسلاگ real — «فراگیران» جدا، بقیه از `list-reports.api`. */
+function descendantKeysFor(slug: ReportSlug, key: ReportFilterKey): ReportFilterKey[] {
+  // «حضور و غیاب فراگیران» همان آبشار «لیست فراگیران» را دارد.
+  if (slug === 'learners' || slug === 'attendance') {
+    return learnersDescendantKeys(key);
+  }
+  if (isListReportSlug(slug)) return listReportDescendantKeys(slug, key);
+  return [];
 }
 
 const NO_HIDDEN_FILTER_KEYS: readonly ReportFilterKey[] = [];
@@ -127,8 +146,10 @@ export function useAdminReportPage(
   options?: UseAdminReportPageOptions
 ) {
   const def = REPORT_PAGE_DEFS[slug];
-  /** لیست فراگیران در حالت real به Nest وصل است (آبشار، صفحه‌بندی، خروجی). */
+  /** لیست فراگیران در حالت real به Nest وصل است (دیالوگ درس/نمره فقط همین‌جا معنی دارد). */
   const realLearners = isRealLearnersReport(slug);
+  /** هر گزارش real (فراگیران یا یکی از گزارش‌های لیستی) — آبشار، صفحه‌بندی، خروجی. */
+  const isRealApi = isRealApiReport(slug);
   const hiddenFilterKeys =
     options?.hiddenFilterKeys ?? NO_HIDDEN_FILTER_KEYS;
   const extraFilterKeys = options?.extraFilterKeys ?? NO_EXTRA_FILTER_KEYS;
@@ -144,13 +165,17 @@ export function useAdminReportPage(
     termId: CUR_PERIOD.term,
     moduleId: CUR_PERIOD.module,
   });
+  /** دورهٔ واقعی (id نیم‌سال/پودمان از API)؛ خالی یعنی «همه» و structure/semesterId فرستاده نمی‌شود. */
+  const [semesterId, setSemesterId] = useState('');
+  const [periodOptions, setPeriodOptions] = useState<ReportOption[]>([]);
   const period: ReportPeriodState = useMemo(
     () => ({
       mode: periodMode,
       termId: periodIds.termId,
       moduleId: periodIds.moduleId,
+      ...(isRealApi && semesterId ? { semesterId } : {}),
     }),
-    [periodIds.moduleId, periodIds.termId, periodMode]
+    [isRealApi, periodIds.moduleId, periodIds.termId, periodMode, semesterId]
   );
   const [filters, setFilters] = useState<ReportFilters>({});
   const [query, setQuery] = useState('');
@@ -184,8 +209,10 @@ export function useAdminReportPage(
     useState<ReportLearnerScoreDetail | null>(null);
   const [dialogLoading, setDialogLoading] = useState(false);
 
+  // مقایسه هنوز API واقعی ندارد؛ روی گزارش‌های real خاموش می‌ماند.
   const canCompare =
     REPORT_COMPARE_ENABLED &&
+    !isRealApi &&
     (options?.canCompare ?? COMPARE_REPORT_SLUGS.includes(slug));
   const pathname = usePathname();
   const locationSearch = useSyncExternalStore(
@@ -284,6 +311,7 @@ export function useAdminReportPage(
     setHasNextPage(false);
     setPageNo(1);
     setRoleHiddenKeys([]);
+    setSemesterId('');
     compareHydratedRef.current = false;
     skipDraftUrlSyncRef.current = false;
     // روی mount اول، ?view=compare را برای دیپ‌لینک نگه دار؛ فقط با تعویض اسلاگ پاک کن.
@@ -305,6 +333,23 @@ export function useAdminReportPage(
     setCompareSelected(compareIdsFromUrl);
     setCompareDraft(compareIdsFromUrl);
   }, [canCompare, compareIdsFromUrl, compareModeActive]);
+
+  // لیست دوره‌ها از API فعلی پروژه؛ با تعویض نظام ترمی/پودمانی دوباره گرفته می‌شود.
+  useEffect(() => {
+    if (!isRealApi) return;
+    let cancelled = false;
+    setPeriodOptions([]);
+    void fetchReportPeriods(periodMode)
+      .then((options) => {
+        if (!cancelled) setPeriodOptions(options);
+      })
+      .catch(() => {
+        if (!cancelled) setPeriodOptions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isRealApi, periodMode]);
 
   useEffect(() => {
     let cancelled = false;
@@ -369,7 +414,7 @@ export function useAdminReportPage(
   }, [slug, filters, query, period, sort]);
 
   useEffect(() => {
-    if (realLearners) return;
+    if (isRealApi) return;
     let cancelled = false;
     void ReportsService.getFilterCatalog().then((catalog) => {
       if (cancelled) return;
@@ -380,7 +425,7 @@ export function useAdminReportPage(
     return () => {
       cancelled = true;
     };
-  }, [realLearners]);
+  }, [isRealApi]);
 
   const advKeys = useMemo(
     () =>
@@ -394,22 +439,50 @@ export function useAdminReportPage(
 
   useEffect(() => {
     let cancelled = false;
-    if (realLearners) {
-      void Promise.all(
-        advKeys.map(async (key) => {
-          try {
-            const box = await ReportsService.getLearnersFilterBox(
-              key,
-              filters,
-              period
+    if (isRealApi) {
+      const loadBoxes = async (): Promise<
+        (readonly [ReportFilterKey, LearnersFilterBox])[]
+      > => {
+        // حضور و غیاب: یک درخواست بدون field برای همهٔ باکس‌های مجاز نقش.
+        try {
+          const batch = await ReportsService.getReportFilterBoxes(
+            slug,
+            filters,
+            period
+          );
+          if (batch) {
+            return advKeys.map(
+              (key) =>
+                [key, batch[key] ?? { status: 'absent' as const }] as const
             );
-            return [key, box] as const;
-          } catch {
-            // خطای شبکه/سرور: باکس بماند ولی بدون گزینه.
-            return [key, { status: 'ok' as const, options: [] as ReportOption[] }] as const;
           }
-        })
-      ).then((entries) => {
+        } catch {
+          return advKeys.map(
+            (key) =>
+              [key, { status: 'ok' as const, options: [] as ReportOption[] }] as const
+          );
+        }
+        return Promise.all(
+          advKeys.map(async (key) => {
+            try {
+              const box = await ReportsService.getReportFilterBox(
+                slug,
+                key,
+                filters,
+                period
+              );
+              return [key, box] as const;
+            } catch {
+              // خطای شبکه/سرور: باکس بماند ولی بدون گزینه.
+              return [
+                key,
+                { status: 'ok' as const, options: [] as ReportOption[] },
+              ] as const;
+            }
+          })
+        );
+      };
+      void loadBoxes().then((entries) => {
         if (cancelled) return;
         const next: Partial<Record<ReportFilterKey, ReportOption[]>> = {};
         const absent: ReportFilterKey[] = [];
@@ -458,7 +531,7 @@ export function useAdminReportPage(
     return () => {
       cancelled = true;
     };
-  }, [slug, filters, advKeys, realLearners, period]);
+  }, [slug, filters, advKeys, isRealApi, period]);
 
   useEffect(() => {
     if (!dialog) {
@@ -529,13 +602,13 @@ export function useAdminReportPage(
         if (value) next[key] = value;
         else delete next[key];
         // آبشار: انتخاب باکس‌های بعدی با والد جدید نمی‌خواند؛ پاک شوند.
-        if (realLearners) {
-          for (const dep of learnersDescendantKeys(key)) delete next[dep];
+        if (isRealApi) {
+          for (const dep of descendantKeysFor(slug, key)) delete next[dep];
         }
         return next;
       });
     },
-    [realLearners]
+    [isRealApi, slug]
   );
 
   const clearFilters = useCallback(() => {
@@ -553,6 +626,8 @@ export function useAdminReportPage(
 
   const setMode = useCallback(
     (mode: ReportPeriodMode) => {
+      // semesterId با structure جدید نمی‌خواند (400)؛ انتخاب قبلی پاک شود.
+      setSemesterId('');
       setPeriodMode(mode);
     },
     [setPeriodMode]
@@ -560,24 +635,28 @@ export function useAdminReportPage(
 
   const setPeriodId = useCallback(
     (id: string) => {
+      if (isRealApi) {
+        setSemesterId(id);
+        return;
+      }
       setPeriodIds((prev) =>
         periodMode === 'term'
           ? { ...prev, termId: id }
           : { ...prev, moduleId: id }
       );
     },
-    [periodMode]
+    [isRealApi, periodMode]
   );
 
   const exportStub = useCallback(
     (format: 'PDF' | 'اکسل') => {
-      if (!realLearners) {
+      if (!isRealApi) {
         toast.message(`فایل ${format} آماده شد`);
         return;
       }
       // همهٔ صفحه‌ها با همان فیلترهای جدول (نه فقط صفحهٔ جاری).
       toast.promise(
-        ReportsService.exportLearners({
+        ReportsService.exportReport(slug, {
           format: format === 'PDF' ? 'pdf' : 'excel',
           filters,
           query,
@@ -591,11 +670,11 @@ export function useAdminReportPage(
         }
       );
     },
-    [filters, period, query, realLearners]
+    [filters, isRealApi, period, query, slug]
   );
 
   const loadMore = useCallback(async () => {
-    if (!realLearners || !hasNextPage || isLoadingMore) return;
+    if (!isRealApi || !hasNextPage || isLoadingMore) return;
     setIsLoadingMore(true);
     try {
       const next = await ReportsService.queryReport({
@@ -622,10 +701,10 @@ export function useAdminReportPage(
     filters,
     hasNextPage,
     isLoadingMore,
+    isRealApi,
     pageNo,
     period,
     query,
-    realLearners,
     slug,
     sort,
   ]);
@@ -780,6 +859,9 @@ export function useAdminReportPage(
     period,
     setMode,
     setPeriodId,
+    /** گزینه‌های دورهٔ واقعی (فقط گزارش‌های real). */
+    periodOptions,
+    realPeriods: isRealApi,
     filters,
     setFilter,
     query,

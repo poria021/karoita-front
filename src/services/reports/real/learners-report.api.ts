@@ -20,11 +20,27 @@ import type {
   ReportRow,
 } from '@/types/reports';
 
-export const NEST_LEARNERS_REPORT_PATHS = {
+export type LearnersReportPaths = {
+  filters: string;
+  table: string;
+  export: string;
+};
+
+export const NEST_LEARNERS_REPORT_PATHS: LearnersReportPaths = {
   filters: 'v1/reports/filters/learners_list',
   table: 'v1/reports/learners',
   export: 'v1/reports/learners/export',
-} as const;
+};
+
+/**
+ * «حضور و غیاب فراگیران» — همان باکس‌ها، آبشار و پارامترهای جدول «لیست فراگیران»؛
+ * فقط مسیرها و شکل ردیف فرق دارد.
+ */
+export const NEST_LEARNERS_ATTENDANCE_PATHS: LearnersReportPaths = {
+  filters: 'v1/reports/filters/learners_attendance',
+  table: 'v1/reports/learners/attendance',
+  export: 'v1/reports/learners/attendance/export',
+};
 
 /** سقف `limit` در Nest پنجاه است. */
 export const LEARNERS_PAGE_SIZE = 50;
@@ -203,7 +219,8 @@ export async function fetchLearnersFilterBox(
   key: ReportFilterKey,
   filters: ReportFilters,
   period: ReportPeriodState,
-  search?: string
+  search?: string,
+  paths: LearnersReportPaths = NEST_LEARNERS_REPORT_PATHS
 ): Promise<LearnersFilterBox> {
   const spec = FILTER_BOXES[key];
   if (!spec) return { status: 'absent' };
@@ -224,7 +241,7 @@ export async function fetchLearnersFilterBox(
 
   try {
     const raw = await apiClient.getJson<unknown>(
-      NEST_LEARNERS_REPORT_PATHS.filters,
+      paths.filters,
       undefined,
       { searchParams: toSearchParams(query) }
     );
@@ -238,6 +255,55 @@ export async function fetchLearnersFilterBox(
       // نقش به این باکس دسترسی ندارد.
       if (error.status === 403 || error.status === 404) {
         return { status: 'absent' };
+      }
+    }
+    throw error;
+  }
+}
+
+/**
+ * همهٔ باکس‌های مجاز نقش در یک درخواست (بدون `field`)، مثل مستند حضور و غیاب.
+ * idهای انتخاب‌شده با نام پارامتر جدول فرستاده می‌شوند؛ سرور خودش آبشار را اعمال می‌کند.
+ * کلیدی که در پاسخ نیامده یعنی برای این نقش مخفی است.
+ */
+export async function fetchLearnersFilterBoxes(
+  filters: ReportFilters,
+  period: ReportPeriodState,
+  paths: LearnersReportPaths = NEST_LEARNERS_REPORT_PATHS
+): Promise<Partial<Record<ReportFilterKey, LearnersFilterBox>>> {
+  const query: Record<string, string | number | undefined> = {};
+  for (const [key, param] of Object.entries(TABLE_FILTER_PARAMS) as [
+    ReportFilterKey,
+    string,
+  ][]) {
+    const value = filters[key];
+    if (value) query[param] = value;
+  }
+  Object.assign(query, periodParams(period));
+
+  const keys = Object.keys(FILTER_BOXES) as ReportFilterKey[];
+  const all = (box: LearnersFilterBox) =>
+    Object.fromEntries(keys.map((key) => [key, box])) as Partial<
+      Record<ReportFilterKey, LearnersFilterBox>
+    >;
+
+  try {
+    const raw = await apiClient.getJson<unknown>(paths.filters, undefined, {
+      searchParams: toSearchParams(query),
+    });
+    const out: Partial<Record<ReportFilterKey, LearnersFilterBox>> = {};
+    for (const key of keys) {
+      const options = mapOptions(raw, FILTER_BOXES[key]!);
+      out[key] = options ? { status: 'ok', options } : { status: 'absent' };
+    }
+    return out;
+  } catch (error) {
+    if (error instanceof ApiClientError) {
+      if (error.status === 400) {
+        return all({ status: 'conflict', message: error.message });
+      }
+      if (error.status === 403 || error.status === 404) {
+        return all({ status: 'absent' });
       }
     }
     throw error;
@@ -305,6 +371,54 @@ export function mapLearnerRow(raw: unknown, index: number): ReportRow | null {
   };
 }
 
+function pickNumber(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return undefined;
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+/**
+ * ردیف «حضور و غیاب فراگیران»:
+ * `{ id, fullName, phone, degree, lessons: { title, extraCount }, university,
+ *    province, school: { title, district }, attendancePercent }`
+ * فقط عنوان اولین درس می‌آید؛ بقیه فقط شمارنده‌اند (`courseExtraCount`).
+ */
+export function mapLearnerAttendanceRow(
+  raw: unknown,
+  index: number
+): ReportRow | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const rec = raw as Record<string, unknown>;
+  const lessons = asRecord(rec.lessons);
+  const schoolIsText = typeof rec.school === 'string';
+  const school = asRecord(rec.school);
+  const lessonTitle = pickText(lessons.title);
+
+  return {
+    id: pickText(rec.id, rec._id) ?? `row-${index}`,
+    s: '',
+    name: pickText(rec.fullName),
+    phone: pickText(rec.phone),
+    major: pickText(rec.degree),
+    courses: lessonTitle ? [lessonTitle] : [],
+    courseExtraCount: pickNumber(lessons.extraCount) ?? 0,
+    facName: pickText(rec.university),
+    provName: pickText(rec.province),
+    schoolName: schoolIsText ? pickText(rec.school) : pickText(school.title),
+    regionName: pickText(school.district),
+    att: pickNumber(rec.attendancePercent),
+  };
+}
+
 export type LearnersPage = {
   rows: ReportRow[];
   hasNextPage: boolean;
@@ -318,10 +432,14 @@ export async function fetchLearnersPage(input: {
   period: ReportPeriodState;
   page: number;
   limit?: number;
+  /** پیش‌فرض: «لیست فراگیران». */
+  paths?: LearnersReportPaths;
+  /** پیش‌فرض: `mapLearnerRow`. */
+  mapRow?: (raw: unknown, index: number) => ReportRow | null;
 }): Promise<LearnersPage> {
   const limit = Math.min(input.limit ?? LEARNERS_PAGE_SIZE, LEARNERS_PAGE_SIZE);
   const raw = await apiClient.getJson<unknown>(
-    NEST_LEARNERS_REPORT_PATHS.table,
+    (input.paths ?? NEST_LEARNERS_REPORT_PATHS).table,
     undefined,
     {
       searchParams: toSearchParams({
@@ -336,10 +454,9 @@ export async function fetchLearnersPage(input: {
     hasNextPage?: unknown;
   };
   const data = Array.isArray(body.data) ? body.data : [];
+  const mapRow = input.mapRow ?? mapLearnerRow;
   const rows = data
-    .map((item, index) =>
-      mapLearnerRow(item, (input.page - 1) * limit + index)
-    )
+    .map((item, index) => mapRow(item, (input.page - 1) * limit + index))
     .filter((row): row is ReportRow => row !== null);
   return { rows, hasNextPage: body.hasNextPage === true, page: input.page };
 }
@@ -350,9 +467,16 @@ export async function fetchLearnersPage(input: {
 
 export type LearnersExportFormat = 'excel' | 'pdf';
 
-const EXPORT_FILE: Record<LearnersExportFormat, string> = {
+export type LearnersExportFileNames = Record<LearnersExportFormat, string>;
+
+const EXPORT_FILE: LearnersExportFileNames = {
   excel: 'learners-report.xlsx',
   pdf: 'learners-report.pdf',
+};
+
+export const LEARNERS_ATTENDANCE_EXPORT_FILE: LearnersExportFileNames = {
+  excel: 'learners-attendance-report.xlsx',
+  pdf: 'learners-attendance-report.pdf',
 };
 
 /**
@@ -365,6 +489,8 @@ export async function downloadLearnersExport(input: {
   filters: ReportFilters;
   query: string;
   period: ReportPeriodState;
+  paths?: LearnersReportPaths;
+  fileNames?: LearnersExportFileNames;
 }): Promise<void> {
   const params = new URLSearchParams();
   const query = toSearchParams({
@@ -377,7 +503,7 @@ export async function downloadLearnersExport(input: {
 
   const bearer = await resolveBearerToken();
   const response = await fetch(
-    `${apiClient.baseUrl}/${NEST_LEARNERS_REPORT_PATHS.export}?${params.toString()}`,
+    `${apiClient.baseUrl}/${(input.paths ?? NEST_LEARNERS_REPORT_PATHS).export}?${params.toString()}`,
     {
       method: 'GET',
       credentials: 'include',
@@ -403,7 +529,7 @@ export async function downloadLearnersExport(input: {
   try {
     const link = document.createElement('a');
     link.href = url;
-    link.download = EXPORT_FILE[input.format];
+    link.download = (input.fileNames ?? EXPORT_FILE)[input.format];
     document.body.appendChild(link);
     link.click();
     link.remove();

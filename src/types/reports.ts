@@ -50,6 +50,7 @@ export type ReportColumnKind =
   | 'count'
   | 'status'
   | 'courses'
+  | 'score'
   | 'scores-action';
 
 export type ReportColumnDef = {

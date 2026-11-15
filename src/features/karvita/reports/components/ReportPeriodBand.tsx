@@ -21,11 +21,32 @@ type ReportPeriodBandProps = {
   page: AdminReportPageModel;
 };
 
+/** «همه» یعنی structure و semesterId اصلاً به API فرستاده نشود. */
+const ALL_PERIODS = '__all__';
+
 export function ReportPeriodBand({ page }: ReportPeriodBandProps) {
   const isTerm = page.period.mode === 'term';
-  const list = isTerm ? TERMS : MODULES;
-  const cur = isTerm ? page.period.termId : page.period.moduleId;
   const showModes = page.def.periodModes !== false;
+  const label = isTerm ? 'نیم‌سال تحصیلی' : 'پودمان';
+
+  // real: دوره‌ها از API می‌آیند و «همه» پیش‌فرض است؛ ماکت: لیست ثابت.
+  const options = page.realPeriods
+    ? [
+        {
+          id: ALL_PERIODS,
+          label: isTerm ? 'همه نیم‌سال‌ها' : 'همه پودمان‌ها',
+        },
+        ...page.periodOptions.map((option) => ({
+          id: option.value,
+          label: option.label,
+        })),
+      ]
+    : [...(isTerm ? TERMS : MODULES)];
+  const cur = page.realPeriods
+    ? page.period.semesterId || ALL_PERIODS
+    : isTerm
+      ? page.period.termId
+      : page.period.moduleId;
 
   return (
     <div className="flex flex-col items-start gap-kv-inline">
@@ -56,19 +77,18 @@ export function ReportPeriodBand({ page }: ReportPeriodBandProps) {
           <KvSelect
             value={cur}
             onValueChange={(next) => {
-              if (next) page.setPeriodId(next);
+              if (!next) return;
+              page.setPeriodId(next === ALL_PERIODS ? '' : next);
             }}
           >
             <KvSelectTrigger
-              aria-label={isTerm ? 'نیم‌سال تحصیلی' : 'پودمان'}
+              aria-label={label}
               className="bg-kv-surface shadow-kv-soft"
             >
-              <KvSelectValue
-                placeholder={isTerm ? 'نیم‌سال تحصیلی' : 'پودمان'}
-              />
+              <KvSelectValue placeholder={label} />
             </KvSelectTrigger>
             <KvSelectContent>
-              {list.map((option) => (
+              {options.map((option) => (
                 <KvSelectItem key={option.id} value={option.id}>
                   {toPersianDigits(option.label)}
                 </KvSelectItem>

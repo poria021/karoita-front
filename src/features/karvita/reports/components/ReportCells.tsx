@@ -71,6 +71,17 @@ export function cellContent(
         </span>
       );
     }
+    case 'score': {
+      // averageScore ممکن است null باشد؛ آن‌وقت «—».
+      const v = row[col.sortKey ?? col.id];
+      return typeof v === 'number' ? (
+        <span className="whitespace-nowrap tabular-nums">
+          {toPersianDigits(Math.round(v * 100) / 100)}
+        </span>
+      ) : (
+        '—'
+      );
+    }
     case 'status':
       return <StatusBadge status={String(row.status ?? 'none')} />;
     case 'courses': {
@@ -79,6 +90,19 @@ export function cellContent(
         ? (page.courseLabels[ids[0]] ?? ids[0])
         : undefined;
       if (!firstName) return '—';
+      // API حضور و غیاب فقط عنوان اولین درس و تعداد بقیه را می‌دهد.
+      if (typeof row.courseExtraCount === 'number') {
+        return (
+          <div className="flex items-center gap-2">
+            <span>{firstName}</span>
+            {row.courseExtraCount > 0 ? (
+              <Badge variant="default" dir="ltr">
+                +{toPersianDigits(row.courseExtraCount)}
+              </Badge>
+            ) : null}
+          </div>
+        );
+      }
       if (ids.length < 2) return firstName;
       return (
         <div className="flex items-center gap-2">
