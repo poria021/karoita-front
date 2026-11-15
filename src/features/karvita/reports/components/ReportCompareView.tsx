@@ -70,6 +70,8 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
   }, [page.compareItems]);
 
   const metricTitles: Record<string, string> = {
+    attProf: 'نرخ حضور ثبت‌شده توسط استاد',
+    attMgr: 'نرخ حضور تاییدشده توسط مدیر مدرسه',
     att: 'درصد حضور جلسات',
     resp: 'نرخ پاسخ‌دهی به گزارش‌ها',
     score: 'میانگین نمره فراگیران',

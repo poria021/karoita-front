@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import {
   COMPARE_MAX,
   COMPARE_MIN,
+  COMPARE_REPORT_SLUGS,
   REPORT_COMPARE_ENABLED,
   REPORT_LIST_LIMIT,
   REPORT_PAGE_DEFS,
@@ -315,8 +316,11 @@ export function useAdminReportPage(
     return () => clearTimeout(timer);
   }, [query]);
 
-  // مقایسه API واقعی ندارد (و داده‌ٔ ماکت هم حذف شده)؛ همیشه خاموش است.
-  const canCompare = false;
+  // مقایسه API جدا ندارد؛ از همان ردیف‌هایی که جدول گرفته ساخته می‌شود.
+  // ماتریس دسترسی سازمانی (options.canCompare) اولویت دارد، وگرنه اسلاگ مقایسه‌پذیر.
+  const canCompare =
+    options?.canCompare ??
+    (REPORT_COMPARE_ENABLED && COMPARE_REPORT_SLUGS.includes(slug));
   const pathname = usePathname();
   const locationSearch = useSyncExternalStore(
     subscribeShallowLocation,
@@ -388,9 +392,70 @@ export function useAdminReportPage(
 
   const [compareSelected, setCompareSelected] = useState<string[]>([]);
   const [compareDraft, setCompareDraft] = useState<string[]>([]);
-  const [compareItems, setCompareItems] = useState<ReportCompareItem[]>([]);
   const [compareQ, setCompareQ] = useState('');
-  const [compareCandidates] = useState<ReportRow[]>([]);
+  /** ردیف‌هایی که تا حالا دیده شده؛ انتخاب‌شده‌ها با عوض‌شدن فیلتر/صفحه از دست نروند. */
+  const [compareRowsById, setCompareRowsById] = useState<
+    Record<string, ReportRow>
+  >({});
+  useEffect(() => {
+    if (!canCompare || rows.length === 0) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCompareRowsById((prev) => {
+      const next = { ...prev };
+      for (const row of rows) next[row.id] = row;
+      return next;
+    });
+  }, [canCompare, rows]);
+  const compareCandidates = useMemo<ReportRow[]>(() => {
+    const seen = new Set(rows.map((row) => row.id));
+    const extra: ReportRow[] = [];
+    for (const id of [...compareSelected, ...compareDraft]) {
+      const row = compareRowsById[id];
+      if (row && !seen.has(id)) {
+        seen.add(id);
+        extra.push(row);
+      }
+    }
+    return [...rows, ...extra];
+  }, [compareDraft, compareRowsById, compareSelected, rows]);
+  /** موارد مقایسه از روی ردیف‌های انتخاب‌شده؛ شاخص‌ها همان درصدهای ردیف‌اند. */
+  const compareItems = useMemo<ReportCompareItem[]>(() => {
+    const metricKeys = ['att', 'attProf', 'attMgr', 'resp', 'score'] as const;
+    const infoColumns = columns.filter(
+      (col) =>
+        col.id !== 'name' &&
+        col.sortKey &&
+        (col.kind === 'text' || col.kind === 'phone' || col.kind === 'count')
+    );
+    const items: ReportCompareItem[] = [];
+    for (const id of compareSelected) {
+      const row = compareRowsById[id];
+      if (!row) continue;
+      const metrics: Record<string, number> = {};
+      for (const key of metricKeys) {
+        const value = row[key];
+        if (typeof value === 'number' && Number.isFinite(value)) {
+          metrics[key] = value;
+        }
+      }
+      items.push({
+        id: row.id,
+        name: String(row.name ?? '').trim() || row.id,
+        metrics,
+        info: infoColumns.map((col) => {
+          const value = row[col.sortKey as string];
+          return {
+            label: col.title,
+            value:
+              value === undefined || value === null || value === ''
+                ? '—'
+                : String(value),
+          };
+        }),
+      });
+    }
+    return items;
+  }, [columns, compareRowsById, compareSelected]);
   const skipCompareResetOnMountRef = useRef(true);
   const compareHydratedRef = useRef(false);
   const skipDraftUrlSyncRef = useRef(false);
@@ -409,7 +474,7 @@ export function useAdminReportPage(
     setError(null);
     setCompareSelected([]);
     setCompareDraft([]);
-    setCompareItems([]);
+    setCompareRowsById({});
     setDialog(null);
     setAdvOpenState(false);
     setHasNextPage(false);
