@@ -15,8 +15,6 @@ import { toast } from 'sonner';
 import {
   COMPARE_MAX,
   COMPARE_MIN,
-  COMPARE_REPORT_SLUGS,
-  CUR_PERIOD,
   REPORT_COMPARE_ENABLED,
   REPORT_LIST_LIMIT,
   REPORT_PAGE_DEFS,
@@ -43,6 +41,7 @@ import {
 import {
   isRealApiReport,
   isRealLearnersReport,
+  isRealScoresReport,
   ReportsService,
 } from '@/services/reports.service';
 import {
@@ -54,6 +53,7 @@ import {
   isListReportSlug,
   listReportDescendantKeys,
 } from '@/services/reports/real/list-reports.api';
+import { useUserStore } from '@/store/useUserStore';
 import type { ReportSlug } from '@/types/report-access';
 import type {
   ReportColumnDef,
@@ -85,6 +85,56 @@ function descendantKeysFor(slug: ReportSlug, key: ReportFilterKey): ReportFilter
 
 const NO_HIDDEN_FILTER_KEYS: readonly ReportFilterKey[] = [];
 const NO_EXTRA_FILTER_KEYS: readonly ReportFilterKey[] = [];
+
+/** مدت اعتبار نتیجهٔ جدول در حافظه؛ برگشت به تب/ترکیب قبلی در این مدت بدون درخواست جدید است. */
+const REPORT_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type CachedReportPage = {
+  at: number;
+  rows: ReportRow[];
+  columns: ReportColumnDef[];
+  total: number;
+  hasNextPage: boolean;
+  pageNo: number;
+};
+
+type CachedFilterBoxes = {
+  at: number;
+  entries: (readonly [ReportFilterKey, LearnersFilterBox])[];
+};
+
+/**
+ * کش‌ها عمداً module-level‌اند (نه ref داخل هوک)؛ وگرنه با رفتن به گزارش دیگر هوک unmount
+ * می‌شود و برگشت به گزارش قبلی دوباره API می‌زند. کلید همه شامل id کاربر است تا داده‌ٔ
+ * نقش‌های مختلف قاطی نشود.
+ */
+const reportPageCache = new Map<string, CachedReportPage>();
+const periodOptionsCache = new Map<string, ReportOption[]>();
+const filterBoxesCache = new Map<string, CachedFilterBoxes>();
+const REPORT_CACHE_MAX_ENTRIES = 200;
+
+function cacheSet<T>(map: Map<string, T>, key: string, value: T): void {
+  if (!map.has(key) && map.size >= REPORT_CACHE_MAX_ENTRIES) {
+    const oldest = map.keys().next().value;
+    if (oldest !== undefined) map.delete(oldest);
+  }
+  map.set(key, value);
+}
+
+function nextFilters(
+  prev: ReportFilters,
+  key: ReportFilterKey,
+  value: string,
+  dependents: readonly ReportFilterKey[]
+): ReportFilters {
+  if ((prev[key] ?? '') === value) return prev;
+  const next = { ...prev };
+  if (value) next[key] = value;
+  else delete next[key];
+  // آبشار: انتخاب باکس‌های بعدی با والد جدید نمی‌خواند؛ پاک شوند.
+  for (const dep of dependents) delete next[dep];
+  return next;
+}
 
 /** ترتیب نمایش کشوی فیلتر: دانشکده پایین استان و بالای مدرسه. */
 const ADV_FILTER_DISPLAY_ORDER: readonly ReportFilterKey[] = [
@@ -150,6 +200,8 @@ export function useAdminReportPage(
   const realLearners = isRealLearnersReport(slug);
   /** هر گزارش real (فراگیران یا یکی از گزارش‌های لیستی) — آبشار، صفحه‌بندی، خروجی. */
   const isRealApi = isRealApiReport(slug);
+  /** نمرات فراگیران: بک‌اند فیلتر سازمانی ندارد؛ فقط جستجو و دوره. */
+  const realScores = isRealScoresReport(slug);
   const hiddenFilterKeys =
     options?.hiddenFilterKeys ?? NO_HIDDEN_FILTER_KEYS;
   const extraFilterKeys = options?.extraFilterKeys ?? NO_EXTRA_FILTER_KEYS;
@@ -158,45 +210,84 @@ export function useAdminReportPage(
     allowed: REPORT_PERIOD_MODE_VALUES,
     defaultValue: 'term',
   });
-  const [periodIds, setPeriodIds] = useState<{
-    termId: string;
-    moduleId: string;
-  }>({
-    termId: CUR_PERIOD.term,
-    moduleId: CUR_PERIOD.module,
-  });
   /** دورهٔ واقعی (id نیم‌سال/پودمان از API)؛ خالی یعنی «همه» و structure/semesterId فرستاده نمی‌شود. */
   const [semesterId, setSemesterId] = useState('');
   const [periodOptions, setPeriodOptions] = useState<ReportOption[]>([]);
   const period: ReportPeriodState = useMemo(
     () => ({
       mode: periodMode,
-      termId: periodIds.termId,
-      moduleId: periodIds.moduleId,
-      ...(isRealApi && semesterId ? { semesterId } : {}),
+      termId: '',
+      moduleId: '',
+      ...(semesterId ? { semesterId } : {}),
     }),
-    [isRealApi, periodIds.moduleId, periodIds.termId, periodMode, semesterId]
+    [periodMode, semesterId]
   );
+  /** فیلترهای اعمال‌شده روی جدول/خروجی/کش. */
   const [filters, setFilters] = useState<ReportFilters>({});
+  /** پیش‌نویس کشوی پیشرفته؛ فقط با «تأیید و اعمال» به `filters` (و جدول) می‌رسد، ولی آبشار باکس‌ها از آن ساخته می‌شود. */
+  const [draftFilters, setDraftFilters] = useState<ReportFilters>({});
   const [query, setQuery] = useState('');
+  /** جستجوی جدول با تأخیر؛ هر کلید یک درخواست نزند. پاک‌کردن فوری اعمال می‌شود. */
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [sort, setSort] = useState<ReportSort | null>(null);
-  const [rows, setRows] = useState<ReportRow[]>([]);
-  const [columns, setColumns] = useState<ReportColumnDef[]>([]);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  /** کلید کش شامل کاربر است؛ با عوض‌شدن کاربر/نقش داده‌ٔ دیگری نمایش داده نمی‌شود. */
+  const cacheUserId = useUserStore((state) => state.activeUser?.id ?? '');
+  /** کلید نتیجهٔ جدول: کاربر/slug/نظام/دوره/فیلتر/جستجو/مرتب‌سازی. */
+  const reportCacheKey = useMemo(
+    () =>
+      JSON.stringify([
+        cacheUserId,
+        slug,
+        period.mode,
+        period.semesterId ?? '',
+        filters,
+        debouncedQuery,
+        sort,
+      ]),
+    [
+      cacheUserId,
+      slug,
+      period.mode,
+      period.semesterId,
+      filters,
+      debouncedQuery,
+      sort,
+    ]
+  );
+  /** اگر گزارش قبلاً دیده شده، اولین رندر با همان داده شروع شود (بدون فلش اسکلتون). */
+  const [initialPage] = useState<CachedReportPage | null>(() => {
+    const hit = reportPageCache.get(reportCacheKey);
+    return hit && Date.now() - hit.at < REPORT_CACHE_TTL_MS ? hit : null;
+  });
+  const [rows, setRows] = useState<ReportRow[]>(initialPage?.rows ?? []);
+  const [columns, setColumns] = useState<ReportColumnDef[]>(
+    initialPage?.columns ?? []
+  );
+  const [total, setTotal] = useState(initialPage?.total ?? 0);
+  const [isLoading, setIsLoading] = useState(!initialPage);
   const [error, setError] = useState<string | null>(null);
   const [filterOptions, setFilterOptions] = useState<
     Partial<Record<ReportFilterKey, ReportOption[]>>
   >({});
-  const [courseLabels, setCourseLabels] = useState<Record<string, string>>(
-    {}
+  const [advOpen, setAdvOpenState] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(
+    initialPage?.hasNextPage ?? false
   );
-  const [advOpen, setAdvOpen] = useState(false);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [pageNo, setPageNo] = useState(1);
+  const [pageNo, setPageNo] = useState(initialPage?.pageNo ?? 1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   /** باکس‌هایی که Nest برای نقش فعلی نداده؛ مخفی می‌شوند. */
   const [roleHiddenKeys, setRoleHiddenKeys] = useState<ReportFilterKey[]>([]);
+  /** جستجوی داخل باکس: فقط همان باکس دوباره گرفته می‌شود. */
+  const [filterBoxLoading, setFilterBoxLoading] = useState<
+    Partial<Record<ReportFilterKey, boolean>>
+  >({});
+  const boxSearchSeqRef = useRef<Partial<Record<ReportFilterKey, number>>>({});
+  const boxSearchTimerRef = useRef<
+    Partial<Record<ReportFilterKey, ReturnType<typeof setTimeout>>>
+  >({});
+  const boxSearchActiveRef = useRef<Partial<Record<ReportFilterKey, boolean>>>(
+    {}
+  );
 
   const [dialog, setDialog] = useState<
     | { type: 'courses'; learnerId: string }
@@ -208,12 +299,24 @@ export function useAdminReportPage(
   const [scoreDetail, setScoreDetail] =
     useState<ReportLearnerScoreDetail | null>(null);
   const [dialogLoading, setDialogLoading] = useState(false);
+  /** نام فراگیر برای عنوان دیالوگ ریز نمرات بدون واکشی دوباره با هر تغییر ردیف‌ها. */
+  const rowsRef = useRef(rows);
+  useEffect(() => {
+    rowsRef.current = rows;
+  }, [rows]);
 
-  // مقایسه هنوز API واقعی ندارد؛ روی گزارش‌های real خاموش می‌ماند.
-  const canCompare =
-    REPORT_COMPARE_ENABLED &&
-    !isRealApi &&
-    (options?.canCompare ?? COMPARE_REPORT_SLUGS.includes(slug));
+  useEffect(() => {
+    if (query === '') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDebouncedQuery('');
+      return;
+    }
+    const timer = setTimeout(() => setDebouncedQuery(query), 350);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  // مقایسه API واقعی ندارد (و داده‌ٔ ماکت هم حذف شده)؛ همیشه خاموش است.
+  const canCompare = false;
   const pathname = usePathname();
   const locationSearch = useSyncExternalStore(
     subscribeShallowLocation,
@@ -287,7 +390,7 @@ export function useAdminReportPage(
   const [compareDraft, setCompareDraft] = useState<string[]>([]);
   const [compareItems, setCompareItems] = useState<ReportCompareItem[]>([]);
   const [compareQ, setCompareQ] = useState('');
-  const [compareCandidates, setCompareCandidates] = useState<ReportRow[]>([]);
+  const [compareCandidates] = useState<ReportRow[]>([]);
   const skipCompareResetOnMountRef = useRef(true);
   const compareHydratedRef = useRef(false);
   const skipDraftUrlSyncRef = useRef(false);
@@ -296,6 +399,7 @@ export function useAdminReportPage(
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setFilters((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+    setDraftFilters((prev) => (Object.keys(prev).length === 0 ? prev : {}));
     setQuery((q) => (q === '' ? q : ''));
     setSort((s) => (s == null ? s : null));
     setRows([]);
@@ -307,7 +411,7 @@ export function useAdminReportPage(
     setCompareDraft([]);
     setCompareItems([]);
     setDialog(null);
-    setAdvOpen(false);
+    setAdvOpenState(false);
     setHasNextPage(false);
     setPageNo(1);
     setRoleHiddenKeys([]);
@@ -338,9 +442,16 @@ export function useAdminReportPage(
   useEffect(() => {
     if (!isRealApi) return;
     let cancelled = false;
+    const periodCacheKey = cacheUserId + '|' + periodMode;
+    const cachedOptions = periodOptionsCache.get(periodCacheKey);
+    if (cachedOptions) {
+      setPeriodOptions(cachedOptions);
+      return;
+    }
     setPeriodOptions([]);
     void fetchReportPeriods(periodMode)
       .then((options) => {
+        cacheSet(periodOptionsCache, periodCacheKey, options);
         if (!cancelled) setPeriodOptions(options);
       })
       .catch(() => {
@@ -349,10 +460,22 @@ export function useAdminReportPage(
     return () => {
       cancelled = true;
     };
-  }, [isRealApi, periodMode]);
+  }, [cacheUserId, isRealApi, periodMode]);
 
   useEffect(() => {
     let cancelled = false;
+    const cached = reportPageCache.get(reportCacheKey);
+    if (cached && Date.now() - cached.at < REPORT_CACHE_TTL_MS) {
+      // همین ترکیب قبلاً گرفته شده (مثلاً برگشت از تب پودمانی به ترمی) → بدون درخواست.
+      setRows(cached.rows);
+      setColumns(cached.columns);
+      setTotal(cached.total);
+      setHasNextPage(cached.hasNextPage);
+      setPageNo(cached.pageNo);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     void (async () => {
@@ -360,11 +483,20 @@ export function useAdminReportPage(
         const result = await ReportsService.queryReport({
           slug,
           filters,
-          query,
+          query: debouncedQuery,
           period,
           sort,
           page: 1,
           pageSize: REPORT_LIST_LIMIT,
+        });
+        // حتی اگر کاربر تب را عوض کرده، نتیجه برای همان ترکیب معتبر است.
+        cacheSet(reportPageCache, reportCacheKey, {
+          at: Date.now(),
+          rows: result.rows,
+          columns: result.columns,
+          total: result.total,
+          hasNextPage: result.hasNextPage ?? false,
+          pageNo: 1,
         });
         if (cancelled) return;
         setRows(result.rows);
@@ -384,7 +516,7 @@ export function useAdminReportPage(
     return () => {
       cancelled = true;
     };
-  }, [slug, filters, query, period, sort]);
+  }, [slug, filters, debouncedQuery, period, sort, reportCacheKey]);
 
   const reload = useCallback(async () => {
     setIsLoading(true);
@@ -393,11 +525,20 @@ export function useAdminReportPage(
       const result = await ReportsService.queryReport({
         slug,
         filters,
-        query,
+        query: debouncedQuery,
         period,
         sort,
         page: 1,
         pageSize: REPORT_LIST_LIMIT,
+      });
+      // «بارگذاری دوباره» عمداً کش را دور می‌زند و آن را تازه می‌کند.
+      cacheSet(reportPageCache, reportCacheKey, {
+        at: Date.now(),
+        rows: result.rows,
+        columns: result.columns,
+        total: result.total,
+        hasNextPage: result.hasNextPage ?? false,
+        pageNo: 1,
       });
       setRows(result.rows);
       setColumns(result.columns);
@@ -411,69 +552,140 @@ export function useAdminReportPage(
     } finally {
       setIsLoading(false);
     }
-  }, [slug, filters, query, period, sort]);
+  }, [slug, filters, debouncedQuery, period, sort, reportCacheKey]);
 
-  useEffect(() => {
-    if (isRealApi) return;
-    let cancelled = false;
-    void ReportsService.getFilterCatalog().then((catalog) => {
-      if (cancelled) return;
-      const labels: Record<string, string> = {};
-      for (const c of catalog.courses) labels[c.value] = c.label;
-      setCourseLabels(labels);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [isRealApi]);
-
-  const advKeys = useMemo(
+  /**
+   * کلیدهای قابل‌درخواست (بدون در نظر گرفتن «غایب در پاسخ»). effect باکس‌ها فقط به این
+   * وابسته است؛ مخفی‌شدن باکس بعد از پاسخ نباید یک دور درخواست اضافه بزند.
+   */
+  const candidateKeys = useMemo(
     () =>
-      advKeysOf(
-        slug,
-        [...hiddenFilterKeys, ...roleHiddenKeys],
-        extraFilterKeys
-      ),
-    [slug, hiddenFilterKeys, roleHiddenKeys, extraFilterKeys]
+      realScores
+        ? NO_HIDDEN_FILTER_KEYS.slice()
+        : advKeysOf(slug, hiddenFilterKeys, extraFilterKeys),
+    [realScores, slug, hiddenFilterKeys, extraFilterKeys]
+  );
+  // امضای رشته‌ای: اگر والد آرایهٔ تازه با همان محتوا بدهد، دوباره درخواست نزند.
+  const candidateKeysSig = candidateKeys.join('|');
+  const advKeys = useMemo(
+    () => candidateKeys.filter((key) => !roleHiddenKeys.includes(key)),
+    [candidateKeys, roleHiddenKeys]
+  );
+
+  const filtersRef = useRef(draftFilters);
+  const advOpenRef = useRef(advOpen);
+  const periodRef = useRef(period);
+  useEffect(() => {
+    filtersRef.current = draftFilters;
+    periodRef.current = period;
+    advOpenRef.current = advOpen;
+  }, [advOpen, draftFilters, period]);
+
+  /**
+   * سرچ داخل یک باکس (مثلاً «تهران» در باکس استان):
+   * `GET filters/:slug?field=province&search=تهران` — فقط لیست همان باکس عوض می‌شود،
+   * باکس‌های دیگر و جدول دست نمی‌خورند. متن خالی لیست کامل را برمی‌گرداند.
+   */
+  const searchFilterBox = useCallback(
+    (key: ReportFilterKey, text: string) => {
+      if (!isRealApi || realScores) return;
+      const search = text.trim();
+      // بدون سرچ قبلی، «خالی» یعنی لیست همین الان کامل است.
+      if (!search && !boxSearchActiveRef.current[key]) return;
+      clearTimeout(boxSearchTimerRef.current[key]);
+      const run = async () => {
+        const seq = (boxSearchSeqRef.current[key] ?? 0) + 1;
+        boxSearchSeqRef.current[key] = seq;
+        boxSearchActiveRef.current[key] = Boolean(search);
+        setFilterBoxLoading((prev) => ({ ...prev, [key]: true }));
+        try {
+          const box = await ReportsService.getReportFilterBox(
+            slug,
+            key,
+            filtersRef.current,
+            periodRef.current,
+            search || undefined
+          );
+          // جواب قدیمی (سرچ تازه‌تر یا عوض‌شدن فیلترها) نادیده گرفته شود.
+          if (boxSearchSeqRef.current[key] !== seq) return;
+          if (box.status === 'ok') {
+            setFilterOptions((prev) => ({ ...prev, [key]: box.options }));
+          }
+        } catch {
+          // خطای شبکه: لیست قبلی بماند.
+        } finally {
+          if (boxSearchSeqRef.current[key] === seq) {
+            setFilterBoxLoading((prev) => ({ ...prev, [key]: false }));
+          }
+        }
+      };
+      if (!search) {
+        void run();
+        return;
+      }
+      boxSearchTimerRef.current[key] = setTimeout(() => void run(), 300);
+    },
+    [isRealApi, realScores, slug]
   );
 
   useEffect(() => {
     let cancelled = false;
     if (isRealApi) {
-      const loadBoxes = async (): Promise<
+      // فیلتر/والد عوض شده: لیست‌ها از نو گرفته می‌شود؛ سرچ‌های در راه باطل شوند.
+      for (const timer of Object.values(boxSearchTimerRef.current)) {
+        clearTimeout(timer);
+      }
+      boxSearchSeqRef.current = {};
+      boxSearchActiveRef.current = {};
+      setFilterBoxLoading({});
+      const requestKeys: ReportFilterKey[] = candidateKeysSig
+        ? (candidateKeysSig.split('|') as ReportFilterKey[])
+        : [];
+      let boxesFailed = false;
+      const boxesCacheKey = JSON.stringify([
+        cacheUserId,
+        slug,
+        period.mode,
+        period.semesterId ?? '',
+        draftFilters,
+        candidateKeysSig,
+      ]);
+      const fetchBoxes = async (): Promise<
         (readonly [ReportFilterKey, LearnersFilterBox])[]
       > => {
         // حضور و غیاب: یک درخواست بدون field برای همهٔ باکس‌های مجاز نقش.
         try {
           const batch = await ReportsService.getReportFilterBoxes(
             slug,
-            filters,
+            draftFilters,
             period
           );
           if (batch) {
-            return advKeys.map(
+            return requestKeys.map(
               (key) =>
                 [key, batch[key] ?? { status: 'absent' as const }] as const
             );
           }
         } catch {
-          return advKeys.map(
+          boxesFailed = true;
+          return requestKeys.map(
             (key) =>
               [key, { status: 'ok' as const, options: [] as ReportOption[] }] as const
           );
         }
         return Promise.all(
-          advKeys.map(async (key) => {
+          requestKeys.map(async (key) => {
             try {
               const box = await ReportsService.getReportFilterBox(
                 slug,
                 key,
-                filters,
+                draftFilters,
                 period
               );
               return [key, box] as const;
             } catch {
               // خطای شبکه/سرور: باکس بماند ولی بدون گزینه.
+              boxesFailed = true;
               return [
                 key,
                 { status: 'ok' as const, options: [] as ReportOption[] },
@@ -481,6 +693,22 @@ export function useAdminReportPage(
             }
           })
         );
+      };
+      const loadBoxes = async (): Promise<
+        (readonly [ReportFilterKey, LearnersFilterBox])[]
+      > => {
+        const hit = filterBoxesCache.get(boxesCacheKey);
+        if (hit && Date.now() - hit.at < REPORT_CACHE_TTL_MS) return hit.entries;
+        boxesFailed = false;
+        const entries = await fetchBoxes();
+        // پاسخ خطادار (باکس‌های خالیِ جایگزین) کش نشود.
+        if (!boxesFailed) {
+          cacheSet(filterBoxesCache, boxesCacheKey, {
+            at: Date.now(),
+            entries,
+          });
+        }
+        return entries;
       };
       void loadBoxes().then((entries) => {
         if (cancelled) return;
@@ -493,7 +721,7 @@ export function useAdminReportPage(
           } else if (box.status === 'conflict') {
             // ۴۰۰: انتخاب با والد جدید نمی‌خواند؛ باکس را خالی کن تا دوباره گرفته شود.
             next[key] = [];
-            if (filters[key]) stale.push(key);
+            if (draftFilters[key]) stale.push(key);
           } else {
             next[key] = box.options;
           }
@@ -506,32 +734,24 @@ export function useAdminReportPage(
           ]);
         }
         if (stale.length > 0) {
-          setFilters((prev) => {
+          const clean = (prev: ReportFilters): ReportFilters => {
             const cleaned = { ...prev };
             for (const key of stale) delete cleaned[key];
             return cleaned;
-          });
+          };
+          setDraftFilters(clean);
+          // کشو باز است → فقط پیش‌نویس؛ فیلتر اعمال‌شدهٔ جدول بدون تأیید کاربر دست نخورد.
+          if (!advOpenRef.current) setFilters(clean);
         }
       });
       return () => {
         cancelled = true;
       };
     }
-    void Promise.all(
-      advKeys.map(async (key) => {
-        const opts = await ReportsService.getFilterOptions(key, filters, slug);
-        return [key, opts] as const;
-      })
-    ).then((entries) => {
-      if (cancelled) return;
-      const next: Partial<Record<ReportFilterKey, ReportOption[]>> = {};
-      for (const [key, opts] of entries) next[key] = opts;
-      setFilterOptions(next);
-    });
     return () => {
       cancelled = true;
     };
-  }, [slug, filters, advKeys, isRealApi, period]);
+  }, [cacheUserId, slug, draftFilters, candidateKeysSig, isRealApi, period]);
 
   useEffect(() => {
     if (!dialog) {
@@ -556,25 +776,67 @@ export function useAdminReportPage(
             }
           : null
       );
-      setDialogLoading(false);
-      return;
+      const extra =
+        row && typeof row.courseExtraCount === 'number' ? row.courseExtraCount : 0;
+      if (!row || extra <= 0) {
+        setDialogLoading(false);
+        return;
+      }
+      // لیست فراگیران فقط عنوان اولین درس + شمارنده می‌دهد؛ بقیهٔ درس‌ها از جزئیات نمرات می‌آید.
+      let stop = false;
+      setDialogLoading(true);
+      void ReportsService.getLearnerScoreDetails(row.id, period, row.name ?? '')
+        .then((detail) => {
+          if (stop) return;
+          const seen = new Set<string>();
+          const names: string[] = [];
+          for (const name of [...(row.courses ?? []), ...detail.courses.map((c) => c.name)]) {
+            if (name && !seen.has(name)) {
+              seen.add(name);
+              names.push(name);
+            }
+          }
+          setCourseDetail({
+            learnerId: row.id,
+            learnerName: row.name ?? '',
+            periodLabel: '',
+            courses: names.map((name, index) => ({ id: String(index), name, code: '' })),
+          });
+        })
+        .catch((err: unknown) => {
+          if (stop) return;
+          toast.error(
+            err instanceof Error ? err.message : 'دریافت همهٔ درس‌ها ناموفق بود.'
+          );
+        })
+        .finally(() => {
+          if (!stop) setDialogLoading(false);
+        });
+      return () => {
+        stop = true;
+      };
     }
     let cancelled = false;
     setDialogLoading(true);
     const run = async () => {
       try {
         if (dialog.type === 'courses') {
-          const detail = await ReportsService.getLearnerCourseDetails(
-            dialog.learnerId,
-            period
-          );
-          if (!cancelled) setCourseDetail(detail);
+          // درس‌ها از خود ردیف می‌آیند (بالا)؛ API جدا نداریم.
+          if (!cancelled) setCourseDetail(null);
         } else {
           const detail = await ReportsService.getLearnerScoreDetails(
             dialog.learnerId,
-            period
+            period,
+            rowsRef.current.find((r) => r.id === dialog.learnerId)?.name ?? ''
           );
           if (!cancelled) setScoreDetail(detail);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          toast.error(
+            err instanceof Error ? err.message : 'دریافت اطلاعات ناموفق بود.'
+          );
+          setDialog(null);
         }
       } finally {
         if (!cancelled) setDialogLoading(false);
@@ -596,23 +858,48 @@ export function useAdminReportPage(
 
   const setFilter = useCallback(
     (key: ReportFilterKey, value: string) => {
-      setFilters((prev) => {
-        if ((prev[key] ?? '') === value) return prev;
-        const next = { ...prev };
-        if (value) next[key] = value;
-        else delete next[key];
-        // آبشار: انتخاب باکس‌های بعدی با والد جدید نمی‌خواند؛ پاک شوند.
-        if (isRealApi) {
-          for (const dep of descendantKeysFor(slug, key)) delete next[dep];
-        }
-        return next;
-      });
+      // کنترل «زنده» نوار ابزار: هم جدول هم پیش‌نویس.
+      const dependents = isRealApi ? descendantKeysFor(slug, key) : [];
+      setFilters((prev) => nextFilters(prev, key, value, dependents));
+      setDraftFilters((prev) => nextFilters(prev, key, value, dependents));
     },
     [isRealApi, slug]
   );
 
+  /** تغییر در کشوی پیشرفته: فقط پیش‌نویس؛ جدول تا «تأیید و اعمال» عوض نمی‌شود. */
+  const setDraftFilter = useCallback(
+    (key: ReportFilterKey, value: string) => {
+      const dependents = isRealApi ? descendantKeysFor(slug, key) : [];
+      setDraftFilters((prev) => nextFilters(prev, key, value, dependents));
+    },
+    [isRealApi, slug]
+  );
+
+  /** «تأیید و اعمال فیلترها»: پیش‌نویس روی جدول اعمال و کشو بسته می‌شود. */
+  const applyDraftFilters = useCallback(() => {
+    setFilters((prev) =>
+      JSON.stringify(prev) === JSON.stringify(draftFilters) ? prev : draftFilters
+    );
+    setAdvOpenState(false);
+  }, [draftFilters]);
+
+  /** «پاک کردن» داخل کشو: فقط پیش‌نویس خالی می‌شود؛ با «تأیید و اعمال» روی جدول می‌نشیند. */
+  const clearDraftFilters = useCallback(() => {
+    setDraftFilters((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+  }, []);
+
+  /** باز/بسته‌شدن کشو؛ پیش‌نویس همیشه از فیلترهای اعمال‌شده شروع می‌شود (تغییر تأییدنشده دور ریخته می‌شود). */
+  const setAdvOpen = useCallback(
+    (open: boolean) => {
+      setDraftFilters(filters);
+      setAdvOpenState(open);
+    },
+    [filters]
+  );
+
   const clearFilters = useCallback(() => {
     setFilters((prev) => (Object.keys(prev).length === 0 ? prev : {}));
+    setDraftFilters((prev) => (Object.keys(prev).length === 0 ? prev : {}));
     setQuery((q) => (q === '' ? q : ''));
   }, []);
 
@@ -635,17 +922,9 @@ export function useAdminReportPage(
 
   const setPeriodId = useCallback(
     (id: string) => {
-      if (isRealApi) {
-        setSemesterId(id);
-        return;
-      }
-      setPeriodIds((prev) =>
-        periodMode === 'term'
-          ? { ...prev, termId: id }
-          : { ...prev, moduleId: id }
-      );
+      setSemesterId(id);
     },
-    [isRealApi, periodMode]
+    []
   );
 
   const exportStub = useCallback(
@@ -680,11 +959,19 @@ export function useAdminReportPage(
       const next = await ReportsService.queryReport({
         slug,
         filters,
-        query,
+        query: debouncedQuery,
         period,
         sort,
         page: pageNo + 1,
         pageSize: REPORT_LIST_LIMIT,
+      });
+      cacheSet(reportPageCache, reportCacheKey, {
+        at: reportPageCache.get(reportCacheKey)?.at ?? Date.now(),
+        rows: [...rows, ...next.rows],
+        columns,
+        total: total + next.rows.length,
+        hasNextPage: next.hasNextPage ?? false,
+        pageNo: next.page,
       });
       setRows((prev) => [...prev, ...next.rows]);
       setTotal((prev) => prev + next.rows.length);
@@ -698,15 +985,19 @@ export function useAdminReportPage(
       setIsLoadingMore(false);
     }
   }, [
+    columns,
     filters,
     hasNextPage,
     isLoadingMore,
     isRealApi,
     pageNo,
     period,
-    query,
+    debouncedQuery,
+    reportCacheKey,
+    rows,
     slug,
     sort,
+    total,
   ]);
 
   const toggleCompareSelect = useCallback(
@@ -781,55 +1072,6 @@ export function useAdminReportPage(
     setCompareIdsInUrl,
   ]);
 
-  // `?view=compare` روی مسیر همان گزارش؛ دیپ‌لینک و ورود از دکمهٔ مقایسه.
-  useEffect(() => {
-    if (!canCompare || !compareModeActive) return;
-
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        const all = await ReportsService.queryReport({
-          slug,
-          filters,
-          query: '',
-          period,
-          sort: null,
-          page: 1,
-          pageSize: REPORT_LIST_LIMIT,
-        });
-        if (cancelled) return;
-        setCompareCandidates(all.rows);
-        if (compareSelected.length >= COMPARE_MIN) {
-          const items = await ReportsService.getCompareItems(
-            slug,
-            compareSelected,
-            period
-          );
-          if (!cancelled) setCompareItems(items);
-        } else if (!cancelled) {
-          setCompareItems([]);
-        }
-      } catch {
-        if (!cancelled) {
-          setCompareCandidates([]);
-          setCompareItems([]);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [
-    canCompare,
-    compareModeActive,
-    compareSelected,
-    filters,
-    period,
-    slug,
-  ]);
-
   const toggleCompareDraft = useCallback((id: string, on: boolean) => {
     setCompareDraft((prev) => {
       const i = prev.indexOf(id);
@@ -848,9 +1090,7 @@ export function useAdminReportPage(
     const ids = compareDraft.slice();
     setCompareSelected(ids);
     setCompareIdsInUrl(ids);
-    const items = await ReportsService.getCompareItems(slug, ids, period);
-    setCompareItems(items);
-  }, [compareDraft, period, setCompareIdsInUrl, slug]);
+  }, [compareDraft, setCompareIdsInUrl]);
 
   return {
     slug,
@@ -861,9 +1101,12 @@ export function useAdminReportPage(
     setPeriodId,
     /** گزینه‌های دورهٔ واقعی (فقط گزارش‌های real). */
     periodOptions,
-    realPeriods: isRealApi,
     filters,
     setFilter,
+    draftFilters,
+    setDraftFilter,
+    applyDraftFilters,
+    clearDraftFilters,
     query,
     setQuery,
     sort,
@@ -878,7 +1121,8 @@ export function useAdminReportPage(
     isLoadingMore,
     loadMore,
     filterOptions,
-    courseLabels,
+    filterBoxLoading,
+    searchFilterBox,
     advKeys,
     advOpen,
     setAdvOpen,
