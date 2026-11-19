@@ -36,127 +36,146 @@ function toErrorMessage(error: unknown): string {
 /**
  * Cache نازک اعلان‌ها برای chrome هدر — منبع حقیقت Facade است.
  * PATCH تکی لیست صفحه‌بندی‌شده را با GET صفحهٔ ۱ عوض نمی‌کند.
+ * `refresh` هم‌زمان از هدر و پنل هاب ادغام می‌شود تا GET تکراری نرود.
  */
-export const useNotificationsStore = create<NotificationsStore>()((set, get) => ({
-  notifications: clientSnapshot(),
-  hasNextPage: false,
-  currentPage: 1,
-  status: 'idle',
-  isLoadingMore: false,
-  isMutating: false,
-  errorMessage: null,
+export const useNotificationsStore = create<NotificationsStore>()((set, get) => {
+  let refreshInFlight: Promise<void> | null = null;
 
-  refresh: async () => {
-    const hadItems = get().notifications.length > 0;
-    set({
-      status: hadItems ? get().status : 'loading',
-      errorMessage: null,
-    });
-    try {
-      const result = await NotificationsService.listPaginated({
-        page: 1,
-        limit: NOTIFICATIONS_PAGE_SIZE,
+  return {
+    notifications: clientSnapshot(),
+    hasNextPage: false,
+    currentPage: 1,
+    status: 'idle',
+    isLoadingMore: false,
+    isMutating: false,
+    errorMessage: null,
+
+    refresh: async () => {
+      if (refreshInFlight) return refreshInFlight;
+
+      refreshInFlight = (async () => {
+        const hadItems = get().notifications.length > 0;
+        set({
+          status: hadItems ? get().status : 'loading',
+          errorMessage: null,
+        });
+        try {
+          const result = await NotificationsService.listPaginated({
+            page: 1,
+            limit: NOTIFICATIONS_PAGE_SIZE,
+          });
+          set({
+            notifications: result.data,
+            hasNextPage: result.hasNextPage,
+            currentPage: 1,
+            status: 'ready',
+            errorMessage: null,
+          });
+        } catch (error) {
+          set({
+            status: hadItems ? 'ready' : 'error',
+            errorMessage: toErrorMessage(error),
+          });
+        }
+      })().finally(() => {
+        refreshInFlight = null;
       });
+
+      return refreshInFlight;
+    },
+
+    loadMore: async () => {
+      const { currentPage, hasNextPage, notifications, isLoadingMore } = get();
+      if (!hasNextPage || isLoadingMore || notifications.length >= NOTIFICATIONS_MAX_TOTAL)
+        return;
+      set({ isLoadingMore: true, errorMessage: null });
+      try {
+        const nextPage = currentPage + 1;
+        const remaining = NOTIFICATIONS_MAX_TOTAL - notifications.length;
+        const result = await NotificationsService.listPaginated({
+          page: nextPage,
+          limit: Math.min(NOTIFICATIONS_PAGE_SIZE, remaining),
+        });
+        const seen = new Set(notifications.map((item) => item.id));
+        const appended = result.data.filter((item) => !seen.has(item.id));
+        const merged = [...notifications, ...appended];
+        set({
+          notifications: merged,
+          hasNextPage:
+            merged.length < NOTIFICATIONS_MAX_TOTAL && appended.length > 0
+              ? result.hasNextPage
+              : false,
+          currentPage: nextPage,
+          isLoadingMore: false,
+        });
+      } catch (error) {
+        set({
+          isLoadingMore: false,
+          errorMessage: toErrorMessage(error),
+        });
+      }
+    },
+
+    markAsRead: async (notificationId) => {
+      const previous = get().notifications;
+      const target = previous.find((item) => item.id === notificationId);
+      if (!target || target.read) return;
+
       set({
-        notifications: result.data,
-        hasNextPage: result.hasNextPage,
-        currentPage: 1,
-        status: 'ready',
+        notifications: previous.map((item) =>
+          item.id === notificationId ? { ...item, read: true } : item
+        ),
+        isMutating: true,
+      });
+
+      try {
+        const updated = await NotificationsService.markAsRead(notificationId);
+        if (updated) {
+          set((state) => ({
+            notifications: state.notifications.map((item) =>
+              item.id === notificationId
+                ? { ...item, ...updated, read: true }
+                : item
+            ),
+            isMutating: false,
+          }));
+          return;
+        }
+        set({ isMutating: false });
+      } catch (error) {
+        set({
+          notifications: previous,
+          isMutating: false,
+          errorMessage: toErrorMessage(error),
+        });
+      }
+    },
+
+    markAllAsRead: async () => {
+      const previous = get().notifications;
+      if (!previous.some((item) => !item.read) && !get().hasNextPage) return;
+
+      set({
+        notifications: previous.map((item) => ({ ...item, read: true })),
+        isMutating: true,
         errorMessage: null,
       });
-    } catch (error) {
-      set({
-        status: hadItems ? 'ready' : 'error',
-        errorMessage: toErrorMessage(error),
-      });
-    }
-  },
 
-  loadMore: async () => {
-    const { currentPage, hasNextPage, notifications, isLoadingMore } = get();
-    if (!hasNextPage || isLoadingMore || notifications.length >= NOTIFICATIONS_MAX_TOTAL) return;
-    set({ isLoadingMore: true, errorMessage: null });
-    try {
-      const nextPage = currentPage + 1;
-      const remaining = NOTIFICATIONS_MAX_TOTAL - notifications.length;
-      const result = await NotificationsService.listPaginated({
-        page: nextPage,
-        limit: Math.min(NOTIFICATIONS_PAGE_SIZE, remaining),
-      });
-      const seen = new Set(notifications.map((item) => item.id));
-      const appended = result.data.filter((item) => !seen.has(item.id));
-      const merged = [...notifications, ...appended];
-      set({
-        notifications: merged,
-        hasNextPage: merged.length < NOTIFICATIONS_MAX_TOTAL && appended.length > 0 ? result.hasNextPage : false,
-        currentPage: nextPage,
-        isLoadingMore: false,
-      });
-    } catch (error) {
-      set({
-        isLoadingMore: false,
-        errorMessage: toErrorMessage(error),
-      });
-    }
-  },
-
-  markAsRead: async (notificationId) => {
-    const previous = get().notifications;
-    const target = previous.find((item) => item.id === notificationId);
-    if (!target || target.read) return;
-
-    set({
-      notifications: previous.map((item) =>
-        item.id === notificationId ? { ...item, read: true } : item
-      ),
-      isMutating: true,
-    });
-
-    try {
-      const updated = await NotificationsService.markAsRead(notificationId);
-      if (updated) {
-        set((state) => ({
-          notifications: state.notifications.map((item) =>
-            item.id === notificationId ? { ...item, ...updated, read: true } : item
-          ),
+      try {
+        const result = await NotificationsService.markAllAsRead();
+        set({
+          notifications: result.data,
+          hasNextPage: result.hasNextPage,
+          currentPage: 1,
           isMutating: false,
-        }));
-        return;
+        });
+      } catch (error) {
+        set({
+          notifications: previous,
+          isMutating: false,
+          errorMessage: toErrorMessage(error),
+        });
       }
-      set({ isMutating: false });
-    } catch (error) {
-      set({
-        notifications: previous,
-        isMutating: false,
-        errorMessage: toErrorMessage(error),
-      });
-    }
-  },
-
-  markAllAsRead: async () => {
-    const previous = get().notifications;
-    if (!previous.some((item) => !item.read) && !get().hasNextPage) return;
-
-    set({
-      notifications: previous.map((item) => ({ ...item, read: true })),
-      isMutating: true,
-      errorMessage: null,
-    });
-
-    try {
-      const result = await NotificationsService.markAllAsRead();
-      set({
-        notifications: result.data,
-        hasNextPage: result.hasNextPage,
-        currentPage: 1,
-        isMutating: false,
-      });
-    } catch (error) {
-      set({
-        notifications: previous,
-        isMutating: false,
-        errorMessage: toErrorMessage(error),
-      });
-    }
-  },
-}));
+    },
+  };
+});
