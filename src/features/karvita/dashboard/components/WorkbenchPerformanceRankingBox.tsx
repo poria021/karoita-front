@@ -36,6 +36,7 @@ const TITLES: Record<
   province: { weak: 'استان‌های ضعیف', strong: 'استان‌های برتر' },
   faculty: { weak: 'دانشکده‌های ضعیف', strong: 'دانشکده‌های برتر' },
   school: { weak: 'مدارس ضعیف', strong: 'مدارس برتر' },
+  professor: { weak: 'اساتید ضعیف', strong: 'اساتید برتر' },
 };
 
 const CHART_HEIGHT = 240;

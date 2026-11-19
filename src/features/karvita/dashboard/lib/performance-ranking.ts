@@ -1,11 +1,18 @@
 import type { ReportRow } from '@/types/reports';
 
-export type PerformanceRankingEntity = 'province' | 'faculty' | 'school';
+export type PerformanceRankingEntity =
+  | 'province'
+  | 'faculty'
+  | 'school'
+  | 'professor';
 export type PerformanceRankingDirection = 'weak' | 'strong';
 
-/** تعداد ردیف هر باکس عملکرد روی میز کار: ۳ استان/دانشکده، ۵ مدرسه (آموزش و پرورش منطقه). */
+/**
+ * تعداد ردیف هر باکس عملکرد روی میز کار:
+ * ۳ استان/دانشکده، ۵ مدرسه (منطقه)، ۵ استاد (دانشکده).
+ */
 export const PERFORMANCE_RANKING_LIMITS: Record<PerformanceRankingEntity, number> =
-  { province: 3, faculty: 3, school: 5 };
+  { province: 3, faculty: 3, school: 5, professor: 5 };
 
 export function rankingLimitFor(entity: PerformanceRankingEntity): number {
   return PERFORMANCE_RANKING_LIMITS[entity];
@@ -46,7 +53,9 @@ function subtitleFor(
       ? [row.head]
       : entity === 'school'
         ? [row.regionName, row.cityName]
-        : [row.provName, row.cityName];
+        : entity === 'professor'
+          ? [row.code, row.facName]
+          : [row.provName, row.cityName];
   const text = parts.filter(Boolean).join(' · ');
   return text || undefined;
 }
@@ -80,11 +89,16 @@ export function pickRankingItems(
 export const PERFORMANCE_RANKING_META: Record<
   PerformanceRankingEntity,
   {
-    slug: 'province-performance' | 'faculty-performance' | 'school-performance';
+    slug:
+      | 'province-performance'
+      | 'faculty-performance'
+      | 'school-performance'
+      | 'professor-performance';
     noun: string;
   }
 > = {
   province: { slug: 'province-performance', noun: 'استان‌ها' },
   faculty: { slug: 'faculty-performance', noun: 'دانشکده‌ها' },
   school: { slug: 'school-performance', noun: 'مدارس' },
+  professor: { slug: 'professor-performance', noun: 'اساتید' },
 };

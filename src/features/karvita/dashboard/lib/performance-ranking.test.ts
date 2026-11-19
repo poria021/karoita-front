@@ -48,6 +48,11 @@ describe('pickRankingItems', () => {
     expect(pickRankingItems('faculty', many, 'weak')).toHaveLength(3);
   });
 
+  it('limits to five professors by default', () => {
+    const many = Array.from({ length: 8 }, (_, i) => row('p' + i, i));
+    expect(pickRankingItems('professor', many, 'strong')).toHaveLength(5);
+  });
+
   it('builds subtitle per entity', () => {
     const [province] = pickRankingItems(
       'province',
@@ -61,6 +66,12 @@ describe('pickRankingItems', () => {
       'weak'
     );
     expect(faculty?.subtitle).toBe('فارس · شیراز');
+    const [professor] = pickRankingItems(
+      'professor',
+      [row('pr', 10, { code: '123', facName: 'فنی' })],
+      'weak'
+    );
+    expect(professor?.subtitle).toBe('123 · فنی');
   });
 });
 
