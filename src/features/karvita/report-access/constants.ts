@@ -6,7 +6,7 @@ import type {
 /** پسوند کلید زیرمجوز مقایسه در ماتریس. */
 export const COMPARE_KEY_SUFFIX = '@cmp' as const;
 
-export const COMPARE_MAX = 4;
+export const COMPARE_MAX = 10;
 
 export const REPORT_ACCESS_ROLES: readonly ReportAccessRoleId[] = [
   'mentor_teacher',
@@ -121,9 +121,8 @@ export const REPORT_PAGE_META: Readonly<
     description: 'درصد حضور اساتید راهنما در جلسات نیم‌سال',
   },
   scores: {
-    title: 'نمرات فراگیران',
-    description:
-      'وضعیت قبول یا مردود و ریز نمرات هر درس به تفکیک جلسه',
+    title: 'عملکرد فراگیران',
+    description: 'نمرهٔ پایانی و وضعیت قبول یا مردود هر درس فراگیران',
   },
   teachers: {
     title: 'لیست معلمان',
@@ -213,13 +212,11 @@ export const REPORT_ACCESS_THEMES: readonly {
   },
 ];
 
-/** گزارش‌هایی که زیرمجوز «امکان مقایسه» دارند. */
+/**
+ * گزارش‌هایی که زیرمجوز «امکان مقایسه» دارند:
+ * عملکرد دانشکده‌ها و عملکرد استان‌ها.
+ */
 export const COMPARE_REPORT_SLUGS: readonly ReportSlug[] = [
-  'attendance',
-  'professor-attendance',
-  'teacher-performance',
-  'school-performance',
-  'professor-performance',
   'faculty-performance',
   'province-performance',
 ];

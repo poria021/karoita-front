@@ -21,27 +21,29 @@ describe('access-matrix', () => {
     const doc = buildApprovedDocument(PIDS);
     expect(viewAccess(doc, 'mentor_teacher', 'learners', PIDS)).toBe('on');
     expect(viewAccess(doc, 'mentor_teacher', 'attendance', PIDS)).toBe('off');
-    expect(viewCompare(doc, 'mentor_teacher', 'attendance')).toBe('locked');
+    expect(
+      viewCompare(doc, 'provincial_university', 'faculty-performance')
+    ).toBe('off');
     expect(
       viewAccess(doc, 'supervisor_professor', 'learners', PIDS)
     ).toBe('on');
     expect(
-      viewCompare(doc, 'supervisor_professor', 'attendance')
+      viewCompare(doc, 'central_organization', 'province-performance')
     ).toBe('off');
   });
 
   it('clears compare provinces when parent report is turned off', () => {
     const draft = buildApprovedDocument(PIDS);
-    setCompare(draft, 'supervisor_professor', 'attendance', PIDS, true);
+    setCompare(draft, 'provincial_university', 'faculty-performance', PIDS, true);
     expect(
-      viewCompare(draft, 'supervisor_professor', 'attendance')
+      viewCompare(draft, 'provincial_university', 'faculty-performance')
     ).toBe('on');
-    setAccess(draft, 'supervisor_professor', 'attendance', PIDS, false);
+    setAccess(draft, 'provincial_university', 'faculty-performance', PIDS, false);
     expect(
-      draft.supervisor_professor[compareKeyFor('attendance')]
+      draft.provincial_university[compareKeyFor('faculty-performance')]
     ).toEqual([]);
     expect(
-      viewCompare(draft, 'supervisor_professor', 'attendance')
+      viewCompare(draft, 'provincial_university', 'faculty-performance')
     ).toBe('locked');
   });
 
@@ -49,7 +51,7 @@ describe('access-matrix', () => {
     const saved = buildApprovedDocument(PIDS);
     const draft = buildApprovedDocument(PIDS);
     setAccess(draft, 'mentor_teacher', 'attendance', PIDS, true);
-    setCompare(draft, 'mentor_teacher', 'attendance', PIDS, true);
+    setCompare(draft, 'provincial_university', 'faculty-performance', PIDS, true);
     setAccess(draft, 'mentor_teacher', 'learners', PIDS, false);
 
     const diffs = diffMatrices(saved, draft);
@@ -58,7 +60,8 @@ describe('access-matrix', () => {
     );
     expect(
       diffs.some(
-        (d) => d.key === compareKeyFor('attendance') && d.add.length === 3
+        (d) =>
+          d.key === compareKeyFor('faculty-performance') && d.add.length === 3
       )
     ).toBe(true);
     expect(diffs.some((d) => d.key === 'learners' && d.rem.length === 3)).toBe(
@@ -79,7 +82,14 @@ describe('access-matrix', () => {
   it('gates report and compare access by user province scope', () => {
     const matrix = buildApprovedDocument(PIDS);
     setAccess(matrix, 'mentor_teacher', 'attendance', PIDS, true);
-    setCompare(matrix, 'mentor_teacher', 'attendance', PIDS, true, 'p0');
+    setCompare(
+      matrix,
+      'provincial_university',
+      'faculty-performance',
+      PIDS,
+      true,
+      'p0'
+    );
 
     expect(
       roleHasReportAccess(matrix, 'mentor_teacher', 'learners', ['p1'])
@@ -92,10 +102,23 @@ describe('access-matrix', () => {
     ).toBe(false);
 
     expect(
-      roleHasCompareAccess(matrix, 'mentor_teacher', 'attendance', ['p0'])
+      roleHasCompareAccess(
+        matrix,
+        'provincial_university',
+        'faculty-performance',
+        ['p0']
+      )
     ).toBe(true);
     expect(
-      roleHasCompareAccess(matrix, 'mentor_teacher', 'attendance', ['p1'])
+      roleHasCompareAccess(
+        matrix,
+        'provincial_university',
+        'faculty-performance',
+        ['p1']
+      )
+    ).toBe(false);
+    expect(
+      roleHasCompareAccess(matrix, 'mentor_teacher', 'attendance', ['p0'])
     ).toBe(false);
 
     // حوزهٔ ملی (بدون استان روی کاربر)

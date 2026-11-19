@@ -50,9 +50,9 @@ export function ReportAccessReportRows({
           <div key={theme.id}>
             <KvTypography
               as="h3"
-              variant="overline"
-              tone="muted"
-              className="border-y border-kv-border-muted bg-kv-surface-muted px-kv-group py-kv-pair"
+              variant="subtitle"
+              weight="black"
+              className="border-y border-kv-border-muted bg-kv-surface-subtle px-kv-group py-kv-inline"
             >
               {theme.title}
             </KvTypography>
