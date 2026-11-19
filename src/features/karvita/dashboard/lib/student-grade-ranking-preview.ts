@@ -55,6 +55,14 @@ export const FAKE_STUDENT_GRADE_RANKING: StudentGradeRankingSummary = {
       kind: 'apprenticeship',
       grade: 11.5,
     },
+    {
+      id: 'fw6',
+      traineeName: 'جواد اکبری',
+      courseTitle: 'کارورزی ۳',
+      courseKey: 'intern3',
+      kind: 'internship',
+      grade: 12,
+    },
   ],
   strongest: [
     {
@@ -96,6 +104,14 @@ export const FAKE_STUDENT_GRADE_RANKING: StudentGradeRankingSummary = {
       courseKey: 'appr2',
       kind: 'apprenticeship',
       grade: 18,
+    },
+    {
+      id: 'fs6',
+      traineeName: 'پریسا کاظمی',
+      courseTitle: 'کارورزی ۳',
+      courseKey: 'intern3',
+      kind: 'internship',
+      grade: 17.5,
     },
   ],
 };

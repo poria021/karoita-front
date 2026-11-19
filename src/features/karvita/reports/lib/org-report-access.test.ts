@@ -73,12 +73,12 @@ describe('org-report-access', () => {
 
     const staticMenu = [
       { title: 'میز کار', path: '/karvita/dashboard', icon: 'fa-home' },
-      orgReportsSidebarGroup('mentor_teacher'),
       {
         title: 'اطلاعیه‌ها و اعلانات',
         path: '/karvita/announcements',
         icon: 'fa-bullhorn',
       },
+      orgReportsSidebarGroup('mentor_teacher'),
     ];
 
     const withExtra = withOrgReportAccessMenu(
@@ -137,12 +137,12 @@ describe('org-report-access', () => {
     const menu = withOrgReportAccessMenu(
       [
         { title: 'میز کار', path: '/karvita/dashboard', icon: 'fa-home' },
-        ...orgReportsSidebarEntries('central_organization'),
         {
           title: 'اطلاعیه‌ها و اعلانات',
           path: '/karvita/announcements',
           icon: 'fa-bullhorn',
         },
+        ...orgReportsSidebarEntries('central_organization'),
       ],
       'central_organization',
       [...granted].reverse()

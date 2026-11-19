@@ -28,7 +28,7 @@ describe('live nav / admin plane', () => {
     expect(studentMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
       RouteService.karvita.announcements(),
-      'انتخاب واحد کارورزی',
+      'کارورزی',
     ]);
     const studentGroup = studentMenu.find(isSidebarMenuGroup);
     expect(studentGroup?.children.map((c) => c.path)).toEqual([
@@ -42,7 +42,7 @@ describe('live nav / admin plane', () => {
     expect(learnerMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
       RouteService.karvita.announcements(),
-      'انتخاب واحد کارآموزی',
+      'کارآموزی',
     ]);
     const learnerGroup = learnerMenu.find(isSidebarMenuGroup);
     expect(learnerGroup?.children.map((c) => c.path)).toEqual([
@@ -53,10 +53,10 @@ describe('live nav / admin plane', () => {
     const supervisorMenu = getVisibleSidebarMenu('supervisor_professor');
     expect(supervisorMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
+      'اطلاعیه‌ها و اعلانات',
       'ارزیابی گزارش‌های فراگیران',
       'گزارش‌گیری',
       'پیکربندی ظرفیت‌ها',
-      'اطلاعیه‌ها و اعلانات',
     ]);
     const supervisorReports = supervisorMenu.find(isSidebarMenuGroup);
     expect(supervisorReports?.title).toBe('گزارش‌گیری');
@@ -69,9 +69,9 @@ describe('live nav / admin plane', () => {
     const mentorMenu = getVisibleSidebarMenu('mentor_teacher');
     expect(mentorMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
+      'اطلاعیه‌ها و اعلانات',
       'ارزیابی گزارش‌های فراگیران',
       'گزارش‌گیری',
-      'اطلاعیه‌ها و اعلانات',
     ]);
     const mentorReports = mentorMenu.find(isSidebarMenuGroup);
     expect(mentorReports?.title).toBe('گزارش‌گیری');
@@ -82,9 +82,9 @@ describe('live nav / admin plane', () => {
     const principalMenu = getVisibleSidebarMenu('school_principal');
     expect(principalMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
+      'اطلاعیه‌ها و اعلانات',
       'ارزیابی گزارش‌های فراگیران',
       'گزارش‌گیری',
-      'اطلاعیه‌ها و اعلانات',
     ]);
     const principalReports = principalMenu.find(isSidebarMenuGroup);
     expect(principalReports?.title).toBe('گزارش‌گیری');
@@ -97,9 +97,9 @@ describe('live nav / admin plane', () => {
     const regionalMenu = getVisibleSidebarMenu('regional_edu_admin');
     expect(regionalMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
+      'اطلاعیه‌ها و اعلانات',
       'گزارش‌های لیستی',
       'گزارش‌های عملکرد',
-      'اطلاعیه‌ها و اعلانات',
     ]);
     const regionalGroups = regionalMenu.filter(isSidebarMenuGroup);
     expect(regionalGroups.map((g) => g.title)).toEqual([
@@ -120,10 +120,10 @@ describe('live nav / admin plane', () => {
     const facultyMenu = getVisibleSidebarMenu('faculty_role');
     expect(facultyMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
+      'اطلاعیه‌ها و اعلانات',
       'گزارش‌های لیستی',
       'حضور و غیاب',
       'گزارش‌های عملکرد',
-      'اطلاعیه‌ها و اعلانات',
     ]);
     const facultyGroups = facultyMenu.filter(isSidebarMenuGroup);
     expect(facultyGroups.map((g) => g.title)).toEqual([
@@ -148,10 +148,10 @@ describe('live nav / admin plane', () => {
     const provincialMenu = getVisibleSidebarMenu('provincial_university');
     expect(provincialMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
+      'اطلاعیه‌ها و اعلانات',
       'گزارش‌های لیستی',
       'حضور و غیاب',
       'گزارش‌های عملکرد',
-      'اطلاعیه‌ها و اعلانات',
     ]);
     const provincialGroups = provincialMenu.filter(isSidebarMenuGroup);
     expect(provincialGroups.map((g) => g.title)).toEqual([
@@ -176,10 +176,10 @@ describe('live nav / admin plane', () => {
     const centralMenu = getVisibleSidebarMenu('central_organization');
     expect(centralMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
+      'اطلاعیه‌ها و اعلانات',
       'گزارش‌های لیستی',
       'حضور و غیاب',
       'گزارش‌های عملکرد',
-      'اطلاعیه‌ها و اعلانات',
     ]);
     const centralGroups = centralMenu.filter(isSidebarMenuGroup);
     expect(centralGroups.map((g) => g.title)).toEqual([
@@ -240,12 +240,12 @@ describe('live nav / admin plane', () => {
     const adminMenu = getVisibleSidebarMenu('super_admin');
     expect(adminMenu.map((entry) => entry.title)).toEqual([
       'میز کار مدیریت',
+      'اطلاعیه‌ها و اعلانات',
       'بررسی مدارک هویتی',
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
       'گزارش‌گیری',
-      'اطلاعیه‌ها و اعلانات',
     ]);
 
     const groups = adminMenu.filter(isSidebarMenuGroup);
@@ -266,12 +266,12 @@ describe('live nav / admin plane', () => {
     const assistantMenu = getVisibleSidebarMenu('assistant_admin');
     expect(assistantMenu.map((entry) => entry.title)).toEqual([
       'میز کار مدیریت',
+      'اطلاعیه‌ها و اعلانات',
       'بررسی مدارک هویتی',
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
       'گزارش‌گیری',
-      'اطلاعیه‌ها و اعلانات',
     ]);
     expect(
       assistantMenu

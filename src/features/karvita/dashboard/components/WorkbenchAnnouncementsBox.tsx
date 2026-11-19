@@ -18,7 +18,6 @@ import {
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import type { Bulletin } from '@/types/bulletins';
-import { toPersianDigits } from '@/utils/persianDigits';
 
 import { workbenchErrorText } from './WorkbenchUnavailableNote';
 
@@ -49,20 +48,6 @@ export function workbenchAnnouncementActionsFor(role: UserRole): {
     canPublish: canPublishAnnouncements(role),
     canReceive: canReceiveBulletins(role),
   };
-}
-
-function CountHint({ count }: { count: number }) {
-  if (count <= 0) return null;
-  return (
-    <KvTypography
-      variant="caption"
-      tone="muted"
-      as="span"
-      className="font-medium"
-    >
-      ({toPersianDigits(String(count))})
-    </KvTypography>
-  );
 }
 
 function AnnouncementActions({
@@ -216,7 +201,6 @@ export function WorkbenchAnnouncementsBox({
           >
             {isPublished ? 'اطلاعیه‌های منتشرشدهٔ شما' : 'اطلاعیه‌ها'}
           </KvTypography>
-          <CountHint count={preview.length} />
         </div>
         <AnnouncementActions
           canReceive={canReceive}

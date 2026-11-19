@@ -19,8 +19,6 @@ export type WorkbenchRegionalCountsBoxProps = {
 
 /**
  * «آمار منطقه» — میز کار آموزش و پرورش منطقه: تعداد مدارس، معلمان و فراگیران.
- * بدون باکس دورش؛ سه کارت شمارندهٔ مستقل (در ستون تبلیغ: زیر هم، زیر تبلیغ).
- * هر سه عدد از یک گزارش (`reports/schools`) جمع زده می‌شوند.
  */
 export function WorkbenchRegionalCountsBox({
   stacked = false,

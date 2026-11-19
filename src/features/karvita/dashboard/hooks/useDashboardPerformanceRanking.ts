@@ -38,7 +38,7 @@ export type DashboardPerformanceRankingState = {
 };
 
 /**
- * ۳ استان / ۳ دانشکدهٔ ضعیف یا قوی برای میز کار ادمین —
+ * ۶ استان / ۶ دانشکدهٔ ضعیف یا قوی برای میز کار ادمین —
  * `GET v1/reports/{provinces|faculties}/performance`.
  */
 export function useDashboardPerformanceRanking(

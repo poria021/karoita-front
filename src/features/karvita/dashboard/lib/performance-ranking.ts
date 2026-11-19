@@ -9,10 +9,10 @@ export type PerformanceRankingDirection = 'weak' | 'strong';
 
 /**
  * تعداد ردیف هر باکس عملکرد روی میز کار:
- * ۳ استان/دانشکده، ۵ مدرسه (منطقه)، ۵ استاد (دانشکده).
+ * ۶ استان/دانشکده، ۶ مدرسه (منطقه)، ۶ استاد (دانشکده).
  */
 export const PERFORMANCE_RANKING_LIMITS: Record<PerformanceRankingEntity, number> =
-  { province: 3, faculty: 3, school: 5, professor: 5 };
+  { province: 6, faculty: 6, school: 6, professor: 6 };
 
 export function rankingLimitFor(entity: PerformanceRankingEntity): number {
   return PERFORMANCE_RANKING_LIMITS[entity];

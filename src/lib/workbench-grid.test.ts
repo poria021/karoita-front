@@ -402,36 +402,31 @@ describe('workbenchLayoutForRole', () => {
     }
   });
 
-  it('adds the course averages box beside the announcements only when asked for (supervisor professor)', () => {
-    const slots = workbenchLayoutForRole('supervisor_professor', {
-      showAd: false,
-      showCourseAverages: true,
-    });
-    const announcements = workbenchSlotById(slots, 'announcements')!;
-    const averages = workbenchSlotById(slots, 'course_averages')!;
-    expect(averages.placement).toMatchObject({
-      colSpan: 6,
-      colStart: 7,
-      rowStart: 2,
-      rowSpan: 2,
-    });
-    // نیمهٔ دیگر ردیف ۲ (کنار اطلاعیه‌ها)؛ ظرفیت زیر اطلاعیه‌ها، بدون هم‌پوشانی.
-    expect(averages.placement.rowStart).toBe(announcements.placement.rowStart);
-    expect(span(announcements)[1]).toBe(span(averages)[0]);
-    expect(span(averages)[1]).toBe(13);
-    // «تعداد فراگیران» (جای باکس وضعیت ظرفیت): زیر اطلاعیه‌ها، نیمهٔ راستِ ردیف ۳.
-    const counts = workbenchSlotById(slots, 'learner_counts')!;
-    expect(counts.placement).toMatchObject({ colStart: 1, rowStart: 3 });
-    expect(span(counts)[1]).toBe(span(averages)[0]);
+  it('adds the course averages box beside the announcements only when asked for', () => {
+    for (const role of [
+      'supervisor_professor',
+      'mentor_teacher',
+      'school_principal',
+    ] as const) {
+      const slots = workbenchLayoutForRole(role, {
+        showAd: false,
+        showCourseAverages: true,
+      });
+      const announcements = workbenchSlotById(slots, 'announcements')!;
+      const averages = workbenchSlotById(slots, 'course_averages')!;
+      expect(averages.placement).toMatchObject({
+        colSpan: 6,
+        colStart: 7,
+        rowStart: 2,
+        rowSpan: 2,
+      });
+      expect(averages.placement.rowStart).toBe(announcements.placement.rowStart);
+      expect(span(announcements)[1]).toBe(span(averages)[0]);
+      expect(span(averages)[1]).toBe(13);
 
-    for (const role of ['mentor_teacher', 'school_principal'] as const) {
-      const other = workbenchLayoutForRole(role, { showAd: false });
-      expect(workbenchSlotById(other, 'course_averages')).toBeUndefined();
+      const plain = workbenchLayoutForRole(role, { showAd: false });
+      expect(workbenchSlotById(plain, 'course_averages')).toBeUndefined();
     }
-    const plain = workbenchLayoutForRole('supervisor_professor', {
-      showAd: false,
-    });
-    expect(workbenchSlotById(plain, 'course_averages')).toBeUndefined();
   });
 });
 
@@ -445,8 +440,8 @@ describe('student grade ranking for every evaluation role', () => {
       for (const showAd of [true, false]) {
         const slots = workbenchLayoutForRole(role, {
           showAd,
-          showPendingBesideAnnouncements:
-            role === 'mentor_teacher' || role === 'school_principal',
+          showCourseAverages: true,
+          showCoursePendingReports: true,
           showStudentGradesCard: true,
           showStudentGradeRanking: true,
         });

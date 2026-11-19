@@ -15,7 +15,7 @@ export type StudentGradeRankingSummary = {
   strongest: StudentGradeRankingItem[];
 };
 
-const TOP_N = 5;
+const TOP_N = 6;
 
 function toRankingItem(trainee: DailyApprovalTrainee): StudentGradeRankingItem {
   return {
@@ -29,7 +29,7 @@ function toRankingItem(trainee: DailyApprovalTrainee): StudentGradeRankingItem {
 }
 
 /**
- * ۵ فراگیرِ ضعیف‌ترین و ۵ فراگیرِ قوی‌ترین بر اساس نمرهٔ نهایی (از ۲۰) درسِ
+ * ۶ فراگیرِ ضعیف‌ترین و ۶ فراگیرِ قوی‌ترین بر اساس نمرهٔ نهایی (از ۲۰) درسِ
  * خودشان — فقط فراگیرانی که نمرهٔ نهایی گرفته‌اند (درحال‌انجام/بدون نمره حذف می‌شوند).
  */
 export function buildStudentGradeRanking(

@@ -135,7 +135,7 @@ const MODULE_META_BY_PATH: Record<string, ModuleMeta> = {
     icon: 'fa-bullhorn',
   },
   [RouteService.karvita.internshipSelection()]: {
-    title: 'انتخاب واحد کارورزی / کارآموزی',
+    title: 'کارورزی / کارآموزی',
     description:
       'انتخاب استاد راهنما علمی، مدرسه تابعه و مربی آموزشی کلاس جهت آغاز دوره رسمی.',
     icon: 'fa-graduation-cap',

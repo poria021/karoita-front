@@ -22,6 +22,7 @@ export const FAKE_TEACHER_RESPONSE_RANKING: TeacherResponseRankingSummary = {
     { id: 'fake-teacher-w3', rank: 3, name: 'زهرا کریمی', learnerCount: 12, response: 35 },
     { id: 'fake-teacher-w4', rank: 4, name: 'محمدرضا احمدی', learnerCount: 7, response: 41 },
     { id: 'fake-teacher-w5', rank: 5, name: 'فاطمه نوری', learnerCount: 11, response: 48 },
+    { id: 'fake-teacher-w6', rank: 6, name: 'جواد اکبری', learnerCount: 10, response: 52 },
   ],
   strongest: [
     { id: 'fake-teacher-s1', rank: 1, name: 'سارا محمدی', learnerCount: 16, response: 100 },
@@ -29,5 +30,6 @@ export const FAKE_TEACHER_RESPONSE_RANKING: TeacherResponseRankingSummary = {
     { id: 'fake-teacher-s3', rank: 3, name: 'نرگس صادقی', learnerCount: 13, response: 94 },
     { id: 'fake-teacher-s4', rank: 4, name: 'حسین قاسمی', learnerCount: 8, response: 91 },
     { id: 'fake-teacher-s5', rank: 5, name: 'الهام موسوی', learnerCount: 15, response: 88 },
+    { id: 'fake-teacher-s6', rank: 6, name: 'پریسا کاظمی', learnerCount: 12, response: 85 },
   ],
 };

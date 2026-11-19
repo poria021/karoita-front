@@ -73,34 +73,29 @@ describe('course pending reports slot (supervisor professor)', () => {
 describe('course pending reports slot (mentor teacher / school principal)', () => {
   const roles = ['mentor_teacher', 'school_principal'] as const;
 
-  const layout = (
+  /** چیدمان فعلی بورد: میانگین + در انتظار در یک سلول (مثل استاد راهنما). */
+  const lessonReportsLayout = (
     role: (typeof roles)[number],
-    showAd: boolean,
-    beside = true
+    showAd: boolean
   ) =>
     workbenchLayoutForRole(role, {
       showAd,
-      showTeacherCount: role === 'school_principal',
-      showPendingBesideAnnouncements: beside,
+      showCourseAverages: true,
+      showCoursePendingReports: true,
+      showStudentGradeRanking: true,
+      showStudentGradesCard: true,
     });
 
-  it('کنار اطلاعیه‌ها (نیمهٔ چپ همان ردیف) می‌نشیند', () => {
+  it('با میانگین نمره داخل سلول نمودار می‌آید (اسلات جدا ندارد)', () => {
     for (const role of roles) {
       for (const showAd of [true, false]) {
-        const slots = layout(role, showAd);
-        const announcements = workbenchSlotById(slots, 'announcements')!;
-        const box = workbenchSlotById(slots, 'course_pending_reports')!;
-        expect(announcements.placement).toMatchObject({
-          colSpan: 6,
-          colStart: 1,
-          rowStart: 2,
-        });
-        expect(box.placement).toMatchObject({
-          colSpan: 6,
-          colStart: 7,
-          rowStart: 2,
-          height: announcements.placement.height,
-        });
+        const slots = lessonReportsLayout(role, showAd);
+        expect(
+          workbenchSlotById(slots, 'course_pending_reports')
+        ).toBeUndefined();
+        expect(
+          workbenchSlotById(slots, 'course_averages')?.includes
+        ).toEqual(['course_pending_reports']);
       }
     }
   });
@@ -108,7 +103,7 @@ describe('course pending reports slot (mentor teacher / school principal)', () =
   it('روی هیچ باکسی نمی‌افتد', () => {
     for (const role of roles) {
       for (const showAd of [true, false]) {
-        const slots = layout(role, showAd);
+        const slots = lessonReportsLayout(role, showAd);
         for (const a of slots) {
           for (const b of slots) {
             if (a === b) continue;
@@ -127,10 +122,11 @@ describe('course pending reports slot (mentor teacher / school principal)', () =
     }
   });
 
-  it('بدون گزینه، چیدمان قبلی (اطلاعیه‌ها تمام‌عرض با تبلیغ) می‌ماند', () => {
+  it('بدون گزینهٔ درس‌گزارش، چیدمان قبلی (اطلاعیه‌ها تمام‌عرض با تبلیغ) می‌ماند', () => {
     for (const role of roles) {
-      const slots = layout(role, true, false);
+      const slots = workbenchLayoutForRole(role, { showAd: true });
       expect(workbenchSlotById(slots, 'course_pending_reports')).toBeUndefined();
+      expect(workbenchSlotById(slots, 'course_averages')).toBeUndefined();
       expect(
         workbenchSlotById(slots, 'announcements')!.placement.colSpan
       ).toBe(12);
@@ -148,21 +144,29 @@ describe('student grades card slot (mentor teacher / school principal)', () => {
   ) =>
     workbenchLayoutForRole(role, {
       showAd,
-      showTeacherCount: role === 'school_principal',
-      showPendingBesideAnnouncements: true,
+      showCourseAverages: true,
+      showCoursePendingReports: true,
+      showStudentGradeRanking: true,
       showStudentGradesCard,
     });
 
-  it('یک ردیف زیر «تعداد فراگیران» (همان ستون و همان عرض) می‌نشیند', () => {
+  it('با تبلیغ داخل سلول تعداد فراگیران است؛ بدون تبلیغ یک ردیف زیر آن', () => {
     for (const role of roles) {
       for (const showAd of [true, false]) {
         const slots = layout(role, showAd);
         const counts = workbenchSlotById(slots, 'learner_counts')!;
-        const card = workbenchSlotById(slots, 'student_grades_card')!;
-        expect(card, `${role} ad=${showAd}`).toBeDefined();
-        expect(card.placement.colSpan).toBe(counts.placement.colSpan);
-        expect(card.placement.colStart).toBe(counts.placement.colStart);
-        expect(card.placement.rowStart).toBe(rowsOf(counts)[1]);
+        if (showAd) {
+          expect(counts.includes).toEqual(['student_grades_card']);
+          expect(
+            workbenchSlotById(slots, 'student_grades_card')
+          ).toBeUndefined();
+        } else {
+          const card = workbenchSlotById(slots, 'student_grades_card')!;
+          expect(card, `${role} ad=${showAd}`).toBeDefined();
+          expect(card.placement.colSpan).toBe(counts.placement.colSpan);
+          expect(card.placement.colStart).toBe(counts.placement.colStart);
+          expect(card.placement.rowStart).toBe(rowsOf(counts)[1]);
+        }
       }
     }
   });
@@ -193,6 +197,9 @@ describe('student grades card slot (mentor teacher / school principal)', () => {
     for (const role of roles) {
       const slots = layout(role, true, false);
       expect(workbenchSlotById(slots, 'student_grades_card')).toBeUndefined();
+      expect(
+        workbenchSlotById(slots, 'learner_counts')?.includes
+      ).toBeUndefined();
     }
   });
 });

@@ -65,6 +65,7 @@ function omitSidebarPaths(
 
 const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
   ADMIN_DASHBOARD_ITEM,
+  MANAGE_ADS_ITEM,
   {
     title: 'بررسی مدارک هویتی',
     path: RouteService.karvita.onboardingApprovals(),
@@ -124,7 +125,6 @@ const SENIOR_ADMIN_SIDEBAR_MENU: SidebarMenuEntry[] = [
     path: RouteService.karvita.reports('learners'),
     icon: 'fa-file-invoice',
   },
-  MANAGE_ADS_ITEM,
 ];
 
 const SENIOR_ADMIN_PERMISSIONS = [
@@ -154,7 +154,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
       INBOX_ANNOUNCEMENTS_ITEM,
       {
         kind: 'group',
-        title: 'انتخاب واحد کارورزی',
+        title: 'کارورزی',
         icon: 'fa-graduation-cap',
         children: [
           {
@@ -203,7 +203,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
       INBOX_ANNOUNCEMENTS_ITEM,
       {
         kind: 'group',
-        title: 'انتخاب واحد کارآموزی',
+        title: 'کارآموزی',
         icon: 'fa-graduation-cap',
         children: [
           {
@@ -237,6 +237,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      MANAGE_ANNOUNCEMENTS_ITEM,
       {
         title: 'ارزیابی گزارش‌های فراگیران',
         path: RouteService.karvita.dailyApprovals(),
@@ -248,7 +249,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: RouteService.karvita.organizationalCapacities(),
         icon: 'fa-chart-pie',
       },
-      MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
@@ -265,13 +265,13 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      MANAGE_ANNOUNCEMENTS_ITEM,
       {
         title: 'ارزیابی گزارش‌های فراگیران',
         path: RouteService.karvita.dailyApprovals(),
         icon: 'fa-clipboard-check',
       },
       orgReportsSidebarGroup('mentor_teacher'),
-      MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'daily-approval.review'],
   },
@@ -284,6 +284,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      MANAGE_ANNOUNCEMENTS_ITEM,
       {
         title: 'ارزیابی گزارش‌های فراگیران',
         path: RouteService.karvita.dailyApprovals(),
@@ -300,7 +301,6 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
         path: PlannedRoutes.studentsList(),
         icon: 'fa-user-group',
       },
-      MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
@@ -318,13 +318,13 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      MANAGE_ANNOUNCEMENTS_ITEM,
       {
         title: 'مکان‌ها و مناطق',
         path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
       ...orgReportsSidebarEntries('regional_edu_admin'),
-      MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'location.manage'],
   },
@@ -337,8 +337,8 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      ...orgReportsSidebarEntries('faculty_role'),
       MANAGE_ANNOUNCEMENTS_ITEM,
+      ...orgReportsSidebarEntries('faculty_role'),
     ],
     permissions: ['dashboard.view', 'ads.manage'],
   },
@@ -351,13 +351,13 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
+      MANAGE_ANNOUNCEMENTS_ITEM,
       {
         title: 'مکان‌ها و پردیس‌ها',
         path: PlannedRoutes.locations(),
         icon: 'fa-map',
       },
       ...orgReportsSidebarEntries('provincial_university'),
-      MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: [
       'dashboard.view',
@@ -392,8 +392,8 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      ...orgReportsSidebarEntries('central_organization'),
       MANAGE_ANNOUNCEMENTS_ITEM,
+      ...orgReportsSidebarEntries('central_organization'),
     ],
     permissions: ['dashboard.view', 'ads.manage'],
   },

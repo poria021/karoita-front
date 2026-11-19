@@ -74,7 +74,7 @@ describe('getModuleBreadcrumb', () => {
     expect(
       getModuleBreadcrumb(RouteService.karvita.courseMaterials(2), 'student')
     ).toEqual([
-      { label: 'انتخاب واحد کارورزی' },
+      { label: 'کارورزی' },
       {
         label: 'کارورزی ۲',
         href: RouteService.karvita.internshipSelection(2),
@@ -90,7 +90,7 @@ describe('getModuleBreadcrumb', () => {
         'student'
       )
     ).toEqual([
-      { label: 'انتخاب واحد کارورزی' },
+      { label: 'کارورزی' },
       { label: 'کارورزی ۲' },
     ]);
     expect(
@@ -99,7 +99,7 @@ describe('getModuleBreadcrumb', () => {
         'skill_learner'
       )
     ).toEqual([
-      { label: 'انتخاب واحد کارآموزی' },
+      { label: 'کارآموزی' },
       { label: 'کارآموزی ۱' },
     ]);
   });

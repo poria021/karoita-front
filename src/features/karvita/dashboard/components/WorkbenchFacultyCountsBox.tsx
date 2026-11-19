@@ -19,7 +19,6 @@ export type WorkbenchFacultyCountsBoxProps = {
 
 /**
  * «آمار دانشکده» — میز کار مدیر دانشکده: تعداد اساتید، فراگیران و مدارس.
- * بدون باکس دورش؛ سه کارت شمارندهٔ مستقل (در ستون تبلیغ: زیر هم، زیر تبلیغ).
  */
 export function WorkbenchFacultyCountsBox({
   stacked = false,

@@ -59,7 +59,7 @@ describe('withEnrollmentSubModules', () => {
     const [internship] = cloneDefaultCourseDefinitions();
     const menu = withEnrollmentSubModules(STUDENT_MENU, [internship!]);
     const group = menu.find(isSidebarMenuGroup)!;
-    expect(group.title).toBe('انتخاب واحد کارورزی');
+    expect(group.title).toBe('کارورزی');
     expect(group.children.map((c) => c.path)).toEqual([
       RouteService.karvita.internshipSelection(1),
       RouteService.karvita.internshipSelection(2),
@@ -79,20 +79,20 @@ describe('withEnrollmentSubModules', () => {
     expect(titles(menu)).toEqual([
       'میز کار',
       'اطلاعیه‌ها و اعلان‌ها',
-      'انتخاب واحد کارورزی',
-      'انتخاب واحد پروژه',
-      'انتخاب واحد کارگاه',
+      'کارورزی',
+      'پروژه',
+      'کارگاه',
       'گزارش روزانه',
     ]);
 
-    const project = menu.find((e) => e.title === 'انتخاب واحد پروژه')!;
+    const project = menu.find((e) => e.title === 'پروژه')!;
     if (!isSidebarMenuGroup(project)) throw new Error('expected group');
     expect(project.children.map((c) => [c.title, c.path])).toEqual([
       ['پروژه الف', '/karvita/internships/101'],
       ['پروژه ب', '/karvita/internships/102'],
     ]);
 
-    const workshop = menu.find((e) => e.title === 'انتخاب واحد کارگاه')!;
+    const workshop = menu.find((e) => e.title === 'کارگاه')!;
     expect(isSidebarMenuGroup(workshop)).toBe(false);
     expect((workshop as { path: string }).path).toBe(
       '/karvita/internships/103'
@@ -133,29 +133,31 @@ describe('withEnrollmentSubModules', () => {
     ]);
 
     const enrollment = menu.filter((entry) =>
-      entry.title.startsWith('انتخاب واحد ')
+      !['میز کار', 'اطلاعیه‌ها و اعلان‌ها', 'گزارش روزانه'].includes(
+        entry.title
+      )
     );
     const byTitle = Object.fromEntries(
       enrollment.map((entry) => [entry.title, entry.icon])
     );
 
-    expect(byTitle['انتخاب واحد کارورزی']).toBe('fa-graduation-cap');
-    expect(byTitle['انتخاب واحد کاربست']).toBe('fa-screwdriver-wrench');
-    expect(byTitle['انتخاب واحد پروژه']).toBe('fa-folder-open');
-    expect(byTitle['انتخاب واحد کارگاه']).toBe('fa-chalkboard-user');
+    expect(byTitle['کارورزی']).toBe('fa-graduation-cap');
+    expect(byTitle['کاربست']).toBe('fa-screwdriver-wrench');
+    expect(byTitle['پروژه']).toBe('fa-folder-open');
+    expect(byTitle['کارگاه']).toBe('fa-chalkboard-user');
 
     const used = new Set(['fa-graduation-cap']);
-    expect(byTitle['انتخاب واحد test1']).toBe(
+    expect(byTitle['test1']).toBe(
       iconForEnrollmentCourse(test1, used)
     );
-    expect(byTitle['انتخاب واحد test2']).toBe(
+    expect(byTitle['test2']).toBe(
       iconForEnrollmentCourse(test2, used)
     );
 
     const icons = enrollment.map((entry) => entry.icon);
     expect(new Set(icons).size).toBe(icons.length);
 
-    const project = menu.find((e) => e.title === 'انتخاب واحد پروژه');
+    const project = menu.find((e) => e.title === 'پروژه');
     if (!project || !isSidebarMenuGroup(project)) {
       throw new Error('expected project group');
     }
@@ -172,13 +174,13 @@ describe('withEnrollmentSubModules', () => {
     };
 
     const menu = withEnrollmentSubModules(STUDENT_MENU, [inactiveProject]);
-    const project = menu.find((entry) => entry.title === 'انتخاب واحد پروژه');
+    const project = menu.find((entry) => entry.title === 'پروژه');
     expect(project).toBeTruthy();
     if (!project) return;
 
     if (!isSidebarMenuGroup(project)) {
       expect(project).toMatchObject({
-        title: 'انتخاب واحد پروژه',
+        title: 'پروژه',
         disabled: true,
       });
       return;
@@ -188,7 +190,7 @@ describe('withEnrollmentSubModules', () => {
   });
 
   function projectChildren(menu: SidebarMenuEntry[]) {
-    const project = menu.find((entry) => entry.title === 'انتخاب واحد پروژه');
+    const project = menu.find((entry) => entry.title === 'پروژه');
     if (!project || !isSidebarMenuGroup(project)) {
       throw new Error('expected the project group');
     }
@@ -273,7 +275,7 @@ describe('withEnrollmentSubModules', () => {
 
   it('applies the same rule to a course without sub-modules', () => {
     const find = (menu: SidebarMenuEntry[]) =>
-      menu.find((entry) => entry.title === 'انتخاب واحد کارگاه');
+      menu.find((entry) => entry.title === 'کارگاه');
 
     const notOffered = withEnrollmentSubModules(STUDENT_MENU, [WORKSHOP], {
       offeredLevels: new Set<number>(),
@@ -295,7 +297,7 @@ describe('withEnrollmentSubModules whenEmpty', () => {
 
   it('removes the enrollment group when real lessons are genuinely empty', () => {
     const result = withEnrollmentSubModules(STUDENT_MENU, [], { whenEmpty: 'remove' });
-    expect(titles(result)).not.toContain('انتخاب واحد کارورزی');
+    expect(titles(result)).not.toContain('کارورزی');
     expect(result.length).toBe(STUDENT_MENU.length - 1);
   });
 
@@ -323,7 +325,7 @@ describe('withEnrollmentSubModules whenEmpty', () => {
 
     const { result } = renderStudentMenu();
 
-    expect(result.current.find((entry) => entry.title === 'انتخاب واحد کارورزی')).toBeFalsy();
+    expect(result.current.find((entry) => entry.title === 'کارورزی')).toBeFalsy();
   });
 
   it('keeps the static student enrollment seed when the real catalog request fails', () => {
@@ -336,7 +338,7 @@ describe('withEnrollmentSubModules whenEmpty', () => {
 
     const { result } = renderStudentMenu();
 
-    expect(result.current.find((entry) => entry.title === 'انتخاب واحد کارورزی')).toBeTruthy();
+    expect(result.current.find((entry) => entry.title === 'کارورزی')).toBeTruthy();
   });
 });
 

@@ -21,7 +21,7 @@ describe('buildProfessorAttendanceRanking', () => {
 
   it('ضعیف‌ترین‌ها را بر اساس حضور کم مرتب می‌کند', () => {
     const { weakest } = buildProfessorAttendanceRanking(rows);
-    expect(weakest.map((i) => i.id)).toEqual(['b', 'e', 'c', 'f', 'd']);
+    expect(weakest.map((i) => i.id)).toEqual(['b', 'e', 'c', 'f', 'd', 'a']);
     expect(weakest[0]?.attendance).toBe(0);
   });
 

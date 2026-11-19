@@ -83,9 +83,9 @@ function canScrollTowardEnd(el: HTMLElement): boolean {
 
 /**
  * «در انتظار بررسی» — داده از `GET /reports/lessons/pending-reviews`
- * (استاد راهنما، معلم راهنما، مدیر مدرسه). هر آیتم یک کارت است:
- * `title` عنوان، `pendingCount` عدد بزرگ وسط. فقط درس‌هایی که حداقل یک گزارش در
- * انتظار بررسی دارند کارت می‌شوند (۰ نمایش داده نمی‌شود).
+ * (معلم راهنما، مدیر مدرسه، استاد راهنما). هر آیتم یک کارت است:
+ * `title` عنوان، `pendingCount` عدد بزرگ وسط، پایین متن ثابت «در انتظار بررسی».
+ * API فقط درس‌های دارای مورد در انتظار را می‌دهد؛ `data` خالی = هیچ کارت.
  * `semesterId` / `structure` اختیاری‌اند؛ با تغییرشان همان درخواست دوباره زده می‌شود.
  * اسکرول‌بار فقط با هاور دیده می‌شود؛ فلش سمت چپ وقتی هنوز محتوایی برای اسکرول هست.
  */
@@ -96,19 +96,15 @@ export function WorkbenchCoursePendingReportsBox({
   className,
   style,
 }: WorkbenchCoursePendingReportsBoxProps) {
-  const {
-    isLoading,
-    isError,
-    isForbidden,
-    cards: allCards,
-  } = useDashboardCoursePendingReports(role, {
-    semesterId,
-    structure,
-  });
-  // درس‌های بدون گزارش در انتظار بررسی (۰) نمایش داده نمی‌شوند.
+  const { isLoading, isError, isForbidden, cards: rawCards } =
+    useDashboardCoursePendingReports(role, {
+      semesterId,
+      structure,
+    });
+  // محافظ UI: شمارش غیرمثبت کارت نمی‌شود (API معمولاً چنین ردیفی نمی‌فرستد).
   const cards = useMemo(
-    () => allCards.filter((card) => card.pendingCount > 0),
-    [allCards]
+    () => rawCards.filter((card) => card.pendingCount > 0),
+    [rawCards]
   );
   const maxPending = useMemo(
     () => cards.reduce((max, card) => Math.max(max, card.pendingCount), 0),
@@ -166,13 +162,12 @@ export function WorkbenchCoursePendingReportsBox({
     setDragging(false);
   };
 
-  const state = isLoading
-    ? 'loading'
-    : isError
-      ? 'error'
-      : cards.length === 0
-        ? 'empty'
-        : 'ready';
+  // خالی = هیچ کارت (و هیچ باکس خالی)؛ لودینگ/خطا هنوز نشان داده می‌شود.
+  if (!isLoading && !isError && cards.length === 0) {
+    return null;
+  }
+
+  const state = isLoading ? 'loading' : isError ? 'error' : 'ready';
 
   return (
     <div className={cn('flex min-h-0 flex-col', className)} style={style}>
@@ -187,11 +182,6 @@ export function WorkbenchCoursePendingReportsBox({
       ) : state === 'error' ? (
         <KvEmptyState
           title={workbenchErrorText(isForbidden, 'گزارش‌های در انتظار بررسی فعلاً در دسترس نیست؛ کمی بعد دوباره تلاش کنید.')}
-          className="min-h-0 flex-1 py-kv-pair"
-        />
-      ) : state === 'empty' ? (
-        <KvEmptyState
-          title="گزارشی در انتظار بررسی نیست."
           className="min-h-0 flex-1 py-kv-pair"
         />
       ) : (

@@ -21,7 +21,7 @@ describe('buildTeacherResponseRanking', () => {
 
   it('ضعیف‌ترین‌ها از کم به زیاد؛ معلمِ بدون نرخ با ۰ حساب می‌شود', () => {
     const { weakest } = buildTeacherResponseRanking(rows);
-    expect(weakest.map((item) => item.id)).toEqual(['3', '2', '5', '6', '7']);
+    expect(weakest.map((item) => item.id)).toEqual(['3', '2', '5', '6', '7', '1']);
     expect(weakest[0]).toMatchObject({ rank: 1, response: 0 });
   });
 
@@ -32,10 +32,10 @@ describe('buildTeacherResponseRanking', () => {
     expect(tied).toEqual([...tied].sort((a, b) => a.localeCompare(b, 'fa')));
   });
 
-  it('قوی‌ترین‌ها از زیاد به کم و حداکثر ۵ تا', () => {
+  it('قوی‌ترین‌ها از زیاد به کم و حداکثر ۶ تا', () => {
     const { strongest } = buildTeacherResponseRanking(rows);
-    expect(strongest.map((item) => item.id)).toEqual(['4', '1', '7', '6', '2'].slice(0, 5));
-    expect(strongest).toHaveLength(5);
+    expect(strongest.map((item) => item.id)).toEqual(['4', '1', '7', '6', '2', '5']);
+    expect(strongest).toHaveLength(6);
     expect(strongest[0]).toMatchObject({ rank: 1, response: 95, learnerCount: 7 });
   });
 

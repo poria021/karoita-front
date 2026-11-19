@@ -70,12 +70,15 @@ describe('lesson reports API (average-scores / pending-reviews)', () => {
     ]);
   });
 
-  it('کارت‌ها: pendingCount عدد است و data خالی/نامعتبر یعنی بدون کارت', () => {
+  it('کارت‌ها: فقط pendingCount مثبت؛ data خالی/نامعتبر یعنی بدون کارت', () => {
     expect(
       mapLessonPendingReviews({
         data: [
           { title: 'کارآموزی 1', pendingCount: 7 },
           { title: 'کارورزی 1', pendingCount: 5 },
+          { title: 'بدون مورد', pendingCount: 0 },
+          { title: 'منفی', pendingCount: -1 },
+          { title: 'بدون عدد' },
         ],
       })
     ).toEqual([

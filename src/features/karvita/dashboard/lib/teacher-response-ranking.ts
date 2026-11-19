@@ -1,7 +1,7 @@
 import type { ReportRow } from '@/types/reports';
 
 /** تعداد ردیف هر تب (ضعیف‌ترین / قوی‌ترین) در باکس معلمان مدرسه. */
-export const TEACHER_RESPONSE_RANKING_LIMIT = 5;
+export const TEACHER_RESPONSE_RANKING_LIMIT = 6;
 
 export type TeacherResponseRankingItem = {
   id: string;

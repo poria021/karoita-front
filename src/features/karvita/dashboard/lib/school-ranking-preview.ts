@@ -51,6 +51,13 @@ export const FAKE_SCHOOL_RANKING: SchoolRankingSummary = {
       subtitle: 'منطقه ۹ تهران',
       score: 12.5,
     },
+    {
+      id: 'fake-school-w6',
+      rank: 6,
+      name: 'دبیرستان پسرانه اندیشه',
+      subtitle: 'منطقه ۱۰ تهران',
+      score: 13,
+    },
   ],
   strongest: [
     {
@@ -87,6 +94,13 @@ export const FAKE_SCHOOL_RANKING: SchoolRankingSummary = {
       name: 'هنرستان کاردانش مفید',
       subtitle: 'منطقه ۱۱ تهران',
       score: 17,
+    },
+    {
+      id: 'fake-school-s6',
+      rank: 6,
+      name: 'دبیرستان دخترانه رودکی',
+      subtitle: 'منطقه ۴ تهران',
+      score: 16.5,
     },
   ],
 };

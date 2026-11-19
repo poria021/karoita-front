@@ -18,6 +18,11 @@ export type WorkbenchStudentGradesCardProps = {
   role: UserRole;
   className?: string;
   style?: CSSProperties;
+  /**
+   * ارتفاع کوتاه‌تر برای ستون تبلیغ دانشکده / منطقه — تا زیر کارت‌های آمار
+   * لی‌اوت را نکشد.
+   */
+  compact?: boolean;
 };
 
 function GradeRow({ item }: { item: StudentGradeListItem }) {
@@ -53,18 +58,29 @@ export function WorkbenchStudentGradesCard({
   role,
   className,
   style,
+  compact = false,
 }: WorkbenchStudentGradesCardProps) {
   const { isLoading, isError, isForbidden, items } = useDashboardStudentGradesList(role);
   const isEmpty = isError || (!isLoading && items.length === 0);
-  // مدیر مدرسه: همین کارت با عنوان «عملکرد مدرسه».
-  const title = role === 'school_principal' ? 'عملکرد مدرسه' : 'نمرات فراگیران';
+  // عنوان بر اساس سطح پنل؛ داده همان نمرهٔ نهایی فراگیران است.
+  const title =
+    role === 'school_principal'
+      ? 'عملکرد مدرسه'
+      : role === 'faculty_role'
+        ? 'نمره دانشکده'
+        : role === 'regional_edu_admin'
+          ? 'نمره منطقه'
+          : 'نمرات فراگیران';
 
   return (
     <section
       aria-labelledby="dashboard-student-grades-card-title"
       style={style}
       className={cn(
-        'relative flex h-full min-h-[18rem] min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        'relative flex min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        compact
+          ? 'min-h-0 max-h-[14rem]'
+          : 'h-full min-h-[18rem]',
         workbenchBoxToneClass(isEmpty),
         className
       )}
@@ -106,7 +122,8 @@ export function WorkbenchStudentGradesCard({
         <ul
           aria-label="نمرهٔ نهایی فراگیران"
           className={cn(
-            'max-h-[22rem] min-h-0 list-none divide-y divide-kv-border-muted overflow-y-auto',
+            'min-h-0 list-none divide-y divide-kv-border-muted overflow-y-auto',
+            compact ? 'max-h-[10rem]' : 'max-h-[22rem]',
             kvScrollAreaClassName
           )}
         >

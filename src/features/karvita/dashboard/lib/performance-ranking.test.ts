@@ -33,24 +33,24 @@ describe('pickRankingItems', () => {
     expect(items.map((i) => i.id)).toEqual(['g', 'd']);
   });
 
-  it('limits to three provinces by default', () => {
+  it('limits to six provinces by default', () => {
     const many = Array.from({ length: 12 }, (_, i) => ({
       id: String(i),
       s: '',
       name: 'p' + i,
       score: i + 1,
     }));
-    expect(pickRankingItems('province', many, 'weak')).toHaveLength(3);
+    expect(pickRankingItems('province', many, 'weak')).toHaveLength(6);
   });
 
-  it('limits to three faculties by default', () => {
+  it('limits to six faculties by default', () => {
     const many = Array.from({ length: 8 }, (_, i) => row('x' + i, i));
-    expect(pickRankingItems('faculty', many, 'weak')).toHaveLength(3);
+    expect(pickRankingItems('faculty', many, 'weak')).toHaveLength(6);
   });
 
-  it('limits to five professors by default', () => {
+  it('limits to six professors by default', () => {
     const many = Array.from({ length: 8 }, (_, i) => row('p' + i, i));
-    expect(pickRankingItems('professor', many, 'strong')).toHaveLength(5);
+    expect(pickRankingItems('professor', many, 'strong')).toHaveLength(6);
   });
 
   it('builds subtitle per entity', () => {

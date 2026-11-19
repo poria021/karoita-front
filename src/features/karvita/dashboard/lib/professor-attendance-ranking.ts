@@ -1,7 +1,7 @@
 import type { ReportRow } from '@/types/reports';
 
 /** تعداد ردیف هر تب در باکس حضور اساتید دانشکده. */
-export const PROFESSOR_ATTENDANCE_RANKING_LIMIT = 5;
+export const PROFESSOR_ATTENDANCE_RANKING_LIMIT = 6;
 
 export type ProfessorAttendanceRankingItem = {
   id: string;

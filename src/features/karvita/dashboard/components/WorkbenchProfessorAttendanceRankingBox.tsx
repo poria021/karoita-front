@@ -79,7 +79,7 @@ function ProfessorRow({
 }
 
 /**
- * ۵ استادِ ضعیف‌ترین / ۵ استادِ قوی‌ترین بر اساس درصد حضور —
+ * ۶ استادِ ضعیف‌ترین / ۶ استادِ قوی‌ترین بر اساس درصد حضور —
  * میز کار مدیر دانشکده.
  */
 export function WorkbenchProfessorAttendanceRankingBox({

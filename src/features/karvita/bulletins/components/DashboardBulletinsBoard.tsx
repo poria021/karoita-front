@@ -194,9 +194,8 @@ function WorkbenchBoardCell({
       );
     case 'ad':
       if (slot.includes?.includes('regional_counts')) {
-        // منطقه / دانشکده: آمار زیر خودِ تبلیغ، در همین سلول و زیر هم —
-        // چون تبلیغ در گرید با `rowSpan` جای این سه کارت را هم رزرو کرده
-        // (نگاه کن: `workbench-grid.ts` → `classicSlots`).
+        // منطقه / دانشکده: آمار + کارت نمرات فراگیران (با عنوان سطح پنل)
+        // زیر خودِ تبلیغ، در همین سلول و زیر هم.
         return (
           <div
             className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
@@ -208,6 +207,7 @@ function WorkbenchBoardCell({
               isError={isError}
               isForbidden={isForbidden}
             />
+            <WorkbenchStudentGradesCard role={role} compact />
             {role === 'faculty_role' ? (
               <WorkbenchFacultyCountsBox stacked />
             ) : (
@@ -280,18 +280,18 @@ function WorkbenchBoardCell({
         </div>
       );
     case 'regional_counts':
-      return role === 'faculty_role' ? (
-        <WorkbenchFacultyCountsBox
-          stacked={inAdTrack}
-          className={cellClass}
+      return (
+        <div
+          className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
           style={cellStyle}
-        />
-      ) : (
-        <WorkbenchRegionalCountsBox
-          stacked={inAdTrack}
-          className={cellClass}
-          style={cellStyle}
-        />
+        >
+          <WorkbenchStudentGradesCard role={role} compact />
+          {role === 'faculty_role' ? (
+            <WorkbenchFacultyCountsBox stacked={inAdTrack} />
+          ) : (
+            <WorkbenchRegionalCountsBox stacked={inAdTrack} />
+          )}
+        </div>
       );
     case 'regional_gender':
       // هم‌قدِ اطلاعیه‌ها: سلول کش می‌آید و باکس کل ارتفاعش را می‌گیرد؛ ارتفاع ردیف از همین باکس است.

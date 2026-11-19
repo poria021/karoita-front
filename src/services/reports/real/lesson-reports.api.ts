@@ -1,7 +1,7 @@
 /**
- * دو API داشبورد معلم راهنما، مدیر مدرسه و استاد راهنما (Swagger: Reports).
+ * دو API داشبورد معلم، مدیر مدرسه و استاد راهنما (Nest: mentor / professor / teacher).
  * مسیرها نسبت به `NEXT_PUBLIC_API_URL` (`.../api`) هستند؛ `api/` تکرار نشود.
- * `Authorization: Bearer` و `x-custom-lang` را `apiClient` می‌گذارد.
+ * `Authorization: Bearer` و `x-custom-lang` را همان `apiClient` بقیهٔ گزارش‌ها می‌گذارد.
  *
  * - میانگین نمرهٔ دروس: `GET v1/reports/lessons/average-scores`
  * - در انتظار بررسی:    `GET v1/reports/lessons/pending-reviews`
@@ -95,7 +95,10 @@ export function mapLessonPendingReviews(raw: unknown): LessonPendingReview[] {
     const rec = item as Record<string, unknown>;
     const title = readTitle(rec.title);
     if (!title) continue;
-    out.push({ title, pendingCount: readFiniteNumber(rec.pendingCount) ?? 0 });
+    const pendingCount = readFiniteNumber(rec.pendingCount);
+    // درسی بدون مورد در انتظار در `data` نمی‌آید؛ صفر/منفی را هم کارت نمی‌کنیم.
+    if (pendingCount === null || pendingCount <= 0) continue;
+    out.push({ title, pendingCount });
   }
   return out;
 }
