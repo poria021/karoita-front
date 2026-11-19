@@ -85,6 +85,8 @@ export function WorkbenchSchoolRankingBox({
       summary.weakest.length === 0 &&
       summary.strongest.length === 0);
   const tabLabel = TABS.find((item) => item.id === tab)?.label ?? '';
+  // مدیر دانشکده همین API را می‌خواند؛ محدوده را بک‌اند تعیین می‌کند.
+  const scopeLabel = role === 'faculty_role' ? 'دانشکده' : 'منطقه';
 
   const chartRows = items.map((item) => ({
     name: item.name,
@@ -118,7 +120,7 @@ export function WorkbenchSchoolRankingBox({
             id="dashboard-school-ranking-title"
             className="min-w-0 truncate"
           >
-            ضعیف‌ترین و قوی‌ترین مدارس منطقه
+            ضعیف‌ترین و قوی‌ترین مدارس {scopeLabel}
           </KvTypography>
           <KvTypography variant="caption" tone="muted" as="p">
             بر اساس میانگین نمرهٔ فراگیران
@@ -166,7 +168,7 @@ export function WorkbenchSchoolRankingBox({
         />
       ) : isEmpty ? (
         <KvEmptyState
-          title="هنوز دادهٔ کافی برای رتبه‌بندی مدارس منطقهٔ شما نیست."
+          title={`هنوز دادهٔ کافی برای رتبه‌بندی مدارس ${scopeLabel === 'دانشکده' ? 'دانشکدهٔ' : 'منطقهٔ'} شما نیست.`}
           className="min-h-0 py-1"
         />
       ) : (
@@ -182,7 +184,7 @@ export function WorkbenchSchoolRankingBox({
           barSize={28}
           xTickFormatter={(value) => truncate(String(value), 22)}
           formatValue={formatScore}
-          ariaLabel={`نمودار میله‌ای ${tabLabel} مدارس منطقه`}
+          ariaLabel={`نمودار میله‌ای ${tabLabel} مدارس ${scopeLabel}`}
           className="min-h-0 flex-1"
         />
       )}

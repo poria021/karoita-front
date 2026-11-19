@@ -180,6 +180,8 @@ function mapSchoolPerformance(
     ),
     resp: pickNumber(rec.responseRate),
     score: pickNumber(rec.averageScore),
+    // میز کار دانشکده: جمع فراگیران مدارس از همین گزارش.
+    n: pickNumber(rec.learnerCount),
   };
 }
 

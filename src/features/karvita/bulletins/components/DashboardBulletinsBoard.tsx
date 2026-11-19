@@ -19,8 +19,11 @@ import {
 import { WorkbenchLearnerTypeCountsBox } from '@/features/karvita/dashboard/components/WorkbenchLearnerTypeCountsBox';
 import { DashboardCourseAveragesChart } from '@/features/karvita/dashboard/components/DashboardCourseAveragesChart';
 import { WorkbenchCreateOrgPanelLink } from '@/features/karvita/dashboard/components/WorkbenchCreateOrgPanelLink';
+import { WorkbenchFacultyCountsBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyCountsBox';
+import { WorkbenchFacultyGenderBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyGenderBox';
 import { WorkbenchLearnerCountsBox } from '@/features/karvita/dashboard/components/WorkbenchLearnerCountsBox';
 import { WorkbenchOrgStructureCountsBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureCountsBox';
+import { WorkbenchProfessorResponseRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorResponseRankingBox';
 import { WorkbenchPublishedAnnouncementsBox } from '@/features/karvita/dashboard/components/WorkbenchPublishedAnnouncementsBox';
 import { WorkbenchRegionalCountsBox } from '@/features/karvita/dashboard/components/WorkbenchRegionalCountsBox';
 import { WorkbenchRegionalGenderBox } from '@/features/karvita/dashboard/components/WorkbenchRegionalGenderBox';
@@ -82,7 +85,8 @@ export function DashboardBulletinsBoard({
     showStudentGradesCard: kind === 'evaluation',
     showPendingBesideAnnouncements:
       role === 'mentor_teacher' || role === 'school_principal',
-    showRegionalCounts: role === 'regional_edu_admin',
+    showRegionalCounts:
+      role === 'regional_edu_admin' || role === 'faculty_role',
   });
   const actions = workbenchAnnouncementActionsFor(role);
   const announcementSource =
@@ -190,9 +194,9 @@ function WorkbenchBoardCell({
       );
     case 'ad':
       if (slot.includes?.includes('regional_counts')) {
-        // منطقه: «آمار منطقه» (مدارس/معلمان/فراگیران) زیر خودِ تبلیغ، در همین
-        // سلول و زیر هم — چون تبلیغ در گرید با `rowSpan` جای این سه کارت را هم
-        // رزرو کرده (نگاه کن: `workbench-grid.ts` → `classicSlots`).
+        // منطقه / دانشکده: آمار زیر خودِ تبلیغ، در همین سلول و زیر هم —
+        // چون تبلیغ در گرید با `rowSpan` جای این سه کارت را هم رزرو کرده
+        // (نگاه کن: `workbench-grid.ts` → `classicSlots`).
         return (
           <div
             className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
@@ -204,7 +208,11 @@ function WorkbenchBoardCell({
               isError={isError}
               isForbidden={isForbidden}
             />
-            <WorkbenchRegionalCountsBox stacked />
+            {role === 'faculty_role' ? (
+              <WorkbenchFacultyCountsBox stacked />
+            ) : (
+              <WorkbenchRegionalCountsBox stacked />
+            )}
           </div>
         );
       }
@@ -272,7 +280,13 @@ function WorkbenchBoardCell({
         </div>
       );
     case 'regional_counts':
-      return (
+      return role === 'faculty_role' ? (
+        <WorkbenchFacultyCountsBox
+          stacked={inAdTrack}
+          className={cellClass}
+          style={cellStyle}
+        />
+      ) : (
         <WorkbenchRegionalCountsBox
           stacked={inAdTrack}
           className={cellClass}
@@ -283,11 +297,22 @@ function WorkbenchBoardCell({
       // هم‌قدِ اطلاعیه‌ها: سلول کش می‌آید و باکس کل ارتفاعش را می‌گیرد؛ ارتفاع ردیف از همین باکس است.
       return (
         <div className={cellClass}>
-          <WorkbenchRegionalGenderBox className="h-full w-full max-w-none" />
+          {role === 'faculty_role' ? (
+            <WorkbenchFacultyGenderBox className="h-full w-full max-w-none" />
+          ) : (
+            <WorkbenchRegionalGenderBox className="h-full w-full max-w-none" />
+          )}
         </div>
       );
     case 'regional_teacher_ranking':
-      return (
+      // دانشکده: اساتید؛ منطقه / مدیر مدرسه: معلمان.
+      return role === 'faculty_role' ? (
+        <WorkbenchProfessorResponseRankingBox
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
+      ) : (
         <WorkbenchTeacherResponseRankingBox
           role={role}
           className={cellClass}

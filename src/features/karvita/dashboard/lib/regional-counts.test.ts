@@ -93,7 +93,7 @@ describe('regional workbench layout', () => {
 });
 
 describe('regional workbench ad column', () => {
-  it('تبلیغ ردیف‌های ۱–۲ را می‌گیرد تا زیر خوش‌آمد فاصلهٔ خالی نیفتد', () => {
+  it('تبلیغ ردیف‌های ۱–۳ را می‌گیرد تا آمار زیر تبلیغ در همان سلول جا شود', () => {
     const slots = workbenchLayoutForRole('regional_edu_admin', {
       showAd: true,
       showRegionalCounts: true,
@@ -101,7 +101,7 @@ describe('regional workbench ad column', () => {
     expect(workbenchSlotById(slots, 'ad')!.placement).toMatchObject({
       colStart: 13,
       rowStart: 1,
-      rowSpan: 2,
+      rowSpan: 3,
     });
   });
 });
@@ -113,12 +113,16 @@ describe('regional counts in the ad track', () => {
       showRegionalCounts: true,
     });
 
-  it('با تبلیغ، سه کارت زیر هم در ترک تبلیغ و ردیف ۳ (زیر تبلیغ) می‌نشینند', () => {
+  it('با تبلیغ، آمار داخل سلول تبلیغ می‌آید (includes) و اسلات جدا ندارد', () => {
     const slots = layout();
-    const ad = workbenchSlotById(slots, 'ad')!.placement;
-    const counts = workbenchSlotById(slots, 'regional_counts')!.placement;
-    expect(counts).toMatchObject({ colSpan: 1, colStart: 13, rowStart: 3 });
-    expect(counts.rowStart).toBe((ad.rowStart ?? 1) + (ad.rowSpan ?? 1));
+    const ad = workbenchSlotById(slots, 'ad')!;
+    expect(ad.placement).toMatchObject({
+      colStart: 13,
+      rowStart: 1,
+      rowSpan: 3,
+    });
+    expect(ad.includes).toEqual(['regional_counts']);
+    expect(workbenchSlotById(slots, 'regional_counts')).toBeUndefined();
   });
 
   it('روی هیچ باکسی نمی‌افتد', () => {

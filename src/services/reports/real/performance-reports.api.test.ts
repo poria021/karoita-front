@@ -309,6 +309,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
         adminPersonnelCode: '77',
         responseRate: 55,
         averageScore: null,
+        learnerCount: 42,
       },
       0
     );
@@ -318,6 +319,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
       head: 'مریم',
       code: '77',
       resp: 55,
+      n: 42,
     });
     expect(row?.score).toBeUndefined();
   });

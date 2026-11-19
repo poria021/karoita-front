@@ -43,6 +43,14 @@ export const DASHBOARD_QUERY = {
     ['onboarding-approvals', 'dashboard-summary', status] as const,
   /** `GET /reports/schools` (همهٔ صفحه‌ها) — شمار مدارس/معلمان/فراگیران میز کار آموزش و پرورش منطقه. */
   regionalSchools: ['reports', 'dashboard-regional-schools'] as const,
+  /**
+   * آمار میز کار مدیر دانشکده — professors + school-performance + learners
+   * (همهٔ صفحه‌ها؛ محدوده را بک‌اند از کاربر لاگین‌شده می‌گیرد).
+   */
+  facultyCounts: ['reports', 'dashboard-faculty-counts'] as const,
+  /** ۵ استاد ضعیف/قوی دانشکده بر اساس نرخ پاسخ‌دهی روی میز کار مدیر دانشکده. */
+  professorResponseRanking: (role: string) =>
+    ['reports', 'dashboard-professor-response-ranking', role] as const,
   /** `GET /users/documents/status` — نمودار «وضعیت پرونده‌ها» روی میز کار مدیر ارشد. */
   usersDocumentsStatus: ['users', 'documents-status'] as const,
   /** `GET /users/dashboard/counts` — شمار مکان‌ها و کاربران هر نقش (میز کار ادمین). */
