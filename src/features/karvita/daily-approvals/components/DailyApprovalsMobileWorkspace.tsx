@@ -23,6 +23,7 @@ import { DailyApprovalsFilters } from './DailyApprovalsFilters';
 type DailyApprovalsMobileWorkspaceProps = {
   page: UseDailyApprovalsPageReturn;
   canDrop: boolean;
+  onRequestDrop: (trainee: UseDailyApprovalsPageReturn['trainees'][number]) => void;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
 };
@@ -30,6 +31,7 @@ type DailyApprovalsMobileWorkspaceProps = {
 export function DailyApprovalsMobileWorkspace({
   page,
   canDrop,
+  onRequestDrop,
   hasActiveFilters,
   onClearFilters,
 }: DailyApprovalsMobileWorkspaceProps) {
@@ -111,7 +113,7 @@ export function DailyApprovalsMobileWorkspace({
                         disabled={
                           page.actionBusy || trainee.status === 'dropped'
                         }
-                        onClick={() => void page.dropTrainee(trainee)}
+                        onClick={() => onRequestDrop(trainee)}
                         icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
                       />
                     ) : null}

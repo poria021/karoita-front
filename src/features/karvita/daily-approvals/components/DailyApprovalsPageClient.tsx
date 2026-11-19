@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { CourseMaterialsManagePanel } from '@/features/karvita/course-materials/components/CourseMaterialsManagePanel';
@@ -32,6 +33,10 @@ export function DailyApprovalsPageClient() {
   useRegisterPageRefresh(page.reload);
   const role = useUserStore((state) => state.activeUser?.role);
   const [materialsOpen, setMaterialsOpen] = useState(false);
+  // حذف کارورز اول تأیید می‌گیرد؛ بعد از تأیید، هشدار ۶ ثانیه‌ای «لغو» می‌آید و حذف واقعی بعد از آن انجام می‌شود.
+  const [dropCandidate, setDropCandidate] = useState<
+    (typeof page.trainees)[number] | null
+  >(null);
   const canPublishMaterials = canPublishCourseMaterials(role);
   const canDrop = canDropDailyApprovalTrainee(role);
   const canBulkExtend =
@@ -157,7 +162,7 @@ export function DailyApprovalsPageClient() {
                   canDrop={canDrop}
                   hasActiveFilters={hasActiveFilters}
                   onSelect={page.selectTrainee}
-                  onDrop={(trainee) => void page.dropTrainee(trainee)}
+                  onDrop={(trainee) => setDropCandidate(trainee)}
                   onLoadMore={page.loadMore}
                   onRetryLoadMore={page.retryLoadMore}
                   onClearFilters={clearFilters}
@@ -173,11 +178,25 @@ export function DailyApprovalsPageClient() {
               <DailyApprovalsMobileWorkspace
                 page={page}
                 canDrop={canDrop}
+                onRequestDrop={setDropCandidate}
                 hasActiveFilters={hasActiveFilters}
                 onClearFilters={clearFilters}
               />
             )
           }
+        />
+        <KvConfirmationDialog
+          isOpen={dropCandidate !== null}
+          onClose={() => setDropCandidate(null)}
+          title="حذف کارورز از کلاس"
+          description={`آیا از حذف «${dropCandidate?.traineeName ?? ''}» از کلاس مطمئن هستید؟`}
+          confirmText="بله، حذف شود"
+          confirmVariant="destructive"
+          onConfirm={() => {
+            const target = dropCandidate;
+            setDropCandidate(null);
+            if (target) void page.dropTrainee(target);
+          }}
         />
         <DailyApprovalWeekGradingModal
           open={page.gradingOpen}
