@@ -9,22 +9,30 @@ import {
   pendingIntensity,
 } from './pending-card-background';
 
-describe('pending-card-background', () => {
-  it('scales intensity from zero up to the full-intensity floor', () => {
-    expect(pendingIntensity(0, 10)).toBe(0);
-    expect(pendingIntensity(PENDING_FULL_INTENSITY_AT, 3)).toBe(1);
-    expect(pendingIntensity(10, 10)).toBe(1);
-    expect(pendingIntensity(1, 10)).toBeCloseTo(0.1);
+describe('pending card background', () => {
+  it('هرچه گزارش بیشتر، زرد پررنگ‌تر (یکنوا صعودی)', () => {
+    const percents = [1, 2, 3, 4, 5].map((n) => pendingBackgroundPercent(n, 5));
+    expect(percents).toEqual([...percents].sort((a, b) => a - b));
+    expect(new Set(percents).size).toBe(percents.length);
   });
 
-  it('maps intensity to pale-to-strong yellow mix percents', () => {
+  it('کمترین و بیشترین درصد در بازهٔ مجاز می‌ماند', () => {
     expect(pendingBackgroundPercent(0, 10)).toBe(PENDING_BG_MIN_PERCENT);
     expect(pendingBackgroundPercent(10, 10)).toBe(PENDING_BG_MAX_PERCENT);
+    expect(pendingBackgroundPercent(999, 10)).toBe(PENDING_BG_MAX_PERCENT);
+    expect(pendingBackgroundPercent(-3, 10)).toBe(PENDING_BG_MIN_PERCENT);
   });
 
-  it('builds a color-mix background against the surface token', () => {
-    expect(pendingBackground(5, 5)).toContain('color-mix(in srgb');
-    expect(pendingBackground(5, 5)).toContain('var(--kv-surface)');
-    expect(pendingBackground(5, 5)).toContain(`${PENDING_BG_MAX_PERCENT}%`);
+  it('یک کارت تک‌گزارشی پررنگ‌ترین نمی‌شود (کف مقیاس ۵)', () => {
+    expect(pendingIntensity(1, 1)).toBeCloseTo(1 / PENDING_FULL_INTENSITY_AT);
+    expect(pendingBackgroundPercent(1, 1)).toBeLessThan(PENDING_BG_MAX_PERCENT);
+    // با بیشتر شدن بیشینه، مقیاس نسبی می‌شود.
+    expect(pendingIntensity(10, 20)).toBe(0.5);
+  });
+
+  it('رشتهٔ رنگ زرد را با زمینه ترکیب می‌کند', () => {
+    expect(pendingBackground(5, 5)).toBe(
+      'color-mix(in srgb, hsl(48 96% 53%) 38%, var(--kv-surface))'
+    );
   });
 });

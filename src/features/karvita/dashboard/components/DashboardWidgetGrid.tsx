@@ -51,7 +51,11 @@ function DashboardWidget({
         <DashboardBulletinsBoard
           role={role}
           leading={
-            <WorkbenchWelcomeBox displayName={welcomeName} className="h-full" />
+            <WorkbenchWelcomeBox
+              displayName={welcomeName}
+              role={role}
+              className="h-full"
+            />
           }
         />
       );
