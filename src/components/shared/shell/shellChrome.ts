@@ -71,6 +71,8 @@ export const kvShellAdminRailCollapsedClassName = 'lg:ps-24';
 export const kvShellAdminReportsDualRailClearanceClassName =
   'lg:ps-[calc(6rem+15rem)]';
 export const kvShellAdminReportsSecondaryRailWidthClassName = 'w-60';
+/** حالت آیکونی ریل دوم — هم‌عرض ریل اصلی جمع‌شده. */
+export const kvShellAdminReportsSecondaryRailCollapsedWidthClassName = 'w-24';
 export const kvShellAdminReportsSecondaryRailOffsetClassName = 'inset-s-24';
 
 /**

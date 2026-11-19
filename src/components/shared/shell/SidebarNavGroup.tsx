@@ -38,6 +38,11 @@ export type SidebarNavGroupProps = {
   textSize?: KvShellRailTextSize;
   /** اگر فرزند فعال باشد گروه را باز نگه دار (مثلاً ریل دوم گزارش‌ها). */
   defaultOpenWhenActive?: boolean;
+  /**
+   * کلیک روی سر گروه در حالت آیکونی — اگر نباشد، ریل اصلی شل باز می‌شود.
+   * ریل دوم گزارش‌ها با این کال‌بک خودش را باز می‌کند.
+   */
+  onExpandFromCollapsed?: () => void;
 };
 
 export function SidebarNavGroup({
@@ -50,6 +55,7 @@ export function SidebarNavGroup({
   onNavigate,
   textSize = 'compact',
   defaultOpenWhenActive = false,
+  onExpandFromCollapsed,
 }: SidebarNavGroupProps) {
   const activePath = locked
     ? null
@@ -67,10 +73,15 @@ export function SidebarNavGroup({
   const forceOpen = defaultOpenWhenActive && activePath !== null;
   const disclosureOpen = locked ? false : forceOpen || open;
   const expandSidebar = useUIStore((state) => state.toggleSidebarCollapsed);
+  // ریل اصلی: یک گروه «گزارش‌ها» روی هر مسیر گزارش اکتیو بماند.
+  // ریل دوم (تم‌ها با `defaultOpenWhenActive`): فقط گروهی که فرزند فعال دارد.
   const reportsGroup = group.children.some((child) =>
     isAdminReportsPath(child.path)
   );
-  const reportsRouteActive = reportsGroup && isAdminReportsPath(pathname);
+  const reportsRouteActive =
+    !defaultOpenWhenActive &&
+    reportsGroup &&
+    isAdminReportsPath(pathname);
   const childActive =
     !locked && (activePath !== null || reportsRouteActive);
 
@@ -85,7 +96,11 @@ export function SidebarNavGroup({
       window.matchMedia('(min-width: 64rem)').matches
     ) {
       setOpen(true);
-      expandSidebar();
+      if (onExpandFromCollapsed) {
+        onExpandFromCollapsed();
+      } else {
+        expandSidebar();
+      }
       return;
     }
     setOpen((value) => !value);

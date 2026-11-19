@@ -1,15 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import {
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type FocusEvent,
-  type PointerEvent,
-} from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
@@ -39,10 +31,11 @@ import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
 /**
  * ریل ستادی — روی دسکتاپ ثابت و هم‌ارتفاع ویوپورت (با اسکرول صفحه حرکت نمی‌کند)؛ موبایل دراور `fixed`.
  * برند اینجاست نه در هدر. روی گزارش‌ها ورود → جمع تا ریل دوم در کروم دیده شود.
+ * ریل جمع‌شده با هاور/فوکوس باز نمی‌شود؛ فقط با دکمهٔ جمع/باز.
  */
 export function AdminSidebar() {
   const activeUser = useUserStore((state) => state.activeUser);
-  const isStoreCollapsed = useUIStore((state) => state.isSidebarCollapsed);
+  const isCollapsed = useUIStore((state) => state.isSidebarCollapsed);
   const isMobileOpen = useUIStore((state) => state.isMobileSidebarOpen);
   const toggleCollapsed = useUIStore((state) => state.toggleSidebarCollapsed);
   const setSidebarCollapsed = useUIStore((state) => state.setSidebarCollapsed);
@@ -51,71 +44,6 @@ export function AdminSidebar() {
   const drawerTitleId = useId();
   const drawerRef = useRef<HTMLDivElement>(null);
   const wasReportsRef = useRef(false);
-
-  // ریل جمع‌شده روی گزارش‌ها با هاور/فوکوس موقتاً باز می‌شود (روی محتوا، بدون جابه‌جایی لایوت).
-  const [peekOpen, setPeekOpen] = useState(false);
-  const peekTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const suppressPeekRef = useRef(false);
-  const canPeek = isStoreCollapsed && isAdminReportsPath(pathname);
-  const isPeeking = canPeek && peekOpen;
-  /** حالت دیداری ریل؛ `isStoreCollapsed` فقط عرض اشغال‌شده در لایوت و دکمهٔ جمع/باز را تعیین می‌کند. */
-  const isCollapsed = isStoreCollapsed && !isPeeking;
-
-  const clearPeekTimer = useCallback(() => {
-    if (peekTimerRef.current) {
-      clearTimeout(peekTimerRef.current);
-      peekTimerRef.current = null;
-    }
-  }, []);
-
-  const schedulePeek = useCallback(
-    (next: boolean, delay: number) => {
-      clearPeekTimer();
-      peekTimerRef.current = setTimeout(() => {
-        peekTimerRef.current = null;
-        setPeekOpen(next);
-      }, delay);
-    },
-    [clearPeekTimer]
-  );
-
-  useEffect(() => clearPeekTimer, [clearPeekTimer]);
-
-  // تأخیر کوتاه: عبور اتفاقی ماوس ریل را باز نکند و خروج کوتاه از لبه آن را نبندد.
-  const handlePointerEnter = (event: PointerEvent<HTMLDivElement>) => {
-    if (!canPeek || event.pointerType !== 'mouse') return;
-    if (suppressPeekRef.current) return;
-    schedulePeek(true, 120);
-  };
-
-  const handlePointerLeave = () => {
-    suppressPeekRef.current = false;
-    if (!peekOpen && !peekTimerRef.current) return;
-    schedulePeek(false, 200);
-  };
-
-  const handleFocusCapture = (event: FocusEvent<HTMLDivElement>) => {
-    if (!canPeek) return;
-    if (event.target.matches(':focus-visible')) {
-      clearPeekTimer();
-      setPeekOpen(true);
-    }
-  };
-
-  const handleBlurCapture = (event: FocusEvent<HTMLDivElement>) => {
-    if (event.currentTarget.contains(event.relatedTarget as Node | null)) {
-      return;
-    }
-    schedulePeek(false, 200);
-  };
-
-  const handleToggleCollapsed = () => {
-    // کاربر عمداً جمع/باز کرد؛ تا خروج ماوس از ریل، هاور دوباره آن را باز نکند.
-    suppressPeekRef.current = true;
-    clearPeekTimer();
-    setPeekOpen(false);
-    toggleCollapsed();
-  };
 
   useSidebarMobileDrawer({
     isMobileOpen,
@@ -153,10 +81,6 @@ export function AdminSidebar() {
       />
 
       <div
-        onPointerEnter={handlePointerEnter}
-        onPointerLeave={handlePointerLeave}
-        onFocusCapture={handleFocusCapture}
-        onBlurCapture={handleBlurCapture}
         className={cn(
           'fixed inset-y-0 inset-s-0 z-50 h-dvh',
           kvShellAdminRailWidthMotionClassName,
@@ -165,7 +89,7 @@ export function AdminSidebar() {
             ? 'translate-x-0'
             : 'max-lg:-translate-x-full max-lg:rtl:translate-x-full',
           !isMobileOpen && 'max-lg:pointer-events-none max-lg:invisible',
-          isStoreCollapsed ? 'w-72 lg:w-24' : 'w-72 lg:w-72'
+          isCollapsed ? 'w-72 lg:w-24' : 'w-72 lg:w-72'
         )}
       >
         <div
@@ -177,8 +101,7 @@ export function AdminSidebar() {
           className={cn(
             'group/sidebar flex h-full min-h-0 w-full flex-col border-e border-kv-border/80 bg-kv-surface',
             'lg:absolute lg:inset-y-0 lg:inset-s-0 lg:h-auto',
-            'lg:transition-[width,box-shadow] lg:duration-500 lg:ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:lg:transition-none',
-            isPeeking && 'lg:w-72 lg:shadow-kv-floating'
+            'lg:transition-[width,box-shadow] lg:duration-500 lg:ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:lg:transition-none'
           )}
         >
           <div
@@ -224,9 +147,9 @@ export function AdminSidebar() {
               color="neutral"
               appearance="ghost"
               size="sm"
-              onClick={handleToggleCollapsed}
+              onClick={toggleCollapsed}
               aria-label={
-                isStoreCollapsed ? 'باز کردن نوار کناری' : 'جمع کردن نوار کناری'
+                isCollapsed ? 'باز کردن نوار کناری' : 'جمع کردن نوار کناری'
               }
               className="absolute -inset-e-2.5 top-1/2 z-20 hidden size-6 min-h-0 -translate-y-1/2 rounded-kv-control border border-kv-border/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-soft hover:border-kv-brand hover:text-kv-brand lg:flex"
               icon={
@@ -236,7 +159,7 @@ export function AdminSidebar() {
                   className={cn(
                     'transition-transform',
                     kvShellAdminRailMotionClassName,
-                    isStoreCollapsed
+                    isCollapsed
                       ? 'rotate-180 rtl:rotate-0'
                       : 'rotate-0 rtl:rotate-180'
                   )}
