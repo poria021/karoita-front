@@ -415,6 +415,17 @@
   --chart-3: var(--kv-info);
   --chart-4: var(--kv-warning);
   --chart-5: var(--kv-brand-active);
+  /* پالت دسته‌ای نمودار (تا ۱۰ مورد مقایسه) */
+  --kv-chart-cat-1: hsl(220 85% 42%);
+  --kv-chart-cat-2: hsl(161 93% 30%);
+  --kv-chart-cat-3: hsl(32 94% 44%);
+  --kv-chart-cat-4: hsl(347 77% 50%);
+  --kv-chart-cat-5: hsl(262 60% 52%);
+  --kv-chart-cat-6: hsl(190 80% 36%);
+  --kv-chart-cat-7: hsl(48 90% 42%);
+  --kv-chart-cat-8: hsl(300 45% 48%);
+  --kv-chart-cat-9: hsl(100 45% 38%);
+  --kv-chart-cat-10: hsl(20 25% 42%);
   --sidebar: var(--kv-surface);
   --sidebar-foreground: var(--kv-text);
   --sidebar-primary: var(--kv-brand);
@@ -565,6 +576,16 @@
   --chart-3:                var(--kv-info);
   --chart-4:                var(--kv-warning);
   --chart-5:                var(--kv-brand-active);
+  --kv-chart-cat-1: hsl(213 80% 66%);
+  --kv-chart-cat-2: hsl(150 40% 52%);
+  --kv-chart-cat-3: hsl(32 80% 58%);
+  --kv-chart-cat-4: hsl(347 70% 64%);
+  --kv-chart-cat-5: hsl(262 60% 70%);
+  --kv-chart-cat-6: hsl(190 65% 52%);
+  --kv-chart-cat-7: hsl(48 75% 58%);
+  --kv-chart-cat-8: hsl(300 45% 66%);
+  --kv-chart-cat-9: hsl(100 38% 55%);
+  --kv-chart-cat-10: hsl(20 30% 62%);
   --sidebar:                var(--kv-surface);
   --sidebar-foreground:     var(--kv-text);
   --sidebar-primary:        var(--kv-brand);
@@ -689,6 +710,29 @@
 
 .kv-sidebar-scroll:hover::-webkit-scrollbar-thumb,
 .kv-sidebar-scroll:focus-within::-webkit-scrollbar-thumb {
+  background: var(--kv-border-strong);
+}
+
+/*
+ * Generic: scrollbar thumb is invisible at rest and shows on hover/focus.
+ * Needs the ::-webkit-scrollbar-thumb rules too, because the global
+ * ::-webkit-scrollbar styling above makes Chromium ignore scrollbar-color.
+ */
+.kv-scroll-hover {
+  scrollbar-color: transparent transparent;
+}
+
+.kv-scroll-hover:hover,
+.kv-scroll-hover:focus-within {
+  scrollbar-color: var(--kv-border-strong) transparent;
+}
+
+.kv-scroll-hover::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.kv-scroll-hover:hover::-webkit-scrollbar-thumb,
+.kv-scroll-hover:focus-within::-webkit-scrollbar-thumb {
   background: var(--kv-border-strong);
 }
 
