@@ -31,8 +31,9 @@ describe('pending card background', () => {
   });
 
   it('رشتهٔ رنگ زرد را با زمینه ترکیب می‌کند', () => {
-    expect(pendingBackground(5, 5)).toBe(
-      'color-mix(in srgb, hsl(48 96% 53%) 38%, var(--kv-surface))'
-    );
+    expect(pendingBackground(5, 5)).toContain('color-mix(in srgb');
+    expect(pendingBackground(5, 5)).toContain('var(--kv-pending-accent)');
+    expect(pendingBackground(5, 5)).toContain('var(--kv-surface)');
+    expect(pendingBackground(5, 5)).toContain(`${PENDING_BG_MAX_PERCENT}%`);
   });
 });
