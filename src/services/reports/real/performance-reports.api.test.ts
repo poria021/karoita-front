@@ -24,6 +24,7 @@ import {
 import {
   mapPerformanceRow,
   PERFORMANCE_COLUMNS,
+  performanceSortParams,
 } from '@/services/reports/real/performance-report.mappers';
 import type { ReportPeriodState } from '@/types/reports';
 
@@ -222,6 +223,52 @@ describe('گزارش‌های عملکرد (Nest)', () => {
     });
     expect(getJson.mock.calls[0]![0]).toBe('v1/reports/provinces/performance');
     expect(searchParamsOf()).toEqual({ structure: 'semester', search: 'قم', page: 1, limit: 50 });
+  });
+
+  it('sortBy و sortOrder فقط برای ستون‌های مجاز عملکرد فرستاده می‌شوند', async () => {
+    expect(performanceSortParams('teacher-performance', { id: 'resp', dir: 'desc' })).toEqual({
+      sortBy: 'responseRate',
+      sortOrder: 'desc',
+    });
+    expect(performanceSortParams('teacher-performance', { id: 'n', dir: 'asc' })).toEqual({});
+    expect(
+      performanceSortParams('school-performance', { id: 'score', dir: 'asc' })
+    ).toEqual({ sortBy: 'averageScore', sortOrder: 'asc' });
+    expect(
+      performanceSortParams('professor-performance', { id: 'att', dir: 'desc' })
+    ).toEqual({ sortBy: 'attendancePercent', sortOrder: 'desc' });
+    expect(performanceSortParams('faculty-performance', null)).toEqual({});
+    expect(performanceSortParams('schools', { id: 'resp', dir: 'desc' })).toEqual({});
+
+    getJson.mockResolvedValue({ data: [], hasNextPage: false });
+    await fetchListPage('school-performance', {
+      filters: { province: 'p1' },
+      query: '',
+      period: NO_PERIOD,
+      page: 1,
+      sort: { id: 'resp', dir: 'desc' },
+    });
+    expect(searchParamsOf()).toEqual({
+      structure: 'semester',
+      provinceId: 'p1',
+      sortBy: 'responseRate',
+      sortOrder: 'desc',
+      page: 1,
+      limit: 50,
+    });
+
+    await fetchListPage('teacher-performance', {
+      filters: {},
+      query: '',
+      period: NO_PERIOD,
+      page: 1,
+      sort: { id: 'n', dir: 'asc' },
+    });
+    expect(searchParamsOf(1)).toEqual({
+      structure: 'semester',
+      page: 1,
+      limit: 50,
+    });
   });
 
   it('ردیف معلم: مدرسه با منطقه، تعداد فراگیر و نرخ پاسخ', () => {

@@ -1,15 +1,31 @@
 import type { ReportSlug } from '@/types/report-access';
-import type { ReportColumnDef } from '@/types/reports';
+import type { ReportColumnDef, ReportPeriodMode } from '@/types/reports';
+
+/** عنوان ستون شناسهٔ فراگیر: ترمی → شمارهٔ دانشجویی، پودمانی → کد مهارت‌آموزی. */
+export const LEARNER_IDENTIFIER_TITLE: Record<ReportPeriodMode, string> = {
+  term: 'شماره دانشجویی',
+  module: 'کد مهارت‌آموزی',
+};
 
 /** تعریف ستون‌های جدول گزارش‌ها (فقط ساختار؛ داده همیشه از API می‌آید). */
 const COLUMN_DEFS: Record<ReportSlug, ReportColumnDef[]> = {
+  // ترتیب: فراگیر - استان - دانشکده (رشته تحصیلی کم‌رنگ‌تر زیرش) - مدرسه - استاد - معلم - درس.
   learners: [
-    { id: 'name', title: 'نام', kind: 'text', sortKey: 'name' },
-    { id: 'phone', title: 'شماره تلفن', kind: 'phone', sortKey: 'phone' },
-    { id: 'major', title: 'رشته تحصیلی', kind: 'text', sortKey: 'major' },
-    { id: 'course', title: 'درس', kind: 'courses', sortKey: 'course' },
-    { id: 'faculty', title: 'دانشکده', kind: 'text', sortKey: 'facName' },
+    {
+      id: 'name',
+      title: 'نام فراگیر',
+      kind: 'two-line',
+      sortKey: 'name',
+      secondaryKey: 'phone',
+    },
     { id: 'province', title: 'استان', kind: 'text', sortKey: 'provName' },
+    {
+      id: 'faculty',
+      title: 'دانشکده',
+      kind: 'two-line',
+      sortKey: 'facName',
+      secondaryKey: 'major',
+    },
     {
       id: 'school',
       title: 'مدرسه',
@@ -19,10 +35,16 @@ const COLUMN_DEFS: Record<ReportSlug, ReportColumnDef[]> = {
     },
     { id: 'prof', title: 'استاد راهنما', kind: 'text', sortKey: 'profName' },
     { id: 'teacher', title: 'معلم راهنما', kind: 'text', sortKey: 'teacherName' },
+    { id: 'course', title: 'درس', kind: 'courses', sortKey: 'course' },
   ],
   attendance: [
-    { id: 'name', title: 'نام', kind: 'text', sortKey: 'name' },
-    { id: 'phone', title: 'شماره تلفن', kind: 'phone', sortKey: 'phone' },
+    {
+      id: 'name',
+      title: 'نام',
+      kind: 'two-line',
+      sortKey: 'name',
+      secondaryKey: 'phone',
+    },
     { id: 'major', title: 'رشته تحصیلی', kind: 'text', sortKey: 'major' },
     { id: 'course', title: 'درس', kind: 'courses', sortKey: 'course' },
     { id: 'faculty', title: 'دانشکده', kind: 'text', sortKey: 'facName' },
@@ -58,23 +80,12 @@ const COLUMN_DEFS: Record<ReportSlug, ReportColumnDef[]> = {
       sortKey: 'attMgr',
     },
   ],
+  // نمرات: نام (تلفن زیرش) - استان - دانشکده (رشته زیرش) - مدرسه - استاد - معلم - نمرات.
+  // درس و وضعیت قبول/مردود هر درس داخل مودال «مشاهده ریز نمرات» است.
   scores: [
     { id: 'name', title: 'نام', kind: 'text', sortKey: 'name' },
-    { id: 'phone', title: 'شماره تلفن', kind: 'phone', sortKey: 'phone' },
-    { id: 'prof', title: 'استاد راهنما', kind: 'text', sortKey: 'profName' },
-    { id: 'status', title: 'وضعیت', kind: 'status', sortKey: 'status' },
-    {
-      id: 'act',
-      title: 'ریز نمرات',
-      kind: 'scores-action',
-      nosort: true,
-    },
-  ],
-  teachers: [
-    { id: 'name', title: 'نام', kind: 'text', sortKey: 'name' },
-    { id: 'code', title: 'کد پرسنلی', kind: 'text', sortKey: 'code' },
-    { id: 'phone', title: 'شماره تلفن', kind: 'phone', sortKey: 'phone' },
     { id: 'province', title: 'استان', kind: 'text', sortKey: 'provName' },
+    { id: 'faculty', title: 'دانشکده', kind: 'text', sortKey: 'facName' },
     {
       id: 'school',
       title: 'مدرسه',
@@ -82,6 +93,27 @@ const COLUMN_DEFS: Record<ReportSlug, ReportColumnDef[]> = {
       sortKey: 'schoolName',
       secondaryKey: 'regionName',
     },
+    { id: 'prof', title: 'استاد راهنما', kind: 'text', sortKey: 'profName' },
+    { id: 'teacher', title: 'معلم راهنما', kind: 'text', sortKey: 'teacherName' },
+    {
+      id: 'act',
+      title: 'نمرات',
+      kind: 'scores-action',
+      nosort: true,
+    },
+  ],
+  teachers: [
+    {
+      id: 'name',
+      title: 'نام',
+      kind: 'two-line',
+      sortKey: 'name',
+      secondaryKey: 'phone',
+    },
+    { id: 'code', title: 'کد پرسنلی', kind: 'text', sortKey: 'code' },
+    { id: 'province', title: 'استان', kind: 'text', sortKey: 'provName' },
+    { id: 'region', title: 'منطقه', kind: 'text', sortKey: 'regionName' },
+    { id: 'school', title: 'مدرسه', kind: 'text', sortKey: 'schoolName' },
     { id: 'n', title: 'تعداد فراگیر', kind: 'count', sortKey: 'n' },
   ],
   principals: [
@@ -101,13 +133,11 @@ const COLUMN_DEFS: Record<ReportSlug, ReportColumnDef[]> = {
     { id: 'code', title: 'کد استادی', kind: 'text', sortKey: 'code' },
     { id: 'phone', title: 'شماره تلفن', kind: 'phone', sortKey: 'phone' },
     { id: 'province', title: 'استان', kind: 'text', sortKey: 'provName' },
-    { id: 'city', title: 'شهر', kind: 'text', sortKey: 'cityName' },
     { id: 'fac', title: 'دانشکده', kind: 'text', sortKey: 'facName' },
-    { id: 'courses', title: 'دروس تدریس', kind: 'text', sortKey: 'courseText' },
-    { id: 'n', title: 'تعداد فراگیر', kind: 'count', sortKey: 'n' },
   ],
   schools: [
     { id: 'name', title: 'نام', kind: 'text', sortKey: 'name' },
+    { id: 'gender', title: 'جنسیت', kind: 'text', sortKey: 'genderLabel' },
     {
       id: 'principal',
       title: 'نام مدیر (کد پرسنلی)',
@@ -232,12 +262,6 @@ const COLUMN_DEFS: Record<ReportSlug, ReportColumnDef[]> = {
   'province-performance': [
     { id: 'name', title: 'نام استان', kind: 'text', sortKey: 'name' },
     {
-      id: 'head',
-      title: 'نام رئیس دانشگاه استانی',
-      kind: 'text',
-      sortKey: 'head',
-    },
-    {
       id: 'days',
       title: 'میانگین روزهای حضور نسبت به کل جلسات',
       kind: 'percent',
@@ -258,6 +282,11 @@ const COLUMN_DEFS: Record<ReportSlug, ReportColumnDef[]> = {
   ],
 };
 
-export function getColumnDefs(slug: ReportSlug): ReportColumnDef[] {
+/** ستون‌های هر گزارش (فقط ساختار؛ داده از API می‌آید). */
+export function getColumnDefs(
+  slug: ReportSlug,
+  // نگه داشته شده برای سازگاری امضا؛ ستون‌های لیست به نظام دوره بستگی ندارند.
+  _mode: ReportPeriodMode = 'term'
+): ReportColumnDef[] {
   return COLUMN_DEFS[slug];
 }

@@ -261,3 +261,8 @@ export async function mapHttpError(error: unknown): Promise<never> {
 
   throw new ApiClientError(String(error));
 }
+
+/** پاسخ ۴۰۳ بک‌اند: نقش کاربر به این منبع/گزارش دسترسی ندارد. */
+export function isForbiddenError(error: unknown): boolean {
+  return error instanceof ApiClientError && error.status === 403;
+}

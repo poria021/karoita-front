@@ -2,19 +2,29 @@
  * ستون‌های «حضور و غیاب» در حالت real (Nest).
  * ماکت ستون‌های دیگری دارد (استاد/معلم راهنما، ...)؛ اینجا فقط فیلدهایی که API می‌دهد.
  */
-import type { ReportColumnDef } from '@/types/reports';
+import type { ReportColumnDef, ReportPeriodMode } from '@/types/reports';
 
 /**
- * هر ردیف یک فراگیر است: نام، موبایل، مقطع، اولین درس (+شمارندهٔ بقیه)،
- * دانشکده، استان، مدرسه (با منطقه) و درصد حضور تاییدشده نسبت به کل جلسات.
+ * هر ردیف یک فراگیر است. ترتیب: نام (تلفن زیرش)، استان، دانشکده (رشته تحصیلی
+ * کم‌رنگ‌تر زیرش)، مدرسه (با منطقه)، درس‌ها (اولین درس + شمارندهٔ بقیه) و
+ * درصد حضور تاییدشده نسبت به کل جلسات.
  */
 export const LEARNERS_ATTENDANCE_COLUMNS: ReportColumnDef[] = [
-  { id: 'name', title: 'نام', kind: 'text', sortKey: 'name' },
-  { id: 'phone', title: 'شماره تلفن', kind: 'phone', sortKey: 'phone' },
-  { id: 'major', title: 'مقطع', kind: 'text', sortKey: 'major' },
-  { id: 'course', title: 'درس', kind: 'courses', nosort: true },
-  { id: 'faculty', title: 'دانشکده', kind: 'text', sortKey: 'facName' },
+  {
+    id: 'name',
+    title: 'نام',
+    kind: 'two-line',
+    sortKey: 'name',
+    secondaryKey: 'phone',
+  },
   { id: 'province', title: 'استان', kind: 'text', sortKey: 'provName' },
+  {
+    id: 'faculty',
+    title: 'دانشکده',
+    kind: 'two-line',
+    sortKey: 'facName',
+    secondaryKey: 'major',
+  },
   {
     id: 'school',
     title: 'مدرسه',
@@ -22,8 +32,17 @@ export const LEARNERS_ATTENDANCE_COLUMNS: ReportColumnDef[] = [
     sortKey: 'schoolName',
     secondaryKey: 'regionName',
   },
+  { id: 'course', title: 'درس‌ها', kind: 'courses', nosort: true },
   { id: 'att', title: 'درصد حضور', kind: 'percent', sortKey: 'att' },
 ];
+
+/** ستون‌های حضور فراگیران؛ عنوان ستون شناسه به نظام دوره بستگی دارد. */
+export function getLearnersAttendanceColumns(
+  mode: ReportPeriodMode = 'term'
+): ReportColumnDef[] {
+  void mode; // ستون‌ها به نظام دوره بستگی ندارند.
+  return LEARNERS_ATTENDANCE_COLUMNS;
+}
 
 /**
  * هر ردیف یک استاد است. سه عدد جدا نشان داده می‌شود و یکی نیستند:

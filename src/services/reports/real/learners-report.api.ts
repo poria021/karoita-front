@@ -49,12 +49,11 @@ export const NEST_LEARNERS_ATTENDANCE_PATHS: LearnersReportPaths = {
 };
 
 /**
- * «نمرات فراگیران» — جدول، خروجی و جزئیات.
- * بک‌اند باکس فیلتر ندارد و فقط search، structure، semesterId، page و limit را می‌پذیرد؛
- * پس `filters` خالی است و با `searchOnly` فیلترها هرگز فرستاده نمی‌شوند.
+ * «نمرات فراگیران» — باکس فیلتر، جدول، خروجی و جزئیات.
+ * شهر برای این گزارش نیست؛ `cityId` فرستاده نمی‌شود.
  */
 export const NEST_LEARNERS_GRADES_PATHS: LearnersReportPaths = {
-  filters: '',
+  filters: 'v1/reports/filters/learners_grades',
   table: 'v1/reports/learners/grades',
   export: 'v1/reports/learners/grades/export',
 };
@@ -149,20 +148,70 @@ const TABLE_FILTER_PARAMS: Partial<Record<ReportFilterKey, string>> = {
   teacher: 'teacherId',
 };
 
+/**
+ * باکس‌های «نمرات فراگیران» — بدون شهر؛ والدهای آبشار هم `cityId` ندارند.
+ */
+const GRADES_FILTER_BOXES: Partial<Record<ReportFilterKey, FilterBoxSpec>> = {
+  province: {
+    field: 'province',
+    responseKey: 'provinces',
+    labelKey: 'title',
+    parents: {},
+  },
+  region: {
+    field: 'educationalDistrict',
+    responseKey: 'educationalDistricts',
+    labelKey: 'title',
+    parents: { province: 'provinceId' },
+  },
+  faculty: {
+    field: 'university',
+    responseKey: 'universities',
+    labelKey: 'title',
+    parents: { province: 'provinceId' },
+  },
+  school: {
+    field: 'school',
+    responseKey: 'schools',
+    labelKey: 'title',
+    parents: {
+      province: 'provinceId',
+      region: 'educationalDistrictId',
+      faculty: 'universityId',
+      professor: 'professorId',
+    },
+  },
+  professor: {
+    field: 'professor',
+    responseKey: 'professors',
+    labelKey: 'fullName',
+    parents: { province: 'provinceId', faculty: 'universityId' },
+  },
+  teacher: {
+    field: 'teacher',
+    responseKey: 'teachers',
+    labelKey: 'fullName',
+    parents: {
+      province: 'provinceId',
+      region: 'educationalDistrictId',
+      school: 'schoolId',
+    },
+  },
+};
+
 export function isLearnersFilterKey(key: ReportFilterKey): boolean {
   return key in FILTER_BOXES;
 }
 
-/**
- * کلیدهایی که بعد از عوض شدن `key` باید پاک شوند (انتقالی).
- * مثال: عوض‌کردن دانشکده → استاد و مدرسه، و چون معلم به مدرسه وابسته است → معلم.
- */
-export function learnersDescendantKeys(key: ReportFilterKey): ReportFilterKey[] {
+function descendantKeysFromBoxes(
+  boxes: Partial<Record<ReportFilterKey, FilterBoxSpec>>,
+  key: ReportFilterKey
+): ReportFilterKey[] {
   const out = new Set<ReportFilterKey>();
   const queue: ReportFilterKey[] = [key];
   while (queue.length > 0) {
     const current = queue.shift()!;
-    for (const [candidate, spec] of Object.entries(FILTER_BOXES) as [
+    for (const [candidate, spec] of Object.entries(boxes) as [
       ReportFilterKey,
       FilterBoxSpec,
     ][]) {
@@ -174,6 +223,21 @@ export function learnersDescendantKeys(key: ReportFilterKey): ReportFilterKey[] 
     }
   }
   return [...out];
+}
+
+/**
+ * کلیدهایی که بعد از عوض شدن `key` باید پاک شوند (انتقالی).
+ * مثال: عوض‌کردن دانشکده → استاد و مدرسه، و چون معلم به مدرسه وابسته است → معلم.
+ */
+export function learnersDescendantKeys(key: ReportFilterKey): ReportFilterKey[] {
+  return descendantKeysFromBoxes(FILTER_BOXES, key);
+}
+
+/** آبشار فیلتر «نمرات فراگیران» (بدون شهر). */
+export function learnersGradesDescendantKeys(
+  key: ReportFilterKey
+): ReportFilterKey[] {
+  return descendantKeysFromBoxes(GRADES_FILTER_BOXES, key);
 }
 
 function periodParams(period: ReportPeriodState): {
@@ -192,15 +256,19 @@ function tableQuery(
   filters: ReportFilters,
   query: string,
   period: ReportPeriodState,
-  searchOnly = false
+  options?: {
+    /** کلیدهایی که هرگز به Nest فرستاده نشوند (مثلاً city برای نمرات). */
+    omitKeys?: readonly ReportFilterKey[];
+  }
 ): Record<string, string | number | undefined> {
+  const omit = new Set(options?.omitKeys ?? []);
   const q: Record<string, string | number | undefined> = {};
   for (const [key, param] of Object.entries(TABLE_FILTER_PARAMS) as [
     ReportFilterKey,
     string,
   ][]) {
-    // نمرات فراگیران فیلتر سازمانی ندارد (searchOnly).
-    const value = searchOnly ? undefined : filters[key];
+    if (omit.has(key)) continue;
+    const value = filters[key];
     // «همه» یعنی کلید اصلاً در کوئری نباشد.
     if (value) q[param] = value;
   }
@@ -237,6 +305,22 @@ function mapOptions(raw: unknown, spec: FilterBoxSpec): ReportOption[] | null {
   return options;
 }
 
+function isGradesPaths(paths: LearnersReportPaths): boolean {
+  return paths.table === NEST_LEARNERS_GRADES_PATHS.table;
+}
+
+function filterBoxesForPaths(
+  paths: LearnersReportPaths
+): Partial<Record<ReportFilterKey, FilterBoxSpec>> {
+  return isGradesPaths(paths) ? GRADES_FILTER_BOXES : FILTER_BOXES;
+}
+
+function tableQueryOptionsForPaths(
+  paths: LearnersReportPaths
+): { omitKeys?: readonly ReportFilterKey[] } | undefined {
+  return isGradesPaths(paths) ? { omitKeys: ['city'] } : undefined;
+}
+
 /** `GET /reports/filters/learners_list?field=…&<والدها>` */
 export async function fetchLearnersFilterBox(
   key: ReportFilterKey,
@@ -245,7 +329,9 @@ export async function fetchLearnersFilterBox(
   search?: string,
   paths: LearnersReportPaths = NEST_LEARNERS_REPORT_PATHS
 ): Promise<LearnersFilterBox> {
-  const spec = FILTER_BOXES[key];
+  if (!paths.filters) return { status: 'absent' };
+  const boxes = filterBoxesForPaths(paths);
+  const spec = boxes[key];
   if (!spec) return { status: 'absent' };
 
   const query: Record<string, string | number | undefined> = {
@@ -294,17 +380,23 @@ export async function fetchLearnersFilterBoxes(
   period: ReportPeriodState,
   paths: LearnersReportPaths = NEST_LEARNERS_REPORT_PATHS
 ): Promise<Partial<Record<ReportFilterKey, LearnersFilterBox>>> {
+  if (!paths.filters) {
+    return {};
+  }
+  const boxes = filterBoxesForPaths(paths);
+  const omit = new Set(tableQueryOptionsForPaths(paths)?.omitKeys ?? []);
   const query: Record<string, string | number | undefined> = {};
   for (const [key, param] of Object.entries(TABLE_FILTER_PARAMS) as [
     ReportFilterKey,
     string,
   ][]) {
+    if (omit.has(key)) continue;
     const value = filters[key];
     if (value) query[param] = value;
   }
   Object.assign(query, periodParams(period));
 
-  const keys = Object.keys(FILTER_BOXES) as ReportFilterKey[];
+  const keys = Object.keys(boxes) as ReportFilterKey[];
   const all = (box: LearnersFilterBox) =>
     Object.fromEntries(keys.map((key) => [key, box])) as Partial<
       Record<ReportFilterKey, LearnersFilterBox>
@@ -316,7 +408,7 @@ export async function fetchLearnersFilterBoxes(
     });
     const out: Partial<Record<ReportFilterKey, LearnersFilterBox>> = {};
     for (const key of keys) {
-      const options = mapOptions(raw, FILTER_BOXES[key]!);
+      const options = mapOptions(raw, boxes[key]!);
       out[key] = options ? { status: 'ok', options } : { status: 'absent' };
     }
     return out;
@@ -387,6 +479,19 @@ export function mapLearnerRow(raw: unknown, index: number): ReportRow | null {
     id,
     s: '',
     name,
+    // ترمی: شمارهٔ دانشجویی، پودمانی: کد مهارت‌آموزی. در Nest هر دو روی کاربر
+    // `userUniqueId` ذخیره می‌شوند؛ نام فیلد پاسخ مستند نیست، پس چند نام محتمل را می‌پذیریم.
+    studentNumber: pickText(
+      rec.studentNumber,
+      rec.studentCode,
+      rec.studentNo,
+      rec.skillCode,
+      rec.skillNumber,
+      rec.userUniqueId,
+      rec.uniqueId,
+      rec.uniqueCode,
+      rec.identifier
+    ),
     phone: pickText(rec.phone, rec.mobile, rec.phoneNumber),
     major: pickText(rec.degree, rec.major, rec.field, rec.fieldOfStudy, rec.grade),
     courses,
@@ -442,6 +547,18 @@ export function mapLearnerAttendanceRow(
     id: pickText(rec.id, rec._id) ?? `row-${index}`,
     s: '',
     name: pickText(rec.fullName),
+    // ترمی: شمارهٔ دانشجویی، پودمانی: کد مهارت‌آموزی (هر دو روی userUniqueId).
+    studentNumber: pickText(
+      rec.studentNumber,
+      rec.studentCode,
+      rec.studentNo,
+      rec.skillCode,
+      rec.skillNumber,
+      rec.userUniqueId,
+      rec.uniqueId,
+      rec.uniqueCode,
+      rec.identifier
+    ),
     phone: pickText(rec.phone),
     major: pickText(rec.degree),
     courses: lessonTitle ? [lessonTitle] : [],
@@ -461,8 +578,9 @@ function mapGradeStatus(value: unknown): ReportScoreStatus {
 }
 
 /**
- * ردیف «نمرات فراگیران»:
- * `{ id, fullName, phone, mentor, status: passed | failed | not_recorded }`
+ * ردیف «نمرات فراگیران» — همان شکل لیست فراگیران به‌علاوه status و scores.
+ * `{ id, fullName, phone, degree, lessons, university, province, school,
+ *    mentor, teacher, status, scores: [{ lessonTitle, finalScore, weeks }] }`
  */
 export function mapLearnerGradeRow(
   raw: unknown,
@@ -470,14 +588,40 @@ export function mapLearnerGradeRow(
 ): ReportRow | null {
   if (!raw || typeof raw !== 'object') return null;
   const rec = raw as Record<string, unknown>;
+  const lessons = asRecord(rec.lessons);
+  const schoolIsText = typeof rec.school === 'string';
+  const school = asRecord(rec.school);
+  const lessonTitle = pickText(lessons.title);
+
   return {
     id: pickText(rec.id, rec._id) ?? 'row-' + index,
     s: '',
     name: pickText(rec.fullName),
+    // ترمی: شمارهٔ دانشجویی، پودمانی: کد مهارت‌آموزی (هر دو روی userUniqueId).
+    studentNumber: pickText(
+      rec.studentNumber,
+      rec.studentCode,
+      rec.studentNo,
+      rec.skillCode,
+      rec.skillNumber,
+      rec.userUniqueId,
+      rec.uniqueId,
+      rec.uniqueCode,
+      rec.identifier
+    ),
     phone: pickText(rec.phone),
+    major: pickText(rec.degree),
+    courses: lessonTitle ? [lessonTitle] : [],
+    courseExtraCount: pickNumber(lessons.extraCount) ?? 0,
+    facName: pickText(rec.university),
+    provName: pickText(rec.province),
+    schoolName: schoolIsText ? pickText(rec.school) : pickText(school.title),
+    regionName: pickText(school.district),
     // سلول متنی خالی به نام فراگیر برمی‌گردد؛ پس برای «بدون استاد» خط‌تیره می‌گذاریم.
     profName: pickText(rec.mentor) ?? '—',
+    teacherName: pickText(rec.teacher) ?? '—',
     status: mapGradeStatus(rec.status),
+    scores: Array.isArray(rec.scores) ? rec.scores : undefined,
   };
 }
 
@@ -498,16 +642,20 @@ export async function fetchLearnersPage(input: {
   paths?: LearnersReportPaths;
   /** پیش‌فرض: `mapLearnerRow`. */
   mapRow?: (raw: unknown, index: number) => ReportRow | null;
-  /** فقط search و دوره؛ فیلترهای سازمانی فرستاده نشوند (نمرات). */
-  searchOnly?: boolean;
 }): Promise<LearnersPage> {
+  const paths = input.paths ?? NEST_LEARNERS_REPORT_PATHS;
   const limit = Math.min(input.limit ?? LEARNERS_PAGE_SIZE, LEARNERS_PAGE_SIZE);
   const raw = await apiClient.getJson<unknown>(
-    (input.paths ?? NEST_LEARNERS_REPORT_PATHS).table,
+    paths.table,
     undefined,
     {
       searchParams: toSearchParams({
-        ...tableQuery(input.filters, input.query, input.period, input.searchOnly),
+        ...tableQuery(
+          input.filters,
+          input.query,
+          input.period,
+          tableQueryOptionsForPaths(paths)
+        ),
         page: input.page,
         limit,
       }),
@@ -555,12 +703,16 @@ export async function downloadLearnersExport(input: {
   period: ReportPeriodState;
   paths?: LearnersReportPaths;
   fileNames?: LearnersExportFileNames;
-  /** فقط search و دوره؛ فیلترهای سازمانی فرستاده نشوند (نمرات). */
-  searchOnly?: boolean;
 }): Promise<void> {
+  const paths = input.paths ?? NEST_LEARNERS_REPORT_PATHS;
   const params = new URLSearchParams();
   const query = toSearchParams({
-    ...tableQuery(input.filters, input.query, input.period, input.searchOnly),
+    ...tableQuery(
+      input.filters,
+      input.query,
+      input.period,
+      tableQueryOptionsForPaths(paths)
+    ),
     format: input.format,
   }) as Record<string, string | number>;
   for (const [key, value] of Object.entries(query)) {
@@ -569,7 +721,7 @@ export async function downloadLearnersExport(input: {
 
   const bearer = await resolveBearerToken();
   const response = await fetch(
-    `${apiClient.baseUrl}/${(input.paths ?? NEST_LEARNERS_REPORT_PATHS).export}?${params.toString()}`,
+    `${apiClient.baseUrl}/${paths.export}?${params.toString()}`,
     {
       method: 'GET',
       credentials: 'include',
@@ -602,6 +754,11 @@ export async function downloadLearnersExport(input: {
   );
 }
 
+/** مسیر فیلتر نمرات برای تست و مقایسه. */
+export const LEARNERS_GRADES_FILTER_KEYS = Object.keys(
+  GRADES_FILTER_BOXES
+) as ReportFilterKey[];
+
 export const LEARNERS_GRADES_EXPORT_FILE: LearnersExportFileNames = {
   excel: 'learners-grades-report.xlsx',
   pdf: 'learners-grades-report.pdf',
@@ -612,19 +769,22 @@ export const LEARNERS_GRADES_EXPORT_FILE: LearnersExportFileNames = {
 /* ------------------------------------------------------------------ */
 
 /**
- * پاسخ `grades/detail/:studentId`:
- * `{ studentId, lessons: [{ lessonId, title, isPass, finalScore,
- *    weeks: [{ priority (۱ تا ۵), score }] }] }`
+ * پاسخ `grades/detail/:studentId` یا آرایهٔ `scores` روی ردیف جدول:
+ * `{ lessonTitle|title, finalScore, weeks: [{ priority, score }] }`
  * نام فراگیر در پاسخ نیست؛ از ردیف جدول می‌آید.
- * جلسهٔ هر درس با `priority` هفته جایگذاری می‌شود (هفتهٔ بدون نمره = null).
+ * نمرهٔ پایانی همان `finalScore` است (ممکن است تا بستن نیمسال null باشد).
  */
 export function mapLearnerGradeDetail(
   raw: unknown,
   learnerId: string,
   learnerName: string
 ): ReportLearnerScoreDetail {
-  const lessons = asRecord(raw).lessons;
-  const list = Array.isArray(lessons) ? lessons : [];
+  const body = asRecord(raw);
+  const list = Array.isArray(body.scores)
+    ? body.scores
+    : Array.isArray(body.lessons)
+      ? body.lessons
+      : [];
   return {
     learnerId,
     learnerName,
@@ -644,18 +804,38 @@ export function mapLearnerGradeDetail(
           sessions.push(score);
         }
       }
-      const got = sessions.filter((v): v is number => v !== null);
+      const finalScore = pickNumber(lesson.finalScore);
+      const rawStatus = lesson.status ?? lesson.lessonStatus ?? lesson.result;
       return {
         // یک درس ممکن است در چند نیم‌سال تکرار شود؛ id یکتا بماند.
-        id: (pickText(lesson.lessonId) ?? 'lesson') + '-' + index,
-        name: pickText(lesson.title) ?? '',
-        average: got.length
-          ? Math.round(got.reduce((a, b) => a + b, 0) / got.length)
-          : null,
+        id:
+          (pickText(lesson.lessonId, lesson.lessonTitle, lesson.title) ??
+            'lesson') +
+          '-' +
+          index,
+        name: pickText(lesson.lessonTitle, lesson.title) ?? '',
+        average: finalScore ?? null,
         sessions,
+        ...(rawStatus !== undefined && rawStatus !== null
+          ? { status: mapGradeStatus(rawStatus) }
+          : {}),
       };
     }),
   };
+}
+
+/**
+ * اگر API وضعیت هر درس را نداده باشد و فراگیر فقط یک درس دارد، وضعیت ردیف همان
+ * وضعیت آن درس است. با چند درس حدس نمی‌زنیم (وضعیت ردیف مال کل نیمسال است).
+ */
+export function withRowStatusFallback(
+  detail: ReportLearnerScoreDetail,
+  rowStatus: ReportScoreStatus | undefined
+): ReportLearnerScoreDetail {
+  if (!rowStatus || detail.courses.length !== 1) return detail;
+  const [only] = detail.courses;
+  if (!only || only.status !== undefined) return detail;
+  return { ...detail, courses: [{ ...only, status: rowStatus }] };
 }
 
 /** `GET /reports/learners/grades/detail/:studentId?structure=&semesterId=` */

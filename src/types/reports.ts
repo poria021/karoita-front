@@ -154,6 +154,8 @@ export type ReportLearnerScoreDetail = {
     name: string;
     average: number | null;
     sessions: (number | null)[];
+    /** قبول/مردود همین درس (اگر API بدهد، یا از وضعیت ردیف وقتی فقط یک درس است). */
+    status?: ReportScoreStatus;
   }[];
 };
 

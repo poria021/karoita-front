@@ -1,5 +1,5 @@
 import {
-  LEARNERS_ATTENDANCE_COLUMNS,
+  getLearnersAttendanceColumns,
   PROFESSORS_ATTENDANCE_COLUMNS,
 } from '@/services/reports/real/attendance-report.columns';
 import {
@@ -36,6 +36,7 @@ import type {
   ReportFilterKey,
   ReportFilters,
   ReportLearnerScoreDetail,
+  ReportPeriodMode,
   ReportPeriodState,
   ReportQueryInput,
   ReportQueryResult,
@@ -80,15 +81,21 @@ function unsupportedReport(slug: ReportSlug): never {
 }
 
 /** ستون‌های جدول؛ برای حضور و غیاب و عملکرد فقط فیلدهای API. */
-function columnDefsFor(slug: ReportSlug): ReportColumnDef[] {
-  if (slug === 'attendance') return LEARNERS_ATTENDANCE_COLUMNS;
+function columnDefsFor(
+  slug: ReportSlug,
+  mode: ReportPeriodMode = 'term'
+): ReportColumnDef[] {
+  if (slug === 'attendance') return getLearnersAttendanceColumns(mode);
   if (slug === 'professor-attendance') return PROFESSORS_ATTENDANCE_COLUMNS;
   if (isPerformanceReportSlug(slug)) return PERFORMANCE_COLUMNS[slug];
-  return getColumnDefs(slug);
+  return getColumnDefs(slug, mode);
 }
 
-/** Nest مرتب‌سازی ندارد؛ فقط ردیف‌های بارگذاری‌شده را مرتب می‌کنیم. */
-function sortLoadedRows(
+/**
+ * مرتب‌سازی سمت کلاینت برای گزارش‌هایی که Nest `sortBy` ندارد.
+ * گزارش‌های عملکرد از API مرتب می‌شوند؛ اینجا دست نمی‌زنیم.
+ */
+export function sortLoadedRows(
   rows: ReportQueryResult['rows'],
   columns: ReportColumnDef[],
   sort: ReportSort | null
@@ -101,7 +108,9 @@ function sortLoadedRows(
   return rows.slice().sort((a, b) => {
     const x = a[key];
     const y = b[key];
-    if (x === undefined || y === undefined) return 0;
+    if (x == null && y == null) return 0;
+    if (x == null) return 1;
+    if (y == null) return -1;
     if (typeof x === 'number' && typeof y === 'number') return (x - y) * dir;
     return String(x).localeCompare(String(y), 'fa') * dir;
   });
@@ -116,11 +125,15 @@ type LoadedPage = {
 function toQueryResult(
   slug: ReportSlug,
   result: LoadedPage,
-  sort: ReportSort | null
+  sort: ReportSort | null,
+  mode: ReportPeriodMode = 'term'
 ): ReportQueryResult {
-  const columns = columnDefsFor(slug);
+  const columns = columnDefsFor(slug, mode);
+  const rows = isPerformanceReportSlug(slug)
+    ? result.rows
+    : sortLoadedRows(result.rows, columns, sort);
   return {
-    rows: sortLoadedRows(result.rows, columns, sort),
+    rows,
     total: result.rows.length,
     page: result.page,
     pageSize: result.rows.length,
@@ -135,9 +148,9 @@ function toQueryResult(
  */
 export const ReportsService = {
   /**
-   * یک باکس فیلتر برای هر گزارش (فراگیران یا یکی از گزارش‌های لیستی).
+   * یک باکس فیلتر برای هر گزارش (فراگیران، نمرات، حضور یا لیستی).
    * نتیجه می‌گوید باکس برای نقش هست یا نه و آیا انتخاب قبلی با والد جدید
-   * ناسازگار است (400). نمرات فراگیران باکس فیلتر ندارد.
+   * ناسازگار است (400).
    */
   async getReportFilterBox(
     slug: ReportSlug,
@@ -159,6 +172,15 @@ export const ReportsService = {
         NEST_LEARNERS_ATTENDANCE_PATHS
       );
     }
+    if (isRealScoresReport(slug)) {
+      return fetchLearnersFilterBox(
+        key,
+        filters,
+        period,
+        search,
+        NEST_LEARNERS_GRADES_PATHS
+      );
+    }
     if (isListReportSlug(slug)) {
       return fetchListFilterBox(slug, key, filters, period, search);
     }
@@ -166,7 +188,7 @@ export const ReportsService = {
   },
 
   /**
-   * حضور و غیاب (فراگیران/اساتید) و گزارش‌های عملکرد: همهٔ باکس‌های مجاز نقش
+   * فراگیران / نمرات / حضور و گزارش‌های عملکرد: همهٔ باکس‌های مجاز نقش
    * در یک درخواست و بدون `field`. برای بقیه `null` (همان درخواست تک‌باکسی).
    */
   async getReportFilterBoxes(
@@ -185,13 +207,20 @@ export const ReportsService = {
         NEST_LEARNERS_ATTENDANCE_PATHS
       );
     }
+    if (isRealScoresReport(slug)) {
+      return fetchLearnersFilterBoxes(
+        filters,
+        period,
+        NEST_LEARNERS_GRADES_PATHS
+      );
+    }
     if (isListReportSlug(slug)) {
       return fetchListFilterBoxes(slug, filters, period);
     }
     return null;
   },
 
-  /** خروجی اکسل/PDF همهٔ صفحه‌ها با همان فیلترهای جدول. */
+  /** خروجی اکسل/PDF همهٔ صفحه‌ها با همان فیلترها و مرتب‌سازی جدول. */
   async exportReport(
     slug: ReportSlug,
     input: {
@@ -199,6 +228,7 @@ export const ReportsService = {
       filters: ReportFilters;
       query: string;
       period: ReportPeriodState;
+      sort?: ReportSort | null;
     }
   ): Promise<void> {
     if (slug === 'learners') return downloadLearnersExport(input);
@@ -214,7 +244,6 @@ export const ReportsService = {
         ...input,
         paths: NEST_LEARNERS_GRADES_PATHS,
         fileNames: LEARNERS_GRADES_EXPORT_FILE,
-        searchOnly: true,
       });
     }
     if (isListReportSlug(slug)) return downloadListExport(slug, input);
@@ -222,8 +251,11 @@ export const ReportsService = {
   },
 
   /** تعریف ستون‌های گزارش — همگام؛ برای هدر جدول هنگام تعویض اسلاگ. */
-  getColumnDefs(slug: ReportSlug): ReportColumnDef[] {
-    return columnDefsFor(slug);
+  getColumnDefs(
+    slug: ReportSlug,
+    mode: ReportPeriodMode = 'term'
+  ): ReportColumnDef[] {
+    return columnDefsFor(slug, mode);
   },
 
   async queryReport(input: ReportQueryInput): Promise<ReportQueryResult> {
@@ -236,7 +268,12 @@ export const ReportsService = {
       limit: input.pageSize,
     };
     if (isRealLearnersReport(slug)) {
-      return toQueryResult(slug, await fetchLearnersPage(base), input.sort);
+      return toQueryResult(
+        slug,
+        await fetchLearnersPage(base),
+        input.sort,
+        input.period.mode
+      );
     }
     if (isRealAttendanceReport(slug)) {
       return toQueryResult(
@@ -256,13 +293,16 @@ export const ReportsService = {
           ...base,
           paths: NEST_LEARNERS_GRADES_PATHS,
           mapRow: mapLearnerGradeRow,
-          searchOnly: true,
         }),
         input.sort
       );
     }
     if (isListReportSlug(slug)) {
-      return toQueryResult(slug, await fetchListPage(slug, base), input.sort);
+      return toQueryResult(
+        slug,
+        await fetchListPage(slug, { ...base, sort: input.sort }),
+        input.sort
+      );
     }
     return unsupportedReport(slug);
   },

@@ -12,7 +12,7 @@
  * `averageScore` ممکن است `null` باشد؛ آن‌وقت فیلد خالی می‌ماند و سلول «—» می‌شود.
  */
 import type { ReportSlug } from '@/types/report-access';
-import type { ReportColumnDef, ReportRow } from '@/types/reports';
+import type { ReportColumnDef, ReportRow, ReportSort } from '@/types/reports';
 
 export type PerformanceReportSlug =
   | 'teacher-performance'
@@ -20,6 +20,12 @@ export type PerformanceReportSlug =
   | 'professor-performance'
   | 'faculty-performance'
   | 'province-performance';
+
+/** کلیدهای `sortBy` که Nest برای گزارش‌های عملکرد می‌پذیرد. */
+export type PerformanceSortBy =
+  | 'responseRate'
+  | 'averageScore'
+  | 'attendancePercent';
 
 const PERFORMANCE_SLUGS: readonly PerformanceReportSlug[] = [
   'teacher-performance',
@@ -29,10 +35,54 @@ const PERFORMANCE_SLUGS: readonly PerformanceReportSlug[] = [
   'province-performance',
 ];
 
+/**
+ * ستون UI (`id`) → `sortBy` Nest.
+ * فقط همین کلیدها برای همان گزارش مجازند؛ بقیه nosort هستند.
+ */
+const PERFORMANCE_COLUMN_SORT_BY: Record<
+  PerformanceReportSlug,
+  Partial<Record<string, PerformanceSortBy>>
+> = {
+  'teacher-performance': { resp: 'responseRate' },
+  'school-performance': {
+    resp: 'responseRate',
+    score: 'averageScore',
+  },
+  'professor-performance': {
+    att: 'attendancePercent',
+    resp: 'responseRate',
+    score: 'averageScore',
+  },
+  'faculty-performance': {
+    att: 'attendancePercent',
+    resp: 'responseRate',
+    score: 'averageScore',
+  },
+  'province-performance': {
+    att: 'attendancePercent',
+    resp: 'responseRate',
+    score: 'averageScore',
+  },
+};
+
 export function isPerformanceReportSlug(
   slug: ReportSlug | string
 ): slug is PerformanceReportSlug {
   return (PERFORMANCE_SLUGS as readonly string[]).includes(slug);
+}
+
+/**
+ * پارامترهای مرتب‌سازی Nest برای جدول/خروجی عملکرد.
+ * بدون sort یا ستون غیرمجاز → هیچ‌کدام فرستاده نمی‌شود.
+ */
+export function performanceSortParams(
+  slug: ReportSlug | string,
+  sort: ReportSort | null | undefined
+): { sortBy?: PerformanceSortBy; sortOrder?: 'asc' | 'desc' } {
+  if (!sort || !isPerformanceReportSlug(slug)) return {};
+  const sortBy = PERFORMANCE_COLUMN_SORT_BY[slug][sort.id];
+  if (!sortBy) return {};
+  return { sortBy, sortOrder: sort.dir };
 }
 
 function pickText(...values: unknown[]): string | undefined {
@@ -107,12 +157,27 @@ function mapSchoolPerformance(
   index: number
 ): ReportRow {
   const gender = pickText(rec.gender);
+  const name = pickText(rec.title);
+  const genderLabel = gender ? (GENDER_LABEL[gender] ?? gender) : undefined;
+  const head = pickText(rec.adminName);
   return {
     ...baseRow(rec, index),
-    name: pickText(rec.title),
-    genderLabel: gender ? (GENDER_LABEL[gender] ?? gender) : undefined,
-    head: pickText(rec.adminName),
+    name,
+    genderLabel,
+    head,
+    // «نام مدرسه (جنسیت)، نام مدیر» در یک سلول.
+    schoolLabel: name
+      ? name + (genderLabel ? ' (' + genderLabel + ')' : '') + (head ? '، ' + head : '')
+      : undefined,
     code: pickText(rec.adminPersonnelCode),
+    provName: pickText(rec.province, rec.provinceTitle, rec.provinceName),
+    cityName: pickText(rec.city, rec.cityTitle, rec.cityName),
+    regionName: pickText(
+      rec.educationalDistrict,
+      rec.educationalDistrictTitle,
+      rec.district,
+      rec.region
+    ),
     resp: pickNumber(rec.responseRate),
     score: pickNumber(rec.averageScore),
   };
@@ -122,11 +187,26 @@ function mapProfessorPerformance(
   rec: Record<string, unknown>,
   index: number
 ): ReportRow {
+  const name = pickText(rec.fullName);
+  const phone = pickText(rec.phone);
   return {
     ...baseRow(rec, index),
-    name: pickText(rec.fullName),
+    name,
+    // «نام (شماره)» در یک سلول؛ بدون نام فقط شماره می‌ماند.
+    nameLabel: name
+      ? name + (phone ? ' (' + phone + ')' : '')
+      : phone
+        ? '— (' + phone + ')'
+        : undefined,
     code: pickText(rec.personnelCode),
-    phone: pickText(rec.phone),
+    phone,
+    provName: pickText(rec.province, rec.provinceTitle, rec.provinceName),
+    facName: pickText(
+      rec.university,
+      rec.universityTitle,
+      rec.universityName,
+      rec.faculty
+    ),
     att: pickNumber(rec.attendancePercent),
     resp: pickNumber(rec.responseRate),
     score: pickNumber(rec.averageScore),
@@ -155,7 +235,15 @@ function mapProvincePerformance(
   return {
     ...baseRow(rec, index),
     name: pickText(rec.title),
-    head: pickText(rec.head),
+    head: pickText(
+      rec.head,
+      rec.adminName,
+      rec.managerName,
+      rec.manager,
+      rec.headName,
+      rec.responsible,
+      rec.admin
+    ),
     att: pickNumber(rec.attendancePercent),
     resp: pickNumber(rec.responseRate),
     score: pickNumber(rec.averageScore),
@@ -187,19 +275,38 @@ export const PERFORMANCE_COLUMNS: Record<
   PerformanceReportSlug,
   ReportColumnDef[]
 > = {
-  // هر ردیف یک معلم راهنما
+  // هر ردیف یک معلم راهنما — سورت API فقط responseRate
   'teacher-performance': [
-    { id: 'name', title: 'نام', kind: 'text', sortKey: 'name' },
-    { id: 'code', title: 'کد پرسنلی', kind: 'text', sortKey: 'code' },
-    { id: 'phone', title: 'شماره تلفن', kind: 'phone', sortKey: 'phone' },
+    {
+      id: 'name',
+      title: 'نام',
+      kind: 'text',
+      sortKey: 'name',
+      nosort: true,
+    },
+    {
+      id: 'code',
+      title: 'کد پرسنلی',
+      kind: 'text',
+      sortKey: 'code',
+      nosort: true,
+    },
+    {
+      id: 'phone',
+      title: 'شماره تلفن',
+      kind: 'phone',
+      sortKey: 'phone',
+      nosort: true,
+    },
     {
       id: 'school',
       title: 'مدرسه',
       kind: 'two-line',
       sortKey: 'schoolName',
       secondaryKey: 'regionName',
+      nosort: true,
     },
-    { id: 'n', title: 'تعداد فراگیر', kind: 'count', sortKey: 'n' },
+    { id: 'n', title: 'تعداد فراگیر', kind: 'count', sortKey: 'n', nosort: true },
     {
       id: 'resp',
       title: 'درصد جلسه‌های پاسخ‌داده‌شده',
@@ -207,39 +314,108 @@ export const PERFORMANCE_COLUMNS: Record<
       sortKey: 'resp',
     },
   ],
-  // هر ردیف یک مدرسه
+  // هر ردیف یک مدرسه — سورت فقط روی نرخ پاسخ و میانگین نمره
   'school-performance': [
-    { id: 'name', title: 'عنوان مدرسه', kind: 'text', sortKey: 'name' },
-    { id: 'gender', title: 'جنسیت', kind: 'text', sortKey: 'genderLabel' },
-    { id: 'head', title: 'نام مدیر', kind: 'text', sortKey: 'head' },
-    { id: 'code', title: 'کد پرسنلی مدیر', kind: 'text', sortKey: 'code' },
+    {
+      id: 'name',
+      title: 'نام مدرسه',
+      kind: 'text',
+      sortKey: 'name',
+      nosort: true,
+    },
+    {
+      id: 'gender',
+      title: 'جنسیت',
+      kind: 'text',
+      sortKey: 'genderLabel',
+      nosort: true,
+    },
+    {
+      id: 'head',
+      title: 'نام مدیر',
+      kind: 'text',
+      sortKey: 'head',
+      nosort: true,
+    },
+    {
+      id: 'code',
+      title: 'کد پرسنلی مدیر',
+      kind: 'text',
+      sortKey: 'code',
+      nosort: true,
+    },
     { id: 'resp', title: 'نرخ پاسخ', kind: 'percent', sortKey: 'resp' },
     { id: 'score', title: 'میانگین نمره', kind: 'score', sortKey: 'score' },
   ],
-  // هر ردیف یک استاد
+  // هر ردیف یک استاد — سورت روی درصد حضور، نرخ پاسخ و میانگین نمره
   'professor-performance': [
-    { id: 'name', title: 'نام', kind: 'text', sortKey: 'name' },
-    { id: 'code', title: 'کد پرسنلی', kind: 'text', sortKey: 'code' },
-    { id: 'phone', title: 'شماره تلفن', kind: 'phone', sortKey: 'phone' },
+    {
+      id: 'name',
+      title: 'نام',
+      kind: 'text',
+      sortKey: 'name',
+      nosort: true,
+    },
+    {
+      id: 'code',
+      title: 'کد پرسنلی',
+      kind: 'text',
+      sortKey: 'code',
+      nosort: true,
+    },
+    {
+      id: 'phone',
+      title: 'شماره موبایل',
+      kind: 'phone',
+      sortKey: 'phone',
+      nosort: true,
+    },
     { id: 'att', title: 'درصد حضور', kind: 'percent', sortKey: 'att' },
     { id: 'resp', title: 'نرخ پاسخ', kind: 'percent', sortKey: 'resp' },
-    { id: 'score', title: 'میانگین نمره', kind: 'score', sortKey: 'score' },
+    {
+      id: 'score',
+      title: 'میانگین نمره فراگیران',
+      kind: 'score',
+      sortKey: 'score',
+    },
   ],
-  // هر ردیف یک دانشکده
+  // هر ردیف یک دانشکده — سورت روی سه ستون آخر
   'faculty-performance': [
-    { id: 'name', title: 'عنوان دانشکده', kind: 'text', sortKey: 'name' },
-    { id: 'province', title: 'استان', kind: 'text', sortKey: 'provName' },
-    { id: 'city', title: 'شهر', kind: 'text', sortKey: 'cityName' },
-    { id: 'att', title: 'درصد حضور', kind: 'percent', sortKey: 'att' },
+    {
+      id: 'name',
+      title: 'نام دانشکده',
+      kind: 'text',
+      sortKey: 'name',
+      nosort: true,
+    },
+    {
+      id: 'province',
+      title: 'استان',
+      kind: 'text',
+      sortKey: 'provName',
+      nosort: true,
+    },
+    { id: 'city', title: 'شهر', kind: 'text', sortKey: 'cityName', nosort: true },
+    { id: 'att', title: 'درصد حضور اساتید', kind: 'percent', sortKey: 'att' },
     { id: 'resp', title: 'نرخ پاسخ', kind: 'percent', sortKey: 'resp' },
     { id: 'score', title: 'میانگین نمره', kind: 'score', sortKey: 'score' },
   ],
-  // هر ردیف یک استان
+  // هر ردیف یک استان — سورت روی سه ستون آخر
   'province-performance': [
-    { id: 'name', title: 'عنوان استان', kind: 'text', sortKey: 'name' },
-    { id: 'head', title: 'مسئول', kind: 'text', sortKey: 'head' },
-    { id: 'att', title: 'درصد حضور', kind: 'percent', sortKey: 'att' },
-    { id: 'resp', title: 'نرخ پاسخ', kind: 'percent', sortKey: 'resp' },
-    { id: 'score', title: 'میانگین نمره', kind: 'score', sortKey: 'score' },
+    {
+      id: 'name',
+      title: 'نام استان',
+      kind: 'text',
+      sortKey: 'name',
+      nosort: true,
+    },
+    { id: 'att', title: 'درصد حضور اساتید', kind: 'percent', sortKey: 'att' },
+    { id: 'resp', title: 'نرخ پاسخ‌دهی', kind: 'percent', sortKey: 'resp' },
+    {
+      id: 'score',
+      title: 'میانگین نمره فراگیران',
+      kind: 'score',
+      sortKey: 'score',
+    },
   ],
 };

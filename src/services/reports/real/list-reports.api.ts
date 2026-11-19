@@ -20,6 +20,7 @@ import {
 import {
   isPerformanceReportSlug,
   mapPerformanceRow,
+  performanceSortParams,
 } from '@/services/reports/real/performance-report.mappers';
 import type { ReportSlug } from '@/types/report-access';
 import type {
@@ -28,6 +29,7 @@ import type {
   ReportOption,
   ReportPeriodState,
   ReportRow,
+  ReportSort,
 } from '@/types/reports';
 
 /** اسلاگ‌های این فایل؛ «فراگیران» جدا هندل می‌شود. */
@@ -325,7 +327,8 @@ function tableQuery(
   slug: ListReportSlug,
   filters: ReportFilters,
   query: string,
-  period: ReportPeriodState
+  period: ReportPeriodState,
+  sort?: ReportSort | null
 ): Record<string, string | number | undefined> {
   const q: Record<string, string | number | undefined> = {};
   // provinces_list روی جدول فقط search/structure/semesterId/page/limit دارد.
@@ -339,6 +342,8 @@ function tableQuery(
   Object.assign(q, periodParams(period));
   const search = query.trim();
   if (search) q.search = search;
+  // مرتب‌سازی فقط برای گزارش‌های عملکرد؛ بدون sort پارامترها ارسال نمی‌شوند.
+  Object.assign(q, performanceSortParams(slug, sort));
   return q;
 }
 
@@ -533,8 +538,19 @@ export function mapListRow(raw: unknown, index: number): ReportRow | null {
       rec.educationalDistrict,
       rec.educationalDistrictTitle,
       rec.district,
-      rec.region
+      rec.region,
+      // معلمان/مدیران مدارس: `school` = { title, district }.
+      rec.school && typeof rec.school === 'object'
+        ? (rec.school as Record<string, unknown>).district
+        : undefined
     ),
+    // مدارس: `gender` = Boy | Girl.
+    genderLabel:
+      rec.gender === 'Boy'
+        ? 'پسرانه'
+        : rec.gender === 'Girl'
+          ? 'دخترانه'
+          : pickText(rec.gender),
     // مدارس: `admin` = { fullName, personnelCode }.
     principalName: pickText(rec.admin),
     principalCode: pickText(
@@ -576,6 +592,8 @@ export async function fetchListPage(
     period: ReportPeriodState;
     page: number;
     limit?: number;
+    /** فقط گزارش‌های عملکرد: `sortBy` / `sortOrder` Nest. */
+    sort?: ReportSort | null;
   }
 ): Promise<ListReportPage> {
   const limit = Math.min(input.limit ?? LIST_REPORT_PAGE_SIZE, LIST_REPORT_PAGE_SIZE);
@@ -584,7 +602,7 @@ export async function fetchListPage(
     undefined,
     {
       searchParams: toSearchParams({
-        ...tableQuery(slug, input.filters, input.query, input.period),
+        ...tableQuery(slug, input.filters, input.query, input.period, input.sort),
         page: input.page,
         limit,
       }),
@@ -657,10 +675,18 @@ export async function downloadListExport(
     filters: ReportFilters;
     query: string;
     period: ReportPeriodState;
+    /** همان مرتب‌سازی جدول عملکرد؛ بدون sort پارامترها ارسال نمی‌شوند. */
+    sort?: ReportSort | null;
   }
 ): Promise<void> {
   const query = toSearchParams({
-    ...tableQuery(slug, input.filters, input.query, input.period),
+    ...tableQuery(
+      slug,
+      input.filters,
+      input.query,
+      input.period,
+      input.sort
+    ),
     format: input.format,
   }) as Record<string, string | number>;
   const params = new URLSearchParams();
