@@ -10,39 +10,39 @@ import type { UserRole } from '@/types/auth';
 import type { ReportPeriodState, ReportRow } from '@/types/reports';
 
 import {
-  buildTeacherResponseRanking,
-  type TeacherResponseRankingSummary,
-} from '../lib/teacher-response-ranking';
+  buildProfessorAttendanceRanking,
+  type ProfessorAttendanceRankingSummary,
+} from '../lib/professor-attendance-ranking';
 
-/** بدون `semesterId`؛ فقط `structure=semester` فرستاده می‌شود. */
 const DASHBOARD_PERIOD: ReportPeriodState = {
   mode: 'term',
   termId: '',
   moduleId: '',
 };
 
-/** هر صفحه ۵۰ ردیف؛ سقف صفحه فقط محافظ است. */
 const MAX_PAGES = 10;
 
-const EMPTY: TeacherResponseRankingSummary = { weakest: [], strongest: [] };
+const EMPTY: ProfessorAttendanceRankingSummary = {
+  weakest: [],
+  strongest: [],
+};
 
-export type DashboardProfessorResponseRankingState = {
+export type DashboardProfessorAttendanceRankingState = {
   isLoading: boolean;
   isError: boolean;
   isForbidden: boolean;
-  summary: TeacherResponseRankingSummary;
+  summary: ProfessorAttendanceRankingSummary;
 };
 
 /**
- * ضعیف‌ترین / قوی‌ترین اساتید دانشکده بر اساس نرخ پاسخ‌دهی —
- * `GET v1/reports/professors/performance` (`responseRate`). محدودهٔ داده را
- * خود بک‌اند از روی کاربر لاگین‌شده تعیین می‌کند.
+ * ضعیف‌ترین / قوی‌ترین اساتید دانشکده بر اساس درصد حضور —
+ * `GET v1/reports/professors/performance` (`attendancePercent`).
  */
-export function useDashboardProfessorResponseRanking(
+export function useDashboardProfessorAttendanceRanking(
   role: UserRole
-): DashboardProfessorResponseRankingState {
+): DashboardProfessorAttendanceRankingState {
   const query = useQuery({
-    queryKey: DASHBOARD_QUERY.professorResponseRanking(role),
+    queryKey: DASHBOARD_QUERY.professorAttendanceRanking(role),
     staleTime: QUERY_STALE_MS.module,
     queryFn: async () => {
       const collected: ReportRow[] = [];
@@ -56,7 +56,7 @@ export function useDashboardProfessorResponseRanking(
         collected.push(...result.rows);
         if (!result.hasNextPage) break;
       }
-      return buildTeacherResponseRanking(collected);
+      return buildProfessorAttendanceRanking(collected);
     },
   });
 

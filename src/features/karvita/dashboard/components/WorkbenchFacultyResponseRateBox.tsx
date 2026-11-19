@@ -7,58 +7,71 @@ import { cn } from '@/lib/utils';
 import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-import { useDashboardFacultyCounts } from '../hooks/useDashboardFacultyCounts';
+import { useDashboardFacultyResponseRate } from '../hooks/useDashboardFacultyResponseRate';
+import {
+  FACULTY_RESPONSE_HIGH,
+  FACULTY_RESPONSE_MID,
+} from '../lib/faculty-response-rate';
 import { StatusDonut, type DonutSegment } from './StatusDonut';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
-export type WorkbenchFacultyGenderBoxProps = {
+export type WorkbenchFacultyResponseRateBoxProps = {
   className?: string;
   style?: CSSProperties;
 };
 
-type GenderSegment = DonutSegment & {
+type RateSegment = DonutSegment & {
   softClassName: string;
   textClassName: string;
 };
 
 /**
- * «تفکیک مدارس» — میز کار مدیر دانشکده: نمودار حلقهٔ دخترانه / پسرانه،
- * با همان `StatusDonut` منطقه. داده از کوئری آمار دانشکده (`school-performance`).
+ * «نرخ پاسخ‌دهی» — میز کار مدیر دانشکده: دونات توزیع اساتید
+ * (خوب / متوسط / ضعیف) + میانگین در مرکز؛ داده از `professor-performance`.
  */
-export function WorkbenchFacultyGenderBox({
+export function WorkbenchFacultyResponseRateBox({
   className,
   style,
-}: WorkbenchFacultyGenderBoxProps) {
-  const { isLoading, isError, isForbidden, counts } = useDashboardFacultyCounts();
+}: WorkbenchFacultyResponseRateBoxProps) {
+  const { isLoading, isError, isForbidden, summary } =
+    useDashboardFacultyResponseRate();
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const segments = useMemo<GenderSegment[]>(
+  const segments = useMemo<RateSegment[]>(
     () => [
       {
-        id: 'boys',
-        label: 'پسرانه',
-        value: counts?.boysSchools ?? 0,
-        color: 'var(--kv-info)',
-        softClassName: 'bg-kv-info-soft',
-        textClassName: 'text-kv-info-soft-fg',
+        id: 'high',
+        label: `خوب (≥${toPersianDigits(FACULTY_RESPONSE_HIGH)}٪)`,
+        value: summary.high,
+        color: 'var(--kv-success)',
+        softClassName: 'bg-kv-success-soft',
+        textClassName: 'text-kv-success-soft-fg',
       },
       {
-        id: 'girls',
-        label: 'دخترانه',
-        value: counts?.girlsSchools ?? 0,
-        color: 'var(--kv-violet)',
-        softClassName: 'bg-kv-violet-soft',
-        textClassName: 'text-kv-violet-soft-fg',
+        id: 'mid',
+        label: `متوسط (≥${toPersianDigits(FACULTY_RESPONSE_MID)}٪)`,
+        value: summary.mid,
+        color: 'var(--kv-warning)',
+        softClassName: 'bg-kv-warning-soft',
+        textClassName: 'text-kv-warning-soft-fg',
+      },
+      {
+        id: 'low',
+        label: `ضعیف (<${toPersianDigits(FACULTY_RESPONSE_MID)}٪)`,
+        value: summary.low,
+        color: 'var(--kv-danger)',
+        softClassName: 'bg-kv-danger-soft',
+        textClassName: 'text-kv-danger-soft-fg',
       },
     ],
-    [counts]
+    [summary.high, summary.mid, summary.low]
   );
-  const total = segments.reduce((sum, segment) => sum + segment.value, 0);
-  const isEmpty = isError || (!isLoading && total === 0);
+  const isEmpty = isError || (!isLoading && summary.total === 0);
+  const averageLabel = `${toPersianDigits(Math.round(summary.average))}٪`;
 
   return (
     <section
-      aria-labelledby="dashboard-faculty-gender-title"
+      aria-labelledby="dashboard-faculty-response-rate-title"
       aria-busy={isLoading}
       style={style}
       className={cn(
@@ -72,13 +85,13 @@ export function WorkbenchFacultyGenderBox({
           <KvTypography
             variant="subtitle"
             as="h3"
-            id="dashboard-faculty-gender-title"
+            id="dashboard-faculty-response-rate-title"
             className="min-w-0 truncate"
           >
-            تفکیک مدارس
+            نرخ پاسخ‌دهی اساتید
           </KvTypography>
           <KvTypography variant="caption" tone="muted" as="p">
-            مدارس دخترانه و پسرانهٔ دانشکده
+            توزیع اساتید دانشکده بر اساس پاسخ به گزارش‌ها
           </KvTypography>
         </div>
       </header>
@@ -88,7 +101,7 @@ export function WorkbenchFacultyGenderBox({
       ) : isLoading ? (
         <div
           role="status"
-          aria-label="در حال بارگذاری تفکیک مدارس"
+          aria-label="در حال بارگذاری نرخ پاسخ‌دهی"
           className="min-h-[6rem] animate-pulse rounded-kv-control bg-kv-surface-muted"
         />
       ) : (
@@ -96,8 +109,9 @@ export function WorkbenchFacultyGenderBox({
           <div className="flex min-w-0 shrink-0 items-center justify-center">
             <StatusDonut
               segments={segments}
-              total={total}
-              centerLabel="مدرسه"
+              total={summary.total}
+              centerValue={averageLabel}
+              centerLabel="میانگین"
               activeId={activeId}
               onHover={setActiveId}
             />
@@ -105,7 +119,7 @@ export function WorkbenchFacultyGenderBox({
 
           <ul
             className="grid w-fit shrink-0 gap-0.5"
-            aria-label="راهنمای تفکیک مدارس"
+            aria-label="راهنمای نرخ پاسخ‌دهی"
           >
             {segments.map((segment) => {
               const active = activeId === segment.id;
@@ -147,7 +161,7 @@ export function WorkbenchFacultyGenderBox({
                       )}
                     >
                       {toPersianDigits(segment.value)}
-                      {counts?.truncated ? '+' : ''}
+                      {summary.truncated ? '+' : ''}
                     </span>
                   </button>
                 </li>

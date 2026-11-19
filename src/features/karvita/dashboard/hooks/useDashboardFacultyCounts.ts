@@ -20,17 +20,10 @@ const DASHBOARD_PERIOD: ReportPeriodState = {
 /** هر صفحه ۵۰ ردیف؛ سقف صفحه فقط محافظ است. */
 const MAX_PAGES = 10;
 
-/** برچسب‌های `genderLabel` که mapper عملکرد مدارس برای Boy | Girl می‌سازد. */
-const BOYS_LABEL = 'پسرانه';
-const GIRLS_LABEL = 'دخترانه';
-
 export type FacultyCounts = {
   professors: number;
   schools: number;
   learners: number;
-  /** مدارس پسرانه / دخترانه؛ مدرسهٔ بدون جنسیت در هیچ‌کدام نیست. */
-  boysSchools: number;
-  girlsSchools: number;
   /** به سقف صفحه‌ها خورده؛ اعداد «دست‌کم» هستند. */
   truncated: boolean;
 };
@@ -82,35 +75,24 @@ async function collectLearnersCount(): Promise<{
   return { count, truncated };
 }
 
-/**
- * جمع شمار اساتید، مدارس، فراگیران و تفکیک جنسیت مدارس دانشکده.
- */
+/** جمع شمار اساتید، مدارس و فراگیران دانشکده. */
 export function summarizeFacultyCounts(input: {
   professors: readonly ReportRow[];
   schools: readonly ReportRow[];
   learners: number;
   truncated?: boolean;
 }): FacultyCounts {
-  let boysSchools = 0;
-  let girlsSchools = 0;
-  for (const row of input.schools) {
-    if (row.genderLabel === BOYS_LABEL) boysSchools += 1;
-    else if (row.genderLabel === GIRLS_LABEL) girlsSchools += 1;
-  }
   return {
     professors: input.professors.length,
     schools: input.schools.length,
     learners: input.learners,
-    boysSchools,
-    girlsSchools,
     truncated: input.truncated === true,
   };
 }
 
 /**
- * یک کوئری مشترک برای باکس‌های میز کار مدیر دانشکده که از آمار دانشکده
- * می‌خوانند (شمار + تفکیک دخترانه/پسرانه). محدودهٔ داده را خود بک‌اند از روی
- * کاربر لاگین‌شده (سطح پنل دانشکده) تعیین می‌کند.
+ * یک کوئری مشترک برای کارت‌های آمار میز کار مدیر دانشکده.
+ * محدودهٔ داده را خود بک‌اند از روی کاربر لاگین‌شده تعیین می‌کند.
  */
 export function useDashboardFacultyCounts(): DashboardFacultyCountsState {
   const query = useQuery({

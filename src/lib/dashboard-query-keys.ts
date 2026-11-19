@@ -48,9 +48,11 @@ export const DASHBOARD_QUERY = {
    * (همهٔ صفحه‌ها؛ محدوده را بک‌اند از کاربر لاگین‌شده می‌گیرد).
    */
   facultyCounts: ['reports', 'dashboard-faculty-counts'] as const,
-  /** ۵ استاد ضعیف/قوی دانشکده بر اساس نرخ پاسخ‌دهی روی میز کار مدیر دانشکده. */
-  professorResponseRanking: (role: string) =>
-    ['reports', 'dashboard-professor-response-ranking', role] as const,
+  /** توزیع/میانگین نرخ پاسخ‌دهی اساتید دانشکده روی میز کار مدیر دانشکده. */
+  facultyResponseRate: ['reports', 'dashboard-faculty-response-rate'] as const,
+  /** ۵ استاد ضعیف/قوی دانشکده بر اساس درصد حضور روی میز کار مدیر دانشکده. */
+  professorAttendanceRanking: (role: string) =>
+    ['reports', 'dashboard-professor-attendance-ranking', role] as const,
   /** ۵ استاد ضعیف/قوی دانشکده بر اساس میانگین نمره روی نمودار میز کار مدیر دانشکده. */
   professorScoreRanking: (role: string) =>
     ['reports', 'dashboard-professor-score-ranking', role] as const,

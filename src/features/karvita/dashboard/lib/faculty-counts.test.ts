@@ -10,23 +10,16 @@ function row(partial: Partial<ReportRow>): ReportRow {
 }
 
 describe('summarizeFacultyCounts', () => {
-  it('اساتید و مدارس را می‌شمارد و جنسیت را تفکیک می‌کند', () => {
+  it('اساتید، مدارس و فراگیران را می‌شمارد', () => {
     const counts = summarizeFacultyCounts({
       professors: [row({ id: 'p1' }), row({ id: 'p2' }), row({ id: 'p3' })],
-      schools: [
-        row({ id: 'a', genderLabel: 'پسرانه' }),
-        row({ id: 'b', genderLabel: 'دخترانه' }),
-        row({ id: 'c', genderLabel: 'دخترانه' }),
-        row({ id: 'd' }),
-      ],
+      schools: [row({ id: 'a' }), row({ id: 'b' }), row({ id: 'c' }), row({ id: 'd' })],
       learners: 120,
     });
     expect(counts).toEqual({
       professors: 3,
       schools: 4,
       learners: 120,
-      boysSchools: 1,
-      girlsSchools: 2,
       truncated: false,
     });
   });
@@ -43,8 +36,6 @@ describe('summarizeFacultyCounts', () => {
       professors: 0,
       schools: 0,
       learners: 0,
-      boysSchools: 0,
-      girlsSchools: 0,
       truncated: true,
     });
   });

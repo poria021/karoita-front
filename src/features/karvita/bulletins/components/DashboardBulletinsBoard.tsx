@@ -20,10 +20,10 @@ import { WorkbenchLearnerTypeCountsBox } from '@/features/karvita/dashboard/comp
 import { DashboardCourseAveragesChart } from '@/features/karvita/dashboard/components/DashboardCourseAveragesChart';
 import { WorkbenchCreateOrgPanelLink } from '@/features/karvita/dashboard/components/WorkbenchCreateOrgPanelLink';
 import { WorkbenchFacultyCountsBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyCountsBox';
-import { WorkbenchFacultyGenderBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyGenderBox';
+import { WorkbenchFacultyResponseRateBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyResponseRateBox';
 import { WorkbenchLearnerCountsBox } from '@/features/karvita/dashboard/components/WorkbenchLearnerCountsBox';
 import { WorkbenchOrgStructureCountsBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureCountsBox';
-import { WorkbenchProfessorResponseRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorResponseRankingBox';
+import { WorkbenchProfessorAttendanceRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorAttendanceRankingBox';
 import { WorkbenchProfessorScoreRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorScoreRankingBox';
 import { WorkbenchPublishedAnnouncementsBox } from '@/features/karvita/dashboard/components/WorkbenchPublishedAnnouncementsBox';
 import { WorkbenchRegionalCountsBox } from '@/features/karvita/dashboard/components/WorkbenchRegionalCountsBox';
@@ -74,18 +74,17 @@ export function DashboardBulletinsBoard({
   const data = useDashboardBulletins(role);
   const showAd = hasAdSpot(role);
   const kind = workbenchLayoutKindFor(role);
+  // معلم / مدیر مدرسه / استاد راهنما: هر دو API درس (میانگین نمره + در انتظار بررسی).
+  const showLessonReports = kind === 'evaluation';
   const slots = workbenchLayoutForRole(role, {
     showAd,
-    // معلمان (مدیر مدرسه) داخل باکس «تعداد فراگیران» و بالای کارت‌های آن می‌آید.
-    showCourseAverages: role === 'supervisor_professor',
+    showCourseAverages: showLessonReports,
     showCourseCapacities: role === 'supervisor_professor',
-    showCoursePendingReports: role === 'supervisor_professor',
+    showCoursePendingReports: showLessonReports,
     // برترین/ضعیف‌ترین فراگیران برای هر سه نقش ارزیابی؛ محدودهٔ داده را خود سرویس تعیین می‌کند.
     showStudentGradeRanking: kind === 'evaluation',
     // کارت «نمرات فراگیران» برای هر سه نقش ارزیابی؛ محدودهٔ داده را خود سرویس تعیین می‌کند.
     showStudentGradesCard: kind === 'evaluation',
-    showPendingBesideAnnouncements:
-      role === 'mentor_teacher' || role === 'school_principal',
     showRegionalCounts:
       role === 'regional_edu_admin' || role === 'faculty_role',
   });
@@ -299,16 +298,16 @@ function WorkbenchBoardCell({
       return (
         <div className={cellClass}>
           {role === 'faculty_role' ? (
-            <WorkbenchFacultyGenderBox className="h-full w-full max-w-none" />
+            <WorkbenchFacultyResponseRateBox className="h-full w-full max-w-none" />
           ) : (
             <WorkbenchRegionalGenderBox className="h-full w-full max-w-none" />
           )}
         </div>
       );
     case 'regional_teacher_ranking':
-      // دانشکده: اساتید؛ منطقه / مدیر مدرسه: معلمان.
+      // دانشکده: اساتید بر اساس حضور؛ منطقه / مدیر مدرسه: معلمان بر اساس پاسخ.
       return role === 'faculty_role' ? (
-        <WorkbenchProfessorResponseRankingBox
+        <WorkbenchProfessorAttendanceRankingBox
           role={role}
           className={cellClass}
           style={cellStyle}

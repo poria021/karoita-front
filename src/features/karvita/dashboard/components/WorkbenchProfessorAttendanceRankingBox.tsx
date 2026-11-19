@@ -19,11 +19,11 @@ import type { UserRole } from '@/types/auth';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
-import { useDashboardProfessorResponseRanking } from '../hooks/useDashboardProfessorResponseRanking';
-import type { TeacherResponseRankingItem } from '../lib/teacher-response-ranking';
+import { useDashboardProfessorAttendanceRanking } from '../hooks/useDashboardProfessorAttendanceRanking';
+import type { ProfessorAttendanceRankingItem } from '../lib/professor-attendance-ranking';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
-export type WorkbenchProfessorResponseRankingBoxProps = {
+export type WorkbenchProfessorAttendanceRankingBoxProps = {
   role: UserRole;
   className?: string;
   style?: CSSProperties;
@@ -31,7 +31,6 @@ export type WorkbenchProfessorResponseRankingBoxProps = {
 
 type Tab = 'weakest' | 'strongest';
 
-/** زمینهٔ بسیار کم‌رنگ هر تب: قرمز برای ضعیف‌ترین‌ها، سبز برای قوی‌ترین‌ها. */
 const TAB_BACKGROUND: Record<Tab, string> = {
   weakest: 'color-mix(in srgb, var(--kv-danger) 2.5%, var(--kv-surface))',
   strongest: 'color-mix(in srgb, var(--kv-success) 2.5%, var(--kv-surface))',
@@ -46,7 +45,7 @@ function ProfessorRow({
   item,
   tone,
 }: {
-  item: TeacherResponseRankingItem;
+  item: ProfessorAttendanceRankingItem;
   tone: 'low' | 'high';
 }) {
   return (
@@ -61,11 +60,6 @@ function ProfessorRow({
         <span className="truncate text-sm font-bold leading-tight text-kv-text">
           {item.name}
         </span>
-        {item.learnerCount !== undefined ? (
-          <span className="truncate text-xs leading-tight text-kv-text-muted">
-            {toPersianDigits(item.learnerCount)} فراگیر
-          </span>
-        ) : null}
       </span>
       <span className="flex shrink-0 flex-col items-end gap-1">
         <span
@@ -74,10 +68,10 @@ function ProfessorRow({
             tone === 'low' ? 'text-kv-danger' : 'text-kv-success'
           )}
         >
-          {toPersianDigits(Math.round(item.response))}٪
+          {toPersianDigits(Math.round(item.attendance))}٪
         </span>
         <span className="text-[11px] leading-none text-kv-text-faint">
-          نرخ پاسخ‌دهی
+          حضور
         </span>
       </span>
     </li>
@@ -85,16 +79,16 @@ function ProfessorRow({
 }
 
 /**
- * ۵ استادِ ضعیف‌ترین / ۵ استادِ قوی‌ترین بر اساس نرخ پاسخ‌دهی به گزارش‌ها —
- * میز کار مدیر دانشکده (جای «معلمان منطقه»).
+ * ۵ استادِ ضعیف‌ترین / ۵ استادِ قوی‌ترین بر اساس درصد حضور —
+ * میز کار مدیر دانشکده.
  */
-export function WorkbenchProfessorResponseRankingBox({
+export function WorkbenchProfessorAttendanceRankingBox({
   role,
   className,
   style,
-}: WorkbenchProfessorResponseRankingBoxProps) {
+}: WorkbenchProfessorAttendanceRankingBoxProps) {
   const [tab, setTab] = useState<Tab>('weakest');
-  const desk = useDashboardProfessorResponseRanking(role);
+  const desk = useDashboardProfessorAttendanceRanking(role);
   const summary = desk.summary;
   const isLoading = desk.isLoading;
   const isError = desk.isError;
@@ -108,7 +102,7 @@ export function WorkbenchProfessorResponseRankingBox({
 
   return (
     <section
-      aria-labelledby="dashboard-professor-response-ranking-title"
+      aria-labelledby="dashboard-professor-attendance-ranking-title"
       style={
         isEmpty
           ? style
@@ -129,13 +123,13 @@ export function WorkbenchProfessorResponseRankingBox({
           <KvTypography
             variant="subtitle"
             as="h3"
-            id="dashboard-professor-response-ranking-title"
+            id="dashboard-professor-attendance-ranking-title"
             className="min-w-0 truncate"
           >
             ضعیف‌ترین و قوی‌ترین اساتید دانشکده
           </KvTypography>
           <KvTypography variant="caption" tone="muted" as="p">
-            بر اساس نرخ پاسخ‌دهی
+            بر اساس حضور و غیاب
           </KvTypography>
         </header>
 
