@@ -156,7 +156,7 @@ function ReportCard({ page, layout, row, index }: ReportCardProps) {
       className="flex h-full flex-col gap-kv-inline rounded-kv-panel border border-kv-border bg-kv-surface p-kv-compact transition-colors duration-150 data-[selected]:border-kv-brand-border data-[selected]:bg-kv-brand-soft sm:p-kv-group"
     >
       <header className="flex items-start gap-kv-inline">
-        {page.canCompare ? (
+        {page.canCompare && page.compareSelecting ? (
           <label className="-m-2 flex shrink-0 cursor-pointer items-center p-2 has-[button:disabled]:cursor-not-allowed">
             <Checkbox
               checked={selected}
@@ -244,7 +244,7 @@ function ReportCard({ page, layout, row, index }: ReportCardProps) {
           icon={<FaIcon icon={faIcons.eye} size="sm" />}
           onClick={() => page.openScores(row.id)}
         >
-          مشاهده ریز نمرات
+          مشاهده نمرات
         </KvButton>
       ) : null}
     </article>

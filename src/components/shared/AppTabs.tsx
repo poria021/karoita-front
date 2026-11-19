@@ -16,7 +16,7 @@ export type AppTabsGridCols = 2 | 3 | 4;
 
 const LIST_BASE = [
   'flex h-auto max-w-full items-center gap-1',
-  'overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface-subtle p-[3px]',
+  'overflow-hidden rounded-kv-control border border-kv-border bg-kv-surface-subtle p-[3px] shadow-kv-soft',
   'dark:bg-kv-surface',
   'font-sans text-kv-text-subtle',
 ].join(' ');

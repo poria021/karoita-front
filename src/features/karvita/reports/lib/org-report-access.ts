@@ -112,6 +112,8 @@ const HIDDEN_REPORT_FILTERS_BY_SLUG: Partial<
 > = {
   principals: ['teacher', 'school'],
   schools: ['teacher', 'school'],
+  // نمرات فراگیران: شهر در API نیست.
+  scores: ['city'],
 };
 
 function hiddenKeysOutsideAllowlist(

@@ -64,7 +64,13 @@ export function cellContent(
         <div className="flex flex-col gap-0.5">
           <span className="font-bold text-kv-text">{primary}</span>
           {secondary ? (
-            <span className="text-xs text-kv-text-faint">{secondary}</span>
+            <span className="text-xs text-kv-text-faint">
+              {col.secondaryKey === 'phone' ? (
+                <bdi className="whitespace-nowrap tabular-nums">{secondary}</bdi>
+              ) : (
+                secondary
+              )}
+            </span>
           ) : null}
         </div>
       );
@@ -147,7 +153,7 @@ export function cellContent(
           icon={<FaIcon icon={faIcons.eye} size="sm" />}
           onClick={() => page.openScores(row.id)}
         >
-          مشاهده ریز نمرات
+          مشاهده نمرات
         </KvButton>
       );
     default: {

@@ -13,7 +13,6 @@ import {
 import { ReportAdvancedFilters } from './ReportAdvancedFilters';
 import { ReportCardList } from './ReportCardList';
 import { ReportCategoryNav } from './ReportCategoryNav';
-import { ReportCompareBar } from './ReportCompareBar';
 import { ReportCompareView } from './ReportCompareView';
 import { ReportLearnerDialogs } from './ReportLearnerDialogs';
 import { ReportPeriodBand } from './ReportPeriodBand';
@@ -91,7 +90,6 @@ export function ReportsPageView({
                   </KvButton>
                 </div>
               ) : null}
-              <ReportCompareBar page={page} />
             </section>
           </div>
         </KvWorkspace>

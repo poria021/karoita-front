@@ -15,15 +15,14 @@ export {
 export const REPORT_COMPARE_ENABLED = true;
 
 /**
- * گزارش نمرات فراگیران به‌صورت سراسری خاموش است،
- * مگر برای نقش‌های `REPORT_SCORES_ROLE_ALLOWLIST`.
+ * گزارش نمرات فراگیران زنده است؛ نمایش صفحه با `GET /reports/access/me`
+ * و `learners_grades` با `status: active` کنترل می‌شود.
  */
-export const REPORT_SCORES_ENABLED = false;
+export const REPORT_SCORES_ENABLED = true;
 
-/** نقش‌هایی که نمرات فراگیران برایشان زنده می‌ماند. */
+/** نقش‌هایی که حتی اگر فلگ سراسری خاموش شود، نمرات برایشان زنده می‌ماند. */
 export const REPORT_SCORES_ROLE_ALLOWLIST = [
   'supervisor_professor',
-  // مدیر ارشد (پنل /karvita/admin/reports): بالای «عملکرد معلمان» در دستهٔ عملکرد.
   'super_admin',
 ] as const;
 
@@ -129,7 +128,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META.learners.title,
     icon: PAGE_ICONS.learners,
     entity: 'learner',
-    placeholder: 'نام، تلفن یا رشته تحصیلی',
+    placeholder: 'جست‌وجوی نام فراگیر',
     first: ['q', 'period', 'province', 'city', 'region', 'faculty'],
     more: ['school', 'professor', 'teacher'],
     learner: true,
@@ -144,7 +143,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META.attendance.title,
     icon: PAGE_ICONS.attendance,
     entity: 'learner',
-    placeholder: 'نام، تلفن یا مقطع',
+    placeholder: 'جست‌وجوی نام',
     first: ['q', 'period', 'province', 'city', 'faculty'],
     more: ['region', 'school', 'professor', 'teacher'],
     learner: true,
@@ -158,7 +157,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META['professor-attendance'].title,
     icon: PAGE_ICONS['professor-attendance'],
     entity: 'profAtt',
-    placeholder: 'نام یا کد استادی',
+    placeholder: 'جست‌وجوی نام',
     fac: true,
     period: true,
     periodModes: false,
@@ -173,22 +172,23 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META.scores.title,
     icon: PAGE_ICONS.scores,
     entity: 'score',
-    placeholder: 'نام یا شماره تلفن',
-    first: ['q', 'period'],
-    more: ['region', 'faculty', 'school', 'professor', 'teacher'],
+    placeholder: 'جست‌وجوی نام',
+    // شهر برای این گزارش نیست؛ فقط کلیدهایی که در پاسخ filters می‌آیند دیده می‌شوند.
+    first: ['q', 'period', 'province', 'region', 'faculty'],
+    more: ['school', 'professor', 'teacher'],
     learner: true,
     desc: {
       term:
-        'هر ردیف یک فراگیر در نیم‌سال انتخاب‌شده است. برای دیدن نمره‌ی هر درس در هر جلسه، «مشاهده ریز نمرات» را بزنید.',
+        'هر ردیف یک فراگیر در نیم‌سال انتخاب‌شده است. برای دیدن نمرهٔ پایانی و وضعیت هر درس، «مشاهده نمرات» را بزنید.',
       module:
-        'هر ردیف یک فراگیر در پودمان انتخاب‌شده است. برای دیدن نمره‌ی هر درس در هر جلسه، «مشاهده ریز نمرات» را بزنید.',
+        'هر ردیف یک فراگیر در پودمان انتخاب‌شده است. برای دیدن نمرهٔ پایانی و وضعیت هر درس، «مشاهده نمرات» را بزنید.',
     },
   },
   teachers: {
     title: REPORT_PAGE_META.teachers.title,
     icon: PAGE_ICONS.teachers,
     entity: 'teacher',
-    placeholder: 'نام، کد پرسنلی یا تلفن',
+    placeholder: 'جست‌وجوی نام',
     period: true,
     periodModes: false,
     first: ['q', 'province', 'city', 'region'],
@@ -199,7 +199,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META.principals.title,
     icon: PAGE_ICONS.principals,
     entity: 'principal',
-    placeholder: 'نام، کد پرسنلی یا تلفن',
+    placeholder: 'جست‌وجوی نام',
     period: true,
     periodModes: false,
     first: ['q', 'province', 'city', 'region'],
@@ -210,7 +210,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META.professors.title,
     icon: PAGE_ICONS.professors,
     entity: 'professor',
-    placeholder: 'نام، کد استادی یا تلفن',
+    placeholder: 'جست‌وجوی نام',
     fac: true,
     period: true,
     periodModes: false,
@@ -222,7 +222,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META.schools.title,
     icon: PAGE_ICONS.schools,
     entity: 'school',
-    placeholder: 'نام مدرسه یا مدیر',
+    placeholder: 'جست‌وجوی نام',
     period: true,
     periodModes: false,
     first: ['q', 'province', 'city', 'region'],
@@ -233,7 +233,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META['teacher-performance'].title,
     icon: PAGE_ICONS['teacher-performance'],
     entity: 'teacherPerf',
-    placeholder: 'نام، کد پرسنلی یا تلفن',
+    placeholder: 'جست‌وجوی نام',
     period: true,
     periodModes: false,
     first: ['q', 'province', 'city', 'region'],
@@ -247,7 +247,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META['school-performance'].title,
     icon: PAGE_ICONS['school-performance'],
     entity: 'schoolPerf',
-    placeholder: 'عنوان مدرسه یا نام مدیر',
+    placeholder: 'جست‌وجوی نام مدرسه',
     period: true,
     periodModes: false,
     first: ['q', 'province', 'city', 'region'],
@@ -261,7 +261,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META['professor-performance'].title,
     icon: PAGE_ICONS['professor-performance'],
     entity: 'profPerf',
-    placeholder: 'نام، کد پرسنلی یا تلفن',
+    placeholder: 'جست‌وجوی نام',
     fac: true,
     period: true,
     periodModes: false,
@@ -276,7 +276,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META.faculties.title,
     icon: PAGE_ICONS.faculties,
     entity: 'faculty',
-    placeholder: 'نام دانشکده یا رئیس',
+    placeholder: 'جست‌وجوی نام',
     fac: true,
     period: true,
     periodModes: false,
@@ -288,7 +288,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META.provinces.title,
     icon: PAGE_ICONS.provinces,
     entity: 'province',
-    placeholder: 'نام استان یا رئیس',
+    placeholder: 'جست‌وجوی نام استان',
     period: true,
     periodModes: false,
     first: ['q'],
@@ -299,7 +299,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META['faculty-performance'].title,
     icon: PAGE_ICONS['faculty-performance'],
     entity: 'facPerf',
-    placeholder: 'عنوان دانشکده یا نام مدیر دانشکده',
+    placeholder: 'جست‌وجوی نام دانشکده',
     fac: true,
     period: true,
     periodModes: false,
@@ -314,7 +314,7 @@ export const REPORT_PAGE_DEFS: Record<ReportSlug, ReportPageDef> = {
     title: REPORT_PAGE_META['province-performance'].title,
     icon: PAGE_ICONS['province-performance'],
     entity: 'provPerf',
-    placeholder: 'عنوان استان یا نام مسئول',
+    placeholder: 'جست‌وجوی نام استان',
     period: true,
     periodModes: false,
     first: ['q'],
@@ -339,7 +339,7 @@ export function themeIdForSlug(slug: ReportSlug): string | undefined {
 /** سقف واکشی یک‌بارهٔ جدول گزارش (بدون پجینیشن — فقط اسکرول). */
 export const REPORT_LIST_LIMIT = 5000;
 
-export const COMPARE_MAX = 4;
+export const COMPARE_MAX = 10;
 export const COMPARE_MIN = 2;
 
 export const FILTER_LABELS: Record<string, string> = {

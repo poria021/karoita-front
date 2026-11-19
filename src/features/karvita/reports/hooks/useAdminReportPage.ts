@@ -34,22 +34,26 @@ import {
 import { useSyncedUrlParam } from '@/hooks/useSyncedUrlParam';
 import { hrefWithSearchParam } from '@/lib/dashboard-url-state';
 import {
-  getShallowLocationSearch,
-  getShallowLocationSearchServerSnapshot,
   replaceShallowHref,
   subscribeShallowLocation,
 } from '@/lib/shallow-location';
 import {
   isRealApiReport,
   isRealLearnersReport,
-  isRealScoresReport,
   ReportsService,
+  sortLoadedRows,
 } from '@/services/reports.service';
 import {
   learnersDescendantKeys,
+  learnersGradesDescendantKeys,
   type LearnersFilterBox,
+  withRowStatusFallback,
 } from '@/services/reports/real/learners-report.api';
 import { fetchReportPeriods } from '@/services/reports/real/report-periods.api';
+import {
+  isPerformanceReportSlug,
+  performanceSortParams,
+} from '@/services/reports/real/performance-report.mappers';
 import {
   isListReportSlug,
   listReportDescendantKeys,
@@ -70,6 +74,44 @@ import type {
   ReportSort,
 } from '@/types/reports';
 
+/** مسیر + query زندهٔ مرورگر (سمت سرور خالی). */
+function getLocationSnapshot(): string {
+  return `${window.location.pathname}${window.location.search}`;
+}
+
+function getLocationServerSnapshot(): string {
+  return '';
+}
+
+/** ستون‌های عددی؛ مرتب‌سازی پیش‌فرض روی اولین ستون عددی هر گزارش است. */
+const NUMERIC_COLUMN_KINDS: ReadonlySet<string> = new Set([
+  'percent',
+  'score',
+  'count',
+]);
+
+/**
+ * مرتب‌سازی پیش‌فرض: بیشترین → کمترین.
+ * - گزارش‌های عملکرد: اولین ستونی که Nest (`sortBy`/`sortOrder`) می‌پذیرد؛ sort سمت API.
+ * - بقیه: Nest `sortBy` ندارد؛ روی اولین ستون عددی، سمت کلاینت (`sortLoadedRows`).
+ * - گزارش‌های بدون ستون عددی (فراگیران، نمرات، مدیران مدرسه): ترتیب پاسخ API حفظ می‌شود.
+ */
+function defaultReportSort(slug: ReportSlug): ReportSort | null {
+  const columns = ReportsService.getColumnDefs(slug);
+  if (isPerformanceReportSlug(slug)) {
+    for (const col of columns) {
+      if (col.nosort) continue;
+      const probe: ReportSort = { id: col.id, dir: 'desc' };
+      if (performanceSortParams(slug, probe).sortBy) return probe;
+    }
+    return null;
+  }
+  const numeric = columns.find(
+    (col) => !col.nosort && NUMERIC_COLUMN_KINDS.has(col.kind)
+  );
+  return numeric ? { id: numeric.id, dir: 'desc' } : null;
+}
+
 function hasPeriod(def: (typeof REPORT_PAGE_DEFS)[ReportSlug]): boolean {
   return Boolean(def.learner || def.period);
 }
@@ -80,6 +122,7 @@ function descendantKeysFor(slug: ReportSlug, key: ReportFilterKey): ReportFilter
   if (slug === 'learners' || slug === 'attendance') {
     return learnersDescendantKeys(key);
   }
+  if (slug === 'scores') return learnersGradesDescendantKeys(key);
   if (isListReportSlug(slug)) return listReportDescendantKeys(slug, key);
   return [];
 }
@@ -201,8 +244,6 @@ export function useAdminReportPage(
   const realLearners = isRealLearnersReport(slug);
   /** هر گزارش real (فراگیران یا یکی از گزارش‌های لیستی) — آبشار، صفحه‌بندی، خروجی. */
   const isRealApi = isRealApiReport(slug);
-  /** نمرات فراگیران: بک‌اند فیلتر سازمانی ندارد؛ فقط جستجو و دوره. */
-  const realScores = isRealScoresReport(slug);
   const hiddenFilterKeys =
     options?.hiddenFilterKeys ?? NO_HIDDEN_FILTER_KEYS;
   const extraFilterKeys = options?.extraFilterKeys ?? NO_EXTRA_FILTER_KEYS;
@@ -230,7 +271,9 @@ export function useAdminReportPage(
   const [query, setQuery] = useState('');
   /** جستجوی جدول با تأخیر؛ هر کلید یک درخواست نزند. پاک‌کردن فوری اعمال می‌شود. */
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [sort, setSort] = useState<ReportSort | null>(null);
+  const [sort, setSort] = useState<ReportSort | null>(() =>
+    defaultReportSort(slug)
+  );
   /** کلید کش شامل کاربر است؛ با عوض‌شدن کاربر/نقش داده‌ٔ دیگری نمایش داده نمی‌شود. */
   const cacheUserId = useUserStore((state) => state.activeUser?.id ?? '');
   /** کلید نتیجهٔ جدول: کاربر/slug/نظام/دوره/فیلتر/جستجو/مرتب‌سازی. */
@@ -322,11 +365,20 @@ export function useAdminReportPage(
     options?.canCompare ??
     (REPORT_COMPARE_ENABLED && COMPARE_REPORT_SLUGS.includes(slug));
   const pathname = usePathname();
-  const locationSearch = useSyncExternalStore(
+  const locationSnapshot = useSyncExternalStore(
     subscribeShallowLocation,
-    getShallowLocationSearch,
-    getShallowLocationSearchServerSnapshot
+    getLocationSnapshot,
+    getLocationServerSnapshot
   );
+  // هنگام ناوبری Next گزارش جدید را رندر می‌کند قبل از اینکه آدرس مرورگر عوض شود؛
+  // در آن لحظه ?view=compare&cmp=… هنوز مال گزارش قبلی است و نباید به این گزارش نشت کند.
+  const locationSearch = useMemo(() => {
+    const queryAt = locationSnapshot.indexOf('?');
+    const snapshotPath =
+      queryAt === -1 ? locationSnapshot : locationSnapshot.slice(0, queryAt);
+    if (snapshotPath !== pathname) return '';
+    return queryAt === -1 ? '' : locationSnapshot.slice(queryAt);
+  }, [locationSnapshot, pathname]);
   const searchParams = useMemo(() => {
     const raw = locationSearch.startsWith('?')
       ? locationSearch.slice(1)
@@ -391,6 +443,8 @@ export function useAdminReportPage(
   );
 
   const [compareSelected, setCompareSelected] = useState<string[]>([]);
+  /** حالت انتخاب: با دکمهٔ «مقایسه» روشن می‌شود و چک‌باکس‌ها فقط در همین حالت دیده می‌شوند. */
+  const [compareSelecting, setCompareSelecting] = useState(false);
   const [compareDraft, setCompareDraft] = useState<string[]>([]);
   const [compareQ, setCompareQ] = useState('');
   /** ردیف‌هایی که تا حالا دیده شده؛ انتخاب‌شده‌ها با عوض‌شدن فیلتر/صفحه از دست نروند. */
@@ -418,9 +472,24 @@ export function useAdminReportPage(
     }
     return [...rows, ...extra];
   }, [compareDraft, compareRowsById, compareSelected, rows]);
+
+  /** ردیف انتخاب‌شده را از کش مقایسه یا صفحهٔ جاری پیدا کن. */
+  const resolveCompareRow = useCallback(
+    (id: string): ReportRow | undefined =>
+      compareRowsById[id] ?? rows.find((row) => row.id === id),
+    [compareRowsById, rows]
+  );
+
   /** موارد مقایسه از روی ردیف‌های انتخاب‌شده؛ شاخص‌ها همان درصدهای ردیف‌اند. */
   const compareItems = useMemo<ReportCompareItem[]>(() => {
-    const metricKeys = ['att', 'attProf', 'attMgr', 'resp', 'score'] as const;
+    const metricKeys = [
+      'att',
+      'attProf',
+      'attMgr',
+      'resp',
+      'score',
+      'days',
+    ] as const;
     const infoColumns = columns.filter(
       (col) =>
         col.id !== 'name' &&
@@ -429,7 +498,7 @@ export function useAdminReportPage(
     );
     const items: ReportCompareItem[] = [];
     for (const id of compareSelected) {
-      const row = compareRowsById[id];
+      const row = resolveCompareRow(id);
       if (!row) continue;
       const metrics: Record<string, number> = {};
       for (const key of metricKeys) {
@@ -455,8 +524,8 @@ export function useAdminReportPage(
       });
     }
     return items;
-  }, [columns, compareRowsById, compareSelected]);
-  const skipCompareResetOnMountRef = useRef(true);
+  }, [columns, compareSelected, resolveCompareRow]);
+  const lastSlugRef = useRef(slug);
   const compareHydratedRef = useRef(false);
   const skipDraftUrlSyncRef = useRef(false);
 
@@ -466,13 +535,17 @@ export function useAdminReportPage(
     setFilters((prev) => (Object.keys(prev).length === 0 ? prev : {}));
     setDraftFilters((prev) => (Object.keys(prev).length === 0 ? prev : {}));
     setQuery((q) => (q === '' ? q : ''));
-    setSort((s) => (s == null ? s : null));
+    setSort((s) => {
+      const next = defaultReportSort(slug);
+      return s?.id === next?.id && s?.dir === next?.dir ? s : next;
+    });
     setRows([]);
     setColumns(ReportsService.getColumnDefs(slug));
     setTotal(0);
     setIsLoading(true);
     setError(null);
     setCompareSelected([]);
+    setCompareSelecting(false);
     setCompareDraft([]);
     setCompareRowsById({});
     setDialog(null);
@@ -484,9 +557,18 @@ export function useAdminReportPage(
     compareHydratedRef.current = false;
     skipDraftUrlSyncRef.current = false;
     // روی mount اول، ?view=compare را برای دیپ‌لینک نگه دار؛ فقط با تعویض اسلاگ پاک کن.
-    if (skipCompareResetOnMountRef.current) {
-      skipCompareResetOnMountRef.current = false;
+    if (lastSlugRef.current === slug) {
+      // mount: دیپ‌لینک ?view=compare&cmp=… حفظ می‌شود؛ ?cmp بدون view=compare باقی‌ماندهٔ قدیمی است.
+      if (
+        typeof window !== 'undefined' &&
+        !isReportCompareView(
+          new URLSearchParams(window.location.search).get(REPORT_VIEW_PARAM)
+        )
+      ) {
+        setCompareIdsInUrl([]);
+      }
     } else {
+      lastSlugRef.current = slug;
       setCompareModeInUrl(false);
       setCompareIdsInUrl([]);
     }
@@ -636,11 +718,8 @@ export function useAdminReportPage(
    * وابسته است؛ مخفی‌شدن باکس بعد از پاسخ نباید یک دور درخواست اضافه بزند.
    */
   const candidateKeys = useMemo(
-    () =>
-      realScores
-        ? NO_HIDDEN_FILTER_KEYS.slice()
-        : advKeysOf(slug, hiddenFilterKeys, extraFilterKeys),
-    [realScores, slug, hiddenFilterKeys, extraFilterKeys]
+    () => advKeysOf(slug, hiddenFilterKeys, extraFilterKeys),
+    [slug, hiddenFilterKeys, extraFilterKeys]
   );
   // امضای رشته‌ای: اگر والد آرایهٔ تازه با همان محتوا بدهد، دوباره درخواست نزند.
   const candidateKeysSig = candidateKeys.join('|');
@@ -665,7 +744,7 @@ export function useAdminReportPage(
    */
   const searchFilterBox = useCallback(
     (key: ReportFilterKey, text: string) => {
-      if (!isRealApi || realScores) return;
+      if (!isRealApi) return;
       const search = text.trim();
       // بدون سرچ قبلی، «خالی» یعنی لیست همین الان کامل است.
       if (!search && !boxSearchActiveRef.current[key]) return;
@@ -702,7 +781,7 @@ export function useAdminReportPage(
       }
       boxSearchTimerRef.current[key] = setTimeout(() => void run(), 300);
     },
-    [isRealApi, realScores, slug]
+    [isRealApi, slug]
   );
 
   useEffect(() => {
@@ -836,8 +915,8 @@ export function useAdminReportPage(
       setScoreDetail(null);
       return;
     }
-    // real: درس‌ها از خود ردیف می‌آیند؛ API جدا برای جزئیات نداریم.
-    if (realLearners && dialog.type === 'courses') {
+    // لیست/نمرات فراگیران: درس‌ها از ردیف؛ بقیهٔ عناوین از جزئیات نمرات.
+    if ((realLearners || slug === 'scores') && dialog.type === 'courses') {
       const row = rows.find((r) => r.id === dialog.learnerId);
       setCourseDetail(
         row
@@ -906,7 +985,10 @@ export function useAdminReportPage(
             period,
             rowsRef.current.find((r) => r.id === dialog.learnerId)?.name ?? ''
           );
-          if (!cancelled) setScoreDetail(detail);
+          if (!cancelled) {
+            const row = rowsRef.current.find((r) => r.id === dialog.learnerId);
+            setScoreDetail(withRowStatusFallback(detail, row?.status));
+          }
         }
       } catch (err) {
         if (!cancelled) {
@@ -923,7 +1005,7 @@ export function useAdminReportPage(
     return () => {
       cancelled = true;
     };
-  }, [dialog, period, realLearners, rows]);
+  }, [dialog, period, realLearners, rows, slug]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const activeAdvCount = useMemo(
@@ -980,11 +1062,12 @@ export function useAdminReportPage(
     setQuery((q) => (q === '' ? q : ''));
   }, []);
 
+  /** عملکرد Nest: اولین کلیک desc (زیاد→کم)، بعد asc، بعد لغو. */
   const toggleSort = useCallback((colId: string) => {
     setSort((prev) => {
-      if (!prev || prev.id !== colId) return { id: colId, dir: 'asc' };
-      if (prev.dir === 'asc') return { id: colId, dir: 'desc' };
-      return null;
+      // ستون تازه: بیشترین → کمترین؛ کلیک دوباره فقط جهت را برعکس می‌کند (بدون حالت «بی‌ترتیب»).
+      if (!prev || prev.id !== colId) return { id: colId, dir: 'desc' };
+      return { id: colId, dir: prev.dir === 'desc' ? 'asc' : 'desc' };
     });
   }, []);
 
@@ -1017,6 +1100,7 @@ export function useAdminReportPage(
           filters,
           query,
           period,
+          sort,
         }),
         {
           loading: `در حال آماده‌سازی فایل ${format}…`,
@@ -1026,7 +1110,7 @@ export function useAdminReportPage(
         }
       );
     },
-    [filters, isRealApi, period, query, slug]
+    [filters, isRealApi, period, query, slug, sort]
   );
 
   const loadMore = useCallback(async () => {
@@ -1122,17 +1206,33 @@ export function useAdminReportPage(
     const ids = compareSelected.slice();
     setCompareDraft(ids);
     setCompareQ('');
+    setCompareSelecting(false);
     setCompareModeInUrl(true);
     setCompareIdsInUrl(ids);
   }, [canCompare, compareSelected, setCompareIdsInUrl, setCompareModeInUrl]);
 
+  /** دکمهٔ «مقایسه»: چک‌باکس‌ها ظاهر می‌شوند (هنوز وارد صفحهٔ مقایسه نمی‌شود). */
+  const startCompareSelection = useCallback(() => {
+    if (!canCompare) return;
+    setCompareSelecting(true);
+  }, [canCompare]);
+
+  /** «انصراف»: چک‌باکس‌ها مخفی و انتخاب پاک می‌شود. */
+  const cancelCompareSelection = useCallback(() => {
+    setCompareSelecting(false);
+    setCompareSelected([]);
+    setCompareIdsInUrl([]);
+  }, [setCompareIdsInUrl]);
+
   const exitCompare = useCallback(() => {
     setCompareModeInUrl(false);
+    // اگر انتخابی مانده، در لیست هم چک‌باکس‌ها و نوار تأیید دیده شوند.
+    setCompareSelecting(compareSelected.length > 0);
     setCompareDraft([]);
     setCompareQ('');
     compareHydratedRef.current = false;
     // cmp را نگه می‌داریم تا انتخاب لیست بعد از خروج از مقایسه زنده بماند.
-  }, [setCompareModeInUrl]);
+  }, [compareSelected.length, setCompareModeInUrl]);
 
   // در حالت مقایسه، پیش‌نویس را در ?cmp آینه کن تا رفرش داده را نگه دارد.
   useEffect(() => {
@@ -1162,12 +1262,32 @@ export function useAdminReportPage(
     });
   }, []);
 
-  const confirmCompare = useCallback(async () => {
+  const confirmCompare = useCallback(() => {
     if (compareDraft.length < COMPARE_MIN) return;
     const ids = compareDraft.slice();
+    // ردیف‌های انتخاب‌شده را قفل کن تا با رفرش/سورت صفحه از دست نروند.
+    setCompareRowsById((prev) => {
+      const next = { ...prev };
+      for (const id of ids) {
+        if (next[id]) continue;
+        const row = rows.find((item) => item.id === id);
+        if (row) next[id] = row;
+      }
+      return next;
+    });
     setCompareSelected(ids);
     setCompareIdsInUrl(ids);
-  }, [compareDraft, setCompareIdsInUrl]);
+  }, [compareDraft, rows, setCompareIdsInUrl]);
+
+  /**
+   * گزارش‌های عملکرد را API مرتب می‌کند. بقیه سمت کلاینت و روی «همهٔ ردیف‌های بارگذاری‌شده»
+   * مرتب می‌شوند تا بعد از «بارگذاری بیشتر» ترتیب صفحه‌های بعدی با قبلی قاطی نشود.
+   */
+  const sortedRows = useMemo(
+    () =>
+      isPerformanceReportSlug(slug) ? rows : sortLoadedRows(rows, columns, sort),
+    [columns, rows, slug, sort]
+  );
 
   return {
     slug,
@@ -1188,7 +1308,7 @@ export function useAdminReportPage(
     setQuery,
     sort,
     toggleSort,
-    rows,
+    rows: sortedRows,
     columns,
     total,
     isLoading,
@@ -1217,6 +1337,9 @@ export function useAdminReportPage(
     dialogLoading,
     canCompare,
     compareMode: compareModeActive,
+    compareSelecting,
+    startCompareSelection,
+    cancelCompareSelection,
     compareSelected,
     compareDraft,
     compareItems,

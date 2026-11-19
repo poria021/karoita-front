@@ -297,6 +297,9 @@ describe('org-report-access', () => {
     ).toEqual(['teacher']);
 
     // لیست مدیران مدارس و لیست مدارس: معلم/مدرسه برای هیچ نقشی نیست
+    expect(hiddenReportFilterKeysForRole('super_admin', 'scores')).toEqual([
+      'city',
+    ]);
     expect(hiddenReportFilterKeysForRole('super_admin', 'principals')).toEqual([
       'teacher',
       'school',
