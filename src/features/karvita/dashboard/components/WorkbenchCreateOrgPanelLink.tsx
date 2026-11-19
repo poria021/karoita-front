@@ -81,13 +81,13 @@ export function WorkbenchCreateOrgPanelLink({
     >
       <span
         dir="rtl"
-        className="w-full text-right text-sm font-bold leading-snug text-kv-text"
+        className="w-full text-end text-sm font-bold leading-snug text-kv-text"
       >
         ساخت پنل سازمانی
       </span>
       <span
         dir="rtl"
-        className="w-full text-right text-[11px] font-medium leading-relaxed text-kv-text-muted"
+        className="w-full text-end text-[11px] font-medium leading-relaxed text-kv-text-muted"
       >
         حساب مدیر منطقه، دانشکده یا دانشگاه استانی را بسازید.
       </span>
