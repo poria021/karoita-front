@@ -1,5 +1,5 @@
-/** زردِ زمینهٔ کارت‌های «گزارش در انتظار بررسی». */
-export const PENDING_YELLOW = 'hsl(48 96% 53%)';
+/** زردِ زمینهٔ کارت‌های «گزارش در انتظار بررسی» (`--kv-pending-accent`). */
+export const PENDING_YELLOW = 'var(--kv-pending-accent)';
 
 /** شدت کامل زمینه از این تعداد گزارش به بالا؛ تا یک کارتِ تک‌گزارشی «پررنگ‌ترین» نشود. */
 export const PENDING_FULL_INTENSITY_AT = 5;

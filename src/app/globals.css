@@ -347,6 +347,8 @@
   --kv-warning-soft-hover: hsl(42 85% 86%);
   --kv-warning-soft-fg: hsl(23 82.5% 31.4%);
   --kv-warning-border: hsl(32 70% 48%);
+  /* زمینهٔ زرد کارت‌های گزارش در انتظار */
+  --kv-pending-accent: hsl(48 96% 53%);
 
   --kv-danger: hsl(347 77.2% 49.8%);
   --kv-danger-hover: hsl(345 82.7% 40.8%);
@@ -509,6 +511,7 @@
   --kv-warning-soft-hover: hsl(36 38% 12%);
   --kv-warning-soft-fg:  hsl(40 60% 64%);
   --kv-warning-border:   hsl(38 36% 20%);
+  --kv-pending-accent:   hsl(48 75% 58%);
 
   /* ── Danger ── */
   --kv-danger:           hsl(0 48% 52%);
