@@ -146,7 +146,7 @@ export type WorkbenchLayoutOptions = {
   showStudentGradeRanking?: boolean;
   /**
    * استاد راهنما / معلم راهنما / مدیر مدرسه: کارت نمرهٔ نهایی همهٔ فراگیران.
-   * با تبلیغ بالای خودِ تبلیغ؛ بدون تبلیغ یک ردیف زیر ستون تعداد.
+   * با تبلیغ زیر خودِ تبلیغ؛ بدون تبلیغ یک ردیف زیر ستون تعداد.
    */
   showStudentGradesCard?: boolean;
   /**
@@ -360,8 +360,8 @@ function classicSlots(
         colSpan: 1,
         colStart: 13,
         rowStart: 1,
-        // منطقه/دانشکده: نمره بالای تبلیغ و آمار زیر آن، در همین سلول؛ ستون
-        // ردیف‌های ۱–۳ را می‌گیرد تا بین تبلیغ و کارت‌ها فاصلهٔ خالی نماند.
+        // منطقه/دانشکده: نمره و آمار زیر تبلیغ، در همین سلول؛ ستون ردیف‌های
+        // ۱–۳ را می‌گیرد تا بین تبلیغ و کارت‌ها فاصلهٔ خالی نماند.
         rowSpan: showRegionalCounts ? 3 : 1,
       },
       ...(showRegionalCounts
@@ -458,8 +458,8 @@ function seniorSlots(): WorkbenchBoxSlot[] {
  * ارزیابی (استاد راهنما / مدیر مدرسه / استاد ناظر): خوش‌آمد تمام‌عرض؛ اطلاعیه‌ها ردیف ۲
  * (نیمه‌عرض، یا تمام‌عرض وقتی تبلیغ هست و میانگین نمره نیست)؛
  * میانگین نمرهٔ دروس کنار اطلاعیه‌ها (نیمهٔ چپ، ردیف‌های ۲-۳)؛
- * با تبلیغ: کارت نمرات بالای خودِ تبلیغ در ترک ۲۴۰px، تعداد فراگیران/ترمی‌پودمانی
- * زیر تبلیغ؛ بدون تبلیغ: نمرات یک ردیف زیر ستون تعداد.
+ * با تبلیغ: کارت نمرات زیر خودِ تبلیغ در ترک ۲۴۰px، تعداد فراگیران/ترمی‌پودمانی
+ * یک ردیف پایین‌تر؛ بدون تبلیغ: نمرات یک ردیف زیر ستون تعداد.
  */
 function evaluationSlots(
   showAd: boolean,
@@ -477,11 +477,11 @@ function evaluationSlots(
     showPendingBesideAnnouncements &&
     showStudentGradeRanking &&
     !showCourseAverages;
-  // با تبلیغ، نمرات بالای خودِ تبلیغ‌اند (نه زیر تعداد فراگیران).
-  const gradesAboveAd = showAd && showStudentGradesCard;
+  // با تبلیغ، نمرات زیر خودِ تبلیغ‌اند (داخل سلول تبلیغ).
+  const gradesBelowAd = showAd && showStudentGradesCard;
   const learnerCountsPlacement: WorkbenchBoxPlacement = showAd
-    ? // زیر سلول تبلیغ (نمره + تبلیغ روی ردیف‌های ۱–۳).
-      { colSpan: 1, colStart: 13, rowStart: gradesAboveAd ? 4 : 3 }
+    ? // زیر سلول تبلیغ (تبلیغ + نمره روی ردیف‌های ۱–۳).
+      { colSpan: 1, colStart: 13, rowStart: gradesBelowAd ? 4 : 3 }
     : rankingBesidePending
       ? { colSpan: 12, colStart: 1, rowStart: 4 }
       : showCourseAverages
@@ -570,7 +570,7 @@ function evaluationSlots(
   }
   // ردیفِ آخرین باکسِ ستونِ تعداد (ترمی/پودمانی یا کارت‌های فراگیران).
   const learnerCountsRow = learnerCountsPlacement.rowStart ?? 2;
-  if (showStudentGradesCard && !gradesAboveAd) {
+  if (showStudentGradesCard && !gradesBelowAd) {
     // بدون تبلیغ: کارت نمرات یک ردیف زیر ستون تعداد، هم‌ستون و هم‌عرض.
     slots.push({
       id: 'student_grades_card',
@@ -582,7 +582,7 @@ function evaluationSlots(
     });
   }
   const countsBottom =
-    showStudentGradesCard && !gradesAboveAd
+    showStudentGradesCard && !gradesBelowAd
       ? learnerCountsRow + 1
       : learnerCountsRow;
   const lastRow = showStudentGradeRanking
@@ -623,10 +623,10 @@ function evaluationSlots(
         colSpan: 1,
         colStart: 13,
         rowStart: 1,
-        // با کارت نمرات بالای تبلیغ، ستون ردیف‌های ۱–۳ را می‌گیرد.
-        rowSpan: gradesAboveAd ? 3 : 2,
+        // با کارت نمرات زیر تبلیغ، ستون ردیف‌های ۱–۳ را می‌گیرد.
+        rowSpan: gradesBelowAd ? 3 : 2,
       },
-      ...(gradesAboveAd
+      ...(gradesBelowAd
         ? { includes: ['student_grades_card'] as const }
         : {}),
     });

@@ -83,7 +83,7 @@ export function DashboardBulletinsBoard({
     showCoursePendingReports: showLessonReports,
     // برترین/ضعیف‌ترین فراگیران برای هر سه نقش ارزیابی؛ محدودهٔ داده را خود سرویس تعیین می‌کند.
     showStudentGradeRanking: kind === 'evaluation',
-    // کارت نمرات برای نقش‌های ارزیابی (بالای تبلیغ وقتی تبلیغ هست).
+    // کارت نمرات برای نقش‌های ارزیابی (زیر تبلیغ وقتی تبلیغ هست).
     showStudentGradesCard: kind === 'evaluation',
     showRegionalCounts:
       role === 'regional_edu_admin' || role === 'faculty_role',
@@ -193,27 +193,27 @@ function WorkbenchBoardCell({
         />
       );
     case 'ad': {
-      const gradesAboveAd = slot.includes?.includes('student_grades_card');
+      const gradesBelowAd = slot.includes?.includes('student_grades_card');
       const countsBelowAd = slot.includes?.includes('regional_counts');
-      if (gradesAboveAd || countsBelowAd) {
-        // نمره (دانشکده / منطقه / فراگیران) بالای تبلیغ؛ آمار منطقه/دانشکده زیر آن.
+      if (gradesBelowAd || countsBelowAd) {
+        // تبلیغ اول؛ نمره و آمار زیر آن در همین ستون.
         return (
           <div
             className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
             style={cellStyle}
           >
-            {gradesAboveAd ? (
-              <WorkbenchStudentGradesCard
-                role={role}
-                compact={countsBelowAd}
-              />
-            ) : null}
             <WorkbenchAdBox
               ads={ads}
               isLoading={isLoading}
               isError={isError}
               isForbidden={isForbidden}
             />
+            {gradesBelowAd ? (
+              <WorkbenchStudentGradesCard
+                role={role}
+                compact={countsBelowAd}
+              />
+            ) : null}
             {countsBelowAd ? (
               role === 'faculty_role' ? (
                 <WorkbenchFacultyCountsBox stacked />
@@ -289,7 +289,7 @@ function WorkbenchBoardCell({
         </div>
       );
     case 'regional_counts':
-      // بدون تبلیغ: نمره بالای آمار. با تبلیغ هر دو داخل سلول `ad`اند.
+      // بدون تبلیغ: نمره و آمار زیر هم. با تبلیغ هر دو داخل سلول `ad`اند (زیر تبلیغ).
       return (
         <div
           className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
@@ -418,7 +418,7 @@ function WorkbenchBoardCell({
     case 'course_capacities':
       // قبلاً نمودار حلقه‌ای هر درس (WorkbenchCourseCapacitiesBox)؛ حذف شد،
       // به‌جایش باکس میله‌ای سبک‌تر: فقط تعداد دانشجو (ترمی) / مهارت‌آموز (پودمانی).
-      // با تبلیغ، کارت نمرات بالای خودِ تبلیغ است (سلول `ad`).
+      // با تبلیغ، کارت نمرات زیر خودِ تبلیغ است (سلول `ad`).
       return (
         <WorkbenchLearnerTypeCountsBox
           className={cn(cellClass, 'self-start')}

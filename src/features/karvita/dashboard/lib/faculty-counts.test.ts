@@ -72,7 +72,8 @@ describe('faculty workbench layout', () => {
       rowStart: 1,
       rowSpan: 3,
     });
-    expect(ad.includes).toEqual(['student_grades_card', 'regional_counts']);    expect(workbenchSlotById(slots, 'regional_counts')).toBeUndefined();
+    expect(ad.includes).toEqual(['student_grades_card', 'regional_counts']);
+    expect(workbenchSlotById(slots, 'regional_counts')).toBeUndefined();
   });
 
   it('بدون گزینه، باکس‌های منطقه‌ای اضافه نمی‌شوند', () => {

@@ -150,7 +150,7 @@ describe('student grades card slot (mentor teacher / school principal)', () => {
       showStudentGradesCard,
     });
 
-  it('با تبلیغ بالای خودِ تبلیغ است؛ بدون تبلیغ یک ردیف زیر تعداد فراگیران', () => {
+  it('با تبلیغ زیر خودِ تبلیغ است؛ بدون تبلیغ یک ردیف زیر تعداد فراگیران', () => {
     for (const role of roles) {
       for (const showAd of [true, false]) {
         const slots = layout(role, showAd);
