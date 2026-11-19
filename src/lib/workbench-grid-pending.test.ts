@@ -150,13 +150,21 @@ describe('student grades card slot (mentor teacher / school principal)', () => {
       showStudentGradesCard,
     });
 
-  it('با تبلیغ داخل سلول تعداد فراگیران است؛ بدون تبلیغ یک ردیف زیر آن', () => {
+  it('با تبلیغ بالای خودِ تبلیغ است؛ بدون تبلیغ یک ردیف زیر تعداد فراگیران', () => {
     for (const role of roles) {
       for (const showAd of [true, false]) {
         const slots = layout(role, showAd);
         const counts = workbenchSlotById(slots, 'learner_counts')!;
         if (showAd) {
-          expect(counts.includes).toEqual(['student_grades_card']);
+          const ad = workbenchSlotById(slots, 'ad')!;
+          expect(ad.includes).toEqual(['student_grades_card']);
+          expect(ad.placement).toMatchObject({
+            colStart: 13,
+            rowStart: 1,
+            rowSpan: 3,
+          });
+          expect(counts.includes).toBeUndefined();
+          expect(counts.placement.rowStart).toBe(4);
           expect(
             workbenchSlotById(slots, 'student_grades_card')
           ).toBeUndefined();
@@ -197,6 +205,7 @@ describe('student grades card slot (mentor teacher / school principal)', () => {
     for (const role of roles) {
       const slots = layout(role, true, false);
       expect(workbenchSlotById(slots, 'student_grades_card')).toBeUndefined();
+      expect(workbenchSlotById(slots, 'ad')?.includes).toBeUndefined();
       expect(
         workbenchSlotById(slots, 'learner_counts')?.includes
       ).toBeUndefined();

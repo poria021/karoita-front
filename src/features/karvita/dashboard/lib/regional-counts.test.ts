@@ -121,7 +121,7 @@ describe('regional counts in the ad track', () => {
       rowStart: 1,
       rowSpan: 3,
     });
-    expect(ad.includes).toEqual(['regional_counts']);
+    expect(ad.includes).toEqual(['student_grades_card', 'regional_counts']);
     expect(workbenchSlotById(slots, 'regional_counts')).toBeUndefined();
   });
 

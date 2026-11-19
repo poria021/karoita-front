@@ -19,8 +19,7 @@ export type WorkbenchStudentGradesCardProps = {
   className?: string;
   style?: CSSProperties;
   /**
-   * ارتفاع کوتاه‌تر برای ستون تبلیغ دانشکده / منطقه — تا زیر کارت‌های آمار
-   * لی‌اوت را نکشد.
+   * ارتفاع کوتاه‌تر برای ستون تبلیغ دانشکده / منطقه — بالای تبلیغ و بالای آمار.
    */
   compact?: boolean;
 };
@@ -50,9 +49,9 @@ function GradeRow({ item }: { item: StudentGradeListItem }) {
 }
 
 /**
- * کارت «نمرات فراگیران» میز کار استاد راهنما / معلم راهنما / مدیر مدرسه: نمرهٔ نهایی
- * (از ۲۰) همهٔ فراگیران همان نقش در یک فهرست قابل‌اسکرول؛ زیر آخرین باکسِ ستونِ تعداد
- * (هم‌ستون، هم‌عرض).
+ * کارت نمرات میز کار (عنوان بر اساس سطح پنل: دانشکده / منطقه / استان / فراگیران):
+ * نمرهٔ نهایی (از ۲۰) در فهرست قابل‌اسکرول؛ با تبلیغ بالای خودِ تبلیغ، بدون تبلیغ
+ * زیر ستون تعداد.
  */
 export function WorkbenchStudentGradesCard({
   role,
@@ -70,7 +69,9 @@ export function WorkbenchStudentGradesCard({
         ? 'نمره دانشکده'
         : role === 'regional_edu_admin'
           ? 'نمره منطقه'
-          : 'نمرات فراگیران';
+          : role === 'provincial_university'
+            ? 'نمره استان'
+            : 'نمرات فراگیران';
 
   return (
     <section

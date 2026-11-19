@@ -145,9 +145,8 @@ export type WorkbenchLayoutOptions = {
   /** استاد راهنما: ۵ ضعیف‌ترین و ۵ قوی‌ترین فراگیر بر اساس نمرهٔ نهایی، تمام‌عرض. */
   showStudentGradeRanking?: boolean;
   /**
-   * استاد راهنما / معلم راهنما / مدیر مدرسه: کارت نمرهٔ نهایی همهٔ فراگیران،
-   * یک ردیف زیر آخرین باکسِ ستونِ تعداد («ترمی / پودمانی» یا کارت‌های فراگیران)،
-   * هم‌ستون و هم‌عرض.
+   * استاد راهنما / معلم راهنما / مدیر مدرسه: کارت نمرهٔ نهایی همهٔ فراگیران.
+   * با تبلیغ بالای خودِ تبلیغ؛ بدون تبلیغ یک ردیف زیر ستون تعداد.
    */
   showStudentGradesCard?: boolean;
   /**
@@ -361,12 +360,15 @@ function classicSlots(
         colSpan: 1,
         colStart: 13,
         rowStart: 1,
-        // منطقه: «آمار منطقه» زیر خود تبلیغ در همین سلول می‌آید و ستون ردیف‌های ۱–۳ را
-        // می‌گیرد؛ با اسلات جدا در ردیف ۳، ارتفاع ثابت تبلیغ و ردیف‌های بلندتر بین
-        // تبلیغ و کارت‌ها فاصلهٔ خالی می‌انداخت.
+        // منطقه/دانشکده: نمره بالای تبلیغ و آمار زیر آن، در همین سلول؛ ستون
+        // ردیف‌های ۱–۳ را می‌گیرد تا بین تبلیغ و کارت‌ها فاصلهٔ خالی نماند.
         rowSpan: showRegionalCounts ? 3 : 1,
       },
-      ...(showRegionalCounts ? { includes: ['regional_counts'] as const } : {}),
+      ...(showRegionalCounts
+        ? {
+            includes: ['student_grades_card', 'regional_counts'] as const,
+          }
+        : {}),
     });
   }
   return slots;
@@ -456,9 +458,8 @@ function seniorSlots(): WorkbenchBoxSlot[] {
  * ارزیابی (استاد راهنما / مدیر مدرسه / استاد ناظر): خوش‌آمد تمام‌عرض؛ اطلاعیه‌ها ردیف ۲
  * (نیمه‌عرض، یا تمام‌عرض وقتی تبلیغ هست و میانگین نمره نیست)؛
  * میانگین نمرهٔ دروس کنار اطلاعیه‌ها (نیمهٔ چپ، ردیف‌های ۲-۳)؛
- * تعداد فراگیران (دو کارت دانشجو / مهارت‌آموز) زیر اطلاعیه‌ها — با تبلیغ، در ترک ۲۴۰px
- * زیر تبلیغ؛ تعداد ترمی/پودمانی درست زیرِ همان کارت‌های تعداد فراگیران (هم‌ستون،
- * یک ردیف پایین‌تر)؛ «معلمان» زیر اطلاعیه (مدیر مدرسه)؛ تبلیغ row-span ۲.
+ * با تبلیغ: کارت نمرات بالای خودِ تبلیغ در ترک ۲۴۰px، تعداد فراگیران/ترمی‌پودمانی
+ * زیر تبلیغ؛ بدون تبلیغ: نمرات یک ردیف زیر ستون تعداد.
  */
 function evaluationSlots(
   showAd: boolean,
@@ -470,22 +471,17 @@ function evaluationSlots(
   showStudentGradesCard = false,
   showPendingBesideAnnouncements = false
 ): WorkbenchBoxSlot[] {
-  // جای «تعداد فراگیران» — جای «تعداد ترمی/پودمانی» دقیقاً زیر همین است.
-  // با تبلیغ + باکس برترین/ضعیف‌ترین، ردیف ۳ بلند می‌شود؛ برای اینکه «تعداد فراگیران» و
-  // «نمرات فراگیران» (ستون تبلیغ) فاصله نگیرند، کارت نمرات داخل همان سلول و زیر هم می‌آید.
   // معلم راهنما: «برترین/ضعیف‌ترین» زیر «در انتظار بررسی» (ستون راست) و اطلاعیه‌ها بلندتر
   // (دو ردیف، هم‌قدِ این دو)؛ «تعداد فراگیران» یک ردیف پایین‌تر و تمام‌عرض.
   const rankingBesidePending =
     showPendingBesideAnnouncements &&
     showStudentGradeRanking &&
     !showCourseAverages;
-  const mergeGradesCard =
-    showAd && showStudentGradeRanking && showStudentGradesCard;
-  const gradesCardInside = mergeGradesCard
-    ? { includes: ['student_grades_card'] as const }
-    : {};
+  // با تبلیغ، نمرات بالای خودِ تبلیغ‌اند (نه زیر تعداد فراگیران).
+  const gradesAboveAd = showAd && showStudentGradesCard;
   const learnerCountsPlacement: WorkbenchBoxPlacement = showAd
-    ? { colSpan: 1, colStart: 13, rowStart: 3 }
+    ? // زیر سلول تبلیغ (نمره + تبلیغ روی ردیف‌های ۱–۳).
+      { colSpan: 1, colStart: 13, rowStart: gradesAboveAd ? 4 : 3 }
     : rankingBesidePending
       ? { colSpan: 12, colStart: 1, rowStart: 4 }
       : showCourseAverages
@@ -543,7 +539,6 @@ function evaluationSlots(
     slots.push({
       id: 'learner_counts',
       placement: learnerCountsPlacement,
-      ...gradesCardInside,
     });
   }
   // «گزارش‌های در حال بررسی» بالای میانگین نمره (نیمهٔ چپ، ردیف ۲)؛ میانگین یک ردیف پایین‌تر.
@@ -571,14 +566,12 @@ function evaluationSlots(
     slots.push({
       id: 'course_capacities',
       placement: learnerCountsPlacement,
-      ...gradesCardInside,
     });
   }
   // ردیفِ آخرین باکسِ ستونِ تعداد (ترمی/پودمانی یا کارت‌های فراگیران).
   const learnerCountsRow = learnerCountsPlacement.rowStart ?? 2;
-  if (showStudentGradesCard && !mergeGradesCard) {
-    // کارت نمرات فراگیران: درست یک ردیف زیر آخرین باکسِ ستونِ تعداد («ترمی / پودمانی» یا
-    // کارت‌های دانشجو / مهارت‌آموز)، همان ستون و همان عرض.
+  if (showStudentGradesCard && !gradesAboveAd) {
+    // بدون تبلیغ: کارت نمرات یک ردیف زیر ستون تعداد، هم‌ستون و هم‌عرض.
     slots.push({
       id: 'student_grades_card',
       placement: {
@@ -588,9 +581,10 @@ function evaluationSlots(
       },
     });
   }
-  const countsBottom = showStudentGradesCard
-    ? learnerCountsRow + 1
-    : learnerCountsRow;
+  const countsBottom =
+    showStudentGradesCard && !gradesAboveAd
+      ? learnerCountsRow + 1
+      : learnerCountsRow;
   const lastRow = showStudentGradeRanking
     ? Math.max(countsBottom, 3)
     : countsBottom;
@@ -625,7 +619,16 @@ function evaluationSlots(
   if (showAd) {
     slots.push({
       id: 'ad',
-      placement: { colSpan: 1, colStart: 13, rowStart: 1, rowSpan: 2 },
+      placement: {
+        colSpan: 1,
+        colStart: 13,
+        rowStart: 1,
+        // با کارت نمرات بالای تبلیغ، ستون ردیف‌های ۱–۳ را می‌گیرد.
+        rowSpan: gradesAboveAd ? 3 : 2,
+      },
+      ...(gradesAboveAd
+        ? { includes: ['student_grades_card'] as const }
+        : {}),
     });
   }
   return slots;

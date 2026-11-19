@@ -83,7 +83,7 @@ export function DashboardBulletinsBoard({
     showCoursePendingReports: showLessonReports,
     // برترین/ضعیف‌ترین فراگیران برای هر سه نقش ارزیابی؛ محدودهٔ داده را خود سرویس تعیین می‌کند.
     showStudentGradeRanking: kind === 'evaluation',
-    // کارت «نمرات فراگیران» برای هر سه نقش ارزیابی؛ محدودهٔ داده را خود سرویس تعیین می‌کند.
+    // کارت نمرات برای نقش‌های ارزیابی (بالای تبلیغ وقتی تبلیغ هست).
     showStudentGradesCard: kind === 'evaluation',
     showRegionalCounts:
       role === 'regional_edu_admin' || role === 'faculty_role',
@@ -192,27 +192,35 @@ function WorkbenchBoardCell({
           style={cellStyle}
         />
       );
-    case 'ad':
-      if (slot.includes?.includes('regional_counts')) {
-        // منطقه / دانشکده: آمار + کارت نمرات فراگیران (با عنوان سطح پنل)
-        // زیر خودِ تبلیغ، در همین سلول و زیر هم.
+    case 'ad': {
+      const gradesAboveAd = slot.includes?.includes('student_grades_card');
+      const countsBelowAd = slot.includes?.includes('regional_counts');
+      if (gradesAboveAd || countsBelowAd) {
+        // نمره (دانشکده / منطقه / فراگیران) بالای تبلیغ؛ آمار منطقه/دانشکده زیر آن.
         return (
           <div
             className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
             style={cellStyle}
           >
+            {gradesAboveAd ? (
+              <WorkbenchStudentGradesCard
+                role={role}
+                compact={countsBelowAd}
+              />
+            ) : null}
             <WorkbenchAdBox
               ads={ads}
               isLoading={isLoading}
               isError={isError}
               isForbidden={isForbidden}
             />
-            <WorkbenchStudentGradesCard role={role} compact />
-            {role === 'faculty_role' ? (
-              <WorkbenchFacultyCountsBox stacked />
-            ) : (
-              <WorkbenchRegionalCountsBox stacked />
-            )}
+            {countsBelowAd ? (
+              role === 'faculty_role' ? (
+                <WorkbenchFacultyCountsBox stacked />
+              ) : (
+                <WorkbenchRegionalCountsBox stacked />
+              )
+            ) : null}
           </div>
         );
       }
@@ -226,6 +234,7 @@ function WorkbenchBoardCell({
           />
         </div>
       );
+    }
     case 'materials':
       return <MaterialsCell className={cellClass} style={cellStyle} />;
     case 'senior_queue':
@@ -280,6 +289,7 @@ function WorkbenchBoardCell({
         </div>
       );
     case 'regional_counts':
+      // بدون تبلیغ: نمره بالای آمار. با تبلیغ هر دو داخل سلول `ad`اند.
       return (
         <div
           className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
@@ -335,18 +345,6 @@ function WorkbenchBoardCell({
         />
       );
     case 'learner_counts':
-      if (slot.includes?.includes('student_grades_card')) {
-        // ستون تبلیغ: «تعداد فراگیران» و «نمرات فراگیران» زیر هم، بدون فاصلهٔ ردیف.
-        return (
-          <div
-            className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
-            style={cellStyle}
-          >
-            <WorkbenchLearnerCountsBox role={role} stacked={inAdTrack} />
-            <WorkbenchStudentGradesCard role={role} />
-          </div>
-        );
-      }
       return (
         <WorkbenchLearnerCountsBox
           role={role}
@@ -420,17 +418,7 @@ function WorkbenchBoardCell({
     case 'course_capacities':
       // قبلاً نمودار حلقه‌ای هر درس (WorkbenchCourseCapacitiesBox)؛ حذف شد،
       // به‌جایش باکس میله‌ای سبک‌تر: فقط تعداد دانشجو (ترمی) / مهارت‌آموز (پودمانی).
-      if (slot.includes?.includes('student_grades_card')) {
-        return (
-          <div
-            className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
-            style={cellStyle}
-          >
-            <WorkbenchLearnerTypeCountsBox />
-            <WorkbenchStudentGradesCard role={role} />
-          </div>
-        );
-      }
+      // با تبلیغ، کارت نمرات بالای خودِ تبلیغ است (سلول `ad`).
       return (
         <WorkbenchLearnerTypeCountsBox
           className={cn(cellClass, 'self-start')}
