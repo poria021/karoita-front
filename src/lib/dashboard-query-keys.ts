@@ -51,6 +51,9 @@ export const DASHBOARD_QUERY = {
   /** ۵ استاد ضعیف/قوی دانشکده بر اساس نرخ پاسخ‌دهی روی میز کار مدیر دانشکده. */
   professorResponseRanking: (role: string) =>
     ['reports', 'dashboard-professor-response-ranking', role] as const,
+  /** ۵ استاد ضعیف/قوی دانشکده بر اساس میانگین نمره روی نمودار میز کار مدیر دانشکده. */
+  professorScoreRanking: (role: string) =>
+    ['reports', 'dashboard-professor-score-ranking', role] as const,
   /** `GET /users/documents/status` — نمودار «وضعیت پرونده‌ها» روی میز کار مدیر ارشد. */
   usersDocumentsStatus: ['users', 'documents-status'] as const,
   /** `GET /users/dashboard/counts` — شمار مکان‌ها و کاربران هر نقش (میز کار ادمین). */

@@ -24,6 +24,7 @@ import { WorkbenchFacultyGenderBox } from '@/features/karvita/dashboard/componen
 import { WorkbenchLearnerCountsBox } from '@/features/karvita/dashboard/components/WorkbenchLearnerCountsBox';
 import { WorkbenchOrgStructureCountsBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureCountsBox';
 import { WorkbenchProfessorResponseRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorResponseRankingBox';
+import { WorkbenchProfessorScoreRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorScoreRankingBox';
 import { WorkbenchPublishedAnnouncementsBox } from '@/features/karvita/dashboard/components/WorkbenchPublishedAnnouncementsBox';
 import { WorkbenchRegionalCountsBox } from '@/features/karvita/dashboard/components/WorkbenchRegionalCountsBox';
 import { WorkbenchRegionalGenderBox } from '@/features/karvita/dashboard/components/WorkbenchRegionalGenderBox';
@@ -320,7 +321,14 @@ function WorkbenchBoardCell({
         />
       );
     case 'regional_school_ranking':
-      return (
+      // دانشکده: نمودار اساتید (میانگین نمره)؛ منطقه: نمودار مدارس.
+      return role === 'faculty_role' ? (
+        <WorkbenchProfessorScoreRankingBox
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
+      ) : (
         <WorkbenchSchoolRankingBox
           role={role}
           className={cellClass}
