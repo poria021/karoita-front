@@ -120,16 +120,26 @@ describe('live nav / admin plane', () => {
     const facultyMenu = getVisibleSidebarMenu('faculty_role');
     expect(facultyMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
-      'گزارش‌گیری',
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
       'اطلاعیه‌ها و اعلانات',
     ]);
-    const facultyReports = facultyMenu.find(isSidebarMenuGroup);
-    expect(facultyReports?.title).toBe('گزارش‌گیری');
-    expect(facultyReports?.children.map((c) => c.path)).toEqual([
+    const facultyGroups = facultyMenu.filter(isSidebarMenuGroup);
+    expect(facultyGroups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    expect(facultyGroups[0]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('learners'),
+      RouteService.karvita.orgReports('professors'),
+    ]);
+    expect(facultyGroups[1]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('attendance'),
       RouteService.karvita.orgReports('professor-attendance'),
-      RouteService.karvita.orgReports('professors'),
+    ]);
+    expect(facultyGroups[2]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('teacher-performance'),
       RouteService.karvita.orgReports('school-performance'),
       RouteService.karvita.orgReports('professor-performance'),

@@ -337,7 +337,7 @@ export const ROLE_STRATEGY_MAP: RoleStrategyMap = {
     gateModulesUntilApproved: true,
     sidebarMenu: [
       DASHBOARD_ITEM,
-      orgReportsSidebarGroup('faculty_role'),
+      ...orgReportsSidebarEntries('faculty_role'),
       MANAGE_ANNOUNCEMENTS_ITEM,
     ],
     permissions: ['dashboard.view', 'ads.manage'],

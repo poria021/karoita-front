@@ -251,6 +251,7 @@ const THEMED_ORG_REPORTS_ROLES = new Set<OrgReportsRole>([
   'central_organization',
   'provincial_university',
   'regional_edu_admin',
+  'faculty_role',
 ]);
 
 export function usesThemedOrgReportSidebar(
@@ -327,7 +328,7 @@ export function orgReportsThemedSidebarGroups(
 
 /**
  * ورودی‌های سایدبار گزارش.
- * سازمان مرکزی / دانشگاه استانی / آموزش‌و‌پرورش منطقه → ماژول‌های دسته‌بندی‌شده؛ بقیه → یک «گزارش‌گیری».
+ * سازمان مرکزی / دانشگاه استانی / آموزش‌و‌پرورش منطقه / دانشکده → ماژول‌های دسته‌بندی‌شده؛ بقیه → یک «گزارش‌گیری».
  */
 export function orgReportsSidebarEntries(
   role: OrgReportsRole,

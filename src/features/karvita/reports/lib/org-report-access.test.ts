@@ -198,6 +198,34 @@ describe('org-report-access', () => {
     ]);
   });
 
+  it('splits faculty reports into themed sidebar modules without losing any report', () => {
+    const groups = orgReportsSidebarEntries('faculty_role');
+    expect(groups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    expect(groups[0]?.children.map((c) => c.title)).toEqual([
+      'لیست فراگیران',
+      'لیست اساتید',
+    ]);
+    expect(groups[1]?.children.map((c) => c.title)).toEqual([
+      'حضور و غیاب فراگیران',
+      'حضور و غیاب اساتید راهنما',
+    ]);
+    expect(groups[2]?.children.map((c) => c.title)).toEqual([
+      'عملکرد معلمان',
+      'عملکرد مدارس',
+      'عملکرد اساتید',
+    ]);
+    // هر گزارشِ منوی تخت قبلی دقیقاً یک‌بار در یکی از ماژول‌ها باشد.
+    const flat = orgReportsSidebarGroup('faculty_role').children.map(
+      (c) => c.path
+    );
+    const themed = groups.flatMap((g) => g.children.map((c) => c.path));
+    expect([...themed].sort()).toEqual([...flat].sort());
+  });
+
   it('applies the same allowlisted filters on every report slug', () => {
     expect(extraReportFilterKeysForRole('super_admin', 'learners')).toEqual([]);
     expect(hiddenReportFilterKeysForRole('super_admin', 'learners')).toEqual([]);
