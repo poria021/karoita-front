@@ -1,6 +1,7 @@
 'use client';
 
 import { useQueries } from '@tanstack/react-query';
+import { isForbiddenError } from '@/services/api-error';
 import { useMemo } from 'react';
 
 import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
@@ -32,6 +33,7 @@ export type LearnerWorkbenchSnapshot = {
   enabled: boolean;
   isLoading: boolean;
   isError: boolean;
+  isForbidden: boolean;
   nextAction: LearnerNextAction | null;
   activeCourse: LearnerActiveCourse | null;
   openTermCourses: LearnerActiveCourse[];
@@ -137,10 +139,14 @@ export function useLearnerWorkbenchSnapshot(): LearnerWorkbenchSnapshot {
     queries.length > 0 &&
     queries.every((query) => query.isError);
 
+  const isForbidden =
+    isError && queries.some((query) => isForbiddenError(query.error));
+
   return {
     enabled,
     isLoading,
     isError,
+    isForbidden,
     nextAction: models.nextAction,
     activeCourse: models.activeCourse,
     openTermCourses: models.openTermCourses,

@@ -213,3 +213,15 @@ export async function listRealProvinceTitles(): Promise<string[]> {
   const { titleToId } = await provinceMaps();
   return [...titleToId.keys()].sort((a, b) => a.localeCompare(b, 'fa'));
 }
+
+/**
+ * صفحهٔ اطلاعیه‌ها فقط اطلاعیه (`type=info`) نشان می‌دهد؛ تبلیغ (`type=ads`) را
+ * نمی‌خوانیم تا درخواست اضافه به Nest نرود.
+ */
+export async function listRealReceivedAnnouncements(): Promise<Bulletin[]> {
+  const role = useUserStore.getState().activeUser?.role;
+  // مدیر ارشد از مسیر ادمین می‌خواند و همان‌جا فقط اطلاعیه‌ها فیلتر می‌شود.
+  if (role === 'super_admin') return listRealDashboardBulletins();
+  const infos = await listVisibleDeduped('info', DASHBOARD_AD_PLACEMENTS);
+  return infos.map((row) => mapPublicAdvertisement(row));
+}

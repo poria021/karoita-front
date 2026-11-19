@@ -49,25 +49,25 @@ export const WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE: CSSProperties = {
   maxHeight: WORKBENCH_LEARNER_ANNOUNCEMENTS_HEIGHT_PX,
 };
 
-/** ارشد: پرونده‌ها عرض محتوا | ساختار+نقش‌ها — گرید داخلی باند تمام‌عرض. */
-export const WORKBENCH_SENIOR_BAND_CLASS =
-  'grid min-h-0 min-w-0 w-full grid-cols-1 gap-kv-group md:grid-cols-[max-content_auto] md:items-start';
+/** ارتفاع باکس «تعداد نقش‌ها» (پایینی) — بلندتر از باکس ساختار سازمانی. */
+export const WORKBENCH_SENIOR_ROLE_STATS_CLASS = 'md:h-[24rem]';
 
-export const WORKBENCH_SENIOR_ONBOARDING_CLASS =
-  'h-auto w-full max-w-full md:w-fit';
-
-export const WORKBENCH_SENIOR_ORG_STRUCTURE_CLASS =
-  'h-auto min-h-[14rem] w-full max-w-full md:h-[14rem] md:w-[24rem] md:min-w-[24rem] md:max-w-[24rem]';
-
-export const WORKBENCH_SENIOR_ORG_STRUCTURE_STACK_CLASS =
-  'flex min-w-0 w-full flex-col gap-kv-group md:w-fit md:justify-self-end';
-
-export const WORKBENCH_SENIOR_ROLE_COUNTS_CLASS =
-  'h-auto min-h-[16rem] w-full max-w-full md:h-[18.9rem] md:min-h-[18.9rem] md:w-[24rem]';
-
-/** ردیف نمرات فراگیر داخل سلول تمام‌عرض. */
+/**
+ * ردیف نمرات فراگیر داخل سلول تمام‌عرض.
+ * ترتیب DOM: «وضعیت هفته‌ها» (اول) | «روند نمره هفتگی» — وضعیت هفته‌ها پهن‌تر است
+ * (۵ : ۴) چون خانه‌های هفته‌های کارورزی (تا ۱۶ تا) به عرض بیشتری نیاز دارند.
+ */
 export const WORKBENCH_LEARNER_GRADES_INNER_CLASS =
-  'grid grid-cols-1 gap-kv-group lg:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] lg:items-stretch';
+  'grid grid-cols-1 gap-kv-group lg:grid-cols-[minmax(0,5fr)_minmax(0,4fr)] lg:items-stretch';
+
+/**
+ * سلولی که از اولین تا آخرین ستون گرید را می‌گیرد (`grid-column: 1 / -1`).
+ * برخلاف `WORKBENCH_FULL_SPAN` (فقط ۱۲ ستون)، ترک ۲۴۰px تبلیغ را هم شامل می‌شود؛
+ * پس وقتی تبلیغ هست فقط ردیف‌های بالاییِ کنار تبلیغ باریک می‌شوند و این ردیف
+ * همیشه کل عرض را پر می‌کند.
+ */
+export const WORKBENCH_FULL_BLEED_ROW_CLASS =
+  'min-h-0 min-w-0 w-full md:col-start-1 md:col-span-full';
 
 export const WORKBENCH_FULL_SPAN = 'min-w-0 w-full md:col-span-12';
 
@@ -83,19 +83,29 @@ export type WorkbenchBoxId =
   | 'announcements'
   | 'ad'
   | 'materials'
-  | 'senior_band'
-  | 'monitor'
-  | 'capacity'
+  | 'senior_queue'
+  | 'senior_donut'
+  | 'senior_weak_ranking'
+  | 'senior_org_counts'
+  | 'senior_role_counts'
+  | 'senior_report_access'
+  | 'senior_published'
+  | 'regional_counts'
+  | 'regional_gender'
+  | 'regional_teacher_ranking'
+  | 'regional_school_ranking'
+  | 'learner_counts'
+  | 'teacher_count'
+  | 'course_averages'
+  | 'course_capacities'
+  | 'course_pending_reports'
+  | 'student_grade_ranking'
+  | 'student_grades_card'
   | 'checklist'
   | 'learner_grades';
 
 export type WorkbenchHeightToken =
-  | 'welcome'
-  | 'side'
-  | 'learnerAnnounce'
-  | 'monitor'
-  | 'ad'
-  | 'auto';
+  'welcome' | 'side' | 'learnerAnnounce' | 'monitor' | 'ad' | 'auto';
 
 export type WorkbenchColSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
@@ -105,22 +115,48 @@ export type WorkbenchBoxPlacement = {
   colStart?: number;
   rowStart?: number;
   height?: WorkbenchHeightToken;
+  /** هم‌قدشدن با بلندترین باکس همان ردیف (`align-self: stretch`). */
+  stretch?: boolean;
 };
 
 export type WorkbenchLayoutKind =
-  | 'classic'
-  | 'learner'
-  | 'senior'
-  | 'evaluation';
+  'classic' | 'learner' | 'senior' | 'evaluation';
 
 export type WorkbenchBoxSlot = {
   id: WorkbenchBoxId;
   placement: WorkbenchBoxPlacement;
+  /**
+   * باکس‌هایی که داخل همین سلول (زیر هم) رندر می‌شوند؛ خودشان گرید‌اریای جدا
+   * ندارند و ردیف‌های ستون کناری روی فاصله‌شان اثر نمی‌گذارد.
+   */
+  includes?: readonly WorkbenchBoxId[];
 };
 
 export type WorkbenchLayoutOptions = {
   showAd: boolean;
-  showCapacity?: boolean;
+  /** باکس «معلمان» — فقط مدیر مدرسه. */
+  showTeacherCount?: boolean;
+  /** باکس «میانگین نمرهٔ دروس» — فقط استاد راهنما. */
+  showCourseAverages?: boolean;
+  /** باکس «تعداد دانشجو/مهارت‌آموز به‌تفکیک ترمی/پودمانی» — فقط استاد راهنما. */
+  showCourseCapacities?: boolean;
+  /** استاد راهنما: کارت‌های «گزارش در حال بررسی» هر درس، تمام‌عرض. */
+  showCoursePendingReports?: boolean;
+  /** استاد راهنما: ۵ ضعیف‌ترین و ۵ قوی‌ترین فراگیر بر اساس نمرهٔ نهایی، تمام‌عرض. */
+  showStudentGradeRanking?: boolean;
+  /**
+   * استاد راهنما / معلم راهنما / مدیر مدرسه: کارت نمرهٔ نهایی همهٔ فراگیران،
+   * یک ردیف زیر آخرین باکسِ ستونِ تعداد («ترمی / پودمانی» یا کارت‌های فراگیران)،
+   * هم‌ستون و هم‌عرض.
+   */
+  showStudentGradesCard?: boolean;
+  /**
+   * معلم راهنما / مدیر مدرسه: کارت‌های «در انتظار بررسی» هر درس، کنار اطلاعیه‌ها
+   * (نیمهٔ چپ ردیف ۲، هم‌قدِ اطلاعیه‌ها). اطلاعیه‌ها در این حالت نیم‌عرض می‌مانند.
+   */
+  showPendingBesideAnnouncements?: boolean;
+  /** آموزش و پرورش منطقه: کارت‌های شمار مدارس/معلمان/فراگیران کنار اطلاعیه‌ها. */
+  showRegionalCounts?: boolean;
 };
 
 export const WORKBENCH_AD_ROW_STYLE: CSSProperties = {
@@ -182,6 +218,9 @@ const ROW_START_CLASS: Record<number, string> = {
   2: 'md:row-start-2',
   3: 'md:row-start-3',
   4: 'md:row-start-4',
+  5: 'md:row-start-5',
+  6: 'md:row-start-6',
+  7: 'md:row-start-7',
 };
 
 const CELL_BASE = 'min-h-0 min-w-0 w-full';
@@ -196,6 +235,9 @@ export function workbenchCellClass(placement: WorkbenchBoxPlacement): string {
   }
   if (placement.rowSpan != null && placement.rowSpan > 1) {
     parts.push(ROW_SPAN_CLASS[placement.rowSpan] ?? '');
+  }
+  if (placement.stretch) {
+    parts.push('md:self-stretch');
   }
   return parts.filter(Boolean).join(' ');
 }
@@ -249,7 +291,11 @@ export function workbenchAllowsAdSpot(role: UserRole): boolean {
  * خوش‌آمد تمام‌عرض با ارتفاع ثابت خوش‌آمد (مثل بقیهٔ پنل‌ها؛ مستقل از تبلیغ).
  * تبلیغ در ترک ۲۴۰px کنار ردیف اول؛ اطلاعیه‌ها ردیف دوم، نصف گرید (۶ ستون).
  */
-function classicSlots(showAd: boolean): WorkbenchBoxSlot[] {
+function classicSlots(
+  showAd: boolean,
+  showWeakRanking = false,
+  showRegionalCounts = false
+): WorkbenchBoxSlot[] {
   const slots: WorkbenchBoxSlot[] = [
     {
       id: 'welcome',
@@ -262,18 +308,62 @@ function classicSlots(showAd: boolean): WorkbenchBoxSlot[] {
     },
     {
       id: 'announcements',
-      placement: {
-        colSpan: 6,
-        colStart: 1,
-        rowStart: 2,
-        height: 'learnerAnnounce',
-      },
+      // منطقه: هم‌قدِ «تفکیک مدارس» (ارتفاع از ردیف می‌آید)؛ بقیهٔ نقش‌ها ارتفاع ثابت.
+      placement: showRegionalCounts
+        ? { colSpan: 6, colStart: 1, rowStart: 2, stretch: true }
+        : {
+            colSpan: 6,
+            colStart: 1,
+            rowStart: 2,
+            height: 'learnerAnnounce',
+          },
     },
   ];
+  if (showRegionalCounts) {
+    // آموزش و پرورش منطقه: «تفکیک مدارس» (دخترانه/پسرانه) نیمهٔ دیگر ردیف دوم، کنار اطلاعیه‌ها.
+    slots.push({
+      id: 'regional_gender',
+      placement: { colSpan: 6, colStart: 7, rowStart: 2, stretch: true },
+    });
+    // «آمار منطقه»: بدون تبلیغ، ردیف چهارم و تمام‌عرض. با تبلیغ اسلات جدا ندارد؛
+    // کارت‌هایش داخل سلول تبلیغ و زیر خود آن می‌آیند (اسلات `ad` با `includes`).
+    if (!showAd) {
+      slots.push({
+        id: 'regional_counts',
+        placement: { colSpan: 12, colStart: 1, rowStart: 4 },
+      });
+    }
+    // ضعیف‌ترین/قوی‌ترین معلمان منطقه: نیمهٔ دیگر ردیف سوم، کنار «مدارس ضعیف/قوی».
+    slots.push({
+      id: 'regional_teacher_ranking',
+      placement: { colSpan: 6, colStart: 7, rowStart: 3 },
+    });
+    // ضعیف‌ترین/قوی‌ترین مدارس منطقه (نمودار میله‌ای): ردیف سوم، نیمهٔ راست.
+    slots.push({
+      id: 'regional_school_ranking',
+      placement: { colSpan: 6, colStart: 1, rowStart: 3 },
+    });
+  }
+  if (showWeakRanking) {
+    // سازمان مرکزی: «ضعیف‌ترین‌ها» کنار اطلاعیه‌ها (نیمهٔ دیگر ردیف دوم)، با ارتفاع مستقل.
+    slots.push({
+      id: 'senior_weak_ranking',
+      placement: { colSpan: 6, colStart: 7, rowStart: 2 },
+    });
+  }
   if (showAd) {
     slots.push({
       id: 'ad',
-      placement: { colSpan: 1, colStart: 13, rowStart: 1, rowSpan: 1 },
+      placement: {
+        colSpan: 1,
+        colStart: 13,
+        rowStart: 1,
+        // منطقه: «آمار منطقه» زیر خود تبلیغ در همین سلول می‌آید و ستون ردیف‌های ۱–۳ را
+        // می‌گیرد؛ با اسلات جدا در ردیف ۳، ارتفاع ثابت تبلیغ و ردیف‌های بلندتر بین
+        // تبلیغ و کارت‌ها فاصلهٔ خالی می‌انداخت.
+        rowSpan: showRegionalCounts ? 3 : 1,
+      },
+      ...(showRegionalCounts ? { includes: ['regional_counts'] as const } : {}),
     });
   }
   return slots;
@@ -314,25 +404,103 @@ function learnerSlots(showAd: boolean): WorkbenchBoxSlot[] {
   return slots;
 }
 
-/** خوش‌آمد + باند داخلی پرونده|ساختار (عرض محتوا مثل قبل). */
+/**
+ * ارشد (bento ۱۲ستونه، چهار ردیف — RTL: ستون ۱ سمت راست، ستون ۱۲ سمت چپ):
+ *   ردیف ۱) خوش‌آمد تمام‌عرض
+ *   ردیف ۲-۳) صف بررسی (۴) | وضعیت پرونده‌ها (۵) | ستون چپ (۳): ساختار
+ *      سازمانی روی ردیف ۲ و درست زیرش، هم‌عرض، تعداد نقش‌ها روی ردیف ۳؛
+ *      صف بررسی فقط ردیف ۲ را می‌گیرد و هم‌قدِ دونات است.
+ *   ردیف ۳) آخرین اطلاعیه‌های منتشرشده (۴، زیر صف بررسی) | دسترسی گزارش‌ها | تعداد نقش‌ها
+ * همهٔ سلول‌ها `stretch` هستند تا هر ردیف هم‌قد شود.
+ * ترتیب آرایه همان ترتیب DOM (موبایل) است و روی جای دسکتاپ اثر ندارد.
+ */
 function seniorSlots(): WorkbenchBoxSlot[] {
-  return [
+  const slots: WorkbenchBoxSlot[] = [
     {
       id: 'welcome',
       placement: { colSpan: 12, colStart: 1, rowStart: 1, height: 'welcome' },
     },
     {
-      id: 'senior_band',
-      placement: { colSpan: 12, colStart: 1, rowStart: 2, height: 'auto' },
+      id: 'senior_queue',
+      placement: { colSpan: 4, colStart: 1, rowStart: 2, stretch: true },
+    },
+    {
+      id: 'senior_donut',
+      placement: { colSpan: 5, colStart: 5, rowStart: 2, stretch: true },
+    },
+    {
+      id: 'senior_org_counts',
+      placement: { colSpan: 3, colStart: 10, rowStart: 2, stretch: true },
+    },
+    {
+      id: 'senior_role_counts',
+      placement: { colSpan: 3, colStart: 10, rowStart: 3, stretch: true },
+    },
+    // دسترسی گزارش‌ها: دقیقاً زیر «وضعیت پرونده‌ها» (هم‌ستون و هم‌عرض)، ردیف ۳.
+    {
+      id: 'senior_report_access',
+      placement: { colSpan: 5, colStart: 5, rowStart: 3, stretch: true },
+    },
+    {
+      id: 'senior_published',
+      placement: { colSpan: 4, colStart: 1, rowStart: 3, stretch: true },
     },
   ];
+  return slots;
 }
 
-/** همان ۵۰/۵۰ اطلاعیه|مانیتورینگ؛ ظرفیت زیر اطلاعیه؛ تبلیغ row-span ۲. */
+/**
+ * ارزیابی (استاد راهنما / مدیر مدرسه / استاد ناظر): خوش‌آمد تمام‌عرض؛ اطلاعیه‌ها ردیف ۲
+ * (نیمه‌عرض، یا تمام‌عرض وقتی تبلیغ هست و میانگین نمره نیست)؛
+ * میانگین نمرهٔ دروس کنار اطلاعیه‌ها (نیمهٔ چپ، ردیف‌های ۲-۳)؛
+ * تعداد فراگیران (دو کارت دانشجو / مهارت‌آموز) زیر اطلاعیه‌ها — با تبلیغ، در ترک ۲۴۰px
+ * زیر تبلیغ؛ تعداد ترمی/پودمانی درست زیرِ همان کارت‌های تعداد فراگیران (هم‌ستون،
+ * یک ردیف پایین‌تر)؛ «معلمان» زیر اطلاعیه (مدیر مدرسه)؛ تبلیغ row-span ۲.
+ */
 function evaluationSlots(
   showAd: boolean,
-  showCapacity: boolean
+  showTeacherCount: boolean,
+  showCourseAverages = false,
+  showCourseCapacities = false,
+  showCoursePendingReports = false,
+  showStudentGradeRanking = false,
+  showStudentGradesCard = false,
+  showPendingBesideAnnouncements = false
 ): WorkbenchBoxSlot[] {
+  // جای «تعداد فراگیران» — جای «تعداد ترمی/پودمانی» دقیقاً زیر همین است.
+  // با تبلیغ + باکس برترین/ضعیف‌ترین، ردیف ۳ بلند می‌شود؛ برای اینکه «تعداد فراگیران» و
+  // «نمرات فراگیران» (ستون تبلیغ) فاصله نگیرند، کارت نمرات داخل همان سلول و زیر هم می‌آید.
+  // معلم راهنما: «برترین/ضعیف‌ترین» زیر «در انتظار بررسی» (ستون راست) و اطلاعیه‌ها بلندتر
+  // (دو ردیف، هم‌قدِ این دو)؛ «تعداد فراگیران» یک ردیف پایین‌تر و تمام‌عرض.
+  const rankingBesidePending =
+    showPendingBesideAnnouncements &&
+    showStudentGradeRanking &&
+    !showCourseAverages;
+  const mergeGradesCard =
+    showAd && showStudentGradeRanking && showStudentGradesCard;
+  const gradesCardInside = mergeGradesCard
+    ? { includes: ['student_grades_card'] as const }
+    : {};
+  const learnerCountsPlacement: WorkbenchBoxPlacement = showAd
+    ? { colSpan: 1, colStart: 13, rowStart: 3 }
+    : rankingBesidePending
+      ? { colSpan: 12, colStart: 1, rowStart: 4 }
+      : showCourseAverages
+        ? // با «برترین/ضعیف‌ترین فراگیران» (ردیف ۳ زیر اطلاعیه‌ها)، شمار فراگیران یک ردیف پایین‌تر.
+          {
+            colSpan: 6,
+            colStart: 1,
+            rowStart: showStudentGradeRanking
+              ? showCoursePendingReports
+                ? 5
+                : 4
+              : 3,
+          }
+        : showPendingBesideAnnouncements
+          ? // «در انتظار بررسی» نیمهٔ چپ ردیف ۲ را می‌گیرد؛ شمار فراگیران یک ردیف پایین‌تر.
+            { colSpan: 6, colStart: 7, rowStart: 3 }
+          : { colSpan: 6, colStart: 7, rowStart: 2, height: 'learnerAnnounce' };
+
   const slots: WorkbenchBoxSlot[] = [
     {
       id: 'welcome',
@@ -341,31 +509,114 @@ function evaluationSlots(
     {
       id: 'announcements',
       placement: {
-        colSpan: 6,
+        // با تبلیغ (و بدون میانگین نمره)، اطلاعیه‌ها کل ردیف ۲ را می‌گیرند؛
+        // با میانگین نمره (یا «در انتظار بررسی» کنارشان)، نیمهٔ راست می‌مانند.
+        colSpan:
+          showAd && !showCourseAverages && !showPendingBesideAnnouncements
+            ? 12
+            : 6,
         colStart: 1,
         rowStart: 2,
-        height: 'learnerAnnounce',
+        ...(rankingBesidePending
+          ? { rowSpan: 2, stretch: true }
+          : { height: 'learnerAnnounce' as const }),
       },
     },
-    {
-      id: 'monitor',
+  ];
+  // معلم راهنما / مدیر مدرسه: «در انتظار بررسی» کنار اطلاعیه‌ها، هم‌ردیف و هم‌قد آن‌ها.
+  if (showPendingBesideAnnouncements) {
+    slots.push({
+      id: 'course_pending_reports',
       placement: {
         colSpan: 6,
         colStart: 7,
         rowStart: 2,
         height: 'learnerAnnounce',
       },
-    },
-  ];
-  if (showCapacity) {
+    });
+  }
+  // کارت‌های دانشجو / مهارت‌آموز: وقتی باکس «ترمی / پودمانی» هست جایشان را به آن می‌دهند.
+  if (!showCourseCapacities) {
     slots.push({
-      id: 'capacity',
+      id: 'learner_counts',
+      placement: learnerCountsPlacement,
+      ...gradesCardInside,
+    });
+  }
+  // «گزارش‌های در حال بررسی» بالای میانگین نمره (نیمهٔ چپ، ردیف ۲)؛ میانگین یک ردیف پایین‌تر.
+  const pendingAboveAverages = showCoursePendingReports && showCourseAverages;
+  if (showCourseAverages) {
+    // با «در حال بررسی»: یک سلول مستقل (گرید‌اریای خودش) روی ردیف‌های ۲ تا ۴ — کارت‌های
+    // «در حال بررسی» بالا و نمودار میانگین درست زیرشان؛ ردیف‌های ستون چپ (اطلاعیه‌ها /
+    // برترین‌ها) روی فاصلهٔ بینشان اثر ندارند. بدون آن: کنار اطلاعیه‌ها، ردیف‌های ۲ و ۳.
+    slots.push({
+      id: 'course_averages',
       placement: {
         colSpan: 6,
-        colStart: 1,
-        rowStart: 3,
-        height: 'monitor',
+        colStart: 7,
+        rowStart: 2,
+        rowSpan: pendingAboveAverages ? 3 : 2,
+        stretch: true,
       },
+      ...(pendingAboveAverages
+        ? { includes: ['course_pending_reports'] as const }
+        : {}),
+    });
+  }
+  if (showCourseCapacities) {
+    // باکس «ترمی / پودمانی» دقیقاً جای کارت‌های دانشجو / مهارت‌آموز.
+    slots.push({
+      id: 'course_capacities',
+      placement: learnerCountsPlacement,
+      ...gradesCardInside,
+    });
+  }
+  // ردیفِ آخرین باکسِ ستونِ تعداد (ترمی/پودمانی یا کارت‌های فراگیران).
+  const learnerCountsRow = learnerCountsPlacement.rowStart ?? 2;
+  if (showStudentGradesCard && !mergeGradesCard) {
+    // کارت نمرات فراگیران: درست یک ردیف زیر آخرین باکسِ ستونِ تعداد («ترمی / پودمانی» یا
+    // کارت‌های دانشجو / مهارت‌آموز)، همان ستون و همان عرض.
+    slots.push({
+      id: 'student_grades_card',
+      placement: {
+        colSpan: learnerCountsPlacement.colSpan,
+        colStart: learnerCountsPlacement.colStart,
+        rowStart: learnerCountsRow + 1,
+      },
+    });
+  }
+  const countsBottom = showStudentGradesCard
+    ? learnerCountsRow + 1
+    : learnerCountsRow;
+  const lastRow = showStudentGradeRanking
+    ? Math.max(countsBottom, 3)
+    : countsBottom;
+  // با میانگین نمره، «در حال بررسی» داخل سلول همان نمودار می‌آید (`includes` بالا).
+  if (showCoursePendingReports && !pendingAboveAverages) {
+    // بدون میانگین نمره: تمام‌عرض، یک ردیف زیر آخرین باکس بالایی.
+    slots.push({
+      id: 'course_pending_reports',
+      placement: { colSpan: 12, colStart: 1, rowStart: lastRow + 1 },
+    });
+  }
+  if (showStudentGradeRanking) {
+    // درست زیر اطلاعیه‌ها (ردیف ۳)، هم‌عرض آن‌ها.
+    slots.push({
+      id: 'student_grade_ranking',
+      placement: {
+        colSpan:
+          showAd && !showCourseAverages && !rankingBesidePending ? 12 : 6,
+        colStart: rankingBesidePending ? 7 : 1,
+        rowStart: 3,
+        // ردیف‌های ۳ و ۴ — هم‌قد ستون راست («در حال بررسی» + نمودار میانگین).
+        ...(pendingAboveAverages ? { rowSpan: 2, stretch: true } : {}),
+      },
+    });
+  }
+  if (showTeacherCount) {
+    slots.push({
+      id: 'teacher_count',
+      placement: { colSpan: 6, colStart: 1, rowStart: 3 },
     });
   }
   if (showAd) {
@@ -390,9 +641,22 @@ export function workbenchLayoutForRole(
     case 'senior':
       return seniorSlots();
     case 'evaluation':
-      return evaluationSlots(showAd, options.showCapacity === true);
+      return evaluationSlots(
+        showAd,
+        options.showTeacherCount === true,
+        options.showCourseAverages === true,
+        options.showCourseCapacities === true,
+        options.showCoursePendingReports === true,
+        options.showStudentGradeRanking === true,
+        options.showStudentGradesCard === true,
+        options.showPendingBesideAnnouncements === true
+      );
     default:
-      return classicSlots(showAd);
+      return classicSlots(
+        showAd,
+        role === 'central_organization',
+        options.showRegionalCounts === true
+      );
   }
 }
 

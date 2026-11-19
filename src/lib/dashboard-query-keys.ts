@@ -18,23 +18,51 @@ export const DASHBOARD_QUERY = {
     ['daily-approvals', 'terms', kind] as const,
   dailyApprovalsCourses: (kind: string, termId: string) =>
     ['daily-approvals', 'courses', kind, termId] as const,
-  /** خلاصهٔ مانیتورینگ گزارش‌ها روی میز کار ناظران ارزیابی. */
-  supervisorReplyStatus: (role: string) =>
-    ['daily-approvals', 'dashboard-reply-status', role] as const,
+  /**
+   * فراگیران ترم باز روی میز کار استاد، معلم راهنما و مدیر مدرسه — منبع مشترک
+   * باکس‌های شمار فراگیران/معلمان و میانگین نمرهٔ دروس (هر دو با `select`).
+   */
+  dashboardTrainees: (role: string) =>
+    ['daily-approvals', 'dashboard-trainees', role] as const,
+  /**
+   * `GET /reports/lessons/average-scores` — نمودار «میانگین نمرهٔ دروس».
+   * `semesterId`/`structure` خالی = همهٔ نیم‌سال‌ها؛ با تغییر هرکدام دوباره گرفته می‌شود.
+   */
+  lessonAverageScores: (role: string, semesterId = '', structure = '') =>
+    ['reports', 'lessons', 'average-scores', role, semesterId, structure] as const,
+  /** `GET /reports/lessons/pending-reviews` — کارت‌های «در انتظار بررسی». */
+  lessonPendingReviews: (role: string, semesterId = '', structure = '') =>
+    ['reports', 'lessons', 'pending-reviews', role, semesterId, structure] as const,
   internshipEnrollment: ['internship-enrollment'] as const,
+  /** نیم‌سال جاری (ترمی/پودمان) برای باکس خوش‌آمد پنل‌های غیر فراگیر. */
+  currentTerms: ['current-terms'] as const,
   orgOptions: ['org-options'] as const,
   onboardingApprovalsProvinces: ['onboarding-approvals', 'provinces'] as const,
   /** خلاصهٔ وضعیت تأیید مدارک روی میز کار مدیر ارشد. */
   onboardingApprovalsSummary: (status: string) =>
     ['onboarding-approvals', 'dashboard-summary', status] as const,
-  /** شمار موجودیت‌های ساختار سازمانی روی میز کار مدیر ارشد. */
-  orgStructureDashboardCounts: ['org-structure', 'dashboard-counts'] as const,
-  /** شمار کاربران به تفکیک نقش روی میز کار مدیر ارشد. */
-  roleUserDashboardCounts: ['users', 'dashboard-role-counts'] as const,
+  /** `GET /reports/schools` (همهٔ صفحه‌ها) — شمار مدارس/معلمان/فراگیران میز کار آموزش و پرورش منطقه. */
+  regionalSchools: ['reports', 'dashboard-regional-schools'] as const,
+  /** `GET /users/documents/status` — نمودار «وضعیت پرونده‌ها» روی میز کار مدیر ارشد. */
+  usersDocumentsStatus: ['users', 'documents-status'] as const,
+  /** `GET /users/dashboard/counts` — شمار مکان‌ها و کاربران هر نقش (میز کار ادمین). */
+  usersDashboardCounts: ['users', 'dashboard-counts'] as const,
+  /** ۳ استان/دانشکدهٔ ضعیف یا قوی روی میز کار ادمین. */
+  performanceRanking: (entity: string, direction: string) =>
+    ['reports', 'dashboard-performance', entity, direction] as const,
+  /** ۵ مدرسهٔ ضعیف/قوی منطقه بر اساس میانگین نمره روی میز کار آموزش و پرورش. */
+  schoolRanking: (role: string) =>
+    ['reports', 'dashboard-school-ranking', role] as const,
+  /** ۵ معلم ضعیف/قوی مدرسه بر اساس نرخ پاسخ‌دهی روی میز کار مدیر مدرسه. */
+  teacherResponseRanking: (role: string) =>
+    ['reports', 'dashboard-teacher-response-ranking', role] as const,
   /** پیشوند مشترک داشبورد و صفحهٔ مدیریت — بعد از mutation هر دو باطل شوند. */
   bulletins: ['bulletins'] as const,
   bulletinsDashboard: ['bulletins', 'dashboard'] as const,
+  /** هاب دریافتی‌ها — فقط `type=info`؛ با کش میز کار (ads+info) قاطی نشود. */
+  bulletinsReceived: ['bulletins', 'received'] as const,
   bulletinsManaged: ['bulletins', 'managed'] as const,
+  /** آمار تبلیغ‌ها (کلیک/نمایش/وضعیت) روی میز کار مدیر ارشد — زیر پیشوند bulletins. */
   courseMaterials: ['course-materials'] as const,
   courseMaterialsReceived: ['course-materials', 'received'] as const,
   courseMaterialsManaged: ['course-materials', 'managed'] as const,
@@ -55,12 +83,14 @@ export function invalidateAcademicTermConsumers(
       queryKey: DASHBOARD_QUERY.orgCapacities,
     }),
     queryClient.invalidateQueries({ queryKey: ['daily-approvals'] }),
+    queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY.currentTerms }),
     queryClient.invalidateQueries({
       queryKey: DASHBOARD_QUERY.internshipEnrollment,
     }),
     queryClient.invalidateQueries({
       queryKey: DASHBOARD_QUERY.passingScoreThreshold,
     }),
+    queryClient.invalidateQueries({ queryKey: ['reports', 'lessons'] }),
   ]).then(() => undefined);
 }
 
@@ -74,7 +104,7 @@ export function invalidateOrganizationDirectoryConsumers(
       queryKey: DASHBOARD_QUERY.onboardingApprovalsProvinces,
     }),
     queryClient.invalidateQueries({
-      queryKey: DASHBOARD_QUERY.orgStructureDashboardCounts,
+      queryKey: DASHBOARD_QUERY.usersDashboardCounts,
     }),
   ]).then(() => undefined);
 }

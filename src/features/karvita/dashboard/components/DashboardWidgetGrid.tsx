@@ -13,7 +13,6 @@ import { WorkbenchWelcomeBox } from './WorkbenchWelcomeBox';
 type DashboardWidgetGridProps = {
   role: UserRole;
   welcomeName: string;
-  welcomeOrgLine?: string | null;
 };
 
 /**
@@ -22,7 +21,6 @@ type DashboardWidgetGridProps = {
 export function DashboardWidgetGrid({
   role,
   welcomeName,
-  welcomeOrgLine,
 }: DashboardWidgetGridProps) {
   return (
     <>
@@ -32,7 +30,6 @@ export function DashboardWidgetGrid({
           id={widget.id}
           role={role}
           welcomeName={welcomeName}
-          welcomeOrgLine={welcomeOrgLine}
         />
       ))}
     </>
@@ -43,12 +40,10 @@ function DashboardWidget({
   id,
   role,
   welcomeName,
-  welcomeOrgLine,
 }: {
   id: DashboardWidgetId;
   role: UserRole;
   welcomeName: string;
-  welcomeOrgLine?: string | null;
 }) {
   switch (id) {
     case 'bulletins':
@@ -56,11 +51,7 @@ function DashboardWidget({
         <DashboardBulletinsBoard
           role={role}
           leading={
-            <WorkbenchWelcomeBox
-              displayName={welcomeName}
-              orgLine={welcomeOrgLine}
-              className="h-full"
-            />
+            <WorkbenchWelcomeBox displayName={welcomeName} className="h-full" />
           }
         />
       );

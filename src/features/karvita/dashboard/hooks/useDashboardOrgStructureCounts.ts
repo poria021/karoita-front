@@ -1,44 +1,40 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
-import { QUERY_STALE_MS } from '@/lib/query-stale';
-import { OrgStructureService } from '@/services/org-structure.service';
+import { isForbiddenError } from '@/services/api-error';
 
+import { orgCountsFromDashboardCounts } from '../lib/dashboard-counts';
 import {
   buildOrgStructureCountMetrics,
   sumOrgStructureCounts,
   type OrgStructureCountMetric,
 } from '../lib/org-structure-counts';
 
+import { useDashboardCountsQuery } from './useDashboardCountsQuery';
+
 export type DashboardOrgStructureCountsState = {
   isLoading: boolean;
   isError: boolean;
+  isForbidden: boolean;
   metrics: OrgStructureCountMetric[];
   total: number;
 };
 
 /**
- * شمار موجودیت‌های ساختار سازمانی برای میز کار مدیر ارشد —
- * از همان snapshot سرویس ساختار سازمانی.
+ * شمار موجودیت‌های ساختار سازمانی برای میز کار ادمین —
+ * `GET /users/dashboard/counts` (`places`)، یک درخواست سبک.
  */
 export function useDashboardOrgStructureCounts(): DashboardOrgStructureCountsState {
-  const query = useQuery({
-    queryKey: DASHBOARD_QUERY.orgStructureDashboardCounts,
-    queryFn: () => OrgStructureService.getSnapshot(),
-    staleTime: QUERY_STALE_MS.module,
-  });
+  const query = useDashboardCountsQuery(orgCountsFromDashboardCounts);
+  const counts = query.data;
 
-  const metrics = useMemo(
-    () => buildOrgStructureCountMetrics(query.data),
-    [query.data]
-  );
+  const metrics = useMemo(() => buildOrgStructureCountMetrics(counts), [counts]);
 
   return {
     isLoading: query.isPending && !query.data,
     isError: query.isError && !query.data,
+    isForbidden: isForbiddenError(query.error),
     metrics,
     total: sumOrgStructureCounts(metrics),
   };

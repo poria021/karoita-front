@@ -29,12 +29,6 @@ export function WorkbenchHomeClient() {
   const displayName =
     [activeUser.firstName, activeUser.lastName].filter(Boolean).join(' ') ||
     strategy.label;
-  const welcomeOrgLine = [
-    activeUser.province?.filter(Boolean).join('، '),
-    activeUser.college?.filter(Boolean).join('، '),
-  ]
-    .filter(Boolean)
-    .join(' · ');
   const showChecklist = shouldShowOnboardingChecklist(activeUser);
   const progress = showChecklist
     ? getOnboardingProgress({
@@ -52,7 +46,6 @@ export function WorkbenchHomeClient() {
       role={activeUser.role}
       learnerWorkbench={learnerWorkbench}
       welcomeName={displayName}
-      welcomeOrgLine={welcomeOrgLine || null}
       progress={progress}
     />
   );
@@ -62,13 +55,11 @@ function WorkbenchHomeShell({
   role,
   learnerWorkbench,
   welcomeName,
-  welcomeOrgLine,
   progress,
 }: {
   role: UserRole;
   learnerWorkbench: boolean;
   welcomeName: string;
-  welcomeOrgLine: string | null;
   progress: ReturnType<typeof getOnboardingProgress> | null;
 }) {
   const showAd = workbenchBoardShowsAd(role);
@@ -80,7 +71,6 @@ function WorkbenchHomeShell({
         <DashboardWidgetGrid
           role={role}
           welcomeName={welcomeName}
-          welcomeOrgLine={welcomeOrgLine}
         />
       ) : null}
 
@@ -94,7 +84,6 @@ function WorkbenchHomeShell({
         <DashboardWidgetGrid
           role={role}
           welcomeName={welcomeName}
-          welcomeOrgLine={welcomeOrgLine}
         />
       ) : null}
     </div>

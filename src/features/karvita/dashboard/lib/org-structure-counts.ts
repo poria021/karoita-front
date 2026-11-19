@@ -1,9 +1,6 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
-import type {
-  OrgStructureSnapshot,
-  OrgStructureSubTab,
-} from '@/types/org-structure';
+import type { OrgStructureSubTab } from '@/types/org-structure';
 import { faIcons } from '@/utils/iconMap';
 
 export type OrgStructureCountMetric = {
@@ -67,33 +64,17 @@ const METRIC_META: Record<
   },
 };
 
-function countForTab(
-  snapshot: OrgStructureSnapshot,
-  tab: OrgStructureSubTab
-): number {
-  switch (tab) {
-    case 'provinces':
-      return snapshot.provinces.length;
-    case 'cities':
-      return snapshot.cities.length;
-    case 'districts':
-      return snapshot.districts.length;
-    case 'schools':
-      return snapshot.schools.length;
-    case 'majors':
-      return snapshot.majors.length;
-    case 'faculties':
-      return snapshot.faculties.length;
-  }
-}
+/** شمار هر تب ساختار سازمانی. */
+export type OrgStructureCounts = Record<OrgStructureSubTab, number>;
 
+/** از شمار آماده (API `users/dashboard/counts`) متریک‌های نمایشی می‌سازد. */
 export function buildOrgStructureCountMetrics(
-  snapshot: OrgStructureSnapshot | null | undefined
+  counts: OrgStructureCounts | null | undefined
 ): OrgStructureCountMetric[] {
-  if (!snapshot) return [];
+  if (!counts) return [];
   return METRIC_ORDER.map((id) => ({
     id,
-    count: countForTab(snapshot, id),
+    count: Math.max(0, counts[id] ?? 0),
     ...METRIC_META[id],
   }));
 }

@@ -7,22 +7,26 @@ import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { cn } from '@/lib/utils';
 import {
-  WORKBENCH_FULL_ROW_PLACEMENT,
+  WORKBENCH_FULL_BLEED_ROW_CLASS,
   WORKBENCH_LEARNER_GRADES_INNER_CLASS,
-  workbenchCellClass,
 } from '@/lib/workbench-grid';
 import { SyllabusConfigService } from '@/services/syllabus-config.service';
 
 import { useLearnerWorkbenchSnapshot } from '../hooks/useLearnerWorkbenchSnapshot';
 import {
-  buildLearnerCourseWeekHighlights,
+  buildLearnerCourseWeekRows,
   buildLearnerGradeSeries,
 } from '../lib/learner-workbench';
-import { WorkbenchWeekStatusBox } from './WorkbenchWeekStatusBox';
+import {
+  FAKE_LEARNER_SNAPSHOTS,
+  LEARNER_WORKBENCH_FAKE_PREVIEW,
+} from '../lib/learner-workbench-preview';
+import { WorkbenchCourseWeeksBox } from './WorkbenchCourseWeeksBox';
 import { WorkbenchWeeklyGradesBox } from './WorkbenchWeeklyGradesBox';
 
 /**
- * ردیف میز کار فراگیر: وضعیت هفته‌ها | روند نمره هفتگی — سلول تمام‌عرض شِل.
+ * ردیف میز کار فراگیر: وضعیت هفته‌ها و نمرهٔ دروس | روند نمره هفتگی — سلول تمام‌عرض شِل
+ * (شامل ترک تبلیغ؛ تبلیغ فقط ردیف‌های بالا را باریک می‌کند). عرض وضعیت هفته‌ها بیشتر از روند نمره است.
  * همیشه نمایان است؛ بدون داده، باکس‌ها خالی (خط‌چین) ولی هم‌اندازه می‌مانند.
  */
 export function DashboardLearnerGradesChart() {
@@ -35,8 +39,13 @@ export function DashboardLearnerGradesChart() {
     enabled: desk.enabled,
   });
 
-  const series = buildLearnerGradeSeries(desk.snapshots);
-  const highlights = buildLearnerCourseWeekHighlights(desk.snapshots);
+  // پیش‌نمایش با داده‌ی فیک (فقط development) — برای خاموش کردن: learner-workbench-preview.ts
+  const snapshots = LEARNER_WORKBENCH_FAKE_PREVIEW
+    ? FAKE_LEARNER_SNAPSHOTS
+    : desk.snapshots;
+
+  const series = buildLearnerGradeSeries(snapshots);
+  const courseRows = buildLearnerCourseWeekRows(snapshots);
 
   const minGrade =
     typeof passingQuery.data === 'number' && Number.isFinite(passingQuery.data)
@@ -46,15 +55,16 @@ export function DashboardLearnerGradesChart() {
   return (
     <div
       className={cn(
-        workbenchCellClass(WORKBENCH_FULL_ROW_PLACEMENT),
+        WORKBENCH_FULL_BLEED_ROW_CLASS,
         WORKBENCH_LEARNER_GRADES_INNER_CLASS
       )}
     >
-      <WorkbenchWeekStatusBox highlights={highlights} />
+      <WorkbenchCourseWeeksBox rows={courseRows} />
       <WorkbenchWeeklyGradesBox
         series={series}
-        isLoading={desk.isLoading}
-        isError={desk.isError}
+        isLoading={LEARNER_WORKBENCH_FAKE_PREVIEW ? false : desk.isLoading}
+        isError={LEARNER_WORKBENCH_FAKE_PREVIEW ? false : desk.isError}
+        isForbidden={LEARNER_WORKBENCH_FAKE_PREVIEW ? false : desk.isForbidden}
         minGrade={minGrade}
       />
     </div>

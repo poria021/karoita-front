@@ -242,6 +242,21 @@ export function sortBulletins(rows: readonly Bulletin[]): Bulletin[] {
   return [...rows].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
+/** سقف پیش‌نمایش «آخرین اطلاعیه‌های منتشرشده» روی میز کار ارشد. */
+export const SENIOR_PUBLISHED_ANNOUNCEMENTS_LIMIT = 5;
+
+/**
+ * اطلاعیه‌های فعال منتشرشده، جدیدترین اول — برای باکس میز کار مدیر ارشد.
+ */
+export function pickLatestPublishedAnnouncements(
+  rows: readonly Bulletin[],
+  limit = SENIOR_PUBLISHED_ANNOUNCEMENTS_LIMIT
+): Bulletin[] {
+  return sortBulletins(
+    rows.filter((row) => row.kind === 'announcement' && row.isActive)
+  ).slice(0, limit);
+}
+
 /** لینک تبلیغ: مسیر داخلی (`/…`) یا http(s) مطلق — هم‌ارز قرارداد Nest. */
 function isSafeAdLink(value: string): boolean {
   if (value.startsWith('/') && !value.startsWith('//')) return true;

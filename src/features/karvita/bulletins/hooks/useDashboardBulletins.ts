@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
+import { isForbiddenError } from '@/services/api-error';
 import { dashboardBulletinSources } from '@/services/bulletins/bulletin-rules';
 import { BulletinsService } from '@/services/bulletins.service';
 import type { UserRole } from '@/types/auth';
@@ -48,5 +49,8 @@ export function useDashboardBulletins(role: UserRole) {
     isLoading: received.isLoading || published.isLoading,
     /** خطای شبکه/۴۰۱؛ باکس‌ها پیام خطا نشان می‌دهند. */
     isError: received.isError || published.isError,
+    /** ۴۰۳ بک‌اند: نقش به این گزارش مجوز ندارد؛ باکس‌ها پیام «نبودِ مجوز» نشان می‌دهند. */
+    isForbidden:
+      isForbiddenError(received.error) || isForbiddenError(published.error),
   };
 }

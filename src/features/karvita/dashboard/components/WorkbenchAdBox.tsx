@@ -15,6 +15,8 @@ import type { Bulletin } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
+import { workbenchErrorText } from './WorkbenchUnavailableNote';
+
 const SLIDE_DURATION = 6000;
 
 function isExternalAdLink(url: string): boolean {
@@ -25,6 +27,8 @@ export type WorkbenchAdBoxProps = {
   ads: Bulletin[];
   isLoading?: boolean;
   isError?: boolean;
+  /** ۴۰۳: نقش کاربر به این گزارش مجوز ندارد. */
+  isForbidden?: boolean;
   className?: string;
 };
 
@@ -70,6 +74,7 @@ export function WorkbenchAdBox({
   ads,
   isLoading = false,
   isError = false,
+  isForbidden = false,
   className,
 }: WorkbenchAdBoxProps) {
   const labelId = useId();
@@ -135,7 +140,7 @@ export function WorkbenchAdBox({
       >
         <KvTypography variant="caption" tone="muted" as="p">
           {isError
-            ? 'تبلیغات فعلاً در دسترس نیست.'
+            ? workbenchErrorText(isForbidden, 'تبلیغات فعلاً در دسترس نیست.')
             : 'فعلاً تبلیغی برای نمایش نیست.'}
         </KvTypography>
       </section>
