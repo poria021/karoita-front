@@ -93,6 +93,18 @@ describe('fake-nest advertisements', () => {
     expect((click.json as { success: boolean }).success).toBe(true);
   });
 
+  it('lists all placements for a type when placement is omitted', async () => {
+    const token = await adminToken();
+    const withoutPlacement = await call(
+      'GET',
+      '/api/v1/advertisements?type=ads',
+      { token }
+    );
+    expect(withoutPlacement.status).toBe(200);
+    expect(Array.isArray(withoutPlacement.json)).toBe(true);
+    expect((withoutPlacement.json as unknown[]).length).toBeGreaterThan(0);
+  });
+
   it('admin password login still works for seed phone', async () => {
     const login = await call('POST', '/api/v1/admin/auth/phone/login/password', {
       body: { phone: SEED_ADMIN_PHONE, password: SEED_PASSWORD },

@@ -25,7 +25,7 @@ export function DashboardMainViewport({
         id={DASHBOARD_MAIN_ID}
         tabIndex={-1}
         className={cn(
-          'flex min-h-0 min-w-0 flex-1 flex-col rounded-none bg-kv-main px-kv-group py-kv-group text-start outline-none sm:px-kv-page sm:py-kv-section lg:min-h-[calc(100dvh-4rem)]',
+          'flex min-h-0 min-w-0 flex-1 flex-col rounded-none bg-kv-main px-kv-pair py-kv-group text-start outline-none sm:px-kv-page sm:py-kv-section lg:min-h-[calc(100dvh-4rem)]',
           className
         )}
       >

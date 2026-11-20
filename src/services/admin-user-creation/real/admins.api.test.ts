@@ -88,7 +88,7 @@ describe('adminsApi', () => {
       ...nestRow,
       fname: 'Ali',
       role: 'superadmin',
-      status: { id: '2', name: 'active' },
+      status: { id: '1', name: 'active' },
     });
 
     const admin = await adminsApi.update('adm-1', {
@@ -96,7 +96,7 @@ describe('adminsApi', () => {
       lname: 'Rezaei',
       phone: '09386951413',
       role: 'superadmin',
-      status: 2,
+      status: 1,
     });
 
     expect(putMaybeJson).toHaveBeenCalledWith(
@@ -106,12 +106,12 @@ describe('adminsApi', () => {
         lname: 'Rezaei',
         phone: '09386951413',
         role: 'superadmin',
-        status: 2,
+        status: 1,
       },
       undefined
     );
     expect(admin.role).toBe('super_admin');
-    expect(admin.statusCode).toBe(2);
+    expect(admin.statusCode).toBe(1);
   });
 
   it('falls back to GET when PUT body is empty', async () => {
@@ -123,7 +123,7 @@ describe('adminsApi', () => {
       lname: 'Rezaei',
       phone: '09386951413',
       role: 'admin',
-      status: 2,
+      status: 1,
     });
 
     expect(getJson).toHaveBeenCalledWith('v1/admin/admins/adm-1', undefined);

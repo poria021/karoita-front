@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react';
 
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
+import { WORKBENCH_LEARNER_WELCOME_STYLE } from '@/lib/workbench-grid';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
@@ -10,6 +11,7 @@ import type { UserRole } from '@/types/auth';
 import { useCurrentTerms } from '../hooks/useCurrentTerms';
 import {
   currentTermStatus,
+  kindsForRole,
   type CurrentTermKind,
   type CurrentTermView,
 } from '../lib/current-terms';
@@ -25,8 +27,13 @@ export type WorkbenchWelcomeBoxProps = {
   style?: CSSProperties;
 };
 
-/** نقش‌هایی که در خوش‌آمد، وضعیت ترم ترمی و پودمانی را می‌بینند. */
+/**
+ * نقش‌هایی که در خوش‌آمد، وضعیت نیم‌سال را می‌بینند. نقش‌های مدیریتی هر دو چیپ (ترمی و پودمانی)،
+ * دانشجو فقط ترمی و مهارت‌آموز فقط پودمانی (`kindsForRole`).
+ */
 const WELCOME_TERM_STATUS_ROLES: ReadonlySet<UserRole> = new Set([
+  'student',
+  'skill_learner',
   'supervisor_professor',
   'mentor_teacher',
   'school_principal',
@@ -77,15 +84,28 @@ function statusText(view: CurrentTermView): string {
 function WelcomeTermStatusChip({
   view,
   loading,
+  className,
+  /** داخل پنل آبی = شیشه؛ بیرون (موبایل) = سطح معمولی. */
+  variant = 'on-panel',
 }: {
   view: CurrentTermView;
   loading: boolean;
+  className?: string;
+  variant?: 'on-panel' | 'standalone';
 }) {
+  const shell = cn(
+    'flex h-[3.35rem] shrink-0 flex-col justify-center rounded-kv-control border px-2.5',
+    variant === 'on-panel'
+      ? 'kv-welcome-chip w-[9.75rem]'
+      : 'w-full min-w-0 flex-1 border-kv-border/70 bg-kv-surface shadow-kv-soft',
+    className
+  );
+
   if (loading) {
     return (
       <div
         aria-hidden
-        className="kv-welcome-chip flex h-[3.35rem] w-[9.75rem] shrink-0 animate-pulse flex-col justify-center gap-1.5 rounded-kv-control border px-2.5"
+        className={cn(shell, 'animate-pulse gap-1.5')}
       >
         <span className="h-2 w-10 rounded-full bg-kv-border-muted" />
         <span className="h-2.5 w-24 rounded-full bg-kv-border-muted" />
@@ -99,7 +119,7 @@ function WelcomeTermStatusChip({
   return (
     <article
       aria-label={`${SHORT_KIND_LABEL[view.kind]}: ${title} — ${statusText(view)}`}
-      className="kv-welcome-chip flex h-[3.35rem] w-[9.75rem] shrink-0 flex-col justify-center gap-0.5 rounded-kv-control border px-2.5"
+      className={cn(shell, 'gap-0.5')}
     >
       <div className="flex items-center gap-1.5">
         <span
@@ -134,9 +154,54 @@ function WelcomeTermStatusChip({
   );
 }
 
+function WelcomeTermStatusChips({
+  kinds,
+  semesterView,
+  podmaniView,
+  isLoading,
+  className,
+  chipClassName,
+  variant = 'on-panel',
+}: {
+  kinds: readonly CurrentTermKind[];
+  semesterView: CurrentTermView | undefined;
+  podmaniView: CurrentTermView | undefined;
+  isLoading: boolean;
+  className?: string;
+  chipClassName?: string;
+  variant?: 'on-panel' | 'standalone';
+}) {
+  return (
+    <div
+      aria-label="وضعیت نیم‌سال جاری"
+      className={cn(
+        'kv-welcome-enter-delay flex shrink-0 items-center gap-1.5 sm:gap-2',
+        className
+      )}
+    >
+      {kinds.includes('semester') ? (
+        <WelcomeTermStatusChip
+          view={semesterView ?? EMPTY_SEMESTER}
+          loading={isLoading}
+          className={chipClassName}
+          variant={variant}
+        />
+      ) : null}
+      {kinds.includes('podmani') ? (
+        <WelcomeTermStatusChip
+          view={podmaniView ?? EMPTY_PODMANI}
+          loading={isLoading}
+          className={chipClassName}
+          variant={variant}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 /**
- * باکس خوش‌آمد میز کار: تیتر، نقش · واحد، و برای نقش‌های مدیریتی
- * دو چیپ وضعیت ترم ترمی/پودمانی روی میدان آبی برند.
+ * باکس خوش‌آمد میز کار: تیتر، نقش · واحد، و وضعیت نیم‌سال.
+ * دسکتاپ: چیپ‌ها داخل پنل آبی؛ موبایل: بیرون و زیر پنل، تمام‌عرض.
  */
 export function WorkbenchWelcomeBox({
   displayName,
@@ -149,6 +214,7 @@ export function WorkbenchWelcomeBox({
   const { isLoading, views } = useCurrentTerms(
     showTermStatus ? role : undefined
   );
+  const kinds = role != null ? kindsForRole(role) : [];
   const semesterView = views.find((view) => view.kind === 'semester');
   const podmaniView = views.find((view) => view.kind === 'podmani');
   const roleOrgLine =
@@ -163,61 +229,73 @@ export function WorkbenchWelcomeBox({
       : null;
 
   return (
-    <section
-      aria-labelledby="dashboard-welcome-title"
+    <div
       style={style}
       className={cn(
-        'kv-welcome-panel relative flex h-full min-h-0 flex-col overflow-hidden rounded-kv-panel border',
+        'flex flex-col gap-kv-group sm:h-full sm:min-h-0 sm:gap-0',
         className
       )}
     >
-      <div aria-hidden className="kv-welcome-wash pointer-events-none absolute inset-0" />
-      <KarvitaBrandMark
-        className="kv-welcome-mark pointer-events-none absolute -bottom-3 -end-2 size-28 sm:size-32"
-      />
-
-      <div
-        className={cn(
-          'relative z-[1] flex min-h-0 flex-1 items-center gap-kv-group p-kv-group',
-          showTermStatus && 'pe-20 sm:pe-24'
-        )}
+      <section
+        aria-labelledby="dashboard-welcome-title"
+        style={WORKBENCH_LEARNER_WELCOME_STYLE}
+        className="kv-welcome-panel relative flex shrink-0 flex-col overflow-hidden rounded-kv-panel border"
       >
-        <div className="kv-welcome-enter flex min-w-0 flex-1 flex-col justify-center gap-0.5">
-          <p className="line-clamp-1 min-w-0 text-xs font-medium leading-snug text-kv-text-muted sm:text-sm">
-            میز کار {displayName}
-          </p>
-          <h3
-            id="dashboard-welcome-title"
-            className="line-clamp-1 min-w-0 text-xl font-black leading-snug tracking-tight text-kv-brand sm:text-2xl"
-          >
-            خوش آمدید
-          </h3>
-          {roleOrgLine ? (
-            <p
-              title={roleOrgLine}
-              className="line-clamp-1 min-w-0 text-xs font-medium text-kv-text-muted"
-            >
-              {roleOrgLine}
+        <div
+          aria-hidden
+          className="kv-welcome-wash pointer-events-none absolute inset-0"
+        />
+        <KarvitaBrandMark className="kv-welcome-mark pointer-events-none absolute -bottom-3 -end-2 size-28 sm:size-32" />
+
+        <div
+          className={cn(
+            'relative z-[1] flex min-h-0 flex-1 items-center gap-kv-group p-kv-group',
+            showTermStatus && 'pe-20 sm:pe-24'
+          )}
+        >
+          <div className="kv-welcome-enter flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+            <p className="line-clamp-1 min-w-0 text-xs font-medium leading-snug text-kv-text-muted sm:text-sm">
+              میز کار {displayName}
             </p>
+            <h3
+              id="dashboard-welcome-title"
+              className="line-clamp-1 min-w-0 text-xl font-black leading-snug tracking-tight text-kv-brand sm:text-2xl"
+            >
+              خوش آمدید
+            </h3>
+            {roleOrgLine ? (
+              <p
+                title={roleOrgLine}
+                className="line-clamp-1 min-w-0 text-xs font-medium text-kv-text-muted"
+              >
+                {roleOrgLine}
+              </p>
+            ) : null}
+          </div>
+
+          {showTermStatus ? (
+            <WelcomeTermStatusChips
+              kinds={kinds}
+              semesterView={semesterView}
+              podmaniView={podmaniView}
+              isLoading={isLoading}
+              className="hidden sm:flex"
+            />
           ) : null}
         </div>
+      </section>
 
-        {showTermStatus ? (
-          <div
-            aria-label="وضعیت نیم‌سال جاری"
-            className="kv-welcome-enter-delay flex shrink-0 items-center gap-1.5 sm:gap-2"
-          >
-            <WelcomeTermStatusChip
-              view={semesterView ?? EMPTY_SEMESTER}
-              loading={isLoading}
-            />
-            <WelcomeTermStatusChip
-              view={podmaniView ?? EMPTY_PODMANI}
-              loading={isLoading}
-            />
-          </div>
-        ) : null}
-      </div>
-    </section>
+      {showTermStatus ? (
+        <WelcomeTermStatusChips
+          kinds={kinds}
+          semesterView={semesterView}
+          podmaniView={podmaniView}
+          isLoading={isLoading}
+          variant="standalone"
+          className="w-full sm:hidden"
+          chipClassName="h-auto min-h-[3.35rem] py-2"
+        />
+      ) : null}
+    </div>
   );
 }

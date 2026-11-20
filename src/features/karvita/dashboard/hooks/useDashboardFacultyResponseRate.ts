@@ -6,8 +6,10 @@ import { isForbiddenError } from '@/services/api-error';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { fetchListPage } from '@/services/reports/real/list-reports.api';
+import type { UserRole } from '@/types/auth';
 import type { ReportPeriodState, ReportRow } from '@/types/reports';
 
+import { facultyBoxSourceFor } from '../lib/faculty-box-source';
 import {
   summarizeFacultyResponseRate,
   type FacultyResponseRateSummary,
@@ -40,16 +42,20 @@ export type DashboardFacultyResponseRateState = {
 /**
  * توزیع و میانگین نرخ پاسخ‌دهی اساتید دانشکده —
  * `GET v1/reports/professors/performance`. محدوده را بک‌اند تعیین می‌کند.
+ * دانشگاه استانی: نرخ پاسخ‌دهی دانشکده‌ها از `GET v1/reports/faculties/performance`.
  */
-export function useDashboardFacultyResponseRate(): DashboardFacultyResponseRateState {
+export function useDashboardFacultyResponseRate(
+  role: UserRole
+): DashboardFacultyResponseRateState {
+  const source = facultyBoxSourceFor(role);
   const query = useQuery({
-    queryKey: DASHBOARD_QUERY.facultyResponseRate,
+    queryKey: [...DASHBOARD_QUERY.facultyResponseRate, source.slug],
     staleTime: QUERY_STALE_MS.module,
     queryFn: async () => {
       const collected: ReportRow[] = [];
       let truncated = false;
       for (let page = 1; page <= MAX_PAGES; page += 1) {
-        const result = await fetchListPage('professor-performance', {
+        const result = await fetchListPage(source.slug, {
           filters: {},
           query: '',
           period: DASHBOARD_PERIOD,

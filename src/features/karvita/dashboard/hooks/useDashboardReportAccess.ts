@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { isForbiddenError } from '@/services/api-error';
 import { useMemo } from 'react';
 
+import { withCatalogOptionalReports } from '@/features/karvita/report-access/lib/with-catalog-optionals';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { ReportAccessService } from '@/services/report-access.service';
@@ -34,7 +35,8 @@ export type DashboardReportAccessState = {
 export function useDashboardReportAccess(): DashboardReportAccessState {
   const query = useQuery({
     queryKey: [...DASHBOARD_QUERY.reportAccess, 'dashboard-summary'],
-    queryFn: () => ReportAccessService.getMatrix(),
+    queryFn: async () =>
+      withCatalogOptionalReports(await ReportAccessService.getMatrix()),
     staleTime: QUERY_STALE_MS.module,
     retry: false,
   });

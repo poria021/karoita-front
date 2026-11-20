@@ -29,7 +29,11 @@ import { WorkbenchPublishedAnnouncementsBox } from '@/features/karvita/dashboard
 import { WorkbenchRegionalCountsBox } from '@/features/karvita/dashboard/components/WorkbenchRegionalCountsBox';
 import { WorkbenchRegionalGenderBox } from '@/features/karvita/dashboard/components/WorkbenchRegionalGenderBox';
 import { WorkbenchReportAccessBox } from '@/features/karvita/dashboard/components/WorkbenchReportAccessBox';
-import { WorkbenchRoleUserCountsBox } from '@/features/karvita/dashboard/components/WorkbenchRoleUserCountsBox';
+import {
+  RoleUserCountsGrid,
+  WorkbenchRoleUserCountsBox,
+} from '@/features/karvita/dashboard/components/WorkbenchRoleUserCountsBox';
+import { buildRoleUserCountMetrics } from '@/features/karvita/dashboard/lib/role-user-counts';
 import { WorkbenchTeacherCountBox } from '@/features/karvita/dashboard/components/WorkbenchTeacherCountBox';
 import { WorkbenchStudentGradesCard } from '@/features/karvita/dashboard/components/WorkbenchStudentGradesCard';
 import { WorkbenchWeakRankingBox } from '@/features/karvita/dashboard/components/WorkbenchWeakRankingBox';
@@ -37,6 +41,7 @@ import { useDashboardCourseMaterials } from '@/features/karvita/dashboard/hooks/
 import { cn } from '@/lib/utils';
 import {
   WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE,
+  WORKBENCH_RANKING_BOX_STYLE,
   workbenchAdCellClass,
   workbenchAllowsAdSpot,
   workbenchCellClass,
@@ -49,6 +54,19 @@ import type { UserRole } from '@/types/auth';
 import type { Bulletin } from '@/types/bulletins';
 
 import { useDashboardBulletins } from '../hooks/useDashboardBulletins';
+
+/** TEMP: داده‌ی نمایشی برای دیدن ظاهر باکس «تعداد کاربران هر نقش» در پنل سازمان مرکزی. */
+const CENTRAL_PREVIEW_ROLE_METRICS = buildRoleUserCountMetrics({
+  student: 1240,
+  skill_learner: 386,
+  supervisor_professor: 142,
+  mentor_teacher: 518,
+  school_principal: 97,
+  regional_edu_admin: 21,
+  faculty_role: 34,
+  provincial_university: 12,
+  central_organization: 5,
+});
 
 type DashboardBulletinsBoardProps = {
   role: UserRole;
@@ -86,7 +104,10 @@ export function DashboardBulletinsBoard({
     // کارت نمرات برای نقش‌های ارزیابی (زیر تبلیغ وقتی تبلیغ هست).
     showStudentGradesCard: kind === 'evaluation',
     showRegionalCounts:
-      role === 'regional_edu_admin' || role === 'faculty_role',
+      role === 'regional_edu_admin' ||
+      role === 'faculty_role' ||
+      role === 'provincial_university' ||
+      role === 'central_organization',
   });
   const actions = workbenchAnnouncementActionsFor(role);
   const announcementSource =
@@ -94,7 +115,7 @@ export function DashboardBulletinsBoard({
 
   return (
     <>
-      {slots.map((slot) => (
+      {adBelowAnnouncements(slots).map((slot) => (
         <WorkbenchBoardCell
           key={slot.id}
           slot={slot}
@@ -112,6 +133,21 @@ export function DashboardBulletinsBoard({
       ))}
     </>
   );
+}
+
+/**
+ * موبایل (تک‌ستون): ترتیب DOM همان ترتیب نمایش است، پس باکس تبلیغ باید در DOM درست بعد از
+ * اطلاعیه‌ها بیاید. دسکتاپ با col/row صریح چیده می‌شود و جابه‌جایی DOM اثری روی آن ندارد.
+ */
+function adBelowAnnouncements(slots: WorkbenchBoxSlot[]): WorkbenchBoxSlot[] {
+  const ad = slots.find((slot) => slot.id === 'ad');
+  const announcementsIndex = slots.findIndex(
+    (slot) => slot.id === 'announcements'
+  );
+  if (!ad || announcementsIndex < 0) return slots;
+  const rest = slots.filter((slot) => slot.id !== 'ad');
+  const at = rest.findIndex((slot) => slot.id === 'announcements') + 1;
+  return [...rest.slice(0, at), ad, ...rest.slice(at)];
 }
 
 function MaterialsCell({
@@ -162,9 +198,17 @@ function WorkbenchBoardCell({
   // ستون ۱۳ = ترک تبلیغ؛ باکسی که زیر تبلیغ می‌نشیند هم‌عرض خود تبلیغ می‌شود.
   const inAdTrack = id === 'ad' || placement.colStart === 13;
   const cellClass = inAdTrack
-    ? workbenchAdCellClass(placement)
+    ? workbenchAdCellClass(placement, {
+        // دانشجو/مهارت‌آموز و نقش‌های ارزیابی (معلم راهنما و ...): تبلیغ موبایل تمام‌عرض.
+        fullWidthOnMobile:
+          workbenchLayoutKindFor(role) === 'learner' ||
+          workbenchLayoutKindFor(role) === 'evaluation',
+      })
     : workbenchCellClass(placement);
   const cellStyle = workbenchCellStyle(placement);
+  // دانشگاه استانی دقیقاً همان باکس‌های مدیر دانشکده را دارد.
+  const facultyBoxes =
+    role === 'faculty_role' || role === 'provincial_university';
 
   switch (id) {
     case 'welcome':
@@ -196,10 +240,14 @@ function WorkbenchBoardCell({
       const gradesBelowAd = slot.includes?.includes('student_grades_card');
       const countsBelowAd = slot.includes?.includes('regional_counts');
       if (gradesBelowAd || countsBelowAd) {
-        // تبلیغ اول؛ نمره و آمار زیر آن در همین ستون.
+        // تبلیغ + نمره + آمار چسبیده. overflow≠visible تا min-content
+        // سلول ردیف خوش‌آمد را باد نکند؛ self-stretch ارتفاع را از باکس‌های چپ می‌گیرد.
         return (
           <div
-            className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
+            className={cn(
+              cellClass,
+              'flex min-h-0 flex-col gap-kv-group md:self-stretch md:overflow-hidden'
+            )}
             style={cellStyle}
           >
             <WorkbenchAdBox
@@ -209,14 +257,12 @@ function WorkbenchBoardCell({
               isForbidden={isForbidden}
             />
             {gradesBelowAd ? (
-              <WorkbenchStudentGradesCard
-                role={role}
-                compact={countsBelowAd}
-              />
+              // زیر تبلیغ همیشه کوتاه (compact)، مثل پنل‌های دانشکده/منطقه — با یا بدون باکس آمار.
+              <WorkbenchStudentGradesCard role={role} compact />
             ) : null}
             {countsBelowAd ? (
-              role === 'faculty_role' ? (
-                <WorkbenchFacultyCountsBox stacked />
+              facultyBoxes ? (
+                <WorkbenchFacultyCountsBox role={role} stacked />
               ) : (
                 <WorkbenchRegionalCountsBox stacked />
               )
@@ -289,15 +335,15 @@ function WorkbenchBoardCell({
         </div>
       );
     case 'regional_counts':
-      // بدون تبلیغ: نمره و آمار زیر هم. با تبلیغ هر دو داخل سلول `ad`اند (زیر تبلیغ).
+      // نمره بالای آمار؛ در ترک تبلیغ (ستون ۱۳) زیر خود تبلیغ، وگرنه تمام‌عرض.
       return (
         <div
           className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
           style={cellStyle}
         >
           <WorkbenchStudentGradesCard role={role} compact />
-          {role === 'faculty_role' ? (
-            <WorkbenchFacultyCountsBox stacked={inAdTrack} />
+          {facultyBoxes ? (
+            <WorkbenchFacultyCountsBox role={role} stacked={inAdTrack} />
           ) : (
             <WorkbenchRegionalCountsBox stacked={inAdTrack} />
           )}
@@ -306,17 +352,38 @@ function WorkbenchBoardCell({
     case 'regional_gender':
       // هم‌قدِ اطلاعیه‌ها: سلول کش می‌آید و باکس کل ارتفاعش را می‌گیرد؛ ارتفاع ردیف از همین باکس است.
       return (
-        <div className={cellClass}>
-          {role === 'faculty_role' ? (
-            <WorkbenchFacultyResponseRateBox className="h-full w-full max-w-none" />
+        <div className={cellClass} style={cellStyle}>
+          {facultyBoxes ? (
+            <WorkbenchFacultyResponseRateBox
+              role={role}
+              className="h-full w-full max-w-none"
+            />
           ) : (
             <WorkbenchRegionalGenderBox className="h-full w-full max-w-none" />
           )}
         </div>
       );
     case 'regional_teacher_ranking':
+      // سازمان مرکزی: به‌جای ضعیف‌ترین/قوی‌ترین معلمان، «تعداد کاربران هر نقش» (هم‌قد همان باکس).
+      if (role === 'central_organization') {
+        return (
+          <div
+            className={cn(cellClass, 'flex')}
+            style={{ ...cellStyle, ...WORKBENCH_RANKING_BOX_STYLE }}
+          >
+            {/* TEMP: پیش‌نمایش با داده‌ی نمایشی؛ بعد از تأیید ظاهر، به <WorkbenchRoleUserCountsBox interactive={false} /> برگردد. */}
+            <RoleUserCountsGrid
+              interactive={false}
+              isLoading={false}
+              isError={false}
+              isForbidden={false}
+              metrics={CENTRAL_PREVIEW_ROLE_METRICS}
+            />
+          </div>
+        );
+      }
       // دانشکده: اساتید بر اساس حضور؛ منطقه / مدیر مدرسه: معلمان بر اساس پاسخ.
-      return role === 'faculty_role' ? (
+      return facultyBoxes ? (
         <WorkbenchProfessorAttendanceRankingBox
           role={role}
           className={cellClass}
@@ -331,7 +398,7 @@ function WorkbenchBoardCell({
       );
     case 'regional_school_ranking':
       // دانشکده: نمودار اساتید (میانگین نمره)؛ منطقه: نمودار مدارس.
-      return role === 'faculty_role' ? (
+      return facultyBoxes ? (
         <WorkbenchProfessorScoreRankingBox
           role={role}
           className={cellClass}

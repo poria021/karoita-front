@@ -9,10 +9,7 @@ import type {
 import { evaluationCourseFilterId } from '@/services/syllabus-config/course-catalog';
 import type { CourseDefinition } from '@/types/syllabus-config';
 import { faIcons } from '@/utils/iconMap';
-import {
-  persianToEnglishDigits,
-  toPersianDigits,
-} from '@/utils/persianDigits';
+import { persianToEnglishDigits, toPersianDigits } from '@/utils/persianDigits';
 
 /** حدنصاب قبولی گزارش روی مقیاس ۰–۱۰۰ (مرجع mock). */
 export const DAILY_APPROVAL_PASSING_SCORE = 70;
@@ -129,7 +126,10 @@ export function getDailyApprovalCourseOptions(
     return [{ value: 'all', label: toPersianDigits(courseModule.title) }];
   }
   return [
-    { value: 'all', label: 'همه زیرمجموعه‌ها' },
+    {
+      value: 'all',
+      label: `همه کلاس‌های ${toPersianDigits(courseModule.title)}`,
+    },
     ...courseModule.subModules.map((sub) => ({
       value: evaluationCourseFilterId(sub.id),
       label: toPersianDigits(sub.title),
@@ -204,7 +204,7 @@ export function getRealDailyApprovalCourseOptions(
   }
   const allLabel =
     courseModule && courseModule.subModules.length > 0
-      ? 'همه زیرمجموعه‌ها'
+      ? `همه کلاس‌های ${toPersianDigits(courseModule.title)}`
       : 'همه دروس';
   return [
     { value: 'all', label: allLabel },
@@ -270,8 +270,7 @@ export function getWeekVisual(status: DailyApprovalWeekState): WeekVisual {
       return {
         label: 'ارسال شده',
         legendLabel: 'ارسال شده',
-        className:
-          'border-kv-info-border bg-kv-info-soft text-kv-info-soft-fg',
+        className: 'border-kv-info-border bg-kv-info-soft text-kv-info-soft-fg',
         hoverClassName:
           'enabled:hover:bg-kv-info-soft-hover enabled:hover:text-kv-info-soft-fg',
         icon: faIcons.clock,

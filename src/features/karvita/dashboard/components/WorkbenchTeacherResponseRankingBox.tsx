@@ -11,17 +11,18 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
-import { workbenchBoxToneClass } from '@/lib/workbench-grid';
+import {
+  WORKBENCH_RANKING_BODY_CLASS,
+  WORKBENCH_RANKING_BOX_CLASS,
+  WORKBENCH_RANKING_BOX_STYLE,
+  workbenchBoxToneClass,
+} from '@/lib/workbench-grid';
 import type { UserRole } from '@/types/auth';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardTeacherResponseRanking } from '../hooks/useDashboardTeacherResponseRanking';
 import type { TeacherResponseRankingItem } from '../lib/teacher-response-ranking';
-import {
-  FAKE_TEACHER_RESPONSE_RANKING,
-  TEACHER_RESPONSE_RANKING_FAKE_PREVIEW,
-} from '../lib/teacher-response-ranking-preview';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchTeacherResponseRankingBoxProps = {
@@ -97,14 +98,10 @@ export function WorkbenchTeacherResponseRankingBox({
 }: WorkbenchTeacherResponseRankingBoxProps) {
   const [tab, setTab] = useState<Tab>('weakest');
   const desk = useDashboardTeacherResponseRanking(role);
-  // پیش‌نمایش با داده‌ی ماکت (فقط development، فقط آموزش و پرورش منطقه) —
-  // برای خاموش کردن: teacher-response-ranking-preview.ts
-  const preview =
-    TEACHER_RESPONSE_RANKING_FAKE_PREVIEW && role === 'regional_edu_admin';
-  const summary = preview ? FAKE_TEACHER_RESPONSE_RANKING : desk.summary;
-  const isLoading = preview ? false : desk.isLoading;
-  const isError = preview ? false : desk.isError;
-  const isForbidden = preview ? false : desk.isForbidden;
+  const summary = desk.summary;
+  const isLoading = desk.isLoading;
+  const isError = desk.isError;
+  const isForbidden = desk.isForbidden;
   const isEmpty =
     isError ||
     (!isLoading &&
@@ -119,15 +116,17 @@ export function WorkbenchTeacherResponseRankingBox({
       aria-labelledby="dashboard-teacher-response-ranking-title"
       style={
         isEmpty
-          ? style
+          ? { ...WORKBENCH_RANKING_BOX_STYLE, ...style }
           : {
+              ...WORKBENCH_RANKING_BOX_STYLE,
               ...style,
               backgroundColor: TAB_BACKGROUND[tab],
               transition: 'background-color 250ms ease',
             }
       }
       className={cn(
-        'relative flex h-full min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        'relative flex min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        WORKBENCH_RANKING_BOX_CLASS,
         workbenchBoxToneClass(isEmpty),
         className
       )}
@@ -162,33 +161,35 @@ export function WorkbenchTeacherResponseRankingBox({
         </AppTabs>
       </div>
 
-      {isError ? (
-        <WorkbenchUnavailableNote forbidden={isForbidden} />
-      ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری فهرست معلمان"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
-      ) : isEmpty ? (
-        <KvEmptyState
-          title={`هنوز معلمی برای ${scopeLabel === 'منطقه' ? 'منطقهٔ' : 'مدرسهٔ'} شما ثبت نشده است.`}
-          className="min-h-0 py-1"
-        />
-      ) : (
-        <ol
-          aria-label={TABS.find((item) => item.id === tab)?.label ?? ''}
-          className="grid list-none content-start divide-y divide-kv-border-muted"
-        >
-          {rows.map((item) => (
-            <TeacherRow
-              key={item.id}
-              item={item}
-              tone={tab === 'weakest' ? 'low' : 'high'}
-            />
-          ))}
-        </ol>
-      )}
+      <div className={WORKBENCH_RANKING_BODY_CLASS}>
+        {isError ? (
+          <WorkbenchUnavailableNote forbidden={isForbidden} />
+        ) : isLoading ? (
+          <div
+            role="status"
+            aria-label="در حال بارگذاری فهرست معلمان"
+            className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+          />
+        ) : isEmpty ? (
+          <KvEmptyState
+            title={`هنوز معلمی برای ${scopeLabel === 'منطقه' ? 'منطقهٔ' : 'مدرسهٔ'} شما ثبت نشده است.`}
+            className="min-h-0 py-1"
+          />
+        ) : (
+          <ol
+            aria-label={TABS.find((item) => item.id === tab)?.label ?? ''}
+            className="grid list-none content-start divide-y divide-kv-border-muted"
+          >
+            {rows.map((item) => (
+              <TeacherRow
+                key={item.id}
+                item={item}
+                tone={tab === 'weakest' ? 'low' : 'high'}
+              />
+            ))}
+          </ol>
+        )}
+      </div>
     </section>
   );
 }

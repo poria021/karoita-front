@@ -8,8 +8,9 @@ import {
   sortBulletins,
   validateBulletinInput,
 } from '@/services/bulletins/bulletin-rules';
+import { sharedRead } from '@/lib/shared-read';
 import {
-  DASHBOARD_AD_PLACEMENTS,
+  DASHBOARD_AD_PLACEMENT,
   mapAdminAdvertisement,
   mapPublicAdvertisement,
   resolveImageFileId,
@@ -21,10 +22,11 @@ import { FilesService } from '@/services/files.service';
 import { useUserStore } from '@/store/useUserStore';
 import type { Bulletin, UpsertBulletinInput } from '@/types/bulletins';
 import type {
-  NestAdvertisementPlacement,
   NestAdvertisementType,
   NestPublicAdvertisementDto,
 } from '@/types/nest-advertisements';
+
+const VISIBLE_ADS_SHARED_PREFIX = 'advertisements:visible:';
 
 function emptyProvinceMaps(): {
   titleToId: Map<string, string>;
@@ -77,26 +79,18 @@ async function provinceMapsBestEffort(): Promise<{
   }
 }
 
-/** یک type را برای همهٔ placementهای داشبورد می‌گیرد و با id یکتا ادغام می‌کند. */
+/**
+ * یک type → یک GET با placement=sidebar.
+ * قبلاً برای هر type هر دو placement زده می‌شد (۴ درخواست)؛ UI داشبورد placement را
+ * جدا فیلتر نمی‌کند و ساخت پیش‌فرض هم sidebar است.
+ * اگر Nest بدون placement همهٔ جای‌گذاری‌ها را بدهد، همان یک GET کافی است.
+ */
 async function listVisibleDeduped(
-  type: NestAdvertisementType,
-  placements: readonly NestAdvertisementPlacement[]
+  type: NestAdvertisementType
 ): Promise<NestPublicAdvertisementDto[]> {
-  const batches = await Promise.all(
-    placements.map((placement) =>
-      advertisementsApi.listVisible({ type, placement })
-    )
+  return sharedRead(`${VISIBLE_ADS_SHARED_PREFIX}${type}`, () =>
+    advertisementsApi.listVisible({ type, placement: DASHBOARD_AD_PLACEMENT })
   );
-  const seen = new Set<string>();
-  const out: NestPublicAdvertisementDto[] = [];
-  for (const batch of batches) {
-    for (const row of batch) {
-      if (seen.has(row.id)) continue;
-      seen.add(row.id);
-      out.push(row);
-    }
-  }
-  return out;
 }
 
 export async function listRealDashboardBulletins(): Promise<Bulletin[]> {
@@ -115,8 +109,8 @@ export async function listRealDashboardBulletins(): Promise<Bulletin[]> {
   }
 
   const [ads, infos] = await Promise.all([
-    listVisibleDeduped('ads', DASHBOARD_AD_PLACEMENTS),
-    listVisibleDeduped('info', DASHBOARD_AD_PLACEMENTS),
+    listVisibleDeduped('ads'),
+    listVisibleDeduped('info'),
   ]);
   // ترتیب پاسخ Nest را نگه می‌داریم؛ sort روی stamp ساختگی public معنی ندارد.
   return [
@@ -222,6 +216,6 @@ export async function listRealReceivedAnnouncements(): Promise<Bulletin[]> {
   const role = useUserStore.getState().activeUser?.role;
   // مدیر ارشد از مسیر ادمین می‌خواند و همان‌جا فقط اطلاعیه‌ها فیلتر می‌شود.
   if (role === 'super_admin') return listRealDashboardBulletins();
-  const infos = await listVisibleDeduped('info', DASHBOARD_AD_PLACEMENTS);
+  const infos = await listVisibleDeduped('info');
   return infos.map((row) => mapPublicAdvertisement(row));
 }

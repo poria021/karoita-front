@@ -248,12 +248,11 @@ describe('performRealRefresh (از طریق realRefreshToken)', () => {
     expect(session).not.toBeNull();
     expect(session?.user.id).toBe('a-1');
     expect(readRealAuthSurface()).toBe('admin');
-    const setTokenCall = fetchMock.mock.calls.find(([input]) =>
+    // کوکی را Route رفرش نوشته؛ کلاینت دوباره set-tokens نزند.
+    const setTokenCalls = fetchMock.mock.calls.filter(([input]) =>
       String(input).includes('/api/auth/set-tokens')
     );
-    expect(setTokenCall).toBeDefined();
-    const body = JSON.parse(String((setTokenCall?.[1] as RequestInit).body));
-    expect(body.surface).toBe('admin');
+    expect(setTokenCalls).toHaveLength(0);
   });
 
   it('payload فقط-توکن بدون surface echo → user me زده نمی‌شود', async () => {

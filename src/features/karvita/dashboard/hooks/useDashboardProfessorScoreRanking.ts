@@ -9,6 +9,7 @@ import { fetchListPage } from '@/services/reports/real/list-reports.api';
 import type { UserRole } from '@/types/auth';
 import type { ReportPeriodState, ReportRow } from '@/types/reports';
 
+import { facultyBoxSourceFor } from '../lib/faculty-box-source';
 import {
   pickRankingItems,
   type PerformanceRankingItem,
@@ -41,18 +42,20 @@ export type DashboardProfessorScoreRankingState = {
 /**
  * ۶ استاد ضعیف‌ترین / ۶ استاد قوی‌ترین بر اساس میانگین نمرهٔ فراگیران —
  * `GET v1/reports/professors/performance` (`averageScore`). محدوده را بک‌اند
- * از روی کاربر لاگین‌شده (دانشکده) تعیین می‌کند.
+ * از روی کاربر لاگین‌شده (دانشکده) تعیین می‌کند. دانشگاه استانی: به‌جای اساتید،
+ * دانشکده‌ها از `GET v1/reports/faculties/performance`.
  */
 export function useDashboardProfessorScoreRanking(
   role: UserRole
 ): DashboardProfessorScoreRankingState {
+  const source = facultyBoxSourceFor(role);
   const query = useQuery({
     queryKey: DASHBOARD_QUERY.professorScoreRanking(role),
     staleTime: QUERY_STALE_MS.module,
     queryFn: async (): Promise<ProfessorScoreRankingSummary> => {
       const collected: ReportRow[] = [];
       for (let page = 1; page <= MAX_PAGES; page += 1) {
-        const result = await fetchListPage('professor-performance', {
+        const result = await fetchListPage(source.slug, {
           filters: {},
           query: '',
           period: DASHBOARD_PERIOD,
@@ -62,8 +65,8 @@ export function useDashboardProfessorScoreRanking(
         if (!result.hasNextPage) break;
       }
       return {
-        weakest: pickRankingItems('professor', collected, 'weak'),
-        strongest: pickRankingItems('professor', collected, 'strong'),
+        weakest: pickRankingItems(source.entity, collected, 'weak'),
+        strongest: pickRankingItems(source.entity, collected, 'strong'),
       };
     },
   });

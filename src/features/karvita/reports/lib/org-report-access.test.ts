@@ -49,6 +49,16 @@ describe('org-report-access', () => {
     expect(defaultOrgReportSlug('supervisor_professor')).toBe('learners');
     expect(allOrgRoutableReportSlugs()).toContain('scores');
     expect(allOrgRoutableReportSlugs()).toContain('province-performance');
+    expect(orgCatalogReportSlugs('provincial_university')).toEqual(
+      expect.arrayContaining([
+        'school-performance',
+        'teachers',
+        'principals',
+      ])
+    );
+    expect(orgApprovedReportSlugs('provincial_university')).not.toEqual(
+      expect.arrayContaining(['teachers', 'principals'])
+    );
   });
 
   it('gates access from matrix and rebuilds sidebar group', () => {
@@ -120,9 +130,9 @@ describe('org-report-access', () => {
       'لیست دانشکده‌ها',
       'لیست استان‌ها',
     ]);
+    // حضور و غیاب اساتید برای سازمان مرکزی اختیاری است؛ فقط پس از اعطا می‌آید.
     expect(groups[1]?.children.map((c) => c.title)).toEqual([
       'حضور و غیاب فراگیران',
-      'حضور و غیاب اساتید راهنما',
     ]);
     expect(groups[2]?.children.map((c) => c.title)).toEqual([
       'عملکرد معلمان',

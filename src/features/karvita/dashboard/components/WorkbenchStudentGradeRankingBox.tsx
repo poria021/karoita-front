@@ -13,7 +13,12 @@ import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
 import { cn } from '@/lib/utils';
-import { workbenchBoxToneClass } from '@/lib/workbench-grid';
+import {
+  WORKBENCH_RANKING_BODY_CLASS,
+  WORKBENCH_RANKING_BOX_CLASS,
+  WORKBENCH_RANKING_BOX_STYLE,
+  workbenchBoxToneClass,
+} from '@/lib/workbench-grid';
 import type { UserRole } from '@/types/auth';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -24,10 +29,6 @@ import {
   findEvaluationModuleId,
 } from '../lib/course-pending-reports-href';
 import type { StudentGradeRankingItem } from '../lib/student-grade-ranking';
-import {
-  FAKE_STUDENT_GRADE_RANKING,
-  STUDENT_GRADE_RANKING_FAKE_PREVIEW,
-} from '../lib/student-grade-ranking-preview';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchStudentGradeRankingBoxProps = {
@@ -167,12 +168,10 @@ export function WorkbenchStudentGradeRankingBox({
 }: WorkbenchStudentGradeRankingBoxProps) {
   const [tab, setTab] = useState<Tab>('weakest');
   const desk = useDashboardStudentGradeRanking(_role);
-  // پیش‌نمایش با داده‌ی ماکت (فقط development) — برای خاموش کردن: student-grade-ranking-preview.ts
-  const preview = STUDENT_GRADE_RANKING_FAKE_PREVIEW;
-  const summary = preview ? FAKE_STUDENT_GRADE_RANKING : desk.summary;
-  const isLoading = preview ? false : desk.isLoading;
-  const isError = preview ? false : desk.isError;
-  const isForbidden = preview ? false : desk.isForbidden;
+  const summary = desk.summary;
+  const isLoading = desk.isLoading;
+  const isError = desk.isError;
+  const isForbidden = desk.isForbidden;
   const isEmpty =
     isError ||
     (!isLoading &&
@@ -184,15 +183,17 @@ export function WorkbenchStudentGradeRankingBox({
       aria-labelledby="dashboard-student-grade-ranking-title"
       style={
         isEmpty
-          ? style
+          ? { ...WORKBENCH_RANKING_BOX_STYLE, ...style }
           : {
+              ...WORKBENCH_RANKING_BOX_STYLE,
               ...style,
               backgroundColor: TAB_BACKGROUND[tab],
               transition: 'background-color 250ms ease',
             }
       }
       className={cn(
-        'relative flex h-full min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        'relative flex min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        WORKBENCH_RANKING_BOX_CLASS,
         workbenchBoxToneClass(isEmpty),
         className
       )}
@@ -228,26 +229,28 @@ export function WorkbenchStudentGradeRankingBox({
         </AppTabs>
       </div>
 
-      {isError ? (
-        <WorkbenchUnavailableNote forbidden={isForbidden} />
-      ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری فهرست فراگیران"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
-      ) : isEmpty ? (
-        <KvEmptyState
-          title="هنوز نمرهٔ نهایی‌ای برای فراگیران شما ثبت نشده است."
-          className="min-h-0 py-1"
-        />
-      ) : (
-        <RankingList
-          rows={summary[tab]}
-          tone={tab === 'weakest' ? 'low' : 'high'}
-          label={TABS.find((item) => item.id === tab)?.label ?? ''}
-        />
-      )}
+      <div className={WORKBENCH_RANKING_BODY_CLASS}>
+        {isError ? (
+          <WorkbenchUnavailableNote forbidden={isForbidden} />
+        ) : isLoading ? (
+          <div
+            role="status"
+            aria-label="در حال بارگذاری فهرست فراگیران"
+            className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+          />
+        ) : isEmpty ? (
+          <KvEmptyState
+            title="هنوز نمرهٔ نهایی‌ای برای فراگیران شما ثبت نشده است."
+            className="min-h-0 py-1"
+          />
+        ) : (
+          <RankingList
+            rows={summary[tab]}
+            tone={tab === 'weakest' ? 'low' : 'high'}
+            label={TABS.find((item) => item.id === tab)?.label ?? ''}
+          />
+        )}
+      </div>
     </section>
   );
 }

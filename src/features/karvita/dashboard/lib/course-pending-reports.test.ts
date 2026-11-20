@@ -10,7 +10,6 @@ import {
   buildCoursePendingReports,
   isPendingReportStatus,
 } from './course-pending-reports';
-import { FAKE_COURSE_PENDING_REPORTS } from './course-pending-reports-preview';
 
 function week(status: DailyApprovalWeekState, index: number): DailyApprovalWeek {
   return {
@@ -149,11 +148,4 @@ describe('course pending reports', () => {
     expect(summary.truncated).toBe(true);
   });
 
-  it('ماکت پیش‌نمایش از مسیر واقعی می‌گذرد و فقط درس‌های با گزارش مثبت دارد', () => {
-    expect(FAKE_COURSE_PENDING_REPORTS.courses.length).toBeGreaterThan(0);
-    expect(
-      FAKE_COURSE_PENDING_REPORTS.courses.every((course) => course.pending > 0)
-    ).toBe(true);
-    expect(FAKE_COURSE_PENDING_REPORTS.total).toBeGreaterThan(0);
-  });
 });

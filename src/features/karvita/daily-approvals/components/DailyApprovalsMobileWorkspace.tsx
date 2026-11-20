@@ -3,10 +3,7 @@
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
-import {
-  KvCard,
-  KvCardContent,
-} from '@/components/shared/KvCard';
+import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { KvTypography } from '@/components/shared/KvTypography';
@@ -23,10 +20,15 @@ import { DailyApprovalsFilters } from './DailyApprovalsFilters';
 type DailyApprovalsMobileWorkspaceProps = {
   page: UseDailyApprovalsPageReturn;
   canDrop: boolean;
-  onRequestDrop: (trainee: UseDailyApprovalsPageReturn['trainees'][number]) => void;
+  onRequestDrop: (
+    trainee: UseDailyApprovalsPageReturn['trainees'][number]
+  ) => void;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
 };
+
+/** ارتفاع ثابت ناحیهٔ لیست در موبایل: حالت پر، خالی و بارگذاری هم‌قد می‌مانند. */
+const LIST_AREA_MIN_HEIGHT = 'min-h-[26rem]';
 
 export function DailyApprovalsMobileWorkspace({
   page,
@@ -47,11 +49,24 @@ export function DailyApprovalsMobileWorkspace({
       />
 
       {page.isLoading ? (
-        <KvCard className="border-kv-border/70 shadow-kv-soft">
-          <KvBusySurface className="rounded-kv-control" />
+        <KvCard
+          className={cn(
+            'border-kv-border/70 shadow-kv-soft',
+            LIST_AREA_MIN_HEIGHT
+          )}
+        >
+          <KvBusySurface
+            className={cn('rounded-kv-control', LIST_AREA_MIN_HEIGHT)}
+          />
         </KvCard>
       ) : page.trainees.length === 0 ? (
-        <KvCard padding="md" className="border-kv-border/70 shadow-kv-soft">
+        <KvCard
+          padding="md"
+          className={cn(
+            'flex items-center justify-center border-kv-border/70 shadow-kv-soft',
+            LIST_AREA_MIN_HEIGHT
+          )}
+        >
           <KvEmptyState
             title="کارورزی مطابق فیلترها پیدا نشد"
             description="عبارت جستجو یا فیلترهای پایش را تغییر دهید."
@@ -71,93 +86,96 @@ export function DailyApprovalsMobileWorkspace({
           />
         </KvCard>
       ) : (
-        page.trainees.map((trainee) => {
-          const expanded = page.selectedTrainee?.id === trainee.id;
-          return (
-            <KvCard
-              key={trainee.id}
-              padding="sm"
-              className={cn(
-                'border-kv-border/70 shadow-kv-soft transition-[border-color,box-shadow]',
-                expanded && 'border-kv-brand-border ring-[3px] ring-kv-brand/15'
-              )}
-            >
-              <KvCardContent padding="none" className="space-y-kv-group">
-                <div className="flex w-full items-center justify-between gap-kv-group text-start">
-                  <button
-                    type="button"
-                    className="min-w-0 flex-1 text-start"
-                    onClick={() =>
-                      page.selectTrainee(expanded ? null : trainee)
-                    }
-                  >
-                    <KvTypography variant="subtitle" as="h4" truncate>
-                      {trainee.traineeName}
-                    </KvTypography>
-                    <KvTypography variant="caption" tone="muted" truncate>
-                      {toPersianDigits(trainee.courseTitle)}
-                      {trainee.schoolName
-                        ? ` • ${trainee.schoolName}`
-                        : ''}
-                    </KvTypography>
-                  </button>
-                  <div className="flex shrink-0 items-center gap-kv-pair">
-                    <DailyApprovalUnreadBadge trainee={trainee} />
-                    {canDrop ? (
-                      <KvButton
-                        type="button"
-                        color="error"
-                        appearance="ghost"
-                        size="icon-xs"
-                        aria-label="حذف کارورز از کلاس"
-                        disabled={
-                          page.actionBusy || trainee.status === 'dropped'
-                        }
-                        onClick={() => onRequestDrop(trainee)}
-                        icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
-                      />
-                    ) : null}
+        <div className={cn('space-y-kv-group', LIST_AREA_MIN_HEIGHT)}>
+          {page.trainees.map((trainee) => {
+            const expanded = page.selectedTrainee?.id === trainee.id;
+            return (
+              <KvCard
+                key={trainee.id}
+                padding="sm"
+                className={cn(
+                  'border-kv-border/70 shadow-kv-soft transition-[border-color,box-shadow]',
+                  expanded &&
+                    'border-kv-brand-border ring-[3px] ring-kv-brand/15'
+                )}
+              >
+                <KvCardContent padding="none" className="space-y-kv-group">
+                  <div className="flex w-full items-center justify-between gap-kv-group text-start">
                     <button
                       type="button"
-                      className="inline-flex size-8 items-center justify-center rounded-kv-control text-kv-text-faint transition-colors hover:bg-kv-surface-muted hover:text-kv-text"
-                      aria-label={expanded ? 'بستن جزئیات' : 'باز کردن جزئیات'}
+                      className="min-w-0 flex-1 text-start"
                       onClick={() =>
                         page.selectTrainee(expanded ? null : trainee)
                       }
                     >
-                      <FaIcon
-                        icon={faIcons.chevronDown}
-                        size="2xs"
-                        className={cn(
-                          'transition-transform',
-                          expanded && 'rotate-180 text-kv-brand'
-                        )}
-                      />
+                      <KvTypography variant="subtitle" as="h4" truncate>
+                        {trainee.traineeName}
+                      </KvTypography>
+                      <KvTypography variant="caption" tone="muted" truncate>
+                        {toPersianDigits(trainee.courseTitle)}
+                        {trainee.schoolName ? ` • ${trainee.schoolName}` : ''}
+                      </KvTypography>
                     </button>
+                    <div className="flex shrink-0 items-center gap-kv-pair">
+                      <DailyApprovalUnreadBadge trainee={trainee} />
+                      {canDrop ? (
+                        <KvButton
+                          type="button"
+                          color="error"
+                          appearance="ghost"
+                          size="icon-xs"
+                          aria-label="حذف کارورز از کلاس"
+                          disabled={
+                            page.actionBusy || trainee.status === 'dropped'
+                          }
+                          onClick={() => onRequestDrop(trainee)}
+                          icon={<FaIcon icon={faIcons.userMinus} size="2xs" />}
+                        />
+                      ) : null}
+                      <button
+                        type="button"
+                        className="inline-flex size-8 items-center justify-center rounded-kv-control text-kv-text-faint transition-colors hover:bg-kv-surface-muted hover:text-kv-text"
+                        aria-label={
+                          expanded ? 'بستن جزئیات' : 'باز کردن جزئیات'
+                        }
+                        onClick={() =>
+                          page.selectTrainee(expanded ? null : trainee)
+                        }
+                      >
+                        <FaIcon
+                          icon={faIcons.chevronDown}
+                          size="2xs"
+                          className={cn(
+                            'transition-transform',
+                            expanded && 'rotate-180 text-kv-brand'
+                          )}
+                        />
+                      </button>
+                    </div>
                   </div>
-                </div>
 
-                {expanded ? (
-                  <div className="space-y-kv-group border-t border-kv-border-muted pt-kv-group">
-                    <DailyApprovalWeekGrid
-                      trainee={trainee}
-                      compact
-                      showLegend={false}
-                      selectedWeekId={
-                        page.gradingTrainee?.id === trainee.id
-                          ? page.gradingWeek?.id ?? null
-                          : null
-                      }
-                      onSelectWeek={(week) => {
-                        void page.openWeekGrading(trainee, week);
-                      }}
-                    />
-                  </div>
-                ) : null}
-              </KvCardContent>
-            </KvCard>
-          );
-        })
+                  {expanded ? (
+                    <div className="space-y-kv-group border-t border-kv-border-muted pt-kv-group">
+                      <DailyApprovalWeekGrid
+                        trainee={trainee}
+                        compact
+                        showLegend={false}
+                        selectedWeekId={
+                          page.gradingTrainee?.id === trainee.id
+                            ? (page.gradingWeek?.id ?? null)
+                            : null
+                        }
+                        onSelectWeek={(week) => {
+                          void page.openWeekGrading(trainee, week);
+                        }}
+                      />
+                    </div>
+                  ) : null}
+                </KvCardContent>
+              </KvCard>
+            );
+          })}
+        </div>
       )}
 
       {page.loadMoreError ? (

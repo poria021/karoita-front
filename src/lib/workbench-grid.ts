@@ -23,6 +23,13 @@ export const WORKBENCH_SIDE_PANEL_STYLE: CSSProperties = {
   maxHeight: WORKBENCH_SIDE_PANEL_HEIGHT_PX,
 };
 
+export const WORKBENCH_MID_PANEL_HEIGHT_PX = 304;
+export const WORKBENCH_MID_PANEL_STYLE: CSSProperties = {
+  height: WORKBENCH_MID_PANEL_HEIGHT_PX,
+  minHeight: WORKBENCH_MID_PANEL_HEIGHT_PX,
+  maxHeight: WORKBENCH_MID_PANEL_HEIGHT_PX,
+};
+
 export const WORKBENCH_MONITOR_PANEL_HEIGHT_PX = 188;
 export const WORKBENCH_MONITOR_PANEL_STYLE: CSSProperties = {
   height: WORKBENCH_MONITOR_PANEL_HEIGHT_PX,
@@ -37,6 +44,12 @@ export const WORKBENCH_LEARNER_WELCOME_STYLE: CSSProperties = {
   minHeight: WORKBENCH_LEARNER_WELCOME_HEIGHT_PX,
   maxHeight: WORKBENCH_LEARNER_WELCOME_HEIGHT_PX,
 };
+/**
+ * ارتفاع سلول خوش‌آمد فقط از md — روی موبایل چیپ نیم‌سال زیر پنل می‌آید
+ * و سلول باید بتواند قد بکشد (پنل خودش ۱۱۲px ثابت می‌ماند).
+ */
+export const WORKBENCH_LEARNER_WELCOME_CELL_CLASS =
+  'md:h-[7rem] md:min-h-[7rem] md:max-h-[7rem]';
 
 export const WORKBENCH_LEARNER_ANNOUNCEMENTS_HEIGHT_PX =
   WORKBENCH_AD_HEIGHT_PX -
@@ -51,6 +64,17 @@ export const WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE: CSSProperties = {
 
 /** ارتفاع باکس «تعداد نقش‌ها» (پایینی) — بلندتر از باکس ساختار سازمانی. */
 export const WORKBENCH_SENIOR_ROLE_STATS_CLASS = 'md:h-[24rem]';
+
+/**
+ * باکس‌های «ضعیف‌ترین و قوی‌ترین»: ارتفاع در حالت خالی، بارگذاری، خطا و دارای داده یکی است.
+ * محتوای داخلی (WORKBENCH_RANKING_BODY_CLASS) ارتفاع باکس را تغییر نمی‌دهد؛ اگر از فضا بیشتر شد اسکرول می‌شود.
+ * ارتفاع پایه ۲۴rem است و وقتی سلول گرید `stretch` باشد، باکس هم‌قد ردیف می‌شود.
+ */
+export const WORKBENCH_RANKING_BOX_CLASS = 'h-full';
+/** min-height به‌صورت style می‌آید؛ چون `min-h-0` کلاس سلول گرید کلاس `min-h-*` را override می‌کند. */
+export const WORKBENCH_RANKING_BOX_STYLE: CSSProperties = { minHeight: '24rem' };
+export const WORKBENCH_RANKING_BODY_CLASS =
+  'flex min-h-0 grow basis-0 flex-col overflow-y-auto';
 
 /**
  * ردیف نمرات فراگیر داخل سلول تمام‌عرض.
@@ -105,7 +129,7 @@ export type WorkbenchBoxId =
   | 'learner_grades';
 
 export type WorkbenchHeightToken =
-  'welcome' | 'side' | 'learnerAnnounce' | 'monitor' | 'ad' | 'auto';
+  'welcome' | 'side' | 'learnerAnnounce' | 'mid' | 'monitor' | 'ad' | 'auto';
 
 export type WorkbenchColSpan = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
@@ -117,6 +141,8 @@ export type WorkbenchBoxPlacement = {
   height?: WorkbenchHeightToken;
   /** هم‌قدشدن با بلندترین باکس همان ردیف (`align-self: stretch`). */
   stretch?: boolean;
+  /** از اولین تا آخرین ستون (ترک تبلیغ هم) — `colSpan`/`colStart` نادیده گرفته می‌شود. */
+  fullBleed?: boolean;
 };
 
 export type WorkbenchLayoutKind =
@@ -168,12 +194,12 @@ export const WORKBENCH_AD_ROW_STYLE: CSSProperties = {
 };
 
 const HEIGHT_STYLE: Record<
-  Exclude<WorkbenchHeightToken, 'auto'>,
+  Exclude<WorkbenchHeightToken, 'auto' | 'welcome'>,
   CSSProperties
 > = {
-  welcome: WORKBENCH_LEARNER_WELCOME_STYLE,
   side: WORKBENCH_SIDE_PANEL_STYLE,
   learnerAnnounce: WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE,
+  mid: WORKBENCH_MID_PANEL_STYLE,
   monitor: WORKBENCH_MONITOR_PANEL_STYLE,
   ad: WORKBENCH_AD_ROW_STYLE,
 };
@@ -228,8 +254,13 @@ const ROW_START_CLASS: Record<number, string> = {
 const CELL_BASE = 'min-h-0 min-w-0 w-full';
 
 export function workbenchCellClass(placement: WorkbenchBoxPlacement): string {
-  const parts = [CELL_BASE, COL_SPAN_CLASS[placement.colSpan]];
-  if (placement.colStart != null) {
+  const parts = [
+    CELL_BASE,
+    placement.fullBleed
+      ? 'md:col-start-1 md:col-span-full'
+      : COL_SPAN_CLASS[placement.colSpan],
+  ];
+  if (placement.colStart != null && !placement.fullBleed) {
     parts.push(COL_START_CLASS[placement.colStart] ?? '');
   }
   if (placement.rowStart != null) {
@@ -241,32 +272,57 @@ export function workbenchCellClass(placement: WorkbenchBoxPlacement): string {
   if (placement.stretch) {
     parts.push('md:self-stretch');
   }
+  if (placement.height === 'welcome') {
+    parts.push(WORKBENCH_LEARNER_WELCOME_CELL_CLASS);
+  }
   return parts.filter(Boolean).join(' ');
 }
 
-export function workbenchAdCellClass(placement: WorkbenchBoxPlacement): string {
+/**
+ * سلول تبلیغ. نسبت باکس تبلیغ همه‌جا ۳:۴ است (`WORKBENCH_AD_ASPECT_CLASS`).
+ * موبایل: ۲۴۰px وسط‌چین؛ با `fullWidthOnMobile` (میز کار دانشجو/مهارت‌آموز) تمام‌عرض.
+ * md به بالا: ستون ثابت ۲۴۰px.
+ */
+export function workbenchAdCellClass(
+  placement: WorkbenchBoxPlacement,
+  options: { fullWidthOnMobile?: boolean } = {}
+): string {
   return [
     workbenchCellClass(placement),
-    'max-w-[240px] justify-self-center md:w-[240px] md:max-w-none md:justify-self-end',
+    options.fullWidthOnMobile
+      ? 'justify-self-stretch'
+      : 'max-w-[240px] justify-self-center',
+    'md:w-[240px] md:max-w-none md:justify-self-end',
   ].join(' ');
 }
 
 export function workbenchCellStyle(
   placement: WorkbenchBoxPlacement
 ): CSSProperties | undefined {
-  if (!placement.height || placement.height === 'auto') return undefined;
+  if (!placement.height || placement.height === 'auto' || placement.height === 'welcome') {
+    // welcome از کلاس md-only استفاده می‌کند تا موبایل قد بکشد.
+    return undefined;
+  }
   return HEIGHT_STYLE[placement.height];
 }
 
 /** شِل صفحه — ۱۲ ستون؛ با تبلیغ ترک ۱۳ام. */
-export function workbenchShellClass(showAd: boolean): string {
+export function workbenchShellClass(
+  showAd: boolean,
+  /** تبلیغِ چندردیفه: اضافه‌قدِ سلول تبلیغ فقط به ردیف سوم برسد، نه به ردیف خوش‌آمد. */
+  flexibleThirdRow = false
+): string {
   return [
     'grid w-full grid-cols-1 gap-kv-group md:items-start',
+    flexibleThirdRow && showAd ? 'md:grid-rows-[auto_auto_1fr]' : '',
     showAd
       ? 'md:grid-cols-[repeat(12,minmax(0,1fr))_240px]'
       : 'md:grid-cols-12',
   ].join(' ');
 }
+
+/** کلاس شل میز کار فراگیر: فقط در موبایل (< md) ارتفاع پنل‌ها را مناسب تک‌ستون می‌کند (`globals.css`). */
+export const WORKBENCH_LEARNER_MOBILE_CLASS = 'wb-learner-stack';
 
 /** @deprecated — از `workbenchShellClass` استفاده کنید. */
 export const WORKBENCH_GRID_CLASS = workbenchShellClass(false);
@@ -295,8 +351,9 @@ export function workbenchAllowsAdSpot(role: UserRole): boolean {
  */
 function classicSlots(
   showAd: boolean,
-  showWeakRanking = false,
-  showRegionalCounts = false
+  showRegionalCounts = false,
+  /** سازمان مرکزی: خوش‌آمد تمام‌عرض، بدون آمار/نمره زیر تبلیغ؛ تبلیغ از ردیف دوم. */
+  central = false
 ): WorkbenchBoxSlot[] {
   const slots: WorkbenchBoxSlot[] = [
     {
@@ -306,13 +363,14 @@ function classicSlots(
         colStart: 1,
         rowStart: 1,
         height: 'welcome',
+        ...(central && showAd ? { fullBleed: true } : {}),
       },
     },
     {
       id: 'announcements',
       // منطقه: هم‌قدِ «تفکیک مدارس» (ارتفاع از ردیف می‌آید)؛ بقیهٔ نقش‌ها ارتفاع ثابت.
       placement: showRegionalCounts
-        ? { colSpan: 6, colStart: 1, rowStart: 2, stretch: true }
+        ? { colSpan: 6, colStart: 1, rowStart: 2, height: 'mid' }
         : {
             colSpan: 6,
             colStart: 1,
@@ -325,11 +383,11 @@ function classicSlots(
     // آموزش و پرورش منطقه: «تفکیک مدارس» (دخترانه/پسرانه) نیمهٔ دیگر ردیف دوم، کنار اطلاعیه‌ها.
     slots.push({
       id: 'regional_gender',
-      placement: { colSpan: 6, colStart: 7, rowStart: 2, stretch: true },
+      placement: { colSpan: 6, colStart: 7, rowStart: 2, height: 'mid' },
     });
-    // «آمار منطقه»: بدون تبلیغ، ردیف چهارم و تمام‌عرض. با تبلیغ اسلات جدا ندارد؛
-    // کارت‌هایش داخل سلول تبلیغ و زیر خود آن می‌آیند (اسلات `ad` با `includes`).
-    if (!showAd) {
+    // «آمار منطقه»: بدون تبلیغ، ردیف چهارم و تمام‌عرض.
+    // با تبلیغ داخل سلول `ad` زیر خود تبلیغ می‌آید (`includes`).
+    if (!showAd && !central) {
       slots.push({
         id: 'regional_counts',
         placement: { colSpan: 12, colStart: 1, rowStart: 4 },
@@ -338,20 +396,21 @@ function classicSlots(
     // ضعیف‌ترین/قوی‌ترین معلمان منطقه: نیمهٔ دیگر ردیف سوم، کنار «مدارس ضعیف/قوی».
     slots.push({
       id: 'regional_teacher_ranking',
-      placement: { colSpan: 6, colStart: 7, rowStart: 3 },
+      placement: { colSpan: 6, colStart: 7, rowStart: 3, stretch: true },
     });
     // ضعیف‌ترین/قوی‌ترین مدارس منطقه (نمودار میله‌ای): ردیف سوم، نیمهٔ راست.
     slots.push({
       id: 'regional_school_ranking',
-      placement: { colSpan: 6, colStart: 1, rowStart: 3 },
+      placement: { colSpan: 6, colStart: 1, rowStart: 3, stretch: true },
     });
   }
-  if (showWeakRanking) {
-    // سازمان مرکزی: «ضعیف‌ترین‌ها» کنار اطلاعیه‌ها (نیمهٔ دیگر ردیف دوم)، با ارتفاع مستقل.
+  if (showAd && central) {
+    // سازمان مرکزی: تبلیغ زیر خوش‌آمد (ردیف‌های ۲–۳)، بدون نمره/آمار.
     slots.push({
-      id: 'senior_weak_ranking',
-      placement: { colSpan: 6, colStart: 7, rowStart: 2 },
+      id: 'ad',
+      placement: { colSpan: 1, colStart: 13, rowStart: 2, rowSpan: 2 },
     });
+    return slots;
   }
   if (showAd) {
     slots.push({
@@ -360,9 +419,10 @@ function classicSlots(
         colSpan: 1,
         colStart: 13,
         rowStart: 1,
-        // منطقه/دانشکده: نمره و آمار زیر تبلیغ، در همین سلول؛ ستون ردیف‌های
-        // ۱–۳ را می‌گیرد تا بین تبلیغ و کارت‌ها فاصلهٔ خالی نماند.
-        rowSpan: showRegionalCounts ? 3 : 1,
+        // منطقه/دانشکده: نمره+آمار چسبیده زیر تبلیغ در همین سلول (ردیف‌های ۱–۳).
+        // شِل `flexibleThirdRow` + overflow روی سلول، ارتفاع را از باکس‌های چپ
+        // می‌گیرد تا ردیف خوش‌آمد کش نیاید و بین تبلیغ و نمره شکاف نماند.
+        rowSpan: showRegionalCounts ? 3 : 2,
       },
       ...(showRegionalCounts
         ? {
@@ -626,9 +686,7 @@ function evaluationSlots(
         // با کارت نمرات زیر تبلیغ، ستون ردیف‌های ۱–۳ را می‌گیرد.
         rowSpan: gradesBelowAd ? 3 : 2,
       },
-      ...(gradesBelowAd
-        ? { includes: ['student_grades_card'] as const }
-        : {}),
+      ...(gradesBelowAd ? { includes: ['student_grades_card'] as const } : {}),
     });
   }
   return slots;
@@ -658,10 +716,11 @@ export function workbenchLayoutForRole(
         options.showPendingBesideAnnouncements === true
       );
     default:
+      // سازمان مرکزی دقیقاً همان لی‌اوت دانشگاه استانی را دارد (خوش‌آمد، اطلاعیه‌ها، تبلیغ).
       return classicSlots(
         showAd,
-        role === 'central_organization',
-        options.showRegionalCounts === true
+        options.showRegionalCounts === true,
+        role === 'central_organization'
       );
   }
 }

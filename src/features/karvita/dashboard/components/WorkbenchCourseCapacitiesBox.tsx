@@ -23,10 +23,6 @@ import {
   buildCourseCapacityRows,
   type CourseCapacityRow,
 } from '../lib/course-capacity-rows';
-import {
-  COURSE_CAPACITIES_FAKE_PREVIEW,
-  FAKE_COURSE_CAPACITY_SNAPSHOTS,
-} from '../lib/course-capacities-preview';
 import { StatusDonut, type DonutSegment } from './StatusDonut';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
@@ -113,12 +109,10 @@ export function WorkbenchCourseCapacitiesBox({
   style,
 }: WorkbenchCourseCapacitiesBoxProps) {
   const desk = useDashboardCapacityStatus();
-  // پیش‌نمایش با داده‌ی ماکت (فقط development) — برای خاموش کردن: course-capacities-preview.ts
-  const preview = COURSE_CAPACITIES_FAKE_PREVIEW;
-  const snapshots = preview ? FAKE_COURSE_CAPACITY_SNAPSHOTS : desk.snapshots;
-  const isLoading = preview ? false : desk.isLoading;
-  const isError = preview ? false : desk.isError;
-  const isForbidden = preview ? false : desk.isForbidden;
+  const snapshots = desk.snapshots;
+  const isLoading = desk.isLoading;
+  const isError = desk.isError;
+  const isForbidden = desk.isForbidden;
   const [tab, setTab] = useState<OrganizationalCapacityKind>('internship');
   const allRows = useMemo(
     () => buildCourseCapacityRows(snapshots),

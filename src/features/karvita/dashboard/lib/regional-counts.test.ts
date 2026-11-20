@@ -93,7 +93,7 @@ describe('regional workbench layout', () => {
 });
 
 describe('regional workbench ad column', () => {
-  it('تبلیغ ردیف‌های ۱–۳ را می‌گیرد تا آمار زیر تبلیغ در همان سلول جا شود', () => {
+  it('تبلیغ از ردیف ۱ کنار خوش‌آمد است و ردیف‌های ۱–۳ را می‌گیرد', () => {
     const slots = workbenchLayoutForRole('regional_edu_admin', {
       showAd: true,
       showRegionalCounts: true,
@@ -113,7 +113,7 @@ describe('regional counts in the ad track', () => {
       showRegionalCounts: true,
     });
 
-  it('با تبلیغ، آمار داخل سلول تبلیغ می‌آید (includes) و اسلات جدا ندارد', () => {
+  it('با تبلیغ، نمره و آمار داخل سلول تبلیغ چسبیده‌اند (includes)', () => {
     const slots = layout();
     const ad = workbenchSlotById(slots, 'ad')!;
     expect(ad.placement).toMatchObject({
@@ -153,14 +153,12 @@ describe('regional row 2: announcements and school gender share one height', () 
       showRegionalCounts: true,
     });
 
-  it('هر دو باکس stretch هستند و هیچ‌کدام ارتفاع ثابت ندارند', () => {
+  it('هر دو باکس ردیف دوم‌اند و ارتفاع mid یکسان دارند', () => {
     const slots = regional();
     const announcements = workbenchSlotById(slots, 'announcements')!.placement;
     const gender = workbenchSlotById(slots, 'regional_gender')!.placement;
-    expect(announcements).toMatchObject({ rowStart: 2, stretch: true });
-    expect(gender).toMatchObject({ rowStart: 2, stretch: true });
-    expect(announcements.height).toBeUndefined();
-    expect(gender.height).toBeUndefined();
+    expect(announcements).toMatchObject({ rowStart: 2, height: 'mid' });
+    expect(gender).toMatchObject({ rowStart: 2, height: 'mid' });
   });
 
   it('نقش‌های دیگر classic ارتفاع ثابت اطلاعیه‌ها را نگه می‌دارند', () => {

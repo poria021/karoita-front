@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from 'react';
 
+import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
 import { workbenchBoxToneClass } from '@/lib/workbench-grid';
@@ -71,9 +72,10 @@ export function DashboardCourseMaterialsBox({
           در حال بارگذاری جزوه‌ها…
         </KvTypography>
       ) : materials.length === 0 ? (
-        <KvTypography variant="body" tone="muted" as="p">
-          فعلاً جزوه‌ای برای درس‌های این نیم‌سال نیست.
-        </KvTypography>
+        <KvEmptyState
+          title="فعلاً جزوه‌ای برای درس‌های این نیم‌سال نیست."
+          className="min-h-0 py-kv-pair"
+        />
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto [direction:ltr] [scrollbar-width:thin]">
           <ul

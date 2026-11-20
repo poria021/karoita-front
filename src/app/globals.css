@@ -1295,3 +1295,20 @@ input[readonly]:-webkit-autofill {
 .kv-dock-item:focus-within .kv-dock-mark svg {
   filter: none;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Workbench — میز کار فراگیر، فقط موبایل (< 48rem).                            */
+/* دسکتاپ (md به بالا) همان گرید ۱۲ستونه + ستون تبلیغ است و دست نخورده.        */
+/* -------------------------------------------------------------------------- */
+@media (max-width: 47.999rem) {
+  .wb-learner-stack > * {
+    max-height: none !important;
+  }
+
+  /* پنل‌های اطلاعیه و مواد درسی: ارتفاع مناسب تک‌ستون، داخلشان اسکرول دارد. */
+  .wb-learner-stack > :nth-child(2),
+  .wb-learner-stack > :nth-child(3) {
+    height: 20rem !important;
+    min-height: 20rem !important;
+  }
+}

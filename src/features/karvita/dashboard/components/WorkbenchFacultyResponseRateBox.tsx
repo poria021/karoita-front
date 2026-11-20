@@ -4,10 +4,12 @@ import { useMemo, useState, type CSSProperties } from 'react';
 
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
+import type { UserRole } from '@/types/auth';
 import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardFacultyResponseRate } from '../hooks/useDashboardFacultyResponseRate';
+import { facultyBoxSourceFor } from '../lib/faculty-box-source';
 import {
   FACULTY_RESPONSE_HIGH,
   FACULTY_RESPONSE_MID,
@@ -16,6 +18,7 @@ import { StatusDonut, type DonutSegment } from './StatusDonut';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchFacultyResponseRateBoxProps = {
+  role: UserRole;
   className?: string;
   style?: CSSProperties;
 };
@@ -30,11 +33,13 @@ type RateSegment = DonutSegment & {
  * (خوب / متوسط / ضعیف) + میانگین در مرکز؛ داده از `professor-performance`.
  */
 export function WorkbenchFacultyResponseRateBox({
+  role,
   className,
   style,
 }: WorkbenchFacultyResponseRateBoxProps) {
   const { isLoading, isError, isForbidden, summary } =
-    useDashboardFacultyResponseRate();
+    useDashboardFacultyResponseRate(role);
+  const source = facultyBoxSourceFor(role);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const segments = useMemo<RateSegment[]>(
@@ -88,10 +93,10 @@ export function WorkbenchFacultyResponseRateBox({
             id="dashboard-faculty-response-rate-title"
             className="min-w-0 truncate"
           >
-            نرخ پاسخ‌دهی اساتید
+            {source.responseTitle}
           </KvTypography>
           <KvTypography variant="caption" tone="muted" as="p">
-            توزیع اساتید دانشکده بر اساس پاسخ به گزارش‌ها
+            {source.responseCaption}
           </KvTypography>
         </div>
       </header>

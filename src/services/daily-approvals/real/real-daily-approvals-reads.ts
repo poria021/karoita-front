@@ -28,6 +28,7 @@ import { strictLessonLevelFromTitle } from '@/services/internship-enrollment/rea
 import { resolveEnrollmentMentor } from '@/services/internship-enrollment/real/mappers/enrollment-summary';
 import { studentEnrollmentsApi } from '@/services/internship-enrollment/real/student-enrollments.api';
 import { requireNestTransport } from '@/services/require-nest-transport';
+import { useUserStore } from '@/store/useUserStore';
 import type { UserRole } from '@/types/auth';
 import type {
   DailyApprovalAttachment,
@@ -52,30 +53,51 @@ import type {
 import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
 
 /**
+ * نقش‌هایی که `open-course-selection` برایشان بسته است (۴۰۳) —
+ * میز کار ارزیابی دو بار listTerms می‌زند (ترمی+پودمانی)؛ نباید همان GET شکست‌خورده را تکرار کند.
+ */
+function shouldSkipOpenCourseSelection(): boolean {
+  const role = useUserStore.getState().activeUser?.role;
+  return (
+    role === 'mentor_teacher' ||
+    role === 'supervisor_professor' ||
+    role === 'school_principal'
+  );
+}
+
+/**
  * فهرست نیم‌سال‌ها برای سلکت‌باکس استاد/معلم/مدیر مدرسه — همان منطق صفحهٔ گزارش‌نویسی
  * دانشجو: نیم‌سالِ باز از `GET /student-enrollments/open-course-selection` گرفته می‌شود و
  * هر نیم‌سالِ دیگر «پایان‌یافته» (آرشیو) حساب می‌شود (ببین `isActiveInOpenTerm` در
  * `real-enrollment-reads.ts`). اگر درخواست خطا بدهد یا ساختار نیم‌سالِ باز با نوع این
  * ماژول (کارورزی/کارآموزی) نخواند، وضعیت نامعلوم است و `ended` ست نمی‌شود.
+ *
+ * نقش‌های ارزیابی (معلم/استاد/مدیر مدرسه) اصلاً open را صدا نمی‌زنند.
  */
 export async function listRealDailyApprovalTerms(
   kind: ListDailyApprovalsInput['kind']
 ): Promise<DailyApprovalTermOption[]> {
-  const [terms, open] = await Promise.all([
-    listRealCapacityTerms(kind),
-    studentEnrollmentsApi.getOpenCourseSelection().catch(() => undefined),
-  ]);
+  const terms = await listRealCapacityTerms(kind);
+  if (shouldSkipOpenCourseSelection()) return terms;
+
+  const open = await studentEnrollmentsApi
+    .getOpenCourseSelection()
+    .catch(() => undefined);
   if (open === undefined) return terms;
 
   if (open) {
     const expected = nestStructureForCapacityKind(kind);
     const structure = String(open.structure);
     const sameKind =
-      structure === expected || (expected === 'podmani' && structure === 'modular');
+      structure === expected ||
+      (expected === 'podmani' && structure === 'modular');
     if (!sameKind) return terms;
   }
 
-  return terms.map((term) => ({ ...term, ended: !open || term.id !== open.id }));
+  return terms.map((term) => ({
+    ...term,
+    ended: !open || term.id !== open.id,
+  }));
 }
 
 function extractSchoolName(

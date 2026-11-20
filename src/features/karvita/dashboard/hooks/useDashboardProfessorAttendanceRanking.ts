@@ -9,6 +9,7 @@ import { fetchListPage } from '@/services/reports/real/list-reports.api';
 import type { UserRole } from '@/types/auth';
 import type { ReportPeriodState, ReportRow } from '@/types/reports';
 
+import { facultyBoxSourceFor } from '../lib/faculty-box-source';
 import {
   buildProfessorAttendanceRanking,
   type ProfessorAttendanceRankingSummary,
@@ -41,13 +42,14 @@ export type DashboardProfessorAttendanceRankingState = {
 export function useDashboardProfessorAttendanceRanking(
   role: UserRole
 ): DashboardProfessorAttendanceRankingState {
+  const source = facultyBoxSourceFor(role);
   const query = useQuery({
     queryKey: DASHBOARD_QUERY.professorAttendanceRanking(role),
     staleTime: QUERY_STALE_MS.module,
     queryFn: async () => {
       const collected: ReportRow[] = [];
       for (let page = 1; page <= MAX_PAGES; page += 1) {
-        const result = await fetchListPage('professor-performance', {
+        const result = await fetchListPage(source.slug, {
           filters: {},
           query: '',
           period: DASHBOARD_PERIOD,

@@ -39,9 +39,29 @@ describe('toNestCreateAdminDto', () => {
     mobile: '9386951413',
   };
 
-  it('maps assistant_admin to Nest role admin', () => {
+  it('maps assistant_admin to Nest role admin and includes password', () => {
     expect(
-      toNestCreateAdminDto({ ...base, role: 'assistant_admin' })
+      toNestCreateAdminDto({
+        ...base,
+        role: 'assistant_admin',
+        password: '12345678',
+      })
+    ).toEqual({
+      fname: 'علی',
+      lname: 'رضایی',
+      phone: '09386951413',
+      role: 'admin',
+      password: '12345678',
+    });
+  });
+
+  it('omits empty password so Nest keeps create optional', () => {
+    expect(
+      toNestCreateAdminDto({
+        ...base,
+        role: 'assistant_admin',
+        password: '   ',
+      })
     ).toEqual({
       fname: 'علی',
       lname: 'رضایی',
@@ -72,7 +92,7 @@ describe('toNestUpdateAdminDto', () => {
     active: true,
   };
 
-  it('sends Swagger PUT fields with status 2 when active', () => {
+  it('sends Nest StatusEnum active=1 when active', () => {
     expect(toNestUpdateAdminDto(base)).toEqual({
       fname: 'Ali',
       lname: 'Rezaei',
@@ -80,11 +100,13 @@ describe('toNestUpdateAdminDto', () => {
       role: 'superadmin',
       status: NEST_ADMIN_STATUS_ACTIVE,
     });
+    expect(NEST_ADMIN_STATUS_ACTIVE).toBe(1);
   });
 
-  it('sends status 1 when inactive', () => {
+  it('sends Nest StatusEnum inactive=2 when inactive', () => {
     expect(toNestUpdateAdminDto({ ...base, active: false }).status).toBe(
       NEST_ADMIN_STATUS_INACTIVE
     );
+    expect(NEST_ADMIN_STATUS_INACTIVE).toBe(2);
   });
 });

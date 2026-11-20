@@ -12,6 +12,7 @@ import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import {
   WORKBENCH_FULL_ROW_PLACEMENT,
   workbenchCellClass,
+  WORKBENCH_LEARNER_MOBILE_CLASS,
   workbenchShellClass,
 } from '@/lib/workbench-grid';
 import type { UserRole } from '@/types/auth';
@@ -66,12 +67,21 @@ function WorkbenchHomeShell({
   const fullRowClass = workbenchCellClass(WORKBENCH_FULL_ROW_PLACEMENT);
 
   return (
-    <div className={workbenchShellClass(showAd)}>
+    <div
+      className={[
+        workbenchShellClass(
+          showAd,
+          role === 'regional_edu_admin' ||
+            role === 'faculty_role' ||
+            role === 'provincial_university'
+        ),
+        learnerWorkbench ? WORKBENCH_LEARNER_MOBILE_CLASS : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       {learnerWorkbench ? (
-        <DashboardWidgetGrid
-          role={role}
-          welcomeName={welcomeName}
-        />
+        <DashboardWidgetGrid role={role} welcomeName={welcomeName} />
       ) : null}
 
       {progress ? (
@@ -81,10 +91,7 @@ function WorkbenchHomeShell({
       ) : null}
 
       {!learnerWorkbench ? (
-        <DashboardWidgetGrid
-          role={role}
-          welcomeName={welcomeName}
-        />
+        <DashboardWidgetGrid role={role} welcomeName={welcomeName} />
       ) : null}
     </div>
   );

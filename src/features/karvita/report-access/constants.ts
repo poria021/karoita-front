@@ -59,7 +59,6 @@ export const APPROVED_ROLE_PAGES: Readonly<
   central_organization: [
     'learners',
     'attendance',
-    'professor-attendance',
     'teachers',
     'principals',
     'professors',
@@ -82,10 +81,14 @@ export const REPORT_ACCESS_EXTRA: Readonly<
   mentor_teacher: ['attendance'],
   supervisor_professor: ['schools'],
   school_principal: ['teachers'],
-  regional_edu_admin: ['attendance'],
+  regional_edu_admin: ['attendance', 'faculties'],
   faculty_role: ['teachers', 'principals', 'schools'],
-  provincial_university: ['school-performance'],
-  central_organization: ['teacher-performance'],
+  provincial_university: [
+    'school-performance',
+    'teachers',
+    'principals',
+  ],
+  central_organization: ['teacher-performance', 'professor-attendance'],
   assistant_admin: [
     'learners',
     'attendance',

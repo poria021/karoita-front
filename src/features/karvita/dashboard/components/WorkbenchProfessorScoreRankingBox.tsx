@@ -13,12 +13,18 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
-import { workbenchBoxToneClass } from '@/lib/workbench-grid';
+import {
+  WORKBENCH_RANKING_BODY_CLASS,
+  WORKBENCH_RANKING_BOX_CLASS,
+  WORKBENCH_RANKING_BOX_STYLE,
+  workbenchBoxToneClass,
+} from '@/lib/workbench-grid';
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardProfessorScoreRanking } from '../hooks/useDashboardProfessorScoreRanking';
+import { facultyBoxSourceFor } from '../lib/faculty-box-source';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchProfessorScoreRankingBoxProps = {
@@ -66,6 +72,7 @@ export function WorkbenchProfessorScoreRankingBox({
   style,
 }: WorkbenchProfessorScoreRankingBoxProps) {
   const [tab, setTab] = useState<Tab>('weakest');
+  const source = facultyBoxSourceFor(role);
   const desk = useDashboardProfessorScoreRanking(role);
   const summary = desk.summary;
   const isLoading = desk.isLoading;
@@ -90,15 +97,17 @@ export function WorkbenchProfessorScoreRankingBox({
       aria-labelledby="dashboard-professor-score-ranking-title"
       style={
         isEmpty
-          ? style
+          ? { ...WORKBENCH_RANKING_BOX_STYLE, ...style }
           : {
+              ...WORKBENCH_RANKING_BOX_STYLE,
               ...style,
               backgroundColor: TAB_BACKGROUND[tab],
               transition: 'background-color 250ms ease',
             }
       }
       className={cn(
-        'relative flex h-full min-h-[18rem] min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        'relative flex min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        WORKBENCH_RANKING_BOX_CLASS,
         workbenchBoxToneClass(isEmpty),
         className
       )}
@@ -111,7 +120,7 @@ export function WorkbenchProfessorScoreRankingBox({
             id="dashboard-professor-score-ranking-title"
             className="min-w-0 truncate"
           >
-            ضعیف‌ترین و قوی‌ترین اساتید دانشکده
+            {source.rankingTitle}
           </KvTypography>
           <KvTypography variant="caption" tone="muted" as="p">
             بر اساس میانگین نمرهٔ فراگیران
@@ -127,7 +136,7 @@ export function WorkbenchProfessorScoreRankingBox({
             className="shrink-0 text-[11px] font-bold"
           >
             <Link
-              href={RouteService.karvita.orgReports('professor-performance')}
+              href={RouteService.karvita.orgReports(source.slug)}
               prefetch
             >
               گزارش کامل
@@ -149,36 +158,38 @@ export function WorkbenchProfessorScoreRankingBox({
         </div>
       </div>
 
-      {isError ? (
-        <WorkbenchUnavailableNote forbidden={isForbidden} />
-      ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری نمودار اساتید"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
-      ) : isEmpty ? (
-        <KvEmptyState
-          title="هنوز دادهٔ کافی برای رتبه‌بندی اساتید دانشکدهٔ شما نیست."
-          className="min-h-0 py-1"
-        />
-      ) : (
-        <KvBarChart
-          key={tab}
-          rows={chartRows}
-          xKey="name"
-          valueKey="value"
-          valueLabel="میانگین نمره"
-          hintKey="hint"
-          color={TAB_BAR_COLOR[tab]}
-          height={CHART_HEIGHT}
-          barSize={28}
-          xTickFormatter={(value) => truncate(String(value), 22)}
-          formatValue={formatScore}
-          ariaLabel={`نمودار میله‌ای ${tabLabel} اساتید دانشکده`}
-          className="min-h-0 flex-1"
-        />
-      )}
+      <div className={WORKBENCH_RANKING_BODY_CLASS}>
+        {isError ? (
+          <WorkbenchUnavailableNote forbidden={isForbidden} />
+        ) : isLoading ? (
+          <div
+            role="status"
+            aria-label={`در حال بارگذاری نمودار ${source.noun}`}
+            className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+          />
+        ) : isEmpty ? (
+          <KvEmptyState
+            title={source.scoreEmpty}
+            className="min-h-0 py-1"
+          />
+        ) : (
+          <KvBarChart
+            key={tab}
+            rows={chartRows}
+            xKey="name"
+            valueKey="value"
+            valueLabel="میانگین نمره"
+            hintKey="hint"
+            color={TAB_BAR_COLOR[tab]}
+            height={CHART_HEIGHT}
+            barSize={28}
+            xTickFormatter={(value) => truncate(String(value), 22)}
+            formatValue={formatScore}
+            ariaLabel={`نمودار میله‌ای ${tabLabel} ${source.chartNoun}`}
+            className="min-h-0 flex-1"
+          />
+        )}
+      </div>
     </section>
   );
 }

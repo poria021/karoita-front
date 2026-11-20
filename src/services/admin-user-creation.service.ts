@@ -47,7 +47,7 @@ import {
 
 /**
  * ایجاد حساب توسط مدیر ارشد.
- * ادمین: POST/GET/PUT `/api/v1/admin/admins` (`role: admin|superadmin`، PUT `status: 2|1`).
+ * ادمین: POST/GET/PUT `/api/v1/admin/admins` (`role: admin|superadmin`، PUT `status: 1|2` = active|inactive).
  * سازمانی: POST/GET/PATCH/DELETE `/api/v1/admin/account-users`؛ `role` بدنه شناسهٔ نقش
  * است که از GET `/account-users/roles` گرفته می‌شود (نه اسم نقش).
  */
@@ -149,7 +149,7 @@ export const AdminUserCreationService = {
     return adminsApi.getById(id);
   },
 
-  /** PUT /api/v1/admin/admins/{id} — status: 2 فعال، 1 غیرفعال */
+  /** PUT /api/v1/admin/admins/{id} — status: 1 فعال، 2 غیرفعال */
   async updateStaffAdmin(
     id: string,
     input: UpdateStaffAdminInput

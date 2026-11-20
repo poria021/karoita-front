@@ -9,6 +9,7 @@
  *
  * فقط `id` نگه داشته می‌شود؛ `title`/`fullName` متن نمایشی است.
  */
+import { sharedRead } from '@/lib/shared-read';
 import { apiClient, ApiClientError } from '@/services/api-client';
 import { bearerHeaders, resolveBearerToken } from '@/services/api-token';
 import { toSearchParams } from '@/services/nest-search-params';
@@ -25,6 +26,18 @@ import type {
   ReportRow,
   ReportScoreStatus,
 } from '@/types/reports';
+
+/** کلید پایدار برای dedupe GETهای هم‌زمان (Strict Mode / effect دوبار). */
+function sharedLearnersGetKey(
+  path: string,
+  params: Record<string, string | number>
+): string {
+  const qs = Object.keys(params)
+    .sort()
+    .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(String(params[key]))}`)
+    .join('&');
+  return `reports-get:${path}?${qs}`;
+}
 
 export type LearnersReportPaths = {
   filters: string;
@@ -402,27 +415,33 @@ export async function fetchLearnersFilterBoxes(
       Record<ReportFilterKey, LearnersFilterBox>
     >;
 
-  try {
-    const raw = await apiClient.getJson<unknown>(paths.filters, undefined, {
-      searchParams: toSearchParams(query),
-    });
-    const out: Partial<Record<ReportFilterKey, LearnersFilterBox>> = {};
-    for (const key of keys) {
-      const options = mapOptions(raw, boxes[key]!);
-      out[key] = options ? { status: 'ok', options } : { status: 'absent' };
-    }
-    return out;
-  } catch (error) {
-    if (error instanceof ApiClientError) {
-      if (error.status === 400) {
-        return all({ status: 'conflict', message: error.message });
+  const searchParams = toSearchParams(query) as Record<string, string | number>;
+  return sharedRead(
+    sharedLearnersGetKey(paths.filters, searchParams),
+    async () => {
+      try {
+        const raw = await apiClient.getJson<unknown>(paths.filters, undefined, {
+          searchParams,
+        });
+        const out: Partial<Record<ReportFilterKey, LearnersFilterBox>> = {};
+        for (const key of keys) {
+          const options = mapOptions(raw, boxes[key]!);
+          out[key] = options ? { status: 'ok', options } : { status: 'absent' };
+        }
+        return out;
+      } catch (error) {
+        if (error instanceof ApiClientError) {
+          if (error.status === 400) {
+            return all({ status: 'conflict', message: error.message });
+          }
+          if (error.status === 403 || error.status === 404) {
+            return all({ status: 'absent' });
+          }
+        }
+        throw error;
       }
-      if (error.status === 403 || error.status === 404) {
-        return all({ status: 'absent' });
-      }
     }
-    throw error;
-  }
+  );
 }
 
 /* ------------------------------------------------------------------ */
@@ -645,32 +664,39 @@ export async function fetchLearnersPage(input: {
 }): Promise<LearnersPage> {
   const paths = input.paths ?? NEST_LEARNERS_REPORT_PATHS;
   const limit = Math.min(input.limit ?? LEARNERS_PAGE_SIZE, LEARNERS_PAGE_SIZE);
-  const raw = await apiClient.getJson<unknown>(
-    paths.table,
-    undefined,
-    {
-      searchParams: toSearchParams({
-        ...tableQuery(
-          input.filters,
-          input.query,
-          input.period,
-          tableQueryOptionsForPaths(paths)
-        ),
+  const searchParams = toSearchParams({
+    ...tableQuery(
+      input.filters,
+      input.query,
+      input.period,
+      tableQueryOptionsForPaths(paths)
+    ),
+    page: input.page,
+    limit,
+  }) as Record<string, string | number>;
+  const mapRow = input.mapRow ?? mapLearnerRow;
+
+  return sharedRead(
+    sharedLearnersGetKey(paths.table, searchParams),
+    async () => {
+      const raw = await apiClient.getJson<unknown>(paths.table, undefined, {
+        searchParams,
+      });
+      const body = (raw && typeof raw === 'object' ? raw : {}) as {
+        data?: unknown;
+        hasNextPage?: unknown;
+      };
+      const data = Array.isArray(body.data) ? body.data : [];
+      const rows = data
+        .map((item, index) => mapRow(item, (input.page - 1) * limit + index))
+        .filter((row): row is ReportRow => row !== null);
+      return {
+        rows,
+        hasNextPage: body.hasNextPage === true,
         page: input.page,
-        limit,
-      }),
+      };
     }
   );
-  const body = (raw && typeof raw === 'object' ? raw : {}) as {
-    data?: unknown;
-    hasNextPage?: unknown;
-  };
-  const data = Array.isArray(body.data) ? body.data : [];
-  const mapRow = input.mapRow ?? mapLearnerRow;
-  const rows = data
-    .map((item, index) => mapRow(item, (input.page - 1) * limit + index))
-    .filter((row): row is ReportRow => row !== null);
-  return { rows, hasNextPage: body.hasNextPage === true, page: input.page };
 }
 
 /* ------------------------------------------------------------------ */

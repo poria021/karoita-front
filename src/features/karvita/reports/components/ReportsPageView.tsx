@@ -2,6 +2,7 @@
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { useIsTabletUp } from '@/hooks/useMediaQuery';
 import type { ReportSlug } from '@/types/report-access';
@@ -33,6 +34,7 @@ export function ReportsPageView({
   pageOptions,
 }: ReportsPageViewProps) {
   const page = useAdminReportPage(slug, pageOptions);
+  useRegisterPageRefresh(page.reload);
   const showTable = useIsTabletUp();
 
   return (

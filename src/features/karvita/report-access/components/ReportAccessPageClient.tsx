@@ -3,6 +3,7 @@
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
@@ -13,6 +14,7 @@ import { ReportAccessRoleTabs } from './ReportAccessRoleTabs';
 
 export function ReportAccessPageClient() {
   const page = useReportAccessPage();
+  useRegisterPageRefresh(page.reload);
 
   return (
     <SuperAdminModuleGuard>

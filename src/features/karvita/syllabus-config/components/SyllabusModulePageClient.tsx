@@ -3,6 +3,7 @@
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import type { SyllabusConfigSubTab } from '@/types/syllabus-config';
@@ -18,6 +19,7 @@ export type SyllabusModulePageProps = {
 
 function SyllabusModulePageClient({ section }: SyllabusModulePageProps) {
   const page = useSyllabusConfigPage(section);
+  useRegisterPageRefresh(page.reload);
 
   const errorTitle =
     section === 'course_offerings'

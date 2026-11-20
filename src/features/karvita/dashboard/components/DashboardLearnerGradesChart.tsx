@@ -17,10 +17,6 @@ import {
   buildLearnerCourseWeekRows,
   buildLearnerGradeSeries,
 } from '../lib/learner-workbench';
-import {
-  FAKE_LEARNER_SNAPSHOTS,
-  LEARNER_WORKBENCH_FAKE_PREVIEW,
-} from '../lib/learner-workbench-preview';
 import { WorkbenchCourseWeeksBox } from './WorkbenchCourseWeeksBox';
 import { WorkbenchWeeklyGradesBox } from './WorkbenchWeeklyGradesBox';
 
@@ -39,13 +35,8 @@ export function DashboardLearnerGradesChart() {
     enabled: desk.enabled,
   });
 
-  // پیش‌نمایش با داده‌ی فیک (فقط development) — برای خاموش کردن: learner-workbench-preview.ts
-  const snapshots = LEARNER_WORKBENCH_FAKE_PREVIEW
-    ? FAKE_LEARNER_SNAPSHOTS
-    : desk.snapshots;
-
-  const series = buildLearnerGradeSeries(snapshots);
-  const courseRows = buildLearnerCourseWeekRows(snapshots);
+  const series = buildLearnerGradeSeries(desk.snapshots);
+  const courseRows = buildLearnerCourseWeekRows(desk.snapshots);
 
   const minGrade =
     typeof passingQuery.data === 'number' && Number.isFinite(passingQuery.data)
@@ -62,9 +53,9 @@ export function DashboardLearnerGradesChart() {
       <WorkbenchCourseWeeksBox rows={courseRows} />
       <WorkbenchWeeklyGradesBox
         series={series}
-        isLoading={LEARNER_WORKBENCH_FAKE_PREVIEW ? false : desk.isLoading}
-        isError={LEARNER_WORKBENCH_FAKE_PREVIEW ? false : desk.isError}
-        isForbidden={LEARNER_WORKBENCH_FAKE_PREVIEW ? false : desk.isForbidden}
+        isLoading={desk.isLoading}
+        isError={desk.isError}
+        isForbidden={desk.isForbidden}
         minGrade={minGrade}
       />
     </div>

@@ -10,6 +10,7 @@ import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import type { AcademicTermType } from '@/types/syllabus-config';
@@ -24,6 +25,7 @@ import { CourseDefinitionsTable } from './CourseDefinitionsTable';
 /** صفحهٔ تعریف دروس — جدول با فیلتر ترمی/پودمانی؛ افزودن و ویرایش در مودال. */
 export function CourseCatalogModule() {
   const page = useCourseCatalogPage();
+  useRegisterPageRefresh(page.reload);
 
   return (
     <SuperAdminModuleGuard>

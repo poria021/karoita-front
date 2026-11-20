@@ -13,13 +13,19 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
-import { workbenchBoxToneClass } from '@/lib/workbench-grid';
+import {
+  WORKBENCH_RANKING_BODY_CLASS,
+  WORKBENCH_RANKING_BOX_CLASS,
+  WORKBENCH_RANKING_BOX_STYLE,
+  workbenchBoxToneClass,
+} from '@/lib/workbench-grid';
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardProfessorAttendanceRanking } from '../hooks/useDashboardProfessorAttendanceRanking';
+import { facultyBoxSourceFor } from '../lib/faculty-box-source';
 import type { ProfessorAttendanceRankingItem } from '../lib/professor-attendance-ranking';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
@@ -88,6 +94,7 @@ export function WorkbenchProfessorAttendanceRankingBox({
   style,
 }: WorkbenchProfessorAttendanceRankingBoxProps) {
   const [tab, setTab] = useState<Tab>('weakest');
+  const source = facultyBoxSourceFor(role);
   const desk = useDashboardProfessorAttendanceRanking(role);
   const summary = desk.summary;
   const isLoading = desk.isLoading;
@@ -105,15 +112,17 @@ export function WorkbenchProfessorAttendanceRankingBox({
       aria-labelledby="dashboard-professor-attendance-ranking-title"
       style={
         isEmpty
-          ? style
+          ? { ...WORKBENCH_RANKING_BOX_STYLE, ...style }
           : {
+              ...WORKBENCH_RANKING_BOX_STYLE,
               ...style,
               backgroundColor: TAB_BACKGROUND[tab],
               transition: 'background-color 250ms ease',
             }
       }
       className={cn(
-        'relative flex h-full min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        'relative flex min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        WORKBENCH_RANKING_BOX_CLASS,
         workbenchBoxToneClass(isEmpty),
         className
       )}
@@ -126,7 +135,7 @@ export function WorkbenchProfessorAttendanceRankingBox({
             id="dashboard-professor-attendance-ranking-title"
             className="min-w-0 truncate"
           >
-            ضعیف‌ترین و قوی‌ترین اساتید دانشکده
+            {source.rankingTitle}
           </KvTypography>
           <KvTypography variant="caption" tone="muted" as="p">
             بر اساس حضور و غیاب
@@ -142,7 +151,7 @@ export function WorkbenchProfessorAttendanceRankingBox({
             className="shrink-0 text-[11px] font-bold"
           >
             <Link
-              href={RouteService.karvita.orgReports('professor-performance')}
+              href={RouteService.karvita.orgReports(source.slug)}
               prefetch
             >
               گزارش کامل
@@ -164,33 +173,35 @@ export function WorkbenchProfessorAttendanceRankingBox({
         </div>
       </div>
 
-      {isError ? (
-        <WorkbenchUnavailableNote forbidden={isForbidden} />
-      ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری فهرست اساتید"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
-      ) : isEmpty ? (
-        <KvEmptyState
-          title="هنوز استادی برای دانشکدهٔ شما ثبت نشده است."
-          className="min-h-0 py-1"
-        />
-      ) : (
-        <ol
-          aria-label={TABS.find((item) => item.id === tab)?.label ?? ''}
-          className="grid list-none content-start divide-y divide-kv-border-muted"
-        >
-          {rows.map((item) => (
-            <ProfessorRow
-              key={item.id}
-              item={item}
-              tone={tab === 'weakest' ? 'low' : 'high'}
-            />
-          ))}
-        </ol>
-      )}
+      <div className={WORKBENCH_RANKING_BODY_CLASS}>
+        {isError ? (
+          <WorkbenchUnavailableNote forbidden={isForbidden} />
+        ) : isLoading ? (
+          <div
+            role="status"
+            aria-label={`در حال بارگذاری فهرست ${source.noun}`}
+            className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+          />
+        ) : isEmpty ? (
+          <KvEmptyState
+            title={source.attendanceEmpty}
+            className="min-h-0 py-1"
+          />
+        ) : (
+          <ol
+            aria-label={TABS.find((item) => item.id === tab)?.label ?? ''}
+            className="grid list-none content-start divide-y divide-kv-border-muted"
+          >
+            {rows.map((item) => (
+              <ProfessorRow
+                key={item.id}
+                item={item}
+                tone={tab === 'weakest' ? 'low' : 'high'}
+              />
+            ))}
+          </ol>
+        )}
+      </div>
     </section>
   );
 }

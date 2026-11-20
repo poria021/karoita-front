@@ -8,6 +8,7 @@ import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { fetchLearnersPage } from '@/services/reports/real/learners-report.api';
 import { fetchListPage } from '@/services/reports/real/list-reports.api';
 import type { ListReportSlug } from '@/services/reports/real/list-reports.api';
+import type { UserRole } from '@/types/auth';
 import type { ReportPeriodState, ReportRow } from '@/types/reports';
 
 /** لیست‌ها به semester وابسته نیستند؛ مثل بقیهٔ هوک‌های میز کار period خالی می‌رود. */
@@ -23,6 +24,8 @@ const MAX_PAGES = 10;
 export type FacultyCounts = {
   professors: number;
   schools: number;
+  /** فقط دانشگاه استانی: تعداد دانشکده‌ها (جای «مدارس»). */
+  faculties?: number;
   learners: number;
   /** به سقف صفحه‌ها خورده؛ اعداد «دست‌کم» هستند. */
   truncated: boolean;
@@ -79,12 +82,14 @@ async function collectLearnersCount(): Promise<{
 export function summarizeFacultyCounts(input: {
   professors: readonly ReportRow[];
   schools: readonly ReportRow[];
+  faculties?: readonly ReportRow[];
   learners: number;
   truncated?: boolean;
 }): FacultyCounts {
   return {
     professors: input.professors.length,
     schools: input.schools.length,
+    faculties: input.faculties?.length,
     learners: input.learners,
     truncated: input.truncated === true,
   };
@@ -93,23 +98,33 @@ export function summarizeFacultyCounts(input: {
 /**
  * یک کوئری مشترک برای کارت‌های آمار میز کار مدیر دانشکده.
  * محدودهٔ داده را خود بک‌اند از روی کاربر لاگین‌شده تعیین می‌کند.
+ * دانشگاه استانی: دانشکده‌ها / اساتید / فراگیران (به‌جای اساتید / فراگیران / مدارس).
  */
-export function useDashboardFacultyCounts(): DashboardFacultyCountsState {
+export function useDashboardFacultyCounts(
+  role?: UserRole
+): DashboardFacultyCountsState {
+  const provincial = role === 'provincial_university';
   const query = useQuery({
-    queryKey: DASHBOARD_QUERY.facultyCounts,
+    queryKey: [...DASHBOARD_QUERY.facultyCounts, provincial ? 'provincial' : 'faculty'],
     staleTime: QUERY_STALE_MS.module,
     queryFn: async () => {
-      const [professors, schools, learners] = await Promise.all([
+      const empty = { rows: [] as ReportRow[], truncated: false };
+      const [professors, schools, faculties, learners] = await Promise.all([
         collectAllPages('professors'),
-        collectAllPages('school-performance'),
+        provincial ? empty : collectAllPages('school-performance'),
+        provincial ? collectAllPages('faculty-performance') : empty,
         collectLearnersCount(),
       ]);
       return summarizeFacultyCounts({
         professors: professors.rows,
         schools: schools.rows,
+        faculties: provincial ? faculties.rows : undefined,
         learners: learners.count,
         truncated:
-          professors.truncated || schools.truncated || learners.truncated,
+          professors.truncated ||
+          schools.truncated ||
+          faculties.truncated ||
+          learners.truncated,
       });
     },
   });

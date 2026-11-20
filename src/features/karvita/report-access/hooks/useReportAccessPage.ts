@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
+import { withCatalogOptionalReports } from '@/features/karvita/report-access/lib/with-catalog-optionals';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { ReportAccessService } from '@/services/report-access.service';
 import { useUserStore } from '@/store/useUserStore';
@@ -37,7 +38,8 @@ export function useReportAccessPage() {
 
   const query = useQuery<ReportAccessRoleRow[]>({
     queryKey: DASHBOARD_QUERY.reportAccessMatrix,
-    queryFn: () => ReportAccessService.getMatrix(),
+    queryFn: async () =>
+      withCatalogOptionalReports(await ReportAccessService.getMatrix()),
     staleTime: 0,
   });
 

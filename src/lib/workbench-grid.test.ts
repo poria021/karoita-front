@@ -45,7 +45,7 @@ describe('workbenchLayoutForRole', () => {
   });
 
   it('puts classic ad beside welcome without stretching welcome height', () => {
-    const slots = workbenchLayoutForRole('central_organization', {
+    const slots = workbenchLayoutForRole('provincial_university', {
       showAd: true,
     });
     expect(workbenchSlotById(slots, 'welcome')?.placement).toMatchObject({
@@ -53,25 +53,52 @@ describe('workbenchLayoutForRole', () => {
       rowStart: 1,
       height: 'welcome',
     });
+    // تبلیغ ردیف ۱–۲ را می‌گیرد تا ردیف اول به‌خاطر بلندیِ تبلیغ کش نیاید.
     expect(workbenchSlotById(slots, 'ad')?.placement).toMatchObject({
       colStart: 13,
       rowStart: 1,
-      rowSpan: 1,
+      rowSpan: 2,
     });
     expect(workbenchSlotById(slots, 'announcements')?.placement.rowStart).toBe(
       2
     );
   });
 
-  it('adds the weak ranking beside announcements for central_organization only', () => {
+  it('central_organization بدون تبلیغ مثل دانشگاه استانی چیده می‌شود', () => {
     const central = workbenchLayoutForRole('central_organization', {
       showAd: false,
     });
-    expect(
-      workbenchSlotById(central, 'senior_weak_ranking')?.placement
-    ).toMatchObject({ colSpan: 6, colStart: 7, rowStart: 2 });
-    const faculty = workbenchLayoutForRole('faculty_role', { showAd: false });
-    expect(workbenchSlotById(faculty, 'senior_weak_ranking')).toBeUndefined();
+    const provincial = workbenchLayoutForRole('provincial_university', {
+      showAd: false,
+    });
+    expect(central).toEqual(provincial);
+    expect(workbenchSlotById(central, 'senior_weak_ranking')).toBeUndefined();
+  });
+
+  it('central_organization با تبلیغ: خوش‌آمد تمام‌عرض و تبلیغ زیرش، بدون آمار/نمره', () => {
+    const slots = workbenchLayoutForRole('central_organization', {
+      showAd: true,
+      showRegionalCounts: true,
+    });
+    expect(workbenchSlotById(slots, 'welcome')?.placement).toMatchObject({
+      fullBleed: true,
+      rowStart: 1,
+      height: 'welcome',
+    });
+    const ad = workbenchSlotById(slots, 'ad');
+    expect(ad?.placement).toMatchObject({
+      colStart: 13,
+      rowStart: 2,
+      rowSpan: 2,
+    });
+    expect(ad?.includes).toBeUndefined();
+    expect(workbenchSlotById(slots, 'regional_counts')).toBeUndefined();
+  });
+
+  it('تمام‌عرض (fullBleed) ستون تبلیغ را هم می‌گیرد', () => {
+    const cls = workbenchCellClass({ colSpan: 12, colStart: 1, fullBleed: true });
+    expect(cls).toContain('md:col-span-full');
+    expect(cls).not.toContain('md:col-span-12');
   });
 
   it('keeps learner announcements 7 | materials 5', () => {

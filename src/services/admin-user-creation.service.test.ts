@@ -256,6 +256,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
       lname: 'محمدی',
       phone: '09111111111',
       role: 'admin',
+      password: '12345678',
     });
     expect(result.user.id).toBe('adm-1');
     expect(result.user.role).toBe('assistant_admin');
@@ -426,7 +427,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
     expect(detail.firstName).toBe('Ali');
   });
 
-  it('PUTs /admin/admins/{id} with Nest status 2', async () => {
+  it('PUTs /admin/admins/{id} with Nest StatusEnum active=1', async () => {
     vi.mocked(adminsApi.update).mockResolvedValue({
       id: 'adm-1',
       firstName: 'Ali',
@@ -434,7 +435,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
       mobile: '09386951413',
       role: 'super_admin',
       statusName: 'active',
-      statusCode: 2,
+      statusCode: 1,
       createdAt: '2026-08-29T14:11:55.298Z',
     });
 
@@ -451,7 +452,7 @@ describe('AdminUserCreationService (real staff admin)', () => {
       lname: 'Rezaei',
       phone: '09386951413',
       role: 'superadmin',
-      status: 2,
+      status: 1,
     });
     expect(detail.statusName).toBe('active');
   });

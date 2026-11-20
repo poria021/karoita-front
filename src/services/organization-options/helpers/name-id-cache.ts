@@ -13,32 +13,73 @@ type NameIdCache = {
   fetchedAt: number;
 };
 
+/**
+ * چند فیلد پروفایل هم‌زمان mount می‌شوند و هر کدام نام→id را resolve می‌کنند؛
+ * بدون اشتراک درخواست در حال انجام، هر کدام همان کاتالوگ را جداگانه می‌گرفتند.
+ */
+function shareInFlight<T>(
+  current: Promise<T> | null,
+  start: () => Promise<T>,
+  clear: () => void
+): Promise<T> {
+  if (current) return current;
+  return start().finally(clear);
+}
+
 const PROVINCE_CACHE_TTL_MS = 5 * 60 * 1_000;
 let provinceCache: NameIdCache | null = null;
+let provincePending: Promise<NameIdCache> | null = null;
 
-export async function resolveProvinceId(provinceName: string): Promise<string | undefined> {
+export async function resolveProvinceId(
+  provinceName: string
+): Promise<string | undefined> {
   const now = Date.now();
   if (!provinceCache || now - provinceCache.fetchedAt > PROVINCE_CACHE_TTL_MS) {
-    const all = await fetchAllNestProvinces();
-    provinceCache = {
-      byName: new Map(all.map((p) => [p.title, p.id])),
-      fetchedAt: now,
-    };
+    provincePending = shareInFlight(
+      provincePending,
+      async () => {
+        const all = await fetchAllNestProvinces();
+        const next = {
+          byName: new Map(all.map((p) => [p.title, p.id])),
+          fetchedAt: Date.now(),
+        };
+        provinceCache = next;
+        return next;
+      },
+      () => {
+        provincePending = null;
+      }
+    );
+    return (await provincePending).byName.get(provinceName);
   }
   return provinceCache.byName.get(provinceName);
 }
 
 const DISTRICT_CACHE_TTL_MS = 2 * 60 * 1_000;
 let districtCache: NameIdCache | null = null;
+let districtPending: Promise<NameIdCache> | null = null;
 
-export async function resolveDistrictId(districtName: string): Promise<string | undefined> {
+export async function resolveDistrictId(
+  districtName: string
+): Promise<string | undefined> {
   const now = Date.now();
   if (!districtCache || now - districtCache.fetchedAt > DISTRICT_CACHE_TTL_MS) {
-    const all = await fetchAllNestEducations();
-    districtCache = {
-      byName: new Map(all.map((d) => [d.title, d.id])),
-      fetchedAt: now,
-    };
+    districtPending = shareInFlight(
+      districtPending,
+      async () => {
+        const all = await fetchAllNestEducations();
+        const next = {
+          byName: new Map(all.map((d) => [d.title, d.id])),
+          fetchedAt: Date.now(),
+        };
+        districtCache = next;
+        return next;
+      },
+      () => {
+        districtPending = null;
+      }
+    );
+    return (await districtPending).byName.get(districtName);
   }
   return districtCache.byName.get(districtName);
 }
@@ -46,39 +87,57 @@ export async function resolveDistrictId(districtName: string): Promise<string | 
 const CITY_CACHE_TTL_MS = 2 * 60 * 1_000;
 // کلید `provinceId` تا عوض شدن استان کش استان قبلی را مصرف نکند.
 const cityCacheByProvince = new Map<string, NameIdCache>();
+const cityPendingByProvince = new Map<string, Promise<NameIdCache>>();
 
-export async function resolveCityId(cityName: string, provinceId?: string): Promise<string | undefined> {
+export async function resolveCityId(
+  cityName: string,
+  provinceId?: string
+): Promise<string | undefined> {
   const cacheKey = provinceId ?? '';
   const now = Date.now();
   const cached = cityCacheByProvince.get(cacheKey);
 
-  if (!cached || now - cached.fetchedAt > CITY_CACHE_TTL_MS) {
-    let all: Array<{ id: string; title: string }>;
-    if (provinceId) {
-      all = await adminCatalogApi.listCitiesByProvince(provinceId);
-    } else {
-      all = [];
-      let page = 1;
-      for (let i = 0; i < 50; i++) {
-        const res = await adminCatalogApi.listCities({ page, limit: 200 });
-        all.push(...res.data);
-        if (!res.hasNextPage) break;
-        page++;
-      }
-    }
-    cityCacheByProvince.set(cacheKey, {
-      byName: new Map(all.map((c) => [c.title, c.id])),
-      fetchedAt: now,
-    });
+  if (cached && now - cached.fetchedAt <= CITY_CACHE_TTL_MS) {
+    return cached.byName.get(cityName);
   }
 
-  return cityCacheByProvince.get(cacheKey)!.byName.get(cityName);
+  const pending = shareInFlight(
+    cityPendingByProvince.get(cacheKey) ?? null,
+    async () => {
+      let all: Array<{ id: string; title: string }>;
+      if (provinceId) {
+        all = await adminCatalogApi.listCitiesByProvince(provinceId);
+      } else {
+        all = [];
+        let page = 1;
+        for (let i = 0; i < 50; i++) {
+          const res = await adminCatalogApi.listCities({ page, limit: 200 });
+          all.push(...res.data);
+          if (!res.hasNextPage) break;
+          page++;
+        }
+      }
+      const next = {
+        byName: new Map(all.map((c) => [c.title, c.id])),
+        fetchedAt: Date.now(),
+      };
+      cityCacheByProvince.set(cacheKey, next);
+      return next;
+    },
+    () => {
+      cityPendingByProvince.delete(cacheKey);
+    }
+  );
+  cityPendingByProvince.set(cacheKey, pending);
+  return (await pending).byName.get(cityName);
 }
 
 const DEGREE_ROLE_CACHE_TTL_MS = 5 * 60 * 1_000;
 
-let degreeRoleIdByTitle: { byTitle: Map<string, string>; fetchedAt: number } | null =
-  null;
+let degreeRoleIdByTitle: {
+  byTitle: Map<string, string>;
+  fetchedAt: number;
+} | null = null;
 
 export async function resolveDegreeCatalogRoleId(
   role: UserRole

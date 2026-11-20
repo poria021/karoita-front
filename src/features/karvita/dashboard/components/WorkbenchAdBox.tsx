@@ -33,7 +33,8 @@ export type WorkbenchAdBoxProps = {
 };
 
 const BOX_BASE_CLASS = cn(
-  'relative w-full overflow-hidden rounded-kv-shell border',
+  // shrink-0: داخل سلول flex-col (تبلیغ + کارت نمرات) نباید زیر نسبت ۳:۴ جمع شود.
+  'relative w-full shrink-0 overflow-hidden rounded-kv-shell border',
   WORKBENCH_AD_ASPECT_CLASS
 );
 

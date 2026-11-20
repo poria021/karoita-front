@@ -48,7 +48,7 @@ describe('faculty workbench layout', () => {
       showRegionalCounts: true,
     });
     expect(workbenchSlotById(slots, 'regional_gender')!.placement).toMatchObject(
-      { colSpan: 6, colStart: 7, rowStart: 2, stretch: true }
+      { colSpan: 6, colStart: 7, rowStart: 2, height: 'mid' }
     );
     expect(
       workbenchSlotById(slots, 'regional_school_ranking')!.placement
@@ -61,7 +61,7 @@ describe('faculty workbench layout', () => {
     );
   });
 
-  it('با تبلیغ، آمار داخل سلول تبلیغ می‌آید (includes)', () => {
+  it('با تبلیغ، نمره و آمار چسبیده زیر تبلیغ در همان سلول‌اند', () => {
     const slots = workbenchLayoutForRole('faculty_role', {
       showAd: true,
       showRegionalCounts: true,

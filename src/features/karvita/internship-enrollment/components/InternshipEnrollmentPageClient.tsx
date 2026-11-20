@@ -2,6 +2,7 @@
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import type { InternshipEnrollmentLevel } from '@/types/internship-enrollment';
 
@@ -17,6 +18,7 @@ export function InternshipEnrollmentPageClient({
   level,
 }: InternshipEnrollmentPageProps) {
   const page = useInternshipEnrollmentPage(level);
+  useRegisterPageRefresh(page.reload);
 
   return (
     <InternshipEnrollmentGuard>

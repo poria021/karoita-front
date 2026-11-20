@@ -6,9 +6,12 @@ import type {
 } from '@/types/admin-user-creation';
 import type { NestCreateAdminDto, NestUpdateAdminDto } from '@/types/nest-admins';
 
-/** مثال PUT در Swagger `status: 2` است و ۲۰۰ `status.name: active`؛ غیرفعال اسلات عددی ۱. */
-export const NEST_ADMIN_STATUS_ACTIVE = 2;
-export const NEST_ADMIN_STATUS_INACTIVE = 1;
+/**
+ * هم‌تراز `StatusEnum` بک‌اند: active=1، inactive=2.
+ * (قبلاً برعکس از روی مثال قدیمی Swagger ست شده بود و فعال‌سازی ادمین را خراب می‌کرد.)
+ */
+export const NEST_ADMIN_STATUS_ACTIVE = 1;
+export const NEST_ADMIN_STATUS_INACTIVE = 2;
 
 /** مثال CreateAdmin.phone در Swagger با صفر اول است (`0938…`)؛ فرانت ۱۰ رقم بدون پیشوند نگه می‌دارد. */
 export function toNestAdminPhone(mobile: string): string {
@@ -36,18 +39,20 @@ export function nestPhonesMatch(left: string, right: string): boolean {
 export function toNestCreateAdminDto(
   input: Pick<
     CreateOrganizationalUserInput,
-    'firstName' | 'lastName' | 'mobile' | 'role'
+    'firstName' | 'lastName' | 'mobile' | 'password' | 'role'
   >
 ): NestCreateAdminDto {
   if (!isCreatableStaffAdminRole(input.role)) {
     throw new Error('این نقش از مسیر ایجاد ادمین پشتیبانی نمی‌شود.');
   }
 
+  const password = input.password?.trim();
   return {
     fname: input.firstName.trim(),
     lname: input.lastName.trim(),
     phone: toNestAdminPhone(input.mobile),
     role: toNestAdminAccountRole(input.role),
+    ...(password ? { password } : {}),
   };
 }
 

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
 import { KvRouteStatus } from '@/components/shared/KvRouteStatus';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvSplitWorkspace } from '@/components/shared/shell/KvSplitWorkspace';
 import type { OnboardingApprovalUser } from '@/types/onboarding-approvals';
@@ -19,6 +20,7 @@ import { OnboardingApprovalsTabs } from './OnboardingApprovalsTabs';
 
 export function OnboardingApprovalsPageClient() {
   const page = useOnboardingApprovalsPage();
+  useRegisterPageRefresh(page.reload);
   const [deleteTarget, setDeleteTarget] =
     useState<OnboardingApprovalUser | null>(null);
 

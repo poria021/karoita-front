@@ -13,16 +13,17 @@ import { KvButton } from '@/components/shared/KvButton';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { cn } from '@/lib/utils';
-import { workbenchBoxToneClass } from '@/lib/workbench-grid';
+import {
+  WORKBENCH_RANKING_BODY_CLASS,
+  WORKBENCH_RANKING_BOX_CLASS,
+  WORKBENCH_RANKING_BOX_STYLE,
+  workbenchBoxToneClass,
+} from '@/lib/workbench-grid';
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardSchoolRanking } from '../hooks/useDashboardSchoolRanking';
-import {
-  FAKE_SCHOOL_RANKING,
-  SCHOOL_RANKING_FAKE_PREVIEW,
-} from '../lib/school-ranking-preview';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchSchoolRankingBoxProps = {
@@ -72,12 +73,10 @@ export function WorkbenchSchoolRankingBox({
 }: WorkbenchSchoolRankingBoxProps) {
   const [tab, setTab] = useState<Tab>('weakest');
   const desk = useDashboardSchoolRanking(role);
-  // پیش‌نمایش با داده‌ی ماکت (فقط development) — برای خاموش کردن: school-ranking-preview.ts
-  const preview = SCHOOL_RANKING_FAKE_PREVIEW;
-  const summary = preview ? FAKE_SCHOOL_RANKING : desk.summary;
-  const isLoading = preview ? false : desk.isLoading;
-  const isError = preview ? false : desk.isError;
-  const isForbidden = preview ? false : desk.isForbidden;
+  const summary = desk.summary;
+  const isLoading = desk.isLoading;
+  const isError = desk.isError;
+  const isForbidden = desk.isForbidden;
   const items = summary[tab];
   const isEmpty =
     isError ||
@@ -97,15 +96,17 @@ export function WorkbenchSchoolRankingBox({
       aria-labelledby="dashboard-school-ranking-title"
       style={
         isEmpty
-          ? style
+          ? { ...WORKBENCH_RANKING_BOX_STYLE, ...style }
           : {
+              ...WORKBENCH_RANKING_BOX_STYLE,
               ...style,
               backgroundColor: TAB_BACKGROUND[tab],
               transition: 'background-color 250ms ease',
             }
       }
       className={cn(
-        'relative flex h-full min-h-[18rem] min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        'relative flex min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-kv-group py-kv-group',
+        WORKBENCH_RANKING_BOX_CLASS,
         workbenchBoxToneClass(isEmpty),
         className
       )}
@@ -156,36 +157,38 @@ export function WorkbenchSchoolRankingBox({
         </div>
       </div>
 
-      {isError ? (
-        <WorkbenchUnavailableNote forbidden={isForbidden} />
-      ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری نمودار مدارس"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
-      ) : isEmpty ? (
-        <KvEmptyState
-          title="هنوز دادهٔ کافی برای رتبه‌بندی مدارس منطقهٔ شما نیست."
-          className="min-h-0 py-1"
-        />
-      ) : (
-        <KvBarChart
-          key={tab}
-          rows={chartRows}
-          xKey="name"
-          valueKey="value"
-          valueLabel="میانگین نمره"
-          hintKey="hint"
-          color={TAB_BAR_COLOR[tab]}
-          height={CHART_HEIGHT}
-          barSize={28}
-          xTickFormatter={(value) => truncate(String(value), 22)}
-          formatValue={formatScore}
-          ariaLabel={`نمودار میله‌ای ${tabLabel} مدارس منطقه`}
-          className="min-h-0 flex-1"
-        />
-      )}
+      <div className={WORKBENCH_RANKING_BODY_CLASS}>
+        {isError ? (
+          <WorkbenchUnavailableNote forbidden={isForbidden} />
+        ) : isLoading ? (
+          <div
+            role="status"
+            aria-label="در حال بارگذاری نمودار مدارس"
+            className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+          />
+        ) : isEmpty ? (
+          <KvEmptyState
+            title="هنوز دادهٔ کافی برای رتبه‌بندی مدارس منطقهٔ شما نیست."
+            className="min-h-0 py-1"
+          />
+        ) : (
+          <KvBarChart
+            key={tab}
+            rows={chartRows}
+            xKey="name"
+            valueKey="value"
+            valueLabel="میانگین نمره"
+            hintKey="hint"
+            color={TAB_BAR_COLOR[tab]}
+            height={CHART_HEIGHT}
+            barSize={28}
+            xTickFormatter={(value) => truncate(String(value), 22)}
+            formatValue={formatScore}
+            ariaLabel={`نمودار میله‌ای ${tabLabel} مدارس منطقه`}
+            className="min-h-0 flex-1"
+          />
+        )}
+      </div>
     </section>
   );
 }

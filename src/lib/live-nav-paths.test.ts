@@ -196,9 +196,9 @@ describe('live nav / admin plane', () => {
       RouteService.karvita.orgReports('faculties'),
       RouteService.karvita.orgReports('provinces'),
     ]);
+    // حضور و غیاب اساتید برای سازمان مرکزی اختیاری است (فقط پس از اعطا در منو می‌آید).
     expect(centralGroups[1]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('attendance'),
-      RouteService.karvita.orgReports('professor-attendance'),
     ]);
     expect(centralGroups[2]?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.orgReports('teacher-performance'),

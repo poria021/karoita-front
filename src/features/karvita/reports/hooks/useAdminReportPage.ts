@@ -155,6 +155,12 @@ type CachedFilterBoxes = {
 const reportPageCache = new Map<string, CachedReportPage>();
 const periodOptionsCache = new Map<string, ReportOption[]>();
 const filterBoxesCache = new Map<string, CachedFilterBoxes>();
+/** درخواست در حال اجرا — Strict Mode / effect دوبار نباید دو GET موازی بزند. */
+const reportPageInflight = new Map<string, Promise<CachedReportPage>>();
+const filterBoxesInflight = new Map<
+  string,
+  Promise<(readonly [ReportFilterKey, LearnersFilterBox])[]>
+>();
 const REPORT_CACHE_MAX_ENTRIES = 200;
 
 function cacheSet<T>(map: Map<string, T>, key: string, value: T): void {
@@ -639,30 +645,41 @@ export function useAdminReportPage(
     setError(null);
     void (async () => {
       try {
-        const result = await ReportsService.queryReport({
-          slug,
-          filters,
-          query: debouncedQuery,
-          period,
-          sort,
-          page: 1,
-          pageSize: REPORT_LIST_LIMIT,
-        });
-        // حتی اگر کاربر تب را عوض کرده، نتیجه برای همان ترکیب معتبر است.
-        cacheSet(reportPageCache, reportCacheKey, {
-          at: Date.now(),
-          rows: result.rows,
-          columns: result.columns,
-          total: result.total,
-          hasNextPage: result.hasNextPage ?? false,
-          pageNo: 1,
-        });
+        let pending = reportPageInflight.get(reportCacheKey);
+        if (!pending) {
+          pending = (async () => {
+            const result = await ReportsService.queryReport({
+              slug,
+              filters,
+              query: debouncedQuery,
+              period,
+              sort,
+              page: 1,
+              pageSize: REPORT_LIST_LIMIT,
+            });
+            const entry: CachedReportPage = {
+              at: Date.now(),
+              rows: result.rows,
+              columns: result.columns,
+              total: result.total,
+              hasNextPage: result.hasNextPage ?? false,
+              pageNo: 1,
+            };
+            // حتی اگر کاربر تب را عوض کرده، نتیجه برای همان ترکیب معتبر است.
+            cacheSet(reportPageCache, reportCacheKey, entry);
+            return entry;
+          })().finally(() => {
+            reportPageInflight.delete(reportCacheKey);
+          });
+          reportPageInflight.set(reportCacheKey, pending);
+        }
+        const entry = await pending;
         if (cancelled) return;
-        setRows(result.rows);
-        setColumns(result.columns);
-        setTotal(result.total);
-        setHasNextPage(result.hasNextPage ?? false);
-        setPageNo(1);
+        setRows(entry.rows);
+        setColumns(entry.columns);
+        setTotal(entry.total);
+        setHasNextPage(entry.hasNextPage);
+        setPageNo(entry.pageNo);
       } catch (err) {
         if (cancelled) return;
         setError(
@@ -855,16 +872,24 @@ export function useAdminReportPage(
       > => {
         const hit = filterBoxesCache.get(boxesCacheKey);
         if (hit && Date.now() - hit.at < REPORT_CACHE_TTL_MS) return hit.entries;
+        const inflight = filterBoxesInflight.get(boxesCacheKey);
+        if (inflight) return inflight;
         boxesFailed = false;
-        const entries = await fetchBoxes();
-        // پاسخ خطادار (باکس‌های خالیِ جایگزین) کش نشود.
-        if (!boxesFailed) {
-          cacheSet(filterBoxesCache, boxesCacheKey, {
-            at: Date.now(),
-            entries,
-          });
-        }
-        return entries;
+        const pending = (async () => {
+          const entries = await fetchBoxes();
+          // پاسخ خطادار (باکس‌های خالیِ جایگزین) کش نشود.
+          if (!boxesFailed) {
+            cacheSet(filterBoxesCache, boxesCacheKey, {
+              at: Date.now(),
+              entries,
+            });
+          }
+          return entries;
+        })().finally(() => {
+          filterBoxesInflight.delete(boxesCacheKey);
+        });
+        filterBoxesInflight.set(boxesCacheKey, pending);
+        return pending;
       };
       void loadBoxes().then((entries) => {
         if (cancelled) return;

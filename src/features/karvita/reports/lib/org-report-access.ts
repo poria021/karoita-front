@@ -1,5 +1,6 @@
 import {
   APPROVED_ROLE_PAGES,
+  COMPARE_REPORT_SLUGS,
   ROLE_REPORT_CATALOG,
 } from '@/features/karvita/report-access/constants';
 import {
@@ -11,6 +12,7 @@ import {
 import {
   REPORT_PAGE_DEFS,
   REPORT_THEMES,
+  REPORT_COMPARE_ENABLED,
   filterEnabledReportSlugs,
   isEnabledReportSlug,
   isReportSlug,
@@ -407,7 +409,14 @@ export function canCompareOrgGrantedSlug(
   granted: readonly ReportSlug[] | null,
   compare: readonly ReportSlug[]
 ): boolean {
-  return isOrgReportGranted(role, slug, granted) && compare.includes(slug);
+  if (!isOrgReportGranted(role, slug, granted)) return false;
+  if (compare.includes(slug)) return true;
+  // سازمان مرکزی: مقایسهٔ عملکرد دانشکده‌ها/استان‌ها همراه با خودِ گزارش فعال است.
+  return (
+    REPORT_COMPARE_ENABLED &&
+    role === 'central_organization' &&
+    COMPARE_REPORT_SLUGS.includes(slug)
+  );
 }
 
 /**
