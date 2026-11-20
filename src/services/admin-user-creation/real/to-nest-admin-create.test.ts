@@ -37,6 +37,7 @@ describe('toNestCreateAdminDto', () => {
     firstName: 'علی',
     lastName: 'رضایی',
     mobile: '9386951413',
+    password: '',
   };
 
   it('maps assistant_admin to Nest role admin and includes password', () => {
