@@ -5,7 +5,10 @@ import { isForbiddenError } from '@/services/api-error';
 
 import type { UserRole } from '@/types/auth';
 
-import { dashboardTraineesQueryOptions } from './dashboardTraineesQuery';
+import {
+  canLoadDashboardTrainees,
+  dashboardTraineesQueryOptions,
+} from './dashboardTraineesQuery';
 import type { DashboardTraineesSnapshot } from '../lib/load-dashboard-trainees';
 import {
   buildStudentGradesList,
@@ -26,16 +29,27 @@ function selectGrades(snapshot: DashboardTraineesSnapshot): StudentGradeListItem
 }
 
 /**
- * نمرهٔ نهایی همهٔ فراگیران استاد راهنما. همان query مشترکِ فراگیرانِ میز کار
+ * نمرهٔ نهایی همهٔ فراگیران نقش‌های ارزیابی. همان query مشترکِ فراگیرانِ میز کار
  * (باکس تعداد فراگیران / برترین‌ها) را می‌خواند؛ درخواست اضافه نمی‌زند.
+ * برای منطقه/دانشکده/استان این API مجاز نیست → لیست خالی بدون درخواست.
  */
 export function useDashboardStudentGradesList(
   role: UserRole
 ): DashboardStudentGradesListState {
+  const allowed = canLoadDashboardTrainees(role);
   const query = useQuery({
     ...dashboardTraineesQueryOptions(role),
     select: selectGrades,
   });
+
+  if (!allowed) {
+    return {
+      isLoading: false,
+      isError: false,
+      isForbidden: false,
+      items: EMPTY,
+    };
+  }
 
   return {
     isLoading: query.isPending,

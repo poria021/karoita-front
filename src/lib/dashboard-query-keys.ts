@@ -48,6 +48,12 @@ export const DASHBOARD_QUERY = {
    * (همهٔ صفحه‌ها؛ محدوده را بک‌اند از کاربر لاگین‌شده می‌گیرد).
    */
   facultyCounts: ['reports', 'dashboard-faculty-counts'] as const,
+  /**
+   * ردیف‌های خام `professors|faculties/performance` — مشترک آمار، نرخ پاسخ،
+   * رتبه‌بندی نمره و رتبه‌بندی حضور (یک fetch، چند `select`).
+   */
+  facultyPerformanceRows: (slug: string) =>
+    ['reports', 'dashboard-faculty-performance-rows', slug] as const,
   /** توزیع/میانگین نرخ پاسخ‌دهی اساتید دانشکده روی میز کار مدیر دانشکده. */
   facultyResponseRate: ['reports', 'dashboard-faculty-response-rate'] as const,
   /** ۵ استاد ضعیف/قوی دانشکده بر اساس درصد حضور روی میز کار مدیر دانشکده. */

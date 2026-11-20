@@ -1,5 +1,6 @@
 'use client';
 
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -37,16 +38,15 @@ function termMetaLine(view: CurrentTermView): string {
   return parts.join(' · ');
 }
 
-/** اسکلت بارگذاری هم‌اندازهٔ تایل. */
+/** جایگزین بارگذاری هم‌اندازهٔ تایل — اسپینر وسط. */
 export function WorkbenchTermTileSkeleton() {
   return (
     <div
-      aria-hidden
-      className="flex h-[4.5rem] w-56 animate-pulse flex-col justify-center gap-2 rounded-kv-control border border-kv-border/60 bg-kv-surface/70 px-3"
+      role="status"
+      aria-label="در حال بارگذاری نیم‌سال"
+      className="flex h-[4.5rem] w-56 flex-col items-center justify-center rounded-kv-control border border-kv-border/60 bg-kv-surface/70 px-3"
     >
-      <span className="h-2.5 w-16 rounded-full bg-kv-border-muted" />
-      <span className="h-3.5 w-36 rounded-full bg-kv-border-muted" />
-      <span className="h-2.5 w-28 rounded-full bg-kv-border-muted" />
+      <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
     </div>
   );
 }

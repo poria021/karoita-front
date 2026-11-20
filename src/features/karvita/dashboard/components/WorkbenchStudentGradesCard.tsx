@@ -14,6 +14,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardStudentGradesList } from '../hooks/useDashboardStudentGradesList';
 import type { StudentGradeListItem } from '../lib/student-grades-list';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchStudentGradesCardProps = {
@@ -132,14 +133,19 @@ export function WorkbenchStudentGradesCard({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری نمرات فراگیران"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+        <WorkbenchBoxBusy
+          label="در حال بارگذاری نمرات فراگیران"
+          className="min-h-0"
         />
       ) : items.length === 0 ? (
         <KvEmptyState
-          title="هنوز فراگیری برای شما ثبت نشده است."
+          title={
+            role === 'regional_edu_admin' ||
+            role === 'faculty_role' ||
+            role === 'provincial_university'
+              ? 'هنوز نمره‌ای برای نمایش نیست.'
+              : 'هنوز فراگیری برای شما ثبت نشده است.'
+          }
           className="min-h-0 flex-1"
         />
       ) : (

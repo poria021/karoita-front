@@ -19,6 +19,7 @@ import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import type { Bulletin } from '@/types/bulletins';
 
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { workbenchErrorText } from './WorkbenchUnavailableNote';
 
 export type WorkbenchAnnouncementsBoxProps = {
@@ -114,9 +115,7 @@ function AnnouncementsBody({
 }) {
   if (isLoading) {
     return (
-      <KvTypography variant="caption" tone="muted" as="p">
-        در حال بارگذاری اطلاعیه‌ها…
-      </KvTypography>
+      <WorkbenchBoxBusy label="در حال بارگذاری اطلاعیه‌ها" className="min-h-0" />
     );
   }
 

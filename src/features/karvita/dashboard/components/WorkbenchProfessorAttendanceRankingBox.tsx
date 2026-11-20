@@ -27,6 +27,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 import { useDashboardProfessorAttendanceRanking } from '../hooks/useDashboardProfessorAttendanceRanking';
 import { facultyBoxSourceFor } from '../lib/faculty-box-source';
 import type { ProfessorAttendanceRankingItem } from '../lib/professor-attendance-ranking';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchProfessorAttendanceRankingBoxProps = {
@@ -177,10 +178,9 @@ export function WorkbenchProfessorAttendanceRankingBox({
         {isError ? (
           <WorkbenchUnavailableNote forbidden={isForbidden} />
         ) : isLoading ? (
-          <div
-            role="status"
-            aria-label={`در حال بارگذاری فهرست ${source.noun}`}
-            className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+          <WorkbenchBoxBusy
+            label={`در حال بارگذاری فهرست ${source.noun}`}
+            className="min-h-0"
           />
         ) : isEmpty ? (
           <KvEmptyState

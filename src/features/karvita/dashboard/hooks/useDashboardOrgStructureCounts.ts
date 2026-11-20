@@ -25,8 +25,13 @@ export type DashboardOrgStructureCountsState = {
  * شمار موجودیت‌های ساختار سازمانی برای میز کار ادمین —
  * `GET /users/dashboard/counts` (`places`)، یک درخواست سبک.
  */
-export function useDashboardOrgStructureCounts(): DashboardOrgStructureCountsState {
-  const query = useDashboardCountsQuery(orgCountsFromDashboardCounts);
+export function useDashboardOrgStructureCounts(
+  enabled = true
+): DashboardOrgStructureCountsState {
+  const query = useDashboardCountsQuery(
+    orgCountsFromDashboardCounts,
+    enabled
+  );
   const counts = query.data;
 
   const metrics = useMemo(() => buildOrgStructureCountMetrics(counts), [counts]);

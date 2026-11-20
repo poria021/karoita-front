@@ -29,6 +29,7 @@ import {
   findEvaluationModuleId,
 } from '../lib/course-pending-reports-href';
 import type { StudentGradeRankingItem } from '../lib/student-grade-ranking';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchStudentGradeRankingBoxProps = {
@@ -233,10 +234,9 @@ export function WorkbenchStudentGradeRankingBox({
         {isError ? (
           <WorkbenchUnavailableNote forbidden={isForbidden} />
         ) : isLoading ? (
-          <div
-            role="status"
-            aria-label="در حال بارگذاری فهرست فراگیران"
-            className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+          <WorkbenchBoxBusy
+            label="در حال بارگذاری فهرست فراگیران"
+            className="min-h-0"
           />
         ) : isEmpty ? (
           <KvEmptyState

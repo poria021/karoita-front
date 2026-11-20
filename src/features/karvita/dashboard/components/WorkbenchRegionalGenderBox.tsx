@@ -9,6 +9,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardRegionalCounts } from '../hooks/useDashboardRegionalCounts';
 import { StatusDonut, type DonutSegment } from './StatusDonut';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchRegionalGenderBoxProps = {
@@ -87,11 +88,7 @@ export function WorkbenchRegionalGenderBox({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری تفکیک مدارس"
-          className="min-h-[6rem] animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
+        <WorkbenchBoxBusy label="در حال بارگذاری تفکیک مدارس" />
       ) : (
         <div className="flex min-h-0 flex-row items-center justify-center gap-kv-group">
           <div className="flex min-w-0 shrink-0 items-center justify-center">

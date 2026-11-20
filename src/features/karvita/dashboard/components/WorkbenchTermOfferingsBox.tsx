@@ -17,6 +17,7 @@ import {
 } from '../hooks/useDashboardTermOfferings';
 import { currentTermStatus } from '../lib/current-terms';
 import { STATUS_CLASS, STATUS_LABEL } from './WorkbenchTermTile';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchTermOfferingsBoxProps = {
@@ -132,10 +133,9 @@ export function WorkbenchTermOfferingsBox({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری ترم و ارائهٔ دروس"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+        <WorkbenchBoxBusy
+          label="در حال بارگذاری ترم و ارائهٔ دروس"
+          className="min-h-0"
         />
       ) : rows.length === 0 ? (
         <KvEmptyState

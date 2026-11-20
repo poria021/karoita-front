@@ -15,6 +15,7 @@ import type { Bulletin } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { workbenchErrorText } from './WorkbenchUnavailableNote';
 
 const SLIDE_DURATION = 6000;
@@ -115,14 +116,9 @@ export function WorkbenchAdBox({
 
   if (isLoading) {
     return (
-      <div
-        role="status"
-        aria-label="در حال بارگذاری تبلیغات"
-        className={cn(
-          BOX_BASE_CLASS,
-          'animate-pulse border-kv-border/70 bg-kv-surface-muted',
-          className
-        )}
+      <WorkbenchBoxBusy
+        label="در حال بارگذاری تبلیغات"
+        className={cn(BOX_BASE_CLASS, 'min-h-0 border-kv-border/70', className)}
       />
     );
   }

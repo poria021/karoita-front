@@ -280,18 +280,15 @@ export function workbenchCellClass(placement: WorkbenchBoxPlacement): string {
 
 /**
  * سلول تبلیغ. نسبت باکس تبلیغ همه‌جا ۳:۴ است (`WORKBENCH_AD_ASPECT_CLASS`).
- * موبایل: ۲۴۰px وسط‌چین؛ با `fullWidthOnMobile` (میز کار دانشجو/مهارت‌آموز) تمام‌عرض.
+ * موبایل: تمام‌عرض (همهٔ پنل‌ها یکسان، همان `WorkbenchAdBox`).
  * md به بالا: ستون ثابت ۲۴۰px.
  */
 export function workbenchAdCellClass(
-  placement: WorkbenchBoxPlacement,
-  options: { fullWidthOnMobile?: boolean } = {}
+  placement: WorkbenchBoxPlacement
 ): string {
   return [
     workbenchCellClass(placement),
-    options.fullWidthOnMobile
-      ? 'justify-self-stretch'
-      : 'max-w-[240px] justify-self-center',
+    'justify-self-stretch',
     'md:w-[240px] md:max-w-none md:justify-self-end',
   ].join(' ');
 }

@@ -22,6 +22,7 @@ import {
   PERFORMANCE_RANKING_META,
   type PerformanceRankingEntity,
 } from '../lib/performance-ranking';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchWeakRankingBoxProps = {
@@ -138,11 +139,7 @@ export function WorkbenchWeakRankingBox({
       {active.isError ? (
         <WorkbenchUnavailableNote forbidden={active.isForbidden} />
       ) : active.isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری رتبه‌بندی"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
+        <WorkbenchBoxBusy label="در حال بارگذاری رتبه‌بندی" className="min-h-0" />
       ) : active.items.length === 0 ? (
         <KvEmptyState
           title="هنوز دادهٔ کافی برای رتبه‌بندی نیست."

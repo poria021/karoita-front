@@ -15,7 +15,6 @@ import {
   WORKBENCH_LEARNER_MOBILE_CLASS,
   workbenchShellClass,
 } from '@/lib/workbench-grid';
-import type { UserRole } from '@/types/auth';
 
 import { DashboardWidgetGrid } from './DashboardWidgetGrid';
 
@@ -39,41 +38,19 @@ export function WorkbenchHomeClient() {
       })
     : null;
 
+  const showAd = workbenchBoardShowsAd(activeUser.role);
+  const fullRowClass = workbenchCellClass(WORKBENCH_FULL_ROW_PLACEMENT);
   const learnerWorkbench =
     activeUser.role === 'student' || activeUser.role === 'skill_learner';
-
-  return (
-    <WorkbenchHomeShell
-      role={activeUser.role}
-      learnerWorkbench={learnerWorkbench}
-      welcomeName={displayName}
-      progress={progress}
-    />
-  );
-}
-
-function WorkbenchHomeShell({
-  role,
-  learnerWorkbench,
-  welcomeName,
-  progress,
-}: {
-  role: UserRole;
-  learnerWorkbench: boolean;
-  welcomeName: string;
-  progress: ReturnType<typeof getOnboardingProgress> | null;
-}) {
-  const showAd = workbenchBoardShowsAd(role);
-  const fullRowClass = workbenchCellClass(WORKBENCH_FULL_ROW_PLACEMENT);
 
   return (
     <div
       className={[
         workbenchShellClass(
           showAd,
-          role === 'regional_edu_admin' ||
-            role === 'faculty_role' ||
-            role === 'provincial_university'
+          activeUser.role === 'regional_edu_admin' ||
+            activeUser.role === 'faculty_role' ||
+            activeUser.role === 'provincial_university'
         ),
         learnerWorkbench ? WORKBENCH_LEARNER_MOBILE_CLASS : '',
       ]
@@ -81,7 +58,10 @@ function WorkbenchHomeShell({
         .join(' ')}
     >
       {learnerWorkbench ? (
-        <DashboardWidgetGrid role={role} welcomeName={welcomeName} />
+        <DashboardWidgetGrid
+          role={activeUser.role}
+          welcomeName={displayName}
+        />
       ) : null}
 
       {progress ? (
@@ -91,7 +71,10 @@ function WorkbenchHomeShell({
       ) : null}
 
       {!learnerWorkbench ? (
-        <DashboardWidgetGrid role={role} welcomeName={welcomeName} />
+        <DashboardWidgetGrid
+          role={activeUser.role}
+          welcomeName={displayName}
+        />
       ) : null}
     </div>
   );

@@ -24,6 +24,7 @@ import type { UserRole } from '@/types/auth';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardSchoolRanking } from '../hooks/useDashboardSchoolRanking';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchSchoolRankingBoxProps = {
@@ -161,10 +162,9 @@ export function WorkbenchSchoolRankingBox({
         {isError ? (
           <WorkbenchUnavailableNote forbidden={isForbidden} />
         ) : isLoading ? (
-          <div
-            role="status"
-            aria-label="در حال بارگذاری نمودار مدارس"
-            className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+          <WorkbenchBoxBusy
+            label="در حال بارگذاری نمودار مدارس"
+            className="min-h-0"
           />
         ) : isEmpty ? (
           <KvEmptyState

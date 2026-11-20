@@ -26,6 +26,7 @@ import type {
   ReportAccessMatrixRow,
   ReportAccessThemeId,
 } from '../lib/report-access-matrix';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchReportAccessBoxProps = {
@@ -243,11 +244,7 @@ export function WorkbenchReportAccessBox({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری دسترسی گزارش‌ها"
-          className="min-h-[6rem] flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
+        <WorkbenchBoxBusy label="در حال بارگذاری دسترسی گزارش‌ها" />
       ) : matrix.rows.length === 0 ? (
         <KvEmptyState
           title="هنوز دسترسی گزارشی ثبت نشده است."

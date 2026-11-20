@@ -24,6 +24,7 @@ import {
   type CourseCapacityRow,
 } from '../lib/course-capacity-rows';
 import { StatusDonut, type DonutSegment } from './StatusDonut';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchCourseCapacitiesBoxProps = {
@@ -179,10 +180,9 @@ export function WorkbenchCourseCapacitiesBox({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری ظرفیت دروس"
-          className="min-h-[8rem] flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+        <WorkbenchBoxBusy
+          label="در حال بارگذاری ظرفیت دروس"
+          className="min-h-[8rem]"
         />
       ) : rows.length === 0 ? (
         <KvEmptyState

@@ -39,11 +39,9 @@ function OrgReportsGuard({
     router.replace(getPostLoginPath(activeUser));
   }, [activeUser, denyRole, router, shouldRedirect]);
 
+  // تا وقتی ماتریس دسترسی settle شود، خودِ صفحهٔ گزارش (اسپینر جدول)
+  // نشان داده می‌شود — نه دوبارهٔ لودر برند داخل main.
   if (!activeUser || denyRole || shouldRedirect) {
-    return <DashboardAccessPlaceholder />;
-  }
-
-  if (waiting) {
     return <DashboardAccessPlaceholder />;
   }
 

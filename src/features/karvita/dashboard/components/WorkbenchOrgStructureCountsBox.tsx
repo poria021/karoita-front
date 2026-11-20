@@ -11,6 +11,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardOrgStructureCounts } from '../hooks/useDashboardOrgStructureCounts';
 import type { OrgStructureCountMetric } from '../lib/org-structure-counts';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { workbenchErrorText } from './WorkbenchUnavailableNote';
 
 export type WorkbenchOrgStructureCountsBoxProps = {
@@ -52,12 +53,14 @@ function OrgMetricCard({ metric }: { metric: OrgStructureCountMetric }) {
 /**
  * شاخص‌های ساختار سازمانی — کارت‌های مستقل سه‌ستونه (آیکون → برچسب → عدد)،
  * هم‌فرم با «تعداد نقش‌ها». هر کارت لینک به تب همان بخش است.
+ * میز کار مدیر ارشد / دستیار.
  */
 export function WorkbenchOrgStructureCountsBox({
   className,
   style,
 }: WorkbenchOrgStructureCountsBoxProps) {
-  const { isLoading, isError, isForbidden, metrics } = useDashboardOrgStructureCounts();
+  const { isLoading, isError, isForbidden, metrics } =
+    useDashboardOrgStructureCounts();
 
   if (isError) {
     return (
@@ -76,18 +79,8 @@ export function WorkbenchOrgStructureCountsBox({
 
   if (isLoading) {
     return (
-      <div
-        role="status"
-        aria-label="در حال بارگذاری ساختار سازمانی"
-        style={style}
-        className={cn(GRID_CLASS, className)}
-      >
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-[4rem] min-w-0 animate-pulse rounded-kv-control bg-kv-surface-muted"
-          />
-        ))}
+      <div style={style} className={cn('flex min-h-[8.5rem]', className)}>
+        <WorkbenchBoxBusy label="در حال بارگذاری ساختار سازمانی" />
       </div>
     );
   }

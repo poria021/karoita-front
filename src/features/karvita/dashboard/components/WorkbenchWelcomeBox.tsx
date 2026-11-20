@@ -3,6 +3,7 @@
 import type { CSSProperties } from 'react';
 
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
+import { Spinner } from '@/components/ui/spinner';
 import { WORKBENCH_LEARNER_WELCOME_STYLE } from '@/lib/workbench-grid';
 import { cn } from '@/lib/utils';
 import { useUserStore } from '@/store/useUserStore';
@@ -37,6 +38,7 @@ const WELCOME_TERM_STATUS_ROLES: ReadonlySet<UserRole> = new Set([
   'supervisor_professor',
   'mentor_teacher',
   'school_principal',
+  'regional_edu_admin',
   'faculty_role',
   'provincial_university',
   'central_organization',
@@ -104,11 +106,11 @@ function WelcomeTermStatusChip({
   if (loading) {
     return (
       <div
-        aria-hidden
-        className={cn(shell, 'animate-pulse gap-1.5')}
+        role="status"
+        aria-label="در حال بارگذاری نیم‌سال"
+        className={cn(shell, 'items-center justify-center')}
       >
-        <span className="h-2 w-10 rounded-full bg-kv-border-muted" />
-        <span className="h-2.5 w-24 rounded-full bg-kv-border-muted" />
+        <Spinner className="size-4 text-kv-brand" aria-hidden="true" />
       </div>
     );
   }

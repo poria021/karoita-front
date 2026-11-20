@@ -22,6 +22,7 @@ import { WorkbenchCreateOrgPanelLink } from '@/features/karvita/dashboard/compon
 import { WorkbenchFacultyCountsBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyCountsBox';
 import { WorkbenchFacultyResponseRateBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyResponseRateBox';
 import { WorkbenchLearnerCountsBox } from '@/features/karvita/dashboard/components/WorkbenchLearnerCountsBox';
+import { WorkbenchOrgStructureBreakdownBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureBreakdownBox';
 import { WorkbenchOrgStructureCountsBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureCountsBox';
 import { WorkbenchProfessorAttendanceRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorAttendanceRankingBox';
 import { WorkbenchProfessorScoreRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorScoreRankingBox';
@@ -33,11 +34,13 @@ import {
   RoleUserCountsGrid,
   WorkbenchRoleUserCountsBox,
 } from '@/features/karvita/dashboard/components/WorkbenchRoleUserCountsBox';
+import { buildOrgStructureCountMetrics } from '@/features/karvita/dashboard/lib/org-structure-counts';
 import { buildRoleUserCountMetrics } from '@/features/karvita/dashboard/lib/role-user-counts';
 import { WorkbenchTeacherCountBox } from '@/features/karvita/dashboard/components/WorkbenchTeacherCountBox';
 import { WorkbenchStudentGradesCard } from '@/features/karvita/dashboard/components/WorkbenchStudentGradesCard';
 import { WorkbenchWeakRankingBox } from '@/features/karvita/dashboard/components/WorkbenchWeakRankingBox';
 import { useDashboardCourseMaterials } from '@/features/karvita/dashboard/hooks/useDashboardCourseMaterials';
+import { workbenchLayoutOptionsForRole } from '@/features/karvita/dashboard/lib/workbench-layout-options';
 import { cn } from '@/lib/utils';
 import {
   WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE,
@@ -68,6 +71,16 @@ const CENTRAL_PREVIEW_ROLE_METRICS = buildRoleUserCountMetrics({
   central_organization: 5,
 });
 
+/** TEMP: داده‌ی نمایشی «تفکیک ساختار» سازمان مرکزی (API شمار فقط ادمین است). */
+const CENTRAL_PREVIEW_ORG_METRICS = buildOrgStructureCountMetrics({
+  provinces: 31,
+  cities: 37,
+  districts: 1,
+  schools: 5,
+  majors: 6,
+  faculties: 7,
+});
+
 type DashboardBulletinsBoardProps = {
   role: UserRole;
   leading: ReactNode;
@@ -90,25 +103,11 @@ export function DashboardBulletinsBoard({
   leading,
 }: DashboardBulletinsBoardProps) {
   const data = useDashboardBulletins(role);
-  const showAd = hasAdSpot(role);
   const kind = workbenchLayoutKindFor(role);
-  // معلم / مدیر مدرسه / استاد راهنما: هر دو API درس (میانگین نمره + در انتظار بررسی).
-  const showLessonReports = kind === 'evaluation';
-  const slots = workbenchLayoutForRole(role, {
-    showAd,
-    showCourseAverages: showLessonReports,
-    showCourseCapacities: role === 'supervisor_professor',
-    showCoursePendingReports: showLessonReports,
-    // برترین/ضعیف‌ترین فراگیران برای هر سه نقش ارزیابی؛ محدودهٔ داده را خود سرویس تعیین می‌کند.
-    showStudentGradeRanking: kind === 'evaluation',
-    // کارت نمرات برای نقش‌های ارزیابی (زیر تبلیغ وقتی تبلیغ هست).
-    showStudentGradesCard: kind === 'evaluation',
-    showRegionalCounts:
-      role === 'regional_edu_admin' ||
-      role === 'faculty_role' ||
-      role === 'provincial_university' ||
-      role === 'central_organization',
-  });
+  const slots = workbenchLayoutForRole(
+    role,
+    workbenchLayoutOptionsForRole(role)
+  );
   const actions = workbenchAnnouncementActionsFor(role);
   const announcementSource =
     kind === 'senior' ? 'received' : data.sources.announcement;
@@ -197,13 +196,9 @@ function WorkbenchBoardCell({
   const { id, placement } = slot;
   // ستون ۱۳ = ترک تبلیغ؛ باکسی که زیر تبلیغ می‌نشیند هم‌عرض خود تبلیغ می‌شود.
   const inAdTrack = id === 'ad' || placement.colStart === 13;
+  // همهٔ پنل‌ها همان `WorkbenchAdBox` + سلول تمام‌عرض موبایل.
   const cellClass = inAdTrack
-    ? workbenchAdCellClass(placement, {
-        // دانشجو/مهارت‌آموز و نقش‌های ارزیابی (معلم راهنما و ...): تبلیغ موبایل تمام‌عرض.
-        fullWidthOnMobile:
-          workbenchLayoutKindFor(role) === 'learner' ||
-          workbenchLayoutKindFor(role) === 'evaluation',
-      })
+    ? workbenchAdCellClass(placement)
     : workbenchCellClass(placement);
   const cellStyle = workbenchCellStyle(placement);
   // دانشگاه استانی دقیقاً همان باکس‌های مدیر دانشکده را دارد.
@@ -357,9 +352,15 @@ function WorkbenchBoardCell({
       );
     case 'regional_gender':
       // هم‌قدِ اطلاعیه‌ها: سلول کش می‌آید و باکس کل ارتفاعش را می‌گیرد؛ ارتفاع ردیف از همین باکس است.
+      // سازمان مرکزی: دونات «تفکیک ساختار»؛ دانشکده: نرخ پاسخ؛ منطقه: دخترانه/پسرانه.
       return (
         <div className={cellClass} style={cellStyle}>
-          {facultyBoxes ? (
+          {role === 'central_organization' ? (
+            <WorkbenchOrgStructureBreakdownBox
+              className="h-full w-full max-w-none"
+              metrics={CENTRAL_PREVIEW_ORG_METRICS}
+            />
+          ) : facultyBoxes ? (
             <WorkbenchFacultyResponseRateBox
               role={role}
               className="h-full w-full max-w-none"

@@ -23,6 +23,7 @@ import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardTeacherResponseRanking } from '../hooks/useDashboardTeacherResponseRanking';
 import type { TeacherResponseRankingItem } from '../lib/teacher-response-ranking';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchTeacherResponseRankingBoxProps = {
@@ -165,10 +166,9 @@ export function WorkbenchTeacherResponseRankingBox({
         {isError ? (
           <WorkbenchUnavailableNote forbidden={isForbidden} />
         ) : isLoading ? (
-          <div
-            role="status"
-            aria-label="در حال بارگذاری فهرست معلمان"
-            className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+          <WorkbenchBoxBusy
+            label="در حال بارگذاری فهرست معلمان"
+            className="min-h-0"
           />
         ) : isEmpty ? (
           <KvEmptyState

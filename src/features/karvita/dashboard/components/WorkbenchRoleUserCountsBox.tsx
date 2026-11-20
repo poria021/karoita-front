@@ -14,6 +14,7 @@ import {
   type DashboardRoleUserCountsState,
 } from '../hooks/useDashboardRoleUserCounts';
 import type { RoleUserCountMetric } from '../lib/role-user-counts';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { workbenchErrorText } from './WorkbenchUnavailableNote';
 
 export type WorkbenchRoleUserCountsBoxProps = {
@@ -112,16 +113,10 @@ export function RoleUserCountsGrid({
       )}
     >
       {isLoading ? (
-        Array.from({ length: 9 }, (_, index) => (
-          <div
-            key={index}
-            aria-hidden
-            className={cn(
-              'min-h-0 min-w-0 animate-pulse bg-kv-surface-muted/40',
-              cellDividerClass(index)
-            )}
-          />
-        ))
+        <WorkbenchBoxBusy
+          label="در حال بارگذاری تعداد کاربران هر نقش"
+          className="col-span-3 row-span-3 min-h-0"
+        />
       ) : isError || metrics.length === 0 ? (
         <div className="col-span-3 row-span-3 flex items-center justify-center px-3 text-center">
           <KvTypography variant="caption" tone="muted" as="p">

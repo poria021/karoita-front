@@ -149,7 +149,6 @@ function readRoleIdentifier(
     case 'supervisor_professor':
     case 'mentor_teacher':
     case 'school_principal':
-    case 'regional_edu_admin':
       return { personalCode: uniqueId };
     default:
       return {};

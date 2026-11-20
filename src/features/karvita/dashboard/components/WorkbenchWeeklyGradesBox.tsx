@@ -13,6 +13,7 @@ import {
   buildLearnerGradeChartRows,
   type LearnerGradeSeries,
 } from '../lib/learner-workbench';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { workbenchErrorText } from './WorkbenchUnavailableNote';
 
 const CHART_HEIGHT = 300;
@@ -86,9 +87,9 @@ export function WorkbenchWeeklyGradesBox({
           className="min-h-[300px] py-kv-pair"
         />
       ) : isLoading ? (
-        <div
-          aria-hidden
-          className="h-[300px] flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+        <WorkbenchBoxBusy
+          label="در حال بارگذاری روند نمره هفتگی"
+          className="h-[300px] min-h-[300px]"
         />
       ) : !hasScores ? (
         <KvEmptyState

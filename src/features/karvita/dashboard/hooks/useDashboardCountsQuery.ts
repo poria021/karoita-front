@@ -13,12 +13,14 @@ import type { NestDashboardCountsDto } from '@/types/nest-users';
  * هر باکس با `select` سهم خودش را برمی‌دارد.
  */
 export function useDashboardCountsQuery<T>(
-  select: (dto: NestDashboardCountsDto) => T
+  select: (dto: NestDashboardCountsDto) => T,
+  enabled = true
 ) {
   return useQuery({
     queryKey: DASHBOARD_QUERY.usersDashboardCounts,
     queryFn: () => usersApi.dashboardCounts(),
     staleTime: QUERY_STALE_MS.module,
     select,
+    enabled,
   });
 }

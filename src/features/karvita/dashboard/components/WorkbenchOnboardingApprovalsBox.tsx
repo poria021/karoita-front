@@ -16,6 +16,7 @@ import { getRoleStrategy } from '@/utils/role-strategy';
 import { useDashboardDocumentsStatus } from '../hooks/useDashboardDocumentsStatus';
 import { useDashboardOnboardingApprovals } from '../hooks/useDashboardOnboardingApprovals';
 import { StatusDonut } from './StatusDonut';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchOnboardingBoxProps = {
@@ -107,11 +108,7 @@ export function WorkbenchPendingQueueBox({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری صف بررسی"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
+        <WorkbenchBoxBusy label="در حال بارگذاری صف بررسی" className="min-h-0" />
       ) : summary.pendingPreview.length === 0 ? (
         <KvEmptyState
           title="فعلاً پرونده‌ای در صف بررسی نیست."
@@ -175,11 +172,7 @@ export function WorkbenchApprovalsDonutBox({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری وضعیت پرونده‌ها"
-          className="min-h-[6rem] animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
+        <WorkbenchBoxBusy label="در حال بارگذاری وضعیت پرونده‌ها" />
       ) : (
         <div className="flex min-h-0 flex-row items-center justify-center gap-kv-group">
           {/* نمودار سمت راست: بقیهٔ عرض را می‌گیرد و وسط‌چین است */}

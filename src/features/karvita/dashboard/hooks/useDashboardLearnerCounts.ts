@@ -7,7 +7,10 @@ import type { UserRole } from '@/types/auth';
 
 import { buildLearnerCounts, type LearnerCountsSummary } from '../lib/learner-counts';
 import type { DashboardTraineesSnapshot } from '../lib/load-dashboard-trainees';
-import { dashboardTraineesQueryOptions } from './dashboardTraineesQuery';
+import {
+  canLoadDashboardTrainees,
+  dashboardTraineesQueryOptions,
+} from './dashboardTraineesQuery';
 
 export type DashboardLearnerCountsState = {
   isLoading: boolean;
@@ -30,10 +33,20 @@ function selectLearnerCounts(
 export function useDashboardLearnerCounts(
   role: UserRole
 ): DashboardLearnerCountsState {
+  const allowed = canLoadDashboardTrainees(role);
   const query = useQuery({
     ...dashboardTraineesQueryOptions(role),
     select: selectLearnerCounts,
   });
+
+  if (!allowed) {
+    return {
+      isLoading: false,
+      isError: false,
+      isForbidden: false,
+      counts: null,
+    };
+  }
 
   return {
     isLoading: query.isPending,

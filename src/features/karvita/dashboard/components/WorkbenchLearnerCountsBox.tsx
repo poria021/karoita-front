@@ -10,6 +10,7 @@ import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardLearnerCounts } from '../hooks/useDashboardLearnerCounts';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchCountCard } from './WorkbenchCountCard';
 import { workbenchErrorText } from './WorkbenchUnavailableNote';
 
@@ -101,18 +102,10 @@ export function WorkbenchLearnerCountsBox({
       )}
     >
       {isLoading ? (
-        <>
-          {showTeachers ? (
-            <div
-              aria-hidden
-              className="h-24 animate-pulse rounded-kv-control bg-kv-surface-muted"
-            />
-          ) : null}
-          <div
-            aria-hidden
-            className="h-32 animate-pulse rounded-kv-control bg-kv-surface-muted"
-          />
-        </>
+        <WorkbenchBoxBusy
+          label="در حال بارگذاری تعداد فراگیران"
+          className="col-span-full min-h-24"
+        />
       ) : isError || counts == null ? (
         <div className="col-span-full flex min-h-24 items-center justify-center rounded-kv-control border border-dashed border-kv-border-strong px-2 py-3 text-center">
           <KvTypography variant="caption" tone="muted" as="p">

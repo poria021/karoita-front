@@ -11,6 +11,8 @@ import type { ListReportSlug } from '@/services/reports/real/list-reports.api';
 import type { UserRole } from '@/types/auth';
 import type { ReportPeriodState, ReportRow } from '@/types/reports';
 
+import { facultyPerformanceQueryOptions } from './facultyPerformanceQuery';
+
 /** لیست‌ها به semester وابسته نیستند؛ مثل بقیهٔ هوک‌های میز کار period خالی می‌رود. */
 const DASHBOARD_PERIOD: ReportPeriodState = {
   mode: 'term',
@@ -87,52 +89,105 @@ export function summarizeFacultyCounts(input: {
   truncated?: boolean;
 }): FacultyCounts {
   return {
-    professors: input.professors.length,
-    schools: input.schools.length,
+    professors: input.professors?.length ?? 0,
+    schools: input.schools?.length ?? 0,
     faculties: input.faculties?.length,
     learners: input.learners,
     truncated: input.truncated === true,
   };
 }
 
+type FacultyCountsRest = {
+  professors: { rows: ReportRow[]; truncated: boolean };
+  schools: { rows: ReportRow[]; truncated: boolean };
+  learners: { count: number; truncated: boolean };
+};
+
+function isFacultyCountsRest(value: unknown): value is FacultyCountsRest {
+  if (!value || typeof value !== 'object') return false;
+  const rec = value as Record<string, unknown>;
+  const professors = rec.professors;
+  const schools = rec.schools;
+  const learners = rec.learners;
+  return (
+    !!professors &&
+    typeof professors === 'object' &&
+    Array.isArray((professors as { rows?: unknown }).rows) &&
+    !!schools &&
+    typeof schools === 'object' &&
+    Array.isArray((schools as { rows?: unknown }).rows) &&
+    !!learners &&
+    typeof learners === 'object' &&
+    typeof (learners as { count?: unknown }).count === 'number'
+  );
+}
+
 /**
  * یک کوئری مشترک برای کارت‌های آمار میز کار مدیر دانشکده.
  * محدودهٔ داده را خود بک‌اند از روی کاربر لاگین‌شده تعیین می‌کند.
  * دانشگاه استانی: دانشکده‌ها / اساتید / فراگیران (به‌جای اساتید / فراگیران / مدارس).
+ * شمار دانشکده‌ها از همان کوئری مشترک `faculties/performance` می‌آید (نه fetch جدا).
  */
 export function useDashboardFacultyCounts(
   role?: UserRole
 ): DashboardFacultyCountsState {
   const provincial = role === 'provincial_university';
-  const query = useQuery({
-    queryKey: [...DASHBOARD_QUERY.facultyCounts, provincial ? 'provincial' : 'faculty'],
+
+  const performanceQuery = useQuery({
+    ...facultyPerformanceQueryOptions('faculty-performance'),
+    enabled: provincial,
+  });
+
+  const restQuery = useQuery({
+    // `rest-v2`: شکل داده عوض شده؛ کش قدیمی FacultyCounts تخت را نخوریم.
+    queryKey: [
+      ...DASHBOARD_QUERY.facultyCounts,
+      'rest-v2',
+      provincial ? 'provincial' : 'faculty',
+    ],
     staleTime: QUERY_STALE_MS.module,
-    queryFn: async () => {
+    queryFn: async (): Promise<FacultyCountsRest> => {
       const empty = { rows: [] as ReportRow[], truncated: false };
-      const [professors, schools, faculties, learners] = await Promise.all([
+      const [professors, schools, learners] = await Promise.all([
         collectAllPages('professors'),
-        provincial ? empty : collectAllPages('school-performance'),
-        provincial ? collectAllPages('faculty-performance') : empty,
+        provincial ? Promise.resolve(empty) : collectAllPages('school-performance'),
         collectLearnersCount(),
       ]);
-      return summarizeFacultyCounts({
-        professors: professors.rows,
-        schools: schools.rows,
-        faculties: provincial ? faculties.rows : undefined,
-        learners: learners.count,
-        truncated:
-          professors.truncated ||
-          schools.truncated ||
-          faculties.truncated ||
-          learners.truncated,
-      });
+      return { professors, schools, learners };
     },
   });
 
+  const rest = isFacultyCountsRest(restQuery.data) ? restQuery.data : null;
+
+  const isLoading =
+    (restQuery.isPending && !rest) ||
+    (provincial && performanceQuery.isPending && !performanceQuery.data);
+  const isError =
+    (restQuery.isError && !rest) ||
+    (provincial && performanceQuery.isError && !performanceQuery.data);
+  const isForbidden =
+    isForbiddenError(restQuery.error) ||
+    (provincial && isForbiddenError(performanceQuery.error));
+
+  let counts: FacultyCounts | null = null;
+  if (rest && (!provincial || performanceQuery.data)) {
+    counts = summarizeFacultyCounts({
+      professors: rest.professors.rows,
+      schools: rest.schools.rows,
+      faculties: provincial ? performanceQuery.data?.rows : undefined,
+      learners: rest.learners.count,
+      truncated:
+        rest.professors.truncated ||
+        rest.schools.truncated ||
+        rest.learners.truncated ||
+        (provincial && performanceQuery.data?.truncated === true),
+    });
+  }
+
   return {
-    isLoading: query.isPending && !query.data,
-    isError: query.isError && !query.data,
-    isForbidden: isForbiddenError(query.error),
-    counts: query.data ?? null,
+    isLoading,
+    isError,
+    isForbidden,
+    counts,
   };
 }

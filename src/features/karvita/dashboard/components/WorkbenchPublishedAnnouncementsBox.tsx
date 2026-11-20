@@ -35,6 +35,7 @@ import { formatJalaliSlashDisplay } from '@/utils/formatJalaliDate';
 import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import { isForbiddenError } from '@/services/api-error';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchPublishedAnnouncementsBoxProps = {
@@ -155,10 +156,9 @@ export function WorkbenchPublishedAnnouncementsBox({
       {query.isError ? (
         <WorkbenchUnavailableNote forbidden={isForbiddenError(query.error)} />
       ) : query.isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری اطلاعیه‌های منتشرشده"
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
+        <WorkbenchBoxBusy
+          label="در حال بارگذاری اطلاعیه‌های منتشرشده"
+          className="min-h-0"
         />
       ) : items.length === 0 ? (
         <KvEmptyState

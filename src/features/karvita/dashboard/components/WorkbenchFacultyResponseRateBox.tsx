@@ -15,6 +15,7 @@ import {
   FACULTY_RESPONSE_MID,
 } from '../lib/faculty-response-rate';
 import { StatusDonut, type DonutSegment } from './StatusDonut';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchFacultyResponseRateBoxProps = {
@@ -104,11 +105,7 @@ export function WorkbenchFacultyResponseRateBox({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری نرخ پاسخ‌دهی"
-          className="min-h-[6rem] animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
+        <WorkbenchBoxBusy label="در حال بارگذاری نرخ پاسخ‌دهی" />
       ) : (
         <div className="flex min-h-0 flex-row items-center justify-center gap-kv-group">
           <div className="flex min-w-0 shrink-0 items-center justify-center">

@@ -18,6 +18,7 @@ import {
   type PerformanceRankingDirection,
   type PerformanceRankingEntity,
 } from '../lib/performance-ranking';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchPerformanceRankingBoxProps = {
@@ -124,11 +125,7 @@ export function WorkbenchPerformanceRankingBox({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label={`در حال بارگذاری ${title}`}
-          className="min-h-0 flex-1 animate-pulse rounded-kv-control bg-kv-surface-muted"
-        />
+        <WorkbenchBoxBusy label={`در حال بارگذاری ${title}`} className="min-h-0" />
       ) : items.length === 0 ? (
         <KvEmptyState
           title="هنوز دادهٔ کافی برای رتبه‌بندی نیست."

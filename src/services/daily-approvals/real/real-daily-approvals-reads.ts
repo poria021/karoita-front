@@ -53,16 +53,14 @@ import type {
 import type { NestStudentEnrollment } from '@/types/nest-student-enrollments';
 
 /**
- * نقش‌هایی که `open-course-selection` برایشان بسته است (۴۰۳) —
- * میز کار ارزیابی دو بار listTerms می‌زند (ترمی+پودمانی)؛ نباید همان GET شکست‌خورده را تکرار کند.
+ * فقط فراگیر به `open-course-selection` دسترسی دارد (نقش‌های دیگر ۴۰۳).
+ * میز کار ارزیابی/منطقه چند بار listTerms می‌زند؛ نباید همان GET شکست‌خورده را تکرار کند.
  */
 function shouldSkipOpenCourseSelection(): boolean {
   const role = useUserStore.getState().activeUser?.role;
-  return (
-    role === 'mentor_teacher' ||
-    role === 'supervisor_professor' ||
-    role === 'school_principal'
-  );
+  // بدون نقش معلوم open را امتحان می‌کنیم (مثل قبل)؛ فقط نقش‌های غیر فراگیر را skip می‌کنیم.
+  if (!role) return false;
+  return role !== 'student' && role !== 'skill_learner';
 }
 
 /**
@@ -72,7 +70,7 @@ function shouldSkipOpenCourseSelection(): boolean {
  * `real-enrollment-reads.ts`). اگر درخواست خطا بدهد یا ساختار نیم‌سالِ باز با نوع این
  * ماژول (کارورزی/کارآموزی) نخواند، وضعیت نامعلوم است و `ended` ست نمی‌شود.
  *
- * نقش‌های ارزیابی (معلم/استاد/مدیر مدرسه) اصلاً open را صدا نمی‌زنند.
+ * نقش‌های غیر فراگیر اصلاً open را صدا نمی‌زنند.
  */
 export async function listRealDailyApprovalTerms(
   kind: ListDailyApprovalsInput['kind']

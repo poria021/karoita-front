@@ -9,6 +9,7 @@ import type { OrganizationalCapacityKind } from '@/types/organizational-capaciti
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardCapacityStatus } from '../hooks/useDashboardCapacityStatus';
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
 import { WorkbenchUnavailableNote } from './WorkbenchUnavailableNote';
 
 export type WorkbenchLearnerTypeCountsBoxProps = {
@@ -95,10 +96,9 @@ export function WorkbenchLearnerTypeCountsBox({
       {isError ? (
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
-        <div
-          role="status"
-          aria-label="در حال بارگذاری تعداد فراگیران"
-          className="min-h-[2rem] animate-pulse rounded-kv-control bg-kv-surface-muted"
+        <WorkbenchBoxBusy
+          label="در حال بارگذاری تعداد فراگیران"
+          className="min-h-[2rem]"
         />
       ) : (
         <div className="flex min-w-0 flex-col gap-kv-group">

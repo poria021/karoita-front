@@ -4,6 +4,7 @@ import type { CSSProperties } from 'react';
 
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import type { CourseMaterial } from '@/types/course-materials';
@@ -68,9 +69,13 @@ export function DashboardCourseMaterialsBox({
       </header>
 
       {isLoading ? (
-        <KvTypography variant="caption" tone="muted" as="p">
-          در حال بارگذاری جزوه‌ها…
-        </KvTypography>
+        <div
+          role="status"
+          aria-label="در حال بارگذاری جزوه‌ها"
+          className="flex min-h-0 flex-1 items-center justify-center py-kv-pair"
+        >
+          <Spinner className="size-5 text-kv-brand" aria-hidden="true" />
+        </div>
       ) : materials.length === 0 ? (
         <KvEmptyState
           title="فعلاً جزوه‌ای برای درس‌های این نیم‌سال نیست."
