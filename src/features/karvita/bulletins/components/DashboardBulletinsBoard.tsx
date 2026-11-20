@@ -239,6 +239,9 @@ function WorkbenchBoardCell({
     case 'ad': {
       const gradesBelowAd = slot.includes?.includes('student_grades_card');
       const countsBelowAd = slot.includes?.includes('regional_counts');
+      // موبایل: سلول خالی تبلیغ gap اضافه نسازد (باکس داخل خودش هم max-md مخفی است).
+      const hideEmptyAdCellOnMobile =
+        !isLoading && (isError || ads.length === 0);
       if (gradesBelowAd || countsBelowAd) {
         // تبلیغ + نمره + آمار چسبیده. overflow≠visible تا min-content
         // سلول ردیف خوش‌آمد را باد نکند؛ self-stretch ارتفاع را از باکس‌های چپ می‌گیرد.
@@ -271,7 +274,10 @@ function WorkbenchBoardCell({
         );
       }
       return (
-        <div className={cellClass} style={cellStyle}>
+        <div
+          className={cn(cellClass, hideEmptyAdCellOnMobile && 'max-md:hidden')}
+          style={cellStyle}
+        >
           <WorkbenchAdBox
             ads={ads}
             isLoading={isLoading}

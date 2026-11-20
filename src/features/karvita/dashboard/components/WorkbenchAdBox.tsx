@@ -69,7 +69,7 @@ function AdSlideContent({ ad }: { ad: Bulletin }) {
 
 /**
  * باکس تبلیغ مشترک میز کار — اسلایدر با نسبت ۳:۴.
- * بدون تبلیغ فعال (یا خطا) همان اندازهٔ ۳:۴ را نگه می‌دارد، ولی خالی و خط‌چین.
+ * بدون تبلیغ (یا خطا): دسکتاپ همان اندازهٔ ۳:۴ خالی/خط‌چین؛ موبایل اصلاً رندر نمی‌شود.
  */
 export function WorkbenchAdBox({
   ads,
@@ -127,14 +127,14 @@ export function WorkbenchAdBox({
     );
   }
 
-  // خالی / خطا: همان اندازه، پس‌زمینهٔ شفاف و بردر خط‌چین.
+  // خالی / خطا: دسکتاپ همان اندازه با خط‌چین؛ موبایل مخفی تا جای خالی نگیرد.
   if (isError || count === 0 || !shown) {
     return (
       <section
         aria-label="تبلیغات"
         className={cn(
           BOX_BASE_CLASS,
-          'flex items-center justify-center px-kv-group text-center',
+          'hidden items-center justify-center px-kv-group text-center md:flex',
           workbenchBoxToneClass(true),
           className
         )}
