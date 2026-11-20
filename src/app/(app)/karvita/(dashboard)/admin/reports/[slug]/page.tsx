@@ -7,6 +7,7 @@ import {
   isReportSlug,
   REPORT_COMPARE_ENABLED,
   REPORT_PAGE_DEFS,
+  REPORTS_MODULE_ENABLED,
 } from '@/features/karvita/reports/constants';
 import {
   hrefWithoutDisabledReportCompare,
@@ -40,6 +41,9 @@ export default async function AdminReportSlugPage({
   searchParams,
 }: PageProps) {
   const { slug } = await params;
+  if (!REPORTS_MODULE_ENABLED) {
+    redirect(RouteService.karvita.adminDashboard());
+  }
   if (!isReportSlug(slug)) notFound();
   if (!isEnabledReportSlug(slug)) {
     redirect(RouteService.karvita.reports(DEFAULT_REPORT_SLUG));

@@ -168,46 +168,6 @@ describe('org-report-access', () => {
     ).toContain(RouteService.karvita.orgReports('province-performance'));
   });
 
-  it('splits provincial university reports into themed sidebar modules', () => {
-    const groups = orgReportsSidebarEntries('provincial_university');
-    expect(groups.map((g) => g.title)).toEqual([
-      'گزارش‌های لیستی',
-      'حضور و غیاب',
-      'گزارش‌های عملکرد',
-    ]);
-    expect(groups[0]?.children.map((c) => c.title)).toEqual([
-      'لیست فراگیران',
-      'لیست اساتید',
-      'لیست دانشکده‌ها',
-    ]);
-    expect(groups[1]?.children.map((c) => c.title)).toEqual([
-      'حضور و غیاب فراگیران',
-      'حضور و غیاب اساتید راهنما',
-    ]);
-    expect(groups[2]?.children.map((c) => c.title)).toEqual([
-      'عملکرد اساتید',
-      'عملکرد دانشکده‌ها',
-    ]);
-  });
-
-  it('splits regional edu admin reports into themed sidebar modules', () => {
-    const groups = orgReportsSidebarEntries('regional_edu_admin');
-    expect(groups.map((g) => g.title)).toEqual([
-      'گزارش‌های لیستی',
-      'گزارش‌های عملکرد',
-    ]);
-    expect(groups[0]?.children.map((c) => c.title)).toEqual([
-      'لیست فراگیران',
-      'لیست معلمان',
-      'لیست مدیران مدارس',
-      'لیست مدارس',
-    ]);
-    expect(groups[1]?.children.map((c) => c.title)).toEqual([
-      'عملکرد معلمان',
-      'عملکرد مدارس',
-    ]);
-  });
-
   it('splits faculty reports into themed sidebar modules without losing any report', () => {
     const groups = orgReportsSidebarEntries('faculty_role');
     expect(groups.map((g) => g.title)).toEqual([

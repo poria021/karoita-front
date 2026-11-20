@@ -13,6 +13,7 @@ import {
   REPORT_PAGE_DEFS,
   REPORT_THEMES,
   REPORT_COMPARE_ENABLED,
+  REPORTS_MODULE_ENABLED,
   filterEnabledReportSlugs,
   isEnabledReportSlug,
   isReportSlug,
@@ -42,14 +43,20 @@ const REPORT_THEME_ICONS: Record<string, string> = {
 type DisabledReportSlugs = ReadonlySet<ReportSlug>;
 const NO_DISABLED_SLUGS: DisabledReportSlugs = new Set<ReportSlug>();
 
+const ORG_REPORT_GROUP_TITLES = new Set([
+  'گزارش‌گیری',
+  'گزارش‌های لیستی',
+  'حضور و غیاب',
+  'گزارش‌های عملکرد',
+]);
+
 function isOrgReportsMenuGroup(
   entry: SidebarMenuEntry
 ): entry is SidebarMenuGroup {
-  return (
-    isSidebarMenuGroup(entry) &&
-    entry.children.some((child) =>
-      child.path.startsWith(RouteService.karvita.orgReports())
-    )
+  if (!isSidebarMenuGroup(entry)) return false;
+  if (ORG_REPORT_GROUP_TITLES.has(entry.title)) return true;
+  return entry.children.some((child) =>
+    child.path.startsWith(RouteService.karvita.orgReports())
   );
 }
 
@@ -337,6 +344,7 @@ export function orgReportsSidebarEntries(
   slugs?: readonly ReportSlug[],
   disabled: DisabledReportSlugs = NO_DISABLED_SLUGS
 ): SidebarMenuGroup[] {
+  if (!REPORTS_MODULE_ENABLED) return [];
   const list = slugs ?? orgApprovedReportSlugs(role);
   if (usesThemedOrgReportSidebar(role)) {
     return orgReportsThemedSidebarGroups(list, role, disabled);
@@ -433,6 +441,9 @@ export function withOrgReportAccessMenu(
   granted: readonly ReportSlug[] | null,
   inactive: readonly ReportSlug[] = []
 ): SidebarMenuEntry[] {
+  if (!REPORTS_MODULE_ENABLED) {
+    return menu.filter((entry) => !isOrgReportsMenuGroup(entry));
+  }
   if (!isOrgReportsRole(role) || granted === null) {
     return menu.slice();
   }

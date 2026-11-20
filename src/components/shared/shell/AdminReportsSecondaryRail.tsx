@@ -13,6 +13,7 @@ import {
   kvShellAdminReportsSecondaryRailCollapsedWidthClassName,
   kvShellAdminReportsSecondaryRailWidthClassName,
 } from '@/components/shared/shell/shellChrome';
+import { REPORTS_MODULE_ENABLED } from '@/features/karvita/reports/constants';
 import { useOrgReportAccess } from '@/features/karvita/reports/hooks/useOrgReportAccess';
 import { adminReportsMenuGroupsFromMe } from '@/features/karvita/reports/lib/admin-report-access';
 import { isAdminReportsPath } from '@/features/karvita/reports/lib/report-path';
@@ -38,7 +39,7 @@ export function AdminReportsSecondaryRail() {
     [grantedSlugs, inactiveSlugs, role]
   );
 
-  if (!isAdminReportsPath(pathname)) return null;
+  if (!REPORTS_MODULE_ENABLED || !isAdminReportsPath(pathname)) return null;
 
   return (
     <aside

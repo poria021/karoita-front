@@ -5,6 +5,7 @@ import {
   isReportSlug,
   REPORT_COMPARE_ENABLED,
   REPORT_PAGE_DEFS,
+  REPORTS_MODULE_ENABLED,
 } from '@/features/karvita/reports/constants';
 import {
   hrefWithoutDisabledReportCompare,
@@ -41,6 +42,9 @@ export default async function OrgReportSlugPage({
   searchParams,
 }: PageProps) {
   const { slug } = await params;
+  if (!REPORTS_MODULE_ENABLED) {
+    redirect(RouteService.karvita.dashboard());
+  }
   if (!isReportSlug(slug) || !ORG_ROUTABLE_SLUGS.has(slug)) notFound();
   // دسترسی نقش‌محور نمرات فراگیران در OrgReportsGuard بررسی می‌شود.
 

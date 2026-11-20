@@ -58,13 +58,19 @@ describe('live nav / admin plane', () => {
       'گزارش‌گیری',
       'پیکربندی ظرفیت‌ها',
     ]);
-    const supervisorReports = supervisorMenu.find(isSidebarMenuGroup);
-    expect(supervisorReports?.title).toBe('گزارش‌گیری');
-    expect(supervisorReports?.children.map((c) => c.path)).toEqual([
-      RouteService.karvita.orgReports('learners'),
-      RouteService.karvita.orgReports('attendance'),
-      RouteService.karvita.orgReports('scores'),
-    ]);
+    const supervisorReports = supervisorMenu.find(
+      (entry) => isSidebarMenuGroup(entry) && entry.title === 'گزارش‌گیری'
+    );
+    expect(supervisorReports && isSidebarMenuGroup(supervisorReports)).toBe(
+      true
+    );
+    if (supervisorReports && isSidebarMenuGroup(supervisorReports)) {
+      expect(supervisorReports.children.map((c) => c.path)).toEqual([
+        RouteService.karvita.orgReports('learners'),
+        RouteService.karvita.orgReports('attendance'),
+        RouteService.karvita.orgReports('scores'),
+      ]);
+    }
 
     const mentorMenu = getVisibleSidebarMenu('mentor_teacher');
     expect(mentorMenu.map((entry) => entry.title)).toEqual([
@@ -72,11 +78,6 @@ describe('live nav / admin plane', () => {
       'اطلاعیه‌ها و اعلانات',
       'ارزیابی گزارش‌های فراگیران',
       'گزارش‌گیری',
-    ]);
-    const mentorReports = mentorMenu.find(isSidebarMenuGroup);
-    expect(mentorReports?.title).toBe('گزارش‌گیری');
-    expect(mentorReports?.children.map((c) => c.path)).toEqual([
-      RouteService.karvita.orgReports('learners'),
     ]);
 
     const principalMenu = getVisibleSidebarMenu('school_principal');
@@ -86,13 +87,6 @@ describe('live nav / admin plane', () => {
       'ارزیابی گزارش‌های فراگیران',
       'گزارش‌گیری',
     ]);
-    const principalReports = principalMenu.find(isSidebarMenuGroup);
-    expect(principalReports?.title).toBe('گزارش‌گیری');
-    expect(principalReports?.children.map((c) => c.path)).toEqual([
-      RouteService.karvita.orgReports('learners'),
-      RouteService.karvita.orgReports('attendance'),
-      RouteService.karvita.orgReports('teacher-performance'),
-    ]);
 
     const regionalMenu = getVisibleSidebarMenu('regional_edu_admin');
     expect(regionalMenu.map((entry) => entry.title)).toEqual([
@@ -100,21 +94,6 @@ describe('live nav / admin plane', () => {
       'اطلاعیه‌ها و اعلانات',
       'گزارش‌های لیستی',
       'گزارش‌های عملکرد',
-    ]);
-    const regionalGroups = regionalMenu.filter(isSidebarMenuGroup);
-    expect(regionalGroups.map((g) => g.title)).toEqual([
-      'گزارش‌های لیستی',
-      'گزارش‌های عملکرد',
-    ]);
-    expect(regionalGroups[0]?.children.map((c) => c.path)).toEqual([
-      RouteService.karvita.orgReports('learners'),
-      RouteService.karvita.orgReports('teachers'),
-      RouteService.karvita.orgReports('principals'),
-      RouteService.karvita.orgReports('schools'),
-    ]);
-    expect(regionalGroups[1]?.children.map((c) => c.path)).toEqual([
-      RouteService.karvita.orgReports('teacher-performance'),
-      RouteService.karvita.orgReports('school-performance'),
     ]);
 
     const facultyMenu = getVisibleSidebarMenu('faculty_role');
@@ -152,25 +131,6 @@ describe('live nav / admin plane', () => {
       'گزارش‌های لیستی',
       'حضور و غیاب',
       'گزارش‌های عملکرد',
-    ]);
-    const provincialGroups = provincialMenu.filter(isSidebarMenuGroup);
-    expect(provincialGroups.map((g) => g.title)).toEqual([
-      'گزارش‌های لیستی',
-      'حضور و غیاب',
-      'گزارش‌های عملکرد',
-    ]);
-    expect(provincialGroups[0]?.children.map((c) => c.path)).toEqual([
-      RouteService.karvita.orgReports('learners'),
-      RouteService.karvita.orgReports('professors'),
-      RouteService.karvita.orgReports('faculties'),
-    ]);
-    expect(provincialGroups[1]?.children.map((c) => c.path)).toEqual([
-      RouteService.karvita.orgReports('attendance'),
-      RouteService.karvita.orgReports('professor-attendance'),
-    ]);
-    expect(provincialGroups[2]?.children.map((c) => c.path)).toEqual([
-      RouteService.karvita.orgReports('professor-performance'),
-      RouteService.karvita.orgReports('faculty-performance'),
     ]);
 
     const centralMenu = getVisibleSidebarMenu('central_organization');

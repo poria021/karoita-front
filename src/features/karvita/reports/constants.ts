@@ -11,6 +11,12 @@ export {
   REPORT_PAGE_META,
 };
 
+/**
+ * کل ماژول گزارش‌گیری (منو، ریل، صفحات، دسترسی گزارش).
+ * روی `main` موقتاً خاموش شده بود؛ روی `dev` دوباره فعال است.
+ */
+export const REPORTS_MODULE_ENABLED = true;
+
 /** مقایسه گزارش‌ها برای اسلاگ‌های COMPARE_REPORT_SLUGS (و دسترسی سازمانی @cmp) فعال است. */
 export const REPORT_COMPARE_ENABLED = true;
 
@@ -57,6 +63,7 @@ export function isEnabledReportSlug(
   slug: ReportSlug,
   role?: string | null
 ): boolean {
+  if (!REPORTS_MODULE_ENABLED) return false;
   if (slug !== 'scores') return true;
   if (REPORT_SCORES_ENABLED) return true;
   if (role == null) return false;
@@ -65,6 +72,7 @@ export function isEnabledReportSlug(
 
 /** برای live-nav: مسیر اسلاگ وقتی حداقل یک نقش مجاز باشد زنده است. */
 export function isLiveEnabledReportSlug(slug: ReportSlug): boolean {
+  if (!REPORTS_MODULE_ENABLED) return false;
   if (slug !== 'scores') return true;
   if (REPORT_SCORES_ENABLED) return true;
   return SCORES_ROLE_SET.size > 0;
