@@ -85,20 +85,27 @@ export async function resolveDistrictId(
 }
 
 const CITY_CACHE_TTL_MS = 2 * 60 * 1_000;
-// کلید `provinceId` تا عوض شدن استان کش استان قبلی را مصرف نکند.
-const cityCacheByProvince = new Map<string, NameIdCache>();
-const cityPendingByProvince = new Map<string, Promise<NameIdCache>>();
 
-export async function resolveCityId(
-  cityName: string,
-  provinceId?: string
-): Promise<string | undefined> {
+type CityRowsCache = NameIdCache & {
+  /** ردیف‌های خام — گزینه‌های typeahead و resolve نام→id یک fetch را شریک می‌شوند. */
+  rows: Array<{ id: string; title: string }>;
+};
+
+// کلید `provinceId` تا عوض شدن استان کش استان قبلی را مصرف نکند.
+const cityCacheByProvince = new Map<string, CityRowsCache>();
+const cityPendingByProvince = new Map<string, Promise<CityRowsCache>>();
+
+/**
+ * لیست شهرهای یک استان (یا کل کاتالوگ اگر `provinceId` نباشد) با کش/in-flight مشترک.
+ * فیلد شهر پروفایل و resolve نام→id منطقه/مدرسه نباید دو بار `.../cities` بزنند.
+ */
+async function ensureCityCache(provinceId?: string): Promise<CityRowsCache> {
   const cacheKey = provinceId ?? '';
   const now = Date.now();
   const cached = cityCacheByProvince.get(cacheKey);
 
   if (cached && now - cached.fetchedAt <= CITY_CACHE_TTL_MS) {
-    return cached.byName.get(cityName);
+    return cached;
   }
 
   const pending = shareInFlight(
@@ -117,8 +124,9 @@ export async function resolveCityId(
           page++;
         }
       }
-      const next = {
+      const next: CityRowsCache = {
         byName: new Map(all.map((c) => [c.title, c.id])),
+        rows: all,
         fetchedAt: Date.now(),
       };
       cityCacheByProvince.set(cacheKey, next);
@@ -129,7 +137,21 @@ export async function resolveCityId(
     }
   );
   cityPendingByProvince.set(cacheKey, pending);
-  return (await pending).byName.get(cityName);
+  return pending;
+}
+
+/** گزینه‌های شهر برای یک استان — همان کش `resolveCityId`. */
+export async function listCitiesForProvince(
+  provinceId: string
+): Promise<Array<{ id: string; title: string }>> {
+  return (await ensureCityCache(provinceId)).rows;
+}
+
+export async function resolveCityId(
+  cityName: string,
+  provinceId?: string
+): Promise<string | undefined> {
+  return (await ensureCityCache(provinceId)).byName.get(cityName);
 }
 
 const DEGREE_ROLE_CACHE_TTL_MS = 5 * 60 * 1_000;
@@ -180,4 +202,5 @@ export function invalidateDistrictNameCache(): void {
 /** کل Map شهر را پاک کن — نه فقط یک استان — تا استان عوض‌شده کش کهنه نماند. */
 export function invalidateCityNameCache(): void {
   cityCacheByProvince.clear();
+  cityPendingByProvince.clear();
 }
