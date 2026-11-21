@@ -101,23 +101,26 @@ export function RoleUserCountsGrid({
     DashboardRoleUserCountsState,
     'isLoading' | 'isError' | 'isForbidden' | 'metrics'
   >) {
-  return (
-    <div
-      style={style}
-      role="list"
-      aria-label="تعداد کاربران هر نقش"
-      aria-busy={isLoading}
-      className={cn(
-        'grid size-full min-h-0 min-w-0 grid-cols-3 grid-rows-3 overflow-hidden rounded-kv-shell border border-kv-border/50 bg-kv-surface shadow-kv-soft',
-        className
-      )}
-    >
-      {isLoading ? (
+  const shellClass = cn(
+    'grid size-full min-h-0 min-w-0 grid-cols-3 grid-rows-3 overflow-hidden rounded-kv-shell border border-kv-border/50 bg-kv-surface shadow-kv-soft',
+    className
+  );
+
+  // هنگام لود role=list نگذار — axe: list نباید فرزند role=status داشته باشد.
+  if (isLoading) {
+    return (
+      <div style={style} className={shellClass}>
         <WorkbenchBoxBusy
           label="در حال بارگذاری تعداد کاربران هر نقش"
           className="col-span-3 row-span-3 min-h-0"
         />
-      ) : isError || metrics.length === 0 ? (
+      </div>
+    );
+  }
+
+  if (isError || metrics.length === 0) {
+    return (
+      <div style={style} className={shellClass}>
         <div className="col-span-3 row-span-3 flex items-center justify-center px-3 text-center">
           <KvTypography variant="caption" tone="muted" as="p">
             {workbenchErrorText(
@@ -126,17 +129,26 @@ export function RoleUserCountsGrid({
             )}
           </KvTypography>
         </div>
-      ) : (
-        metrics.map((metric, index) => (
-          <div key={metric.id} role="listitem" className="min-h-0 min-w-0">
-            <RoleMetricCell
-              metric={metric}
-              className={cellDividerClass(index)}
-              interactive={interactive}
-            />
-          </div>
-        ))
-      )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={style}
+      role="list"
+      aria-label="تعداد کاربران هر نقش"
+      className={shellClass}
+    >
+      {metrics.map((metric, index) => (
+        <div key={metric.id} role="listitem" className="min-h-0 min-w-0">
+          <RoleMetricCell
+            metric={metric}
+            className={cellDividerClass(index)}
+            interactive={interactive}
+          />
+        </div>
+      ))}
     </div>
   );
 }
