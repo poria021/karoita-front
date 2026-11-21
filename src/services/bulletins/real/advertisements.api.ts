@@ -21,7 +21,8 @@ const ADMIN = 'admin/advertisements';
 
 export type ListVisibleAdsQuery = {
   type: NestAdvertisementType;
-  placement: NestAdvertisementPlacement;
+  /** اگر نباشد همهٔ placementهای همان type برمی‌گردد (Nest جدید / fake-nest). */
+  placement?: NestAdvertisementPlacement;
 };
 
 export type ListAdminAdsQuery = {
@@ -43,10 +44,8 @@ export const advertisementsApi = {
    * اگر `{ data, hasNextPage }` بدهد، تا تمام شدن صفحات ادامه می‌دهیم.
    */
   async listVisible(query: ListVisibleAdsQuery): Promise<NestPublicAdvertisementDto[]> {
-    const base = new URLSearchParams({
-      type: query.type,
-      placement: query.placement,
-    });
+    const base = new URLSearchParams({ type: query.type });
+    if (query.placement) base.set('placement', query.placement);
     const first = await apiClient.getJson<unknown>(`${PUBLIC}?${base}`);
     if (Array.isArray(first)) return first as NestPublicAdvertisementDto[];
 

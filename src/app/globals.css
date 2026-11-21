@@ -347,6 +347,8 @@
   --kv-warning-soft-hover: hsl(42 85% 86%);
   --kv-warning-soft-fg: hsl(23 82.5% 31.4%);
   --kv-warning-border: hsl(32 70% 48%);
+  /* زمینهٔ زرد کارت‌های گزارش در انتظار */
+  --kv-pending-accent: hsl(48 96% 53%);
 
   --kv-danger: hsl(347 77.2% 49.8%);
   --kv-danger-hover: hsl(345 82.7% 40.8%);
@@ -415,6 +417,17 @@
   --chart-3: var(--kv-info);
   --chart-4: var(--kv-warning);
   --chart-5: var(--kv-brand-active);
+  /* پالت دسته‌ای نمودار (تا ۱۰ مورد مقایسه) */
+  --kv-chart-cat-1: hsl(220 85% 42%);
+  --kv-chart-cat-2: hsl(161 93% 30%);
+  --kv-chart-cat-3: hsl(32 94% 44%);
+  --kv-chart-cat-4: hsl(347 77% 50%);
+  --kv-chart-cat-5: hsl(262 60% 52%);
+  --kv-chart-cat-6: hsl(190 80% 36%);
+  --kv-chart-cat-7: hsl(48 90% 42%);
+  --kv-chart-cat-8: hsl(300 45% 48%);
+  --kv-chart-cat-9: hsl(100 45% 38%);
+  --kv-chart-cat-10: hsl(20 25% 42%);
   --sidebar: var(--kv-surface);
   --sidebar-foreground: var(--kv-text);
   --sidebar-primary: var(--kv-brand);
@@ -498,6 +511,7 @@
   --kv-warning-soft-hover: hsl(36 38% 12%);
   --kv-warning-soft-fg:  hsl(40 60% 64%);
   --kv-warning-border:   hsl(38 36% 20%);
+  --kv-pending-accent:   hsl(48 75% 58%);
 
   /* ── Danger ── */
   --kv-danger:           hsl(0 48% 52%);
@@ -565,6 +579,16 @@
   --chart-3:                var(--kv-info);
   --chart-4:                var(--kv-warning);
   --chart-5:                var(--kv-brand-active);
+  --kv-chart-cat-1: hsl(213 80% 66%);
+  --kv-chart-cat-2: hsl(150 40% 52%);
+  --kv-chart-cat-3: hsl(32 80% 58%);
+  --kv-chart-cat-4: hsl(347 70% 64%);
+  --kv-chart-cat-5: hsl(262 60% 70%);
+  --kv-chart-cat-6: hsl(190 65% 52%);
+  --kv-chart-cat-7: hsl(48 75% 58%);
+  --kv-chart-cat-8: hsl(300 45% 66%);
+  --kv-chart-cat-9: hsl(100 38% 55%);
+  --kv-chart-cat-10: hsl(20 30% 62%);
   --sidebar:                var(--kv-surface);
   --sidebar-foreground:     var(--kv-text);
   --sidebar-primary:        var(--kv-brand);
@@ -689,6 +713,29 @@
 
 .kv-sidebar-scroll:hover::-webkit-scrollbar-thumb,
 .kv-sidebar-scroll:focus-within::-webkit-scrollbar-thumb {
+  background: var(--kv-border-strong);
+}
+
+/*
+ * Generic: scrollbar thumb is invisible at rest and shows on hover/focus.
+ * Needs the ::-webkit-scrollbar-thumb rules too, because the global
+ * ::-webkit-scrollbar styling above makes Chromium ignore scrollbar-color.
+ */
+.kv-scroll-hover {
+  scrollbar-color: transparent transparent;
+}
+
+.kv-scroll-hover:hover,
+.kv-scroll-hover:focus-within {
+  scrollbar-color: var(--kv-border-strong) transparent;
+}
+
+.kv-scroll-hover::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+.kv-scroll-hover:hover::-webkit-scrollbar-thumb,
+.kv-scroll-hover:focus-within::-webkit-scrollbar-thumb {
   background: var(--kv-border-strong);
 }
 
@@ -843,13 +890,24 @@ input[readonly]:-webkit-autofill {
 }
 
 /*
- * Welcome panel — quiet enter + soft watermark drift (workbench).
- * Dark: lifted neutral surface; no brand glow/border/shadow.
+ * Welcome panel — editorial blue field + quiet enter + watermark drift.
+ * Gradient stays in Karvita blue family (no purple/indigo AI default).
  */
+.kv-welcome-panel {
+  --kv-welcome-ink: var(--kv-text);
+  --kv-welcome-muted: var(--kv-text-muted);
+  --kv-welcome-chip-bg: hsl(0 0% 100% / 0.72);
+  --kv-welcome-chip-border: hsl(213 55% 82% / 0.85);
+  border-color: var(--kv-brand-border);
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.65),
+    var(--kv-shadow-raised);
+}
+
 @keyframes kv-welcome-enter {
   from {
     opacity: 0;
-    transform: translateY(0.4rem);
+    transform: translateY(0.35rem);
   }
   to {
     opacity: 1;
@@ -859,69 +917,114 @@ input[readonly]:-webkit-autofill {
 
 @keyframes kv-welcome-mark-drift {
   from {
-    transform: translateY(0) rotate(0deg);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
   }
   to {
-    transform: translateY(-0.35rem) rotate(-2deg);
+    transform: translate3d(-0.2rem, -0.4rem, 0) rotate(-3deg) scale(1.03);
+  }
+}
+
+@keyframes kv-welcome-wash-shift {
+  from {
+    background-position: 0% 40%, 100% 0%, 0% 100%;
+  }
+  to {
+    background-position: 8% 55%, 92% 8%, 4% 96%;
   }
 }
 
 .kv-welcome-wash {
-  background: linear-gradient(
-    145deg,
-    var(--color-kv-brand-soft) 0%,
-    transparent 42%,
-    var(--color-kv-surface) 100%
-  );
+  background-color: var(--kv-brand-soft);
+  background-image:
+    radial-gradient(
+      120% 140% at 100% -10%,
+      hsl(213 96% 88% / 0.95) 0%,
+      transparent 52%
+    ),
+    radial-gradient(
+      90% 110% at -5% 110%,
+      hsl(220 85% 42% / 0.14) 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      125deg,
+      hsl(216 100% 97.1%) 0%,
+      hsl(214 92% 94%) 38%,
+      hsl(218 78% 91%) 72%,
+      hsl(216 100% 96%) 100%
+    );
+  background-size: 140% 140%, 120% 120%, 100% 100%;
+  background-repeat: no-repeat;
+  animation: kv-welcome-wash-shift 14s ease-in-out infinite alternate;
 }
 
 .kv-welcome-mark {
-  color: var(--color-kv-brand);
-  opacity: 0.09;
-  animation: kv-welcome-mark-drift 5.5s ease-in-out infinite alternate;
+  color: var(--kv-brand);
+  opacity: 0.11;
+  animation: kv-welcome-mark-drift 7s ease-in-out infinite alternate;
   will-change: transform;
 }
 
 .kv-welcome-enter {
-  animation: kv-welcome-enter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: kv-welcome-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .kv-welcome-enter-delay {
-  animation: kv-welcome-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) 90ms both;
+  animation: kv-welcome-enter 620ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+}
+
+.kv-welcome-chip {
+  background: var(--kv-welcome-chip-bg);
+  border-color: var(--kv-welcome-chip-border);
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.7),
+    0 1px 2px hsl(220 40% 30% / 0.06);
+  backdrop-filter: blur(8px);
 }
 
 .dark .kv-welcome-panel {
+  --kv-welcome-ink: var(--kv-text);
+  --kv-welcome-muted: var(--kv-text-muted);
+  --kv-welcome-chip-bg: hsl(222 35% 14% / 0.78);
+  --kv-welcome-chip-border: hsl(213 40% 32% / 0.7);
   border-color: var(--kv-border-strong);
   background-color: var(--kv-surface-muted);
   box-shadow:
-    inset 0 1px 0 hsl(0 0% 100% / 0.06),
+    inset 0 1px 0 hsl(0 0% 100% / 0.05),
     var(--kv-shadow-raised);
 }
 
 .dark .kv-welcome-wash {
-  background:
+  background-color: var(--kv-brand-soft);
+  background-image:
     radial-gradient(
-      120% 90% at 100% 0%,
-      hsl(220 85% 48% / 0.28) 0%,
+      110% 130% at 100% -15%,
+      hsl(220 70% 36% / 0.45) 0%,
       transparent 55%
     ),
+    radial-gradient(
+      80% 100% at 0% 120%,
+      hsl(213 80% 55% / 0.18) 0%,
+      transparent 50%
+    ),
     linear-gradient(
-      145deg,
-      hsl(222 48% 18%) 0%,
-      hsl(234 8% 12% / 0.55) 48%,
-      var(--kv-surface-muted) 100%
+      125deg,
+      hsl(222 45% 12%) 0%,
+      hsl(222 42% 15%) 45%,
+      hsl(218 38% 18%) 100%
     );
 }
 
 .dark .kv-welcome-mark {
   color: var(--kv-brand-soft-fg);
-  opacity: 0.22;
+  opacity: 0.18;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .kv-welcome-enter,
   .kv-welcome-enter-delay,
-  .kv-welcome-mark {
+  .kv-welcome-mark,
+  .kv-welcome-wash {
     animation: none;
   }
 }
@@ -1191,4 +1294,21 @@ input[readonly]:-webkit-autofill {
 .kv-dock-item:hover .kv-dock-mark svg,
 .kv-dock-item:focus-within .kv-dock-mark svg {
   filter: none;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Workbench — میز کار فراگیر، فقط موبایل (< 48rem).                            */
+/* دسکتاپ (md به بالا) همان گرید ۱۲ستونه + ستون تبلیغ است و دست نخورده.        */
+/* -------------------------------------------------------------------------- */
+@media (max-width: 47.999rem) {
+  .wb-learner-stack > * {
+    max-height: none !important;
+  }
+
+  /* پنل‌های اطلاعیه و مواد درسی: ارتفاع مناسب تک‌ستون، داخلشان اسکرول دارد. */
+  .wb-learner-stack > :nth-child(2),
+  .wb-learner-stack > :nth-child(3) {
+    height: 20rem !important;
+    min-height: 20rem !important;
+  }
 }

@@ -65,21 +65,18 @@ function normalizeAccessPath(pathname: string): string {
 
 const ASSISTANT_ADMIN_BLOCKED_PATHS = new Set([
   RouteService.karvita.adminUserCreation(),
-  RouteService.karvita.reportAccess(),
   RouteService.karvita.syllabusTermSettings(),
   RouteService.karvita.syllabusCourseCatalog(),
 ]);
 
 function isAssistantAdminBlockedPath(pathname: string): boolean {
-  const path = normalizeAccessPath(pathname);
-  if (ASSISTANT_ADMIN_BLOCKED_PATHS.has(path)) return true;
-  const reportsBase = RouteService.karvita.reports();
-  return path === reportsBase || path.startsWith(`${reportsBase}/`);
+  return ASSISTANT_ADMIN_BLOCKED_PATHS.has(normalizeAccessPath(pathname));
 }
 
 /**
  * دستیار مدیر ارشد ماژول‌های اجرایی مدیر ارشد را می‌بیند،
  * به‌جز ایجاد حساب سازمانی، تنظیمات عمومی ترم و تعریف دروس.
+ * صفحهٔ ماتریس دسترسی گزارش و خود گزارش‌ها باز است (سوییچ فقط سوپرادمین؛ منوی گزارش از `/me`).
  */
 export function canAccessAdminControlPlane(
   role: UserRole | string | null | undefined,

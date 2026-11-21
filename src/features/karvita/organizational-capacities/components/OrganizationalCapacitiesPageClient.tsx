@@ -4,6 +4,7 @@ import { FaIcon } from '@/components/shared/FaIcon';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvConfirmationDialog } from '@/components/shared/KvConfirmationDialog';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { kvTabsBodyBorderClassName } from '@/components/shared/shell/shellChrome';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
@@ -18,6 +19,7 @@ import { OrganizationalCapacitiesTable } from './OrganizationalCapacitiesTable';
 
 export function OrganizationalCapacitiesPageClient() {
   const page = useOrganizationalCapacitiesPage();
+  useRegisterPageRefresh(page.reload);
   const courses = page.snapshot?.courses ?? [];
   const maxCapacity = page.snapshot?.maxCapacity ?? 15;
   const resetKey = `${page.kind}::${page.termId}`;

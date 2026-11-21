@@ -111,9 +111,12 @@ async function performRealRefresh(): Promise<Session | null> {
     const raw: unknown = await res.json();
 
     // Route قبلاً `/auth/me` را ضمیمه کرده — اینجا فقط parse
+    // کوکی httpOnly را `/api/auth/refresh` نوشته؛ اینجا فقط حافظهٔ access را گرم کن.
+    const cookieOpts = { refreshCookie: 'assume-set' as const };
+
     if (looksLikeNestAdminLoginResponse(raw)) {
       const parsed = extractNestAdminLoginResponse(raw, existingMobile);
-      await writeRealAuthTokens(parsed.tokens, 'admin');
+      await writeRealAuthTokens(parsed.tokens, 'admin', cookieOpts);
       const session: Session = { user: parsed.user, token: parsed.tokens.token, expiresAt: parsed.expiresAt };
       dispatchSessionToStore(session);
       return session;
@@ -121,7 +124,7 @@ async function performRealRefresh(): Promise<Session | null> {
 
     if (looksLikeNestLoginResponse(raw)) {
       const parsed = extractNestLoginResponse(raw, existingMobile);
-      await writeRealAuthTokens(parsed.tokens, 'user');
+      await writeRealAuthTokens(parsed.tokens, 'user', cookieOpts);
       const session: Session = { user: parsed.user, token: parsed.tokens.token, expiresAt: parsed.expiresAt };
       dispatchSessionToStore(session);
       return session;
@@ -134,7 +137,7 @@ async function performRealRefresh(): Promise<Session | null> {
       if (!surface) {
         return markSessionDead();
       }
-      await writeRealAuthTokens(tokens, surface);
+      await writeRealAuthTokens(tokens, surface, cookieOpts);
 
       const fallbackSession = await realFetchSession(existingMobile, tokens.token);
       if (fallbackSession) {

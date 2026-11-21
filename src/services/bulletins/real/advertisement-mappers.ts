@@ -33,10 +33,13 @@ import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 /** پیش‌فرض ساخت از UI میز کار (تا وقتی فرم placement ندارد). */
 export const DASHBOARD_AD_PLACEMENT: NestAdvertisementPlacement = 'sidebar';
 
-/** هر دو جای Nest را برای داشبورد می‌خوانیم تا `hero` از قلم نیفتد. */
+/**
+ * فقط وقتی Nest بدون `placement` ۴۲۲ می‌دهد به‌عنوان fallback؛
+ * خواندن داشبورد ترجیحاً یک GET بدون placement است (همهٔ جای‌گذاری‌ها).
+ * اگر placement اجباری بود فقط sidebar — UI جای‌گذاری را جدا فیلتر نمی‌کند.
+ */
 export const DASHBOARD_AD_PLACEMENTS: readonly NestAdvertisementPlacement[] = [
-  'sidebar',
-  'hero',
+  DASHBOARD_AD_PLACEMENT,
 ];
 
 /** عنوان استان‌های فرم → id؛ عنوان ناموجود را بی‌صدا حذف نمی‌کنیم. */

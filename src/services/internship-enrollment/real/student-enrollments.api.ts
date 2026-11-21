@@ -2,6 +2,7 @@
  * HTTP انتخاب واحد دانشجو. مسیر نسبت به `NEXT_PUBLIC_API_URL` (`.../api`) است —
  * دوباره `api/` نگذار.
  */
+import { invalidateSharedReads, sharedRead } from '@/lib/shared-read';
 import { apiClient } from '@/services/api-client';
 import { ApiClientError } from '@/services/api-error';
 import { toSearchParams } from '@/services/nest-search-params';
@@ -25,6 +26,9 @@ import type {
   NestUpdateStudentEnrollmentDto,
 } from '@/types/nest-student-enrollments';
 import type { InternshipSupervisor } from '@/types/internship-enrollment';
+
+/** پیشوند کلید dedupe برای همهٔ GETهای کاربر جاری؛ بعد از هر نوشتن پاک می‌شود. */
+const SHARED_PREFIX = 'student-enrollments:';
 
 export const NEST_STUDENT_ENROLLMENT_PATHS = {
   list: 'v1/student-enrollments',
@@ -79,6 +83,7 @@ export const studentEnrollmentsApi = {
       NEST_STUDENT_ENROLLMENT_PATHS.list,
       body
     );
+    invalidateSharedReads(SHARED_PREFIX);
     if (isRecord(raw)) return raw as NestStudentEnrollment;
     // ۲۰۴ — ردیف جدید را از لیست کاربر جاری پیدا می‌کنیم.
     try {
@@ -101,8 +106,8 @@ export const studentEnrollmentsApi = {
    */
   async getOpenCourseSelection(): Promise<NestOpenCourseSelection | null> {
     try {
-      const raw = await apiClient.getJson<unknown>(
-        NEST_STUDENT_ENROLLMENT_PATHS.openCourseSelection
+      const raw = await sharedRead(`${SHARED_PREFIX}open`, () =>
+        apiClient.getJson<unknown>(NEST_STUDENT_ENROLLMENT_PATHS.openCourseSelection)
       );
       return parseOpenCourseSelection(raw);
     } catch (error) {
@@ -117,8 +122,8 @@ export const studentEnrollmentsApi = {
    * جایگزین `listMine()` برای پیداکردن سابقهٔ ثبت‌نامِ یک level در طول زمان.
    */
   async listBySemester(): Promise<NestSemesterEnrolmentsByTerm[]> {
-    const raw = await apiClient.getJson<unknown>(
-      NEST_STUDENT_ENROLLMENT_PATHS.bySemester
+    const raw = await sharedRead(`${SHARED_PREFIX}by-semester`, () =>
+      apiClient.getJson<unknown>(NEST_STUDENT_ENROLLMENT_PATHS.bySemester)
     );
     return Array.isArray(raw) ? (raw as NestSemesterEnrolmentsByTerm[]) : [];
   },
@@ -172,10 +177,14 @@ export const studentEnrollmentsApi = {
   async listMine(
     query: ListMyEnrollmentsQuery = {}
   ): Promise<NestStudentEnrollment[]> {
-    const raw = await apiClient.getJson<unknown>(
-      NEST_STUDENT_ENROLLMENT_PATHS.list,
-      undefined,
-      { searchParams: toSearchParams({ page: query.page, limit: query.limit }) }
+    const raw = await sharedRead(
+      `${SHARED_PREFIX}mine:${query.page ?? ''}:${query.limit ?? ''}`,
+      () =>
+        apiClient.getJson<unknown>(
+          NEST_STUDENT_ENROLLMENT_PATHS.list,
+          undefined,
+          { searchParams: toSearchParams({ page: query.page, limit: query.limit }) }
+        )
     );
     return parseNestPagedList<NestStudentEnrollment>(raw).data;
   },
@@ -224,6 +233,7 @@ export const studentEnrollmentsApi = {
       NEST_STUDENT_ENROLLMENT_PATHS.byId(id),
       body
     );
+    invalidateSharedReads(SHARED_PREFIX);
     return isRecord(raw) ? (raw as NestStudentEnrollment) : null;
   },
 
@@ -233,6 +243,7 @@ export const studentEnrollmentsApi = {
       NEST_STUDENT_ENROLLMENT_PATHS.cancel(id),
       {}
     );
+    invalidateSharedReads(SHARED_PREFIX);
     return isRecord(raw) ? (raw as NestStudentEnrollment) : null;
   },
 

@@ -15,6 +15,9 @@ import type { Bulletin } from '@/types/bulletins';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
+import { workbenchErrorText } from './WorkbenchUnavailableNote';
+
 const SLIDE_DURATION = 6000;
 
 function isExternalAdLink(url: string): boolean {
@@ -25,11 +28,14 @@ export type WorkbenchAdBoxProps = {
   ads: Bulletin[];
   isLoading?: boolean;
   isError?: boolean;
+  /** ۴۰۳: نقش کاربر به این گزارش مجوز ندارد. */
+  isForbidden?: boolean;
   className?: string;
 };
 
 const BOX_BASE_CLASS = cn(
-  'relative w-full overflow-hidden rounded-kv-shell border',
+  // shrink-0: داخل سلول flex-col (تبلیغ + کارت نمرات) نباید زیر نسبت ۳:۴ جمع شود.
+  'relative w-full shrink-0 overflow-hidden rounded-kv-shell border',
   WORKBENCH_AD_ASPECT_CLASS
 );
 
@@ -64,12 +70,13 @@ function AdSlideContent({ ad }: { ad: Bulletin }) {
 
 /**
  * باکس تبلیغ مشترک میز کار — اسلایدر با نسبت ۳:۴.
- * بدون تبلیغ فعال (یا خطا) همان اندازهٔ ۳:۴ را نگه می‌دارد، ولی خالی و خط‌چین.
+ * بدون تبلیغ (یا خطا): دسکتاپ همان اندازهٔ ۳:۴ خالی/خط‌چین؛ موبایل اصلاً رندر نمی‌شود.
  */
 export function WorkbenchAdBox({
   ads,
   isLoading = false,
   isError = false,
+  isForbidden = false,
   className,
 }: WorkbenchAdBoxProps) {
   const labelId = useId();
@@ -109,33 +116,28 @@ export function WorkbenchAdBox({
 
   if (isLoading) {
     return (
-      <div
-        role="status"
-        aria-label="در حال بارگذاری تبلیغات"
-        className={cn(
-          BOX_BASE_CLASS,
-          'animate-pulse border-kv-border/70 bg-kv-surface-muted',
-          className
-        )}
+      <WorkbenchBoxBusy
+        label="در حال بارگذاری تبلیغات"
+        className={cn(BOX_BASE_CLASS, 'min-h-0 border-kv-border/70', className)}
       />
     );
   }
 
-  // خالی / خطا: همان اندازه، پس‌زمینهٔ شفاف و بردر خط‌چین.
+  // خالی / خطا: دسکتاپ همان اندازه با خط‌چین؛ موبایل مخفی تا جای خالی نگیرد.
   if (isError || count === 0 || !shown) {
     return (
       <section
         aria-label="تبلیغات"
         className={cn(
           BOX_BASE_CLASS,
-          'flex items-center justify-center px-kv-group text-center',
+          'hidden items-center justify-center px-kv-group text-center md:flex',
           workbenchBoxToneClass(true),
           className
         )}
       >
         <KvTypography variant="caption" tone="muted" as="p">
           {isError
-            ? 'تبلیغات فعلاً در دسترس نیست.'
+            ? workbenchErrorText(isForbidden, 'تبلیغات فعلاً در دسترس نیست.')
             : 'فعلاً تبلیغی برای نمایش نیست.'}
         </KvTypography>
       </section>

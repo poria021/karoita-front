@@ -1,19 +1,16 @@
 'use client';
 
 import { useQueries } from '@tanstack/react-query';
+import { isForbiddenError } from '@/services/api-error';
 import { useMemo } from 'react';
 
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { OrganizationalCapacitiesService } from '@/services/organizational-capacities.service';
-import type { OrganizationalCapacityKind } from '@/types/organizational-capacities';
-
-import {
-  buildCapacityKindStatusView,
-  buildCapacityStatusInsight,
-  type CapacityKindStatusView,
-  type CapacityStatusInsight,
-} from '../lib/capacity-status';
+import type {
+  OrganizationalCapacitiesSnapshot,
+  OrganizationalCapacityKind,
+} from '@/types/organizational-capacities';
 
 const CAPACITY_KINDS = [
   'internship',
@@ -23,12 +20,13 @@ const CAPACITY_KINDS = [
 export type DashboardCapacityStatusState = {
   isLoading: boolean;
   isError: boolean;
-  views: CapacityKindStatusView[];
-  insight: CapacityStatusInsight;
+  isForbidden: boolean;
+  /** snapshot ترم جاری هر مسیر (ترمی/پودمانی) — برای ظرفیت هر درس. */
+  snapshots: OrganizationalCapacitiesSnapshot[];
 };
 
 /**
- * خلاصهٔ ظرفیت ترمی و پودمانی برای میز کار استاد راهنما —
+ * snapshot ظرفیت ترمی و پودمانی برای میز کار استاد راهنما —
  * همان query keyهای صفحهٔ پیکربندی تا cache مشترک بماند.
  */
 export function useDashboardCapacityStatus(): DashboardCapacityStatusState {
@@ -74,33 +72,22 @@ export function useDashboardCapacityStatus(): DashboardCapacityStatusState {
   );
   const snapshotsError = snapshotQueries.some((query) => query.isError);
 
-  const catalogDataKey = catalogQueries
-    .map((query) => query.dataUpdatedAt)
-    .join('|');
   const snapshotDataKey = snapshotQueries
     .map((query) => query.dataUpdatedAt)
     .join('|');
 
-  const views = useMemo(() => {
-    void catalogDataKey;
+  const snapshots = useMemo(() => {
     void snapshotDataKey;
-    return resolvedTerms.flatMap(({ termId }, index) => {
-      if (!termId) return [];
-      const snapshot = snapshotQueries[index]?.data;
-      if (!snapshot) return [];
-      return [buildCapacityKindStatusView(snapshot)];
-    });
-  }, [catalogDataKey, resolvedTerms, snapshotDataKey, snapshotQueries]);
-
-  const insight = useMemo(() => buildCapacityStatusInsight(views), [views]);
-
-  const waitingForFirstPaint =
-    (catalogsPending || snapshotsPending) && views.length === 0;
+    return snapshotQueries.flatMap((query) => (query.data ? [query.data] : []));
+  }, [snapshotDataKey, snapshotQueries]);
 
   return {
-    isLoading: waitingForFirstPaint,
-    isError: (catalogsError || snapshotsError) && views.length === 0,
-    views,
-    insight,
+    isLoading: (catalogsPending || snapshotsPending) && snapshots.length === 0,
+    isError: (catalogsError || snapshotsError) && snapshots.length === 0,
+    isForbidden:
+      [...catalogQueries, ...snapshotQueries].some((query) =>
+        isForbiddenError(query.error)
+      ) && snapshots.length === 0,
+    snapshots,
   };
 }

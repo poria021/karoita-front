@@ -4,66 +4,76 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import {
-  canAccessOrgReportSlug,
-  canCompareOrgReportSlug,
-  grantedOrgReportSlugs,
+  canCompareOrgGrantedSlug,
+  isOrgReportGranted,
   isOrgReportsRole,
-  resolveOrgUserProvinceIds,
   type OrgReportsRole,
 } from '@/features/karvita/reports/lib/org-report-access';
+import {
+  isEnabledReportSlug,
+  isReportSlug,
+} from '@/features/karvita/reports/constants';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { ReportAccessService } from '@/services/report-access.service';
 import { useUserStore } from '@/store/useUserStore';
+import { isStaffAdminRole } from '@/types/role-taxonomy';
 import type { ReportSlug } from '@/types/report-access';
 
+const NO_SLUGS: readonly ReportSlug[] = [];
+
 /**
- * ماتریس دسترسی گزارش‌ها برای نقش سازمانی جاری.
- * تا آماده شدن snapshot، `grantedSlugs` برابر `null` است تا منوی ایستا فلش نزند.
+ * منوی گزارش کاربر جاری از `GET /reports/access/me`.
+ * برای نقش‌های سازمانی و ادمین/سوپرادمین زده می‌شود.
+ * - `grantedSlugs`: `status=active` — منو باز، API گزارش قابل فراخوانی.
+ * - `inactiveSlugs`: `status=inactive` — فقط غیرفعال نمایش بده، API گزارش را صدا نزن (۴۰۳).
+ * - هر چیزی که در پاسخ نیست ممنوع است.
+ * تا آماده شدن پاسخ، `grantedSlugs` برابر `null` است تا منوی ایستا فلش نزند؛
+ * اگر درخواست شکست بخورد، لیست خالی می‌شود (گزارش مجاز نمایش نمی‌دهیم).
  */
 export function useOrgReportAccess() {
   const activeUser = useUserStore((state) => state.activeUser);
   const role = activeUser?.role;
   const orgRole = isOrgReportsRole(role) ? (role as OrgReportsRole) : null;
+  const staffRole = isStaffAdminRole(role) ? role : null;
+  const accessRole = orgRole ?? staffRole;
 
   const query = useQuery({
-    queryKey: DASHBOARD_QUERY.reportAccessSnapshot,
-    queryFn: () => ReportAccessService.getSnapshot(),
-    enabled: orgRole !== null,
+    queryKey: DASHBOARD_QUERY.reportAccessMe(accessRole ?? 'none'),
+    queryFn: () => ReportAccessService.getMyAccess(),
+    enabled: accessRole !== null,
     staleTime: 30_000,
   });
 
-  const userProvinceIds = useMemo(() => {
-    if (!query.data) return [] as string[];
-    return resolveOrgUserProvinceIds(
-      activeUser?.province,
-      query.data.provinceNames
-    );
-  }, [activeUser?.province, query.data]);
-
-  const grantedSlugs = useMemo((): ReportSlug[] | null => {
-    if (!orgRole) return [];
+  const grantedSlugs = useMemo((): readonly ReportSlug[] | null => {
+    if (!accessRole) return NO_SLUGS;
+    if (query.isError) return NO_SLUGS;
     if (!query.data) return null;
-    return grantedOrgReportSlugs(
-      orgRole,
-      query.data.matrix,
-      userProvinceIds
-    );
-  }, [orgRole, query.data, userProvinceIds]);
+    return query.data.active;
+  }, [accessRole, query.data, query.isError]);
 
-  const matrix = query.data?.matrix ?? null;
+  const inactiveSlugs = query.data?.inactive ?? NO_SLUGS;
+  const compareSlugs = query.data?.compare ?? NO_SLUGS;
 
   return {
     role: orgRole,
     isOrgRole: orgRole !== null,
-    isLoading: orgRole !== null && query.isLoading,
+    isStaffRole: staffRole !== null,
+    isLoading: accessRole !== null && query.isLoading,
     isError: query.isError,
-    matrix,
-    userProvinceIds,
     grantedSlugs,
-    canAccessSlug: (slug: string) =>
-      canAccessOrgReportSlug(orgRole, slug, matrix, userProvinceIds),
+    inactiveSlugs,
+    canAccessSlug: (slug: string) => {
+      if (orgRole) return isOrgReportGranted(orgRole, slug, grantedSlugs);
+      if (staffRole) {
+        if (!isReportSlug(slug) || !isEnabledReportSlug(slug, staffRole)) {
+          return false;
+        }
+        return grantedSlugs?.includes(slug) ?? false;
+      }
+      return false;
+    },
     canCompareSlug: (slug: ReportSlug) =>
-      canCompareOrgReportSlug(orgRole, slug, matrix, userProvinceIds),
+      canCompareOrgGrantedSlug(orgRole, slug, grantedSlugs, compareSlugs),
     reload: () => query.refetch(),
   };
 }

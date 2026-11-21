@@ -1,3 +1,4 @@
+import { invalidateSharedReads, sharedRead } from '@/lib/shared-read';
 import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
 import type {
@@ -9,18 +10,28 @@ import type {
 
 import { NEST_ADMIN_PATHS } from '../paths';
 
+const SETTINGS_SHARED_KEY = 'admin-settings';
+
 export const settingsCapacityApi = {
   /** POST /admin/settings — ردیف جدید؛ لایو ۲۰۴. GET بعدی آخرین را می‌دهد. */
-  createAcademicSettings(body: NestCreateAcademicSettingsDto, token?: string) {
-    return apiClient.postMaybeJson<null>(
+  async createAcademicSettings(
+    body: NestCreateAcademicSettingsDto,
+    token?: string
+  ) {
+    const result = await apiClient.postMaybeJson<null>(
       NEST_ADMIN_PATHS.academicSettings,
       body,
       token
     );
+    invalidateSharedReads(SETTINGS_SHARED_KEY);
+    return result;
   },
   /** GET /admin/settings — آخرین ردیف درج‌شده `{ id, systemPassingScore, generalProfessorCapacity }`. */
   getAcademicSettings(token?: string) {
-    return apiClient.getJson<unknown>(NEST_ADMIN_PATHS.academicSettings, token);
+    // ظرفیت ترمی و پودمانی هم‌زمان settings می‌خواهند — یک GET مشترک.
+    return sharedRead(SETTINGS_SHARED_KEY, () =>
+      apiClient.getJson<unknown>(NEST_ADMIN_PATHS.academicSettings, token)
+    );
   },
 
   /** GET /admin/professor-capacities?lessonId=&semesterId= — آرایه؛ خالی یعنی هنوز ردیفی نیست. */

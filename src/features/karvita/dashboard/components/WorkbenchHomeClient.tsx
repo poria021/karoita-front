@@ -12,9 +12,9 @@ import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import {
   WORKBENCH_FULL_ROW_PLACEMENT,
   workbenchCellClass,
+  WORKBENCH_LEARNER_MOBILE_CLASS,
   workbenchShellClass,
 } from '@/lib/workbench-grid';
-import type { UserRole } from '@/types/auth';
 
 import { DashboardWidgetGrid } from './DashboardWidgetGrid';
 
@@ -29,12 +29,6 @@ export function WorkbenchHomeClient() {
   const displayName =
     [activeUser.firstName, activeUser.lastName].filter(Boolean).join(' ') ||
     strategy.label;
-  const welcomeOrgLine = [
-    activeUser.province?.filter(Boolean).join('، '),
-    activeUser.college?.filter(Boolean).join('، '),
-  ]
-    .filter(Boolean)
-    .join(' · ');
   const showChecklist = shouldShowOnboardingChecklist(activeUser);
   const progress = showChecklist
     ? getOnboardingProgress({
@@ -44,43 +38,29 @@ export function WorkbenchHomeClient() {
       })
     : null;
 
+  const showAd = workbenchBoardShowsAd(activeUser.role);
+  const fullRowClass = workbenchCellClass(WORKBENCH_FULL_ROW_PLACEMENT);
   const learnerWorkbench =
     activeUser.role === 'student' || activeUser.role === 'skill_learner';
 
   return (
-    <WorkbenchHomeShell
-      role={activeUser.role}
-      learnerWorkbench={learnerWorkbench}
-      welcomeName={displayName}
-      welcomeOrgLine={welcomeOrgLine || null}
-      progress={progress}
-    />
-  );
-}
-
-function WorkbenchHomeShell({
-  role,
-  learnerWorkbench,
-  welcomeName,
-  welcomeOrgLine,
-  progress,
-}: {
-  role: UserRole;
-  learnerWorkbench: boolean;
-  welcomeName: string;
-  welcomeOrgLine: string | null;
-  progress: ReturnType<typeof getOnboardingProgress> | null;
-}) {
-  const showAd = workbenchBoardShowsAd(role);
-  const fullRowClass = workbenchCellClass(WORKBENCH_FULL_ROW_PLACEMENT);
-
-  return (
-    <div className={workbenchShellClass(showAd)}>
+    <div
+      className={[
+        workbenchShellClass(
+          showAd,
+          activeUser.role === 'regional_edu_admin' ||
+            activeUser.role === 'faculty_role' ||
+            activeUser.role === 'provincial_university'
+        ),
+        learnerWorkbench ? WORKBENCH_LEARNER_MOBILE_CLASS : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       {learnerWorkbench ? (
         <DashboardWidgetGrid
-          role={role}
-          welcomeName={welcomeName}
-          welcomeOrgLine={welcomeOrgLine}
+          role={activeUser.role}
+          welcomeName={displayName}
         />
       ) : null}
 
@@ -92,9 +72,8 @@ function WorkbenchHomeShell({
 
       {!learnerWorkbench ? (
         <DashboardWidgetGrid
-          role={role}
-          welcomeName={welcomeName}
-          welcomeOrgLine={welcomeOrgLine}
+          role={activeUser.role}
+          welcomeName={displayName}
         />
       ) : null}
     </div>

@@ -1,9 +1,6 @@
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
-import type {
-  OrgStructureSnapshot,
-  OrgStructureSubTab,
-} from '@/types/org-structure';
+import type { OrgStructureSubTab } from '@/types/org-structure';
 import { faIcons } from '@/utils/iconMap';
 
 export type OrgStructureCountMetric = {
@@ -11,6 +8,10 @@ export type OrgStructureCountMetric = {
   label: string;
   count: number;
   icon: IconDefinition;
+  /** رنگ قطاع نمودار حلقه‌ای. */
+  color: string;
+  softClassName: string;
+  textClassName: string;
   /** کلاس‌های رنگ آیکون و پس‌زمینهٔ ملایم کارت. */
   toneClassName: string;
   iconWrapClassName: string;
@@ -32,68 +33,70 @@ const METRIC_META: Record<
   provinces: {
     label: 'استان‌ها',
     icon: faIcons.map,
+    color: 'var(--kv-brand)',
+    softClassName: 'bg-kv-brand-soft',
+    textClassName: 'text-kv-brand-soft-fg',
     toneClassName: 'text-kv-brand-soft-fg',
     iconWrapClassName: 'bg-kv-brand-soft text-kv-brand-soft-fg',
   },
   cities: {
     label: 'شهرها',
     icon: faIcons.buildingColumns,
+    color: 'var(--kv-info)',
+    softClassName: 'bg-kv-info-soft',
+    textClassName: 'text-kv-info-soft-fg',
     toneClassName: 'text-kv-info-soft-fg',
     iconWrapClassName: 'bg-kv-info-soft text-kv-info-soft-fg',
   },
   districts: {
     label: 'مناطق آموزشی',
     icon: faIcons.mapLocationDot,
+    color: 'var(--kv-warning)',
+    softClassName: 'bg-kv-warning-soft',
+    textClassName: 'text-kv-warning-soft-fg',
     toneClassName: 'text-kv-warning-soft-fg',
     iconWrapClassName: 'bg-kv-warning-soft text-kv-warning-soft-fg',
   },
   schools: {
     label: 'مدارس تابعه',
     icon: faIcons.school,
+    color: 'var(--kv-success)',
+    softClassName: 'bg-kv-success-soft',
+    textClassName: 'text-kv-success-soft-fg',
     toneClassName: 'text-kv-success-soft-fg',
     iconWrapClassName: 'bg-kv-success-soft text-kv-success-soft-fg',
   },
   majors: {
     label: 'رشته‌های تحصیلی',
     icon: faIcons.graduationCap,
+    color: 'var(--kv-violet)',
+    softClassName: 'bg-kv-violet-soft',
+    textClassName: 'text-kv-violet-soft-fg',
     toneClassName: 'text-kv-brand-soft-fg',
     iconWrapClassName: 'bg-kv-brand-soft text-kv-brand-soft-fg',
   },
   faculties: {
     label: 'دانشکده‌ها / پردیس‌ها',
     icon: faIcons.university,
+    color: 'var(--kv-danger)',
+    softClassName: 'bg-kv-danger-soft',
+    textClassName: 'text-kv-danger-soft-fg',
     toneClassName: 'text-kv-neutral-soft-fg',
     iconWrapClassName: 'bg-kv-neutral-soft text-kv-neutral-soft-fg',
   },
 };
 
-function countForTab(
-  snapshot: OrgStructureSnapshot,
-  tab: OrgStructureSubTab
-): number {
-  switch (tab) {
-    case 'provinces':
-      return snapshot.provinces.length;
-    case 'cities':
-      return snapshot.cities.length;
-    case 'districts':
-      return snapshot.districts.length;
-    case 'schools':
-      return snapshot.schools.length;
-    case 'majors':
-      return snapshot.majors.length;
-    case 'faculties':
-      return snapshot.faculties.length;
-  }
-}
+/** شمار هر تب ساختار سازمانی. */
+export type OrgStructureCounts = Record<OrgStructureSubTab, number>;
 
+/** از شمار آماده (API `users/dashboard/counts`) متریک‌های نمایشی می‌سازد. */
 export function buildOrgStructureCountMetrics(
-  snapshot: OrgStructureSnapshot | null | undefined
+  counts: OrgStructureCounts | null | undefined
 ): OrgStructureCountMetric[] {
-  if (!snapshot) return [];
+  if (!counts) return [];
   return METRIC_ORDER.map((id) => ({
     id,
-    count: countForTab(snapshot, id),
+    count: Math.max(0, counts[id] ?? 0),
     ...METRIC_META[id],
   }));
 }

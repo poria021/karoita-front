@@ -6,13 +6,12 @@ import type {
 } from '@/types/internship-enrollment';
 
 import {
-  buildLearnerCourseWeekHighlights,
+  buildLearnerCourseWeekRows,
   buildLearnerGradeChartRows,
   buildLearnerGradeSeries,
   buildLearnerNextAction,
   buildLearnerWorkbenchModels,
   pickFocusSnapshot,
-  pickLearnerFeaturedWeek,
   urgencyScore,
   type LearnerLevelSnapshot,
 } from './learner-workbench';
@@ -261,69 +260,109 @@ describe('learner-workbench helpers', () => {
     expect(rows[2]?.['internship-2']).toBeNull();
   });
 
-  it('prefers latest week when it has teacher reaction', () => {
-    const featured = pickLearnerFeaturedWeek([
-      week({ id: 'w1', status: 'graded', score: 80 }),
-      week({
-        id: 'w2',
-        status: 'needs_edit',
-        feedback: { advisor: 'لطفاً اصلاح کنید', advisorAt: '2026-01-01T10:00:00Z' },
-      }),
-      week({ id: 'w3', status: 'locked_future' }),
-    ]);
-    expect(featured?.week.id).toBe('w2');
-    expect(featured?.weekNumber).toBe(2);
-    expect(featured?.hasTeacherReaction).toBe(true);
-  });
+  describe('buildLearnerCourseWeekRows', () => {
+    const baseEnrollment = {
+      enrollmentId: 'e1',
+      supervisorName: null,
+      attendanceDaysLabel: '',
+      schoolId: null,
+      schoolName: null,
+      mentorId: null,
+      mentorName: null,
+      courseTitle: 'درس',
+      termTitle: 'نیم‌سال',
+      status: 'active' as const,
+      removalPending: false,
+      isTermArchived: false,
+      weeks: [] as InternshipWeeklySession[],
+      progressiveGrade: { gradedCount: 0, final20: null },
+      weeksAreReal: true,
+    };
 
-  it('falls back to latest unlocked week without reaction', () => {
-    const featured = pickLearnerFeaturedWeek([
-      week({ id: 'w1', status: 'draft' }),
-      week({ id: 'w2', status: 'pending' }),
-      week({ id: 'w3', status: 'locked_future' }),
-    ]);
-    expect(featured?.week.id).toBe('w2');
-    expect(featured?.hasTeacherReaction).toBe(false);
-  });
+    it('builds one row per taken course with week cells and final grade', () => {
+      const rows = buildLearnerCourseWeekRows([
+        snap(1, 'S5_term_active', {
+          ...baseEnrollment,
+          weeks: [
+            week({ id: 'w1', status: 'graded', score: 88, title: 'هفته اول' }),
+            week({ id: 'w2', status: 'pending', score: 70 }),
+            week({ id: 'w3', status: 'locked_future' }),
+          ],
+          progressiveGrade: { gradedCount: 1, final20: 17.6 },
+        }),
+      ]);
 
-  it('builds course week highlight cards with advisor feedback', () => {
-    const highlights = buildLearnerCourseWeekHighlights([
-      snap(1, 'S5_term_active', {
-        enrollmentId: 'e1',
-        supervisorName: 'دکتر احمدی',
-        attendanceDaysLabel: '',
-        schoolId: null,
-        schoolName: null,
-        mentorId: null,
-        mentorName: null,
-        courseTitle: 'کارورزی ۱',
-        termTitle: 'نیم‌سال',
-        status: 'active',
-        removalPending: false,
-        isTermArchived: false,
-        weeks: [
-          week({ id: 'w1', status: 'graded', score: 88 }),
-          week({
-            id: 'w2',
-            status: 'needs_edit',
-            title: 'هفته دوم',
-            feedback: {
-              advisor: 'مشاهده مشارکتی را کامل کنید.',
-              advisorAt: '2026-02-01T12:00:00Z',
+      expect(rows).toHaveLength(1);
+      expect(rows[0]?.id).toBe('internship-1');
+      expect(rows[0]?.courseTitle).toBe('کارورزی 1');
+      expect(rows[0]?.href).toContain('/karvita/internships/1');
+      expect(rows[0]?.finalGrade).toBe(17.6);
+      expect(rows[0]?.weeks.map((cell) => cell.status)).toEqual([
+        'graded',
+        'pending',
+        'locked_future',
+      ]);
+      expect(rows[0]?.weeks.map((cell) => cell.weekNumber)).toEqual([1, 2, 3]);
+      expect(rows[0]?.weeks[0]?.title).toBe('هفته اول');
+      // فقط هفتهٔ graded نمره می‌گیرد؛ نمرهٔ هفتهٔ pending نباید نشان داده شود.
+      expect(rows[0]?.weeks.map((cell) => cell.score)).toEqual([88, null, null]);
+    });
+
+    it('includes courses from previous terms, sorted by level', () => {
+      const rows = buildLearnerCourseWeekRows([
+        snap(3, 'S5_term_active', { ...baseEnrollment, enrollmentId: 'e3' }),
+        {
+          level: 1,
+          state: state({
+            level: 1,
+            scenario: 'S5_term_active',
+            termId: 'term-old',
+            openTermId: 'term-1',
+            courseTitle: 'کارورزی ۱',
+            enrollment: {
+              ...baseEnrollment,
+              enrollmentId: 'e1',
+              status: 'completed',
+              progressiveGrade: { gradedCount: 16, final20: 14 },
             },
           }),
-        ],
-        progressiveGrade: { gradedCount: 1, final20: 17.6 },
-        weeksAreReal: true,
-      }),
-    ]);
+        },
+        snap(2, 'S4_registered_waiting', { ...baseEnrollment, enrollmentId: 'e2' }),
+      ]);
 
-    expect(highlights).toHaveLength(1);
-    expect(highlights[0]?.id).toBe('internship-1');
-    expect(highlights[0]?.weekNumber).toBe(2);
-    expect(highlights[0]?.hasTeacherReaction).toBe(true);
-    expect(highlights[0]?.reactionRole).toBe('advisor');
-    expect(highlights[0]?.reactionText).toContain('مشاهده مشارکتی');
-    expect(highlights[0]?.supervisorName).toBe('دکتر احمدی');
+      expect(rows.map((row) => row.id)).toEqual([
+        'internship-1',
+        'internship-2',
+        'internship-3',
+      ]);
+      expect(rows[0]?.finalGrade).toBe(14);
+    });
+
+    it('skips dropped enrollments and levels without enrollment', () => {
+      const rows = buildLearnerCourseWeekRows([
+        snap(1, 'S5_term_active', { ...baseEnrollment, status: 'dropped' }),
+        snap(2, 'S3_enroll_open'),
+        snap(3, 'S5_term_active', { ...baseEnrollment, enrollmentId: 'e3' }),
+      ]);
+
+      expect(rows.map((row) => row.id)).toEqual(['internship-3']);
+    });
+
+    it('keeps finalGrade null until a grade exists and falls back to week title', () => {
+      const rows = buildLearnerCourseWeekRows([
+        snap(1, 'S5_term_active', {
+          ...baseEnrollment,
+          weeks: [{ ...week({ id: 'w1', status: 'draft' }), title: '  ' }],
+        }),
+      ]);
+
+      expect(rows[0]?.finalGrade).toBeNull();
+      expect(rows[0]?.weeks[0]?.title).toBe('هفته ۱');
+    });
+
+    it('returns an empty list when nothing is enrolled', () => {
+      expect(buildLearnerCourseWeekRows([])).toEqual([]);
+      expect(buildLearnerCourseWeekRows([snap(1, 'S3_enroll_open')])).toEqual([]);
+    });
   });
 });

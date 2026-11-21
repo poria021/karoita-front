@@ -2,6 +2,7 @@
  * چرخهٔ توکن مرورگر: access در حافظهٔ ماژول این تب؛ refresh فقط کوکی httpOnly
  * که `POST /api/auth/refresh` می‌خواند. ky اینجا import نشود.
  */
+import { isSessionTransientError } from '@/services/auth/session-errors';
 import { isAuthPath, RouteService } from '@/services/route.service';
 import { beginLeavingApp, waitForNextPaint } from '@/store/authTransition';
 import { setRuntimeAuthBoot } from '@/store/sessionBoot';
@@ -10,13 +11,15 @@ import { useUserStore } from '@/store/useUserStore';
 let browserRotateAccessPromise: Promise<string | null> | null = null;
 
 async function rotateAccessTokenOnce(): Promise<string | null> {
+  const { realRefreshToken } = await import(
+    '@/services/auth/real/real-auth.bridge'
+  );
   try {
-    const { realRefreshToken } = await import(
-      '@/services/auth/real/real-auth.bridge'
-    );
     const session = await realRefreshToken();
     return session?.token ?? null;
-  } catch {
+  } catch (error) {
+    // شبکه/۵xx ≠ نشست مرده؛ null برنگردان وگرنه afterResponse → logout می‌شود.
+    if (isSessionTransientError(error)) throw error;
     return null;
   }
 }

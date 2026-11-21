@@ -27,7 +27,7 @@ const SKIP_REQUEST_HEADER =
  * و ky آن را `TypeError` شبکه می‌بیند.
  */
 const ALLOW_RESPONSE_HEADER =
-  /^(content-type|cache-control|retry-after|www-authenticate|location)$/i;
+  /^(content-type|content-disposition|cache-control|retry-after|www-authenticate|location)$/i;
 
 /** هدر نقش/نام کاربر برای سرور جعلیِ مسیرهای پیشنهادی؛ هرگز به Nest واقعی نرود. */
 const FAKE_ACTOR_HEADER = 'x-karvita-actor';

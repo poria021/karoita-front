@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import {
   AppTabs,
   AppTabsList,
@@ -13,7 +15,6 @@ import {
   KvSelectValue,
 } from '@/components/shared/fields/KvSelect';
 import { KvTypography } from '@/components/shared/KvTypography';
-import { MODULES, TERMS } from '@/features/karvita/reports/constants';
 import type { AdminReportPageModel } from '@/features/karvita/reports/hooks/useAdminReportPage';
 import { toPersianDigits } from '@/utils/persianDigits';
 
@@ -21,11 +22,32 @@ type ReportPeriodBandProps = {
   page: AdminReportPageModel;
 };
 
+/** «همه» یعنی structure و semesterId اصلاً به API فرستاده نشود. */
+const ALL_PERIODS = '__all__';
+
 export function ReportPeriodBand({ page }: ReportPeriodBandProps) {
   const isTerm = page.period.mode === 'term';
-  const list = isTerm ? TERMS : MODULES;
-  const cur = isTerm ? page.period.termId : page.period.moduleId;
   const showModes = page.def.periodModes !== false;
+
+  // گزارش‌های بدون تب ترمی/پودمانی همیشه روی نظام پیش‌فرض‌اند؛ ?mode= قدیمی در URL نباید بماند.
+  const { setMode } = page;
+  useEffect(() => {
+    if (!showModes && !isTerm) setMode('term');
+  }, [showModes, isTerm, setMode]);
+  const label = isTerm ? 'نیم‌سال تحصیلی' : 'پودمان';
+
+  // دوره‌ها از API می‌آیند و «همه» پیش‌فرض است.
+  const options = [
+    {
+      id: ALL_PERIODS,
+      label: isTerm ? 'همه نیم‌سال‌ها' : 'همه پودمان‌ها',
+    },
+    ...page.periodOptions.map((option) => ({
+      id: option.value,
+      label: option.label,
+    })),
+  ];
+  const cur = page.period.semesterId || ALL_PERIODS;
 
   return (
     <div className="flex flex-col items-start gap-kv-inline">
@@ -56,19 +78,18 @@ export function ReportPeriodBand({ page }: ReportPeriodBandProps) {
           <KvSelect
             value={cur}
             onValueChange={(next) => {
-              if (next) page.setPeriodId(next);
+              if (!next) return;
+              page.setPeriodId(next === ALL_PERIODS ? '' : next);
             }}
           >
             <KvSelectTrigger
-              aria-label={isTerm ? 'نیم‌سال تحصیلی' : 'پودمان'}
+              aria-label={label}
               className="bg-kv-surface shadow-kv-soft"
             >
-              <KvSelectValue
-                placeholder={isTerm ? 'نیم‌سال تحصیلی' : 'پودمان'}
-              />
+              <KvSelectValue placeholder={label} />
             </KvSelectTrigger>
             <KvSelectContent>
-              {list.map((option) => (
+              {options.map((option) => (
                 <KvSelectItem key={option.id} value={option.id}>
                   {toPersianDigits(option.label)}
                 </KvSelectItem>

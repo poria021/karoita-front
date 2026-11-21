@@ -29,6 +29,11 @@ export type ReportPeriodState = {
   mode: ReportPeriodMode;
   termId: string;
   moduleId: string;
+  /**
+   * شناسهٔ دورهٔ واقعی (Nest) وقتی کاربر دوره را انتخاب کرده؛ فقط در حالت real.
+   * خالی یعنی structure و semesterId به API فرستاده نشود.
+   */
+  semesterId?: string;
 };
 
 export type ReportOption = {
@@ -45,6 +50,7 @@ export type ReportColumnKind =
   | 'count'
   | 'status'
   | 'courses'
+  | 'score'
   | 'scores-action';
 
 export type ReportColumnDef = {
@@ -113,6 +119,8 @@ export type ReportQueryResult = {
   page: number;
   pageSize: number;
   columns: ReportColumnDef[];
+  /** فقط API واقعی: صفحهٔ بعد هست؟ (Nest شمارش کل نمی‌دهد.) */
+  hasNextPage?: boolean;
 };
 
 export type ReportFilterCatalog = {
@@ -146,6 +154,8 @@ export type ReportLearnerScoreDetail = {
     name: string;
     average: number | null;
     sessions: (number | null)[];
+    /** قبول/مردود همین درس (اگر API بدهد، یا از وضعیت ردیف وقتی فقط یک درس است). */
+    status?: ReportScoreStatus;
   }[];
 };
 

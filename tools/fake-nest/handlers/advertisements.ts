@@ -173,13 +173,19 @@ export function registerAdvertisementRoutes(router: Router, store: Store): void 
     if (type !== 'ads' && type !== 'info') {
       throw new HttpError(422, 'Unprocessable Entity', { type: 'required' });
     }
-    if (placement !== 'hero' && placement !== 'sidebar') {
-      throw new HttpError(422, 'Unprocessable Entity', { placement: 'required' });
+    // بدون placement → همهٔ جای‌گذاری‌های همان type (یک GET برای داشبورد).
+    if (
+      placement != null &&
+      placement !== '' &&
+      placement !== 'hero' &&
+      placement !== 'sidebar'
+    ) {
+      throw new HttpError(422, 'Unprocessable Entity', { placement: 'invalid' });
     }
     const rows = store.advertisements.filter(
       (row) =>
         row.type === type &&
-        row.placement === placement &&
+        (placement == null || placement === '' || row.placement === placement) &&
         isVisibleToRole(row, role)
     );
     for (const row of rows) row.impressionCount += 1;

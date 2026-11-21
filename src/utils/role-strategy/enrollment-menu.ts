@@ -13,7 +13,7 @@ import {
 } from './types';
 
 /**
- * گروه ایستای «انتخاب واحد کارورزی/کارآموزی» دانشجو و مهارت‌آموز را در رندر
+ * گروه ایستای «کارورزی/کارآموزی» دانشجو و مهارت‌آموز را در رندر
  * سایدبار با درس‌های فعال مدیر ارشد جایگزین می‌کند: هر درس یک عنوان است و
  * زیرمجموعه‌هایش ساب‌ماژول‌های آن؛ درس بدون زیرمجموعه خودش یک آیتم مستقل.
  * بدون درس:
@@ -180,7 +180,7 @@ export function withEnrollmentSubModules(
     replaced = true;
     const usedIcons = new Set<string>();
     for (const course of courses) {
-      const title = `انتخاب واحد ${course.title}`;
+      const title = course.title;
       const icon = iconForEnrollmentCourse(course, usedIcons);
       const isDisabled = (leaf: EnrollmentLeaf, level: number) =>
         isLeafDisabled(course, leaf, level);

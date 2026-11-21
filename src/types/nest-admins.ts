@@ -29,6 +29,8 @@ export type NestCreateAdminDto = {
   lname: string;
   phone: string;
   role: NestAdminAccountRoleName;
+  /** اختیاری در Nest؛ اگر نرود حساب بدون رمز ساخته می‌شود و ورود با رمز ممکن نیست. */
+  password?: string;
 };
 
 /** بدنهٔ PUT /api/v1/admin/admins/{id}. */

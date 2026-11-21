@@ -28,7 +28,7 @@ describe('live nav / admin plane', () => {
     expect(studentMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
       RouteService.karvita.announcements(),
-      'انتخاب واحد کارورزی',
+      'کارورزی',
     ]);
     const studentGroup = studentMenu.find(isSidebarMenuGroup);
     expect(studentGroup?.children.map((c) => c.path)).toEqual([
@@ -42,7 +42,7 @@ describe('live nav / admin plane', () => {
     expect(learnerMenu.map((i) => ('path' in i ? i.path : i.title))).toEqual([
       RouteService.karvita.dashboard(),
       RouteService.karvita.announcements(),
-      'انتخاب واحد کارآموزی',
+      'کارآموزی',
     ]);
     const learnerGroup = learnerMenu.find(isSidebarMenuGroup);
     expect(learnerGroup?.children.map((c) => c.path)).toEqual([
@@ -53,54 +53,123 @@ describe('live nav / admin plane', () => {
     const supervisorMenu = getVisibleSidebarMenu('supervisor_professor');
     expect(supervisorMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
-      'ارزیابی گزارش‌های فراگیران',
-      'پیکربندی ظرفیت‌ها',
       'اطلاعیه‌ها و اعلانات',
+      'ارزیابی گزارش‌های فراگیران',
+      'گزارش‌گیری',
+      'پیکربندی ظرفیت‌ها',
     ]);
-    expect(
-      supervisorMenu.some((entry) => entry.title === 'گزارش‌گیری')
-    ).toBe(false);
+    const supervisorReports = supervisorMenu.find(
+      (entry) => isSidebarMenuGroup(entry) && entry.title === 'گزارش‌گیری'
+    );
+    expect(supervisorReports && isSidebarMenuGroup(supervisorReports)).toBe(
+      true
+    );
+    if (supervisorReports && isSidebarMenuGroup(supervisorReports)) {
+      expect(supervisorReports.children.map((c) => c.path)).toEqual([
+        RouteService.karvita.orgReports('learners'),
+        RouteService.karvita.orgReports('attendance'),
+        RouteService.karvita.orgReports('scores'),
+      ]);
+    }
 
     const mentorMenu = getVisibleSidebarMenu('mentor_teacher');
     expect(mentorMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
-      'ارزیابی گزارش‌های فراگیران',
       'اطلاعیه‌ها و اعلانات',
+      'ارزیابی گزارش‌های فراگیران',
+      'گزارش‌گیری',
     ]);
 
     const principalMenu = getVisibleSidebarMenu('school_principal');
     expect(principalMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
-      'ارزیابی گزارش‌های فراگیران',
       'اطلاعیه‌ها و اعلانات',
+      'ارزیابی گزارش‌های فراگیران',
+      'گزارش‌گیری',
     ]);
 
     const regionalMenu = getVisibleSidebarMenu('regional_edu_admin');
     expect(regionalMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
       'اطلاعیه‌ها و اعلانات',
+      'گزارش‌های لیستی',
+      'گزارش‌های عملکرد',
     ]);
 
     const facultyMenu = getVisibleSidebarMenu('faculty_role');
     expect(facultyMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
       'اطلاعیه‌ها و اعلانات',
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    const facultyGroups = facultyMenu.filter(isSidebarMenuGroup);
+    expect(facultyGroups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    expect(facultyGroups[0]?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('learners'),
+      RouteService.karvita.orgReports('professors'),
+    ]);
+    expect(facultyGroups[1]?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('attendance'),
+      RouteService.karvita.orgReports('professor-attendance'),
+    ]);
+    expect(facultyGroups[2]?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('teacher-performance'),
+      RouteService.karvita.orgReports('school-performance'),
+      RouteService.karvita.orgReports('professor-performance'),
     ]);
 
     const provincialMenu = getVisibleSidebarMenu('provincial_university');
     expect(provincialMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
       'اطلاعیه‌ها و اعلانات',
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
     ]);
 
     const centralMenu = getVisibleSidebarMenu('central_organization');
     expect(centralMenu.map((entry) => entry.title)).toEqual([
       'میز کار',
       'اطلاعیه‌ها و اعلانات',
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    const centralGroups = centralMenu.filter(isSidebarMenuGroup);
+    expect(centralGroups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    expect(centralGroups[0]?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('learners'),
+      RouteService.karvita.orgReports('teachers'),
+      RouteService.karvita.orgReports('principals'),
+      RouteService.karvita.orgReports('professors'),
+      RouteService.karvita.orgReports('schools'),
+      RouteService.karvita.orgReports('faculties'),
+      RouteService.karvita.orgReports('provinces'),
+    ]);
+    // حضور و غیاب اساتید برای سازمان مرکزی اختیاری است (فقط پس از اعطا در منو می‌آید).
+    expect(centralGroups[1]?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('attendance'),
+    ]);
+    expect(centralGroups[2]?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('teacher-performance'),
+      RouteService.karvita.orgReports('school-performance'),
+      RouteService.karvita.orgReports('professor-performance'),
+      RouteService.karvita.orgReports('faculty-performance'),
+      RouteService.karvita.orgReports('province-performance'),
     ]);
     expect(
       isLiveSidebarPath(RouteService.karvita.orgReports('provinces'))
-    ).toBe(false);
+    ).toBe(true);
     expect(
       isAdminControlPlanePath(RouteService.karvita.orgReports('learners'))
     ).toBe(false);
@@ -131,11 +200,12 @@ describe('live nav / admin plane', () => {
     const adminMenu = getVisibleSidebarMenu('super_admin');
     expect(adminMenu.map((entry) => entry.title)).toEqual([
       'میز کار مدیریت',
+      'اطلاعیه‌ها و اعلانات',
       'بررسی مدارک هویتی',
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
-      'اطلاعیه‌ها و اعلانات',
+      'گزارش‌گیری',
     ]);
 
     const groups = adminMenu.filter(isSidebarMenuGroup);
@@ -150,23 +220,28 @@ describe('live nav / admin plane', () => {
     expect(orgGroup?.children.map((c) => c.path)).toEqual([
       RouteService.karvita.organizationalStructure(),
       RouteService.karvita.adminUserCreation(),
+      RouteService.karvita.reportAccess(),
     ]);
 
     const assistantMenu = getVisibleSidebarMenu('assistant_admin');
     expect(assistantMenu.map((entry) => entry.title)).toEqual([
       'میز کار مدیریت',
+      'اطلاعیه‌ها و اعلانات',
       'بررسی مدارک هویتی',
       'مدیریت محتوای لندینگ',
       'مدیریت سازمانی',
       'مدیریت ترم و سرفصل',
-      'اطلاعیه‌ها و اعلانات',
+      'گزارش‌گیری',
     ]);
     expect(
       assistantMenu
         .filter(isSidebarMenuGroup)
         .find((g) => g.title === 'مدیریت سازمانی')
         ?.children.map((c) => c.path)
-    ).toEqual([RouteService.karvita.organizationalStructure()]);
+    ).toEqual([
+      RouteService.karvita.organizationalStructure(),
+      RouteService.karvita.reportAccess(),
+    ]);
     expect(
       assistantMenu
         .filter(isSidebarMenuGroup)
@@ -185,16 +260,15 @@ describe('live nav / admin plane', () => {
       adminMenu.find(
         (entry) => !isSidebarMenuGroup(entry) && entry.title === 'گزارش‌گیری'
       )
-    ).toBeUndefined();
+    ).toMatchObject({
+      path: RouteService.karvita.reports('learners'),
+    });
     expect(
       isLiveSidebarPath(RouteService.karvita.reports('learners'))
-    ).toBe(false);
+    ).toBe(true);
     expect(
       isAdminControlPlanePath(RouteService.karvita.reports('teachers'))
     ).toBe(true);
-    expect(isLiveStaticNavPath(RouteService.karvita.reportAccess())).toBe(
-      false
-    );
 
     expect(isLiveSidebarPath(RouteService.karvita.dashboard())).toBe(true);
     expect(isLiveSidebarPath(RouteService.karvita.adminDashboard())).toBe(true);

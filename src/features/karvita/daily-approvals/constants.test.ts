@@ -79,7 +79,7 @@ describe('daily approvals course options', () => {
       'les_1',
       'les_special',
     ]);
-    expect(options[0]?.label).toBe('همه زیرمجموعه‌ها');
+    expect(options[0]?.label).toBe('همه کلاس‌های کارورزی');
   });
 
   it('real mode matches module leaves by original-lesson id when titles differ', () => {

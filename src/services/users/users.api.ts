@@ -1,6 +1,8 @@
 import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
 import type {
+  NestDashboardCountsDto,
+  NestDocumentsStatusDto,
   NestInfinityPaginationUserResponse,
   NestUpdateUserDto,
   NestUserDto,
@@ -12,6 +14,8 @@ import type {
  */
 export const NEST_USERS_PATHS = {
   list: 'v1/users',
+  dashboardCounts: 'v1/users/dashboard/counts',
+  documentsStatus: 'v1/users/documents/status',
   byId: (id: string) => `v1/users/${id}`,
 } as const;
 
@@ -22,6 +26,22 @@ export const usersApi = {
       NEST_USERS_PATHS.list,
       token,
       { searchParams: toSearchParams(query) }
+    );
+  },
+
+  /** GET /api/v1/users/dashboard/counts — فقط ادمین/سوپرادمین (میز کار). */
+  dashboardCounts(token?: string) {
+    return apiClient.getJson<NestDashboardCountsDto>(
+      NEST_USERS_PATHS.dashboardCounts,
+      token
+    );
+  },
+
+  /** GET /api/v1/users/documents/status — { pending, confirmed, rejected, total }. */
+  documentsStatus(token?: string) {
+    return apiClient.getJson<NestDocumentsStatusDto>(
+      NEST_USERS_PATHS.documentsStatus,
+      token
     );
   },
 

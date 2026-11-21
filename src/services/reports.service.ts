@@ -1,74 +1,318 @@
 import {
-  getColumnDefs,
-  getCompareItems,
-  getFilterCatalog,
-  getFilterOptions,
-  getLearnerCourseDetails,
-  getLearnerScoreDetails,
-  queryReport,
-} from '@/services/reports/mock/mock-reports-query';
+  getLearnersAttendanceColumns,
+  PROFESSORS_ATTENDANCE_COLUMNS,
+} from '@/services/reports/real/attendance-report.columns';
+import {
+  downloadLearnersExport,
+  fetchLearnerGradeDetail,
+  fetchLearnersFilterBox,
+  fetchLearnersFilterBoxes,
+  fetchLearnersPage,
+  LEARNERS_ATTENDANCE_EXPORT_FILE,
+  LEARNERS_GRADES_EXPORT_FILE,
+  mapLearnerAttendanceRow,
+  mapLearnerGradeRow,
+  NEST_LEARNERS_ATTENDANCE_PATHS,
+  NEST_LEARNERS_GRADES_PATHS,
+  type LearnersExportFormat,
+  type LearnersFilterBox,
+} from '@/services/reports/real/learners-report.api';
+import {
+  downloadListExport,
+  fetchListFilterBoxes,
+  fetchListFilterBox,
+  fetchListPage,
+  isListReportSlug,
+  type ListReportExportFormat,
+} from '@/services/reports/real/list-reports.api';
+import {
+  isPerformanceReportSlug,
+  PERFORMANCE_COLUMNS,
+} from '@/services/reports/real/performance-report.mappers';
+import { getColumnDefs } from '@/services/reports/real/report-columns';
 import type { ReportSlug } from '@/types/report-access';
 import type {
   ReportColumnDef,
-  ReportCompareItem,
-  ReportFilterCatalog,
   ReportFilterKey,
   ReportFilters,
-  ReportLearnerCourseDetail,
   ReportLearnerScoreDetail,
+  ReportPeriodMode,
   ReportPeriodState,
   ReportQueryInput,
   ReportQueryResult,
+  ReportSort,
 } from '@/types/reports';
 
+/** «لیست فراگیران» (`/reports/learners`). */
+export function isRealLearnersReport(slug: ReportSlug): boolean {
+  return slug === 'learners';
+}
+
+/** «حضور و غیاب فراگیران» (`/reports/learners/attendance`). */
+export function isRealAttendanceReport(slug: ReportSlug): boolean {
+  return slug === 'attendance';
+}
+
+/** «نمرات فراگیران» (`/reports/learners/grades`). */
+export function isRealScoresReport(slug: ReportSlug): boolean {
+  return slug === 'scores';
+}
+
 /**
- * گزارش‌گیری پنل مدیر ارشد.
- *
- * فعلاً فقط ماکت داخل Facade است تا UI قابل مرور باشد.
- * با آمدن بکند، شاخهٔ `real/` را اضافه کنید و اینجا مثل بقیهٔ سرویس‌ها
- * با `IS_MOCK_MODE` سوییچ کنید — UI/hook عوض نمی‌شود.
+ * گزارش‌های لیستی دیگر (مدارس، دانشکده‌ها، استان‌ها، معلمان، مدیران مدرسه،
+ * اساتید، حضور اساتید و پنج گزارش عملکرد).
+ */
+export function isRealListReport(slug: ReportSlug): boolean {
+  return isListReportSlug(slug);
+}
+
+/** همهٔ گزارش‌ها مستقیم به Nest وصل‌اند (داده‌ٔ ماکت وجود ندارد). */
+export function isRealApiReport(slug: ReportSlug): boolean {
+  return (
+    isRealLearnersReport(slug) ||
+    isRealListReport(slug) ||
+    isRealAttendanceReport(slug) ||
+    isRealScoresReport(slug)
+  );
+}
+
+function unsupportedReport(slug: ReportSlug): never {
+  throw new Error('گزارش «' + slug + '» به API وصل نیست.');
+}
+
+/** ستون‌های جدول؛ برای حضور و غیاب و عملکرد فقط فیلدهای API. */
+function columnDefsFor(
+  slug: ReportSlug,
+  mode: ReportPeriodMode = 'term'
+): ReportColumnDef[] {
+  if (slug === 'attendance') return getLearnersAttendanceColumns(mode);
+  if (slug === 'professor-attendance') return PROFESSORS_ATTENDANCE_COLUMNS;
+  if (isPerformanceReportSlug(slug)) return PERFORMANCE_COLUMNS[slug];
+  return getColumnDefs(slug, mode);
+}
+
+/**
+ * مرتب‌سازی سمت کلاینت برای گزارش‌هایی که Nest `sortBy` ندارد.
+ * گزارش‌های عملکرد از API مرتب می‌شوند؛ اینجا دست نمی‌زنیم.
+ */
+export function sortLoadedRows(
+  rows: ReportQueryResult['rows'],
+  columns: ReportColumnDef[],
+  sort: ReportSort | null
+): ReportQueryResult['rows'] {
+  if (!sort) return rows;
+  const column = columns.find((c) => c.id === sort.id);
+  if (!column || column.nosort) return rows;
+  const key = column.sortKey ?? column.id;
+  const dir = sort.dir === 'asc' ? 1 : -1;
+  return rows.slice().sort((a, b) => {
+    const x = a[key];
+    const y = b[key];
+    if (x == null && y == null) return 0;
+    if (x == null) return 1;
+    if (y == null) return -1;
+    if (typeof x === 'number' && typeof y === 'number') return (x - y) * dir;
+    return String(x).localeCompare(String(y), 'fa') * dir;
+  });
+}
+
+type LoadedPage = {
+  rows: ReportQueryResult['rows'];
+  page: number;
+  hasNextPage: boolean;
+};
+
+function toQueryResult(
+  slug: ReportSlug,
+  result: LoadedPage,
+  sort: ReportSort | null,
+  mode: ReportPeriodMode = 'term'
+): ReportQueryResult {
+  const columns = columnDefsFor(slug, mode);
+  const rows = isPerformanceReportSlug(slug)
+    ? result.rows
+    : sortLoadedRows(result.rows, columns, sort);
+  return {
+    rows,
+    total: result.rows.length,
+    page: result.page,
+    pageSize: result.rows.length,
+    columns,
+    hasNextPage: result.hasNextPage,
+  };
+}
+
+/**
+ * گزارش‌گیری پنل مدیر ارشد — همهٔ اسلاگ‌ها از Nest می‌آیند.
+ * (فراگیران، حضور و غیاب، نمرات، گزارش‌های لیستی و عملکرد.)
  */
 export const ReportsService = {
-  async getFilterCatalog(): Promise<ReportFilterCatalog> {
-    return getFilterCatalog();
+  /**
+   * یک باکس فیلتر برای هر گزارش (فراگیران، نمرات، حضور یا لیستی).
+   * نتیجه می‌گوید باکس برای نقش هست یا نه و آیا انتخاب قبلی با والد جدید
+   * ناسازگار است (400).
+   */
+  async getReportFilterBox(
+    slug: ReportSlug,
+    key: ReportFilterKey,
+    filters: ReportFilters,
+    period: ReportPeriodState,
+    /** جستجوی داخل خود باکس (`field=…&search=…`)؛ فقط همان باکس را عوض می‌کند. */
+    search?: string
+  ): Promise<LearnersFilterBox> {
+    if (slug === 'learners') {
+      return fetchLearnersFilterBox(key, filters, period, search);
+    }
+    if (isRealAttendanceReport(slug)) {
+      return fetchLearnersFilterBox(
+        key,
+        filters,
+        period,
+        search,
+        NEST_LEARNERS_ATTENDANCE_PATHS
+      );
+    }
+    if (isRealScoresReport(slug)) {
+      return fetchLearnersFilterBox(
+        key,
+        filters,
+        period,
+        search,
+        NEST_LEARNERS_GRADES_PATHS
+      );
+    }
+    if (isListReportSlug(slug)) {
+      return fetchListFilterBox(slug, key, filters, period, search);
+    }
+    return { status: 'absent' };
   },
 
-  async getFilterOptions(
-    key: ReportFilterKey | 'term',
+  /**
+   * فراگیران / نمرات / حضور و گزارش‌های عملکرد: همهٔ باکس‌های مجاز نقش
+   * در یک درخواست و بدون `field`. برای بقیه `null` (همان درخواست تک‌باکسی).
+   */
+  async getReportFilterBoxes(
+    slug: ReportSlug,
     filters: ReportFilters,
-    slug: ReportSlug
-  ): Promise<import('@/types/reports').ReportOption[]> {
-    return getFilterOptions(key, filters, slug);
+    period: ReportPeriodState
+  ): Promise<Partial<Record<ReportFilterKey, LearnersFilterBox>> | null> {
+    // یک درخواست بدون field برای همهٔ باکس‌های مجاز نقش (به‌جای یک درخواست برای هر باکس).
+    if (isRealLearnersReport(slug)) {
+      return fetchLearnersFilterBoxes(filters, period);
+    }
+    if (isRealAttendanceReport(slug)) {
+      return fetchLearnersFilterBoxes(
+        filters,
+        period,
+        NEST_LEARNERS_ATTENDANCE_PATHS
+      );
+    }
+    if (isRealScoresReport(slug)) {
+      return fetchLearnersFilterBoxes(
+        filters,
+        period,
+        NEST_LEARNERS_GRADES_PATHS
+      );
+    }
+    if (isListReportSlug(slug)) {
+      return fetchListFilterBoxes(slug, filters, period);
+    }
+    return null;
+  },
+
+  /** خروجی اکسل/PDF همهٔ صفحه‌ها با همان فیلترها و مرتب‌سازی جدول. */
+  async exportReport(
+    slug: ReportSlug,
+    input: {
+      format: LearnersExportFormat | ListReportExportFormat;
+      filters: ReportFilters;
+      query: string;
+      period: ReportPeriodState;
+      sort?: ReportSort | null;
+    }
+  ): Promise<void> {
+    if (slug === 'learners') return downloadLearnersExport(input);
+    if (isRealAttendanceReport(slug)) {
+      return downloadLearnersExport({
+        ...input,
+        paths: NEST_LEARNERS_ATTENDANCE_PATHS,
+        fileNames: LEARNERS_ATTENDANCE_EXPORT_FILE,
+      });
+    }
+    if (isRealScoresReport(slug)) {
+      return downloadLearnersExport({
+        ...input,
+        paths: NEST_LEARNERS_GRADES_PATHS,
+        fileNames: LEARNERS_GRADES_EXPORT_FILE,
+      });
+    }
+    if (isListReportSlug(slug)) return downloadListExport(slug, input);
+    return unsupportedReport(slug);
   },
 
   /** تعریف ستون‌های گزارش — همگام؛ برای هدر جدول هنگام تعویض اسلاگ. */
-  getColumnDefs(slug: ReportSlug): ReportColumnDef[] {
-    return getColumnDefs(slug);
+  getColumnDefs(
+    slug: ReportSlug,
+    mode: ReportPeriodMode = 'term'
+  ): ReportColumnDef[] {
+    return columnDefsFor(slug, mode);
   },
 
   async queryReport(input: ReportQueryInput): Promise<ReportQueryResult> {
-    return queryReport(input);
+    const { slug } = input;
+    const base = {
+      filters: input.filters,
+      query: input.query,
+      period: input.period,
+      page: input.page,
+      limit: input.pageSize,
+    };
+    if (isRealLearnersReport(slug)) {
+      return toQueryResult(
+        slug,
+        await fetchLearnersPage(base),
+        input.sort,
+        input.period.mode
+      );
+    }
+    if (isRealAttendanceReport(slug)) {
+      return toQueryResult(
+        slug,
+        await fetchLearnersPage({
+          ...base,
+          paths: NEST_LEARNERS_ATTENDANCE_PATHS,
+          mapRow: mapLearnerAttendanceRow,
+        }),
+        input.sort
+      );
+    }
+    if (isRealScoresReport(slug)) {
+      return toQueryResult(
+        slug,
+        await fetchLearnersPage({
+          ...base,
+          paths: NEST_LEARNERS_GRADES_PATHS,
+          mapRow: mapLearnerGradeRow,
+        }),
+        input.sort
+      );
+    }
+    if (isListReportSlug(slug)) {
+      return toQueryResult(
+        slug,
+        await fetchListPage(slug, { ...base, sort: input.sort }),
+        input.sort
+      );
+    }
+    return unsupportedReport(slug);
   },
 
-  async getLearnerCourseDetails(
-    learnerId: string,
-    period: ReportPeriodState
-  ): Promise<ReportLearnerCourseDetail | null> {
-    return getLearnerCourseDetails(learnerId, period);
-  },
-
+  /** ریز نمرات یک فراگیر از `grades/detail/:studentId`؛ نام از ردیف جدول می‌آید. */
   async getLearnerScoreDetails(
     learnerId: string,
-    period: ReportPeriodState
-  ): Promise<ReportLearnerScoreDetail | null> {
-    return getLearnerScoreDetails(learnerId, period);
-  },
-
-  async getCompareItems(
-    slug: ReportSlug,
-    ids: string[],
-    period: ReportPeriodState
-  ): Promise<ReportCompareItem[]> {
-    return getCompareItems(slug, ids, period);
+    period: ReportPeriodState,
+    learnerName = ''
+  ): Promise<ReportLearnerScoreDetail> {
+    return fetchLearnerGradeDetail(learnerId, learnerName, period);
   },
 };

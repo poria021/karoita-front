@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 
+import { AdminReportsSecondaryRail } from '@/components/shared/shell/AdminReportsSecondaryRail';
 import { AdminShellHeader } from '@/components/shared/shell/AdminShellHeader';
 import { AdminSidebar } from '@/components/shared/shell/AdminSidebar';
 import { DashboardMainViewport } from '@/components/shared/shell/DashboardMainViewport';
@@ -11,8 +12,6 @@ import { KvBrandLinearLoader } from '@/components/shared/shell/KvBrandLinearLoad
 import { Sidebar } from '@/components/shared/shell/Sidebar';
 import {
   kvShellAdminMainGutterClassName,
-  kvShellAdminRailClearanceClassName,
-  kvShellAdminRailClearanceMotionClassName,
   kvShellContentPadXClassName,
   kvShellLearnerDashboardWidthClassName,
 } from '@/components/shared/shell/shellChrome';
@@ -31,7 +30,7 @@ interface DashboardChromeProps {
 }
 
 /**
- * شل اپ: ادمین ستادی ریل تمام‌قد شروع (لوگو در ریل؛ هدر و `main` خالی می‌کنند).
+ * شل اپ: ادمین ستادی ریل در جریان سند (لوگو در ریل؛ با اسکرول همراه هدر حرکت می‌کند).
  * نقش‌های دیگر همان پشتهٔ هدر سپس سایدبار کارتی.
  * روی ریلود، تا کاتالوگ منوی پویا آماده نشود لودر برند می‌ماند (بدون فلش سایدبار).
  */
@@ -73,29 +72,22 @@ function AdminDashboardChrome({ children }: DashboardChromeProps) {
   const reportsDual = isAdminReportsPath(pathname) && isCollapsed;
 
   return (
-    <div className="flex min-h-dvh w-full flex-col bg-kv-canvas">
+    <div className="flex min-h-dvh w-full flex-col bg-kv-canvas lg:flex-row lg:items-start">
       <AdminSidebar />
       <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col">
-        {/* هدر فقط ریل اصلی را خالی می‌کند؛ با ریل دوم گزارش روی آن می‌نشیند. */}
-        <div
-          className={cn(
-            kvShellAdminRailClearanceMotionClassName,
-            kvShellAdminRailClearanceClassName(isCollapsed, false)
-          )}
-        >
-          <AdminShellHeader />
-        </div>
-        <div
-          className={cn(
-            'flex min-h-0 min-w-0 flex-1 flex-col',
-            kvShellAdminRailClearanceMotionClassName,
-            kvShellAdminRailClearanceClassName(isCollapsed, reportsDual),
-            kvShellAdminMainGutterClassName
-          )}
-        >
-          <DashboardMainViewport className="bg-transparent">
-            {children}
-          </DashboardMainViewport>
+        <AdminShellHeader />
+        <div className="flex min-h-0 min-w-0 flex-1 items-start">
+          {reportsDual ? <AdminReportsSecondaryRail /> : null}
+          <div
+            className={cn(
+              'flex min-h-0 min-w-0 flex-1 flex-col',
+              kvShellAdminMainGutterClassName
+            )}
+          >
+            <DashboardMainViewport className="bg-transparent">
+              {children}
+            </DashboardMainViewport>
+          </div>
         </div>
       </div>
     </div>

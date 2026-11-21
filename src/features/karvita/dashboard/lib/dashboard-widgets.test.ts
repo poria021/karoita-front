@@ -39,7 +39,7 @@ describe('getDashboardWidgets', () => {
     ]);
   });
 
-  it('keeps supervisor reply-status inside bulletins board (not a separate widget)', () => {
+  it('keeps evaluation-role workbench inside bulletins board (not a separate widget)', () => {
     expect(getDashboardWidgets('supervisor_professor')).toEqual([
       { id: 'bulletins', span: 'full' },
     ]);

@@ -3,28 +3,48 @@
 import type { CSSProperties, ReactNode } from 'react';
 
 import { DashboardCourseMaterialsBox } from '@/features/karvita/course-materials/components/DashboardCourseMaterialsBox';
-import { DashboardCapacityStatusBox } from '@/features/karvita/dashboard/components/DashboardCapacityStatusBox';
+import { WorkbenchCoursePendingReportsBox } from '@/features/karvita/dashboard/components/WorkbenchCoursePendingReportsBox';
+import { WorkbenchStudentGradeRankingBox } from '@/features/karvita/dashboard/components/WorkbenchStudentGradeRankingBox';
+import { WorkbenchSchoolRankingBox } from '@/features/karvita/dashboard/components/WorkbenchSchoolRankingBox';
+import { WorkbenchTeacherResponseRankingBox } from '@/features/karvita/dashboard/components/WorkbenchTeacherResponseRankingBox';
 import { WorkbenchAdBox } from '@/features/karvita/dashboard/components/WorkbenchAdBox';
 import {
   WorkbenchAnnouncementsBox,
   workbenchAnnouncementActionsFor,
 } from '@/features/karvita/dashboard/components/WorkbenchAnnouncementsBox';
-import { WorkbenchOnboardingApprovalsBox } from '@/features/karvita/dashboard/components/WorkbenchOnboardingApprovalsBox';
-import { WorkbenchOrgStructureCountsBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureCountsBox';
-import { WorkbenchReportsMonitorBox } from '@/features/karvita/dashboard/components/WorkbenchReportsMonitorBox';
-import { WorkbenchRoleUserCountsBox } from '@/features/karvita/dashboard/components/WorkbenchRoleUserCountsBox';
-import { useDashboardCourseMaterials } from '@/features/karvita/dashboard/hooks/useDashboardCourseMaterials';
 import {
-  isEvaluationMonitorRole,
-  type EvaluationMonitorRole,
-} from '@/features/karvita/dashboard/lib/supervisor-reply-status';
+  WorkbenchApprovalsDonutBox,
+  WorkbenchPendingQueueBox,
+} from '@/features/karvita/dashboard/components/WorkbenchOnboardingApprovalsBox';
+import { WorkbenchLearnerTypeCountsBox } from '@/features/karvita/dashboard/components/WorkbenchLearnerTypeCountsBox';
+import { DashboardCourseAveragesChart } from '@/features/karvita/dashboard/components/DashboardCourseAveragesChart';
+import { WorkbenchCreateOrgPanelLink } from '@/features/karvita/dashboard/components/WorkbenchCreateOrgPanelLink';
+import { WorkbenchFacultyCountsBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyCountsBox';
+import { WorkbenchFacultyResponseRateBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyResponseRateBox';
+import { WorkbenchLearnerCountsBox } from '@/features/karvita/dashboard/components/WorkbenchLearnerCountsBox';
+import { WorkbenchOrgStructureBreakdownBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureBreakdownBox';
+import { WorkbenchOrgStructureCountsBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureCountsBox';
+import { WorkbenchProfessorAttendanceRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorAttendanceRankingBox';
+import { WorkbenchProfessorScoreRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorScoreRankingBox';
+import { WorkbenchPublishedAnnouncementsBox } from '@/features/karvita/dashboard/components/WorkbenchPublishedAnnouncementsBox';
+import { WorkbenchRegionalCountsBox } from '@/features/karvita/dashboard/components/WorkbenchRegionalCountsBox';
+import { WorkbenchRegionalGenderBox } from '@/features/karvita/dashboard/components/WorkbenchRegionalGenderBox';
+import { WorkbenchReportAccessBox } from '@/features/karvita/dashboard/components/WorkbenchReportAccessBox';
+import {
+  RoleUserCountsGrid,
+  WorkbenchRoleUserCountsBox,
+} from '@/features/karvita/dashboard/components/WorkbenchRoleUserCountsBox';
+import { buildOrgStructureCountMetrics } from '@/features/karvita/dashboard/lib/org-structure-counts';
+import { buildRoleUserCountMetrics } from '@/features/karvita/dashboard/lib/role-user-counts';
+import { WorkbenchTeacherCountBox } from '@/features/karvita/dashboard/components/WorkbenchTeacherCountBox';
+import { WorkbenchStudentGradesCard } from '@/features/karvita/dashboard/components/WorkbenchStudentGradesCard';
+import { WorkbenchWeakRankingBox } from '@/features/karvita/dashboard/components/WorkbenchWeakRankingBox';
+import { useDashboardCourseMaterials } from '@/features/karvita/dashboard/hooks/useDashboardCourseMaterials';
+import { workbenchLayoutOptionsForRole } from '@/features/karvita/dashboard/lib/workbench-layout-options';
 import { cn } from '@/lib/utils';
 import {
-  WORKBENCH_SENIOR_BAND_CLASS,
-  WORKBENCH_SENIOR_ONBOARDING_CLASS,
-  WORKBENCH_SENIOR_ORG_STRUCTURE_CLASS,
-  WORKBENCH_SENIOR_ORG_STRUCTURE_STACK_CLASS,
-  WORKBENCH_SENIOR_ROLE_COUNTS_CLASS,
+  WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE,
+  WORKBENCH_RANKING_BOX_STYLE,
   workbenchAdCellClass,
   workbenchAllowsAdSpot,
   workbenchCellClass,
@@ -37,6 +57,29 @@ import type { UserRole } from '@/types/auth';
 import type { Bulletin } from '@/types/bulletins';
 
 import { useDashboardBulletins } from '../hooks/useDashboardBulletins';
+
+/** TEMP: داده‌ی نمایشی برای دیدن ظاهر باکس «تعداد کاربران هر نقش» در پنل سازمان مرکزی. */
+const CENTRAL_PREVIEW_ROLE_METRICS = buildRoleUserCountMetrics({
+  student: 1240,
+  skill_learner: 386,
+  supervisor_professor: 142,
+  mentor_teacher: 518,
+  school_principal: 97,
+  regional_edu_admin: 21,
+  faculty_role: 34,
+  provincial_university: 12,
+  central_organization: 5,
+});
+
+/** TEMP: داده‌ی نمایشی «تفکیک ساختار» سازمان مرکزی (API شمار فقط ادمین است). */
+const CENTRAL_PREVIEW_ORG_METRICS = buildOrgStructureCountMetrics({
+  provinces: 31,
+  cities: 37,
+  districts: 1,
+  schools: 5,
+  majors: 6,
+  faculties: 7,
+});
 
 type DashboardBulletinsBoardProps = {
   role: UserRole;
@@ -60,17 +103,18 @@ export function DashboardBulletinsBoard({
   leading,
 }: DashboardBulletinsBoardProps) {
   const data = useDashboardBulletins(role);
-  const showAd = hasAdSpot(role);
   const kind = workbenchLayoutKindFor(role);
-  const showCapacity = role === 'supervisor_professor';
-  const slots = workbenchLayoutForRole(role, { showAd, showCapacity });
+  const slots = workbenchLayoutForRole(
+    role,
+    workbenchLayoutOptionsForRole(role)
+  );
   const actions = workbenchAnnouncementActionsFor(role);
   const announcementSource =
     kind === 'senior' ? 'received' : data.sources.announcement;
 
   return (
     <>
-      {slots.map((slot) => (
+      {adBelowAnnouncements(slots).map((slot) => (
         <WorkbenchBoardCell
           key={slot.id}
           slot={slot}
@@ -80,6 +124,7 @@ export function DashboardBulletinsBoard({
           ads={data.ads}
           isLoading={data.isLoading}
           isError={data.isError}
+          isForbidden={data.isForbidden}
           announcementSource={announcementSource}
           canPublish={actions.canPublish}
           canReceive={actions.canReceive}
@@ -87,6 +132,21 @@ export function DashboardBulletinsBoard({
       ))}
     </>
   );
+}
+
+/**
+ * موبایل (تک‌ستون): ترتیب DOM همان ترتیب نمایش است، پس باکس تبلیغ باید در DOM درست بعد از
+ * اطلاعیه‌ها بیاید. دسکتاپ با col/row صریح چیده می‌شود و جابه‌جایی DOM اثری روی آن ندارد.
+ */
+function adBelowAnnouncements(slots: WorkbenchBoxSlot[]): WorkbenchBoxSlot[] {
+  const ad = slots.find((slot) => slot.id === 'ad');
+  const announcementsIndex = slots.findIndex(
+    (slot) => slot.id === 'announcements'
+  );
+  if (!ad || announcementsIndex < 0) return slots;
+  const rest = slots.filter((slot) => slot.id !== 'ad');
+  const at = rest.findIndex((slot) => slot.id === 'announcements') + 1;
+  return [...rest.slice(0, at), ad, ...rest.slice(at)];
 }
 
 function MaterialsCell({
@@ -108,24 +168,6 @@ function MaterialsCell({
   );
 }
 
-function SeniorBand({ className }: { className: string }) {
-  return (
-    <div className={cn(className, WORKBENCH_SENIOR_BAND_CLASS)}>
-      <WorkbenchOnboardingApprovalsBox
-        className={cn(WORKBENCH_SENIOR_ONBOARDING_CLASS, 'min-w-0')}
-      />
-      <div className={WORKBENCH_SENIOR_ORG_STRUCTURE_STACK_CLASS}>
-        <WorkbenchOrgStructureCountsBox
-          className={cn(WORKBENCH_SENIOR_ORG_STRUCTURE_CLASS, 'min-w-0')}
-        />
-        <WorkbenchRoleUserCountsBox
-          className={WORKBENCH_SENIOR_ROLE_COUNTS_CLASS}
-        />
-      </div>
-    </div>
-  );
-}
-
 function WorkbenchBoardCell({
   slot,
   role,
@@ -134,6 +176,7 @@ function WorkbenchBoardCell({
   ads,
   isLoading,
   isError,
+  isForbidden,
   announcementSource,
   canPublish,
   canReceive,
@@ -145,14 +188,22 @@ function WorkbenchBoardCell({
   ads: Bulletin[];
   isLoading: boolean;
   isError: boolean;
+  isForbidden: boolean;
   announcementSource: 'received' | 'published';
   canPublish: boolean;
   canReceive: boolean;
 }) {
   const { id, placement } = slot;
-  const cellClass =
-    id === 'ad' ? workbenchAdCellClass(placement) : workbenchCellClass(placement);
+  // ستون ۱۳ = ترک تبلیغ؛ باکسی که زیر تبلیغ می‌نشیند هم‌عرض خود تبلیغ می‌شود.
+  const inAdTrack = id === 'ad' || placement.colStart === 13;
+  // همهٔ پنل‌ها همان `WorkbenchAdBox` + سلول تمام‌عرض موبایل.
+  const cellClass = inAdTrack
+    ? workbenchAdCellClass(placement)
+    : workbenchCellClass(placement);
   const cellStyle = workbenchCellStyle(placement);
+  // دانشگاه استانی دقیقاً همان باکس‌های مدیر دانشکده را دارد.
+  const facultyBoxes =
+    role === 'faculty_role' || role === 'provincial_university';
 
   switch (id) {
     case 'welcome':
@@ -167,42 +218,294 @@ function WorkbenchBoardCell({
           announcements={announcements}
           isLoading={isLoading}
           isError={isError}
+          isForbidden={isForbidden}
           source={announcementSource}
           canPublish={canPublish}
           canReceive={canReceive}
+          className={cn(
+            cellClass,
+            'overflow-hidden',
+            // ارتفاع از ردیف (نه از لیست): هم‌قد باکس کناری، و لیست داخل باکس اسکرول می‌شود.
+            placement.stretch && !placement.height && 'md:h-0 md:min-h-full'
+          )}
+          style={cellStyle}
+        />
+      );
+    case 'ad': {
+      const gradesBelowAd = slot.includes?.includes('student_grades_card');
+      const countsBelowAd = slot.includes?.includes('regional_counts');
+      // موبایل: سلول خالی تبلیغ gap اضافه نسازد (باکس داخل خودش هم max-md مخفی است).
+      const hideEmptyAdCellOnMobile =
+        !isLoading && (isError || ads.length === 0);
+      if (gradesBelowAd || countsBelowAd) {
+        // تبلیغ + نمره + آمار چسبیده. overflow≠visible تا min-content
+        // سلول ردیف خوش‌آمد را باد نکند؛ self-stretch ارتفاع را از باکس‌های چپ می‌گیرد.
+        return (
+          <div
+            className={cn(
+              cellClass,
+              'flex min-h-0 flex-col gap-kv-group md:self-stretch md:overflow-hidden'
+            )}
+            style={cellStyle}
+          >
+            <WorkbenchAdBox
+              ads={ads}
+              isLoading={isLoading}
+              isError={isError}
+              isForbidden={isForbidden}
+            />
+            {gradesBelowAd ? (
+              // زیر تبلیغ همیشه کوتاه (compact)، مثل پنل‌های دانشکده/منطقه — با یا بدون باکس آمار.
+              <WorkbenchStudentGradesCard role={role} compact />
+            ) : null}
+            {countsBelowAd ? (
+              facultyBoxes ? (
+                <WorkbenchFacultyCountsBox role={role} stacked />
+              ) : (
+                <WorkbenchRegionalCountsBox stacked />
+              )
+            ) : null}
+          </div>
+        );
+      }
+      return (
+        <div
+          className={cn(cellClass, hideEmptyAdCellOnMobile && 'max-md:hidden')}
+          style={cellStyle}
+        >
+          <WorkbenchAdBox
+            ads={ads}
+            isLoading={isLoading}
+            isError={isError}
+            isForbidden={isForbidden}
+          />
+        </div>
+      );
+    }
+    case 'materials':
+      return <MaterialsCell className={cellClass} style={cellStyle} />;
+    case 'senior_queue':
+      // ردیف دوم: چهار ستون؛ ارتفاعش از ردیف (هم‌قدِ دونات) می‌آید نه از محتوای خودش.
+      return (
+        <div className={cn(cellClass, 'relative')}>
+          <WorkbenchPendingQueueBox />
+        </div>
+      );
+    case 'senior_donut':
+      // `self-start`: برخلاف صف (که کل ردیف را پر می‌کند)، این باکس کوتاه‌است و
+      // نباید کش بیاید تا هم‌قد صف/ستون چپ شود — به‌اندازهٔ محتوای خودش می‌ایستد.
+      return (
+        <div className={cn(cellClass, 'md:self-start')}>
+          <WorkbenchApprovalsDonutBox className="w-full max-w-none" />
+        </div>
+      );
+    case 'senior_weak_ranking':
+      // سازمان مرکزی: سلول کنار اطلاعیه‌ها.
+      return (
+        <div className={cellClass}>
+          <WorkbenchWeakRankingBox />
+        </div>
+      );
+    case 'senior_org_counts':
+      // ساخت حساب (فقط مدیر ارشد، نه دستیار) اولین باکسِ ستون چپ؛
+      // درست زیرش نوار شاخص‌های ساختار سازمانی.
+      return (
+        <div className={cn(cellClass, 'flex flex-col gap-kv-group')}>
+          {role === 'super_admin' ? <WorkbenchCreateOrgPanelLink /> : null}
+          <WorkbenchOrgStructureCountsBox />
+        </div>
+      );
+    case 'senior_role_counts':
+      // تعداد نقش‌ها؛ درست زیرِ ساختار سازمانی.
+      return (
+        <div className={cellClass}>
+          <WorkbenchRoleUserCountsBox className="min-h-[20rem]" />
+        </div>
+      );
+    case 'senior_report_access':
+      // `max-w-none`: باکس پیش‌فرض `max-w-md` دارد؛ در سلول ۶ستونه باید کل عرض را بگیرد.
+      return (
+        <div className={cellClass}>
+          <WorkbenchReportAccessBox className="max-w-none" />
+        </div>
+      );
+    case 'senior_published':
+      return (
+        <div className={cellClass}>
+          <WorkbenchPublishedAnnouncementsBox role={role} />
+        </div>
+      );
+    case 'regional_counts':
+      // نمره بالای آمار؛ در ترک تبلیغ (ستون ۱۳) زیر خود تبلیغ، وگرنه تمام‌عرض.
+      return (
+        <div
+          className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
+          style={cellStyle}
+        >
+          <WorkbenchStudentGradesCard role={role} compact />
+          {facultyBoxes ? (
+            <WorkbenchFacultyCountsBox role={role} stacked={inAdTrack} />
+          ) : (
+            <WorkbenchRegionalCountsBox stacked={inAdTrack} />
+          )}
+        </div>
+      );
+    case 'regional_gender':
+      // هم‌قدِ اطلاعیه‌ها: سلول کش می‌آید و باکس کل ارتفاعش را می‌گیرد؛ ارتفاع ردیف از همین باکس است.
+      // سازمان مرکزی: دونات «تفکیک ساختار»؛ دانشکده: نرخ پاسخ؛ منطقه: دخترانه/پسرانه.
+      return (
+        <div className={cellClass} style={cellStyle}>
+          {role === 'central_organization' ? (
+            <WorkbenchOrgStructureBreakdownBox
+              className="h-full w-full max-w-none"
+              metrics={CENTRAL_PREVIEW_ORG_METRICS}
+            />
+          ) : facultyBoxes ? (
+            <WorkbenchFacultyResponseRateBox
+              role={role}
+              className="h-full w-full max-w-none"
+            />
+          ) : (
+            <WorkbenchRegionalGenderBox className="h-full w-full max-w-none" />
+          )}
+        </div>
+      );
+    case 'regional_teacher_ranking':
+      // سازمان مرکزی: به‌جای ضعیف‌ترین/قوی‌ترین معلمان، «تعداد کاربران هر نقش» (هم‌قد همان باکس).
+      if (role === 'central_organization') {
+        return (
+          <div
+            className={cn(cellClass, 'flex')}
+            style={{ ...cellStyle, ...WORKBENCH_RANKING_BOX_STYLE }}
+          >
+            {/* TEMP: پیش‌نمایش با داده‌ی نمایشی؛ بعد از تأیید ظاهر، به <WorkbenchRoleUserCountsBox interactive={false} /> برگردد. */}
+            <RoleUserCountsGrid
+              interactive={false}
+              isLoading={false}
+              isError={false}
+              isForbidden={false}
+              metrics={CENTRAL_PREVIEW_ROLE_METRICS}
+            />
+          </div>
+        );
+      }
+      // دانشکده: اساتید بر اساس حضور؛ منطقه / مدیر مدرسه: معلمان بر اساس پاسخ.
+      return facultyBoxes ? (
+        <WorkbenchProfessorAttendanceRankingBox
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
+      ) : (
+        <WorkbenchTeacherResponseRankingBox
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
+      );
+    case 'regional_school_ranking':
+      // دانشکده: نمودار اساتید (میانگین نمره)؛ منطقه: نمودار مدارس.
+      return facultyBoxes ? (
+        <WorkbenchProfessorScoreRankingBox
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
+      ) : (
+        <WorkbenchSchoolRankingBox
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
+      );
+    case 'learner_counts':
+      return (
+        <WorkbenchLearnerCountsBox
+          role={role}
+          stacked={inAdTrack}
+          className={cellClass}
+          style={cellStyle}
+        />
+      );
+    case 'teacher_count':
+      return (
+        <WorkbenchTeacherCountBox
+          role={role}
           className={cn(cellClass, 'overflow-hidden')}
           style={cellStyle}
         />
       );
-    case 'ad':
+    case 'course_averages':
+      // «در حال بررسی» + نمودار میانگین یک سلول مستقل‌اند: کارت‌ها بالا، نمودار درست
+      // زیرشان و پرکنندهٔ باقی ارتفاع.
+      if (slot.includes?.includes('course_pending_reports')) {
+        return (
+          <div
+            className={cn(cellClass, 'flex min-h-0 flex-col gap-kv-group')}
+            style={cellStyle}
+          >
+            <WorkbenchCoursePendingReportsBox
+              role={role}
+              className="shrink-0"
+              style={WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE}
+            />
+            <DashboardCourseAveragesChart
+              role={role}
+              className="flex min-h-0 flex-1 flex-col"
+            />
+          </div>
+        );
+      }
       return (
-        <div className={cellClass} style={cellStyle}>
-          <WorkbenchAdBox ads={ads} isLoading={isLoading} isError={isError} />
-        </div>
+        <DashboardCourseAveragesChart
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
       );
-    case 'materials':
-      return <MaterialsCell className={cellClass} style={cellStyle} />;
-    case 'senior_band':
-      return <SeniorBand className={cellClass} />;
-    case 'monitor':
-      if (!isEvaluationMonitorRole(role)) return null;
+    case 'course_pending_reports':
       return (
-        <div className={cn(cellClass, 'overflow-hidden')}>
-          <WorkbenchReportsMonitorBox
-            role={role as EvaluationMonitorRole}
-            className="h-full min-h-0 w-full min-w-0 max-w-full overflow-hidden"
+        <WorkbenchCoursePendingReportsBox
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
+      );
+    case 'student_grade_ranking':
+      // مدیر مدرسه: به‌جای فراگیران، ضعیف‌ترین/قوی‌ترین معلمان مدرسه (نرخ پاسخ‌دهی).
+      if (role === 'school_principal') {
+        return (
+          <WorkbenchTeacherResponseRankingBox
+            role={role}
+            className={cellClass}
             style={cellStyle}
           />
-        </div>
-      );
-    case 'capacity':
+        );
+      }
       return (
-        <div className={cn(cellClass, 'overflow-hidden')}>
-          <DashboardCapacityStatusBox
-            className="min-h-0 min-w-0 w-full"
-            style={cellStyle}
-          />
-        </div>
+        <WorkbenchStudentGradeRankingBox
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
+      );
+    case 'course_capacities':
+      // قبلاً نمودار حلقه‌ای هر درس (WorkbenchCourseCapacitiesBox)؛ حذف شد،
+      // به‌جایش باکس میله‌ای سبک‌تر: فقط تعداد دانشجو (ترمی) / مهارت‌آموز (پودمانی).
+      // با تبلیغ، کارت نمرات زیر خودِ تبلیغ است (سلول `ad`).
+      return (
+        <WorkbenchLearnerTypeCountsBox
+          className={cn(cellClass, 'self-start')}
+          style={cellStyle}
+        />
+      );
+    case 'student_grades_card':
+      return (
+        <WorkbenchStudentGradesCard
+          role={role}
+          className={cellClass}
+          style={cellStyle}
+        />
       );
     case 'checklist':
     case 'learner_grades':

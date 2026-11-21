@@ -18,12 +18,16 @@ import {
 import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import type { Bulletin } from '@/types/bulletins';
-import { toPersianDigits } from '@/utils/persianDigits';
+
+import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
+import { workbenchErrorText } from './WorkbenchUnavailableNote';
 
 export type WorkbenchAnnouncementsBoxProps = {
   announcements: Bulletin[];
   isLoading?: boolean;
   isError?: boolean;
+  /** ۴۰۳: نقش کاربر به این گزارش مجوز ندارد. */
+  isForbidden?: boolean;
   source: DashboardBulletinSource;
   /**
    * میان‌بر «نوشتن اطلاعیه».
@@ -45,20 +49,6 @@ export function workbenchAnnouncementActionsFor(role: UserRole): {
     canPublish: canPublishAnnouncements(role),
     canReceive: canReceiveBulletins(role),
   };
-}
-
-function CountHint({ count }: { count: number }) {
-  if (count <= 0) return null;
-  return (
-    <KvTypography
-      variant="caption"
-      tone="muted"
-      as="span"
-      className="font-medium"
-    >
-      ({toPersianDigits(String(count))})
-    </KvTypography>
-  );
 }
 
 function AnnouncementActions({
@@ -113,26 +103,29 @@ function AnnouncementActions({
 function AnnouncementsBody({
   isLoading,
   isError,
+  isForbidden,
   isPublished,
   preview,
 }: {
   isLoading: boolean;
   isError: boolean;
+  isForbidden: boolean;
   isPublished: boolean;
   preview: Bulletin[];
 }) {
   if (isLoading) {
     return (
-      <KvTypography variant="caption" tone="muted" as="p">
-        در حال بارگذاری اطلاعیه‌ها…
-      </KvTypography>
+      <WorkbenchBoxBusy label="در حال بارگذاری اطلاعیه‌ها" className="min-h-0" />
     );
   }
 
   if (isError) {
     return (
       <KvEmptyState
-        title="اطلاعیه‌ها فعلاً در دسترس نیست؛ کمی بعد دوباره تلاش کنید."
+        title={workbenchErrorText(
+          isForbidden,
+          'اطلاعیه‌ها فعلاً در دسترس نیست؛ کمی بعد دوباره تلاش کنید.'
+        )}
         className="min-h-0 py-kv-pair"
       />
     );
@@ -175,6 +168,7 @@ export function WorkbenchAnnouncementsBox({
   announcements,
   isLoading = false,
   isError = false,
+  isForbidden = false,
   source,
   canPublish,
   canReceive,
@@ -206,7 +200,6 @@ export function WorkbenchAnnouncementsBox({
           >
             {isPublished ? 'اطلاعیه‌های منتشرشدهٔ شما' : 'اطلاعیه‌ها'}
           </KvTypography>
-          <CountHint count={preview.length} />
         </div>
         <AnnouncementActions
           canReceive={canReceive}
@@ -216,6 +209,7 @@ export function WorkbenchAnnouncementsBox({
       <AnnouncementsBody
         isLoading={isLoading}
         isError={isError}
+        isForbidden={isForbidden}
         isPublished={isPublished}
         preview={preview}
       />

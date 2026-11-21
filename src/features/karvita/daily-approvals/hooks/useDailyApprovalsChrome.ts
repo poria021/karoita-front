@@ -59,9 +59,14 @@ export function useDailyApprovalsChrome() {
     defaultValue: 'internship',
     preferWhenMissing: cachedChrome?.kind,
   });
-  const [query, setQuery] = useState(() => cachedChrome?.query ?? '');
+  // `?q=` از کلیک روی فراگیر در میز کار؛ جست‌وجو را از قبل پر می‌کند.
+  const urlQuery =
+    typeof window === 'undefined'
+      ? null
+      : new URLSearchParams(window.location.search).get('q')?.trim() || null;
+  const [query, setQuery] = useState(() => urlQuery ?? cachedChrome?.query ?? '');
   const [readFilter, setReadFilter] = useState<DailyApprovalReadFilter>(
-    () => cachedChrome?.readFilter ?? 'all'
+    () => (urlQuery ? 'all' : (cachedChrome?.readFilter ?? 'all'))
   );
   const { courseModule, setModuleId } =
     useDailyApprovalModule(kind);

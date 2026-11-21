@@ -139,6 +139,15 @@ describe('writeRealAuthTokens — set-tokens persistence', () => {
     expect(document.cookie).not.toContain(`${AUTH_COOKIE_NAME}=1`);
   }, 10_000);
 
+  it('assume-set skips set-tokens and keeps memory without risking clear-tokens', async () => {
+    await writeRealAuthTokens(TOKENS, 'user', { refreshCookie: 'assume-set' });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(readRealAccessToken()).toBe(TOKENS.token);
+    expect(readRealAuthSurface()).toBe('user');
+    expect(document.cookie).toContain(`${AUTH_COOKIE_NAME}=1`);
+  });
+
   it('does not clear a newer session when an older, superseded write later fails', async () => {
     const OLD_TOKENS: NestLoginTokens = {
       token: 'old-access',

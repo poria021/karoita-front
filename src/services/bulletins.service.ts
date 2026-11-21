@@ -18,6 +18,7 @@ import {
   listRealDashboardBulletins,
   listRealManagedBulletins,
   listRealProvinceTitles,
+  listRealReceivedAnnouncements,
   recordRealAdvertisementClick,
   setRealBulletinActive,
   updateRealBulletin,
@@ -73,6 +74,30 @@ export const BulletinsService = {
     return sortBulletins(
       readMockBulletins().filter((row) =>
         isBulletinVisibleTo(row, role, provinces)
+      )
+    );
+  },
+
+  /**
+   * هاب «اطلاعیه‌های دریافتی» — فقط `type=info`.
+   * تبلیغ (`ads`) را نمی‌خواند تا روی این صفحه درخواست اضافه نرود.
+   */
+  async listReceivedAnnouncements(): Promise<Bulletin[]> {
+    if (!IS_MOCK_MODE) return listRealReceivedAnnouncements();
+    const { role } = mockSessionAuthor();
+    const provinces = mockSessionProvinces();
+    if (role === 'super_admin') {
+      return sortBulletins(
+        readMockBulletins().filter(
+          (row) => row.kind === 'announcement' && row.isActive !== false
+        )
+      );
+    }
+    return sortBulletins(
+      readMockBulletins().filter(
+        (row) =>
+          row.kind === 'announcement' &&
+          isBulletinVisibleTo(row, role, provinces)
       )
     );
   },

@@ -15,6 +15,7 @@ import {
   isBulletinOwnedBy,
   isBulletinVisibleTo,
   normalizeBulletin,
+  pickLatestPublishedAnnouncements,
   showsAnnouncementsHubNotifications,
   validateBulletinInput,
 } from './bulletin-rules';
@@ -303,5 +304,32 @@ describe('bulletin-rules', () => {
       advertisement: 'received',
       announcement: 'received',
     });
+  });
+
+  it('picks latest active announcements for the senior published preview', () => {
+    const rows = [
+      announcement({
+        id: 'old',
+        createdAt: '2026-01-01T00:00:00.000Z',
+      }),
+      announcement({
+        id: 'ad',
+        kind: 'advertisement',
+        createdAt: '2026-03-01T00:00:00.000Z',
+      }),
+      announcement({
+        id: 'off',
+        isActive: false,
+        createdAt: '2026-04-01T00:00:00.000Z',
+      }),
+      announcement({
+        id: 'new',
+        createdAt: '2026-02-01T00:00:00.000Z',
+      }),
+    ];
+    expect(pickLatestPublishedAnnouncements(rows, 2).map((r) => r.id)).toEqual([
+      'new',
+      'old',
+    ]);
   });
 });

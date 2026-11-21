@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiClientError } from '@/services/api-error';
+import { invalidateSharedReads } from '@/lib/shared-read';
 import {
   NEST_STUDENT_ENROLLMENT_PATHS,
   studentEnrollmentsApi,
@@ -20,6 +21,7 @@ vi.mock('@/services/api-client', () => ({
 
 describe('studentEnrollmentsApi', () => {
   beforeEach(() => {
+    invalidateSharedReads();
     getJson.mockReset();
     patchMaybeJson.mockReset();
     postMaybeJson.mockReset();

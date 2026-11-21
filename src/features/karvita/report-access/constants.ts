@@ -6,7 +6,7 @@ import type {
 /** پسوند کلید زیرمجوز مقایسه در ماتریس. */
 export const COMPARE_KEY_SUFFIX = '@cmp' as const;
 
-export const COMPARE_MAX = 4;
+export const COMPARE_MAX = 10;
 
 export const REPORT_ACCESS_ROLES: readonly ReportAccessRoleId[] = [
   'mentor_teacher',
@@ -27,8 +27,6 @@ export const APPROVED_ROLE_PAGES: Readonly<
     'learners',
     'attendance',
     'scores',
-    'teachers',
-    'principals',
   ],
   mentor_teacher: ['learners'],
   school_principal: ['learners', 'attendance', 'teacher-performance'],
@@ -44,7 +42,6 @@ export const APPROVED_ROLE_PAGES: Readonly<
     'learners',
     'attendance',
     'professor-attendance',
-    'scores',
     'professors',
     'teacher-performance',
     'school-performance',
@@ -62,7 +59,6 @@ export const APPROVED_ROLE_PAGES: Readonly<
   central_organization: [
     'learners',
     'attendance',
-    'professor-attendance',
     'teachers',
     'principals',
     'professors',
@@ -82,18 +78,21 @@ export const APPROVED_ROLE_PAGES: Readonly<
 export const REPORT_ACCESS_EXTRA: Readonly<
   Record<ReportAccessRoleId, readonly ReportSlug[]>
 > = {
-  mentor_teacher: ['attendance', 'scores'],
+  mentor_teacher: ['attendance'],
   supervisor_professor: ['schools'],
-  school_principal: ['scores', 'teachers'],
-  regional_edu_admin: ['attendance', 'scores'],
+  school_principal: ['teachers'],
+  regional_edu_admin: ['attendance', 'faculties'],
   faculty_role: ['teachers', 'principals', 'schools'],
-  provincial_university: ['scores', 'school-performance'],
-  central_organization: ['scores', 'teacher-performance'],
+  provincial_university: [
+    'school-performance',
+    'teachers',
+    'principals',
+  ],
+  central_organization: ['teacher-performance', 'professor-attendance'],
   assistant_admin: [
     'learners',
     'attendance',
     'professor-attendance',
-    'scores',
     'teachers',
     'principals',
     'professors',
@@ -125,9 +124,8 @@ export const REPORT_PAGE_META: Readonly<
     description: 'درصد حضور اساتید راهنما در جلسات نیم‌سال',
   },
   scores: {
-    title: 'نمرات فراگیران',
-    description:
-      'وضعیت قبول یا مردود و ریز نمرات هر درس به تفکیک جلسه',
+    title: 'عملکرد فراگیران',
+    description: 'نمرهٔ پایانی و وضعیت قبول یا مردود هر درس فراگیران',
   },
   teachers: {
     title: 'لیست معلمان',
@@ -217,13 +215,11 @@ export const REPORT_ACCESS_THEMES: readonly {
   },
 ];
 
-/** گزارش‌هایی که زیرمجوز «امکان مقایسه» دارند. */
+/**
+ * گزارش‌هایی که زیرمجوز «امکان مقایسه» دارند:
+ * عملکرد دانشکده‌ها و عملکرد استان‌ها.
+ */
 export const COMPARE_REPORT_SLUGS: readonly ReportSlug[] = [
-  'attendance',
-  'professor-attendance',
-  'teacher-performance',
-  'school-performance',
-  'professor-performance',
   'faculty-performance',
   'province-performance',
 ];

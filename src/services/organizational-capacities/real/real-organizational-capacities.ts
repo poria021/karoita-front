@@ -62,9 +62,10 @@ async function maxProfessorCapacity(): Promise<number> {
 }
 
 /**
- * لود اولیهٔ صفحه: `GET semesters_all` + `GET settings` — هرکدام یک‌بار.
- * نتیجه در react-query cache می‌ماند و به `getRealOrganizationalCapacities` /
- * `submitRealOrganizationalCapacities` پاس داده می‌شود تا دوباره خوانده نشوند.
+ * لود اولیهٔ صفحه: `GET semesters_all` (به‌ازای kind) + `GET settings`.
+ * settings و semesters_all در لایهٔ API با `sharedRead` dedupe می‌شوند تا
+ * میز کار (ترمی+پودمانی موازی، یا هم‌زمان با خوش‌آمد) درخواست تکراری نزند.
+ * نتیجه در react-query cache می‌ماند و به snapshot پاس داده می‌شود.
  */
 export async function loadRealCapacityCatalog(
   kind: OrganizationalCapacityKind
