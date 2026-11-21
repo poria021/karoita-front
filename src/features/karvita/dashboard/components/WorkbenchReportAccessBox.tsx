@@ -123,24 +123,6 @@ function ProgressRing({ active, total }: { active: number; total: number }) {
   );
 }
 
-function KebabLink({ label }: { label: string }) {
-  return (
-    <Link
-      href={RouteService.karvita.reportAccess()}
-      prefetch
-      aria-label={`مدیریت دسترسی گزارش‌های ${label}`}
-      title="مدیریت دسترسی"
-      className="flex size-8 shrink-0 items-center justify-center rounded-full text-kv-text-muted transition-colors duration-150 can-hover:hover:bg-kv-surface-muted can-hover:hover:text-kv-text"
-    >
-      <svg aria-hidden viewBox="0 0 16 16" className="size-4" fill="currentColor">
-        <circle cx="8" cy="3" r="1.4" />
-        <circle cx="8" cy="8" r="1.4" />
-        <circle cx="8" cy="13" r="1.4" />
-      </svg>
-    </Link>
-  );
-}
-
 function RoleRow({ item }: { item: RoleProgress }) {
   return (
     <li className="flex items-center gap-kv-group py-3">
@@ -161,15 +143,13 @@ function RoleRow({ item }: { item: RoleProgress }) {
         </span>
       </span>
       <ProgressRing active={item.active} total={item.total} />
-      <KebabLink label={item.label} />
     </li>
   );
 }
 
 /**
  * «دسترسی گزارش‌ها» — میز کار مدیر ارشد (`GET /reports/access`).
- * الهام از کارت «درس‌های من»: تب برای گروه گزارش (همه / فهرست‌ها / حضور / عملکرد)،
- * هر نقش یک ردیف با زیرعنوان و حلقهٔ پیشرفتِ «فعال / کل»؛ منوی ⋮ به صفحهٔ مدیریت می‌رود.
+ * تب برای گروه گزارش؛ هر نقش یک ردیف با حلقهٔ پیشرفتِ «فعال / کل».
  */
 export function WorkbenchReportAccessBox({
   className,
@@ -205,7 +185,7 @@ export function WorkbenchReportAccessBox({
       aria-labelledby="dashboard-report-access-title"
       style={style}
       className={cn(
-        'relative flex h-full max-h-[22rem] w-full max-w-md min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-6 py-5',
+        'relative flex h-full w-full max-w-md min-w-0 flex-col gap-kv-pair overflow-hidden rounded-kv-shell border px-6 py-5',
         workbenchBoxToneClass(isEmpty),
         className
       )}
@@ -271,14 +251,17 @@ export function WorkbenchReportAccessBox({
               برای این گروه گزارشی تعریف نشده است.
             </KvTypography>
           ) : (
-            <ul
-              aria-label="دسترسی گزارش‌ها به تفکیک نقش"
-              className="grid min-h-0 flex-1 list-none content-start divide-y divide-kv-border-muted overflow-y-auto [scrollbar-width:thin]"
-            >
-              {items.map((item) => (
-                <RoleRow key={item.roleId} item={item} />
-              ))}
-            </ul>
+            <div className="min-h-0 flex-1 overflow-y-auto pe-2 [direction:ltr] [scrollbar-width:thin]">
+              <ul
+                dir="rtl"
+                aria-label="دسترسی گزارش‌ها به تفکیک نقش"
+                className="grid list-none content-start divide-y divide-kv-border-muted [direction:rtl]"
+              >
+                {items.map((item) => (
+                  <RoleRow key={item.roleId} item={item} />
+                ))}
+              </ul>
+            </div>
           )}
         </>
       )}

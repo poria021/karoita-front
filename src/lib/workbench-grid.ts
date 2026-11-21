@@ -62,8 +62,11 @@ export const WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE: CSSProperties = {
   maxHeight: WORKBENCH_LEARNER_ANNOUNCEMENTS_HEIGHT_PX,
 };
 
-/** ارتفاع باکس «تعداد نقش‌ها» (پایینی) — بلندتر از باکس ساختار سازمانی. */
-export const WORKBENCH_SENIOR_ROLE_STATS_CLASS = 'md:h-[24rem]';
+/**
+ * ارتفاع یکسان ردیف ۳ ارشد: تعداد نقش‌ها | دسترسی گزارش‌ها | اطلاعیه‌های منتشرشده.
+ * `h-[24rem]` ثابت تا stretch/`h-0` محتوا را نبلعد.
+ */
+export const WORKBENCH_SENIOR_ROLE_STATS_CLASS = 'h-[24rem]';
 
 /**
  * باکس‌های «ضعیف‌ترین و قوی‌ترین»: ارتفاع در حالت خالی، بارگذاری، خطا و دارای داده یکی است.
@@ -390,12 +393,12 @@ function classicSlots(
         placement: { colSpan: 12, colStart: 1, rowStart: 4 },
       });
     }
-    // ضعیف‌ترین/قوی‌ترین معلمان منطقه: نیمهٔ دیگر ردیف سوم، کنار «مدارس ضعیف/قوی».
+    // ضعیف‌ترین/قوی‌ترین معلمان منطقه: نیمهٔ دیگر ردیف سوم، کنار «مدارس/استان‌ها ضعیف/قوی».
     slots.push({
       id: 'regional_teacher_ranking',
       placement: { colSpan: 6, colStart: 7, rowStart: 3, stretch: true },
     });
-    // ضعیف‌ترین/قوی‌ترین مدارس منطقه (نمودار میله‌ای): ردیف سوم، نیمهٔ راست.
+    // منطقه: مدارس؛ سازمان مرکزی: استان‌ها (نمودار میله‌ای) — ردیف سوم، نیمهٔ راست.
     slots.push({
       id: 'regional_school_ranking',
       placement: { colSpan: 6, colStart: 1, rowStart: 3, stretch: true },

@@ -108,7 +108,7 @@ export function RoleUserCountsGrid({
       aria-label="تعداد کاربران هر نقش"
       aria-busy={isLoading}
       className={cn(
-        'grid size-full min-h-0 min-w-0 grid-cols-3 grid-rows-3 overflow-hidden rounded-kv-shell border border-kv-border/50 bg-kv-surface shadow-kv-soft',
+        'grid h-full w-full min-h-0 min-w-0 grid-cols-3 grid-rows-3 overflow-hidden rounded-kv-shell border border-kv-border/50 bg-kv-surface shadow-kv-soft',
         className
       )}
     >

@@ -72,6 +72,12 @@ export const DASHBOARD_QUERY = {
   /** ۵ مدرسهٔ ضعیف/قوی منطقه بر اساس میانگین نمره روی میز کار آموزش و پرورش. */
   schoolRanking: (role: string) =>
     ['reports', 'dashboard-school-ranking', role] as const,
+  /**
+   * ۶ استان ضعیف/قوی بر اساس میانگین نمره — میز کار سازمان مرکزی
+   * (`GET v1/reports/provinces/performance`).
+   */
+  provinceRanking: (role: string) =>
+    ['reports', 'dashboard-province-ranking', role] as const,
   /** ۵ معلم ضعیف/قوی مدرسه بر اساس نرخ پاسخ‌دهی روی میز کار مدیر مدرسه. */
   teacherResponseRanking: (role: string) =>
     ['reports', 'dashboard-teacher-response-ranking', role] as const,

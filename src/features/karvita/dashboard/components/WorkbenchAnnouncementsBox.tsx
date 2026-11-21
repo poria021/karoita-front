@@ -186,7 +186,7 @@ export function WorkbenchAnnouncementsBox({
       aria-labelledby="dashboard-announcements-title"
       style={style}
       className={cn(
-        'flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border p-kv-group',
+        'wb-announcements-box flex min-h-0 flex-col gap-kv-group overflow-hidden rounded-kv-shell border p-kv-group',
         workbenchBoxToneClass(isEmpty),
         className
       )}
