@@ -21,10 +21,16 @@ export function ReportCompareItemCards({
   metricTitles,
   className,
 }: ReportCompareItemCardsProps) {
-  /** بهترین مقدار هر شاخص؛ فقط اگر یکتا باشد برجسته می‌شود (مثل جدول). */
+  /** بهترین مقدار هر شاخص؛ صفر = ثبت‌نشده و در رقابت نیست. */
   const best = new Map<string, { value: number; unique: boolean }>();
   metrics.forEach((key) => {
-    const values = items.map((item) => item.metrics[key] ?? 0);
+    const values = items
+      .map((item) => item.metrics[key])
+      .filter(
+        (v): v is number =>
+          typeof v === 'number' && Number.isFinite(v) && v !== 0
+      );
+    if (values.length === 0) return;
     const top = Math.max(...values);
     best.set(key, {
       value: top,
@@ -53,11 +59,33 @@ export function ReportCompareItemCards({
             {metrics.length > 0 ? (
               <div className="grid gap-kv-inline border-t border-kv-border-muted pt-kv-inline">
                 {metrics.map((key) => {
-                  const v = item.metrics[key] ?? 0;
+                  const raw = item.metrics[key];
+                  const v =
+                    typeof raw === 'number' &&
+                    Number.isFinite(raw) &&
+                    raw !== 0
+                      ? raw
+                      : null;
                   const top = best.get(key);
-                  const isBest = Boolean(top?.unique && v === top.value);
-                  const pct = Math.min(100, Math.max(0, v));
+                  const isBest = Boolean(
+                    v !== null && top?.unique && v === top.value
+                  );
                   const title = metricTitles[key] ?? key;
+                  if (v === null) {
+                    return (
+                      <div key={key} className="flex flex-col gap-kv-field">
+                        <div className="flex items-baseline justify-between gap-kv-pair">
+                          <span className="min-w-0 text-[0.6875rem] font-bold text-kv-text-faint">
+                            {title}
+                          </span>
+                          <span className="shrink-0 text-xs font-black text-kv-text-faint">
+                            —
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }
+                  const pct = Math.min(100, Math.max(0, v));
                   return (
                     <div key={key} className="flex flex-col gap-kv-field">
                       <div className="flex items-baseline justify-between gap-kv-pair">

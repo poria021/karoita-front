@@ -4,8 +4,14 @@ import { useId, useMemo, useState } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvButton } from '@/components/shared/KvButton';
+import {
+  KvSelect,
+  KvSelectContent,
+  KvSelectItem,
+  KvSelectTrigger,
+  KvSelectValue,
+} from '@/components/shared/fields/KvSelect';
 import { KvMobileListShell } from '@/components/shared/table/KvMobileListShell';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   cellContent,
   StatusBadge,
@@ -15,6 +21,9 @@ import type { ReportColumnDef, ReportRow } from '@/types/reports';
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
+
+const COMPARE_SELECT_OFF = '0';
+const COMPARE_SELECT_ON = '1';
 
 type ReportCardListProps = {
   page: AdminReportPageModel;
@@ -84,7 +93,9 @@ function isWideField(col: ReportColumnDef, row: ReportRow): boolean {
 }
 
 function MetricRow({ title, value }: { title: string; value: number | null }) {
-  const pct = value === null ? 0 : Math.min(100, Math.max(0, value));
+  // صفر = ثبت‌نشده.
+  const empty = value === null || value === 0;
+  const pct = empty ? 0 : Math.min(100, Math.max(0, value));
   return (
     <div className="flex flex-col gap-kv-field">
       <div className="flex items-baseline justify-between gap-kv-pair">
@@ -92,22 +103,24 @@ function MetricRow({ title, value }: { title: string; value: number | null }) {
           {title}
         </span>
         <span className="shrink-0 text-xs font-black tabular-nums text-kv-text">
-          {value === null ? '—' : `${toPersianDigits(value)}٪`}
+          {empty ? '—' : `${toPersianDigits(value)}٪`}
         </span>
       </div>
-      <div
-        role="progressbar"
-        aria-label={title}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={value === null ? undefined : pct}
-        className="h-1.5 overflow-hidden rounded-full bg-kv-surface-muted"
-      >
+      {empty ? null : (
         <div
-          className="h-full rounded-full bg-kv-brand transition-[width] duration-300"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
+          role="progressbar"
+          aria-label={title}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={pct}
+          className="h-1.5 overflow-hidden rounded-full bg-kv-surface-muted"
+        >
+          <div
+            className="h-full rounded-full bg-kv-brand transition-[width] duration-300"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -210,28 +223,62 @@ function ReportCard({ page, layout, row, index }: ReportCardProps) {
         }
         onClick={(event) => {
           if (!hasDetails) return;
-          // کلیک روی لینک/دکمهٔ داخل عنوان نباید کارت را باز/بسته کند.
-          if ((event.target as HTMLElement).closest('a,button,label')) return;
+          // کلیک روی لینک/دکمه/سلکت داخل عنوان نباید کارت را باز/بسته کند.
+          if (
+            (event.target as HTMLElement).closest(
+              'a,button,label,[data-slot="kv-select-trigger"],[role="combobox"]'
+            )
+          ) {
+            return;
+          }
           setExpanded((v) => !v);
         }}
       >
         {page.canCompare && page.compareSelecting ? (
-          <label className="-m-2 flex shrink-0 cursor-pointer items-center p-2 has-[button:disabled]:cursor-not-allowed">
-            <Checkbox
-              checked={selected}
-              disabled={full}
-              onCheckedChange={() => page.toggleCompareSelect(row.id)}
-              aria-label={`انتخاب ${row.name ?? row.id} برای مقایسه`}
-            />
-          </label>
-        ) : null}
-
-        <span
-          className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-kv-surface-subtle text-[0.6875rem] font-bold tabular-nums text-kv-text-faint"
-          aria-hidden
-        >
-          {toPersianDigits(index + 1)}
-        </span>
+          <div
+            className="w-[8.5rem] shrink-0"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <KvSelect
+              value={selected ? COMPARE_SELECT_ON : COMPARE_SELECT_OFF}
+              onValueChange={(next) => {
+                if (!next) return;
+                if (next === COMPARE_SELECT_ON && !selected) {
+                  if (full) return;
+                  page.toggleCompareSelect(row.id);
+                } else if (next === COMPARE_SELECT_OFF && selected) {
+                  page.toggleCompareSelect(row.id);
+                }
+              }}
+            >
+              <KvSelectTrigger
+                aria-label={`انتخاب ${row.name ?? row.id} برای مقایسه`}
+                className="h-9 data-[size=default]:h-9 data-[size=sm]:h-9"
+                disabled={full && !selected}
+              >
+                <KvSelectValue />
+              </KvSelectTrigger>
+              <KvSelectContent>
+                <KvSelectItem value={COMPARE_SELECT_OFF}>
+                  انتخاب نشده
+                </KvSelectItem>
+                <KvSelectItem
+                  value={COMPARE_SELECT_ON}
+                  disabled={full && !selected}
+                >
+                  انتخاب‌شده
+                </KvSelectItem>
+              </KvSelectContent>
+            </KvSelect>
+          </div>
+        ) : (
+          <span
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-kv-surface-subtle text-[0.6875rem] font-bold tabular-nums text-kv-text-faint"
+            aria-hidden
+          >
+            {toPersianDigits(index + 1)}
+          </span>
+        )}
 
         <div className="min-w-0 flex-1 text-start">
           <div className="text-[0.9375rem] leading-6 font-extrabold text-kv-text">
@@ -259,7 +306,9 @@ function ReportCard({ page, layout, row, index }: ReportCardProps) {
                   >
                     <span>{col.title}</span>
                     <span className="font-black tabular-nums text-kv-text">
-                      {typeof v === 'number' ? `${toPersianDigits(v)}٪` : '—'}
+                      {typeof v === 'number' && v !== 0
+                        ? `${toPersianDigits(v)}٪`
+                        : '—'}
                     </span>
                   </span>
                 );
