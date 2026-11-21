@@ -20,7 +20,8 @@ export async function GET() {
   return new NextResponse(new Uint8Array(file), {
     headers: {
       'Content-Type': 'image/png',
-      'Cache-Control': 'public, max-age=86400',
+      // Short TTL so omnibox/PWA icon color updates are picked up quickly in dev.
+      'Cache-Control': 'public, max-age=3600, must-revalidate',
     },
   });
 }
