@@ -76,7 +76,7 @@ describe('list reports API (schools/faculties/provinces/teachers/principals/prof
       period: PERIOD,
       page: 1,
     });
-    expect(searchParamsOf()).toEqual({ structure: 'semester', search: 'قم', page: 1, limit: 50 });
+    expect(searchParamsOf()).toEqual({ structure: 'semester', search: 'قم', page: 1, limit: 20 });
   });
 
   it('باکسی خارج از سقف گزارش بدون صدازدن API مخفی است', async () => {
@@ -100,7 +100,7 @@ describe('list reports API (schools/faculties/provinces/teachers/principals/prof
       educationalDistrictId: 'd1',
       search: 'نمونه',
       page: 2,
-      limit: 50,
+      limit: 20,
     });
     expect(result.hasNextPage).toBe(true);
     expect(result.rows[0]).toMatchObject({ id: 'p1', name: 'دبیرستان نمونه' });

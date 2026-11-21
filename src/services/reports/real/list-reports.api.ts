@@ -580,8 +580,8 @@ export type ListReportPage = {
   page: number;
 };
 
-/** سقف `limit` در Nest پنجاه است. */
-export const LIST_REPORT_PAGE_SIZE = 50;
+/** اندازهٔ هر صفحهٔ جدول گزارش (Nest تا ۵۰ را می‌پذیرد). */
+export const LIST_REPORT_PAGE_SIZE = 20;
 
 /** `GET /reports/{table}?…&page=&limit=` → `{ data, hasNextPage }`. */
 export async function fetchListPage(
