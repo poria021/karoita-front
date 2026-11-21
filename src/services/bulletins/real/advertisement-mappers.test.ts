@@ -31,8 +31,8 @@ describe('advertisement-mappers', () => {
     expect(nestTypeToKind('info')).toBe('announcement');
   });
 
-  it('reads both dashboard placements', () => {
-    expect(DASHBOARD_AD_PLACEMENTS).toEqual(['sidebar', 'hero']);
+  it('dashboard visible read uses sidebar only', () => {
+    expect(DASHBOARD_AD_PLACEMENTS).toEqual(['sidebar']);
   });
 
   it('builds create body for info with province ids', () => {

@@ -135,7 +135,7 @@ describe('organization options — Nest typeahead', () => {
     expect(result.items).toEqual([{ id: 'c1', label: 'ری' }]);
   });
 
-  it('forwards title to GET /admin/provinces/{id}/cities when searching', async () => {
+  it('filters cities client-side from the shared province cache when searching', async () => {
     fetchAllNestProvinces.mockResolvedValue([{ id: 'p1', title: 'تهران' }]);
     listCitiesByProvince.mockResolvedValue([
       { id: 'c1', title: 'ری' },
@@ -150,7 +150,8 @@ describe('organization options — Nest typeahead', () => {
       query: 'ری',
     });
 
-    expect(listCitiesByProvince).toHaveBeenCalledWith('p1', { title: 'ری' });
+    expect(listCitiesByProvince).toHaveBeenCalledWith('p1');
+    expect(listCitiesByProvince).not.toHaveBeenCalledWith('p1', { title: 'ری' });
     expect(result.items).toEqual([{ id: 'c1', label: 'ری' }]);
   });
 
@@ -170,6 +171,31 @@ describe('organization options — Nest typeahead', () => {
     expect(listEducationsByCity).toHaveBeenCalledWith('c1');
     expect(listEducationsByProvince).not.toHaveBeenCalled();
     expect(result.items).toEqual([{ id: 'd1', label: 'منطقه ۱' }]);
+  });
+
+  it('shares one cities-by-province fetch between city options and district resolve', async () => {
+    fetchAllNestProvinces.mockResolvedValue([{ id: 'p1', title: 'تهران' }]);
+    listCitiesByProvince.mockResolvedValue([{ id: 'c1', title: 'ری' }]);
+    listEducationsByCity.mockResolvedValue([{ id: 'd1', title: 'منطقه ۱' }]);
+
+    await Promise.all([
+      fetchOrganizationOptionsFromApi({
+        type: 'city',
+        page: 1,
+        limit: 10,
+        province: 'تهران',
+      }),
+      fetchOrganizationOptionsFromApi({
+        type: 'district',
+        page: 1,
+        limit: 10,
+        province: 'تهران',
+        city: 'ری',
+      }),
+    ]);
+
+    expect(listCitiesByProvince).toHaveBeenCalledTimes(1);
+    expect(listCitiesByProvince).toHaveBeenCalledWith('p1');
   });
 
   it('lists majors from the Nest degreeee envelope', async () => {

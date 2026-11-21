@@ -1,3 +1,4 @@
+import { invalidateSharedReads, sharedRead } from '@/lib/shared-read';
 import { reloadAfterWrite } from '@/lib/post-commit-refresh';
 import { ApiClientError } from '@/services/api-error';
 import { originalLessonsApi } from '@/services/original-lessons.api';
@@ -99,8 +100,13 @@ async function fetchAllOriginalLessons(): Promise<NestOriginalLesson[]> {
   throw new ApiClientError('تعداد دروس از سقف بارگذاری بیشتر است.', 500);
 }
 
+const CATALOG_SHARED_KEY = 'original-lessons:catalog';
+
 export async function listRealCourseDefinitions(): Promise<CourseDefinition[]> {
-  return groupOriginalLessons(await fetchAllOriginalLessons());
+  // میز کار، سایدبار و صفحهٔ درس هم‌زمان کاتالوگ می‌خواهند — یک GET مشترک.
+  return sharedRead(CATALOG_SHARED_KEY, async () =>
+    groupOriginalLessons(await fetchAllOriginalLessons())
+  );
 }
 
 /** ردیف‌های یک درس را از میان همه می‌جدا می‌کند؛ نبودنش ۴۰۴ است. */
@@ -115,6 +121,7 @@ function splitGroup(all: readonly NestOriginalLesson[], id: string) {
 
 /** snapshot ترم‌ها + کاتالوگ تازه؛ همان چیزی که hook صفحه با `applySnapshot` می‌خواهد. */
 function reloadSnapshotWithCatalog(): Promise<SyllabusConfigSnapshot> {
+  invalidateSharedReads(CATALOG_SHARED_KEY);
   return reloadAfterWrite(async () => ({
     ...(await getRealSyllabusSnapshot()),
     courseCatalog: await listRealCourseDefinitions(),

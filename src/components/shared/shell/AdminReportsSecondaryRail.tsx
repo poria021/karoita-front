@@ -1,55 +1,42 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
+import { FaIcon } from '@/components/shared/FaIcon';
+import { KvButton } from '@/components/shared/KvButton';
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { SidebarNavGroup } from '@/components/shared/shell/SidebarNavGroup';
 import {
+  kvShellAdminRailMotionClassName,
   kvShellAdminRailWidthMotionClassName,
-  kvShellAdminReportsSecondaryRailOffsetClassName,
+  kvShellAdminReportsSecondaryRailCollapsedWidthClassName,
   kvShellAdminReportsSecondaryRailWidthClassName,
 } from '@/components/shared/shell/shellChrome';
-import {
-  REPORT_PAGE_DEFS,
-  REPORTS_MODULE_ENABLED,
-  enabledReportThemes,
-} from '@/features/karvita/reports/constants';
-import {
-  isAdminReportsPath,
-  reportPath,
-} from '@/features/karvita/reports/lib/report-path';
+import { REPORTS_MODULE_ENABLED } from '@/features/karvita/reports/constants';
+import { useOrgReportAccess } from '@/features/karvita/reports/hooks/useOrgReportAccess';
+import { adminReportsMenuGroupsFromMe } from '@/features/karvita/reports/lib/admin-report-access';
+import { isAdminReportsPath } from '@/features/karvita/reports/lib/report-path';
 import { cn } from '@/lib/utils';
-import type { SidebarMenuGroup } from '@/utils/RoleStrategyMap';
-
-const THEME_ICONS: Record<string, string> = {
-  lists: 'fa-table-columns',
-  attendance: 'fa-clipboard-check',
-  performance: 'fa-chart-column',
-};
+import { useUserStore } from '@/store/useUserStore';
+import { faIcons } from '@/utils/iconMap';
 
 /**
- * ریل دوم چسبیده به ریل آیکونی ادمین — فقط دسکتاپ، روی مسیر گزارش‌ها.
- * از زیر هدر اپ (`top-16`) شروع می‌شود؛ هر تم گروه باز/بسته سایدبار.
+ * ریل دوم کنار محتوای گزارش ادمین — فقط دسکتاپ، زیر هدر ثابت می‌ماند (با اسکرول حرکت نمی‌کند).
+ * منو فقط از `GET /reports/access/me` ساخته می‌شود (active باز، inactive غیرفعال، غایب مخفی).
+ * با دکمهٔ لبهٔ ریل جمع/باز می‌شود (جمع‌شده: همان حالت آیکونی ریل اصلی؛ لیبل‌ها مخفی، آیکن گروه‌ها می‌مانند).
  */
 export function AdminReportsSecondaryRail() {
   const pathname = usePathname();
-  const groups = useMemo<SidebarMenuGroup[]>(
+  const role = useUserStore((state) => state.activeUser?.role);
+  const { grantedSlugs, inactiveSlugs } = useOrgReportAccess();
+  const [isOpen, setIsOpen] = useState(true);
+  const isCollapsed = !isOpen;
+
+  const groups = useMemo(
     () =>
-      enabledReportThemes().map((theme) => ({
-        kind: 'group' as const,
-        title: theme.title,
-        icon: THEME_ICONS[theme.id] ?? 'fa-file-invoice',
-        children: theme.slugs.map((s) => {
-          const def = REPORT_PAGE_DEFS[s];
-          return {
-            title: def.title,
-            path: reportPath(s),
-            icon: def.icon,
-          };
-        }),
-      })),
-    []
+      adminReportsMenuGroupsFromMe(grantedSlugs, inactiveSlugs, role) ?? [],
+    [grantedSlugs, inactiveSlugs, role]
   );
 
   if (!REPORTS_MODULE_ENABLED || !isAdminReportsPath(pathname)) return null;
@@ -59,32 +46,66 @@ export function AdminReportsSecondaryRail() {
       data-slot="kv-admin-reports-secondary-rail"
       aria-label="فهرست گزارش‌ها"
       className={cn(
-        'fixed top-16 bottom-0 z-20 hidden flex-col border-e border-t border-kv-border/80 bg-kv-surface lg:flex',
-        kvShellAdminReportsSecondaryRailOffsetClassName,
-        kvShellAdminReportsSecondaryRailWidthClassName,
+        'sticky top-16 z-20 hidden h-[calc(100dvh-4rem)] shrink-0 self-start lg:block',
+        isOpen
+          ? kvShellAdminReportsSecondaryRailWidthClassName
+          : kvShellAdminReportsSecondaryRailCollapsedWidthClassName,
         kvShellAdminRailWidthMotionClassName
       )}
     >
-      <nav
+      <div
         className={cn(
-          kvScrollAreaClassName,
-          'flex min-h-0 flex-1 flex-col gap-kv-inline overflow-y-auto p-kv-inline pt-kv-stack pb-kv-page'
+          'flex h-full w-full flex-col overflow-hidden border-e border-kv-border/80 bg-kv-surface'
         )}
-        aria-label="فهرست گزارش‌ها"
       >
-        {groups.map((group) => (
-          <SidebarNavGroup
-            key={group.title}
-            group={group}
-            pathname={pathname}
-            isCollapsed={false}
-            locked={false}
-            onNavigate={() => undefined}
-            textSize="legible"
-            defaultOpenWhenActive
+        <nav
+          className={cn(
+            kvScrollAreaClassName,
+            'flex min-h-0 flex-1 flex-col gap-kv-inline overflow-y-auto p-kv-inline pt-kv-stack pb-kv-page'
+          )}
+          aria-label="فهرست گزارش‌ها"
+        >
+          {groups.map((group) => (
+            <SidebarNavGroup
+              key={group.title}
+              group={group}
+              pathname={pathname}
+              isCollapsed={isCollapsed}
+              locked={false}
+              onNavigate={() => undefined}
+              textSize="legible"
+              defaultOpenWhenActive
+              onExpandFromCollapsed={() => setIsOpen(true)}
+            />
+          ))}
+        </nav>
+      </div>
+
+      <KvButton
+        type="button"
+        color="neutral"
+        appearance="ghost"
+        size="sm"
+        onClick={() => setIsOpen((open) => !open)}
+        aria-expanded={isOpen}
+        aria-label={
+          isOpen ? 'جمع کردن فهرست گزارش‌ها' : 'باز کردن فهرست گزارش‌ها'
+        }
+        className="absolute -inset-e-2.5 top-3 z-30 flex size-6 min-h-0 rounded-kv-control border border-kv-border/80 bg-kv-surface p-0 text-kv-text-subtle shadow-kv-soft hover:border-kv-brand hover:text-kv-brand"
+        icon={
+          <FaIcon
+            icon={faIcons.chevronLeft}
+            size="xs"
+            className={cn(
+              'transition-transform',
+              kvShellAdminRailMotionClassName,
+              isOpen
+                ? 'rotate-0 rtl:rotate-180'
+                : 'rotate-180 rtl:rotate-0'
+            )}
           />
-        ))}
-      </nav>
+        }
+      />
     </aside>
   );
 }

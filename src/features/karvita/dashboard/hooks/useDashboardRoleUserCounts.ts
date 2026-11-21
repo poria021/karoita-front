@@ -2,33 +2,36 @@
 
 import { useMemo } from 'react';
 
+import { isForbiddenError } from '@/services/api-error';
+
+import { roleCountsFromDashboardCounts } from '../lib/dashboard-counts';
 import {
   buildRoleUserCountMetrics,
-  FAKE_ROLE_USER_COUNTS,
   sumRoleUserCounts,
   type RoleUserCountMetric,
 } from '../lib/role-user-counts';
 
+import { useDashboardCountsQuery } from './useDashboardCountsQuery';
+
 export type DashboardRoleUserCountsState = {
   isLoading: boolean;
   isError: boolean;
+  isForbidden: boolean;
   metrics: RoleUserCountMetric[];
   total: number;
 };
 
-/**
- * شمار کاربران هر نقش برای میز کار مدیر ارشد.
- * فعلاً دادهٔ فیک؛ بعد از آماده‌شدن بک‌اند به `loadRoleUserCounts` وصل می‌شود.
- */
+/** شمار کاربران هر نقش برای میز کار ادمین — `GET /users/dashboard/counts` (`roles`). */
 export function useDashboardRoleUserCounts(): DashboardRoleUserCountsState {
-  const metrics = useMemo(
-    () => buildRoleUserCountMetrics(FAKE_ROLE_USER_COUNTS),
-    []
-  );
+  const query = useDashboardCountsQuery(roleCountsFromDashboardCounts);
+  const counts = query.data;
+
+  const metrics = useMemo(() => buildRoleUserCountMetrics(counts), [counts]);
 
   return {
-    isLoading: false,
-    isError: false,
+    isLoading: query.isPending && !query.data,
+    isError: query.isError && !query.data,
+    isForbidden: isForbiddenError(query.error),
     metrics,
     total: sumRoleUserCounts(metrics),
   };

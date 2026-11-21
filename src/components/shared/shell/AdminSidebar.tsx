@@ -6,7 +6,6 @@ import { useEffect, useId, useRef } from 'react';
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
-import { AdminReportsSecondaryRail } from '@/components/shared/shell/AdminReportsSecondaryRail';
 import { HeaderBrandWordmark } from '@/components/shared/shell/HeaderBrandWordmark';
 import { SidebarNavList } from '@/components/shared/shell/SidebarNavList';
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
@@ -30,8 +29,9 @@ import { useSidebarMenu } from './useSidebarMenu';
 import { useSidebarMobileDrawer } from './useSidebarMobileDrawer';
 
 /**
- * ریل ستادی — `fixed` تمام‌قد در لبهٔ شروع (RTL = راست). برند اینجاست نه در هدر.
- * روی گزارش‌ها: جمع = ریل آیکونی + ریل دوم؛ باز = ریل کامل و ریل دوم مخفی.
+ * ریل ستادی — روی دسکتاپ ثابت و هم‌ارتفاع ویوپورت (با اسکرول صفحه حرکت نمی‌کند)؛ موبایل دراور `fixed`.
+ * برند اینجاست نه در هدر. روی گزارش‌ها ورود → جمع تا ریل دوم در کروم دیده شود.
+ * ریل جمع‌شده با هاور/فوکوس باز نمی‌شود؛ فقط با دکمهٔ جمع/باز.
  */
 export function AdminSidebar() {
   const activeUser = useUserStore((state) => state.activeUser);
@@ -44,9 +44,6 @@ export function AdminSidebar() {
   const drawerTitleId = useId();
   const drawerRef = useRef<HTMLDivElement>(null);
   const wasReportsRef = useRef(false);
-  const reportsPath = isAdminReportsPath(pathname);
-  /** ریل دوم فقط وقتی ریل اصلی جمع است. */
-  const reportsDual = reportsPath && isCollapsed;
 
   useSidebarMobileDrawer({
     isMobileOpen,
@@ -87,7 +84,7 @@ export function AdminSidebar() {
         className={cn(
           'fixed inset-y-0 inset-s-0 z-50 h-dvh',
           kvShellAdminRailWidthMotionClassName,
-          'lg:translate-x-0 lg:pointer-events-auto lg:visible',
+          'lg:sticky lg:inset-auto lg:top-0 lg:z-40 lg:h-dvh lg:min-h-0 lg:shrink-0 lg:self-start lg:translate-x-0 lg:pointer-events-auto lg:visible',
           isMobileOpen
             ? 'translate-x-0'
             : 'max-lg:-translate-x-full max-lg:rtl:translate-x-full',
@@ -101,18 +98,22 @@ export function AdminSidebar() {
           role={isMobileOpen ? 'dialog' : undefined}
           aria-modal={isMobileOpen ? true : undefined}
           aria-labelledby={isMobileOpen ? drawerTitleId : undefined}
-          className="group/sidebar flex h-full min-h-0 w-full flex-col border-e border-kv-border/80 bg-kv-surface"
+          className={cn(
+            'group/sidebar flex h-full min-h-0 w-full flex-col border-e border-kv-border/80 bg-kv-surface',
+            'lg:absolute lg:inset-y-0 lg:inset-s-0 lg:h-auto',
+            'lg:transition-[width,box-shadow] lg:duration-500 lg:ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:lg:transition-none'
+          )}
         >
           <div
             className={cn(
-              'relative flex shrink-0 items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group',
-              isCollapsed && 'lg:justify-center'
+              'relative flex shrink-0 items-center justify-between gap-kv-inline border-b border-kv-border-muted p-kv-group'
             )}
           >
             <div
               className={cn(
-                'flex min-w-0 items-center',
-                isCollapsed && 'lg:justify-center'
+                // مارک با margin درصدی به وسط می‌رود (قابل انیمیت)، نه با پریدن justify.
+                'flex min-w-0 items-center transition-[margin-inline-start] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                isCollapsed && 'lg:ms-[calc((100%_-_2.25rem)/2)]'
               )}
             >
               <KarvitaBrandMark />
@@ -169,7 +170,7 @@ export function AdminSidebar() {
 
           <aside
             className={cn(
-              'flex min-h-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden',
+              'flex min-h-0 flex-1 flex-col overflow-y-auto',
               kvScrollAreaClassName,
               'kv-sidebar-scroll'
             )}
@@ -181,11 +182,7 @@ export function AdminSidebar() {
               modulesUnlocked={modulesUnlocked}
               onNavigate={closeMobileSidebar}
               textSize="legible"
-              className={cn(
-                'lg:overflow-y-auto',
-                kvScrollAreaClassName,
-                'kv-sidebar-scroll'
-              )}
+              className={cn(kvScrollAreaClassName, 'kv-sidebar-scroll')}
             />
 
             <UserAccountMenu
@@ -197,8 +194,6 @@ export function AdminSidebar() {
           </aside>
         </div>
       </div>
-
-      {reportsDual ? <AdminReportsSecondaryRail /> : null}
     </>
   );
 }

@@ -156,7 +156,6 @@ export const regionalEduAdminProfileSchema = identityNameSchema.extend({
   province: provinceField,
   district: districtField,
   city: cityField,
-  personalCode: personalCodeField,
 });
 
 export const facultyRoleProfileSchema = identityNameSchema.extend({

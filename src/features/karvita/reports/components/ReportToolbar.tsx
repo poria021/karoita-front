@@ -1,35 +1,38 @@
-'use client';
+"use client";
 
-import { FaIcon } from '@/components/shared/FaIcon';
-import { KvButton } from '@/components/shared/KvButton';
+import { FaIcon } from "@/components/shared/FaIcon";
+import { KvButton } from "@/components/shared/KvButton";
 import {
   KvFilterBarControl,
   KvFilterBarSearch,
-} from '@/components/shared/fields/KvFilterBar';
-import { KvSearchField } from '@/components/shared/fields/KvSearchField';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/shared/fields/KvFilterBar";
+import { KvSearchField } from "@/components/shared/fields/KvSearchField";
+import { Badge } from "@/components/ui/badge";
 import {
   COMPARE_REPORT_SLUGS,
   FILTER_LABELS,
   REPORT_COMPARE_ENABLED,
-} from '@/features/karvita/reports/constants';
-import { ReportSearchableFilterField } from '@/features/karvita/reports/components/ReportSearchableFilterField';
-import type { AdminReportPageModel } from '@/features/karvita/reports/hooks/useAdminReportPage';
-import { toPersianDigits } from '@/utils/persianDigits';
-import { faIcons } from '@/utils/iconMap';
-import { cn } from '@/lib/utils';
-
+} from "@/features/karvita/reports/constants";
+import { ReportCompareBar } from "@/features/karvita/reports/components/ReportCompareBar";
+import { ReportSearchableFilterField } from "@/features/karvita/reports/components/ReportSearchableFilterField";
+import type { AdminReportPageModel } from "@/features/karvita/reports/hooks/useAdminReportPage";
+import { toPersianDigits } from "@/utils/persianDigits";
+import { faIcons } from "@/utils/iconMap";
+import { cn } from "@/lib/utils";
 
 type ReportToolbarProps = {
   page: AdminReportPageModel;
 };
 
 /** هدف لمس راحت زیر `lg` (موبایل و تبلت)؛ دسکتاپ همان ارتفاع قبلی. */
-const TOUCH = 'max-lg:min-h-11';
+const TOUCH = "max-lg:min-h-11";
 
 export function ReportToolbar({ page }: ReportToolbarProps) {
   const adv = page.advKeys;
   const singleKey = adv.length === 1 ? adv[0]! : null;
+  // در حالت انتخاب برای مقایسه، نوار انتخاب جای دکمه‌های مقایسه/PDF/اکسل می‌آید.
+  const comparing =
+    page.canCompare && !page.compareMode && page.compareSelecting;
 
   return (
     <div
@@ -44,7 +47,7 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
             placeholder={page.def.placeholder}
             value={page.query}
             onChange={(e) => page.setQuery(e.target.value)}
-            onClear={() => page.setQuery('')}
+            onClear={() => page.setQuery("")}
             aria-label="جستجو"
           />
         </KvFilterBarSearch>
@@ -54,7 +57,7 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
             <ReportSearchableFilterField
               label={false}
               placeholder={FILTER_LABELS[singleKey]}
-              value={page.filters[singleKey] ?? ''}
+              value={page.filters[singleKey] ?? ""}
               options={page.filterOptions[singleKey] ?? []}
               onChange={(next) => page.setFilter(singleKey, next)}
             />
@@ -69,10 +72,10 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
             icon={<FaIcon icon={faIcons.sliders} size="sm" />}
             onClick={() => page.setAdvOpen(true)}
             className={cn(
-              'w-full sm:w-auto',
+              "w-full sm:w-auto",
               TOUCH,
               page.activeAdvCount > 0 &&
-                'border-kv-brand-border bg-kv-brand-soft text-kv-brand-soft-fg'
+                "border-kv-brand-border bg-kv-brand-soft text-kv-brand-soft-fg",
             )}
           >
             فیلتر پیشرفته
@@ -92,7 +95,7 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
             type="button"
             appearance="ghost"
             color="neutral"
-            className={cn('w-full sm:w-auto', TOUCH)}
+            className={cn("w-full sm:w-auto", TOUCH)}
             onClick={page.clearFilters}
           >
             پاک کردن فیلترها
@@ -101,53 +104,61 @@ export function ReportToolbar({ page }: ReportToolbarProps) {
       </div>
 
       {/* اکشن‌ها: زیر lg گرید هم‌اندازه (هم‌عرض با ردیف بالا)، دسکتاپ flex انتهای نوار */}
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(0,1fr))] gap-kv-pair lg:ms-auto lg:flex lg:flex-nowrap">
-        {REPORT_COMPARE_ENABLED &&
-        COMPARE_REPORT_SLUGS.includes(page.slug) ? (
+      {comparing ? (
+        <ReportCompareBar page={page} />
+      ) : (
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(0,1fr))] gap-kv-pair lg:ms-auto lg:flex lg:flex-nowrap">
+          {REPORT_COMPARE_ENABLED &&
+          COMPARE_REPORT_SLUGS.includes(page.slug) ? (
+            <KvButton
+              type="button"
+              color="cta"
+              appearance={page.compareSelecting ? "solid" : "ghost"}
+              size="sm"
+              icon={<FaIcon icon={faIcons.codeCompare} size="sm" />}
+              className={cn("w-full lg:w-auto", TOUCH)}
+              disabled={!page.canCompare}
+              // انصراف داخل نوار انتخاب پایین جدول است؛ این دکمه فقط حالت فعال را نشان می‌دهد.
+              aria-pressed={page.compareSelecting}
+              onClick={
+                page.compareSelecting ? undefined : page.startCompareSelection
+              }
+            >
+              مقایسه
+              {page.compareSelected.length > 0 ? (
+                <Badge
+                  variant={page.compareSelecting ? "default" : "brand"}
+                  className="ms-1 size-[1.125rem] justify-center p-0"
+                >
+                  {toPersianDigits(page.compareSelected.length)}
+                </Badge>
+              ) : null}
+            </KvButton>
+          ) : null}
           <KvButton
             type="button"
-            color="cta"
+            color="error"
             appearance="ghost"
             size="sm"
-            icon={<FaIcon icon={faIcons.codeCompare} size="sm" />}
-            className={cn('w-full lg:w-auto', TOUCH)}
-            disabled={!page.canCompare}
-            onClick={() => page.enterCompare()}
+            icon={<FaIcon icon={faIcons.filePdf} size="sm" />}
+            className={cn("w-full lg:w-auto", TOUCH)}
+            onClick={() => page.exportStub("PDF")}
           >
-            مقایسه
-            {page.compareSelected.length > 0 ? (
-              <Badge
-                variant="brand"
-                className="ms-1 size-[1.125rem] justify-center p-0"
-              >
-                {toPersianDigits(page.compareSelected.length)}
-              </Badge>
-            ) : null}
+            <span className="max-sm:hidden">دانلود </span>PDF
           </KvButton>
-        ) : null}
-        <KvButton
-          type="button"
-          color="error"
-          appearance="ghost"
-          size="sm"
-          icon={<FaIcon icon={faIcons.filePdf} size="sm" />}
-          className={cn('w-full lg:w-auto', TOUCH)}
-          onClick={() => page.exportStub('PDF')}
-        >
-          <span className="max-sm:hidden">دانلود </span>PDF
-        </KvButton>
-        <KvButton
-          type="button"
-          color="success"
-          appearance="ghost"
-          size="sm"
-          icon={<FaIcon icon={faIcons.fileExcel} size="sm" />}
-          className={cn('w-full lg:w-auto', TOUCH)}
-          onClick={() => page.exportStub('اکسل')}
-        >
-          <span className="max-sm:hidden">دانلود </span>اکسل
-        </KvButton>
-      </div>
+          <KvButton
+            type="button"
+            color="success"
+            appearance="ghost"
+            size="sm"
+            icon={<FaIcon icon={faIcons.fileExcel} size="sm" />}
+            className={cn("w-full lg:w-auto", TOUCH)}
+            onClick={() => page.exportStub("اکسل")}
+          >
+            <span className="max-sm:hidden">دانلود </span>اکسل
+          </KvButton>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, useWatch, type Resolver } from 'react-hook-form';
 import { toast } from 'sonner';
 
-import { scheduleOptimisticMutation } from '@/lib/undoable-mutation';
 import { AdminUserCreationService } from '@/services/admin-user-creation.service';
 import type { CreateOrganizationalUserInput } from '@/types/admin-user-creation';
 import { IRAN_MOBILE_PATTERN } from '@/utils/iranMobileField';
@@ -103,10 +102,14 @@ export function useAdminUserCreationForm() {
               );
             }
           })
-          .catch(() => {
-            if (requestId === mobileRequestIdRef.current) {
-              updateMobileReviewState(false, false);
-            }
+          .catch((error: unknown) => {
+            if (requestId !== mobileRequestIdRef.current) return;
+            updateMobileReviewState(false, false);
+            toast.error(
+              error instanceof Error
+                ? error.message
+                : 'بررسی تکراری بودن شماره موبایل ناموفق بود.'
+            );
           });
       }, 400);
 
@@ -186,7 +189,6 @@ export function useAdminUserCreationForm() {
     }
 
     const typedValues = values as AdminUserCreationFormValues;
-
     const isStaffAdmin = isStaffAdminRole(typedValues.role);
 
     const payload: CreateOrganizationalUserInput = {
@@ -201,36 +203,25 @@ export function useAdminUserCreationForm() {
       district: typedValues.district || undefined,
     };
 
-    const formSnapshot = { ...values };
-    const mobileDuplicateSnapshot = mobileDuplicate;
-    const accountKindSnapshot = accountKind;
-
-    scheduleOptimisticMutation({
-      message: isStaffAdmin
-        ? 'حساب ادمین ایجاد شد و در تایید هویت به‌صورت تاییدشده ثبت گردید.'
-        : 'حساب سازمانی ایجاد شد و در تایید هویت به‌صورت تاییدشده ثبت گردید.',
-      apply: () => {
-        reset({ ...ADMIN_USER_CREATION_DEFAULTS });
-        setMobileDuplicate(false);
-        if (!isStaffAdmin) {
-          setAccountKind('user');
-        }
-      },
-      revert: () => {
-        reset(formSnapshot);
-        setMobileDuplicate(mobileDuplicateSnapshot);
-        setAccountKind(accountKindSnapshot);
-      },
-      commit: () =>
-        AdminUserCreationService.createOrganizationalUser(payload),
-      onError: (error: unknown) => {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : 'ایجاد حساب کاربری ناموفق بود.'
-        );
-      },
-    });
+    try {
+      await AdminUserCreationService.createOrganizationalUser(payload);
+      reset({ ...ADMIN_USER_CREATION_DEFAULTS });
+      setMobileDuplicate(false);
+      if (!isStaffAdmin) {
+        setAccountKind('user');
+      }
+      toast.success(
+        isStaffAdmin
+          ? 'حساب ادمین با موفقیت ایجاد شد.'
+          : 'حساب سازمانی با موفقیت ایجاد شد.'
+      );
+    } catch (error: unknown) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'ایجاد حساب کاربری ناموفق بود.'
+      );
+    }
   });
 
   return {

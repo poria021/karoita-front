@@ -38,7 +38,7 @@ export const ROLE_FIELD_STRATEGY: Record<UserRole, RoleFieldStrategy> = {
   },
   regional_edu_admin: {
     organizationFields: ['province', 'city', 'district'],
-    identifierFields: ['personalCode'],
+    identifierFields: [],
   },
   faculty_role: {
     organizationFields: ['province', 'college'],

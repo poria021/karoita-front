@@ -5,6 +5,7 @@ import { notFound, useParams } from 'next/navigation';
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { InternshipEnrollmentGuard } from '@/features/karvita/internship-enrollment/components/InternshipEnrollmentGuard';
@@ -23,6 +24,7 @@ function CourseMaterialsLearnerBody({
   level: InternshipEnrollmentLevel;
 }) {
   const page = useInternshipEnrollmentPage(level);
+  useRegisterPageRefresh(page.reload);
   const backHref = RouteService.karvita.internshipSelection(level);
 
   if (page.error) {

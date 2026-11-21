@@ -1,3 +1,4 @@
+import { sharedRead } from '@/lib/shared-read';
 import {
   findLeafByEnrollmentLevel,
   siblingEnrollmentLeaves,
@@ -57,7 +58,10 @@ export async function loadEnrollmentCatalogContext(
   level: InternshipEnrollmentLevel
 ): Promise<EnrollmentCatalogContext> {
   try {
-    const definitions = await listRealCourseDefinitions();
+    // کاتالوگ برای همهٔ level‌ها یکی است؛ چند level همزمان یک GET مشترک می‌زنند.
+    const definitions = await sharedRead('original-lessons:catalog', () =>
+      listRealCourseDefinitions()
+    );
     return {
       leaf: leafRefForEnrollmentLevel(kind, level, definitions),
       siblingLeaves: siblingLeafRefsForEnrollmentLevel(kind, level, definitions),

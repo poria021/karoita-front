@@ -41,6 +41,9 @@ export function BulletinsNotificationsPanel({
 
   useEffect(() => {
     if (!userId) return;
+    // هدر معمولاً همان store را قبلاً hydrate کرده؛ فقط وقتی هنوز شروع نشده/خطا خورده دوباره بزن.
+    const status = useNotificationsStore.getState().status;
+    if (status === 'loading' || status === 'ready') return;
     void refresh();
   }, [userId, refresh]);
 

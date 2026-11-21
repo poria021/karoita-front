@@ -18,6 +18,10 @@ import {
   resolveBearerToken,
   rotateRealAccessToken,
 } from '@/services/api-token';
+import {
+  isSessionTransientError,
+  TRANSIENT_RESTORE_MESSAGE,
+} from '@/services/auth/session-errors';
 
 export { ApiClientError, localizeApiError } from '@/services/api-error';
 
@@ -69,7 +73,15 @@ function createKyClient(prefix: string) {
             await handleUnauthorized();
             return;
           }
-          const token = await rotateRealAccessToken();
+          let token: string | null;
+          try {
+            token = await rotateRealAccessToken();
+          } catch (error) {
+            if (isSessionTransientError(error)) {
+              throw new ApiClientError(TRANSIENT_RESTORE_MESSAGE, 502, error);
+            }
+            throw error;
+          }
           if (!token) {
             await handleUnauthorized();
             return;

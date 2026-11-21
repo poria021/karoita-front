@@ -2,6 +2,7 @@
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { SuperAdminModuleGuard } from '@/components/shared/shell/SuperAdminModuleGuard';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 
@@ -13,6 +14,7 @@ import { OrgStructureToolbar } from './OrgStructureToolbar';
 
 export function OrgStructurePageClient() {
   const page = useOrgStructurePage();
+  useRegisterPageRefresh(page.reload);
 
   return (
     <SuperAdminModuleGuard>

@@ -69,7 +69,7 @@ const PROFILE_DEFAULTS: Record<UserRole, DefaultValuesFactory> = {
   regional_edu_admin: (user) => ({
     role: 'regional_edu_admin', firstName: user.firstName, lastName: user.lastName,
     province: user.province ?? [], city: user.city ?? [],
-    district: user.district ?? [], personalCode: user.personalCode ?? '',
+    district: user.district ?? [],
   }),
   faculty_role: (user) => ({
     role: 'faculty_role', firstName: user.firstName, lastName: user.lastName,

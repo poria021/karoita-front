@@ -144,3 +144,37 @@ export type NestSetPasswordDto = {
   oldPassword: string;
   newPassword: string;
 };
+
+/**
+ * GET /api/v1/users/dashboard/counts (فقط admin و superadmin).
+ * `roles.mentor` شامل کاربران نقش professor هم هست.
+ */
+/** GET /api/v1/users/documents/status — شمار پرونده‌های مدارک به‌تفکیک وضعیت. */
+export type NestDocumentsStatusDto = {
+  pending: number;
+  confirmed: number;
+  rejected: number;
+  total: number;
+};
+
+export type NestDashboardCountsDto = {
+  places: {
+    educationalDistricts: number;
+    cities: number;
+    provinces: number;
+    universities: number;
+    degrees: number;
+    schools: number;
+  };
+  roles: {
+    mentor: number;
+    trainee: number;
+    student: number;
+    schoolDistrict: number;
+    schoolAdmin: number;
+    teacher: number;
+    organizationCenter: number;
+    universityProvince: number;
+    university: number;
+  };
+};

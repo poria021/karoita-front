@@ -72,7 +72,6 @@ function nestUserToProfileDto(raw: unknown): ProfileDto {
           province: user.province ?? [],
           city: user.city ?? [],
           district: user.district ?? [],
-          personalCode: user.personalCode ?? '',
         };
       case 'faculty_role':
         return {

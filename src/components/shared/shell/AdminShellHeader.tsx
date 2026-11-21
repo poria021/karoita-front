@@ -14,7 +14,7 @@ import { faIcons } from '@/utils/iconMap';
 
 /**
  * هدر ستادی — برند روی `AdminSidebar` است؛ این نوار فقط اکشن دارد.
- * عرض ستون باقی‌مانده است (والد `rail` را خالی می‌کند) و زیر ریل نمی‌رود.
+ * با اسکرول سند ثابت می‌ماند (بالای ستون محتوا چسبیده است).
  */
 export function AdminShellHeader() {
   const isMobileSidebarOpen = useUIStore((state) => state.isMobileSidebarOpen);

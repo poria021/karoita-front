@@ -5,20 +5,19 @@ import {
   AppTabsList,
   AppTabsTrigger,
 } from '@/components/shared/AppTabs';
-import { REPORT_ACCESS_ROLES } from '@/features/karvita/report-access/constants';
-import { ReportAccessDirtyDot } from '@/features/karvita/report-access/components/ReportAccessDirtyDot';
 import type { ReportAccessRoleId } from '@/types/report-access';
 import { getRoleStrategy } from '@/utils/role-strategy';
 
 type ReportAccessRoleTabsProps = {
   roleId: ReportAccessRoleId;
-  dirtyRoleIds: ReadonlySet<ReportAccessRoleId>;
+  /** نقش‌هایی که API در ماتریس برگردانده، به همان ترتیب. */
+  roles: readonly ReportAccessRoleId[];
   onChange: (roleId: ReportAccessRoleId) => void;
 };
 
 export function ReportAccessRoleTabs({
   roleId,
-  dirtyRoleIds,
+  roles,
   onChange,
 }: ReportAccessRoleTabsProps) {
   return (
@@ -27,10 +26,9 @@ export function ReportAccessRoleTabs({
       onValueChange={(value) => onChange(value as ReportAccessRoleId)}
     >
       <AppTabsList aria-label="نقش">
-        {REPORT_ACCESS_ROLES.map((id) => (
+        {roles.map((id) => (
           <AppTabsTrigger key={id} value={id} className="gap-kv-pair">
             <span className="truncate">{getRoleStrategy(id).label}</span>
-            {dirtyRoleIds.has(id) ? <ReportAccessDirtyDot /> : null}
           </AppTabsTrigger>
         ))}
       </AppTabsList>

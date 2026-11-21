@@ -45,12 +45,13 @@ function learnerKind(
  * بوت سرد شل تا آماده شدن کاتالوگ لودر است (`useShellCatalogReady`).
  * - ارزیابی: mock/خطا → دو لینک پیش‌فرض؛ real خالی → لینک تخت.
  * - انتخاب واحد: mock/خطا → منوی ایستا؛ real خالی → گروه حذف.
+ * - گزارش‌ها (نقش‌های سازمانی): فقط از `GET /reports/access/me`؛ inactive غیرفعال، غایب پنهان.
  */
 export function useSidebarMenu(role: UserRole | string | null | undefined) {
   const mock = isMockApiMode();
   const kind = learnerKind(role);
   const definitions = useActiveCourseDefinitions();
-  const { grantedSlugs } = useOrgReportAccess();
+  const { grantedSlugs, inactiveSlugs } = useOrgReportAccess();
   const learnerCourses =
     kind === 'internship'
       ? definitions.semester
@@ -72,7 +73,8 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
     const visible = withOrgReportAccessMenu(
       getVisibleSidebarMenu(role),
       role,
-      grantedSlugs
+      grantedSlugs,
+      inactiveSlugs
     );
     const evaluationWhenEmpty =
       mock || definitions.status === 'error' ? 'defaults' : 'flat';
@@ -98,5 +100,6 @@ export function useSidebarMenu(role: UserRole | string | null | undefined) {
     learnerCourses,
     availability,
     grantedSlugs,
+    inactiveSlugs,
   ]);
 }

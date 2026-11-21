@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { buildApprovedDocument } from '@/features/karvita/report-access/lib/access-matrix';
+import { RouteService } from '@/services/route.service';
 import { isSidebarMenuGroup } from '@/utils/role-strategy/types';
 
 import {
@@ -39,19 +40,32 @@ describe('org-report-access', () => {
     expect(orgCatalogReportSlugs('mentor_teacher')).toEqual([
       'learners',
       'attendance',
+    ]);
+    expect(orgApprovedReportSlugs('supervisor_professor')).toEqual([
+      'learners',
+      'attendance',
       'scores',
     ]);
     expect(defaultOrgReportSlug('supervisor_professor')).toBe('learners');
     expect(allOrgRoutableReportSlugs()).toContain('scores');
     expect(allOrgRoutableReportSlugs()).toContain('province-performance');
+    expect(orgCatalogReportSlugs('provincial_university')).toEqual(
+      expect.arrayContaining([
+        'school-performance',
+        'teachers',
+        'principals',
+      ])
+    );
+    expect(orgApprovedReportSlugs('provincial_university')).not.toEqual(
+      expect.arrayContaining(['teachers', 'principals'])
+    );
   });
 
   it('gates access from matrix and rebuilds sidebar group', () => {
     const matrix = buildApprovedDocument(PIDS);
-    // ماژول گزارش‌ها خاموش است → هیچ اسلاگی قابل دسترسی نیست
     expect(
       canAccessOrgReportSlug('mentor_teacher', 'learners', matrix, ['p0'])
-    ).toBe(false);
+    ).toBe(true);
     expect(
       canAccessOrgReportSlug('mentor_teacher', 'attendance', matrix, ['p0'])
     ).toBe(false);
@@ -69,12 +83,12 @@ describe('org-report-access', () => {
 
     const staticMenu = [
       { title: 'میز کار', path: '/karvita/dashboard', icon: 'fa-home' },
-      orgReportsSidebarGroup('mentor_teacher'),
       {
         title: 'اطلاعیه‌ها و اعلانات',
         path: '/karvita/announcements',
         icon: 'fa-bullhorn',
       },
+      orgReportsSidebarGroup('mentor_teacher'),
     ];
 
     const withExtra = withOrgReportAccessMenu(
@@ -82,10 +96,10 @@ describe('org-report-access', () => {
       'mentor_teacher',
       ['learners', 'attendance']
     );
-    expect(withExtra.find(isSidebarMenuGroup)).toBeUndefined();
-    expect(withExtra.map((e) => ('path' in e ? e.path : e.title))).toEqual([
-      '/karvita/dashboard',
-      '/karvita/announcements',
+    const group = withExtra.find(isSidebarMenuGroup);
+    expect(group?.children.map((c) => c.path)).toEqual([
+      RouteService.karvita.orgReports('learners'),
+      RouteService.karvita.orgReports('attendance'),
     ]);
 
     const empty = withOrgReportAccessMenu(staticMenu, 'mentor_teacher', []);
@@ -97,20 +111,36 @@ describe('org-report-access', () => {
 
     expect(
       withOrgReportAccessMenu(staticMenu, 'mentor_teacher', null)
-    ).toEqual([
-      { title: 'میز کار', path: '/karvita/dashboard', icon: 'fa-home' },
-      {
-        title: 'اطلاعیه‌ها و اعلانات',
-        path: '/karvita/announcements',
-        icon: 'fa-bullhorn',
-      },
-    ]);
+    ).toEqual(staticMenu);
   });
 
-  it('hides themed org report sidebar modules while reports module is off', () => {
-    expect(orgReportsSidebarEntries('central_organization')).toEqual([]);
-    expect(orgReportsSidebarEntries('provincial_university')).toEqual([]);
-    expect(orgReportsSidebarEntries('regional_edu_admin')).toEqual([]);
+  it('splits central organization reports into themed sidebar modules', () => {
+    const groups = orgReportsSidebarEntries('central_organization');
+    expect(groups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    expect(groups[0]?.children.map((c) => c.title)).toEqual([
+      'لیست فراگیران',
+      'لیست معلمان',
+      'لیست مدیران مدارس',
+      'لیست اساتید',
+      'لیست مدارس',
+      'لیست دانشکده‌ها',
+      'لیست استان‌ها',
+    ]);
+    // حضور و غیاب اساتید برای سازمان مرکزی اختیاری است؛ فقط پس از اعطا می‌آید.
+    expect(groups[1]?.children.map((c) => c.title)).toEqual([
+      'حضور و غیاب فراگیران',
+    ]);
+    expect(groups[2]?.children.map((c) => c.title)).toEqual([
+      'عملکرد معلمان',
+      'عملکرد مدارس',
+      'عملکرد اساتید',
+      'عملکرد دانشکده‌ها',
+      'عملکرد استان‌ها',
+    ]);
 
     const matrix = buildApprovedDocument(PIDS);
     const granted = grantedOrgReportSlugs('central_organization', matrix, []);
@@ -122,15 +152,48 @@ describe('org-report-access', () => {
           path: '/karvita/announcements',
           icon: 'fa-bullhorn',
         },
+        ...orgReportsSidebarEntries('central_organization'),
       ],
       'central_organization',
       [...granted].reverse()
     );
-    expect(menu.filter(isSidebarMenuGroup)).toEqual([]);
-    expect(menu.map((e) => ('path' in e ? e.path : e.title))).toEqual([
-      '/karvita/dashboard',
-      '/karvita/announcements',
+    const reportGroups = menu.filter(isSidebarMenuGroup);
+    expect(reportGroups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
     ]);
+    expect(
+      reportGroups.flatMap((g) => g.children.map((c) => c.path))
+    ).toContain(RouteService.karvita.orgReports('province-performance'));
+  });
+
+  it('splits faculty reports into themed sidebar modules without losing any report', () => {
+    const groups = orgReportsSidebarEntries('faculty_role');
+    expect(groups.map((g) => g.title)).toEqual([
+      'گزارش‌های لیستی',
+      'حضور و غیاب',
+      'گزارش‌های عملکرد',
+    ]);
+    expect(groups[0]?.children.map((c) => c.title)).toEqual([
+      'لیست فراگیران',
+      'لیست اساتید',
+    ]);
+    expect(groups[1]?.children.map((c) => c.title)).toEqual([
+      'حضور و غیاب فراگیران',
+      'حضور و غیاب اساتید راهنما',
+    ]);
+    expect(groups[2]?.children.map((c) => c.title)).toEqual([
+      'عملکرد معلمان',
+      'عملکرد مدارس',
+      'عملکرد اساتید',
+    ]);
+    // هر گزارشِ منوی تخت قبلی دقیقاً یک‌بار در یکی از ماژول‌ها باشد.
+    const flat = orgReportsSidebarGroup('faculty_role').children.map(
+      (c) => c.path
+    );
+    const themed = groups.flatMap((g) => g.children.map((c) => c.path));
+    expect([...themed].sort()).toEqual([...flat].sort());
   });
 
   it('applies the same allowlisted filters on every report slug', () => {
@@ -143,20 +206,19 @@ describe('org-report-access', () => {
       hiddenReportFilterKeysForRole('central_organization', 'attendance')
     ).toEqual([]);
 
-    expect(extraReportFilterKeysForRole('faculty_role', 'learners')).toEqual([
-      'professor',
-      'school',
-    ]);
+    expect(extraReportFilterKeysForRole('faculty_role', 'learners')).toEqual(
+      []
+    );
     expect(hiddenReportFilterKeysForRole('faculty_role', 'learners')).toEqual([
-      'province',
       'city',
-      'region',
-      'faculty',
       'teacher',
-      'course',
-      'major',
-      'status',
     ]);
+    expect(
+      hiddenReportFilterKeysForRole('provincial_university', 'learners')
+    ).toEqual(['province', 'teacher']);
+    expect(
+      extraReportFilterKeysForRole('provincial_university', 'attendance')
+    ).toEqual([]);
 
     expect(
       extraReportFilterKeysForRole('regional_edu_admin', 'teachers')
@@ -222,11 +284,36 @@ describe('org-report-access', () => {
     ]);
 
     // یکسان برای همهٔ اسلاگ‌ها
-    expect(extraReportFilterKeysForRole('faculty_role', 'attendance')).toEqual(
-      extraReportFilterKeysForRole('faculty_role', 'learners')
+    expect(hiddenReportFilterKeysForRole('faculty_role', 'attendance')).toEqual(
+      hiddenReportFilterKeysForRole('faculty_role', 'learners')
     );
+    expect(
+      hiddenReportFilterKeysForRole('provincial_university', 'professors')
+    ).toEqual(['province', 'teacher']);
     expect(
       extraReportFilterKeysForRole('school_principal', 'teacher-performance')
     ).toEqual(['teacher']);
+
+    // لیست مدیران مدارس و لیست مدارس: معلم/مدرسه برای هیچ نقشی نیست
+    expect(hiddenReportFilterKeysForRole('super_admin', 'scores')).toEqual([
+      'city',
+    ]);
+    expect(hiddenReportFilterKeysForRole('super_admin', 'principals')).toEqual([
+      'teacher',
+      'school',
+    ]);
+    expect(hiddenReportFilterKeysForRole('super_admin', 'schools')).toEqual([
+      'teacher',
+      'school',
+    ]);
+    expect(
+      extraReportFilterKeysForRole('regional_edu_admin', 'principals')
+    ).toEqual([]);
+    expect(
+      extraReportFilterKeysForRole('school_principal', 'schools')
+    ).toEqual([]);
+    expect(
+      extraReportFilterKeysForRole('mentor_teacher', 'principals')
+    ).toEqual(['region']);
   });
 });

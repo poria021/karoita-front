@@ -48,9 +48,11 @@ export function ReportAdvancedFilters({ page }: ReportAdvancedFiltersProps) {
             <ReportSearchableFilterField
               key={key}
               label={FILTER_LABELS[key]}
-              value={page.filters[key] ?? ''}
+              value={page.draftFilters[key] ?? ''}
               options={page.filterOptions[key] ?? []}
-              onChange={(next) => page.setFilter(key, next)}
+              onChange={(next) => page.setDraftFilter(key, next)}
+              onSearch={(text) => page.searchFilterBox(key, text)}
+              isLoading={Boolean(page.filterBoxLoading[key])}
             />
           ))}
         </KvSheetBody>
@@ -65,7 +67,7 @@ export function ReportAdvancedFilters({ page }: ReportAdvancedFiltersProps) {
             type="button"
             fullWidth
             icon={<FaIcon icon={faIcons.check} size="sm" />}
-            onClick={() => page.setAdvOpen(false)}
+            onClick={page.applyDraftFilters}
           >
             تأیید و اعمال فیلترها
           </KvButton>
@@ -74,7 +76,7 @@ export function ReportAdvancedFilters({ page }: ReportAdvancedFiltersProps) {
             appearance="secondary"
             color="neutral"
             fullWidth
-            onClick={page.clearFilters}
+            onClick={page.clearDraftFilters}
           >
             پاک کردن فیلترها
           </KvButton>

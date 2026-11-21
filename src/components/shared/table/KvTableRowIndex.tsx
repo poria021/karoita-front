@@ -50,7 +50,7 @@ export function KvTableRowIndexCell({
       mono
       className={cn(
         INDEX_COL_CLASS,
-        'text-[0.6875rem] font-medium text-kv-text-faint',
+        'text-sm font-bold text-kv-text-secondary',
         className
       )}
       {...props}

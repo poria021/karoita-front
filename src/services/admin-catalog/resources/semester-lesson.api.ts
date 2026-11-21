@@ -1,3 +1,4 @@
+import { invalidateSharedReads, sharedRead } from '@/lib/shared-read';
 import { apiClient } from '@/services/api-client';
 import { toSearchParams } from '@/services/nest-search-params';
 import type {
@@ -14,14 +15,25 @@ import type {
 
 import { NEST_ADMIN_PATHS } from '../paths';
 
+/** dedupe برای GETهای کاتالوگ ترم — میز کار چند مصرف‌کنندهٔ موازی دارد. */
+const SHARED_PREFIX = 'admin-semester:';
+
 export const semesterLessonApi = {
   /** POST /admin/semester — لایو ۲۰۴؛ بدنه کامل با `structure: semester|podmani`. */
-  createSemester(body: NestCreateSemesterDto, token?: string) {
-    return apiClient.postMaybeJson<null>(NEST_ADMIN_PATHS.semesters, body, token);
+  async createSemester(body: NestCreateSemesterDto, token?: string) {
+    const result = await apiClient.postMaybeJson<null>(
+      NEST_ADMIN_PATHS.semesters,
+      body,
+      token
+    );
+    invalidateSharedReads(SHARED_PREFIX);
+    return result;
   },
   /** GET /admin/semester — آرایهٔ خام با گیت روی هر ردیف، بدون پاکت paging. */
   listSemesters(token?: string) {
-    return apiClient.getJson<unknown>(NEST_ADMIN_PATHS.semesters, token);
+    return sharedRead(`${SHARED_PREFIX}list`, () =>
+      apiClient.getJson<unknown>(NEST_ADMIN_PATHS.semesters, token)
+    );
   },
   /** GET /admin/semester/{id}. */
   getSemester(id: string, token?: string) {
@@ -31,27 +43,37 @@ export const semesterLessonApi = {
    * PATCH /admin/semester/{id} — بدنهٔ کامل شامل گیت.
    * لایو ممکن است ۲۰۴ یا سند خام mongoose بدهد؛ بدنه را مصرف نکن.
    */
-  updateSemester(id: string, body: NestUpdateSemesterDto, token?: string) {
-    return apiClient.patchMaybeJson<unknown>(
+  async updateSemester(
+    id: string,
+    body: NestUpdateSemesterDto,
+    token?: string
+  ) {
+    const result = await apiClient.patchMaybeJson<unknown>(
       NEST_ADMIN_PATHS.semesterById(id),
       body,
       token
     );
+    invalidateSharedReads(SHARED_PREFIX);
+    return result;
   },
   /** DELETE /admin/semester/{id} — لایو ۲۰۰ با بدنهٔ خالی. */
-  deleteSemester(id: string, token?: string) {
-    return apiClient.deleteMaybeJson<null>(
+  async deleteSemester(id: string, token?: string) {
+    const result = await apiClient.deleteMaybeJson<null>(
       NEST_ADMIN_PATHS.semesterById(id),
       token
     );
+    invalidateSharedReads(SHARED_PREFIX);
+    return result;
   },
 
   /** GET /admin/semesters_all?structure=semester|podmani — آرایهٔ خام با درس/هفتهٔ تو در تو. */
   listSemestersAll(structure: NestSemesterAllStructure, token?: string) {
-    return apiClient.getJson<NestSemesterWithLessons[]>(
-      NEST_ADMIN_PATHS.semestersAll,
-      token,
-      { searchParams: toSearchParams({ structure }) }
+    return sharedRead(`${SHARED_PREFIX}all:${structure}`, () =>
+      apiClient.getJson<NestSemesterWithLessons[]>(
+        NEST_ADMIN_PATHS.semestersAll,
+        token,
+        { searchParams: toSearchParams({ structure }) }
+      )
     );
   },
 

@@ -31,8 +31,8 @@ export function BulletinsReceivedPanel() {
   const listRef = useRef<HTMLUListElement>(null);
 
   const query = useQuery({
-    queryKey: [...DASHBOARD_QUERY.bulletinsDashboard, role],
-    queryFn: () => BulletinsService.listDashboardBulletins(),
+    queryKey: [...DASHBOARD_QUERY.bulletinsReceived, role],
+    queryFn: () => BulletinsService.listReceivedAnnouncements(),
     staleTime: QUERY_STALE_MS.list,
     retry: false,
     enabled: Boolean(role),

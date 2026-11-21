@@ -261,3 +261,24 @@ export async function mapHttpError(error: unknown): Promise<never> {
 
   throw new ApiClientError(String(error));
 }
+
+/** پاسخ ۴۰۳ بک‌اند: نقش کاربر به این منبع/گزارش دسترسی ندارد. */
+export function isForbiddenError(error: unknown): boolean {
+  return error instanceof ApiClientError && error.status === 403;
+}
+
+/**
+ * خطای قطعی کلاینت (۴xx جز ۴۰۸ و ۴۲۹): تکرار همان درخواست نتیجهٔ دیگری ندارد
+ * (مثلاً ۴۰۳ نبودِ مجوز یا ۴۰۴)، پس React Query نباید دوباره تلاش کند.
+ */
+export function isNonRetryableApiError(error: unknown): boolean {
+  if (!(error instanceof ApiClientError)) return false;
+  const { status } = error;
+  return (
+    status !== undefined &&
+    status >= 400 &&
+    status < 500 &&
+    status !== 408 &&
+    status !== 429
+  );
+}

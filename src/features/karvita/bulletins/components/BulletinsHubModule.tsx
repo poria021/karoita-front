@@ -1,6 +1,7 @@
 'use client';
 
-import { useLayoutEffect, type ReactNode } from 'react';
+import { useLayoutEffect, useCallback, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 
 import {
@@ -10,11 +11,14 @@ import {
 } from '@/components/shared/AppTabs';
 import type { AppTabsGridCols } from '@/components/shared/AppTabs';
 import { DashboardAccessPlaceholder } from '@/components/shared/shell/DashboardAccessPlaceholder';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
+import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import {
   canAccessAnnouncementsHub,
   showsAnnouncementsHubNotifications,
 } from '@/services/bulletins/bulletin-rules';
 import { getPostLoginPath } from '@/services/post-login-path';
+import { useNotificationsStore } from '@/store/useNotificationsStore';
 import { useUserStore } from '@/store/useUserStore';
 
 import { useBulletinsHubPage } from '../hooks/useBulletinsHubPage';
@@ -64,6 +68,15 @@ function BulletinsInboxPanels({ showNotifications }: { showNotifications: boolea
 
 function BulletinsHubContent() {
   const page = useBulletinsHubPage();
+  const queryClient = useQueryClient();
+  const refreshNotifications = useNotificationsStore((state) => state.refresh);
+  const reloadHub = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: DASHBOARD_QUERY.bulletins }),
+      refreshNotifications(),
+    ]);
+  }, [queryClient, refreshNotifications]);
+  useRegisterPageRefresh(reloadHub);
   const showNotificationsBeside = showsAnnouncementsHubNotifications(page.role);
 
   return (

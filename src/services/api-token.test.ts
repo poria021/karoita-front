@@ -16,6 +16,7 @@ import {
   rotateRealAccessToken,
   shouldSkipTokenRefresh,
 } from '@/services/api-token';
+import { SessionTransientError } from '@/services/auth/session-errors';
 
 describe('shouldSkipTokenRefresh', () => {
   it('skips the actual bootstrap endpoints (login/refresh/logout)', () => {
@@ -77,5 +78,14 @@ describe('resolveBearerToken — in-flight rotate', () => {
       'explicit-token'
     );
     expect(realRefreshToken).not.toHaveBeenCalled();
+  });
+
+  it('rethrows SessionTransientError instead of resolving null (no silent logout)', async () => {
+    realRefreshToken.mockRejectedValue(
+      new SessionTransientError('سرور در دسترس نیست')
+    );
+    await expect(rotateRealAccessToken()).rejects.toBeInstanceOf(
+      SessionTransientError
+    );
   });
 });

@@ -1,30 +1,35 @@
-import {
-  mockApprovedReportAccessDocument,
-  mockGetReportAccessSnapshot,
-  mockSaveReportAccessMatrix,
-} from '@/services/report-access/mock/mock-report-access';
+import { reportAccessApi } from '@/services/report-access/real/report-access.api';
 import type {
-  ReportAccessMatrix,
-  ReportAccessSnapshot,
+  MyReportAccess,
+  ReportAccessRoleId,
+  ReportAccessRoleRow,
+  ReportSlug,
 } from '@/types/report-access';
 
 /**
- * مدیریت دسترسی گزارش‌ها (پنل مدیر ارشد).
- *
- * فعلاً فقط ماکت داخل Facade است تا UI قابل مرور باشد.
- * با آمدن بکند، شاخهٔ `real/` را اضافه کنید و اینجا مثل بقیهٔ سرویس‌ها
- * با `IS_MOCK_MODE` سوییچ کنید — UI/hook عوض نمی‌شود.
+ * مدیریت دسترسی گزارش‌ها.
+ * `GET /reports/access/me`، `GET /reports/access`، `PATCH /reports/access/:role`.
  */
 export const ReportAccessService = {
-  async getSnapshot(): Promise<ReportAccessSnapshot> {
-    return mockGetReportAccessSnapshot();
+  /** منوی گزارش کاربر جاری؛ گزارش‌هایی که در پاسخ نیستند ممنوع‌اند. */
+  async getMyAccess(): Promise<MyReportAccess> {
+    return reportAccessApi.getMine();
   },
 
-  async saveMatrix(matrix: ReportAccessMatrix): Promise<ReportAccessSnapshot> {
-    return mockSaveReportAccessMatrix(matrix);
+  /** ماتریس همهٔ نقش‌ها برای صفحهٔ مدیریت دسترسی (ادمین/سوپرادمین). */
+  async getMatrix(): Promise<ReportAccessRoleRow[]> {
+    return reportAccessApi.getMatrix();
   },
 
-  async getApprovedDocument(): Promise<ReportAccessMatrix> {
-    return mockApprovedReportAccessDocument();
+  /**
+   * تغییر سوییچ یک گزارش optional (فقط سوپرادمین).
+   * خروجی ندارد؛ بعدش `getMatrix()` را دوباره بگیرید.
+   */
+  async setReportEnabled(
+    roleId: ReportAccessRoleId,
+    slug: ReportSlug,
+    enabled: boolean
+  ): Promise<void> {
+    await reportAccessApi.setEnabled(roleId, slug, enabled);
   },
 };

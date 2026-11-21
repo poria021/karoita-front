@@ -166,10 +166,21 @@ export function msUntilAccessRefreshNeeded(): number | null {
   return _mem.tokenExpires - Date.now() - ACCESS_REFRESH_SKEW_MS;
 }
 
+export type WriteRealAuthTokensOptions = {
+  /**
+   * `write` (پیش‌فرض): بعد از لاگین — `POST /api/auth/set-tokens`.
+   * `assume-set`: بعد از `POST /api/auth/refresh` که خودش Set-Cookie کرده؛
+   * دوباره set-tokens نزن و اگر بعداً چیزی fail شد کوکی httpOnly را پاک نکن
+   * (وگرنه رفرش موفق + set-tokens شکست‌خورده = خروج در رفرش بعدی/آفلاین).
+   */
+  refreshCookie?: 'write' | 'assume-set';
+};
+
 // After login or refresh, keep access in memory and store the refresh token in httpOnly cookies.
 export async function writeRealAuthTokens(
   tokens: NestLoginTokens,
   surface: AuthSurface,
+  options?: WriteRealAuthTokensOptions,
 ): Promise<void> {
   warnIfTokenExpiresLooksLikeSeconds(tokens.tokenExpires);
   const generation = ++_writeGeneration;
@@ -181,6 +192,10 @@ export async function writeRealAuthTokens(
     writtenAt: Date.now(),
   };
   setPresenceCookie();
+
+  if (options?.refreshCookie === 'assume-set') {
+    return;
+  }
 
   try {
     // فقط `karvita_rt` + `karvita_surface` httpOnly؛ access در حافظه می‌ماند

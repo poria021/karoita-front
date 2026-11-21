@@ -2,6 +2,7 @@
 
 import { KvAlert } from '@/components/shared/KvAlert';
 import { KvButton } from '@/components/shared/KvButton';
+import { useRegisterPageRefresh } from '@/components/shared/shell/PageRefreshContext';
 import { KvWorkspace } from '@/components/shared/shell/KvWorkspace';
 import { useIsTabletUp } from '@/hooks/useMediaQuery';
 import type { ReportSlug } from '@/types/report-access';
@@ -13,7 +14,6 @@ import {
 import { ReportAdvancedFilters } from './ReportAdvancedFilters';
 import { ReportCardList } from './ReportCardList';
 import { ReportCategoryNav } from './ReportCategoryNav';
-import { ReportCompareBar } from './ReportCompareBar';
 import { ReportCompareView } from './ReportCompareView';
 import { ReportLearnerDialogs } from './ReportLearnerDialogs';
 import { ReportPeriodBand } from './ReportPeriodBand';
@@ -34,6 +34,7 @@ export function ReportsPageView({
   pageOptions,
 }: ReportsPageViewProps) {
   const page = useAdminReportPage(slug, pageOptions);
+  useRegisterPageRefresh(page.reload);
   const showTable = useIsTabletUp();
 
   return (
@@ -78,7 +79,19 @@ export function ReportsPageView({
                   <ReportCardList page={page} />
                 )
               )}
-              <ReportCompareBar page={page} />
+              {!page.error && page.hasNextPage ? (
+                <div className="flex justify-center">
+                  <KvButton
+                    type="button"
+                    appearance="secondary"
+                    color="neutral"
+                    disabled={page.isLoadingMore}
+                    onClick={() => void page.loadMore()}
+                  >
+                    {page.isLoadingMore ? 'در حال بارگذاری…' : 'نمایش بیشتر'}
+                  </KvButton>
+                </div>
+              ) : null}
             </section>
           </div>
         </KvWorkspace>
