@@ -598,8 +598,12 @@ function evaluationSlots(
       placement: learnerCountsPlacement,
     });
   }
-  // «گزارش‌های در حال بررسی» بالای میانگین نمره (نیمهٔ چپ، ردیف ۲)؛ میانگین یک ردیف پایین‌تر.
-  const pendingAboveAverages = showCoursePendingReports && showCourseAverages;
+  // استاد راهنما: «در حال بررسی» بالای میانگین در همان سلول.
+  // معلم / مدیر مدرسه: فقط کنار اطلاعیه‌ها (`showPendingBesideAnnouncements`) — تکرار نشود.
+  const pendingAboveAverages =
+    showCoursePendingReports &&
+    showCourseAverages &&
+    !showPendingBesideAnnouncements;
   if (showCourseAverages) {
     // با «در حال بررسی»: یک سلول مستقل (گرید‌اریای خودش) روی ردیف‌های ۲ تا ۴ — کارت‌های
     // «در حال بررسی» بالا و نمودار میانگین درست زیرشان؛ ردیف‌های ستون چپ (اطلاعیه‌ها /
@@ -609,7 +613,8 @@ function evaluationSlots(
       placement: {
         colSpan: 6,
         colStart: 7,
-        rowStart: 2,
+        // معلم/مدیر: ردیف ۲ را «در انتظار بررسی» گرفته؛ میانگین زیر آن.
+        rowStart: showPendingBesideAnnouncements ? 3 : 2,
         rowSpan: pendingAboveAverages ? 3 : 2,
         stretch: true,
       },
@@ -646,7 +651,12 @@ function evaluationSlots(
     ? Math.max(countsBottom, 3)
     : countsBottom;
   // با میانگین نمره، «در حال بررسی» داخل سلول همان نمودار می‌آید (`includes` بالا).
-  if (showCoursePendingReports && !pendingAboveAverages) {
+  // با `showPendingBesideAnnouncements` اسلات جدا کنار اطلاعیه‌ها از قبل اضافه شده.
+  if (
+    showCoursePendingReports &&
+    !pendingAboveAverages &&
+    !showPendingBesideAnnouncements
+  ) {
     // بدون میانگین نمره: تمام‌عرض، یک ردیف زیر آخرین باکس بالایی.
     slots.push({
       id: 'course_pending_reports',

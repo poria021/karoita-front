@@ -73,7 +73,7 @@ describe('course pending reports slot (supervisor professor)', () => {
 describe('course pending reports slot (mentor teacher / school principal)', () => {
   const roles = ['mentor_teacher', 'school_principal'] as const;
 
-  /** چیدمان فعلی بورد: میانگین + در انتظار در یک سلول (مثل استاد راهنما). */
+  /** چیدمان بورد: «در انتظار بررسی» کنار اطلاعیه‌ها؛ میانگین جدا (بدون تکرار). */
   const lessonReportsLayout = (
     role: (typeof roles)[number],
     showAd: boolean
@@ -82,20 +82,28 @@ describe('course pending reports slot (mentor teacher / school principal)', () =
       showAd,
       showCourseAverages: true,
       showCoursePendingReports: true,
+      showPendingBesideAnnouncements: true,
       showStudentGradeRanking: true,
       showStudentGradesCard: true,
     });
 
-  it('با میانگین نمره داخل سلول نمودار می‌آید (اسلات جدا ندارد)', () => {
+  it('فقط یک اسلات کنار اطلاعیه‌ها دارد و داخل میانگین تکرار نمی‌شود', () => {
     for (const role of roles) {
       for (const showAd of [true, false]) {
         const slots = lessonReportsLayout(role, showAd);
-        expect(
-          workbenchSlotById(slots, 'course_pending_reports')
-        ).toBeUndefined();
+        const pending = slots.filter((s) => s.id === 'course_pending_reports');
+        expect(pending).toHaveLength(1);
+        expect(pending[0]?.placement).toMatchObject({
+          colSpan: 6,
+          colStart: 7,
+          rowStart: 2,
+        });
         expect(
           workbenchSlotById(slots, 'course_averages')?.includes
-        ).toEqual(['course_pending_reports']);
+        ).toBeUndefined();
+        expect(
+          workbenchSlotById(slots, 'course_averages')?.placement.rowStart
+        ).toBe(3);
       }
     }
   });
