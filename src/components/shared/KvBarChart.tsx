@@ -166,6 +166,7 @@ export function KvBarChart({
 
   return (
     <div
+      data-slot="kv-bar-chart"
       role="img"
       aria-label={ariaLabel}
       className={cn('relative w-full min-w-0', className)}

@@ -29,6 +29,11 @@ type ReportCompareMatrixProps = {
   metricTitles: Record<string, string>;
   /** عنوان ستون اول: نوع موضوع گزارش (مثلاً «دانشکده» یا «استان»). */
   entityLabel: string;
+  /**
+   * شیت چاپ: هدر ستون‌ها متن ساده (بدون دکمهٔ سورت) تا در صفحهٔ بعدِ پرینت
+   * عنوان همهٔ ستون‌ها تکرار شود — دکمه داخل thead در کروم گاهی خالی چاپ می‌شود.
+   */
+  forPrint?: boolean;
 };
 
 type SortState = { key: string; dir: 'asc' | 'desc' };
@@ -45,7 +50,11 @@ function formatPct(value: number): string {
 
 function metricValue(item: ReportCompareItem, key: string): number | null {
   const value = item.metrics[key];
-  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+  // صفر = دادهٔ ثبت‌نشده — مثل null با خط تیره نشان داده می‌شود.
+  if (typeof value !== 'number' || !Number.isFinite(value) || value === 0) {
+    return null;
+  }
+  return value;
 }
 
 function clampPct(value: number): number {
@@ -93,7 +102,7 @@ function ValueBar({
 }
 
 /**
- * مقایسهٔ حداکثر ۱۰ مورد: جدول رتبه‌بندی (مورد × شاخص) با نوار داده‌ای در هر سلول
+ * جدول رتبه‌بندی مقایسه (مورد × شاخص) با نوار داده‌ای در هر سلول
  * و مرتب‌سازی با کلیک روی ستون. تب شاخص و نمودار بیرون از این کامپوننت‌اند.
  */
 export function ReportCompareMatrix({
@@ -101,6 +110,7 @@ export function ReportCompareMatrix({
   metrics,
   metricTitles,
   entityLabel,
+  forPrint = false,
 }: ReportCompareMatrixProps) {
   const [sort, setSort] = useState<SortState | null>(null);
 
@@ -159,15 +169,22 @@ export function ReportCompareMatrix({
       aria-label="مقایسه موارد"
       className="flex min-w-0 flex-col gap-kv-group"
     >
-      {/* تبلت و موبایل: کارت برای هر مورد؛ دسکتاپ: جدول رتبه‌بندی */}
-      <ReportCompareItemCards
-        className="lg:hidden"
-        items={items}
-        metrics={metrics}
-        metricTitles={metricTitles}
-      />
+      {/* تبلت و موبایل: کارت؛ دسکتاپ (+ پرینت): همان جدول صفحه */}
+      {forPrint ? null : (
+        <ReportCompareItemCards
+          className="lg:hidden print:!hidden"
+          items={items}
+          metrics={metrics}
+          metricTitles={metricTitles}
+        />
+      )}
 
-      <div className="hidden overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface shadow-kv-soft lg:block">
+      <div
+        className={cn(
+          'overflow-hidden rounded-kv-shell border border-kv-border/70 bg-kv-surface shadow-kv-soft',
+          forPrint ? 'block' : 'hidden lg:block print:!block'
+        )}
+      >
         <KvTable>
           <KvTableHeader>
             <KvTableRow>
@@ -182,44 +199,54 @@ export function ReportCompareMatrix({
               ))}
               {metrics.map((key) => {
                 const active = sortKey === key;
+                const title = metricTitles[key] ?? key;
                 return (
                   <KvTableHead
                     key={key}
-                    className="border-b-kv-border"
+                    className={cn(
+                      'border-b-kv-border',
+                      forPrint && 'whitespace-normal'
+                    )}
                     aria-sort={
-                      active
-                        ? sortDir === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : 'none'
+                      forPrint
+                        ? undefined
+                        : active
+                          ? sortDir === 'asc'
+                            ? 'ascending'
+                            : 'descending'
+                          : 'none'
                     }
                   >
-                    <button
-                      type="button"
-                      onClick={() => toggleSort(key)}
-                      aria-label={`مرتب‌سازی ${
-                        active && sortDir === 'desc' ? 'صعودی' : 'نزولی'
-                      } ${metricTitles[key] ?? key}`}
-                      className={cn(
-                        'inline-flex max-w-full items-center gap-1 rounded-kv-control text-start transition-colors',
-                        'hover:text-kv-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30',
-                        active ? 'text-kv-text' : 'text-kv-text-faint'
-                      )}
-                    >
-                      <span>{metricTitles[key] ?? key}</span>
-                      <FaIcon
-                        icon={
-                          active && sortDir === 'asc'
-                            ? faIcons.chevronUp
-                            : faIcons.chevronDown
-                        }
-                        size="2xs"
+                    {forPrint ? (
+                      title
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => toggleSort(key)}
+                        aria-label={`مرتب‌سازی ${
+                          active && sortDir === 'desc' ? 'صعودی' : 'نزولی'
+                        } ${title}`}
                         className={cn(
-                          'shrink-0',
-                          active ? 'opacity-100' : 'opacity-35'
+                          'inline-flex max-w-full items-center gap-1 rounded-kv-control text-start transition-colors',
+                          'hover:text-kv-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30',
+                          active ? 'text-kv-text' : 'text-kv-text-faint'
                         )}
-                      />
-                    </button>
+                      >
+                        <span>{title}</span>
+                        <FaIcon
+                          icon={
+                            active && sortDir === 'asc'
+                              ? faIcons.chevronUp
+                              : faIcons.chevronDown
+                          }
+                          size="2xs"
+                          className={cn(
+                            'shrink-0',
+                            active ? 'opacity-100' : 'opacity-35'
+                          )}
+                        />
+                      </button>
+                    )}
                   </KvTableHead>
                 );
               })}
