@@ -42,6 +42,8 @@ export type LessonPendingReview = {
   title: string;
   /** عدد بزرگ وسط کارت (هفته‌هایی که فراگیر فرستاده و این نقش هنوز جواب نداده). */
   pendingCount: number;
+  /** شناسهٔ درس Nest اگر در پاسخ آمده باشد — برای لینک مستقیم ارزیابی. */
+  lessonId?: string;
 };
 
 /** query مشترک؛ مقدار خالی فرستاده نمی‌شود. */
@@ -98,7 +100,12 @@ export function mapLessonPendingReviews(raw: unknown): LessonPendingReview[] {
     const pendingCount = readFiniteNumber(rec.pendingCount);
     // درسی بدون مورد در انتظار در `data` نمی‌آید؛ صفر/منفی را هم کارت نمی‌کنیم.
     if (pendingCount === null || pendingCount <= 0) continue;
-    out.push({ title, pendingCount });
+    const lessonIdRaw = rec.lessonId ?? rec.courseId ?? rec.id;
+    const lessonId =
+      typeof lessonIdRaw === 'string' && lessonIdRaw.trim()
+        ? lessonIdRaw.trim()
+        : undefined;
+    out.push({ title, pendingCount, ...(lessonId ? { lessonId } : {}) });
   }
   return out;
 }

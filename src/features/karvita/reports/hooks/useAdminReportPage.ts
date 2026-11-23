@@ -13,12 +13,12 @@ import { usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 
 import {
-  COMPARE_MAX,
   COMPARE_MIN,
   COMPARE_REPORT_SLUGS,
   REPORT_COMPARE_ENABLED,
   REPORT_LIST_LIMIT,
   REPORT_PAGE_DEFS,
+  compareMaxForSlug,
 } from '@/features/karvita/reports/constants';
 import {
   hrefWithoutDisabledReportCompare,
@@ -370,6 +370,8 @@ export function useAdminReportPage(
   const canCompare =
     options?.canCompare ??
     (REPORT_COMPARE_ENABLED && COMPARE_REPORT_SLUGS.includes(slug));
+  /** سقف انتخاب مقایسه — برای عملکرد استان‌ها تا همهٔ استان‌ها. */
+  const compareMax = compareMaxForSlug(slug);
   const pathname = usePathname();
   const locationSnapshot = useSyncExternalStore(
     subscribeShallowLocation,
@@ -443,9 +445,9 @@ export function useAdminReportPage(
     () =>
       parseReportCompareIds(
         searchParams.get(REPORT_COMPARE_IDS_PARAM),
-        COMPARE_MAX
+        compareMax
       ),
-    [searchParams]
+    [compareMax, searchParams]
   );
 
   const [compareSelected, setCompareSelected] = useState<string[]>([]);
@@ -1193,7 +1195,7 @@ export function useAdminReportPage(
         const next =
           i >= 0
             ? prev.filter((x) => x !== id)
-            : prev.length >= COMPARE_MAX
+            : prev.length >= compareMax
               ? prev
               : [...prev, id];
         if (next !== prev) {
@@ -1202,8 +1204,22 @@ export function useAdminReportPage(
         return next;
       });
     },
-    [setCompareIdsInUrl]
+    [compareMax, setCompareIdsInUrl]
   );
+
+  /** همهٔ ردیف‌های بارگذاری‌شده را تا سقف مقایسه انتخاب کن (بدون درخواست API). */
+  const selectAllCompareRows = useCallback(() => {
+    const ids: string[] = [];
+    const seen = new Set<string>();
+    for (const row of rows) {
+      if (!row.id || seen.has(row.id)) continue;
+      seen.add(row.id);
+      ids.push(row.id);
+      if (ids.length >= compareMax) break;
+    }
+    setCompareSelected(ids);
+    setCompareIdsInUrl(ids);
+  }, [compareMax, rows, setCompareIdsInUrl]);
 
   const clearCompareSelected = useCallback(() => {
     setCompareSelected([]);
@@ -1214,17 +1230,20 @@ export function useAdminReportPage(
     setCompareDraft([]);
   }, []);
 
-  const setCompareDraftIds = useCallback((ids: string[]) => {
-    const seen = new Set<string>();
-    const next: string[] = [];
-    for (const id of ids) {
-      if (!id || seen.has(id)) continue;
-      seen.add(id);
-      next.push(id);
-      if (next.length >= COMPARE_MAX) break;
-    }
-    setCompareDraft(next);
-  }, []);
+  const setCompareDraftIds = useCallback(
+    (ids: string[]) => {
+      const seen = new Set<string>();
+      const next: string[] = [];
+      for (const id of ids) {
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        next.push(id);
+        if (next.length >= compareMax) break;
+      }
+      setCompareDraft(next);
+    },
+    [compareMax]
+  );
 
   const enterCompare = useCallback(() => {
     if (!canCompare) return;
@@ -1274,18 +1293,21 @@ export function useAdminReportPage(
     setCompareIdsInUrl,
   ]);
 
-  const toggleCompareDraft = useCallback((id: string, on: boolean) => {
-    setCompareDraft((prev) => {
-      const i = prev.indexOf(id);
-      if (on) {
-        if (i >= 0) return prev;
-        if (prev.length >= COMPARE_MAX) return prev;
-        return [...prev, id];
-      }
-      if (i < 0) return prev;
-      return prev.filter((x) => x !== id);
-    });
-  }, []);
+  const toggleCompareDraft = useCallback(
+    (id: string, on: boolean) => {
+      setCompareDraft((prev) => {
+        const i = prev.indexOf(id);
+        if (on) {
+          if (i >= 0) return prev;
+          if (prev.length >= compareMax) return prev;
+          return [...prev, id];
+        }
+        if (i < 0) return prev;
+        return prev.filter((x) => x !== id);
+      });
+    },
+    [compareMax]
+  );
 
   const confirmCompare = useCallback(() => {
     if (compareDraft.length < COMPARE_MIN) return;
@@ -1372,6 +1394,7 @@ export function useAdminReportPage(
     setCompareQ,
     compareCandidates,
     toggleCompareSelect,
+    selectAllCompareRows,
     clearCompareSelected,
     clearCompareDraft,
     setCompareDraftIds,
@@ -1380,7 +1403,7 @@ export function useAdminReportPage(
     toggleCompareDraft,
     confirmCompare,
     compareMin: COMPARE_MIN,
-    compareMax: COMPARE_MAX,
+    compareMax,
   };
 }
 

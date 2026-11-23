@@ -25,6 +25,13 @@ describe('org-structure-counts', () => {
     ]);
     expect(metrics.map((m) => m.count)).toEqual([1, 2, 0, 1, 3, 1]);
     expect(sumOrgStructureCounts(metrics)).toBe(8);
+    // کارت‌ها همه آبی برند؛ رنگ‌های قطاع فقط برای دونات فرق می‌کنند.
+    expect(
+      new Set(metrics.map((m) => m.iconWrapClassName)).size
+    ).toBe(1);
+    expect(metrics[0]?.iconWrapClassName).toBe(
+      'bg-kv-brand-soft text-kv-brand-soft-fg'
+    );
   });
 
   it('returns an empty list without counts', () => {

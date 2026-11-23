@@ -26,6 +26,10 @@ const METRIC_ORDER: readonly OrgStructureSubTab[] = [
   'faculties',
 ];
 
+/** رنگ یکسان آیکون کارت‌ها — مثل بقیهٔ شمارنده‌های میز کار (`text-kv-brand`). */
+const CARD_ICON_TONE = 'text-kv-brand-soft-fg';
+const CARD_ICON_WRAP = 'bg-kv-brand-soft text-kv-brand-soft-fg';
+
 const METRIC_META: Record<
   OrgStructureSubTab,
   Omit<OrgStructureCountMetric, 'id' | 'count'>
@@ -36,8 +40,8 @@ const METRIC_META: Record<
     color: 'var(--kv-brand)',
     softClassName: 'bg-kv-brand-soft',
     textClassName: 'text-kv-brand-soft-fg',
-    toneClassName: 'text-kv-brand-soft-fg',
-    iconWrapClassName: 'bg-kv-brand-soft text-kv-brand-soft-fg',
+    toneClassName: CARD_ICON_TONE,
+    iconWrapClassName: CARD_ICON_WRAP,
   },
   cities: {
     label: 'شهرها',
@@ -45,8 +49,8 @@ const METRIC_META: Record<
     color: 'var(--kv-info)',
     softClassName: 'bg-kv-info-soft',
     textClassName: 'text-kv-info-soft-fg',
-    toneClassName: 'text-kv-info-soft-fg',
-    iconWrapClassName: 'bg-kv-info-soft text-kv-info-soft-fg',
+    toneClassName: CARD_ICON_TONE,
+    iconWrapClassName: CARD_ICON_WRAP,
   },
   districts: {
     label: 'مناطق آموزشی',
@@ -54,8 +58,8 @@ const METRIC_META: Record<
     color: 'var(--kv-warning)',
     softClassName: 'bg-kv-warning-soft',
     textClassName: 'text-kv-warning-soft-fg',
-    toneClassName: 'text-kv-warning-soft-fg',
-    iconWrapClassName: 'bg-kv-warning-soft text-kv-warning-soft-fg',
+    toneClassName: CARD_ICON_TONE,
+    iconWrapClassName: CARD_ICON_WRAP,
   },
   schools: {
     label: 'مدارس تابعه',
@@ -63,8 +67,8 @@ const METRIC_META: Record<
     color: 'var(--kv-success)',
     softClassName: 'bg-kv-success-soft',
     textClassName: 'text-kv-success-soft-fg',
-    toneClassName: 'text-kv-success-soft-fg',
-    iconWrapClassName: 'bg-kv-success-soft text-kv-success-soft-fg',
+    toneClassName: CARD_ICON_TONE,
+    iconWrapClassName: CARD_ICON_WRAP,
   },
   majors: {
     label: 'رشته‌های تحصیلی',
@@ -72,8 +76,8 @@ const METRIC_META: Record<
     color: 'var(--kv-violet)',
     softClassName: 'bg-kv-violet-soft',
     textClassName: 'text-kv-violet-soft-fg',
-    toneClassName: 'text-kv-brand-soft-fg',
-    iconWrapClassName: 'bg-kv-brand-soft text-kv-brand-soft-fg',
+    toneClassName: CARD_ICON_TONE,
+    iconWrapClassName: CARD_ICON_WRAP,
   },
   faculties: {
     label: 'دانشکده‌ها / پردیس‌ها',
@@ -81,8 +85,8 @@ const METRIC_META: Record<
     color: 'var(--kv-danger)',
     softClassName: 'bg-kv-danger-soft',
     textClassName: 'text-kv-danger-soft-fg',
-    toneClassName: 'text-kv-neutral-soft-fg',
-    iconWrapClassName: 'bg-kv-neutral-soft text-kv-neutral-soft-fg',
+    toneClassName: CARD_ICON_TONE,
+    iconWrapClassName: CARD_ICON_WRAP,
   },
 };
 

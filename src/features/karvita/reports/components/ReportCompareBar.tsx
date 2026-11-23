@@ -21,6 +21,8 @@ export function ReportCompareBar({ page }: ReportCompareBarProps) {
 
   const n = page.compareSelected.length;
   const full = n >= page.compareMax;
+  const canSelectAll =
+    page.rows.length > 0 && n < Math.min(page.compareMax, page.rows.length);
   const help =
     n === 0
       ? `مواردی را که می‌خواهید مقایسه کنید انتخاب کنید (از ${toPersianDigits(page.compareMin)} تا ${toPersianDigits(page.compareMax)} مورد).`
@@ -44,6 +46,18 @@ export function ReportCompareBar({ page }: ReportCompareBarProps) {
       >
         موارد انتخابی {toPersianDigits(n)} از {toPersianDigits(page.compareMax)}
       </KvTypography>
+      {canSelectAll ? (
+        <KvButton
+          type="button"
+          size="sm"
+          appearance="ghost"
+          color="neutral"
+          className="max-lg:min-h-11"
+          onClick={page.selectAllCompareRows}
+        >
+          انتخاب همه
+        </KvButton>
+      ) : null}
       <KvButton
         type="button"
         size="sm"

@@ -77,7 +77,12 @@ export function cellContent(
     }
     case 'percent': {
       const v = row[col.sortKey ?? col.id];
-      return typeof v === 'number' ? <PercentCell value={v} /> : '—';
+      // صفر = ثبت‌نشده؛ خط تیره به‌جای ۰٪.
+      return typeof v === 'number' && v !== 0 ? (
+        <PercentCell value={v} />
+      ) : (
+        '—'
+      );
     }
     case 'count': {
       const v = row[col.sortKey ?? col.id];

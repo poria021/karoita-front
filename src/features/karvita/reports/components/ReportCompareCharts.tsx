@@ -145,7 +145,7 @@ export function ReportCompareCharts({
               {title}
             </KvTypography>
             <ul
-              className="flex min-w-0 items-center gap-x-3 overflow-x-auto whitespace-nowrap [scrollbar-width:thin]"
+              className="kv-report-compare-chart-legend flex min-w-0 items-center gap-x-3 overflow-x-auto whitespace-nowrap [scrollbar-width:thin]"
               aria-label="راهنمای رنگ موارد"
             >
               {items.map((item, index) => (
