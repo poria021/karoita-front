@@ -344,8 +344,8 @@ export function themeIdForSlug(slug: ReportSlug): string | undefined {
   return themeForSlug(slug)?.id;
 }
 
-/** سقف واکشی یک‌بارهٔ جدول گزارش (بدون پجینیشن — فقط اسکرول). */
-export const REPORT_LIST_LIMIT = 5000;
+/** اندازهٔ هر صفحهٔ جدول گزارش — با «نمایش بیشتر» صفحه‌های بعدی می‌آید. */
+export const REPORT_LIST_LIMIT = 20;
 
 /** سقف پیش‌فرض مقایسه (بقیهٔ اسلاگ‌های مقایسه‌پذیر). */
 export const COMPARE_MAX = 10;

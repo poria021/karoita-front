@@ -192,7 +192,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
       semesterId: 's1',
       search: 'علی',
       page: 2,
-      limit: 50,
+      limit: 20,
     });
   });
 
@@ -209,7 +209,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
       provinceId: 'p1',
       universityId: 'u1',
       page: 1,
-      limit: 50,
+      limit: 20,
     });
   });
 
@@ -222,7 +222,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
       page: 1,
     });
     expect(getJson.mock.calls[0]![0]).toBe('v1/reports/provinces/performance');
-    expect(searchParamsOf()).toEqual({ structure: 'semester', search: 'قم', page: 1, limit: 50 });
+    expect(searchParamsOf()).toEqual({ structure: 'semester', search: 'قم', page: 1, limit: 20 });
   });
 
   it('sortBy و sortOrder فقط برای ستون‌های مجاز عملکرد فرستاده می‌شوند', async () => {
@@ -254,7 +254,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
       sortBy: 'responseRate',
       sortOrder: 'desc',
       page: 1,
-      limit: 50,
+      limit: 20,
     });
 
     await fetchListPage('teacher-performance', {
@@ -267,7 +267,7 @@ describe('گزارش‌های عملکرد (Nest)', () => {
     expect(searchParamsOf(1)).toEqual({
       structure: 'semester',
       page: 1,
-      limit: 50,
+      limit: 20,
     });
   });
 

@@ -75,8 +75,8 @@ export const NEST_LEARNERS_GRADES_PATHS: LearnersReportPaths = {
 export const NEST_LEARNER_GRADE_DETAIL_PATH =
   'v1/reports/learners/grades/detail';
 
-/** سقف `limit` در Nest پنجاه است. */
-export const LEARNERS_PAGE_SIZE = 50;
+/** اندازهٔ هر صفحهٔ جدول گزارش (Nest تا ۵۰ را می‌پذیرد). */
+export const LEARNERS_PAGE_SIZE = 20;
 
 type FilterBoxSpec = {
   /** مقدار پارامتر `field` در API. */

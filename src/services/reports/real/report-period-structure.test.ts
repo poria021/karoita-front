@@ -29,7 +29,7 @@ describe('فیلتر ترمی/پودمانی روی همهٔ گزارش‌ها',
   it.each(['learners', 'scores', 'attendance', 'schools', 'teacher-performance'] as const)(
     '%s: بدون انتخاب دوره هم structure مطابق نظام فرستاده می‌شود',
     async (slug) => {
-      const base = { slug, filters: {}, query: '', sort: null, page: 1, pageSize: 50 };
+      const base = { slug, filters: {}, query: '', sort: null, page: 1, pageSize: 20 };
       await ReportsService.queryReport({ ...base, period: TERM });
       expect(params().structure).toBe('semester');
       expect(params().semesterId).toBeUndefined();

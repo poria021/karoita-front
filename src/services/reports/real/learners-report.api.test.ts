@@ -129,7 +129,7 @@ describe('learners report API', () => {
       universityId: 'u1',
       search: 'سارا',
       page: 2,
-      limit: 50,
+      limit: 20,
     });
     expect(result.hasNextPage).toBe(true);
     expect(result.rows[0]).toMatchObject({ id: 'l1', name: 'سارا' });

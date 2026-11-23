@@ -206,7 +206,7 @@ describe('learners grades filters and table query', () => {
       semesterId: 's1',
       search: 'علی',
       page: 1,
-      limit: 50,
+      limit: 20,
     });
   });
 });

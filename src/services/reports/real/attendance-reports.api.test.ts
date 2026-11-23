@@ -105,7 +105,7 @@ describe('حضور و غیاب فراگیران', () => {
       schoolId: 's1',
       search: 'علی',
       page: 1,
-      limit: 50,
+      limit: 20,
     });
   });
 
@@ -210,7 +210,7 @@ describe('حضور و غیاب اساتید راهنما', () => {
       semesterId: 'pod-1',
       search: 'کد ۱۲',
       page: 3,
-      limit: 50,
+      limit: 20,
     });
   });
 
