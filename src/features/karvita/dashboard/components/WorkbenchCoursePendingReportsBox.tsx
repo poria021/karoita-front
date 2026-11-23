@@ -21,6 +21,7 @@ import type {
   LessonPendingReview,
   LessonReportFilter,
 } from '@/services/reports/real/lesson-reports.api';
+import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
@@ -252,7 +253,7 @@ export function WorkbenchCoursePendingReportsBox({
                   key={`${card.lessonId ?? card.title}-${index}`}
                   card={card}
                   maxPending={maxPending}
-                  href={cardHrefs[index] ?? '/karvita/daily-approvals'}
+                  href={cardHrefs[index] ?? RouteService.karvita.dailyApprovals()}
                   suppressClickRef={suppressClickRef}
                 />
               ))}
