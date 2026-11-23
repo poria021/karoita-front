@@ -230,7 +230,8 @@ export function WorkbenchStudentGradeRankingBox({
         </AppTabs>
       </div>
 
-      <div className={WORKBENCH_RANKING_BODY_CLASS}>
+      {/* ردیف‌ها `-mx-1.5` دارند (هاور بیرون از متن)؛ همان مقدار padding، سرریز افقی نمی‌سازد. */}
+      <div className={cn(WORKBENCH_RANKING_BODY_CLASS, '-mx-1.5 px-1.5')}>
         {isError ? (
           <WorkbenchUnavailableNote forbidden={isForbidden} />
         ) : isLoading ? (

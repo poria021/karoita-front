@@ -76,8 +76,12 @@ export const WORKBENCH_SENIOR_ROLE_STATS_CLASS = 'h-[24rem]';
 export const WORKBENCH_RANKING_BOX_CLASS = 'h-full';
 /** min-height به‌صورت style می‌آید؛ چون `min-h-0` کلاس سلول گرید کلاس `min-h-*` را override می‌کند. */
 export const WORKBENCH_RANKING_BOX_STYLE: CSSProperties = { minHeight: '24rem' };
+/**
+ * `overflow-y: auto` به‌تنهایی `overflow-x` را هم auto می‌کند و هر سرریزِ چند پیکسلی
+ * (مثل ردیف‌های با margin منفی) اسکرول افقی می‌سازد؛ این باکس‌ها فقط عمودی اسکرول می‌شوند.
+ */
 export const WORKBENCH_RANKING_BODY_CLASS =
-  'flex min-h-0 grow basis-0 flex-col overflow-y-auto';
+  'flex min-h-0 grow basis-0 flex-col overflow-x-hidden overflow-y-auto';
 
 /**
  * ردیف نمرات فراگیر داخل سلول تمام‌عرض.
