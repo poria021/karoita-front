@@ -192,16 +192,15 @@ describe('forwardToNestApi', () => {
   it('serves catalog GET from in-process cache with no-store (not public s-maxage)', async () => {
     vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
     const nestFetch = vi.fn().mockResolvedValue(
-      new Response('[{"id":"sem-1"}]', {
+      new Response('[{"id":"prov-1"}]', {
         status: 200,
         headers: { 'content-type': 'application/json' },
       })
     );
     vi.stubGlobal('fetch', nestFetch);
 
-    const url =
-      'http://localhost/api/nest/admin/semesters_all?structure=semester';
-    const segments = ['admin', 'semesters_all'];
+    const url = 'http://localhost/api/nest/admin/provinces';
+    const segments = ['admin', 'provinces'];
 
     const miss = await forwardToNestApi(new NextRequest(url), segments);
     expect(miss.status).toBe(200);
@@ -213,7 +212,7 @@ describe('forwardToNestApi', () => {
     expect(hit.headers.get('x-karvita-proxy')).toBe('nest-catalog-cache');
     expect(hit.headers.get('cache-control')).toBe('no-store, no-transform');
     expect(nestFetch).toHaveBeenCalledTimes(1);
-    await expect(hit.json()).resolves.toEqual([{ id: 'sem-1' }]);
+    await expect(hit.json()).resolves.toEqual([{ id: 'prov-1' }]);
   });
 
   it('never serves per-user open-course-selection from the shared cache', async () => {
