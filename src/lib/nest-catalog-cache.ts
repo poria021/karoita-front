@@ -42,7 +42,7 @@ const CACHEABLE: Array<{ test: RegExp; ttlMs: number }> = [
   { test: /^admin\/semesters_all(\?.*)?$/, ttlMs: 60_000 },
   { test: /^admin\/settings(\?.*)?$/, ttlMs: 60_000 },
   // لیست اساتید یک درس — در دوره انتخاب‌واحد می‌تواند تغییر کند
-  { test: /^v1\/student-enrollments\/professors(\?.*)?$/, ttlMs: 5 * 60_000 },
+  { test: /^v1\/student-enrollments\/professors(\?.*)?$/, ttlMs: 60_000 },
   // وضعیت باز/بسته‌بودن انتخاب‌واحد — باید سریع منعکس شود
   { test: /^v1\/student-enrollments\/open-course-selection(\?.*)?$/, ttlMs: 60_000 },
 ];
