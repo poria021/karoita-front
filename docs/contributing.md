@@ -75,7 +75,8 @@ Mapper را در `real/` نگه دارید. نام فیلد Nest (`fname`, `phon
 ## تست
 
 - واحد: Vitest کنار فایل (`*.test.ts`). mapper و schema اولویت دارند.
-- E2E: Playwright فقط حالت mock (`pnpm test:e2e`). اول هر `next dev` دیگر را ببندید؛ Next ۱۶ یک اینستنس بیشتر راه نمی‌دهد.
+- E2E: Playwright فقط حالت mock (`pnpm test:e2e`). یک‌بار `pnpm test:e2e:install`.
+- هوک `pre-push` قبل از پوش typecheck/lint/vitest و همان smoke پلی‌رایت CI را اجرا می‌کند؛ fail = پوش لغو می‌شود. برای تداخل‌نداشتن با `next dev` روی ۳۰۰۰، pre-push از `PLAYWRIGHT_PORT=3100` استفاده می‌کند.
 - ورود ادمین در E2E از `/admin` است.
 
 ## UI

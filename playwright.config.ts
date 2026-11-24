@@ -8,11 +8,15 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * باید `next dev` باشد (نه `next start`): پروداکشن `NEXT_PUBLIC_API_MODE=mock` را
  * ممنوع می‌کند. `webServer.reuseExistingServer` پایین عمداً `false` است: اگر `next
- * dev` دیگری روی :3000 باشد (Next ۱۶ فقط یک اینستنس در هر پوشهٔ پروژه)، پلی‌رایت
- * با تداخل پورت بلند fail می‌شود به‌جای اینکه بی‌صدا همان سرور را reuse کند —
- * که قبلاً با هر env/session موجود (اغلب real از `.env.local`) OTP/ورود mock را
- * غیرقطعی خراب می‌کرد. اول `next dev` دیگر را ببندید.
+ * dev` دیگری روی همان پورت باشد، پلی‌رایت بلند fail می‌شود به‌جای reuse بی‌صدا —
+ * که قبلاً با env/session موجود OTP/ورود mock را غیرقطعی خراب می‌کرد.
+ *
+ * `PLAYWRIGHT_PORT` (پیش‌فرض ۳۰۰۰؛ در pre-push معمولاً ۳۱۰۰) تا با `next dev`
+ * دستی روی ۳۰۰۰ تداخل نکند.
  */
+const e2ePort = process.env.PLAYWRIGHT_PORT?.trim() || '3000';
+const e2eOrigin = `http://127.0.0.1:${e2ePort}`;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
@@ -25,7 +29,7 @@ export default defineConfig({
     timeout: 20_000,
   },
   use: {
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: e2eOrigin,
     trace: 'on-first-retry',
   },
   projects: [
@@ -38,8 +42,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --hostname 127.0.0.1 --port 3000',
-    url: 'http://127.0.0.1:3000',
+    command: `npm run dev -- --hostname 127.0.0.1 --port ${e2ePort}`,
+    url: e2eOrigin,
     // هرگز `next dev` در حال اجرا را reuse نکنید: سرور سرگردان (مثلاً دستی با
     // `NEXT_PUBLIC_API_MODE=real` از `.env.local`، یا کوکی نشست باقی‌مانده) اسموک
     // mock را بی‌صدا خراب می‌کند — جریان OTP/ورود به کاربرهای `MOCK_*` وابسته است

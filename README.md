@@ -47,8 +47,11 @@ pnpm dev
 | `pnpm lint` | ESLint + رنگ هاردکد + مرز UI |
 | `pnpm test` | Vitest |
 | `pnpm test:e2e` | دود Playwright فقط در حالت mock |
+| `pnpm test:e2e:install` | نصب Chromium برای Playwright |
 
-E2E سرور را روی `127.0.0.1:3000` بالا می‌آورد. قبلش هر `next dev` دیگر این مخزن را ببندید — Next ۱۶ فقط یک اینستنس می‌پذیرد. ورود ادمین در تست از `/admin` است، نه `/auth/login`. جزئیات در [`docs/contributing.md`](docs/contributing.md).
+هوک `pre-push` قبل از پوش: typecheck + lint + vitest + **همان Playwright smoke CI**. اگر fail شود پوش متوقف می‌شود. یک‌بار `pnpm test:e2e:install`. pre-push از پورت `3100` استفاده می‌کند تا با `next dev` روی ۳۰۰۰ تداخل نکند.
+
+E2E دستی پیش‌فرض روی `127.0.0.1:3000` است (`PLAYWRIGHT_PORT` قابل تغییر). ورود ادمین در تست از `/admin` است، نه `/auth/login`. جزئیات در [`docs/contributing.md`](docs/contributing.md).
 
 ## متغیرهای محیطی
 
