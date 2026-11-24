@@ -16,7 +16,8 @@ export function SupervisorSelectionStart({
   droppedSupervisorName,
   onStart,
 }: SupervisorSelectionStartProps) {
-  const previousSupervisor = droppedSupervisorName?.trim() || 'راهنما';
+  const supervisorName = droppedSupervisorName?.trim();
+  const removedBy = supervisorName ? `استاد «${supervisorName}»` : 'استاد راهنما';
 
   return (
     <div
@@ -47,9 +48,13 @@ export function SupervisorSelectionStart({
           <KvTypography variant="title" as="h2">
             {wasDropped ? 'لغو انتخاب واحد قبلی' : 'زمان شروع انتخاب واحد فرارسیده'}
           </KvTypography>
-          <KvTypography variant="body" tone="muted" as="p">
+          <KvTypography
+            variant="body"
+            tone={wasDropped ? 'danger' : 'muted'}
+            as="p"
+          >
             {wasDropped
-              ? `متأسفانه به علت مغایرت مشخصات با فهرست استاد «${previousSupervisor}»، انتخاب واحد قبلی لغو شد. می‌توانید فرآیند را دوباره آغاز کنید.`
+              ? `${removedBy} شما را از این درس حذف کرد. می‌توانید دوباره اقدام کنید.`
               : 'درگاه رسمی انتخاب واحد و رزرو ظرفیت استادان راهنما برای نیم‌سال جاری فعال است.'}
           </KvTypography>
         </div>
