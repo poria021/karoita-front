@@ -43,8 +43,8 @@ const CACHEABLE: Array<{ test: RegExp; ttlMs: number }> = [
   { test: /^admin\/settings(\?.*)?$/, ttlMs: 60_000 },
   // لیست اساتید یک درس — در دوره انتخاب‌واحد می‌تواند تغییر کند
   { test: /^v1\/student-enrollments\/professors(\?.*)?$/, ttlMs: 60_000 },
-  // وضعیت باز/بسته‌بودن انتخاب‌واحد — باید سریع منعکس شود
-  { test: /^v1\/student-enrollments\/open-course-selection(\?.*)?$/, ttlMs: 60_000 },
+  // `v1/student-enrollments/open-course-selection` عمداً اینجا نیست: پاسخش per-user است
+  // (`canSelect`/`blockReason` برای هر دانشجو فرق دارد) و کلید این کش فقط path است، نه کاربر.
 ];
 
 const _store = new Map<string, CatalogCacheEntry>();

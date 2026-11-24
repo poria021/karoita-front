@@ -216,6 +216,37 @@ describe('forwardToNestApi', () => {
     await expect(hit.json()).resolves.toEqual([{ id: 'sem-1' }]);
   });
 
+  it('never serves per-user open-course-selection from the shared cache', async () => {
+    vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
+    const nestFetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response('{"lessons":[{"canSelect":true}]}', {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      )
+      .mockResolvedValueOnce(
+        new Response('{"lessons":[{"canSelect":false,"blockReason":"passed"}]}', {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        })
+      );
+    vi.stubGlobal('fetch', nestFetch);
+
+    const url = 'http://localhost/api/nest/v1/student-enrollments/open-course-selection';
+    const segments = ['v1', 'student-enrollments', 'open-course-selection'];
+
+    await forwardToNestApi(new NextRequest(url), segments);
+    const second = await forwardToNestApi(new NextRequest(url), segments);
+
+    expect(nestFetch).toHaveBeenCalledTimes(2);
+    expect(second.headers.get('x-karvita-proxy')).toBe('nest-raw');
+    await expect(second.json()).resolves.toEqual({
+      lessons: [{ canSelect: false, blockReason: 'passed' }],
+    });
+  });
+
   it('busts semesters_all cache after POST admin/semester through the proxy', async () => {
     vi.stubEnv('BACKEND_INTERNAL_URL', 'https://nest.internal/api');
     const nestFetch = vi
