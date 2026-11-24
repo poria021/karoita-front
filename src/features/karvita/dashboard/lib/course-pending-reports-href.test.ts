@@ -5,6 +5,8 @@ import type { CourseDefinition } from '@/types/syllabus-config';
 import {
   dailyApprovalsCourseHref,
   findEvaluationModuleId,
+  pendingReviewCardHref,
+  resolvePendingReviewEvaluation,
 } from './course-pending-reports-href';
 
 function course(
@@ -66,5 +68,56 @@ describe('findEvaluationModuleId', () => {
     expect(
       findEvaluationModuleId('x', 'internship', { semester: [], modular: [] })
     ).toBeNull();
+  });
+});
+
+describe('resolvePendingReviewEvaluation', () => {
+  const catalog = {
+    semester: [
+      course('s1', true, ['s1-a']),
+      {
+        ...course('s2', true, ['s2-a']),
+        title: 'کارورزی',
+        subModules: [{ id: 's2-a', title: 'کارورزی ۱' }],
+      } as CourseDefinition,
+    ],
+    modular: [
+      {
+        ...course('m1', true),
+        audience: 'modular' as const,
+        title: 'پژوهش و توسعه حرفه‌ای',
+        subModules: [],
+      } as CourseDefinition,
+    ],
+  };
+
+  it('matches a submodule title to its evaluation target', () => {
+    expect(resolvePendingReviewEvaluation({ title: 'کارورزی ۱' }, catalog)).toEqual(
+      {
+        kind: 'internship',
+        moduleId: 's2',
+        courseKey: 's2-a',
+      }
+    );
+  });
+
+  it('matches by lessonId when the API sends it', () => {
+    expect(
+      resolvePendingReviewEvaluation(
+        { title: 'ignored', lessonId: 's2-a' },
+        catalog
+      )
+    ).toEqual({
+      kind: 'internship',
+      moduleId: 's2',
+      courseKey: 's2-a',
+    });
+  });
+
+  it('builds a daily-approvals href for the matched course', () => {
+    const href = pendingReviewCardHref({ title: 'کارورزی ۱' }, catalog);
+    expect(params(href).get('kind')).toBe('internship');
+    expect(params(href).get('module')).toBe('s2');
+    expect(params(href).get('course')).toBe('s2-a');
   });
 });

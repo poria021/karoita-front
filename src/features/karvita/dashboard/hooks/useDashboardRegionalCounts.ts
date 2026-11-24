@@ -5,18 +5,8 @@ import { isForbiddenError } from '@/services/api-error';
 
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
-import { fetchListPage } from '@/services/reports/real/list-reports.api';
-import type { ReportPeriodState, ReportRow } from '@/types/reports';
-
-/** لیست مدارس به semester وابسته نیست؛ مثل بقیهٔ هوک‌های میز کار period خالی می‌رود. */
-const DASHBOARD_PERIOD: ReportPeriodState = {
-  mode: 'term',
-  termId: '',
-  moduleId: '',
-};
-
-/** هر صفحه ۵۰ ردیف؛ سقف صفحه فقط محافظ است (حداکثر ۵۰۰ مدرسه). */
-const MAX_PAGES = 10;
+import type { ReportRow } from '@/types/reports';
+import { loadListRowsForOpenSemesters } from './openSemesters';
 
 /** برچسب‌های `genderLabel` که `mapListRow` برای `gender` = Boy | Girl می‌سازد. */
 const BOYS_LABEL = 'پسرانه';
@@ -75,20 +65,8 @@ function useRegionalSchoolsQuery() {
     queryKey: DASHBOARD_QUERY.regionalSchools,
     staleTime: QUERY_STALE_MS.module,
     queryFn: async () => {
-      const collected: ReportRow[] = [];
-      let truncated = false;
-      for (let page = 1; page <= MAX_PAGES; page += 1) {
-        const result = await fetchListPage('schools', {
-          filters: {},
-          query: '',
-          period: DASHBOARD_PERIOD,
-          page,
-        });
-        collected.push(...result.rows);
-        if (!result.hasNextPage) break;
-        if (page === MAX_PAGES) truncated = true;
-      }
-      return summarizeRegionalCounts(collected, truncated);
+      const { rows, truncated } = await loadListRowsForOpenSemesters('schools');
+      return summarizeRegionalCounts(rows, truncated);
     },
   });
 }

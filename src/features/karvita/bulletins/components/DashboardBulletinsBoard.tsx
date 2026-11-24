@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { DashboardCourseMaterialsBox } from '@/features/karvita/course-materials/components/DashboardCourseMaterialsBox';
 import { WorkbenchCoursePendingReportsBox } from '@/features/karvita/dashboard/components/WorkbenchCoursePendingReportsBox';
 import { WorkbenchStudentGradeRankingBox } from '@/features/karvita/dashboard/components/WorkbenchStudentGradeRankingBox';
+import { WorkbenchProvinceRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProvinceRankingBox';
 import { WorkbenchSchoolRankingBox } from '@/features/karvita/dashboard/components/WorkbenchSchoolRankingBox';
 import { WorkbenchTeacherResponseRankingBox } from '@/features/karvita/dashboard/components/WorkbenchTeacherResponseRankingBox';
 import { WorkbenchAdBox } from '@/features/karvita/dashboard/components/WorkbenchAdBox';
@@ -22,7 +23,6 @@ import { WorkbenchCreateOrgPanelLink } from '@/features/karvita/dashboard/compon
 import { WorkbenchFacultyCountsBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyCountsBox';
 import { WorkbenchFacultyResponseRateBox } from '@/features/karvita/dashboard/components/WorkbenchFacultyResponseRateBox';
 import { WorkbenchLearnerCountsBox } from '@/features/karvita/dashboard/components/WorkbenchLearnerCountsBox';
-import { WorkbenchOrgStructureBreakdownBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureBreakdownBox';
 import { WorkbenchOrgStructureCountsBox } from '@/features/karvita/dashboard/components/WorkbenchOrgStructureCountsBox';
 import { WorkbenchProfessorAttendanceRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorAttendanceRankingBox';
 import { WorkbenchProfessorScoreRankingBox } from '@/features/karvita/dashboard/components/WorkbenchProfessorScoreRankingBox';
@@ -45,6 +45,7 @@ import { cn } from '@/lib/utils';
 import {
   WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE,
   WORKBENCH_RANKING_BOX_STYLE,
+  WORKBENCH_SENIOR_ROLE_STATS_CLASS,
   workbenchAdCellClass,
   workbenchAllowsAdSpot,
   workbenchCellClass,
@@ -71,7 +72,7 @@ const CENTRAL_PREVIEW_ROLE_METRICS = buildRoleUserCountMetrics({
   central_organization: 5,
 });
 
-/** TEMP: داده‌ی نمایشی «تفکیک ساختار» سازمان مرکزی (API شمار فقط ادمین است). */
+/** TEMP: داده‌ی نمایشی کارت‌های ساختار سازمانی مرکزی (API شمار فقط ادمین است). */
 const CENTRAL_PREVIEW_ORG_METRICS = buildOrgStructureCountMetrics({
   provinces: 31,
   cities: 37,
@@ -213,6 +214,16 @@ function WorkbenchBoardCell({
         </div>
       );
     case 'announcements':
+      // سازمان مرکزی: مثل ادمین — جدول اطلاعیه‌های منتشرشدهٔ خود پنل.
+      if (role === 'central_organization') {
+        return (
+          <WorkbenchPublishedAnnouncementsBox
+            role={role}
+            className={cn(cellClass, 'overflow-hidden')}
+            style={cellStyle}
+          />
+        );
+      }
       return (
         <WorkbenchAnnouncementsBox
           announcements={announcements}
@@ -316,23 +327,30 @@ function WorkbenchBoardCell({
         </div>
       );
     case 'senior_role_counts':
-      // تعداد نقش‌ها؛ درست زیرِ ساختار سازمانی.
+      // تعداد نقش‌ها؛ درست زیرِ ساختار سازمانی — هم‌قد دو باکس کناری (ارتفاع ثابت).
       return (
         <div className={cellClass}>
-          <WorkbenchRoleUserCountsBox className="min-h-[20rem]" />
+          <WorkbenchRoleUserCountsBox
+            className={WORKBENCH_SENIOR_ROLE_STATS_CLASS}
+          />
         </div>
       );
     case 'senior_report_access':
-      // `max-w-none`: باکس پیش‌فرض `max-w-md` دارد؛ در سلول ۶ستونه باید کل عرض را بگیرد.
+      // `max-w-none`: باکس پیش‌فرض `max-w-md` دارد؛ در سلول ۵ستونه باید کل عرض را بگیرد.
       return (
         <div className={cellClass}>
-          <WorkbenchReportAccessBox className="max-w-none" />
+          <WorkbenchReportAccessBox
+            className={cn('max-w-none', WORKBENCH_SENIOR_ROLE_STATS_CLASS)}
+          />
         </div>
       );
     case 'senior_published':
       return (
         <div className={cellClass}>
-          <WorkbenchPublishedAnnouncementsBox role={role} />
+          <WorkbenchPublishedAnnouncementsBox
+            role={role}
+            className={WORKBENCH_SENIOR_ROLE_STATS_CLASS}
+          />
         </div>
       );
     case 'regional_counts':
@@ -352,13 +370,15 @@ function WorkbenchBoardCell({
       );
     case 'regional_gender':
       // هم‌قدِ اطلاعیه‌ها: سلول کش می‌آید و باکس کل ارتفاعش را می‌گیرد؛ ارتفاع ردیف از همین باکس است.
-      // سازمان مرکزی: دونات «تفکیک ساختار»؛ دانشکده: نرخ پاسخ؛ منطقه: دخترانه/پسرانه.
+      // سازمان مرکزی: کارت‌های ساختار سازمانی؛ دانشکده: نرخ پاسخ؛ منطقه: دخترانه/پسرانه.
       return (
         <div className={cellClass} style={cellStyle}>
           {role === 'central_organization' ? (
-            <WorkbenchOrgStructureBreakdownBox
+            // TEMP: پیش‌نمایش با داده‌ی نمایشی؛ بعد از تأیید، بدون metrics به API برگردد.
+            <WorkbenchOrgStructureCountsBox
               className="h-full w-full max-w-none"
               metrics={CENTRAL_PREVIEW_ORG_METRICS}
+              interactive={false}
             />
           ) : facultyBoxes ? (
             <WorkbenchFacultyResponseRateBox
@@ -404,7 +424,16 @@ function WorkbenchBoardCell({
         />
       );
     case 'regional_school_ranking':
-      // دانشکده: نمودار اساتید (میانگین نمره)؛ منطقه: نمودار مدارس.
+      // سازمان مرکزی: استان‌ها؛ دانشکده: اساتید (میانگین نمره)؛ منطقه: مدارس.
+      if (role === 'central_organization') {
+        return (
+          <WorkbenchProvinceRankingBox
+            role={role}
+            className={cellClass}
+            style={cellStyle}
+          />
+        );
+      }
       return facultyBoxes ? (
         <WorkbenchProfessorScoreRankingBox
           role={role}

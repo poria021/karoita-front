@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import {
   AppTabs,
@@ -9,8 +9,24 @@ import {
   AppTabsTrigger,
 } from '@/components/shared/AppTabs';
 import { FaIcon } from '@/components/shared/FaIcon';
+import { KarvitaBrandMark } from '@/components/shared/KarvitaBrandMark';
 import { KvButton } from '@/components/shared/KvButton';
 import { KvCard } from '@/components/shared/KvCard';
+import {
+  KvDropdownMenu,
+  KvDropdownMenuContent,
+  KvDropdownMenuItem,
+  KvDropdownMenuLabel,
+  KvDropdownMenuSeparator,
+  KvDropdownMenuTrigger,
+} from '@/components/shared/KvDropdownMenu';
+import {
+  KvSelect,
+  KvSelectContent,
+  KvSelectItem,
+  KvSelectTrigger,
+  KvSelectValue,
+} from '@/components/shared/fields/KvSelect';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { ReportCompareCharts } from '@/features/karvita/reports/components/ReportCompareCharts';
 import { ReportCompareMatrix } from '@/features/karvita/reports/components/ReportCompareMatrix';
@@ -18,19 +34,20 @@ import {
   METRIC_TAB_CLASS,
   METRIC_TABS_LIST_CLASS,
 } from '@/features/karvita/reports/components/report-compare-metric-tabs';
-import type { ReportSlug } from '@/types/report-access';
 import type { AdminReportPageModel } from '@/features/karvita/reports/hooks/useAdminReportPage';
+import {
+  REPORT_COMPARE_PRINT_OPTIONS,
+  type ReportComparePrintScope,
+} from '@/features/karvita/reports/lib/report-compare-print';
 import { cn } from '@/lib/utils';
-import { toPersianDigits } from '@/utils/persianDigits';
+import type { ReportSlug } from '@/types/report-access';
+import { formatJalaliDate } from '@/utils/formatJalaliDate';
 import { faIcons } from '@/utils/iconMap';
+import { toPersianDigits } from '@/utils/persianDigits';
 
 type ReportCompareViewProps = {
   page: AdminReportPageModel;
 };
-
-function candidateLabel(row: { name?: unknown }): string {
-  return String(row.name ?? '').trim();
-}
 
 type CompareTab = 'table' | 'chart';
 
@@ -66,6 +83,9 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
   const [metricTab, setMetricTab] = useState<string>(ALL_METRICS);
   /** شاخص نمودار (یک شاخص در هر لحظه)؛ پیش‌فرض اولین شاخص. */
   const [chartMetric, setChartMetric] = useState<string>('');
+  /** محدودهٔ پرینت — قبل از window.print ست می‌شود تا شیت چاپ بداند چه چیزی نشان دهد. */
+  const [printScope, setPrintScope] =
+    useState<ReportComparePrintScope>('table');
   const n = page.compareDraft.length;
   const atMax = n >= page.compareMax;
   const dirty =
@@ -82,17 +102,6 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
           : page.compareItems.length < page.compareMin
             ? 'در حال آماده‌سازی گزارش مقایسه…'
             : 'گزارش مطابق انتخاب شما نمایش داده شده است.';
-
-  const labelById = useMemo(() => {
-    const map = new Map<string, string>();
-    for (const row of page.compareCandidates) {
-      map.set(row.id, candidateLabel(row) || row.id);
-    }
-    for (const item of page.compareItems) {
-      if (!map.has(item.id)) map.set(item.id, item.name);
-    }
-    return map;
-  }, [page.compareCandidates, page.compareItems]);
 
   const metrics = useMemo(() => {
     const keys = new Set<string>();
@@ -117,11 +126,65 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
     ? chartMetric
     : (metrics[0] ?? '');
 
+  /** برچسب دورهٔ انتخاب‌شده در فیلتر گزارش (برای هدر پرینت). */
+  const printPeriodLabel = useMemo(() => {
+    const semesterId = page.period.semesterId?.trim();
+    if (!semesterId) {
+      return page.period.mode === 'module' ? 'همه پودمان‌ها' : 'همه نیم‌سال‌ها';
+    }
+    return (
+      page.periodOptions.find((option) => option.value === semesterId)?.label ??
+      semesterId
+    );
+  }, [page.period.mode, page.period.semesterId, page.periodOptions]);
+
+  const printPeriodKindLabel =
+    page.period.mode === 'module' ? 'پودمان' : 'نیم‌سال';
+
+  const runPrint = useCallback(
+    (scope: ReportComparePrintScope) => {
+      setPrintScope(scope);
+      // صبر تا React شیت (و نمودار) را mount کند؛ بعد resize برای ResponsiveContainer.
+      window.setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        window.setTimeout(() => {
+          // عنوان تب (`عملکرد … | کارویتا`) در هدر پرینت مرورگر می‌آید و در RTL درهم می‌شود —
+          // موقتاً خالی می‌کنیم؛ اطلاعات گزارش داخل خودِ شیت چاپ هست.
+          const previousTitle = document.title;
+          document.title = ' ';
+          let restored = false;
+          const restoreTitle = () => {
+            if (restored) return;
+            restored = true;
+            document.title = previousTitle;
+            window.removeEventListener('afterprint', restoreTitle);
+          };
+          window.addEventListener('afterprint', restoreTitle);
+          window.print();
+          window.setTimeout(restoreTitle, 1500);
+        }, 80);
+      }, 80);
+    },
+    []
+  );
+
+  const printTitleSuffix =
+    printScope === 'chart'
+      ? chartMetricKey
+        ? ` — ${metricTitles[chartMetricKey] ?? chartMetricKey}`
+        : ''
+      : printScope === 'table' && metrics.includes(metricTab)
+        ? ` — ${metricTitles[metricTab] ?? metricTab}`
+        : '';
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-kv-group">
+    <div
+      className="kv-report-compare-print-root flex min-h-0 min-w-0 flex-1 flex-col gap-kv-group overflow-x-hidden"
+      data-print-scope={printScope}
+    >
       <header
         className={cn(
-          'flex shrink-0 flex-col gap-kv-group',
+          'kv-report-compare-no-print flex shrink-0 flex-col gap-kv-group',
           'sm:flex-row sm:items-start sm:justify-between'
         )}
       >
@@ -152,60 +215,39 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
           </div>
         </div>
 
-        {/* خلاصهٔ انتخاب: برچسب + شمارندهٔ کم‌رنگ، زیرش نام‌ها با جداکنندهٔ نقطه‌ای (بدون چیپ). */}
+        {/* خلاصهٔ انتخاب: فقط تعداد موارد (بدون فهرست نام‌ها). */}
         <section
           aria-label="موارد انتخاب‌شده برای مقایسه"
           className={cn(
-            'flex min-w-0 flex-1 flex-col gap-kv-micro sm:max-w-md',
+            'flex min-w-0 flex-1 items-center justify-between gap-kv-pair sm:max-w-md',
             'rounded-kv-control border border-kv-border-muted bg-kv-surface-subtle px-3.5 py-2.5'
           )}
         >
-          <div className="flex items-center justify-between gap-kv-pair">
-            <KvTypography
-              as="h3"
-              variant="label"
-              tone="default"
-              className="text-sm font-black"
-            >
-              موارد مقایسه
-            </KvTypography>
-            {/* خط‌چین کمرنگ بین عنوان و شمارنده */}
-            <span
-              aria-hidden
-              className="h-px min-w-4 flex-1 border-t border-dashed border-kv-border"
-            />
-            <span
-              className="shrink-0 text-sm font-black tabular-nums text-kv-text"
-              aria-label={`${toPersianDigits(n)} مورد از ${toPersianDigits(page.compareMax)}`}
-            >
-              {toPersianDigits(n)} / {toPersianDigits(page.compareMax)}
-            </span>
-          </div>
-
-          {n > 0 ? (
-            <ul
-              className={cn(
-                'flex min-w-0 flex-wrap items-center gap-y-kv-micro',
-                '[&>li:not(:last-child)]:after:mx-1.5 [&>li:not(:last-child)]:after:text-kv-text-faint',
-                "[&>li:not(:last-child)]:after:content-['•']"
-              )}
-            >
-              {page.compareDraft.map((id) => (
-                <li key={id} className="min-w-0">
-                  <KvTypography as="span" variant="caption" tone="muted">
-                    {labelById.get(id) ?? id}
-                  </KvTypography>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <KvTypography
+            as="h3"
+            variant="label"
+            tone="default"
+            className="text-sm font-black"
+          >
+            موارد مقایسه
+          </KvTypography>
+          <span
+            aria-hidden
+            className="h-px min-w-4 flex-1 border-t border-dashed border-kv-border"
+          />
+          <span
+            className="shrink-0 text-sm font-black tabular-nums text-kv-text"
+            aria-label={`${toPersianDigits(n)} مورد از ${toPersianDigits(page.compareMax)}`}
+          >
+            {toPersianDigits(n)} / {toPersianDigits(page.compareMax)}
+          </span>
         </section>
       </header>
 
       {page.compareSelected.length < page.compareMin ? (
         <KvCard
           padding="md"
-          className="flex min-h-[calc(100dvh-4rem-(var(--spacing-kv-group)*2)-8rem)] flex-1 flex-col items-center justify-center gap-kv-pair text-center"
+          className="kv-report-compare-no-print flex min-h-[calc(100dvh-4rem-(var(--spacing-kv-group)*2)-8rem)] flex-1 flex-col items-center justify-center gap-kv-pair text-center"
         >
           <KvTypography as="h3" variant="subtitle">
             گزارش مقایسه هنوز ساخته نشده است
@@ -219,7 +261,7 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
       ) : page.compareItems.length < page.compareMin ? (
         <KvCard
           padding="md"
-          className="flex min-h-[calc(100dvh-4rem-(var(--spacing-kv-group)*2)-8rem)] flex-1 flex-col items-center justify-center gap-kv-pair text-center"
+          className="kv-report-compare-no-print flex min-h-[calc(100dvh-4rem-(var(--spacing-kv-group)*2)-8rem)] flex-1 flex-col items-center justify-center gap-kv-pair text-center"
         >
           <KvTypography as="h3" variant="subtitle">
             در حال آماده‌سازی گزارش مقایسه
@@ -234,68 +276,164 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
           <AppTabs
             value={tab}
             onValueChange={(value) => setTab(value as CompareTab)}
+            fullWidth
             className="gap-kv-group"
           >
-            {/* یک سطر: تب جدول/نمودار سمت راست، تب شاخص‌ها سمت چپ (فقط در تب جدول). */}
-            <div className="flex min-w-0 flex-col gap-kv-inline lg:flex-row lg:items-center lg:justify-between">
-              <AppTabsList aria-label="نوع نمایش مقایسه">
-                {COMPARE_TABS.map(({ id, label }) => (
-                  <AppTabsTrigger key={id} value={id}>
-                    {label}
-                  </AppTabsTrigger>
-                ))}
-              </AppTabsList>
-              {tab === 'table' ? (
-                <AppTabs
-                  value={metrics.includes(metricTab) ? metricTab : ALL_METRICS}
-                  onValueChange={setMetricTab}
-                  className="min-w-0 lg:w-auto"
-                >
-                  <AppTabsList
-                    aria-label="شاخص گزارش"
-                    className={METRIC_TABS_LIST_CLASS}
-                  >
-                    <AppTabsTrigger
-                      value={ALL_METRICS}
-                      className={METRIC_TAB_CLASS}
-                    >
-                      همه شاخص‌ها
-                    </AppTabsTrigger>
-                    {metrics.map((key) => (
-                      <AppTabsTrigger
-                        key={key}
-                        value={key}
-                        className={METRIC_TAB_CLASS}
-                      >
-                        {metricTitles[key] ?? key}
-                      </AppTabsTrigger>
-                    ))}
-                  </AppTabsList>
-                </AppTabs>
-              ) : (
-                <AppTabs
-                  value={chartMetricKey}
-                  onValueChange={setChartMetric}
-                  className="min-w-0 lg:w-auto"
-                >
-                  <AppTabsList
-                    aria-label="شاخص نمودار"
-                    className={METRIC_TABS_LIST_CLASS}
-                  >
-                    {metrics.map((key) => (
-                      <AppTabsTrigger
-                        key={key}
-                        value={key}
-                        className={METRIC_TAB_CLASS}
-                      >
-                        {metricTitles[key] ?? key}
-                      </AppTabsTrigger>
-                    ))}
-                  </AppTabsList>
-                </AppTabs>
+            <AppTabsList
+              aria-label="نوع نمایش مقایسه"
+              className="kv-report-compare-no-print w-full md:w-fit md:self-start"
+            >
+              {COMPARE_TABS.map(({ id, label }) => (
+                <AppTabsTrigger key={id} value={id}>
+                  {label}
+                </AppTabsTrigger>
+              ))}
+            </AppTabsList>
+
+            {/* موبایل: سلکت شاخص + پرینت تمام‌عرض؛ md+: چیپ شاخص و پرینت جمع‌وجور */}
+            <div
+              className={cn(
+                'kv-report-compare-no-print flex min-w-0 flex-col gap-kv-inline',
+                'md:flex-row md:items-center md:justify-between'
               )}
+            >
+              {tab === 'table' ? (
+                <>
+                  <div className="w-full md:hidden">
+                    <KvSelect
+                      value={
+                        metrics.includes(metricTab) ? metricTab : ALL_METRICS
+                      }
+                      onValueChange={(next) => {
+                        if (next) setMetricTab(next);
+                      }}
+                    >
+                      <KvSelectTrigger aria-label="شاخص گزارش">
+                        <KvSelectValue placeholder="شاخص گزارش" />
+                      </KvSelectTrigger>
+                      <KvSelectContent>
+                        <KvSelectItem value={ALL_METRICS}>
+                          همه شاخص‌ها
+                        </KvSelectItem>
+                        {metrics.map((key) => (
+                          <KvSelectItem key={key} value={key}>
+                            {metricTitles[key] ?? key}
+                          </KvSelectItem>
+                        ))}
+                      </KvSelectContent>
+                    </KvSelect>
+                  </div>
+                  <AppTabs
+                    value={
+                      metrics.includes(metricTab) ? metricTab : ALL_METRICS
+                    }
+                    onValueChange={setMetricTab}
+                    className="hidden min-w-0 flex-1 md:block"
+                  >
+                    <AppTabsList
+                      aria-label="شاخص گزارش"
+                      className={METRIC_TABS_LIST_CLASS}
+                    >
+                      <AppTabsTrigger
+                        value={ALL_METRICS}
+                        className={METRIC_TAB_CLASS}
+                      >
+                        همه شاخص‌ها
+                      </AppTabsTrigger>
+                      {metrics.map((key) => (
+                        <AppTabsTrigger
+                          key={key}
+                          value={key}
+                          className={METRIC_TAB_CLASS}
+                        >
+                          {metricTitles[key] ?? key}
+                        </AppTabsTrigger>
+                      ))}
+                    </AppTabsList>
+                  </AppTabs>
+                </>
+              ) : (
+                <>
+                  <div className="w-full md:hidden">
+                    <KvSelect
+                      value={chartMetricKey}
+                      onValueChange={(next) => {
+                        if (next) setChartMetric(next);
+                      }}
+                    >
+                      <KvSelectTrigger aria-label="شاخص نمودار">
+                        <KvSelectValue placeholder="شاخص نمودار" />
+                      </KvSelectTrigger>
+                      <KvSelectContent>
+                        {metrics.map((key) => (
+                          <KvSelectItem key={key} value={key}>
+                            {metricTitles[key] ?? key}
+                          </KvSelectItem>
+                        ))}
+                      </KvSelectContent>
+                    </KvSelect>
+                  </div>
+                  <AppTabs
+                    value={chartMetricKey}
+                    onValueChange={setChartMetric}
+                    className="hidden min-w-0 flex-1 md:block"
+                  >
+                    <AppTabsList
+                      aria-label="شاخص نمودار"
+                      className={METRIC_TABS_LIST_CLASS}
+                    >
+                      {metrics.map((key) => (
+                        <AppTabsTrigger
+                          key={key}
+                          value={key}
+                          className={METRIC_TAB_CLASS}
+                        >
+                          {metricTitles[key] ?? key}
+                        </AppTabsTrigger>
+                      ))}
+                    </AppTabsList>
+                  </AppTabs>
+                </>
+              )}
+
+              <KvDropdownMenu>
+                <KvDropdownMenuTrigger asChild>
+                  <KvButton
+                    type="button"
+                    color="neutral"
+                    appearance="secondary"
+                    size="sm"
+                    className="w-full shrink-0 md:w-auto md:self-center"
+                    aria-label="پرینت گزارش مقایسه"
+                    icon={<FaIcon icon={faIcons.print} size="sm" />}
+                  >
+                    پرینت
+                  </KvButton>
+                </KvDropdownMenuTrigger>
+                <KvDropdownMenuContent align="end" className="min-w-56">
+                  <KvDropdownMenuLabel>چه چیزی چاپ شود؟</KvDropdownMenuLabel>
+                  <KvDropdownMenuSeparator />
+                  {REPORT_COMPARE_PRINT_OPTIONS.map((option) => (
+                    <KvDropdownMenuItem
+                      key={option.id}
+                      onSelect={() => runPrint(option.id)}
+                      className="flex flex-col items-stretch gap-0.5"
+                    >
+                      <span>{option.label}</span>
+                      <span className="text-[0.65rem] font-medium text-kv-text-muted">
+                        {option.description}
+                      </span>
+                    </KvDropdownMenuItem>
+                  ))}
+                </KvDropdownMenuContent>
+              </KvDropdownMenu>
             </div>
-            <AppTabsContent value="table" className="mt-0">
+
+            {/* نمایش صفحه — از پرینت حذف می‌شود؛ شیت چاپ جداگانه پایین است. */}
+            <AppTabsContent
+              value="table"
+              className="kv-report-compare-no-print mt-0"
+            >
               <ReportCompareMatrix
                 items={page.compareItems}
                 metrics={shownMetrics}
@@ -303,7 +441,10 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
                 entityLabel={COMPARE_ENTITY_LABEL[page.slug]}
               />
             </AppTabsContent>
-            <AppTabsContent value="chart" className="mt-0">
+            <AppTabsContent
+              value="chart"
+              className="kv-report-compare-no-print mt-0"
+            >
               <ReportCompareCharts
                 items={page.compareItems}
                 metrics={metrics}
@@ -311,7 +452,69 @@ export function ReportCompareView({ page }: ReportCompareViewProps) {
                 metricTitles={metricTitles}
               />
             </AppTabsContent>
-          </AppTabs>        </div>
+          </AppTabs>
+
+          {/* شیت چاپ: هدر لوگو+تاریخ+دوره؛ جدول یکپارچه با تکرار thead در صفحهٔ بعد. */}
+          <div
+            className="kv-report-compare-print-only kv-report-compare-print-sheet"
+            aria-hidden
+          >
+            {/* RTL: تاریخ/نیم‌سال/نوع گزارش راست، لوگوی کارویتا چپ */}
+            <header className="kv-report-compare-print-masthead mb-kv-group flex items-center justify-between gap-kv-group rounded-kv-control border border-kv-border px-kv-group py-kv-pair">
+              <div className="flex min-w-0 flex-col gap-0.5 text-start">
+                <KvTypography as="p" variant="caption" tone="muted">
+                  تاریخ: {formatJalaliDate()}
+                </KvTypography>
+                <KvTypography as="p" variant="caption" className="font-bold">
+                  {printPeriodKindLabel}: {printPeriodLabel}
+                </KvTypography>
+                <KvTypography as="p" variant="caption" className="font-bold">
+                  نوع گزارش: مقایسه‌ی {page.def.title}
+                  {printTitleSuffix}
+                </KvTypography>
+              </div>
+              <KarvitaBrandMark className="!size-10 shrink-0 text-kv-brand" />
+            </header>
+
+            {/* جدول و نمودار همیشه mount می‌مانند تا Recharts قبل از پرینت اندازه بگیرد؛
+                دامنهٔ چاپ با data-print-scope روی ریشه کنترل می‌شود. */}
+            <div className="kv-report-compare-print-section kv-report-compare-print-table flex flex-col gap-kv-group">
+              <KvTypography
+                as="h3"
+                variant="subtitle"
+                className="kv-report-compare-print-both-label"
+              >
+                جدول
+              </KvTypography>
+              <ReportCompareMatrix
+                items={page.compareItems}
+                metrics={shownMetrics}
+                metricTitles={metricTitles}
+                entityLabel={COMPARE_ENTITY_LABEL[page.slug]}
+                forPrint
+              />
+            </div>
+
+            <div className="kv-report-compare-print-section kv-report-compare-print-chart flex flex-col gap-kv-group">
+              <KvTypography
+                as="h3"
+                variant="subtitle"
+                className="kv-report-compare-print-both-label"
+              >
+                نمودار
+                {chartMetricKey
+                  ? ` — ${metricTitles[chartMetricKey] ?? chartMetricKey}`
+                  : ''}
+              </KvTypography>
+              <ReportCompareCharts
+                items={page.compareItems}
+                metrics={metrics}
+                metricKey={chartMetricKey}
+                metricTitles={metricTitles}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

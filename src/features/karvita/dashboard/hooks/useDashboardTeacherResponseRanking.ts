@@ -5,24 +5,13 @@ import { isForbiddenError } from '@/services/api-error';
 
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
-import { fetchListPage } from '@/services/reports/real/list-reports.api';
 import type { UserRole } from '@/types/auth';
-import type { ReportPeriodState, ReportRow } from '@/types/reports';
 
 import {
   buildTeacherResponseRanking,
   type TeacherResponseRankingSummary,
 } from '../lib/teacher-response-ranking';
-
-/** بدون `semesterId`؛ فقط `structure=semester` فرستاده می‌شود (مثل باکس‌های عملکرد ادمین). */
-const DASHBOARD_PERIOD: ReportPeriodState = {
-  mode: 'term',
-  termId: '',
-  moduleId: '',
-};
-
-/** هر صفحه ۵۰ ردیف؛ سقف صفحه فقط محافظ است. */
-const MAX_PAGES = 10;
+import { loadListRowsForOpenSemesters } from './openSemesters';
 
 const EMPTY: TeacherResponseRankingSummary = { weakest: [], strongest: [] };
 
@@ -46,17 +35,7 @@ export function useDashboardTeacherResponseRanking(
     queryKey: DASHBOARD_QUERY.teacherResponseRanking(role),
     staleTime: QUERY_STALE_MS.module,
     queryFn: async () => {
-      const collected: ReportRow[] = [];
-      for (let page = 1; page <= MAX_PAGES; page += 1) {
-        const result = await fetchListPage('teacher-performance', {
-          filters: {},
-          query: '',
-          period: DASHBOARD_PERIOD,
-          page,
-        });
-        collected.push(...result.rows);
-        if (!result.hasNextPage) break;
-      }
+      const { rows: collected } = await loadListRowsForOpenSemesters('teacher-performance');
       return buildTeacherResponseRanking(collected);
     },
   });

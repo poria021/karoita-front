@@ -62,8 +62,11 @@ export const WORKBENCH_LEARNER_ANNOUNCEMENTS_STYLE: CSSProperties = {
   maxHeight: WORKBENCH_LEARNER_ANNOUNCEMENTS_HEIGHT_PX,
 };
 
-/** ارتفاع باکس «تعداد نقش‌ها» (پایینی) — بلندتر از باکس ساختار سازمانی. */
-export const WORKBENCH_SENIOR_ROLE_STATS_CLASS = 'md:h-[24rem]';
+/**
+ * ارتفاع یکسان ردیف ۳ ارشد: تعداد نقش‌ها | دسترسی گزارش‌ها | اطلاعیه‌های منتشرشده.
+ * `h-[24rem]` ثابت تا stretch/`h-0` محتوا را نبلعد.
+ */
+export const WORKBENCH_SENIOR_ROLE_STATS_CLASS = 'h-[24rem]';
 
 /**
  * باکس‌های «ضعیف‌ترین و قوی‌ترین»: ارتفاع در حالت خالی، بارگذاری، خطا و دارای داده یکی است.
@@ -73,8 +76,12 @@ export const WORKBENCH_SENIOR_ROLE_STATS_CLASS = 'md:h-[24rem]';
 export const WORKBENCH_RANKING_BOX_CLASS = 'h-full';
 /** min-height به‌صورت style می‌آید؛ چون `min-h-0` کلاس سلول گرید کلاس `min-h-*` را override می‌کند. */
 export const WORKBENCH_RANKING_BOX_STYLE: CSSProperties = { minHeight: '24rem' };
+/**
+ * `overflow-y: auto` به‌تنهایی `overflow-x` را هم auto می‌کند و هر سرریزِ چند پیکسلی
+ * (مثل ردیف‌های با margin منفی) اسکرول افقی می‌سازد؛ این باکس‌ها فقط عمودی اسکرول می‌شوند.
+ */
 export const WORKBENCH_RANKING_BODY_CLASS =
-  'flex min-h-0 grow basis-0 flex-col overflow-y-auto';
+  'flex min-h-0 grow basis-0 flex-col overflow-x-hidden overflow-y-auto';
 
 /**
  * ردیف نمرات فراگیر داخل سلول تمام‌عرض.
@@ -390,12 +397,12 @@ function classicSlots(
         placement: { colSpan: 12, colStart: 1, rowStart: 4 },
       });
     }
-    // ضعیف‌ترین/قوی‌ترین معلمان منطقه: نیمهٔ دیگر ردیف سوم، کنار «مدارس ضعیف/قوی».
+    // ضعیف‌ترین/قوی‌ترین معلمان منطقه: نیمهٔ دیگر ردیف سوم، کنار «مدارس/استان‌ها ضعیف/قوی».
     slots.push({
       id: 'regional_teacher_ranking',
       placement: { colSpan: 6, colStart: 7, rowStart: 3, stretch: true },
     });
-    // ضعیف‌ترین/قوی‌ترین مدارس منطقه (نمودار میله‌ای): ردیف سوم، نیمهٔ راست.
+    // منطقه: مدارس؛ سازمان مرکزی: استان‌ها (نمودار میله‌ای) — ردیف سوم، نیمهٔ راست.
     slots.push({
       id: 'regional_school_ranking',
       placement: { colSpan: 6, colStart: 1, rowStart: 3, stretch: true },

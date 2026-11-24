@@ -32,6 +32,27 @@ describe('resolveEffectiveEnrollmentEntry', () => {
     ).toBe(OPEN_ID);
   });
 
+  it('keeps a completed (e.g. failed) enrolment of the open term as current even when selectable', () => {
+    const history = [entry(OPEN_ID, 'completed')];
+    expect(
+      resolveEffectiveEnrollmentEntry({}, history, OPEN_ID)?.semesterId
+    ).toBe(OPEN_ID);
+    expect(
+      resolveEffectiveEnrollmentEntry({ canSelect: true }, history, OPEN_ID)
+        ?.semesterId
+    ).toBe(OPEN_ID);
+  });
+
+  it('prefers the active enrolment over a completed one in the open term', () => {
+    const history = [
+      entry(OPEN_ID, 'completed', '2026-01-01'),
+      { ...entry(OPEN_ID, 'active', '2026-02-01') },
+    ];
+    expect(
+      resolveEffectiveEnrollmentEntry({}, history, OPEN_ID)?.enrolment.status
+    ).toBe('active');
+  });
+
   it('still shows the old active enrolment when the open term has no lesson for this level', () => {
     const history = [entry('term1', 'active')];
     expect(

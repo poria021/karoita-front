@@ -347,8 +347,27 @@ export function themeIdForSlug(slug: ReportSlug): string | undefined {
 /** اندازهٔ هر صفحهٔ جدول گزارش — با «نمایش بیشتر» صفحه‌های بعدی می‌آید. */
 export const REPORT_LIST_LIMIT = 20;
 
+/** سقف پیش‌فرض مقایسه (بقیهٔ اسلاگ‌های مقایسه‌پذیر). */
 export const COMPARE_MAX = 10;
+/**
+ * سقف مقایسهٔ عملکرد استان‌ها — همهٔ استان‌های کشور (~۳۱).
+ * مقایسه API جدا ندارد و از همان ردیف‌های جدول ساخته می‌شود؛
+ * این سقف فقط انتخاب کلاینتی را باز می‌کند و درخواست اضافه به سرور نمی‌زند.
+ */
+export const COMPARE_MAX_PROVINCE_PERFORMANCE = 31;
+/**
+ * سقف مقایسهٔ عملکرد دانشکده‌ها — همهٔ ردیف‌های بارگذاری‌شده؛
+ * همان منطق استان‌ها (بدون API جدا / فشار اضافه روی سرور).
+ */
+export const COMPARE_MAX_FACULTY_PERFORMANCE = REPORT_LIST_LIMIT;
 export const COMPARE_MIN = 2;
+
+/** سقف مقایسه به ازای اسلاگ گزارش. */
+export function compareMaxForSlug(slug: ReportSlug): number {
+  if (slug === 'province-performance') return COMPARE_MAX_PROVINCE_PERFORMANCE;
+  if (slug === 'faculty-performance') return COMPARE_MAX_FACULTY_PERFORMANCE;
+  return COMPARE_MAX;
+}
 
 export const FILTER_LABELS: Record<string, string> = {
   province: 'استان',

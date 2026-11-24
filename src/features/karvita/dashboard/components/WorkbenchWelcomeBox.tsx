@@ -247,12 +247,12 @@ export function WorkbenchWelcomeBox({
           aria-hidden
           className="kv-welcome-wash pointer-events-none absolute inset-0"
         />
-        <KarvitaBrandMark className="kv-welcome-mark pointer-events-none absolute -bottom-3 -end-2 size-28 sm:size-32" />
+        <KarvitaBrandMark className="kv-welcome-mark pointer-events-none absolute -bottom-2 end-3 size-28 sm:end-4 sm:size-32" />
 
         <div
           className={cn(
             'relative z-[1] flex min-h-0 flex-1 items-center gap-kv-group p-kv-group',
-            showTermStatus && 'pe-20 sm:pe-24'
+            showTermStatus && 'pe-20 sm:pe-40'
           )}
         >
           <div className="kv-welcome-enter flex min-w-0 flex-1 flex-col justify-center gap-0.5">

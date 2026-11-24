@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
   useCallback,
   useEffect,
@@ -7,22 +8,27 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type MouseEvent,
   type PointerEvent,
 } from 'react';
 
 import { FaIcon } from '@/components/shared/FaIcon';
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { Spinner } from '@/components/ui/spinner';
+import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import type {
   LessonPendingReview,
   LessonReportFilter,
 } from '@/services/reports/real/lesson-reports.api';
+import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import { faIcons } from '@/utils/iconMap';
 import { toPersianDigits } from '@/utils/persianDigits';
 
 import { useDashboardCoursePendingReports } from '../hooks/useDashboardCoursePendingReports';
+import { pendingReviewCardHref } from '../lib/course-pending-reports-href';
 import { pendingBackground } from '../lib/pending-card-background';
 import { workbenchErrorText } from './WorkbenchUnavailableNote';
 
@@ -35,24 +41,40 @@ export type WorkbenchCoursePendingReportsBoxProps = LessonReportFilter & {
 /**
  * کارت درس — کاملاً وسط‌چین و بدون آیکون:
  * بالا عنوان، وسط عدد، پایین متن ثابت «در انتظار بررسی».
- * ارتفاع از والد (هم‌قد باکس اطلاعیه‌ها) می‌آید؛ عرض پایه با نسبت ۳∶۴ و با `grow`
- * کارت‌ها وقتی کم‌اند کل عرض باکس را پر می‌کنند (جای خالی نمی‌ماند)، وگرنه اسکرول افقی.
+ * کلیک → ارزیابی فراگیران همان درس؛ درگ افقی اسکرول ناوبری را لغو می‌کند.
  */
 function PendingCard({
   card,
   maxPending,
+  href,
+  suppressClickRef,
 }: {
   card: LessonPendingReview;
   /** بیشترین pendingCount بین کارت‌ها — برای شدت زرد نسبی. */
   maxPending: number;
+  href: string;
+  /** بعد از درگ اسکرول، کلیک لینک نادیده گرفته می‌شود. */
+  suppressClickRef: { current: boolean };
 }) {
   const label = `${card.title}: ${toPersianDigits(card.pendingCount)} در انتظار بررسی`;
+  const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!suppressClickRef.current) return;
+    event.preventDefault();
+    suppressClickRef.current = false;
+  };
   return (
     <li className="aspect-[3/4] h-full w-auto shrink-0 grow snap-start select-none">
-      <div
+      <Link
+        href={href}
+        prefetch
         title={label}
-        aria-label={label}
-        className="flex h-full flex-col items-center justify-between gap-0 rounded-kv-control border border-kv-border/70 px-kv-group pb-kv-field pt-kv-inline text-center shadow-none"
+        aria-label={`${label} — رفتن به ارزیابی فراگیران`}
+        onClick={onClick}
+        className={cn(
+          'flex h-full flex-col items-center justify-between gap-0 rounded-kv-control border border-kv-border/70 px-kv-group pb-kv-field pt-kv-inline text-center shadow-none',
+          'transition-colors duration-150 can-hover:hover:border-kv-brand/40',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30'
+        )}
         style={{
           backgroundColor: pendingBackground(card.pendingCount, maxPending),
         }}
@@ -66,7 +88,7 @@ function PendingCard({
         <span className="block w-full text-center text-xs font-bold leading-snug text-kv-text">
           در انتظار بررسی
         </span>
-      </div>
+      </Link>
     </li>
   );
 }
@@ -85,7 +107,8 @@ function canScrollTowardEnd(el: HTMLElement): boolean {
  * «در انتظار بررسی» — داده از `GET /reports/lessons/pending-reviews`
  * (معلم راهنما، مدیر مدرسه، استاد راهنما). هر آیتم یک کارت است:
  * `title` عنوان، `pendingCount` عدد بزرگ وسط، پایین متن ثابت «در انتظار بررسی».
- * API فقط درس‌های دارای مورد در انتظار را می‌دهد؛ `data` خالی = هیچ کارت.
+ * API فقط درس‌های دارای مورد در انتظار را می‌دهد؛ `data` خالی = حالت خالی
+ * (باکس ثابت است و هرگز از صفحه حذف نمی‌شود).
  * `semesterId` / `structure` اختیاری‌اند؛ با تغییرشان همان درخواست دوباره زده می‌شود.
  * اسکرول‌بار فقط با هاور دیده می‌شود؛ فلش سمت چپ وقتی هنوز محتوایی برای اسکرول هست.
  */
@@ -101,6 +124,7 @@ export function WorkbenchCoursePendingReportsBox({
       semesterId,
       structure,
     });
+  const catalog = useActiveCourseDefinitions();
   // محافظ UI: شمارش غیرمثبت کارت نمی‌شود (API معمولاً چنین ردیفی نمی‌فرستد).
   const cards = useMemo(
     () => rawCards.filter((card) => card.pendingCount > 0),
@@ -110,8 +134,19 @@ export function WorkbenchCoursePendingReportsBox({
     () => cards.reduce((max, card) => Math.max(max, card.pendingCount), 0),
     [cards]
   );
+  const cardHrefs = useMemo(
+    () =>
+      cards.map((card) =>
+        pendingReviewCardHref(
+          { title: card.title, lessonId: card.lessonId },
+          catalog
+        )
+      ),
+    [cards, catalog]
+  );
 
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const suppressClickRef = useRef(false);
   const [showEndHint, setShowEndHint] = useState(false);
 
   const refreshScrollHint = useCallback(() => {
@@ -137,17 +172,22 @@ export function WorkbenchCoursePendingReportsBox({
     };
   }, [cards, refreshScrollHint]);
 
-  // کشیدن با ماوس (لمس خودش سوایپ بومی دارد).
-  const drag = useRef<{ x: number; left: number; pointerId: number } | null>(
-    null
-  );
+  // کشیدن با ماوس (لمس خودش سوایپ بومی دارد)؛ جابه‌جایی >۶px کلیک لینک را لغو می‌کند.
+  const drag = useRef<{
+    x: number;
+    left: number;
+    pointerId: number;
+    moved: boolean;
+  } | null>(null);
   const [dragging, setDragging] = useState(false);
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.pointerType !== 'mouse' || event.button !== 0) return;
+    suppressClickRef.current = false;
     drag.current = {
       x: event.clientX,
       left: event.currentTarget.scrollLeft,
       pointerId: event.pointerId,
+      moved: false,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
     setDragging(true);
@@ -155,19 +195,26 @@ export function WorkbenchCoursePendingReportsBox({
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const start = drag.current;
     if (!start) return;
-    event.currentTarget.scrollLeft = start.left - (event.clientX - start.x);
+    const delta = event.clientX - start.x;
+    if (!start.moved && Math.abs(delta) > 6) {
+      start.moved = true;
+      suppressClickRef.current = true;
+    }
+    event.currentTarget.scrollLeft = start.left - delta;
   };
   const endDrag = () => {
     drag.current = null;
     setDragging(false);
   };
 
-  // خالی = هیچ کارت (و هیچ باکس خالی)؛ لودینگ/خطا هنوز نشان داده می‌شود.
-  if (!isLoading && !isError && cards.length === 0) {
-    return null;
-  }
-
-  const state = isLoading ? 'loading' : isError ? 'error' : 'ready';
+  // باکس ثابت است: بدون کارت هم از صفحه حذف نمی‌شود و حالت خالی نشان می‌دهد.
+  const state = isLoading
+    ? 'loading'
+    : isError
+      ? 'error'
+      : cards.length === 0
+        ? 'empty'
+        : 'ready';
 
   return (
     <div className={cn('flex min-h-0 flex-col', className)} style={style}>
@@ -184,6 +231,20 @@ export function WorkbenchCoursePendingReportsBox({
           title={workbenchErrorText(isForbidden, 'گزارش‌های در انتظار بررسی فعلاً در دسترس نیست؛ کمی بعد دوباره تلاش کنید.')}
           className="min-h-0 flex-1 py-kv-pair"
         />
+      ) : state === 'empty' ? (
+        <section
+          aria-label="گزارش‌های در انتظار بررسی"
+          className={cn(
+            'flex min-h-0 flex-1 flex-col rounded-kv-shell border',
+            workbenchBoxToneClass(true)
+          )}
+        >
+          <KvEmptyState
+            title="گزارشی در انتظار بررسی نیست"
+            description="هر وقت گزارشی برای بررسی ثبت شود، اینجا نمایش داده می‌شود."
+            className="py-kv-pair"
+          />
+        </section>
       ) : (
         <div className="relative min-h-0 min-w-0 flex-1">
           <div
@@ -207,9 +268,11 @@ export function WorkbenchCoursePendingReportsBox({
             <ul className="flex h-full w-max min-w-full list-none items-stretch gap-kv-group">
               {cards.map((card, index) => (
                 <PendingCard
-                  key={`${card.title}-${index}`}
+                  key={`${card.lessonId ?? card.title}-${index}`}
                   card={card}
                   maxPending={maxPending}
+                  href={cardHrefs[index] ?? RouteService.karvita.dailyApprovals()}
+                  suppressClickRef={suppressClickRef}
                 />
               ))}
             </ul>

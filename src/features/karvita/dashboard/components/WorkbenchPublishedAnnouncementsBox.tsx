@@ -15,11 +15,6 @@ import {
   KvTableRow,
 } from '@/components/shared/table/KvTable';
 import { KvTypography } from '@/components/shared/KvTypography';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { cn } from '@/lib/utils';
@@ -32,7 +27,6 @@ import { RouteService } from '@/services/route.service';
 import type { UserRole } from '@/types/auth';
 import type { Bulletin } from '@/types/bulletins';
 import { formatJalaliSlashDisplay } from '@/utils/formatJalaliDate';
-import { toPersianDigits } from '@/utils/persianDigits';
 import { getRoleStrategy } from '@/utils/RoleStrategyMap';
 import { isForbiddenError } from '@/services/api-error';
 import { WorkbenchBoxBusy } from './WorkbenchBoxBusy';
@@ -49,27 +43,18 @@ function audienceLabels(roles: readonly UserRole[]): string[] {
   return roles.map((role) => getRoleStrategy(role).label);
 }
 
-/** تعدادِ پنل‌های مخاطب — با هاور، فهرست کامل پنل‌ها دیده می‌شود. */
-function AudiencePanelCount({ roles }: { roles: readonly UserRole[] }) {
+/** نام پنل‌های مخاطب — همان استایل بج، بدون تولتیپ هاور. */
+function AudiencePanelLabels({ roles }: { roles: readonly UserRole[] }) {
   const labels = audienceLabels(roles);
   if (labels.length === 0) {
     return <span className="text-xs text-kv-text-muted">—</span>;
   }
 
+  const text = labels.join('، ');
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          tabIndex={0}
-          className="inline-flex shrink-0 cursor-default items-center gap-1 rounded-full bg-kv-brand-soft px-2 py-0.5 text-[11px] font-bold tabular-nums text-kv-brand-soft-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kv-ring/30"
-        >
-          {toPersianDigits(labels.length)} پنل
-        </span>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-56 text-start">
-        {labels.join('، ')}
-      </TooltipContent>
-    </Tooltip>
+    <span className="inline-flex max-w-full shrink-0 items-center rounded-full bg-kv-brand-soft px-2 py-0.5 text-[11px] font-bold text-kv-brand-soft-fg">
+      <span className="truncate">{text}</span>
+    </span>
   );
 }
 
@@ -84,7 +69,7 @@ function AnnouncementTableRow({ row }: { row: Bulletin }) {
         </span>
       </KvTableCell>
       <KvTableCell align="center">
-        <AudiencePanelCount roles={row.audienceRoles} />
+        <AudiencePanelLabels roles={row.audienceRoles} />
       </KvTableCell>
       <KvTableCell align="end" mono className="text-kv-text-subtle">
         {date}
@@ -94,8 +79,8 @@ function AnnouncementTableRow({ row }: { row: Bulletin }) {
 }
 
 /**
- * آخرین اطلاعیه‌هایی که ستاد (مدیر ارشد / دستیار) برای پنل‌های دیگر منتشر کرده:
- * عنوان + تعداد پنل‌های مخاطب (با هاور، فهرست کامل پنل‌ها) + تاریخ.
+ * آخرین اطلاعیه‌هایی که این پنل برای مخاطبانش منتشر کرده
+ * (مدیر ارشد / دستیار / سازمان مرکزی): عنوان + نام پنل‌های مخاطب + تاریخ.
  */
 export function WorkbenchPublishedAnnouncementsBox({
   role,
@@ -137,7 +122,7 @@ export function WorkbenchPublishedAnnouncementsBox({
             آخرین اطلاعیه‌های منتشرشده
           </KvTypography>
           <KvTypography variant="caption" tone="muted" as="p">
-            با هاور روی «پنل‌های مخاطب»، فهرست کامل پنل‌ها دیده می‌شود
+            عنوان، پنل مخاطب و تاریخ انتشار
           </KvTypography>
         </div>
         <KvButton
@@ -166,29 +151,31 @@ export function WorkbenchPublishedAnnouncementsBox({
           className="min-h-0 py-1"
         />
       ) : (
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-kv-control border border-kv-border-muted [scrollbar-width:thin]">
-          <KvTable
-            scrollable={false}
-            aria-label="آخرین اطلاعیه‌های منتشرشده"
-            className="min-w-0 table-fixed"
-          >
-            <KvTableHeader>
-              <KvTableRow>
-                <KvTableHead>عنوان</KvTableHead>
-                <KvTableHead align="center" className="w-28">
-                  پنل‌های مخاطب
-                </KvTableHead>
-                <KvTableHead align="end" className="w-32">
-                  تاریخ انتشار
-                </KvTableHead>
-              </KvTableRow>
-            </KvTableHeader>
-            <KvTableBody>
-              {items.map((row) => (
-                <AnnouncementTableRow key={row.id} row={row} />
-              ))}
-            </KvTableBody>
-          </KvTable>
+        <div className="min-h-0 flex-1 overflow-y-auto rounded-kv-control border border-kv-border-muted [direction:ltr] [scrollbar-width:thin]">
+          <div dir="rtl" className="[direction:rtl]">
+            <KvTable
+              scrollable={false}
+              aria-label="آخرین اطلاعیه‌های منتشرشده"
+              className="min-w-0 table-fixed"
+            >
+              <KvTableHeader>
+                <KvTableRow>
+                  <KvTableHead>عنوان</KvTableHead>
+                  <KvTableHead align="center" className="w-28">
+                    پنل‌های مخاطب
+                  </KvTableHead>
+                  <KvTableHead align="end" className="w-32">
+                    تاریخ انتشار
+                  </KvTableHead>
+                </KvTableRow>
+              </KvTableHeader>
+              <KvTableBody>
+                {items.map((row) => (
+                  <AnnouncementTableRow key={row.id} row={row} />
+                ))}
+              </KvTableBody>
+            </KvTable>
+          </div>
         </div>
       )}
     </section>

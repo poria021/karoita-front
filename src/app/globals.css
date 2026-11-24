@@ -1305,10 +1305,242 @@ input[readonly]:-webkit-autofill {
     max-height: none !important;
   }
 
-  /* پنل‌های اطلاعیه و مواد درسی: ارتفاع مناسب تک‌ستون، داخلشان اسکرول دارد. */
-  .wb-learner-stack > :nth-child(2),
-  .wb-learner-stack > :nth-child(3) {
+  /*
+   * اطلاعیه‌ها روی موبایل: حدود ۲ ردیف بسته‌شده دیده شود؛ بقیه با اسکرول داخل باکس.
+   * پدینگ سکشن (۲×1rem) + فاصله هدر (1rem) + هدر (~1.5rem) + ۲ کارت (۲×3.5rem) ≈ 11.5rem.
+   */
+  .wb-learner-stack > .wb-announcements-box,
+  .wb-announcements-box {
+    height: 11.5rem !important;
+    min-height: 11.5rem !important;
+    max-height: 11.5rem !important;
+  }
+
+  /* مواد درسی (سومین سلول میز کار فراگیر): همان ارتفاع قبلی. */
+  .wb-learner-stack > :nth-child(3):not(.wb-announcements-box) {
     height: 20rem !important;
     min-height: 20rem !important;
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/* گزارش مقایسه‌ای — شیت چاپ جدا (جدول / نمودار / هر دو).                     */
+/* -------------------------------------------------------------------------- */
+/*
+ * margin:0 تا کروم/اج هدر و فوتر خودکار (تاریخ، URL، عنوان تب) را نگذارد.
+ * فاصلهٔ امن صفحه داخل خودِ شیت چاپ با padding جبران می‌شود.
+ */
+@page {
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .kv-report-compare-print-root,
+  .kv-report-compare-print-root * {
+    visibility: visible !important;
+  }
+
+  .kv-report-compare-no-print,
+  .kv-report-compare-no-print * {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: none !important;
+  }
+
+  /*
+   * visibility:hidden جای خالی می‌گذارد (هدر/سایدبار/…)، برای همین شیت چاپ
+   * absolute بالای صفحه می‌نشیند. thead در پرینت static است تا sticky باد نکند.
+   */
+  .kv-report-compare-print-root {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  .kv-report-compare-print-only {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 12mm !important;
+    box-sizing: border-box !important;
+    pointer-events: auto !important;
+    z-index: auto !important;
+  }
+
+  .kv-report-compare-print-sheet {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* هدر لوگو+تاریخ: فقط به اندازهٔ محتوا. */
+  .kv-report-compare-print-masthead {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    border-color: #d1d5db !important;
+    background: #f9fafb !important;
+    padding-block: 0.5rem !important;
+  }
+
+  .kv-report-compare-print-masthead .kv-brand-mark {
+    width: 2.5rem !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    aspect-ratio: 281 / 223;
+    color: hsl(220 85% 42%) !important;
+    background-color: currentColor !important;
+  }
+
+  /* اسکرول و overflow در چاپ ممنوع — راهنما جمع می‌شود نه نوار اسکرول.
+   * max-height را سراسری none نکن؛ هدر جدول ارتفاعش از بین می‌رود. */
+  .kv-report-compare-print-sheet,
+  .kv-report-compare-print-sheet * {
+    overflow: visible !important;
+  }
+
+  .kv-report-compare-print-sheet [data-slot='kv-scroll-area'],
+  .kv-report-compare-print-sheet [data-slot='kv-table-scroll'],
+  .kv-report-compare-print-sheet [data-slot='kv-table-viewport'] {
+    max-height: none !important;
+  }
+
+  /* راهنمای رنگ استان‌ها در پرینت لازم نیست. */
+  .kv-report-compare-print-sheet .kv-report-compare-chart-legend {
+    display: none !important;
+  }
+
+  .kv-report-compare-print-sheet *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  .kv-report-compare-print-section + .kv-report-compare-print-section {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  /* دامنهٔ چاپ: فقط جدول / فقط نمودار / هر دو */
+  .kv-report-compare-print-root[data-print-scope='table']
+    .kv-report-compare-print-chart {
+    display: none !important;
+  }
+
+  .kv-report-compare-print-root[data-print-scope='chart']
+    .kv-report-compare-print-table {
+    display: none !important;
+  }
+
+  .kv-report-compare-print-both-label {
+    display: none !important;
+  }
+
+  .kv-report-compare-print-root[data-print-scope='both']
+    .kv-report-compare-print-both-label {
+    display: block !important;
+  }
+
+  /*
+   * thead با position:static در هر صفحهٔ پرینت تکرار می‌شود.
+   * h-12 صفحه را برای چاپ کوتاه می‌کنیم؛ آیکون سورت مخفی.
+   */
+  .kv-report-compare-print-sheet thead {
+    display: table-header-group !important;
+  }
+
+  .kv-report-compare-print-sheet tbody {
+    display: table-row-group !important;
+  }
+
+  .kv-report-compare-print-sheet [data-slot='kv-table-head'],
+  .kv-report-compare-print-sheet thead th {
+    position: static !important;
+    top: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding-block: 0.35rem !important;
+    line-height: 1.25 !important;
+    vertical-align: middle !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /*
+   * فقط نمودار میله‌ای — نه لوگو (role=img مشترک).
+   * ظرف با ارتفاع ثابت + فرزند absolute تا ResponsiveContainer اندازه بگیرد.
+   */
+  .kv-report-compare-print-sheet [data-slot='kv-bar-chart'] {
+    position: relative !important;
+    width: 100% !important;
+    height: 18rem !important;
+    min-height: 18rem !important;
+  }
+
+  .kv-report-compare-print-sheet [data-slot='kv-bar-chart'] > [dir='ltr'] {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .kv-report-compare-print-sheet [data-slot='kv-bar-chart'] svg {
+    display: block !important;
+    visibility: visible !important;
+    overflow: visible !important;
+  }
+}
+
+/*
+ * شیت چاپ روی صفحه: نه display:none (Recharts عرض ۰ می‌گیرد و میله‌ها خالی می‌مانند).
+ * fixed تا left منفی اسکرول افقی موبایل نسازد (absolute با -100vw عرض سند را پهن می‌کرد).
+ */
+.kv-report-compare-print-only {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: min(100vw, 210mm);
+  margin: 0;
+  padding: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
 }
