@@ -22,18 +22,26 @@ const BARS: readonly { kind: OrganizationalCapacityKind; label: string; classNam
   { kind: 'apprenticeship', label: 'مهارت‌آموز (پودمانی)', className: 'bg-kv-success' },
 ];
 
+const UNLIMITED_LABEL = 'نامحدود';
+
 function LearnerTypeBar({
   label,
   count,
+  unlimited,
   max,
   barClassName,
 }: {
   label: string;
   count: number;
+  unlimited: boolean;
   max: number;
   barClassName: string;
 }) {
-  const percent = max > 0 ? Math.max(4, Math.round((count / max) * 100)) : 0;
+  const percent = unlimited
+    ? 100
+    : max > 0 && count > 0
+      ? Math.max(4, Math.round((count / max) * 100))
+      : 0;
 
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
@@ -42,7 +50,7 @@ function LearnerTypeBar({
           {label}
         </span>
         <span className="shrink-0 font-sans text-base font-black tabular-nums leading-none text-kv-text">
-          {toPersianDigits(count)}
+          {unlimited ? UNLIMITED_LABEL : toPersianDigits(count)}
         </span>
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-kv-surface-muted">
@@ -56,8 +64,10 @@ function LearnerTypeBar({
 }
 
 /**
- * شمار دانشجو (ترمی) / مهارت‌آموز (پودمانی) پذیرش‌شده — باکسِ کوچکِ میله‌ای،
- * درست زیرِ کارت‌های «تعداد فراگیران» (هم‌ستون، هم‌عرض با آن‌ها).
+ * ظرفیتِ ثبت‌شدهٔ استاد در آخرین نیم‌سال فعال، به تفکیک دانشجو (ترمی) و
+ * مهارت‌آموز (پودمانی) — باکسِ کوچکِ میله‌ای زیرِ کارت‌های «تعداد فراگیران».
+ * عدد، مجموع ظرفیت درس‌های همان ترم است (`summary.total`)، نه پذیرش‌شده‌ها:
+ * در حالت real شمار پذیرش‌شده از این endpoint نمی‌آید و همیشه صفر است.
  */
 export function WorkbenchLearnerTypeCountsBox({
   className,
@@ -65,14 +75,19 @@ export function WorkbenchLearnerTypeCountsBox({
 }: WorkbenchLearnerTypeCountsBoxProps) {
   const { isLoading, isError, isForbidden, snapshots } = useDashboardCapacityStatus();
 
-  const counts = BARS.map((bar) => ({
-    ...bar,
-    count:
-      snapshots.find((snapshot) => snapshot.kind === bar.kind)?.summary
-        .confirmed ?? 0,
-  }));
+  const counts = BARS.map((bar) => {
+    const total = snapshots.find((snapshot) => snapshot.kind === bar.kind)?.summary
+      .total;
+    return {
+      ...bar,
+      unlimited: total === 'unlimited',
+      count: typeof total === 'number' ? total : 0,
+    };
+  });
   const max = Math.max(1, ...counts.map((item) => item.count));
-  const isEmpty = isError || (!isLoading && counts.every((item) => item.count === 0));
+  const isEmpty =
+    isError ||
+    (!isLoading && counts.every((item) => !item.unlimited && item.count === 0));
 
   return (
     <section
@@ -97,7 +112,7 @@ export function WorkbenchLearnerTypeCountsBox({
         <WorkbenchUnavailableNote forbidden={isForbidden} />
       ) : isLoading ? (
         <WorkbenchBoxBusy
-          label="در حال بارگذاری تعداد فراگیران"
+          label="در حال بارگذاری ظرفیت نیم‌سال"
           className="min-h-[2rem]"
         />
       ) : (
@@ -107,6 +122,7 @@ export function WorkbenchLearnerTypeCountsBox({
               key={item.kind}
               label={item.label}
               count={item.count}
+              unlimited={item.unlimited}
               max={max}
               barClassName={item.className}
             />

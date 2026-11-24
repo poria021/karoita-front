@@ -100,3 +100,21 @@ describe('buildCurrentTermView / currentTermStatus', () => {
     expect(currentTermStatus(view)).toBe('unknown');
   });
 });
+
+describe('pickCurrentSemester — آخرین نیم‌سال باز', () => {
+  it('وقتی ترم قدیمی هم هنوز در جریان است ترم جدیدتر انتخاب می‌شود', () => {
+    const list = [
+      semester({ id: 'old', startClasses: true, courseSelection: false }),
+      semester({ id: 'new', startClasses: true, courseSelection: false }),
+    ];
+    expect(pickCurrentSemester(list, 'semester')?.id).toBe('new');
+  });
+
+  it('بین چند ترم با انتخاب واحد باز، آخری انتخاب می‌شود', () => {
+    const list = [
+      semester({ id: 'old', startClasses: false, courseSelection: true }),
+      semester({ id: 'new', startClasses: false, courseSelection: true }),
+    ];
+    expect(pickCurrentSemester(list, 'semester')?.id).toBe('new');
+  });
+});

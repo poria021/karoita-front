@@ -47,14 +47,27 @@ export function semesterKind(semester: {
  * اگر هیچ‌کدام از گیت‌ها در پاسخ نبود (API گیت نداده)، آخرین ردیف همان نوع.
  * اگر گیت‌ها آمده ولی همه بسته‌اند → `null`.
  */
+function findLastOpen(
+  items: readonly NestSemester[],
+  predicate: (item: NestSemester) => boolean
+): NestSemester | undefined {
+  for (let index = items.length - 1; index >= 0; index -= 1) {
+    const item = items[index];
+    if (item && predicate(item)) return item;
+  }
+  return undefined;
+}
+
 export function pickCurrentSemester(
   semesters: readonly NestSemester[],
   kind: CurrentTermKind
 ): NestSemester | null {
   const ofKind = semesters.filter((item) => semesterKind(item) === kind);
-  const running = ofKind.find((item) => item.startClasses === true);
+  // «آخرین» نیم‌سال باز: در real آخرین ردیف فهرست جدیدترین ترم است؛ اگر ترم
+  // قدیمی هنوز بسته نشده باشد نباید جلوی ترم جدید را بگیرد.
+  const running = findLastOpen(ofKind, (item) => item.startClasses === true);
   if (running) return running;
-  const selecting = ofKind.find((item) => item.courseSelection === true);
+  const selecting = findLastOpen(ofKind, (item) => item.courseSelection === true);
   if (selecting) return selecting;
   const gatesKnown = ofKind.some(
     (item) =>

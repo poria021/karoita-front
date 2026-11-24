@@ -17,6 +17,7 @@ import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { Spinner } from '@/components/ui/spinner';
 import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
 import { cn } from '@/lib/utils';
+import { workbenchBoxToneClass } from '@/lib/workbench-grid';
 import type {
   LessonPendingReview,
   LessonReportFilter,
@@ -106,7 +107,8 @@ function canScrollTowardEnd(el: HTMLElement): boolean {
  * «در انتظار بررسی» — داده از `GET /reports/lessons/pending-reviews`
  * (معلم راهنما، مدیر مدرسه، استاد راهنما). هر آیتم یک کارت است:
  * `title` عنوان، `pendingCount` عدد بزرگ وسط، پایین متن ثابت «در انتظار بررسی».
- * API فقط درس‌های دارای مورد در انتظار را می‌دهد؛ `data` خالی = هیچ کارت.
+ * API فقط درس‌های دارای مورد در انتظار را می‌دهد؛ `data` خالی = حالت خالی
+ * (باکس ثابت است و هرگز از صفحه حذف نمی‌شود).
  * `semesterId` / `structure` اختیاری‌اند؛ با تغییرشان همان درخواست دوباره زده می‌شود.
  * اسکرول‌بار فقط با هاور دیده می‌شود؛ فلش سمت چپ وقتی هنوز محتوایی برای اسکرول هست.
  */
@@ -205,12 +207,14 @@ export function WorkbenchCoursePendingReportsBox({
     setDragging(false);
   };
 
-  // خالی = هیچ کارت (و هیچ باکس خالی)؛ لودینگ/خطا هنوز نشان داده می‌شود.
-  if (!isLoading && !isError && cards.length === 0) {
-    return null;
-  }
-
-  const state = isLoading ? 'loading' : isError ? 'error' : 'ready';
+  // باکس ثابت است: بدون کارت هم از صفحه حذف نمی‌شود و حالت خالی نشان می‌دهد.
+  const state = isLoading
+    ? 'loading'
+    : isError
+      ? 'error'
+      : cards.length === 0
+        ? 'empty'
+        : 'ready';
 
   return (
     <div className={cn('flex min-h-0 flex-col', className)} style={style}>
@@ -227,6 +231,20 @@ export function WorkbenchCoursePendingReportsBox({
           title={workbenchErrorText(isForbidden, 'گزارش‌های در انتظار بررسی فعلاً در دسترس نیست؛ کمی بعد دوباره تلاش کنید.')}
           className="min-h-0 flex-1 py-kv-pair"
         />
+      ) : state === 'empty' ? (
+        <section
+          aria-label="گزارش‌های در انتظار بررسی"
+          className={cn(
+            'flex min-h-0 flex-1 flex-col rounded-kv-shell border',
+            workbenchBoxToneClass(true)
+          )}
+        >
+          <KvEmptyState
+            title="گزارشی در انتظار بررسی نیست"
+            description="هر وقت گزارشی برای بررسی ثبت شود، اینجا نمایش داده می‌شود."
+            className="py-kv-pair"
+          />
+        </section>
       ) : (
         <div className="relative min-h-0 min-w-0 flex-1">
           <div

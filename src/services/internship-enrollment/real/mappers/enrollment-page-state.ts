@@ -110,6 +110,24 @@ export function resolveEffectiveEnrollmentEntry<
       : null) ?? null;
   if (activeInOpenTerm) return activeInOpenTerm;
 
+  // ثبت‌نامِ `completed` در *همین* ترمِ باز (مثلاً استاد نمرهٔ آخر را داده و فراگیر
+  // مردود شده) هنوز نتیجهٔ ترمِ جاری است، نه سابقهٔ ترم قبل؛ باید گزارش/نتیجه‌اش
+  // دیده شود و صفحهٔ انتخاب واحد جایش را نگیرد. انتخاب دوبارهٔ درس برای ترم بعد است.
+  const completedInOpenTerm = openSemesterId
+    ? (history
+        .filter(
+          (entry) =>
+            entry.enrolment.status === 'completed' &&
+            entry.semesterId === openSemesterId
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.enrolment.createdAt ?? 0).getTime() -
+            new Date(a.enrolment.createdAt ?? 0).getTime()
+        )[0] ?? null)
+    : null;
+  if (completedInOpenTerm) return completedInOpenTerm;
+
   // درس این level در ترم باز قابل انتخاب است: ثبت‌نامِ `active` مانده از ترم‌های
   // قبل (بک‌اند فقط وقتی همهٔ هفته‌ها نمره بگیرند `completed` می‌کند، نه با بسته
   // شدن ترم) نباید جلوی انتخاب واحد ترم جدید را بگیرد؛ در `termHistory` می‌ماند.

@@ -1,9 +1,10 @@
 'use client';
 
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { isForbiddenError } from '@/services/api-error';
 import { useMemo } from 'react';
 
+import { isMockApiMode } from '@/lib/api-mode';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { OrganizationalCapacitiesService } from '@/services/organizational-capacities.service';
@@ -12,10 +13,19 @@ import type {
   OrganizationalCapacityKind,
 } from '@/types/organizational-capacities';
 
+import { pickCapacityTermId } from '../lib/capacity-term';
+import { loadAllSemesters } from './useCurrentTerms';
+
 const CAPACITY_KINDS = [
   'internship',
   'apprenticeship',
 ] as const satisfies readonly OrganizationalCapacityKind[];
+
+/** ظرفیت ترمی ↔ ساختار `semester`، پودمانی ↔ `podmani` در ترم جاری. */
+const TERM_KIND_BY_CAPACITY_KIND = {
+  internship: 'semester',
+  apprenticeship: 'podmani',
+} as const satisfies Record<OrganizationalCapacityKind, 'semester' | 'podmani'>;
 
 export type DashboardCapacityStatusState = {
   isLoading: boolean;
@@ -28,8 +38,13 @@ export type DashboardCapacityStatusState = {
 /**
  * snapshot ظرفیت ترمی و پودمانی برای میز کار استاد راهنما —
  * همان query keyهای صفحهٔ پیکربندی تا cache مشترک بماند.
+ *
+ * ترمِ مبنا «آخرین نیم‌سال فعال» است (کلاس‌ها شروع شده > انتخاب واحد باز)،
+ * با همان قاعده و همان cache باکس خوش‌آمد (`DASHBOARD_QUERY.currentTerms`).
  */
 export function useDashboardCapacityStatus(): DashboardCapacityStatusState {
+  const mock = isMockApiMode();
+
   const catalogQueries = useQueries({
     queries: CAPACITY_KINDS.map((kind) => ({
       queryKey: DASHBOARD_QUERY.orgCapacitiesTerms(kind),
@@ -38,17 +53,37 @@ export function useDashboardCapacityStatus(): DashboardCapacityStatusState {
     })),
   });
 
+  // فهرست نیم‌سال‌ها با پرچم‌های `startClasses` / `courseSelection`؛
+  // در mock این پرچم‌ها وجود ندارند، پس نیازی به درخواست نیست.
+  const semestersQuery = useQuery({
+    queryKey: DASHBOARD_QUERY.currentTerms,
+    queryFn: loadAllSemesters,
+    enabled: !mock,
+    staleTime: QUERY_STALE_MS.module,
+    retry: false,
+  });
+  // تا تعیین ترم جاری snapshot نمی‌خوانیم؛ وگرنه اول ترم اشتباه می‌آید و بعد جابه‌جا می‌شود.
+  const semestersPending = !mock && semestersQuery.isPending;
+  const semesters = semestersQuery.data;
+
   const resolvedTerms = useMemo(
     () =>
       CAPACITY_KINDS.map((kind, index) => {
         const terms = catalogQueries[index]?.data?.terms ?? [];
         return {
           kind,
-          termId: terms[0]?.id ?? '',
+          termId: semestersPending
+            ? ''
+            : pickCapacityTermId({
+                terms,
+                semesters,
+                kind: TERM_KIND_BY_CAPACITY_KIND[kind],
+                fallback: mock ? 'first' : 'none',
+              }),
           catalog: catalogQueries[index]?.data,
         };
       }),
-    [catalogQueries]
+    [catalogQueries, mock, semesters, semestersPending]
   );
 
   const snapshotQueries = useQueries({
@@ -82,7 +117,9 @@ export function useDashboardCapacityStatus(): DashboardCapacityStatusState {
   }, [snapshotDataKey, snapshotQueries]);
 
   return {
-    isLoading: (catalogsPending || snapshotsPending) && snapshots.length === 0,
+    isLoading:
+      (catalogsPending || semestersPending || snapshotsPending) &&
+      snapshots.length === 0,
     isError: (catalogsError || snapshotsError) && snapshots.length === 0,
     isForbidden:
       [...catalogQueries, ...snapshotQueries].some((query) =>
