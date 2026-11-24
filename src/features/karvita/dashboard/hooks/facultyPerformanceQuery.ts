@@ -2,19 +2,10 @@ import { queryOptions } from '@tanstack/react-query';
 
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
-import { fetchListPage } from '@/services/reports/real/list-reports.api';
-import type { ReportPeriodState, ReportRow } from '@/types/reports';
+import type { ReportRow } from '@/types/reports';
 
 import type { FacultyBoxSource } from '../lib/faculty-box-source';
-
-/** بدون `semesterId`؛ فقط `structure=semester` (مثل بقیهٔ هوک‌های میز کار). */
-const DASHBOARD_PERIOD: ReportPeriodState = {
-  mode: 'term',
-  termId: '',
-  moduleId: '',
-};
-
-const MAX_PAGES = 10;
+import { loadListRowsForOpenSemesters } from './openSemesters';
 
 export type FacultyPerformanceSlug = FacultyBoxSource['slug'];
 
@@ -23,24 +14,14 @@ export type FacultyPerformanceSnapshot = {
   truncated: boolean;
 };
 
-/** همهٔ صفحات یک گزارش عملکرد دانشکده/اساتید — یک بار برای چند باکس میز کار. */
+/**
+ * همهٔ صفحات یک گزارش عملکرد دانشکده/اساتید برای «آخرین نیم‌سال باز» — یک بار برای
+ * چند باکس میز کار. بدون نیم‌سال باز ردیفی نیست (هرگز «همهٔ نیم‌سال‌ها» نمی‌آید).
+ */
 export async function loadFacultyPerformanceRows(
   slug: FacultyPerformanceSlug
 ): Promise<FacultyPerformanceSnapshot> {
-  const rows: ReportRow[] = [];
-  let truncated = false;
-  for (let page = 1; page <= MAX_PAGES; page += 1) {
-    const result = await fetchListPage(slug, {
-      filters: {},
-      query: '',
-      period: DASHBOARD_PERIOD,
-      page,
-    });
-    rows.push(...result.rows);
-    if (!result.hasNextPage) break;
-    if (page === MAX_PAGES) truncated = true;
-  }
-  return { rows, truncated };
+  return loadListRowsForOpenSemesters(slug);
 }
 
 /**

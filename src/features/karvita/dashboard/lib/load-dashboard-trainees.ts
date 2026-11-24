@@ -6,6 +6,8 @@ import type {
   DailyApprovalCourseKind,
   DailyApprovalTrainee,
 } from '@/types/daily-approvals';
+import { isMockApiMode } from '@/lib/api-mode';
+import { loadOpenSemesters } from '../hooks/openSemesters';
 
 /** سقف صفحات برای میز کار تا حلقه بی‌نهایت نشود (۱۰ × ۲۰ = ۲۰۰ فراگیر در هر مسیر). */
 const MAX_DASHBOARD_PAGES = 10;
@@ -23,12 +25,34 @@ type KindTrainees = {
 /** فراگیران ترم باز هر دو مسیر — منبع مشترک باکس‌های شمار و میانگین نمرهٔ میز کار. */
 export type DashboardTraineesSnapshot = KindTrainees;
 
+/** مسیر کارورزی ↔ نیم‌سال ترمی، کارآموزی ↔ پودمانی. */
+const OPEN_KIND_BY_COURSE_KIND = {
+  internship: 'semester',
+  apprenticeship: 'podmani',
+} as const satisfies Record<DailyApprovalCourseKind, 'semester' | 'podmani'>;
+
+/**
+ * ترم این مسیر: «آخرین نیم‌سال باز» (کلاس‌های در جریان > انتخاب واحد باز).
+ * نیم‌سال بازی نباشد رشتهٔ خالی برمی‌گردد و فراگیری خوانده نمی‌شود؛ هرگز به
+ * «اولین/آخرین ترم فهرست» برنمی‌گردیم. فقط mock پرچم ترم ندارد و رفتار قبلی را دارد.
+ */
+async function resolveTermId(kind: DailyApprovalCourseKind): Promise<string> {
+  if (isMockApiMode()) {
+    const terms = await DailyApprovalsService.listTerms(kind);
+    return (terms.find((item) => item.ended === false) ?? terms[0])?.id ?? '';
+  }
+  const open = await loadOpenSemesters();
+  return (
+    open.find((item) => item.kind === OPEN_KIND_BY_COURSE_KIND[kind])?.semester
+      .id ?? ''
+  );
+}
+
 async function loadKindTrainees(
   kind: DailyApprovalCourseKind
 ): Promise<KindTrainees> {
-  const terms = await DailyApprovalsService.listTerms(kind);
-  const term = terms.find((item) => item.ended === false) ?? terms[0];
-  if (!term) return { trainees: [], truncated: false };
+  const termId = await resolveTermId(kind);
+  if (!termId) return { trainees: [], truncated: false };
 
   const trainees: DailyApprovalTrainee[] = [];
   let offset = 0;
@@ -40,7 +64,7 @@ async function loadKindTrainees(
       query: '',
       readFilter: 'all',
       course: 'all',
-      termId: term.id,
+      termId,
       offset,
       limit: DAILY_APPROVALS_PAGE_SIZE,
     });

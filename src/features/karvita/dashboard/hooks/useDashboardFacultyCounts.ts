@@ -6,19 +6,16 @@ import { isForbiddenError } from '@/services/api-error';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { fetchLearnersPage } from '@/services/reports/real/learners-report.api';
-import { fetchListPage } from '@/services/reports/real/list-reports.api';
 import type { ListReportSlug } from '@/services/reports/real/list-reports.api';
 import type { UserRole } from '@/types/auth';
-import type { ReportPeriodState, ReportRow } from '@/types/reports';
+import type { ReportRow } from '@/types/reports';
 
 import { facultyPerformanceQueryOptions } from './facultyPerformanceQuery';
-
-/** لیست‌ها به semester وابسته نیستند؛ مثل بقیهٔ هوک‌های میز کار period خالی می‌رود. */
-const DASHBOARD_PERIOD: ReportPeriodState = {
-  mode: 'term',
-  termId: '',
-  moduleId: '',
-};
+import {
+  loadListRowsForOpenSemesters,
+  loadOpenSemesters,
+  reportPeriodFor,
+} from './openSemesters';
 
 /** هر صفحه ۵۰ ردیف؛ سقف صفحه فقط محافظ است. */
 const MAX_PAGES = 10;
@@ -40,44 +37,40 @@ export type DashboardFacultyCountsState = {
   counts: FacultyCounts | null;
 };
 
-async function collectAllPages(slug: ListReportSlug): Promise<{
+function collectAllPages(slug: ListReportSlug): Promise<{
   rows: ReportRow[];
   truncated: boolean;
 }> {
-  const collected: ReportRow[] = [];
-  let truncated = false;
-  for (let page = 1; page <= MAX_PAGES; page += 1) {
-    const result = await fetchListPage(slug, {
-      filters: {},
-      query: '',
-      period: DASHBOARD_PERIOD,
-      page,
-    });
-    collected.push(...result.rows);
-    if (!result.hasNextPage) break;
-    if (page === MAX_PAGES) truncated = true;
-  }
-  return { rows: collected, truncated };
+  return loadListRowsForOpenSemesters(slug);
 }
 
 async function collectLearnersCount(): Promise<{
   count: number;
   truncated: boolean;
 }> {
-  let count = 0;
-  let truncated = false;
-  for (let page = 1; page <= MAX_PAGES; page += 1) {
-    const result = await fetchLearnersPage({
-      filters: {},
-      query: '',
-      period: DASHBOARD_PERIOD,
-      page,
-    });
-    count += result.rows.length;
-    if (!result.hasNextPage) break;
-    if (page === MAX_PAGES) truncated = true;
-  }
-  return { count, truncated };
+  const open = await loadOpenSemesters();
+  const parts = await Promise.all(
+    open.map(async (item) => {
+      let count = 0;
+      let truncated = false;
+      for (let page = 1; page <= MAX_PAGES; page += 1) {
+        const result = await fetchLearnersPage({
+          filters: {},
+          query: '',
+          period: reportPeriodFor(item),
+          page,
+        });
+        count += result.rows.length;
+        if (!result.hasNextPage) break;
+        if (page === MAX_PAGES) truncated = true;
+      }
+      return { count, truncated };
+    })
+  );
+  return {
+    count: parts.reduce((sum, part) => sum + part.count, 0),
+    truncated: parts.some((part) => part.truncated),
+  };
 }
 
 /** جمع شمار اساتید، مدارس و فراگیران دانشکده. */

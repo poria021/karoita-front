@@ -69,3 +69,28 @@ describe('pickCapacityTermId', () => {
     ).toBe('');
   });
 });
+
+describe('pickCapacityTermId — fallback none (real)', () => {
+  it('ترم جاری هست → همان', () => {
+    const semesters = [semester('t2', { startClasses: true })];
+    expect(
+      pickCapacityTermId({ terms: TERMS, semesters, kind: 'semester', fallback: 'none' })
+    ).toBe('t2');
+  });
+
+  it('همهٔ ترم‌ها بسته‌اند → رشتهٔ خالی (نه آخرین ترم)', () => {
+    const semesters = [
+      semester('t1', { courseSelection: false, startClasses: false }),
+      semester('t3', { courseSelection: false, startClasses: false }),
+    ];
+    expect(
+      pickCapacityTermId({ terms: TERMS, semesters, kind: 'semester', fallback: 'none' })
+    ).toBe('');
+  });
+
+  it('بدون فهرست نیم‌سال → رشتهٔ خالی', () => {
+    expect(
+      pickCapacityTermId({ terms: TERMS, semesters: undefined, kind: 'semester', fallback: 'none' })
+    ).toBe('');
+  });
+});

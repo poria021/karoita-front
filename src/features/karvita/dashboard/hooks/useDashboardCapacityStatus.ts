@@ -78,7 +78,7 @@ export function useDashboardCapacityStatus(): DashboardCapacityStatusState {
                 terms,
                 semesters,
                 kind: TERM_KIND_BY_CAPACITY_KIND[kind],
-                fallback: mock ? 'first' : 'last',
+                fallback: mock ? 'first' : 'none',
               }),
           catalog: catalogQueries[index]?.data,
         };
