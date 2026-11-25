@@ -1,4 +1,5 @@
 import { assertMockApiMode, isMockApiMode } from '@/lib/api-mode';
+import { downloadRealReportCard } from '@/services/internship-enrollment/real/report-card.api';
 import { assertMockClientHasPermission } from '@/services/mock/mock-authz';
 import {
   clampLevel,
@@ -215,6 +216,20 @@ export const InternshipEnrollmentService = {
    */
   async getMentorCapacity(semesterId: string): Promise<NestMentorCapacity> {
     return getRealMentorCapacity(semesterId);
+  },
+
+  /**
+   * GET `/student-enrollments/{id}/report-card` — دانلود کارنامهٔ PDF دانشجو / مهارت‌آموز.
+   * فقط real mode؛ در mock فایلی وجود ندارد.
+   */
+  async downloadReportCard(
+    enrollmentId: string,
+    fileName?: string
+  ): Promise<void> {
+    if (isMockApiMode()) {
+      throw new Error('دانلود کارنامه فقط با سرور واقعی در دسترس است.');
+    }
+    return downloadRealReportCard(enrollmentId, fileName);
   },
 
   async saveWeeklyReportDraft(

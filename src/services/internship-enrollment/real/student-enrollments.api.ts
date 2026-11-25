@@ -36,6 +36,7 @@ export const NEST_STUDENT_ENROLLMENT_PATHS = {
   cancel: (id: string) => `v1/student-enrollments/${id}/cancel`,
   weeks: (id: string) => `v1/student-enrollments/${id}/weeks`,
   scoreSummary: (id: string) => `v1/student-enrollments/${id}/score-summary`,
+  reportCard: (id: string) => `v1/student-enrollments/${id}/report-card`,
   openCourseSelection: 'v1/student-enrollments/open-course-selection',
   bySemester: 'v1/student-enrollments/by-semester',
   professors: 'v1/student-enrollments/professors',
