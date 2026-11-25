@@ -9,6 +9,7 @@ import { kvTabsBodyBorderClassName } from '@/components/shared/shell/shellChrome
 import { cn } from '@/lib/utils';
 import { faIcons } from '@/utils/iconMap';
 
+import { useMentorCapacitySummary } from '../hooks/useMentorCapacitySummary';
 import { useOrganizationalCapacitiesPage } from '../hooks/useOrganizationalCapacitiesPage';
 import { OrganizationalCapacitiesGuard } from './OrganizationalCapacitiesGuard';
 import { OrganizationalCapacitiesHeader } from './OrganizationalCapacitiesHeader';
@@ -19,6 +20,11 @@ import { OrganizationalCapacitiesTable } from './OrganizationalCapacitiesTable';
 
 export function OrganizationalCapacitiesPageClient() {
   const page = useOrganizationalCapacitiesPage();
+  // کارت‌های کل / پذیرش قطعی / باقی‌مانده از API ظرفیت منتور (با خطا: خلاصهٔ محلی جدول).
+  const capacitySummary = useMentorCapacitySummary(
+    page.termId,
+    page.snapshot?.summary ?? null
+  );
   useRegisterPageRefresh(page.reload);
   const courses = page.snapshot?.courses ?? [];
   const maxCapacity = page.snapshot?.maxCapacity ?? 15;
@@ -65,8 +71,8 @@ export function OrganizationalCapacitiesPageClient() {
           ) : null}
 
           <OrganizationalCapacitiesSummary
-            summary={page.snapshot?.summary ?? null}
-            isLoading={page.isLoading}
+            summary={capacitySummary.summary}
+            isLoading={page.isLoading || capacitySummary.isLoading}
           />
 
           <div className="hidden lg:block">

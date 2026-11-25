@@ -14,6 +14,9 @@ export const DASHBOARD_QUERY = {
     ['org-capacities', 'terms', kind] as const,
   orgCapacitiesSnapshot: (kind: string, termId: string) =>
     ['org-capacities', 'snapshot', kind, termId] as const,
+  /** GET student-enrollments/mentor/capacity — کارت‌های کل / پذیرش قطعی / باقی‌مانده استاد راهنما. */
+  orgCapacitiesMentor: (termId: string) =>
+    ['org-capacities', 'mentor-capacity', termId] as const,
   dailyApprovalsTerms: (kind: string) =>
     ['daily-approvals', 'terms', kind] as const,
   dailyApprovalsCourses: (kind: string, termId: string) =>
