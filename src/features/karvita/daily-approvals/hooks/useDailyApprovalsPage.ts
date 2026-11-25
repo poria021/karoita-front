@@ -28,6 +28,7 @@ export function useDailyApprovalsPage() {
     setCourse,
     courseModule,
     scopeKeys,
+    scopePending,
     termId,
     setTermId,
     listQuery,
@@ -46,7 +47,7 @@ export function useDailyApprovalsPage() {
     course,
     scopeKeys,
     termId,
-    termsReady: terms.termsReady,
+    termsReady: terms.termsReady && !scopePending,
     resetKey,
   });
   const actions = useDailyApprovalsActions({
@@ -97,7 +98,7 @@ export function useDailyApprovalsPage() {
     terms: terms.terms,
     resetKey,
     trainees: list.items,
-    isLoading: !terms.termsReady || list.isLoading,
+    isLoading: !terms.termsReady || scopePending || list.isLoading,
     isLoadingMore: list.isLoadingMore,
     hasMore: list.hasMore,
     error: terms.termsError ?? list.error,
