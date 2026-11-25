@@ -60,18 +60,19 @@ describe('sharedRead', () => {
     const a = vi.fn(async () => 1);
     const b = vi.fn(async () => 2);
 
-    await sharedRead('student-enrollments:open', a);
-    await sharedRead('original-lessons:catalog', b);
+    // کش کوتاه‌مدت پیش‌فرض خاموش است؛ برای تست invalidate، TTL صریح می‌دهیم.
+    await sharedRead('student-enrollments:open', a, 1_000);
+    await sharedRead('original-lessons:catalog', b, 1_000);
     invalidateSharedReads('student-enrollments:');
 
-    await sharedRead('student-enrollments:open', a);
-    await sharedRead('original-lessons:catalog', b);
+    await sharedRead('student-enrollments:open', a, 1_000);
+    await sharedRead('original-lessons:catalog', b, 1_000);
 
     expect(a).toHaveBeenCalledTimes(2);
     expect(b).toHaveBeenCalledTimes(1);
   });
 
   it('uses the default TTL constant', () => {
-    expect(SHARED_READ_DEFAULT_TTL_MS).toBe(3_000);
+    expect(SHARED_READ_DEFAULT_TTL_MS).toBe(0);
   });
 });

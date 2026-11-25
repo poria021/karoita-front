@@ -38,13 +38,13 @@ export function useInternshipLockedPaths(
     queryKey: [...DASHBOARD_QUERY.internshipEnrollment, 'open-course-selection'],
     queryFn: () => studentEnrollmentsApi.getOpenCourseSelection(),
     enabled,
-    staleTime: QUERY_STALE_MS.module,
+    staleTime: QUERY_STALE_MS.enrollment,
   });
   const bySemesterQuery = useQuery({
     queryKey: [...DASHBOARD_QUERY.internshipEnrollment, 'by-semester'],
     queryFn: () => studentEnrollmentsApi.listBySemester(),
     enabled,
-    staleTime: QUERY_STALE_MS.module,
+    staleTime: QUERY_STALE_MS.enrollment,
   });
 
   return useMemo<ReadonlySet<string>>(() => {

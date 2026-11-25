@@ -56,13 +56,13 @@ export function useEnrollmentLeafAvailability(
     queryKey: [...DASHBOARD_QUERY.internshipEnrollment, 'open-course-selection'],
     queryFn: () => studentEnrollmentsApi.getOpenCourseSelection(),
     enabled: enabled && !mock,
-    staleTime: QUERY_STALE_MS.module,
+    staleTime: QUERY_STALE_MS.enrollment,
   });
   const bySemesterQuery = useQuery({
     queryKey: [...DASHBOARD_QUERY.internshipEnrollment, 'by-semester'],
     queryFn: () => studentEnrollmentsApi.listBySemester(),
     enabled: enabled && !mock,
-    staleTime: QUERY_STALE_MS.module,
+    staleTime: QUERY_STALE_MS.enrollment,
   });
 
   const levelsKey = leaves.map((leaf) => leaf.level).join(',');

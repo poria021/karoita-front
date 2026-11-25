@@ -65,7 +65,7 @@ export function useCurrentTerms(role: UserRole | undefined): CurrentTermsState {
     queryKey: [...DASHBOARD_QUERY.internshipEnrollment, 'open-course-selection'],
     queryFn: () => studentEnrollmentsApi.getOpenCourseSelection(),
     enabled: enabled && learner,
-    staleTime: QUERY_STALE_MS.module,
+    staleTime: QUERY_STALE_MS.enrollment,
     retry: false,
   });
 
