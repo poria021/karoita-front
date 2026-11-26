@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+﻿import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   listRealDailyApprovals,
@@ -67,7 +67,7 @@ describe('listRealDailyApprovals', () => {
       .mockResolvedValue({ globalProfessorCapacity: 30, passingScoreThreshold: 70 });
   });
 
-  it('populates each trainee row with their own real weeks', async () => {
+  it('leaves weeks unloaded until a trainee is selected', async () => {
     vi.mocked(studentEnrollmentsApi.listMentorStudents).mockResolvedValue({
       data: [
         { id: 'e1', studentId: 's1', status: 'active', student: { firstName: 'سارا', lastName: 'احمدی' } },
@@ -87,13 +87,10 @@ describe('listRealDailyApprovals', () => {
     const page = await listRealDailyApprovals(baseInput);
 
     expect(page.items).toHaveLength(2);
-    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledWith('e1');
-    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledWith('e2');
+    expect(studentEnrollmentsApi.listWeeks).not.toHaveBeenCalled();
 
     const first = page.items.find((t) => t.id === 'e1');
-    expect(first?.weeks).toHaveLength(2);
-    expect(first?.weeks[0]).toMatchObject({ id: 'w1', weekNumber: 1, status: 'graded', score: 90 });
-    expect(first?.weeks[1]).toMatchObject({ id: 'w2', weekNumber: 2, status: 'draft', score: null });
+    expect(first?.weeks).toEqual([]);
 
     const second = page.items.find((t) => t.id === 'e2');
     expect(second?.weeks).toEqual([]);
@@ -125,7 +122,7 @@ describe('listRealDailyApprovals', () => {
     expect(trainee?.progressiveGrade.statusLabel).toBe('قبول');
   });
 
-  it('shows "در جریان" when the student has submitted but score-summary has no graded weeks yet', async () => {
+  it('does not infer submission status from weeks before the trainee is selected', async () => {
     vi.mocked(studentEnrollmentsApi.listMentorStudents).mockResolvedValue({
       data: [{ id: 'e1', studentId: 's1', status: 'active' }],
       hasNextPage: false,
@@ -139,7 +136,8 @@ describe('listRealDailyApprovals', () => {
 
     const trainee = page.items.find((t) => t.id === 'e1');
     expect(trainee?.progressiveGrade.final20).toBeNull();
-    expect(trainee?.progressiveGrade.statusLabel).toBe('در جریان');
+    expect(trainee?.progressiveGrade.statusLabel).toBe('فاقد نمره');
+    expect(studentEnrollmentsApi.listWeeks).not.toHaveBeenCalled();
   });
 
   it('sums real conversation unreadCount per trainee instead of always reporting 0', async () => {
@@ -163,7 +161,7 @@ describe('listRealDailyApprovals', () => {
     expect(page.items.find((t) => t.id === 'e2')?.unreadCount).toBe(0);
   });
 
-  it('does not crash the whole page when one trainee’s weeks fail to load', async () => {
+  it('does not request weeks for any trainee while loading the list', async () => {
     vi.mocked(studentEnrollmentsApi.listMentorStudents).mockResolvedValue({
       data: [
         { id: 'e1', studentId: 's1', status: 'active' },
@@ -179,10 +177,11 @@ describe('listRealDailyApprovals', () => {
     const page = await listRealDailyApprovals(baseInput);
 
     expect(page.items.find((t) => t.id === 'e1')?.weeks).toEqual([]);
-    expect(page.items.find((t) => t.id === 'e2')?.weeks).toHaveLength(1);
+    expect(page.items.find((t) => t.id === 'e2')?.weeks).toEqual([]);
+    expect(studentEnrollmentsApi.listWeeks).not.toHaveBeenCalled();
   });
 
-  it('only fetches weeks for rows that survive the client-side filters', async () => {
+  it('does not fetch weeks for rows while applying client-side filters', async () => {
     vi.mocked(studentEnrollmentsApi.listMentorStudents).mockResolvedValue({
       data: [
         { id: 'e1', studentId: 's1', status: 'active', student: { firstName: 'سارا', lastName: 'احمدی' } },
@@ -194,8 +193,7 @@ describe('listRealDailyApprovals', () => {
 
     await listRealDailyApprovals({ ...baseInput, readFilter: 'read' });
 
-    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledTimes(1);
-    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledWith('e1');
+    expect(studentEnrollmentsApi.listWeeks).not.toHaveBeenCalled();
   });
 
   it('when course=all, keeps only trainees whose lesson is in scopeKeys', async () => {
@@ -230,8 +228,7 @@ describe('listRealDailyApprovals', () => {
     });
 
     expect(page.items.map((t) => t.id)).toEqual(['e1']);
-    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledTimes(1);
-    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledWith('e1');
+    expect(studentEnrollmentsApi.listWeeks).not.toHaveBeenCalled();
   });
 
   it('when course=all and scopeKeys is empty, returns no trainees', async () => {
@@ -269,7 +266,7 @@ describe('refreshRealDailyApprovalTraineeDerived', () => {
       .mockResolvedValue({ globalProfessorCapacity: 30, passingScoreThreshold: 70 });
   });
 
-  it('re-reads only the one trainee (weeks + conversations + score-summary), not the whole mentor list', async () => {
+  it('refreshes summary and conversations without fetching weeks', async () => {
     vi.mocked(studentEnrollmentsApi.listWeeks).mockResolvedValue([
       { id: 'w1', status: 'completed', mentorStatus: 'send', score: 90 },
     ]);
@@ -287,13 +284,12 @@ describe('refreshRealDailyApprovalTraineeDerived', () => {
     const derived = await refreshRealDailyApprovalTraineeDerived('e1', 'active');
 
     expect(studentEnrollmentsApi.listMentorStudents).not.toHaveBeenCalled();
-    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledTimes(1);
-    expect(studentEnrollmentsApi.listWeeks).toHaveBeenCalledWith('e1');
+    expect(studentEnrollmentsApi.listWeeks).not.toHaveBeenCalled();
     expect(conversationsApi.listByEnrollment).toHaveBeenCalledTimes(1);
     expect(conversationsApi.listByEnrollment).toHaveBeenCalledWith('e1');
     expect(studentEnrollmentsApi.getScoreSummary).toHaveBeenCalledTimes(1);
     expect(studentEnrollmentsApi.getScoreSummary).toHaveBeenCalledWith('e1');
-    expect(derived.weeks).toHaveLength(1);
+    expect(derived.weeks).toEqual([]);
     expect(derived.unreadCount).toBe(2);
     expect(derived.progressiveGrade.gradedCount).toBe(1);
   });
