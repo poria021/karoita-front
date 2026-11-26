@@ -4,11 +4,11 @@ import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { unknownErrorMessage } from '@/lib/unknown-error-message';
 
 describe('QUERY_STALE_MS', () => {
-  it('has no short-lived query cache except the shared enrollment queries', () => {
+  it('has no query cache at all: every staleTime is 0', () => {
     expect(QUERY_STALE_MS.list).toBe(0);
     expect(QUERY_STALE_MS.module).toBe(0);
     expect(QUERY_STALE_MS.cms).toBe(0);
-    expect(QUERY_STALE_MS.enrollment).toBe(15_000);
+    expect(QUERY_STALE_MS.enrollment).toBe(0);
   });
 });
 
