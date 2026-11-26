@@ -36,7 +36,6 @@ export function BulletinsNotificationsPanel({
   const refresh = useNotificationsStore((state) => state.refresh);
   const loadMore = useNotificationsStore((state) => state.loadMore);
   const markAsRead = useNotificationsStore((state) => state.markAsRead);
-  const markAllAsRead = useNotificationsStore((state) => state.markAllAsRead);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,7 +46,6 @@ export function BulletinsNotificationsPanel({
     void refresh();
   }, [userId, refresh]);
 
-  const unreadCount = notifications.filter((item) => !item.read).length;
   const isInitialLoading =
     Boolean(userId) &&
     notifications.length === 0 &&
@@ -66,21 +64,6 @@ export function BulletinsNotificationsPanel({
       count={notifications.length}
       defaultOpen={defaultOpen}
       icon={<FaIcon icon={faIcons.circleInfo} size="sm" />}
-      headerAction={
-        unreadCount > 0 ? (
-          <KvButton
-            type="button"
-            color="cta"
-            appearance="text"
-            size="xs"
-            onClick={() => {
-              void markAllAsRead();
-            }}
-          >
-            خواندن همه
-          </KvButton>
-        ) : null
-      }
     >
       {errorMessage ? (
         <div className="flex min-h-0 flex-1 items-center justify-center p-kv-pair">
