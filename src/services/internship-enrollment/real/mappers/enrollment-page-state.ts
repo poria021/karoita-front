@@ -18,6 +18,7 @@ import type {
 import type {
   AttendanceDaysUnavailableReason,
   GetEnrollmentPageStateInput,
+  InternshipCourseKind,
   InternshipEnrollmentActor,
   InternshipEnrollmentPageState,
   InternshipEnrollmentTermHistoryEntry,
@@ -35,6 +36,7 @@ import {
 import {
   mapNestEnrollmentStatus,
   registeredSummaryFromEnrollment,
+  resolveEnrollmentProfessor,
   type RealWeeklyData,
 } from './enrollment-summary';
 
@@ -148,6 +150,31 @@ export function resolveEffectiveEnrollmentEntry<
           new Date(a.enrolment.createdAt ?? 0).getTime()
       )[0] ?? null
   );
+}
+
+/**
+ * آیا استاد، فراگیر را از این درس در ترم باز حذف کرده؟ `by-semester` ردیف `dropped` را روی همان
+ * درسِ ترم باز نگه می‌دارد، اما `findEnrolmentHistoryForLeaf` عمداً آن را از تاریخچه بیرون می‌ریزد؛
+ * پس اینجا مستقیم از ردیف درسِ همان ترم می‌خوانیم. فقط `dropped` (نه `cancelled`): لغوِ خودِ
+ * فراگیر نباید پیام «استاد شما را حذف کرد» نشان بدهد.
+ */
+export function resolveDroppedInOpenTerm(
+  openSemesterEntry: NestSemesterEnrolmentsByTerm | undefined,
+  kind: InternshipCourseKind,
+  leaf: EnrollmentLeafRef
+): { wasDropped: boolean; droppedSupervisorName: string | null } {
+  const enrolment = findLessonForLeaf(
+    openSemesterEntry?.lessons ?? [],
+    kind,
+    leaf
+  )?.enrolment;
+  if (enrolment?.status !== 'dropped') {
+    return { wasDropped: false, droppedSupervisorName: null };
+  }
+  return {
+    wasDropped: true,
+    droppedSupervisorName: resolveEnrollmentProfessor(enrolment)?.name ?? null,
+  };
 }
 
 export function toEnrollmentPageState(
@@ -288,8 +315,7 @@ export function toEnrollmentPageState(
       scenario === 'S3_enroll_open'
         ? {
             scope: realSelectionScope(input.actor),
-            wasDropped: false,
-            droppedSupervisorName: null,
+            ...resolveDroppedInOpenTerm(openSemesterEntry, kind, leafRef),
           }
         : null,
     conflictEnrollment: conflictLesson
