@@ -324,13 +324,12 @@ async function deriveDailyApprovalTraineeFields(
   status: DailyApprovalTraineeStatus,
   passingScoreThreshold: number
 ): Promise<DailyApprovalTraineeDerived> {
-  const [conversations, weeks, scoreSummary] = await Promise.all([
+  const [conversations, scoreSummary] = await Promise.all([
     loadRealEnrollmentConversations(enrollmentId),
-    loadRealDailyApprovalWeeks(enrollmentId),
     loadRealDailyApprovalScoreSummary(enrollmentId),
   ]);
 
-  const hasSubmitted = computeHasSubmitted(weeks);
+  const hasSubmitted = false;
   let progressiveGrade = buildDailyApprovalProgressiveGradeFromSummary(
     scoreSummary,
     status,
@@ -341,7 +340,7 @@ async function deriveDailyApprovalTraineeFields(
   }
 
   return {
-    weeks,
+    weeks: [],
     hasSubmitted,
     unreadCount: sumUnreadCount(conversations),
     progressiveGrade,
@@ -470,6 +469,10 @@ export async function refreshRealDailyApprovalTraineeDerived(
     status,
     passingScoreThreshold
   );
+}
+
+export async function loadRealDailyApprovalTraineeWeeks(enrollmentId: string): Promise<DailyApprovalWeek[]> {
+  return loadRealDailyApprovalWeeks(enrollmentId);
 }
 
 /**

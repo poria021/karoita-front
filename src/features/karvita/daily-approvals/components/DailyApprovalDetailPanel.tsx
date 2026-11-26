@@ -8,6 +8,7 @@ import {
 import { KvEmptyState } from '@/components/shared/KvEmptyState';
 import { kvScrollAreaClassName } from '@/components/shared/KvScrollArea';
 import { KvTypography } from '@/components/shared/KvTypography';
+import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import type {
   DailyApprovalTrainee,
   DailyApprovalWeek,
@@ -19,12 +20,14 @@ import { DAILY_APPROVALS_FEATURE } from '../constants';
 
 type DailyApprovalDetailPanelProps = {
   trainee: DailyApprovalTrainee | null;
+  loading?: boolean;
   selectedWeekId?: string | null;
   onSelectWeek?: (week: DailyApprovalWeek) => void;
 };
 
 export function DailyApprovalDetailPanel({
   trainee,
+  loading = false,
   selectedWeekId = null,
   onSelectWeek,
 }: DailyApprovalDetailPanelProps) {
@@ -105,13 +108,13 @@ export function DailyApprovalDetailPanel({
           </div>
         </div>
 
-        <div className="space-y-kv-group pt-kv-group">
+        {loading ? <KvBusySurface className="min-h-[240px]" /> : <div className="space-y-kv-group pt-kv-group">
           <DailyApprovalWeekGrid
             trainee={trainee}
             selectedWeekId={selectedWeekId}
             onSelectWeek={onSelectWeek}
           />
-        </div>
+        </div>}
       </KvCardContent>
     </KvCard>
   );

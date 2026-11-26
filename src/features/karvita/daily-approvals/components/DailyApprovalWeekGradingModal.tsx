@@ -84,6 +84,7 @@ type DailyApprovalWeekGradingModalProps = {
   trainee: DailyApprovalTrainee | null;
   week: DailyApprovalWeek | null;
   actionBusy: boolean;
+  loading?: boolean;
   /** حد نصاب قبولی سیستم (۰–۱۰۰) از تنظیمات عمومی ترم‌ها. */
   passingScoreThreshold?: number;
   onClose: () => void;
@@ -114,6 +115,7 @@ export function DailyApprovalWeekGradingModal({
   trainee,
   week,
   actionBusy,
+  loading = false,
   passingScoreThreshold,
   onClose,
   onCanWatchOthersChange,
@@ -149,7 +151,7 @@ export function DailyApprovalWeekGradingModal({
     onSavePrincipalVisits,
   });
 
-  if (!effectiveTrainee || !effectiveWeek) {
+  if (!effectiveTrainee || !effectiveWeek || loading) {
     if (!open) return null;
 
     // اولین باری که مودال باز می‌شه ولی trainee/week هنوز از لیست والد آماده
