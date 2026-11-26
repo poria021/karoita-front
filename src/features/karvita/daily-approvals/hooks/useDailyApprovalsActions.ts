@@ -50,6 +50,8 @@ export function useDailyApprovalsActions({
     weekId: string;
     detail: DailyApprovalWeekDetail;
   } | null>(null);
+  const [weekDetailLoading, setWeekDetailLoading] = useState(false);
+  const [traineeWeeksLoading, setTraineeWeeksLoading] = useState(false);
   const [bulkExtendOpen, setBulkExtendOpen] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
 
@@ -116,7 +118,12 @@ export function useDailyApprovalsActions({
 
   const selectTrainee = useCallback((trainee: DailyApprovalTrainee | null) => {
     setSelectedTraineeId(trainee?.id ?? null);
-  }, []);
+    if (!trainee || trainee.weeks.length > 0 || !isRealApiMode()) return;
+    setTraineeWeeksLoading(true);
+    void DailyApprovalsService.loadTraineeWeeks(trainee.id).then((weeks) => {
+      list.patchItems((prev) => prev.map((row) => row.id === trainee.id ? { ...row, weeks } : row));
+    }).finally(() => setTraineeWeeksLoading(false));
+  }, [list]);
 
   const closeWeekGrading = useCallback(() => {
     setGradingTarget(null);
@@ -143,6 +150,7 @@ export function useDailyApprovalsActions({
       // best-effort، جدا از باز شدن مودال — اگر خواندن گزارش/بازخورد قبلی
       // خطا بدهد، مودال بدون آن‌ها هم باز می‌شود (توست جدا نمی‌زنیم).
       if (isRealApiMode()) {
+        setWeekDetailLoading(true);
         void DailyApprovalsService.loadWeekDetail({
           traineeId: trainee.id,
           weekId: week.id,
@@ -155,7 +163,7 @@ export function useDailyApprovalsActions({
           })
           .catch(() => {
             // گزارش/بازخورد قبلی نمایش داده نمی‌شود؛ ثبت بازخورد جدید همچنان کار می‌کند.
-          });
+          }).finally(() => setWeekDetailLoading(false));
       }
 
       setActionBusy(true);
@@ -530,6 +538,8 @@ export function useDailyApprovalsActions({
     gradingOpen: gradingTarget !== null,
     gradingTrainee,
     gradingWeek,
+    weekDetailLoading,
+    traineeWeeksLoading,
     openWeekGrading,
     closeWeekGrading,
     saveSupervisorWeek,

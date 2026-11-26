@@ -36,6 +36,7 @@ import {
   listRealDailyApprovalTerms,
   listRealDailyApprovals,
   loadRealDailyApprovalWeekDetail,
+  loadRealDailyApprovalTraineeWeeks,
   readRealWeekCanWatchOthers,
   refreshRealDailyApprovalTraineeDerived,
   type DailyApprovalTraineeDerived,
@@ -67,6 +68,7 @@ import type {
   DailyApprovalTraineeStatus,
   DailyApprovalTermOption,
   DailyApprovalWeekDetail,
+  DailyApprovalWeek,
   DailyApprovalWeekOption,
   DropDailyApprovalTraineeInput,
   ExtendDailyApprovalWeekInput,
@@ -217,6 +219,11 @@ export const DailyApprovalsService = {
       ...page,
       items: page.items.map((row) => maskTraineeAttachments(row, role, threshold)),
     };
+  },
+
+  async loadTraineeWeeks(traineeId: string): Promise<DailyApprovalWeek[]> {
+    if (!isRealApiMode()) return [];
+    return loadRealDailyApprovalTraineeWeeks(traineeId);
   },
 
   /** GET `/student-enrollments/mentor/capacity` — ظرفیت منتور در یک ترم. */

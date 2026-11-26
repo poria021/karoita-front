@@ -116,6 +116,8 @@ export function useDailyApprovalsPage() {
     gradingOpen: actions.gradingOpen,
     gradingTrainee: actions.gradingTrainee,
     gradingWeek: actions.gradingWeek,
+    weekDetailLoading: actions.weekDetailLoading,
+    traineeWeeksLoading: actions.traineeWeeksLoading,
     passingScoreThreshold: terms.passingScoreThreshold,
     openWeekGrading: actions.openWeekGrading,
     closeWeekGrading: actions.closeWeekGrading,

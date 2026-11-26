@@ -146,7 +146,7 @@ export function findConflictingActiveTermEnrollment(input: {
         record.kind === 'internship' &&
         input.siblingLevels.includes(record.level) &&
         record.supervisorId !== null &&
-        (record.status === undefined || record.status === 'active')
+        record.status !== 'dropped'
     ) ?? null
   );
 }

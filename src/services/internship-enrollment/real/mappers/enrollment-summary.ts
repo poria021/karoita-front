@@ -195,6 +195,7 @@ export function registeredSummaryFromEnrollment(
   return {
     ...base,
     enrollmentId: nestEntityId(enrollment) || base.enrollmentId,
+    supervisorId: resolveEnrollmentProfessor(enrollment)?.id ?? null,
     supervisorName: resolvedNames.supervisorName ?? base.supervisorName,
     attendanceDaysLabel,
     // فقط وقتی معنا دارد که روز نداریم — اگر روز موجود بود، دلیل نبودنش بی‌ربط است.

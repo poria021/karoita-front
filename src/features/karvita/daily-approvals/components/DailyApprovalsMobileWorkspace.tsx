@@ -156,6 +156,7 @@ export function DailyApprovalsMobileWorkspace({
 
                   {expanded ? (
                     <div className="space-y-kv-group border-t border-kv-border-muted pt-kv-group">
+                      {page.traineeWeeksLoading && page.selectedTrainee?.id === trainee.id ? <KvBusySurface className="min-h-[180px]" /> : (
                       <DailyApprovalWeekGrid
                         trainee={trainee}
                         compact
@@ -169,6 +170,7 @@ export function DailyApprovalsMobileWorkspace({
                           void page.openWeekGrading(trainee, week);
                         }}
                       />
+                      )}
                     </div>
                   ) : null}
                 </KvCardContent>

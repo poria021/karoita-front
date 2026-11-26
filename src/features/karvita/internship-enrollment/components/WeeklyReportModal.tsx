@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -150,6 +151,49 @@ export function WeeklyReportModal({
     setLastWeek(week);
   }
   const effectiveWeek = week ?? lastWeek;
+  const [conversationLoadedId, setConversationLoadedId] = useState<string | null>(null);
+  const [conversationFailedId, setConversationFailedId] = useState<string | null>(null);
+  // «در حال بارگذاری» از روی state مشتق می‌شود (نه setState داخل effect): تا وقتی
+  // گفتگوی این هفته نه لود شده و نه خطا داده، یعنی هنوز باید گرفته شود.
+  const conversationLoading =
+    open &&
+    !!effectiveWeek &&
+    !!state.enrollment?.weeksAreReal &&
+    conversationLoadedId !== effectiveWeek.id &&
+    conversationFailedId !== effectiveWeek.id;
+  useEffect(() => {
+    const enrollment = state.enrollment;
+    if (!conversationLoading || !effectiveWeek || !enrollment) return;
+    let current = true;
+    void import('@/services/internship-enrollment.service')
+      .then(({ InternshipEnrollmentService }) =>
+        InternshipEnrollmentService.getWeeklyConversationDetail({
+          actor,
+          level: state.level,
+          enrollmentId: enrollment.enrollmentId,
+          weekId: effectiveWeek.id,
+          professorId: state.enrollment?.supervisorId,
+          mentorId: enrollment.mentorId,
+        })
+      )
+      .then((detail) => {
+        if (!current) return;
+        setConversationLoadedId(effectiveWeek.id);
+        onWeekUpdated({
+          ...effectiveWeek,
+          text: detail.text,
+          files: detail.files ?? [],
+          feedback: detail.feedback,
+          reportSubmittedAt: detail.submittedAt,
+        });
+      })
+      .catch(() => {
+        if (current) setConversationFailedId(effectiveWeek.id);
+      });
+    return () => {
+      current = false;
+    };
+  }, [conversationLoading, effectiveWeek, state.enrollment, state.level, actor, onWeekUpdated]);
 
   const modal = useWeeklyReportModal({
     actor,
@@ -161,7 +205,7 @@ export function WeeklyReportModal({
     onWeekUpdated,
   });
 
-  if (!effectiveWeek) {
+  if (!effectiveWeek || (open && effectiveWeek && state.enrollment?.weeksAreReal && conversationLoadedId !== effectiveWeek.id) || conversationLoading) {
     if (!open) return null;
 
     // اولین باری که مودال باز می‌شه ولی هفته هنوز از والد نرسیده (مثلاً هنوز

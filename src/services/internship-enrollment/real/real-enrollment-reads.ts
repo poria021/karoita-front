@@ -203,15 +203,22 @@ async function loadWeekConversationDataByWeekId(
 /** GET `weeks` + `score-summary` این ثبت‌نام؛ شکست کامل → `undefined` (فراخوان به fallback برمی‌گردد). */
 async function loadRealWeeklyData(
   enrollmentId: string,
-  knownRoles: { professorId?: string | null; mentorId?: string | null }
+  knownRoles: { professorId?: string | null; mentorId?: string | null },
+  options: { skipConversations?: boolean } = {}
 ): Promise<RealWeeklyData | undefined> {
   try {
     const [weeks, scoreSummary] = await Promise.all([
       studentEnrollmentsApi.listWeeks(enrollmentId),
       studentEnrollmentsApi.getScoreSummary(enrollmentId),
     ]);
+    // حالت `weeksOnly`: هیچ GET messages نمی‌زنیم؛ وضعیت هفته‌ها فقط از خود `weeks` می‌آید.
     const { latestSubmissionByWeekId, feedbackByWeekId } =
-      await loadWeekConversationDataByWeekId(weeks, enrollmentId, knownRoles);
+      options.skipConversations !== false
+        ? {
+            latestSubmissionByWeekId: new Map<string, WeekStudentSubmissionPreview>(),
+            feedbackByWeekId: new Map<string, InternshipWeeklyReportFeedback>(),
+          }
+        : await loadWeekConversationDataByWeekId(weeks, enrollmentId, knownRoles);
     return { weeks, scoreSummary, latestSubmissionByWeekId, feedbackByWeekId };
   } catch (error) {
     // برخلاف بقیهٔ fallbackهای این فایل، این شکست باید جایی ثبت شود — UI با
@@ -233,7 +240,8 @@ async function loadRealWeeklyData(
  */
 async function loadRegisteredEnrollmentDetails(
   activeEntry: EnrolmentHistoryEntry | null,
-  isActiveInOpenTerm: boolean
+  isActiveInOpenTerm: boolean,
+  options: { skipConversations?: boolean } = {}
 ): Promise<{
   supervisorName: string | null;
   supervisorDay: string | null;
@@ -267,10 +275,14 @@ async function loadRegisteredEnrollmentDetails(
         ? Promise.resolve(mentor?.title || null)
         : resolveUserDisplayName(mentor.id),
       enrollmentId
-        ? loadRealWeeklyData(enrollmentId, {
-            professorId: professor?.id,
-            mentorId: mentor?.id,
-          })
+        ? loadRealWeeklyData(
+            enrollmentId,
+            {
+              professorId: professor?.id,
+              mentorId: mentor?.id,
+            },
+            options
+          )
         : Promise.resolve(undefined),
     ]);
 
@@ -307,7 +319,8 @@ export async function getRealEnrollmentPageState(
 
   const registeredDetails = await loadRegisteredEnrollmentDetails(
     effectiveEntry,
-    isActiveInOpenTerm
+    isActiveInOpenTerm,
+    { skipConversations: input.weeksOnly === true }
   );
   return toEnrollmentPageState(
     input,
@@ -343,7 +356,8 @@ export async function getRealEnrollmentTermReport(
   const isActiveInOpenTerm = Boolean(open) && entry.semesterId === open?.id;
   const registeredDetails = await loadRegisteredEnrollmentDetails(
     entry,
-    isActiveInOpenTerm
+    isActiveInOpenTerm,
+    { skipConversations: true }
   );
   const openTerm = open ? toAcademicTerm(open, { lessons: open.lessons ?? [] }) : null;
   const termTitle = termTitleForHistoryEntry(entry, open, openTerm, semesters);
@@ -366,6 +380,30 @@ export async function getRealEnrollmentTermReport(
   return {
     ...summary,
     isTermArchived: !isActiveInOpenTerm || entry.enrolment.status !== 'active',
+  };
+}
+
+/** Load one week's conversation only when its report modal is opened. */
+export async function getRealWeeklyConversationDetail(input: {
+  enrollmentId: string;
+  weekId: string;
+  professorId?: string | null;
+  mentorId?: string | null;
+}): Promise<{ text: string; files: WeekStudentSubmissionPreview['files']; feedback?: InternshipWeeklyReportFeedback; submittedAt?: string | null }> {
+  requireNestTransport('InternshipEnrollmentService.getWeeklyConversationDetail');
+  const messages = await loadWeekConversationMessages(input.enrollmentId, input.weekId);
+  const submission = resolveLatestStudentSubmission(messages, {
+    professorId: input.professorId,
+    mentorId: input.mentorId,
+  });
+  return {
+    text: submission?.text ?? '',
+    files: submission?.files ?? [],
+    feedback: resolveWeekFeedback(messages, {
+      professorId: input.professorId,
+      mentorId: input.mentorId,
+    }),
+    submittedAt: submission?.createdAt ?? null,
   };
 }
 

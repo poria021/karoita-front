@@ -142,12 +142,13 @@ export function useLearnerWorkbenchSnapshot(): LearnerWorkbenchSnapshot {
 
   const queries = useQueries({
     queries: levels.map((level) => ({
-      // هم‌کلید با `useInternshipEnrollmentPage` تا کش میز کار و صفحه درس مشترک باشد.
+      // کلید جدا از `useInternshipEnrollmentPage`: این کوئری فقط `weeks` دارد (بدون messages) و نباید کش صفحه‌ی کامل را پر کند.
       queryKey: [
         ...DASHBOARD_QUERY.internshipEnrollment,
         actor?.id ?? 'anon',
         actor?.role ?? 'none',
         level,
+        'weeks-only',
       ],
       queryFn: () => {
         if (!actor) {
@@ -156,6 +157,7 @@ export function useLearnerWorkbenchSnapshot(): LearnerWorkbenchSnapshot {
         return InternshipEnrollmentService.getEnrollmentPageState({
           actor,
           level,
+          weeksOnly: true,
         });
       },
       enabled,

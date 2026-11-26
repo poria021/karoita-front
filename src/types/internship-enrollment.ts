@@ -202,6 +202,7 @@ export type AttendanceDaysUnavailableReason = 'capacity-exhausted' | 'error';
 export type InternshipEnrollmentSummary = {
   /** شناسهٔ ثبت‌نام Nest (`student-enrollments/{id}`) — برای پیداکردن گفتگوی هفته لازم است. mock: خالی. */
   enrollmentId: string;
+  supervisorId?: string | null;
   supervisorName: string | null;
   attendanceDaysLabel: string;
   attendanceDaysUnavailableReason?: AttendanceDaysUnavailableReason | null;
@@ -265,6 +266,12 @@ export type InternshipEnrollmentPageState = {
 export type GetEnrollmentPageStateInput = {
   actor: InternshipEnrollmentActor;
   level: InternshipEnrollmentLevel;
+  /**
+   * فقط داده‌ی `weeks` + `score-summary` — بدون هیچ `GET /conversations/.../messages`.
+   * ویجت‌های میز کار (دانشجو/مهارت‌آموز) این را می‌فرستند؛ صفحه‌ی کامل ثبت‌نام نه،
+   * چون متن گزارش و بازخورد هفته فقط از پیام‌ها می‌آید.
+   */
+  weeksOnly?: boolean;
 };
 
 /** گزارش یک نیم‌سال مشخص از تاریخچهٔ دانشجو — برای سلکت‌باکس نیم‌سال‌های قبلی. */

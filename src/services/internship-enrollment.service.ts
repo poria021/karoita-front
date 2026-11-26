@@ -22,6 +22,7 @@ import {
 import {
   getRealEnrollmentPageState,
   getRealEnrollmentTermReport,
+  getRealWeeklyConversationDetail,
   getRealMentorCapacity,
   listRealDelayedMentors,
   listRealDelayedSchools,
@@ -43,6 +44,7 @@ import type {
   EnrollWithSupervisorInput,
   GetEnrollmentPageStateInput,
   GetEnrollmentTermReportInput,
+  InternshipEnrollmentActor,
   InternshipCourseKind,
   InternshipEnrollmentLevel,
   InternshipEnrollmentPageState,
@@ -112,6 +114,18 @@ export const InternshipEnrollmentService = {
     }
     gateEnrollmentMock();
     return resolveEnrollmentTermReport(input);
+  },
+
+  async getWeeklyConversationDetail(input: {
+    actor: InternshipEnrollmentActor;
+    level: InternshipEnrollmentLevel;
+    enrollmentId: string;
+    weekId: string;
+    professorId?: string | null;
+    mentorId?: string | null;
+  }) {
+    if (!isMockApiMode()) return getRealWeeklyConversationDetail(input);
+    return { text: '', files: [], feedback: undefined, submittedAt: null };
   },
 
   /** real: GET `professors?semesterId=&lessonId=`؛ فیلتر استان/پردیس/سرچ سمت کلاینت. */

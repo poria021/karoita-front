@@ -1,13 +1,6 @@
 #!/usr/bin/env sh
-# اگر هر مرحله fail شود، git push متوقف می‌شود.
 set -e
 
 pnpm typecheck
 pnpm lint
 pnpm test
-
-# همان Playwright smoke که در CI روی PR اجرا می‌شود.
-# پورت ۳۱۰۰ تا با `next dev` دستی روی ۳۰۰۰ تداخل نکند.
-# یک‌بار: pnpm test:e2e:install
-echo "pre-push: running Playwright smoke (CI=true, port 3100)…"
-CI=true PLAYWRIGHT_PORT=3100 NEXT_PUBLIC_API_MODE=mock pnpm test:e2e

@@ -65,6 +65,7 @@ export function DailyApprovalsPageClient() {
 
   const detail = (
     <DailyApprovalDetailPanel
+      loading={page.traineeWeeksLoading}
       trainee={page.selectedTrainee}
       selectedWeekId={
         page.gradingTrainee?.id === page.selectedTrainee?.id
@@ -200,6 +201,7 @@ export function DailyApprovalsPageClient() {
         />
         <DailyApprovalWeekGradingModal
           open={page.gradingOpen}
+          loading={page.weekDetailLoading}
           role={role}
           trainee={page.gradingTrainee}
           week={page.gradingWeek}
