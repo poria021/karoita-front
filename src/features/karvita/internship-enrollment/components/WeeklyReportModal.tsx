@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { FaIcon } from '@/components/shared/FaIcon';
@@ -150,6 +151,29 @@ export function WeeklyReportModal({
     setLastWeek(week);
   }
   const effectiveWeek = week ?? lastWeek;
+  const [conversationLoading, setConversationLoading] = useState(false);
+  const [conversationLoadedId, setConversationLoadedId] = useState<string | null>(null);
+  useEffect(() => {
+    const enrollment = state.enrollment;
+    if (!open || !effectiveWeek || !enrollment || !enrollment.weeksAreReal || conversationLoadedId === effectiveWeek.id) return;
+    let current = true;
+    setConversationLoading(true);
+    void import('@/services/internship-enrollment.service').then(({ InternshipEnrollmentService }) =>
+      InternshipEnrollmentService.getWeeklyConversationDetail({
+        actor,
+        level: state.level,
+        enrollmentId: enrollment.enrollmentId,
+        weekId: effectiveWeek.id,
+        professorId: state.enrollment?.supervisorId,
+        mentorId: enrollment.mentorId,
+      })
+    ).then((detail) => {
+      if (!current) return;
+      setConversationLoadedId(effectiveWeek.id);
+      onWeekUpdated({ ...effectiveWeek, text: detail.text, files: detail.files ?? [], feedback: detail.feedback, reportSubmittedAt: detail.submittedAt });
+    }).catch(() => undefined).finally(() => { if (current) setConversationLoading(false); });
+    return () => { current = false; };
+  }, [open, effectiveWeek, state.enrollment, state.level, conversationLoadedId, actor, onWeekUpdated]);
 
   const modal = useWeeklyReportModal({
     actor,
@@ -161,7 +185,7 @@ export function WeeklyReportModal({
     onWeekUpdated,
   });
 
-  if (!effectiveWeek) {
+  if (!effectiveWeek || conversationLoading) {
     if (!open) return null;
 
     // اولین باری که مودال باز می‌شه ولی هفته هنوز از والد نرسیده (مثلاً هنوز

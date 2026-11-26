@@ -79,6 +79,7 @@ export function useInternshipEnrollmentPage(level: InternshipEnrollmentLevel) {
       return InternshipEnrollmentService.getEnrollmentPageState({
         actor,
         level: resolved.level,
+        weeksOnly: true,
       });
     },
     enabled: Boolean(actor) && levelAllowed,
