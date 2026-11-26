@@ -151,29 +151,49 @@ export function WeeklyReportModal({
     setLastWeek(week);
   }
   const effectiveWeek = week ?? lastWeek;
-  const [conversationLoading, setConversationLoading] = useState(false);
   const [conversationLoadedId, setConversationLoadedId] = useState<string | null>(null);
+  const [conversationFailedId, setConversationFailedId] = useState<string | null>(null);
+  // «در حال بارگذاری» از روی state مشتق می‌شود (نه setState داخل effect): تا وقتی
+  // گفتگوی این هفته نه لود شده و نه خطا داده، یعنی هنوز باید گرفته شود.
+  const conversationLoading =
+    open &&
+    !!effectiveWeek &&
+    !!state.enrollment?.weeksAreReal &&
+    conversationLoadedId !== effectiveWeek.id &&
+    conversationFailedId !== effectiveWeek.id;
   useEffect(() => {
     const enrollment = state.enrollment;
-    if (!open || !effectiveWeek || !enrollment || !enrollment.weeksAreReal || conversationLoadedId === effectiveWeek.id) return;
+    if (!conversationLoading || !effectiveWeek || !enrollment) return;
     let current = true;
-    setConversationLoading(true);
-    void import('@/services/internship-enrollment.service').then(({ InternshipEnrollmentService }) =>
-      InternshipEnrollmentService.getWeeklyConversationDetail({
-        actor,
-        level: state.level,
-        enrollmentId: enrollment.enrollmentId,
-        weekId: effectiveWeek.id,
-        professorId: state.enrollment?.supervisorId,
-        mentorId: enrollment.mentorId,
+    void import('@/services/internship-enrollment.service')
+      .then(({ InternshipEnrollmentService }) =>
+        InternshipEnrollmentService.getWeeklyConversationDetail({
+          actor,
+          level: state.level,
+          enrollmentId: enrollment.enrollmentId,
+          weekId: effectiveWeek.id,
+          professorId: state.enrollment?.supervisorId,
+          mentorId: enrollment.mentorId,
+        })
+      )
+      .then((detail) => {
+        if (!current) return;
+        setConversationLoadedId(effectiveWeek.id);
+        onWeekUpdated({
+          ...effectiveWeek,
+          text: detail.text,
+          files: detail.files ?? [],
+          feedback: detail.feedback,
+          reportSubmittedAt: detail.submittedAt,
+        });
       })
-    ).then((detail) => {
-      if (!current) return;
-      setConversationLoadedId(effectiveWeek.id);
-      onWeekUpdated({ ...effectiveWeek, text: detail.text, files: detail.files ?? [], feedback: detail.feedback, reportSubmittedAt: detail.submittedAt });
-    }).catch(() => undefined).finally(() => { if (current) setConversationLoading(false); });
-    return () => { current = false; };
-  }, [open, effectiveWeek, state.enrollment, state.level, conversationLoadedId, actor, onWeekUpdated]);
+      .catch(() => {
+        if (current) setConversationFailedId(effectiveWeek.id);
+      });
+    return () => {
+      current = false;
+    };
+  }, [conversationLoading, effectiveWeek, state.enrollment, state.level, actor, onWeekUpdated]);
 
   const modal = useWeeklyReportModal({
     actor,
@@ -185,7 +205,7 @@ export function WeeklyReportModal({
     onWeekUpdated,
   });
 
-  if (!effectiveWeek || conversationLoading) {
+  if (!effectiveWeek || (open && effectiveWeek && state.enrollment?.weeksAreReal && conversationLoadedId !== effectiveWeek.id) || conversationLoading) {
     if (!open) return null;
 
     // اولین باری که مودال باز می‌شه ولی هفته هنوز از والد نرسیده (مثلاً هنوز
