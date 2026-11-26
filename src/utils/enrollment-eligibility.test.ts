@@ -210,7 +210,7 @@ describe('enrollment eligibility', () => {
     ).toBe(false);
   });
 
-  it('ignores completed enrollments when checking student conflicts', () => {
+  it('counts completed enrollments in the same term as a student conflict', () => {
     expect(
       hasStudentTermEnrollmentConflict({
         records: [
@@ -236,6 +236,6 @@ describe('enrollment eligibility', () => {
         termId: 'term-1',
         siblingLevels: [1, 3, 4],
       })
-    ).toBe(false);
+    ).toBe(true);
   });
 });
