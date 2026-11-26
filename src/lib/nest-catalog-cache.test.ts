@@ -10,12 +10,12 @@ import {
 } from '@/lib/nest-catalog-cache';
 
 describe('getCatalogCacheTtl', () => {
-  it('keeps academic term catalog short-lived so new semesters show quickly', () => {
-    expect(getCatalogCacheTtl('admin/semester')).toBe(60_000);
-    expect(getCatalogCacheTtl('admin/semesters_all?structure=semester')).toBe(
-      60_000
-    );
-    expect(getCatalogCacheTtl('admin/settings')).toBe(60_000);
+  it('does not cache term catalog / settings / per-user enrollment endpoints', () => {
+    expect(getCatalogCacheTtl('admin/semester')).toBeNull();
+    expect(getCatalogCacheTtl('admin/semesters_all?structure=semester')).toBeNull();
+    expect(getCatalogCacheTtl('admin/settings')).toBeNull();
+    expect(getCatalogCacheTtl('v1/student-enrollments/open-course-selection')).toBeNull();
+    expect(getCatalogCacheTtl('v1/student-enrollments/professors?semesterId=1')).toBeNull();
   });
 
   it('keeps geo / policy catalogs long-lived', () => {

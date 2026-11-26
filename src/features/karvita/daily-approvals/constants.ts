@@ -191,6 +191,24 @@ export function evaluationRealScopeKeys(
 }
 
 /**
+ * `scopeKeys` لیست ارزیابی.
+ * real: تا کاتالوگ درس‌های ترم نیامده `undefined` (نه `[]`)؛ `[]` یعنی «ماژول در این
+ * ترم درسی ندارد» و «همهٔ دروس» را کاملاً خالی می‌کند.
+ */
+export function resolveEvaluationScopeKeys(input: {
+  isRealCatalog: boolean;
+  termCourses: readonly DailyApprovalCatalogCourse[] | undefined;
+  courseModule: CourseDefinition | null;
+}): string[] | undefined {
+  const { isRealCatalog, termCourses, courseModule } = input;
+  if (!isRealCatalog) {
+    return courseModule ? evaluationScopeKeys(courseModule) : undefined;
+  }
+  if (!courseModule || termCourses === undefined) return undefined;
+  return evaluationRealScopeKeys(termCourses, courseModule);
+}
+
+/**
  * فیلتر درس حالت real: فقط زیرمجموعه‌های درس انتخاب‌شدهٔ ماژول در همین ترم
  * (مقدار = `lessonId`). بدون `courseModule` همهٔ درس‌های ترم می‌آید.
  */

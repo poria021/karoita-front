@@ -4,10 +4,11 @@ import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { unknownErrorMessage } from '@/lib/unknown-error-message';
 
 describe('QUERY_STALE_MS', () => {
-  it('keeps list fresher than module/cms snapshots', () => {
-    expect(QUERY_STALE_MS.list).toBeLessThan(QUERY_STALE_MS.module);
-    expect(QUERY_STALE_MS.list).toBeLessThan(QUERY_STALE_MS.cms);
-    expect(QUERY_STALE_MS.list).toBeGreaterThan(0);
+  it('has no short-lived query cache except the shared enrollment queries', () => {
+    expect(QUERY_STALE_MS.list).toBe(0);
+    expect(QUERY_STALE_MS.module).toBe(0);
+    expect(QUERY_STALE_MS.cms).toBe(0);
+    expect(QUERY_STALE_MS.enrollment).toBe(15_000);
   });
 });
 

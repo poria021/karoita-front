@@ -95,14 +95,14 @@ export function useLearnerWorkbenchSnapshot(): LearnerWorkbenchSnapshot {
     queryKey: [...DASHBOARD_QUERY.internshipEnrollment, 'open-course-selection'],
     queryFn: () => studentEnrollmentsApi.getOpenCourseSelection(),
     enabled: overviewEnabled,
-    staleTime: QUERY_STALE_MS.module,
+    staleTime: QUERY_STALE_MS.enrollment,
     retry: false,
   });
   const bySemesterQuery = useQuery({
     queryKey: [...DASHBOARD_QUERY.internshipEnrollment, 'by-semester'],
     queryFn: () => studentEnrollmentsApi.listBySemester(),
     enabled: overviewEnabled,
-    staleTime: QUERY_STALE_MS.module,
+    staleTime: QUERY_STALE_MS.enrollment,
     retry: false,
   });
 

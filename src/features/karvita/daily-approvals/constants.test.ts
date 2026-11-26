@@ -5,6 +5,7 @@ import type { CourseDefinition } from '@/types/syllabus-config';
 import {
   evaluationRealScopeKeys,
   evaluationScopeKeys,
+  resolveEvaluationScopeKeys,
   getDailyApprovalCourseOptions,
   getRealDailyApprovalCourseOptions,
   scopeRealCatalogCoursesToModule,
@@ -108,5 +109,57 @@ describe('daily approvals course options', () => {
 
   it('evaluationRealScopeKeys is undefined without a module', () => {
     expect(evaluationRealScopeKeys(TERM_COURSES, null)).toBeUndefined();
+  });
+});
+
+describe('resolveEvaluationScopeKeys', () => {
+  it('real: کاتالوگ ترم هنوز نیامده → undefined (نه [] که همه را حذف می‌کند)', () => {
+    expect(
+      resolveEvaluationScopeKeys({
+        isRealCatalog: true,
+        termCourses: undefined,
+        courseModule: WITH_SUBS,
+      })
+    ).toBeUndefined();
+  });
+
+  it('real: کاتالوگ آمده → درس‌های ماژول', () => {
+    expect(
+      resolveEvaluationScopeKeys({
+        isRealCatalog: true,
+        termCourses: TERM_COURSES,
+        courseModule: WITH_SUBS,
+      })
+    ).toEqual(['les_1', 'les_special']);
+  });
+
+  it('real: ماژول در این ترم درسی ندارد → [] (واقعاً خالی)', () => {
+    expect(
+      resolveEvaluationScopeKeys({
+        isRealCatalog: true,
+        termCourses: [],
+        courseModule: WITH_SUBS,
+      })
+    ).toEqual([]);
+  });
+
+  it('real: بدون ماژول → undefined', () => {
+    expect(
+      resolveEvaluationScopeKeys({
+        isRealCatalog: true,
+        termCourses: TERM_COURSES,
+        courseModule: null,
+      })
+    ).toBeUndefined();
+  });
+
+  it('mock: از خود ماژول', () => {
+    expect(
+      resolveEvaluationScopeKeys({
+        isRealCatalog: false,
+        termCourses: undefined,
+        courseModule: WITH_SUBS,
+      })
+    ).toEqual(['intern1', 'crs_new_m_1']);
   });
 });

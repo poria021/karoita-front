@@ -12,6 +12,8 @@ import { KvCard, KvCardContent } from '@/components/shared/KvCard';
 import { KvTypography } from '@/components/shared/KvTypography';
 import { KvBusySurface } from '@/components/shared/table/KvBusySurface';
 import { useLearnerMaterialsBadge } from '@/features/karvita/course-materials/hooks/useLearnerMaterialsBadge';
+import { unknownErrorMessage } from '@/lib/unknown-error-message';
+import { InternshipEnrollmentService } from '@/services/internship-enrollment.service';
 import { RouteService } from '@/services/route.service';
 import { evaluationCourseFilterId } from '@/services/syllabus-config/course-catalog';
 import { catalogIdForKind } from '@/services/syllabus-config/syllabus-mappers';
@@ -181,6 +183,25 @@ export function ScenarioTermActive({
   const [activeWeek, setActiveWeek] = useState<InternshipWeeklySession | null>(
     null
   );
+  const [downloadingCard, setDownloadingCard] = useState(false);
+
+  const downloadReportCard = async (enrollmentId: string) => {
+    if (!enrollmentId) {
+      toast.message('کارنامهٔ این نیم‌سال هنوز در دسترس نیست.');
+      return;
+    }
+    setDownloadingCard(true);
+    try {
+      await InternshipEnrollmentService.downloadReportCard(
+        enrollmentId,
+        `report-card-${enrollmentId}.pdf`
+      );
+    } catch (err) {
+      toast.error(unknownErrorMessage(err, 'دانلود کارنامه ناموفق بود.'));
+    } finally {
+      setDownloadingCard(false);
+    }
+  };
 
   const courseKey = evaluationCourseFilterId(
     state.lessonId ?? catalogIdForKind(state.kind, state.level)
@@ -351,11 +372,8 @@ export function ScenarioTermActive({
                 appearance="ghost"
                 size="sm"
                 icon={<FaIcon icon={faIcons.filePdf} size="sm" />}
-                onClick={() =>
-                  toast.message(
-                    'دریافت فایل PDF در نسخهٔ فعلی در دسترس نیست.'
-                  )
-                }
+                loading={downloadingCard}
+                onClick={() => void downloadReportCard(enrollment.enrollmentId)}
               >
                 دانلود کارنامه
               </KvButton>

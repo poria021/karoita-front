@@ -178,7 +178,10 @@ export function useOrganizationalCapacitiesPage() {
     setIsDirty(false);
     // فقط kind فعلی؛ اول کاتالوگ، بعد ظرفیت‌ها (کاتالوگ تازه از cache می‌آید).
     void refetchCatalog().then(() => refetchSnapshot());
-  }, [refetchCatalog, refetchSnapshot]);
+    void queryClient.invalidateQueries({
+      queryKey: DASHBOARD_QUERY.orgCapacitiesMentor(resolvedTermId),
+    });
+  }, [queryClient, refetchCatalog, refetchSnapshot, resolvedTermId]);
 
   const changeKind = useCallback(
     (next: OrganizationalCapacityKind) => {
@@ -323,6 +326,10 @@ export function useOrganizationalCapacitiesPage() {
         })),
       });
       setSnapshotData(next);
+      // ظرفیت کل عوض شده؛ کارت‌های API منتور هم دوباره گرفته شوند.
+      void queryClient.invalidateQueries({
+        queryKey: DASHBOARD_QUERY.orgCapacitiesMentor(next.termId),
+      });
       // baseline رو به وضعیت جدید ست می‌کنیم → isDirty=false → دکمه قفل می‌شه
       baselineRef.current = courseDraftSignature(next.courses);
       baselineKeyRef.current = `${kind}::${next.termId}`;
@@ -341,7 +348,7 @@ export function useOrganizationalCapacitiesPage() {
     } finally {
       setActionBusy(false);
     }
-  }, [kind, readCatalog, setSnapshotData, snapshot]);
+  }, [kind, queryClient, readCatalog, setSnapshotData, snapshot]);
 
   return {
     kind,

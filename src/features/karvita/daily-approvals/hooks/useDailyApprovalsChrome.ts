@@ -21,8 +21,7 @@ import type {
 } from '@/types/daily-approvals';
 
 import {
-  evaluationRealScopeKeys,
-  evaluationScopeKeys,
+  resolveEvaluationScopeKeys,
   getDailyApprovalCourseOptions,
   getRealDailyApprovalCourseOptions,
 } from '../constants';
@@ -88,13 +87,15 @@ export function useDailyApprovalsChrome() {
         : getDailyApprovalCourseOptions(kind, courseModule),
     [isRealCatalog, termCourses, kind, courseModule]
   );
+  // real: تا کاتالوگ درس‌های ترم نیامده scopeKeys `[]` می‌شد و «همهٔ دروس» همه را حذف می‌کرد
+  // (و چون resetKey عوض نمی‌شد، همان نتیجهٔ خالی کش می‌ماند). لیست تا آماده‌شدن آن منتظر می‌ماند.
+  const scopePending =
+    isRealCatalog &&
+    Boolean(courseModule) &&
+    Boolean(termId) &&
+    termCoursesQuery.isPending;
   const scopeKeys = useMemo(
-    () =>
-      isRealCatalog
-        ? evaluationRealScopeKeys(termCourses ?? [], courseModule)
-        : courseModule
-          ? evaluationScopeKeys(courseModule)
-          : undefined,
+    () => resolveEvaluationScopeKeys({ isRealCatalog, termCourses, courseModule }),
     [isRealCatalog, termCourses, courseModule]
   );
   // `?course=` از لینک مانیتورینگ میز کار؛ اگر در گزینه‌ها نبود → همه.
@@ -138,6 +139,7 @@ export function useDailyApprovalsChrome() {
     courseModule,
     setModuleId,
     scopeKeys,
+    scopePending,
     termId,
     setTermId,
     listQuery,

@@ -25,7 +25,13 @@ export type NestOpenCourseSelectionLesson = NestLesson & {
    * level را قبلاً قبول شده و باید به‌جای انتخاب واحد جدید، تاریخچهٔ همان ترمِ
    * قبول‌شده را ببیند (ببین `toEnrollmentPageState`).
    */
-  blockReason?: 'in_progress' | 'passed' | (string & {}) | null;
+  blockReason?:
+    | 'in_progress'
+    | 'passed'
+    | 'main_title_in_progress'
+    | 'main_title_passed'
+    | (string & {})
+    | null;
 };
 
 /** GET `/student-enrollments/open-course-selection` — ترم باز + درس‌ها. */

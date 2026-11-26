@@ -42,11 +42,7 @@ export function semesterKind(semester: {
     : 'semester';
 }
 
-/**
- * نیم‌سال جاری یک نوع: اول کلاس‌های در جریان، بعد انتخاب واحد باز.
- * اگر هیچ‌کدام از گیت‌ها در پاسخ نبود (API گیت نداده)، آخرین ردیف همان نوع.
- * اگر گیت‌ها آمده ولی همه بسته‌اند → `null`.
- */
+/** آخرین عنصری که شرط را دارد (در real آخرین ردیف فهرست جدیدترین ترم است). */
 function findLastOpen(
   items: readonly NestSemester[],
   predicate: (item: NestSemester) => boolean
@@ -58,6 +54,11 @@ function findLastOpen(
   return undefined;
 }
 
+/**
+ * نیم‌سال جاری یک نوع: اول کلاس‌های در جریان، بعد انتخاب واحد باز.
+ * اگر هیچ‌کدام از گیت‌ها در پاسخ نبود (API گیت نداده)، آخرین ردیف همان نوع.
+ * اگر گیت‌ها آمده ولی همه بسته‌اند → `null`.
+ */
 export function pickCurrentSemester(
   semesters: readonly NestSemester[],
   kind: CurrentTermKind

@@ -4,7 +4,8 @@
  * `by-semester`، `student-enrollments` و کاتالوگ دروس را می‌خواند).
  *
  * - درخواست در حال اجرا با همان کلید → همان Promise برگردانده می‌شود.
- * - نتیجهٔ موفق فقط برای `ttlMs` کوتاه نگه داشته می‌شود (پیش‌فرض ۳ ثانیه)؛ خطا هرگز cache نمی‌شود.
+ * - نتیجهٔ موفق بعد از تمام شدن درخواست نگه داشته نمی‌شود (پیش‌فرض `ttlMs = 0`)؛ فقط درخواست در
+ *   حال اجرا dedupe می‌شود. خطا هرگز cache نمی‌شود.
  * - بعد از هر نوشتن (ثبت‌نام/لغو/...) `invalidateSharedReads` صدا زده شود.
  */
 
@@ -12,7 +13,7 @@ type Entry = { promise: Promise<unknown>; settledAt: number | null; ttlMs: numbe
 
 const store = new Map<string, Entry>();
 
-export const SHARED_READ_DEFAULT_TTL_MS = 3_000;
+export const SHARED_READ_DEFAULT_TTL_MS = 0;
 
 export function sharedRead<T>(
   key: string,
@@ -22,7 +23,8 @@ export function sharedRead<T>(
   const hit = store.get(key);
   if (hit) {
     const fresh =
-      hit.settledAt === null || Date.now() - hit.settledAt <= hit.ttlMs;
+      hit.settledAt === null ||
+      (hit.ttlMs > 0 && Date.now() - hit.settledAt <= hit.ttlMs);
     if (fresh) return hit.promise as Promise<T>;
     store.delete(key);
   }

@@ -3,12 +3,14 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, type Dispatch, type SetStateAction } from 'react';
 
+import { isMockApiMode } from '@/lib/api-mode';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { DailyApprovalsService } from '@/services/daily-approvals.service';
 import type { DailyApprovalCourseKind } from '@/types/daily-approvals';
 
 import { DAILY_APPROVAL_PASSING_SCORE } from '../constants';
+import { pickDefaultTermId } from '../lib/pickDefaultTermId';
 
 type UseDailyApprovalsTermsArgs = {
   kind: DailyApprovalCourseKind;
@@ -40,7 +42,7 @@ export function useDailyApprovalsTerms({
     const nextTerms = termsQuery.data;
     setTermId((current) => {
       if (nextTerms.some((term) => term.id === current)) return current;
-      return nextTerms[0]?.id ?? '';
+      return pickDefaultTermId(nextTerms, { newestLast: !isMockApiMode() });
     });
   }, [setTermId, termsQuery.data, termsQuery.isSuccess]);
 

@@ -41,7 +41,7 @@ export function useOrgReportAccess() {
     queryKey: DASHBOARD_QUERY.reportAccessMe(accessRole ?? 'none'),
     queryFn: () => ReportAccessService.getMyAccess(),
     enabled: accessRole !== null,
-    staleTime: 30_000,
+    staleTime: 0,
   });
 
   const grantedSlugs = useMemo((): readonly ReportSlug[] | null => {
