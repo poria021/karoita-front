@@ -4,7 +4,6 @@ import {
 import { DAILY_APPROVAL_PASSING_SCORE } from '@/features/karvita/daily-approvals/constants';
 import {
   buildDailyApprovalProgressiveGradeFromSummary,
-  computeHasSubmitted,
 } from '@/services/daily-approvals/daily-approval-derived';
 import { loadWeekConversationMessages } from '@/services/daily-approvals/real/real-daily-approvals-conversations';
 import { conversationsApi } from '@/services/conversations/real/conversations.api';
