@@ -5,6 +5,7 @@ import { isForbiddenError } from '@/services/api-error';
 import { useMemo } from 'react';
 
 import { useActiveCourseDefinitions } from '@/hooks/useActiveCourseDefinitions';
+import { isMockApiMode } from '@/lib/api-mode';
 import { DASHBOARD_QUERY } from '@/lib/dashboard-query-keys';
 import { QUERY_STALE_MS } from '@/lib/query-stale';
 import { kindForRole } from '@/services/internship-enrollment/enrollment-mappers';
@@ -84,31 +85,63 @@ export function useLearnerWorkbenchSnapshot(): LearnerWorkbenchSnapshot {
     [leaves]
   );
 
+  const mock = isMockApiMode();
   const kind = role ? kindForRole(role) : null;
   const overviewEnabled =
     Boolean(role && kind) &&
     definitions.status === 'ready' &&
     leafRefs.length > 0;
+  // mock: Nest واقعی در دسترس نیست (۴۰۱ کاربر را از نشست بیرون می‌اندازد)؛ سطوح مرتبط از فاسادِ mock می‌آید.
+  const realOverviewEnabled = overviewEnabled && !mock;
+  const userId = actor?.id ?? null;
+  const leafLevelsKey = leafRefs.map((leaf) => leaf.level).join(',');
 
   // هم‌کلید با سایدبار / خوش‌آمد — درخواست اضافه نمی‌زند.
   const openQuery = useQuery({
     queryKey: [...DASHBOARD_QUERY.internshipEnrollment, 'open-course-selection'],
     queryFn: () => studentEnrollmentsApi.getOpenCourseSelection(),
-    enabled: overviewEnabled,
+    enabled: realOverviewEnabled,
     staleTime: QUERY_STALE_MS.enrollment,
     retry: false,
   });
   const bySemesterQuery = useQuery({
     queryKey: [...DASHBOARD_QUERY.internshipEnrollment, 'by-semester'],
     queryFn: () => studentEnrollmentsApi.listBySemester(),
-    enabled: overviewEnabled,
+    enabled: realOverviewEnabled,
     staleTime: QUERY_STALE_MS.enrollment,
+    retry: false,
+  });
+  const mockAvailabilityQuery = useQuery({
+    queryKey: [
+      ...DASHBOARD_QUERY.internshipEnrollment,
+      'mock-workbench-levels',
+      userId,
+      kind,
+      leafLevelsKey,
+    ],
+    queryFn: async () => {
+      if (!userId || !kind) return { offered: [], enrolled: [] };
+      return InternshipEnrollmentService.getLeafAvailability({
+        userId,
+        kind,
+        levels: leafRefs.map((leaf) => leaf.level),
+      });
+    },
+    enabled: overviewEnabled && mock && Boolean(userId),
+    staleTime: QUERY_STALE_MS.module,
     retry: false,
   });
 
   const levels = useMemo<InternshipEnrollmentLevel[]>(() => {
     if (definitions.status !== 'ready' || !kind || leafRefs.length === 0) {
       return [];
+    }
+    if (mock) {
+      const data = mockAvailabilityQuery.data;
+      if (!data) return [];
+      return [...new Set<number>([...data.offered, ...data.enrolled])].sort(
+        (a, b) => a - b
+      );
     }
     if (openQuery.isPending || bySemesterQuery.isPending) return [];
 
@@ -128,14 +161,17 @@ export function useLearnerWorkbenchSnapshot(): LearnerWorkbenchSnapshot {
     definitions.status,
     kind,
     leafRefs,
+    mock,
+    mockAvailabilityQuery.data,
     openQuery.data,
     openQuery.isPending,
   ]);
 
   const overviewReady =
     definitions.status === 'ready' &&
-    !openQuery.isPending &&
-    !bySemesterQuery.isPending;
+    (mock
+      ? !mockAvailabilityQuery.isPending
+      : !openQuery.isPending && !bySemesterQuery.isPending);
   const enabled = Boolean(
     actor && actor.approved && overviewReady && levels.length > 0
   );
@@ -184,7 +220,10 @@ export function useLearnerWorkbenchSnapshot(): LearnerWorkbenchSnapshot {
   const isLoading =
     Boolean(actor?.approved) &&
     (definitions.status === 'loading' ||
-      (overviewEnabled && (openQuery.isPending || bySemesterQuery.isPending)) ||
+      (overviewEnabled &&
+        (mock
+          ? mockAvailabilityQuery.isPending
+          : openQuery.isPending || bySemesterQuery.isPending)) ||
       (enabled &&
         snapshots.length === 0 &&
         queries.some((query) => query.isPending || query.isFetching)));
