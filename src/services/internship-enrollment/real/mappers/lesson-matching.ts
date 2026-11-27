@@ -301,3 +301,32 @@ export function findConflictLessonInSemester(
     }) ?? null
   );
 }
+
+/**
+ * درس هم‌گروه (هم‌`mainTitle`) که دانشجو در همین ترم در آن ثبت‌نام فعال دارد.
+ * برای S6 وقتی بک‌اند `blockReason: 'main_title_in_progress'` می‌دهد ولی تطبیق
+ * کاتالوگ سمت فرانت (`siblingLeaves`) چیزی پیدا نکرده. `by-semester` فیلد
+ * `mainTitle` ندارد، پس `mainTitle` از ردیف‌های `open-course-selection` (هم‌id) می‌آید.
+ */
+export function findActiveLessonSharingMainTitle(
+  semester: NestSemesterEnrolmentsByTerm | undefined,
+  openLessons: readonly { id?: string; _id?: string; mainTitle?: string | null }[],
+  currentLessonId: string | null,
+  mainTitle: string | null | undefined
+): NestSemesterLessonWithEnrolment | null {
+  const wanted = (mainTitle ?? '').trim();
+  if (!semester || !wanted) return null;
+  const mainTitleById = new Map<string, string>();
+  for (const lesson of openLessons) {
+    const id = nestEntityId(lesson);
+    if (id) mainTitleById.set(id, (lesson.mainTitle ?? '').trim());
+  }
+  return (
+    (semester.lessons ?? []).find((lesson) => {
+      const status = lesson.enrolment?.status;
+      if (!lesson.enrolment || (status && status !== 'active')) return false;
+      if (!lesson.id || lesson.id === currentLessonId) return false;
+      return mainTitleById.get(lesson.id) === wanted;
+    }) ?? null
+  );
+}

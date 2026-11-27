@@ -233,6 +233,93 @@ describe('real enrollment mappers', () => {
     expect(state.scenario).toBe('S2_enroll_closed');
   });
 
+  it('maps S6 (not S2) when the backend blocks with main_title_in_progress and the sibling is enrolled in this term', () => {
+    const parsed = parseOpenCourseSelection({
+      ...OPEN,
+      lessons: [
+        {
+          ...OPEN.lessons[0],
+          mainTitle: 'کارورزی',
+          canSelect: false,
+          blockReason: 'main_title_in_progress',
+        },
+        { ...OPEN.lessons[1], mainTitle: 'کارورزی', canSelect: false, blockReason: 'in_progress' },
+      ],
+    });
+    const semesters: NestSemesterEnrolmentsByTerm[] = [
+      {
+        ...SEMESTERS_EMPTY[0],
+        lessons: [
+          SEMESTERS_EMPTY[0].lessons[0],
+          {
+            ...SEMESTERS_EMPTY[0].lessons[1],
+            enrolment: {
+              id: 'enr-2',
+              lessonId: OPEN.lessons[1].id,
+              semesterId: OPEN.id,
+              professorId: 'p1',
+              status: 'active',
+            },
+          },
+        ],
+      },
+    ];
+    // بدون `siblingLeaves` — تطبیق کاتالوگ فرانت چیزی پیدا نمی‌کند، فقط `blockReason` هست.
+    const state = toEnrollmentPageState(
+      { actor: student, level: 1 },
+      parsed,
+      semesters
+    );
+    expect(state.scenario).toBe('S6_already_enrolled_elsewhere');
+    expect(state.conflictEnrollment).toEqual({ level: 2, courseTitle: 'کارورزی ۲' });
+  });
+
+  it('maps S6 without a conflict course when main_title_in_progress has no matching enrolment row', () => {
+    const parsed = parseOpenCourseSelection({
+      ...OPEN,
+      lessons: [
+        {
+          ...OPEN.lessons[0],
+          mainTitle: 'کارورزی',
+          canSelect: false,
+          blockReason: 'main_title_in_progress',
+        },
+        OPEN.lessons[1],
+      ],
+    });
+    const state = toEnrollmentPageState(
+      { actor: student, level: 1 },
+      parsed,
+      SEMESTERS_EMPTY
+    );
+    expect(state.scenario).toBe('S6_already_enrolled_elsewhere');
+    expect(state.conflictEnrollment).toBeNull();
+  });
+
+  it('keeps S2 for a skill learner even when main_title_in_progress is sent (the sibling restriction is student-only)', () => {
+    // مهارت‌آموز به درس‌های «کارآموزی» وصل است (نه «کارورزی»).
+    const parsed = parseOpenCourseSelection({
+      ...OPEN,
+      lessons: [
+        {
+          ...OPEN.lessons[0],
+          title: 'کارآموزی ۱',
+          mainTitle: 'کارآموزی',
+          canSelect: false,
+          blockReason: 'main_title_in_progress',
+        },
+        { ...OPEN.lessons[1], title: 'کارآموزی ۲' },
+      ],
+    });
+    const state = toEnrollmentPageState(
+      { actor: { ...student, role: 'skill_learner' }, level: 1 },
+      parsed,
+      SEMESTERS_EMPTY
+    );
+    expect(state.scenario).toBe('S2_enroll_closed');
+    expect(state.conflictEnrollment).toBeNull();
+  });
+
   it('maps S3 when the offered lesson has status true but the student has no enrollment', () => {
     const parsed = parseOpenCourseSelection({
       ...OPEN,
