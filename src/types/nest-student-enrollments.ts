@@ -18,6 +18,8 @@ import type {
 export type NestOpenCourseSelectionLesson = NestLesson & {
   /** false یعنی این دانشجو/کارآموز فعلاً حق انتخاب این درس را ندارد. */
   canSelect?: boolean;
+  /** عنوان اصلی گروه کاتالوگ؛ درس‌های هم‌گروه همین مقدار را دارند (بک‌اند با آن تعارض را می‌سنجد). */
+  mainTitle?: string | null;
   /**
    * علت غیرقابل‌انتخاب بودن وقتی `canSelect === false`. طبق Swagger زندهٔ
    * بک‌اند (`OpenCourseSelectionLessonDto.blockReason`, تأیید ۱۴۰۵/۰۶/۲۷)

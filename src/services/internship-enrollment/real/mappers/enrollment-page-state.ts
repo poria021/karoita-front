@@ -27,6 +27,7 @@ import type {
 
 import { firstOf } from './primitives';
 import {
+  findActiveLessonSharingMainTitle,
   findConflictLessonInSemester,
   findEnrolmentHistoryForLeaf,
   findLessonForLeaf,
@@ -246,7 +247,27 @@ export function toEnrollmentPageState(
       : true
     : false;
 
-  const scenario = conflictLesson
+  // بک‌اند صریحاً می‌گوید درس هم‌گروه (هم‌`mainTitle`) در حال گذراندن است؛ حتی اگر
+  // تطبیق کاتالوگ سمت فرانت (`siblingLeaves`) آن را پیدا نکند، دلیل واقعی «انتخاب واحد
+  // در درس دیگر» است نه «بسته بودن مهلت» (S2). مثل S6 بالا فقط برای دانشجو؛
+  // مهارت‌آموز از این محدودیت مستثناست.
+  const blockedByMainTitleInProgress =
+    input.actor.role === 'student' &&
+    !registered &&
+    !conflictLesson &&
+    current?.canSelect === false &&
+    current.blockReason === 'main_title_in_progress';
+  const mainTitleConflictLesson = blockedByMainTitleInProgress
+    ? findActiveLessonSharingMainTitle(
+        openSemesterEntry,
+        openLessons,
+        currentLessonId,
+        current?.mainTitle
+      )
+    : null;
+  const conflictingLesson = conflictLesson ?? mainTitleConflictLesson;
+
+  const scenario = conflictingLesson || blockedByMainTitleInProgress
     ? 'S6_already_enrolled_elsewhere'
     : resolveEnrollmentScenario({
         syllabusConfigured: registered || Boolean(current),
@@ -318,10 +339,10 @@ export function toEnrollmentPageState(
             ...resolveDroppedInOpenTerm(openSemesterEntry, kind, leafRef),
           }
         : null,
-    conflictEnrollment: conflictLesson
+    conflictEnrollment: conflictingLesson
       ? {
-          level: lessonLevelFromTitle(nestLessonTitle(conflictLesson)),
-          courseTitle: nestLessonTitle(conflictLesson),
+          level: lessonLevelFromTitle(nestLessonTitle(conflictingLesson)),
+          courseTitle: nestLessonTitle(conflictingLesson),
         }
       : null,
   };
